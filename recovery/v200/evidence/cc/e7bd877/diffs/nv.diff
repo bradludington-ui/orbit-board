@@ -1,0 +1,141 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index ddda85e..4f58acc 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -1738,7 +1738,8 @@ result for it was run fresh against these commits.
+     write's question and its line afterwards count that requirement among those overwritten; with an object, the
+     question, Go to it, the requirement's row and the Requirements matrix work where they threw.
+   - **Test:** audit-recon "v2.00 (U56/U57) — a saved SI value that is not text counts as an answer a bulk write
+-    overwrites, and Go to it opens its field" (17 checks; Codex's block, after U41's). The fixture: O&M, USAF / STOVL /
++    overwrites, and Go to it opens its field" (17 checks; Codex's block, after U41's; U58/U59 added two controls, now 19
++    checks, 11 controls). The fixture: O&M, USAF / STOVL /
+     USMC-C / USN; A, an LM prime, holding the value [101, 0, 203, 307]; B none by hand [0, 0, 409, 503]; C EN
+     [0, 0, 0, 601]; every ask funded. For [], ["AT"] and [null]: the question [3, 1, 0, 2] and the line after the write (2
+     overwritten), with two controls each (the file keeps the value exactly and A reads no code; after the write, saved and
+@@ -1756,11 +1757,12 @@ result for it was run fresh against these commits.
+     for a list (probe P1 saw "AT" and "" before the change, the label after). The question's own words in its confirm box
+     are built from the same counts and are not read by the test. Row selection and the Requirements matrix with an object
+     were seen in a probe, not a suite check. jsdom only; no browser was run.
+-    The money review (round 1) found three places outside these two that still read such a value as text: after a
+-    list holding an object is repaired, the change journal cannot be drawn (its Put back is out of reach until the entry
+-    leaves the newest 300; nothing is lost); the journal's "Was" cell reads a saved list by its contents ("AT" for
+-    ["AT"], blank for []); and the PMO submittal review, in its panel and in its exported review workbook, shows "AT"
+-    for a saved ["AT"] and "" for [null] in "On the board now", and throws for an object. Ledger U58 and U59.
++    The money review (round 1) found three places outside these two that read such a value as text: after a list
++    holding an object was repaired, the change journal could not be drawn; its "Was" cell read a saved list by its
++    contents ("AT" for ["AT"], blank for []); and the PMO submittal review, in its panel and in its exported review
++    workbook, showed "AT" for a saved ["AT"] and "" for [null] in "On the board now", and threw for an object. All three
++    are fixed below (U58 and U59), with a fourth of the same kind that U58's reviews found: a saved object with its own
++    "_b" key, which the journal took for its size mark.
+ - **U18 — a copy saved while a folder save is under way is never written over** (the lead's decision on 12 Oct, under
+   Brad's "Don't wait for me. Let's keep pressing throughout to get this next version published.", about 5:30 PM ET). The
+   folder save read the folder's copy once, at its start, and then wrote over whatever was there by the time it wrote. Bob
+@@ -1868,6 +1870,97 @@ result for it was run fresh against these commits.
+     review; ledger U60). And three of the refusal's every-stop lines are checked only when another copy landed:
+     browser storage kept again ((8b)), a locked view's copy put back ((11a)-(11c)) and the hold said ((14)); three wrong
+     forms that keep one of them to the clash alone pass the block (the round-5 tests review).
++- **U58 and U59 — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its
++  JSON** (the money review of U56/U57, round 1, 18 Oct, should-fixes S1–S3, with the tests review's should-fix; ledger U58
++  and U59; this track's own reviews, round 1, found one more value of the same kind and asked for words and checks, all
++  taken. Not a release blocker: it joins v2.00 only if both reviews are clean by 8 PM ET on 18 Oct, Brad's cut). U56/U57
++  stopped two of the places that read an SI code U41 keeps as saved from putting it through String(). Two more did the
++  same. The change journal's Was and Became cells joined a list's items into text: after AT was chosen for a requirement
++  holding ["AT"], its line read "Was AT, Became AT", beside the bulk write's line saying 2 were overwritten; [] and [null]
++  read as nothing, a saved 7 as the money "$7" and true as "yes". A list holding an object without a usable toString,
++  [{"toString":null}] (valid JSON), could not be drawn at all: once Go to it or the bulk write had repaired it (U56/U57
++  made that possible), opening the journal threw "Cannot convert object to primitive value", every redraw while it was
++  open threw, so the panels drawn after it were not redrawn, and its ↶ Put back was out of reach until the entry left the
++  newest 300. A saved object with its own "_b" key, such as {"_b":{"toString":null}}, did the same, because the journal
++  took it for its own size mark (the mark it writes for a value too long to keep) and turned its "_b" into text; and
++  {"_b":5} read "5 characters". Nothing was lost; the entries stayed in the file. And the PMO submittal review printed
++  "On the board now" through String(), in its panel and in its exported review workbook: "AT" for a saved ["AT"], where
++  the board holds no recognized code, "" for [null], 7 for 7 and "[object Object]" for an object; a saved
++  {"toString":null} made the whole review panel and the review workbook throw, so no change in any held submittal could
++  be reviewed or exported while that row existed. Now the journal shows such a value as Needs attention lists it
++  (“["AT"]”, “[]”, “7”, “true”, “[{"toString":null}]”, “{"_b":{"toString":null}}”, “{"_b":5}”), before its size mark,
++  which it takes for any object whose "_b" is a number over 300, the only mark it writes. The review prints such a value by its whole
++  JSON in the same quotes (“["AT"]”, “[null]”, “7”, “{"toString":null}”): the review workbook prints it whole, as it
++  prints text, and the review panel shows its first 300 characters, as it does for every field (a cut at Needs
++  attention's 60 characters would split an emoji into a replacement mark in the workbook). Text, a recognized code or any
++  other, reads exactly as before. No dollar moves: neither place feeds a figure. Before and after a bulk write, the
++  workbook, the CR cash return and the funds-flow export are the same cell for cell as on the board before the change, and
++  the review workbook differs only in that cell (probe P2, scaled fixture: AT holds USMC CV $612,000 and USN $1,411,000
++  after the write, $2,023,000 in all).
++  - **What users may see:** only with a file ORBIT did not write holding a list, an object, a number or true/false as an SI
++    code. The change journal's Was and Became cells show it in quotes as Needs attention lists it (a saved 7 no longer reads
++    as $7, true no longer as yes); with a list holding {"toString":null}, or an object of its own with a "_b" key, the
++    journal opens after the repair, and for the list its ↶ Put back brings the list back. The submittal review and its
++    workbook show it in quotes; with {"toString":null} they open and export where they threw.
++  - **Test:** audit-recon "v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is
++    not text as saved, by its JSON" (29 checks, 7 controls), after U56/U57's block, on its fixture (A, an LM prime, holding
++    the value [101, 0, 203, 307]; B none by hand [0, 0, 409, 503]; C EN [0, 0, 0, 601]), the journal and the review read
++    as drawn and the review workbook from its bytes. The journal: ["AT"] with AT chosen in A's field (Was “["AT"]”,
++    Became AT, and the file's own line Became “["AT"]”), ↶ Put back on it (CONTROL: ["AT"] back exactly; its own line
++    Was AT, Became “["AT"]”); [] after the bulk write (Was “[]”; CONTROL: C's Was EN); a saved 7 (Was “7”, never $7), true
++    (“true”, never yes), {"toString":null} in the same quotes, and a list holding markup (read as text); [{"toString":null}]
++    with AT chosen in the field (the journal opens and reads it, a redraw with it open works, its ↶ Put back brings the list
++    back exactly, and the bulk write after that reads it the same way); {"_b":{"toString":null}} (the journal opens and
++    reads it, and a redraw works) and {"_b":5} (“{"_b":5}”, never 5 characters); CONTROL: a list whose JSON is 324
++    characters reads as the journal's size mark, "324 characters", with no Put back, as for every field. The review, a
++    held submittal from AV proposing EN for A: “["AT"]”, “[null]” and “{"toString":null}” in "On the board now", in the
++    panel and in the workbook, “7” in the panel, a list longer than 60 characters with an emoji where the label cuts
++    printed whole in the workbook, and one of 129 characters printed whole in the panel and the workbook. Controls also: a
++    plain 'other' in the review and the journal and a recognized 'LA' in the review (LA — Airframe), as before; and the
++    review applies nothing (the value and every service's dollars as before). Every expected value is typed. On `eef8874`
++    the 22 non-control checks fail (Was AT, blank, $7, yes, the object without quotes, the markup list's contents and
++    "5 characters"; the journal throws for the list holding {"toString":null} and for {"_b":{"toString":null}} and offers
++    no Put back; the review reads AT, blank, 7 and the long lists' contents, and throws for the object) and the 7 controls
++    pass; on the commit all 29 pass. On this track's
++    round 1 (the rule after the size mark) the two "_b" checks fail, and on its tests reviewer's prototype (any number
++    taken for the size mark) the {"_b":5} check fails. Two controls added to U56/U57's block (now 19 checks, 11 controls),
++    from the tests review and the money review (m4): a saved bare null is an answer the write overwrites ([3, 1, 0, 2]),
++    and the kept choice chosen again writes nothing over [] or ["AT"]; both pass on `eef8874` and on the commit, and the
++    second fails on `254f29c` (its value was "" and "AT" there, which setSi wrote over the list). The U41 block 42/42 and
++    the U56/U57 block's 17 checks as committed pass before and after.
++  - **Mutations:** the journal: `v200-u58-journal-joins-list` (its rule taken out: 13 checks fail), `-journal-became-unread`
++    (only the Was cell read as saved: 13), `-journal-own-b-as-size` (the rule after the size mark again: 2, the two "_b"
++    checks), `-journal-size-as-value` (the journal's own size mark read as a value, “{"_b":324}”: 1, the control),
++    `-journal-any-number-mark` (any number taken for the size mark: 1, {"_b":5}), `-journal-unescaped` (drawn without
++    esc(), markup drawn as markup: 1) and `-journal-lists-numbers-only` (the rule for lists and numbers only: 4); the review:
++    `v200-u59-review-raw-string` (back to String(): 9), `-review-cut-label` (through Needs attention's 60-character label:
++    2, the long lists), `-review-objects-only` (JSON for objects only, 7 reads 7: 1) and `-review-cut-120` (cut at 120
++    characters: 1); for U56/U57's block, the tests review's two plausible wrong getters `v200-u56-getter-loose-null`
++    (r!=null) and `-getter-falsy-blank` (a falsy value that is not text read as no answer), 1 check each (the null
++    control), and `v200-u57-option-value-blank` (the kept choice's value "" for a value that is not text: 1, the kept
++    choice chosen again). Each is caught by the focused harness of the U41, U56/U57 and U58/U59 blocks (90 checks), and
++    none of them fails a U41 check. The 20 `v200-u41-*` mutants, `v200-u56-bulk-raw-string` and
++    `v200-u57-record-raw-string` are still caught, and so is `v200-jrnlshow-raw` (audit-inject), whose size-mark line is
++    unchanged.
++  - **Not covered:** the review reads the board's value through `pmoVal`, which takes an empty value for none in every
++    field, so a saved [], {}, false or bare null reads "—" in "On the board now", not as Needs attention lists it (not
++    changed: it decides what the review compares and proposes). The review panel cuts every field at 300 characters with no
++    mark; the quotes and brackets make such a value a few characters longer than String() did, so a value that showed
++    whole may now be cut, and a cut through an emoji leaves half of it. In the review workbook a value whose JSON is longer
++    than 32,767 characters is one cell longer than Excel holds, and a U+FFFE or U+FFFF inside an object's JSON is written
++    into the file as it is, as for text before (not opened in Excel). In the review the text '“["AT"]”' and the list
++    ["AT"] read the same (Needs attention tells them apart). The journal records a value that was absent and a saved bare
++    null alike, so a saved null reads "not set", and Put back of a write over it (the bulk write, a field choice or a PMO
++    apply) deletes the key and the requirement reads its derived code again, its money with it (the money review's m3;
++    not changed, still open). A value whose JSON is longer than 300 characters is recorded as its size and cannot be put
++    back, and a saved object whose own "_b" key is set cannot be put back either (the journal refuses it as it refuses its
++    own size mark), as for every field; such an object whose "_b" is a number over 300 still reads as a size mark. In the journal a value
++    whose JSON is longer than 60 characters is cut there, as Needs attention cuts it (`inShow`), and a cut through an
++    emoji leaves half of it on screen, as Needs attention's own label does (U41); a line for the whole SI map of a year
++    keeps its old words (no check reads it). The journal still calls the field "sustainment indicator" (the money
++    review's m5), and its other fields still join a list's items: a requirement's first WBS line reads "[object Object]"
++    in Became, and a note a file carried as a list holding {"toString":null}, once typed over, leaves the journal unable
++    to be drawn (probe P4; not SI, not changed). jsdom only; no browser was run.
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
+@@ -1956,6 +2049,10 @@ result for it was run fresh against these commits.
+       counted under no recognized code, never the derived one, and chosen again in the Navy SI code field. **U56 and U57
+       (Codex's C1b) are fixed above** in one commit (Codex's C5): a saved value that is not text, such as [] or
+       {"toString":null}, is counted in a bulk write's question as an answer it overwrites, and Go to it opens its field.
++      **U58 and U59 (the money review of U56/U57) are fixed above** in one commit: the change journal and the PMO
++      submittal review, in its panel and its workbook, show such a value as saved, by its JSON, and draw where they threw.
++      Still open from that review: Put back of a write over a saved bare null deletes the key (the journal records the
++      null as "not set"), so the requirement reads its derived code again.
+     - **U42: the sheet name fixed above** (its own commit): a funds-flow sheet name no longer ends in half an emoji or
+       begins or ends with an apostrophe. Still open: the slide deck's 56-unit cut of a requirement title can split an emoji
+       the same way (a replacement mark in the slide).

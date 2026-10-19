@@ -1,0 +1,18 @@
+# verdicts.tsv : suite <TAB> last-line regex <TAB> line-before regex (optional). The ONE table of completion verdicts, read by
+# final-tree-v5.sh (every baseline gate) and runner-selftest.sh (G18 replays each suite's real passing output against it).
+# Each is matched by gate.sh as a WHOLE line against the last (and the line before the last) non-empty line the suite printed.
+# verify-grid is an && chain of npm scripts with no single verdict line: --exit-only.
+check	all checks passed	
+audit-import	ALL CHECKS PASSED	
+audit-board	ALL CHECKS PASSED	
+audit-hostile	ALL CHECKS PASSED	
+audit-ppt	ALL CHECKS PASSED	
+legacy-fsrc	  every legacy Force setting computes exactly as before	
+boot-same	every page, source, save and error list is identical either way	
+audit-recon	ALL CHECKS PASSED	
+audit-inject	={96}	ALL CHECKS PASSED
+audit-other	ALL CHECKS PASSED	
+audit	ALL CHECKS PASSED	
+audit-ui	ALL CHECKS PASSED	
+standards	These are DEBT, not a pass\. They are printed every run until they are closed\.	CONFORMANCE HOLDS AGAINST THE BASELINE — [0-9]+ known finding\(s\), [0-9]+ instance\(s\), nothing new
+verify-grid	--exit-only	

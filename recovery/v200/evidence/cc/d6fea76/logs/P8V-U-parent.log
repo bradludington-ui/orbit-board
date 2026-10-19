@@ -1,0 +1,30 @@
+# label: P8V-U-parent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/probe/p8v.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/before U
+# start: 2026-10-18 18:42:03 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/before/prioritization-board-grid.html","board":"ed93d151d2a4b1fde1a880ff66d02e5f67d8fabc","probe":"a1b98a42a39d7f17ae8e52bec42f1fe63d7c55a1","started":"10/18/2026, 6:42:04 PM ET","CASE":"U"}
+PASS U delete · the own board takes its file whole (no alert)
+PASS U delete · 🔓 Unlock PB27: its question says unlocking lets it be overwritten or deleted; unlocked
+PASS U delete · the saved file's PB27 is unlocked and holds [K1, K1]
+FAIL U delete · its saved file → FRESH · Import one appropriation: the whole alert, storage unchanged
+     got  [[],["prio27om","prio27om-cyc"]]
+     want [["“my board (saved).html” was not imported: the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn holds the key “K1” twice (rcn[0] and rcn[1]); a key names one combination.\n\nAn RCN / EEIC list names each combination once, by a text key of its own. This file says ORBIT v2.00 saved it, from a board that held such a list. A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards refuse every file that carries that cycle. The file itself opens as a board. A whole board of your own comes across with its lists as they are by 📁 File → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution data with the file’s, when it carries them, so it is not the way to take one appropriation. Nothing on this board was changed."],[]]
+PASS U delete · 🗑 Delete PB27 on that board: asked; gone
+OBS  U delete · its saved file written again → FRESH · Import one appropriation: alerts / storage moved = {"al":[],"qs":["Import the published state from \"my board (saved).html\""],"moved":["prio27om"]}
+PASS U delete · its saved file written again is TAKEN by Import one appropriation (the cycle the refusal said no board changes was deleted on the board)
+PASS U relock · the own board takes its file whole (no alert)
+PASS U relock · 🔓 Unlock PB27: its question says unlocking lets it be overwritten or deleted; unlocked
+PASS U relock · the saved file's PB27 is unlocked and holds [K1, K1]
+FAIL U relock · its saved file → FRESH · Import one appropriation: the whole alert, storage unchanged
+     got  [[],["prio27om","prio27om-cyc"]]
+     want [["“my board (saved).html” was not imported: the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn holds the key “K1” twice (rcn[0] and rcn[1]); a key names one combination.\n\nAn RCN / EEIC list names each combination once, by a text key of its own. This file says ORBIT v2.00 saved it, from a board that held such a list. A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards refuse every file that carries that cycle. The file itself opens as a board. A whole board of your own comes across with its lists as they are by 📁 File → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution data with the file’s, when it carries them, so it is not the way to take one appropriation. Nothing on this board was changed."],[]]
+OBS  U relock · 🔒 Lock PB27 over the unlocked one: the question = ["Lock the FYDP window as PB27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.\n\nThis replaces the existing PB27 cycle.\n\nThe working board is not changed."]
+PASS U relock · 🔒 Lock PB27 over the unlocked one: replaced, locked, its list now [K1]
+PASS U relock · PB27 replaced (bytes)
+OBS  U relock · its saved file written again → FRESH · Import one appropriation: alerts / storage moved = {"al":[],"qs":["Import the published state from \"my board (saved).html\""],"moved":["prio27om","prio27om-cyc"]}
+PASS U relock · its saved file written again is TAKEN by Import one appropriation (the cycle the refusal said no board changes was replaced on the board)
+
+2 FAILING of 13 (p8v U) at 10/18/2026, 6:42:28 PM ET
+
+# end: 2026-10-18 18:42:28 EDT  exit: 1  wall_s: 25.0

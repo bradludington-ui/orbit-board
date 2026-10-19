@@ -1,0 +1,21 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone/prioritization-board-grid.html node tools/roundtrip-fuzz.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:36:09Z / 07:36:09 EDT
+# cap: 1200s  grace: 10s
+ROUND-TRIP FUZZ — seed 398037213, 3 round(s), board prioritization-board-grid.html
+====================================================================================================
+replay any failure with:  node tools/roundtrip-fuzz.mjs --seed 398037213
+the board writes 53 state container(s); 1 excused by name; yearCopy carries 35
+
+  round 1: 11 requirements, 6 trip(s) driven   clean
+  round 2: 11 requirements, 6 trip(s) driven   clean
+  round 3: 8 requirements, 6 trip(s) driven   clean
+
+====================================================================================================
+NOTHING WAS LOST — 3 randomized board(s) survived every round trip intact
+seed 398037213
+
+# end: 2026-10-19T11:36:19Z / 07:36:19 EDT
+# exit: 0  duration_s: 10.3

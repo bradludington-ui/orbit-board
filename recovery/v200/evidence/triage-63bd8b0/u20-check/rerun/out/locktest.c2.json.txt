@@ -1,0 +1,395 @@
+{
+ "IDS": {
+  "locktest": "bb670f12cb5da6612727244253b85c5c53901d09",
+  "mock": "cee3b4700fad43ddd1d2e01f062f7d4d89a0d011",
+  "started": "10/12/2026, 11:48:02 AM ET"
+ },
+ "results": [
+  {
+   "id": "T1",
+   "what": "callback not called inside request()",
+   "got": false,
+   "want": false,
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "first: A runs, A holds, B C A pending in order",
+   "got": [
+    [
+     "A"
+    ],
+    [
+     "A"
+    ],
+    [
+     "B",
+     "C",
+     "A"
+    ]
+   ],
+   "want": [
+    [
+     "A"
+    ],
+    [
+     "A"
+    ],
+    [
+     "B",
+     "C",
+     "A"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "B is not run while A holds (50 turns)",
+   "got": [
+    [
+     "A"
+    ],
+    [
+     "A"
+    ]
+   ],
+   "want": [
+    [
+     "A"
+    ],
+    [
+     "A"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "A resolves with its callback’s value",
+   "got": "A:1",
+   "want": "A:1",
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "after A releases: B runs and holds; C, A pending",
+   "got": [
+    [
+     "A",
+     "B"
+    ],
+    [
+     "B"
+    ],
+    [
+     "C",
+     "A"
+    ]
+   ],
+   "want": [
+    [
+     "A",
+     "B"
+    ],
+    [
+     "B"
+    ],
+    [
+     "C",
+     "A"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "grant order and results",
+   "got": [
+    [
+     "A",
+     "B",
+     "C",
+     "A2"
+    ],
+    [
+     "B:2",
+     "C:3",
+     "A2:4"
+    ]
+   ],
+   "want": [
+    [
+     "A",
+     "B",
+     "C",
+     "A2"
+    ],
+    [
+     "B:2",
+     "C:3",
+     "A2:4"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "never two inside; no violation; most held at once",
+   "got": [
+    1,
+    0,
+    1
+   ],
+   "want": [
+    1,
+    0,
+    1
+   ],
+   "pass": true
+  },
+  {
+   "id": "T1",
+   "what": "promise of the requesting window’s realm",
+   "got": true,
+   "want": true,
+   "pass": true
+  },
+  {
+   "id": "T2",
+   "what": "rejection and throw reject request(); a value resolves it; each released",
+   "got": [
+    [
+     [
+      "err",
+      "rejected"
+     ],
+     [
+      "err",
+      "thrown"
+     ],
+     [
+      "ok",
+      7
+     ]
+    ],
+    [],
+    3
+   ],
+   "want": [
+    [
+     [
+      "err",
+      "rejected"
+     ],
+     [
+      "err",
+      "thrown"
+     ],
+     [
+      "ok",
+      7
+     ]
+    ],
+    [],
+    3
+   ],
+   "pass": true
+  },
+  {
+   "id": "T4",
+   "what": "A’s promise settles after its release (B already granted then)",
+   "got": "A settled, held by [\"B\"]",
+   "want": "A settled, held by [\"B\"]",
+   "pass": true
+  },
+  {
+   "id": "T5",
+   "what": "M granted while L held",
+   "got": true,
+   "want": true,
+   "pass": true
+  },
+  {
+   "id": "T6",
+   "what": "ifAvailable: [while held, queued, when free]",
+   "got": [
+    "null",
+    0,
+    "L/exclusive"
+   ],
+   "want": [
+    "null",
+    0,
+    "L/exclusive"
+   ],
+   "pass": true
+  },
+  {
+   "id": "T7",
+   "what": "shared A B together; X then S wait",
+   "got": [
+    [
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "B"
+    ],
+    [
+     "C",
+     "A"
+    ]
+   ],
+   "want": [
+    [
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "B"
+    ],
+    [
+     "C",
+     "A"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T7",
+   "what": "X alone; S still waits",
+   "got": [
+    [
+     "A",
+     "B",
+     "X"
+    ],
+    [
+     "C"
+    ]
+   ],
+   "want": [
+    [
+     "A",
+     "B",
+     "X"
+    ],
+    [
+     "C"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T7",
+   "what": "then S; no violation",
+   "got": [
+    [
+     "A",
+     "B",
+     "X",
+     "S"
+    ],
+    0
+   ],
+   "want": [
+    [
+     "A",
+     "B",
+     "X",
+     "S"
+    ],
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "T8",
+   "what": "query: held A; pending B, C",
+   "got": [
+    [
+     "A"
+    ],
+    [
+     "B",
+     "C"
+    ]
+   ],
+   "want": [
+    [
+     "A"
+    ],
+    [
+     "B",
+     "C"
+    ]
+   ],
+   "pass": true
+  },
+  {
+   "id": "T8",
+   "what": "after B and A close: C granted; one dropped",
+   "got": [
+    "c",
+    true,
+    1
+   ],
+   "want": [
+    "c",
+    true,
+    1
+   ],
+   "pass": true
+  },
+  {
+   "id": "T9",
+   "what": "steal, signal, -name, no callback, bad mode: each rejected; unmodeled counted",
+   "got": [
+    [
+     "rejected",
+     "rejected",
+     "rejected",
+     "rejected",
+     "rejected"
+    ],
+    2
+   ],
+   "want": [
+    [
+     "rejected",
+     "rejected",
+     "rejected",
+     "rejected",
+     "rejected"
+    ],
+    2
+   ],
+   "pass": true
+  },
+  {
+   "id": "T10",
+   "what": "[finished, FIFO = request order, most inside at once, violations, settled]",
+   "got": [
+    true,
+    true,
+    1,
+    0,
+    300
+   ],
+   "want": [
+    true,
+    true,
+    1,
+    0,
+    300
+   ],
+   "pass": true
+  }
+ ],
+ "pass": 19,
+ "fail": 0,
+ "finished": "10/12/2026, 11:48:03 AM ET"
+}

@@ -1,0 +1,268 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/grand/board.html","BOARD_set":true,"board":"98eed7e801af20270f755eadffb2fa72355c30e5","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/h/focused-u1-u14.mjs","harnessBlob":"9f45b969dea146568a7d57eb782bb1d16718c30a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:49:44 PM ET"}
+
+================================================================================================
+91 FAILING CHECK(S)
+
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · year availability
+    FY26 is offered beside FY25 and the window, unmarked: O&M execution is counted in it
+        got [[2025,2027,2028,2029,2030,2031],["FY25","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"]]   want [[2025,2026,2027,2028,2029,2030,2031],["FY25","FY26","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS
+    ALL YEARS = 40 + 100 + 20 + 350 + 150 = $660M: $160M executed, $500M planned; O&M 640, Initial Spares 20
+        got {"sel":[2025,2027,2028,2029,2030,2031],"t":[540000000,40000000,500000000],"appn":{"om":540000000,"ff":0,"sp":0,"opn":0},"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}   want {"sel":[2025,2026,2027,2028,2029,2030,2031],"t":[660000000,160000000,500000000],"appn":{"om":640000000,"ff":0,"sp":20000000,"opn":0},"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · the panel
+    total funding $660.00M; the planned-and-executed box names FY26 and says $160.00M executed, $500.00M planned
+        got ["540.00",false,false]   want ["660.00",true,true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · the export
+    TOTAL FUNDING 660000000 twice, US SERVICE FUNDING 660000000, US service appropriations twice; O&M 640000000, FULL FUND 0, INITIAL SPARES 20000000, OPN 0
+        got ["ok",[540000000,540000000],[540000000],[540000000,540000000],[[540000000],[0],[0],[0]]]   want ["ok",[660000000,660000000],[660000000],[660000000,660000000],[[640000000],[0],[20000000],[0]]]
+    the years-added NOTE lists FY2026, and the planned-and-executed NOTE names it
+        got [false,false]   want [true,true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ownership
+    each carried row is counted once, in FY26, on its own appropriation, service, office and amount — in the calculation and the export detail
+        got [[],[]]   want [[["Carried Spares","sp",2026,"USAF","Program (ATL)",20000000,false],["Carried Support","om",2026,"USAF","Program (PSM)",100000000,false]],[["Carried Spares","Event Carried Spares","INITIAL SPARES","ATL","USAF",20000000,"OBLIGATED"],["Carried Support","Event Carried Support","O&M","PSM","USAF",100000000,"OBLIGATED"]]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · each year alone
+    the offered years one at a time: 40 + 120 + 500 + 0 + 0 + 0 + 0 = $660M, each carried dollar in FY26 only
+        got [40000000,540000000,500000000,0,0,0,0]   want [40000000,120000000,500000000,0,0,0,0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · O&M
+    O&M alone = 40 + 100 + 350 + 150 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · saved FY26 only, reopened
+    the selection stays FY26 (never silently all years): 100 + 20 = $120M executed, the carried OBBBA named
+        got {"saved":[2026],"sel":[2025,2027,2028,2029,2030,2031],"t":[540000000,40000000,500000000],"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}   want {"saved":[2026],"sel":[2026],"t":[120000000,120000000,0],"label":"FY26 · all appropriations · + OBBBA FY25"}
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · saved FY26 only, reopened · the export
+    the same scope, TOTAL FUNDING 120000000 twice, INITIAL SPARES 20000000, and the OBBBA NOTE with the amount
+        got ["ok","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",[540000000,540000000],[0],false]   want ["ok","Scope: FY26 · all appropriations · + OBBBA FY25",[120000000,120000000],[20000000],true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A2 · ALL YEARS
+    every FY25 row carried: FY25 offered (marked plan), FY26 offered; 100 + 20 + 350 + 150 = $620M, $120M executed; O&M 600, Initial Spares 20
+        got [["FY25 · plan","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"],[500000000,0,500000000],{"om":500000000,"ff":0,"sp":0,"opn":0}]   want [["FY25 · plan","FY26","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"],[620000000,120000000,500000000],{"om":600000000,"ff":0,"sp":20000000,"opn":0}]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A2P · ALL YEARS
+    FY25 reads its plan (every FY25 row counts in FY26): 100 + 20 + 30 + 15 + 350 + 150 = $665M, $120M executed, $545M planned
+        got [545000000,0,545000000]   want [665000000,120000000,545000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A3 · ALL YEARS
+    only another appropriation carries: FY26 offered, marked plan for O&M; 40 + 20 + 350 + 150 = $560M, $60M executed; Initial Spares 20
+        got ["FY27 · plan",[540000000,40000000,500000000],0]   want ["FY26 · plan",[560000000,60000000,500000000],20000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | V4 · ALL YEARS
+    the carried row is behind an ordinary one and nothing else carries: FY26 offered; 40 + 100 + 350 + 150 = $640M, $140M executed; FY26 alone $100M
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],[540000000,40000000,500000000]]   want [[2025,2026,2027,2028,2029,2030,2031],[640000000,140000000,500000000],[100000000,100000000,0]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | V4 · FY26 · the export
+    TOTAL FUNDING 100000000 twice, O&M 100000000, the carried row in the detail
+        got ["ok",[540000000,540000000],[540000000],[]]   want ["ok",[100000000,100000000],[100000000],["Carried Support"]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × O&M + Initial Spares
+    the calculation: 400000000 ($100000000 executed, $300000000 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],{"om":540000000,"ff":0,"sp":0,"opn":0}]   want [[2026],[400000000,100000000,300000000],{"om":300000000,"ff":0,"sp":100000000,"opn":0}]
+    read on its own from the panel: total funding $400.00M; and from the exported workbook: TOTAL FUNDING 400000000 twice, US SERVICE FUNDING 400000000, O&M [300000000], INITIAL SPARES [100000000]
+        got ["540.00","ok",[540000000,540000000],[540000000],[540000000],[0]]   want ["400.00","ok",[400000000,400000000],[400000000],[300000000],[100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × O&M
+    the calculation: 300000000 ($0 executed, $300000000 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],{"om":540000000,"ff":0,"sp":0,"opn":0}]   want [[2026],[300000000,0,300000000],{"om":300000000,"ff":0,"sp":0,"opn":0}]
+    read on its own from the panel: total funding $300.00M; and from the exported workbook: TOTAL FUNDING 300000000 twice, US SERVICE FUNDING 300000000, O&M [300000000], INITIAL SPARES []
+        got ["540.00","ok",[540000000,540000000],[540000000],[540000000],[]]   want ["300.00","ok",[300000000,300000000],[300000000],[300000000],[]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × Initial Spares
+    the calculation: 100000000 ($100000000 executed, $0 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],{"om":0,"ff":0,"sp":0,"opn":0}]   want [[2026],[100000000,100000000,0],{"om":0,"ff":0,"sp":100000000,"opn":0}]
+    read on its own from the panel: total funding $100.00M; and from the exported workbook: TOTAL FUNDING 100000000 twice, US SERVICE FUNDING 100000000, O&M [], INITIAL SPARES [100000000]
+        got ["0.00","ok",[0,0],[0],[],[0]]   want ["100.00","ok",[100000000,100000000],[100000000],[],[100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · ALL YEARS with the plan
+    ALL YEARS = 40 + 100 + 300 + 500 = $940M: $140M executed, $800M planned; the export TOTAL FUNDING 940000000 twice
+        got [[540000000,40000000,500000000],[540000000,540000000]]   want [[940000000,140000000,800000000],[940000000,940000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · detector control · a roll-forward clone made on purpose
+    the no-clone checks see it: FY26 × O&M = $500M planned, and a figure of $500M in the calculation, in the export and on the panel, and a plan row
+        got [[540000000,40000000,500000000],true,true,true,true]   want [[500000000,0,500000000],true,true,true,true]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule off · ALL YEARS
+    offered [25,26,27,28,29,30,31]; ALL YEARS = $840M ($40M executed, $800M planned), the panel $840.00M and the export 840000000 twice; each year alone adds up to it
+        got [[2025,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00",true,"ok",[540000000,540000000],540000000]   want [[2025,2026,2027,2028,2029,2030,2031],[2025,2026,2027,2028,2029,2030,2031],[840000000,40000000,800000000],"840.00",true,"ok",[840000000,840000000],840000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule off · FY26
+    FY26 is offered, marked plan, and holds $300M
+        got [[],[300000000,0,300000000]]   want [["FY26 · plan"],[300000000,0,300000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule off · ALL YEARS
+    offered [25,26,27,28,29,30,31]; ALL YEARS = $940M ($140M executed, $800M planned), the panel $940.00M and the export 940000000 twice; each year alone adds up to it
+        got [[2025,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],"640.00",true,"ok",[640000000,640000000],640000000]   want [[2025,2026,2027,2028,2029,2030,2031],[2025,2026,2027,2028,2029,2030,2031],[940000000,140000000,800000000],"940.00",true,"ok",[940000000,940000000],940000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule off · FY26
+    FY26 is offered, marked plan, and holds $300M
+        got [[],[300000000,0,300000000]]   want [["FY26 · plan"],[300000000,0,300000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule on · ALL YEARS
+    offered [25,26,27,28,29,30,31]; ALL YEARS = $840M ($40M executed, $800M planned), the panel $840.00M and the export 840000000 twice; each year alone adds up to it
+        got [[2025,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00",true,"ok",[540000000,540000000],540000000]   want [[2025,2026,2027,2028,2029,2030,2031],[2025,2026,2027,2028,2029,2030,2031],[840000000,40000000,800000000],"840.00",true,"ok",[840000000,840000000],840000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule on · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule on · FY26
+    FY26 is offered, marked plan, and holds $300M
+        got [[],[300000000,0,300000000]]   want [["FY26 · plan"],[300000000,0,300000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule on · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule on · ALL YEARS
+    offered [25,26,27,28,29,30,31]; ALL YEARS = $940M ($140M executed, $800M planned), the panel $940.00M and the export 940000000 twice; each year alone adds up to it
+        got [[2025,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00",true,"ok",[540000000,540000000],540000000]   want [[2025,2026,2027,2028,2029,2030,2031],[2025,2026,2027,2028,2029,2030,2031],[940000000,140000000,800000000],"940.00",true,"ok",[940000000,940000000],940000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule on · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25–FY31 · all years · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · FY27, FY28, FY29, FY30, FY31 planned","Scope: FY25–FY31 · all years · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · FY27, FY28, FY29, FY30, FY31 planned","funds flow, FY25–FY31 · all years · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · FY27, FY28, FY29, FY30, FY31 planned"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule on · FY26
+    FY26 is offered, marked plan, and holds $400M
+        got [[],[400000000,100000000,300000000]]   want [["FY26 · plan"],[400000000,100000000,300000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule on · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, a carried row, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, a carried row, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | CONTROL — the window from FY26, the plan held · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S3a · FY26 chosen, the plan held outside the window
+    its "only" button: saved [2026], $300M, all planned; the same reopened, the panel $300.00M
+        got [false,null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","640.00"]   want [true,[2026],[2026],[300000000,0,300000000],[2026],[2026],[300000000,0,300000000],"FY26 · all appropriations · PLANNED (board allocation, O&M)","300.00"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S4a · saved FY26, the rule switched off
+    FY26 chosen: $400M; the rule off: still FY26 (never ALL YEARS), $300M planned; reopened the same, ALL YEARS not lit, the export 300000000 twice under the same scope; the rule back on: $400M
+        got [false,540000000,true,[2025,2027,2028,2029,2030,2031],null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],null,[2025,2027,2028,2029,2030,2031],640000000,true,[],[640000000,640000000],"Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",true,[2025,2027,2028,2029,2030,2031],540000000]   want [true,400000000,true,[2025,2026,2027,2028,2029,2030,2031],[2026],[2026],[300000000,0,300000000],[2026],[2026],300000000,false,["FY26 · plan [on]"],[300000000,300000000],"Scope: FY26 · all appropriations · PLANNED (board allocation, O&M)",true,[2026],400000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S4b · saved FY26, the base year moved to 2027
+    FY26 chosen: $300M; the base moved: still FY26, $300M (never ALL YEARS); reopened the same and the export 300000000 twice; FY27 toggled on: [2026, 2027], $800M
+        got [true,300000000,[2026],[2025,2027,2028,2029,2030,2031],640000000,[2026],[2025,2027,2028,2029,2030,2031],640000000,[640000000,640000000],true,[2025,2028,2029,2030,2031],140000000]   want [true,300000000,[2026],[2026],300000000,[2026],[2026],300000000,[300000000,300000000],true,[2026,2027],800000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S4c · saved FY25 + FY26, the base year moved to 2027
+    chosen: 140 + 300 = $440M; the base moved: still FY25 + FY26, $440M (never narrowed); the same reopened
+        got [true,[2025,2026],440000000,[2025,2026],[2025],140000000,[2025,2026],[2025],140000000]   want [true,[2025,2026],440000000,[2025,2026],[2025,2026],440000000,[2025,2026],[2025,2026],440000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S4e · the plan Reset to blank
+    ALL YEARS $940M before; after, FY26 is still offered (a year the board holds) and reads $0: 140 + 0 + 500 = $640M, the panel and the export the same
+        got [640000000,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],[],0,"640.00",[640000000,640000000]]   want [940000000,[2025,2026,2027,2028,2029,2030,2031],[640000000,140000000,500000000],["FY26 · plan"],0,"640.00",[640000000,640000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | X1 · working in FY26, the window FY27-FY31
+    switching asked nothing; FY26, the year on screen, is offered; ALL YEARS 140 + 300 + 500 = $940M
+        got [0,2026,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000]]   want [0,2026,[2025,2026,2027,2028,2029,2030,2031],[940000000,140000000,800000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5a · saved FY26, then not available
+    FY26 chosen: $100M executed; the rule off: FY26 is offered no more, the saved [2026] is KEPT and nothing is counted -- never ALL YEARS
+        got [false,[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],true,[2025,2027,2028,2029,2030,2031],null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want [true,[2026],[100000000,100000000,0],true,[2025,2027,2028,2029,2030,2031],[2026],[],[0,0,0],"no year counted · all appropriations · saved FY26 not available, not counted"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5a · saved FY26, then not available · the panel
+    the notice names FY26, why, and that nothing is counted; ALL YEARS is not lit, no year is on; total funding $0.00M; the chart (and so its image) prints the same scope
+        got ["",true,[],"640.00","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",false]   want ["The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection, and nothing is counted. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.",false,[],"0.00","funds flow, no year counted · all appropriations · saved FY26 not available, not counted",true]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5a · saved FY26, then not available · the export
+    the Scope line says it, the first NOTE says it in the panel's words, TOTAL FUNDING 0 twice
+        got ["ok","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","NOTE: separate appropriation years added together — a portfolio total, not one year of funding. Fiscal years included: FY2025, FY2027, FY2028, FY2029, FY2030, FY2031.",[640000000,640000000]]   want ["ok","Scope: no year counted · all appropriations · saved FY26 not available, not counted","NOTE: The saved year selection includes FY2026, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection, and nothing is counted.",[0,0]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5a · saved FY26, then not available · reopened
+    the saved [2026] byte-identical through the reads, the save and the reopen; the reopened copy says the same on the panel and in the export
+        got ["null","null","null",null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000],"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",true,true,"Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","NOTE: separate appropriation years added together — a portfolio total, not one year of funding. Fiscal years included: FY2025, FY2027, FY2028, FY2029, FY2030, FY2031.",[640000000,640000000]]   want ["[2026]","[2026]","[2026]",[2026],[],[0,0,0],"no year counted · all appropriations · saved FY26 not available, not counted",true,false,"Scope: no year counted · all appropriations · saved FY26 not available, not counted","NOTE: The saved year selection includes FY2026, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection, and nothing is counted.",[0,0]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5a · saved FY26, then not available · the rule back on
+    FY26 is offered again and the saved [2026] counts again: $100M
+        got [true,[2025,2027,2028,2029,2030,2031],540000000]   want [true,[2026],100000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5b · saved FY26, the base year moved, no plan held
+    FY26 chosen: $0; the base moved: FY26 kept and not counted, nothing counted (never ALL YEARS $640M)
+        got [true,[2026],0,[2025,2027,2028,2029,2030,2031],[2026],[2025,2027,2028,2029,2030,2031],640000000]   want [true,[2026],0,[2025,2027,2028,2029,2030,2031],[2026],[],0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5b · FY27 toggled on
+    the toggle starts from the saved selection: [2026, 2027] saved, FY27 counted ($500M planned), FY26 still named, in the panel and the export
+        got [true,[2025,2028,2029,2030,2031],[2025,2028,2029,2030,2031],[140000000,140000000,0],"FY25, FY28, FY29, FY30, FY31 · all appropriations · FY28, FY29, FY30, FY31 planned, the rest executed","",false,["FY25 [on]","FY28 · plan [on]","FY29 · plan [on]","FY30 · plan [on]","FY31 · plan [on]"],"Scope: FY25, FY28, FY29, FY30, FY31 · all appropriations · FY28, FY29, FY30, FY31 planned, the rest executed","NOTE: separate appropriation years added together — a portfolio total, not one year of funding. Fiscal years included: FY2025, FY2028, FY2029, FY2030, FY2031.",[140000000,140000000]]   want [true,[2026,2027],[2027],[500000000,0,500000000],"FY27 · all appropriations · PLANNED (board allocation, O&M) · saved FY26 not available, not counted","The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection and is not counted: this total counts FY27 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.",false,["FY27 · plan [on]"],"Scope: FY27 · all appropriations · PLANNED (board allocation, O&M) · saved FY26 not available, not counted","NOTE: The saved year selection includes FY2026, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection and is not counted: this total counts FY2027 only.",[500000000,500000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5b · reopened, then ALL YEARS clicked
+    reopened: [2026, 2027] saved, $500M; ALL YEARS only on its own click: nothing saved, every offered year, 140 + 500 = $640M
+        got [[2025,2028,2029,2030,2031],[2025,2028,2029,2030,2031],140000000,true,null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000]]   want [[2026,2027],[2027],500000000,true,null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · saved FY25 + FY26, the base year moved, no plan held
+    chosen: 140 + 0 = $140M; the base moved: [2025, 2026] kept, FY25 counted, FY26 said -- never narrowed in silence
+        got [true,[2025,2026],140000000,[2025,2026],[2025],140000000,"FY25 · all appropriations","",false,["FY25 [on]"]]   want [true,[2025,2026],140000000,[2025,2026],[2025],140000000,"FY25 · all appropriations · saved FY26 not available, not counted","The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection and is not counted: this total counts FY25 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.",false,["FY25 [on]"]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · toggles
+    FY25 toggled off is refused as the last year counted (the saved selection unchanged); FY27 toggled on: [2025, 2026, 2027], 140 + 500 = $640M, FY26 still said; the same reopened
+        got [true,[2025],[2025],true,[2025,2027],[2025,2027],640000000,"FY25, FY27 · all appropriations · FY27 planned, the rest executed",[2025,2027],[2025,2027],640000000]   want [true,[2025,2026],[2025],true,[2025,2026,2027],[2025,2027],640000000,"FY25, FY27 · all appropriations · FY27 planned, the rest executed · saved FY26 not available, not counted",[2025,2026,2027],[2025,2027],640000000]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · every offered year switched on beside the saved FY26
+    six years saved with FY26 among them is not ALL YEARS: kept as chosen; then all six offered years on: still the saved list, ALL YEARS not lit and not said
+        got [true,[2025,2027,2028,2029,2030],[2025,2027,2028,2029,2030],true,null,[2025,2027,2028,2029,2030,2031],640000000,"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",true]   want [true,[2025,2026,2027,2028,2029,2030],[2025,2027,2028,2029,2030],true,[2025,2026,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],640000000,"FY25, FY27, FY28, FY29, FY30, FY31 · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed · saved FY26 not available, not counted",false]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · every offered year switched on beside the saved FY26 · the year buttons
+    each of the six years counted is lit, though the saved FY26 is not among them; the notice still names FY26 and what is counted
+        got [[],""]   want [["FY25 [on]","FY27 · plan [on]","FY28 · plan [on]","FY29 · plan [on]","FY30 · plan [on]","FY31 · plan [on]"],"The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection and is not counted: this total counts FY25, FY27, FY28, FY29, FY30, FY31 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it."]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · a year switched off beside the saved FY26
+    FY31 switched off, five years still counted: FY26 stays in the saved selection, $640M; the label, the lit years and the notice still name FY26 and what is counted
+        got [true,[2025,2027,2028,2029,2030],[2025,2027,2028,2029,2030],640000000,"FY25, FY27, FY28, FY29, FY30 · all appropriations · FY27, FY28, FY29, FY30 planned, the rest executed",false,["FY25 [on]","FY27 · plan [on]","FY28 · plan [on]","FY29 · plan [on]","FY30 · plan [on]"],""]   want [true,[2025,2026,2027,2028,2029,2030],[2025,2027,2028,2029,2030],640000000,"FY25, FY27, FY28, FY29, FY30 · all appropriations · FY27, FY28, FY29, FY30 planned, the rest executed · saved FY26 not available, not counted",false,["FY25 [on]","FY27 · plan [on]","FY28 · plan [on]","FY29 · plan [on]","FY30 · plan [on]"],"The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection and is not counted: this total counts FY25, FY27, FY28, FY29, FY30 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it."]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5d · saved FY24 + FY26, the base year moved, no plan held
+    chosen on the FY24 window: [2024, 2026], $0; the base moved: both kept, neither counted, nothing counted (never ALL YEARS $540M)
+        got [true,[2024,2026],[2024,2025,2026,2027,2028],[2024,2026],0,[2025,2027,2028,2029,2030,2031],[2024,2026],[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want [true,[2024,2026],[2024,2025,2026,2027,2028],[2024,2026],0,[2025,2027,2028,2029,2030,2031],[2024,2026],[],[0,0,0],"no year counted · all appropriations · saved FY24, FY26 not available, not counted"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5d · two saved years not available · the panel and the export
+    the notice names both, in the plural, and says switching a year on or off keeps them; no year lit, ALL YEARS not lit, $0.00M; the export's Scope line and first NOTE say the same, TOTAL FUNDING 0 twice
+        got ["",true,[],"540.00","ok","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","NOTE: separate appropriation years added together — a portfolio total, not one year of funding. Fiscal years included: FY2025, FY2027, FY2028, FY2029, FY2030, FY2031.",[540000000,540000000]]   want ["The saved year selection includes FY24, FY26, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY27–FY31). They stay in the saved selection, and nothing is counted. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps them.",false,[],"0.00","ok","Scope: no year counted · all appropriations · saved FY24, FY26 not available, not counted","NOTE: The saved year selection includes FY2024, FY2026, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY2027–FY2031). They stay in the saved selection, and nothing is counted.",[0,0]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5d · years switched on, then one off, beside the two saved years
+    FY27 and FY25 on, then FY27 off with FY25 still counted: FY24 and FY26 both kept and named, FY25 counted ($40M executed), on the panel and in the export
+        got [true,true,[2027,2028,2029,2030,2031],[2027,2028,2029,2030,2031],[500000000,0,500000000],"FY27, FY28, FY29, FY30, FY31 · all appropriations · PLANNED (board allocation, O&M)","",["FY27 · plan [on]","FY28 · plan [on]","FY29 · plan [on]","FY30 · plan [on]","FY31 · plan [on]"],"Scope: FY27, FY28, FY29, FY30, FY31 · all appropriations · PLANNED (board allocation, O&M)","NOTE: separate appropriation years added together — a portfolio total, not one year of funding. Fiscal years included: FY2027, FY2028, FY2029, FY2030, FY2031.",[500000000,500000000]]   want [true,true,[2024,2025,2026],[2025],[40000000,40000000,0],"FY25 · all appropriations · saved FY24, FY26 not available, not counted","The saved year selection includes FY24, FY26, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY27–FY31). They stay in the saved selection and are not counted: this total counts FY25 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps them.",["FY25 [on]"],"Scope: FY25 · all appropriations · saved FY24, FY26 not available, not counted","NOTE: The saved year selection includes FY2024, FY2026, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY2027–FY2031). They stay in the saved selection and are not counted: this total counts FY2025 only.",[40000000,40000000]]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5d · nothing made
+    MS.years byte-identical from the start through both base-year moves, the clicks and the reads, holding FY27 only; nothing asked; no error
+        got [false,[2027],0,0]   want [true,[2027],0,0]
+# exit 1 at 10/12/2026, 3:50:11 PM ET
+exit 1

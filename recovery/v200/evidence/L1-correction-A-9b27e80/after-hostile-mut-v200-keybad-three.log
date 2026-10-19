@@ -1,0 +1,32 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L1/mut-v200-keybad-three.html node tools/export-audit/audit-hostile.mjs
+# cwd: /home/user/orbit-board
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T19:39:25Z / 15:39:25 EDT
+# cap: 600s
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v1.88 — a file that could run code or change a figure is refused, whole, at every way in | built-in names
+    a file carrying a key named toString is refused at the door, which names it
+    got:  
+    want: it carries a field named “toString” (at the saved state.appns.om.zz_keys), which no board writes
+
+--- v1.88 — a file that could run code or change a figure is refused, whole, at every way in | built-in names
+    a file carrying a key named valueOf is refused at the door, which names it
+    got:  
+    want: it carries a field named “valueOf” (at the saved state.appns.om.zz_keys), which no board writes
+
+--- v1.88 — a file that could run code or change a figure is refused, whole, at every way in | built-in names
+    a file carrying a key named hasOwnProperty is refused at the door, which names it
+    got:  
+    want: it carries a field named “hasOwnProperty” (at the saved state.appns.om.zz_keys), which no board writes
+
+--- v1.88 — a file that could run code or change a figure is refused, whole, at every way in | built-in names
+    a file carrying a key named isPrototypeOf is refused at the door, which names it
+    got:  
+    want: it carries a field named “isPrototypeOf” (at the saved state.appns.om.zz_keys), which no board writes
+
+
+# end: 2026-10-11T19:41:00Z / 15:41:00 EDT
+# exit: 1  duration_s: 95.7

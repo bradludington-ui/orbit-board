@@ -1,0 +1,21 @@
+# label: rule-list-before
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/rule-list.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/boards/before-c41a7c2.html
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: c41a7c2 board ba8d020431afc0ead32cc6ee6fa66d6b301ce583 worktree-board ba8d020431afc0ead32cc6ee6fa66d6b301ce583
+# BOARD=<unset>
+# start: 2026-10-12 07:16:09 EDT
+# cap: 120s
+hits: 10
+ 32097  after-open    col 31  "        +' onchange=\"uiColSet(\\''+c[0]+'\\', !this.check"
+ 32114  after-open    col 140  "+'\" onclick=\"uiPopsClose();uiSetDensity(\\''+d[0]+'\\')\">'+d[1]+'</"
+ 32154  after-open    col 131  "Run(function(){ document.getElementById(\\''+id+'\\').click(); })\">"
+ 32155  after-open    col 100  "utton\" onclick=\"uiFlyClose();uiMenuSoon(\\''+m+'\\')\">'+lbl+'<small"
+ 32249  after-open    col 123  "]? 'true' : 'false')+'\" onclick=\"uiDTab(\\''+t[0]+'\\')\">'+t[1]+'</"
+ 32097  before-close  col 39  "        +' onchange=\"uiColSet(\\''+c[0]+'\\', !this.checked)\"> '+"
+ 32114  before-close  col 148  "ick=\"uiPopsClose();uiSetDensity(\\''+d[0]+'\\')\">'+d[1]+'</button>'"
+ 32154  before-close  col 137  "nction(){ document.getElementById(\\''+id+'\\').click(); })\">'+lbl+"
+ 32155  before-close  col 105  "\" onclick=\"uiFlyClose();uiMenuSoon(\\''+m+'\\')\">'+lbl+'<small>'+su"
+ 32249  before-close  col 131  "' : 'false')+'\" onclick=\"uiDTab(\\''+t[0]+'\\')\">'+t[1]+'</button>'"
+
+# end: 2026-10-12 07:16:10 EDT
+# exit: 0  wall_s: 0.3

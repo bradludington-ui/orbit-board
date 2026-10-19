@@ -1,0 +1,51 @@
+PASS [fixture] fixture.remote: the folder's pre-existing copy is REMOTE/$650, by Brad, writer Brad, no history
+     expected ["REMOTE","Brad","Brad",0]
+     observed ["REMOTE","Brad","Brad",0]
+PASS [fixture] fixture.remoteClock: PREREQUISITE: REMOTE store.ts and payload ts are ONE HOUR AHEAD of real time (each minus real time after its write, within 59:55 to 60:00 min)
+     expected [true,true]
+     observed [true,true]
+PASS [fixture] fixture.adopt: Brad's board adopted REMOTE: [connect returned, screen, DIRTY, _baseDirty, record dirty, record base = REMOTE ts, driveBaseOf = REMOTE ts, MS.ts = REMOTE ts, kept slot]
+     expected [true,"REMOTE",false,false,false,true,true,true,null]
+     observed [true,"REMOTE",false,false,false,true,true,true,null]
+PASS [fixture] fixture.edit: WORKING on screen and unsaved: [screen, DIRTY, record dirty, base still REMOTE ts, the edit's MS.ts is earlier than REMOTE ts]
+     expected ["WORKING",true,true,true,true]
+     observed ["WORKING",true,true,true,true]
+PASS [fixture] U25ws.reopened: reopened with WORKING unsaved in browser storage: [screen, DIRTY (session), record dirty, base = REMOTE ts, kept slot]
+     expected ["WORKING",false,true,true,null]
+     observed ["WORKING",false,true,true,null]
+PASS [fixture] U25ws.boundary: BOUNDARY: the refresh is held at its read (its bytes, REMOTE, already taken); a whole 💾 Save starts and lands meanwhile ([held, bytes taken, head after the save, recorded clean against the head, _saveBusy])
+     expected [true,"REMOTE","WORKING",true,0]
+     observed [true,"REMOTE","WORKING",true,0]
+PASS [predict] U25ws.refresh: the refresh held at its read while a whole save ran ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])
+     expected [true,0,"REMOTE",false,true,null,true,2,false]
+     observed [true,0,"REMOTE",false,true,null,true,2,false]
+PASS [fixture] U25ws.head: the folder head after the save landed: the bytes the save built ([content, by, writer, head ts != REMOTE ts])
+     expected ["WORKING","Brad","Brad",true]
+     observed ["WORKING","Brad","Brad",true]
+PASS [contract] U25ws.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["REMOTE",false,"REMOTE"]]
+     observed ["REMOTE",true,"REMOTE"]
+PASS [predict] U25ws.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["REMOTE",true,"REMOTE"]
+     expected false
+     observed false
+PASS [contract] U25ws.K2: CONTRACT after a later refresh: the board says the copies differ
+     expected "said"
+     observed "said"
+PASS [contract] U25ws.K3: CONTRACT after a reopen: the board says the copies differ
+     expected "said"
+     observed "said"
+PASS [contract] U25ws.reach: CONTRACT: REMOTE/$650 and WORKING/$700 each remain in some reachable copy ([REMOTE reachable, WORKING reachable])
+     expected [true,true]
+     observed [true,true]
+PASS [predict] U25ws.V3next: Brad's next 💾 Save from where the route ended ["questions asked","screen before","head before","head after","status says","recorded clean after","record names the head"]
+     expected [0,"REMOTE","WORKING","WORKING","clash",true,false]
+     observed [0,"REMOTE","WORKING","WORKING","clash",true,false]
+PASS [contract] U25ws.U17.V3: U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])
+     expected {"not":[true,true]}
+     observed [false,false]
+whereNow {"REMOTE":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-142700.json"],"screen":true,"storage":true,"keptSlot":false},"WORKING":{"folderHead":true,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false}}
+u17state {"tuple":["REMOTE",true,"REMOTE"],"falselyClean":false}
+nextFrom {"K":["REMOTE",true,"REMOTE"],"falselyClean":false,"head":"WORKING","history":["spmt-2027-om-20261012-142700.json REMOTE"]}
+v3parts {"falselyClean":false,"wroteOver":false,"overwritten":"WORKING","overwrittenNowIn":{"folderHead":true,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false}}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"92f62853ce26153304fff5c5560a9fefdfcb4f31","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"}
+SUMMARY U25ws save board=u13: 15 pass, 0 fail | fixture 7/7 | predict 3/3 | contract 5/5 | harness 0/0

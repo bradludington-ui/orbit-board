@@ -1,0 +1,1 @@
+{"board":"mut-m3","boardBlob":"3f93f62de7970515ee11f20820ec218f31d2652c","passed":424,"failed":0,"recorded":98,"failedByKind":{"contract":0,"control":0,"fixture":0},"passedByKind":{"contract":344,"control":62,"fixture":18},"agree":[{"K":1,"ok":true},{"K":1000000,"ok":true}],"totalMs":13912}

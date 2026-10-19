@@ -1,0 +1,83 @@
+fx1-u13-on-before                          board 1375b72b harness 4d4d57d3 checks  71 failing  42  (1) (2) (3a) (3b) (3c) (4a) (4b) (4c) (4d) (6a) (6b)
+fx1-u13-on-after                           board 98eed7e8 harness 4d4d57d3 checks  71 failing   0  
+fx1-M-v200-u13-pull-while-saving           board 8620ccf6 harness 4d4d57d3 checks  71 failing  40  (1) (2) (3a) (3b) (4a) (4b) (4c) (4d) (6a) (6b)
+fx1-M-v200-u13-base-while-saving           board 6f4baa4a harness 4d4d57d3 checks  71 failing   2  (3c)
+fx1-M-v200-u13-pull-unchecked              board c355f222 harness 4d4d57d3 checks  71 failing  42  (1) (2) (3a) (3b) (3c) (4a) (4b) (4c) (4d) (6a) (6b)
+fx1-M-v200-u13-said-nothing-loaded         board 2f48c4d7 harness 4d4d57d3 checks  71 failing  10  (1) (2) (3a) (4d) (6a) (6b)
+fx1-M-v200-u13-clash-while-saving          board 5006437e harness 4d4d57d3 checks  71 failing   1  (3c)
+fx1-var-entry-only                         board 1eeb45a6 harness 4d4d57d3 checks  71 failing  14  (1) (2) (3a) (3b) (4d) (5) Cb (6a) (6b)
+fx1-u13-on-after-rep2                      board 98eed7e8 harness 4d4d57d3 checks  71 failing   0  
+fx1-u13-on-after-rep3                      board 98eed7e8 harness 4d4d57d3 checks  71 failing   0  
+
+verdict per check (columns in the order given):
+P P P P P P P P P P | the fixture | REMOTE is the folder’s copy: REMOTE, $650, saved by Brad, stamped more than 59 minutes ahead of this
+P P P P P P P P P P | the fixture | Brad’s opening loads REMOTE: on screen, saved, recorded against the folder’s copy (a CONTROL)
+P P P P P P P P P P | (1) no second writer; reopened by the harnes | WORKING on screen, unsaved by this browser’s record (not this session), recorded against REMOTE, not
+P P P P P P P P P P | (1) no second writer; reopened by the harnes | the save is held at its write; REMOTE is still the folder’s copy, stamped after the save’s own (a CO
+F P F P F P P P P P | (1) no second writer; reopened by the harnes | while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing 
+F P F P F F P F P P | (1) no second writer; reopened by the harnes | while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing cha
+F P F P F F P F P P | (1) no second writer; reopened by the harnes | while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing ch
+F P F P F P P P P P | (1) no second writer; reopened by the harnes | while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed by
+F P F P F P P P P P | (1) no second writer; reopened by the harnes | once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded ag
+P P P P P P P P P P | (1) no second writer; reopened by the harnes | once the save lands, the status line says how it ended -- [it saved, the refused Connect’s words gon
+P P P P P P P P P P | (1) no second writer; reopened by the harnes | then a refresh (driveStorePull, the Live tick): nothing loaded, nothing changed
+F P F P F P P P P P | (1) no second writer; reopened by the harnes | then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and re
+P P P P P P P P P P | (1) no second writer; reopened with the fold | WORKING on screen, unsaved by this browser’s record (not this session), recorded against REMOTE, not
+P P P P P P P P P P | (1) no second writer; reopened with the fold | the save is held at its write; REMOTE is still the folder’s copy, stamped after the save’s own (a CO
+F P F P F P P P P P | (1) no second writer; reopened with the fold | while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing 
+F P F P F F P F P P | (1) no second writer; reopened with the fold | while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing cha
+F P F P F F P F P P | (1) no second writer; reopened with the fold | while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing ch
+F P F P F P P P P P | (1) no second writer; reopened with the fold | while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed by
+F P F P F P P P P P | (1) no second writer; reopened with the fold | once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded ag
+P P P P P P P P P P | (1) no second writer; reopened with the fold | once the save lands, the status line says how it ended -- [it saved, the refused Connect’s words gon
+P P P P P P P P P P | (1) no second writer; reopened with the fold | then a refresh (driveStorePull, the Live tick): nothing loaded, nothing changed
+F P F P F P P P P P | (1) no second writer; reopened with the fold | then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and re
+P P P P P P P P P P | (2) a second writer saves during the save | Brad: BRAD-1 saved, the folder’s copy; Bob loaded it and typed BOB-2 (a CONTROL)
+P P P P P P P P P P | (2) a second writer saves during the save | while Brad’s save is held, Bob takes the pen: BOB-2 is the folder’s copy, saved by Bob, stamped afte
+F P F P F P P P P P | (2) a second writer saves during the save | while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing 
+F P F P F F P F P P | (2) a second writer saves during the save | while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing cha
+F P F P F P P P P P | (2) a second writer saves during the save | while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed by
+F P F P F P P P P P | (2) a second writer saves during the save | once Brad’s save lands: BRAD-1 on screen, in browser storage and the folder’s copy; saved, recorded 
+P P P P P P P P P P | (2) a second writer saves during the save | then a refresh (driveStorePull, the Live tick): nothing loaded, nothing changed
+F P F P F P P P P P | (2) a second writer saves during the save | then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and re
+P P P P P P P P P P | (2) a second writer saves during the save | Bob’s own board still holds BOB-2, on screen and in its browser storage
+P P P P P P P P P P | (3a) the refresh held at its read of the fol | no save under way when the refresh started; it waited; the save started and is held at its write (a 
+F P F P F F P F P P | (3a) the refresh held at its read of the fol | the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, said]
+F P F P F P P F P P | (3a) the refresh held at its read of the fol | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in 
+P P P P P P P P P P | (3b) the refresh held at its first wait (the | no save under way when the refresh started; it waited; the save started and is held at its write (a 
+F P F P F P P F P P | (3b) the refresh held at its first wait (the | the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, nothing said]
+F P F P F P P F P P | (3b) the refresh held at its first wait (the | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in 
+P P P P P P P P P P | (3c) nothing recorded for the folder; the op | nothing recorded for the folder; MINE on screen, unsaved; X the folder’s copy, stamped before MINE w
+F P P F F P P P P P | (3c) nothing recorded for the folder; the op | the opening’s connect while the save waits at its read -- [the save waits, a save under way, nothing
+P P P P P P F P P P | (3c) nothing recorded for the folder; the op | and it says nothing -- [the status line as it was, a clash said]
+F P P F F P P P P P | (3c) nothing recorded for the folder; the op | then the save, finding nothing recorded, asks: nothing written, X still the folder’s copy, MINE on s
+F P F P F P P P P P | (4a) the save lands; a newer copy is saved a | while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed by
+F P F P F P P P P P | (4a) the save lands; a newer copy is saved a | the save landed (WORKING, saved); then Brad’s other browser loaded WORKING and saved NEWER over it (
+F P F P F P P P P P | (4a) the save lands; a newer copy is saved a | the next refresh loads NEWER: on screen and in browser storage, saved, recorded against the folder’s
+F P F P F P P P P P | (4b) the save fails: the folder refuses its  | while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing 
+F P F P F P P P P P | (4b) the save fails: the folder refuses its  | the save failed and says so: REMOTE still the folder’s copy; WORKING on screen, unsaved; no save und
+F P F P F P P P P P | (4b) the save fails: the folder refuses its  | the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and reco
+P P P P P P P P P P | (4c) the save is refused: a newer copy was s | Brad’s other browser loaded REMOTE and saved NEWER over it; REMOTE in the folder’s history (a CONTRO
+F P F P F P P P P P | (4c) the save is refused: a newer copy was s | while the save waits at its read, liveTick(): loads nothing -- [returned, a save under way, nothing 
+F P F P F P P P P P | (4c) the save is refused: a newer copy was s | the save is refused and says so: nothing written, NEWER still the folder’s copy; WORKING on screen, 
+P P P P P P P P P P | (4c) the save is refused: a newer copy was s | the next refresh (the Live tick) is an ordinary one: NEWER is loaded, saved and recorded against the
+F P F P F F P F P P | (4d) the save is canceled: the folder’s copy | while the save waits at its read, driveConnectNow(): loads nothing -- [returned, a save under way, n
+F P F P F P P P P P | (4d) the save is canceled: the folder’s copy | the save asked once and was canceled: nothing written, REMOTE still the folder’s copy; WORKING on sc
+F P F P F P P P P P | (4d) the save is canceled: the folder’s copy | the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and reco
+P P P P P P P P P P | (5) Cc: no save under way | the refresh loads REMOTE as before: on screen and in browser storage, saved, recorded against the fo
+P P P P P P P P P P | (5) Cb: work typed in this session; a refres | WORKING typed in this session, unsaved (DIRTY) (a CONTROL)
+P P P P P P P F P P | (5) Cb: work typed in this session; a refres | while the save is held, the refresh gives the unsaved-changes message as before, and changes nothing
+P P P P P P P P P P | (5) Cb: work typed in this session; a refres | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it
+P P P P P P P P P P | (5) Ca: REMOTE not stamped ahead | Brad’s opening loaded REMOTE (saved, recorded against it); reopened with WORKING unsaved (a CONTROL)
+P P P P P P P P P P | (5) Ca: REMOTE not stamped ahead | while the save is held, REMOTE is not later than the save’s own copy, and the refresh loads nothing,
+P P P P P P P P P P | (5) Ca: REMOTE not stamped ahead | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in 
+P P P P P P P P P P | (6a) driveConnectNow() during a save, with n | Alice shared both; Brad’s board holds neither; WORKING on screen; REMOTE the folder’s copy (a CONTRO
+F P F P F P P P P P | (6a) driveConnectNow() during a save, with n | while the save is held, the Connect loads the execution data and the log but not the board’s copy --
+F P F P F F P F P P | (6a) driveConnectNow() during a save, with n | and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing wa
+F P F P F P P P P P | (6a) driveConnectNow() during a save, with n | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; the status
+P P P P P P P P P P | (6a) driveAutoConnect() during a save, with  | Alice shared both; Brad’s board holds neither; WORKING on screen; REMOTE the folder’s copy (a CONTRO
+F P F P F P P P P P | (6a) driveAutoConnect() during a save, with  | while the save is held, the Connect loads the execution data and the log but not the board’s copy --
+F P F P F F P F P P | (6a) driveAutoConnect() during a save, with  | and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing wa
+F P F P F P P P P P | (6a) driveAutoConnect() during a save, with  | once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; the status
+F P F P F F P F P P | (6b) a Connect while Load theirs waits at it | Load theirs waits at its read, counted as a save is; the Connect loads nothing -- [Load theirs waits
+F P F P F P P P P P | (6b) a Connect while Load theirs waits at it | then Load theirs loads REMOTE, saved and recorded against the folder’s copy; WORKING kept aside, and

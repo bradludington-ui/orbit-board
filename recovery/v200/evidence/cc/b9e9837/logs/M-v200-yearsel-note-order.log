@@ -1,0 +1,16 @@
+# label: M-v200-yearsel-note-order
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/out/M-v200-yearsel-note-order.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit/focused-u34.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/mut/v200-yearsel-note-order.html
+# start: 2026-10-13 20:15:55 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/mut/v200-yearsel-note-order.html","BOARD_set":true,"board":"67909034a0066b8dae41be85e095912936911f7d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit/focused-u34.mjs","harnessBlob":"8a02a9fca424d6f55b0b0861f7dc0f1665d22d62","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 8:15:56 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is kept and said | beside a year U14 says · the NOTEs in order
+    the export's NOTE rows: U14's at row 4 (index 3), U34's at index 5, each followed by a blank row
+        got [[3,"NOTE: The saved year selection holds \"x\", which this board cannot read as a year. It is kept as saved, and nothing is counted."],[5,"NOTE: The saved year selection includes FY2040, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection, and nothing is counted."]]   want [[3,"NOTE: The saved year selection includes FY2040, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection, and nothing is counted."],[5,"NOTE: The saved year selection holds \"x\", which this board cannot read as a year. It is kept as saved, and nothing is counted."]]
+# exit 1 at 10/13/2026, 8:17:27 PM ET
+
+# end: 2026-10-13 20:17:28 EDT  exit: 1  wall_s: 93.0

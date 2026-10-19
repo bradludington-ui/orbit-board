@@ -1,0 +1,18 @@
+v2.00 UI-C1: the five chunk 1 handler arguments go through jsa(), so npm run check passes again
+
+npm run check has failed since UI chunk 1 with "10 value(s) reach inline handler code without
+jsa()": five handler arguments in chunk 1's UI code were written between hand-made \' quotes,
+and the checker counts each twice (after the opening quote, before the closing one). Each now
+goes through the existing jsa() helper, the way the base board's own handlers do:
+
+- the Columns menu:       onchange="uiColSet('+jsa(c[0])+', !this.checked)"
+- the Density menu:       onclick="uiPopsClose();uiSetDensity('+jsa(d[0])+')"
+- the sidebar flyout:     document.getElementById('+jsa(id)+').click()  and  uiMenuSoon('+jsa(m)+')
+- the RECORD panel tabs:  onclick="uiDTab('+jsa(t[0])+')"
+
+The values are the program's own constants; each handler makes the same call with the same
+argument as before (the attribute now reads uiColSet("pmo", ...) where it read uiColSet('pmo', ...)).
+tools/check.mjs and every test tool are unchanged. Nothing else in the board changes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm

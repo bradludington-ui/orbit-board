@@ -1,0 +1,10 @@
+xt-b63-XFBT-save.json vs x-b63-XFBT-save.json: expected literals IDENTICAL
+xt-b63-XFBT-save.json vs x-c137-XFBT-save.json: expected literals IDENTICAL
+xt-b63-XSHd-save.json vs x-b63-XSHd-save.json: expected literals IDENTICAL
+xt-b63-XSHd-save.json vs x-c137-XSHd-save.json: expected literals IDENTICAL
+xt-b63-XSHdL-save.json vs x-b63-XSHdL-save.json: expected literals IDENTICAL
+xt-b63-XSHdL-save.json vs x-c137-XSHdL-save.json: expected literals IDENTICAL
+xt-b63-XSHe-save.json vs x-b63-XSHe-save.json: expected literals IDENTICAL
+xt-b63-XSHe-save.json vs x-c137-XSHe-save.json: expected literals IDENTICAL
+xt-b63-XSHn-save.json vs x-b63-XSHn-save.json: expected literals IDENTICAL
+xt-b63-XSHn-save.json vs x-c137-XSHn-save.json: expected literals IDENTICAL

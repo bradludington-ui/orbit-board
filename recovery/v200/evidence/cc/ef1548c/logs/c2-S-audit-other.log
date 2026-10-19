@@ -1,0 +1,10 @@
+# label: c2-S-audit-other
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob
+# cmd: node tools/export-audit/audit-other.mjs
+# start: 2026-10-13 19:29:37 EDT
+# cap: 600 s, kill grace 10 s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-13 19:30:23 EDT  exit: 0  wall_s: 45.1

@@ -1,0 +1,49 @@
+# label: m-v200-u30-quiet-refresh-only
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/out/m-v200-u30-quiet-refresh-only.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-quiet-refresh-only.html
+# start: 2026-10-13 19:27:21 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-quiet-refresh-only.html","BOARD_set":true,"board":"bdf4db366d9a03836e7db6b1a64a1284f4086017","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs","harnessBlob":"3b9784d9ff542ab737a90fce5630818f7fe581e3","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:27:22 PM ET"}
+
+================================================================================================
+16 FAILING CHECK(S)
+
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6) reopened with unsaved work: the opening’s own connect, then 💾 Save
+    the opening’s own connect records nothing
+        got 1791934057877   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6h) reopened with unsaved work: the opening’s own connect, then 💾 Save; a history copy kept minutes before
+    the opening’s own connect records nothing
+        got 1791934060013   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+    reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0 and F00 still in the folder’s history
+        got ["B-EDIT2","B-EDIT2",true,false,true]   want ["B-EDIT2","B-EDIT2",true,true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (8) a board file handed over, newer than the folder’s copy: 💾 Save; Load theirs; ↶ Put back
+    the opening’s own connect records nothing (the file is not the folder’s copy)
+        got 1791934063579   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+    Load theirs: F0 on screen, B-EDIT kept aside
+        got ["B-EDIT","B-EDIT"]   want ["F0","B-EDIT"]
+    ↶ Put back, asked: B-EDIT on screen, nothing kept, nothing recorded -- [questions, on screen, kept, recorded]
+        got [1,"B-EDIT","(none)",1791934064280]   want [1,"B-EDIT","(none)",0]
+    and it says Alice saved the folder’s copy, with no record of which copy the work came from -- never that she saved it after -- [the words, “saved after it” said]
+        got [false,true]   want [true,false]
+    then 💾 Save asks again: nothing written; F0 the folder’s copy, B-EDIT on screen
+        got [1,false,"B-EDIT","B-EDIT"]   want [0,true,"F0","B-EDIT"]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (9) the same, with other work already kept aside: Load theirs is refused
+    other work kept aside; 💾 Save asks, nothing written -- [kept, asked, the folder’s copy]
+        got ["OLDER-KEPT",false,"B-EDIT"]   want ["OLDER-KEPT",true,"F0"]
+    Load theirs refused: B-EDIT on screen, OLDER-KEPT still kept, F0 the folder’s copy
+        got ["B-EDIT","OLDER-KEPT","B-EDIT"]   want ["B-EDIT","OLDER-KEPT","F0"]
+    and it calls F0 “a copy”, not “a newer copy” -- it was saved before the file the work came from -- [the words, “newer” said]
+        got [false,true]   want [true,false]
+# exit 1 at 10/13/2026, 7:27:55 PM ET
+
+# end: 2026-10-13 19:27:55 EDT  exit: 1  wall_s: 34.2

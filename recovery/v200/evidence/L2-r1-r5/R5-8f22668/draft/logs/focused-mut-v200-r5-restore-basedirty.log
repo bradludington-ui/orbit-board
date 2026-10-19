@@ -1,0 +1,8 @@
+
+================================================================================================
+scenarios heard: ["v2.00 (R5) — a restore during a save stays unsaved"]
+1 FAILING CHECK(S)
+
+--- v2.00 (R5) — a restore during a save stays unsaved | (b) a clean board saved, HISTORY put back during its write
+    HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got [true,true,"HISTORY","CURRENT",true,false,false]   want [true,true,"HISTORY","CURRENT",true,true,true]

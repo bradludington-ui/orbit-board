@@ -1,0 +1,541 @@
+# cmd: X=1 npm run verify:grid --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/clone
+# git: 592d62967bd9cd610ec29bc4a380a55b5671cb4d
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T14:54:35Z / 10:54:35 EDT
+# cap: 600s  grace: 10s
+  ok   the newest revision when there is no link
+  ok   the version-free link before any revision
+  ok   CHROME_BIN before the link and the revisions
+  ok   a CHROME_BIN that is not a file is refused
+  ok   nothing found names what was tried and never offers to download
+
+  on this machine: /opt/pw-browsers/chromium
+
+  Chromium is found the same way by every browser check
+
+
+requirement controls — prioritization-board-grid.html (v2.00 (11 Oct 2026)) against the list recorded from v1.91 (30 Sep 2026)
+  56 recorded · 56 now
+
+  every recorded control is present, and nothing unrecorded appeared
+
+  ok    A  req $86 · D $86 · M $0 · unf — · ★ covered
+  ok    B  req $67 · D $67 · M $0 · unf — · ★ —
+  ok    C  req $58 · D $47 · M $11 · unf — · ★ $11
+  ok    D  req $44 · D $0 · M $44 · unf — · ★ —
+  ok    E  req $37 · D $0 · M $30 · unf $7 · ★ —
+  ok    F  req $33 · D $0 · M $0 · unf $33 · ★ —
+  ok    G  req $23 · D $0 · M $0 · unf $23 · ★ —
+
+  the inspector agrees with the lane engine on every row
+
+
+prioritization-board-grid.html
+  ok    1920px review  context bar 44px one line  task bar 41px one line  rightmost control 1904  page 1920px wide
+  ok    1920px fund    context bar 44px one line  task bar 41px one line  rightmost control 1904  page 1920px wide
+  ok    1512px review  context bar 44px one line  task bar 41px one line  rightmost control 1496  page 1512px wide
+  ok    1512px fund    context bar 44px one line  task bar 41px one line  rightmost control 1496  page 1512px wide
+  ok    1440px review  context bar 44px one line  task bar 41px one line  rightmost control 1424  page 1440px wide
+  ok    1440px fund    context bar 44px one line  task bar 41px one line  rightmost control 1424  page 1440px wide
+  ok    1366px review  context bar 44px one line  task bar 41px one line  rightmost control 1350  page 1366px wide
+  ok    1366px fund    context bar 44px one line  task bar 41px one line  rightmost control 1350  page 1366px wide
+  ok    1280px review  context bar 44px one line  task bar 41px one line  rightmost control 1264  page 1280px wide
+  ok    1280px fund    context bar 44px one line  task bar 41px one line  rightmost control 1264  page 1280px wide
+  ok    1152px review  context bar 44px one line  task bar 41px one line  rightmost control 1136  page 1152px wide
+  ok    1152px fund    context bar 44px one line  task bar 41px one line  rightmost control 1136  page 1152px wide
+  ok    1024px review  context bar 77px  task bar 41px  rightmost control 1008  page 1024px wide
+  ok    1024px fund    context bar 77px  task bar 41px  rightmost control 1008  page 1024px wide
+  ok     960px review  context bar 77px  task bar 41px  rightmost control 944  page 960px wide
+  ok     960px fund    context bar 77px  task bar 41px  rightmost control 944  page 960px wide
+  ok     900px review  context bar 77px  task bar 41px  rightmost control 884  page 900px wide
+  ok     900px fund    context bar 77px  task bar 41px  rightmost control 884  page 900px wide
+  ok     820px review  context bar 77px  task bar 75px  rightmost control 804  page 820px wide
+  ok     820px fund    context bar 77px  task bar 41px  rightmost control 804  page 820px wide
+
+  The context bar and the task bar fit at every width tested: one line each above 1100px, nothing past the edge
+
+
+prioritization-board-grid.html
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html, Segoe stand-in +6%
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html — the three written editors, above the fold
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+prioritization-board-grid.html, Segoe stand-in +6% — the three written editors, above the fold
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+Every editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold and unclipped, in this machine's font and in a Segoe-like stand-in +6%
+
+
+prioritization-board-grid.html — the default theme
+  ok   a fresh browser gets the accessible palette   themeGet 'harbor' · painted harbor
+  ok   an explicit Midnight is kept   themeGet '' · painted (none)
+  ok   and any other explicit choice is kept   themeGet 'parchment' · painted parchment
+  ok   storage refused still paints the default   themeGet 'harbor' · painted harbor
+
+prioritization-board-grid.html
+
+  ── Midnight (dark)  disc #45d29a · mand #bda4dd · unf #ff6b81
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 5.2 · baseline 5.2
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #ff6b81↔#bda4dd ΔE 17.6 (normal)
+  ok   body text clears WCAG AAA on the panel   14.6:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   6.3:1
+
+  ── Navy (dark)  disc #4fd6a0 · mand #c3aade · unf #ff7b8e
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.1 · baseline 4.1
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #ff7b8e↔#c3aade ΔE 15.3 (normal)
+  ok   body text clears WCAG AAA on the panel   13.5:1
+  ok   muted text clears WCAG AA   7.2:1
+  ok   and the dimmest text still clears AA   5.5:1
+
+  ── Parchment (light)  disc #1f6a44 · mand #634189 · unf #9e2a29
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.8 · baseline 4.8
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #9e2a29↔#634189 ΔE 18.0 (normal)
+  ok   body text clears WCAG AAA on the panel   15.1:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   5.6:1
+
+  ── Blueprint (light)  disc #0e6b4a · mand #5b4193 · unf #a52036
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.7 · baseline 4.7
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #a52036↔#5b4193 ΔE 20.1 (normal)
+  ok   body text clears WCAG AAA on the panel   15.9:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   5.9:1
+
+  ── Harbor (light)  disc #055795 · mand #6e4f00 · unf #34383d
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   Harbor clears the CVD gate — it is the theme that promises it   worst ΔE 13.1 (gate 8)
+  ok   lane separation is no worse than recorded   worst ΔE 13.1 · baseline 13.1
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #34383d↔#6e4f00 ΔE 15.1 (normal)
+  ok   body text clears WCAG AAA on the panel   12.3:1
+  ok   muted text clears WCAG AA   7.2:1
+  ok   and the dimmest text still clears AA   6.1:1
+
+Colour holds: the charts carry meaning without hue, Harbor clears the gate, and no theme has regressed
+
+
+prioritization-board-grid.html
+  ok   the Reports &amp; exports menu is on the toolbar
+  ok   the Reports & exports menu is on the toolbar
+  ok   the Data menu is on the toolbar
+  ok   the Setup menu is on the toolbar
+  ok   the File menu is on the toolbar
+  ok   the Filter menu is on the toolbar
+  ok   the PMO menu is on the toolbar
+  ok   the Fiscal year menu is on the toolbar
+  ok   the Spend plan basis menu is on the toolbar
+  ok   the Review menu is on the toolbar
+  ok   the Rank menu is on the toolbar
+  ok   the Fund menu is on the toolbar
+  ok   the Compare menu is on the toolbar
+  ok   the Brief menu is on the toolbar
+  ok   the source names at least one menu path   12 reference(s)
+  ok   "Data › Import Annual Cost Estimate loads one it" is really there
+  ok   "File › Writer and team › My editor" is really there
+  ok   "Data › Import Budget Extract once it is kept in" is really there
+  ok   "Reports &amp; exports › Execution & reprogramming › Active Year Execution" is really there
+  ok   "Data › Import Budget Extract (BAE) )" is really there
+  ok   "Reports &amp; exports › Spend plan & cash › CR Cash Needs clears the old marks" is really there
+  ok   "Data › Import CCaR QPE and pick your monthly" is really there
+  ok   "Reports &amp; exports › Pre-flight check" is really there
+  ok   "Data › Import Budget Extract (BAE)" is really there
+  ok   "Reports & exports › Companion tools › change the linked tool to correct the na" is really there
+  ok   "File › Save diagnostics" is really there
+  ok   board: the guide does not open by itself
+  ok   board: the guide’s team part is in the file   16 section(s)
+  ok   board guide, “The board, its menus and its file”: 📁 File ▾ › Writer and team › ✍ Take the pen…
+  ok   board guide, “Publishing a PMO copy”: 📁 File ▾ › Program offices › 📤 Publish PMO copy…
+  ok   board guide, “Taking submittals back”: 📁 File ▾ › Program offices › ✉ Review submittals…
+  ok   board guide, “A new version: import the full board”: 📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…
+  ok   board guide, “One appropriation in or out”: 📁 File ▾ › Boards and appropriations › ⬇ Export one appropriation…
+  ok   board guide, “One appropriation in or out”: 📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation…
+  ok   board guide, “One appropriation in or out”: 📁 File ▾ › Boards and appropriations › ⇊ Import several boards at once…
+  ok   board guide, “One appropriation in or out”: 📁 File ▾ › Boards and appropriations › 🔁 Appropriation packages…
+  ok   board guide, “Allocating, and what does not draw”: Filter ▾ › Funding › ▲ Set higher than it draws
+  ok   board guide, “The spend plan: when the money lands”: Reports & exports ▾ › Spend plan & cash › 📅 Spend Plan Forecast…
+  ok   board guide, “The spend plan: when the money lands”: Reports & exports ▾ › Spend plan & cash › ⚖ CR Cash Needs…
+  ok   board guide, “The spend plan: when the money lands”: Spend plan basis ▾ › ◨ Discretionary only
+  ok   board guide, “The spend plan: when the money lands”: Reports & exports ▾ › Briefing › 📽 PowerPoint deck
+  ok   board guide, “Destinations: one list for every appropriation”: Setup ▾ › Who and where › 📍 Destinations…
+  ok   board guide, “Services: moving, renaming or removing one”: Setup ▾ › Who and where › 🏷 Services…
+  ok   board guide, “The reprogramming log”: Reports & exports ▾ › Execution & reprogramming › ⚖ Reprogramming Actions…
+  ok   board guide, “The reprogramming log”: Reports & exports ▾ › Execution & reprogramming › ⬇ ATR/BTR Log (Excel)
+  ok   board guide, “The IDS batch for CCaR”: Reports & exports ▾ › CCaR & accounting files › 📤 IDS Batch Import — Requirements…
+  ok   board guide, “RCN / EEIC on a prime’s CLINs”: Setup ▾ › Codes and structure › 🗂 RCN / EEIC…
+  ok   board guide, “RCN / EEIC on a prime’s CLINs”: Reports & exports ▾ › Briefing › 📊 Excel Workbook — full breakouts
+  ok   board guide, “When something goes wrong: Save diagnostics”: 📁 File ▾ › 🩺 Save diagnostics…
+  ok   board guide, “The five-year plan by PMO”: Reports & exports ▾ › Five years & PPBE › 📊 Five-year spend plan…
+  ok   board guide, “The funds flow and the ACE tie-out”: Reports & exports ▾ › Execution & reprogramming › 🚰 Funds Flow (Sewer Chart)…
+  ok   board guide, “The funds flow and the ACE tie-out”: Reports & exports ▾ › CCaR & accounting files › 📈 ACE Tie-Out (Excel)
+  ok   board guide, “The funds flow and the ACE tie-out”: 📁 File ▾ › Writer and team › 📡 Live view…
+  ok   board guide, “The board, its menus and its file”: the 💾 Save button
+  ok   PMO copy: the guide does not open by itself
+  ok   PMO copy: the guide’s office part is in the file   12 section(s)
+  ok   PMO copy guide, “Put your name in, and set your office”: 📁 File ▾ › Writer and team › ✎ My editor name…
+  ok   PMO copy guide, “Send it back”: 📁 File ▾ › ✉ Submit input…
+  ok   PMO copy guide, “Exporting from your copy, and the five-year plan”: Reports & exports ▾ › Five years & PPBE › 📊 Five-year spend plan…
+  ok   PMO copy guide, “If something goes wrong”: 📁 File ▾ › Writer and team › ✎ My editor name…
+  ok   PMO copy guide, “If something goes wrong”: 📁 File ▾ › 🩺 Save diagnostics…
+  ok   PMO copy guide, “What this file is”: the 🏢 set your office button
+  ok   PMO copy guide, “What this file is”: the ✉ Submit input button
+  ok   PMO copy guide, “What this file is”: the 📖 How this copy works button
+  ok   PMO copy guide, “Put your name in, and set your office”: the 🏢 set your office button
+  ok   PMO copy guide, “Proposing a new requirement”: the ＋ Add requirement button
+  ok   PMO copy guide, “Send it back”: the ✉ Submit input button
+
+Every menu path a message names is really in that menu
+
+
+prioritization-board-grid.html
+  ok   the file has modal panels to check   44 found
+  ok   every panel in the file is covered by this sweep   46 panels
+  ok   addPanel opens
+  ok   addPanel shows no escaped entity
+  ok   addPanel clips none of its own fields
+  ok   addPanel: every control in it is one the keyboard reaches
+  ok   rmPanel opens
+  ok   rmPanel shows no escaped entity
+  ok   rmPanel clips none of its own fields
+  ok   rmPanel: every control in it is one the keyboard reaches
+  ok   rpPanel opens
+  ok   rpPanel shows no escaped entity
+  ok   rpPanel clips none of its own fields
+  ok   rpPanel: every control in it is one the keyboard reaches
+  ok   planPanel opens
+  ok   planPanel shows no escaped entity
+  ok   planPanel clips none of its own fields
+  ok   planPanel: every control in it is one the keyboard reaches
+  ok   poPanel opens
+  ok   poPanel shows no escaped entity
+  ok   poPanel clips none of its own fields
+  ok   poPanel: every control in it is one the keyboard reaches
+  ok   coaPanel opens
+  ok   coaPanel shows no escaped entity
+  ok   coaPanel clips none of its own fields
+  ok   coaPanel: every control in it is one the keyboard reaches
+  ok   pmoPanel opens
+  ok   pmoPanel shows no escaped entity
+  ok   pmoPanel clips none of its own fields
+  ok   pmoPanel: every control in it is one the keyboard reaches
+  ok   bandPanel opens
+  ok   bandPanel shows no escaped entity
+  ok   bandPanel clips none of its own fields
+  ok   bandPanel: every control in it is one the keyboard reaches
+  ok   edPanel opens
+  ok   edPanel shows no escaped entity
+  ok   edPanel clips none of its own fields
+  ok   edPanel: every control in it is one the keyboard reaches
+  ok   wbsPanel opens
+  ok   wbsPanel shows no escaped entity
+  ok   wbsPanel clips none of its own fields
+  ok   wbsPanel: every control in it is one the keyboard reaches
+  ok   matPanel opens
+  ok   matPanel shows no escaped entity
+  ok   matPanel clips none of its own fields
+  ok   matPanel: every control in it is one the keyboard reaches
+  ok   rollPanel opens
+  ok   rollPanel shows no escaped entity
+  ok   rollPanel clips none of its own fields
+  ok   rollPanel: every control in it is one the keyboard reaches
+  ok   fldPanel opens
+  ok   fldPanel shows no escaped entity
+  ok   fldPanel clips none of its own fields
+  ok   fldPanel: every control in it is one the keyboard reaches
+  ok   ndPanel opens
+  ok   ndPanel shows no escaped entity
+  ok   ndPanel clips none of its own fields
+  ok   ndPanel: every control in it is one the keyboard reaches
+  ok   attPanel opens
+  ok   attPanel shows no escaped entity
+  ok   attPanel clips none of its own fields
+  ok   attPanel: every control in it is one the keyboard reaches
+  ok   helpPanel opens
+  ok   helpPanel shows no escaped entity
+  ok   helpPanel clips none of its own fields
+  ok   helpPanel: every control in it is one the keyboard reaches
+  ok   recPanel opens
+  ok   recPanel shows no escaped entity
+  ok   recPanel clips none of its own fields
+  ok   recPanel: every control in it is one the keyboard reaches
+  ok   acePanel opens
+  ok   acePanel shows no escaped entity
+  ok   acePanel clips none of its own fields
+  ok   acePanel: every control in it is one the keyboard reaches
+  ok   rlgPanel opens
+  ok   rlgPanel shows no escaped entity
+  ok   rlgPanel clips none of its own fields
+  ok   rlgPanel: every control in it is one the keyboard reaches
+  ok   livePanel opens
+  ok   livePanel shows no escaped entity
+  ok   livePanel clips none of its own fields
+  ok   livePanel: every control in it is one the keyboard reaches
+  ok   divPanel opens
+  ok   divPanel shows no escaped entity
+  ok   divPanel clips none of its own fields
+  ok   divPanel: every control in it is one the keyboard reaches
+  ok   pfPanel opens
+  ok   pfPanel shows no escaped entity
+  ok   pfPanel clips none of its own fields
+  ok   pfPanel: every control in it is one the keyboard reaches
+  ok   subPanel opens
+  ok   subPanel shows no escaped entity
+  ok   subPanel clips none of its own fields
+  ok   subPanel: every control in it is one the keyboard reaches
+  ok   jrnlPanel opens
+  ok   jrnlPanel shows no escaped entity
+  ok   jrnlPanel clips none of its own fields
+  ok   jrnlPanel: every control in it is one the keyboard reaches
+  ok   budRegPanel opens
+  ok   budRegPanel shows no escaped entity
+  ok   budRegPanel clips none of its own fields
+  ok   budRegPanel: every control in it is one the keyboard reaches
+  ok   diagPanel opens
+  ok   diagPanel shows no escaped entity
+  ok   diagPanel clips none of its own fields
+  ok   diagPanel: every control in it is one the keyboard reaches
+  ok   idsPanel opens
+  ok   idsPanel shows no escaped entity
+  ok   idsPanel clips none of its own fields
+  ok   idsPanel: every control in it is one the keyboard reaches
+  ok   exwPanel opens
+  ok   exwPanel shows no escaped entity
+  ok   exwPanel clips none of its own fields
+  ok   exwPanel: every control in it is one the keyboard reaches
+  ok   rcnPanel opens
+  ok   rcnPanel shows no escaped entity
+  ok   rcnPanel clips none of its own fields
+  ok   rcnPanel: every control in it is one the keyboard reaches
+  ok   entPanel opens
+  ok   entPanel shows no escaped entity
+  ok   entPanel clips none of its own fields
+  ok   entPanel: every control in it is one the keyboard reaches
+  ok   svcPanel opens
+  ok   svcPanel shows no escaped entity
+  ok   svcPanel clips none of its own fields
+  ok   svcPanel: every control in it is one the keyboard reaches
+  ok   uipPanel opens
+  ok   uipPanel shows no escaped entity
+  ok   uipPanel clips none of its own fields
+  ok   uipPanel: every control in it is one the keyboard reaches
+  ok   exPanel opens
+  ok   exPanel shows no escaped entity
+  ok   exPanel clips none of its own fields
+  ok   exPanel: every control in it is one the keyboard reaches
+  ok   pkgPanel opens
+  ok   pkgPanel shows no escaped entity
+  ok   pkgPanel clips none of its own fields
+  ok   pkgPanel: every control in it is one the keyboard reaches
+  ok   flowPanel opens
+  ok   flowPanel shows no escaped entity
+  ok   flowPanel clips none of its own fields
+  ok   flowPanel: every control in it is one the keyboard reaches
+  ok   fydpPanel opens
+  ok   fydpPanel shows no escaped entity
+  ok   fydpPanel clips none of its own fields
+  ok   fydpPanel: every control in it is one the keyboard reaches
+  ok   cycCmpPanel opens
+  ok   cycCmpPanel shows no escaped entity
+  ok   cycCmpPanel clips none of its own fields
+  ok   cycCmpPanel: every control in it is one the keyboard reaches
+  ok   cycChgPanel opens
+  ok   cycChgPanel shows no escaped entity
+  ok   cycChgPanel clips none of its own fields
+  ok   cycChgPanel: every control in it is one the keyboard reaches
+  ok   blPanel opens
+  ok   blPanel shows no escaped entity
+  ok   blPanel clips none of its own fields
+  ok   blPanel: every control in it is one the keyboard reaches
+  ok   qpePanel opens
+  ok   qpePanel shows no escaped entity
+  ok   qpePanel clips none of its own fields
+  ok   qpePanel: every control in it is one the keyboard reaches
+  ok   posPanel opens
+  ok   posPanel shows no escaped entity
+  ok   posPanel clips none of its own fields
+  ok   posPanel: every control in it is one the keyboard reaches
+  ok   ppPanel opens
+  ok   ppPanel shows no escaped entity
+  ok   ppPanel clips none of its own fields
+  ok   ppPanel: every control in it is one the keyboard reaches
+  ok   spPanel opens
+  ok   spPanel shows no escaped entity
+  ok   spPanel clips none of its own fields
+  ok   spPanel: every control in it is one the keyboard reaches
+  ok   bmPanel opens
+  ok   bmPanel shows no escaped entity
+  ok   bmPanel clips none of its own fields
+  ok   bmPanel: every control in it is one the keyboard reaches
+  ok   crPanel opens
+  ok   crPanel shows no escaped entity
+  ok   crPanel clips none of its own fields
+  ok   crPanel: every control in it is one the keyboard reaches
+  ok   fcPanel opens
+  ok   fcPanel shows no escaped entity
+  ok   fcPanel clips none of its own fields
+  ok   fcPanel: every control in it is one the keyboard reaches
+  ok   the Reports & exports menu opens
+  ok   the Reports & exports menu shows no escaped entity
+  ok   the Reports & exports menu: every item in it is one the keyboard reaches
+  ok   the Data menu opens
+  ok   the Data menu shows no escaped entity
+  ok   the Data menu: every item in it is one the keyboard reaches
+  ok   the Setup menu opens
+  ok   the Setup menu shows no escaped entity
+  ok   the Setup menu: every item in it is one the keyboard reaches
+  ok   the File menu opens
+  ok   the File menu shows no escaped entity
+  ok   the File menu: every item in it is one the keyboard reaches
+  ok   the Filter menu opens
+  ok   the Filter menu shows no escaped entity
+  ok   the Filter menu: every item in it is one the keyboard reaches
+  ok   the FY menu opens
+  ok   the FY menu shows no escaped entity
+  ok   the FY menu: every item in it is one the keyboard reaches
+  ok   the PMO menu opens
+  ok   the PMO menu shows no escaped entity
+  ok   the PMO menu: every item in it is one the keyboard reaches
+  ok   the Spend plan basis menu opens
+  ok   the Spend plan basis menu shows no escaped entity
+  ok   the Spend plan basis menu: every item in it is one the keyboard reaches
+  ok   the Mode tools menu opens
+  ok   the Mode tools menu shows no escaped entity
+  ok   the Mode tools menu: every item in it is one the keyboard reaches
+  ok   nothing threw while opening them
+  ok   every toolbar menu in the file is covered by this sweep   9 menus
+
+Every panel and menu opens, nothing shows an escaped entity, no field clips its own value, and the keyboard reaches every control in them
+
+
+prioritization-board-grid.html
+  ok    inside the frame, browser storage is refused   SecurityError
+  ok    and this page cannot be reached from it   SecurityError
+  ok    and neither can the database the board keeps its folder handle in   SecurityError
+  ok    nothing it tried landed here
+  ok    and the frame is gone
+  ok    the board reopens as O&M with its own plan
+  ok    Full Fund is opened in one sandboxed frame while the export waits   ["allow-scripts"]
+  ok    the workbook downloads once it answers   ORBIT FYDP Spend Plan — working plan — FY27–FY31 2026-10-12.xlsx after 941 ms
+  ok    and no frame is left behind
+  ok    every byte of browser storage is what it was
+  ok    the PMO tabs follow the three sheets   By Requirement,By PMO,By Service,PSM,AV,CDS,TSS
+  ok    no tab carries a refusal
+  ok    the board reopens as Full Fund
+  ok    each Full Fund block total is Full Fund’s own By PMO row, every year and the FYDP   18 ties
+  ok    an allocation below the requirement came through as such (F, trimmed to 600)
+  ok    nothing threw
+
+The frames are sealed, the export waits for them, storage is untouched, and every block ties to its own board
+
+
+hostile board — prioritization-board-grid.html: 7 requirements, script-shaped text in every field the fixture fills
+  ok   every planted field was drawn somewhere, so the checks below looked at it   110 planted values seen on screen as text
+  ok   nothing planted in the board ran when it was drawn
+  ok   no inline handler on any screen carries a planted call as code   7 requirements, 43 panels, 9 menus
+  ok   nothing threw while it was drawn
+
+Nothing a file can carry runs when the board draws it
+
+
+prioritization-board-grid.html
+  ok   A · as it opens: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · as it opens: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · as it opens: mission critical unfunded is the card's   25072500,25072500
+  ok   A · as it opens: whole-budget unfunded is the card's TOTAL   240051789,240051789
+  ok   A · as it opens: unfunded by service adds up to that TOTAL   240051789 vs 240051789
+  ok   A · as it opens: and each service is the Funding by service table's UNFUNDED   [177356789,8350000,4702500,25852500,9470000,14320000] vs [177356789,8350000,4702500,25852500,9470000,14320000]
+  ok   A · with the discretionary-only what-if: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · with the discretionary-only what-if: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · with the discretionary-only what-if: mission critical unfunded is the card's   25072500,25072500
+  ok   A · with the discretionary-only what-if: whole-budget unfunded is the card's TOTAL   243721789,243721789
+  ok   A · with the discretionary-only what-if: unfunded by service adds up to that TOTAL   243721789 vs 243721789
+  ok   A · with the discretionary-only what-if: and each service is the Funding by service table's UNFUNDED   [179056789,8620000,4862500,26612500,9790000,14780000] vs [179056789,8620000,4862500,26612500,9790000,14780000]
+  ok   A · with a must-pay trimmed to nothing: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · with a must-pay trimmed to nothing: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · with a must-pay trimmed to nothing: mission critical unfunded is the card's   25072500,25072500
+  ok   A · with a must-pay trimmed to nothing: whole-budget unfunded is the card's TOTAL   243721789,243721789
+  ok   A · with a must-pay trimmed to nothing: unfunded by service adds up to that TOTAL   243721789 vs 243721789
+  ok   A · with a must-pay trimmed to nothing: and each service is the Funding by service table's UNFUNDED   [179056789,8620000,4862500,26612500,9790000,14780000] vs [179056789,8620000,4862500,26612500,9790000,14780000]
+  ok   A · nothing threw
+  ok   B · everything Active year held is still on a menu or a mode's tools   5 items
+  ok   B · everything Budget year held is still on a menu or a mode's tools   15 items
+  ok   B · everything FYDP held is still on a menu or a mode's tools   6 items
+  ok   B · everything Tools held is still on a menu or a mode's tools   18 items
+  ok   B · everything Export held is still on a menu or a mode's tools   15 items
+  ok   C · review: every row control inside the grid at 1024-1920px
+  ok   C · rank: every row control inside the grid at 1024-1920px
+  ok   C · fund: every row control inside the grid at 1024-1920px
+  ok   D · 1920×1080: the first requirement is on screen as it opens   top 205px · 18 rows in view
+  ok   D · 1440×1000: the first requirement is on screen as it opens   top 205px · 16 rows in view
+  ok   D · 1366×768: the first requirement is on screen as it opens   top 205px · 11 rows in view
+  ok   D · 1024×768: the first requirement is on screen as it opens   top 274px · 9 rows in view
+  ok   E · Brief draws no control on any row   0 control(s), 0 draggable row(s)
+  ok   E · and no RECORD panel   none
+  ok   F · every row's Discretionary, Mandatory and Unfunded are the RECORD panel's (19 rows)
+  ok   G · every mode, density and Funding detail leaves the board’s data exactly as it was
+  ok   G · they are this browser’s settings, kept under their own keys   spmtDensity,spmtDetail,spmtMode
+  ok   G · and nothing of them is written into the saved file   17835 characters of saved data read
+  ok   H · the selected row carries a bar and a tint, and no ring   {"selBar":"rgb(37, 57, 77)","selTint":"rgb(200, 207, 217)","selRing":"none","focRing":"solid","focW":"2px","plain":"rgb(217, 223, 231)"}
+  ok   H · the row holding keyboard focus carries a ring   solid 2px
+  ok   I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density   837 notes read
+  ok   I · and the nine-digit one is printed whole   $123,456,789 seen 18 time(s)
+  ok   J · harbor review: every width 761-1023 fits   263 widths
+  FAIL J · harbor rank: every width 761-1023 fits   180 width(s), e.g. 940px: row-R019 "$123,456,789" cut in its cell; 939px: row-R019 "$123,456,789" cut in its cell
+  FAIL J · harbor fund: every width 761-1023 fits   180 width(s), e.g. 940px: row-R019 "$123,456,789" cut in its cell; 939px: row-R019 "$123,456,789" cut in its cell
+  ok   J · harbor compare: every width 761-1023 fits   263 widths
+  FAIL J · harbor brief: every width 761-1023 fits   263 width(s), e.g. 1023px: row-R019 "$123,456,789" cut in its cell; 1022px: row-R019 "$123,456,789" cut in its cell
+  ok   J · parchment review: every width 761-1023 fits   263 widths
+  FAIL J · parchment rank: every width 761-1023 fits   180 width(s), e.g. 940px: row-R019 "$123,456,789" cut in its cell; 939px: row-R019 "$123,456,789" cut in its cell
+  FAIL J · parchment fund: every width 761-1023 fits   180 width(s), e.g. 940px: row-R019 "$123,456,789" cut in its cell; 939px: row-R019 "$123,456,789" cut in its cell
+  ok   J · parchment compare: every width 761-1023 fits   263 widths
+  FAIL J · parchment brief: every width 761-1023 fits   263 width(s), e.g. 1023px: row-R019 "$123,456,789" cut in its cell; 1022px: row-R019 "$123,456,789" cut in its cell
+  ok   J · 900×900: the drawer opens with its three editors on screen   3/3
+  ok   J · 768×1024: the drawer opens with its three editors on screen   3/3
+  ok   J · a phone (390×844) opens: no sideways scroll, the rows, and the drawer on screen   page 390px · 19 rows · drawer on screen
+
+6 layout check(s) failed
+
+
+# end: 2026-10-12T15:00:36Z / 11:00:36 EDT
+# exit: 1  duration_s: 361.1

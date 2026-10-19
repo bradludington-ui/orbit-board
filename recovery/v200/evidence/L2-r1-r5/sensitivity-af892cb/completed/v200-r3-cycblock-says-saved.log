@@ -1,0 +1,19 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-af892cb/mut-v200-r3-cycblock-says-saved.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:30:01Z / 18:30:01 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    the save does not tell its caller it saved
+        got true   want false
+--- v2.00 (R3) — a locked view is never written to the working folder | (b) ⬆ Publish now, PB27 put on screen during the read
+    nothing is written, it reports failure, and no publish is recorded
+        got [true,[],true,true,1791758293452]   want [true,[],true,false,1]
+
+# end: 2026-10-11T22:38:26Z / 18:38:26 EDT
+# exit: 1  duration_s: 505.5

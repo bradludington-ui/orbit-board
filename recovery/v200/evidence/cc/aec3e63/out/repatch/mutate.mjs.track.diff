@@ -1,0 +1,35 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c1r/tools/export-audit/mutate.mjs.txt	2026-10-13 13:21:13.140543137 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c2/tools/export-audit/mutate.mjs.txt	2026-10-13 13:29:56.644981936 +0000
+@@ -4316,6 +4316,32 @@
+   { id: "v200-u10-reapply-working-base", area: "cycReapply", what: "the view's copy is made again on the working plan's base year, not the cycle's: with the working base moved to FY28 after PB27 was locked on FY27, a refusal in PB27's view moves its FYDP window to FY28-FY32",
+     find: "  MS=cycCopy(c); MS.cur=y;",
+     repl: "  MS=cycCopy(c); MS.cur=y; MS.base=_cycStash.MS.base;" },
++  // v2.00 (U10, the round-1 money review of 13 Oct): the doors that write a list every appropriation shares are refused before anything
++  // is kept while a locked cycle is on screen.
++  { id: "v200-u10-ace-import-in-view", area: "importAce", what: "a cost estimate imported while PB27 is on screen is read and stored, the approved 2027ACE replaced after \"should not change. Replace it?\", and the ACE tie-out and FYDP Spend Plan read $4,321,000 in the view and on the working plan, while the board says \"Not kept\"",
++    find: "  if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }\n",
++    repl: "" },
++  { id: "v200-u10-bae-import-in-view", area: "importBud", what: "a BAE list imported while PB27 is on screen is stored, and the Spend Plan Source names its ANG budget on A's and R's ANG lines in the view and on the working plan, while the board says \"Not kept\"",
++    find: "  if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }\n",
++    repl: "" },
++  { id: "v200-u10-ccar-import-in-view", area: "importCcarRecs", what: "a CCaR Records file imported while PB27 is on screen is read, and the status line counts the titles it found and says \"Save to bake this into the file\" after \"Not kept\"",
++    find: "  if(cycBlock('Importing CCaR records')){ inp.value=''; return; }\n",
++    repl: "" },
++  { id: "v200-u10-dest-change-in-view", area: "flowSetEnt", what: "a destination renamed while PB27 is on screen is renamed for every appropriation and in browser storage: the funds flow puts R's $630 under RENAMED DEST in the view, while the board says the change was not kept",
++    find: "  if(cycBlock('Changing a destination')){ render(); return; }\n",
++    repl: "" },
++  { id: "v200-u10-dest-change-no-redraw", area: "flowSetEnt", what: "a destination rename refused in PB27's view leaves the typed name in its field on screen, as if it were kept",
++    find: "  if(cycBlock('Changing a destination')){ render(); return; }\n",
++    repl: "  if(cycBlock('Changing a destination')) return;\n" },
++  { id: "v200-u10-dest-add-in-view", area: "flowAddEnt", what: "+ add a destination, while PB27 is on screen, adds New destination for every appropriation and in browser storage, while the board says it was not kept",
++    find: "  if(cycBlock('Adding a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt\n",
++    repl: "" },
++  { id: "v200-u10-dest-remove-in-view", area: "flowDelEnt", what: "Depot X removed with its ✕ while PB27 is on screen: \"Nothing points at it\" is asked (the working plan's R does), it is removed everywhere, and back on the working plan R's $630 is not yet assigned in the funds flow",
++    find: "  if(cycBlock('Removing a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt\n",
++    repl: "" },
++  { id: "v200-u10-dest-reset-in-view", area: "flowResetEnts", what: "reset the list, answered OK while PB27 is on screen: Depot X is dropped for every appropriation and in browser storage, and back on the working plan R's $630 is not yet assigned",
++    find: "  if(cycBlock('Resetting the destination list')){ render(); return; }   // v2.00 (U10): as flowSetEnt\n",
++    repl: "" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

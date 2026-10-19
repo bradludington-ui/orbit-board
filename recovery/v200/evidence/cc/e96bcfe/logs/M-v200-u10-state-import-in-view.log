@@ -1,0 +1,19 @@
+# label: M-v200-u10-state-import-in-view
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/out/M-v200-u10-state-import-in-view.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-state-import-in-view.html
+# start: 2026-10-18 05:02:17 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-state-import-in-view.html","BOARD_set":true,"board":"4a363a6caf56d6379728ffcd3d5c16f5016eefc0","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs","harnessBlob":"16230c603de02f3c9c9a5856760005d5bdb69c6c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:02:18 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · the manager’s return (K1 → 77777, MGR DESC R) taken through Import one appropriation
+    refused before the file is read or a question asked, and the status line says so; browser storage still holds 11111 and UNSAVED EDIT A
+        got ["👁 Viewing PB27 (locked) — the plan as it stood 10/18/2026, 9:03:29 AM by unknown, holding FY27. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent as the board until you ↩ leave the view.",[],[["11111"],"UNSAVED EDIT A",""]]   want ["🔒 Importing a file is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],[["11111"],"UNSAVED EDIT A",""]]
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · a state file carrying a 2028 estimate ($4,321,000 on 1.1) taken through Import one appropriation
+    refused before the file is read; the estimates in the board and in browser storage are 2027ACE alone, and the ACE tie-out from the view ties out $900
+        got ["👁 Viewing PB27 (locked) — the plan as it stood 10/18/2026, 9:03:38 AM by unknown, holding FY27. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent as the board until you ↩ leave the view.",[],"[[\"2027ACE\"],[\"2027ACE\"]]",["ok",[["Req A","Confirmed - exact line","1.1",1100,900,200],["Req R","No match","",630,"",""]]]]   want ["🔒 Importing a file is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],"[[\"2027ACE\"],[\"2027ACE\"]]",["ok",[["Req A","Confirmed - exact line","1.1",1100,900,200],["Req R","No match","",630,"",""]]]]
+# exit 1 at 10/18/2026, 5:03:58 AM ET
+
+# end: 2026-10-18 05:03:58 EDT  exit: 1  wall_s: 101.0

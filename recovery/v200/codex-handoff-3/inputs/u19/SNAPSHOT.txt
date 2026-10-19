@@ -1,0 +1,67 @@
+U19 snapshot "u19-fr2": U19's copy after fix round 2 (13 Oct 2026, 1:38 PM ET). Input for Codex batch C2a.
+Packed for Codex on 18 Oct 2026, 5:28 AM ET.
+
+WHAT IT IS
+- The defect (ledger row U19, P1, data loss): with S1 saved into the board file, ↶ Put back of the work kept aside (K) kept
+  nothing in S1's place, because S1 was saved. 💾 Save's "HOLD ON" answered OK then wrote K over S1, and S1 was in no copy the
+  board could reach (only in Teams version history, outside the board), after the Save and after a reopen.
+- The fix in this copy (one proposed commit: built 12 Oct, fix rounds 1 and 2 on 13 Oct). keptPutBack keeps what is on screen
+  aside in the kept work's place whether or not it is saved (keepScreen). The one exception is when 💾 Save writes to the
+  shared folder and what is on screen is the folder's own copy. ↶ Put back is refused at once while a locked cycle is on
+  screen. The question, the status line, the top bar's button title and the 📁 File line now say what is true for a copy kept
+  at a put-back ('swap'). While work is kept aside, the HOLD ON's Cancel advice names ⬅ Import only. board.diff is the whole
+  change.
+- Its tests: the audit-import block "v2.00 (U19) — put back after a board-file save keeps what it replaces". It sits right
+  after the U13 block's end marker, between these two lines:
+    // ==== v2.00 (U19): ↶ Put back after a board-file save keeps what it replaces ====
+    // ==== end v2.00 (U19) ====
+  It has 136 checks, 68 of them labelled CONTROL, in scenarios (a) to (y). On the base, all 68 non-control checks fail and
+  all 68 controls pass; on this copy all 136 pass. Three existing expectations change, each in audit-import.diff: v1.89's
+  "one click puts it back", and U2's case (d) in two places (plus one U2 comment). Run alone, the block peaks at about 2.75 to
+  2.9 GB and takes about 2.5 to 3 minutes on our machine.
+- Mutations: 23 entries `v200-u19-*`. The last is `v200-u19-putback-locked-asks`, just before the line
+    "  // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan."
+  mcount (text only) gives 1351 of 1351 entries matching exactly once on this copy's board (re-counted 18 Oct, 5:28 AM ET).
+- Round-3 reviews of this copy (13 Oct, afternoon and evening):
+  - data loss and money (verify-money-r3): sound-with-issues, 0 must-fix, 2 should-fix. Its SF-1 is the same gap as the
+    test reviewer's must-fix, rated should-fix;
+  - test adequacy (verify-tests-r3): sound-with-issues, 1 must-fix, 2 should-fix.
+  C2a closes the one must-fix, given verbatim in REVIEW-tests-r3-MF1.txt. The board is right; the fix is tests only.
+
+BASE AND BLOBS (git hash-object)
+base commit 7ee498a46507972f803cd48ce9f27d5d668acb63 (product d66dd60)
+  file                                   base                                      this copy (u19-fr2)
+  prioritization-board-grid.html         fce8a391bd8a248d5185e199d22190c1687eaea0  7a6e29cb9908a055c5f8a5b1bfc6f99b938e79d0
+  tools/export-audit/audit-import.mjs    4aba2506a7ea3bd367fb74436172b188bb4fc887  424cd9ae2b9ecc59247722501bd68a6c1d0781ca
+  tools/export-audit/mutate.mjs (TEXT)   cbc6defc6803851e847844848fc9b186daeeb268  07b5396407f840b467517b80bba821dfef78e85d
+Every other file is the base's, byte for byte, among them:
+  tools/export-audit/audit-recon.mjs     529e36f7c20e635b2722ea53b6a4f44b4ed328af
+  tools/export-audit/audit-board.mjs     a7c575e5f98452be88f8d0d7f352fd805350e3d7
+  tools/export-audit/audit-other.mjs     d89396b0cbf7c4b2ea2110acc0a663a23de62760
+  tools/export-audit/boot.mjs            9c4f49ad8cec537097bdf485458cfd2a09b06594
+  package.json                           7cf8186faa9b2dc26fbc3a95fd2b6296e867b384
+  NEXT-VERSION.md                        65265c133696fb431b1faba1f001b7df67503d3d
+
+APPLY
+From a checkout (or `git archive`) of 7ee498a, at the repository root:
+  git apply board.diff audit-import.diff mutate.TEXT.diff        (or: patch -p1 < each, in turn)
+The lead applied the three to a clean extract of 7ee498a on 18 Oct at 5:28 AM ET, both ways, and got exactly the three
+blobs above. mutate.TEXT.diff changes tools/export-audit/mutate.mjs, which is read as TEXT only: never import or run it.
+
+FILES HERE
+  board.diff, audit-import.diff, mutate.TEXT.diff  this copy against the base (plain unified diffs, repo-relative paths)
+  REVIEW-tests-r3-MF1.txt                          the must-fix, verbatim
+  proposal/money-r3-scenario-z.txt                 the money reviewer's scenario (z), verbatim (its blob ce5f5646)
+  proposal/money-r3-entry.txt                      its entry v200-u19-putback-refused-no-restore, verbatim (691e7c4b)
+  proposal/money-r3-zblock.mjs.txt                 its focused block: the U19 block's head and helpers plus (z) only
+                                                   (5ee7a478). The reviewer measured, in a harness made from it: 3/3 pass
+                                                   on this copy, 3/3 on the base, 1 fail on the entry's mutant.
+  proposal/tests-r3-scenario-z-reach.txt           the test reviewer's wider (z), which also reads K's text in storage
+                                                   after the refusal and after a reopen, verbatim (0ce836b9)
+  proposal/tests-r3-entries.txt                    the test reviewer's three entries, verbatim (f22ad886). ONLY THE
+                                                   THIRD, v200-u19-putback-restore-unsaved-only, belongs to C2a; the first
+                                                   two are for its should-fix SF-1 and are not part of C2a.
+  ../tools/mkfocused.py                            builds a focused harness from a suite and two marker lines (252c00ef)
+  MANIFEST.sha256                                  sha256 of every file in this folder
+The proposals are the reviewers' drafts. They were measured by the reviewers and never committed. Use them, change them or
+replace them, and say which you did.

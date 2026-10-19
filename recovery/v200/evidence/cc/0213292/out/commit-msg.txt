@@ -1,0 +1,24 @@
+021329287ffa109ab729f7fd3366bbc3a5fbf0f2
+aec3e63bfcf43150880127d706c76d049159cd3a
+Claude <noreply@anthropic.com>
+Sun Oct 18 08:32:10 2026 +0000
+
+v2.00 (U10 3 of 12): a Spend Plan choice is refused in a locked view before anything is kept
+
+The Spend Plan's choices -- its Cost data, By PMO / By Service, the two prior years, the PMO and service filters and
+the PMO drill's service -- were set on the page first and then saved, which a locked view refuses: the board said
+"the change was not kept" and kept the choice. With PB27 on screen, 2026ACE chosen as the Cost data made the ACE
+tie-out taken from the view tie out 2026ACE ($333 against A's $1,100, where PB27's 2027ACE is $900), and back on the
+working plan it still did, even after a save, while browser storage kept 2027ACE. Now each of the six choices is
+refused while a locked cycle is on screen, before it is set. The round-2 test review's proposal, adopted unchanged.
+U10 3 of 12.
+
+Board +10 -6, audit-recon +99 -0, mutate +32 -0, and its NEXT-VERSION.md entry.
+
+audit-recon: a new "v2.00 (U10)" block, 9 checks (it also reads a PPBE position and a destination's kind refused in
+a view); 6 fail on 7ee498a and the 3 controls pass; on U10 2 the 4 Spend Plan checks fail. 10 mutations. Not
+covered: a destination's match terms (as U10 2).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

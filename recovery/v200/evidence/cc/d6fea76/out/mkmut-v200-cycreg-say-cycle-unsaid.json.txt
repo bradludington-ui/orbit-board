@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-cycle-unsaid", "matches": 1, "find": "    if(cy && r.some(function(x){ return x.nt; })) rcnCyNT=true;\n", "repl": ""}

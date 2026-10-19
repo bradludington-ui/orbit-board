@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-first-only", "matches": 1, "find": "r.slice(0,5).map(function(x){", "repl": "r.slice(0,1).map(function(x){"}

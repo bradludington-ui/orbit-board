@@ -1,0 +1,1 @@
+{"id": "v200-regtext-preview-untrimmed", "matches": 1, "find": "'The title '+inShow(t)+' is '", "repl": "'The title '+inShow(val)+' is '"}

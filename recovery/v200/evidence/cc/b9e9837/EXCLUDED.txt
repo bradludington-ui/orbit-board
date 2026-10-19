@@ -1,0 +1,6 @@
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/mut  (folder of board copies or clones (not walked), 0 bytes)
+a8afb82ead20409f06594bfbf50d7197d24496547c7d6ef1eb7eecaaa1c59e6c  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/out/cmp/merged-board.html  (board copy, 3763496 bytes)

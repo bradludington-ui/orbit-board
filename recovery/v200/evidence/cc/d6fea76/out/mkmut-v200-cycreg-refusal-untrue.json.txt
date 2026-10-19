@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-refusal-untrue", "matches": 1, "find": "  const w=String(why), rt=inRcnTail(w, txt===undefined? _inRcnTxt : txt);", "repl": "  const w=String(why), rt='';"}

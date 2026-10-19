@@ -1,0 +1,21 @@
+start 3:48:50 PM ET
+after-own | exit 0 | ALL CHECKS PASSED | 179 pass, 0 fail
+before-board | exit 1 | 40 FAILING CHECK(S) | 139 pass, 40 fail
+grandparent-board | exit 1 | 91 FAILING CHECK(S) | 88 pass, 91 fail
+mut-v200-u14-stored-unoffered | exit 1 | 15 FAILING CHECK(S) | 164 pass, 15 fail
+mut-v200-u14-saved-falls-back | exit 1 | 7 FAILING CHECK(S) | 172 pass, 7 fail
+mut-v200-u14-export-notice-dropped | exit 1 | 5 FAILING CHECK(S) | 174 pass, 5 fail
+mut-v200-u14-label-dash-gap | exit 1 | 2 FAILING CHECK(S) | 177 pass, 2 fail
+mut-v200-u14-read-makes-year | exit 1 | 32 FAILING CHECK(S) | 147 pass, 32 fail
+mut-v200-u14-toggle-drops-saved | exit 1 | 7 FAILING CHECK(S) | 172 pass, 7 fail
+mut-v200-u14-toggle-collapses | exit 1 | 3 FAILING CHECK(S) | 176 pass, 3 fail
+mut-v200-u14-panel-notice-dropped | exit 1 | 7 FAILING CHECK(S) | 172 pass, 7 fail
+mut-v200-u14-read-writes-marks | exit 1 | 8 FAILING CHECK(S) | 171 pass, 8 fail
+mut-v200-u14-chips-unlit-beside-unavailable | exit 1 | 1 FAILING CHECK(S) | 178 pass, 1 fail
+mut-v200-u14-toggle-off-drops-saved | exit 1 | 2 FAILING CHECK(S) | 177 pass, 2 fail
+mut-v200-u14-only-keeps-saved | exit 1 | 1 FAILING CHECK(S) | 178 pass, 1 fail
+mut-v200-u14-allyears-keeps-saved | exit 1 | 1 FAILING CHECK(S) | 178 pass, 1 fail
+mut-v200-u14-notice-plural-it | exit 1 | 2 FAILING CHECK(S) | 177 pass, 2 fail
+mut-v200-u1-year-unoffered | exit 1 | 28 FAILING CHECK(S) | 151 pass, 28 fail
+mut-v200-u1-own-appn-only | exit 1 | 14 FAILING CHECK(S) | 165 pass, 14 fail
+done 3:57:23 PM ET

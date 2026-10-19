@@ -1,0 +1,12 @@
+v200-u30-base-whatever-on-screen
+v200-u30-base-only-other-copy
+v200-u30-unrecorded-said-after
+v200-u30-recorded-said-unknown
+v200-u30-unsaved-this-session-only
+v200-u30-quiet-refresh-only
+v200-u30-unsaved-only
+v200-u30-putback-said-after
+v200-u30-putback-said-unknown
+v200-u30-putback-file-unknown
+v200-u30-occupied-said-newer
+v200-u30-occupied-said-unknown

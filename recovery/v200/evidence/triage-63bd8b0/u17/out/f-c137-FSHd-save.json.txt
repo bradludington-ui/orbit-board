@@ -1,0 +1,703 @@
+{
+ "scenario": "FSHd",
+ "next": "save",
+ "board": "pre",
+ "ids": {
+  "board": "1375b72b6707faa57c50d528e01ce9611f194998",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6b65ff659b6f2f374b29b2707cf1ce049a5eecf2",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 11:00:56 ET",
+ "steps": [
+  {
+   "step": "start",
+   "v1": {
+    "ts": 1791817258424,
+    "whose": "BRAD-1",
+    "note": "BRAD-1",
+    "alloc": 700
+   },
+   "brad": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791817258424,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 11:00:58 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791817258424,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 3,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791817258424,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "brad after his first 💾 Save into the file",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 3:00:58 PM",
+    "header": "Saved 3:00 PM",
+    "at": "10/12/2026, 11:00:58 ET"
+   },
+   "fileWrites": 1
+  },
+  {
+   "step": "arrived",
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791817259389,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791817258424,
+     "dirty": true
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791817259389,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "label": "the shared state file arrived after brad started typing",
+    "baseFolder": 0,
+    "status": "⚠ The shared state file (10/12/2026, 3:00:59 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 11:00:59 ET"
+   }
+  },
+  {
+   "step": "held",
+   "reached": true,
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791817259567,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791817258424,
+     "dirty": true
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791817259567,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "label": "brad, file save held at its close",
+    "baseFolder": 0,
+    "status": "⚠ The shared state file (10/12/2026, 3:00:59 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 11:00:59 ET"
+   },
+   "asked": [],
+   "fileWrites": 1
+  },
+  {
+   "step": "adoption",
+   "how": "adoptShared()",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791817258424,
+     "dirty": true
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791817259148,
+      "base": {
+       "file": 1791817258424,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "after the adoption, file save still held",
+    "baseFolder": 0,
+    "status": "Shared state loaded (published 10/12/2026, 3:00:59 PM).",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "at": "10/12/2026, 11:00:59 ET"
+   }
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791817259567,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791817259148,
+      "base": {
+       "file": 1791817258424,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "brad after the file save landed",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Carol — \"Board.html\" now carries this state. 10/12/2026, 3:00:59 PM",
+    "header": "Saved 3:00 PM · ↶ work kept aside",
+    "at": "10/12/2026, 11:00:59 ET"
+   },
+   "file": {
+    "ts": 1791817259567,
+    "whose": "BRAD-2",
+    "note": "BRAD-2",
+    "alloc": 720
+   },
+   "fileWrites": 2,
+   "versions": [
+    {
+     "ts": 1791817257503,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 11:00:57 ET"
+    },
+    {
+     "ts": 1791817258424,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 11:00:58 ET"
+    },
+    {
+     "ts": 1791817259567,
+     "whose": "BRAD-2",
+     "note": "BRAD-2",
+     "alloc": 720,
+     "tsET": "10/12/2026, 11:00:59 ET"
+    }
+   ]
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "before": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791817259567,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259148,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791817259148,
+      "base": {
+       "file": 1791817258424,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "brad after the file save landed",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Carol — \"Board.html\" now carries this state. 10/12/2026, 3:00:59 PM",
+    "header": "Saved 3:00 PM · ↶ work kept aside",
+    "at": "10/12/2026, 11:00:59 ET"
+   },
+   "after": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259837,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791817259837,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 7,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791817259837,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791817259148,
+      "base": {
+       "file": 1791817258424,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "after Brad's next 💾 Save",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 3:00:59 PM",
+    "header": "Saved 3:00 PM · ↶ work kept aside",
+    "at": "10/12/2026, 11:00:59 ET"
+   },
+   "versions": [
+    {
+     "ts": 1791817257503,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 11:00:57 ET"
+    },
+    {
+     "ts": 1791817258424,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 11:00:58 ET"
+    },
+    {
+     "ts": 1791817259567,
+     "whose": "BRAD-2",
+     "note": "BRAD-2",
+     "alloc": 720,
+     "tsET": "10/12/2026, 11:00:59 ET"
+    },
+    {
+     "ts": 1791817259837,
+     "whose": "SHARED",
+     "note": "SHARED",
+     "alloc": 600,
+     "tsET": "10/12/2026, 11:00:59 ET"
+    }
+   ],
+   "where": {
+    "X": {
+     "file": true,
+     "screen": true,
+     "storage": true,
+     "keptSlot": false,
+     "earlierFileVersionsOnly": []
+    },
+    "Y": {
+     "file": false,
+     "screen": false,
+     "storage": false,
+     "keptSlot": true,
+     "earlierFileVersionsOnly": [
+      "10/12/2026, 11:00:59 ET"
+     ]
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "file",
+  "mode": "click",
+  "held": true
+ },
+ "expected": {
+  "adopt": [
+   "SHARED",
+   1,
+   true,
+   "BRAD-2",
+   true
+  ],
+  "u17": true,
+  "v3": [
+   0,
+   "SHARED",
+   "BRAD-2",
+   "SHARED",
+   "saved-file",
+   true,
+   true
+  ],
+  "v4": [
+   "BRAD-2",
+   "in-file",
+   "SHARED",
+   "BRAD-2",
+   "put back",
+   null,
+   "BRAD-2",
+   "BRAD-2",
+   "saved-file",
+   1
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true
+ },
+ "nextFrom": {
+  "K": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true,
+  "file": "BRAD-2",
+  "versions": [
+   "F1@10/12/2026, 11:00:57 ET",
+   "BRAD-1@10/12/2026, 11:00:58 ET",
+   "BRAD-2@10/12/2026, 11:00:59 ET"
+  ]
+ },
+ "v3parts": {
+  "falselyClean": true,
+  "wroteOver": true,
+  "overwritten": "BRAD-2",
+  "overwrittenNowIn": {
+   "file": false,
+   "screen": false,
+   "storage": false,
+   "keptSlot": true,
+   "earlierFileVersionsOnly": [
+    "10/12/2026, 11:00:59 ET"
+   ]
+  }
+ },
+ "endedET": "10/12/2026, 11:00:59 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "brad's first 💾 Save wrote BRAD-1/$700 into the board file, recorded clean against it ([file, writes, DIRTY, record dirty, record file time = the file's])",
+   "expected": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.typed",
+   "kind": "fixture",
+   "what": "brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.arrived",
+   "kind": "fixture",
+   "what": "the shared state file arrives after brad typed: nothing replaced, 'load the shared one' offered ([screen, said])",
+   "expected": [
+    "BRAD-2",
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FSHd.held",
+   "kind": "fixture",
+   "what": "brad's 💾 Save into the file reached the close of its write and is held ([reached, questions, _saveBusy, the file still BRAD-1])",
+   "expected": [
+    true,
+    0,
+    1,
+    "BRAD-1"
+   ],
+   "observed": [
+    true,
+    0,
+    1,
+    "BRAD-1"
+   ],
+   "pass": true
+  },
+  {
+   "id": "FSHd.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen during the held file save ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])",
+   "expected": [
+    "SHARED",
+    1,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "observed": [
+    "SHARED",
+    1,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FSHd.file",
+   "kind": "fixture",
+   "what": "the file after the held save landed: the bytes it built ([file content, writes])",
+   "expected": [
+    "BRAD-2",
+    2
+   ],
+   "observed": [
+    "BRAD-2",
+    2
+   ],
+   "pass": true
+  },
+  {
+   "id": "FSHd.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, the file version the record names]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "SHARED",
+     false,
+     "BRAD-2"
+    ]
+   ],
+   "observed": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "pass": false
+  },
+  {
+   "id": "FSHd.U17state",
+   "kind": "predict",
+   "what": "U17 STATE (file analogue) once settled: recorded clean while the screen differs from the file version the record names [\"SHARED\",true,\"BRAD-2\"]",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "FSHd.V3next",
+   "kind": "predict",
+   "what": "Brad's next 💾 Save from where the route ended [\"questions asked\",\"screen before\",\"file before\",\"file after\",\"status says\",\"recorded clean after\",\"record names the file\"]",
+   "expected": [
+    0,
+    "SHARED",
+    "BRAD-2",
+    "SHARED",
+    "saved-file",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "SHARED",
+    "BRAD-2",
+    "SHARED",
+    "saved-file",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FSHd.U17.V3",
+   "kind": "contract",
+   "what": "U17 (file analogue, V3next): from a record that says saved while the screen differs from the file version it names, 💾 Save writes the screen copy over a file holding different content and asks nothing ([record falsely clean before, wrote over without asking])",
+   "expected": {
+    "not": [
+     true,
+     true
+    ]
+   },
+   "observed": [
+    true,
+    true
+   ],
+   "pass": false
+  },
+  {
+   "id": "FSHd.reachY",
+   "kind": "contract",
+   "what": "CONTRACT: BRAD-2 (written into the file by the held save, which said \"Saved in place\") remains in some copy this board can reach (the file, the screen, browser storage, the kept slot) after the next Save",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  }
+ ]
+}

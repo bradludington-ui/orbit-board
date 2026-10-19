@@ -1,0 +1,20 @@
+PASS T1 callback not called inside request() got=false
+PASS T1 first: A runs, A holds, B C A pending in order got=[["A"],["A"],["B","C","A"]]
+PASS T1 B is not run while A holds (50 turns) got=[["A"],["A"]]
+PASS T1 A resolves with its callback’s value got="A:1"
+PASS T1 after A releases: B runs and holds; C, A pending got=[["A","B"],["B"],["C","A"]]
+PASS T1 grant order and results got=[["A","B","C","A2"],["B:2","C:3","A2:4"]]
+PASS T1 never two inside; no violation; most held at once got=[1,0,1]
+PASS T1 promise of the requesting window’s realm got=true
+PASS T2 rejection and throw reject request(); a value resolves it; each released got=[[["err","rejected"],["err","thrown"],["ok",7]],[],3]
+PASS T4 A’s promise settles after its release (B already granted then) got="A settled, held by [\"B\"]"
+PASS T5 M granted while L held got=true
+PASS T6 ifAvailable: [while held, queued, when free] got=["null",0,"L/exclusive"]
+PASS T7 shared A B together; X then S wait got=[["A","B"],["A","B"],["C","A"]]
+PASS T7 X alone; S still waits got=[["A","B","X"],["C"]]
+PASS T7 then S; no violation got=[["A","B","X","S"],0]
+PASS T8 query: held A; pending B, C got=[["A"],["B","C"]]
+PASS T8 after B and A close: C granted; one dropped got=["c",true,1]
+PASS T9 steal, signal, -name, no callback, bad mode: each rejected; unmodeled counted got=[["rejected","rejected","rejected","rejected","rejected"],2]
+PASS T10 [finished, FIFO = request order, most inside at once, violations, settled] got=[true,true,1,0,300]
+locktest 19 pass 0 fail

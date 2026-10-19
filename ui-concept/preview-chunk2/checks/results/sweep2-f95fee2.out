@@ -1,0 +1,146 @@
+{
+ "fmt": {
+  "base/base review": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "base/base rank": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "base/base fund": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "base/base compare": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "base/base brief": {
+   "closed": [
+    "1120:amt+num",
+    "1140:amt+num",
+    "1160:amt+num",
+    "1180:amt+num",
+    "1200:num",
+    "1220:num",
+    "1240:num",
+    "1260:num",
+    "1280:num",
+    "1300:num",
+    "1320:num",
+    "1340: doc1"
+   ],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/open review": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/open rank": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/open fund": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/open compare": {
+   "closed": [],
+   "panelOpen": [
+    "1900: inspOff"
+   ],
+   "n": 61
+  },
+  "neu/open brief": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/rail review": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/rail rank": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/rail fund": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/rail compare": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/rail brief": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dock review": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dock rank": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dock fund": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dock compare": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dock brief": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dockrail review": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dockrail rank": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dockrail fund": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dockrail compare": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  },
+  "neu/dockrail brief": {
+   "closed": [],
+   "panelOpen": [],
+   "n": 61
+  }
+ },
+ "errs": []
+}
+exit 0

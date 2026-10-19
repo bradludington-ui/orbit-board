@@ -1,0 +1,17 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c4/tools/export-audit/mutate.mjs.txt	2026-10-13 18:25:50.823019108 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c5/tools/export-audit/mutate.mjs.txt	2026-10-14 01:01:33.033484773 +0000
+@@ -4415,6 +4415,14 @@
+   { id: "v200-u10-folder-connect-quiet", area: "driveStorePull", what: "a Connect (a refresh that speaks) while PB27 is on screen loads nothing and says nothing",
+     find: "if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }",
+     repl: "if(CYCVIEW){ render(); return false; }" },
++  // v2.00 (U10, fix round 3 of 13 Oct; ledger U49): what a refusal puts back includes the funds flow's partner and FMS money and
++  // its year selection, which are kept beside the years (MS.flow).
++  { id: "v200-u10-reapply-keeps-partner-money", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's partner and FMS money: International Partners $3M typed for FY27 in PB27's view says the change was not kept, and the calculation and the Funds Flow export labelled [PB27 LOCKED] carry $503,000,000 (ledger U49)",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const O0=MS.flow&&MS.flow.other; MS=cycCopy(c); MS.cur=y; if(O0) flowCfg().other=O0;" },
++  { id: "v200-u10-reapply-keeps-year-pick", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's funds-flow year selection: FY25 clicked in PB27's view says the change was not kept, and the Funds Flow export labelled [PB27 LOCKED] counts FY25 and FY27 (ledger U49)",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const Y0=MS.flow? MS.flow.fys : null; MS=cycCopy(c); MS.cur=y; flowCfg().fys=Y0;" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

@@ -1,0 +1,13 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/mut/v200-u14-label-dash-gap.html","BOARD_set":true,"board":"1cd02356eeb2705d489d46f9f5eb02489343d317","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/h/focused-u1-u14.mjs","harnessBlob":"9f45b969dea146568a7d57eb782bb1d16718c30a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:51:34 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, a carried row, rule off · ALL YEARS · the label
+    the scope names only the years in the total, in runs; the export's Scope line and the chart say the same
+        got ["FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]   want ["FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","Scope: FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed","funds flow, FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"]
+# exit 1 at 10/12/2026, 3:52:02 PM ET
+exit 1

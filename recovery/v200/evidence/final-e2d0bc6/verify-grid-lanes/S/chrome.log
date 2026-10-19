@@ -1,0 +1,19 @@
+# cmd: X=1 npm run chrome --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:19:30Z / 07:19:30 EDT
+# cap: 900s  grace: 10s
+  ok   the newest revision when there is no link
+  ok   the version-free link before any revision
+  ok   CHROME_BIN before the link and the revisions
+  ok   a CHROME_BIN that is not a file is refused
+  ok   nothing found names what was tried and never offers to download
+
+  on this machine: /opt/pw-browsers/chromium
+
+  Chromium is found the same way by every browser check
+
+
+# end: 2026-10-19T11:19:30Z / 07:19:30 EDT
+# exit: 0  duration_s: 0.2

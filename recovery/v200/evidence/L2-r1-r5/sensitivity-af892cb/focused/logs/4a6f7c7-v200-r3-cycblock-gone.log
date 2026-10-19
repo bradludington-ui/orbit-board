@@ -1,0 +1,23 @@
+# cmd: X=1 BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/mut-4a6f7c7/v200-r3-cycblock-gone.html node tools/export-audit/focused-r3r5.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T01:02:59Z / 21:02:59 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    nothing is written to the folder (no copy, no history, no lock), and it is byte-identical
+        got [["hist:spmt-2027-om-20261012-010302.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false]   want [[],true]
+    the save does not tell its caller it saved
+        got true   want false
+    the board does not say saved, and says writing to the folder is off
+        got [true,false]   want [false,true]
+--- v2.00 (R3) — a locked view is never written to the working folder | (b) ⬆ Publish now, PB27 put on screen during the read
+    nothing is written, it reports failure, and no publish is recorded
+        got [true,["hist:spmt-2027-om-20261012-010304.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false,true,1791766984273]   want [true,[],true,false,1]
+
+# end: 2026-10-12T01:03:20Z / 21:03:20 EDT
+# exit: 1  duration_s: 20.9

@@ -1,0 +1,15 @@
+# cmd: X=1 npm run controls --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:19:30Z / 07:19:30 EDT
+# cap: 900s  grace: 10s
+
+requirement controls — prioritization-board-grid.html (v2.00 (11 Oct 2026)) against the list recorded from v2.00 (11 Oct 2026)
+  61 recorded · 61 now
+
+  every recorded control is present, and nothing unrecorded appeared
+
+
+# end: 2026-10-19T11:19:34Z / 07:19:34 EDT
+# exit: 0  duration_s: 3.7

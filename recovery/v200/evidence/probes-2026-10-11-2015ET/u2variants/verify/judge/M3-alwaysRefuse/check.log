@@ -1,0 +1,265 @@
+PASS  BASE folder FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+PASS  BASE folder FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  BASE folder P1   during: the put-back happened (S1 -> K on screen; one confirm asked)
+        want ["S1-ONSCREEN","K-KEPTWORK",1]
+        got  ["S1-ONSCREEN","K-KEPTWORK",1]
+PASS  BASE folder P2   during: _saveGen moved by the put-back (BASE: 0, U2a: 1)
+        want 0
+        got  0
+PASS  BASE folder D1   DEFECT after landing: K on screen marked SAVED [DIRTY,_baseDirty,record]=[false,false,false]; head S1; kept S1
+        want ["K-KEPTWORK",[false,false,false],"S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK",[false,false,false],"S1-ONSCREEN","S1-ONSCREEN"]
+PASS  BASE folder D2   DEFECT after reopen: K in no copy the person can reach (screen, kept slot, folder, history)
+        want []
+        got  []
+FAIL  BASE folder ASK  the first Save after the put-back asked before writing over the folder's copy (the put-back's promise)
+        want true
+        got  false
+PASS  BASE folder NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  BASE folder NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  BASE file   FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+PASS  BASE file   FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  BASE file   P1   during: the put-back happened (S1 -> K on screen; one confirm asked)
+        want ["S1-ONSCREEN","K-KEPTWORK",1]
+        got  ["S1-ONSCREEN","K-KEPTWORK",1]
+PASS  BASE file   P2   during: _saveGen moved by the put-back (BASE: 0, U2a: 1)
+        want 0
+        got  0
+PASS  BASE file   D1   DEFECT after landing: K on screen marked SAVED [DIRTY,_baseDirty,record]=[false,false,false]; head S1; kept S1
+        want ["K-KEPTWORK",[false,false,false],"S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK",[false,false,false],"S1-ONSCREEN","S1-ONSCREEN"]
+PASS  BASE file   D2   DEFECT after reopen: K in no copy the person can reach (screen, kept slot, file, history)
+        want []
+        got  []
+FAIL  BASE file   ASK  the first Save after the put-back asked before writing over the file's copy (the put-back's promise)
+        want true
+        got  false
+PASS  BASE file   NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  BASE file   NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2a  folder FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+PASS  U2a  folder FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2a  folder P1   during: the put-back happened (S1 -> K on screen; one confirm asked)
+        want ["S1-ONSCREEN","K-KEPTWORK",1]
+        got  ["S1-ONSCREEN","K-KEPTWORK",1]
+PASS  U2a  folder P2   during: _saveGen moved by the put-back (BASE: 0, U2a: 1)
+        want 1
+        got  1
+PASS  U2a  folder A2   after landing: K on screen, UNSAVED [true,true,true]; head S1; kept S1
+        want ["K-KEPTWORK",[true,true,true],"S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK",[true,true,true],"S1-ONSCREEN","S1-ONSCREEN"]
+PASS  U2a  folder A2s  after landing: the status says the change is not in the folder yet
+        want true
+        got  true
+PASS  U2a  folder A3   reopen: K on screen or kept (never lost), recorded unsaved
+        want [true,true]
+        got  [true,true]
+PASS  U2a  folder A4   the next Save writes K
+        want "K-KEPTWORK"
+        got  "K-KEPTWORK"
+FAIL  U2a  folder ASK  the first Save after the put-back asked before writing over the folder's copy (the put-back's promise)
+        want true
+        got  false
+PASS  U2a  folder NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  U2a  folder NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2a  file   FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+PASS  U2a  file   FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2a  file   P1   during: the put-back happened (S1 -> K on screen; one confirm asked)
+        want ["S1-ONSCREEN","K-KEPTWORK",1]
+        got  ["S1-ONSCREEN","K-KEPTWORK",1]
+PASS  U2a  file   P2   during: _saveGen moved by the put-back (BASE: 0, U2a: 1)
+        want 1
+        got  1
+PASS  U2a  file   A2   after landing: K on screen, UNSAVED [true,true,true]; head S1; kept S1
+        want ["K-KEPTWORK",[true,true,true],"S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK",[true,true,true],"S1-ONSCREEN","S1-ONSCREEN"]
+PASS  U2a  file   A2s  after landing: the status says the change is not in the file yet
+        want true
+        got  true
+PASS  U2a  file   A3   reopen: K on screen or kept (never lost), recorded unsaved
+        want [true,true]
+        got  [true,true]
+PASS  U2a  file   A4   the next Save writes K
+        want "K-KEPTWORK"
+        got  "K-KEPTWORK"
+FAIL  U2a  file   ASK  the first Save after the put-back asked before writing over the file's copy (the put-back's promise)
+        want true
+        got  false
+PASS  U2a  file   NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  U2a  file   NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2b  folder FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+PASS  U2b  folder FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2b  folder B1   during: refused -- screen still S1, no confirm, kept slot byte-identical, MS JSON byte-identical
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["S1-ONSCREEN",0,true,true]
+PASS  U2b  folder B1s  during: the status says so
+        want "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+        got  "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+PASS  U2b  folder B2   after landing: S1 on screen, saved [false,false,false]; head S1; kept K, byte-identical to before the refused call
+        want ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+        got  ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+PASS  U2b  folder B3   reopen: K kept aside (kept slot), S1 on screen and in the folder
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+FAIL  U2b  folder B4   retry after landing: one confirm, K on screen, UNSAVED [true,true,true]
+        want [true,1,"K-KEPTWORK",[true,true,true]]
+        got  [true,0,"S1-ONSCREEN",[false,false,false]]
+FAIL  U2b  folder B5   then Save: the folder holds K
+        want "K-KEPTWORK"
+        got  "S1-ONSCREEN"
+FAIL  U2b  folder B6   reopen after that Save: K on screen and in the folder
+        want ["K-KEPTWORK","K-KEPTWORK"]
+        got  ["S1-ONSCREEN","S1-ONSCREEN"]
+FAIL  U2b  folder ASK  the first Save after the put-back asked before writing over the folder's copy (the put-back's promise)
+        want true
+        got  false
+FAIL  U2b  folder NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  false
+PASS  U2b  folder NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2b  file   FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+PASS  U2b  file   FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2b  file   B1   during: refused -- screen still S1, no confirm, kept slot byte-identical, MS JSON byte-identical
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["S1-ONSCREEN",0,true,true]
+PASS  U2b  file   B1s  during: the status says so
+        want "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+        got  "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+PASS  U2b  file   B2   after landing: S1 on screen, saved [false,false,false]; head S1; kept K, byte-identical to before the refused call
+        want ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+        got  ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+PASS  U2b  file   B3   reopen: K kept aside (kept slot), S1 on screen and in the file
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+FAIL  U2b  file   B4   retry after landing: one confirm, K on screen, UNSAVED [true,true,true]
+        want [true,1,"K-KEPTWORK",[true,true,true]]
+        got  [true,0,"S1-ONSCREEN",[false,false,false]]
+FAIL  U2b  file   B5   then Save: the file holds K
+        want "K-KEPTWORK"
+        got  "S1-ONSCREEN"
+FAIL  U2b  file   B6   reopen after that Save: K on screen and in the file
+        want ["K-KEPTWORK","K-KEPTWORK"]
+        got  ["S1-ONSCREEN","S1-ONSCREEN"]
+FAIL  U2b  file   ASK  the first Save after the put-back asked before writing over the file's copy (the put-back's promise)
+        want true
+        got  false
+FAIL  U2b  file   NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  false
+PASS  U2b  file   NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2ab folder FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","folder",[true,true,true],"N-NEWER"]
+PASS  U2ab folder FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2ab folder B1   during: refused -- screen still S1, no confirm, kept slot byte-identical, MS JSON byte-identical
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["S1-ONSCREEN",0,true,true]
+PASS  U2ab folder B1s  during: the status says so
+        want "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+        got  "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+PASS  U2ab folder B2   after landing: S1 on screen, saved [false,false,false]; head S1; kept K, byte-identical to before the refused call
+        want ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+        got  ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+PASS  U2ab folder B3   reopen: K kept aside (kept slot), S1 on screen and in the folder
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+PASS  U2ab folder B4   retry after landing: one confirm, K on screen, UNSAVED [true,true,true]
+        want [true,1,"K-KEPTWORK",[true,true,true]]
+        got  [true,1,"K-KEPTWORK",[true,true,true]]
+PASS  U2ab folder B5   then Save: the folder holds K
+        want "K-KEPTWORK"
+        got  "K-KEPTWORK"
+PASS  U2ab folder B6   reopen after that Save: K on screen and in the folder
+        want ["K-KEPTWORK","K-KEPTWORK"]
+        got  ["K-KEPTWORK","K-KEPTWORK"]
+PASS  U2ab folder ASK  the first Save after the put-back asked before writing over the folder's copy (the put-back's promise)
+        want true
+        got  true
+PASS  U2ab folder NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  U2ab folder NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+PASS  U2ab file   FX1  before the race: screen, kept note, kept why, [DIRTY,_baseDirty,record], head
+        want ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+        got  ["S1-ONSCREEN","K-KEPTWORK","file",[true,true,true],"N-NEWER"]
+PASS  U2ab file   FX2  the save reached its write and was held there; _saveBusy when keptPutBack ran
+        want [true,1]
+        got  [true,1]
+PASS  U2ab file   B1   during: refused -- screen still S1, no confirm, kept slot byte-identical, MS JSON byte-identical
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["S1-ONSCREEN",0,true,true]
+PASS  U2ab file   B1s  during: the status says so
+        want "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+        got  "⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged."
+PASS  U2ab file   B2   after landing: S1 on screen, saved [false,false,false]; head S1; kept K, byte-identical to before the refused call
+        want ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+        got  ["S1-ONSCREEN",[false,false,false],"S1-ONSCREEN","K-KEPTWORK",true]
+PASS  U2ab file   B3   reopen: K kept aside (kept slot), S1 on screen and in the file
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+PASS  U2ab file   B4   retry after landing: one confirm, K on screen, UNSAVED [true,true,true]
+        want [true,1,"K-KEPTWORK",[true,true,true]]
+        got  [true,1,"K-KEPTWORK",[true,true,true]]
+PASS  U2ab file   B5   then Save: the file holds K
+        want "K-KEPTWORK"
+        got  "K-KEPTWORK"
+PASS  U2ab file   B6   reopen after that Save: K on screen and in the file
+        want ["K-KEPTWORK","K-KEPTWORK"]
+        got  ["K-KEPTWORK","K-KEPTWORK"]
+PASS  U2ab file   ASK  the first Save after the put-back asked before writing over the file's copy (the put-back's promise)
+        want true
+        got  true
+PASS  U2ab file   NR   no-race put-back: normalized result identical to BASE
+        want true
+        got  true
+PASS  U2ab file   NR0  no-race put-back ran with no save running (_saveBusy)
+        want 0
+        got  0
+{"BASE":[16,2],"U2a":[20,2],"U2b":[14,10],"U2ab":[24,0]}

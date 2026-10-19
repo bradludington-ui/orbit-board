@@ -1,0 +1,16 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L1/mut-v200-id-builtin-open.html node tools/export-audit/audit-inject.mjs
+# cwd: /home/user/orbit-board
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T19:39:25Z / 15:39:25 EDT
+# cap: 600s
+
+================================================================================================
+INJECTION REGRESSION — 1 FAILING CHECK(S) across 44 findings and 4 text-fidelity guards
+
+  FAIL  [K1 built-in names at the import check (inboundCheck)] a requirement id valueOf in a plan's priority order is refused as an id  (got false, want true)
+
+================================================================================================
+
+
+# end: 2026-10-11T19:39:58Z / 15:39:58 EDT
+# exit: 1  duration_s: 32.9

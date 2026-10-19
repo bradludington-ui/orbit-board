@@ -1,0 +1,277 @@
+FAIL contract | before|product|K=1 | c1 | flowYears() offers FY25, FY26 and the window FY27-FY31 | expected [2025,2026,2027,2028,2029,2030,2031] | actual [2025,2027,2028,2029,2030,2031]
+FAIL contract | before|product|K=1 | c1 | selection honoured: years [2026] x appropriations ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1 | c1 | flowCalc total 400 (executed 100, planned 300) | expected [400,100,300] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c1 | flowCalc per appropriation | expected {"om":300,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c1 | export TOTAL FUNDING twice = 400; US SERVICE FUNDING = 400 | expected [[400,400],[400]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c1 | export appropriation lines | expected {"om":[300],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|product|K=1 | c2 | selection honoured: years [2026] x appropriations ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1 | c2 | flowCalc total 300 (executed 0, planned 300) | expected [300,0,300] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c2 | flowCalc per appropriation | expected {"om":300,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c2 | planned-and-executed box (.flowmix) absent | expected false | actual true
+FAIL contract | before|product|K=1 | c2 | export TOTAL FUNDING twice = 300; US SERVICE FUNDING = 300 | expected [[300,300],[300]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c2 | export appropriation lines | expected {"om":[300]} | actual {"om":[540]}
+FAIL contract | before|product|K=1 | c2 | export NOTE "planned and executed money in one total" absent | expected false | actual true
+FAIL contract | before|product|K=1 | c3 | selection honoured: years [2026] x appropriations ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1 | c3 | flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|product|K=1 | c3 | flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c3 | export TOTAL FUNDING twice = 100; US SERVICE FUNDING = 100 | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1 | c3 | export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1 | c6 | ALL YEARS with the FY26 plan = 40 + 100 + 300 + 500 = 940 (executed 140, planned 800); export TOTAL FUNDING twice | expected [940,140,800,[940,940]] | actual [540,40,500,[540,540]]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: export appropriation lines | expected {"om":[0],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|product|K=1 | c4a | c4-board:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540]}
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|product|K=1 | c4b | c4-board:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|product|K=1 | c4c | c4-board:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1 | c4c | c4-board:c4c: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|product|K=1 | c4c | c4-board:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4c | c4-board:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1 | c4c | c4-board:c4c: export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1 | c6 | ALL YEARS without the FY26 plan = 40 + 100 + 500 = 640 (executed 140, planned 500); export TOTAL FUNDING twice; MS.years[2026] still undefined | expected [640,140,500,[640,640],"undefined"] | actual [540,40,500,[540,540],"undefined"]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: export appropriation lines | expected {"om":[0],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|product|K=1 | c4a | c4-reopened:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540,40,500]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540,540],[540]]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540]}
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|product|K=1 | c4b | c4-reopened:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|product|K=1 | c4c | c4-reopened:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1 | c4c | c4-reopened:c4c: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|product|K=1 | c4c | c4-reopened:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1 | c4c | c4-reopened:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1 | c4c | c4-reopened:c4c: export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1 | c6 | c4-reopened: ALL YEARS = 40 + 100 + 500 | expected [640,"undefined"] | actual [540,"undefined"]
+FAIL contract | before|product|K=1 | detector | DETECTOR CONTROL (needs FY26 offered) — the clone shows in the money: FY26 x O&M = 500 planned, two figures equal 500 | expected [500,500,2] | actual [540,500,1]
+FAIL contract | before|product|K=1000000 | c1 | flowYears() offers FY25, FY26 and the window FY27-FY31 | expected [2025,2026,2027,2028,2029,2030,2031] | actual [2025,2027,2028,2029,2030,2031]
+FAIL contract | before|product|K=1000000 | c1 | selection honoured: years [2026] x appropriations ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1000000 | c1 | flowCalc total 400000000 (executed 100000000, planned 300000000) | expected [400000000,100000000,300000000] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c1 | flowCalc per appropriation | expected {"om":300000000,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c1 | panel total funding $400.00M | expected "400.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c1 | the box states $100.00M executed, $300.00M planned | expected true | actual false
+FAIL contract | before|product|K=1000000 | c1 | export TOTAL FUNDING twice = 400000000; US SERVICE FUNDING = 400000000 | expected [[400000000,400000000],[400000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c1 | export appropriation lines | expected {"om":[300000000],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|product|K=1000000 | c2 | selection honoured: years [2026] x appropriations ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1000000 | c2 | flowCalc total 300000000 (executed 0, planned 300000000) | expected [300000000,0,300000000] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c2 | flowCalc per appropriation | expected {"om":300000000,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c2 | panel total funding $300.00M | expected "300.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c2 | planned-and-executed box (.flowmix) absent | expected false | actual true
+FAIL contract | before|product|K=1000000 | c2 | export TOTAL FUNDING twice = 300000000; US SERVICE FUNDING = 300000000 | expected [[300000000,300000000],[300000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c2 | export appropriation lines | expected {"om":[300000000]} | actual {"om":[540000000]}
+FAIL contract | before|product|K=1000000 | c2 | export NOTE "planned and executed money in one total" absent | expected false | actual true
+FAIL contract | before|product|K=1000000 | c3 | selection honoured: years [2026] x appropriations ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1000000 | c3 | flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|product|K=1000000 | c3 | flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c3 | panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|product|K=1000000 | c3 | export TOTAL FUNDING twice = 100000000; US SERVICE FUNDING = 100000000 | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1000000 | c3 | export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1000000 | c6 | ALL YEARS with the FY26 plan = 40 + 100 + 300 + 500 = 940000000 (executed 140000000, planned 800000000); export TOTAL FUNDING twice | expected [940000000,140000000,800000000,[940000000,940000000]] | actual [540000000,40000000,500000000,[540000000,540000000]]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: panel total funding $100.00M | expected "100.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: export appropriation lines | expected {"om":[0],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|product|K=1000000 | c4a | c4-board:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: panel total funding $0.00M | expected "0.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540000000]}
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|product|K=1000000 | c4b | c4-board:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1000000 | c4c | c4-board:c4c: export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1000000 | c6 | ALL YEARS without the FY26 plan = 40 + 100 + 500 = 640000000 (executed 140000000, planned 500000000); export TOTAL FUNDING twice; MS.years[2026] still undefined | expected [640000000,140000000,500000000,[640000000,640000000],"undefined"] | actual [540000000,40000000,500000000,[540000000,540000000],"undefined"]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: panel total funding $100.00M | expected "100.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: export appropriation lines | expected {"om":[0],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|product|K=1000000 | c4a | c4-reopened:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: panel total funding $0.00M | expected "0.00" | actual "540.00"
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540000000]}
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|product|K=1000000 | c4b | c4-reopened:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|product|K=1000000 | c4c | c4-reopened:c4c: export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|product|K=1000000 | c6 | c4-reopened: ALL YEARS = 40 + 100 + 500 | expected [640000000,"undefined"] | actual [540000000,"undefined"]
+FAIL contract | before|product|K=1000000 | detector | DETECTOR CONTROL (needs FY26 offered) — the clone shows in the money: FY26 x O&M = 500 planned, two figures equal 500 | expected [500000000,500000000,2] | actual [540000000,500000000,1]
+FAIL contract | before|state|K=1 | c1 | flowYears() offers FY25, FY26 and the window FY27-FY31 | expected [2025,2026,2027,2028,2029,2030,2031] | actual [2025,2027,2028,2029,2030,2031]
+FAIL contract | before|state|K=1 | c1 | selection honoured: years [2026] x appropriations ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1 | c1 | flowCalc total 400 (executed 100, planned 300) | expected [400,100,300] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c1 | flowCalc per appropriation | expected {"om":300,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c1 | export TOTAL FUNDING twice = 400; US SERVICE FUNDING = 400 | expected [[400,400],[400]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c1 | export appropriation lines | expected {"om":[300],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|state|K=1 | c2 | selection honoured: years [2026] x appropriations ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1 | c2 | flowCalc total 300 (executed 0, planned 300) | expected [300,0,300] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c2 | flowCalc per appropriation | expected {"om":300,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c2 | planned-and-executed box (.flowmix) absent | expected false | actual true
+FAIL contract | before|state|K=1 | c2 | export TOTAL FUNDING twice = 300; US SERVICE FUNDING = 300 | expected [[300,300],[300]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c2 | export appropriation lines | expected {"om":[300]} | actual {"om":[540]}
+FAIL contract | before|state|K=1 | c2 | export NOTE "planned and executed money in one total" absent | expected false | actual true
+FAIL contract | before|state|K=1 | c3 | selection honoured: years [2026] x appropriations ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1 | c3 | flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|state|K=1 | c3 | flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c3 | export TOTAL FUNDING twice = 100; US SERVICE FUNDING = 100 | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1 | c3 | export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1 | c6 | ALL YEARS with the FY26 plan = 40 + 100 + 300 + 500 = 940 (executed 140, planned 800); export TOTAL FUNDING twice | expected [940,140,800,[940,940]] | actual [540,40,500,[540,540]]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: export appropriation lines | expected {"om":[0],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|state|K=1 | c4a | c4-board:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540]}
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|state|K=1 | c4b | c4-board:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|state|K=1 | c4c | c4-board:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1 | c4c | c4-board:c4c: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|state|K=1 | c4c | c4-board:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4c | c4-board:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1 | c4c | c4-board:c4c: export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1 | c6 | ALL YEARS without the FY26 plan = 40 + 100 + 500 = 640 (executed 140, planned 500); export TOTAL FUNDING twice; MS.years[2026] still undefined | expected [640,140,500,[640,640],"undefined"] | actual [540,40,500,[540,540],"undefined"]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: export appropriation lines | expected {"om":[0],"sp":[100]} | actual {"om":[540],"sp":[0]}
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|state|K=1 | c4a | c4-reopened:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540,40,500]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540,540],[540]]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540]}
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: no FY26 figure equals 500 (FY27's pot) -- flowCalc, export cells | expected [[],[],[]] | actual [[500,500],[500,500],[]]
+FAIL contract | before|state|K=1 | c4b | c4-reopened:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500,true]]
+FAIL contract | before|state|K=1 | c4c | c4-reopened:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1 | c4c | c4-reopened:c4c: flowCalc total 100 (executed 100, planned 0) | expected [100,100,0] | actual [0,0,0]
+FAIL contract | before|state|K=1 | c4c | c4-reopened:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1 | c4c | c4-reopened:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100,100],[100]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1 | c4c | c4-reopened:c4c: export appropriation lines | expected {"sp":[100]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1 | c6 | c4-reopened: ALL YEARS = 40 + 100 + 500 | expected [640,"undefined"] | actual [540,"undefined"]
+FAIL contract | before|state|K=1 | detector | DETECTOR CONTROL (needs FY26 offered) — the clone shows in the money: FY26 x O&M = 500 planned, two figures equal 500 | expected [500,500,2] | actual [540,500,1]
+FAIL contract | before|state|K=1000000 | c1 | flowYears() offers FY25, FY26 and the window FY27-FY31 | expected [2025,2026,2027,2028,2029,2030,2031] | actual [2025,2027,2028,2029,2030,2031]
+FAIL contract | before|state|K=1000000 | c1 | selection honoured: years [2026] x appropriations ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1000000 | c1 | flowCalc total 400000000 (executed 100000000, planned 300000000) | expected [400000000,100000000,300000000] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c1 | flowCalc per appropriation | expected {"om":300000000,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c1 | panel total funding $400.00M | expected "400.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c1 | the box states $100.00M executed, $300.00M planned | expected true | actual false
+FAIL contract | before|state|K=1000000 | c1 | export TOTAL FUNDING twice = 400000000; US SERVICE FUNDING = 400000000 | expected [[400000000,400000000],[400000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c1 | export appropriation lines | expected {"om":[300000000],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|state|K=1000000 | c2 | selection honoured: years [2026] x appropriations ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1000000 | c2 | flowCalc total 300000000 (executed 0, planned 300000000) | expected [300000000,0,300000000] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c2 | flowCalc per appropriation | expected {"om":300000000,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c2 | panel total funding $300.00M | expected "300.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c2 | planned-and-executed box (.flowmix) absent | expected false | actual true
+FAIL contract | before|state|K=1000000 | c2 | export TOTAL FUNDING twice = 300000000; US SERVICE FUNDING = 300000000 | expected [[300000000,300000000],[300000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c2 | export appropriation lines | expected {"om":[300000000]} | actual {"om":[540000000]}
+FAIL contract | before|state|K=1000000 | c2 | export NOTE "planned and executed money in one total" absent | expected false | actual true
+FAIL contract | before|state|K=1000000 | c3 | selection honoured: years [2026] x appropriations ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1000000 | c3 | flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|state|K=1000000 | c3 | flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c3 | panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|state|K=1000000 | c3 | export TOTAL FUNDING twice = 100000000; US SERVICE FUNDING = 100000000 | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1000000 | c3 | export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1000000 | c6 | ALL YEARS with the FY26 plan = 40 + 100 + 300 + 500 = 940000000 (executed 140000000, planned 800000000); export TOTAL FUNDING twice | expected [940000000,140000000,800000000,[940000000,940000000]] | actual [540000000,40000000,500000000,[540000000,540000000]]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: panel total funding $100.00M | expected "100.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: export appropriation lines | expected {"om":[0],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|state|K=1000000 | c4a | c4-board:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: panel total funding $0.00M | expected "0.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540000000]}
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|state|K=1000000 | c4b | c4-board:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1000000 | c4c | c4-board:c4c: export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1000000 | c6 | ALL YEARS without the FY26 plan = 40 + 100 + 500 = 640000000 (executed 140000000, planned 500000000); export TOTAL FUNDING twice; MS.years[2026] still undefined | expected [640000000,140000000,500000000,[640000000,640000000],"undefined"] | actual [540000000,40000000,500000000,[540000000,540000000],"undefined"]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: selection honoured [2026] x ["om","sp"] | expected [[2026],["om","sp"]] | actual [[2025,2027,2028,2029,2030,2031],["om","sp"]]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: panel total funding $100.00M | expected "100.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: export appropriation lines | expected {"om":[0],"sp":[100000000]} | actual {"om":[540000000],"sp":[0]}
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|state|K=1000000 | c4a | c4-reopened:c4a: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: selection honoured [2026] x ["om"] | expected [[2026],["om"]] | actual [[2025,2027,2028,2029,2030,2031],["om"]]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: flowCalc total 0 (executed 0, planned 0) | expected [0,0,0] | actual [540000000,40000000,500000000]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":0,"opn":0} | actual {"om":540000000,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: panel total funding $0.00M | expected "0.00" | actual "540.00"
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: planned-and-executed box absent; NOTE absent | expected [false,false] | actual [true,true]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[0,0],[0]] | actual [[540000000,540000000],[540000000]]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: export appropriation lines | expected {"om":[0]} | actual {"om":[540000000]}
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: no FY26 figure equals 500000000 (FY27's pot) -- flowCalc, export cells, panel $M figures | expected [[],[],[]] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"]]
+FAIL contract | before|state|K=1000000 | c4b | c4-reopened:c4b: no FY26 plan row (no row with plan=true) | expected [] | actual [["Synthetic planned requirement","om",2027,"USAF",500000000,true]]
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: selection honoured [2026] x ["sp"] | expected [[2026],["sp"]] | actual [[2025,2027,2028,2029,2030,2031],["sp"]]
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: flowCalc total 100000000 (executed 100000000, planned 0) | expected [100000000,100000000,0] | actual [0,0,0]
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: flowCalc per appropriation | expected {"om":0,"ff":0,"sp":100000000,"opn":0} | actual {"om":0,"ff":0,"sp":0,"opn":0}
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: panel total funding $100.00M | expected "100.00" | actual "0.00"
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: export TOTAL FUNDING twice / US SERVICE FUNDING | expected [[100000000,100000000],[100000000]] | actual [[0,0],[0]]
+FAIL contract | before|state|K=1000000 | c4c | c4-reopened:c4c: export appropriation lines | expected {"sp":[100000000]} | actual {"sp":[0]}
+FAIL contract | before|state|K=1000000 | c6 | c4-reopened: ALL YEARS = 40 + 100 + 500 | expected [640000000,"undefined"] | actual [540000000,"undefined"]
+FAIL contract | before|state|K=1000000 | detector | DETECTOR CONTROL (needs FY26 offered) — the clone shows in the money: FY26 x O&M = 500 planned, two figures equal 500 | expected [500000000,500000000,2] | actual [540000000,500000000,1]
+{"board":"before","boardBlob":"4d273c0680132caafc4cbc8ca09c1533735c86de","passed":148,"failed":276,"recorded":98,"failedByKind":{"contract":276,"control":0,"fixture":0},"passedByKind":{"contract":68,"control":62,"fixture":18},"agree":[{"K":1,"ok":true},{"K":1000000,"ok":true}],"totalMs":11963}

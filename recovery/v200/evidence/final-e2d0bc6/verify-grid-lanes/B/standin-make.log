@@ -1,0 +1,10 @@
+# cmd: X=1 node /home/user/orbit-board/recovery/v200/evidence/L6-u28/standin-template.mjs prioritization-board-grid.html /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/grid-e2d0bc6/B/board-standin6.html
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:15:48Z / 07:15:48 EDT
+# cap: 120s  grace: 10s
+stand-in +6% template written: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/grid-e2d0bc6/B/board-standin6.html
+
+# end: 2026-10-19T11:15:48Z / 07:15:48 EDT
+# exit: 0  duration_s: 0.1

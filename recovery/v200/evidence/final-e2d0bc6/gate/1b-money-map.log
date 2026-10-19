@@ -1,0 +1,18 @@
+# cmd: X=1 node tools/money-map.mjs --check
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:36:07Z / 07:36:07 EDT
+# cap: 600s  grace: 10s
+MONEY MAP — every registered money surface against appropriation, fiscal year, service, requirement, month, CR half and lane
+==============================================================================================================
+every registered surface        47 surfaces   329 cells   proven 123 (arithmetic 55, agreement 50, both 18; 6 at display precision)   n/a 206   OPEN 0
+  money-coverage registry       30 surfaces   210 cells   proven  81 (arithmetic 46, agreement 25, both 10; 3 at display precision)   n/a 129   OPEN 0
+  trace-matrix surfaces         17 surfaces   119 cells   proven  42 (arithmetic 9, agreement 25, both 8; 3 at display precision)   n/a  77   OPEN 0
+
+
+==============================================================================================================
+money map holds — 329 cells: 123 proven, 206 n/a, 0 open; the report is current
+
+# end: 2026-10-19T11:36:07Z / 07:36:07 EDT
+# exit: 0  duration_s: 0.1

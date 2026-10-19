@@ -1,0 +1,72 @@
+checks 112 pass 49 fail 63
+controls 48 failing 3 | non-controls 64 failing 60 | guard (14) non-controls 4 failing 0
+per scenario (fail/total): (1) 6/9, (2) 4/4, (1b) 3/5, (3) 4/5, (4) 0/3, (5) 0/6, (6a) 3/4, (6b) 3/4, (6c) 3/4, (6d) 2/4, (6e) 2/4, (7a) 4/4, (7b) 4/4, (8) 3/6, (8b) 2/4, (8c) 1/3, (9) 3/5, (9b) 0/2, (10) 1/3, (11a) 4/5, (11b) 4/6, (11c) 1/3, (12) 2/4, (13) 4/5, (14) 0/6
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: Brad’s save, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy, with its own time; one write of the fo
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: Brad is told, word for word, with both choices offered
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: Bob’s board: BOB-2 on screen and in its browser storage, saved, recorded against the folder’s copy
+  FAIL (1) Bob takes the pen and saves while Brad’s save is held :: then Brad’s refresh loads nothing over his unsaved work, and the folder’s copy is still Bob’s
+  FAIL (2) the retry: Save yours over theirs, then Take the pen :: Save yours over theirs asks first; Bob holds the pen, so nothing is written over BOB-2, and Bob’s copy is kept in the history
+  FAIL (2) the retry: Save yours over theirs, then Take the pen :: and says Bob holds the pen; Brad’s work stays on screen, unsaved
+  FAIL (2) the retry: Save yours over theirs, then Take the pen :: Take the pen asks first, naming Bob; then BRAD-2, $720, saved by Brad, its writer, is the folder’s copy
+  FAIL (2) the retry: Save yours over theirs, then Take the pen :: Brad is saved, recorded against the folder’s copy, and told so; v1 and Bob’s copy are both in the history
+  FAIL (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is :: Brad’s save writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; v1 is in the history, and nothing else is
+  FAIL (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is :: Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its he
+  FAIL (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is :: Brad is told, word for word, with both choices offered
+  FAIL (3) Bob saves during the held save; Brad chooses Load theirs :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+  FAIL (3) Bob saves during the held save; Brad chooses Load theirs :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+  FAIL (3) Bob saves during the held save; Brad chooses Load theirs :: Brad is told, word for word, with both choices offered
+  FAIL (3) Bob saves during the held save; Brad chooses Load theirs :: Load theirs: BOB-2 on screen, saved, recorded against the folder’s copy, which is still Bob’s; BRAD-2 is kept aside, and the board says so
+  FAIL (6a) the folder’s copy removed while Brad’s save is held :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+  FAIL (6a) the folder’s copy removed while Brad’s save is held :: Brad is told, word for word, with no choice offered
+  FAIL (6a) the folder’s copy removed while Brad’s save is held :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+  FAIL (6b) the folder’s copy unreadable while Brad’s save is held :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+  FAIL (6b) the folder’s copy unreadable while Brad’s save is held :: Brad is told, word for word, with no choice offered
+  FAIL (6b) the folder’s copy unreadable while Brad’s save is held :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+  FAIL (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, w :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+  FAIL (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, w :: Brad is told, word for word, with no choice offered
+  FAIL (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, w :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+  FAIL (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s c :: nothing is written in its place; Brad is told, word for word, with no choice offered
+  FAIL (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s c :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+  FAIL (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s c :: nothing is written in its place; Brad is told, word for word, with no choice offered
+  FAIL (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s c :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+  FAIL [CONTROL] (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)
+  FAIL (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+  FAIL (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+  FAIL (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad is told -- Bob saved it while his save was under way, with both choices
+  FAIL [CONTROL] (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, a :: Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)
+  FAIL (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, a :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+  FAIL (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, a :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+  FAIL (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, a :: Brad is told -- it could not be read, with no choice
+  FAIL (8) Brad takes the pen; Bob saves while that save is held :: Brad’s save writes nothing over it: BOB-3, $640, saved by Bob, still its writer, is the folder’s copy; Bob’s copy BOB-2 in the history
+  FAIL (8) Brad takes the pen; Bob saves while that save is held :: Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’
+  FAIL (8) Brad takes the pen; Bob saves while that save is held :: Brad is told, word for word, with both choices offered
+  FAIL (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob  :: Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+  FAIL (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob  :: the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+  FAIL (8c) Brad types BRAD-3 while his save is held; Bob takes the pen :: Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile ga
+  FAIL (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+  FAIL (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s
+  FAIL (9) Bob takes the pen while Brad’s Live autosave is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, an
+  FAIL (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves whil :: nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+  FAIL (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; B :: Brad’s save, let go, writes nothing over BOB-2, $650, saved by Bob, its writer; one write of the folder’s copy since the hold, Bob’s; PB27 is on scree
+  FAIL (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; B :: while PB27 is still on screen, its header and its tooltip say what they said before the save, too
+  FAIL (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; B :: while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+  FAIL (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; B :: once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before t
+  FAIL (11b) Brad takes the pen; PB27 put on screen while that save is held;  :: Brad’s save, let go, writes nothing over BOB-3, $640, saved by Bob, still its writer
+  FAIL (11b) Brad takes the pen; PB27 put on screen while that save is held;  :: while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was
+  FAIL (11b) Brad takes the pen; PB27 put on screen while that save is held;  :: while PB27 is still on screen, Brad is told, word for word, with both choices offered
+  FAIL (11b) Brad takes the pen; PB27 put on screen while that save is held;  :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+  FAIL (11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on s :: nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by
+  FAIL (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is  :: nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history
+  FAIL (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is  :: Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+  FAIL (13) 💾 Save held at its second read of the folder’s copy, just before  :: nothing is written over the folder’s copy: it keeps its bytes
+  FAIL (13) 💾 Save held at its second read of the folder’s copy, just before  :: the board says writing to the shared folder is refused, and does not say Saved
+  FAIL (13) 💾 Save held at its second read of the folder’s copy, just before  :: the note typed stays unsaved, and the board’s stamp is what it was before the save
+  FAIL [CONTROL] (13) 💾 Save held at its second read of the folder’s copy, just before  :: the save writes the folder’s copy once, with the note, and says Saved
+vs k4-u18-bE.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 5
+  value diff (1) Bob takes the pen and saves while Brad’s save  :: the board’s stamp (when and by whom its header says it was saved) and its header | [false,"Saved 6:51 PM"] | [false,"Saved 11:39 AM"]
+  value diff (3) Bob saves during the held save; Brad chooses L :: the board’s stamp (when and by whom its header says it was saved) and its header | [false,"Saved 6:52 PM"] | [false,"Saved 11:39 AM"]
+  value diff (7a) the folder’s first copy: Bob’s lands while Br :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder | ["BRAD-1",700,false,1792349572108] | ["BRAD-1",700,false,1792337993038]
+  value diff (7b) the folder’s first copy: Bob’s lands while Br :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder | ["BRAD-1",700,false,1792349576543] | ["BRAD-1",700,false,1792337998191]
+  value diff (9) Bob takes the pen while Brad’s Live autosave i :: the autosave, let go, stops before its write and says so, word for word, with bo | [false,"✓ Saved to the shared folder automatically — 6:53 PM.",[]] | [false,"✓ Saved to the shared folder automatically — 11:40 AM.",[]]

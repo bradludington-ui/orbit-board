@@ -1,0 +1,34 @@
+step s1 launched 2026-10-18 06:44:28 EDT
+C4-mcount-after start_et="2026-10-18 06:45:03 EDT" exit=0 wall_s=6.5 log=out/mcount-after.json
+C4-mcount-before start_et="2026-10-18 06:45:09 EDT" exit=0 wall_s=7.2 log=out/mcount-before.json
+C4-mcount-after-ids (the three added ids, --ids) start_et="2026-10-18 06:45:2x EDT (run right after C4-mcount-before; not timed)" exit=0 log=out/mcount-after-ids.json
+C5-npm-check-commit start_et="2026-10-18 06:46:08 EDT" exit=0 wall_s=7.5 log=logs/C5-npm-check-commit.log 
+F-commit start_et="2026-10-18 06:44:28 EDT" exit=0 wall_s=162.3 log=logs/F-commit.log 
+F-pre-u10-16ceb83 launched alone (beside S-audit-recon-commit) 2026-10-18 06:47:33 EDT
+S-audit-recon-commit start_et="2026-10-18 06:44:28 EDT" exit=137 wall_s=281.9 log=logs/S-audit-recon-commit.log TIMED OUT = incomplete
+STEP-s1-DONE 2026-10-18 06:49:10 EDT
+# note (2026-10-18 06:49:35 EDT): S-audit-recon-commit exit 137 at 281.9 s was NOT a timeout: dmesg shows 'Memory cgroup out of memory: Killed process 12357 (node) ... anon-rss:2138316kB' (12357 = this run's node, see pids.txt); the memory cgroup is shared with other agents' runs. Not a verdict (324 checks recorded before the kill, none of them failing is checked below). Re-run as S-audit-recon-commit-r2.
+F-pre-u10-16ceb83 start_et="2026-10-18 06:47:33 EDT" exit=1 wall_s=158.1 log=logs/F-pre-u10-16ceb83.log 
+S-audit-recon-commit-r2 launched alone 2026-10-18 06:50:21 EDT
+step p1 (F-parent) launched beside S-audit-recon-commit-r2 2026-10-18 06:51:17 EDT
+F-parent start_et="2026-10-18 06:51:17 EDT" exit=0 wall_s=143.1 log=logs/F-parent.log 
+STEP-p1-DONE 2026-10-18 06:53:40 EDT
+S-audit-recon-commit-r2 start_et="2026-10-18 06:50:21 EDT" exit=0 wall_s=399.1 log=logs/S-audit-recon-commit-r2.log 
+step s3 launched 2026-10-18 06:57:13 EDT
+F-parentown-parent start_et="2026-10-18 06:57:13 EDT" exit=0 wall_s=95.5 log=logs/F-parentown-parent.log 
+F-base-7ee498a start_et="2026-10-18 06:57:14 EDT" exit=1 wall_s=102.0 log=logs/F-base-7ee498a.log 
+STEP-s3-DONE 2026-10-18 06:58:56 EDT
+step m1 launched 2026-10-18 06:59:15 EDT
+M-v200-u10-journal-gate-after-question start_et="2026-10-18 06:59:15 EDT" exit=1 wall_s=85.9 log=logs/M-v200-u10-journal-gate-after-question.log 
+M-v200-u10-journal-putback-sync-only start_et="2026-10-18 06:59:16 EDT" exit=1 wall_s=86.4 log=logs/M-v200-u10-journal-putback-sync-only.log 
+STEP-m1-DONE 2026-10-18 07:00:42 EDT
+step m2 launched 2026-10-18 07:00:53 EDT
+M9-v200-u10-journal-gate-after-question start_et="2026-10-18 07:00:53 EDT" exit=0 wall_s=95.2 log=logs/M9-v200-u10-journal-gate-after-question.log 
+M-v200-u10-reapply-keeps-upl-place start_et="2026-10-18 07:00:54 EDT" exit=1 wall_s=96.3 log=logs/M-v200-u10-reapply-keeps-upl-place.log 
+STEP-m2-DONE 2026-10-18 07:02:30 EDT
+step m3 launched 2026-10-18 07:02:50 EDT
+M9-v200-u10-reapply-keeps-upl-place start_et="2026-10-18 07:02:50 EDT" exit=0 wall_s=103.3 log=logs/M9-v200-u10-reapply-keeps-upl-place.log 
+M9-v200-u10-journal-putback-sync-only start_et="2026-10-18 07:02:50 EDT" exit=0 wall_s=106.7 log=logs/M9-v200-u10-journal-putback-sync-only.log 
+STEP-m3-DONE 2026-10-18 07:04:37 EDT
+F-u10-6-c82ea62 (extra: which U10 commit each new check types) launched 2026-10-18 07:04:54 EDT
+F-u10-6-c82ea62 start_et="2026-10-18 07:04:54 EDT" exit=1 wall_s=169.1 log=logs/F-u10-6-c82ea62.log 

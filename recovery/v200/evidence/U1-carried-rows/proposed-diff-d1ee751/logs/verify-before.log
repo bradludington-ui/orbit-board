@@ -1,0 +1,86 @@
+FAIL defect | V · every year a row counts in (independent model: 2027,2028,2029) is offered | exp [] | got [2029]
+FAIL defect | V · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V · ALL · flowCalc total = literal 25566668 | exp 25566668 | got 15412344
+FAIL defect | V · ALL · executed / planned = literal | exp [12220989,13345679] | got [2066665,13345679]
+FAIL defect | V · ALL · per appropriation = literal | exp {"om":14234567,"ff":8765432,"sp":0,"opn":2566669} | got {"om":14234567,"ff":1111111,"sp":0,"opn":66666}
+FAIL defect | V · ALL · panel total funding = $25.57M | exp "$25.57M" | got "$15.41M"
+FAIL defect | V · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[25566668,25566668],[25566668],[25566668,25566668]] | got [[15412344,15412344],[15412344],[15412344,15412344]]
+FAIL defect | V · ALL · export appropriation lines = literal | exp {"om":[14234567],"ff":[8765432],"sp":[0],"opn":[2566669]} | got {"om":[14234567],"ff":[1111111],"sp":[0],"opn":[66666]}
+FAIL defect | V · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried Full Fund buy","ff",2029,"AFRC","ATL",7654321,false],["Verify carried OPN kit","opn",2029,"ANG","LOG",2500003,false]] | got []
+FAIL defect | V · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried Full Fund buy","FULL FUND","ATL","AFRC",7654321,"OBLIGATED"],["Verify carried OPN kit","OPN","LOG","ANG",2500003,"OBLIGATED"]] | got []
+FAIL defect | V · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V · FY29 explicit · total / appropriations = literal | exp [10154324,{"om":0,"ff":7654321,"sp":0,"opn":2500003}] | got [15412344,{"om":14234567,"ff":1111111,"sp":0,"opn":66666}]
+FAIL defect | V · FY29 explicit · export TOTAL FUNDING = literal | exp [10154324,10154324] | got [15412344,15412344]
+FAIL defect | V · FY29 saved alone and reopened · selection kept, total = literal 10,154,324, raw rows intact | exp {"saved":[2029],"sel":[2029],"tot":10154324,"raw":true} | got {"saved":[2029],"sel":[2027,2028,2030,2031,2032,2033,2034],"tot":15412344,"raw":true}
+FAIL defect | V · carried dollars counted exactly once across offered years = literal 10154324 | exp 10154324 | got 0
+FAIL defect | V2 · every year a row counts in (independent model: 2027,2028,2029) is offered | exp [] | got [2029]
+FAIL defect | V2 · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V2 · ALL · flowCalc total = literal 29607072 | exp 29607072 | got 15412344
+FAIL defect | V2 · ALL · executed / planned = literal | exp [16261393,13345679] | got [2066665,13345679]
+FAIL defect | V2 · ALL · per appropriation = literal | exp {"om":18274971,"ff":8765432,"sp":0,"opn":2566669} | got {"om":14234567,"ff":1111111,"sp":0,"opn":66666}
+FAIL defect | V2 · ALL · panel total funding = $29.61M | exp "$29.61M" | got "$15.41M"
+FAIL defect | V2 · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[29607072,29607072],[29607072],[29607072,29607072]] | got [[15412344,15412344],[15412344],[15412344,15412344]]
+FAIL defect | V2 · ALL · export appropriation lines = literal | exp {"om":[18274971],"ff":[8765432],"sp":[0],"opn":[2566669]} | got {"om":[14234567],"ff":[1111111],"sp":[0],"opn":[66666]}
+FAIL defect | V2 · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried Full Fund buy","ff",2029,"AFRC","ATL",7654321,false],["Verify carried O&M BRIDGE","om",2029,"ANG","PSM",4040404,false],["Verify carried OPN kit","opn",2029,"ANG","LOG",2500003,false]] | got []
+FAIL defect | V2 · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried Full Fund buy","FULL FUND","ATL","AFRC",7654321,"OBLIGATED"],["Verify carried O&M BRIDGE","O&M","PSM","ANG",4040404,"OBLIGATED"],["Verify carried OPN kit","OPN","LOG","ANG",2500003,"OBLIGATED"]] | got []
+FAIL defect | V2 · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V2 · FY29 explicit · total / appropriations = literal | exp [14194728,{"om":4040404,"ff":7654321,"sp":0,"opn":2500003}] | got [15412344,{"om":14234567,"ff":1111111,"sp":0,"opn":66666}]
+FAIL defect | V2 · FY29 explicit · export TOTAL FUNDING = literal | exp [14194728,14194728] | got [15412344,15412344]
+FAIL defect | V2 · carried dollars counted exactly once across offered years = literal 14194728 | exp 14194728 | got 0
+FAIL defect | V3 · every year a row counts in (independent model: 2027,2029) is offered | exp [] | got [2029]
+FAIL defect | V3 · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V3 · ALL · flowCalc total = literal 20997197 | exp 20997197 | got 14456790
+FAIL defect | V3 · ALL · executed / planned = literal | exp [7651518,13345679] | got [1111111,13345679]
+FAIL defect | V3 · ALL · per appropriation = literal | exp {"om":17386083,"ff":1111111,"sp":0,"opn":2500003} | got {"om":13345679,"ff":1111111,"sp":0,"opn":0}
+FAIL defect | V3 · ALL · panel total funding = $21.00M | exp "$21.00M" | got "$14.46M"
+FAIL defect | V3 · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[20997197,20997197],[20997197],[20997197,20997197]] | got [[14456790,14456790],[14456790],[14456790,14456790]]
+FAIL defect | V3 · ALL · export appropriation lines = literal | exp {"om":[17386083],"ff":[1111111],"sp":[0],"opn":[2500003]} | got {"om":[13345679],"ff":[1111111],"sp":[0],"opn":[0]}
+FAIL defect | V3 · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried O&M BRIDGE","om",2029,"ANG","PSM",4040404,false],["Verify carried OPN kit","opn",2029,"ANG","LOG",2500003,false]] | got []
+FAIL defect | V3 · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried O&M BRIDGE","O&M","PSM","ANG",4040404,"OBLIGATED"],["Verify carried OPN kit","OPN","LOG","ANG",2500003,"OBLIGATED"]] | got []
+FAIL defect | V3 · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V3 · FY29 explicit · total / appropriations = literal | exp [6540407,{"om":4040404,"ff":0,"sp":0,"opn":2500003}] | got [14456790,{"om":13345679,"ff":1111111,"sp":0,"opn":0}]
+FAIL defect | V3 · FY29 explicit · export TOTAL FUNDING = literal | exp [6540407,6540407] | got [14456790,14456790]
+FAIL defect | V3 · carried dollars counted exactly once across offered years = literal 6540407 | exp 6540407 | got 0
+FAIL defect | V4 · every year a row counts in (independent model: 2027,2028,2029) is offered | exp [] | got [2029]
+FAIL defect | V4 · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V4 · ALL · flowCalc total = literal 18830527 | exp 18830527 | got 14790123
+FAIL defect | V4 · ALL · executed / planned = literal | exp [5484848,13345679] | got [1444444,13345679]
+FAIL defect | V4 · ALL · per appropriation = literal | exp {"om":17719416,"ff":1111111,"sp":0,"opn":0} | got {"om":13679012,"ff":1111111,"sp":0,"opn":0}
+FAIL defect | V4 · ALL · panel total funding = $18.83M | exp "$18.83M" | got "$14.79M"
+FAIL defect | V4 · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[18830527,18830527],[18830527],[18830527,18830527]] | got [[14790123,14790123],[14790123],[14790123,14790123]]
+FAIL defect | V4 · ALL · export appropriation lines = literal | exp {"om":[17719416],"ff":[1111111],"sp":[0],"opn":[0]} | got {"om":[13679012],"ff":[1111111],"sp":[0],"opn":[0]}
+FAIL defect | V4 · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried O&M BRIDGE","om",2029,"ANG","PSM",4040404,false]] | got []
+FAIL defect | V4 · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried O&M BRIDGE","O&M","PSM","ANG",4040404,"OBLIGATED"]] | got []
+FAIL defect | V4 · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL defect | V4 · FY29 explicit · total / appropriations = literal | exp [4040404,{"om":4040404,"ff":0,"sp":0,"opn":0}] | got [14790123,{"om":13679012,"ff":1111111,"sp":0,"opn":0}]
+FAIL defect | V4 · FY29 explicit · export TOTAL FUNDING = literal | exp [4040404,4040404] | got [14790123,14790123]
+FAIL defect | V4 · carried dollars counted exactly once across offered years = literal 4040404 | exp 4040404 | got 0
+FAIL edge | VE · every year a row counts in (independent model: 2027,2028,2029) is offered | exp [] | got [2029]
+FAIL edge | VE · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL edge | VE · ALL · flowCalc total = literal 28966675 | exp 28966675 | got 15412344
+FAIL edge | VE · ALL · executed / planned = literal | exp [12220989,16745686] | got [2066665,13345679]
+FAIL edge | VE · ALL · per appropriation = literal | exp {"om":17634574,"ff":8765432,"sp":0,"opn":2566669} | got {"om":14234567,"ff":1111111,"sp":0,"opn":66666}
+FAIL edge | VE · ALL · panel total funding = $28.97M | exp "$28.97M" | got "$15.41M"
+FAIL edge | VE · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[28966675,28966675],[28966675],[28966675,28966675]] | got [[15412344,15412344],[15412344],[15412344,15412344]]
+FAIL edge | VE · ALL · export appropriation lines = literal | exp {"om":[17634574],"ff":[8765432],"sp":[0],"opn":[2566669]} | got {"om":[14234567],"ff":[1111111],"sp":[0],"opn":[66666]}
+FAIL edge | VE · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried Full Fund buy","ff",2029,"AFRC","ATL",7654321,false],["Verify carried OPN kit","opn",2029,"ANG","LOG",2500003,false]] | got []
+FAIL edge | VE · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried Full Fund buy","FULL FUND","ATL","AFRC",7654321,"OBLIGATED"],["Verify carried OPN kit","OPN","LOG","ANG",2500003,"OBLIGATED"]] | got []
+FAIL edge | VE · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL edge | VE · FY29 explicit · total / appropriations = literal | exp [13554331,{"om":3400007,"ff":7654321,"sp":0,"opn":2500003}] | got [15412344,{"om":14234567,"ff":1111111,"sp":0,"opn":66666}]
+FAIL edge | VE · FY29 explicit · export TOTAL FUNDING = literal | exp [13554331,13554331] | got [15412344,15412344]
+FAIL edge | VE · carried dollars counted exactly once across offered years = literal 10154324 | exp 10154324 | got 0
+FAIL edge | VE2 · every year a row counts in (independent model: 2027,2028,2029) is offered | exp [] | got [2029]
+FAIL edge | VE2 · offered years = workbook ∪ window ∪ every counted year | exp [2027,2028,2029,2030,2031,2032,2033,2034] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL edge | VE2 · ALL · flowCalc total = literal 29607072 | exp 29607072 | got 15412344
+FAIL edge | VE2 · ALL · executed / planned = literal | exp [16261393,13345679] | got [2066665,13345679]
+FAIL edge | VE2 · ALL · per appropriation = literal | exp {"om":18274971,"ff":8765432,"sp":0,"opn":2566669} | got {"om":14234567,"ff":1111111,"sp":0,"opn":66666}
+FAIL edge | VE2 · ALL · panel total funding = $29.61M | exp "$29.61M" | got "$15.41M"
+FAIL edge | VE2 · ALL · export TOTAL FUNDING x2 / US SERVICE FUNDING / US service appropriations x2 = literal | exp [[29607072,29607072],[29607072],[29607072,29607072]] | got [[15412344,15412344],[15412344],[15412344,15412344]]
+FAIL edge | VE2 · ALL · export appropriation lines = literal | exp {"om":[18274971],"ff":[8765432],"sp":[0],"opn":[2566669]} | got {"om":[14234567],"ff":[1111111],"sp":[0],"opn":[66666]}
+FAIL edge | VE2 · ALL · flowCalc holds each carried row once, own appropriation/service/PMO/amount, effective FY29 | exp [["Verify carried Full Fund buy","ff",2029,"AFRC","ATL",7654321,false],["Verify carried O&M BRIDGE","om",2029,"ANG","PSM",4040404,false],["Verify carried OPN kit","opn",2029,"ANG","LOG",2500003,false]] | got []
+FAIL edge | VE2 · ALL · export detail holds each carried row once with its ownership | exp [["Verify carried Full Fund buy","FULL FUND","ATL","AFRC",7654321,"OBLIGATED"],["Verify carried O&M BRIDGE","O&M","PSM","ANG",4040404,"OBLIGATED"],["Verify carried OPN kit","OPN","LOG","ANG",2500003,"OBLIGATED"]] | got []
+FAIL edge | VE2 · FY29 explicit · selection honoured | exp [2029] | got [2027,2028,2030,2031,2032,2033,2034]
+FAIL edge | VE2 · FY29 explicit · total / appropriations = literal | exp [14194728,{"om":4040404,"ff":7654321,"sp":0,"opn":2500003}] | got [15412344,{"om":14234567,"ff":1111111,"sp":0,"opn":66666}]
+FAIL edge | VE2 · FY29 explicit · export TOTAL FUNDING = literal | exp [14194728,14194728] | got [15412344,15412344]
+FAIL edge | VE2 · carried dollars counted exactly once across offered years = literal 14194728 | exp 14194728 | got 0
+{"board":"before-4d273c06","boardBlob":"4d273c0680132caafc4cbc8ca09c1533735c86de","byKind":{"defect":{"passed":0,"failed":57},"control":{"passed":80,"failed":0},"fixture":{"passed":13,"failed":0},"edge":{"passed":14,"failed":28}}}

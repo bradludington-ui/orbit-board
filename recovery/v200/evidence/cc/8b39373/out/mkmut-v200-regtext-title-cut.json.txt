@@ -1,0 +1,1 @@
+{"id": "v200-regtext-title-cut", "matches": 1, "find": "    e.t=t; }\n  save(); render();", "repl": "    e.t=t.slice(0,80); }\n  save(); render();"}

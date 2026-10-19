@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-years", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const Y0=MS.years; MS=cycCopy(c); MS.cur=y; Object.keys(Y0).forEach(function(k){ if(+k!==y) MS.years[k]=Y0[k]; });"}

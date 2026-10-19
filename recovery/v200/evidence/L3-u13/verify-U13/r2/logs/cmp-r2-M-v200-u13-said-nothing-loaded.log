@@ -1,0 +1,10 @@
+mine 71 checks, 10 fail | builder 71 checks, 10 fail
+differences 0
+  fail 2 | (1) no second writer; reopened by the harness
+  fail 2 | (1) no second writer; reopened with the folder’s edit permission not kept
+  fail 1 | (2) a second writer saves during the save
+  fail 1 | (3a) the refresh held at its read of the folder’s copy; a save starts meanwhile
+  fail 1 | (4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel
+  fail 1 | (6a) driveConnectNow() during a save, with newer execution data and a reprogramming log in the folder
+  fail 1 | (6a) driveAutoConnect() during a save, with newer execution data and a reprogramming log in the folder
+  fail 1 | (6b) a Connect while Load theirs waits at its read

@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-sidecar-as-own", "matches": 1, "find": ".then(t=>cb(t===null? null : (inboundCheckOwn(t, 'copy')? null", "repl": ".then(t=>cb(t===null? null : (inboundCheckOwn(t, 'board')? null"}

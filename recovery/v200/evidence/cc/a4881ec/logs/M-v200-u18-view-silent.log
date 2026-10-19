@@ -1,0 +1,21 @@
+# label: M-v200-u18-view-silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-view-silent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-view-silent.html
+# start: 2026-10-18 16:13:20 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-view-silent.html","BOARD_set":true,"board":"0a0caf79d56981d11ffd84ac30899f4ff03ec283","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 4:13:22 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes the pen
+    while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+        got [false,false,["cycLeave()"]]   want [true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves
+    while PB27 is still on screen, Brad is told, word for word, with both choices offered
+        first differs at char 2 of 243/370
+          got  …["👁 Viewing PB27 (locked) — the plan as it stood 10/18/2026, 8:14:53 PM by Brad, holding FY…
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+# exit 1 at 10/18/2026, 4:15:19 PM ET
+
+# end: 2026-10-18 16:15:20 EDT  exit: 1  wall_s: 119.4

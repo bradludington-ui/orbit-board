@@ -1,0 +1,17 @@
+PASS [fixture] fixture.v1: the folder's first copy is brad's content, written by Brad (writer Brad)
+     expected ["brad","Brad","Brad"]
+     observed ["brad","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: screen brad, DIRTY false, _baseDirty false, record dirty false, base = v1 ts
+     expected ["brad",false,false,false,true,true]
+     observed ["brad",false,false,false,true,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: screen brad, his base = v1 ts
+     expected [true,"brad",true]
+     observed [true,"brad",true]
+PASS [fixture] C2.bob.bobCopy: bob's newer copy is the folder's current copy: bob's content, by Bob, writer Bob, bob clean
+     expected ["bob","Bob","Bob",false,false]
+     observed ["bob","Bob","Bob",false,false]
+FAIL [control] C2: an unsaved edit on screen: the refresh refuses and replaces nothing ([returned, screen note, screen $, DIRTY, record dirty, base = v1 ts, head is bob's, said 'Nothing was replaced'])
+     expected [false,"BRAD-UNSAVED",700,true,true,true,"bob",true]
+     observed [true,"BOB-2",650,true,false,false,"bob",false]
+ids {"board":"5bd994efa77f789e6c4760558213eeed2d5d4a3d","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"a957682e9279509904cd9d14079cd7f81da1c9e1","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13probe/verify/m-c2-no-dirty-guard/prioritization-board-grid.html"}
+C2: 4 pass, 1 fail

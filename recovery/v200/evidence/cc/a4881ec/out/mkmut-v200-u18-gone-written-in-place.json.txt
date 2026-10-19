@@ -1,0 +1,1 @@
+{"id": "v200-u18-gone-written-in-place", "matches": 1, "find": "(!now || nowRaw.txt!==curRaw.txt)", "repl": "(now && nowRaw.txt!==curRaw.txt)"}

@@ -1,0 +1,41 @@
+# label: M-v200-u41-unlisted
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-unlisted.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-unlisted.html
+# start: 2026-10-13 22:50:20 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-unlisted.html","BOARD_set":true,"board":"cd84f17c045f9031d543cb1e3c3eb9e298ba3627","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:50:21 PM ET"}
+
+================================================================================================
+12 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    Needs attention: an entry on the strip, and a list naming each as saved
+        got ["NO ENTRY",[]]   want ["🏷 2 SI codes to repair",[["R1",["SI “at” is not one of LA, EN, OT, FL or AT"]],["R9",["SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]]
+    Pre-flight lists both, to fix, with the same words
+        got []   want [["fix","SI codes the board does not recognize",[["R1","Ev R1","SI “at” is not one of LA, EN, OT, FL or AT"],["R9","Ev R9","SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]]
+    the list as shown: its title, and each row with its rank, office and the code as saved
+        got ["🏷 SI CODES TO REPAIR",[]]   want ["🏷 SI CODES TO REPAIR",[["1","Ev R1","AV","SI “at” is not one of LA, EN, OT, FL or AT"],["9","Ev R9","AV","SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no code set — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["EN  Engine",100000],["— no SI code set —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no SI code set —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    Needs attention: an entry on the strip, and a list naming each as saved
+        got ["NO ENTRY",[]]   want ["🏷 2 SI codes to repair",[["R1",["SI “at” is not one of LA, EN, OT, FL or AT"]],["R9",["SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]]
+    Pre-flight lists both, to fix, with the same words
+        got []   want [["fix","SI codes the board does not recognize",[["R1","Ev R1","SI “at” is not one of LA, EN, OT, FL or AT"],["R9","Ev R9","SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]]
+    the list as shown: its title, and each row with its rank, office and the code as saved
+        got ["🏷 SI CODES TO REPAIR",[]]   want ["🏷 SI CODES TO REPAIR",[["1","Ev R1","AV","SI “at” is not one of LA, EN, OT, FL or AT"],["9","Ev R9","AV","SI “ZZ” is not one of LA, EN, OT, FL or AT"]]]
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no code set — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["EN  Engine",100000],["— no SI code set —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no SI code set —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | other values
+    "LA ", "la", "__proto__", 7, {"x":1} and null are kept as saved, none read as a code, each listed
+        got [{"V1":"LA ","V2":"la","V3":"__proto__","V4":7,"V5":{"x":1},"V6":null},["","","","","",""],[]]   want [{"V1":"LA ","V2":"la","V3":"__proto__","V4":7,"V5":{"x":1},"V6":null},["","","","","",""],["SI “LA ” is not one of LA, EN, OT, FL or AT","SI “la” is not one of LA, EN, OT, FL or AT","SI “__proto__” is not one of LA, EN, OT, FL or AT","SI “7” is not one of LA, EN, OT, FL or AT","SI “{\"x\":1}” is not one of LA, EN, OT, FL or AT","SI “null” is not one of LA, EN, OT, FL or AT"]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | locked cycle view
+    the view holds R1’s code as saved, reads it as no code (never LA) and lists it
+        got ["PB|2027",{"R1":"at","R2":"EN"},"",[]]   want ["PB|2027",{"R1":"at","R2":"EN"},"",["R1"]]
+# exit 1 at 10/13/2026, 10:50:38 PM ET
+
+# end: 2026-10-13 22:50:38 EDT  exit: 1  wall_s: 17.4

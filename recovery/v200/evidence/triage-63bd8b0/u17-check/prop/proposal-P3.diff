@@ -1,0 +1,16 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -8456,7 +8456,12 @@
+   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
+   // report as loaded. Saying so beats a status line claiming a load that did not happen.
+   if(applyStore(SHARED)===false) return;
+-  persist(); render();
++  // PROPOSAL P3 (U17 via U24, rec/L4/u17-check): THE SHARED STATE FILE PUT ON SCREEN IS A CHANGE, counted as an edit is (as U2
++  // counts ↶ Put back). Uncounted, a board recorded clean stayed recorded clean against the copy it came from while showing
++  // the shared one, so 💾 Save wrote over that copy unasked with no save anywhere near (XSHn, XFSHn); and a save under
++  // way landed, found the count unmoved and marked the board saved (SHd, SHdk, FSHd).
++  _baseDirty=true; baseSet({dirty:true});
++  persist(); _saveGen++; DIRTY=true; render();
+   setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
+ }
+ // ==============================================================================================================

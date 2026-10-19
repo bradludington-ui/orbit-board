@@ -1,0 +1,8 @@
+8386d8385
+<     LASTKNOWN=wrote;
+8387a8387
+>     if(clean) LASTKNOWN=wrote;   // VERIFIER MUTANT M5
+26844c26844
+<   driveBaseSet(ap, wroteTs, clean, fy);   // the copy it WROTE is the one this work came from
+---
+>   if(clean) driveBaseSet(ap, wroteTs, clean, fy); else baseSet({dirty:true});   // VERIFIER MUTANT M5

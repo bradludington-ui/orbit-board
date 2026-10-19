@@ -1,0 +1,72 @@
+# cmd: X=1 npm run editors --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:21:05Z / 07:21:05 EDT
+# cap: 900s  grace: 10s
+
+prioritization-board-grid.html — sliding over (the default)
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html, Segoe stand-in +6% — sliding over (the default)
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html — docked (View › Record panel › Docked beside the table)
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html, Segoe stand-in +6% — docked (View › Record panel › Docked beside the table)
+  ok    1920px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1600px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1440px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:beside the rows
+  ok    1400px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1366px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1280px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+  ok    1024px  REQ editor: 7  impact:  1  dead chips:0  overflow:0px  panel:drawer
+
+prioritization-board-grid.html — the three written editors, above the fold — sliding over (the default)
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+prioritization-board-grid.html, Segoe stand-in +6% — the three written editors, above the fold — sliding over (the default)
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+prioritization-board-grid.html — the three written editors, above the fold — docked (View › Record panel › Docked beside the table)
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+prioritization-board-grid.html, Segoe stand-in +6% — the three written editors, above the fold — docked (View › Record panel › Docked beside the table)
+  ok   1366x768  without an award schedule
+  ok   1366x768  with an award schedule   
+  ok   1440x900  without an award schedule
+  ok   1440x900  with an award schedule   
+
+Every editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold and unclipped, in this machine's font and in a Segoe-like stand-in +6%, with the RECORD panel sliding over and docked
+
+
+# end: 2026-10-19T11:21:53Z / 07:21:53 EDT
+# exit: 0  duration_s: 47.7

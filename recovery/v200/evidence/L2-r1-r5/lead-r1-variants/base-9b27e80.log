@@ -1,0 +1,18 @@
+# cmd: X=1 node r1-variants.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/runs/fb-9b27e80/copy
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T20:29:08Z / 16:29:08 EDT
+# cap: 600s  grace: 10s
+FAIL Variant B fy25: got [tot, exec, plan] [0,0,0] want [300000000,0,300000000] | fys [2025] | FY25 · O&M | mixed []
+FAIL Variant B fy26: got [tot, exec, plan] [600000000,100000000,500000000] want [100000000,100000000,0] | fys [2026] | FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25 | mixed []
+FAIL Variant B both: got [tot, exec, plan] [600000000,100000000,500000000] want [400000000,100000000,300000000] | fys [2025,2026] | FY25, FY26 · O&M · FY26 planned, the rest executed | mixed []
+ok   Variant A fy25: got [tot, exec, plan] [40000000,40000000,0] want [40000000,40000000,0] | fys [2025] | FY25 · O&M | mixed []
+FAIL Variant A fy26: got [tot, exec, plan] [600000000,100000000,500000000] want [100000000,100000000,0] | fys [2026] | FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25 | mixed []
+FAIL Variant A both: got [tot, exec, plan] [640000000,140000000,500000000] want [140000000,140000000,0] | fys [2025,2026] | FY25, FY26 · O&M · FY26 planned, the rest executed | mixed []
+ok   Variant B raw execution unchanged; script errors []
+ok   Variant A raw execution unchanged; script errors []
+5 FAILING
+
+# end: 2026-10-11T20:29:13Z / 16:29:13 EDT
+# exit: 1  duration_s: 4.7

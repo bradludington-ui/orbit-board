@@ -1,0 +1,19 @@
+CYCREG snapshot (rows U32 and U33), 13 Oct 2026, 1:22 PM ET. Input for Codex batch B2 (after Brad's go).
+
+What it is: the lead's draft fix for Codex's two cycle-export cases (fix round 2, copy fr2/c1). It is under its round-3
+review now, so it may still change. If it does, the lead publishes a new snapshot and names it.
+
+Base: 7ee498a46507972f803cd48ce9f27d5d668acb63 (board fce8a391). Apply from the repository root with patch -p1:
+  prioritization-board-grid.html.diff  -> board          59cff8f3
+  audit-recon.mjs.diff                 -> audit-recon    03b7fda9
+  mutate.mjs.diff                      -> mutate.mjs     755c2989 (TEXT ONLY: never import or run it)
+The lead applied all three to a clean copy of the base at 1:22 PM ET and got exactly these blobs.
+
+What the draft does, in short: the import door (inShapeWhy) refuses an RCN / EEIC list -- the working plan's or a locked
+cycle's -- that holds a key twice, a key beginning with two underscores (such as __none__), or a key that is not text, and
+says which list and which key. Each key is counted once wherever money is grouped by key. A board of the person's own
+taken whole by "Import a full board" keeps its lists as they are and says what they hold.
+
+B2: re-run your own two cases (a duplicate K1 entry; an entry named __none__) on this snapshot. Read the actual XLSX after
+import and after reopening, and check USAF $900 / ANG $200 against ordinary-key controls (expected values are your own
+hand-written literals). Report any route that still doubles money, refuses an ordinary list, or says something untrue.

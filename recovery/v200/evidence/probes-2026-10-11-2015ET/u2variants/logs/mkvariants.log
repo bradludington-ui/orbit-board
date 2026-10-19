@@ -1,0 +1,8 @@
+U2a COUNTER: find count = 1
+U2b REFUSAL: find count = 1
+U2ab(COUNTER): find count = 1
+U2ab(REFUSAL): find count = 1
+BASE 4d273c0680132caafc4cbc8ca09c1533735c86de
+U2a 5e43f9e8418f72acbc7fed15fca8d2ffd253bcc9
+U2b 4e303ff3abebe75d59031ae6ff817f496f6ca582
+U2ab 5b7a863ee125f61016e0cffb973d6916d25dabac

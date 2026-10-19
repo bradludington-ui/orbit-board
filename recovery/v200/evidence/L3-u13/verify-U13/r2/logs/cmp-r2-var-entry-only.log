@@ -1,0 +1,13 @@
+mine 71 checks, 14 fail | builder 71 checks, 14 fail
+DIFF 67 ['(6a) driveAutoConnect() during a save, with newer execution data and a reprogramming log in the folder', 'and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]', False] | ["Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 12:00:56 PM by unknown). 💾 Save writes them int || False ["Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:41:06 AM by unknown). 💾 Save writes them int
+differences 1
+  fail 2 | (1) no second writer; reopened by the harness
+  fail 2 | (1) no second writer; reopened with the folder’s edit permission not kept
+  fail 1 | (2) a second writer saves during the save
+  fail 2 | (3a) the refresh held at its read of the folder’s copy; a save starts meanwhile
+  fail 2 | (3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile
+  fail 1 | (4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel
+  fail 1 | (5) Cb: work typed in this session; a refresh during the save
+  fail 1 | (6a) driveConnectNow() during a save, with newer execution data and a reprogramming log in the folder
+  fail 1 | (6a) driveAutoConnect() during a save, with newer execution data and a reprogramming log in the folder
+  fail 1 | (6b) a Connect while Load theirs waits at its read

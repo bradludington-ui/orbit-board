@@ -1,0 +1,165 @@
+@@ await (async () => {
+       X.w.__duringRead = () => ev(`cycView(${J(key)}); 'ok'`);
+       const p0 = await X.ev('driveStorePull(true)');
+       w5Chk(name, 'a Live refresh started on the working plan, PB27 put on screen while the folder’s copy is read', 'nothing loaded, nothing kept aside, and the work is still this browser’s unsaved work',
+-        J([p0, ev('CYCVIEW'), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, key, 'none', [['11111'], 'MY UNSAVED A', ''], true]));
++        J([p0, ev('CYCVIEW'), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, 'PB|2027', 'none', [['11111'], 'MY UNSAVED A', ''], true]));
+       ev(`cycLeave(); 'ok'`);
+       ev(`cycView(${J(key)}); 'ok'`); spy(ev);
+       const s1a = said(ev), p1 = await X.ev('driveStorePull(true)'), s1b = said(ev);
+@@ await (async () => {
+     // ---- CONTROL: PB27 viewed, nothing typed
+     ev(`cycView(${J(key)}); 'ok'`);
+     w5Chk(name, 'PB27 viewed, nothing typed', 'CONTROL — the calculation, the panel and the export count FY27’s $500,000,000 and no partner or FMS money',
+-      J([ev('CYCVIEW'), calc(), panel(), await book()]), J([key, CALC, PANEL, BOOK]));
++      J([ev('CYCVIEW'), calc(), panel(), await book()]), J(['PB|2027', CALC, PANEL, BOOK]));
+     // ---- EACH CHANGE, with PB27 on screen; the status line is read at once ('Not kept' is put in front of a message for 1.5 s only)
+     const CHANGES = [['International Partners for FY27 typed as 3 ($M) in its field', () => type('ip', '3')],
+       ['Foreign Military Sales for FY27 typed as 2 ($M) in its field', () => type('fms', '2')],
+@@ await (async () => {
+     X.w.__onRead = () => X.w.eval(`cycView(${J(key)})`);           // PB27 put on screen while the folder's copy is read
+     const r1 = await X.ev(`driveResolve('theirs')`);
+     w5Chk(name, 'Load theirs on the working plan · PB27 put on screen while the folder is read', 'refused, and the status line says so; nothing is kept aside, and the work is still this browser’s unsaved work',
+-      J([r1, ev('CYCVIEW'), said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, key, OFF('Loading a board'), 'none', [['11111'], 'MY UNSAVED A', ''], true]));
++      J([r1, ev('CYCVIEW'), said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, 'PB|2027', OFF('Loading a board'), 'none', [['11111'], 'MY UNSAVED A', ''], true]));
+     ev(`cycLeave(); 'ok'`);
+     const r2 = await X.ev(`driveResolve('theirs')`);
+     w5Chk(name, 'Load theirs on the working plan · PB27 put on screen while the folder is read · the view left, Load theirs again', 'the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is loaded (COLLEAGUE DESC R)',
+@@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U10, the change journal) ====
++// ==== v2.00 (U10, the funds flow's settings): an appropriation button, the pseudo year, a prime rule or a category refused in a locked view moves no money in any total or export ====
++// The U10 test review, round 4 (MF1, SF1): the funds flow's settings are kept beside the years (MS.flow) with its money, and the
++// view's whole copy, made again after a refusal, puts them back -- but no check read them: a refusal that kept the appropriation
++// buttons, the pseudo year (OBBBA), the prime-matching rules or the OGC categories passed every check. Each one moves money. On
++// P4's board -- one O&M requirement, F1 (PSM, $1,000,000,000 asked), $500,000,000 discretionary in FY27, the funds flow's saved
++// selection FY27 -- with two FY25 rows imported (Ordinary Support, O&M Discretionary, $40,000,000; Carried Support, O&M Mandatory,
++// $7,000,000) and the pseudo year set to count Mandatory money appropriated in FY25 as FY27, switched off, PB27 is locked and
++// viewed. With the panel's own controls: O&M is clicked out of the appropriation buttons; the pseudo year's button is pressed; F1
++// is typed as the Lockheed Martin token; F1 is typed as the title words of Depot, Repair & Materiel. Each is refused. After each,
++// in the view: the status line, the calculation and the settings it stands on, the panel (total funding, the token field, the
++// title words field, the pseudo year's button, ALL appropriations lit) and the Funds Flow export (its name, Scope line, TOTAL
++// FUNDING, Lockheed Martin, Program Operations & Support, Depot Repair & Materiel, the prime token line, Depot's rule line, the
++// pseudo year's NOTE). FAILS ON 7ee498a (board fce8a391): the status line says the change was not kept, yet each refused setting
++// stays in the view and the export labelled "[PB27 LOCKED]" counts by it -- O&M clicked out leaves TOTAL FUNDING $0 under a
++// "FULL FUND INITIAL SPARES OPN" name. CONTROLS: PB27 viewed, nothing changed; the view left; on the working plan the same four
++// changes are allowed, one after another, and each moves money in the export. Every figure is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — an appropriation button, the pseudo year, a prime rule or a category refused in a locked view moves no money in any total or export';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify, M = 1000000;
++    const row = (id, fy, title, budget, amt) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = id; r[3] = title;
++      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = 'Program (TSS)'; return r; };
++    const WB = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row('U10S1', 2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M),
++      row('U10S2', 2025, 'Carried Support', 'USAF O&M Mandatory', 7 * M)] } } };
++    const X = boot();
++    seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      S.bm={disc:[${500 * M}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
++      applyState(S); MS.years[2027]=S; EXDB.all=${J(WB)}; EXDB.ts=1;
++      var C=flowCfg(); C.other={}; C.fys=[2027]; C.aps=null; C.rules={lm:'LM', pw:'PW, P&W, PRATT', where:'both'};
++      C.pseudo={on:false, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2027, col:4}; save(); 'ok'`);
++    const key = ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    // the calculation: [total, executed, planned, Lockheed Martin, Program Operations & Support, Depot Repair & Materiel, total
++    // funding], the years and appropriations counted, and the settings as stored: the pseudo year, the prime rules, Depot's title words
++    const calc = () => JSON.parse(ev(`(function(){ var F=flowCalc(), C=flowCfg(); return JSON.stringify([[F.tot, F.execV, F.planV, F.prime.LM.v,
++      F.ext.by.ops.v, F.ext.by.depot.v, F.grand], flowSelYears(), flowSelAppns(), JSON.stringify(C.pseudo), JSON.stringify(C.rules), C.cats[1].ttl]); })()`));
++    // the panel as drawn, its matching rules open: total funding, the Lockheed Martin token field, Depot's title words field, what the
++    // pseudo year's button does when pressed, and whether ALL appropriations is the button lit
++    const panel = () => JSON.parse(ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowSel=''; flowBody(); var b=document.getElementById('flowBody');
++      var t=/total funding \\$([\\d,]+\\.\\d\\d)M/.exec(b.textContent), q=function(sel, a, v){ return [].slice.call(b.querySelectorAll(sel)).filter(function(e){
++        return (e.getAttribute(a)||'').indexOf(v)===0; })[0]; };
++      var lm=q('input', 'onchange', "flowSetRule('lm',"), ct=q('input', 'onchange', "flowSetCat(1,'ttl',"), ps=q('button', 'onclick', 'flowSetPseudo("on",'), al=q('button', 'onclick', 'flowAllAppns()');
++      return JSON.stringify([t? t[1] : '', lm? lm.value : 'no field', ct? ct.value : 'no field', ps? ps.getAttribute('onclick') : 'no button', al? al.classList.contains('on') : 'no button']); })()`));
++    // a field the panel draws (a value typed, change fired), or a button (clicked); the matching rules drawn open
++    const type = (on, v) => ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowBody(); var i=[].slice.call(document.querySelectorAll('#flowBody input')).filter(function(e){
++      return (e.getAttribute('onchange')||'')===${J(on)}; })[0]; if(!i) return 'no control';
++      i.value=${J(v)}; i.dispatchEvent(new Event('change', {bubbles:true})); return 'fired'; })()`);
++    const click = on => ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowBody(); var b=[].slice.call(document.querySelectorAll('#flowBody button')).filter(function(e){
++      return (e.getAttribute('onclick')||'')===${J(on)}; })[0]; if(!b) return 'no control'; b.click(); return 'fired'; })()`);
++    // the Funds Flow export, read from its bytes: its name (the date taken out), its Scope line, and on the Funds Flow sheet the money
++    // lines, the prime token line, Depot's rule line ("2" in the rules table: name, category cell, title words) and the pseudo year's NOTE
++    const book = async () => { const r = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob, dl='';
++        var _ck=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ dl=this.download; };
++        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
++        try{ exportFlow(); }catch(e){ window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
++        window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; if(!cap) return JSON.stringify({__err:'no file'});
++        return JSON.stringify({dl:dl, wb:await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))}); })()`));
++      if (r.__err) return [r.__err];
++      const ff = (r.wb['Funds Flow'] || []).map(x => (x || []).map(c => (c && typeof c === 'object' && 'v' in c) ? c.v : c));
++      const all = lab => ff.filter(x => w6Lbl(x) === lab).map(x => num(x[1])).filter(v => v !== null);
++      return ['ok', String(r.dl).replace(/ 20\d\d-\d\d-\d\d/, ''), String((ff[1] || [])[0] ?? ''), all('TOTAL FUNDING'), all('Lockheed Martin'),
++        all('Program Operations & Support'), all('Depot, Repair & Materiel'), w6Lbl(ff.find(x => /^Prime match tokens/.test(w6Lbl(x)))),
++        (ff.find(x => w6Lbl(x) === '2') || []).slice(1, 4).map(c => String(c ?? '')), ff.filter(x => /^NOTE: includes/.test(w6Lbl(x))).map(w6Lbl)]; };
++    const cyc0 = ev('JSON.stringify(CYCDB)'), ls0 = ev('localStorage.getItem(_AP.key)');
++    // BY HAND. FY27 counts F1's planned $500,000,000, under Program Operations & Support (no token or title word matches "Req F1");
++    // the FY25 rows are not in FY27 while the pseudo year is off.
++    const NAME = 'ORBIT Funds Flow - FY27 all appropriations PLANNED board allocation O M';
++    const SCOPE = 'Scope: FY27 · all appropriations · PLANNED (board allocation, O&M)';
++    const TOK = 'Prime match tokens — Lockheed Martin: LM · Pratt & Whitney: PW, P&W, PRATT · looked for in: requirement title + plan event';
++    const TOK1 = 'Prime match tokens — Lockheed Martin: F1 · Pratt & Whitney: PW, P&W, PRATT · looked for in: requirement title + plan event';
++    const DEPOT = ['Depot, Repair & Materiel', 'DLA, BTL, Depot', 'Depot, Repair, Overhaul, Reset, DLA, Materiel, Spares'];
++    const DEPOT1 = ['Depot, Repair & Materiel', 'DLA, BTL, Depot', 'F1'];
++    const PS0 = '{"on":false,"label":"OBBBA","token":"OBBBA, Mandatory","from":2025,"to":2027,"col":4}';
++    const PS1 = '{"on":true,"label":"OBBBA","token":"OBBBA, Mandatory","from":2025,"to":2027,"col":4}';
++    const RU0 = '{"lm":"LM","pw":"PW, P&W, PRATT","where":"both"}', RU1 = '{"lm":"F1","pw":"PW, P&W, PRATT","where":"both"}';
++    const ALL4 = ['om', 'ff', 'sp', 'opn'];
++    const CALC = [[500000000, 0, 500000000, 0, 500000000, 0, 500000000], [2027], ALL4, PS0, RU0, DEPOT[2]];
++    const PANEL = ['500.00', 'LM', DEPOT[2], 'flowSetPseudo("on",true)', true];
++    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []];
++    // ---- CONTROL: PB27 viewed, nothing changed
++    ev(`cycView(${J(key)}); 'ok'`);
++    w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count FY27’s $500,000,000 under Program Operations & Support, every setting as the working plan holds it',
++      J([ev('CYCVIEW'), calc(), panel(), await book()]), J(['PB|2027', CALC, PANEL, BOOK]));
++    // ---- EACH CHANGE, with PB27 on screen; the status line is read at once ('Not kept' is put in front of a message for 1.5 s only)
++    const CHANGES = [['O&M clicked out of the funds flow’s appropriation buttons', () => click('flowToggleAppn("om")')],
++      ['the pseudo year’s button (+ OBBBA FY25, counted as FY27) pressed', () => click('flowSetPseudo("on",true)')],
++      ['F1 typed as the Lockheed Martin token in the matching rules', () => type("flowSetRule('lm',this.value)", 'F1')],
++      ['F1 typed as the title words of Depot, Repair & Materiel', () => type("flowSetCat(1,'ttl',this.value)", 'F1')]];
++    for (const [what, act] of CHANGES) {
++      const fired = act(), nk = notKept();
++      w5Chk(name, 'PB27 viewed · ' + what, 'refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count FY27’s $500,000,000 under Program Operations & Support, every setting as it was',
++        J([fired, nk, calc(), panel(), await book()]), J(['fired', true, CALC, PANEL, BOOK]));
++    }
++    // ---- CONTROL: the view left -- the working plan holds every setting as it was, and nothing durable moved
++    ev(`cycLeave(); 'ok'`);
++    w5Chk(name, 'each change refused · the view left', 'CONTROL — the working plan counts FY27’s $500,000,000 under Program Operations & Support, every setting as it was; the cycle store and browser storage are byte for byte as they were',
++      J([ev('CYCVIEW'), calc(), panel(), await book(), ev('JSON.stringify(CYCDB)') === cyc0, ev('localStorage.getItem(_AP.key)') === ls0]),
++      J(['', CALC, PANEL, ['ok', NAME + '.xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []], true, true]));
++    // ---- CONTROL: on the working plan the same four changes are allowed, one after another, and each moves money in the export.
++    // BY HAND: F1 under Depot; then F1 a Lockheed Martin line; then FY27 read from the $7,000,000 carried from FY25 (a year with
++    // execution counted in it is read from that execution, never also from its plan); then O&M out, and nothing counted.
++    const w1 = type("flowSetCat(1,'ttl',this.value)", 'F1'), c1 = calc(), b1 = await book();
++    w5Chk(name, 'the working plan · F1 typed as the title words of Depot, Repair & Materiel (allowed)', 'CONTROL — F1’s $500,000,000 moves from Program Operations & Support to Depot, Repair & Materiel, and the export carries it and the rule',
++      J([w1, c1, b1]), J(['fired', [[500000000, 0, 500000000, 0, 0, 500000000, 500000000], [2027], ALL4, PS0, RU0, 'F1'],
++        ['ok', NAME + '.xlsx', SCOPE, [500000000, 500000000], [0], [0], [500000000], TOK, DEPOT1, []]]));
++    const w2 = type("flowSetRule('lm',this.value)", 'F1'), c2 = calc(), b2 = await book();
++    w5Chk(name, 'the working plan · then F1 typed as the Lockheed Martin token (allowed)', 'CONTROL — F1’s $500,000,000 is a Lockheed Martin line, and the export carries it and the token',
++      J([w2, c2, b2]), J(['fired', [[500000000, 0, 500000000, 500000000, 0, 0, 500000000], [2027], ALL4, PS0, RU1, 'F1'],
++        ['ok', NAME + '.xlsx', SCOPE, [500000000, 500000000], [500000000], [0], [0], TOK1, DEPOT1, []]]));
++    const w3 = click('flowSetPseudo("on",true)'), c3 = calc(), b3 = await book();
++    w5Chk(name, 'the working plan · then the pseudo year’s button pressed (allowed)', 'CONTROL — FY27 is read from the $7,000,000 of Mandatory money carried in from FY25, in place of its plan, and the export names it',
++      J([w3, c3, b3]), J(['fired', [[7000000, 7000000, 0, 0, 7000000, 0, 7000000], [2027], ALL4, PS1, RU1, 'F1'],
++        ['ok', 'ORBIT Funds Flow - FY27 all appropriations OBBBA FY25.xlsx', 'Scope: FY27 · all appropriations · + OBBBA FY25', [7000000, 7000000], [0], [7000000], [0], TOK1, DEPOT1,
++          ['NOTE: includes 7000000 of OBBBA appropriated in FY2025 and counted here as FY2027 (1 plan events). Each row is counted in one fiscal year only.']]]));
++    const w4 = click('flowToggleAppn("om")'), c4 = calc(), b4 = await book();
++    w5Chk(name, 'the working plan · then O&M clicked out (allowed)', 'CONTROL — no appropriation in scope holds money: nothing is counted, and the export names the appropriations it stands on',
++      J([w4, c4, b4]), J(['fired', [[0, 0, 0, 0, 0, 0, 0], [2027], ['ff', 'sp', 'opn'], PS1, RU1, 'F1'],
++        ['ok', 'ORBIT Funds Flow - FY27 FULL FUND INITIAL SPARES OPN PLANNED board allocation O M.xlsx', 'Scope: FY27 · FULL FUND + INITIAL SPARES + OPN · PLANNED (board allocation, O&M)',
++          [0, 0], [0], [0], [0], TOK1, DEPOT1, []]]));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the funds flow's settings) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

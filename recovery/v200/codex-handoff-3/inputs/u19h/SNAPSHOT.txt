@@ -1,0 +1,74 @@
+U19H snapshot "u19h-c1": U19H's copy as built (13 Oct 2026, 9:17 PM ET). Input for Codex batch C2b.
+Packed for Codex on 18 Oct 2026, 5:28 AM ET.
+
+WHAT IT IS
+- The defect (Brad's decision under ledger row U19, 13 Oct, about 8:30 PM ET; it also corrects the header half of U15): after
+  ↶ Put back and a reopen before any Save, the top bar said "Saved <time> · ↶ work kept aside". Its tooltip said "Saved <time>
+  by Alice." The time was K's own last-change time, which no file had. Meanwhile this browser's record said the work on screen
+  was unsaved, and the file still held S1.
+- The fix in this copy (one proposed commit, built ON U19's copy u19-fr2, not on the base):
+  1. unsavedNow(), which only the header reads, also reads this browser's record (_baseDirty), outside a PMO copy;
+  2. work put back and not written since says "Unsaved restored work — not written to the board file" ("… the shared
+     folder" while 💾 Save writes there);
+  3. while the work is unsaved, the tooltip says what is unsaved. It also says whether the work is kept in this browser or
+     browser storage refused a change, and gives "Last file save: <time>".
+  Words and the header's inputs only: nothing is saved, the record is never made clean, and no kept copy or file is touched.
+  The builder's full account is NEXT-VERSION-U19H.md.
+- Its tests: the audit-import block "v2.00 (U19H) — after ↶ Put back and a reopen, the header says the restored work is
+  unsaved". It sits right after U19's end marker, between these two lines:
+    // ==== v2.00 (U19H): after ↶ Put back and a reopen, the header says the restored work is unsaved ====
+    // ==== end v2.00 (U19H) ====
+  It has 29 checks, 12 of them controls, in scenarios (a) to (i). On U19's copy, 17 fail (every non-control); on this copy
+  all 29 pass. A run takes about 90 s on our machine.
+- Mutations: 13 entries `v200-u19h-*`, after U19's last entry (`v200-u19-putback-locked-asks`) and before the line
+    "  // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan."
+  mcount (text only) gives 1364 of 1364 entries matching exactly once on this copy's board (re-counted 18 Oct, 5:28 AM ET).
+- Round-1 reviews of this copy:
+  - data loss and money (verify-money-r1, 13 Oct, 10:08-10:27 PM ET): UNSOUND, with 2 must-fix, 4 should-fix and 5 minor.
+    M1 is false words with a two-appropriation file; M2 is a false instruction when browser storage refuses a list the
+    folder copy does not carry. All of them, verbatim: REVIEW-money-r1.txt. C2b closes M1 and M2.
+  - test adequacy (verify-tests-r1): NOT USABLE; IT NEVER RAN. The reviewer started at 10:24 PM ET on 13 Oct and found our
+    stop flag set (we were draining work before a usage limit). It returned a placeholder about 5 seconds later: verdict
+    "unsound", no must-fix, no should-fix, no minor, no checks run, and "drained": true. It wrote no folder and no
+    findings. Our status tool's "unsound, 0 must, 0 should" for it is that placeholder, not a verdict. The review must be
+    redone, and our side redoes it on the copy that comes out of C2b. It is not Codex's job. Until then, nobody has
+    reviewed the U19H block's test adequacy.
+
+BASE AND BLOBS (git hash-object)
+base commit 7ee498a46507972f803cd48ce9f27d5d668acb63 (product d66dd60)
+  file                                   base (7ee498a)                            U19's copy u19-fr2 (parent)               this copy (u19h-c1)
+  prioritization-board-grid.html         fce8a391bd8a248d5185e199d22190c1687eaea0  7a6e29cb9908a055c5f8a5b1bfc6f99b938e79d0  dbfd5f85d465189f768be45532c9f93794489b95
+  tools/export-audit/audit-import.mjs    4aba2506a7ea3bd367fb74436172b188bb4fc887  424cd9ae2b9ecc59247722501bd68a6c1d0781ca  120d9f148d7c11dd37e84832440908d4a2c43e0a
+  tools/export-audit/mutate.mjs (TEXT)   cbc6defc6803851e847844848fc9b186daeeb268  07b5396407f840b467517b80bba821dfef78e85d  c91510c84ebf8139fceb31a818b2dceb461e3d0d
+Every other file is the base's, byte for byte (as listed in ../u19/SNAPSHOT.txt).
+
+APPLY (either way gives the same three blobs)
+  a) from a checkout (or git archive) of 7ee498a, at the repository root:
+       git apply board.diff audit-import.diff mutate.TEXT.diff        (or: patch -p1 < each, in turn)
+  b) onto U19's snapshot (../u19, applied as its SNAPSHOT.txt says):
+       git apply u19h-only-on-u19.diff
+The lead checked a) both ways and b) on 18 Oct at 5:28 AM ET and got exactly the blobs above. mutate.TEXT.diff and
+u19h-only-on-u19.diff change tools/export-audit/mutate.mjs, which is read as TEXT only: never import or run it.
+NOTE: this copy sits on U19's fix-round-2 copy, not on whatever C2a returns. Work on this snapshot as it is; the lead lays
+U19H onto U19's final copy later.
+
+FILES HERE
+  board.diff, audit-import.diff, mutate.TEXT.diff  this copy against the base (includes U19's change; plain unified diffs)
+  u19h-only-on-u19.diff                            U19H's own change against U19's copy (git-style, with blob ids). It is
+                                                   the builder's diffs/c1-all.diff, with its mutate path written as
+                                                   tools/export-audit/mutate.mjs (our copies call that file mutate.mjs.txt)
+  REVIEW-money-r1.txt                              every money-review finding, verbatim; C2b is the two MUST-FIX items
+  reviewer/money-r1-vprobe-block.mjs.txt           the money reviewer's probe (V1-V4): a block for a focused harness that
+                                                   prints OBS lines and records checks. A reference for the reproductions,
+                                                   not a suite block (c52b99f1)
+  reviewer/money-r1-cfix.diff                      the money reviewer's tested minimal fix for M1 and M2, which also holds
+                                                   should-fix V3's `_dlOnly=false`. It applies to this copy and gives
+                                                   board 285e5cd938efc20f105551f6c1585a3f779664ad. The reviewer measured V1
+                                                   and V2 passing and the U19H block 29/29 on it. It adds no test and no
+                                                   mutation entry. The two header lines were relabelled a/ and b/; the
+                                                   hunks are byte for byte (c4820e66)
+  NEXT-VERSION-U19H.md                             the builder's drafted NEXT-VERSION entry (99bb0cd4). M1 and M2 make
+                                                   sentences in it untrue (should-fix 3 says which). Propose text if you
+                                                   like; do not edit NEXT-VERSION.md
+  ../tools/mkfocused.py                            builds a focused harness from a suite and two marker lines
+  MANIFEST.sha256                                  sha256 of every file in this folder

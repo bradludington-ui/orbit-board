@@ -1,0 +1,33 @@
+# label: probe-base-file
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/regtext.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base file
+# start: 2026-10-12 20:17:34 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+
+=== 2. a file whose RCN / EEIC list holds the entries below; R1 on K8 (control characters), R2 on K5 (300-char title)
+  in the file K1                             {"rcn":"11111","eeic":"aaaaa","tlen":15,"t":"lower-case EEIC"}
+  in the file K2                             {"rcn":"22222","eeic":"ßßßßßßßßßß","tlen":11,"t":"eszett EEIC"}
+  in the file K3                             {"rcn":"33333","eeic":"ABCDEFGHIJKLMNOPQRST","tlen":10,"t":"EEIC of 20"}
+  in the file K4                             {"rcn":" 44444 ","eeic":" DDDDD ","tlen":10,"t":"  padded  "}
+  in the file K5                             {"rcn":"55555","eeic":"EEEEE","tlen":300,"t":"TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"}
+  in the file K6                             {"rcn":"66666","eeic":"FFFFF","tlen":4,"t":"=1+1"}
+  in the file K7                             {"rcn":"+77777","eeic":"@SUM1","tlen":6,"t":"-cmd|x"}
+  in the file K8                             {"rcn":"88888","eeic":"HHHHH","tlen":11,"t":"bad\u0001char\u000bvt"}
+  in the file K9                             {"rcn":"99999","eeic":"IIIII","tlen":80,"t":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+door (inboundCheck) on the file              (passes)
+opened list                                  [["K1","11111","aaaaa",15],["K2","22222","ßßßßßßßßßß",11],["K3","33333","ABCDEFGHIJKLMNOPQRST",10],["K4"," 44444 "," DDDDD ",10],["K5","55555","EEEEE",300],["K6","66666","FFFFF",4],["K7","+77777","@SUM1",6],["K8","88888","HHHHH",11],["K9","99999","IIIII",80]]
+opened codeIssues (list)                     ["EEIC (RCN / EEIC list) “ABCDEFGHIJKLMNOPQRST” — 20 characters, at most 10"]
+opened exportExcel                           {"nparts":16,"badParts":[["xl/worksheets/sheet6.xml","f0","bad1/b/1/b/1/b/1/b","fffd0","meth0"]],"readErr":"","cells":[["RCN-EEIC by Month",4,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(315)"],["RCN-EEIC by Month",5,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",10,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",25,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(333)"],["RCN-EEIC by Month",27,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"],["RCN-EEIC by Month",33,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"]]}
+opened exportSrc                             {"nparts":9,"badParts":[],"readErr":"","cells":[]}
+opened, saved, reopened list                 [["K1","11111","aaaaa",15],["K2","22222","ßßßßßßßßßß",11],["K3","33333","ABCDEFGHIJKLMNOPQRST",10],["K4"," 44444 "," DDDDD ",10],["K5","55555","EEEEE",300],["K6","66666","FFFFF",4],["K7","+77777","@SUM1",6],["K8","88888","HHHHH",11],["K9","99999","IIIII",80]]
+opened, saved, reopened codeIssues (list)    ["EEIC (RCN / EEIC list) “ABCDEFGHIJKLMNOPQRST” — 20 characters, at most 10"]
+opened, saved, reopened exportExcel          {"nparts":16,"badParts":[["xl/worksheets/sheet6.xml","f0","bad1/b/1/b/1/b/1/b","fffd0","meth0"]],"readErr":"","cells":[["RCN-EEIC by Month",4,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(315)"],["RCN-EEIC by Month",5,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",10,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",25,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(333)"],["RCN-EEIC by Month",27,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"],["RCN-EEIC by Month",33,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"]]}
+opened, saved, reopened exportSrc            {"nparts":9,"badParts":[],"readErr":"","cells":[]}
+Import a full board                          {"ret":true,"threw":"","alerts":[]}
+imported, reopened list                      [["K1","11111","aaaaa",15],["K2","22222","ßßßßßßßßßß",11],["K3","33333","ABCDEFGHIJKLMNOPQRST",10],["K4"," 44444 "," DDDDD ",10],["K5","55555","EEEEE",300],["K6","66666","FFFFF",4],["K7","+77777","@SUM1",6],["K8","88888","HHHHH",11],["K9","99999","IIIII",80]]
+imported, reopened codeIssues (list)         ["EEIC (RCN / EEIC list) “ABCDEFGHIJKLMNOPQRST” — 20 characters, at most 10"]
+imported, reopened exportExcel               {"nparts":16,"badParts":[["xl/worksheets/sheet6.xml","f0","bad1/b/1/b/1/b/1/b","fffd0","meth0"]],"readErr":"","cells":[["RCN-EEIC by Month",4,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(315)"],["RCN-EEIC by Month",5,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",10,0,"88888 / HHHHH  bad\u0001char\u000bvt"],["RCN-EEIC by Month",25,0,"55555 / EEEEE  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT…(333)"],["RCN-EEIC by Month",27,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"],["RCN-EEIC by Month",33,0,"88888 / HHHHH  bad\u0001char\u000bvt   (1 requirement)"]]}
+imported, reopened exportSrc                 {"nparts":9,"badParts":[],"readErr":"","cells":[]}
+
+# end: 2026-10-12 20:17:51 EDT  exit: 0  wall_s: 17.0

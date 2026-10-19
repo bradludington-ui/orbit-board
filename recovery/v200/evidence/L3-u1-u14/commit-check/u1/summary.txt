@@ -1,0 +1,6 @@
+start 3:47:20 PM ET
+after-own | exit 0 | ALL CHECKS PASSED | 116 pass, 0 fail
+before-board | exit 1 | 47 FAILING CHECK(S) | 69 pass, 47 fail
+mut-v200-u1-year-unoffered | exit 1 | 47 FAILING CHECK(S) | 69 pass, 47 fail
+mut-v200-u1-own-appn-only | exit 1 | 33 FAILING CHECK(S) | 83 pass, 33 fail
+done 3:48:09 PM ET

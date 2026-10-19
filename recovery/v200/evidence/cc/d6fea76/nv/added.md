@@ -1,0 +1,258 @@
+- **U32, U33 and U50 — an RCN / EEIC list that repeats a key, or holds "__none__" or a key that is not text, never counts
+  money twice; a file handed over with one is refused in true words, and the user's own board comes across saying what it
+  holds** (Codex's review of `main`, as Brad supplied it, 12 Oct, about 6:05 PM ET: "Duplicate K1 registry entries." and
+  "One registry entry named __none__." "Both accept an imported cycle and export USAF $1,800 / ANG $400 from independently
+  expected $900 / $200."; Codex batch B2, 13 Oct, P2, on the words of the full import). The RCN-EEIC by Month sheet printed
+  a row for every entry of an RCN / EEIC list and found each row's money by the entry's key, as text. A list that named K1
+  twice -- a locked cycle's, which a cycle in an imported file brought with it, or the working plan's -- printed K1's row
+  twice and put its money twice into each service total, the grand total and the NOT FUNDED Ask: on the synthetic fixture
+  USAF $1,800 and ANG $400, where the money is $900 and $200. An entry keyed "__none__", the name the sheet used for money on
+  no combination, printed that money under its own codes and again as not assigned. The number 1 beside the text "1" was one
+  name printed twice as well; a requirement on "1" with only the number 1 listed was printed under the number's codes, which
+  the screen does not show it on; and an entry keyed "constructor" made the workbook's export fail. Now the sheet names each
+  combination by where the board finds it -- the first entry whose key is the requirement's (or the CLIN's) pointer exactly,
+  as the screen and the Spend Plan Source find it -- and counts each once; the not-assigned row is a name no entry can take,
+  and a requirement on no combination is never filed under an entry keyed "". The door every file handed over passes (⬅
+  Import one appropriation, ⇊ several boards, packages, submittals, band ladders) refuses an RCN / EEIC list that repeats a
+  key, holds a key beginning with two underscores, a key that is not text, an entry with no key, or an entry that is not one;
+  it says which list, what it holds and why, in words (a key such as "constructor" included), and takes nothing. It says
+  who saved the file as the file says it -- a board file this version saved came from a board that held such a list, never
+  "an ORBIT before this one"; one an earlier version saved, that that ORBIT took such a list without a word; a file that
+  names no version (a package, a state file), neither -- and a way that works for that kind of file: a working plan's list
+  is put right on a board of this version (✕ on a row marked ⚠ repeats removes that row alone) and the file written again
+  (saved, exported, issued or published); a locked cycle's list stays as it was locked, so ⬅ Import
+  one appropriation and ⇊ Import several boards refuse every file that carries that cycle, and the file itself opens as a
+  board; a file whose working plan's list is refused and which carries such a cycle as well -- a board that locked PB27 while
+  its list repeated K1 holds both -- is told so, and only the ways that work for it, as ✕ on the working plan's row would
+  leave it refused, for the cycle's list; a board .html refused for an entry in its working plan's list that is not null
+  ("K9", 0, []) is told that it opens as a board and that ⬅ Import a full board takes it; a package, a state file or a PMO
+  copy refused for such an entry that ✕ removes ("K9", 5, []) is told that ✕ on its row in 🗂 RCN / EEIC takes it out, and
+  the file written again, and for null, 0, false or "", which ✕ does not remove, no way is named -- a null entry is told no
+  way whether its file comes alone or among several through ⇊ Import several boards; and, for a board .html only (a PMO
+  copy is not told it: its locked cycles are only the reference it was cut to, which would replace the board's own), ⬅
+  Import a full board takes a whole board of one's own, replacing this board's whole BAE list and execution data, so it is
+  not the way to take one appropriation. ⬇ Export one appropriation, when the door refuses the file it has just written, no
+  longer says to take it back with ⬅ Import one appropriation: it says that Import one appropriation and Import several
+  boards refuse it, why, and what works for it. The help for ⬅ Import one appropriation says which files it refuses,
+  whichever board saved them, and what takes them. ⬅ Import a full board -- the user's own board, Brad's way onto a new version --
+  takes those lists as the file holds them and says what each holds in the question asked before anything is replaced and
+  again once the board has reopened, in words true for each requirement: a requirement on a key that is text (not empty)
+  reads the first entry with that key, and, when a locked cycle's list holds an entry whose key is not text, that entry is
+  kept but not read, as since v1.99, so a requirement on it shows no code there and its money is on no combination (round 3
+  said "Each requirement reads the first entry with its key", untrue of R1 on the number 1 in such a cycle and of a
+  requirement on 0 in any list -- Codex B2, P2). The lists themselves are kept byte for byte, and read as before. It refuses
+  only a null entry in the working plan's list, which every reader of that list stops at (anything else there that is not
+  an entry, such as "K9", 0, [] or 5, is read past as before; a locked cycle's list is read without such entries, as since
+  v1.99). A full import that stops early -- not a board, or answered no -- leaves the next file handed over held to the
+  whole rule. The shared folder's copy and the sidecar beside the board are read as before, a null entry included: refusing
+  them froze the team's folder, every later Save refused. On the 🗂 RCN / EEIC panel a row that repeats an earlier row's key
+  says so, and ✕ on it removes that row alone, changing no assignment, and is saved. Add RCN / EEIC no longer gives a new
+  entry a key still in use. 🔒 Lock, which keeps the working plan's list as it is, now says first, in its own question, when
+  that list breaks the rule -- what it holds, as the door says it, and that ⬅ Import one appropriation and ⇊ Import several
+  boards will then refuse every file that carries the cycle, as a locked cycle's list stays as it was locked; Cancel locks
+  nothing, and the lock itself is made as before (verification round 7: a board that took its file whole, its working plan
+  listing K1 twice, locked a cycle without a word, and every file it wrote after was refused for that cycle, though ✕ had put
+  the working plan right).
+  - **What users may see:** a board that holds such a list exports each combination once -- its RCN-EEIC totals and NOT
+    FUNDED Ask fall by what was doubled, money on no combination reads as not assigned, and every requirement is printed
+    under the codes the screen shows it on. A file handed over with such a list is refused: "⚠ Nothing imported —
+    “cycle.html” was refused: the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn holds the key “K1”
+    twice (rcn[0] and rcn[1]); a key names one combination.", with an alert that, for a board file this version saved,
+    ends "An RCN / EEIC list names each combination once, by a text key of its own. This file says ORBIT v2.00 saved it,
+    from a board that held such a list. A locked cycle’s list stays as it was locked, so ⬅ Import
+    one appropriation and ⇊ Import several boards refuse every file that carries that cycle. The file itself opens as a
+    board. A whole board of your own comes across with its lists as they are by 📁 File → ⬅ Import a full board, which says
+    first what they hold. That replaces this board’s whole BAE list and execution data with the file’s, when it carries
+    them, so it is not the way to take one appropriation. Nothing on this board was changed." For a working plan's list the
+    third and fourth sentences read instead "A list that is not a locked cycle’s can be put right on a board of this
+    version, in 🗂 RCN / EEIC, where ✕ on a row marked ⚠ repeats removes that row alone, and the file written again." (and a
+    board .html's last two follow, but not for a PMO copy); when that file carries a locked cycle whose list breaks the rule
+    as well, the alert reads after the second sentence "This file also carries a locked cycle whose RCN / EEIC list a file
+    handed over is refused for. A locked cycle’s list stays as it was locked, …" as above; for "K9" or 0 in a working
+    plan's list a board .html's alert ends "No ORBIT makes such an entry. This file says ORBIT v2.00 saved it, from a board
+    that held one. The file itself opens as a board. A whole board of your own comes across …"; a package or a PMO copy
+    refused for "K9" there ends "… No ORBIT makes such an entry. It can be taken out on a board of this version, in 🗂 RCN /
+    EEIC, where ✕ on its row removes it, and the file written again." (a PMO copy saying who saved it first), and one
+    refused for 0 or null names no way; a file
+    an earlier version saved reads "An ORBIT before this one took such a list without a word and could save it with its
+    board." in place of the second; a package or a state file is told neither of who saved it nor of a board .html's ways. A
+    full import's question, and the reopened board, add "RCN / EEIC lists as the file holds them, which a file handed over is
+    refused for: O&M PB27’s list holds the key “K1” twice (rcn[0] and rcn[1]). A requirement on a key that is text (not
+    empty) reads the first entry with that key, as the ORBIT that saved the file did. The RCN-EEIC sheet counts each key once
+    and money on no combination only as not assigned" (or "… O&M working plan’s list holds rcn[0], which is not a combination
+    (“"K9"”) …"); when a locked cycle's list holds a key that is not text, "… as the ORBIT that saved the file did. A locked
+    cycle’s entry whose key is not text is kept but not read, as in every ORBIT since v1.99: a requirement on it shows no
+    code there, and its money is on no combination. The RCN-EEIC sheet …". The panel's "Used by" on a repeated row reads "⚠
+    repeats row 1". ⬇ Export one appropriation of a board holding such a locked cycle ends its status line "… with the
+    destination list, cost estimates and reprogramming log. It is not taken back by ⬅ Import one appropriation or ⇊ Import
+    several boards, which refuse it: the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn holds the key
+    “K1” twice (rcn[0] and rcn[1]); a key names one combination. An RCN / EEIC list names each combination once, …" (the
+    refusal's own words), where it said "Take it back with 📁 File → ⬅ Import one appropriation."; every other export says
+    that as before. The help for ⬅ Import one appropriation adds "A file that carries a locked cycle whose RCN / EEIC list
+    breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that
+    is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens
+    as a board, and 📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)… takes it whole." 🔒 Lock,
+    while the working plan's list holds K1 twice, asks, before "The working board is not changed.", "The RCN / EEIC list it
+    keeps holds the key “K1” twice (rcn[0] and rcn[1]); a key names one combination. A locked cycle’s list stays as it was
+    locked, so ⬅ Import one appropriation and ⇊ Import several boards will refuse every file that carries this cycle, on every
+    board of this version."
+  - **Test:** audit-recon "v2.00 (U32, U33) — an RCN / EEIC list that repeats a key, or holds “__none__” or a key that is not
+    text, never counts money twice: a file handed over with one is refused, and the user’s own board comes across saying
+    what it holds" (288 checks). Codex's two shapes in PB27's own list, R1 on K1 and on none, and on the entry named
+    "__none__"; PB27 [K1, K1, "__none__"]; PB27 [null, K1]; PB27 [the number 1] with R1 on the number 1; the working plan's
+    list [K1, K1], on one code and on two; [1, "1"] with R1 on "1" and on the number 1, in the working plan and as read by
+    PB27 locked before v1.99; [1] with R1 on the number 1 and on "1"; ["K9", K1], [0, K1] and [[], K1]; [K1, an entry keyed
+    ""] with R1 on none; a hand-made file with an entry keyed "constructor"; R1 unfunded on [K1, K1]; and a control on
+    ordinary distinct keys beside each. Each through the door, ⬅ Import one appropriation, ⇊ Import several boards, ⬅ Import
+    a full board into the user's own board with the same browser reopened and then saved and reopened, and the file opened
+    directly and then saved and reopened, as each case needs. The RCN-EEIC sheet is read from the workbook's bytes against
+    literals worked by hand: USAF 900 and ANG 200 in the award month and in TOTAL, all services 1,100, every service total in
+    the breakout, each under the codes the board shows R1 on, and the NOT FUNDED Ask USAF 900 / ANG 200. Every refusal and
+    every statement is checked word for word, browser storage byte-identical where nothing is taken. The full import's words
+    are written out whole for Codex B2's case -- PB27 [{k: 1, 99999 / ZZZZZ}] with R1 on the number 1 -- and beside it K1
+    with R1 on K1, and the working plan's [{k: 0}, K1] with R1 on 0: the question, the reopened report, the locked list as the
+    file holds it (written, reopened, saved and reopened), R1's pointer, the keys PB27 reads and the code R1 shows, and the
+    sheet from the bytes. The user's own board holding PB27 [K1, K1], taken whole: its saved file (⬅ Import one
+    appropriation) and its one-appropriation file (⇊ Import several boards), on that same board, refused in words true for a
+    file this version saved, storage unchanged; that one-appropriation file between two board files that say v1.99 saved them,
+    through ⇊ Import several boards on that board, the batch refused whole and the words telling who saved the file they name;
+    that one-appropriation file opened (USAF 900 / ANG 200 / 1,100 from the bytes); its package taken by a new board; its
+    saved file taken back by ⬅ Import a full board. A file naming v1.99, and a
+    state file (.json) naming no version, each told only what is true of it. The user's own board whose working plan's list
+    and PB27's each list K1 twice, taken whole: both lists' sheets from the bytes (USAF 900 / ANG 200 / 1,100); ⬇ Export one
+    appropriation's status line; its saved file (⬅ Import one appropriation) and its one-appropriation file (⇊ Import several
+    boards) on that board, refused naming the locked cycle and only the ways that work; its package and its PMO copy on a new
+    board, each refused for the working plan's list with only the way that works for it; ✕ on the working plan's row 2, after
+    which its saved file is refused still, for PB27, and its package is taken. ⬇ Export one appropriation's status line on
+    the board holding PB27 [K1, K1]. A file whose working plan's list repeats K1 beside PB27's ordinary [K1], and one whose
+    working plan and PB27 each repeat K1, through ⬅ Import one appropriation and ⇊ Import several boards; "K9" and 0 in the
+    working plan through ⬅ Import one appropriation; PB27 [K1, K1, the number 1] through the full import (the question names
+    both, and says a locked cycle's entry whose key is not text is kept but not read); the working plan's [K1, K1 on two
+    codes], ["K9", K1], [0, K1] and [[], K1] kept as the file holds them through ⬅ Import a full board -- written, reopened,
+    saved and reopened; the help for ⬅ Import one appropriation, word for word. The sixth round: the user's own board whose
+    working plan lists K1 twice, no locked cycle amiss, taken whole -- ⬇ Export one appropriation's status line names no way
+    back that refuses its file, which ⬅ Import one appropriation then refuses on that board; after ✕ on row 2 the line says
+    to take the file back, and a new board takes it -- and an ordinary board's line (control); a file whose working plan
+    holds "K9" beside PB27 [K1, K1], and one whose working plan repeats K1 beside PB27 [null, K1], through the door and ⬅
+    Import one appropriation, each told of the locked cycle too; the user's own board whose working plan holds "K9", then K1,
+    or 0, then K1, taken whole -- its package and its PMO copy refused on a new board, for "K9" told ✕ and the file written
+    again (after ✕ the door passes both and a new board takes the package), for 0 told no way (after ✕, which does nothing,
+    the package is refused still). The seventh round: the user's own board whose working plan lists K1 twice, taken whole --
+    🔒 Lock POM27 answered Cancel (the question word for word; nothing locked, storage unchanged), then answered yes (POM27 keeps
+    [K1, K1]; its sheet from the bytes USAF 900 / ANG 200 / 1,100; the saved file refused on a new board by ⬅ Import one
+    appropriation and on that board by ⇊ Import several boards; after ✕ on row 2 refused still, for POM27); ✕ on row 2 first,
+    then the lock (asked what it always was; POM27 [K1]; 900 / 200 / 1,100; a new board takes the saved file); "K9" in the
+    working plan, the question naming it as the door does; an ordinary [K1, K2] (control). The ✕ way for every kind of entry it
+    is said or not said for: PB27 ["K9", K1] through ⬅ Import one appropriation and ⇊ Import several boards (the locked
+    cycle's words, never ✕); the working plan's false, "", 5 and [], then K1, taken whole -- the package and the PMO copy
+    refused on a new board, ✕ named for 5 and [] only, and ✕ clicked on row 1 in the open 🗂 RCN / EEIC panel (for 5 and []
+    the row goes and a new board takes the package; for false and "" the row stays and the package is refused still); a null
+    entry among three files through ⇊ Import several boards (no way named). The eighth round: the user's own board holding
+    PB27 [K1, K1], taken whole -- 🔓 Unlock PB27 (its question word for word; the saved file carries PB27 unlocked, [K1, K1]),
+    and that saved file refused by ⬅ Import one appropriation on a new board in the words now said, storage unchanged; then 🗑
+    Delete PB27 (asked; gone), and on a second such board 🔒 Lock PB27 over it (the whole question, "This replaces the existing
+    PB27 cycle."; PB27 locked with the working plan's [K1]; USAF 900 / ANG 200 / 1,100 from the bytes) -- and the saved file
+    written again taken by a new board (controls); a lock while the working plan's list holds the number 1 as a key, or
+    "__none__", then K1: answered Cancel (the whole question, naming the entry as the door does; nothing locked, storage
+    unchanged), then yes (POM27 keeps the list as it is; its saved file refused on a new board, as the question said). Also: a null entry in the working plan's list (refused at the door, by the full import,
+    and by ⇊ Import several boards beside the user's own board file, whose reason then ends "(so none of the 2 files was
+    taken)" and whose words still name no way -- and, beside PB27 [K1, K1], alone and among two, naming that cycle too); the door on a key repeated apart, three times, beginning with two
+    underscores, missing and not text, on keys every object answers to (refused in words) and on "constructor" twice; a full
+    import that stops early, then a file handed over; the shared folder's copy and the sidecar read with [K1, K1] and with
+    [null, K1]; ✕ on the second and on the first of two rows with one key, and the second reopened; Add RCN / EEIC in one
+    millisecond after removals. 177 checks fail on the board before the change (USAF 1,800, ANG 400, all services 2,200; NOT
+    FUNDED Ask 1,800 / 400; the door passing every list; the full import silent; the "constructor" export failing; ✕
+    clearing R1's assignment; a file this version saved taken; Export one appropriation saying to take its file back by
+    Import one appropriation; the help silent; a package or a PMO copy holding "K9", 0, false, "", 5 or [] taken; a lock
+    asking nothing of the list it keeps). The 111 that pass there are the 32 fixtures, the 49 controls and 30 guard
+    checks -- the guards' money, their lists as kept and what they read, which that board did right; the guards' door,
+    full-import and statement checks fail there. On round 7's board 27 fail, and only these: every check whose expected
+    refusal or status line carries the locked cycle's sentence, which round 7 said with "and no board changes it" (23 of
+    its 277 checks), and the eighth round's 4 new ones that do (the two unlocked-cycle refusals and the tests reviewer's two saved-file refusals); the eighth round's two lock questions pass there, as
+    round 7's question was already right. With round 7's block, round 6's board failed 2, round 5's 11, round 4's 30, round 3's
+    92 and round 2's 98, so every U50 statement check fails on round 2's and round 3's words; this round changes no U50 check
+    and did not run those boards.
+  - **Mutations:** `v200-cycreg-keys-repeat`, `-keys-cycle-only`, `-notfunded-repeat`, `-key-as-name`, `-at-by-name`,
+    `-at-text-only`, `-req-by-name`, `-clin-by-name`, `-door-open`, `-door-repeat`, `-door-adjacent`,
+    `-door-underscores`, `-door-sentinel-only`, `-door-not-text`, `-several-own-board`, `-own-takes-entry`,
+    `-own-cycle-entry-refused`, `-own-board-refused`, `-own-board-unsaid`, `-say-first-only`, `-say-entry-garbled`,
+    `-folder-refused`, `-sidecar-refused`, `-refusal-untrue`, `-advice-unwarned`, `-repeat-row-clears`,
+    `-first-row-alone`, `-repeat-row-unsaid`, `-add-key-reused`, `-add-steps-once`, `-own-entry-any`, `-at-empty-matches`,
+    `-folder-as-own`, `-sidecar-as-own`, `-mode-sticks`, `-odd-plain-object`, `-del-unsaved`, `-say-cycle-unsaid`,
+    `-advice-any-board`, `-say-every-reads`, `-say-kept-unsaid`, `-say-cycle-parenthesis`, `-cycle-list-trimmed`,
+    `-cycle-reads-numbers`, `-own-falsy-refused`, `-own-array-refused`, `-tail-old-for-now`, `-tail-plan-for-cycle`,
+    `-tail-full-for-any`, `-tail-unstamped-old`, `-tail-text-unkept`, `-several-txt-dropped`, `-tail-cycle-too-unsaid`,
+    `-tail-cy-any-cycle`, `-tail-entry-ways-unsaid`, `-tail-null-ways`, `-tail-pmo-full`, `-tail-written-saved`,
+    `-export-says-back`, `-export-why-only`, `-help-refusal-unsaid`, `-say-cynt-first-only`, `-plan-deduped`,
+    `-plan-junk-trimmed`, `-tail-null-several`, `-entry-x-unsaid`, `-entry-x-pmo-unsaid`, `-entry-x-falsy`, `-export-cycle-only`, `-export-always-not-back`, `-cyodd-lists-only`, `-too-list-only`, `-lock-unsaid`, `-lock-entry-what`, `-entry-x-cycle`, `-entry-x-falsy-some`,
+    `-entry-x-text-only`, `-tail-null-two-only`, `-cycle-unchangeable`, `-lock-nt-unsaid` and `-lock-reserved-unsaid` (81);
+    each is caught by this
+    block, except `-clin-by-name`, which audit-recon's own v1.98 item 83 and v1.99 item 88 checks catch. A repeated key read
+    at its LAST entry is not an entry: the row's label comes from rcnLabel, which finds the first entry with that key, so the
+    sheet is the same either way.
+  - **Not covered:** A LOCKED CYCLE WHOSE LIST BREAKS THE RULE (Brad, 13 Oct, about 8:30 PM ET: a locked cycle's list stays
+    as it was locked; a way to correct one is deferred). While a board holds one -- taken whole by ⬅ Import a full board,
+    opened from an earlier ORBIT's file, or locked on this version while its working plan's list broke the rule (the lock
+    now says so first, and Cancel locks nothing) -- what it CAN send: its saved board file, which opens as a board and comes back whole
+    by ⬅ Import a full board (that board's own, or a new one); its one-appropriation file, which opens as a board for the
+    appropriation lead; its package (it carries the working plan's list and no locked cycle) and its PMO copy (whose locked
+    cycles are only the reference it was cut to, with no list), which pass every door while the working plan's list keeps
+    the rule -- when that list repeats a key as well, each is refused for it, naming it and the way that works (✕ on the
+    repeated row, then issued or published again; probed), and when it holds null, 0, false or "", which ✕ does not
+    remove (as before), each stays refused, and its state file (.json) too; and the office's submittal from that copy, which File → Import holds for review and which
+    carries no RCN / EEIC list. Every export of that board keeps the
+    money: its RCN-EEIC sheet, PB27's and the working plan's, prints USAF $900 / ANG $200 / $1,100 once (probed with K1
+    twice, and with "__none__", R1 on none and on it). What it CANNOT send: its saved file and its one-appropriation file
+    through ⬅ Import one appropriation or ⇊ Import several boards, on any board of this version, that board's own included --
+    so an appropriation lead's work on such a file cannot be taken back one appropriation at a time, and ⬅ Import a full
+    board, which takes it, replaces the taking board's whole BAE list and execution data with the file's, as the refusal and
+    the full import's question say. The one way out is to give that cycle up: 🔓 Unlock it, then 🗑 Delete it or 🔒 Lock over
+    it (which replaces its frozen plan with the working plan's, as that question says); every file the board writes after that
+    is taken by ⬅ Import one appropriation and ⇊ Import several boards, whose door no longer meets the cycle's list (while the
+    working plan's list keeps the rule; the block drives ⬅ Import one appropriation on a new board), and the cycle as it was
+    locked is gone (verification round 8, money SF1). A board whose working plan's list already holds a null entry (taken before this change,
+    or a file opened directly, which no door checks) still cannot export its workbook or show its RCN / EEIC panel, as
+    before, and the refusal of such a file names no way to put it right, as none works, whether it comes alone or among
+    several files through ⇊ Import several boards. ⬇ Export one appropriation says, in the refusal's own
+    words, when the door refuses the file it has just written; 💾 Save, issuing a package and publishing a PMO copy do not
+    say it of their files, and the help names only Import one appropriation's refusal. ✕ on an entry that is 0, false or ""
+    does nothing and says nothing (as before); such a board .html still opens as a board and comes across by ⬅ Import a full board, which keeps the entry, and
+    the readers read past it. Outside this change and the same on d66dd60: ⬅ Import a full board of a PMO copy, into a
+    board holding a locked cycle, puts the copy's reference of that cycle (no years, no list) in place of the board's own
+    (verification round 5, m3 -- the refusal of a PMO copy no longer names that way; for its own ledger row); the full
+    import's question names the version as "v2.0" for v2.00 (minor not padded; m2); the ALIGNMENT BREAKOUT BY FUNDING LINE
+    sheet groups a requirement's services by pointer as a plain object key, so a working plan's list holding the number 1
+    and the text "1" on two codes, with USAF on 1 and ANG on "1", puts ANG under the number's codes there while the RCN-EEIC
+    sheet prints it under "1"'s (verification round 6, money m3; reachable only from a file; for its own ledger row). The
+    working plan's advice names "a row marked ⚠ repeats" also where no row is marked -- a list refused for "__none__", a key
+    that is not text or an entry with no key, whose row ✕ removes by the ordinary removal, clearing what points at it, as
+    its question says (money m1); the help for ⬅ Import one appropriation names only the locked cycle's refusal (m2); "This
+    file says ORBIT v2.00 saved it" is said of a PMO copy and a one-appropriation file as well, which the board published or
+    exported (m4). A hand-made file whose working plan's list holds a number too large for JSON (1e400, read as Infinity) is
+    told by ⬅ Import one appropriation that the entry is “null”, and is named no way (verification round 7, money m1): no
+    ORBIT writes such a number (JSON writes it as null), nothing is taken and storage is unchanged; ⬅ Import a full board
+    refuses it as "not a real number (“Infinity”)", as d66dd60's door did. The ✕ way is named for an RCN / EEIC list wherever
+    the door meets one, a list in an appropriation that is not O&M included, whose 🗂 RCN / EEIC panel shows no rows (read, not
+    run; no ORBIT writes such a list with entries; tests m1). ✕ on the FIRST row of a repeated key clears every assignment to that key, as its
+    question says. The pickers and the menu's "N combos" list a repeated key's rows as they are. An entry keyed "" passes the
+    door; no pointer can reach it (a pointer of "" means none). Packages, submittals and band ladders run the same door; the
+    block drives a package, a PMO copy and a state file, not a band ladder; the sidecar's file:// branch is not driven (jsdom takes the
+    fetch branch). Who saved a file is taken from the file's own BUILD line; a hand-edited file is believed. The SI sheet
+    walks the fixed SI code list and was never affected. The PPBE view's "+ add an RCN / EEIC line" still takes its key from
+    the time and the list's length, as Add RCN / EEIC did; PPBE totals count each key once, so no total doubles (read, not
+    run).
+  - **U32, U33 and U50: built as one commit** (Codex's review of `main`, as Brad supplied it, 12 Oct, about 6:05 PM ET; Codex
+    batch B2, 13 Oct, P2): an RCN / EEIC list that repeats a key, or holds "__none__" or a key that is not text, never counts
+    money twice; a file handed over with one is refused in true words, and the user's own board comes across saying what it
+    holds (above). Deferred by Brad (13 Oct, about 8:30 PM ET): a locked cycle's list stays as it was locked, and a way to
+    correct one is not built -- so while a board holds a locked cycle whose list breaks the rule (a lock made on this version
+    while the working plan's list breaks it says so first), its saved file and its
+    one-appropriation file are refused by ⬅ Import one appropriation and ⇊ Import several boards on every board of this
+    version, its own included, and the refusal says so -- naming that cycle even when the file's working plan's list is
+    refused first -- as does ⬇ Export one appropriation when it writes such a file, and the help; the file opens as a
+    board, and ⬅ Import a full board takes it whole (replacing the taking board's BAE list and execution data). Its package
+    and its PMO copy pass while its working plan's list keeps the rule (✕ on a repeated row there, or on an entry such as
+    "K9", puts it right, as their refusal says). Still open: a board whose working plan's list holds a null entry cannot
+    export or show its RCN / EEIC panel, as before, and nothing puts it right, as its file's refusal says by naming no way,
+    alone or among several files; one whose working plan's list holds 0, false or "" (taken whole from a file) cannot send
+    its package, PMO copy or state file, as ✕ on that row does nothing, and their refusal names no way.

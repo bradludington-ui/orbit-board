@@ -1,0 +1,51 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html	2026-10-12 21:17:00.000000000 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/before/prioritization-board-grid.html	2026-10-13 23:21:59.000000000 +0000
+@@ -6492,0 +6493,4 @@
++// v2.00 (U20): A SAVE IS UNDER WAY FROM THE MOMENT IT IS ASKED FOR, WAITING INCLUDED, until it has finished, however it
++// ends. It was counted only once it held the lock, so a save waiting for another tab's save was no save at all to ↶ Put
++// back (U2) and to the folder's refresh (U13): a refresh then took the folder's copy as the one the work came from, and the
++// waiting save wrote over that copy without asking. _saveBusy is the number of saves asked for in this tab and not finished.
+@@ -6495 +6499 @@
+-  const go=function(){ _saveBusy++; return Promise.resolve().then(fn).finally(function(){ _saveBusy--; }); };
++  const go=function(){ return Promise.resolve().then(fn); };
+@@ -6501,0 +6506 @@
++  _saveBusy++;
+@@ -6502,0 +6508,2 @@
++  const done=function(){ _saveBusy--; };
++  p.then(done, done);   // saved, refused, failed or thrown -- and the lock, where there is one, let go
+@@ -6933 +6940,2 @@
+-function keptOccupiedMsg(by, ts, from){
++// v2.00 (U30): `unknown` -- nothing recorded for the folder, so there is no telling that their copy is the newer one.
++function keptOccupiedMsg(by, ts, from, unknown){
+@@ -6935 +6943 @@
+-  return '⚠ <b>'+esc(by||'someone')+'</b> saved a newer copy to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
++  return '⚠ <b>'+esc(by||'someone')+'</b> saved '+(unknown? 'a copy' : 'a newer copy')+' to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
+@@ -6937 +6945 @@
+-    +' and holds new work besides. Kept work is never replaced, so the newer copy was <b>not loaded</b> and nothing was lost. '
++    +' and holds new work besides. Kept work is never replaced, so '+(unknown? 'their' : 'the newer')+' copy was <b>not loaded</b> and nothing was lost. '
+@@ -6987,0 +6996,2 @@
++  // v2.00 (U30): with nothing recorded for the folder there is no telling that their copy came after the work put back.
++  const after=(k.meta.why!=='folder') || !!driveBaseOf(mySlug());
+@@ -6989 +6999 @@
+-    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
++    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+(after? ' saved after it.' : ' saved; this browser has no record of which copy there, if any, this work came from.')
+@@ -26768,0 +26779,7 @@
++    // v2.00 (U30): AND ONLY WHEN THAT COPY IS WHAT IS ON SCREEN -- the same stamp, as every change stamps the board anew.
++    // Taken as the base while the screen held other work, it let the next Save, or the Live timer's autosave one tick after
++    // it had said "Nothing was written" and offered the choice, write that work over it without asking; with a history copy
++    // kept less than ten minutes before, the copy written over was kept only as a recent copy, and one more Save removed it.
++    // Now nothing is recorded and nothing is said, and Save asks: Load theirs, or Save yours over theirs, which keeps theirs
++    // in the folder's history whatever the spacing.
++    if(!base && theirs!==ours) return false;
+@@ -26956,0 +26974,3 @@
++// v2.00 (U30): WITH NOTHING RECORDED THERE IS NO TELLING which copy in the folder the work on screen came from, if any, so
++// it is not said that theirs came after it. Save asks for that reason alone (the push, above); and since a refresh records
++// the folder's copy only when it is what is on screen, this is said on every Save and autosave until one is chosen.
+@@ -26960 +26980,3 @@
+-    +' to the shared folder '+esc(liveAge(theirs))+', after the copy you are working from. '
++    +' to the shared folder '+esc(liveAge(theirs))
++    +(driveBaseOf(ap)? ', after the copy you are working from. '
++      : ', and this browser has no record of which copy in the folder, if any, the work on screen came from. ')
+@@ -26997,0 +27020,2 @@
++    // v2.00 (U30): with nothing recorded for the folder there is no telling that theirs is the newer copy.
++    if(kept==='occupied' && !driveBaseOf(ap)){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder', true)); render(); return false; }

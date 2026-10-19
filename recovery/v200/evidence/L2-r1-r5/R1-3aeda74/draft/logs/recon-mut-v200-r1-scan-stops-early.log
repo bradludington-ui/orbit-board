@@ -1,0 +1,25 @@
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY26
+    FY26 = $100M executed, $0 planned
+        got {"sel":[2026],"t":[600000000,100000000,500000000],"label":"FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25"}   want {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26
+    FY25 + FY26 = $140M executed, $0 planned
+        got {"sel":[2025,2026],"t":[640000000,140000000,500000000],"label":"FY25, FY26 · O&M · FY26 planned, the rest executed"}   want {"sel":[2025,2026],"t":[140000000,140000000,0],"label":"FY25, FY26 · O&M"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26 · the panel
+    one kind of money: no planned-and-executed note, no year called PLANNED, neither chip marked plan
+        got ["Planned and executed money in one total. FY25: O&M executed; FY26: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $140.00M executed, $500.00M planned.","FY26",["FY25 [on]","FY26 · plan [on]"]]   want ["","",["FY25 [on]","FY26 [on]"]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26 · the export
+    the export agrees: US SERVICE FUNDING 140000000, O&M 140000000, TOTAL FUNDING 140000000 twice, no planned-and-executed NOTE
+        got ["ok","Scope: FY25, FY26 · O&M · FY26 planned, the rest executed",[640000000],[640000000],[640000000,640000000],["NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok","Scope: FY25, FY26 · O&M",[140000000],[140000000],[140000000,140000000],[]]

@@ -1,0 +1,16 @@
+# label: M-v200-u56-getter-falsy-blank
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/out/M-v200-u56-getter-falsy-blank.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit/focused.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/mut/v200-u56-getter-falsy-blank.html
+# start: 2026-10-18 18:10:48 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/mut/v200-u56-getter-falsy-blank.html","BOARD_set":true,"board":"498d7964f68cca88e62607049059c9b2b0ed811c","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit/focused.mjs","harnessBlob":"9d607f5a9328188587c96ac2598b3dc33a75893c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 6:10:49 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U56/U57) — a saved SI value that is not text counts as an answer a bulk write overwrites, and Go to it opens its field | null alone
+    CONTROL — a saved null is an answer a bulk write overwrites, as before
+        got [3,2,0,1]   want [3,1,0,2]
+# exit 1 at 10/18/2026, 6:11:31 PM ET
+
+# end: 2026-10-18 18:11:32 EDT  exit: 1  wall_s: 43.2

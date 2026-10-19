@@ -1,0 +1,1 @@
+{"id": "v200-u18-pen-line-only-on-clash", "matches": 1, "find": "      if(penLine) writerJournalUndo(penLine, was.ms);\n", "repl": "      if(penLine && now) writerJournalUndo(penLine, was.ms);\n"}

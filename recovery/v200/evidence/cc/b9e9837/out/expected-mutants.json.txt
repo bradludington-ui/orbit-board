@@ -1,0 +1,220 @@
+{
+"v200-yearsel-not-a-list-all-years": [
+"a string",
+"an object",
+"a bare number",
+"an empty string",
+"zero",
+"false",
+"U+FFFE as the whole value",
+"\"2026\", then FY27 switched on",
+"partner and FMS money"
+],
+"v200-yearsel-nothing-read-all-years": [
+"a string",
+"an object",
+"a bare number",
+"an empty list",
+"a year as text",
+"not a whole number",
+"null in the list",
+"true in the list",
+"an enormous list",
+"an empty string",
+"zero",
+"false",
+"a long entry",
+"U+FFFE as the whole value",
+"a quote of exactly 40 characters",
+"a quote of 41 characters",
+"\"2026\", then FY27 switched on",
+"partner and FMS money"
+],
+"v200-yearsel-number-coerced": [
+"a year as text",
+"null in the list",
+"true in the list"
+],
+"v200-yearsel-fraction-unsaid": [
+"not a whole number",
+"one whole year, one not"
+],
+"v200-yearsel-whole-unsaid": [
+"a string",
+"an object",
+"a bare number",
+"an empty list",
+"an empty string",
+"zero",
+"false",
+"U+FFFE as the whole value"
+],
+"v200-yearsel-label-unsaid": [
+"a string",
+"an object",
+"a bare number",
+"an empty list",
+"a year as text",
+"not a whole number",
+"null in the list",
+"true in the list",
+"one whole year, one not",
+"text that is markup",
+"an enormous list",
+"an empty string",
+"zero",
+"false",
+"a long entry",
+"U+FFFF in an entry",
+"U+FFFE as the whole value",
+"45 emoji in an entry",
+"two characters XML forbids in one entry",
+"a quote of exactly 40 characters",
+"a quote of 41 characters",
+"beside a year U14 says",
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-panel-unsaid": [
+"a string",
+"an object",
+"a bare number",
+"an empty list",
+"a year as text",
+"not a whole number",
+"null in the list",
+"true in the list",
+"one whole year, one not",
+"text that is markup",
+"an enormous list",
+"an empty string",
+"zero",
+"false",
+"a long entry",
+"U+FFFF in an entry",
+"U+FFFE as the whole value",
+"45 emoji in an entry",
+"two characters XML forbids in one entry",
+"a quote of exactly 40 characters",
+"a quote of 41 characters",
+"beside a year U14 says",
+"every offered year beside an entry it cannot read",
+"text that is markup · escaped"
+],
+"v200-yearsel-export-unsaid": [
+"a string",
+"an object",
+"a bare number",
+"an empty list",
+"a year as text",
+"not a whole number",
+"null in the list",
+"true in the list",
+"one whole year, one not",
+"text that is markup",
+"an enormous list",
+"an empty string",
+"zero",
+"false",
+"a long entry",
+"U+FFFF in an entry",
+"U+FFFE as the whole value",
+"45 emoji in an entry",
+"two characters XML forbids in one entry",
+"a quote of exactly 40 characters",
+"a quote of 41 characters",
+"beside a year U14 says",
+"every offered year beside an entry it cannot read",
+"beside a year U14 says · the NOTEs in order",
+"the export beside the NOTE"
+],
+"v200-yearsel-markup-unescaped": [
+"text that is markup",
+"text that is markup · escaped"
+],
+"v200-yearsel-counted-unsaid": [
+"one whole year, one not",
+"text that is markup",
+"U+FFFF in an entry",
+"45 emoji in an entry",
+"two characters XML forbids in one entry",
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-plural-it": [
+"an enormous list"
+],
+"v200-yearsel-toggle-from-all": [
+"\"2026\", then FY27 switched on"
+],
+"v200-yearsel-quote-xml-unsafe": [
+"U+FFFF in an entry",
+"U+FFFE as the whole value",
+"two characters XML forbids in one entry"
+],
+"v200-yearsel-quote-splits-char": [
+"45 emoji in an entry"
+],
+"v200-yearsel-quote-uncut": [
+"a long entry",
+"45 emoji in an entry",
+"a quote of 41 characters"
+],
+"v200-yearsel-falsy-all-years": [
+"an empty string",
+"zero",
+"false"
+],
+"v200-yearsel-falsy-unsaid": [
+"an empty string",
+"zero",
+"false"
+],
+"v200-yearsel-allyears-lit-unread": [
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-label-all-years-unread": [
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-label-ur-unpassed": [
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-year-chips-unlit-unread": [
+"every offered year beside an entry it cannot read"
+],
+"v200-yearsel-note-replaces-line": [
+"the export beside the NOTE"
+],
+"v200-yearsel-note-order": [
+"beside a year U14 says · the NOTEs in order"
+],
+"v200-yearsel-label-unsaid-beside-u14": [
+"beside a year U14 says"
+],
+"v200-yearsel-panel-unsaid-beside-u14": [
+"beside a year U14 says"
+],
+"v200-yearsel-year-range": [
+"CONTROL — a year the board offers outside 2000–2099",
+"CONTROL — a whole number no year could be"
+],
+"v200-yearsel-plural-label": [
+"an enormous list"
+],
+"v200-yearsel-quote-escape-first-only": [
+"two characters XML forbids in one entry"
+],
+"v200-yearsel-quote-cut-at-40-or-more": [
+"a quote of exactly 40 characters"
+],
+"v200-yearsel-quote-cut-above-41": [
+"a quote of 41 characters"
+],
+"v200-yearsel-year-four-digits": [
+"CONTROL — a whole number no year could be"
+],
+"v200-yearsel-year-positive": [
+"CONTROL — a whole number no year could be"
+],
+"v200-yearsel-other-sources-all-years": [
+"partner and FMS money"
+]
+}

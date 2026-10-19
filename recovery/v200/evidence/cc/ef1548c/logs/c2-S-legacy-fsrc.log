@@ -1,0 +1,13 @@
+# label: c2-S-legacy-fsrc
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob
+# cmd: node tools/export-audit/legacy-fsrc.mjs
+# start: 2026-10-13 19:30:23 EDT
+# cap: 600 s, kill grace 10 s
+  ok   legacy fsrc 'mand' still honoured — all mandatory (d 0 · m 60 · u 0)
+  ok   legacy fsrc 'disc' still honoured — all discretionary (d 60 · m 0 · u 0)
+  ok   legacy fsrc 'ufr' still honoured — all unfunded (d 0 · m 0 · u 60)
+
+  every legacy Force setting computes exactly as before
+
+
+# end: 2026-10-13 19:30:27 EDT  exit: 0  wall_s: 4.9

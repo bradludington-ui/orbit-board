@@ -1,0 +1,7 @@
+["v2.00 (R5) — a restore during a save stays unsaved","(a) WORKING saved, HISTORY put back during its write","the save waited at its write, then went in (a CONTROL)",true,"[true,true]"]
+["v2.00 (R5) — a restore during a save stays unsaved","(a) WORKING saved, HISTORY put back during its write","HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record",false,"[\"HISTORY\",\"WORKING\",false,false,false]"]
+["v2.00 (R5) — a restore during a save stays unsaved","(a) WORKING saved, HISTORY put back during its write","the board says the change is not in the folder yet",false,"false"]
+["v2.00 (R5) — a restore during a save stays unsaved","(a) then Save","it writes HISTORY with no clash and ends saved, and WORKING is kept in the history (a CONTROL)",true,"[true,\"HISTORY\",false,false,true]"]
+["v2.00 (R5) — a restore during a save stays unsaved","(b) a clean board saved, HISTORY put back during its write","HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record",false,"[true,true,\"HISTORY\",\"CURRENT\",false,false,false]"]
+["v2.00 (R5) — a restore during a save stays unsaved","(b) a clean board saved, HISTORY put back during its write","the board says the change is not in the folder yet",false,"false"]
+["v2.00 (R5) — a restore during a save stays unsaved","(c) WORKING saved, nothing put back (a CONTROL)","WORKING on screen and in the folder, and saved: DIRTY, _baseDirty, the stored record; the board says Saved",true,"[true,true,\"WORKING\",\"WORKING\",false,false,false,true,false]"]

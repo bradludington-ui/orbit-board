@@ -1,0 +1,19 @@
+--- boards/BASE/prioritization-board-grid.html	2026-10-12 00:32:17.831746450 +0000
++++ boards/U2ab/prioritization-board-grid.html	2026-10-12 00:32:18.057878697 +0000
+@@ -6945,6 +6945,7 @@
+ function keptPutBack(){
+   const k=keptCopy();
+   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
++  if(_saveBusy){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }   // v2.00 (U2)
+   // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT IN ITS PLACE (v1.95, item 50): putting work back
+   // never throws away the work it replaces. The slot it frees takes what is on screen.
+   const nowUnsaved=!!(DIRTY || baseGet().dirty);
+@@ -6974,7 +6975,7 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
+-  persist(); DIRTY=true; render();
++  persist(); _saveGen++; DIRTY=true; render();   // v2.00 (U2): a save still writing finds the count moved and leaves this unsaved
+   setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
+     +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
+     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));

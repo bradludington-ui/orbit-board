@@ -1,0 +1,344 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "677d6f3f02d7c7700d92b1cebe6d391e8099bd00",
+  "mock": "cee3b4700fad43ddd1d2e01f062f7d4d89a0d011",
+  "jsdomUtils": "/home/user/orbit-board/node_modules/jsdom/lib/jsdom/living/generated/utils.js",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 10:52:14 AM ET",
+  "scenario": "PF-C2a"
+ },
+ "scenario": "PF-C2a",
+ "steps": {
+  "Nsave": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "setup": {
+   "screen": "S1-ONSCREEN",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791816739780,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791816739780,
+   "gen": 1,
+   "busy": 0,
+   "MSts": 1791816740518,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "S1-ONSCREEN",
+   "hasPutBack": true,
+   "saved": false,
+   "kept": {
+    "note": "K-KEPTWORK",
+    "why": "file",
+    "baseFolder": null,
+    "baseFile": 1791816737049
+   },
+   "status": "📦 Opened with the saved board state — last saved by Alice 10/12/2026, 10:52:19 AM. This browser held work that no saved copy had; it is kept aside, not lost: put it back (or from 📁 File, any time).",
+   "header": "Unsaved changes · ↶ work kept aside",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "file": {
+    "note": "N-NEWER",
+    "ts": 1791816739780,
+    "writes": 0
+   },
+   "falselyClean": false,
+   "reach": {
+    "K-KEPTWORK": [
+     "kept"
+    ],
+    "S1-ONSCREEN": [
+     "screen",
+     "storage"
+    ],
+    "N-NEWER": [
+     "file"
+    ]
+   }
+  },
+  "putBackClick": "clicked",
+  "during": {
+   "screen": "K-KEPTWORK",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791816737049,
+    "dirty": true,
+    "folder": {}
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791816737049,
+   "gen": 2,
+   "busy": 0,
+   "MSts": 1791816738224,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "K-KEPTWORK",
+   "hasPutBack": true,
+   "saved": false,
+   "kept": {
+    "note": "S1-ONSCREEN",
+    "why": "swap",
+    "baseFolder": null,
+    "baseFile": 1791816739780
+   },
+   "status": "↶ Put back the work kept aside on 10/12/2026, 10:52:20 AM. 💾 Save will ask before it writes over the saved file, which Alice saved after it. What was on screen is kept aside in its place: put that back.",
+   "header": "Unsaved changes · ↶ work kept aside",
+   "prompts": [
+    "Put back the work this browser kept aside on 10/12/2026, 10:52:20 AM?\n\nWhat is on screen now is replaced by it. What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost."
+   ],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "file": {
+    "note": "N-NEWER",
+    "ts": 1791816739780,
+    "writes": 0
+   },
+   "falselyClean": false,
+   "reach": {
+    "K-KEPTWORK": [
+     "screen",
+     "storage"
+    ],
+    "S1-ONSCREEN": [
+     "kept"
+    ],
+    "N-NEWER": [
+     "file"
+    ]
+   },
+   "msUnchanged": false,
+   "keptUnchanged": false
+  },
+  "saveRet": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "save": {
+   "screen": "K-KEPTWORK",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791816737049,
+    "dirty": true,
+    "folder": {}
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791816737049,
+   "gen": 2,
+   "busy": 0,
+   "MSts": 1791816738224,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "K-KEPTWORK",
+   "hasPutBack": true,
+   "saved": false,
+   "kept": {
+    "note": "S1-ONSCREEN",
+    "why": "swap",
+    "baseFolder": null,
+    "baseFile": 1791816739780
+   },
+   "status": "Save canceled — Alice’s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.",
+   "header": "Unsaved changes · ↶ work kept aside",
+   "prompts": [
+    "⚠ HOLD ON — Alice saved this file at 10/12/2026, 10:52:19 AM. That is not the save the copy you are working from came from, so their changes are not on your screen.\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first)."
+   ],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "file": {
+    "note": "N-NEWER",
+    "ts": 1791816739780,
+    "writes": 0
+   },
+   "falselyClean": false,
+   "reach": {
+    "K-KEPTWORK": [
+     "screen",
+     "storage"
+    ],
+    "S1-ONSCREEN": [
+     "kept"
+    ],
+    "N-NEWER": [
+     "file"
+    ]
+   },
+   "rec": {
+    "wrote": 0,
+    "before": "N-NEWER",
+    "after": "N-NEWER",
+    "asked": [
+     "⚠ HOLD ON — Alice saved this file at 10/12/2026, 10:52:19 AM. That is not the save the copy you are working from came from, so their changes are not on your screen.\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first)."
+    ]
+   }
+  },
+  "grantOrder": [
+   "B"
+  ],
+  "reopen": {
+   "screen": "K-KEPTWORK",
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791816737049,
+    "dirty": true,
+    "folder": {}
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791816737049,
+   "gen": 0,
+   "busy": 0,
+   "MSts": 1791816738224,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "K-KEPTWORK",
+   "hasPutBack": true,
+   "saved": false,
+   "kept": {
+    "note": "S1-ONSCREEN",
+    "why": "swap",
+    "baseFolder": null,
+    "baseFile": 1791816739780
+   },
+   "status": "⚠ Alice saved a newer copy to the saved file (10/12/2026, 10:52:19 AM), but this browser already keeps earlier work aside (kept 10/12/2026, 10:52:21 AM) and holds new work besides. Kept work is never replaced, so the newer copy was not loaded and nothing was lost. Deal with the kept work first: put it back · save it as a file · discard it. Then reopen the file, or open the file’s version once yours is saved.",
+   "header": "Unsaved changes · ↶ work kept aside",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "file": {
+    "note": "N-NEWER",
+    "ts": 1791816739780,
+    "writes": 0
+   },
+   "falselyClean": false,
+   "reach": {
+    "K-KEPTWORK": [
+     "screen",
+     "storage"
+    ],
+    "S1-ONSCREEN": [
+     "kept"
+    ],
+    "N-NEWER": [
+     "file"
+    ]
+   }
+  }
+ },
+ "notes": [],
+ "errors": [],
+ "tabA": {
+  "slug": "ff",
+  "key": "prio27ff",
+  "bootChangedKeys": [
+   "prio27appn",
+   "prio27destdb"
+  ],
+  "share": [
+   "from A",
+   null
+  ],
+  "lockInstall": {
+   "had": false,
+   "client": "A"
+  }
+ },
+ "T": {
+  "F1": 1791816737049,
+  "N": 1791816739780
+ },
+ "wall_s": "5.9",
+ "lock": {
+  "browser": {
+   "stats": {
+    "requests": 1,
+    "grants": 1,
+    "invokes": 1,
+    "releases": 1,
+    "dropped": 0,
+    "violations": [],
+    "maxHeld": {
+     "orbit-save": 1
+    },
+    "unmodeled": [],
+    "label": "browser (tabs A, B, C)"
+   },
+   "log": [
+    {
+     "n": 0,
+     "ev": "request",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 1,
+     "queued": 0,
+     "heldNow": []
+    },
+    {
+     "n": 1,
+     "ev": "grant",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 1,
+     "holdersNow": 1
+    },
+    {
+     "n": 2,
+     "ev": "invoke",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 1
+    },
+    {
+     "n": 3,
+     "ev": "release",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 1
+    }
+   ]
+  },
+  "other": {
+   "stats": {
+    "requests": 1,
+    "grants": 1,
+    "invokes": 1,
+    "releases": 1,
+    "dropped": 0,
+    "violations": [],
+    "maxHeld": {
+     "orbit-save": 1
+    },
+    "unmodeled": [],
+    "label": "other machine (X)"
+   }
+  }
+ },
+ "folderLog": [],
+ "folderWrites": [],
+ "finished": "10/12/2026, 10:52:23 AM ET"
+}

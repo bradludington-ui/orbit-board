@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-lock-entry-what", "matches": 1, "find": "(odd.entry? 'holds rcn['+odd.i+'], which '+odd.what : odd.what)", "repl": "odd.what"}

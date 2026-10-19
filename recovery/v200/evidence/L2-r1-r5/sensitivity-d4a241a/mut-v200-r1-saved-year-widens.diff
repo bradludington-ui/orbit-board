@@ -1,0 +1,4 @@
+15444c15444
+<   flowExecYears(null, true).forEach(f=>y[f]=1);   // v2.00 (R1): the workbook's years, as before -- a saved year stays offered
+---
+>   flowExecYears().forEach(f=>y[f]=1);   // v2.00 (R1): the workbook's years, as before -- a saved year stays offered

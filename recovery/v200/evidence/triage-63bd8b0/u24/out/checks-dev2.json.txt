@@ -1,0 +1,1813 @@
+{
+ "pass": "dev2",
+ "rows": [
+  {
+   "sc": "SHc-fold-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening (fetch prio-state-om.json, no-store)",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "FIX",
+   "what": "brad's first 💾 Save landed: [screen, recorded clean, base copy]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "FIX",
+   "what": "REACH: the state file (published before BRAD-1 was saved) arrived; 'load the shared one (yours is kept aside first)' offered in the status line [screen, DIRTY, record dirty, buttons, words]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "HOLD",
+   "what": "the 💾 Save is held at the close of its main write [reached, busy, target content, DIRTY, questions asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question asked)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "PRED",
+   "what": "the action during the held save [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "PRED",
+   "what": "a quiet refresh from the end state [screen, recorded clean, falsely clean]",
+   "got": [
+    "BRAD-1",
+    true,
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K2: after a quiet refresh, not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening (fetch prio-state-om.json, no-store)",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "FIX",
+   "what": "brad's first 💾 Save landed: [screen, recorded clean, base copy]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "FIX",
+   "what": "REACH: the state file (published before BRAD-1 was saved) arrived; 'load the shared one (yours is kept aside first)' offered in the status line [screen, DIRTY, record dirty, buttons, words]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question asked)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "PRED",
+   "what": "the action with no save under way [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "want": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "PRED",
+   "what": "a quiet refresh from the end state [screen, recorded clean, falsely clean]",
+   "got": [
+    "BRAD-1",
+    true,
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K2: after a quiet refresh, not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening (fetch prio-state-om.json, no-store)",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "FIX",
+   "what": "brad's first 💾 Save landed: [screen, recorded clean, base copy]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "FIX",
+   "what": "REACH: the state file (published before BRAD-1 was saved) arrived; 'load the shared one (yours is kept aside first)' offered in the status line [screen, DIRTY, record dirty, buttons, words]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    [
+     "adoptShared()"
+    ],
+    "shared-newer-local"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question asked)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "PRED",
+   "what": "the action with no save under way [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "want": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-loaded"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "FIX",
+   "what": "session 1 closed clean at BRAD-1 [screen, DIRTY, record dirty]",
+   "got": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "FIX",
+   "what": "reopened: BRAD-1, the record clean, nothing kept, the state file not answered yet [.., SHARED]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "FIX",
+   "what": "PREREQUISITE: the state file is stamped about an hour ahead (Carol’s clock): 59:50 to 60:00 min",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "HOLD",
+   "what": "the 💾 Save is held at the close of its main write [reached, busy, target content, DIRTY, questions asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "FIX",
+   "what": "the answer to the page’s request arrived",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "PRED",
+   "what": "the action during the held save [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "PRED",
+   "what": "a quiet refresh from the end state [screen, recorded clean, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K2: after a quiet refresh, not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wclean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "FIX",
+   "what": "session 1 closed clean at BRAD-1 [screen, DIRTY, record dirty]",
+   "got": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "FIX",
+   "what": "reopened: BRAD-1, the record clean, nothing kept, the state file not answered yet [.., SHARED]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "FIX",
+   "what": "PREREQUISITE: the state file is stamped about an hour ahead (Carol’s clock): 59:50 to 60:00 min",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "FIX",
+   "what": "the answer to the page’s request arrived",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "PRED",
+   "what": "the action with no save under way [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "want": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "PRED",
+   "what": "a quiet refresh from the end state [screen, recorded clean, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K2: after a quiet refresh, not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "FIX",
+   "what": "session 1 closed clean at BRAD-1 [screen, DIRTY, record dirty]",
+   "got": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "FIX",
+   "what": "reopened: BRAD-1, the record clean, nothing kept, the state file not answered yet [.., SHARED]",
+   "got": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "want": [
+    "BRAD-1",
+    false,
+    false,
+    null,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "FIX",
+   "what": "the page asked for the shared state file once, at opening",
+   "got": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "want": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "FIX",
+   "what": "PREREQUISITE: the state file is stamped about an hour ahead (Carol’s clock): 59:50 to 60:00 min",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "FIX",
+   "what": "the answer to the page’s request arrived",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "PRED",
+   "what": "the action with no save under way [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]",
+   "got": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "want": [
+    "SHARED",
+    0,
+    false,
+    false,
+    false,
+    null,
+    "shared-auto"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "PRED",
+   "what": "the end state [screen, recorded clean, base copy, target content, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "PRED",
+   "what": "reopened from the end state [screen, recorded clean, base copy, falsely clean]",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-1",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "K1: the end state is not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "K3: reopened, not falsely clean",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (end): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-file-C1clean",
+   "kind": "CONTRACT",
+   "what": "REACH (reopened + one edit): BRAD-1, SHARED each in a copy the board holds or fetches",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wnow",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-Wread",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-file-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-C3",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-fold-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-fold-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-fold-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-fold-C3",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-Wclean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C1clean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-file-W",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-file-C1",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-file-C2",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-file-Wclean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-file-C1clean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  }
+ ],
+ "summary": {
+  "SHc-fold-Wclean": {
+   "K1": true,
+   "K2": false,
+   "K3": false,
+   "reachEnd": {
+    "BRAD-1": [
+     "folder",
+     "history"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "folder",
+     "history"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "endStatus": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+   "probe": "6d3a0eb2",
+   "wall": "6.8"
+  },
+  "SHc-fold-C1clean": {
+   "K1": true,
+   "K2": false,
+   "K3": false,
+   "reachEnd": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "folder"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "endStatus": "Shared state loaded (published 10/12/2026, 11:36:58 AM).",
+   "probe": "6d3a0eb2",
+   "wall": "6.3"
+  },
+  "SHc-file-C1clean": {
+   "K1": true,
+   "K2": null,
+   "K3": false,
+   "reachEnd": {
+    "BRAD-1": [
+     "file"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "file"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "endStatus": "Shared state loaded (published 10/12/2026, 11:37:08 AM).",
+   "probe": "6d3a0eb2",
+   "wall": "4.7"
+  },
+  "SHa-fold-Wclean": {
+   "K1": true,
+   "K2": true,
+   "K3": true,
+   "reachEnd": {
+    "BRAD-1": [
+     "folder",
+     "history"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "folder",
+     "history"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "endStatus": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+   "probe": "6d3a0eb2",
+   "wall": "5.8"
+  },
+  "SHa-fold-C1clean": {
+   "K1": true,
+   "K2": true,
+   "K3": true,
+   "reachEnd": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "endStatus": "🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published 10/12/2026, 12:37:25 PM.",
+   "probe": "6d3a0eb2",
+   "wall": "5.4"
+  },
+  "SHa-file-C1clean": {
+   "K1": true,
+   "K2": null,
+   "K3": true,
+   "reachEnd": {
+    "BRAD-1": [
+     "file"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "reachReopenEdit": {
+    "BRAD-1": [
+     "file"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   },
+   "endStatus": "🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published 10/12/2026, 12:37:34 PM.",
+   "probe": "6d3a0eb2",
+   "wall": "5.8"
+  }
+ }
+}

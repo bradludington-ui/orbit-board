@@ -1,0 +1,1 @@
+{"id": "v200-u18-recheck-gone", "matches": 1, "find": "    if(why || (cur? (!now || nowRaw.txt!==curRaw.txt) : !!now)){\n", "repl": "    if(false){\n"}

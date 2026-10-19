@@ -1,0 +1,27 @@
+{"checks": 43, "pass": 19, "fail": 24, "by_kind_total_pass": {"control": [16, 16], "defect": [24, 0], "kept": [3, 3]}}
+  FAIL [defect] 💾 Save held at its read of the folder’s copy, the import stops part-wa — nothing is written over the folder’s copy: it keeps its bytes | got [true,1,false]
+  FAIL [defect] 💾 Save held at its read of the folder’s copy, the import stops part-wa — nothing is kept in the history either: the save stopped before it | got [true]
+  FAIL [defect] 💾 Save held at its read of the folder’s copy, the import stops part-wa — the board says writing to the shared folder is refused, and does not say Saved | got [false,true]
+  FAIL [defect] 💾 Save held at its read of the folder’s copy, the import stops part-wa — the note typed stays unsaved, and the board’s stamp is what it was before the save | got ["false",false]
+  FAIL [defect] 💾 Save held at the close of its history copy, the import stops part-wa — nothing is written over the folder’s copy: it keeps its bytes | got [true,1,false]
+  FAIL [defect] 💾 Save held at the close of its history copy, the import stops part-wa — the board says writing to the shared folder is refused, and does not say Saved | got [false,true]
+  FAIL [defect] 💾 Save held at the close of its history copy, the import stops part-wa — the note typed stays unsaved, and the board’s stamp is what it was before the save | got ["true",false]
+  FAIL [defect] Take the pen from Alice, held at the close of its history copy, the im — nothing is written: the folder’s copy keeps its bytes, and Alice still holds the pen | got [true,1,false,"brad"]
+  FAIL [defect] Take the pen from Alice, held at the close of its history copy, the im — the journal does not say Brad took the pen, and the board’s stamp is what it was | got [1,false]
+  FAIL [defect] Take the pen from Alice, held at the close of its history copy, the im — the board says writing to the shared folder is refused, and does not say Saved | got [false,true,[true]]
+  FAIL [defect] 💾 Save held at the close of its history copy, a note typed there, then — nothing is written over the folder’s copy, and the board says writing to the shared folder | got [1,false,false]
+  FAIL [defect] the autosave held at its read of the folder’s copy, the import stops p — nothing is written, it reports no save, and the message line is the import’s own, unchange | got [1,false,true,true]
+  FAIL [defect] the autosave held at its read of the folder’s copy, the import stops p — nothing is kept in the history either: the autosave stopped before it | got [true]
+  FAIL [defect] the autosave held at the close of its history copy, the import stops p — nothing is written, it reports no save, and the message line is the import’s own, unchange | got [1,false,true,false]
+  FAIL [defect] 💾 Save held at the close of its history copy, the import stops part-wa — the header’s saved time and name are what they were before the save | got [false,false]
+  FAIL [defect] Save yours over theirs held at its read of the folder’s copy, the impo — refused before it asks: nothing asked, nothing kept in the history, nothing written, and t | got [1,1,0,true,true]
+  FAIL [defect] Save yours over theirs held at its read of the folder’s copy, the impo — the board says choosing between the copies is refused, and does not say Saved or Loaded | got [false,false]
+  FAIL [defect] Save yours over theirs held at its read of the folder’s copy, the impo — once saving is allowed again, the autosave does not write over their copy: nothing asked o | got ["true",0,1,"",false]
+  FAIL [defect] Save yours over theirs held at the close of the copy of theirs it keep — asked before the hold came, and their copy stays kept in the history; nothing is written,  | got [1,1,0,true,true]
+  FAIL [defect] Save yours over theirs held at the close of the copy of theirs it keep — the board says choosing between the copies is refused, and does not say Saved or Loaded | got [false,false]
+  FAIL [defect] Save yours over theirs held at the close of the copy of theirs it keep — once saving is allowed again, the autosave does not write over their copy: nothing asked o | got ["true",0,1,"",false]
+  FAIL [defect] Load theirs held at its read of the folder’s copy, the import stops pa — refused before it loads anything: nothing asked or written, their copy not recorded, and t | got [0,0,true,"[\"pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp
+  FAIL [defect] Load theirs held at its read of the folder’s copy, the import stops pa — the board says choosing between the copies is refused, and does not say Saved or Loaded | got [false,true]
+  FAIL [defect] Load theirs held at its read of the folder’s copy, the import stops pa — once saving is allowed again, the autosave does not write over their copy: nothing asked o | got ["true",0,1,"BOB-1",false]
+vs fr3-FR-u4-f1.checks.jsonl : only here 0 only there 0 verdict differs 0 value differs 0 dup keys here 0
+vs fr3-FR-u4-base.checks.jsonl : only here 0 only there 0 verdict differs 0 value differs 0 dup keys here 0

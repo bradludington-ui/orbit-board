@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-keys-cycle-only", "matches": 1, "find": "const keys=keysOf().filter(function(k,i,a){ return a.indexOf(k)===i; });", "repl": "const keys=CYCVIEW? keysOf().filter(function(k,i,a){ return a.indexOf(k)===i; }) : keysOf();"}

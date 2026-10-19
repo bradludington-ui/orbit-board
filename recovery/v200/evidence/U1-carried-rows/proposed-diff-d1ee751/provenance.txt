@@ -1,0 +1,22 @@
+base commit (product): d1ee751660348cd04b121808b7a17dd90bbf3658 = product of 4a6f7c73ebf9018f6b1b14087cb5ec560a9bbb20
+board before: 4d273c0680132caafc4cbc8ca09c1533735c86de
+board after:  b4c55e38aca79f1310d82f84ca7933321b536b64
+mutant v200-u1-year-unoffered: 522261a04bf1b4aafc6368ca60c01d3cfb5477eb
+mutant v200-u1-own-appn-only: 0960f3f2250613cfb92518536b2fb60957030ca9
+mutant v200-r1-scan-stops-early: a7b7176951aca5127fabc544689cc8f8b30d7774
+mutant v200-r1-saved-year-widens: ba92ca3c42881832a92430d842d6e01c56102b80
+mutant v200-r1-raw-year-exec: 67a2372835013d85a3b130f61d23fe4920577b84
+tools/export-audit/audit-recon.mjs: 52459f231c58567a244673b2dad7a677761c8361 (same in after: 52459f231c58567a244673b2dad7a677761c8361)
+tools/export-audit/boot.mjs: 9c4f49ad8cec537097bdf485458cfd2a09b06594 (same in after: 9c4f49ad8cec537097bdf485458cfd2a09b06594)
+tools/export-audit/mutate.mjs: 8e7a362fa87e9440f4b45d7c68ad53b5ad6d2916 (same in after: 8e7a362fa87e9440f4b45d7c68ad53b5ad6d2916)
+shim: 6e2ce2e6beda9e7526527530500f254d877d0320
+node v22.22.0, jsdom 27.4.0
+7620e71e10cb7b44bc698529bba1e2040d8a25272f2e22f1622ee78abe190ba1  board.diff
+f648ab30302d24cbb1e8baee37816195f529b00a9e68ca34deddd7d78bdebbf1  block.mjs.txt
+2706e1fce1e96de006c4deb71588af15fb244c21f673cccf84d1cefc68e0cf67  mutations.mjs.txt
+6eeb9b18ae9cea533886fef4fbd447315891455e3a3adc861adb72001b0c3488  mkharness.py
+7e22daf0187eff8a7967f2513b603a4b3374d687d51ed6466e05ced4413ccf58  focused-u1.mjs
+c722561ff3d74c5c6ba8b6b913c92c181ebf3d41f9a432fb7c9e097d4be9c20e  edge-probe.mjs
+aa40e1979926bb972f75df19d1bd675d8c803073ba736b7825d2f3fd53458c74  run.sh
+8ab2131bda7910d59929ec409d9dbb39ca47c176047a341bd9ab6d651f936417  ../carry-probe.mjs
+e1148abafe0bde401c852c8b40e40ef38646a3c08aaa29e7833aa5e488105c9f  ../verify/verify-probe.mjs

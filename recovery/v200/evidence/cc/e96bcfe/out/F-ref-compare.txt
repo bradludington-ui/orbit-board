@@ -1,0 +1,4 @@
+== parent vs builder c3
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 4 order-equal True
+== commit vs builder c4
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True

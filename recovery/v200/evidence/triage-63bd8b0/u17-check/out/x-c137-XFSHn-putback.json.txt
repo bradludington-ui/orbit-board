@@ -1,0 +1,494 @@
+{
+ "scenario": "XFSHn",
+ "next": "putback",
+ "board": "pre",
+ "ids": {
+  "board": "1375b72b6707faa57c50d528e01ce9611f194998",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "c47a43b62bf00e391aafa040de32f37109e10699",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/c137/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:14:26 ET",
+ "steps": [
+  {
+   "step": "landedFirst",
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "the save of BRAD-2 landed",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 7:14:35 PM",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:35 ET"
+   },
+   "asked": []
+  },
+  {
+   "step": "reopenArrived",
+   "afterOpen": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "reopened from the BRAD-2 file",
+    "baseFolder": 0,
+    "status": "📦 Opened with the saved board state — last saved by Brad 10/12/2026, 7:14:35 PM. Make changes and 💾 Save to pass it on.",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:37 ET"
+   },
+   "afterArrived": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832475675,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "buttons": [
+     "adoptShared()"
+    ],
+    "label": "the older shared state file arrived",
+    "baseFolder": 0,
+    "status": "⚠ Your local changes are newer than the shared state (10/12/2026, 7:14:34 PM) — load the shared one (yours is kept aside first), or 💾 Save yours.",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:37 ET"
+   }
+  },
+  {
+   "step": "adoption",
+   "how": "DOM click: clicked",
+   "asked": [],
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "after the load",
+    "baseFolder": 0,
+    "status": "Shared state loaded (published 10/12/2026, 7:14:34 PM).",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:37 ET"
+   }
+  },
+  {
+   "step": "settled",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "settled",
+    "baseFolder": 0,
+    "status": "Shared state loaded (published 10/12/2026, 7:14:34 PM).",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:37 ET"
+   },
+   "file": "BRAD-2",
+   "versions": [
+    {
+     "ts": 1791832469079,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:14:29 ET"
+    },
+    {
+     "ts": 1791832472651,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:14:32 ET"
+    },
+    {
+     "ts": 1791832475675,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 15:14:35 ET"
+    }
+   ]
+  },
+  {
+   "step": "V4putback",
+   "question": null,
+   "afterPutBack": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832475675,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832475675,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832474723,
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "after put back",
+    "baseFolder": 0,
+    "status": "Nothing is kept aside in this browser.",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:37 ET"
+   },
+   "saveAsked": [],
+   "afterSave": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832477772,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832477772,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 1,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832477772,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832477772,
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "buttons": [],
+    "label": "after put back + Save",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 7:14:37 PM",
+    "header": "Saved 7:14 PM",
+    "at": "10/12/2026, 15:14:38 ET"
+   },
+   "whereSHARED": {
+    "file": true,
+    "screen": true,
+    "storage": true,
+    "keptSlot": false,
+    "earlierFileVersionsOnly": []
+   }
+  }
+ ],
+ "expected": {
+  "reopen": [
+   "BRAD-2",
+   true,
+   "BRAD-2"
+  ],
+  "linkElse": true,
+  "adopt": [
+   "SHARED",
+   0,
+   true,
+   null,
+   true
+  ],
+  "file": "BRAD-2",
+  "K1": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "v3": [
+   0,
+   "SHARED",
+   "BRAD-2",
+   "SHARED",
+   "saved-file",
+   true,
+   true
+  ],
+  "reachC": "BRAD-2",
+  "reach": false,
+  "v4": [
+   null,
+   "none",
+   "SHARED",
+   "BRAD-2",
+   "nothing kept",
+   null,
+   "SHARED",
+   "SHARED",
+   "saved-file",
+   0
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true
+ },
+ "endedET": "10/12/2026, 15:14:38 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "BRAD-1 saved into the board file",
+   "expected": [
+    "BRAD-1",
+    1
+   ],
+   "observed": [
+    "BRAD-1",
+    1
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.landed",
+   "kind": "fixture",
+   "what": "the save landed BEFORE any load: BRAD-2 in the file, clean against it, nothing asked ([file, clean, record names, questions])",
+   "expected": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    0
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFSHn.reopen",
+   "kind": "predict",
+   "what": "reopened from the file: [screen, clean, the file version the record names]",
+   "expected": [
+    "BRAD-2",
+    true,
+    "BRAD-2"
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    "BRAD-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFSHn.linkElse",
+   "kind": "predict",
+   "what": "the opening offers \"load the shared one (yours is kept aside first)\" ([button, words])",
+   "expected": [
+    true
+   ],
+   "observed": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFSHn.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen (DOM click: clicked) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])",
+   "expected": [
+    "SHARED",
+    0,
+    true,
+    null,
+    true
+   ],
+   "observed": [
+    "SHARED",
+    0,
+    true,
+    null,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFSHn.file",
+   "kind": "predict",
+   "what": "the file once settled",
+   "expected": "BRAD-2",
+   "observed": "BRAD-2",
+   "pass": true
+  },
+  {
+   "id": "XFSHn.K1",
+   "kind": "predict",
+   "what": "once settled [screen, recorded clean, the file version the record names]",
+   "expected": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "observed": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFSHn.contractK1",
+   "kind": "contract",
+   "what": "recorded clean only against a file version holding what is on screen",
+   "expected": "not falsely clean",
+   "observed": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "pass": false
+  },
+  {
+   "id": "XFSHn.V4putback",
+   "kind": "predict",
+   "what": "put back then Save",
+   "expected": [
+    null,
+    "none",
+    "SHARED",
+    "BRAD-2",
+    "nothing kept",
+    null,
+    "SHARED",
+    "SHARED",
+    "saved-file",
+    0
+   ],
+   "observed": [
+    null,
+    "none",
+    "SHARED",
+    "BRAD-2",
+    "nothing kept",
+    null,
+    "SHARED",
+    "SHARED",
+    "saved-file",
+    0
+   ],
+   "pass": true
+  }
+ ]
+}

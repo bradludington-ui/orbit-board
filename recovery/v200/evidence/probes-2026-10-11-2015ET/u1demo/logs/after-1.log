@@ -1,0 +1,1 @@
+{"board":"after","boardBlob":"b4c55e38aca79f1310d82f84ca7933321b536b64","passed":416,"failed":0,"recorded":98,"failedByKind":{"contract":0,"control":0,"fixture":0},"passedByKind":{"contract":340,"control":58,"fixture":18},"agree":[{"K":1,"ok":true},{"K":1000000,"ok":true}],"totalMs":11630}

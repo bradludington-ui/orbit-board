@@ -1,0 +1,1 @@
+{"id": "v200-u10-sp-pmo-in-view", "matches": 1, "find": "function setSpPmo(v){ if(spRefused()) return; ", "repl": "function setSpPmo(v){ "}

@@ -1,0 +1,39 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index feff798..7518def 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -8470,0 +8471,3 @@ function sharedKeepMine(st){
++  // v2.00 (U10): NOT WITH A LOCKED CYCLE ON SCREEN. The copy on screen is the cycle's: it was kept aside as this browser's work,
++  // and then the load was refused -- a kept copy that is nobody's work, and that "put it back" would make the working plan.
++  if(cycBlock('Loading the shared state file')) return false;
+@@ -8746,0 +8750,2 @@ function pkgIssue(ap, quiet){
++  // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
++  if(cycBlock('Issuing a package')) return;
+@@ -8805,0 +8811 @@ function pkgPushAll(){
++  if(cycBlock('Pushing baselines to the managers')) return;   // v2.00 (U10): as pkgIssue
+@@ -8858,0 +8865 @@ function pkgSendBack(ap){
++  if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
+@@ -8878,0 +8886 @@ function pkgReturn(){
++  if(cycBlock('Saving a return package')) return;   // v2.00 (U10): as pkgIssue -- it returned the cycle on screen as the work
+@@ -10123,0 +10132,5 @@ function importState(inp){
++  // v2.00 (U10): REFUSED BEFORE THE FILE IS READ while a locked cycle is on screen, as Import full board already is -- and again
++  // once it is read, in case one was put on screen meanwhile. A package, a submittal or a state file taken here wrote browser
++  // storage or a list every appropriation shares first, and only then met the view's refusal: the board said "Not kept", and
++  // reopened on what it had refused.
++  if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
+@@ -10126,0 +10140 @@ function importState(inp){
++    if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
+@@ -14277,0 +14292 @@ async function importBud(inp){
++    if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }   // v2.00 (U10): and again once it is read -- a view put on screen meanwhile
+@@ -14523,0 +14539 @@ async function importCcarRecs(inp){
++    if(cycBlock('Importing CCaR records')){ inp.value=''; return; }   // v2.00 (U10): as importBud
+@@ -14587,0 +14604 @@ async function importAce(inp){
++    if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }   // v2.00 (U10): as importBud
+@@ -17801,0 +17819 @@ function bandCopyAll(){
++  if(cycBlock('Copying the band ladder')) return;   // v2.00 (U10): it wrote the other appropriations' boards, then said "Not kept"
+@@ -26961,0 +26980,5 @@ async function driveStorePull(quiet){
++  // v2.00 (U10): NOT INTO A LOCKED VIEW -- checked after the last wait, before anything is changed. The copy on screen is the
++  // cycle's: it was kept aside in place of the work this browser holds, the load was refused, and the folder's copy was still
++  // recorded as the one the work came from, saved -- so the first refresh after leaving the view replaced that work, kept nowhere.
++  // Nothing is changed; the first refresh after leaving the view decides afresh. A quiet refresh (the Live timer) says nothing.
++  if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }

@@ -1,0 +1,14 @@
+# cmd: X=1 node tools/export-audit/boot-same.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/clone
+# git: 592d62967bd9cd610ec29bc4a380a55b5671cb4d
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T14:51:06Z / 10:51:06 EDT
+# cap: 600s  grace: 10s
+same  prioritization-board-grid.html as shipped parse 3682 ms · fast 1570 ms
+same  prioritization-board-grid.html seeded, rendered parse 2189 ms · fast 573 ms
+same  prioritization-board-grid.html reopened from its save parse 1869 ms · fast 547 ms
+same  prioritization-board-grid.html a published PMO copy parse 1688 ms · fast 757 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-12T14:51:23Z / 10:51:23 EDT
+# exit: 0  duration_s: 17.4

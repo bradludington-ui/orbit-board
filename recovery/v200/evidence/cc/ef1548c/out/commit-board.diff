@@ -1,0 +1,25 @@
+@@ -6490,16 +6490,23 @@ let DIRTY=false;
+ // - One save runs at a time, across the Save button, the folder's autosave and "Save yours over
+ //   theirs", and across this browser's tabs (Web Locks, where the browser has them). A save that had to
+ //   wait captures its own target and bytes when it starts, and re-reads everything it checks.
++// v2.00 (U20): A SAVE IS UNDER WAY FROM THE MOMENT IT IS ASKED FOR, WAITING INCLUDED, until it has finished, however it
++// ends. It was counted only once it held the lock, so a save waiting for another tab's save was no save at all to ↶ Put
++// back (U2) and to the folder's refresh (U13): a refresh then took the folder's copy as the one the work came from, and the
++// waiting save wrote over that copy without asking. _saveBusy is the number of saves asked for in this tab and not finished.
+ let _saveGen=0, _saveChain=Promise.resolve(), _saveBusy=0;
+ function saveSerial(fn){
+-  const go=function(){ _saveBusy++; return Promise.resolve().then(fn).finally(function(){ _saveBusy--; }); };
++  const go=function(){ return Promise.resolve().then(fn); };
+   const run=function(){
+     try{ if(typeof navigator!=='undefined' && navigator.locks && typeof navigator.locks.request==='function')
+       return navigator.locks.request('orbit-save', {mode:'exclusive'}, go); }catch(e){}
+     return go();
+   };
+   if(_saveBusy){ try{ setStat('⏳ A save is already under way — this one runs as soon as it finishes.'); }catch(e){} }
++  _saveBusy++;
+   const p=_saveChain.then(run, run);
++  const done=function(){ _saveBusy--; };
++  p.then(done, done);   // saved, refused, failed or thrown -- and the lock, where there is one, let go
+   _saveChain=p.catch(function(){});
+   return p;
+ }

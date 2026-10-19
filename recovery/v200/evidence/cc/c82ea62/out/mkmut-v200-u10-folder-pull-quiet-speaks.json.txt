@@ -1,0 +1,1 @@
+{"id": "v200-u10-folder-pull-quiet-speaks", "matches": 1, "find": "  if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }\n", "repl": "  if(cycBlock('Loading from the shared folder')){ render(); return false; }\n"}

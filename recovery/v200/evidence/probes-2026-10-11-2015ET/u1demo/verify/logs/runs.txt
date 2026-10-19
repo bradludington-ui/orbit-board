@@ -1,0 +1,11 @@
+v-after exit=0 wall_s=12.421204915 start_et=20:43:32 
+v-before exit=0 wall_s=12.741929656 start_et=20:43:48 
+x-after-1(superseded: verifier harness bugs) exit=0 wall_s=5.267470722 start_et=20:47:19 
+x-after-2 exit=0 wall_s=5.014981019 start_et=20:47:40 
+x-before exit=0 wall_s=5.193140878 start_et=20:47:50 
+mut-m1 exit=0 wall_s=13.542014917 start_et=20:48:14 
+mut-m2 exit=3 wall_s=14.263827372 start_et=20:48:27 
+mut-m3 exit=0 wall_s=14.716005529 start_et=20:48:42 
+x-mut-m3 exit=0 wall_s=7.192455915 start_et=20:49:03 
+edge-after exit=0 wall_s=2.531866973 start_et=20:50:34 
+edge-before exit=0 wall_s=2.901290906 start_et=20:50:37 

@@ -1,0 +1,18 @@
+# label: M-v200-u18-storage-pen-line
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-storage-pen-line.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-storage-pen-line.html
+# start: 2026-10-18 16:11:11 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-storage-pen-line.html","BOARD_set":true,"board":"fc866d350b4d26afb206b1cc265ac891dbd3746d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 4:11:12 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Brad reopens
+    Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+        got ["BOB-3",640,"Bob","Bob","BRAD-4",730,["Bob","Brad"]]   want ["BOB-3",640,"Bob","Bob","BRAD-4",730,["Bob"]]
+    the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+        got ["BRAD-4",730,["Bob","Brad"]]   want ["BRAD-4",730,["Bob"]]
+# exit 1 at 10/18/2026, 4:13:19 PM ET
+
+# end: 2026-10-18 16:13:20 EDT  exit: 1  wall_s: 129.5

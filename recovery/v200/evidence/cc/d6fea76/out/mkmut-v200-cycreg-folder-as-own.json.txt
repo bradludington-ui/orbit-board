@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-folder-as-own", "matches": 1, "find": "  const bad=inboundCheckOwn(txt, 'copy');", "repl": "  const bad=inboundCheckOwn(txt, 'board');"}

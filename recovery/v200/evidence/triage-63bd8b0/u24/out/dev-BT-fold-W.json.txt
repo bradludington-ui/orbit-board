@@ -1,0 +1,1099 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "b5c7530798b28a09c8b6cc0a8b2c340c9f1c1ace",
+  "jsdom": "27.4.0",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 11:24:29 AM ET",
+  "scenario": "BT-fold-W"
+ },
+ "scenario": "BT-fold-W",
+ "path": "BT",
+ "mode": "fold",
+ "kind": "W",
+ "steps": {
+  "F0": {
+   "fileTs": 1791818672168,
+   "writer": "Brad",
+   "content": "F0"
+  },
+  "save1": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "open1": {
+   "label": "opening 1 closing: KEPT-0 unsaved",
+   "at": "10/12/2026, 11:24:35 ET",
+   "screen": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "whose": "KEPT-0"
+   },
+   "stored": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "whose": "KEPT-0"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791818672168,
+    "dirty": true,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818672168,
+   "driveBase": 1791818674224,
+   "gen": 4,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791818672168,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791818672168,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "screen",
+     "storage"
+    ]
+   }
+  },
+  "carol1": {
+   "note": "CAROL-1",
+   "alloc": 640,
+   "ts": 1791818677310,
+   "by": "Carol",
+   "whose": "CAROL-1",
+   "fileTs": 1791818677310,
+   "writer": "Brad"
+  },
+  "open2connect": {
+   "ok": true,
+   "v": true
+  },
+  "open2": {
+   "label": "opening 2: the file newer, KEPT-0 kept aside",
+   "at": "10/12/2026, 11:24:39 ET",
+   "screen": {
+    "note": "CAROL-1",
+    "alloc": 640,
+    "ts": 1791818677310,
+    "by": "Carol",
+    "whose": "CAROL-1"
+   },
+   "stored": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "whose": "KEPT-0"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791818677310,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818677310,
+   "driveBase": 1791818674224,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-1",
+    "alloc": 640,
+    "ts": 1791818677310,
+    "by": "Carol",
+    "whose": "CAROL-1"
+   },
+   "pubFileTs": 1791818677310,
+   "bootHeld": null,
+   "bootKept": {
+    "by": "Carol",
+    "ts": 1791818677310
+   },
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [
+    "keptPutBack()"
+   ],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "📦 Opened with the saved board state — last saved by Carol 10/12/2026, 11:24:37 AM. This browser held work that no saved copy had; it is kept aside, not lost: put it back (or from 📁 File, any time).",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-2": [],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "storage",
+     "kept"
+    ]
+   }
+  },
+  "open2end": {
+   "label": "opening 2 closing: BRAD-2 unsaved",
+   "at": "10/12/2026, 11:24:40 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818679852,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818679852,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791818677310,
+    "dirty": true,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818677310,
+   "driveBase": 1791818674224,
+   "gen": 2,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-1",
+    "alloc": 640,
+    "ts": 1791818677310,
+    "by": "Carol",
+    "whose": "CAROL-1"
+   },
+   "pubFileTs": 1791818677310,
+   "bootHeld": null,
+   "bootKept": {
+    "by": "Carol",
+    "ts": 1791818677310
+   },
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [
+    "keptPutBack()"
+   ],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "📦 Opened with the saved board state — last saved by Carol 10/12/2026, 11:24:37 AM. This browser held work that no saved copy had; it is kept aside, not lost: put it back (or from 📁 File, any time).",
+   "header": "Unsaved changes · ↶ work kept aside",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage"
+    ],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "kept"
+    ]
+   }
+  },
+  "carolF": {
+   "note": "CAROL-F",
+   "alloc": 650,
+   "ts": 1791818680645,
+   "by": "Carol",
+   "whose": "CAROL-F",
+   "fileTs": 1791818680645,
+   "writer": "Brad"
+  },
+  "opening": {
+   "ok": true,
+   "v": true
+  },
+  "setup": {
+   "label": "opening 3: the file newer again, BRAD-2 unsaved, KEPT-0 already kept -> 'open the file’s version' offered",
+   "at": "10/12/2026, 11:24:41 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818679852,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818679852,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791818677310,
+    "dirty": true,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818677310,
+   "driveBase": 1791818674224,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "pubFileTs": 1791818680645,
+   "bootHeld": {
+    "by": "Carol",
+    "ts": 1791818680645,
+    "occupied": true
+   },
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [
+    "keptPutBack()",
+    "keptSaveFile()",
+    "keptDiscard()",
+    "bootTakeFile()"
+   ],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "⚠ Carol saved a newer copy to the saved file (10/12/2026, 11:24:40 AM), but this browser already keeps earlier work aside (kept 10/12/2026, 11:24:38 AM) and holds new work besides. Kept work is never replaced, so the newer copy was not loaded and nothing was lost. Deal with the kept work first: put it back · save it as a file · discard it. Then reopen the file, or open the file’s version once yours is saved.",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage"
+    ],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "kept"
+    ]
+   }
+  },
+  "heldReached": true,
+  "atHold": {
+   "label": "💾 Save held at its main write",
+   "at": "10/12/2026, 11:24:41 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818681651,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818679852,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791818677310,
+    "dirty": true,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818677310,
+   "driveBase": 1791818674224,
+   "gen": 0,
+   "busy": 1,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "pubFileTs": 1791818680645,
+   "bootHeld": {
+    "by": "Carol",
+    "ts": 1791818680645,
+    "occupied": true
+   },
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [
+    "keptPutBack()",
+    "keptSaveFile()",
+    "keptDiscard()",
+    "bootTakeFile()"
+   ],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "⚠ Carol saved a newer copy to the saved file (10/12/2026, 11:24:40 AM), but this browser already keeps earlier work aside (kept 10/12/2026, 11:24:38 AM) and holds new work besides. Kept work is never replaced, so the newer copy was not loaded and nothing was lost. Deal with the kept work first: put it back · save it as a file · discard it. Then reopen the file, or open the file’s version once yours is saved.",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [
+    {
+     "name": "20261012-112441.json",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791818674224,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    }
+   ],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage"
+    ],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "kept"
+    ]
+   },
+   "asked": []
+  },
+  "act": {
+   "how": "clicked",
+   "asked": [
+    "Open the saved file’s version and replace what is on screen?\n\nThis browser’s own work is NOT kept — only in a copy you saved yourself."
+   ],
+   "genMoved": false
+  },
+  "afterAct": {
+   "label": "after the action, save still held",
+   "at": "10/12/2026, 11:24:41 ET",
+   "screen": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "stored": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791818680645,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791818674224
+    }
+   },
+   "LASTKNOWN": 1791818680645,
+   "driveBase": 1791818674224,
+   "gen": 0,
+   "busy": 1,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "pubFileTs": 1791818680645,
+   "bootHeld": {
+    "by": "Carol",
+    "ts": 1791818680645,
+    "occupied": true
+   },
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "📦 Opened the saved file’s version — last saved by Carol 10/12/2026, 11:24:40 AM.",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791818674224,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [
+    {
+     "name": "20261012-112441.json",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791818674224,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    }
+   ],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791818674224
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-2": [],
+    "CAROL-F": [
+     "screen",
+     "storage"
+    ],
+    "KEPT-0": [
+     "kept"
+    ]
+   }
+  },
+  "saveRet": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "end": {
+   "label": "the end state",
+   "at": "10/12/2026, 11:24:42 ET",
+   "screen": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "stored": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791818680645,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791818681651
+    }
+   },
+   "LASTKNOWN": 1791818680645,
+   "driveBase": 1791818681651,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "pubFileTs": 1791818680645,
+   "bootHeld": {
+    "by": "Carol",
+    "ts": 1791818680645,
+    "occupied": true
+   },
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818681651,
+    "by": "Brad",
+    "whose": "BRAD-2",
+    "writer": "Brad"
+   },
+   "hist": [
+    {
+     "name": "20261012-112441.json",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791818674224,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    }
+   ],
+   "baseCopy": {
+    "whose": "BRAD-2",
+    "where": "folder head",
+    "ts": 1791818681651
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-2": [
+     "folder"
+    ],
+    "CAROL-F": [
+     "screen",
+     "storage"
+    ],
+    "KEPT-0": [
+     "kept"
+    ]
+   }
+  },
+  "reopen": {
+   "connect": {
+    "ok": true,
+    "v": true
+   },
+   "opened": {
+    "label": "reopened from the end state",
+    "at": "10/12/2026, 11:24:43 ET",
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818681651,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818681651,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "kept": {
+     "note": "KEPT-0",
+     "alloc": 500,
+     "ts": 1791818674824,
+     "by": "Brad",
+     "why": "file",
+     "keptBy": "Carol",
+     "forTs": 1791818677310,
+     "whose": "KEPT-0"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "base": {
+     "file": 1791818680645,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791818681651
+     }
+    },
+    "LASTKNOWN": 1791818680645,
+    "driveBase": 1791818681651,
+    "gen": 0,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "CAROL-F",
+     "alloc": 650,
+     "ts": 1791818680645,
+     "by": "Carol",
+     "whose": "CAROL-F"
+    },
+    "pubFileTs": 1791818680645,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": false,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Saved 11:24 AM · ↶ work kept aside",
+    "recordedClean": true,
+    "head": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818681651,
+     "by": "Brad",
+     "whose": "BRAD-2",
+     "writer": "Brad"
+    },
+    "hist": [
+     {
+      "name": "20261012-112441.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791818674224,
+      "by": "Brad",
+      "whose": "BRAD-1",
+      "writer": "Brad"
+     }
+    ],
+    "baseCopy": {
+     "whose": "BRAD-2",
+     "where": "folder head",
+     "ts": 1791818681651
+    },
+    "falselyClean": false,
+    "reach": {
+     "BRAD-2": [
+      "screen",
+      "storage",
+      "folder"
+     ],
+     "CAROL-F": [],
+     "KEPT-0": [
+      "kept"
+     ]
+    }
+   },
+   "afterEdit": {
+    "label": "reopened from the end state, then one ordinary edit",
+    "at": "10/12/2026, 11:24:43 ET",
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818683222,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818683222,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "kept": {
+     "note": "KEPT-0",
+     "alloc": 500,
+     "ts": 1791818674824,
+     "by": "Brad",
+     "why": "file",
+     "keptBy": "Carol",
+     "forTs": 1791818677310,
+     "whose": "KEPT-0"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "base": {
+     "file": 1791818680645,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791818681651
+     }
+    },
+    "LASTKNOWN": 1791818680645,
+    "driveBase": 1791818681651,
+    "gen": 1,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "CAROL-F",
+     "alloc": 650,
+     "ts": 1791818680645,
+     "by": "Carol",
+     "whose": "CAROL-F"
+    },
+    "pubFileTs": 1791818680645,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": true,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "recordedClean": false,
+    "head": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791818681651,
+     "by": "Brad",
+     "whose": "BRAD-2",
+     "writer": "Brad"
+    },
+    "hist": [
+     {
+      "name": "20261012-112441.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791818674224,
+      "by": "Brad",
+      "whose": "BRAD-1",
+      "writer": "Brad"
+     }
+    ],
+    "baseCopy": {
+     "whose": "BRAD-2",
+     "where": "folder head",
+     "ts": 1791818681651
+    },
+    "falselyClean": false,
+    "reach": {
+     "BRAD-2": [
+      "screen",
+      "storage",
+      "folder"
+     ],
+     "CAROL-F": [],
+     "KEPT-0": [
+      "kept"
+     ]
+    }
+   }
+  },
+  "refresh": {
+   "ok": true,
+   "v": true
+  },
+  "afterRefresh": {
+   "label": "a quiet refresh from the end state",
+   "at": "10/12/2026, 11:24:43 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818681651,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818681651,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": {
+    "note": "KEPT-0",
+    "alloc": 500,
+    "ts": 1791818674824,
+    "by": "Brad",
+    "why": "file",
+    "keptBy": "Carol",
+    "forTs": 1791818677310,
+    "whose": "KEPT-0"
+   },
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791818680645,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791818681651
+    }
+   },
+   "LASTKNOWN": 1791818680645,
+   "driveBase": 1791818681651,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "CAROL-F",
+    "alloc": 650,
+    "ts": 1791818680645,
+    "by": "Carol",
+    "whose": "CAROL-F"
+   },
+   "pubFileTs": 1791818680645,
+   "bootHeld": {
+    "by": "Carol",
+    "ts": 1791818680645,
+    "occupied": true
+   },
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+   "header": "Saved 11:24 AM · ↶ work kept aside",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791818681651,
+    "by": "Brad",
+    "whose": "BRAD-2",
+    "writer": "Brad"
+   },
+   "hist": [
+    {
+     "name": "20261012-112441.json",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791818674224,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    }
+   ],
+   "baseCopy": {
+    "whose": "BRAD-2",
+    "where": "folder head",
+    "ts": 1791818681651
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage",
+     "folder"
+    ],
+    "CAROL-F": [],
+    "KEPT-0": [
+     "kept"
+    ]
+   }
+  },
+  "fetchCalls": null
+ },
+ "notes": [],
+ "errors": [],
+ "wall_s": "11.5",
+ "folderLog": [
+  "B1:perm:/",
+  "B1:miss:spmt-2027-om.json",
+  "B1:close:spmt-2027-om.json",
+  "B1:close:spmt-2027-om.lock.json",
+  "B2:perm:/",
+  "B2:perm:/",
+  "B2:read:spmt-2027-om.json",
+  "B2:perm:/",
+  "B2:miss:spmt-exec.json",
+  "B2:perm:/",
+  "B2:perm:/",
+  "B2:miss:spmt-reprog.json",
+  "A:perm:/",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json",
+  "A:perm:/",
+  "A:miss:spmt-exec.json",
+  "A:perm:/",
+  "A:perm:/",
+  "A:miss:spmt-reprog.json",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json",
+  "A:close:history/spmt-2027-om-20261012-112441.json",
+  "A:close:spmt-2027-om.json",
+  "A:close:spmt-2027-om.lock.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:read:spmt-2027-om.json",
+  "Z:perm:/",
+  "Z:miss:spmt-exec.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:miss:spmt-reprog.json",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json"
+ ],
+ "folderWrites": [
+  "B1:spmt-2027-om.json",
+  "B1:spmt-2027-om.lock.json",
+  "A:history/spmt-2027-om-20261012-112441.json",
+  "A:spmt-2027-om.json",
+  "A:spmt-2027-om.lock.json"
+ ],
+ "fileWrites": null,
+ "fileHits": null,
+ "finished": "10/12/2026, 11:24:44 AM ET"
+}

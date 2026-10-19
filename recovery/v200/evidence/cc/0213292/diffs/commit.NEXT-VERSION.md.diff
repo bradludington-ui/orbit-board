@@ -1,0 +1,38 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index 1c0d3e8..7d22aec 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -1372,6 +1372,33 @@ result for it was run fresh against these commits.
+     `-dest-change-in-view`, `-dest-change-no-redraw`, `-dest-add-in-view`, `-dest-remove-in-view` and
+     `-dest-reset-in-view`; each caught by the focused blocks (full-suite sensitivity runs in the final-tree queue).
+   - **Not covered:** a destination's match terms (the same gate as its name and kind; read by code, no block types one).
++- **U10 (3 of 12) — a Spend Plan choice is refused in a locked view before anything is kept** (the same release blocker,
++  from its round-2 test review of 13 Oct). The Spend Plan's choices -- its Cost data (the estimate the ACE tie-out ties
++  out), By PMO / By Service, the two prior years, the PMO and service filters and the PMO drill's service -- were set on
++  the page first and then saved, which a locked view refuses. The board said "the change was not kept" and kept the
++  choice on the page: with PB27 on screen, 2026ACE chosen as the Cost data made the ACE tie-out taken from the view tie
++  out 2026ACE ($333 against A's $1,100, where PB27's 2027ACE is $900), and back on the working plan its ACE tie-out still
++  tied out 2026ACE, even after a save, while browser storage kept 2027ACE (so the export no longer matched what the board
++  keeps). The same on `7ee498a` and on U10 1 and 2. Now each of the six choices is refused while a locked cycle is on
++  screen, before it is set, and says so ("🔒 Changing the spend plan is off while PB27 is on screen … the change was not
++  kept"), as the imports and the destination list are.
++  - **What users may see:** with a locked cycle on screen, the Spend Plan's choices (Cost data, By PMO / By Service,
++    ◀ prior 2 FY, the PMO and service filters, the PMO drill's service) are refused with that line; leave the view to
++    change them. They stay as the working plan had them. On the working plan nothing changes.
++  - **Test:** audit-recon "v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a
++    locked view leaves no trace" (9 checks), on a board of two AV requirements with two approved estimates (2027ACE $900,
++    2026ACE $333) and USAF's FY27 PPBE position logged at $1,000: each choice made through the control the Spend Plan
++    renders (the filters and the drill through the handlers their controls call), then the Spend Plan as drawn, the ACE
++    tie-out's mapping and reconciliation cells, in the view and on the working plan after leaving, and browser storage.
++    It also reads two things U10 1 and 2 put right that no block read: a PPBE position typed in the view (the FYDP Spend
++    Plan's By Service position cell) and a destination's kind changed in Setup › Destinations (the list and browser
++    storage). Controls: PB27 viewed with nothing chosen; the Cost data choice on the working plan, kept and tied out
++    ($333); no jsdom errors. On `7ee498a` 6 checks fail and the 3 controls pass; on U10 2 of 12 the 4 Spend Plan checks
++    fail.
++  - **Mutations:** `v200-u10-sp-choice-in-view`, `-sp-ace-in-view`, `-sp-by-in-view`, `-sp-pmo-in-view`,
++    `-sp-svc-in-view`, `-sp-prior-in-view`, `-sp-drill-in-view`, `-sp-no-redraw`, `-reapply-keeps-ppbe` and
++    `-dest-kind-in-view`; each caught by the focused blocks (full-suite sensitivity in the final-tree queue).
++  - **Not covered:** a destination's match terms (as commit 2).
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

@@ -1,0 +1,197 @@
+pass RUN  PB-Wcount     finished, no error, board 98eed7e8
+pass LCK  PB-Wcount     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-Wcount     the harness counted B’s lock requests (wrapper installed)
+pass FIX  PB-Wcount     tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  PB-Wcount     start (as PB): S1 unsaved, K kept (folder), N the folder’s copy
+pass PRE  PB-Wcount     A’s save held, holding the lock
+pass PRE  PB-Wcount     at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  PB-Wcount     grants: A, then B
+pass CNT  PB-Wcount     put back REFUSED while the counted save waits: [screen, kept, MS same, kept same, said, asked]
+pass CNT  PB-Wcount     then S1’s save lands: [folder, screen, saved, kept]
+pass CNT  PB-Wcount     B’s save: not falsely clean
+pass CNT  PB-Wcount     B’s save: did not write over a copy without asking (by lineage)
+pass CNT  PB-Wcount     B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CNT  PB-Wcount     the next Save: not falsely clean
+pass CNT  PB-Wcount     the next Save: did not write over a copy without asking (by lineage)
+pass CNT  PB-Wcount     the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CNT  PB-Wcount     the reopen: not falsely clean
+pass CNT  PB-Wcount     the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  AD-Wcount     finished, no error, board 98eed7e8
+pass LCK  AD-Wcount     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-Wcount     the harness counted B’s lock requests (wrapper installed)
+pass FIX  AD-Wcount     tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  AD-Wcount     start (as AD): WORKING, DIRTY false, record unsaved, nothing kept, F0 in the folder
+pass PRE  AD-Wcount     A’s save held, holding the lock
+pass PRE  AD-Wcount     at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  AD-Wcount     grants: A, then B
+pass CNT  AD-Wcount     refresh REFUSED while the counted save waits: [screen, unchanged, said "not loaded"]
+pass CNT  AD-Wcount     then the save refuses with the choice: [folder, screen, saved, said, wrote]
+pass CNT  AD-Wcount     B’s save: not falsely clean
+pass CNT  AD-Wcount     B’s save: did not write over a copy without asking (by lineage)
+pass CNT  AD-Wcount     B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CNT  AD-Wcount     the next Save: not falsely clean
+pass CNT  AD-Wcount     the next Save: did not write over a copy without asking (by lineage)
+pass CNT  AD-Wcount     the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CNT  AD-Wcount     the reopen: not falsely clean
+pass CNT  AD-Wcount     the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass RUN  BR-Wcount     finished, no error, board 98eed7e8
+pass LCK  BR-Wcount     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wcount     the harness counted B’s lock requests (wrapper installed)
+pass FIX  BR-Wcount     tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wcount     start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass PRE  BR-Wcount     A’s save held, holding the lock
+pass PRE  BR-Wcount     at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wcount     grants: A, then B
+pass CNT  BR-Wcount     the refresh records NOTHING (driveBaseOf stays 0)
+pass CNT  BR-Wcount     then the save refuses with the choice: [wrote, folder, said]
+pass CNT  BR-Wcount     B’s save: not falsely clean
+pass CNT  BR-Wcount     B’s save: did not write over a copy without asking (by lineage)
+pass CNT  BR-Wcount     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CNT  BR-Wcount     the next Save: not falsely clean
+pass CNT  BR-Wcount     the next Save: did not write over a copy without asking (by lineage)
+pass CNT  BR-Wcount     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CNT  BR-Wcount     the reopen: not falsely clean
+pass CNT  BR-Wcount     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wreal      finished, no error, board 98eed7e8
+pass LCK  BR-Wreal      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wreal      tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wreal      start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wreal      the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass PRE  BR-Wreal      A’s save held, holding the lock
+pass PRE  BR-Wreal      at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wreal      grants: A, then B
+pass INFO BR-Wreal      the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]
+pass U20  BR-Wreal      B’s save: not falsely clean
+FAIL U20  BR-Wreal      B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wreal      B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wreal      the next Save: not falsely clean
+pass U20  BR-Wreal      the next Save: did not write over a copy without asking (by lineage)
+pass U20  BR-Wreal      the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wreal      the reopen: not falsely clean
+pass U20  BR-Wreal      the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wrealtick  finished, no error, board 98eed7e8
+pass LCK  BR-Wrealtick  never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wrealtick  tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wrealtick  start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wrealtick  the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass PRE  BR-Wrealtick  A’s save held, holding the lock
+pass PRE  BR-Wrealtick  at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wrealtick  grants: A, then B
+pass INFO BR-Wrealtick  the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]
+pass U20  BR-Wrealtick  B’s save: not falsely clean
+FAIL U20  BR-Wrealtick  B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wrealtick  B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wrealtick  the next Save: not falsely clean
+pass U20  BR-Wrealtick  the next Save: did not write over a copy without asking (by lineage)
+pass U20  BR-Wrealtick  the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wrealtick  the reopen: not falsely clean
+pass U20  BR-Wrealtick  the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-C1real     finished, no error, board 98eed7e8
+pass LCK  BR-C1real     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C1real     tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-C1real     start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-C1real     the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass PRE  BR-C1real     counted control: [B _saveBusy, held by, pending, B’s save at its read]
+pass CTL  BR-C1real     the refresh records NOTHING (driveBaseOf stays 0)
+pass CTL  BR-C1real     then the save refuses with the choice: [wrote, folder, said]
+pass CTL  BR-C1real     B’s save: not falsely clean
+pass CTL  BR-C1real     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1real     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1real     the next Save: not falsely clean
+pass CTL  BR-C1real     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1real     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1real     the reopen: not falsely clean
+pass CTL  BR-C1real     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wrealcount finished, no error, board 98eed7e8
+pass LCK  BR-Wrealcount never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wrealcount the harness counted B’s lock requests (wrapper installed)
+pass FIX  BR-Wrealcount tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wrealcount start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wrealcount the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass PRE  BR-Wrealcount A’s save held, holding the lock
+pass PRE  BR-Wrealcount at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wrealcount grants: A, then B
+pass CNT  BR-Wrealcount the refresh records NOTHING (driveBaseOf stays 0)
+pass CNT  BR-Wrealcount then the save refuses with the choice: [wrote, folder, said]
+pass CNT  BR-Wrealcount B’s save: not falsely clean
+pass CNT  BR-Wrealcount B’s save: did not write over a copy without asking (by lineage)
+pass CNT  BR-Wrealcount B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CNT  BR-Wrealcount the next Save: not falsely clean
+pass CNT  BR-Wrealcount the next Save: did not write over a copy without asking (by lineage)
+pass CNT  BR-Wrealcount the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CNT  BR-Wrealcount the reopen: not falsely clean
+pass CNT  BR-Wrealcount the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wrealh     finished, no error, board 98eed7e8
+pass LCK  BR-Wrealh     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wrealh     tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wrealh     start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wrealh     the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass FIX  BR-Wrealh     the folder’s history holds F00-FIRST (spaced)
+pass PRE  BR-Wrealh     A’s save held, holding the lock
+pass PRE  BR-Wrealh     at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wrealh     grants: A, then B
+pass INFO BR-Wrealh     the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]
+pass U20  BR-Wrealh     B’s save: not falsely clean
+FAIL U20  BR-Wrealh     B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wrealh     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wrealh     the next Save: not falsely clean
+pass U20  BR-Wrealh     the next Save: did not write over a copy without asking (by lineage)
+FAIL U20  BR-Wrealh     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass U20  BR-Wrealh     the reopen: not falsely clean
+FAIL U20  BR-Wrealh     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass RUN  O4-tick       finished, no error, board 98eed7e8
+pass LCK  O4-tick       never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  O4-tick       one tab: no tab A
+pass FIX  O4-tick       start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  O4-tick       the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass O4   O4-tick       tick 1: the autosave is refused, nothing written: [wrote, folder]
+pass O4   O4-tick       tick 1: its refresh then records the folder’s copy as the base [observed mechanism]
+pass O4   O4-tick       grants: B only (no contention)
+pass O4   O4-tick       tick 2’s autosave: not falsely clean
+FAIL O4   O4-tick       tick 2’s autosave: did not write over a copy without asking (by lineage)  got=true want=false
+pass O4   O4-tick       tick 2’s autosave: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass O4   O4-tick       the next Save: not falsely clean
+pass O4   O4-tick       the next Save: did not write over a copy without asking (by lineage)
+pass O4   O4-tick       the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass O4   O4-tick       the reopen: not falsely clean
+pass O4   O4-tick       the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  O4-tickh      finished, no error, board 98eed7e8
+pass LCK  O4-tickh      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  O4-tickh      one tab: no tab A
+pass FIX  O4-tickh      start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  O4-tickh      the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass FIX  O4-tickh      the folder’s history holds F00-FIRST (spaced)
+pass O4   O4-tickh      tick 1: the autosave is refused, nothing written: [wrote, folder]
+pass O4   O4-tickh      tick 1: its refresh then records the folder’s copy as the base [observed mechanism]
+pass O4   O4-tickh      grants: B only (no contention)
+pass O4   O4-tickh      tick 2’s autosave: not falsely clean
+FAIL O4   O4-tickh      tick 2’s autosave: did not write over a copy without asking (by lineage)  got=true want=false
+pass O4   O4-tickh      tick 2’s autosave: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass O4   O4-tickh      the next Save: not falsely clean
+pass O4   O4-tickh      the next Save: did not write over a copy without asking (by lineage)
+FAIL O4   O4-tickh      the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass O4   O4-tickh      the reopen: not falsely clean
+FAIL O4   O4-tickh      the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass RUN  BR-Wrealtickcount finished, no error, board 98eed7e8
+pass LCK  BR-Wrealtickcount never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wrealtickcount the harness counted B’s lock requests (wrapper installed)
+pass FIX  BR-Wrealtickcount tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks
+pass FIX  BR-Wrealtickcount start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wrealtickcount the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]
+pass PRE  BR-Wrealtickcount A’s save held, holding the lock
+pass PRE  BR-Wrealtickcount at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]
+pass PRE  BR-Wrealtickcount grants: A, then B
+pass INFO BR-Wrealtickcount after the refused save, tick 1’s own refresh recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]
+pass CNT  BR-Wrealtickcount the refresh records NOTHING (driveBaseOf stays 0)
+pass CNT  BR-Wrealtickcount then the save refuses with the choice: [wrote, folder, said]
+pass CNT  BR-Wrealtickcount B’s save: not falsely clean
+pass CNT  BR-Wrealtickcount B’s save: did not write over a copy without asking (by lineage)
+pass CNT  BR-Wrealtickcount B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass O4   BR-Wrealtickcount the next Save: not falsely clean
+FAIL O4   BR-Wrealtickcount the next Save: did not write over a copy without asking (by lineage)  got=true want=false
+pass O4   BR-Wrealtickcount the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass O4   BR-Wrealtickcount the reopen: not falsely clean
+pass O4   BR-Wrealtickcount the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+
+BY KIND {"RUN":{"pass":11,"fail":0},"LCK":{"pass":11,"fail":0},"FIX":{"pass":37,"fail":0},"PRE":{"pass":25,"fail":0},"CNT":{"pass":45,"fail":0},"INFO":{"pass":4,"fail":0},"U20":{"pass":19,"fail":5},"CTL":{"pass":10,"fail":0},"O4":{"pass":22,"fail":5}}
+FAILING 10 ["U20 BR-Wreal: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wrealtick: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wrealh: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wrealh: the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","U20 BR-Wrealh: the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","O4 O4-tick: tick 2’s autosave: did not write over a copy without asking (by lineage)","O4 O4-tickh: tick 2’s autosave: did not write over a copy without asking (by lineage)","O4 O4-tickh: the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","O4 O4-tickh: the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","O4 BR-Wrealtickcount: the next Save: did not write over a copy without asking (by lineage)"]

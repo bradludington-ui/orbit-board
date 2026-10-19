@@ -1,0 +1,112 @@
+PASS  BASE                     NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  BASE                     NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  BASE                     CKP-folder  after landing: folder checkpoint names
+        want "s1Save=t2"
+        got  "s1Save=t2"
+PASS  BASE                     CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "f2"
+        got  "f2"
+PASS  U2a                      NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2a                      NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2a                      CKP-folder  after landing: folder checkpoint names
+        want "s1Save=t2"
+        got  "s1Save=t2"
+PASS  U2a                      CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "f2"
+        got  "f2"
+PASS  U2b                      NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2b                      NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2b                      CKP-folder  after landing: folder checkpoint names
+        want "s1Save=t2"
+        got  "s1Save=t2"
+PASS  U2b                      CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "f2"
+        got  "f2"
+PASS  U2ab                     NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2ab                     NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  U2ab                     CKP-folder  after landing: folder checkpoint names
+        want "s1Save=t2"
+        got  "s1Save=t2"
+PASS  U2ab                     CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "f2"
+        got  "f2"
+FAIL  M3-alwaysRefuse          NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["S1-ONSCREEN",[true,true,true],"t1","F1","K-KEPTWORK","folder",0,"Unsaved changes · ↶ work kept aside",false,"N-NEWER"]
+FAIL  M3-alwaysRefuse          NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["S1-ONSCREEN",[true,true,true],"fN","fN","K-KEPTWORK","file",0,"Unsaved changes · ↶ work kept aside",false,"N-NEWER"]
+PASS  M3-alwaysRefuse          CKP-folder  after landing: folder checkpoint names
+        want "s1Save=t2"
+        got  "s1Save=t2"
+PASS  M3-alwaysRefuse          CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "f2"
+        got  "f2"
+PASS  M5-noCheckpointOverwrite NRL-folder  no-race folder put-back: [screen, flags, checkpoint names folder|file, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"t0","F1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  M5-noCheckpointOverwrite NRL-file    no-race file put-back: [screen, flags, checkpoint name file, LASTKNOWN name, kept note, kept why, #confirms, header, promise said, head]
+        want ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+        got  ["K-KEPTWORK",[true,true,true],"F1=f1","F1=f1","S1-ONSCREEN","swap",1,"Unsaved changes · ↶ work kept aside",true,"N-NEWER"]
+PASS  M5-noCheckpointOverwrite CKP-folder  after landing: folder checkpoint names
+        want "t0"
+        got  "t0"
+PASS  M5-noCheckpointOverwrite CKP-file    after landing: file checkpoint (LASTKNOWN) names
+        want "F1=f1"
+        got  "F1=f1"
+FAIL  BASE-as-U2b              B1-folder   refusal control on a board without the refusal (expect this row to FAIL)
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["K-KEPTWORK",1,false,false]
+FAIL  BASE-as-U2b              B3-folder   reopen control on a board without the refusal (expect this row to FAIL)
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["S1-ONSCREEN","S1-ONSCREEN","S1-ONSCREEN"]
+FAIL  BASE-as-U2b              B1-file     refusal control on a board without the refusal (expect this row to FAIL)
+        want ["S1-ONSCREEN",0,true,true]
+        got  ["K-KEPTWORK",1,false,false]
+FAIL  BASE-as-U2b              B3-file     reopen control on a board without the refusal (expect this row to FAIL)
+        want ["K-KEPTWORK","S1-ONSCREEN","S1-ONSCREEN"]
+        got  ["S1-ONSCREEN","S1-ONSCREEN","S1-ONSCREEN"]
+PASS  BASE                     E1          race, then ONE live tick in the same session: [screen, K reachable in, folder head, folder writes, confirms]
+        want ["S1-ONSCREEN",[],"S1-ONSCREEN",0,0]
+        got  ["S1-ONSCREEN",[],"S1-ONSCREEN",0,0]
+PASS  BASE                     E2          no race: put back, ONE live tick: [folder writes, folder head, screen]
+        want [0,"N-NEWER","K-KEPTWORK"]
+        got  [0,"N-NEWER","K-KEPTWORK"]
+PASS  BASE                     E3          no race: put back, 💾 Save: [folder writes, folder head, refused with a choice]
+        want [0,"N-NEWER",true]
+        got  [0,"N-NEWER",true]
+PASS  U2a                      E1          race, then ONE live tick in the same session: [screen, K reachable in, folder head, folder writes, confirms]
+        want ["K-KEPTWORK",["screen","folderHead"],"K-KEPTWORK",1,0]
+        got  ["K-KEPTWORK",["screen","folderHead"],"K-KEPTWORK",1,0]
+PASS  U2a                      E2          no race: put back, ONE live tick: [folder writes, folder head, screen]
+        want [0,"N-NEWER","K-KEPTWORK"]
+        got  [0,"N-NEWER","K-KEPTWORK"]
+PASS  U2a                      E3          no race: put back, 💾 Save: [folder writes, folder head, refused with a choice]
+        want [0,"N-NEWER",true]
+        got  [0,"N-NEWER",true]
+PASS  U2b                      E1          race, then ONE live tick in the same session: [screen, K reachable in, folder head, folder writes, confirms]
+        want ["S1-ONSCREEN",["kept"],"S1-ONSCREEN",0,0]
+        got  ["S1-ONSCREEN",["kept"],"S1-ONSCREEN",0,0]
+PASS  U2b                      E2          no race: put back, ONE live tick: [folder writes, folder head, screen]
+        want [0,"N-NEWER","K-KEPTWORK"]
+        got  [0,"N-NEWER","K-KEPTWORK"]
+PASS  U2b                      E3          no race: put back, 💾 Save: [folder writes, folder head, refused with a choice]
+        want [0,"N-NEWER",true]
+        got  [0,"N-NEWER",true]
+{"BASE":[7,0],"U2a":[7,0],"U2b":[7,0],"U2ab":[4,0],"M3-alwaysRefuse":[2,2],"M5-noCheckpointOverwrite":[4,0],"BASE-as-U2b":[0,4]}

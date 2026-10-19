@@ -1,0 +1,372 @@
+pass RUN  PB-W       finished, no error, board 98eed7e8
+pass LCK  PB-W       never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-W       tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-W       start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass PRE  PB-W       A’s save held, holding the lock
+pass PRE  PB-W       at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  PB-W       grants: A first, then B (B’s save ran only after A released)
+pass U20  PB-W       B’s save: not falsely clean
+pass U20  PB-W       B’s save: did not write over a copy without asking (by lineage)
+pass U20  PB-W       B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass U20  PB-W       the next Save: not falsely clean
+pass U20  PB-W       the next Save: did not write over a copy without asking (by lineage)
+pass U20  PB-W       the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass U20  PB-W       the reopen: not falsely clean
+pass U20  PB-W       the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PB-Wtick   finished, no error, board 98eed7e8
+pass LCK  PB-Wtick   never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-Wtick   tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-Wtick   start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass PRE  PB-Wtick   A’s save held, holding the lock
+pass PRE  PB-Wtick   at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  PB-Wtick   grants: A first, then B (B’s save ran only after A released)
+pass U20  PB-Wtick   B’s save: not falsely clean
+pass U20  PB-Wtick   B’s save: did not write over a copy without asking (by lineage)
+pass U20  PB-Wtick   B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass U20  PB-Wtick   the next Save: not falsely clean
+pass U20  PB-Wtick   the next Save: did not write over a copy without asking (by lineage)
+pass U20  PB-Wtick   the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass U20  PB-Wtick   the reopen: not falsely clean
+pass U20  PB-Wtick   the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PB-C1      finished, no error, board 98eed7e8
+pass LCK  PB-C1      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-C1      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-C1      start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass PRE  PB-C1      counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  PB-C1      put back REFUSED while B’s save runs: [screen, kept, MS byte-identical, kept byte-identical, said so, asked]
+pass CTL  PB-C1      then S1’s save lands: [folder, screen, saved, kept]
+pass CTL  PB-C1      B’s save: not falsely clean
+pass CTL  PB-C1      B’s save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C1      B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C1      the next Save: not falsely clean
+pass CTL  PB-C1      the next Save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C1      the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C1      the reopen: not falsely clean
+pass CTL  PB-C1      the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PB-C2a     finished, no error, board 98eed7e8
+pass LCK  PB-C2a     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-C2a     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-C2a     start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass CTL  PB-C2a     put back, then Save: refused with the choice, nothing written: [screen, kept, folder, saved, said]
+pass CTL  PB-C2a     B’s save: not falsely clean
+pass CTL  PB-C2a     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C2a     B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C2a     the next Save: not falsely clean
+pass CTL  PB-C2a     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C2a     the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C2a     the reopen: not falsely clean
+pass CTL  PB-C2a     the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PB-C2b     finished, no error, board 98eed7e8
+pass LCK  PB-C2b     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PB-C2b     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-C2b     start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass CTL  PB-C2b     Save lands S1; then put back: K on screen, nothing kept in its place (S1 saved)
+pass CTL  PB-C2b     the next Save is refused with the choice, nothing written
+pass CTL  PB-C2b     B’s save: not falsely clean
+pass CTL  PB-C2b     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C2b     B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C2b     the next Save: not falsely clean
+pass CTL  PB-C2b     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  PB-C2b     the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PB-C2b     the reopen: not falsely clean
+pass CTL  PB-C2b     the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PB-NL      finished, no error, board 98eed7e8
+pass LCK  PB-NL      no navigator.locks on A and B: no request reached the mock
+pass FIX  PB-NL      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PB-NL      start: S1 on screen and unsaved, K kept aside (folder), N the folder’s copy
+pass CTL  PB-NL      without Web Locks B’s save does not wait: it read and wrote the folder’s copy while A’s save was held
+pass INFO PB-NL      B’s save: not falsely clean
+pass INFO PB-NL      B’s save: did not write over a copy without asking (by lineage)
+pass INFO PB-NL      B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass INFO PB-NL      the next Save: not falsely clean
+pass INFO PB-NL      the next Save: did not write over a copy without asking (by lineage)
+pass INFO PB-NL      the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass INFO PB-NL      the reopen: not falsely clean
+pass INFO PB-NL      the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  AD-W       finished, no error, board 98eed7e8
+pass LCK  AD-W       never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-W       tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  AD-W       start: reopened, WORKING on screen, DIRTY false, the record unsaved, nothing kept, F0 the folder’s copy
+pass PRE  AD-W       A’s save held, holding the lock
+pass PRE  AD-W       at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  AD-W       grants: A first, then B (B’s save ran only after A released)
+pass U20  AD-W       B’s save: not falsely clean
+pass U20  AD-W       B’s save: did not write over a copy without asking (by lineage)
+pass U20  AD-W       B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass U20  AD-W       the next Save: not falsely clean
+pass U20  AD-W       the next Save: did not write over a copy without asking (by lineage)
+pass U20  AD-W       the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass U20  AD-W       the reopen: not falsely clean
+pass U20  AD-W       the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass RUN  AD-Wtick   finished, no error, board 98eed7e8
+pass LCK  AD-Wtick   never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-Wtick   tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  AD-Wtick   start: reopened, WORKING on screen, DIRTY false, the record unsaved, nothing kept, F0 the folder’s copy
+pass PRE  AD-Wtick   A’s save held, holding the lock
+pass PRE  AD-Wtick   at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  AD-Wtick   grants: A first, then B (B’s save ran only after A released)
+pass U20  AD-Wtick   B’s save: not falsely clean
+pass U20  AD-Wtick   B’s save: did not write over a copy without asking (by lineage)
+pass U20  AD-Wtick   B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass U20  AD-Wtick   the next Save: not falsely clean
+pass U20  AD-Wtick   the next Save: did not write over a copy without asking (by lineage)
+pass U20  AD-Wtick   the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass U20  AD-Wtick   the reopen: not falsely clean
+pass U20  AD-Wtick   the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass RUN  AD-C1      finished, no error, board 98eed7e8
+pass LCK  AD-C1      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-C1      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  AD-C1      start: reopened, WORKING on screen, DIRTY false, the record unsaved, nothing kept, F0 the folder’s copy
+pass PRE  AD-C1      counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  AD-C1      refresh REFUSED while B’s save runs: [screen, nothing changed byte for byte, said "not loaded"]
+pass CTL  AD-C1      then the save refuses with the choice: [folder, screen, saved, said, wrote]
+pass CTL  AD-C1      B’s save: not falsely clean
+pass CTL  AD-C1      B’s save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C1      B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CTL  AD-C1      the next Save: not falsely clean
+pass CTL  AD-C1      the next Save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C1      the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CTL  AD-C1      the reopen: not falsely clean
+pass CTL  AD-C1      the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass RUN  AD-C2a     finished, no error, board 98eed7e8
+pass LCK  AD-C2a     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-C2a     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  AD-C2a     start: reopened, WORKING on screen, DIRTY false, the record unsaved, nothing kept, F0 the folder’s copy
+pass CTL  AD-C2a     refresh adopts N2 (WORKING kept aside); then Save writes N2: [during screen, kept, after folder, screen, saved]
+pass CTL  AD-C2a     B’s save: not falsely clean
+pass CTL  AD-C2a     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C2a     B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CTL  AD-C2a     the next Save: not falsely clean
+pass CTL  AD-C2a     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C2a     the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass CTL  AD-C2a     the reopen: not falsely clean
+pass CTL  AD-C2a     the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]
+pass RUN  AD-C2b     finished, no error, board 98eed7e8
+pass LCK  AD-C2b     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  AD-C2b     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  AD-C2b     start: reopened, WORKING on screen, DIRTY false, the record unsaved, nothing kept, F0 the folder’s copy
+pass CTL  AD-C2b     Save lands WORKING; X’s save is then refused (its own clash, nothing written); refresh loads nothing
+pass CTL  AD-C2b     B’s save: not falsely clean
+pass CTL  AD-C2b     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C2b     B’s save: every leaf copy in a place this board reaches [WORKING]
+pass CTL  AD-C2b     the next Save: not falsely clean
+pass CTL  AD-C2b     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  AD-C2b     the next Save: every leaf copy in a place this board reaches [WORKING]
+pass CTL  AD-C2b     the reopen: not falsely clean
+pass CTL  AD-C2b     the reopen: every leaf copy in a place this board reaches [WORKING]
+pass RUN  BR-W       finished, no error, board 98eed7e8
+pass LCK  BR-W       never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-W       tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-W       start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass PRE  BR-W       A’s save held, holding the lock
+pass PRE  BR-W       at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  BR-W       grants: A first, then B (B’s save ran only after A released)
+pass U20  BR-W       B’s save: not falsely clean
+FAIL U20  BR-W       B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-W       B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-W       the next Save: not falsely clean
+pass U20  BR-W       the next Save: did not write over a copy without asking (by lineage)
+pass U20  BR-W       the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-W       the reopen: not falsely clean
+pass U20  BR-W       the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wtick   finished, no error, board 98eed7e8
+pass LCK  BR-Wtick   never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wtick   tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-Wtick   start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass PRE  BR-Wtick   A’s save held, holding the lock
+pass PRE  BR-Wtick   at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  BR-Wtick   grants: A first, then B (B’s save ran only after A released)
+pass U20  BR-Wtick   B’s save: not falsely clean
+FAIL U20  BR-Wtick   B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wtick   B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wtick   the next Save: not falsely clean
+pass U20  BR-Wtick   the next Save: did not write over a copy without asking (by lineage)
+pass U20  BR-Wtick   the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wtick   the reopen: not falsely clean
+pass U20  BR-Wtick   the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-C1      finished, no error, board 98eed7e8
+pass LCK  BR-C1      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C1      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C1      start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass PRE  BR-C1      counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  BR-C1      refresh records NOTHING while B’s save runs (driveBaseOf stays 0)
+pass CTL  BR-C1      then the save refuses with the choice: [wrote, folder, said]
+pass CTL  BR-C1      B’s save: not falsely clean
+pass CTL  BR-C1      B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1      B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1      the next Save: not falsely clean
+pass CTL  BR-C1      the next Save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1      the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1      the reopen: not falsely clean
+pass CTL  BR-C1      the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-C2a     finished, no error, board 98eed7e8
+pass LCK  BR-C2a     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C2a     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C2a     start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass OUT  BR-C2a     B’s save: not falsely clean
+FAIL OUT  BR-C2a     B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass OUT  BR-C2a     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2a     the next Save: not falsely clean
+pass OUT  BR-C2a     the next Save: did not write over a copy without asking (by lineage)
+pass OUT  BR-C2a     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2a     the reopen: not falsely clean
+pass OUT  BR-C2a     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-C2b     finished, no error, board 98eed7e8
+pass LCK  BR-C2b     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C2b     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C2b     start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass CTL  BR-C2b     Save first (no wait): refused with the choice: [wrote, folder, said]
+pass CTL  BR-C2b     B’s save: not falsely clean
+pass CTL  BR-C2b     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C2b     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2b     the next Save: not falsely clean
+FAIL OUT  BR-C2b     the next Save: did not write over a copy without asking (by lineage)  got=true want=false
+pass OUT  BR-C2b     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2b     the reopen: not falsely clean
+pass OUT  BR-C2b     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wperm   finished, no error, board 98eed7e8
+pass LCK  BR-Wperm   never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wperm   tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-Wperm   start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wperm   the opening’s own connect stopped at one click, recording nothing
+pass PRE  BR-Wperm   A’s save held, holding the lock
+pass PRE  BR-Wperm   at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  BR-Wperm   grants: A first, then B (B’s save ran only after A released)
+pass U20  BR-Wperm   B’s save: not falsely clean
+FAIL U20  BR-Wperm   B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wperm   B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wperm   the next Save: not falsely clean
+pass U20  BR-Wperm   the next Save: did not write over a copy without asking (by lineage)
+pass U20  BR-Wperm   the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wperm   the reopen: not falsely clean
+pass U20  BR-Wperm   the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-C1perm  finished, no error, board 98eed7e8
+pass LCK  BR-C1perm  never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C1perm  tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C1perm  start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-C1perm  the opening’s own connect stopped at one click, recording nothing
+pass PRE  BR-C1perm  counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  BR-C1perm  refresh records NOTHING while B’s save runs (driveBaseOf stays 0)
+pass CTL  BR-C1perm  then the save refuses with the choice: [wrote, folder, said]
+pass CTL  BR-C1perm  B’s save: not falsely clean
+pass CTL  BR-C1perm  B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1perm  B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1perm  the next Save: not falsely clean
+pass CTL  BR-C1perm  the next Save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1perm  the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1perm  the reopen: not falsely clean
+pass CTL  BR-C1perm  the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wh      finished, no error, board 98eed7e8
+pass LCK  BR-Wh      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wh      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-Wh      start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wh      the folder’s history holds F00-FIRST (spaced, newest)
+pass PRE  BR-Wh      A’s save held, holding the lock
+pass PRE  BR-Wh      at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  BR-Wh      grants: A first, then B (B’s save ran only after A released)
+pass U20  BR-Wh      B’s save: not falsely clean
+FAIL U20  BR-Wh      B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wh      B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wh      the next Save: not falsely clean
+pass U20  BR-Wh      the next Save: did not write over a copy without asking (by lineage)
+FAIL U20  BR-Wh      the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass U20  BR-Wh      the reopen: not falsely clean
+FAIL U20  BR-Wh      the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass RUN  BR-C1h     finished, no error, board 98eed7e8
+pass LCK  BR-C1h     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C1h     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C1h     start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-C1h     the folder’s history holds F00-FIRST (spaced, newest)
+pass PRE  BR-C1h     counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  BR-C1h     refresh records NOTHING while B’s save runs (driveBaseOf stays 0)
+pass CTL  BR-C1h     then the save refuses with the choice: [wrote, folder, said]
+pass CTL  BR-C1h     B’s save: not falsely clean
+pass CTL  BR-C1h     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1h     B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1h     the next Save: not falsely clean
+pass CTL  BR-C1h     the next Save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C1h     the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass CTL  BR-C1h     the reopen: not falsely clean
+pass CTL  BR-C1h     the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  BR-Wpermh  finished, no error, board 98eed7e8
+pass LCK  BR-Wpermh  never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-Wpermh  tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-Wpermh  start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-Wpermh  the opening’s own connect stopped at one click, recording nothing
+pass FIX  BR-Wpermh  the folder’s history holds F00-FIRST (spaced, newest)
+pass PRE  BR-Wpermh  A’s save held, holding the lock
+pass PRE  BR-Wpermh  at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  BR-Wpermh  grants: A first, then B (B’s save ran only after A released)
+pass U20  BR-Wpermh  B’s save: not falsely clean
+FAIL U20  BR-Wpermh  B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass U20  BR-Wpermh  B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass U20  BR-Wpermh  the next Save: not falsely clean
+pass U20  BR-Wpermh  the next Save: did not write over a copy without asking (by lineage)
+FAIL U20  BR-Wpermh  the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass U20  BR-Wpermh  the reopen: not falsely clean
+FAIL U20  BR-Wpermh  the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass RUN  BR-C2ah    finished, no error, board 98eed7e8
+pass LCK  BR-C2ah    never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C2ah    tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C2ah    start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-C2ah    the folder’s history holds F00-FIRST (spaced, newest)
+pass OUT  BR-C2ah    B’s save: not falsely clean
+FAIL OUT  BR-C2ah    B’s save: did not write over a copy without asking (by lineage)  got=true want=false
+pass OUT  BR-C2ah    B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2ah    the next Save: not falsely clean
+pass OUT  BR-C2ah    the next Save: did not write over a copy without asking (by lineage)
+FAIL OUT  BR-C2ah    the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass OUT  BR-C2ah    the reopen: not falsely clean
+FAIL OUT  BR-C2ah    the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]  got=[true,false] want=[true,true]
+pass RUN  BR-C2bh    finished, no error, board 98eed7e8
+pass LCK  BR-C2bh    never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  BR-C2bh    tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  BR-C2bh    start: B-EDIT on screen, nothing recorded for the folder (0), F0 the folder’s copy, not newer than the screen
+pass FIX  BR-C2bh    the folder’s history holds F00-FIRST (spaced, newest)
+pass CTL  BR-C2bh    Save first (no wait): refused with the choice: [wrote, folder, said]
+pass CTL  BR-C2bh    B’s save: not falsely clean
+pass CTL  BR-C2bh    B’s save: did not write over a copy without asking (by lineage)
+pass CTL  BR-C2bh    B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2bh    the next Save: not falsely clean
+FAIL OUT  BR-C2bh    the next Save: did not write over a copy without asking (by lineage)  got=true want=false
+pass OUT  BR-C2bh    the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass OUT  BR-C2bh    the reopen: not falsely clean
+pass OUT  BR-C2bh    the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]
+pass RUN  PF-W       finished, no error, board 98eed7e8
+pass LCK  PF-W       never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PF-W       tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PF-W       start: S1 on screen, K kept aside (file), N in the file
+pass PRE  PF-W       A’s save held, holding the lock
+pass PRE  PF-W       at the action: [B _saveBusy, A _saveBusy, lock held by, pending, B’s folder/file operations since its save was asked]
+pass PRE  PF-W       grants: A first, then B (B’s save ran only after A released)
+pass U20  PF-W       B’s save: not falsely clean
+pass U20  PF-W       B’s save: did not write over a copy without asking (by lineage)
+pass U20  PF-W       B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass U20  PF-W       the reopen: not falsely clean
+pass U20  PF-W       the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PF-C1      finished, no error, board 98eed7e8
+pass LCK  PF-C1      never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PF-C1      tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PF-C1      start: S1 on screen, K kept aside (file), N in the file
+pass PRE  PF-C1      counted control: [B _saveBusy, lock held by, pending, B’s save at its read]
+pass CTL  PF-C1      put back REFUSED while B’s save runs: [screen, kept, MS byte-identical, kept byte-identical, said so, asked]
+pass CTL  PF-C1      then S1’s save lands: [file, screen, saved, kept]
+pass CTL  PF-C1      B’s save: not falsely clean
+pass CTL  PF-C1      B’s save: did not write over a copy without asking (by lineage)
+pass CTL  PF-C1      B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PF-C1      the reopen: not falsely clean
+pass CTL  PF-C1      the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass RUN  PF-C2a     finished, no error, board 98eed7e8
+pass LCK  PF-C2a     never two holders of orbit-save; most held at once; nothing unmodeled; every grant released
+pass FIX  PF-C2a     tab A: FULL FUND (ff, prio27ff), one storage area with B both ways, jsdom had no navigator.locks
+pass FIX  PF-C2a     start: S1 on screen, K kept aside (file), N in the file
+pass CTL  PF-C2a     put back, then Save: HOLD ON asked (answered Cancel), nothing written
+pass CTL  PF-C2a     B’s save: not falsely clean
+pass CTL  PF-C2a     B’s save: did not write over a copy without asking (by lineage)
+pass CTL  PF-C2a     B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass CTL  PF-C2a     the reopen: not falsely clean
+pass CTL  PF-C2a     the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]
+pass LCK  locktest   the mock’s own tests T1-T10 (19 checks)
+
+BY KIND {"RUN":{"pass":26,"fail":0},"LCK":{"pass":27,"fail":0},"FIX":{"pass":60,"fail":0},"PRE":{"pass":36,"fail":0},"U20":{"pass":68,"fail":9},"CTL":{"pass":109,"fail":0},"INFO":{"pass":8,"fail":0},"OUT":{"pass":20,"fail":6}}
+FAILING 15 ["U20 BR-W: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wtick: B’s save: did not write over a copy without asking (by lineage)","OUT BR-C2a: B’s save: did not write over a copy without asking (by lineage)","OUT BR-C2b: the next Save: did not write over a copy without asking (by lineage)","U20 BR-Wperm: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wh: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wh: the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","U20 BR-Wh: the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","U20 BR-Wpermh: B’s save: did not write over a copy without asking (by lineage)","U20 BR-Wpermh: the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","U20 BR-Wpermh: the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","OUT BR-C2ah: B’s save: did not write over a copy without asking (by lineage)","OUT BR-C2ah: the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","OUT BR-C2ah: the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]","OUT BR-C2bh: the next Save: did not write over a copy without asking (by lineage)"]

@@ -1,0 +1,11 @@
+# label: FR-vpaste-chromium
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/verifier/vpaste.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/c1
+# start: 2026-10-13 05:37:55 EDT
+# cap: 600 s, kill grace 10 s
+textarea holds         ["61","b","62","1","63","7","64","1f","65","9","66"]
+input after Ctrl+V     ["61","b","62","1","63","7","64","1f","65","9","66"]
+input after insertText ["78","b","79","1","7a"]
+chromium 141.0.7390.37
+
+# end: 2026-10-13 05:37:57 EDT  exit: 0  wall_s: 1.3

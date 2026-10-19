@@ -3509,7 +3509,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, at, 'the header says so for as long as it is kept', /work kept aside/.test(header(R.ev)), true);
     chk(name, at, 'and 📁 File offers to put it back', /Put back work kept aside/.test(R.ev(`document.getElementById('dd_share')? document.getElementById('dd_share').textContent : ''`)), true);
     R.ev(`globalThis.__yes=true; keptPutBack(); 'ok'`);
-    chk(name, at, 'one click puts it back', note(R.ev, 'A') + '|' + note(R.ev, 'B') + '|' + R.ev(`String(localStorage.getItem(_AP.key+'.kept')===null)`), 'BRAD NOTE||true');
+    // v2.00 (U19): what was on screen -- the colleague's save, in no copy this board can reach but the file -- is kept aside in its place
+    chk(name, at, 'one click puts it back, and what was on screen (the colleague’s copy, saved only in the file) is kept aside in its place',
+      note(R.ev, 'A') + '|' + note(R.ev, 'B') + '|' + R.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept')||''; return String(/COLLEAGUE NOTE/.test(s) && !/BRAD NOTE/.test(s)); })()`), 'BRAD NOTE||true');
     const f = disk(R.w, F2);
     const q = await saveNow(R.ev, false);
     chk(name, at, 'and Save, put back, asks before writing over the colleague’s file', q.length === 1 && /HOLD ON/.test(q[0]) && f.writes === 0, true);
@@ -6853,6 +6855,4562 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v1.97 W6 ====
+// ==== v2.00 (R3): a locked view is never written to the working folder ====
+// A folder save checked for a locked cycle on screen only before its first wait. Put on screen while the save read the
+// folder's copy, the locked plan was built into the bytes, written over the working plan's copy with that copy kept as
+// history, and the board said "Saved". The save now asks again once the copy is read.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R3) — a locked view is never written to the working folder';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // PB27 is locked holding LOCKED; the folder's copy holds WORKING, saved; WORKING TWO is on screen, unsaved.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(5);     // the opening's own bookkeeping runs once the page has loaded
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','WORKING'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','WORKING TWO'); 'ok'`);
+    return { A, fold, K: w3Hook(fold) };
+  };
+  // The call is held at its read of the folder's copy; `during` runs there. What it wrote is every close the folder saw.
+  const held = async (A, fold, K, call, during) => {
+    const raw = fold.raw(2027), h0 = J(w3Hist(fold)), l0 = fold.log.length, n0 = K.hits.mainRead || 0;
+    K.hold.mainRead = gate(); const g = K.hold.mainRead;
+    const p = A.ev(call);
+    const reached = await until(() => (K.hits.mainRead || 0) > n0);
+    if (during) A.ev(during + `; 'ok'`);
+    g.open(); const ret = await p;
+    return { raw, reached, ret, same: fold.raw(2027) === raw && J(w3Hist(fold)) === h0, wrote: fold.log.slice(l0) };
+  };
+  // (a) SAVE, AND PB27 PUT ON SCREEN WHILE THE FOLDER'S COPY IS READ: nothing is written -- not the copy, not its
+  // history, not the lock -- the folder keeps its bytes, the save does not report success, and the board says why.
+  { const { A, fold, K } = await fresh();
+    const r = await held(A, fold, K, 'driveStorePush(false)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(a) PB27 put on screen during the read', 'the save reached the read and waited there; PB27 is then on screen', J([r.reached, A.ev('CYCVIEW')]), J([true, 'PB|2027']));
+    chk(name, '(a) PB27 put on screen during the read', 'nothing is written to the folder (no copy, no history, no lock), and it is byte-identical', J([r.wrote, r.same]), J([[], true]));
+    chk(name, '(a) PB27 put on screen during the read', 'the save does not tell its caller it saved', !!r.ret, false);
+    chk(name, '(a) PB27 put on screen during the read', 'the board does not say saved, and says writing to the folder is off', J([/Saved/.test(st), /Writing to the shared folder is off while/.test(st)]), J([false, true]));
+    A.ev(`cycLeave(); 'ok'`);
+    chk(name, '(a) then the view left', 'the working plan is back, still unsaved', J([A.ev('String(S.notes.A)'), A.ev('String(DIRTY)')]), J(['WORKING TWO', 'true']));
+    await A.ev('driveStorePush(false)');
+    chk(name, '(a) then the view left', 'the next Save writes the working plan (a CONTROL)', J([fold.note(2027, 'A'), A.ev('String(DIRTY)')]), J(['WORKING TWO', 'false'])); }
+  // (b) ⬆ PUBLISH NOW IS THE FOLDER SAVE: the same, and no publish is recorded.
+  { const { A, fold, K } = await fresh(); A.ev(`LIVEDB.pub=1; 'ok'`);
+    const r = await held(A, fold, K, 'livePublish(false)', `cycView('PB|2027')`);
+    chk(name, '(b) ⬆ Publish now, PB27 put on screen during the read', 'nothing is written, it reports failure, and no publish is recorded',
+      J([r.reached, r.wrote, r.same, r.ret, A.ev('LIVEDB.pub')]), J([true, [], true, false, 1])); }
+  // (c) CONTROL: the same save held at the same read, the working plan left on screen, writes it and says so.
+  { const { A, fold, K } = await fresh();
+    const r = await held(A, fold, K, 'driveStorePush(false)', '');
+    chk(name, '(c) nothing put on screen during the read (a CONTROL)', 'the delayed save writes the working plan, keeps the copy it replaced, and says saved',
+      J([r.reached, r.ret, fold.note(2027, 'A'), Object.values(w3Hist(fold)).includes(r.raw), /✅ Saved/.test(status(A.ev)), A.ev('String(DIRTY)')]),
+      J([true, true, 'WORKING TWO', true, true, 'false'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R3) ====
+// ==== v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan ====
+// The later window R3 does not refuse: PB27 put on screen AFTER the save built its bytes, while its copy is being written. The
+// folder rightly gets the working plan; the board said "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 …" (persist()'s
+// own refusal in the view put the prefix there), which read as a refusal and named no plan. It now says the working plan was
+// saved and the locked view was not. Nothing written or flagged changes. FAILS ON 7e0764d except the CONTROLs.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R3) — a save that lands under a locked view says it saved the working plan';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, flags, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // PB27 is locked holding LOCKED; the folder's copy holds WORKING, saved; WORKING TWO is on screen, unsaved.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(5);     // the opening's own bookkeeping runs once the page has loaded
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','WORKING'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','WORKING TWO'); 'ok'`);
+    return { A, fold };
+  };
+  // A folder save held at the close of its write of the copy itself -- its bytes already built; `during` runs there.
+  const held = async (A, fold, call, during) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev(call);
+    const reached = await until(() => (fold.hits.main || 0) > n0);
+    if (during) A.ev(during + `; 'ok'`);
+    g.open(); const ret = await p; const fl = flags(A.ev);
+    return { reached, ret, view: A.ev('String(CYCVIEW)'), folder: fold.note(2027, 'A'), unsaved: [fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty] };
+  };
+  const kept = (fold, note) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => { try { return JSON.parse(t).store.years['2027'].notes.A === note; } catch (e) { return false; } });
+  const SAID = /^✅ Saved the working plan of O&M FY27 to the shared folder — \d+ KB, built before PB27 was put on screen\. PB27 is a locked view: nothing in it is saved\. Everyone sees the working plan on their next refresh\.$/;
+  // (a) SAVE, AND PB27 PUT ON SCREEN WHILE THE COPY IS BEING WRITTEN: the folder gets the working plan, the copy it replaced is kept,
+  // the board reads saved, and the message says the working plan was saved and the locked view was not -- no "Not kept".
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(false)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(a) PB27 put on screen during the write', 'the save waited at its write, then landed: WORKING TWO in the folder, WORKING kept in history, saved (a CONTROL)',
+      J([r.reached, r.ret, r.view, r.folder, kept(fold, 'WORKING'), ...r.unsaved]), J([true, true, 'PB|2027', 'WORKING TWO', true, false, false, false]));
+    chk(name, '(a) PB27 put on screen during the write', 'the board says it saved the working plan, built before PB27 was put on screen, and that nothing in PB27 is saved',
+      J([SAID.test(st), /Not kept/.test(st)]), J([true, false])); }
+  // Not checked here: after leaving the view the screen reads unsaved (cycLeave puts back the flag cycView kept) though the
+  // folder and this browser's record hold the working plan -- tracked and proposed to Brad separately; a message change only.
+  // (b) THE QUIET AUTOSAVE: it said nothing on success, so persist()'s refusal ("Writing to browser storage is off … not kept") was
+  // left on screen. It says the same as (a).
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(true)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(b) the quiet autosave, PB27 put on screen during the write', 'the working plan saved, and the board says so, with no "not kept"',
+      J([r.ret, r.folder, SAID.test(st), /not kept/i.test(st)]), J([true, 'WORKING TWO', true, false])); }
+  // (c) CONTROL: the same held save with nothing put on screen says Saved as before.
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(false)', ''), st = status(A.ev);
+    chk(name, '(c) nothing put on screen during the write (a CONTROL)', 'the save writes the working plan and says Saved O&M FY27 as before',
+      J([r.ret, r.folder, /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\./.test(st), SAID.test(st)]),
+      J([true, 'WORKING TWO', true, false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R3) message ====
+
+// ==== v2.00 R4: Save and the mixed-import hold (R4, R4b) ====
+// v2.00 (R4): A SAVE ALREADY WAITING DOES NOT WRITE PAST A MIXED-IMPORT HOLD. _saveInPlaceFileRun checked the hold once,
+// before it waited for the board file's read. A full import that stopped part-way during that wait, and could not be put
+// back, set the hold; the Save then built its bytes from the mix and wrote them over the board file -- the one whole copy
+// of the board as it was. Here the read is held, the import fails while it waits (browser storage refuses the
+// reprogramming log and every write after it, putting back included), and then the read is let go.
+// FAILS ON 1c94537 (the file is opened and written, and the board says it saved).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R4) — a save already waiting does not write past a mixed-import hold';
+  try {
+    const { NEW, OLD } = w2Fx();
+    const { J, wire, KEY, status, disk, gate, until } = W1H;
+    for (const withImport of [false, true]) {
+      const at = withImport ? 'the import stops part-way during the read' : 'CONTROL — nothing happens during the read';
+      const T = boot({ html: OLD.html, ls: OLD.ls });
+      wire(T.ev, 'brad', KEY.brad);
+      const f = disk(T.w, OLD.html), g = gate(); f.hold.read = g;
+      const p = T.ev('saveInPlaceFile()');
+      const reached = await until(() => (f.hits.read || 0) >= 1);
+      chk(name, at, 'the save reached the file’s read and waits there (a control)', J([reached, f.hits.open || 0, f.writes]), J([true, 0, 0]));
+      if (withImport) {
+        const r = w2Import(T, NEW.html, 'stuck', 8);
+        chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)',
+          J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]), J([false, true, 'true']));
+      }
+      g.open(); await p;
+      if (!withImport) {
+        chk(name, at, 'the save opens and writes the board file once', J([f.hits.open || 0, f.writes]), J([1, 1]));
+        continue;
+      }
+      chk(name, at, 'nothing is written: the file is never opened for writing', J([f.hits.open || 0, f.writes]), J([0, 0]));
+      chk(name, at, 'the board file keeps its bytes', f.content === OLD.html, true);
+      chk(name, at, 'the board says the save is refused, and that nothing writes over the board file',
+        /Saving to the board file is refused/.test(status(T.ev)) && /nothing writes over it/.test(status(T.ev)), true);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.00 (R4b): A SAVE ASKED FOR WHILE THE HOLD IS ALREADY ON IS REFUSED BEFORE THE FILE IS TOUCHED. Brad's contract
+// (11 Oct): "a Save requested while the mixed-import hold is already active must refuse immediately, before file access.
+// Clearing the hold later must not resume that refused request." Since R4 checks the hold again after the read, a Save
+// that skipped the first check is still refused -- after asking for permission and reading the file -- so the v1.95
+// block above no longer sees that check go. The file here counts every permission request, read and open. A Save starts a
+// turn after it is asked for (saveSerial), so the hold is cleared only once the request has been decided: refused,
+// finished, or arrived at the file's read.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched';
+  try {
+    const { NEW, OLD } = w2Fx();
+    const { J, wire, KEY, status, disk, gate, until, tick } = W1H;
+    for (const [at, hold, delayRead] of [['CONTROL — no hold', false, false], ['hold on, read not held', true, false],
+                                         ['hold on, cleared after the refusal (a held read is reached only if the first check is gone)', true, true]]) {
+      const T = boot({ html: OLD.html, ls: OLD.ls });
+      if (hold) w2Import(T, NEW.html, 'stuck', 8);
+      wire(T.ev, 'brad', KEY.brad);
+      chk(name, at, 'the hold is ' + (hold ? 'on' : 'off') + ' before the Save is asked for (a control)', T.ev('String(impMixedOn())'), String(hold));
+      const f = disk(T.w, OLD.html), g = gate(); if (delayRead) f.hold.read = g;
+      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
+      const touched = () => `perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0}`;
+      let decided = false;
+      Promise.resolve(T.ev('saveInPlaceFile()')).then(() => { decided = true; });
+      await until(() => decided || (f.hits.read || 0) >= 1);
+      if (!hold) {
+        await until(() => decided);
+        chk(name, at, 'the Save asks for permission, reads, opens and writes the board file once', touched() + ' · writes ' + f.writes, 'perm 1 · read 1 · open 1 · writes 1');
+        continue;
+      }
+      chk(name, at, 'refused before the file is touched: no permission request, no read, no open', touched(), 'perm 0 · read 0 · open 0');
+      chk(name, at, 'Save is refused at once: the request is over, and the board says so', J([decided, /Saving to the board file is refused/.test(status(T.ev))]), J([true, true]));
+      if (delayRead) {
+        T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);    // allowed again (confirm answered yes), while a read would be held
+        chk(name, at, 'the hold is cleared (a control)', T.ev('String(impMixedOn())'), 'false');
+        for (let i = 0; i < 200; i++) await tick();
+        g.open();
+      }
+      await until(() => decided);
+      chk(name, at, (delayRead ? 'clearing the hold does not bring the refused Save back: ' : '') + 'nothing is written', J([f.hits.open || 0, f.writes]), J([0, 0]));
+      chk(name, at, 'the board file keeps its bytes', f.content === OLD.html, true);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 R4 ====
+// ==== v2.00 (U3): a Save asked for during the mixed-import hold is refused at once, never queued ====
+// v2.00 (U3): R4b's contract (Brad, 11 Oct): "a Save requested while the mixed-import hold is already active must refuse
+// immediately, before file access. Clearing the hold later must not resume that refused request." With another save under
+// way, such a Save was queued instead ("⏳ A save is already under way — this one runs as soon as it finishes") and checked
+// only when its turn came. If saving was allowed again first, it ran and wrote: for the board file, the mix -- the imported
+// Full Fund plan -- over the one whole copy of the board as it was. Here save A is held at the close of its write, the import
+// stops part-way and cannot be put back, request B is asked for, saving is allowed again ("allow saving again…", answered
+// yes), and A is let go. B is each way a save is asked for: the board file's Save, 💾 Save and Take the pen on the board
+// file; 💾 Save, ⬆ Publish now, Save yours over theirs and Load theirs working out of the shared folder; and the quiet
+// autosave, which is over at once and says nothing. With nothing else saving, Take the pen is refused before it reads the
+// board file or the folder's copy, or asks. The controls: asked for again once saving is allowed, it writes; with no hold,
+// B waits its turn and writes after A; and a Save asked for BEFORE the hold, still waiting its turn when the hold comes, is
+// refused when its turn comes while the hold still stands, before the file or the folder's copy is read (kept behaviour).
+// If saving is allowed again before its turn, that Save runs and writes, as the question that allows it warns ("The next
+// save writes the board on screen, and that mix ... over the board file"); that case is not checked here.
+// FAILS ON 7ee498a (board fce8a391): B waits its turn and writes after A -- perm 2 · read 2 · open 2 · writes 2, the board
+// file holding the imported Full Fund plan; in the folder, a second write and a second history copy, and Load theirs reads
+// the folder's copy again; the autosave says it waits its turn, over the import's message, then writes the folder's copy;
+// Take the pen with nothing else saving reads the board file or the folder's copy and asks first.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U3) — a Save asked for during the mixed-import hold is refused at once, never queued';
+  try {
+    const { NEW, OLD } = w2Fx();
+    const { J, wire, KEY, status, qs, disk, folder, connect, gate, until, tick, pause } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const QUEUED = /A save is already under way/;
+    // Which generation of the Full Fund plan a board file holds, read from its text.
+    const fileFF = html => { const m = String(html).match(/id="pubState">([\s\S]*?)<\/script>/);
+      const s = JSON.stringify(((JSON.parse(m[1]).appns || {}).ff || {}).years || {});
+      return /NEW/.test(s) && /OLD/.test(s) ? 'BOTH' : /NEW/.test(s) ? 'NEW' : /OLD/.test(s) ? 'OLD' : 'none'; };
+    // THE BOARD FILE: save A held at the close of its write; every permission request, read and open counted.
+    const inFile = async () => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const f = disk(T.w, OLD.html);
+      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
+      const touched = () => `perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0} · writes ${f.writes}`;
+      const g = gate(); f.hold.close = g;
+      const pA = T.ev('saveInPlaceFile()');
+      const held = await until(() => (f.hits.close || 0) >= 1);
+      return { T, f, touched, g, pA, held };
+    };
+    // THE SHARED FOLDER: the board's first copy saved, a note typed, save A held at the close of its write of the copy;
+    // every read of the folder's copy counted.
+    const inFolder = async () => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const NM = 'spmt-' + T.ev('MS.cur') + '-om.json', gh = fold.dir.getFileHandle; let reads = 0;
+      fold.dir.getFileHandle = async (n, o) => { if (n === NM && !(o && o.create)) reads++; return gh(n, o); };
+      await T.ev('saveInPlace()');
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const g = gate(); fold.hold.main = g;
+      const pA = T.ev('saveInPlace()');
+      const held = await until(() => (fold.hits.main || 0) >= 2);
+      return { T, fold, reads: () => reads, g, pA, held };
+    };
+    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
+      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
+    const ask = async (T, how) => { const o = { decided: false, q0: qs(T.ev).length }; o.p = Promise.resolve(T.ev(how)).then(() => { o.decided = true; }); await turns(60); return o; };
+    for (const [how, words, label] of [['saveInPlaceFile()', 'Saving to the board file', 'the board file’s Save'],
+                                        ['saveInPlace()', 'Saving to the board file', '💾 Save'],
+                                        ['takePen()', 'Taking the pen', 'Take the pen']]) {
+      const at = label + ' on the board file, with a save under way';
+      const { T, f, touched, g, pA, held } = await inFile();
+      chk(name, at, 'save A is held at the close of its write (a control)', J([held, touched()]), J([true, 'perm 1 · read 1 · open 1 · writes 0']));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const b = await ask(T, how);
+      chk(name, at, 'refused at once: the request is over, nothing more is touched or asked, and it is not queued',
+        J([b.decided, touched(), qs(T.ev).length - b.q0, QUEUED.test(status(T.ev))]), J([true, 'perm 1 · read 1 · open 1 · writes 0', 0, false]));
+      chk(name, at, 'the board says ' + words.toLowerCase() + ' is refused, and that nothing writes over the board file',
+        new RegExp(words + ' is refused').test(status(T.ev)) && /nothing writes over it/.test(status(T.ev)), true);
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      chk(name, at, 'saving is allowed again (a control)', T.ev('String(impMixedOn())'), 'false');
+      g.open(); await pA; await until(() => b.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote, and the board file holds no imported plan',
+        J([touched(), fileFF(f.content)]), J(['perm 1 · read 1 · open 1 · writes 1', 'OLD']));
+      const w0 = f.writes; await T.ev('saveInPlaceFile()');
+      chk(name, at, 'CONTROL — asked for again now saving is allowed, Save writes', J([f.writes - w0, /Saved in place/.test(status(T.ev))]), J([1, true]));
+    }
+    for (const [how, words, label] of [['saveInPlace()', 'Writing to the shared folder', '💾 Save'],
+                                        ['driveStorePush(false)', 'Writing to the shared folder', '⬆ Publish now'],
+                                        [`driveResolve('mine')`, 'Choosing between the copies', 'Save yours over theirs'],
+                                        [`driveResolve('theirs')`, 'Choosing between the copies', 'Load theirs']]) {
+      const at = label + ' working out of the shared folder, with a save under way';
+      const { T, fold, reads, g, pA, held } = await inFolder();
+      const r0 = reads(), h0 = fold.hist().length;
+      chk(name, at, 'save A is held at the close of its write (a control)', held, true);
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const b = await ask(T, how);
+      chk(name, at, 'refused at once: the request is over, the folder’s copy is not read again, nothing is asked, and it is not queued',
+        J([b.decided, reads() - r0, qs(T.ev).length - b.q0, QUEUED.test(status(T.ev))]), J([true, 0, 0, false]));
+      chk(name, at, 'the board says ' + words.toLowerCase() + ' is refused', new RegExp(words + ' is refused').test(status(T.ev)), true);
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      g.open(); await pA; await until(() => b.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote the folder’s copy, nothing more was read, nothing more kept in its history',
+        J([fold.hits.main || 0, reads() - r0, fold.hist().length - h0]), J([2, 0, 0]));
+      const m0 = fold.hits.main || 0; await T.ev('saveInPlace()');
+      chk(name, at, 'CONTROL — asked for again now saving is allowed, 💾 Save writes', J([(fold.hits.main || 0) - m0, /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J([1, true]));
+    }
+    // THE QUIET AUTOSAVE, asked for under the hold behind a 💾 Save of the folder under way: over at once and quiet. Not
+    // queued, it reports no save, and the import's own message, with its buttons, stays on the message line.
+    {
+      const at = 'the autosave working out of the shared folder, with a save under way';
+      const { T, fold, g, pA, held } = await inFolder();
+      chk(name, at, 'save A is held at the close of its write, the import stopped part-way, could not be put back, and the hold is on (a control)',
+        J([held, stop(T)]), J([true, J([false, true, 'true'])]));
+      const s1 = status(T.ev), h0 = fold.hist().length;
+      const o = { decided: false }; o.p = Promise.resolve(T.ev('driveStorePush(true)')).then(v => { o.decided = true; o.v = v; });
+      await turns(60);
+      chk(name, at, 'refused at once and quietly: over, not queued, it reports no save, and the message line is the import’s own, unchanged',
+        J([o.decided, o.v, QUEUED.test(status(T.ev)), status(T.ev) === s1]), J([true, false, false, true]));
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      g.open(); await pA; await until(() => o.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote the folder’s copy, nothing more kept in its history',
+        J([fold.hits.main || 0, fold.hist().length - h0]), J([2, 0]));
+    }
+    // TAKE THE PEN WITH NOTHING ELSE SAVING, under the hold: refused before it reads the board file, or the folder's copy,
+    // and before it asks.
+    {
+      const at = 'Take the pen on the board file, with nothing else saving';
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const f = disk(T.w, OLD.html);
+      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const q0 = qs(T.ev).length;
+      await T.ev('takePen()'); await turns(30);
+      chk(name, at, 'nothing is read, opened or written, and nothing is asked',
+        J([`perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0} · writes ${f.writes}`, qs(T.ev).length - q0]), J(['perm 0 · read 0 · open 0 · writes 0', 0]));
+      chk(name, at, 'the board says taking the pen is refused', /Taking the pen is refused/.test(status(T.ev)), true);
+    }
+    {
+      const at = 'Take the pen from Alice working out of the shared folder, with nothing else saving';
+      const fold = folder();
+      const A = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+      A.ev(`setNote('A','ALICE-1'); 'ok'`); await pause(5); await A.ev('saveInPlace()');
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(T.ev, 'brad', KEY.brad); connect(T.ev, T.w, fold);
+      await T.ev('driveStorePull(false)');
+      const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json', gh = fold.dir.getFileHandle; let reads = 0;
+      fold.dir.getFileHandle = async (n, o) => { if (n === NM && !(o && o.create)) reads++; return gh(n, o); };
+      chk(name, at, 'Brad’s board loaded Alice’s copy, the import stopped part-way, could not be put back, and the hold is on (a control)',
+        J([T.ev(`String(S.notes.A||'')`), stop(T)]), J(['ALICE-1', J([false, true, 'true'])]));
+      const q0 = qs(T.ev).length, m0 = fold.hits.main || 0;
+      await T.ev('takePen()'); await turns(30);
+      chk(name, at, 'the folder’s copy is not read or written, and nothing is asked', J([reads, (fold.hits.main || 0) - m0, qs(T.ev).length - q0]), J([0, 0, 0]));
+      chk(name, at, 'the board says taking the pen is refused', /Taking the pen is refused/.test(status(T.ev)), true);
+    }
+    // CONTROL -- NO HOLD: B waits its turn behind A, as it always has, and writes after it.
+    {
+      const at = 'CONTROL — no hold: the board file’s Save, with a save under way';
+      const { T, f, touched, g, pA } = await inFile();
+      const b = await ask(T, 'saveInPlaceFile()');
+      chk(name, at, 'B waits its turn, and the board says so', J([b.decided, QUEUED.test(status(T.ev)), touched()]), J([false, true, 'perm 1 · read 1 · open 1 · writes 0']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'then B writes, after A', J([touched(), fileFF(f.content)]), J(['perm 2 · read 2 · open 2 · writes 2', 'OLD']));
+    }
+    // A SAVE ASKED FOR BEFORE THE HOLD, still waiting its turn when the hold comes: refused when its turn comes while the
+    // hold still stands, before the file or the folder's copy is read (the check at the start of its turn; R4's after the
+    // read is the one behind it). Kept behaviour: these pass before the change too.
+    {
+      const at = 'the board file’s Save asked for before the hold, waiting its turn';
+      const { T, f, touched, g, pA } = await inFile();
+      const b = await ask(T, 'saveInPlaceFile()');
+      chk(name, at, 'B waits its turn (a control)', J([b.decided, QUEUED.test(status(T.ev))]), J([false, true]));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'refused when its turn comes, before the file is touched: A alone asked, read, opened and wrote (kept behaviour)',
+        J([touched(), /Saving to the board file is refused/.test(status(T.ev))]), J(['perm 1 · read 1 · open 1 · writes 1', true]));
+    }
+    {
+      const at = '💾 Save working out of the shared folder, asked for before the hold, waiting its turn';
+      const { T, fold, reads, g, pA } = await inFolder();
+      const r0 = reads();
+      const b = await ask(T, 'saveInPlace()');
+      chk(name, at, 'B waits its turn (a control)', J([b.decided, QUEUED.test(status(T.ev))]), J([false, true]));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'refused when its turn comes, before the folder’s copy is read: A alone wrote it (kept behaviour)',
+        J([fold.hits.main || 0, reads() - r0, /Writing to the shared folder is refused/.test(status(T.ev))]), J([2, 0, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U3) ====
+// ==== v2.00 (U4): the folder save checks the mixed-import hold after its read and before its write ====
+// v2.00 (U4): _driveStorePushRun checked the hold once, before it read the folder's copy. A full import that stopped part-way
+// during that read, or while the copy it read was being kept in the folder's history, set the hold, and the save went on: it
+// wrote over the folder's copy and said "✅ Saved" with the hold on. The hold is now checked again after the read and after
+// the history copy, the last wait before the write. Here the board's first copy is saved and a note is typed; 💾 Save is held
+// at its read of the folder's copy, or at the close of its history copy; the import stops part-way there; the save is let
+// go. Take the pen from Alice is held the same way; so is the quiet autosave, which is refused and says nothing; a note
+// typed while the history copy is kept keeps its own stamp; the header's saved time stays what it was. Save yours over
+// theirs and Load theirs (_driveResolveRun) read the folder's copy too: an import that stopped part-way during that read,
+// or while their copy was being kept in the history, let Save yours over theirs ask, keep their copy and record it as the
+// one being replaced, so that once saving was allowed again the autosave wrote over their copy without asking; Load theirs
+// loaded it. They check the hold again after the read and after keeping their copy. The controls: the same holds with
+// nothing happening there write and say Saved, and once saving is allowed again 💾 Save writes the note.
+// FAILS ON 7ee498a (board fce8a391): every held save writes the folder's copy and says "✅ Saved" with the hold on (the
+// autosave says nothing and reports a save); Take the pen leaves Brad the writer and a line in the journal saying he took
+// the pen; the note typed meanwhile is written; Save yours over theirs records their copy, and the autosave then writes over
+// it; Load theirs loads their copy over the board.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write';
+  try {
+    const { NEW, OLD } = w2Fx();
+    const { J, wire, KEY, status, qs, folder, connect, gate, until, tick, pause } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const stamp = ev => ev('JSON.stringify([MS.ts, MS.by])');      // the board's own stamp: the header's "Saved" time, and by whom
+    const pens = ev => +ev(`(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(writer)'; }).length`);
+    const histNew = (fold, h0) => Object.keys((fold.root.dirs.history || { files: {} }).files).filter(n => !(n in h0)).map(n => fold.root.dirs.history.files[n]);
+    const hist0 = fold => Object.assign({}, (fold.root.dirs.history || { files: {} }).files);
+    // `at` 'read': the save's read of the folder's copy is held; 'hist': the close of its history copy.
+    const holdAt = (fold, NM, at) => { const g = gate(); let hit = () => (fold.hits.hist || 0) >= 1;
+      if (at === 'read') { const gh = fold.dir.getFileHandle; let n = 0;
+        fold.dir.getFileHandle = async (nm, o) => { if (!n && nm === NM && !(o && o.create)) { n = 1; await g.p; } return gh(nm, o); };
+        hit = () => n === 1; }
+      else fold.hold.hist = g;
+      return { g, hit }; };
+    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
+      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
+    for (const [at, withImport] of [['read', true], ['hist', true], ['read', false], ['hist', false]]) {
+      const where = (at === 'read' ? '💾 Save held at its read of the folder’s copy' : '💾 Save held at the close of its history copy')
+        + (withImport ? ', the import stops part-way there' : ' (a CONTROL: nothing happens there)');
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json';
+      await T.ev('saveInPlace()');
+      const v1 = fold.raw(fy);
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const s0 = stamp(T.ev), h0 = hist0(fold), m0 = fold.hits.main || 0;
+      const { g, hit } = holdAt(fold, NM, at);
+      const p = T.ev('saveInPlace()');
+      const reached = await until(hit);
+      if (withImport) chk(name, where, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await p; await turns(30);
+      if (!withImport) {
+        chk(name, where, 'the save writes the folder’s copy once, with the note, and says Saved',
+          J([reached, (fold.hits.main || 0) - m0, fold.note(fy, 'A'), /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J([true, 1, 'EDIT-1', true]));
+        continue;
+      }
+      chk(name, where, 'nothing is written over the folder’s copy: it keeps its bytes', J([reached, (fold.hits.main || 0) - m0, fold.raw(fy) === v1]), J([true, 0, true]));
+      chk(name, where, at === 'read' ? 'nothing is kept in the history either: the save stopped before it' : 'the history keeps the folder’s copy as it was read, once (kept behaviour)',
+        J(histNew(fold, h0).map(t => t === v1)), J(at === 'read' ? [] : [true]));
+      chk(name, where, 'the board says writing to the shared folder is refused, and does not say Saved',
+        J([/Writing to the shared folder is refused/.test(status(T.ev)), /✅ Saved/.test(status(T.ev))]), J([true, false]));
+      chk(name, where, 'the note typed stays unsaved, and the board’s stamp is what it was before the save', J([T.ev('String(DIRTY)'), stamp(T.ev) === s0]), J(['true', true]));
+      if (at === 'read') {
+        T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+        const m1 = fold.hits.main || 0; await T.ev('saveInPlace()');
+        chk(name, where, 'CONTROL — once saving is allowed again, 💾 Save writes the note and says Saved',
+          J([T.ev('String(impMixedOn())'), (fold.hits.main || 0) - m1, fold.note(fy, 'A'), /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J(['false', 1, 'EDIT-1', true]));
+      }
+    }
+    // TAKE THE PEN FROM ALICE, held at the close of its history copy, the import stopping part-way there. Alice saves the
+    // folder's first copy (its writer); Brad's board loads it and takes the pen.
+    {
+      const where = 'Take the pen from Alice, held at the close of its history copy, the import stops part-way there';
+      const fold = folder();
+      const A = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+      const fy = +A.ev('MS.cur');
+      A.ev(`setNote('A','ALICE-1'); 'ok'`); await pause(5); await A.ev('saveInPlace()');
+      const v1 = fold.raw(fy), writer = () => ((fold.copy(fy) || {}).writer || {}).by || '';
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(T.ev, 'brad', KEY.brad); connect(T.ev, T.w, fold);
+      await T.ev('driveStorePull(false)');
+      chk(name, where, 'Alice holds the pen, and Brad’s board loaded her copy (a control)', J([writer(), T.ev(`String(S.notes.A||'')`)]), J(['Alice', 'ALICE-1']));
+      const s0 = stamp(T.ev), j0 = pens(T.ev), h0 = hist0(fold), m0 = fold.hits.main || 0;
+      const g = gate(); fold.hold.hist = g;
+      const p = T.ev('takePen()');
+      const reached = await until(() => (fold.hits.hist || 0) >= 1);
+      chk(name, where, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await p; await turns(30);
+      chk(name, where, 'nothing is written: the folder’s copy keeps its bytes, and Alice still holds the pen',
+        J([reached, (fold.hits.main || 0) - m0, fold.raw(fy) === v1, writer()]), J([true, 0, true, 'Alice']));
+      chk(name, where, 'the journal does not say Brad took the pen, and the board’s stamp is what it was', J([pens(T.ev) - j0, stamp(T.ev) === s0]), J([0, true]));
+      chk(name, where, 'the board says writing to the shared folder is refused, and does not say Saved',
+        J([/Writing to the shared folder is refused/.test(status(T.ev)), /✅ Saved/.test(status(T.ev)), histNew(fold, h0).map(t => t === v1)]), J([true, false, [true]]));
+    }
+    // THE SAME WAITS, MORE CLOSELY: the save, or the quiet autosave, held at `hold`, the import stopping part-way there.
+    // `between` runs at the wait, before the import stops; `before`, before the save is asked for.
+    const tip = ev => { const t = ev(`(document.getElementById('saveState')||{}).title||''`); return t.slice(0, t.indexOf('. ')); };
+    const folderAt = async (hold, how, between, before) => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json';
+      await T.ev('saveInPlace()');
+      const v1 = fold.raw(fy);
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      if (before) before(T);
+      const t0 = tip(T.ev), h0 = hist0(fold), m0 = fold.hits.main || 0;
+      const { g, hit } = holdAt(fold, NM, hold);
+      const p = T.ev(how);
+      const reached = await until(hit);
+      if (between) await between(T);
+      const ctl = stop(T), s1 = status(T.ev);
+      g.open(); const ret = await p; await turns(30);
+      return { T, fold, fy, v1, h0, m0, reached, ctl, s1, ret, t0 };
+    };
+    // A NOTE TYPED while the save's history copy is being kept: the hold stops the save, and the note keeps its own stamp.
+    {
+      const where = '💾 Save held at the close of its history copy, a note typed there, then the import stops part-way';
+      let se = null;
+      const r = await folderAt('hist', 'saveInPlace()', async T => { await pause(5); T.ev(`setNote('B','EDIT-2'); 'ok'`); se = stamp(T.ev); });
+      chk(name, where, 'reached, and the hold is on (a control)', J([r.reached, r.ctl]), J([true, J([false, true, 'true'])]));
+      chk(name, where, 'nothing is written over the folder’s copy, and the board says writing to the shared folder is refused',
+        J([(r.fold.hits.main || 0) - r.m0, r.fold.raw(r.fy) === r.v1, /Writing to the shared folder is refused/.test(status(r.T.ev))]), J([0, true, true]));
+      chk(name, where, 'the note typed during the save keeps its stamp, and the board stays unsaved (kept behaviour: before the change the save wrote it, stamp and all)',
+        J([stamp(r.T.ev) === se, r.T.ev('String(DIRTY)')]), J([true, 'true']));
+    }
+    // THE QUIET AUTOSAVE held at its read, and at the close of its history copy: refused, and quietly.
+    for (const at of ['read', 'hist']) {
+      const where = 'the autosave held ' + (at === 'read' ? 'at its read of the folder’s copy' : 'at the close of its history copy') + ', the import stops part-way there';
+      const r = await folderAt(at, 'driveStorePush(true)');
+      chk(name, where, 'reached, and the hold is on (a control)', J([r.reached, r.ctl]), J([true, J([false, true, 'true'])]));
+      chk(name, where, 'nothing is written, it reports no save, and the message line is the import’s own, unchanged',
+        J([(r.fold.hits.main || 0) - r.m0, r.fold.raw(r.fy) === r.v1, r.ret, status(r.T.ev) === r.s1]), J([0, true, false, true]));
+      chk(name, where, at === 'read' ? 'nothing is kept in the history either: the autosave stopped before it' : 'the history keeps the folder’s copy as it was read, once (kept behaviour)',
+        J(histNew(r.fold, r.h0).map(t => t === r.v1)), J(at === 'read' ? [] : [true]));
+    }
+    // THE HEADER'S "Saved <time> by <who>" (its tooltip, from the board's stamp) after a save the hold stopped at its history
+    // copy: what it said before that save. The stamp is set to a day long past first, so a save made now cannot read the same.
+    {
+      const where = '💾 Save held at the close of its history copy, the import stops part-way there: the header';
+      const r = await folderAt('hist', 'saveInPlace()', null, T => T.ev(`MS.ts=Date.UTC(2026,0,5,15,0,0); render(); 'ok'`));
+      chk(name, where, 'reached, and the hold is on (a control)', J([r.reached, r.ctl]), J([true, J([false, true, 'true'])]));
+      chk(name, where, 'the header’s saved time and name are what they were before the save', J([tip(r.T.ev) === r.t0, /Jan/.test(tip(r.T.ev))]), J([true, true]));
+    }
+    // SAVE YOURS OVER THEIRS AND LOAD THEIRS (driveResolve), held at the read of the folder's copy, or (Save yours over
+    // theirs) at the close of the copy of theirs it keeps in the history, the import stopping part-way there. Bob saved the
+    // folder's copy after Brad's board read it (a newer time, and a note of his), so Brad's 💾 Save offered the choice.
+    const resolveAt = async (at, which, withImport) => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json';
+      await T.ev('saveInPlace()'); await turns(10);
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const j = fold.copy(fy), t1 = +((j.store && j.store.ts) || j.ts) + 5000;
+      j.ts = t1; j.store.ts = t1; j.by = 'Bob'; j.store.years[fy].notes = Object.assign({}, j.store.years[fy].notes, { B: 'BOB-1' });
+      fold.root.files[NM] = JSON.stringify(j);
+      const theirs = fold.raw(fy), m0 = fold.hits.main || 0;
+      await T.ev('saveInPlace()'); await turns(10);
+      const clash = J([(fold.hits.main || 0) - m0, /Bob saved O&M FY27 to the shared folder/.test(status(T.ev))]);
+      const { g, hit } = holdAt(fold, NM, at);
+      const q0 = qs(T.ev).length;
+      const p = T.ev(`driveResolve(${J(which)})`);
+      const reached = await until(hit);
+      const qa = qs(T.ev).length - q0;      // asked before the import: stop() starts the record of questions afresh
+      const ctl = withImport ? stop(T) : '';
+      g.open(); await p; await turns(30);
+      const asked = withImport ? qa + qs(T.ev).length : qs(T.ev).length - q0;
+      const bob = () => Object.values((fold.root.dirs.history || { files: {} }).files).filter(t => /BOB-1/.test(t)).length;
+      const based = () => +T.ev('driveBaseOf(mySlug(), MS.cur)') === t1;
+      const screen = () => J([T.ev(`String(S.notes.A||'')`), T.ev(`String(S.notes.B||'')`)]);
+      return { T, fold, fy, theirs, m0, clash, reached, ctl, asked, bob, based, screen };
+    };
+    for (const [at, which] of [['read', 'mine'], ['hist', 'mine'], ['read', 'theirs']]) {
+      const where = (which === 'mine' ? 'Save yours over theirs' : 'Load theirs') + ' held '
+        + (at === 'read' ? 'at its read of the folder’s copy' : 'at the close of the copy of theirs it keeps in the history') + ', the import stops part-way there';
+      const r = await resolveAt(at, which, true);
+      chk(name, where, 'Brad’s 💾 Save met Bob’s newer copy and wrote nothing, the wait was reached, and the hold is on (a control)',
+        J([r.clash, r.reached, r.ctl]), J([J([0, true]), true, J([false, true, 'true'])]));
+      if (which === 'theirs')
+        chk(name, where, 'refused before it loads anything: nothing asked or written, their copy not recorded, and the board on screen keeps Brad’s note and not Bob’s',
+          J([r.asked, (r.fold.hits.main || 0) - r.m0, r.based(), r.screen()]), J([0, 0, false, J(['EDIT-1', ''])]));
+      else
+        chk(name, where, at === 'read' ? 'refused before it asks: nothing asked, nothing kept in the history, nothing written, and their copy not recorded as the one being replaced'
+                                       : 'asked before the hold came, and their copy stays kept in the history; nothing is written, and their copy is not recorded as the one being replaced',
+          J([r.asked, r.bob(), (r.fold.hits.main || 0) - r.m0, r.fold.raw(r.fy) === r.theirs, r.based()]), J(at === 'read' ? [0, 0, 0, true, false] : [1, 1, 0, true, false]));
+      chk(name, where, 'the board says choosing between the copies is refused, and does not say Saved or Loaded',
+        J([/Choosing between the copies is refused/.test(status(r.T.ev)), /✅ Saved|Loaded/.test(status(r.T.ev))]), J([true, false]));
+      r.T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      const m1 = r.fold.hits.main || 0, q1 = qs(r.T.ev).length;
+      const ret = await r.T.ev('driveStorePush(true)'); await turns(10);
+      chk(name, where, 'once saving is allowed again, the autosave does not write over their copy: nothing asked or written, Bob’s note stays, and the choice is offered again',
+        J([String(ret), qs(r.T.ev).length - q1, (r.fold.hits.main || 0) - m1, r.fold.note(r.fy, 'B'), /Bob saved O&M FY27 to the shared folder/.test(status(r.T.ev))]),
+        J(['false', 0, 0, 'BOB-1', true]));
+    }
+    {
+      const where = 'CONTROL — Save yours over theirs held at the close of the copy of theirs it keeps in the history, nothing happens there';
+      const r = await resolveAt('hist', 'mine', false);
+      chk(name, where, 'Brad’s 💾 Save met Bob’s newer copy and wrote nothing, and the wait was reached (a control)', J([r.clash, r.reached]), J([J([0, true]), true]));
+      chk(name, where, 'asked once; theirs is kept in the history, yours is written over it, and the board says Saved',
+        J([r.asked, r.bob() >= 1, (r.fold.hits.main || 0) - r.m0, r.fold.note(r.fy, 'A'), /✅ Saved O&M FY27 to the shared folder/.test(status(r.T.ev))]), J([1, true, 1, 'EDIT-1', true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U4) ====
+// ==== v2.00 (R5): a restore during a save stays unsaved ====
+// ↶ Put this back marked the board unsaved but did not count as a change. A folder save still writing when the copy was
+// put back found nothing changed while it wrote and marked the board saved: the earlier copy on screen, the save's copy in
+// the folder, and nothing on screen or in this browser's record saying they differ. The restore now counts as a change, and
+// records unsaved work as an edit does, so that save leaves the board unsaved and the next Save writes the copy put back.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R5) — a restore during a save stays unsaved';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, flags, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // FY27's folder history holds HISTORY, and its folder copy is CURRENT, saved: the board clean, the earlier copies listed.
+  // The folder is connected once the opening's own timers have run, the one that connects to the folder at 60 ms included.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80);
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','HISTORY'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','CURRENT'); 'ok'`); await A.ev('driveStorePush(false)');
+    await A.ev('driveHistShow()');
+    return { A, fold };
+  };
+  // A folder save held at the close of its write of the copy itself; `during` runs there, then the write lands. `view`: what
+  // is on screen, what the folder holds, and unsaved work as the screen (DIRTY), this browser (_baseDirty) and its record say.
+  const held = async (A, fold, during) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev('driveStorePush(false)');
+    const reached = await until(() => (fold.hits.main || 0) > n0);
+    if (during) await A.ev(during);
+    g.open(); const ret = await p; const fl = flags(A.ev);
+    return { reached, ret, view: [A.ev('String(S.notes.A)'), fold.note(2027, 'A'), fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty] };
+  };
+  const kept = (fold, note) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => { try { return JSON.parse(t).store.years['2027'].notes.A === note; } catch (e) { return false; } });
+  // (a) WORKING SAVED, AND THE EARLIER COPY PUT BACK WHILE THAT SAVE WRITES: HISTORY is on screen, the folder keeps WORKING --
+  // what that save wrote -- and the board stays unsaved, on screen and in this browser's record, and says it is not in the folder.
+  { const { A, fold } = await fresh();
+    A.ev(`setNote('A','WORKING'); 'ok'`);
+    const r = await held(A, fold, 'driveRestore(0)');
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'the save waited at its write, then went in (a CONTROL)', J([r.reached, r.ret]), J([true, true]));
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record',
+      J(r.view), J(['HISTORY', 'WORKING', true, true, true]));
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'the board says the change is not in the folder yet', /not in the folder yet/.test(status(A.ev)), true);
+    const ok = await A.ev('driveStorePush(false)'); const fl = flags(A.ev);
+    chk(name, '(a) then Save', 'it writes HISTORY with no clash and ends saved, and WORKING is kept in the history (a CONTROL)',
+      J([ok, fold.note(2027, 'A'), fl.DIRTY, !!fl.base.dirty, kept(fold, 'WORKING')]), J([true, 'HISTORY', false, false, true])); }
+  // (b) A SAVE WITH NOTHING NEW (⬆ Publish now, or Save again), HISTORY PUT BACK WHILE IT WRITES: the board was clean, so this
+  // browser's record said saved before the restore; it says unsaved after it, and so does the screen.
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveRestore(0)');
+    chk(name, '(b) a clean board saved, HISTORY put back during its write', 'HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record',
+      J([r.reached, r.ret, ...r.view]), J([true, true, 'HISTORY', 'CURRENT', true, true, true]));
+    chk(name, '(b) a clean board saved, HISTORY put back during its write', 'the board says the change is not in the folder yet', /not in the folder yet/.test(status(A.ev)), true); }
+  // (c) CONTROL: the same held save with nothing put back ends saved, and says so.
+  { const { A, fold } = await fresh();
+    A.ev(`setNote('A','WORKING'); 'ok'`);
+    const r = await held(A, fold, '');
+    chk(name, '(c) WORKING saved, nothing put back (a CONTROL)', 'WORKING on screen and in the folder, and saved: DIRTY, _baseDirty, the stored record; the board says Saved',
+      J([r.reached, r.ret, ...r.view, /✅ Saved/.test(status(A.ev)), /not in the folder yet/.test(status(A.ev))]), J([true, true, 'WORKING', 'WORKING', false, false, false, true, false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R5) ====
+// ==== v2.00 (U2): work put back during a save stays unsaved ====
+// ↶ Put back (the work kept aside) marked the board unsaved but did not count as a change. A save still writing when the work
+// was put back -- the folder's or the board file's -- found nothing changed while it wrote and marked the board saved: the
+// work put back on screen, the save's own copy in the folder or file, and this browser's record saying saved. The folder's
+// next refresh then loaded its copy over the work put back, and a reopen opened the saved copy: the work was in no copy at
+// all. The put-back now counts as a change, so that save leaves the board unsaved and says so, and the next Save writes it.
+// ONCE ↶ PUT BACK WAITS FOR A SAVE (the block after this one), the put-back below is refused and the race cannot happen.
+// Each check here is therefore written for the two outcomes the board may give -- the work put back and counted, or the
+// put-back refused -- both written out below, and never the one this block is about: put back, then marked saved. (d)
+// checks the count itself, with no save running, so the count stays tested when the race cannot be reached.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U2) — work put back during a save stays unsaved';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const scr = ev => ev('String(S.notes.A)');
+  const keptNote = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); if (s == null) return null;
+    try { const st = JSON.parse(s.slice(s.indexOf('\n') + 1)); return String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''); } catch (e) { return '(unreadable)'; } };
+  const hist = fold => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+  const saysSaved = ev => { const fl = flags(ev); return !fl.DIRTY && !ev('_baseDirty') && !fl.base.dirty; };
+  const notYet = ev => /not in the (folder|file) yet/.test(status(ev));
+  const live = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // working out of the folder turns these on
+  // THE FOLDER. Alice saves F0 and types K, unsaved. Her other browser saves N to the folder. Her 💾 Save is refused (N was
+  // saved after the copy K came from) and she loads theirs: K is kept aside, N is on screen. She types S1, unsaved.
+  const inFolder = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80);
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A','K'); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A','N'); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','S1'); 'ok'`); await pause(5);
+    return { A, A2, fold };
+  };
+  // THE BOARD FILE. Alice types K, unsaved. Her other browser saves N into the file. She reopens the file: the opening keeps
+  // K aside and opens N. She types S1, unsaved.
+  const inFile = async () => {
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A','K'); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F1);
+    A2.ev(`setNote('A','N'); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    A.ev(`setNote('A','S1'); 'ok'`); await pause(5);
+    return { A, f };
+  };
+  // S1's save, held at the close of its write of the folder's copy (or at its write of the file); K is put back there.
+  const raceFolder = async (A, fold) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev('driveStorePush(false)');
+    const reached = await until(() => (fold.hits.main || 0) > n0);
+    A.ev('keptPutBack()'); g.open(); const ret = await p; await pause(5);
+    return [reached, ret];
+  };
+  const raceFile = async (A, f) => {
+    const n0 = f.hits.write || 0; f.hold.write = gate(); const g = f.hold.write;
+    const p = A.ev('saveInPlaceFile()');
+    const reached = await until(() => (f.hits.write || 0) > n0);
+    A.ev('keptPutBack()'); g.open(); await p; await pause(5);
+    return [reached, f.writes];
+  };
+  // After the save lands: on screen; in the folder (file); unsaved as the screen, this browser and its record say; said.
+  // PUT BACK AND COUNTED: K on screen, S1 written, unsaved, and the board says the change is not in the folder (file) yet.
+  // REFUSED: S1 on screen, written and saved; K still kept aside.
+  const MADE = ['K', 'S1', true, true, true, true, 'S1'], REFUSED = ['S1', 'S1', false, false, false, false, 'K'];
+  const landed = (A, head) => { const fl = flags(A.ev); return [scr(A.ev), head, fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty, notYet(A.ev), keptNote(A.ev)]; };
+  // (a) THE FOLDER: the save lands, then the folder's refresh runs (live view on, as working out of the folder has it), then Save.
+  { const { A, fold } = await inFolder();
+    chk(name, '(a) the folder: K kept aside, S1 typed (a CONTROL)', 'S1 on screen, K kept aside, N in the folder',
+      J([scr(A.ev), keptNote(A.ev), fold.note(2027, 'A')]), J(['S1', 'K', 'N']));
+    const r = await raceFolder(A, fold);
+    const v = landed(A, fold.note(2027, 'A')); const made = v[0] === 'K';
+    chk(name, '(a) the folder: K put back while S1’s save writes', 'the save waited at its write, then went in (a CONTROL)', J(r), J([true, true]));
+    chk(name, '(a) the folder: K put back while S1’s save writes', 'once it lands: K on screen, S1 in the folder, unsaved (DIRTY, _baseDirty, the record) and said; S1 kept aside — or, refused, S1 on screen and saved, K still kept',
+      J(v), J(made ? MADE : REFUSED));
+    live(A.ev); await A.ev('liveTick()'); await pause(5);
+    chk(name, '(a) the folder: then the refresh', 'what is on screen is not replaced (K; refused: S1), and K and S1 are each still in a copy here or in the folder',
+      J([scr(A.ev), [scr(A.ev), keptNote(A.ev), fold.note(2027, 'A'), ...hist(fold)].includes('K'), [scr(A.ev), keptNote(A.ev), fold.note(2027, 'A'), ...hist(fold)].includes('S1')]),
+      J([made ? 'K' : 'S1', true, true]));
+    chk(name, '(a) the folder: then the refresh', 'the board says saved only when the folder holds what is on screen',
+      !saysSaved(A.ev) || scr(A.ev) === fold.note(2027, 'A'), true);
+    if (!made) A.ev('keptPutBack()');   // refused during the save: put back now, with no save running
+    await A.ev('saveInPlace()');
+    if (/Save yours over theirs/.test(status(A.ev))) await A.ev(`driveResolve('mine')`);
+    const fl = flags(A.ev);
+    chk(name, '(a) the folder: then 💾 Save', 'it writes K: K on screen and in the folder, and saved',
+      J([scr(A.ev), fold.note(2027, 'A'), fl.DIRTY, !!fl.base.dirty]), J(['K', 'K', false, false])); }
+  // (b) THE FOLDER, REOPENED as soon as the save lands: this browser's storage and the same folder, and the refresh runs.
+  { const { A, fold } = await inFolder();
+    await raceFolder(A, fold); const made = scr(A.ev) === 'K';
+    const B = boot({ html: F1, ls: lsOf(A.ev) }); await pause(80);
+    wire(B.ev, 'Alice', KEY.alice); connect(B.ev, B.w, fold); live(B.ev); await B.ev('liveTick()'); await pause(5);
+    chk(name, '(b) the folder: reopened once the save lands, and refreshed', 'K stays on screen, unsaved by the record, with S1 kept aside — or, refused, S1 on screen and K kept aside',
+      J([scr(B.ev), keptNote(B.ev), !!flags(B.ev).base.dirty]), J(made ? ['K', 'S1', true] : ['S1', 'K', false]));
+    chk(name, '(b) the folder: reopened once the save lands, and refreshed', 'K and S1 are each still in a copy here or in the folder',
+      J(['K', 'S1'].map(n => [scr(B.ev), keptNote(B.ev), fold.note(2027, 'A'), ...hist(fold)].includes(n))), J([true, true])); }
+  // (c) THE BOARD FILE: the save lands; the file reopened from this browser's storage and the file on disk; then Save.
+  { const { A, f } = await inFile();
+    chk(name, '(c) the board file: K kept aside, S1 typed (a CONTROL)', 'S1 on screen, K kept aside, N in the file',
+      J([scr(A.ev), keptNote(A.ev), fileNote(f.content, 'A')]), J(['S1', 'K', 'N']));
+    const r = await raceFile(A, f);
+    const v = landed(A, fileNote(f.content, 'A')); const made = v[0] === 'K';
+    chk(name, '(c) the board file: K put back while S1’s save writes', 'the save waited at its write, then wrote once (a CONTROL)', J(r), J([true, 1]));
+    chk(name, '(c) the board file: K put back while S1’s save writes', 'once it lands: K on screen, S1 in the file, unsaved (DIRTY, _baseDirty, the record) and said; S1 kept aside — or, refused, S1 on screen and saved, K still kept',
+      J(v), J(made ? MADE : REFUSED));
+    const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    chk(name, '(c) the board file: reopened once the save lands', 'K stays on screen, unsaved by the record, with S1 kept aside — or, refused, S1 on screen and K kept aside',
+      J([scr(B.ev), keptNote(B.ev), !!flags(B.ev).base.dirty]), J(made ? ['K', 'S1', true] : ['S1', 'K', false]));
+    chk(name, '(c) the board file: reopened once the save lands', 'K and S1 are each still in a copy here or in the file',
+      J(['K', 'S1'].map(n => [scr(B.ev), keptNote(B.ev), fileNote(f.content, 'A')].includes(n))), J([true, true]));
+    if (!made) A.ev('keptPutBack()');   // refused during the save: put back now, with no save running
+    await A.ev('saveInPlaceFile()'); const fl = flags(A.ev);
+    chk(name, '(c) the board file: then 💾 Save', 'it writes K: K on screen and in the file, and saved',
+      J([scr(A.ev), fileNote(f.content, 'A'), fl.DIRTY, !!fl.base.dirty]), J(['K', 'K', false, false])); }
+  // (d) WITH NO SAVE RUNNING, the put-back is a change: the count every save checks moves by one (read from the board's
+  // state, _saveGen), and the work put back is on screen, unsaved, with what was on screen kept aside in its place.
+  { const { A } = await inFolder();
+    const g0 = A.ev('_saveGen'), busy = A.ev('_saveBusy'), q0 = qs(A.ev).length;
+    A.ev('keptPutBack()'); const fl = flags(A.ev);
+    chk(name, '(d) K put back with no save running', 'no save was running, and the put-back moved the change count by exactly one (read from _saveGen)',
+      J([busy, A.ev('_saveGen') - g0]), J([0, 1]));
+    chk(name, '(d) K put back with no save running', 'it asked once; K on screen, unsaved (DIRTY, _baseDirty, the record), S1 kept aside, and the board says it was put back (a CONTROL)',
+      J([qs(A.ev).length - q0, scr(A.ev), fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty, keptNote(A.ev), /Put back/.test(status(A.ev))]),
+      J([1, 'K', true, true, true, 'S1', true])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U2) ====
+// ==== v2.00 (U2): ↶ Put back waits for a save to finish ====
+// A save that lands records the copy it wrote as the one the work on screen came from, over the checkpoint the kept work
+// brings back with it. So after a put-back during a save, the next Save -- or the folder's autosave -- wrote over that copy
+// without asking, though the put-back had just said Save would ask. ↶ Put back is now refused while a save is under way, and
+// changes nothing: what is on screen and the work kept aside stay exactly as they were, and the board says so -- in words
+// that stay true once the save has finished. Once the save has finished -- saved, failed, canceled or thrown -- putting the
+// work back works, and the work put back survives the folder's refresh and a reopen.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U2) — put back waits for a save to finish';
+  try {
+  const { J, wire, KEY, status, header, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const scr = ev => ev('String(S.notes.A)');
+  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
+  const keptNote = ev => { const s = keptRaw(ev); if (s == null) return null;
+    try { const st = JSON.parse(s.slice(s.indexOf('\n') + 1)); return String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''); } catch (e) { return '(unreadable)'; } };
+  const hist = fold => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+  const unsaved = ev => { const fl = flags(ev); return [fl.DIRTY, ev('_baseDirty'), !!fl.base.dirty]; };
+  const live = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // working out of the folder turns these on
+  // THE FOLDER. Alice saves F0 and types K, unsaved. Her other browser saves N to the folder. Her 💾 Save is refused (N was
+  // saved after the copy K came from) and she loads theirs: K is kept aside, N is on screen. She types S1, unsaved.
+  const inFolder = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80);
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A','K'); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A','N'); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','S1'); 'ok'`); await pause(5);
+    return { A, A2, fold };
+  };
+  // THE BOARD FILE. Alice types K, unsaved. Her other browser saves N into the file. She reopens the file: the opening keeps
+  // K aside and opens N. She types S1, unsaved.
+  const inFile = async () => {
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A','K'); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F1);
+    A2.ev(`setNote('A','N'); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    A.ev(`setNote('A','S1'); 'ok'`); await pause(5);
+    return { A, f };
+  };
+  // THE FOLDER'S COPY READ SLOWLY: the save's read of it is held once, as the folder's writes are (a stand-in for a slow sync).
+  const holdRead = fold => { const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
+    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === 'spmt-2027-om.json' && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
+    return { g, hit: () => hit }; };
+  // ↶ Put back pressed while S1's save is held (`reached`): what is on screen (MS) and the kept work, byte for byte, before
+  // and after, what it asked, and what it said. Then the save is let go.
+  const refused = async (A, reached, g, p) => {
+    const ok = await until(reached);
+    const ms = A.ev('JSON.stringify(MS)'), kr = keptRaw(A.ev), q0 = qs(A.ev).length, busy = A.ev('_saveBusy');
+    A.ev('keptPutBack()');
+    const st = status(A.ev);
+    const v = [ok, busy > 0, A.ev('JSON.stringify(MS)') === ms, keptRaw(A.ev) === kr, qs(A.ev).length - q0, scr(A.ev),
+      /a save was under way/.test(st) && /Nothing was changed/.test(st) && /still kept/.test(st) && /on screen is unchanged/.test(st)];
+    g.open(); let ret; try { ret = await p; } catch (e) { ret = 'threw: ' + ((e && e.message) || e); } await pause(5);
+    return { v, ret, kr };
+  };
+  const REFUSED = [true, true, true, true, 0, 'S1', true];
+  const RQ = 'during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so';
+  // ↶ Put back once the save has finished: one question, K on screen and unsaved, and what was on screen kept in its place if
+  // no saved copy has it, or if it is saved only in a board file (v2.00, U19) (`was`: null when S1 is saved in the folder).
+  const retry = A => { const q0 = qs(A.ev).length; A.ev('keptPutBack()'); return [qs(A.ev).length - q0, scr(A.ev), ...unsaved(A.ev), keptNote(A.ev)]; };
+  const inFold = fold => n => [hist(fold).includes(n), fold.note(2027, 'A') === n];
+  // THE FOLDER, after the retry: the refresh runs (live view on, as working out of the folder has it): K stays on screen and
+  // nothing is written over the folder's copy unasked; then the board reopened from this browser's storage and the same folder,
+  // refreshed: K and S1 each still in a copy.
+  const afterFolder = async (A, fold, sc, head, reopened) => {
+    live(A.ev); await A.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'then the refresh: K stays on screen, unsaved, and the folder copy is not written over',
+      J([scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev)]), J(['K', head, true, true, true]));
+    const B = boot({ html: F1, ls: lsOf(A.ev) }); await pause(80);
+    wire(B.ev, 'Alice', KEY.alice); connect(B.ev, B.w, fold); live(B.ev); await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'then reopened and refreshed: on screen and kept aside; K and S1 each still in a copy',
+      J([scr(B.ev), keptNote(B.ev), ...['K', 'S1'].map(n => [scr(B.ev), keptNote(B.ev), fold.note(2027, 'A'), ...hist(fold)].includes(n))]),
+      J([...reopened, true, true]));
+  };
+  // THE BOARD FILE, after the retry: reopened from this browser's storage and the file on disk.
+  const afterFile = async (A, f, sc, reopened) => {
+    const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    chk(name, sc, 'then reopened: on screen and kept aside; K and S1 each still in a copy',
+      J([scr(B.ev), keptNote(B.ev), ...['K', 'S1'].map(n => [scr(B.ev), keptNote(B.ev), fileNote(f.content, 'A')].includes(n))]),
+      J([...reopened, true, true]));
+  };
+  // (a) THE FOLDER, THE SAVE GOES IN: held at the close of its write of the folder's copy.
+  { const sc = '(a) the folder: put back while S1’s save writes; the save goes in';
+    const { A, fold } = await inFolder();
+    chk(name, sc, 'S1 on screen and unsaved, K kept aside, N in the folder (a CONTROL)',
+      J([scr(A.ev), A.ev('DIRTY'), keptNote(A.ev), fold.note(2027, 'A')]), J(['S1', true, 'K', 'N']));
+    const n0 = fold.hits.main || 0; fold.hold.main = gate();
+    const r = await refused(A, () => (fold.hits.main || 0) > n0, fold.hold.main, A.ev('driveStorePush(false)'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'once it lands: S1 on screen and in the folder, saved; the kept work byte for byte as it was',
+      J([r.ret, scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === r.kr]), J([true, 'S1', 'S1', false, false, false, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)',
+      J(retry(A)), J([1, 'K', true, true, true, null]));
+    await afterFolder(A, fold, sc, 'S1', ['S1', 'K']); }
+  // (b) THE FOLDER, THE SAVE FAILS: the copy it replaces cannot be kept in the folder's history, so nothing is written.
+  { const sc = '(b) the folder: put back while S1’s save writes; the save fails';
+    const { A, fold } = await inFolder();
+    const n0 = fold.hits.hist || 0; fold.hold.hist = gate(); fold.failNext.hist = new Error('the history folder is read-only');
+    const r = await refused(A, () => (fold.hits.hist || 0) > n0, fold.hold.hist, A.ev('driveStorePush(false)'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'once it fails: S1 on screen and unsaved, N still in the folder, the board says not saved; the kept work byte for byte as it was',
+      J([r.ret, scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev), /Not saved/.test(status(A.ev)), keptRaw(A.ev) === r.kr]), J([false, 'S1', 'N', true, true, true, true, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFolder(A, fold, sc, 'N', ['K', 'S1']); }
+  // (c) THE FOLDER, THE SAVE IS REFUSED: N2 is saved from Alice's other browser before S1's save starts, and S1's save is held
+  // at its read of the folder. N2 is newer than the copy S1 came from, so nothing is written and she is offered the choice.
+  { const sc = '(c) the folder: put back while S1’s save reads the folder; the save is refused';
+    const { A, A2, fold } = await inFolder();
+    A2.ev(`setNote('A','N2'); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    const h = holdRead(fold);
+    const r = await refused(A, () => h.hit(), h.g, A.ev('driveStorePush(false)'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'once it is refused: S1 on screen and unsaved, N2 in the folder, nothing written; the kept work byte for byte as it was',
+      J([r.ret, scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev), /Nothing was written/.test(status(A.ev)), keptRaw(A.ev) === r.kr]), J([false, 'S1', 'N2', true, true, true, true, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFolder(A, fold, sc, 'N2', ['K', 'S1']); }
+  // (d) THE BOARD FILE, THE SAVE GOES IN: held at its write.
+  { const sc = '(d) the board file: put back while S1’s save writes; the save goes in';
+    const { A, f } = await inFile();
+    chk(name, sc, 'S1 on screen and unsaved, K kept aside, N in the file (a CONTROL)',
+      J([scr(A.ev), A.ev('DIRTY'), keptNote(A.ev), fileNote(f.content, 'A')]), J(['S1', true, 'K', 'N']));
+    const n0 = f.hits.write || 0; f.hold.write = gate();
+    const r = await refused(A, () => (f.hits.write || 0) > n0, f.hold.write, A.ev('saveInPlaceFile()'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'once it lands: S1 on screen and in the file, saved; the kept work byte for byte as it was',
+      J([scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === r.kr]), J(['S1', 'S1', false, false, false, true]));
+    // v2.00 (U19): a board file keeps no earlier copy, so S1 -- saved only in the file -- is kept aside in K's place as well.
+    // Reopened, the file (S1) is newer than the copy K came from, K is unsaved and S1 is kept: K stays on screen, S1 kept.
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place (saved only in the board file: v2.00, U19)',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFile(A, f, sc, ['K', 'S1']); }
+  // (e) THE BOARD FILE, THE SAVE FAILS: the write cannot be finished.
+  { const sc = '(e) the board file: put back while S1’s save writes; the save fails';
+    const { A, f } = await inFile();
+    const n0 = f.hits.close || 0; f.hold.close = gate(); f.failClose = new Error('The disk is full');
+    const r = await refused(A, () => (f.hits.close || 0) > n0, f.hold.close, A.ev('saveInPlaceFile()'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    // (the failed save downloads a copy instead, and the header says so: that copy is not on the shared file yet)
+    chk(name, sc, 'once it fails: S1 on screen and unsaved, N still in the file, the header says not on the shared file yet; the kept work byte for byte as it was',
+      J([scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), /not on the shared file yet/.test(header(A.ev)), keptRaw(A.ev) === r.kr]), J(['S1', 'N', true, true, true, true, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFile(A, f, sc, ['K', 'S1']); }
+  // (f) THE BOARD FILE, THE SAVE IS CANCELED while it writes: nothing is written.
+  { const sc = '(f) the board file: put back while S1’s save writes; the save is canceled';
+    const { A, f } = await inFile();
+    const n0 = f.hits.close || 0; f.hold.close = gate(); f.failClose = Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' });
+    const r = await refused(A, () => (f.hits.close || 0) > n0, f.hold.close, A.ev('saveInPlaceFile()'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'once it is canceled: S1 on screen and unsaved, N still in the file, the board says nothing was written; the kept work byte for byte as it was',
+      J([scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), /Save canceled — nothing written/.test(status(A.ev)), keptRaw(A.ev) === r.kr]), J(['S1', 'N', true, true, true, true, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFile(A, f, sc, ['K', 'S1']); }
+  // (g) THE FOLDER, THE AUTOSAVE THROWS: Live on; the refresh's autosave is held at the close of its write of the folder's
+  // copy, which then fails. That error goes through the save queue as a thrown error, not a returned false, and the count
+  // of saves under way must still come back down, or every later put-back would be refused.
+  { const sc = '(g) the folder: put back while the autosave writes; the write throws';
+    const { A, fold } = await inFolder();
+    live(A.ev);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); fold.failNext.main = new Error('The shared folder is read-only');
+    const r = await refused(A, () => (fold.hits.main || 0) > n0, fold.hold.main, A.ev('liveTick()'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    chk(name, sc, 'after the refusal, the header still offers the kept work (↶ work kept aside), so the retry can be reached', /work kept aside/.test(header(A.ev)), true);
+    chk(name, sc, 'once it throws: S1 on screen and unsaved, N still in the folder, the board says the automatic save failed, no save under way (read from _saveBusy); the kept work byte for byte as it was',
+      J([scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev), /Automatic save to the shared folder failed/.test(status(A.ev)), A.ev('_saveBusy'), keptRaw(A.ev) === r.kr]),
+      J(['S1', 'N', true, true, true, true, 0, true]));
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFolder(A, fold, sc, 'N', ['K', 'S1']); }
+  // (h) THE FOLDER, THE AUTOSAVE LANDS AFTER THE REFUSAL: a quiet autosave says nothing when it lands, so the refusal's own
+  // line is what stays on screen -- it must not claim that a save is still under way. The refresh and a reopen follow.
+  { const sc = '(h) the folder: put back while the autosave writes; the autosave goes in';
+    const { A, fold } = await inFolder();
+    live(A.ev);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate();
+    const r = await refused(A, () => (fold.hits.main || 0) > n0, fold.hold.main, A.ev('liveTick()'));
+    chk(name, sc, RQ, J(r.v), J(REFUSED));
+    const st = status(A.ev);
+    chk(name, sc, 'once the autosave has landed: S1 in the folder and saved, no save under way (read from _saveBusy), the kept work byte for byte as it was',
+      J([scr(A.ev), fold.note(2027, 'A'), ...unsaved(A.ev), A.ev('_saveBusy'), keptRaw(A.ev) === r.kr]), J(['S1', 'S1', false, false, false, 0, true]));
+    chk(name, sc, 'once the autosave has landed, the status line does not say a save IS under way',
+      /save is under way/i.test(st), false);
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)',
+      J(retry(A)), J([1, 'K', true, true, true, null]));
+    await afterFolder(A, fold, sc, 'S1', ['S1', 'K']); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U2) put back waits ====
+// ==== v2.00 (U13): a refresh during a save loads nothing ====
+// The folder's refresh -- the Live timer's, the bar's Connect, the opening's own connect -- loaded a newer folder copy while
+// a save was still writing. The save, landing, found nothing changed while it wrote, marked the board saved and recorded
+// the copy IT wrote as the one the work on screen came from: the copy loaded stayed on screen recorded as saved, the save's
+// copy was in the folder, and the next refresh and a reopen said nothing. No second writer is needed: a copy already in the
+// folder, stamped ahead of this machine's clock (Brad's other machine, its clock an hour fast), is "newer" than the save's
+// own copy. Now the refresh loads nothing while a save is under way -- checked after its last wait, just before it would
+// change anything -- and changes nothing: what is on screen and in browser storage, the record, the change count and the
+// work kept aside stay byte for byte as they were. A Connect says so, of the board's own copy only: the same Connect goes on
+// to load the execution data and the reprogramming log from the folder. The Live timer says nothing. Once the save has
+// finished -- saved, failed, refused or canceled -- the next refresh is an ordinary one again.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U13) — a refresh during a save loads nothing';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
+  const F1 = baseFile('Brad', KEY.brad);
+  const NM = 'spmt-2027-om.json', HOUR = 3600000;
+  // Requirement A -- its note and its allocation, in dollars -- on screen, in a copy's text, in browser storage, kept aside.
+  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : (S.alloc.A==null? null : S.alloc.A)])`));
+  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
+    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
+  const stored = ev => inCopy(ev('localStorage.getItem(_AP.key)'));
+  const kept = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); return s == null ? null : inCopy(s.slice(s.indexOf('\n') + 1)); };
+  // The folder's copy, its time, and its history.
+  const head = fold => fold.raw(2027) == null ? ['(no copy)', null] : inCopy(fold.raw(2027));
+  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
+  const inHist = (fold, c) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => J(inCopy(t)) === J(c));
+  // Saved, by all three -- this session (DIRTY), _baseDirty and this browser's record -- and the record names the folder's copy.
+  const saved = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])')).every(x => !x);
+  const onHead = (ev, fold) => headTs(fold) > 0 && +ev('driveBaseOf(mySlug())') === headTs(fold);
+  // EVERYTHING A REFUSED REFRESH LEAVES AS IT WAS, byte for byte: what is on screen (MS), DIRTY, _baseDirty, the folder's time
+  // the work came from and this browser's record of it, the change count every save checks (_saveGen), the work kept aside,
+  // and what browser storage holds.
+  const state = ev => ev(`JSON.stringify([JSON.stringify(MS), DIRTY, _baseDirty, JSON.stringify(_driveBase), localStorage.getItem(_AP.key+'.base'), _saveGen, localStorage.getItem(_AP.key+'.kept'), localStorage.getItem(_AP.key)])`);
+  const writes = fold => fold.log.filter(x => /^(main|hist):/.test(x)).length;   // the folder's copy and its history (not the lock)
+  const live = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // working out of the folder turns these on
+  // WHAT A CONNECT SAYS WHEN IT LOADS NOTHING DURING A SAVE, word for word. It names the board's copy and nothing wider (6a),
+  // and Load theirs as well as a save: Load theirs runs in the save's queue and is counted the same way (6b).
+  const SAID = '⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, so this board kept its own copy of O&M FY27. '
+    + 'The folder’s copy is checked again on the next refresh once that has finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).';
+  const said = st => st === SAID;
+  // REMOTE: requirement A's note REMOTE, $650, saved into an empty folder through the product by Brad's other machine, whose
+  // clock runs `ahead` (its own window's Date.now). Its bytes are what each case's own folder starts with.
+  const writeRemote = async ahead => {
+    const f0 = folder(), R = boot({ html: F1 }); await pause(80); wire(R.ev, 'Brad', KEY.brad); connect(R.ev, R.w, f0);
+    if (ahead) R.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+${ahead}; }; return 'ok'; })()`);
+    R.ev(`setNote('A','REMOTE'); setAlloc('A','650'); 'ok'`); await R.ev('saveInPlace()'); await pause(5);
+    return f0.raw(2027);
+  };
+  const withCopy = txt => { const fold = folder(); fold.root.files[NM] = txt; return fold; };
+  const tsOf = txt => { const j = JSON.parse(txt); return +((j.store && j.store.ts) || j.ts || 0); };
+  const REMOTE = await writeRemote(HOUR);
+  chk(name, 'the fixture', 'REMOTE is the folder’s copy: REMOTE, $650, saved by Brad, stamped more than 59 minutes ahead of this clock (a CONTROL)',
+    J([...inCopy(REMOTE), JSON.parse(REMOTE).by, tsOf(REMOTE) - Date.now() > 59 * 60000]), J(['REMOTE', 650, 'Brad', true]));
+  // BRAD opens the board with REMOTE in the folder, and his opening loads it. He types WORKING, $700, and closes it unsaved.
+  const brad = async txt => {
+    const fold = withCopy(txt), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    await A.ev('driveAutoConnect()'); await pause(5);
+    const v = [...scr(A.ev), saved(A.ev), onHead(A.ev, fold)];
+    A.ev(`setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
+    return { v, LS: lsOf(A.ev), A, fold };
+  };
+  const b1 = await brad(REMOTE);
+  chk(name, 'the fixture', 'Brad’s opening loads REMOTE: on screen, saved, recorded against the folder’s copy (a CONTROL)', J(b1.v), J(['REMOTE', 650, true, true]));
+  // BRAD REOPENS the board: his browser (WORKING unsaved in it, recorded against REMOTE) and a folder holding REMOTE, connected
+  // by the harness (no opening pull) -- or, `perm`, with the folder's edit permission not kept: the opening's own connect
+  // stops at one click, and 💾 Save asks for the permission itself.
+  const reopen = async (fold, perm, ls) => {
+    const B = boot({ html: F1, ls: { ...(ls || b1.LS) } }); await pause(80); wire(B.ev, 'Brad', KEY.brad);
+    if (perm) { fold.perm = 'prompt'; fold.dir.queryPermission = async () => fold.perm; fold.dir.requestPermission = async () => (fold.perm = 'granted'); }
+    connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);   // the folder's name, as its pick stored it (a Connect needs it)
+    const c = perm ? await B.ev('driveAutoConnect()') : null; await pause(5);
+    return { B, c };
+  };
+  // 💾 Save, held at the close of its write of the folder's copy: by then it has read the folder, kept the copy it replaces
+  // in the history and built its bytes.
+  const held = async (B, fold) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = B.ev('saveInPlace()'); const ok = await until(() => (fold.hits.main || 0) > n0);
+    return { g, p, ok };
+  };
+  // The save, or a refresh, held at its read of the folder's copy (the first read after this), or at its first wait -- the
+  // folder asked what this page may do (the first ask after this).
+  const holdRead = fold => { const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
+    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === NM && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
+    return { g, hit: () => hit }; };
+  const holdAsk = fold => { const q = fold.dir.queryPermission, g = gate(); let hit = 0;
+    fold.dir.queryPermission = async m => { if (!hit) { hit = 1; await g.p; } return q(m); };
+    return { g, hit: () => hit }; };
+  // ONE REFRESH WHILE A SAVE IS UNDER WAY: what it returned, that a save was under way, that nothing changed (against `s0`,
+  // read once the save was held), what it wrote to the folder's copy or its history, and what it said -- a quiet refresh
+  // nothing, a Connect that nothing was loaded and why.
+  const REFRESH = { pull: 'driveStorePull(true)', connect: 'driveConnectNow()', auto: 'driveAutoConnect()', tick: 'liveTick()' };
+  const refresh = async (B, fold, how, s0) => {
+    if (how === 'tick') live(B.ev);
+    const st0 = status(B.ev), w0 = writes(fold);
+    const r = await B.ev(REFRESH[how]); await pause(5);
+    const st = status(B.ev), quiet = how === 'pull' || how === 'tick';
+    return [r === undefined ? '(nothing)' : r, B.ev('_saveBusy') > 0, state(B.ev) === s0, writes(fold) - w0, quiet ? st === st0 : said(st)];
+  };
+  const RQ = ': loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]';
+  const EXPECT = { pull: [false, true, true, 0, true], connect: [true, true, true, 0, true], auto: [true, true, true, 0, true], tick: ['(nothing)', true, true, 0, true] };
+  // ONCE THE SAVE HAS LANDED: a later refresh changes nothing, and a reopen (this browser, the same folder, the opening's own
+  // connect, then a refresh) opens `want`, which the folder's copy holds, saved and recorded against it.
+  const landedThen = async (B, fold, sc, want) => {
+    const s1 = state(B.ev); const pulled = await B.ev('driveStorePull(true)'); live(B.ev); await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'then a refresh (driveStorePull, the Live tick): nothing loaded, nothing changed', J([pulled, state(B.ev) === s1]), J([false, true]));
+    const C = boot({ html: F1, ls: lsOf(B.ev) }); await pause(80); wire(C.ev, 'Brad', KEY.brad); connect(C.ev, C.w, fold);
+    await C.ev('driveAutoConnect()'); const again = await C.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and recorded against it; nothing kept aside',
+      J([again, ...scr(C.ev), ...head(fold), saved(C.ev), onHead(C.ev, fold), kept(C.ev)]), J([false, ...want, ...want, true, true, null]));
+  };
+  // (1) NO SECOND WRITER. Brad reopens with WORKING unsaved; 💾 Save is held at its write; while it is held every refresh runs
+  // in turn -- driveStorePull(true), the bar's Connect, the opening's own connect, the Live timer's tick -- and each loads
+  // nothing. The save then lands. Reopened by the harness, and with the folder's edit permission not kept.
+  for (const perm of [false, true]) {
+    const sc = '(1) no second writer; reopened ' + (perm ? 'with the folder’s edit permission not kept' : 'by the harness');
+    const fold = withCopy(REMOTE); const { B, c } = await reopen(fold, perm);
+    chk(name, sc, 'WORKING on screen, unsaved by this browser’s record (not this session), recorded against REMOTE, nothing kept aside; REMOTE the folder’s copy'
+      + (perm ? '; the opening stopped at one click' : '') + ' (a CONTROL)',
+      J([...scr(B.ev), B.ev('DIRTY'), !!B.ev('baseGet().dirty'), +B.ev('driveBaseOf(mySlug())') === tsOf(REMOTE), kept(B.ev), ...head(fold), ...(perm ? [c, B.ev('_driveNeed')] : [])]),
+      J(['WORKING', 700, false, true, true, null, 'REMOTE', 650, ...(perm ? [false, 'click'] : [])]));
+    const h = await held(B, fold); const s0 = state(B.ev);
+    chk(name, sc, 'the save is held at its write; REMOTE is still the folder’s copy, stamped after the save’s own (a CONTROL)',
+      J([h.ok, B.ev('_saveBusy'), ...head(fold), headTs(fold) > +B.ev('MS.ts')]), J([true, 1, 'REMOTE', 650, true]));
+    for (const how of ['pull', 'connect', 'auto', 'tick'])
+      chk(name, sc, 'while the save is held, ' + REFRESH[how] + RQ, J(await refresh(B, fold, how, s0)), J(EXPECT[how]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
+      J([...scr(B.ev), ...stored(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]),
+      J(['WORKING', 700, 'WORKING', 700, 'WORKING', 700, true, true, true, null]));
+    chk(name, sc, 'once the save lands, the status line says how it ended -- [it saved, the refused Connect’s words gone]',
+      J([/^✅ Saved O&M FY27 to the shared folder/.test(status(B.ev)), status(B.ev).includes('was not loaded')]), J([true, false]));
+    await landedThen(B, fold, sc, ['WORKING', 700]);
+  }
+  // (2) A SECOND WRITER SAVES DURING BRAD'S SAVE. Brad has saved BRAD-1, $700; Bob loads it and types BOB-2, $650. Brad presses
+  // 💾 Save with nothing unsaved and it is held at its write; Bob takes the pen, which saves BOB-2 into the folder at once.
+  // Brad's refresh loads nothing, and his save lands. It writes BRAD-1 over BOB-2, which is then in no copy in the folder
+  // (U18, open; not this block's) -- Bob's own board still holds it.
+  { const sc = '(2) a second writer saves during the save';
+    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
+    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
+    chk(name, sc, 'Brad: BRAD-1 saved, the folder’s copy; Bob loaded it and typed BOB-2 (a CONTROL)',
+      J([...scr(A.ev), saved(A.ev), ...head(fold), ...scr(Bb.ev)]), J(['BRAD-1', 700, true, 'BRAD-1', 700, 'BOB-2', 650]));
+    const h = await held(A, fold); const s0 = state(A.ev); await pause(5);   // Bob's copy is stamped after Brad's
+    await Bb.ev('takePen()'); await pause(5);
+    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2 is the folder’s copy, saved by Bob, stamped after Brad’s save built its own (a CONTROL)',
+      J([h.ok, ...head(fold), fold.copy(2027).by, headTs(fold) > +A.ev('MS.ts')]), J([true, 'BOB-2', 650, 'Bob', true]));
+    for (const how of ['pull', 'connect', 'tick'])
+      chk(name, sc, 'while the save is held, ' + REFRESH[how] + RQ, J(await refresh(A, fold, how, s0)), J(EXPECT[how]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once Brad’s save lands: BRAD-1 on screen, in browser storage and the folder’s copy; saved, recorded against it; nothing kept aside',
+      J([...scr(A.ev), ...stored(A.ev), ...head(fold), saved(A.ev), onHead(A.ev, fold), kept(A.ev)]), J(['BRAD-1', 700, 'BRAD-1', 700, 'BRAD-1', 700, true, true, null]));
+    await landedThen(A, fold, sc, ['BRAD-1', 700]);
+    chk(name, sc, 'Bob’s own board still holds BOB-2, on screen and in its browser storage', J([...scr(Bb.ev), ...stored(Bb.ev)]), J(['BOB-2', 650, 'BOB-2', 650]));
+  }
+  // (3) THE CHECK IS MADE AFTER THE REFRESH'S WAITS. The refresh starts with no save under way and is held -- (a) at its read
+  // of the folder's copy, (b) at its first wait, the folder asked what this page may do; 💾 Save starts meanwhile and is held
+  // at its write; then the refresh is let go. A refresh that checked only when it started would load REMOTE here.
+  for (const [k, how, holdOf, at] of [['a', 'driveStorePull(false)', holdRead, 'its read of the folder’s copy'], ['b', 'driveStorePull(true)', holdAsk, 'its first wait (the folder’s permission)']]) {
+    const sc = '(3' + k + ') the refresh held at ' + at + '; a save starts meanwhile';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    const busy0 = B.ev('_saveBusy'), st0 = status(B.ev), hr = holdOf(fold);
+    const pr = B.ev(how); const reached = await until(() => hr.hit());
+    const h = await held(B, fold); const s0 = state(B.ev);
+    hr.g.open(); const r = await pr; await pause(5);
+    chk(name, sc, 'no save under way when the refresh started; it waited; the save started and is held at its write (a CONTROL)',
+      J([busy0, reached, h.ok, B.ev('_saveBusy')]), J([0, true, true, 1]));
+    chk(name, sc, 'the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, ' + (k === 'a' ? 'said' : 'nothing said') + ']',
+      J([r, state(B.ev) === s0, k === 'a' ? said(status(B.ev)) : status(B.ev) === st0]), J([false, true, true]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
+      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]), J(['WORKING', 700, 'WORKING', 700, true, true, true, null]));
+  }
+  // (3c) NOTHING RECORDED FOR THE FOLDER (a browser that has not loaded from it): a refresh takes a copy that is not newer
+  // than the screen as the one the work came from -- but not while a save is under way, or a save still to read the folder
+  // finds it recorded and writes over it without asking. Brad's other browser has saved X, $600; this browser types MINE,
+  // $720; 💾 Save waits at its read of the folder while the opening's own connect runs. The save then asks, as it does when
+  // nothing is recorded.
+  { const sc = '(3c) nothing recorded for the folder; the opening’s connect while a save waits at its read';
+    const fold = folder(), X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Brad', KEY.brad); connect(X.ev, X.w, fold);
+    X.ev(`setNote('A','X'); setAlloc('A','600'); 'ok'`); await X.ev('saveInPlace()'); await pause(5);
+    const C = boot({ html: F1 }); await pause(80); wire(C.ev, 'Brad', KEY.brad); connect(C.ev, C.w, fold);
+    C.ev(`setNote('A','MINE'); setAlloc('A','720'); 'ok'`); await pause(5);
+    chk(name, sc, 'nothing recorded for the folder; MINE on screen, unsaved; X the folder’s copy, stamped before MINE was typed (a CONTROL)',
+      J([+C.ev('driveBaseOf(mySlug())'), ...scr(C.ev), C.ev('DIRTY'), ...head(fold), headTs(fold) < +C.ev('MS.ts')]), J([0, 'MINE', 720, true, 'X', 600, true]));
+    const hr = holdRead(fold); const p = C.ev('saveInPlace()'); const reached = await until(() => hr.hit());
+    const s0 = state(C.ev), st0 = status(C.ev); await C.ev('driveAutoConnect()'); await pause(5);
+    chk(name, sc, 'the opening’s connect while the save waits at its read -- [the save waits, a save under way, nothing changed byte for byte: nothing recorded]',
+      J([reached, C.ev('_saveBusy'), state(C.ev) === s0]), J([true, 1, true]));
+    // With nothing recorded there is no telling whether anybody saved after this work: no clash is said, during a save or not.
+    chk(name, sc, 'and it says nothing -- [the status line as it was, a clash said]',
+      J([status(C.ev) === st0, /after the copy you are working from/.test(status(C.ev))]), J([true, false]));
+    hr.g.open(); await p; await pause(5);
+    chk(name, sc, 'then the save, finding nothing recorded, asks: nothing written, X still the folder’s copy, MINE on screen and unsaved, the choice offered',
+      J([...head(fold), ...scr(C.ev), C.ev('DIRTY'), /Nothing was written/.test(status(C.ev)), /Save yours over theirs/.test(status(C.ev))]), J(['X', 600, 'MINE', 720, true, true, true]));
+  }
+  // (4) ONCE THE SAVE HAS FINISHED, THE NEXT REFRESH IS AN ORDINARY ONE. A refresh loads nothing while the save runs; the save
+  // then (a) lands, and Brad's other browser saves NEWER, $750, after it; (b) fails, the folder refusing its write; (c) is
+  // refused, NEWER having been saved before it read the folder; (d) is canceled, the folder's copy having no writer recorded.
+  // The next refresh loads the newer copy, keeping aside work no saved copy has, and the record names what is on screen.
+  const other = async (fold, note, amt) => {   // Brad's other browser: loads the folder's copy, types, saves
+    const N = boot({ html: F1 }); await pause(80); wire(N.ev, 'Brad', KEY.brad); connect(N.ev, N.w, fold);
+    await N.ev('driveStorePull(false)'); N.ev(`setNote('A',${J(note)}); setAlloc('A',${J(String(amt))}); 'ok'`); await N.ev('saveInPlace()'); await pause(5);
+  };
+  { const sc = '(4a) the save lands; a newer copy is saved after it';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    const h = await held(B, fold); const s0 = state(B.ev);
+    chk(name, sc, 'while the save is held, ' + REFRESH.tick + RQ, J(await refresh(B, fold, 'tick', s0)), J(EXPECT.tick));
+    h.g.open(); await h.p; await pause(5);
+    await other(fold, 'NEWER', 750);
+    chk(name, sc, 'the save landed (WORKING, saved); then Brad’s other browser loaded WORKING and saved NEWER over it (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
+      J([...scr(B.ev), saved(B.ev), B.ev('_saveBusy'), ...head(fold), inHist(fold, ['WORKING', 700])]), J(['WORKING', 700, true, 0, 'NEWER', 750, true]));
+    const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the next refresh loads NEWER: on screen and in browser storage, saved, recorded against the folder’s copy; nothing kept aside (WORKING is saved, in the history)',
+      J([r, ...scr(B.ev), ...stored(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'NEWER', 750, 'NEWER', 750, true, true, null]));
+  }
+  { const sc = '(4b) the save fails: the folder refuses its write';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    const h = await held(B, fold); const s0 = state(B.ev);
+    chk(name, sc, 'while the save is held, ' + REFRESH.pull + RQ, J(await refresh(B, fold, 'pull', s0)), J(EXPECT.pull));
+    fold.failNext.main = new Error('The shared folder is read-only'); h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'the save failed and says so: REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (read from _saveBusy) (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
+      J([/Could not save to the shared folder/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]), J([true, 'REMOTE', 650, 'WORKING', 700, false, 0]));
+    const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
+      J([r, ...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'REMOTE', 650, true, true, ['WORKING', 700]]));
+  }
+  { const sc = '(4c) the save is refused: a newer copy was saved before it read the folder';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    await other(fold, 'NEWER', 750);
+    chk(name, sc, 'Brad’s other browser loaded REMOTE and saved NEWER over it; REMOTE in the folder’s history (a CONTROL)',
+      J([...head(fold), inHist(fold, ['REMOTE', 650])]), J(['NEWER', 750, true]));
+    const hr = holdRead(fold); const p = B.ev('saveInPlace()'); await until(() => hr.hit()); const s0 = state(B.ev);
+    chk(name, sc, 'while the save waits at its read, ' + REFRESH.tick + RQ, J(await refresh(B, fold, 'tick', s0)), J(EXPECT.tick));
+    hr.g.open(); await p; await pause(5);
+    chk(name, sc, 'the save is refused and says so: nothing written, NEWER still the folder’s copy; WORKING on screen, unsaved; no save under way (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
+      J([/Nothing was written/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]), J([true, 'NEWER', 750, 'WORKING', 700, false, 0]));
+    await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'the next refresh (the Live tick) is an ordinary one: NEWER is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
+      J([...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J(['NEWER', 750, true, true, ['WORKING', 700]]));
+  }
+  { const sc = '(4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel';
+    const j = JSON.parse(REMOTE); delete j.writer;   // REMOTE as a board before v1.95 wrote it: no writer recorded
+    const fold = withCopy(JSON.stringify(j)); const { B } = await reopen(fold, false);
+    const hr = holdRead(fold); const p = B.ev('globalThis.__yes=false; saveInPlace()'); await until(() => hr.hit()); const s0 = state(B.ev);
+    chk(name, sc, 'while the save waits at its read, ' + REFRESH.connect + RQ, J(await refresh(B, fold, 'connect', s0)), J(EXPECT.connect));
+    const q0 = qs(B.ev).length; hr.g.open(); await p; await pause(5);
+    chk(name, sc, 'the save asked once and was canceled: nothing written, REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
+      J([qs(B.ev).length - q0, /Save canceled — nothing written/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]),
+      J([1, true, 'REMOTE', 650, 'WORKING', 700, false, 0]));
+    B.ev(`globalThis.__yes=true; 'ok'`); const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
+      J([r, ...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'REMOTE', 650, true, true, ['WORKING', 700]]));
+  }
+  // (5) CONTROLS. (Cc) No save under way: the refresh loads REMOTE as it always has, keeping WORKING aside. (Cb) Work typed in
+  // this session: the refresh during the save gives the unsaved-changes message as it always has. (Ca) REMOTE not stamped
+  // ahead: nothing to load, during the save or after.
+  { const sc = '(5) Cc: no save under way';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the refresh loads REMOTE as before: on screen and in browser storage, saved, recorded against the folder’s copy; WORKING kept aside, and said',
+      J([r, B.ev('_saveBusy'), ...scr(B.ev), ...stored(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev), /kept aside/.test(status(B.ev))]),
+      J([true, 0, 'REMOTE', 650, 'REMOTE', 650, true, true, ['WORKING', 700], true]));
+  }
+  { const sc = '(5) Cb: work typed in this session; a refresh during the save';
+    const { A, fold } = b1; A.ev(`_liveCfg.folder='shared'; 'ok'`);
+    chk(name, sc, 'WORKING typed in this session, unsaved (DIRTY) (a CONTROL)', J([...scr(A.ev), A.ev('DIRTY')]), J(['WORKING', 700, true]));
+    const h = await held(A, fold); const s0 = state(A.ev);
+    const r = await A.ev('driveStorePull(true)'); await pause(5); const st = status(A.ev);
+    chk(name, sc, 'while the save is held, the refresh gives the unsaved-changes message as before, and changes nothing',
+      J([r, state(A.ev) === s0, /and you have unsaved changes\. Nothing was replaced\. Save yours, or reload to take theirs\./.test(st), /was not loaded|Nothing was loaded/.test(st)]),
+      J([false, true, true, false]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it',
+      J([...scr(A.ev), ...head(fold), saved(A.ev), onHead(A.ev, fold)]), J(['WORKING', 700, 'WORKING', 700, true, true]));
+  }
+  { const sc = '(5) Ca: REMOTE not stamped ahead';
+    const REMOTE0 = await writeRemote(0), b0 = await brad(REMOTE0);
+    const fold = withCopy(REMOTE0); const { B } = await reopen(fold, false, b0.LS);
+    chk(name, sc, 'Brad’s opening loaded REMOTE (saved, recorded against it); reopened with WORKING unsaved (a CONTROL)',
+      J([...b0.v, ...scr(B.ev), !!B.ev('baseGet().dirty')]), J(['REMOTE', 650, true, true, 'WORKING', 700, true]));
+    const h = await held(B, fold); const s0 = state(B.ev);
+    chk(name, sc, 'while the save is held, REMOTE is not later than the save’s own copy, and the refresh loads nothing, as before',
+      J([headTs(fold) < +B.ev('MS.ts'), await B.ev('driveStorePull(true)'), state(B.ev) === s0]), J([true, false, true]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
+      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]), J(['WORKING', 700, 'WORKING', 700, true, true, true, null]));
+  }
+  // (6) THE WORDS ARE TRUE WHERE THE CONNECT GOES ON TO LOAD OTHER THINGS. (a) The folder also holds newer execution data and a
+  // reprogramming log, shared through the product by Alice's board (EXDB and RPDB set as the v1.95 W2 block's fixture sets
+  // them). During a held save Brad presses the bar's Connect (the folder's edit permission not kept), or his opening's own
+  // connect runs. The board's copy is not loaded; the same Connect loads the execution data and the log. So the words name
+  // the board's copy alone, and never say that nothing was loaded from the folder. (b) Load theirs runs in the save's queue:
+  // a Connect while it waits at its read is refused in the same words, and Load theirs then loads REMOTE, keeping WORKING aside.
+  for (const [how, perm] of [['connect', true], ['auto', false]]) {
+    const sc = '(6a) ' + REFRESH[how] + ' during a save, with newer execution data and a reprogramming log in the folder';
+    const fold = withCopy(REMOTE);
+    const X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Alice', KEY.alice); connect(X.ev, X.w, fold);
+    X.ev(`(function(){ const t=Date.now();
+      EXDB={ts:t, all:{om:{fy:2027, rows:[['EXEC-1', 5000]]}}}; persistExdb();
+      RPDB={ts:t, entries:[{id:'rp-1', ts:t, ap:'om', amt:25000, what:'a reprogramming'}]}; persistRp(); return 'ok'; })()`);
+    const shared = [await X.ev('driveExecPush(true)'), await X.ev('driveRpPush(true)')]; await pause(5);
+    const { B } = await reopen(fold, perm);
+    const extra = ev => JSON.parse(ev(`JSON.stringify([Object.keys(EXDB.all||{}), rpAll().map(function(r){ return r.id; })])`));
+    chk(name, sc, 'Alice shared both; Brad’s board holds neither; WORKING on screen; REMOTE the folder’s copy (a CONTROL)',
+      J([...shared, ...extra(B.ev), ...scr(B.ev), ...head(fold)]), J([true, true, [], [], 'WORKING', 700, 'REMOTE', 650]));
+    const h = await held(B, fold); const s0 = state(B.ev);
+    const r = await B.ev(REFRESH[how]); await pause(5); const st = status(B.ev);
+    chk(name, sc, 'while the save is held, the Connect loads the execution data and the log but not the board’s copy -- [returned, a save under way, nothing changed byte for byte, execution data, the log]',
+      J([r, B.ev('_saveBusy') > 0, state(B.ev) === s0, ...extra(B.ev)]), J([true, true, true, ['om'], ['rp-1']]));
+    chk(name, sc, 'and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]',
+      J([st, /Nothing was loaded/i.test(st), /Nothing was changed/i.test(st)]), J([SAID, false, false]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; the status line says it saved, the Connect’s words gone',
+      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), /^✅ Saved O&M FY27 to the shared folder/.test(status(B.ev)), status(B.ev).includes('was not loaded')]),
+      J(['WORKING', 700, 'WORKING', 700, true, true, true, false]));
+  }
+  { const sc = '(6b) a Connect while Load theirs waits at its read';
+    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
+    const hr = holdRead(fold); const pr = B.ev(`driveResolve('theirs')`); const reached = await until(() => hr.hit()); const s0 = state(B.ev);
+    const r = await B.ev('driveConnectNow()'); await pause(5);
+    chk(name, sc, 'Load theirs waits at its read, counted as a save is; the Connect loads nothing -- [Load theirs waits, returned, counted, nothing changed byte for byte, said word for word]',
+      J([reached, r, B.ev('_saveBusy') > 0, state(B.ev) === s0, status(B.ev)]), J([true, true, true, true, SAID]));
+    hr.g.open(); await pr; await pause(5);
+    chk(name, sc, 'then Load theirs loads REMOTE, saved and recorded against the folder’s copy; WORKING kept aside, and said',
+      J([...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev), /^⬇ Loaded Brad’s copy of O&M FY27\. Your work is kept aside/.test(status(B.ev))]),
+      J(['REMOTE', 650, true, true, ['WORKING', 700], true]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U13) ====
+// ==== v2.00 (U40): two destinations of one list whose names match stay two, and each merge a reading makes by name is said ====
+// Two destinations are one when their names match, ignoring case and spaces (destName) -- yet "ALPHA DEPOT" could be typed
+// beside "Alpha Depot", each with its own requirements. Opened in a browser whose own destination list was newer (a second
+// person's), the file's list was read into that one BY NAME: its second entry matched the first, which the same reading had
+// just added, and the two became one. R2's $300 moved to Alpha Depot -- the year on screen, the next year, both hops, the
+// locked cycle, the funds flow and its workbook -- the opening line said only that the file had opened, and a save kept the
+// merge. The same reading runs for a list saved before v1.86 (in any browser), a plan taken from another file, a load from
+// the shared folder and a PMO submittal, and an older board's map could send both to one key without reading a name. Now a
+// typed name another destination has is refused and nothing changes; one reading never puts two entries of its list into
+// one destination; a name is not trusted where the list or the board holds it twice, or where it names another entry of
+// the same list; and the destinations panel and the opening line name the destinations kept apart and each merge a reading
+// makes by name. Expected dollars are typed: R1 $900, R2 $300, $1,200 in all. CONTROLS (they held before): a fresh browser kept both;
+// a full import replaces the board's list with the file's; an unambiguous name on another list still merges (v1.86), the
+// same way twice; a different name, a kind, match terms and an unnamed placeholder still save.
+// The fix round, (7): one key the list holds twice is one destination -- never named as kept apart from itself, its re-casing
+// not refused as another -- and a key deleted here but still used comes back ONCE, the plan and its locked cycle on one
+// destination; what the notice must not say (two placeholders, terms, a key read into itself) and must say (each list's merge, once).
+// Fix round 2: where that key came back is kept with the list, so a later opening -- the same browser before a save, another
+// appropriation's plan, saved and opened again -- brings it back to the same one, and a record that is not a map is not followed
+// (7, 9); what the notice writes is text, the opening line keeps its own, and the notice is said after a full import (8).
+// Fix round 3: a key brought back for another appropriation's plan is counted where it came back -- Used by names that plan and
+// a delete is refused (9); a record that is an array, two keys brought back, spaces, keys that read like markup, v1.85 lists (10).
+// Fix round 4: a key brought back, read before the key it came back under, is kept apart from it, which keeps its own
+// requirements; the destinations panel's own Used by cell and the list reset count a key brought back too, and a locked cycle
+// still on the deleted key is counted where it will be read (9).
+// Lens A, round 6: a key merged by name is read the same way again after a second list made it a destination of its own, or
+// brought it back on a new key -- the plan, the next year and the locked cycle on one key (9).
+// Lens A, round 6: a key merged by name for another appropriation's plan is counted where it was merged (9).
+// Lens A, round 6: and still where it lands, after a third list brought it back elsewhere (9).
+// Lens A, round 6: a list that holds one key twice is not read through the list's memory (9).
+// Lens A, round 6: a key merged by name is read the same way again from its owner's newer file, whose list has changed (9).
+// Lens A, round 6: where its name is refused, a key merged by name is not read into a destination its list carries apart (9).
+// Lens A, round 6: a key read where it was merged into a destination renamed since is not listed as merged by name, but as read
+// where an earlier reading put it (9, as changed in fix round 6).
+// Fix round 6: a key merged by name and then renamed by its owner stays with its locked cycle, and that is said; a key read where
+// an earlier reading put it -- the record or what is kept by name -- under another name is said once each, not under the same name (9).
+// Fix round 5: a key merged by name is read the same way again once the board holds that name twice -- the plan, the next
+// year and the locked cycle on one key (9); and a key brought back, read before the key it came back under, at an opening where
+// the record is read from storage, whether or not this plan uses the held key, and with two keys brought back in one list (9).
+// Verifier round 7 (lens A): a key merged by name, or brought back, then renamed by its owner to a name the board holds, stays with
+// its locked cycle, and that is said (9).
+// Verifier round 6 (lens B): a merge by name leaves the record of a come-back alone, so the renamed come-back keeps it; and a key of
+// another appropriation's plan merged by name is kept the same way, counted where that plan's next opening puts it; and a record
+// that names a destination since deleted is replaced by the merge (9).
+// Verifier round 7 (lens B): a key read where an earlier reading put it is said once for each appropriation and each name, every name
+// and key as text, beside a merge by name (9).
+// Fix round 7: what is kept by name is held for its key before the list is read, so another entry of the list, read first, never
+// takes that destination by name -- not for a key the reading does not carry (9).
+// Fix round 7: a key that lands where the record says it came back is kept the same way, so a key brought back where its name was
+// refused, then renamed by its owner to a name the board holds, stays with its locked cycle, said (9).
+// Fix round 7: a record that is an array is not followed for another appropriation's list either, at a later opening (10).
+// Fix round 7: what each entry of a list holding one key twice says, read twice; a key merged by name while its record names another
+// destination stays merged (9); two keys brought back for another appropriation's list both come back at a later opening (10).
+// Verifier round 8 (lens A): a key merged by name, read from its owner's newer file whose list carries apart the destination it was
+// merged into, leaves its locked cycle there, and that is said (9).
+// Verifier round 8 (lens B): what is kept by name is held for a key the board has come to hold since, and for a key brought back (9).
+// Beside U44 (L8 trial 3, F1; U71): a key read by the key a full import moved it to, or by the key of its own another board gave it,
+// is read by key -- no merge by name -- and is not listed as merged by name, in the panel or on the opening line (12).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U40) — two destinations of one list whose names match stay two, and each merge a reading makes by name is said';
+  try {
+  const J = JSON.stringify;
+  const SC = { services: ['USAF', 'ANG', 'AFRC'], items: [v10It('R1', 'AV', [900, 0, 0]), v10It('R2', 'AV', [300, 0, 0])],
+    disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] };
+  const make = () => { const B = boot(); seed(B.ev, SC); asBooted(B.ev, SC); B.ev(`applyState(S); save(); 'ok'`); return B; };
+  const PAIR = [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'ALPHA DEPOT', kind: 'gov', t: '' }];
+  // the board's list made exactly these, IN PLACE: the plan and the cycle store hold the same list, so nothing is read in again
+  const LIST = l => `DESTDB.ents.splice(0, DESTDB.ents.length); ${J(l)}.forEach(function(e){ DESTDB.ents.push(e); });`;
+  const lsOf = B => JSON.parse(B.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+  const stat = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const nm = `function(k){ var e=flowEnts().filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none: '+k+')'; }`;
+  // R1 and R2 by destination NAME, both hops, in the year on screen, the next saved year and the locked cycle; and two keys
+  const where = B => JSON.parse(B.ev(`(function(){ var n=${nm};
+    var one=function(st){ var D=(st&&st.dest)||{}; return ['R1','R2'].map(function(id){ var d=D[id]||{}; return id+': '+n(d.to)+' > '+n(d.end); }).join(' | '); };
+    var c=CYCDB.cycles['PB|'+MS.cur];
+    return JSON.stringify([one(S), one(MS.years[MS.cur+1]), c? one(c.years[MS.cur]) : '(no locked cycle)', S.dest.R1.to!==S.dest.R2.to]); })()`));
+  const ROW = 'R1: Alpha Depot > ALPHA DEPOT | R2: ALPHA DEPOT > Alpha Depot';
+  const WHERE = [ROW, ROW, ROW, true];
+  // the year on screen alone, first hop: [R1's destination, R2's, two keys]
+  const here = B => B.ev(`(function(){ var n=${nm}; return JSON.stringify([n(S.dest.R1.to), n(S.dest.R2.to), S.dest.R1.to!==S.dest.R2.to]); })()`);
+  const HERE = J(['Alpha Depot', 'ALPHA DEPOT', true]);
+  // the funds flow by destination: {key: [name, dollars]} for every destination holding money, and the total
+  const money = B => B.ev(`(function(){ var f=flowCalc(), n=${nm}, o={};
+    var t={}; f.cats.forEach(function(c){ t[c.to===undefined? c.k : c.to]=c.k; });
+    Object.keys(t).sort().forEach(function(k){ var b=f.ext.by[t[k]]; if(b.v) o[k]=[n(k), b.v]; }); return JSON.stringify([o, f.tot]); })()`);
+  const FLOW = J([{ 'U40-A': ['Alpha Depot', 900], 'U40-B': ['ALPHA DEPOT', 300] }, 1200]);
+  // the Funds Flow workbook as exported, read back: each Alpha sheet's requirement rows, '<requirement> <amount>'
+  const sheets = async B => { const b = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+      window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+      try{ exportFlow(); } finally{ window.Blob=_B; } if(!cap) throw Error('no workbook was made');
+      return JSON.stringify(await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))); })()`));
+    const o = {}; Object.keys(b).forEach(n => { const r = b[n].filter(x => /^Req R\d$/.test(String(x[0]))).map(x => x[0] + ' ' + x[5]);
+      if (r.length && /alpha/i.test(n)) o[n] = r; }); return J(o); };
+  // what the destinations panel says of matching names, and of merges by name ('(nothing)' when it says nothing)
+  const said = (B, re) => { const m = B.ev('flowEntEditor()').match(re); return m ? m[1] : '(nothing)'; };
+  const APART = /⚠ <b>Destinations with matching names are kept apart:<\/b> ([^<]*)/;
+  const MERGED = /<b>Merged by name<\/b> \(the same name, ignoring case and spaces\): ([^<]*)/;
+  const PAIRSAID = 'Alpha Depot [U40-A] · ALPHA DEPOT [U40-B]. Each keeps its own requirements and money; rename one so they can be told apart.';
+
+  // ---- (1) TYPING. "ALPHA DEPOT" and "  alpha   depot  " beside "Alpha Depot": refused, nothing changing anywhere ----
+  const T = make();
+  T.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'Bravo Yard', kind: 'other', t: '' }])}
+    var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; persistDest(); save(); return 'ok'; })()`);
+  const tState = () => T.ev(`JSON.stringify([DESTDB.ents, S.dest, _saveGen, _sideGen, DIRTY, _baseDirty])`);
+  for (const [raw, shown] of [['ALPHA DEPOT', '“ALPHA DEPOT”'], ['  alpha   depot  ', '“  alpha   depot  ”']]) {
+    const sc = '(1) typed ' + shown;
+    const s0 = tState(), l0 = J(lsOf(T));
+    T.ev(`flowSetEnt(1, 'n', ${J(raw)}); 'ok'`);
+    chk(name, sc, 'refused: the destination keeps the name Bravo Yard', T.ev('DESTDB.ents[1].n'), 'Bravo Yard');
+    chk(name, sc, 'nothing else changed: the list, the requirements, the change counts, the unsaved marks', tState(), s0);
+    chk(name, sc, 'and nothing was written to browser storage', J(lsOf(T)), l0);
+    chk(name, sc, 'and the board says so, word for word', stat(T), '⚠ Destination name not changed. ' + shown + ' matches “Alpha Depot”, another destination on the list '
+      + '(names are compared ignoring case and spaces). This one keeps the name “Bravo Yard”; give it a name of its own. Nothing was changed.');
+  }
+  // the panel's own field, through its change handler (Bravo Yard put back first, on a board that took a typed name)
+  T.ev(`(function(){ flowSetEnt(1, 'n', 'Bravo Yard'); entOpen=true; render();
+    var el=[].slice.call(document.querySelectorAll('#entBody input')).filter(function(x){ return /^flowSetEnt\\(\\d+,"n",/.test(x.getAttribute('onchange')||'') && x.value==='Bravo Yard'; })[0];
+    if(!el) throw Error('the name field of Bravo Yard is not in the panel');
+    el.focus(); el.value='ALPHA DEPOT'; el.dispatchEvent(new Event('change', {bubbles:true})); globalThis.__u40el=el; return 'ok'; })()`);
+  chk(name, '(1) the panel field', 'refused: Bravo Yard kept; the field keeps what was typed, marked invalid, its tooltip says why, focus stays',
+    T.ev(`JSON.stringify([DESTDB.ents[1].n, __u40el.value, __u40el.getAttribute('aria-invalid'), __u40el.title, document.activeElement===__u40el])`),
+    J(['Bravo Yard', 'ALPHA DEPOT', 'true', '“ALPHA DEPOT” matches “Alpha Depot”, another destination on the list (names are compared ignoring case and spaces). '
+      + 'This one keeps the name “Bravo Yard”; give it a name of its own. Nothing was changed', true]));
+  T.ev(`(function(){ __u40el.value='Charlie Yard'; __u40el.dispatchEvent(new Event('change', {bubbles:true}));
+    globalThis.__u40ok=[].slice.call(document.querySelectorAll('#entBody input')).filter(function(x){ return x.value==='Charlie Yard'; })[0]; return 'ok'; })()`);
+  chk(name, '(1) the panel field', 'CONTROL: a name of its own is stored, and the field redrawn without the mark or the tooltip',
+    T.ev(`JSON.stringify([DESTDB.ents[1].n, !!__u40ok && __u40ok.getAttribute('aria-invalid'), !!__u40ok && __u40ok.title])`), J(['Charlie Yard', null, '']));
+  T.ev(`flowSetEnt(0, 'n', 'ALPHA DEPOT'); flowSetEnt(1, 'kind', 'gov'); flowSetEnt(1, 't', 'CHARLIE'); flowAddEnt(); flowAddEnt(); 'ok'`);
+  chk(name, '(1) controls', 'CONTROL: a destination re-spelled in its own name, a kind, match terms and two unnamed placeholders all save',
+    T.ev(`JSON.stringify([DESTDB.ents[0].n, DESTDB.ents[1].kind, DESTDB.ents[1].t, DESTDB.ents.filter(function(e){ return e.n==='New destination'; }).length])`),
+    J(['ALPHA DEPOT', 'gov', 'CHARLIE', 2]));
+
+  // ---- (2) THE FILE: the pair as an earlier board saved it -- both hops, two years, a locked cycle, the flow by destination ----
+  const X = make();
+  X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om'];
+    S.dest={R1:{to:'U40-A',end:'U40-B'}, R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+    persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+  const html = X.ev('buildSavedHtml()');
+  const PUBRE = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/;
+  const SHEETS = J({ 'Alpha Depot': ['Req R1 900'], 'ALPHA DEPOT 2': ['Req R2 300'] });
+  // everything a reading must leave as the file had it, and say; `c` marks a reading that kept it before as well (a control)
+  const all = async (B, at, sheetsWant, apart, c = '') => {
+    chk(name, at, c + 'R1 and R2 keep their own destinations, both hops, in the year on screen, the next year and the locked cycle, on two keys', J(where(B)), J(WHERE));
+    chk(name, at, c + 'the funds flow: R1’s $900 on Alpha Depot, R2’s $300 on ALPHA DEPOT, $1,200 in all', money(B), FLOW);
+    chk(name, at, c + 'the Funds Flow workbook: R1’s $900 and R2’s $300 on two sheets, one each', await sheets(B), sheetsWant);
+    chk(name, at, 'the destinations panel names the destinations kept apart', said(B, APART), apart);
+  };
+  chk(name, '(2) the file', 'CONTROL: the fixture holds the pair, on the keys it was given', J(JSON.parse(html.match(PUBRE)[1]).destDb.ents.map(e => e.k + ':' + e.n)), J(['U40-A:Alpha Depot', 'U40-B:ALPHA DEPOT']));
+  { const F = boot({ html });
+    chk(name, '(2) a fresh browser', 'the opening line is kept, and names the two kept apart', [stat(F).startsWith('📦 Opened with the saved board state'), stat(F).endsWith(' ⚠ Destinations with matching names are kept apart: ' + PAIRSAID)].join(','), 'true,true');
+    await all(F, '(2) a fresh browser', SHEETS, PAIRSAID, 'CONTROL: '); }
+  // ---- (3) A SECOND PERSON'S NEWER LIST, holding neither key: Bravo Yard alone, or an Alpha Depot of its own ----
+  for (const [own, sheetsWant, apart] of [
+    ['Bravo Yard', SHEETS, PAIRSAID],
+    ['Alpha Depot', J({ 'Alpha Depot 2': ['Req R1 900'], 'ALPHA DEPOT 3': ['Req R2 300'] }), 'Alpha Depot [U40-C] · ' + PAIRSAID]]) {
+    const at = '(3) opened where a newer list holds ' + own;
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: own, kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, at, 'CONTROL: the opening line is still the board’s own', stat(B).startsWith('📦 Opened with the saved board state'), true);
+    chk(name, at, 'and it goes on to name the destinations kept apart', stat(B).endsWith(' ⚠ Destinations with matching names are kept apart: ' + apart), true);
+    chk(name, at, 'CONTROL: the newer list’s own destination is kept, on its own key', B.ev(`JSON.stringify(flowEnts().filter(function(e){ return e.k==='U40-C'; }).map(function(e){ return e.n; }))`), J([own]));
+    await all(B, at, sheetsWant, apart);
+    const B2 = boot({ html: B.ev('buildSavedHtml()') });
+    await all(B2, at + ', saved there and reopened', sheetsWant, apart);
+  }
+
+  // ---- (4) A LIST SAVED BEFORE v1.86 holding the pair (no board list; the plan's own, unmarked), in a browser that never held it ----
+  { const Lg = make();
+    Lg.ev(`(function(){ _destReady=false; MS.flow={ents:[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'ALPHA DEPOT',kind:'other',t:''}]};
+      S.dest={R1:{to:'x1',end:''},R2:{to:'x2',end:''}}; MS.years[MS.cur]=S; save(); return 'ok'; })()`);
+    const lh = v186AsV185(Lg.ev('buildSavedHtml()'));
+    const LJ = JSON.parse(lh.match(PUBRE)[1]);
+    chk(name, '(4) before v1.86', 'CONTROL: the fixture is what v1.85 wrote (no board list, an unmarked plan list of two)', J([!!LJ.destDb, !!LJ.appns.om.flow.dv, LJ.appns.om.flow.ents.length]), J([false, false, 2]));
+    const C = boot({ html: lh });
+    chk(name, '(4) before v1.86', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', here(C), HERE);
+    chk(name, '(4) before v1.86', 'the opening line names the two kept apart', /⚠ Destinations with matching names are kept apart: Alpha Depot \[d[0-9a-z]+\] · ALPHA DEPOT \[d[0-9a-z]+\]\. Each keeps/.test(stat(C)), true);
+    const C2 = boot({ html: lh, ls: lsOf(C) });
+    chk(name, '(4) before v1.86', 'CONTROL: reopened before it is saved, the same keys again', C2.ev(`JSON.stringify([S.dest.R1.to, S.dest.R2.to])`), C.ev(`JSON.stringify([S.dest.R1.to, S.dest.R2.to])`));
+    chk(name, '(4) before v1.86', 'saved and reopened: R1 on Alpha Depot, R2 on ALPHA DEPOT', here(boot({ html: C.ev('buildSavedHtml()') })), HERE); }
+
+  // ---- (5) THE OTHER WAYS A LIST IS READ IN: a plan taken from the file, a shared-folder load, a PMO submittal; a full import ----
+  const takeIn = () => { const Y = make(); Y.ev(`flowAddEnt(); flowSetEnt(flowEnts().length-1, 'n', 'Bravo Yard'); 'ok'`); return Y; };
+  { const Y = takeIn();
+    Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; var txt=${J(html)};
+      consTakeApply(JSON.parse(txt.match(/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/)[1]), txt, 'x.html', ['om'], false); return 'ok'; })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(5) O&M taken from the file', 'R1 and R2 keep their destinations, both hops, every year and the locked cycle that came with it', J(where(Y2)), J(WHERE));
+    chk(name, '(5) O&M taken from the file', 'the funds flow', money(Y2), FLOW); }
+  { const Y = takeIn();
+    chk(name, '(5) a shared-folder load', 'it loads; R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys',
+      J([Y.ev(`applyStore(${J(JSON.parse(html.match(PUBRE)[1]).appns.om)})!==false`), here(Y)]), J([true, HERE])); }
+  { const Y = takeIn();
+    chk(name, '(5) a PMO submittal', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', Y.ev(`(function(){ var n=${nm};
+      var p={ap:'om', dest:${J(PAIR)}, items:{R1:{dest:{to:'U40-A',end:''}}, R2:{dest:{to:'U40-B',end:''}}}, base:{}, added:[]}; destPkgIn(p);
+      return JSON.stringify([n(p.items.R1.dest.to), n(p.items.R2.dest.to), p.items.R1.dest.to!==p.items.R2.dest.to]); })()`), HERE); }
+  { const Y = takeIn();
+    const ok = Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(html)}, 'x.html'); })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(5) a full import', 'CONTROL: it runs, and the file’s list replaces the board’s: nothing moved', J([ok, where(Y2)]), J([true, WHERE])); }
+
+  // ---- (6) ONE READING, ITS LIST AND THE BOARD'S: what a name may and may not decide (destFold read directly) ----
+  { const K = make();
+    chk(name, '(6) a key of the same list', 'a name never claims the destination another entry of the same list IS (U40-B, renamed here): both kept, nothing re-pointed',
+      K.ev(`(function(){ ${LIST([{ k: 'U40-B', n: 'Alpha Depot', kind: 'other', t: '' }])}
+        var al=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'Bravo Yard',kind:'other',t:''}], 'om', true, {'U40-A':1,'U40-B':1});
+        return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k; }).sort()]); })()`), J([{}, ['U40-A', 'U40-B']])); }
+  { const A = make();
+    chk(name, '(6) a name the board holds twice', 'no first one is picked: the incoming destination is kept on its own key',
+      A.ev(`(function(){ ${LIST(PAIR)} var al=destFold([{k:'U40-C',n:'alpha depot',kind:'other',t:''}], 'ff', true, {'U40-C':1});
+        return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k; })]); })()`), J([{}, ['U40-A', 'U40-B', 'U40-C']])); }
+  { const M = make();
+    chk(name, '(6) an older board’s map', 'a map that sends both entries of a list to one destination is not followed for the second: R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys',
+      M.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }])} var q=${J(PAIR)}; DESTDB.lmap[destSig(q)]={'U40-A':'U40-C','U40-B':'U40-C'};
+        S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; destRemap([S], destFold(q, 'om', false, {'U40-A':1,'U40-B':1}));
+        var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om']; persistDest(); save(); return 'ok'; })()`) === 'ok' ? here(M) : '(threw)', HERE);
+    chk(name, '(6) an older board’s map', 'the funds flow: $900 and $300 on two destinations, $1,200 in all',
+      M.ev(`(function(){ var f=flowCalc(), ck=function(to){ var c=f.cats.filter(function(c){ return c.to===to; })[0]; return c? c.k : to; };
+        return JSON.stringify([f.ext.by[ck(S.dest.R1.to)].v, f.ext.by[ck(S.dest.R2.to)].v, f.tot]); })()`), J([900, 300, 1200]));
+    chk(name, '(6) an older board’s map', 'saved and reopened: R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', here(boot({ html: M.ev('buildSavedHtml()') })), HERE); }
+  { const G = make();
+    chk(name, '(6) a name a destination took on since', 'x1 was read into a destination since renamed Bravo Yard; x2 (Bravo Yard, its destination gone here, still used) is not put into it',
+      G.ev(`(function(){ ${LIST([{ k: 'U40-D', n: 'Bravo Yard', kind: 'other', t: '' }])} var q=[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'Bravo Yard',kind:'other',t:''}];
+        DESTDB.lmap[destSig(q)]={x1:'U40-D', x2:'U40-GONE'}; var al=destFold(q, 'om', false, {x1:1, x2:1});
+        return JSON.stringify([al.x1, al.x2!=='U40-D', DESTDB.ents.length]); })()`), J(['U40-D', true, 2])); }
+  { const L = make();
+    L.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: 'OLD' }])} var q=[{k:'x1',n:'ALPHA  DEPOT',kind:'other',t:'NEW'}];
+      globalThis.__u40maps=JSON.stringify([destFold(q, 'ff', false, {x1:1}), destFold(q, 'ff', false, {x1:1})]); return 'ok'; })()`);
+    chk(name, '(6) one name on another list', 'CONTROL: still merged by name (v1.86), the same way twice: one destination, both lists’ match terms',
+      L.ev(`JSON.stringify([JSON.parse(__u40maps), DESTDB.ents.length, DESTDB.ents[0].t])`), J([[{ x1: 'U40-A' }, { x1: 'U40-A' }], 1, 'OLD, NEW']));
+    chk(name, '(6) one name on another list', 'and the merge is listed in the destinations panel, with the list it came from', said(L, MERGED), 'ALPHA  DEPOT [x1, Full Fund] → Alpha Depot [U40-A].');
+    chk(name, '(6) one name on another list', 'CONTROL: no destination is named as kept apart', said(L, APART), '(nothing)'); }
+
+  // ---- (7) ONE KEY HELD TWICE, A KEY BROUGHT BACK, AND WHAT THE NOTICE MUST AND MUST NOT SAY (the fix round) ----
+  // v1.85 files with a plan list in O&M and in Full Fund, built as the v1.86 block builds its fixture
+  const legacy = (h, appn, list, dest) => { const B = boot({ html: h, appn }); seed(B.ev, SC); asBooted(B.ev, SC);
+    B.ev(`(function(){ _destReady=false; applyState(S); MS.years[MS.cur]=S; MS.flow={ents:${J(list)}}; S.dest=${J(dest)}; save(); return 'ok'; })()`);
+    return B; };
+  const NEWER = l => ({ prio27destdb: J({ ts: Date.now() + 60000, ents: l, lmap: {}, lsig: {}, conflicts: [], gone: [] }) });
+  // two unnamed placeholders (added in (1)'s controls) are not destinations with matching names
+  chk(name, '(7) two unnamed placeholders', 'CONTROL: the panel names nothing kept apart', said(T, APART), '(nothing)');
+  // match terms that read like another destination's name are an ordinary edit, not a name
+  T.ev(`flowSetEnt(1, 't', 'ALPHA DEPOT'); 'ok'`);
+  chk(name, '(7) match terms', 'CONTROL: terms “ALPHA DEPOT” on Charlie Yard are stored, beside a destination named ALPHA DEPOT', T.ev('DESTDB.ents[1].t'), 'ALPHA DEPOT');
+  // a key read into the destination of its OWN key is not a merge: both lists carry the seeded Lockheed Martin [lm]
+  { const LM = { k: 'lm', n: 'Lockheed Martin', kind: 'prime', t: 'LM, LOCKHEED' };
+    const F = legacy(null, 'FULL FUND', [LM, { k: 'x1', n: 'Charlie Yard', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' }, R2: { to: 'lm', end: '' } });
+    const O = legacy(F.ev('buildSavedHtml()'), null, [LM, { k: 'x1', n: 'Alpha Depot', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' }, R2: { to: 'lm', end: '' } });
+    const C = boot({ html: v186AsV185(O.ev('buildSavedHtml()')) });
+    chk(name, '(7) the seeded lm on two lists', 'CONTROL: no merge by name is said, on the opening line or in the panel', J([/Merged by name/.test(stat(C)), said(C, MERGED)]), J([false, '(nothing)'])); }
+  // the same key on two lists, read into one destination by name: each merge is listed, with its own list
+  { const F = legacy(null, 'FULL FUND', [{ k: 'x1', n: 'alpha depot', kind: 'other', t: '' }, { k: 'x2', n: 'Delta Base', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' } });
+    const O = legacy(F.ev('buildSavedHtml()'), null, [{ k: 'x1', n: 'ALPHA DEPOT', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' } });
+    const C = boot({ html: v186AsV185(O.ev('buildSavedHtml()')), ls: NEWER([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }]) });
+    chk(name, '(7) x1 on O&M and on Full Fund', 'both read into U40-A by name, and both merges listed, each with its list', said(C, MERGED),
+      'ALPHA DEPOT [x1, O&amp;M] → Alpha Depot [U40-A] · alpha depot [x1, Full Fund] → Alpha Depot [U40-A].'); }
+  // one PMO copy's list read twice in a session (two submittals): its merge is listed once
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} persistDest(); save();
+      var pk=function(){ return {ap:'ff', dest:[{k:'x9',n:'ALPHA DEPOT',kind:'other',t:''}], items:{R1:{dest:{to:'x9',end:''}}}, base:{}, added:[]}; };
+      destPkgIn(pk()); destPkgIn(pk()); return 'ok'; })()`);
+    chk(name, '(7) two submittals of one list', 'the merge is listed once', said(P, MERGED), 'ALPHA DEPOT [x9, Full Fund] → Alpha Depot [U40-A].'); }
+  // a kept map whose second entry's destination another entry took: the entry falls to its own name, and that merge is listed
+  { const Q = make();
+    const got = Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-E', n: 'Charlie Yard', kind: 'other', t: '' }])}
+      var q=[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'Charlie Yard',kind:'other',t:''}]; DESTDB.lmap[destSig(q)]={x1:'U40-C', x2:'U40-C'};
+      var al=destFold(q, 'om', false, {x1:1, x2:1}); return JSON.stringify([al.x1, al.x2]); })()`);
+    chk(name, '(7) a kept map, its second entry taken', 'x2 falls to its own name (U40-E), and that merge is listed', got + ' ' + said(Q, MERGED),
+      '["U40-C","U40-E"] Charlie Yard [x2, O&amp;M] → Charlie Yard [U40-E].'); }
+  // ONE KEY HELD TWICE is one destination (U44's fixture shape): read against a newer list it keeps its key, nothing is named as
+  // kept apart, fresh or against the newer list, and re-casing its second entry is not refused as "another destination"
+  { const K2 = make();
+    K2.ev(`(function(){ ${LIST([{ k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dB', n: 'Bravo Yard', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'dA',end:''},R2:{to:'dB',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const h2 = K2.ev('buildSavedHtml()');
+    const B = boot({ html: h2, ls: NEWER([{ k: 'U40-C', n: 'Charlie Yard', kind: 'other', t: '' }]) });
+    chk(name, '(7) one key held twice, a newer list', 'CONTROL: R1 keeps dA, and dA is the only key named Alpha Depot',
+      B.ev(`JSON.stringify([S.dest.R1.to, flowEnts().filter(function(e){ return e.n==='Alpha Depot'; }).map(function(e){ return e.k; }).filter(function(k,i,a){ return a.indexOf(k)===i; })])`), J(['dA', ['dA']]));
+    const F = boot({ html: h2 });
+    chk(name, '(7) one key held twice', 'CONTROL: nothing is named as kept apart, fresh or against the newer list', J([said(F, APART), said(B, APART)]), J(['(nothing)', '(nothing)']));
+    chk(name, '(7) one key held twice', 'CONTROL: re-casing its second entry is not refused as another destination (it is dA itself)',
+      F.ev(`(function(){ var L=flowEnts(), i=-1; L.forEach(function(e,j){ if(e.k==='dA' && L.findIndex(function(x){ return x.k==='dA'; })<j) i=j; });
+        if(i>=0) flowSetEnt(i, 'n', 'ALPHA DEPOT'); return /another destination on the list/.test((document.getElementById('shareStat')||{}).textContent||''); })()`), false); }
+  // ... and beside a real pair (dC "ALPHA DEPOT", a key of its own): dA and dC are named, dA once
+  { const K3 = make();
+    K3.ev(`(function(){ ${LIST([{ k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dC', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'dA',end:''},R2:{to:'dC',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    chk(name, '(7) one key held twice, beside a real pair', 'the panel names dA and dC as kept apart, dA once', said(boot({ html: K3.ev('buildSavedHtml()') }), APART),
+      'Alpha Depot [dA] · ALPHA DEPOT [dC]. Each keeps its own requirements and money; rename one so they can be told apart.'); }
+  // A KEY BROUGHT BACK: the file's pair, opened where the newer list deleted ALPHA DEPOT (U40-B, in its `gone`) while R1's second
+  // hop and R2 still use it. It comes back under a new key -- ONCE: the plan, the next year and the locked cycle are read one after
+  // another, and each reading used to make its own, so R2 sat on one ALPHA DEPOT in the plan and another in the locked cycle
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    // [destinations named ALPHA DEPOT, the keys R1's second hop and R2 use in the year on screen, the next year and the locked cycle]
+    const once = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+      return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+    // the funds flow by destination NAME (the new key is not known before), sorted, and the total
+    const byName = Bx => { const m = JSON.parse(money(Bx)), o = {}; Object.values(m[0]).forEach(([n, v]) => { o[n] = (o[n] || 0) + v; });
+      return J([Object.entries(o).sort(), m[1]]); };
+    const at = '(7) opened where the newer list deleted ALPHA DEPOT';
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, at, 'R1 and R2 keep their destinations by name, both hops, in the year on screen, the next year and the locked cycle', J(where(B)), J(WHERE));
+    chk(name, at, 'one ALPHA DEPOT comes back, and every year and the locked cycle use it: [destinations, keys]', once(B), J([1, 1]));
+    chk(name, at, 'the funds flow by name: $300 on ALPHA DEPOT, $900 on Alpha Depot, $1,200 in all', byName(B), J([[['ALPHA DEPOT', 300], ['Alpha Depot', 900]], 1200]));
+    chk(name, at, 'the destinations panel names two kept apart: Alpha Depot [U40-A] and the one ALPHA DEPOT',
+      /^Alpha Depot \[U40-A\] · ALPHA DEPOT \[d[0-9a-z]+\]\. Each keeps/.test(said(B, APART)), true);
+    chk(name, at + ', saved there and reopened', 'still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]', once(boot({ html: B.ev('buildSavedHtml()') })), J([1, 1])); }
+  // ... read directly: the same list read again comes back to the same destination; read beside the key it came back under, it is
+  // kept apart from that one (one reading never puts two of its entries into one destination)
+  { const Q = make();
+    chk(name, '(7) a key brought back under a new one', 'the same list again: the same destination; beside the key it came back under: kept apart from it',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var q=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var nk=destFold(q, 'om', true, {'U40-B':1})['U40-B'], again=destFold(q, 'om', true, {'U40-B':1})['U40-B'];
+        var beside=destFold([{k:nk,n:'ALPHA DEPOT',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', again===nk, !!beside && beside!==nk && beside!=='U40-A']); })()`), J([true, true, true])); }
+  // ... and AT THE NEXT OPENING (verifier, lens A, round 2): where the key came back is kept with the list, so the same browser
+  // reopening the file before a save, and a board opened from a save, bring it back to that one destination -- not to one more
+  // ALPHA DEPOT at each opening, the plan on the newest and the locked cycle on the first
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const once = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+      return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) }), B3 = boot({ html, ls: lsOf(B2) });
+    chk(name, '(7) reopened in the same browser before a save, twice', 'still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]', once(B3), J([1, 1]));
+    // Full Fund's plan holds the pair; the board opens on O&M, which reads Full Fund's list for its names only
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const O2 = boot({ html: O1.ev('save(); buildSavedHtml()'), appn: 'O&M' });
+    chk(name, '(7) Full Fund’s pair read on O&M, saved, opened again', 'one ALPHA DEPOT on the list, not one more at each opening',
+      O2.ev(`JSON.stringify([mySlug(), flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length])`), J(['om', 1])); }
+
+  // ---- (8) WHAT THE NOTICE WRITES IS TEXT; THE OPENING LINE KEEPS ITS OWN; A KEY BROUGHT BACK TO A DESTINATION DELETED SINCE;
+  // THE OPENING AFTER A FULL IMPORT; ONE KEY INTO A SECOND DESTINATION (verifier, lens B, round 2) ----
+  // names a file holds that read like markup are written as text (esc: every "<" as &lt;): in the panel, on the opening line, and in a merge
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: 'U40-H', n: '<i>Depot</i>', kind: 'other', t: '' }, { k: 'U40-I', n: '<I>DEPOT</I>', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-H',end:''},R2:{to:'U40-I',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(8) names that read like markup', 'the panel writes both as text', said(F, APART),
+      '&lt;i>Depot&lt;/i> [U40-H] · &lt;I>DEPOT&lt;/I> [U40-I]. Each keeps its own requirements and money; rename one so they can be told apart.');
+    chk(name, '(8) names that read like markup', 'CONTROL: and the opening line holds no element made from a name', F.ev(`document.querySelectorAll('#shareStat i').length`), 0);
+    const M = make();
+    M.ev(`(function(){ ${LIST([{ k: 'U40-A', n: '<i>Alpha</i> Depot', kind: 'other', t: '' }])} destFold([{k:'x1',n:'<I>ALPHA</I> DEPOT',kind:'other',t:''}], 'ff', false, {x1:1}); return 'ok'; })()`);
+    chk(name, '(8) names that read like markup', 'a merge by name lists both names as text', said(M, MERGED), '&lt;I>ALPHA&lt;/I> DEPOT [x1, Full Fund] → &lt;i>Alpha&lt;/i> Depot [U40-A].'); }
+  // the opening line keeps its own markup when the notice is added: the saver "<i>Bob</i>" stays in bold, as text
+  { const X = make();
+    X.ev(`(function(){ localStorage.setItem('prio27who', '<i>Bob</i>'); ${LIST(PAIR)}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(8) the opening line beside the notice', 'CONTROL: it keeps the saver in bold, as text, and gains no element from it: [first bold, italics]',
+      F.ev(`(function(){ var s=document.getElementById('shareStat'), b=s.querySelector('b'); return JSON.stringify([b? b.textContent : null, s.querySelectorAll('i').length]); })()`), J(['<i>Bob</i>', 0])); }
+  // a key brought back, its destination then deleted (asked and confirmed), then the same list read again: a PMO submittal
+  { const X = make();
+    X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const B2 = boot({ html: X.ev('buildSavedHtml()'), ls: { prio27destdb: J({ ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] }) } });
+    chk(name, '(8) a key brought back, its destination deleted since', 'R2 came back on an ALPHA DEPOT of a new key',
+      B2.ev(`(function(){ var n=${nm}; return JSON.stringify([n(S.dest.R2.to), S.dest.R2.to!=='U40-B']); })()`), J(['ALPHA DEPOT', true]));
+    chk(name, '(8) a key brought back, its destination deleted since', 'CONTROL: then a PMO submittal naming U40-B is read without throwing, its R2 on an ALPHA DEPOT the list holds',
+      B2.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+        flowDelEnt(flowEnts().findIndex(function(x){ return x.k===S.dest.R2.to; }));
+        var p={ap:'om', dest:${J(PAIR)}, items:{R2:{dest:{to:'U40-B',end:''}}}, base:{}, added:[]};
+        try{ destPkgIn(p); }catch(x){ return 'threw: '+x.message; } return ${nm}(p.items.R2.dest.to); })()`), 'ALPHA DEPOT'); }
+  // after a full import's reload, the opening gives the import's report and then names the two kept apart
+  { const Y = make();
+    const ok = Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(html)}, 'x.html'); })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(8) a full import, after its reload', 'the import’s report opens the line, and it goes on to name the two kept apart',
+      J([ok, stat(Y2).startsWith('⬅ Full board imported from “x.html”'), stat(Y2).endsWith(' ⚠ Destinations with matching names are kept apart: ' + PAIRSAID)]), J([true, true, true])); }
+  // one key of one list, read by name into a SECOND destination (the copy renamed it between two submittals): both are listed
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'Bravo Yard', kind: 'other', t: '' }])} persistDest(); save();
+      var pk=function(n){ return {ap:'ff', dest:[{k:'x9',n:n,kind:'other',t:''}], items:{R1:{dest:{to:'x9',end:''}}}, base:{}, added:[]}; };
+      destPkgIn(pk('ALPHA DEPOT')); destPkgIn(pk('BRAVO YARD')); return 'ok'; })()`);
+    chk(name, '(8) one key into a second destination', 'both merges are listed', said(P, MERGED),
+      'ALPHA DEPOT [x9, Full Fund] → Alpha Depot [U40-A] · BRAVO YARD [x9, Full Fund] → Bravo Yard [U40-B].'); }
+  // a placeholder's name is not a name: a destination may be renamed "New destination" beside a placeholder
+  { const Q = make();
+    Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} flowAddEnt(); flowSetEnt(0, 'n', 'New destination'); return 'ok'; })()`);
+    chk(name, '(8) a placeholder’s name', 'CONTROL: “New destination” is stored beside a placeholder', Q.ev('DESTDB.ents[0].n'), 'New destination'); }
+  // ---- (9) A RECORD THAT IS NOT A MAP (fix round 2): where keys came back, as the list keeps it, is followed only when it is a
+  // map. One that is not -- a file edited by hand, or written by another tool -- is not followed, and the key still comes back
+  // ONCE: one ALPHA DEPOT, which the plan, the next year and the locked cycle all use ----
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: { 'v186 back': 'U40-A' }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a record of where keys came back that is not a map', 'not followed: one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]',
+      B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+        return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`), J([1, 1])); }
+  // ... AND WHAT THE RECORD BINDS IS COUNTED (verifier, lens A, round 3): Full Fund's plan still on U40-B "Bravo Depot", read on O&M
+  // where a newer list deleted it, brings it back under a new key, and the next Full Fund opening puts R1's second hop and R2 there
+  // (the record). So on O&M the panel's "Used by" names Full Fund and ✕ is refused -- it said "—" and "Nothing points at it", and a
+  // name O&M then gave it for its own use took Full Fund's $300 with it, with nothing said
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan', 'on O&M its “Used by” names Full Fund, and ✕ is refused: [appropriation, destinations named Bravo Depot, Used by, still on the list, the first line said]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; }).map(function(e){ return e.k; }), m=[];
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        var u=flowEntUseElseTxt(flowEntUseElse(k[0])); flowDelEnt(flowEnts().findIndex(function(e){ return e.k===k[0]; }));
+        return JSON.stringify([mySlug(), k.length, u, flowEnts().some(function(e){ return e.k===k[0]; }), (m[0]||'').split('\\n')[0]]); })()`),
+      J(['om', 1, 'Full Fund (2)', true, 'Bravo Depot is not removed.'])); }
+  // ... AND NEVER TO ANOTHER ENTRY'S OWN KEY (verifier, lens A, round 4): a list that holds a deleted key and, after it, the key it
+  // came back under (a board that never deleted it took that one in from a file, and adds at the end) is two destinations. The key
+  // this board holds keeps its own requirements, and the deleted one comes back on a key of its own -- the record did not hand it
+  // that key and move the other's requirements onto one more destination of the same name
+  { const Q = make();
+    chk(name, '(9) a key brought back, read before the key it came back under', 'it comes back apart from that key, which keeps its own requirements: [came back on a key of its own, the held key kept, the deleted key apart from it]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var nk=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var refs={'U40-B':1}; refs[nk]=1;
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:nk,n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, refs);
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', !Object.prototype.hasOwnProperty.call(al, nk), !!al['U40-B'] && al['U40-B']!==nk && al['U40-B']!=='U40-A']); })()`),
+      J([true, true, true])); }
+  // ... AND EVERY PLACE THAT COUNTS IT, AND EVERY STORE IT IS COUNTED FROM (verifier, lens B, round 4): the destinations panel's own
+  // Used by cell and the list reset read the count too, not only ✕ -- the panel is where a person looks before renaming one -- and
+  // Full Fund's locked cycle, still on U40-B, is counted on the destination it will be read onto, beside its plan in two years
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const ffFile = cyc => { const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+      Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; ${cyc ? 'MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));' : ''}
+        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; cycLock(); save();" : ''} return 'ok'; })()`);
+      return Fx.ev('buildSavedHtml()'); };
+    const O = boot({ html: ffFile(false), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan', 'the destinations panel’s own Used by cell names Full Fund, and the list reset is refused naming it: [Used by cell, the reset’s first line, it names Bravo Depot — Full Fund (2), still on the list]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; })[0].k, m=[], b=null;
+        entOpen=true; render(); var i=flowEnts().map(function(e){ return e.k; }).indexOf(k);
+        document.querySelectorAll('button').forEach(function(x){ if(x.getAttribute('onclick')==='flowDelEnt('+i+')') b=x; });
+        var cell=b? b.closest('td').previousElementSibling.textContent : '(no ✕ for it on screen)';
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        flowResetEnts();
+        return JSON.stringify([cell, (m[0]||'').split('\\n')[0], (m[0]||'').indexOf('Bravo Depot \\u2014 Full Fund (2)')>=0, flowEnts().some(function(e){ return e.k===k; })]); })()`),
+      J(['Full Fund (2)', 'The list is not reset.', true, true]));
+    const Y = boot({ html: ffFile(true), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan, two years and a locked cycle', 'Used by names Full Fund’s plan and its locked cycle, every requirement of each',
+      Y.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; })[0].k; return flowEntUseElseTxt(flowEntUseElse(k)); })()`),
+      'Full Fund (4), Full Fund locked PB27 (4)'); }
+  // ... AND A KEY MERGED BY NAME IS READ THE SAME WAY AGAIN (verifier, lens A, round 5): O&M's U40-G "Alpha Depot", deleted in a
+  // newer list that holds an Alpha Depot of its own (U40-C), is merged into it by name when the file is opened. Looked at, not saved;
+  // a second file, Full Fund's pair, opened on Full Fund; then the first file opened again. The board now holds the name three times,
+  // and the name alone chose none: R2 went to one more Alpha Depot in the plan and the next year while the locked cycle, kept at the
+  // first opening, stayed on U40-C
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-G'] };
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-G', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-G',end:'U40-G'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    const hom = Fo.ev('buildSavedHtml()');
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom, appn: 'O&M', ls: lsOf(F2) });
+    chk(name, '(9) a key merged by name, read again after the board came to hold that name twice', 'R2 stays where it was merged: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; three Alpha Depots, not four',
+      O3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['om', 1, 'U40-C', 3])); }
+  // ... AND AFTER A SECOND LIST MADE THAT KEY A DESTINATION OF ITS OWN (verifier, lens A, round 6): O&M's U40-K "Alpha Depot", which
+  // the newer list never held (or deleted), is merged by name into its U40-C when the file is opened. Looked at, not saved; Full
+  // Fund's plan opened next carries U40-C and U40-K "ALPHA DEPOT", kept apart, so U40-K became a destination of its own (or came
+  // back on a new key). O&M's file opened again then read U40-K there, in the plan and the next year, while the locked cycle,
+  // kept at the first opening, stayed on U40-C: $300 on two destinations between the working plan and PB
+  for (const gone of [[], ['U40-K']]) {
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone };
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    const hom = Fo.ev('buildSavedHtml()');
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-C',end:''},R2:{to:'U40-K',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom, appn: 'O&M', ls: lsOf(F2) });
+    chk(name, '(9) a key merged by name, read again after a second list made it a destination of its own' + (gone.length ? ' (deleted in the newer list)' : ''),
+      'R2 stays where it was merged: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; two Alpha Depots, kept apart',
+      O3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['om', 1, 'U40-C', 2])); }
+  // ... AND A KEY MERGED BY NAME FOR ANOTHER APPROPRIATION'S PLAN IS COUNTED WHERE IT WAS MERGED (verifier, lens A, round 6; the
+  // fifth round's probe frprobe5, M): Full Fund's plan still on U40-B "Bravo Depot", read on O&M where a newer list deleted it and
+  // holds a Bravo Depot of its own, is merged into that one by name; Full Fund's next opening puts R1's second hop and R2 there, so on
+  // O&M its "Used by" names Full Fund and ✕ is refused. This is the record's own route: the list's memory of its own readings is
+  // not read for another appropriation's count
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key merged by name for another appropriation’s plan', 'on O&M the Bravo Depot it was merged into names Full Fund under “Used by”, and ✕ is refused: [appropriation, destinations named Bravo Depot, that one’s key, Used by, still on the list, the first line said]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; }).map(function(e){ return e.k; }), m=[];
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        var u=flowEntUseElseTxt(flowEntUseElse(k[0])); flowDelEnt(flowEnts().findIndex(function(e){ return e.k===k[0]; }));
+        return JSON.stringify([mySlug(), k.length, k[0], u, flowEnts().some(function(e){ return e.k===k[0]; }), (m[0]||'').split('\\n')[0]]); })()`),
+      J(['om', 1, 'U40-C', 'Full Fund (2)', true, 'Bravo Depot is not removed.'])); }
+  // ... AND STILL WHERE THAT PLAN LANDS, AFTER A LIST BROUGHT ITS KEY BACK ELSEWHERE (verifier, lens A, round 6): O&M's own file, whose
+  // list carries U40-C "Bravo Depot" and U40-B "BRAVO DEPOT" apart, opened next, brings U40-B back on a new key for O&M's R2 and the
+  // record names that one; Used by then names Full Fund there. A list's own memory of where its keys were read by name is kept only
+  // for the appropriation open (its plan and locked cycles are re-pointed and kept), so Full Fund's plan, read on O&M for the names
+  // only, lands at its next opening where Used by counted it, not on the Bravo Depot it was first merged into with nothing counted
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const hff = Fx.ev('buildSavedHtml()');
+    const Fo = boot({ html: hff, appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'BRAVO DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hff, appn: 'O&M', ls: { prio27destdb: J(db) } }), O2 = boot({ html: Fo.ev('buildSavedHtml()'), appn: 'O&M', ls: lsOf(O1) });
+    const F3 = boot({ html: hff, appn: 'FULL FUND', ls: lsOf(O2) });
+    const land = JSON.parse(F3.ev(`JSON.stringify([S.dest.R1.end, S.dest.R2.to])`));
+    chk(name, '(9) a key merged by name for another appropriation’s plan, then brought back elsewhere by a third list', 'Full Fund’s next opening puts R1’s second hop and R2 on the destination O&M’s Used by named Full Fund on: [Used by there, both on one]',
+      J([O2.ev(`flowEntUseElseTxt(flowEntUseElse(${J(land[0])}))`), land[0] === land[1]]), J(['Full Fund (2)', true])); }
+  // ... AND A LIST THAT HOLDS ONE KEY TWICE IS NOT READ THROUGH THE LIST'S MEMORY (verifier, lens A, round 6; a generated state of
+  // vr5fuzz3, seed 11, case 364): U40-A "Echo Yard" and U40-A "Delta Pier", deleted here and brought back as U40-F (the record). The
+  // first entry is merged by name into Echo Yard; the second follows the record. A memory of the first, handed to the second at the
+  // reopen, moved the plan's U40-A from U40-F to Echo Yard -- the plan and its locked cycle on two destinations
+  { const Q = make();
+    chk(name, '(9) a list that holds one key twice, read twice', 'read the same way both times, and nothing more made: [the open appropriation, first reading, second reading, destinations]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Echo Yard', kind: 'other', t: '' }, { k: 'U40-F', n: 'alpha  depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A'); DESTDB.lmap['v186 back']={'U40-A':'U40-F'};
+        var L=[{k:'U40-A',n:'Echo Yard',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''},{k:'U40-A',n:'Delta Pier',kind:'other',t:''}], R={'U40-A':1,'U40-B':1};
+        var a=JSON.stringify(destFold(L, mySlug(), true, R)), b=JSON.stringify(destFold(L, mySlug(), true, R));
+        return JSON.stringify([mySlug(), a, b, DESTDB.ents.length]); })()`),
+      J(['om', J({ 'U40-A': 'U40-C' }), J({ 'U40-A': 'U40-C' }), 3])); }     // beside U44: its first entry (U44)
+  // ... AND WHAT EACH ENTRY OF IT SAYS (fix round 7): the same list read twice; the board keeps U40-A where the record put it, as the
+  // last of its entries came back, so a memory of that key handed to its first entry would read "Echo Yard" there, and say so, though
+  // that entry merged by name. Each entry is read the same way both times: [the notice]
+  { const Q = make();
+    chk(name, '(9) a list that holds one key twice, read twice: what it says', 'each entry said as read the first time, and nothing more: [the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Echo Yard', kind: 'other', t: '' }, { k: 'U40-F', n: 'alpha  depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A'); DESTDB.lmap['v186 back']={'U40-A':'U40-F'}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-A',n:'Echo Yard',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''},{k:'U40-A',n:'Delta Pier',kind:'other',t:''}], R={'U40-A':1,'U40-B':1};
+        destFold(L, mySlug(), true, R); destFold(L, mySlug(), true, R);
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return d.textContent; })()`),
+      'Merged by name (the same name, ignoring case and spaces): Echo Yard [U40-A, O&M] → Echo Yard [U40-C].'); }     // beside U44: its repeat is not read (U44), so only its first entry is said
+  // ... AND WHERE ITS RECORD NAMES ANOTHER DESTINATION (fix round 7; destFold read directly): O&M's U40-K came back as dX for another
+  // list (the record names dX, which the board holds); O&M's own list names it "Alpha Depot", merged by name into U40-C. The record
+  // stays dX, so only what is kept by name keeps U40-C. After the board comes to hold U40-K itself (another list carried it apart),
+  // O&M's list read again still lands on U40-C
+  { const Q = make();
+    chk(name, '(9) a key merged by name while its record names another destination, read again after the board came to hold it', 'kept by name: [the first reading, the reading after the board holds U40-K, the record]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dX', n: 'Kilo Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-K'); DESTDB.lmap['v186 back']={'U40-K':'dX'}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-K',n:'Alpha Depot',kind:'other',t:''}];
+        var a=JSON.stringify(destFold(JSON.parse(JSON.stringify(L)), mySlug(), true, {'U40-K':1}));
+        DESTDB.gone.splice(DESTDB.gone.indexOf('U40-K'), 1); DESTDB.ents.push({k:'U40-K',n:'ALPHA DEPOT',kind:'other',t:''});
+        var b=JSON.stringify(destFold(JSON.parse(JSON.stringify(L)), mySlug(), true, {'U40-K':1}));
+        return JSON.stringify([a, b, JSON.stringify(DESTDB.lmap['v186 back'])]); })()`),
+      J([J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'dX' })])); }
+  // ... AND FROM ITS OWNER'S NEWER FILE (verifier, lens A, round 6): as above, but O&M's file opened after Full Fund's is its owner's
+  // newer one, whose list has changed since (a destination added; U40-K still "Alpha Depot", R2 still on it). Kept against the
+  // exact list, the merge was not read there: the plan and the next year moved to U40-K, or to its come-back, while the locked
+  // cycle, kept at the first opening, stayed on U40-C. Opened twice, so a reading of another of O&M's lists in between (its locked
+  // cycles, read through the board's own list) is seen to leave what is kept for U40-K
+  for (const gone of [[], ['U40-K']]) {
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone };
+    const om = function(list){ const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(list)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      return Fo.ev('buildSavedHtml()'); };
+    const hom = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }]), hom2 = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-E', n: 'Echo Yard', kind: 'gov', t: '' }]);
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-C',end:''},R2:{to:'U40-K',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom2, appn: 'O&M', ls: lsOf(F2) }), O4 = boot({ html: hom2, appn: 'O&M', ls: lsOf(O3) });
+    const keys = W => JSON.parse(W.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`));
+    chk(name, '(9) a key merged by name, read again from its owner’s newer file after a second list made it a destination of its own' + (gone.length ? ' (deleted in the newer list)' : ''),
+      'R2 stays where it was merged, at both openings: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; two Alpha Depots, kept apart',
+      J([keys(O3), keys(O4)]), J([['om', 1, 'U40-C', 2], ['om', 1, 'U40-C', 2]])); }
+  // ... AND NEVER INTO A DESTINATION ITS LIST CARRIES APART (verifier, lens A, round 6): what is kept for a key read by name is read
+  // where its name is refused, before the record; a list that carries that destination apart from the key -- its owner has since
+  // learned of it -- does not hand the key to it. U40-K, deleted here, was merged by name into U40-C, and the record names the
+  // destination it came back as for Full Fund (U40-N "ALPHA DEPOT"); O&M's list now carries U40-K "Alpha Depot" and U40-C "Alpha Depot"
+  { const Q = make();
+    chk(name, '(9) a key merged by name, read where its list carries apart the destination it was merged into', 'U40-K is not read into U40-C, and U40-C keeps its own entry: [the open appropriation, the reading, destinations]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-K');
+        DESTDB.lmap['v186 back']={'U40-K':'U40-N'}; DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'};
+        var L=[{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-C',n:'Alpha Depot',kind:'gov',t:''}], R={'U40-K':1,'U40-C':1};
+        return JSON.stringify([mySlug(), JSON.stringify(destFold(L, mySlug(), true, R)), DESTDB.ents.length]); })()`),
+      J(['om', J({ 'U40-K': 'U40-N' }), 2])); }
+  // ... AND WHERE ITS OWNER'S NEWER FILE CARRIES THAT DESTINATION APART, THAT IS SAID (verifier, lens A, round 8): U40-Z "Alpha Depot"
+  // was merged by name into the reader's U40-C, the plan, the next year and the locked cycle with it. Its owner then renamed it "Zulu
+  // Yard" and took U40-C in from a file, so the newer file's list carries the two apart, and U40-Z is not read into U40-C (round 6). The
+  // plan and the next year follow that list onto U40-Z, while the locked cycle, kept at the first opening, stays on U40-C: $300 on two
+  // destinations between the working plan and PB, with nothing said. It is said; where the new name is one the board holds (Bravo
+  // Depot), the same, beside the merge by name
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.join(','), flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Z', 'Zulu Yard'), E('U40-C', 'Alpha Depot')]), h3 = file([E('U40-Z', 'Bravo Depot'), E('U40-C', 'Alpha Depot')]);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) }), A3 = boot({ html: h3, appn: 'O&M', ls: lsOf(A1) });
+    const av = read(A2);
+    chk(name, '(9) a key merged by name, read from its owner’s newer file whose list carries apart the destination it was merged into', 'the plan follows the list, the locked cycle keeps where it was merged, and that is said: [the plan, the next year and the locked cycle, both hops; the board’s keys; the panel; the opening line ends with it]',
+      J(av.concat([stat(A2).endsWith(' ' + av[2])])),
+      J(['U40-Z,U40-Z,U40-Z,U40-Z,U40-C,U40-C', 'U40-C,U40-B,U40-Z', 'Read apart from where an earlier reading put it: Zulu Yard [U40-Z, O&M] → Zulu Yard [U40-Z], not Alpha Depot [U40-C]. Where a locked cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand.', true]));
+    chk(name, '(9) a key merged by name, read from its owner’s newer file whose list carries apart the destination it was merged into, under a name the board holds', 'the same, beside the merge by name: [the plan, the next year and the locked cycle, both hops; the board’s keys; the panel]',
+      J(read(A3)),
+      J(['U40-B,U40-B,U40-B,U40-B,U40-C,U40-C', 'U40-C,U40-B', 'Merged by name (the same name, ignoring case and spaces): Bravo Depot [U40-Z, O&M] → Bravo Depot [U40-B]. Read apart from where an earlier reading put it: Bravo Depot [U40-Z, O&M] → Bravo Depot [U40-B], not Alpha Depot [U40-C]. Where a locked cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand.'])); }
+  // ... AND NOT LISTED AS MERGED BY NAME WHERE THAT DESTINATION HAS BEEN RENAMED SINCE (verifier, lens A, round 6): U40-K "Alpha Depot"
+  // was merged by name into U40-C, which this board has since renamed "Alpha Depot North"; a second list made U40-K a destination of
+  // its own ("ALPHA DEPOT"). O&M's list [U40-K "Alpha Depot"] is read onto U40-C, as kept -- and was listed under "Merged by name (the
+  // same name, ignoring case and spaces): Alpha Depot [U40-K, O&M] → Alpha Depot North [U40-C]", which is not the same name
+  { const Q = make();
+    chk(name, '(9) a key read where it was merged by name, into a destination renamed since', 'read onto U40-C; it is not listed as merged by name, but as read where an earlier reading put it, under another name: [the open appropriation, the reading, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot North', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])}
+        DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'}; _destMerges=[];
+        var al=destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1});
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([mySlug(), JSON.stringify(al), d.textContent]); })()`),
+      J(['om', J({ 'U40-K': 'U40-C' }), 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Alpha Depot North [U40-C]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND SAID WHERE ITS LIST HAS RENAMED IT SINCE (fix round 6: the tests lens's MF1, on the money lens's S4 route with a locked
+  // cycle): O&M's U40-Z "Alpha Depot", a key the newer list never held, is merged by name into its U40-C when the file is opened, its
+  // locked cycle with it. Its owner then renames U40-Z "Zulu Yard". That file, opened in the same browser, is read where the first
+  // reading put it -- the plan, the next year and the locked cycle on one key -- and the panel and the opening line now say so: it
+  // was read onto Alpha Depot with nothing said (following the rename instead moved the plan off its locked cycle)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = n => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-Z', n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    // both files made first: the reader's list, kept at the first opening, stays the newer (it changed after the owner's rename)
+    const h1 = file('Alpha Depot'), h2 = file('Zulu Yard');
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) });
+    const kept = 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.';
+    chk(name, '(9) a key merged by name, then renamed by its owner, read again', 'R2 stays where it was merged, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(JSON.parse(A2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`)).concat([stat(A2).endsWith(' ' + kept)])),
+      J([1, 'U40-C', 'U40-C', 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND WHERE ITS OWNER RENAMED IT TO A NAME THE BOARD HOLDS (verifier, lens A, round 7): the same, but U40-Z is renamed "Bravo
+  // Depot", which the reader's list holds once (U40-B), or a key brought back (the reader's list deleted U40-K; it came back as "Kilo
+  // Depot") is renamed "Alpha Depot", which the reader's list holds once (U40-A). That name found U40-B, or U40-A, for the plan and the
+  // next year, while the locked cycle, kept at the first opening, stayed where the first reading put it: $300 on two destinations
+  // between the working plan and PB, said only as a merge by name. Each is read where the first reading put it, as for a name the
+  // board does not hold, and said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    const dbR = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const r1 = file('U40-Z', 'Alpha Depot'), r2 = file('U40-Z', 'Bravo Depot');
+    const R1 = boot({ html: r1, appn: 'O&M', ls: { prio27destdb: J(dbR) } });
+    const R2 = boot({ html: r2, appn: 'O&M', ls: lsOf(R1) });
+    const rv = read(R2);
+    chk(name, '(9) a key merged by name, then renamed by its owner to a name the board holds, read again', 'R2 stays where it was merged, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key; its name; the panel; the opening line ends with it]',
+      J(rv.concat([stat(R2).endsWith(' ' + rv[3].split('<its key>').join(rv[1]))])),
+      J([1, 'U40-C', 'Alpha Depot', 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [<its key>]. Where the two are not one destination, move the requirements by hand.', true]));
+    const dbB = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const b1 = file('U40-K', 'Kilo Depot'), b2 = file('U40-K', 'Alpha Depot');
+    const B1 = boot({ html: b1, appn: 'O&M', ls: { prio27destdb: J(dbB) } });
+    const B2 = boot({ html: b2, appn: 'O&M', ls: lsOf(B1) });
+    const bv = read(B2);
+    chk(name, '(9) a key brought back, then renamed by its owner to a name the board holds, read again', 'R2 stays where it came back, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key is neither U40-A nor U40-K; its name; the panel]',
+      J([bv[0], bv[1] !== 'U40-A' && bv[1] !== 'U40-K', bv[2], bv[3]]),
+      J([1, true, 'Kilo Depot', 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND WHERE ANOTHER ENTRY OF ITS LIST, READ FIRST, NOW HAS THE NAME IT WAS MERGED UNDER (fix round 7): the same, but the owner
+  // also gives an earlier placeholder of the list, U40-Y, the name "Alpha Depot". Read first, it took Alpha Depot by name, and U40-Z
+  // then followed its new name: the plan and the next year on Bravo Depot, the locked cycle on Alpha Depot, said only as merges by
+  // name. What is kept by name is now held for its key before the list is read: R2 stays with its locked cycle, said, and the
+  // placeholder is kept apart on its own key, said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) });
+    const ov = JSON.parse(A2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    chk(name, '(9) a key merged by name, renamed by its owner, read after another entry of its list that now has the name it was merged under', 'R2 stays where it was merged, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(ov.concat([stat(A2).endsWith(' ' + ov[3])])),
+      J([1, 'U40-C', 'U40-C,U40-B,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND HELD FOR ITS KEY IN ANY ORDER, NOT FOR A KEY THE READING DOES NOT CARRY (fix round 7; destFold read directly): O&M's U40-Z
+  // was kept by name for U40-C. A list that names it "Zulu Yard" and, before it, gives U40-Y the name "Alpha Depot" reads U40-Z onto
+  // U40-C and keeps U40-Y apart on its own key (U40-Z was made a destination of its own). Where U40-Z is deleted here and nothing uses
+  // it, it is not carried, and U40-Y merges by name into U40-C, as before
+  { const Q = make();
+    chk(name, '(9) a key kept by name, read after another entry of its list that now has the name it was kept under', 'held for its key, and not where the reading does not carry it: [the reading, the board’s keys, the notice; deleted here and unused: the reading, the board’s keys]',
+      Q.ev(`(function(){ var l=[{k:'U40-Y',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-Z',n:'Zulu Yard',kind:'gov',t:''}];
+        ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }])} DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-Z':'U40-C'}; _destMerges=[]; _destKept=[];
+        var a=JSON.stringify(destFold(l, mySlug(), true, {'U40-Z':1})), ka=flowEnts().map(function(e){ return e.k; }).join(',');
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        var na=d.textContent;
+        ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-Z'); DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-Z':'U40-C'}; _destMerges=[]; _destKept=[];
+        var b=JSON.stringify(destFold(l, mySlug(), true, {'U40-Y':1}));
+        return JSON.stringify([a, ka, na, b, flowEnts().map(function(e){ return e.k; }).join(',')]); })()`),
+      J([J({ 'U40-Z': 'U40-C' }), 'U40-C,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.',
+        J({ 'U40-Y': 'U40-C' }), 'U40-C'])); }
+  // ... AND WHERE THE BOARD HAS SINCE COME TO HOLD THAT KEY (verifier, lens B, round 8): the same, but before the owner's newer file
+  // is opened, Full Fund's plan, opened in the same browser, carries U40-Z apart ("Zulu Yard"), so the board holds U40-Z itself. What
+  // is kept by name is held for that key too: R2 stays where it was merged, with its locked cycle, and the placeholder is kept apart on
+  // its own key (held only for a key the board does not hold, the placeholder took Alpha Depot by name and R2 stayed on U40-Z in the
+  // plan and the next year, the locked cycle on U40-C)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([E('U40-C', 'Alpha Depot'), E('U40-Z', 'Zulu Yard')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-Z',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(A1) });
+    const A3 = boot({ html: h2, appn: 'O&M', ls: lsOf(F2) });
+    const ov = JSON.parse(A3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    chk(name, '(9) a key merged by name, held by the board since, renamed by its owner, read after another entry of its list that now has the name it was merged under', 'R2 stays where it was merged, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(ov.concat([stat(A3).endsWith(' ' + ov[3])])),
+      J([1, 'U40-C', 'U40-C,U40-B,U40-Z,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND FOR A KEY THE NEWER LIST DELETED, BROUGHT BACK (verifier, lens B, round 8): the reader's list has deleted U40-K, which O&M's
+  // plan still uses, so it comes back on a new key, "Kilo Depot", with its locked cycle. Its owner then renames it "Alpha Depot" (the
+  // board holds that name once) and gives a placeholder read before it the name "Kilo Depot". What is kept is held for a key brought
+  // back too: R2 stays where it came back, said, and the placeholder is kept apart (held for nothing deleted here, the placeholder took
+  // the come-back by name and R2 followed its new name to U40-A in the plan and the next year, the locked cycle on the come-back)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const g1 = file([E('U40-Y', 'New destination'), E('U40-K', 'Kilo Depot')]), g2 = file([E('U40-Y', 'Kilo Depot'), E('U40-K', 'Alpha Depot')]);
+    const G1 = boot({ html: g1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const g0 = G1.ev('S.dest.R2.to');
+    const G2 = boot({ html: g2, appn: 'O&M', ls: lsOf(G1) });
+    const gv = JSON.parse(G2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    chk(name, '(9) a key brought back, renamed by its owner to a name the board holds, read after another entry of its list that now has the name it came back under', 'R2 stays where it came back, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key is the one it came back on, neither U40-A nor U40-K; its name; the panel]',
+      J([gv[0], gv[1] === g0 && ['U40-A', 'U40-K'].indexOf(gv[1]) < 0, gv[2], gv[3]]),
+      J([1, true, 'Kilo Depot', '⚠ Destinations with matching names are kept apart: Kilo Depot [<its key>] · Kilo Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND WHERE IT CAME BACK BECAUSE ITS NAME WAS REFUSED (fix round 7; the money lens's round-7 S1, measured): the reader's list holds
+  // "Kilo Depot" twice (a pair kept apart) and "Alpha Depot" once, and has deleted U40-K. O&M's U40-K "Kilo Depot" comes back on a new
+  // key; its name is refused there, so only the record named where it came back. Its owner then renames it "Alpha Depot": that name
+  // found U40-A for the plan and the next year, while the locked cycle stayed where it came back. A key that lands where the record says
+  // it came back is now kept as a key read by name is, and read there again, said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-P', 'Kilo Depot'), E('U40-Q', 'KILO DEPOT'), E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const q1 = file('U40-K', 'Kilo Depot'), q2 = file('U40-K', 'Alpha Depot');
+    const Q1 = boot({ html: q1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const Q2 = boot({ html: q2, appn: 'O&M', ls: lsOf(Q1) });
+    const qv = JSON.parse(Q2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    chk(name, '(9) a key brought back where its name was refused, then renamed by its owner to a name the board holds, read again', 'R2 stays where it came back, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key is none of U40-A, U40-K, U40-P, U40-Q; its name; the panel]',
+      J([qv[0], ['U40-A', 'U40-K', 'U40-P', 'U40-Q'].indexOf(qv[1]) < 0, qv[2], qv[3]]),
+      J([1, true, 'Kilo Depot', '⚠ Destinations with matching names are kept apart: Kilo Depot [U40-P] · KILO DEPOT [U40-Q] · Kilo Depot [<its key>]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND THROUGH THE RECORD AT A LATER READING (fix round 7; destFold read directly): U40-K came back as dN before (the record names
+  // it); read for the appropriation open where its name is refused (the board holds it twice), it lands on dN by the record and is kept
+  // as a key read by name is -- so read again under a name the board holds once, it lands on dN again, said
+  { const Q = make();
+    chk(name, '(9) a key read where the record says it came back, then renamed by its owner to a name the board holds', 'kept for the appropriation open, and read there again: [the reading, what is kept, the reading under the new name, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dN', n: 'Kilo Depot', kind: 'gov', t: '' }, { k: 'U40-P', n: 'KILO DEPOT', kind: 'gov', t: '' }, { k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }])}
+        DESTDB.gone.push('U40-K'); DESTDB.lmap['v186 back']={'U40-K':'dN'}; _destMerges=[]; _destKept=[];
+        var a=JSON.stringify(destFold([{k:'U40-K',n:'Kilo Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1}));
+        var m=JSON.stringify(DESTDB.lmap['v186 '+mySlug()+' by name']||null);
+        var b=JSON.stringify(destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1}));
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, m, b, d.textContent]); })()`),
+      J([J({ 'U40-K': 'dN' }), J({ 'U40-K': 'dN' }), J({ 'U40-K': 'dN' }), '⚠ Destinations with matching names are kept apart: Kilo Depot [dN] · KILO DEPOT [U40-P]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [dN]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND THROUGH THE RECORD, ONCE EACH, AND NOT WHERE THE NAMES MATCH (fix round 6; the tests lens's S2): a key read where an earlier
+  // reading put it -- the record of where it came back or was merged, for any appropriation's list, or what the appropriation open
+  // keeps by name -- under another name is said once; one read there under the same name (a pair of it kept apart) is not
+  { const Q = make();
+    chk(name, '(9) a key read where an earlier reading put it, under another name', 'said once each, as text, through the record and through what is kept by name, and not where the names match: [the record, kept by name, the same name, read again, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-K', 'U40-B');
+        DESTDB.lmap['v186 back']={'U40-K':'U40-N','U40-B':'U40-C'}; DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'}; _destMerges=[];
+        var r=function(l, ap){ return JSON.stringify(destFold(l, ap, true, {'U40-K':1,'U40-B':1})); };
+        var a=r([{k:'U40-B',n:'Bravo Yard',kind:'gov',t:''}], 'ff'), b=r([{k:'U40-K',n:'Kilo <b>Yard</b>',kind:'gov',t:''}], mySlug()),
+          c=r([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], 'ff'), e=r([{k:'U40-K',n:'Kilo <b>Yard</b>',kind:'gov',t:''}], mySlug());
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, b, c, e, d.textContent]); })()`),
+      J([J({ 'U40-B': 'U40-C' }), J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'U40-N' }), J({ 'U40-K': 'U40-C' }),
+        '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · ALPHA DEPOT [U40-N]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Yard [U40-B, Full Fund] → Alpha Depot [U40-C] · Kilo <b>Yard</b> [U40-K, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND SAID IN FULL (verifier, lens B, round 7): each reading is its own line -- the same key read for a second appropriation,
+  // or under a second name -- and every name and key, the board's as well as the file's, is written as text; a merge by name said in
+  // the same session does not take the line's place, nor does drawing the panel
+  { const Q = make();
+    chk(name, '(9) a key read where an earlier reading put it, said in full', 'each reading said once, as text, beside a merge by name: [four readings, the merge, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'c<i>1</i>', n: 'Alpha <i>Depot</i>', kind: 'gov', t: '' }, { k: 'U40-A', n: 'Able Yard', kind: 'gov', t: '' }])}
+        DESTDB.gone.push('U40-K', 'x<b>9</b>'); DESTDB.lmap['v186 back']={'U40-K':'c<i>1</i>','x<b>9</b>':'c<i>1</i>'}; _destMerges=[];
+        var r=function(l, ap){ return JSON.stringify(destFold(l, ap, true, {'U40-K':1,'x<b>9</b>':1,'U40-M':1})); };
+        var a=r([{k:'U40-K',n:'Kilo Yard',kind:'gov',t:''}], 'ff'), b=r([{k:'U40-K',n:'Kilo Yard',kind:'gov',t:''}], mySlug()),
+          c=r([{k:'U40-K',n:'Kilo Pier',kind:'gov',t:''}], 'ff'), e=r([{k:'x<b>9</b>',n:'Nine Yard',kind:'gov',t:''}], 'ff'),
+          m=r([{k:'U40-M',n:'ABLE YARD',kind:'gov',t:''}], 'ff');
+        flowEntEditor();     // the panel drawn once: what it says stays said
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, b, c, e, m, d.textContent]); })()`),
+      J([J({ 'U40-K': 'c<i>1</i>' }), J({ 'U40-K': 'c<i>1</i>' }), J({ 'U40-K': 'c<i>1</i>' }), J({ 'x<b>9</b>': 'c<i>1</i>' }), J({ 'U40-M': 'U40-A' }),
+        'Merged by name (the same name, ignoring case and spaces): ABLE YARD [U40-M, Full Fund] → Able Yard [U40-A]. '
+        + 'Read where an earlier reading put it, under another name: Kilo Yard [U40-K, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>] · Kilo Yard [U40-K, O&M] → Alpha <i>Depot</i> [c<i>1</i>] · '
+        + 'Kilo Pier [U40-K, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>] · Nine Yard [x<b>9</b>, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND TWO KEYS KEPT BY NAME FOR ONE DESTINATION, READ TOGETHER (verifier, lens B, round 7): O&M's U40-K and U40-J were each read
+  // by name into Alpha Depot [U40-C] at earlier readings, and the board has since come to hold both. A list that carries the two
+  // reads the first into U40-C, as kept; the second keeps its own key -- not one more Alpha Depot on a new key
+  { const Q = make();
+    chk(name, '(9) two keys kept by name for one destination, read together', 'the first lands where it was kept, the second keeps its own key, nothing new is made: [the first, the second, the board’s Alpha Depots]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }, { k: 'U40-J', n: 'alpha depot', kind: 'gov', t: '' }])}
+        DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C','U40-J':'U40-C'}; _destMerges=[];
+        var al=destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-J',n:'ALPHA DEPOT',kind:'gov',t:''}], mySlug(), true, {'U40-K':1,'U40-J':1});
+        return JSON.stringify([al['U40-K']||'', al['U40-J']||'', DESTDB.ents.filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['U40-C', '', 3])); }
+  // ... AND AT AN OPENING, NOT ONLY WITHIN ONE SESSION (verifier, lens B, round 5): a browser whose list holds U40-N, the key U40-B
+  // came back under, and the record of it, opens a file whose list holds U40-B and, after it, U40-N. At an opening the record is
+  // read from storage by the first reading of the session; the claim must read it too, so U40-B comes back on a key of its own,
+  // R2 keeps U40-N, and the record then names R1's key
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'ALPHA DEPOT', kind: 'other', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-B',end:''},R2:{to:'U40-N',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'other', t: '' }],
+      lmap: { 'v186 back': { 'U40-B': 'U40-N' } }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B = boot({ html: P.ev('buildSavedHtml()'), ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back, read at an opening before the key it came back under', 'R2 keeps U40-N, R1 comes back on a key of its own, and the record names that key: [R2’s key, R1’s key among U40-A, U40-B, U40-N, the record]',
+      B.ev(`JSON.stringify([S.dest.R2.to, ['U40-A','U40-B','U40-N'].indexOf(S.dest.R1.to), ((DESTDB.lmap||{})['v186 back']||{})['U40-B']===S.dest.R1.to])`), J(['U40-N', -1, true])); }
+  // ... WHETHER OR NOT THIS PLAN USES THE HELD KEY (verifier, lens B, round 5): the list carries the key U40-B came back under, but no
+  // requirement of this plan is on it (another plan's may be): it is still that entry's, and U40-B comes back apart from it
+  { const Q = make();
+    chk(name, '(9) a key brought back, read before the key it came back under, which this plan does not use', 'the held key stays its own entry’s: [came back on a key of its own, the held key kept, the deleted key apart from it]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var nk=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:nk,n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1});
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', !Object.prototype.hasOwnProperty.call(al, nk), !!al['U40-B'] && al['U40-B']!==nk && al['U40-B']!=='U40-A']); })()`),
+      J([true, true, true])); }
+  // ... AND FOR EVERY KEY BROUGHT BACK (verifier, lens B, round 5): two keys brought back, each read before the key it came back
+  // under, in one list: each comes back apart from its own, and neither held key is moved
+  { const Q = make();
+    chk(name, '(9) two keys brought back, each read before the key it came back under', 'neither held key is moved: [both came back on keys of their own, the held keys kept, each deleted key apart from both]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B', 'U40-D');
+        var n1=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var n2=destFold([{k:'U40-D',n:'Delta Depot',kind:'other',t:''}], 'om', true, {'U40-D':1})['U40-D'];
+        var refs={'U40-B':1,'U40-D':1}; refs[n1]=1; refs[n2]=1; var mine=[n1,n2,'U40-A'];
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:'U40-D',n:'Delta Depot',kind:'other',t:''},{k:n1,n:'ALPHA DEPOT',kind:'other',t:''},{k:n2,n:'Delta Depot',kind:'other',t:''}], 'om', true, refs);
+        return JSON.stringify([!!n1 && !!n2 && n1!==n2 && n1!=='U40-A' && n2!=='U40-A', !Object.prototype.hasOwnProperty.call(al, n1) && !Object.prototype.hasOwnProperty.call(al, n2),
+          !!al['U40-B'] && !!al['U40-D'] && mine.indexOf(al['U40-B'])<0 && mine.indexOf(al['U40-D'])<0]); })()`),
+      J([true, true, true])); }
+  // ... AND A MERGE BY NAME LEAVES A COME-BACK'S RECORD ALONE (verifier, lens B, round 6): U40-B, deleted here, came back on a key of
+  // its own, which the person then renamed "Delta Pier". Another appropriation's list carries U40-B under the name "Alpha Depot",
+  // which the board holds once, and is merged into it by name. Its first list read again puts U40-B's requirements back on Delta
+  // Pier: the merge did not re-point the record, so they go neither to Alpha Depot nor to one more Bravo Depot
+  { const Q = make();
+    chk(name, '(9) a key brought back and renamed, then merged by name from another list, read again', 'the merge leaves the record of the come-back alone: [came back on a key of its own, the other list merged into Alpha Depot, read again onto the renamed come-back]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; DESTDB.gone.push('U40-B');
+        var L1=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''}];
+        var nk=destFold(JSON.parse(JSON.stringify(L1)), 'om', true, {'U40-B':1})['U40-B'];
+        flowSetEnt(flowEnts().findIndex(function(e){ return e.k===nk; }), 'n', 'Delta Pier');
+        var a2=destFold([{k:'U40-B',n:'Alpha Depot',kind:'other',t:''}], 'ff', true, {'U40-B':1});
+        var a3=destFold(JSON.parse(JSON.stringify(L1)), 'om', true, {'U40-B':1});
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', a2['U40-B']||'', a3['U40-B']===nk && (destHas(nk)||{}).n]); })()`),
+      J([true, 'U40-A', 'Delta Pier'])); }
+  // ... AND FOR ANOTHER APPROPRIATION'S PLAN READ HERE (verifier, lens B, round 6): Full Fund's file is opened on O&M, whose newer
+  // list holds its own U40-C "Bravo Depot" and deleted U40-B. Full Fund's plan keeps its keys until it opens, but its U40-B is merged
+  // by name into U40-C: Used by on U40-C names it, and after a second file brings a pair of that name (the board then holds it
+  // three times) Full Fund's next opening still puts R1's second hop and R2 on U40-C, not on one more Bravo Depot
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([E('U40-A', 'Alpha Depot'), E('U40-B', 'Bravo Depot')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const hff = Fx.ev('buildSavedHtml()');
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-P', 'Bravo Depot'), E('U40-Q', 'BRAVO DEPOT')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-P',end:''},R2:{to:'U40-Q',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot'), E('U40-C', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const O1 = boot({ html: hff, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const u = O1.ev(`flowEntUseElseTxt(flowEntUseElse('U40-C'))`);
+    const O2 = boot({ html: Fo.ev('buildSavedHtml()'), appn: 'O&M', ls: lsOf(O1) });
+    const F3 = boot({ html: hff, appn: 'FULL FUND', ls: lsOf(O2) });
+    chk(name, '(9) another appropriation’s key merged by name, read when that plan opens after the board came to hold the name three times', 'Used by on U40-C names Full Fund’s plan, and that plan’s next opening lands there: [Used by, R1’s second hop, R2]',
+      J([u].concat(JSON.parse(F3.ev(`JSON.stringify([S.dest.R1.end, S.dest.R2.to])`)))), J(['Full Fund (2)', 'U40-C', 'U40-C'])); }
+  // ... AND A RECORD THAT NAMES A DESTINATION SINCE DELETED IS REPLACED BY THE MERGE (verifier, lens B, round 6): U40-B came back as
+  // U40-X, which was then deleted here. Another appropriation's U40-B "Alpha Depot" is merged by name into U40-A; after a pair of that
+  // name is read (the board then holds it three times), the same list read again still lands on U40-A, not on one more Alpha Depot
+  { const Q = make();
+    chk(name, '(9) a key whose record names a destination since deleted, merged by name, read again after the board came to hold that name three times', 'the merge replaces the record that leads nowhere: [the merge, read again, the board’s Alpha Depots]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        DESTDB.gone.push('U40-B', 'U40-X'); DESTDB.lmap['v186 back']={'U40-B':'U40-X'};
+        var L2=[{k:'U40-B',n:'Alpha Depot',kind:'other',t:''}];
+        var a1=destFold(JSON.parse(JSON.stringify(L2)), 'ff', true, {'U40-B':1});
+        destFold([{k:'U40-P',n:'Alpha Depot',kind:'other',t:''},{k:'U40-Q',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-P':1,'U40-Q':1});
+        var a2=destFold(JSON.parse(JSON.stringify(L2)), 'ff', true, {'U40-B':1});
+        return JSON.stringify([a1['U40-B']||'', a2['U40-B']||'', DESTDB.ents.filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['U40-A', 'U40-A', 3])); }
+  // ---- (10) WHAT THE RECORD MAY HOLD, EVERY KEY BROUGHT BACK, AND THE SAME RULES FOR A LIST FROM BEFORE v1.86 (verifier, lens B,
+  // round 3): a record that is an array is not followed either; two keys brought back are both kept; the notice matches names as the
+  // reading does (case and spaces) and writes keys as text; a list from before v1.86 is held to the same guards as a v1.86 one ----
+  // [destinations whose name is Alpha Depot ignoring case and spaces, keys R1 and R2 use, both hops, in the year on screen, the next
+  // year and the locked cycle]
+  const twoOf = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+    [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.to, st.dest.R1.end, st.dest.R2.to, st.dest.R2.end); });
+    return JSON.stringify([flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: { 'v186 back': [] }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) });
+    chk(name, '(10) a record that is an array', 'not followed: reopened before a save, still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]',
+      B2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+        return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`), J([1, 1])); }
+  // ... AND FOR ANOTHER APPROPRIATION'S LIST, AT A LATER OPENING (fix round 7): for the appropriation open, a key brought back is now
+  // also kept as a key read by name is, so an array record no longer shows there; another appropriation's list keeps nothing that way.
+  // Its U40-B, deleted here and still used, comes back on a new key, renamed here since; at the next opening (what storage keeps, read
+  // back) the record still brings it to that destination -- an array record, saved as [], would bring it back once more
+  { const X = make();
+    chk(name, '(10) a record that is an array, for another appropriation’s list at a later opening', 'not followed: the key brought back and renamed here comes back to the same destination, and no other is made: [the same key, destinations]',
+      X.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B'); DESTDB.lmap['v186 back']=[]; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var a=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-B':1}), k=a['U40-B']||'';
+        DESTDB.ents.forEach(function(e){ if(e.k===k) e.n='Alpha Depot West'; });
+        DESTDB.lmap=JSON.parse(JSON.stringify(DESTDB.lmap)); _destBack=Object.create(null);     // what storage keeps, read back at the next opening
+        var b=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-B':1});
+        return JSON.stringify([!!k && b['U40-B']===k, DESTDB.ents.length]); })()`), J([true, 2])); }
+  // ... AND TWO KEYS BROUGHT BACK FOR ANOTHER APPROPRIATION'S LIST, AT A LATER OPENING (fix round 7): both are kept in the record, so
+  // each comes back to its own destination again, renamed here since -- not the first on one more new key
+  { const X = make();
+    chk(name, '(10) two keys brought back for another appropriation’s list, read at a later opening', 'each comes back to the same destination, and no other is made: [both the same, destinations]',
+      X.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A', 'U40-B'); DESTDB.lmap['v186 back']={}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var a=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-A':1,'U40-B':1});
+        DESTDB.ents.forEach(function(e){ if(e.k===a['U40-A']) e.n='Alpha Depot West'; if(e.k===a['U40-B']) e.n='Alpha Depot East'; });
+        DESTDB.lmap=JSON.parse(JSON.stringify(DESTDB.lmap)); _destBack=Object.create(null);     // what storage keeps, read back at the next opening
+        var b=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-A':1,'U40-B':1});
+        return JSON.stringify([!!a['U40-A'] && !!a['U40-B'] && b['U40-A']===a['U40-A'] && b['U40-B']===a['U40-B'], DESTDB.ents.length]); })()`), J([true, 3])); }
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-A', 'U40-B'] };
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) });
+    chk(name, '(10) both destinations deleted by the newer list', 'both come back, once each: two of that name, and the plan, the next year and the locked cycle use two keys',
+      J([twoOf(B1), twoOf(B2)]), J([J([2, 2]), J([2, 2])]));
+    const byName = Bx => { const m = JSON.parse(money(Bx)), o = {}; Object.values(m[0]).forEach(([n, v]) => { o[n] = (o[n] || 0) + v; });
+      return J([Object.entries(o).sort(), m[1]]); };
+    chk(name, '(10) both destinations deleted by the newer list', 'reopened before a save, the funds flow by name: $300 on ALPHA DEPOT, $900 on Alpha Depot, $1,200 in all',
+      byName(B2), J([[['ALPHA DEPOT', 300], ['Alpha Depot', 900]], 1200])); }
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'ALPHA  DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    chk(name, '(10) names that differ only in spaces', 'the panel names both as kept apart, as the reading keeps them', said(boot({ html: X.ev('buildSavedHtml()') }), APART),
+      'Alpha Depot [U40-A] · ALPHA  DEPOT [U40-B]. Each keeps its own requirements and money; rename one so they can be told apart.'); }
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: '<b>a</b>', n: 'Alpha Depot', kind: 'other', t: '' }, { k: '<b>b</b>', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'<b>a</b>',end:''},R2:{to:'<b>b</b>',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(10) keys that read like markup', 'the panel writes both keys as text', said(F, APART),
+      'Alpha Depot [&lt;b>a&lt;/b>] · ALPHA DEPOT [&lt;b>b&lt;/b>]. Each keeps its own requirements and money; rename one so they can be told apart.');
+    const M = make();
+    M.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} destFold([{k:'<i>x1</i>',n:'ALPHA DEPOT',kind:'other',t:''}], 'ff', false, {'<i>x1</i>':1}); return 'ok'; })()`);
+    chk(name, '(10) keys that read like markup', 'a merge by name writes its key as text', said(M, MERGED), 'ALPHA DEPOT [&lt;i>x1&lt;/i>, Full Fund] → Alpha Depot [U40-A].'); }
+  // a list from before v1.86 holding the pair, opened where a newer list holds an Alpha Depot of its own (U40-C)
+  { const Lg = make();
+    Lg.ev(`(function(){ _destReady=false; MS.flow={ents:[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'ALPHA DEPOT',kind:'other',t:''}]};
+      S.dest={R1:{to:'x1',end:''},R2:{to:'x2',end:''}}; MS.years[MS.cur]=S; save(); return 'ok'; })()`);
+    const C = boot({ html: v186AsV185(Lg.ev('buildSavedHtml()')), ls: NEWER([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }]) });
+    chk(name, '(10) before v1.86, where a newer list holds Alpha Depot', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys, neither the newer list’s own; no merge by name',
+      J([here(C), C.ev(`JSON.stringify([S.dest.R1.to==='U40-C', S.dest.R2.to==='U40-C'])`), said(C, MERGED)]), J([HERE, J([false, false]), '(nothing)'])); }
+  // ... and one name of such a list read where the board holds that name twice: no first one is picked
+  { const A = make();
+    chk(name, '(10) before v1.86, a name the board holds twice', 'no first one is picked: the incoming destination is kept on a key of its own',
+      A.ev(`(function(){ ${LIST(PAIR)} var al=destFold([{k:'x1',n:'alpha depot',kind:'other',t:''}], 'ff', false, {x1:1});
+        return JSON.stringify([al.x1!=='U40-A' && al.x1!=='U40-B', DESTDB.ents.length]); })()`), J([true, 3])); }
+  // ---- (11) BESIDE U44: a key the funds flow keeps for its own rows ("unassigned", "destsplit") names no destination here. U44 gives
+  // such an entry a key of its own; it is never remembered as "brought back", so two lists' entries under it stay two destinations ----
+  { const Q = make();
+    chk(name, '(11) two lists, each with its own “unassigned” entry', 'read in one session: Depot U and Depot V, on two keys',
+      Q.ev(`(function(){ var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], 'om', true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], 'ff', true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([n(a), n(b), a!==b]); })()`), J(['Depot U', 'Depot V', true])); }
+  // ... nor remembered as merged by name (verifier, lens A, round 5): the first list's "unassigned" Depot U is merged by name into the
+  // board's own Depot U; the second list's "unassigned" Depot V is still a destination of its own
+  { const Q = make();
+    chk(name, '(11) an “unassigned” entry merged by name, then another list’s own', 'Depot V on a key of its own, not on the Depot U the first was merged into: [the first’s key, its name, the second’s name, two keys]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dU', n: 'Depot U', kind: 'other', t: '' }])} var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], 'om', true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], 'ff', true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([a, n(a), n(b), a!==b]); })()`), J(['dU', 'Depot U', 'Depot V', true])); }
+  // ... nor kept by name for the appropriation open (verifier, lens A, round 6, S3): both lists read as this appropriation's own, so
+  // what it keeps of a key read by name is written and read; the second list's Depot V is still a destination of its own
+  { const Q = make();
+    chk(name, '(11) an “unassigned” entry merged by name, then another of this appropriation’s lists’ own', 'Depot V on a key of its own, not on the Depot U the first was merged into: [the first’s key, its name, the second’s name, two keys]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dU', n: 'Depot U', kind: 'other', t: '' }])} var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], mySlug(), true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], mySlug(), true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([a, n(a), n(b), a!==b]); })()`), J(['dU', 'Depot U', 'Depot V', true])); }
+  // ---- (12) BESIDE U44, A KEY READ BY KEY (L8 trial 3, F1): a key read by the key a full import moved it to (destMovedTo), or by the
+  // key of its own another board's Put it right gave it ("unassigned" is "dunassigned" on every board), is the destination that key
+  // names, as a key the board holds is, renamed or not: no merge by name was made. Listed as one, another appropriation's list said
+  // "Merged by name (the same name, ignoring case and spaces): Depot U [dunassigned, Full Fund] → Depot U2 [unassigned]" -- two names,
+  // and no merge by name. The money was right ({dunassigned: unassigned}) and stays so; a real merge by name is still listed ----
+  { const dA = { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' };
+    const OLD = [dA, { k: 'unassigned', n: 'Depot U2', kind: 'other', t: '' }], PUT = [dA, { k: 'dunassigned', n: 'Depot U', kind: 'other', t: '' }];
+    // one reading of a v1.86 list, on a board whose list is made `board` first: [the map, the board's list]
+    const fold = (B, board, list, from, refs, pre = '') => JSON.parse(B.ev(`(function(){ ${LIST(board)} ${pre}
+      var al=destFold(${J(list)}, ${from}, true, ${J(refs)}); return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k+':'+e.n; })]); })()`));
+    const sc = '(12) Full Fund’s list, put right on another board, read where this board still holds “unassigned”';
+    const C1 = make();
+    chk(name, sc, 'CONTROL: its “dunassigned” Depot U is read onto the board’s “unassigned” Depot U2, by key, nothing added: [the map, the list]',
+      J(fold(C1, OLD, PUT, "'ff'", { dunassigned: 1 })), J([{ dunassigned: 'unassigned' }, ['dA:Alpha Depot', 'unassigned:Depot U2']]));
+    chk(name, sc, 'the destinations panel lists no merge by name: none was made', said(C1, MERGED), '(nothing)');
+    const C2 = make();
+    chk(name, sc + ', under the same name', 'nor where the two names are the same: read by key, not merged by name: [the map, what the panel lists]',
+      J([fold(C2, [dA, { k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }], PUT, "'ff'", { dunassigned: 1 })[0], said(C2, MERGED)]), J([{ dunassigned: 'unassigned' }, '(nothing)']));
+    const C3 = make();
+    chk(name, sc + ', read as the appropriation open', 'CONTROL: the open appropriation’s reading lists nothing, as before: [the map, what the panel lists]',
+      J([fold(C3, OLD, PUT, 'mySlug()', { dunassigned: 1 })[0], said(C3, MERGED)]), J([{ dunassigned: 'unassigned' }, '(nothing)']));
+    const sm = '(12) Full Fund’s list naming a key a full import moved here (“unassigned”, now “dunassigned”)';
+    const M1 = make();
+    chk(name, sm, 'CONTROL: its “unassigned” Depot U is read onto the “dunassigned” Depot U2 it moved to, nothing added: [the map, the list]',
+      J(fold(M1, [dA, { k: 'dunassigned', n: 'Depot U2', kind: 'other', t: '' }], [dA, { k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }], "'ff'", { unassigned: 1 },
+        "DESTDB.moved=[{k:'unassigned', to:'dunassigned'}];")), J([{ unassigned: 'dunassigned' }, ['dA:Alpha Depot', 'dunassigned:Depot U2']]));
+    chk(name, sm, 'the destinations panel lists no merge by name: none was made', said(M1, MERGED), '(nothing)');
+    const N1 = make();
+    chk(name, '(12) a real merge by name', 'CONTROL: Full Fund’s v1.86 list naming Alpha Depot on a key the board does not hold is merged by name, and listed word for word as before: [the map, what the panel lists]',
+      J([fold(N1, [dA], [{ k: 'x7', n: 'ALPHA  DEPOT', kind: 'other', t: '' }], "'ff'", { x7: 1 })[0], said(N1, MERGED)]), J([{ x7: 'dA' }, 'ALPHA  DEPOT [x7, Full Fund] → Alpha Depot [dA].']));
+    const N2 = make();
+    chk(name, '(12) a merge by name and a key read by key, in one list', 'the panel lists the merge by name, and only it: [the map, what the panel lists]',
+      J([fold(N2, OLD, [{ k: 'x7', n: 'ALPHA  DEPOT', kind: 'other', t: '' }, PUT[1]], "'ff'", { x7: 1, dunassigned: 1 })[0], said(N2, MERGED)]),
+      J([{ x7: 'dA', dunassigned: 'unassigned' }, 'ALPHA  DEPOT [x7, Full Fund] → Alpha Depot [dA].']));
+    // AT OPENING. Full Fund's file, put right on another board (R1 on "dunassigned" Depot U), opened on O&M in a browser whose newer
+    // list an ORBIT before this one left holding "unassigned" Depot U2
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST(PUT)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'dunassigned',end:''}, R2:{to:'dA',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const Oc = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J({ ts: Date.now() + 60000, ents: OLD, lmap: {}, lsig: {}, conflicts: [], gone: [] }) } });
+    chk(name, sc + ', at opening', 'the opening line says no merge by name -- it still names the list U44 refuses for -- nor does the panel: [the line says “Merged by name”, it names that list, what the panel lists]',
+      J([stat(Oc).indexOf('Merged by name') >= 0, stat(Oc).indexOf('⚠ The destination list holds what a file handed over is refused for: it holds the key “unassigned” (ents[1]).') >= 0, said(Oc, MERGED)]), J([false, true, '(nothing)']));
+    // AT OPENING. O&M's "unassigned" Depot U, renamed Depot U2 after Full Fund last saved; ⬅ Import a full board of a file carrying O&M
+    // only moves the key ("dunassigned", destDb.moved), Full Fund kept as this browser had it, still naming "unassigned" Depot U
+    const X1 = make();
+    X1.ev(`(function(){ ${LIST([{ k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'unassigned',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const ffPlan = X1.ev(`localStorage.getItem('prio27om')`);
+    X1.ev(`flowSetEnt(0, 'n', 'Depot U2'); 'ok'`);
+    const omOnly = X1.ev('buildSavedHtml()'), lsI = lsOf(X1); lsI.prio27ff = ffPlan;
+    const Ti = boot({ ls: lsI });
+    const ok = Ti.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(omOnly)}, 'x.html'); })()`);
+    const Om = boot({ ls: lsOf(Ti) });
+    chk(name, sm + ', at opening after the import', 'CONTROL: the import ran and moved the key: [it ran, where “unassigned” went]',
+      J([ok, JSON.parse(Om.ev(`JSON.stringify(DESTDB.moved)`))]), J([true, [{ k: 'unassigned', to: 'dunassigned' }]]));
+    chk(name, sm + ', at opening after the import', 'the opening line is the import’s report and says no merge by name, nor does the panel: [opens with it, the line says “Merged by name”, what the panel lists]',
+      J([stat(Om).startsWith('⬅ Full board imported from “x.html”'), stat(Om).indexOf('Merged by name') >= 0, said(Om, MERGED)]), J([true, false, '(nothing)'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U40) ====
+// ==== v2.00 (U18): a copy saved while a folder save is under way is never written over ====
+// The folder save read the folder's copy once, at the top, and wrote its own over whatever was there by the time it wrote.
+// Bob took the pen and saved BOB-2 while Brad's save was keeping the copy it had read in the history; Brad's save then wrote
+// his work over BOB-2 and thinned the history, and BOB-2 was in no copy in the folder -- Brad's board said "✅ Saved", Bob's
+// next refresh said only that Brad had saved after him. Now the save reads the folder's copy again after its last wait,
+// just before it writes. Unless that copy is still, byte for byte, the one it read (or there is still none), nothing is
+// written in its place: a copy that landed meanwhile is the clash -- who saved it and when, Load theirs and Save yours over
+// theirs -- and a copy gone or unreadable now is said as such. Bob's copy stays the folder's copy, Brad's work stays on
+// screen, not saved, the copy the save read stays in the history, and the board's header still says when it was last
+// saved and by whom, not when this save began -- on the working plan, and on a locked view put on screen meanwhile.
+// Either choice then resolves it. This is every folder save: the Live autosave's too. A change typed while the save was held
+// keeps its own stamp, and browser storage is written again as put back, so a board reopened from it shows no pen line the
+// stopped save took back. With U4's mixed-import hold, this read is the save's last wait, and the hold is checked after it
+// ((13)); when the hold and a landed copy come together, the hold is what is said ((14), which passes on the board before
+// this change too: U4's check refuses there). A take-the-pen save stopped because the folder's copy is gone or unreadable
+// takes its pen line back and puts the stamp back too ((6d), (6e)). Not covered, and not tested here: a copy landing
+// during the write itself (U13 (2) holds Brad's save there); a file share has no atomic compare-and-write.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U18) — a copy saved while a folder save is under way is never written over';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause } = W1H;
+  const F1 = baseFile('Brad', KEY.brad);
+  const NM = 'spmt-2027-om.json';
+  // Requirement A -- its note and its allocation, in dollars -- on screen, in a copy's text, in browser storage, kept aside.
+  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : (S.alloc.A==null? null : S.alloc.A)])`));
+  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
+    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
+  const stored = ev => inCopy(ev('localStorage.getItem(_AP.key)'));
+  const kept = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); return s == null ? null : inCopy(s.slice(s.indexOf('\n') + 1)); };
+  // The folder's copy -- what it holds, who saved it and who its writer is, its time -- and what its history holds.
+  const head = fold => fold.raw(2027) == null ? ['(no copy)', null] : inCopy(fold.raw(2027));
+  const who = fold => { const j = fold.copy(2027); return j ? [j.by || '', (j.writer || {}).by || ''] : ['', '']; };
+  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
+  const tsOf = txt => { const j = JSON.parse(txt); return +((j.store && j.store.ts) || j.ts || 0); };
+  const hist = fold => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => J(inCopy(t)));
+  const histHolds = fold => [...new Set(hist(fold))].sort().map(x => JSON.parse(x));   // each copy the history holds, once
+  const inHist = (fold, c) => hist(fold).includes(J(c));
+  const mains = fold => fold.log.filter(x => /^main:/.test(x)).length;   // writes of the folder's copy, by anyone
+  // Unsaved by all three -- this session (DIRTY), _baseDirty and this browser's record -- or saved by all three.
+  const flags3 = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])'));
+  const saved = ev => flags3(ev).every(x => !x);
+  const unsaved = ev => flags3(ev).every(x => x);
+  const base = ev => +ev('driveBaseOf(mySlug())');
+  const onHead = (ev, fold) => headTs(fold) > 0 && base(ev) === headTs(fold);
+  const buttons = ev => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#shareStat button'), function(b){ return b.getAttribute('onclick'); }))`));
+  // The board's own stamp -- the time and name its header shows it saved at and by -- and the header itself.
+  const stamp = ev => JSON.parse(ev('JSON.stringify([MS.ts, MS.by])'));
+  const header = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`);
+  const penTakers = ev => JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e && e.p && e.p[0]==='(writer)'; }).map(function(e){ return e.b; }))`));
+  // WHAT BRAD'S BOARD SAYS, word for word: the clash found just before the write (LATE), the clash found when the save read the
+  // folder (EARLY, as it always was), and a copy gone, changed or unreadable just before the write (NOTSAVED).
+  const TAIL = 'Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).';
+  const LATE = '⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL;
+  const EARLY = '⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. ' + TAIL;
+  const NOTSAVED = what => '⛔ Not saved. The shared folder’s copy of O&M FY27 ' + what + '. Nothing was written in its place: a save never writes over a copy it has not read. Your work is still here — 💾 Save again to read the folder afresh.';
+  const CHOICES = ["driveResolve('theirs')", "driveResolve('mine')"];
+  // BRAD saves BRAD-1, $700: the folder's first copy, v1, writer Brad. BOB opens the same board, connects, loads v1 and types
+  // BOB-2, $650. BRAD then types BRAD-2, $720, and has not saved it.
+  const setup = async sc => {
+    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
+    const v1 = fold.raw(2027);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
+    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
+    A.ev(`setNote('A','BRAD-2'); setAlloc('A','720'); 'ok'`); await pause(5);
+    chk(name, sc, 'v1 is BRAD-1, $700, saved by Brad, its writer; Brad shows BRAD-2, $720, unsaved, recorded against v1; Bob loaded v1 and shows BOB-2, $650 (a CONTROL)',
+      J([...inCopy(v1), ...who(fold), ...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), base(Bb.ev) === tsOf(v1), ...scr(Bb.ev)]),
+      J(['BRAD-1', 700, 'Brad', 'Brad', 'BRAD-2', 720, true, true, true, 'BOB-2', 650]));
+    return { fold, A, Bb, v1 };
+  };
+  // Brad's 💾 Save (or `call`), held at the close of its history copy of the folder's copy it read: its last wait before it
+  // writes the folder's copy.
+  const held = async (A, fold, call) => {
+    const n0 = fold.hits.hist || 0; fold.hold.hist = gate(); const g = fold.hold.hist;
+    const p = A.ev(call || 'saveInPlace()'); const ok = await until(() => (fold.hits.hist || 0) > n0);
+    return { g, p, ok };
+  };
+  // Brad's save held at its read of the folder's copy just before its write: the `n`th read of that copy after this.
+  const holdRead = (fold, n) => { const gh = fold.dir.getFileHandle, g = gate(); let seen = 0, hit = 0;
+    fold.dir.getFileHandle = async (nm, o) => { if (nm === NM && !(o && o.create) && ++seen === n) { hit = 1; await g.p; } return gh(nm, o); };
+    return { g, hit: () => hit }; };
+  // BRAD'S SAVE REFUSED: Bob's copy is the folder's copy, Brad's work is on screen and not saved, he is told, and both choices
+  // are there. `mine`: what is on screen and in browser storage; `kept0`: what is kept aside; `st0`: the board's stamp and its
+  // header before the save.
+  const refusedThen = (sc, fold, A, v1, said, mine, kept0, st0) => {
+    chk(name, sc, 'Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was',
+      J([...scr(A.ev), ...stored(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), kept(A.ev)]), J([...mine, ...mine, true, true, kept0]));
+    chk(name, sc, 'the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes',
+      J([J(stamp(A.ev)) === J(st0), header(A.ev)]), J([true, 'Unsaved changes']));
+    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([said, CHOICES]));
+  };
+
+  // (1) THE SECOND WRITER LANDS DURING THE HELD SAVE. Brad's 💾 Save is held at its history write; Bob takes the pen, which
+  // saves BOB-2 into the folder at once; Brad's save is let go. It writes nothing over BOB-2.
+  { const sc = '(1) Bob takes the pen and saves while Brad’s save is held';
+    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
+    const h = await held(A, fold); await pause(5);   // Bob's copy is stamped after the bytes Brad's save built
+    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
+    const bobTs = headTs(fold);
+    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy; Brad’s save is under way (a CONTROL)',
+      J([h.ok, ...head(fold), ...who(fold), +A.ev('_saveBusy'), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1, 1]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy, with its own time; one write of the folder’s copy since the hold, Bob’s',
+      J([...head(fold), ...who(fold), headTs(fold) === bobTs, mains(fold) - m0, +A.ev('_saveBusy')]), J(['BOB-2', 650, 'Bob', 'Bob', true, 1, 0]));
+    chk(name, sc, 'the history holds v1, BRAD-1, $700, and nothing else (a CONTROL)', J(histHolds(fold)), J([['BRAD-1', 700]]));
+    refusedThen(sc, fold, A, v1, LATE, ['BRAD-2', 720], null, st0);
+    chk(name, sc, 'Bob’s board: BOB-2 on screen and in its browser storage, saved, recorded against the folder’s copy', J([...scr(Bb.ev), ...stored(Bb.ev), saved(Bb.ev), onHead(Bb.ev, fold)]), J(['BOB-2', 650, 'BOB-2', 650, true, true]));
+    const pulled = await A.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'then Brad’s refresh loads nothing over his unsaved work, and the folder’s copy is still Bob’s', J([pulled, ...scr(A.ev), unsaved(A.ev), ...head(fold)]), J([false, 'BRAD-2', 720, true, 'BOB-2', 650]));
+
+    // (2) THE RETRY: Brad chooses Save yours over theirs. Bob holds the pen, so that save is refused, naming him -- and Bob's
+    // copy is kept in the history first. Brad then takes the pen back: his work lands as the folder's copy, and every copy
+    // -- v1, Bob's and Brad's -- is in the folder.
+    const sc2 = '(2) the retry: Save yours over theirs, then Take the pen';
+    const q0 = qs(A.ev).length;
+    const r = await A.ev(`driveResolve('mine')`); await pause(5);
+    chk(name, sc2, 'Save yours over theirs asks first; Bob holds the pen, so nothing is written over BOB-2, and Bob’s copy is kept in the history',
+      J([r, (qs(A.ev)[q0] || '').startsWith('Save your copy of O&M FY27 over the one Bob saved just now?'), ...head(fold), ...who(fold), inHist(fold, ['BOB-2', 650]), mains(fold) - m0]),
+      J([false, true, 'BOB-2', 650, 'Bob', 'Bob', true, 1]));
+    chk(name, sc2, 'and says Bob holds the pen; Brad’s work stays on screen, unsaved',
+      J([/^⛔ Not saved\. Bob holds the pen for O&M FY27 in the shared folder \(since .+\): only its writer saves it in place\. Your work is still here, unsaved\./.test(status(A.ev)), ...scr(A.ev), unsaved(A.ev)]), J([true, 'BRAD-2', 720, true]));
+    await A.ev('takePen()'); await pause(5);
+    chk(name, sc2, 'Take the pen asks first, naming Bob; then BRAD-2, $720, saved by Brad, its writer, is the folder’s copy',
+      J([(qs(A.ev)[q0 + 1] || '').startsWith('Take the pen for O&M FY27 in the shared folder from Bob'), ...head(fold), ...who(fold)]), J([true, 'BRAD-2', 720, 'Brad', 'Brad']));
+    chk(name, sc2, 'Brad is saved, recorded against the folder’s copy, and told so; v1 and Bob’s copy are both in the history',
+      J([saved(A.ev), onHead(A.ev, fold), /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\. You now hold the pen for it\.$/.test(status(A.ev)), histHolds(fold)]),
+      J([true, true, true, [['BOB-2', 650], ['BRAD-1', 700]]]));
+  }
+
+  // (1b) NOTHING UNSAVED: U13's second-writer case, with Brad's save held at its last wait instead of in its write. Brad's
+  // board shows v1 as he saved it; he presses 💾 Save, Bob takes the pen meanwhile, and the save is let go. It writes
+  // nothing over BOB-2, and the board still says it was saved when v1 was, by Brad.
+  { const sc = '(1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held';
+    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
+    const v1 = fold.raw(2027);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
+    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
+    const hd0 = header(A.ev);
+    chk(name, sc, 'Brad shows v1 as he saved it -- BRAD-1, $700 -- saved, recorded against it, stamped with its time and his name; Bob shows BOB-2 (a CONTROL)',
+      J([...scr(A.ev), saved(A.ev), base(A.ev) === tsOf(v1), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), hd0.startsWith('Saved '), ...scr(Bb.ev)]),
+      J(['BRAD-1', 700, true, true, true, 'Brad', true, 'BOB-2', 650]));
+    const h = await held(A, fold); await pause(5);
+    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
+    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy (a CONTROL)',
+      J([h.ok, ...head(fold), ...who(fold), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; v1 is in the history, and nothing else is',
+      J([mains(fold) - m0, ...head(fold), ...who(fold), histHolds(fold)]), J([1, 'BOB-2', 650, 'Bob', 'Bob', [['BRAD-1', 700]]]));
+    chk(name, sc, 'Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header unchanged',
+      J([...scr(A.ev), ...stored(A.ev), saved(A.ev), base(A.ev) === tsOf(v1), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), header(A.ev) === hd0]),
+      J(['BRAD-1', 700, 'BRAD-1', 700, true, true, true, 'Brad', true]));
+    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
+  }
+
+  // (3) THE OTHER CHOICE: Load theirs. Bob's copy goes on screen, saved and recorded against the folder's copy; Brad's work is
+  // kept aside, one click from coming back.
+  { const sc = '(3) Bob saves during the held save; Brad chooses Load theirs';
+    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
+    const h = await held(A, fold); await pause(5);
+    await Bb.ev('takePen()'); await pause(5);
+    h.g.open(); await h.p; await pause(5);
+    refusedThen(sc, fold, A, v1, LATE, ['BRAD-2', 720], null, st0);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    chk(name, sc, 'Load theirs: BOB-2 on screen, saved, recorded against the folder’s copy, which is still Bob’s; BRAD-2 is kept aside, and the board says so',
+      J([...scr(A.ev), saved(A.ev), onHead(A.ev, fold), ...head(fold), ...who(fold), kept(A.ev), /^⬇ Loaded Bob’s copy of O&M FY27\. Your work is kept aside/.test(status(A.ev))]),
+      J(['BOB-2', 650, true, true, 'BOB-2', 650, 'Bob', 'Bob', ['BRAD-2', 720], true]));
+  }
+
+  // (4) CONTROL -- NO SECOND WRITER. The same hold, let go: the save lands as it always has.
+  { const sc = '(4) no second writer (a CONTROL)';
+    const { fold, A, v1 } = await setup(sc);
+    const h = await held(A, fold); const m0 = mains(fold);
+    chk(name, sc, 'the save is held at its history write; v1 is still the folder’s copy', J([h.ok, ...head(fold)]), J([true, 'BRAD-1', 700]));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'once let go, the save lands: BRAD-2, $720, saved by Brad, its writer, is the folder’s copy; Brad is saved, recorded against it; v1 in the history; "✅ Saved"',
+      J([mains(fold) - m0, ...head(fold), ...who(fold), saved(A.ev), onHead(A.ev, fold), histHolds(fold), /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\.$/.test(status(A.ev))]),
+      J([1, 'BRAD-2', 720, 'Brad', 'Brad', true, true, [['BRAD-1', 700]], true]));
+  }
+
+  // (5) CONTROL -- THE SECOND WRITER LANDS BEFORE BRAD'S SAVE READS THE FOLDER: the clash as it always was. Nothing is written,
+  // not even a history copy.
+  { const sc = '(5) Bob saves before Brad’s save reads the folder (a CONTROL)';
+    const { fold, A, Bb, v1 } = await setup(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    chk(name, sc, 'Bob has taken the pen: BOB-2, $650, saved by Bob, its writer, is the folder’s copy', J([...head(fold), ...who(fold)]), J(['BOB-2', 650, 'Bob', 'Bob']));
+    const h0 = fold.hits.hist || 0, m0 = mains(fold), st0 = stamp(A.ev);
+    await A.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'Brad’s save writes nothing -- no history copy, no copy of the folder’s; BOB-2 is still the folder’s copy',
+      J([(fold.hits.hist || 0) - h0, mains(fold) - m0, ...head(fold), ...who(fold)]), J([0, 0, 'BOB-2', 650, 'Bob', 'Bob']));
+    refusedThen(sc, fold, A, v1, EARLY, ['BRAD-2', 720], null, st0);
+  }
+
+  // (6) THE FOLDER'S COPY GONE, UNREADABLE, OR CHANGED WHILE THE BOARD MOVED TO ANOTHER YEAR, just before the write. Each is
+  // refused in its own words, and nothing is written in its place. (c) names FY27, the year the save was for, and who saved
+  // its copy and when, and offers no choice: Load theirs and Save yours over theirs act on the year on screen, as 💾 Save
+  // would: its advice is to go back to FY27 first.
+  for (const [k, what, during, said] of [
+    ['a', 'removed', fold => { delete fold.root.files[NM]; }, NOTSAVED('is no longer there')],
+    ['b', 'unreadable', fold => { fold.failRead[NM] = new Error('the share is syncing'); }, NOTSAVED('could not be read again just before it was to be written over — the share is syncing')],
+    ['c', 'saved by Bob, and Brad’s board moved to FY28,', null, '⛔ Not saved. The shared folder’s copy of O&M FY27 changed while this save was under way — Bob saved it just now. Nothing was written in its place: a save never writes over a copy it has not read. Your FY27 work is still here — go back to FY27 and 💾 Save to read the folder afresh.']]) {
+    const sc = '(6' + k + ') the folder’s copy ' + what + ' while Brad’s save is held';
+    const { fold, A, Bb, v1 } = await setup(sc);
+    const h = await held(A, fold); await pause(5);
+    // (c): Brad's clock and Bob's are moved on seven minutes first, so the copy the save read was saved "7 min ago" and
+    // Bob's "just now": the words name when Bob's copy was saved, not when the copy the save read was.
+    const later = `globalThis.__realNow=Date.now; Date.now=function(){ return globalThis.__realNow.call(Date)+7*60000; }; 'ok'`;
+    if (during) during(fold); else { A.ev(`switchYear(2028); 'ok'`); A.ev(later); Bb.ev(later); await Bb.ev('takePen()'); await pause(5); }
+    const want = k === 'a' ? ['(no copy)', null] : k === 'b' ? ['BRAD-1', 700] : ['BOB-2', 650];
+    const m0 = mains(fold);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written in its place: the folder holds what it held during the hold; v1 in the history',
+      J([h.ok, mains(fold) - m0, ...head(fold), inHist(fold, ['BRAD-1', 700])]), J([true, 0, ...want, true]));
+    chk(name, sc, 'Brad is told, word for word, with no choice offered', J([status(A.ev), buttons(A.ev)]), J([said, []]));
+    if (k === 'c') { A.ev(`Date.now=globalThis.__realNow; switchYear(2027); 'ok'`); Bb.ev(`Date.now=globalThis.__realNow; 'ok'`); }
+    chk(name, sc, 'Brad’s FY27 work stays in the board, unsaved, recorded against v1', J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1)]), J(['BRAD-2', 720, true, true]));
+  }
+
+  // (6d), (6e) A TAKE-THE-PEN SAVE STOPPED BECAUSE THE FOLDER'S COPY IS GONE, OR CANNOT BE READ, just before its write. Its
+  // pen line and the board's stamp go back on that refusal too, not only on the clash: Brad loads Bob's copy and, with nothing
+  // typed, takes the pen, which saves; held, while Bob's copy is removed -- (e) cannot be read. Nothing is written in its
+  // place, the journal holds no line saying Brad took the pen, and the board is still stamped with Bob's copy's time and
+  // Bob's name.
+  for (const [k, what, during, said] of [
+    ['d', 'removed', fold => { delete fold.root.files[NM]; }, NOTSAVED('is no longer there')],
+    ['e', 'unreadable', fold => { fold.failRead[NM] = new Error('the share is syncing'); }, NOTSAVED('could not be read again just before it was to be written over — the share is syncing')]]) {
+    const sc = '(6' + k + ') nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy ' + what + ' while that save is held';
+    const { fold, A, Bb } = await setup(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    const bob2 = fold.raw(2027);
+    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name; the journal’s one pen line is Bob’s (a CONTROL)',
+      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), penTakers(A.ev)]), J(['BOB-2', 650, true, true, 'Bob', ['Bob']]));
+    const h = await held(A, fold, 'takePen()'); await pause(5);
+    during(fold); const m0 = mains(fold);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written in its place; Brad is told, word for word, with no choice offered',
+      J([h.ok, mains(fold) - m0, status(A.ev), buttons(A.ev)]), J([true, 0, said, []]));
+    chk(name, sc, 'Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name',
+      J([penTakers(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J([['Bob'], true, 'Bob']));
+  }
+
+  // (7) THE FOLDER'S FIRST COPY. Nothing was in the folder when Brad's save read it; it is held at its read just before its
+  // write, and Bob's first copy lands meanwhile -- (b) one that cannot be read. Nothing is written over it. (b)'s words
+  // do not say the copy could not be read "again": nothing was read the first time.
+  for (const k of ['a', 'b']) {
+    const sc = '(7' + k + ') the folder’s first copy: Bob’s lands while Brad’s save is held' + (k === 'b' ? ', and cannot be read' : '');
+    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
+    Bb.ev(`_liveCfg.folder='shared'; setNote('A','BOB-1'); setAlloc('A','650'); 'ok'`); await pause(5);
+    const hr = holdRead(fold, 2);   // the save's first read finds nothing; its second is the one just before its write
+    const p = A.ev('saveInPlace()'); const reached = await until(() => hr.hit());
+    if (!reached) hr.g.open();   // a save that never makes that read is not held: Bob's own reads must not wait for it
+    await Bb.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)',
+      J([reached, +A.ev('_saveBusy'), ...head(fold), ...who(fold)]), J([true, 1, 'BOB-1', 650, 'Bob', 'Bob']));
+    if (k === 'b') fold.failRead[NM] = new Error('the share is syncing');
+    const m0 = mains(fold);
+    hr.g.open(); await p; await pause(5);
+    chk(name, sc, 'nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history', J([mains(fold) - m0, ...head(fold), ...who(fold), hist(fold).length]), J([0, 'BOB-1', 650, 'Bob', 'Bob', 0]));
+    chk(name, sc, 'Brad’s work stays on screen and unsaved, with nothing recorded for the folder', J([...scr(A.ev), unsaved(A.ev), base(A.ev)]), J(['BRAD-1', 700, true, 0]));
+    const st = status(A.ev);
+    chk(name, sc, 'Brad is told -- ' + (k === 'a' ? 'Bob saved it while his save was under way, with both choices' : 'it could not be read, with no choice'),
+      J(k === 'a' ? [st.startsWith('⛔ Bob saved O&M FY27 to the shared folder just now, '), st.endsWith(' Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL), buttons(A.ev)]
+        : [st, buttons(A.ev)]),
+      J(k === 'a' ? [true, true, CHOICES] : [NOTSAVED('could not be read just before it was to be written over — the share is syncing'), []]));
+  }
+
+  // (8) A TAKE-THE-PEN SAVE REFUSED TAKES ITS PEN LINE BACK. Bob holds the pen; Brad loads Bob's copy, types BRAD-3, $730, and
+  // takes the pen, which saves; held, while Bob saves BOB-3, $640. Brad's save writes nothing over BOB-3, the pen stays Bob's,
+  // and the journal holds no line saying Brad took it.
+  { const sc = '(8) Brad takes the pen; Bob saves while that save is held';
+    const { fold, A, Bb } = await setup(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
+    const bob2 = fold.raw(2027);
+    chk(name, sc, 'Brad loaded Bob’s copy (BRAD-2 kept aside) and typed BRAD-3, $730, unsaved, recorded against Bob’s copy; the journal’s one pen line is Bob’s, carried in his copy (a CONTROL)',
+      J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(bob2), kept(A.ev), penTakers(A.ev), ...who(fold)]), J(['BRAD-3', 730, true, true, ['BRAD-2', 720], ['Bob'], 'Bob', 'Bob']));
+    const st0 = stamp(A.ev); const h = await held(A, fold, 'takePen()'); await pause(5);
+    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'while Brad’s take-the-pen save is held, Bob saves: BOB-3, $640, saved by Bob, its writer, is the folder’s copy (a CONTROL)',
+      J([h.ok, ...head(fold), ...who(fold)]), J([true, 'BOB-3', 640, 'Bob', 'Bob']));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save writes nothing over it: BOB-3, $640, saved by Bob, still its writer, is the folder’s copy; Bob’s copy BOB-2 in the history',
+      J([...head(fold), ...who(fold), inHist(fold, ['BOB-2', 650])]), J(['BOB-3', 640, 'Bob', 'Bob', true]));
+    chk(name, sc, 'Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as it was',
+      J([penTakers(A.ev), ...scr(A.ev), unsaved(A.ev), kept(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], 'BRAD-3', 730, true, ['BRAD-2', 720], true]));
+    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
+  }
+
+  // (8b) A CHANGE TYPED WHILE THE STOPPED SAVE WAS HELD. save() keeps every change in browser storage -- the working plan as
+  // the take-the-pen save had stamped it, its pen line in it. Stopped, the save keeps the plan again as put back: browser
+  // storage, and the board reopened from it, hold no line saying Brad took the pen.
+  { const sc = '(8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Brad reopens';
+    const { fold, A, Bb } = await setup(sc);
+    const penIn = txt => { try { const st = JSON.parse(txt); return (st.jrnl || []).filter(e => e && e.p && e.p[0] === '(writer)').map(e => e.b); } catch (e) { return ['(unreadable)']; } };
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
+    const h = await held(A, fold, 'takePen()'); await pause(5);
+    A.ev(`setNote('A','BRAD-4'); 'ok'`); await pause(5);
+    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'while Brad’s take-the-pen save is held, he types BRAD-4, kept in browser storage, and Bob saves BOB-3, his, the folder’s copy (a CONTROL)',
+      J([h.ok, ...stored(A.ev), ...head(fold), ...who(fold)]), J([true, 'BRAD-4', 730, 'BOB-3', 640, 'Bob', 'Bob']));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen',
+      J([...head(fold), ...who(fold), ...stored(A.ev), penIn(A.ev('localStorage.getItem(_AP.key)'))]), J(['BOB-3', 640, 'Bob', 'Bob', 'BRAD-4', 730, ['Bob']]));
+    const A2 = boot({ html: F1, ls: W1H.lsOf(A.ev) }); await pause(80); wire(A2.ev, 'Brad', KEY.brad); connect(A2.ev, A2.w, fold);
+    chk(name, sc, 'the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen',
+      J([...scr(A2.ev), penTakers(A2.ev)]), J(['BRAD-4', 730, ['Bob']]));
+  }
+
+  // (8c) A CHANGE TYPED WHILE THE SAVE IS HELD KEEPS ITS OWN STAMP. The stopped save puts the board's stamp back only if it
+  // is still the one this save gave it: Brad types BRAD-3 while his save is held, which stamps the board itself, and that
+  // stamp stays -- the board was last changed then, by Brad, not when v1 was saved.
+  { const sc = '(8c) Brad types BRAD-3 while his save is held; Bob takes the pen';
+    const { fold, A, Bb } = await setup(sc);
+    const h = await held(A, fold); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); 'ok'`); await pause(5);
+    const typed = stamp(A.ev);
+    await Bb.ev('takePen()'); await pause(5);
+    chk(name, sc, 'while Brad’s save is held, he types BRAD-3, kept in browser storage; Bob takes the pen: BOB-2, $650, saved by Bob, its writer, is the folder’s copy (a CONTROL)',
+      J([h.ok, ...stored(A.ev), ...head(fold), ...who(fold)]), J([true, 'BRAD-3', 720, 'BOB-2', 650, 'Bob', 'Bob']));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile gave it, by Brad',
+      J([...head(fold), ...who(fold), ...scr(A.ev), ...stored(A.ev), unsaved(A.ev), J(stamp(A.ev)) === J(typed), stamp(A.ev)[1]]),
+      J(['BOB-2', 650, 'Bob', 'Bob', 'BRAD-3', 720, 'BRAD-3', 720, true, true, 'Brad']));
+  }
+
+  // (9) THE LIVE AUTOSAVE: the same folder save, quiet, from the Live timer -- the save that runs most often. Held at its
+  // history copy while Bob takes the pen, then let go: it writes nothing over BOB-2, and the board does not say it saved.
+  { const sc = '(9) Bob takes the pen while Brad’s Live autosave is held';
+    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
+    A.ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // what working out of the folder turns on
+    const h = await held(A, fold, 'liveTick()'); await pause(5);
+    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
+    chk(name, sc, 'while Brad’s autosave is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy (a CONTROL)',
+      J([h.ok, ...head(fold), ...who(fold), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1]));
+    // What the autosave itself says is read before the refresh the Live timer makes next, in the same tick, says its own
+    // line over it: that refresh is held at its read of the folder's copy -- the second read of it from here, the first
+    // being the save's own, just before its write.
+    const hr = holdRead(fold, 2);
+    h.g.open(); const reached = await until(() => hr.hit());
+    chk(name, sc, 'the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick',
+      J([reached, status(A.ev), buttons(A.ev)]), J([true, LATE, CHOICES]));
+    hr.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s; v1 in the history and nothing else',
+      J([...head(fold), ...who(fold), mains(fold) - m0, histHolds(fold)]), J(['BOB-2', 650, 'Bob', 'Bob', 1, [['BRAD-1', 700]]]));
+    const st = status(A.ev);
+    chk(name, sc, 'Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing says it saved',
+      J([...scr(A.ev), ...stored(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), st.includes('Bob saved O&M'), /Saved|automatically/.test(st)]),
+      J(['BRAD-2', 720, 'BRAD-2', 720, true, true, true, true, false]));
+  }
+
+  // (9b) CONTROL -- THE LIVE AUTOSAVE AFTER BOB HAS TAKEN THE PEN: the clash found when it reads the folder, as it always was.
+  { const sc = '(9b) Bob takes the pen before Brad’s Live autosave reads the folder (a CONTROL)';
+    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
+    A.ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);
+    await Bb.ev('takePen()'); await pause(5);
+    const h0 = fold.hits.hist || 0, m0 = mains(fold);
+    await A.ev('liveTick()'); await pause(5);
+    const st = status(A.ev);
+    chk(name, sc, 'the autosave writes nothing -- no history copy, no copy of the folder’s; BOB-2 is still the folder’s copy; Brad’s work stays, unsaved, recorded against v1, the stamp as it was; he is told Bob saved, and nothing says it saved',
+      J([(fold.hits.hist || 0) - h0, mains(fold) - m0, ...head(fold), ...who(fold), ...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), st.includes('Bob saved O&M'), /Saved|automatically/.test(st)]),
+      J([0, 0, 'BOB-2', 650, 'Bob', 'Bob', 'BRAD-2', 720, true, true, true, true, false]));
+  }
+
+  // (10) THE STAMP NAMES WHO SAVED. Brad loads Bob's copy and, with nothing typed, takes the pen, which saves; held, while Bob
+  // saves BOB-3. Stopped, Brad's board still says it was saved when Bob saved it, and by Bob -- in its header's tooltip too.
+  { const sc = '(10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that save is held';
+    const { fold, A, Bb } = await setup(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    const bob2 = fold.raw(2027), hd0 = header(A.ev);
+    const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
+    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name (a CONTROL)',
+      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J(['BOB-2', 650, true, true, 'Bob']));
+    const h = await held(A, fold, 'takePen()'); await pause(5);
+    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob',
+      J([...head(fold), ...who(fold), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), header(A.ev) === hd0, tip(A.ev).includes(' by Bob. '), tip(A.ev).includes(' by Brad. ')]),
+      J(['BOB-3', 640, 'Bob', 'Bob', true, 'Bob', true, true, false]));
+  }
+
+  // (11) A LOCKED VIEW PUT ON SCREEN WHILE THE SAVE IS HELD. The view sets the working plan aside and puts a throwaway copy
+  // on screen; the save stopped just before its write puts the stamp back and takes the pen line out, on the working plan
+  // and on that copy, so the view says what happened while it is on screen, and the working plan once the view is left:
+  // (a) nothing unsaved -- still saved when v1 was, by Brad, its header unchanged (Brad's clock is moved on seven minutes
+  // first, so a header naming the stopped save would differ); (b) a take-the-pen save -- the journal holds no line saying
+  // Brad took the pen, and the stamp is as it was.
+  // Brad saves v1 with PB27 locked; Bob loads it and types BOB-2.
+  const setupLocked = async sc => {
+    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`_liveCfg.folder='shared'; setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`);
+    await A.ev('saveInPlace()'); await pause(5);
+    const v1 = fold.raw(2027);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
+    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
+    chk(name, sc, 'v1 is BRAD-1, $700, saved by Brad, its writer; Brad is saved, stamped with its time and his name; PB27 is locked; Bob shows BOB-2 (a CONTROL)',
+      J([...inCopy(v1), ...who(fold), saved(A.ev), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), A.ev(`!!blGet('PB|2027')`), ...scr(Bb.ev)]),
+      J(['BRAD-1', 700, 'Brad', 'Brad', true, true, 'Brad', true, 'BOB-2', 650]));
+    return { fold, A, Bb, v1 };
+  };
+  { const sc = '(11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes the pen';
+    const { fold, A, Bb, v1 } = await setupLocked(sc);
+    const tipHead = ev => String(ev(`(document.getElementById('saveState')||{}).title||''`)).split('. ')[0];
+    A.ev(`render(); 'ok'`); const hd0 = header(A.ev), tp0 = tipHead(A.ev);
+    A.ev(`globalThis.__realNow=Date.now; Date.now=function(){ return globalThis.__realNow.call(Date)+7*60000; }; 'ok'`);
+    const h = await held(A, fold); await pause(5);
+    A.ev(`cycView('PB|2027'); 'ok'`);
+    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save, let go, writes nothing over BOB-2, $650, saved by Bob, its writer; one write of the folder’s copy since the hold, Bob’s; PB27 is on screen',
+      J([h.ok, mains(fold) - m0, ...head(fold), ...who(fold), A.ev('String(CYCVIEW)')]), J([true, 1, 'BOB-2', 650, 'Bob', 'Bob', 'PB|2027']));
+    chk(name, sc, 'while PB27 is still on screen, its header and its tooltip say what they said before the save, too',
+      J([header(A.ev) === hd0, tipHead(A.ev) === tp0]), J([true, true]));
+    // What Brad is told is read here too, before the view is left (leaving says "Back on the working plan" over it). By
+    // his clock, moved on seven minutes, Bob's copy was saved "7 min ago": the start and the end of the line are read.
+    const stv = status(A.ev);
+    chk(name, sc, 'while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices',
+      J([stv.startsWith('⛔ Bob saved O&M FY27 to the shared folder '), stv.endsWith(', after the copy you are working from. Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL), buttons(A.ev)]),
+      J([true, true, CHOICES]));
+    A.ev(`cycLeave(); render(); 'ok'`); await pause(5);
+    chk(name, sc, 'once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save',
+      J([saved(A.ev), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), header(A.ev) === hd0, tipHead(A.ev) === tp0, hd0.startsWith('Saved ')]),
+      J([true, true, 'Brad', true, true, true]));
+    A.ev(`Date.now=globalThis.__realNow; 'ok'`);
+  }
+  { const sc = '(11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves';
+    const { fold, A, Bb } = await setupLocked(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
+    chk(name, sc, 'Brad loaded Bob’s copy and typed BRAD-3, $730, unsaved; the journal’s one pen line is Bob’s; Bob is the writer (a CONTROL)',
+      J([...scr(A.ev), unsaved(A.ev), penTakers(A.ev), ...who(fold)]), J(['BRAD-3', 730, true, ['Bob'], 'Bob', 'Bob']));
+    const st0 = stamp(A.ev); const h = await held(A, fold, 'takePen()'); await pause(5);
+    A.ev(`cycView('PB|2027'); 'ok'`);
+    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save, let go, writes nothing over BOB-3, $640, saved by Bob, still its writer',
+      J([h.ok, ...head(fold), ...who(fold)]), J([true, 'BOB-3', 640, 'Bob', 'Bob']));
+    chk(name, sc, 'while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was',
+      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], true]));
+    chk(name, sc, 'while PB27 is still on screen, Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
+    A.ev(`cycLeave(); 'ok'`); await pause(5);
+    chk(name, sc, 'once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved',
+      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0), ...scr(A.ev), unsaved(A.ev)]), J([['Bob'], true, 'BRAD-3', 730, true]));
+  }
+  // (11c) WHO SAVED, ON THE VIEW. In (11a) and (11b) the stamp names Brad before the save and after it, so only its time
+  // is told apart there. Here, as in (10), Brad takes the pen over Bob's copy with nothing typed, and PB27 is put on screen
+  // during the held save: while the view is on screen, it still says Bob saved it, and when.
+  { const sc = '(11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen while that save is held; Bob saves';
+    const { fold, A, Bb } = await setupLocked(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    const bob2 = fold.raw(2027);
+    const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
+    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name (a CONTROL)',
+      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J(['BOB-2', 650, true, true, 'Bob']));
+    const h = await held(A, fold, 'takePen()'); await pause(5);
+    A.ev(`cycView('PB|2027'); 'ok'`);
+    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad',
+      J([...head(fold), A.ev('String(CYCVIEW)'), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), tip(A.ev).includes(' by Bob. '), tip(A.ev).includes(' by Brad. ')]),
+      J(['BOB-3', 640, 'PB|2027', true, 'Bob', true, false]));
+    A.ev(`cycLeave(); 'ok'`); await pause(5);
+  }
+
+  // (12) BYTE FOR BYTE, NOT BY ITS STAMP. While Brad's save is held, the folder's copy is rewritten with v1's own stamp and
+  // saver but another note -- not by this board, which stamps every save it makes. The save writes nothing over it. (Its
+  // words name the copy as it names itself, saved by Brad; they are not checked here.) EDITED is as long as BRAD-1 on
+  // purpose: a comparison of lengths, not of bytes, would take it for the copy read.
+  { const sc = '(12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held';
+    const { fold, A, v1 } = await setup(sc); const st0 = stamp(A.ev);
+    const h = await held(A, fold); await pause(5);
+    const j = JSON.parse(v1), cs = j.store || j; cs.years[cs.cur].notes.A = 'EDITED'; fold.root.files[NM] = JSON.stringify(j);
+    const m0 = mains(fold);
+    chk(name, sc, 'while Brad’s save is held, the folder’s copy reads EDITED, $700, stamped as v1 is, saved by Brad, its writer (a CONTROL)',
+      J([h.ok, ...head(fold), headTs(fold) === tsOf(v1), ...who(fold)]), J([true, 'EDITED', 700, true, 'Brad', 'Brad']));
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history',
+      J([mains(fold) - m0, ...head(fold), inHist(fold, ['BRAD-1', 700])]), J([0, 'EDITED', 700, true]));
+    chk(name, sc, 'Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered',
+      J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), buttons(A.ev)]), J(['BRAD-2', 720, true, true, true, CHOICES]));
+  }
+
+  // (13) THE MIXED-IMPORT HOLD IS CHECKED AFTER THIS READ (U4). The read just before the write is now the folder save's last
+  // wait, so U4's check of the hold after the last wait comes after it. 💾 Save is held at its second read of the folder's
+  // copy (this one); a full import stops part-way there and cannot be put back; the save is let go: nothing is written over
+  // the folder's copy, the board says writing to it is refused and not Saved, the note stays unsaved and the stamp as it
+  // was. The control lets the same hold go with nothing happening there: the save writes and says Saved. (U4's own helpers
+  // and words; the round-3 tests review's probe. The board before this change makes no second read, so the hold is never
+  // reached there.)
+  { const { NEW, OLD } = w2Fx();
+    const { tick } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
+      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
+    for (const withImport of [true, false]) {
+      const sc = '(13) 💾 Save held at its second read of the folder’s copy, just before its write'
+        + (withImport ? ', the import stops part-way there' : ' (a CONTROL: nothing happens there)');
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const fy = +T.ev('MS.cur'), nm = 'spmt-' + fy + '-om.json';
+      await T.ev('saveInPlace()');
+      const v1 = fold.raw(fy);
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const s0 = J(stamp(T.ev)), m0 = fold.hits.main || 0;
+      const g = gate(), gh = fold.dir.getFileHandle; let seen = 0, hit = 0;
+      fold.dir.getFileHandle = async (n, o) => { if (n === nm && !(o && o.create) && ++seen === 2) { hit = 1; await g.p; } return gh(n, o); };
+      const p = T.ev('saveInPlace()');
+      const reached = await until(() => hit === 1);
+      if (!reached) g.open();
+      if (withImport) chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on (a CONTROL)', stop(T), J([false, true, 'true']));
+      g.open(); await p; await turns(30);
+      if (!withImport) {
+        chk(name, sc, 'the save writes the folder’s copy once, with the note, and says Saved',
+          J([reached, (fold.hits.main || 0) - m0, fold.note(fy, 'A'), /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J([true, 1, 'EDIT-1', true]));
+        continue;
+      }
+      chk(name, sc, 'nothing is written over the folder’s copy: it keeps its bytes', J([reached, (fold.hits.main || 0) - m0, fold.raw(fy) === v1]), J([true, 0, true]));
+      chk(name, sc, 'the board says writing to the shared folder is refused, and does not say Saved',
+        J([/Writing to the shared folder is refused/.test(status(T.ev)), /✅ Saved/.test(status(T.ev))]), J([true, false]));
+      chk(name, sc, 'the note typed stays unsaved, and the board’s stamp is what it was before the save', J([T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]), J(['true', true]));
+    }
+  }
+
+  // (14) THE HOLD AND A LANDED COPY TOGETHER. A full import stops part-way while the save keeps its history copy, and Bob's
+  // copy lands there too. Nothing is written over Bob's copy, and the hold is what is said, as U4's check says it: under the
+  // hold the clash's two choices are refused, and the stopped import asked for the two copies its message line offers to be
+  // saved before anything else; the quiet autosave leaves that line as it is. (The board before this change passes: U4's
+  // check after the history copy refuses there. The round-4 money review's probe Q2.)
+  { const { NEW, OLD } = w2Fx();
+    const { tick } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
+      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
+    const RESCUE = ["fullImportRescue('pre')", "fullImportRescue('inc')"];
+    for (const how of ['saveInPlace()', 'driveStorePush(true)']) {
+      const sc = '(14) ' + (how === 'saveInPlace()' ? '💾 Save' : 'the Live autosave') + ' held at the close of its history copy; a full import stops part-way there, and Bob’s copy lands there';
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const fy = +T.ev('MS.cur'), nm = 'spmt-' + fy + '-om.json';
+      await T.ev('saveInPlace()');
+      const v1 = fold.raw(fy);
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const s0 = J(stamp(T.ev)), m0 = fold.hits.main || 0;
+      const h = await held(T, fold, how);
+      const ctl = stop(T), s1 = status(T.ev), b1 = buttons(T.ev);
+      const j = JSON.parse(v1), t = Date.now() + 1000; j.by = 'Bob'; j.ts = t; j.store.ts = t;
+      j.writer = { by: 'Bob', fp: 'c'.repeat(40), t }; j.store.years[fy].notes.A = 'BOB-2'; const bob = JSON.stringify(j); fold.root.files[nm] = bob;
+      chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on; its line offers both copies; Bob’s copy is the folder’s copy (a CONTROL)',
+        J([h.ok, ctl, RESCUE.map(b => b1.includes(b)), fold.note(fy, 'A')]), J([true, J([false, true, 'true']), [true, true], 'BOB-2']));
+      h.g.open(); const ret = await h.p; await turns(30);
+      chk(name, sc, 'nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was',
+        J([(fold.hits.main || 0) - m0, fold.raw(fy) === bob, ret === true, /✅ Saved/.test(status(T.ev)), T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]),
+        J([0, true, false, false, 'true', true]));
+      if (how === 'saveInPlace()') chk(name, sc, 'the board says writing to the shared folder is refused, and its line still offers the two copies the stopped import asked to be saved first',
+        J([/Writing to the shared folder is refused/.test(status(T.ev)), RESCUE.map(b => buttons(T.ev).includes(b))]), J([true, [true, true]]));
+      else chk(name, sc, 'the message line is the import’s own, unchanged', J(status(T.ev) === s1), J(true));
+    }
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U18) ====
+// ==== v2.00 (U19): ↶ Put back after a board-file save keeps what it replaces ====
+// With S1 saved into the board file, ↶ Put back of the work kept aside (K) kept nothing in S1's place: S1 was "still in the
+// saved file". The next 💾 Save asked HOLD ON, and answered OK it wrote K over S1 -- and then S1 was in no copy this board
+// could reach: not on screen, not kept aside, not in browser storage, not in a byte of the file, after the Save and after a
+// reopen (only in Teams version history, outside the board). The shared folder keeps the copy a save replaces in its history;
+// a board file keeps none. Now what is on screen is kept aside in the kept work's place whether or not it is saved, as unsaved
+// work always was, unless 💾 Save writes to the shared folder and what is on screen is the folder's own copy; and the question
+// and the board's words say so. Each route below is driven through the page's own buttons and menus: the board file put back
+// once S1's save has landed, put back while it writes (refused, U2) and again once it has landed, through 📁 File and the
+// note editor, with no file handle remembered (the picker), between two writers who each hold their own key (✍ Take the pen,
+// both ways), with 📡 Live view working out of a folder at the put-back and switched back to the file before the Save, and on
+// a reopened page with no file handle in memory. Then: K and S1 put back in turn before any Save, a reopen before any Save,
+// no room to keep what is on screen, the HOLD ON answered Cancel while work is kept aside (its advice names ⬅ Import, not a
+// reopen, which would not load the file's copy), the words for each kind of kept copy, and the controls -- the HOLD ON
+// answered Cancel, S1 never saved, the shared folder, and ordinary editing -- as they were. Fix round 2: the shared folder
+// holding an older copy of this browser's at the put-back; the question's words when what is on screen is the folder's own
+// copy; Cancel's advice with work kept by an opening; the question on a freshly opened page and after a change; a colleague's
+// copy on screen; and a locked cycle on screen, where ↶ Put back is refused at once. Fix round 3: a put-back the load itself
+// refuses with saved work on screen, where the kept work is written back; and the question's place words when the shared
+// folder holds an older copy at the put-back and what is on screen is saved only in the board file. Fix round 4: ↶ Put back
+// under a locked cycle is refused by U10's own gate now, so (y) is a CONTROL; the question's place words when what is on
+// screen is the folder's own copy and 💾 Save is back on the board file; and the words for the kept work after a put-back the
+// load refuses. Fix round 5: Cancel's advice with nothing kept aside, which still names a reopen.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U19) — put back after a board-file save keeps what it replaces';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote, fileWriter } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // Requirement A's note says which copy is which: K, Alice's work kept aside by the opening; N, the newer copy that displaced
+  // it; S1, the work typed afterwards and saved into the file before K is put back.
+  const K = 'U19-K-KEPTWORK', N = 'U19-N-NEWER', S1 = 'U19-S1-SAVED';
+  const scr = ev => ev('String(S.notes.A)');
+  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
+  // The work kept aside: [its note A, why it was kept], or null when nothing is kept.
+  const kept = ev => { const s = keptRaw(ev); if (s == null) return null;
+    try { const m = JSON.parse(s.slice(0, s.indexOf('\n'))), st = JSON.parse(s.slice(s.indexOf('\n') + 1));
+      return [String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''), m.why]; } catch (e) { return ['(unreadable)', null]; } };
+  const unsaved = ev => { const fl = flags(ev); return [fl.DIRTY, ev('_baseDirty'), !!fl.base.dirty]; };
+  // WHERE A COPY IS among the places this board offers it -- on screen, this browser's record of the board (its storage key),
+  // kept aside, the board file -- and, wider, whether its text is in any byte of browser storage or of the file.
+  const where = (ev, f, m) => { const ls = lsOf(ev); let main = '';
+    try { const o = JSON.parse(ls[ev('_AP.key')]); main = String(((o.years || {})[o.cur] || { notes: {} }).notes.A || ''); } catch (e) {}
+    const k = kept(ev);
+    return [scr(ev) === m && 'screen', main === m && 'storage', !!k && k[0] === m && 'kept', fileNote(f.content, 'A') === m && 'file'].filter(Boolean); };
+  const anywhere = (ev, f, m) => Object.values(lsOf(ev)).some(v => String(v).includes(m)) || f.content.includes(m);
+  // The page's own controls: 💾 Save in the toolbar (its promise is the save queue's), the top bar's "↶ work kept aside", and
+  // the 📁 File menu (mRun runs its item after a turn of the loop; then the save queue is waited for).
+  const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
+  const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+  const fileMenu = async (ev, call) => { const r = ev(`(function(){ var b=document.getElementById('b_share'); if(!b) return 'no File button'; b.click();
+      var it=[].slice.call(document.querySelectorAll('#dd_share button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
+      if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
+    await pause(15); await ev('_saveChain'); await pause(20); return r; };
+  // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
+  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('fld-note'); if(!t) return 'no editor';
+    t.value=${J(text)}; var bs=[].slice.call(document.querySelectorAll('#fldBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='fldSave()'; });
+    if(bs.length!==1) return 'save buttons: '+bs.length; bs[0].click(); return 'typed'; })()`);
+  // The status line's "✍ Take the pen…" -- the refusal's own button --, answered OK; then the save it makes is waited for.
+  const takePenBtn = async (ev, f) => { const w0 = f.writes;
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='takePen()'; });
+      if(bs.length!==1) return 'buttons: '+bs.length; bs[0].click(); return 'clicked'; })()`);
+    await until(() => f.writes > w0); await ev('_saveChain'); await pause(20); return r; };
+  const keptTitle = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); return b? b.title : null; })()`);
+  const menuText = ev => ev(`(document.getElementById('dd_share')||{}).textContent||''`);
+  // WORDS, as the board says them. The question when what is on screen is saved in the board file; the HOLD ON, unchanged;
+  // the top bar's and 📁 File's words for a copy kept at a put-back; the status after putting such a copy back.
+  const PUTQ = 'What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that. It is also kept aside in its place, so it is not lost if Save does.';
+  const holdOn = q => /^⚠ HOLD ON — Alice saved this file at .+\. That is not the save the copy you are working from came from, so their changes are not on your screen\.\n\nSaving now will OVERWRITE their changes with yours\.\n\nOK — overwrite anyway \(their version stays in Teams version history\)\./.test(q);
+  const SWAPTITLE = /^What was on screen when other work was put back, kept aside .+\. Put it back\.$/;
+  const SWAPMENU = 'what was on screen when other work was put back';
+  const SWAPSAID = '💾 Save will ask before it writes over a copy saved after the one this work came from.';
+  // The question's sentence when what is on screen is unsaved by this browser's record: work no saved copy has; or a copy kept
+  // at a put-back, saved when it was kept, put back and not changed since. The HOLD ON's Cancel line, and the status after
+  // Cancel, while work is kept aside: ⬅ Import only, no reopen.
+  const UNSAVEDQ = 'What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.';
+  const PUTAGAINQ = 'What is on screen now was put back and has not been saved since, so it is kept aside in its place — nothing is lost.';
+  const CANCEL_IMPORT = 'Cancel — don’t save (then use ⬅ Import on the current file to pick up their changes first).';
+  const CANCELLED_IMPORT = 'Save canceled — Alice’s changes are untouched. ⬅ Import this file to load their version, then redo your edits.';
+  // The question's sentence when what is on screen is the shared folder's own copy: the folder is named, whatever kind of copy
+  // is kept, and nothing is kept in its place.
+  const FOLDQ = 'What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.';
+  // 📡 Live view's own switch, reached through 📁 File → 📡 Live view…: "● Working out of this folder" pressed (it turns to
+  // "○ Just watching", and 💾 Save writes the board file again); then the panel's ✕ Close.
+  const liveSwitchOff = async ev => { const o = await fileMenu(ev, 'mRun(toggleLive)');
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#liveBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='liveSet("store",false)'; });
+      if(bs.length!==1) return 'switches: '+bs.length; bs[0].click(); var x=document.querySelector('#livePanel h3 button.x'); if(!x) return 'no close'; x.click(); return 'clicked'; })()`);
+    await pause(5); return [o, r]; };
+  // THE BOARD FILE. Alice types K, unsaved. Her other browser saves N into the file. She reopens the file: the opening keeps K
+  // aside and opens N. `picker`: no file handle is remembered, so the first Save opens the picker (it hands back the same file).
+  const inFile = async picker => {
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F1);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    if (picker) A.ev(`FH=null; globalThis.__picks=0; window.showSaveFilePicker=async function(){ globalThis.__picks++; return globalThis.__disk; }; 'ok'`);
+    return { A, f };
+  };
+  const reopen = async (A, f) => { const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    return { B, fB: disk(B.w, f.content) }; };
+  // S1 typed and saved into the file through 💾 Save: nothing asked; S1 in the file, saved; K still kept aside.
+  const savedS1 = async (A, f, sc) => {
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    chk(name, sc, 'S1 on screen, unsaved; K kept aside by the opening; N in the file (a CONTROL)',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), fileNote(f.content, 'A')]), J([S1, true, true, true, [K, 'file'], N]));
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, 'S1’s save lands: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([qs(A.ev).length - q0, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, S1, false, false, false, [K, 'file']]));
+  };
+  // ↶ Put back of K with S1 saved -- the top bar's button, or `via` -- : one question, saying S1 is kept aside too; K on screen,
+  // unsaved; S1 kept in its place.
+  const putBackK = async (A, sc, via) => {
+    const q0 = qs(A.ev).length; const r = via ? await via() : clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question, saying S1 is still in the saved file, Save will ask, and S1 is also kept aside in its place',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ)]), J([1, true]));
+    chk(name, sc, '↶ Put back: K on screen, unsaved; S1 kept aside in its place; the board says so',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), / What was on screen is kept aside in its place: put that back\.$/.test(status(A.ev))]),
+      J([K, true, true, true, [S1, 'swap'], true]));
+    return r;
+  };
+  // 💾 Save after the put-back, HOLD ON answered OK: one HOLD ON, in its own words; K written into the file, saved.
+  const saveK = (A, f, sc, q) => chk(name, sc, '💾 Save: one HOLD ON, its words unchanged; OK writes K into the file, saved (a CONTROL)',
+    J([q.length, q.length === 1 && holdOn(q[0]), fileNote(f.content, 'A'), scr(A.ev), ...unsaved(A.ev)]), J([1, true, K, K, false, false, false]));
+  // (a) THE BOARD FILE, PUT BACK ONCE S1's SAVE HAS LANDED; then 💾 Save, OK. Reopened, S1 is put back and saved in its turn.
+  { const sc = '(a) the board file: ↶ Put back once S1’s save has landed; 💾 Save, HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    chk(name, sc, 'the top bar offers K, as work no saved copy had (a CONTROL)', /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), true);
+    await putBackK(A, sc);
+    chk(name, sc, 'and names the saved file and who saved it after K, as before: K was kept by the opening (a CONTROL)',
+      status(A.ev).includes('💾 Save will ask before it writes over the saved file, which Alice saved after it.'), true);
+    chk(name, sc, '↶ Put back: the top bar offers S1, as what was on screen when other work was put back; 📁 File says the same',
+      J([SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]), J([true, true, false]));
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered in the top bar, and its text is in this browser’s storage',
+      J([where(A.ev, f, S1), anywhere(A.ev, f, S1), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || '')]), J([['kept'], true, [S1, 'swap'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered in the top bar',
+      J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), where(B.ev, fB, S1), SWAPTITLE.test(keptTitle(B.ev) || '')]),
+      J([K, K, false, false, false, [S1, 'swap'], ['kept'], true]));
+    q0 = qs(B.ev).length; clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
+    chk(name, sc, 'reopened, S1 put back: one question (K is in the saved file, and is kept aside too); S1 on screen, unsaved; K kept in its place',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(B.ev), ...unsaved(B.ev), kept(B.ev)]), J([1, true, S1, true, true, true, [K, 'swap']]));
+    chk(name, sc, 'and the board says Save asks before writing over a copy saved after S1’s -- not who saved the file after it',
+      J([status(B.ev).includes(SWAPSAID), / saved after it\./.test(status(B.ev))]), J([true, false]));
+    q0 = qs(B.ev).length; await clickSave(B.ev); await pause(20); const q2 = qs(B.ev).slice(q0);
+    chk(name, sc, 'then 💾 Save: one HOLD ON (the file holds K, saved after S1’s copy); OK writes S1, saved; K still kept aside',
+      J([q2.length, q2.length === 1 && holdOn(q2[0]), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev)]), J([1, true, S1, false, false, false, [K, 'swap']])); }
+  // (b) THE BOARD FILE, PUT BACK WHILE S1's SAVE WRITES: refused (v2.00, U2); once the save has landed, put back; 💾 Save, OK.
+  { const sc = '(b) the board file: ↶ Put back pressed while S1’s save writes, and again once it has landed; 💾 Save, OK; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const n0 = f.hits.write || 0; f.hold.write = gate(); const g = f.hold.write;
+    const p = clickSave(A.ev); const reached = await until(() => (f.hits.write || 0) > n0);
+    const k0 = keptRaw(A.ev), q0 = qs(A.ev).length; const r = clickPutBack(A.ev);
+    chk(name, sc, 'during the save: ↶ Put back refused, nothing asked, K kept byte for byte, S1 on screen, and said (a CONTROL)',
+      J([reached, r, qs(A.ev).length - q0, keptRaw(A.ev) === k0, scr(A.ev), /Not put back/.test(status(A.ev))]), J([true, 'clicked', 0, true, S1, true]));
+    g.open(); await p; await pause(20);
+    chk(name, sc, 'the save lands: S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([S1, false, false, false, [K, 'file']]));
+    await putBackK(A, sc);
+    let q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q1));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (c) THROUGH 📁 FILE AND THE NOTE EDITOR: S1 typed in 📄 Description & note, 📁 File → 💾 Save, → ↶ Put back, → 💾 Save.
+  { const sc = '(c) the board file through 📁 File and the note editor; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    const typed = typeNote(A.ev, S1); await pause(5);
+    const s1 = await fileMenu(A.ev, 'mRun(saveInPlace)');
+    chk(name, sc, 'S1 typed in the editor and saved through 📁 File: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([typed, s1, qs(A.ev).length, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J(['typed', 'clicked', 0, S1, false, false, false, [K, 'file']]));
+    const pb = await putBackK(A, sc, () => fileMenu(A.ev, 'mRun(keptPutBack)'));
+    chk(name, sc, '📁 File → ↶ Put back: 📁 File then says what the work kept aside is', J([pb, menuText(A.ev).includes(SWAPMENU)]), J(['clicked', true]));
+    const q0 = qs(A.ev).length; const s2 = await fileMenu(A.ev, 'mRun(saveInPlace)'); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 📁 File → 💾 Save: S1 is kept aside', J([s2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (d) NO FILE HANDLE REMEMBERED: the first 💾 Save opens the picker (which hands back the same file); the second reuses it.
+  // S1's own save is that first Save, so the handle is in memory by the put-back; (o) puts back with none in memory.
+  { const sc = '(d) the board file with no file handle remembered: the first 💾 Save opens the picker; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile(true);
+    await savedS1(A, f, sc);
+    chk(name, sc, 'S1’s save opened the picker once (a CONTROL)', A.ev('globalThis.__picks'), 1);
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save (the picker not opened again): S1 is kept aside', J([A.ev('globalThis.__picks'), where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([1, ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (e) TWO WRITERS, EACH WITH HIS OWN KEY: the board file has one writer, so the newer copy N reaches the file only when Bob
+  // takes the pen, and S1 only when Alice takes it back -- each through the refusal's own "✍ Take the pen…". Then ↶ Put
+  // back, 💾 Save with its HOLD ON answered OK, and a reopen, as in (a).
+  { const sc = '(e) the board file between two writers: N and S1 each written through ✍ Take the pen; ↶ Put back; 💾 Save, HOLD ON answered OK; reopened';
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); const fb = disk(Bb.w, F1);
+    Bb.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5);
+    await clickSave(Bb.ev); await pause(20); const bobRefused = [fb.writes, /Not saved\. Alice holds the pen/.test(status(Bb.ev))];
+    const bt = await takePenBtn(Bb.ev, fb);
+    chk(name, sc, 'Bob: 💾 Save refused (Alice holds the pen); ✍ Take the pen… writes N, writer Bob (a CONTROL)',
+      J([...bobRefused, bt, fileNote(fb.content, 'A'), fileWriter(fb.content)]), J([0, true, 'clicked', N, 'Bob']));
+    const A = boot({ html: fb.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, fb.content);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    await clickSave(A.ev); await pause(20); const aliceRefused = [f.writes, /Not saved\. Bob holds the pen/.test(status(A.ev)), kept(A.ev)];
+    const at = await takePenBtn(A.ev, f);
+    chk(name, sc, 'Alice reopens (K kept aside, N opened) and types S1: 💾 Save refused (Bob holds the pen); ✍ Take the pen… writes S1, saved, writer Alice; K still kept aside (a CONTROL)',
+      J([...aliceRefused, at, fileNote(f.content, 'A'), fileWriter(f.content), ...unsaved(A.ev), kept(A.ev)]),
+      J([0, true, [K, 'file'], 'clicked', S1, 'Alice', false, false, false, [K, 'file']]));
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved, writer Alice; S1 kept aside',
+      J([scr(B.ev), fileNote(fB.content, 'A'), fileWriter(fB.content), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, K, 'Alice', false, false, false, ['kept']])); }
+  // (f) S1 PUT BACK AGAIN BEFORE ANY SAVE: the file still holds S1's own save, so Save asks nothing -- and the board does not
+  // say it will. K, unsaved, is kept in S1's place. Then K and S1 once more, and ↶ Put back answered Cancel: S1 on screen is the
+  // file's own copy, put back and not changed since, so the question does not say it has changes no saved copy has.
+  { const sc = '(f) the board file: K put back, then S1, then K and S1 again before any Save; then 💾 Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, 'S1 put back: one question (K has changes no saved copy has, so it is kept aside); S1 on screen, unsaved; K kept in its place',
+      J([r, q.length, q.length === 1 && q[0].endsWith('What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, S1, true, true, true, [K, 'swap']]));
+    chk(name, sc, 'the board says Save asks before writing over a copy saved after S1’s -- not that somebody saved the file after it',
+      J([status(A.ev).includes(SWAPSAID), / saved after it\./.test(status(A.ev))]), J([true, false]));
+    const q3 = qs(A.ev).length; const r3 = clickPutBack(A.ev); const qa = qs(A.ev).slice(q3);
+    chk(name, sc, 'K put back again: one question -- S1, the file’s own copy, was put back and has not been saved since (not “changes no saved copy has”); K on screen; S1 kept in its place',
+      J([r3, qa.length, qa.length === 1 && qa[0].endsWith(PUTAGAINQ), fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, K, [S1, 'swap']]));
+    const q4 = qs(A.ev).length; clickPutBack(A.ev); const qb = qs(A.ev).slice(q4);
+    chk(name, sc, 'S1 put back again: one question -- K, never saved, has changes no saved copy has; S1 on screen; K kept in its place',
+      J([qb.length, qb.length === 1 && qb[0].endsWith(UNSAVEDQ), scr(A.ev), kept(A.ev)]), J([1, true, S1, [K, 'swap']]));
+    const q5 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); const r5 = clickPutBack(A.ev); A.ev('globalThis.__yes=true; 0'); const qc = qs(A.ev).slice(q5);
+    chk(name, sc, '↶ Put back once more, answered Cancel: one question -- S1 was put back and has not been saved since; nothing changed',
+      J([r5, qc.length, qc.length === 1 && qc[0].endsWith(PUTAGAINQ), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, [K, 'swap']]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, 'then 💾 Save asks nothing (nobody saved after S1’s copy) and writes S1, saved; K still kept aside',
+      J([qs(A.ev).length - q1, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, S1, false, false, false, [K, 'swap']])); }
+  // (g) REOPENED BEFORE ANY SAVE, after K was put back: the file is newer than the copy K came from and this browser holds K
+  // unsaved, with S1 already kept aside -- kept work is never replaced, so the file's copy (S1) is not loaded over K.
+  { const sc = '(g) the board file: K put back, then the board reopened before any Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K stays on screen, unsaved by the record; S1 kept aside and in the file; the board says the file’s copy was not loaded and nothing was lost',
+      J([scr(B.ev), !!flags(B.ev).base.dirty, kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]),
+      J([K, true, [S1, 'swap'], S1, true]));
+    chk(name, sc, 'K and S1 are each still in a copy here or in the file (a CONTROL)', J([K, S1].map(m => where(B.ev, fB, m).length > 0)), J([true, true])); }
+  // (h) NO ROOM TO KEEP WHAT IS ON SCREEN: browser storage refuses the kept copy, so nothing is put back and nothing changes.
+  { const sc = '(h) the board file: no room in browser storage to keep S1 aside';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev), m0 = A.ev('JSON.stringify(MS)');
+    A.ev(`(function(){ var o=Storage.prototype.setItem; globalThis.__setItem=o; Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(String(k))) throw new DOMException('full', 'QuotaExceededError'); return o.apply(this, arguments); }; return 'ok'; })()`);
+    const q0 = qs(A.ev).length; clickPutBack(A.ev);
+    A.ev(`Storage.prototype.setItem=globalThis.__setItem; 'ok'`);
+    chk(name, sc, '↶ Put back: asked once, then refused -- nothing changed: S1 on screen and in the file, saved; K kept byte for byte; said',
+      J([qs(A.ev).length - q0, scr(A.ev), A.ev('JSON.stringify(MS)') === m0, fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0,
+        /There is no room to keep what is on screen while the kept work is put back, so nothing was changed/.test(status(A.ev))]),
+      J([1, S1, true, S1, false, false, false, true, true])); }
+  // (i) CONTROL: THE HOLD ON ANSWERED CANCEL. Nothing is written; S1 stays in the file.
+  { const sc = '(i) CONTROL: the board file, the HOLD ON answered Cancel';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev);
+    const w0 = f.writes, q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0);
+    chk(name, sc, '💾 Save: one HOLD ON; Cancel writes nothing: S1 in the file, K on screen, unsaved; said',
+      J([q.length, q.length === 1 && holdOn(q[0]), f.writes - w0, fileNote(f.content, 'A'), scr(A.ev), ...unsaved(A.ev), /^Save canceled/.test(status(A.ev))]),
+      J([1, true, 0, S1, K, true, true, true, true]));
+    chk(name, sc, 'S1 is in the file; K and S1 are each still in a copy here or in the file', J([where(A.ev, f, S1).includes('file'), [K, S1].map(m => where(A.ev, f, m).length > 0)]), J([true, [true, true]])); }
+  // (j) CONTROL: S1 NEVER SAVED. What is on screen has changes no saved copy has, and is kept aside in its place, as always.
+  { const sc = '(j) CONTROL: the board file, S1 never saved; ↶ Put back; 💾 Save, OK; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question (changes no saved copy has, kept aside in its place); K on screen, unsaved; S1 kept',
+      J([q.length, q.length === 1 && q[0].endsWith('What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J([1, true, K, true, true, true, [S1, 'swap']]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const q2 = qs(A.ev).slice(q1);
+    chk(name, sc, '💾 Save: one HOLD ON (N’s save); OK writes K, saved; S1 still kept aside',
+      J([q2.length, q2.length === 1 && holdOn(q2[0]), fileNote(f.content, 'A'), ...unsaved(A.ev), where(A.ev, f, S1)]), J([1, true, K, false, false, false, ['kept']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (k) CONTROL: THE SHARED FOLDER, which keeps the copy a save replaces in its history. Alice saves F0 and types K; her other
+  // browser saves N; her Save is refused and she loads theirs (K kept aside); she types S1 and saves it. ↶ Put back keeps
+  // nothing in S1's place, as before; 💾 Save is refused with the choice; "Save yours over theirs" keeps S1 in the history.
+  { const sc = '(k) CONTROL: the shared folder: ↶ Put back once S1’s save has landed; 💾 Save; Save yours over theirs';
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','U19-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
+    const hist = () => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+    chk(name, sc, 'S1 saved to the folder, saved; K kept aside (why folder) (a CONTROL)', J([fold.note(2027, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([S1, false, false, false, [K, 'folder']]));
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question (S1 is still in the shared folder, Save will ask) and no more; K on screen, unsaved; nothing kept in its place',
+      J([q.length, q.length === 1 && q[0].endsWith('What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J([1, true, K, true, true, true, null]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save: refused with the choice, nothing asked, S1 still the folder’s copy', J([/Nothing was written/.test(status(A.ev)) && /Save yours over theirs/.test(status(A.ev)), qs(A.ev).length - q1, fold.note(2027, 'A')]), J([true, 0, S1]));
+    const q2 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, '"Save yours over theirs": one question; K written, saved; S1 kept in the folder’s history',
+      J([qs(A.ev).length - q2, fold.note(2027, 'A'), ...unsaved(A.ev), hist().includes(S1)]), J([1, K, false, false, false, true])); }
+  // (l) CONTROL: ORDINARY EDITING. S1 saved; more than a minute later (this window's clock moved on 61 s: the journal joins one
+  // person's edits to one field inside a minute) Alice types over it herself and saves: nothing is asked, and the Change journal
+  // the file carries keeps what the note was.
+  { const sc = '(l) CONTROL: the board file, S1 saved, then retyped a minute later and saved (no put-back)';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+61000; }; return 'ok'; })()`);
+    A.ev(`setNote('A',${J(K + ' RETYPED')}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save asks nothing; the retyped note in the file, saved; the journal holds S1 → the retyped note; K still kept aside',
+      J([qs(A.ev).length - q0, fileNote(f.content, 'A'), ...unsaved(A.ev), A.ev(`(MS.jrnl||[]).some(function(e){ return e.a===${J(S1)} && e.b===${J(K + ' RETYPED')}; })`), kept(A.ev)]),
+      J([0, K + ' RETYPED', false, false, false, true, [K, 'file']])); }
+  // (m) 📡 LIVE VIEW'S SWITCH MOVES 💾 SAVE BETWEEN THE PUT-BACK AND THE SAVE. S1 saved into the board file; Alice works out of
+  // a shared folder that does not hold S1, puts K back, switches back to ○ Just watching and presses 💾 Save, which writes the
+  // board file: HOLD ON, OK. What was on screen at the put-back is not the folder's copy, so it was kept.
+  { const sc = '(m) the board file: 📡 Live view working out of a folder at the put-back, switched back before 💾 Save; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    await putBackK(A, sc);
+    const sw = await liveSwitchOff(A.ev);
+    chk(name, sc, '📡 Live view’s “● Working out of this folder” pressed: 💾 Save writes the board file again; nothing is in the folder (a CONTROL)',
+      J([...sw, A.ev('driveStoreOn()'), fold.raw(2027) == null]), J(['clicked', 'clicked', false, true]));
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (n) CONTROL: THE SAME, WITH THE SWITCH LEFT ON. 💾 Save writes K to the folder; the board file keeps S1.
+  { const sc = '(n) CONTROL: the board file, 📡 Live view left working out of the folder; ↶ Put back; 💾 Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    clickPutBack(A.ev); await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save writes K to the folder; the board file keeps S1', J([fold.note(2027, 'A'), fileNote(f.content, 'A'), scr(A.ev)]), J([K, S1, K])); }
+  // (o) A REOPENED PAGE WITH NO FILE HANDLE IN MEMORY, as every page is until its first Save: S1 saved; reopened; ↶ Put back;
+  // 💾 Save through the picker (which hands back the same file), HOLD ON answered OK; reopened again.
+  { const sc = '(o) the board file: S1 saved; reopened with no file handle in memory; ↶ Put back; 💾 Save through the picker, HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const { B, fB } = await reopen(A, f);
+    B.ev(`FH=null; globalThis.__picks=0; window.showSaveFilePicker=async function(){ globalThis.__picks++; return globalThis.__disk; }; 'ok'`);
+    chk(name, sc, 'reopened: S1 on screen and in the file, saved; K kept aside by the opening; no file handle in memory (a CONTROL)',
+      J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), B.ev('FH===null')]), J([S1, S1, false, false, false, [K, 'file'], true]));
+    await putBackK(B, sc);
+    const q0 = qs(B.ev).length; await clickSave(B.ev); await pause(20); saveK(B, fB, sc, qs(B.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save (the picker opened once): S1 is kept aside, and its text is in this browser’s storage',
+      J([B.ev('globalThis.__picks'), where(B.ev, fB, S1), anywhere(B.ev, fB, S1)]), J([1, ['kept'], true]));
+    const { B: C, fB: fC } = await reopen(B, fB);
+    chk(name, sc, 'reopened again: K on screen and in the file, saved; S1 kept aside', J([scr(C.ev), fileNote(fC.content, 'A'), ...unsaved(C.ev), where(C.ev, fC, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (p) THE HOLD ON ANSWERED CANCEL WHILE WORK IS KEPT ASIDE. A reopen does not load the file's copy over unsaved work while
+  // work is kept aside (kept work is never replaced), so the HOLD ON's Cancel line and the status after it name ⬅ Import only.
+  const cancelSave = async A => { const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0), said = status(A.ev);
+    return [q.length, q.length === 1 && holdOn(q[0]) && q[0].endsWith(CANCEL_IMPORT), said.includes(CANCELLED_IMPORT), /reopen/i.test(q.join('\n') + said)]; };
+  { const sc = '(p) the board file: S1 saved; ↶ Put back; 💾 Save, HOLD ON answered Cancel; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev);
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON, whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written; S1 kept',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, S1, K, [S1, 'swap']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: the file’s copy (S1) is not loaded over K while S1 is kept aside, and the board says so',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]), J([K, [S1, 'swap'], S1, true])); }
+  // (q) THE SAME WITH S1 NEVER SAVED: what is on screen has been kept aside at a put-back since v1.95, and the HOLD ON's Cancel
+  // line named a reopen there too, which does not load N, the file's copy, while S1 is kept.
+  { const sc = '(q) the board file: S1 never saved; ↶ Put back; 💾 Save, HOLD ON answered Cancel; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    clickPutBack(A.ev);
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON (N’s save), whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, N, K, [S1, 'swap']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N, the file’s copy, is not loaded over K while S1 is kept; K, S1 and N each still in a copy here or in the file (a CONTROL)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), [K, S1, N].map(m => where(B.ev, fB, m).length > 0)]), J([K, [S1, 'swap'], N, [true, true, true]])); }
+  // (r) THE WORDS FOR EACH KIND OF KEPT COPY, in the shared folder. K kept by Load theirs keeps its own words. S1, unsaved, kept
+  // at a put-back is offered as what was on screen when other work was put back. K saved over the folder's copy ("Save yours
+  // over theirs"), S1 put back: K is the folder's own copy, so nothing is kept in its place, and the board states the rule
+  // Save follows, not who saved after it.
+  { const sc = '(r) the shared folder: K kept by Load theirs; S1, unsaved, kept at a put-back; K saved over theirs; S1 put back';
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','U19-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    chk(name, sc, 'K kept aside by Load theirs: the top bar and 📁 File say what it is, as before (a CONTROL)',
+      J([kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), menuText(A.ev).includes('from before the shared folder replaced it')]),
+      J([[K, 'folder'], true, true]));
+    clickPutBack(A.ev);
+    chk(name, sc, 'S1, unsaved, put aside: K on screen; the top bar and 📁 File offer S1 as what was on screen when other work was put back',
+      J([scr(A.ev), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU)]), J([K, [S1, 'swap'], true, true]));
+    await clickSave(A.ev); await pause(20); const q2 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, 'K saved over the folder’s copy: one question; K in the folder, saved; S1 still kept (a CONTROL)',
+      J([qs(A.ev).length - q2, fold.note(2027, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([1, K, false, false, false, [S1, 'swap']]));
+    const q3 = qs(A.ev).length; clickPutBack(A.ev); const qr = qs(A.ev).slice(q3);
+    chk(name, sc, 'S1 put back: one question; nothing kept in its place (K is the folder’s own copy); the board states the rule Save follows, not who saved after it',
+      J([qr.length, scr(A.ev), kept(A.ev), status(A.ev).includes(SWAPSAID), / saved after it\./.test(status(A.ev))]), J([1, S1, null, true, false]));
+    chk(name, sc, 'and the question says K is still in the shared folder it came from -- not the saved file, which K was never written to',
+      qr.length === 1 && qr[0].endsWith(FOLDQ), true); }
+  // (s) THE SHARED FOLDER HOLDS AN OLDER COPY OF THIS BROWSER'S, NOT WHAT IS ON SCREEN. S0 saved to the folder; 📡 Live view
+  // switched back to the file; S1 typed and saved into the board file only; working out of the folder again; ↶ Put back;
+  // switched back; 💾 Save, HOLD ON answered OK; reopened. What is on screen at the put-back is not the folder's copy (S0 is).
+  { const sc = '(s) the board file: the folder holds S0, an older copy; S1 saved only in the file; ↶ Put back with the folder on; switched back; 💾 Save, OK; reopened';
+    const S0 = 'U19-S0-FOLDER';
+    const { A, f } = await inFile();
+    const fold = folder(); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A',${J(S0)}); 'ok'`); await pause(5); let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw1 = await liveSwitchOff(A.ev);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qb = qs(A.ev).length - q0;
+    chk(name, sc, 'S0 saved to the folder; switched back; S1 saved into the board file only; nothing asked; saved; K kept aside by the opening (a CONTROL)',
+      J([qa, ...sw1, qb, fold.note(2027, 'A'), fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]),
+      J([0, 'clicked', 'clicked', 0, S0, S1, false, false, false, [K, 'file']]));
+    connect(A.ev, A.w, fold);
+    await putBackK(A, sc);
+    const sw2 = await liveSwitchOff(A.ev);
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'switched back before 💾 Save; after it: S1 is kept aside, and its text is in this browser’s storage',
+      J([...sw2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', 'clicked', ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (t) THE QUESTION'S WORDS WHEN WHAT IS ON SCREEN IS THE SHARED FOLDER'S OWN COPY, from the board file: S1 saved; K put back
+  // (S1 kept); a shared folder connected, and 💾 Save writes K there while the board file still holds S1; ↶ Put back S1. K is
+  // the folder's own copy, so nothing is kept in its place, and the question names the shared folder, not the saved file, which
+  // K was never written to. 💾 Save then asks before it writes S1 over K, and K stays in the folder's history.
+  { const sc = '(t) the board file: S1 saved; K put back; 💾 Save writes K to a shared folder; ↶ Put back S1; 💾 Save, Save yours over theirs';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save with the folder on: nothing asked; K in the folder, saved; the board file still holds S1; S1 still kept aside',
+      J([qs(A.ev).length - q0, fold.note(2027, 'A'), fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, K, S1, false, false, false, [S1, 'swap']]));
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back S1: one question, saying K is still in the shared folder it came from (not the saved file); S1 on screen, unsaved; nothing kept in its place',
+      J([r, q.length, q.length === 1 && q[0].endsWith(FOLDQ), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, true, true, true, null]));
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save asks before writing S1 over K: refused with the choice, nothing asked, K still the folder’s copy',
+      J([/Nothing was written/.test(status(A.ev)) && /Save yours over theirs/.test(status(A.ev)), qs(A.ev).length - q0, fold.note(2027, 'A')]), J([true, 0, K]));
+    const hist = () => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+    q0 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, '"Save yours over theirs": one question; S1 written to the folder, saved; K kept in the folder’s history',
+      J([qs(A.ev).length - q0, fold.note(2027, 'A'), ...unsaved(A.ev), hist().includes(K)]), J([1, S1, false, false, false, true])); }
+  // (u) THE HOLD ON ANSWERED CANCEL WHILE WORK KEPT BY THE OPENING IS KEPT. S1 typed, unsaved; Alice's other browser saves N2
+  // into the file; 💾 Save asks HOLD ON; Cancel. A reopen does not load N2 over S1 while K is kept, so the advice names ⬅ Import.
+  { const sc = '(u) the board file: K kept by the opening; S1 unsaved; another save (N2) lands; 💾 Save, HOLD ON answered Cancel; reopened';
+    const N2 = 'U19-N2-OTHER';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const A3 = boot({ html: f.content }); await pause(80); wire(A3.ev, 'Alice', KEY.alice); const f3 = disk(A3.w, f.content);
+    A3.ev(`setNote('A',${J(N2)}); 'ok'`); await pause(5); await A3.ev('saveInPlaceFile()'); await pause(5);
+    f.content = f3.content;   // the other browser's save lands in the same file
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON, whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written; K kept',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, N2, S1, [K, 'file']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N2 is not loaded over S1 while K is kept, and the board says so (a CONTROL: the advice above is true)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]), J([S1, [K, 'file'], N2, true])); }
+  // (v) CONTROL: A FRESHLY OPENED PAGE, NOTHING PUT BACK ON IT. S1 typed, unsaved, after N's save, so this browser's copy is the
+  // newer one; reopened, it shows S1 with K kept. ↶ Put back at once: S1 was never put back, and has changes no saved copy has.
+  { const sc = '(v) CONTROL: reopened on this browser’s newer unsaved copy (S1), K kept; ↶ Put back before any change on the page';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S1 on screen, unsaved by the record; K kept aside (a CONTROL)', J([scr(B.ev), !!flags(B.ev).base.dirty, kept(B.ev)]), J([S1, true, [K, 'file']]));
+    const q0 = qs(B.ev).length; const r = clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question saying S1 has changes no saved copy has (not that it was put back); K on screen; S1 kept (a CONTROL)',
+      J([r, q.length, q.length === 1 && q[0].endsWith(UNSAVEDQ), scr(B.ev), kept(B.ev)]), J(['clicked', 1, true, K, [S1, 'swap']])); }
+  // (w) A SAVED COPY PUT BACK, THEN CHANGED: S1 saved; K put back (S1 kept); S1 put back (K kept); S1 edited; ↶ Put back K:
+  // what is on screen now has changes no saved copy has.
+  { const sc = '(w) the board file: S1 saved; K put back; S1 put back; S1 edited; K put back again';
+    const S1E = S1 + ' EDITED';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev); clickPutBack(A.ev);
+    chk(name, sc, 'K put back, then S1: S1 on screen and in the file; K kept aside', J([fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([S1, S1, [K, 'swap']]));
+    A.ev(`setNote('A',${J(S1E)}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back after the edit: one question saying what is on screen has changes no saved copy has; K on screen; the edited S1 kept',
+      J([r, q.length, q.length === 1 && q[0].endsWith(UNSAVEDQ), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, K, [S1E, 'swap']])); }
+  // (x) A COLLEAGUE'S COPY ON SCREEN. Bob takes the pen and writes N into the board file; Alice reopens it (K kept aside by the
+  // opening, Bob's N on screen, saved only in the file) and puts K back; her 💾 Save is refused (Bob holds the pen), and its
+  // ✍ Take the pen… writes K once the HOLD ON is answered OK; reopened. N is kept aside in K's place, whoever saved it.
+  { const sc = '(x) the board file: Bob’s copy (N) on screen; ↶ Put back; 💾 Save refused, ✍ Take the pen…, HOLD ON answered OK; reopened';
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); const fb = disk(Bb.w, F1);
+    Bb.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5);
+    await clickSave(Bb.ev); await pause(20); const bt = await takePenBtn(Bb.ev, fb);
+    const A = boot({ html: fb.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, fb.content);
+    chk(name, sc, 'Bob’s N in the file, writer Bob; Alice reopens it: N on screen, saved; K kept aside by the opening (a CONTROL)',
+      J([bt, fileNote(f.content, 'A'), fileWriter(f.content), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J(['clicked', N, 'Bob', N, false, false, false, [K, 'file']]));
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question, saying N is also kept aside in its place; K on screen, unsaved; Bob’s N kept aside',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J([1, true, K, true, true, true, [N, 'swap']]));
+    await clickSave(A.ev); await pause(20); const refused = [f.writes, /Not saved\. Bob holds the pen/.test(status(A.ev))];
+    const q1 = qs(A.ev).length; const at = await takePenBtn(A.ev, f); const q2 = qs(A.ev).slice(q1);
+    chk(name, sc, '💾 Save refused (Bob holds the pen); ✍ Take the pen…: its question, then a HOLD ON naming Bob, OK; K written, writer Alice, saved (a CONTROL)',
+      J([...refused, at, q2.length, /^Take the pen for this board file from Bob/.test(q2[0] || ''), /^⚠ HOLD ON — Bob saved this file at /.test(q2[1] || ''), fileNote(f.content, 'A'), fileWriter(f.content), ...unsaved(A.ev)]),
+      J([0, true, 'clicked', 2, true, true, K, 'Alice', false, false, false]));
+    chk(name, sc, 'after the save: Bob’s N is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, N), anywhere(A.ev, f, N)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; Bob’s N kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, N)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (y) CONTROL: A LOCKED CYCLE ON SCREEN AT THE PUT-BACK, S1 saved. ↶ Put back is refused there at once, by U10's gate: nothing
+  // is asked (what is on screen is the locked view, not the work), and the kept work is not touched -- the view is never kept
+  // aside in its place, though saved work now is. Once the view is left, the work is on screen as it was.
+  { const sc = '(y) CONTROL: the board file: a cycle locked; S1 saved; the locked cycle on screen; ↶ Put back; the view left';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A','U19-LOCKED'); blCyc='PB'; blYr=2027; cycLock(); 'ok'`); await pause(5);
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev);
+    A.ev(`cycView('PB|2027'); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0), said = status(A.ev), kv = keptRaw(A.ev);
+    chk(name, sc, '↶ Put back with the locked cycle on screen: refused at once -- nothing asked; the kept work not touched; said',
+      J([A.ev('String(CYCVIEW)'), r, q.length, kv === k0, /U19-LOCKED/.test(kv || ''), /Putting back the work kept aside is off while PB27 is on screen/.test(said)]), J(['PB|2027', 'clicked', 0, true, false, true]));
+    A.ev(`cycLeave(); 'ok'`); await pause(5);
+    chk(name, sc, 'the view left: S1 on screen and in the file, saved; K kept aside byte for byte (a CONTROL)',
+      J([A.ev('String(CYCVIEW)'), scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0]), J(['', S1, S1, false, false, false, true])); }
+  // (z) CONTROL: A PUT-BACK THE LOAD ITSELF REFUSES, S1 SAVED ON SCREEN. The kept work was built for another service list, so
+  // the load is refused after what is on screen was kept in its place, and the kept work is written back. Afterwards and after a
+  // reopen, K is still somewhere this board can reach (kept aside), byte for byte.
+  { const sc = '(z) CONTROL: the board file: S1 saved; the kept work built for another service list; ↶ Put back refused by the load; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const k0 = keptRaw(A.ev); const r = clickPutBack(A.ev);
+    chk(name, sc, 'refused by the load: K still kept aside byte for byte; K’s text in this browser’s storage; S1 on screen and in the file',
+      J([r, keptRaw(A.ev) === k0, kept(A.ev), anywhere(A.ev, f, K), scr(A.ev), fileNote(f.content, 'A')]), J(['clicked', true, [K, 'file'], true, S1, S1]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K still kept aside; its text in this browser’s storage', J([kept(B.ev), anywhere(B.ev, fB, K)]), J([[K, 'file'], true])); }
+  // (aa) THE QUESTION'S PLACE WORDS WHEN THE FOLDER HOLDS AN OLDER COPY AT THE PUT-BACK. S0 saved to the folder; switched back;
+  // S1 saved into the board file only; K put back (S1 kept); S1 put back (K kept; S1's checkpoint, which knows the folder's
+  // S0, comes back with it); 💾 Save writes S1 to the file, nothing asked. Working out of the folder again (it holds S0),
+  // ↶ Put back K: S1 is still in the saved file, not in the shared folder, and it is also kept aside in K's place.
+  { const sc = '(aa) the board file: the folder holds S0; switched back; S1 saved; K put back; S1 put back; 💾 Save; working out of the folder again; ↶ Put back K';
+    const S0 = 'U19-S0-FOLDER';
+    const { A, f } = await inFile();
+    const fold = folder(); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A',${J(S0)}); 'ok'`); await pause(5); let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw1 = await liveSwitchOff(A.ev);
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const r1 = clickPutBack(A.ev);
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qb = qs(A.ev).length - q0;
+    chk(name, sc, 'S1 put back over K (K kept), then 💾 Save to the board file: nothing asked; S1 in the file, saved; the folder holds S0; the folder copy this browser knows is not what is on screen',
+      J([qa, ...sw1, r1, qb, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev), fold.note(2027, 'A'), A.ev('driveBaseOf(mySlug())>0 && driveBaseOf(mySlug())!==(+MS.ts||0)')]),
+      J([0, 'clicked', 'clicked', 'clicked', 0, S1, false, false, false, [K, 'swap'], S0, true]));
+    connect(A.ev, A.w, fold);
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back K working out of the folder that holds S0: one question, saying S1 is still in the saved file and is also kept aside; K on screen; S1 kept in its place',
+      J([r, A.ev('driveStoreOn()'), q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(A.ev), kept(A.ev)]),
+      J(['clicked', true, 1, true, K, [S1, 'swap']])); }
+  // (ab) THE QUESTION'S PLACE WORDS WHEN WHAT IS ON SCREEN IS THE FOLDER'S OWN COPY AND 💾 SAVE IS BACK ON THE BOARD FILE.
+  // S1 saved; K put back (S1 kept); a shared folder connected, and 💾 Save writes K there while the board file still holds S1;
+  // 📡 Live view switched back to "○ Just watching"; ↶ Put back S1. K is the folder's own copy, never written to the board file,
+  // so the question names the shared folder; Save now writes the board file, so K is also kept aside in S1's place.
+  { const sc = '(ab) the board file: S1 saved; K put back; 💾 Save writes K to a shared folder; switched back to the file; ↶ Put back S1';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw = await liveSwitchOff(A.ev);
+    chk(name, sc, 'K written to the folder, nothing asked; switched back to the file; the board file holds S1; S1 kept',
+      J([qa, fold.note(2027, 'A'), ...sw, A.ev('driveStoreOn()'), fileNote(f.content, 'A'), kept(A.ev)]), J([0, K, 'clicked', 'clicked', false, S1, [S1, 'swap']]));
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back S1: one question naming the shared folder (K was never written to the board file), and saying K is also kept aside; S1 on screen; K kept',
+      J([r, q.length, q.length === 1 && q[0].endsWith(FOLDQ + ' It is also kept aside in its place, so it is not lost if Save does.'), scr(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, S1, [K, 'swap']])); }
+  // (ac) CONTROL: THE WORDS AFTER A PUT-BACK THE LOAD REFUSES: S1 saved; the kept work built for another service list; ↶ Put back
+  // refused by the load. The slot holds K again, so the top bar and 📁 File still describe K (work kept by the opening).
+  { const sc = '(ac) CONTROL: the board file: S1 saved; the kept work built for another service list; ↶ Put back refused; the words after';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const r = clickPutBack(A.ev);
+    const o = await fileMenu(A.ev, 'mRun(keptPutBack)');
+    chk(name, sc, 'refused (twice, the second through 📁 File): K still kept; the top bar and 📁 File describe K, not a copy kept at a put-back',
+      J([r, o, kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]),
+      J(['clicked', 'clicked', [K, 'file'], true, false, false, true])); }
+  // (ad) CONTROL: THE HOLD ON'S CANCEL ADVICE WITH NOTHING KEPT ASIDE. K, kept by the opening, is discarded (📁 File →
+  // ✕ Discard work kept aside); S1 typed, unsaved; another save (N2) lands in the file; 💾 Save, HOLD ON answered Cancel. With
+  // nothing kept, a reopen does load the file's copy (keeping S1 aside in its place), so the advice still names a reopen, as
+  // before U19.
+  { const sc = '(ad) CONTROL: the board file: nothing kept aside; S1 unsaved; another save (N2) lands; 💾 Save, HOLD ON answered Cancel; reopened';
+    const N2 = 'U19-N2-OTHER';
+    const CANCEL_REOPEN = 'Cancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first).';
+    const CANCELLED_REOPEN = 'Save canceled — Alice’s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.';
+    const { A, f } = await inFile();
+    const d = await fileMenu(A.ev, 'mRun(keptDiscard)');
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const A3 = boot({ html: f.content }); await pause(80); wire(A3.ev, 'Alice', KEY.alice); const f3 = disk(A3.w, f.content);
+    A3.ev(`setNote('A',${J(N2)}); 'ok'`); await pause(5); await A3.ev('saveInPlaceFile()'); await pause(5);
+    f.content = f3.content;   // the other browser's save lands in the same file
+    const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0);
+    chk(name, sc, '💾 Save, Cancel with nothing kept aside: one HOLD ON, whose Cancel line still names a reopen; the board says the same; nothing written; nothing kept',
+      J([d, q.length, q.length === 1 && holdOn(q[0]) && q[0].endsWith(CANCEL_REOPEN), status(A.ev).includes(CANCELLED_REOPEN), fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, true, N2, S1, null]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N2, the file’s copy, is loaded and S1 is kept aside in its place (the advice above is true)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A')]), J([N2, [S1, 'file'], N2])); }
+  // (ae) CONTROL: ↶ PUT BACK ANSWERED CANCEL WITH SAVED WORK ON SCREEN (the case U19 now keeps). S1 is saved into the file; ↶ Put
+  // back, its question answered Cancel: nothing is put back and nothing is kept in K's place -- the slot still holds K, byte for
+  // byte -- and a reopen still offers K.
+  { const sc = '(ae) CONTROL: the board file: S1 saved; ↶ Put back, its question answered Cancel; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev), m0 = A.ev('JSON.stringify(MS)');
+    const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); const r = clickPutBack(A.ev); A.ev('globalThis.__yes=true; 0'); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back, Cancel: one question; nothing changed: S1 on screen and in the file, saved; K kept aside byte for byte',
+      J([r, q.length, scr(A.ev), A.ev('JSON.stringify(MS)') === m0, fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0, kept(A.ev)]),
+      J(['clicked', 1, S1, true, S1, false, false, false, true, [K, 'file']]));
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S1 on screen, saved; K still kept aside',
+      J([scr(B.ev), ...unsaved(B.ev), kept(B.ev)]), J([S1, false, false, false, [K, 'file']])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U19) ====
+// ==== v2.00 (U20): a save waiting for another tab's save is under way ====
+// A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
+// under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put
+// back (U2) and to the folder's refresh (U13). Put back went ahead under it, a refresh loaded a newer copy under it, and a
+// refresh that took the folder's copy as the one the work came from (nothing recorded yet, that copy not newer than the
+// screen) let the waiting save write over that copy without asking -- with a history copy kept less than ten minutes
+// before, the copy written over was in no copy the board could reach after one more Save. A save is now counted from the
+// moment it is asked for until it has finished, however it ends. jsdom has no Web Locks: webLocks() stands in for one
+// browser's lock manager, shared by every tab of that browser (each tab is a board of its own), and is itself checked
+// against the API's rules first, in the scenario after it.
+//
+// THE STAND-IN (the U20 probe's locks-mock.mjs, rec/L4/u20, whose own tests were checked against real Chromium tabs). It
+// models request(name, callback) and request(name, options, callback); 'exclusive' (the default) and 'shared'; ifAvailable;
+// one queue per name, first come first served (a request is granted only at the head of its queue); the callback run in a
+// later task of the asking window, never inside request(); the lock held until the callback's result settles, then let
+// go, and only then request()'s promise settled, made in the asking window; query(); a closing tab's requests dropped and
+// its locks let go; and the argument errors the API defines. NOT modelled: steal and signal (refused and counted, never
+// ignored -- the board uses neither), separate processes (every tab here shares one event loop), workers and storage
+// partitioning. At every grant it checks that no two holders of a name are held where either is exclusive.
+const webLocks = label => {
+  const held = [], queues = new Map(), log = [];
+  const stats = { requests: 0, grants: 0, invokes: 0, releases: 0, dropped: 0, violations: [], maxHeld: {}, unmodeled: [], label };
+  let seq = 0;
+  const q = name => { if (!queues.has(name)) queues.set(name, []); return queues.get(name); };
+  const note = (ev, r, extra = {}) => log.push({ n: log.length, ev, name: r.name, mode: r.mode, client: r.client, id: r.id, ...extra });
+  const grantable = r => { const qq = q(r.name);
+    if (qq.length && qq[0] !== r) return false;
+    if (r.mode === 'exclusive') return !held.some(l => l.name === r.name);
+    return !held.some(l => l.name === r.name && l.mode === 'exclusive'); };
+  const lockObj = r => { const o = new r.win.Object(); o.name = r.name; o.mode = r.mode; return o; };
+  const release = lock => { const i = held.indexOf(lock); if (i < 0) return;
+    held.splice(i, 1); stats.releases++; note('release', lock); processQueue(lock.name); };
+  const invoke = (r, lock) => {
+    if (!held.includes(lock)) { note('invoke-skipped', r); return; }   // let go by closeClient before its task ran
+    stats.invokes++; note('invoke', r);
+    let waiting;
+    try { waiting = Promise.resolve(r.callback(lockObj(r))); } catch (e) { waiting = Promise.reject(e); }
+    waiting.then(v => { release(lock); r.resolve(v); }, e => { release(lock); r.reject(e); }); };
+  const grant = r => {
+    if (held.some(l => l.name === r.name && (r.mode === 'exclusive' || l.mode === 'exclusive')))
+      stats.violations.push({ at: log.length, name: r.name, client: r.client, holders: held.filter(l => l.name === r.name).map(l => l.client) });
+    const lock = { name: r.name, mode: r.mode, client: r.client, id: r.id };
+    held.push(lock); stats.grants++;
+    const n = held.filter(l => l.name === r.name).length;
+    stats.maxHeld[r.name] = Math.max(stats.maxHeld[r.name] || 0, n);
+    note('grant', r, { holdersNow: n });
+    r.win.setTimeout(() => invoke(r, lock), 0); };
+  function processQueue(name) { const qq = q(name);
+    while (qq.length) { const r = qq[0]; if (!grantable(r)) return; qq.shift(); grant(r); } }
+  const request = (win, client, name, a, b) => {
+    const options = (typeof a === 'function') ? {} : (a || {});
+    const callback = (typeof a === 'function') ? a : b;
+    return new win.Promise((resolve, reject) => {
+      name = String(name);
+      const mode = options.mode === undefined ? 'exclusive' : String(options.mode);
+      const r = { id: ++seq, name, mode, client, win, callback, resolve, reject, ifAvailable: !!options.ifAvailable };
+      stats.requests++;
+      if (options.steal || options.signal) { stats.unmodeled.push({ client, name, steal: !!options.steal, signal: !!options.signal });
+        note('reject-unmodeled', r); reject(new win.Error('NotSupportedError: steal/signal are not modelled by this stand-in')); return; }
+      if (mode !== 'exclusive' && mode !== 'shared') { note('reject-mode', r); reject(new win.TypeError('mode')); return; }
+      if (typeof callback !== 'function') { note('reject-callback', r); reject(new win.TypeError('callback is not a function')); return; }
+      if (name.startsWith('-')) { note('reject-name', r); reject(new win.Error('NotSupportedError: name starts with -')); return; }
+      note('request', r, { queued: q(name).length, heldNow: held.filter(l => l.name === name).map(l => l.client) });
+      if (r.ifAvailable && !(q(name).length === 0 && grantable(r))) {
+        note('not-available', r);
+        win.setTimeout(() => { let v; try { v = Promise.resolve(callback(null)); } catch (e) { v = Promise.reject(e); } v.then(resolve, reject); }, 0);
+        return;
+      }
+      q(name).push(r); processQueue(name);
+    }); };
+  const snapshot = () => ({ held: held.map(l => ({ name: l.name, mode: l.mode, clientId: l.client })),
+    pending: [...queues.entries()].flatMap(([, rs]) => rs.map(r => ({ name: r.name, mode: r.mode, clientId: r.client }))) });
+  return { label, log, stats, snapshot,
+    heldBy: name => held.filter(l => l.name === name).map(l => l.client),
+    pendingOf: name => q(name).map(r => r.client),
+    grantOrder: (name, fromN = 0) => log.filter(e => e.ev === 'grant' && e.name === name && e.n >= fromN).map(e => e.client),
+    mark: () => log.length,
+    // One tab's navigator.locks (jsdom has none; `had` says whether it had one).
+    install(w, client) { const had = 'locks' in w.navigator;
+      const api = { request: (name, a, b) => request(w, client, name, a, b), query: () => new w.Promise(res => res(JSON.parse(JSON.stringify(snapshot())))) };
+      Object.defineProperty(w.navigator, 'locks', { value: api, configurable: true, enumerable: true });
+      return { had, client }; },
+    closeClient(client) {
+      for (const [, rs] of queues) for (let i = rs.length - 1; i >= 0; i--) if (rs[i].client === client) { note('drop', rs[i]); rs.splice(i, 1); stats.dropped++; }
+      for (const l of held.slice()) if (l.client === client) release(l);
+      for (const name of queues.keys()) processQueue(name); } };
+};
+// THE STAND-IN'S OWN TESTS (the probe's locktest.mjs, T1-T10, 19 checks), in bare windows sharing one manager. Every
+// expected value is written by hand; every wait has a deadline.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U20) — the Web Locks stand-in behaves as the API does';
+  const wins = [];
+  try {
+  const J = JSON.stringify, tick = () => new Promise(r => setImmediate(r));
+  const until = async (cond, ms = 5000) => { const end = Date.now() + ms; while (Date.now() < end) { if (cond()) return true; await tick(); } return !!cond(); };
+  const within = (p, ms = 5000) => Promise.race([p.then(v => ({ ok: true, v }), e => ({ ok: false, e: String(e) })), new Promise(r => setTimeout(() => r({ timedOut: true }), ms))]);
+  const gate = () => { let res, rej; const p = new Promise((a, b) => { res = a; rej = b; }); return { p, open: v => res(v), fail: e => rej(e) }; };
+  const win = () => { const w = new JSDOM('<!doctype html><p>tab', { url: 'https://example.invalid/board.html', runScripts: 'outside-only' }).window; wins.push(w); return w; };
+  // T1 EXCLUSIVE, FIRST COME FIRST SERVED, ACROSS TABS: A holds; B, C and A again ask in that order; each is granted only
+  // after the one before lets go, in the order asked; never two holders; the callback runs later, not inside request().
+  {
+    const M = webLocks('T1'); const [wa, wb, wc] = [win(), win(), win()]; M.install(wa, 'A'); M.install(wb, 'B'); M.install(wc, 'C');
+    const order = []; const gs = { A: gate(), B: gate(), C: gate(), A2: gate() }; let inside = 0, maxInside = 0;
+    const cb = tag => () => { order.push(tag); inside++; maxInside = Math.max(maxInside, inside); return gs[tag].p.then(v => { inside--; return tag + ':' + v; }); };
+    const pA = wa.navigator.locks.request('orbit-save', { mode: 'exclusive' }, cb('A'));
+    const syncCall = order.length > 0;
+    const pB = wb.navigator.locks.request('orbit-save', { mode: 'exclusive' }, cb('B'));
+    const pC = wc.navigator.locks.request('orbit-save', { mode: 'exclusive' }, cb('C'));
+    const pA2 = wa.navigator.locks.request('orbit-save', cb('A2'));             // the two-argument form: exclusive by default
+    await until(() => order.length >= 1);
+    const s1 = [order.slice(), M.heldBy('orbit-save'), M.pendingOf('orbit-save')];
+    for (let i = 0; i < 50; i++) await tick();
+    const s2 = [order.slice(), M.heldBy('orbit-save')];                        // still only A, however long A holds it
+    gs.A.open(1); const rA = await pA;
+    await until(() => order.length >= 2); const s3 = [order.slice(), M.heldBy('orbit-save'), M.pendingOf('orbit-save')];
+    gs.B.open(2); gs.C.open(3); gs.A2.open(4);
+    const all = await Promise.all([pB, pC, pA2]);
+    chk(name, 'T1', 'the callback is not called inside request()', J(syncCall), J(false));
+    chk(name, 'T1', 'first: A runs and holds; B, C, A pending in order', J(s1), J([['A'], ['A'], ['B', 'C', 'A']]));
+    chk(name, 'T1', 'B does not run while A holds (50 turns)', J(s2), J([['A'], ['A']]));
+    chk(name, 'T1', 'A resolves with its callback’s value', J(rA), J('A:1'));
+    chk(name, 'T1', 'once A lets go: B runs and holds; C, A pending', J(s3), J([['A', 'B'], ['B'], ['C', 'A']]));
+    chk(name, 'T1', 'grant order and results', J([order, all]), J([['A', 'B', 'C', 'A2'], ['B:2', 'C:3', 'A2:4']]));
+    chk(name, 'T1', 'never two inside; no violation; most held at once', J([maxInside, M.stats.violations.length, M.stats.maxHeld['orbit-save']]), J([1, 0, 1]));
+    chk(name, 'T1', 'the promise is made in the asking window', J(pA instanceof wa.Promise && pB instanceof wb.Promise), J(true));
+  }
+  // T2 LET GO ON A REJECTED PROMISE AND ON A THROW; T3 A PLAIN VALUE.
+  {
+    const M = webLocks('T2'); const [wa, wb] = [win(), win()]; M.install(wa, 'A'); M.install(wb, 'B');
+    const p1 = wa.navigator.locks.request('L', () => Promise.reject(new Error('rejected')));
+    const p2 = wb.navigator.locks.request('L', () => { throw new Error('thrown'); });
+    const p3 = wa.navigator.locks.request('L', () => 7);
+    const r = [];
+    for (const p of [p1, p2, p3]) { try { r.push(['ok', await p]); } catch (e) { r.push(['err', e.message]); } }
+    chk(name, 'T2', 'a rejection and a throw reject request(); a value resolves it; each lets go', J([r, M.heldBy('L'), M.stats.releases]), J([[['err', 'rejected'], ['err', 'thrown'], ['ok', 7]], [], 3]));
+  }
+  // T4 THE LOCK IS LET GO BEFORE request() SETTLES: the next waiter is granted before the first's promise is seen settled.
+  {
+    const M = webLocks('T4'); const [wa, wb] = [win(), win()]; M.install(wa, 'A'); M.install(wb, 'B');
+    const seen = [];
+    const pA = wa.navigator.locks.request('L', () => Promise.resolve('a'));
+    pA.then(() => seen.push('A settled, held by ' + J(M.heldBy('L'))));
+    const pB = wb.navigator.locks.request('L', () => { seen.push('B invoked'); return 'b'; });
+    await pA; await pB;
+    chk(name, 'T4', 'A’s promise settles after it lets go (B already granted then)', J(seen[0]), J('A settled, held by ["B"]'));
+  }
+  // T5 NAMES ARE INDEPENDENT.
+  {
+    const M = webLocks('T5'); const [wa, wb] = [win(), win()]; M.install(wa, 'A'); M.install(wb, 'B');
+    const g = gate(); let both = false;
+    const pA = wa.navigator.locks.request('L', () => g.p);
+    const pB = wb.navigator.locks.request('M', () => { both = M.heldBy('L').length === 1; return 1; });
+    await pB; g.open(); await pA;
+    chk(name, 'T5', 'M is granted while L is held', J(both), J(true));
+  }
+  // T6 ifAvailable: held -> callback(null) at once, nothing queued; free -> granted.
+  {
+    const M = webLocks('T6'); const [wa, wb] = [win(), win()]; M.install(wa, 'A'); M.install(wb, 'B');
+    const g = gate();
+    const pA = wa.navigator.locks.request('L', () => g.p);
+    await until(() => M.heldBy('L').length === 1);
+    const r1 = await wb.navigator.locks.request('L', { ifAvailable: true }, l => l === null ? 'null' : 'lock');
+    const pend = M.pendingOf('L').length;
+    g.open(); await pA;
+    const r2 = await wb.navigator.locks.request('L', { ifAvailable: true }, l => l === null ? 'null' : l.name + '/' + l.mode);
+    chk(name, 'T6', 'ifAvailable: [while held, queued, when free]', J([r1, pend, r2]), J(['null', 0, 'L/exclusive']));
+  }
+  // T7 SHARED: two shared at once; an exclusive queued behind them waits; a shared asked after that exclusive waits too.
+  {
+    const M = webLocks('T7'); const [wa, wb, wc] = [win(), win(), win()]; M.install(wa, 'A'); M.install(wb, 'B'); M.install(wc, 'C');
+    const gA = gate(), gB = gate(), gX = gate(); const ran = [];
+    const pA = wa.navigator.locks.request('L', { mode: 'shared' }, () => { ran.push('A'); return gA.p; });
+    const pB = wb.navigator.locks.request('L', { mode: 'shared' }, () => { ran.push('B'); return gB.p; });
+    const pX = wc.navigator.locks.request('L', { mode: 'exclusive' }, () => { ran.push('X'); return gX.p; });
+    const pS = wa.navigator.locks.request('L', { mode: 'shared' }, () => { ran.push('S'); return 's'; });
+    await until(() => ran.length >= 2); for (let i = 0; i < 30; i++) await tick();
+    const s1 = [ran.slice(), M.heldBy('L'), M.pendingOf('L')];
+    gA.open(); gB.open(); await until(() => ran.length >= 3); for (let i = 0; i < 30; i++) await tick();
+    const s2 = [ran.slice(), M.heldBy('L')];
+    gX.open(); await Promise.all([pA, pB, pX, pS]);
+    chk(name, 'T7', 'shared A and B together; X, then S, wait', J(s1), J([['A', 'B'], ['A', 'B'], ['C', 'A']]));
+    chk(name, 'T7', 'X alone; S still waits', J(s2), J([['A', 'B', 'X'], ['C']]));
+    chk(name, 'T7', 'then S; no violation', J([ran, M.stats.violations.length]), J([['A', 'B', 'X', 'S'], 0]));
+  }
+  // T8 query() and a tab going away: it lets go of what it holds and its waiting requests are dropped.
+  {
+    const M = webLocks('T8'); const [wa, wb, wc] = [win(), win(), win()]; M.install(wa, 'A'); M.install(wb, 'B'); M.install(wc, 'C');
+    const g = gate(); let cRan = false;
+    wa.navigator.locks.request('L', () => g.p);
+    wb.navigator.locks.request('L', () => 'b');
+    const pC = wc.navigator.locks.request('L', () => { cRan = true; return 'c'; });
+    await until(() => M.heldBy('L').length === 1);
+    const qy = await wc.navigator.locks.query();
+    M.closeClient('B'); M.closeClient('A');
+    const rC = await pC;
+    chk(name, 'T8', 'query: held by A; B and C pending', J([qy.held.map(x => x.clientId), qy.pending.map(x => x.clientId)]), J([['A'], ['B', 'C']]));
+    chk(name, 'T8', 'once B and A close: C granted; one dropped', J([rC, cRan, M.stats.dropped]), J(['c', true, 1]));
+  }
+  // T9 WHAT IS NOT MODELLED IS REFUSED, NOT IGNORED; bad arguments reject.
+  {
+    const M = webLocks('T9'); const wa = win(); M.install(wa, 'A');
+    const r = [];
+    for (const [n, o, c] of [['L', { steal: true }, () => 1], ['L', { signal: {} }, () => 1], ['-L', {}, () => 1], ['L', {}, null], ['L', { mode: 'x' }, () => 1]]) {
+      try { await wa.navigator.locks.request(n, o, c); r.push('ok'); } catch (e) { r.push('rejected'); } }
+    chk(name, 'T9', 'steal, signal, a name starting with -, no callback, a bad mode: each rejected; the unmodelled counted', J([r, M.stats.unmodeled.length]), J([['rejected', 'rejected', 'rejected', 'rejected', 'rejected'], 2]));
+  }
+  // T10 STRESS: 300 requests from three tabs on one name, random hold lengths (0-5 turns, seeded): granted in the order
+  // asked, never two holders, every request settled.
+  {
+    const M = webLocks('T10'); const ws = [win(), win(), win()]; ws.forEach((w, i) => M.install(w, 'T' + i));
+    let s = 12345; const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    const asked = [], ran = []; let inside = 0, maxInside = 0; const ps = [];
+    for (let i = 0; i < 300; i++) {
+      const w = ws[Math.floor(rnd() * 3)], hold = Math.floor(rnd() * 6);
+      asked.push(i);
+      ps.push(w.navigator.locks.request('orbit-save', { mode: 'exclusive' }, async () => { inside++; maxInside = Math.max(maxInside, inside); ran.push(i);
+        for (let k = 0; k < hold; k++) await tick(); inside--; return i; }));
+      if (rnd() < 0.3) await tick();
+    }
+    const done = await until(() => ran.length === 300 && M.heldBy('orbit-save').length === 0, 20000);
+    const all = await within(Promise.allSettled(ps), 5000);
+    const settled = all.ok ? all.v.filter(x => x.status === 'fulfilled').length : 'not settled';
+    chk(name, 'T10', '[finished, granted in the order asked, most inside at once, violations, settled]', J([done, J(ran) === J(asked), maxInside, M.stats.violations.length, settled]), J([true, true, 1, 0, 300]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  wins.forEach(w => { try { w.close(); } catch (e) {} });
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// THE BOARD: Alice's browser, O&M FY27 in tab B, FULL FUND in tab A -- one lock manager between them, each tab a board of its
+// own (its own storage: A's keys and its folder copy are FULL FUND's, apart from B's). A's 💾 Save is held at the close of its
+// write of FULL FUND's folder copy, so it holds 'orbit-save'; B's 💾 Save, asked then, waits for it. Alice's other machine (X,
+// another browser, so not this lock) writes the folder copies the cases need. Save and ↶ Put back are the board's own
+// saveInPlace() and keptPutBack() -- what the toolbar's 💾 and the top bar's ↶ work kept aside call. Every expected value is
+// written by hand.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U20) — a save waiting for another tab’s save is under way';
+  try {
+  const { J, mk, SVC, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const scr = ev => ev(`String(S.notes.A||'')`);
+  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
+  const keptNote = ev => { const s = keptRaw(ev); if (s == null) return null;
+    try { const st = JSON.parse(s.slice(s.indexOf('\n') + 1)); return String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''); } catch (e) { return '(unreadable)'; } };
+  const unsaved = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])'));
+  const based = ev => +ev('driveBaseOf(mySlug())');
+  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
+  // The folder's history for O&M FY27, oldest first: [requirement A's note, kept as a recent copy].
+  const hist = fold => { const h = (fold.root.dirs.history || { files: {} }).files;
+    return Object.keys(h).filter(n => /^spmt-2027-om-/.test(n)).sort().map(n => { let v = '?'; try { v = String(JSON.parse(h[n]).store.years['2027'].notes.A || ''); } catch (e) {} return [v, /-recent\.json$/.test(n)]; }); };
+  const spaced = (fold, v) => hist(fold).some(([n, r]) => n === v && !r);
+  const omWrites = fold => fold.log.filter(x => x === 'main:spmt-2027-om.json').length;   // writes of O&M's folder copy
+  const asks = ev => /Nothing was written/.test(status(ev)) && /Load theirs/.test(status(ev)) && /Save yours over theirs/.test(status(ev));
+  // EVERYTHING A REFUSED STEP LEAVES AS IT WAS, byte for byte (as the U13 block reads it).
+  const state = ev => ev(`JSON.stringify([JSON.stringify(MS), DIRTY, _baseDirty, JSON.stringify(_driveBase), localStorage.getItem(_AP.key+'.base'), _saveGen, localStorage.getItem(_AP.key+'.kept'), localStorage.getItem(_AP.key)])`);
+  const SAID = '⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, so this board kept its own copy of O&M FY27. '
+    + 'The folder’s copy is checked again on the next refresh once that has finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).';
+  // A TAB of Alice's browser (`LM` its lock manager), or a board of another browser (no LM).
+  const open = async (LM, client, opts) => { const T = boot(opts || { html: F1 }); await pause(80);
+    if (LM) LM.install(T.w, client); wire(T.ev, 'Alice', KEY.alice); return T; };
+  // ALICE'S OTHER MACHINE saves `note` to the folder: it loads the folder's copy first (if any), types, saves.
+  const other = async (fold, notes) => { const X = await open(null, 'X'); connect(X.ev, X.w, fold);
+    for (const n of notes) { await X.ev('driveStorePull(false)'); X.ev(`setNote('A',${J(n)}); 'ok'`); await pause(5); await X.ev('driveStorePush(false)'); await pause(5); }
+    return X; };
+  // TAB A: FULL FUND, with one requirement typed; its 💾 Save held at the close of its write, holding 'orbit-save'.
+  const tabA = async (LM, fold) => { const A = await open(LM, 'A', { html: F1, appn: 'FULL FUND' });
+    seed(A.ev, { services: SVC, items: [mk('X', [300, 100, 50])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['X'] });
+    A.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); setNote('X','FF-WORK'); 'ok'`);
+    connect(A.ev, A.w, fold); return A; };
+  const holdA = async (A, LM, fold) => { const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev('saveInPlace()'); const ok = await until(() => (fold.hits.main || 0) > n0);
+    return { g, p, ok, slug: A.ev('mySlug()'), held: LM.heldBy('orbit-save') }; };
+  // B's 💾 Save asked while A holds the lock: it waits for it.
+  const waitB = async (B, LM, how) => { const p = B.ev(how || 'saveInPlace()'); const ok = await until(() => LM.pendingOf('orbit-save').includes('B')); return { p, ok }; };
+  const WAITS = 'tab A’s save holds the lock and B’s Save waits for it -- [A held at its write, A’s appropriation, the lock held by, waiting] (a CONTROL)';
+  const waits = (h, LM, w) => J([h.ok, h.slug, h.held, w.ok ? LM.pendingOf('orbit-save') : 'not waiting']);
+  const WAITW = J([true, 'ff', ['A'], ['B']]);
+  const COUNTED = 'B counts its waiting Save as under way (_saveBusy 1)';
+  // THE STAND-IN, at the end of each case: the lock granted in the order asked, never to two at once, nothing asked of it
+  // that it does not model, and every lock let go.
+  // A GUARD passes on the board before this change too: it holds the stand-in, or how a save ends, to what it must be, so
+  // that a wrong form of the change is caught. Every other check that is not a CONTROL fails on the board before it.
+  const GUARD = ' (a GUARD: it passes before this change too)';
+  const SANE = 'the lock was granted as asked and never held by two -- [grant order from the case’s first save, violations, most held at once, unmodelled, every grant let go, held now, waiting now]' + GUARD;
+  const sane = (LM, m0) => J([LM.grantOrder('orbit-save', m0), LM.stats.violations.length, LM.stats.maxHeld['orbit-save'] || 0, LM.stats.unmodeled.length, LM.stats.grants === LM.stats.releases, LM.heldBy('orbit-save'), LM.pendingOf('orbit-save')]);
+  const SANEW = order => J([order, 0, 1, 0, true, [], []]);
+  // THE PUT-BACK FIXTURE (the U2 block's, in tab B). Alice saves F0 and types K, unsaved; her other machine saves N; her 💾 Save
+  // is refused (N was saved after the copy K came from) and she loads theirs: K kept aside, N on screen. She types S1.
+  const putBackFixture = async LM => { const fold = folder(); const B = await open(LM, 'B'); connect(B.ev, B.w, fold);
+    B.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+    B.ev(`setNote('A','K'); 'ok'`); await pause(5);
+    await other(fold, ['N']);
+    await B.ev('saveInPlace()'); await B.ev(`driveResolve('theirs')`); await pause(5);
+    B.ev(`setNote('A','S1'); 'ok'`); await pause(5);
+    return { B, fold }; };
+  // ↶ Put back pressed now: [refused (what is on screen and the kept work byte for byte as they were), questions asked, on
+  // screen, said that a save was under way].
+  const putBack = B => { const ms = B.ev('JSON.stringify(MS)'), kr = keptRaw(B.ev), q0 = qs(B.ev).length;
+    B.ev('keptPutBack()'); const st = status(B.ev);
+    return [B.ev('JSON.stringify(MS)') === ms && keptRaw(B.ev) === kr, qs(B.ev).length - q0, scr(B.ev), /Not put back/.test(st) && /a save was under way/.test(st)]; };
+  // NOTHING RECORDED, THE PRODUCT'S OWN WAY: tab B opens and its opening's own connect finds no O&M copy in the folder, so
+  // nothing is recorded; then Alice's other machine saves F0 (F00 first, a moment before, with `h`: a spaced history copy
+  // kept minutes before the next); then B-EDIT is typed in B, unsaved -- so the folder's copy is not newer than the screen.
+  const unrecorded = async (LM, h) => { const fold = folder(); const B = await open(LM, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    const c = await B.ev('driveAutoConnect()'); await pause(5);
+    await other(fold, h ? ['F00', 'F0'] : ['F0']);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5);
+    return { B, fold, c }; };
+  const UNREC = h => 'the opening connected and recorded nothing (the folder held no O&M copy); Alice’s other machine then saved F0'
+    + (h ? ' (F00 a moment before, now a spaced copy in the folder’s history)' : '') + '; B-EDIT typed after it, unsaved (a CONTROL)';
+  const unrec = (x, h) => J([x.c, based(x.B.ev), scr(x.B.ev), x.B.ev('DIRTY'), x.fold.note(2027, 'A'), headTs(x.fold) < +x.B.ev('MS.ts'), hist(x.fold)]);
+  const UNRECW = h => J([true, 0, 'B-EDIT', true, 'F0', true, h ? [['F00', false]] : []]);
+
+  // (1) ↶ PUT BACK WHILE THE SAVE WAITS. B's Save is asked with S1 on screen and waits for tab A's save. ↶ Put back is
+  // refused, as it is while a save runs (U2): putting K back now would let that save, landing, record S1's copy as the one
+  // K came from. Once A's save lands, B's save runs and writes S1; then ↶ Put back works.
+  { const sc = '(1) ↶ Put back while the Save waits for another tab’s save';
+    const LM = webLocks(sc); const { B, fold } = await putBackFixture(LM); const A = await tabA(LM, fold);
+    chk(name, sc, 'S1 on screen, unsaved; K kept aside; N the folder’s copy (a CONTROL)',
+      J([scr(B.ev), B.ev('DIRTY'), keptNote(B.ev), fold.note(2027, 'A')]), J(['S1', true, 'K', 'N']));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    chk(name, sc, COUNTED, B.ev('_saveBusy'), 1);
+    chk(name, sc, '↶ Put back while the Save waits is refused and says so -- [what is on screen and the kept work byte for byte as they were, questions, on screen, said]',
+      J(putBack(B)), J([true, 0, 'S1', true]));
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'once tab A’s save lands, B’s Save runs: S1 on screen and the folder’s copy, saved; K still kept aside; nothing under way',
+      J([scr(B.ev), fold.note(2027, 'A'), unsaved(B.ev), keptNote(B.ev), B.ev('_saveBusy')]), J(['S1', 'S1', [false, false, false], 'K', 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+    const q0 = qs(B.ev).length; B.ev('keptPutBack()');
+    chk(name, sc, '↶ Put back now: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)',
+      J([qs(B.ev).length - q0, scr(B.ev), unsaved(B.ev), keptNote(B.ev)]), J([1, 'K', [true, true, true], null]));
+  }
+  // (2) A REFRESH WHILE THE SAVE WAITS DOES NOT LOAD A NEWER COPY. B reopens with WORKING unsaved (recorded against F0); its
+  // Save waits; Alice's other machine saves N2 over F0; a refresh loads nothing, as during a save (U13), and says so. The
+  // Save, run, finds N2 saved after the copy WORKING came from and asks. The next refresh is an ordinary one.
+  { const sc = '(2) a refresh while the Save waits for another tab’s save';
+    const LM = webLocks(sc), fold = folder();
+    const B0 = await open(null, 'B0'); connect(B0.ev, B0.w, fold);
+    B0.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B0.ev('driveStorePush(false)'); await pause(5);
+    B0.ev(`setNote('A','WORKING'); 'ok'`); await pause(5);
+    const B = await open(LM, 'B', { html: F1, ls: lsOf(B0.ev) }); connect(B.ev, B.w, fold);
+    const A = await tabA(LM, fold);
+    chk(name, sc, 'reopened: WORKING on screen, unsaved by this browser’s record, recorded against F0, the folder’s copy (a CONTROL)',
+      J([scr(B.ev), unsaved(B.ev)[2], based(B.ev) === headTs(fold), fold.note(2027, 'A')]), J(['WORKING', true, true, 'F0']));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    chk(name, sc, COUNTED, B.ev('_saveBusy'), 1);
+    await other(fold, ['N2']);
+    chk(name, sc, 'Alice’s other machine saved N2 over F0: newer than what is on screen (a CONTROL)',
+      J([fold.note(2027, 'A'), headTs(fold) > +B.ev('MS.ts')]), J(['N2', true]));
+    const s0 = state(B.ev); const r = await B.ev('driveStorePull(false)'); await pause(5);
+    chk(name, sc, 'the refresh while the Save waits loads nothing -- [returned, nothing changed byte for byte, said word for word]',
+      J([r, state(B.ev) === s0, status(B.ev)]), J([false, true, SAID]));
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'then B’s Save runs and asks: nothing written, N2 still the folder’s copy; WORKING on screen, unsaved; the choice offered; nothing under way',
+      J([fold.note(2027, 'A'), scr(B.ev), unsaved(B.ev)[2], asks(B.ev), B.ev('_saveBusy')]), J(['N2', 'WORKING', true, true, 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+    const r2 = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the next refresh is an ordinary one: N2 loaded, recorded against the folder’s copy; WORKING kept aside',
+      J([r2, scr(B.ev), based(B.ev) === headTs(fold), keptNote(B.ev)]), J([true, 'N2', true, 'WORKING']));
+  }
+  // (3) NOTHING RECORDED; LIVE VIEW'S ↻ REFRESH NOW WHILE THE SAVE WAITS. The refresh does not take F0 as the one B-EDIT came
+  // from (U13: not while a save is under way), so the Save, run, asks rather than writing B-EDIT over F0. Alice then chooses
+  // Save yours over theirs: F0 is kept in the folder's history as a spaced copy, and stays there through one more Save. (3h):
+  // a spaced history copy, F00, kept minutes before -- where F0, written over unasked, was kept only as a recent copy and
+  // was gone after one more Save.
+  for (const h0 of [false, true]) {
+    const sc = '(3' + (h0 ? 'h' : '') + ') nothing recorded; ↻ Refresh now while the Save waits for another tab’s save' + (h0 ? '; a history copy kept minutes before' : '');
+    const LM = webLocks(sc); const x = await unrecorded(LM, h0); const { B, fold } = x; const A = await tabA(LM, fold);
+    chk(name, sc, UNREC(h0), unrec(x, h0), UNRECW(h0));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    chk(name, sc, COUNTED, B.ev('_saveBusy'), 1);
+    await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, 'Live view’s ↻ Refresh now while the Save waits records nothing: F0 is not taken as the copy B-EDIT came from', based(B.ev), 0);
+    const w0 = omWrites(fold);
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'then B’s Save asks: nothing written, F0 still the folder’s copy; B-EDIT on screen, unsaved; the choice offered; nothing under way',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), scr(B.ev), B.ev('DIRTY'), asks(B.ev), B.ev('_saveBusy')]), J([0, 'F0', 'B-EDIT', true, true, 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+    const q0 = qs(B.ev).length; await B.ev(`driveResolve('mine')`); await pause(5);
+    chk(name, sc, '“Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy' + (h0 ? '' : GUARD),
+      J([qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), spaced(fold, 'F0')]), J([1, 'B-EDIT', [false, false, false], true]));
+    B.ev(`setNote('A','B-EDIT2'); 'ok'`); await pause(5); const q1 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy' + (h0 ? ', and F00' : GUARD),
+      J([fold.note(2027, 'A'), qs(B.ev).length - q1, spaced(fold, 'F0'), h0 ? spaced(fold, 'F00') : null]), J(['B-EDIT2', 0, true, h0 ? true : null]));
+  }
+  // (4) THE SCREEN EXACTLY THE FOLDER'S COPY, NOTHING RECORDED (a browser that last saved to the folder before v1.89, when no
+  // record was kept: Alice's other browser's storage, its record removed). Where a refresh would take F0 as the base, it does
+  // not while B's Save waits, as while a save runs (U13); the Save, run, finds nothing recorded and asks.
+  { const sc = '(4) the screen exactly the folder’s copy, nothing recorded; a refresh while the Save waits';
+    const LM = webLocks(sc), fold = folder();
+    const X = await other(fold, ['F0']); const ls = lsOf(X.ev); delete ls[X.ev('_AP.key') + '.base'];
+    const B = await open(LM, 'B', { html: F1, ls }); connect(B.ev, B.w, fold); const A = await tabA(LM, fold);
+    chk(name, sc, 'F0 on screen, stamped as the folder’s copy is; nothing recorded; nothing changed in this session (a CONTROL)',
+      J([scr(B.ev), +B.ev('MS.ts') === headTs(fold), based(B.ev), B.ev('DIRTY')]), J(['F0', true, 0, false]));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    chk(name, sc, COUNTED, B.ev('_saveBusy'), 1);
+    const s0 = state(B.ev), st0 = status(B.ev); const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'a refresh while the Save waits records nothing and says nothing -- [returned, nothing changed byte for byte, the status line as it was]',
+      J([r, state(B.ev) === s0, status(B.ev) === st0]), J([false, true, true]));
+    const w0 = omWrites(fold);
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'then B’s Save, finding nothing recorded, asks: nothing written, F0 still the folder’s copy, the choice offered',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev)]), J([0, 'F0', true]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+  }
+  // (5) CONTROLS: waits that were always counted. (5a) B's own save writing and a second Save waiting behind it in this tab:
+  // the second is told it waits, ↶ Put back is refused and a refresh loads nothing; both saves then land, one at a time.
+  // (5b) Case (3) with B's waiting Save counted by the harness itself (its lock request wrapped: up when asked, down when
+  // settled): the refresh records nothing and the Save asks, on a board with or without this change -- the uncounted wait
+  // alone was the cause.
+  { const sc = '(5a) CONTROL: a second Save waiting behind this tab’s own save';
+    const LM = webLocks(sc); const { B, fold } = await putBackFixture(LM);
+    const m0 = LM.mark(); const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p1 = B.ev('saveInPlace()'); const ok = await until(() => (fold.hits.main || 0) > n0);
+    const p2 = B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the first Save holds the lock, held at its write; the second, asked now, is told it runs once the first has finished',
+      J([ok, LM.heldBy('orbit-save'), B.ev('_saveBusy') > 0, status(B.ev)]), J([true, ['B'], true, '⏳ A save is already under way — this one runs as soon as it finishes.']));
+    chk(name, sc, '↶ Put back is refused and says so -- [byte for byte as it was, questions, on screen, said]', J(putBack(B)), J([true, 0, 'S1', true]));
+    const s0 = state(B.ev); const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'a refresh loads nothing -- [returned, nothing changed byte for byte]', J([r, state(B.ev) === s0]), J([false, true]));
+    g.open(); await p1; await p2; await pause(5);
+    chk(name, sc, 'both land, one at a time: S1 the folder’s copy, saved; K still kept; nothing under way',
+      J([fold.note(2027, 'A'), unsaved(B.ev), keptNote(B.ev), B.ev('_saveBusy')]), J(['S1', [false, false, false], 'K', 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['B', 'B']));
+  }
+  { const sc = '(5b) CONTROL: case (3) with the waiting Save counted by the harness';
+    const LM = webLocks(sc); const x = await unrecorded(LM, false); const { B, fold } = x; const A = await tabA(LM, fold);
+    const api = B.w.navigator.locks, real = api.request;
+    Object.defineProperty(B.w.navigator, 'locks', { configurable: true, enumerable: true, value: { query: api.query,
+      request: (n, a, b) => { B.ev('_saveBusy++; 0'); const p = real(n, a, b); const down = () => { B.ev('_saveBusy--; 0'); }; p.then(down, down); return p; } } });
+    chk(name, sc, UNREC(false), unrec(x, false), UNRECW(false));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    chk(name, sc, 'the waiting Save is counted', B.ev('_saveBusy') > 0, true);
+    await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, '↻ Refresh now while the counted Save waits records nothing', based(B.ev), 0);
+    const w0 = omWrites(fold);
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'then B’s Save asks: nothing written, F0 still the folder’s copy; B-EDIT on screen, unsaved; the choice offered; nothing under way',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), scr(B.ev), B.ev('DIRTY'), asks(B.ev), B.ev('_saveBusy')]), J([0, 'F0', 'B-EDIT', true, true, 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+  }
+  // (6) THE COUNT COMES BACK DOWN HOWEVER A SAVE ENDS, and counts every save asked for. B has saved F0 (recorded) and typed S1.
+  // (6a) the Live timer's autosave, holding the lock, throws (the folder refuses its write); (6b) the lock request itself is
+  // refused (a tab no longer fully active); (6c) asking for the lock throws at once (the save runs without it); (6d) two
+  // Saves asked while tab A holds the lock: both counted, the second told it waits, then both run, one at a time.
+  const saved1 = async LM => { const fold = folder(); const B = await open(LM, 'B'); connect(B.ev, B.w, fold);
+    B.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    B.ev(`setNote('A','S1'); 'ok'`); await pause(5); return { B, fold }; };
+  const SAVED1 = 'F0 saved, the folder’s copy and recorded; S1 on screen, unsaved (a CONTROL)';
+  const saved1v = (B, fold) => J([fold.note(2027, 'A'), based(B.ev) === headTs(fold), scr(B.ev), B.ev('DIRTY')]);
+  { const sc = '(6a) the autosave throws while it holds the lock';
+    const LM = webLocks(sc); const { B, fold } = await saved1(LM);
+    chk(name, sc, SAVED1, saved1v(B, fold), J(['F0', true, 'S1', true]));
+    B.ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);
+    fold.failNext.main = new Error('The shared folder is read-only');
+    await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'the autosave failed and says so; F0 still the folder’s copy; S1 unsaved; nothing under way, and the lock let go' + GUARD,
+      J([/Automatic save to the shared folder failed/.test(status(B.ev)), fold.note(2027, 'A'), B.ev('DIRTY'), B.ev('_saveBusy'), LM.heldBy('orbit-save'), LM.stats.grants === LM.stats.releases]),
+      J([true, 'F0', true, 0, [], true]));
+  }
+  { const sc = '(6b) the lock request is refused';
+    const LM = webLocks(sc); const { B, fold } = await saved1(LM);
+    chk(name, sc, SAVED1, saved1v(B, fold), J(['F0', true, 'S1', true]));
+    Object.defineProperty(B.w.navigator, 'locks', { configurable: true, enumerable: true, value: {
+      request: () => B.w.Promise.reject(new B.w.Error('InvalidStateError: the document is not fully active')) } });
+    let ret; try { ret = await B.ev('saveInPlace()'); } catch (e) { ret = 'threw: ' + ((e && e.message) || e); } await pause(5);
+    chk(name, sc, 'the Save fails with the refusal; nothing written, F0 still the folder’s copy; S1 unsaved; nothing under way' + GUARD,
+      J([ret, fold.note(2027, 'A'), B.ev('DIRTY'), B.ev('_saveBusy')]), J(['threw: InvalidStateError: the document is not fully active', 'F0', true, 0]));
+  }
+  { const sc = '(6c) asking for the lock throws at once';
+    const LM = webLocks(sc); const { B, fold } = await saved1(LM);
+    chk(name, sc, SAVED1, saved1v(B, fold), J(['F0', true, 'S1', true]));
+    Object.defineProperty(B.w.navigator, 'locks', { configurable: true, enumerable: true, value: { request: () => { throw new B.w.Error('SecurityError'); } } });
+    await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the Save runs without the lock: S1 the folder’s copy, saved; nothing under way' + GUARD,
+      J([fold.note(2027, 'A'), unsaved(B.ev), B.ev('_saveBusy')]), J(['S1', [false, false, false], 0]));
+  }
+  { const sc = '(6d) two Saves asked while another tab’s save holds the lock';
+    const LM = webLocks(sc); const { B, fold } = await saved1(LM); const A = await tabA(LM, fold);
+    chk(name, sc, SAVED1, saved1v(B, fold), J(['F0', true, 'S1', true]));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM);
+    chk(name, sc, WAITS, waits(h, LM, w), WAITW);
+    const st1 = status(B.ev); const p2 = B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'both waiting Saves are counted (_saveBusy 2), and the second is told it runs once the first has finished',
+      J([B.ev('_saveBusy'), status(B.ev) !== st1 && status(B.ev)]), J([2, '⏳ A save is already under way — this one runs as soon as it finishes.']));
+    h.g.open(); await h.p; await w.p; await p2; await pause(5);
+    chk(name, sc, 'once A’s save lands both run: S1 the folder’s copy, saved; nothing under way' + GUARD,
+      J([fold.note(2027, 'A'), unsaved(B.ev), B.ev('_saveBusy')]), J(['S1', [false, false, false], 0]));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B', 'B']));
+  }
+  // (7) LOAD THEIRS WAITS AS A SAVE DOES. B saved F0; Alice's other machine saved N over it; B typed B-EDIT and its 💾 Save
+  // asked. B presses Load theirs while tab A's save holds the lock: it waits, and is under way as a waiting save is, so ↶ Put
+  // back is refused meanwhile (other work, kept aside here by the harness, stays kept). The harness then empties the kept
+  // slot, so that Load theirs, once A's save lands, has room to keep B-EDIT aside: N on screen and recorded, B-EDIT kept.
+  { const sc = '(7) Load theirs while another tab’s save holds the lock';
+    const LM = webLocks(sc), fold = folder(); const B = await open(LM, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    await B.ev('driveAutoConnect()'); await pause(5);
+    B.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    await other(fold, ['N']);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    const A = await tabA(LM, fold);
+    chk(name, sc, 'F0 saved and recorded; Alice’s other machine saved N over it; B-EDIT typed after, unsaved; B’s 💾 Save asked; nothing kept aside (a CONTROL)',
+      J([fold.note(2027, 'A'), scr(B.ev), B.ev('DIRTY'), asks(B.ev), keptNote(B.ev)]), J(['N', 'B-EDIT', true, true, null]));
+    const m0 = LM.mark(); const h = await holdA(A, LM, fold); const w = await waitB(B, LM, `driveResolve('theirs')`);
+    chk(name, sc, 'tab A’s save holds the lock and B’s Load theirs waits for it -- [A held at its write, A’s appropriation, the lock held by, waiting] (a CONTROL)',
+      waits(h, LM, w), WAITW);
+    chk(name, sc, 'B counts its waiting Load theirs as under way (_saveBusy 1)', B.ev('_saveBusy'), 1);
+    B.ev(`(function(){ var o=JSON.parse(JSON.stringify(MS)); o.years['2027'].notes.A='OTHER-KEPT'; return keepAside(o, {why:'file', by:'Bob', ts:1}, baseGet()); })()`);
+    chk(name, sc, '↶ Put back while Load theirs waits is refused and says so -- [what is on screen and the kept work byte for byte as they were, questions, on screen, said]',
+      J(putBack(B)), J([true, 0, 'B-EDIT', true]));
+    B.ev(`localStorage.removeItem(_AP.key+'.kept'); _keptMeta=null; 'ok'`);
+    h.g.open(); await h.p; await w.p; await pause(5);
+    chk(name, sc, 'once tab A’s save lands, Load theirs runs: N on screen, recorded against the folder’s copy; B-EDIT kept aside; nothing under way',
+      J([scr(B.ev), based(B.ev) === headTs(fold), keptNote(B.ev), B.ev('_saveBusy'), fold.note(2027, 'A')]), J(['N', true, 'B-EDIT', 0, 'N']));
+    chk(name, sc, SANE, sane(LM, m0), SANEW(['A', 'B']));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U20) ====
+// ==== v2.00 (U30): a refresh takes the folder's copy as the one the work came from only when it is what is on screen ====
+// With nothing recorded for the folder (this browser has not loaded from it or saved to it yet -- an opening that found no
+// copy there, then a colleague's or another machine's save), a refresh that found the folder's copy not newer than the
+// screen took that copy as the one the work on screen came from, "as it always was" (v1.89) -- whatever was on screen. The
+// next 💾 Save, or the Live timer's next autosave one tick after it had said "Nothing was written" and offered the choice,
+// then wrote the work on screen over that copy without asking. With a spaced history copy kept less than ten minutes
+// before, the copy written over was kept only as a recent copy, and one more Save removed it: it was in no copy the board
+// could reach. No second tab was needed; U20 was its two-tab form. Now the refresh takes the folder's copy as the base only
+// when it is what is on screen (the same stamp: every change stamps the board anew); otherwise nothing is recorded and
+// nothing is said, and 💾 Save asks -- Load theirs (yours kept aside), or Save yours over theirs (theirs kept in the folder's
+// history as a spaced copy, whatever the spacing). It asks saying there is no record of which copy the work came from: it
+// used to say that theirs was saved after that copy, which nothing recorded can tell. Controls: the screen exactly the folder's copy (recorded, and Save writes
+// with no question; while a save is under way, U13's rule still holds), the first save of a new board into an empty folder,
+// and an ordinary refresh with nothing unsaved. The rule is the stamp, so it is run through every way a refresh comes with
+// nothing recorded: the Live timer, ↻ Refresh now, a reopen's own connect with unsaved work, a board saved to its own file,
+// a board file handed over newer than the folder's copy, and another year. The two lines that follow the question -- ↶ Put
+// back, and Load theirs refused for work already kept -- no longer say theirs was saved after, or is newer, when nothing
+// recorded can tell (with a copy recorded they say it as before). Every expected value is written by hand.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen';
+  try {
+  const { J, mk, SVC, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const scr = ev => ev(`String(S.notes.A||'')`);
+  const unsaved = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])'));
+  const based = ev => +ev('driveBaseOf(mySlug())');
+  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
+  const hist = fold => { const h = (fold.root.dirs.history || { files: {} }).files;
+    return Object.keys(h).filter(n => /^spmt-2027-om-/.test(n)).sort().map(n => { let v = '?'; try { v = String(JSON.parse(h[n]).store.years['2027'].notes.A || ''); } catch (e) {} return [v, /-recent\.json$/.test(n)]; }); };
+  const spaced = (fold, v) => hist(fold).some(([n, r]) => n === v && !r);
+  const anywhere = (fold, v) => fold.note(2027, 'A') === v || hist(fold).some(([n]) => n === v);   // the folder's copy or its history
+  const omWrites = fold => fold.log.filter(x => x === 'main:spmt-2027-om.json').length;
+  const asks = ev => /Nothing was written/.test(status(ev)) && /Load theirs/.test(status(ev)) && /Save yours over theirs/.test(status(ev));
+  // WHAT A SAVE SAYS WHEN IT ASKS WITH NOTHING RECORDED, word for word but for the copy's age ("just now", "2 minutes ago"):
+  // there is no telling which copy the work came from, so it does not say that theirs was saved after it.
+  const UNSAID = /^⛔ Alice saved O&M FY27 to the shared folder [^,]+, and this browser has no record of which copy in the folder, if any, the work on screen came from\. Nothing was written\. Load theirs \(your work is kept aside, and one click puts it back\) · Save yours over theirs \(theirs is kept in the folder’s history\)\.$/;
+  // A GUARD passes on the board before this change too: it holds what must not change (the save's question, the stand-in,
+  // a choice's outcome) so that a wrong form of the change is caught. Every other check that is not a CONTROL fails there.
+  const GUARD = ' (a GUARD: it passes before this change too)';
+  const state = ev => ev(`JSON.stringify([JSON.stringify(MS), DIRTY, _baseDirty, JSON.stringify(_driveBase), localStorage.getItem(_AP.key+'.base'), _saveGen, localStorage.getItem(_AP.key+'.kept'), localStorage.getItem(_AP.key)])`);
+  const live = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // Live view and its autosave on
+  const open = async (LM, client, opts) => { const T = boot(opts || { html: F1 }); await pause(80);
+    if (LM) LM.install(T.w, client); wire(T.ev, 'Alice', KEY.alice); return T; };
+  const other = async (fold, notes) => { const X = await open(null, 'X'); connect(X.ev, X.w, fold);
+    for (const n of notes) { await X.ev('driveStorePull(false)'); X.ev(`setNote('A',${J(n)}); 'ok'`); await pause(5); await X.ev('driveStorePush(false)'); await pause(5); }
+    return X; };
+  // NOTHING RECORDED, THE PRODUCT'S OWN WAY (as in the U20 block): B opens, and its opening's own connect finds no O&M copy;
+  // then Alice's other machine saves F0 (F00 a moment before, with `h`); then B-EDIT is typed in B, unsaved.
+  const unrecorded = async (LM, h) => { const fold = folder(); const B = await open(LM, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    const c = await B.ev('driveAutoConnect()'); await pause(5);
+    await other(fold, h ? ['F00', 'F0'] : ['F0']);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5);
+    return { B, fold, c }; };
+  const UNREC = h => 'the opening connected and recorded nothing (the folder held no O&M copy); Alice’s other machine then saved F0'
+    + (h ? ' (F00 a moment before, now a spaced copy in the folder’s history)' : '') + '; B-EDIT typed after it, unsaved (a CONTROL)';
+  const unrec = x => J([x.c, based(x.B.ev), scr(x.B.ev), x.B.ev('DIRTY'), x.fold.note(2027, 'A'), headTs(x.fold) < +x.B.ev('MS.ts'), hist(x.fold)]);
+  const UNRECW = h => J([true, 0, 'B-EDIT', true, 'F0', true, h ? [['F00', false]] : []]);
+  // ALICE CHOOSES, once the board has asked: Save yours over theirs (asked, and answered OK), then one more 💾 Save -- F0 stays
+  // in the folder's history as a spaced copy throughout, and so does F00. Then reopened (this browser, the same folder, the
+  // opening's own connect): B-EDIT2 on screen and the folder's copy, F0 in its history.
+  const chooseMine = async (B, fold, sc, h) => {
+    const q0 = qs(B.ev).length; await B.ev(`driveResolve('mine')`); await pause(5);
+    chk(name, sc, '“Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy' + (h ? '' : GUARD),
+      J([qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), spaced(fold, 'F0')]), J([1, 'B-EDIT', [false, false, false], true]));
+    B.ev(`setNote('A','B-EDIT2'); 'ok'`); await pause(5); const q1 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy' + (h ? ', and F00' : GUARD),
+      J([fold.note(2027, 'A'), qs(B.ev).length - q1, spaced(fold, 'F0'), h ? spaced(fold, 'F00') : null]), J(['B-EDIT2', 0, true, h ? true : null]));
+    const C = await open(null, 'C', { html: F1, ls: lsOf(B.ev) }); connect(C.ev, C.w, fold); C.ev(`_liveCfg.folder='shared'; 'ok'`);
+    await C.ev('driveAutoConnect()'); await pause(5);
+    chk(name, sc, 'reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0' + (h ? ' and F00' : '') + ' still in the folder’s history' + (h ? '' : GUARD),
+      J([scr(C.ev), fold.note(2027, 'A'), based(C.ev) === headTs(fold), spaced(fold, 'F0'), h ? spaced(fold, 'F00') : null]), J(['B-EDIT2', 'B-EDIT2', true, true, h ? true : null]));
+  };
+
+  // (1) THE LIVE TIMER ALONE, ONE TAB. Live view and its autosave on. Tick 1: the autosave asks (nothing recorded, so there
+  // is no telling: "Nothing was written", and the choice); the same tick's refresh does not take F0 as the base. Tick 2: the
+  // autosave asks again and writes nothing -- it used to write B-EDIT over F0 and say "Saved automatically". 💾 Save asks
+  // too. (1h): with F00 kept minutes before, F0 used to be kept only as a recent copy, and the next Save removed it.
+  for (const h0 of [false, true]) {
+    const sc = '(1' + (h0 ? 'h' : '') + ') the Live timer, one tab: nothing recorded, B-EDIT unsaved, F0 in the folder' + (h0 ? '; a history copy kept minutes before' : '');
+    const x = await unrecorded(null, h0); const { B, fold } = x;
+    chk(name, sc, UNREC(h0), unrec(x), UNRECW(h0));
+    live(B.ev);
+    const w0 = omWrites(fold), hs0 = J(hist(fold)); await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'tick 1: the autosave asks -- nothing written, F0 still the folder’s copy, the choice offered -- and the tick’s refresh records nothing',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev), based(B.ev)]), J([0, 'F0', true, 0]));
+    chk(name, sc, 'and it says there is no record of the copy the work came from -- never that theirs was saved after it -- [the words, said after]',
+      J([UNSAID.test(status(B.ev)), /after the copy you are working from/.test(status(B.ev))]), J([true, false]));
+    await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'tick 2: the autosave asks again -- nothing written, F0 still the folder’s copy and its history as it was, B-EDIT unsaved, the choice still offered, nothing said to have saved',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), J(hist(fold)) === hs0, B.ev('DIRTY'), asks(B.ev), /Saved to the shared folder automatically/.test(status(B.ev))]),
+      J([0, 'F0', true, true, true, false]));
+    const q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, '💾 Save asks as well: nothing written, nothing asked in a dialog, F0 still the folder’s copy, B-EDIT on screen, the choice offered',
+      J([omWrites(fold) - w0, qs(B.ev).length - q0, fold.note(2027, 'A'), scr(B.ev), asks(B.ev)]), J([0, 0, 'F0', 'B-EDIT', true]));
+    chk(name, sc, 'F0 and B-EDIT each still in a copy the board reaches -- [F0 in the folder or its history, B-EDIT on screen]' + (h0 ? '' : GUARD),
+      J([anywhere(fold, 'F0'), scr(B.ev)]), J([true, 'B-EDIT']));
+    await chooseMine(B, fold, sc, h0);
+  }
+  // (2) A REFRESH, THEN 💾 SAVE (one tab, no timer): Live view's ↻ Refresh now records nothing and says nothing new; the Save
+  // asks. (3) 💾 SAVE FIRST: it asks; then the refresh; then 💾 Save asks again -- it used to write over F0 the second time.
+  { const sc = '(2) ↻ Refresh now, then 💾 Save';
+    const x = await unrecorded(null, true); const { B, fold } = x;
+    chk(name, sc, UNREC(true), unrec(x), UNRECW(true));
+    const st0 = status(B.ev); await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, '↻ Refresh now records nothing and says no clash -- [recorded, a clash said]',
+      J([based(B.ev), /after the copy you are working from/.test(status(B.ev))]), J([0, false]));
+    const w0 = omWrites(fold); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'then 💾 Save asks: nothing written, F0 still the folder’s copy, B-EDIT on screen and unsaved, the choice offered',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), scr(B.ev), B.ev('DIRTY'), asks(B.ev)]), J([0, 'F0', 'B-EDIT', true, true]));
+    await chooseMine(B, fold, sc, true);
+  }
+  { const sc = '(3) 💾 Save, then ↻ Refresh now, then 💾 Save again';
+    const x = await unrecorded(null, true); const { B, fold } = x;
+    chk(name, sc, UNREC(true), unrec(x), UNRECW(true));
+    const w0 = omWrites(fold); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the first 💾 Save asks: nothing written, the choice offered' + GUARD, J([omWrites(fold) - w0, asks(B.ev)]), J([0, true]));
+    await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, '↻ Refresh now records nothing', based(B.ev), 0);
+    await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the second 💾 Save asks again: nothing written, F0 still the folder’s copy and kept as it was in the history, B-EDIT unsaved',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), J(hist(fold)), B.ev('DIRTY'), asks(B.ev)]), J([0, 'F0', J([['F00', false]]), true, true]));
+  }
+  // (4) THE SECOND TAB, ONCE A WAITING SAVE IS COUNTED (U20): B's 💾 Save waits for tab A's save; the Live timer's tick 1
+  // queues its autosave behind it and waits; tick 2 refreshes during the wait (nothing recorded, U20). Tab A's save lands:
+  // B's Save asks, tick 1's autosave asks -- and tick 1's own refresh, running then with nothing under way, records nothing
+  // either. The next 💾 Save asks. Before this change that last refresh took F0 as the base and the next Save wrote over it.
+  { const sc = '(4) a second tab: the Save waits, the Live timer ticks twice';
+    const LM = webLocks(sc); const x = await unrecorded(LM, false); const { B, fold } = x;
+    const A = await open(LM, 'A', { html: F1, appn: 'FULL FUND' });
+    seed(A.ev, { services: SVC, items: [mk('X', [300, 100, 50])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['X'] });
+    A.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); setNote('X','FF-WORK'); 'ok'`);
+    connect(A.ev, A.w, fold);
+    chk(name, sc, UNREC(false), unrec(x), UNRECW(false));
+    const m0 = LM.mark(); const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const pA = A.ev('saveInPlace()'); const okA = await until(() => (fold.hits.main || 0) > n0);
+    const pB = B.ev('saveInPlace()'); const okB = await until(() => LM.pendingOf('orbit-save').includes('B'));
+    live(B.ev); const t1 = B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'tab A’s save holds the lock; B’s Save waits for it, and tick 1’s autosave waits behind that (a CONTROL)',
+      J([okA, LM.heldBy('orbit-save'), okB && LM.pendingOf('orbit-save')]), J([true, ['A'], ['B']]));
+    chk(name, sc, 'B counts both as under way (U20): its Save and the autosave queued behind it', B.ev('_saveBusy'), 2);
+    await B.ev('liveTick()'); await pause(5);
+    chk(name, sc, 'tick 2’s refresh during the wait records nothing', based(B.ev), 0);
+    const w0 = omWrites(fold);
+    g.open(); await pA; await pB; await t1; await pause(5);
+    chk(name, sc, 'once A’s save lands: B’s Save and tick 1’s autosave asked; nothing written; and tick 1’s own refresh, nothing under way, recorded nothing',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev), B.ev('_saveBusy'), based(B.ev)]), J([0, 'F0', true, 0, 0]));
+    await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the next 💾 Save asks: nothing written, F0 still the folder’s copy, B-EDIT on screen', J([omWrites(fold) - w0, fold.note(2027, 'A'), scr(B.ev), asks(B.ev)]), J([0, 'F0', 'B-EDIT', true]));
+    chk(name, sc, 'the lock was granted as asked and never held by two -- [grant order from tab A’s save, violations, most held at once, unmodelled, every grant let go, held now]' + GUARD,
+      J([LM.grantOrder('orbit-save', m0), LM.stats.violations.length, LM.stats.maxHeld['orbit-save'], LM.stats.unmodeled.length, LM.stats.grants === LM.stats.releases, LM.heldBy('orbit-save')]),
+      J([['A', 'B', 'B', 'B'], 0, 1, 0, true, []]));
+  }
+  // (5) CONTROLS. (5a) The screen exactly the folder's copy, nothing recorded (a browser that last saved to the folder before
+  // v1.89, when no record was kept: Alice's other browser's storage, its record removed): the opening's own connect takes F0
+  // as the base, as it always did; L-EDIT typed then; 💾 Save writes it with no question, F0 kept in the history. (5b) The
+  // same, but the refresh comes while a save waits at its read of the folder: U13's rule holds -- nothing recorded, nothing
+  // said -- and the save asks. (5c) The first save of a new board into an empty folder writes with no question, and records
+  // it. (5d) An ordinary refresh with nothing unsaved loads a newer folder copy and records it; then a Save writes with no
+  // question. (5e) With a copy recorded and a later one saved over it, Save asks in the words it always used.
+  const legacy = async () => { const fold = folder(); const X = await other(fold, ['F0']); const ls = lsOf(X.ev); delete ls[X.ev('_AP.key') + '.base'];
+    const B = await open(null, 'B', { html: F1, ls }); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`); return { B, fold }; };
+  const LEGACY = 'F0 on screen, stamped as the folder’s copy is; nothing recorded; nothing changed in this session (a CONTROL)';
+  const legacyv = (B, fold) => J([scr(B.ev), +B.ev('MS.ts') === headTs(fold), based(B.ev), B.ev('DIRTY')]);
+  { const sc = '(5a) CONTROL: the screen exactly the folder’s copy, nothing recorded';
+    const { B, fold } = await legacy();
+    chk(name, sc, LEGACY, legacyv(B, fold), J(['F0', true, 0, false]));
+    await B.ev('driveAutoConnect()'); await pause(5);
+    chk(name, sc, 'the opening’s own connect takes F0 as the copy the work came from', based(B.ev) === headTs(fold) && headTs(fold) > 0, true);
+    B.ev(`setNote('A','L-EDIT'); 'ok'`); await pause(5); const q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'L-EDIT typed; 💾 Save writes it with no question: the folder’s copy, saved, recorded against it; F0 in the folder’s history',
+      J([qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), based(B.ev) === headTs(fold), anywhere(fold, 'F0')]), J([0, 'L-EDIT', [false, false, false], true, true]));
+  }
+  { const sc = '(5b) CONTROL: the screen exactly the folder’s copy, nothing recorded; a refresh while a save waits at its read';
+    const { B, fold } = await legacy();
+    chk(name, sc, LEGACY, legacyv(B, fold), J(['F0', true, 0, false]));
+    const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
+    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === 'spmt-2027-om.json' && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
+    const p = B.ev('saveInPlace()'); const reached = await until(() => hit);
+    const s0 = state(B.ev), st0 = status(B.ev); const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the refresh while the save waits at its read records nothing and says nothing -- [the save waits, a save under way, returned, nothing changed byte for byte, the status line as it was]',
+      J([reached, B.ev('_saveBusy') > 0, r, state(B.ev) === s0, status(B.ev) === st0]), J([true, true, false, true, true]));
+    const w0 = omWrites(fold); g.open(); await p; await pause(5);
+    chk(name, sc, 'then the save, finding nothing recorded, asks: nothing written, F0 still the folder’s copy, the choice offered',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev)]), J([0, 'F0', true]));
+  }
+  { const sc = '(5c) CONTROL: the first save of a new board into an empty folder';
+    const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    const c = await B.ev('driveAutoConnect()'); await pause(5);
+    B.ev(`setNote('A','FIRST'); 'ok'`); await pause(5); const q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'the opening connected to an empty folder; 💾 Save writes FIRST with no question: the folder’s copy, saved, recorded against it',
+      J([c, qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), based(B.ev) === headTs(fold) && headTs(fold) > 0]), J([true, 0, 'FIRST', [false, false, false], true]));
+    B.ev(`setNote('A','SECOND'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'and the next 💾 Save writes SECOND with no question; FIRST in the folder’s history',
+      J([qs(B.ev).length - q0, fold.note(2027, 'A'), anywhere(fold, 'FIRST')]), J([0, 'SECOND', true]));
+  }
+  { const sc = '(5d) CONTROL: an ordinary refresh with nothing unsaved';
+    const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold);
+    await other(fold, ['N']);
+    chk(name, sc, 'N, saved by Alice’s other machine, newer than what is on screen; nothing unsaved, nothing recorded (a CONTROL)',
+      J([fold.note(2027, 'A'), headTs(fold) > +B.ev('MS.ts'), B.ev('DIRTY'), based(B.ev)]), J(['N', true, false, 0]));
+    const r = await B.ev('driveStorePull(true)'); await pause(5);
+    chk(name, sc, 'the refresh loads N and records it; nothing kept aside', J([r, scr(B.ev), based(B.ev) === headTs(fold), B.ev(`localStorage.getItem(_AP.key+'.kept')`)]), J([true, 'N', true, null]));
+    B.ev(`setNote('A','N-EDIT'); 'ok'`); await pause(5); const q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'N-EDIT typed; 💾 Save writes it with no question; N in the folder’s history', J([qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), anywhere(fold, 'N')]), J([0, 'N-EDIT', [false, false, false], true]));
+  }
+  { const sc = '(5e) CONTROL: a copy recorded, and a later one saved over it by Alice’s other machine';
+    const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    B.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    const f0 = based(B.ev); await other(fold, ['N']);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5);
+    chk(name, sc, 'F0 saved and recorded; Alice’s other machine loaded it and saved N over it; B-EDIT typed after, unsaved (a CONTROL)',
+      J([f0 > 0, based(B.ev) === f0, headTs(fold) > f0, fold.note(2027, 'A'), scr(B.ev), B.ev('DIRTY')]), J([true, true, true, 'N', 'B-EDIT', true]));
+    const w0 = omWrites(fold); await B.ev('saveInPlace()'); await pause(5); const st = status(B.ev);
+    chk(name, sc, '💾 Save asks, saying as before that theirs was saved after the copy the work came from -- [writes, the folder’s copy, the choice offered, after said, no record said]',
+      J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev), /^⛔ Alice saved O&M FY27 to the shared folder [^,]+, after the copy you are working from\. Nothing was written\. /.test(st), /no record/.test(st)]),
+      J([0, 'N', true, true, false]));
+  }
+  // (6) A REOPEN WITH UNSAVED WORK, NO TIMER AND NO SECOND TAB: as (1), but the page is reopened first, so this session has
+  // nothing unsaved (DIRTY false) and only this browser's record says so; the refresh is the opening's own connect, which
+  // is not quiet. It used to take F0 as the copy B-EDIT came from, and the next Save wrote B-EDIT over it unasked; (6h), with
+  // F00 kept minutes before, F0 was then kept only as a recent copy and the next Save removed it.
+  for (const h0 of [false, true]) {
+    const sc = '(6' + (h0 ? 'h' : '') + ') reopened with unsaved work: the opening’s own connect, then 💾 Save' + (h0 ? '; a history copy kept minutes before' : '');
+    const x = await unrecorded(null, h0); const { fold } = x;
+    chk(name, sc, UNREC(h0), unrec(x), UNRECW(h0));
+    const C = await open(null, 'C', { html: F1, ls: lsOf(x.B.ev) }); connect(C.ev, C.w, fold); C.ev(`_liveCfg.folder='shared'; 'ok'`);
+    await C.ev('driveAutoConnect()'); await pause(5);
+    chk(name, sc, 'reopened: B-EDIT on screen, unsaved by this browser’s record, not by this session (a CONTROL) -- [on screen, DIRTY, the record]',
+      J([scr(C.ev), C.ev('DIRTY'), unsaved(C.ev)[2]]), J(['B-EDIT', false, true]));
+    chk(name, sc, 'the opening’s own connect records nothing', based(C.ev), 0);
+    const w0 = omWrites(fold), q0 = qs(C.ev).length; await C.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, '💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded',
+      J([omWrites(fold) - w0, qs(C.ev).length - q0, fold.note(2027, 'A'), asks(C.ev), UNSAID.test(status(C.ev))]), J([0, 0, 'F0', true, true]));
+    await chooseMine(C, fold, sc, h0);
+  }
+  // (7) A BOARD SAVED TO ITS OWN FILE, SO NOTHING IS UNSAVED, THAT IS NOT THE FOLDER'S COPY: Alice's other machine saved F00
+  // and F0 to the shared folder; B-EDIT was then typed and saved to the board file; the board then works out of the folder
+  // and ↻ Refresh now finds F0, older than the screen. F0 was never on screen: it used to be taken as the copy B-EDIT came
+  // from, and the next Save wrote B-EDIT over it unasked, F0 kept only as a recent copy.
+  { const sc = '(7) a board saved to its own file, not the folder’s copy: ↻ Refresh now, then 💾 Save';
+    const fold = folder(); await other(fold, ['F00', 'F0']);
+    const B = await open(null, 'B'); const dk = W1H.disk(B.w, F1);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5); await B.ev('saveInPlaceFile()'); await pause(5);
+    connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    chk(name, sc, 'B-EDIT saved to the board file, nothing unsaved; F0 the folder’s copy, older than the screen; F00 a spaced copy; nothing recorded (a CONTROL)',
+      J([dk.writes, unsaved(B.ev), scr(B.ev), fold.note(2027, 'A'), headTs(fold) < +B.ev('MS.ts'), hist(fold), based(B.ev)]),
+      J([1, [false, false, false], 'B-EDIT', 'F0', true, [['F00', false]], 0]));
+    await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, '↻ Refresh now records nothing', based(B.ev), 0);
+    const w0 = omWrites(fold); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, '💾 Save asks: nothing written, F0 still the folder’s copy, the choice offered', J([omWrites(fold) - w0, fold.note(2027, 'A'), asks(B.ev)]), J([0, 'F0', true]));
+    await chooseMine(B, fold, sc, true);
+  }
+  // (8) A BOARD FILE HANDED OVER, NEWER THAN THE FOLDER'S COPY. Alice's other machine saved F0 to the folder; a board file was
+  // built after it and handed over. B opens that file in a browser with nothing recorded; the opening's own connect finds F0,
+  // older than the screen, and records nothing (it is not what is on screen). B types B-EDIT: 💾 Save asks; B loads theirs
+  // (B-EDIT kept aside), then ↶ Put back. The put-back line used to say Alice saved the folder's copy "after it" -- F0 was
+  // saved before the file the work came from, and nothing recorded can tell either way; now it says so. (8c) CONTROL: with a
+  // copy recorded (F0 saved by B, N saved over it by Alice's other machine), it says "saved after it", as it always did; and
+  // (8d) CONTROL: work kept aside from a board file is put back with the words it always had, whatever the folder's record.
+  // (9) The same as (8), with other work already kept aside: Load theirs is refused. It used to call F0 "a newer copy";
+  // now "a copy", and "their copy was not loaded". (9c) CONTROL: with a copy recorded, "a newer copy", as it always did.
+  const PUT_UNREC = /^↶ Put back the work kept aside on .+?\. 💾 Save will ask before it writes over the shared folder, which Alice saved; this browser has no record of which copy there, if any, this work came from\.$/;
+  const PUT_REC = /^↶ Put back the work kept aside on .+?\. 💾 Save will ask before it writes over the shared folder, which Alice saved after it\.$/;
+  const PUT_FILE = /^↶ Put back the work kept aside on .+?\. 💾 Save will ask before it writes over the saved file, which Bob saved after it\. What was on screen is kept aside in its place: put that back\.$/;
+  const OCC = (a, b) => new RegExp('^⚠ Alice saved ' + a + ' to the shared folder \\(.+?\\), but this browser already keeps earlier work aside \\(kept .+?\\) and holds new work besides\\. '
+    + 'Kept work is never replaced, so ' + b + ' copy was not loaded and nothing was lost\\. Deal with the kept work first: put it back · save it as a file · discard it\\.$');
+  const OCC_UNREC = OCC('a copy', 'their'), OCC_REC = OCC('a newer copy', 'the newer');
+  const keptA = ev => ev(`(function(){ var k=keptCopy(); if(!k) return '(none)'; try{ var s=JSON.parse(k.raw); return String(((s.years||{})['2027']||{}).notes.A||''); }catch(e){ return '?'; } })()`);
+  const keepOther = ev => ev(`(function(){ var o=JSON.parse(JSON.stringify(MS)); o.years['2027'].notes.A='OLDER-KEPT'; return keepAside(o, {why:'file', by:'Bob', ts:1}, baseGet()); })()`);
+  const handed = async () => { const fold = folder(); await other(fold, ['F0']); await pause(20);
+    const FN = baseFile('Alice', KEY.alice);
+    const B = await open(null, 'B', { html: FN }); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    const c = await B.ev('driveAutoConnect()'); await pause(5);
+    const tF0 = headTs(fold), tN = +B.ev('MS.ts');
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5);
+    return { B, fold, c, tF0, tN }; };
+  const HANDED = 'connected; F0 the folder’s copy, saved before the file B opened was stamped; B-EDIT on screen; nothing kept aside (a CONTROL)';
+  const handedv = x => J([x.c, x.fold.note(2027, 'A'), x.tF0 > 0 && x.tF0 < x.tN, scr(x.B.ev), keptA(x.B.ev)]);
+  const HANDEDW = J([true, 'F0', true, 'B-EDIT', '(none)']);
+  const recorded = async () => { const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    B.ev(`setNote('A','F0'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    const f0 = based(B.ev); await other(fold, ['N']);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5); return { B, fold, f0 }; };
+  const RECORDED = 'F0 saved and recorded; Alice’s other machine saved N over it; B-EDIT typed after, unsaved (a CONTROL)';
+  const recordedv = x => J([x.f0 > 0, based(x.B.ev) === x.f0, headTs(x.fold) > x.f0, x.fold.note(2027, 'A'), scr(x.B.ev), x.B.ev('DIRTY')]);
+  const RECORDEDW = J([true, true, true, 'N', 'B-EDIT', true]);
+  { const sc = '(8) a board file handed over, newer than the folder’s copy: 💾 Save; Load theirs; ↶ Put back';
+    const x = await handed(); const { B, fold } = x;
+    chk(name, sc, HANDED, handedv(x), HANDEDW);
+    chk(name, sc, 'the opening’s own connect records nothing (the file is not the folder’s copy)', based(B.ev), 0);
+    const w0 = omWrites(fold), q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, '💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded',
+      J([omWrites(fold) - w0, qs(B.ev).length - q0, fold.note(2027, 'A'), asks(B.ev), UNSAID.test(status(B.ev))]), J([0, 0, 'F0', true, true]));
+    await B.ev(`driveResolve('theirs')`); await pause(5);
+    chk(name, sc, 'Load theirs: F0 on screen, B-EDIT kept aside', J([scr(B.ev), keptA(B.ev)]), J(['F0', 'B-EDIT']));
+    const q1 = qs(B.ev).length; B.ev('keptPutBack()'); await pause(5); const said = status(B.ev);
+    chk(name, sc, '↶ Put back, asked: B-EDIT on screen, nothing kept, nothing recorded -- [questions, on screen, kept, recorded]',
+      J([qs(B.ev).length - q1, scr(B.ev), keptA(B.ev), based(B.ev)]), J([1, 'B-EDIT', '(none)', 0]));
+    chk(name, sc, 'and it says Alice saved the folder’s copy, with no record of which copy the work came from -- never that she saved it after -- [the words, “saved after it” said]',
+      J([PUT_UNREC.test(said), /saved after it/.test(said)]), J([true, false]));
+    const w1 = omWrites(fold); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'then 💾 Save asks again: nothing written; F0 the folder’s copy, B-EDIT on screen',
+      J([omWrites(fold) - w1, asks(B.ev), fold.note(2027, 'A'), scr(B.ev)]), J([0, true, 'F0', 'B-EDIT']));
+  }
+  { const sc = '(8c) CONTROL: a copy recorded: 💾 Save; Load theirs; ↶ Put back';
+    const x = await recorded(); const { B, fold } = x;
+    chk(name, sc, RECORDED, recordedv(x), RECORDEDW);
+    await B.ev('saveInPlace()'); await pause(5); await B.ev(`driveResolve('theirs')`); await pause(5);
+    chk(name, sc, '💾 Save asked; Load theirs: N on screen, B-EDIT kept aside', J([scr(B.ev), keptA(B.ev)]), J(['N', 'B-EDIT']));
+    B.ev('keptPutBack()'); await pause(5); const said = status(B.ev);
+    chk(name, sc, '↶ Put back: B-EDIT on screen, recorded against F0 again; it says Alice saved the folder’s copy after it -- [on screen, recorded, the words]',
+      J([scr(B.ev), based(B.ev) === x.f0, PUT_REC.test(said)]), J(['B-EDIT', true, true]));
+  }
+  { const sc = '(8d) CONTROL: work kept aside from a board file, nothing recorded for the folder: ↶ Put back';
+    const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    B.ev(`setNote('A','B-EDIT'); 'ok'`); await pause(5); keepOther(B.ev);
+    chk(name, sc, 'OLDER-KEPT kept aside from a board file Bob saved; B-EDIT on screen, unsaved; nothing recorded for the folder (a CONTROL)',
+      J([keptA(B.ev), scr(B.ev), B.ev('DIRTY'), based(B.ev)]), J(['OLDER-KEPT', 'B-EDIT', true, 0]));
+    B.ev('keptPutBack()'); await pause(5); const said = status(B.ev);
+    chk(name, sc, '↶ Put back: OLDER-KEPT on screen, B-EDIT kept in its place; it says Bob saved the board file after it, as it always did -- [on screen, kept, the words]',
+      J([scr(B.ev), keptA(B.ev), PUT_FILE.test(said)]), J(['OLDER-KEPT', 'B-EDIT', true]));
+  }
+  { const sc = '(9) the same, with other work already kept aside: Load theirs is refused';
+    const x = await handed(); const { B, fold } = x;
+    chk(name, sc, HANDED, handedv(x), HANDEDW);
+    keepOther(B.ev); await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, 'other work kept aside; 💾 Save asks, nothing written -- [kept, asked, the folder’s copy]', J([keptA(B.ev), asks(B.ev), fold.note(2027, 'A')]), J(['OLDER-KEPT', true, 'F0']));
+    await B.ev(`driveResolve('theirs')`); await pause(5); const said = status(B.ev);
+    chk(name, sc, 'Load theirs refused: B-EDIT on screen, OLDER-KEPT still kept, F0 the folder’s copy', J([scr(B.ev), keptA(B.ev), fold.note(2027, 'A')]), J(['B-EDIT', 'OLDER-KEPT', 'F0']));
+    chk(name, sc, 'and it calls F0 “a copy”, not “a newer copy” -- it was saved before the file the work came from -- [the words, “newer” said]',
+      J([OCC_UNREC.test(said), /newer/.test(said)]), J([true, false]));
+  }
+  { const sc = '(9c) CONTROL: a copy recorded, other work already kept aside: Load theirs is refused';
+    const x = await recorded(); const { B, fold } = x;
+    chk(name, sc, RECORDED, recordedv(x), RECORDEDW);
+    keepOther(B.ev); await B.ev('saveInPlace()'); await pause(5); await B.ev(`driveResolve('theirs')`); await pause(5); const said = status(B.ev);
+    chk(name, sc, 'Load theirs refused: B-EDIT on screen, OLDER-KEPT still kept, N the folder’s copy; it calls N “a newer copy”, as it always did -- [on screen, kept, the folder’s copy, the words]',
+      J([scr(B.ev), keptA(B.ev), fold.note(2027, 'A'), OCC_REC.test(said)]), J(['B-EDIT', 'OLDER-KEPT', 'N', true]));
+  }
+  // (10) ANOTHER YEAR. B's FY27 is saved and recorded; Alice's other machine saves FY28 (A28), which B never loaded. B types in
+  // FY27 (unsaved), switches to FY28 -- rolled forward from what is on screen, so not A28 -- and presses ↻ Refresh now: A28
+  // is older than the screen, and nothing is recorded for FY28. It used to be taken as the copy FY28 came from, and 💾 Save
+  // wrote B's FY28 over A28 without asking. Now nothing is recorded, and 💾 Save asks.
+  { const sc = '(10) another year: FY28 saved by Alice’s other machine, never loaded here; ↻ Refresh now on FY28, then 💾 Save';
+    const fold = folder(); const B = await open(null, 'B'); connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);
+    await B.ev('driveAutoConnect()'); await pause(5);
+    B.ev(`setNote('A','B27'); 'ok'`); await pause(5); await B.ev('saveInPlace()'); await pause(5);
+    const X = await open(null, 'X'); connect(X.ev, X.w, fold);
+    X.ev(`switchYear(2028); setNote('A','A28'); 'ok'`); await pause(5); await X.ev('driveStorePush(false)'); await pause(5);
+    B.ev(`setNote('A','B27-2'); 'ok'`); await pause(5); B.ev(`switchYear(2028); 'ok'`); await pause(5);
+    const ts28 = () => { const j = fold.copy(2028); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
+    const w28 = () => fold.log.filter(v => v === 'main:spmt-2028-om.json').length;
+    chk(name, sc, 'FY27: B27 the folder’s copy and recorded; FY28: A28 the folder’s copy, older than B’s screen; B on FY28, not showing A28; nothing recorded for FY28 (a CONTROL)',
+      J([fold.note(2027, 'A'), +B.ev('driveBaseOf(mySlug(), 2027)') === headTs(fold), fold.note(2028, 'A'), ts28() > 0 && ts28() < +B.ev('MS.ts'), +B.ev('MS.cur'), scr(B.ev) !== 'A28', based(B.ev)]),
+      J(['B27', true, 'A28', true, 2028, true, 0]));
+    await B.ev('livePoll(false)'); await pause(5);
+    chk(name, sc, '↻ Refresh now on FY28 records nothing (A28 is not what is on screen)', based(B.ev), 0);
+    const w0 = w28(), q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
+    chk(name, sc, '💾 Save on FY28 asks: nothing written to FY28, A28 still its copy, nothing asked in a dialog, the choice offered',
+      J([w28() - w0, fold.note(2028, 'A'), qs(B.ev).length - q0, asks(B.ev)]), J([0, 'A28', 0, true]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U30) ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

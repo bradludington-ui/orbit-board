@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-null-several", "matches": 1, "find": "nothing else( \\(so none of the \\d+ files was taken\\))?$/.test(w);", "repl": "nothing else$/.test(w);"}

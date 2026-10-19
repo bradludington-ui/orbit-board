@@ -1,0 +1,376 @@
+### mut/mine-after-apply.html
+@@ -26738,12 +26738,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+@@ -26767,6 +26761,12 @@
+   applyStore(j.store);
+   driveBaseSet(mySlug(), theirs, true);
+   persist(); render();
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    return false;
++  }
+   if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+     +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.'
+     +(own? ' This browser held work no saved copy had; it is <b>kept aside</b>: '
+### mut/mine-after-keepaside.html
+@@ -26738,17 +26738,17 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
++  // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
++  // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
++  const own=ownUnsaved(MS, j.store, baseGet());
++  const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:theirs}, baseGet()) : true;
++  if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }
+   if(_saveBusy){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+   }
+-  // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+-  // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+-  const own=ownUnsaved(MS, j.store, baseGet());
+-  const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:theirs}, baseGet()) : true;
+-  if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }
+   if(ka!==true){
+     setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
+       +esc(liveAge(theirs))+', but this browser holds work no saved copy has and there is no room to keep it aside \u2014 '
+### mut/mine-autobusy.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_autoBusy){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-base-else-clash.html
+@@ -26706,7 +26706,7 @@
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
+     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+-    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
++    if(!base && !_saveBusy) driveBaseSet(mySlug(), theirs);
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
+### mut/mine-before-dirty.html
+@@ -26710,6 +26710,12 @@
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   if(DIRTY){
+     // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board
+     // losing what somebody had just typed.
+@@ -26738,12 +26744,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-before-notnewer.html
+@@ -26699,6 +26699,12 @@
+   }
+   const theirs=+((j.store&&j.store.ts)||j.ts||0), ours=+(MS.ts||0);
+   const base=driveBaseOf(mySlug());
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   if(theirs<=ours){
+     // NOT NEWER THAN WHAT IS ON SCREEN -- but newer than the copy this work came from means somebody
+     // saved after it, and what is on screen does not have their changes (v1.89). Said now, and Save
+@@ -26706,7 +26712,7 @@
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
+     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+-    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
++    if(!base) driveBaseSet(mySlug(), theirs);
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
+@@ -26738,12 +26744,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-between-waits.html
+@@ -26681,6 +26681,12 @@
+       +'</b>. Open 📡 Live view and press Reconnect.');
+     render(); return false;
+   }
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   let j;
+   try{ j=await driveStoreRead(dir, mySlug()); }
+   catch(e){
+@@ -26738,12 +26744,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-busy-gt1.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_saveBusy>1){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-count-instead.html
+@@ -26738,12 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
++  if(_saveBusy) _saveGen++;
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-entry-only.html
+@@ -26673,6 +26673,12 @@
+ // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
+ async function driveStorePull(quiet){
+   if(!driveStoreOn()) return false;
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   let dir;
+   try{ dir=await driveDir(false,'read'); }
+   catch(e){
+@@ -26706,7 +26712,7 @@
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
+     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+-    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
++    if(!base) driveBaseSet(mySlug(), theirs);
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
+@@ -26738,12 +26744,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-entry-plus-base.html
+@@ -26673,6 +26673,12 @@
+ // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
+ async function driveStorePull(quiet){
+   if(!driveStoreOn()) return false;
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   let dir;
+   try{ dir=await driveDir(false,'read'); }
+   catch(e){
+@@ -26738,12 +26744,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+### mut/mine-loud-only.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_saveBusy && !quiet){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-no-base-guard.html
+@@ -26706,7 +26706,7 @@
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
+     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+-    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
++    if(!base) driveBaseSet(mySlug(), theirs);
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
+### mut/mine-no-render.html
+@@ -26742,7 +26742,7 @@
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
++    return false;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+### mut/mine-quiet-only.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_saveBusy && quiet){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-refuse-persists.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_saveBusy){ persist();
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-refuse-records-base.html
+@@ -26738,7 +26738,7 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
++  if(_saveBusy){ driveBaseSet(mySlug(), theirs);
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+### mut/mine-returns-true.html
+@@ -26742,7 +26742,7 @@
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
++    render(); return true;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+### mut/mine-said-quiet.html
+@@ -26739,7 +26739,7 @@
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+   if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++    if(true) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+### mut/mine-shell-only.html
+@@ -26738,12 +26738,6 @@
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+-  if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+@@ -26757,6 +26751,12 @@
+     render(); return false;
+   }
+   if(IS_SHELL){
++    if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+     applyStore(j.store);
+     driveBaseSet(mySlug(), theirs, true);
+     persist();
+### mut/mine-silent.html
+@@ -26739,7 +26739,7 @@
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+   if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++    if(false) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+       +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+### mut/mine-words-no-when.html
+@@ -26740,7 +26740,7 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
+   if(_saveBusy){
+     if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh '
+       +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+   }

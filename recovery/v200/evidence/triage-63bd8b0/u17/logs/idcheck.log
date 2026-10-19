@@ -1,0 +1,16 @@
+== board diff c137 -> b63 (expected: the U13 commit's two guards in driveStorePull only)
+diff blob 39cfe69e44421bc2392b63863aceeafaec2bcb23 lines 36
+3:@@ -26704,7 +26704,9 @@
+14:@@ -26729,6 +26731,22 @@
+== compare with rec/L3/u13/diffs/board.diff (blob 28ee403ed9d537353a108e672a2f0566b5c974aa)
+changed lines identical
+== W1H block: the copy used by u13codex (w1h-block.txt) vs b63 and c137 audit-import
+w1h-block.txt blob e771578d5d28c538c8e8ba05ca712718c1e8333b lines 69
+b63: first W1H line at 3745
+b63: W1H block identical
+c137: first W1H line at 3745
+c137: W1H block identical
+== refute probe composition (u13codex/verify)
+f4ef4110e557d4dc7a0d7af7e8e2dd49bd17a6c8
+1d10ccdb139a92c99ecbc97831628cb209f3ff86
+a957682e9279509904cd9d14079cd7f81da1c9e1

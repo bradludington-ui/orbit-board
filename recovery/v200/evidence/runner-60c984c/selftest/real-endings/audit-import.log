@@ -1,0 +1,13 @@
+# cmd:  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-60c984c/cases/real/audit-import.sh
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-60c984c/cases/fake
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-12T15:35:24Z / 11:35:24 EDT
+# cap: 30s  grace: 10s
+
+================================================================================================
+ALL CHECKS PASSED
+
+
+# end: 2026-10-12T15:35:24Z / 11:35:24 EDT
+# exit: 0  duration_s: 0.0

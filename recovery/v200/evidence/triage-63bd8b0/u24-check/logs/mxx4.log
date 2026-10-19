@@ -1,0 +1,10 @@
+y4-SHc-fold-Wedit start="2026-10-12 15:41:36 EDT" exit=0 wall_s=6.036044763 log=logs/y4-SHc-fold-Wedit.log 
+y4-SHc-file-Wedit start="2026-10-12 15:41:42 EDT" exit=0 wall_s=5.816322114 log=logs/y4-SHc-file-Wedit.log 
+y4-SHc-fold-Wread start="2026-10-12 15:41:48 EDT" exit=0 wall_s=5.926229602 log=logs/y4-SHc-fold-Wread.log 
+y4-SHc-file-Wread start="2026-10-12 15:41:54 EDT" exit=0 wall_s=4.794294313 log=logs/y4-SHc-file-Wread.log 
+y4-SHc-fold-Whist start="2026-10-12 15:41:59 EDT" exit=0 wall_s=5.988475300 log=logs/y4-SHc-fold-Whist.log 
+y4-SHc-fold-Wauto start="2026-10-12 15:42:05 EDT" exit=0 wall_s=5.750276111 log=logs/y4-SHc-fold-Wauto.log 
+y4-SHa-fold-Wlate start="2026-10-12 15:42:10 EDT" exit=0 wall_s=6.708971127 log=logs/y4-SHa-fold-Wlate.log 
+y4-BT-file-Wcf start="2026-10-12 15:42:17 EDT" exit=0 wall_s=5.676042147 log=logs/y4-BT-file-Wcf.log 
+y4-IB-fold-C3clean start="2026-10-12 15:42:23 EDT" exit=0 wall_s=4.730361180 log=logs/y4-IB-fold-C3clean.log 
+y4-IB-fold-C1oldclean start="2026-10-12 15:42:28 EDT" exit=0 wall_s=4.573967243 log=logs/y4-IB-fold-C1oldclean.log 

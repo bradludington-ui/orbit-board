@@ -1,0 +1,2 @@
+26477:const SNAP_DIR='history';
+26479:const SNAP_GAP=10*60*1000;       // the spacing; a copy kept closer than this to the last spaced one is a recent copy

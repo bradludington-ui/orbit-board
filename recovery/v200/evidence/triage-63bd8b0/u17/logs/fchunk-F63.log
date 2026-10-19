@@ -1,0 +1,12 @@
+f-b63-FBT-none start=2026-10-12T10:58:47EDT exit=0 wall_s=7.3  | SUMMARY FBT none board=u13: 7 pass, 1 fail | fixture 4/4 | predict 2/2 | contract 1/2 | harness 0/0
+f-b63-FBT-save start=2026-10-12T10:58:55EDT exit=0 wall_s=6.1  | SUMMARY FBT save board=u13: 7 pass, 3 fail | fixture 4/4 | predict 3/3 | contract 0/3 | harness 0/0
+f-b63-FBT-putback start=2026-10-12T10:59:01EDT exit=0 wall_s=7.3  | SUMMARY FBT putback board=u13: 8 pass, 1 fail | fixture 4/4 | predict 3/3 | contract 1/2 | harness 0/0
+f-b63-FBTC-none start=2026-10-12T10:59:08EDT exit=0 wall_s=7.4  | SUMMARY FBTC none board=u13: 6 pass, 0 fail | fixture 2/2 | predict 2/2 | contract 2/2 | harness 0/0
+f-b63-FBTC-save start=2026-10-12T10:59:15EDT exit=0 wall_s=6.1  | SUMMARY FBTC save board=u13: 8 pass, 0 fail | fixture 2/2 | predict 4/4 | contract 2/2 | harness 0/0
+f-b63-FBTC-putback start=2026-10-12T10:59:22EDT exit=0 wall_s=5.7  | SUMMARY FBTC putback board=u13: 7 pass, 0 fail | fixture 2/2 | predict 3/3 | contract 2/2 | harness 0/0
+f-b63-FSHd-none start=2026-10-12T10:59:27EDT exit=0 wall_s=9.1  | SUMMARY FSHd none board=u13: 8 pass, 1 fail | fixture 5/5 | predict 2/2 | contract 1/2 | harness 0/0
+f-b63-FSHd-save start=2026-10-12T10:59:37EDT exit=0 wall_s=9.1  | SUMMARY FSHd save board=u13: 9 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 1/3 | harness 0/0
+f-b63-FSHd-putback start=2026-10-12T10:59:46EDT exit=0 wall_s=8.5  | SUMMARY FSHd putback board=u13: 8 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 0/2 | harness 0/0
+f-b63-FSHdC-none start=2026-10-12T10:59:54EDT exit=0 wall_s=8.7  | SUMMARY FSHdC none board=u13: 7 pass, 0 fail | fixture 3/3 | predict 2/2 | contract 2/2 | harness 0/0
+f-b63-FSHdC-save start=2026-10-12T11:00:03EDT exit=0 wall_s=7.5  | SUMMARY FSHdC save board=u13: 9 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 3/3 | harness 0/0
+f-b63-FSHdC-putback start=2026-10-12T11:00:11EDT exit=0 wall_s=7.3  | SUMMARY FSHdC putback board=u13: 8 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 2/2 | harness 0/0

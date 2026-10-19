@@ -1,0 +1,38 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index ff16e5e..9a8ac61 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -1474,6 +1474,33 @@ result for it was run fresh against these commits.
+     money review, round 6, probe P1b, 14 Oct; the same pull on `7ee498a`, where the line read "🔒 Not kept — … ⬇ Loaded O&M
+     FY27 from the shared folder"). The check named "📡 Connect" in this block calls the folder read alone
+     (`driveStorePull(false)`), not the Connect (`driveConnectNow`). Ledger U51.
++- **U10 (5 of 12) — partner money, FMS money or a year refused in a locked view is in no total and no export** (ledger U49,
++  a release blocker the lead put in U10's track on 13 Oct, 5:17 PM ET; found by the YEARSEL money review, round 3, probe P4).
++  With PB27 on screen, International Partners $3,000,000 typed for FY27 in the funds-flow panel was refused ("the change was
++  not kept"), and the view's calculation and the funds-flow export named "… [PB27 LOCKED].xlsx" still counted it: TOTAL
++  FUNDING $503,000,000 and International Partners 3,000,000. With Foreign Military Sales $2,000,000 typed as well the total was
++  $505,000,000, and with FY25 clicked in the year buttons $545,000,000. Neither the lock nor the plan held that money. The
++  refusal had put back the year on screen and nothing beside it, and the funds flow's partner and FMS money and its year
++  selection are kept beside the years. U10 1 of 12 makes the whole copy again on every refusal, so they are put back; this
++  commit reads them, with P4's figures, so that no later change can bring the money back unseen.
++  - **What users may see:** nothing beyond U10 1 of 12: in a locked view, partner money, FMS money and the funds flow's year
++    buttons are refused and go back at once, as the status line says.
++  - **Test:** audit-recon "v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total and no
++    export" (7 checks), on P4's board: one O&M requirement F1 (PSM, $1,000,000,000 asked), $500,000,000 discretionary in
++    FY27, an imported FY25 row of $40,000,000, the funds flow's saved selection FY27; PB27 locked and viewed. International
++    Partners and Foreign Military Sales are typed in the fields the funds-flow panel draws, and FY25 is clicked in its year
++    buttons. After each: the status line, the calculation, the panel's total funding and fields, and the funds-flow export
++    read from its bytes (its name, TOTAL FUNDING, US SERVICE FUNDING, International Partners, Foreign Military Sales); every
++    figure is typed in the block. Controls: PB27 viewed with nothing typed; the view left (the working plan holds no partner
++    money; the cycle store and browser storage byte for byte); on the working plan the same figure and the same click are
++    allowed ($503,000,000, then $543,000,000, each in the export). On `7ee498a` the 3 non-control checks fail ($503,000,000;
++    $505,000,000; $545,000,000, each under "[PB27 LOCKED]") and the 4 controls pass; at U10 4 of 12 all 7 pass.
++  - **Mutations:** `v200-u10-reapply-keeps-partner-money` and `-reapply-keeps-year-pick` (a refusal that makes the copy again
++    but keeps the refused partner money, or the refused year selection); each is caught by this block (3 and 1 checks
++    fail) and by no earlier U10 block (the round-3 test review: 0 of 111 fail).
++  - **Not covered:** a locked cycle keeps no funds-flow money of its own: partner and FMS money typed on the working plan
++    after the lock is counted in the cycle's view and its "[PB27 LOCKED]" export (ledger row U53). The funds flow's
++    appropriation buttons, pseudo year, prime rules and categories: commit 9.
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

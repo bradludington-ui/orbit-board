@@ -1,0 +1,5 @@
+BASE-1 exit=0 wall_s=15.158624881
+BASE-2 exit=0 wall_s=16.846488061
+U2a-2 exit=0 wall_s=12.815502967
+U2b-2 exit=0 wall_s=13.568896062
+U2ab-2 exit=0 wall_s=15.069566814

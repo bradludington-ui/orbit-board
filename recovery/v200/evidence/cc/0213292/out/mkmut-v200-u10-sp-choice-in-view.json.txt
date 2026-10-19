@@ -1,0 +1,1 @@
+{"id": "v200-u10-sp-choice-in-view", "matches": 1, "find": "function spRefused(){ if(!cycBlock('Changing the spend plan')) return false; render(); return true; }", "repl": "function spRefused(){ return false; }"}

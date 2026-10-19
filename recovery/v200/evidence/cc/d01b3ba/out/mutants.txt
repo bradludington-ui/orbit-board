@@ -1,0 +1,4 @@
+v200-u10-reapply-keeps-pseudo mutant=a9615ee30d9489bdcaafc0cca309e8b2dd69845e matches=1 diffstat=2
+v200-u10-reapply-keeps-appn-pick mutant=d9d235216bba9462fde2482f8a46f68025ecb8fd matches=1 diffstat=2
+v200-u10-reapply-keeps-rules mutant=3d567628d14fc110e984d694e920e0eb45a0da22 matches=1 diffstat=2
+v200-u10-reapply-keeps-cats mutant=72b4ce673913d5d74738ab4efbf1b9e4697a9db8 matches=1 diffstat=2

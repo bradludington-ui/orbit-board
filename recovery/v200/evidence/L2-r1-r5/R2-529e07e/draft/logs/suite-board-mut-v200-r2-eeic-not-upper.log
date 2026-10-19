@@ -1,0 +1,10 @@
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ß×10
+    upper-cased it is 20 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["SSSSSSSSSSSSSSSSSSSS",null,"ßßßßßßßßßß",false]   want ["AAAAA","true","ßßßßßßßßßß",true]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ﬃ×4
+    upper-cased it is 12 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["FFIFFIFFIFFI",null,"ﬃﬃﬃﬃ",false]   want ["AAAAA","true","ﬃﬃﬃﬃ",true]

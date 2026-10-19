@@ -1,0 +1,294 @@
+diff --git a/base/tools/export-audit/audit-recon.mjs b/u10/c1r/tools/export-audit/audit-recon.mjs
+index 529e36f..746dac8 100644
+--- a/base/tools/export-audit/audit-recon.mjs
++++ b/u10/c1r/tools/export-audit/audit-recon.mjs
+@@ -5123,6 +5123,289 @@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U14) ====
++// ==== v2.00 (U10): a refused edit in a locked cycle's view changes no code any export carries ====
++// The review of main (Codex), as Brad supplied it on 11 Oct: lock PB27 with RCN / EEIC 11111 / AAAAA, move the working codes on,
++// view PB27 and type 77777 in the enabled RCN field. Save said "the change was not kept", and RCN-EEIC by Month then exported
++// PB27's dollars under 77777 / AAAAA, labelled LOCKED VIEW: a refused write put back the year on screen and nothing beside it.
++// On v1.98 item 83's board (K1-K4, P's two CLINs, the ACE set), with a second held year (FY28, a copy of FY27) and an office ZED
++// holding Q. PB27 is locked; the working list then moves on as v1.99 item 88's does (K1 renumbered 99999 / ZZZZZ, K3 removed).
++// Each edit is made through the control the board renders for it -- the RCN / EEIC panel's three fields, its ✕ (answered OK),
++// its + Add and a service box, and Setup › PMOs' ✎ (answered WRK) -- from a fresh view of PB27. After each, every export that
++// carries a code is read from its bytes: RCN-EEIC by Month (summary, requirements, prime contracts), the Spend Plan Source
++// (amount, CLIN, EEIC, RCN, PMO), the ACE tie-out (alignment breakout and mapping, FY27 and FY28) and the whole workbook (no
++// cell names a code the cycle does not hold; the office ZED is everywhere it was). Every expected code and figure is the
++// cycle's own, typed here: item 83's table. The record's own steps (saved, reopened, viewed, 77777 typed) are checked as well,
++// and so is a cycle locked before v1.99, which kept no list: its view reads today's list (item 88), and a refusal leaves it so.
++// FAILS ON 7ee498a (board fce8a391, U14's): each edit stays on the view's copy -- 77777, YYYYY and "Renamed" in every export
++// that prints the code; K3 removed, so CLIN 0001's AFRC $31 is on no combination in FY27 and falls to K1 in FY28; ZED renamed,
++// so Q's $71 is filed under AV; the older cycle's RCN-EEIC tab prints 77777 / ZZZZZ. CONTROLS: an edit to the year's own
++// assignments (put back before as well), the cycle store and browser storage byte for byte, leaving the view, and an allowed
++// edit on the working plan, which every export carries.
++await (async () => {
++  const name = 'v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify;
++    const ST = `S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.rcnSvc={PRIME_P:{ANG:'K2'}, R:{ANG:'K2'}};
++      S.clinRcn={PRIME_P:{n1:'K1'}}; S.clinRcnSvc={PRIME_P:{n1:{AFRC:'K3'}}};
++      S.wbs={R:[{w:'2.2', v:[]}]}; S.aceMap={PRIME_P:{w:['1.1'], ok:true}, R:{w:['2.2'], ok:true}};
++      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'AV', wbs:'2.2', v:{}}]}};
++      ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; ACEDB.sets['2027ACE'].lines[1].v[MS.cur]=600; aceYr='all';
++      MS.pmos=GROUPS.concat(['ZED']); S.grp={Q:'ZED'};`;
++    const X = v198Board(ST);
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    const key = ev(`window.confirm=function(){ return true; }; window.prompt=function(){ return 'WRK'; };
++      MS.base=MS.cur; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S)); save();
++      blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    w5Chk(name, 'fixture', 'CONTROL — PB27 is locked, holding FY27 and FY28, with the list K1-K4; Q is in ZED',
++      J([key, ev(`JSON.stringify([!!(blGet('PB|2027')||{}).locked, Object.keys((blGet('PB|2027')||{}).years||{})])`), ev(`GROUPS.indexOf('ZED')>=0`), ev(`grpOf(itemById('Q'))`)]),
++      J(['PB|2027', '[true,["2027","2028"]]', true, 'ZED']));
++    // the working list moves on after the lock (item 88's own change)
++    ev(`(function(){ var L=rcnReg(), i=L.findIndex(function(e){ return e.k==='K1'; }); rcnSet(i,'rcn','99999'); rcnSet(i,'eeic','ZZZZZ');
++      rcnDel(rcnReg().findIndex(function(e){ return e.k==='K3'; })); })(); 'ok'`);
++    const reg = () => JSON.parse(ev(`JSON.stringify(rcnReg().map(function(e){ return [e.rcn, e.eeic, e.t, (e.svc||[]).join('+')]; }))`));
++    w5Chk(name, 'fixture', 'CONTROL — the working list is now 99999 / ZZZZZ, 22222 / BBBBB, 44444 / DDDDD',
++      J(reg()), J([['99999', 'ZZZZZ', '', 'USAF+ANG+AFRC'], ['22222', 'BBBBB', '', 'ANG'], ['44444', 'DDDDD', '', 'USAF+ANG+AFRC']]));
++    const cyc0 = ev('JSON.stringify(CYCDB)'), ls0 = ev('localStorage.getItem(_AP.key)');
++    // the panel as drawn on screen: each combination's RCN | EEIC | title | USAF ANG AFRC boxes
++    const panel = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#rcnBody tr')).slice(1).map(function(tr){
++      return [].slice.call(tr.querySelectorAll('input')).map(function(i){ return i.type==='checkbox'? (i.checked?'x':'-') : i.value; }).join('|'); }))`));
++    // a control the panel renders for one combination: its field (typed, change fired), a service box, its ✕, or + Add
++    const fire = (k, kind, value) => ev(`(function(){ if(!rcnOpen) toggleRcn(); var i=rcnReg().findIndex(function(e){ return e.k===${J(k)}; });
++      var els=[].slice.call(document.querySelectorAll('#rcnBody input, #rcnBody button')), on=function(e, a){ return e.getAttribute(a)||''; }, el=null;
++      if(${J(kind)}==='add') el=els.filter(function(e){ return /^rcnAdd\\(/.test(on(e, 'onclick')); })[0];
++      else if(${J(kind)}==='del') el=els.filter(function(e){ return on(e, 'onclick')==='rcnDel('+i+')'; })[0];
++      else if(${J(kind)}==='svc') el=els.filter(function(e){ return on(e, 'onchange').indexOf('rcnToggleSvc('+i+',')===0 && on(e, 'onchange').indexOf(${J(value)})>0; })[0];
++      else el=els.filter(function(e){ return on(e, 'onchange').indexOf('rcnSet('+i+',"'+${J(kind)}+'"')===0; })[0];
++      if(!el) return 'no control';
++      if(${J(kind)}==='add' || ${J(kind)}==='del') el.click();
++      else if(${J(kind)}==='svc'){ el.checked=!el.checked; el.dispatchEvent(new Event('change', {bubbles:true})); }
++      else { el.value=${J(value)}; el.dispatchEvent(new Event('change', {bubbles:true})); }
++      return 'fired'; })()`);
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    // every export that carries a code, read from its bytes
++    const exportsOf = async W => {
++      const bk = JSON.parse(await w6Book(W, 'exportExcel')), rc = bk['RCN-EEIC by Month'] || [];
++      const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION'), iPr = rc.findIndex(r => w6Lbl(r) === 'PRIME CONTRACTS, BROKEN OUT BY CLIN');
++      const cells = []; Object.keys(bk).filter(k => !k.startsWith('__')).forEach(sh => (bk[sh] || []).forEach(r => (r || []).forEach(c => cells.push(String(c ?? '').trim()))));
++      const sb = JSON.parse(await w6Book(W, 'exportSrc')), src = (Object.values(sb).find(rs => (rs || []).length > 1) || []).slice(1);
++      const ab = JSON.parse(await w6Book(W, 'exportAceTieout'));
++      const al = ab['Alignment Breakout'] || [], ah = headerRow(al, 'FY', 'PMO', 'Line total');
++      const mp = ab['Mapping by Requirement'] || [], mh = headerRow(mp, 'FY', 'PMO', 'Board funded');
++      return {
++        files: [bk.__err || 'ok', sb.__err || 'ok', ab.__err || 'ok'],
++        summary: v198Sec(rc, 0, iReq).map(r => r.slice(0, 3)), requirements: v198Sec(rc, iReq, iPr), primes: v198Sec(rc, iPr, rc.length).map(r => r.slice(0, 3)),
++        source: src.map(r => [num(r[9]), String(r[25] ?? ''), String(r[26] ?? ''), String(r[27] ?? ''), String(r[18] ?? '')]).sort((a, b) => a[0] - b[0]),
++        alignment: al.slice(ah + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[2]), String(r[3] ?? ''), num(r[5]), String(r[colOf(al, ah, 'RCN')] ?? ''), String(r[colOf(al, ah, 'EEIC')] ?? '')]),
++        mapping: mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[colOf(mp, mh, 'PMO')] ?? ''), String(r[colOf(mp, mh, 'Requirement (CCaR Record Name)')]), String(r[colOf(mp, mh, 'RCN')] ?? ''), String(r[colOf(mp, mh, 'EEIC')] ?? '')]),
++        workbook: [cells.filter(t => /77777|YYYYY|99999|ZZZZZ|Renamed|WRK/.test(t)).length, 'PMO ZED' in bk, cells.filter(t => t === 'ZED').length] };
++    };
++    const exportsNow = () => exportsOf(X.w);
++    const L = v198Lab, N = v198NONE;
++    // THE CYCLE'S OWN CODES, as item 83's table has them; ZED holds Q; no cell names a code PB27 does not hold
++    const ALIGN = fy => [[fy, 'Req PRIME_P', '0001', 652, '11111', 'AAAAA'], [fy, 'Req PRIME_P', '0001', 31, '33333', 'CCCCC'], [fy, 'Req PRIME_P', '0001', 41, '', ''],
++      [fy, 'Req PRIME_P', '0002', 358, '44444', 'DDDDD'], [fy, 'Req R', '', 503, '11111', 'AAAAA'], [fy, 'Req R', '', 127, '22222', 'BBBBB'], [fy, 'Req Q', '', 71, '', '']];
++    const MAP = fy => [[fy, 'AV', 'Req PRIME_P', '(3 combinations)', '(see breakout)'], [fy, 'AV', 'Req R', '(2 combinations)', '(see breakout)'], [fy, 'ZED', 'Req Q', '', '']];
++    const LOCKED = { files: ['ok', 'ok', 'ok'],
++      summary: [['USAF', L('K1'), 904], ['USAF', L('K4'), 299], ['USAF', N, 71], ['USAF', 'USAF TOTAL', 1274], ['ANG', L('K1'), 251], ['ANG', L('K2'), 127], ['ANG', 'ANG TOTAL', 378],
++        ['AFRC', L('K3'), 31], ['AFRC', L('K4'), 59], ['AFRC', 'AFRC TOTAL', 90]],
++      requirements: [['USAF', L('K1') + '   (2 requirements)', 904, null], ['USAF', '#1  Req PRIME_P ⚠', 401, 401], ['USAF', '#2  Req R', 503, 503],
++        ['USAF', L('K4') + '   (1 requirement)', 299, null], ['USAF', '#1  Req PRIME_P ⚠', 299, 299],
++        ['USAF', N + '   — 1 requirement still to assign', 71, null], ['USAF', '#3  Req Q', 71, 71], ['USAF', 'USAF TOTAL', 1274, null],
++        ['ANG', L('K1') + '   (1 requirement)', 251, null], ['ANG', '#1  Req PRIME_P', 251, 251],
++        ['ANG', L('K2') + '   (1 requirement)', 127, null], ['ANG', '#2  Req R', 127, 127], ['ANG', 'ANG TOTAL', 378, null],
++        ['AFRC', L('K3') + '   (1 requirement)', 31, null], ['AFRC', '#1  Req PRIME_P ⚠', 31, 31],
++        ['AFRC', L('K4') + '   (1 requirement)', 59, null], ['AFRC', '#1  Req PRIME_P ⚠', 59, 59], ['AFRC', 'AFRC TOTAL', 90, null]],
++      primes: [['USAF', 'Req PRIME_P   (2 CLINs funded)', 700], ['USAF', 'CLIN 0001   ' + L('K1'), 401], ['USAF', 'CLIN 0002   ' + L('K4'), 299], ['USAF', 'USAF — PRIMES TOTAL', 700],
++        ['ANG', 'Req PRIME_P   (1 CLIN funded)', 251], ['ANG', 'CLIN 0001   ' + L('K1'), 251], ['ANG', 'ANG — PRIMES TOTAL', 251],
++        ['AFRC', 'Req PRIME_P   (2 CLINs funded)', 90], ['AFRC', 'CLIN 0001   ' + L('K3'), 31], ['AFRC', 'CLIN 0002   ' + L('K4'), 59], ['AFRC', 'AFRC — PRIMES TOTAL', 90]],
++      source: [[31, '0001', 'CCCCC', '33333', 'AV'], [41, '0001', '', '', 'AV'], [59, '0002', 'DDDDD', '44444', 'AV'], [71, '', '', '', 'ZED'], [127, '', 'BBBBB', '22222', 'AV'],
++        [251, '0001', 'AAAAA', '11111', 'AV'], [299, '0002', 'DDDDD', '44444', 'AV'], [401, '0001', 'AAAAA', '11111', 'AV'], [503, '', 'AAAAA', '11111', 'AV']],
++      alignment: ALIGN('FY27').concat(ALIGN('FY28')), mapping: MAP('FY27').concat(MAP('FY28')), workbook: [0, true, 8] };
++    const LIST = [['11111', 'AAAAA', '', 'USAF+ANG+AFRC'], ['22222', 'BBBBB', '', 'ANG'], ['33333', 'CCCCC', '', 'AFRC'], ['44444', 'DDDDD', '', 'USAF+ANG+AFRC']];
++    const PANEL = ['11111|AAAAA||x|x|x', '22222|BBBBB||-|x|-', '33333|CCCCC||-|-|x', '44444|DDDDD||x|x|x'];
++    const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`if(rcnOpen) toggleRcn(); if(pmoOpen) togglePmo(); cycLeave(); 'ok'`);
++    // ---- CONTROL: PB27 viewed, nothing typed
++    view();
++    w5Chk(name, 'PB27 viewed, nothing typed', 'CONTROL — every export carries the cycle’s own codes', J(await exportsNow()), J(LOCKED));
++    leave();
++    // ---- EACH EDIT THE RCN / EEIC PANEL OFFERS, refused. `exp`: the exports differed on 7ee498a (a combination with no money,
++    // and the services a combination is set up for, are printed by no export: those two are CONTROLs there)
++    const EDITS = [['RCN 77777 typed into K1’s field', () => fire('K1', 'rcn', '77777'), true], ['EEIC YYYYY typed into K1’s field', () => fire('K1', 'eeic', 'YYYYY'), true],
++      ['title “Renamed” typed into K4’s field', () => fire('K4', 't', 'Renamed'), true], ['K3 removed with its ✕, answered OK', () => fire('K3', 'del'), true],
++      ['+ Add RCN / EEIC', () => fire('K1', 'add'), false], ['K1’s ANG box switched off', () => fire('K1', 'svc', 'ANG'), false]];
++    for (const [what, act, exp] of EDITS) {
++      view(); const fired = act();
++      w5Chk(name, 'PB27 viewed · ' + what, 'refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked',
++        J([fired, notKept(), reg(), panel()]), J(['fired', true, LIST, PANEL]));
++      w5Chk(name, 'PB27 viewed · ' + what, (exp ? '' : 'CONTROL — ') + 'every export carries the cycle’s own codes, as before the edit', J(await exportsNow()), J(LOCKED));
++      leave();
++    }
++    // ---- ANOTHER YEAR THE CYCLE HOLDS: K3's ✕ clears its pointers in every year; refused on FY27, FY28 is read next
++    view(); fire('K3', 'del'); ev(`if(rcnOpen) toggleRcn(); switchYear(MS.cur+1); 'ok'`);
++    w5Chk(name, 'PB27 viewed · K3 removed on FY27, then FY28 on screen', 'FY28 still holds CLIN 0001’s AFRC on K3, and the list is the cycle’s',
++      J([ev('MS.cur'), ev(`JSON.stringify(S.clinRcnSvc)`), reg()]), J([2028, J({ PRIME_P: { n1: { AFRC: 'K3' } } }), LIST]));
++    w5Chk(name, 'PB27 viewed · K3 removed on FY27, then FY28 on screen', 'every export of FY28 carries the cycle’s own codes', J(await exportsNow()), J(LOCKED));
++    leave();
++    // ---- A REFUSAL WHILE FY28 IS ON SCREEN puts the copy back on FY28, not on the year the view opened on
++    view(); ev(`switchYear(MS.cur+1); 'ok'`); const f28 = fire('K1', 'rcn', '77777');
++    w5Chk(name, 'PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field', 'refused; still FY28, on FY28’s months; the list and the panel are the cycle’s',
++      J([f28, notKept(), ev('MS.cur'), ev('FYMON[0][0]'), reg(), panel()]), J(['fired', true, 2028, '2027-10', LIST, PANEL]));
++    w5Chk(name, 'PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field', 'every export of FY28 carries the cycle’s own codes', J(await exportsNow()), J(LOCKED));
++    leave();
++    // ---- THE PMO LIST: ZED renamed WRK with its ✎, refused (the rename moves every year's offices first)
++    view();
++    const fz = ev(`(function(){ if(!pmoOpen) togglePmo(); var b=[].slice.call(document.querySelectorAll('#pmoList button')).filter(function(e){
++      return (e.getAttribute('onclick')||'')==='pmoRename('+GROUPS.indexOf('ZED')+')'; })[0]; if(!b) return 'no control'; b.click(); return 'fired'; })()`);
++    w5Chk(name, 'PB27 viewed · ZED renamed WRK with its ✎', 'refused and said so; the list on screen still ends ZED; Q is in ZED in FY27 and FY28',
++      J([fz, notKept(), ev(`[].slice.call(document.querySelectorAll('#pmoList .fr > div > b')).map(function(b){ return b.textContent; }).join(',')`), ev(`grpOf(itemById('Q'))`), ev(`JSON.stringify(MS.years[MS.cur+1].grp)`)]),
++      J(['fired', true, 'ATL,PSM,PP,AV,MxS,CDS,TSS,BOP,ZED', 'ZED', J({ Q: 'ZED' })]));
++    w5Chk(name, 'PB27 viewed · ZED renamed WRK with its ✎', 'every export carries the cycle’s own offices and codes: Q’s $71 under ZED', J(await exportsNow()), J(LOCKED));
++    leave();
++    // ---- CONTROL: an edit to the year's own assignments, refused (the year was put back before this version too)
++    view(); ev(`setRcnAsg('Q','K2'); 'ok'`);
++    w5Chk(name, 'PB27 viewed · Q given K2 (the year’s own assignment)', 'CONTROL — refused, and every export carries the cycle’s own codes',
++      J([notKept(), await exportsNow()]), J([true, LOCKED]));
++    leave();
++    // ---- CONTROL: nothing durable moved, and leaving the view gives back the working plan
++    w5Chk(name, 'after every refusal, the view left', 'CONTROL — the cycle store and browser storage are byte for byte as they were; the working list, ZED and Q are the working plan’s',
++      J([ev('JSON.stringify(CYCDB)') === cyc0, ev('localStorage.getItem(_AP.key)') === ls0, ev('CYCVIEW'), reg(), ev(`GROUPS.join(',')`), ev(`grpOf(itemById('Q'))`)]),
++      J([true, true, '', [['99999', 'ZZZZZ', '', 'USAF+ANG+AFRC'], ['22222', 'BBBBB', '', 'ANG'], ['44444', 'DDDDD', '', 'USAF+ANG+AFRC']], 'ATL,PSM,PP,AV,MxS,CDS,TSS,BOP,ZED', 'ZED']));
++    // ---- THE RECORD'S OWN STEPS: the board saved and reopened, PB27 viewed, 77777 typed into the RCN field, Excel exported
++    const R = boot({ html: ev('buildSavedHtml()') });
++    const rv = (() => { try { return R.ev(`cycView(${J(key)}); (function(){ if(!rcnOpen) toggleRcn(); var el=[].slice.call(document.querySelectorAll('#rcnBody input')).filter(function(e){
++      return (e.getAttribute('onchange')||'').indexOf('rcnSet(0,"rcn"')===0; })[0]; if(!el) return 'no control'; el.value='77777'; el.dispatchEvent(new Event('change', {bubbles:true}));
++      return 'fired'; })()`); } catch (e) { return 'threw'; } })();
++    // the status line is read at once: 'Not kept' is put in front of a message for 1.5 s after a refusal, and the exports write their own
++    const rk = /the change was not kept|Not kept/.test(R.ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    const rx = await exportsOf(R.w);
++    w5Chk(name, 'the record’s steps: saved, reopened, PB27 viewed, 77777 typed', 'refused; RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out (on its own year, FY27, as a reopened board shows it) carry the cycle’s own codes; no cell names 77777',
++      J([rv, rk, rx]),
++      J(['fired', true, Object.assign({}, LOCKED, { alignment: ALIGN('FY27'), mapping: MAP('FY27') })]));
++    // ---- CONTROL: the working plan, no view -- an edit is allowed, and every export carries it
++    fire('K4', 'rcn', '55555'); ev(`if(rcnOpen) toggleRcn(); 'ok'`);
++    const w = await exportsNow(), WK = '99999 / ZZZZZ', W5 = '55555 / DDDDD';
++    const WALIGN = fy => [[fy, 'Req PRIME_P', '0001', 724, '99999', 'ZZZZZ'], [fy, 'Req PRIME_P', '0002', 358, '55555', 'DDDDD'], [fy, 'Req R', '', 503, '99999', 'ZZZZZ'],
++      [fy, 'Req R', '', 127, '22222', 'BBBBB'], [fy, 'Req Q', '', 71, '', '']];
++    w5Chk(name, 'the working plan · K4 renumbered 55555 (allowed)', 'CONTROL — every export carries 55555 / DDDDD, and the working list (K3 removed: CLIN 0001’s AFRC on its standard, K1)',
++      J([w.files, w.summary, w.primes, w.source, w.alignment]),
++      J([['ok', 'ok', 'ok'], [['USAF', WK, 904], ['USAF', W5, 299], ['USAF', N, 71], ['USAF', 'USAF TOTAL', 1274], ['ANG', WK, 251], ['ANG', L('K2'), 127], ['ANG', 'ANG TOTAL', 378],
++        ['AFRC', WK, 31], ['AFRC', W5, 59], ['AFRC', 'AFRC TOTAL', 90]],
++        [['USAF', 'Req PRIME_P   (2 CLINs funded)', 700], ['USAF', 'CLIN 0001   ' + WK, 401], ['USAF', 'CLIN 0002   ' + W5, 299], ['USAF', 'USAF — PRIMES TOTAL', 700],
++          ['ANG', 'Req PRIME_P   (1 CLIN funded)', 251], ['ANG', 'CLIN 0001   ' + WK, 251], ['ANG', 'ANG — PRIMES TOTAL', 251],
++          ['AFRC', 'Req PRIME_P   (2 CLINs funded)', 90], ['AFRC', 'CLIN 0001   ' + WK, 31], ['AFRC', 'CLIN 0002   ' + W5, 59], ['AFRC', 'AFRC — PRIMES TOTAL', 90]],
++        [[31, '0001', 'ZZZZZ', '99999', 'AV'], [41, '0001', '', '', 'AV'], [59, '0002', 'DDDDD', '55555', 'AV'], [71, '', '', '', 'ZED'], [127, '', 'BBBBB', '22222', 'AV'],
++          [251, '0001', 'ZZZZZ', '99999', 'AV'], [299, '0002', 'DDDDD', '55555', 'AV'], [401, '0001', 'ZZZZZ', '99999', 'AV'], [503, '', 'ZZZZZ', '99999', 'AV']],
++        WALIGN('FY27').concat(WALIGN('FY28'))]));
++    // ---- A CYCLE LOCKED BEFORE v1.99 kept no list (item 88's own reading of one: the lock's list taken away), so its view reads
++    // today's -- 99999 / ZZZZZ, 22222 / BBBBB, 55555 / DDDDD. 77777 typed into K1's field there is refused like any other.
++    ev(`delete blGet(${J(key)}).rcn; 'ok'`);
++    view(); const fo = fire('K1', 'rcn', '77777'), fk = notKept(), o = await exportsNow();
++    w5Chk(name, 'a cycle locked before v1.99, viewed · RCN 77777 typed into K1’s field', 'refused; the view’s list and RCN-EEIC by Month are today’s list as it is',
++      J([fo, fk, reg(), o.summary.filter(r => r[0] === 'USAF').map(r => r[1])]),
++      J(['fired', true, [['99999', 'ZZZZZ', '', 'USAF+ANG+AFRC'], ['22222', 'BBBBB', '', 'ANG'], ['55555', 'DDDDD', '', 'USAF+ANG+AFRC']], [WK, W5, N, 'USAF TOTAL']]));
++    leave();
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors on either board', J([X.errors.length, R.errors.length]), J([0, 0]));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10) ====
++// ==== v2.00 (U10, beside the codes): a refusal in a locked view puts back the plan's settings, the year on screen, the CCaR records and the base year ====
++// The U10 block above reads the codes. A refusal makes the whole copy again, so what the board keeps beside the codes comes back
++// with it, and this block reads that in the exports (the U10 round-1 test review's cases, 13 Oct). On v1.98 item 83's board with
++// every requirement in band 0, PB27 locked and viewed: band 0 renamed (bandSet, the handler the ✎ prompt calls) and the funds-flow
++// axis set to destinations (flowSetAxis), each refused. A held year that is not a copy of the first: PB27's FY28 files R on K4,
++// 77777 typed there. A CCaR Records file imported in the view (its Title and OPR are kept beside the years, in MS.ccarIdx, and the
++// Spend Plan Source prints them). The cycle's own FYDP window after a refusal, when the working plan's base year has moved on.
++// FAILS ON 7ee498a (board fce8a391): the workbook names band 0 RENAMED BAND, the funds-flow export is cut by destination, and the
++// Spend Plan Source titles R and Q REFUSED TITLE R / Q with OPR REFUSED OPR. The FY28 case fails there too (77777 stays in the
++// view's list, and RCN-EEIC by Month files K1's money under 77777). CONTROLS: nothing changed; nothing imported; the same CCaR
++// file imported on the working plan, which the Source prints; the cycle's FYDP window (the year-only put-back never touched the
++// base year); no jsdom errors. Every name, code and figure expected is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen, the CCaR records and the cycle’s base year';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify;
++    const X = v198Board(`S.band={PRIME_P:BANDS_LIST()[0].id, R:BANDS_LIST()[0].id, Q:BANDS_LIST()[0].id};`);
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    const bandCells = async () => { const bk = JSON.parse(await w6Book(X.w, 'exportExcel')), o = [];
++      Object.keys(bk).filter(k => !k.startsWith('__')).forEach(sh => (bk[sh] || []).forEach(r => (r || []).forEach(c => {
++        const t = String(c ?? '').trim(); if (/NET FUNDING AVAILABLE|RENAMED/i.test(t)) o.push(sh + ': ' + t); }))); return [bk.__err || 'ok', o]; };
++    const flowSheets = async () => { const bk = JSON.parse(await w6Book(X.w, 'exportFlow')); return [bk.__err || 'ok', Object.keys(bk).filter(k => !k.startsWith('__'))]; };
++    ev(`cycView(${J(key)}); 'ok'`);
++    const b0 = await bandCells(), f0 = await flowSheets();
++    ev(`bandSet(0,'n','RENAMED BAND'); 'ok'`); const nk1 = notKept(), b1 = await bandCells();
++    ev(`flowSetAxis('dest'); 'ok'`); const nk2 = notKept(), f1 = await flowSheets();
++    ev(`cycLeave(); 'ok'`);
++    // band 0 as the workbook prints it, and the funds-flow sheets cut by what the money buys: typed here
++    const BANDS = ['ok', ['Decision Bands: Net Funding Available', 'Decision Bands: BAND 0 — NET FUNDING AVAILABLE  ·  fund in full  ·  counts toward the stoppage gap  ·  organization standard  ·  3 requirements',
++      'Decision Bands: Net Funding Available', 'Decision Bands: Net Funding Available', 'Decision Bands: Net Funding Available']];
++    const FLOW = ['ok', ['Funds Flow', 'Prime Detail', 'OGC Detail', 'Workforce & Travel', 'Depot, Repair & Materiel', 'Software, IT & Cyber', 'Engineering, Projects & Stud', 'Program Operations & Support']];
++    w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the workbook names band 0 as locked, and the funds-flow export is cut by what the money buys', J([b0, f0]), J([BANDS, FLOW]));
++    w5Chk(name, 'PB27 viewed · band 0 renamed RENAMED BAND (refused)', 'refused and said so; the workbook still names band 0 as it was locked', J([nk1, b1]), J([true, BANDS]));
++    w5Chk(name, 'PB27 viewed · funds-flow axis set to destinations (refused)', 'refused and said so; the funds-flow export is still cut by what the money buys', J([nk2, f1]), J([true, FLOW]));
++    // A HELD YEAR THAT DIFFERS FROM THE ONE THE VIEW OPENS ON: PB27's FY28 files R on K4 (FY27 files it on K1). The U10 block's FY28 is a
++    // copy of FY27, so a refusal that put FY27's plan in FY28's place would read the same there. By hand (item 83's table, R on K4 in FY28):
++    // USAF -- K1 401 (CLIN 0001's standard), K4 802 (CLIN 0002's 299 + R's 503), none 71 (Q), total 1274.
++    const Y = v198Board(`S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.rcnSvc={PRIME_P:{ANG:'K2'}, R:{ANG:'K2'}}; S.clinRcn={PRIME_P:{n1:'K1'}};`);
++    const yv = c => { try { return Y.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    const k2 = yv(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
++      MS.years[MS.cur+1].rcnAsg={PRIME_P:'K4', R:'K4'}; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    yv(`cycView(${J(k2)}); switchYear(MS.cur+1); if(!rcnOpen) toggleRcn(); (function(){ var i=rcnReg().findIndex(function(e){ return e.k==='K1'; });
++      var el=[].slice.call(document.querySelectorAll('#rcnBody input')).filter(function(e){ return (e.getAttribute('onchange')||'').indexOf('rcnSet('+i+',"rcn"')===0; })[0];
++      el.value='77777'; el.dispatchEvent(new Event('change', {bubbles:true})); })(); 'ok'`);
++    const yk = /the change was not kept|Not kept/.test(yv(`(document.getElementById('shareStat')||{}).textContent||''`)), ycur = yv('MS.cur');
++    const ybk = JSON.parse(await w6Book(Y.w, 'exportExcel')), yrc = ybk['RCN-EEIC by Month'] || [];
++    const yreq = yrc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
++    const ysum = v198Sec(yrc, 0, yreq).filter(r => r[0] === 'USAF').map(r => r.slice(0, 3));
++    yv(`if(rcnOpen) toggleRcn(); cycLeave(); 'ok'`);
++    w5Chk(name, 'PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field', 'refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it',
++      J([yk, ycur, ysum]), J([true, 2028, [['USAF', '11111 / AAAAA', 401], ['USAF', '44444 / DDDDD', 802], ['USAF', v198NONE, 71], ['USAF', 'USAF TOTAL', 1274]]]));
++    // A CCaR RECORDS FILE IMPORTED WHILE PB27 IS ON SCREEN. R and Q carry CCaR numbers CCR and CCQ (the suite's it()); the import writes
++    // the index the working plan keeps beside its years, then saves, which the view refuses. By hand: the Spend Plan Source's Title column
++    // is the requirement's own name ("Ev R", "Ev Q") and its OPR blank until a records file is kept.
++    const CCAR = (t, o) => J([['CCaR No', 'Title', 'OPR', 'PMO', 'Control No'], ['CCR', t + ' R', o, 'AV', '7001'], ['CCQ', t + ' Q', o, 'AV', '7002']]);
++    const ccarImp = rows => X.w.eval(`(async function(){ var b=buildXlsx([{name:'CCaR', cols:[12,30,14,8,10], rows:${rows}}]);
++      var ab=b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength);
++      await importCcarRecs({files:[{name:'ccar-records.xlsx', arrayBuffer:async function(){ return ab; }}]}); return 'ok'; })()`);
++    const srcTitles = async () => { const sb = JSON.parse(await w6Book(X.w, 'exportSrc'));
++      const s = Object.keys(sb).filter(k => !k.startsWith('__')).map(k => sb[k]).find(rs => Array.isArray(rs) && rs.length > 1) || [], seen = {};
++      s.slice(1).forEach(r => { const k = String((r || [])[2] ?? ''); if (k === 'CCR' || k === 'CCQ') seen[[k, String(r[3] ?? ''), String(r[12] ?? '')].join(' | ')] = 1; });
++      return [sb.__err || 'ok', String((s[0] || [])[3] ?? ''), String((s[0] || [])[12] ?? ''), Object.keys(seen).sort()]; };
++    ev(`cycView(${J(key)}); 'ok'`);
++    const s0 = await srcTitles();
++    await ccarImp(CCAR('REFUSED TITLE', 'REFUSED OPR')); const nk3 = notKept(), s1 = await srcTitles();
++    ev(`cycLeave(); 'ok'`);
++    await ccarImp(CCAR('RECORD TITLE', 'RECORD OPR')); const s2 = await srcTitles();
++    const SRC0 = ['ok', 'Title', 'OPR', ['CCQ | Ev Q | ', 'CCR | Ev R | ']];
++    w5Chk(name, 'PB27 viewed, nothing imported', 'CONTROL — the Spend Plan Source titles R and Q by their own names, OPR blank', J(s0), J(SRC0));
++    w5Chk(name, 'PB27 viewed · CCaR Records file imported (refused)', 'refused and said so; the Spend Plan Source still titles R and Q by their own names, OPR blank', J([nk3, s1]), J([true, SRC0]));
++    w5Chk(name, 'the working plan · the same file imported (allowed)', 'CONTROL — the Spend Plan Source prints the records’ Title and OPR',
++      J(s2), J(['ok', 'Title', 'OPR', ['CCQ | RECORD TITLE Q | RECORD OPR', 'CCR | RECORD TITLE R | RECORD OPR']]));
++    // THE CYCLE'S OWN BASE YEAR. The working plan's FYDP window moves on after the lock (base FY28); PB27 was locked on FY27.
++    // By hand: the view's window is FY27-FY31 before and after a refusal; the working plan's is FY28-FY32 with FY27 (on screen) beside it.
++    ev(`MS.base=MS.cur+1; save(); cycView(${J(key)}); 'ok'`);
++    const w0 = ev('JSON.stringify(fydpWindow())');
++    ev(`bandSet(0,'n','RENAMED AGAIN'); 'ok'`); const nk4 = notKept(), w1 = ev('JSON.stringify(fydpWindow())');
++    ev(`cycLeave(); 'ok'`); const w2 = ev('JSON.stringify(fydpWindow())');
++    w5Chk(name, 'working base year moved to FY28 · PB27 viewed · band 0 renamed (refused)', 'CONTROL — the view keeps the cycle’s FYDP window FY27–FY31 after the refusal; the working plan’s is FY28–FY32',
++      J([w0, nk4, w1, w2]), J(['[2027,2028,2029,2030,2031]', true, '[2027,2028,2029,2030,2031]', '[2027,2028,2029,2030,2031,2032]']));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J([X.errors.length, Y.errors.length]), J([0, 0]));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, beside the codes) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

@@ -1,0 +1,533 @@
+{
+ "scenario": "XFBTC",
+ "next": "save",
+ "board": "pre",
+ "ids": {
+  "board": "1375b72b6707faa57c50d528e01ce9611f194998",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "c47a43b62bf00e391aafa040de32f37109e10699",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/c137/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:13:13 ET",
+ "steps": [
+  {
+   "step": "bootHeld",
+   "brad": {
+    "screen": {
+     "note": "BRAD-3",
+     "alloc": 750,
+     "ts": 1791832404801,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-3"
+    },
+    "DIRTY": false,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832402762,
+     "dirty": true
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832402762,
+    "stored": {
+     "note": "BRAD-3",
+     "alloc": 750,
+     "ts": 1791832404801,
+     "whose": "BRAD-3"
+    },
+    "kept": {
+     "meta": {
+      "why": "file",
+      "by": "Brad",
+      "ts": 1791832402762,
+      "base": {
+       "file": 1791832398712,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [
+     "keptPutBack()",
+     "keptSaveFile()",
+     "keptDiscard()",
+     "bootTakeFile()"
+    ],
+    "label": "reopened: file newer, kept slot occupied",
+    "baseFolder": 0,
+    "status": "⚠ Brad saved a newer copy to the saved file (10/12/2026, 7:13:25 PM), but this browser already keeps earlier work aside (kept 10/12/2026, 7:13:24 PM) and holds new work besides. Kept work is never replaced, so the newer copy was not loaded and nothing was lost. Deal with the kept work first: put it back · save it as a file · discard it. Then reopen the file, or open the file’s version once yours is saved.",
+    "header": "Saved 7:13 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:13:26 ET"
+   },
+   "versions": [
+    {
+     "ts": 1791832396101,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:16 ET"
+    },
+    {
+     "ts": 1791832398712,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:13:18 ET"
+    },
+    {
+     "ts": 1791832402762,
+     "whose": "X-1",
+     "tsET": "10/12/2026, 15:13:22 ET"
+    },
+    {
+     "ts": 1791832405537,
+     "whose": "X-2",
+     "tsET": "10/12/2026, 15:13:25 ET"
+    }
+   ]
+  },
+  {
+   "step": "adoption",
+   "how": "DOM click: clicked",
+   "asked": [
+    "Open the saved file’s version and replace what is on screen?\n\nThis browser’s own work is NOT kept — only in a copy you saved yourself."
+   ],
+   "brad": {
+    "screen": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832405537,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "X-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832405537,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832405537,
+    "stored": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832405537,
+     "whose": "X-2"
+    },
+    "kept": {
+     "meta": {
+      "why": "file",
+      "by": "Brad",
+      "ts": 1791832402762,
+      "base": {
+       "file": 1791832398712,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "after the load",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by Brad 10/12/2026, 7:13:25 PM.",
+    "header": "Saved 7:13 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:13:27 ET"
+   }
+  },
+  {
+   "step": "settled",
+   "brad": {
+    "screen": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832405537,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "X-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832405537,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832405537,
+    "stored": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832405537,
+     "whose": "X-2"
+    },
+    "kept": {
+     "meta": {
+      "why": "file",
+      "by": "Brad",
+      "ts": 1791832402762,
+      "base": {
+       "file": 1791832398712,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "settled",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by Brad 10/12/2026, 7:13:25 PM.",
+    "header": "Saved 7:13 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:13:27 ET"
+   },
+   "file": "X-2",
+   "versions": [
+    {
+     "ts": 1791832396101,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:16 ET"
+    },
+    {
+     "ts": 1791832398712,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:13:18 ET"
+    },
+    {
+     "ts": 1791832402762,
+     "whose": "X-1",
+     "tsET": "10/12/2026, 15:13:22 ET"
+    },
+    {
+     "ts": 1791832405537,
+     "whose": "X-2",
+     "tsET": "10/12/2026, 15:13:25 ET"
+    }
+   ]
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "after": {
+    "screen": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832407208,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "X-2"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832407208,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 1,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832407208,
+    "stored": {
+     "note": "X-2",
+     "alloc": 740,
+     "ts": 1791832407208,
+     "whose": "X-2"
+    },
+    "kept": {
+     "meta": {
+      "why": "file",
+      "by": "Brad",
+      "ts": 1791832402762,
+      "base": {
+       "file": 1791832398712,
+       "dirty": true
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "after the next Save",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 7:13:27 PM",
+    "header": "Saved 7:13 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:13:27 ET"
+   },
+   "versions": [
+    {
+     "ts": 1791832396101,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:16 ET"
+    },
+    {
+     "ts": 1791832398712,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:13:18 ET"
+    },
+    {
+     "ts": 1791832402762,
+     "whose": "X-1",
+     "tsET": "10/12/2026, 15:13:22 ET"
+    },
+    {
+     "ts": 1791832405537,
+     "whose": "X-2",
+     "tsET": "10/12/2026, 15:13:25 ET"
+    },
+    {
+     "ts": 1791832407208,
+     "whose": "X-2",
+     "tsET": "10/12/2026, 15:13:27 ET"
+    }
+   ],
+   "whereBRAD3": {
+    "file": false,
+    "screen": false,
+    "storage": false,
+    "keptSlot": false,
+    "earlierFileVersionsOnly": []
+   },
+   "whereBRAD2": {
+    "file": false,
+    "screen": false,
+    "storage": false,
+    "keptSlot": true,
+    "earlierFileVersionsOnly": []
+   },
+   "whereX2": {
+    "file": true,
+    "screen": true,
+    "storage": true,
+    "keptSlot": false,
+    "earlierFileVersionsOnly": [
+     "10/12/2026, 15:13:25 ET"
+    ]
+   }
+  }
+ ],
+ "expected": {
+  "boot": [
+   "BRAD-3",
+   "BRAD-2",
+   true,
+   "X-2"
+  ],
+  "adopt": [
+   "X-2",
+   0,
+   true,
+   "BRAD-2",
+   true
+  ],
+  "file": "X-2",
+  "K1": [
+   "X-2",
+   true,
+   "X-2"
+  ],
+  "v3": [
+   0,
+   "X-2",
+   "X-2",
+   "X-2",
+   "saved-file",
+   true,
+   true
+  ],
+  "reach3": false
+ },
+ "u17state": {
+  "tuple": [
+   "X-2",
+   true,
+   "X-2"
+  ],
+  "falselyClean": false
+ },
+ "whereBRAD3": {
+  "file": false,
+  "screen": false,
+  "storage": false,
+  "keptSlot": false,
+  "earlierFileVersionsOnly": []
+ },
+ "endedET": "10/12/2026, 15:13:27 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "BRAD-1 saved into the board file",
+   "expected": [
+    "BRAD-1",
+    1
+   ],
+   "observed": [
+    "BRAD-1",
+    1
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.x1",
+   "kind": "fixture",
+   "what": "the other machine saved X-1 into the file, asking nothing ([file, questions])",
+   "expected": [
+    "X-1",
+    0
+   ],
+   "observed": [
+    "X-1",
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.reopen1",
+   "kind": "fixture",
+   "what": "reopening: the newer file X-1 opens and BRAD-2 is kept aside ([screen, kept, clean, record names X-1, put-back link])",
+   "expected": [
+    "X-1",
+    "BRAD-2",
+    true,
+    "X-1",
+    true
+   ],
+   "observed": [
+    "X-1",
+    "BRAD-2",
+    true,
+    "X-1",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.x2",
+   "kind": "fixture",
+   "what": "the other machine saved X-2 ([file, questions])",
+   "expected": [
+    "X-2",
+    0
+   ],
+   "observed": [
+    "X-2",
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.boot",
+   "kind": "predict",
+   "what": "the opening: newer file, work cannot be kept aside (kept slot occupied), \"open the file's version\" offered ([screen, kept, button bootTakeFile(), file])",
+   "expected": [
+    "BRAD-3",
+    "BRAD-2",
+    true,
+    "X-2"
+   ],
+   "observed": [
+    "BRAD-3",
+    "BRAD-2",
+    true,
+    "X-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen (DOM click: clicked) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])",
+   "expected": [
+    "X-2",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "observed": [
+    "X-2",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.file",
+   "kind": "predict",
+   "what": "the file once settled",
+   "expected": "X-2",
+   "observed": "X-2",
+   "pass": true
+  },
+  {
+   "id": "XFBTC.K1",
+   "kind": "predict",
+   "what": "once settled [screen, recorded clean, the file version the record names]",
+   "expected": [
+    "X-2",
+    true,
+    "X-2"
+   ],
+   "observed": [
+    "X-2",
+    true,
+    "X-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.contractK1",
+   "kind": "contract",
+   "what": "recorded clean only against a file version holding what is on screen",
+   "expected": "not falsely clean",
+   "observed": [
+    "X-2",
+    true,
+    "X-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.V3next",
+   "kind": "predict",
+   "what": "the next 💾 Save [\"questions\",\"screen before\",\"file before\",\"file after\",\"status\",\"clean after\",\"record names file\"]",
+   "expected": [
+    0,
+    "X-2",
+    "X-2",
+    "X-2",
+    "saved-file",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "X-2",
+    "X-2",
+    "X-2",
+    "saved-file",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "XFBTC.reachBRAD3",
+   "kind": "predict",
+   "what": "BRAD-3 in a copy this board can reach after the next Save (file, screen, storage, kept slot)",
+   "expected": false,
+   "observed": false,
+   "pass": true
+  }
+ ]
+}

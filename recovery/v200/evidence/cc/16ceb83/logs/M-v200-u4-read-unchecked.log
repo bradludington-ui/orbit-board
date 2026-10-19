@@ -1,0 +1,19 @@
+# label: M-v200-u4-read-unchecked
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/M-v200-u4-read-unchecked.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-read-unchecked.html
+# start: 2026-10-18 03:59:23 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-read-unchecked.html","BOARD_set":true,"board":"368f471d975371ae3c831cd6b0a276eeee8afe29","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs","harnessBlob":"3968755334eb8be9df9ec3f13ebf53282be3a0d8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 3:59:24 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at its read of the folder’s copy, the import stops part-way there
+    nothing is kept in the history either: the save stopped before it
+        got [true]   want []
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | the autosave held at its read of the folder’s copy, the import stops part-way there
+    nothing is kept in the history either: the autosave stopped before it
+        got [true]   want []
+# exit 1 at 10/18/2026, 3:59:46 AM ET
+
+# end: 2026-10-18 03:59:46 EDT  exit: 1  wall_s: 23.2

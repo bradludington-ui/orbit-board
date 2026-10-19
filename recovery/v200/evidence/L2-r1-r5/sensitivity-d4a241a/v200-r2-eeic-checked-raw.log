@@ -1,0 +1,19 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-d4a241a/mut-v200-r2-eeic-checked-raw.html node tools/export-audit/audit-board.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:20:58Z / 17:20:58 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ß×10
+    upper-cased it is 20 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["SSSSSSSSSSSSSSSSSSSS",null,"ßßßßßßßßßß",false]   want ["AAAAA","true","ßßßßßßßßßß",true]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ﬃ×4
+    upper-cased it is 12 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["FFIFFIFFIFFI",null,"ﬃﬃﬃﬃ",false]   want ["AAAAA","true","ﬃﬃﬃﬃ",true]
+
+# end: 2026-10-11T21:23:27Z / 17:23:27 EDT
+# exit: 1  duration_s: 149.0

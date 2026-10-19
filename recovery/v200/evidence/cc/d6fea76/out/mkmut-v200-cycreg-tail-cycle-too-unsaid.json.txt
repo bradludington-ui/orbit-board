@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-cycle-too-unsaid", "matches": 1, "find": "  if(!cy && inRcnCyOdd(t)) return head+", "repl": "  if(false) return head+"}

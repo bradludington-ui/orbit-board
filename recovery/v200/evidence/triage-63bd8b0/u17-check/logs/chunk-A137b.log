@@ -1,0 +1,15 @@
+r-c137-SHaC-none start=2026-10-12T15:13:18EDT exit=0 wall_s=12.9  | SUMMARY SHaC none board=pre: 5 pass, 3 fail | fixture 3/3 | predict 2/2 | contract 0/3 | harness 0/0
+r-c137-SHaC-save start=2026-10-12T15:13:31EDT exit=0 wall_s=12.7  | SUMMARY SHaC save board=pre: 6 pass, 2 fail | fixture 3/3 | predict 3/3 | contract 0/2 | harness 0/0
+r-c137-SHaC-putback start=2026-10-12T15:13:44EDT exit=0 wall_s=13.3  | SUMMARY SHaC putback board=pre: 7 pass, 1 fail | fixture 3/3 | predict 3/3 | contract 1/2 | harness 0/0
+r-c137-BT-none start=2026-10-12T15:13:57EDT exit=0 wall_s=12.9  | SUMMARY BT none board=pre: 9 pass, 1 fail | fixture 5/5 | predict 2/2 | contract 2/3 | harness 0/0
+r-c137-BT-save start=2026-10-12T15:14:10EDT exit=0 wall_s=10.8  | SUMMARY BT save board=pre: 8 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 0/2 | harness 0/0
+r-c137-BT-putback start=2026-10-12T15:14:21EDT exit=0 wall_s=10.7  | SUMMARY BT putback board=pre: 9 pass, 1 fail | fixture 5/5 | predict 3/3 | contract 1/2 | harness 0/0
+r-c137-BTC-none start=2026-10-12T15:14:31EDT exit=0 wall_s=10.1  | SUMMARY BTC none board=pre: 7 pass, 1 fail | fixture 3/3 | predict 2/2 | contract 2/3 | harness 0/0
+r-c137-BTC-save start=2026-10-12T15:14:42EDT exit=0 wall_s=9.7  | SUMMARY BTC save board=pre: 6 pass, 2 fail | fixture 3/3 | predict 3/3 | contract 0/2 | harness 0/0
+r-c137-BTC-putback start=2026-10-12T15:14:51EDT exit=0 wall_s=10.9  | SUMMARY BTC putback board=pre: 7 pass, 1 fail | fixture 3/3 | predict 3/3 | contract 1/2 | harness 0/0
+r-c137-IB-none start=2026-10-12T15:15:02EDT exit=0 wall_s=13.0  | SUMMARY IB none board=pre: 10 pass, 0 fail | fixture 5/5 | predict 2/2 | contract 3/3 | harness 0/0
+r-c137-IB-save start=2026-10-12T15:15:15EDT exit=0 wall_s=8.8  | SUMMARY IB save board=pre: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+r-c137-IB-putback start=2026-10-12T15:15:24EDT exit=0 wall_s=8.8  | SUMMARY IB putback board=pre: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+r-c137-IBC-none start=2026-10-12T15:15:33EDT exit=0 wall_s=10.4  | SUMMARY IBC none board=pre: 8 pass, 0 fail | fixture 3/3 | predict 2/2 | contract 3/3 | harness 0/0
+r-c137-IBC-save start=2026-10-12T15:15:43EDT exit=0 wall_s=12.1  | SUMMARY IBC save board=pre: 8 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 2/2 | harness 0/0
+r-c137-IBC-putback start=2026-10-12T15:15:56EDT exit=0 wall_s=13.9  | SUMMARY IBC putback board=pre: 8 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 2/2 | harness 0/0

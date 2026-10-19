@@ -1,0 +1,2 @@
+before exit=1 wall=23.18s 42 FAILING CHECK(S) start-ish 08:52:54 AM ET
+after exit=0 wall=23.20s ALL CHECKS PASSED start-ish 08:53:17 AM ET

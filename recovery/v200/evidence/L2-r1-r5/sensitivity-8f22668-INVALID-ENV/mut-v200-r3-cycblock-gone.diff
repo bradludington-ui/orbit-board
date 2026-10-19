@@ -1,0 +1,2 @@
+26767d26766
+<   if(cycBlock('Writing to the shared folder')) return false;

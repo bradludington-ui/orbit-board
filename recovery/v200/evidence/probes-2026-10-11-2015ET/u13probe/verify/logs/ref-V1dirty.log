@@ -1,0 +1,26 @@
+PASS [fixture] fixture.v1: the folder's first copy is brad's content, written by Brad (writer Brad)
+     expected ["brad","Brad","Brad"]
+     observed ["brad","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: screen brad, DIRTY false, _baseDirty false, record dirty false, base = v1 ts
+     expected ["brad",false,false,false,true,true]
+     observed ["brad",false,false,false,true,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: screen brad, his base = v1 ts
+     expected [true,"brad",true]
+     observed [true,"brad",true]
+PASS [fixture] V1dirty.held: the save reached its write and is held; DIRTY during the save
+     expected [true,true,1]
+     observed [true,true,1]
+PASS [fixture] V1dirty.bob.bobCopy: bob's newer copy is the folder's current copy: bob's content, by Bob, writer Bob, bob clean
+     expected ["bob","Bob","Bob",false,false]
+     observed ["bob","Bob","Bob",false,false]
+PASS [refute] V1.refuse: an UNSAVED edit in the held save (DIRTY true): the refresh refuses, replaces nothing ([returned, screen note, $, said Nothing was replaced])
+     expected [false,"BRAD-3",700,true]
+     observed [false,"BRAD-3",700,true]
+PASS [contract] V1dirty.K1-literal: CONTRACT (literal): [screen note, $, recorded clean, base-copy note, $] -- recorded clean only against a copy holding what is on screen
+     expected [["BOB-2",650,true,"BOB-2",650],["BRAD-3",700,true,"BRAD-3",700],["BOB-2",650,false,"BRAD-3",700],["BRAD-3",700,false,"BRAD-3",700]]
+     observed ["BRAD-3",700,true,"BRAD-3",700]
+PASS [record] V1dirty.head: the folder head after the save lands: brad's built bytes ([note, $, by, writer])
+     expected ["BRAD-3",700,"Brad","Brad"]
+     observed ["BRAD-3",700,"Brad","Brad"]
+ids {"board":"4d273c0680132caafc4cbc8ca09c1533735c86de","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"1a54cc12a812ceb92a1e95406c263592fd21c045","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13probe/verify/board/prioritization-board-grid.html"}
+V1dirty: 8 pass, 0 fail

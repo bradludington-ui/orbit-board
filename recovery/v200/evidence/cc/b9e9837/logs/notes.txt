@@ -1,0 +1,35 @@
+2026-10-13 19:58:42 EDT disk full (/ had ~0.2-0.4 GB free): removed my clone/repo (npm check already recorded) and out/{before,after}.tar
+2026-10-13 19:58:55 EDT M-v200-yearsel-export-unsaid and M-v200-yearsel-panel-unsaid (19:53:35-19:56:10 ET): checks records cut at 94 of 102 by ENOSPC (disk full); logs kept as *.enospc-1; both to be re-run
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-not-a-list-all-years.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-nothing-read-all-years.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-number-coerced.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-fraction-unsaid.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-whole-unsaid.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-label-unsaid.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-panel-unsaid.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-export-unsaid.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-markup-unescaped.html
+2026-10-13 20:01:49 EDT pruned mut/v200-yearsel-counted-unsaid.html
+2026-10-13 20:06:46 EDT pruned mut/v200-yearsel-plural-it.html
+2026-10-13 20:06:46 EDT pruned mut/v200-yearsel-toggle-from-all.html
+2026-10-13 20:06:46 EDT pruned mut/v200-yearsel-quote-xml-unsafe.html
+2026-10-13 20:06:46 EDT pruned mut/v200-yearsel-quote-splits-char.html
+2026-10-13 20:12:03 EDT pruned mut/v200-yearsel-quote-uncut.html
+2026-10-13 20:12:03 EDT pruned mut/v200-yearsel-falsy-all-years.html
+2026-10-13 20:12:03 EDT pruned mut/v200-yearsel-falsy-unsaid.html
+2026-10-13 20:12:03 EDT pruned mut/v200-yearsel-allyears-lit-unread.html
+2026-10-13 20:15:48 EDT pruned mut/v200-yearsel-label-all-years-unread.html
+2026-10-13 20:15:49 EDT pruned mut/v200-yearsel-label-ur-unpassed.html
+2026-10-13 20:15:49 EDT pruned mut/v200-yearsel-year-chips-unlit-unread.html
+2026-10-13 20:15:49 EDT pruned mut/v200-yearsel-note-replaces-line.html
+2026-10-13 20:19:25 EDT pruned mut/v200-yearsel-note-order.html
+2026-10-13 20:19:25 EDT pruned mut/v200-yearsel-label-unsaid-beside-u14.html
+2026-10-13 20:19:25 EDT pruned mut/v200-yearsel-panel-unsaid-beside-u14.html
+2026-10-13 20:19:25 EDT pruned mut/v200-yearsel-year-range.html
+2026-10-13 20:23:31 EDT pruned mut/v200-yearsel-plural-label.html
+2026-10-13 20:23:31 EDT pruned mut/v200-yearsel-quote-escape-first-only.html
+2026-10-13 20:23:31 EDT pruned mut/v200-yearsel-quote-cut-at-40-or-more.html
+2026-10-13 20:23:31 EDT pruned mut/v200-yearsel-quote-cut-above-41.html
+2026-10-13 20:27:16 EDT pruned mut/v200-yearsel-year-four-digits.html
+2026-10-13 20:27:16 EDT pruned mut/v200-yearsel-year-positive.html
+2026-10-13 20:27:16 EDT pruned mut/v200-yearsel-other-sources-all-years.html

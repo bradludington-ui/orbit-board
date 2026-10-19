@@ -1,0 +1,13 @@
+# cmd: X=1 node tools/export-audit/boot-same.mjs
+# cwd: /home/user/orbit-board
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T19:46:46Z / 15:46:46 EDT
+# cap: 600s
+same  prioritization-board-grid.html as shipped parse 2153 ms · fast 500 ms
+same  prioritization-board-grid.html seeded, rendered parse 1788 ms · fast 467 ms
+same  prioritization-board-grid.html reopened from its save parse 1790 ms · fast 351 ms
+same  prioritization-board-grid.html a published PMO copy parse 1098 ms · fast 369 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-11T19:46:58Z / 15:46:58 EDT
+# exit: 0  duration_s: 11.7

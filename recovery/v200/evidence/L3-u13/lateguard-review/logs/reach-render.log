@@ -1,0 +1,63 @@
+== render: 681 functions reachable; 25 with a write-shaped statement
+  bandsSyncStandard: ['save()']
+      path: bandsSyncStandard <- BANDS_LIST <- render
+  rpMigrate: ['persist(']
+      path: rpMigrate <- rpBody <- render
+  whoAmI: ['localStorage.setItem']
+      path: whoAmI <- liveBody <- render
+  destMigrate: ['lsSet(']
+      path: destMigrate <- flowEnts <- syncBtns <- render
+  persist: ['localStorage.setItem']
+      path: persist <- rpMigrate <- rpBody <- render
+  persistRp: ['lsSet(']
+      path: persistRp <- rpMigrate <- rpBody <- render
+  save: ['DIRTY=t', '_baseDirty=t', '_saveGen++', 'baseSet(', 'persist(']
+      path: save <- bandsSyncStandard <- BANDS_LIST <- render
+  setBudAsg: ['save()']
+      path: setBudAsg <- matBulk <- matBody <- render
+  setBudFam: ['save()']
+      path: setBudFam <- matBulk <- matBody <- render
+  setDest: ['save()']
+      path: setDest <- matBulk <- matBody <- render
+  setGrp: ['save()']
+      path: setGrp <- matBulk <- matBody <- render
+  setMipr: ['save()']
+      path: setMipr <- matBulk <- matBody <- render
+  setObCat: ['save()']
+      path: setObCat <- matBulk <- matBody <- render
+  setRcnAsg: ['save()']
+      path: setRcnAsg <- matBulk <- matBody <- render
+  setSi: ['save()']
+      path: setSi <- matBulk <- matBody <- render
+  baseSet: ['localStorage.setItem']
+      path: baseSet <- save <- bandsSyncStandard <- BANDS_LIST <- render
+  budClearAll: ['save()']
+      path: budClearAll <- setBudFam <- matBulk <- matBody <- render
+  driveIdb: ['indexedDB']
+      path: driveIdb <- driveGet <- driveProbePerm <- liveBody <- render
+  lsSet: ['localStorage.setItem']
+      path: lsSet <- persistRp <- rpMigrate <- rpBody <- render
+  persistCyc: ['lsSet(']
+      path: persistCyc <- destMigrate <- flowEnts <- syncBtns <- render
+  persistDest: ['lsSet(']
+      path: persistDest <- destMigrate <- flowEnts <- syncBtns <- render
+  reorder: ['save()']
+      path: reorder <- bump <- forecast <- fcBody <- render
+  writerKey: ['localStorage.setItem']
+      path: writerKey <- writerFp <- writerIsMe <- syncBtns <- render
+  fileMark: ['DIRTY=t', '_saveGen++']
+      path: fileMark <- lsSet <- persistRp <- rpMigrate <- rpBody <- render
+  recomputeBuys: ['save()']
+      path: recomputeBuys <- applyState <- aceWithYear <- aceExpandRows <- aceBody <- render
+== setStat: 18 functions reachable; 0 with a write-shaped statement
+== driveClashSay: 21 functions reachable; 0 with a write-shaped statement
+== liveTooNewMsg: 2 functions reachable; 0 with a write-shaped statement
+== inboundCheck: 20 functions reachable; 0 with a write-shaped statement
+== driveDir: 3 functions reachable; 1 with a write-shaped statement
+  driveIdb: ['indexedDB']
+      path: driveIdb <- driveGet <- driveDir
+== driveStoreRead: 24 functions reachable; 0 with a write-shaped statement
+== liveCfg: 1 functions reachable; 0 with a write-shaped statement
+== driveBaseOf: 2 functions reachable; 0 with a write-shaped statement
+== liveAge: 1 functions reachable; 0 with a write-shaped statement
+== esc: 1 functions reachable; 0 with a write-shaped statement

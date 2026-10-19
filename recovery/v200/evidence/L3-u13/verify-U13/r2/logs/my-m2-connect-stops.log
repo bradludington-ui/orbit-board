@@ -1,0 +1,12 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/mut/m2-connect-stops.html","BOARD_set":true,"board":"45cdee5ffd51f05906bac8ca1678f63becc51d1d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/after/tools/export-audit/focused-u13.mjs","harnessBlob":"4d4d57d337857b854dcabee5d6c47d83133820db","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 8:10:50 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (6a) driveConnectNow() during a save, with newer execution data and a reprogramming log in the folder
+    while the save is held, the Connect loads the execution data and the log but not the board’s copy -- [returned, a save under way, nothing changed byte for byte, execution data, the log]
+        got [true,true,true,[],[]]   want [true,true,true,["om"],["rp-1"]]
+--- v2.00 (U13) — a refresh during a save loads nothing | (6a) driveAutoConnect() during a save, with newer execution data and a reprogramming log in the folder
+    while the save is held, the Connect loads the execution data and the log but not the board’s copy -- [returned, a save under way, nothing changed byte for byte, execution data, the log]
+        got [true,true,true,[],[]]   want [true,true,true,["om"],["rp-1"]]
+# exit 1 at 10/12/2026, 8:11:14 AM ET

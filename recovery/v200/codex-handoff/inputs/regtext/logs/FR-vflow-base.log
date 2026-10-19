@@ -1,0 +1,12 @@
+# label: FR-vflow-base
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/verifier/vflow.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base
+# start: 2026-10-13 05:37:53 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+axis, kept names                                   got ["dest",["DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail","'Quoted depot'","Ctl\u000bname"]]   want ["dest",["DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail","'Quoted depot'","Ctl\u000bname"]]  OK
+workbook sheet names                               got ["Funds Flow","Prime Detail","OGC Detail","Lockheed Martin","Pratt &amp; Whitney","NAWCAD Patuxent River","NAWCWD China Lake","FRC East, Cherry Point","NAWCAD Lakehurst","Defense Logistics Agency","OC-ALC Oklahoma City","DDDDDDDDDDDDDDDDDDDDDDDDDDD�","'Quoted depot'","Ctl\u000bname","Split between destinations —","Not yet assigned"]
+parts with U+FFFD or a forbidden character         got [["xl/workbook.xml","forbidden 1","fffd 1"],["xl/worksheets/sheet1.xml","forbidden 2","fffd 0"]]   want []  DIFFERS
+done
+
+# end: 2026-10-13 05:37:55 EDT  exit: 0  wall_s: 2.6

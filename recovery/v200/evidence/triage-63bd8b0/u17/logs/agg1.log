@@ -1,0 +1,141 @@
+u13 | BT | none | fix 5/5 | pred 2/2 | contract-fail [K1] | K1 ["F1",true,"BRAD-2"] |  | 
+u13 | BT | putback | fix 5/5 | pred 3/3 | contract-fail [K1] | K1 ["F1",true,"BRAD-2"] |  | V4 [true,"none",false,false]
+u13 | BT | save | fix 5/5 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["F1",true,"BRAD-2"] | V3 [true,true] | 
+u13 | BTC | none | fix 3/3 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["F1",true,"BRAD-1"] |  | 
+u13 | BTC | putback | fix 3/3 | pred 3/3 | contract-fail [K1] | K1 ["F1",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+u13 | BTC | save | fix 3/3 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["F1",true,"BRAD-1"] | V3 [true,true] | 
+u13 | C1 | putback | fix 4/4 | pred 3/3 | contract-fail [] | K1 ["BOB-2",true,"BOB-2"] |  | V4 [false,"none",false,false]
+u13 | C1 | save | fix 4/4 | pred 3/3 | contract-fail [] | K1 ["BOB-2",true,"BOB-2"] | V3 [false,false] | 
+u13 | C3 | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] |  | V4 [false,"none",false,false]
+u13 | C3 | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] | V3 [false,false] | 
+u13 | Ca | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | Ca | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | Cb | putback | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | Cb | save | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | Cc | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"in-folder",false,true]
+u13 | Cc | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+u13 | IB | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] |  | 
+u13 | IB | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] |  | V4 [false,"none",false,false]
+u13 | IB | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] | V3 [false,true] | 
+u13 | IBC | none | fix 3/3 | pred 2/2 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] |  | 
+u13 | IBC | putback | fix 3/3 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] |  | V4 [false,"none",false,false]
+u13 | IBC | save | fix 3/3 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] | V3 [false,true] | 
+u13 | L20 | putback | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"in-folder",false,false]
+u13 | L20 | save | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+u13 | S1harness | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | S1harness | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | S1open | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | S1open | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | S1pen | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | S1pen | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | S1perm | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | S1perm | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | S1tick | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | S1tick | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | SHa | none | fix 5/5 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-1"] |  | 
+u13 | SHa | putback | fix 5/5 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+u13 | SHa | save | fix 5/5 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-1"] | V3 [true,true] | 
+u13 | SHaC | none | fix 3/3 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-1"] |  | 
+u13 | SHaC | putback | fix 3/3 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+u13 | SHaC | save | fix 3/3 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-1"] | V3 [true,true] | 
+u13 | SHd | none | fix 7/7 | pred 2/2 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | 
+u13 | SHd | putback | fix 7/7 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | V4 [true,"in-file",false,true]
+u13 | SHd | save | fix 7/7 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-2"] | V3 [true,true] | 
+u13 | SHdC | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | 
+u13 | SHdC | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | V4 [false,"in-place",false,false]
+u13 | SHdC | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] | V3 [false,true] | 
+u13 | SHdk | none | fix 7/7 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-2"] |  | 
+u13 | SHdk | putback | fix 7/7 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | V4 [true,"in-file",false,true]
+u13 | SHdk | save | fix 7/7 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-2"] | V3 [true,true] | 
+u13 | SHdkC | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | 
+u13 | SHdkC | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | V4 [false,"in-place",false,false]
+u13 | SHdkC | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] | V3 [false,true] | 
+u13 | U25mid | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | U25mid | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | U25wf | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | U25wf | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | U25ws | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"none",false,false]
+u13 | U25ws | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+u13 | V1same | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | V1same | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | V1sameperm | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | V1sameperm | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | V2live | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+u13 | V2live | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+u13 | W2pull | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] |  | V4 [false,"none",false,false]
+u13 | W2pull | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] | V3 [false,false] | 
+u13 | W2tick | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] |  | V4 [false,"none",false,false]
+u13 | W2tick | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] | V3 [false,false] | 
+pre | BT | none | fix 5/5 | pred 2/2 | contract-fail [K1] | K1 ["F1",true,"BRAD-2"] |  | 
+pre | BT | putback | fix 5/5 | pred 3/3 | contract-fail [K1] | K1 ["F1",true,"BRAD-2"] |  | V4 [true,"none",false,false]
+pre | BT | save | fix 5/5 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["F1",true,"BRAD-2"] | V3 [true,true] | 
+pre | BTC | none | fix 3/3 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["F1",true,"BRAD-1"] |  | 
+pre | BTC | putback | fix 3/3 | pred 3/3 | contract-fail [K1] | K1 ["F1",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+pre | BTC | save | fix 3/3 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["F1",true,"BRAD-1"] | V3 [true,true] | 
+pre | C1 | putback | fix 4/4 | pred 3/3 | contract-fail [] | K1 ["BOB-2",true,"BOB-2"] |  | V4 [false,"none",false,false]
+pre | C1 | save | fix 4/4 | pred 3/3 | contract-fail [] | K1 ["BOB-2",true,"BOB-2"] | V3 [false,false] | 
+pre | C3 | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] |  | V4 [false,"none",false,false]
+pre | C3 | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["BRAD-1",true,"BRAD-1"] | V3 [false,false] | 
+pre | Ca | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+pre | Ca | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+pre | Cb | putback | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+pre | Cb | save | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+pre | Cc | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"in-folder",false,true]
+pre | Cc | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+pre | IB | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] |  | 
+pre | IB | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] |  | V4 [false,"none",false,false]
+pre | IB | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-2"] | V3 [false,true] | 
+pre | IBC | none | fix 3/3 | pred 2/2 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] |  | 
+pre | IBC | putback | fix 3/3 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] |  | V4 [false,"none",false,false]
+pre | IBC | save | fix 3/3 | pred 3/3 | contract-fail [] | K1 ["IMPORT",false,"BRAD-1"] | V3 [false,true] | 
+pre | L20 | putback | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"in-folder",false,false]
+pre | L20 | save | fix 6/6 | pred 4/4 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+pre | S1harness | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | S1harness | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | S1open | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | S1open | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | S1pen | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | S1pen | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | S1perm | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | S1perm | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | S1tick | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | S1tick | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | SHa | none | fix 5/5 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-1"] |  | 
+pre | SHa | putback | fix 5/5 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+pre | SHa | save | fix 5/5 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-1"] | V3 [true,true] | 
+pre | SHaC | none | fix 3/3 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-1"] |  | 
+pre | SHaC | putback | fix 3/3 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+pre | SHaC | save | fix 3/3 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-1"] | V3 [true,true] | 
+pre | SHd | none | fix 7/7 | pred 2/2 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | 
+pre | SHd | putback | fix 7/7 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | V4 [true,"in-file",false,true]
+pre | SHd | save | fix 7/7 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-2"] | V3 [true,true] | 
+pre | SHdC | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | 
+pre | SHdC | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | V4 [false,"in-place",false,false]
+pre | SHdC | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] | V3 [false,true] | 
+pre | SHdk | none | fix 7/7 | pred 2/2 | contract-fail [K1,K2,K3] | K1 ["SHARED",true,"BRAD-2"] |  | 
+pre | SHdk | putback | fix 7/7 | pred 3/3 | contract-fail [K1] | K1 ["SHARED",true,"BRAD-2"] |  | V4 [true,"in-file",false,true]
+pre | SHdk | save | fix 7/7 | pred 3/3 | contract-fail [K1,U17.V3] | K1 ["SHARED",true,"BRAD-2"] | V3 [true,true] | 
+pre | SHdkC | none | fix 5/5 | pred 2/2 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | 
+pre | SHdkC | putback | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] |  | V4 [false,"in-place",false,false]
+pre | SHdkC | save | fix 5/5 | pred 3/3 | contract-fail [] | K1 ["SHARED",false,"BRAD-1"] | V3 [false,true] | 
+pre | U25mid | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | U25mid | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | U25wf | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] |  | V4 [false,"none",false,false]
+pre | U25wf | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["WORKING",true,"WORKING"] | V3 [false,false] | 
+pre | U25ws | putback | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] |  | V4 [false,"none",false,false]
+pre | U25ws | save | fix 7/7 | pred 3/3 | contract-fail [] | K1 ["REMOTE",true,"REMOTE"] | V3 [false,false] | 
+pre | V1same | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | V1same | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | V1sameperm | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | V1sameperm | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | V2live | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V4] | K1 ["REMOTE",true,"WORKING"] |  | V4 [true,"in-folder",true,true]
+pre | V2live | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["REMOTE",true,"WORKING"] | V3 [true,true] | 
+pre | W2pull | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3] | K1 ["BOB-2",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+pre | W2pull | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["BOB-2",true,"BRAD-1"] | V3 [true,true] | 
+pre | W2tick | putback | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3] | K1 ["BOB-2",true,"BRAD-1"] |  | V4 [true,"none",false,false]
+pre | W2tick | save | fix 7/7 | pred 3/3 | contract-fail [K1,K2,K3,U17.V3] | K1 ["BOB-2",true,"BRAD-1"] | V3 [true,true] | 
+runs 136
+kind fixture: 784 pass, 0 fail
+kind predict: 396 pass, 0 fail
+kind contract: 366 pass, 150 fail
+kind related (U18, not U17): 12 pass, 0 fail

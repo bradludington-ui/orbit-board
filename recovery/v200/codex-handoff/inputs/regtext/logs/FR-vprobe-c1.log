@@ -1,0 +1,23 @@
+# label: FR-vprobe-c1
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/verifier/vprobe.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/c1
+# start: 2026-10-13 05:37:16 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/c1/prioritization-board-grid.html
+1a file title kept on open (length)                  got 100   want "100"  OK
+1b append "!" to it in the panel: [shown, kept len, field on screen, marked] got [100,100,true,"true"]
+1c the status after                                  got ⚠ RCN / EEIC title not changed. The title “LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL…” is 101 characters; it can be at most 80. Nothing was changed.
+1d saved and reopened: the title length              got 100   want "100"  OK
+1e then the RCN typed 22222: [rcn, title len]        got ["22222",100]   want ["22222",100]  OK
+2 refused, then rcnAdd(): [status1, kept, old field on screen, field now, status now] got ["⚠ RCN / EEIC title not changed. The titl","base",false,"base","⚠ RCN / EEIC title not changed. The titl"]
+2 refused, then rcnToggleSvc(0,"AFRC"): [status1, kept, old field on screen, field now, status now] got ["⚠ RCN / EEIC title not changed. The titl","base",false,"base","⚠ RCN / EEIC title not changed. The titl"]
+2 refused, then row 2 RCN typed: [status1, kept, old field on screen, field now, status now] got ["⚠ RCN / EEIC title not changed. The titl","base",false,"base","⚠ RCN / EEIC title not changed. The titl"]
+3 20 family emoji (20 glyphs)                        got ["refused","⚠ RCN / EEIC title not changed. The title “…” is 100 characters; it can be at most 80. Nothing was changed."]
+3 41 NFD é (41 glyphs)                               got ["refused","⚠ RCN / EEIC title not changed. The title “…” is 82 characters; it can be at most 80. Nothing was changed."]
+3 80 NFD é (80 glyphs)                               got ["refused","⚠ RCN / EEIC title not changed. The title “…” is 160 characters; it can be at most 80. Nothing was changed."]
+3 80 NFC é (80 glyphs)                               got ["kept",""]
+4 locked view, 81 typed: [view title, marked, status, working title after leaving] got ["base","true","⚠ RCN / EEIC title not changed. The title “…” is 81 characters; it can be at most 80. Nothing was changed.","base"]
+5 RCN-EEIC by Month rows for K1 [label, col 14]      got [["11111 / AAAAA  Ok title",900],["11111 / AAAAA  Ok title",200],["11111 / AAAAA  Ok title   (1 requirement)",900],["11111 / AAAAA  Ok title   (1 requirement)",200]]   want [["11111 / AAAAA  Ok title",900],["11111 / AAAAA  Ok title",200]]  DIFFERS
+done
+
+# end: 2026-10-13 05:37:21 EDT  exit: 0  wall_s: 5.7

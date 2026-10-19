@@ -1,0 +1,4 @@
+  // v2.00 (U2, Brad 11 Oct): ↶ Put back waits for a save to finish.
+  { id: "v200-u2-putback-while-saving", area: "keptPutBack", what: "↶ Put back runs while a save is under way: the save, landing, records its own copy as the one the work put back came from, so the next Save or the folder's autosave writes over that copy without asking",
+    find: "  if(_saveBusy){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }\n",
+    repl: "" },

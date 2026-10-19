@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-text-unkept", "matches": 1, "find": "rt=inRcnTail(w, txt===undefined? _inRcnTxt : txt);", "repl": "rt=inRcnTail(w, txt);"}

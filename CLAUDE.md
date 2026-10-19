@@ -3845,6 +3845,128 @@ by a container restart: 5:09 am – 2:58 pm Eastern on one container, sweep 1128
 expected-versus-actual on the candidate board: 23 comparisons, 0 differences. The batch runner is kept at
 `scratchpad/v199/gate-chunked/` with per-stage and per-batch logs.
 
+### v2.00 (item 99): imported text is drawn as text, imported names cannot reach inside the program, and a file a reviewer can navigate
+
+Built on Brad's go of 7 Oct 2026. A security review of v1.99 for Brad's security team confirmed 27 places where a value
+from an imported board, package, workbook, peer folder file or side store reached the page as HTML; each was reproduced on
+v1.98 and v1.99 and shown running in Chromium. Details and crafted files are in the owner's private annex, outside the repo.
+Four later passes found more:
+
+- a self-audit of the first candidate (two more sinks);
+- a second audit (two over-escapes);
+- a final review and full sweep of the second candidate (raw siblings of fixed sinks, and others);
+- a key sweep, which found imported names used as object keys. Brad put that class in v2.00 on 9 Oct.
+
+**Escaped where drawn.** A value that did not come from this board's own code is escaped where it is drawn, however it
+arrived; the import check is not relied on to have cleaned it. Every display sink the review and the later passes found
+passes the value through `esc()` at the point it is written into markup, an attribute or an inline handler. When you fix
+one, look at its siblings: the misses the final review found were all next to a fixed sink -- the Cancel lines beside
+`pkgApply`'s escaped success line, the kept and no-FY counts beside `flowImportReport`'s escaped read count.
+
+**Escape where drawn, and nowhere else.** `esc()` turns & < " ' into entities, which is right only where the string is
+parsed as HTML. Never escape where a value is BUILT, and never escape text that is not HTML: a `confirm()` / `alert()`
+message, a workbook cell, a download file name, `document.title`, or a string that will be escaped again later.
+
+- **The first candidate (`608444e`) broke this twice.** `flowCalc` escaped the pseudo-appropriation token into `F.label`,
+  so "O&M Carry" read "O&amp;M Carry"; and `bmSeedFromPp`'s `confirm()` escaped the service names. `F.label` is built
+  raw, and every HTML use escapes it.
+- **The cycle and position labels come in two forms.** `blLblTxt(key)` and `ppLblTxt(key)` give text, for dialogs, file
+  names, the title, `textContent` and workbook cells. `blLbl(key)` and `ppLbl(key)` return that text escaped once, for
+  markup, and are never wrapped in `esc()` again. Use the `Txt` form anywhere that is not HTML.
+- **Text that came from markup is decoded, not stripped.** Where markup has to become plain text (the package conflict
+  dialog, the journal search, the pre-flight copy, the Put back question), it goes through `diagPlain()`, which decodes
+  entities through an inert parser. A regex strip leaves `&amp;` behind.
+
+**Numbers on load.** `wholeOr(v, d)` returns a whole number or the fallback. `normalizeStore` reads `MS.base` and `MS.cur`
+through it, `pkgNums` reads a package ledger's sequences through it, and the cycle view reads `c.base` through it. Only
+year and sequence fields are converted on load. Buy quantities and other counts are escaped where they are drawn, so a
+saved quantity such as "7" stays as saved (v1.99 item 90 lists it for repair).
+
+A few counts drawn into markup are now read as whole numbers where they are drawn:
+
+- the CCaR records count in the Data menu (`wholeOr`);
+- the roll panel's year count;
+- the cost-estimate line counts (`Array.isArray(...) ? length : 0`).
+
+**Structural guards.**
+
+- `jrnlPathSafe`: Put back refuses a journal path through a built-in name, and the import check refuses a journal entry
+  that carries one.
+- `inShapeWhy(o, path, asPlan)` checks every year's plan, whether or not it has an `order` list, including a store
+  whose `years` is a list.
+- `pkgApply` refuses a package whose `seq` is not a whole number, or whose `ap` is not one of `PKG_NAMES`' own keys.
+- `confSameHost(link)` follows a Confluence download link only on the configured host.
+- `linkOpenable(name)` opens only a file name, a path or an http(s)/file address, never another scheme ending in
+  `.html`.
+
+**The names every object already answers to.** A value used as a property name on an ordinary object can be a name the
+object inherits: `__proto__`, `constructor`, `toString`, `hasOwnProperty` and the rest of `Object.prototype`. Reading
+one returns the built-in; writing through `__proto__` writes onto every object in the page. Four rules:
+
+- **The door refuses them.** `IN_KEY_BAD` is `Object.getOwnPropertyNames(Object.prototype)` plus `__proto__` and
+  `prototype`, read from the browser itself. The import check refuses one as any field name, as a requirement id
+  (`inIdWhy`), as an office, service or band name (`inNameWhy`), as a submittal's office, and as a destination key or a
+  destination a requirement names. Typed office and service names go through `inNameWhy` too. `importAce` will not file
+  an estimate under one.
+- **A value the board later uses as a key is checked as a key.** `IN_VAL_KEYS` (`id`, `nid`, `k`, `key`, `grp`, `pmo`,
+  `svc`, `ap`): wherever such a field sits in an imported file, its text value may not be a built-in name, and an id or
+  `nid` may not begin with two underscores (`planWalk` keeps `__rem` and `__cut` beside the ids). A data pack holding
+  only `items` is still checked as a requirement list (`/\.dataPack$/`). Add a field here when the board starts keying
+  anything by a new imported value.
+- **Workbook data never passes the door, so its maps have no prototype.** An execution row's title, event, office,
+  month or budget; an estimate line's service; a BAE budget name; a cost element; a PPBE line key. Any map keyed by one
+  is created with `Object.create(null)`, as in `exAgg`, `rlg*`, `posExec`, `pmoDetail`, `ceSummary`, `exportPPT`,
+  `exportExcel`, `cycProjOf`, `spGather`, `destFold`, `forecast`, `fydpRows`, `exportCycCompare`, `acePmoGroups`,
+  `fydpAceShare`, `spProjByPmo`, `exX` and the others (57 maps on 50 lines).
+- **A fixed table looked up by an imported value is read by own key.** `MIPR_LBL` has no prototype; the saved estimate
+  choice, `destPkgIn`'s re-pointing, `blGet`, `flowSubOf`, `ppSetV` and `rpMerge`'s deletion marks read own keys only
+  (`Object.prototype.hasOwnProperty.call`).
+
+So: never key an ordinary `{}` by a value from a file or a workbook. Use `Object.create(null)`, or read with
+`hasOwnProperty`. Upper-cased or prefixed keys (`'r:'+id`, `ccarNorm`) are safe as they are.
+
+**Reviewability.**
+
+- 42 section banners (`// §NN TITLE`, anchored to a function, with the table of sections at §01 -- search for §).
+- 21 functions and 2 variables nothing used were removed (`removeYear`, the chip picker, `rpAdd` / `rpSet` / `rpDel`,
+  `RPST`, `rowChipId`, ...).
+- Stale comments corrected.
+- The PowerPoint template line fenced: `check.mjs` parses `TPL_PARTS` as JSON, requires every value to be base64, and
+  checks the line's SHA-256 against `tools/tpl-parts.sha256` (re-record it on a deliberate template change).
+
+**Checks.** `tools/export-audit/audit-inject.mjs` is in `audit:suites` and last in the mutation sweep's catching set. It
+holds checks for 44 findings plus 4 text-fidelity guards, of four kinds, each labelled in the file:
+
+- **Runtime draws** go through the board's own renderer. A runtime check must call the board's function: the first
+  candidate had eight that built their own escaped markup and passed on any board. They were removed in `23a18ee`
+  (8 Oct), after `608444e`'s gate and before any later one.
+- **Probes** drive one structural guard each.
+- **Source pins** cover sinks deep inside a panel render. The hostile sweep does not plant those fields, so the pin is
+  their only check.
+- **Key checks** (K1–K8) drive `inboundCheck`, `exAgg`, the `rlg*` scans, `posExec`, `pmoDetail`, `ceSummary`,
+  `rpMerge`, the destination re-pointing, the `IN_VAL_KEYS` rule and the lookups keyed by an office, a category or a
+  position line, with built-in names. They require that nothing lands on `Object.prototype` or a built-in, and that
+  every dollar is still counted. K5 pins the safe maps in the source.
+
+The guards: T1 drives `flowCalc`. T2–T4 pin the plain forms, so each guards the over-escape it names, not every possible
+one.
+
+The suite is clean on v2.00. On v1.99 (`BOARD=<a v1.99 board> node tools/export-audit/audit-inject.mjs`), all 44 finding
+checks fail, and so do T3 and T4, which pin helpers v2.00 introduced: 159 failing assertions. The banner counts
+assertions, not checks.
+
+135 mutations (`v200-*`) each undo one fix or re-add one over-escape. Seven existing mutations were retargeted to lines
+v2.00 rewrote. That makes 1,274 targets, each matching exactly once -- applicable, which is not the same as caught. At
+`1c94537`, `audit-inject` alone did not catch `v200-id-builtin-open` or `v200-spmt-pmo-open`: the K1 inputs for those rules
+sat in fields `IN_VAL_KEYS` refuses too. **A K-check input must reach only the rule it is for.** K1's `order` (a valueOf id
+in a plan's priority order) and `pmoChars` (a submittal office carrying markup) do. A mutation's catch is claimed only
+from a run that saw it fail.
+With no catcher on record, `mutate.mjs` tries `audit-inject` first for a `v200-*` id (`FIRST_BY_PREFIX`); a recorded
+catcher still goes first. Order only, never the verdict. Add a prefix there when a new family has one suite built to
+see it.
+
+**Gate.** GATE_V200
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

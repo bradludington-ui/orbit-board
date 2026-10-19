@@ -1,0 +1,16 @@
+# cmd: X=1 BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/mut-af892cb/v200-r5-restore-basedirty.html node tools/export-audit/focused-r3r5.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy-af892cb
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T01:11:05Z / 21:11:05 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (R5) — a restore during a save stays unsaved | (b) a clean board saved, HISTORY put back during its write
+    HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got [true,true,"HISTORY","CURRENT",true,false,false]   want [true,true,"HISTORY","CURRENT",true,true,true]
+
+# end: 2026-10-12T01:11:28Z / 21:11:28 EDT
+# exit: 1  duration_s: 23.1

@@ -1,0 +1,182 @@
+R1-rev2-NH vs B1-before-NH, mode H1 (win): 56 cells identical, 10 differ
+--- ('H1', 'B06-notnewer-nobase', 'ac')
+   code:
+      R1-rev2-NH: "ok DP"
+      B1-before-NH: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DP"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["driveBaseSet", "baseSet"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27om.base"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('H1', 'B06-notnewer-nobase', 'cn')
+   code:
+      R1-rev2-NH: "ok DS"
+      B1-before-NH: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DS"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["driveBaseSet", "baseSet"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27om.base"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('H1', 'B06-notnewer-nobase', 'p0')
+   code:
+      R1-rev2-NH: "ok ."
+      B1-before-NH: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] ."
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["driveBaseSet", "baseSet"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27om.base"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('H1', 'B06-notnewer-nobase', 'p1')
+   code:
+      R1-rev2-NH: "ok ."
+      B1-before-NH: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] ."
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["driveBaseSet", "baseSet"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27om.base"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('H1', 'B06-notnewer-nobase', 'tk')
+   code:
+      R1-rev2-NH: "ok KL"
+      B1-before-NH: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KL"
+   fn:
+      R1-rev2-NH: ["driveHeartbeat", "driveWrite"]
+      B1-before-NH: ["driveHeartbeat", "driveWrite", "driveBaseSet", "baseSet"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27om.base"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('H1', 'B10-lateguard', 'ac')
+   code:
+      R1-rev2-NH: "ok DPS"
+      B1-before-NH: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPS"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      R1-rev2-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B1-before-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      R1-rev2-NH: ["_driveLive", "_drivePermProbed", "_statN", "diagN", "status"]
+      B1-before-NH: ["_driveLive", "_drivePermProbed", "_statN", "status"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      B1-before-NH: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('H1', 'B10-lateguard', 'cn')
+   code:
+      R1-rev2-NH: "ok DS"
+      B1-before-NH: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DS"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      R1-rev2-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B1-before-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      R1-rev2-NH: ["_driveLive", "_statN", "diagN", "status"]
+      B1-before-NH: ["_driveLive", "_statN", "status"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      B1-before-NH: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('H1', 'B10-lateguard', 'p0')
+   code:
+      R1-rev2-NH: "ok S"
+      B1-before-NH: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] S"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      R1-rev2-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B1-before-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      R1-rev2-NH: ["_statN", "diagN", "status"]
+      B1-before-NH: ["_statN", "status"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   ret:
+      R1-rev2-NH: false
+      B1-before-NH: true
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      B1-before-NH: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('H1', 'B10-lateguard', 'p1')
+   code:
+      R1-rev2-NH: "ok ."
+      B1-before-NH: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] S"
+   fn:
+      R1-rev2-NH: []
+      B1-before-NH: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      R1-rev2-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B1-before-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      R1-rev2-NH: []
+      B1-before-NH: ["_statN", "status"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   ret:
+      R1-rev2-NH: false
+      B1-before-NH: true
+   status:
+      R1-rev2-NH: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## "
+      B1-before-NH: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('H1', 'B10-lateguard', 'tk')
+   code:
+      R1-rev2-NH: "ok KL"
+      B1-before-NH: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLS"
+   fn:
+      R1-rev2-NH: ["driveHeartbeat", "driveWrite"]
+      B1-before-NH: ["driveHeartbeat", "driveWrite", "keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      R1-rev2-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B1-before-NH: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      R1-rev2-NH: ["LIVEDB", "folder:spmt-2027-om.lock.json"]
+      B1-before-NH: ["LIVEDB", "_statN", "folder:spmt-2027-om.lock.json", "status"]
+   lsw:
+      R1-rev2-NH: []
+      B1-before-NH: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      R1-rev2-NH: []
+      B1-before-NH: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      R1-rev2-NH: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## "
+      B1-before-NH: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"

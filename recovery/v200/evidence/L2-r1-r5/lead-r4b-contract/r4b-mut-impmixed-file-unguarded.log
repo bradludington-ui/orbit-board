@@ -1,0 +1,17 @@
+# cmd: X=1 node r4b-contract.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck/mut-ifu/copy
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T20:31:25Z / 16:31:25 EDT
+# cap: 600s  grace: 10s
+ok   the hold is on before Save is asked for: got true want true
+FAIL refused before any file access: perm · read · open: got [1,1,1] want [0,0,0]
+FAIL the board says Save to the board file is refused: got false want true
+ok   the hold is off after Allow Save again: got false want false
+FAIL clearing the hold does not resume the refused Save: perm · read · open: got [1,1,1] want [0,0,0]
+FAIL the board file keeps its bytes: got false want true
+ok   no script errors: got [] want []
+4 FAILING
+
+# end: 2026-10-11T20:31:28Z / 16:31:28 EDT
+# exit: 1  duration_s: 2.3

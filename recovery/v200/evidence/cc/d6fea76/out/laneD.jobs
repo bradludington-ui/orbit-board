@@ -1,0 +1,1 @@
+run S-hr-minus-u3233-commit /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/clones/gc env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/S-hr-minus-u3233-commit.checks.jsonl node tools/export-audit/hr-minus-u3233.mjs

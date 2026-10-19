@@ -1,0 +1,171 @@
+id	group	suite	category	applies_once
+unsaved-flag-never-set	R5 (re-anchored)	audit-import	reimpl	yes
+impmixed-file-unguarded	R4b	audit-import	reimpl	yes
+v200-wholeor-keeps-text	pre-reset v2.00	first-catch chain	held	yes
+v200-jrnl-path-proto	pre-reset v2.00	first-catch chain	held	yes
+v200-conf-host-open	pre-reset v2.00	first-catch chain	held	yes
+v200-pkg-seq-text	pre-reset v2.00	first-catch chain	held	yes
+v200-jrnlshow-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-posexec-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-shape-order-gate	pre-reset v2.00	first-catch chain	held	yes
+v200-blLbl-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-destkey-goesto-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-destkey-awards-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flow-to-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flowlabel-built-escaped	pre-reset v2.00	first-catch chain	held	yes
+v200-flowlabel-status-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-confirm-escaped	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgapply-by-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgapply-cancel-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgapply-conflict-cancel-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgbody-seq-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgbody-issue-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-acenote-sets-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-posexec-counts-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-buys-base-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-buys-adj-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-lane-title-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-awdm-id-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flow-from-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flowreport-kept-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flowreport-nofy-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-flowreport-read-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pplbl-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-budlist-n-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-exbody-office-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-livebody-reqs-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-bae-depts-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-fname-state-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-fname-qpe-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-fname-ace-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-jrnl-door-open	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgissue-seq-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-rpmerge-proto	pre-reset v2.00	first-catch chain	held	yes
+v200-link-scheme-open	pre-reset v2.00	first-catch chain	held	yes
+v200-yearslist-door	pre-reset v2.00	first-catch chain	held	yes
+v200-acenote-missing-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-ccaridx-n-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-rollbody-order-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-saveinplace-name-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-saveinplace-err-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-qpe-msg-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-qpe-err-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-acestamp-lines-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-acetie-lines-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-writer-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-svc-title-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-ce-office-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-team-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-filter-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-plain-entities	pre-reset v2.00	first-catch chain	held	yes
+v200-jrnl-search-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-pfcopy-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-cut-title-slice	pre-reset v2.00	first-catch chain	held	yes
+v200-pkgapply-ap-open	pre-reset v2.00	first-catch chain	held	yes
+v200-bllbltxt-escaped	pre-reset v2.00	first-catch chain	held	yes
+v200-pplbltxt-escaped	pre-reset v2.00	first-catch chain	held	yes
+v200-cyc-title-html	pre-reset v2.00	first-catch chain	held	yes
+v200-cyc-confirm-html	pre-reset v2.00	first-catch chain	held	yes
+v200-fydp-name-html	pre-reset v2.00	first-catch chain	held	yes
+v200-cyc-double-escape	pre-reset v2.00	first-catch chain	held	yes
+v200-inspfield-lbl-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-cmp-menu-raw	pre-reset v2.00	first-catch chain	held	yes
+v200-putback-markup	pre-reset v2.00	first-catch chain	held	yes
+v200-pmoadd-unchecked	pre-reset v2.00	first-catch chain	held	yes
+v200-keybad-three	pre-reset v2.00	first-catch chain	held	yes
+v200-id-builtin-open	pre-reset v2.00	first-catch chain	held	yes
+v200-name-builtin-open	pre-reset v2.00	first-catch chain	held	yes
+v200-spmt-pmo-open	pre-reset v2.00	first-catch chain	held	yes
+v200-ace-key-open	pre-reset v2.00	first-catch chain	held	yes
+v200-exagg-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-exagg-titles-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgyears-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgcap-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgupl-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgupl-ev-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgpool-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rlgpool-ev-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-wbsscan-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-ccarside-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-posexec-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-posexec-top-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-cycproj-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-spgather-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pmodetail-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pmodetail-ctl-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-cesummary-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pmopanel-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pptpmo-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pptce-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-xlsce-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-xlscepmo-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-xlscepmo-ce-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-forof-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-entuse-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-destresolve-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pmochoices-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-ppkeys-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-ppsvcs-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-bandimp-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-rpmerge-byid-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-mipr-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-space-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-destfold-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-destrefs-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-destpkg-refs-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-destpkg-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-blget-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-door-dest-open	pre-reset v2.00	first-catch chain	held	yes
+v200-door-destmap-open	pre-reset v2.00	first-catch chain	held	yes
+v200-id-dunder-open	pre-reset v2.00	first-catch chain	held	yes
+v200-pack-items-only-open	pre-reset v2.00	first-catch chain	held	yes
+v200-valkeys-open	pre-reset v2.00	first-catch chain	held	yes
+v200-acealign-door-open	pre-reset v2.00	first-catch chain	held	yes
+v200-exx-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-exx-reset-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-exx-seta-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-exx-setsvc-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-fydprows-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-cyccmp-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-forecast-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-pmomatrix-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-spproj-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-acegroups-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-stray-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-aceshare-plain	pre-reset v2.00	first-catch chain	held	yes
+v200-flowsub-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-ppsetv-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-rpgone-inherited	pre-reset v2.00	first-catch chain	held	yes
+v200-r1-raw-year-exec	R1	audit-recon	reimpl	yes
+v200-r1-saved-year-widens	R1	audit-recon	reimpl	yes
+v200-r1-mixed-disclosure-b	R1	audit-recon	reimpl	yes
+v200-r1-export-note	R1	audit-recon	reimpl	yes
+v200-r1-help-claim	R1	audit-recon	reimpl	yes
+v200-r1-scan-stops-early	R1	audit-recon	reimpl	yes
+v200-r1-mix-words-one-kind	R1	audit-recon	reimpl	yes
+v200-r2-eeic-checked-raw	R2	audit-board	reimpl	yes
+v200-r2-eeic-not-upper	R2	audit-board	reimpl	yes
+v200-r3-cycblock-gone	R3	audit-import	reimpl	yes
+v200-r3-cycblock-falls-through	R3	audit-import	reimpl	yes
+v200-r3-cycblock-says-saved	R3	audit-import	reimpl	yes
+v200-r2-why-unexplained	R2	audit-board	reimpl	yes
+v200-r4-no-recheck	R4	audit-import	reimpl	yes
+v200-r4-held-quietly	R4	audit-import	reimpl	yes
+v200-r4-said-not-held	R4	audit-import	reimpl	yes
+v200-r5-restore-gen	R5	audit-import	reimpl	yes
+v200-r5-restore-basedirty	R5	audit-import	reimpl	yes
+v200-u2-putback-gen	U2	audit-import	reimpl	yes
+v200-u2-putback-while-saving	U2	audit-import	reimpl	yes
+v200-r3-landed-view-unsaid	R3	audit-import	reimpl	yes
+v200-r3-landed-view-prefix	R3	audit-import	reimpl	yes
+v200-r1-mixed-by-kind	R1	audit-recon	reimpl	yes
+v200-r1-export-mix-by-kind	R1	audit-recon	reimpl	yes
+v200-r1-panel-mix-by-kind	R1	audit-recon	reimpl	yes
+v200-r1-allyears-note-dropped	R1	audit-recon	reimpl	yes
+v200-r1-allyears-box-dropped	R1	audit-recon	reimpl	yes
+v200-r1-planned-beside-executed	R1	audit-recon	reimpl	yes
+v200-r1-amounts-total-as-executed	R1	audit-recon	reimpl	yes
+v200-r1-stored-tooltip-unsaid	R1	audit-recon	reimpl	yes
+v200-r1-stored-note-unsaid	R1	audit-recon	reimpl	yes
+v200-r1-stored-by-effective-year	R1	audit-recon	reimpl	yes
+v200-r1-stored-note-any-appn	R1	audit-recon	reimpl	yes

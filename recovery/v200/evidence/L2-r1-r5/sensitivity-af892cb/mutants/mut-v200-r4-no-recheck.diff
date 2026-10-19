@@ -1,0 +1,4 @@
+8344c8344
+<     if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4): checked again after the read: an import that stopped part-way while it waited sets the hold, and the bytes built below would carry its mix
+---
+>     if(false) return;   // v2.00 (R4): checked again after the read: an import that stopped part-way while it waited sets the hold, and the bytes built below would carry its mix

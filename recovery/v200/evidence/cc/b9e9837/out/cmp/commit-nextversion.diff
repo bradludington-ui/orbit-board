@@ -1,0 +1,118 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index a2f1b8d..49097af 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -883,2 +883,98 @@ result for it was run fresh against these commits.
+     run in jsdom with the folder stand-in.
++- **U34 — a saved year selection this board did not write is read as no year, kept and said** (Codex's review, as Brad
++  supplied it on 12 Oct, about 6:05 PM ET: "the malformed saved-year selection"; Brad: "record the malformed saved-year
++  selection ... explicitly"). The board writes a saved year selection in two forms only: nothing (ALL YEARS), or a list of
++  whole years from its own buttons. A selection it did not write, as a hand-edited or damaged saved file carries it, was read
++  with nothing said. A string ("2026"), an object, a bare number, "", 0, false or an empty list read as ALL YEARS:
++  $540,000,000 on the synthetic fixture, with ALL YEARS lit. [2026.5] and 5,000 entries of "x" read the same way. ["2027"]
++  counted as FY27 ($500,000,000). [null] and [true] were said as a saved "FY0" and "FY1". [2025, 2026.5] counted FY25 and
++  said nothing of the rest. The money always matched across the calculation, the panel and the export, and the file kept the
++  value through a save. Now only no saved selection (null, or no key) is ALL YEARS -- and a whole saved value too large
++  for the browser (1e999), which the opening reads as null (see Not covered). A year is a whole number, as the board
++  writes it.
++  Anything else is read as no year: it is not counted, it is kept as saved, and it is said, with what is counted instead.
++  International Partner and FMS money typed in for a year is counted only for the years read. It is said in the
++  scope (the panel, the chart, the export's Scope line), in a notice on the panel and in the export's NOTE, under U14's when
++  both apply. The notice quotes the file, shown as text: at most three entries, each cut at 40 characters (a quote of 40 is
++  shown whole; one of 41 is cut to 40 and "…"), between characters, never inside one. Every U+FFFE and U+FFFF, which XML
++  1.0 forbids, is quoted as its escape ("\uffff"), so the exported workbook stays well-formed. A selection holding
++  something the board cannot read is never ALL YEARS, even when the years it can read are every year offered: ALL YEARS is
++  not lit, those years are, and the label names them. Duplicates are still read once, and an unsorted list in order, with
++  nothing said. ALL YEARS, a year's "only", or a year switched on or off chooses again and replaces what cannot be read, as
++  the notice says. A toggle starts from the years the board could read.
++  - **What users may see:** a saved file whose year selection was edited by hand or damaged now opens on "no year counted",
++    or on the years the board could read, with a notice saying what the file holds. It used to show every year (or a year
++    the file does not name), with nothing said.
++  - **Test:** audit-recon "v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is
++    kept and said" (39 checks). Each shape is opened from the board's own saved file and read apart in the calculation, the
++    panel and the exported workbook (its values read back, and every part of its package parsed as XML), then saved and
++    reopened. The 23 shapes are a string, an object, a bare number, an empty list, "", 0, false, a year as text, 2026.5,
++    null, true, one whole year beside one that is not, text that is markup (also checked escaped), 5,000 entries, a
++    120-character entry, U+FFFF beside 2027, U+FFFE as the whole value, U+FFFF and U+FFFE in one entry beside 2027, quotes
++    of exactly 40 and of 41 characters, 45 emoji beside 2027, a year U14 says beside an entry (its two NOTEs checked in
++    order), and every offered year beside an entry. Two checks read the whole export: the NOTEs' order, and [2027, "x"]'s
++    sheet against [2027]'s, row for row. One check types in FY25 International Partner money ($3,000,000) and FY27 FMS money
++    ($2,000,000): beside "2026" none of it is counted ($0 total funding), and beside [2027, "x"] FY27's FMS only
++    ($502,000,000), in the calculation and the exported workbook. There are eight controls: no key, null, duplicates, out of
++    order, 5,000 of one year, a whole year no appropriation offers, FY1999 on a board holding FY1999 rows, and -2027 (a
++    whole number is a year as the board reads it: it need not be in 2000–2099, have four digits, or be above zero). One
++    check switches FY27 on beside "2026"; two click controls and a "nothing asked" check follow. 28 checks fail on the
++    board before the change (`d66dd60`); the other 11 pass there by design (the eight controls, the two click controls and
++    "nothing asked"). U14's 63 checks pass unchanged.
++  - **Mutations:** `v200-yearsel-not-a-list-all-years`, `-nothing-read-all-years`, `-number-coerced`, `-fraction-unsaid`,
++    `-whole-unsaid`, `-label-unsaid`, `-panel-unsaid`, `-export-unsaid`, `-markup-unescaped`, `-counted-unsaid`,
++    `-plural-it`, `-toggle-from-all`, `-quote-xml-unsafe`, `-quote-splits-char`, `-quote-uncut`, `-falsy-all-years`,
++    `-falsy-unsaid`, `-allyears-lit-unread`, `-label-all-years-unread`, `-label-ur-unpassed`, `-year-chips-unlit-unread`,
++    `-note-replaces-line`, `-note-order`, `-label-unsaid-beside-u14`, `-panel-unsaid-beside-u14`, `-year-range`,
++    `-plural-label`, `-quote-escape-first-only`, `-quote-cut-at-40-or-more`, `-quote-cut-above-41`, `-year-four-digits`,
++    `-year-positive` and `-other-sources-all-years`. Each is caught by the focused block (full-suite sensitivity runs in
++    the final-tree queue).
++  - **Not covered:**
++    - A whole number that is no plausible year (-2027, 0, 1990, 10000, 99999) is still read as a year and given U14's notice.
++      The panel and the scope label print it by its last two digits ("FY-27", "FY0", "FY99"), while the export's NOTE
++      prints it whole. The board prints every year this way, and its import accepts any non-zero whole year. The FY1999
++      and -2027 controls pin that a year need not be in 2000–2099, have four digits, or be above zero. When those two
++      digits are an offered year's, the label says that year twice: [2025, 2125] reads "FY25 · all appropriations · saved
++      FY25 not available, not counted" on the panel and in the export's Scope line, and the panel's notice says FY25 has
++      no imported row and is not counted while it counts FY25's $40,000,000 (the export's NOTE names FY2125). The money is
++      right; the words are U14's (ledger U48).
++    - An enormous list of distinct whole numbers is still named in full, and is slow to read. At 3,000 the panel's notice
++      is 18,070 characters. At 20,000 it is 118,370 characters, and the calculation and the panel each took 1.3–1.6 s in
++      jsdom (the de-duplication grows with the square of the length). The scope label, the export's Scope line and its file
++      name name them all. The saved list is also sorted as text, as U14 sorts it, so whole numbers of different lengths
++      (999, 10000) are listed out of numeric order.
++    - "Kept as saved" means the same value, as the browser's JSON reader and writer keep it, not the same bytes: spaces are
++      dropped, [-0] is written back as [0] and [2.027e3] as [2027], and a decimal that is a whole year to a number's
++      precision ([2026.9999999999999]) is read as that year (FY27, $500,000,000 on the fixture), with nothing said. A
++      number too large for the browser (1e999, -1e999) is already null when the board reads it: opening copies the saved
++      state through JSON. As an entry it is quoted as "null" and written back as null. As the whole saved value it is read
++      as ALL YEARS ($540,000,000, ALL YEARS lit, nothing said), and the first save writes null, as before the change.
++    - A saved selection written as NaN -- what a JSON writer outside the browser can put in a file (Python's json module
++      does by default) -- is not JSON, so the file's whole saved state cannot be read. The board opens without it and says
++      "Could not read 1 item on opening: the saved board state in this file. That data is NOT loaded — do not save over
++      this file until you have checked it, or the unread part will be lost.", and then, in the same opening, replaces that
++      line: with "SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine)…" in a browser that holds no
++      board, or with "No saved state in this copy — make sure you opened the latest board file…" in the browser that holds
++      it. A Save from there writes a board without the file's saved state: no requirements in the first
++      case, and this browser's own copy without the file's imported execution rows in the second. The same before the
++      change; ledger U47.
++    - U+FFFE and U+FFFF in the saved selection are quoted as their escape ("\uffff"), not as the character the file holds.
++    - A saved selection nested about 4,150 lists deep or more stops the board opening at all (a stack overflow at boot, in
++      jsdom; 4,154 opened in one boot and not in the next; the same before the change). Before the change, at every depth
++      tried from 3,654 to 4,153 that opened, the funds-flow calculation threw; it now reads, quotes and exports at every
++      depth that opens. A browser's limit differs from jsdom's.
++    - The saved appropriation selection shaped the same ways ("om", [], ["xx"]) still reads as all appropriations, with
++      nothing said, and counts money from appropriations the file does not name (ledger U45).
++    - Saved prime-match text or a category name holding U+FFFF still makes the funds-flow export a workbook that is not
++      well-formed, as before the change: the XLSX writer passes the character (ledger U46; the same writer gap as
++      U37, which names U+0000–U+001F). This fix covers only the quote of the saved year selection.
++    - A click on the year buttons replaces what could not be read, as the notice says. The earlier text survives only in
++      the file's own history.
++    - The suite opens each shape from the saved file. A probe also reopened each from this browser's storage alone, where
++      every malformed shape was read and said the same way (totals there leave out FY25's executed rows, which live in the
++      file only). The shared folder's copy, a PMO copy and a batch import carry the same stored value to the same readers,
++      but were not opened here. How the board writes the selection was checked in every version from `09cf071` on; earlier
++      history is not in the repository.
++    - Not covered either: a locked-cycle view; Chromium (jsdom only); whether the longer label fits the 1,280-pixel chart
++      image.
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+@@ -921,2 +1017,14 @@ result for it was run fresh against these commits.
+     recent history copy. U29 (another copy put on screen, then Save; the ADOPT track) is a separate finding.
++  - **U34: built as one commit, its build and both fix rounds together, as its builder recommended** (Codex's review, as Brad
++    supplied it, 12 Oct: "the malformed saved-year selection"): a saved year selection the board did not write is read as
++    no year, kept as saved, and said on the panel and in the export; it is never read as ALL YEARS or as a year it does not
++    name, and its quote keeps the exported workbook well-formed (above). Its limits are under "Not covered": a whole number
++    that is no plausible year, an enormous list of distinct whole numbers, "kept" meaning the same value rather than the
++    same bytes (1e999 is written back as null); a whole saved value of 1e999 read as ALL YEARS with nothing said; a saved
++    NaN that makes the file's whole saved state unreadable, with the warning replaced on the status line in the same
++    opening (U47); a saved year a century off an offered year printed as that year (U48); a selection nested
++    too deep for the board to open; and two findings recorded on their own: the saved appropriation selection, which still
++    reads a malformed value as all appropriations with nothing said and counts money from appropriations the file does
++    not name (U45), and saved prime-match text or category names holding U+FFFF, which still make the funds-flow
++    export a workbook that is not well-formed (U46, the same writer gap as U37).
+ 

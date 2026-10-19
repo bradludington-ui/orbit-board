@@ -1,0 +1,114 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 304d8d3..91b7a94 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -2849 +2849 @@ function attLists(T){
+-  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[]};
++  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[]};
+@@ -2875,0 +2876,2 @@ function attLists(T){
++  // v2.00 (U41): an SI code a file carried that is not one of the five -- kept as saved, its money on no recognized code
++  siIssues().forEach(function(c){ out.si.push({id:c.id, rank:MR[c.id], funded:0, n:[c.label]}); });
+@@ -2895,0 +2898,2 @@ const ATT_KIND={
++  si:{t:'🏷 SI CODES TO REPAIR', go:'Go to it',
++    why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s RECORD panel, where its Navy SI code shows the code as saved.'},
+@@ -2911 +2915 @@ function attBody(){
+-    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
++    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
+@@ -2919 +2923 @@ function attBody(){
+-      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
++      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
+@@ -2926 +2930 @@ function attBody(){
+-    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
++    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
+@@ -2936,0 +2941,2 @@ function attGo(k, id){
++  // v2.00 (U41): the RECORD panel, at the Navy SI code that shows the code as saved
++  if(k==='si'){ recOpen=id; render(); try{ const f=document.querySelector('#recBody select[onchange^="setSi("]'); if(f && f.focus) f.focus(); }catch(e){} return; }
+@@ -5785,4 +5791,4 @@ function applyState(st){
+-  Object.keys(S.si).forEach(function(rid){
+-    const v=S.si[rid];
+-    if(v!=='' && ['LA','EN','OT','FL','AT'].indexOf(v)<0) delete S.si[rid];
+-  });
++  // v2.00 (U41): an SI code the file carried that is not one of the five is KEPT as it arrived -- never trimmed, put in
++  // capitals, dropped or swapped for the code the board would derive -- and named in Needs attention and Pre-flight
++  // (siIssues) until a person chooses one. Deleted here, it was gone on the next save, and its money sat under the derived
++  // code (an LM prime's under LA) with nothing said.
+@@ -11153 +11159,3 @@ function monSpreadOf(id, p, f){
+-function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? v : siDefault(it); }
++// v2.00 (U41): a stored code that is not one of the five is NO code to every sum and export -- never the derived one, never a
++// guess at what was meant. It stays stored as it arrived (siRawOf) and is listed (siIssues) until a person chooses one.
++function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? (siKnown(v)? v : '') : siDefault(it); }
+@@ -11154,0 +11163,13 @@ function siIsDerived(it){ return it? ((S.si||{})[it.id]===undefined) : false; }
++// one of the five, or '' (none, chosen by hand)
++function siKnown(v){ return v==='' || SI_CODES.some(function(c){ return c[0]===v; }); }
++// the stored value when it is anything else, else undefined
++function siRawOf(id){ const v=(S.si||{})[id]; return (v===undefined || siKnown(v))? undefined : v; }
++function siRawShow(v){ return inShow(typeof v==='string'? v : JSON.stringify(v)); }
++// every requirement on the board holding one, on O&M only (nothing reads an SI code anywhere else): [{id, label}]
++function siIssues(){
++  if(!siApplies()) return [];
++  const out=[];
++  (DATA.items||[]).forEach(function(it){ if(!it) return; const v=siRawOf(it.id);
++    if(v!==undefined) out.push({id:it.id, label:'SI '+siRawShow(v)+' is not one of LA, EN, OT, FL or AT'}); });
++  return out;
++}
+@@ -11163,0 +11185 @@ function siEligible(it){
++  if(siRawOf(it.id)!==undefined) return true;     // v2.00 (U41): a code from a file the board does not recognize is chosen again here
+@@ -11185 +11207,3 @@ function setSi(id, code){
+-    : '\ud83c\udff7 '+esc(dispTitle(itm))+' has no SI code. The CR cash export leaves the cell blank.');
++    // v2.00 (U41): a code from a file the board does not recognize is still there when a locked view refused the choice
++    : '\ud83c\udff7 '+esc(dispTitle(itm))+(siRawOf(id)!==undefined? ' keeps SI '+esc(siRawShow(siRawOf(id)))+' as saved, not one of '
++      +'LA, EN, OT, FL or AT.' : ' has no SI code.')+' The CR cash export leaves the cell blank.');
+@@ -11692 +11716,3 @@ function crExport(){
+-  const noSi=rows.filter(function(e){ const it=itemById(e.id); return it && !siOf(it); }).length;
++  // v2.00 (U41): a code from a file the board does not recognize is a blank cell too, and is counted apart from no SI code
++  const rawSi=rows.filter(function(e){ return itemById(e.id) && siRawOf(e.id)!==undefined; }).length;
++  const noSi=rows.filter(function(e){ const it=itemById(e.id); return it && !siOf(it); }).length-rawSi;
+@@ -11696 +11722,3 @@ function crExport(){
+-       +'set them from each row’s ⋯ menu.' : ' Every row carries an SI code.'));
++       +'set them from each row’s ⋯ menu.' : (rawSi? '' : ' Every row carries an SI code.'))
++    +(rawSi? ' <b style="color:var(--amber)">'+rawSi+' with an SI code from a file that is not one of LA, EN, OT, FL or AT</b> '
++       +'(kept as saved, listed in Needs attention) — '+(rawSi===1? 'its cell is' : 'their cells are')+' blank'+(noSi? ' too' : '')+'.' : ''));
+@@ -13658,0 +13687,8 @@ function preflight(){
++  // v2.00 (U41): an SI code a file carried that is not one of the five, kept as saved -- its money is on no recognized code
++  { let si=[]; try{ si=siIssues(); }catch(e){ si=[]; }
++    add('fix','si','SI codes the board does not recognize',
++      'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved, '
++      +'never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is '
++      +'counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every '
++      +'export prints its SI code blank. Choose each in the requirement\u2019s Navy SI code.',
++      si.map(function(c){ return {id:c.id, label:pfName(c.id), sub:c.label}; })); }
+@@ -22335 +22371,2 @@ function scoreboard(){
+-        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '');
++        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '')
++        +(A.si.length? ae('si', '🏷', pl(A.si.length,'SI code to repair','SI codes to repair')) : '');
+@@ -23882,0 +23920 @@ function recFields(id, it){
++  const siRaw=siRawOf(id);     // v2.00 (U41): shown as it was saved, and selected, until a code is chosen
+@@ -23885 +23923,2 @@ function recFields(id, it){
+-      '<option value=""'+(siOf(it)?'':' selected')+'>— none —</option>'
++      '<option value=""'+((siOf(it) || siRaw!==undefined)?'':' selected')+'>— none —</option>'
++      +(siRaw!==undefined? '<option value="'+esc(String(siRaw))+'" selected>'+esc(siRawShow(siRaw))+' — not one of the five, kept as saved</option>' : '')
+@@ -24048 +24087,2 @@ function matBulk(){
+-              get:function(it){ return siOf(it); },
++              // v2.00 (U41): a code kept from a file is an answer a bulk write overwrites, and the question counts it so
++              get:function(it){ const r=siRawOf(it.id); return r!==undefined? String(r) : siOf(it); },
+@@ -24619 +24659 @@ function siMatrix(){
+-  let nSet=0, nDerived=0, uncoded=0, inScope=0;
++  let nSet=0, nDerived=0, uncoded=0, inScope=0, rawTot=0, nRaw=0;
+@@ -24628,0 +24669 @@ function siMatrix(){
++    if(!code && siRawOf(id)!==undefined){ rawTot+=tot; nRaw++; }   // v2.00 (U41): of that, under a code the board does not recognize
+@@ -24652 +24693 @@ function siMatrix(){
+-  if(rows[NOCODE]) h+=line('<span style="color:var(--amber)">'+NOCODE+'</span>', rows[NOCODE]);
++  if(rows[NOCODE]) h+=line('<span style="color:var(--amber)">'+(siIssues().length? '— no recognized code —' : NOCODE)+'</span>', rows[NOCODE]);
+@@ -24661 +24702 @@ function siMatrix(){
+-    +(uncoded>0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no code yet — set '
++    +(uncoded>0.005 && rawTot<=0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no code yet — set '
+@@ -24662,0 +24704,5 @@ function siMatrix(){
++    // v2.00 (U41): money under a code from a file the board does not recognize is in that row, and said to be
++    +(rawTot>0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no recognized code: '+fM(rawTot)+' of it is on '
++      +nRaw+' requirement'+(nRaw===1?'':'s')+' whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, '
++      +'listed in Needs attention)'+(uncoded-rawTot>0.005? ' and '+fM(uncoded-rawTot)+' carries no code yet' : '')
++      +' — set one from a requirement’s ⋯ menu.' : '')
+@@ -30489 +30535,2 @@ function exportExcel(){
+-        '\u2014 no SI code set \u2014', crSvcName)
++        // v2.00 (U41): with a code from a file the board does not recognize, that money is in this row, and the row says so
++        siIssues().length? '\u2014 no recognized SI code \u2014' : '\u2014 no SI code set \u2014', crSvcName)

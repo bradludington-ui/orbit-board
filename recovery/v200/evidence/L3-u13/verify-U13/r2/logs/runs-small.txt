@@ -1,0 +1,17 @@
+ctl start="2026-10-12 08:17:10 EDT" exit=0 wall_s=.041021602 
+lines start="2026-10-12 08:17:15 EDT" exit=0 wall_s=.031129175 
+b-tail start="2026-10-12 08:17:27 EDT" exit=0 wall_s=.043534998 
+refresh-now start="2026-10-12 08:17:34 EDT" exit=0 wall_s=.053123123 
+livepoll start="2026-10-12 08:17:38 EDT" exit=0 wall_s=.043890338 
+drivepoll start="2026-10-12 08:17:44 EDT" exit=0 wall_s=.031860443 
+show-m2-entry-only start="2026-10-12 08:18:10 EDT" exit=0 wall_s=.051257041 
+show-m2-between-waits start="2026-10-12 08:18:10 EDT" exit=0 wall_s=.051646285 
+show-m2-connect-stops start="2026-10-12 08:18:10 EDT" exit=0 wall_s=.043379434 
+show-m2-resolve-unqueued start="2026-10-12 08:18:10 EDT" exit=0 wall_s=.046709579 
+show-m2-refuse-sets-base start="2026-10-12 08:18:11 EDT" exit=0 wall_s=.040597913 
+mkdiffs start="2026-10-12 08:18:26 EDT" exit=0 wall_s=.490996317 
+state-check start="2026-10-12 08:18:58 EDT" exit=0 wall_s=.048610146 
+matrix start="2026-10-12 08:19:10 EDT" exit=0 wall_s=.064738346 
+pids-count start="2026-10-12 08:19:18 EDT" exit=0 wall_s=.035315208 
+fixround-board start="2026-10-12 08:19:41 EDT" exit=0 wall_s=.076693867 
+final-hash start="2026-10-12 08:21:50 EDT" exit=0 wall_s=.061287315 

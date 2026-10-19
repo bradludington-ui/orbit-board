@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-full-for-any", "matches": 1, "find": "' '+T.plan+(html? ' '+T.full : '')", "repl": "' '+T.plan+' '+T.full"}

@@ -1,0 +1,114 @@
+SHc-fold-W        16 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+SHc-fold-C1       15 checks  0 fail 
+SHc-fold-C2       13 checks  0 fail 
+SHc-file-W        14 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+SHc-file-C1       13 checks  0 fail 
+SHc-file-C2       11 checks  0 fail 
+SHc-fold-Wclean   16 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+SHc-fold-C1clean  15 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+SHc-file-C1clean  13 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+SHa-fold-Wclean   17 checks  3 fail CONTRACT:K1: the end state is not falsely clean | CONTRACT:K2: after a quiet refresh, not falsely clean | CONTRACT:K3: reopened, not falsely clean
+SHa-fold-C1clean  16 checks  3 fail CONTRACT:K1: the end state is not falsely clean | CONTRACT:K2: after a quiet refresh, not falsely clean | CONTRACT:K3: reopened, not falsely clean
+SHa-file-C1clean  14 checks  2 fail CONTRACT:K1: the end state is not falsely clean | CONTRACT:K3: reopened, not falsely clean
+SHa-fold-W        17 checks  3 fail CONTRACT:K1: the end state is not falsely clean | CONTRACT:K2: after a quiet refresh, not falsely clean | CONTRACT:K3: reopened, not falsely clean
+SHa-fold-Wnow     17 checks  0 fail 
+SHa-fold-C1       16 checks  0 fail 
+SHa-fold-C2       14 checks  0 fail 
+SHa-file-W        15 checks  0 fail 
+SHa-file-Wread    15 checks  0 fail 
+SHa-file-C1       14 checks  0 fail 
+SHa-file-C2       12 checks  0 fail 
+BT-file-W         16 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+BT-file-C1        14 checks  0 fail 
+BT-file-C2        13 checks  0 fail 
+BT-file-C3        15 checks  0 fail 
+BT-fold-W         18 checks  1 fail CONTRACT:K1: the end state is not falsely clean
+BT-fold-C1        17 checks  3 fail CONTRACT:K1: the end state is not falsely clean | CONTRACT:K2: after a quiet refresh, not falsely clean | CONTRACT:K3: reopened, not falsely clean
+BT-fold-C2        16 checks  0 fail 
+BT-fold-C3        18 checks  0 fail 
+IB-fold-W         16 checks  0 fail 
+IB-fold-C1        15 checks  0 fail 
+IB-fold-C2        13 checks  0 fail 
+IB-fold-Wclean    16 checks  2 fail CONTRACT:REACH (reopened): BRAD-1, IMPORT each in a copy th | CONTRACT:REACH (reopened + one edit): BRAD-1, IMPORT each i
+IB-fold-C1clean   15 checks  1 fail CONTRACT:K3: reopened, not falsely clean
+IB-file-W         14 checks  0 fail 
+IB-file-C1        13 checks  0 fail 
+IB-file-C2        11 checks  0 fail 
+IB-file-Wclean    14 checks  0 fail 
+IB-file-C1clean   13 checks  1 fail CONTRACT:K3: reopened, not falsely clean
+TOTAL 560 checks, 25 fail; by kind: {"RUN":38,"FIX":169,"HOLD":15,"PRED":128,"CONTRACT FAIL":25,"CONTRACT":185}
+FAIL SHc-fold-W CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHc-file-W CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHc-fold-Wclean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHc-fold-C1clean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHc-file-C1clean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-Wclean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-Wclean CONTRACT K2: after a quiet refresh, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-Wclean CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-C1clean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-C1clean CONTRACT K2: after a quiet refresh, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-C1clean CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-file-C1clean CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHa-file-C1clean CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-W CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-W CONTRACT K2: after a quiet refresh, not falsely clean 
+   got  true 
+   want false
+FAIL SHa-fold-W CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL BT-file-W CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL BT-fold-W CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL BT-fold-C1 CONTRACT K1: the end state is not falsely clean 
+   got  true 
+   want false
+FAIL BT-fold-C1 CONTRACT K2: after a quiet refresh, not falsely clean 
+   got  true 
+   want false
+FAIL BT-fold-C1 CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL IB-fold-Wclean CONTRACT REACH (reopened): BRAD-1, IMPORT each in a copy the board holds or fetches 
+   got  [true,false] 
+   want [true,true]
+FAIL IB-fold-Wclean CONTRACT REACH (reopened + one edit): BRAD-1, IMPORT each in a copy the board holds or fetches 
+   got  [true,false] 
+   want [true,true]
+FAIL IB-fold-C1clean CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false
+FAIL IB-file-C1clean CONTRACT K3: reopened, not falsely clean 
+   got  true 
+   want false

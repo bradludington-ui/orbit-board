@@ -1,0 +1,3 @@
+a386223 2026-10-12 19:04:34 +0000 v2.00 recovery: correct a resumption time written later than the clock (records only)
+37f7ee3 2026-10-12 19:04:24 +0000 v2.00 recovery: correct the recorded stop time (11:57 AM ET); resumption recorded (records only)
+6d14fde 2026-10-12 19:03:09 +0000 v2.00 recovery: second usage-limit stop and restart recorded (records only)

@@ -1,0 +1,14 @@
+# cmd: X=1 node tools/export-audit/legacy-fsrc.mjs
+# cwd: /home/user/orbit-board
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T19:47:02Z / 15:47:02 EDT
+# cap: 600s
+  ok   legacy fsrc 'mand' still honoured — all mandatory (d 0 · m 60 · u 0)
+  ok   legacy fsrc 'disc' still honoured — all discretionary (d 60 · m 0 · u 0)
+  ok   legacy fsrc 'ufr' still honoured — all unfunded (d 0 · m 0 · u 60)
+
+  every legacy Force setting computes exactly as before
+
+
+# end: 2026-10-11T19:47:05Z / 15:47:05 EDT
+# exit: 0  duration_s: 2.8

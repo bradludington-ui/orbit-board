@@ -1,0 +1,82 @@
+{
+ "res": {
+  "working review": {
+   "uiAdd": true,
+   "baseToolAdd": true,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "working rank": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "working fund": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "working compare": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "working brief": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "locked cycle review": {
+   "uiAdd": true,
+   "baseToolAdd": true,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "locked cycle fund": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "locked cycle brief": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": true,
+   "fileMenuOffices": true
+  },
+  "PMO copy review": {
+   "uiAdd": true,
+   "baseToolAdd": true,
+   "uiImport": true,
+   "pmoCard": false,
+   "fileMenuOffices": false
+  },
+  "PMO copy fund": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": false,
+   "fileMenuOffices": false
+  },
+  "PMO copy brief": {
+   "uiAdd": false,
+   "baseToolAdd": false,
+   "uiImport": true,
+   "pmoCard": false,
+   "fileMenuOffices": false
+  }
+ },
+ "errs": []
+}

@@ -1,0 +1,8 @@
+S|c2-npm-check|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|npm run check
+F|c2-H-prevB-after|after|H-prevB.mjs|
+S|c2-S-boot-same|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/boot-same.mjs
+S|c2-S-audit|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit.mjs
+S|c2-S-audit-ppt|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit-ppt.mjs
+S|c2-S-audit-other|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit-other.mjs
+S|c2-S-legacy-fsrc|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/legacy-fsrc.mjs
+S|c2-S-audit-inject|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit-inject.mjs

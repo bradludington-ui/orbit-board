@@ -1,0 +1,11 @@
+A1-after-NH vs B1-before-NH, mode N (win): 65 cells identical, 1 differ
+--- ('N', 'B08-dirty', 'tk')
+   code:
+      A1-after-NH: "WRITE[chg:DIRTY,MS,_baseDirty,_driveBase,baseGet,folder:history/,folder:history/spmt-2027-om-20261012-112101.json,folder:spmt-2027-om.json,ls:prio27om,ls:prio27om.base calls:baseSet,driveBaseSet,driveWrite,persist,snapKeep,snapPrune ls:prio27om,prio27om.base folder:create:history/spmt-2027-om-20261012-112101.json,mkdir:history,write:history/spmt-2027-om-20261012-112101.json,write:spmt-2027-om.jso
+      B1-before-NH: "WRITE[chg:DIRTY,MS,_baseDirty,_driveBase,baseGet,folder:history/,folder:history/spmt-2027-om-20261012-112712.json,folder:spmt-2027-om.json,ls:prio27om,ls:prio27om.base calls:baseSet,driveBaseSet,driveWrite,persist,snapKeep,snapPrune ls:prio27om,prio27om.base folder:create:history/spmt-2027-om-20261012-112712.json,mkdir:history,write:history/spmt-2027-om-20261012-112712.json,write:spmt-2027-om.jso
+   fw:
+      A1-after-NH: ["create:history/spmt-2027-om-20261012-112101.json", "mkdir:history", "write:history/spmt-2027-om-20261012-112101.json", "write:spmt-2027-om.json"]
+      B1-before-NH: ["create:history/spmt-2027-om-20261012-112712.json", "mkdir:history", "write:history/spmt-2027-om-20261012-112712.json", "write:spmt-2027-om.json"]
+   prot:
+      A1-after-NH: ["DIRTY", "MS", "_baseDirty", "_driveBase", "baseGet", "folder:history/", "folder:history/spmt-2027-om-20261012-112101.json", "folder:spmt-2027-om.json", "localStorage:prio27om", "localStorage:prio27om.base"]
+      B1-before-NH: ["DIRTY", "MS", "_baseDirty", "_driveBase", "baseGet", "folder:history/", "folder:history/spmt-2027-om-20261012-112712.json", "folder:spmt-2027-om.json", "localStorage:prio27om", "localStorage:prio27om.base"]

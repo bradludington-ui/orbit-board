@@ -1,0 +1,20 @@
+# label: MF-clin-by-name
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/clones/gc
+# cmd: env BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-clin-by-name.html MUT_FIRST_FAIL=1 SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/MF-clin-by-name.checks.jsonl node tools/export-audit/hr-minus-u3233.mjs
+# start: 2026-10-18 19:10:16 EDT
+# cap: 600 s, kill grace 10 s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v1.98 item 83 — a prime’s CLINs put each service’s money on its own RCN/EEIC, and the summary, the CLIN breakout, the Spend Plan Source and the ACE breakout agree","where":"RCN-EEIC by Month · summary","what":"each service’s money on the combination each CLIN puts it on; Q on none; each service total is its funded money","got":"[[\"USAF\",\"11111 / AAAAA\",503],[\"USAF\",\"— no RCN/EE
+
+# end: 2026-10-18 19:11:22 EDT  exit: 1  wall_s: 66.6

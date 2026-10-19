@@ -1,0 +1,6 @@
+15880 2026-10-19T11:36:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/0-defects.log
+15921 2026-10-19T11:36:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/1-coverage.log
+15962 2026-10-19T11:36:07Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/1b-money-map.log
+16004 2026-10-19T11:36:07Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/2-trace.log
+16045 2026-10-19T11:36:09Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/5b-fuzz.log
+16477 2026-10-19T11:36:20Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/gate-e2d0bc6/5c-verify-file.log

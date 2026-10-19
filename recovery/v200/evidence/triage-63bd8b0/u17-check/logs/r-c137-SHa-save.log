@@ -1,0 +1,35 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] SHa.held: brad presses 💾 Save; it is held at the close of its write ([reached, DIRTY, record dirty, _saveBusy, head still BRAD-1])
+     expected [true,false,false,1,"BRAD-1"]
+     observed [true,false,false,1,"BRAD-1"]
+PASS [fixture] fixture.sharedNewer: the shared state file is newer than what is on screen, as its automatic load requires ([SHARED ts > MS.ts])
+     expected [true]
+     observed [true]
+PASS [predict] SHa.adopt: the other copy is put on screen during the held save ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["SHARED",1,true,null,true]
+     observed ["SHARED",1,true,null,true]
+PASS [fixture] SHa.head: the folder head after the save landed: the bytes it built ([content, by])
+     expected ["BRAD-1","Brad"]
+     observed ["BRAD-1","Brad"]
+FAIL [contract] SHa.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",true,"BRAD-1"]
+PASS [predict] SHa.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["SHARED",true,"BRAD-1"]
+     expected true
+     observed true
+PASS [predict] SHa.V3next: Brad's next 💾 Save from where the route ended ["questions asked","screen before","head before","head after","status says","recorded clean after","record names the head"]
+     expected [0,"SHARED","BRAD-1","SHARED","saved",true,true]
+     observed [0,"SHARED","BRAD-1","SHARED","saved",true,true]
+FAIL [contract] SHa.U17.V3: U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])
+     expected {"not":[true,true]}
+     observed [true,true]
+u17state {"tuple":["SHARED",true,"BRAD-1"],"falselyClean":true}
+nextFrom {"K":["SHARED",true,"BRAD-1"],"falselyClean":true,"head":"BRAD-1","history":["spmt-2027-om-20261012-191612.json BRAD-1"]}
+v3parts {"falselyClean":true,"wroteOver":true,"overwritten":"BRAD-1","overwrittenNowIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-191612.json","spmt-2027-om-20261012-191615-recent.json"],"screen":false,"storage":false,"keptSlot":false}}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/c137/prioritization-board-grid.html"}
+SUMMARY SHa save board=pre: 8 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 0/2 | harness 0/0

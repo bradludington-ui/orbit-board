@@ -1,0 +1,11 @@
+--- before/prioritization-board-grid.html	2026-10-12 11:54:29.531882703 +0000
++++ mut/var-entry-only--on-before.html	2026-10-12 11:57:26.647448171 +0000
+@@ -26672,7 +26672,7 @@
+ }
+ // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
+ async function driveStorePull(quiet){
+-  if(!driveStoreOn()) return false;
++  if(!driveStoreOn() || _saveBusy) return false;
+   let dir;
+   try{ dir=await driveDir(false,'read'); }
+   catch(e){

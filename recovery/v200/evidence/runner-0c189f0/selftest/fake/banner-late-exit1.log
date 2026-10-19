@@ -1,0 +1,10 @@
+# cmd:  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-late-exit1.sh
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-12T14:55:15Z / 10:55:15 EDT
+# cap: 20s  grace: 10s
+ALL CHECKS PASSED
+
+# end: 2026-10-12T14:55:17Z / 10:55:17 EDT
+# exit: 1  duration_s: 2.0

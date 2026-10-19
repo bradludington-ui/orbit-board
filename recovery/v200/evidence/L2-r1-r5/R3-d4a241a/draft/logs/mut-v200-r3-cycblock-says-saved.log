@@ -1,0 +1,11 @@
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a locked view is never written to the working folder"]
+2 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    the save does not tell its caller it saved
+        got true   want false
+--- v2.00 (R3) — a locked view is never written to the working folder | (b) ⬆ Publish now, PB27 put on screen during the read
+    nothing is written, it reports failure, and no publish is recorded
+        got [true,[],true,true,1791752483808]   want [true,[],true,false,1]

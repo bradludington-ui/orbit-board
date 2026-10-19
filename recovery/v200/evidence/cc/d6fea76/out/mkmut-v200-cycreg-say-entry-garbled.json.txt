@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-entry-garbled", "matches": 1, "find": "return x.entry? 'holds rcn['+x.i+'], which '+x.what : x.what; }", "repl": "return x.what; }"}

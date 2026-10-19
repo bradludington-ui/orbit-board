@@ -1,0 +1,23 @@
+Deviations from the standing rules in the U24 check (times ET, from TZ=America/New_York date)
+
+Unbounded commands (ran directly in my shell, not through q.sh; no PID recorded; none ran node, python or Chromium; all were
+read-only or wrote only inside rec/L4/u24-check; each exited at once):
+- ~15:23:31: one `ls` of the scratchpad, in the same shell call as clock0.
+- ~15:24:17: `mkdir -p probe-copy` (my own directory), in the same call as cp-base.
+- ~15:28:17: the x0 smoke run's `bash mx.sh x0 ...` loop itself (its one node run went through q.sh, bounded, PIDs recorded),
+  followed by `tail -3` and `tail -2` of my own log and pids.txt.
+- ~15:32:02: `tail -5` of my own logs/runs.txt, in the clock1 call.
+- ~15:33:19: `cat` of the two background task outputs piped to `grep -c`, a `grep` of my own runs.txt, and `ls | grep -c` of my
+  own out directory, in the snapdir call.
+- Every `bash q.sh ...` invocation is the wrapper itself; the command it runs is under setsid -w timeout -k 10 600.
+- The multi-scenario loops (mx1a, mx1b, mxx1-mxx4, mxx4dev) ran inside q.sh (outer bound 600 s) and each node run inside them
+  went through q.sh again.
+
+Non-zero exits in logs/runs.txt (all harness slips, none a probe failure):
+- ls-lock 15:23:55 exit 2: `ls` of AUDIT_IMPORT_RUNNING, which was absent (the intended finding).
+- xcheck-y2-fails 15:37:15 exit 1: grep for FAIL in a log that held only already-filtered lines; redone as xcheck-y2-full.
+- end-ob-head 15:42:44 exit 128: `git rev-parse --short` combined with a tree path; redone as end-ob-head2.
+- xtable-y4 15:43:45 exit 1: `grep -c '≠'` found 0 mismatches (grep exits 1 on a zero count); the table itself was written.
+
+q.sh uses `kill -0 $P` (signal 0: an existence test, sends nothing) to stop waiting for a child that has already exited. No
+process was signalled or killed by this check.

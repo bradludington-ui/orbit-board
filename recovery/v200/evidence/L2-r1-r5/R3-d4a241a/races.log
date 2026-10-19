@@ -1,0 +1,15 @@
+# cmd: X=1 node --import ../copy/runtime-encoding-shim.mjs races-probe.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/races
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T21:13:36Z / 17:13:36 EDT
+# cap: 600s  grace: 10s
+{"name":"R3 CONTROL normal delayed folder save","status":"passed","expected":{"mainWrites":1,"written":"WORKING"},"actual":{"returned":true,"during":{"view":"","note":"WORKING","gen":4},"mainWrites":1,"historyWrites":1,"written":"WORKING","status":"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh."}}
+{"name":"R3 locked cycle entered during folder read","status":"passed","expected":{"mainWrites":0,"historyWrites":0},"actual":{"returned":false,"during":{"view":"PB|2027","note":"LOCKED","gen":4},"mainWrites":0,"historyWrites":0,"written":null,"status":"🔒 Writing to the shared folder is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan."}}
+{"name":"R4 CONTROL normal delayed file save","status":"passed","expected":{"writes":1,"savedFF":"OLD FF"},"actual":{"importRet":null,"hold":false,"writes":1,"opens":1,"savedFF":"OLD FF","status":"💾 Saved in place by Synthetic reviewer — \"synthetic.html\" now carries this state. 10/11/2026, 9:13:41 PM You are now this board’s writer: only you save it in place."}}
+{"name":"R4 failed import hold during file read","status":"failed","expected":{"writes":0,"savedFF":"OLD FF"},"actual":{"importRet":false,"hold":true,"writes":1,"opens":1,"savedFF":"PARTIAL FF","status":"💾 Saved in place by Synthetic reviewer — \"synthetic.html\" now carries this state. 10/11/2026, 9:13:42 PM You are now this board’s writer: only you save it in place."}}
+{"name":"R5 CONTROL delayed folder close without restore","status":"passed","expected":{"current":"WORKING","written":"WORKING","dirty":false},"actual":{"before":{"gen":3,"note":"WORKING","dirty":false,"baseDirty":true},"afterRestore":{"gen":3,"note":"WORKING","dirty":false,"baseDirty":true},"after":{"gen":3,"note":"WORKING","dirty":false,"baseDirty":false},"written":"WORKING","status":"✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh."}}
+{"name":"R5 actual history restore during earlier folder close","status":"failed","expected":{"current":"RESTORED","written":"WORKING","dirty":true,"baseDirty":true},"actual":{"before":{"gen":3,"note":"WORKING","dirty":false,"baseDirty":true},"afterRestore":{"gen":3,"note":"RESTORED","dirty":true,"baseDirty":true},"after":{"gen":3,"note":"RESTORED","dirty":false,"baseDirty":false},"written":"WORKING","status":"✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh."}}
+
+# end: 2026-10-11T21:13:44Z / 17:13:44 EDT
+# exit: 1  duration_s: 8.7

@@ -1,0 +1,30 @@
+== prioritization-board-grid.html
+A hunks 4 + 22 - 10
+B hunks 4 + 22 - 10
+changed lines equal, in order: True
+hunk-wise equal: True
+== audit-recon.mjs
+A hunks 1 + 283 - 0
+B hunks 1 + 283 - 0
+changed lines equal, in order: True
+hunk-wise equal: True
+== mutate.mjs
+A hunks 1 + 31 - 0
+B hunks 1 + 31 - 0
+changed lines equal, in order: True
+hunk-wise equal: True
+== prioritization-board-grid.html (fresh track diff base->c1r vs commit)
+A hunks 4 + 22 - 10
+B hunks 4 + 22 - 10
+changed lines equal, in order: True
+hunk-wise equal: True
+== audit-recon.mjs (fresh track diff base->c1r vs commit)
+A hunks 1 + 283 - 0
+B hunks 1 + 283 - 0
+changed lines equal, in order: True
+hunk-wise equal: True
+== mutate.mjs (fresh track diff base->c1r vs commit)
+A hunks 1 + 31 - 0
+B hunks 1 + 31 - 0
+changed lines equal, in order: True
+hunk-wise equal: True

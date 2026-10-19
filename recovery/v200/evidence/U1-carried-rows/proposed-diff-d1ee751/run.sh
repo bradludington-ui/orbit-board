@@ -1,0 +1,12 @@
+#!/bin/bash
+# run.sh <logName> -- <cmd...> : one bounded run (600 s cap, 10 s grace) in its own process group; the timeout PID and its
+# node child go to pids.txt with the command; exit code and wall time to logs/runs.txt. BOARD is unset.
+U=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u1fix
+N=$1; shift 2; unset BOARD MUT_FIRST_FAIL
+S=$(date +%s.%N)
+setsid -w timeout -k 10 600 "$@" > "$U/logs/$N.log" 2>&1 &
+P=$!
+C=; for i in $(seq 1 400); do C=$(pgrep -P $P); [ -n "$C" ] && break; done
+for p in $P $C; do echo "$p $(date -u +%FT%TZ) $(ps -o comm= -p $p 2>/dev/null || echo gone) $N" >> $U/pids.txt; done
+wait $P; RC=$?
+echo "$N exit=$RC wall_s=$(echo "$(date +%s.%N) - $S" | bc) $( [ $RC = 124 -o $RC = 137 ] && echo 'TIMED OUT = incomplete')" | tee -a $U/logs/runs.txt

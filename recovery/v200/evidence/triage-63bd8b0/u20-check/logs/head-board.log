@@ -1,0 +1,6 @@
+239fc7e v2.00 recovery: runner self-test 41/41 at 60c984c (records only)
+60c984c v2.00 recovery: runner 2b self-test 41/41 at 706f721; silence git's grafts hint (records only)
+706f721 v2.00 recovery: runner correction 2b -- real suite endings from one verdict table; review 2 should-fixes; U28 (records only)
+97ce86e recovery/v200: UI branch backup, claude/v200-ui at e439683, restore verified (no product change)
+0a77ac2 v2.00 recovery: runner correction 2 self-test 36/36 at 0c189f0; time-note correction (records only)
+0c189f0 v2.00 recovery: runner correction 2, self-test fix (A15) and gate NUL tidy-up (records only)

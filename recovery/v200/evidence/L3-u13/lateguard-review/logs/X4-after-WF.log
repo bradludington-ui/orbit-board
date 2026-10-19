@@ -1,0 +1,6 @@
+IDS /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lateguard/after/prioritization-board-grid.html a88a1e5b932b94225a29cdcfec0678f828847ddd 10/12/2026, 7:46:08 AM ET
+WF B06-notnewer-nobase p1 ret=false held=undefined clean=false
+WF B06-notnewer-nobase p0 ret=false held=undefined clean=false
+WF B10-lateguard p1 ret=false held=undefined clean=true
+WF B10-lateguard p0 ret=false held=undefined clean=true
+cells 4 notClean 2 secs 7.079 ended 10/12/2026, 7:46:24 AM ET

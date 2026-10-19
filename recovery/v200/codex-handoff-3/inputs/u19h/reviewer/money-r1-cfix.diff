@@ -1,0 +1,49 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6484,6 +6484,8 @@
+ // v2.00 (U19H): the last save the board file is known to hold -- as it was opened, or a save of it that landed here. The header
+ // shows it apart while the work on screen is unsaved.
+ let _fileSaveTs=PUB_FILE_TS;
++// v2.00 (U19H): and this appropriation's own save in it (a file holding several appropriations is stamped with the newest)
++let _fileOwnTs=+((PUB&&PUB.ts)||0);
+ 
+ let DIRTY=false;
+ // ---- ONE SAVE AT A TIME, ACKNOWLEDGING WHAT IT WROTE (v1.95, item 47) ----------------------------
+@@ -7017,7 +7019,7 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
+-  _putBackOn={ms:MS, rec:putBackRec()};   // v2.00 (U19H): the work put back, for the header (putBackUnsaved)
++  _putBackOn={ms:MS, rec:putBackRec()}; _dlOnly=false;   // v2.00 (U19H): the work put back, for the header (putBackUnsaved); never downloaded
+   // v2.00 (U2): THE WORK PUT BACK IS A CHANGE, counted as an edit is. A save still writing when it was put back found the
+   // count unmoved and marked the board saved, while the folder or file holds what that save wrote. Now that save finds the
+   // count moved, leaves the work put back unsaved and says so, and the next Save writes it.
+@@ -8439,6 +8441,7 @@
+     _takePen=null;
+     LASTKNOWN=wrote;
+     _fileSaveTs=wrote;              // v2.00 (U19H): the board file holds this save now (the header's "Last file save")
++    try{ _fileOwnTs=+((PUBS[_AP.slug]||{}).ts||0); }catch(e){}
+     const clean=(_saveGen===gen);   // nothing changed while it was writing
+     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
+     else baseSet({file:LASTKNOWN});
+@@ -25949,7 +25952,7 @@
+   try{
+     if(!_putBackOn || _putBackOn.ms!==MS || _putBackOn.rec!==putBackRec()) return false;
+     const b=baseGet(), t=+MS.ts||0, f=+((b.folder||{})[driveBaseKey(mySlug())])||0;
+-    return !(t && (t===(+b.file||0) || t===f));
++    return !(t && (t===(+b.file||0) || t===f || ((+b.file||0)===_fileSaveTs && t===_fileOwnTs)));
+   }catch(e){ return false; }
+ }
+ // v2.00 (U19H): where 💾 Save writes now
+@@ -25960,8 +25963,10 @@
+ // last save the board file is known to hold (_fileSaveTs).
+ function unsavedSay(pb, dest){
+   const refused=!!_persistFail || Object.keys(_lsRefused).length>0;
++  let fold=false; try{ fold=!_persistFail && refused && driveStoreOn(); }catch(e){}
+   return (pb? 'Work put back from what this browser kept aside, not written to '+dest+' since it was put back. ' : '')
+-    +(refused? 'Browser storage refused a change: until \ud83d\udcbe Save writes it, it is on this page only. '
++    +(refused? (fold? 'Browser storage refused a change the shared folder\u2019s copy does not carry: it is on this page only until \u2b07 Save a copy keeps it in a file. '
++                  : 'Browser storage refused a change: until \ud83d\udcbe Save writes it, it is on this page only. ')
+              : 'The unsaved work is kept in this browser. ')
+     +'Last file save: '+(_fileSaveTs? shortTs(_fileSaveTs) : 'none yet')+'. ';
+ }

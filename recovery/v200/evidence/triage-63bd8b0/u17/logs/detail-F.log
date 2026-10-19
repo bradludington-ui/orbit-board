@@ -1,0 +1,39 @@
+FAIL [contract] FBTC.K3: CONTRACT after a reopen [screen, recorded clean, the file version the record names]
+     expected [["F1",true,"F1"],["BRAD-2",true,"BRAD-2"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+--
+FAIL [contract] FBT.K1: CONTRACT once settled [screen, recorded clean, the file version the record names]
+     expected [["F1",true,"F1"],["BRAD-2",true,"BRAD-2"],["F1",false,"BRAD-2"]]
+     observed ["F1",true,"BRAD-2"]
+--
+FAIL [contract] FSHd.K1: CONTRACT once settled [screen, recorded clean, the file version the record names]
+     expected [["SHARED",true,"SHARED"],["BRAD-2",true,"BRAD-2"],["SHARED",false,"BRAD-2"]]
+     observed ["SHARED",true,"BRAD-2"]
+--
+FAIL [contract] FSHd.U17.V4: U17 (file analogue, V4putback): from a falsely clean record, ↶ Put back's question says the screen copy is still in the saved file it came from (the file holds other content) and the screen copy is then kept in no copy of the board ([record falsely clean before, the claim false, the screen copy kept nowhere in the board])
+     expected {"not":[true,true,true]}
+     observed [true,true,true]
+      header: Saved 2:36 PM
+      status: 📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 2:36:27 PM.
+* landed
+   brad: screen=F1 DIRTY=false _baseDirty=false rec.dirty=false base=0 kept=null stored=F1 busy=0 gen=5
+      header: Saved 2:36 PM
+      status: 📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 2:36:27 PM.
+* reopen
+   brad: screen=BRAD-1 DIRTY=false _baseDirty=false rec.dirty=false base=0 kept=null stored=F1 busy=0 gen=0
+      header: Saved 2:36 PM
+      status: 📦 Opened with the saved board state — last saved by Brad 10/12/2026, 2:36:27 PM. Make changes and 💾 Save to pass it on.
+u17state {"tuple":["F1",true,"F1"],"falselyClean":false}
+whereNow {"F1":{"file":false,"screen":false,"storage":true,"keptSlot":false,"earlierFileVersionsOnly":["10/12/2026, 10:36:27 ET"]},"BRAD-2":{"file":false,"screen":false,"storage":false,"keptSlot":false,"earlierFileVersionsOnly":[]}}
+* V4putback
+   afterPutBack: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=0 kept=null stored=BRAD-2 busy=0 gen=7
+      header: Unsaved changes
+      status: ↶ Put back the work kept aside on 10/12/2026, 2:36:46 PM. 💾 Save will ask before it writes over the saved file, which Carol saved after it.
+   afterSave: screen=BRAD-2 DIRTY=false _baseDirty=false rec.dirty=false base=0 kept=null stored=BRAD-2 busy=0 gen=8
+      header: Saved 2:36 PM
+      status: 💾 Saved in place by Brad — "Board.html" now carries this state. 10/12/2026, 2:36:46 PM
+   question: Put back the work this browser kept aside on 10/12/2026, 2:36:46 PM? / What is on screen now is replaced by it. What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that.
+   where: {"X":{"file":false,"screen":false,"storage":false,"keptSlot":false,"earlierFileVersionsOnly":[]},"Y":{"file":true,"screen":true,"storage":true,"keptSlot":false,"earlierFileVersionsOnly":["10/12/2026, 10:36:46 ET"]}}
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+nextFrom {"K":["SHARED",true,"BRAD-2"],"falselyClean":true,"file":"BRAD-2","versions":["F1@10/12/2026, 10:36:44 ET","BRAD-1@10/12/2026, 10:36:45 ET","BRAD-2@10/12/2026, 10:36:46 ET"]}
+v4parts {"falselyClean":true,"claim":"in-file","falseClaim":true,"notKept":true,"screenCopyIn":{"file":false,"screen":false,"storage":false,"keptSlot":false,"earlierFileVersionsOnly":[]},"saveAfterPutBackAsked":1,"saveAfterPutBackSays":"saved-file"}

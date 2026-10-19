@@ -1,0 +1,156 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c1r/tools/export-audit/audit-recon.mjs	2026-10-13 13:20:43.340604584 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c2/tools/export-audit/audit-recon.mjs	2026-10-13 13:33:28.304845232 +0000
+@@ -5372,3 +5372,4 @@
+-    // A CCaR RECORDS FILE IMPORTED WHILE PB27 IS ON SCREEN. R and Q carry CCaR numbers CCR and CCQ (the suite's it()); the import writes
+-    // the index the working plan keeps beside its years, then saves, which the view refuses. By hand: the Spend Plan Source's Title column
+-    // is the requirement's own name ("Ev R", "Ev Q") and its OPR blank until a records file is kept.
++    // A CCaR RECORDS FILE IMPORTED WHILE PB27 IS ON SCREEN. R and Q carry CCaR numbers CCR and CCQ (the suite's it()); the import wrote
++    // the index the working plan keeps beside its years, then saved, which the view refused (now it is refused before the file is read:
++    // the shared-lists block below). By hand: the Spend Plan Source's Title column is the requirement's own name ("Ev R", "Ev Q") and
++    // its OPR blank until a records file is kept.
+@@ -5408,0 +5410,145 @@
++// ==== v2.00 (U10, the shared lists): a cost estimate, a BAE list, CCaR records or a destination change is refused in a locked view before anything is kept ====
++// The lists every appropriation shares -- the cost estimates, the BAE budget list, the destination list -- are no part of a locked
++// view's copy, so making the copy again (the blocks above) cannot put them back. On 7ee498a each door wrote its list first and then
++// saved, which the view refused: the board said "Not kept" and kept it (the U10 round-1 money review, 13 Oct). Now each is refused
++// before the file is read or a question asked, and says so. A board of two requirements in AV -- A (USAF 900, ANG 200, confirmed on
++// WBS 1.1) and R (USAF 503, ANG 127) -- with an approved 2027 estimate (AV, 1.1, $900) and the funds flow grouped by where the money
++// goes. PB27 is locked with R going to Lockheed Martin; the working plan then adds Depot X (a government activity) and sends R there.
++// With PB27 on screen, each door is used through the handler its control calls (the file pickers' importAce / importBud /
++// importCcarRecs, with a workbook the board builds) or through the control Setup › Destinations renders (a name typed, + add,
++// ✕ answered OK, reset answered OK). After each, in the view and again on the working plan after leaving: the status line, the
++// questions asked, the three lists in the board and in browser storage, the panel, and the cells of the ACE tie-out, the FYDP
++// Spend Plan, the Spend Plan Source and the funds flow -- every figure typed here. FAILS ON 7ee498a (board fce8a391): the approved
++// estimate is replaced after "should not change. Replace it?" and the tie-out reads $4,321,000; the Source names the BAE budget
++// and the refused CCaR titles; Lockheed Martin is RENAMED DEST in the funds flow; "Remove Depot X? Nothing points at it." is asked
++// and, back on the working plan, R's $630 is not yet assigned. CONTROLS: PB27 viewed, nothing done; on the working plan each door
++// is open -- the estimate replaced (asked first), the BAE list kept, a destination added and named -- and every export carries it.
++await (async () => {
++  const name = 'v2.00 (U10) — a cost estimate, a BAE list, CCaR records or a destination change is refused in a locked view before anything is kept';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify;
++    const X = boot();
++    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', [900, 200, 0]), it('R', 'AV', [503, 127, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['A', 'R'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      S.wbs={A:[{w:'1.1', v:[]}]}; S.aceMap={A:{w:['1.1'], ok:true}}; S.dest={R:{to:'lm'}};
++      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:1, file:'2027 ACE approved.xlsx'}};
++      ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; aceYr='all'; persistAce(); applyState(S); save(); flowSetAxis('dest');
++      globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
++      globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
++        r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
++        rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
++      'ok'`);
++    const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    // after the lock: the working plan adds Depot X, a government activity, and sends R's money there (PB27 still sends it to Lockheed Martin)
++    ev(`flowAddEnt(); (function(){ var L=flowEnts(); flowSetEnt(L.length-1,'n','Depot X'); flowSetEnt(L.length-1,'kind','gov'); })();
++      setDest('R','to',destByName('Depot X').k); 'ok'`);
++    const said = () => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
++    const spy = () => ev(`window.__asked=[]; window.confirm=function(m){ window.__asked.push(String(m).slice(0,70)); return true; };
++      window.alert=function(m){ window.__asked.push('alert: '+String(m).slice(0,70)); }; 'ok'`);
++    const asked = () => JSON.parse(ev(`JSON.stringify(window.__asked||[])`));
++    const lists = () => JSON.parse(ev(`JSON.stringify((function(){ var s=ACEDB.sets['2027ACE'];
++      return [s? [s.file||'', !!s.locked, s.lines.map(function(l){ return [l.pmo, l.wbs, (l.v||{})[MS.cur]]; })] : null,
++        (BUDDB.rows||[]).map(function(b){ return b.n; }), flowEnts().map(function(e){ return e.n; })]; })())`));
++    const stored = () => JSON.parse(ev(`JSON.stringify((function(){ var a=JSON.parse(localStorage.getItem('prio27acedb')||'null'), b=JSON.parse(localStorage.getItem('prio27buddb')||'null'),
++      d=JSON.parse(localStorage.getItem(DEST_KEY)||'null'), s=a&&a.sets&&a.sets['2027ACE'];
++      return [s? [s.file||'', !!s.locked, (s.lines||[]).map(function(l){ return [l.pmo, l.wbs, (l.v||{})[MS.cur]]; })] : null,
++        b? (b.rows||[]).map(function(x){ return x.n; }) : null, d? (d.ents||[]).map(function(e){ return e.n; }) : null]; })())`));
++    // Setup › Destinations as drawn on screen: each destination's name field, A to Z
++    const panel = () => JSON.parse(ev(`(function(){ if(!entOpen) toggleEnt(); return JSON.stringify([].slice.call(document.querySelectorAll('#entBody input')).filter(function(i){
++      return /^flowSetEnt\\(\\d+,"n",/.test(i.getAttribute('onchange')||''); }).map(function(i){ return i.value; })); })()`));
++    // a control Setup › Destinations renders for one destination: its name field (typed, change fired), its ✕, + add, or reset
++    const fireDest = (kind, nm, value) => ev(`(function(){ if(!entOpen) toggleEnt(); var i=flowEnts().findIndex(function(e){ return e.n===${J(nm)}; });
++      var els=[].slice.call(document.querySelectorAll('#entBody input, #entBody button')), on=function(e, a){ return e.getAttribute(a)||''; }, el=null;
++      if(${J(kind)}==='name') el=els.filter(function(e){ return on(e, 'onchange')==='flowSetEnt('+i+',"n",this.value)'; })[0];
++      else if(${J(kind)}==='del') el=els.filter(function(e){ return on(e, 'onclick')==='flowDelEnt('+i+')'; })[0];
++      else el=els.filter(function(e){ return on(e, 'onclick')===${J(kind)}; })[0];
++      if(!el) return 'no control';
++      if(${J(kind)}==='name'){ el.value=${J(value || '')}; el.dispatchEvent(new Event('change', {bubbles:true})); } else el.click();
++      return 'fired'; })()`);
++    const hdr = (rows, ...must) => rows.findIndex(r => must.every(m => (r || []).some(c => String(c ?? '').trim() === m)));
++    const col = (rows, h, n) => (rows[h] || []).findIndex(c => String(c ?? '').trim() === n);
++    // every export that carries the estimate, the budget names, the CCaR titles or the destinations, read from its bytes
++    const exportsNow = async () => {
++      const ab = JSON.parse(await w6Book(X.w, 'exportAceTieout')), mp = ab['Mapping by Requirement'] || [], mh = hdr(mp, 'FY', 'PMO', 'Board funded');
++      const rc = ab['Reconciliation by PMO'] || [], rh = hdr(rc, 'FY', 'PMO', 'Estimate');
++      const fb = JSON.parse(await w6Book(X.w, 'exportFydpPlan')), bp = fb['By PMO'] || [], bh = hdr(bp, 'PMO', 'Requirements');
++      const sb = JSON.parse(await w6Book(X.w, 'exportSrc')), s = Object.keys(sb).filter(k => !k.startsWith('__')).map(k => sb[k]).find(rs => Array.isArray(rs) && rs.length > 1) || [];
++      const ff = JSON.parse(await w6Book(X.w, 'exportFlow'));
++      return {
++        files: [ab.__err || 'ok', fb.__err || 'ok', sb.__err || 'ok', ff.__err || 'ok'],
++        mapping: mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => ['Requirement (CCaR Record Name)', 'Match', 'WBS claimed', 'Board funded', 'Estimate', 'Delta'].map(n => r[col(mp, mh, n)] ?? '')),
++        reconciliation: rc.slice(rh + 1).filter(r => w6Lbl(r) === 'FY27' && String(r[1] ?? '') === 'AV').map(r => [r[0], r[1], r[2], r[3], r[4]]),
++        fydp: bp.slice(bh + 1).filter(r => w6Lbl(r) === 'AV').map(r => [r[0], r[col(bp, bh, 'FY27 ACE estimate')], r[col(bp, bh, 'FYDP ACE estimate')]]),
++        source: [String((s[0] || [])[4] ?? ''), String((s[0] || [])[12] ?? ''), s.slice(1).map(r => [String(r[2] ?? ''), String(r[3] ?? ''), num(r[9]), String(r[4] ?? ''), String(r[12] ?? '')]).sort()],
++        flow: (ff['Funds Flow'] || []).filter(r => (r || []).length >= 5 && ['Lockheed Martin', 'Depot X', 'Depot Z', 'Not yet assigned', 'RENAMED DEST', 'New destination'].includes(w6Lbl(r))).map(r => [w6Lbl(r), num(r[1]), num(r[4])]) };
++    };
++    // BY HAND. The view: R goes to Lockheed Martin (PB27's); the working plan: R goes to Depot X. A's $1,100 goes nowhere yet. The
++    // estimate is the approved one: A confirmed on 1.1, $900 against A's $1,100; AV $900 against $1,730 funded. No budget, no records.
++    const MAPPING = [['Req A', 'Confirmed - exact line', '1.1', 1100, 900, 200], ['Req R', 'No match', '', 630, '', '']];
++    const SOURCE = ['Budget', 'OPR', [['CCA', 'Ev A', 200, '', ''], ['CCA', 'Ev A', 900, '', ''], ['CCR', 'Ev R', 127, '', ''], ['CCR', 'Ev R', 503, '', '']]];
++    const VIEW = { files: ['ok', 'ok', 'ok', 'ok'], mapping: MAPPING, reconciliation: [['FY27', 'AV', 900, 1730, 830]], fydp: [['AV', 900, 900]], source: SOURCE,
++      flow: [['Lockheed Martin', 630, 2], ['Depot X', 0, 0], ['Not yet assigned', 1100, 2]] };
++    const WORK = Object.assign({}, VIEW, { flow: [['Lockheed Martin', 0, 0], ['Depot X', 630, 2], ['Not yet assigned', 1100, 2]] });
++    const DEST = ['Lockheed Martin', 'Pratt & Whitney', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'FRC East, Cherry Point', 'NAWCAD Lakehurst', 'Defense Logistics Agency', 'OC-ALC Oklahoma City', 'Depot X'];
++    const ACE0 = ['2027 ACE approved.xlsx', true, [['AV', '1.1', 900]]];
++    const LISTS = [ACE0, [], DEST], STORED = [ACE0, null, DEST];
++    const PANEL = ['Defense Logistics Agency', 'Depot X', 'FRC East, Cherry Point', 'Lockheed Martin', 'NAWCAD Lakehurst', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'OC-ALC Oklahoma City', 'Pratt & Whitney'];
++    const OFF = what => '🔒 ' + what + ' is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.';
++    const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`if(entOpen) toggleEnt(); cycLeave(); 'ok'`);
++    const Rto = () => ev(`flowEntName(destOf(itemById('R')).to)`);
++    // ---- CONTROL: PB27 viewed, nothing done; then the working plan
++    view();
++    w5Chk(name, 'PB27 viewed, nothing done', 'CONTROL — the lists, browser storage and the panel as they are; every export carries PB27’s own figures (R to Lockheed Martin)',
++      J([lists(), stored(), panel(), await exportsNow()]), J([LISTS, STORED, PANEL, VIEW]));
++    leave();
++    w5Chk(name, 'the working plan, nothing done', 'CONTROL — R goes to Depot X, and every export says so', J([Rto(), await exportsNow()]), J(['Depot X', WORK]));
++    // ---- EACH DOOR, with PB27 on screen
++    const DOORS = [
++      ['a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded)', 'Importing a cost estimate', () => ev(`importAce({files:[__wb([{name:'ACE', rows:__aceRows()}], '2027 ACE.xlsx')], value:''})`)],
++      ['a BAE list imported (an ANG budget for AV)', 'Importing a BAE budget list', () => ev(`importBud({files:[__wb([{name:'BAE', rows:[['Budget Name'], ['USAF O&M - ANG CAM ZZ9 Discretionary AV']]}], 'BAE.xlsx')], value:''})`)],
++      ['a CCaR Records file imported (titles and OPR for CCA and CCR)', 'Importing CCaR records', () => ev(`importCcarRecs({files:[__wb([{name:'CCaR', rows:[['CCaR No','Title','OPR','PMO','Control No'],
++        ['CCA','REFUSED TITLE A','REFUSED OPR','AV','7001'], ['CCR','REFUSED TITLE R','REFUSED OPR','AV','7002']]}], 'ccar-records.xlsx')], value:''})`)],
++      ['Lockheed Martin renamed RENAMED DEST in its name field', 'Changing a destination', () => fireDest('name', 'Lockheed Martin', 'RENAMED DEST')],
++      ['+ add a destination', 'Adding a destination', () => fireDest('flowAddEnt()')],
++      ['Depot X removed with its ✕, answered OK', 'Removing a destination', () => fireDest('del', 'Depot X')],
++      ['reset the list, answered OK', 'Resetting the destination list', () => fireDest('flowResetEnts()')]];
++    for (const [what, door, act] of DOORS) {
++      view(); panel(); spy();
++      const r = await act(), st = said(), q = asked(), fired = (r === undefined || r === 'fired') ? 'ran' : String(r);
++      w5Chk(name, 'PB27 viewed · ' + what, 'refused before anything is read or asked, and the status line says so', J([fired, st, q]), J(['ran', OFF(door), []]));
++      w5Chk(name, 'PB27 viewed · ' + what, 'the lists, browser storage and the panel as they were; every export from the view carries PB27’s own figures',
++        J([lists(), stored(), panel(), await exportsNow()]), J([LISTS, STORED, PANEL, VIEW]));
++      leave();
++      w5Chk(name, 'PB27 viewed · ' + what + ' · the view left', 'the working plan’s lists, R’s destination and every export are its own, as before',
++        J([lists(), stored(), Rto(), await exportsNow()]), J([LISTS, STORED, 'Depot X', WORK]));
++    }
++    // ---- CONTROLS: on the working plan each door is open, and every export carries what it did (typed from the files)
++    spy(); await ev(`importAce({files:[__wb([{name:'ACE', rows:__aceRows()}], '2027 ACE.xlsx')], value:''})`);
++    const qa = asked().map(m => m.split('\n')[0]), la = lists(), sa = stored(), xa = await exportsNow();
++    w5Chk(name, 'the working plan · a cost estimate imported (allowed)', 'CONTROL — it asks before replacing the approved 2027ACE, replaces it (AV $4,321,000, no WBS), and the tie-out and FYDP Spend Plan read it',
++      J([qa, la[0], sa[0], xa.mapping, xa.reconciliation, xa.fydp]),
++      J([['⚠ 2027ACE is already loaded and LOCKED.'], ['2027 ACE.xlsx', true, [['AV', '', 4321000]]], ['2027 ACE.xlsx', true, [['AV', '', 4321000]]],
++        [['Req A', 'Confirmed', '1.1', 1100, 0, 1100], ['Req R', 'No match', '', 630, '', '']], [['FY27', 'AV', 4321000, 1730, -4319270]], [['AV', 4321000, 4321000]]]));
++    await ev(`importBud({files:[__wb([{name:'BAE', rows:[['Budget Name'], ['USAF O&M - ANG CAM ZZ9 Discretionary AV']]}], 'BAE.xlsx')], value:''})`);
++    const lb = lists(), sbud = stored(), xb = await exportsNow(), BUD = 'USAF O&M - ANG CAM ZZ9 Discretionary AV';
++    w5Chk(name, 'the working plan · a BAE list imported (allowed)', 'CONTROL — the list is kept, and the Spend Plan Source names the ANG budget on A’s and R’s ANG lines',
++      J([lb[1], sbud[1], xb.source]), J([[BUD], [BUD], ['Budget', 'OPR', [['CCA', 'Ev A', 200, BUD, ''], ['CCA', 'Ev A', 900, '', ''], ['CCR', 'Ev R', 127, BUD, ''], ['CCR', 'Ev R', 503, '', '']]]]));
++    // + add a destination, named Depot Z in its name field, and R sent there: what the view refused, on the working plan
++    const fa = fireDest('flowAddEnt()'), fd = fireDest('name', 'New destination', 'Depot Z');
++    ev(`setDest('R','to',destByName('Depot Z').k); 'ok'`);
++    const pd = panel(), ld = lists(), sd = stored(), xd = await exportsNow();
++    ev(`if(entOpen) toggleEnt(); 'ok'`);
++    w5Chk(name, 'the working plan · + add a destination, named Depot Z, R sent there (allowed)', 'CONTROL — the list, browser storage and the panel carry Depot Z, and the funds flow puts R’s $630 under it',
++      J([fa, fd, pd.includes('Depot Z'), ld[2].slice(-1), sd[2].slice(-1), Rto(), xd.flow.filter(r => r[0] === 'Depot Z' || r[0] === 'Not yet assigned')]),
++      J(['fired', 'fired', true, ['Depot Z'], ['Depot Z'], 'Depot Z', [['Depot Z', 630, 2], ['Not yet assigned', 1100, 2]]]));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the shared lists) ====

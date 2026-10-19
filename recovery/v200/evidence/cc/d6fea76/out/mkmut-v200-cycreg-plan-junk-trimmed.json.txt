@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-plan-junk-trimmed", "matches": 1, "find": "const cur=pkgStoreOf(k), next=pkgStrip(inc[k]);", "repl": "const cur=pkgStoreOf(k), next=pkgStrip(inc[k]); if(Array.isArray(next.rcn)) next.rcn=next.rcn.filter(function(e){ return e===null || (e && typeof e==='object' && !Array.isArray(e)); });"}

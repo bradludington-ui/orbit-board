@@ -1,0 +1,58 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index 0fcc6d5..6056125 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -1293,6 +1293,53 @@ result for it was run fresh against these commits.
+       copy as chosen (theirs is in the folder's history; by reading the code, not run).
+     If U18 (the re-read just before the write) is committed too, this check belongs after U18's re-read, which is then
+     the last wait before the write.
++- **U10 (1 of 12) — a refusal in a locked cycle's view puts back the whole view, not the year alone** (a release blocker
++  the lead chose to fix on Brad's word of 12 Oct, about 5:30 PM ET: "Don't wait for me. Let's keep pressing throughout to
++  get this next version published."). With a locked cycle on screen, a write the view refuses put back the year on screen
++  and nothing beside it. An edit that changes what the board holds beside that year stayed on the view's copy after the
++  board said "the change was not kept", and every export taken from the view carried it: 77777 typed into PB27's RCN field
++  filed PB27's dollars under 77777 / AAAAA in RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out, all labelled
++  LOCKED VIEW (the review of `main` `f9b4413`; reproduced on `e635775`, `4a6f7c7` and `7ee498a`). The same held for an
++  EEIC, a title, a ✕, + Add, a service box, a PMO renamed, a held year's pointers cleared by a ✕, the list of a cycle locked
++  before v1.99 (which reads today's), the band ladder, the funds-flow settings, the funds flow's partner and FMS money and
++  its year selection (ledger U49: International Partners $3,000,000 typed for FY27 in PB27's view, refused, was still
++  counted -- TOTAL FUNDING $503,000,000 in the calculation and in the funds-flow export named "… [PB27 LOCKED].xlsx", and
++  $543,000,000 with FY25 clicked as well -- money neither the lock nor the plan held), a PPBE position, and a CCaR Records
++  file imported in the view (its titles and OPRs are kept beside the years, in the records index, and the Spend Plan
++  Source printed them). Now a refusal makes the view's copy again, exactly as the view made it, in one place: the working
++  plan set aside, with the cycle's years, its base year and the RCN / EEIC list it kept, on the year that is on screen. The working
++  plan and the stored cycle are not written by a refusal. What lives outside the view's copy -- the lists every
++  appropriation shares, the Spend Plan's choices, other appropriations' boards, browser storage written directly, files
++  handed out -- this commit does not reach: commits 2, 3, 4 and 6 do.
++  - **What users may see:** in a locked view, a refused change to something the board keeps with its plan (the RCN / EEIC
++    list, the PMO list, the band ladder, the funds-flow axis, years, appropriations, pseudo year, prime rules, categories and
++    where the unfunded priority list goes, the partner and FMS money typed in the funds flow, a PPBE position, the CCaR records index) now goes back at once, as the status line already said;
++    before, it stayed on the view's copy until the view was left (and, for codes, offices, band names, the funds-flow cut
++    and its partner and FMS money, positions and CCaR titles, in every export taken from it). A locked cycle keeps no funds-flow settings and no partner or FMS money of its own: its view, and the funds-flow
++    export taken from it, use the working plan's (ledger U53). To export a locked cycle under other funds-flow settings
++    or money, set them on the working plan and then view the cycle.
++  - **Test:** audit-recon "v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries"
++    (27 checks, on v1.98 item 83's board with a second held year and an office ZED): each edit made through the control
++    the board renders for it, from a fresh view of PB27; after each, RCN-EEIC by Month (summary, requirements, prime
++    contracts), the Spend Plan Source (amount, CLIN, EEIC, RCN, PMO), the ACE tie-out (alignment breakout and mapping, both
++    years) and the whole workbook are read from their bytes against the cycle's own codes, typed in the block; FY28 on
++    screen; the record's own steps (saved, reopened, viewed, 77777 typed); a cycle locked before v1.99. The status line is
++    read at once after each edit (the "Not kept" mark lasts 1.5 s). And "v2.00 (U10) — a refusal in a locked view puts back
++    the plan’s settings, the year on screen, the CCaR records and the cycle’s base year" (9 checks): band 0 renamed and
++    the funds-flow axis set to destinations, read in the workbook and the funds-flow export; a held FY28 that differs from
++    FY27 (R on K4), read in RCN-EEIC by Month; a CCaR Records file, read in the Spend Plan Source; the cycle's FYDP window
++    after a refusal when the working base year has moved on. Controls in both: nothing changed, a refused edit to the
++    year's own assignments, the cycle store and browser storage byte for byte, leaving the view, an allowed edit on the
++    working plan (55555) and the same CCaR file on the working plan, which every export carries. On `7ee498a`, 18 + 4
++    checks fail and the 9 + 5 controls pass. (A PPBE position refused in a view is read by commit 3's block;
++    partner and FMS money and the funds flow's year buttons refused in a view are read by commit 5's; its appropriation
++    buttons, pseudo year, prime rules and categories by commit 9's; where its unfunded priority list goes by commit 10's.)
++  - **Mutations:** `v200-u10-reapply-year-only`, `-keeps-list`, `-keeps-years`, `-keeps-pmos`, `-first-year`,
++    `-older-keeps-list`, `-wrong-year`, `-keeps-plan-settings` and `-working-base`; each caught by the focused blocks
++    (full-suite sensitivity runs in the final-tree queue).
++  - **Not covered:** what lives outside the view's copy (commits 2, 3, 4 and 6). The forecast-view export, the PMO Matrix and the
++    PowerPoint exports are not read by the blocks (they print offices, which the blocks read in the workbook, the Spend Plan
++    Source and the ACE tie-out, and no RCN or EEIC).
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

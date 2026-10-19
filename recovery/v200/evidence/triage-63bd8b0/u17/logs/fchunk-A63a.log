@@ -1,0 +1,15 @@
+f-b63-SHd-none start=2026-10-12T10:49:40EDT exit=0 wall_s=10.3  | SUMMARY SHd none board=u13: 11 pass, 1 fail | fixture 7/7 | predict 2/2 | contract 2/3 | harness 0/0
+f-b63-SHd-save start=2026-10-12T10:49:51EDT exit=0 wall_s=7.2  | SUMMARY SHd save board=u13: 10 pass, 2 fail | fixture 7/7 | predict 3/3 | contract 0/2 | harness 0/0
+f-b63-SHd-putback start=2026-10-12T10:49:58EDT exit=0 wall_s=7.1  | SUMMARY SHd putback board=u13: 11 pass, 1 fail | fixture 7/7 | predict 3/3 | contract 1/2 | harness 0/0
+f-b63-SHdC-none start=2026-10-12T10:50:05EDT exit=0 wall_s=9.2  | SUMMARY SHdC none board=u13: 10 pass, 0 fail | fixture 5/5 | predict 2/2 | contract 3/3 | harness 0/0
+f-b63-SHdC-save start=2026-10-12T10:50:14EDT exit=0 wall_s=8.0  | SUMMARY SHdC save board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+f-b63-SHdC-putback start=2026-10-12T10:50:22EDT exit=0 wall_s=6.8  | SUMMARY SHdC putback board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+f-b63-SHdk-none start=2026-10-12T10:50:29EDT exit=0 wall_s=9.8  | SUMMARY SHdk none board=u13: 9 pass, 3 fail | fixture 7/7 | predict 2/2 | contract 0/3 | harness 0/0
+f-b63-SHdk-save start=2026-10-12T10:50:39EDT exit=0 wall_s=8.5  | SUMMARY SHdk save board=u13: 10 pass, 2 fail | fixture 7/7 | predict 3/3 | contract 0/2 | harness 0/0
+f-b63-SHdk-putback start=2026-10-12T10:50:48EDT exit=0 wall_s=8.7  | SUMMARY SHdk putback board=u13: 11 pass, 1 fail | fixture 7/7 | predict 3/3 | contract 1/2 | harness 0/0
+f-b63-SHdkC-none start=2026-10-12T10:50:56EDT exit=0 wall_s=11.3  | SUMMARY SHdkC none board=u13: 10 pass, 0 fail | fixture 5/5 | predict 2/2 | contract 3/3 | harness 0/0
+f-b63-SHdkC-save start=2026-10-12T10:51:08EDT exit=0 wall_s=9.3  | SUMMARY SHdkC save board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+f-b63-SHdkC-putback start=2026-10-12T10:51:17EDT exit=0 wall_s=8.8  | SUMMARY SHdkC putback board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+f-b63-SHa-none start=2026-10-12T10:51:26EDT exit=0 wall_s=10.9  | SUMMARY SHa none board=u13: 7 pass, 3 fail | fixture 5/5 | predict 2/2 | contract 0/3 | harness 0/0
+f-b63-SHa-save start=2026-10-12T10:51:37EDT exit=0 wall_s=8.7  | SUMMARY SHa save board=u13: 8 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 0/2 | harness 0/0
+f-b63-SHa-putback start=2026-10-12T10:51:46EDT exit=0 wall_s=9.8  | SUMMARY SHa putback board=u13: 9 pass, 1 fail | fixture 5/5 | predict 3/3 | contract 1/2 | harness 0/0

@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-year-pick", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const Y0=MS.flow? MS.flow.fys : null; MS=cycCopy(c); MS.cur=y; flowCfg().fys=Y0;"}

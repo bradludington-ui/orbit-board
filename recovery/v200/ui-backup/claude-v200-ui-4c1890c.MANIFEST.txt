@@ -1,0 +1,23 @@
+# claude/v200-ui backup, made 08:51:23 AM ET (12 Oct 2026)
+tip: 4c1890cf6dc5b0af6ecca6370811f55f97416dbb
+tree: 818124dfb1dbf91acaefc19b088c40e0e1357114
+prerequisite (in claude/v200-fixes-wip's history): 4a6f7c73ebf9018f6b1b14087cb5ec560a9bbb20
+board blob at tip: ba8d020431afc0ead32cc6ee6fa66d6b301ce583
+bundle: claude-v200-ui-4c1890c.bundle  sha256 bddc6c30e3a7b44490aff63f5e0411990bc592515ac8fac47b3fc44af48002b9  bytes 13506586
+restore check: clone of claude/v200-fixes-wip from https://github.com/bradludington-ui/orbit-board, git bundle verify OK, fetched tip = 4c1890cf6dc5b0af6ecca6370811f55f97416dbb, tree = 818124dfb1dbf91acaefc19b088c40e0e1357114, commit list identical (13 commits)
+restore with: git clone -b claude/v200-fixes-wip <repo> r && cd r && git fetch recovery/v200/ui-backup/claude-v200-ui-4c1890c.bundle claude/v200-ui:claude/v200-ui
+
+commits (4a6f7c7..claude/v200-ui):
+4c1890c v2.00 UI chunk 3 (M1, fix round): CHUNK3.md records the fix round and corrects two overstatements (no board change)
+fc01792 v2.00 UI chunk 3 (M1, fix round): audit-ui reaches what the M1 verifier found it could not see (no board change)
+c41a7c2 v2.00 UI chunk 3 (M1): screenshots of the M1 messages in the actual board at aac8574, the script that took them, and CHUNK3.md part 1 (no board change)
+aac8574 v2.00 UI chunk 3 (M1): "All submissions at once" is all or nothing when a file would ask, and is put back whole if the load fails
+eba613f v2.00 UI chunk 2: adversarial review (CHUNK2-REVIEW.md)
+e70636b v2.00 UI chunk 2: screenshots of the actual board at f95fee2, the check scripts with their outputs, and CHUNK2.md (no board change)
+f95fee2 v2.00 UI chunk 2: on a phone the context bar's group wraps rather than push the page sideways
+5ea7d15 v2.00 UI chunk 2: slide-over record by default (docking optional), rows sized to their room, guarded KPI cards, Brief posture strip, permissions, all-or-nothing PMO batch, genuine metadata, Cycle control
+acc8489 v2.00 UI chunk 1: adversarial review (CHUNK1-REVIEW.md)
+6bfa965 v2.00 UI chunk 1: screenshots of the actual board (synthetic data at runtime) and CHUNK1.md
+c85d0e3 v2.00 UI chunk 1: RECORD panel Overview / Funding / History tabs; control sizing fixes
+89384e6 v2.00 UI chunk 1: navy sidebar, context bar, KPI cards, toolbar (Columns, Density), Import box
+ba0def2 UI concept: mockups only, in the style of Brad's concept images (no product change)

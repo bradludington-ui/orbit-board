@@ -1,0 +1,18 @@
+v2.00 (U41): an SI code a file carried is never dropped -- kept as saved, listed, its money on no recognized code
+
+applyState deleted any S.si value that was not exactly LA, EN, OT, FL or AT, so a file holding one opened without
+it, said nothing, and lost it on the next save; the requirement then read its derived code, and an LM prime's
+money was filed under LA in the Special Interest overview, the workbook's SI tab and the CR cash return. Now the
+code is kept exactly as saved. siOf reads it as no SI code (never derived, trimmed or put in capitals). On O&M it
+is listed in Needs attention and Pre-flight, the Navy SI code field shows it selected (on any requirement, also
+one with no Navy or Marine money), Go to it opens the field, and a bulk write counts it as an answer it would
+overwrite. While one is held, the overview's and the workbook's no-code rows say "no recognized" code, the
+overview's note says how much of that row it holds, the CR cash return's status line counts it apart, and in a
+locked view that refuses a choice the line says the requirement keeps the code. Full Fund, Initial Spares and OPN
+keep it and list nothing. From Codex's A4 proposal, after review.
+
+audit-recon "v2.00 (U41)": 42 checks, 33 fail on 7ee498a (the 9 controls pass on both). 20 mutations.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

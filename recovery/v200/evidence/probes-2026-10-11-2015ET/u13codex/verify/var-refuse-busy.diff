@@ -1,0 +1,4 @@
+26667c26667
+<   if(!driveStoreOn()) return false;
+---
+>   if(!driveStoreOn() || _saveBusy) return false;

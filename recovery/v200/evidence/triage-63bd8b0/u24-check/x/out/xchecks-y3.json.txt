@@ -1,0 +1,1625 @@
+{
+ "pass": "y3",
+ "rows": [
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "FIX",
+   "what": "an ordinary edit was typed during the held save (no question)",
+   "got": [
+    "typed",
+    0
+   ],
+   "want": [
+    "typed",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    true,
+    true,
+    true,
+    null
+   ],
+   "want": [
+    "SHARED",
+    1,
+    true,
+    true,
+    true,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "SHARED",
+    false,
+    false
+   ],
+   "want": [
+    "SHARED",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    false,
+    false
+   ],
+   "want": [
+    false,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "FIX",
+   "what": "an ordinary edit was typed during the held save (no question)",
+   "got": [
+    "typed",
+    0
+   ],
+   "want": [
+    "typed",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    true,
+    true,
+    true,
+    null
+   ],
+   "want": [
+    "SHARED",
+    1,
+    true,
+    true,
+    true,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "SHARED",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    null,
+    false
+   ],
+   "want": [
+    false,
+    null,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    true,
+    "SHARED",
+    "SHARED",
+    false
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "SHARED",
+    "SHARED",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "SHARED",
+    true,
+    "SHARED",
+    false
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "SHARED",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "SHARED",
+    true,
+    false
+   ],
+   "want": [
+    "SHARED",
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    false,
+    false
+   ],
+   "want": [
+    false,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    true,
+    "SHARED",
+    "SHARED",
+    false
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "SHARED",
+    "SHARED",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "SHARED",
+    true,
+    "SHARED",
+    false
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "SHARED",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    null,
+    false
+   ],
+   "want": [
+    false,
+    null,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "HOLD",
+   "what": "the hold was hit at the history copy, not the head",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "BRAD-2",
+    true,
+    false
+   ],
+   "want": [
+    "BRAD-2",
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    true,
+    false,
+    false
+   ],
+   "want": [
+    true,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    false,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "FIX",
+   "what": "the state file was stamped after the save restamped the board (no clock skew), within 5 s",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "FIX",
+   "what": "the answer arrived",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    false,
+    true,
+    "BRAD-2"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    false,
+    true,
+    "BRAD-2"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "SHARED",
+    true,
+    true
+   ],
+   "want": [
+    "SHARED",
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "FIX",
+   "what": "the save alone landed [questions asked]",
+   "got": [
+    0
+   ],
+   "want": [
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "FIX",
+   "what": "the batch asked once, answered OK, and finished",
+   "got": [
+    1,
+    true
+   ],
+   "want": [
+    1,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "IMPORT",
+    0,
+    true,
+    true,
+    false,
+    null
+   ],
+   "want": [
+    "IMPORT",
+    0,
+    true,
+    true,
+    false,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "IMPORT",
+    false,
+    "BRAD-1",
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "IMPORT",
+    false,
+    "BRAD-1",
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "IMPORT",
+    false,
+    false
+   ],
+   "want": [
+    "IMPORT",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    false,
+    false
+   ],
+   "want": [
+    false,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "REACH",
+   "what": "end: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "REACH",
+   "what": "reopened: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "REACH",
+   "what": "edited: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "FIX",
+   "what": "the imported board is older than the folder copy",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "FIX",
+   "what": "the batch asked once, answered OK, and finished",
+   "got": [
+    1,
+    true
+   ],
+   "want": [
+    1,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "IMPORT",
+    0,
+    true,
+    true,
+    false,
+    null
+   ],
+   "want": [
+    "IMPORT",
+    0,
+    true,
+    true,
+    false,
+    null
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "IMPORT",
+    false,
+    "BRAD-1",
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "IMPORT",
+    false,
+    "BRAD-1",
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "want": [
+    "BRAD-1",
+    true,
+    "BRAD-1",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "IMPORT",
+    false,
+    false
+   ],
+   "want": [
+    "IMPORT",
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    false,
+    false
+   ],
+   "want": [
+    false,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "REACH",
+   "what": "end: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "REACH",
+   "what": "reopened: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "REACH",
+   "what": "edited: BRAD-1, IMPORT in a board copy",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "CAROL-F",
+    true,
+    1
+   ],
+   "want": [
+    true,
+    1,
+    "CAROL-F",
+    true,
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "FIX",
+   "what": "the person clicked 'open the file’s version' and answered its one question OK",
+   "got": [
+    "clicked",
+    1
+   ],
+   "want": [
+    "clicked",
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "CF",
+   "what": "COUNTERFACTUAL mark applied: [DIRTY, record dirty, screen]",
+   "got": [
+    true,
+    true,
+    "CAROL-F"
+   ],
+   "want": [
+    true,
+    true,
+    "CAROL-F"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "CAROL-F",
+    1,
+    false,
+    false,
+    false,
+    "KEPT-0"
+   ],
+   "want": [
+    "CAROL-F",
+    1,
+    false,
+    false,
+    false,
+    "KEPT-0"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "CAROL-F",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "CAROL-F",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "CAROL-F",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "CAROL-F",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    true,
+    null,
+    false
+   ],
+   "want": [
+    true,
+    null,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "end: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  }
+ ]
+}

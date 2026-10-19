@@ -1,0 +1,13 @@
+# cmd: X=1 node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R5-8f22668/focused-R5-at-commit.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R5-8f22668/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:36:52Z / 17:36:52 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+scenarios heard: ["v2.00 (R5) — a restore during a save stays unsaved"]
+ALL CHECKS PASSED
+
+# end: 2026-10-11T21:36:59Z / 17:36:59 EDT
+# exit: 0  duration_s: 7.1

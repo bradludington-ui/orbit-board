@@ -1,0 +1,19 @@
+# label: M-v200-u41-workbook-label
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-workbook-label.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-workbook-label.html
+# start: 2026-10-13 22:50:19 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-workbook-label.html","BOARD_set":true,"board":"e8e0b39c6bfe3c2e5e497d4e8b554ecbda05da07","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:50:19 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["EN  Engine",100000],["— no SI code set —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no SI code set —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["EN  Engine",100000],["— no SI code set —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no SI code set —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+# exit 1 at 10/13/2026, 10:50:38 PM ET
+
+# end: 2026-10-13 22:50:38 EDT  exit: 1  wall_s: 19.1

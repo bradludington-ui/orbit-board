@@ -1,0 +1,15 @@
+commit1 board (keptPutBack persist line): find count 1
+commit1 audit-import (after the R5 block): find count 1
+commit1 mutate.mjs TEXT (before the R3 message entries, after R5): find count 1
+commit2 board (keptPutBack header): find count 1
+commit2 audit-import (after block 1): find count 1
+commit2 mutate.mjs TEXT: find count 1
+mutation ids: v200-u2-putback-gen v200-u2-putback-while-saving
+mutant v200-u2-putback-gen on c1: find count 1
+mutant v200-u2-putback-gen on c2: find count 1
+mutant v200-u2-putback-while-saving on c2: find count 1
+context: v200-u2-putback-gen find count base=0 c1=1 c2=1
+context: v200-u2-putback-while-saving find count base=0 c1=0 c2=1
+m1 on c1 vs base: only 3 added comment lines: True
+m2 on c2 vs c1:   only 4 added comment lines: True
+done

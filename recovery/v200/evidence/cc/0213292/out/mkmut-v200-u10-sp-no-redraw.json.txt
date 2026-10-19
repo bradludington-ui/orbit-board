@@ -1,0 +1,1 @@
+{"id": "v200-u10-sp-no-redraw", "matches": 1, "find": "if(!cycBlock('Changing the spend plan')) return false; render(); return true; }", "repl": "if(!cycBlock('Changing the spend plan')) return false; return true; }"}

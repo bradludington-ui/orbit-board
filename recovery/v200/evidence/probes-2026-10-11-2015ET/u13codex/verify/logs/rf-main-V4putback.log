@@ -1,0 +1,45 @@
+PASS [fixture] fixture.remote: the folder's pre-existing copy is REMOTE/$650, by Brad, writer Brad, no history
+     expected ["REMOTE",650,"Brad","Brad",0]
+     observed ["REMOTE",650,"Brad","Brad",0]
+PASS [fixture] fixture.remoteClock: PREREQUISITE: REMOTE store.ts and payload ts are ONE HOUR AHEAD of real time (each minus real time after its write, within 59:55 to 60:00 min)
+     expected [true,true]
+     observed [true,true]
+PASS [fixture] fixture.adopt: Brad's board adopted REMOTE: [connect returned, screen, DIRTY, _baseDirty, record dirty, record base = REMOTE ts, driveBaseOf = REMOTE ts, MS.ts = REMOTE ts, kept slot]
+     expected [true,"remote",false,false,false,true,true,true,null]
+     observed [true,"remote",false,false,false,true,true,true,null]
+PASS [fixture] fixture.edit: WORKING on screen and unsaved: [screen, DIRTY, record dirty, base still REMOTE ts, the edit's MS.ts is earlier than REMOTE ts]
+     expected ["working",true,true,true,true]
+     observed ["working",true,true,true,true]
+PASS [fixture] V4putback.reopened: reopened with WORKING unsaved in browser storage: [screen, DIRTY (session), record dirty, base = REMOTE ts, kept slot]
+     expected ["working",false,true,true,null]
+     observed ["working",false,true,true,null]
+PASS [fixture] V4putback.held: the save reached the close of its write and is held; the folder head is still the pre-existing REMOTE; [reached, DIRTY, record dirty, _saveBusy, head ts = REMOTE ts, head REMOTE, the save's built MS.ts earlier than REMOTE ts]
+     expected [true,false,true,1,true,"remote",true]
+     observed [true,false,true,1,true,"remote",true]
+PASS [mechanism] V4putback.adopt: mechanism (Codex's case): the refresh during the held save adopts the PRE-EXISTING REMOTE and keeps WORKING aside; no folder write by anyone during it ([returned, _saveBusy, screen, base = REMOTE ts, _saveGen unchanged, kept slot, folder writes during the refresh])
+     expected [true,1,"remote",true,true,"working",0]
+     observed [true,1,"remote",true,true,"working",0]
+PASS [record] V4putback.head: the folder head after the save lands: the bytes the save built ([note, $, by, writer, head ts != REMOTE ts])
+     expected ["WORKING",700,"Brad","Brad",true]
+     observed ["WORKING",700,"Brad","Brad",true]
+FAIL [contract] V4putback.K1: CONTRACT once settled: recorded clean only against a base copy holding what is on screen [screen note, screen $, recorded clean, base-copy note, base-copy $]
+     expected [["REMOTE",650,true,"REMOTE",650],["WORKING",700,true,"WORKING",700],["REMOTE",650,false,"WORKING",700]]
+     observed ["REMOTE",650,true,"WORKING",700]
+FAIL [contract] V4putback.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen note, screen $, recorded clean, base-copy note, base-copy $]
+     expected [["REMOTE",650,true,"REMOTE",650],["WORKING",700,true,"WORKING",700],["REMOTE",650,false,"WORKING",700]]
+     observed ["REMOTE",650,true,"WORKING",700]
+FAIL [contract] V4putback.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen note, screen $, recorded clean, base-copy note, base-copy $]
+     expected [["REMOTE",650,true,"REMOTE",650],["WORKING",700,true,"WORKING",700],["REMOTE",650,false,"WORKING",700]]
+     observed ["REMOTE",650,true,"WORKING",700]
+PASS [contract] V4putback.reach: CONTRACT: REMOTE/$650 and WORKING/$700 each remain in some reachable copy ([REMOTE reachable, WORKING reachable])
+     expected [true,true]
+     observed [true,true]
+PASS [observed] V4putback: put it back, then 💾 Save ([screen after put back, DIRTY, base = REMOTE ts, kept slot after put back, status after Save says the clash, says Nothing was written, head note, head $])
+     expected ["working",true,true,null,true,true,"WORKING",700]
+     observed ["working",true,true,null,true,true,"WORKING",700]
+PASS [observed] V4putback.question: the put-back question, asked over REMOTE on screen recorded clean: does it say what is on screen is still in the shared folder (REMOTE is only in history there)?
+     expected [true]
+     observed [true]
+whereNow {"remote":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-014459.json (ts 1791773097998)"],"screen":true,"storage":true,"keptSlot":false},"working":{"folderHead":true,"folderHistory":[],"screen":false,"storage":false,"keptSlot":true}}
+ids {"board":"b160bc031c7f70a4492f64394893d9b74bb0f327","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"f4ef4110e557d4dc7a0d7af7e8e2dd49bd17a6c8","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13codex/verify/main/prioritization-board-grid.html"}
+V4putback: 11 pass, 3 fail

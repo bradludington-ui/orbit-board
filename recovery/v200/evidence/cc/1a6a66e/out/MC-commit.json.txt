@@ -1,0 +1,1 @@
+{"entries": 1420, "once": 1420, "missing": [], "multiple": [], "unparsed": [], "detail": {"v200-u42-half-first": 1, "v200-u42-half-repeat": 1, "v200-u42-wrong-half": 1, "v200-u42-edge-apostrophe": 1, "v200-u42-interior-apostrophe": 1}}

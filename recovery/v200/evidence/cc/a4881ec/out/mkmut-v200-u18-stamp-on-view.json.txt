@@ -1,0 +1,1 @@
+{"id": "v200-u18-stamp-on-view", "matches": 1, "find": "      if(was.ms.ts===wroteTs){ was.ms.ts=was.ts; was.ms.by=was.by; }\n", "repl": "      if(MS.ts===wroteTs){ MS.ts=was.ts; MS.by=was.by; }\n"}

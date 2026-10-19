@@ -94,9 +94,17 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, 'genuine', `${what} was produced by the board`, txt.length > 20, true);
     chk(name, 'genuine', `${what} passes the door`, G.ev(`inboundCheck(${JSON.stringify(txt)})`) || 'passes', 'passes');
   }
-  // a key that shares a name with something every object inherits is an ordinary key, and passes
-  chk(name, 'genuine', 'a file carrying keys named toString, valueOf and hasOwnProperty passes the door',
-    G.ev(`inboundCheck(${JSON.stringify(vary(st => { st.zz_keys = { toString: 1, valueOf: 2, hasOwnProperty: 3, isPrototypeOf: 4 }; }))})`) || 'passes', 'passes');
+  // v2.00 (item 99) reverses what v1.88 asked here. A key named for something every object inherits (toString, valueOf,
+  // hasOwnProperty, isPrototypeOf ...) reads back the built-in rather than the board's entry, and no board writes one, so
+  // the door now refuses the file and names the field. Each name is tried in a file of its own, so each is refused for
+  // itself rather than behind another.
+  for (const k of ['toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf'])
+    chk(name, 'built-in names', `a file carrying a key named ${k} is refused at the door, which names it`,
+      G.ev(`inboundCheck(${JSON.stringify(vary(st => { st.zz_keys = { [k]: 1 }; }))})`),
+      `it carries a field named “${k}” (at the saved state.appns.${slug}.zz_keys), which no board writes`);
+  // and it refuses no more than those names: keys that only look like them are ordinary keys, and pass
+  chk(name, 'genuine', 'a file carrying keys that only look like built-in names (ToString, valueOf_, hasOwnproperty, isPrototype, proto, __proto, Constructor) passes the door',
+    G.ev(`inboundCheck(${JSON.stringify(vary(st => { st.zz_keys = { ToString: 1, valueOf_: 2, hasOwnproperty: 3, isPrototype: 4, proto: 5, __proto: 6, Constructor: 7 }; }))})`) || 'passes', 'passes');
   // and through the ordinary import, which now runs the door first: taken, not refused
   const B0 = boot({ html: L });
   const took = JSON.parse(await drive(B0.ev, 'importState', [['board.html', L]]));

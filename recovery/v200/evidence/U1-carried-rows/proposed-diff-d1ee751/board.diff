@@ -1,0 +1,22 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -15429,8 +15429,9 @@
+ // execution made FY27 "executed" for O&M too, and O&M's planned FY27 printed $0 with no word.
+ // v2.00 (R1): BY EFFECTIVE YEAR (flowEffFy), the year flowCalc counts each row in. By the workbook's year, O&M's FY25 OBBBA
+ // rows counted as FY26 left FY26 "planned", so its whole plan was read as well ($100M carried + $500M plan = $600M), and FY25
+-// was "executed" with nothing left in it. `raw`: the workbook's own years -- what the year buttons offer, so a saved FY25
+-// selection stays FY25 when every FY25 row is counted as FY26. A year's rows land in it or in PS.to, so once both are
++// was "executed" with nothing left in it. `raw`: the workbook's own years -- the year buttons offer these, so a saved FY25
++// selection stays FY25 when every FY25 row is counted as FY26, and (v2.00, U1) every year a row is counted in, and the plan
++// window. A year's rows land in it or in PS.to, so once both are
+ // marked the rest of that year is not read (the panel asks this per year and appropriation); newest year first, so PS.to's
+ // own rows are marked before PS.from is read.
+ function flowExecYears(sl, raw){
+@@ -15451,6 +15452,7 @@
+ function flowYears(){
+   const y={};
+   flowExecYears(null, true).forEach(f=>y[f]=1);   // v2.00 (R1): the workbook's years, as before -- a saved year stays offered
++  flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1): and every year a row is COUNTED in, so ALL YEARS holds every dollar
+   flowPlanYears().forEach(f=>y[f]=1);
+   return Object.keys(y).map(Number).sort((a,b)=>a-b);
+ }

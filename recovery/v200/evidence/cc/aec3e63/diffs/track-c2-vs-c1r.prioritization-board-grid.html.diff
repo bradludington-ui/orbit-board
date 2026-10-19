@@ -1,0 +1,26 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c1r/prioritization-board-grid.html	2026-10-12 22:04:49.419664792 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c2/prioritization-board-grid.html	2026-10-13 13:21:45.604803462 +0000
+@@ -14206,0 +14207,3 @@
++  // v2.00 (U10): REFUSED BEFORE THE FILE IS READ while a locked cycle is on screen. The budget list is every appropriation's and
++  // no part of the view's copy, so a list imported in a view was stored, and reached every export, while the board said "Not kept".
++  if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }
+@@ -14449,0 +14453,3 @@
++  // v2.00 (U10): refused before the file is read while a locked cycle is on screen. The refusal dropped the index anyway, and the
++  // line then counted titles found and said "Save to bake this into the file".
++  if(cycBlock('Importing CCaR records')){ inp.value=''; return; }
+@@ -14509,0 +14516,4 @@
++  // v2.00 (U10): refused before the file is read while a locked cycle is on screen. The estimates are every appropriation's and no
++  // part of the view's copy: one imported in a view was stored -- an approved one replaced -- and every tie-out changed, while the
++  // board said "Not kept".
++  if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }
+@@ -15115,0 +15126,4 @@
++  // v2.00 (U10): THE DESTINATION LIST IS EVERY APPROPRIATION'S, and no part of a locked view's copy. Each change to it is refused
++  // up front while one is on screen: it was kept while the board said it was not, and a destination removed in a view left the
++  // working plan's requirements pointing at nothing.
++  if(cycBlock('Changing a destination')){ render(); return; }
+@@ -15122,0 +15137 @@
++  if(cycBlock('Adding a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt
+@@ -15130,0 +15146 @@
++  if(cycBlock('Removing a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt
+@@ -15165,0 +15182 @@
++  if(cycBlock('Resetting the destination list')){ render(); return; }   // v2.00 (U10): as flowSetEnt

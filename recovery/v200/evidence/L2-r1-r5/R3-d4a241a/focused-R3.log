@@ -1,0 +1,13 @@
+# cmd: X=1 node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/focused-R3-at-commit.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:13:58Z / 17:13:58 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a locked view is never written to the working folder"]
+ALL CHECKS PASSED
+
+# end: 2026-10-11T21:14:05Z / 17:14:05 EDT
+# exit: 0  duration_s: 6.9

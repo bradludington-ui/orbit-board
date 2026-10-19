@@ -1,0 +1,59 @@
+
+================================================================================================
+scenarios heard: ["v1.89 — saving never silently overwrites somebody’s work","v1.95 — Save acknowledges exactly what it wrote (the shared folder)","v1.95 — ↶ Put this back keeps unsaved work aside first","v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01)","v1.97 — ↶ Put this back pins its appropriation and year before its first wait (item 78)"]
+18 FAILING CHECK(S)
+
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    Brad’s work is kept aside, not lost
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    and the board says so
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    the header says so for as long as it is kept
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    and 📁 File offers to put it back
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    one click puts it back
+        got |COLLEAGUE NOTE|true   want BRAD NOTE||true
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    and Save, put back, asks before writing over the colleague’s file
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | no room to keep it
+    the file is not opened: this browser’s work stays on screen
+        got |COLLEAGUE NOTE   want BRAD NOTE|
+--- v1.89 — saving never silently overwrites somebody’s work | no room to keep it
+    and the board says why
+        got false   want true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the hist write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the main write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the lock write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | a failed write
+    nothing is marked saved, and the record is unchanged
+        got true|false|true|FIRST   want true|true|true|FIRST
+--- v1.95 — ↶ Put this back keeps unsaved work aside first | put back
+    the earlier copy is on screen, and the unsaved work is kept aside, with a way to put it back
+        got ["FIRST",false,false]   want ["FIRST",true,true]
+--- v1.95 — ↶ Put this back keeps unsaved work aside first | work already kept
+    with other work already kept aside, nothing is put back: the screen and the kept work both survive
+        got ["SECOND",false]   want ["MORE WORK",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | clean start, late edit
+    the earlier copy is put back and the note typed meanwhile is kept aside, with the board saying so
+        got ["HISTORY",false,false]   want ["HISTORY",true,true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | already unsaved, late edit
+    what is kept aside is the work as it stood when the copy was put back, the later edit included
+        got ["HISTORY",false]   want ["HISTORY",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | other work already kept
+    nothing is put back: the note typed meanwhile stays on screen, and the earlier kept work is untouched
+        got ["HISTORY",true]   want ["LATE TWO",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | storage refuses to keep it
+    nothing is put back, and the note typed meanwhile stays on screen and in this browser
+        got ["HISTORY",false,false]   want ["LATE THREE",true,true]

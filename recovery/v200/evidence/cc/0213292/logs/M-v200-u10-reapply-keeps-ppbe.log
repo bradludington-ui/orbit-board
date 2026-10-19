@@ -1,0 +1,16 @@
+# label: M-v200-u10-reapply-keeps-ppbe
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/out/M-v200-u10-reapply-keeps-ppbe.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-reapply-keeps-ppbe.html
+# start: 2026-10-18 05:02:28 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-reapply-keeps-ppbe.html","BOARD_set":true,"board":"3bd3c5a11d40533d6c3998f7f2e7e14f3e519f52","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs","harnessBlob":"558b09714a8bb2dcd629593c670dbbd79ddaa6c5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:02:29 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a locked view leaves no trace | PB27 viewed · USAF’s FY27 PPBE position typed as $5,000
+    refused and said so; the FYDP Spend Plan taken from the view prints the position as logged, $1,000
+        got [true,["ok",[["USAF",5000],["ANG","—"],["AFRC","—"],["TOTAL",5000]]]]   want [true,["ok",[["USAF",1000],["ANG","—"],["AFRC","—"],["TOTAL",1000]]]]
+# exit 1 at 10/18/2026, 5:03:37 AM ET
+
+# end: 2026-10-18 05:03:37 EDT  exit: 1  wall_s: 68.8

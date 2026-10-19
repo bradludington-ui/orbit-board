@@ -1,0 +1,46 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 98eed7e..bffdc80 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -7026,6 +7026,12 @@ function bootTakeFile(){
+   if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
+   if(!confirm('Open the saved file\u2019s version and replace what is on screen?\n\n'
+     +'This browser\u2019s own work is NOT kept \u2014 only in a copy you saved yourself.')) return;
++  // U24 (proposed): NOT WHILE A SAVE IS UNDER WAY (see adoptShared). Checked after the question, immediately before the load.
++  if(_saveBusy){
++    setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. '
++      +'Once it has finished, reopen the file to see what it holds.');
++    return;
++  }
+   if(applyStore(PUB)===false) return;
+   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+   persist(); DIRTY=false; render();
+@@ -8452,6 +8458,14 @@ function sharedKeepMine(st){
+ }
+ function adoptShared(){
+   if(!SHARED) return;
++  // U24 (proposed): NOT WHILE A SAVE IS UNDER WAY, as driveStorePull since U13. A save landing afterwards records the copy IT
++  // wrote as the one the work came from and marks the board saved, while the screen would show this one. Nothing is changed:
++  // what is on screen, the work kept aside and this browser's record stay as they were.
++  if(_saveBusy){
++    setStat('\u23f3 The shared state file was <b>not loaded</b>: a save was under way, so nothing was replaced. '
++      +'Once it has finished, reopen the board to be offered the shared state file again.');
++    return;
++  }
+   if(!sharedKeepMine(SHARED)) return;
+   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
+   // report as loaded. Saying so beats a status line claiming a load that did not happen.
+@@ -31591,6 +31605,13 @@ function sharedArrived(st){
+   // opened and somebody has typed, and a later time on it -- another clock -- said nothing about whether the work on screen
+   // was in any saved copy. Work typed in this session: nothing is replaced. Work no saved copy has from before: kept
+   // aside first, or nothing is loaded.
++  // U24 (proposed): AN ANSWER THAT ARRIVES WHILE A SAVE IS UNDER WAY replaces nothing (see adoptShared); it is offered instead.
++  if(_saveBusy){
++    setStat('\u23f3 The shared state file ('+esc(fmtTs(st.ts))+') arrived while a save was under way, so <b>nothing was replaced</b>. '
++      +'Once the save has finished: <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one</button> '
++      +'(what you have is kept aside first).');
++    return;
++  }
+   if(DIRTY){
+     setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working, so <b>nothing was replaced</b>. '
+       +'\ud83d\udcbe Save yours, or <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one</button> '

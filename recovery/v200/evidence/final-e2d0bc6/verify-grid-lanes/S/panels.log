@@ -1,0 +1,233 @@
+# cmd: X=1 npm run panels --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:23:07Z / 07:23:07 EDT
+# cap: 900s  grace: 10s
+
+prioritization-board-grid.html
+  ok   the file has modal panels to check   45 found
+  ok   every panel in the file is covered by this sweep   47 panels
+  ok   addPanel opens
+  ok   addPanel shows no escaped entity
+  ok   addPanel clips none of its own fields
+  ok   addPanel: every control in it is one the keyboard reaches
+  ok   rmPanel opens
+  ok   rmPanel shows no escaped entity
+  ok   rmPanel clips none of its own fields
+  ok   rmPanel: every control in it is one the keyboard reaches
+  ok   rpPanel opens
+  ok   rpPanel shows no escaped entity
+  ok   rpPanel clips none of its own fields
+  ok   rpPanel: every control in it is one the keyboard reaches
+  ok   planPanel opens
+  ok   planPanel shows no escaped entity
+  ok   planPanel clips none of its own fields
+  ok   planPanel: every control in it is one the keyboard reaches
+  ok   poPanel opens
+  ok   poPanel shows no escaped entity
+  ok   poPanel clips none of its own fields
+  ok   poPanel: every control in it is one the keyboard reaches
+  ok   coaPanel opens
+  ok   coaPanel shows no escaped entity
+  ok   coaPanel clips none of its own fields
+  ok   coaPanel: every control in it is one the keyboard reaches
+  ok   pmoPanel opens
+  ok   pmoPanel shows no escaped entity
+  ok   pmoPanel clips none of its own fields
+  ok   pmoPanel: every control in it is one the keyboard reaches
+  ok   bandPanel opens
+  ok   bandPanel shows no escaped entity
+  ok   bandPanel clips none of its own fields
+  ok   bandPanel: every control in it is one the keyboard reaches
+  ok   edPanel opens
+  ok   edPanel shows no escaped entity
+  ok   edPanel clips none of its own fields
+  ok   edPanel: every control in it is one the keyboard reaches
+  ok   wbsPanel opens
+  ok   wbsPanel shows no escaped entity
+  ok   wbsPanel clips none of its own fields
+  ok   wbsPanel: every control in it is one the keyboard reaches
+  ok   matPanel opens
+  ok   matPanel shows no escaped entity
+  ok   matPanel clips none of its own fields
+  ok   matPanel: every control in it is one the keyboard reaches
+  ok   rollPanel opens
+  ok   rollPanel shows no escaped entity
+  ok   rollPanel clips none of its own fields
+  ok   rollPanel: every control in it is one the keyboard reaches
+  ok   fldPanel opens
+  ok   fldPanel shows no escaped entity
+  ok   fldPanel clips none of its own fields
+  ok   fldPanel: every control in it is one the keyboard reaches
+  ok   ndPanel opens
+  ok   ndPanel shows no escaped entity
+  ok   ndPanel clips none of its own fields
+  ok   ndPanel: every control in it is one the keyboard reaches
+  ok   attPanel opens
+  ok   attPanel shows no escaped entity
+  ok   attPanel clips none of its own fields
+  ok   attPanel: every control in it is one the keyboard reaches
+  ok   helpPanel opens
+  ok   helpPanel shows no escaped entity
+  ok   helpPanel clips none of its own fields
+  ok   helpPanel: every control in it is one the keyboard reaches
+  ok   recPanel opens
+  ok   recPanel shows no escaped entity
+  ok   recPanel clips none of its own fields
+  ok   recPanel: every control in it is one the keyboard reaches
+  ok   acePanel opens
+  ok   acePanel shows no escaped entity
+  ok   acePanel clips none of its own fields
+  ok   acePanel: every control in it is one the keyboard reaches
+  ok   rlgPanel opens
+  ok   rlgPanel shows no escaped entity
+  ok   rlgPanel clips none of its own fields
+  ok   rlgPanel: every control in it is one the keyboard reaches
+  ok   livePanel opens
+  ok   livePanel shows no escaped entity
+  ok   livePanel clips none of its own fields
+  ok   livePanel: every control in it is one the keyboard reaches
+  ok   divPanel opens
+  ok   divPanel shows no escaped entity
+  ok   divPanel clips none of its own fields
+  ok   divPanel: every control in it is one the keyboard reaches
+  ok   pfPanel opens
+  ok   pfPanel shows no escaped entity
+  ok   pfPanel clips none of its own fields
+  ok   pfPanel: every control in it is one the keyboard reaches
+  ok   subPanel opens
+  ok   subPanel shows no escaped entity
+  ok   subPanel clips none of its own fields
+  ok   subPanel: every control in it is one the keyboard reaches
+  ok   jrnlPanel opens
+  ok   jrnlPanel shows no escaped entity
+  ok   jrnlPanel clips none of its own fields
+  ok   jrnlPanel: every control in it is one the keyboard reaches
+  ok   budRegPanel opens
+  ok   budRegPanel shows no escaped entity
+  ok   budRegPanel clips none of its own fields
+  ok   budRegPanel: every control in it is one the keyboard reaches
+  ok   diagPanel opens
+  ok   diagPanel shows no escaped entity
+  ok   diagPanel clips none of its own fields
+  ok   diagPanel: every control in it is one the keyboard reaches
+  ok   idsPanel opens
+  ok   idsPanel shows no escaped entity
+  ok   idsPanel clips none of its own fields
+  ok   idsPanel: every control in it is one the keyboard reaches
+  ok   exwPanel opens
+  ok   exwPanel shows no escaped entity
+  ok   exwPanel clips none of its own fields
+  ok   exwPanel: every control in it is one the keyboard reaches
+  ok   rcnPanel opens
+  ok   rcnPanel shows no escaped entity
+  ok   rcnPanel clips none of its own fields
+  ok   rcnPanel: every control in it is one the keyboard reaches
+  ok   entPanel opens
+  ok   entPanel shows no escaped entity
+  ok   entPanel clips none of its own fields
+  ok   entPanel: every control in it is one the keyboard reaches
+  ok   svcPanel opens
+  ok   svcPanel shows no escaped entity
+  ok   svcPanel clips none of its own fields
+  ok   svcPanel: every control in it is one the keyboard reaches
+  ok   uipPanel opens
+  ok   uipPanel shows no escaped entity
+  ok   uipPanel clips none of its own fields
+  ok   uipPanel: every control in it is one the keyboard reaches
+  ok   exPanel opens
+  ok   exPanel shows no escaped entity
+  ok   exPanel clips none of its own fields
+  ok   exPanel: every control in it is one the keyboard reaches
+  ok   pkgPanel opens
+  ok   pkgPanel shows no escaped entity
+  ok   pkgPanel clips none of its own fields
+  ok   pkgPanel: every control in it is one the keyboard reaches
+  ok   flowPanel opens
+  ok   flowPanel shows no escaped entity
+  ok   flowPanel clips none of its own fields
+  ok   flowPanel: every control in it is one the keyboard reaches
+  ok   fydpPanel opens
+  ok   fydpPanel shows no escaped entity
+  ok   fydpPanel clips none of its own fields
+  ok   fydpPanel: every control in it is one the keyboard reaches
+  ok   cycCmpPanel opens
+  ok   cycCmpPanel shows no escaped entity
+  ok   cycCmpPanel clips none of its own fields
+  ok   cycCmpPanel: every control in it is one the keyboard reaches
+  ok   cycChgPanel opens
+  ok   cycChgPanel shows no escaped entity
+  ok   cycChgPanel clips none of its own fields
+  ok   cycChgPanel: every control in it is one the keyboard reaches
+  ok   blPanel opens
+  ok   blPanel shows no escaped entity
+  ok   blPanel clips none of its own fields
+  ok   blPanel: every control in it is one the keyboard reaches
+  ok   qpePanel opens
+  ok   qpePanel shows no escaped entity
+  ok   qpePanel clips none of its own fields
+  ok   qpePanel: every control in it is one the keyboard reaches
+  ok   posPanel opens
+  ok   posPanel shows no escaped entity
+  ok   posPanel clips none of its own fields
+  ok   posPanel: every control in it is one the keyboard reaches
+  ok   ppPanel opens
+  ok   ppPanel shows no escaped entity
+  ok   ppPanel clips none of its own fields
+  ok   ppPanel: every control in it is one the keyboard reaches
+  ok   spPanel opens
+  ok   spPanel shows no escaped entity
+  ok   spPanel clips none of its own fields
+  ok   spPanel: every control in it is one the keyboard reaches
+  ok   bmPanel opens
+  ok   bmPanel shows no escaped entity
+  ok   bmPanel clips none of its own fields
+  ok   bmPanel: every control in it is one the keyboard reaches
+  ok   crPanel opens
+  ok   crPanel shows no escaped entity
+  ok   crPanel clips none of its own fields
+  ok   crPanel: every control in it is one the keyboard reaches
+  ok   fcPanel opens
+  ok   fcPanel shows no escaped entity
+  ok   fcPanel clips none of its own fields
+  ok   fcPanel: every control in it is one the keyboard reaches
+  ok   uiImpPanel opens
+  ok   uiImpPanel shows no escaped entity
+  ok   uiImpPanel clips none of its own fields
+  ok   uiImpPanel: every control in it is one the keyboard reaches
+  ok   the Reports & exports menu opens
+  ok   the Reports & exports menu shows no escaped entity
+  ok   the Reports & exports menu: every item in it is one the keyboard reaches
+  ok   the Data menu opens
+  ok   the Data menu shows no escaped entity
+  ok   the Data menu: every item in it is one the keyboard reaches
+  ok   the Setup menu opens
+  ok   the Setup menu shows no escaped entity
+  ok   the Setup menu: every item in it is one the keyboard reaches
+  ok   the File menu opens
+  ok   the File menu shows no escaped entity
+  ok   the File menu: every item in it is one the keyboard reaches
+  ok   the Filter menu opens
+  ok   the Filter menu shows no escaped entity
+  ok   the Filter menu: every item in it is one the keyboard reaches
+  ok   the FY menu opens
+  ok   the FY menu shows no escaped entity
+  ok   the FY menu: every item in it is one the keyboard reaches
+  ok   the PMO menu opens
+  ok   the PMO menu shows no escaped entity
+  ok   the PMO menu: every item in it is one the keyboard reaches
+  ok   the Spend plan basis menu opens
+  ok   the Spend plan basis menu shows no escaped entity
+  ok   the Spend plan basis menu: every item in it is one the keyboard reaches
+  ok   the Mode tools menu opens
+  ok   the Mode tools menu shows no escaped entity
+  ok   the Mode tools menu: every item in it is one the keyboard reaches
+  ok   nothing threw while opening them
+  ok   every toolbar menu in the file is covered by this sweep   9 menus
+
+Every panel and menu opens, nothing shows an escaped entity, no field clips its own value, and the keyboard reaches every control in them
+
+
+# end: 2026-10-19T11:23:16Z / 07:23:16 EDT
+# exit: 0  duration_s: 8.9

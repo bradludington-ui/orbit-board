@@ -1,0 +1,84 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u13/before/prioritization-board-grid.html","BOARD_set":false,"board":"1375b72b6707faa57c50d528e01ce9611f194998","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u13/before/tools/export-audit/focused-u13.mjs","harnessBlob":"331b680223f7b9172c636c5c4a783108b2ce9252","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 6:35:16 AM ET"}
+
+================================================================================================
+34 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened by the harness
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [false,true,true,0,true]
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,true]   want ["(nothing)",true,true,0,true]
+    once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,"WORKING",700,true,true,true,null]
+    then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and recorded against it; nothing kept aside
+        got [false,"REMOTE",650,"WORKING",700,true,true,["WORKING",700]]   want [false,"WORKING",700,"WORKING",700,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened with the folder’s edit permission not kept
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [false,true,true,0,true]
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,true]   want ["(nothing)",true,true,0,true]
+    once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,"WORKING",700,true,true,true,null]
+    then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and recorded against it; nothing kept aside
+        got [false,"REMOTE",650,"WORKING",700,true,true,["WORKING",700]]   want [false,"WORKING",700,"WORKING",700,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (2) a second writer saves during the save
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,true]   want [false,true,true,0,true]
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,true]   want ["(nothing)",true,true,0,true]
+    once Brad’s save lands: BRAD-1 on screen, in browser storage and the folder’s copy; saved, recorded against it; nothing kept aside
+        got ["BOB-2",650,"BOB-2",650,"BRAD-1",700,true,true,null]   want ["BRAD-1",700,"BRAD-1",700,"BRAD-1",700,true,true,null]
+    then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and recorded against it; nothing kept aside
+        got [false,"BOB-2",650,"BRAD-1",700,true,true,null]   want [false,"BRAD-1",700,"BRAD-1",700,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3a) the refresh held at its read of the folder’s copy; a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, said]
+        got [true,false,false]   want [false,true,true]
+    once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,true,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, nothing said]
+        got [true,false,false]   want [false,true,true]
+    once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,true,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3c) nothing recorded for the folder; the opening’s connect while a save waits at its read
+    the opening’s connect while the save waits at its read -- [the save waits, a save under way, nothing changed byte for byte: nothing recorded]
+        got [true,1,false]   want [true,1,true]
+    then the save, finding nothing recorded, asks: nothing written, X still the folder’s copy, MINE on screen and unsaved, the choice offered
+        got ["MINE",720,"MINE",720,false,false,false]   want ["X",600,"MINE",720,true,true,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4a) the save lands; a newer copy is saved after it
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,false]   want ["(nothing)",true,true,0,true]
+    the save landed (WORKING, saved); then Brad’s other browser loaded WORKING and saved NEWER over it (a CONTROL)
+        got ["REMOTE",650,true,0,"NEWER",750,true]   want ["WORKING",700,true,0,"NEWER",750,true]
+    the next refresh loads NEWER: on screen and in browser storage, saved, recorded against the folder’s copy; nothing kept aside (WORKING is saved, in the history)
+        got [false,"REMOTE",650,"REMOTE",650,true,false,["WORKING",700]]   want [true,"NEWER",750,"NEWER",750,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4b) the save fails: the folder refuses its write
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [false,true,true,0,true]
+    the save failed and says so: REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (read from _saveBusy) (a CONTROL)
+        got [true,"REMOTE",650,"REMOTE",650,true,0]   want [true,"REMOTE",650,"WORKING",700,false,0]
+    the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside
+        got [false,"REMOTE",650,true,true,["WORKING",700]]   want [true,"REMOTE",650,true,true,["WORKING",700]]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4c) the save is refused: a newer copy was saved before it read the folder
+    while the save waits at its read, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,false]   want ["(nothing)",true,true,0,true]
+    the save is refused and says so: nothing written, NEWER still the folder’s copy; WORKING on screen, unsaved; no save under way (a CONTROL)
+        got [false,"NEWER",750,"NEWER",750,true,0]   want [true,"NEWER",750,"WORKING",700,false,0]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel
+    while the save waits at its read, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,false]   want [true,true,true,0,true]
+    the save asked once and was canceled: nothing written, REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (a CONTROL)
+        got [1,true,"REMOTE",650,"REMOTE",650,true,0]   want [1,true,"REMOTE",650,"WORKING",700,false,0]
+    the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside
+        got [false,"REMOTE",650,true,true,["WORKING",700]]   want [true,"REMOTE",650,true,true,["WORKING",700]]
+# exit 1 at 10/12/2026, 6:35:37 AM ET

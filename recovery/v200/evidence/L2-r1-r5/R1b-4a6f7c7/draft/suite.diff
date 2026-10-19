@@ -1,0 +1,127 @@
+diff --git a/tools/export-audit/audit-recon.mjs b/tools/export-audit/audit-recon.mjs
+index 1f608e7..f606712 100644
+--- a/tools/export-audit/audit-recon.mjs
++++ b/tools/export-audit/audit-recon.mjs
+@@ -4350,8 +4350,8 @@ await (async () => {
+     const PB = panel(B.X);
+     w5Chk(name, 'variant B · FY25 + FY26 · the panel', 'says planned and executed money in one total, year by year, with each amount',
+       J([/^Planned and executed money in one total\. FY25: O&M planned; FY26: O&M executed\./.test(PB.mix), /\$100\.00M executed, \$300\.00M planned\./.test(PB.mix)]), J([true, true]));
+-    w5Chk(name, 'variant B · FY25 + FY26 · the panel', 'the year chips and the planned note agree: FY25 marked plan, FY26 not, and only FY25 called PLANNED',
+-      J([PB.chips.filter(c => / \[on\]$/.test(c)), PB.planned]), J([['FY25 · plan [on]', 'FY26 [on]'], 'FY25']));
++    w5Chk(name, 'variant B · FY25 + FY26 · the panel', 'the year chips agree: FY25 marked plan, FY26 not; and beside executed money no year is called PLANNED, not executed (Brad, 11 Oct)',
++      J([PB.chips.filter(c => / \[on\]$/.test(c)), PB.planned]), J([['FY25 · plan [on]', 'FY26 [on]'], '']));
+     const GB = await book(B.X);
+     w5Chk(name, 'variant B · FY25 + FY26 · the export', 'US SERVICE FUNDING 400000000, O&M 400000000, TOTAL FUNDING 400000000 twice, the scope as the panel',
+       J([GB.err, GB.scope, GB.us, GB.om, GB.tot]), J(['ok', 'Scope: FY25, FY26 · O&M · FY25 planned, the rest executed', [400000000], [400000000], [400000000, 400000000]]));
+@@ -4391,6 +4391,111 @@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (R1) ====
++// ==== v2.00 (R1, Brad's decisions of 11 Oct): a mixed total is said by its money, with its amounts; stored rows apart from their effective year ====
++// Brad, 11 Oct: "keep the mixed-funding export NOTE whenever the selected total includes both executed and planned money,
++// including all-years views. Replace any contradictory whole-total 'PLANNED, not executed' box with accurate executed/planned
++// amounts. Make the tooltip distinguish stored FY25 rows from their effective FY26 treatment."
++// The R1 fixture: the board is on O&M, its five-year plan FY26-FY30; FY25 is offered because the workbook files rows under it.
++// FY25's pot is $300M, FY26's $500M, FY27-FY30 were never planned and hold $0. One service, one requirement asking $900M, so a
++// planned year reads its whole pot. The OBBBA rule is on: an FY25 O&M row whose Budget cell says OBBBA counts as FY26.
++// E -- FY25 holds a $40M ordinary row. ALL YEARS = $40M executed (FY25) + $500M planned (FY26) = $540M: the export's NOTE and the
++//      panel's box, a line per year; no box calls anything "PLANNED, not executed"; the panel says $40.00M and $500.00M.
++// A -- FY25 holds the $40M row and a $100M OBBBA row. ALL YEARS = $140M executed and $0 planned: no NOTE, no box.
++// B -- FY25 holds only the $100M OBBBA row. FY26 + FY27 = $100M executed, $0 planned: no NOTE. FY25 + FY26 = $100M executed and
++//      $300M planned, said with both amounts, not "FY25 is PLANNED, not executed". FY25 alone = $300M, all planned, and still
++//      says so (a CONTROL). The planned note and the FY25 button say its rows are stored under FY25 and counted in FY26.
++// Every expected figure is the fixture's own arithmetic. FAILS ON e635775 for what the decisions change; CONTROLs pass there.
++await (async () => {
++  const name = 'v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify;
++    const POT = { 2025: 300000000, 2026: 500000000 };
++    const row = (n, title, budget, amt) => { const r = Array(32).fill(''); r[0] = 2025; r[1] = '2025-03'; r[2] = 'JSF' + (400 + n); r[3] = title;
++      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = 'Program (PSM)'; return r; };
++    const CARRY = row(1, 'Carried Support', 'USAF O&M OBBBA Mandatory', 100000000), OWN = row(2, 'Depot Pods', 'USAF O&M Discretionary', 40000000);
++    const open = rows => {
++      const X = boot();
++      seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [900000000])], disc: [POT[2026]], mand: [0], order: ['F1'] });
++      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++        var POT=${J(POT)}; MS.base=2026; MS.cur=2026; FYMON=fyMonths(2026); MS.years={};
++        [2025,2026].forEach(function(y){ var st=JSON.parse(JSON.stringify(S)); st.bm={disc:[POT[y]], mand:[0], adds:[]}; st.discSvc=[POT[y]]; MS.years[y]=st; });
++        applyState(MS.years[2026]); MS.years[2026]=S;
++        EXDB.all=${J({ om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: rows } } })}; EXDB.ts=1;
++        var C=flowCfg(); C.pseudo={on:true, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2026, col:4}; C.other={}; C.fys=null; C.aps=['om'];
++        save(); 'ok'`);
++      return X;
++    };
++    // the scope set as the year buttons leave it (null = ALL YEARS), then the total, the panel and the export of that scope
++    const look = async (X, fys) => {
++      const P = JSON.parse(X.ev(`(function(){ flowCfg().fys=${J(fys)}; var F=flowCalc(); flowOpen=true; flowBody(); var b=document.getElementById('flowBody'), m=b.querySelector('.flowmix');
++        var pl=/(FY\\d\\d(?:, FY\\d\\d)*) (?:is|are) PLANNED, not executed/.exec(b.textContent);
++        var note=[].slice.call(b.querySelectorAll('div')).filter(function(d){ return /A planned year covers/.test(d.textContent) && !d.querySelector('div'); }).map(function(d){ return d.textContent; });
++        var tips={}; [].slice.call(b.querySelectorAll('button')).forEach(function(x){ if(/^FY\\d\\d/.test(x.textContent)) tips[x.textContent.slice(0,4)]=x.title; });
++        return JSON.stringify({sel:flowSelYears(), t:[F.tot, F.execV, F.planV], mix:m? m.textContent : '', planned:pl? pl[1] : '', note:note, tips:tips}); })()`));
++      const wb = JSON.parse(await w6Book(X.w, 'exportFlow')), ff = wb['Funds Flow'] || [];
++      P.err = wb.__err || 'ok';
++      P.us = ff.filter(r => w6Lbl(r) === 'US SERVICE FUNDING').map(r => num(r[1])).filter(v => v !== null);
++      P.mixNote = ff.map(w6Lbl).filter(t => /^NOTE: planned and executed money in one total/.test(t));
++      return P;
++    };
++    const ALLY = [2025, 2026, 2027, 2028, 2029, 2030];
++    // ── E: FY25 executed, the later years planned, ALL YEARS ──
++    const E = await look(open([OWN]), null);
++    w5Chk(name, 'E · ALL YEARS', 'CONTROL — every year in scope; $540M = $40M executed (FY25) + $500M planned (FY26)',
++      J([E.sel, E.t]), J([ALLY, [540000000, 40000000, 500000000]]));
++    w5Chk(name, 'E · ALL YEARS · the export', 'kept: US SERVICE FUNDING 540000000 and the NOTE, a line per year in scope',
++      J([E.err, E.us, E.mixNote]), J(['ok', [540000000], ['NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M planned; '
++        + 'FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation.']]));
++    w5Chk(name, 'E · ALL YEARS · the panel', 'kept: the box says planned and executed money in one total, a line per year, $40.00M executed and $500.00M planned',
++      E.mix, 'Planned and executed money in one total. FY25: O&M executed; FY26: O&M planned; FY27: O&M planned; FY28: O&M planned; '
++        + 'FY29: O&M planned; FY30: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $40.00M executed, $500.00M planned.');
++    w5Chk(name, 'E · ALL YEARS · the panel', 'no year is called PLANNED, not executed beside $40M executed; the planned note states $40.00M executed and $500.00M planned',
++      J([E.planned, E.note.length, E.note.map(t => t.startsWith('This total holds $40.00M executed and $500.00M planned. FY26, FY27, FY28, FY29, FY30 are planned years. '
++        + 'Nothing in scope has executed in those years yet, so the chart reads O&M’s own allocation for them'))]), J(['', 1, [true]]));
++    // ── A: every dollar executed; the planned years hold $0 ──
++    const A = await look(open([OWN, CARRY]), null);
++    w5Chk(name, 'A · ALL YEARS', 'CONTROL — $140M = $40M + $100M executed, $0 planned', J([A.sel, A.t]), J([ALLY, [140000000, 140000000, 0]]));
++    w5Chk(name, 'A · ALL YEARS · the export', 'planned years holding $0 do not make a mix: US SERVICE FUNDING 140000000 and no planned-and-executed NOTE',
++      J([A.err, A.us, A.mixNote]), J(['ok', [140000000], []]));
++    w5Chk(name, 'A · ALL YEARS · the panel', 'no planned-and-executed box, no year called PLANNED, not executed; the planned note states $140.00M executed and $0.00M planned',
++      J([A.mix, A.planned, A.note.map(t => t.startsWith('This total holds $140.00M executed and $0.00M planned. FY27, FY28, FY29, FY30 are planned years.'))]), J(['', '', [true]]));
++    // ── B: the only FY25 O&M row is carried to FY26 ──
++    const BX = open([CARRY]);
++    const B67 = await look(BX, [2026, 2027]);
++    w5Chk(name, 'B · FY26 + FY27', 'CONTROL — $100M executed (carried into FY26), $0 planned (FY27 never planned)',
++      J([B67.sel, B67.t]), J([[2026, 2027], [100000000, 100000000, 0]]));
++    w5Chk(name, 'B · FY26 + FY27 · the export', 'a planned year holding $0 beside an executed one: US SERVICE FUNDING 100000000 and no planned-and-executed NOTE',
++      J([B67.err, B67.us, B67.mixNote]), J(['ok', [100000000], []]));
++    w5Chk(name, 'B · FY26 + FY27 · the panel', 'no planned-and-executed box, no year called PLANNED, not executed; the planned note states $100.00M executed and $0.00M planned',
++      J([B67.mix, B67.planned, B67.note.map(t => t.startsWith('This total holds $100.00M executed and $0.00M planned. FY27 is a planned year. Nothing in scope has executed in that year yet'))]),
++      J(['', '', [true]]));
++    const B56 = await look(BX, [2025, 2026]);
++    w5Chk(name, 'B · FY25 + FY26', 'CONTROL — $400M = $100M executed + $300M planned', J([B56.sel, B56.t]), J([[2025, 2026], [400000000, 100000000, 300000000]]));
++    w5Chk(name, 'B · FY25 + FY26 · the panel', 'not "FY25 is PLANNED, not executed" beside $100M executed: $100.00M executed and $300.00M planned, the FY25 rows stored under FY25 and counted in FY26',
++      J([B56.planned, B56.note]), J(['', ['This total holds $100.00M executed and $300.00M planned. FY25 is a planned year. The rows stored under FY25 are counted in FY26 (OBBBA), '
++        + 'so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan '
++        + 'Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board.']]));
++    w5Chk(name, 'B · FY25 + FY26', 'CONTROL — still said as both on the panel and in the export (the R1 block holds their words)',
++      J([/\$100\.00M executed, \$300\.00M planned\.$/.test(B56.mix), B56.us, B56.mixNote.length]), J([true, [400000000], 1]));
++    const B5 = await look(BX, [2025]);
++    w5Chk(name, 'B · FY25 alone', 'CONTROL — $300M, all planned, and still called PLANNED, not executed; no planned-and-executed box or NOTE',
++      J([B5.sel, B5.t, B5.planned, B5.mix, B5.us, B5.mixNote]), J([[2025], [300000000, 0, 300000000], 'FY25', '', [300000000], []]));
++    w5Chk(name, 'B · FY25 alone · the planned note', 'says the rows stored under FY25 are counted in FY26, not that nothing has executed in it',
++      J([B5.note.map(t => t.startsWith('FY25 is PLANNED, not executed. The rows stored under FY25 are counted in FY26 (OBBBA), so the chart reads O&M’s own allocation for it')),
++        B5.note.some(t => /Nothing in scope has executed/.test(t))]), J([[true], false]));
++    w5Chk(name, 'B · the FY25 button', 'its tooltip says the O&M rows are stored under FY25 and counted in FY26, so FY25 is read from its plan (never "no O&M execution imported")',
++      B5.tips.FY25, 'FY2025: the O&M rows imported for it are stored under FY2025 and counted in FY2026 (OBBBA), so FY2025 O&M is read from its plan — this board’s own allocation');
++    w5Chk(name, 'B · the FY26 and FY27 buttons', 'CONTROL — FY26 is answered from the import; FY27, with no rows stored under it, has no O&M execution imported',
++      J([B5.tips.FY26, B5.tips.FY27]), J(['FY2026 is answered from the imported CCaR QPE', 'FY2027 has no O&M execution imported, so O&M is answered from this board’s own allocation']));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (R1, Brad's decisions of 11 Oct) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

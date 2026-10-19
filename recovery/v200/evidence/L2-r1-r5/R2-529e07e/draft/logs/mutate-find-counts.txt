@@ -1,0 +1,21 @@
+mutate.mjs entries parsed: 1272  unresolved: 10  constants: 4
+  UNRESOLVED ('scen-marker-sheet', 'call/member on String')
+  UNRESOLVED ('save-no-lt-escape', 'call/member on String')
+  UNRESOLVED ('d, t', 'no find')
+  UNRESOLVED ('d, t', 'no find')
+  UNRESOLVED ('BUY-AC', 'no find')
+  UNRESOLVED ('BUY-AC', 'no find')
+  UNRESOLVED ("d, svc:sv, lane:(d>0? 'mand' : 'd", 'no find')
+  UNRESOLVED ("d, svc:sv, lane:'d", 'no find')
+  UNRESOLVED ("d, svc:sv, lane:'d", 'no find')
+  UNRESOLVED ('.id, lab', 'no find')
+duplicate ids: []
+entries whose count is not exactly 1 on some board:
+entries whose count differs between boards:
+NAMED v199-code-cut line 3638 {'base': 1, 'patched': 1}
+NAMED v199-rcn-cut line 3656 {'base': 1, 'patched': 1}
+NAMED v199-mat-rcnnote-gone line 3725 {'base': 1, 'patched': 1}
+hand-resolved String.raw finds (base, patched): scen-marker-sheet [0, 0]  save-no-lt-escape [1, 1]
+String.raw find (read from mutate.mjs text) scen-marker-sheet counts base/patched [1, 1]
+String.raw find (read from mutate.mjs text) save-no-lt-escape counts base/patched [1, 1]
+NOTE: the line 'hand-resolved String.raw finds ... scen-marker-sheet [0, 0]' above came from a retyped (mistyped) find; superseded by the verbatim extraction lines that follow it (scen-marker-sheet 1/1, save-no-lt-escape 1/1).

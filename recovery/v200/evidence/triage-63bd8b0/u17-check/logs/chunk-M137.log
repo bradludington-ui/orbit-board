@@ -1,0 +1,12 @@
+r-c137-S1harness-save start=2026-10-12T11:56:40EDT exit=0 wall_s=7.1  | SUMMARY S1harness save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1harness-putback start=2026-10-12T11:56:47EDT exit=0 wall_s=7.2  | SUMMARY S1harness putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1tick-save start=2026-10-12T11:56:55EDT exit=0 wall_s=7.2  | SUMMARY S1tick save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1tick-putback start=2026-10-12T11:57:02EDT exit=0 wall_s=8.9  | SUMMARY S1tick putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1perm-save start=2026-10-12T11:57:11EDT exit=0 wall_s=8.7  | SUMMARY S1perm save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1perm-putback start=2026-10-12T11:57:19EDT exit=0 wall_s=7.8  | SUMMARY S1perm putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1open-save start=2026-10-12T11:57:27EDT exit=0 wall_s=6.6  | SUMMARY S1open save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1open-putback start=2026-10-12T11:57:34EDT exit=0 wall_s=5.3  | SUMMARY S1open putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1pen-save start=2026-10-12T11:57:39EDT exit=0 wall_s=5.1  | SUMMARY S1pen save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-S1pen-putback start=2026-10-12T11:57:44EDT exit=0 wall_s=4.5  | SUMMARY S1pen putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-V1same-save start=2026-10-12T11:57:49EDT exit=0 wall_s=4.0  | SUMMARY V1same save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-V1same-putback start=2026-10-12T11:57:53EDT exit=0 wall_s=4.5  | SUMMARY V1same putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0

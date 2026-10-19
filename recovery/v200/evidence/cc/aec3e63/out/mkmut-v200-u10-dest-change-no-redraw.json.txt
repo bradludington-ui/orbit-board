@@ -1,0 +1,1 @@
+{"id": "v200-u10-dest-change-no-redraw", "matches": 1, "find": "  if(cycBlock('Changing a destination')){ render(); return; }\n", "repl": "  if(cycBlock('Changing a destination')) return;\n"}

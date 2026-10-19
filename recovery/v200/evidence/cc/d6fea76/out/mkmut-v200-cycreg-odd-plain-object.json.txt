@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-odd-plain-object", "matches": 1, "find": "const out=[], at=Object.create(null), rep=[];", "repl": "const out=[], at={}, rep=[];"}

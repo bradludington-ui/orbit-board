@@ -1,0 +1,17 @@
+SAME b63-BT-none (10 checks; 1 fail; u17state ["F1",true,"BRAD-2"])
+SAME b63-BT-putback (10 checks; 1 fail; u17state ["F1",true,"BRAD-2"])
+SAME b63-BT-save (10 checks; 2 fail; u17state ["F1",true,"BRAD-2"])
+SAME b63-BTC-none (8 checks; 1 fail; u17state ["F1",true,"BRAD-1"])
+SAME b63-BTC-putback (8 checks; 1 fail; u17state ["F1",true,"BRAD-1"])
+SAME b63-BTC-save (8 checks; 2 fail; u17state ["F1",true,"BRAD-1"])
+file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/cmp.mjs:15
+  for (const c of m.checks) { tot[c.kind][c.pass ? 0 : 1]++; }
+                                            ^
+
+TypeError: Cannot read properties of undefined (reading '0')
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/cmp.mjs:15:45
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.0

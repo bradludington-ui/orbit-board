@@ -1,0 +1,1 @@
+{"id": "v200-regtext-long-title-retyped", "matches": 1, "find": "    if(n>80){ codeRefusedIn(el, 'RCN / EEIC title not changed',", "repl": "    if(n>80&&n>Array.from(String(e.t||'')).length){ codeRefusedIn(el, 'RCN / EEIC title not changed',"}

@@ -1,0 +1,8 @@
+scenarios heard: v2.00 (R2) — an EEIC is checked in the form it is stored
+FOCUSED: 2 FAILING CHECK(S)
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as " ab12c "
+    CONTROL — kept trimmed and upper-cased as AB12C, the field not marked
+        got ["ab12c",null," ab12c ",false]   want ["AB12C",null," ab12c ",false]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ß×5
+    CONTROL — upper-cased it is exactly 10 characters: kept as SSSSSSSSSS, the field not marked
+        got ["ßßßßß",null,"ßßßßß",false]   want ["SSSSSSSSSS",null,"ßßßßß",false]

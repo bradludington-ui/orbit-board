@@ -1,0 +1,13 @@
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is kept and said | text that is markup
+    ["<b>x</b>", 2027]: FY27 counted ($500M), the text quoted as saved and shown as text, never as markup
+        got ["[\"<b>x</b>\",2027]",[2027],[500000000,0,500000000],"FY27 · all appropriations · PLANNED (board allocation, O&M) · 1 saved entry not a year, not counted","500.00",false,["FY27 · plan"],"The saved year selection holds \"x\", which this board cannot read as a year. It is kept as saved and not counted: this total counts FY27 only. Click ALL YEARS, a year’s only, or a year to switch it on or off, to choose again; any of these replaces what cannot be read.","","ok","Scope: FY27 · all appropriations · PLANNED (board allocation, O&M) · 1 saved entry not a year, not counted",[500000000,500000000],["NOTE: The saved year selection holds \"<b>x</b>\", which this board cannot read as a year. It is kept as saved and not counted: this total counts FY2027 only."],true,true,[2027],500000000,0,0,"ok · every part reads · every count holds"]   want ["[\"<b>x</b>\",2027]",[2027],[500000000,0,500000000],"FY27 · all appropriations · PLANNED (board allocation, O&M) · 1 saved entry not a year, not counted","500.00",false,["FY27 · plan"],"The saved year selection holds \"<b>x</b>\", which this board cannot read as a year. It is kept as saved and not counted: this total counts FY27 only. Click ALL YEARS, a year’s only, or a year to switch it on or off, to choose again; any of these replaces what cannot be read.","","ok","Scope: FY27 · all appropriations · PLANNED (board allocation, O&M) · 1 saved entry not a year, not counted",[500000000,500000000],["NOTE: The saved year selection holds \"<b>x</b>\", which this board cannot read as a year. It is kept as saved and not counted: this total counts FY2027 only."],true,true,[2027],500000000,0,0,"ok · every part reads · every count holds"]
+--- v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is kept and said | text that is markup · escaped
+    the notice's HTML carries "&lt;b&gt;x&lt;/b&gt;" (text, as the DOM writes it back), and its only <b> elements are the board's own three -- none is made from the file
+        got [false,4]   want [true,3]
+# exit 1 at 10/13/2026, 7:57:53 PM ET
+
+# end: 2026-10-13 19:57:54 EDT  exit: 1  wall_s: 103.6

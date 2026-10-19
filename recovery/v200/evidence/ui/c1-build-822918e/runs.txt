@@ -1,0 +1,26 @@
+check-before@c41a7c2 | start 2026-10-12 07:15:55 EDT | exit 1 | wall 3.2s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/check-before-c41a7c2.log
+rule-list-before | start 2026-10-12 07:16:09 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/rule-list-before.log
+rule-list-base | start 2026-10-12 07:16:10 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/rule-list-base.log
+ex-before-try1 | start 2026-10-12 07:20:45 EDT | exit 0 | wall 41.6s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-before-try1.log
+ex-before@c41a7c2 | start 2026-10-12 07:22:43 EDT | exit 0 | wall 38.0s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-before.log
+ex-before-repeat@c41a7c2 | start 2026-10-12 07:23:21 EDT | exit 0 | wall 37.8s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-before-repeat.log
+cmp-before-vs-repeat | start 2026-10-12 07:23:59 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/cmp-before-vs-repeat.log
+check-pre-commit | start 2026-10-12 07:24:26 EDT | exit 0 | wall 3.7s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/check-pre-commit.log
+rule-list-after-wip | start 2026-10-12 07:24:30 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/rule-list-after-wip.log
+check-after@822918e | start 2026-10-12 07:24:53 EDT | exit 0 | wall 3.1s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/check-after-822918e.log
+ex-after@822918e | start 2026-10-12 07:24:57 EDT | exit 0 | wall 37.5s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-after.log
+cmp-before-vs-after | start 2026-10-12 07:25:34 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/cmp-before-vs-after.log
+ex-before2@c41a7c2-samepath | start 2026-10-12 07:26:07 EDT | exit 0 | wall 37.5s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-before2.log
+ex-after2@822918e-samepath | start 2026-10-12 07:26:44 EDT | exit 0 | wall 37.9s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/ex-after2.log
+cmp-before2-vs-after2 | start 2026-10-12 07:27:22 EDT | exit 0 | wall 0.4s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/cmp-before2-vs-after2.log
+# suites at 822918e board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+boot-same@822918e | start 2026-10-12 07:27:37 EDT | exit 0 | wall 10.0s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/boot-same-822918e.log
+audit-ui@822918e | start 2026-10-12 07:27:47 EDT | exit 0 | wall 30.8s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/audit-ui-822918e.log
+audit-other@822918e | start 2026-10-12 07:28:18 EDT | exit 0 | wall 34.5s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/audit-other-822918e.log
+audit@822918e | start 2026-10-12 07:28:52 EDT | exit 0 | wall 9.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/audit-822918e.log
+audit-recon@822918e | start 2026-10-12 07:29:02 EDT | exit 0 | wall 51.5s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/audit-recon-822918e.log
+rv-smoke@822918e | start 2026-10-12 07:30:24 EDT | exit 0 | wall 12.1s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/rv-smoke-822918e.log
+rv-smoke@c41a7c2 | start 2026-10-12 07:30:36 EDT | exit 0 | wall 11.6s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/rv-smoke-c41a7c2.log
+table | start 2026-10-12 07:31:40 EDT | exit 0 | wall 0.4s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/table.log
+table2 | start 2026-10-12 07:31:55 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/table2.log
+table3 | start 2026-10-12 07:32:09 EDT | exit 0 | wall 0.3s | /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/logs/table3.log

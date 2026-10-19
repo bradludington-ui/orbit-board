@@ -1,0 +1,102 @@
+TOTAL {"n": 151, "p": 62, "f": 89}
+ 11 checks  11 pass   0 fail | controls 5 (0 fail) | non-controls 6 (0 fail) | v1.99 item 88 — a locked cycle’s view and every report from it read the RCN / EEIC list it
+ 27 checks   9 pass  18 fail | controls 9 (0 fail) | non-controls 18 (18 fail) | v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries
+  9 checks   5 pass   4 fail | controls 5 (0 fail) | non-controls 4 (4 fail) | v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen
+ 27 checks   6 pass  21 fail | controls 6 (0 fail) | non-controls 21 (21 fail) | v2.00 (U10) — a cost estimate, a BAE list, CCaR records or a destination change is refused
+  9 checks   3 pass   6 fail | controls 3 (0 fail) | non-controls 6 (6 fail) | v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a lo
+ 31 checks   6 pass  25 fail | controls 6 (0 fail) | non-controls 25 (25 fail) | v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked v
+  7 checks   4 pass   3 fail | controls 4 (0 fail) | non-controls 3 (3 fail) | v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total a
+  6 checks   3 pass   3 fail | controls 3 (0 fail) | non-controls 3 (3 fail) | v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing
+  7 checks   3 pass   4 fail | controls 3 (0 fail) | non-controls 4 (4 fail) | v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it w
+ 11 checks   7 pass   4 fail | controls 7 (0 fail) | non-controls 4 (4 fail) | v2.00 (U10) — an appropriation button, the pseudo year, a prime rule or a category refused
+  6 checks   5 pass   1 fail | controls 5 (0 fail) | non-controls 1 (1 fail) | v2.00 (U10) — holding the unfunded list outside the flow, refused in a locked view, moves 
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · RCN 77777 typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · RCN 77777 typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · EEIC YYYYY typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · EEIC YYYYY typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · title “Renamed” typed into K4’s field | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · title “Renamed” typed into K4’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · K3 removed with its ✕, answered OK | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · K3 removed with its ✕, answered OK | every export carries the cycle’s own codes, as before the edit
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · + Add RCN / EEIC | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · K1’s ANG box switched off | refused and said so; the list in the view, and the panel redrawn on sc
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · K3 removed on FY27, then FY28 on screen | FY28 still holds CLIN 0001’s AFRC on K3, and the list is the cycle’s
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · K3 removed on FY27, then FY28 on screen | every export of FY28 carries the cycle’s own codes
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | refused; still FY28, on FY28’s months; the list and the panel are the 
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | every export of FY28 carries the cycle’s own codes
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · ZED renamed WRK with its ✎ | refused and said so; the list on screen still ends ZED; Q is in ZED in
+  FAIL | v2.00 (U10) — a refused edit | PB27 viewed · ZED renamed WRK with its ✎ | every export carries the cycle’s own offices and codes: Q’s $71 under 
+  FAIL | v2.00 (U10) — a refused edit | the record’s steps: saved, reopened, PB27 viewed, 77777 typed | refused; RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out 
+  FAIL | v2.00 (U10) — a refused edit | a cycle locked before v1.99, viewed · RCN 77777 typed into K1’s field | refused; the view’s list and RCN-EEIC by Month are today’s list as it 
+  FAIL | v2.00 (U10) — a refusal in a | PB27 viewed · band 0 renamed RENAMED BAND (refused) | refused and said so; the workbook still names band 0 as it was locked
+  FAIL | v2.00 (U10) — a refusal in a | PB27 viewed · funds-flow axis set to destinations (refused) | refused and said so; the funds-flow export is still cut by what the mo
+  FAIL | v2.00 (U10) — a refusal in a | PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field | refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as 
+  FAIL | v2.00 (U10) — a refusal in a | PB27 viewed · CCaR Records file imported (refused) | refused and said so; the Spend Plan Source still titles R and Q by the
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) · | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Cost data set to 2026ACE in its select | refused and said so; the Spend Plan still shows 2027ACE, and the ACE t
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their | each refused and said so; each is still all
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · USAF’s FY27 PPBE position typed as $5,000 | refused and said so; the FYDP Spend Plan taken from the view prints th
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Lockheed Martin’s kind set to government in Setup › Destinations | refused and said so; it is still a prime contractor, in the board and 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · each choice refused · the view left | the working plan’s Spend Plan shows 2027ACE by PMO, browser storage ke
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the manager’s return (K1 → 77777, MGR DESC R) taken through Import one appropriation | refused before the file is read or a question asked, and the status li
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the return refused · the view left | the working plan’s exports carry 11111 for A and no 77777; browser sto
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the return refused · the browser reopened over the saved file | the board reopens on the work typed after the save (UNSAVED EDIT A), a
+  FAIL | v2.00 (U10) — a file, a pack | the return taken on the working plan, PB27 put on screen before the file is read | refused once it is read, nothing asked; browser storage still holds 11
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · a state file carrying a 2028 estimate ($4,321,000 on 1.1) taken through Import one app | refused before the file is read; the estimates in the board and in bro
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the state file refused · the view left | the working plan’s estimates are 2027ACE alone, and its ACE tie-out ti
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · a cost estimate imported | refused before the file is read (it is read 0 times, nothing asked); t
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · a bae budget list imported | refused before the file is read (it is read 0 times, nothing asked); t
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · ccar records imported | refused before the file is read (it is read 0 times, nothing asked); t
+  FAIL | v2.00 (U10) — a file, a pack | an import of a cost estimate started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+  FAIL | v2.00 (U10) — a file, a pack | an import of a bae budget list started on the working plan, PB27 put on screen while the file is rea | refused once it is read, nothing asked; the lists as they were, and th
+  FAIL | v2.00 (U10) — a file, a pack | an import of ccar records started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+  FAIL | v2.00 (U10) — a file, a pack | the three races · the view left | the working plan’s lists as they were, and its ACE tie-out ties out $9
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · ⇉ Copy to the other appropriations | refused before anything is asked; Full Fund keeps its own ladder, and 
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · pkgIssue(mySlug(), true) | refused before anything is asked or handed out; no file, and the packa
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · pkgPushAll() | refused before anything is asked or handed out; no file, and the packa
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · pkgReturn() | refused before anything is asked or handed out; no file, and the packa
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · pkgSendBack(mySlug()) | refused before anything is asked or handed out; no file, and the packa
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the shared state file loaded (adoptShared) | refused, and the status line says so; nothing is kept aside, and the w
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the shared state file answers at opening (sharedArrived) | refused, and the status line says so; nothing is kept aside, and the w
+  FAIL | v2.00 (U10) — a file, a pack | a Live refresh started on the working plan, PB27 put on screen while the folder’s copy is read | nothing loaded, nothing kept aside, and the work is still this browser
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · a Live refresh finds Colleague C’s newer copy in the shared folder | nothing loaded, nothing kept aside, and the work is still this browser
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · a Live refresh (quiet) finds Colleague C’s newer copy | the status line is as it was: nothing was changed, so nothing is said
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · 📡 Connect (a refresh that speaks) | refused, and the status line says so
+  FAIL | v2.00 (U10) — a file, a pack | PB27 viewed · the view left · the next Live refresh | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is
+  FAIL | v2.00 (U10) — partner money, | PB27 viewed · International Partners for FY27 typed as 3 ($M) in its field | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — partner money, | PB27 viewed · Foreign Military Sales for FY27 typed as 2 ($M) in its field | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — partner money, | PB27 viewed · FY25 clicked in the funds flow’s year buttons | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — a view put on  | Load theirs on the working plan · PB27 put on screen while the folder is read | refused, and the status line says so; nothing is kept aside, and the w
+  FAIL | v2.00 (U10) — a view put on  | Load theirs on the working plan · PB27 put on screen while the folder is read · the view left, Load  | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is
+  FAIL | v2.00 (U10) — a view put on  | Save yours over theirs on the working plan · PB27 put on screen while the folder is read | refused as a save is, before its question; nothing is written to the f
+  FAIL | v2.00 (U10) — ↶ Put back in  | PB27 viewed · ↶ Put back on Colleague C’s note on F1, answered OK | refused and said so; the view holds the cycle’s F1 ($1,000,000,000, no
+  FAIL | v2.00 (U10) — ↶ Put back in  | PB27 viewed · ↶ Put back on Colleague C’s note on F1 | refused before its question, in its own words: nothing is asked, and n
+  FAIL | v2.00 (U10) — ↶ Put back in  | the view left · Me M’s note on F2 saved | the journal records one change, Me M’s note on F2 -- nothing credited 
+  FAIL | v2.00 (U10) — ↶ Put back in  | the view left · Me M’s note on F2 saved | the board file carries only Me M’s note on F2; the cycle’s table credi
+  FAIL | v2.00 (U10) — an appropriati | PB27 viewed · O&M clicked out of the funds flow’s appropriation buttons | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — an appropriati | PB27 viewed · the pseudo year’s button (+ OBBBA FY25, counted as FY27) pressed | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — an appropriati | PB27 viewed · F1 typed as the Lockheed Martin token in the matching rules | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — an appropriati | PB27 viewed · F1 typed as the title words of Depot, Repair & Materiel | refused and said so; the calculation, the panel and the export labelle
+  FAIL | v2.00 (U10) — holding the un | PB27 viewed · “Hold outside the flow” chosen for the Unfunded Priority List | refused and said so; the calculation, the panel and the export labelle
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 2 order-equal True

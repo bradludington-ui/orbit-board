@@ -1,0 +1,15 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 98eed7e..486edfa 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -8556,7 +8556,9 @@ function importBoards(inp){
+       return batchImportUndone(W, held, now, take, here, memOk);
+     }
+     if(W.length) impMixedLift(W.map(function(w){ return w[0]; }));
+-    if(applied){ persist(); render(); }
++    // (proposed, outside U24) THE BOARD ON SCREEN TOOK AN IMPORT, and this browser's record says so. It said nothing: a reopen in a
++    // new session took the imported board as saved, and a newer folder copy then replaced it with nothing kept aside.
++    if(applied){ try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){} persist(); render(); }
+     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
+     const bad=results.filter(r=>!r.slug||!r.st).map(r=>esc(r.name)+' ('+esc(r.why)+')');
+     setStat((ok.length? '\u2b05 Imported: '+ok.join(' · ')+'. Switch appropriations from the dropdown to see each. \ud83d\udcbe Save to bake all of it into this file.':'')

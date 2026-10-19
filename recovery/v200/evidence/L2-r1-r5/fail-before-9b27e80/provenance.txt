@@ -1,0 +1,10 @@
+pinned commit: 9b27e8006ddf336b9ebefde54c9c3c4154e52370
+prioritization-board-grid.html  pinned-blob 42e8111810b11c0500adb2fd029194c0ccbd9780  copy-blob 42e8111810b11c0500adb2fd029194c0ccbd9780
+tools/export-audit/boot.mjs  pinned-blob 9c4f49ad8cec537097bdf485458cfd2a09b06594  copy-blob 9c4f49ad8cec537097bdf485458cfd2a09b06594
+849c46a7c6b9b32e0270d229b121594836e1ae3b545c8f29acae4d8e3b0f1b98  copy/money-runtime-probe.mjs
+38e2ac77dddba2c5b55379cd1e18f61fa162bfc061dd7827caf05d475098978f  copy/code-runtime-probe.mjs
+e689710a2895d6843a66207d18ec886688b16f3c166b6ddada296e40a51c7981  copy/runtime-encoding-shim.mjs
+bb784b37ae8d003df9e1a592b8c9ae8782016eca9ac3a1a2cf3783ec4565de45  races/races-probe.mjs
+jsdom (boot.mjs):  /home/user/orbit-board/node_modules/jsdom/lib/api.js
+jsdom (shim):      /home/user/orbit-board/node_modules/jsdom/lib/api.js
+BOARD env: unset (boot() reads copy/prioritization-board-grid.html, the file R1 reads)

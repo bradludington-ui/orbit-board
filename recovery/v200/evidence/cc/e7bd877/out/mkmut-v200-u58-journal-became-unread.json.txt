@@ -1,0 +1,1 @@
+{"id": "v200-u58-journal-became-unread", "matches": 1, "find": "        +'<td>'+jrnlShow(e.b, e.p)+'</td>'\n", "repl": "        +'<td>'+jrnlShow(e.b)+'</td>'\n"}

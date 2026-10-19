@@ -1,0 +1,19 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-af892cb/mut-v200-r3-landed-view-prefix.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:52:02Z / 18:52:02 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R3) — a save that lands under a locked view says it saved the working plan | (a) PB27 put on screen during the write
+    the board says it saved the working plan, built before PB27 was put on screen, and that nothing in PB27 is saved
+        got [false,true]   want [true,false]
+--- v2.00 (R3) — a save that lands under a locked view says it saved the working plan | (b) the quiet autosave, PB27 put on screen during the write
+    the working plan saved, and the board says so, with no "not kept"
+        got [true,"WORKING TWO",false,true]   want [true,"WORKING TWO",true,false]
+
+# end: 2026-10-11T23:00:10Z / 19:00:10 EDT
+# exit: 1  duration_s: 488.5

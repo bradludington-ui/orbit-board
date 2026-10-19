@@ -1,0 +1,28 @@
+# label: m-v200-u30-unrecorded-said-after
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/out/m-v200-u30-unrecorded-said-after.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-unrecorded-said-after.html
+# start: 2026-10-13 19:26:49 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-unrecorded-said-after.html","BOARD_set":true,"board":"47c162b611c3c7bb3d826bc5675e0f7cef7a9be0","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs","harnessBlob":"3b9784d9ff542ab737a90fce5630818f7fe581e3","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:26:50 PM ET"}
+
+================================================================================================
+5 FAILING CHECK(S)
+
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (1) the Live timer, one tab: nothing recorded, B-EDIT unsaved, F0 in the folder
+    and it says there is no record of the copy the work came from -- never that theirs was saved after it -- [the words, said after]
+        got [false,true]   want [true,false]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (1h) the Live timer, one tab: nothing recorded, B-EDIT unsaved, F0 in the folder; a history copy kept minutes before
+    and it says there is no record of the copy the work came from -- never that theirs was saved after it -- [the words, said after]
+        got [false,true]   want [true,false]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6) reopened with unsaved work: the opening’s own connect, then 💾 Save
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [0,0,"F0",true,false]   want [0,0,"F0",true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6h) reopened with unsaved work: the opening’s own connect, then 💾 Save; a history copy kept minutes before
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [0,0,"F0",true,false]   want [0,0,"F0",true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (8) a board file handed over, newer than the folder’s copy: 💾 Save; Load theirs; ↶ Put back
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [0,0,"F0",true,false]   want [0,0,"F0",true,true]
+# exit 1 at 10/13/2026, 7:27:20 PM ET
+
+# end: 2026-10-13 19:27:20 EDT  exit: 1  wall_s: 30.3

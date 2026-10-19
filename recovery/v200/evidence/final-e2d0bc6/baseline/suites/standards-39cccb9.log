@@ -1,0 +1,22 @@
+
+SECTION 508 / WCAG 2.2 CONFORMANCE — measured on a populated board, every theme, both builds
+========================================================================================================
+baseline recorded 2026-09-30 · 0 known finding(s)
+a finding names its criterion so it can be cited, not argued about
+
+  ok    1.4.3 Contrast (Minimum) — AA              no findings
+  ok    1.4.11 Non-text Contrast — AA              no findings
+  ok    2.5.8 Target Size (Minimum) — AA           no findings
+  ok    4.1.2 Name, Role, Value — A                no findings
+  ok    2.1.1 Keyboard — A                         no findings
+  ok    2.4.7 Focus Visible — AA                   no findings
+  ok    1.4.10 Reflow — AA                         no findings
+  ok    1.3.1 Info and Relationships — A           no findings
+  ok    3.1.1 Language of Page — A                 no findings
+  ok    2.4.2 Page Titled — A                      no findings
+  ok    the run measured what it must (v1.96)      no findings
+
+========================================================================================================
+CONFORMANCE HOLDS AGAINST THE BASELINE — 0 known finding(s), 0 instance(s), nothing new
+These are DEBT, not a pass. They are printed every run until they are closed.
+exit 0
