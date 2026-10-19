@@ -1,0 +1,47 @@
+# cmd: X=1 bash /home/user/orbit-board/recovery/v200/evidence/L6-u28/fc-gate.sh /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6 -- npm run inspector --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T10:57:56Z / 06:57:56 EDT
+# cap: 900s  grace: 10s
+FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf
+ok   400 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   400 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   500 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   500 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   600 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   600 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   650 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   650 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   700 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   700 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   750 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   750 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   800 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   800 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   900 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   900 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+OK: the board is drawn in Arial's widths here, at every weight it uses
+fc-gate: font-env OK; running with FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf: npm run inspector --silent
+  sliding over:
+  ok    A  req $86 · D $86 · M $0 · unf — · ★ covered
+  ok    B  req $67 · D $67 · M $0 · unf — · ★ —
+  ok    C  req $58 · D $47 · M $11 · unf — · ★ $11
+  ok    D  req $44 · D $0 · M $44 · unf — · ★ —
+  ok    E  req $37 · D $0 · M $30 · unf $7 · ★ —
+  ok    F  req $33 · D $0 · M $0 · unf $33 · ★ —
+  ok    G  req $23 · D $0 · M $0 · unf $23 · ★ —
+  docked:
+  ok    A  req $86 · D $86 · M $0 · unf — · ★ covered
+  ok    B  req $67 · D $67 · M $0 · unf — · ★ —
+  ok    C  req $58 · D $47 · M $11 · unf — · ★ $11
+  ok    D  req $44 · D $0 · M $44 · unf — · ★ —
+  ok    E  req $37 · D $0 · M $30 · unf $7 · ★ —
+  ok    F  req $33 · D $0 · M $0 · unf $33 · ★ —
+  ok    G  req $23 · D $0 · M $0 · unf $23 · ★ —
+
+  the inspector agrees with the lane engine on every row, sliding over and docked
+
+
+# end: 2026-10-19T10:58:07Z / 06:58:07 EDT
+# exit: 0  duration_s: 10.4

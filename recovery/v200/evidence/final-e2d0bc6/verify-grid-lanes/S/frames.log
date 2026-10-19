@@ -1,0 +1,30 @@
+# cmd: X=1 npm run frames --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:23:36Z / 07:23:36 EDT
+# cap: 900s  grace: 10s
+
+prioritization-board-grid.html
+  ok    inside the frame, browser storage is refused   SecurityError
+  ok    and this page cannot be reached from it   SecurityError
+  ok    and neither can the database the board keeps its folder handle in   SecurityError
+  ok    nothing it tried landed here
+  ok    and the frame is gone
+  ok    the board reopens as O&M with its own plan
+  ok    Full Fund is opened in one sandboxed frame while the export waits   ["allow-scripts"]
+  ok    the workbook downloads once it answers   ORBIT FYDP Spend Plan — working plan — FY27–FY31 2026-10-19.xlsx after 506 ms
+  ok    and no frame is left behind
+  ok    every byte of browser storage is what it was
+  ok    the PMO tabs follow the three sheets   By Requirement,By PMO,By Service,PSM,AV,CDS,TSS
+  ok    no tab carries a refusal
+  ok    the board reopens as Full Fund
+  ok    each Full Fund block total is Full Fund’s own By PMO row, every year and the FYDP   18 ties
+  ok    an allocation below the requirement came through as such (F, trimmed to 600)
+  ok    nothing threw
+
+The frames are sealed, the export waits for them, storage is untouched, and every block ties to its own board
+
+
+# end: 2026-10-19T11:23:41Z / 07:23:41 EDT
+# exit: 0  duration_s: 5.3

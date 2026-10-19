@@ -1,0 +1,286 @@
+# cmd: X=1 node tools/math-defects.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:36:06Z / 07:36:06 EDT
+# cap: 600s  grace: 10s
+
+MATH DEFECT REGISTER — every defect this board has shipped, and its guard
+========================================================================================================
+
+  spend-plan-sent-the-allocation   [guarded]
+    found      2026-09-15 by math validation · fixed in v1.58
+    surface    Spend Plan Source, and every send plan derived from it
+    symptom    A send plan carried dollars that no lane had actually paid for — unfunded money left the
+               building with an obligation date against it.
+    cause      srcSvcOf() used the ALLOCATION as its basis. An allocation is an intention; only the
+               discretionary draw is money that exists.
+    fix        SRC_BASIS='disc' (v1.58): the spend plan sent what discretionary funded, never the
+               allocation. Since v1.83 (the owner's decision, 23 Sep 2026) it sends what BOTH lanes paid
+               -- p.d and p.m -- each lane on its own line with its own budget, and still never the
+               allocation.
+    check      "Spend Plan Source"  (money-coverage.mjs, trace-lib.mjs, export-audit/audit-other.mjs, export-audit/audit-recon.mjs, export-audit/mutate.mjs)
+    mutations  src-basis-allocation
+               src-drops-mandatory
+
+  one-unfunded-reading   [guarded]
+    found      2026-09-15 by math validation · fixed in v1.58
+    surface    the scoreboard tile, the Unfunded Requirements list, the Priority Drill and the deck
+    symptom    The tile read $0 beyond both lanes on a 115-requirement board that was $126,909,491
+               short. Every short dollar was a TRIM — an allocation set below the ask — and nothing
+               reported trims at all.
+    cause      Only one unfunded reading existed: ask minus discretionary minus mandatory. Money trimmed
+               before it ever reached a lane was invisible to it.
+    fix        Two readings on every UFR surface. #1 discUnfSvcOf = max(0, ask - d). #2 unfSvcOf =
+               max(0, ask - d - m). Both floored per service, both stated wherever either is.
+    check      "unfunded vs DISC"  (verify-file.mjs, export-audit/audit-board.mjs, export-audit/audit-recon.mjs, export-audit/mutate.mjs)
+    mutations  usheet-discunf-col
+               unf-sheet-one-reading-filter
+               drill-unf-disc
+
+  matrix-column-with-no-setter   [guarded]
+    found      2026-09-15 by math validation · fixed in v1.58
+    surface    the PMO Matrix bulk sweep
+    symptom    matBulkOk() reported 'MIPR type' as a column the sweep could draw but not write, the
+               moment a requirement routed to a government activity.
+    cause      The column was added to the matrix without a matching entry in matBulk(), so the bulk
+               setter had nothing to call.
+    fix        matBulk() gained the entry, and a check now asserts every column the matrix draws has a
+               setter.
+    check      "and the bulk sweep has a setter for every column it draws"  (export-audit/audit-board.mjs)
+    mutations  mipr-no-bulk-setter
+               mipr-bulk-writes-label
+
+  phantom-ufr-from-fractional-proration   [guarded]
+    found      2026-09-16 by user · fixed in v1.59
+    surface    any requirement with a scalar allocation, anywhere unfunded is reported
+    symptom    Unfunded dollars appeared against requirements nobody was short of — 'it's creating UFRs
+               that are not there'.
+    cause      Money was stored as a float and rounded only FOR DISPLAY. A scalar allocation spread
+               across services by x*t/at left a fraction on every lane, and because unfSvcOf() floors
+               each service SEPARATELY those fractions could not cancel against one another. Every money
+               check in the codebase compares to within 0.005, so a third of a cent per service passed
+               all of them while still tripping the >0.005 tests that decide what counts as unfunded.
+    fix        D$() rounds everything entering the model — typed figures, saved boards on open, budget
+               authority. apportion(total, weights) replaces every pro-rata spread and returns whole
+               dollars summing to EXACTLY the total by largest remainder. The check asserts
+               Number.isInteger, deliberately not a tolerance.
+    check      "whole dollars — scalar allocations that do not divide"  (export-audit/audit-board.mjs)
+    mutations  money-floats-again
+               apportion-naive-round
+               apportion-drops-remainder
+               svcalloc-prorates-raw
+               split-share-fractional
+
+  over-allocation-became-unfunded   [guarded]
+    found      2026-09-16 by user · fixed in v1.61
+    surface    the split editor's UFR column, the record panel's Unfunded field, and every lane figure tiers() derives
+    symptom    A service showed its full requirement funded by discretionary and still reported a UFR.
+               On the same row two other services drew only part of what was directed to them while
+               their lanes held hundreds of millions.
+    cause      basisSvcOf() returned the allocation UNCLAMPED, so a service allocated more than it asked
+               for drew the whole over-allocation — spending lane money nothing asked for — and whatever
+               the lane could not cover came out as u, which the split editor printed under a UFR
+               heading. The board's own rulebook already stated beyond as max(0, min(ask, basis) − d −
+               m); tiers() had no cap, so the identity beyond + trim == the requirement's shortfall
+               failed by exactly the over-allocation.
+    fix        basisSvcOf() clamps the allocation to the ask, in ONE place, and both former svcAlloc()
+               call sites read it. The split editors report UFR against the REQUIREMENT (ask − d − m)
+               with the lane-limited part named separately, rather than printing beyond under a UFR
+               heading.
+    check      "beyond + trim == unfunded vs BOTH lanes"  (export-audit/audit.mjs)
+    mutations  basis-over-ask
+               basis-clamps-to-alloc
+               basis-fsrc
+
+  directed-shown-as-drawn   [guarded]
+    found      2026-09-16 by user · fixed in v1.59
+    surface    the split editor — the grid's RECORD panel and the card's row expander
+    symptom    A service showed its full requirement funded by discretionary while the same row carried
+               a UFR, and the Disc column did not add up to its own total — off by exactly the UFR.
+    cause      The Disc and Mand CELLS printed what was DIRECTED (fo.dv/fo.mv) while the UFR cells and
+               the column TOTAL printed what the engine actually DREW. tiers() caps each draw at
+               min(directed, what that lane still holds, the allocation's basis), so a directed dollar
+               past either limit is not funded.
+    fix        One shared rule for the second reading: drewLine under a cell, directedLine under a
+               total, drewTip in the tooltip, all gated by drewGap. The input still holds what was
+               typed; directed minus drawn is stated and equals the UFR.
+    check      "directed vs drawn — a lane too short for what was directed"  (export-audit/audit-board.mjs)
+    mutations  drew-line-silent
+               drew-echoes-directed
+               directed-total-silent
+               drew-gap-never
+
+  alloc-cap-unsettable   [guarded]
+    found      2026-09-17 by user · fixed in v1.61
+    surface    the row allocation input, the card build's row expander and the grid build's RECORD panel
+    symptom    A prime contract reported a UFR that could not be cleared. Three services were fully
+               funded against their asks, USAF and ANG drew only part of theirs, and the editor
+               explained the shortfall as “the lane could not supply the rest” while that service’s
+               discretionary lane still held $704,562,659. Reported figures: USAF UFR $51,510,452, ANG
+               $8,491,681, total $60,002,133. A second board showed the same sentence under a
+               $207,222,162 total that no lane had refused at all.
+    cause      TWO FIGURES CLAIMED ONE DECISION. A per-service directed split states, per service,
+               exactly how many Disc and Mand dollars go against a requirement. A ROW ALLOCATION sat
+               beside it saying the same thing in a different number, and v1.61’s basisSvcOf() made that
+               row allocation the cap every draw was measured against — so the typed figure was silently
+               refused whenever the two disagreed, and the refusal was reported as a lane shortage.
+               Worse, every control that SET the row allocation was behind a condition a funding-source
+               override switched off: the row input rendered disabled, the card build’s per-service
+               cells became derived text, and the grid build’s RECORD panel carried a read-only
+               “Allocated” field. The figure that capped the requirement could not be edited anywhere.
+               On a prime the gap arrives by itself, because CLIN alignment work routinely leaves the
+               row allocation under the ask.
+    fix        The second authority is gone. svcAlloc() reads the DIRECTED dollars for a per-service
+               split, so the Disc and Mand boxes are the allocation and nothing caps them but the lane
+               and the ask. What is not directed is a TRIM, exactly as on any other requirement, which
+               keeps beyond + trim == unfunded and keeps seeding a split from the lane walk a no-op. The
+               row shows that allocation rather than offering an input that writes where nothing reads.
+               Every OTHER funding source states only where its money comes from, not how much, so it
+               still draws against the row allocation — and that input is live again, which was the
+               v1.62 half of this fix and is still what those requirements need. The CLIN grid feeds
+               none of it: it is a visual breakout, the drill says so, and it offers no button into the
+               funding math on a row that states its own allocation. Separately, drewWhy() names which
+               limit refused a dollar — a cap you can raise, or a lane you cannot.
+    check      "a directed split states its own allocation"  (export-audit/audit-board.mjs, export-audit/mutate.mjs)
+    mutations  why-always-lane
+               why-always-alloc
+               row-alloc-disabled-again
+               alloc-locked-under-override
+               split-alloc-ignores-directed
+               split-alloc-drops-mand
+               clin-writes-the-money
+
+  beyond-printed-as-unfunded   [guarded]
+    found      2026-09-17 by user · fixed in v1.64
+    surface    the service lane table and its chart, the PMO matrix, the cost-element rollup, the team table, the scoreboard's must-pay warning, and a board-wide vector in the Excel workbook
+    symptom    “UFR amounts are not summarizing at the top.” The service lane table showed $0 in its
+               Unfunded column for every service and $0 on the TOTAL row, while the requirement records
+               beside it carried $260,377,324 and $110,947,113 of UFR. The same $0 appeared on the team
+               table, the PMO and cost-element shortfall chips, and the must-pay warning.
+    cause      The board holds THREE quantities and only two may be printed under the word UNFUNDED:
+               unfSvcOf() = ask − disc − mand, discUnfSvcOf() = ask − disc, and p.u = basis − drawn,
+               which is BEYOND BOTH LANES — money that WAS allocated and that no lane could pay. Seven
+               surfaces summed p.u and labelled the result Unfunded. p.u is strictly smaller than either
+               ask-based reading because it says nothing about ask that was never allocated, so it
+               under-reported by the whole trim on any requirement funded below its ask. It was largely
+               masked while the basis was the row allocation, because an untrimmed requirement's p.u
+               happened to equal its real shortfall; making a directed split's own dollars the basis
+               (v1.63) drove p.u to zero on a hand-directed board with flush lanes and exposed all seven
+               at once.
+    fix        Every surface that says Unfunded reads unfSvcOf() / unfTotOf(), the single implementation
+               the scoreboard, the workbook, the deck and the trace matrix already used. p.u keeps its
+               own name: it is shown as “beyond both lanes” or “lane short” and never as unfunded.
+    check      "unfunded means the same thing on every surface"  (export-audit/audit-board.mjs)
+    mutations  lane-table-unf-beyond
+               team-table-unf-beyond
+               mc-warn-unf-beyond
+
+  disc-mand-gated-behind-a-mode   [guarded]
+    found      2026-09-17 by user · fixed in v1.64
+    surface    the grid build's RECORD panel and the card build's row expander
+    symptom    “I have no way to update the Disc and Mandatory amounts for a requirement.” The Disc and
+               Mand cells rendered as em dashes with the note “set funding to Split D/M/UFR to edit” on
+               every requirement still running on the automatic lane walk — which is most of a fresh
+               board.
+    cause      The per-service Disc and Mand editors only rendered once a requirement carried an
+               explicit split, and setFsrcSvc() returned early for anything else. That put the automatic
+               lane walk in front of the one decision the editor exists for, on a board whose stated
+               direction is that every requirement carries an explicit split.
+    fix        The boxes are live on every requirement, pre-filled with what the lane walk currently
+               draws. Typing into one IS the conversion: setFsrcSvc() seeds the split from that same
+               draw before applying the typed figure, so nothing moves except the service that was typed
+               — the property convertAllToSplit() already had and ‘a recorded funding source moves no
+               money’ asserts. The chip that offered the conversion now states where the figures came
+               from and pins them without changing one.
+    check      "every requirement takes a typed Disc and Mand"  (export-audit/audit-board.mjs, export-audit/mutate.mjs)
+    mutations  disc-mand-gated
+               seed-on-type-rebases
+
+  buy-lines-duplicated-on-reopen   [guarded]
+    found      2026-09-19 by tools/roundtrip-fuzz.mjs, the first run after it learned to fill every container the board writes · fixed in v1.67
+    surface    DATA.items on any board whose payload carries buy lines (DATA.buys), and every export or roll-up that walks it
+    symptom    Each reopen of a saved board seated one more BUY-AC and one more BUY-ENG in DATA.items:
+               x1, x2, x3 across three opens, measured on the board’s own boot path. S.order held each
+               id once, so the priority list looked right; pmoCounts(), the classification matrix, the
+               RLG plan, the reprogramming export and the deck walk DATA.items and would have counted
+               the buy lines twice, then three times, and the data pack grew on every save.
+    cause      The boot-time push under if(DATA.buys) was unconditional. BASE_ITEMS is sliced right
+               after it, so the first save wrote the two rows into the data pack — and DATA is
+               rehydrated FROM that pack before the push runs, so the next open pushed them again on top
+               of the ones it had just read.
+    fix        Each buy line is seated only if no item already carries its id. The import suite opens a
+               saved board with buy lines three times and asserts exactly one of each on every open and
+               in the pack the next save would write.
+    check      "buy lines reopen once"  (export-audit/audit-import.mjs)
+    mutations  buy-lines-repushed
+
+  bulk-write-where-the-field-is-not-offered   [guarded]
+    found      2026-09-14 by found while building MIPR type (BACKLOG entry 2); recorded as BACKLOG entry 7; fixed 2026-09-19 · fixed in v1.57 (pre-existing since 'Which awards to' shipped)
+    surface    the classification matrix's bulk sweep, and everything downstream that reads S.mipr or S.dest.end — the Priority Drill, a submittal, a year copy
+    symptom    A bulk 'MIPR type = Direct Cite' with no missing-field filter wrote the classification
+               onto every requirement, including the ~114 routed to a prime, where the record panel
+               never shows it. The value was real: in S.mipr, so it travelled in a submittal and a year
+               copy, and nothing on screen said it was there. 'Which awards to' had behaved the same way
+               since it shipped.
+    cause      matApplyBulk() wrote to every row matRows() returned. matRows() filters by PMO and by the
+               missing-field picker, never by whether the requirement offers the field.
+    fix        Each matBulk() entry can say who it applies to; MIPR type and Which awards to are keyed
+               on destIsOgc(), the same predicate the record panel uses to offer them, and the default
+               is everyone — so the bulk-only per-service budget setters, which have no record label,
+               are not silently no-op'd. One function, matBulkRows(), decides the reach for the preview,
+               the confirm and the write, and both state how many requirements never offer the field and
+               are left alone. The second-hop control is offered for every non-prime kind, off that same
+               predicate.
+    check      "a bulk write lands only where the field is offered"  (export-audit/audit-board.mjs, export-audit/mutate.mjs)
+    mutations  bulk-lands-everywhere
+               second-hop-gov-only
+
+  flow-plan-year-printed-the-allocation   [guarded]
+    found      2026-09-19 by closing the exportFlow money-coverage gap: the first check that compared the funds flow's total to a board figure · fixed in v1.68
+    surface    the Funds Flow workbook and panel, on a fiscal year with no execution import (a plan year)
+    symptom    On the reconciliation fixture the flow's TOTAL FUNDING and US SERVICE FUNDING read
+               $29,752,779 while every other surface — the dashboard, Funding Streams, the PMO Matrix,
+               the deck — read Funded as $23,300,000. The difference, $6,452,779, was the money
+               allocated beyond both lanes, counted as funding. With one requirement allocated at twice
+               its ask the flow rose to $34,627,779, $4,875,000 above the total requirement, while
+               nothing else moved.
+    cause      flowPlanRecs() built a plan year's records from svcAlloc() — the allocation, unclamped —
+               under a comment saying that matched the Spend Plan Source so the two could not disagree.
+               SRC_BASIS is 'disc', so they already did; and the allocation includes dollars the lanes
+               cannot pay and any allocation above the ask.
+    fix        A plan year's records are the lane draw per service — discretionary plus mandatory from
+               tiers() — the figure every other surface calls Funded. The comment states the measured
+               divergence so the basis is not changed back by taste.
+    check      "the funds flow"  (money-coverage.mjs, export-audit/audit-import.mjs, export-audit/audit-recon.mjs, export-audit/mutate.mjs)
+    mutations  flow-plan-year-allocation
+               flow-prime-not-in-total
+               flow-grand-drops-other
+               flow-appn-uncounted
+               flow-sheet-us-funding-prints-grand
+
+  ace-estimate-line-nobody-reports-under-vanished   [guarded]
+    found      2026-09-19 by closing the exportAceTieout money-coverage gap, on a fixture whose estimate carried a line under a PMO no board office aligns to · fixed in v1.68
+    surface    the ACE tie-out workbook — the Reconciliation by PMO sheet against the Mapping by Requirement sheet
+    symptom    A requirement confirmed an estimate line whose PMO no office on the board aligns to. The
+               Mapping sheet counted that line in its estimate total; the Reconciliation by PMO sheet,
+               which walks the board's office groups, never reached it, so its FY TOTAL estimate was
+               smaller than the Mapping sheet's by exactly that line and nothing on either sheet said
+               why.
+    cause      acePmoGroups() keys the per-PMO sheet by the ACE PMO each board office aligns to; an
+               estimate line under any other PMO name belongs to no group and was neither summed nor
+               listed.
+    fix        The per-PMO sheet lists every such line by its PMO with the words 'no office on this
+               board reports under it', and keeps it out of the FY total, which is the offices' to
+               claim. The difference between the two sheets is now readable on the sheet.
+    check      "the ACE tie-out"  (money-coverage.mjs, export-audit/audit-recon.mjs, export-audit/mutate.mjs)
+    mutations  ace-stray-line-lost
+               ace-total-skips-unconfirmed
+               ace-delta-sign
+               ace-pmo-total-drops-est
+
+========================================================================================================
+REGISTER HOLDS — 13 known defect(s), 13 guarded by 43 mutation(s)
+
+# end: 2026-10-19T11:36:06Z / 07:36:06 EDT
+# exit: 0  duration_s: 0.1

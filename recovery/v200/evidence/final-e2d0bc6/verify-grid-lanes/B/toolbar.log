@@ -1,0 +1,53 @@
+# cmd: X=1 bash /home/user/orbit-board/recovery/v200/evidence/L6-u28/fc-gate.sh /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6 -- npm run toolbar --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T10:58:27Z / 06:58:27 EDT
+# cap: 900s  grace: 10s
+FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf
+ok   400 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   400 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   500 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   500 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   600 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   600 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   650 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   650 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   700 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   700 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   750 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   750 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   800 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   800 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   900 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   900 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+OK: the board is drawn in Arial's widths here, at every weight it uses
+fc-gate: font-env OK; running with FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf: npm run toolbar --silent
+
+prioritization-board-grid.html
+  ok    1920px review  context bar 44px one line  task bar 41px one line  rightmost control 1904  page 1920px wide  22 controls all on screen, whole and clickable
+  ok    1920px fund    context bar 44px one line  task bar 39px one line  rightmost control 1904  page 1920px wide  22 controls all on screen, whole and clickable
+  ok    1512px review  context bar 44px one line  task bar 41px one line  rightmost control 1496  page 1512px wide  22 controls all on screen, whole and clickable
+  ok    1512px fund    context bar 44px one line  task bar 39px one line  rightmost control 1496  page 1512px wide  22 controls all on screen, whole and clickable
+  ok    1440px review  context bar 44px one line  task bar 41px one line  rightmost control 1424  page 1440px wide  22 controls all on screen, whole and clickable
+  ok    1440px fund    context bar 44px one line  task bar 39px one line  rightmost control 1424  page 1440px wide  22 controls all on screen, whole and clickable
+  ok    1366px review  context bar 44px one line  task bar 41px one line  rightmost control 1350  page 1366px wide  22 controls all on screen, whole and clickable
+  ok    1366px fund    context bar 44px one line  task bar 39px one line  rightmost control 1350  page 1366px wide  22 controls all on screen, whole and clickable
+  ok    1280px review  context bar 44px one line  task bar 41px one line  rightmost control 1264  page 1280px wide  22 controls all on screen, whole and clickable
+  ok    1280px fund    context bar 44px one line  task bar 39px one line  rightmost control 1264  page 1280px wide  22 controls all on screen, whole and clickable
+  FAIL  1152px review  context bar 77px WRAPS  task bar 41px one line  rightmost control 1136  page 1152px wide  22 controls all on screen, whole and clickable
+  FAIL  1152px fund    context bar 77px WRAPS  task bar 39px one line  rightmost control 1136  page 1152px wide  18 controls all on screen, whole and clickable
+  ok    1024px review  context bar 77px  task bar 41px  rightmost control 1008  page 1024px wide  21 controls all on screen, whole and clickable
+  ok    1024px fund    context bar 77px  task bar 39px  rightmost control 1008  page 1024px wide  18 controls all on screen, whole and clickable
+  ok     960px review  context bar 77px  task bar 41px  rightmost control 944  page 960px wide  21 controls all on screen, whole and clickable
+  ok     960px fund    context bar 77px  task bar 39px  rightmost control 944  page 960px wide  18 controls all on screen, whole and clickable
+  ok     900px review  context bar 77px  task bar 41px  rightmost control 884  page 900px wide  21 controls all on screen, whole and clickable
+  ok     900px fund    context bar 77px  task bar 39px  rightmost control 884  page 900px wide  18 controls all on screen, whole and clickable
+  ok     820px review  context bar 77px  task bar 41px  rightmost control 804  page 820px wide  21 controls all on screen, whole and clickable
+  ok     820px fund    context bar 77px  task bar 39px  rightmost control 804  page 820px wide  18 controls all on screen, whole and clickable
+
+  2 width(s) failed: 2 wrap, overflow or miss a control; 0 with a control not usable (at every width tested every control is on screen, whole and clickable)
+
+
+# end: 2026-10-19T10:58:51Z / 06:58:51 EDT
+# exit: 1  duration_s: 23.8

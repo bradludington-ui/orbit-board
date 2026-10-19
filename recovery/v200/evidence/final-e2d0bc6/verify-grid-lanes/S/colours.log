@@ -1,0 +1,76 @@
+# cmd: X=1 npm run colours --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:22:13Z / 07:22:13 EDT
+# cap: 900s  grace: 10s
+
+prioritization-board-grid.html — the default theme
+  ok   a fresh browser gets the accessible palette   themeGet 'harbor' · painted harbor
+  ok   an explicit Midnight is kept   themeGet '' · painted (none)
+  ok   and any other explicit choice is kept   themeGet 'parchment' · painted parchment
+  ok   storage refused still paints the default   themeGet 'harbor' · painted harbor
+
+prioritization-board-grid.html
+
+  ── Midnight (dark)  disc #45d29a · mand #bda4dd · unf #ff6b81
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 5.2 · baseline 5.2
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #ff6b81↔#bda4dd ΔE 17.6 (normal)
+  ok   body text clears WCAG AAA on the panel   14.6:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   6.3:1
+
+  ── Navy (dark)  disc #4fd6a0 · mand #c3aade · unf #ff7b8e
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.1 · baseline 4.1
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #ff7b8e↔#c3aade ΔE 15.3 (normal)
+  ok   body text clears WCAG AAA on the panel   13.5:1
+  ok   muted text clears WCAG AA   7.2:1
+  ok   and the dimmest text still clears AA   5.5:1
+
+  ── Parchment (light)  disc #1f6a44 · mand #634189 · unf #9e2a29
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.8 · baseline 4.8
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #9e2a29↔#634189 ΔE 18.0 (normal)
+  ok   body text clears WCAG AAA on the panel   15.1:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   5.6:1
+
+  ── Blueprint (light)  disc #0e6b4a · mand #5b4193 · unf #a52036
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   lane separation is no worse than recorded   worst ΔE 4.7 · baseline 4.7
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #a52036↔#5b4193 ΔE 20.1 (normal)
+  ok   body text clears WCAG AAA on the panel   15.9:1
+  ok   muted text clears WCAG AA   7.4:1
+  ok   and the dimmest text still clears AA   5.9:1
+
+  ── Harbor (light)  disc #055795 · mand #6e4f00 · unf #34383d
+  ok   the chart is drawn at all
+  ok   it still draws its hatch (density, not hue)
+  ok   and never reaches for a lane hue
+  ok   its fills stay one hue ramp   hue spread 7° (max 40°)
+  ok   Harbor clears the CVD gate — it is the theme that promises it   worst ΔE 13.1 (gate 8)
+  ok   lane separation is no worse than recorded   worst ΔE 13.1 · baseline 13.1
+  ok   lanes are distinguishable with full colour vision   worst all-pairs #34383d↔#6e4f00 ΔE 15.1 (normal)
+  ok   body text clears WCAG AAA on the panel   12.3:1
+  ok   muted text clears WCAG AA   7.2:1
+  ok   and the dimmest text still clears AA   6.1:1
+
+Colour holds: the charts carry meaning without hue, Harbor clears the gate, and no theme has regressed
+
+
+# end: 2026-10-19T11:22:22Z / 07:22:22 EDT
+# exit: 0  duration_s: 9.1

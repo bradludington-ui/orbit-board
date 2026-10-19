@@ -1,0 +1,221 @@
+# cmd: X=1 node tools/verify-file.mjs --selftest
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:36:20Z / 07:36:20 EDT
+# cap: 600s  grace: 10s
+SELF-TEST — a synthetic saved board (v2.00 (11 Oct 2026), grid) at /tmp/spmt-verify-JJX3Va/board-good.html
+
+================================================================================================
+UNDER its own code (v2.00 (11 Oct 2026))
+================================================================================================
+
+  ── O&M ────────────────────────────────────────────────────────────────────────────────
+
+LOADS — O&M
+------------------------------------------------------------------------------------------------
+  ok    the board booted without a script error
+  ok    nothing was reported unreadable on opening
+  ok    the O&M slot opened
+  ok    the file’s saved state was adopted, not a default or a refused load   saved 2026-10-19T11:36:21.987Z by unknown
+        years FY27 · on FY27 · base FY27 · working PB|2027 vs PB|2027
+        services USAF, ANG, AFRC, STOVL, USMC-C, USN · 5 requirements on the drill (0 added here, 0 removed) · 5 in the data pack
+  ok    the requirement baseline is populated   5 baseline requirements
+  ok    every id in the priority order resolves to a requirement
+  ok    every per-service requirement value has one figure per service
+  ok    both budget-authority pots have one figure per service
+  ok    no allocation is parked on a requirement the board cannot find
+  ok    this build holds the execution data store
+  ok    the execution data came back whole
+  ok    this build holds the cost estimates store
+  ok    the cost estimates came back whole
+  ok    this build holds the reprogramming log store
+  ok    the reprogramming log came back whole
+  ok    this build holds the locked PPBE cycles store
+  ok    the locked PPBE cycles came back whole
+  ok    FY27’s state came back whole   byte for byte
+        stores: execution none · estimates 2026ACE(1 lines) · reprogramming 1 · cycles PB|2027[2027] · submittals held 0
+        positions none · snapshots 0 · journal 20 · last saves unknown 2026-10-19T11:36
+        FY27 carries 15 populated container(s): absorbFloor, alloc, awards, awdSeeded, band, bm, discSvc, fsrc, mandSvc, mc, minInc, notes, order, pmoOrder, ptypeSeeded
+        and 23 empty: absorb, asks, budgetAsg, ccar, clinRcnSvc, cons, costElem, crHalf, custom, desc, dest, grp, pid, ptype, rcn, rcnSvc, recNames, removed, reprog, si, tier, titles, wbs
+
+SURVIVES — O&M
+------------------------------------------------------------------------------------------------
+  ok    save → reopen returns every value   the settled state is byte for byte
+  ok    the four side stores travel byte for byte
+  ok    and a second save is stable — nothing is re-encoded on the next trip
+
+TIES — O&M
+------------------------------------------------------------------------------------------------
+  ok    the lane identities hold on every requirement, per service (60 checked)
+  ok    the engine could be read
+  ok    every surface that states a figure states the engine’s (17 surfaces, 80 cells)
+        requirement $34,258,334 · disc BA $16,100,000 · mand BA $7,200,000 · funded $23,300,000 (disc $16,100,000 + mand $7,200,000)
+        unfunded vs DISC $18,158,334 · TOTAL unfunded $10,958,334 = trim $3,683,332 + beyond $7,275,002 · MC $22,283,334 short $6,183,334
+        112 cell(s) silent on this data (a block the data does not produce is silence, not a fault)
+
+CROSS-FOOTS — O&M
+------------------------------------------------------------------------------------------------
+  ok    Funding Streams: the TOTAL row is the 6 rows above it, in 12 column(s)
+  ok    Decision Bands: the ALL BANDS row is the 9 rows above it, in 7 column(s)
+  ok    PMO Matrix: the TOTAL row is the 5 rows above it, in 16 column(s)
+  ok    Unfunded Requirements: the TOTAL row is the 5 rows above it, in 12 column(s)
+  ok    every per-service breakout adds back to its figure (47 rows across 21 blocks)
+  ok    exportCSV builds on this data   7 sheet(s)
+  ok    exportSrc builds on this data   4 sheet(s)
+  ok    exportPlans builds on this data   3 sheet(s)
+  ok    exportFlow builds on this data   8 sheet(s)
+  ok    exportCoa builds on this data   3 sheet(s)
+  ok    exportReprog builds on this data   1 sheet(s)
+  ok    exportFydpPlan builds on this data   8 sheet(s)
+  ok    exportCycCompare builds on this data   3 sheet(s)
+
+ok    the clean file holds
+
+… planting a ghost id in the priority order
+
+================================================================================================
+UNDER planted ghost
+================================================================================================
+
+  ── O&M ────────────────────────────────────────────────────────────────────────────────
+
+LOADS — O&M
+------------------------------------------------------------------------------------------------
+  ok    the board booted without a script error
+  ok    nothing was reported unreadable on opening
+  ok    the O&M slot opened
+  ok    the file’s saved state was adopted, not a default or a refused load   saved 2026-10-19T11:36:21.987Z by unknown
+        years FY27 · on FY27 · base FY27 · working PB|2027 vs PB|2027
+        services USAF, ANG, AFRC, STOVL, USMC-C, USN · 5 requirements on the drill (0 added here, 0 removed) · 5 in the data pack
+  ok    the requirement baseline is populated   5 baseline requirements
+  ok    every id in the priority order resolves to a requirement
+  ok    every per-service requirement value has one figure per service
+  ok    both budget-authority pots have one figure per service
+  ok    no allocation is parked on a requirement the board cannot find
+  ok    this build holds the execution data store
+  ok    the execution data came back whole
+  ok    this build holds the cost estimates store
+  ok    the cost estimates came back whole
+  ok    this build holds the reprogramming log store
+  ok    the reprogramming log came back whole
+  ok    this build holds the locked PPBE cycles store
+  ok    the locked PPBE cycles came back whole
+  FAIL  FY27’s state came back whole   missing: order.5
+        stores: execution none · estimates 2026ACE(1 lines) · reprogramming 1 · cycles PB|2027[2027] · submittals held 0
+        positions none · snapshots 0 · journal 20 · last saves unknown 2026-10-19T11:36
+        FY27 carries 15 populated container(s): absorbFloor, alloc, awards, awdSeeded, band, bm, discSvc, fsrc, mandSvc, mc, minInc, notes, order, pmoOrder, ptypeSeeded
+        and 23 empty: absorb, asks, budgetAsg, ccar, clinRcnSvc, cons, costElem, crHalf, custom, desc, dest, grp, pid, ptype, rcn, rcnSvc, recNames, removed, reprog, si, tier, titles, wbs
+
+SURVIVES — O&M
+------------------------------------------------------------------------------------------------
+  ok    save → reopen returns every value   the settled state is byte for byte
+  ok    the four side stores travel byte for byte
+  ok    and a second save is stable — nothing is re-encoded on the next trip
+
+TIES — O&M
+------------------------------------------------------------------------------------------------
+  ok    the lane identities hold on every requirement, per service (60 checked)
+  ok    the engine could be read
+  ok    every surface that states a figure states the engine’s (17 surfaces, 80 cells)
+        requirement $34,258,334 · disc BA $16,100,000 · mand BA $7,200,000 · funded $23,300,000 (disc $16,100,000 + mand $7,200,000)
+        unfunded vs DISC $18,158,334 · TOTAL unfunded $10,958,334 = trim $3,683,332 + beyond $7,275,002 · MC $22,283,334 short $6,183,334
+        112 cell(s) silent on this data (a block the data does not produce is silence, not a fault)
+
+CROSS-FOOTS — O&M
+------------------------------------------------------------------------------------------------
+  ok    Funding Streams: the TOTAL row is the 6 rows above it, in 12 column(s)
+  ok    Decision Bands: the ALL BANDS row is the 9 rows above it, in 7 column(s)
+  ok    PMO Matrix: the TOTAL row is the 5 rows above it, in 16 column(s)
+  ok    Unfunded Requirements: the TOTAL row is the 5 rows above it, in 12 column(s)
+  ok    every per-service breakout adds back to its figure (47 rows across 21 blocks)
+  ok    exportCSV builds on this data   7 sheet(s)
+  ok    exportSrc builds on this data   4 sheet(s)
+  ok    exportPlans builds on this data   3 sheet(s)
+  ok    exportFlow builds on this data   8 sheet(s)
+  ok    exportCoa builds on this data   3 sheet(s)
+  ok    exportReprog builds on this data   1 sheet(s)
+  ok    exportFydpPlan builds on this data   8 sheet(s)
+  ok    exportCycCompare builds on this data   3 sheet(s)
+
+ok    the ghost was noticed
+
+… truncating the saved state
+ok    the file reads as damaged before boot: Expected ',' or ']' after array element in JSON at position 6604 (line 1 column 6605)
+
+ok    the damage was noticed
+
+… planting a damaged award
+
+================================================================================================
+UNDER planted damaged award
+================================================================================================
+
+  ── O&M ────────────────────────────────────────────────────────────────────────────────
+
+LOADS — O&M
+------------------------------------------------------------------------------------------------
+  ok    the board booted without a script error
+  ok    nothing was reported unreadable on opening
+  ok    the O&M slot opened
+  ok    the file’s saved state was adopted, not a default or a refused load   saved 2026-10-19T11:36:21.987Z by unknown
+        years FY27 · on FY27 · base FY27 · working PB|2027 vs PB|2027
+        services USAF, ANG, AFRC, STOVL, USMC-C, USN · 5 requirements on the drill (0 added here, 0 removed) · 5 in the data pack
+  ok    the requirement baseline is populated   5 baseline requirements
+  ok    every id in the priority order resolves to a requirement
+  ok    every per-service requirement value has one figure per service
+  ok    both budget-authority pots have one figure per service
+  ok    no allocation is parked on a requirement the board cannot find
+  ok    this build holds the execution data store
+  ok    the execution data came back whole
+  ok    this build holds the cost estimates store
+  ok    the cost estimates came back whole
+  ok    this build holds the reprogramming log store
+  ok    the reprogramming log came back whole
+  ok    this build holds the locked PPBE cycles store
+  ok    the locked PPBE cycles came back whole
+  ok    FY27’s state came back whole   9 path(s) normalised on load
+        1 award(s) repaired on opening, each keeping the record as it was saved (awards.<id>.fix.orig) — 1 NEED REPAIR: what could not be read is UNSCHEDULED until it is entered again
+        stores: execution none · estimates 2026ACE(1 lines) · reprogramming 1 · cycles PB|2027[2027] · submittals held 0
+        positions none · snapshots 0 · journal 20 · last saves unknown 2026-10-19T11:36
+        FY27 carries 15 populated container(s): absorbFloor, alloc, awards, awdSeeded, band, bm, discSvc, fsrc, mandSvc, mc, minInc, notes, order, pmoOrder, ptypeSeeded
+        and 23 empty: absorb, asks, budgetAsg, ccar, clinRcnSvc, cons, costElem, crHalf, custom, desc, dest, grp, pid, ptype, rcn, rcnSvc, recNames, removed, reprog, si, tier, titles, wbs
+
+SURVIVES — O&M
+------------------------------------------------------------------------------------------------
+  ok    save → reopen returns every value   the settled state is byte for byte
+  ok    the four side stores travel byte for byte
+  ok    and a second save is stable — nothing is re-encoded on the next trip
+
+TIES — O&M
+------------------------------------------------------------------------------------------------
+  ok    the lane identities hold on every requirement, per service (60 checked)
+  ok    the engine could be read
+  ok    every surface that states a figure states the engine’s (17 surfaces, 80 cells)
+        requirement $34,258,334 · disc BA $16,100,000 · mand BA $7,200,000 · funded $23,300,000 (disc $16,100,000 + mand $7,200,000)
+        unfunded vs DISC $18,158,334 · TOTAL unfunded $10,958,334 = trim $3,683,332 + beyond $7,275,002 · MC $22,283,334 short $6,183,334
+        112 cell(s) silent on this data (a block the data does not produce is silence, not a fault)
+
+CROSS-FOOTS — O&M
+------------------------------------------------------------------------------------------------
+  ok    Funding Streams: the TOTAL row is the 6 rows above it, in 12 column(s)
+  ok    Decision Bands: the ALL BANDS row is the 9 rows above it, in 7 column(s)
+  ok    PMO Matrix: the TOTAL row is the 5 rows above it, in 16 column(s)
+  ok    Unfunded Requirements: the TOTAL row is the 5 rows above it, in 12 column(s)
+  ok    every per-service breakout adds back to its figure (47 rows across 21 blocks)
+  ok    exportCSV builds on this data   7 sheet(s)
+  ok    exportSrc builds on this data   4 sheet(s)
+  ok    exportPlans builds on this data   3 sheet(s)
+  ok    exportFlow builds on this data   8 sheet(s)
+  ok    exportCoa builds on this data   3 sheet(s)
+  ok    exportReprog builds on this data   1 sheet(s)
+  ok    exportFydpPlan builds on this data   8 sheet(s)
+  ok    exportCycCompare builds on this data   3 sheet(s)
+
+ok    a repaired award holds, is said, and is not counted as a loss
+
+================================================================================================
+VERIFIER SELF-TEST PASSED — a clean file holds, and a planted loss is noticed
+
+# end: 2026-10-19T11:36:32Z / 07:36:32 EDT
+# exit: 0  duration_s: 12.0

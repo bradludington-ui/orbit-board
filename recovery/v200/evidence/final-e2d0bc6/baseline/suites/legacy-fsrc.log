@@ -1,0 +1,15 @@
+# cmd: X=1 node tools/export-audit/legacy-fsrc.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T10:50:57Z / 06:50:57 EDT
+# cap: 900s  grace: 10s
+  ok   legacy fsrc 'mand' still honoured — all mandatory (d 0 · m 60 · u 0)
+  ok   legacy fsrc 'disc' still honoured — all discretionary (d 60 · m 0 · u 0)
+  ok   legacy fsrc 'ufr' still honoured — all unfunded (d 0 · m 0 · u 60)
+
+  every legacy Force setting computes exactly as before
+
+
+# end: 2026-10-19T10:50:59Z / 06:50:59 EDT
+# exit: 0  duration_s: 2.0

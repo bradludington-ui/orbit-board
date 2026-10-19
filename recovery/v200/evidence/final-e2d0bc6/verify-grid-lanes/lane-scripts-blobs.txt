@@ -1,0 +1,5 @@
+MANIFEST.sha256 9fab3e1c94ed011bffac9ed28e674fc2f17baeb0
+fc-gate.sh b6c79d01dc5cd14142ab4331fb53b68469c919c1
+fc-nosegoe.sh 3c63a12454d5f5e58fc50ac536fdd8f79c6c331a
+font-env.mjs d3fb12950eaf553604fe8c5fde848ad7db15d039
+standin-template.mjs c0d188cc52a2cd121cde7af1bbdae2b5ead462ac

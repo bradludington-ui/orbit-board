@@ -1,0 +1,260 @@
+# claude/v200-integration backup, made 7:27:04 AM ET, 19 Oct 2026
+tip: e2d0bc64640adfa02fccbd1c930f95bb67427864
+tree: 06d26c853950414793396a74e50a97f13e4423bb
+prerequisite (on origin claude/v200-fixes-wip): 39cccb907c8e45cd30a19030392cceaf652f935a
+bundle sha256 2002892c2ce7702d04bfdb70578163a4e13f815ece8a2523408fe80f3398b2c8 bytes 21071558
+restore check: fresh clone from https://github.com/bradludington-ui/orbit-board, bundle verify OK, fetched tip/tree equal, rev-list 1c945375335ba4251a0f900fbdb68381350a0adb..tip identical (251 commits)
+restore with: git clone -b claude/v200-fixes-wip https://github.com/bradludington-ui/orbit-board r && cd r && git fetch recovery/v200/integration-backup/claude-v200-integration-e2d0bc6.bundle claude/v200-integration:claude/v200-integration
+
+safety line:
+39cccb9 v2.00 (U40): two destinations of one list whose names match stay two, and a requirement never loses its destination; landed after U44, with F1
+622f148 v2.00 (U44): a "what the money buys" category list that repeats a key prints that category's row once
+243ad9d v2.00 (U44): a destination list that repeats a key, or holds a reserved name, never prints money twice; a file handed over with one is refused, and the user's own board is put right as it comes across
+5d7b4a3 v2.00 (U37): no export writes a character XML 1.0 forbids -- refused before a byte, the place named
+e85dfb7 v2.00 recovery: U28's bypass-lane scripts as approved by Brad (13 Oct), for the final verify:grid (records only)
+bca2d0d v2.00 recovery: the lead's commit checks of 13-18 Oct, text only, boards excluded (records only)
+e07663a v2.00 recovery: STATUS-2026-10-18.md and RUNNING-CHECKS brought to 18 Oct, 9:27 PM ET (records only)
+1b472f6 v2.00 recovery: U58/U59 fixed in e7bd877, U32/U33/U50 in d6fea76, U19 in 1582295, U61 in 2751de1; new rows U61-U66 (records only)
+f80ef84 v2.00: NEXT-VERSION entry for the UI work (chunks 1-3, M1, S1-S5, UI-C1) with Brad's verify:grid calls; the ledger's UI rows brought current (no product change)
+4187d23 recovery/v200: UI branch backup, claude/v200-ui at 1398537, restore verified (no product change)
+2751de1 v2.00 (U61): an RCN / EEIC pointer of "__proto__" never loses or doubles money in the alignment lines or the ACE tie-out
+1582295 v2.00 U19: Put back after a board-file save keeps what it replaces
+d6fea76 v2.00 (U32, U33, U50): an RCN / EEIC list that repeats a key, or holds "__none__" or a key that is not text, never counts money twice; a file handed over with one is refused in true words, the user's own board is taken and says so
+e7bd877 v2.00 (U58, U59): the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON
+f06049b v2.00 recovery: U18 recorded as committed in a4881ec; row U60 from its round-5 reviews (records only)
+a4881ec v2.00 U18: a folder save never writes over a copy that landed while it was under way
+5e28a48 v2.00 recovery: U56 and U57 recorded as fixed in eef8874; rows U58 and U59 from its money review (records only)
+eef8874 v2.00 (U56, U57): a saved SI value that is not text counts as an answer a bulk write overwrites, and Go to it opens its field
+75d4d2f v2.00 recovery: the hold (U3, U4) and U10's twelve commits recorded with their shas and check times; ledger U49 closed by U10 1, rows U51-U57 (records only)
+f6f4c26 v2.00 (U10 12 of 12): "work kept aside" is refused in a locked view before anything is asked or kept
+f9f0685 v2.00 (U10 11 of 12): "Save yours over theirs" is refused in a save's words at every gate, and Load theirs without keeping yours, raced by a view, is typed
+42a346c v2.00 (U10 10 of 12): where the funds flow puts the unfunded priority list, refused in a locked view, moves no money in any total or export; and Put back's refusal is typed in its own words
+7bc5fe6 v2.00 (U10 9 of 12): the funds flow's appropriation buttons, pseudo year, prime rules and categories refused in a locked view move no money in any total or export
+1029d42 v2.00 (U10 8 of 12): "Save yours over theirs", raced by a locked view, is refused in a save's words, and the race is tested
+420c4ba v2.00 (U10 7 of 12): Put back in the change journal is refused in a locked view before the journal is touched
+89697d6 v2.00 (U10 6 of 12): Load theirs is refused once the shared folder is read, when a locked view was put on screen meanwhile
+0181a0a v2.00 (U10 5 of 12): partner money, FMS money or a year refused in a locked view is in no total and no export
+3e882d8 v2.00 (U10 4 of 12): a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept
+b24840e v2.00 (U10 3 of 12): a Spend Plan choice is refused in a locked view before anything is kept
+3b8b175 v2.00 (U10 2 of 12): a cost estimate, a BAE list, CCaR records or a destination change is refused in a locked view before anything is kept
+df005ea v2.00 (U10 1 of 12): a refusal in a locked cycle's view puts back the whole view, not the year alone
+96877da v2.00 recovery: Codex handoff 3 in small batches, C2a first (U19 fix round 3, tests only) (records only)
+16ceb83 v2.00 (U4): the folder save checks the mixed-import hold after its read and before its write
+e219a68 v2.00 (U3): a Save asked for during the mixed-import hold is refused at once, never queued
+44359c4 v2.00 recovery: U41 and U42 pass the lead's commit check; their ledger texts with final shas; status for the night (records only)
+1a6a66e v2.00 (U42): a funds-flow sheet name never splits a character or keeps an edge apostrophe
+867fd4a v2.00 (U41): an SI code a file carried is never dropped -- kept as saved, listed, its money on no recognized code
+b765f98 v2.00 recovery: U20, U30, U34, U36 pass the lead's commit check; their ledger texts with final shas; Codex round 2 (ledger U50); Brad's four decisions (records only)
+8b39373 v2.00 (U36): an RCN / EEIC title over 80 characters is refused, never cut
+b9e9837 v2.00 U34: a saved year selection the board did not write is read as no year, kept and said -- never as ALL YEARS; its quote keeps the workbook well-formed
+d701888 v2.00 U30: a refresh takes the folder's copy as the base only when it is on screen; with nothing recorded, Save's question, Put back's line and Load theirs refused for kept work no longer say theirs came after or is newer
+ef1548c v2.00 U20: a save (or Load theirs) waiting for another tab's save is under way, counted from the moment it is asked for until it ends
+7b8aae2 v2.00 recovery: all work stopped at clean points before the usage limit; four fixes committed locally; records backup refreshed (records only)
+71f46c3 v2.00 recovery: U34 and U36 clean in round 3 and committed locally; ledger U45-U49 (records only)
+80e5800 v2.00 recovery: U20/U30 clean in round 2 and committed locally (pushed after its check); U19 round-3 money clean (records only)
+6060ee7 v2.00 recovery: prepared for the usage limit: groups stopped at clean points, restart planned, text records backed up (records only)
+3d37f29 v2.00 recovery: status at the 4:42 PM ET check; U28 paused for memory (records only)
+4bbec77 v2.00 recovery: status at the 3:42 PM ET check (records only)
+3cddc7c v2.00 recovery: integration dry run results; ledger U44 (destination lists print money twice; a release blocker) (records only)
+379a9f7 v2.00 recovery: usage-limit stop at 2:29 PM ET recorded; ended chains restarted from recorded state (records only)
+191daf0 v2.00 recovery: status at the 1:42 PM ET check (records only)
+6f5fc1b v2.00 recovery: Codex round 2 (B2, C2) sent by Brad (records only)
+3e38ac8 v2.00 recovery: ledger U43 (PMO panel and CR view by PMO drop an office the CLINs name; found by U9's round-3 money review) (records only)
+73cd226 v2.00 recovery: Brad's go on Codex B2 and C2 recorded (records only)
+520a9cf v2.00 recovery: Codex second round prepared (B2 snapshot of the U32/U33 draft; C2 memo brief) (records only)
+59b6f90 v2.00 recovery: Codex reports read and checked; U37/U40/U41-U42 tracks opened; U35 set P2 (records only)
+3841339 v2.00 recovery: Codex batch summary recorded (A1-A4, B1); reports not yet in hand (records only)
+ea3a1f1 v2.00 recovery: status at the 12:42 PM ET check (records only)
+f3f4b3d v2.00 recovery: Codex handoff sent; UI-C1 cherry-picked onto the UI branch (7df816c), checks running (records only)
+feb3a51 recovery/v200: UI branch backup, claude/v200-ui at 7df816c, restore verified (no product change)
+bbe7285 v2.00 recovery: ledger rows U36-U42 (U37, U40 release blockers); Codex handoff in small batches (records only)
+e170a26 v2.00 recovery: machine overload; relaunched with a per-agent process cap (records only)
+68c9fe1 v2.00 recovery: status at the 10:43 AM ET check; U28 review paused for machine load (records only)
+21b6dea v2.00 recovery: Max plan; fix groups split for parallelism; commit tooling ready (records only)
+cf1e6e1 v2.00 recovery: status at the 9:42 AM ET check (records only)
+f40eded v2.00 recovery: fourth usage-limit stop; restarted from recorded state (records only)
+f86889a v2.00 recovery: status at the 5:42 AM ET check (records only)
+c8a8603 v2.00 recovery: UI S1-S5 review-clean (records and review evidence only)
+cadc4aa v2.00 recovery: status at the 4:42 AM ET check (records only)
+674b6c5 v2.00 recovery: third usage-limit stop overnight; resumed at 4:13 AM ET (records only)
+e3ef350 v2.00 recovery: status at the 12:44 AM ET check (records only)
+321ac94 recovery/v200: UI branch backup, claude/v200-ui at dd15956, restore verified (no product change)
+59251eb v2.00 recovery: status at the 11:43 PM ET check (records only)
+9dd0763 v2.00 recovery: overnight status, second usage-limit stop, workflows resumed (records only)
+a5e8fba recovery/v200: UI branch backup, claude/v200-ui at 8783a2d, restore verified (no product change)
+60336a0 v2.00 recovery: raw triage logs for U20 and U29-U31; ledger rows U32-U35 (records only)
+0dfaac2 recovery/v200: UI branch backup, claude/v200-ui at 83c589f, restore verified (no product change)
+3c92cb7 v2.00 recovery: status update for 12 Oct (records only)
+d32758d v2.00 recovery: release plan after Brad's go to keep pressing; fix workflows started (records only)
+7ee498a v2.00 recovery: runner 2e delta review -- approval stands; the runner is 2bfb590 (records only)
+31ee327 v2.00 recovery: runner self-test 42/42 at 2bfb590 (records only)
+2bfb590 v2.00 recovery: runner correction 2e -- a stop signals only groups still verified as its runs (records only)
+efae245 v2.00 recovery: UI M1 review round 3 and its resolution; S1-S5 started (records only)
+0960361 recovery/v200: UI branch backup, claude/v200-ui at 670c467, restore verified (no product change)
+0bf4798 v2.00 recovery: runner self-test 42/42 at e42cfb6, orbit-board untouched (records only)
+e42cfb6 v2.00 recovery: runner correction 2d -- stops back up only once started; removes 2c self-test's stray records (records only)
+9b10e2a v2.00 recovery: U1 and U14 commit checks, triage outcomes, U29-U31 (records only)
+6734075 recovery/v200: UI branch backup, claude/v200-ui at 90ccabf, restore verified (no product change)
+d66dd60 v2.00 U14: ALL YEARS holds every plan the board holds; a saved year selection is kept and said
+0b4144a v2.00 U1: a carried row is counted in an offered year and in ALL YEARS
+9ef4f28 v2.00 recovery: resumed workflows' state recorded (records only)
+f7cddb7 v2.00 recovery: runner self-test 41/41 at cccb714 (records only)
+ff0c335 recovery/v200: final tree STOPPED, run(s) backed up: records (no product change)
+3b8bc73 recovery/v200: final tree STOPPED, run(s) backed up: records (no product change)
+cccb714 v2.00 recovery: runner correction 2c -- the queue's records reach the backup; stops end lanes and runs (records only)
+a386223 v2.00 recovery: correct a resumption time written later than the clock (records only)
+37f7ee3 v2.00 recovery: correct the recorded stop time (11:57 AM ET); resumption recorded (records only)
+6d14fde v2.00 recovery: second usage-limit stop and restart recorded (records only)
+7effa5e recovery/v200: UI branch backup, claude/v200-ui at 5a298b7, restore verified (no product change)
+239fc7e v2.00 recovery: runner self-test 41/41 at 60c984c (records only)
+60c984c v2.00 recovery: runner 2b self-test 41/41 at 706f721; silence git's grafts hint (records only)
+706f721 v2.00 recovery: runner correction 2b -- real suite endings from one verdict table; review 2 should-fixes; U28 (records only)
+97ce86e recovery/v200: UI branch backup, claude/v200-ui at e439683, restore verified (no product change)
+0a77ac2 v2.00 recovery: runner correction 2 self-test 36/36 at 0c189f0; time-note correction (records only)
+0c189f0 v2.00 recovery: runner correction 2, self-test fix (A15) and gate NUL tidy-up (records only)
+80b2d0b v2.00 recovery: runner correction 2 -- fixed environment, setsid -w, exit records, verdict-last gate (records only)
+592d629 v2.00 recovery: runner self-test 13/13 at 40f7979; restart and resumption recorded (records only)
+40f7979 v2.00 recovery: runner correction -- frozen snapshot of a pinned commit, per-call provenance, gated baselines (records only)
+6b20c16 v2.00 recovery: queue provenance recorded (records only)
+7149736 v2.00 recovery: final-tree-v3 refuses to run unless every script equals its backed-up copy (records only)
+2be68a1 v2.00 recovery: back up the final-tree queue (v3) and every run script it calls, with blobs (records only)
+5318e1e v2.00 recovery: post-commit triage started (records only)
+6320989 v2.00 recovery: ledger U13 committed, U17 note, U27 (the edit b954eed claimed but did not make) (records only)
+b954eed v2.00 recovery: U13 committed (63bd8b0); its evidence backed up; U27 opened (records only)
+63bd8b0 v2.00 U13: a refresh during a save loads nothing
+05ca48f recovery/v200: UI branch backup, claude/v200-ui at 4c1890c, restore verified (no product change)
+b9221fd v2.00 recovery: replace an imprecise time in the ledger (records only)
+80b616d v2.00 recovery: U13 late-guard review holds; U25, U26 opened; evidence backed up (records only)
+8f52bc3 recovery/v200: UI-C1 build evidence at 822918e (claude/v200-ui-c1), before its review (records only)
+2d95c20 recovery/v200: UI branch backup, claude/v200-ui-c1 at 822918e, restore verified (no product change)
+d988a73 v2.00 recovery: UI-C1 acceptance clarified by Brad; my overstatement recorded (records only)
+83d2508 v2.00 recovery: correct a start time written later than the clock (records only)
+60ec677 v2.00 recovery: UI-C1 approved and being built; npm run check first in the final tree (records only)
+2be60e9 recovery/v200: UI branch backup, claude/v200-ui at c41a7c2, restore verified (no product change)
+bb445cd v2.00 recovery: Brad's 7:04 AM points; U24 provisional; M1 evidence identity; UI-C1 opened (records only)
+213358a v2.00 recovery: Brad's 6:59 AM instructions, the exact mutation manifest, a count corrected, U21-U24 opened (records only)
+8236737 recovery/v200: UI branch backup, claude/v200-ui at aac8574, restore verified (no product change)
+949298b v2.00 recovery: the pre-reset v2.00 mutations added to the final-tree queue; timing sample (records only)
+bbc0e05 v2.00 recovery: U15-U20 triage table (priority, trigger, affected SHA, disposition) (records only)
+216773a recovery/v200: UI branch backup, claude/v200-ui at eb4dbfb, restore verified (no product change)
+026a49a v2.00 recovery: UI bundle backups and the pinned final-tree queue recorded (records only)
+90cbacf recovery/v200: UI branch backup, claude/v200-ui at eba613f, restore verified (no product change)
+457af3f v2.00 recovery: Brad's 6:11 AM approvals and the relaunch recorded (records only)
+0034394 v2.00 recovery: correct three times written later than the clock (records only)
+2f16302 v2.00 recovery: Brad's 6:00 AM decisions recorded; U2 accepted; U15-U20 opened (records only)
+0c6ff00 v2.00 recovery: U2's full runs, alone, recorded (records only)
+4216d13 recovery/v200: U2 commit 2 alone, run(s) backed up: v200-u2-putback-gen (no product change)
+09fe6c9 recovery/v200: U2 commit 2 alone, run(s) backed up: v200-u2-putback-while-saving (no product change)
+3329d0e recovery/v200: U2 commit 2 alone, run(s) backed up: BASELINE (no product change)
+5258617 recovery/v200: U2 commit 1 alone, run(s) backed up: v200-u2-putback-gen (no product change)
+754ebf0 v2.00 recovery: RUNNING-CHECKS records commit-1 alone results and the driver restart (records only)
+dc082dd recovery/v200: U2 commit 1 alone, run(s) backed up: v200-u2-putback-gen-OVERLAPPED-3 (no product change)
+1cc9313 recovery/v200: U2 commit 1 alone, run(s) backed up: v200-u2-putback-gen-OVERLAPPED-2 (no product change)
+b41e99e recovery/v200: U2 commit 1 alone, run(s) backed up: v200-u2-putback-gen-OVERLAPPED-1 (no product change)
+ad0dd2f recovery/v200: U2 commit 1 alone, run(s) backed up: BASELINE (no product change)
+4ce3e3b v2.00 recovery: RUNNING-CHECKS records U2 commit 2 and the alone-run driver (records only)
+f0a6200 v2.00 recovery: ledger U2 row records commit 2 (a8891e1) and the pending alone runs (records only)
+a8891e1 v2.00 U2 (2 of 2): put back waits for a save to finish (the refusal)
+0c73d07 v2.00 recovery: U2 commit-2 focused runs; commit-1 BASELINE kept as overlapped (records only)
+1ed4c37 v2.00 recovery: U13 needs no second writer; U14 scope mapped; U2 status (records only)
+f32be26 v2.00 recovery: U13 no-writer case, U14 scope map and U2 drafts (evidence only)
+4e90af4 v2.00 U2 (1 of 2): work put back during a save stays unsaved (the counter)
+17701c2 recovery/v200: correct the focused reruns' start time (9:02 PM ET) (no product change)
+0e7836a recovery/v200: focused R3-R5 reruns at both commits, and the reuse verdict under the tightened rule (no product change)
+d0eb705 recovery/v200: withdraw the 'narrow window / needs another writer' description of U13 pending Codex's case (no product change)
+3df5fcd recovery/v200 ledger: U13 reproduced; U2 measured (counter-only and refusal); U14 added (no product change)
+844f8cb recovery/v200: U13 reproduction, U1 demonstration and U2 variants, with verifier verdicts (no product change)
+bc67f3f recovery/v200: instrumented full audit-import at 4a6f7c7 (supporting evidence for reuse) (no product change)
+786eb3f recovery/v200: af892cb sensitivity, completed run(s) backed up: impmixed-file-unguarded (no product change)
+8216bc1 recovery/v200: af892cb sensitivity, completed run(s) backed up: unsaved-flag-never-set (no product change)
+d5ed05b recovery/v200: af892cb sensitivity, completed run(s) backed up: v200-r5-restore-basedirty v200-r5-restore-gen (no product change)
+c1a1330 recovery/v200: imminent changes, retest scope and revised timing at 8:14 PM ET (no product change)
+e652e8c recovery/v200: sensitivity backup split into completed/interrupted; reuse justification with identities and scope (no product change)
+9278b04 recovery/v200: third container restart recorded; v200-r5-restore-gen INCOMPLETE again; driver restarted (no product change)
+9984c67 recovery/v200: audit-import sensitivity at af892cb, partial backup; second container restart recorded (no product change)
+866e514 recovery/v200: U1 correction measured on a disposable copy; R1 UI boxes; U2 scope; U13; retests (no product change)
+dc092ad recovery/v200: the running and held checks with their exact identities (no product change)
+cd8c3e3 recovery/v200: the final-tree run queue script (no product change)
+d1ee751 recovery/v200: U1 carried-row omission reproduced with literal arithmetic; correction proposed, not built (no product change)
+714d968 recovery/v200: U9 and U10 reproduced on the current tree, main as positive control (no product change)
+fa46783 recovery/v200: R1 follow-up evidence at 4a6f7c7 and which earlier sensitivity results still apply (no product change)
+4a6f7c7 v2.00 R1 follow-up: mixed totals are said by their money, with amounts; stored rows told apart (Brad, 11 Oct)
+2b5b02b recovery/v200 ledger: correct U9/U10 restore time (6:29 PM ET); note the reproduction under way on the pinned tree
+a91402b v2.00 ledger: restore U9 (PMO split disagreement) and U10 (refused edits change a locked cycle's codes)
+8e2dbe5 v2.00: the unresolved ledger -- every known open finding, with the two from the review of main preserved
+46b28b5 v2.00 R1-R5 review follow-ups: notes corrected, catalog text, one test label (no board change)
+1736753 recovery/v200: the first audit-import sensitivity run kept, labelled superseded (environment flawed) (no product change)
+3182b7d recovery/v200: R3 message evidence at af892cb; correction to the first later-window probe; stale-flag proposal
+af892cb v2.00 R3 follow-up: a save that lands under a locked view says it saved the working plan (Brad, 11 Oct)
+27a5ebf recovery/v200: R3 later-window bounded probe at 8f22668 and a separate message proposal (no product change)
+7e0764d NEXT-VERSION: R3's later timing window narrowed to what a bounded probe shows (notes only)
+99974a5 recovery/v200: the full audit-import passes at 8f22668, run alone (595.6 s of 900 s) (no product change)
+89b1e6e recovery/v200: R5 fresh evidence at 8f22668 -- all three probes pass (no product change)
+8f22668 v2.00 R5 (reimplementation): a restore during a save stays unsaved
+a6348c6 recovery/v200: R4/R4b fresh evidence at a0a9a6f (no product change)
+a0a9a6f v2.00 R4 (reimplementation): a save already waiting does not write past a mixed-import hold; R4b test
+d79a701 recovery/v200: R2 follow-up evidence at 4cb1e65; committed-suite sensitivity for R1/R2 at d4a241a (no product change)
+4cb1e65 v2.00 R2 follow-up: an EEIC refusal says the limit is on the EEIC trimmed and upper-cased (Brad, 11 Oct)
+e635775 recovery/v200: R3 fresh evidence at d4a241a (no product change)
+d4a241a v2.00 R3 (reimplementation): a locked view is never written to the working folder
+a6b4539 recovery/v200: R2 fresh evidence at 529e07e (no product change)
+529e07e v2.00 R2 (reimplementation): an EEIC is checked in the form it is stored, trimmed and upper-cased
+6762a5b recovery/v200: R1 fresh evidence at 3aeda74 (no product change)
+3aeda74 v2.00 R1 (reimplementation): the funds flow decides executed or planned by appropriation and effective FY
+748b5f3 recovery/v200: snapshot of the in-progress R1 and R2 draft diffs at 4:44 PM ET (unverified, not integrated)
+9ed7fa4 recovery/v200: the lead's R4b cross-check (passes on the base; catches impmixed-file-unguarded), one invalid run labelled
+23f3208 recovery/v200: the lead's independent R2 contract cross-check, failing on the base as the defect (no product change)
+1aa39dc recovery/v200: the lead's independent R1 variant cross-check, failing on the base as the defect (no product change)
+a495647 recovery/v200: integration tools -- text-only mutation counter and per-commit probe check (no product change)
+ea3a674 recovery/v200: layer 2 probe fail-before at 9b27e80, probes unchanged (no product change)
+e9e2703 recovery/v200: the four independent review probes as received (verbatim, checksums match; no product change)
+5be40f1 recovery/v200: add the status log 4713611 described (run rules, restart, probes not received)
+4713611 recovery/v200: run rules of 11 Oct 4:04 PM ET, probe search (none received), runner with termination grace
+2a6e8b2 recovery/v200: layer 1 baseline, the other eight suites fresh at the layer-1 tree (no product change)
+764d288 recovery/v200: add the session's 13:51 UTC working summary verbatim (provenance, no product change)
+6db7233 recovery/v200: layer 1 (Correction A) fresh evidence against 9b27e80 (no product change)
+9b27e80 v2.00 Correction A (reimplementation): hostile check follows the v2.00 key rule; K1 reaches its two rules; notes corrected
+309b16d recovery/v200: surviving-notes checkpoint after the 11 Oct environment reset (no product change)
+
+UI line:
+1398537 v2.00 UI: row-controls records chunk 1's five RECORD panel controls (Brad, 18 Oct: record them; no board change)
+7df816c v2.00 UI-C1: the five chunk 1 handler arguments go through jsa(), so npm run check passes again
+dd15956 v2.00 UI chunk 3 (fix round): CHUNK3.md records the S1-S5 review's fix round and corrects three statements of part 2 (no board change)
+8783a2d v2.00 UI chunk 3 (S4, fix round): dialogs-keyboard checks every box again with the RECORD panel docked (no board change)
+9519595 v2.00 UI chunk 3 (S4, fix round): layout-fits checks D and F docked as well, each pass saying where the panel was (no board change)
+f2fa0ff v2.00 UI chunk 3 (S2, fix round): audit-ui holds the same-year half of the rules S2 rewrote; two mutations (no board change)
+147ef2a v2.00 UI chunk 3 (S4, fix round): toolbar-fits checks each control whole, not only at its centre, and names each cause (no board change)
+7950a4f v2.00 UI chunk 3 (S4, fix round): keyboard-reach A starts its Tab from the context bar's first control, named (no board change)
+fe8ffa0 v2.00 UI chunk 3 (S4, fix round): keyboard-reach D2 and L check where the RECORD panel is in each pass (no board change)
+e7b7cbb v2.00 UI chunk 3 (S4, fix round): dropdowns-visible checks every menu again with the RECORD panel docked (no board change)
+e950efe v2.00 UI chunk 3 (S4, fix round): layout-fits checks C, E and I with the RECORD panel docked as well as sliding over (no board change)
+7a71245 v2.00 UI chunk 3 (S1-S5): CHUNK3.md part 2 records the five review items, the tools, verify:grid and every run (no board change)
+83c589f v2.00 UI chunk 3 (S1-S5): screenshots of the actual board at 2ce11b6 (board 5e9e5a5e), and the script that took them (no board change)
+2ce11b6 v2.00 UI chunk 3 (S4): toolbar-fits checks every control at the top is on screen, whole and clickable; 1152 still fails its one-line rule
+df05821 v2.00 UI chunk 3 (S4): keyboard-reach finds the search box, the mode switch and the posture strip where they now live
+0af09b6 v2.00 UI chunk 3 (S4): the browser tools check the RECORD panel sliding over (the default) and docked, each
+8325909 v2.00 UI chunk 3 (S4): the Import box hands the keyboard back to the control that opened it; the browser tools know its opener
+8f331a8 v2.00 UI chunk 3 (S5): a toolbar menu stays clear of the sidebar, so every Reports item is on screen and clickable
+cb86178 v2.00 UI chunk 3 (S3): a refused batch from a board that reads Saved changes nothing and writes nothing; the note at pmoTake
+088acf8 v2.00 UI chunk 3 (S2): a board-wide journal line recorded under another year suppresses "Last recorded edit"
+2916f0a v2.00 UI chunk 3 (S1): the funding posture strip wraps in Funding and Brief at every width, so every control in it is on screen
+670c467 v2.00 UI chunk 3 (M1): screenshots retaken at the final board 2d1d855e (no board change)
+90ccabf v2.00 UI chunk 3 (M1, fix round 2): CHUNK3.md records fix round 2 and corrects the "edge, by design" line (no board change)
+5a298b7 v2.00 UI chunk 3 (M1, fix round 2): the new cases read the stored list without throwing (no board change)
+775903f v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the saved file and reopening after a put-back that cannot finish (no board change)
+b418340 v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the storage comparison for keys other than the destination list's (no board change)
+e439683 v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the save state taken after the files are read (no board change)
+58803c9 v2.00 UI chunk 3 (M1, fix round 2): a batch refused before it takes anything says only what is true of it
+4c1890c v2.00 UI chunk 3 (M1, fix round): CHUNK3.md records the fix round and corrects two overstatements (no board change)
+fc01792 v2.00 UI chunk 3 (M1, fix round): audit-ui reaches what the M1 verifier found it could not see (no board change)
+c41a7c2 v2.00 UI chunk 3 (M1): screenshots of the M1 messages in the actual board at aac8574, the script that took them, and CHUNK3.md part 1 (no board change)
+aac8574 v2.00 UI chunk 3 (M1): "All submissions at once" is all or nothing when a file would ask, and is put back whole if the load fails
+eba613f v2.00 UI chunk 2: adversarial review (CHUNK2-REVIEW.md)
+e70636b v2.00 UI chunk 2: screenshots of the actual board at f95fee2, the check scripts with their outputs, and CHUNK2.md (no board change)
+f95fee2 v2.00 UI chunk 2: on a phone the context bar's group wraps rather than push the page sideways
+5ea7d15 v2.00 UI chunk 2: slide-over record by default (docking optional), rows sized to their room, guarded KPI cards, Brief posture strip, permissions, all-or-nothing PMO batch, genuine metadata, Cycle control
+acc8489 v2.00 UI chunk 1: adversarial review (CHUNK1-REVIEW.md)
+6bfa965 v2.00 UI chunk 1: screenshots of the actual board (synthetic data at runtime) and CHUNK1.md
+c85d0e3 v2.00 UI chunk 1: RECORD panel Overview / Funding / History tabs; control sizing fixes
+89384e6 v2.00 UI chunk 1: navy sidebar, context bar, KPI cards, toolbar (Columns, Density), Import box
+ba0def2 UI concept: mockups only, in the style of Brad's concept images (no product change)

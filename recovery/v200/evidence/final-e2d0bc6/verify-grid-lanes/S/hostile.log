@@ -1,0 +1,18 @@
+# cmd: X=1 npm run hostile --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:24:02Z / 07:24:02 EDT
+# cap: 900s  grace: 10s
+
+hostile board — prioritization-board-grid.html: 7 requirements, script-shaped text in every field the fixture fills
+  ok   every planted field was drawn somewhere, so the checks below looked at it   110 planted values seen on screen as text
+  ok   nothing planted in the board ran when it was drawn
+  ok   no inline handler on any screen carries a planted call as code   7 requirements, 44 panels, 9 menus
+  ok   nothing threw while it was drawn
+
+Nothing a file can carry runs when the board draws it
+
+
+# end: 2026-10-19T11:24:30Z / 07:24:30 EDT
+# exit: 0  duration_s: 28.4

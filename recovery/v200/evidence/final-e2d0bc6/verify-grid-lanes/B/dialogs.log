@@ -1,0 +1,36 @@
+# cmd: X=1 bash /home/user/orbit-board/recovery/v200/evidence/L6-u28/fc-gate.sh /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6 -- npm run dialogs --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:11:27Z / 07:11:27 EDT
+# cap: 900s  grace: 10s
+FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf
+ok   400 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   400 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   500 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   500 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   600 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   600 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   650 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   650 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   700 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   700 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   750 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   750 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   800 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   800 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   900 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   900 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+OK: the board is drawn in Arial's widths here, at every weight it uses
+fc-gate: font-env OK; running with FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf: npm run dialogs --silent
+
+sliding over -- boxes: 44 opened (15 from their own menu or button by keyboard, 29 by their switch: rpPanel, planPanel, poPanel, coaPanel, bandPanel, edPanel, wbsPanel, matPanel, ndPanel, livePanel, subPanel, jrnlPanel, idsPanel, rcnPanel, entPanel, svcPanel, exPanel, pkgPanel, flowPanel, fydpPanel, cycCmpPanel, cycChgPanel, blPanel, posPanel, ppPanel, spPanel, bmPanel, crPanel, fcPanel), 8 with a text field typed in
+the Import box handed the keyboard back to its opener 16 time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)
+
+docked -- boxes: 44 opened (15 from their own menu or button by keyboard, 29 by their switch: rpPanel, planPanel, poPanel, coaPanel, bandPanel, edPanel, wbsPanel, matPanel, ndPanel, livePanel, subPanel, jrnlPanel, idsPanel, rcnPanel, entPanel, svcPanel, exPanel, pkgPanel, flowPanel, fydpPanel, cycCmpPanel, cycChgPanel, blPanel, posPanel, ppPanel, spPanel, bmPanel, crPanel, fcPanel), 8 with a text field typed in
+the Import box handed the keyboard back to its opener 16 time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)
+  — skipped: uipPanel (the in-app prompt opens only where the browser has no prompt of its own)
+every box takes the keyboard, keeps it, gives it back, and asks before typing is lost -- with the RECORD panel sliding over and docked
+
+# end: 2026-10-19T11:14:31Z / 07:14:31 EDT
+# exit: 0  duration_s: 184.5

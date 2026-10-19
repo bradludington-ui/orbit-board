@@ -1,0 +1,17 @@
+# cmd: X=1 npm run dialogs --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:32:51Z / 07:32:51 EDT
+# cap: 900s  grace: 10s
+
+sliding over -- boxes: 44 opened (15 from their own menu or button by keyboard, 29 by their switch: rpPanel, planPanel, poPanel, coaPanel, bandPanel, edPanel, wbsPanel, matPanel, ndPanel, livePanel, subPanel, jrnlPanel, idsPanel, rcnPanel, entPanel, svcPanel, exPanel, pkgPanel, flowPanel, fydpPanel, cycCmpPanel, cycChgPanel, blPanel, posPanel, ppPanel, spPanel, bmPanel, crPanel, fcPanel), 8 with a text field typed in
+the Import box handed the keyboard back to its opener 16 time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)
+
+docked -- boxes: 44 opened (15 from their own menu or button by keyboard, 29 by their switch: rpPanel, planPanel, poPanel, coaPanel, bandPanel, edPanel, wbsPanel, matPanel, ndPanel, livePanel, subPanel, jrnlPanel, idsPanel, rcnPanel, entPanel, svcPanel, exPanel, pkgPanel, flowPanel, fydpPanel, cycCmpPanel, cycChgPanel, blPanel, posPanel, ppPanel, spPanel, bmPanel, crPanel, fcPanel), 8 with a text field typed in
+the Import box handed the keyboard back to its opener 16 time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)
+  — skipped: uipPanel (the in-app prompt opens only where the browser has no prompt of its own)
+every box takes the keyboard, keeps it, gives it back, and asks before typing is lost -- with the RECORD panel sliding over and docked
+
+# end: 2026-10-19T11:35:51Z / 07:35:51 EDT
+# exit: 0  duration_s: 179.4
