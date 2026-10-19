@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-pseudo", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const P0=MS.flow? MS.flow.pseudo : null; MS=cycCopy(c); MS.cur=y; if(P0) flowCfg().pseudo=P0;"}

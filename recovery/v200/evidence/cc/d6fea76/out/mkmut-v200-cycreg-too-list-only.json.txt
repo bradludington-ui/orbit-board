@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-too-list-only", "matches": 1, "find": "  if(!cy && inRcnCyOdd(t)) return head+", "repl": "  if(!ent && !cy && inRcnCyOdd(t)) return head+"}

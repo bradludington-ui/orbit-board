@@ -1,0 +1,11 @@
+v200-u10-resolve-race: start 2026-10-18 05:31:44 EDT exit 1 wall 160.1s | 125 checks, 2 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a view put on screen while | Load theirs on the working plan · PB27 put on screen while the folder is read | refused, and the status line says so; nothing is kept aside, and the w
+    FAIL | v2.00 (U10) — a view put on screen while | Load theirs on the working plan · PB27 put on screen while the folder is read · the view left, Load theirs aga | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is
+v200-u10-folder-pull-view-at-start: start 2026-10-18 05:31:44 EDT exit 1 wall 159.7s | 125 checks, 3 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | a Live refresh started on the working plan, PB27 put on screen while the folder’s copy is read | nothing loaded, nothing kept aside, and the work is still this browser
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · a Live refresh finds Colleague C’s newer copy in the shared folder | nothing loaded, nothing kept aside, and the work is still this browser
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · the view left · the next Live refresh | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is
+v200-u10-folder-pull-quiet-speaks: start 2026-10-18 05:34:25 EDT exit 1 wall 182.7s | 125 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · a Live refresh (quiet) finds Colleague C’s newer copy | the status line is as it was: nothing was changed, so nothing is said
+v200-u10-shared-gate-in-adopt: start 2026-10-18 05:34:25 EDT exit 1 wall 188.1s | 125 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · the shared state file answers at opening (sharedArrived) | refused, and the status line says so; nothing is kept aside, and the w

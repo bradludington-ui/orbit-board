@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-entry-x-pmo-unsaid", "matches": 1, "find": "return head+(cy? ' '+T.cycle : ent? xw : ' '+T.plan);", "repl": "return head+(cy? ' '+T.cycle : ent? '' : ' '+T.plan);"}

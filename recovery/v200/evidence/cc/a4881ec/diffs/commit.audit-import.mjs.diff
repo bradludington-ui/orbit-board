@@ -1,0 +1,587 @@
+diff --git a/tools/export-audit/audit-import.mjs b/tools/export-audit/audit-import.mjs
+index be63bbd..71bd746 100644
+--- a/tools/export-audit/audit-import.mjs
++++ b/tools/export-audit/audit-import.mjs
+@@ -8196,6 +8196,582 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U13) ====
++// ==== v2.00 (U18): a copy saved while a folder save is under way is never written over ====
++// The folder save read the folder's copy once, at the top, and wrote its own over whatever was there by the time it wrote.
++// Bob took the pen and saved BOB-2 while Brad's save was keeping the copy it had read in the history; Brad's save then wrote
++// his work over BOB-2 and thinned the history, and BOB-2 was in no copy in the folder -- Brad's board said "✅ Saved", Bob's
++// next refresh said only that Brad had saved after him. Now the save reads the folder's copy again after its last wait,
++// just before it writes. Unless that copy is still, byte for byte, the one it read (or there is still none), nothing is
++// written in its place: a copy that landed meanwhile is the clash -- who saved it and when, Load theirs and Save yours over
++// theirs -- and a copy gone or unreadable now is said as such. Bob's copy stays the folder's copy, Brad's work stays on
++// screen, not saved, the copy the save read stays in the history, and the board's header still says when it was last
++// saved and by whom, not when this save began -- on the working plan, and on a locked view put on screen meanwhile.
++// Either choice then resolves it. This is every folder save: the Live autosave's too. A change typed while the save was held
++// keeps its own stamp, and browser storage is written again as put back, so a board reopened from it shows no pen line the
++// stopped save took back. With U4's mixed-import hold, this read is the save's last wait, and the hold is checked after it
++// ((13)); when the hold and a landed copy come together, the hold is what is said ((14), which passes on the board before
++// this change too: U4's check refuses there). A take-the-pen save stopped because the folder's copy is gone or unreadable
++// takes its pen line back and puts the stamp back too ((6d), (6e)). Not covered, and not tested here: a copy landing
++// during the write itself (U13 (2) holds Brad's save there); a file share has no atomic compare-and-write.
++await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
++  const __bm = bootMark();
++  const name = 'v2.00 (U18) — a copy saved while a folder save is under way is never written over';
++  try {
++  const { J, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause } = W1H;
++  const F1 = baseFile('Brad', KEY.brad);
++  const NM = 'spmt-2027-om.json';
++  // Requirement A -- its note and its allocation, in dollars -- on screen, in a copy's text, in browser storage, kept aside.
++  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : (S.alloc.A==null? null : S.alloc.A)])`));
++  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
++    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
++  const stored = ev => inCopy(ev('localStorage.getItem(_AP.key)'));
++  const kept = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); return s == null ? null : inCopy(s.slice(s.indexOf('\n') + 1)); };
++  // The folder's copy -- what it holds, who saved it and who its writer is, its time -- and what its history holds.
++  const head = fold => fold.raw(2027) == null ? ['(no copy)', null] : inCopy(fold.raw(2027));
++  const who = fold => { const j = fold.copy(2027); return j ? [j.by || '', (j.writer || {}).by || ''] : ['', '']; };
++  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
++  const tsOf = txt => { const j = JSON.parse(txt); return +((j.store && j.store.ts) || j.ts || 0); };
++  const hist = fold => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => J(inCopy(t)));
++  const histHolds = fold => [...new Set(hist(fold))].sort().map(x => JSON.parse(x));   // each copy the history holds, once
++  const inHist = (fold, c) => hist(fold).includes(J(c));
++  const mains = fold => fold.log.filter(x => /^main:/.test(x)).length;   // writes of the folder's copy, by anyone
++  // Unsaved by all three -- this session (DIRTY), _baseDirty and this browser's record -- or saved by all three.
++  const flags3 = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])'));
++  const saved = ev => flags3(ev).every(x => !x);
++  const unsaved = ev => flags3(ev).every(x => x);
++  const base = ev => +ev('driveBaseOf(mySlug())');
++  const onHead = (ev, fold) => headTs(fold) > 0 && base(ev) === headTs(fold);
++  const buttons = ev => JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#shareStat button'), function(b){ return b.getAttribute('onclick'); }))`));
++  // The board's own stamp -- the time and name its header shows it saved at and by -- and the header itself.
++  const stamp = ev => JSON.parse(ev('JSON.stringify([MS.ts, MS.by])'));
++  const header = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`);
++  const penTakers = ev => JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e && e.p && e.p[0]==='(writer)'; }).map(function(e){ return e.b; }))`));
++  // WHAT BRAD'S BOARD SAYS, word for word: the clash found just before the write (LATE), the clash found when the save read the
++  // folder (EARLY, as it always was), and a copy gone, changed or unreadable just before the write (NOTSAVED).
++  const TAIL = 'Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).';
++  const LATE = '⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL;
++  const EARLY = '⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. ' + TAIL;
++  const NOTSAVED = what => '⛔ Not saved. The shared folder’s copy of O&M FY27 ' + what + '. Nothing was written in its place: a save never writes over a copy it has not read. Your work is still here — 💾 Save again to read the folder afresh.';
++  const CHOICES = ["driveResolve('theirs')", "driveResolve('mine')"];
++  // BRAD saves BRAD-1, $700: the folder's first copy, v1, writer Brad. BOB opens the same board, connects, loads v1 and types
++  // BOB-2, $650. BRAD then types BRAD-2, $720, and has not saved it.
++  const setup = async sc => {
++    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
++    const v1 = fold.raw(2027);
++    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
++    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
++    A.ev(`setNote('A','BRAD-2'); setAlloc('A','720'); 'ok'`); await pause(5);
++    chk(name, sc, 'v1 is BRAD-1, $700, saved by Brad, its writer; Brad shows BRAD-2, $720, unsaved, recorded against v1; Bob loaded v1 and shows BOB-2, $650 (a CONTROL)',
++      J([...inCopy(v1), ...who(fold), ...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), base(Bb.ev) === tsOf(v1), ...scr(Bb.ev)]),
++      J(['BRAD-1', 700, 'Brad', 'Brad', 'BRAD-2', 720, true, true, true, 'BOB-2', 650]));
++    return { fold, A, Bb, v1 };
++  };
++  // Brad's 💾 Save (or `call`), held at the close of its history copy of the folder's copy it read: its last wait before it
++  // writes the folder's copy.
++  const held = async (A, fold, call) => {
++    const n0 = fold.hits.hist || 0; fold.hold.hist = gate(); const g = fold.hold.hist;
++    const p = A.ev(call || 'saveInPlace()'); const ok = await until(() => (fold.hits.hist || 0) > n0);
++    return { g, p, ok };
++  };
++  // Brad's save held at its read of the folder's copy just before its write: the `n`th read of that copy after this.
++  const holdRead = (fold, n) => { const gh = fold.dir.getFileHandle, g = gate(); let seen = 0, hit = 0;
++    fold.dir.getFileHandle = async (nm, o) => { if (nm === NM && !(o && o.create) && ++seen === n) { hit = 1; await g.p; } return gh(nm, o); };
++    return { g, hit: () => hit }; };
++  // BRAD'S SAVE REFUSED: Bob's copy is the folder's copy, Brad's work is on screen and not saved, he is told, and both choices
++  // are there. `mine`: what is on screen and in browser storage; `kept0`: what is kept aside; `st0`: the board's stamp and its
++  // header before the save.
++  const refusedThen = (sc, fold, A, v1, said, mine, kept0, st0) => {
++    chk(name, sc, 'Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was',
++      J([...scr(A.ev), ...stored(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), kept(A.ev)]), J([...mine, ...mine, true, true, kept0]));
++    chk(name, sc, 'the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes',
++      J([J(stamp(A.ev)) === J(st0), header(A.ev)]), J([true, 'Unsaved changes']));
++    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([said, CHOICES]));
++  };
++
++  // (1) THE SECOND WRITER LANDS DURING THE HELD SAVE. Brad's 💾 Save is held at its history write; Bob takes the pen, which
++  // saves BOB-2 into the folder at once; Brad's save is let go. It writes nothing over BOB-2.
++  { const sc = '(1) Bob takes the pen and saves while Brad’s save is held';
++    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
++    const h = await held(A, fold); await pause(5);   // Bob's copy is stamped after the bytes Brad's save built
++    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
++    const bobTs = headTs(fold);
++    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy; Brad’s save is under way (a CONTROL)',
++      J([h.ok, ...head(fold), ...who(fold), +A.ev('_saveBusy'), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1, 1]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy, with its own time; one write of the folder’s copy since the hold, Bob’s',
++      J([...head(fold), ...who(fold), headTs(fold) === bobTs, mains(fold) - m0, +A.ev('_saveBusy')]), J(['BOB-2', 650, 'Bob', 'Bob', true, 1, 0]));
++    chk(name, sc, 'the history holds v1, BRAD-1, $700, and nothing else (a CONTROL)', J(histHolds(fold)), J([['BRAD-1', 700]]));
++    refusedThen(sc, fold, A, v1, LATE, ['BRAD-2', 720], null, st0);
++    chk(name, sc, 'Bob’s board: BOB-2 on screen and in its browser storage, saved, recorded against the folder’s copy', J([...scr(Bb.ev), ...stored(Bb.ev), saved(Bb.ev), onHead(Bb.ev, fold)]), J(['BOB-2', 650, 'BOB-2', 650, true, true]));
++    const pulled = await A.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'then Brad’s refresh loads nothing over his unsaved work, and the folder’s copy is still Bob’s', J([pulled, ...scr(A.ev), unsaved(A.ev), ...head(fold)]), J([false, 'BRAD-2', 720, true, 'BOB-2', 650]));
++
++    // (2) THE RETRY: Brad chooses Save yours over theirs. Bob holds the pen, so that save is refused, naming him -- and Bob's
++    // copy is kept in the history first. Brad then takes the pen back: his work lands as the folder's copy, and every copy
++    // -- v1, Bob's and Brad's -- is in the folder.
++    const sc2 = '(2) the retry: Save yours over theirs, then Take the pen';
++    const q0 = qs(A.ev).length;
++    const r = await A.ev(`driveResolve('mine')`); await pause(5);
++    chk(name, sc2, 'Save yours over theirs asks first; Bob holds the pen, so nothing is written over BOB-2, and Bob’s copy is kept in the history',
++      J([r, (qs(A.ev)[q0] || '').startsWith('Save your copy of O&M FY27 over the one Bob saved just now?'), ...head(fold), ...who(fold), inHist(fold, ['BOB-2', 650]), mains(fold) - m0]),
++      J([false, true, 'BOB-2', 650, 'Bob', 'Bob', true, 1]));
++    chk(name, sc2, 'and says Bob holds the pen; Brad’s work stays on screen, unsaved',
++      J([/^⛔ Not saved\. Bob holds the pen for O&M FY27 in the shared folder \(since .+\): only its writer saves it in place\. Your work is still here, unsaved\./.test(status(A.ev)), ...scr(A.ev), unsaved(A.ev)]), J([true, 'BRAD-2', 720, true]));
++    await A.ev('takePen()'); await pause(5);
++    chk(name, sc2, 'Take the pen asks first, naming Bob; then BRAD-2, $720, saved by Brad, its writer, is the folder’s copy',
++      J([(qs(A.ev)[q0 + 1] || '').startsWith('Take the pen for O&M FY27 in the shared folder from Bob'), ...head(fold), ...who(fold)]), J([true, 'BRAD-2', 720, 'Brad', 'Brad']));
++    chk(name, sc2, 'Brad is saved, recorded against the folder’s copy, and told so; v1 and Bob’s copy are both in the history',
++      J([saved(A.ev), onHead(A.ev, fold), /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\. You now hold the pen for it\.$/.test(status(A.ev)), histHolds(fold)]),
++      J([true, true, true, [['BOB-2', 650], ['BRAD-1', 700]]]));
++  }
++
++  // (1b) NOTHING UNSAVED: U13's second-writer case, with Brad's save held at its last wait instead of in its write. Brad's
++  // board shows v1 as he saved it; he presses 💾 Save, Bob takes the pen meanwhile, and the save is let go. It writes
++  // nothing over BOB-2, and the board still says it was saved when v1 was, by Brad.
++  { const sc = '(1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held';
++    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
++    const v1 = fold.raw(2027);
++    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
++    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
++    const hd0 = header(A.ev);
++    chk(name, sc, 'Brad shows v1 as he saved it -- BRAD-1, $700 -- saved, recorded against it, stamped with its time and his name; Bob shows BOB-2 (a CONTROL)',
++      J([...scr(A.ev), saved(A.ev), base(A.ev) === tsOf(v1), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), hd0.startsWith('Saved '), ...scr(Bb.ev)]),
++      J(['BRAD-1', 700, true, true, true, 'Brad', true, 'BOB-2', 650]));
++    const h = await held(A, fold); await pause(5);
++    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
++    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy (a CONTROL)',
++      J([h.ok, ...head(fold), ...who(fold), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; v1 is in the history, and nothing else is',
++      J([mains(fold) - m0, ...head(fold), ...who(fold), histHolds(fold)]), J([1, 'BOB-2', 650, 'Bob', 'Bob', [['BRAD-1', 700]]]));
++    chk(name, sc, 'Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header unchanged',
++      J([...scr(A.ev), ...stored(A.ev), saved(A.ev), base(A.ev) === tsOf(v1), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), header(A.ev) === hd0]),
++      J(['BRAD-1', 700, 'BRAD-1', 700, true, true, true, 'Brad', true]));
++    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
++  }
++
++  // (3) THE OTHER CHOICE: Load theirs. Bob's copy goes on screen, saved and recorded against the folder's copy; Brad's work is
++  // kept aside, one click from coming back.
++  { const sc = '(3) Bob saves during the held save; Brad chooses Load theirs';
++    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
++    const h = await held(A, fold); await pause(5);
++    await Bb.ev('takePen()'); await pause(5);
++    h.g.open(); await h.p; await pause(5);
++    refusedThen(sc, fold, A, v1, LATE, ['BRAD-2', 720], null, st0);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    chk(name, sc, 'Load theirs: BOB-2 on screen, saved, recorded against the folder’s copy, which is still Bob’s; BRAD-2 is kept aside, and the board says so',
++      J([...scr(A.ev), saved(A.ev), onHead(A.ev, fold), ...head(fold), ...who(fold), kept(A.ev), /^⬇ Loaded Bob’s copy of O&M FY27\. Your work is kept aside/.test(status(A.ev))]),
++      J(['BOB-2', 650, true, true, 'BOB-2', 650, 'Bob', 'Bob', ['BRAD-2', 720], true]));
++  }
++
++  // (4) CONTROL -- NO SECOND WRITER. The same hold, let go: the save lands as it always has.
++  { const sc = '(4) no second writer (a CONTROL)';
++    const { fold, A, v1 } = await setup(sc);
++    const h = await held(A, fold); const m0 = mains(fold);
++    chk(name, sc, 'the save is held at its history write; v1 is still the folder’s copy', J([h.ok, ...head(fold)]), J([true, 'BRAD-1', 700]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once let go, the save lands: BRAD-2, $720, saved by Brad, its writer, is the folder’s copy; Brad is saved, recorded against it; v1 in the history; "✅ Saved"',
++      J([mains(fold) - m0, ...head(fold), ...who(fold), saved(A.ev), onHead(A.ev, fold), histHolds(fold), /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\.$/.test(status(A.ev))]),
++      J([1, 'BRAD-2', 720, 'Brad', 'Brad', true, true, [['BRAD-1', 700]], true]));
++  }
++
++  // (5) CONTROL -- THE SECOND WRITER LANDS BEFORE BRAD'S SAVE READS THE FOLDER: the clash as it always was. Nothing is written,
++  // not even a history copy.
++  { const sc = '(5) Bob saves before Brad’s save reads the folder (a CONTROL)';
++    const { fold, A, Bb, v1 } = await setup(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    chk(name, sc, 'Bob has taken the pen: BOB-2, $650, saved by Bob, its writer, is the folder’s copy', J([...head(fold), ...who(fold)]), J(['BOB-2', 650, 'Bob', 'Bob']));
++    const h0 = fold.hits.hist || 0, m0 = mains(fold), st0 = stamp(A.ev);
++    await A.ev('saveInPlace()'); await pause(5);
++    chk(name, sc, 'Brad’s save writes nothing -- no history copy, no copy of the folder’s; BOB-2 is still the folder’s copy',
++      J([(fold.hits.hist || 0) - h0, mains(fold) - m0, ...head(fold), ...who(fold)]), J([0, 0, 'BOB-2', 650, 'Bob', 'Bob']));
++    refusedThen(sc, fold, A, v1, EARLY, ['BRAD-2', 720], null, st0);
++  }
++
++  // (6) THE FOLDER'S COPY GONE, UNREADABLE, OR CHANGED WHILE THE BOARD MOVED TO ANOTHER YEAR, just before the write. Each is
++  // refused in its own words, and nothing is written in its place. (c) names FY27, the year the save was for, and who saved
++  // its copy and when, and offers no choice: Load theirs and Save yours over theirs act on the year on screen, as 💾 Save
++  // would: its advice is to go back to FY27 first.
++  for (const [k, what, during, said] of [
++    ['a', 'removed', fold => { delete fold.root.files[NM]; }, NOTSAVED('is no longer there')],
++    ['b', 'unreadable', fold => { fold.failRead[NM] = new Error('the share is syncing'); }, NOTSAVED('could not be read again just before it was to be written over — the share is syncing')],
++    ['c', 'saved by Bob, and Brad’s board moved to FY28,', null, '⛔ Not saved. The shared folder’s copy of O&M FY27 changed while this save was under way — Bob saved it just now. Nothing was written in its place: a save never writes over a copy it has not read. Your FY27 work is still here — go back to FY27 and 💾 Save to read the folder afresh.']]) {
++    const sc = '(6' + k + ') the folder’s copy ' + what + ' while Brad’s save is held';
++    const { fold, A, Bb, v1 } = await setup(sc);
++    const h = await held(A, fold); await pause(5);
++    // (c): Brad's clock and Bob's are moved on seven minutes first, so the copy the save read was saved "7 min ago" and
++    // Bob's "just now": the words name when Bob's copy was saved, not when the copy the save read was.
++    const later = `globalThis.__realNow=Date.now; Date.now=function(){ return globalThis.__realNow.call(Date)+7*60000; }; 'ok'`;
++    if (during) during(fold); else { A.ev(`switchYear(2028); 'ok'`); A.ev(later); Bb.ev(later); await Bb.ev('takePen()'); await pause(5); }
++    const want = k === 'a' ? ['(no copy)', null] : k === 'b' ? ['BRAD-1', 700] : ['BOB-2', 650];
++    const m0 = mains(fold);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'nothing is written in its place: the folder holds what it held during the hold; v1 in the history',
++      J([h.ok, mains(fold) - m0, ...head(fold), inHist(fold, ['BRAD-1', 700])]), J([true, 0, ...want, true]));
++    chk(name, sc, 'Brad is told, word for word, with no choice offered', J([status(A.ev), buttons(A.ev)]), J([said, []]));
++    if (k === 'c') { A.ev(`Date.now=globalThis.__realNow; switchYear(2027); 'ok'`); Bb.ev(`Date.now=globalThis.__realNow; 'ok'`); }
++    chk(name, sc, 'Brad’s FY27 work stays in the board, unsaved, recorded against v1', J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1)]), J(['BRAD-2', 720, true, true]));
++  }
++
++  // (6d), (6e) A TAKE-THE-PEN SAVE STOPPED BECAUSE THE FOLDER'S COPY IS GONE, OR CANNOT BE READ, just before its write. Its
++  // pen line and the board's stamp go back on that refusal too, not only on the clash: Brad loads Bob's copy and, with nothing
++  // typed, takes the pen, which saves; held, while Bob's copy is removed -- (e) cannot be read. Nothing is written in its
++  // place, the journal holds no line saying Brad took the pen, and the board is still stamped with Bob's copy's time and
++  // Bob's name.
++  for (const [k, what, during, said] of [
++    ['d', 'removed', fold => { delete fold.root.files[NM]; }, NOTSAVED('is no longer there')],
++    ['e', 'unreadable', fold => { fold.failRead[NM] = new Error('the share is syncing'); }, NOTSAVED('could not be read again just before it was to be written over — the share is syncing')]]) {
++    const sc = '(6' + k + ') nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy ' + what + ' while that save is held';
++    const { fold, A, Bb } = await setup(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    const bob2 = fold.raw(2027);
++    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name; the journal’s one pen line is Bob’s (a CONTROL)',
++      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), penTakers(A.ev)]), J(['BOB-2', 650, true, true, 'Bob', ['Bob']]));
++    const h = await held(A, fold, 'takePen()'); await pause(5);
++    during(fold); const m0 = mains(fold);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'nothing is written in its place; Brad is told, word for word, with no choice offered',
++      J([h.ok, mains(fold) - m0, status(A.ev), buttons(A.ev)]), J([true, 0, said, []]));
++    chk(name, sc, 'Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name',
++      J([penTakers(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J([['Bob'], true, 'Bob']));
++  }
++
++  // (7) THE FOLDER'S FIRST COPY. Nothing was in the folder when Brad's save read it; it is held at its read just before its
++  // write, and Bob's first copy lands meanwhile -- (b) one that cannot be read. Nothing is written over it. (b)'s words
++  // do not say the copy could not be read "again": nothing was read the first time.
++  for (const k of ['a', 'b']) {
++    const sc = '(7' + k + ') the folder’s first copy: Bob’s lands while Brad’s save is held' + (k === 'b' ? ', and cannot be read' : '');
++    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await pause(5);
++    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
++    Bb.ev(`_liveCfg.folder='shared'; setNote('A','BOB-1'); setAlloc('A','650'); 'ok'`); await pause(5);
++    const hr = holdRead(fold, 2);   // the save's first read finds nothing; its second is the one just before its write
++    const p = A.ev('saveInPlace()'); const reached = await until(() => hr.hit());
++    if (!reached) hr.g.open();   // a save that never makes that read is not held: Bob's own reads must not wait for it
++    await Bb.ev('saveInPlace()'); await pause(5);
++    chk(name, sc, 'Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)',
++      J([reached, +A.ev('_saveBusy'), ...head(fold), ...who(fold)]), J([true, 1, 'BOB-1', 650, 'Bob', 'Bob']));
++    if (k === 'b') fold.failRead[NM] = new Error('the share is syncing');
++    const m0 = mains(fold);
++    hr.g.open(); await p; await pause(5);
++    chk(name, sc, 'nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history', J([mains(fold) - m0, ...head(fold), ...who(fold), hist(fold).length]), J([0, 'BOB-1', 650, 'Bob', 'Bob', 0]));
++    chk(name, sc, 'Brad’s work stays on screen and unsaved, with nothing recorded for the folder', J([...scr(A.ev), unsaved(A.ev), base(A.ev)]), J(['BRAD-1', 700, true, 0]));
++    const st = status(A.ev);
++    chk(name, sc, 'Brad is told -- ' + (k === 'a' ? 'Bob saved it while his save was under way, with both choices' : 'it could not be read, with no choice'),
++      J(k === 'a' ? [st.startsWith('⛔ Bob saved O&M FY27 to the shared folder just now, '), st.endsWith(' Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL), buttons(A.ev)]
++        : [st, buttons(A.ev)]),
++      J(k === 'a' ? [true, true, CHOICES] : [NOTSAVED('could not be read just before it was to be written over — the share is syncing'), []]));
++  }
++
++  // (8) A TAKE-THE-PEN SAVE REFUSED TAKES ITS PEN LINE BACK. Bob holds the pen; Brad loads Bob's copy, types BRAD-3, $730, and
++  // takes the pen, which saves; held, while Bob saves BOB-3, $640. Brad's save writes nothing over BOB-3, the pen stays Bob's,
++  // and the journal holds no line saying Brad took it.
++  { const sc = '(8) Brad takes the pen; Bob saves while that save is held';
++    const { fold, A, Bb } = await setup(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
++    const bob2 = fold.raw(2027);
++    chk(name, sc, 'Brad loaded Bob’s copy (BRAD-2 kept aside) and typed BRAD-3, $730, unsaved, recorded against Bob’s copy; the journal’s one pen line is Bob’s, carried in his copy (a CONTROL)',
++      J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(bob2), kept(A.ev), penTakers(A.ev), ...who(fold)]), J(['BRAD-3', 730, true, true, ['BRAD-2', 720], ['Bob'], 'Bob', 'Bob']));
++    const st0 = stamp(A.ev); const h = await held(A, fold, 'takePen()'); await pause(5);
++    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
++    chk(name, sc, 'while Brad’s take-the-pen save is held, Bob saves: BOB-3, $640, saved by Bob, its writer, is the folder’s copy (a CONTROL)',
++      J([h.ok, ...head(fold), ...who(fold)]), J([true, 'BOB-3', 640, 'Bob', 'Bob']));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save writes nothing over it: BOB-3, $640, saved by Bob, still its writer, is the folder’s copy; Bob’s copy BOB-2 in the history',
++      J([...head(fold), ...who(fold), inHist(fold, ['BOB-2', 650])]), J(['BOB-3', 640, 'Bob', 'Bob', true]));
++    chk(name, sc, 'Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as it was',
++      J([penTakers(A.ev), ...scr(A.ev), unsaved(A.ev), kept(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], 'BRAD-3', 730, true, ['BRAD-2', 720], true]));
++    chk(name, sc, 'Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
++  }
++
++  // (8b) A CHANGE TYPED WHILE THE STOPPED SAVE WAS HELD. save() keeps every change in browser storage -- the working plan as
++  // the take-the-pen save had stamped it, its pen line in it. Stopped, the save keeps the plan again as put back: browser
++  // storage, and the board reopened from it, hold no line saying Brad took the pen.
++  { const sc = '(8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Brad reopens';
++    const { fold, A, Bb } = await setup(sc);
++    const penIn = txt => { try { const st = JSON.parse(txt); return (st.jrnl || []).filter(e => e && e.p && e.p[0] === '(writer)').map(e => e.b); } catch (e) { return ['(unreadable)']; } };
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
++    const h = await held(A, fold, 'takePen()'); await pause(5);
++    A.ev(`setNote('A','BRAD-4'); 'ok'`); await pause(5);
++    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
++    chk(name, sc, 'while Brad’s take-the-pen save is held, he types BRAD-4, kept in browser storage, and Bob saves BOB-3, his, the folder’s copy (a CONTROL)',
++      J([h.ok, ...stored(A.ev), ...head(fold), ...who(fold)]), J([true, 'BRAD-4', 730, 'BOB-3', 640, 'Bob', 'Bob']));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen',
++      J([...head(fold), ...who(fold), ...stored(A.ev), penIn(A.ev('localStorage.getItem(_AP.key)'))]), J(['BOB-3', 640, 'Bob', 'Bob', 'BRAD-4', 730, ['Bob']]));
++    const A2 = boot({ html: F1, ls: W1H.lsOf(A.ev) }); await pause(80); wire(A2.ev, 'Brad', KEY.brad); connect(A2.ev, A2.w, fold);
++    chk(name, sc, 'the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen',
++      J([...scr(A2.ev), penTakers(A2.ev)]), J(['BRAD-4', 730, ['Bob']]));
++  }
++
++  // (8c) A CHANGE TYPED WHILE THE SAVE IS HELD KEEPS ITS OWN STAMP. The stopped save puts the board's stamp back only if it
++  // is still the one this save gave it: Brad types BRAD-3 while his save is held, which stamps the board itself, and that
++  // stamp stays -- the board was last changed then, by Brad, not when v1 was saved.
++  { const sc = '(8c) Brad types BRAD-3 while his save is held; Bob takes the pen';
++    const { fold, A, Bb } = await setup(sc);
++    const h = await held(A, fold); await pause(5);
++    A.ev(`setNote('A','BRAD-3'); 'ok'`); await pause(5);
++    const typed = stamp(A.ev);
++    await Bb.ev('takePen()'); await pause(5);
++    chk(name, sc, 'while Brad’s save is held, he types BRAD-3, kept in browser storage; Bob takes the pen: BOB-2, $650, saved by Bob, its writer, is the folder’s copy (a CONTROL)',
++      J([h.ok, ...stored(A.ev), ...head(fold), ...who(fold)]), J([true, 'BRAD-3', 720, 'BOB-2', 650, 'Bob', 'Bob']));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile gave it, by Brad',
++      J([...head(fold), ...who(fold), ...scr(A.ev), ...stored(A.ev), unsaved(A.ev), J(stamp(A.ev)) === J(typed), stamp(A.ev)[1]]),
++      J(['BOB-2', 650, 'Bob', 'Bob', 'BRAD-3', 720, 'BRAD-3', 720, true, true, 'Brad']));
++  }
++
++  // (9) THE LIVE AUTOSAVE: the same folder save, quiet, from the Live timer -- the save that runs most often. Held at its
++  // history copy while Bob takes the pen, then let go: it writes nothing over BOB-2, and the board does not say it saved.
++  { const sc = '(9) Bob takes the pen while Brad’s Live autosave is held';
++    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
++    A.ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // what working out of the folder turns on
++    const h = await held(A, fold, 'liveTick()'); await pause(5);
++    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
++    chk(name, sc, 'while Brad’s autosave is held, Bob takes the pen: BOB-2, $650, saved by Bob, its writer now, is the folder’s copy (a CONTROL)',
++      J([h.ok, ...head(fold), ...who(fold), mains(fold) - m0]), J([true, 'BOB-2', 650, 'Bob', 'Bob', 1]));
++    // What the autosave itself says is read before the refresh the Live timer makes next, in the same tick, says its own
++    // line over it: that refresh is held at its read of the folder's copy -- the second read of it from here, the first
++    // being the save's own, just before its write.
++    const hr = holdRead(fold, 2);
++    h.g.open(); const reached = await until(() => hr.hit());
++    chk(name, sc, 'the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick',
++      J([reached, status(A.ev), buttons(A.ev)]), J([true, LATE, CHOICES]));
++    hr.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s; v1 in the history and nothing else',
++      J([...head(fold), ...who(fold), mains(fold) - m0, histHolds(fold)]), J(['BOB-2', 650, 'Bob', 'Bob', 1, [['BRAD-1', 700]]]));
++    const st = status(A.ev);
++    chk(name, sc, 'Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing says it saved',
++      J([...scr(A.ev), ...stored(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), st.includes('Bob saved O&M'), /Saved|automatically/.test(st)]),
++      J(['BRAD-2', 720, 'BRAD-2', 720, true, true, true, true, false]));
++  }
++
++  // (9b) CONTROL -- THE LIVE AUTOSAVE AFTER BOB HAS TAKEN THE PEN: the clash found when it reads the folder, as it always was.
++  { const sc = '(9b) Bob takes the pen before Brad’s Live autosave reads the folder (a CONTROL)';
++    const { fold, A, Bb, v1 } = await setup(sc); const st0 = stamp(A.ev);
++    A.ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);
++    await Bb.ev('takePen()'); await pause(5);
++    const h0 = fold.hits.hist || 0, m0 = mains(fold);
++    await A.ev('liveTick()'); await pause(5);
++    const st = status(A.ev);
++    chk(name, sc, 'the autosave writes nothing -- no history copy, no copy of the folder’s; BOB-2 is still the folder’s copy; Brad’s work stays, unsaved, recorded against v1, the stamp as it was; he is told Bob saved, and nothing says it saved',
++      J([(fold.hits.hist || 0) - h0, mains(fold) - m0, ...head(fold), ...who(fold), ...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), st.includes('Bob saved O&M'), /Saved|automatically/.test(st)]),
++      J([0, 0, 'BOB-2', 650, 'Bob', 'Bob', 'BRAD-2', 720, true, true, true, true, false]));
++  }
++
++  // (10) THE STAMP NAMES WHO SAVED. Brad loads Bob's copy and, with nothing typed, takes the pen, which saves; held, while Bob
++  // saves BOB-3. Stopped, Brad's board still says it was saved when Bob saved it, and by Bob -- in its header's tooltip too.
++  { const sc = '(10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that save is held';
++    const { fold, A, Bb } = await setup(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    const bob2 = fold.raw(2027), hd0 = header(A.ev);
++    const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
++    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name (a CONTROL)',
++      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J(['BOB-2', 650, true, true, 'Bob']));
++    const h = await held(A, fold, 'takePen()'); await pause(5);
++    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob',
++      J([...head(fold), ...who(fold), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), header(A.ev) === hd0, tip(A.ev).includes(' by Bob. '), tip(A.ev).includes(' by Brad. ')]),
++      J(['BOB-3', 640, 'Bob', 'Bob', true, 'Bob', true, true, false]));
++  }
++
++  // (11) A LOCKED VIEW PUT ON SCREEN WHILE THE SAVE IS HELD. The view sets the working plan aside and puts a throwaway copy
++  // on screen; the save stopped just before its write puts the stamp back and takes the pen line out, on the working plan
++  // and on that copy, so the view says what happened while it is on screen, and the working plan once the view is left:
++  // (a) nothing unsaved -- still saved when v1 was, by Brad, its header unchanged (Brad's clock is moved on seven minutes
++  // first, so a header naming the stopped save would differ); (b) a take-the-pen save -- the journal holds no line saying
++  // Brad took the pen, and the stamp is as it was.
++  // Brad saves v1 with PB27 locked; Bob loads it and types BOB-2.
++  const setupLocked = async sc => {
++    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    A.ev(`_liveCfg.folder='shared'; setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`);
++    await A.ev('saveInPlace()'); await pause(5);
++    const v1 = fold.raw(2027);
++    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
++    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
++    chk(name, sc, 'v1 is BRAD-1, $700, saved by Brad, its writer; Brad is saved, stamped with its time and his name; PB27 is locked; Bob shows BOB-2 (a CONTROL)',
++      J([...inCopy(v1), ...who(fold), saved(A.ev), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), A.ev(`!!blGet('PB|2027')`), ...scr(Bb.ev)]),
++      J(['BRAD-1', 700, 'Brad', 'Brad', true, true, 'Brad', true, 'BOB-2', 650]));
++    return { fold, A, Bb, v1 };
++  };
++  { const sc = '(11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes the pen';
++    const { fold, A, Bb, v1 } = await setupLocked(sc);
++    const tipHead = ev => String(ev(`(document.getElementById('saveState')||{}).title||''`)).split('. ')[0];
++    A.ev(`render(); 'ok'`); const hd0 = header(A.ev), tp0 = tipHead(A.ev);
++    A.ev(`globalThis.__realNow=Date.now; Date.now=function(){ return globalThis.__realNow.call(Date)+7*60000; }; 'ok'`);
++    const h = await held(A, fold); await pause(5);
++    A.ev(`cycView('PB|2027'); 'ok'`);
++    const m0 = mains(fold); await Bb.ev('takePen()'); await pause(5);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save, let go, writes nothing over BOB-2, $650, saved by Bob, its writer; one write of the folder’s copy since the hold, Bob’s; PB27 is on screen',
++      J([h.ok, mains(fold) - m0, ...head(fold), ...who(fold), A.ev('String(CYCVIEW)')]), J([true, 1, 'BOB-2', 650, 'Bob', 'Bob', 'PB|2027']));
++    chk(name, sc, 'while PB27 is still on screen, its header and its tooltip say what they said before the save, too',
++      J([header(A.ev) === hd0, tipHead(A.ev) === tp0]), J([true, true]));
++    // What Brad is told is read here too, before the view is left (leaving says "Back on the working plan" over it). By
++    // his clock, moved on seven minutes, Bob's copy was saved "7 min ago": the start and the end of the line are read.
++    const stv = status(A.ev);
++    chk(name, sc, 'while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices',
++      J([stv.startsWith('⛔ Bob saved O&M FY27 to the shared folder '), stv.endsWith(', after the copy you are working from. Their copy landed while your save was under way, and your save stopped before writing over it. ' + TAIL), buttons(A.ev)]),
++      J([true, true, CHOICES]));
++    A.ev(`cycLeave(); render(); 'ok'`); await pause(5);
++    chk(name, sc, 'once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save',
++      J([saved(A.ev), +A.ev('MS.ts') === tsOf(v1), A.ev('MS.by'), header(A.ev) === hd0, tipHead(A.ev) === tp0, hd0.startsWith('Saved ')]),
++      J([true, true, 'Brad', true, true, true]));
++    A.ev(`Date.now=globalThis.__realNow; 'ok'`);
++  }
++  { const sc = '(11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves';
++    const { fold, A, Bb } = await setupLocked(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
++    chk(name, sc, 'Brad loaded Bob’s copy and typed BRAD-3, $730, unsaved; the journal’s one pen line is Bob’s; Bob is the writer (a CONTROL)',
++      J([...scr(A.ev), unsaved(A.ev), penTakers(A.ev), ...who(fold)]), J(['BRAD-3', 730, true, ['Bob'], 'Bob', 'Bob']));
++    const st0 = stamp(A.ev); const h = await held(A, fold, 'takePen()'); await pause(5);
++    A.ev(`cycView('PB|2027'); 'ok'`);
++    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'Brad’s save, let go, writes nothing over BOB-3, $640, saved by Bob, still its writer',
++      J([h.ok, ...head(fold), ...who(fold)]), J([true, 'BOB-3', 640, 'Bob', 'Bob']));
++    chk(name, sc, 'while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was',
++      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], true]));
++    chk(name, sc, 'while PB27 is still on screen, Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
++    A.ev(`cycLeave(); 'ok'`); await pause(5);
++    chk(name, sc, 'once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved',
++      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0), ...scr(A.ev), unsaved(A.ev)]), J([['Bob'], true, 'BRAD-3', 730, true]));
++  }
++  // (11c) WHO SAVED, ON THE VIEW. In (11a) and (11b) the stamp names Brad before the save and after it, so only its time
++  // is told apart there. Here, as in (10), Brad takes the pen over Bob's copy with nothing typed, and PB27 is put on screen
++  // during the held save: while the view is on screen, it still says Bob saved it, and when.
++  { const sc = '(11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen while that save is held; Bob saves';
++    const { fold, A, Bb } = await setupLocked(sc);
++    await Bb.ev('takePen()'); await pause(5);
++    await A.ev(`driveResolve('theirs')`); await pause(5);
++    const bob2 = fold.raw(2027);
++    const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
++    chk(name, sc, 'Brad shows Bob’s copy, BOB-2, $650, saved, stamped with its time and Bob’s name (a CONTROL)',
++      J([...scr(A.ev), saved(A.ev), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by')]), J(['BOB-2', 650, true, true, 'Bob']));
++    const h = await held(A, fold, 'takePen()'); await pause(5);
++    A.ev(`cycView('PB|2027'); 'ok'`);
++    Bb.ev(`setNote('A','BOB-3'); setAlloc('A','640'); 'ok'`); await Bb.ev('saveInPlace()'); await pause(5);
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad',
++      J([...head(fold), A.ev('String(CYCVIEW)'), +A.ev('MS.ts') === tsOf(bob2), A.ev('MS.by'), tip(A.ev).includes(' by Bob. '), tip(A.ev).includes(' by Brad. ')]),
++      J(['BOB-3', 640, 'PB|2027', true, 'Bob', true, false]));
++    A.ev(`cycLeave(); 'ok'`); await pause(5);
++  }
++
++  // (12) BYTE FOR BYTE, NOT BY ITS STAMP. While Brad's save is held, the folder's copy is rewritten with v1's own stamp and
++  // saver but another note -- not by this board, which stamps every save it makes. The save writes nothing over it. (Its
++  // words name the copy as it names itself, saved by Brad; they are not checked here.) EDITED is as long as BRAD-1 on
++  // purpose: a comparison of lengths, not of bytes, would take it for the copy read.
++  { const sc = '(12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held';
++    const { fold, A, v1 } = await setup(sc); const st0 = stamp(A.ev);
++    const h = await held(A, fold); await pause(5);
++    const j = JSON.parse(v1), cs = j.store || j; cs.years[cs.cur].notes.A = 'EDITED'; fold.root.files[NM] = JSON.stringify(j);
++    const m0 = mains(fold);
++    chk(name, sc, 'while Brad’s save is held, the folder’s copy reads EDITED, $700, stamped as v1 is, saved by Brad, its writer (a CONTROL)',
++      J([h.ok, ...head(fold), headTs(fold) === tsOf(v1), ...who(fold)]), J([true, 'EDITED', 700, true, 'Brad', 'Brad']));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history',
++      J([mains(fold) - m0, ...head(fold), inHist(fold, ['BRAD-1', 700])]), J([0, 'EDITED', 700, true]));
++    chk(name, sc, 'Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered',
++      J([...scr(A.ev), unsaved(A.ev), base(A.ev) === tsOf(v1), J(stamp(A.ev)) === J(st0), buttons(A.ev)]), J(['BRAD-2', 720, true, true, true, CHOICES]));
++  }
++
++  // (13) THE MIXED-IMPORT HOLD IS CHECKED AFTER THIS READ (U4). The read just before the write is now the folder save's last
++  // wait, so U4's check of the hold after the last wait comes after it. 💾 Save is held at its second read of the folder's
++  // copy (this one); a full import stops part-way there and cannot be put back; the save is let go: nothing is written over
++  // the folder's copy, the board says writing to it is refused and not Saved, the note stays unsaved and the stamp as it
++  // was. The control lets the same hold go with nothing happening there: the save writes and says Saved. (U4's own helpers
++  // and words; the round-3 tests review's probe. The board before this change makes no second read, so the hold is never
++  // reached there.)
++  { const { NEW, OLD } = w2Fx();
++    const { tick } = W1H;
++    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
++    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
++      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
++    for (const withImport of [true, false]) {
++      const sc = '(13) 💾 Save held at its second read of the folder’s copy, just before its write'
++        + (withImport ? ', the import stops part-way there' : ' (a CONTROL: nothing happens there)');
++      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
++      wire(T.ev, 'brad', KEY.brad);
++      const fold = folder(); connect(T.ev, T.w, fold);
++      const fy = +T.ev('MS.cur'), nm = 'spmt-' + fy + '-om.json';
++      await T.ev('saveInPlace()');
++      const v1 = fold.raw(fy);
++      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
++      const s0 = J(stamp(T.ev)), m0 = fold.hits.main || 0;
++      const g = gate(), gh = fold.dir.getFileHandle; let seen = 0, hit = 0;
++      fold.dir.getFileHandle = async (n, o) => { if (n === nm && !(o && o.create) && ++seen === 2) { hit = 1; await g.p; } return gh(n, o); };
++      const p = T.ev('saveInPlace()');
++      const reached = await until(() => hit === 1);
++      if (!reached) g.open();
++      if (withImport) chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on (a CONTROL)', stop(T), J([false, true, 'true']));
++      g.open(); await p; await turns(30);
++      if (!withImport) {
++        chk(name, sc, 'the save writes the folder’s copy once, with the note, and says Saved',
++          J([reached, (fold.hits.main || 0) - m0, fold.note(fy, 'A'), /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J([true, 1, 'EDIT-1', true]));
++        continue;
++      }
++      chk(name, sc, 'nothing is written over the folder’s copy: it keeps its bytes', J([reached, (fold.hits.main || 0) - m0, fold.raw(fy) === v1]), J([true, 0, true]));
++      chk(name, sc, 'the board says writing to the shared folder is refused, and does not say Saved',
++        J([/Writing to the shared folder is refused/.test(status(T.ev)), /✅ Saved/.test(status(T.ev))]), J([true, false]));
++      chk(name, sc, 'the note typed stays unsaved, and the board’s stamp is what it was before the save', J([T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]), J(['true', true]));
++    }
++  }
++
++  // (14) THE HOLD AND A LANDED COPY TOGETHER. A full import stops part-way while the save keeps its history copy, and Bob's
++  // copy lands there too. Nothing is written over Bob's copy, and the hold is what is said, as U4's check says it: under the
++  // hold the clash's two choices are refused, and the stopped import asked for the two copies its message line offers to be
++  // saved before anything else; the quiet autosave leaves that line as it is. (The board before this change passes: U4's
++  // check after the history copy refuses there. The round-4 money review's probe Q2.)
++  { const { NEW, OLD } = w2Fx();
++    const { tick } = W1H;
++    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
++    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
++      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
++    const RESCUE = ["fullImportRescue('pre')", "fullImportRescue('inc')"];
++    for (const how of ['saveInPlace()', 'driveStorePush(true)']) {
++      const sc = '(14) ' + (how === 'saveInPlace()' ? '💾 Save' : 'the Live autosave') + ' held at the close of its history copy; a full import stops part-way there, and Bob’s copy lands there';
++      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
++      wire(T.ev, 'brad', KEY.brad);
++      const fold = folder(); connect(T.ev, T.w, fold);
++      const fy = +T.ev('MS.cur'), nm = 'spmt-' + fy + '-om.json';
++      await T.ev('saveInPlace()');
++      const v1 = fold.raw(fy);
++      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
++      const s0 = J(stamp(T.ev)), m0 = fold.hits.main || 0;
++      const h = await held(T, fold, how);
++      const ctl = stop(T), s1 = status(T.ev), b1 = buttons(T.ev);
++      const j = JSON.parse(v1), t = Date.now() + 1000; j.by = 'Bob'; j.ts = t; j.store.ts = t;
++      j.writer = { by: 'Bob', fp: 'c'.repeat(40), t }; j.store.years[fy].notes.A = 'BOB-2'; const bob = JSON.stringify(j); fold.root.files[nm] = bob;
++      chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on; its line offers both copies; Bob’s copy is the folder’s copy (a CONTROL)',
++        J([h.ok, ctl, RESCUE.map(b => b1.includes(b)), fold.note(fy, 'A')]), J([true, J([false, true, 'true']), [true, true], 'BOB-2']));
++      h.g.open(); const ret = await h.p; await turns(30);
++      chk(name, sc, 'nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was',
++        J([(fold.hits.main || 0) - m0, fold.raw(fy) === bob, ret === true, /✅ Saved/.test(status(T.ev)), T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]),
++        J([0, true, false, false, 'true', true]));
++      if (how === 'saveInPlace()') chk(name, sc, 'the board says writing to the shared folder is refused, and its line still offers the two copies the stopped import asked to be saved first',
++        J([/Writing to the shared folder is refused/.test(status(T.ev)), RESCUE.map(b => buttons(T.ev).includes(b))]), J([true, [true, true]]));
++      else chk(name, sc, 'the message line is the import’s own, unchanged', J(status(T.ev) === s1), J(true));
++    }
++  }
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, keepBoards());
++  await settleBoards();
++})();
++// ==== end v2.00 (U18) ====
+ // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
+ // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
+ // under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put

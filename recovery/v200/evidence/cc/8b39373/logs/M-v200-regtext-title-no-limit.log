@@ -1,0 +1,46 @@
+# label: M-v200-regtext-title-no-limit
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/out/M-v200-regtext-title-no-limit.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-title-no-limit.html
+# start: 2026-10-13 19:43:43 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-title-no-limit.html","BOARD_set":true,"board":"acc7575c01f87a2ed8deb5d939f9978a9dadc0b0","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs","harnessBlob":"727b63debe73ac14e7545926046771e93481078c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 7:43:44 PM ET"}
+
+================================================================================================
+11 FAILING CHECK(S)
+
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 81 letters
+    refused: the list keeps "base", the field keeps what was typed, marked, and the status says the title was not changed
+        got ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",null,true,""]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 200 letters
+    refused, the same: nothing is cut to 80 and kept
+        got ["BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",null,true,""]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB…” is 200 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 80 letters and an emoji
+    81 characters (82 halves): refused, said as 81 characters
+        got ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",null,true,""]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…” is 81 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | the workbook after the refusals
+    RCN-EEIC by Month still prints K1 as "11111 / AAAAA  base": USAF 900, ANG 200
+        got [["11111 / AAAAA  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",900],["11111 / AAAAA  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",200]]   want [["11111 / AAAAA  base",900],["11111 / AAAAA  base",200]]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | a refused title saves nothing
+    81 letters typed: the list keeps "base", the board is not marked changed, its save stamp stays 1
+        got ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",true,1791935029501]   want ["base",false,1]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | the title field in the RCN / EEIC panel
+    81 letters typed there: refused, and that same field stays on screen holding them, marked
+        got ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",null,true,false]   want ["base","true",true,true]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 81 letters with spaces before them
+    refused, said as 81 characters, the status quoting the title trimmed, as it would be kept
+        got ["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",null,true,""]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | a 100-letter title from a file, retyped in the panel
+    the field shows all 100; 100 other letters typed there are refused, said as 100 characters, and the file's title is kept
+        got [true,false,null,""]   want [true,true,"true","⚠ RCN / EEIC title not changed. The title “MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM…” is 100 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | that file saved and reopened
+    its title is still the 100 letters it arrived with
+        got [["K1","MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"]]   want [["K1","LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"]]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 41 letters, each with a separate accent mark
+    82 code points: refused, said as 82 characters (a reader sees 41)
+        got ["ééééééééééééééééééééééééééééééééééééééééé",null,true,""]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “éééééééééééééééééééééééééééééé…” is 82 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | a refused title corrected in its field
+    81 letters refused there, then "good title" typed in the same field: kept, drawn again unmarked, and the refusal is gone from the status line
+        got ["","good title","good title",null,""]   want ["⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed.","good title","good title",null,""]
+# exit 1 at 10/13/2026, 7:44:01 PM ET
+
+# end: 2026-10-13 19:44:01 EDT  exit: 1  wall_s: 18.7

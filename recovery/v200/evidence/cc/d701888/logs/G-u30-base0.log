@@ -1,0 +1,116 @@
+# label: G-u30-base0
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/base0/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/out/G-u30-base0.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/base0 /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/base0/tools/export-audit/G-u30.mjs
+# start: 2026-10-13 19:38:12 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/base0/prioritization-board-grid.html","BOARD_set":false,"board":"fce8a391bd8a248d5185e199d22190c1687eaea0","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/base0/tools/export-audit/G-u30.mjs","harnessBlob":"3b9784d9ff542ab737a90fce5630818f7fe581e3","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:38:13 PM ET"}
+
+================================================================================================
+46 FAILING CHECK(S)
+
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (1) the Live timer, one tab: nothing recorded, B-EDIT unsaved, F0 in the folder
+    tick 1: the autosave asks -- nothing written, F0 still the folder’s copy, the choice offered -- and the tick’s refresh records nothing
+        got [0,"F0",true,1791934699618]   want [0,"F0",true,0]
+    and it says there is no record of the copy the work came from -- never that theirs was saved after it -- [the words, said after]
+        got [false,true]   want [true,false]
+    tick 2: the autosave asks again -- nothing written, F0 still the folder’s copy and its history as it was, B-EDIT unsaved, the choice still offered, nothing said to have saved
+        got [1,"B-EDIT",false,false,false,true]   want [0,"F0",true,true,true,false]
+    💾 Save asks as well: nothing written, nothing asked in a dialog, F0 still the folder’s copy, B-EDIT on screen, the choice offered
+        got [2,0,"B-EDIT","B-EDIT",false]   want [0,0,"F0","B-EDIT",true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (1h) the Live timer, one tab: nothing recorded, B-EDIT unsaved, F0 in the folder; a history copy kept minutes before
+    tick 1: the autosave asks -- nothing written, F0 still the folder’s copy, the choice offered -- and the tick’s refresh records nothing
+        got [0,"F0",true,1791934704137]   want [0,"F0",true,0]
+    and it says there is no record of the copy the work came from -- never that theirs was saved after it -- [the words, said after]
+        got [false,true]   want [true,false]
+    tick 2: the autosave asks again -- nothing written, F0 still the folder’s copy and its history as it was, B-EDIT unsaved, the choice still offered, nothing said to have saved
+        got [1,"B-EDIT",false,false,false,true]   want [0,"F0",true,true,true,false]
+    💾 Save asks as well: nothing written, nothing asked in a dialog, F0 still the folder’s copy, B-EDIT on screen, the choice offered
+        got [2,0,"B-EDIT","B-EDIT",false]   want [0,0,"F0","B-EDIT",true]
+    F0 and B-EDIT each still in a copy the board reaches -- [F0 in the folder or its history, B-EDIT on screen]
+        got [false,"B-EDIT"]   want [true,"B-EDIT"]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+    reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0 and F00 still in the folder’s history
+        got ["B-EDIT2","B-EDIT2",true,false,true]   want ["B-EDIT2","B-EDIT2",true,true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (2) ↻ Refresh now, then 💾 Save
+    ↻ Refresh now records nothing and says no clash -- [recorded, a clash said]
+        got [1791934709017,false]   want [0,false]
+    then 💾 Save asks: nothing written, F0 still the folder’s copy, B-EDIT on screen and unsaved, the choice offered
+        got [1,"B-EDIT","B-EDIT",false,false]   want [0,"F0","B-EDIT",true,true]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+    reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0 and F00 still in the folder’s history
+        got ["B-EDIT2","B-EDIT2",true,false,true]   want ["B-EDIT2","B-EDIT2",true,true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (3) 💾 Save, then ↻ Refresh now, then 💾 Save again
+    ↻ Refresh now records nothing
+        got 1791934712081   want 0
+    the second 💾 Save asks again: nothing written, F0 still the folder’s copy and kept as it was in the history, B-EDIT unsaved
+        got [1,"B-EDIT","[[\"F00\",false],[\"F0\",true]]",false,false]   want [0,"F0","[[\"F00\",false]]",true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (4) a second tab: the Save waits, the Live timer ticks twice
+    B counts both as under way (U20): its Save and the autosave queued behind it
+        got 0   want 2
+    tick 2’s refresh during the wait records nothing
+        got 1791934714196   want 0
+    once A’s save lands: B’s Save and tick 1’s autosave asked; nothing written; and tick 1’s own refresh, nothing under way, recorded nothing
+        got [2,"B-EDIT",false,0,1791934715874]   want [0,"F0",true,0,0]
+    the next 💾 Save asks: nothing written, F0 still the folder’s copy, B-EDIT on screen
+        got [3,"B-EDIT","B-EDIT",false]   want [0,"F0","B-EDIT",true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6) reopened with unsaved work: the opening’s own connect, then 💾 Save
+    the opening’s own connect records nothing
+        got 1791934728273   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (6h) reopened with unsaved work: the opening’s own connect, then 💾 Save; a history copy kept minutes before
+    the opening’s own connect records nothing
+        got 1791934731930   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+    reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0 and F00 still in the folder’s history
+        got ["B-EDIT2","B-EDIT2",true,false,true]   want ["B-EDIT2","B-EDIT2",true,true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (7) a board saved to its own file, not the folder’s copy: ↻ Refresh now, then 💾 Save
+    ↻ Refresh now records nothing
+        got 1791934734382   want 0
+    💾 Save asks: nothing written, F0 still the folder’s copy, the choice offered
+        got [1,"B-EDIT",false]   want [0,"F0",true]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+    reopened: B-EDIT2 on screen and the folder’s copy, recorded against it; F0 and F00 still in the folder’s history
+        got ["B-EDIT2","B-EDIT2",true,false,true]   want ["B-EDIT2","B-EDIT2",true,true,true]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (8) a board file handed over, newer than the folder’s copy: 💾 Save; Load theirs; ↶ Put back
+    the opening’s own connect records nothing (the file is not the folder’s copy)
+        got 1791934737248   want 0
+    💾 Save asks: nothing written, nothing asked in a dialog, F0 still the folder’s copy, the choice offered in the words for nothing recorded
+        got [1,0,"B-EDIT",false,false]   want [0,0,"F0",true,true]
+    Load theirs: F0 on screen, B-EDIT kept aside
+        got ["B-EDIT","B-EDIT"]   want ["F0","B-EDIT"]
+    ↶ Put back, asked: B-EDIT on screen, nothing kept, nothing recorded -- [questions, on screen, kept, recorded]
+        got [1,"B-EDIT","(none)",1791934738120]   want [1,"B-EDIT","(none)",0]
+    and it says Alice saved the folder’s copy, with no record of which copy the work came from -- never that she saved it after -- [the words, “saved after it” said]
+        got [false,true]   want [true,false]
+    then 💾 Save asks again: nothing written; F0 the folder’s copy, B-EDIT on screen
+        got [1,false,"B-EDIT","B-EDIT"]   want [0,true,"F0","B-EDIT"]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (9) the same, with other work already kept aside: Load theirs is refused
+    other work kept aside; 💾 Save asks, nothing written -- [kept, asked, the folder’s copy]
+        got ["OLDER-KEPT",false,"B-EDIT"]   want ["OLDER-KEPT",true,"F0"]
+    Load theirs refused: B-EDIT on screen, OLDER-KEPT still kept, F0 the folder’s copy
+        got ["B-EDIT","OLDER-KEPT","B-EDIT"]   want ["B-EDIT","OLDER-KEPT","F0"]
+    and it calls F0 “a copy”, not “a newer copy” -- it was saved before the file the work came from -- [the words, “newer” said]
+        got [false,true]   want [true,false]
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (10) another year: FY28 saved by Alice’s other machine, never loaded here; ↻ Refresh now on FY28, then 💾 Save
+    ↻ Refresh now on FY28 records nothing (A28 is not what is on screen)
+        got 1791934746429   want 0
+    💾 Save on FY28 asks: nothing written to FY28, A28 still its copy, nothing asked in a dialog, the choice offered
+        got [1,"B27-2",0,false]   want [0,"A28",0,true]
+# exit 1 at 10/13/2026, 7:39:10 PM ET
+
+# end: 2026-10-13 19:39:11 EDT  exit: 1  wall_s: 58.9

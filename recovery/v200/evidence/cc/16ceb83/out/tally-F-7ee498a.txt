@@ -1,0 +1,3 @@
+{"checks": 43, "pass": 19, "fail": 24, "by_kind_total_pass": {"control": [16, 16], "defect": [24, 0], "kept": [3, 3]}}
+vs fr3-FR-u4-base.checks.jsonl : only here 0 only there 0 verdict differs 0 value differs 0 dup keys here 0
+vs F-parent.checks.jsonl : only here 0 only there 0 verdict differs 0 value differs 0 dup keys here 0

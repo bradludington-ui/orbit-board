@@ -1,0 +1,10 @@
+# label: c2-S-audit-ppt
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob
+# cmd: node tools/export-audit/audit-ppt.mjs
+# start: 2026-10-13 19:29:31 EDT
+# cap: 600 s, kill grace 10 s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-13 19:29:37 EDT  exit: 0  wall_s: 6.9

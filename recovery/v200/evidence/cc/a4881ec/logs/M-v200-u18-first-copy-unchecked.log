@@ -1,0 +1,20 @@
+# label: M-v200-u18-first-copy-unchecked
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-first-copy-unchecked.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-first-copy-unchecked.html
+# start: 2026-10-18 15:13:52 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-first-copy-unchecked.html","BOARD_set":true,"board":"f33020a3d5f0139112eb9f055e1f264a6d5e255c","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 3:13:53 PM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (7a) the folder’s first copy: Bob’s lands while Brad’s save is held
+    nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+        got [1,"BRAD-1",700,"Brad","Brad",0]   want [0,"BOB-1",650,"Bob","Bob",0]
+    Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+        got ["BRAD-1",700,false,1792350903848]   want ["BRAD-1",700,true,0]
+    Brad is told -- Bob saved it while his save was under way, with both choices
+        got [false,false,[]]   want [true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+# exit 1 at 10/18/2026, 3:16:42 PM ET
+
+# end: 2026-10-18 15:16:43 EDT  exit: 1  wall_s: 171.6

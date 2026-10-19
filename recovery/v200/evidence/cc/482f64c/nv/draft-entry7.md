@@ -1,0 +1,32 @@
+(7) Commit 7 (board +4 −0; audit-recon +78 −0, a new block after U10 6's Load theirs block; mutate +4 −0. The round-4 money review's proposal, `rec/L6/u10/verify-money-r4/c7`, adopted: the board and the mutation entry byte for byte, the block with one expected value typed)
+
+- **U10 (7 of 12) — ↶ Put back in the change journal is refused in a locked view before the journal is touched** (the same
+  release blocker; found by its round-4 money review, 13 Oct, probe P11). The change journal's ↶ Put back is a write a locked
+  view refuses: its save is refused like any other. But before that save it re-took the journal's record of the board as last
+  journalled from the copy on screen, which is the locked cycle's plan. The refusal put the copy back and left that record as
+  it was. So the first save on the working plan after leaving the view wrote every difference between the cycle and the
+  working plan into the journal, as changes made at that moment by whoever saved. Measured on a two-requirement board: PB27
+  locked; Colleague C then asks $1,200,000,000 for F1 and writes a note on F1; Me M views PB27 and presses ↶ Put back on
+  Colleague C's note (answered OK; "Not kept"); back on the working plan Me M writes a note on F2. The save recorded three
+  entries by Me M: F1's note, F1's requirement of $1,200,000,000 and F2's note. The saved board file carried all three, and the
+  PPBE cycle's changes table named Me M as the last to change F1. ↶ Put back was offered on the entry saying Me M had asked
+  $1,200,000,000 for F1; pressed, it set F1 back to $1,000,000,000. The same on `7ee498a` and on U10 1-6. Now ↶ Put back is
+  refused up front while a locked cycle is on screen, as the imports and the package doors are (U10 2 and 4).
+  - **What users may see:** with a locked cycle on screen, ↶ Put back in the change journal says "🔒 Putting a change back is
+    off while PB27 is on screen … the change was not kept" and asks nothing; on the working plan it works as before.
+  - **Test:** audit-recon "v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it was"
+    (6 checks), on an O&M board of two requirements (F1 PSM $1,000,000,000 asked; F2 PSM $200,000,000): PB27 locked; then
+    Colleague C's two changes; Me M presses the ↶ Put back the journal panel draws for Colleague C's note, in PB27's view; back
+    on the working plan Me M's note on F2 is saved. Read: the status line and the view (the cycle's F1, the journal as it was),
+    the journal entries that save adds (only Me M's note on F2), the journal the board file carries, read from the file's bytes,
+    the cycle table's name for F1 (Colleague C), and how many ↶ Put back buttons sit on Me M entries naming F1 (0). Every entry
+    and figure is typed in the block. Controls: the fixture; on the working plan the same ↶ Put back is allowed and recorded
+    once; no jsdom errors. On `7ee498a` its 3 non-control checks fail; on U10 6 of 12 the 2 after the view fail (U10 1 already
+    puts the journal on screen back); the 3 controls pass on both; at U10 7 of 12 all 6 pass (U10 10 of 12 adds a
+    seventh: the refusal's own words, and that nothing is asked).
+  - **Mutations:** `v200-u10-journal-putback-in-view` (the gate taken out: 2 checks fail). The blocks before this one catch
+    nothing of it: they never press ↶ Put back.
+  - **Not covered:** the journal's record's other writers -- the service list (`svcSaveList`), a wholesale load
+    (`applyStore`) and putting back an earlier copy from the shared folder (`driveRestore`) -- are refused in a view before they
+    reach it (read, not typed).
+

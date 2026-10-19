@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-rules", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const R0=MS.flow? MS.flow.rules : null; MS=cycCopy(c); MS.cur=y; if(R0) flowCfg().rules=R0;"}

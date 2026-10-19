@@ -1,0 +1,1 @@
+{"id": "v200-u18-pen-line-kept", "matches": 1, "find": "      if(penLine) writerJournalUndo(penLine, was.ms);\n      if(was.ms.ts===wroteTs)", "repl": "      if(was.ms.ts===wroteTs)"}

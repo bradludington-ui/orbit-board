@@ -1,0 +1,8 @@
+# label: mkmut-v200-u30-recorded-said-unknown
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888
+# cmd: python3 -I /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/bin/mkmut.py /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/tools/export-audit/mutate.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/prioritization-board-grid.html v200-u30-recorded-said-unknown /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-recorded-said-unknown.html
+# start: 2026-10-13 19:25:07 EDT
+# cap: 600 s, kill grace 10 s
+{"id": "v200-u30-recorded-said-unknown", "matches": 1, "find": "    +(driveBaseOf(ap)? ', after the copy you are working from. '\n", "repl": "    +(false? ', after the copy you are working from. '\n"}
+
+# end: 2026-10-13 19:25:07 EDT  exit: 0  wall_s: 0.2

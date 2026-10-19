@@ -1,0 +1,8 @@
+# label: mcount-before
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888
+# cmd: python3 -I /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/bin/mcount.py /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/before/tools/export-audit/mutate.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/before/prioritization-board-grid.html
+# start: 2026-10-13 19:24:10 EDT
+# cap: 600 s, kill grace 10 s
+{"entries": 1330, "once": 1330, "missing": [], "multiple": [], "unparsed": []}
+
+# end: 2026-10-13 19:24:12 EDT  exit: 0  wall_s: 1.9

@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-door-repeat", "matches": 1, "find": "    if(at[k]){ if(at[k].length===1) rep.push(k); at[k].push(i); } else at[k]=[i]; }", "repl": "    at[k]=[i]; }"}

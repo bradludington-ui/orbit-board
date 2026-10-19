@@ -1,0 +1,36 @@
+# label: M-v200-u4-hist-unchecked
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/M-v200-u4-hist-unchecked.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-unchecked.html
+# start: 2026-10-18 03:59:23 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-unchecked.html","BOARD_set":true,"board":"2aa57f73fdf1d44a0cb7447b9d638e01efccbd10","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs","harnessBlob":"3968755334eb8be9df9ec3f13ebf53282be3a0d8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 3:59:24 AM ET"}
+
+================================================================================================
+9 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, the import stops part-way there
+    nothing is written over the folder’s copy: it keeps its bytes
+        got [true,1,false]   want [true,0,true]
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,true]   want [true,false]
+    the note typed stays unsaved, and the board’s stamp is what it was before the save
+        got ["true",false]   want ["true",true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Take the pen from Alice, held at the close of its history copy, the import stops part-way there
+    nothing is written: the folder’s copy keeps its bytes, and Alice still holds the pen
+        got [true,1,false,"brad"]   want [true,0,true,"Alice"]
+    the journal does not say Brad took the pen, and the board’s stamp is what it was
+        got [1,false]   want [0,true]
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,true,[true]]   want [true,false,[true]]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, a note typed there, then the import stops part-way
+    nothing is written over the folder’s copy, and the board says writing to the shared folder is refused
+        got [1,false,false]   want [0,true,true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | the autosave held at the close of its history copy, the import stops part-way there
+    nothing is written, it reports no save, and the message line is the import’s own, unchanged
+        got [1,false,true,false]   want [0,true,false,true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, the import stops part-way there: the header
+    the header’s saved time and name are what they were before the save
+        got [false,false]   want [true,true]
+# exit 1 at 10/18/2026, 3:59:47 AM ET
+
+# end: 2026-10-18 03:59:47 EDT  exit: 1  wall_s: 23.4

@@ -1,0 +1,1 @@
+{"id": "v200-u18-first-copy-unchecked", "matches": 1, "find": "(cur? (!now || nowRaw.txt!==curRaw.txt) : !!now)", "repl": "(cur? (!now || nowRaw.txt!==curRaw.txt) : false)"}

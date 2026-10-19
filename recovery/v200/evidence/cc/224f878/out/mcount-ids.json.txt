@@ -1,0 +1,1 @@
+{"entries": 1484, "once": 1484, "missing": [], "multiple": [], "unparsed": [], "detail": {"v200-u10-reapply-keeps-partner-money": 1, "v200-u10-reapply-keeps-year-pick": 1}}

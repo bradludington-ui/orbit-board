@@ -1,0 +1,16 @@
+# label: M-v200-u10-pkg-issue-in-view
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/out/M-v200-u10-pkg-issue-in-view.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-pkg-issue-in-view.html
+# start: 2026-10-18 05:07:57 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-pkg-issue-in-view.html","BOARD_set":true,"board":"6b628cd73676197a061a86978712ba14b2b37ef9","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs","harnessBlob":"16230c603de02f3c9c9a5856760005d5bdb69c6c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:07:58 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · pkgIssue(mySlug(), true)
+    refused before anything is asked or handed out; no file, and the package record as it was
+        got ["🔒 Not kept — PB27 is a locked view. ⬆ Issued O&M package #1. Send it to the manager; import their return when it comes back. ⚠ It could not be written to browser storage — use 💾 Save now or this issue is not recorded at all.",[],1,0]   want ["🔒 Issuing a package is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],0,0]
+# exit 1 at 10/18/2026, 5:10:28 AM ET
+
+# end: 2026-10-18 05:10:29 EDT  exit: 1  wall_s: 151.9

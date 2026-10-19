@@ -1,0 +1,42 @@
+diff --git a/base/tools/export-audit/mutate.mjs.txt b/u10/c1r/tools/export-audit/mutate.mjs.txt
+index cbc6def..c6c1ea4 100644
+--- a/base/tools/export-audit/mutate.mjs.txt
++++ b/u10/c1r/tools/export-audit/mutate.mjs.txt
+@@ -4285,6 +4285,37 @@ const MUTATIONS = [
+   { id: "v200-u14-notice-plural-it", area: "flowHtml", what: "the panel's notice says \"keeps it\" however many saved years the board cannot answer for: FY24 and FY26 \"stay in the saved selection\", and switching a year \"keeps it\"",
+     find: "switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>'",
+     repl: "switching a year on or off keeps it.</div>'" },
++  // v2.00 (U10, the review of main f9b4413; fixed on Brad's word of 12 Oct, "keep pressing"): a refused edit in a locked cycle's
++  // view changes no code any export carries.
++  { id: "v200-u10-reapply-year-only", area: "cycReapply", what: "a refused write puts back the year on screen alone, as before U10: 77777 typed into PB27's RCN field says the change was not kept, and RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out then file PB27's dollars under 77777",
++    find: "  MS=cycCopy(c); MS.cur=y;\n  applyState(MS.years[y]); MS.years[y]=S;",
++    repl: "  applyState(JSON.parse(JSON.stringify(c.years[y]))); MS.years[y]=S;" },
++  { id: "v200-u10-reapply-keeps-list", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's RCN / EEIC list: a code typed, a title, a ✕, a + Add or a service box, refused, stays in the view and in every export that prints the code",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const L0=MS.rcn; MS=cycCopy(c); MS.cur=y; MS.rcn=L0;" },
++  { id: "v200-u10-reapply-keeps-years", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's other years: K3's ✕, refused on FY27, has still cleared FY28's pointers, so FY28's exports put CLIN 0001's AFRC $31 on K1",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const Y0=MS.years; MS=cycCopy(c); MS.cur=y; Object.keys(Y0).forEach(function(k){ if(+k!==y) MS.years[k]=Y0[k]; });" },
++  { id: "v200-u10-reapply-keeps-pmos", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's PMO list: ZED renamed WRK, refused, leaves WRK on the list, Q filed under AV in FY27 and WRK in FY28, and every export moves Q's $71 out of ZED",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const P0=MS.pmos; MS=cycCopy(c); MS.cur=y; MS.pmos=P0;" },
++  { id: "v200-u10-reapply-first-year", area: "cycReapply", what: "a refusal while FY28 is on screen puts the copy back on the year the view opened on: the board reads FY27 while FY28's plan and months are on screen",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  MS=cycCopy(c);" },
++  { id: "v200-u10-reapply-older-keeps-list", area: "cycReapply", what: "the view's copy is made again, but a cycle locked before v1.99 (no list kept, so its view reads today's) keeps the refused copy's list: 77777 typed into its RCN field stays in the view and RCN-EEIC by Month prints 77777 / ZZZZZ",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const L0=MS.rcn; MS=cycCopy(c); MS.cur=y; if(!cycRcnOf(c)) MS.rcn=L0;" },
++  // v2.00 (U10, the round-1 test review of 13 Oct): what a refusal puts back beside the codes -- the year on screen, the plan's settings,
++  // the cycle's base year.
++  { id: "v200-u10-reapply-wrong-year", area: "cycReapply", what: "a refusal while FY28 is on screen stays on FY28 but puts the plan of the year the view opened on (FY27) in its place: with R on K4 in PB27's FY28, 77777 typed there leaves RCN-EEIC by Month filing R's USAF $503 under 11111 / AAAAA (USAF K1 $904, K4 $299 instead of $401 and $802)",
++    find: "  MS=cycCopy(c); MS.cur=y;\n  applyState(MS.years[y]); MS.years[y]=S;",
++    repl: "  MS=cycCopy(c); MS.cur=y;\n  applyState(JSON.parse(JSON.stringify(MS.years[+_cycStash.MS.cur]||MS.years[y]))); MS.years[y]=S;" },
++  { id: "v200-u10-reapply-keeps-plan-settings", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's band ladder and funds-flow settings: band 0 renamed in PB27's view is printed RENAMED BAND in the workbook, and the funds-flow axis set to destinations cuts the funds-flow export by destination, after the board said the change was not kept",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const B0=MS.bands, F0=MS.flow; MS=cycCopy(c); MS.cur=y; MS.bands=B0; MS.flow=F0;" },
++  { id: "v200-u10-reapply-working-base", area: "cycReapply", what: "the view's copy is made again on the working plan's base year, not the cycle's: with the working base moved to FY28 after PB27 was locked on FY27, a refusal in PB27's view moves its FYDP window to FY28-FY32",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  MS=cycCopy(c); MS.cur=y; MS.base=_cycStash.MS.base;" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

@@ -1,0 +1,37 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c3/prioritization-board-grid.html	2026-10-13 16:08:39.245398702 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c4/prioritization-board-grid.html	2026-10-13 18:24:57.441884838 +0000
+@@ -8448,0 +8449,3 @@
++  // v2.00 (U10): NOT WITH A LOCKED CYCLE ON SCREEN. The copy on screen is the cycle's: it was kept aside as this browser's work,
++  // and then the load was refused -- a kept copy that is nobody's work, and that "put it back" would make the working plan.
++  if(cycBlock('Loading the shared state file')) return false;
+@@ -8724,0 +8728,2 @@
++  // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
++  if(cycBlock('Issuing a package')) return;
+@@ -8783,0 +8789 @@
++  if(cycBlock('Pushing baselines to the managers')) return;   // v2.00 (U10): as pkgIssue
+@@ -8836,0 +8843 @@
++  if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
+@@ -8856,0 +8864 @@
++  if(cycBlock('Saving a return package')) return;   // v2.00 (U10): as pkgIssue -- it returned the cycle on screen as the work
+@@ -10101,0 +10110,5 @@
++  // v2.00 (U10): REFUSED BEFORE THE FILE IS READ while a locked cycle is on screen, as Import full board already is -- and again
++  // once it is read, in case one was put on screen meanwhile. A package, a submittal or a state file taken here wrote browser
++  // storage or a list every appropriation shares first, and only then met the view's refusal: the board said "Not kept", and
++  // reopened on what it had refused.
++  if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
+@@ -10104,0 +10118 @@
++    if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
+@@ -14216,0 +14231 @@
++    if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }   // v2.00 (U10): and again once it is read -- a view put on screen meanwhile
+@@ -14462,0 +14478 @@
++    if(cycBlock('Importing CCaR records')){ inp.value=''; return; }   // v2.00 (U10): as importBud
+@@ -14526,0 +14543 @@
++    if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }   // v2.00 (U10): as importBud
+@@ -17699,0 +17717 @@
++  if(cycBlock('Copying the band ladder')) return;   // v2.00 (U10): it wrote the other appropriations' boards, then said "Not kept"
+@@ -26842,0 +26861,5 @@
++  // v2.00 (U10): NOT INTO A LOCKED VIEW -- checked after the last wait, before anything is changed. The copy on screen is the
++  // cycle's: it was kept aside in place of the work this browser holds, the load was refused, and the folder's copy was still
++  // recorded as the one the work came from, saved -- so the first refresh after leaving the view replaced that work, kept nowhere.
++  // Nothing is changed; the first refresh after leaving the view decides afresh. A quiet refresh (the Live timer) says nothing.
++  if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }

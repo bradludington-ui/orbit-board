@@ -1,0 +1,1 @@
+{"id": "v200-u10-folder-connect-quiet", "matches": 1, "find": "if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }", "repl": "if(CYCVIEW){ render(); return false; }"}

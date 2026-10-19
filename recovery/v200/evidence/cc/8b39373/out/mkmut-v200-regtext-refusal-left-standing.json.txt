@@ -1,0 +1,1 @@
+{"id": "v200-regtext-refusal-left-standing", "matches": 1, "find": "if(st && /^⚠ RCN \\/ EEIC title not changed\\./.test(st.textContent)) setStat('');", "repl": ""}

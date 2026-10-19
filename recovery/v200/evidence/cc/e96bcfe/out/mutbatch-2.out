@@ -1,0 +1,8 @@
+M-v200-u10-ladder-copy-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 118.6
+M-v200-u10-ccar-import-race exit=1 | 1 FAILING CHECK(S) | wall_s: 123.2
+M-v200-u10-pkg-push-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 148.6
+M-v200-u10-pkg-issue-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 151.9
+M-v200-u10-pkg-return-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 138.9
+M-v200-u10-pkg-sendback-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 139.0
+batch done 2026-10-18 05:12:48 EDT: v200-u10-ccar-import-race v200-u10-ladder-copy-in-view v200-u10-pkg-issue-in-view v200-u10-pkg-push-in-view v200-u10-pkg-sendback-in-view v200-u10-pkg-return-in-view
+rc=0

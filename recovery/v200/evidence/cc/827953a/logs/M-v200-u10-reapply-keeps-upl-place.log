@@ -1,0 +1,16 @@
+# label: M-v200-u10-reapply-keeps-upl-place
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/out/M-v200-u10-reapply-keeps-upl-place.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/mut/v200-u10-reapply-keeps-upl-place.html
+# start: 2026-10-18 07:00:54 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/mut/v200-u10-reapply-keeps-upl-place.html","BOARD_set":true,"board":"9b3ef75ce6381d31ed40481999cedde3e914da45","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/harness/after/focused-u10.mjs","harnessBlob":"6887c41e08c4b2eccaed3e9de2ae02cdfee6ad27","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 7:00:55 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — holding the unfunded list outside the flow, refused in a locked view, moves no money in any total or export | PB27 viewed · “Hold outside the flow” chosen for the Unfunded Priority List
+    refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count $43,000,000 with the unfunded row as Lockheed Martin
+        got ["fired","🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[[40000000,0,3000000,0,"aside",40000000],[2025],"aside"],"flowSetUplTo('aside')",["ok","ORBIT Funds Flow - FY25 all appropriations [PB27 LOCKED].xlsx","Scope: FY25 · all appropriations",[40000000,40000000],[0],[3000000],[]]]   want ["fired","🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[[43000000,3000000,3000000,3000000,"LM",43000000],[2025],null],"flowSetUplTo('LM')",["ok","ORBIT Funds Flow - FY25 all appropriations [PB27 LOCKED].xlsx","Scope: FY25 · all appropriations",[43000000,43000000],[3000000],[3000000],["NOTE: the total below includes 3000000 of UNFUNDED requirements (Unfunded Priority List, 0% allocated), counted under Lockheed Martin."]]]
+# exit 1 at 10/18/2026, 7:02:30 AM ET
+
+# end: 2026-10-18 07:02:30 EDT  exit: 1  wall_s: 96.3

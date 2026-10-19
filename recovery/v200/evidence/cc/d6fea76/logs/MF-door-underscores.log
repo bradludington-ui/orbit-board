@@ -1,0 +1,13 @@
+# label: MF-door-underscores
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/MF-door-underscores.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/bin/runner-ff.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c01.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-door-underscores.html
+# start: 2026-10-18 19:01:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-door-underscores.html","BOARD_set":true,"board":"60757d0769f31020cc65d470ac9ad1beace2b682","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c01.mjs","harnessBlob":"963cf723d92ece8ea13180cf31dab29898ea8e3c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"af7a9978dd711c918d780037fce248dd3a851fb7","started":"10/18/2026, 7:01:54 PM ET"}
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v2.00 (U32, U33) — an RCN / EEIC list that repeats a key, or holds “__none__” or a key that is not text, never counts money twice: a file handed over with one is refused, and the user’s own board comes across saying what it holds","where":"Codex 2 · PB27 lists K1 and an entry named “__none__”, R1 on none · the door","what":"a file handed over is refused, saying which list, what it hol
+# exit 1 at 10/18/2026, 7:01:58 PM ET
+
+# end: 2026-10-18 19:01:58 EDT  exit: 1  wall_s: 4.6

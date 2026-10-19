@@ -1,0 +1,15 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 7518def..0b082fd 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -27179,6 +27179,10 @@ async function _driveResolveRun(which){
+   // its own save was refused, but once saving was allowed again the autosave wrote over their copy without asking. Load
+   // theirs loaded it. Nothing is asked, kept or recorded now.
+   if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): after the read
++  // v2.00 (U10): NOT INTO A LOCKED VIEW -- checked again once the folder is read, before anything is kept aside or recorded, as
++  // the shared folder's refresh is. A view put on screen while it was read was kept aside as this browser's work, and "put it
++  // back" then made the locked cycle the working plan.
++  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }
+   if(!j){ driveBaseSet(ap, 0); return await _driveStorePushRun(false); }     // gone: nothing left to choose between
+   const theirs=+((j.store&&j.store.ts)||j.ts||0), by=j.by||'someone';
+   if(which==='mine'){

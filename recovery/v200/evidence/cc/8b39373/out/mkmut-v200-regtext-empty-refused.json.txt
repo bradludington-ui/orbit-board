@@ -1,0 +1,1 @@
+{"id": "v200-regtext-empty-refused", "matches": 1, "find": "    if(n>80){ codeRefusedIn(el, 'RCN / EEIC title not changed',", "repl": "    if(n>80||!n){ codeRefusedIn(el, 'RCN / EEIC title not changed',"}

@@ -1,0 +1,383 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index ed93d15..115db27 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -1647,7 +1647,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
+ </section>
+ <section data-part="team" data-id="t-one" data-t="One appropriation in or out">
+ <p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
+-<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes.</p>
++<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…</span> takes it whole.</p>
+ <p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⇊ Import several boards at once…</span> merges several board files in one go. It takes all of them or none: every file is read and checked first — which appropriation it is, that no two are for the same one, its services against that appropriation’s (a different order is matched up by name if you say so) — and if any is refused, cannot be read, or you answer No, nothing is imported and it says why. It is off while a locked cycle is on screen. Should the board on screen still refuse its appropriation once the files are written, every list is put back and read back; if one cannot be put back, it says which lists hold what, holds 💾 Save and the shared folder, and offers this board as it was and each file it took — save them before anything else, as after a full import that stopped part-way. <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
+ </section>
+ <section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
+@@ -5118,6 +5118,9 @@ function rcnBody(){
+   L.forEach(function(e,i){
+     const bad=function(okf,v){ return (v && !okf(v))? ';border-color:var(--amber)' : ''; };
+     const n=rcnUse(e.k);
++    // v2.00 (U32): A ROW THAT REPEATS AN EARLIER ROW'S KEY says so. Every assignment to the key reads the earlier row (rcnEntry)
++    // and the RCN-EEIC sheet counts the key once, so "Used by" on this row counted the earlier row's assignments.
++    const rep=(typeof e.k==='string')? L.findIndex(function(x){ return x && x.k===e.k; }) : i;
+     const svc=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
+     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:74px'
+       +bad(rcnOkNum,e.rcn)+'" value="'+esc(e.rcn||'')+'" placeholder="12345" '
+@@ -5134,7 +5137,9 @@ function rcnBody(){
+       +RCN_SVCS.map(function(sv){
+           return '<td><input type="checkbox"'+(svc.indexOf(sv)>=0?' checked':'')
+             +' onchange="rcnToggleSvc('+i+','+jsa(sv)+')" title="'+esc(sv)+' can use this combo"></td>'; }).join('')
+-      +'<td>'+(n||'\u2014')+'</td>'
++      +'<td>'+(rep<i? '<span style="color:var(--amber)" title="This row has the same key as row '+(rep+1)+'. Every assignment to '
++        +'that key reads row '+(rep+1)+', and the RCN-EEIC sheet counts the key once, so nothing is on this row. Removing it changes '
++        +'no assignment.">\u26a0 repeats row '+(rep+1)+'</span>' : (n||'\u2014'))+'</td>'
+       +'<td><button class="qb" onclick="rcnDel('+i+')" title="remove this combo">\u2715</button></td></tr>';
+   });
+   h+='</table></div>';
+@@ -8540,7 +8545,7 @@ function importBoards(inp){
+     const unread=results.filter(r=>r.unread);
+     if(unread.length) return none('“'+unread[0].name+'” could not be read ('+unread[0].unread+')'+of, true);
+     const refused=results.filter(r=>r.bad);
+-    if(refused.length){ inRefuse(refused[0].name, refused[0].bad+of); return; }
++    if(refused.length){ inRefuse(refused[0].name, refused[0].bad+of, refused[0].txt); return; }
+     const take=results.filter(r=>r.slug&&r.st);
+     // v1.97 (item 77, review R06): EVERYTHING IS DECIDED BEFORE ANYTHING IS WRITTEN. Storage and PUBS were written first and
+     // the board asked afterwards: refused by a locked cycle on screen, or by the service question answered No, the board
+@@ -8619,7 +8624,7 @@ function importBoards(inp){
+       if(over) return; over=true;
+       const rec={name:f.name, i:i, j:0, slug:null, st:null, why:''};
+       rec.bad=inboundCheck(r.result);
+-      if(rec.bad){ results.push(rec); finish(); return; }
++      if(rec.bad){ rec.txt=r.result; results.push(rec); finish(); return; }   // v2.00 (U32, U33): who saved it, for the refusal
+       try{
+         const txt=r.result;
+         let slug=null;
+@@ -9581,6 +9586,35 @@ function inAmtsWhy(a, where){
+ // width the plan's or the submittal's own service list gives (0 when it gives none: opening the board repairs a
+ // width, and pmoTake refuses a listless submittal); `svc` names the services, when the file says what they are.
+ function inAwdWhy(aw, n, svc, at){ const r=awdNorm(aw, {door:true, n:n, svc:svc}); return r.why? 'the award at '+at+' '+r.why : ''; }
++// v2.00 (U32, U33, Codex 12 Oct): AN RCN / EEIC LIST NAMES EACH COMBINATION ONCE, by an entry with a text key of its own. A
++// locked cycle whose list held K1 twice was taken, and its RCN-EEIC sheet printed K1's row twice: USAF $900 exported as $1,800.
++// One whose list held "__none__" -- the name that sheet filed money on no combination under -- printed that money twice as
++// well; and 1 beside "1" is one name twice. What a list holds that breaks this, each as {i, what, why} in the list's order,
++// `entry` set on what is not an entry at all, `nt` on an entry whose key is not text; [] when nothing does.
++const IN_RCN_LIST='the RCN / EEIC list at ', IN_RCN_ENTRY='the RCN / EEIC entry at ';
++function rcnListOdd(L){
++  const out=[], at=Object.create(null), rep=[];
++  if(!Array.isArray(L)) return out;
++  for(let i=0;i<L.length;i++){ const e=L[i];
++    if(!e || typeof e!=='object' || Array.isArray(e)){
++      out.push({entry:true, i:i, what:'is not a combination ('+inShow(JSON.stringify(e))+')', why:'a list holds combinations and nothing else'}); continue; }
++    const k=e.k;
++    if(typeof k!=='string'){
++      const kd=(typeof k==='number')? 'the number '+k : (typeof k==='boolean')? 'the value '+k : (k===null)? 'null' : Array.isArray(k)? 'a list' : 'an object';
++      out.push({i:i, nt:true, what:'holds '+(k===undefined? 'an entry with no key (rcn['+i+'])' : 'a key that is not text (rcn['+i+'].k is '+kd+')'), why:'a key is text'}); continue; }
++    if(/^__/.test(k)) out.push({i:i, what:'holds the key '+inShow(k)+' (rcn['+i+'])', why:'a key beginning with two underscores is one the board keeps for its own bookkeeping'});
++    if(at[k]){ if(at[k].length===1) rep.push(k); at[k].push(i); } else at[k]=[i]; }
++  rep.forEach(function(k){ const I=at[k], n=I.length, ps=I.map(function(j){ return 'rcn['+j+']'; });
++    out.push({i:I[1], what:'holds the key '+inShow(k)+' '+(n===2? 'twice' : n+' times')+' ('+ps.slice(0,-1).join(', ')+' and '+ps[n-1]+')', why:'a key names one combination'}); });
++  return out.sort(function(a, b){ return a.i-b.i; });
++}
++// v2.00 (U32, U33): WHOSE FILE IT IS decides how much of that rule the door applies, for the one check asked for (inboundCheckOwn):
++// '' a file handed over -- all of it; 'board' the user's own board, brought across by a full import -- only a null entry in a
++// working plan's list; 'copy' the team's own copy in the shared folder or beside the board -- none of it, as before. An ORBIT
++// before this one took these lists without a word and saved them: refused, a team's folder froze -- every later Save refused --
++// and a whole board was kept out of the new version. This board reads them right (monSheet, rcnBody, rcnDel).
++var _inRcnNext='', _inRcnOwn='', _inRcnTxt='';
++function inboundCheckOwn(txt, own){ _inRcnNext=own; return inboundCheck(txt); }
+ // The shapes that carry ids, names and amounts, recognised wherever they sit in the file: a requirement
+ // list (a data pack), a year's plan (in a board, a cycle, a snapshot, a package), a band ladder, an office
+ // or service list, a submittal.
+@@ -9659,6 +9693,14 @@ function inShapeWhy(o, path, asPlan){
+     if(!d || typeof d!=='object') return '';
+     for(const f of ['to','end']) if(IN_KEY_BAD.has(String(d[f]))) return 'the destination at '+path+'.dest.'+id+'.'+f+' '+inShow(d[f])+' is a name every object already answers to';
+     return ''; }))) return w;
++  // v2.00 (U32, U33, Codex 12 Oct): AN RCN / EEIC LIST THAT BREAKS THE RULE (rcnListOdd) is refused whole, the working plan's list
++  // and a locked cycle's alike, saying the first thing in it that does; as much of the rule as whose file it is asks for (_inRcnOwn).
++  // On the user's own board an entry that is not one is refused only when it is null and in the working plan's list: the readers
++  // of that list stop at null and read past anything else ("K9", 5); a locked cycle's list is read through cycRcnOf, which leaves
++  // such an entry out, as every ORBIT since v1.99 has; and the full import says it is there.
++  if(Array.isArray(o.rcn) && _inRcnOwn!=='copy'){ const cy=/\.cycles\.[^.]+$/.test(path);
++    const r=rcnListOdd(o.rcn).filter(function(x){ return x.entry? !(_inRcnOwn && (cy || o.rcn[x.i]!==null)) : !_inRcnOwn; })[0];
++    if(r) return (r.entry? IN_RCN_ENTRY+path+'.rcn['+r.i+'] ' : IN_RCN_LIST+path+'.rcn ')+r.what+'; '+r.why; }
+   if(Array.isArray(o.pmos)) for(let i=0;i<o.pmos.length;i++) if((w=inNameWhy(o.pmos[i], 'the office name at '+path+'.pmos['+i+']'))) return w;
+   if(Array.isArray(o.svc)) for(let i=0;i<o.svc.length;i++) if((w=inNameWhy(o.svc[i], 'the service name at '+path+'.svc['+i+']'))) return w;
+   if(o.spmtPkg && o.dir==='submit'){
+@@ -9704,6 +9746,8 @@ function inWalk(root, label){
+ // '' when the file may be read; otherwise why not, in one sentence. A file that cannot be parsed at all
+ // is left to the importer that reads it, which already says so in its own words.
+ function inboundCheck(txt){
++  _inRcnOwn=_inRcnNext; _inRcnNext=''; _inRcnTxt=txt;   // v2.00 (U32, U33): asked for by inboundCheckOwn, for this check only;
++  // and the text checked, which a refusal of it reads to say who saved the file (inRcnTail)
+   const t=(txt===null || txt===undefined)? '' : String(txt);
+   if(t.length>IN_MAX_BYTES) return 'it is '+(t.length/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB';
+   const parts=[];
+@@ -9722,9 +9766,75 @@ function inboundCheck(txt){
+ // The size, from the file itself, before a byte of it is read into the page.
+ function inTooBig(f){ return (f && f.size>IN_MAX_BYTES)? 'it is '+(f.size/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB' : ''; }
+ // The one message a refused file gets, whichever way it came in.
+-function inRefuse(fname, why){
+-  alert('“'+fname+'” was not imported: '+why+'.\n\nA board, a PMO copy, a package or a submittal written by ORBIT never carries that, '
+-    +'so the file is damaged or was not written by ORBIT. Nothing on this board was changed.');
++// v2.00 (U32, U33): but an RCN / EEIC list an ORBIT before this one took without a word, and could save with its board, is not one
++// "ORBIT never writes", and is not said to be: what is true is said, and what can be done.
++const IN_RCN_TAIL={
++  list:'An RCN / EEIC list names each combination once, by a text key of its own.',
++  old:'An ORBIT before this one took such a list '
++    +'without a word and could save it with its board.',
++  plan:'A list that is not a locked cycle’s can be put right on a board of this '
++    +'version, in 🗂 RCN / EEIC, where ✕ on a row marked ⚠ repeats removes that row alone, and the file written again.',
++  cycle:'A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several '
++    +'boards refuse every file that carries that cycle.',
++  too:'This file also carries a locked cycle whose RCN / EEIC list a file handed over is refused for.',
++  opens:'The file itself opens as a board.',
++  full:'A whole '
++    +'board of your own comes across with its lists as they are by '
++    +'📁 File → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution '
++    +'data with the file’s, when it carries them, so it is not the way to take one appropriation.',
++  entry:'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry',
++  entryOld:', though one before this could take '
++    +'it from a file without a word and save it with its board.',
++  entryX:'It can be taken out on a board of this version, in 🗂 RCN / EEIC, where ✕ on its row removes it, and the file written again.'};
++// v2.00 (U32, U33): WHO SAVED THE FILE, AS THE FILE SAYS IT, AND A WAY THAT WORKS FOR THAT KIND OF FILE (the lead, 13 Oct; U44's
++// round-1 money M1, the same rule for destination lists). A board file this version saved came from a board that held such a
++// list -- the user's own, taken whole or opened -- and was said to come from "an ORBIT before this one"; a file that names no
++// version (a package, a state file) is not said to come from any. A locked cycle's list is never put right on a board (Brad,
++// 13 Oct: it stays as it was locked, and a way to correct one is deferred): Import one appropriation and Import several boards
++// refuse every file that carries that cycle, on the board that saved it as well, and the advice to put the list right with ✕
++// was no way for it. Opening the file, and Import a full board, take a board .html alone, so only a board .html is told of them.
++// v2.00 (U32, U33): A FILE WHOSE WORKING PLAN'S LIST IS REFUSED CAN CARRY A LOCKED CYCLE WHOSE LIST IS REFUSED AS WELL -- a board
++// that locked PB27 while its list repeated K1 holds both. The door names the first it meets, the working plan's, and the advice to
++// put that list right with ✕ and write the file again left it refused, for the cycle's list, which nothing had named. So the cycle is
++// named, and only the ways that work for such a file. True when any locked cycle the file carries holds a list that breaks the rule.
++function inRcnCyOdd(t){
++  let J; try{ const m=/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(t); J=JSON.parse(m? m[1] : t); }catch(e){ return false; }
++  const st=[J]; let n=0;
++  while(st.length && ++n<5e6){ const v=st.pop(); if(!v || typeof v!=='object') continue;
++    const c=Array.isArray(v)? null : v.cycles;
++    if(c && typeof c==='object' && Object.keys(c).some(function(k){ const y=c[k]; return y && typeof y==='object' && rcnListOdd(y.rcn).length>0; })) return true;
++    Object.keys(v).forEach(function(k){ st.push(v[k]); }); }
++  return false;
++}
++function inRcnTail(w, txt){
++  const ent=(w.indexOf(IN_RCN_ENTRY)===0); if(!ent && w.indexOf(IN_RCN_LIST)!==0) return '';
++  const t=(txt===null || txt===undefined)? '' : String(txt), T=IN_RCN_TAIL, cy=/\.cycles\./.test(w);
++  const html=/^\s*</.test(t) || t.indexOf('id="pubState"')>=0, bv=html? fullBuildOf(t) : null, now=!!bv && bv[0]>=2;
++  const said=now? ' This file says ORBIT v'+bv[0]+'.'+('0'+bv[1]).slice(-2)+' saved it, from a board that held '+(ent? 'one.' : 'such a list.') : '';
++  // v2.00 (U32, U33): only a null entry in a working plan's list keeps the user's own board out too (inShapeWhy); a board .html
++  // refused for anything else in that list ("K9", 0, []) opens as a board, and Import a full board takes it. ⇊ Import several
++  // boards of more than one file adds how many were not taken, and a null entry is null there as well
++  const nul=ent && /\.rcn\[\d+\] is not a combination \(“null”\); a list holds combinations and nothing else( \(so none of the \d+ files was taken\))?$/.test(w);
++  // v2.00 (U32, U33): ✕ on a row of a working plan's list removes what is not an entry -- "K9", 5, [] -- but not null, 0, false or
++  // "" (rcnDel stops at those). A file that is not a board .html (a package, a state file), or is a PMO copy, is told that way when
++  // ✕ removes the entry; a board .html is told that it opens as a board, as before
++  const xw=(ent && !cy && !/\.rcn\[\d+\] is not a combination \(“(null|0|false|"")”\); /.test(w))? ' '+T.entryX : '';
++  const head=(ent? T.entry+(bv && !now? T.entryOld : '.') : T.list+(bv && !now? ' '+T.old : ''))+said;
++  // v2.00 (U32, U33): a PMO copy is not a board of one's own. Import a full board would take it, and the locked cycles it carries --
++  // only the reference it was cut to, with no list (cycRefOnlyDb) -- would replace this board's; so it is told only the way that
++  // works for it: the list put right, and the copy published again
++  if(html && /<script type="application\/json" id="pubMode">\s*\{/.test(t)) return head+(cy? ' '+T.cycle : ent? xw : ' '+T.plan);
++  if(!cy && inRcnCyOdd(t)) return head+' '+T.too+' '+T.cycle+(html && !nul? ' '+T.opens+' '+T.full : '');
++  if(ent && !cy && html && !nul) return head+' '+T.opens+' '+T.full;
++  if(xw) return head+xw;
++  return head
++    +(cy? ' '+T.cycle+(html? ' '+T.opens+' '+T.full : '') : ent? '' : ' '+T.plan+(html? ' '+T.full : ''));
++}
++function inRefuse(fname, why, txt){
++  const w=String(why), rt=inRcnTail(w, txt===undefined? _inRcnTxt : txt);
++  alert('“'+fname+'” was not imported: '+why+'.\n\n'+(rt? rt+' '
++    : 'A board, a PMO copy, a package or a submittal written by ORBIT never carries that, so the file is damaged or was not written by ORBIT. ')
++    +'Nothing on this board was changed.');
+   setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
+   return false;
+ }
+@@ -9762,6 +9872,7 @@ function importFullBoard(inp){
+   r.readAsText(f);
+ }
+ function fullImportText(txt, fname){
++  _inRcnNext='board';   // v2.00 (U32, U33): the user's own board (inboundCheckOwn) -- its RCN / EEIC lists as it saved them, said below
+   const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
+   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
+   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
+@@ -9808,6 +9919,24 @@ function fullImportText(txt, fname){
+   if(has.ace) lines.push('  • Cost estimates — '+Object.keys(J.aceDb.sets).length);
+   if(has.rp) lines.push('  • The reprogramming log — '+J.rpDb.entries.length+' entr'+(J.rpDb.entries.length===1?'y':'ies'));
+   if(has.dest) lines.push('  • The destination list — '+J.destDb.ents.length);
++  // v2.00 (U32, U33): A LIST A FILE HANDED OVER IS REFUSED FOR (rcnListOdd) comes across as the board saved it, and is said -- in
++  // the question before anything is replaced, and in the report the reopened board gives. A locked cycle's list is read through
++  // cycRcnOf, which leaves out an entry whose key is not text: when one holds such an entry, that is said as well -- kept, not
++  // read, so a requirement on it shows no code there. Codex B2 (13 Oct, P2): "Each requirement reads the first entry with its key"
++  // was said of R1 on the number 1 in such a cycle, which reads none; a requirement on 0, or on "", reads none in any list
++  // (rcnAsgOf, rcnAt). So it is said of a requirement on a key that is text and not empty, and only of that.
++  let rcnCyNT=false;
++  const rcnOdd=[], rcnSay=function(L, where, cy){ const r=rcnListOdd(L); if(!r.length) return;
++    if(cy && r.some(function(x){ return x.nt; })) rcnCyNT=true;
++    rcnOdd.push(where+'’s list '+r.slice(0,5).map(function(x){ return x.entry? 'holds rcn['+x.i+'], which '+x.what : x.what; }).join(', ')+(r.length>5? ' and '+(r.length-5)+' more' : '')); };
++  ks.forEach(function(k){ rcnSay(inc[k].rcn, _SLUGMAP[k].t+' working plan'); });
++  if(cyc) Object.keys(cyc).forEach(function(k){ const c=cyc[k]; if(!_SLUGMAP[k] || !c || !c.cycles || typeof c.cycles!=='object') return;
++    Object.keys(c.cycles).sort().forEach(function(ck){ const cy=c.cycles[ck]; if(cy && typeof cy==='object') rcnSay(cy.rcn, _SLUGMAP[k].t+' '+blLblTxt(ck), true); }); });
++  if(rcnOdd.length) lines.push('  • RCN / EEIC lists as the file holds them, which a file handed over is refused for: '+rcnOdd.join('; ')
++    +'. A requirement on a key that is text (not empty) reads the first entry with that key, as the ORBIT that saved the file did.'
++    +(rcnCyNT? ' A locked cycle’s entry whose key is not text is kept but not read, as in every ORBIT since v1.99: a requirement on it '
++      +'shows no code there, and its money is on no combination.' : '')
++    +' The RCN-EEIC sheet counts each key once and money on no combination only as not assigned');
+   const keptAp=APPN_SLUGS.filter(function(k){ return _SLUGMAP[k] && !inc[k] && pkgStoreOf(k); });
+   const keptSt=[['bud','the BAE list'],['ex','execution data'],['ace','cost estimates'],['rp','the reprogramming log'],['dest','the destination list']]
+     .filter(function(p){ return !has[p[0]]; }).map(function(p){ return p[1]; });
+@@ -10137,9 +10266,13 @@ function exportOneAppn(){
+       a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+       a.download=expName('ORBIT — '+_SLUGMAP[k].t+' only — '+new Date().toISOString().slice(0,10)+'.html');
+       a.click();
++      // v2.00 (U32, U33): a file the door refuses -- a locked cycle's list that breaks the rule stays as it was locked -- is not told to
++      // come back by Import one appropriation, which refuses it: it is told why, and what works for it (inRcnTail)
++      const back=inboundCheck(html);
+       setStat('⬇ '+esc(_SLUGMAP[k].t)+' exported as a working board of its own — its plan, its locked cycles, its execution '
+-        +'data and its BAE rows, with the destination list, cost estimates and reprogramming log. Take it back with '
+-        +'📁 File → ⬅ Import one appropriation.');
++        +'data and its BAE rows, with the destination list, cost estimates and reprogramming log. '
++        +(back? 'It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: '+esc(back)+'. '+esc(inRcnTail(back, html))
++          : 'Take it back with 📁 File → ⬅ Import one appropriation.'));
+     });
+ }
+ function importState(inp){
+@@ -10911,7 +11044,10 @@ function rcnLabel(k){
+ }
+ function rcnAdd(){
+   const L=rcnReg();
+-  L.push({k:'r'+Date.now().toString(36)+'_'+L.length, rcn:'', eeic:'', t:'', svc:RCN_SVCS.slice()});
++  // v2.00 (U32): a key no entry has. One removed and another added in the same millisecond took a key still in use.
++  const t='r'+Date.now().toString(36)+'_'; let n=L.length;
++  while(rcnEntry(t+n)) n++;
++  L.push({k:t+n, rcn:'', eeic:'', t:'', svc:RCN_SVCS.slice()});
+   save(); render();
+ }
+ // v2.00 (R2): AN EEIC IS MEASURED AS IT IS KEPT -- trimmed and upper-cased -- and its refusal says so, naming what was typed
+@@ -10980,6 +11116,14 @@ function rcnUse(k){
+ }
+ function rcnDel(i){
+   const L=rcnReg(), e=L[i]; if(!e) return;
++  // v2.00 (U32): A ROW THAT REPEATS AN EARLIER ROW'S KEY is removed alone. Every assignment to the key reads the earlier row,
++  // which stays: clearing them, as removing a combination does, took a requirement off the codes the board showed it on.
++  const rep=(typeof e.k==='string')? L.findIndex(function(x){ return x && x.k===e.k; }) : i;
++  if(rep<i){
++    if(!confirm('Remove RCN '+(e.rcn||'-----')+' / EEIC '+(e.eeic||'-----')+'?\n\nIt has the same key as row '+(rep+1)+' ('+rcnLabel(e.k)
++      +'), and every assignment to that key reads row '+(rep+1)+', which stays. No assignment is changed.')) return;
++    L.splice(i,1); save(); render(); return;
++  }
+   const n=rcnUse(e.k);
+   if(!confirm('Remove RCN '+(e.rcn||'-----')+' / EEIC '+(e.eeic||'-----')+'?'
+     +(n? '\n\n'+n+' assignment'+(n===1?'':'s')+' (requirements, services and CLINs) point at it across all fiscal '
+@@ -19183,12 +19327,20 @@ function cycLock(){
+   if(!ys.length){ setStat('⚠ Nothing to lock — no year in the FYDP window holds a plan.'); return; }
+   const b=+MS.base||+MS.cur, win=[]; for(let y=b; y<=b+4; y++) win.push(y);
+   const blank=win.filter(y=>ys.indexOf(y)<0);
++  // v2.00 (U32, U33): THE LOCK KEEPS THE RCN / EEIC LIST AS IT IS, and a locked cycle's list stays as it was locked. One that breaks
++  // the rule (rcnListOdd) -- a list the user's own board took whole from a file -- was locked without a word, and every file of the
++  // board that carries the cycle was then refused by Import one appropriation and Import several boards; so the question says so
++  // first. Read as it is (rcnReg() would give a board with no list an empty one, even on Cancel)
++  const odd=rcnListOdd(MS.rcn)[0];
+   if(!confirm('Lock the FYDP window as '+blLblTxt(key)+'?\n\n'
+     +'FY'+ys.map(y=>y%100).join(', FY')+' — every requirement, its value, allocation and funding by '
+     +'service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.'
+     +(blank.length? '\n\nFY'+blank.map(y=>y%100).join(', FY')+' hold'+(blank.length===1?'s':'')
+       +' no plan yet and will be recorded as such.' : '')
+     +(had? '\n\nThis replaces the existing '+blLblTxt(key)+' cycle.' : '')
++    +(odd? '\n\nThe RCN / EEIC list it keeps '+(odd.entry? 'holds rcn['+odd.i+'], which '+odd.what : odd.what)+'; '+odd.why+'. A locked '
++      +'cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards will refuse every file that '
++      +'carries this cycle, on every board of this version.' : '')
+     +'\n\nThe working board is not changed.')) return;
+   const years={}, proj={};
+   // the projection first: aceWithYear leaves the year normalised, and the copy taken after it is
+@@ -26907,7 +27059,7 @@ async function driveStoreRead(dir, ap, fy, raw){
+ // A copy in the shared folder was written by somebody else's board: it goes through the same door as a
+ // file handed over (inboundCheck, v1.88), and one that fails it is treated as unreadable, never half-read.
+ function driveParse(txt){
+-  const bad=inboundCheck(txt);
++  const bad=inboundCheckOwn(txt, 'copy');   // v2.00 (U32, U33): the team's own copy -- its RCN / EEIC lists as a board saved them
+   if(bad){ const e=new Error('a copy in the shared folder was refused: '+bad); e.refused=true; throw e; }
+   return JSON.parse(txt);
+ }
+@@ -30392,6 +30544,10 @@ function exportExcel(){
+     // not-assigned row, and nothing else - so money filed under anything else (a pointer to a combination since
+     // removed) was in no row and no total. It is counted where it truly is: on no combination.
+     const known={}; keysOf().forEach(function(k){ known[k]=1; });
++    // v2.00 (U32, Codex 12 Oct): EACH KEY ONCE, in the list's order. A list holding a key twice printed its row twice and
++    // added its money twice to the service total and the grand total: a cycle locked with K1 listed twice exported USAF $900
++    // as $1,800.
++    const keys=keysOf().filter(function(k,i,a){ return a.indexOf(k)===i; });
+     const kk=function(k){ return (k && Object.prototype.hasOwnProperty.call(known, k))? k : NONE; };
+     const addTo=function(g, k, m, nod, r){
+       if(!bag[g][k]) bag[g][k]=mk();
+@@ -30495,7 +30651,7 @@ function exportExcel(){
+       rows.push(hdr());
+       const sub=mk();
+       // every key the registry offers, in its own order, then the not-assigned row LAST
+-      const ks=keysOf().filter(function(k){ return bag[g][k]; });
++      const ks=keys.filter(function(k){ return bag[g][k]; });
+       ks.forEach(function(k){
+         const b=bag[g][k];
+         rows.push(line(labelOf(k), b));
+@@ -30557,7 +30713,7 @@ function exportExcel(){
+         rows.push(hdr(XH,'Combination / requirement'));
+         const sub=mk();
+         const roll=function(b){ b.m.forEach(function(v,j){ sub.m[j]+=v; }); sub.nod+=b.nod; };
+-        const ks=keysOf().filter(function(k){ return bag[g][k]; });
++        const ks=keys.filter(function(k){ return bag[g][k]; });
+         ks.forEach(function(k){
+           const b=bag[g][k];
+           rows.push(line(labelOf(k)+'   ('+nOf(b)+')', b, B));
+@@ -30578,7 +30734,7 @@ function exportExcel(){
+         // no money this year so it has no month and no place in any total above -- but it still
+         // needs a combination, and leaving it out would make a 6-row list look like the whole of a
+         // 79-row job. Ask is the only figure on these rows, and it is in its own column.
+-        const pk=keysOf().filter(function(k){ return pend[g][k]; }).concat(pend[g][NONE]? [NONE] : []);
++        const pk=keys.filter(function(k){ return pend[g][k]; }).concat(pend[g][NONE]? [NONE] : []);
+         if(pk.length){
+           const n=pk.reduce(function(a,k){ return a+pend[g][k].length; },0);
+           const askOf=function(L){ return L.reduce(function(a,r){ return a+r.ask; },0); };
+@@ -30674,19 +30830,26 @@ function exportExcel(){
+     return {name:name, cols:cols, rows:rows};
+   };
+ 
++  // v2.00 (U32, U33, Codex 12 Oct): THE SHEET NAMES A COMBINATION BY WHERE THE BOARD FINDS IT -- the first entry whose key is
++  // the pointer exactly, as rcnEntry, the screen and the Spend Plan Source find it -- as 'e' and that entry's row, never by the
++  // key's own text. A bag is found by name: an entry keyed "__none__" was the not-assigned row's own name, so the money on no
++  // combination printed under that entry's codes AND as not assigned; and 1 beside "1" was one name. No row name can be
++  // '__none__' or a name every object answers to, a repeated key is one row, and each pointer sits under the codes the
++  // screen shows it on (none, when it finds none). No pointer ('') is on no combination, beside an entry keyed "" as well.
++  const rcnAt=function(p){ const L=rcnReg(); if(!p) return ''; for(let i=0;i<L.length;i++) if(L[i] && L[i].k===p) return 'e'+i; return ''; };
+   const rcnSheet = (typeof rcnApplies==='function' && rcnApplies())
+     ? monSheet('RCN-EEIC by Month', document.title+' \u2014 RCN / EEIC allocations by service and month'
+         +(cycRcnTodayNote()? ' \u2014 '+cycRcnTodayNote() : ''),
+         RCN_SVCS,
+-        function(){ return rcnReg().map(function(e){ return e.k; }); },
+-        function(k){ return rcnLabel(k)||'(blank combo)'; },
+-        function(it, sv){ return rcnAsgOf(it.id, sv); },
++        function(){ return rcnReg().map(function(e){ return rcnAt(e && e.k); }); },
++        function(t){ const e=rcnReg()[+String(t).slice(1)]; return (e && rcnLabel(e.k))||'(blank combo)'; },
++        function(it, sv){ return rcnAt(rcnAsgOf(it.id, sv)); },
+         '\u2014 no RCN/EEIC assigned \u2014', null,
+         {detail:true,
+          // Only a classification a CLIN can actually carry earns a CLIN breakout. RCN/EEIC is one
+          // - an SI code is not, so the SI tab declares none and is unchanged.
+          // v1.98 (item 83): per service on the CLIN, and the rollup reads it too
+-         clinOf:function(id, key, sv){ return rcnOfClinSvc(id, key, sv); }})
++         clinOf:function(id, key, sv){ return rcnAt(rcnOfClinSvc(id, key, sv)); }})
+     : null;
+   const siSheet = (typeof siApplies==='function' && siApplies())
+     ? monSheet('SI Codes by Month', document.title+' \u2014 Special Interest allocations by service and month',
+@@ -31879,14 +32042,14 @@ function loadShared(cb){
+       const x=new XMLHttpRequest();
+       x.open('GET', STATEFILE+'?t='+Date.now(), true);
+       // the sidecar was written by somebody else's board: through the door, like any file (v1.88)
+-      x.onload=()=>{ try{ cb(x.responseText? (inboundCheck(x.responseText)? null : JSON.parse(x.responseText)) : null); }catch(e){ cb(null); } };
++      x.onload=()=>{ try{ cb(x.responseText? (inboundCheckOwn(x.responseText, 'copy')? null : JSON.parse(x.responseText)) : null); }catch(e){ cb(null); } };
+       x.onerror=()=>cb(undefined);
+       x.send();
+     }catch(e){ cb(undefined); }
+   } else {
+     try{
+       fetch(STATEFILE,{cache:'no-store'}).then(r=>r.ok?r.text():null)
+-        .then(t=>cb(t===null? null : (inboundCheck(t)? null : JSON.parse(t)))).catch(()=>cb(undefined));
++        .then(t=>cb(t===null? null : (inboundCheckOwn(t, 'copy')? null : JSON.parse(t)))).catch(()=>cb(undefined));   // v2.00 (U32, U33): as driveParse
+     }catch(e){ cb(undefined); }
+   }
+ }

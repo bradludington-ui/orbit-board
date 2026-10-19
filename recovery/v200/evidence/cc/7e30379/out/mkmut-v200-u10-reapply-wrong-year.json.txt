@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-wrong-year", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;\n  applyState(MS.years[y]); MS.years[y]=S;", "repl": "  MS=cycCopy(c); MS.cur=y;\n  applyState(JSON.parse(JSON.stringify(MS.years[+_cycStash.MS.cur]||MS.years[y]))); MS.years[y]=S;"}

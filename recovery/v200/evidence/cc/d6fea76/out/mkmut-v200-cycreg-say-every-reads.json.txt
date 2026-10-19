@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-every-reads", "matches": 1, "find": "+'. A requirement on a key that is text (not empty) reads the first entry with that key, as the ORBIT that saved the file did.'", "repl": "+'. Each requirement reads the first entry with its key, as the ORBIT that saved the file did.'"}

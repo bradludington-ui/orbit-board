@@ -1,0 +1,24 @@
+# label: F-u10-6-c82ea62
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/out/F-u10-6-c82ea62.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/variants/board-c82ea62-u10-6.html
+# start: 2026-10-18 07:04:54 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/variants/board-c82ea62-u10-6.html","BOARD_set":true,"board":"0b082fdf20315c9328556115e0a08ebe66e805d7","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/827953a/harness/after/focused-u10.mjs","harnessBlob":"6887c41e08c4b2eccaed3e9de2ae02cdfee6ad27","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 7:04:56 AM ET"}
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing aside | Save yours over theirs on the working plan · PB27 put on screen while the folder is read
+    refused as a save is, before its question; nothing is written to the folder or its history, and the work is still this browser’s unsaved work
+        got [false,"PB|2027","🔒 Loading a board is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","[]",true,true,[["11111"],"MY SECOND A","COLLEAGUE DESC R"],true]   want [false,"PB|2027","🔒 Writing to the shared folder is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","[]",true,true,[["11111"],"MY SECOND A","COLLEAGUE DESC R"],true]
+--- v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it was | PB27 viewed · ↶ Put back on Colleague C’s note on F1
+    refused before its question, in its own words: nothing is asked, and nothing says the put-back was recorded
+        got ["🔒 Not kept — PB27 is a locked view. ↶ Put back: note — Ev F1 — recorded in the journal.","[\"Put note — Ev F1 back to what it was before Colleague C changed it?\"]"]   want ["🔒 Putting a change back is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","[]"]
+--- v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it was | the view left · Me M’s note on F2 saved
+    the journal records one change, Me M’s note on F2 -- nothing credited to Me M on F1
+        got [[["Me M","notes.F1",null,"after the lock"],["Me M","notes.F2",null,"mine"],["Me M","asks.F1",null,[1200000000]]],"1200000000"]   want [[["Me M","notes.F2",null,"mine"]],"1200000000"]
+    the board file carries only Me M’s note on F2; the cycle’s table credits Colleague C with F1; no ↶ Put back is offered on an entry by Me M about F1
+        got [[["notes.F1",null,"after the lock"],["notes.F2",null,"mine"],["asks.F1",null,[1200000000]]],"Me M",2]   want [[["notes.F2",null,"mine"]],"Colleague C",0]
+# exit 1 at 10/18/2026, 7:07:43 AM ET
+
+# end: 2026-10-18 07:07:43 EDT  exit: 1  wall_s: 169.1

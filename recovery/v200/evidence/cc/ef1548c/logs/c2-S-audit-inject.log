@@ -1,0 +1,14 @@
+# label: c2-S-audit-inject
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob
+# cmd: node tools/export-audit/audit-inject.mjs
+# start: 2026-10-13 19:30:27 EDT
+# cap: 600 s, kill grace 10 s
+
+================================================================================================
+INJECTION REGRESSION — all clear across 44 findings and 4 text-fidelity guards: every hostile value checked is drawn as text, the structural and key guards hold, and the text-fidelity guards hold
+
+ALL CHECKS PASSED
+================================================================================================
+
+
+# end: 2026-10-13 19:30:43 EDT  exit: 0  wall_s: 15.7

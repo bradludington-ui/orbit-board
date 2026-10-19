@@ -1,0 +1,3 @@
+v200-u10-journal-putback-in-view: start 2026-10-18 05:39:10 EDT exit 1 wall 178.0s | 131 checks, 2 fail -> CAUGHT
+    FAIL | v2.00 (U10) — ↶ Put back in a locked vie | the view left · Me M’s note on F2 saved | the journal records one change, Me M’s note on F2 -- nothing credited 
+    FAIL | v2.00 (U10) — ↶ Put back in a locked vie | the view left · Me M’s note on F2 saved | the board file carries only Me M’s note on F2; the cycle’s table credi

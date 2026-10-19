@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-door-open", "matches": 1, "find": "    if(r) return (r.entry? IN_RCN_ENTRY+path+'.rcn['+r.i+'] ' : IN_RCN_LIST+path+'.rcn ')+r.what+'; '+r.why; }", "repl": "    }"}

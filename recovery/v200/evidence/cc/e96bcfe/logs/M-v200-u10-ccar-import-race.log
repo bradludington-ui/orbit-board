@@ -1,0 +1,16 @@
+# label: M-v200-u10-ccar-import-race
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/out/M-v200-u10-ccar-import-race.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-ccar-import-race.html
+# start: 2026-10-18 05:05:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-ccar-import-race.html","BOARD_set":true,"board":"cb05ac4f48ec9c4ff94a4c620baaf0e670ddf495","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs","harnessBlob":"16230c603de02f3c9c9a5856760005d5bdb69c6c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:05:54 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | an import of ccar records started on the working plan, PB27 put on screen while the file is read
+    refused once it is read, nothing asked; the lists as they were, and the ACE tie-out from the view ties out $900
+        got ["🔒 Not kept — PB27 is a locked view. 📇 ccar-records.xlsx — 1 record indexed on CCaR No. On this board 0 of 2 requirements carrying a CCaR number now find a Title and OPR. 💾 Save to bake this into the file.",[],[["2027 ACE approved.xlsx",[900]],["2027 ACE approved.xlsx",[900]],[],null],["ok",[["Req A","Confirmed - exact line","1.1",1100,900,200],["Req R","No match","",630,"",""]]]]   want ["🔒 Importing CCaR records is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],[["2027 ACE approved.xlsx",[900]],["2027 ACE approved.xlsx",[900]],[],null],["ok",[["Req A","Confirmed - exact line","1.1",1100,900,200],["Req R","No match","",630,"",""]]]]
+# exit 1 at 10/18/2026, 5:07:55 AM ET
+
+# end: 2026-10-18 05:07:56 EDT  exit: 1  wall_s: 123.2

@@ -1,0 +1,5 @@
+{
+  "notes": "Recorded Section 508 / WCAG findings. The run fails on anything NEW, and also when a recorded finding stops occurring without being struck off — a list of known holes that has stopped being true is worse than no list. Regenerate with --emit after a fix, and say in the commit which criterion was closed.",
+  "recorded": "2026-09-30",
+  "findings": []
+}

@@ -1,0 +1,15 @@
+TOTAL {"n": 151, "p": 150, "f": 1}
+ 11 checks  11 pass   0 fail | controls 5 (0 fail) | non-controls 6 (0 fail) | v1.99 item 88 — a locked cycle’s view and every report from it read the RCN / EEIC list it
+ 27 checks  27 pass   0 fail | controls 9 (0 fail) | non-controls 18 (0 fail) | v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries
+  9 checks   9 pass   0 fail | controls 5 (0 fail) | non-controls 4 (0 fail) | v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen
+ 27 checks  27 pass   0 fail | controls 6 (0 fail) | non-controls 21 (0 fail) | v2.00 (U10) — a cost estimate, a BAE list, CCaR records or a destination change is refused
+  9 checks   9 pass   0 fail | controls 3 (0 fail) | non-controls 6 (0 fail) | v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a lo
+ 31 checks  31 pass   0 fail | controls 6 (0 fail) | non-controls 25 (0 fail) | v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked v
+  7 checks   7 pass   0 fail | controls 4 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total a
+  6 checks   6 pass   0 fail | controls 3 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing
+  7 checks   6 pass   1 fail | controls 3 (0 fail) | non-controls 4 (1 fail) | v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it w
+ 11 checks  11 pass   0 fail | controls 7 (0 fail) | non-controls 4 (0 fail) | v2.00 (U10) — an appropriation button, the pseudo year, a prime rule or a category refused
+  6 checks   6 pass   0 fail | controls 5 (0 fail) | non-controls 1 (0 fail) | v2.00 (U10) — holding the unfunded list outside the flow, refused in a locked view, moves 
+  FAIL | v2.00 (U10) — ↶ Put back in  | PB27 viewed · ↶ Put back on Colleague C’s note on F1 | refused before its question, in its own words: nothing is asked, and n
+REF compare: only-here 0 only-in-ref 0 verdict-differs 1 value-differs 1 order-equal True
+  VERDICT DIFFERS | PB27 viewed · ↶ Put back on Colleague C’s note on F1 | refused before its question, in its own words: nothing is as | here False ref True

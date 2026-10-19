@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-plan-for-cycle", "matches": 1, "find": "    +(cy? ' '+T.cycle+(html? ' '+T.opens+' '+T.full : '') : ent? '' : ' '+T.plan+(html? ' '+T.full : ''));", "repl": "    +(ent? '' : ' '+T.plan+(html? ' '+T.full : ''));"}

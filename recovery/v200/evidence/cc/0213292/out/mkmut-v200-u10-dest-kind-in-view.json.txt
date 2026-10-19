@@ -1,0 +1,1 @@
+{"id": "v200-u10-dest-kind-in-view", "matches": 1, "find": "  if(cycBlock('Changing a destination')){ render(); return; }\n", "repl": "  if(field==='n' && cycBlock('Changing a destination')){ render(); return; }\n"}

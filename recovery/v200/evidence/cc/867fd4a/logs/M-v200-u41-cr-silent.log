@@ -1,0 +1,22 @@
+# label: M-v200-u41-cr-silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-cr-silent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-cr-silent.html
+# start: 2026-10-13 22:50:57 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-cr-silent.html","BOARD_set":true,"board":"8bb6681d64b18949303f6878322cde2be33f539f","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:50:58 PM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five
+        got  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu.   want  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five
+        got  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu.   want  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | other values
+    the CR cash return counts all six as codes that are not one of the five: blank cells, none of them "no SI code", and never "Every row carries an SI code"
+        got    want  6 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank.
+# exit 1 at 10/13/2026, 10:51:15 PM ET
+
+# end: 2026-10-13 22:51:15 EDT  exit: 1  wall_s: 18.0

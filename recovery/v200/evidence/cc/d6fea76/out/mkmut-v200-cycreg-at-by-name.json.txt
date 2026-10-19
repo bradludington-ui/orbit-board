@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-at-by-name", "matches": 1, "find": "const rcnAt=function(p){ const L=rcnReg(); if(!p) return ''; for(let i=0;i<L.length;i++) if(L[i] && L[i].k===p) return 'e'+i; return ''; };", "repl": "const rcnAt=function(p){ const L=rcnReg(); if(!p) return ''; for(let i=0;i<L.length;i++) if(L[i] && String(L[i].k)===String(p)) return 'e'+i; return ''; };"}

@@ -1,0 +1,14 @@
+# note: the first build of harness/H-u20.mjs at 2026-10-13 19:25:04 EDT ran bounded (setsid -w timeout -k 10 600) but outside bx.sh, so its PID was not recorded; it was rebuilt through bx.sh below (same output)
+mk-H-u20 start_et="2026-10-13 19:25:17 EDT" exit=0 wall_s=0.76
+mkmut-v200-u20-wait-uncounted start_et="2026-10-13 19:25:32 EDT" exit=0 wall_s=0.39
+mkmut-v200-u20-failed-stays-counted start_et="2026-10-13 19:25:33 EDT" exit=0 wall_s=0.39
+mcount-after start_et="2026-10-13 19:25:55 EDT" exit=0 wall_s=1.87
+mcount-before start_et="2026-10-13 19:25:56 EDT" exit=0 wall_s=1.91
+clone start_et="2026-10-13 19:26:11 EDT" exit=0 wall_s=0.19
+checkout start_et="2026-10-13 19:26:11 EDT" exit=0 wall_s=1.53
+mk-H-prevA start_et="2026-10-13 19:26:28 EDT" exit=0 wall_s=0.67
+mk-H-prevB start_et="2026-10-13 19:26:28 EDT" exit=0 wall_s=1.0
+mk-F-folderA start_et="2026-10-13 19:26:47 EDT" exit=0 wall_s=1.61
+mk-F-folderB start_et="2026-10-13 19:26:49 EDT" exit=0 wall_s=1.31
+fails-batch1 start_et="2026-10-13 19:27:08 EDT" exit=0 wall_s=0.06
+labels-before start_et="2026-10-13 19:27:08 EDT" exit=0 wall_s=0.04

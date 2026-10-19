@@ -1,0 +1,18 @@
+# label: M-v200-u18-stamp-compare
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-stamp-compare.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-stamp-compare.html
+# start: 2026-10-18 15:52:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-stamp-compare.html","BOARD_set":true,"board":"8300a7c40a2f8c633f553839f62304e83f062b6c","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 3:52:55 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held
+    nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history
+        got [1,"BRAD-2",720,true]   want [0,"EDITED",700,true]
+    Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+        got ["BRAD-2",720,false,false,false,[]]   want ["BRAD-2",720,true,true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+# exit 1 at 10/18/2026, 3:55:27 PM ET
+
+# end: 2026-10-18 15:55:28 EDT  exit: 1  wall_s: 154.5

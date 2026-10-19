@@ -1,0 +1,8 @@
+# label: mkmut-v200-u30-base-whatever-on-screen
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888
+# cmd: python3 -I /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/bin/mkmut.py /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/tools/export-audit/mutate.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/prioritization-board-grid.html v200-u30-base-whatever-on-screen /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-base-whatever-on-screen.html
+# start: 2026-10-13 19:25:06 EDT
+# cap: 600 s, kill grace 10 s
+{"id": "v200-u30-base-whatever-on-screen", "matches": 1, "find": "    if(!base && theirs!==ours) return false;\n", "repl": ""}
+
+# end: 2026-10-13 19:25:06 EDT  exit: 0  wall_s: 0.4

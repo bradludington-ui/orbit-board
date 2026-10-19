@@ -1,0 +1,19 @@
+v2.00 (U10 2 of 12): a cost estimate, a BAE list, CCaR records or a destination change is refused in a locked view before anything is kept
+
+The cost estimates, the BAE budget list and the destination list are kept once for every appropriation, outside a
+locked view's copy. Each of their doors wrote its list and then saved, which the view refused: the board said "Not
+kept" and kept it, in browser storage and in every plan. A 2027 cost estimate imported with PB27 on screen replaced
+the approved one (the ACE tie-out and the FYDP Spend Plan then read $4,321,000 for $900, in the view and on the
+working plan), a BAE list put its budget names into the Spend Plan Source, and a destination removed in the view
+left the working plan's requirements pointing at nothing. Now Import cost estimate, Import BAE budget list, Import
+CCaR records and Setup > Destinations' name, kind and terms fields, + add, remove and reset are refused while a
+locked cycle is on screen, before the file is read or a question asked. U10 2 of 12.
+
+Board +17 -0, audit-recon +149 -3, mutate +26 -0, and its NEXT-VERSION.md entry.
+
+audit-recon: a new "v2.00 (U10)" block, 27 checks; 21 fail on 7ee498a and on U10 1 (the 6 controls pass). 8
+mutations. Not covered: a destination's match terms (the same gate; no block types one).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

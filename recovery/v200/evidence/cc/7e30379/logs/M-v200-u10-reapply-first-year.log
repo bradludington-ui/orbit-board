@@ -1,0 +1,19 @@
+# label: M-v200-u10-reapply-first-year
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/out/M-v200-u10-reapply-first-year.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/mut/v200-u10-reapply-first-year.html
+# start: 2026-10-18 04:43:06 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/mut/v200-u10-reapply-first-year.html","BOARD_set":true,"board":"8953d40317cc4b7499c878a406e625a1c98fb209","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/after/focused-u10.mjs","harnessBlob":"1159734901944f09388a7a43fde886c0f2247f4a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 4:43:08 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries | PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field
+    refused; still FY28, on FY28’s months; the list and the panel are the cycle’s
+        got ["fired",true,2027,"2027-10",[["11111","AAAAA","","USAF+ANG+AFRC"],["22222","BBBBB","","ANG"],["33333","CCCCC","","AFRC"],["44444","DDDDD","","USAF+ANG+AFRC"]],["11111|AAAAA||x|x|x","22222|BBBBB||-|x|-","33333|CCCCC||-|-|x","44444|DDDDD||x|x|x"]]   want ["fired",true,2028,"2027-10",[["11111","AAAAA","","USAF+ANG+AFRC"],["22222","BBBBB","","ANG"],["33333","CCCCC","","AFRC"],["44444","DDDDD","","USAF+ANG+AFRC"]],["11111|AAAAA||x|x|x","22222|BBBBB||-|x|-","33333|CCCCC||-|-|x","44444|DDDDD||x|x|x"]]
+--- v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen, the CCaR records and the cycle’s base year | PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field
+    refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+        got [true,2027,[["USAF","11111 / AAAAA",401],["USAF","44444 / DDDDD",802],["USAF","— no RCN/EEIC assigned —",71],["USAF","USAF TOTAL",1274]]]   want [true,2028,[["USAF","11111 / AAAAA",401],["USAF","44444 / DDDDD",802],["USAF","— no RCN/EEIC assigned —",71],["USAF","USAF TOTAL",1274]]]
+# exit 1 at 10/18/2026, 4:44:00 AM ET
+
+# end: 2026-10-18 04:44:00 EDT  exit: 1  wall_s: 53.9

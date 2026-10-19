@@ -1,0 +1,16 @@
+# label: M-v200-u10-ladder-copy-in-view
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/out/M-v200-u10-ladder-copy-in-view.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-ladder-copy-in-view.html
+# start: 2026-10-18 05:05:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-ladder-copy-in-view.html","BOARD_set":true,"board":"521dab7a64a7ec596a0150f208b30b6b90d22f14","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs","harnessBlob":"16230c603de02f3c9c9a5856760005d5bdb69c6c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:05:54 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · ⇉ Copy to the other appropriations
+    refused before anything is asked; Full Fund keeps its own ladder, and no ladder is held for it
+        got ["🔒 Not kept — PB27 is a locked view. ⚖ Ladder applied to 1 appropriation and held for 2 not yet opened in this file (applied on first switch). 💾 Save to write it into the file.",["Copy O&M’s ladder to Full Fund, Initial Spares, OPN?"],"[[\"Net Funding Available\",\"PDM-Directed Funding\",\"Keep the Lights On\",\"Incurred Financial Liabilities\",\"Safety-Critical & Must Fix\",\"Readiness degradation\",\"Program health\",\"Deferrable\"],false]"]   want ["🔒 Copying the band ladder is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],"[[\"FF ONLY BAND\"],true]"]
+# exit 1 at 10/18/2026, 5:07:51 AM ET
+
+# end: 2026-10-18 05:07:51 EDT  exit: 1  wall_s: 118.6

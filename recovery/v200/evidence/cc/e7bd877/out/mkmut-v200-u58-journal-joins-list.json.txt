@@ -1,0 +1,1 @@
+{"id": "v200-u58-journal-joins-list", "matches": 1, "find": "  if(p && p[0]==='si' && p.length>1 && typeof v!=='string' && !(v && typeof v._b==='number' && v._b>JRNL_BIG)) return esc(siRawShow(v));\n", "repl": ""}

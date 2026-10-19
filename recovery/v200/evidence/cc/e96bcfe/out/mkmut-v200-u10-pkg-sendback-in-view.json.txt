@@ -1,0 +1,1 @@
+{"id": "v200-u10-pkg-sendback-in-view", "matches": 1, "find": "  if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board\n", "repl": ""}

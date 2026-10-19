@@ -1,0 +1,161 @@
+v200-u18-recheck-gone:
+    (1) Bob takes the pen and saves while Brad’s save is held :: Brad’s save, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy, with its own time; one write of the folder’s cop
+    (1) Bob takes the pen and saves while Brad’s save is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+    (1) Bob takes the pen and saves while Brad’s save is held :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+    (1) Bob takes the pen and saves while Brad’s save is held :: Brad is told, word for word, with both choices offered
+    (1) Bob takes the pen and saves while Brad’s save is held :: Bob’s board: BOB-2 on screen and in its browser storage, saved, recorded against the folder’s copy
+    (1) Bob takes the pen and saves while Brad’s save is held :: then Brad’s refresh loads nothing over his unsaved work, and the folder’s copy is still Bob’s
+    (2) the retry: Save yours over theirs, then Take the pen :: Save yours over theirs asks first; Bob holds the pen, so nothing is written over BOB-2, and Bob’s copy is kept in the history
+    (2) the retry: Save yours over theirs, then Take the pen :: and says Bob holds the pen; Brad’s work stays on screen, unsaved
+    (2) the retry: Save yours over theirs, then Take the pen :: Take the pen asks first, naming Bob; then BRAD-2, $720, saved by Brad, its writer, is the folder’s copy
+    (2) the retry: Save yours over theirs, then Take the pen :: Brad is saved, recorded against the folder’s copy, and told so; v1 and Bob’s copy are both in the history
+    (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held :: Brad’s save writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; v1 is in the history, and nothing else is
+    (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held :: Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header uncha
+    (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held :: Brad is told, word for word, with both choices offered
+    (3) Bob saves during the held save; Brad chooses Load theirs :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+    (3) Bob saves during the held save; Brad chooses Load theirs :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+    (3) Bob saves during the held save; Brad chooses Load theirs :: Brad is told, word for word, with both choices offered
+    (3) Bob saves during the held save; Brad chooses Load theirs :: Load theirs: BOB-2 on screen, saved, recorded against the folder’s copy, which is still Bob’s; BRAD-2 is kept aside, and the board says so
+    (6a) the folder’s copy removed while Brad’s save is held :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+    (6a) the folder’s copy removed while Brad’s save is held :: Brad is told, word for word, with no choice offered
+    (6a) the folder’s copy removed while Brad’s save is held :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+    (6b) the folder’s copy unreadable while Brad’s save is held :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+    (6b) the folder’s copy unreadable while Brad’s save is held :: Brad is told, word for word, with no choice offered
+    (6b) the folder’s copy unreadable while Brad’s save is held :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad is told, word for word, with no choice offered
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: nothing is written in its place; Brad is told, word for word, with no choice offered
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: nothing is written in its place; Brad is told, word for word, with no choice offered
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad is told -- Bob saved it while his save was under way, with both choices
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: Brad is told -- it could not be read, with no choice
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad’s save writes nothing over it: BOB-3, $640, saved by Bob, still its writer, is the folder’s copy; Bob’s copy BOB-2 in the history
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad is told, word for word, with both choices offered
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+    (8c) Brad types BRAD-3 while his save is held; Bob takes the pen :: Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile gave it, by 
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s; v1 in th
+    (9) Bob takes the pen while Brad’s Live autosave is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing 
+    (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that sav :: nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: Brad’s save, let go, writes nothing over BOB-2, $650, saved by Bob, its writer; one write of the folder’s copy since the hold, Bob’s; PB27 is on screen
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: while PB27 is still on screen, its header and its tooltip say what they said before the save, too
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: Brad’s save, let go, writes nothing over BOB-3, $640, saved by Bob, still its writer
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, Brad is told, word for word, with both choices offered
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+    (11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen whil :: nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad
+    (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held :: nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history
+    (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held :: Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+v200-u18-first-copy-unchecked:
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad is told -- Bob saved it while his save was under way, with both choices
+v200-u18-gone-written-in-place:
+    (6a) the folder’s copy removed while Brad’s save is held :: nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+    (6a) the folder’s copy removed while Brad’s save is held :: Brad is told, word for word, with no choice offered
+    (6a) the folder’s copy removed while Brad’s save is held :: Brad’s FY27 work stays in the board, unsaved, recorded against v1
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: nothing is written in its place; Brad is told, word for word, with no choice offered
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+v200-u18-unreadable-written:
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: Brad is told -- it could not be read, with no choice
+v200-u18-said-nothing-written:
+    (1) Bob takes the pen and saves while Brad’s save is held :: Brad is told, word for word, with both choices offered
+    (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held :: Brad is told, word for word, with both choices offered
+    (3) Bob saves during the held save; Brad chooses Load theirs :: Brad is told, word for word, with both choices offered
+    (7a) the folder’s first copy: Bob’s lands while Brad’s save is held :: Brad is told -- Bob saved it while his save was under way, with both choices
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad is told, word for word, with both choices offered
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, Brad is told, word for word, with both choices offered
+v200-u18-pen-line-kept:
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+v200-u18-stamp-moved:
+    (1) Bob takes the pen and saves while Brad’s save is held :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+    (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held :: Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header uncha
+    (3) Bob saves during the held save; Brad chooses Load theirs :: the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (8) Brad takes the pen; Bob saves while that save is held :: Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as
+    (9) Bob takes the pen while Brad’s Live autosave is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing 
+    (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that sav :: nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+    (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held :: Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+    (14) 💾 Save held at the close of its history copy; a full import stops part-way  :: nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was
+    (14) the Live autosave held at the close of its history copy; a full import stop :: nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was
+v200-u18-other-year-choices:
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad is told, word for word, with no choice offered
+v200-u18-autosave-unchecked:
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s; v1 in th
+    (9) Bob takes the pen while Brad’s Live autosave is held :: Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing 
+v200-u18-stamp-name-moved:
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that sav :: nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+v200-u18-stamp-on-view:
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+v200-u18-pen-line-on-view:
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+v200-u18-other-year-unnamed:
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad is told, word for word, with no choice offered
+v200-u18-stamp-compare:
+    (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held :: nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history
+    (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held :: Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+v200-u18-view-says-saved:
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: while PB27 is still on screen, its header and its tooltip say what they said before the save, too
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was
+    (11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen whil :: nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad
+v200-u18-view-pen-line:
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was
+v200-u18-autosave-silent:
+    (9) Bob takes the pen while Brad’s Live autosave is held :: the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+v200-u18-other-year-when-of-read:
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad is told, word for word, with no choice offered
+v200-u18-read-again-first-copy:
+    (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot  :: Brad is told -- it could not be read, with no choice
+v200-u18-other-year-advice:
+    (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’ :: Brad is told, word for word, with no choice offered
+v200-u18-storage-pen-line:
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+    (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Bra :: the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+v200-u18-view-silent:
+    (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes t :: while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+    (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves :: while PB27 is still on screen, Brad is told, word for word, with both choices offered
+v200-u18-view-stamp-name:
+    (11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen whil :: nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad
+v200-u18-stamp-over-typed:
+    (8c) Brad types BRAD-3 while his save is held; Bob takes the pen :: Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile gave it, by 
+v200-u18-hold-before-reread:
+    (13) 💾 Save held at its second read of the folder’s copy, just before its write, :: nothing is written over the folder’s copy: it keeps its bytes
+    (13) 💾 Save held at its second read of the folder’s copy, just before its write, :: the board says writing to the shared folder is refused, and does not say Saved
+    (13) 💾 Save held at its second read of the folder’s copy, just before its write, :: the note typed stays unsaved, and the board’s stamp is what it was before the save
+v200-u18-late-for-every-clash:
+    (5) Bob saves before Brad’s save reads the folder (a CONTROL) :: Brad is told, word for word, with both choices offered
+v200-u18-hold-unsaid:
+    (14) 💾 Save held at the close of its history copy; a full import stops part-way  :: the board says writing to the shared folder is refused, and its line still offers the two copies the stopped import asked to be saved first
+    (14) the Live autosave held at the close of its history copy; a full import stop :: the message line is the import’s own, unchanged
+v200-u18-pen-line-only-on-clash:
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+v200-u18-stamp-only-on-clash:
+    (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy remove :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+    (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unread :: Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name

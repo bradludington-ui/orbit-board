@@ -1,0 +1,40 @@
+@@ result for it was run fresh against these commits.
+     of them reaches the funds-flow export or any total (the round-5 test review, m3). The categories' order and reset live in
+     the categories the Depot check reads and are not typed on their own. Where the unfunded priority list goes is read by U10
+     10 of 12.
++- **U10 (10 of 12) — where the funds flow puts the unfunded priority list, refused in a locked view, moves no money in any
++  total or export; and ↶ Put back's refusal is typed in its own words** (the same release blocker; the round-5 test review's
++  MF1 and SF1, 14 Oct). Where the Unfunded Priority List goes -- counted as a Lockheed Martin line (the default) or held
++  outside the flow -- is a funds-flow setting kept beside the years with those U10 9 of 12 reads, and it moves money: counted
++  as Lockheed Martin, a UPL row is in the total and in Lockheed Martin's line; held outside, no total holds it. U10 1 of 12
++  puts it back after a refusal, but no check read it: a refusal that kept it passed all 144 checks of U10 1-9, while the
++  funds-flow export labelled "[PB27 LOCKED]" read TOTAL FUNDING $40,000,000 and Lockheed Martin $0 where the lock and the plan
++  hold $43,000,000 and $3,000,000 -- as `7ee498a` does today (the round-5 test review, probe PU-base, 14 Oct 12:30 AM ET).
++  And U10 7 of 12's check read the refusal only as "Not kept" and answered its question without recording it, so a Put back
++  that asked "Put note — Ev F1 back …?" before refusing, or one that only skipped re-taking the journal's record and then
++  said "↶ Put back: note — Ev F1 — recorded in the journal" under the view's mark, passed every check.
++  - **What users may see:** nothing beyond U10 1 and 7 of 12.
++  - **Test:** audit-recon "v2.00 (U10) — holding the unfunded list outside the flow, refused in a locked view, moves no money
++    in any total or export" (6 checks), on one O&M requirement (F1 PSM, $1,000,000,000 asked; $500,000,000 discretionary in
++    FY27) with FY25 imported: Ordinary Support (O&M Discretionary, $40,000,000) and Unfunded Ask (O&M Discretionary,
++    $3,000,000, on the Unfunded Priority List); the saved selection FY25; the list counted as Lockheed Martin. In PB27's view
++    "Hold outside the flow" is chosen with the panel's own radio: refused. Read: the status line, the calculation (total,
++    Lockheed Martin, the unfunded list, the part of the total it makes, where it goes, total funding, the years counted, the
++    setting as stored), the radio drawn checked, and the funds-flow export from its bytes ("ORBIT Funds Flow - FY25 all
++    appropriations [PB27 LOCKED].xlsx": its Scope line, TOTAL FUNDING $43,000,000, Lockheed Martin $3,000,000, unfunded
++    requirements $3,000,000, and the NOTE that the total includes 3000000 of unfunded requirements counted under Lockheed
++    Martin). Controls: the working plan; PB27 viewed with nothing changed; the view left; on the working plan the same radio is
++    allowed and moves the $3,000,000 out of the total (TOTAL FUNDING $40,000,000, Lockheed Martin $0, no NOTE); no jsdom
++    errors. And one check added to U10 7's block: ↶ Put back pressed in PB27's view says "🔒 Putting a change back is off while
++    PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan." and asks
++    nothing. Every figure and word is typed. On `7ee498a` the 2 non-control checks fail ($40,000,000 and $0 under "[PB27
++    LOCKED]"; "🔒 Not kept — PB27 is a locked view. ↶ Put back: note — Ev F1 — recorded in the journal." after its question)
++    and the 5 controls pass; at U10 9 of 12 all 7 pass (the code is U10 1's and 7's).
++  - **Mutations:** `v200-u10-reapply-keeps-upl-place` (a refusal that makes the copy again but keeps where the unfunded list
++    goes: 1 check fails; 0 of the 144 checks of U10 1-9, the round-5 test review's run X9),
++    `v200-u10-journal-gate-after-question` (U10 7's gate after its question: 1) and `-journal-putback-sync-only` (no gate; the
++    journal's record merely not re-taken in a view: 1).
++  - **Not covered:** the funds flow's presentation settings (U10 9 of 12).
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

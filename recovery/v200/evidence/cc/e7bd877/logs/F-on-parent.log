@@ -1,0 +1,68 @@
+# label: F-on-parent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/before/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/out/F-on-parent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/before/tools/export-audit/focused.mjs
+# start: 2026-10-18 17:57:39 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/before/prioritization-board-grid.html","BOARD_set":false,"board":"058df67e2dcca2207b38125b73af5e75bbbbb9df","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/before/tools/export-audit/focused.mjs","harnessBlob":"9d607f5a9328188587c96ac2598b3dc33a75893c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:57:41 PM ET"}
+
+================================================================================================
+22 FAILING CHECK(S)
+
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | code inside a list
+    the review panel: On the board now reads “["AT"]” as saved, never AT
+        got [["Navy SI code","AT","EN — Engine"]]   want [["Navy SI code","“[\"AT\"]”","EN — Engine"]]
+    the review workbook, from its bytes: On the board now “["AT"]”
+        got [[["Navy SI code","AT","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]   want [[["Navy SI code","“[\"AT\"]”","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]
+    AT chosen in the field: the journal reads Was “["AT"]”, Became AT; the file’s own line Became “["AT"]”
+        got [["sustainment indicator — Ev A","AT","AT"],["sustainment indicator — Ev A","not set","AT"]]   want [["sustainment indicator — Ev A","“[\"AT\"]”","AT"],["sustainment indicator — Ev A","not set","“[\"AT\"]”"]]
+    the Put back’s own line reads Was AT, Became “["AT"]”
+        got [["sustainment indicator — Ev A","AT","AT"],["sustainment indicator — Ev A","AT","AT"],["sustainment indicator — Ev A","not set","AT"]]   want [["sustainment indicator — Ev A","AT","“[\"AT\"]”"],["sustainment indicator — Ev A","“[\"AT\"]”","AT"],["sustainment indicator — Ev A","not set","“[\"AT\"]”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | empty list
+    after the bulk write the journal reads Was “[]”, never blank
+        got [["sustainment indicator — Ev A","","AT"],["sustainment indicator — Ev A","not set",""]]   want [["sustainment indicator — Ev A","“[]”","AT"],["sustainment indicator — Ev A","not set","“[]”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | null inside a list
+    the review panel: On the board now reads “[null]”, never blank
+        got [["Navy SI code","","EN — Engine"]]   want [["Navy SI code","“[null]”","EN — Engine"]]
+    the review workbook, from its bytes: On the board now “[null]”
+        got [[["Navy SI code","","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]   want [[["Navy SI code","“[null]”","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | a long list
+    the review workbook prints the whole list, its emoji intact, never cut
+        got [[["Navy SI code","xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx😀","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]   want [[["Navy SI code","“[\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx😀\"]”","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | a list longer than 120 characters
+    the review panel and workbook print all of it
+        got ["[[\"Navy SI code\",\"a sustainment indicator typed in by hand,another one, and a third, all kept as saved,so the list runs past 120 characters\",\"EN — Engine\"]]","[[[\"Navy SI code\",\"a sustainment indicator typed in by hand,another one, and a third, all kept as saved,so the list runs past 120 characters\",\"EN — Engine\"]],\"📄 Change report exported — 1 proposed change. Nothing has been applied.\"]"]   want ["[[\"Navy SI code\",\"“[\\\"a sustainment indicator typed in by hand\\\",\\\"another one, and a third, all kept as saved\\\",\\\"so the list runs past 120 characters\\\"]”\",\"EN — Engine\"]]","[[[\"Navy SI code\",\"“[\\\"a sustainment indicator typed in by hand\\\",\\\"another one, and a third, all kept as saved\\\",\\\"so the list runs past 120 characters\\\"]”\",\"EN — Engine\"]],\"📄 Change report exported — 1 proposed change. Nothing has been applied.\"]"]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | a number
+    the review panel: On the board now reads “7”, as Needs attention lists it
+        got [["Navy SI code","7","EN — Engine"]]   want [["Navy SI code","“7”","EN — Engine"]]
+    the journal reads a saved 7 as “7”, never the money $7
+        got [["sustainment indicator — Ev A","$7","AT"],["sustainment indicator — Ev A","not set","$7"]]   want [["sustainment indicator — Ev A","“7”","AT"],["sustainment indicator — Ev A","not set","“7”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | object inside a list
+    AT chosen in the field: the journal opens and reads Was “[{"toString":null}]”, Became AT
+        got threw: Cannot convert object to primitive value   want [["sustainment indicator — Ev A","“[{\"toString\":null}]”","AT"],["sustainment indicator — Ev A","not set","“[{\"toString\":null}]”"]]
+    a redraw with the journal open draws every panel
+        got threw: Cannot convert object to primitive value   want drawn
+    ↶ Put back on that line brings [{"toString":null}] back exactly
+        got NO PUT BACK   want {"A":[{"toString":null}],"B":"","C":"EN"}
+    the bulk write after it: the journal opens and its newest line reads Was “[{"toString":null}]”, Became AT
+        got threw: Cannot convert object to primitive value   want ["sustainment indicator — Ev A","“[{\"toString\":null}]”","AT"]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | object with its own _b key
+    AT chosen in the field: the journal opens and reads Was “{"_b":{"toString":null}}”, Became AT, and a redraw with it open draws
+        got ["threw: Cannot convert object to primitive value","threw: Cannot convert object to primitive value"]   want ["[[\"sustainment indicator — Ev A\",\"“{\\\"_b\\\":{\\\"toString\\\":null}}”\",\"AT\"],[\"sustainment indicator — Ev A\",\"not set\",\"“{\\\"_b\\\":{\\\"toString\\\":null}}”\"]]","drawn"]
+    a saved {"_b":5}: the journal reads Was “{"_b":5}”, never 5 characters
+        got [["sustainment indicator — Ev A","5 characters","AT"],["sustainment indicator — Ev A","not set","5 characters"]]   want [["sustainment indicator — Ev A","“{\"_b\":5}”","AT"],["sustainment indicator — Ev A","not set","“{\"_b\":5}”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | a list holding markup
+    the journal reads Was “["<b>x</b>"]” as text
+        got [["sustainment indicator — Ev A","<b>x</b>","AT"],["sustainment indicator — Ev A","not set","<b>x</b>"]]   want [["sustainment indicator — Ev A","“[\"<b>x</b>\"]”","AT"],["sustainment indicator — Ev A","not set","“[\"<b>x</b>\"]”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | true
+    the journal reads a saved true as “true”, never yes
+        got [["sustainment indicator — Ev A","yes","AT"],["sustainment indicator — Ev A","not set","yes"]]   want [["sustainment indicator — Ev A","“true”","AT"],["sustainment indicator — Ev A","not set","“true”"]]
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | object
+    the review panel draws, and On the board now reads “{"toString":null}”
+        got threw: Cannot convert object to primitive value   want [["Navy SI code","“{\"toString\":null}”","EN — Engine"]]
+    the review workbook builds: On the board now “{"toString":null}”, and the line after says so
+        got threw: Cannot convert object to primitive value   want [[["Navy SI code","“{\"toString\":null}”","EN — Engine"]],"📄 Change report exported — 1 proposed change. Nothing has been applied."]
+    AT chosen in the field: the journal reads Was “{"toString":null}”, Became AT
+        got [["sustainment indicator — Ev A","{\"toString\":null}","AT"],["sustainment indicator — Ev A","not set","{\"toString\":null}"]]   want [["sustainment indicator — Ev A","“{\"toString\":null}”","AT"],["sustainment indicator — Ev A","not set","“{\"toString\":null}”"]]
+# exit 1 at 10/18/2026, 5:59:11 PM ET
+
+# end: 2026-10-18 17:59:12 EDT  exit: 1  wall_s: 92.3

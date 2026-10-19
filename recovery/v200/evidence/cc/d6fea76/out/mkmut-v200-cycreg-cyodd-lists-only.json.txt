@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-cyodd-lists-only", "matches": 1, "find": "return y && typeof y==='object' && rcnListOdd(y.rcn).length>0; })) return true;", "repl": "return y && typeof y==='object' && rcnListOdd(y.rcn).some(function(x){ return !x.entry; }); })) return true;"}

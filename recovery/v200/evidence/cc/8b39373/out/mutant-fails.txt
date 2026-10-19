@@ -1,0 +1,20 @@
+v200-regtext-title-no-limit board=acc7575c mutant=acc7575c "BOARD_set":true :: 24 11 title typed as 81 letters; title typed as 200 letters; title typed as 80 letters and an emoji; the workbook after the refusals; a refused title saves nothing; the title field in the RCN / EEIC panel; title typed as 81 letters with spaces before them; a 100-letter title from a file, retyped in the panel; that file saved and reopened; title typed as 41 letters, each with a separate accent mark; a refused title corrected in its field
+v200-regtext-title-cut board=ea705188 mutant=ea705188 "BOARD_set":true :: 24 3 title typed as 79 letters and an emoji; the workbook with that title; saved and reopened
+v200-regtext-title-halves board=e506dd2c mutant=e506dd2c "BOARD_set":true :: 24 4 title typed as 80 letters and an emoji; title typed as 79 letters and an emoji; the workbook with that title; saved and reopened
+v200-regtext-refused-but-kept board=a7ddaef7 mutant=a7ddaef7 "BOARD_set":true :: 24 11 title typed as 81 letters; title typed as 200 letters; title typed as 80 letters and an emoji; the workbook after the refusals; a refused title saves nothing; the title field in the RCN / EEIC panel; title typed as 81 letters with spaces before them; a 100-letter title from a file, retyped in the panel; that file saved and reopened; title typed as 41 letters, each with a separate accent mark; a refused title corrected in its field
+v200-regtext-field-unmarked board=2bcab02b mutant=2bcab02b "BOARD_set":true :: 24 2 the title field in the RCN / EEIC panel; a 100-letter title from a file, retyped in the panel
+v200-regtext-count-untrimmed board=f7a465f2 mutant=f7a465f2 "BOARD_set":true :: 24 2 title typed as 81 letters with spaces before them; title typed as 80 letters with spaces around them
+v200-regtext-preview-untrimmed board=3d247fe9 mutant=3d247fe9 "BOARD_set":true :: 24 1 title typed as 81 letters with spaces before them
+v200-regtext-refused-but-saved board=5b59806d mutant=5b59806d "BOARD_set":true :: 24 1 a refused title saves nothing
+v200-regtext-kept-unsaved board=b6407c41 mutant=b6407c41 "BOARD_set":true :: 24 2 a refused title corrected in its field; a title within the limit, typed in the panel
+v200-regtext-kept-not-drawn board=6e043ab2 mutant=6e043ab2 "BOARD_set":true :: 24 2 a refused title corrected in its field; a title within the limit, typed in the panel
+v200-regtext-field-maxlength board=434a58b3 mutant=434a58b3 "BOARD_set":true :: 24 1 a title within the limit, typed in the panel
+v200-regtext-count-glyphs board=cb9fa0d7 mutant=cb9fa0d7 "BOARD_set":true :: 24 1 title typed as 41 letters, each with a separate accent mark
+v200-regtext-count-normalized board=92fd88dd mutant=92fd88dd "BOARD_set":true :: 24 1 title typed as 41 letters, each with a separate accent mark
+v200-regtext-empty-refused board=1bfc3e6b mutant=1bfc3e6b "BOARD_set":true :: 24 1 title cleared
+v200-regtext-spaces-collapsed board=1c045a88 mutant=1c045a88 "BOARD_set":true :: 24 1 title typed with two spaces inside it
+v200-regtext-file-title-shown-cut board=b7fad430 mutant=b7fad430 "BOARD_set":true :: 24 1 a 100-letter title from a file, retyped in the panel
+v200-regtext-long-title-retyped board=ffd2099c mutant=ffd2099c "BOARD_set":true :: 24 2 a 100-letter title from a file, retyped in the panel; that file saved and reopened
+v200-regtext-refusal-left-standing board=47c735a8 mutant=47c735a8 "BOARD_set":true :: 24 1 a refused title corrected in its field
+v200-regtext-clears-any-message board=1d73ab00 mutant=1d73ab00 "BOARD_set":true :: 24 1 a title kept under another message
+v200-regtext-formula-cells board=d70c1b80 mutant=d70c1b80 "BOARD_set":true :: 24 1 codes typed as "=1+1" and "@a1", in the Spend Plan Source

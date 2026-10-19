@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-advice-any-board", "matches": 1, "find": "can be put right on a board of this '\n    +'version, in 🗂 RCN / EEIC, where ✕ on a row marked ⚠ repeats removes that row alone, and the file written again.", "repl": "can be put right on the board that '\n    +'holds it, in 🗂 RCN / EEIC, and the file written again."}

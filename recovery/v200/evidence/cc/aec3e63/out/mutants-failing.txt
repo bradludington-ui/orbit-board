@@ -1,0 +1,70 @@
+=== v200-u10-ace-import-in-view  "BOARD_set":true,"board":"935cd7ad77a77975d6e4f2b8b843fa8d30a042bc
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a cost estimate imported (2027 ACE.xlsx, AV $4.321M; the approved 2027ACE is loaded) · | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-bae-import-in-view  "BOARD_set":true,"board":"5fe4ebfc4b004cdf2dde57fd487af7d2451883a3
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a BAE list imported (an ANG budget for AV) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal False
+=== v200-u10-ccar-import-in-view  "BOARD_set":true,"board":"059da8aa9a6f87641be2f7f50efb5d065cc817e0
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · a CCaR Records file imported (titles and OPR for CCA and CCR) | refused before anything is read or asked, and the status line says so
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-dest-change-in-view  "BOARD_set":true,"board":"a7011813f75e409fecf0cf2a1908f8d765af8f0c
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-dest-change-no-redraw  "BOARD_set":true,"board":"1b150e7d99784b36f3fdaa41b8e63725aa71de0e
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Lockheed Martin renamed RENAMED DEST in its name field | the lists, browser storage and the panel as they were; every export fr
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-dest-add-in-view  "BOARD_set":true,"board":"e191c3df07ead7f780e81e803cf91dac533df97d
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · + add a destination · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | the working plan · + add a destination, named Depot Z, R sent there (allowed) | CONTROL — the list, browser storage and the panel carry Depot Z, and t
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-dest-remove-in-view  "BOARD_set":true,"board":"9506d6e87e89a8157dfbe4084014ed47a46e3259
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · Depot X removed with its ✕, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK · the view left | the working plan’s lists, R’s destination and every export are its own
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+=== v200-u10-dest-reset-in-view  "BOARD_set":true,"board":"d2e466e8e866d4d371778682612c11aa1c7cc749
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | refused before anything is read or asked, and the status line says so
+  FAIL | v2.00 (U10) — a cost estimat | PB27 viewed · reset the list, answered OK | the lists, browser storage and the panel as they were; every export fr
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True

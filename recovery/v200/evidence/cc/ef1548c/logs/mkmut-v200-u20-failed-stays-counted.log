@@ -1,0 +1,1 @@
+{"id": "v200-u20-failed-stays-counted", "matches": 1, "find": "  p.then(done, done);   // saved, refused, failed or thrown -- and the lock, where there is one, let go\n", "repl": "  p.then(done, function(){});\n"}

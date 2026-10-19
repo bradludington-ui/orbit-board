@@ -1,0 +1,16 @@
+# label: M-v200-u10-sp-pmo-in-view
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/out/M-v200-u10-sp-pmo-in-view.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-sp-pmo-in-view.html
+# start: 2026-10-18 04:58:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-sp-pmo-in-view.html","BOARD_set":true,"board":"b47a9f84b54269b60f8d431ba87b5d0201990e02","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs","harnessBlob":"558b09714a8bb2dcd629593c670dbbd79ddaa6c5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 4:58:54 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a locked view leaves no trace | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their controls call)
+    each refused and said so; each is still all
+        got [true,"[\"AV\",\"ALL\",\"ALL\"]"]   want [true,"[\"ALL\",\"ALL\",\"ALL\"]"]
+# exit 1 at 10/18/2026, 4:59:54 AM ET
+
+# end: 2026-10-18 04:59:54 EDT  exit: 1  wall_s: 61.1

@@ -1,0 +1,8 @@
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/clones  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut  (folder of board copies or clones (not walked), 0 bytes)
+8858a98af6059f876ca069223c0034c5cfd15179310dcff9d1f9ca38bf3708d0  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/out/after.tar  (binary type, 7424000 bytes)
+9389b6c9c8bb89d1c8ffa4db57f635aefe1448deacaa0d001fd4efc86b31b36b  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/out/before.tar  (binary type, 7403520 bytes)

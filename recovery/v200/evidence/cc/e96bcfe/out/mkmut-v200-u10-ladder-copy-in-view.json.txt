@@ -1,0 +1,1 @@
+{"id": "v200-u10-ladder-copy-in-view", "matches": 1, "find": "  if(cycBlock('Copying the band ladder')) return;   // v2.00 (U10): it wrote the other appropriations' boards, then said \"Not kept\"\n", "repl": ""}

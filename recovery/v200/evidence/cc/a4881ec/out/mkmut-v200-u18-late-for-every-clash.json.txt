@@ -1,0 +1,1 @@
+{"id": "v200-u18-late-for-every-clash", "matches": 1, "find": "    +(refused==='late'? 'Their copy landed", "repl": "    +(refused? 'Their copy landed"}

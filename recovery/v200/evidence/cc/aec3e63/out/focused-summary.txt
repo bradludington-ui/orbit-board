@@ -1,0 +1,10 @@
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 50.8
+F-parent exit=1 | 21 FAILING CHECK(S) | wall_s: 45.4
+M-v200-u10-bae-import-in-view exit=1 | 13 FAILING CHECK(S) | wall_s: 60.8
+M-v200-u10-ace-import-in-view exit=1 | 15 FAILING CHECK(S) | wall_s: 62.7
+M-v200-u10-dest-change-in-view exit=1 | 9 FAILING CHECK(S) | wall_s: 68.0
+M-v200-u10-ccar-import-in-view exit=1 | 1 FAILING CHECK(S) | wall_s: 69.2
+M-v200-u10-dest-change-no-redraw exit=1 | 1 FAILING CHECK(S) | wall_s: 72.4
+M-v200-u10-dest-add-in-view exit=1 | 8 FAILING CHECK(S) | wall_s: 72.5
+M-v200-u10-dest-remove-in-view exit=1 | 5 FAILING CHECK(S) | wall_s: 71.6
+M-v200-u10-dest-reset-in-view exit=1 | 2 FAILING CHECK(S) | wall_s: 74.2

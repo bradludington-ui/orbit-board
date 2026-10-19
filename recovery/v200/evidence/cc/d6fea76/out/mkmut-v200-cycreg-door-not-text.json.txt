@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-door-not-text", "matches": 1, "find": "    if(typeof k!=='string'){\n      const kd=", "repl": "    if(false){\n      const kd="}

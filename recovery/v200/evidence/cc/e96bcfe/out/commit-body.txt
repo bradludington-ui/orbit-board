@@ -1,0 +1,24 @@
+v2.00 (U10 4 of 12): a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept
+
+These doors wrote something outside a locked view's copy -- this appropriation's browser storage, another
+appropriation's board, a list every appropriation shares, the copy kept aside, the shared folder's record -- or
+handed a file out, and only then met the view's refusal. With PB27 on screen a returned package taken through Import
+one appropriation was written to browser storage under "Not kept" (reopened, the board printed 77777 for K1, and the
+work typed after the last save was in no copy); a state file kept its cost estimates; the ladder copy replaced Full
+Fund's own ladder; a package issued, returned or sent back carried the locked cycle as the board; the shared state
+file and a Live refresh kept the cycle aside as this browser's work; and an import started on the working plan with
+the view put on screen during its read was kept. Now Import one appropriation is refused before its file is read and
+again once it is read; the three workbook imports are refused again once their file is read; the ladder copy, the
+four package doors and loading the shared state file are refused up front; and a refresh from the shared folder
+loads none of this appropriation's plan and keeps nothing aside while a locked cycle is on screen. U10 4 of 12.
+
+Board +23 -0, audit-recon +257 -0, mutate +41 -0, and its NEXT-VERSION.md entry.
+
+audit-recon: a new "v2.00 (U10)" block, 28 checks; the 22 non-control checks fail on 7ee498a (the 6 controls pass),
+19 on U10 3. 13 mutations. Not covered: Import full board is refused before its file is read only, so one started on
+the working plan with a view put on screen during its read lands as on the working plan; a Connect in a view still
+takes the folder's cost estimates, execution data and reprogramming log (the round-6 money review, P1b; ledger U51).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

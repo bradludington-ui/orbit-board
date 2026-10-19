@@ -1,0 +1,110 @@
+diff --git a/tools/export-audit/audit-recon.mjs b/tools/export-audit/audit-recon.mjs
+index 1074ce6..642fcf8 100644
+--- a/tools/export-audit/audit-recon.mjs
++++ b/tools/export-audit/audit-recon.mjs
+@@ -6270,6 +6270,105 @@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U10, the shared lists) ====
++// ==== v2.00 (U10, the spend plan's choices): a spend-plan choice, a PPBE position or a destination's kind refused in a locked view leaves no trace ====
++// The Spend Plan's choices -- its Cost data (the estimate the ACE tie-out ties out), By PMO / By Service and the two prior years --
++// were set on the page first and then saved, which the view refused: the board said "the change was not kept" and kept the choice,
++// so the ACE tie-out taken from the view, and from the working plan after leaving it, tied out the estimate chosen in the view (the
++// U10 round-2 test review, 13 Oct). A PPBE position is kept beside the years (MS.ppbe), so only a refusal that makes the whole copy
++// again puts it back (the blocks above read the codes, the bands and the funds flow, not the positions). A destination's kind is
++// changed through a field of its own, which the shared-lists block above does not use (it renames). A board of two AV
++// requirements -- A (USAF 900, ANG 200, confirmed on WBS 1.1) and R (USAF 503, ANG 127) -- with two approved estimates, 2027ACE (AV,
++// 1.1, $900) and 2026ACE (AV, 1.1, $333 for FY27), the Spend Plan on 2027ACE by PMO, and the working plan tagged PB27 with USAF's
++// FY27 position logged at $1,000. PB27 is locked and viewed; each choice is made through the control the Spend Plan renders, and
++// the position through the handler its cell calls. FAILS ON 7ee498a (board fce8a391) and on the U10 commits: the Spend Plan shows
++// 2026ACE by Service with the prior years, and the ACE tie-out from the view and from the working plan ties out 2026ACE ($333);
++// on 7ee498a the FYDP Spend Plan from the view also prints the refused $5,000 position, and Lockheed Martin is kept a government
++// activity for every appropriation and in browser storage. CONTROLS: PB27 viewed, nothing chosen; on
++// the working plan the Cost data choice is open, kept, and the tie-out reads it; no jsdom errors. Every figure is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a locked view leaves no trace';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify;
++    const X = boot();
++    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', [900, 200, 0]), it('R', 'AV', [503, 127, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['A', 'R'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      S.wbs={A:[{w:'1.1', v:[]}]}; S.aceMap={A:{w:['1.1'], ok:true}};
++      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:2, file:'2027 ACE approved.xlsx'},
++        '2026ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:1, file:'2026 ACE approved.xlsx'}};
++      ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=333; aceYr='all';
++      persistAce(); applyState(S); save(); setSpAce('2027ACE');
++      cycSetWorking('PB', MS.cur); ppCyc='PB'; ppYr=MS.cur; ppLineAdd('USAF'); ppSetV('USAF', ppLines(ppPos(),'USAF')[0].k, MS.cur, 'd', '1000'); 'ok'`);
++    const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    // the Spend Plan as drawn on screen: its Cost data choice, and which of By PMO / By Service / ◀ prior 2 FY is pressed
++    const onScreen = () => JSON.parse(ev(`(function(){ if(!spOpen){ spOpen=true; render(); }
++      var s=[].slice.call(document.querySelectorAll('select')).filter(function(e){ return (e.getAttribute('onchange')||'')==='setSpAce(this.value)'; }).map(function(e){ return e.value; });
++      var b=[].slice.call(document.querySelectorAll('button')).filter(function(e){ return /^setSp(By|Prior)\\(/.test(e.getAttribute('onclick')||'') && e.classList.contains('on'); }).map(function(e){ return e.textContent; });
++      return JSON.stringify([s, b]); })()`));
++    // a control the Spend Plan renders: the Cost data select (a value chosen, change fired) or a button (clicked)
++    const press = (on, value) => ev(`(function(){ if(!spOpen){ spOpen=true; render(); } var el=[].slice.call(document.querySelectorAll('select, button')).filter(function(e){
++      return (e.getAttribute('onchange')||e.getAttribute('onclick')||'')===${J(on)}; })[0]; if(!el) return 'no control';
++      if(el.tagName==='SELECT'){ el.value=${J(value || '')}; el.dispatchEvent(new Event('change', {bubbles:true})); } else el.click(); return 'fired'; })()`);
++    const hdr = (rows, ...must) => rows.findIndex(r => must.every(m => (r || []).some(c => String(c ?? '').trim() === m)));
++    const col = (rows, h, n) => (rows[h] || []).findIndex(c => String(c ?? '').trim() === n);
++    // the ACE tie-out and the FYDP Spend Plan, read from their bytes
++    const tie = async () => { const ab = JSON.parse(await w6Book(X.w, 'exportAceTieout')), mp = ab['Mapping by Requirement'] || [], mh = hdr(mp, 'FY', 'PMO', 'Board funded');
++      const rc = ab['Reconciliation by PMO'] || [], rh = hdr(rc, 'FY', 'PMO', 'Estimate');
++      return [ab.__err || 'ok', w6Lbl(mp[0]), mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => ['Requirement (CCaR Record Name)', 'Board funded', 'Estimate', 'Delta'].map(n => r[col(mp, mh, n)] ?? '')),
++        rc.slice(rh + 1).filter(r => w6Lbl(r) === 'FY27' && String(r[1] ?? '') === 'AV').map(r => [r[0], r[1], r[2], r[3], r[4]])]; };
++    const pos = async () => { const fb = JSON.parse(await w6Book(X.w, 'exportFydpPlan')), bs = fb['By Service'] || [], h = hdr(bs, 'Service'), c = col(bs, h, 'FY27 PPBE position');
++      return [fb.__err || 'ok', bs.slice(h + 1).filter(r => ['USAF', 'ANG', 'AFRC', 'TOTAL'].includes(w6Lbl(r))).map(r => [w6Lbl(r), r[c]])]; };
++    const stored = () => ev(`(JSON.parse(localStorage.getItem(_AP.key)||'{}')||{}).spAce||''`);
++    // BY HAND. 2027ACE: A's $1,100 funded against $900 on 1.1 (delta 200); AV $900 against $1,730 funded (A 1,100 + R 630; delta 830).
++    // 2026ACE: $333 against the same (767; 1,397). USAF's FY27 position $1,000; no other service logs one.
++    const T900 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)', [['Req A', 1100, 900, 200], ['Req R', 630, '', '']], [['FY27', 'AV', 900, 1730, 830]]];
++    const T333 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2026ACE, FY27)', [['Req A', 1100, 333, 767], ['Req R', 630, '', '']], [['FY27', 'AV', 333, 1730, 1397]]];
++    const POS = ['ok', [['USAF', 1000], ['ANG', '—'], ['AFRC', '—'], ['TOTAL', 1000]]];
++    const SCREEN = [['2027ACE'], ['By PMO']];
++    const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`cycLeave(); 'ok'`);
++    // ---- CONTROL: PB27 viewed, nothing chosen
++    view();
++    w5Chk(name, 'PB27 viewed, nothing chosen', 'CONTROL — the Spend Plan shows 2027ACE by PMO; the ACE tie-out ties out 2027ACE ($900); the FYDP Spend Plan prints USAF’s FY27 position, $1,000',
++      J([onScreen(), await tie(), await pos()]), J([SCREEN, T900, POS]));
++    // ---- EACH CHOICE, with PB27 on screen; the status line is read at once ('Not kept' is put in front of a message for 1.5 s only)
++    const fa = press('setSpAce(this.value)', '2026ACE'), ka = notKept();
++    w5Chk(name, 'PB27 viewed · Cost data set to 2026ACE in its select', 'refused and said so; the Spend Plan still shows 2027ACE, and the ACE tie-out taken from the view ties out 2027ACE ($900)',
++      J([fa, ka, onScreen(), await tie()]), J(['fired', true, SCREEN, T900]));
++    const fb = press("setSpBy('svc')"), kb = notKept(), fp = press('setSpPrior(!spPrior)'), kp = notKept();
++    w5Chk(name, 'PB27 viewed · By Service, then ◀ prior 2 FY, pressed', 'each refused and said so; the Spend Plan is still by PMO, without the prior years',
++      J([fb, kb, fp, kp, onScreen()]), J(['fired', true, 'fired', true, SCREEN]));
++    ev(`setSpPmo('AV'); setSpSvc('USAF'); setSpDrillSvc('USAF'); 'ok'`); const kf = notKept();
++    w5Chk(name, 'PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their controls call)', 'each refused and said so; each is still all',
++      J([kf, ev('JSON.stringify([spPmo, spSvc, spDrillSvc])')]), J([true, J(['ALL', 'ALL', 'ALL'])]));
++    ev(`ppCyc='PB'; ppYr=MS.cur; ppSetV('USAF', ppLines(ppPos(),'USAF')[0].k, MS.cur, 'd', '5000'); 'ok'`); const kv = notKept();
++    w5Chk(name, 'PB27 viewed · USAF’s FY27 PPBE position typed as $5,000', 'refused and said so; the FYDP Spend Plan taken from the view prints the position as logged, $1,000',
++      J([kv, await pos()]), J([true, POS]));
++    const fd = ev(`(function(){ if(!entOpen) toggleEnt(); var i=flowEnts().findIndex(function(e){ return e.n==='Lockheed Martin'; });
++      var s=[].slice.call(document.querySelectorAll('#entBody select')).filter(function(e){ return (e.getAttribute('onchange')||'')==='flowSetEnt('+i+',"kind",this.value)'; })[0];
++      if(!s) return 'no control'; s.value='gov'; s.dispatchEvent(new Event('change', {bubbles:true})); return 'fired'; })()`), kd = notKept();
++    const kinds = ev(`JSON.stringify([flowEnts().filter(function(e){ return e.n==='Lockheed Martin'; }).map(function(e){ return e.kind; }),
++      ((JSON.parse(localStorage.getItem(DEST_KEY)||'null')||{}).ents||[]).filter(function(e){ return e.n==='Lockheed Martin'; }).map(function(e){ return e.kind; })])`);
++    ev(`if(entOpen) toggleEnt(); 'ok'`);
++    w5Chk(name, 'PB27 viewed · Lockheed Martin’s kind set to government in Setup › Destinations', 'refused and said so; it is still a prime contractor, in the board and in browser storage',
++      J([fd, kd, kinds]), J(['fired', true, J([['prime'], ['prime']])]));
++    leave();
++    w5Chk(name, 'PB27 viewed · each choice refused · the view left', 'the working plan’s Spend Plan shows 2027ACE by PMO, browser storage keeps 2027ACE, and its ACE tie-out ties out 2027ACE ($900)',
++      J([onScreen(), stored(), await tie()]), J([SCREEN, '2027ACE', T900]));
++    // ---- CONTROL: on the working plan the choice is open, kept, and the tie-out reads it
++    const fw = press('setSpAce(this.value)', '2026ACE');
++    w5Chk(name, 'the working plan · Cost data set to 2026ACE (allowed)', 'CONTROL — the Spend Plan’s Cost data shows 2026ACE, browser storage keeps it, and the ACE tie-out ties out 2026ACE ($333)',
++      J([fw, onScreen()[0], stored(), await tie()]), J(['fired', ['2026ACE'], '2026ACE', T333]));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the spend plan's choices) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

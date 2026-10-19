@@ -1,0 +1,27 @@
+1269a1270,1295
+>     // ---- v2.00 (U10, Save yours over theirs): the same race for the other choice (the U10 money review, round 4, SF1; the test
+>     // review, round 4, m2). Colleague C saves again (COLLEAGUE DESC R2) and this browser types MY SECOND A; Save yours over theirs
+>     // is pressed on the working plan, and PB27 is put on screen while the folder's copy is read. By hand: refused as a save is
+>     // ("Writing to the shared folder is off"), before its question -- nothing asked, nothing written to the folder or its history,
+>     // the folder's copy still Colleague C's, the work still unsaved. FAILS ON 7ee498a and on U10 1-5 of 9: the question is asked
+>     // and Colleague C's copy is written to the folder's history before the save is refused; on U10 6 and 7 of 9 nothing is asked or
+>     // written, but the refusal names Load theirs' door ("Loading a board is off"). CONTROL: after leaving the view the same choice
+>     // asks once, keeps Colleague C's copy in the history and writes this browser's work over it.
+>     const j2 = JSON.parse(files[fn]); j2.store.ts = (+j2.store.ts || 0) + 60000; j2.ts = j2.store.ts;
+>     j2.store.years[String(j2.store.cur)].desc = Object.assign({}, j2.store.years[String(j2.store.cur)].desc || {}, { R: 'COLLEAGUE DESC R2' });
+>     files[fn] = J(j2);
+>     const f2 = files[fn], n2 = Object.keys(files).length;
+>     ev(`setDesc('A','MY SECOND A'); 'ok'`);
+>     spy(ev);
+>     X.w.__onRead = () => X.w.eval(`cycView(${J(key)})`);           // PB27 put on screen while the folder's copy is read
+>     const r3 = await X.ev(`driveResolve('mine')`);
+>     w5Chk(name, 'Save yours over theirs on the working plan · PB27 put on screen while the folder is read', 'refused as a save is, before its question; nothing is written to the folder or its history, and the work is still this browser’s unsaved work',
+>       J([r3, ev('CYCVIEW'), said(ev), ev('JSON.stringify(window.__asked)'), files[fn] === f2, Object.keys(files).length === n2, own(ev), ev('!!baseGet().dirty')]),
+>       J([false, 'PB|2027', OFF('Writing to the shared folder'), '[]', true, true, [['11111'], 'MY SECOND A', 'COLLEAGUE DESC R'], true]));
+>     ev(`cycLeave(); 'ok'`);
+>     spy(ev);
+>     const r4 = await X.ev(`driveResolve('mine')`), now = JSON.parse(files[fn]).store;
+>     const inHist = Object.keys(files).filter(n => n !== fn && String(files[n]).indexOf('COLLEAGUE DESC R2') >= 0).length;
+>     w5Chk(name, 'Save yours over theirs on the working plan · PB27 put on screen while the folder is read · the view left, Save yours over theirs again', 'CONTROL — asked once; Colleague C’s copy is kept in the folder’s history and this browser’s work (MY SECOND A) is written over it',
+>       J([r4, JSON.parse(ev('JSON.stringify(window.__asked)')).length, inHist > 0, ((now.years[String(now.cur)] || {}).desc || {}).A || '', ev('!!baseGet().dirty')]),
+>       J([true, 1, true, 'MY SECOND A', false]));

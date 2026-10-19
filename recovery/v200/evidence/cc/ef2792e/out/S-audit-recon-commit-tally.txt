@@ -1,0 +1,28 @@
+TOTAL {"n": 551, "p": 551, "f": 0}
+ 33 checks  33 pass   0 fail | controls 0 (0 fail) | non-controls 33 (0 fail) | v1.97 W5 — the ATR/BTR log by appropriation, fiscal year and service, all and filtered, to
+  3 checks   3 pass   0 fail | controls 0 (0 fail) | non-controls 3 (0 fail) | v1.97 W5 — a row whose service cannot be read is Unresolved, and still counted (R10)
+  6 checks   6 pass   0 fail | controls 0 (0 fail) | non-controls 6 (0 fail) | v1.97 W5 — the tracker offers each row its own appropriation’s services, and marks a row r
+ 10 checks  10 pass   0 fail | controls 0 (0 fail) | non-controls 10 (0 fail) | v1.97 W5 — the $M field takes whole dollars only, refuses anything finer with its dollar f
+  5 checks   5 pass   0 fail | controls 0 (0 fail) | non-controls 5 (0 fail) | v1.97 W5 — an entry saved with a fraction of a dollar is kept as it is, marked, named by t
+ 21 checks  21 pass   0 fail | controls 9 (0 fail) | non-controls 12 (0 fail) | v1.99 item 85 — a split total gives each odd dollar to the service it belongs to: exact, t
+ 12 checks  12 pass   0 fail | controls 6 (0 fail) | non-controls 6 (0 fail) | v1.99 item 87 — the $M field reads the whole entry, however long, and a refused one change
+ 11 checks  11 pass   0 fail | controls 5 (0 fail) | non-controls 6 (0 fail) | v1.99 item 88 — a locked cycle’s view and every report from it read the RCN / EEIC list it
+ 11 checks  11 pass   0 fail | controls 3 (0 fail) | non-controls 8 (0 fail) | v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decid
+  6 checks   6 pass   0 fail | controls 2 (0 fail) | non-controls 4 (0 fail) | v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and
+  9 checks   9 pass   0 fail | controls 2 (0 fail) | non-controls 7 (0 fail) | v1.99 items 97–98 — the Classify grid says a prime’s CLINs keep their own RCN / EEIC; the 
+ 19 checks  19 pass   0 fail | controls 2 (0 fail) | non-controls 17 (0 fail) | v2.00 (R1) — execution precedence by appropriation and effective year
+ 19 checks  19 pass   0 fail | controls 8 (0 fail) | non-controls 11 (0 fail) | v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their ef
+ 78 checks  78 pass   0 fail | controls 20 (0 fail) | non-controls 58 (0 fail) | v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS
+ 63 checks  63 pass   0 fail | controls 12 (0 fail) | non-controls 51 (0 fail) | v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept a
+ 39 checks  39 pass   0 fail | controls 10 (0 fail) | non-controls 29 (0 fail) | v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; 
+ 24 checks  24 pass   0 fail | controls 10 (0 fail) | non-controls 14 (0 fail) | v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut
+ 42 checks  42 pass   0 fail | controls 10 (0 fail) | non-controls 32 (0 fail) | v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, count
+ 18 checks  18 pass   0 fail | controls 10 (0 fail) | non-controls 8 (0 fail) | v2.00 (U42) — a funds-flow sheet name never ends in half a character or begins or ends wit
+ 27 checks  27 pass   0 fail | controls 9 (0 fail) | non-controls 18 (0 fail) | v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries
+  9 checks   9 pass   0 fail | controls 5 (0 fail) | non-controls 4 (0 fail) | v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen
+ 27 checks  27 pass   0 fail | controls 6 (0 fail) | non-controls 21 (0 fail) | v2.00 (U10) — a cost estimate, a BAE list, CCaR records or a destination change is refused
+  9 checks   9 pass   0 fail | controls 3 (0 fail) | non-controls 6 (0 fail) | v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a lo
+ 31 checks  31 pass   0 fail | controls 6 (0 fail) | non-controls 25 (0 fail) | v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked v
+  7 checks   7 pass   0 fail | controls 4 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total a
+  6 checks   6 pass   0 fail | controls 3 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing
+  6 checks   6 pass   0 fail | controls 3 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it w

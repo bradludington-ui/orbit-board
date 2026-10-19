@@ -1,0 +1,71 @@
+== M-v200-u10-reapply-year-only (log: 22 FAILING CHECK(S); board "board":"590aa8cd0c148226a519fc358c4d91e5585abbd5", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 22 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · RCN 77777 typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · RCN 77777 typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · EEIC YYYYY typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · EEIC YYYYY typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · title “Renamed” typed into K4’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · title “Renamed” typed into K4’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed with its ✕, answered OK | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed with its ✕, answered OK | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · + Add RCN / EEIC | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K1’s ANG box switched off | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | FY28 still holds CLIN 0001’s AFRC on K3, and the list is the cycle’s
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | every export of FY28 carries the cycle’s own codes
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | refused; still FY28, on FY28’s months; the list and the panel are the cycle’s
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | every export of FY28 carries the cycle’s own codes
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | refused and said so; the list on screen still ends ZED; Q is in ZED in FY27 and FY28
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | every export carries the cycle’s own offices and codes: Q’s $71 under ZED
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] the record’s steps: saved, reopened, PB27 viewed, 77777 typed | refused; RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out (on its own year, FY27, as a reopened board shows it) carry the cycle’s own codes; no cell names 77777
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] a cycle locked before v1.99, viewed · RCN 77777 typed into K1’s field | refused; the view’s list and RCN-EEIC by Month are today’s list as it is
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · band 0 renamed RENAMED BAND (refused) | refused and said so; the workbook still names band 0 as it was locked
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · funds-flow axis set to destinations (refused) | refused and said so; the funds-flow export is still cut by what the money buys
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field | refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · CCaR Records file imported (refused) | refused and said so; the Spend Plan Source still titles R and Q by their own names, OPR blank
+== M-v200-u10-reapply-keeps-list (log: 17 FAILING CHECK(S); board "board":"5def5eefaba1df07c35136785d20ffcfa89968ba", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 17 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · RCN 77777 typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · RCN 77777 typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · EEIC YYYYY typed into K1’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · EEIC YYYYY typed into K1’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · title “Renamed” typed into K4’s field | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · title “Renamed” typed into K4’s field | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed with its ✕, answered OK | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed with its ✕, answered OK | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · + Add RCN / EEIC | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K1’s ANG box switched off | refused and said so; the list in the view, and the panel redrawn on screen, are the cycle’s: K1-K4 as locked
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | FY28 still holds CLIN 0001’s AFRC on K3, and the list is the cycle’s
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | every export of FY28 carries the cycle’s own codes
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | refused; still FY28, on FY28’s months; the list and the panel are the cycle’s
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | every export of FY28 carries the cycle’s own codes
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] the record’s steps: saved, reopened, PB27 viewed, 77777 typed | refused; RCN-EEIC by Month, the Spend Plan Source and the ACE tie-out (on its own year, FY27, as a reopened board shows it) carry the cycle’s own codes; no cell names 77777
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] a cycle locked before v1.99, viewed · RCN 77777 typed into K1’s field | refused; the view’s list and RCN-EEIC by Month are today’s list as it is
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field | refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+== M-v200-u10-reapply-keeps-years (log: 5 FAILING CHECK(S); board "board":"c947fc947250f4f36d58f0337eadb863c63e9ee9", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 5 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed with its ✕, answered OK | every export carries the cycle’s own codes, as before the edit
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | FY28 still holds CLIN 0001’s AFRC on K3, and the list is the cycle’s
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · K3 removed on FY27, then FY28 on screen | every export of FY28 carries the cycle’s own codes
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | refused and said so; the list on screen still ends ZED; Q is in ZED in FY27 and FY28
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | every export carries the cycle’s own offices and codes: Q’s $71 under ZED
+== M-v200-u10-reapply-keeps-pmos (log: 2 FAILING CHECK(S); board "board":"97ac0283d5d1187a0f6df3ecae4aed1f9afc1f3a", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 2 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | refused and said so; the list on screen still ends ZED; Q is in ZED in FY27 and FY28
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · ZED renamed WRK with its ✎ | every export carries the cycle’s own offices and codes: Q’s $71 under ZED
+== M-v200-u10-reapply-first-year (log: 2 FAILING CHECK(S); board "board":"8953d40317cc4b7499c878a406e625a1c98fb209", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 2 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] PB27 viewed · FY28 on screen, RCN 77777 typed into K1’s field | refused; still FY28, on FY28’s months; the list and the panel are the cycle’s
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field | refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+== M-v200-u10-reapply-older-keeps-list (log: 1 FAILING CHECK(S); board "board":"2703e54c572d8ad1270c78e519043aa48daf71a6", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 1 failing
+  FAIL [v2.00 (U10) — a refused edit in a locked cycl…] a cycle locked before v1.99, viewed · RCN 77777 typed into K1’s field | refused; the view’s list and RCN-EEIC by Month are today’s list as it is
+== M-v200-u10-reapply-wrong-year (log: 1 FAILING CHECK(S); board "board":"e7502d8c20061c18975d8ffe8e6922248dfcc93d", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 1 failing
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field | refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+== M-v200-u10-reapply-keeps-plan-settings (log: 2 FAILING CHECK(S); board "board":"5e639c7a57d40c5a3eccf9ee426e367821313d02", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 2 failing
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · band 0 renamed RENAMED BAND (refused) | refused and said so; the workbook still names band 0 as it was locked
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] PB27 viewed · funds-flow axis set to destinations (refused) | refused and said so; the funds-flow export is still cut by what the money buys
+== M-v200-u10-reapply-working-base (log: 1 FAILING CHECK(S); board "board":"43008d20b80465c27fff3df0cd7383abc46bb892", BOARD_set "BOARD_set":true)
+TOTAL 47 recorded; 1 failing
+  FAIL [v2.00 (U10) — a refusal in a locked view puts…] working base year moved to FY28 · PB27 viewed · band 0 renamed (refused) | CONTROL — the view keeps the cycle’s FYDP window FY27–FY31 after the refusal; the working plan’s is FY28–FY32

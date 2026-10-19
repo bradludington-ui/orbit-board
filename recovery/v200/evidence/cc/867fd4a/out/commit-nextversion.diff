@@ -1,0 +1,76 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index e69c7ac..af8f64b 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -1064,11 +1064,6 @@ result for it was run fresh against these commits.
+       there in the funds flow. Nothing is said, and a save there keeps the merge. Opened in a fresh browser, the same file
+       keeps both. This breaks v1.86's can't-fails ("no requirement … loses or changes its destination"; "each merge is
+       listed"). Typed destination names are also not trimmed and have no length limit.
+-    - **U41 (P2; fix track u41u42 under way on 13 Oct, joining v2.00 only if its reviews are clean in time).** An SI code
+-      the file carried that is not exactly one of the five (for example "at" or "LA ") is dropped when the year is opened,
+-      without a word, and the next save loses it. The requirement falls back to its derived code, and in the SI matrix its
+-      money moves to that code's row (on the test fixture, "— no code set —"). A PMO copy carrying such a code has it left
+-      out and named (`pmoNorm`); a year's own file does not. ORBIT's own picker never writes such a code.
+     - **U42 (P2; the same fix track as U41).** In the funds-flow workbook on the destination axis, each destination's sheet
+       name is cut to 28 UTF-16 units, and the cut can split an emoji: a name of 27 letters and an emoji becomes a sheet
+       named with 27 letters and a replacement mark (�). A name beginning with an apostrophe becomes a sheet name beginning
+@@ -1088,6 +1083,47 @@ result for it was run fresh against these commits.
+       `csvCell`), and no slide carries registry text (by code). Workbook cells are text, never formulas: no workbook part
+       made here held an `<f>` element, including a Spend Plan Source whose RCN cell begins "=" and whose EEIC cell begins
+       "@".
++- **U41 — an SI code a file carried that is not one of the five is kept, listed and never guessed** (lead, 13 Oct, 1:19 PM
++  ET: a fix track from Codex's A4 proposal, joining v2.00 only if both reviews are clean by the time U37's and U40's are).
++  Opening a year deleted any SI code that was not exactly LA, EN, OT, FL or AT (for example "at", "LA " or "ZZ") without a
++  word, and the next save lost it. The requirement then read its derived code, so on the test fixture an LM prime's
++  $1,100,000 was filed under LA in the Special Interest overview, the workbook's SI Codes by Month tab and the CR cash
++  return. Only a file ORBIT did not write can carry such a code: the board's own picker writes only the five. Now the code is
++  kept exactly as it was saved, opened and after a save, and nothing guesses at it: it is not trimmed, put in capitals or
++  replaced by the derived code. On O&M its money is counted under no recognized SI code, and the code is named in Needs
++  attention ("🏷 SI codes to repair") and in Pre-flight ("SI codes the board does not recognize"). The requirement's Navy SI
++  code field shows it, selected, as "“at” — not one of the five, kept as saved", also on a requirement with no Navy or Marine
++  money (which had no field before). Go to it opens that field. Choosing a code there replaces it, and the change journal
++  keeps the code as saved. A bulk write counts it as an answer it would overwrite. While such a code is held, the overview's
++  no-code row and the workbook's say "no recognized" code, the overview's note says how much of that row is under such codes,
++  and the CR cash return's status line counts those rows apart from "no SI code". In a locked cycle's view the code is kept
++  and listed; a choice there is refused like any edit in a view, and the line says the requirement keeps the code (it said
++  "has no SI code"). Every report that prints SI codes (the CR cash return, the Spend Plan Source, the ACE workbook) leaves
++  its SI code blank. On Full Fund, Initial Spares and OPN, where nothing reads an SI code, it is kept and not listed.
++  - **What users may see:** only with a file ORBIT did not write. A "🏷 n SI codes to repair" entry under Needs attention
++    and a Pre-flight row. Money that was under a derived code is now under "— no recognized code —", with the note saying so.
++    The Navy SI code field on a USAF / ANG / AFRC requirement holding such a code. A CR cash return status line that counts
++    those rows apart.
++  - **Test:** audit-recon "v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under
++    no recognized code and chosen again in its field" (42 checks). The fixture: an O&M file holding "at" on an LM prime
++    (derived LA) and "ZZ" beside the five codes, a blank by hand and a derived EN; nine requirements, $1,910,000 on STOVL /
++    USMC CV / USN. Opened, and after a save and reopen: the stored map, the codes read, Needs attention (its strip entry, list
++    and Go to it), Pre-flight, the bulk write's question, the overview's rows ($1,210,000 = 63.4% under no recognized code, LA
++    only R3's $50,000) and note, the workbook's SI tab from its bytes, and the CR cash return's SI cells and status. Then AT
++    and none chosen in the field, saved and reopened: the list empties, the money moves to AT, the rows say "no SI code set"
++    again, and the journal holds "at" → AT. Also "LA ", "la", "__proto__", 7, {"x":1} and null kept and listed, Full Fund
++    keeping and not listing, a USAF / ANG requirement given the field, and a locked cycle's view keeping the code and refusing
++    a choice. 33 checks fail on the board before the change; the 9 controls pass on both.
++  - **Mutations:** `v200-u41-dropped-on-opening`, `-derived-guess`, `-capitals`, `-trim-known`, `-unlisted`,
++    `-listed-off-om`, `-no-field`, `-field-shows-none`, `-bulk-blank`, `-strip-silent`, `-preflight-silent`,
++    `-goto-row-only`, `-overview-label`, `-overview-note-none`, `-workbook-label`, `-cr-counts-twice`, `-cr-silent`,
++    `-cr-too-dangling`, `-cr-every-row` and `-view-says-none`. The focused block catches each one.
++  - **Not covered:** a PMO submittal or proposal carrying such a code is still left out at the portfolio board's door and
++    named there (`pmoNorm`, unchanged), and a PMO copy published from a board holding one carries it in its baseline as saved.
++    A requirement removed while it holds one keeps it, unlisted, until restored (seen in a probe, not a suite check). Nothing
++    offers the nearest of the five as a choice: a person picks. Initial Spares and OPN take Full Fund's path by code (only
++    Full Fund was run). The label cuts a code longer than 60 characters for display (`inShow`), as it does for other codes.
++    jsdom only; no browser, Excel or LibreOffice was run.
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
+@@ -1149,9 +1185,8 @@ result for it was run fresh against these commits.
+     - **U40 (P1, a release blocker, data loss; its own fix track).** Two destinations typed with names that differ only in
+       case or spaces merge into one when the file is opened in a browser whose destination list is newer: a requirement
+       changes its destination, its money moves in the funds flow, and nothing is said.
+-    - **U41 (P2 proposed; a fix track joins v2.00 only if its reviews are clean in time).** An SI code the file carried that
+-      is not exactly one of the five is dropped on opening without a word, and lost on the next save; its money moves to the
+-      derived code's row in the SI matrix.
++    - **U41: fixed above** (its own commit): the code is kept as saved, listed in Needs attention and Pre-flight, its money
++      counted under no recognized code, never the derived one, and chosen again in the Navy SI code field.
+     - **U42 (P2; the same fix track).** A funds-flow sheet name cut to 28 UTF-16 units can end in half an emoji (a
+       replacement mark in `xl/workbook.xml`); a leading apostrophe is kept in a sheet name. The slide deck's 56-unit cut of
+       a requirement title can split an emoji the same way.

@@ -1,0 +1,1 @@
+{"id": "v200-u10-resolve-mine-words", "matches": 1, "find": "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n", "repl": "  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }\n"}

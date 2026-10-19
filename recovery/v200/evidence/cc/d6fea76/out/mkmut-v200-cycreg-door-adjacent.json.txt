@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-door-adjacent", "matches": 1, "find": "    if(at[k]){ if(at[k].length===1) rep.push(k); at[k].push(i); } else at[k]=[i]; }", "repl": "    if(at[k] && i && L[i-1] && L[i-1].k===k){ if(at[k].length===1) rep.push(k); at[k].push(i); } else at[k]=[i]; }"}

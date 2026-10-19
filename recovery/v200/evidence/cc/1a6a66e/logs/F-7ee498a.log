@@ -1,0 +1,31 @@
+# label: F-7ee498a
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/out/F-7ee498a.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/harness/h-u42.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/mut/board-7ee498a.html
+# start: 2026-10-13 22:53:44 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/mut/board-7ee498a.html","BOARD_set":true,"board":"fce8a391bd8a248d5185e199d22190c1687eaea0","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/1a6a66e/harness/h-u42.mjs","harnessBlob":"9d9bbc830754bb7d75f718657a97cdf6f3598e59","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:53:45 PM ET"}
+
+================================================================================================
+8 FAILING CHECK(S)
+
+--- v2.00 (U42) — a funds-flow sheet name never ends in half a character or begins or ends with an apostrophe | working
+    the 28-unit cut through an emoji drops its first half: the sheet is "D" x27
+        got ["DDDDDDDDDDDDDDDDDDDDDDDDDDD�"]   want ["DDDDDDDDDDDDDDDDDDDDDDDDDDD"]
+    xl/workbook.xml holds no U+FFFD (EF BF BD)
+        got true   want false
+    an apostrophe at each end of a name, and one the cut left at the end, are gone: no name begins or ends with one
+        got [["'Quoted depot'","FFFFFFFFFFFFFFFFFFFFFFFFFFF'"],["'Quoted depot'","FFFFFFFFFFFFFFFFFFFFFFFFFFF'"]]   want [["Quoted depot","FFFFFFFFFFFFFFFFFFFFFFFFFFF"],[]]
+    a repeat whose 26-unit cut ends on an emoji’s first half is "E" x25 + " 2"; the first, where the emoji fits, keeps it
+        got ["EEEEEEEEEEEEEEEEEEEEEEEEE😀A","EEEEEEEEEEEEEEEEEEEEEEEEE� 2"]   want ["EEEEEEEEEEEEEEEEEEEEEEEEE😀A","EEEEEEEEEEEEEEEEEEEEEEEEE 2"]
+--- v2.00 (U42) — a funds-flow sheet name never ends in half a character or begins or ends with an apostrophe | saved and reopened
+    the 28-unit cut through an emoji drops its first half: the sheet is "D" x27
+        got ["DDDDDDDDDDDDDDDDDDDDDDDDDDD�"]   want ["DDDDDDDDDDDDDDDDDDDDDDDDDDD"]
+    xl/workbook.xml holds no U+FFFD (EF BF BD)
+        got true   want false
+    an apostrophe at each end of a name, and one the cut left at the end, are gone: no name begins or ends with one
+        got [["'Quoted depot'","FFFFFFFFFFFFFFFFFFFFFFFFFFF'"],["'Quoted depot'","FFFFFFFFFFFFFFFFFFFFFFFFFFF'"]]   want [["Quoted depot","FFFFFFFFFFFFFFFFFFFFFFFFFFF"],[]]
+    a repeat whose 26-unit cut ends on an emoji’s first half is "E" x25 + " 2"; the first, where the emoji fits, keeps it
+        got ["EEEEEEEEEEEEEEEEEEEEEEEEE😀A","EEEEEEEEEEEEEEEEEEEEEEEEE� 2"]   want ["EEEEEEEEEEEEEEEEEEEEEEEEE😀A","EEEEEEEEEEEEEEEEEEEEEEEEE 2"]
+# exit 1 at 10/13/2026, 10:53:51 PM ET
+
+# end: 2026-10-13 22:53:51 EDT  exit: 1  wall_s: 7.1

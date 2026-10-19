@@ -1,0 +1,19 @@
+# label: M-v200-u41-overview-label
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-overview-label.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-overview-label.html
+# start: 2026-10-13 22:49:51 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-overview-label.html","BOARD_set":true,"board":"04bc78632f376ae0527d14cc446005419e513e1f","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:49:52 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no code set — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no code set — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+# exit 1 at 10/13/2026, 10:50:04 PM ET
+
+# end: 2026-10-13 22:50:04 EDT  exit: 1  wall_s: 12.6

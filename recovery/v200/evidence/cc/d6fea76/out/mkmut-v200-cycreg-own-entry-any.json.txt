@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-own-entry-any", "matches": 1, "find": "return x.entry? !(_inRcnOwn && (cy || o.rcn[x.i]!==null)) : !_inRcnOwn;", "repl": "return x.entry? !(_inRcnOwn && cy) : !_inRcnOwn;"}

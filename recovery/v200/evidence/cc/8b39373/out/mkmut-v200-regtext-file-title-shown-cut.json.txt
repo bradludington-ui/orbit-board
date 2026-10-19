@@ -1,0 +1,1 @@
+{"id": "v200-regtext-file-title-shown-cut", "matches": 1, "find": "value=\"'+esc(e.t||'')+'\" placeholder=\"what this line funds\"", "repl": "value=\"'+esc(String(e.t||'').slice(0,80))+'\" placeholder=\"what this line funds\""}

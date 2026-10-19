@@ -1,0 +1,262 @@
+diff --git a/tools/export-audit/audit-recon.mjs b/tools/export-audit/audit-recon.mjs
+index 642fcf8..5237389 100644
+--- a/tools/export-audit/audit-recon.mjs
++++ b/tools/export-audit/audit-recon.mjs
+@@ -6371,0 +6372,257 @@ await (async () => {
++// ==== v2.00 (U10, the files, packages, ladder and shared copies): a file, a package, the ladder or a shared copy is refused in a locked view before anything is kept ====
++// The doors the round-2 reviews of 13 Oct and the builder's second door scan found beside the ones the blocks above close. Each
++// wrote something no part of the view's copy -- this appropriation's browser storage, another appropriation's board, a list every
++// appropriation shares, a kept-aside copy, the shared folder's record -- or handed a file out, and only then met the view's
++// refusal, so the board said "Not kept" and kept it: a returned package taken through Import one appropriation put 77777 for K1
++// into every export once the board reopened, and the work typed after the save was in no copy; a state file carrying cost
++// estimates kept them (the ACE tie-out read $4,321,000 for $900); the band ladder copied to Full Fund replaced its own; a package
++// issued, returned or sent back carried the cycle as the board; the shared state file kept the cycle aside as this browser's work;
++// a Live refresh from the shared folder did the same and recorded the folder's newer copy as the one the work came from, so the
++// first refresh after leaving the view replaced that work, kept nowhere. A cost estimate, BAE list or CCaR file whose import
++// started on the working plan, with PB27 put on screen while it was read, was kept too. Boards of two AV requirements -- A (USAF 900, ANG 200, on RCN 11111 / EEIC AAAAA, confirmed on WBS
++// 1.1) and R (USAF 503, ANG 127, no code) -- with an approved 2027 estimate (AV, 1.1, $900); PB27 locked; then the working plan
++// gives A the description WORK DESC A. Each door is used through the handler its control calls, with PB27 on screen (or put on
++// screen while the file is read), and then the status line, the questions asked, browser storage, the file handed out and the
++// cells of the exports the door reaches are read -- every figure typed here. FAILS ON 7ee498a (board fce8a391) and on U10 1-3.
++// CONTROLS: on the working plan each door is open and does what it did before.
++await (async () => {
++  const name = 'v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  const boards = [];
++  try {
++    const J = JSON.stringify;
++    // one board, booted twice so it holds requirement data of its own (not the empty template), PB27 locked, then WORK DESC A
++    const mk = () => {
++      const X0 = boot(); boards.push(X0);
++      seed(X0.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', [900, 200, 0]), it('R', 'AV', [503, 127, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['A', 'R'] });
++      X0.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++        MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}]; S.rcnAsg={A:'K1'};
++        S.wbs={A:[{w:'1.1', v:[]}]}; S.aceMap={A:{w:['1.1'], ok:true}};
++        ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:1, file:'2027 ACE approved.xlsx'}};
++        ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; aceYr='all'; persistAce(); applyState(S); save(); 'ok'`);
++      const ls = JSON.parse(X0.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
++      const X = boot({ ls }); boards.push(X);
++      const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++      ev(`globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ __reads++; return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
++        globalThis.__reads=0;
++        globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
++          r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
++          rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
++        // what a download hands out: the text of every Blob made while the code runs
++        globalThis.__handed=function(code){ var got=[], _B=window.Blob;
++          window.Blob=function(p,o){ try{ (p||[]).forEach(function(x){ if(typeof x==='string' && x.indexOf('spmtPkg')>=0) got.push(x); }); }catch(e){} return new _B(p,o); };
++          try{ (0,eval)(code); }catch(e){ got.push('threw '+String((e&&e.message)||e)); } window.Blob=_B; return JSON.stringify(got); };
++        'ok'`);
++      const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++      ev(`setDesc('A','WORK DESC A'); 'ok'`);
++      return { X, ev, key };
++    };
++    const said = ev => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
++    const spy = ev => ev(`window.__asked=[]; window.confirm=function(m){ window.__asked.push(String(m).split('\\n')[0].slice(0,70)); return true; };
++      window.alert=function(m){ window.__asked.push('alert: '+String(m).split('\\n')[0].slice(0,70)); }; 'ok'`);
++    const asked = ev => JSON.parse(ev(`JSON.stringify(window.__asked||[])`));
++    const wait = (X, ms) => X.ev(`new Promise(function(r){ setTimeout(r, ${ms}); })`);
++    const fileOf = (ev, text, nm) => ev(`(function(){ globalThis.__f=new File([${J(text)}], ${J(nm)}, {type:'application/json'}); return 'ok'; })()`);
++    // this appropriation's own copy in browser storage: its RCN codes and its descriptions
++    const own = ev => JSON.parse(ev(`(function(){ var s=JSON.parse(localStorage.getItem(_AP.key)||'null'); if(!s) return 'null';
++      var y=(s.years||{})[String(s.cur)]||{}; return JSON.stringify([(s.rcn||[]).map(function(e){ return e.rcn; }), (y.desc||{}).A||'', (y.desc||{}).R||'']); })()`));
++    const keptAside = ev => ev(`(function(){ var k=localStorage.getItem(_AP.key+'.kept'); if(!k) return 'none'; var i=k.indexOf('\\n'), m=JSON.parse(k.slice(0,i)), s=JSON.parse(k.slice(i+1));
++      var y=(s.years||{})[String(s.cur)]||{}; return JSON.stringify([m.why, (y.desc||{}).A||'']); })()`);
++    const hdr = (rows, ...must) => rows.findIndex(r => must.every(m => (r || []).some(c => String(c ?? '').trim() === m)));
++    const col = (rows, h, n) => (rows[h] || []).findIndex(c => String(c ?? '').trim() === n);
++    // the codes every export carries: RCN-EEIC by Month's summary, and the Spend Plan Source's lines [$, EEIC, RCN]
++    const codes = async W => { const bk = JSON.parse(await w6Book(W, 'exportExcel')), rc = bk['RCN-EEIC by Month'] || [];
++      const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
++      const sb = JSON.parse(await w6Book(W, 'exportSrc')), src = (Object.values(sb).find(rs => (rs || []).length > 1) || []).slice(1);
++      return [bk.__err || 'ok', sb.__err || 'ok', v198Sec(rc, 0, iReq).map(r => r.slice(0, 3)),
++        src.map(r => [num(r[9]), String(r[26] ?? ''), String(r[27] ?? '')]).sort((a, b) => a[0] - b[0])]; };
++    // the ACE tie-out's Mapping by Requirement: [requirement, match, WBS, board funded, estimate, delta]
++    const tie = async W => { const ab = JSON.parse(await w6Book(W, 'exportAceTieout')), mp = ab['Mapping by Requirement'] || [], mh = hdr(mp, 'FY', 'PMO', 'Board funded');
++      return [ab.__err || 'ok', mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => ['Requirement (CCaR Record Name)', 'Match', 'WBS claimed', 'Board funded', 'Estimate', 'Delta'].map(n => r[col(mp, mh, n)] ?? ''))]; };
++    // BY HAND. A's $1,100 sits on 11111 / AAAAA (USAF 900, ANG 200); R's $630 on no code (USAF 503, ANG 127); AFRC carries nothing,
++    // and its section prints a total of 0. The approved 2027ACE ties out A: $900 against $1,100 on 1.1, delta 200.
++    const N = v198NONE, K1 = '11111 / AAAAA';
++    const CODES = ['ok', 'ok', [['USAF', K1, 900], ['USAF', N, 503], ['USAF', 'USAF TOTAL', 1403], ['ANG', K1, 200], ['ANG', N, 127], ['ANG', 'ANG TOTAL', 327], ['AFRC', 'AFRC TOTAL', 0]],
++      [[127, '', ''], [200, 'AAAAA', '11111'], [503, '', ''], [900, 'AAAAA', '11111']]];
++    const TIE = ['ok', [['Req A', 'Confirmed - exact line', '1.1', 1100, 900, 200], ['Req R', 'No match', '', 630, '', '']]];
++    const OFF = what => '🔒 ' + what + ' is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.';
++
++    // ==== 1. a returned package, through Import one appropriation (MF1), and the same with PB27 put on screen while it is read
++    {
++      const { X, ev, key } = mk();
++      const issued = JSON.parse(ev(`__handed("pkgIssue(mySlug(), true)")`)).map(t => JSON.parse(t))[0];
++      const ret = JSON.parse(J(issued)); ret.dir = 'return'; ret.by = 'Manager M'; ret.ts = Date.now() + 1000;
++      ret.ms.rcn = [{ k: 'K1', rcn: '77777', eeic: 'AAAAA', t: '', svc: ['USAF', 'ANG', 'AFRC'] }];
++      ret.ms.years[String(ret.ms.cur)].desc = Object.assign({}, ret.ms.years[String(ret.ms.cur)].desc || {}, { R: 'MGR DESC R' });
++      const fileHtml = ev(`buildSavedHtml()`);                 // the board saved to its file
++      ev(`setDesc('A','UNSAVED EDIT A'); 'ok'`);                 // then one more edit, in browser storage only
++      const OWN = [['11111'], 'UNSAVED EDIT A', ''];
++      ev(`cycView(${J(key)}); 'ok'`); spy(ev); fileOf(ev, J(ret), 'ORBIT PACKAGE - O&M - return 1.json');
++      ev(`importState({files:[__f], value:''}); 'ok'`); const st1 = said(ev); await wait(X, 2000);
++      w5Chk(name, 'PB27 viewed · the manager’s return (K1 → 77777, MGR DESC R) taken through Import one appropriation', 'refused before the file is read or a question asked, and the status line says so; browser storage still holds 11111 and UNSAVED EDIT A',
++        J([st1, asked(ev), own(ev)]), J([OFF('Importing a file'), [], OWN]));
++      ev(`cycLeave(); 'ok'`);
++      w5Chk(name, 'PB27 viewed · the return refused · the view left', 'the working plan’s exports carry 11111 for A and no 77777; browser storage as it was',
++        J([await codes(X.w), own(ev)]), J([CODES, OWN]));
++      // the same browser, reopened over the file saved before the view
++      const lsNow = JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
++      const Y = boot({ html: fileHtml, ls: lsNow }); boards.push(Y);
++      w5Chk(name, 'PB27 viewed · the return refused · the browser reopened over the saved file', 'the board reopens on the work typed after the save (UNSAVED EDIT A), and its exports carry 11111 for A, no 77777',
++        J([Y.ev(`(S.desc||{}).A||''`), await codes(Y.w)]), J(['UNSAVED EDIT A', CODES]));
++      // started on the working plan; PB27 put on screen before the file is read
++      spy(ev); fileOf(ev, J(ret), 'ORBIT PACKAGE - O&M - return 1.json');
++      ev(`importState({files:[__f], value:''}); cycView(${J(key)}); 'ok'`); await wait(X, 2000);
++      w5Chk(name, 'the return taken on the working plan, PB27 put on screen before the file is read', 'refused once it is read, nothing asked; browser storage still holds 11111 and UNSAVED EDIT A',
++        J([said(ev), asked(ev), own(ev)]), J([OFF('Importing a file'), [], OWN]));
++      ev(`cycLeave(); 'ok'`);
++      // CONTROL: on the working plan the return is merged (asked first), and every export carries 77777 for A
++      spy(ev); fileOf(ev, J(ret), 'ORBIT PACKAGE - O&M - return 1.json');
++      ev(`importState({files:[__f], value:''}); 'ok'`); await wait(X, 2000);
++      const q = asked(ev).map(m => m.split(' — ')[0].split(' the returned')[0]);
++      w5Chk(name, 'the working plan · the return taken (allowed)', 'CONTROL — asked (the conflict, then the merge), merged: browser storage and every export carry 77777 for A, and MGR DESC R',
++        J([q, own(ev), await codes(X.w)]),
++        J([['CONFLICT', 'Merge'], [['77777'], 'WORK DESC A', 'MGR DESC R'],
++          ['ok', 'ok', [['USAF', '77777 / AAAAA', 900], ['USAF', N, 503], ['USAF', 'USAF TOTAL', 1403], ['ANG', '77777 / AAAAA', 200], ['ANG', N, 127], ['ANG', 'ANG TOTAL', 327], ['AFRC', 'AFRC TOTAL', 0]],
++            [[127, '', ''], [200, 'AAAAA', '77777'], [503, '', ''], [900, 'AAAAA', '77777']]]]));
++    }
++
++    // ==== 2. a state file carrying a cost estimate beside its years (SF4)
++    {
++      const { X, ev, key } = mk();
++      const stf = JSON.parse(ev(`JSON.stringify(MS)`));
++      stf.aceDb = { sets: { '2028ACE': { lines: [{ ap: 'om', pmo: 'AV', wbs: '1.1', v: { [String(stf.cur)]: 4321000 } }], locked: true, by: 'Someone', ts: 9, file: '2028 ACE.xlsx' } } };
++      const sets = () => ev(`JSON.stringify([Object.keys(ACEDB.sets||{}).sort(), Object.keys((JSON.parse(localStorage.getItem('prio27acedb')||'{}').sets)||{}).sort()])`);
++      ev(`cycView(${J(key)}); 'ok'`); spy(ev); fileOf(ev, J(stf), 'board-state.json');
++      ev(`importState({files:[__f], value:''}); 'ok'`); const st2 = said(ev); await wait(X, 2000);
++      w5Chk(name, 'PB27 viewed · a state file carrying a 2028 estimate ($4,321,000 on 1.1) taken through Import one appropriation', 'refused before the file is read; the estimates in the board and in browser storage are 2027ACE alone, and the ACE tie-out from the view ties out $900',
++        J([st2, asked(ev), sets(), await tie(X.w)]), J([OFF('Importing a file'), [], J([['2027ACE'], ['2027ACE']]), TIE]));
++      ev(`cycLeave(); 'ok'`);
++      w5Chk(name, 'PB27 viewed · the state file refused · the view left', 'the working plan’s estimates are 2027ACE alone, and its ACE tie-out ties out $900',
++        J([sets(), await tie(X.w)]), J([J([['2027ACE'], ['2027ACE']]), TIE]));
++      // CONTROL: on the working plan the state file is taken (asked first) with the estimate it carries
++      spy(ev); ev(`importState({files:[__f], value:''}); 'ok'`); await wait(X, 2000);
++      w5Chk(name, 'the working plan · the state file taken (allowed)', 'CONTROL — asked, taken: the board and browser storage hold 2027ACE and 2028ACE',
++        J([asked(ev).length, sets()]), J([1, J([['2027ACE', '2028ACE'], ['2027ACE', '2028ACE']])]));
++    }
++
++    // ==== 3. the workbook imports: refused before the file is read in a view, and once it is read when a view was put on screen meanwhile
++    {
++      const { X, ev, key } = mk();
++      const lists = () => JSON.parse(ev(`JSON.stringify((function(){ var s=ACEDB.sets['2027ACE'], a=JSON.parse(localStorage.getItem('prio27acedb')||'null'), b=JSON.parse(localStorage.getItem('prio27buddb')||'null'), t=a&&a.sets&&a.sets['2027ACE'];
++        return [s? [s.file||'', s.lines.map(function(l){ return (l.v||{})[MS.cur]; })] : null, t? [t.file||'', t.lines.map(function(l){ return (l.v||{})[MS.cur]; })] : null,
++          (BUDDB.rows||[]).map(function(r){ return r.n; }), b? (b.rows||[]).map(function(r){ return r.n; }) : null]; })())`));
++      const LISTS = [['2027 ACE approved.xlsx', [900]], ['2027 ACE approved.xlsx', [900]], [], null];
++      const FILES = {
++        ace: ['Importing a cost estimate', `importAce({files:[__wb([{name:'ACE', rows:__aceRows()}], '2027 ACE.xlsx')], value:''})`],
++        bud: ['Importing a BAE budget list', `importBud({files:[__wb([{name:'BAE', rows:[['Budget Name'], ['USAF O&M - ANG CAM ZZ9 Discretionary AV']]}], 'BAE.xlsx')], value:''})`],
++        ccar: ['Importing CCaR records', `importCcarRecs({files:[__wb([{name:'CCaR', rows:[['CCaR No','Title','OPR','PMO','Control No'], ['CCA','REFUSED TITLE A','REFUSED OPR','AV','7001']]}], 'ccar-records.xlsx')], value:''})`] };
++      // with PB27 on screen: the file is never read
++      for (const k of ['ace', 'bud', 'ccar']) {
++        const [door, code] = FILES[k];
++        ev(`cycView(${J(key)}); __reads=0; 'ok'`); spy(ev);
++        await ev(code);
++        w5Chk(name, 'PB27 viewed · ' + door.toLowerCase().replace(/^importing /, '') + ' imported', 'refused before the file is read (it is read 0 times, nothing asked); the lists in the board and in browser storage as they were',
++          J([said(ev), ev('__reads'), asked(ev), lists()]), J([OFF(door), 0, [], LISTS]));
++        ev(`cycLeave(); 'ok'`);
++      }
++      // started on the working plan; PB27 put on screen before the file has been read (the import's first wait)
++      for (const k of ['ace', 'bud', 'ccar']) {
++        const [door, code] = FILES[k];
++        spy(ev);
++        await ev(`(function(){ var p=${code}; cycView(${J(key)}); return p; })()`);
++        w5Chk(name, 'an import of ' + door.toLowerCase().replace(/^importing /, '') + ' started on the working plan, PB27 put on screen while the file is read', 'refused once it is read, nothing asked; the lists as they were, and the ACE tie-out from the view ties out $900',
++          J([said(ev), asked(ev), lists(), await tie(X.w)]), J([OFF(door), [], LISTS, TIE]));
++        ev(`cycLeave(); 'ok'`);
++      }
++      w5Chk(name, 'the three races · the view left', 'the working plan’s lists as they were, and its ACE tie-out ties out $900', J([lists(), await tie(X.w)]), J([LISTS, TIE]));
++
++      // ==== 4. the band ladder copied to the other appropriations (MF2): Full Fund's own ladder is "FF ONLY BAND", F1 banded in it
++      ev(`localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify({base:2027, cur:2027, ts:5, years:{'2027':{order:[], band:{F1:'ffb'}}}, bands:[{id:'ffb', n:'FF ONLY BAND', rule:'', c:'#336699'}], bandsTs:5})); 'ok'`);
++      const ff = () => ev(`JSON.stringify([((JSON.parse(localStorage.getItem(_SLUGMAP.ff.key))||{}).bands||[]).map(function(b){ return b.n; }), localStorage.getItem(BAND_PEND_KEY('ff'))===null])`);
++      ev(`cycView(${J(key)}); 'ok'`); spy(ev);
++      ev(`bandCopyAll(); 'ok'`);
++      w5Chk(name, 'PB27 viewed · ⇉ Copy to the other appropriations', 'refused before anything is asked; Full Fund keeps its own ladder, and no ladder is held for it',
++        J([said(ev), asked(ev), ff()]), J([OFF('Copying the band ladder'), [], J([['FF ONLY BAND'], true])]));
++      ev(`cycLeave(); 'ok'`);
++
++      // ==== 5. the packages: issued, pushed, returned, sent back (SF1)
++      ev(`MS.pkg={ap:mySlug(), seq:3, baseSig:'SIG3', by:'Lead L', ts:1}; save(); 'ok'`);
++      const seq = () => ev(`(JSON.parse(localStorage.getItem(_AP.key)||'{}').sync||{}).seq||0`);
++      const PKGS = [['pkgIssue(mySlug(), true)', 'Issuing a package'], ['pkgPushAll()', 'Pushing baselines to the managers'],
++        ['pkgReturn()', 'Saving a return package'], ['pkgSendBack(mySlug())', 'Sending a package back']];
++      for (const [code, door] of PKGS) {
++        ev(`cycView(${J(key)}); 'ok'`); spy(ev);
++        const handed = JSON.parse(ev(`__handed(${J(code)})`)); await wait(X, 600);
++        w5Chk(name, 'PB27 viewed · ' + code, 'refused before anything is asked or handed out; no file, and the package record as it was',
++          J([said(ev), asked(ev), handed.length, seq()]), J([OFF(door), [], 0, 0]));
++        ev(`cycLeave(); 'ok'`);
++      }
++      // CONTROL: on the working plan each hands out the working plan (A described WORK DESC A)
++      spy(ev);
++      const hw = ['pkgIssue(mySlug(), true)', 'pkgReturn()', 'pkgSendBack(mySlug())'].map(c => JSON.parse(ev(`__handed(${J(c)})`)).map(t => { const p = JSON.parse(t);
++        return [p.dir, ((p.ms.years[String(p.ms.cur)] || {}).desc || {}).A || '']; }));
++      w5Chk(name, 'the working plan · a package issued, a return saved, the appropriation sent back (allowed)', 'CONTROL — each hands out one file carrying the working plan (WORK DESC A)',
++        J(hw), J([[['issue', 'WORK DESC A']], [['return', 'WORK DESC A']], [['return', 'WORK DESC A']]]));
++
++      // CONTROL: on the working plan the ladder is copied, and Full Fund takes it
++      ev(`bandCopyAll(); 'ok'`);
++      w5Chk(name, 'the working plan · ⇉ Copy to the other appropriations (allowed)', 'CONTROL — Full Fund’s ladder is now this one (no FF ONLY BAND), and one is held for it',
++        J([JSON.parse(ff())[0].includes('FF ONLY BAND'), JSON.parse(ff())[0].length > 1, JSON.parse(ff())[1]]), J([false, true, false]));
++    }
++
++    // ==== 6. the shared state file loaded (adoptShared), with work in this browser no saved copy has
++    {
++      const { ev, key } = mk();
++      ev(`SHARED=JSON.parse(JSON.stringify(MS)); SHARED.ts=MS.ts+60000; SHARED.by='Colleague C'; SHARED.years[String(MS.cur)].desc={R:'SHARED DESC R'}; baseSet({dirty:true}); DIRTY=false; 'ok'`);
++      ev(`cycView(${J(key)}); 'ok'`); spy(ev); ev(`adoptShared(); 'ok'`);
++      w5Chk(name, 'PB27 viewed · the shared state file loaded (adoptShared)', 'refused, and the status line says so; nothing is kept aside, and the work is still this browser’s unsaved work',
++        J([said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([OFF('Loading the shared state file'), 'none', [['11111'], 'WORK DESC A', ''], true]));
++      ev(`cycLeave(); 'ok'`);
++    }
++    {
++      // CONTROL, on a board of its own: on the working plan the shared state file is loaded, the work kept aside first
++      const { ev } = mk();
++      ev(`SHARED=JSON.parse(JSON.stringify(MS)); SHARED.ts=MS.ts+60000; SHARED.by='Colleague C'; SHARED.years[String(MS.cur)].desc={R:'SHARED DESC R'}; baseSet({dirty:true}); DIRTY=false;
++        adoptShared(); 'ok'`);
++      w5Chk(name, 'the working plan · the shared state file loaded (allowed)', 'CONTROL — the work is kept aside first (WORK DESC A), and the shared copy is loaded (SHARED DESC R)',
++        J([keptAside(ev), own(ev)]), J([J(['sidecar', 'WORK DESC A']), [['11111'], '', 'SHARED DESC R']]));
++    }
++
++    // ==== 7. a Live refresh from the shared folder finding a colleague's newer copy, with work in this browser no saved copy has
++    {
++      const { X, ev, key } = mk();
++      const files = {};
++      const dir = { kind: 'directory', name: 'shared', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
++        getFileHandle: async (n, o) => { if (!(n in files)) { if (o && o.create) files[n] = ''; else { const e = new Error('not found'); e.name = 'NotFoundError'; throw e; } }
++          return { kind: 'file', name: n, getFile: async () => { const c = files[n]; return { text: async () => c }; },
++            createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { files[n] = buf; } }; } }; },
++        getDirectoryHandle: async () => dir, removeEntry: async n => { delete files[n]; },
++        values: async function* () { for (const n of Object.keys(files)) yield { kind: 'file', name: n, getFile: async () => ({ text: async () => files[n] }) }; } };
++      X.w.__fold = dir;
++      ev(`_liveCfg=Object.assign(liveCfg(), {store:true, mode:'drive', on:false}); _driveDir=globalThis.__fold; 'ok'`);
++      const pushed = await X.ev('driveStorePush(false)');
++      const fn = Object.keys(files).find(n => /^spmt-2027-om\.json$/.test(n));
++      const j = JSON.parse(files[fn]); j.store.ts = (+j.store.ts || 0) + 60000; j.ts = j.store.ts; j.by = 'Colleague C'; j.store.by = 'Colleague C';
++      j.store.years[String(j.store.cur)].desc = Object.assign({}, j.store.years[String(j.store.cur)].desc || {}, { R: 'COLLEAGUE DESC R' });
++      files[fn] = J(j);
++      ev(`setDesc('A','MY UNSAVED A'); DIRTY=false; 'ok'`);        // typed, kept in browser storage only; then a new session
++      ev(`cycView(${J(key)}); 'ok'`); spy(ev);
++      const p1 = await X.ev('driveStorePull(true)');
++      w5Chk(name, 'PB27 viewed · a Live refresh finds Colleague C’s newer copy in the shared folder', 'nothing loaded, nothing kept aside, and the work is still this browser’s unsaved work',
++        J([pushed, p1, keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([true, false, 'none', [['11111'], 'MY UNSAVED A', ''], true]));
++      const p2 = await X.ev('driveStorePull(false)');
++      w5Chk(name, 'PB27 viewed · 📡 Connect (a refresh that speaks)', 'refused, and the status line says so', J([p2, said(ev)]), J([false, OFF('Loading from the shared folder')]));
++      ev(`cycLeave(); 'ok'`);
++      const p3 = await X.ev('driveStorePull(true)');
++      w5Chk(name, 'PB27 viewed · the view left · the next Live refresh', 'the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is loaded (COLLEAGUE DESC R)',
++        J([p3, keptAside(ev), own(ev)]), J([true, J(['folder', 'MY UNSAVED A']), [['11111'], 'WORK DESC A', 'COLLEAGUE DESC R']]));
++    }
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(boards.reduce((n, B) => n + B.errors.length, 0)), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the files, packages, ladder and shared copies) ====

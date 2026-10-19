@@ -1,0 +1,4 @@
+F|c2-F-folderA-after|after|F-folderA.mjs|
+F|c2-F-folderB-after|after|F-folderB.mjs|
+S|c2-S-audit-recon|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit-recon.mjs
+S|c2-S-audit-hostile|/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob|node tools/export-audit/audit-hostile.mjs

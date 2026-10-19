@@ -1,0 +1,73 @@
+# label: X-v200a-parent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/X-v200a-parent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/before/h-v200a.mjs
+# start: 2026-10-18 04:07:39 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/before/prioritization-board-grid.html","BOARD_set":false,"board":"1a1d6b5e0f782081537f0a6b07d3019487dd23cf","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/before/h-v200a.mjs","harnessBlob":"78799af7a21747c3ff204e2a6edfb482162b1e9e","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 4:07:40 AM ET"}
+
+================================================================================================
+24 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at its read of the folder’s copy, the import stops part-way there
+    nothing is written over the folder’s copy: it keeps its bytes
+        got [true,1,false]   want [true,0,true]
+    nothing is kept in the history either: the save stopped before it
+        got [true]   want []
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,true]   want [true,false]
+    the note typed stays unsaved, and the board’s stamp is what it was before the save
+        got ["false",false]   want ["true",true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, the import stops part-way there
+    nothing is written over the folder’s copy: it keeps its bytes
+        got [true,1,false]   want [true,0,true]
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,true]   want [true,false]
+    the note typed stays unsaved, and the board’s stamp is what it was before the save
+        got ["true",false]   want ["true",true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Take the pen from Alice, held at the close of its history copy, the import stops part-way there
+    nothing is written: the folder’s copy keeps its bytes, and Alice still holds the pen
+        got [true,1,false,"brad"]   want [true,0,true,"Alice"]
+    the journal does not say Brad took the pen, and the board’s stamp is what it was
+        got [1,false]   want [0,true]
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,true,[true]]   want [true,false,[true]]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, a note typed there, then the import stops part-way
+    nothing is written over the folder’s copy, and the board says writing to the shared folder is refused
+        got [1,false,false]   want [0,true,true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | the autosave held at its read of the folder’s copy, the import stops part-way there
+    nothing is written, it reports no save, and the message line is the import’s own, unchanged
+        got [1,false,true,true]   want [0,true,false,true]
+    nothing is kept in the history either: the autosave stopped before it
+        got [true]   want []
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | the autosave held at the close of its history copy, the import stops part-way there
+    nothing is written, it reports no save, and the message line is the import’s own, unchanged
+        got [1,false,true,false]   want [0,true,false,true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, the import stops part-way there: the header
+    the header’s saved time and name are what they were before the save
+        got [false,false]   want [true,true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Save yours over theirs held at its read of the folder’s copy, the import stops part-way there
+    refused before it asks: nothing asked, nothing kept in the history, nothing written, and their copy not recorded as the one being replaced
+        got [1,1,0,true,true]   want [0,0,0,true,false]
+    the board says choosing between the copies is refused, and does not say Saved or Loaded
+        got [false,false]   want [true,false]
+    once saving is allowed again, the autosave does not write over their copy: nothing asked or written, Bob’s note stays, and the choice is offered again
+        got ["true",0,1,"",false]   want ["false",0,0,"BOB-1",true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Save yours over theirs held at the close of the copy of theirs it keeps in the history, the import stops part-way there
+    asked before the hold came, and their copy stays kept in the history; nothing is written, and their copy is not recorded as the one being replaced
+        got [1,1,0,true,true]   want [1,1,0,true,false]
+    the board says choosing between the copies is refused, and does not say Saved or Loaded
+        got [false,false]   want [true,false]
+    once saving is allowed again, the autosave does not write over their copy: nothing asked or written, Bob’s note stays, and the choice is offered again
+        got ["true",0,1,"",false]   want ["false",0,0,"BOB-1",true]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Load theirs held at its read of the folder’s copy, the import stops part-way there
+    refused before it loads anything: nothing asked or written, their copy not recorded, and the board on screen keeps Brad’s note and not Bob’s
+        first differs at char 5 of 15029/31
+          got  …[0,0,true,"[\"ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp…
+          want …[0,0,false,"[\"EDIT-1\",\"\"]"]…
+    the board says choosing between the copies is refused, and does not say Saved or Loaded
+        got [false,true]   want [true,false]
+    once saving is allowed again, the autosave does not write over their copy: nothing asked or written, Bob’s note stays, and the choice is offered again
+        got ["true",0,1,"BOB-1",false]   want ["false",0,0,"BOB-1",true]
+# exit 1 at 10/18/2026, 4:10:24 AM ET
+
+# end: 2026-10-18 04:10:25 EDT  exit: 1  wall_s: 166.1

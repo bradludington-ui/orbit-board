@@ -1,0 +1,7 @@
+v200-u10-resolve-race mutant=fdbcc69ddebe29f32fd117959503b07dd816472a matches=1 diffstat=1
+v200-u10-folder-pull-view-at-start mutant=247db90a513c2bc1da9653cff917bedf11f3c437 matches=1 diffstat=2
+v200-u10-shared-gate-in-adopt mutant=8a4b9cf63fd929f1531daea2fb6582a702b11010 matches=1 diffstat=2
+v200-u10-folder-pull-quiet-speaks mutant=25872454101bc0c8adf813bb4f60ff5e1a893287 matches=1 diffstat=2
+v200-u10-folder-pull-view-at-start (pb) mutant=247db90a513c2bc1da9653cff917bedf11f3c437
+v200-u10-folder-pull-quiet-speaks (pb) mutant=25872454101bc0c8adf813bb4f60ff5e1a893287
+v200-u10-shared-gate-in-adopt (pb) mutant=8a4b9cf63fd929f1531daea2fb6582a702b11010

@@ -1,0 +1,16 @@
+# label: M-v200-u10-reapply-wrong-year
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/out/M-v200-u10-reapply-wrong-year.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/mut/v200-u10-reapply-wrong-year.html
+# start: 2026-10-18 04:44:48 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/mut/v200-u10-reapply-wrong-year.html","BOARD_set":true,"board":"e7502d8c20061c18975d8ffe8e6922248dfcc93d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/after/focused-u10.mjs","harnessBlob":"1159734901944f09388a7a43fde886c0f2247f4a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 4:44:49 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen, the CCaR records and the cycle’s base year | PB27 viewed · FY28 (R on K4) on screen, RCN 77777 typed into K1’s field
+    refused; still FY28, and RCN-EEIC by Month files FY28’s USAF money as FY28 holds it
+        got [true,2028,[["USAF","11111 / AAAAA",904],["USAF","44444 / DDDDD",299],["USAF","— no RCN/EEIC assigned —",71],["USAF","USAF TOTAL",1274]]]   want [true,2028,[["USAF","11111 / AAAAA",401],["USAF","44444 / DDDDD",802],["USAF","— no RCN/EEIC assigned —",71],["USAF","USAF TOTAL",1274]]]
+# exit 1 at 10/18/2026, 4:45:25 AM ET
+
+# end: 2026-10-18 04:45:26 EDT  exit: 1  wall_s: 37.9

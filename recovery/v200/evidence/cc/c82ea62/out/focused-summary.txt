@@ -1,0 +1,12 @@
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 95.8
+F-parent exit=1 | 2 FAILING CHECK(S) | wall_s: 98.6
+F-base-7ee498a exit=1 | 79 FAILING CHECK(S) | wall_s: 164.7
+F-pre-u10-16ceb83 exit=1 | 79 FAILING CHECK(S) | wall_s: 165.1
+M-v200-u10-folder-pull-view-at-start exit=1 | 3 FAILING CHECK(S) | wall_s: 159.7
+M-v200-u10-resolve-race exit=1 | 2 FAILING CHECK(S) | wall_s: 160.1
+M-v200-u10-folder-pull-quiet-speaks exit=1 | 1 FAILING CHECK(S) | wall_s: 182.7
+M-v200-u10-shared-gate-in-adopt exit=1 | 1 FAILING CHECK(S) | wall_s: 188.1
+F-parentblocks-on-commit exit=0 | ALL CHECKS PASSED | wall_s: 111.8
+MPB-v200-u10-folder-pull-quiet-speaks exit=0 | ALL CHECKS PASSED | wall_s: 139.2
+MPB-v200-u10-folder-pull-view-at-start exit=0 | ALL CHECKS PASSED | wall_s: 140.5
+MPB-v200-u10-shared-gate-in-adopt exit=0 | ALL CHECKS PASSED | wall_s: 118.5

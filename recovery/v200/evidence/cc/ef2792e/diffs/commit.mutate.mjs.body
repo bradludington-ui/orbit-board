@@ -1,0 +1,10 @@
+-    find: "  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }\n  if(!j){ driveBaseSet(ap, 0); return await _driveStorePushRun(false); }",
++    find: "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n  if(!j){ driveBaseSet(ap, 0); return await _driveStorePushRun(false); }",
++  // v2.00 (U10, fix round 4 of 13 Oct): Save yours over theirs, raced by a view put on screen while the folder is read, is refused
++  // as a save, before its question.
++  { id: "v200-u10-resolve-gate-theirs-only", area: "_driveResolveRun", what: "the gate after the folder read stands before Load theirs only: Save yours over theirs pressed on the working plan, with PB27 put on screen while the folder is read, asks its question and writes Colleague C's copy into the folder's history before the save is refused",
++    find: "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n",
++    repl: "  if(CYCVIEW && which!=='mine'){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n" },
++  { id: "v200-u10-resolve-mine-words", area: "_driveResolveRun", what: "Save yours over theirs, raced by a view, is refused in Load theirs' words: \"🔒 Loading a board is off while PB27 is on screen\" for a save",
++    find: "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n",
++    repl: "  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }\n" },

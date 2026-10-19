@@ -1,0 +1,12 @@
+# label: c2-S-boot-same
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/clone/ob
+# cmd: node tools/export-audit/boot-same.mjs
+# start: 2026-10-13 19:29:05 EDT
+# cap: 600 s, kill grace 10 s
+same  prioritization-board-grid.html as shipped parse 2668 ms · fast 694 ms
+same  prioritization-board-grid.html seeded, rendered parse 1588 ms · fast 645 ms
+same  prioritization-board-grid.html reopened from its save parse 2117 ms · fast 551 ms
+same  prioritization-board-grid.html a published PMO copy parse 1396 ms · fast 583 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-13 19:29:19 EDT  exit: 0  wall_s: 13.3

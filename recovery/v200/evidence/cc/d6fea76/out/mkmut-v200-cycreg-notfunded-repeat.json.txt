@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-notfunded-repeat", "matches": 1, "find": "const pk=keys.filter(function(k){ return pend[g][k]; })", "repl": "const pk=keysOf().filter(function(k){ return pend[g][k]; })"}
