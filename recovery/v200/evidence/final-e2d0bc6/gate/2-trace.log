@@ -1,0 +1,288 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone/prioritization-board-grid.html node tools/trace-matrix.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:36:07Z / 07:36:07 EDT
+# cap: 600s  grace: 10s
+TRACE MATRIX — every surface that states a quantity, cross-footed against the fixture
+========================================================================================================================
+truth is computed in this file from the fixture's own numbers, never read from the board
+
+THE FORMULAS EVERY SURFACE IS HELD TO — one definition, applied per service, then summed.
+A surface may be SILENT about a quantity. If it states one, it states THIS one.
+------------------------------------------------------------------------------------------------------------------------
+  FY requirement (ask)             Σ[svc] ask                      the requirement as stated, before any decision
+  Discretionary BA                 Σ[svc] discSvc                  discretionary budget authority
+  Mandatory BA                     Σ[svc] mandSvc                  mandatory budget authority
+  Discretionary drawn              Σ[svc] d                        drawn from discretionary by tiers()
+  Mandatory drawn                  Σ[svc] m                        drawn from mandatory by tiers()
+  Funded (disc+mand)               disc + mand                     money that actually exists against the requirement
+  UNFUNDED vs DISC  (ask-disc)     Σ[svc] max(0, ask − d)          READING #1 — short against discretionary alone
+  TOTAL unfunded  (ask-disc-mand)  Σ[svc] max(0, ask − d − m)      READING #2 — short against both lanes
+  Trim (ask not allocated)         Σ[svc] max(0, ask − basis)      ask never allocated: a decision, not a shortfall
+  Beyond both lanes                Σ[svc] max(0, min(ask, basis) − d − m)   allocated but no lane could pay it
+  MC requirement value             Σ[svc] ask, starred rows only   MC is a MEMO, never a third lane
+  MC short vs discretionary        Σ[svc] max(0, ask − d), starred rows only
+------------------------------------------------------------------------------------------------------------------------
+  identity, per service:  d + m + u == basis        portfolio:  beyond + trim == TOTAL unfunded
+------------------------------------------------------------------------------------------------------------------------
+
+FY requirement (ask)
+                                                    Σ[svc] ask                      the requirement as stated, before any decision
+  TRUTH                               $32,950,000
+  engine (tiers) ...............      $32,950,000   ok
+  locked cycle (projection) ....      $32,950,000   ok
+  locked view (drill) ..........      $32,950,000   ok
+  dashboard (screen) ...........               --   (does not state it)
+  xl · Funding Streams .........      $32,950,000   ok
+  xl · Decision Bands ..........      $32,950,000   ok
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........      $32,950,000   ok
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......      $33,000,000   ok
+  cycle deltas (panel, now) ....      $32,950,000   ok
+  xl · FYDP Spend Plan .........      $32,950,000   ok
+  xl · Cycle Comparison ........      $32,950,000   ok
+  Spruills (screen) ............      $32,950,000   ok
+  Spruills · PMO drill .........      $32,950,000   ok
+
+Discretionary BA
+                                                    Σ[svc] discSvc                  discretionary budget authority
+  TRUTH                               $17,000,000
+  engine (tiers) ...............      $17,000,000   ok
+  locked cycle (projection) ....      $17,000,000   ok
+  locked view (drill) ..........      $17,000,000   ok
+  dashboard (screen) ...........      $17,000,000   ok
+  xl · Funding Streams .........      $17,000,000   ok
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............      $17,000,000   ok
+  ppt · Funding by Stream ......      $17,000,000   ok
+  cycle deltas (panel, now) ....      $17,000,000   ok
+  xl · FYDP Spend Plan .........      $17,000,000   ok
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Mandatory BA
+                                                    Σ[svc] mandSvc                  mandatory budget authority
+  TRUTH                                $5,200,000
+  engine (tiers) ...............       $5,200,000   ok
+  locked cycle (projection) ....       $5,200,000   ok
+  locked view (drill) ..........       $5,200,000   ok
+  dashboard (screen) ...........       $5,200,000   ok
+  xl · Funding Streams .........       $5,200,000   ok
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............       $5,200,000   ok
+  ppt · Funding by Stream ......       $5,200,000   ok
+  cycle deltas (panel, now) ....       $5,200,000   ok
+  xl · FYDP Spend Plan .........       $5,200,000   ok
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Discretionary drawn
+                                                    Σ[svc] d                        drawn from discretionary by tiers()
+  TRUTH                               $17,000,000
+  engine (tiers) ...............      $17,000,000   ok
+  locked cycle (projection) ....      $17,000,000   ok
+  locked view (drill) ..........      $17,000,000   ok
+  dashboard (screen) ...........               --   (does not state it)
+  xl · Funding Streams .........      $17,000,000   ok
+  xl · Decision Bands ..........      $17,000,000   ok
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........      $17,000,000   ok
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......      $17,000,000   ok
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Mandatory drawn
+                                                    Σ[svc] m                        drawn from mandatory by tiers()
+  TRUTH                                $5,200,000
+  engine (tiers) ...............       $5,200,000   ok
+  locked cycle (projection) ....       $5,200,000   ok
+  locked view (drill) ..........       $5,200,000   ok
+  dashboard (screen) ...........               --   (does not state it)
+  xl · Funding Streams .........       $5,200,000   ok
+  xl · Decision Bands ..........       $5,200,000   ok
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........       $5,200,000   ok
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......       $5,200,000   ok
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Funded (disc+mand)
+                                                    disc + mand                     money that actually exists against the requirement
+  TRUTH                               $22,200,000
+  engine (tiers) ...............      $22,200,000   ok
+  locked cycle (projection) ....      $22,200,000   ok
+  locked view (drill) ..........      $22,200,000   ok
+  dashboard (screen) ...........      $22,200,000   ok
+  xl · Funding Streams .........      $22,200,000   ok
+  xl · Decision Bands ..........      $22,200,000   ok
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........      $22,200,000   ok
+  xl · Spend Plan Source .......      $22,200,000   ok
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......               --   (does not state it)
+  cycle deltas (panel, now) ....      $22,200,000   ok
+  xl · FYDP Spend Plan .........      $22,200,000   ok
+  xl · Cycle Comparison ........      $22,200,000   ok
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+UNFUNDED vs DISC  (ask-disc)
+                                                    Σ[svc] max(0, ask − d)          READING #1 — short against discretionary alone
+  TRUTH                               $15,950,000
+  engine (tiers) ...............      $15,950,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........      $15,950,000   ok
+  dashboard (screen) ...........      $15,950,000   ok
+  xl · Funding Streams .........      $15,950,000   ok
+  xl · Decision Bands ..........      $15,950,000   ok
+  xl · PMO Matrix ..............      $15,950,000   ok
+  xl · Unfunded Requirements ...      $15,950,000   ok
+  drill · 1-N by Band ..........      $15,950,000   ok
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............      $16,000,000   ok
+  ppt · Funding by Stream ......      $16,000,000   ok
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+TOTAL unfunded  (ask-disc-mand)
+                                                    Σ[svc] max(0, ask − d − m)      READING #2 — short against both lanes
+  TRUTH                               $10,750,000
+  engine (tiers) ...............      $10,750,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........      $10,750,000   ok
+  dashboard (screen) ...........      $10,750,000   ok
+  xl · Funding Streams .........      $10,750,000   ok
+  xl · Decision Bands ..........      $10,750,000   ok
+  xl · PMO Matrix ..............      $10,750,000   ok
+  xl · Unfunded Requirements ...      $10,750,000   ok
+  drill · 1-N by Band ..........      $10,750,000   ok
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............      $10,800,000   ok
+  ppt · Funding by Stream ......      $10,800,000   ok
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........      $10,750,000   ok
+  xl · Cycle Comparison ........      $10,750,000   ok
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Trim (ask not allocated)
+                                                    Σ[svc] max(0, ask − basis)      ask never allocated: a decision, not a shortfall
+  TRUTH                                $2,400,000
+  engine (tiers) ...............       $2,400,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........       $2,400,000   ok
+  dashboard (screen) ...........               --   (does not state it)
+  xl · Funding Streams .........       $2,400,000   ok
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............       $2,400,000   ok
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......               --   (does not state it)
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+Beyond both lanes
+                                                    Σ[svc] max(0, min(ask, basis) − d − m)   allocated but no lane could pay it
+  TRUTH                                $8,350,000
+  engine (tiers) ...............       $8,350,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........       $8,350,000   ok
+  dashboard (screen) ...........       $8,350,000   ok
+  xl · Funding Streams .........       $8,350,000   ok
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............       $8,350,000   ok
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......               --   (does not state it)
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+MC requirement value
+                                                    Σ[svc] ask, starred rows only   MC is a MEMO, never a third lane
+  TRUTH                                $8,600,000
+  engine (tiers) ...............       $8,600,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........       $8,600,000   ok
+  dashboard (screen) ...........       $8,600,000   ok
+  xl · Funding Streams .........               --   (does not state it)
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............       $8,600,000   ok
+  ppt · Funding by Stream ......               --   (does not state it)
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+MC short vs discretionary
+                                                    Σ[svc] max(0, ask − d), starred rows only
+  TRUTH                                $6,000,000
+  engine (tiers) ...............       $6,000,000   ok
+  locked cycle (projection) ....               --   (does not state it)
+  locked view (drill) ..........       $6,000,000   ok
+  dashboard (screen) ...........               --   (does not state it)
+  xl · Funding Streams .........               --   (does not state it)
+  xl · Decision Bands ..........               --   (does not state it)
+  xl · PMO Matrix ..............               --   (does not state it)
+  xl · Unfunded Requirements ...               --   (does not state it)
+  drill · 1-N by Band ..........               --   (does not state it)
+  xl · Spend Plan Source .......               --   (does not state it)
+  ppt · KPI slide ..............               --   (does not state it)
+  ppt · Funding by Stream ......               --   (does not state it)
+  cycle deltas (panel, now) ....               --   (does not state it)
+  xl · FYDP Spend Plan .........               --   (does not state it)
+  xl · Cycle Comparison ........               --   (does not state it)
+  Spruills (screen) ............               --   (does not state it)
+  Spruills · PMO drill .........               --   (does not state it)
+
+========================================================================================================================
+17 surfaces · 12 quantities · 92 populated cells
+
+EVERY LINK HOLDS — every surface that states a quantity states the same one
+
+# end: 2026-10-19T11:36:09Z / 07:36:09 EDT
+# exit: 0  duration_s: 2.1
