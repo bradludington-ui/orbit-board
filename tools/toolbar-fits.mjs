@@ -20,6 +20,12 @@
 //     The posture strip is drawn only beside data: on the empty template this tool opens it is empty and not shown, so
 //     it is checked on a populated board by ui-concept/preview-chunk3/checks/sweep3.mjs (posture), not here.
 //
+//   * v2.00 (menu, 19 Oct): SAVE, REPORTS & EXPORTS, DATA, SETUP AND FILE LEFT THE TOP for the left menu. The controls this
+//     counted at the top's right end are the ones that stay there (Help, Filter, PMO), and the ones that moved are counted
+//     where they went -- 💾 Save and its ▾, and the left-menu entries that replaced the four menus -- so a missing one still
+//     fails. Every control on the left menu is held to the same rule as every control at the top: on screen, whole and
+//     clickable at every width (beside the sidebar's edge is where it belongs, so only the top's controls are held clear of it).
+//
 //   node tools/toolbar-fits.mjs
 import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
@@ -40,9 +46,9 @@ for(const f of ['prioritization-board-grid.html']){
      const tops=sel=>[...document.querySelectorAll(sel)].filter(e=>{ const c=e.getBoundingClientRect(); return c.width>0 && c.height>0; })
        .map(e=>Math.round(e.getBoundingClientRect().top+e.getBoundingClientRect().height/2));
      const spread=a=>a.length? Math.max(...a)-Math.min(...a) : 0;
-     const right=['#m_share','#m_setup','#m_data','#m_reports','#saveBtn','#m_view','#m_pmo'].map(s=>{ const c=box(s); return c? Math.round(c.right) : -1; });
+     const right=['#helpBtn','#m_view','#m_pmo','#saveBtn','#uiNav_save','#uiNav_rep','#uiNav_imp','#uiNav_data','#uiNav_setup'].map(s=>{ const c=box(s); return c? Math.round(c.right) : -1; });
      // every control: on screen, not clipped by an ancestor that clips, and the element under its own centre
-     const ctl=[...document.querySelectorAll('#topStack button, #topStack input, #topStack select, #uiPage button, #uiPage input, #uiPage select')]
+     const ctl=[...document.querySelectorAll('#topStack button, #topStack input, #topStack select, #uiPage button, #uiPage input, #uiPage select, #uiSide button')]
        .filter(e=>e.type!=='file' && !e.closest('.mdd, .uiPop') && e.getClientRects().length && getComputedStyle(e).visibility!=='hidden');
      const unusable=[];
      const side=q('#uiSide'), sideR=(side && getComputedStyle(side).display!=='none')? side.getBoundingClientRect().right : 0;
@@ -58,7 +64,7 @@ for(const f of ['prioritization-board-grid.html']){
        if(!t || !(t===e || e.contains(t))) why.push('covered by '+(t? (t.id? '#'+t.id : t.tagName.toLowerCase()) : 'nothing'));
        // v2.00 (UI S4, fix round): and whole -- clear of the sidebar, and itself (or its own label, which a click passes on
        // to it) just inside each side
-       if(c.left<sideR-0.5) why.push('under the sidebar ('+Math.round(c.left)+' < '+Math.round(sideR)+')');
+       if(!e.closest('#uiSide') && c.left<sideR-0.5) why.push('under the sidebar ('+Math.round(c.left)+' < '+Math.round(sideR)+')');
        for(const [x,y,edge] of [[c.left+2, c.top+c.height/2, 'left'], [c.right-2, c.top+c.height/2, 'right'], [c.left+c.width/2, c.top+2, 'top'], [c.left+c.width/2, c.bottom-2, 'bottom']]){
          const t2=document.elementFromPoint(x, y);
          if(!t2 || !(t2===e || e.contains(t2) || [...(e.labels||[])].some(l=>l.contains(t2)))){ why.push('its '+edge+' edge covered by '+(t2? (t2.id? '#'+t2.id : t2.tagName.toLowerCase()) : 'nothing')); break; } }

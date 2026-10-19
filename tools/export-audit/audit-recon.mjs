@@ -7743,7 +7743,7 @@ await (async () => {
       + 'removes that row alone, and the file written again.';
     const CYCLE = 'A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards '
       + 'refuse every file that carries that cycle. The file itself opens as a board.';
-    const FULL = 'A whole board of your own comes across with its lists as they are by 📁 File → ⬅ Import a full board, which says first what they '
+    const FULL = 'A whole board of your own comes across with its lists as they are by Imports & exports → ⬅ Import a full board, which says first what they '
       + 'hold. That replaces this board’s whole BAE list and execution data with the file’s, when it carries them, so it is not the way to take one '
       + 'appropriation.';
     // a file that also carries a locked cycle whose list a file handed over is refused for; a board .html opens as a board
@@ -8046,7 +8046,7 @@ await (async () => {
       const mk = bootMark();
       const EXP = '⬇ O&M exported as a working board of its own — its plan, its locked cycles, its execution data and its BAE rows, with the destination list, '
         + 'cost estimates and reprogramming log. ';
-      const BACK = 'Take it back with 📁 File → ⬅ Import one appropriation.';
+      const BACK = 'Take it back with Imports & exports → ⬅ Import one appropriation.';
       const NOT_BACK = 'It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: ';
       const stat = ev => ev(`(function(){ var _P=window.uiPrompt; window.uiPrompt=function(m,d,cb){ cb('1'); }; window.alert=function(){};
         try{ exportOneAppn(); }finally{ window.uiPrompt=_P; } return (document.getElementById('shareStat')||{}).textContent||''; })()`);
@@ -8385,11 +8385,11 @@ await (async () => {
       w5Chk(name, 'the help · ⬅ Import one appropriation', 'it says a file carrying a locked cycle whose list breaks the rule is refused, whichever board saved it, and what takes it',
         X.ev(`(function(){ var s=helpSections().filter(function(x){ return x.id==='t-one'; })[0]; if(!s) return 'no section';
           var p=[].slice.call(s.el.querySelectorAll('p')).filter(function(p){ return /⬅ Import one appropriation…/.test(p.textContent); })[0]; return p? p.textContent : 'no paragraph'; })()`),
-        '📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
+        'Imports & exports › ⬅ Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
           + 'takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked '
           + 'cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a '
           + 'key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved '
-          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and 📁 File ▾ › Boards and appropriations › ⬅ Import a full '
+          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and Imports & exports › ⬅ Import a full '
           + 'board (new version)… takes it whole.');
     }
     // the door on the rest of the rule
@@ -9650,7 +9650,7 @@ await (async () => {
     const TAIL = 'A destination list names each destination once, by a text key of its own that the funds flow does not keep for one of '
       + 'its own rows. An ORBIT before this one took such a list without a word and could save it and send it on; a board of this '
       + 'version that holds one says so each time it opens, and publishes no PMO copy and issues or sends back no package until it is put right. '
-      + 'A whole board of your own comes across by 📁 File → ⬅ Import a full board, which puts its list right and says first what it '
+      + 'A whole board of your own comes across by Imports & exports → ⬅ Import a full board, which puts its list right and says first what it '
       + 'changes; that replaces what this board holds with everything the file carries, so it is not the way to take one '
       + 'appropriation. A package, a PMO copy or one appropriation is taken once the board that wrote it has put its list right and '
       + 'written the file again. A submittal comes from a PMO copy, which cannot put its list right: the board that published the '

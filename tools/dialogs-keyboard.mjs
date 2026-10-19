@@ -10,6 +10,10 @@
 //   - in a box with a text field: typing and then Esc, ✕ Close or a click outside each ASK first, Cancel keeps the
 //     box open with the text, and OK on Esc then closes it.
 // And one box opened from another: Esc closes the top one and hands the keyboard back to the one below.
+// v2.00 (menu, 19 Oct): most boxes open from the LEFT MENU now -- an item in one of its boxes (Reports & exports, Data,
+// Imports & exports) or flyouts (Setup, Program offices, Audit, History & recovery, FYDP, Execution, Save's ▾). Such a box is
+// opened the same way, by keyboard: the left-menu entry by Enter, a folded group by Enter on its heading, the item by Enter;
+// and closing it must leave the keyboard on that entry.
 //
 //   node tools/dialogs-keyboard.mjs
 import { chromium } from 'playwright-core';
@@ -47,8 +51,10 @@ if (docked ? (place.pos === 'fixed' || !place.dock) : (place.pos !== 'fixed' || 
 const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .modal-bg[id]')].map(bg => {
   const oc = bg.getAttribute('onclick') || '';
   let pat = (/this\)\s*([A-Za-z0-9_]+)\(/.exec(oc) || [])[1] || null;
-  // v2.00 (UI S4): the Import box closes with uiImpClose() and opens with uiImpOpen(), from the toolbar's Import button
-  const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(', uiImpClose: 'uiImpOpen(' };
+  // v2.00 (UI S4): the Import box closes with uiImpClose() and opens with uiImpOpen(). v2.00 (menu): the left menu's three boxes
+  // open from their entries, uiGo('imp'|'rep'|'data', this)
+  const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(',
+                  uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'" };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
@@ -74,6 +80,12 @@ const openBox = async box => {
     const has = e => { const oc = e.getAttribute('onclick') || ''; return nm ? nm.test(oc) : oc.indexOf(pat) >= 0; };
     const mi = [...document.querySelectorAll('.menu[id^="m_"] .mdd button, .menu[id^="m_"] .mdd .mi')].find(has);
     if (mi) return { menu: mi.closest('.menu[id^="m_"]').id.slice(2) };
+    // v2.00 (menu): an item on the left menu, in a box, in a list a flyout shows, or in a flyout that draws its own
+    const HOST = { uiRepPanel: 'rep', uiDataPanel: 'data', uiImpPanel: 'imp', dd_setup: 'setup', dd_offices: 'pmo', dd_audit: 'aud', dd_kept: 'hist', dd_save: 'save' };
+    for (const [id, k] of Object.entries(HOST)) { const c = document.getElementById(id);
+      if (c && [...c.querySelectorAll('button')].some(e => has(e) && !e.disabled)) return { left: k }; }
+    if (typeof uiFlyItems === 'function') for (const k of ['fydp', 'exec', 'hist']) { const d = document.createElement('div'); d.innerHTML = uiFlyItems(k);
+      if ([...d.querySelectorAll('button')].some(e => has(e) && !e.disabled)) return { left: k }; }
     const bt = [...document.querySelectorAll('button, [role="button"], a')].find(e => has(e) && e.getClientRects().length && !e.closest('.modal-bg'));
     if (bt) { bt.setAttribute('data-probe', '1'); return { btn: true }; }
     return null; }, box.pat);
@@ -86,6 +98,19 @@ const openBox = async box => {
         .find(e => { const oc = e.getAttribute('onclick') || ''; return (nm ? nm.test(oc) : oc.indexOf(pat) >= 0) && e.getClientRects().length && !e.disabled; });
       if (mi) mi.setAttribute('data-probe', '1'); return !!mi; }, [box.pat, how.menu]);
     if (!found) { await p.keyboard.press('Escape'); return null; }
+    await p.focus('[data-probe="1"]'); await p.keyboard.press('Enter');
+  } else if (how.left) {
+    await p.focus('#uiNav_' + how.left); await p.keyboard.press('Enter'); await p.waitForTimeout(150);
+    const mark = () => p.evaluate(pat => {
+      const root = document.querySelector('#uiFly.open') || document.querySelector('#uiImpPanel.open, #uiRepPanel.open, #uiDataPanel.open'); if (!root) return 'no';
+      const nm = /\($/.test(pat) ? new RegExp('\\b' + pat.slice(0, -1) + '\\b') : null;
+      const e = [...root.querySelectorAll('button')].find(x => { const oc = x.getAttribute('onclick') || ''; return (nm ? nm.test(oc) : oc.indexOf(pat) >= 0) && !x.disabled; });
+      if (!e) return 'no';
+      const g = e.closest('.gbody'); if (g && g.hidden) return 'grp:' + g.previousElementSibling.getAttribute('data-g');
+      e.setAttribute('data-probe', '1'); return 'ok'; }, box.pat);
+    let found = await mark();
+    if (found.startsWith('grp:')) { await p.focus(`#uiFly .gh[data-g="${found.slice(4)}"]`); await p.keyboard.press('Enter'); await p.waitForTimeout(100); found = await mark(); }
+    if (found !== 'ok') { await p.keyboard.press('Escape'); return null; }
     await p.focus('[data-probe="1"]'); await p.keyboard.press('Enter');
   } else { await p.focus('[data-probe="1"]'); await p.keyboard.press('Enter'); }
   await p.waitForTimeout(250);
@@ -130,7 +155,7 @@ for (const box of BOXES) {
     if (typeof dlgSync === 'function') dlgSync(); }, box.id); continue; }
   const s1 = await st();
   if (!how.fn) {
-    const want = how.menu ? 'b_' + how.menu : null;
+    const want = how.menu ? 'b_' + how.menu : (how.left ? 'uiNav_' + how.left : null);
     if (s1.in || s1.id === 'body' || (want && s1.id !== want && !(await p.evaluate(() => !!document.activeElement.closest('.menu')))))
       bad.push(`${box.id}: closing left the keyboard on ${s1.id}${want ? ' (want ' + want + ' or its item)' : ''}`);
   }
@@ -179,8 +204,18 @@ for (const box of BOXES) {
 // sidebar's Imports -- on Esc, ✕ Close, Cancel and a click outside. Opened from the keyboard (Enter), and by a mouse click
 // on a button that takes no focus from the click (as Safari's and Firefox's on a Mac do not: the press is held back here),
 // with the keyboard last in the search box -- where it would be handed back to if the box did not know its opener.
-if (await p.evaluate(() => !!document.getElementById('uiImpPanel'))) {
-  for (const opener of ['#uiImpBtn', '#uiNav_imp']) for (const how of ['key', 'click']) for (const close of ['Escape', 'close', 'cancel', 'outside']) {
+// v2.00 (menu, 19 Oct): the toolbar's Import is gone (Imports & exports on the left menu is its one home), and the left menu's
+// other two boxes, Reports & exports and Data, are held to the same: each from its entry, each way of closing it (they have
+// ✕ Close and no Cancel).
+const LEFTBOX = [['uiImpPanel', '#uiNav_imp', 'uiImpClose'], ['uiRepPanel', '#uiNav_rep', 'uiRepClose'], ['uiDataPanel', '#uiNav_data', 'uiDataClose']];
+let impWant = 0;
+// the RECORD panel, sliding over the table, puts its scrim over the page while it is open: it is closed first, as a person
+// closes it before reaching for the menu (the boxes above can leave it open)
+await p.evaluate(() => { try { drawerClose(); } catch (e) {} }); await p.waitForTimeout(150);
+for (const [bx, opener, shutFn] of LEFTBOX) if (await p.evaluate(id => !!document.getElementById(id), bx)) {
+  for (const how of ['key', 'click']) for (const close of ['Escape', 'close', 'cancel', 'outside']) {
+    if (close === 'cancel' && bx !== 'uiImpPanel') continue;
+    impWant++;
     await p.evaluate(() => { window.scrollTo(0, 0); });
     await p.focus('#q');
     if (how === 'key') { await p.focus(opener); await p.keyboard.press('Enter'); }
@@ -191,15 +226,15 @@ if (await p.evaluate(() => !!document.getElementById('uiImpPanel'))) {
     }
     await p.waitForTimeout(200);
     const o = await st();
-    if (!(await isOpen('uiImpPanel')) || o.in !== 'uiImpPanel') { bad.push(`uiImpPanel from ${opener} (${how}): did not open with the keyboard in it`); await p.evaluate(() => uiImpClose()); continue; }
+    if (!(await isOpen(bx)) || o.in !== bx) { bad.push(`${bx} from ${opener} (${how}): did not open with the keyboard in it`); await p.evaluate(f => window[f](), shutFn); continue; }
     if (close === 'Escape') await p.keyboard.press('Escape');
-    else if (close === 'close') await p.click('#uiImpPanel h3 button.x');
+    else if (close === 'close') await p.click('#' + bx + ' h3 button.x');
     else if (close === 'cancel') await p.click('#uiImpPanel .uiImpFoot button:has-text("Cancel")');
-    else { const at = await outside('uiImpPanel'); if (!at) { bad.push('uiImpPanel: no point on the backdrop outside the box'); continue; } await p.mouse.click(at[0], at[1]); }
+    else { const at = await outside(bx); if (!at) { bad.push(bx + ': no point on the backdrop outside the box'); continue; } await p.mouse.click(at[0], at[1]); }
     await p.waitForTimeout(200);
     const c = await st();
-    if (await isOpen('uiImpPanel')) { bad.push(`uiImpPanel from ${opener} (${how}): ${close} did not close it`); await p.evaluate(() => uiImpClose()); continue; }
-    if ('#' + c.id !== opener) bad.push(`uiImpPanel from ${opener} (${how}): ${close} left the keyboard on ${c.id}, not on ${opener}`);
+    if (await isOpen(bx)) { bad.push(`${bx} from ${opener} (${how}): ${close} did not close it`); await p.evaluate(f => window[f](), shutFn); continue; }
+    if ('#' + c.id !== opener) bad.push(`${bx} from ${opener} (${how}): ${close} left the keyboard on ${c.id}, not on ${opener}`);
     else impBack++;
   }
 }
@@ -215,7 +250,8 @@ if (back.in !== 'pfPanel' || !(await isOpen('pfPanel'))) bad.push(`stacked: Esc 
 await p.keyboard.press('Escape'); await p.waitForTimeout(200);
 await ctx.close();
 console.log(`\n${pass} -- boxes: ${opened} opened (${opened - viaFn.length} from their own menu or button by keyboard, ${viaFn.length} by their switch: ${viaFn.join(', ') || 'none'}), ${typed} with a text field typed in`);
-if (impBack) console.log(`the Import box handed the keyboard back to its opener ${impBack} time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)`);
+if (impWant) console.log(`the left menu's boxes handed the keyboard back to their entries ${impBack} time(s) of ${impWant} (Imports & exports, Reports & exports and Data, by key and by a click that takes no focus, each way of closing each)`);
+if (impBack !== impWant) bad.push(`the left menu's boxes handed the keyboard back ${impBack} time(s) of ${impWant}`);
 if (errs.length) bad.push('page errors: ' + errs.slice(0, 3).join(' | '));
 if (docked) for (let i = n0; i < bad.length; i++) bad[i] = 'docked: ' + bad[i];
 }

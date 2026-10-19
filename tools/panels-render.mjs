@@ -49,8 +49,11 @@ const SPECIAL = {
   helpPanel: `openHelp('');`,
   // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has
   attPanel:  `attShow('oblig');`,
-  // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Import and Imports do
+  // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Imports & exports does
   uiImpPanel: `uiImpOpen();`,
+  // v2.00 (menu, 19 Oct): the left menu's other two boxes, opened as Reports & exports and Data open them
+  uiRepPanel: `uiRepOpen();`,
+  uiDataPanel: `uiDataOpen();`,
   // uiPrompt only falls through to this panel where window.prompt throws (Electron). A browser
   // answers the native prompt, so drive the fallback path itself.
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';
@@ -65,8 +68,11 @@ const INLINE = {
 // v1.90 (item 27): Active year, Budget year, FYDP, Tools and Export became Reports & exports, Data and
 // Setup; the Fund tools carry the spend plan basis menu, and below 1100px (or when the task bar is too
 // full) the mode's tools fold into one menu. PREP puts the board in the state each one is shown in.
-const MENUS = { reports: 'Reports & exports', data: 'Data', setup: 'Setup', share: 'File', view: 'Filter',
-                fy: 'FY', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
+// v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the left menu. Reports & exports and
+// Data are boxes there (swept with the boxes above); Setup, Program offices, Audit, History & recovery, FYDP, Execution and
+// the ▾ beside Save are flyouts, each opened from its entry and held to what a menu is held to here (LEFT, below).
+const MENUS = { view: 'Filter', fy: 'FY', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
+const LEFT = { fydp: 'FYDP', exec: 'Execution', pmo: 'Program offices', aud: 'Audit', hist: 'History & recovery', setup: 'Setup', save: 'Save ▾' };
 const PREP = { basis: `uiMode='fund'; uiApply(); render();`,
                modetools: `uiMode='fund'; uiApply(); render();` };   // and a 1000px window: see below
 // Visible text that should never contain an escape sequence. "&amp;" on screen means something
@@ -242,6 +248,32 @@ for (const f of ['prioritization-board-grid.html']) {
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
     chk(`the ${label} menu: every item in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
+  // v2.00 (menu): THE LEFT MENU'S FLYOUTS, each from its entry, with work kept aside set so History & recovery draws its items
+  await closeAll();
+  await p.evaluate(() => { try { _keptMeta = { t: Date.now(), why: 'folder' }; syncBtns(); } catch (e) {} });
+  for (const [k, label] of Object.entries(LEFT)) {
+    const r = await p.evaluate(k => {
+      try { uiFlyClose(); uiFlyOpen(k, document.getElementById('uiNav_' + k)); } catch (e) { return { err: String(e.message).slice(0, 120) }; }
+      const f = document.getElementById('uiFly');
+      // a folded group is opened from its heading, one at a time, as a person opens it
+      const gs = [...f.querySelectorAll('.gh')].map(h => h.getAttribute('data-g')), kb = window.__kbOff(f);
+      let text = f.innerText || '';
+      gs.forEach(g => { try { menuGrpOpen[k === 'setup' ? 'setup' : k] = g; syncBtns(); text += '\n' + (f.innerText || ''); kb.push(...window.__kbOff(f)); } catch (e) {} });
+      const out = { open: f.classList.contains('open') && UI2.fly === k, h: f.getBoundingClientRect().height, n: f.querySelectorAll('button').length, text, kb };
+      uiFlyClose(); return out;
+    }, k);
+    const open = !r.err && r.open && r.h > 10 && r.n > 0;
+    chk(`the left menu's ${label} opens, with its items`, open, r.err || (open ? '' : `height:${r.h} items:${r.n}`));
+    if (!open) continue;
+    const ent = ENTS.exec(r.text || '');
+    chk(`the left menu's ${label} shows no escaped entity`, !ent,
+      ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
+    chk(`the left menu's ${label}: every item in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
+  }
+  const flys = await p.evaluate(() => (typeof UI_FLY !== 'undefined' ? UI_FLY : []).slice());
+  const unlistedF = flys.filter(k => !(k in LEFT));
+  chk('every left-menu flyout in the file is covered by this sweep', unlistedF.length === 0 && flys.length === Object.keys(LEFT).length,
+    unlistedF.length ? 'not covered: ' + unlistedF.join(', ') : flys.length + ' flyouts');
   chk('nothing threw while opening them', pageErrs.length === 0, pageErrs.slice(0, 2).join(' | '));
   // EVERY MENU IN THE FILE IS IN THE MAP ABOVE. The PMO menu was added to the toolbar in v1.67 and
   // to neither this map nor the board's own list, so it never opened and this check never looked:

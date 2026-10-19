@@ -23,6 +23,11 @@
 // (1536 and 1920, both heights), every toolbar menu and every row menu as above, and the panel is checked to be docked
 // beside the list there. At 1400 and narrower docked is a drawer, as the first pass already has it.
 //
+// v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the LEFT MENU. Every flyout there (FYDP,
+// Execution, Program offices, Audit, History & recovery, Setup with each folded group opened, Save's ▾) and every box it opens
+// (Imports & exports, Reports & exports, Data) is opened from its entry the way a person does, at every size and in both
+// fonts, and judged as a toolbar menu is: in the window, every item in it and on top.
+//
 //   node tools/dropdowns-visible.mjs
 import { chromium } from 'playwright-core';
 import { resolve, join, dirname } from 'node:path';
@@ -42,8 +47,8 @@ const bad = [];
 let looked = 0;
 
 // one open menu, judged: its box in the window, and every item visible and on top, scrolled into view if need be
-const judge = p => p.evaluate(() => {
-  const dd = document.querySelector('.menu.open > .mdd'); if (!dd) return { none: true };
+const judge = (p, sel = '.menu.open > .mdd') => p.evaluate(sel => {
+  const dd = document.querySelector(sel); if (!dd) return { none: true };
   const W = innerWidth, H = innerHeight, r = dd.getBoundingClientRect(), out = [];
   if (r.top < -0.5 || r.left < -0.5 || r.bottom > H + 0.5 || r.right > W + 0.5)
     out.push(`the menu runs outside the window (${Math.round(r.left)},${Math.round(r.top)} to ${Math.round(r.right)},${Math.round(r.bottom)} in ${W}×${H})`);
@@ -57,7 +62,7 @@ const judge = p => p.evaluate(() => {
     if (!top || !(top === e || e.contains(top))) out.push(`"${label}" is covered by ${top ? (top.id ? '#' + top.id : top.tagName.toLowerCase() + '.' + String(top.className).split(' ')[0]) : 'nothing'}`);
   });
   return { items: items.length, problems: out };
-});
+}, sel);
 
 for (const [pass, docked] of [['', false], ['docked: ', true]])
 for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
@@ -98,6 +103,30 @@ for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
       else rg.problems.forEach(x => bad.push(`${w}×${h} ${k} › ${g}: ${x}`));
     }
     await p.keyboard.press('Escape'); await p.waitForTimeout(60);
+  }
+  // v2.00 (menu): THE LEFT MENU'S FLYOUTS AND BOXES, each from its entry; Setup's folded groups each opened from its heading.
+  // Work kept aside is set, so History & recovery draws its items.
+  await p.evaluate(() => { try { drawerClose(); } catch (e) {} try { _keptMeta = { t: Date.now(), why: 'folder' }; syncBtns(); } catch (e) {} });
+  const LEFT = await p.evaluate(() => (typeof UI_NAV !== 'undefined' ? UI_NAV : []).filter(k => ['rep', 'imp', 'data'].concat(typeof UI_FLY !== 'undefined' ? UI_FLY : []).indexOf(k) >= 0
+    && (document.getElementById('uiNav_' + k) || {}).getClientRects().length));
+  if (LEFT.join() !== 'fydp,exec,rep,imp,data,pmo,aud,hist,setup,save') bad.push(`${w}×${h}: the left menu's flyouts and boxes are not all there (${LEFT.join(', ')})`);
+  for (const k of LEFT) {
+    await p.evaluate(() => { window.scrollTo(0, 0); try { uiFlyClose(); } catch (e) {} });
+    await p.click('#uiNav_' + k); await p.waitForTimeout(150);
+    const sel = ['rep', 'imp', 'data'].includes(k) ? '.modal-bg.open > .modal' : '#uiFly.open';
+    const r = await judge(p, sel); looked++;
+    if (r.none) bad.push(`${w}×${h} left ${k}: it did not open`);
+    else r.problems.forEach(x => bad.push(`${w}×${h} left ${k}: ${x}`));
+    const gs = sel === '#uiFly.open' ? await p.evaluate(() => [...document.querySelectorAll('#uiFly .gh')].map(h => h.getAttribute('data-g'))) : [];
+    for (const g of gs) {
+      const was = await p.evaluate(g => document.querySelector(`#uiFly .gh[data-g="${g}"]`).getAttribute('aria-expanded'), g);
+      if (was !== 'true') { await p.click(`#uiFly .gh[data-g="${g}"]`); await p.waitForTimeout(100); }
+      const rg = await judge(p, sel); looked++;
+      if (rg.none) bad.push(`${w}×${h} left ${k} › ${g}: the flyout closed when the group was opened`);
+      else rg.problems.forEach(x => bad.push(`${w}×${h} left ${k} › ${g}: ${x}`));
+    }
+    await p.keyboard.press('Escape'); await p.waitForTimeout(80);
+    await p.evaluate(() => { try { uiFlyClose(); uiImpClose(); uiRepClose(); uiDataClose(); } catch (e) {} });
   }
   // A ROW'S ⋯ MENU on the first and the last row, in the whole list and in a short one
   const rowMenu = async (which, tag) => {

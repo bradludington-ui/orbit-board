@@ -155,6 +155,8 @@ const SPECIAL = {
   matPanel: `matOpen=true; matBody();`, rollPanel: `rollOpen=true; rollBody();`, recPanel: `recOpen=S.order[0]; recBody();`,
   wbsPanel: `toggleWbs('req', S.order[0], '');`, subPanel: `subOpenReview();`, fldPanel: `openFld(S.order[0], 'cons');`,
   ndPanel: `ndOpen=true; render();`, helpPanel: `openHelp('');`,
+  // v2.00 (menu, 19 Oct): the left menu's three boxes close by uiImpClose / uiRepClose / uiDataClose; each opens as its entry opens it
+  uiImpPanel: `uiImpOpen();`, uiRepPanel: `uiRepOpen();`, uiDataPanel: `uiDataOpen();`,
 };
 const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
 const CLOSE = tryIt(`document.querySelectorAll('.modal-bg').forEach(function(e){ e.className='modal-bg'; });
@@ -207,5 +209,15 @@ export async function hostileSweep(run, settle = async () => {}) {
   for (const s of ['toggleAdd();', 'rmOpen=true; render();']) { await run(tryIt(s)); await look(s); }
   const menus = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('.menu[id^="m_"]')).map(function(e){ return e.id.slice(2); }))`));
   for (const k of menus) { await run(tryIt(`toggleMenu(${JSON.stringify(k)});`)); await look(`menu ${k}`); await run(CLOSE); }
-  return { found, shown, unseen: MUST_SHOW.filter(t => !shown.has(t)), ids: ids.length, panels: opened, menus: menus.length };
+  // v2.00 (menu, 19 Oct): what the toolbar's Reports & exports, Data, Setup and File menus held is on the LEFT MENU: its boxes
+  // are swept with the panels above, and each of its flyouts is opened here as a menu was -- Setup with each folded group open
+  const flys = JSON.parse(await run(`JSON.stringify(typeof UI_FLY!=='undefined'? UI_FLY.slice() : [])`));
+  for (const k of flys) {
+    const q = JSON.stringify(k);
+    await run(tryIt(`uiFlyOpen(${q}, document.getElementById('uiNav_'+${q}));`)); await look(`left menu ${k}`);
+    const gs = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('#uiFly .gh')).map(function(h){ return h.getAttribute('data-g'); }))`));
+    for (const g of gs) { await run(tryIt(`menuGrpOpen[${q}]=${JSON.stringify(g)}; syncBtns();`)); await look(`left menu ${k} › ${g}`); }
+    await run(tryIt(`uiFlyClose();`));
+  }
+  return { found, shown, unseen: MUST_SHOW.filter(t => !shown.has(t)), ids: ids.length, panels: opened, menus: menus.length + flys.length };
 }

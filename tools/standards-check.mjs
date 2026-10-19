@@ -283,21 +283,35 @@ for (const build of BUILDS) {
     // v1.92 (item 36): AND WITH EACH MENU OPEN. v1.91 measured with every menu closed, so it never saw that no
     // menu item could be reached from the keyboard. Each toolbar menu in turn (the Fund tools' in Fund), then
     // a row's ⋯ menu.
-    for (const m of ['share', 'reports', 'data', 'setup', 'view', 'fy', 'pmo', 'basis', 'modetools', '(row)']) {
+    // v2.00 (menu, 19 Oct): File, Reports & exports, Data and Setup left the toolbar for the LEFT MENU, so each place their items
+    // went is measured open instead, the same way: its three boxes (left:rep, left:imp, left:data), each flyout (Setup with
+    // each folded group open, as the menu's were), the menu folded to icons, and Save showing unsaved work. Work kept aside
+    // is set, so History & recovery and the save state show their controls.
+    for (const m of ['view', 'fy', 'pmo', 'basis', 'modetools', '(row)', 'left:rep', 'left:imp', 'left:data', 'left:fydp', 'left:exec',
+                     'left:pmo', 'left:aud', 'left:hist', 'left:setup', 'left:save', 'left:rail', 'left:dirty']) {
       await page.evaluate(m => { try {
         if (m === 'basis' || m === 'modetools') { uiMode = 'fund'; uiApply(); render(); }
         if (m === '(row)') { openMenu = null; syncBtns(); rowMenuId = gridIds()[0]; render(); }
+        else if (m.indexOf('left:') === 0) { const k = m.slice(5); rowMenuId = null; openMenu = null;
+          _keptMeta = { t: 1700000000000, why: 'folder' }; render();
+          if (k === 'rep') uiRepOpen(); else if (k === 'imp') uiImpOpen(); else if (k === 'data') uiDataOpen();
+          else if (k === 'rail') { UI2.rail = true; uiRailApply(); uiSync(); }
+          else if (k === 'dirty') { DIRTY = true; syncBtns(); }
+          else uiFlyOpen(k, document.getElementById('uiNav_' + k)); }
         else { rowMenuId = null; openMenu = m; syncBtns(); } } catch (e) {} }, m);
       await page.waitForTimeout(150);
       for (const f of await page.evaluate(PROBE)) record(build, theme, f);
       // v1.96 (item 65): A LONG MENU FOLDS, so each of its groups is measured open, one at a time, as a person sees it
-      const gs = m === '(row)' ? [] : await page.evaluate(m => [...document.querySelectorAll('#dd_' + m + ' .gh')].map(h => h.getAttribute('data-g')), m);
+      const host = m === 'left:setup' ? '#uiFly' : '#dd_' + m, gk = m === 'left:setup' ? 'setup' : m;
+      const gs = m === '(row)' || (m.indexOf('left:') === 0 && m !== 'left:setup') ? [] : await page.evaluate(h => [...document.querySelectorAll(h + ' .gh')].map(x => x.getAttribute('data-g')), host);
       for (const g of gs) {
-        await page.evaluate(([m, g]) => { try { menuGrpOpen[m] = g; syncBtns(); } catch (e) {} }, [m, g]);
+        await page.evaluate(([m, g]) => { try { menuGrpOpen[m] = g; syncBtns(); } catch (e) {} }, [gk, g]);
         await page.waitForTimeout(80);
         for (const f of await page.evaluate(PROBE)) record(build, theme, f);
       }
-      if (gs.length) await page.evaluate(m => { try { menuGrpOpen[m] = ''; syncBtns(); } catch (e) {} }, m);
+      if (gs.length) await page.evaluate(m => { try { menuGrpOpen[m] = ''; syncBtns(); } catch (e) {} }, gk);
+      if (m.indexOf('left:') === 0) await page.evaluate(() => { try { uiFlyClose(); uiRepClose(); uiImpClose(); uiDataClose();
+        UI2.rail = false; uiRailApply(); uiSync(); DIRTY = false; _keptMeta = null; syncBtns(); } catch (e) {} });
     }
     await page.evaluate(() => { try { openMenu = null; rowMenuId = null; uiMode = 'review'; uiApply(); syncBtns(); render(); } catch (e) {} });
     // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it

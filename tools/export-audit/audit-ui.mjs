@@ -191,8 +191,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       chk(name, where, 'the one message names the file and its question, says to load it on its own, and that nothing changed', J(b.said), J([
         '⚠ None of the 2 submittal files was loaded: “' + f[0] + '” would ask a question before it could be loaded, and a batch loads only files that need no answer'
         + '\n\n' + SAME
-        + '\n\n  • “' + f[0] + '” — ' + q + '\n\nLoad it on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.']));
-      chk(name, where, 'the status line says the same', b.stat, '⚠ Nothing loaded — “' + f[0] + '” would ask a question first — load it on its own (One submission)');
+        + '\n\n  • “' + f[0] + '” — ' + q + '\n\nLoad it on its own (Program offices › ⬅ Load one submission…), where its question is asked about that file alone; then load the rest.']));
+      chk(name, where, 'the status line says the same', b.stat, '⚠ Nothing loaded — “' + f[0] + '” would ask a question first — load it on its own (Program offices › ⬅ Load one submission…)');
       chk(name, where, 'no storage write of any kind', J(b.writes), J([]));
       asBefore(name, where, X, A, H0);
     }
@@ -211,9 +211,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         + '\n\n  • “PSM-no-year.json” — That submittal does not say which fiscal year it was written for.'
         + '\n  • “ATL-FY28.json” — That submittal was written for FY28, and this board is on FY27.'
         + '\n  • “no-office.json” — That submittal does not say which programme office it is from.'
-        + '\n\nLoad each of those on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.']]));
+        + '\n\nLoad each of those on its own (Program offices › ⬅ Load one submission…), where its question is asked about that file alone; then load the rest.']]));
       chk(name, where, 'the status line names all three', b.stat,
-        '⚠ Nothing loaded — “PSM-no-year.json”, “ATL-FY28.json”, “no-office.json” would ask a question first — load each on its own (One submission)');
+        '⚠ Nothing loaded — “PSM-no-year.json”, “ATL-FY28.json”, “no-office.json” would ask a question first — load each on its own (Program offices › ⬅ Load one submission…)');
       chk(name, where, 'no storage write of any kind', J(b.writes), J([]));
       asBefore(name, where, X, A, H0);
     }
@@ -869,9 +869,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         + '  • the submittal review (the submittals it holds, its ticks, whether it is open).\n\n'
         + 'Checked just now and exactly as before: the destination list on this board, the plan on screen, whether the board reads as saved, browser storage.'
         + '\n\n  • “PSM-no-year.json” — That submittal does not say which fiscal year it was written for.'
-        + '\n\nLoad it on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.']));
+        + '\n\nLoad it on its own (Program offices › ⬅ Load one submission…), where its question is asked about that file alone; then load the rest.']));
       chk(name, where, 'the status line says nothing loaded, and names the review', b.stat,
-        '⚠ Nothing loaded — “PSM-no-year.json” would ask a question first — load it on its own (One submission). Not as before the batch: the submittal review (the submittals it holds, its ticks, whether it is open).');
+        '⚠ Nothing loaded — “PSM-no-year.json” would ask a question first — load it on its own (Program offices › ⬅ Load one submission…). Not as before the batch: the submittal review (the submittals it holds, its ticks, whether it is open).');
       chk(name, where, 'never that the batch stopped part-way, or that anything was put back', /stopped part-way|put back/.test(b.said.join('\n') + '\n' + b.stat), false);
       chk(name, where, 'no storage write of any kind', J(b.writes), J([]));
       const Z = look(X);
@@ -1188,7 +1188,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // Oct: "add the refused-batch test and note. Verify storage, MS and DESTDB remain unchanged, including no unintended
 // writes." The note is the comment above pmoTake. Expected values are written out by hand, as above.
 const S3_ASK = (f, q) => '⚠ None of the 2 submittal files was loaded: “' + f + '” would ask a question before it could be loaded, and a batch loads only files that need no answer'
-  + '\n\n' + SAME + '\n\n  • “' + f + '” — ' + q + '\n\nLoad it on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.';
+  + '\n\n' + SAME + '\n\n  • “' + f + '” — ' + q + '\n\nLoad it on its own (Program offices › ⬅ Load one submission…), where its question is asked about that file alone; then load the rest.';
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const name = 'v2.00 UI (S3) — a refused batch, from a board that reads Saved, changes nothing and writes nothing';

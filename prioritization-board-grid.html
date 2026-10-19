@@ -999,6 +999,10 @@ html[data-theme="harbor"]{--sel:#c7ced8}
    message is only visually hidden, and the one control is a real button, not a clickable line. */
 .statwrap{display:flex;align-items:center;gap:2px;min-width:0;max-width:min(460px,34vw);flex:0 1 auto}
 .statwrap:not(.fresh):not(.big){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
+/* v2.00 (menu, 19 Oct): and at the bar's left edge. Its place was where the bar's right-hand group starts, which was far enough
+   left while Save and the File menu sat there; with only Help beside it the group starts further right, and the hidden line's
+   words -- out of sight, but still laid out -- reached past a 761-1023px window (layout-fits J). */
+.statwrap:not(.fresh):not(.big){left:0;top:0}
 .statx[hidden]{display:none}
 #shareStat{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;padding:0}
 .statbtn{height:24px;min-width:24px;border:1px solid var(--edge);border-radius:12px;background:var(--panel);color:var(--ink);
@@ -1323,6 +1327,63 @@ html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--u
 #uiFly button:hover,#uiFly button:focus-visible{background:var(--panel2);outline:none}
 #uiFly button:disabled{opacity:.55;cursor:default}
 #uiFly .uiFsep{height:1px;background:var(--line);margin:4px 6px}
+/* v2.00 (menu, 19 Oct): THE LEFT MENU HOLDS WHAT THE TOP-RIGHT MENUS DID. A flyout that shows a list syncBtns() writes (Program
+   offices, Audit, History's work kept aside, Setup, the ▾ beside Save) shows the board's own menu items and folded groups,
+   laid out for the flyout's width; the three boxes (Imports & exports, Reports & exports, Data) lay theirs out as cards and
+   sections. A hidden item or section is hidden here too, as in a toolbar menu. */
+#uiSide .uiNi[hidden]{display:none}
+#uiFly [hidden],.uiPanel [hidden]{display:none!important}
+#uiFly button.mi,.uiPanel .uiRs button.mi,.uiPanel .uiDc button.mi{display:flex;flex-wrap:wrap;align-items:center;white-space:normal;font-size:12.5px;padding:7px 10px;row-gap:1px}
+#uiFly button.mi .sub,.uiPanel .uiRs .mi .sub,.uiPanel .uiDc .mi .sub{flex:1 0 100%;margin:0 0 0 22px;padding:0;font-size:11px;font-weight:400}
+#uiFly button.gh{display:flex;font-size:12.5px}
+#uiFly .gh .now,#uiFly .gh .gn{font-size:10.5px}
+#uiFly .mlbl,.uiPanel .mlbl{font-size:10.5px;padding:8px 10px 3px}
+#uiFly .uiPopHint{font-size:11.5px;color:var(--mut);padding:4px 10px 8px;margin:0;line-height:1.4}
+/* Save, pinned at the foot: the button, the ▾ beside it for Save a copy, the save state and who holds the pen */
+#uiSide .uiSave{display:flex;flex-direction:column;gap:6px;padding:10px 2px 2px;white-space:normal;overflow:visible;color:var(--uiNavInk)}
+#uiSide .uiSvRow{display:flex;gap:4px;align-items:stretch}
+#uiSide #saveBtn{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;font-size:13px}
+/* its edge against the navy: the theme's own button colour is too close to it to show where the button ends (1.4.11) */
+#uiSide #saveBtn{border-color:#e8eef5}
+#uiSide .uiSvMore{flex:none;min-width:30px;min-height:34px;border:1px solid #8fa6bb;border-radius:7px;background:transparent;color:#fff;font-size:12px;cursor:pointer;padding:0 6px}
+#uiSide .uiSvMore:hover,#uiSide .uiSvMore:focus-visible,#uiSide .uiSvMore[aria-expanded="true"]{background:var(--uiNav2);outline:2px solid var(--uiNavAcc);outline-offset:1px}
+#uiSide #saveBtn:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:2px}
+html.ui-on #uiSide #saveState{display:flex;flex-wrap:wrap;background:transparent;border-radius:0;padding:0 2px;color:var(--uiNavInk);font-size:11.5px;white-space:normal;min-height:0}
+html.ui-on #uiSide #saveState b{color:#fff}
+html.ui-on #uiSide #saveState.dirty b{color:#ffcf70}
+html.ui-on #uiSide #saveState .keptbtn{color:#ffd88a;text-decoration:underline}
+#uiSide .uiSvPen{font-size:11.5px;color:#ffd88a;padding:0 2px}
+#uiSide .uiSvPen:empty{display:none}
+#uiSide .uiSave .t{font-size:10.5px;color:var(--uiNavMut);padding:0 2px}
+html.ui-rail #uiSide .uiSave{align-items:center;padding:10px 0 2px}
+html.ui-rail #uiSide .uiSvRow{flex-direction:column;align-items:center}
+html.ui-rail #uiSide #saveBtn{flex:none;width:44px;height:40px;padding:0;position:relative}
+html.ui-rail #uiSide #saveBtn_t,html.ui-rail #uiSide #saveBtn .uiSvT,html.ui-rail #uiSide #saveState,html.ui-rail #uiSide .uiSvPen{display:none}
+html.ui-rail #uiSide #saveBtn .uiSvIc{font-size:16px}
+html.ui-rail #uiSide .uiSvMore{min-height:24px;width:44px}
+/* folded to icons, unsaved work shows as a dot on the Save icon (the button itself turns amber, as it always has) */
+html.ui-rail #uiSide #saveBtn.dirty::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ff6b5e;box-shadow:0 0 0 2px var(--uiNav)}
+/* the three boxes */
+.uiPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:17px}
+.uiPanel h3 .x{margin-left:auto}
+.uiPanel .lead{margin:0 0 12px;color:var(--mut);font-size:12.5px;line-height:1.5}
+#uiRepPanel .modal.uiRepM{width:1060px;max-width:96vw;border-radius:14px;padding:18px 22px}
+#uiDataPanel .modal.uiDataM{width:940px;max-width:96vw;border-radius:14px;padding:18px 22px}
+#uiRepPanel input.mfind{width:100%;max-width:420px;margin:2px 0 8px}
+.uiRg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
+.uiDg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.uiRs,.uiDc{border:1px solid var(--line);border-radius:11px;padding:10px;background:var(--panel2);min-width:0}
+.uiRs h4,.uiDc h4{margin:0 0 6px 4px;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+.uiDc h4{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+.uiDc .w{font-size:12px;color:var(--ink);margin:0 4px 4px;line-height:1.45}
+.uiDc .t{font-size:11.5px;color:var(--mut);margin:0 4px 6px;font-weight:700}
+.uiRsV{font-size:11.5px;color:var(--mut);margin:6px 4px 2px;line-height:1.45}
+.uiRsV b{color:var(--ink)}
+.uiIh{margin:10px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.uiImpCh .uiCard.mi{white-space:normal;align-items:flex-start;padding:14px;font-size:12px;border-color:var(--edge)}
+.uiImpCh .uiCard.mi:hover,.uiImpCh .uiCard.mi:focus-visible{border-color:var(--green);outline:2px solid var(--green);outline-offset:1px}
+@media (max-width:1000px){ .uiRg{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:700px){ .uiRg,.uiDg{grid-template-columns:1fr} }
 /* the context bar: the logo moved to the sidebar; Cycle and the Editable chip join Appropriation, year and PMO */
 html.ui-on .hdr .brand{display:none}
 html.ui-on .hdr{background:var(--panel)}
@@ -1366,7 +1427,7 @@ html.ui-on .uiTools .srch{flex:1 1 220px;max-width:360px}
 html.ui-on .uiTools .srch input{width:100%}
 .uiTools .sp{margin-left:auto}
 .uiTools > .btn,.uiTools .uiMenu > .btn{display:inline-flex;align-items:center;gap:6px}
-.uiPop input[type=checkbox],.uiImpSub .uiOpt input[type=radio]{width:15px;height:15px;min-width:0;margin:0;flex:none;accent-color:var(--green)}
+.uiPop input[type=checkbox]{width:15px;height:15px;min-width:0;margin:0;flex:none;accent-color:var(--green)}
 .uiTools .uiMenu{position:relative;display:inline-block}
 html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left:0;z-index:70;min-width:230px;background:var(--panel);color:var(--ink);
   border:1px solid var(--line2);border-radius:9px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
@@ -1430,10 +1491,8 @@ html.ui-on.ui-e940 #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 html.ui-on.ui-narrow body{padding-left:64px}
 html.ui-on.ui-narrow.ui-peek #uiSide{box-shadow:14px 0 40px rgba(0,0,0,.35)}
 /* Add requirement is Review's, as the board's own task bar and its folded Review tools menu offer it (#toolAdd sits in
-   #t_review); a PMO copy's File menu leaves out the programme offices, and so does the Import box */
+   #t_review); a PMO copy's left menu leaves out Program offices (uiSync hides it) */
 html.ui-on:not([data-mode="review"]) #uiAddBtn{display:none}
-html.ui-on.ui-sandbox #uiImpC_pmo{display:none}
-html.ui-on.ui-sandbox .uiImpCh{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* the KPI cards when they could not be drawn: no figure is shown rather than an old one */
 #uiKpis .k.na .v{color:var(--dim);font-size:15px}
 /* the Cycle control: the working plan or a locked cycle to view, read only */
@@ -1468,7 +1527,7 @@ html.ui-on #inspector .uiDOv .d{color:var(--mut)}
 html.ui-on #inspector .uiDHist{display:block;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
 html.ui-on #inspector .uiDHist .h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);margin-bottom:6px}
 html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
-/* the Import box: three choices, the chosen one's details, Cancel / Continue to review */
+/* the Imports & exports box (v2.00 menu): a card each, every card one click; Cancel */
 #uiImpPanel .modal.uiImp{width:880px;max-width:94vw;border-color:var(--line2);border-radius:14px;padding:18px 22px}
 #uiImpPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:17px}
 #uiImpPanel h3 .x{margin-left:auto}
@@ -1482,10 +1541,6 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 .uiImpCh .uiCard b{font-size:14px}
 .uiImpCh .uiCard .d{font-size:12px;line-height:1.5;color:var(--mut)}
 .uiImpCh .uiCard .w{font-size:11px;color:var(--dim);border-top:1px solid var(--line);padding-top:7px;margin-top:auto;width:100%}
-.uiImpSub{margin-top:14px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:var(--panel2);font-size:12.5px;line-height:1.5}
-.uiImpSub .uiOpt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);margin-top:8px;cursor:pointer}
-.uiImpSub .uiOpt input{margin-top:3px}
-.uiImpSub .uiOpt small{display:block;color:var(--mut);font-size:11.5px}
 .uiImpFoot{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
 .uiImpFoot .more{font-size:11.5px;color:var(--mut);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .uiImpFoot .sp{margin-left:auto}
@@ -1535,13 +1590,28 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <button type="button" class="uiNi" id="uiNav_exec" data-tip="Execution" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg></span><span class="t">Execution</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_cyc" data-tip="Cycles &amp; compare" onclick="uiGo('cyc',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg></span><span class="t">Cycles &amp; compare</span></button>
   <button type="button" class="uiNi" id="uiNav_brief" data-tip="Brief" onclick="uiGo('brief',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg></span><span class="t">Brief</span></button>
+  <button type="button" class="uiNi" id="uiNav_rep" data-tip="Reports &amp; exports" aria-haspopup="dialog" onclick="uiGo('rep',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 1.5h7l3 3v10H3z"/><path d="M5.5 12V9.5M8 12V7M10.5 12V8.5"/></svg></span><span class="t">Reports &amp; exports</span></button>
   <div class="uiGrp">Board</div>
-  <button type="button" class="uiNi" id="uiNav_imp" data-tip="Imports" onclick="uiGo('imp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg></span><span class="t">Imports</span></button>
+  <button type="button" class="uiNi" id="uiNav_imp" data-tip="Imports &amp; exports" aria-haspopup="dialog" onclick="uiGo('imp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg></span><span class="t">Imports &amp; exports</span></button>
+  <button type="button" class="uiNi" id="uiNav_data" data-tip="Data" aria-haspopup="dialog" onclick="uiGo('data',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="8" cy="3.8" rx="5.5" ry="2"/><path d="M2.5 3.8v8.4c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2V3.8M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2"/></svg></span><span class="t">Data</span></button>
+  <button type="button" class="uiNi" id="uiNav_pmo" data-tip="Program offices" aria-haspopup="true" onclick="uiGo('pmo',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1.5 4.5h13v9h-13z"/><path d="M1.5 4.5 8 9l6.5-4.5"/></svg></span><span class="t">Program offices</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_aud" data-tip="Audit" aria-haspopup="true" onclick="uiGo('aud',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="2.5" width="10" height="12" rx="1"/><path d="M6 1.5h4v2.2H6zM5.5 7.5h5M5.5 10h5M5.5 12.5h3"/></svg></span><span class="t">Audit</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_hist" data-tip="History &amp; recovery" aria-haspopup="true" onclick="uiGo('hist',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2 2.5v3h3"/><path d="M8 5v3.2l2 1.3"/></svg></span><span class="t">History &amp; recovery</span><span class="car">&#9656;</span></button>
   <button type="button" class="uiNi" id="uiNav_setup" data-tip="Setup" aria-haspopup="true" onclick="uiGo('setup',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></span><span class="t">Setup</span><span class="car">&#9656;</span></button>
-  <div class="uiFoot"><span class="t" id="uiFootT">ORBIT</span></div>
+  <!-- v2.00 (menu, 19 Oct): SAVE IS PINNED AT THE FOOT, where the ORBIT footer was -- the same 💾 Save button (#saveBtn,
+       saveInPlace()), the same save state (#saveState, saveStateShow()) and, beside it, ▾ for Save a copy. In a PMO copy the
+       button is ✉ Submit input (pmoSubmit()), as saveStateShow() has always made it. -->
+  <div class="uiFoot uiSave" id="uiSave">
+    <div class="uiSvRow"><button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button><button type="button" class="uiSvMore" id="uiNav_save" aria-haspopup="true" aria-expanded="false" aria-label="More ways to save: Save a copy" title="Save a copy…" onclick="uiGo('save',this)">&#9662;</button></div>
+    <span class="savestate" id="saveState" title=""></span>
+    <span class="uiSvPen" id="uiSavePen"></span>
+    <span class="t" id="uiFootT">ORBIT</span>
+  </div>
 </nav>
 <div id="uiFly" role="group" aria-label="Section items"></div>
+<!-- the left menu's own lists, written by syncBtns() as the toolbar menus were; a flyout takes the one it shows and gives it
+     back when it closes -->
+<div id="uiHold" hidden><div id="dd_setup"></div><div id="dd_offices"></div><div id="dd_audit"></div><div id="dd_kept"></div><div id="dd_save"></div></div>
 <div id="subBanner"></div>
 <div id="topStack">
 <!-- v1.90 (item 27): ONE STICKY TOP -- the context bar, the task bar and the funding posture. The
@@ -1567,10 +1637,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div class="statwrap" id="statWrap"><div id="shareStat" role="status" aria-live="polite"></div></div>
     <button type="button" class="statbtn" id="statBtn" aria-expanded="false" aria-controls="statWrap" onclick="statToggle()" hidden>Message</button>
     <button type="button" class="statx" id="statX" onclick="statHide()" aria-label="Hide this message" title="Hide this message — the Message button brings it back" hidden>✕</button>
-    <span class="savestate" id="saveState" title=""></span>
-    <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button>
     <button class="btn quiet" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/></svg><span class="hlp-t">Help</span></button>
-    <div class="menu" id="m_share"><button class="btn" id="b_share" onclick="toggleMenu('share')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4V13h13V5.5H8L6.5 4z"/></svg>File ▾</button><div class="mdd" id="dd_share"></div></div>
   </div>
 </div>
 <div class="tbar">
@@ -1611,11 +1678,6 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <span class="rochip">Presentation view — requirements can’t be edited here</span>
   </div>
   <div class="menu" id="m_modetools"><button class="btn" id="b_modetools" onclick="toggleMenu('modetools')">Tools ▾</button><div class="mdd" id="dd_modetools"></div></div>
-  <div class="tright">
-    <div class="menu" id="m_reports"><button class="btn" id="b_reports" onclick="toggleMenu('reports')" title="Every view and every export — the budget year, the active years, the FYDP"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 1.5h7l3 3v10H3z"/><path d="M5.5 12V9.5M8 12V7M10.5 12V8.5"/></svg><span class="lg">Reports &amp; exports</span><span class="sh">Reports</span> <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_reports"></div></div>
-    <div class="menu" id="m_data"><button class="btn" id="b_data" onclick="toggleMenu('data')" title="Bring data in — execution, cost estimates, the budget extract, CCaR records"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Data <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_data"></div></div>
-    <div class="menu" id="m_setup"><button class="btn" id="b_setup" onclick="toggleMenu('setup')" title="The shape of the board, and how it looks to you"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>Setup <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_setup"></div></div>
-  </div>
   <input type="file" id="stateFile" accept=".json,.txt,.html,.htm" style="display:none" onchange="importState(this)">
   <input type="file" id="fullFile" accept=".html,.htm" style="display:none" onchange="importFullBoard(this)">
   <input type="file" id="multiFile" accept=".html,.htm" multiple style="display:none" onchange="importBoards(this)">
@@ -1637,7 +1699,6 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
     <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Row density, and how the RECORD panel opens: sliding over the table or docked beside it"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>View</button><div class="uiPop" id="uiDensPop"></div></div>
     <span class="sp"></span>
-    <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen(this)" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
     <button type="button" class="btn pri" id="uiAddBtn" onclick="uiAddReq()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
   </div>
 </div>
@@ -1793,7 +1854,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>It is a single file. There is nothing to install, and it does not talk to the network — this guide is inside it too.</p>
 </section>
 <section data-part="office" data-id="o-name" data-t="Put your name in, and set your office">
-<p><b>Your name.</b> Go to <span class="mp" data-m="share">📁 File ▾ › Writer and team › ✎ My editor name…</span> and enter your name or initials. It travels with the submittal so the portfolio team knows whose input they are reading. If you skip this, the copy asks for your name the first time you change anything.</p>
+<p><b>Your name.</b> Go to <span class="mp" data-m="aud">Audit › ✎ My editor name…</span>, on the left menu, and enter your name or initials. It travels with the submittal so the portfolio team knows whose input they are reading. If you skip this, the copy asks for your name the first time you change anything.</p>
 <p><b>Your office.</b> Press <b class="bt" data-q="#subBanner">🏢 set your office</b> in the bar at the top, then type your office’s name or its number from the list. The button then shows your office — for example <b>🏢 AV</b>. A submittal carries that office’s requirements only, so check it before you start; press the button again to change it.</p>
 </section>
 <section data-part="office" data-id="o-find" data-t="Find your requirements">
@@ -1830,13 +1891,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in 📋 Requirement edit — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
-<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, at the top right of the header where Save is on the portfolio board, or under <span class="mp" data-m="share">📁 File ▾ › ✉ Submit input…</span>. If you have not set your office yet, it asks for it first.</p>
+<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, where Save is on the portfolio board. If you have not set your office yet, it asks for it first.</p>
 <p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message beside the save state, at the top right, confirms it (hidden, the <b>Message</b> button there brings it back). Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
 <section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
-<p>You can export the workbook and the slides from <b>Reports &amp; exports ▾</b> for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Five years &amp; PPBE › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
+<p>You can export the workbook and the slides from <b>Reports &amp; exports</b>, on the left menu, for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
+<p><span class="mp" data-m="fydp">FYDP › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
 </section>
 <section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
 <table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
@@ -1858,7 +1919,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="office" data-id="o-wrong" data-t="If something goes wrong">
 <dl class="hx-dl">
 <dt>The file opens as text, or nothing happens</dt><dd>Download it to your machine first, then right-click → Open with → Microsoft Edge.</dd>
-<dt>“Put your name in first”</dt><dd><span class="mp" data-m="share">📁 File ▾ › Writer and team › ✎ My editor name…</span>, then submit again.</dd>
+<dt>“Put your name in first”</dt><dd><span class="mp" data-m="aud">Audit › ✎ My editor name…</span>, then submit again.</dd>
 <dt>“Nothing to send yet”</dt><dd>You have not changed anything the submittal carries for your office. Moving rows in the whole portfolio does not count. If you did edit something, check 🏢 in the top bar names the right office.</dd>
 <dt>“…belongs to another programme office, so it is NOT being sent”</dt><dd>You edited a requirement your office does not own. Everything else still goes.</dd>
 <dt>“…missing mandatory fields and is NOT being sent”</dt><dd>A requirement you added is not complete; fill in what the message lists and submit again.</dd>
@@ -1867,39 +1928,39 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy. Reopen the same file in the same browser.</dd>
 <dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
-<dt>Something went wrong and the portfolio team asks for details</dt><dd><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> shows exactly what the file will hold: the version, your browser, counts, and the last warnings with every figure, title and name taken out. <b>Save</b> puts it in your downloads; send that file, not your copy.</dd>
+<dt>Something went wrong and the portfolio team asks for details</dt><dd><span class="mp" data-m="setup">Setup › 🩺 Save diagnostics…</span> shows exactly what the file will hold: the version, your browser, counts, and the last warnings with every figure, title and name taken out. <b>Save</b> puts it in your downloads; send that file, not your copy.</dd>
 </dl>
 </section>
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
 <p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
-<p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved, with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid); <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
+<p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid) and <b>Help</b>. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure. Everything else is on the <b>left menu</b>, each in one place: the views, <b>Reports &amp; exports</b> (every report and export), then, under Board, <b>Imports &amp; exports</b> (a whole board or one appropriation, in or out), <b>Data</b> (everything that brings data in), <b>Program offices</b> (PMO copies and their submittals), <b>Audit</b> (the change journal, the save history, the pen and your name), <b>History &amp; recovery</b> (earlier copies, and work kept aside) and <b>Setup</b> (the shape of the board, the colours and the density you see it in, Live view and diagnostics). <b>💾 Save</b> is pinned at its foot with whether your work is saved, and who holds the pen; its <b>▾</b> saves a copy, and Ctrl+S saves too. The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
-<p><b>A long menu opens folded.</b> Reports &amp; exports, 📁 File, Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. In <b>Reports &amp; exports</b>, the <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports ▾ › Spend plan &amp; cash › 📅 Spend Plan Forecast…</i>.</p>
+<p><b>A long menu opens folded.</b> Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. <b>Reports &amp; exports</b> lays its groups out side by side, and its <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports › Briefing › 📽 PowerPoint deck</i>.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
-<p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="share">📁 File ▾ › Writer and team › ✍ Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
+<p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="aud">Audit › ✍ Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
 <p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a reprogramming row, a cycle locked or unlocked, a destination, an imported cost estimate, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the top bar says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import or a check of the folder for cost estimates takes nothing unless it reads to the end; a reprogramming-log share that cannot write the folder keeps the merged log in this browser and says it was not shared.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
-<p><span class="mp" data-m="share">📁 File ▾ › Program offices › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
+<p><span class="mp" data-m="offices">Program offices › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
 <p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, so publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
 <p>The copy carries this guide, and opens it from <b>📖 How this copy works</b> in its top bar; it never opens by itself.</p>
 </section>
 <section data-part="team" data-id="t-subs" data-t="Taking submittals back">
-<p><span class="mp" data-m="share">📁 File ▾ › Program offices › ✉ Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review; load them all and review them together.</p>
+<p><span class="mp" data-m="offices">Program offices › ✉ Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review, or every office’s at once with <span class="mp" data-m="offices">Program offices › ⇊ Load all submissions at once…</span>; load them all and review them together.</p>
 <p>Every proposed field arrives <b>unticked</b>, beside what the board says today. A field this board changed too since the copy was published is marked as a <b>conflict</b>. <b>📄 Export change report</b> gives the whole round as a workbook for the SFWG. Tick what you accept — a new requirement and an office’s ranking are each taken whole or not at all — then <b>✔ Apply ticked</b>. The allocation never travels in a submittal, and nothing is applied until you apply it.</p>
 <p>A submittal applies to the <b>fiscal year it was written for</b>. If that is not the year on screen, loading it says so, naming both years, and holds it for its own year; a second question lets you hold it for the year on screen instead. The review shows the year each submittal is held for, and <b>✔ Apply ticked</b> applies nothing while a ticked submittal is held for another year: switch to that year first. Award changes show each award’s date and its dollars by service. A submittal whose services are listed in a different order is matched up by name, awards included; one that does not say which services its figures are for, or carries a list for the wrong number of services, is refused and the figures are named.</p>
 </section>
 <section data-part="team" data-id="t-full" data-t="A new version: import the full board">
-<p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
+<p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="imp">Imports &amp; exports › ⬅ Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
 <p>One confirmation lists what comes across and says it <b>replaces</b> what the new board holds. If the new board already has work of its own on an appropriation, it names each change that would be lost and asks first. Anything the file does not carry — an appropriation it has no plan for, a list an older version did not save — is kept as the board has it, and the report says so. The board reopens with a report of what arrived. Files saved by v1.80 onward are accepted.</p>
 <p>It is all or nothing. If this browser’s storage refuses any part of it (it is full), nothing is imported: the board says which list was refused and stays exactly as it was. In the rare case that storage also refuses putting the old board back, the board says which lists hold the import and which are as they were, does not reopen, and offers two files to save — this board as it was, and the file you imported. Save both before doing anything else.</p>
 <p>Then press <b>💾 Save</b>, so the new file holds your work.</p>
 </section>
 <section data-part="team" data-id="t-one" data-t="One appropriation in or out">
-<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
-<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…</span> takes it whole.</p>
-<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⇊ Import several boards at once…</span> merges several board files in one go. It takes all of them or none: every file is read and checked first — which appropriation it is, that no two are for the same one, its services against that appropriation’s (a different order is matched up by name if you say so) — and if any is refused, cannot be read, or you answer No, nothing is imported and it says why. It is off while a locked cycle is on screen. Should the board on screen still refuse its appropriation once the files are written, every list is put back and read back; if one cannot be put back, it says which lists hold what, holds 💾 Save and the shared folder, and offers this board as it was and each file it took — save them before anything else, as after a full import that stopped part-way. <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
+<p><span class="mp" data-m="imp">Imports &amp; exports › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
+<p><span class="mp" data-m="imp">Imports &amp; exports › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and <span class="mp" data-m="imp">Imports &amp; exports › ⬅ Import a full board (new version)…</span> takes it whole.</p>
+<p><span class="mp" data-m="imp">Imports &amp; exports › ⇊ Import several boards at once…</span> merges several board files in one go. It takes all of them or none: every file is read and checked first — which appropriation it is, that no two are for the same one, its services against that appropriation’s (a different order is matched up by name if you say so) — and if any is refused, cannot be read, or you answer No, nothing is imported and it says why. It is off while a locked cycle is on screen. Should the board on screen still refuse its appropriation once the files are written, every list is put back and read back; if one cannot be put back, it says which lists hold what, holds 💾 Save and the shared folder, and offers this board as it was and each file it took — save them before anything else, as after a full import that stopped part-way. <span class="mp" data-m="imp">Imports &amp; exports › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
 </section>
 <section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
 <p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
@@ -1919,44 +1980,44 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>In <b>CR Cash Needs</b> and the 1A9A return, each award’s dollars sit in the half of the month its own date falls in: the 1st to the 15th, or the 16th to the end. An award saved with a month and no day counts as the 1st. Nothing switches a half by hand — to move cash, change the award’s date. Two awards on the same date are taken in the order they arrived on it: one whose date you change goes to the bottom of that date’s group.</p>
 <p>The award block shows <b>Balance to schedule — discretionary + mandatory</b> for each service, and beside each award how it splits between the two; <b>↵ put on last</b> puts the whole remaining balance on the latest award, and every funded dollar then has a date. <b>Needs attention</b> lists every requirement whose awards fall short of its funding.</p>
 <p>An award arriving in a file is checked first: real months, days 1 to 31, whole dollars, one figure per service. An import or a submittal that carries one the board cannot read is refused, and the message names it; a figure written as text in an older file is converted, and said. A saved board you open is never refused for an award and never loses one. A list for the wrong number of services keeps its total, spread over the requirement’s values and marked <b>SPLIT INFERRED</b>; a figure or date that cannot be read is marked <b>NEEDS REPAIR</b>, and its cash is UNSCHEDULED until you enter it again. Each such award keeps the record as it was saved, shown in its award block, and is listed under <b>Needs attention › 🔧</b> with what was done and the split used, until you press <b>✓ Checked</b>.</p>
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Spend plan &amp; cash › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › Spend plan &amp; cash › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › Briefing › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
+<p><span class="mp" data-m="exec">Execution › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="exec">Execution › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="rep">Reports &amp; exports › Briefing › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
 </section>
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
-<p><span class="mp" data-m="setup">Setup ▾ › Who and where › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
+<p><span class="mp" data-m="setup">Setup › Who and where › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
 <p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
 </section>
 <section data-part="team" data-id="t-svc" data-t="Services: moving, renaming or removing one">
-<p><span class="mp" data-m="setup">Setup ▾ › Who and where › 🏷 Services…</span> lists the services every figure is kept against. On a board whose data names its services the list is fixed, and the panel only shows it. On a board with no data of its own, <b>moving, renaming or removing a service takes every figure with it</b> — requirement values, allocations, splits, budget authority, awards, CLINs and WBS lines, in every year, and this appropriation’s reprogramming entries. Removing one first says how much it holds, by kind and by year, and asks.</p>
+<p><span class="mp" data-m="setup">Setup › Who and where › 🏷 Services…</span> lists the services every figure is kept against. On a board whose data names its services the list is fixed, and the panel only shows it. On a board with no data of its own, <b>moving, renaming or removing a service takes every figure with it</b> — requirement values, allocations, splits, budget authority, awards, CLINs and WBS lines, in every year, and this appropriation’s reprogramming entries. Removing one first says how much it holds, by kind and by year, and asks.</p>
 <p>The services a PPBE cycle holds keep their names and places while the cycle is kept; a service can still be added at the end. A service with reprogramming entries or a held submittal’s figures on it cannot be removed until those are moved or cleared — the panel says which.</p>
 </section>
 <section data-part="team" data-id="t-rp" data-t="The reprogramming log">
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Execution &amp; reprogramming › ⚖ Reprogramming Actions…</span> keeps the ATR and BTR log. It is one log for all four appropriations: each entry carries its own appropriation and fiscal year, so any of them can be recorded from any board. An entry’s <b>service</b> is one of <b>its own appropriation’s</b> services, picked by name, whichever appropriation is on screen. An entry recorded by an older version kept only the service’s position in a list: it is read from its own appropriation’s list and marked <b>⚠ (by position)</b> until you pick its service. One that cannot be read at all is <b>⚠ Unresolved</b>, and is still counted.</p>
-<p>Amounts are <b>$M in whole dollars</b>: 1.5 is $1,500,000, and the finest is 0.000001, one dollar. An amount finer than a dollar is not recorded, and the message gives the dollar figure it would have been; text that is not an amount is not recorded either, and the entry keeps what it had. The whole entry is read, however long it is; one longer than 200 characters is not an amount and says so. An entry saved earlier with a fraction of a dollar is kept as it is and marked ⚠ until you correct it. <span class="mp" data-m="reports">Reports &amp; exports ▾ › Execution &amp; reprogramming › ⬇ ATR/BTR Log (Excel)</span> nets each type and each service exactly, deducts negative, with an <b>Unresolved</b> line when an entry’s service cannot be read; its <b>Check</b> column names every entry still to check, and why.</p>
+<p><span class="mp" data-m="exec">Execution › ⚖ Reprogramming Actions…</span> keeps the ATR and BTR log. It is one log for all four appropriations: each entry carries its own appropriation and fiscal year, so any of them can be recorded from any board. An entry’s <b>service</b> is one of <b>its own appropriation’s</b> services, picked by name, whichever appropriation is on screen. An entry recorded by an older version kept only the service’s position in a list: it is read from its own appropriation’s list and marked <b>⚠ (by position)</b> until you pick its service. One that cannot be read at all is <b>⚠ Unresolved</b>, and is still counted.</p>
+<p>Amounts are <b>$M in whole dollars</b>: 1.5 is $1,500,000, and the finest is 0.000001, one dollar. An amount finer than a dollar is not recorded, and the message gives the dollar figure it would have been; text that is not an amount is not recorded either, and the entry keeps what it had. The whole entry is read, however long it is; one longer than 200 characters is not an amount and says so. An entry saved earlier with a fraction of a dollar is kept as it is and marked ⚠ until you correct it. <span class="mp" data-m="rep">Reports &amp; exports › Execution &amp; reprogramming › ⬇ ATR/BTR Log (Excel)</span> nets each type and each service exactly, deducts negative, with an <b>Unresolved</b> line when an entry’s service cannot be read; its <b>Check</b> column names every entry still to check, and why.</p>
 </section>
 <section data-part="team" data-id="t-ids" data-t="The IDS batch for CCaR">
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › CCaR &amp; accounting files › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
+<p><span class="mp" data-m="rep">Reports &amp; exports › CCaR &amp; accounting files › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
 <p>Anything that cannot be uploaded correctly — no control number, one that is not all digits, no budget, a chosen budget that can no longer be used — stays off the upload sheet and is listed with its dollars and <b>every</b> reason on the file’s second sheet, <b>Missing data and anomalies</b>, which also reconciles every dollar of the plan. If nothing at all can be uploaded the file is still made, and its first line says <b>NO UPLOADABLE IDS ROWS</b>: it is a diagnostic, not an upload.</p>
 <p>The box’s summary gives <b>Req. Approved</b> with its discretionary and mandatory beside it, and the reconciliation shows both lanes for every line, so the mandatory in the file can be checked against the plan before it goes. The file itself is unchanged: each row is already one budget, and a budget is one lane or lane-less.</p>
 <p>Before it makes the file the box asks for <b>the reason</b> (written on every row), <b>Add or Update</b> for the whole file (Add unless you choose Update — CCaR may refuse an update to a record that has Authorized allocations), <b>the file ID</b> — filled in with today’s date and the time of day, for you to check and confirm, because ORBIT keeps no record of exports and cannot know which IDs CCaR has already seen — and <b>the ORG number</b>, confirmed for every row and service. ORBIT never writes Delete and keeps nothing about an export but the ORG. The export is off while a locked cycle is on screen, in a PMO copy, and whenever ORBIT’s own arithmetic check fails; the box says which.</p>
 </section>
 <section data-part="team" data-id="t-rcn" data-t="RCN / EEIC on a prime’s CLINs">
-<p><span class="mp" data-m="setup">Setup ▾ › Codes and structure › 🗂 RCN / EEIC…</span> lists the RCN and EEIC combinations, each ticked for the services that may use it: USAF, ANG and AFRC. A requirement takes one in the RECORD panel, with another for a service that differs. A prime is funded one CLIN at a time, so in its <b>🧾 CLIN drill</b> each CLIN takes its own, and the CLIN’s pick is the <b>standard</b> for every Air Force service on it.</p>
+<p><span class="mp" data-m="setup">Setup › Codes and structure › 🗂 RCN / EEIC…</span> lists the RCN and EEIC combinations, each ticked for the services that may use it: USAF, ANG and AFRC. A requirement takes one in the RECORD panel, with another for a service that differs. A prime is funded one CLIN at a time, so in its <b>🧾 CLIN drill</b> each CLIN takes its own, and the CLIN’s pick is the <b>standard</b> for every Air Force service on it.</p>
 <p>Where one service on a CLIN differs, press <b>by service ▾</b> beside the CLIN’s pick. One line opens under the CLIN with each Air Force service it carries, its dollars and a picker that starts at <i>= CLIN’s</i>: change only the one that differs, and <b>↺ all on the CLIN’s</b> puts them back. With the line closed the button names it (<i>ANG differs</i>). A service whose money on the CLIN is on no combination says <b>not set</b>, in amber. Each picker lists the combinations ticked for its service; a choice that no longer fits is kept and marked ⚠, never changed.</p>
-<p>A dollar is on the CLIN’s choice for its service, then the CLIN’s own, then the requirement’s choice for that service, then the requirement’s own. The <b>RCN-EEIC by Month</b> tab of <span class="mp" data-m="reports">Reports &amp; exports ▾ › Briefing › 📊 Excel Workbook — full breakouts</span>, its CLIN breakout, the Spend Plan Source and the ACE tie-out all read that one rule, so they agree to the dollar; a prime whose CLINs differ is listed once under each combination, with its share. Removing a combination clears every requirement, service and CLIN pointing at it, and says how many.</p>
+<p>A dollar is on the CLIN’s choice for its service, then the CLIN’s own, then the requirement’s choice for that service, then the requirement’s own. The <b>RCN-EEIC by Month</b> tab of <span class="mp" data-m="rep">Reports &amp; exports › Briefing › 📊 Excel Workbook — full breakouts</span>, its CLIN breakout, the Spend Plan Source and the ACE tie-out all read that one rule, so they agree to the dollar; a prime whose CLINs differ is listed once under each combination, with its share. Removing a combination clears every requirement, service and CLIN pointing at it, and says how many.</p>
 <p>A <b>locked PPBE cycle</b> keeps the list it was locked with: its view, and every report taken from it, print the codes it had then, whatever the list says now. A cycle locked before v1.99 did not keep one; it reads today’s list, and its line under PPBE cycles says <i>(RCN / EEIC: today’s list)</i>.</p>
 </section>
 <section data-part="team" data-id="t-diag" data-t="When something goes wrong: Save diagnostics">
-<p><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
+<p><span class="mp" data-m="setup">Setup › 🩺 Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Five years &amp; PPBE › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
+<p><span class="mp" data-m="fydp">FYDP › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection and, from v1.99, its RCN / EEIC list — so its money, and the codes it was on, read as they were locked. What it still reads as it is now: the <b>destination list</b>, the <b>decision bands</b>, a <b>BAE budget set by rule</b> rather than by name, and any <b>requirement detail its plan never changed</b>. Rename a destination or a band and a cycle’s view shows the new name; the money does not move.</p>
 </section>
 <section data-part="team" data-id="t-flow" data-t="The funds flow and the ACE tie-out">
-<p class="v199-h92"><span class="mp" data-m="reports">Reports &amp; exports ▾ › Execution &amp; reprogramming › 🚰 Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
+<p class="v199-h92"><span class="mp" data-m="fydp">FYDP › 🚰 Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
 <p class="v199-h93">Whether a year’s money is executed or planned is decided for each appropriation. A year can be executed for Full Fund (its imported execution) and planned for O&amp;M (this board’s allocation): the total then holds both, and the scope line says which is which — for example <i>FY27: O&amp;M planned, Full Fund executed</i>.</p>
-<p class="v199-h94"><span class="mp" data-m="reports">Reports &amp; exports ▾ › CCaR &amp; accounting files › 📈 ACE Tie-Out (Excel)</span>, on <b>Reconciliation by PMO</b>: an office with estimate lines and no requirement that year has its own row — its estimate, board $0, the whole estimate as its variance — and is in the TOTAL. Beneath the TOTAL the estimate is accounted for: the TOTAL plus the lines under a PMO no office reports under is the estimate for this appropriation, each line once. The ACE tie-out panel says the same.</p>
-<p class="v199-h96">Working out of the shared folder, replacing the folder’s cost estimate keeps the one it replaces in the folder’s history. <span class="mp" data-m="share">📁 File ▾ › Writer and team › 📡 Live view…</span> → <b>🕓 Cost estimates kept</b> lists them, newest first, under the estimate each was kept for; <b>Put this back in the folder</b> makes one the folder’s estimate again. It is checked first (whole, its own estimate, its fingerprint), what the folder holds now is kept in the history first, and nothing is written if that cannot be done or the folder’s copy changes meanwhile. Your board’s own copy is not changed.</p>
+<p class="v199-h94"><span class="mp" data-m="rep">Reports &amp; exports › CCaR &amp; accounting files › 📈 ACE Tie-Out (Excel)</span>, on <b>Reconciliation by PMO</b>: an office with estimate lines and no requirement that year has its own row — its estimate, board $0, the whole estimate as its variance — and is in the TOTAL. Beneath the TOTAL the estimate is accounted for: the TOTAL plus the lines under a PMO no office reports under is the estimate for this appropriation, each line once. The ACE tie-out panel says the same.</p>
+<p class="v199-h96">Working out of the shared folder, replacing the folder’s cost estimate keeps the one it replaces in the folder’s history. <span class="mp" data-m="setup">Setup › 📡 Live view…</span> → <b>🕓 Cost estimates kept</b> lists them, newest first, under the estimate each was kept for; <b>Put this back in the folder</b> makes one the folder’s estimate again. It is checked first (whole, its own estimate, its fingerprint), what the folder holds now is kept in the history first, and nothing is written if that cannot be done or the folder’s copy changes meanwhile. Your board’s own copy is not changed.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
 <p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
@@ -2211,24 +2272,32 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
      it rendered underneath the rows while the 570px column beside them stayed empty. The board
      looked like the panel had simply stopped appearing. It is a fixed-position overlay and belongs
      in neither column. -->
-<!-- v2.00 UI (chunk 1): THE IMPORT BOX. Three choices; each runs exactly what its menu item or the submittal
-     review runs today. "Import several boards at once" stays in File ▾ and is linked from the foot of this box. -->
+<!-- v2.00 (menu, 19 Oct): THE LEFT MENU'S THREE BOXES. Each holds a list syncBtns() writes, as it wrote the toolbar menus,
+     and each item is the call its menu item made (mRun(...)); a click on one closes the box first (uiPanelRun). -->
+<!-- Imports & exports: every way a whole board or an appropriation comes in or goes out (the File menu's Boards and
+     appropriations until 19 Oct). The programme offices' submittals are under Program offices. -->
 <div class="modal-bg" id="uiImpPanel" onclick="if(event.target===this)uiImpClose()">
-  <div class="modal uiImp">
-    <h3>Import <button type="button" class="x" onclick="uiImpClose()">✕ Close</button></h3>
-    <p class="lead">What does the file you are bringing in hold? Nothing is read until you pick the file, and every import checks and previews before it changes anything.</p>
-    <div class="uiImpCh">
-      <button type="button" class="uiCard" id="uiImpC_full" aria-pressed="true" onclick="uiImpPick('full')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.2"/><path d="M2 6h12M6 6v7.5"/></svg></span><b>Full board</b><span class="d">Everything in a previous board file — all four appropriations, every locked cycle and the lists. Use it when a new version of ORBIT comes out.</span><span class="w">Replaces this board · one file</span></button>
-      <button type="button" class="uiCard" id="uiImpC_one" aria-pressed="false" onclick="uiImpPick('one')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8.5h5M5.5 11h5"/></svg></span><b>One appropriation</b><span class="d">Takes only the appropriations you name from any board file. Each is checked and previewed first; nothing else changes.</span><span class="w">Adds or replaces what you name · one file</span></button>
-      <button type="button" class="uiCard" id="uiImpC_pmo" aria-pressed="false" onclick="uiImpPick('pmo')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4.5h13v9h-13z"/><path d="M1.5 4.5 8 9l6.5-4.5"/></svg></span><b>PMO Import</b><span class="d">Programme offices’ submittals. Each opens in the submittal review: every proposed field arrives unticked, beside what the board says today. Nothing is applied until you apply it.</span><span class="w">One submission, or all of them at once</span></button>
-    </div>
-    <div class="uiImpSub" id="uiImpSub"></div>
-    <div class="uiImpFoot">
-      <span class="more">Also: <button type="button" class="qb" onclick="uiImpClose();document.getElementById('multiFile').click()" title="pick every board .html together — the same as File ▾ › Boards and appropriations">⇊ Import several boards at once…</button><button type="button" class="qb" onclick="uiImpClose();setTimeout(function(){ toggleMenu('data'); },0)" title="execution, cost estimates, the budget extract, CCaR records">Data imports ▾</button></span>
-      <span class="sp"></span>
-      <button type="button" class="btn" onclick="uiImpClose()">Cancel</button>
-      <button type="button" class="btn pri" id="uiImpGo" onclick="uiImpGo()">Continue to review</button>
-    </div>
+  <div class="modal uiImp uiPanel">
+    <h3>Imports &amp; exports <button type="button" class="x" onclick="uiImpClose()">✕ Close</button></h3>
+    <p class="lead">A whole board or one appropriation, in or out. Nothing is read until you pick the file, and every import checks and previews before it changes anything.</p>
+    <div id="dd_boards"></div>
+    <div class="uiImpFoot"><span class="sp"></span><button type="button" class="btn" onclick="uiImpClose()">Cancel</button></div>
+  </div>
+</div>
+<!-- Reports & exports: what the Reports & exports menu held, its six groups laid out as sections, each item one click. A view with
+     a section of its own on the left (FYDP ▸, Execution ▸) is opened there, and its section here says so. -->
+<div class="modal-bg" id="uiRepPanel" onclick="if(event.target===this)uiRepClose()">
+  <div class="modal uiRepM uiPanel">
+    <h3>Reports &amp; exports <button type="button" class="x" onclick="uiRepClose()">✕ Close</button></h3>
+    <div id="dd_reports"></div>
+  </div>
+</div>
+<!-- Data: what the Data menu held, one card per source -- what it is, and when it was last loaded. -->
+<div class="modal-bg" id="uiDataPanel" onclick="if(event.target===this)uiDataClose()">
+  <div class="modal uiDataM uiPanel">
+    <h3>Data <button type="button" class="x" onclick="uiDataClose()">✕ Close</button></h3>
+    <p class="lead">What the board reads from outside it. Each is checked as it comes in, and kept in the board when you save.</p>
+    <div id="dd_data"></div>
   </div>
 </div>
 <!-- several submittals picked together: each is handed, one at a time, to the same loader as ⬅ Load a submittal file -->
@@ -2367,7 +2436,7 @@ const PUB_FILE_TS = (function(){ try{ return fileTsOf(PUB); }catch(e){ return 0;
 // board's owner can write the shared file or folder. What ORBIT adds is COOPERATIVE: the file, and
 // each shared-folder copy, records its writer -- a name, and a fingerprint of a key this browser keeps
 // (the key itself never leaves the browser) -- and Save from any other browser is refused, naming the
-// writer. 📁 File › Writer and team › Take the pen is the only way to change writer. Where two people can both write the
+// writer. Audit › Take the pen (the File menu's Writer and team until v2.00) is the only way to change writer. Where two people can both write the
 // file, two Saves can still race (the review's concurrent-writer finding), and the guide says so.
 let WRITER=null;          // the board file's recorded writer {by, fp, t}, as the file this came from carries it
 let _takePen=null;        // {from: the fingerprint being replaced}, between Take the pen and its save
@@ -2550,7 +2619,7 @@ function lsSet(key, val, what){
     let fold=false; try{ fold=(fk==='side') && driveStoreOn(); }catch(e2){}
     try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
       +esc((e&&e.name)||'error')+'). It is still loaded and correct here. '
-      +(fold? 'The shared folder\u2019s copy of the board does not carry it: \u2b07 <b>Save a copy</b> (\ud83d\udcc1 File) keeps it in a file.'
+      +(fold? 'The shared folder\u2019s copy of the board does not carry it: \u2b07 <b>Save a copy</b> (the \u25be beside \ud83d\udcbe Save) keeps it in a file.'
             : 'Use \ud83d\udcbe <b>Save</b> to write it into the file, which does not use browser storage.')); }catch(e2){}
     return false;
   }
@@ -7812,7 +7881,7 @@ function pmoSubmit(){
   // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
   // which has no such entry -- so an office following it opened the one menu that could not help,
   // on the first step of the workflow. Checked against the rendered menu, not from memory.
-  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u{1F4C1} File \u203a Writer and team \u203a \u270e My editor '
+  if(!who || who==='unknown'){ alert('Put your name in first \u2014 Audit \u203a \u270e My editor '
     + 'name\u2026\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
   // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
   // board would compare the proposal against itself and every field would look uncontested. What is
@@ -8591,7 +8660,7 @@ function subBanner(){
     +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
     +' onclick="pickMyPmo()" title="a submittal carries this office\u2019s requirements only">'
     +(myPmo()? '\u{1F3E2} '+esc(myPmo()) : '\u{1F3E2} set your office')+'</button>'
-    // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also in the File menu, but a programme
+    // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also at the left menu's foot, in Save's place, but a programme
     // office opening this for the first time should not have to go looking under a menu named after
     // something else to do the one thing this copy is for.
     +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
@@ -8805,7 +8874,7 @@ function sharedKeepMine(st){
   if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }
   if(ka!==true){
     setStat('\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '
-      +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026).');
+      +'aside. Save a copy of yours first (\u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy\u2026).');
     render(); return false;
   }
   return true;
@@ -10234,7 +10303,7 @@ const IN_RCN_TAIL={
   opens:'The file itself opens as a board.',
   full:'A whole '
     +'board of your own comes across with its lists as they are by '
-    +'📁 File → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution '
+    +'Imports & exports → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution '
     +'data with the file’s, when it carries them, so it is not the way to take one appropriation.',
   entry:'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry',
   entryOld:', though one before this could take '
@@ -10292,7 +10361,7 @@ function inRcnTail(w, txt){
 const IN_DEST_TAIL='A destination list names each destination once, by a text key of its own that the funds flow does not keep '
   +'for one of its own rows. An ORBIT before this one took such a list without a word and could save it and send it on; a board of '
   +'this version that holds one says so each time it opens, and publishes no PMO copy and issues or sends back no package until it is put right. '
-  +'A whole board of your own comes across by 📁 File → ⬅ Import a full board, which puts its list right and says first what it '
+  +'A whole board of your own comes across by Imports & exports → ⬅ Import a full board, which puts its list right and says first what it '
   +'changes; that replaces what this board holds with everything the file carries, so it is not the way to take one appropriation. '
   +'A package, a PMO copy or one appropriation is taken once the board that wrote it has put its list right and written the file '
   +'again. A submittal comes from a PMO copy, which cannot put its list right: the board that published the copy puts its list '
@@ -10745,7 +10814,7 @@ function exportOneAppn(){
       setStat('⬇ '+esc(_SLUGMAP[k].t)+' exported as a working board of its own — its plan, its locked cycles, its execution '
         +'data and its BAE rows, with the destination list, cost estimates and reprogramming log. '
         +(back? 'It is not taken back by ⬅ Import one appropriation or ⇊ Import several boards, which refuse it: '+esc(back)+'. '+esc(inRcnTail(back, html))
-          : 'Take it back with 📁 File → ⬅ Import one appropriation.'));
+          : 'Take it back with Imports & exports → ⬅ Import one appropriation.'));
     });
 }
 function importState(inp){
@@ -12773,7 +12842,7 @@ async function importSrc(inp){
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
     setStat((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
              +(bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a Execution &amp; reprogramming \u203a \ud83d\udcc8 Active Year Execution.');
+               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Execution \u203a \ud83d\udcc8 Active Year Execution, on the left menu.');
   }catch(e){
     setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
   }
@@ -14391,7 +14460,7 @@ function preflight(){
     add('note','crmoved','CR half-month: moved to the first half by the award\u2019s own date',
       'The CR views and the 1A9A now place each award in the half of the month its own date falls in. An old '
       +'half-month mark had these in the second half; their dates put them in the first. A wrong date is changed '
-      +'in the award block; if the dates are right, Reports &amp; exports \u203a Spend plan &amp; cash \u203a \u2696 CR Cash Needs clears the old marks.',
+      +'in the award block; if the dates are right, Execution \u203a \u2696 CR Cash Needs clears the old marks.',
       crMovedList().map(function(e){ return {id:e.id, label:pfName(e.id), sub:'award '+crMovedLbl(e)+' \u00b7 '+fM(e.amt)}; }));
   }
 
@@ -23581,7 +23650,7 @@ function bmPpRow(){
     +'Take the base from a PPBE position</div>';
   if(!opts.length){
     h+='<div class="hint" style="margin-top:4px">No logged PPBE position carries money for '+FYL()
-      +'. Log one under Reports &amp; exports › Five years &amp; PPBE › <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
+      +'. Log one under FYDP › <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
     return h;
   }
   h+='<div class="fr" style="gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px">'
@@ -26931,17 +27000,25 @@ function menuGrpAuto(){
 // FIND in Reports & exports: narrows every group at once as you type, in place -- the menu is not drawn again, so the
 // box keeps focus. A group's name finds all of its items.
 function menuFind(v){ menuFindQ=String(v==null? '' : v); menuFindApply(); fitMenus(); }
+// v2.00 (menu, 19 Oct): Reports & exports is a box on the left menu (#uiRepPanel); this says whether it is open
+function uiRepShown(){ const p=document.getElementById('uiRepPanel'); return !!(p && p.classList.contains('open')); }
 function menuFindApply(){
   const dd=document.getElementById('dd_reports'); if(!dd) return;
   const q=menuFindQ.trim().toLowerCase();
   dd.classList.toggle('finding', !!q);
   let n=0;
   dd.querySelectorAll('.mi').forEach(function(e){
-    const g=e.closest('.gbody'), h=g? g.previousElementSibling : null;
+    const g=e.closest('.gbody, .uiRs'), h=g? (g.classList.contains('uiRs')? g.querySelector('h4') : g.previousElementSibling) : null;
     const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);
     e.hidden=!hit; if(hit) n++; });
   dd.querySelectorAll('.gbody').forEach(function(g){ const h=g.previousElementSibling;
     g.hidden = q? false : !(h && h.getAttribute('aria-expanded')==='true'); });
+  // v2.00 (menu, 19 Oct): the box lays the groups out as sections. The line naming a view's home on the left menu is found by
+  // its own words or its section's name; a section with nothing found is folded away while Find has something in it.
+  dd.querySelectorAll('.uiRs').forEach(function(sx){
+    const v=sx.querySelector('.uiRsV'), h=sx.querySelector('h4'), has=function(x){ return !!(x && (x.textContent||'').toLowerCase().indexOf(q)>=0); };
+    if(v){ v.hidden=!!q && !has(v) && !has(h); if(q && !v.hidden) n++; }
+    sx.hidden=!!q && !sx.querySelector('.mi:not([hidden]), .uiRsV:not([hidden])'); });
   const none=dd.querySelector('.mnone'); if(none) none.hidden=!(q && !n);
 }   // _menuShown: the menu drawn open last, so a close can hand focus back
 function fitMenu(){
@@ -27168,7 +27245,8 @@ function saveStateShow(){
     +'title="'+(_keptMeta.why==='swap'? 'What was on screen when other work was put back' : 'Work this browser held that no saved copy had')   // v2.00 (U19)
     +', kept aside '+esc(shortTs(_keptMeta.t))+'. Put it back.">\u21b6 work kept aside</button>';
   if(sb && _sb){
-    sb.className='btn pri'; sb.textContent='\u2709 Submit input'; sb.setAttribute('onclick','pmoSubmit()');
+    // v2.00 (menu): the envelope is its own span, so the left menu folded to icons shows it alone
+    sb.className='btn pri'; sb.innerHTML='<span class="uiSvIc" aria-hidden="true">\u2709</span><span class="uiSvT"> Submit input</span>'; sb.setAttribute('onclick','pmoSubmit()');
     sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. Your work is already kept in this browser.';
   } else if(sb){ sb.className='btn pri'+(un?' dirty':'');
           sb.title=un? 'You have changes that are not in the file yet — click to write them in place.'
@@ -27193,8 +27271,8 @@ function syncBtns(){
       +'<span>'+title+'</span><span class="now">'+(now||'')+'</span><span class="gn">'+n+'</span></button>'
       +'<div class="gbody" id="mg_'+m+'_'+k+'"'+(open? '' : ' hidden')+'>'+body+'</div>';
   };
-  // Find starts empty each time Reports & exports opens
-  if(openMenu!=='reports') menuFindQ='';
+  // Find starts empty each time Reports & exports opens -- a box on the left menu since 19 Oct (uiRepShown)
+  if(!uiRepShown()) menuFindQ='';
   // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
   // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
   // three days -- and the menu check kept a hand-kept list of its own, so it never looked. The
@@ -27393,6 +27471,13 @@ function syncBtns(){
         'find what is unanswered and set it across many at once'),
     base: mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window'),
     reset: mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn'),
+    // v2.00 (menu, 19 Oct): from the File menu's Writer and team and its foot, under Setup now
+    live: mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
+          const set=(c.mode==='drive')? !!c.folder : !!c.url;
+          if(!set) return 'not set up';
+          return (c.on? 'on \u00b7 ' : 'off \u00b7 ')
+            +Object.keys((LIVEDB&&LIVEDB.peers)||{}).length+' other board(s)'; })()),
+    diag: mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names'),
     // the mode tools' own items, for the folded menu below 1100px
     add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR'),
     bm: mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources'),
@@ -27423,24 +27508,43 @@ function syncBtns(){
   // CR Cash Needs and its 1A9A return, Reprogramming Actions and the ATR/BTR log, the five-year plan and its workbook.
   // ✈ Pre-flight check stays unfolded on top: the house rule is to run it before every export.
   { const fe=document.activeElement, findFocus=!!(fe && fe.id==='mFind'), at=findFocus? fe.selectionStart : 0;
+  // v2.00 (menu, 19 Oct): A BOX ON THE LEFT MENU, its six groups laid out as sections (sec), every item one click. A view whose
+  // home is FYDP ▸ or Execution ▸ on the left menu is opened there and nowhere else -- one home each -- and the section it
+  // sat in says where it is.
+  const sec=function(k, title, body, seen){ return '<section class="uiRs" data-g="'+k+'"><h4>'+title+'</h4>'+body
+    +(seen? '<p class="uiRsV">'+seen+'</p>' : '')+'</section>'; };
   document.getElementById('dd_reports').innerHTML=
     '<input type="search" id="mFind" class="mfind" placeholder="Find a report or export\u2026" aria-label="Find a report or export" '
       +'autocomplete="off" oninput="menuFind(this.value)" value="'+esc(menuFindQ)+'">'+
-    I.pf+sep+
-    grp('reports','spend','Spend plan &amp; cash \u2014 '+FYL(), I.fc+I.plans+I.cr+I.r1a9a)+sep+
-    grp('reports','brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+sep+
-    grp('reports','fydp','Five years &amp; PPBE', I.fydp+I.fydpx+I.ppbe+I.cycx+I.sp)+sep+
-    grp('reports','exec','Execution &amp; reprogramming', I.ex+I.rp+I.atr+I.flow)+sep+
-    grp('reports','ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+sep+
-    grp('reports','tools','Companion tools', I.link+I.linkset)+
-    '<div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
+    I.pf+'<div class="uiRg">'+
+    sec('spend','Spend plan &amp; cash \u2014 '+FYL(), I.plans+I.r1a9a, '📅 Spend Plan Forecast and ⚖ CR Cash Needs are views, under <b>Execution ▸</b>')+
+    sec('brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+
+    sec('fydp','Five years &amp; PPBE', I.fydpx+I.cycx, '📊 Five-year spend plan, 🏛 PPBE Budget Positions and 📐 Spruills are views, under <b>FYDP ▸</b>')+
+    sec('exec','Execution &amp; reprogramming', I.atr, '📈 Active Year Execution and ⚖ Reprogramming Actions are views, under <b>Execution ▸</b>; 🚰 Funds Flow, under <b>FYDP ▸</b>')+
+    sec('ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+
+    sec('tools','Companion tools', I.link+I.linkset)+
+    '</div><div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
   menuFindApply();
   if(findFocus){ try{ const f=document.getElementById('mFind'); f.focus({preventScroll:true}); f.setSelectionRange(at,at); }catch(e){} } }
   // v1.96 (item 65): WBS from execution data reads the imported execution data, so it is with the imports
-  document.getElementById('dd_data').innerHTML=
-    lbl('Execution — CCaR')+I.qpe+I.qpecov+I.div+I.ccar+I.exw+sep+
-    lbl('Cost estimates')+I.acei+I.acet+sep+
-    lbl('Budget extract — for the Spend Plan Source export')+I.bae+I.budl;
+  // v2.00 (menu, 19 Oct): A BOX ON THE LEFT MENU, ONE CARD PER SOURCE -- what it is, when it was last loaded (read from what the
+  // board holds; nothing is worked out) and its items. QPE coverage and ORBIT vs CCaR are views, under Execution ▸ only.
+  { const when=function(f){ try{ return f()||''; }catch(e){ return ''; } };
+    const card=function(k, title, what, last, body, seen){ return '<section class="uiDc" data-g="'+k+'"><h4>'+title+'</h4>'
+      +'<p class="w">'+what+'</p><p class="t">'+(last? 'Last loaded '+last : 'Not loaded yet')+'</p>'+body
+      +(seen? '<p class="uiRsV">'+seen+'</p>' : '')+'</section>'; };
+  document.getElementById('dd_data').innerHTML='<div class="uiDg">'+
+    card('qpe', 'Execution — CCaR QPE', 'The monthly CCaR pull (the Spend Plan Source File, .xlsx): plan events and obligations for the active years.',
+      when(function(){ const r=EXDB.report||{}, t=r.ts||EXDB.ts; return t? esc(fmtTs(t))+(r.file? ' · '+esc(r.file) : '') : ''; }),
+      lbl('Execution — CCaR')+I.qpe+I.exw, '📈 QPE coverage and ⚖ ORBIT vs CCaR are views, under <b>Execution ▸</b>')+
+    card('ccar', 'CCaR records', 'The CCaR records file: each record’s Title and OPR, and the Control No the IDS export needs.',
+      when(function(){ const x=MS.ccarIdx; return x && x.ts? esc(fmtTs(x.ts))+(x.file? ' · '+esc(x.file) : '') : ''; }), I.ccar)+
+    card('ace', 'Annual Cost Estimate', 'The cost estimate workbook, one for each year and PPBE cycle, read beside the five-year plan.',
+      when(function(){ const S2=(ACEDB&&ACEDB.sets)||{}, t=Object.keys(S2).reduce(function(a, k){ return Math.max(a, +((S2[k]||{}).ts)||0); }, 0);
+        return t? esc(fmtTs(t)) : ''; }), lbl('Cost estimates')+I.acei+I.acet)+
+    card('bae', 'Budget extract (BAE)', 'The USAF and DON budget extracts: the budget names the Spend Plan Source export files money under.',
+      when(function(){ const b=budSrc(); return b && b.ts && budReg().length? esc(fmtTs(b.ts)) : ''; }),
+      lbl('Budget extract — for the Spend Plan Source export')+I.bae+I.budl)+'</div>'; }
   // v1.96 (item 65): three folded groups. Set base year, Reset and Funding realignment live on the year menu now, and
   // WBS from execution data under Data -- one home each. Appearance says on its heading what is in use.
   { const DENS=[['compact','Compact','the most rows on the screen'],['comfortable','Comfortable','two lines to a requirement'],
@@ -27455,7 +27559,7 @@ function syncBtns(){
                   'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
       +sep+DENS.map(function(d){
         return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join(''),
-      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : ''))); }
+      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : '')))+sep+I.live+I.diag; }
   document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
   { const bb=document.getElementById('b_basis');
     if(bb) bb.textContent='Spend plan basis: '+(scenView==='disc'? 'Disc only' : 'Disc + Mand')+' ▾'; }
@@ -27481,9 +27585,11 @@ function syncBtns(){
     const fc=document.getElementById('fchips');
     if(fc) fc.innerHTML=F.map(function(f){ return '<span class="fchip">'+esc(f[0])
       +'<button type="button" onclick="'+f[1]+'" aria-label="Remove the filter: '+esc(f[0])+'" title="Remove this filter">✕</button></span>'; }).join(''); }
-  // v1.96 (item 65): SAVE ON TOP, THE REST FOLDED BY THE JOB. Publishing PMO copies and reviewing what comes back sit
-  // together (Review submittals was under Export); the writer, the name and the team's tools together; every way a
-  // board or an appropriation comes in or goes out together. Save diagnostics stays at the foot, unfolded.
+  // v2.00 (menu, 19 Oct): THE FILE MENU IS GONE, AND EACH OF ITS ITEMS HAS ONE HOME ON THE LEFT MENU, by the call it made:
+  //   💾 Save -- the button pinned at the left menu's foot (and Ctrl+S); ⬇ Save a copy -- the ▾ beside it (dd_save);
+  //   work kept aside -- History & recovery (dd_kept); Program offices -- its own entry, left out of a PMO copy as the File menu left
+  //   it out (dd_offices); the change journal, the save history, the pen and your name -- Audit (dd_audit); boards and
+  //   appropriations -- the Imports & exports box (dd_boards); Live view and Save diagnostics -- Setup (I.live, I.diag).
   { const _SB=(typeof SANDBOX!=='undefined' && SANDBOX);
     const offices=mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
            'a working snapshot the offices cannot save over')
@@ -27491,45 +27597,54 @@ function syncBtns(){
         + mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
              PMOSUBS.length? PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))+' — nothing applied yet'
                            : 'load each office’s submittal file and review them together');
-  document.getElementById('dd_share').innerHTML=
-    mi('💾 Save',"mRun(saveInPlace)",false,_SB? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
-    mi('⬇ Save a copy…',"mRun(publishState)",false,_SB? 'turned off in a PMO copy' : 'downloads a duplicate')+
-    // v1.89: work this browser kept aside when a newer saved copy replaced it. Here, unfolded, as long as it is kept.
+    // what the Import box's PMO Import card did, by the same calls (uiPmoLoad: the review, then its own loader)
+    const loads=mi('⬅ Load one submission…',"uiPmoLoad('one')",false,'one office’s file — the same as ⬅ Load a submittal file… in the review')
+        + mi('⇊ Load all submissions at once…',"uiPmoLoad('all')",false,'one file per office, picked together — all or none, nothing applied');
+  document.getElementById('dd_offices').innerHTML=
+      (_SB? '' : offices+'<div class="msep"></div>'+lbl('Submittals from the offices')+loads);
+  // the ▾ beside Save. In a PMO copy Save and Save a copy stay here, off, saying where to go instead, as the File menu did.
+  document.getElementById('dd_save').innerHTML=
+    (_SB? mi('💾 Save',"mRun(saveInPlace)",false,_SB? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place') : '')+
+    mi('⬇ Save a copy…',"mRun(publishState)",false,_SB? 'turned off in a PMO copy' : 'downloads a duplicate');
+  // v1.89: work this browser kept aside when a newer saved copy replaced it -- under History & recovery, as long as it is kept
+  document.getElementById('dd_kept').innerHTML=
     (_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 '
         +(_keptMeta.why==='swap'? 'what was on screen when other work was put back' : 'from before '+keptWhere(_keptMeta)+' replaced it'))   // v2.00 (U19)
       +mi('⬇ Save work kept aside as a file…',"mRun(keptSaveFile)",false,'it stays kept aside')
-      +mi('✕ Discard work kept aside…',"mRun(keptDiscard)",false,'cannot be undone') : '')+
-    // in a PMO copy, the one way out is unfolded on top
-    (_SB? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
-           myPmo()? 'send '+esc(myPmo())+'’s descriptions, impacts and values back'
-                  : 'pick your office, then send your input back') : '')+
-    '<div class="msep"></div>'+
-    (_SB? '' : grp('share','offices','Program offices', offices)+'<div class="msep"></div>')+
-    grp('share','team','Writer and team',
-      // v1.95 (item 58): the only way the board changes writer.
-      mi('✍ Take the pen…',"mRun(takePen)",false,_SB? 'turned off in a PMO copy'
-        : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : esc(WRITER.by)+' holds the pen') : 'only the board’s writer saves it in place'))
-      +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves')
-      +mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
-          const set=(c.mode==='drive')? !!c.folder : !!c.url;
-          if(!set) return 'not set up';
-          return (c.on? 'on \u00b7 ' : 'off \u00b7 ')
-            +Object.keys((LIVEDB&&LIVEDB.peers)||{}).length+' other board(s)'; })())
-      +mi('\u{1F553} Change journal…',"mRun(toggleJrnl)",jrnlOpen,
+      +mi('✕ Discard work kept aside…',"mRun(keptDiscard)",false,'cannot be undone')
+      : '<p class="uiPopHint">↶ Work kept aside: nothing is kept aside in this browser.</p>');
+  document.getElementById('dd_audit').innerHTML=
+      mi('\u{1F553} Change journal…',"mRun(toggleJrnl)",jrnlOpen,
         (function(){ const n=jrnlSinceCount(); return n? n+' change'+(n===1?'':'s')+' since you last looked'
                                                        : 'what changed, from what, by whom'; })())
-      +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when'))+
-    '<div class="msep"></div>'+
-    grp('share','boards','Boards and appropriations',
-      mi('⬅ Import a full board (new version)…',"mRun(()=>document.getElementById('fullFile').click())",false,'everything in a previous board file \u2014 all four appropriations, every locked cycle, the lists')
-      +mi('⬇ Export one appropriation…',"mRun(exportOneAppn)",false,'a working board file holding that appropriation alone')
-      +mi('⬅ Import one appropriation…',"mRun(()=>document.getElementById('stateFile').click())",false,'from any board file \u2014 checked and previewed first; nothing else changes')
-      +(typeof APPNS!=='undefined'? mi('⇊ Import several boards at once…',"mRun(()=>document.getElementById('multiFile').click())",false,'pick every board .html together'):'')
-      +mi('🔁 Appropriation packages…',"mRun(togglePkg)",pkgOpen,
-       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back'))
-    // v1.92 (item 18): for support, instead of the board
-    +'<div class="msep"></div>'
-    +mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names'); }
+      +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when')
+      +'<div class="msep"></div>'
+      // v1.95 (item 58): the only way the board changes writer.
+      +mi('✍ Take the pen…',"mRun(takePen)",false,_SB? 'turned off in a PMO copy'
+        : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : esc(WRITER.by)+' holds the pen') : 'only the board’s writer saves it in place'))
+      +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves');
+  // Imports & exports: every way a board or an appropriation comes in or goes out, a card each
+  { const card=function(ico, t, d, w, fn, on){ return '<button type="button" class="mi uiCard'+(on? ' on' : '')+'" onclick="'+fn+'">'
+      +'<span class="ico" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">'+ico+'</svg></span>'
+      +'<b>'+t+'</b><span class="d">'+d+'</span><span class="w">'+w+'</span></button>'; };
+  document.getElementById('dd_boards').innerHTML=
+    '<h4 class="uiIh">Bring in</h4><div class="uiImpCh">'
+    +card('<rect x="2" y="2.5" width="12" height="11" rx="1.2"/><path d="M2 6h12M6 6v7.5"/>', '⬅ Import a full board (new version)…',
+       'Everything in a previous board file \u2014 all four appropriations, every locked cycle, the lists. Use it when a new version of ORBIT comes out.',
+       'Replaces this board · one file', "mRun(()=>document.getElementById('fullFile').click())")
+    +card('<path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8.5h5M5.5 11h5"/>', '⬅ Import one appropriation…',
+       'From any board file \u2014 checked and previewed first; nothing else changes.',
+       'Adds or replaces what you name · one file', "mRun(()=>document.getElementById('stateFile').click())")
+    +(typeof APPNS!=='undefined'? card('<path d="M4.5 1.5h6l3 3v8h-9z"/><path d="M2.5 4v10.5h8"/>', '⇊ Import several boards at once…',
+       'Pick every board .html together. It takes all of them or none: every file is read and checked first.',
+       'Several files', "mRun(()=>document.getElementById('multiFile').click())") : '')
+    +'</div><h4 class="uiIh">Send out</h4><div class="uiImpCh">'
+    +card('<path d="M8 10.5v-8M5 5.5l3-3 3 3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/>', '⬇ Export one appropriation…',
+       'A working board file holding that appropriation alone.', 'Writes one file · this board does not change', "mRun(exportOneAppn)")
+    +card('<path d="M2 5.5 8 2.5l6 3v6l-6 3-6-3z"/><path d="M2 5.5l6 3 6-3M8 8.5v6"/>', '🔁 Appropriation packages…',
+       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back',
+       'Check out · check in', "mRun(togglePkg)", pkgOpen)
+    +'</div>'; } }
   // v1.90: measured last, once everything the bars hold -- the filter chips, the mode's tools -- is in them
   fitTop(); syncSticky(); fitMenu();
   // v1.96 (item 65): and the open menu fitted to the window again, now that it is drawn -- a group opening in place makes
@@ -27758,7 +27873,7 @@ async function drivePick(){
     // A cancel is not an error, and must not leave the previous error on screen either.
     if(/abort/i.test((e&&e.name)||'')) setStat('Folder choice ended without a folder — nothing changed. '
       +'Choose again and press <b>Select Folder</b> in the window; if Chrome then asks under the address bar, '
-      +'answer <b>View files</b>. If it keeps ending like this, press <b>\u{1F50D} Check this folder</b> (📁 File → 📡 Live view).');
+      +'answer <b>View files</b>. If it keeps ending like this, press <b>\u{1F50D} Check this folder</b> (Setup › 📡 Live view).');
     else setStat('\u26a0 That folder could not be used \u2014 '+esc((e&&e.message)||String(e))
       +(/NotAllowed/i.test((e&&e.name)||'')
         ? '. If you clicked <b>Cancel</b> or <b>View files</b> on the browser\u2019s prompt, choose '
@@ -28086,7 +28201,7 @@ async function driveStorePull(quiet){
   if(ka!==true){
     setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
       +esc(liveAge(theirs))+', but this browser holds work no saved copy has and there is no room to keep it aside \u2014 '
-      +'so their copy was <b>not loaded</b>. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
+      +'so their copy was <b>not loaded</b>. Save a copy of yours first (\u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy\u2026), then '
       +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</button>.');
     render(); return false;
   }
@@ -28104,7 +28219,7 @@ async function driveStorePull(quiet){
   if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
     +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.'
     +(own? ' This browser held work no saved copy had; it is <b>kept aside</b>: '
-      +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
+      +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : ''));
   return true;
 }
 // WRITE BACK, after checking nobody moved it underneath us. Queued (v1.95, item 47): one save at a time.
@@ -28354,7 +28469,7 @@ async function _driveResolveRun(which){
     if(kept==='occupied'){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder')); render(); return false; }
     if(kept!==true){
       setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '
-        +'Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
+        +'Save a copy of yours first (\u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy\u2026), then '
         +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</button>.');
       render(); return false;
     }
@@ -28364,7 +28479,7 @@ async function _driveResolveRun(which){
   driveBaseSet(ap, theirs, true);
   persist(); DIRTY=false; render();
   setStat('\u2b07 Loaded <b>'+esc(by)+'</b>\u2019s copy of '+esc(lbl)+'.'
-    +(kept? ' Your work is <b>kept aside</b>: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
+    +(kept? ' Your work is <b>kept aside</b>: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : ''));
   return true;
 }
 // TAKE THE PEN (v1.95, item 58): the only way a board file, or a shared-folder copy, changes writer.
@@ -28498,7 +28613,7 @@ async function driveRestore(i){
     if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
     if(ka!==true){
       setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '
-        +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
+        +'aside. Save a copy of yours first (\u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
       render(); return;
     }
     if(applyStore(j.store)===false) return;
@@ -28515,7 +28630,7 @@ async function driveRestore(i){
     setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
       +'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
       +(own? ' What was on screen, in no saved copy, is <b>kept aside</b>: '
-        +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
+        +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : ''));
     render();
   }catch(e){
     setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
@@ -32718,9 +32833,9 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
     const why=(e&&e.message)||String(e);
     try{ const el=document.getElementById('inspector');
       if(el) el.innerHTML='<div class="insp-empty">The record panel could not be drawn ('+esc(why)+'), so it is empty '
-        +'rather than showing figures from before. Click the row again; if this repeats, use <b>\ud83d\udcc1 File \u203a \ud83e\ude7a Save diagnostics</b> and send that file \u2014 it holds no figures or titles.</div>'; }catch(e2){}
+        +'rather than showing figures from before. Click the row again; if this repeats, use <b>Setup \u203a \ud83e\ude7a Save diagnostics</b> and send that file \u2014 it holds no figures or titles.</div>'; }catch(e2){}
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
-      +'<b>\ud83d\udcc1 File \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
+      +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
   // last, once the RECORD panel is drawn too: the menus are fitted to what is on screen, and a box that closed
   // hands the keyboard to its opener as it now stands (the RECORD panel's buttons are redrawn just above)
@@ -32945,7 +33060,7 @@ if(_bootRestoreErr){
   setStat('\u26a0 <b>This board could not read its saved state from browser storage</b> \u2014 '
     +esc(_bootRestoreErr)+'. What you are looking at is the <b>empty default</b>, not your work. '
     +'Your saved <b>.html file is a separate copy and is not affected</b>: open it with '
-    +'\ud83d\udcc1 File \u2192 \u2b05 Import a full board. Do not save over anything until you have.');
+    +'Imports &amp; exports \u2192 \u2b05 Import a full board. Do not save over anything until you have.');
 } else if(impMixedOn()){
   _bootSaid=true;                     // v1.95 (item 48): a full import that could not be put back, before this reload
   setStat(impMixedMsg(''));
@@ -32968,7 +33083,7 @@ if(_bootRestoreErr){
   _bootSaid=true;
   setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
     +'. This browser held work that no saved copy had; it is <b>kept aside</b>, not lost: '
-    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).');
+    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).');
 } else if(_bootMoved){
   _bootSaid=true;
   setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '
@@ -32994,7 +33109,7 @@ if(_bootRestoreErr){
     +(Object.keys(O).length>1?'them':'it')+'. The original value is kept, not overwritten: re-band '
     +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under \u2696 Bands.');
 } else if(typeof IS_SHELL!=='undefined' && IS_SHELL){
-  setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
+  setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: Imports & exports → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
 } else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
     ? '\u25e8 <b>PMO copy</b>'+(PMODE&&PMODE.by? ' published by <b>'+esc(PMODE.by)+'</b>':'')
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
@@ -33105,10 +33220,13 @@ loadShared(sharedOpened);
 //   Its own preferences (the sidebar as a rail, the hidden columns) are READ at opening and WRITTEN only when the
 //   person changes them, under keys prefixed prio27ui. Opening the board writes nothing.
 // ==============================================================================================================
-var UI2={on:false, rail:false, dock:false, peek:false, cols:{}, imp:'full', pmoHow:'one', fly:'', t:0, kpiErr:''};
+var UI2={on:false, rail:false, dock:false, peek:false, cols:{}, fly:'', t:0, kpiErr:''};
 var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
 var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
-var UI_NAV=['req','fund','fydp','exec','cyc','brief','imp','hist','setup'];
+var UI_NAV=['req','fund','fydp','exec','cyc','brief','rep','imp','data','pmo','aud','hist','setup','save'];
+// v2.00 (menu, 19 Oct): the left menu's flyouts, and the list syncBtns() writes that each one shows (UI_FLYHOST)
+var UI_FLY=['fydp','exec','pmo','aud','hist','setup','save'];
+var UI_FLYHOST={pmo:'dd_offices', aud:'dd_audit', hist:'dd_kept', setup:'dd_setup', save:'dd_save'};
 // the columns a person may hide, and where each sits in each mode's row (the order render() draws the cells in)
 var UI_COLS=[['pmo','PMO'],['band','Decision band'],['cum','Cumulative'],['lane','Lane']];
 var UI_COLIX={ review:{pmo:1,band:3,cum:5,lane:6,n:9}, rank:{pmo:1,band:3,cum:5,lane:6,n:9}, compare:{pmo:1,band:3,cum:5,lane:6,n:9},
@@ -33175,9 +33293,10 @@ function uiBoot(){
       +'title="The plan on screen: the working plan, or a locked PPBE cycle viewed read only">Working plan</button><div class="uiPop" id="uiCycPop"></div>';
     ctx.insertBefore(c, ctx.firstChild);
   }
-  const ss=document.getElementById('saveState');
-  if(ss && ss.parentNode && !document.getElementById('uiEdChip')){
-    const e=document.createElement('span'); e.className='uiChip ed'; e.id='uiEdChip'; ss.parentNode.insertBefore(e, ss); }
+  // v2.00 (menu): the save state went to the left menu's foot with Save; the Editable chip stays in the context bar, before Help
+  const hb=document.getElementById('helpBtn');
+  if(hb && hb.parentNode && !document.getElementById('uiEdChip')){
+    const e=document.createElement('span'); e.className='uiChip ed'; e.id='uiEdChip'; hb.parentNode.insertBefore(e, hb); }
   if(!document.getElementById('uiColsCss')){ const st=document.createElement('style'); st.id='uiColsCss'; document.head.appendChild(st); }
   h.classList.add('ui-on');
   UI2.on=true;
@@ -33187,7 +33306,10 @@ function uiBoot(){
   try{ const ins=document.getElementById('inspector'); if(ins && typeof MutationObserver!=='undefined') new MutationObserver(uiDrawerTabs).observe(ins, {childList:true}); }catch(e){}
   try{ uiDrawerTabs(); }catch(e){}
   document.addEventListener('click', uiDocClick);
+  document.addEventListener('click', uiPanelRun, true);
+  document.addEventListener('focusin', uiFlyFocus);
   document.addEventListener('keydown', uiKey);
+  document.addEventListener('keydown', uiSaveKey);
   window.addEventListener('resize', function(){
     uiRailApply(); uiCols();
     clearTimeout(UI2.t); UI2.t=setTimeout(function(){ uiCols(); try{ fitTop(); syncSticky(); }catch(e){} }, 120); });
@@ -33230,6 +33352,10 @@ function uiSync(){
     ec.textContent= ro || (sb? '✎ Editable · PMO copy — no Save' : (pen? '✎ Editable · '+pen+' holds the pen' : '✎ Editable'));
     ec.title= ro? '' : (sb? 'Changes here are yours to send back with ✉ Submit input; a PMO copy is never saved over the board.'
       : (pen? 'You can change the board here, but only '+pen+', who holds the pen for this file, saves it in place. Save says what you can do.' : '')); }
+  // v2.00 (menu): Program offices is left out of a PMO copy, as the File menu left its group out; the foot says who holds the pen
+  const po=document.getElementById('uiNav_pmo'); if(po) po.hidden=uiSandbox();
+  const sp=document.getElementById('uiSavePen');
+  if(sp){ const pen=uiSandbox()? '' : uiPenOther(); sp.textContent=pen? '✍ '+pen+' holds the pen' : ''; }
   const cl=document.getElementById('uiCollapse');
   if(cl){ const n=uiNarrow(), r=n? !UI2.peek : UI2.rail;
     cl.innerHTML=r? '&#8250;' : '&#8249;';
@@ -33376,7 +33502,6 @@ function uiRailToggle(){
   uiFlyClose(); uiSync(); uiCols();
   try{ fitTop(); syncSticky(); }catch(e){}
 }
-function uiMenuSoon(m){ setTimeout(function(){ if(openMenu!==m) toggleMenu(m); }, 0); }
 // v2.00 (UI S5): A TOOLBAR MENU STAYS CLEAR OF THE SIDEBAR. The board's own fitMenus() keeps an open menu inside the
 // window, 8px from its left edge -- the edge the sidebar now covers. Reports & exports hangs from its button's right edge
 // and, with Five years & PPBE or CCaR & accounting files unfolded, is wider than the room to that button's left: at 760
@@ -33399,59 +33524,91 @@ function uiMenuFit(){
     dd.style.transform='translateX('+Math.ceil(dx)+'px)';
   }catch(e){} });
 }
-try{ fitMenus=(function(own){ return function(){ own.apply(this, arguments); try{ uiMenuFit(); }catch(e){} }; })(fitMenus); }catch(e){}
+try{ fitMenus=(function(own){ return function(){ own.apply(this, arguments); try{ uiMenuFit(); }catch(e){} try{ uiFlyFit(); }catch(e){} }; })(fitMenus); }catch(e){}
 function uiGo(k, btn){
   uiPopsClose();
-  if(k==='fydp' || k==='exec' || k==='hist'){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
+  if(UI_FLY.indexOf(k)>=0){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
   uiFlyClose(); uiPeekClose();
   if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
   if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
   if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
   if(k==='brief'){ if(uiMode!=='brief') uiSetMode('brief'); return; }
   if(k==='imp'){ uiImpOpen(btn); return; }
-  if(k==='setup'){ uiMenuSoon('setup'); return; }
+  if(k==='rep'){ uiRepOpen(btn); return; }
+  if(k==='data'){ uiDataOpen(btn); return; }
 }
-// a section's own items: each is the menu item's own call, run the way the menu runs it (mRun)
+// v2.00 (menu, 19 Oct): CTRL+S SAVES -- the same call as the 💾 Save button at the left menu's foot, saveInPlace(), so in a
+// PMO copy it is refused exactly as Save is there. The browser's own "save this page" is not what anyone means by it here.
+function uiSaveKey(e){
+  if(!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || String(e.key||'').toLowerCase()!=='s') return;
+  e.preventDefault();
+  saveInPlace();
+}
+// v2.00 (menu, 19 Oct): AN ITEM IN A LEFT-MENU BOX OR FLYOUT RUNS AS ITS MENU ITEM DID, AND THE BOX OR FLYOUT CLOSES FIRST.
+// Taken on the way down (capture), before the item's own call (mRun) redraws the list it sits in: the item is the call its
+// menu item made, unchanged, and the keyboard goes back to the left-menu entry that opened it, so a box the item opens hands
+// the keyboard back there when it closes -- FYDP ▸ and Execution ▸ included, whose items closed their flyout and left the
+// keyboard on nothing. A folded group's heading opens in place and closes nothing.
+function uiPanelRun(e){
+  const t=e.target, b=(t && t.closest)? t.closest('#uiImpPanel button.mi, #uiRepPanel button.mi, #uiDataPanel button.mi, #uiFly button:not(.gh)') : null;
+  if(!b || b.disabled) return;
+  const box=b.closest('#uiImpPanel, #uiRepPanel, #uiDataPanel');
+  if(box){ box.classList.remove('open'); return; }
+  if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const n=document.getElementById('uiNav_'+k); try{ if(n) n.focus({preventScroll:true}); }catch(x){} }
+}
+// v2.00 (menu, 19 Oct): A FLYOUT CLOSES WHEN THE KEYBOARD LEAVES IT, as a toolbar menu does when Tab takes the keyboard out
+// of it (v1.92, item 36): anywhere but the flyout and the entry that opened it
+function uiFlyFocus(e){
+  if(!UI2.fly) return;
+  const t=e.target; if(!t || !t.closest || t.closest('#uiFly') || t.id==='uiNav_'+UI2.fly) return;
+  uiFlyClose();
+}
+// a section's own items: each is the menu item's own call, run the way the menu runs it (mRun). Program offices, Audit,
+// History's work kept aside, Setup and the ▾ beside Save show a list syncBtns() writes (UI_FLYHOST), moved in while open.
 function uiFlyItems(k){
   const has=function(fn){ return typeof window[fn]==='function'; };
   const it=function(lbl, sub, fn){ return has(fn)? '<button type="button" onclick="uiFlyClose();mRun('+fn+')">'+lbl+(sub? '<small>'+sub+'</small>' : '')+'</button>' : ''; };
-  const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById('+jsa(id)+').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
-  const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon('+jsa(m)+')">'+lbl+'<small>'+sub+'</small></button>'; };
   const sep='<div class="uiFsep"></div>';
   if(k==='fydp') return '<div class="uiFh">FYDP</div>'
     + it('📊 Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
     + it('📐 Spruills — Reqs vs Funding…', 'ACE × PPBE cycle · all appns', 'toggleSp')
     + it('🏛 PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2')
-    + it('🚰 Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow')
-    + it('📊 FYDP Spend Plan (Excel)', 'by requirement, PMO, service, a tab per PMO', 'exportFydpPlan')
-    + sep + menu('Reports & exports ▾', 'every view and every export', 'reports');
+    + it('🚰 Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow');
   if(k==='exec') return '<div class="uiFh">Execution</div>'
     + it('📈 Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')
     + it('⚖ Reprogramming Actions…', 'ATR / BTR across the active years', 'toggleRp')
     + it('📅 Spend Plan Forecast…', 'the budget year, month by month', 'toggleFc')
     + it('⚖ CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr')
     + sep
-    + file('📥 Import CCaR QPE…', 'monthly CCaR pull (.xlsx)', 'srcFile')
     + it('📈 QPE coverage…', 'which columns come back filled in', 'toggleQpe')
-    + it('⚖ ORBIT vs CCaR…', 'where the board and the last pull disagree', 'toggleDiv')
-    + sep + menu('Data ▾', 'everything that brings data in', 'data');
-  if(k==='hist'){
-    let kept=false; try{ kept=(typeof _keptMeta!=='undefined' && !!_keptMeta); }catch(e){}
-    return '<div class="uiFh">History &amp; recovery</div>'
-      + it('🕓 Change journal…', 'what changed, from what, by whom', 'toggleJrnl')
-      + it('🕘 Save history', 'who saved, when', 'showLog')
+    + it('⚖ ORBIT vs CCaR…', 'where the board and the last pull disagree', 'toggleDiv');
+  // v2.00 (menu): the change journal and the save history are under Audit; History keeps the copies and the work kept aside
+  if(k==='hist') return '<div class="uiFh">History &amp; recovery</div>'
       + it('↶ Earlier copies…', 'kept in the shared folder — in 📡 Live view', 'toggleLive')
-      + sep
-      + (kept? it('↶ Put back work kept aside…', 'from before a newer saved copy replaced it', 'keptPutBack')
-             + it('⬇ Save work kept aside as a file…', 'it stays kept aside', 'keptSaveFile')
-             + it('✕ Discard work kept aside…', 'cannot be undone', 'keptDiscard')
-           : '<button type="button" disabled>↶ Work kept aside<small>nothing is kept aside in this browser</small></button>');
-  }
+      + sep + '<div class="uiFh">Work kept aside</div><div data-host="dd_kept"></div>';
+  if(k==='pmo') return '<div class="uiFh">Program offices</div><div data-host="dd_offices"></div>';
+  if(k==='aud') return '<div class="uiFh">Audit</div><div data-host="dd_audit"></div>';
+  if(k==='setup') return '<div class="uiFh">Setup</div><div data-host="dd_setup"></div>';
+  if(k==='save') return '<div class="uiFh">Save</div><div data-host="dd_save"></div>';
   return '';
+}
+// the list a flyout shows goes back where syncBtns() keeps it when the flyout closes or shows another
+function uiFlyPark(){
+  const h=document.getElementById('uiHold'); if(!h) return;
+  Object.keys(UI_FLYHOST).forEach(function(k){ const d=document.getElementById(UI_FLYHOST[k]); if(d && d.parentNode!==h) h.appendChild(d); });
+}
+// a flyout taller than the room below where it opened moves up, as far as the window's top; it scrolls past that
+function uiFlyFit(){
+  const f=document.getElementById('uiFly'); if(!f || !UI2.fly || !f.classList.contains('open')) return;
+  const top=parseFloat(f.style.top)||8, hgt=f.offsetHeight, H=window.innerHeight||0;
+  if(H && top+hgt>H-8) f.style.top=Math.max(8, H-8-hgt)+'px';
 }
 function uiFlyOpen(k, btn){
   const f=document.getElementById('uiFly'); if(!f) return;
+  uiFlyPark();
   f.innerHTML=uiFlyItems(k);
+  [].slice.call(f.querySelectorAll('[data-host]')).forEach(function(p){ const d=document.getElementById(p.getAttribute('data-host')); if(d) p.parentNode.replaceChild(d, p); });
+  f.setAttribute('aria-label', ({fydp:'FYDP', exec:'Execution', pmo:'Program offices', aud:'Audit', hist:'History and recovery', setup:'Setup', save:'Save'})[k]||'Section items');
   UI2.fly=k; f.classList.add('open');
   try{ const r=btn.getBoundingClientRect(); let top=r.top;
     const hgt=f.offsetHeight; if(top+hgt>window.innerHeight-8) top=Math.max(8, window.innerHeight-8-hgt);
@@ -33461,6 +33618,7 @@ function uiFlyOpen(k, btn){
 }
 function uiFlyClose(){
   const f=document.getElementById('uiFly'); if(f){ f.classList.remove('open'); }
+  uiFlyPark();
   if(UI2.fly){ const b=document.getElementById('uiNav_'+UI2.fly); if(b) b.setAttribute('aria-expanded','false'); }
   UI2.fly='';
 }
@@ -33557,50 +33715,34 @@ function uiAddReq(){
   toggleAdd();
   return true;
 }
-// ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
+// ── THE LEFT MENU'S BOXES: Imports & exports, Reports & exports, Data ─────────────────────────────────────────
 // v2.00 (UI S4): THE KEYBOARD GOES BACK TO THE CONTROL THAT OPENED THE BOX. The board's own box controller hands the
 // keyboard, on Esc, ✕ Close, Cancel or a click outside, to the last control it was on before the box opened. A browser
 // whose buttons take no focus on a click (Safari; Firefox on a Mac) left that the search box, or wherever the keyboard last
-// was, rather than Import. So the control that opened it -- the toolbar's Import, or the sidebar's Imports -- takes the
-// keyboard first, and the controller hands it back there.
-function uiImpOpen(from){
+// was, rather than the opener. So the left-menu entry that opened it takes the keyboard first, and the controller hands it
+// back there. v2.00 (menu, 19 Oct): the same for all three boxes; what each holds is syncBtns()' list, drawn fresh on opening.
+function uiBoxOpen(id, from){
   uiFlyClose(); uiPopsClose(); uiPeekClose();
   if(from && typeof from.focus==='function'){ try{ from.focus({preventScroll:true}); }catch(e){} }
-  if(UI2.imp==='pmo' && uiSandbox()) UI2.imp='full';
-  uiImpDraw();
-  const p=document.getElementById('uiImpPanel'); if(p) p.classList.add('open');
+  const p=document.getElementById(id); if(!p) return;
+  // drawn while it is still closed, so what only lasts while a box is open (Find's text in Reports & exports) starts afresh
+  try{ syncBtns(); }catch(e){}
+  p.classList.add('open');
 }
-function uiImpClose(){ const p=document.getElementById('uiImpPanel'); if(p) p.classList.remove('open'); }
-// PMO Import is not offered in a PMO copy -- File ▾ leaves the Program offices group out there -- so neither the card
-// nor the choice is taken in one
-function uiImpPick(k){ if(k==='pmo' && uiSandbox()) return; UI2.imp=k; uiImpDraw(); }
-function uiImpDraw(){
-  ['full','one','pmo'].forEach(function(k){ const b=document.getElementById('uiImpC_'+k); if(b) b.setAttribute('aria-pressed', UI2.imp===k? 'true' : 'false'); });
-  const s=document.getElementById('uiImpSub'); if(!s) return;
-  let held=0; try{ held=PMOSUBS.length; }catch(e){}
-  if(UI2.imp==='full') s.innerHTML='<b>Full board — a new version of ORBIT.</b> Pick the previous board’s <i>.html</i>. '
-    +'It is read and checked whole, and you see what it holds before anything is replaced. The same as 📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…';
-  else if(UI2.imp==='one') s.innerHTML='<b>One appropriation.</b> Pick any board file. You name the appropriations to take; each is checked '
-    +'and previewed first, and nothing else on this board changes. The same as ⬅ Import one appropriation…';
-  else s.innerHTML='<b>PMO Import.</b> Programme offices’ <i>ORBIT SUBMITTAL … .json</i> files open in the submittal review'
-    +(held? ' — <b>'+held+'</b> held there now' : '')+'.'
-    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="one" '+(UI2.pmoHow!=='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'one\'">'
-    +'<span><b>One submission</b><small>one office’s file — the same as ⬅ Load a submittal file… in the review</small></span></label>'
-    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="all" '+(UI2.pmoHow==='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'all\'">'
-    +'<span><b>All submissions at once</b><small>one file per office, picked together. Every file is read and checked first; if any one '
-    +'cannot be taken, or would ask a question first (no fiscal year, another year, no office), none of them is, and the review stays as '
-    +'it was: load that one on its own. Then each is loaded in the order picked, exactly as if you had '
-    +'loaded them one by one — nothing is merged, and nothing is applied until you apply it.</small></span></label>';
-}
-function uiImpGo(){
-  const k=UI2.imp;
-  if(k==='pmo' && uiSandbox()){ try{ setStat('ℹ PMO Import is not offered in a PMO copy.'); }catch(e){} return; }
-  uiImpClose();
-  if(k==='full'){ document.getElementById('fullFile').click(); return; }
-  if(k==='one'){ document.getElementById('stateFile').click(); return; }
-  // PMO Import: the submittal review, then its own loader
+function uiBoxClose(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); }
+function uiImpOpen(from){ uiBoxOpen('uiImpPanel', from); }
+function uiImpClose(){ uiBoxClose('uiImpPanel'); }
+function uiRepOpen(from){ uiBoxOpen('uiRepPanel', from); }
+function uiRepClose(){ uiBoxClose('uiRepPanel'); }
+function uiDataOpen(from){ uiBoxOpen('uiDataPanel', from); }
+function uiDataClose(){ uiBoxClose('uiDataPanel'); }
+// PROGRAM OFFICES' SUBMITTAL LOADING -- what the Import box's PMO Import card did (uiImpGo, until 19 Oct), by the same calls:
+// the submittal review opens, then its own loader -- One submission: the file input ⬅ Load a submittal file… uses; All
+// submissions at once: the batch (uiSubMany). Not offered in a PMO copy, which leaves Program offices out.
+function uiPmoLoad(how){
+  if(uiSandbox()){ try{ setStat('ℹ Loading submittals is not offered in a PMO copy.'); }catch(e){} return; }
   subOpenReview();
-  if(UI2.pmoHow==='all') document.getElementById('uiSubMulti').click();
+  if(how==='all') document.getElementById('uiSubMulti').click();
   else document.getElementById('stateFile').click();
 }
 // ALL SUBMISSIONS AT ONCE -- ALL OR NOTHING, IN THE ORDER PICKED. Nothing new reads, merges or applies anything:
@@ -33808,7 +33950,7 @@ async function uiSubMany(inp){
       +(diff.length? '. <b>Not as before the batch: '+esc(out.left.join('; '))+'.</b>' : '')); }catch(e){}
     return out;
   };
-  if(uiSandbox()) return refuse('PMO Import is not offered in a PMO copy');
+  if(uiSandbox()) return refuse('loading submittals is not offered in a PMO copy');
   // v2.00 (UI M1, fix round 2): a refusal while the files are read, or for two from one office, comes before the batch has
   // taken anything -- but after it has waited, and the board may have changed meanwhile (a single load landing, a tick
   // taken off). That change is not the batch's, so such a refusal is measured against the board as it is when it is said.
@@ -33842,10 +33984,10 @@ async function uiSubMany(inp){
     return refuse((n===1? '“'+out.asks[0].file+'” would ask a question before it could be loaded'
                         : n+' of them would ask a question before they could be loaded')+', and a batch loads only files that need no answer', {
       more:'  • '+out.asks.map(function(a){ return '“'+a.file+'” — '+a.q; }).join('\n  • ')
-        +'\n\nLoad '+(n===1? 'it' : 'each of those')+' on its own (PMO Import › One submission), where its question is asked about that file '
+        +'\n\nLoad '+(n===1? 'it' : 'each of those')+' on its own (Program offices › ⬅ Load one submission…), where its question is asked about that file '
         +'alone; then load the rest.',
       stat:out.asks.map(function(a){ return '“'+a.file+'”'; }).join(', ')+' would ask a question first — load '+(n===1? 'it' : 'each')
-        +' on its own (One submission)'});
+        +' on its own (Program offices › ⬅ Load one submission…)'});
   }
   for(let i=0;i<P.length;i++){
     const mark=PMOSUBS.slice(); let landed=false, err='';

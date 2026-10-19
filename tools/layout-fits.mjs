@@ -171,15 +171,20 @@ console.log('\n' + FILE.split('/').pop());
   const calls = await p.evaluate(() => {
     try { syncBtns(); } catch (e) {}
     const out = [];
-    ['dd_reports', 'dd_data', 'dd_setup', 'dd_basis', 'dd_fy', 't_review', 't_rank', 't_fund', 't_compare', 't_brief'].forEach(id => {
+    // v2.00 (menu, 19 Oct): the left menu is a home too -- its boxes' and flyouts' lists, and the flyouts FYDP ▸, Execution ▸
+    // and History & recovery ▸ draw for themselves (uiFlyItems)
+    ['dd_reports', 'dd_data', 'dd_setup', 'dd_boards', 'dd_offices', 'dd_audit', 'dd_kept', 'dd_save', 'dd_basis', 'dd_fy',
+     't_review', 't_rank', 't_fund', 't_compare', 't_brief'].forEach(id => {
       const el = document.getElementById(id); if (!el) return;
       el.querySelectorAll('[onclick]').forEach(e => out.push(e.getAttribute('onclick')));
     });
+    if (typeof uiFlyItems === 'function') ['fydp', 'exec', 'hist'].forEach(k => { const d = document.createElement('div'); d.innerHTML = uiFlyItems(k);
+      d.querySelectorAll('[onclick]').forEach(e => out.push(e.getAttribute('onclick'))); });
     return out.join('\n');
   });
   for (const [menu, list] of Object.entries(OLD)) {
     const missing = list.filter(c => calls.indexOf(c) < 0);
-    chk(`B · everything ${menu} held is still on a menu or a mode's tools`, missing.length === 0, missing.length ? 'missing: ' + missing.join(', ') : list.length + ' items');
+    chk(`B · everything ${menu} held is still on a menu, the left menu or a mode's tools`, missing.length === 0, missing.length ? 'missing: ' + missing.join(', ') : list.length + ' items');
   }
   await ctx.close();
 }
