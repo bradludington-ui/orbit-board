@@ -1059,3 +1059,83 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
   U20, U30, U34 and U36. Then they are pushed with their ledger text.
 - **The text-records backup is refreshed:** `scratch-backup/rec-text-20261013-1728.tar.gz`, 490 files, with no board
   files. It replaces the 4:49 PM ET archive, which stays in history at `6060ee7`.
+
+## 13 Oct, 7:22 PM ET to 14 Oct, 4:06 AM ET: four fixes checked and pushed, then U41 and U42; a drain before the limit
+
+(Written 18 Oct 2026, about 8:40 PM ET, from the lead's log `rec/L7/RESTART-AFTER-RESET.md`; every time below is the
+log's. STATUS-2026-10-13.md covers the same evening in short.)
+
+- **7:22 PM ET:** commit check `wf_9d8c7bb7-f39` (rec/L8/commit-check.js) of U20, U30, U34 and U36, rebased onto
+  `7b8aae2` with their blobs unchanged; two at a time. All four PASSED:
+  - U20 `ef1548c` (7:37 PM ET): the parent fails 23 of 84 (all defect checks; 48 controls and 13 guards pass), the
+    commit 84/84; both mutants caught; mcount 1,330 once; npm run check; the U2/U13 and folder harnesses and 8 other
+    suites pass.
+  - U30 `d701888` (7:39 PM ET): 44 of 89 fail on U20's board, the commit 89/89; all 12 mutants caught; mcount 1,342.
+  - U36 `8b39373` (7:54 PM ET): 14 defect checks fail on the parent, 10 controls pass; 24/24; 20 of 20 mutants caught;
+    mcount 1,395; the whole audit-recon 369/369.
+  - U34 `b9e9837` (8:27 PM ET): 28 of 39 fail on the parent, 11 controls pass; 102/102; 33 of 33 mutants caught; mcount
+    1,375; the whole audit-recon 345/345.
+  - Pushed at 8:37 PM ET (`7b8aae2..b765f98`, with records `b765f98`). Evidence: `rec/L8/cc/<sha7>/`.
+- **10:45 PM ET:** commit check `wf_4c6d04a8-a52` of U41 and U42 (committed 10:28 PM ET). PASSED both at 10:58 PM ET:
+  U41 `867fd4a` (the parent fails 33 of 42, all 9 controls pass; 42/42; 20 of 20 mutants caught; mcount 1,415; the whole
+  audit-recon 411 checks, none failing) and U42 `1a6a66e` (8 of 18; 18/18; 5 of 5; mcount 1,420; audit-recon 429).
+  Pushed with records `44359c4` at 10:58 PM ET.
+- **Disk:** finished boards and clones deleted at 8:35 and 8:55 PM ET (13 Oct) and 10:45 PM, 12:42 AM, 1:45 AM and
+  3:30 AM ET, each with a manifest of blob ids (`rec/L8/deleted-mutant-boards-20261013.tsv`, `-20261013-2.tsv`,
+  `-20261014-3.tsv`, `-20261014-4.tsv`; `rec/L8/deleted-scratch-clones-20261013.tsv`, `-20261014.tsv`).
+- **14 Oct, 4:02 AM ET:** DRAIN set for the usage limit. **4:03 AM ET:** the hold committed locally, `e219a68` (U3) and
+  `16ceb83` (U4) on `44359c4`. A lead error: its commit check was first launched with placeholder arguments
+  (`wf_512aa86e-873`) and stopped within a minute; its one agent ran only `ls` and `date`. **4:04 AM ET:** relaunched
+  with the real arguments, `wf_84618e11-8e0`.
+
+## 14 Oct, 4:06 AM ET to 18 Oct, 3:53 AM ET: the weekly limit; the checks paused
+
+- The hold check `wf_84618e11-8e0` and three reviews (adoption round 3, U18 round-3 tests, U37 round-4 tests) failed on
+  the weekly usage limit. Their partial folders are kept as `rec/L8/cc/16ceb83.limit-failed-14oct` and
+  `e219a68.limit-failed-14oct`. Nothing they ran counts.
+- **Brad, 15 Oct, 5:21 PM ET:** "Pause the checks." Acted on at 11:52 PM ET, 17 Oct (from 15 Oct the session could not
+  run while the weekly limit held; it reset at 11 PM ET, 17 Oct): the hourly routine `trig_01PhhHK97YTPeEsCZr3X2fvw` was
+  disabled (not deleted) at 11:51 PM ET; its 92 queued firings were read as data and not acted on. Nothing launched,
+  committed or pushed.
+
+## 18 Oct: resumed; the hold, U10, U56/U57, U18, U58/U59 and cycreg checked and pushed; U19 under its check
+
+- **About 3:52 AM ET, Brad:** "Resume." **3:53 AM ET:** the container had restarted (up 2 minutes); no process was left
+  from any run; orbit-board was intact at `16ceb83` (local). DRAIN removed. **3:57 AM ET:** the hold's check relaunched
+  as `wf_203e6020-d93`, with the fix groups.
+- **The lead's commit checks today** (`rec/L8/commit-check.js`, at most two checker agents at once; each commit's
+  focused block failing on its parent and passing on the commit, every new mutant caught, mcount once, npm run check,
+  the touched suites):
+
+  | Commit | Track | Workflow | Result |
+  |---|---|---|---|
+  | `16ceb83` | U4 | `wf_203e6020-d93` | PASS, 4:33 AM ET: 43 checks, 24 fail on `e219a68`; 12 mutations caught; mcount 1,442 |
+  | `e219a68` | U3 | the same | PASS, 4:36 AM ET: 62 checks, 27 fail on `44359c4`, 0 on the commit; 10 mutations caught; mcount 1,430; one audit-recon run OOM-killed (exit 137) at 361.9 s and re-run clean |
+  | `7e30379` ... `254f29c` (12) | U10 | `wf_8f7c5844-9a7` | all 12 PASS, done about 7:34 AM ET; discrepancies base-only (counts, timing, a known slow-redraw status check, U54) |
+  | `eef8874` | U56, U57 | `wf_2a536d5b-db7` | PASS, 11:36 AM ET: 8 fail on the parent, 59 pass after; 4 mutants caught; mcount 1,506; the whole audit-recon 597 pass on the retry after one OOM kill |
+  | `a4881ec` | U18 | `wf_f9f5d231-507` | PASS, about 4:35 PM ET: 112/112 focused, 63 fail on the parent as declared; 29 mutants caught; mcount 1,535; one NEXT-VERSION sentence inexact (made exact in `f06049b`) |
+  | `e7bd877` | U58, U59 | `wf_5bcb9979-4e5` | PASS: 90/90 focused, 22 fail on the parent (all non-controls); 14 mutants caught; mcount 1,549; the whole audit-recon 628 pass in one process |
+  | `d6fea76` | U32, U33, U50 | `wf_151b62e4-0f7` | PASS: the block 288/288, 177 fail and 111 pass on the parent with all 49 controls passing; all 81 mutants caught, the 3 new in full mode; mcount 1,630; the rest of audit-recon 628 pass; NEXT-VERSION replays byte for byte |
+  | `1582295` | U19 | `wf_81e20e82-de2` | launched 7:14 PM ET; running at the 8 PM ET cut |
+
+- **U10 moved, product unchanged:** at 7:37 AM ET the twelve checked commits were cherry-picked from `v200-u10-staged`
+  (`7e30379`..`254f29c`, on `16ceb83`) onto `96877da`: `df005ea 3b8b175 b24840e 3e882d8 0181a0a 89697d6 420c4ba 1029d42
+  7bc5fe6 42a346c f9f0685 f6f4c26`, each tree equal to its checked commit's but for the 23 codex-handoff-3 records
+  files, the messages identical; tip blobs board `d6316db1`, audit-recon `e7381ec7`, mutate `d7875c5c`.
+- **Pushed today:** `44359c4..16ceb83` 4:36 AM; `96877da` 5:39 AM; `96877da..f6f4c26` 7:37 AM; `75d4d2f` 7:41 AM;
+  `eef8874` 11:37 AM; `5e28a48` 11:39 AM; `a4881ec` 4:54 PM; `f06049b` 5:22 PM; `e7bd877` 6:21 PM; `d6fea76` 7:14 PM ET.
+- **OOM kills:** eight in the agents' memory group between 8:39 and 9:33 AM ET (node test runs of 1.7-2.8 GB); each run
+  was retried by its agent and none counted as a pass. Launches were held until memory recovered.
+- **Worker restart, found 4:52 PM ET** (machine up 13 h; files intact; disk at 85 MB free): every running workflow
+  stopped. U18's check had passed before it. States rebuilt (`rec/L7/restart/r18c/`) and relaunched at about 4:57 PM ET.
+- **Disk** (each deletion with a manifest of HEADs and blob ids, `rec/L8/deleted-*-20261018-*.tsv`): 4:47, 5:47, 7:31,
+  7:44, 8:07, 8:11, 10:47 AM, 12:47 PM (an emergency at 361 MB free: four passed checks' folders, `rec/L8/cc/eef8874`,
+  `e219a68`, `b6449ae` and `254f29c`, deleted whole, so their logs are not among the evidence copied to this branch),
+  12:58, 1:49, 3:46, 4:56 and 6:49 PM ET. At 6:44 PM ET the lead stopped its own cleanup before any deletion because its
+  list held folders the running cycreg check could read (its manifest kept as `...-17.ABORTED-manifest-only.tsv`).
+- **Lead errors, recorded when found:** 5:51 AM ET, two 13 Oct dry-run clones lost to a bundle whose failure a pipe hid
+  (their results are in `3cddc7c`); 7:31 AM ET, two times written later than the clock, corrected; 7:36 AM ET, a
+  deletion overstated (717 immutable files left in place); 5:59 PM ET, a count lost to a quoting slip, restated.
+- `/dev/null` on this machine is a regular file (noted 7:14 PM ET): a redirect into it writes that file.
+- **Not run today:** the full audit-import alone (runbook step 3, after the last blocker), the final-tree queue (Brad,
+  18 Oct: the mutation lanes run after the PR is merged), verify:grid on any safety-branch tree.
