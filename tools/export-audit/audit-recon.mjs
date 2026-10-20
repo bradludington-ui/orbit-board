@@ -11529,6 +11529,8 @@ await (async () => {
       let old = '';
       try { const { execFileSync } = await import('node:child_process');
         old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      // a clone without 7ee498a (a shallow one) cannot build these boards: said by name, never a silent pass
+      w5Chk(name, 'D5 · 7ee498a’s board, read from the repository', 'the history holds it, so D5 S1 and SF2 run (a shallow clone does not: git fetch --unshallow)', String(!!old), 'true');
       if (old) {
         const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
           var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
