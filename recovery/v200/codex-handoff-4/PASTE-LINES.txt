@@ -1,0 +1,35 @@
+ORBIT v2.00, Codex handoff 4: paste ONE message at a time, in this order. Each is a whole batch.
+
+----- D1: lockfile (tiny) -----
+ORBIT v2.00, handoff 4, batch D1 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D1" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- D2: left-menu review (report only) -----
+ORBIT v2.00, handoff 4, batch D2 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D2" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- D3: locked views vs the blockers and the new menu (report only) -----
+ORBIT v2.00, handoff 4, batch D3 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D3" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- D4: exports vs the blockers (report only) -----
+ORBIT v2.00, handoff 4, batch D4 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D4" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- D5: two U44 checks (tests only) -----
+ORBIT v2.00, handoff 4, batch D5 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D5" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- D6: U37 test adequacy (tests only) -----
+ORBIT v2.00, handoff 4, batch D6 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "D6" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- F1: U72 fix -----
+ORBIT v2.00, handoff 4, batch F1 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "F1" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- F2: U60 fix -----
+ORBIT v2.00, handoff 4, batch F2 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "F2" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- F3: U62 words fix -----
+ORBIT v2.00, handoff 4, batch F3 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "F3" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+----- P1: _xHHHH_ decode proposal (memo, no code) -----
+ORBIT v2.00, handoff 4, batch P1 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit 990f55a): its ground rules apply, and its section "P1" is the batch. Base for the work: commit 67bc4de (branch claude/orbit-v2.00, PR #13). Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, then stop. Do not start another batch.
+
+
+F4 (fix, tiny; D3-1):
+ORBIT v2.00, handoff 4, batch F4 only (from Brad). Repository bradludington-ui/orbit-board. Read recovery/v200/codex-handoff-4/README.md on branch claude/v200-fixes-wip (commit f889290): its ground rules apply, and its section "F4" is the batch. Base for the work: commit 3451746 (branch claude/orbit-v2.00, PR #13), not 67bc4de. Read-only on our branches; mutate.mjs is text only. Return one report in the README's format, with the diffs against 3451746, then stop. Do not start another batch.
