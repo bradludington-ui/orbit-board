@@ -7764,10 +7764,10 @@ await (async () => {
       + (cy ? ' A locked cycle’s entry whose key is not text is kept but not read, as in every ORBIT since v1.99: a requirement on it shows no code there, '
         + 'and its money is on no combination.' : '')
       + ' The RCN-EEIC sheet counts each key once and money on no combination only as not assigned';
-    // the refusal's words: the rule; who saved the file, as the file says it (a fixture is saved by the board under test, v2.00);
+    // the refusal's words: the rule; who saved the file, as the file says it (a fixture is saved by the board under test, v2.01);
     // and a way that works for that kind of file -- a locked cycle's list is never put right on a board
     const RULE = 'An RCN / EEIC list names each combination once, by a text key of its own.';
-    const NOW = 'This file says ORBIT v2.00 saved it, from a board that held such a list.';
+    const NOW = 'This file says ORBIT v2.01 saved it, from a board that held such a list.';
     const OLD = 'An ORBIT before this one took such a list without a word and could save it with its board.';
     const PLAN = 'A list that is not a locked cycle’s can be put right on a board of this version, in 🗂 RCN / EEIC, where ✕ on a row marked ⚠ repeats '
       + 'removes that row alone, and the file written again.';
@@ -7783,7 +7783,7 @@ await (async () => {
     const CYCLE_ONLY = 'A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several '
       + 'boards refuse every file that carries that cycle.';
     const LIST_TAIL = why => RULE + ' ' + NOW + ' ' + (/\.cycles\./.test(why) ? CYCLE : PLAN) + ' ' + FULL;
-    const ENTRY_TAIL = 'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry. This file says ORBIT v2.00 saved it, '
+    const ENTRY_TAIL = 'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry. This file says ORBIT v2.01 saved it, '
       + 'from a board that held one.';
     const AT_PB = 'the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn ', AT_WP = 'the RCN / EEIC list at the saved state.appns.om.rcn ';
     const TWICE = 'holds the key “K1” twice (rcn[0] and rcn[1]); a key names one combination';
@@ -7994,7 +7994,9 @@ await (async () => {
         J([al2, mv2]), J([[told], []]));
       // three files at once, the refused one between two clean boards that say v1.99 saved them: the refusal is of the file it
       // names, told who saved THAT file, whichever of the three was read last
-      const clean = F.own.replace(/const BUILD='v2\.00[^']*'/, "const BUILD='v1.99 (6 Oct 2026)'");
+      // (v2.01) any version: a pattern pinned to one stopped matching at the next BUILD and left the file saying this version
+      const clean = F.own.replace(/const BUILD='v\d+\.\d+[^']*'/, "const BUILD='v1.99 (6 Oct 2026)'");
+      w5Chk(name, at + 'the clean files say v1.99 saved them', 'the fixture really does carry the older version', String(clean.includes("const BUILD='v1.99 (6 Oct 2026)'")), 'true');
       const held3 = lsOf(R.ev), al3 = JSON.parse(await R.ev(`new Promise(function(res){ var al=[]; window.alert=function(m){ al.push(String(m)); };
         window.confirm=function(){ return true; };
         var inp={files:[new File([${J(clean)}], 'a.html'), new File([${J(oneAp)}], 'cycle.html'), new File([${J(clean)}], 'c.html')], value:'x'};
@@ -8352,7 +8354,8 @@ await (async () => {
     {
       const mk = bootMark();
       const F = make({ asg: 'K1', cyc: [K1, K1] }), T = boot({ html: F.own });
-      const old = F.file.replace(/const BUILD='v2\.00[^']*'/, "const BUILD='v1.99 (6 Oct 2026)'");
+      const old = F.file.replace(/const BUILD='v\d+\.\d+[^']*'/, "const BUILD='v1.99 (6 Oct 2026)'");
+      w5Chk(name, 'a file that says v1.99 saved it · the fixture', 'the fixture really does carry the older version', String(old.includes("const BUILD='v1.99 (6 Oct 2026)'")), 'true');
       const heldO = lsOf(T.ev), alO = JSON.parse(await one(T.ev, old)), mvO = moved(heldO, lsOf(T.ev));
       w5Chk(name, 'a file that says v1.99 saved it · ⬅ Import one appropriation', 'refused whole: an ORBIT before this one took such a list, and the way named works for a locked cycle’s; browser storage is byte-identical',
         J([alO, mvO]), J([['“cycle.html” was not imported: ' + AT_PB + TWICE + '.\n\n' + RULE + ' ' + OLD + ' ' + CYCLE + ' ' + FULL + ' Nothing on this board was changed.'], []]));
