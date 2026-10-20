@@ -41,12 +41,15 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 | After a change that moves anything on screen | `npm run verify:grid` | exit 0 |
 | After a change to anything a person operates | `npm run standards` and `npm run keys` | no NEW finding (the baseline is empty since v1.92); every keyboard check `ok` |
 | After a change to money on screen or in an export | `npm run money-map`, then `node tools/money-map.mjs --check` | `money map holds`, the report current |
-| Before a version ships | `npm run validate:math` (about 2 hours; ask Brad before running it past the two-hour limit on background jobs) | `MATH VALIDATION PASSED` |
+| Before a version ships | `npm run validate:math` -- **only on Brad's named go** (see below); at 2,021 mutations it takes most of a day, in saved batches | `MATH VALIDATION PASSED` |
 
 - In the math check, a mutation that is **NOT APPLIED** fails the run. If you rewrite a line that a
   mutation in `tools/export-audit/mutate.mjs` searches for, retarget that mutation.
-- Run the sweep through `npm run mutate` or `validate:math`. Never `import` `tools/export-audit/mutate.mjs`:
-  loading it starts the sweep.
+- **The sweep runs only on Brad's named go** (Brad, 20 Oct 2026). During development `tools/export-audit/mutate.mjs` is
+  TEXT ONLY: build a mutant with `recovery/v200/bin/mkmut.py` and count every target with `recovery/v200/bin/mcount.py`
+  (`python3 -I`); never `import` it (loading it starts the sweep) and never run `npm run mutate` or `validate:math`. A sweep,
+  when Brad names one, runs on a committed tree that does not change while it runs, in saved batches that survive a container
+  restart, with nothing else running, and it reports and changes nothing.
 - A test that cannot fail is not a test. Prove a new check fails on a board with the defect before
   trusting it.
 - A presweep of your new mutations does not see an OLD mutation whose line your change rewrote. After any

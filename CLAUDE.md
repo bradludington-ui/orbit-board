@@ -1987,6 +1987,22 @@ the truth, gate on regression, never assert a standard the thing was not built t
 > gate is the **exit code**, with the banner count reported as a fact and the legacy line asserted
 > separately so that suite cannot go quiet unnoticed.
 
+### The sweep runs on Brad's named go (20 Oct 2026)
+
+**During development `tools/export-audit/mutate.mjs` is TEXT ONLY.** Build one mutant with `recovery/v200/bin/mkmut.py
+<mutate.mjs> <board> <id> <out.html>` and count every target with `recovery/v200/bin/mcount.py <mutate.mjs> <board>` (both
+`python3 -I`; they read the array as text and run nothing from it). Prove a new check by running its block on the board and on
+its own mutant. Never `import` `mutate.mjs` (loading it starts the sweep), and never run `npm run mutate` or `validate:math`.
+
+**A sweep runs only when Brad names one**, and then: on a committed tree that does not change while it runs; in saved batches
+that survive a container restart (v1.99's batch runner -- four single six-hour runs were each lost to a restart); with nothing
+else running; and it reports and changes nothing. The rule is about cost and control, not safety: at 2,021 targets a full sweep
+takes most of a day on this container, and an unattended one started mid-work has cost whole runs before.
+
+Why not drop the sweep: about 880 targets added in v2.00 and v2.01 have been proven only one at a time, against their own check,
+never as a set. Brad's plan (20 Oct): once v2.01 is on `main`, sweep those first; a full sweep before the hosted rebuild. The
+sections below describe how the sweep works and what it has found; read their commands through this rule.
+
 ### Measuring the suites — run this after adding checks
 
 ```
