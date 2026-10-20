@@ -9706,6 +9706,23 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen',
       J([...scr(A2.ev), penTakers(A2.ev)]), J(['BRAD-4', 730, ['Bob']]));
   }
+  // (8d) v2.02 (E4, ledger U60): THE SAME, WITH THE FOLDER'S COPY GONE rather than Bob's landing. Browser storage is kept again
+  // as put back on every stop, not only on the clash: it holds BRAD-4 and no line saying Brad took the pen.
+  { const sc = '(8d) Brad takes the pen and types BRAD-4 while that save is held; the folder’s copy is removed';
+    const { fold, A, Bb } = await setup(sc);
+    const penIn = txt => { try { const st = JSON.parse(txt); return (st.jrnl || []).filter(e => e && e.p && e.p[0] === '(writer)').map(e => e.b); } catch (e) { return ['(unreadable)']; } };
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
+    const h = await held(A, fold, 'takePen()'); await pause(5);
+    A.ev(`setNote('A','BRAD-4'); 'ok'`); await pause(5);
+    chk(name, sc, 'while Brad’s take-the-pen save is held he types BRAD-4, and browser storage holds it with the held save’s pen line (a CONTROL)',
+      J([h.ok, ...stored(A.ev), penIn(A.ev('localStorage.getItem(_AP.key)')).includes('Brad')]), J([true, 'BRAD-4', 730, true]));
+    delete fold.root.files[NM];
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'nothing is written in its place; browser storage holds BRAD-4 and no line saying Brad took the pen',
+      J([...head(fold), ...stored(A.ev), penIn(A.ev('localStorage.getItem(_AP.key)'))]), J(['(no copy)', null, 'BRAD-4', 730, ['Bob']]));
+  }
 
   // (8c) A CHANGE TYPED WHILE THE SAVE IS HELD KEEPS ITS OWN STAMP. The stopped save puts the board's stamp back only if it
   // is still the one this save gave it: Brad types BRAD-3 while his save is held, which stamps the board itself, and that
@@ -9840,6 +9857,24 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was',
       J([penTakers(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], true]));
     chk(name, sc, 'while PB27 is still on screen, Brad is told, word for word, with both choices offered', J([status(A.ev), buttons(A.ev)]), J([LATE, CHOICES]));
+    A.ev(`cycLeave(); 'ok'`); await pause(5);
+    chk(name, sc, 'once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved',
+      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0), ...scr(A.ev), unsaved(A.ev)]), J([['Bob'], true, 'BRAD-3', 730, true]));
+  }
+  // (11d) v2.02 (E4, ledger U60): (11b) WITH THE FOLDER'S COPY GONE rather than Bob's landing. The locked view's copy gets its
+  // stamp back, and loses the pen line, on every stop, not only on the clash.
+  { const sc = '(11d) Brad takes the pen; PB27 put on screen while that save is held; the folder’s copy is removed';
+    const { fold, A, Bb } = await setupLocked(sc);
+    await Bb.ev('takePen()'); await pause(5);
+    await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A','BRAD-3'); setAlloc('A','730'); 'ok'`); await pause(5);
+    const st0 = stamp(A.ev); const h = await held(A, fold, 'takePen()'); await pause(5);
+    A.ev(`cycView('PB|2027'); 'ok'`);
+    delete fold.root.files[NM];
+    h.g.open(); await h.p; await pause(5);
+    chk(name, sc, 'Brad’s save, let go, writes nothing in its place (a CONTROL)', J([h.ok, ...head(fold)]), J([true, '(no copy)', null]));
+    chk(name, sc, 'while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was',
+      J([penTakers(A.ev), J(stamp(A.ev)) === J(st0)]), J([['Bob'], true]));
     A.ev(`cycLeave(); 'ok'`); await pause(5);
     chk(name, sc, 'once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved',
       J([penTakers(A.ev), J(stamp(A.ev)) === J(st0), ...scr(A.ev), unsaved(A.ev)]), J([['Bob'], true, 'BRAD-3', 730, true]));
