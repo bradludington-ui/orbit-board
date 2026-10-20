@@ -44,8 +44,33 @@ against its own block. 2,027 targets, each matching once.
   checked only on a clash), not a defect.
   Four mutations, `v202-e4-persist-before-hold`, `-hold-only-on-clash`, `-persist-only-on-clash` and `-view-only-on-clash`:
   each caught. `v200-u18-hold-before-reread` was retargeted to the new order, and (13) still catches it.
-- **Not yet run on these commits:** audit-import whole and alone, and every other suite. Only the focused blocks above have
-  been run.
+- **E5 (ledger U9L).** An office has two figures, and they are now named apart and reconciled. Brad, 13 Oct 2026: label
+  both, reconcile them, move no dollar; 20 Oct: the reconciliation is a workbook sheet. **No dollar moves.**
+  - *Planning share:* what every by-office view prints (`pmoPartsOf`), the requirement's draw spread across its offices by
+    its CLINs' asks.
+  - *CLIN amounts:* what the Spend Plan Source sends, the same draw split by the CLIN grid one dated piece at a time
+    (`clinSplit`). Office by office it can differ from the planning share.
+  - *The rule:* `clinSuffixOffice` / `clinOfficeOf` say which office a CLIN belongs to. `pmoSharesOf` and the reconciliation
+    both use it.
+  - *The reconciliation:* `srcRowsOf(fy, St, T, rec)` records every line it sends, and `officeClinRecon(T)` reads those
+    lines rather than working them out again. The workbook's new sheet, *Office share vs CLIN*, sits beside the PMO
+    Matrix. For each requirement whose office figures could differ (split across offices, or sent on CLIN lines), it gives
+    each office's planning share, its CLIN amounts and the difference, by lane. Each requirement's differences add to zero,
+    and the requirements left out are counted.
+  - *The label:* `PLAN_SHARE_TXT` names the planning share on the PMO Matrix, CE by PMO, each PMO tab, the deck's Funding
+    by PMO slide, the forecast, the CR view by PMO and the PMO funding panel.
+  - *Built differently from the plan:* the Spend Plan Source itself carries no "CLIN amount" label. It mirrors a real
+    CCaR workbook column for column, so the label is on the reconciliation sheet. No column heading was renamed either,
+    because the suites find columns by name; the label is a note row on each sheet.
+  - *Proof:* audit-recon "v2.02 (E5)" works the figures out by hand. One $2 discretionary draw is split by CLIN asks of
+    1:3, and the Spend Plan Source sends it as two $1 increments. MxS's planning share is $1 and its CLIN amount $0; AV's
+    are $1 and $2. The block throws on `c357911`, where neither the sheet nor the reconciliation exists, and passes here.
+    Six mutations `v202-e5-*`, each caught by it. Money coverage, the money map, the trace matrix and the defect register
+    hold.
+  - *Not yet seen on screen:* the browser checks.
+  - *Not done:* U9 itself, the exact split of the planning share, stays in E7.
+- **Checks on the tree with E1–E5:** the full `npm run audit` is running (audit-import alone in the chain). The browser
+  checks follow it.
 
 ## Open
 
