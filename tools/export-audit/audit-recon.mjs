@@ -6845,6 +6845,36 @@ await (async () => {
       ev(`bandCopyAll(); 'ok'`);
       w5Chk(name, 'the working plan · ⇉ Copy to the other appropriations (allowed)', 'CONTROL — Full Fund’s ladder is now this one (no FF ONLY BAND), and one is held for it',
         J([JSON.parse(ff())[0].includes('FF ONLY BAND'), JSON.parse(ff())[0].length > 1, JSON.parse(ff())[1]]), J([false, true, false]));
+
+      // ==== 4b. v2.00 (Codex D3-1): ⚙ Install standard and ⬆ Import ladder with PB27 on screen. save() refused each, but each then
+      // said "⚖ Standard bands 0–4 installed on O&M" / "⚖ Ladder imported — 1 bands on O&M". Each is now refused before it asks
+      // or reads the file. The working ladder is one band of this office's own, KEPT BAND (#123456, skip); the view, the working
+      // plan and the copy in browser storage all keep it.
+      ev(`MS.stdVer=STD_VER; bandSave([{id:'kept', n:'KEPT BAND', d:'', rule:'skip', c:'#123456'}]); 'ok'`);
+      const ladder = () => ev(`JSON.stringify(BANDS_LIST().map(function(b){ return [b.n, b.c, b.rule]; }))`);
+      const stored = () => ev(`JSON.stringify((JSON.parse(localStorage.getItem(_AP.key)||'{}').bands||[]).map(function(b){ return [b.n, b.c, b.rule]; }))`);
+      const KEPT = J([['KEPT BAND', '#123456', 'skip']]);
+      w5Chk(name, 'the working plan · the ladder saved', 'CONTROL — the ladder and its copy in browser storage are KEPT BAND alone', J([ladder(), stored()]), J([KEPT, KEPT]));
+      ev(`cycView(${J(key)}); 'ok'`); spy(ev);
+      ev(`bandStd(); 'ok'`);
+      w5Chk(name, 'PB27 viewed · ⚙ Install standard', 'refused before anything is asked, and the status line says only that; the ladder in the view and in browser storage is still KEPT BAND',
+        J([said(ev), asked(ev), ladder(), stored()]), J([OFF('Installing the standard bands'), [], KEPT, KEPT]));
+      spy(ev);
+      fileOf(ev, J({ bands: [{ id: 'imp', n: 'IMPORTED BAND', rule: 'full', c: '#654321' }] }), 'F4 ladder.json');
+      ev(`globalThis.__rd=0; globalThis.__rdT=FileReader.prototype.readAsText; FileReader.prototype.readAsText=function(){ __rd++; return __rdT.apply(this, arguments); };
+        globalThis.__inp={files:[__f], value:'F4 ladder.json'}; bandImport(__inp); 'ok'`);
+      await wait(X, 400);
+      const imp = [said(ev), asked(ev), ev(`__rd`), ev(`__inp.value`), ladder(), stored()];
+      ev(`FileReader.prototype.readAsText=__rdT; 'ok'`);
+      w5Chk(name, 'PB27 viewed · ⬆ Import ladder', 'refused before the file is read or anything is asked, the file choice cleared, and the status line says only that; the ladder still KEPT BAND',
+        J(imp), J([OFF('Importing a band ladder'), [], 0, '', KEPT, KEPT]));
+      ev(`cycLeave(); 'ok'`);
+      w5Chk(name, 'the two remedies · the view left', 'the working plan’s ladder and its copy in browser storage are still KEPT BAND', J([ladder(), stored()]), J([KEPT, KEPT]));
+      // CONTROL: on the working plan Install standard asks, and installs the standard bands above KEPT BAND
+      spy(ev); ev(`bandStd(); 'ok'`);
+      const L2 = JSON.parse(ladder());
+      w5Chk(name, 'the working plan · ⚙ Install standard (allowed)', 'CONTROL — it asks once, says the standard bands are installed, and KEPT BAND stays below them, last',
+        J([asked(ev).length, /^⚖ Standard bands .* installed on O&M\./.test(said(ev)), L2.length > 1, J(L2[L2.length - 1])]), J([1, true, true, J(['KEPT BAND', '#123456', 'skip'])]));
     }
 
     // ==== 6. the shared state file loaded (adoptShared), with work in this browser no saved copy has
