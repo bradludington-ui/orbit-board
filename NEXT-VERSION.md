@@ -6,6 +6,16 @@ math gate once, bump the version once, push once, and move the items to *Shipped
 
 Current version: **v2.01**. Next: **v2.02**.
 
+**Brad's answers of 20 Oct 2026 (evening), at the v2.02 pick-up:**
+- **The sweep (A1):** after the weekly usage reset on Saturday 24 Oct, from a fresh session.
+- **U51:** option 1, Codex C4a. *Its files were in a session scratchpad (`rec/L6/u51/codex-c4a/`) and are on no branch,
+  so it is rebuilt from its description or Codex sends it again.*
+- **Item 89:** all four lists are kept with the cycle: destinations, bands, the BAE list, and the PMO list with the data
+  pack (with U52/U53's funds-flow money).
+- **OCIO evidence (C2):** keep the package built at `f616daa`; no rebuild at `c357911`.
+
+These are decisions, not a go: nothing in the board changes until Brad says go.
+
 ## Open
 
 #### 63. Found while building v1.95, not built
@@ -99,6 +109,8 @@ Current version: **v2.01**. Next: **v2.02**.
 - **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
   cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
   PPBE cycles panel and Help say so.)*
+- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
+  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
 
 #### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
@@ -115,6 +127,15 @@ Current version: **v2.01**. Next: **v2.02**.
   `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
   reading (fails), then the settled one (passes).
 - **Brad, 8 Oct 2026:** next version, not v2.00.
+- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
+  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
+  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
+  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
+  straight after the click with the settled page.
+- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
+  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
+  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
+  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 ## Later
 

@@ -65,6 +65,42 @@ for (const f of ['prioritization-board-grid.html']) {
 }
 const standin = f => /Segoe stand-in/.test(f);
 
+// v2.02 (item 101): MEASURE ONCE LAYOUT HAS SETTLED, NOT AT A FIXED TIME. The check used to read the page 300 ms after
+// clicking a row. At 1400px the RECORD panel opens as a drawer that slides in over 180 ms, and once (v2.00 gate, 7 Oct,
+// Segoe stand-in pass) the page read 1px too wide and never did again in 13 runs: a reading taken while something was
+// still moving. Now the page is read every two animation frames until three readings in a row are identical -- the page's
+// width, the RECORD panel's box and its transform, and the box of every editor button -- and only then measured.
+// EDITORS_WAIT=early is the proof mode: it reads straight after the click and again once the panel has had time to
+// stop, and must find the two different on some page (exit 1), which shows the early reading is what a fixed wait can
+// catch and the settle wait cannot; EDITORS_WAIT=fixed puts back the old 300 ms.
+const WAIT = process.env.EDITORS_WAIT || 'settle';
+let moving = 0;   // proof mode: readings straight after a click that differed from the settled page
+async function settle(p) {
+  if (WAIT === 'fixed') { await p.waitForTimeout(300); return; }
+  const r = await p.evaluate(async (early) => {
+    const frame = () => new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+    const snap = () => {
+      const box = el => { if (!el) return null; const c = el.getBoundingClientRect(); return [c.left, c.top, c.width, c.height].map(v => Math.round(v * 100)); };
+      const ins = document.querySelector('#inspector');
+      return JSON.stringify({ sw: document.documentElement.scrollWidth, iw: innerWidth, ins: box(ins),
+        tf: ins ? getComputedStyle(ins).transform : '', acts: [...document.querySelectorAll('#inspector .insp-act')].map(box) });
+    };
+    const first = snap();
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    let last = early ? first : snap(), same = 0;
+    for (let n = 0; n < 120; n++) {
+      await frame();
+      const now = snap();
+      same = now === last ? same + 1 : 0;
+      last = now;
+      if (same >= 2) return { frames: n + 1, moved: first !== now };
+    }
+    return { frames: -1 };
+  }, WAIT === 'early');
+  if (r.frames === -1) throw new Error('the page never settled: it was still changing after 120 frame pairs');
+  if (r.moved) moving++;
+}
+
 // 1400 and 1366 straddle the breakpoint the drawer turns on; 1024 is a half-tiled window.
 const WIDTHS = [1920, 1600, 1440, 1400, 1366, 1280, 1024];
 // v2.00 (UI S4): EVERY CHECK TWICE. The RECORD panel slides over the table by default, at every width; docked beside it is a
@@ -93,7 +129,7 @@ for (const [f, file] of Object.entries(made)) {
     // Open the editor the way a person does: select the row in grid, open the detail in card.
     if (grid) { await p.click('#row-R003'); }
     else { await p.evaluate(()=>toggleDetail('R003')); }
-    await p.waitForTimeout(300);
+    await settle(p);
     const r = await p.evaluate(()=>{
       const vis = el => { if(!el) return false; const c=el.getBoundingClientRect();
         return c.width>0 && c.height>0 && getComputedStyle(el).visibility!=='hidden'; };
@@ -171,7 +207,7 @@ for (const [f, file] of Object.entries(made)) {
       await p.waitForFunction(()=>typeof render==='function' && document.querySelectorAll('.row').length>0, null, {timeout:30000});
       const font = standin(f) ? await standinProblem(p) : null;
       await p.click('#row-' + id);
-      await p.waitForTimeout(300);
+      await settle(p);
       const r = await p.evaluate(() => {
         const acts = [...document.querySelectorAll('#inspector .insp-act')];
         const ins = document.querySelector('#inspector');
@@ -198,6 +234,12 @@ for (const [f, file] of Object.entries(made)) {
   }
 }
 await b.close();
+if (WAIT === 'early') {
+  // The proof mode: a reading straight after the click must differ from the settled page at least once, or this run
+  // proves nothing about the settle wait.
+  console.log(`\nEDITORS_WAIT=early: ${moving} reading(s) straight after a click differed from the settled page`);
+  process.exit(moving ? 1 : 2);
+}
 console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold'
   + ` and unclipped, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%, with the RECORD panel sliding over and docked\n`);
 process.exit(bad ? 1 : 0);

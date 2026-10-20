@@ -4045,7 +4045,40 @@ With no catcher on record, `mutate.mjs` tries `audit-inject` first for a `v200-*
 catcher still goes first. Order only, never the verdict. Add a prefix there when a new family has one suite built to
 see it.
 
-**Gate.** GATE_V200
+**Gate.** v2.00 shipped on a **text-only lean gate**, not `validate:math`. That was Brad's decision on 18 and 19 Oct: no
+mutation run before the merge, `mutate.mjs` read as text only. It ran on the pinned integration tree `e2d0bc6`, 19 Oct
+2026, Eastern. The merged `b71b18e` adds only `recovery/` records, and its board and tools are identical.
+
+What ran:
+- `npm run check` passed (6:22 am).
+- audit-import, whole and alone: ALL CHECKS PASSED (12 min 52 s).
+- Every other suite, one at a time: passed (audit-board, audit-recon, audit-hostile, audit-ppt, legacy-fsrc, boot-same,
+  audit-inject, audit-other, audit, audit-ui).
+- mcount: 2,015 of 2,015 targets match once.
+- `verify:grid` in both font lanes: only the carried limits (layout-fits D ×8, and toolbar-fits at 1152 px, which the left
+  menu later closed).
+- The text stages at 7:36 am, every one exit 0:
+  - defect register: 13 known defects, guarded by 43 mutations;
+  - money coverage: 26/26 surfaces;
+  - money map: 329 cells, 123 proven, 206 n/a, 0 open;
+  - trace matrix: every link holds;
+  - round-trip fuzz: nothing lost, seed 398037213;
+  - file verifier self-test: held.
+- `npm run standards` found 9 new findings in the new layout. **`main` shipped with them at `b71b18e`.** The fix
+  (`91484f0`, 0 findings at `bcc49cd`) was pushed to the branch after the merge and reached `main` with v2.01.
+
+**Not run:**
+- The mutation sweep, of any target. The 1,139 pre-v2.00 entries were not swept at this tree, and neither were the
+  ~880 v2.00 targets: they were proven one at a time against their own checks, never as a set (v2.02 item A1).
+- The per-commit check agents for the four 19 Oct blocker commits. The builders' checks and the every-suite run above
+  replaced them.
+- UI-C1's acceptance, repeated on the integrated tree.
+- The G22 cross-track review of the exports. The locked-views review was done by Codex (D3); its one finding, D3-1,
+  shipped in v2.01.
+- U37's round-8 tests review. It was stopped; its money review was clean.
+
+Records are on `claude/v200-fixes-wip`: `recovery/v200/evidence/final-e2d0bc6/` and
+`session-records/FINAL-GATE-RUNBOOK.md`.
 
 ### v2.01: what v2.00 left on its branch, a carriage return written as &#13;, a readable RECORD panel, a longer PID
 
