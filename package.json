@@ -31,6 +31,7 @@
     "audit:suites": "node tools/export-audit/boot-same.mjs && npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy && npm run audit:hostile && npm run audit:inject && npm run audit:ui",
     "coverage:money": "node tools/money-coverage.mjs",
     "validate:math": "node tools/validate-math.mjs",
+    "validate:nightly": "node tools/validate-math.mjs --no-sweep",
     "trace": "node tools/trace-matrix.mjs",
     "money-map": "node tools/money-map.mjs",
     "ia:census": "node tools/ia-census.mjs",
