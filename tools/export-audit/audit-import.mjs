@@ -7469,6 +7469,57 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (U4) ====
+// ==== v2.02 (E1, ledger U62): Save yours over theirs never says "Nothing was written" after it wrote a history copy ====
+// After a clash, Save yours over theirs keeps their copy (BOB-1) in the folder's history and then saves. If Bob saves again
+// while that copy is being kept (BOB-2), the save meets his newer copy and stops, and it said "… Nothing was written." --
+// although it had just written BOB-1 into the history. Nothing is lost and no dollar moves: the folder holds BOB-2, the history
+// BOB-1, and Brad's note is still on screen, unsaved. It now says nothing was written over their copy, and where the kept one
+// is. The CONTROL: an ordinary 💾 Save that meets a newer copy still says "Nothing was written.", which is true there.
+// FAILS ON c357911: the refusal after the history copy says "Nothing was written." and not "over their copy".
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.02 (E1) — Save yours over theirs never says “Nothing was written” after keeping their copy';
+  try {
+    const { OLD } = w2Fx();
+    const { J, wire, KEY, status, folder, connect, gate, until, tick, pause } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+    wire(T.ev, 'brad', KEY.brad);
+    const fold = folder(); connect(T.ev, T.w, fold);
+    const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json';
+    await T.ev('saveInPlace()'); await turns(10);
+    T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+    // Bob's copy lands (BOB-1): Brad's 💾 Save meets it.
+    const bobSaves = (note, dt) => { const j = fold.copy(fy), t = +((j.store && j.store.ts) || j.ts) + dt;
+      j.ts = t; j.store.ts = t; j.by = 'Bob'; j.store.years[fy].notes = Object.assign({}, j.store.years[fy].notes, { A: '', B: note });
+      fold.root.files[NM] = JSON.stringify(j); };
+    bobSaves('BOB-1', 5000);
+    const m0 = fold.hits.main || 0;
+    await T.ev('saveInPlace()'); await turns(10);
+    const s1 = status(T.ev);
+    chk(name, 'CONTROL — 💾 Save meets Bob’s newer copy', 'nothing is written, and the board says “Nothing was written.” and offers the choice',
+      J([(fold.hits.main || 0) - m0, /Nothing was written\./.test(s1), /over their copy/.test(s1), /Save yours over theirs/.test(s1)]), J([0, true, false, true]));
+    // Save yours over theirs: held at the close of the copy of theirs it keeps; Bob saves again meanwhile (BOB-2).
+    const g = gate(); fold.hold.hist = g;
+    const h0 = fold.hits.hist || 0;
+    const p = T.ev(`driveResolve('mine')`);
+    const reached = await until(() => (fold.hits.hist || 0) > h0);
+    bobSaves('BOB-2', 9000);
+    g.open(); await p; await turns(30);
+    const s2 = status(T.ev);
+    const histHas = re => Object.values((fold.root.dirs.history || { files: {} }).files).filter(t => re.test(t)).length;
+    chk(name, 'Save yours over theirs, Bob saves again while his copy is kept', 'the wait was reached; the folder holds BOB-2, the history BOB-1, nothing written over the folder’s copy, and Brad’s note still on screen (a control)',
+      J([reached, fold.note(fy, 'B'), histHas(/BOB-1/) >= 1, (fold.hits.main || 0) - m0, T.ev(`String(S.notes.A||'')`)]), J([true, 'BOB-2', true, 0, 'EDIT-1']));
+    chk(name, 'Save yours over theirs, Bob saves again while his copy is kept', 'the board does not say “Nothing was written.”: it says nothing was written over their copy, that the copy chosen is kept in the history, and offers the choice again',
+      J([/Nothing was written\./.test(s2), /Nothing was written over their copy\./.test(s2), /kept in the folder’s history/.test(s2), /Save yours over theirs/.test(s2), /✅ Saved/.test(s2)]),
+      J([false, true, true, true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.02 (E1) ====
 // ==== v2.00 (R5): a restore during a save stays unsaved ====
 // ↶ Put this back marked the board unsaved but did not count as a change. A folder save still writing when the copy was
 // put back found nothing changed while it wrote and marked the board saved: the earlier copy on screen, the save's copy in

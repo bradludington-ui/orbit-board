@@ -28257,7 +28257,7 @@ function driveStorePush(quiet, fy){
   const f=fy||MS.cur;
   return saveSerial(function(){ return _driveStorePushRun(quiet, f); });
 }
-async function _driveStorePushRun(quiet, fyAsked){
+async function _driveStorePushRun(quiet, fyAsked, keptTheirs){
   if(sandboxBlock('Writing to the shared folder')||cycBlock('Writing to the shared folder')) return;
   if(impMixedBlock('Writing to the shared folder', quiet)) return false;
   if(!driveStoreOn()) return false;
@@ -28299,7 +28299,9 @@ async function _driveStorePushRun(quiet, fyAsked){
   const theirs=cur? +((cur.store&&cur.store.ts)||cur.ts||0) : 0;
   // SAVED BY SOMEBODY AFTER THE COPY THIS WORK CAME FROM. With nothing recorded there is no telling,
   // so that asks too (v1.89) -- it used to write over it, which is the case that loses work unseen.
-  if(theirs && theirs!==driveBaseOf(ap, fy)){ driveClashSay(cur, true); render(); return false; }
+  // v2.02 (E1, ledger U62): after Save yours over theirs, their copy has just been written to the history, so "Nothing was
+  // written" would be untrue; the refusal says nothing was written over THEIR COPY, and where the one kept is.
+  if(theirs && theirs!==driveBaseOf(ap, fy)){ driveClashSay(cur, keptTheirs? 'kept' : true); render(); return false; }
   // ONE WRITER PER COPY (v1.95, item 58). The folder's first copy makes this browser its writer.
   const cw=cur? writerShape(cur.writer) : null;
   const may=writerMay(cw, !cur, quiet, (APPN_LBL[ap]||ap)+' FY'+(fy%100)+' in the shared folder');
@@ -28440,6 +28442,8 @@ function driveClashSay(j, refused){
     +(driveBaseOf(ap)? ', after the copy you are working from. '
       : ', and this browser has no record of which copy in the folder, if any, the work on screen came from. ')
     +(refused==='late'? 'Their copy landed while your save was under way, and <b>your save stopped before writing over it</b>. '
+      : refused==='kept'? '<b>Nothing was written over their copy.</b> The copy of theirs you chose to replace is kept in the '
+        +'folder\u2019s history (\ud83d\udce1 Live view \u2192 \u21b6 Earlier copies); they saved again after it. '
       : refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
     +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs\')">Load theirs</button> '
     +'(your work is kept aside, and one click puts it back) \u00b7 '
@@ -28484,7 +28488,7 @@ async function _driveResolveRun(which){
         +'Try again, or use \u2b07 Save a copy.'); render(); return false; }
     if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): and after keeping theirs, before it is decided
     driveBaseSet(ap, theirs);          // decided: theirs is the copy being replaced, and it is in the history
-    return await _driveStorePushRun(false);
+    return await _driveStorePushRun(false, 0, true);
   }
   if(liveTooNew(j)){ setStat(liveTooNewMsg(j, APPN_LBL[ap]||ap)); render(); return false; }
   if(!_hasPack(j.store)){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' carries no requirement data, so it was not loaded.'); render(); return false; }

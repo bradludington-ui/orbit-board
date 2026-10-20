@@ -6555,6 +6555,10 @@ const MUTATIONS = [
   { id: "v201-pid-limit-20", area: "codeMax", what: "the PID limit is back at 20: a 35-character PID typed is refused, and one in a file is listed as too long",
     find: "ccar:12, pid:35, clin:20,",
     repl: "ccar:12, pid:20, clin:20," },
+  // v2.02 (E1, ledger U62): Save yours over theirs keeps their copy in the history, then saves; a copy landed meanwhile stops it.
+  { id: "v202-e1-kept-says-nothing-written", area: "_driveStorePushRun", what: "after Save yours over theirs has kept their copy in the folder's history, a newer copy of theirs stops the save and the board says \"Nothing was written.\" -- although it wrote the history copy",
+    find: "driveClashSay(cur, keptTheirs? 'kept' : true)",
+    repl: "driveClashSay(cur, true)" },
   // v2.01 (Codex batch D5, from U44's round-7 reviews): fix round 6's part (h) counts a repeat's place past the keys of its own the
   // list already holds (`held`) in two places no check reached. Each is caught by its own CONTROL in audit-recon.mjs's U44 block
   // (three boards, dA four times, the first manager's return re-keying only Bravo Yard): "D5 S1" and "D5 SF2".
