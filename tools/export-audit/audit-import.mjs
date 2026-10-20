@@ -9347,6 +9347,51 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (U40) ====
+// ==== v2.02 (E3, ledger U72): a destination another board's plan still uses, by the key of its own it was given, says so ====
+// Full Fund's file, put right on another board (R1 on "dunassigned" Depot U -- the key of its own "unassigned" takes on every
+// board), opened on O&M in a browser whose newer list still holds "unassigned" Depot U2. Reading Full Fund's plan puts R1 on
+// Depot U2 (U44's part (c), destReadAs). But the count of who uses each destination (flowEntUseMap) filed Full Fund's
+// requirement under "dunassigned", a key this board does not hold: Depot U2's Used by was blank, and ✕ removed it with only
+// "Remove Depot U2?" -- the guard ("not removed … requirements point at it on …") never fired. Full Fund, opened later, made
+// a new "Depot U" for R1. Nothing was lost, but the panel and the guard were untrue. Now the count reads each key as the
+// reading does. CONTROLS: Alpha Depot, which Full Fund names by its own key, is counted as before; a destination nothing
+// else uses is still removed.
+// FAILS ON c357911: Depot U2's count from Full Fund is empty, and ✕ removes it.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.02 (E3) — a destination another board’s plan uses by its key of its own is counted there, and is not removed';
+  try {
+    const J = JSON.stringify;
+    const SC = { services: ['USAF', 'ANG', 'AFRC'], items: [v10It('R1', 'AV', [900, 0, 0]), v10It('R2', 'AV', [300, 0, 0])],
+      disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] };
+    const LIST = l => `DESTDB.ents.splice(0, DESTDB.ents.length); ${J(l)}.forEach(function(e){ DESTDB.ents.push(e); });`;
+    const dA = { k: 'dA', n: 'Alpha Depot', kind: 'gov', t: '' }, dZ = { k: 'dZ', n: 'Zulu Yard', kind: 'gov', t: '' };
+    const OLD = [dA, { k: 'unassigned', n: 'Depot U2', kind: 'other', t: '' }, dZ], PUT = [dA, { k: 'dunassigned', n: 'Depot U', kind: 'other', t: '' }];
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST(PUT)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'dunassigned',end:''}, R2:{to:'dA',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const Oc = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J({ ts: Date.now() + 60000, ents: OLD, lmap: {}, lsig: {}, conflicts: [], gone: [] }) } });
+    const ents = () => JSON.parse(Oc.ev(`JSON.stringify(flowEnts().map(function(e){ return e.k+':'+e.n; }))`));
+    const used = k => Oc.ev(`flowEntUseElseTxt(flowEntUseElse(${J(k)}))`);
+    chk(name, 'O&M opened, Full Fund in the file', 'CONTROL: the list is the browser’s -- Alpha Depot, “unassigned” Depot U2, Zulu Yard, no Depot U added -- and Alpha Depot is counted for Full Fund',
+      J([['dA:Alpha Depot', 'unassigned:Depot U2', 'dZ:Zulu Yard'].every(x => ents().includes(x)), ents().includes('dunassigned:Depot U'), used('dA')]), J([true, false, 'Full Fund (1)']));
+    chk(name, 'O&M opened, Full Fund in the file', 'Depot U2 is counted for Full Fund’s R1, which it reads onto it, and nothing is filed under a key the board does not hold',
+      J([used('unassigned'), used('dunassigned')]), J(['Full Fund (1)', '']));
+    const del = k => Oc.ev(`(function(){ var said=[]; window.alert=function(m){ said.push('A:'+m); }; window.confirm=function(m){ said.push('C:'+m); return true; };
+      var i=flowEnts().map(function(e){ return e.k; }).indexOf(${J(k)}); flowDelEnt(i); return JSON.stringify(said); })()`);
+    const s1 = JSON.parse(del('unassigned'));
+    chk(name, '✕ on Depot U2', 'it is not removed: the board says Full Fund’s requirements point at it, and asks nothing',
+      J([ents().includes('unassigned:Depot U2'), s1.length === 1 && /^A:Depot U2 is not removed/.test(s1[0]) && /Full Fund \(1\)/.test(s1[0])]), J([true, true]));
+    const s2 = JSON.parse(del('dZ'));
+    chk(name, '✕ on Zulu Yard', 'CONTROL: nothing else uses it, so it asks once and is removed',
+      J([ents().includes('dZ:Zulu Yard'), s2.length === 1 && /^C:/.test(s2[0])]), J([false, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.02 (E3) ====
 // ==== v2.00 (U18): a copy saved while a folder save is under way is never written over ====
 // The folder save read the folder's copy once, at the top, and wrote its own over whatever was there by the time it wrote.
 // Bob took the pen and saved BOB-2 while Brad's save was keeping the copy it had read in the history; Brad's save then wrote
@@ -9892,7 +9937,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
     const RESCUE = ["fullImportRescue('pre')", "fullImportRescue('inc')"];
     for (const how of ['saveInPlace()', 'driveStorePush(true)']) {
-      const sc = '(14) ' + (how === 'saveInPlace()' ? '💾 Save' : 'the Live autosave') + ' held at the close of its history copy; a full import stops part-way there, and Bob’s copy lands there';
+      for (const land of ['bob', 'gone']) {
+      // v2.02 (E4, ledger U60): and with the folder's copy GONE there rather than Bob's landing -- the hold is said on every stop,
+      // not only on the clash -- and browser storage, which the stopped import left holding its plan, is not written at all.
+      const sc = '(14' + (land === 'gone' ? 'b' : '') + ') ' + (how === 'saveInPlace()' ? '💾 Save' : 'the Live autosave') + ' held at the close of its history copy; a full import stops part-way there, and '
+        + (land === 'gone' ? 'the folder’s copy is removed there' : 'Bob’s copy lands there');
       const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
       wire(T.ev, 'brad', KEY.brad);
       const fold = folder(); connect(T.ev, T.w, fold);
@@ -9903,17 +9952,23 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const s0 = J(stamp(T.ev)), m0 = fold.hits.main || 0;
       const h = await held(T, fold, how);
       const ctl = stop(T), s1 = status(T.ev), b1 = buttons(T.ev);
-      const j = JSON.parse(v1), t = Date.now() + 1000; j.by = 'Bob'; j.ts = t; j.store.ts = t;
-      j.writer = { by: 'Bob', fp: 'c'.repeat(40), t }; j.store.years[fy].notes.A = 'BOB-2'; const bob = JSON.stringify(j); fold.root.files[nm] = bob;
-      chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on; its line offers both copies; Bob’s copy is the folder’s copy (a CONTROL)',
-        J([h.ok, ctl, RESCUE.map(b => b1.includes(b)), fold.note(fy, 'A')]), J([true, J([false, true, 'true']), [true, true], 'BOB-2']));
+      const ls1 = T.ev('localStorage.getItem(_AP.key)');     // the plan the stopped import left in browser storage
+      let bob = null;
+      if (land === 'gone') delete fold.root.files[nm];
+      else { const j = JSON.parse(v1), t = Date.now() + 1000; j.by = 'Bob'; j.ts = t; j.store.ts = t;
+        j.writer = { by: 'Bob', fp: 'c'.repeat(40), t }; j.store.years[fy].notes.A = 'BOB-2'; bob = JSON.stringify(j); fold.root.files[nm] = bob; }
+      chk(name, sc, 'the import stopped part-way, could not be put back, and the hold is on; its line offers both copies; the folder holds what was put there (a CONTROL)',
+        J([h.ok, ctl, RESCUE.map(b => b1.includes(b)), land === 'gone' ? fold.raw(fy) == null : fold.note(fy, 'A') === 'BOB-2']), J([true, J([false, true, 'true']), [true, true], true]));
       h.g.open(); const ret = await h.p; await turns(30);
-      chk(name, sc, 'nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was',
-        J([(fold.hits.main || 0) - m0, fold.raw(fy) === bob, ret === true, /✅ Saved/.test(status(T.ev)), T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]),
+      chk(name, sc, 'nothing is written in the folder: it holds what was put there; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was',
+        J([(fold.hits.main || 0) - m0, land === 'gone' ? fold.raw(fy) == null : fold.raw(fy) === bob, ret === true, /✅ Saved/.test(status(T.ev)), T.ev('String(DIRTY)'), J(stamp(T.ev)) === s0]),
         J([0, true, false, false, 'true', true]));
+      chk(name, sc, 'browser storage still holds, byte for byte, the plan the stopped import left there: the stopped save wrote nothing to it',
+        T.ev('localStorage.getItem(_AP.key)') === ls1, true);
       if (how === 'saveInPlace()') chk(name, sc, 'the board says writing to the shared folder is refused, and its line still offers the two copies the stopped import asked to be saved first',
         J([/Writing to the shared folder is refused/.test(status(T.ev)), RESCUE.map(b => buttons(T.ev).includes(b))]), J([true, [true, true]]));
       else chk(name, sc, 'the message line is the import’s own, unchanged', J(status(T.ev) === s1), J(true));
+      }
     }
   }
   } catch (e) {

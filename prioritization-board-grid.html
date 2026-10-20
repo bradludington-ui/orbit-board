@@ -16069,7 +16069,10 @@ function flowEntUseMap(){
   // the next reading of that plan puts its requirements there, so "Used by", a delete and a reset say so, not "Nothing points at it"
   // v2.00 (U44): a requirement on a key a full import moved counts where the key went (destMovedTo) -- ✕ on that destination
   // removed it while a kept plan still pointed at it, and the plan, opened, made it again from its old name
-  const bk=destBackMap()||{}, same=function(x){ x=destMovedTo(x); return (!destHas(x) && typeof bk[x]==='string' && destHas(bk[x]))? bk[x] : x; };
+  // v2.02 (E3, ledger U72): and a key of its own another board gave an entry this board still holds as it was ("dunassigned" for
+  // "unassigned", destReadAs) counts on that entry, where the reading puts its requirements: filed under the key, which this board
+  // does not hold, the entry's Used by was blank and ✕ removed it with nothing said
+  const bk=destBackMap()||{}, same=function(x){ x=destMovedTo(x); return (!destHas(x) && typeof bk[x]==='string' && destHas(bk[x]))? bk[x] : destReadAs(x); };
   const viaOld=function(m){ return function(x){ return Object.prototype.hasOwnProperty.call(m, x)? m[x] : ''; }; };
   Object.keys((CYCDB&&CYCDB.cycles)||{}).sort().forEach(function(c){
     add(appnName(mySlug())+' locked '+blLblTxt(c), destStoreStates(CYCDB.cycles[c]), same);
@@ -28369,14 +28372,17 @@ async function _driveStorePushRun(quiet, fyAsked, keptTheirs){
       // and the pen line goes from it.
       if(MS!==was.ms){ if(MS.ts===wroteTs){ MS.ts=was.ts; MS.by=was.by; }
         if(penLine){ const j=MS.jrnl||[], k=JSON.stringify(penLine); for(let i=j.length-1;i>=0;i--) if(JSON.stringify(j[i])===k){ j.splice(i,1); break; } } }
+      // v2.00 (U18): with the mixed-import hold set meanwhile, the hold is said, as U4's check below says it: under the hold the
+      // clash's two choices are refused, and the stopped import's message line offers the two copies to save before anything
+      // else (the quiet autosave leaves that line as it is). Their copy is the clash at the first save once saving is allowed.
+      // v2.02 (E4, ledger U60): BEFORE browser storage is written. The stopped import left its plan in browser storage and its
+      // line says so; persist() here wrote the work on screen over it, and while storage still refused, the autosave's own
+      // storage warning replaced the import's line and its two buttons. Under the hold nothing is written anywhere.
+      if(impMixedBlock('Writing to the shared folder', quiet)){ render(); return false; }
       // v2.00 (U18): a change typed meanwhile kept the working plan in browser storage as this save had stamped it, pen line and
       // all, and a reopen reads it from there: it is kept again as put back. Not under a locked view, where persist() refuses:
       // the next change keeps it there.
       if(MS===was.ms) persist();
-      // v2.00 (U18): with the mixed-import hold set meanwhile, the hold is said, as U4's check below says it: under the hold the
-      // clash's two choices are refused, and the stopped import's message line offers the two copies to save before anything
-      // else (the quiet autosave leaves that line as it is). Their copy is the clash at the first save once saving is allowed.
-      if(impMixedBlock('Writing to the shared folder', quiet)){ render(); return false; }
       if(now && MS.cur===fy) driveClashSay(now, 'late');
       else setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' '
         +(why? 'could not be read'+(cur? ' again' : '')+' just before it was to be written over \u2014 <b>'+esc(why)+'</b>'
