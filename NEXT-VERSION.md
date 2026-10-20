@@ -16,6 +16,37 @@ Current version: **v2.01**. Next: **v2.02**.
 
 These are decisions, not a go: nothing in the board changes until Brad says go.
 
+#### E1, E3, E4. The queued v2.00 follow-ups (Brad, 20 Oct 2026: "Let's start working through these"), built on the v2.02 branch
+Each check was run on `main`'s board (`c357911`) and on the fix, and each new mutation was built with `mkmut.py` and run
+against its own block. 2,027 targets, each matching once.
+- **E1 (ledger U62).** Say there was a clash and you pressed **Save yours over theirs**. The board keeps their copy in the
+  folder's history first. If they then saved again, your save stopped and said "Nothing was written.", although it had just
+  written their copy into the history. It now says nothing was written over their copy, and that the copy you chose to replace
+  is in the history (`_driveStorePushRun(quiet, fyAsked, keptTheirs)`, `driveClashSay(j, 'kept')`). The words were all that
+  was wrong: no copy was lost and no dollar moved.
+  audit-import "v2.02 (E1)": 1 check fails on `c357911`; it and its 2 CONTROLs pass here. Mutation
+  `v202-e1-kept-says-nothing-written`, caught.
+- **E3 (ledger U72).** Take Full Fund's file, put right on another board so that R1 sits on "dunassigned" Depot U. Open it on
+  O&M, in a browser whose list still holds "unassigned" Depot U2. Reading the plan puts R1 on Depot U2 (`destReadAs`), but the
+  count of who uses each destination (`flowEntUseMap`'s `same`) did not read keys that way. So Depot U2's Used by was blank,
+  and ✕ removed it after asking only "Remove Depot U2?". The count now reads each key as the reading does.
+  audit-import "v2.02 (E3)": 2 checks fail on `c357911`; all 4 pass here. Mutation `v202-e3-own-key-uncounted`, caught.
+  `v200-u40-backuse-uncounted` and `v200-u40-backuse-panel-reset-uncounted` were retargeted to the new line, the same
+  defect each; the U40 block catches them (6 checks and 1) and passes 146 of 146 here.
+- **E4 (ledger U60).** Under the mixed-import hold, U18's stopped folder save wrote the work on screen into browser storage,
+  over the plan the stopped import had left there, before the hold stopped it. The hold is now checked first.
+  In the U18 block:
+  - (14) checks browser storage byte for byte;
+  - (14b) repeats (14) with the folder's copy gone instead of Bob's copy landing;
+  - (8d) and (11d) do the same for browser storage and for a locked view's stamp.
+
+  4 checks fail on `c357911`; all 129 pass here. (8d) and (11d) pass on `c357911` too: they close U60's test gap (lines
+  checked only on a clash), not a defect.
+  Four mutations, `v202-e4-persist-before-hold`, `-hold-only-on-clash`, `-persist-only-on-clash` and `-view-only-on-clash`:
+  each caught. `v200-u18-hold-before-reread` was retargeted to the new order, and (13) still catches it.
+- **Not yet run on these commits:** audit-import whole and alone, and every other suite. Only the focused blocks above have
+  been run.
+
 ## Open
 
 #### 63. Found while building v1.95, not built
