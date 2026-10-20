@@ -11497,6 +11497,111 @@ await (async () => {
       }
       bootRelease(mk, []); await settleBoards();
     }
+    // (v2.01, Codex batch D5, from U44's round-7 reviews) A REPEAT'S PLACE WHEN THE LIST IS PART PUT RIGHT. Fix round 6's part (h)
+    // counts a repeat's place past every key of its own the list already holds (destRepAt's `held`), in two places no check reached:
+    // destFold's snapshot of the board's own list (`own`) and flowDelEnt's removal record. Both matter only when the list holds a
+    // repeat beside an entry already re-keyed -- a board not yet put right that has read part of another board's Put it right.
+    // THE BOARDS: three, 7ee498a's, each holding dA four times (Alpha Depot, Bravo Yard, Charlie Yard, Delta Dock), R1 on dA on the
+    // consolidated board, O&M package #1 issued from it and loaded by two managers' boards; all three then open in this version.
+    // The first manager puts the list right (Bravo Yard "ddar1", Charlie Yard "ddar2", Delta Dock "ddar3"), removes Charlie Yard and
+    // Delta Dock (nothing on either: an ordinary removal, no repeat left), and sends the work back; the consolidated board, not put
+    // right, takes it: its Bravo Yard takes "ddar1" (the key the return names), and Charlie Yard and Delta Dock are still repeats of
+    // dA -- the list the two places read. The second manager puts the list right too, puts R2 on one of the two the first removed,
+    // and sends the work back; the consolidated board takes it, reopened. (The spec named the first a Full Fund manager; both are
+    // O&M managers here, because an O&M return is what re-keys the consolidated board's own list -- destMigrate -- and a second
+    // appropriation would need a Full Fund plan on 7ee498a's board the block's fixtures do not build.)
+    // SF2: the consolidated board removes nothing; R2 on Charlie Yard ("ddar2" on the second manager's board). BY HAND: Charlie
+    // Yard is the second entry with dA on every board, so its key of its own is "ddar2" and Delta Dock's "ddar3" -- counted past
+    // "ddar1", which Bravo Yard already holds. R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, one Delta Dock, the keys
+    // dA, ddar1, ddar2, ddar3; the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400. Counted without `held` (the place
+    // "ddar1" not skipped), Charlie Yard's key read "ddar1" and Delta Dock's "ddar2": the return's Charlie Yard was read as Delta
+    // Dock, and R2 and its 300 came across on Delta Dock. CONTROL, mutation v200-u44-d5-fold-held-gone.
+    // S1: before the second return, the consolidated user removes Delta Dock, the repeat ("No requirement is changed"). BY HAND:
+    // Delta Dock is the third entry with dA, so it is kept as removed under "ddar3" (past "ddar1", which Bravo Yard holds). The
+    // second manager's R2 is on Delta Dock ("ddar3"): something points at it, so it comes back, by its name -- R1 on Alpha Depot,
+    // R2 on Delta Dock, one Delta Dock, removed under "ddar3" and nothing else; the workbook Alpha Depot 1,100, Delta Dock 300,
+    // OGC 1,400. Recorded without the list's keys (`held`), the removal took "ddar2" -- Charlie Yard's place -- so Charlie Yard's
+    // key read "ddar3", the return's Delta Dock was read as Charlie Yard, and R2 and its 300 came across on Charlie Yard, Delta Dock
+    // gone. CONTROL, mutation v200-u44-d5-remove-held-gone. (S1 does not count Charlie Yards: a fold without `held` leaves this
+    // board's repeat beside the return's Charlie Yard, which is SF2's to see.)
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        // the four entries as the list holds them, [key, name], and the keys of its own kept as removed
+        const four = X => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return /^(Alpha Depot|Bravo Yard|Charlie Yard|Delta Dock)$/.test(e.n); }).map(function(e){ return [String(e.k), e.n]; }))`));
+        const goneOwn = X => JSON.parse(X.ev(`JSON.stringify(DESTDB.gone.filter(function(g){ return /^ddar/.test(g); }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        // ✕ on the entry named `nm`, every question answered yes: [removed, the question said no requirement changes]
+        const del = (X, nm) => JSON.parse(X.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var i=flowEnts().findIndex(function(e){ return e.n===${J(nm)}; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([i>=0, qs.some(function(q){ return /No requirement is changed/.test(q); })]); })()`));
+        const FOUR = [dA, dA2, D('dA', 'Charlie Yard'), D('dA', 'Delta Dock')];
+        const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+        for (const sec of ['SF2', 'S1']) {
+          const { X: C0 } = make({ ents: FOUR, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: F0 } = make({ ents: FOUR, html: old }), { X: M0 } = make({ ents: FOUR, html: old });
+          const l0 = [notIn(JSON.parse(await one(F0.ev, iss, ISSF))), notIn(JSON.parse(await one(M0.ev, iss, ISSF)))];
+          // the first manager: put right, Charlie Yard and Delta Dock removed, the work sent back
+          const F = boot({ ls: lsOf(F0.ev) }), ff = fixIt(F), F2 = boot({ ls: lsOf(F.ev) });
+          const fd = [del(F2, 'Charlie Yard'), del(F2, 'Delta Dock')], fk = four(F2);
+          const retF = capFile(F2.ev, 'pkgReturn();', 'application/json');
+          // the second manager: put right, R2 on one of the two the first removed, the work sent back
+          const to = sec === 'S1' ? 'Delta Dock' : 'Charlie Yard';
+          const M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, to))}); 'ok'`);
+          const mk2 = [keyOf(M2, to), on(M2, 'R2')];
+          const retM = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          // the consolidated board, not put right, takes the first return, then (S1) removes Delta Dock, then takes the second
+          const C = boot({ ls: lsOf(C0.ev) });
+          const [a1] = JSON.parse(await take(C.ev, retF, RETF));
+          let C2 = boot({ ls: lsOf(C.ev) });
+          const mixed = four(C2);
+          const cd = sec === 'S1' ? del(C2, 'Delta Dock') : null;
+          if (sec === 'S1') C2 = boot({ ls: lsOf(C2.ev) });
+          const g = goneOwn(C2);
+          const [a2] = JSON.parse(await take(C2.ev, retM, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          if (sec === 'SF2') {
+            w5Chk(name, 'CONTROL · D5 SF2 · three boards 7ee498a left holding dA four times (Alpha Depot, Bravo Yard, Charlie Yard, Delta Dock), O&M package #1 out with R1 on Alpha Depot, loaded by two managers'
+              + ' · the first manager put right, removes Charlie Yard and Delta Dock, ⬆ Send my work back, taken by the consolidated board (not put right) · the second manager put right, R2 on Charlie Yard, ⬆ Send my work back, taken by the consolidated board, reopened',
+              'mutation v200-u44-d5-fold-held-gone: the consolidated board after the first return holds Alpha Depot dA, Bravo Yard ddar1, Charlie Yard dA, Delta Dock dA; after the second, R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, one Delta Dock, the keys dA, ddar1, ddar2, ddar3; the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400',
+              J([l0, [ff.threw, ff.qs], fd, fk, [fm.threw, fm.qs], mk2, notIn(a1), mixed, g, notIn(a2), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Charlie Yard'), named(C3, 'Delta Dock'), four(C3),
+                JSON.parse(await book(C3, 'Charlie Yard'))]),
+              J([[0, 0], ['', 1], [[true, false], [true, false]], [['dA', 'Alpha Depot'], ['ddar1', 'Bravo Yard']], ['', 1], ['ddar2', 'Charlie Yard'], 0,
+                [['dA', 'Alpha Depot'], ['ddar1', 'Bravo Yard'], ['dA', 'Charlie Yard'], ['dA', 'Delta Dock']], [], 0, 'Alpha Depot', 'Charlie Yard', ['Charlie Yard'], ['Delta Dock'],
+                [['dA', 'Alpha Depot'], ['ddar1', 'Bravo Yard'], ['ddar2', 'Charlie Yard'], ['ddar3', 'Delta Dock']],
+                JSON.parse(BOOK([['Alpha Depot', 1100], ['Charlie Yard', 300]], 1400, 3, 1))]));
+          } else {
+            w5Chk(name, 'CONTROL · D5 S1 · three boards 7ee498a left holding dA four times (Alpha Depot, Bravo Yard, Charlie Yard, Delta Dock), O&M package #1 out with R1 on Alpha Depot, loaded by two managers'
+              + ' · the first manager put right, removes Charlie Yard and Delta Dock, ⬆ Send my work back, taken by the consolidated board (not put right), which then removes Delta Dock (a repeat)'
+              + ' · the second manager put right, R2 on Delta Dock, ⬆ Send my work back, taken by the consolidated board, reopened',
+              'mutation v200-u44-d5-remove-held-gone: the consolidated board after the first return holds Alpha Depot dA, Bravo Yard ddar1, Charlie Yard dA, Delta Dock dA; Delta Dock removed as a repeat, kept as removed under ddar3 alone; after the second return, R1 on Alpha Depot, R2 on Delta Dock, one Delta Dock; the workbook Alpha Depot 1,100, Delta Dock 300, OGC 1,400',
+              J([l0, [ff.threw, ff.qs], fd, fk, [fm.threw, fm.qs], mk2, notIn(a1), mixed, cd, g, notIn(a2), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Delta Dock'),
+                JSON.parse(await book(C3, 'Delta Dock'))]),
+              J([[0, 0], ['', 1], [[true, false], [true, false]], [['dA', 'Alpha Depot'], ['ddar1', 'Bravo Yard']], ['', 1], ['ddar3', 'Delta Dock'], 0,
+                [['dA', 'Alpha Depot'], ['ddar1', 'Bravo Yard'], ['dA', 'Charlie Yard'], ['dA', 'Delta Dock']], [true, true], ['ddar3'], 0, 'Alpha Depot', 'Delta Dock', ['Delta Dock'],
+                JSON.parse(BOOK([['Alpha Depot', 1100], ['Delta Dock', 300]], 1400, 3, 1))]));
+          }
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }

@@ -6555,6 +6555,15 @@ const MUTATIONS = [
   { id: "v201-pid-limit-20", area: "codeMax", what: "the PID limit is back at 20: a 35-character PID typed is refused, and one in a file is listed as too long",
     find: "ccar:12, pid:35, clin:20,",
     repl: "ccar:12, pid:20, clin:20," },
+  // v2.01 (Codex batch D5, from U44's round-7 reviews): fix round 6's part (h) counts a repeat's place past the keys of its own the
+  // list already holds (`held`) in two places no check reached. Each is caught by its own CONTROL in audit-recon.mjs's U44 block
+  // (three boards, dA four times, the first manager's return re-keying only Bravo Yard): "D5 S1" and "D5 SF2".
+  { id: "v200-u44-d5-remove-held-gone", area: "flowDelEnt", what: "✕ on a repeat keeps it removed without counting past the keys of its own the list holds: the consolidated board, holding Bravo Yard as \"ddar1\" from one manager's return, removes Delta Dock under \"ddar2\" (Charlie Yard's place), and the second manager's R2, on Delta Dock there, comes across on Charlie Yard, the workbook Charlie Yard 300 (D5 S1)",
+    find: "g=destOwnKey(e.k, destRepAt(e.k, m, DESTDB.gone, L.map(function(y){ return y.k; })));",
+    repl: "g=destOwnKey(e.k, destRepAt(e.k, m, DESTDB.gone));" },
+  { id: "v200-u44-d5-fold-held-gone", area: "destFold", what: "a board not yet put right reads its repeats' keys of their own without counting past the keys its list holds: the consolidated board, holding Bravo Yard as \"ddar1\" from one manager's return, reads the second manager's Charlie Yard (\"ddar2\") as its Delta Dock, and R2 and its 300 come across on Delta Dock (D5 SF2)",
+    find: "destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });",
+    repl: "destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone)) : null]; });" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
