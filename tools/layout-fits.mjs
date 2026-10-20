@@ -25,6 +25,12 @@
 //      v1.90 pushed Fund's allocation box off the row at 761-884px and Rank's star at 761-804, cut Brief's
 //      last money column, and scrolled sideways at 761-808; nothing looked below 1024.
 //
+//   K. (v2.01, Brad 20 Oct: "no unreadable areas in the record panel") Nothing in the RECORD panel is cut or hidden, for any
+//      requirement, at 1920, 1440, 1366, 1280 and 1024 in every density, sliding over and docked: the panel never scrolls sideways; no text
+//      is clipped, ends in an ellipsis or spills out of its cell; nothing sits past the panel's edge; no field cuts its value; no picker cuts the name it
+//      shows. On a board with a BAE list and a requirement short by ten-digit figures in every service. It used to print the UFR
+//      total as "$655,479,0..." and cut the budget pickers' names.
+//
 //   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
 //   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
 //   1400px is the layout these checks were written against (v1.89 clipped the row menus there), and beside the sidebar it
@@ -82,19 +88,32 @@ ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BAS
   applyState(S); save(); 'ok'`);
 const file = join(dir, 'board.html');
 writeFileSync(file, ev('buildSavedHtml()'));
+// K's board (v2.01): the same, with a BAE list whose names run long, a choice made, and a requirement no lane can reach that
+// is short by ten-digit figures in every service -- the widest money and the longest names the RECORD panel has to print
+ev(`DATA.items.push({id:'R020', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Requirement 20 with a long title that runs on past one line',
+    event:'Requirement 20', ccar:'', fy26:SVC.map(function(){ return 0; }), ask:[9876543210, 1234567890, 2345678901, 3456789012, 4567890123, 5678901234], alloc:null});
+  BASE_ITEMS.push(DATA.items[DATA.items.length-1]); BASE_ASK.R020=DATA.items[DATA.items.length-1].ask.slice(); S.order.push('R020'); S.band.R020='safety';
+  S.ccar.R020='JSF9999'; S.pid.R020='PID-'+'7'.repeat(31);
+  BUDDB={ts:1700000000041, files:[], rows:['USAF O&M- CAM Discretionary PSM', 'USAF O&M - CAM OBBBA Mandatory PSM', 'USAF O&M- CAM CONG PSM',
+    'USAF O&M - ANG CAM Discretionary PSM', 'USAF O&M - ANG CAM OBBBA Mandatory PSM', 'USMC STOVL O&M -1A9A FL Discretionary PSM',
+    'USN O&M CV Discretionary PSM'].map(budParseName).filter(Boolean)}; _budRegCache=null;
+  if(!S.budgetAsg) S.budgetAsg={}; S.budgetAsg.R020={'USAF|disc':'USAF O&M- CAM CONG PSM'}; S.budgetAsg.R001={'USAF|disc':'USAF O&M- CAM CONG PSM'};
+  applyState(S); save(); 'ok'`);
+const fileK = join(dir, 'board-k.html');
+writeFileSync(fileK, ev('buildSavedHtml()'));
 
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 // v2.00 (UI S4, fix round): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside
 // the table sets it (prio27uiDock = '1' in this browser). Without it the panel slides over the table, the board's default.
 const PASSES = [['sliding over', false], ['docked', true]];
-const open = async (w, h, mode, density, docked = false) => {
+const open = async (w, h, mode, density, docked = false, at = file) => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
   await ctx.addInitScript(([m, d]) => { try { localStorage.setItem('spmtTheme', 'harbor');
     if (m) localStorage.setItem('spmtMode', m); if (d) localStorage.setItem('spmtDensity', d); } catch (e) {} }, [mode || '', density || '']);
   if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.goto('file://' + file);
+  await p.goto('file://' + at);
   await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
   await p.waitForTimeout(250);
   return { p, ctx, errs };
@@ -344,6 +363,60 @@ for (const [pass, docked] of PASSES) {
   chk(`I · and the nine-digit one is printed whole (${pass})`, big >= 9, `$123,456,789 seen ${big} time(s)`);
   chk(`I · the figures were read in the RECORD panel ${docked ? 'docked beside the grid at 1920 and 1440, a drawer at 1024' : 'as a drawer at every width'} (${pass})`,
     misplaced.length === 0, misplaced.slice(0, 3).join('; '));
+}
+
+// ── K. NOTHING IN THE RECORD PANEL IS CUT OR HIDDEN (v2.01) ─────────────────────────────────────────────
+// Read in the page, after each requirement is selected: what a person would see cut, said by element and text.
+const unreadable = () => {
+  const ins = document.getElementById('inspector'), out = [];
+  const ir = ins.getBoundingClientRect(), right = ir.left + ins.clientWidth;
+  const say = e => { const t = (e.value !== undefined && e.tagName !== 'SELECT' ? e.value : e.textContent || '').replace(/\s+/g, ' ').trim();
+    return (e.className && typeof e.className === 'string' ? e.tagName.toLowerCase() + '.' + e.className.split(' ')[0] : e.tagName.toLowerCase())
+      + ' "' + t.slice(0, 50) + '"'; };
+  const cv = document.createElement('canvas').getContext('2d');
+  for (const e of [ins, ...ins.querySelectorAll('*')]) {
+    const b = e.getBoundingClientRect(); if (!b.width || !b.height) continue;
+    const cs = getComputedStyle(e); if (cs.visibility === 'hidden') continue;
+    if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && e.scrollWidth > e.clientWidth + 1) { out.push('scrolls sideways: ' + say(e) + ' ' + e.scrollWidth + '>' + e.clientWidth); continue; }
+    if (e.tagName === 'SELECT') {
+      const o = e.options[e.selectedIndex]; if (!o) continue;
+      cv.font = cs.font; const tw = cv.measureText(o.text).width;
+      const room = e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20;
+      if (tw > room + 1) out.push('picker cuts its name: "' + o.text.slice(0, 60) + '" ' + Math.round(tw) + '>' + Math.round(room));
+      continue;
+    }
+    if (e.tagName === 'INPUT' && /^(text|search|number|)$/.test(e.type) && e.scrollWidth > e.clientWidth + 1) { out.push('field cuts its value: ' + say(e)); continue; }
+    const own = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (own && (cs.textOverflow === 'ellipsis' || /hidden|clip/.test(cs.overflowX)) && e.scrollWidth > e.clientWidth + 1) { out.push('text cut: ' + say(e) + ' ' + e.scrollWidth + '>' + e.clientWidth); continue; }
+    if ((own || /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.tagName)) && (b.right > right + 1 || b.left < ir.left - 1)) { out.push('past the panel edge: ' + say(e) + ' ends at ' + Math.round(b.right) + ' of ' + Math.round(right)); continue; }
+    // text that is not cut can still spill out of its cell, over its neighbour's
+    const cell = own && e.closest('td, th');
+    if (cell && cell !== e && ins.contains(cell)) { const c = cell.getBoundingClientRect();
+      if (b.right > c.right + 1 || b.left < c.left - 1) out.push('spills out of its cell: ' + say(e) + ' ' + Math.round(b.left) + '-' + Math.round(b.right) + ' in ' + Math.round(c.left) + '-' + Math.round(c.right)); }
+    else if (own && /^(TD|TH)$/.test(e.tagName) && e.scrollWidth > e.clientWidth + 1) out.push('spills out of its cell: ' + say(e) + ' ' + e.scrollWidth + '>' + e.clientWidth);
+  }
+  return [...new Set(out)];
+};
+for (const [pass, docked] of PASSES) {
+  const fails = []; let seen = 0, big = 0;
+  for (const [w, h] of [[1920, 1000], [1440, 900], [1366, 768], [1280, 800], [1024, 768]]) for (const d of ['compact', 'comfortable', 'presentation']) {
+    const { p, ctx } = await open(w, h, 'review', d, docked, fileK);
+    const r = await p.evaluate(async (fn) => {
+      const look = (0, eval)('(' + fn + ')'), out = []; let n = 0, whole = 0;
+      for (const row of [...document.querySelectorAll('#list .row')]) {
+        row.click(); await new Promise(res => setTimeout(res, 10)); n++;
+        look().forEach(x => out.push(row.id + ': ' + x));
+        if (/\$9,876,543,210/.test(document.getElementById('inspector').textContent)) whole++;
+      }
+      return { out, n, whole };
+    }, unreadable.toString());
+    seen += r.n; big += r.whole;
+    r.out.slice(0, 3).forEach(x => fails.push(`${w}px ${d}: ${x}`));
+    await ctx.close();
+  }
+  chk(`K · nothing in the RECORD panel is cut or hidden, for any requirement, at 1920, 1440, 1366, 1280 and 1024 in every density (${pass})`,
+    fails.length === 0 && seen > 0, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 4).join('; ')}` : `${seen} records read`);
+  chk(`K · the ten-digit shortfall was on the board, and read (${pass})`, big >= 15, `$9,876,543,210 seen ${big} time(s)`);
 }
 
 // ── J. 761-1023px, EVERY WIDTH, EVERY MODE (v1.91, item 31) ─────────────────────────────────────────────

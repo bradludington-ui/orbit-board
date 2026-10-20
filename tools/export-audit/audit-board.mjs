@@ -4051,12 +4051,16 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const L = n => 'A'.repeat(n);
   const ask = (code, answers) => w1json(ev, `JSON.stringify((function(){ __pr=[]; __ans=${J(answers)}; setStat(''); ${code};
       return {pr:__pr.slice(), stat:document.getElementById('shareStat').textContent}; })())`);
-  // PID: 21 refused (kept PID-OLD; the box opens again holding the 21); 20 taken (a CONTROL)
-  let r = ask(`editPid('X')`, [L(21)]);
-  chk(name, 'PID, typed', '21 characters: refused, the PID stays, and the box opens again holding what was typed',
-    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 20/.test(r.stat)]), J(['PID-OLD', 2, L(21), true]));
-  ask(`editPid('X')`, [L(20)]);
-  chk(name, 'PID, typed', 'CONTROL — 20 characters are taken whole', w1ev(ev, `S.pid.X`), L(20));
+  // PID: 36 refused (kept PID-OLD; the box opens again holding the 36); 35 taken (a CONTROL). v2.01 (Brad, 20 Oct): the limit
+  // is 35, not 20 -- a 21- to 35-character PID, refused before, is taken whole, and the prompt says the limit
+  let r = ask(`editPid('X')`, [L(36)]);
+  chk(name, 'PID, typed', '36 characters: refused, the PID stays, and the box opens again holding what was typed',
+    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 35/.test(r.stat)]), J(['PID-OLD', 2, L(36), true]));
+  ask(`editPid('X')`, [L(35)]);
+  chk(name, 'PID, typed', 'CONTROL — 35 characters are taken whole', w1ev(ev, `S.pid.X`), L(35));
+  const pq = w1json(ev, `JSON.stringify((function(){ var q=''; var _p=uiPrompt; uiPrompt=function(t){ q=String(t); };
+    try{ editPid('X'); } finally { uiPrompt=_p; } return q; })())`);
+  chk(name, 'PID, typed', 'v2.01: the prompt says the limit is 35', String(/\(up to 35 characters\):$/.test(pq)), 'true');
   // CCaR record: 13 refused, 12 taken
   r = ask(`editCcar('X')`, [L(13)]);
   chk(name, 'CCaR record, typed', '13 characters: refused, the record stays, and the box opens again holding them',
@@ -4108,10 +4112,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return [S.ccar[id], pf, at]; })())`);
   chk(name, 'a PMO submittal', 'its 15-character CCaR record is kept whole, listed under Pre-flight and under Needs attention', J(im), J([L(15), 1, 1]));
   // A FILE THAT CARRIES ONE: kept whole through save and reopen, and listed
-  w1ev(ev, `S.pid.P=${J(L(25))}; save(); 'ok'`);
+  w1ev(ev, `S.pid.P=${J(L(36))}; S.pid.X=${J(L(35))}; save(); 'ok'`);
   const R = boot({ html: ev('buildSavedHtml()') });
-  chk(name, 'a saved file carrying a 25-character PID', 'reopened, it is kept whole and Needs attention lists it',
-    w1ev(R.ev, `JSON.stringify([S.pid.P, (attLists().code||[]).some(function(x){ return x.id==='P'; })])`), J([L(25), true]));
+  chk(name, 'a saved file carrying a 36-character PID', 'reopened, it is kept whole and Needs attention lists it',
+    w1ev(R.ev, `JSON.stringify([S.pid.P, (attLists().code||[]).some(function(x){ return x.id==='P'; })])`), J([L(36), true]));
+  chk(name, 'a saved file carrying a 35-character PID', 'CONTROL — v2.01: at the limit, it is kept and not listed',
+    w1ev(R.ev, `JSON.stringify([S.pid.X, codeIssues().some(function(x){ return x.id==='X' && x.kind==='pid'; })])`), J([L(35), false]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }

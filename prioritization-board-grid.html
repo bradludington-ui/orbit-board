@@ -355,8 +355,13 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-split th{font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);
   font-weight:800;text-align:right;padding:0 3px 3px}
 .insp-split th.l{text-align:left}
-.insp-split td{padding:2px 3px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
+/* v2.01 (Brad, 20 Oct: "no unreadable areas in the record panel"): A FIGURE IS NEVER CUT. The cells clipped with an
+   ellipsis, so a UFR total read "$655,479,0..." -- money a person cannot read is money they cannot check. A figure is one
+   unbreakable span (.fig); what sits beside it (the reset arrow, a "drew" or "lane short" line) wraps under it; and the UFR
+   column is as wide as its widest figure (inspectorBody sets it). layout-fits K fails on any cut or spilled figure. */
+.insp-split td{padding:2px 3px;text-align:right;font-variant-numeric:tabular-nums;white-space:normal;
+  overflow:visible;text-overflow:clip}
+.insp-split .fig{white-space:nowrap}
 .insp-split td.l{text-align:left;font-weight:700}
 .insp-split input{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line2);
   border-radius:4px;color:var(--ink);font:700 10.5px/1.5 inherit;padding:2px 4px;text-align:right;
@@ -371,11 +376,15 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .budfam{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
 .budfam label{font-size:var(--lbl,9.5px);letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:800}
 .budfam select,.budtab select{width:100%;min-width:0;min-height:24px}
-.budtab{width:100%;border-collapse:collapse;table-layout:fixed}
-.budtab th{width:88px;text-align:left;vertical-align:top;padding:4px 6px 4px 0;font-size:11px;font-weight:800}
-.budtab th .budlane{display:block;font-size:9.5px;font-weight:600;color:var(--mut)}
-.budtab td{padding:3px 0;vertical-align:top}
-.budtab td:last-child{width:56px;text-align:right}
+/* v2.01 (Brad, 20 Oct: "no unreadable areas in the record panel"): THE PICKER TAKES THE PANEL'S WIDTH. Beside an 88px label
+   column it had about 270px, and a rule's name ("— the rule: USMC STOVL O&M -1A9A FL Discretionary PSM —") was cut. Each
+   line is now its label, then the picker across the panel, then clear; layout-fits K fails on a picker that cuts its name. */
+.budtab{width:100%;border-collapse:collapse}
+.budtab tr{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:6px;padding:3px 0}
+.budtab th{grid-column:1/-1;text-align:left;padding:2px 0 1px;font-size:11px;font-weight:800}
+.budtab th .budlane{display:inline;margin-left:6px;font-size:9.5px;font-weight:600;color:var(--mut)}
+.budtab td{padding:0;vertical-align:top;min-width:0}
+.budtab td:last-child{text-align:right}
 .budhow{font-size:9.5px;color:var(--mut);margin-top:2px}
 .budhow.unset,.budhow.legacy,.budhow.invalid{color:var(--ink);font-weight:700}
 .budhow.unset::before,.budhow.legacy::before{content:"\26a0  "}
@@ -3253,7 +3262,7 @@ const ATT_KIND={
   buy:{t:'✈ BUY QUANTITIES TO REPAIR', go:'Go to it',
     why:'A quantity is a whole number from 0, a unit cost is whole dollars, and the two make a figure the board holds exactly. These came in a saved file as they are. Each is kept exactly as it was saved, and that service\u2019s buy counts as <b>$0</b> in every figure until it is typed again: <b>Go to it</b> opens the Aircraft &amp; Engine buy table.'},
   code:{t:'✂ CODES LONGER THAN THEIR LIMIT', go:'Go to it',
-    why:'A CCaR record is at most 12 characters, a PID 20, a CLIN number 20, a CLIN description 140 and a WBS 40. These arrived longer, in a file or from another board, and are kept whole \u2014 never cut, because a cut code can be another record. CCaR may not match them: correct each where it is set. <b>Go to it</b> selects the requirement.'},
+    why:'A CCaR record is at most 12 characters, a PID 35, a CLIN number 20, a CLIN description 140 and a WBS 40. These arrived longer, in a file or from another board, and are kept whole \u2014 never cut, because a cut code can be another record. CCaR may not match them: correct each where it is set. <b>Go to it</b> selects the requirement.'},
   si:{t:'🏷 SI CODES TO REPAIR', go:'Go to it',
     why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s RECORD panel, where its Navy SI code shows the code as saved.'},
   awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
@@ -9912,7 +9921,8 @@ function inShow(v){ const s=String(v); return '“'+(s.length>60? s.slice(0,60)+
 // so a 13-character CCaR record typed by mistake was stored as its first 12 -- which can be another record. Typed, it is
 // now refused and nothing changes; arriving in a file, it is kept whole and flagged (codeIssues). The limits are the ones
 // the board always had. A function, not a table: render() reads it before the boot line a const would sit on.
-function codeMax(kind){ return {ccar:12, pid:20, clin:20, clinDesc:140, wbs:40, rcn:10, eeic:10, ppbe:12}[kind]||0; }
+// v2.01 (Brad, 20 Oct): a PID is up to 35 characters (it was 20).
+function codeMax(kind){ return {ccar:12, pid:35, clin:20, clinDesc:140, wbs:40, rcn:10, eeic:10, ppbe:12}[kind]||0; }
 function codeName(kind){ return {ccar:'CCaR record', pid:'PID', clin:'CLIN number', clinDesc:'CLIN description', wbs:'WBS',
   rcn:'RCN', eeic:'EEIC', ppbe:'PPBE line code'}[kind]||'code'; }
 // A typed code: {v} trimmed, or {why} when it is longer than its limit (nothing is to change).
@@ -11950,7 +11960,7 @@ function togglePtype(id){
 }
 function editPid(id, typed){
   const it=itemById(id); if(!it) return;
-  uiPrompt('PID number for "'+dispTitle(it)+'" (up to 20 characters):', typed!=null? typed : pidOf(it), v=>{
+  uiPrompt('PID number for "'+dispTitle(it)+'" (up to '+codeMax('pid')+' characters):', typed!=null? typed : pidOf(it), v=>{
     if(v===null) return;
     // v1.99 (item 91): longer than 20 is refused -- the PID stays, and the box opens again holding what was typed
     const r=codeTake(v, 'pid'); if(r.why){ setStat('\u26a0 <b>PID not changed.</b> '+esc(r.why)+'.'); editPid(id, v); return; }
@@ -32276,6 +32286,7 @@ function drawerOpen(){
   const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
   if(!p) return;
   p.classList.add('open'); if(s) s.classList.add('on');
+  try{ inspSplitFit(); }catch(e){}
   // A drawer that traps nothing still has to be escapable, and a panel that opens under the
   // keyboard's feet is a panel a keyboard user cannot reach.
   p.setAttribute('role','dialog'); p.setAttribute('aria-modal','false');
@@ -32320,6 +32331,34 @@ function gridAfterRender(){
   inspectorBody();
   gridSticky();
 }
+// v2.01 (Brad, 20 Oct: "no unreadable areas in the record panel"): THE BY SERVICE TABLE FITS ITS FIGURES. The panel is 430-574px
+// wide, and a requirement short by billions in several services needs more than three equal money columns and a UFR column
+// can give at the table's own size: the boxes cut "9,876,543,210" and the total spilled out of its cell. So, once the panel is
+// drawn, the table's type steps down half a pixel at a time until every box shows its whole value and every figure sits in
+// its cell -- never below 9px. A board of ordinary figures never shrinks. Run again when the drawer opens and on a resize,
+// because the panel's width is the thing measured. layout-fits K holds the result.
+function inspSplitFit(){
+  const tb = document.querySelector('#inspector .insp-split'); if(!tb || !tb.clientWidth) return;
+  const ins = [].slice.call(tb.querySelectorAll('input')), figs = [].slice.call(tb.querySelectorAll('.fig'));
+  tb.style.fontSize = ''; ins.forEach(function(i){ i.style.fontSize = ''; });
+  const fits = function(){
+    if(ins.some(function(i){ return i.scrollWidth > i.clientWidth + 1; })) return false;
+    return !figs.some(function(f){ const c = f.closest('td'); if(!c) return false;
+      const a = f.getBoundingClientRect(), b = c.getBoundingClientRect(); return a.right > b.right + 1 || a.left < b.left - 1; });
+  };
+  if(fits()) return;
+  const t0 = parseFloat(getComputedStyle(tb).fontSize) || 11, i0 = ins.length ? (parseFloat(getComputedStyle(ins[0]).fontSize) || 11.5) : t0;
+  for(let k = 1; ; k++){
+    const ft = Math.max(9, t0 - k/2), fi = Math.max(9, i0 - k/2);
+    tb.style.fontSize = ft + 'px'; ins.forEach(function(i){ i.style.fontSize = fi + 'px'; });
+    if(fits() || (ft === 9 && fi === 9)) return;
+  }
+}
+window.addEventListener('resize', function(){ try{ inspSplitFit(); }catch(e){} });
+// the docked panel takes its width after it is drawn (the grid beside it settles later), so a change of width fits again
+(function(){ try{ const p = document.getElementById('inspector'); if(!p || typeof ResizeObserver !== 'function') return;
+  let w = -1; new ResizeObserver(function(){ const n = p.clientWidth; if(n !== w){ w = n; try{ inspSplitFit(); }catch(e){} } }).observe(p);
+}catch(e){} })();
 // The row is for TRIAGE: rank, star, band, lifecycle. Every edit of the selected requirement
 // belongs on the RECORD inspector, so the handlers that made the row a second editor are stripped
 // here rather than by forking render() (once shared with the card build, retired in v1.88); this is
@@ -32386,6 +32425,8 @@ function inspectorBody(){
   // THE CAP EACH CELL WAS MEASURED AGAINST, so a cell that drew less can say WHICH limit refused
   // the rest. Discretionary is capped by the basis; mandatory by what the basis has left after it.
   const bs = basisSvcOf(it), bsT = bs.reduce(function(a,b){ return a+b; }, 0);
+  // v2.01: a figure is one unbreakable span, so the reset arrow or a note beside it wraps under it and the figure is never cut
+  const fig = function(v){ return '<span class="fig">' + fM(v) + '</span>'; };
   const svcRow = function(sname, i){
     // UFR IS MEASURED AGAINST THE REQUIREMENT, which is the column beside it and what the hint
     // above this table promises: "UFR is the remainder". t.u is BEYOND -- allocated and no lane
@@ -32421,7 +32462,7 @@ function inspectorBody(){
       // keystroke will seed the split from. Directed and drawn are the same figure until then.
       + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d, bs[i]) + '</td>'
       + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m, bs[i] - d) + '</td>'
-      + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fM(unf) : '\u2014')
+      + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fig(unf) : '\u2014')
         + (u > 0.005 ? laneShortNote(u) : '')
         + '</td></tr>';
   };
@@ -32431,26 +32472,36 @@ function inspectorBody(){
   // tooltip carries the sentence.
   const laneShortNote = function(v){ return '<div class="drew ls" title="lane short ' + fM(v)
     + ' — of that shortfall, this much WAS allocated but no lane could pay it; the rest was never allocated">'
-    + '<span>lane short</span><span>' + fM(v) + '</span></div>'; };
+    + '<span>lane short</span><span class="fig">' + fM(v) + '</span></div>'; };
   // What the row DIRECTED, against what the engine could actually draw. Equal on every board that
   // is not up against a lane limit; the gap is the whole point when it is not.
   const dirD = inSplit ? fo.dv.reduce(function(a,b){ return a+(b||0); }, 0) : dT;
   const dirM = inSplit ? fo.mv.reduce(function(a,b){ return a+(b||0); }, 0) : mT;
+  // v2.01: the widest UFR-column figure -- each service's UFR and lane short, and both totals -- sets the column's width. A
+  // character of a bold tabular figure is about one ch; 8% and the cell's padding are the margin.
+  const ufrColW = (function(){
+    let n = fM(unfT).length;
+    if(uT > 0.005) n = Math.max(n, fM(uT).length);
+    SVC.forEach(function(_, i){ const a = it.ask[i]||0, uu = Math.max(0, a - (t.d[i]||0) - (t.m[i]||0));
+      n = Math.max(n, fM(uu).length, fM(t.u[i]||0).length); });
+    return 'max(78px, calc(' + (n * 1.08).toFixed(2) + 'ch + 8px))';
+  })();
   const svc = '<table class="insp-split">'
     // Service and UFR are pinned; REQ, DISC and MAND are all editable now and share what is left
     // equally, so the three money inputs are the same size and none of them resizes when a UFR
     // cell turns from an em dash into a figure.
-    + '<colgroup><col style="width:58px"><col><col><col><col style="width:78px"></colgroup>'
+    // v2.01: the UFR column is as wide as its widest figure (78px at least, as before), so no UFR figure is cut
+    + '<colgroup><col style="width:58px"><col><col><col><col style="width:' + ufrColW + '"></colgroup>'
     + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
     + SVC.map(svcRow).join('')
-    + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it))
+    + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fig(askTot(it))
     + (it.custom ? '' : ' <button class="qb" onclick="resetAsk('+jsa(id)+')"'
         + ' title="restore the originally requested amounts">\u21ba</button>') + '</td>'
     // The total is what was DRAWN -- that is the money. When the column above it was directed
     // higher, say so here too, or the column does not add up to its own total on screen.
-    + '<td style="color:var(--green)">' + fM(dT) + directedLine(dirD, dT, bsT) + '</td>'
-    + '<td style="color:var(--purp)">' + fM(mT) + directedLine(dirM, mT, bsT - dT) + '</td>'
-    + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fM(unfT) : '\u2014')
+    + '<td style="color:var(--green)">' + fig(dT) + directedLine(dirD, dT, bsT) + '</td>'
+    + '<td style="color:var(--purp)">' + fig(mT) + directedLine(dirM, mT, bsT - dT) + '</td>'
+    + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fig(unfT) : '\u2014')
       + (uT > 0.005 ? laneShortNote(uT) : '') + '</td></tr>'
     + '</table>';
 
@@ -32567,6 +32618,8 @@ function inspectorBody(){
       + '</div>'
     + awardBlockHtml(it)
     + '</div>';
+  // v2.01: every drawing of the panel ends fitted -- render() and a row selected (setCur) both come through here
+  try{ inspSplitFit(); }catch(e){}
 }
 
 // Selection by delegation, so render() never has to know the inspector exists.

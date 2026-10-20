@@ -3997,7 +3997,7 @@ see it.
 
 **Gate.** GATE_V200
 
-### v2.01 (D4-1): what v2.00 left on its branch, and a carriage return written as &#13;
+### v2.01: what v2.00 left on its branch, a carriage return written as &#13;, a readable RECORD panel, a longer PID
 
 PR #13 merged v2.00 at `b71b18e` on 19 Oct; the eight commits that followed on `claude/orbit-v2.00` (the left menu, the nine
 Section 508 fixes, the lockfile, the generator note, Codex D2-1 and D3-1) ship here unchanged -- `NEXT-VERSION.md` lists them by
@@ -4008,6 +4008,15 @@ a raw CR into a line feed before the text is seen; ORBIT's own `_xunesc` keeps i
 **A text check on an export reads the bytes the way another program does** -- unzip what reached the Blob and parse each part
 with a real XML parser -- never with the board's own reader, which agrees with the writer by construction. Guarded by
 `audit-recon.mjs` "v2.01 (D4-1) — …" and `v201-d41-cr-raw`.
+
+**The RECORD panel prints nothing it cannot show whole** (items 102, 103). A figure in the By service table is a `.fig` span
+that never breaks; the cells do not clip; the UFR column takes its widest figure's width; and `inspSplitFit()` steps the
+table's type down (not below 9px) until every box and figure fits the panel's width -- it runs at the end of every
+`inspectorBody()`, on a resize and when the panel's width changes (a ResizeObserver: the docked panel takes its width after it
+is drawn, and `drawerOpen()` returns early when docked). The BAE pickers each take the panel's width. `tools/layout-fits.mjs`
+K reads every requirement's panel as the browser drew it and fails on anything clipped, ellipsed, spilled, past the edge, a
+field cutting its value or a picker cutting its name. **A new control or figure in the panel must pass K.** A PID is up to 35
+characters (`codeMax`).
 
 ## Colour: one token, one job
 

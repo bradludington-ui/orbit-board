@@ -6551,6 +6551,10 @@ const MUTATIONS = [
   { id: "v201-d41-cr-raw", area: "_xesc", what: "a carriage return is written raw: a Plan Event typed carriage<CR>return opens as carriage<LF>return in the Spend Plan Source, the Priority Drill, the deck and the workbook",
     find: ".replace(/\"/g,'&quot;').replace(/\\r/g,'&#13;');}",
     repl: ".replace(/\"/g,'&quot;');}" },
+  // v2.01 (Brad, 20 Oct): a PID is up to 35 characters. Caught by audit-board.mjs "v1.99 — a code longer than its limit …".
+  { id: "v201-pid-limit-20", area: "codeMax", what: "the PID limit is back at 20: a 35-character PID typed is refused, and one in a file is listed as too long",
+    find: "ccar:12, pid:35, clin:20,",
+    repl: "ccar:12, pid:20, clin:20," },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

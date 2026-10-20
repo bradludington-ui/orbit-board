@@ -179,7 +179,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.01 — 20 Oct 2026: what v2.00 left on its branch, and D4-1 -- built on Brad's "yes to all" of 20 Oct
+### v2.01 — 20 Oct 2026: what v2.00 left on its branch, D4-1, a readable RECORD panel and a longer PID -- built on Brad's "yes to all" of 20 Oct
 
 **Why there is a v2.01.** PR #13 was merged on 19 Oct at `b71b18e`, a minute after it was opened. Eight commits then went
 to `claude/orbit-v2.00` while the lead still read the PR as open, so `main` carried v2.00 without them -- among them the
@@ -213,6 +213,31 @@ below ("UI menu — every top-right menu moves into the left menu"); every one o
   checks fail (each reads `carriage\nreturn`); here all 11 pass. CONTROL: a Plan Event holding a line feed reads back as
   one on every route, on both.
 - **Mutation:** `v201-d41-cr-raw` (the CR written raw again), caught by the block. 2,018 entries, each matching once.
+
+#### 102. Nothing in the RECORD panel is unreadable (Brad, 20 Oct 2026, from a photo of the real board)
+- **What he saw.** The By service table's UFR column printed `$252,035,0...` and a TOTAL of `$655,479,0...`: figures cut
+  with an ellipsis in a fixed 78px column. Brad: "Let's fix so that there are no unreadable areas in the record panel."
+- **What the new check found on `c245592`** (`tools/layout-fits.mjs` K, every requirement, 1920 / 1440 / 1366 / 1280 / 1024,
+  every density, sliding over and docked, on a board with a BAE list and a requirement short by ten-digit figures): every
+  UFR and lane-short figure wider than the column cut; the Req TOTAL cut beside its ↺; every BAE budget picker cutting the
+  rule's name ("— the rule: USMC STOVL O&M -1A9A FL Discretionary P…") because it sat beside an 88px label column; and,
+  with ten-digit values, the Req boxes cutting their own value.
+- **The fix.**
+  - A figure is one unbreakable span (`.fig`); the table's cells no longer clip, so the ↺ or a note wraps under the figure.
+  - The UFR column is as wide as its widest figure (78px at least, as before).
+  - `inspSplitFit()`: once the panel is drawn (every drawing ends with it), and on a resize or a change of the panel's
+    width, the table's type steps down half a pixel until every box shows its whole value and every figure sits in its
+    cell, never below 9px. Ordinary figures never shrink.
+  - Each budget line is its label, then the picker across the panel, then clear.
+- **The test.** K fails on `c245592` (45 findings, both passes) and passes here (300 records read, both passes). It reads
+  what the browser drew: a panel that scrolls sideways, text clipped or ending in an ellipsis, text that spills out of its
+  cell, anything past the panel's edge, a field that cuts its value, a picker that cuts the name it shows.
+
+#### 103. A PID is up to 35 characters (Brad, 20 Oct 2026)
+- `codeMax('pid')` is 35 (it was 20). The prompt reads the limit rather than restating it; Pre-flight's words say 35.
+- **Test:** `audit-board.mjs` "v1.99 — a code longer than its limit …": 36 typed is refused, 35 taken; the prompt says 35; a
+  file's 36-character PID is kept whole and listed, a 35-character one kept and not listed. Four of them fail on `c245592`.
+- **Mutation:** `v201-pid-limit-20`, caught.
 
 ### v2.00 — 11 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
 
