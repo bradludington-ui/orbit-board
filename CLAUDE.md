@@ -3997,6 +3997,18 @@ see it.
 
 **Gate.** GATE_V200
 
+### v2.01 (D4-1): what v2.00 left on its branch, and a carriage return written as &#13;
+
+PR #13 merged v2.00 at `b71b18e` on 19 Oct; the eight commits that followed on `claude/orbit-v2.00` (the left menu, the nine
+Section 508 fixes, the lockfile, the generator note, Codex D2-1 and D3-1) ship here unchanged -- `NEXT-VERSION.md` lists them by
+commit. **Before pushing anything meant for a PR, read the PR's state and check `merged`.**
+
+The one fix: `_xesc` writes a carriage return as `&#13;`. XML allows a CR, so U37 does not refuse it, but every XML reader turns
+a raw CR into a line feed before the text is seen; ORBIT's own `_xunesc` keeps it, so round trips here could not notice.
+**A text check on an export reads the bytes the way another program does** -- unzip what reached the Blob and parse each part
+with a real XML parser -- never with the board's own reader, which agrees with the writer by construction. Guarded by
+`audit-recon.mjs` "v2.01 (D4-1) — …" and `v201-d41-cr-raw`.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

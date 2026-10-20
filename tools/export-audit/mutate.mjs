@@ -6546,6 +6546,11 @@ const MUTATIONS = [
   { id: "v200-ui3-lastedit-whole-year-ignored", area: "uiLastEdit", what: "a whole year in the year on screen is not read as a line that may have changed this one: FY27's plan replaced in one piece after S03's note leaves FY27's record naming the note as S03's last edit",
     find: "      if(!e.p.length || k==='removed') return null;",
     repl: "      if(k==='removed') return null;" },
+  // v2.01 (D4-1): a carriage return written raw reads back as a line feed in every other program. Caught by audit-recon.mjs
+  // "v2.01 (D4-1) — a carriage return in a Plan Event reaches every export as a carriage return, not a line feed".
+  { id: "v201-d41-cr-raw", area: "_xesc", what: "a carriage return is written raw: a Plan Event typed carriage<CR>return opens as carriage<LF>return in the Spend Plan Source, the Priority Drill, the deck and the workbook",
+    find: ".replace(/\"/g,'&quot;').replace(/\\r/g,'&#13;');}",
+    repl: ".replace(/\"/g,'&quot;');}" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

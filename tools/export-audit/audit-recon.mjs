@@ -11569,6 +11569,72 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U44) — buys ====
+// ==== v2.01 (D4-1): a carriage return in a person's text reaches every export as a carriage return ====
+// Found by Codex batch D4 (20 Oct): _xesc escaped & < > " and wrote a CR raw. XML allows the character, so nothing was refused
+// (U37's A7 CONTROL) -- but an XML reader turns a raw CR into a line feed before anything sees the text, so a Plan Event typed as
+// "carriage<CR>return" opened as "carriage<LF>return" in the Spend Plan Source (O&M Raw Data D2), the Priority Drill (1-N by Band
+// E5) and the deck (slide 5). ORBIT's own reader (_xunesc) kept the CR, which is why every round trip here passed.
+// THE CHECK reads each file the way another program does: the bytes the export handed to its Blob, unzipped, every part parsed
+// with the page's DOMParser, and every text run (<t>, <a:t>) holding "carriage" collected. Expected, as a literal: that text
+// exactly, CR and all, and nothing else. The workbook (exportExcel) too, since it writes the Plan Event on Decision Bands.
+// FAILS ON c6ba63f: every route reads "carriage\nreturn". CONTROL: a Plan Event holding a line feed reads back as one.
+await (async () => {
+  const name = 'v2.01 (D4-1) — a carriage return in a Plan Event reaches every export as a carriage return, not a line feed';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
+    // the Plan Event typed through the pen, as a person types it
+    const typed = v => JSON.parse(X.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
+      try{ editTitle('R1'); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{}).R1); })()`));
+    // run one export; unzip the first Blob it made; every text run holding "carriage", as a standard XML reader reads it
+    const read = call => JSON.parse(X.ev(`(function(){
+      var cap=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click, err='';
+      window.Blob=function(p,o){ if(!cap && p && p[0] && p[0].byteLength) cap=p[0]; return new ob(p,o); };
+      HTMLAnchorElement.prototype.click=function(){};
+      try{ (0,eval)(${J(call)}); }catch(e){ err=String((e&&e.message)||e); }
+      finally{ window.Blob=ob; HTMLAnchorElement.prototype.click=oc; }
+      if(!cap) return JSON.stringify({err:err||'no file', runs:[]});
+      var u=new Uint8Array(cap.buffer? cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength) : cap), dv=new DataView(u.buffer), at=0, td=new TextDecoder(), runs=[], bad=[];
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){
+        var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        var k=td.decode(u.subarray(at+30,at+30+nl)), t=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz));
+        if(/\\.xml$/.test(k)){
+          var d=new DOMParser().parseFromString(t,'application/xml');
+          if(d.getElementsByTagName('parsererror').length) bad.push(k);
+          var all=d.getElementsByTagName('*');
+          for(var i=0;i<all.length;i++){ var el=all[i]; if(el.localName==='t' && el.textContent.indexOf('carriage')>=0 && runs.indexOf(el.textContent)<0) runs.push(el.textContent); }
+        }
+        at+=30+nl+xl+sz; }
+      return JSON.stringify({err:err, bad:bad, runs:runs}); })()`));
+    // the workbook writes the Plan Event twice: on its own, and in a line that names the rank and the record
+    const ROUTES = [['exportSrc()', 'the Spend Plan Source', t => [t]], ['exportCSV()', 'the Priority Drill', t => [t]], ['exportPPT()', 'the deck', t => [t]],
+      ['exportExcel()', 'the workbook', t => [t, '    #1 ' + t + ' [CCR1]']]];
+    const CR = 'carriage\rreturn', LF = 'carriage\nreturn';
+    w5Chk(name, 'the Plan Event as typed', 'the pen keeps the carriage return', J(typed(CR)), J(CR));
+    for (const [fn, what, want] of ROUTES) {
+      const r = read(fn);
+      w5Chk(name, fn + ' · ' + what + ', a carriage return', 'made, every part parses; read as another program reads it, the text holds the carriage return, not a line feed',
+        J([r.err, r.bad, r.runs]), J(['', [], want(CR)]));
+    }
+    w5Chk(name, 'CONTROL · the Plan Event as typed, a line feed', 'the pen keeps the line feed', J(typed(LF)), J(LF));
+    for (const [fn, what, want] of ROUTES) {
+      const r = read(fn);
+      w5Chk(name, 'CONTROL · ' + fn + ' · ' + what + ', a line feed', 'made, every part parses; a line feed reads back as a line feed',
+        J([r.err, r.bad, r.runs]), J(['', [], want(LF)]));
+    }
+    w5Chk(name, 'no page error', 'the board reported no error', J(X.errors.length), J(0));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.01 (D4-1) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

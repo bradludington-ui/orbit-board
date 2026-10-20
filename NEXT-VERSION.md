@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.00**. Next: **v2.01**.
+Current version: **v2.01**. Next: **v2.02**.
 
 ## Open
 
@@ -178,6 +178,41 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.01 — 20 Oct 2026: what v2.00 left on its branch, and D4-1 -- built on Brad's "yes to all" of 20 Oct
+
+**Why there is a v2.01.** PR #13 was merged on 19 Oct at `b71b18e`, a minute after it was opened. Eight commits then went
+to `claude/orbit-v2.00` while the lead still read the PR as open, so `main` carried v2.00 without them -- among them the
+nine Section 508 / WCAG 2.2 AA fixes Brad had asked to land before the merge, and the lockfile the OCIO POA&M (P-05) names
+as done. v2.01 is those eight commits, unchanged, plus one fix. The menu and Section 508 work is described under v2.00
+below ("UI menu — every top-right menu moves into the left menu"); every one of the eight is listed here by commit:
+
+| Commit | What |
+|---|---|
+| `439716b` | Every top-right menu moves into the left menu, one home per action; `npm run leftmenu` |
+| `91484f0` | The nine Section 508 / WCAG 2.2 AA findings closed (1.4.11, 2.5.8, 2.4.7, 1.4.10); the baseline stays at 0 |
+| `b7de4a3` | The stale `build_prio_board.py` step for adding an appropriation goes; the generator is said to be retired (11 Sep 2026) |
+| `bcc49cd` | The task bar's repeats of left-menu items go; the developer docs follow the left menu |
+| `67bc4de` | Records only: the ledger names the U37, U44, U40 and UI commits by id |
+| `30cdcdd` | `package-lock.json` pins the test tools (jsdom 27.4.0, playwright-core 1.63.0); `.gitignore` keeps it (OCIO P-05) |
+| `3451746` | Codex D2-1: the save state and work kept aside are said to be at the foot of the left menu |
+| `c6ba63f` | Codex D3-1: in a locked view, Install standard and Import ladder are refused up front, and no longer say they succeeded |
+
+#### D4-1. A carriage return in a person's text reaches every export as a carriage return (Codex batch D4; Brad, 20 Oct: fix now)
+- **What happened.** `_xesc`, which every workbook writer and the deck use, escaped `& < > "` and wrote a carriage return
+  raw. XML allows the character, so U37 rightly does not refuse it -- but an XML reader turns a raw CR into a line feed
+  before anything sees the text. A Plan Event typed as `carriage<CR>return` opened as `carriage<LF>return` in the Spend
+  Plan Source (O&M Raw Data D2), the Priority Drill (1-N by Band E5), the deck (slide 5) and the workbook. ORBIT's own
+  reader (`_xunesc`) kept the CR, so every round-trip test here passed. No dollar figure moved; only text that already held
+  a CR, which comes from pasted or imported data.
+- **The fix.** `_xesc` writes a CR as `&#13;` (decimal, which `_xunesc` decodes). Tabs and line feeds are unchanged.
+- **The test.** `audit-recon.mjs`, "v2.01 (D4-1) — a carriage return in a Plan Event reaches every export as a carriage
+  return, not a line feed": the Plan Event typed through the pen; `exportSrc`, `exportCSV`, `exportPPT` and `exportExcel`
+  each run; the bytes each handed to its Blob unzipped and every part parsed with the page's DOMParser, as another program
+  reads it; every text run holding the Plan Event must be the literal `carriage\rreturn`. On `c6ba63f` the four route
+  checks fail (each reads `carriage\nreturn`); here all 11 pass. CONTROL: a Plan Event holding a line feed reads back as
+  one on every route, on both.
+- **Mutation:** `v201-d41-cr-raw` (the CR written raw again), caught by the block. 2,018 entries, each matching once.
 
 ### v2.00 — 11 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
 

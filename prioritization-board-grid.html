@@ -2979,7 +2979,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.00 (11 Oct 2026)';
+const BUILD='v2.01 (20 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -25944,7 +25944,11 @@ function _zipStore(files){
   parts.forEach(p=>{out.set(p,o);o+=p.length;});
   return out;
 }
-function _xesc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// v2.01 (D4-1): A CARRIAGE RETURN IS WRITTEN AS &#13;, NEVER RAW. An XML reader turns a raw CR (and CR LF) into a line feed
+// before anything sees the text, so a title holding "carriage\rreturn" opened in a spreadsheet or the deck as
+// "carriage\nreturn" -- in the Spend Plan Source, the Priority Drill and slide 5 alike. The character reference survives
+// that step. Decimal, because _xunesc decodes &#NN; and not the hex form. No figure moves: only text that already held a CR.
+function _xesc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\r/g,'&#13;');}
 function _colL(n){let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
 // styles: 0 plain · 1 bold · 2 header (white on navy) · 3 number · 4 number bold · 5 number RED (over)
 //   · 6 section (bold on gray) · 7 title (big bold) · 8 number green · 9 number amber · 10/11 two-decimal
