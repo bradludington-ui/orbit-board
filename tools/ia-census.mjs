@@ -89,11 +89,39 @@ const census = await page.evaluate(() => {
         groups, items,
       };
     });
+  // v2.00 (menu, 19 Oct): THE LEFT MENU holds what Reports & exports, Data, Setup and File held, each item in one place: its
+  // boxes (Reports & exports' sections, Data's cards, Imports & exports' cards) and its flyouts (Program offices, Audit,
+  // History & recovery, Setup with its folded groups, Save's ▾, FYDP, Execution). Each is read as a menu: its entry on the
+  // left is its header, a section's, card's or flyout's heading is a group, and every item in order with its call and hint.
+  const LISTS = [['rep', 'dd_reports'], ['imp', 'dd_boards'], ['data', 'dd_data'], ['pmo', 'dd_offices'], ['aud', 'dd_audit'],
+                 ['hist', null], ['setup', 'dd_setup'], ['save', 'dd_save'], ['fydp', null], ['exec', null]];
+  for (const [k, id] of LISTS) {
+    const nav = document.getElementById('uiNav_' + k); if (!nav) continue;
+    let root = id ? document.getElementById(id) : null;
+    if (!id && typeof uiFlyItems === 'function') { root = document.createElement('div'); root.innerHTML = uiFlyItems(k);
+      root.querySelectorAll('[data-host]').forEach(h => { const src = document.getElementById(h.getAttribute('data-host')); h.innerHTML = src ? src.innerHTML : ''; }); }
+    if (!root) continue;
+    const box = nav.getBoundingClientRect();
+    let group = '(ungrouped)', pos = 0; const groups = [], items = [];
+    for (const el of root.querySelectorAll('.mlbl, .uiFh, h4, button')) {
+      const cls = (el.className || '').toString();
+      if (el.tagName !== 'BUTTON' || cls.split(' ').includes('gh')) {
+        group = el.tagName === 'BUTTON' ? txt(el.querySelector('span:nth-child(2)') || el) + ' (folded)' : txt(el);
+        if (!groups.includes(group)) groups.push(group); pos = 0; continue; }
+      const sub = el.querySelector('.sub, small, .d');
+      const label = el.querySelector('b') && cls.includes('uiCard') ? txt(el.querySelector('b'))
+        : [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join(' ').replace(/\s+/g, ' ').trim();
+      items.push({ group, posInGroup: ++pos, label: label || txt(el), hint: sub ? txt(sub) : null,
+        ticked: !!(el.querySelector('.chk') || {}).textContent?.trim(), action: el.getAttribute('onclick') || null,
+        disabled: cls.includes('dis') || el.hasAttribute('disabled') });
+    }
+    menus.push({ id: 'uiNav_' + k, header: (nav.getAttribute('data-tip') || nav.getAttribute('aria-label') || txt(nav)) + ' (left menu)', x: Math.round(box.x), width: Math.round(box.width), groups, items });
+  }
   // Every panel the board can open, and whether anything visibly points at it.
   const panels = [...document.querySelectorAll('[id$="Panel"]')].map(p => p.id);
   // Row-level and panel-level clickables: what a user can click without opening a menu.
   const chips = [...document.querySelectorAll('[onclick]')]
-    .filter(e => !e.closest('.mdd') && !e.id?.startsWith('m_'))
+    .filter(e => !e.closest('.mdd') && !e.id?.startsWith('m_') && !e.closest('#uiHold, #dd_reports, #dd_data, #dd_boards'))
     .map(e => ({ tag: e.tagName, cls: (e.className || '').toString().slice(0, 40),
                  label: txt(e).slice(0, 40), action: (e.getAttribute('onclick') || '').slice(0, 60) }));
   return { menus, panels, chips };

@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.00**. Next: **v2.01**.
+Current version: **v2.01**. Next: **v2.02**.
 
 ## Open
 
@@ -178,6 +178,108 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.01 — 20 Oct 2026: what v2.00 left on its branch, D4-1, a readable RECORD panel and a longer PID -- built on Brad's "yes to all" of 20 Oct
+
+**Why there is a v2.01.** PR #13 was merged on 19 Oct at `b71b18e`, a minute after it was opened. Eight commits then went
+to `claude/orbit-v2.00` while the lead still read the PR as open, so `main` carried v2.00 without them -- among them the
+nine Section 508 / WCAG 2.2 AA fixes Brad had asked to land before the merge, and the lockfile the OCIO POA&M (P-05) names
+as done. v2.01 is those eight commits, unchanged, plus one fix. The menu and Section 508 work is described under v2.00
+below ("UI menu — every top-right menu moves into the left menu"); every one of the eight is listed here by commit:
+
+| Commit | What |
+|---|---|
+| `439716b` | Every top-right menu moves into the left menu, one home per action; `npm run leftmenu` |
+| `91484f0` | The nine Section 508 / WCAG 2.2 AA findings closed (1.4.11, 2.5.8, 2.4.7, 1.4.10); the baseline stays at 0 |
+| `b7de4a3` | The stale `build_prio_board.py` step for adding an appropriation goes; the generator is said to be retired (11 Sep 2026) |
+| `bcc49cd` | The task bar's repeats of left-menu items go; the developer docs follow the left menu |
+| `67bc4de` | Records only: the ledger names the U37, U44, U40 and UI commits by id |
+| `30cdcdd` | `package-lock.json` pins the test tools (jsdom 27.4.0, playwright-core 1.63.0); `.gitignore` keeps it (OCIO P-05) |
+| `3451746` | Codex D2-1: the save state and work kept aside are said to be at the foot of the left menu |
+| `c6ba63f` | Codex D3-1: in a locked view, Install standard and Import ladder are refused up front, and no longer say they succeeded |
+
+#### D4-1. A carriage return in a person's text reaches every export as a carriage return (Codex batch D4; Brad, 20 Oct: fix now)
+- **What happened.** `_xesc`, which every workbook writer and the deck use, escaped `& < > "` and wrote a carriage return
+  raw. XML allows the character, so U37 rightly does not refuse it -- but an XML reader turns a raw CR into a line feed
+  before anything sees the text. A Plan Event typed as `carriage<CR>return` opened as `carriage<LF>return` in the Spend
+  Plan Source (O&M Raw Data D2), the Priority Drill (1-N by Band E5), the deck (slide 5) and the workbook. ORBIT's own
+  reader (`_xunesc`) kept the CR, so every round-trip test here passed. No dollar figure moved; only text that already held
+  a CR, which comes from pasted or imported data.
+- **The fix.** `_xesc` writes a CR as `&#13;` (decimal, which `_xunesc` decodes). Tabs and line feeds are unchanged.
+- **The test.** `audit-recon.mjs`, "v2.01 (D4-1) — a carriage return in a Plan Event reaches every export as a carriage
+  return, not a line feed": the Plan Event typed through the pen; `exportSrc`, `exportCSV`, `exportPPT` and `exportExcel`
+  each run; the bytes each handed to its Blob unzipped and every part parsed with the page's DOMParser, as another program
+  reads it; every text run holding the Plan Event must be the literal `carriage\rreturn`. On `c6ba63f` the four route
+  checks fail (each reads `carriage\nreturn`); here all 11 pass. CONTROL: a Plan Event holding a line feed reads back as
+  one on every route, on both.
+- **Mutation:** `v201-d41-cr-raw` (the CR written raw again), caught by the block. 2,018 entries, each matching once.
+
+#### 102. Nothing in the RECORD panel is unreadable (Brad, 20 Oct 2026, from a photo of the real board)
+- **What he saw.** The By service table's UFR column printed `$252,035,0...` and a TOTAL of `$655,479,0...`: figures cut
+  with an ellipsis in a fixed 78px column. Brad: "Let's fix so that there are no unreadable areas in the record panel."
+- **What the new check found on `c245592`** (`tools/layout-fits.mjs` K, every requirement, 1920 / 1440 / 1366 / 1280 / 1024,
+  every density, sliding over and docked, on a board with a BAE list and a requirement short by ten-digit figures): every
+  UFR and lane-short figure wider than the column cut; the Req TOTAL cut beside its ↺; every BAE budget picker cutting the
+  rule's name ("— the rule: USMC STOVL O&M -1A9A FL Discretionary P…") because it sat beside an 88px label column; and,
+  with ten-digit values, the Req boxes cutting their own value.
+- **The fix.**
+  - A figure is one unbreakable span (`.fig`); the table's cells no longer clip, so the ↺ or a note wraps under the figure.
+  - The UFR column is as wide as its widest figure (78px at least, as before).
+  - `inspSplitFit()`: once the panel is drawn (every drawing ends with it), and on a resize or a change of the panel's
+    width, the table's type steps down half a pixel until every box shows its whole value and every figure sits in its
+    cell, never below 9px. Ordinary figures never shrink.
+  - Each budget line is its label, then the picker across the panel, then clear.
+- **The test.** K fails on `c245592` (45 findings, both passes) and passes here (300 records read, both passes). It reads
+  what the browser drew: a panel that scrolls sideways, text clipped or ending in an ellipsis, text that spills out of its
+  cell, anything past the panel's edge, a field that cuts its value, a picker that cuts the name it shows.
+
+#### 103. A PID is up to 35 characters (Brad, 20 Oct 2026)
+- `codeMax('pid')` is 35 (it was 20). The prompt reads the limit rather than restating it; Pre-flight's words say 35.
+- **Test:** `audit-board.mjs` "v1.99 — a code longer than its limit …": 36 typed is refused, 35 taken; the prompt says 35; a
+  file's 36-character PID is kept whole and listed, a 35-character one kept and not listed. Four of them fail on `c245592`.
+- **Mutation:** `v201-pid-limit-20`, caught.
+
+#### D5. Two U44 money CONTROLS nobody wrote (Codex batch D5, rebuilt here; Brad, 20 Oct: "run this one in full")
+- **What they guard.** U44 fix round 6's part (h) counts a repeated destination's place past the keys of its own a list already
+  holds (`held`) in two places no check reached: `destFold`'s snapshot of the board's own list, and `flowDelEnt`'s removal
+  record. Both matter only when a board not yet put right has read part of another board's Put it right.
+- **The scenario** (`audit-recon.mjs`, the U44 block): three boards on `7ee498a` each hold dA four times (Alpha Depot, Bravo
+  Yard, Charlie Yard, Delta Dock); O&M package #1 goes to two managers. The first puts the list right, removes Charlie Yard
+  and Delta Dock, and sends the work back; the consolidated board, not put right, takes it (Bravo Yard becomes "ddar1"). The
+  second puts it right, puts R2 on one of the two removed, and sends it back. **SF2:** R2 on Charlie Yard comes across on
+  Charlie Yard ("ddar2"), the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400. **S1:** the consolidated board first
+  removes Delta Dock (kept under "ddar3"); R2 on Delta Dock comes back on Delta Dock, Delta Dock 300. Every figure by hand.
+- **Departures from Codex's spec, each said in the test:** both managers are O&M (only an O&M return re-keys the consolidated
+  board's own list; a Full Fund one would need a plan the block's fixtures do not build); S1 adds the consolidated board's
+  own removal, without which `flowDelEnt`'s `held` is never read. A clone without `7ee498a` now fails by name rather than
+  skipping both.
+- **Proved:** the block passes 271 of 271 on the board; on `v200-u44-d5-remove-held-gone` only S1 fails, on
+  `v200-u44-d5-fold-held-gone` only SF2 (each 270 of 271). 2,021 entries, each matching once.
+
+#### The mutation sweep runs on Brad's named go (Brad, 20 Oct 2026)
+- `mutate.mjs` stays text-only during development; a sweep runs only when Brad names one, on a committed tree, in saved
+  batches, with nothing else running. Written into `CLAUDE.md` and `AGENTS.md`, which still said to run `npm run mutate`.
+- `npm run validate:nightly` (`validate-math.mjs --no-sweep`) runs every other stage, and its pass line says the sweep was not
+  run. The nightly Routine was rewritten to use it ("Nightly ORBIT math validation (no sweep)"): on 20 Oct it had ended its turn
+  44 seconds into a full sweep of 2,021 targets.
+- **Next sweep (Brad's plan):** the ~880 targets added in v2.00 and v2.01, once v2.01 is on `main`.
+
+#### The sweep (Brad, 20 Oct: "Go for sweeps but be mindful of usage credits")
+- **`mutate.mjs` did not parse** (two entries missing a comma since v2.00): fixed, and `npm run check` now parses it.
+- **Pilot, 20 of the 895 targets new or rewritten since v1.99**, with `mutate.mjs`: 4.5 min a target; 13 caught, 6 CRASHED (out
+  of memory under the sweep's 2.5 GB per-suite cap: recon block 80 peaks at 6.5 GB, import blocks 105 and 107-108 need 5 GB).
+- **`tools/export-audit/sweep-shards.mjs`** splits recon and import into calibrated shards, each run in its own process with the
+  heap it needs: all 20 pilot targets caught (the 6 included), a no-op control SURVIVED, a declared equivalent came back
+  equivalent -- but about 4 min a target, ~60 hours for 895. The full sweep is the first item of v2.02
+  (`recovery/v202/HANDOFF.md`), from a fresh session after the usage reset.
+
+#### The checks v2.01 was proved with (20 Oct 2026, Eastern)
+- `npm run validate:nightly` at `69a790c`, 10:08-11:00 AM: defect register (13 defects, 43 mutations), money coverage (26/26),
+  money map (329 cells: 123 proven, 206 n/a, 0 open), trace matrix (92 cells), every suite (9 banners + the legacy line), fuzz
+  (seed 575709290), the file verifier's self-test -- all clean; the browser checks' only failures are the 8 carried
+  "D · first requirement on screen as it opens" (v2.00's named limit). The sweep was not run (the rule above).
+- At `62443fe` (the last change to the board): `npm run verify:grid` (only the 8 carried D; layout-fits K clean), then keys,
+  dropdowns, dialogs and leftmenu, which the chain stops before; `npm run standards`: 0 findings.
 
 ### v2.00 — 11 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
 
@@ -3237,6 +3339,77 @@ result for it was run fresh against these commits.
     `flowEntUseMap`'s `same`: on O&M, Used by on Depot U2 is blank for a Full Fund file put right on another board, ✕ removes
     Depot U2 asking only "Remove Depot U2?", and Full Fund's R1 comes back on a re-made "Depot U" (no money is lost; the same
     without U40; not fixed here, ledger U72); and Chromium, and two real machines.
+- **UI menu — every top-right menu moves into the left menu, each action in one place; and the nine Section 508 / WCAG
+  2.2 AA findings from the UI branch closed** (Brad, 19 Oct 2026: "Move every top-right menu into the left menu, and
+  remove every duplicate, so each action has exactly one home." Built on branch `menu` from `b71b18e`, the head of PR #13:
+  `439716b` the menu (board `ffe86c20`), then the 508 fixes (board `e120dde0`), the commit after it.)
+  - **What changes:** the left menu holds what 💾 Save, Reports & exports ▾, Data ▾, Setup ▾ and 📁 File ▾ held, each item
+    by the call its menu item made (`mRun(...)`): **Reports & exports** is a box with its six groups side by side and Find
+    on top; under Board, **Imports & exports** (the Import box renamed: a whole board or one appropriation, in or out),
+    **Data** (a box, a card for each source saying what it is and when it was last loaded), **Program offices** (Publish
+    PMO copy, Review submittals, and the submittal loading the Import box's PMO Import card did; not shown in a PMO copy,
+    as File left its group out), **Audit** (the change journal, the save history, the pen and your name), **History &
+    recovery** (earlier copies and work kept aside only) and **Setup** (its own flyout, folded as before, with Live view
+    and Save diagnostics). **💾 Save is pinned at the foot**, where the ORBIT line was, with the save state, who holds the
+    pen and a ▾ for Save a copy; folded to icons it is an icon with a dot for unsaved work; **Ctrl+S saves** (the
+    button's call; b71b18e had no Ctrl+S); in a PMO copy the spot is ✉ Submit input, and Save and Save a copy stay under
+    ▾, off, as File said. FYDP ▸ and Execution ▸ keep only their views (FYDP Spend Plan (Excel) to Reports & exports,
+    Import CCaR QPE to Data, the links to the top menus gone). The top keeps Appropriation, Fiscal year, PMO, search,
+    Filter, the message line and Help; the toolbar's Import, a second way to the box, is gone. Every help text and
+    message that named an old menu path names the new one ("Put your name in first — Audit › ✎ My editor name…"); no
+    "File ▾" is left in the board. The inventory, old place → new place for all 99 items, is
+    `$SP/rec/L8/menu/INVENTORY.md`.
+  - **One home each, and the three reached two ways on purpose:** a view lives in its section's flyout (FYDP ▸,
+    Execution ▸) and nowhere else, so Reports & exports no longer lists the forecast, CR Cash Needs, the five-year plan,
+    PPBE Budget Positions, Spruills, Active Year Execution, Reprogramming Actions or the Funds Flow, and Data no longer
+    lists QPE coverage or ORBIT vs CCaR: the section or card each sat in says where it is, and Find finds that line.
+    Save is the button and Ctrl+S; Live view is Setup › 📡 Live view and History & recovery › ↶ Earlier copies (the lead's
+    target names both); work kept aside is History & recovery's and the save state's own "↶ work kept aside", as before.
+    The mode tools in the task bar (Brief's PowerPoint deck and Exec synopsis, Fund's Executive decision and Bands) are
+    left as they were: Brad's call.
+  - **Found and fixed on the way:** an item in FYDP ▸ or Execution ▸ closed its flyout and left the keyboard on
+    nothing, so the box it opened gave the keyboard back to the top of the page; every left-menu item now closes its
+    flyout or box first and gives the keyboard to its entry (dialogs-keyboard caught it once those boxes were opened from
+    there). A flyout closes when the keyboard leaves it, as a toolbar menu does. The status line, hidden, is laid out at
+    the bar's left edge: with only Help beside it, its out-of-sight words reached past a 761-1023 px window (layout-fits J).
+  - **508 (the commit after `439716b`, board `e120dde0`):** `npm run standards` found nine at `b71b18e` and finds none now; `tools/a11y-baseline.json` is
+    unchanged (0). 1.4.11 ×5: the RECORD panel's ✕ Close had a `--line` edge (1.36–1.60:1), and takes `--edge`, as every
+    box's ✕ Close has since v1.96. 2.5.8 ×2: that ✕ Close (59×20 px) and the fold control (17×24 px) are 24 px at the
+    least. 2.4.7: the left-menu entry for the section on screen showed no focus; every entry takes an accent ring. 1.4.10:
+    the 18 px of sideways scroll at 320 px went with the menu change (Save and File left the top bar). The left menu's
+    boxes, flyouts, folded state and unsaved Save are measured too, and added no finding (the pinned Save's edge against
+    the navy was the one, fixed in `439716b`).
+  - **What users may see:** the left menu as above, and nothing at the top right but the message line and Help. The
+    figures, exports and saved files are those of the board before.
+  - **Test:** `tools/left-menu.mjs` (new; `npm run leftmenu`, last in `verify:grid`; Chromium, the empty template, and a
+    PMO copy published from synthetic requirements; every expected value a hand-written literal): (A) each of the 69
+    calls the old menus made is reached from the left menu as often as the inventory says, and nothing else is; (B)
+    Ctrl+S; (C) the five controls are gone and the kept ones stay; (D) a PMO copy; (E) folded and from the keyboard
+    alone. 23 checks pass on both boards (`ffe86c20`, `e120dde0`); 13 fail on `b71b18e`.
+  - **Existing checks changed, each to test the same property at the new place:** menus (`menu-paths.mjs`: a path names
+    the left-menu entry and is read from its list; sections are groups), keys (`keyboard-reach.mjs`: G names the menus
+    that stay; G2's Find in the box; new G3, the seven flyouts held to G and G2; L and K from Help and Setup), dropdowns
+    (the ten flyouts and boxes, Setup's groups each open), dialogs (boxes opened from the left menu by keyboard: 37 of 46
+    against 15 of 44 at `b71b18e`; the three left-menu boxes give the keyboard back 20 of 20), panels (the two new boxes,
+    and the seven flyouts held to a menu's checks), toolbar-fits (the controls that moved are counted where they went;
+    every left-menu control is held to on screen, whole and clickable), layout-fits (B finds the left menu a home),
+    standards (the left menu measured open, as the toolbar menus were), ia:census (the left menu's lists read as menus),
+    audit-board (v1.96 item 65's scenario), audit-import (v1.84 and v1.86's File scenarios, the put-back scenarios'
+    `fileMenu()` and `menuText()`), audit-recon (three messages and one help paragraph), audit-ui (two messages) and
+    `tools/export-audit/hostile.mjs` (the hostile-text sweep shared by audit-hostile and `npm run hostile`: the left menu's
+    three boxes and seven flyouts, Setup's groups each open, are drawn and read as the menus were).
+    `tools/row-controls.json` did not need a change. Nothing was deleted or loosened.
+  - **Mutations:** seven entries re-pointed, each against the same behaviour (`menu-wbs-not-in-data`, `menu-find-kept`,
+    `menu-copy-offices`, `restore-keep-refusal-ignored`, `v200-u10-shared-gate-in-adopt`, `v200-cycreg-advice-unwarned`,
+    `v200-cycreg-help-refusal-unsaid`); mcount: 2,015 entries, each once.
+  - **Brad's answers (19 Oct, 12:25 PM ET):** views keep one home each, as built. The task bar's repeats go: Fund's Bands
+    and Executive decision, Brief's PowerPoint deck and Exec synopsis, and the same four in the folded Tools ▾; each keeps
+    only its left-menu home (no other task-bar button repeated a menu item). `tools/left-menu.mjs` F holds it (fails on
+    the board before). AGENTS.md's long-menu rule names the left menu's folded groups and sections, and a new rule holds
+    one home for each action; CLAUDE.md has "Where every action lives", the map the version sections are read through.
+  - **The two carried limits:** toolbar-fits at 1152 px now PASSES in review and fund (the context bar is one line, 44 px:
+    Save and File left it). layout-fits D still fails the same eight checks; at 1024×768 the first row is at 420 px, not
+    453 px.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

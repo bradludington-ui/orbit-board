@@ -14,6 +14,9 @@
 //   G2. A long menu's folded groups (v1.96, item 65): Tab reaches each heading, Enter opens it in place and says so,
 //      Tab then reaches every item in it; opening the next closes the first. Find in Reports & exports narrows the
 //      menu as you type, and Tab goes straight to what it found.
+//   G3. (v2.00, menu) THE LEFT MENU'S FLYOUTS, held to G and G2: Enter on an entry opens its flyout and says so, Tab reaches
+//      every item, leaving it closes it, Esc closes it with focus back on the entry; Setup's folded groups as G2's; and a
+//      mouse click on the page closes a flyout, as a menu.
 //   L. The repaired-award controls (v1.96, item 64): the 🔧 entry under Needs attention, its list, Go to it, and
 //      ✓ Checked in the award block, each reached and used from the keyboard. The board this runs on carries two
 //      awards the board repaired when it opened, so these controls are on screen to be checked.
@@ -33,7 +36,7 @@ const LIVE = buildPopulated(FILE);
 let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? '   ' + detail : ''}`); };
 const LONG = '⚠ The shared folder holds a newer save by K Jones (10:42). Your work is kept aside, not lost: '
-  + 'File › Put back work kept aside restores it. Nothing was written over.';
+  + 'History & recovery › Put back work kept aside restores it. Nothing was written over.';
 
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 // v2.00 (UI S4): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside the table
@@ -239,9 +242,11 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 {
   try {
     const { p, ctx, errs } = await open('review');
-    const MENUS = await p.evaluate(() => [...document.querySelectorAll('.tbar .menu[id^="m_"], .ctxbar .menu[id^="m_"], #topStack .menu[id^="m_"]')]
+    // v2.00 (menu, 19 Oct): File, Reports & exports, Data and Setup left the toolbar for the left menu (G3 below); the menus that
+    // stay are the context bar's and the table toolbar's -- Fiscal year, PMO and Filter -- named here, so one gone fails
+    const MENUS = await p.evaluate(() => [...document.querySelectorAll('.tbar .menu[id^="m_"], .ctxbar .menu[id^="m_"], #topStack .menu[id^="m_"], #uiPage .menu[id^="m_"]')]
       .filter(m => m.getClientRects().length && m.id !== 'm_modetools' && m.id !== 'm_basis').map(m => m.id.slice(2)));
-    chk('G · the toolbar has menus to check', MENUS.length >= 6, MENUS.join(', '));
+    chk('G · the toolbar has its menus to check: Fiscal year, PMO and Filter', MENUS.slice().sort().join() === 'fy,pmo,view', MENUS.join(', '));
     for (const k of MENUS) {
       await p.evaluate(() => { openMenu = null; syncBtns(); });
       await p.focus('#b_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
@@ -275,10 +280,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     chk('G · Enter on a menu item runs it, closes the menu and leaves focus on the menu button', steps > 0 && r.svcAll === true && r.open === null && r.focus === 'b_view',
       `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(r)}`);
     // a MOUSE press on the page that closes a menu leaves focus there: only a key hands it back to the button
-    await p.click('#b_share'); await p.waitForTimeout(80);
+    await p.click('#b_pmo'); await p.waitForTimeout(80);
     await p.mouse.click(700, 600); await p.waitForTimeout(150);
     const m = await p.evaluate(() => ({ open: openMenu, focus: document.activeElement && document.activeElement.id }));
-    chk('G · a mouse click on the page closes a menu without moving focus to its button', m.open === null && m.focus !== 'b_share', JSON.stringify(m));
+    chk('G · a mouse click on the page closes a menu without moving focus to its button', m.open === null && m.focus !== 'b_pmo', JSON.stringify(m));
     chk('G · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   } catch (e) { chk(`G · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
@@ -291,7 +296,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; openMenu = null; syncBtns(); });
     const GROUPED = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].filter(m => m.querySelector('.gh') && m.getClientRects().length)
       .map(m => ({ k: m.id.slice(2), gs: [...m.querySelectorAll('.gh')].map(h => h.getAttribute('data-g')) })));
-    chk('G2 · the long menus have folded groups: File, Filter, Reports & exports, Setup', GROUPED.map(x => x.k).sort().join() === 'reports,setup,share,view',
+    // v2.00 (menu): of the toolbar's menus Filter still folds; Setup folds on the left menu (G3), and Reports & exports lays its
+    // groups out side by side in its box (Find, below)
+    chk('G2 · the long toolbar menu has folded groups: Filter', GROUPED.map(x => x.k).sort().join() === 'view',
       GROUPED.map(x => x.k + ':' + x.gs.length).join(' '));
     let groups = 0, items = 0; const miss = [];
     for (const { k, gs } of GROUPED) {
@@ -317,10 +324,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     }
     chk('G2 · Tab reaches every heading, Enter opens it in place and says so (one group open at a time), and Tab reaches every item in it',
       miss.length === 0 && groups > 0, miss.length ? miss.slice(0, 4).join(' | ') : `${groups} group(s), ${items} item(s)`);
-    // FIND: the first stop in Reports & exports; typing narrows it, and the next Tab is the first thing it found
+    // FIND: the first stop in Reports & exports; typing narrows it, and the next Tab is the first thing it found.
+    // v2.00 (menu): Reports & exports is a box on the left menu, and Enter on its entry puts the keyboard in Find
     await p.evaluate(() => { openMenu = null; syncBtns(); });
-    await p.focus('#b_reports'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
-    await p.keyboard.press('Tab');
+    await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const first = await p.evaluate(() => document.activeElement && document.activeElement.id);
     await p.keyboard.type('excel'); await p.waitForTimeout(120);
     const shown = await p.evaluate(() => [...document.querySelectorAll('#dd_reports .mi')].filter(e => e.getClientRects().length > 0).map(e => e.textContent.trim().slice(0, 30)));
@@ -328,17 +335,87 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const next = await p.evaluate(() => { const a = document.activeElement; return a ? a.textContent.trim().slice(0, 30) : null; });
     chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the seven workbooks, and Tab goes to the first',
       first === 'mFind' && shown.length === 7 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
-    await p.keyboard.press('Escape'); await p.waitForTimeout(60);
-    const cleared = await p.evaluate(() => { openMenu = 'reports'; syncBtns(); return document.getElementById('mFind').value; });
-    chk('G2 · Esc closes it, and Find is empty when the menu opens again', cleared === '', JSON.stringify(cleared));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+    const shut = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const cleared = await p.evaluate(() => document.getElementById('mFind').value);
+    chk('G2 · Esc closes it onto its entry, and Find is empty when it opens again', cleared === '' && !shut.open && shut.focus === 'uiNav_rep', JSON.stringify({ cleared, ...shut }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(150);
     chk('G2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   } catch (e) { chk(`G2 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── G3. THE LEFT MENU'S FLYOUTS, FROM THE KEYBOARD (v2.00, menu) ─────────────────────────────────────────
+// What G holds every toolbar menu to, for each flyout that took a toolbar menu's items: Program offices, Audit, History &
+// recovery, Setup and Save's ▾, with FYDP and Execution; and G2's folded groups, for Setup's. Work kept aside is set, so
+// History & recovery draws its items.
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; _keptMeta = { t: Date.now(), why: 'folder' }; syncBtns(); });
+    const FLY = await p.evaluate(() => (typeof UI_FLY !== 'undefined' ? UI_FLY : []).filter(k => { const e = document.getElementById('uiNav_' + k); return e && e.getClientRects().length; }));
+    chk('G3 · the left menu has its flyouts to check: FYDP, Execution, Program offices, Audit, History & recovery, Setup and Save’s ▾',
+      FLY.join() === 'fydp,exec,pmo,aud,hist,setup,save', FLY.join(', '));
+    for (const k of FLY) {
+      await p.evaluate(() => uiFlyClose());
+      await p.focus('#uiNav_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+      const o = await p.evaluate(k => ({ open: UI2.fly === k && document.getElementById('uiFly').classList.contains('open'), exp: document.getElementById('uiNav_' + k).getAttribute('aria-expanded'),
+        items: [...document.querySelectorAll('#uiFly button, #uiFly input')].filter(e => e.getClientRects().length > 0 && !e.disabled).length,
+        first: document.getElementById('uiFly').contains(document.activeElement) }), k);
+      // the keyboard is on its first item: Tab from there reaches every other, in order, and Tab past the last closes it
+      let reached = o.first ? 1 : 0, left = false;
+      for (let i = 0; i < o.items + 2; i++) {
+        await p.keyboard.press('Tab');
+        const w = await p.evaluate(k => ({ inFly: document.getElementById('uiFly').contains(document.activeElement), open: UI2.fly === k }), k);
+        if (w.inFly) reached++; else { left = !w.open; break; }
+      }
+      chk(`G3 · ${k}: Enter opens it and says so, Tab reaches all ${o.items} item(s), and leaving it closes it`,
+        o.open && o.exp === 'true' && o.items > 0 && reached === o.items && left, JSON.stringify({ ...o, reached, left }));
+      // Esc from inside it: Enter left the keyboard on its first item (Save's ▾ has one item, so a Tab would already leave it)
+      await p.focus('#uiNav_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+      await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+      const e = await p.evaluate(k => ({ open: UI2.fly, focus: document.activeElement && document.activeElement.id,
+        exp: document.getElementById('uiNav_' + k).getAttribute('aria-expanded') }), k);
+      chk(`G3 · ${k}: Esc closes it and leaves focus on its entry`, e.open === '' && e.focus === 'uiNav_' + k && e.exp === 'false', JSON.stringify(e));
+    }
+    // Setup's folded groups, as G2 holds a toolbar menu's
+    await p.evaluate(() => uiFlyClose());
+    await p.focus('#uiNav_setup'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const gs = await p.evaluate(() => [...document.querySelectorAll('#uiFly .gh')].map(h => h.getAttribute('data-g')));
+    let groups = 0, items = 0; const miss = [];
+    for (const g of gs) {
+      const steps = await tabTo(p, '#uiFly .gh[data-g="' + gs[0] + '"]', `#uiFly .gh[data-g="${g}"]`, 30);
+      if (steps < 0) { miss.push(`setup/${g}: heading never reached`); continue; }
+      await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+      const st = await p.evaluate(g => { const h = document.querySelector(`#uiFly .gh[data-g="${g}"]`), b = document.getElementById('mg_setup_' + g);
+        return { open: UI2.fly === 'setup', exp: h && h.getAttribute('aria-expanded'), focus: document.activeElement === h, shown: !!b && !b.hidden,
+          n: b ? b.querySelectorAll('.mi').length : 0, others: [...document.querySelectorAll('#uiFly .gbody')].filter(x => x !== b && !x.hidden).length }; }, g);
+      if (!(st.open && st.exp === 'true' && st.focus && st.shown && st.others === 0)) { miss.push(`setup/${g}: Enter ${JSON.stringify(st)}`); continue; }
+      let reached = 0;
+      for (let i = 0; i < st.n; i++) {
+        await p.keyboard.press('Tab');
+        if (await p.evaluate(g => { const a = document.activeElement, b = document.getElementById('mg_setup_' + g); return !!(b && a && b.contains(a)); }, g)) reached++;
+      }
+      groups++; items += reached;
+      if (reached !== st.n) miss.push(`setup/${g}: Tab reached ${reached} of ${st.n}`);
+    }
+    chk('G3 · Setup: Tab reaches every heading, Enter opens it in place and says so (one group open at a time), and Tab reaches every item in it',
+      miss.length === 0 && groups === 3, miss.length ? miss.slice(0, 4).join(' | ') : `${groups} group(s), ${items} item(s)`);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(80);
+    // a mouse press on the page closes a flyout, and leaves focus there
+    await p.click('#uiNav_aud'); await p.waitForTimeout(100);
+    await p.mouse.click(700, 600); await p.waitForTimeout(150);
+    const m = await p.evaluate(() => ({ open: UI2.fly, focus: document.activeElement && document.activeElement.id }));
+    chk('G3 · a mouse click on the page closes a flyout without moving focus to its entry', m.open === '' && m.focus !== 'uiNav_aud', JSON.stringify(m));
+    chk('G3 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`G3 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 // ── L. THE REPAIRED-AWARD CONTROLS, FROM THE KEYBOARD (v1.96, item 64) ─────────────────────────────────
 // v2.00 (UI S4): the funding posture strip, and with it Needs attention, shows in Funding and Brief only, so this runs in
-// Funding, and the Tab starts from the context bar's last control, 📁 File, before the task bar and the strip in the order
+// Funding, and the Tab starts from the context bar's last control -- Help since v2.00 (menu), 📁 File before -- before the task bar and the strip in the order
 // Tab takes (the search box, where it started, moved below the strip). Twice, the RECORD panel sliding over and docked.
 // v1.95 drew them only when an award had been repaired on opening, and the board every browser check loads held none:
 // nothing checked that a keyboard could reach them. That board now carries two.
@@ -347,7 +424,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const { p, ctx, errs } = await open('fund', 1440, docked);
     const have = await p.evaluate(() => ({ list: attLists().awfix.length, entry: !!document.querySelector('button.e[onclick=\'attShow("awfix")\']') }));
     chk(`L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry (${pass})`, have.list === 2 && have.entry, JSON.stringify(have));
-    const steps = await tabTo(p, '#b_share', 'button.e[onclick=\'attShow("awfix")\']', 60);
+    const steps = await tabTo(p, '#helpBtn', 'button.e[onclick=\'attShow("awfix")\']', 60);
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const box = await p.evaluate(() => ({ open: attOpen, title: (document.getElementById('attTitle') || {}).textContent || '',
       inBox: !!document.getElementById('attPanel').contains(document.activeElement) }));
@@ -494,7 +571,8 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 }
 
 // ── K. SAVE DIAGNOSTICS, FROM THE KEYBOARD, IN CHROMIUM (v1.92, item 18) ──────────────────────────────
-// A real script error that names a requirement and a figure; the item reached from 📁 File by keyboard; Esc
+// A real script error that names a requirement and a figure; the item reached from Setup on the left menu (📁 File until
+// v2.00, menu) by keyboard; Esc
 // writes nothing; Enter on Save downloads a file that is exactly what the box showed, with the error in it
 // and neither the title nor the figure.
 {
@@ -504,18 +582,18 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     await p.evaluate(t => { setTimeout(function(){ throw new Error('cannot total ' + t + ' at $7,654,321'); }, 0); }, title);
     await p.waitForTimeout(150);
     let dls = 0; p.on('download', () => { dls++; });
-    await p.focus('#b_share'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
-    const steps = await tabTo(p, '#b_share', '#dd_share [onclick="mRun(toggleDiag)"]', 30);
+    await p.focus('#uiNav_setup'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const steps = 1 + await tabTo(p, '#uiFly .gh', '#uiFly [onclick="mRun(toggleDiag)"]', 30);
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const o = await p.evaluate(() => ({ open: diagOpen, focus: document.activeElement && document.activeElement.id,
       text: document.getElementById('diagPre').textContent }));
-    chk('K · 📁 File › 🩺 Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
+    chk('K · Setup › 🩺 Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
       `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify({ open: o.open, focus: o.focus })}`);
     chk('K · the real script error is in it, without the title or the figure', /ERROR {4}.*cannot total … at \$#/.test(o.text)
       && o.text.indexOf(title) < 0 && !/7,654,321/.test(o.text), (o.text.split('\n').filter(l => /ERROR {4}/.test(l))[0] || 'no ERROR line').trim().slice(0, 120));
     await p.keyboard.press('Escape'); await p.waitForTimeout(150);
     const e = await p.evaluate(() => ({ open: diagOpen, focus: document.activeElement && document.activeElement.id }));
-    chk('K · Esc closes it, writes nothing, and hands focus back to 📁 File', !e.open && e.focus === 'b_share' && dls === 0, JSON.stringify({ ...e, downloads: dls }));
+    chk('K · Esc closes it, writes nothing, and hands focus back to Setup', !e.open && e.focus === 'uiNav_setup' && dls === 0, JSON.stringify({ ...e, downloads: dls }));
     await p.evaluate(() => toggleDiag()); await p.waitForTimeout(100);
     const shown = await p.evaluate(() => document.getElementById('diagPre').textContent);
     const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }), p.keyboard.press('Enter')]);

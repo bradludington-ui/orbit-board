@@ -21,6 +21,9 @@ const ROOT = join(HERE, '..');
 // proved the two had not drifted. The card build is retired: each stage runs once, on the grid file.
 const GRID = join(ROOT, 'prioritization-board-grid.html');
 const started = new Date();
+// --no-sweep (v2.01, Brad 20 Oct 2026: "the sweep runs only on Brad's named go"): every stage but the sweep, for the nightly
+// Routine. The pass line then SAYS the sweep did not run, so a nightly pass can never be read as one that proved the checks bite.
+const NO_SWEEP = process.argv.includes('--no-sweep');
 
 const run = (label, cmd, args, env = {}) => new Promise(res => {
   const t0 = Date.now();
@@ -167,9 +170,10 @@ for (const [lbl, env] of [['fuzz', { BOARD: GRID }]]) {
 }
 
 // ---- 6. the sweep ----------------------------------------------------------------------------------
-console.log('  ..    mutation sweep — this is the long one');
-const sweep = await run('sweep', 'node', [join(HERE, 'export-audit', 'mutate.mjs')], { BOARD: GRID });
-for (const r of [sweep]) {
+if (NO_SWEEP) console.log('  --    mutation sweep — NOT RUN (--no-sweep: the sweep runs only on Brad\'s named go)');
+else console.log('  ..    mutation sweep — this is the long one');
+const sweep = NO_SWEEP ? null : await run('sweep', 'node', [join(HERE, 'export-audit', 'mutate.mjs')], { BOARD: GRID });
+for (const r of (sweep ? [sweep] : [])) {
   const f = sweepFacts(r.out);
   const ok = r.code === 0 && f.survived === 0 && f.notApplied === 0 && f.crashed === 0;
   note({ ...r, ok, facts: f, detail: `${f.caught}/${f.of} caught · ${f.survived} survived · `
@@ -190,7 +194,7 @@ const stamp = started.toISOString().slice(0, 19).replace(/[:T]/g, '-');
 const reportPath = join(dir, `math-${stamp}.json`);
 writeFileSync(reportPath, JSON.stringify({
   started: started.toISOString(), finishedAt: new Date().toISOString(),
-  ok: failed.length === 0,
+  ok: failed.length === 0, sweep: NO_SWEEP ? 'not run (--no-sweep)' : 'run',
   stages: stages.map(s => ({ label: s.label, ok: s.ok, exit: s.code, ms: s.ms,
     detail: s.detail, facts: s.facts || null,
     // only failing stages keep their output, so a green report stays small
@@ -199,7 +203,8 @@ writeFileSync(reportPath, JSON.stringify({
 
 console.log('\n' + '='.repeat(96));
 if (!failed.length) {
-  console.log(`MATH VALIDATION PASSED — every stage clean in ${mins(Date.now() - started)}`);
+  console.log(`MATH VALIDATION PASSED — every stage clean in ${mins(Date.now() - started)}`
+    + (NO_SWEEP ? ' (the mutation sweep was NOT run: --no-sweep)' : ''));
   console.log(`report: ${reportPath}`);
   process.exit(0);
 }

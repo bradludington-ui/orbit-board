@@ -3493,87 +3493,109 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const { ev } = boot();
   seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [500, 100]), it('B', 'PSM', [300, 50])],
              disc: [600, 120], mand: [100, 20], order: ['A', 'B'] });
-  // What a person sees when a menu opens: every item, heading and box not folded away.
+  // v2.00 (menu, 19 Oct): Brad: "Move every top-right menu into the left menu, and remove every duplicate, so each action has
+  // exactly one home." Reports & exports, Data and Setup are the left menu's now, and the File menu's items went each to one
+  // place there. What a person sees as each opens, what each holds, one home for each action, the folding that stays (Setup,
+  // Filter) and Find, are held here against those places: Reports & exports a box with its groups side by side (dd_reports),
+  // Data a box of cards (dd_data), Setup a flyout that still folds (dd_setup), Program offices, Audit, Save's ▾ and Imports &
+  // exports (dd_offices, dd_audit, dd_save, dd_boards).
+  // What a person sees when a menu opens: every item, heading and box not folded away (or, in the box, found by Find).
   const shown = k => J(JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns(); const dd=document.getElementById('dd_'+${J(k)});
       return JSON.stringify([].slice.call(dd.querySelectorAll('.mi, .gh, input')).filter(function(e){
-        const g=e.closest('.gbody'); return !e.hidden && !(g && g.hidden); }).length); })()`)));
-  ev(`menuGrpOpen={}; menuFindQ=''; 'ok'`);
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 8 (Find, Pre-flight, six groups), Setup 3, File 6, Filter 3, the year 9, Data 9',
-    J(['reports', 'setup', 'share', 'view', 'fy', 'data'].map(shown)), J(['8', '3', '6', '3', '9', '9']));
+        const g=e.closest('.gbody'), x=e.closest('.uiRs'); return !e.hidden && !(g && g.hidden) && !(x && x.hidden); }).length); })()`)));
+  ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 18 (Find, Pre-flight and the sixteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['18', '5', '3', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
-  chk(name, 'groups', 'Reports & exports is grouped by the job', J(heads('reports')),
-    J(['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'Execution & reprogramming', 'CCaR & accounting files', 'Companion tools']));
-  chk(name, 'groups', 'Setup, File and Filter', J([heads('setup'), heads('share'), heads('view')]),
-    J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Program offices', 'Writer and team', 'Boards and appropriations'],
-       ['Funding', 'Service — funded requirements only']]));
+  const secs = k => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .uiRs h4, #dd_'+${J(k)}+' .uiDc h4'))
+      .map(function(h){ return h.textContent; })); })()`));
+  chk(name, 'groups', 'Reports & exports is grouped by the job, its six groups laid out side by side', J([secs('reports'), heads('reports')]),
+    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'Execution & reprogramming', 'CCaR & accounting files', 'Companion tools'], []]));
+  chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
+    J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
+  chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
   // Each group holds exactly what was decided, read off what its items call.
   // String.raw: a template literal would eat the regular expressions' backslashes
-  const calls = (k, g) => JSON.parse(ev(String.raw`(function(){ syncBtns(); const b=document.getElementById('mg_'+${J(k)}+'_'+${J(g)}); if(!b) return '[]';
-      return JSON.stringify([].slice.call(b.querySelectorAll('.mi')).map(function(e){
+  const callOf = String.raw`function(e){
         const a=e.getAttribute('onclick')||''; const m=/mRun\(\s*([A-Za-z0-9_]+)\s*\)/.exec(a) || /getElementById\('([A-Za-z]+)'\)\.click/.exec(a)
-          || /mRun\(function\(\)\{\s*([A-Za-z]+)\(/.exec(a) || /mRun\(\(\)=>\{\s*([A-Za-z]+)\(/.exec(a); return m? m[1] : a.slice(0,30); })); })()`));
-  chk(name, 'contents', 'Spend plan & cash: the forecast, Two Spend Plans, CR Cash Needs and its 1A9A return, side by side',
-    J(calls('reports', 'spend')), J(['toggleFc', 'togglePlans', 'toggleCr', 'crExport']));
+          || /mRun\(function\(\)\{\s*([A-Za-z]+)\(/.exec(a) || /mRun\(\(\)=>\{\s*([A-Za-z]+)\(/.exec(a) || /^uiFlyClose\(\);mRun\(([A-Za-z0-9_]+)\)$/.exec(a)
+          || /^(uiPmoLoad\('[a-z]+'\))$/.exec(a); return m? m[1] : a.slice(0,30); }`;
+  const calls = (k, g) => JSON.parse(ev(`(function(){ syncBtns(); const b=document.getElementById('mg_'+${J(k)}+'_'+${J(g)}); if(!b) return '[]';
+      return JSON.stringify([].slice.call(b.querySelectorAll('.mi')).map(${callOf})); })()`));
+  const callsIn = sel => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll(${J(sel)})).map(${callOf})); })()`));
+  const flyCalls = k => JSON.parse(ev(`(function(){ const d=document.createElement('div'); d.innerHTML=uiFlyItems(${J(k)});
+      return JSON.stringify([].slice.call(d.querySelectorAll('button[onclick]')).map(${callOf})); })()`));
+  chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, under Execution ▸, and the section says so',
+    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /Execution ▸/.test(ev(`document.querySelector('#dd_reports .uiRs[data-g="spend"] .uiRsV').textContent`))]),
+    J([['togglePlans', 'crExport'], true]));
   chk(name, 'contents', 'Briefing, Five years & PPBE, Execution & reprogramming, CCaR & accounting files, Companion tools',
-    J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => calls('reports', g))),
-    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['toggleFydp', 'exportFydpPlan', 'toggleP2', 'exportCycCompare', 'toggleSp'],
-       ['toggleEx', 'toggleRp', 'exportReprog', 'toggleFlow'], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
-  chk(name, 'contents', 'File: Program offices, Writer and team, Boards and appropriations',
-    J(['offices', 'team', 'boards'].map(g => calls('share', g))),
-    J([['publishPmoCopy', 'subOpenReview'], ['takePen', 'whoAmI', 'toggleLive', 'toggleJrnl', 'showLog'],
-       ['fullFile', 'exportOneAppn', 'stateFile', 'multiFile', 'togglePkg']]));
+    J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
+    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['exportFydpPlan', 'exportCycCompare'],
+       ['exportReprog'], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
+  chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
+    J([flyCalls('fydp'), flyCalls('exec')]),
+    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleRp', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
+  chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
+    J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
+    J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
+       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag']]));
   chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
     J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt'], 8]));
-  // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup.
+  // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup. Every list a
+  // menu or the left menu draws is searched.
   const homes = ev(`(function(){ syncBtns(); const out={};
+      const lists=[].slice.call(document.querySelectorAll('.menu[id^="m_"] .mdd')).concat(['dd_reports','dd_data','dd_setup','dd_boards','dd_offices','dd_audit','dd_kept','dd_save']
+        .map(function(id){ return document.getElementById(id); }).filter(Boolean));
+      ['fydp','exec','hist'].forEach(function(k){ const d=document.createElement('div'); d.id='fly_'+k; d.innerHTML=uiFlyItems(k); lists.push(d); });
       ['setBaseYear','resetYear','toggleRlg','toggleExw'].forEach(function(f){ out[f]=[];
-        document.querySelectorAll('.menu[id^="m_"] .mdd').forEach(function(dd){
-          if([].slice.call(dd.querySelectorAll('.mi')).some(function(e){ return (e.getAttribute('onclick')||'').indexOf(f)>=0; })) out[f].push(dd.id); }); });
+        lists.forEach(function(dd){
+          if([].slice.call(dd.querySelectorAll('button')).some(function(e){ return (e.getAttribute('onclick')||'').indexOf(f)>=0; })) out[f].push(dd.id); }); });
       return JSON.stringify(out); })()`);
   chk(name, 'one home', 'Set base year, Reset and Funding realignment on the year menu only; WBS from execution data under Data only', homes,
     J({ setBaseYear: ['dd_fy'], resetYear: ['dd_fy'], toggleRlg: ['dd_fy'], toggleExw: ['dd_data'] }));
-  // ONE AT A TIME, a heading that says so, and its count
+  // ONE AT A TIME, a heading that says so, and its count -- in Setup, the left menu's list that folds
   const state = k => ev(`(function(){ return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
       const b=document.getElementById(h.getAttribute('aria-controls'));
       return [h.getAttribute('data-g'), h.tagName, h.getAttribute('aria-expanded'), !!b && !b.hidden, +h.querySelector('.gn').textContent===(b? b.querySelectorAll('.mi').length : -1)]; })); })()`);
-  ev(`openMenu='reports'; menuGrp('reports','spend'); 'ok'`);
-  const s1 = JSON.parse(state('reports'));
-  ev(`menuGrp('reports','brief'); 'ok'`);
-  const s2 = JSON.parse(state('reports'));
-  chk(name, 'one at a time', 'opening Briefing closes Spend plan & cash; each heading is a button whose aria-expanded and count match its group',
+  ev(`menuGrp('setup','who'); 'ok'`);
+  const s1 = JSON.parse(state('setup'));
+  ev(`menuGrp('setup','codes'); 'ok'`);
+  const s2 = JSON.parse(state('setup'));
+  chk(name, 'one at a time', 'opening Codes and structure closes Who and where; each heading is a button whose aria-expanded and count match its group',
     J([s1.filter(x => x[2] === 'true').map(x => x[0]), s2.filter(x => x[2] === 'true').map(x => x[0]),
-       s2.every(x => x[1] === 'BUTTON' && x[4] && (x[2] === 'true') === x[3])]), J([['spend'], ['brief'], true]));
-  ev(`menuGrp('reports','brief'); 'ok'`);
-  chk(name, 'one at a time', 'pressed again, the open group folds', J(JSON.parse(state('reports')).filter(x => x[2] === 'true').length), '0');
+       s2.every(x => x[1] === 'BUTTON' && x[4] && (x[2] === 'true') === x[3])]), J([['who'], ['codes'], true]));
+  ev(`menuGrp('setup','codes'); 'ok'`);
+  chk(name, 'one at a time', 'pressed again, the open group folds', J(JSON.parse(state('setup')).filter(x => x[2] === 'true').length), '0');
   // REMEMBERED IN THIS BROWSER, NEVER IN THE FILE
-  ev(`menuGrp('reports','exec'); 'ok'`);
+  ev(`menuGrp('setup','codes'); 'ok'`);
   const stored = ev(`localStorage.getItem('spmtMenuGroups')`);
   const saved = ev(`buildSavedHtml()`);
-  const B = boot({ ls: { spmtMenuGroups: J({ reports: 'exec', setup: 'look' }) } });
+  const B = boot({ ls: { spmtMenuGroups: J({ setup: 'look', view: 'svc' }) } });
   seed(B.ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [500, 100])], disc: [600, 120], mand: [100, 20], order: ['A'] });
-  const back = B.ev(`(function(){ openMenu='reports'; syncBtns(); const r=document.getElementById('mg_reports_exec');
-      openMenu='setup'; syncBtns(); const s=document.getElementById('mg_setup_look');
-      return JSON.stringify([!!r && !r.hidden, !!s && !s.hidden]); })()`);
+  const back = B.ev(`(function(){ syncBtns(); const s=document.getElementById('mg_setup_look');
+      openMenu='view'; syncBtns(); const r=document.getElementById('mg_view_svc');
+      return JSON.stringify([!!s && !s.hidden, !!r && !r.hidden]); })()`);
   chk(name, 'remembered', 'the open group is kept in this browser and a board opened later opens on it; the saved file does not carry it',
-    J([JSON.parse(stored || '{}').reports, back, saved.indexOf('"reports":"exec"') < 0]), J(['exec', '[true,true]', true]));
-  // FIND in Reports & exports
-  const find = q => JSON.parse(ev(`(function(){ openMenu='reports'; syncBtns(); menuFind(${J(q)});
+    J([JSON.parse(stored || '{}').setup, back, saved.indexOf('"setup":"codes"') < 0]), J(['codes', '[true,true]', true]));
+  // FIND in Reports & exports, the box on the left menu
+  const find = q => JSON.parse(ev(`(function(){ uiRepOpen(); menuFind(${J(q)});
       const dd=document.getElementById('dd_reports');
-      const vis=[].slice.call(dd.querySelectorAll('.mi')).filter(function(e){ const g=e.closest('.gbody'); return !e.hidden && !(g && g.hidden); });
+      const vis=[].slice.call(dd.querySelectorAll('.mi')).filter(function(e){ const x=e.closest('.uiRs'); return !e.hidden && !(x && x.hidden); });
       const none=dd.querySelector('.mnone');
-      return JSON.stringify({ n: vis.length, groups: vis.map(function(e){ const g=e.closest('.gbody'); return g? g.id.replace('mg_reports_','') : 'top'; })
+      return JSON.stringify({ n: vis.length, groups: vis.map(function(e){ const x=e.closest('.uiRs'); return x? x.getAttribute('data-g') : 'top'; })
         .filter(function(v,i,a){ return a.indexOf(v)===i; }), none: !!none && !none.hidden,
-        heads: [].slice.call(dd.querySelectorAll('.gh')).filter(function(h){ return getComputedStyle(h).display!=='none'; }).length }); })()`));
-  const fx = find('excel'), fc = find('cash'), fz = find('zzqq');
+        lines: [].slice.call(dd.querySelectorAll('.uiRsV')).filter(function(v){ return !v.hidden && !v.closest('.uiRs').hidden; }).map(function(v){ return v.closest('.uiRs').getAttribute('data-g'); }) }); })()`));
+  const fx = find('excel'), fc = find('cash'), fz = find('zzqq'), ff = find('cash needs');
   chk(name, 'Find', 'typing "excel" lists the seven workbooks, from four groups at once',
     J([fx.n, fx.groups, fx.none]), J([7, ['brief', 'fydp', 'exec', 'ccar'], false]));
-  chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([4, ['spend'], 0, true]));
-  const after = JSON.parse(ev(`(function(){ openMenu=null; syncBtns(); openMenu='reports'; syncBtns();
-      const f=document.getElementById('mFind'); return JSON.stringify([f? f.value : null, menuFindQ]); })()`));
-  chk(name, 'Find', 'closing the menu clears it', J(after), J(['', '']));
-  chk(name, 'Find', 'and it is a labelled search box at the top of the menu',
+  chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([2, ['spend'], 0, true]));
+  chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['spend'], false]));
+  const after = JSON.parse(ev(`(function(){ uiRepClose(); syncBtns(); uiRepOpen();
+      const f=document.getElementById('mFind'); const r=JSON.stringify([f? f.value : null, menuFindQ]); uiRepClose(); return r; })()`));
+  chk(name, 'Find', 'closing the box clears it', J(after), J(['', '']));
+  chk(name, 'Find', 'and it is a labelled search box at the top of the box',
     ev(`(function(){ syncBtns(); const f=document.getElementById('dd_reports').firstElementChild; return JSON.stringify([f.tagName, f.type, f.getAttribute('aria-label')]); })()`),
     J(['INPUT', 'search', 'Find a report or export']));
   // FILTER: the group holding a filter that is on opens by itself, and the headings say what is on
@@ -3586,13 +3608,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'Filter', 'a filter that is on opens its group; the Service heading names the service and its items are the services by name',
     J(auto), J(['fund', true, 'svc', ['', 'ANG'], ['Any service', 'USAF', 'ANG']]));
   // A HEADING IS PRESSED LIKE A BUTTON: the click stays in the menu (the menu is drawn again under it, and the page's own
-  // click handler would otherwise read that as a click outside), and focus comes back to the heading
-  const clicked = JSON.parse(ev(`(function(){ menuGrpOpen={}; openMenu='reports'; syncBtns();
-      const h=document.querySelector('#dd_reports .gh[data-g="ccar"]'); h.focus();
+  // click handler would otherwise read that as a click outside), and focus comes back to the heading. v2.00 (menu): in
+  // Setup's flyout on the left menu, the list that folds there
+  const clicked = JSON.parse(ev(`(function(){ menuGrpOpen={}; openMenu=null; syncBtns(); uiFlyOpen('setup', document.getElementById('uiNav_setup'));
+      const h=document.querySelector('#uiFly .gh[data-g="codes"]'); h.focus();
       h.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window}));
-      const g=document.getElementById('mg_reports_ccar'), a=document.activeElement;
-      return JSON.stringify([openMenu, !!g && !g.hidden, !!a && a.classList.contains('gh') && a.getAttribute('data-g')==='ccar' && a.isConnected]); })()`));
-  chk(name, 'pressed', 'a click on a heading keeps the menu open, opens the group, and leaves focus on that heading', J(clicked), J(['reports', true, true]));
+      const g=document.getElementById('mg_setup_codes'), a=document.activeElement;
+      const r=JSON.stringify([UI2.fly, !!g && !g.hidden && document.getElementById('uiFly').contains(g), !!a && a.classList.contains('gh') && a.getAttribute('data-g')==='codes' && a.isConnected]);
+      uiFlyClose(); return r; })()`));
+  chk(name, 'pressed', 'a click on a heading keeps the flyout open, opens the group, and leaves focus on that heading', J(clicked), J(['setup', true, true]));
   // AN IMPORTED SERVICE NAME IS TEXT on the Service heading too (it says which service is chosen)
   const H = boot();
   seed(H.ev, { services: ['<img src=x id=pwnsvc>', 'ANG'], items: [it('A', 'AV', [500, 100])], disc: [600, 120], mand: [100, 20], order: ['A'] });
@@ -4027,12 +4051,16 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const L = n => 'A'.repeat(n);
   const ask = (code, answers) => w1json(ev, `JSON.stringify((function(){ __pr=[]; __ans=${J(answers)}; setStat(''); ${code};
       return {pr:__pr.slice(), stat:document.getElementById('shareStat').textContent}; })())`);
-  // PID: 21 refused (kept PID-OLD; the box opens again holding the 21); 20 taken (a CONTROL)
-  let r = ask(`editPid('X')`, [L(21)]);
-  chk(name, 'PID, typed', '21 characters: refused, the PID stays, and the box opens again holding what was typed',
-    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 20/.test(r.stat)]), J(['PID-OLD', 2, L(21), true]));
-  ask(`editPid('X')`, [L(20)]);
-  chk(name, 'PID, typed', 'CONTROL — 20 characters are taken whole', w1ev(ev, `S.pid.X`), L(20));
+  // PID: 36 refused (kept PID-OLD; the box opens again holding the 36); 35 taken (a CONTROL). v2.01 (Brad, 20 Oct): the limit
+  // is 35, not 20 -- a 21- to 35-character PID, refused before, is taken whole, and the prompt says the limit
+  let r = ask(`editPid('X')`, [L(36)]);
+  chk(name, 'PID, typed', '36 characters: refused, the PID stays, and the box opens again holding what was typed',
+    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 35/.test(r.stat)]), J(['PID-OLD', 2, L(36), true]));
+  ask(`editPid('X')`, [L(35)]);
+  chk(name, 'PID, typed', 'CONTROL — 35 characters are taken whole', w1ev(ev, `S.pid.X`), L(35));
+  const pq = w1json(ev, `JSON.stringify((function(){ var q=''; var _p=uiPrompt; uiPrompt=function(t){ q=String(t); };
+    try{ editPid('X'); } finally { uiPrompt=_p; } return q; })())`);
+  chk(name, 'PID, typed', 'v2.01: the prompt says the limit is 35', String(/\(up to 35 characters\):$/.test(pq)), 'true');
   // CCaR record: 13 refused, 12 taken
   r = ask(`editCcar('X')`, [L(13)]);
   chk(name, 'CCaR record, typed', '13 characters: refused, the record stays, and the box opens again holding them',
@@ -4084,10 +4112,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return [S.ccar[id], pf, at]; })())`);
   chk(name, 'a PMO submittal', 'its 15-character CCaR record is kept whole, listed under Pre-flight and under Needs attention', J(im), J([L(15), 1, 1]));
   // A FILE THAT CARRIES ONE: kept whole through save and reopen, and listed
-  w1ev(ev, `S.pid.P=${J(L(25))}; save(); 'ok'`);
+  w1ev(ev, `S.pid.P=${J(L(36))}; S.pid.X=${J(L(35))}; save(); 'ok'`);
   const R = boot({ html: ev('buildSavedHtml()') });
-  chk(name, 'a saved file carrying a 25-character PID', 'reopened, it is kept whole and Needs attention lists it',
-    w1ev(R.ev, `JSON.stringify([S.pid.P, (attLists().code||[]).some(function(x){ return x.id==='P'; })])`), J([L(25), true]));
+  chk(name, 'a saved file carrying a 36-character PID', 'reopened, it is kept whole and Needs attention lists it',
+    w1ev(R.ev, `JSON.stringify([S.pid.P, (attLists().code||[]).some(function(x){ return x.id==='P'; })])`), J([L(36), true]));
+  chk(name, 'a saved file carrying a 35-character PID', 'CONTROL — v2.01: at the limit, it is kept and not listed',
+    w1ev(R.ev, `JSON.stringify([S.pid.X, codeIssues().some(function(x){ return x.id==='X' && x.kind==='pid'; })])`), J([L(35), false]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }

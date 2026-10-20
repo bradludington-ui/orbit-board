@@ -28,12 +28,23 @@ const sc = { services: SVCN, items, disc: [5000000, 1000000, 500000],
 // The toolbar menus, by the label a message would use for each.
 // v1.90 (item 27): the Active year, Budget year, FYDP, Tools and Export menus became Reports & exports,
 // Data and Setup, and the mode tools in the task bar (t_*), which are always in the page.
+// v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the LEFT MENU, and each item of File
+// went to one place there: Imports & exports, Program offices, Audit, History & recovery, Setup, or Save's ▾. A path names
+// the left-menu entry; what it holds is read from the list the board draws for it (a box's or a flyout's), and FYDP ▸,
+// Execution ▸ and History & recovery ▸, which draw their own, are drawn into the page to be read (FLYDRAW).
 const MENUS = {
-  'Reports &amp; exports': 'm_reports',
-  'Reports & exports':     'm_reports',
-  'Data':        'm_data',
-  'Setup':       'm_setup',
-  'File':        'm_share',
+  'Reports &amp; exports': 'dd_reports',
+  'Reports & exports':     'dd_reports',
+  'Data':        'dd_data',
+  'Setup':       'dd_setup',
+  'Imports &amp; exports': 'dd_boards',
+  'Imports & exports':     'dd_boards',
+  'Program offices':       'dd_offices',
+  'Audit':       'dd_audit',
+  'History &amp; recovery': 'mp_fly_hist',
+  'History & recovery':     'mp_fly_hist',
+  'FYDP':        'mp_fly_fydp',
+  'Execution':   'mp_fly_exec',
   'Filter':      'm_view',
   'PMO':         'm_pmo',
   'Fiscal year': 'm_fy',
@@ -58,7 +69,15 @@ const strip = s => unesc(s)
   .replace(/[^\p{L}\p{N} ()\/&-]/gu, ' ')
   .replace(/\s+/g, ' ').trim();
 
+// v2.00 (menu): the left menu's flyouts that draw their own items (uiFlyItems), drawn into hidden lists in the page so a path
+// to them is read like any other; History & recovery's own list holds the work kept aside it shows (dd_kept)
+const FLYDRAW = () => { if (typeof uiFlyItems !== 'function') return;
+  ['fydp', 'exec', 'hist'].forEach(k => { let d = document.getElementById('mp_fly_' + k);
+    if (!d) { d = document.createElement('div'); d.id = 'mp_fly_' + k; d.hidden = true; document.body.appendChild(d); }
+    d.innerHTML = uiFlyItems(k);
+    d.querySelectorAll('[data-host]').forEach(h => { const src = document.getElementById(h.getAttribute('data-host')); h.innerHTML = src ? src.innerHTML : ''; }); }); };
 // v1.96 (item 65): a menu as a person meets it -- the items on it, and its folded groups by title.
+// v2.00 (menu): and a box's sections (Reports & exports' six groups, laid out side by side) by their headings.
 const READ_SHAPE = ids => {
   const out = {};
   for (const [label, id] of Object.entries(ids)) {
@@ -66,7 +85,8 @@ const READ_SHAPE = ids => {
     const clone = c.cloneNode(true); clone.querySelectorAll('.gbody, .gh').forEach(e => e.remove());
     out[label] = { top: (clone.textContent || '').replace(/\s+/g, ' '),
       groups: [...c.querySelectorAll('.gh')].map(h => { const b = document.getElementById(h.getAttribute('aria-controls'));
-        return { title: (h.querySelector('span:nth-child(2)') || h).textContent, text: b ? (b.textContent || '').replace(/\s+/g, ' ') : '' }; }) };
+        return { title: (h.querySelector('span:nth-child(2)') || h).textContent, text: b ? (b.textContent || '').replace(/\s+/g, ' ') : '' }; })
+        .concat([...c.querySelectorAll('.uiRs')].map(x => ({ title: (x.querySelector('h4') || x).textContent, text: (x.textContent || '').replace(/\s+/g, ' ') }))) };
   }
   return out;
 };
@@ -120,6 +140,7 @@ for (const f of ['prioritization-board-grid.html']) {
     null, { timeout: 40000 });
   // What each menu actually contains, read from the rendered dropdown -- and, since v1.96 (item 65), which items sit in a
   // folded group and which are on the menu itself. A folded group's items are in the page, hidden, until it opens.
+  await p.evaluate(`(${FLYDRAW.toString()})()`);
   const contents = await p.evaluate(ids => {
     const out = {};
     for (const [label, id] of Object.entries(ids)) {
@@ -132,7 +153,7 @@ for (const f of ['prioritization-board-grid.html']) {
   await ctx.close();
 
   for (const [label, id] of Object.entries(MENUS))
-    chk(`the ${label} menu is on the toolbar`, contents[label] !== null, contents[label] === null ? '#' + id + ' missing' : '');
+    chk(`the ${label} menu is in the page`, contents[label] !== null, contents[label] === null ? '#' + id + ' missing' : '');
 
   // Every "<menu> › <item>" the source tells a reader to follow.
   const refs = [];
@@ -169,11 +190,16 @@ for (const f of ['prioritization-board-grid.html']) {
     await p2.goto('file://' + url);
     await p2.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('.row').length > 0, null, { timeout: 40000 });
     await p2.waitForTimeout(300);
-    const g = await p2.evaluate((part) => {
+    await p2.evaluate(`(${FLYDRAW.toString()})()`);
+    // v2.00 (menu): a guide path's data-m names a toolbar menu (m_<data-m>) or a left-menu entry, read from its list
+    const LEFTM = { rep: 'dd_reports', data: 'dd_data', setup: 'dd_setup', imp: 'dd_boards', offices: 'dd_offices', aud: 'dd_audit',
+                    hist: 'mp_fly_hist', fydp: 'mp_fly_fydp', exec: 'mp_fly_exec' };
+    const g = await p2.evaluate(([part, LEFTM]) => {
       const shut = !/\bopen\b/.test((document.getElementById('helpPanel') || {}).className || '');
       const secs = (typeof helpSections === 'function') ? helpSections().filter(s => s.part === part) : [];
       const menus = {}; document.querySelectorAll('.menu').forEach(m => { menus[m.id] = (m.textContent || '').replace(/\s+/g, ' '); });
       const ids = {}; document.querySelectorAll('.menu[id]').forEach(m => { ids[m.id] = m.id; });
+      Object.entries(LEFTM).forEach(([k, id]) => { const c = document.getElementById(id); if (c) { menus['m_' + k] = (c.textContent || '').replace(/\s+/g, ' '); ids['m_' + k] = id; } });
       const vis = el => { if (!el) return false; const c = el.getBoundingClientRect(); return c.width > 0 && c.height > 0; };
       const paths = [], btns = [];
       secs.forEach(s => {
@@ -182,7 +208,7 @@ for (const f of ['prioritization-board-grid.html']) {
           btns.push({ sec: s.t, q, text: e.textContent, have: t ? (t.textContent || '').replace(/\s+/g, ' ') : null, shown: vis(t) }); });
       });
       return { shut, n: secs.length, menus, ids, paths, btns };
-    }, part);
+    }, [part, LEFTM]);
     const gshape = await p2.evaluate(READ_SHAPE, g.ids);
     await ctx2.close();
     chk(`${where}: the guide does not open by itself`, g.shut);

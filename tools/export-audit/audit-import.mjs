@@ -2178,10 +2178,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const { ev } = v184Board();
   chk(name, 'board', 'the live board still offers Save', ev(`syncBtns(); document.getElementById('saveBtn').textContent`), 'Save');
   const P = boot({ html: v184Publish(ev) });
-  P.ev(`syncBtns(); openMenu='share'; syncBtns(); 'ok'`);
+  P.ev(`syncBtns(); 'ok'`);
   chk(name, 'copy', 'the header button submits', P.ev(`document.getElementById('saveBtn').textContent+'|'+document.getElementById('saveBtn').getAttribute('onclick')`), '✉ Submit input|pmoSubmit()');
   chk(name, 'copy', 'the save indicator says where the work is', /kept in this browser/.test(P.ev(`document.getElementById('saveState').innerHTML`)), true);
-  chk(name, 'copy', 'File › Save says it is off here, and where to go instead', /Save<span class="sub">turned off in a PMO copy — use ✉ Submit input/.test(P.ev(`document.getElementById('dd_share').innerHTML`)), true);
+  // v2.00 (menu, 19 Oct): the File menu is gone; in a copy, Save's ▾ on the left menu says Save is off, and where to go instead
+  chk(name, 'copy', 'Save’s ▾ says Save is off here, and where to go instead', /Save<span class="sub">turned off in a PMO copy — use ✉ Submit input/.test(P.ev(`document.getElementById('dd_save').innerHTML`)), true);
   chk(name, 'copy', 'the opening line points to Submit input', /Submit input/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), true);
   chk(name, 'copy', 'and never to Save', /Save to pass it on/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), false);
   const box = P.ev(`(function(){ window.alert=function(){}; const s=document.getElementById('appnSel');
@@ -3350,22 +3351,27 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const B = boot({ html: O.ev('buildSavedHtml()') });
   // v1.96 (item 65): Save on top, then three folded groups by the job; Save diagnostics at the foot. The v1.86 groups
   // (Save, Import, Export, Team, Support) put Review submittals under Export and spread one job over three groups.
-  const lab = JSON.parse(B.ev(`JSON.stringify([...document.querySelectorAll('#dd_share .gh')].map(function(n){ return n.querySelector('span:nth-child(2)').textContent; }))`));
-  chk(name, 'File', 'Program offices, Writer and team, Boards and appropriations', lab.join(' | '), 'Program offices | Writer and team | Boards and appropriations');
-  const items = B.ev(`document.getElementById('dd_share').textContent`);
-  const order = ['Save', 'Save a copy', 'Publish PMO copy', 'Review submittals', 'Take the pen', 'My editor name', 'Live view', 'Change journal', 'Save history',
-    'Import a full board (new version)', 'Export one appropriation', 'Import one appropriation', 'Import several boards at once', 'Appropriation packages',
-    'Save diagnostics'].map(t => items.indexOf(t));
-  chk(name, 'File', 'every entry is there, in that order', order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), true);
+  // v2.00 (menu, 19 Oct): THE FILE MENU IS GONE. Each of its groups has its own entry on the left menu -- Program offices,
+  // Audit (Writer and team's journal, history, pen and name), Imports & exports (Boards and appropriations) -- and Save, Save a
+  // copy, Live view and Save diagnostics went to Save at its foot, Save's ▾ and Setup.
+  const lab = JSON.parse(B.ev(`JSON.stringify(['uiNav_rep','uiNav_imp','uiNav_data','uiNav_pmo','uiNav_aud','uiNav_hist','uiNav_setup'].map(function(id){ const e=document.getElementById(id); return e? e.getAttribute('data-tip') : null; }))`));
+  chk(name, 'left menu', 'Reports & exports, then Board: Imports & exports, Data, Program offices, Audit, History & recovery, Setup', lab.join(' | '),
+    'Reports & exports | Imports & exports | Data | Program offices | Audit | History & recovery | Setup');
+  const items = B.ev(`(function(){ syncBtns(); return [document.getElementById('saveBtn').textContent].concat(['dd_save','dd_offices','dd_audit','dd_setup','dd_boards'].map(function(k){ return document.getElementById(k).textContent; })).join(' ¦ '); })()`);
+  const order = ['Save', 'Save a copy', 'Publish PMO copy', 'Review submittals', 'Change journal', 'Save history', 'Take the pen', 'My editor name', 'Live view',
+    'Save diagnostics', 'Import a full board (new version)', 'Import one appropriation', 'Import several boards at once', 'Export one appropriation',
+    'Appropriation packages'].map(t => items.indexOf(t));
+  chk(name, 'left menu', 'every entry the File menu had is there, each in its one place, in that order', order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), true);
   // v1.90: Budget year became Reports & exports, Data, Setup and the mode tools -- the copy is in none of them
-  chk(name, 'one home', 'the PMO copy is under File and nowhere else', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`['dd_reports','dd_data','dd_setup','dd_fy','dd_modetools','t_review','t_rank','t_fund','t_compare','t_brief'].map(function(k){ const e=document.getElementById(k); return e? e.textContent : ''; }).join(' ')`)), false);
+  chk(name, 'one home', 'the PMO copy is under Program offices and nowhere else', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`['dd_reports','dd_data','dd_setup','dd_audit','dd_boards','dd_save','dd_kept','dd_fy','dd_modetools','t_review','t_rank','t_fund','t_compare','t_brief'].map(function(k){ const e=document.getElementById(k); return e? e.textContent : ''; }).join(' ')`)), false);
   const P = boot({ html: v184Publish(B.ev) });
-  chk(name, 'copy', 'in a copy, ✉ Submit input is under File, and the bar button stays',
-    /Submit input/.test(P.ev(`document.getElementById('dd_share').textContent`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');
-  // v1.96 (item 65): in a copy it is the one way out, so it is unfolded on top, and a copy has no Program offices group
-  chk(name, 'copy', 'in a copy, ✉ Submit input is on top of File, not in a folded group, and there is no Program offices group',
-    P.ev(`(function(){ const e=[].slice.call(document.querySelectorAll('#dd_share .mi')).filter(function(x){ return /Submit input/.test(x.textContent); })[0];
-      return JSON.stringify([!!e && !e.closest('.gbody'), !document.getElementById('mg_share_offices')]); })()`), '[true,true]');
+  chk(name, 'copy', 'in a copy, ✉ Submit input is in Save’s place at the left menu’s foot, and the bar button stays',
+    /Submit input/.test(P.ev(`(function(){ const b=document.getElementById('saveBtn'); return b && b.closest('#uiSide .uiSave')? b.textContent : ''; })()`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');
+  // v1.96 (item 65): in a copy it is the one way out, so it is unfolded on top, and a copy has no Program offices group.
+  // v2.00 (menu): it is the Save spot itself, and Program offices is not shown and holds nothing
+  chk(name, 'copy', 'in a copy, ✉ Submit input is the Save spot (pmoSubmit), not in a list, and there is no Program offices',
+    P.ev(`(function(){ syncBtns(); const b=document.getElementById('saveBtn'), po=document.getElementById('uiNav_pmo');
+      return JSON.stringify([!!b && b.getAttribute('onclick')==='pmoSubmit()' && !b.closest('#uiHold, #uiFly'), !!po && po.hidden && document.getElementById('dd_offices').innerHTML==='']); })()`), '[true,true]');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
@@ -3507,7 +3513,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, at, 'Brad’s work is kept aside, not lost', /BRAD NOTE/.test(R.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), true);
     chk(name, at, 'and the board says so', /kept aside, not lost/.test(status(R.ev)), true);
     chk(name, at, 'the header says so for as long as it is kept', /work kept aside/.test(header(R.ev)), true);
-    chk(name, at, 'and 📁 File offers to put it back', /Put back work kept aside/.test(R.ev(`document.getElementById('dd_share')? document.getElementById('dd_share').textContent : ''`)), true);
+    chk(name, at, 'and History & recovery on the left menu offers to put it back', /Put back work kept aside/.test(R.ev(`document.getElementById('dd_kept')? document.getElementById('dd_kept').textContent : ''`)), true);
     R.ev(`globalThis.__yes=true; keptPutBack(); 'ok'`);
     // v2.00 (U19): what was on screen -- the colleague's save, in no copy this board can reach but the file -- is kept aside in its place
     chk(name, at, 'one click puts it back, and what was on screen (the colleague’s copy, saved only in the file) is kept aside in its place',
@@ -9914,10 +9920,20 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const anywhere = (ev, f, m) => Object.values(lsOf(ev)).some(v => String(v).includes(m)) || f.content.includes(m);
   // The page's own controls: 💾 Save in the toolbar (its promise is the save queue's), the top bar's "↶ work kept aside", and
   // the 📁 File menu (mRun runs its item after a turn of the loop; then the save queue is waited for).
+  // v2.00 (menu, 19 Oct): the File menu is gone, and fileMenu() goes where each of its items went, the way a person does: the
+  // left-menu entry that holds the item opens (History & recovery for work kept aside, Setup for Live view, ...) and the
+  // item, the call the File menu made (mRun), is pressed. Save's File item has no second button: its other way is Ctrl+S.
   const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
   const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
-  const fileMenu = async (ev, call) => { const r = ev(`(function(){ var b=document.getElementById('b_share'); if(!b) return 'no File button'; b.click();
-      var it=[].slice.call(document.querySelectorAll('#dd_share button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
+  const fileMenu = async (ev, call) => { const r = ev(`(function(){
+      if(${J(call)}==='mRun(saveInPlace)'){ var k=new KeyboardEvent('keydown', {key:'s', ctrlKey:true, bubbles:true, cancelable:true});
+        document.dispatchEvent(k); return k.defaultPrevented? 'clicked' : 'Ctrl+S was not taken'; }
+      var hosts={dd_kept:'hist', dd_setup:'setup', dd_offices:'pmo', dd_audit:'aud', dd_save:'save'}, at=null, n=0;
+      Object.keys(hosts).forEach(function(id){ var c=document.getElementById(id); if(!c) return;
+        var m=[].slice.call(c.querySelectorAll('button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; }).length; n+=m; if(m) at=hosts[id]; });
+      if(n!==1) return 'items: '+n;
+      var nav=document.getElementById('uiNav_'+at); if(!nav) return 'no left-menu entry'; nav.click();
+      var it=[].slice.call(document.querySelectorAll('#uiFly button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
       if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
     await pause(15); await ev('_saveChain'); await pause(20); return r; };
   // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
@@ -9930,7 +9946,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       if(bs.length!==1) return 'buttons: '+bs.length; bs[0].click(); return 'clicked'; })()`);
     await until(() => f.writes > w0); await ev('_saveChain'); await pause(20); return r; };
   const keptTitle = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); return b? b.title : null; })()`);
-  const menuText = ev => ev(`(document.getElementById('dd_share')||{}).textContent||''`);
+  const menuText = ev => ev(`(document.getElementById('dd_kept')||{}).textContent||''`);   // v2.00 (menu): History & recovery's work kept aside
   // WORDS, as the board says them. The question when what is on screen is saved in the board file; the HOLD ON, unchanged;
   // the top bar's and 📁 File's words for a copy kept at a put-back; the status after putting such a copy back.
   const PUTQ = 'What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that. It is also kept aside in its place, so it is not lost if Save does.';
@@ -9998,13 +10014,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     await putBackK(A, sc);
     chk(name, sc, 'and names the saved file and who saved it after K, as before: K was kept by the opening (a CONTROL)',
       status(A.ev).includes('💾 Save will ask before it writes over the saved file, which Alice saved after it.'), true);
-    chk(name, sc, '↶ Put back: the top bar offers S1, as what was on screen when other work was put back; 📁 File says the same',
+    chk(name, sc, '↶ Put back: the save state at the foot of the left menu offers S1, as what was on screen when other work was put back; History & recovery says the same',
       J([SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]), J([true, true, false]));
     let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
-    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered in the top bar, and its text is in this browser’s storage',
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered at the foot of the left menu, and its text is in this browser’s storage',
       J([where(A.ev, f, S1), anywhere(A.ev, f, S1), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || '')]), J([['kept'], true, [S1, 'swap'], true]));
     const { B, fB } = await reopen(A, f);
-    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered in the top bar',
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered at the foot of the left menu',
       J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), where(B.ev, fB, S1), SWAPTITLE.test(keptTitle(B.ev) || '')]),
       J([K, K, false, false, false, [S1, 'swap'], ['kept'], true]));
     q0 = qs(B.ev).length; clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
@@ -10034,16 +10050,16 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
       J([K, K, false, false, false, ['kept']])); }
   // (c) THROUGH 📁 FILE AND THE NOTE EDITOR: S1 typed in 📄 Description & note, 📁 File → 💾 Save, → ↶ Put back, → 💾 Save.
-  { const sc = '(c) the board file through 📁 File and the note editor; HOLD ON answered OK; reopened';
+  { const sc = '(c) the board file through Ctrl+S, History & recovery and the note editor; HOLD ON answered OK; reopened';
     const { A, f } = await inFile();
     const typed = typeNote(A.ev, S1); await pause(5);
     const s1 = await fileMenu(A.ev, 'mRun(saveInPlace)');
-    chk(name, sc, 'S1 typed in the editor and saved through 📁 File: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+    chk(name, sc, 'S1 typed in the editor and saved through Ctrl+S: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
       J([typed, s1, qs(A.ev).length, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J(['typed', 'clicked', 0, S1, false, false, false, [K, 'file']]));
     const pb = await putBackK(A, sc, () => fileMenu(A.ev, 'mRun(keptPutBack)'));
-    chk(name, sc, '📁 File → ↶ Put back: 📁 File then says what the work kept aside is', J([pb, menuText(A.ev).includes(SWAPMENU)]), J(['clicked', true]));
+    chk(name, sc, 'History & recovery → ↶ Put back: History & recovery then says what the work kept aside is', J([pb, menuText(A.ev).includes(SWAPMENU)]), J(['clicked', true]));
     const q0 = qs(A.ev).length; const s2 = await fileMenu(A.ev, 'mRun(saveInPlace)'); saveK(A, f, sc, qs(A.ev).slice(q0));
-    chk(name, sc, 'after 📁 File → 💾 Save: S1 is kept aside', J([s2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', ['kept'], true]));
+    chk(name, sc, 'after Ctrl+S: S1 is kept aside', J([s2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', ['kept'], true]));
     const { B, fB } = await reopen(A, f);
     chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
   // (d) NO FILE HANDLE REMEMBERED: the first 💾 Save opens the picker (which hands back the same file); the second reuses it.
@@ -10268,11 +10284,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
     await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
     A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
-    chk(name, sc, 'K kept aside by Load theirs: the top bar and 📁 File say what it is, as before (a CONTROL)',
+    chk(name, sc, 'K kept aside by Load theirs: the save state and History & recovery say what it is, as before (a CONTROL)',
       J([kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), menuText(A.ev).includes('from before the shared folder replaced it')]),
       J([[K, 'folder'], true, true]));
     clickPutBack(A.ev);
-    chk(name, sc, 'S1, unsaved, put aside: K on screen; the top bar and 📁 File offer S1 as what was on screen when other work was put back',
+    chk(name, sc, 'S1, unsaved, put aside: K on screen; the save state and History & recovery offer S1 as what was on screen when other work was put back',
       J([scr(A.ev), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU)]), J([K, [S1, 'swap'], true, true]));
     await clickSave(A.ev); await pause(20); const q2 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
     chk(name, sc, 'K saved over the folder’s copy: one question; K in the folder, saved; S1 still kept (a CONTROL)',
@@ -10455,7 +10471,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       J([r, q.length, q.length === 1 && q[0].endsWith(FOLDQ + ' It is also kept aside in its place, so it is not lost if Save does.'), scr(A.ev), kept(A.ev)]),
       J(['clicked', 1, true, S1, [K, 'swap']])); }
   // (ac) CONTROL: THE WORDS AFTER A PUT-BACK THE LOAD REFUSES: S1 saved; the kept work built for another service list; ↶ Put back
-  // refused by the load. The slot holds K again, so the top bar and 📁 File still describe K (work kept by the opening).
+  // refused by the load. The slot holds K again, so the save state and History & recovery still describe K (work kept by the opening).
   { const sc = '(ac) CONTROL: the board file: S1 saved; the kept work built for another service list; ↶ Put back refused; the words after';
     const { A, f } = await inFile();
     await savedS1(A, f, sc);
@@ -10463,7 +10479,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
     const r = clickPutBack(A.ev);
     const o = await fileMenu(A.ev, 'mRun(keptPutBack)');
-    chk(name, sc, 'refused (twice, the second through 📁 File): K still kept; the top bar and 📁 File describe K, not a copy kept at a put-back',
+    chk(name, sc, 'refused (twice, the second through History & recovery): K still kept; the save state and History & recovery describe K, not a copy kept at a put-back',
       J([r, o, kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]),
       J(['clicked', 'clicked', [K, 'file'], true, false, false, true])); }
   // (ad) CONTROL: THE HOLD ON'S CANCEL ADVICE WITH NOTHING KEPT ASIDE. K, kept by the opening, is discarded (📁 File →
