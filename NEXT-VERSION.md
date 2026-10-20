@@ -264,6 +264,15 @@ below ("UI menu — every top-right menu moves into the left menu"); every one o
   44 seconds into a full sweep of 2,021 targets.
 - **Next sweep (Brad's plan):** the ~880 targets added in v2.00 and v2.01, once v2.01 is on `main`.
 
+#### The sweep (Brad, 20 Oct: "Go for sweeps but be mindful of usage credits")
+- **`mutate.mjs` did not parse** (two entries missing a comma since v2.00): fixed, and `npm run check` now parses it.
+- **Pilot, 20 of the 895 targets new or rewritten since v1.99**, with `mutate.mjs`: 4.5 min a target; 13 caught, 6 CRASHED (out
+  of memory under the sweep's 2.5 GB per-suite cap: recon block 80 peaks at 6.5 GB, import blocks 105 and 107-108 need 5 GB).
+- **`tools/export-audit/sweep-shards.mjs`** splits recon and import into calibrated shards, each run in its own process with the
+  heap it needs: all 20 pilot targets caught (the 6 included), a no-op control SURVIVED, a declared equivalent came back
+  equivalent -- but about 4 min a target, ~60 hours for 895. The full sweep is the first item of v2.02
+  (`recovery/v202/HANDOFF.md`), from a fresh session after the usage reset.
+
 #### The checks v2.01 was proved with (20 Oct 2026, Eastern)
 - `npm run validate:nightly` at `69a790c`, 10:08-11:00 AM: defect register (13 defects, 43 mutations), money coverage (26/26),
   money map (329 cells: 123 proven, 206 n/a, 0 open), trace matrix (92 cells), every suite (9 banners + the legacy line), fuzz
