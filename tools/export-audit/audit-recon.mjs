@@ -2839,6 +2839,61 @@ await (async () => {
   bootRelease(__bm); await settleBoards();
 })();
 
+// ══ v2.02 (E5, ledger U9L) — AN OFFICE'S PLANNING SHARE AND THE SPEND PLAN SOURCE'S CLIN AMOUNTS, NAMED APART AND RECONCILED ══
+// Brad, 13 Oct 2026: label both, reconcile them, move no dollar; 20 Oct: the reconciliation is a workbook sheet. PRIME-3 (home
+// office PRIMES) has CLINs 0010 (MxS) asking USAF 1 and 0002 (AV) asking USAF 3 and ANG 2. It draws USAF $2 discretionary, paid
+// by two $1 increments, and ANG $4 mandatory, with no award of its own. Worked out by hand:
+//   PLANNING SHARE  USAF $2 by asks 1:3 = 0.5 and 1.5 -> $0 and $1, the leftover dollar to the tie's lower office: MxS $1, AV $1.
+//                   ANG $4 by asks 0:2 -> AV $4.
+//   CLIN AMOUNTS    each $1 increment by 1:3 = 0.25 and 0.75 -> the dollar to AV, twice: MxS $0, AV $2. ANG $4 -> AV $4.
+//   DIFFERENCE      Disc: MxS +$1, AV -$1, requirement 0. Mand: 0.
+// A (ATL, $5 USAF discretionary, no CLINs) is wholly its own office's on both readings: counted, not listed.
+// FAILS ON c357911: the workbook has no "Office share vs CLIN" sheet, and its by-office sheets carry no planning-share label.
+await (async () => {
+  const name = 'v2.02 (E5) — an office’s planning share and the Spend Plan Source’s CLIN amounts, named apart and reconciled';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('PRIME-3', 'PRIMES', [2, 4]), it('A', 'ATL', [5, 0])],
+    disc: [10, 0], mand: [0, 4], order: ['PRIME-3', 'A'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    CLINS['PRIME-3']=[{clin:'0010', ask:[1,0]}, {clin:'0002', ask:[3,2]}]; DATA.clins=CLINS; S.ptype={'PRIME-3':'PRIME'};
+    S.awards={'PRIME-3':{mode:'inc', inc:[{d:FYMON[2][0], day:5, sv:[1,0]}, {d:FYMON[4][0], day:5, sv:[1,0]}]}};
+    applyState(S); save(); 'ok'`);
+  chk(name, 'fixture', 'CONTROL — PRIME-3 is a prime drawing USAF $2 disc and ANG $4 mand; A draws USAF $5 disc',
+    X.ev(`(function(){ var T=tiers(); return clinApplies('PRIME-3')+' '+T['PRIME-3'].d.join('/')+'+'+T['PRIME-3'].m.join('/')+' '+T.A.d.join('/')+'+'+T.A.m.join('/'); })()`), 'true 2/0+0/4 5/0+0/0');
+  const R = JSON.parse(X.ev(`JSON.stringify(officeClinRecon())`));
+  chk(name, 'officeClinRecon', 'one requirement listed, by office: [office, planning disc, CLIN disc, planning mand, CLIN mand]',
+    JSON.stringify(R.reqs.map(q => [q.id, q.offices.map(o => [o.g, o.pd, o.cd, o.pm, o.cm])])), JSON.stringify([['PRIME-3', [['MxS', 1, 0, 0, 0], ['AV', 1, 2, 4, 4]]]]));
+  chk(name, 'officeClinRecon', 'every other requirement counted, not listed: [n, disc, mand]', JSON.stringify([R.other.n, R.other.d, R.other.m]), JSON.stringify([1, 5, 0]));
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'workbook', 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+  const oc = bk['Office share vs CLIN'] || [];
+  chk(name, 'Office share vs CLIN', 'the sheet is in the workbook', oc.length > 0, true);
+  const hi = oc.findIndex(r => (r || [])[0] === 'Requirement');
+  const H = oc[hi] || [], col = h => H.indexOf(h);
+  const HD = ['Requirement', 'CCaR', 'Office', 'Disc — planning share', 'Disc — CLIN amounts', 'Disc — difference', 'Mand — planning share', 'Mand — CLIN amounts', 'Mand — difference'];
+  chk(name, 'Office share vs CLIN', 'its headings', JSON.stringify(H.slice(0, 9)), JSON.stringify(HD));
+  const body = oc.slice(hi + 1).filter(r => r && r.length > 3);
+  const pick = r => [r[col('Office')] || r[col('Requirement')], ...HD.slice(3).map(h => num(r[col(h)]))];
+  chk(name, 'Office share vs CLIN', 'MxS, AV, the requirement total and TOTAL, each lane: planning, CLIN amounts, difference',
+    JSON.stringify(body.map(pick)), JSON.stringify([['MxS', 1, 0, 1, 0, 0, 0], ['AV', 1, 2, -1, 4, 4, 0], ['Requirement total', 2, 2, 0, 4, 4, 0], ['TOTAL', 2, 2, 0, 4, 4, 0]]));
+  const notes = oc.slice(hi + 1).filter(r => r && r.length === 1).map(r => String(r[0]));
+  chk(name, 'Office share vs CLIN', 'it says what each figure is, that no dollar is moved, and counts A', JSON.stringify([
+    notes.some(t => /^PLANNING SHARE is the office figure/.test(t) && /CLIN AMOUNTS are what the Spend Plan Source sends/.test(t) && /No dollar is moved/.test(t)),
+    notes.some(t => t === '1 other requirement is wholly its own office’s on both readings and is not listed: Disc $5, Mand $0.')]), JSON.stringify([true, true]));
+  const has = (sheet, re) => (bk[sheet] || []).some(r => (r || []).some(c => re.test(String(c))));
+  chk(name, 'the labels', 'the PMO Matrix and each office’s tab say their office figures are planning shares',
+    JSON.stringify(['PMO Matrix', 'PMO MxS', 'PMO AV'].map(sh => [sh, has(sh, /PLANNING SHARE/)])), JSON.stringify([['PMO Matrix', true], ['PMO MxS', true], ['PMO AV', true]]));
+  chk(name, 'the labels', 'CONTROL — the Spend Plan Source is unchanged: its PRIME-3 lines still send USAF $2 and ANG $4',
+    X.ev(`(function(){ var rec=[]; srcRowsOf(MS.cur, S, tiers(), rec); var t={}; rec.forEach(function(r){ if(r.id==='PRIME-3') t[r.svc]=(t[r.svc]||0)+r.amt; }); return JSON.stringify(t); })()`), JSON.stringify({ USAF: 2, ANG: 4 }));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
 // ══ W7.5 F4 — AN OFFICE'S SHARE OF A CLIN-SPLIT REQUIREMENT IS WHOLE DOLLARS, and the same on every surface ═══════════
 await (async () => {
   const name = 'W7 — F4: an office’s share of a CLIN-split requirement is whole dollars, the same on every surface';

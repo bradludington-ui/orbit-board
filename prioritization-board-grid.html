@@ -12200,12 +12200,21 @@ function spendPlanByMonth(){
 }
 // ============ CONTINUING RESOLUTION CASH VIEW (Oct 1 – Mar 31, half-month windows) ============
 const CR_EOM=[31,30,31,31,28,31];
+// v2.02 (E5, ledger U9L): WHICH OFFICE A CLIN BELONGS TO, written once. The planning share below splits PRIME-3 by it, and the
+// reconciliation of that share against the Spend Plan Source's CLIN lines (officeClinRecon) files each line by it: two copies
+// of the rule would let the reconciliation disagree with the share it exists to explain. Any other CLIN, and a line with no
+// CLIN, is the requirement's own office's (grpOf), as the planning share has it.
+function clinSuffixOffice(clin){ const s=(''+clin).replace(/\D/g,''); return /10$/.test(s)?'MxS':(/8$/.test(s)?'TSS':(/2$/.test(s)?'AV':'PRIMES')); }
+// The words every by-office view carries (Brad, 13 Oct 2026: label both; no dollar moves)
+const PLAN_SHARE_TXT='Office figures are each office\u2019s PLANNING SHARE: the requirement\u2019s draw spread across its offices by its '
+  +'CLINs\u2019 asks. The Spend Plan Source sends the same draw as CLIN AMOUNTS, which can differ office by office; the Excel '
+  +'workbook\u2019s \u201cOffice share vs CLIN\u201d sheet reconciles the two.';
+function clinOfficeOf(it, clin){ return (clin && it.id==='PRIME-3' && DATA.clins && DATA.clins['PRIME-3'])? clinSuffixOffice(clin.clin) : grpOf(it); }
 function pmoSharesOf(it){
   if(it.id==='PRIME-3' && DATA.clins && DATA.clins['PRIME-3']){
     const bag={}; const tot=SVC.map(_=>0);
     DATA.clins['PRIME-3'].forEach(c=>{
-      const s=(''+c.clin).replace(/\D/g,'');
-      const g=/10$/.test(s)?'MxS':(/8$/.test(s)?'TSS':(/2$/.test(s)?'AV':'PRIMES'));
+      const g=clinSuffixOffice(c.clin);
       if(!bag[g]) bag[g]=SVC.map(_=>0);
       c.ask.forEach((v,i)=>{ bag[g][i]+=v; tot[i]+=v; });
     });
@@ -18366,7 +18375,7 @@ function exportExView(){
 // board has no equivalent for stays EMPTY - RCN, EEIC, Navy SI and Cost Element exist here only as
 // service-level PPBE lines, and prorating one of those down to a requirement would put a number in
 // a cell that nobody entered.
-function srcRowsOf(fy, St, T){
+function srcRowsOf(fy, St, T, rec){
   const out=[];
   const order=(St.order||[]).slice();
   order.forEach(id=>{
@@ -18406,6 +18415,8 @@ function srcRowsOf(fy, St, T){
     // the column is never blank and never a coin toss between two records sharing a number.
     const recT=ccarTitleOf(it);
     const emit=(svc, amt, clin, lane, dt)=>{
+      // v2.02 (E5): every line, as sent, for the reconciliation of the offices' planning shares (officeClinRecon)
+      if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt});
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
       r[2]=ccarOf(it)||'';
@@ -18475,6 +18486,33 @@ function srcRowsOf(fy, St, T){
     }
   });
   return out;
+}
+// v2.02 (E5, ledger U9L; Brad, 13 and 20 Oct 2026): AN OFFICE HAS TWO FIGURES, AND THEY ARE NAMED APART. Its PLANNING SHARE
+// (pmoPartsOf: the requirement's draw spread across its offices by its CLINs' asks) is what every by-office view prints. The
+// Spend Plan Source sends the same draw as CLIN AMOUNTS (clinSplit, per dated piece, by the CLIN grid). Both add up to the
+// requirement's draw lane by lane, and an office's two figures can differ by whole dollars. Brad chose to name both and
+// reconcile them, moving no dollar. This is the reconciliation: each requirement whose office figures could differ (split
+// across offices, or sent on CLIN lines), per office and lane -- the planning share, the CLIN amounts filed by clinOfficeOf,
+// and the difference; a requirement's differences add to zero. The CLIN amounts are srcRowsOf's own lines, never worked
+// out again. Every other requirement is wholly its own office's on both readings, and is counted in `other`.
+function officeClinRecon(T){
+  T=T||tiers();
+  const rec=[]; srcRowsOf(MS.cur, S, T, rec);
+  const byId=Object.create(null);
+  rec.forEach(function(r){ (byId[r.id]||(byId[r.id]=[])).push(r); });
+  const sum=function(v){ return (v||[]).reduce(function(a,b){ return a+(+b||0); }, 0); };
+  const reqs=[], other={n:0, d:0, m:0};
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id), p=T[id]; if(!it||!p) return;
+    const lines=byId[id]||[], parts=pmoPartsOf(it, p);
+    if(parts.length<2 && !lines.some(function(r){ return !!r.clin; })){ other.n++; other.d+=sum(p.d); other.m+=sum(p.m); return; }
+    const O=Object.create(null), order=[];
+    const get=function(g){ if(!O[g]){ order.push(g); O[g]={g:g, pd:0, pm:0, cd:0, cm:0}; } return O[g]; };
+    parts.forEach(function(o){ const x=get(o.g); x.pd+=sum(o.d); x.pm+=sum(o.m); });
+    lines.forEach(function(r){ const x=get(clinOfficeOf(it, r.clin)); if(r.lane==='mand') x.cm+=+r.amt||0; else x.cd+=+r.amt||0; });
+    reqs.push({id:id, it:it, offices:order.map(function(g){ return O[g]; })});
+  });
+  return {reqs:reqs, other:other};
 }
 // Mirror of the Spend Plan Source workbook: same tabs, same 32 columns, same widths, same number
 // formats, header row frozen. One tab per appropriation this board holds, exactly as imported.
@@ -22918,6 +22956,7 @@ function crBody(){
     +'<button class="btn '+(crMode==='month'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'month\';render()">Full month</button>'
     +'&nbsp;&nbsp;<button class="btn '+(crBy==='svc'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crBy=\'svc\';render()">By Service</button> '
     +'<button class="btn '+(crBy==='pmo'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crBy=\'pmo\';render()">By PMO</button></div>'
+    +(crBy==='pmo'? '<div class="hint" style="margin-bottom:6px">'+esc(PLAN_SHARE_TXT)+'</div>' : '')   // v2.02 (E5)
     +'<table class="fctab">'+hd;
   keys.forEach((s,i)=>{
     const sv=D[i];
@@ -23011,8 +23050,8 @@ function fcBody(){
        : '<div class="hint">Nothing funded'+(view? ' for '+esc(view.label) : '')+'.</div>')
     +'<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:12px 0 4px">'+esc(D.by.head)+' ($M)</div>'
     +TBL+hd+D.by.rows.map(r=>row(r.label,r.b)).join('')+row('TOTAL',D.byTot,'tot')+'</table></div>'
-    +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement'+(view && view.pmo? ', this office\u2019s share of each' : '')+(view && view.svc!==undefined? ', this service alone' : '')
-    +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED. Every view adds back to the whole portfolio, month by month.</div>';
+    +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement'+(view && view.pmo? ', this office\u2019s planning share of each' : '')+(view && view.svc!==undefined? ', this service alone' : '')
+    +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED. Every view adds back to the whole portfolio, month by month. '+esc(PLAN_SHARE_TXT)+'</div>';
 }
 // EXPORT THIS VIEW (v1.93, item 41): one sheet, exactly the rows the box shows, in dollars to the cent. Each
 // TOTAL is the sum of the figures printed above it, so the sheet cross-foots as printed.
@@ -25776,6 +25815,7 @@ function pmoMatrix(){
     <tr><td style="font-weight:800;color:${allU.some(v=>v>0.5)?'var(--red)':'var(--dim)'}">UNFUNDED (beyond both lanes)</td>
       ${SVC.map((s,i)=>`<td colspan="2" style="text-align:center;${allU[i]>0.5?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${allU[i]>0.5?fM(allU[i]):'—'}</td>`).join('')}
       <td colspan="2" style="text-align:center;${allU.some(v=>v>0.5)?'background:var(--redD);color:var(--red);font-weight:800':'color:var(--dim)'}">${fM(allU.reduce((a,b)=>a+b,0))}</td><td></td></tr></table>
+    <div style="padding:4px 14px 0;font-size:9px;color:var(--dim)">${esc(PLAN_SHARE_TXT)}</div>
     <div style="padding:4px 14px 8px;font-size:9px;color:var(--dim)">Prime contracts roll up to their owning PMOs here (AVSC → PSM · PW → PP · CDS Sust → CDS · DFC split by CLIN: …2 → AV, …8 → TSS, …10 → MxS); the PRIMES section on the board still shows the contracts themselves. LANE MODEL: each cell is that PMO's dollars drawn from the service's discretionary lane (Disc) and its mandatory spillover (Mand) — a requirement can sit in both. ★ MC need = the above-discretionary portion of that PMO's Mission Critical items. Lanes can't be over-drawn; anything neither lane covers lands in UNFUNDED.</div>`;
 }
 let ceTab='ALL';
@@ -26466,7 +26506,7 @@ function exportPPT(){
             {t:fSM(tt.mc),b:1,c:_PPT.GOLD,...TOTF},{t:fSM(tt.mcs),b:1,c:tt.mcs>0.5?_PPT.RED:_PPT.GOLD,...TOTF}]);
         }
         slides.push(_pSlide(hdr('Funding by PMO'+(keys.length>PAGE?' ('+(pg+1)+' of '+Math.min(2,Math.ceil(keys.length/PAGE))+')':''),
-          'Discretionary + Mandatory + Unfunded = the office\u2019s share of the requirement. A requirement split across '
+          'Discretionary + Mandatory + Unfunded = the office\u2019s planning share of the requirement (the Spend Plan Source\u2019s CLIN amounts can differ: the workbook\u2019s Office share vs CLIN sheet reconciles them). A requirement split across '
           +'offices is counted in each row it touches, so the TOTAL is the number of requirements on the board, not the sum '
           +'of the rows above it. \u2605 MC columns are a MEMO of the '
           +'starred requirements\u2019 own value and the part of it discretionary did not pay \u2014 already inside the three '
@@ -31345,6 +31385,7 @@ function exportExcel(){
     });
   });
   const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,pmoKeys(byGX));
+  gmx.rows.push([PLAN_SHARE_TXT]);   // v2.02 (E5, ledger U9L)
   // --- Funding Streams: what each stream funds, by service ---
   const fs={name:'Funding Streams', cols:[16,15,15,15,15,15,15,15,15,16,16,16,16],
     rows:[[{v:expTitle()+' — Funding by stream and service (lane model)',s:TI}],[],
@@ -31984,7 +32025,36 @@ function exportExcel(){
         siIssues().length? '\u2014 no recognized SI code \u2014' : '\u2014 no SI code set \u2014', crSvcName)
     : null;
 
-  const sheets=[fs, bandSheet(), fcSheet, crSheet, gmx];
+  // v2.02 (E5, ledger U9L): THE OFFICES' PLANNING SHARES AGAINST THE CLIN AMOUNTS THE SPEND PLAN SOURCE SENDS (officeClinRecon),
+  // beside the PMO Matrix whose figures it explains. Per requirement: a row per office, a total whose differences are zero.
+  const ocSheet=(function(){
+    const R=officeClinRecon(T), cols=[36,12,16,15,15,13,15,15,13];
+    const hd=['Requirement','CCaR','Office','Disc — planning share','Disc — CLIN amounts','Disc — difference',
+      'Mand — planning share','Mand — CLIN amounts','Mand — difference'].map(function(h){ return {v:h, s:H}; });
+    const rows=[[{v:expTitle()+' — Office planning share vs Spend Plan Source CLIN amounts', s:TI}], [], hd];
+    const tot={pd:0, cd:0, pm:0, cm:0};
+    const line=function(lbl, cc, g, x, st){ return [{v:lbl, s:st===SEC? SEC : 0}, {v:cc, s:0}, {v:g, s:st===SEC? SEC : 0},
+      {v:x.pd, s:st}, {v:x.cd, s:st}, {v:x.pd-x.cd, s:(st!==SEC && Math.abs(x.pd-x.cd)>0.5)? NR : st},
+      {v:x.pm, s:st}, {v:x.cm, s:st}, {v:x.pm-x.cm, s:(st!==SEC && Math.abs(x.pm-x.cm)>0.5)? NR : st}]; };
+    R.reqs.forEach(function(q){
+      const t={pd:0, cd:0, pm:0, cm:0};
+      q.offices.forEach(function(o){ rows.push(line(dispTitle(q.it), ccarOf(q.it)||'', o.g, o, N)); ['pd','cd','pm','cm'].forEach(function(k){ t[k]+=o[k]; }); });
+      rows.push(line('Requirement total', '', '', t, NB));
+      ['pd','cd','pm','cm'].forEach(function(k){ tot[k]+=t[k]; });
+    });
+    rows.push(line('TOTAL', '', '', tot, SEC));
+    rows.push([]);
+    rows.push([{v:'PLANNING SHARE is the office figure every by-office view prints (the PMO Matrix, CE by PMO, the PMO tabs, '
+      +'the deck, the forecast and the CR view by PMO): the requirement\u2019s draw spread across its offices by its CLINs\u2019 asks. '
+      +'CLIN AMOUNTS are what the Spend Plan Source sends on each CLIN line, split by the CLIN grid, each line filed under the '
+      +'office its CLIN belongs to. Both add up to the requirement\u2019s draw in each lane, so a requirement\u2019s differences add '
+      +'to zero; an office\u2019s two figures can differ. No dollar is moved to make them agree.', s:0}]);
+    rows.push([{v:R.other.n+' other requirement'+(R.other.n===1? ' is' : 's are')+' wholly '+(R.other.n===1? 'its' : 'their')
+      +' own office\u2019s on both readings and '+(R.other.n===1? 'is' : 'are')+' not listed: Disc '+fM(R.other.d)+', Mand '
+      +fM(R.other.m)+'.', s:0}]);
+    return {name:'Office share vs CLIN', cols:cols, rows:rows};
+  })();
+  const sheets=[fs, bandSheet(), fcSheet, crSheet, gmx, ocSheet];
   if(rcnSheet) sheets.push(rcnSheet);
   if(siSheet)  sheets.push(siSheet);
   let byP=null;
@@ -32043,6 +32113,7 @@ function exportExcel(){
       +'starred requirements\u2019 own value and is already inside those three \u2014 do not add it in. '
       +'\u2605 MC short vs Disc is that value less what the DISCRETIONARY lane covered; mandatory is '
       +'not netted off it.']);
+    pm.rows.push([PLAN_SHARE_TXT]);   // v2.02 (E5, ledger U9L)
     sheets.push(pm);
   }
   sheets.push(
@@ -32173,7 +32244,7 @@ function exportExcel(){
       +'The month columns plus UNSCHEDULED add to Total (Disc+Mand): every funded dollar '
       +'obligates in a month or is waiting on an award date. UFR is what this office is still short '
       +'against the '+FYL()+' requirement and is NOT part of that total. Every figure is this '
-      +'office\u2019s share of the requirement, so the rows add back to its line on the PMO Matrix.',s:0}]);
+      +'office\u2019s planning share of the requirement, so the rows add back to its line on the PMO Matrix. '+PLAN_SHARE_TXT,s:0}]);
     return rows;
   };
   // each portion's per-service vector (PICK's third entry), as pmoPartsOf names it for one office
@@ -32210,7 +32281,7 @@ function exportExcel(){
       rows.push([]);
     });
     if(any){
-      rows.push(['Discretionary + Mandatory + Unfunded = this office\u2019s share of the requirement. '
+      rows.push(['Discretionary + Mandatory + Unfunded = this office\u2019s planning share of the requirement. '
         +'★ Mission Critical is a MEMO of the starred requirements\u2019 own value and is already '
         +'inside those three — do not add it in.']);
       // The block is appended AFTER the portion sections, so where its band row lands depends on how

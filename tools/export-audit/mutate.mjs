@@ -6576,6 +6576,25 @@ const MUTATIONS = [
   { id: "v202-e3-own-key-uncounted", area: "flowEntUseMap", what: "Full Fund's R1, on the key of its own (\"dunassigned\") another board gave O&M's \"unassigned\" Depot U2, is counted under that key, which O&M does not hold: Depot U2's Used by is blank, and ✕ removes it with nothing said",
     find: "destHas(bk[x]))? bk[x] : destReadAs(x); };",
     repl: "destHas(bk[x]))? bk[x] : x; };" },
+  // v2.02 (E5, ledger U9L): an office's planning share and the Spend Plan Source's CLIN amounts, named apart and reconciled.
+  { id: "v202-e5-clin-lines-home-office", area: "clinOfficeOf", what: "the reconciliation files every CLIN line under the requirement's own office: PRIME-3's CLIN amounts all land on PRIMES, and MxS and AV read their whole planning share as a difference",
+    find: "function clinOfficeOf(it, clin){ return (clin && it.id==='PRIME-3'",
+    repl: "function clinOfficeOf(it, clin){ return (false && it.id==='PRIME-3'" },
+  { id: "v202-e5-mand-as-disc", area: "officeClinRecon", what: "the reconciliation counts a mandatory CLIN line as discretionary: AV's Mand CLIN amounts read $0 and its Disc $6",
+    find: "if(r.lane==='mand') x.cm+=+r.amt||0; else x.cd+=+r.amt||0;",
+    repl: "x.cd+=+r.amt||0;" },
+  { id: "v202-e5-share-whole-draw", area: "officeClinRecon", what: "the reconciliation's planning share is the whole requirement's draw for every office, not that office's part",
+    find: "parts.forEach(function(o){ const x=get(o.g); x.pd+=sum(o.d); x.pm+=sum(o.m); });",
+    repl: "parts.forEach(function(o){ const x=get(o.g); x.pd+=sum(p.d); x.pm+=sum(p.m); });" },
+  { id: "v202-e5-sheet-missing", area: "exportExcel", what: "the workbook carries no Office share vs CLIN sheet",
+    find: "  const sheets=[fs, bandSheet(), fcSheet, crSheet, gmx, ocSheet];",
+    repl: "  const sheets=[fs, bandSheet(), fcSheet, crSheet, gmx];" },
+  { id: "v202-e5-matrix-unlabelled", area: "exportExcel", what: "the PMO Matrix does not say its office figures are planning shares",
+    find: "  gmx.rows.push([PLAN_SHARE_TXT]);",
+    repl: "" },
+  { id: "v202-e5-tab-unlabelled", area: "exportExcel", what: "an office's PMO tab does not say its figures are planning shares, nor where they are reconciled with the CLIN amounts",
+    find: "planning share of the requirement, so the rows add back to its line on the PMO Matrix. '+PLAN_SHARE_TXT,s:0}]);",
+    repl: "share of the requirement, so the rows add back to its line on the PMO Matrix.',s:0}]);" },
   // v2.01 (Codex batch D5, from U44's round-7 reviews): fix round 6's part (h) counts a repeat's place past the keys of its own the
   // list already holds (`held`) in two places no check reached. Each is caught by its own CONTROL in audit-recon.mjs's U44 block
   // (three boards, dA four times, the first manager's return re-keying only Bravo Yard): "D5 S1" and "D5 SF2".
