@@ -2007,6 +2007,36 @@ says the sweep was not run, so a nightly pass is never read as one that proved t
 validation (no sweep)", 07:00 UTC) was rewritten on 20 Oct: the night before, it ended its turn 44 seconds into a full sweep. The
 sections below describe how the sweep works and what it has found; read their commands through this rule.
 
+**The sharded sweep** (`tools/export-audit/sweep-shards.mjs`, 20 Oct 2026) asks mutate.mjs's question with the two long suites cut
+into pieces. Why: mutate.mjs runs whole suites, and audit-recon and audit-import run dozens of blocks in one process whose memory
+adds up -- a 20-target pilot of v2.00/v2.01 targets took 86 min for 19 and 6 of them died CRASHED, out of heap under the 2.5 GB cap.
+Calibration found the cause: recon's block 80 alone peaks at 6.5 GB RSS (it passes only at an 8 GB heap), and import's blocks 105
+and 107-108 need 5 GB. How it works:
+- **Cutting.** A shard of recon or import is the suite with every block it does not keep REMOVED (`await (async () => {`…`})();`
+  and recon's bare `{`…`}`); prelude, helpers between blocks, the self-check and the summary stay, so the "never ran" check sees only
+  the kept blocks' names. A block reading a top-level `let` another writes (V185W, V186L, V14) takes its writer along. Every other
+  suite, legacy-fsrc included, runs whole. Shard files are `_shard-<suite>-NNN.mjs` beside the suites and are deleted at exit.
+- **Calibration, the safety net.** Every piece is run on the CLEAN board first; one that fails a check there would read every mutant
+  as caught, so it is merged with its predecessor (or the suite runs whole) and never used alone. One that DIES (no banner) is rerun at
+  5 GB, then 8 GB, and is given in the sweep the heap it passed at. Passing pieces are packed to about 90 s and each pack is proved on
+  the clean board again. Results go to `<out>/calibration.json`, reused while the board and every file in `tools/export-audit/` hash
+  the same; each clean run is kept in `cal-runs.jsonl` as it ends, so a cut-off calibration resumes. Measured: 18 min, 38 shards
+  (recon 11, import 19, eight whole suites); all 38 one after another take 40 min.
+- **Verdict = mutate.mjs's.** Caught = exit 1 with a failing-check banner; a death is retried once at twice the heap; a shard that dies
+  twice makes CRASHED only if no other shard catches. Every shard is tried before SURVIVED; `equivalent:` mutations report equivalent.
+- **Order is cost only**: v200-* tries audit-inject first, then shards carrying the id's workstream tag (U44, R5), the mutation's
+  area, the rarer words of its id, then the rest by calibrated time. Ids come from `mut-json.py` (mutate.mjs read as text).
+- **Proof (20 Oct):** the 20-target pilot, all 20 caught -- the 13 the old sweep caught, the 6 it CRASHED and the one it never
+  reached; a no-op control (find = repl) SURVIVED after all 38 shards; `abs-room-unfloored` came back equivalent. **Speed, honestly:**
+  89 min wall for those 22 at 4 jobs, a mean of ~15 min per target per job (12 min for the 20; ~40 min for a target that must try every
+  shard). That is not faster than the old sweep per target; what it buys is a verdict where the old one crashed. The ordering by tag
+  and prefix was added after that run and has not been measured; it cannot change a verdict.
+
+```
+node tools/export-audit/sweep-shards.mjs --ids FILE [--extra controls.json] [--out DIR] [--jobs N] [--budget MB] [--calibrate-only]
+```
+Resumable: `<out>/results.jsonl` gets one line per mutant and a restart skips those ids.
+
 ### Measuring the suites — run this after adding checks
 
 ```
