@@ -239,6 +239,39 @@ below ("UI menu — every top-right menu moves into the left menu"); every one o
   file's 36-character PID is kept whole and listed, a 35-character one kept and not listed. Four of them fail on `c245592`.
 - **Mutation:** `v201-pid-limit-20`, caught.
 
+#### D5. Two U44 money CONTROLS nobody wrote (Codex batch D5, rebuilt here; Brad, 20 Oct: "run this one in full")
+- **What they guard.** U44 fix round 6's part (h) counts a repeated destination's place past the keys of its own a list already
+  holds (`held`) in two places no check reached: `destFold`'s snapshot of the board's own list, and `flowDelEnt`'s removal
+  record. Both matter only when a board not yet put right has read part of another board's Put it right.
+- **The scenario** (`audit-recon.mjs`, the U44 block): three boards on `7ee498a` each hold dA four times (Alpha Depot, Bravo
+  Yard, Charlie Yard, Delta Dock); O&M package #1 goes to two managers. The first puts the list right, removes Charlie Yard
+  and Delta Dock, and sends the work back; the consolidated board, not put right, takes it (Bravo Yard becomes "ddar1"). The
+  second puts it right, puts R2 on one of the two removed, and sends it back. **SF2:** R2 on Charlie Yard comes across on
+  Charlie Yard ("ddar2"), the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400. **S1:** the consolidated board first
+  removes Delta Dock (kept under "ddar3"); R2 on Delta Dock comes back on Delta Dock, Delta Dock 300. Every figure by hand.
+- **Departures from Codex's spec, each said in the test:** both managers are O&M (only an O&M return re-keys the consolidated
+  board's own list; a Full Fund one would need a plan the block's fixtures do not build); S1 adds the consolidated board's
+  own removal, without which `flowDelEnt`'s `held` is never read. A clone without `7ee498a` now fails by name rather than
+  skipping both.
+- **Proved:** the block passes 271 of 271 on the board; on `v200-u44-d5-remove-held-gone` only S1 fails, on
+  `v200-u44-d5-fold-held-gone` only SF2 (each 270 of 271). 2,021 entries, each matching once.
+
+#### The mutation sweep runs on Brad's named go (Brad, 20 Oct 2026)
+- `mutate.mjs` stays text-only during development; a sweep runs only when Brad names one, on a committed tree, in saved
+  batches, with nothing else running. Written into `CLAUDE.md` and `AGENTS.md`, which still said to run `npm run mutate`.
+- `npm run validate:nightly` (`validate-math.mjs --no-sweep`) runs every other stage, and its pass line says the sweep was not
+  run. The nightly Routine was rewritten to use it ("Nightly ORBIT math validation (no sweep)"): on 20 Oct it had ended its turn
+  44 seconds into a full sweep of 2,021 targets.
+- **Next sweep (Brad's plan):** the ~880 targets added in v2.00 and v2.01, once v2.01 is on `main`.
+
+#### The checks v2.01 was proved with (20 Oct 2026, Eastern)
+- `npm run validate:nightly` at `69a790c`, 10:08-11:00 AM: defect register (13 defects, 43 mutations), money coverage (26/26),
+  money map (329 cells: 123 proven, 206 n/a, 0 open), trace matrix (92 cells), every suite (9 banners + the legacy line), fuzz
+  (seed 575709290), the file verifier's self-test -- all clean; the browser checks' only failures are the 8 carried
+  "D · first requirement on screen as it opens" (v2.00's named limit). The sweep was not run (the rule above).
+- At `62443fe` (the last change to the board): `npm run verify:grid` (only the 8 carried D; layout-fits K clean), then keys,
+  dropdowns, dialogs and leftmenu, which the chain stops before; `npm run standards`: 0 findings.
+
 ### v2.00 — 11 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
 
 **Imported text is drawn as text, and imported names cannot reach inside the program.** A security review of v1.99 for
