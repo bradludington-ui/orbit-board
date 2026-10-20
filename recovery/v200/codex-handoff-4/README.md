@@ -62,6 +62,7 @@ lead decides what to adopt. When the report is written, **stop**: Brad sends the
 | F2 | fix | small | U60: the hold line and a browser-storage write under the hold |
 | F3 | fix | small | U62: words |
 | P1 | proposal | small | decoding Excel's `_xHHHH_` escapes at import (memo first, no code) |
+| F4 | fix | tiny | D3-1: Install standard / Import ladder say they succeeded when a locked view refused them |
 
 ### D1. A lockfile (OCIO POA&M item P-05)
 
@@ -151,3 +152,15 @@ text exports again. Cover: where the reader keeps them (`xlsxRead` and its calle
 exact decode rule (Excel's own convention, including `_x005F_` for a literal underscore); what happens to a decoded
 character XML 1.0 forbids (U37 still refuses it, and names it); the round trip of ORBIT's own workbooks; and the checks
 and mutation entries a fix would need. One page. Brad decides before anything is built.
+
+### F4. D3-1 (fix): a refused band remedy in a locked view says it succeeded
+
+Found by D3 (Codex, 19 Oct; confirmed by the lead). In PB27's locked view, ⚙ Install standard (`bandStd`, about line
+18836 at `3451746`) and Import ladder (`bandImport`, about line 18918) are refused by `save()`'s locked-view handling, but
+then announce "⚖ Standard bands 0–4 installed on O&M" / "⚖ Ladder imported — 8 bands on O&M". Nothing is kept.
+Fix them the way U10 fixed `bandCopyAll` (`if(cycBlock('Copying the band ladder')) return;`): refuse up front, before the
+confirmation and before the file is read (`cycBlock('Installing the standard bands')`, `cycBlock('Importing a band
+ladder')`, clearing the file input), so the only words are the refusal. Add checks in the U10 band-ladder block's helpers
+and voice (fail at the base, pass on the fix): the status line after each, the ladder unchanged, no confirmation asked,
+no file read. Add one mutation entry per guard, each caught. Base for this batch: **`3451746`** (PR #13's head after D2-1),
+not `67bc4de`. mcount on the result; U10's and U37's blocks still pass.
