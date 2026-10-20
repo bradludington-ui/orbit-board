@@ -5694,10 +5694,10 @@ const MUTATIONS = [
     find: "  if(destSaid) lines.push('  • '+destSaid);",
     repl: "  if(false) lines.push('  • '+destSaid);" },
   { id: "v200-u44-refuse-old-words", area: "inRefuse", what: "a file refused for its destination list is said to be damaged or not written by ORBIT, though an ORBIT before this one could save such a list with its board",
-    find: "+(rt? rt+' ' : w.indexOf(IN_DEST_LIST)===0? IN_DEST_TAIL+' '"
+    find: "+(rt? rt+' ' : w.indexOf(IN_DEST_LIST)===0? IN_DEST_TAIL+' '",
     repl: "+(rt? rt+' ' : false? IN_DEST_TAIL+' '" },
   { id: "v200-u44-refuse-entry-list-words", area: "inRefuse", what: "a file refused for an entry that is not a destination is told an ORBIT before this one could save it, though every board leaves such an entry out on opening",
-    find: "+(rt? rt+' ' : w.indexOf(IN_DEST_LIST)===0? IN_DEST_TAIL+' '"
+    find: "+(rt? rt+' ' : w.indexOf(IN_DEST_LIST)===0? IN_DEST_TAIL+' '",
     repl: "+(rt? rt+' ' : w.indexOf('the destination ')===0? IN_DEST_TAIL+' '" },
   { id: "v200-u44-fold-takes-reserved", area: "destFold", what: "a list read into the board's keeps an entry keyed \"unassigned\" or \"destsplit\": the shared folder's copy and a package make the board's own list hold the flow's row keys",
     find: " && k!==DEST_NONE && k!==DEST_SPLIT;",
@@ -6567,7 +6567,18 @@ const MUTATIONS = [
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
-const picked = only.length
+// MUT_IDS_FILE (v2.01): a file of exact ids, one a line -- a sweep in saved batches. The arguments match by substring of an
+// id or an area, so a batch named by its ids would pick up every target whose id or area contains one of them. An id the
+// file names that the list does not hold fails the run before anything is built: a batch must not shrink in silence.
+const exactIds = process.env.MUT_IDS_FILE
+  ? readFileSync(process.env.MUT_IDS_FILE, 'utf8').split('\n').map(s => s.trim()).filter(Boolean) : null;
+if (exactIds) {
+  const have = new Set(MUTATIONS.map(m => m.id)), gone = exactIds.filter(i => !have.has(i));
+  if (gone.length) { console.log(`MUT_IDS_FILE names ${gone.length} id(s) the list does not hold: ${gone.slice(0, 5).join(', ')}`); process.exit(2); }
+}
+const picked = exactIds
+  ? MUTATIONS.filter(m => exactIds.includes(m.id))
+  : only.length
   ? MUTATIONS.filter(m => only.some(q => m.id.includes(q) || m.area.includes(q)))
   : MUTATIONS;
 

@@ -614,6 +614,18 @@ try {
   fail(e.message);
 }
 
+// ---- the mutation list parses (v2.01) ------------------------------------------------------------
+// mutate.mjs is read as TEXT during development (mcount.py, mkmut.py), and a text reader forgives what a JavaScript
+// parser does not: v2.00 merged with two entries missing a comma, so `npm run mutate` and validate:math died loading it,
+// and nothing said so until v2.01's sweep. `node --check` parses the file and runs none of it -- the rule holds.
+console.log('\nmutation list');
+try {
+  execFileSync(process.execPath, ['--check', new URL('./export-audit/mutate.mjs', import.meta.url).pathname], { stdio: 'pipe' });
+  pass('tools/export-audit/mutate.mjs parses (node --check: read, never run)');
+} catch (e) {
+  fail('tools/export-audit/mutate.mjs does not parse: ' + String((e.stderr || e.message)).split('\n').filter(Boolean).slice(0, 3).join(' | '));
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);
