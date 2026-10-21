@@ -8977,6 +8977,19 @@ await (async () => {
       J([A10.msg.split('. No file was made')[0], A10b.msg.split('. No file was made')[0]]),
       J(['Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “…AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA[U+000B]tail”',
         'Excel workbook not exported: sheet “U37”, cell A1 holds the text _x0041_, which a spreadsheet would read as the single character U+0041. It reads “…AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_x0041_ tail”']));
+    // A14, A15 (v2.02, E6: the U37 tests review, round 8). A14 CONTROL: U+2028 and U+2029 are characters XML allows; refusing them
+    // would be a wrong fix no check saw. A15: a text holding a literal _xHHHH_ AND, 80 letters on, U+000B is named by the U+000B
+    // and quoted around IT, not around the literal -- the quote it gave could leave out the character it named.
+    // Both pass on c357911 too: they close a test gap (the board was right), and each catches its own mutation (v202-e6-u37-*).
+    const LS = String.fromCharCode(0x2028), PS = String.fromCharCode(0x2029);
+    const A14 = write([{ name: 'U37', rows: [['a' + LS + 'b' + PS + 'c']] }]);
+    const A14r = JSON.parse(await X.w.eval(`(async function(){ var b=buildXlsx(window.__in); if(!b) return JSON.stringify('no workbook'); return JSON.stringify((await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength))).U37); })()`));
+    w5Chk(name, 'A14 · CONTROL U+2028 and U+2029, which XML 1.0 allows', 'made, one zip, nothing said, every part parses; the cell reads back as the five characters written',
+      J([A14.made, A14.zips, A14.msg, A14.bad, A14.n, A14r]), J([true, 1, '', [], 6, [['a' + LS + 'b' + PS + 'c']]]));
+    const A15 = write([{ name: 'U37', rows: [['_x0041_' + 'y'.repeat(80) + VT + 'end']] }]);
+    w5Chk(name, 'A15 · a literal _xHHHH_ and, later, a forbidden character', 'the character is named, and the quote is around it, not around the literal',
+      A15.msg.split('. No file was made')[0],
+      'Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “…' + 'y'.repeat(30) + '[U+000B]end”');
 
     // A11 (round 2): a style's fill colour and number format go into xl/styles.xml, outside every cell and sheet name, the
     // colour unescaped. A colour that is not six hex digits -- U+000B in it, or a quote -- and a format holding U+0001 are

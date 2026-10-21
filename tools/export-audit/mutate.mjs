@@ -6598,6 +6598,13 @@ const MUTATIONS = [
   { id: "v202-e6-recon-note-unsaid", area: "exportExcel", what: "the Office share vs CLIN sheet files CLIN lines under their CLIN's office without saying the Spend Plan Source lists them all under the requirement's own office: a reader filtering that file by PMO finds $0 where the sheet shows $2",
     find: "-- ORBIT\\u2019s reading: the Spend Plan Source itself lists every line under the requirement\\u2019s '\n      +'own office, in its PMO column. Both",
     repl: ". Both" },
+  // v2.02 (E6, the U37 tests review, round 8): two wrong fixes no check saw (its N2 and N14).
+  { id: "v202-e6-u37-line-sep-refused", area: "XML_BADCH", what: "U+2028 and U+2029, which XML 1.0 allows, are refused: a Plan Event with a line separator stops every export",
+    find: "const XML_BADCH=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\uFFFE\\uFFFF]/;",
+    repl: "const XML_BADCH=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u2028\\u2029\\uFFFE\\uFFFF]/;" },
+  { id: "v202-e6-u37-quote-at-literal", area: "_xmlShow", what: "a text holding both a literal _xHHHH_ and a forbidden character is quoted around the literal: the quote can leave out the character the refusal names",
+    find: "m=XML_BADCH.exec(s) || /_x[0-9A-Fa-f]{4}_/.exec(s)",
+    repl: "m=/_x[0-9A-Fa-f]{4}_/.exec(s) || XML_BADCH.exec(s)" },
   // v2.02 (E6, the cross-track export review): an office's name is made a sheet name (sheetNamer), not copied into one.
   { id: "v202-e6-pmo-tab-copied", area: "exportExcel", what: "the PMO tabs take 'PMO '+office cut at 31: two offices alike for 31 characters make two sheets of one name, and the reader keeps one",
     find: "name:pmoTab('PMO '+g, 'PMO')",
