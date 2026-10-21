@@ -4,7 +4,196 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.01**. Next: **v2.02**.
+Current version: **v2.02**. Next: **v2.03**.
+
+## Open
+
+#### 63. Found while building v1.95, not built
+- *(The repaired-award test gap is now item 64.)*
+- **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
+  no atomic create. The re-read after the replace question narrows it; it does not close it.
+- **A cost estimate kept in the folder's history** is not offered in ↶ Earlier copies; putting one back is a rename in
+  the folder. *(Item 96, v1.99: ↶ Cost estimates kept, in the Live view.)*
+- **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
+  the requirement's months are exact) -- the price of whole dollars that add up both ways.
+- **Brad, 6 Oct 2026 (for v2.00):** the shared-name race (above) stays as it is, with the fingerprint protection kept. The
+  office-by-month cells stay for a design review: state whether the bound is at most $1, prove the counterexample (office
+  weights 2:2:2:3:3 over months of $4 and $6 have no cell rounding with largest-remainder office totals), keep both
+  margins exact, and never call approximate cells exact.
+
+#### 71. Found while building v1.96, not built
+- **Logged:** 4 Oct 2026, while building v1.96.
+- **The conformance run opens one box, the 🔧 list, and no other.** It found that every box's ✕ Close was too faint and
+  too small (fixed in v1.96, item 64, for all 49); what else the other 48 boxes hold is measured by nothing.
+- **Shared side lists still have a read-merge-write window.** Two people sharing the reprogramming log (or execution, or a
+  cost estimate) at the same moment can each write; the folder's permissions are the guarantee (the review's NR03 note).
+  The 5 Oct review (R11) restates it: only one writer per shared file, enforced across machines, or a store that
+  checks revisions atomically, closes it. Not reproduced with two real machines.
+- **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
+  HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
+- **6 Oct review of v1.98:** restates the shared-writer window as still open; a browser lock or another timestamp read does
+  not close it. Still no test with two real machines.
+- **Brad, 6 Oct 2026 (for v2.00):** review per-writer files first (each browser writes only its own log, execution and
+  estimate file; everyone reads and merges all of them), and pursue SharePoint/Graph writes with eTags (If-Match, refused
+  on change) if they are available. Per-writer files reduce contention but do not by themselves guarantee no lost edit: the
+  design must cover several tabs and devices, identity collisions, conflicting updates, tombstones, duplicates, and how an
+  execution or estimate replacement is decided -- and keep conflicting versions rather than silently choosing a winner.
+
+
+#### 82. Found while building v1.97, not built
+- **Logged:** 5 Oct 2026, from the six workstreams' reports and the integration.
+- **⬇ Export funds flow writes the last fiscal year on screen, across every appropriation**, not what the panel shows (the
+  panel showed FY25 + FY26 for O&M, 3,000; the export held FY26 for all appropriations, 2,000). Its Scope line says so.
+  Changing it changes what the export is for: Brad's call. *(Item 92, v1.99.)*
+- **A year with execution imported for any appropriation counts as executed for all of them**: Full Fund FY27 execution
+  made O&M's planned FY27 print $0, with no warning. The rule is "execution wins per year"; per appropriation is a design
+  change. *(Item 93, v1.99.)*
+- **An office with an estimate line but no requirement in a year** is left off that year's ACE "Reconciliation by PMO"
+  block and its total (it is still listed under Lines Nothing Claims). *(Item 94, v1.99.)*
+- **The ACE alignment breakout carries the allocation, not what the lanes fund.** Its note now says so; whether it should
+  carry funded dollars instead is Brad's call.
+- **A kept PPBE cycle fixes the services it holds** (item 80's choice): they cannot be moved, renamed or removed while it
+  is kept. Re-reading a cycle by name instead would allow it -- Brad's call.
+- **Journal entries from before a service-list change** that carry a place or a list can no longer be put back; the
+  figure is typed again.
+- **The side lists' unsaved state lasts one session**, like `DIRTY`: list edits waiting in browser storage read as saved
+  after a reload. Some list changes never reach the counter: an execution import that throws part-way, a log share that
+  merges and then fails to write, the destination list's default seed. *(Item 95, v1.99.)*
+- **A reprogramming row written by v1.96 carries only a place**, which v1.96's picker took from the board on screen. It
+  is read against its own appropriation's list and marked "(by position)" until someone picks.
+- **PPBE values copied into the budget base** (`bmSeedFromPp`) are not apportioned; whole dollars when typed, so this
+  matters only for a fraction arriving in a file.
+- **Items 77–79 were run in jsdom against stand-in folders and file readers**, not with real File System Access in
+  Chromium. A history folder that exists but cannot be opened now also stops the log and cost-estimate shares (stricter
+  than before). Boards older than v1.97 neither see nor thin the new `…-recent.json` history copies.
+- **6 Oct review of v1.98:** restates the side-list, funds-flow and ACE bullets above. On the side lists: a change should
+  count before any write that can fail, and survive a reopen. On the funds flow and ACE: it asks for a worked example by
+  appropriation and year, and Brad's rule, before those totals are called certified.
+
+#### 84. Found while building v1.98, not built
+- **Logged:** 5 Oct 2026, while building v1.98.
+- **A version older than v1.98 opening a v1.98 file** does not know a CLIN's service choices: there, that service's
+  money on the CLIN reads as the CLIN's standard. Nothing is lost -- the choices stay in the file -- but an older board
+  reports it on the standard until it is opened in v1.98 again.
+- **A kept PPBE cycle** keeps its CLINs' pointers when a combination is removed from the list (a cycle is a fixed
+  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned. *(Item 88, v1.99: a cycle locked from v1.99 keeps its own list; one locked earlier reads today’s and says so.)*
+- **The Classify grid's RCN / EEIC column** sets the requirement's own combination, the default a CLIN with none of its
+  own uses. A CLIN's choices are made in its CLIN drill. *(Item 97, v1.99: the grid says so; the setter is unchanged.)*
+- **On the RCN-EEIC tab, a prime split across combinations** shows each combination's share of its ask prorated by the
+  CLIN grid's allocation (the same split as its money), not each CLIN's own request.
+- **6 Oct review of v1.98:** an older version's reading of a v1.98 file should be tested editing and saving, not only
+  opening. Windows and Edge with real SharePoint or OneDrive and their permissions, and the exports opened in Excel,
+  PowerPoint and CCaR, are still unchecked.
+- **Brad, 6 Oct 2026 (for v2.00):** the older-version reading stays for a compatibility review -- a partial version marker
+  on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
+  showing each CLIN's own request changes what the ask column means.
+
+#### 89. Found while building v1.99: what a locked cycle still reads from today
+- **Logged:** 6 Oct 2026, while building v1.99.
+- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
+  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
+  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
+  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
+  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
+  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
+- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
+  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
+  PPBE cycles panel and Help say so.)*
+- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
+  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
+
+#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
+- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
+  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
+  Not in the v2.00 code build; it follows once they answer.
+
+#### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
+- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
+  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
+  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
+- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
+  drawer, and a reading taken before layout settles can catch a passing pixel.
+- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
+  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
+  reading (fails), then the settled one (passes).
+- **Brad, 8 Oct 2026:** next version, not v2.00.
+- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
+  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
+  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
+  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
+  straight after the click with the settled page.
+- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
+  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
+  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
+  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 19. One way to tell the user something
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
+  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
+  read it.
+- **What:** one helper for status-line messages that keeps an important one (an import's result, a
+  refusal, a warning) until it is read, instead of letting the next message replace it; import and
+  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
+  they are the data-loss guards and must keep stopping the user.
+
+#### 20. One place for each field's name and label
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
+  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
+  went hollow when one name changed in one place and not another.
+- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
+  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
+  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
+  Later versions extend it as fields are touched, never as a big-bang rewrite.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v2.02 — 21 Oct 2026: saves and loads that never lose work, a locked cycle that is report and view only and keeps its own lists, ATR/BTR removed, exact office cells -- built on Brad's goes of 20 and 21 Oct, shipped on his "go" of 21 Oct
+
+`BUILD` is `v2.02 (21 Oct 2026)`. PR #16. The mutation sweep was not run before the ship: Brad scheduled it after the 24 Oct
+usage reset, from a fresh session (A1). Every new mutation was run against its own check.
 
 **Brad's answers of 20 Oct 2026 (evening), at the v2.02 pick-up:**
 - **The sweep (A1):** after the weekly usage reset on Saturday 24 Oct, from a fresh session.
@@ -378,190 +567,6 @@ here.
   - The fuzz: nothing lost, seed 822561790. The file verifier's self-test held.
   - mcount: 2,083 of 2,083, each matching once.
   - Not run: the mutation sweep (Brad's go, after 24 Oct). Every new mutation was run against its own check.
-
-## Open
-
-#### 63. Found while building v1.95, not built
-- *(The repaired-award test gap is now item 64.)*
-- **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
-  no atomic create. The re-read after the replace question narrows it; it does not close it.
-- **A cost estimate kept in the folder's history** is not offered in ↶ Earlier copies; putting one back is a rename in
-  the folder. *(Item 96, v1.99: ↶ Cost estimates kept, in the Live view.)*
-- **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
-  the requirement's months are exact) -- the price of whole dollars that add up both ways.
-- **Brad, 6 Oct 2026 (for v2.00):** the shared-name race (above) stays as it is, with the fingerprint protection kept. The
-  office-by-month cells stay for a design review: state whether the bound is at most $1, prove the counterexample (office
-  weights 2:2:2:3:3 over months of $4 and $6 have no cell rounding with largest-remainder office totals), keep both
-  margins exact, and never call approximate cells exact.
-
-#### 71. Found while building v1.96, not built
-- **Logged:** 4 Oct 2026, while building v1.96.
-- **The conformance run opens one box, the 🔧 list, and no other.** It found that every box's ✕ Close was too faint and
-  too small (fixed in v1.96, item 64, for all 49); what else the other 48 boxes hold is measured by nothing.
-- **Shared side lists still have a read-merge-write window.** Two people sharing the reprogramming log (or execution, or a
-  cost estimate) at the same moment can each write; the folder's permissions are the guarantee (the review's NR03 note).
-  The 5 Oct review (R11) restates it: only one writer per shared file, enforced across machines, or a store that
-  checks revisions atomically, closes it. Not reproduced with two real machines.
-- **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
-  HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
-- **6 Oct review of v1.98:** restates the shared-writer window as still open; a browser lock or another timestamp read does
-  not close it. Still no test with two real machines.
-- **Brad, 6 Oct 2026 (for v2.00):** review per-writer files first (each browser writes only its own log, execution and
-  estimate file; everyone reads and merges all of them), and pursue SharePoint/Graph writes with eTags (If-Match, refused
-  on change) if they are available. Per-writer files reduce contention but do not by themselves guarantee no lost edit: the
-  design must cover several tabs and devices, identity collisions, conflicting updates, tombstones, duplicates, and how an
-  execution or estimate replacement is decided -- and keep conflicting versions rather than silently choosing a winner.
-
-
-#### 82. Found while building v1.97, not built
-- **Logged:** 5 Oct 2026, from the six workstreams' reports and the integration.
-- **⬇ Export funds flow writes the last fiscal year on screen, across every appropriation**, not what the panel shows (the
-  panel showed FY25 + FY26 for O&M, 3,000; the export held FY26 for all appropriations, 2,000). Its Scope line says so.
-  Changing it changes what the export is for: Brad's call. *(Item 92, v1.99.)*
-- **A year with execution imported for any appropriation counts as executed for all of them**: Full Fund FY27 execution
-  made O&M's planned FY27 print $0, with no warning. The rule is "execution wins per year"; per appropriation is a design
-  change. *(Item 93, v1.99.)*
-- **An office with an estimate line but no requirement in a year** is left off that year's ACE "Reconciliation by PMO"
-  block and its total (it is still listed under Lines Nothing Claims). *(Item 94, v1.99.)*
-- **The ACE alignment breakout carries the allocation, not what the lanes fund.** Its note now says so; whether it should
-  carry funded dollars instead is Brad's call.
-- **A kept PPBE cycle fixes the services it holds** (item 80's choice): they cannot be moved, renamed or removed while it
-  is kept. Re-reading a cycle by name instead would allow it -- Brad's call.
-- **Journal entries from before a service-list change** that carry a place or a list can no longer be put back; the
-  figure is typed again.
-- **The side lists' unsaved state lasts one session**, like `DIRTY`: list edits waiting in browser storage read as saved
-  after a reload. Some list changes never reach the counter: an execution import that throws part-way, a log share that
-  merges and then fails to write, the destination list's default seed. *(Item 95, v1.99.)*
-- **A reprogramming row written by v1.96 carries only a place**, which v1.96's picker took from the board on screen. It
-  is read against its own appropriation's list and marked "(by position)" until someone picks.
-- **PPBE values copied into the budget base** (`bmSeedFromPp`) are not apportioned; whole dollars when typed, so this
-  matters only for a fraction arriving in a file.
-- **Items 77–79 were run in jsdom against stand-in folders and file readers**, not with real File System Access in
-  Chromium. A history folder that exists but cannot be opened now also stops the log and cost-estimate shares (stricter
-  than before). Boards older than v1.97 neither see nor thin the new `…-recent.json` history copies.
-- **6 Oct review of v1.98:** restates the side-list, funds-flow and ACE bullets above. On the side lists: a change should
-  count before any write that can fail, and survive a reopen. On the funds flow and ACE: it asks for a worked example by
-  appropriation and year, and Brad's rule, before those totals are called certified.
-
-#### 84. Found while building v1.98, not built
-- **Logged:** 5 Oct 2026, while building v1.98.
-- **A version older than v1.98 opening a v1.98 file** does not know a CLIN's service choices: there, that service's
-  money on the CLIN reads as the CLIN's standard. Nothing is lost -- the choices stay in the file -- but an older board
-  reports it on the standard until it is opened in v1.98 again.
-- **A kept PPBE cycle** keeps its CLINs' pointers when a combination is removed from the list (a cycle is a fixed
-  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned. *(Item 88, v1.99: a cycle locked from v1.99 keeps its own list; one locked earlier reads today’s and says so.)*
-- **The Classify grid's RCN / EEIC column** sets the requirement's own combination, the default a CLIN with none of its
-  own uses. A CLIN's choices are made in its CLIN drill. *(Item 97, v1.99: the grid says so; the setter is unchanged.)*
-- **On the RCN-EEIC tab, a prime split across combinations** shows each combination's share of its ask prorated by the
-  CLIN grid's allocation (the same split as its money), not each CLIN's own request.
-- **6 Oct review of v1.98:** an older version's reading of a v1.98 file should be tested editing and saving, not only
-  opening. Windows and Edge with real SharePoint or OneDrive and their permissions, and the exports opened in Excel,
-  PowerPoint and CCaR, are still unchecked.
-- **Brad, 6 Oct 2026 (for v2.00):** the older-version reading stays for a compatibility review -- a partial version marker
-  on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
-  showing each CLIN's own request changes what the ask column means.
-
-#### 89. Found while building v1.99: what a locked cycle still reads from today
-- **Logged:** 6 Oct 2026, while building v1.99.
-- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
-  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
-  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
-  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
-  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
-  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
-- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
-  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
-  PPBE cycles panel and Help say so.)*
-- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
-  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
-
-#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
-- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
-  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
-  Not in the v2.00 code build; it follows once they answer.
-
-#### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
-- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
-  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
-  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
-- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
-  drawer, and a reading taken before layout settles can catch a passing pixel.
-- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
-  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
-  reading (fails), then the settled one (passes).
-- **Brad, 8 Oct 2026:** next version, not v2.00.
-- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
-  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
-  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
-  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
-  straight after the click with the settled page.
-- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
-  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
-  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
-  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
-  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
-  read it.
-- **What:** one helper for status-line messages that keeps an important one (an import's result, a
-  refusal, a warning) until it is read, instead of letting the next message replace it; import and
-  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
-  they are the data-loss guards and must keep stopping the user.
-
-#### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
-  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
-  went hollow when one name changed in one place and not another.
-- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
-  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
-  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
-  Later versions extend it as fields are touched, never as a big-bang rewrite.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v2.01 — 20 Oct 2026: what v2.00 left on its branch, D4-1, a readable RECORD panel and a longer PID -- built on Brad's "yes to all" of 20 Oct
 
