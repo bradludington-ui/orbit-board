@@ -117,6 +117,43 @@ against its own block. 2,027 targets, each matching once.
     - mcount: 2,040 targets, each matching once;
     - `npm run audit`: exit 0, nine banners plus the legacy line;
     - every browser tool and `npm run standards`: only the 8 carried layout-fits D results.
+- **E7. The non-blockers deferred at the 18 Oct cut, triaged on `981a334`** (21 Oct 2026). Each was a read-only agent
+  working in its own worktree, with the probes kept in the scratchpad. Nothing is built yet.
+  - **U9L: closed.** It is E5.
+  - **U28: not seen on this tree.** All 13 of layout-fits J's results pass; only the carried D results fail.
+  - **U9: REPRODUCED. A tie between CLIN offices is broken by floating-point error.**
+    - PRIME-3 draws $3 across CLIN asks 1:2:3 (MxS, AV, TSS). Exact largest remainder gives $1/$1/$1; `pmoPartsOf`, the
+      forecast and the PMO panel give $0/$1/$2. At $9 they give $1/$3/$5 instead of $2/$3/$4.
+    - Cause: `pmoSharesOf` hands `apportion` the float v/tot, so 1/6 is 0.16666666666666666, just under a sixth.
+    - Fix: hand `apportion` the CLIN asks themselves as the weights (a third entry beside the fraction; `wOf` reads it).
+  - **U43: REPRODUCED.** The PMO funding panel and the CR view by PMO list only `GROUPS`. A CLIN office that no requirement
+    is homed to (PRIMES) has no row there, and the panel's TOTAL Disc reads $1 for the $3 drawn ($4 for $9). Fix: use
+    `pmoKeys`, as every other by-office view does.
+  - With both fixes on a scratch copy: $1/$1/$1, $2/$3/$4, a PRIMES row, and the TOTAL correct. audit, audit-board,
+    audit-other and audit-recon pass on it, so no existing check pins either defect; a new audit-recon block is needed.
+  - **U29 (P1, work can be lost): REPRODUCED.** Board clean with BRAD-1 saved; "load the shared one". The record still
+    says clean, and the next 💾 Save asks nothing and writes the shared copy over the file. BRAD-1 is then only in Teams
+    version history (in folder mode, the folder's history). The shared state file's automatic load, and taking the file
+    at opening in folder mode, do the same.
+  - **U24: REPRODUCED.** Loading the shared copy, its automatic load, and taking the file at opening, each during a save,
+    end recorded as saved against a copy that is not on screen. Importing several boards at once is counted correctly.
+  - **U31: REPRODUCED.** After importing several boards at once, this browser's record is not marked unsaved, so a reopen
+    reads clean. In folder mode, with a newer folder copy, the reopen loads that copy and keeps nothing aside.
+  - Proposed fix for U24, U29 and U31 (+6/−4 lines):
+    - `loadCounted()` counts a load as a change, in this session and in this browser's record. It is called by
+      `adoptShared`, `sharedArrived`'s automatic load and `importBoards`.
+    - `bootTakeFile` is refused while a save is under way.
+    - On a scratch copy the new check fails 10 times on this tree and passes with the fix.
+    - It leaves for Brad: a clean board that loads the shared copy and then saves still writes over the saved file, now
+      honestly said (keeping saved work too would follow U19's rule and use the one kept slot); and Live autosave would
+      then write a loaded copy to the folder.
+  - **U19H: REPRODUCED.** After a put-back and a reopen with no save, the header says "Saved 9:35 AM · ↶ work kept aside",
+    though no file holds the restored work. A plain edit and a reopen say "Saved" too (ledger U15). `saveStateShow()`
+    reads only `unsavedNow()`, which a reopen resets.
+    - Fix: two lines -- `unsavedNow() || !!_baseDirty`, and no "Saved …" tooltip while unsaved. The words become
+      "Unsaved changes", and nothing saved moves.
+    - U19H's fuller wording ("Unsaved restored work — not written to the board file") was found false on a file holding
+      two appropriations, and stays a separate item.
 - **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
   - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
   - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
