@@ -49,6 +49,8 @@ const SPECIAL = {
   helpPanel: `openHelp('');`,
   // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has
   attPanel:  `attShow('oblig');`,
+  // v2.03 (item 19): the session's message list, with an unread warning in it (as ⚠ N unread opens it)
+  msgPanel:  `setStat('⚠ A warning nobody has read yet.'); setStat('Order saved.'); msgOpen();`,
   // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Imports & exports does
   uiImpPanel: `uiImpOpen();`,
   // v2.00 (menu, 19 Oct): the left menu's other two boxes, opened as Reports & exports and Data open them
@@ -141,7 +143,7 @@ for (const f of ['prioritization-board-grid.html']) {
     'edOpen','entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
-    'svcPanelOpen','addOpen','budRegOpen','diagOpen'];
+    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];
   const NUL = ['recOpen', 'wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };

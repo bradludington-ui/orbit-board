@@ -4138,6 +4138,42 @@ The feature's checks went with it (audit-recon "the reprogramming log", the five
 parts of W7 F1; audit-import NR03, W5.7, item 95's share and U13's share); the carry checks stay, the W2 unsaved-list check
 now changing the log through `persistRp`. 27 mutations retired as obsolete, 3 retargeted, 1 new.
 
+### v2.03: cleaner code -- what nothing could reach, the card leftovers, one message line, one field registry
+
+Brad, 21 Oct 2026: *"I would like to optimize our code"*, then **cleaner code**, all four items, built before the sweep.
+`NEXT-VERSION.md` › Shipped › v2.03 has every detail.
+
+**Unreachable code is found by a call graph, not by a name count** (item 104). Counting references found nothing dead:
+every function was named somewhere, often only in a comment or by another dead function. A parser-based trace from the
+top-level code and every handler in the markup found 15. The command bar, `setBATot`, `moveTo`, `chipBg`/`bandInk`,
+`srcBudget` and `inboundCheckDest` went; four functions only the tests call stay as the tests' entry points.
+
+**The card build is gone from the code too** (item 105): the guide's `data-b`, `fldHasPanel`, the row expander's state,
+the Filter menu's ☰ By-service detail (which only the card's rows read), and `gridDedupe`. `render()` keeps its wrapper
+(`renderBoard`, then the RECORD panel) on purpose -- see the note at the top of this file.
+
+**A message that matters stays until it is read** (item 19). `setStat()` is still the one way to say something. Every
+message is also kept for the session in `STAT_LOG`; a warning or refusal (`diagIsWarn`) or an import's result
+(`statKeep`) is kept UNREAD until More, its ✕, or the list opens it, and **⚠ N unread** (`#statKeep`) beside the line opens
+**Messages this session** (`#msgPanel`). The list is the tab's and never the board's: nothing goes into the file or the
+journal (Brad: "session log, not file"), so a refused import still changes nothing. Shown as text, so an old message's
+buttons cannot act on the board as it is now. **A new import's result goes through `statKeep()`, not `setStat()`.**
+
+**A requirement's fields are named in one place** (item 20). `REQ_FIELD` (declared early, beside `PMODE`, because the
+board draws its rows while the script is still being read) maps each field's key to its label; `FL(k)` and `FLI(k)` (with
+the icon) read it. `recF()` takes the KEY and each field carries `k`; code compares keys, never labels (the proposal gate
+used to match labels, which is how a test goes hollow on a rename). The guide names a field with
+`<span data-fl="key">` (`data-fi` for the icon), filled by `helpSections`. `npm run check` "field labels" refuses a
+`recF()` given a label, a `PMO_FIELDS` row that spells one, and the three written fields' names spelled anywhere outside
+the registry; audit-board renames fields at runtime and every surface must follow. **A new field gets a `REQ_FIELD` entry
+first; a new surface that names a field reads `FL()`.** The registry is a first slice: other labels are moved onto it as
+they are touched, never as a big-bang rewrite.
+
+**Two browser checks had been failing since v2.02 unseen.** `keyboard-reach` G2 and `left-menu` A still expected the
+ATR/BTR workbook and its two calls. `verify:grid` stops at `layout` (the 8 carried D results), so nothing after it runs
+in the nightly gate: **run `keys`, `dropdowns`, `dialogs`, `leftmenu` and `standards` yourself** after a change that moves
+a menu or an export.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.02**. Next: **v2.03**.
+Current version: **v2.03**. Next: **v2.04**.
 
 ## Open
 
@@ -127,60 +127,6 @@ Current version: **v2.02**. Next: **v2.03**.
   the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
   **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
-#### 104. Code nothing can reach (Brad, 21 Oct 2026: "I would like to optimize our code" -- chose "cleaner code")
-- **Measured** on `main` `b68b319` (v2.02): every top-level function was traced from the code that runs at the top level
-  and from every name in the markup's handlers, with a real JavaScript parser (string literals counted as references, so a
-  handler written into markup counts). 1,604 of 1,619 functions are reachable. There is little dead code; what there is:
-  - **The command bar** (`runCmd`, `cmdMatches`, `withReq`, `resolveCand`, `cmdSay`, about 110 lines, §37): nothing on the
-    page opens it and nothing calls `runCmd`. `setBATot` and `moveTo` are reached only from it.
-  - `chipBg` and `bandInk` (the two call each other and nothing else), `srcBudget`, `inboundCheckDest`.
-  - **Called only by the tests:** `saveInPlaceFile` (64 uses), `svcTable`, `setAwdDate`, `toggleNote`. Each is either kept
-    as the tests' entry point or the tests move to the path the board uses; decided per function when built.
-- **Mutations:** `v197w1-guard-runCmd`, `v197w1-guard-setBATot` and `v197w1-ba-scaled` aim at the command bar's code;
-  they are retired as obsolete (the code goes, so there is nothing for them to break), never declared equivalent.
-  `v200-u3-file-queued` aims at `saveInPlaceFile` and stays while that wrapper stays. Count every target with `mcount`
-  after the removal.
-- **Fix:** remove the unreachable functions and their comments; the §37 banner and the table of sections at §01 stop
-  naming the command bar. No figure, rule or control on screen changes. `npm run controls` must record no change.
-
-#### 105. The card build's leftovers (CLAUDE.md: "Take them out as a version of their own")
-- **What is left** since v1.88 retired the card build, all unreachable or harmless in the grid:
-  - **The guide:** five `data-b="card"` paragraphs the grid never shows, and the `data-b` split on their grid twins.
-  - **`fldHasPanel()`** (always true in the grid) and the card fallbacks behind it -- `toggleCons`' `consOpen` path, the
-    `'card'` branch at the pop-up's build label.
-  - **`render()` draws what `gridDedupe()` then strips:** the row expander's button (`toggleDetail`), and the title, CCaR
-    and PID handlers and the pencil. `render()` stops drawing them; `gridDedupe()` goes.
-  - **The `_renderCards` wrapper:** `render` is redefined to call the old one then `gridAfterRender()`. One `render()`
-    that ends by calling `gridAfterRender()`, keeping v1.89's rule that a `gridAfterRender` that throws empties the
-    RECORD panel and says so.
-  - **Comments** that say "both builds" or describe the card build as current; CLAUDE.md's file size (it says 19,500
-    lines and 2.8 MB; the file is 34,066 lines and 4.0 MB) and its "both builds" historical notes keep their history.
-- **Proof:** `npm run controls` (the row and the RECORD panel's controls, unchanged), `npm run keys`, `dialogs`,
-  `dropdowns`, `menu-paths` (the guide), `boot-same`, every suite; mutations whose find strings sit in removed code are
-  retired, any that moved are retargeted, and `mcount` reads every target once.
-
-#### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88. **Brad, 21 Oct 2026:** moved from
-  Later into v2.03, with items 104 and 105, as the "cleaner code" version.
-- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
-  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
-  read it.
-- **What:** one helper for status-line messages that keeps an important one (an import's result, a
-  refusal, a warning) until it is read, instead of letting the next message replace it; import and
-  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
-  they are the data-loss guards and must keep stopping the user.
-
-#### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88. **Brad, 21 Oct 2026:** moved from
-  Later into v2.03, with items 104 and 105, as the "cleaner code" version.
-- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
-  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
-  went hollow when one name changed in one place and not another.
-- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
-  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
-  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
-  Later versions extend it as fields are touched, never as a big-bang rewrite.
-
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -223,6 +169,84 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.03 — 21 Oct 2026: cleaner code -- items 104, 105, 19 and 20, built on Brad's "go" of 21 Oct ("Build before": ahead of the sweep)
+
+Brad, 21 Oct 2026: *"I would like to optimize our code"*, then **cleaner code** (over faster edits, faster test runs and a
+smaller file), all four items, and **build before** the scheduled sweep. Measured first, for the record: opening a 120-
+requirement board takes 1.0–1.6 s and a save about 20 ms; a full redraw takes about 100–180 ms at 120 requirements and
+300–560 ms at 300, nearly all of it rebuilding and laying out every row. That is not in this version.
+
+#### 104. Code nothing can reach -- removed
+- Traced with a real parser from the code that runs and every handler in the markup: 1,604 of 1,619 functions reachable.
+- **Removed:** the command bar (`runCmd`, `cmdMatches`, `withReq`, `resolveCand`, `cmdSay`, `__cands`, `__act`, `__rec`;
+  `goRow` stays, others use it), `setBATot` and `moveTo` (reached only from it), `chipBg`/`bandInk` (unused since v1.90
+  drew the band as a swatch), `srcBudget`, `inboundCheckDest`. 154 lines. §37's banner no longer names the command bar.
+- **Kept, as built:** the four functions only the tests call (`saveInPlaceFile` -- the refusal-first wrapper 64 checks
+  drive -- `svcTable`, `setAwdDate`, `toggleNote`). Moving the tests onto other paths is risk for no gain.
+- **Checks:** audit-board's item-72 block (a typed budget total, through `setBATot`) and the command bar's amount check,
+  and audit-recon's two typed-total lines, went with the code; each says so where it stood. The per-service base
+  (`bmSetBase`) keeps its own checks.
+- **Mutations:** `v197w1-ba-scaled`, `v197w1-guard-setBATot`, `v197w1-guard-runCmd` retired as obsolete (a comment where
+  each stood); `src-budget-made-up` retargeted (its replacement wrote `srcBudget`, now inlined) and proven caught.
+
+#### 105. The card build's leftovers -- removed
+- The guide's five card-only paragraphs and spans; every `data-b` is gone, and `helpSections` no longer filters.
+- `fldHasPanel()`, `consOpen`/`consBox` (the row's own impact box), the row expander's state `open[]` and `toggleDetail`,
+  the `typeof setCur` fallbacks, and the Filter menu's **☰ By-service detail on every row** with `svcAll` -- it set a
+  flag only the card's rows read; in the grid it did nothing. The Filter menu opens with 2 entries, not 3.
+- `gridDedupe()`: it stripped handlers `render()` stopped drawing in v1.90, so it did nothing.
+- **Built differently from the log, and why:** `render()` keeps its wrapper. The inner part is renamed `renderBoard`
+  (was `_renderCards`); it is not folded into one declaration, because the board renders while the script is still being
+  read (`applyStore` at top level), before the RECORD panel's code and `let`s exist -- a hoisted declaration would run it
+  there. The comment says so.
+- Stale "both builds" comments rewritten; CLAUDE.md's size line (34,000 lines, 4.0 MB) and its card-leftovers and
+  `bandInk` notes updated.
+- **Checks changed:** audit-board's pop-up routing (no row fallback to test), audit-import's guide check (now: no section
+  carries `data-b` or the card's ⊞ SVC), the not-drawn check (the RECORD panel only), editors-reachable (selects the
+  row), keyboard-reach G (drives Fully discretionary only in place of the ☰ item), the Filter menu count (3 -> 2).
+- **Mutations:** `help-both-builds` retired as obsolete; `att-go-not-selected` retargeted and proven caught.
+
+#### 19. One way to tell the user -- a message that matters stays until it is read
+- Every message still goes through `setStat`. Each is also kept, for this session, in `STAT_LOG` (60, newest last; an
+  unread one is never dropped for a newer one). A warning or refusal (`diagIsWarn`, the test Save diagnostics uses) or an
+  import's result (`statKeep`, at the eleven places an import reports what it took) is **kept unread** until More, its ✕,
+  or the message list opens it. While a later message is on the line, **⚠ N unread** (`#statKeep`) beside it says so and
+  opens **Messages this session** (`#msgPanel`), unread first. The list shows each message as text: an old message's
+  buttons must not act on the board as it is now. The quiet start-up line is never unread.
+- **Brad, 21 Oct 2026 ("session log, not file"):** the log said import and export failures should also go into the change
+  journal. That would make a refused import change the board, against "Nothing on this board was changed" and the
+  hostile suite's byte-identical store. So nothing is written into the board or the journal; the list is the tab's.
+- Confirm prompts are unchanged.
+- **Checks:** audit-board "v2.03 — a message that matters stays until it is read (item 19)": ordinary messages, a
+  warning alone and replaced, the list and its headings, More, ✕, an import result, the quiet line, 70 later messages, a
+  refused import (kept, store byte-identical), and nothing in the saved file. `panels-render` opens the list (and found
+  that it had no opener until one was given -- a box nobody can reach fails there by design).
+- **Mutations:** nine `v203-19-*`, each caught by its check.
+
+#### 20. One place for each field's name (first slice)
+- `REQ_FIELD` names every requirement field once (key -> label, and an icon for the three written fields); `FL(k)` and
+  `FLI(k)` read it. Declared early: the board draws its rows while the script is read. **Read by:** `recFields`
+  (`recF` takes the key; each field carries `k`), `PMO_FIELDS`, the proposal gate (`PROPOSAL_MANDATORY` and
+  `pmoProposalGate`, which now matches on the key, never a label), the pop-ups' titles (`FLD_DEF`, read each time, not
+  once at load), 📋 Requirement edit's heading, the RECORD panel's three buttons, the row's "required" flag, the Needs
+  attention text and two messages, and the guide (`data-fl`, filled in `helpSections`).
+- **Checks:** `npm run check` "field labels" refuses a `recF()` given a label, a `PMO_FIELDS` row spelling one, and the three
+  written fields' names spelled anywhere in the program or the guide but the registry (proven on three planted
+  mistakes). audit-board "v2.03 — a requirement’s fields are named in one place (item 20)" renames five fields at runtime
+  and every surface must follow -- it found the pop-up titles fixed at load, fixed in this version.
+- **Mutations:** seven `v203-20-*`, each caught; six retargeted to the registry (`proposal-gate-open`,
+  `second-hop-gov-only`, `fld-dn-note-first`, `fld-impact-old-name`, `rec-old-name`, `v198-record-ignores-clins`).
+
+#### Found on the way: two browser checks failing on v2.02 itself
+`keyboard-reach` G2 expected seven Excel workbooks and `left-menu` A 69 calls -- v2.01's counts. v2.02 removed the
+ATR/BTR Log workbook and its two calls; both checks failed on `main` (`b68b319`) and nobody saw, because `verify:grid` stops
+at `layout` (the 8 carried D results) before reaching them. Corrected to six and 67.
+
+#### Mutation targets
+2,083 at v2.02; less 4 retired, plus 16 new: **2,095**, each matching the board once (`mcount`). Every new and retargeted
+target was built with `mkmut.py` and run against its suite: all caught.
+
 
 ### v2.02 — 21 Oct 2026: saves and loads that never lose work, a locked cycle that is report and view only and keeps its own lists, ATR/BTR removed, exact office cells -- built on Brad's goes of 20 and 21 Oct, shipped on his "go" of 21 Oct
 
