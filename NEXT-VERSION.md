@@ -127,12 +127,41 @@ Current version: **v2.02**. Next: **v2.03**.
   the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
   **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
-## Later
+#### 104. Code nothing can reach (Brad, 21 Oct 2026: "I would like to optimize our code" -- chose "cleaner code")
+- **Measured** on `main` `b68b319` (v2.02): every top-level function was traced from the code that runs at the top level
+  and from every name in the markup's handlers, with a real JavaScript parser (string literals counted as references, so a
+  handler written into markup counts). 1,604 of 1,619 functions are reachable. There is little dead code; what there is:
+  - **The command bar** (`runCmd`, `cmdMatches`, `withReq`, `resolveCand`, `cmdSay`, about 110 lines, §37): nothing on the
+    page opens it and nothing calls `runCmd`. `setBATot` and `moveTo` are reached only from it.
+  - `chipBg` and `bandInk` (the two call each other and nothing else), `srcBudget`, `inboundCheckDest`.
+  - **Called only by the tests:** `saveInPlaceFile` (64 uses), `svcTable`, `setAwdDate`, `toggleNote`. Each is either kept
+    as the tests' entry point or the tests move to the path the board uses; decided per function when built.
+- **Mutations:** `v197w1-guard-runCmd`, `v197w1-guard-setBATot` and `v197w1-ba-scaled` aim at the command bar's code;
+  they are retired as obsolete (the code goes, so there is nothing for them to break), never declared equivalent.
+  `v200-u3-file-queued` aims at `saveInPlaceFile` and stays while that wrapper stays. Count every target with `mcount`
+  after the removal.
+- **Fix:** remove the unreachable functions and their comments; the §37 banner and the table of sections at §01 stop
+  naming the command bar. No figure, rule or control on screen changes. `npm run controls` must record no change.
 
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+#### 105. The card build's leftovers (CLAUDE.md: "Take them out as a version of their own")
+- **What is left** since v1.88 retired the card build, all unreachable or harmless in the grid:
+  - **The guide:** five `data-b="card"` paragraphs the grid never shows, and the `data-b` split on their grid twins.
+  - **`fldHasPanel()`** (always true in the grid) and the card fallbacks behind it -- `toggleCons`' `consOpen` path, the
+    `'card'` branch at the pop-up's build label.
+  - **`render()` draws what `gridDedupe()` then strips:** the row expander's button (`toggleDetail`), and the title, CCaR
+    and PID handlers and the pencil. `render()` stops drawing them; `gridDedupe()` goes.
+  - **The `_renderCards` wrapper:** `render` is redefined to call the old one then `gridAfterRender()`. One `render()`
+    that ends by calling `gridAfterRender()`, keeping v1.89's rule that a `gridAfterRender` that throws empties the
+    RECORD panel and says so.
+  - **Comments** that say "both builds" or describe the card build as current; CLAUDE.md's file size (it says 19,500
+    lines and 2.8 MB; the file is 34,066 lines and 4.0 MB) and its "both builds" historical notes keep their history.
+- **Proof:** `npm run controls` (the row and the RECORD panel's controls, unchanged), `npm run keys`, `dialogs`,
+  `dropdowns`, `menu-paths` (the guide), `boot-same`, every suite; mutations whose find strings sit in removed code are
+  retired, any that moved are retargeted, and `mcount` reads every target once.
 
 #### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88. **Brad, 21 Oct 2026:** moved from
+  Later into v2.03, with items 104 and 105, as the "cleaner code" version.
 - **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
   prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
   read it.
@@ -142,7 +171,8 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   they are the data-loss guards and must keep stopping the user.
 
 #### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88. **Brad, 21 Oct 2026:** moved from
+  Later into v2.03, with items 104 and 105, as the "cleaner code" version.
 - **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
   pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
   went hollow when one name changed in one place and not another.
@@ -150,6 +180,10 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
   messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
   Later versions extend it as fields are touched, never as a big-bang rewrite.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
 
 #### Considered and not recommended
 - **Rewriting the board into separate modules**, and **making the money engine take its inputs as
