@@ -12941,6 +12941,7 @@ async function importSrc(inp){
       }
       const ex=buildExec(sheets[found]);
       const n=Object.keys(ex.rows).reduce((a,fy)=>a+ex.rows[fy].length,0);
+      ex.at=Date.now();        // v2.02 (D4): when THIS appropriation's data came in -- the shared folder merges by it
       nextAll[slug]=ex;
       report.push({slug:slug, tab:tab, found:found, how:how, read:ex.read, kept:n, noFy:ex.noFy||0,
                    fys:Object.keys(ex.rows).join('/'), asOf:ex.asOf});
@@ -28865,12 +28866,38 @@ async function driveRestore(i){
   }
 }
 // ---- the execution data is shared too, or every team lead re-imports the same workbook
+// v2.02 (D4; Brad, 21 Oct): THE SHARED FOLDER'S EXECUTION DATA IS MERGED PER APPROPRIATION, newest copy of each winning --
+// the rule a file import already keeps (importStores, v1.86). The folder's copy replaced this browser's whole store when it
+// was newer, and a share wrote this browser's whole store over the folder's: a lead who had imported Full Fund and not yet
+// shared it lost that import on the next refresh after a colleague shared O&M, and a share could put an older O&M over the
+// colleague's newer one. An appropriation's data is dated by when it was imported (`at`, from v2.02), else by its store.
+// Both sides are kept whole where the other holds nothing; nothing is dropped. It narrows the window, it does not close it:
+// two shares at the same instant still write in turn (a file share has no atomic write; the hosted rebuild's eTags do).
+function exAt(e, ts){ return +((e && e.at) || ts || 0); }
+function exMerge(mine, theirs){
+  const M=(mine && mine.all)? mine : {ts:0, all:{}}, T=(theirs && theirs.all)? theirs : {ts:0, all:{}};
+  const out={ts:Math.max(+M.ts||0, +T.ts||0), all:Object.assign({}, M.all)}, took=[];
+  Object.keys(T.all).forEach(function(k){
+    const t=T.all[k], m=M.all[k];
+    if(!t || typeof t!=='object') return;
+    if(!m || exAt(t, T.ts)>exAt(m, M.ts)){ out.all[k]=t; took.push(k); }
+  });
+  return {db:out, took:took};
+}
 async function driveExecPush(quiet){
   if(!driveStoreOn()) return false;
   try{
     const dir=await driveDir(true);
+    // what the folder holds first: an appropriation a colleague shared that is newer than this browser's stays as theirs.
+    // Not there is nothing to keep; a copy that cannot be read is not written over.
+    let cur=null;
+    try{ cur=driveParse(await driveRead(dir, DRIVE_EXEC)); }
+    catch(e){ if(!(e && e.name==='NotFoundError')){
+      setStat('⚠ The execution data was <b>not shared</b>: the shared folder’s copy could not be read ('+esc((e&&e.message)||String(e))
+        +'), and it is not written over unread. Nothing in the folder was changed.'); return false; } }
+    const merged=(cur && cur.exec)? exMerge(cur.exec, EXDB).db : EXDB;
     await driveWrite(dir, DRIVE_EXEC, JSON.stringify({v:1, by:whoAmI()||'unknown',
-      ts:Date.now(), exec:EXDB}));
+      ts:Date.now(), exec:merged}));
     if(!quiet) setStat('⬆ Execution data shared to the folder — everyone gets it on their next '
       +'refresh, so nobody re-imports the workbook.');
     return true;
@@ -28885,11 +28912,15 @@ async function driveExecPull(quiet){
     const dir=await driveDir(false,'read');
     const j=driveParse(await driveRead(dir, DRIVE_EXEC));
     if(!j||!j.exec) return false;
-    if(+(j.ts||0) <= +((EXDB&&EXDB.ts)||0)) return false;      // ours is current or newer
-    EXDB=j.exec; EXDB.ts=+(j.ts||Date.now());
+    // v2.02 (D4): per appropriation, newest wins; what this browser holds and the folder does not is kept
+    const theirs=Object.assign({}, j.exec, {ts:+(j.exec.ts||j.ts||0)});
+    const r=exMerge(EXDB, theirs);
+    if(!r.took.length) return false;      // ours is current or newer, appropriation by appropriation
+    EXDB=r.db;
     persistExdb(); render();
-    if(!quiet) setStat('⬇ Execution data updated from the shared folder — imported by <b>'
-      +esc(j.by||'unknown')+'</b> '+esc(liveAge(+j.ts||0))+'.');
+    if(!quiet) setStat('⬇ Execution data updated from the shared folder for '
+      +esc(r.took.map(function(k){ return APPN_LBL[k]||k; }).join(', '))+' — shared by <b>'
+      +esc(j.by||'unknown')+'</b> '+esc(liveAge(+j.ts||0))+'. What this browser holds for any other appropriation is kept.');
     return true;
   }catch(e){ return false; }
 }
