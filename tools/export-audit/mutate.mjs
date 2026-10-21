@@ -6616,6 +6616,13 @@ const MUTATIONS = [
   { id: "v202-e7-u29-load-unasked", area: "adoptShared", what: "loading the shared state file over a board whose screen is all saved asks nothing, though the next Save writes the shared copy over the saved one",
     find: "if(!CYCVIEW && !ownUnsaved(MS, SHARED, baseGet()) && !confirm(",
     repl: "if(false && !confirm(" },
+  // v2.02 (D3; Brad, 21 Oct): audit-board "v2.02 (D3)".
+  { id: "v202-d3-greedy-again", area: "pmoSplit", what: "an office's part of a month is spread one part after another again, and a cell drifts more than $1 from its exact share",
+    find: "  const R=pmoRound(w, parts, left);\n  if(R) return R;\n", repl: "" },
+  { id: "v202-d3-tight-only", area: "pmoRound", what: "only floor-or-ceiling roundings are tried; where none fits, the split falls back to the greedy spread",
+    find: "  return tryBand(false) || tryBand(true);", repl: "  return tryBand(false);" },
+  { id: "v202-d3-wide-at-once", area: "pmoRound", what: "the wide band is tried first, so a share that is a whole dollar can be moved a dollar it did not need to move",
+    find: "  return tryBand(false) || tryBand(true);", repl: "  return tryBand(true);" },
   // v2.02 (D4; Brad, 21 Oct): audit-import "v2.02 (D4)".
   { id: "v202-d4-pull-replaces", area: "driveExecPull", what: "a refresh replaces this browser's whole execution store with the folder's: an import not yet shared is lost",
     find: "    const r=exMerge(EXDB, theirs);", repl: "    const r={db:theirs, took:Object.keys(theirs.all||{})};" },

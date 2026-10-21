@@ -2594,6 +2594,57 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// ═══ v2.02 (D3) — EVERY OFFICE'S PART OF A MONTH IS WITHIN $1 OF ITS EXACT SHARE ═══════════════════════════════════
+// Brad, 21 Oct 2026. pmoSplit spread one part after another and let a cell drift up to $2.56 from part × weight / total
+// weight, while the record said "about a dollar". Held here: every cell is a whole dollar within $1 of its exact share,
+// every part's row and every office's column exact. The exact share is worked out in the test from the inputs alone.
+{
+  const name = 'v2.02 (D3) — every office’s part of a month is within $1 of its exact share';
+  try {
+  const { ev } = boot();
+  const run = (w, parts, cols) => JSON.parse(ev(`JSON.stringify(pmoSplit(${JSON.stringify(w)}, ${JSON.stringify(parts)}, ${JSON.stringify(cols)}))`));
+  // the worst cell, in exact fractions of a dollar: |X·W − part·w| / W
+  const judge = (w, parts, cols, X) => {
+    const W = w.reduce((a, b) => a + b, 0); let worst = 0, rows = true, colsOk = true;
+    parts.forEach((p, j) => { if (X[j].reduce((a, b) => a + b, 0) !== p) rows = false; X[j].forEach((x, k) => { if (!Number.isInteger(x)) rows = false; worst = Math.max(worst, Math.abs(x * W - p * w[k]) / W); }); });
+    cols.forEach((c, k) => { if (X.reduce((a, r) => a + r[k], 0) !== c) colsOk = false; });
+    return { worst, rows, colsOk };
+  };
+  // Brad's counterexample: shares 2:2:2:3:3, months $4 and $6, each office taking $2. No floor-or-ceiling rounding fits.
+  { const X = run([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2]), J = judge([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2], X);
+    chk(name, 'counterexample', 'every row and column exact, the worst cell exactly $1', JSON.stringify([J.rows, J.colsOk, J.worst]), JSON.stringify([true, true, 1])); }
+  // The measured worst case: weights 4:9:5 and a $3,928,224 part, placed as the forecast does (the office totals by apportion)
+  { const w = [4, 9, 5], parts = [1309408, 1309408, 1309408], tot = 3928224;
+    const cols = JSON.parse(ev(`JSON.stringify(apportion(${tot}, [4,9,5]))`));
+    const J = judge(w, parts, cols, run(w, parts, cols));
+    chk(name, 'measured case', 'within $1, margins exact', JSON.stringify([J.rows, J.colsOk, J.worst <= 1]), JSON.stringify([true, true, true])); }
+  // A seeded sweep: 2-5 offices, 1-6 parts, small and large dollars; the office totals are apportion of the whole, as pmoPartsOf gives them
+  { let seed = 20261021; const rnd = n => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+    let bad = 0, worst = 0, first = '';
+    for (let c = 0; c < 3000; c++) {
+      const K = 2 + rnd(4), Jn = 1 + rnd(6), big = rnd(3) === 0;
+      const w = Array.from({ length: K }, () => 1 + rnd(big ? 9000 : 9));
+      const parts = Array.from({ length: Jn }, () => rnd(big ? 5000000 : 40));
+      const tot = parts.reduce((a, b) => a + b, 0);
+      const cols = JSON.parse(ev(`JSON.stringify(apportion(${tot}, ${JSON.stringify(w)}))`));
+      const J = judge(w, parts, cols, run(w, parts, cols));
+      worst = Math.max(worst, J.worst);
+      if (!J.rows || !J.colsOk || J.worst > 1 + 1e-12) { bad++; if (!first) first = JSON.stringify({ w, parts, cols, worst: J.worst }); }
+    }
+    chk(name, 'sweep', '3,000 seeded cases: margins exact and every cell within $1 (first failure shown)', first || 'none', 'none');
+    chk(name, 'sweep', 'and the worst cell over all of them is at most $1', worst <= 1 + 1e-12, true); }
+  // the rounding itself answers the counterexample (the wide pass), rather than handing it back to the old spread
+  { const X = JSON.parse(ev(`JSON.stringify(typeof pmoRound==='function'? pmoRound([2,2,2,3,3], [4,6], [2,2,2,2,2]) : null)`));
+    chk(name, 'counterexample', 'the matrix rounding answers it itself, within $1', JSON.stringify(X ? [judge([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2], X).worst] : null), JSON.stringify([1])); }
+  // a share that is a whole dollar is not moved when the tight rounding fits: two offices, $2 and $2, each taking $2
+  chk(name, 'CONTROL', 'whole-dollar shares stay put: $2 and $2 over 1:1 is $1 and $1 in each', JSON.stringify(run([1, 1], [2, 2], [2, 2])), JSON.stringify([[1, 1], [1, 1]]));
+  // CONTROL: the requirement's own examples from E7 (U9) are unchanged: $3 over 1:2:3 is $1/$1/$1, $9 is $2/$3/$4
+  chk(name, 'CONTROL', 'U9’s ties: $3 over 1:2:3 and $9 over 1:2:3', JSON.stringify([run([1, 2, 3], [3], [1, 1, 1]), run([1, 2, 3], [9], [2, 3, 4])]), JSON.stringify([[[1, 1, 1]], [[2, 3, 4]]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ PPBE CYCLES — THE DELTAS AGAINST THE REFERENCE ═══════════════════════════════════════
 // After a lock the working plan moves on. Every change is read against the lock's projection of
 // the same year: value, allocation, funded (the lane draw), rank, band, PMO, the star, a

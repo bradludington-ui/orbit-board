@@ -12294,10 +12294,58 @@ function pmoSharesOf(it){
    A share of an amount that is not whole dollars stays that fraction of it, as before: a modelled plan places
    fractions by design (its increments are a shape), and a service funded past its ask has no ask to split by. */
 function pmoSplit(w, parts, tgt){
-  // the offices take apportion(the total, w), or `tgt`; each part is spread by what each office still has to take,
-  // so no office passes its share or goes below nothing, and the last part takes exactly what is left
+  // the offices take apportion(the total, w), or `tgt`; each part is spread so the parts add up to what each office takes
+  // and each office's parts add up to the part (v2.02, D3: every cell within $1 of its exact share, pmoRound)
   const left=tgt? tgt.slice() : apportion(parts.reduce((a,b)=>a+b,0), w);
+  const R=pmoRound(w, parts, left);
+  if(R) return R;
   return parts.map(function(v){ const x=apportion(v, left); x.forEach(function(y,k){ left[k]-=y; }); return x; });
+}
+// v2.02 (D3; Brad, 21 Oct): EVERY OFFICE'S PART OF A MONTH IS WITHIN $1 OF ITS EXACT SHARE. pmoSplit spread one part after
+// another against what each office still had to take; the totals came out exact, but a cell could drift: up to $2.56 from
+// part x weight / total weight in 400,000 random cases ($2.00 at realistic sizes), where the record said "about a dollar".
+// This is a matrix rounding: a whole dollar in each cell, every part's row and every office's column exact. Each cell is
+// first held to the floor or the ceiling of its exact share (strictly within $1); where that cannot meet both margins -- the
+// shares 2:2:2:3:3 of a $4 and a $6 month, offices taking $2 each, cannot -- a cell whose share is a whole dollar may also
+// take a dollar either side (within $1, as close as any rounding gets there). The cells are chosen by a small max flow over
+// those choices, in exact arithmetic. null when no rounding fits, or when the inputs are not whole dollars; pmoSplit then
+// spreads as before, so nothing is ever worse than it was.
+function pmoRound(w, parts, cols){
+  const K=cols.length, J=parts.length;
+  if(!K || !J || w.length!==K) return null;
+  if(!parts.concat(cols).every(function(x){ return Number.isSafeInteger(x) && x>=0; })) return null;
+  if(parts.reduce(function(a,b){ return a+b; },0)!==cols.reduce(function(a,b){ return a+b; },0)) return null;
+  const Wb=apExact(w.map(function(x){ return Math.max(0, +x||0); })), W=Wb.reduce(function(a,b){ return a+b; }, 0n);
+  if(W===0n) return null;
+  const fl=[], rm=[];
+  parts.forEach(function(p, j){ fl[j]=[]; rm[j]=[];
+    Wb.forEach(function(wk, k){ const n=BigInt(p)*wk; fl[j][k]=Number(n/W); rm[j][k]=n%W; }); });
+  const tryBand=function(wide){
+    const lo=[], cap=[];
+    for(let j=0;j<J;j++){ lo[j]=[]; cap[j]=[];
+      for(let k=0;k<K;k++){ const f=fl[j][k], whole=(rm[j][k]===0n);
+        const a=whole? (wide? Math.max(0, f-1) : f) : f, b=whole? (wide? f+1 : f) : f+1;
+        lo[j][k]=a; cap[j][k]=b-a; } }
+    const rr=parts.map(function(p, j){ return p-lo[j].reduce(function(x,y){ return x+y; },0); });
+    const cc=cols.map(function(c, k){ let t=c; for(let j=0;j<J;j++) t-=lo[j][k]; return t; });
+    if(rr.some(function(x){ return x<0; }) || cc.some(function(x){ return x<0; })) return null;
+    // a row's dollars go first to the office whose share it is short of most (largest remainder), as apportion does
+    const ord=[]; for(let j=0;j<J;j++){ ord[j]=[]; for(let k=0;k<K;k++) ord[j].push(k);
+      ord[j].sort(function(x, y){ return (rm[j][y]>rm[j][x])? 1 : (rm[j][y]<rm[j][x])? -1 : x-y; }); }
+    const fx=lo.map(function(r){ return r.map(function(){ return 0; }); }), cl=cc.slice();
+    const aug=function(j, seen){
+      for(let i=0;i<K;i++){ const k=ord[j][i];
+        if(fx[j][k]>=cap[j][k] || seen[k]) continue;
+        seen[k]=1;
+        if(cl[k]>0){ cl[k]--; fx[j][k]++; return true; }
+        for(let j2=0;j2<J;j2++) if(fx[j2][k]>0 && aug(j2, seen)){ fx[j2][k]--; fx[j][k]++; return true; }
+      }
+      return false;
+    };
+    for(let j=0;j<J;j++) for(let n=0;n<rr[j];n++) if(!aug(j, [])) return null;
+    return lo.map(function(r, j){ return r.map(function(a, k){ return a+fx[j][k]; }); });
+  };
+  return tryBand(false) || tryBand(true);
 }
 // [{g, frac, ask, d, m, u, mcs, land}] in pmoSharesOf's order: per service, the office's ask, discretionary,
 // mandatory, unfunded (ask less both, floored) and MC short (ask less discretionary); land(aw, i, literal) is
