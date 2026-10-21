@@ -106,6 +106,12 @@ Current version: **v2.03**. Next: **v2.04**.
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
   CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
   Not in the v2.00 code build; it follows once they answer.
+- **Brad, 21 Oct 2026 (answers that move this item):** hosting is **Azure, web-based**; the data is **unclassified CUI**; the
+  interim pilot restrictions stand for now; and on how strictly to read the requirements, **"err on the side of
+  caution"** -- so every control is treated as applying unless the security team rules it out, a partial is recorded
+  as a gap, and the hosted design aims at the stricter cloud level the security team names (the handoff says IL5) rather
+  than the least that might pass. The plan that follows from these is items 106 and 107; the traceability table itself
+  stays outside git (CUI).
 
 #### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
 - **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
@@ -126,6 +132,33 @@ Current version: **v2.03**. Next: **v2.04**.
   above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
   the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
   **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Not yet built:** waiting on Brad's go, and on the CUI marking wording.
+
+#### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
+- **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
+  sanitization cannot be built into a file on a shared drive. On Azure they come from the platform -- if the design
+  uses them.
+- **What (design first, for Brad and the security team to approve before any build):** sign-in through enterprise
+  identity (CAC), with roles for viewer, office editor and portfolio team; every change written to the enclave's central
+  log; data held server-side, encrypted, backed up; the provider's sanitization for storage. The money engine, the
+  exports and every check carry over: the suites, the trace matrix, the money map and the fuzz become the rebuild's
+  regression net. "The file is its own database" ends here; the saved-file format stays readable so every board people
+  hold today can be brought in.
+- **Depends on:** the security team naming the cloud level and the controls the platform provides (what is inherited),
+  and the hosting milestones.
 
 ## Later
 
