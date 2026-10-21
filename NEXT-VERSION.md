@@ -266,6 +266,39 @@ here.
   - D5c: `bmSeedFromPp` rounds to whole dollars.
   - D7a: the `rlgIsUpl` line stays in `d66dd60`, named.
 
+#### U47 and U51, built on Brad's decisions of 21 Oct 2026 (`088372b`)
+- **U47: a saved state the board cannot read keeps its warning in front while the board opens.**
+  - Before: the first render said "⚠ Could not read 1 item on opening … do not save over this file". The opening's own line
+    was then set over it in the same opening:
+    - the shell's line, in a fresh browser;
+    - "No saved state in this copy", in a browser holding the board;
+    - a copy's quiet greeting, which waits in the tooltip.
+
+    So the one sentence that protects the file was gone before anyone read it.
+  - Now: while the board opens, every line set leads with the warning (`_bootLostHold`, in `setStat`, the way a locked view
+    leads with its 🔒), and the line shows rather than waiting. The hold is let go once the shared folder's first answer is
+    in.
+  - audit-import "v2.02 (U47)":
+    - 4 checks fail on `c357911`: two openings with the saved state given a NaN as text, and a readable file with an
+      unreadable list in storage.
+    - The rest are CONTROLs.
+    - 5 mutations `v202-u47-*`, each caught. `v200-u44-keep-folder-none` was retargeted (its line gained the release), and
+      audit-recon's U44 block still catches it.
+- **U51: a locked cycle is report and view only; it is reopened from the working plan, and every lock is stamped.**
+  - In a locked view, unlocking, locking and deleting any cycle are refused. Before, the view unlocked any cycle, the one on
+    screen included, and deleted another.
+  - A Connect's refusal names the plan's copy: "Loading O&M FY27 from the shared folder is off …" (Codex C4a).
+  - A CCaR QPE import stays open in a view, and the banner says so.
+  - A cycle locked again under its own name kept no record of being reopened. It now keeps:
+    - when it was first locked (`first`);
+    - every reopen and lock (`unlocks`);
+    - the replacement itself.
+  - The cycles panel prints that record under each lock (`cycStampLines`). It ends with "never reopened: the figures are
+    as locked", "the figures are as first locked" or "the figures are those locked last".
+  - audit-board "v2.02 (U51)" throws on `c357911` and passes here. 8 mutations `v202-u51-*`: 7 are caught by it, and
+    `-connect-unnamed` by audit-recon's U10 block. Its expectation and the three `v200-u10-folder-pull-*` finds were
+    retargeted to the new words.
+
 ## Open
 
 #### 63. Found while building v1.95, not built
