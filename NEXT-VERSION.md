@@ -68,6 +68,40 @@ against its own block. 2,027 targets, each matching once.
     Six mutations `v202-e5-*`, each caught by it. Money coverage, the money map, the trace matrix and the defect register
     hold.
   - *Not done:* U9 itself, the exact split of the planning share, stays in E7.
+- **E6. The three reviews the 19 Oct lean gate skipped**, run 21 Oct 2026 at `efa47e5`. Each was a read-only agent
+  working in its own worktree; each worktree was removed and the repository left untouched.
+  - **UI-C1 re-check: PASS, nothing to fix.**
+    - 3 of UI-C1's 5 routings are still on the board (lines 33614, 33631, 33831). The other 2 went with the flyout code
+      that 439716b deleted, so 6 of its original 10 values are left to check.
+    - `npm run check` fails with exactly those 3 routings reverted, and passes on the board.
+    - In Chromium every corrected control makes the same call with the same value, on the board and on its saved and
+      reopened file, and each one acts.
+    - The saved data matches once its clock values are masked; it was not run with a frozen clock.
+  - **Cross-track review of the exports (G22): one SHOULD-FIX, two notes.** No wrong or dropped dollar was found.
+    - The E5 money held on the hand fixture and on 25 random boards.
+    - E5 holds under a locked view, in a PMO copy and with the ◨ switch.
+    - The U44/U40 destination interactions hold.
+    - **SHOULD-FIX (possibly must-fix) -- office names become sheet names unchecked.** Two places do it: `exportExcel`'s
+      PMO tabs (`('PMO '+g).slice(0,31)`) and the Priority Drill's per-office tabs (`pm.slice(0,31)`). Nothing replaces
+      `/ \ [ ] : * ?` and nothing removes duplicates; the funds flow's `tabName` does both.
+      - Run: offices "Sustainment Logistics Office East" and "… West" gave two sheets named `PMO Sustainment Logistics
+        Offic`. ORBIT's own reader then returned only one of the two.
+      - Run: "R&D/Test [Ops]" kept its `/` and `[ ]`.
+      - Not run: Excel itself, which treats both as damage. Whether its repair drops a tab is unknown.
+    - **Note:** a carriage return in a funds-flow category name reaches the sheet name (`&#13;`). Whether a file can carry
+      one past the import check was not tested.
+    - **Note:** E5's sheet files each CLIN line under its CLIN's office, while the Spend Plan Source lists every line under
+      the requirement's own office (PRIMES). The sheet's note should say so.
+  - **U37 tests review: the tests are strong.**
+    - All 12 sampled `v200-u37-*` mutations are caught, and the block passes 118 of 118.
+    - Of 14 new wrong fixes, 10 are caught. The 4 that survive sit at the edge of the refusal's wording or scope, and none
+      lets a damaged file through:
+      - N2: U+2028/U+2029 refused, though XML allows them. No control covers it.
+      - N14: when a text holds both a literal `_xHHHH_` and a forbidden character, the alert quotes the text around the
+        literal.
+      - N11: the deck's quoted text trimmed (cosmetic).
+      - N6: the chart image checked on its drawn text only. Equivalent today.
+    - The checks proposed for N2 and N14 are in the review's notes.
 - **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
   - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
   - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
