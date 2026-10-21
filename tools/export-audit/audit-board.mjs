@@ -2853,7 +2853,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     // The only fractions a workbook may hold are in cells formatted to show them: the built-in
     // two-decimal styles (10, 11 -- the forecast's $M) or an export's own format with a point or a %.
     ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; 'ok'`);
-    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare'];
+    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare'];
     const sweep = JSON.parse(ev(`(function(){ var res={};
       ${JSON.stringify(EXPORTS)}.forEach(function(fn){
         var cap=null, ex=[], o=buildXlsx, r={sheets:0, cells:0, bad:[]};
@@ -2957,7 +2957,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'add', 'and holds nothing but the split it is born with',
     ev(`JSON.stringify(__held(${JSON.stringify(n4)}).filter(function(k){ return k!=='fsrc'; }))`), '[]');
   chk(name, 'plan', 'the year’s plan holds none of the deleted text', ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
   const inExports = JSON.parse(ev(`(function(){ var hits=[];
     ${JSON.stringify(EXPORTS)}.forEach(function(fn){ var cap=null, o=buildXlsx;
       buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
@@ -3021,7 +3021,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const name = 'restore brings back what remove took';
   try {
   const SVC = ['USAF', 'ANG', 'AFRC'];
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
   const setup = `S.alloc.A={m:'t', v:700}; S.mc.A=true; S.notes.A='kept note'; S.titles.A='ZZKEEP renamed';
     if(!S.costElem) S.costElem={}; S.costElem.A='ZZKEEP-CE';
     if(!S.clinAlloc) S.clinAlloc={}; S.clinAlloc.A={n1:[50,20,10]};
@@ -3651,15 +3651,16 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return JSON.stringify([].slice.call(dd.querySelectorAll('.mi, .gh, input')).filter(function(e){
         const g=e.closest('.gbody'), x=e.closest('.uiRs'); return !e.hidden && !(g && g.hidden) && !(x && x.hidden); }).length); })()`)));
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 18 (Find, Pre-flight and the sixteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['18', '5', '3', '9', '7', '4', '4', '1', '5']));
+  // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 17 (Find, Pre-flight and the fifteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['17', '5', '3', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
   const secs = k => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .uiRs h4, #dd_'+${J(k)}+' .uiDc h4'))
       .map(function(h){ return h.textContent; })); })()`));
-  chk(name, 'groups', 'Reports & exports is grouped by the job, its six groups laid out side by side', J([secs('reports'), heads('reports')]),
-    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'Execution & reprogramming', 'CCaR & accounting files', 'Companion tools'], []]));
+  chk(name, 'groups', 'Reports & exports is grouped by the job, its five groups laid out side by side', J([secs('reports'), heads('reports')]),
+    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'CCaR & accounting files', 'Companion tools'], []]));
   chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
     J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
   chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
@@ -3677,13 +3678,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, under Execution ▸, and the section says so',
     J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /Execution ▸/.test(ev(`document.querySelector('#dd_reports .uiRs[data-g="spend"] .uiRsV').textContent`))]),
     J([['togglePlans', 'crExport'], true]));
-  chk(name, 'contents', 'Briefing, Five years & PPBE, Execution & reprogramming, CCaR & accounting files, Companion tools',
+  chk(name, 'contents', 'Briefing, Five years & PPBE, CCaR & accounting files, Companion tools; no Execution & reprogramming section',
     J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
     J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['exportFydpPlan', 'exportCycCompare'],
-       ['exportReprog'], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
+       [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),
-    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleRp', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
+    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
@@ -3735,8 +3736,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         .filter(function(v,i,a){ return a.indexOf(v)===i; }), none: !!none && !none.hidden,
         lines: [].slice.call(dd.querySelectorAll('.uiRsV')).filter(function(v){ return !v.hidden && !v.closest('.uiRs').hidden; }).map(function(v){ return v.closest('.uiRs').getAttribute('data-g'); }) }); })()`));
   const fx = find('excel'), fc = find('cash'), fz = find('zzqq'), ff = find('cash needs');
-  chk(name, 'Find', 'typing "excel" lists the seven workbooks, from four groups at once',
-    J([fx.n, fx.groups, fx.none]), J([7, ['brief', 'fydp', 'exec', 'ccar'], false]));
+  // v2.02: the ATR/BTR log (Excel), and its Execution & reprogramming group, went with the tracker (seven, four groups before)
+  chk(name, 'Find', 'typing "excel" lists the six workbooks, from three groups at once',
+    J([fx.n, fx.groups, fx.none]), J([6, ['brief', 'fydp', 'ccar'], false]));
   chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([2, ['spend'], 0, true]));
   chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['spend'], false]));
   const after = JSON.parse(ev(`(function(){ uiRepClose(); syncBtns(); uiRepOpen();
@@ -4541,34 +4543,39 @@ await (async () => {
   const B = w4Template(['A', 'B', 'C', 'D'], ['R']), ev = B.ev;
   ev(`RPDB.entries=[{id:'r0',ts:1,ap:APPN,fy:2027,type:'BTR',svc:0,amtM:1},{id:'r2',ts:1,ap:APPN,fy:2027,type:'BTR',svc:2,amtM:2},
     {id:'r3',ts:1,ap:APPN,fy:2027,type:'BTR',svc:'3',amtM:4},{id:'rx',ts:1,ap:'OPN',fy:2027,type:'BTR',svc:0,amtM:3},
-    {id:'rn',ts:1,ap:APPN,fy:2027,type:'BTR',svc:1,svcName:'B',svcPos:1,svcBy:'pick',amtM:5}];
+    {id:'rn',ts:1,ap:APPN,fy:2027,type:'BTR',svc:1,svcName:'B',svcPos:1,svcBy:'pick',amtM:5},
+    {id:'rs',ts:1,ap:APPN,fy:2027,type:'BTR',svc:2,svcName:'A',svcPos:0,svcBy:'pick',amtM:6}];
     PMOSUBS=[{pmo:'PSM', svc:['A','B','C','D'], items:{}, base:{}, added:[], forFy:2027}];
     PMOSUBS[0].items[S.custom[0].id]={asks:[11,22,0,44]}; PMOSUBS[0].base[S.custom[0].id]={asks:[1,2,0,4]}; PMOSUBS[0].baseSeen=PMOSUBS[0].base;
     svcMove(0,1); 'ok'`);
-  chk(name, 'move', 'A and B swapped: this appropriation’s rows follow their service, stamped; a held submittal’s figures follow theirs',
+  // rs: an older version moved it to C by its place alone, leaving A's name and seal behind -- the seal no longer matches, so
+  // it is read by its place (C), which the swap does not move (v2.02: proved here since the W5 reader checks went)
+  chk(name, 'move', 'A and B swapped: this appropriation’s rows follow their service, stamped; a broken seal is read by place; a held submittal’s figures follow theirs',
     ev(`JSON.stringify([RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+(SVC[r.svc])+':'+(r.ts>1); }),
       PMOSUBS[0].items[S.custom[0].id].asks, PMOSUBS[0].base[S.custom[0].id].asks])`),
-    J([['r0:A:true', 'r2:C:false', 'r3:D:false', 'rn:B:true'], [22, 11, 0, 44], [2, 1, 0, 4]]));
-  // v1.97 integration: a row named by its service (W5) keeps its name, and its seal moves with its place
+    J([['r0:A:true', 'r2:C:false', 'r3:D:false', 'rn:B:true', 'rs:C:false'], [22, 11, 0, 44], [2, 1, 0, 4]]));
+  // v1.97 integration: a row named by its service (W5) keeps its name, and its seal moves with its place. (v2.02: the log
+  // is carried, not shown -- rpSvcOf went with the tracker -- so the row is read as stored: its name, the seal, its place.)
   chk(name, 'move · a named row', 'rn names B: after the swap it still reads B, sealed at B’s new place',
-    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([rpSvcOf(r).name, rpSvcOf(r).how, r.svcPos, r.svc]); })()`),
-    J(['B', 'pick', 0, 0]));
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([r.svcName, rpNamed(r), r.svcPos, r.svc]); })()`),
+    J(['B', true, 0, 0]));
   chk(name, 'other (control)', 'a row for another appropriation is not this list’s', ev(`JSON.stringify(RPDB.entries.filter(function(r){ return r.ap!==APPN; }).map(function(r){ return r.svc; }))`), J([0]));
   ev(`window.__al=[]; window.__cf=[]; svcDel(1)`);
-  chk(name, 'delete refused', 'A has a reprogramming row and a held submittal’s figures: removing it is refused, saying so, before anything is asked',
-    ev(`JSON.stringify([SVC, window.__cf.length, /1 reprogramming log entry/.test(window.__al[0]||''), /submittal held/.test(window.__al[0]||'')])`),
-    J([['B', 'A', 'C', 'D'], 0, true, true]));
+  // v2.02: the refusal for reprogramming rows went with the tracker; the held submittal's still stands, and says only that
+  chk(name, 'delete refused', 'A has a reprogramming row and a held submittal’s figures: removing it is refused for the submittal alone, before anything is asked',
+    ev(`JSON.stringify([SVC, window.__cf.length, /reprogramming/.test(window.__al[0]||''), /submittal held/.test(window.__al[0]||'')])`),
+    J([['B', 'A', 'C', 'D'], 0, false, true]));
   ev(`svcDel(2)`);
-  chk(name, 'delete', 'C (no submittal figure) has row r2: refused too', ev(`JSON.stringify(SVC)`), J(['B', 'A', 'C', 'D']));
-  ev(`RPDB.entries=RPDB.entries.filter(function(r){ return r.id!=='r2'; }); svcDel(2)`);
-  chk(name, 'delete', 'once nothing is on C it goes, and the rows past it move up with their service',
-    ev(`JSON.stringify([SVC, RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+SVC[r.svc]; }), PMOSUBS[0].items[S.custom[0].id].asks])`),
-    J([['B', 'A', 'D'], ['r0:A', 'r3:D', 'rn:B'], [22, 11, 44]]));
+  chk(name, 'delete', 'C (no submittal figure) has row r2, which carried only its place: C goes; r2 is kept, given C’s name sealed where it stood, and the rows past it move up with their service',
+    ev(`JSON.stringify([SVC, RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+(rpNamed(r)? r.svcName : SVC[r.svc]); }),
+      (function(){ const r=RPDB.entries.find(function(x){ return x.id==='r2'; }); return [r.svcName, r.svcBy, r.svc, r.svcPos, r.ts>1]; })(),
+      PMOSUBS[0].items[S.custom[0].id].asks])`),
+    J([['B', 'A', 'D'], ['r0:A', 'r2:C', 'r3:D', 'rn:B', 'rs:C'], ['C', 'pos', 2, 2, true], [22, 11, 44]]));
   // v1.97 integration: a rename is the same service, and the row named by it follows the new name
   ev(`svcSaveList(['Bz','A','D'], [0,1,2]); 'ok'`);
   chk(name, 'rename · a named row', 'B renamed Bz: the row named B now reads Bz, at the same place, still confirmed',
-    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([SVC, r.svcName, rpSvcOf(r).name, rpSvcOf(r).how, rpSvcOf(r).inList]); })()`),
-    J([['Bz', 'A', 'D'], 'Bz', 'Bz', 'pick', true]));
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([SVC, r.svcName, rpNamed(r), SVC[r.svcPos]]); })()`),
+    J([['Bz', 'A', 'D'], 'Bz', true, 'Bz']));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

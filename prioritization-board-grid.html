@@ -1762,13 +1762,6 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </div></div>
 </div>
 
-<div class="modal-bg" id="rpPanel" onclick="if(event.target===this)toggleRp()">
-  <div class="modal" style="width:1240px">
-    <h3>⚖ REPROGRAMMING ACTIONS — ATR / BTR across the active execution years
-      <button class="x" onclick="toggleRp()">✕ Close</button></h3>
-    <div id="rpBody"></div>
-  </div>
-</div>
 <div class="modal-bg" id="planPanel" onclick="if(event.target===this)togglePlans()">
   <div class="modal" style="width:1240px">
     <h3>📋 TWO SPEND PLANS — what discretionary alone buys, and what the whole top line buys
@@ -1950,14 +1943,14 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </dl>
 </section>
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
-<p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
+<p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data and cost estimates are shared across all four.</p>
 <p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid) and <b>Help</b>. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure. Everything else is on the <b>left menu</b>, each in one place: the views, <b>Reports &amp; exports</b> (every report and export), then, under Board, <b>Imports &amp; exports</b> (a whole board or one appropriation, in or out), <b>Data</b> (everything that brings data in), <b>Program offices</b> (PMO copies and their submittals), <b>Audit</b> (the change journal, the save history, the pen and your name), <b>History &amp; recovery</b> (earlier copies, and work kept aside) and <b>Setup</b> (the shape of the board, the colours and the density you see it in, Live view and diagnostics). <b>💾 Save</b> is pinned at its foot with whether your work is saved, and who holds the pen; its <b>▾</b> saves a copy, and Ctrl+S saves too. The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
 <p><b>A long menu opens folded.</b> Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. <b>Reports &amp; exports</b> lays its groups out side by side, and its <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports › Briefing › 📽 PowerPoint deck</i>.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state at the foot of the left menu says <i>↶ work kept aside</i>, and one click puts it back.</p>
 <p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="aud">Audit › ✍ Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
-<p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a reprogramming row, a cycle locked or unlocked, a destination, an imported cost estimate, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state at the foot of the left menu says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import or a check of the folder for cost estimates takes nothing unless it reads to the end; a reprogramming-log share that cannot write the folder keeps the merged log in this browser and says it was not shared.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
+<p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a cycle locked or unlocked, a destination, an imported cost estimate, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state at the foot of the left menu says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import or a check of the folder for cost estimates takes nothing unless it reads to the end.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
 <p><span class="mp" data-m="offices">Program offices › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
@@ -2005,12 +1998,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
 </section>
 <section data-part="team" data-id="t-svc" data-t="Services: moving, renaming or removing one">
-<p><span class="mp" data-m="setup">Setup › Who and where › 🏷 Services…</span> lists the services every figure is kept against. On a board whose data names its services the list is fixed, and the panel only shows it. On a board with no data of its own, <b>moving, renaming or removing a service takes every figure with it</b> — requirement values, allocations, splits, budget authority, awards, CLINs and WBS lines, in every year, and this appropriation’s reprogramming entries. Removing one first says how much it holds, by kind and by year, and asks.</p>
-<p>The services a PPBE cycle holds keep their names and places while the cycle is kept; a service can still be added at the end. A service with reprogramming entries or a held submittal’s figures on it cannot be removed until those are moved or cleared — the panel says which.</p>
-</section>
-<section data-part="team" data-id="t-rp" data-t="The reprogramming log">
-<p><span class="mp" data-m="exec">Execution › ⚖ Reprogramming Actions…</span> keeps the ATR and BTR log. It is one log for all four appropriations: each entry carries its own appropriation and fiscal year, so any of them can be recorded from any board. An entry’s <b>service</b> is one of <b>its own appropriation’s</b> services, picked by name, whichever appropriation is on screen. An entry recorded by an older version kept only the service’s position in a list: it is read from its own appropriation’s list and marked <b>⚠ (by position)</b> until you pick its service. One that cannot be read at all is <b>⚠ Unresolved</b>, and is still counted.</p>
-<p>Amounts are <b>$M in whole dollars</b>: 1.5 is $1,500,000, and the finest is 0.000001, one dollar. An amount finer than a dollar is not recorded, and the message gives the dollar figure it would have been; text that is not an amount is not recorded either, and the entry keeps what it had. The whole entry is read, however long it is; one longer than 200 characters is not an amount and says so. An entry saved earlier with a fraction of a dollar is kept as it is and marked ⚠ until you correct it. <span class="mp" data-m="rep">Reports &amp; exports › Execution &amp; reprogramming › ⬇ ATR/BTR Log (Excel)</span> nets each type and each service exactly, deducts negative, with an <b>Unresolved</b> line when an entry’s service cannot be read; its <b>Check</b> column names every entry still to check, and why.</p>
+<p><span class="mp" data-m="setup">Setup › Who and where › 🏷 Services…</span> lists the services every figure is kept against. On a board whose data names its services the list is fixed, and the panel only shows it. On a board with no data of its own, <b>moving, renaming or removing a service takes every figure with it</b> — requirement values, allocations, splits, budget authority, awards, CLINs and WBS lines, in every year. Removing one first says how much it holds, by kind and by year, and asks.</p>
+<p>The services a PPBE cycle holds keep their names and places while the cycle is kept; a service can still be added at the end. A service with a held submittal’s figures on it cannot be removed until the submittal is applied or cleared — the panel says which.</p>
 </section>
 <section data-part="team" data-id="t-ids" data-t="The IDS batch for CCaR">
 <p><span class="mp" data-m="rep">Reports &amp; exports › CCaR &amp; accounting files › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
@@ -2254,7 +2243,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 
 <div class="modal-bg" id="bmPanel" onclick="if(event.target===this)toggleBm()">
   <div class="modal" style="width:1280px;max-width:97vw">
-    <h3>💰 BUDGET MANAGEMENT — FUNDING SOURCES & ATR/BTR REPROGRAMMING <button class="x" onclick="toggleBm()">✕ Close</button></h3>
+    <h3>💰 BUDGET MANAGEMENT — FUNDING SOURCES <button class="x" onclick="toggleBm()">✕ Close</button></h3>
     <div id="bmBody"></div>
   </div>
 </div>
@@ -2367,7 +2356,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 //   §31  PPBE CYCLES, FIVE-YEAR SPEND PLAN, BUDGET POSITIONS, SPRUILLS
 //   §32  SNAPSHOTS, BUDGET MANAGEMENT, CR AND FORECAST PANELS
 //   §33  THE LANE ENGINE
-//   §34  BUDGET AUTHORITY, REPROGRAMMING, FIT CHART, TRIM
+//   §34  BUDGET AUTHORITY, FIT CHART, TRIM
 //   §35  ROW-LEVEL EDITORS
 //   §36  EXPORT WRITERS: XLSX AND POWERPOINT
 //   §37  TEAM SUMMARY, BUY LINES, COMMAND BAR, MAIN RENDER, MENUS
@@ -2745,7 +2734,12 @@ var _destLeft=[];     // v2.00 (U40): keys read apart from where an earlier read
 // report it owes is kept across the reload and said on the first render after it.
 var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r) localStorage.removeItem('prio27impRep'); return r; }catch(e){ return null; } })(), _impSaid=false;
 function persistDest(){ DESTDB.ts=Date.now(); return lsSet(DEST_KEY, JSON.stringify(DESTDB), 'The destination list'); }
-// ---- Reprogramming actions: a standalone tracker, independent of every other store --------
+// ---- THE REPROGRAMMING LOG, CARRIED, NOT SHOWN (v2.02) -----------------------------------------------------------
+// The ATR/BTR tracker was removed (Brad, 21 Oct 2026: ATRs and BTRs are active-year execution, CCaR's, not ORBIT's). A
+// board saved with a log still carries it, byte for byte, through Save, a PMO copy, the work kept aside, a full import,
+// one appropriation exported and save -> reopen: deleting user data to tidy up is not a trade this project makes. Nothing
+// draws it, edits it, exports it or shares it through the folder; the service-list upkeep keeps a stored row's service
+// meaning right (svcRenameKeys, svcSaveList), so the log means the same thing when the tracker comes back.
 let RPDB = (function(){
   let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27reprog')||'null'); }
   catch(e){ _bootLost.push('the reprogramming log held in browser storage'); }
@@ -3555,11 +3549,8 @@ function svcListBlock(list, from){
   const gone=old.map(function(s,j){ return j; }).filter(function(j){ return from.indexOf(j)<0; });
   if(gone.length){
     const nm=gone.map(function(j){ return old[j]; }).join(', ');
-    // v1.97 integration: a row's service is what rpSvcOf() resolves -- its sealed name (W5), else its place in this list
-    const L=rpListsOf(), here=rpSlug(APPN), goneN=gone.map(function(j){ return old[j]; });
-    const rp=rpAll().filter(function(r){ return r && rpSlug(r.ap)===here && goneN.indexOf(rpSvcOf(r, L).name)>=0; }).length;
-    if(rp) why.push(rp+' reprogramming log entr'+(rp===1?'y':'ies')+' for '+APPN+(rp===1?' is':' are')+' on '+nm+'. Change '
-      +(rp===1?'its':'their')+' service in the reprogramming log, or delete '+(rp===1?'it':'them')+', first.');
+    // v2.02: the refusal for reprogramming rows on a removed service went with the tracker -- nothing can show or edit them,
+    // so it could never be satisfied. The rows keep their service's name (svcName) and nothing is deleted.
     const subs=PMOSUBS.filter(function(pk){ let hit=false;
       pkgSvcEach({items:pk.items, base:pk.base, added:pk.added}, function(v){ gone.forEach(function(j){ if(+v[j]) hit=true; }); });
       return hit; });
@@ -3642,11 +3633,16 @@ function svcSaveList(list, from){
       if(pk.baseSeen && pk.baseSeen!==pk.base) pkgSvcEach({base:pk.baseSeen}, function(v, l, kind, set){ set(pick(v)); });
     });
     // this appropriation's reprogramming rows: a row named by its service (W5's seal: svcName while svcPos is its place)
-    // keeps the name and its seal moves with the place; a row that carries only a place moves its place (v1.97 integration)
+    // keeps the name and its seal moves with the place; a row that carries only a place moves its place (v1.97 integration).
+    // v2.02: removing a service is no longer refused for the rows on it (nothing can show or edit them since the tracker
+    // went). A row named by it keeps its name; a row that carried only that PLACE is given the service's name, sealed where
+    // it stood, so the place's next service is never read as its own. Nothing is deleted.
     let rpN=0; const here=rpSlug(APPN);
     rpAll().forEach(function(r){ if(!r || rpSlug(r.ap)!==here) return;
       const named=rpNamed(r), j=named? r.svcPos : svcRpIdx(r); if(!(j>=0)) return;
-      const k=from.indexOf(j); if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });
+      const k=from.indexOf(j);
+      if(k<0 && !named){ r.svcName=old[j]; r.svc=j; r.svcPos=j; r.svcBy='pos'; rpTouch(r); rpN++; return; }
+      if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });
     if(rpN){ RPDB.ts=Date.now(); persistRp(); }
   }
   // v1.98 (item 83): a CLIN's RCN/EEIC for a service that is gone goes with the service. Done before the renames, so a
@@ -13720,7 +13716,6 @@ async function driveAutoConnect(){
   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
   try{ await driveAcePull(true); }catch(e){}
-  try{ await driveRpPull(true); }catch(e){}
   _driveLive=true;
   if(liveCfg().on) liveStart();
   driveBar(); render();
@@ -13749,7 +13744,6 @@ async function driveConnectNow(){
   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
   try{ await driveAcePull(true); }catch(e){}
-  try{ await driveRpPull(true); }catch(e){}
   _driveLive=true;
   if(liveCfg().on) liveStart();
   driveBar(); render();
@@ -22908,121 +22902,13 @@ function toggleBm(){
   document.getElementById('bmPanel').className='modal-bg'+(bmOpen?' open':'');
   render();
 }
-function rpBody(){
-  const bg=document.getElementById('rpPanel'), el=document.getElementById('rpBody');
-  if(!bg||!el) return;
-  bg.className='modal-bg'+(rpOpen?' open':'');
-  if(!rpOpen){ el.innerHTML=''; return; }
-  rpMigrate();
-  const YS=rpYears(), APS=rpAppns();
-  const chip=(on,lbl,fn)=>'<button class="btn '+(on?'on':'')+'" style="font-size:10px;padding:4px 11px" onclick="'+fn+'">'+lbl+'</button> ';
-  let h='<div style="margin-bottom:8px">'
-    +'<span class="tlbl">Fiscal year</span> '
-    +chip(rpFy==='ALL','All',"rpSetFy('ALL')")
-    +YS.map(y=>chip(rpFy===y,'FY'+(y%100),'rpSetFy('+y+')')).join('')
-    +'<span class="tsep" style="display:inline-block;vertical-align:middle"></span> '
-    +'<span class="tlbl">Appropriation</span> '
-    +chip(rpAp==='ALL','All',"rpSetAp('ALL')")
-    +APS.map(a=>chip(rpAp===a,esc(a),'rpSetAp('+jsa(a)+')')).join('')
-    +'<span class="tsep" style="display:inline-block;vertical-align:middle"></span> '
-    +chip(rpView==='log','\u2261 Log',"rpSetView('log')")
-    +chip(rpView==='summary','\u03a3 Summary',"rpSetView('summary')")
-    +'</div>';
-  if(rpView==='summary'){ el.innerHTML=h+rpSummaryHtml(YS, APS); return; }
-
-  const list=rpFiltered();
-  const sel=(id,f,cur,opts)=>'<select onchange="rpSetField('+jsa(id)+','+jsa(f)+',this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:9.5px">'
-    +opts.map(o=>'<option value="'+esc(o[0])+'" '+((''+(cur==null?'':cur))===(''+o[0])?'selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>';
-  const ti=(id,f,v,w)=>'<input style="width:'+w+'px;font-size:9.5px" value="'+esc(v||'')+'" onchange="rpSetField('+jsa(id)+','+jsa(f)+',this.value)">';
-  const APPROVALS=[['Pending','Pending'],['Approved','Approved'],['Denied','Denied'],['N/A','N/A']];
-  const STATUS=[['Pending','Pending'],['Submitted','Submitted'],['Approved','Approved'],['Executed','Executed'],['Denied','Denied'],['Withdrawn','Withdrawn']];
-  h+='<div style="overflow-x:auto"><table class="fctab"><tr><th>Appn</th><th>FY</th><th>Type</th><th>Service</th><th>APPN code</th>'
-    +'<th>PEC</th><th>BPAC</th><th style="text-align:left">Requirement Short Title</th><th>$M</th><th>Add/Deduct</th><th>Pool</th>'
-    +'<th>Status</th><th>HAC</th><th>SAC</th><th>HASC</th><th>SASC</th><th style="text-align:left">Remarks</th><th></th></tr>';
-  if(!list.length) h+='<tr><td colspan="18" style="color:var(--dim);text-align:left;padding:6px">No reprogramming actions recorded for this filter yet.</td></tr>';
-  // v1.97 (item 81): each row's service from its own appropriation's list, and its amount read exactly; a row to check
-  // carries a mark that says why
-  const Lof=rpListsOf();
-  let nChk=0;
-  list.forEach(r=>{
-    const sv=rpSvcOf(r, Lof), am=rpAmtOf(r), amChk=am.bad || !am.whole;
-    if(rpCheckOf(r, sv, am)) nChk++;
-    const amTip=am.bad? rpCheckOf(r, {how:'pick', inList:true}, am)
-      : (amChk? 'Not a whole number of dollars: '+rpDolShow(am.y)+'. The log takes whole dollars — correct it.' : rpDolShow(am.y));
-    h+='<tr><td>'+sel(r.id,'ap',r.ap,APS.map(a=>[a,a]))+'</td>'
-      +'<td>'+sel(r.id,'fy',r.fy,YS.map(y=>[''+y,'FY'+(y%100)]))+'</td>'
-      +'<td>'+sel(r.id,'type',r.type,[['BTR','BTR'],['ATR','ATR']])+'</td>'
-      +'<td>'+rpSvcSel(r, sv)+'</td>'
-      +'<td>'+ti(r.id,'appn',r.appn,52)+'</td><td>'+ti(r.id,'pec',r.pec,68)+'</td><td>'+ti(r.id,'bpac',r.bpac,60)+'</td>'
-      +'<td style="text-align:left">'+ti(r.id,'title',r.title,180)+'</td>'
-      +'<td style="white-space:nowrap">'+(amChk? '<span data-rp="amtChk" title="'+esc(amTip)+'" style="color:var(--red);font-weight:800">⚠</span> ' : '')
-      +'<input data-rp="amt" style="width:70px;text-align:right;font-weight:700'+(amChk? ';border-color:var(--red)' : '')+'" title="'+esc(amTip)+'" value="'
-      +esc(am.bad? String(typeof am.raw==='string'? am.raw : JSON.stringify(am.raw)) : rpMText(am.x))+'" onchange="rpSetField('+jsa(r.id)+',\'amtM\',this.value)"></td>'
-      +'<td>'+sel(r.id,'dir',r.dir,[['deduct','Deduct'],['add','Add']])+'</td>'
-      +'<td>'+sel(r.id,'pool',r.pool,[['disc','Disc'],['mand','Mand']])+'</td>'
-      +'<td>'+sel(r.id,'status',r.status||'Pending',STATUS)+'</td>'
-      +'<td>'+sel(r.id,'hac',r.hac,APPROVALS)+'</td><td>'+sel(r.id,'sac',r.sac,APPROVALS)+'</td>'
-      +'<td>'+sel(r.id,'hasc',r.hasc,APPROVALS)+'</td><td>'+sel(r.id,'sasc',r.sasc,APPROVALS)+'</td>'
-      +'<td style="text-align:left">'+ti(r.id,'remarks',r.remarks,220)+'</td>'
-      +'<td><button class="qb" style="color:var(--red)" onclick="rpDelEntry('+jsa(r.id)+')">\u2715</button></td></tr>';
-  });
-  h+='</table></div>';
-  h+='<div style="margin-top:8px"><button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="rpAddEntry()">\uff0b Add entry</button> '
-    +'<button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="exportReprog()">\ud83d\udcca Export ATR/BTR (Excel)</button>'
-    +' <span class="hint">'+list.length+' of '+rpAll().length+' entries shown.</span>'
-    +(nChk? ' <span class="hint" data-rp="nChk" style="color:var(--amber);font-weight:700">⚠ '+nChk+' to check: hover the ⚠ for why.</span>' : '')+'</div>';
-  h+='<div class="hint" style="margin-top:8px">Amounts are $M in <b>whole dollars</b>: 1.5 is $1,500,000, and the finest is 0.000001 ($1). '
-    +'Each entry’s service is one of <b>its own appropriation’s</b> services; an entry an older version recorded by position is marked until its service is picked.</div>';
-  h+='<div class="hint" style="margin-top:8px">This is a <b>tracker only</b>. Amounts are $M and nothing here '
-    +'changes budget authority, funding lanes, allocations or execution anywhere in ORBIT \u2014 CCaR already accounts '
-    +'for the money. Appropriation and fiscal year are properties of the entry, so any combination can be recorded '
-    +'from any board.</div>';
-  el.innerHTML=h;
-}
-function rpSummaryHtml(YS, APS){
-  // v1.97 (item 81): every net is exact (rpNetM) and shown to the dollar; only a net of exactly nothing is a dash. It showed
-  // one decimal of $M, and anything under $50,000 either way as a dash.
-  const sh=v=>(v>=0?'+':'')+rpMText(rpDigits(v));
-  const num=v=>v===0? '<td class="z">\u2014</td>'
-    : '<td><b style="color:'+(v<0?'var(--red)':'var(--green)')+'">'+sh(v)+'</b></td>';
-  const net=es=>rpNetM(es);
-  let h='<table class="sp"><tr><th>Appropriation</th>'
-    +YS.map(y=>'<th>FY'+(y%100)+' ATR</th><th>FY'+(y%100)+' BTR</th>').join('')+'<th>Total</th></tr>';
-  const gt={}, gAll=[];
-  APS.forEach(ap=>{
-    let cells=''; const inRow=[];
-    YS.forEach(y=>['ATR','BTR'].forEach(t=>{
-      const es=rpAll().filter(r=>r.ap===ap && r.fy===y && r.type===t);
-      const amt=net(es);
-      inRow.push.apply(inRow, es); (gt[y+t]=gt[y+t]||[]).push.apply(gt[y+t], es); gAll.push.apply(gAll, es);
-      cells+= es.length
-        ? '<td title="'+es.length+' entr'+(es.length===1?'y':'ies')+'"><b style="color:'+(amt<0?'var(--red)':'var(--green)')+'">'
-          +sh(amt)+'</b> <span style="color:var(--dim)">('+es.length+')</span></td>'
-        : '<td class="z">\u2014</td>';
-    }));
-    h+='<tr><td class="sv">'+esc(ap)+'</td>'+cells+num(net(inRow))+'</tr>';
-  });
-  h+='<tr class="tot"><td>ALL APPROPRIATIONS</td>'
-    +YS.map(y=>['ATR','BTR'].map(t=>num(net(gt[y+t]||[]))).join('')).join('')
-    +num(net(gAll))+'</tr></table>';
-  // status breakdown — the thing a tracker is actually for
-  const ST=['Pending','Submitted','Approved','Executed','Denied','Withdrawn'];
-  const counts={}; rpAll().forEach(r=>{ const k=r.status||'Pending'; counts[k]=(counts[k]||0)+1; });
-  h+='<div style="margin-top:10px"><span class="tlbl">Status</span> '
-    +ST.map(k=>'<span class="chip" style="border-color:var(--line2)">'+k+'<span class="n">'+(counts[k]||0)+'</span></span>').join(' ')
-    +'</div>';
-  h+='<div class="hint" style="margin-top:8px">Net $M by appropriation and fiscal year \u2014 Deduct counts negative, '
-    +'Add positive; the bracketed figure is the number of entries. Tracking only: none of this touches any other '
-    +'value in ORBIT.</div>';
-  return h;
-}
 function bmBody(){
   const el=document.getElementById('bmBody');
   if(!bmOpen){ if(el) el.innerHTML=''; return; }
   const inp=(v,oc,w)=>'<input style="width:'+(w||96)+'px" value="'+(v?Math.round(v).toLocaleString():'')+'" placeholder="0" onfocus="this.select()" onchange="'+oc+'">';
   // The seed sits ABOVE the rows it writes into, so what it changes is the next thing read.
   let h=bmPpRow();
-  h+='<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">FUNDING SOURCES — '+FYL()+' (per service; effective budget = base + sources ± applied ATR/BTR)</div>';
+  h+='<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">FUNDING SOURCES — '+FYL()+' (per service; effective budget = base + sources)</div>';
   h+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">Source</th><th>Pool</th>'+SVC.map(s=>'<th>'+esc(s)+'</th>').join('')+'<th style="border-left:1px solid var(--gold)">Total</th><th></th></tr>';
   h+='<tr><td style="text-align:left;font-weight:800;color:var(--green)">Discretionary (base)</td><td style="color:var(--dim)">disc</td>'
     +SVC.map((s,i)=>'<td>'+inp(S.bm.disc[i],"bmSetBase('disc',"+i+",this.value)")+'</td>').join('')
@@ -23041,71 +22927,7 @@ function bmBody(){
   h+='<tr class="tot"><td style="text-align:left">EFFECTIVE — Mandatory</td><td></td>'+SVC.map((s,i)=>'<td>'+fM(S.mandSvc[i])+'</td>').join('')+'<td style="border-left:1px solid var(--gold)">'+fM(mandTot())+'</td><td></td></tr>';
   h+='</table></div>';
   h+='<div style="margin:4px 0 10px"><button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="bmAddSrc()">＋ Add funding source</button> <span style="font-size:9px;color:var(--dim)">e.g. a Congressional add or supplemental — routed into the Disc or Mand lanes</span></div>';
-  h+='<div class="hint" style="margin-top:10px">Reprogramming actions (ATR / BTR) now live in ⚖ <b>Reprogramming Actions</b> under Reports &amp; exports, where they can be logged against any active execution year and appropriation.</div>';
   el.innerHTML=h;
-}
-function exportReprog(){
-  const H=2,B=1,N2=10,NB2=11,SEC=6,TI=7;
-  // v1.97 (item 81): each row's service is read from ITS OWN appropriation's list (rpSvcOf), never SVC -- the board on
-  // screen -- and every net is exact (rpNetM): the detail's subtotals and the summary come from one rule and agree to the
-  // last digit. A row whose service cannot be read is printed as Unresolved and has its own summary line, never dropped.
-  // The Check column names every row to check: a service read by position, an unresolved one, an amount that is not
-  // whole dollars or not a figure.
-  const hdr=['Appropriation','FY','Type','Service','APPN code','PEC','BPAC','Requirement Short Title','Total ($M)','Add/Deduct','Pool','Status','HAC','SAC','HASC','SASC','Remarks','Check'].map(v=>({v,s:H}));
-  const Lof=rpListsOf(), SVM=new Map(), AMM=new Map();
-  const svOf=r=>{ if(!SVM.has(r)) SVM.set(r, rpSvcOf(r, Lof)); return SVM.get(r); };
-  const amOf=r=>{ if(!AMM.has(r)) AMM.set(r, rpAmtOf(r)); return AMM.get(r); };
-  const UNRES='Unresolved';
-  const svLbl=r=>{ const n=svOf(r).name; return n===null? UNRES : n; };
-  const row=r=>{ const a=amOf(r);
-    return [r.ap||'', r.fy? 'FY'+(r.fy%100):'', r.type, svLbl(r), r.appn||'', r.pec||'', r.bpac||'', r.title||'',
-    a.bad? (typeof a.raw==='string'? a.raw : JSON.stringify(a.raw)) : {v:a.m, s:N2}, r.dir==='deduct'?'Deduct':'Add', r.pool==='mand'?'Mand':'Disc',
-    r.status||'Pending', r.hac||'', r.sac||'', r.hasc||'', r.sasc||'', r.remarks||'', rpCheckOf(r, svOf(r), a)]; };
-  const sheet={name:'ATR-BTR Log', cols:[16,7,6,10,10,10,9,42,10,11,7,11,9,9,9,9,50,60],
-    rows:[[{v:expTitle()+' — ATR / BTR Reprogramming Log ($M)',s:TI}],[]]};
-  const all=rpFiltered(), byT={};
-  ['BTR','ATR'].forEach(t=>{
-    const es=byT[t]=all.filter(r=>r.type===t);
-    sheet.rows.push([{v:t+'s  ('+es.length+')',s:SEC}]);
-    sheet.rows.push(hdr);
-    es.forEach(r=>sheet.rows.push(row(r)));
-    sheet.rows.push([{v:'Subtotal — '+t+' (net $M)',s:B},'','','','','','',{v:rpNetM(es, amOf),s:NB2},'','','','','','','','','']);
-    sheet.rows.push([]);
-  });
-  // A LINE FOR EVERY SERVICE OF THE APPROPRIATIONS THIS LOG COVERS, each from its own list (the board on screen first),
-  // then any service a row names that no list holds, then Unresolved when a row's service cannot be read.
-  const names=[], seen=new Set(), take=n=>{ if(n!==null && !seen.has(n)){ seen.add(n); names.push(n); } };
-  const aps=(rpAp==='ALL')? [mySlug()].concat(APPN_SLUGS.filter(k=>k!==mySlug())) : [rpSlug(rpAp)];
-  aps.forEach(k=>{ if(k) (Lof(k)||[]).forEach(take); });
-  all.forEach(r=>take(svOf(r).name));
-  const lines=names.map(n=>[n, r=>svOf(r).name===n]);
-  if(all.some(r=>svOf(r).name===null)) lines.push([UNRES, r=>svOf(r).name===null]);
-  sheet.rows.push([{v:'SUMMARY — NET BY SERVICE ($M; deducts negative)',s:SEC}]);
-  sheet.rows.push([{v:'Service',s:H},{v:'BTR net',s:H},{v:'ATR net',s:H},{v:'Total net',s:H}]);
-  lines.forEach(L=>{
-    sheet.rows.push([L[0],{v:rpNetM(byT.BTR.filter(L[1]), amOf),s:N2},{v:rpNetM(byT.ATR.filter(L[1]), amOf),s:N2},
-      {v:rpNetM(byT.BTR.concat(byT.ATR).filter(L[1]), amOf),s:NB2}]);
-  });
-  sheet.rows.push([{v:'TOTAL',s:B},{v:rpNetM(byT.BTR, amOf),s:NB2},{v:rpNetM(byT.ATR, amOf),s:NB2},{v:rpNetM(byT.BTR.concat(byT.ATR), amOf),s:NB2}]);
-  const toChk=byT.BTR.concat(byT.ATR).filter(r=>rpCheckOf(r, svOf(r), amOf(r)));
-  if(toChk.length){
-    const c=f=>toChk.filter(f).length, part=[];
-    const nPos=c(r=>svOf(r).how==='pos'), nUn=c(r=>svOf(r).how==='none'), nOut=c(r=>svOf(r).how!=='none' && !svOf(r).inList);
-    const nFr=c(r=>!amOf(r).bad && !amOf(r).whole), nBad=c(r=>amOf(r).bad);
-    if(nPos) part.push(nPos+' with a service read by position, not confirmed');
-    if(nUn) part.push(nUn+' with a service that cannot be read (under Unresolved)');
-    if(nOut) part.push(nOut+' naming a service its appropriation’s list does not hold');
-    if(nFr) part.push(nFr+' not a whole number of dollars');
-    if(nBad) part.push(nBad+' with an amount that is not a figure');
-    sheet.rows.push([]);
-    sheet.rows.push([{v:'⚠ '+toChk.length+' entr'+(toChk.length===1?'y':'ies')+' to check (the Check column says why): '+part.join('; ')+'.',s:B}]);
-  }
-  const bytes=buildXlsx([sheet]);
-  if(!bytes) return;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName(FYL()+' ATR-BTR Log '+new Date().toISOString().slice(0,10)+'.xlsx');
-  a.click();
 }
 function toggleCr(){
   crOpen=!crOpen;
@@ -23803,7 +23625,7 @@ function absorbLine(AB){
    service is left alone and named. */
 
 // ==============================================================================================================
-// §34  BUDGET AUTHORITY, REPROGRAMMING, FIT CHART, TRIM
+// §34  BUDGET AUTHORITY, FIT CHART, TRIM
 // ==============================================================================================================
 function bmPpLbl(key){
   const p=String(key||'').split('|');
@@ -23954,7 +23776,7 @@ function applyBudget(){
   if(!S.bm) return;
   const d=S.bm.disc.slice(), m=S.bm.mand.slice();
   (S.bm.adds||[]).forEach(a=>{ const t=(a.pool==='mand')? m:d; (a.vec||[]).forEach((v,i)=>{ if(i<t.length) t[i]+=(v||0); }); });
-  // Reprogramming actions are tracked, not applied — CCaR already accounts for the money.
+  // Reprogramming actions (ATR / BTR) are active-year execution and are never applied here — CCaR accounts for the money.
   S.discSvc=d.map(v=>Math.max(0,D$(v)));
   S.mandSvc=m.map(v=>Math.max(0,D$(v)));
 }
@@ -23997,252 +23819,19 @@ function bmSrcDel(k){
   S.bm.adds.splice(k,1);
   applyBudget(); save(); render();
 }
-// ---- Reprogramming tracker ---------------------------------------------------------------
-// Entries stand alone: each carries its own appropriation and fiscal year, and nothing here
-// feeds budgets, lanes or execution. Filter is a plain FY x appropriation combination.
-function rpYears(){ const a=activeFy(); return [a-2,a-1,a]; }
-function rpAppns(){
-  return (typeof APPNS!=='undefined')? Object.keys(APPNS)
-       : [(typeof APPN!=='undefined')? APPN : 'O&M'];
-}
-let rpOpen=false, rpFy='ALL', rpAp='ALL', rpView='log';
-function toggleRp(){ rpOpen=!rpOpen; render(); }
-function rpSetFy(y){ rpFy=(y==='ALL')? 'ALL' : +y; render(); }
-function rpSetAp(a){ rpAp=a; render(); }
-function rpSetView(v){ rpView=v; render(); }
+// ---- THE REPROGRAMMING LOG'S UPKEEP (v2.02) -------------------------------------------------------------------------
+// The tracker is gone (see RPDB); these are what is left of it, and only the carrier and the service-list upkeep read them.
+// The entries of the log the board carries.
 function rpAll(){ return Array.isArray(RPDB.entries)? RPDB.entries : (RPDB.entries=[]); }
-function rpFiltered(){
-  return rpAll().filter(r=>(rpFy==='ALL'||r.fy===rpFy) && (rpAp==='ALL'||r.ap===rpAp));
-}
-// ---- v1.97 (item 81, review R10): EACH ROW'S SERVICE IS READ FROM ITS OWN APPROPRIATION --------------------------------
-// The log is shared by all four appropriations, and a row kept its service only as a POSITION (svc), which the picker,
-// the tracker and the export read against SVC -- the board on screen. A $1M Full Fund row at position 1, exported from an
-// O&M board with one service, printed no service, and the summary by service totalled $0 under a detail of $1M.
-// A row now NAMES its service (svcName), read against its own appropriation's list (rpSvcsOf). Beside the name: svcPos,
-// the position written with it -- an older version that changes svc alone leaves the two apart, and the row then reads
-// from the position that version set, so a peer's change made in an older version is never silently ignored -- and
-// svcBy, how the name was had: 'pick' (chosen in the picker) or 'pos' (read from a position, not yet confirmed).
-// A row with no name -- every row an older version wrote -- is read from its position in ITS OWN appropriation's list,
-// never the board on screen's, and is marked as read by position until someone picks its service; nothing is rewritten
-// to do it. A position its list does not have is UNRESOLVED: shown as such and still counted, so detail and summary agree.
+// An entry's appropriation as a slug: a slug names the same appropriation as its label. null when it names none.
 function rpSlug(ap){
-  if(APPN_SLUGS.indexOf(ap)>=0) return ap;           // a slug names the same appropriation as its label
+  if(APPN_SLUGS.indexOf(ap)>=0) return ap;
   for(let k=0;k<APPN_SLUGS.length;k++) if(APPN_LBL[APPN_SLUGS[k]]===ap) return APPN_SLUGS[k];
   return null;
 }
-function rpApName(ap){ const k=rpSlug(ap); return k? appnName(k) : String(ap||'its appropriation'); }
-// THE SERVICE LIST AN APPROPRIATION'S OWN BOARD OPENS WITH, found the way its opening finds DATA: the file's own payload
-// for it, else its stored board's data pack -- this browser's copy, then the file's (PUBS); a board with no data pack keeps
-// its own list (MS.svc), read from the copy it opens on, the newer of the two. The board on screen is SVC. null when this
-// file holds no list for that appropriation.
-function rpSvcsOf(ap){
-  const k=rpSlug(ap); if(!k) return null;
-  if(k===mySlug()) return SVC.slice();
-  const names=a=>Array.isArray(a) && a.length>0 && a.every(function(s){ return typeof s==='string'; });
-  const emb=(typeof APPNS!=='undefined' && APPNS)? APPNS[APPN_LBL[k]] : null;
-  let ls=null; try{ ls=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ ls=null; }
-  if(!ls || typeof ls!=='object') ls=null;
-  const pub=(typeof PUBS!=='undefined' && PUBS && PUBS[k] && typeof PUBS[k]==='object')? PUBS[k] : null;
-  const pk=_hasData(emb)? emb : (ls && _hasData(ls.dataPack))? ls.dataPack : (pub && _hasData(pub.dataPack))? pub.dataPack : null;
-  if(pk && names(pk.services)) return pk.services.slice();
-  const st=(ls && pub)? (((+pub.ts||0)>(+ls.ts||0))? pub : ls) : (ls||pub);
-  return (st && names(st.svc))? st.svc.slice() : null;
-}
-// Each appropriation's list read once per table or export: a stored board is large, and every row asks.
-function rpListsOf(){ const M={}; return function(ap){ const k=rpSlug(ap); if(!k) return null; if(!(k in M)) M[k]=rpSvcsOf(k); return M[k]; }; }
+// An entry that NAMES its service (v1.97, item 81): svcName, sealed by svcPos while svcPos is still its place (svc). An
+// older version that changed svc alone leaves the two apart, and the entry is then read by its place.
 function rpNamed(r){ return !!r && typeof r.svcName==='string' && r.svcName!=='' && Number.isInteger(r.svcPos) && r.svcPos===Number(r.svc); }
-// A row's service: {name (null when unresolved), how: 'pick' | 'pos' | 'none', list: its appropriation's, inList, at}
-function rpSvcOf(r, L){
-  L=L||rpListsOf();
-  const list=L(r? r.ap : null);
-  if(rpNamed(r)) return {name:r.svcName, how:(r.svcBy==='pos'? 'pos' : 'pick'), list:list, inList:!!list && list.indexOf(r.svcName)>=0, at:r.svcPos};
-  const raw=r? r.svc : undefined;
-  const at=(typeof raw==='number' || (typeof raw==='string' && /^\s*\d+\s*$/.test(raw)))? Number(raw) : NaN;
-  if(list && Number.isInteger(at) && at>=0 && at<list.length) return {name:list[at], how:'pos', list:list, inList:true, at:at};
-  return {name:null, how:'none', list:list, inList:false, at:at};
-}
-// ---- WHOLE DOLLARS IN THE $M FIELD (v1.97, item 81; Brad, 5 Oct 2026: "no fractional values") ----------------------
-// Entries stay in $M and every one must come to a whole number of dollars: 1.5 is $1,500,000, and the finest the log holds
-// is 0.000001, one dollar. Read EXACTLY, from the digits as written -- never by multiplying a float -- so a fraction is
-// never rounded away or into being. A typed entry finer than a dollar is refused with the dollar figure it would have been
-// and the amount it had is kept. One already saved is kept as it is, marked in the tracker, named by the export until
-// someone corrects it, and counted at its exact value, so the detail and the summary still agree to the last digit.
-// The digits of a figure as written, sign apart: 1.5 is {i:'1', f:'5'}; 1e-7 is 0.0000001.
-function rpDigitsNorm(neg, i, f){
-  i=String(i).replace(/^0+(?=\d)/,'')||'0'; f=String(f).replace(/0+$/,'');
-  return {neg:!!neg && (i!=='0' || f!==''), i:i, f:f};
-}
-function rpDigits(v){
-  if(typeof v!=='number' || !isFinite(v)) return null;
-  const m=/^(\d+)(?:\.(\d+))?(?:e([+-]\d+))?$/.exec(String(Math.abs(v))); if(!m) return null;
-  const all=m[1]+(m[2]||''), pt=m[1].length+(m[3]? +m[3] : 0);
-  if(pt<=0) return rpDigitsNorm(v<0, '0', '0'.repeat(-pt)+all);
-  if(pt>=all.length) return rpDigitsNorm(v<0, all+'0'.repeat(pt-all.length), '');
-  return rpDigitsNorm(v<0, all.slice(0,pt), all.slice(pt));
-}
-// THE $M FIELD, READ WHOLE. The board's dollar fields have their own reader; this field is $M and has this one: the whole
-// entry must read as an amount -- a sign, a $, the digits (commas only between thousands), a decimal part, an M; all but
-// the digits optional. Anything else (100oops, 1.2.3, 1e3) is not an amount. Its digits, or null.
-function rpAmtText(t){
-  const p=/^([+-]?)\s*\$?\s*(\d{1,3}(?:,\d{3})+|\d*)(?:\.(\d*))?\s*[mM]?$/.exec(String(t).trim());
-  if(!p || !(p[2]+(p[3]||'')).length) return null;
-  return rpDigitsNorm(p[1]==='-', p[2].replace(/,/g,''), p[3]||'');
-}
-// $M digits as dollars: the whole dollars d (digits) and what is left below a dollar, c (digits; '' when whole)
-function rpToDollars(x){ const f=x.f+'000000'; return {neg:x.neg, d:(x.i+f.slice(0,6)).replace(/^0+(?=\d)/,''), c:x.f.slice(6)}; }
-function rpDolShow(y){ return (y.neg? '-' : '')+'$'+y.d.replace(/\B(?=(\d{3})+(?!\d))/g, ',')+(y.c? '.'+y.c : ''); }
-function rpMText(x){ return x? (x.neg? '-' : '')+x.i+(x.f? '.'+x.f : '') : ''; }
-// What a person typed into the $M field: {ok, m: the $M figure to keep, y: its dollars} or {ok:false, why}. A blank is 0.
-// v1.99 (item 87, review N03): THE WHOLE ENTRY IS READ. It was cut to 60 characters first, so "1", 59 spaces and "oops"
-// was $1M (over a $5M row it replaced the figure), and "0.000001", 52 zeros and "1" -- not a whole number of dollars --
-// was exactly $1. An entry longer than RP_AMT_MAX is refused as such; only the text quoted back is shortened, after the
-// decision.
-const RP_AMT_MAX=200;
-function rpCut(s){ s=String(s); return s.length>48? s.slice(0,48)+'…' : s; }
-function rpAmtTyped(txt){
-  const t=String((txt===null || txt===undefined)? '' : txt).trim();
-  if(t==='') return {ok:true, m:0, y:{neg:false, d:'0', c:''}};
-  if(t.length>RP_AMT_MAX) return {ok:false, why:'“'+rpCut(t)+'” is '+t.length+' characters long; an amount in $M is never longer than '+RP_AMT_MAX+'.'};
-  const x=rpAmtText(t);
-  if(!x) return {ok:false, why:'“'+rpCut(t)+'” does not read as an amount in $M.'};
-  const y=rpToDollars(x);
-  if(y.c) return {ok:false, why:rpCut(rpMText(x))+' $M is '+rpCut(rpDolShow(y))+', which is not a whole number of dollars. The log takes whole dollars: the finest it holds is 0.000001 ($1).'};
-  if(Number(y.d)>IN_MAX_AMT) return {ok:false, why:rpCut(rpMText(x))+' $M is '+rpCut(rpDolShow(y))+', more than the $10,000,000,000,000 an amount can be.'};
-  return {ok:true, m:(y.neg? -Number(y.d) : Number(y.d))/1e6, y:y};
-}
-// A saved entry's amount, exactly: {m: the $M figure as kept, y: its dollars, whole}; {bad:true} when what is kept is not
-// a figure at all -- shown as it is, counted as nothing, and named, never taken for zero in silence.
-function rpAmtOf(r){
-  const v=r? r.amtM : 0;
-  if(v===null || v===undefined || v==='') return {m:0, x:{neg:false, i:'0', f:''}, y:{neg:false, d:'0', c:''}, whole:true};
-  const x=(typeof v==='number')? rpDigits(v) : (typeof v==='string')? rpAmtText(v) : null;
-  if(!x) return {bad:true, raw:v, m:0, y:null, whole:false};
-  const y=rpToDollars(x);
-  return {m:(typeof v==='number')? v : Number(rpMText(x)), x:x, y:y, whole:!y.c};
-}
-// THE NET OF ENTRIES, EXACTLY, in $M -- deducts negative. One rule for the detail's subtotals and every summary line, so
-// they agree to the last digit whatever the entries hold: each amount is a whole count of the finest unit any of them
-// uses, added as an integer (BigInt, so no total is ever too large to be exact), and the total made a $M figure once.
-function rpNetM(rows, amt){
-  amt=amt||rpAmtOf;
-  let S=0; const ys=[];
-  rows.forEach(function(r){ const a=amt(r); if(!a || !a.y) return;
-    ys.push([a.y.neg!==(r.dir==='deduct'), a.y]); if(a.y.c.length>S) S=a.y.c.length; });
-  let U=BigInt(0);
-  ys.forEach(function(e){ const u=BigInt(e[1].d+e[1].c.padEnd(S,'0')); U=e[0]? U-u : U+u; });
-  const neg=U<BigInt(0), k=S+6; let t=(neg? -U : U).toString();
-  if(t.length<=k) t='0'.repeat(k-t.length+1)+t;
-  return Number((neg? '-' : '')+t.slice(0, t.length-k)+'.'+t.slice(t.length-k));
-}
-// What the tracker marks and the export's Check column says about one row: '' when nothing.
-function rpCheckOf(r, sv, a){
-  const out=[], apN=rpApName(r.ap);
-  if(sv.how==='pos') out.push((rpNamed(r)? 'Service '+sv.name+' was read from a position in another appropriation’s list'
-    : 'Service read from position '+(sv.at+1)+' of '+apN+'’s list')+' — not confirmed; pick it in the tracker');
-  else if(sv.how==='none') out.push('Service unresolved: '+(!sv.list? apN+'’s service list is not in this file'
-    : (Number.isInteger(sv.at)? 'position '+(sv.at+1)+' is not in '+apN+'’s list' : 'no service recorded'))+' — counted under Unresolved');
-  if(sv.how!=='none' && sv.name!==undefined && !sv.inList) out.push('Service '+sv.name+' is not in '+apN+'’s list');
-  if(a.bad) out.push('The amount '+(typeof a.raw==='string'? '“'+a.raw.slice(0,40)+'”' : JSON.stringify(a.raw))+' is not a figure — counted as nothing');
-  else if(!a.whole) out.push('Not a whole number of dollars: '+rpDolShow(a.y)+' — correct it');
-  return out.join('; ');
-}
-// The service picker for one row: its own appropriation's services, by name. A row read by position, unresolved, or naming
-// a service its list does not have opens on a line that says so, so choosing a service is a change, and confirms it.
-function rpSvcSel(r, sv){
-  const L=sv.list||[], apN=rpApName(r.ap);
-  const ph=(sv.how==='none')? '⚠ Unresolved' : (sv.how==='pos')? '⚠ '+sv.name+' (by position)'
-         : (!sv.inList)? '⚠ '+sv.name+' (not in the list)' : '';
-  const tip=ph? rpCheckOf(r, sv, {whole:true})+(L.length? '.' : '. Open '+apN+' to pick one.') : apN+' service';
-  return '<select data-rp="svc" title="'+esc(tip)+'" onchange="rpSetField('+jsa(r.id)+',\'svc\',this.value)" style="background:var(--panelA);border:1px solid '
-    +(ph? 'var(--amber)' : 'var(--line)')+';border-radius:4px;color:var(--ink);font-size:9.5px">'
-    +(ph? '<option value="" selected>'+esc(ph)+'</option>' : '')
-    +L.map(function(n){ return '<option value="'+esc(n)+'"'+((!ph && n===sv.name)? ' selected' : '')+'>'+esc(n)+'</option>'; }).join('')+'</select>';
-}
-// One-time lift of any log previously held on a year state into the standalone store. The
-// originals are left alone — nothing reads them any more, so leaving them is harmless and
-// means an older copy of the board still shows what it always did.
-function rpMigrate(){
-  try{
-    if(MS.rpMigrated) return;
-    const ap=(typeof APPN!=='undefined')? APPN : ((document.title.match(/O&M|Full Fund|Initial Spares|OPN/)||[''])[0]||'O&M');
-    let moved=0;
-    Object.keys(MS.years||{}).forEach(y=>{
-      const list=(MS.years[y]||{}).reprog;
-      if(!Array.isArray(list)||!list.length) return;
-      list.forEach(r=>{
-        rpAll().push(Object.assign({}, r, {ap:ap, fy:+y, id:'RP'+(Date.now()+Math.floor(rpAll().length))}));
-        moved++;
-      });
-    });
-    MS.rpMigrated=true;
-    if(moved){ RPDB.ts=Date.now(); persistRp(); persist();
-      setStat('\u2696 Moved '+moved+' reprogramming entr'+(moved===1?'y':'ies')+' into the standalone tracker. They no longer affect any budget figure.'); }
-  }catch(e){}
-}
-function rpAddEntry(){
-  const fy=(rpFy==='ALL')? activeFy() : rpFy;
-  const ap=(rpAp==='ALL')? ((typeof APPN!=='undefined')? APPN : rpAppns()[0]) : rpAp;
-  // v1.97 (item 81): the first service of the row's OWN appropriation, by name, as the picker shows it
-  const L=rpSvcsOf(ap)||[];
-  const e={id:'RP'+Date.now()+Math.floor(Math.random()*1000), ts:Date.now(), ap:ap, fy:fy, type:'BTR',
-                svc:0, appn:'', pec:'', bpac:'', title:'', amtM:0, dir:'deduct', pool:'disc',
-                status:'Pending', hac:'Pending', sac:'Pending', hasc:'Pending', sasc:'Pending', remarks:''};
-  if(L.length){ e.svcName=L[0]; e.svcPos=0; e.svcBy='pick'; }
-  rpAll().push(e);
-  RPDB.ts=Date.now(); persistRp(); render();
-}
-function rpSetField(id,field,val){
-  const r=rpAll().find(x=>x.id===id); if(!r) return;
-  // v1.97 (item 81): an amount that is not whole dollars, or not an amount, is refused before anything moves -- the row,
-  // its stamp and the log stay exactly as they were, and the message says what it would have been.
-  let amt=null;
-  if(field==='amtM'){
-    amt=rpAmtTyped(val);
-    if(!amt.ok){ setStat('⛔ <b>Amount not recorded.</b> '+esc(amt.why)+' The entry keeps '+esc(rpMText(rpAmtOf(r).x)||String(r.amtM))+' $M.'); render(); return; }
-  }
-  // THE SERVICE, BY NAME, FROM THE ROW'S OWN APPROPRIATION. The picker sends a name; a name that list does not hold (the
-  // line saying a row is unresolved, or a list changed under an open table) changes nothing.
-  let pick=-1, L=null;
-  if(field==='svc'){
-    L=rpSvcsOf(r.ap)||[];
-    pick=(typeof val==='number')? (Number.isInteger(val) && val>=0 && val<L.length? val : -1) : L.indexOf(String(val==null? '' : val));
-    if(pick<0){ render(); return; }
-  }
-  // Stamp the ROW, not just the log. RPDB.ts records that something changed; the merge needs to
-  // know WHICH row changed and when, or two people editing different actions look identical to
-  // two editing the same one and somebody's correction is dropped.
-  rpTouch(r);
-  if(field==='svc'){ r.svc=pick; r.svcName=L[pick]; r.svcPos=pick; r.svcBy='pick'; }
-  else if(field==='fy') r.fy=parseInt(val);
-  else if(field==='amtM') r.amtM=amt.m;
-  else if(field==='ap'){
-    // ANOTHER APPROPRIATION KEEPS THE SERVICE THE ROW SHOWED. A row read by position is pinned to the name it showed first
-    // (still marked by position): read against the new appropriation's list, its old position could name another service.
-    const was=rpSvcOf(r);
-    r.ap=(''+val);
-    if(was.name!==null){
-      const j=(rpSvcsOf(r.ap)||[]).indexOf(was.name);
-      if(!rpNamed(r)) r.svcBy='pos';
-      r.svcName=was.name;
-      r.svc=(j>=0)? j : Number(r.svc);
-      r.svcPos=r.svc;
-    }
-  }
-  else r[field]=(''+val);
-  RPDB.ts=Date.now(); persistRp();
-  if(amt) setStat('⚖ Recorded '+esc(rpMText(rpDigits(amt.m)))+' $M: '+esc(rpDolShow(amt.y))+'.');
-  render();
-}
-function rpDelEntry(id){
-  const i=rpAll().findIndex(x=>x.id===id); if(i<0) return;
-  if(!confirm('Delete this '+rpAll()[i].type+' entry?')) return;
-  const gid=rpAll()[i].id;
-  rpAll().splice(i,1);
-  // A silent absence is not a deletion once the log is shared: a plain union resurrects the row
-  // from anyone who still has it. Recording the removal is what makes it stick.
-  if(gid) rpGone()[gid]=Date.now();
-  RPDB.ts=Date.now(); persistRp(); render();
-}
 
 // ---- charts ---------------------------------------------------------------------------------
 // Drawn as inline SVG so there is no library to load, nothing to fail on a locked-down machine,
@@ -24396,7 +23985,7 @@ function svcSummary(){
   SVC.forEach((s,i)=>{
     const dRem=Math.max(0,T.__rem.dRem[i]), mRem=Math.max(0,T.__rem.mRem[i]);
     rows+=`<tr><td>${esc(s)}</td><td>${fM(ask[i])}</td>
-      <td title="effective ${esc(s)} discretionary BA (base + funding sources ± ATR/BTR) — edit in 💰 Budget Management">${fM(S.discSvc[i])}</td>
+      <td title="effective ${esc(s)} discretionary BA (base + funding sources) — edit in 💰 Budget Management">${fM(S.discSvc[i])}</td>
       <td style="color:var(--green)">${fM(d[i])}</td>
       <td style="color:var(--green)">${fM(dRem)}</td>
       <td style="color:var(--red);font-weight:700">${fM(mc[i])}</td>
@@ -26317,7 +25906,7 @@ function _xmlRefuse(what, said, how){
   _xmlStood=_statN;
 }
 // a workbook is being made: a refusal still on the status line would say no file was made, so it is taken down (the
-// Excel export and the ATR/BTR log say nothing of their own when they make one); any line said after it stays
+// Excel export says nothing of its own when it makes one); any line said after it stays
 function _xmlMade(){ if(_xmlStood===_statN) setStat(''); _xmlStood=-1; }
 // every sheet name as it would be written (31 at most) and every text cell, before a byte is made: true when refused
 function _xlsxRefused(sheets){
@@ -27069,7 +26658,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -27671,7 +27260,6 @@ function syncBtns(){
     ed: mi('⚖ Executive Decision…',"mRun(toggleEd)",edOpen,'what discretionary buys · stoppage gap'),
     // views: the active years
     ex: mi('📈 Active Year Execution…',"mRun(toggleEx)",exOpen,'obligations vs OSD goals'),
-    rp: mi('⚖ Reprogramming Actions…',"mRun(toggleRp)",rpOpen,'ATR / BTR across the active years'),
     // The funds flow stands on a SET of fiscal years and a set of appropriations at once.
     flow: mi('🚰 Funds Flow (Sewer Chart)…',"mRun(toggleFlow)",flowOpen,
         'any year or combination — active years through the FYDP'),
@@ -27691,7 +27279,6 @@ function syncBtns(){
     ppt: mi('📽 PowerPoint deck',"mRun(exportPPT)",false,'SFCB template slides'),
     drill: mi('⬇ Priority Drill by Band…',"mRun(exportCSV)",false,'whole 1–N + a tab per PMO'),
     syn: mi('⬇ Exec Synopsis (CSV)',"mRun(execSynopsis)",false,'the one-page picture'),
-    atr: mi('⬇ ATR/BTR Log (Excel)',"mRun(exportReprog)",false,'reprogramming actions'),
     src: mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format'),
     r1a9a: mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar'),
     // v1.92: a fixed label. The preview is worked out when the box opens, never on every redraw for a menu line.
@@ -27771,7 +27358,7 @@ function syncBtns(){
     full: mi('Present full screen',"mRun(briefFull)",false,'Esc to leave'),
   };
   // v1.96 (item 65): GROUPED BY THE JOB, NOT THE FILE TYPE, AND FOLDED. Each on-screen view sits beside its own export:
-  // CR Cash Needs and its 1A9A return, Reprogramming Actions and the ATR/BTR log, the five-year plan and its workbook.
+  // CR Cash Needs and its 1A9A return, the five-year plan and its workbook.
   // ✈ Pre-flight check stays unfolded on top: the house rule is to run it before every export.
   { const fe=document.activeElement, findFocus=!!(fe && fe.id==='mFind'), at=findFocus? fe.selectionStart : 0;
   // v2.00 (menu, 19 Oct): A BOX ON THE LEFT MENU, its six groups laid out as sections (sec), every item one click. A view whose
@@ -27786,7 +27373,6 @@ function syncBtns(){
     sec('spend','Spend plan &amp; cash \u2014 '+FYL(), I.plans+I.r1a9a, '📅 Spend Plan Forecast and ⚖ CR Cash Needs are views, under <b>Execution ▸</b>')+
     sec('brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+
     sec('fydp','Five years &amp; PPBE', I.fydpx+I.cycx, '📊 Five-year spend plan, 🏛 PPBE Budget Positions and 📐 Spruills are views, under <b>FYDP ▸</b>')+
-    sec('exec','Execution &amp; reprogramming', I.atr, '📈 Active Year Execution and ⚖ Reprogramming Actions are views, under <b>Execution ▸</b>; 🚰 Funds Flow, under <b>FYDP ▸</b>')+
     sec('ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+
     sec('tools','Companion tools', I.link+I.linkset)+
     '</div><div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
@@ -28284,8 +27870,7 @@ async function drivePoll(quiet){
   await driveClaimIfViewing(dir);
   // WORKING OUT OF THE FOLDER MEANS THE REFRESH IS ALSO A LOAD. It adopts only what is newer and
   // only when nothing local is unsaved; both guards live in driveStorePull.
-  if(driveStoreOn()){ await driveStorePull(true); await driveExecPull(true);
-                      await driveRpPull(true); }
+  if(driveStoreOn()){ await driveStorePull(true); await driveExecPull(true); }
   const peers={}, locks={};
   const want='spmt-'+MS.cur+'-';
   for await (const ent of dir.values()){
@@ -28447,7 +28032,7 @@ async function driveStorePull(quiet){
   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
-  // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+  // board's copy and nothing wider: the same Connect goes on to load the execution data and cost
   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
   if(_saveBusy){
     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
@@ -29278,7 +28863,7 @@ async function driveAcePull(quiet){
 //   and nothing says so - the tracker simply has one row fewer than the room remembers.
 //
 // So this one merges, and it can be merged honestly because it is a list of INDEPENDENT rows with
-// stable ids (rpAddEntry mints 'RP<time><rand>'), not an interdependent state tree. That is the
+// stable ids (the tracker minted 'RP<time><rand>'), not an interdependent state tree. That is the
 // distinction the package rule is really about: "field-level merging of requirements, allocations,
 // bands, positions and baselines cannot be shown to be lossless" - a row-per-action log can.
 //
@@ -29289,7 +28874,8 @@ async function driveAcePull(quiet){
 //   3. a DELETED entry stays deleted. A plain union resurrects it: whoever still holds the row
 //      pushes it straight back, and it reappears with nobody having asked for it. Deletion is
 //      therefore recorded as a tombstone rather than a silent absence.
-const DRIVE_RP='spmt-reprog.json';
+// v2.02: the log is no longer shared through the folder (driveRpPush / driveRpPull went with the tracker). The folder's
+// spmt-reprog.json is left alone -- nothing deletes it -- and rpMerge() is what a board-file import still merges by.
 function rpGone(){ if(!RPDB.gone||typeof RPDB.gone!=='object') RPDB.gone={}; return RPDB.gone; }
 // Every write to an entry stamps it. Without this, two edits to one row are indistinguishable and
 // the merge has to guess - and a guess here silently discards somebody's correction.
@@ -29325,73 +28911,6 @@ function rpMerge(theirs){
     if(g && (+g||0) >= (+r.ts||0)){ mine.splice(i,1); buried++; }
   }
   return {added:added, updated:updated, buried:buried, kept:kept};
-}
-async function driveRpPush(quiet){
-  if(!driveStoreOn()) return false;
-  try{
-    const dir=await driveDir(true);
-    // READ BEFORE WRITE. Writing our list alone would drop every entry somebody else added since
-    // we loaded - which is the exact loss this whole function exists to prevent.
-    // v1.96 (item 68, review NR03): ONLY "NO SUCH FILE" MEANS THERE IS NO LOG. Every failure to read or parse was taken for
-    // an empty folder, and our list was written over a log that was there -- with the actions only it held. A log that
-    // cannot be read, is refused, or is not whole (still syncing) now stops the share, and says so. One that can be read
-    // is kept in the folder's history before it is replaced.
-    let cur=null, txt=null;
-    try{ txt=await driveRead(dir, DRIVE_RP); }
-    catch(e){ if(!(e && e.name==='NotFoundError')){
-      const why=((e&&e.name)&&e.name!=='Error')? e.name : ((e&&e.message)||'error');
-      setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log is there, but it could not be read ('+esc(why)
-        +'). <b>Nothing was written over it.</b> Try again once it can be read.'); return false; } }
-    if(txt!==null){
-      try{ cur=driveParse(txt); }catch(e){ cur=undefined; }
-      if(!cur || typeof cur!=='object' || !Array.isArray(cur.entries)){
-        setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log is there, but it is not a whole log \u2014 '
-          +'it may still be syncing, or it was refused. <b>Nothing was written over it.</b> Try again once it can be read.'); return false; }
-      if(await snapKeep(dir, 'rp', 'log', txt, true)!=='kept'){
-        setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log could not be kept in the folder\u2019s history '
-          +'first, so <b>nothing was written over it</b>.'); return false; }
-    }
-    if(cur) rpMerge(cur);
-    RPDB.ts=Date.now();
-    // v1.99 (item 95): THE MERGE IS KEPT HERE BEFORE THE FOLDER IS WRITTEN. It was stored only after the write, so a write
-    // that failed left the merged log in memory alone -- not in browser storage, not counted unsaved. Kept first (lsSet
-    // counts it, and a refusal stays unsaved until 💾 Save puts it in the file), then written; and the message tells "kept
-    // in this browser, not shared" from "shared".
-    const kept=persistRp();
-    const keptSay=kept===false? ' Browser storage refused it as well: it is on this board, in memory and unsaved \u2014 💾 Save keeps it in the file.' : '';
-    try{
-      await driveWrite(dir, DRIVE_RP, JSON.stringify({v:1, by:whoIs()||'unknown',
-        ts:RPDB.ts, entries:rpAll(), gone:rpGone()}));
-    }catch(e){
-      setStat('\u26d4 <b>The reprogramming log was not shared</b> \u2014 writing the folder failed ('+esc((e&&e.name&&e.name!=='Error')? e.name : ((e&&e.message)||'error'))
-        +'). <b>The merged log, '+rpAll().length+' action'+(rpAll().length===1?'':'s')+', is kept in this browser</b>, not in the folder.'+keptSay
-        +' Share again once the folder can be written.');
-      return false;
-    }
-    if(!quiet || kept===false) setStat('⬆ Reprogramming log shared — '+rpAll().length+' action'
-      +(rpAll().length===1?'':'s')+' in the folder.'+keptSay);
-    return true;
-  }catch(e){
-    if(!quiet) setStat('⚠ Could not share the reprogramming log — '+esc((e&&e.message)||String(e)));
-    return false;
-  }
-}
-async function driveRpPull(quiet){
-  if(!driveStoreOn()) return false;
-  try{
-    const dir=await driveDir(false,'read');
-    const j=driveParse(await driveRead(dir, DRIVE_RP));
-    if(!j||!Array.isArray(j.entries)) return false;
-    const n=rpMerge(j);
-    if(n.added||n.updated||n.buried){
-      RPDB.ts=Date.now(); persistRp(); render();
-      if(!quiet) setStat('⬇ Reprogramming log updated from the folder — '
-        +n.added+' new, '+n.updated+' changed'
-        +(n.buried? ', '+n.buried+' removed' : '')+'.');
-      return true;
-    }
-    return false;
-  }catch(e){ return false; }
 }
 // ---- Confluence transport -------------------------------------------------------------------
 // One page, one attachment per (fiscal year, appropriation). Confluence versions attachments on
@@ -29694,7 +29213,7 @@ function liveBody(){
       : '<b>This sends requirement and funding data off this computer.</b> It publishes ')
     +esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' — about <b>'
     +Math.round(liveSize()/1024)+' KB</b> — to the endpoint below, and nothing else. '
-    +'Execution, ACE and reprogramming stores are never sent, the same three a package strips.</div>';
+    +'Execution data and cost estimates are never sent, as a package strips them (with the reprogramming log it still carries).</div>';
   // WHICH TRANSPORT, and what each one needs.
   h+='<div class="fr" style="flex-wrap:wrap;gap:6px;margin-top:8px">'
     +'<span class="rlg-lbl">Store it in</span>'
@@ -29793,14 +29312,6 @@ function liveBody(){
       // A DISAGREEMENT STAYS ON THE PANEL, not just in a status line that scrolls away. Two locked
       // estimates under one key is a decision for the room, and it should still be visible when
       // they come back to it.
-      // The log MERGES rather than replaces, so its row says how many actions are held rather than
-      // offering a "share mine" that would read as an overwrite. Pushing reads the folder first.
-      h+='<div class="rlg-sum" style="margin-top:6px">'
-        +'<span>Reprogramming log '
-        +'<button class="qb" onclick="driveRpPush(false)">share mine</button> '
-        +'<button class="qb" onclick="driveRpPull(false)">check the folder</button></span>'
-        +'<span>Holding <b>'+rpAll().length+'</b> action'+(rpAll().length===1?'':'s')+'</span>'
-        +'</div>';
       if(_aceClash.length)
         h+='<div class="hint" style="margin-top:4px;color:var(--amber);line-height:1.5">'
           +'⚠ The folder holds a <b>different</b> '
@@ -33962,7 +33473,6 @@ function uiFlyItems(k){
     + it('🚰 Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow');
   if(k==='exec') return '<div class="uiFh">Execution</div>'
     + it('📈 Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')
-    + it('⚖ Reprogramming Actions…', 'ATR / BTR across the active years', 'toggleRp')
     + it('📅 Spend Plan Forecast…', 'the budget year, month by month', 'toggleFc')
     + it('⚖ CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr')
     + sep

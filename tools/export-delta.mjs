@@ -45,7 +45,7 @@ const FIX = {
   alloc: { C: { m: 's', v: [3000000, 500000, 200000] } },
 };
 
-const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare'];
+const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare'];
 const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
 const txt = c => String(cv(c) ?? '').trim();
 

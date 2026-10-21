@@ -140,7 +140,7 @@ for (const f of ['prioritization-board-grid.html']) {
   const FALSE = ['aceOpen','bandPanelOpen','blOpen','bmOpen','budOpen','coaPanelOpen','crOpen','divOpen',
     'edOpen','entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
-    'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rpOpen','rmOpen','spOpen','subOpen',
+    'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
     'svcPanelOpen','addOpen','budRegOpen','diagOpen'];
   const NUL = ['recOpen', 'wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {

@@ -106,17 +106,12 @@ const sc = fixture();
 seed(ev, sc);
 ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
 dress(ev);
-// The five surfaces the register recorded as gaps need state the base fixture never carried: a
-// reprogramming log, an imported estimate (two confirmed lines, one nobody confirms, one under a PMO
+// The surfaces the register recorded as gaps need state the base fixture never carried (the reprogramming
+// log it seeded went with the ATR/BTR tracker in v2.02): an imported estimate (two confirmed lines, one nobody confirms, one under a PMO
 // no office reports under), a year override on one ask, the other funding sources typed in, and
 // prime tokens that route two requirements to Lockheed and Pratt. Seeded BEFORE the figures and the
 // workbook are read, so everything below sees the same board.
 const dress2 = (ev) => ev(`
-  var E=rpAll(); E.length=0;
-  E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'BTR add USAF',      amtM:1.5,  dir:'add',    pool:'disc', status:'Pending', remarks:''});
-  E.push({id:'RP2', ts:2, ap:mySlug(), fy:MS.cur, type:'BTR', svc:1, appn:'', pec:'', bpac:'', title:'BTR deduct ANG',   amtM:0.5,  dir:'deduct', pool:'mand', status:'Pending', remarks:''});
-  E.push({id:'RP3', ts:3, ap:mySlug(), fy:MS.cur, type:'ATR', svc:0, appn:'', pec:'', bpac:'', title:'ATR add USAF',      amtM:2.0,  dir:'add',    pool:'disc', status:'Pending', remarks:''});
-  E.push({id:'RP4', ts:4, ap:mySlug(), fy:MS.cur, type:'ATR', svc:3, appn:'', pec:'', bpac:'', title:'ATR deduct STOVL', amtM:0.25, dir:'deduct', pool:'disc', status:'Pending', remarks:''});
   ACEDB.sets={}; ACEDB.sets['2026ACE']={lines:[
     {ap:mySlug(), pmo:'PSM',    wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'TSS', wbs:'2.2', v:{}},
     {ap:mySlug(), pmo:'ATL',    wbs:'9.9', v:{}}, {ap:mySlug(), pmo:'NOBODY', wbs:'7.7', v:{}} ]};
@@ -794,7 +789,7 @@ const rowCloses = (name, wb) => {
   // EXPORT EACH PRODUCT EXACTLY ONCE and check off that capture. Exporting a second time later in
   // the run is not free: several of these set view state on the way through, and the first version
   // of this block re-ran exportCSV after five other exports and read a different workbook back.
-  const PRODUCTS = ['exportCSV', 'exportCoa', 'exportFlow', 'exportPlans', 'exportReprog', 'exportSrc'];
+  const PRODUCTS = ['exportCSV', 'exportCoa', 'exportFlow', 'exportPlans', 'exportSrc'];
   const made = {};
   for (const fn of PRODUCTS) {
     const got = JSON.parse(await grab(fn));
@@ -1059,43 +1054,7 @@ const grabX = (fn) => w.eval(`(async function(){
   }
 }
 
-// ══ 14. THE REPROGRAMMING LOG ══════════════════════════════════════════════════════════════════
-// Every entry states money moving; the log subtotals each type net of deducts and nets it by
-// service. Recorded as a gap on 15 Sep: "nothing re-derives those movements". The four seeded
-// entries are re-derived here from their own amounts and signs.
-{
-  const name = 'the reprogramming log';
-  try {
-  const RP = [{ type: 'BTR', svc: 'USAF', amt: 1.5, dir: 'add' }, { type: 'BTR', svc: 'ANG', amt: 0.5, dir: 'deduct' },
-              { type: 'ATR', svc: 'USAF', amt: 2.0, dir: 'add' }, { type: 'ATR', svc: 'STOVL', amt: 0.25, dir: 'deduct' }];
-  const net = e => e.amt * (e.dir === 'deduct' ? -1 : 1);
-  const netOf = (type, svc) => _sum(RP.filter(e => (!type || e.type === type) && (!svc || e.svc === svc)).map(net));
-  const got = JSON.parse(await grabX('exportReprog'));
-  chk(name, 'workbook', 'the log builds', got.state, 'ok');
-  const sheet = Object.values(got.sheets || {})[0] || [];
-  const sub = t => { const r = sheet.find(r => String((r || [])[0] ?? '').startsWith('Subtotal — ' + t)); return r ? num(r[7]) : null; };
-  chk(name, 'subtotal', 'BTR net is adds less deducts', sub('BTR'), netOf('BTR'));
-  chk(name, 'subtotal', 'ATR net likewise', sub('ATR'), netOf('ATR'));
-  const h = headerRow(sheet, 'Service', 'BTR net', 'ATR net', 'Total net');
-  const cB = colOf(sheet, h, 'BTR net'), cA = colOf(sheet, h, 'ATR net'), cT = colOf(sheet, h, 'Total net');
-  const svcRow = sv => sheet.find((r, i) => i > h && (r || [])[0] === sv) || [];
-  ['USAF', 'ANG', 'STOVL'].forEach(sv => {
-    chk(name, 'by service', sv + ': BTR net', num(svcRow(sv)[cB]), netOf('BTR', sv));
-    chk(name, 'by service', sv + ': ATR net', num(svcRow(sv)[cA]), netOf('ATR', sv));
-    chk(name, 'by service', sv + ': total net is the two together', num(svcRow(sv)[cT]), netOf(null, sv));
-  });
-  chk(name, 'by service', 'a service with no entry nets to zero, not to a neighbour’s figure', num(svcRow('AFRC')[cT]), 0);
-  const tot = sheet.find((r, i) => i > h && (r || [])[0] === 'TOTAL') || [];
-  chk(name, 'total', 'TOTAL BTR is the BTR subtotal', num(tot[cB]), netOf('BTR'));
-  chk(name, 'total', 'TOTAL ATR is the ATR subtotal', num(tot[cA]), netOf('ATR'));
-  chk(name, 'total', 'and the grand net is every entry, deducts negative', num(tot[cT]), netOf());
-  } catch (e) {
-    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
-    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
-    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-}
+// (14, the reprogramming log, went with the ATR/BTR tracker in v2.02: exportReprog no longer exists.)
 
 // ══ 15. THE ACE TIE-OUT ════════════════════════════════════════════════════════════════════════
 // Board funded per requirement is the lane draw; the estimate is the sum of the lines a requirement
@@ -2605,7 +2564,7 @@ const w7Ser = n => new Date((n - 25569) * 86400000).toISOString().slice(0, 10);
 const w7Ok = pk => [pk.err || 'ok', pk.bad && pk.bad.length ? 'unreadable ' + pk.bad.join(',') : 'every part reads',
   Object.entries(pk.counts || {}).filter(([, c]) => c[0] !== c[1]).map(([k, c]) => k + ' says ' + c[0] + ' holds ' + c[1]).join(';') || 'every count holds'].join(' · ');
 
-// ══ W7.1 F1 — THE $M AND $K FILES: the Two-Plan Forecast month by month and plan by plan, the ATR/BTR log, the 1A9A ═══
+// ══ W7.1 F1 — THE $M AND $K FILES: the Two-Plan Forecast month by month and plan by plan, the 1A9A (the ATR/BTR log went in v2.02) ═══
 await (async () => {
   const name = 'W7 — F1: the $M and $K files hold the exact figure, and show it as before';
   const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
@@ -2620,10 +2579,6 @@ await (async () => {
   seed(X.ev, { services: SVx, items: ORD.map(id => it(id, GRP[id], ASK[id])), disc: DISC, mand: MAND, order: ORD });
   X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
     S.awards={A:{mode:'single', d:FYMON[2][0], day:3}, B:{mode:'single', d:FYMON[0][0], day:20}, C:{mode:'single', d:FYMON[2][0], day:18}};
-    var E=rpAll(); E.length=0;
-    E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'W7 odd add', amtM:1.2345, dir:'add', pool:'disc', status:'Pending', remarks:''});
-    E.push({id:'RP2', ts:2, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'W7 odd deduct', amtM:0.000101, dir:'deduct', pool:'disc', status:'Pending', remarks:''});
-    E.push({id:'RP3', ts:3, ap:mySlug(), fy:MS.cur, type:'ATR', svc:1, appn:'', pec:'', bpac:'', title:'W7 odd ATR', amtM:2.718281, dir:'add', pool:'mand', status:'Pending', remarks:''});
     applyState(S); save(); 'ok'`);
   const MON = { A: 2, B: 0, C: 2 };                    // each award's fiscal month: A and C December, B October
   // THE TWO PLANS, walked here: each requirement takes its ask, service by service, while the pot lasts
@@ -2651,19 +2606,6 @@ await (async () => {
       v.forEach((d, k) => chk(name, 'Two-Plan Forecast · plan ' + pl + ' · ' + lbl, (k < 12 ? MN[k] : (k === 12 ? 'UNSCH' : 'TOTAL')) + ', in dollars', num(row[1 + k]) * 1e6, d));
     });
   });
-  // THE ATR/BTR LOG keeps what was typed ($M), and its nets are made from it
-  const rp = JSON.parse(await w6Book(X.w, 'exportReprog')), lg = rp['ATR-BTR Log'] || [];
-  chk(name, 'ATR/BTR log', 'the log builds and reads back', rp.__err || (lg.length ? 'ok' : 'no ATR-BTR Log sheet'), 'ok');
-  const typed = { 'W7 odd add': 1234500, 'W7 odd deduct': 101, 'W7 odd ATR': 2718281 };
-  Object.keys(typed).forEach(t => chk(name, 'ATR/BTR log · ' + t, 'Total ($M), in dollars', num((lg.find(r => String((r || [])[7] ?? '') === t) || [])[8]) * 1e6, typed[t]));
-  const sub = t => num((lg.find(r => w6Lbl(r) === 'Subtotal — ' + t + ' (net $M)') || [])[7]) * 1e6;
-  chk(name, 'ATR/BTR log', 'the BTR subtotal (net), in dollars', sub('BTR'), 1234500 - 101);
-  chk(name, 'ATR/BTR log', 'the ATR subtotal (net), in dollars', sub('ATR'), 2718281);
-  const net = { STOVL: [1234500 - 101, 0], 'USMC-C': [0, 2718281], USN: [0, 0] };
-  const sh = lg.findIndex(r => w6Lbl(r) === 'Service' && String((r || [])[1] ?? '') === 'BTR net');
-  SVx.forEach(sv => { const row = lg.find((r, j) => j > sh && w6Lbl(r) === sv) || [];
-    chk(name, 'ATR/BTR log · net by service · ' + sv, 'BTR net, ATR net, total net, in dollars', [row[1], row[2], row[3]].map(v => Math.round(num(v) * 1e6 * 100) / 100).join('|'),
-      [net[sv][0], net[sv][1], net[sv][0] + net[sv][1]].join('|')); });
   // THE 1A9A ($K): each requirement's window, from the board's own lane walk written here, and the TOTAL
   const funded = {}; { const dr = DISC.slice(), mr = MAND.slice();
     ORD.forEach(id => { funded[id] = ASK[id].map((v, i) => { const d = Math.min(v, dr[i]); dr[i] -= d; const m = Math.min(v - d, mr[i]); mr[i] -= m; return d + m; }); }); }
@@ -2677,8 +2619,8 @@ await (async () => {
   for (let w = 0; w < 12; w++) chk(name, '1A9A · TOTAL', 'window ' + (w + 1) + ', in dollars', (num(tr[7 + w]) || 0) * 1000, tot[w]);
   // SHOWN AS BEFORE (controls: v1.94 shows the same). The package opens -- every part reads and every list holds what
   // it says -- and every fraction in these files sits in a style whose format shows it as it always did.
-  const SHOW = { [FY + ' Two-Plan Forecast']: '#,##0.00', 'ATR-BTR Log': '#,##0.00', 'O&M,N': '"$"#,##0.0' };
-  [['exportExcel', FY + ' Two-Plan Forecast'], ['exportReprog', 'ATR-BTR Log'], ['crExport', 'O&M,N']].forEach(([fn, sn]) => {
+  const SHOW = { [FY + ' Two-Plan Forecast']: '#,##0.00', 'O&M,N': '"$"#,##0.0' };
+  [['exportExcel', FY + ' Two-Plan Forecast'], ['crExport', 'O&M,N']].forEach(([fn, sn]) => {
     const pk = w7Pkg(X.w, fn);
     chk(name, 'package · ' + fn, 'control: it is a well-formed package', w7Ok(pk), 'ok · every part reads · every count holds');
     const fr = ((pk.sheets || {})[sn] || []).filter(c => !Number.isInteger(+c[2]));
@@ -3182,283 +3124,14 @@ await (async () => {
 // ==== v1.97 W4: a board’s own service list moves dollars with it (item 80) ====
 // ==== end v1.97 W4 ====
 // ==== v1.97 W5: the reprogramming log by service and in whole dollars, and its money-map cells (items 81, 62) ====
-// The ATR/BTR log is shared by all four appropriations. Every expectation below is worked out HERE from the fixture's
-// own rows and lists -- each row's service from its own appropriation's list, each amount in whole dollars, deducts
-// negative -- and the export is read back from its bytes and held to it to the dollar. Nothing asks the board.
+// v2.02: the five reprogramming scenarios and their fixture went with the ATR/BTR tracker (exportReprog, rpSetField and the
+// panel no longer exist). w5Chk stays: every later block records its checks through it.
 // SUITE_CHECKS=<file> records every check of these blocks with its verdict (as audit-import does), for fail-before runs.
 import { appendFileSync as _w5Append } from 'node:fs';
 const w5Chk = (scenario, where, what, got, want) => {
   if (process.env.SUITE_CHECKS) _w5Append(process.env.SUITE_CHECKS, JSON.stringify([scenario, where, what, String(got) === String(want), String(got).slice(0, 300)]) + '\n');
   chk(scenario, where, String(what), String(got), String(want));
 };
-// A $M cell as dollars, EXACTLY: a whole D is printed as D/1e6, and anything else is not whole dollars.
-const w5Dol = v => { if (typeof v !== 'number' || !isFinite(v)) return 'not a figure: ' + JSON.stringify(v);
-  const d = Math.round(v * 1e6); return d / 1e6 === v ? d : 'not whole dollars: ' + v; };
-// Whole dollars as a person types them in $M, by string arithmetic: 250001 is 0.250001
-const w5Typed = d => { const s = String(Math.abs(d)).padStart(7, '0'); return (d < 0 ? '-' : '') + s.slice(0, -6) + '.' + s.slice(-6); };
-const w5Sum = a => a.reduce((x, y) => x + y, 0);
-// One export of the log under a filter, read back from its bytes: each type's rows under its own header (by column
-// name), each type's subtotal, the summary's lines and TOTAL, and the line naming what is to check.
-const w5Read = async (W, ap, fy) => {
-  W.eval(`rpAp=${JSON.stringify(ap)}; rpFy=${JSON.stringify(fy)}; 'ok'`);
-  const bk = JSON.parse(await w6Book(W, 'exportReprog'));
-  const lg = bk['ATR-BTR Log'] || [];
-  const out = { err: bk.__err || (lg.length ? '' : 'no ATR-BTR Log sheet'), rows: { BTR: [], ATR: [] }, sub: {}, sum: [], total: null, note: '' };
-  let type = null, hdr = null, inSum = false;
-  lg.forEach(r => {
-    const l = String((r || [])[0] ?? '').trim();
-    const m = /^(BTR|ATR)s\s+\(\d+\)$/.exec(l); if (m) { type = m[1]; hdr = null; return; }
-    if (type && l === 'Appropriation') { hdr = r.map(c => String(c ?? '').trim()); return; }
-    const s = /^Subtotal — (BTR|ATR) \(net \$M\)$/.exec(l);
-    if (s) { out.sub[s[1]] = r[7]; type = null; hdr = null; return; }             // the subtotal sits where it always has
-    if (type && hdr) { if (l) { const o = {}; hdr.forEach((h, j) => { o[h] = r[j]; }); out.rows[type].push(o); } return; }
-    if (l === 'Service' && String((r || [])[1] ?? '') === 'BTR net') { inSum = true; return; }
-    if (inSum && l === 'TOTAL') { out.total = [r[1], r[2], r[3]]; inSum = false; return; }
-    if (inSum && l) { out.sum.push([l, r[1], r[2], r[3]]); return; }
-    if (/^⚠ \d+ entr/.test(l)) out.note = l;
-  });
-  return out;
-};
-// What the Check column says of a row, reduced to the claim: '' (nothing to check), 'position N', 'unresolved', 'fraction'
-const w5Mark = t => { t = String(t ?? ''); const out = [];
-  if (/unresolved/i.test(t)) out.push('unresolved'); else { const p = /position (\d+) of/.exec(t); if (p) out.push('position ' + p[1]); }
-  if (/not a whole number of dollars/i.test(t)) out.push('fraction');
-  return out.join(' + '); };
-
-// THE FIXTURE. Four appropriations, four different service lists -- the board's own (O&M), Full Fund's in the file's
-// slot (PUBS), Initial Spares' in this browser's stored board (with the file's slot naming other services, which must not
-// be read: the browser's copy is what that board opens with), and OPN, a board with no data pack that keeps its own list.
-// The same position names different services in each: position 2 is ANG on O&M, USAF on Full Fund, ANG on Spares.
-const W5L = { 'O&M': ['USAF', 'ANG', 'AFRC'], 'FULL FUND': ['USN', 'USAF', 'STOVL', 'ANG'], 'INITIAL SPARES': ['CV', 'ANG', 'USAF'], 'OPN': ['USCG', 'USAF'] };
-const W5AP = ['O&M', 'FULL FUND', 'INITIAL SPARES', 'OPN'];
-// Every row a different whole-dollar amount; three fiscal years; both types; deducts and adds. `pick` is chosen in the
-// picker (the real path); `idx` is a row an older version wrote, holding only a position; neither is a row with none.
-const W5ROWS = [
-  { id: 'W5-OM-1', ap: 'O&M', fy: 2027, type: 'BTR', dir: 'add', pick: 'ANG', d: 1500000 },
-  { id: 'W5-OM-2', ap: 'O&M', fy: 2026, type: 'ATR', dir: 'deduct', idx: 2, d: 250001 },
-  { id: 'W5-OM-3', ap: 'O&M', fy: 2025, type: 'BTR', dir: 'deduct', idx: 0, d: 2222222 },
-  { id: 'W5-FF-1', ap: 'FULL FUND', fy: 2027, type: 'BTR', dir: 'add', idx: 1, d: 1000000 },
-  { id: 'W5-FF-2', ap: 'FULL FUND', fy: 2025, type: 'ATR', dir: 'add', pick: 'STOVL', d: 3333333 },
-  { id: 'W5-FF-3', ap: 'FULL FUND', fy: 2027, type: 'BTR', dir: 'deduct', idx: 3, d: 777777 },
-  { id: 'W5-FF-4', ap: 'FULL FUND', fy: 2026, type: 'BTR', dir: 'add', idx: 9, d: 123457 },
-  { id: 'W5-FF-5', ap: 'FULL FUND', fy: 2027, type: 'ATR', dir: 'deduct', pick: 'USN', d: 1010101 },
-  { id: 'W5-SP-1', ap: 'INITIAL SPARES', fy: 2027, type: 'ATR', dir: 'deduct', idx: 0, d: 4200001 },
-  { id: 'W5-SP-2', ap: 'INITIAL SPARES', fy: 2026, type: 'BTR', dir: 'add', pick: 'USAF', d: 98765 },
-  { id: 'W5-OPN-1', ap: 'OPN', fy: 2025, type: 'BTR', dir: 'add', idx: 1, d: 5000003 },
-  { id: 'W5-OPN-2', ap: 'OPN', fy: 2027, type: 'ATR', dir: 'add', d: 64000 },
-];
-const w5Svc = e => e.pick || ((Number.isInteger(e.idx) && e.idx < W5L[e.ap].length) ? W5L[e.ap][e.idx] : 'Unresolved');
-const w5Want = e => e.pick ? '' : (w5Svc(e) === 'Unresolved' ? 'unresolved' : 'position ' + (e.idx + 1));
-const w5Net = es => w5Sum(es.map(e => e.dir === 'deduct' ? -e.d : e.d));
-const w5Board = () => {
-  const X = boot();
-  seed(X.ev, { services: W5L['O&M'], items: [it('A', 'PSM', [300, 200, 100])], disc: [600, 400, 200], mand: [0, 0, 0], order: ['A'] });
-  X.ev(`PUBS.ff={ts:5, years:{}, dataPack:{services:${JSON.stringify(W5L['FULL FUND'])}, items:[{id:'F1', ask:[1,2,3,4]}], budget:[]}};
-    PUBS.sp={ts:9, years:{}, dataPack:{services:['ZZA','ZZB','ZZC'], items:[{id:'S0', ask:[1,1,1]}], budget:[]}};
-    localStorage.setItem(_SLUGMAP.sp.key, JSON.stringify({ts:3, years:{}, dataPack:{services:${JSON.stringify(W5L['INITIAL SPARES'])}, items:[{id:'S1', ask:[1,2,3]}], budget:[]}}));
-    PUBS.opn={ts:2, years:{}, svc:${JSON.stringify(W5L['OPN'])}};
-    var E=rpAll(); E.length=0;
-    ${JSON.stringify(W5ROWS)}.forEach(function(e,k){
-      var r={id:e.id, ts:k+1, ap:e.ap, fy:e.fy, type:e.type, appn:'', pec:'', bpac:'', title:e.id, amtM:0, dir:e.dir, pool:'disc', status:'Pending', remarks:''};
-      if(e.idx!==undefined) r.svc=e.idx;
-      E.push(r); });
-    'ok'`);
-  // the picked services and every amount go in the way a person puts them in: the picker, and the $M field, typed
-  W5ROWS.forEach(e => {
-    if (e.pick) X.ev(`rpSetField(${JSON.stringify(e.id)}, 'svc', ${JSON.stringify(e.pick)}); 'ok'`);
-    X.ev(`rpSetField(${JSON.stringify(e.id)}, 'amtM', ${JSON.stringify(w5Typed(e.d))}); 'ok'`);
-  });
-  return X;
-};
-
-// ══ v1.97 W5.1 — THE LOG BY APPROPRIATION, YEAR AND SERVICE, ALL AND FILTERED, TO THE DOLLAR (items 81, 62) ═══════════
-await (async () => {
-  const name = 'v1.97 W5 — the ATR/BTR log by appropriation, fiscal year and service, all and filtered, to the dollar';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  // CONTROL: the fixture can catch a swap -- every appropriation, year, service and type nets to its own figure
-  const nets = [...W5AP.map(a => w5Net(W5ROWS.filter(e => e.ap === a))), ...[2025, 2026, 2027].map(y => w5Net(W5ROWS.filter(e => e.fy === y))),
-    ...[...new Set(W5ROWS.map(w5Svc))].map(s => w5Net(W5ROWS.filter(e => w5Svc(e) === s))), ...['BTR', 'ATR'].map(t => w5Net(W5ROWS.filter(e => e.type === t)))];
-  w5Chk(name, 'fixture', 'control: every appropriation, year, service and type nets to a figure no other has', new Set(nets).size, nets.length);
-  const X = w5Board();
-  const SCOPES = [['ALL', 'ALL'], ['FULL FUND', 'ALL'], ['ALL', 2027], ['INITIAL SPARES', 'ALL'], ['OPN', 'ALL'], ['FULL FUND', 2026], ['ALL', 2025], ['O&M', 'ALL']];
-  for (const [ap, fy] of SCOPES) {
-    const at = ap + ' × ' + (fy === 'ALL' ? 'all years' : 'FY' + (fy % 100));
-    const es = W5ROWS.filter(e => (ap === 'ALL' || e.ap === ap) && (fy === 'ALL' || e.fy === fy));
-    const g = await w5Read(X.w, ap, fy);
-    w5Chk(name, at, 'control: the log builds and reads back', g.err || 'ok', 'ok');
-    // THE DETAIL: every entry of this scope and no other, in its type's table, with its own appropriation and year, the
-    // service its own appropriation's list names, its dollars, its direction, and what is to check about it
-    const det = t => es.filter(e => e.type === t).map(e => [e.id, e.ap, 'FY' + (e.fy % 100), w5Svc(e), e.d, e.dir === 'deduct' ? 'Deduct' : 'Add', w5Want(e)]);
-    const got = t => g.rows[t].map(o => [o['Requirement Short Title'], o['Appropriation'], o['FY'], o['Service'], w5Dol(o['Total ($M)']), o['Add/Deduct'], w5Mark(o['Check'])]);
-    w5Chk(name, at + ' · detail', 'every entry in its type’s table, with its appropriation, year, its own appropriation’s service, dollars, direction and what is to check',
-      JSON.stringify({ BTR: got('BTR'), ATR: got('ATR') }), JSON.stringify({ BTR: det('BTR'), ATR: det('ATR') }));
-    // THE SUMMARY: a line for every service of the appropriations in scope, from their own lists, to the dollar
-    const bT = w5Net(es.filter(e => e.type === 'BTR')), aT = w5Net(es.filter(e => e.type === 'ATR'));
-    const lines = []; (ap === 'ALL' ? W5AP : [ap]).forEach(a => W5L[a].forEach(n => { if (!lines.includes(n)) lines.push(n); }));
-    if (es.some(e => w5Svc(e) === 'Unresolved')) lines.push('Unresolved');
-    const wantSum = lines.map(n => { const s = es.filter(e => w5Svc(e) === n);
-      return [n, w5Net(s.filter(e => e.type === 'BTR')), w5Net(s.filter(e => e.type === 'ATR')), w5Net(s)]; });
-    w5Chk(name, at + ' · summary', 'a line for every service of the appropriations in scope, each from its own list, Unresolved last when any; BTR | ATR | total, to the dollar',
-      JSON.stringify(g.sum.map(r => [r[0], w5Dol(r[1]), w5Dol(r[2]), w5Dol(r[3])])), JSON.stringify(wantSum));
-    // DETAIL NET EQUALS SUMMARY NET, EXACTLY: each subtotal and TOTAL to the dollar, the subtotal the very figure TOTAL
-    // prints, and the summary's lines adding to it
-    const T = g.total || [], lineD = k => w5Sum(g.sum.map(r => { const v = w5Dol(r[k]); return typeof v === 'number' ? v : NaN; }));
-    w5Chk(name, at + ' · detail = summary', 'subtotals BTR | ATR and TOTAL BTR | ATR | net to the dollar; each subtotal is TOTAL’s own figure; the lines add to TOTAL',
-      JSON.stringify([w5Dol(g.sub.BTR), w5Dol(g.sub.ATR), w5Dol(T[0]), w5Dol(T[1]), w5Dol(T[2]), g.sub.BTR === T[0], g.sub.ATR === T[1], lineD(1), lineD(2), lineD(3)]),
-      JSON.stringify([bT, aT, bT, aT, bT + aT, true, true, bT, aT, bT + aT]));
-  }
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
-
-// ══ v1.97 W5.2 — THE REVIEW'S CASE: a Full Fund row on an O&M board whose file holds no Full Fund list (R10) ══════════
-await (async () => {
-  const name = 'v1.97 W5 — a row whose service cannot be read is Unresolved, and still counted (R10)';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  // Reproduced on v1.96: a $1M FULL FUND row at position 2, exported from an O&M board with one service, printed no
-  // service, and the summary by service totalled $0 while the detail held $1M.
-  const X = boot();
-  seed(X.ev, { services: ['USAF'], items: [it('A', 'PSM', [1])], disc: [0], mand: [0], order: ['A'] });
-  X.ev(`RPDB.entries=[{id:'RP1', ts:1, ap:'FULL FUND', fy:2027, type:'BTR', svc:1, title:'R10 row', amtM:1, dir:'add', pool:'disc', status:'Pending'}]; 'ok'`);
-  const g = await w5Read(X.w, 'ALL', 'ALL');
-  const r = g.rows.BTR[0] || {};
-  w5Chk(name, 'detail', 'the row prints Unresolved, not a blank, and its Check says why', [r['Service'], w5Mark(r['Check'])].join(' | '), 'Unresolved | unresolved');
-  w5Chk(name, 'summary', 'an Unresolved line carries its $1,000,000, and TOTAL is the detail’s $1,000,000',
-    JSON.stringify([g.sum.filter(l => l[0] === 'Unresolved').map(l => [w5Dol(l[1]), w5Dol(l[3])]), (g.total || []).map(w5Dol)]), JSON.stringify([[[1000000, 1000000]], [1000000, 0, 1000000]]));
-  w5Chk(name, 'summary', 'and the export says an entry is to check', /^⚠ 1 entry to check/.test(g.note), true);
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
-
-// ══ v1.97 W5.3 — THE TRACKER: each row's picker is its own appropriation's, a row read by position says so, and picking confirms ═
-await (async () => {
-  const name = 'v1.97 W5 — the tracker offers each row its own appropriation’s services, and marks a row read by position until picked';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  const X = w5Board();
-  // the row's service picker, found by the row's title, read as its options and the one selected
-  const picker = id => JSON.parse(X.ev(`(function(){ rpAp='ALL'; rpFy='ALL'; rpOpen=true; rpView='log'; render();
-    var tr=[...document.querySelectorAll('#rpBody tr')].find(function(t){ return [...t.querySelectorAll('input')].some(function(i){ return i.value===${JSON.stringify(id)}; }); });
-    var s=tr? tr.children[3].querySelector('select') : null;
-    return JSON.stringify(s? {opts:[...s.options].map(function(o){ return o.value; }), shown:s.options[s.selectedIndex].textContent} : null); })()`));
-  const ff = picker('W5-FF-2'), sp = picker('W5-SP-1');
-  w5Chk(name, 'Full Fund row', 'its picker offers Full Fund’s services, not the O&M board’s on screen', JSON.stringify((ff || {}).opts), JSON.stringify(W5L['FULL FUND']));
-  w5Chk(name, 'Spares row read by position', 'its picker offers Spares’ services, and shows its service as read by position, to confirm',
-    JSON.stringify(sp && [sp.opts.filter(Boolean), /^⚠ CV \(by position\)$/.test(sp.shown)]), JSON.stringify([W5L['INITIAL SPARES'], true]));
-  const un = picker('W5-FF-4');
-  w5Chk(name, 'Full Fund row at a position its list does not have', 'it shows as Unresolved', un && /Unresolved/.test(un.shown), true);
-  // PICKING CONFIRMS: the row now names its service, its mark is gone, and the export no longer asks
-  X.ev(`rpSetField('W5-SP-1', 'svc', 'ANG'); 'ok'`);
-  const sp2 = picker('W5-SP-1'), g = await w5Read(X.w, 'INITIAL SPARES', 'ALL');
-  const row = g.rows.ATR.find(o => o['Requirement Short Title'] === 'W5-SP-1') || {};
-  w5Chk(name, 'picked', 'the row names ANG, picked; its picker shows ANG; the export prints ANG with nothing to check',
-    JSON.stringify([X.ev(`(function(){ var r=rpAll().find(function(x){ return x.id==='W5-SP-1'; }); return r.svcName+'|'+r.svcBy; })()`), sp2 && sp2.shown, row['Service'], w5Mark(row['Check'])]),
-    JSON.stringify(['ANG|pick', 'ANG', 'ANG', '']));
-  // A NEW ENTRY on the Full Fund filter takes Full Fund's first service, by name
-  X.ev(`rpAp='FULL FUND'; rpFy=2027; rpAddEntry(); 'ok'`);
-  w5Chk(name, 'a new Full Fund entry', 'it starts on Full Fund’s first service, by name',
-    X.ev(`(function(){ var r=rpAll()[rpAll().length-1]; return r.ap+'|'+r.svcName+'|'+(typeof rpSvcOf==='function'? rpSvcOf(r).name : 'no reader'); })()`), 'FULL FUND|USN|USN');
-  // MOVING A ROW TO ANOTHER APPROPRIATION keeps the service it showed: Full Fund's position 2 is USAF, O&M's is ANG
-  X.ev(`rpSetField('W5-FF-1', 'ap', 'O&M'); 'ok'`);
-  w5Chk(name, 'moved to O&M', 'a row read by position keeps the service it showed (USAF), still to confirm, not O&M’s position 2 (ANG)',
-    X.ev(`(function(){ var r=rpAll().find(function(x){ return x.id==='W5-FF-1'; }); if(typeof rpSvcOf!=='function') return 'no reader: svc '+r.svc;
-      var s=rpSvcOf(r); return s.name+'|'+s.how; })()`), 'USAF|pos');
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
-
-// ══ v1.97 W5.4 — WHOLE DOLLARS IN THE $M FIELD (Brad, 5 Oct 2026: "no fractional values") ═════════════════════════════════
-await (async () => {
-  const name = 'v1.97 W5 — the $M field takes whole dollars only, refuses anything finer with its dollar figure, and keeps what it had';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  const X = boot();
-  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
-  X.ev(`RPDB.entries=[{id:'RPW', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, title:'whole', amtM:2.5, dir:'add', pool:'disc', status:'Pending'}]; persistRp(); 'ok'`);
-  const state = () => X.ev(`(function(){ var r=rpAll()[0]; return JSON.stringify([r.amtM, r.ts, localStorage.getItem('prio27reprog')]); })()`);
-  const typed = t => { const before = state(); X.ev(`rpSetField('RPW', 'amtM', ${JSON.stringify(t)}); 'ok'`);
-    return { same: state() === before, amt: X.ev(`String(rpAll()[0].amtM)`), stat: X.ev(`(document.getElementById('shareStat')||{}).textContent||''`) }; };
-  // REFUSED, each with the row, its stamp and the stored log untouched
-  const fr = typed('1.2345678');
-  w5Chk(name, '1.2345678', 'refused: it is $1,234,567.8, not whole dollars; the row keeps 2.5, unstamped and unsaved, and the message says the dollar figure',
-    JSON.stringify([fr.same, fr.amt, /\$1,234,567\.8\b/.test(fr.stat), /not a whole number of dollars/.test(fr.stat)]), JSON.stringify([true, '2.5', true, true]));
-  const tiny = typed('0.0000001');
-  w5Chk(name, '0.0000001', 'refused: it is $0.1', JSON.stringify([tiny.same, /\$0\.1\b/.test(tiny.stat)]), JSON.stringify([true, true]));
-  ['100oops', '1.2.3', '1e3', '1,50', '$', '10000000.000001'].forEach(t => {
-    const r = typed(t);
-    w5Chk(name, t, 'not an amount in whole dollars within the bound: refused, and the entry keeps 2.5 untouched', JSON.stringify([r.same, r.amt, /not recorded/i.test(r.stat)]), JSON.stringify([true, '2.5', true]));
-  });
-  // ACCEPTED: whole dollars in every form the field reads (a control: v1.96 read these the same)
-  const ok = ['$1.5M', '1,500', '0.000001', '-2.25', ' 3 ', '7.000000'].map(t => { typed(t); return X.ev(`String(rpAll()[0].amtM)`); });
-  w5Chk(name, 'whole dollars', 'control: $1.5M, 1,500, 0.000001, -2.25, 3 and 7.000000 are recorded as 1.5, 1500, 0.000001, -2.25, 3 and 7',
-    JSON.stringify(ok), JSON.stringify(['1.5', '1500', '0.000001', '-2.25', '3', '7']));
-  // and each accepted figure is said in dollars, so a $M slip shows at once
-  typed('1,500');
-  w5Chk(name, '1,500', 'recorded, and the message gives it in dollars: $1,500,000,000', /\$1,500,000,000\b/.test(X.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), true);
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
-
-// ══ v1.97 W5.5 — AN ENTRY ALREADY SAVED WITH A FRACTION OF A DOLLAR: kept, marked, named, and counted exactly ═══════════
-await (async () => {
-  const name = 'v1.97 W5 — an entry saved with a fraction of a dollar is kept as it is, marked, named by the export and counted exactly';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  const X = boot();
-  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
-  // $100,000.1 and $200,000.2 -- saved before v1.97, when the field took any fraction -- and a whole $3 deducted
-  X.ev(`RPDB.entries=[
-    {id:'RF1', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, svcName:'USAF', svcPos:0, svcBy:'pick', title:'frac one', amtM:0.1000001, dir:'add', pool:'disc', status:'Pending'},
-    {id:'RF2', ts:2, ap:APPN, fy:2027, type:'BTR', svc:1, svcName:'ANG', svcPos:1, svcBy:'pick', title:'frac two', amtM:0.2000002, dir:'add', pool:'disc', status:'Pending'},
-    {id:'RF3', ts:3, ap:APPN, fy:2027, type:'BTR', svc:1, svcName:'ANG', svcPos:1, svcBy:'pick', title:'whole', amtM:0.000003, dir:'deduct', pool:'disc', status:'Pending'}]; 'ok'`);
-  const before = X.ev(`JSON.stringify(RPDB.entries)`);
-  // THE TRACKER marks each one, with its dollar figure, and not the whole one
-  const marks = JSON.parse(X.ev(`(function(){ rpAp='ALL'; rpFy='ALL'; rpOpen=true; rpView='log'; render();
-    return JSON.stringify(['frac one','frac two','whole'].map(function(t){
-      var tr=[...document.querySelectorAll('#rpBody tr')].find(function(x){ return [...x.querySelectorAll('input')].some(function(i){ return i.value===t; }); });
-      var c=tr? tr.children[8] : null, m=c? c.querySelector('[title*="whole number of dollars"]') : null;
-      return m? m.getAttribute('title') : ''; })); })()`));
-  w5Chk(name, 'tracker', 'each fraction is marked with the dollar figure it holds, the whole one is not',
-    JSON.stringify(marks.map(t => (/\$100,000\.1\b/.test(t) && 'marked $100,000.1') || (/\$200,000\.2\b/.test(t) && 'marked $200,000.2') || t)), JSON.stringify(['marked $100,000.1', 'marked $200,000.2', '']));
-  const g = await w5Read(X.w, 'ALL', 'ALL');
-  w5Chk(name, 'export', 'the Check column names each fraction, and nothing else',
-    JSON.stringify(g.rows.BTR.map(o => [o['Requirement Short Title'], w5Mark(o['Check']), /\$\d[\d,]*\.\d/.test(String(o['Check'] ?? '')) ? 'with its dollars' : ''])),
-    JSON.stringify([['frac one', 'fraction', 'with its dollars'], ['frac two', 'fraction', 'with its dollars'], ['whole', '', '']]));
-  // COUNTED EXACTLY: 100,000.1 + 200,000.2 - 3 = 299,997.3 dollars, 0.2999973 $M, in the subtotal, the summary and TOTAL alike
-  const exact = Number('0.2999973');
-  // A CONTROL: v1.96 summed these in floating point, and the file's fifteen digits hide the difference at this size; the
-  // check holds the exact sum against a rule that drops or rounds the fraction.
-  w5Chk(name, 'export', 'control: each kept as it was saved, and the subtotal, the summary’s lines and TOTAL hold the exact 0.2999973 ($299,997.3)',
-    JSON.stringify([g.rows.BTR.map(o => o['Total ($M)']), g.sub.BTR === exact, (g.total || [])[0] === exact, (g.total || [])[2] === exact,
-      g.sum.map(l => [l[0], l[1]])]),
-    JSON.stringify([[0.1000001, 0.2000002, 0.000003], true, true, true, [['USAF', 0.1000001], ['ANG', Number('0.1999972')]]]));
-  w5Chk(name, 'export', 'and says how many are not whole dollars', /1 entr|2 entries/.test(g.note) && /2 not a whole number of dollars/.test(g.note), true);
-  w5Chk(name, 'nothing rewritten', 'control: tracking and exporting change no entry', X.ev(`JSON.stringify(RPDB.entries)`), before);
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
 // ==== end v1.97 W5 ====
 // ==== v1.97 W6: the money map’s nine open cells, except the reprogramming log (item 62) ====
 // ITEM 62 — SIX OF THE MONEY MAP'S NINE OPEN CELLS, each held by an INDEPENDENT ORACLE in whole dollars (the review's
@@ -4156,52 +3829,7 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v1.99 item 85 ====
-// ==== v1.99 item 87 (review N03): the reprogramming $M field reads the whole entry ====
-// FAILS ON v1.98, which cut the entry to 60 characters before reading it: "1", 59 spaces and "oops" was $1M (over this $5M
-// row it replaced the figure and stamped the row), and "0.000001", 52 zeros and "1" -- not whole dollars -- was $1.
-await (async () => {
-  const name = 'v1.99 item 87 — the $M field reads the whole entry, however long, and a refused one changes nothing';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  const J = JSON.stringify;
-  const X = boot();
-  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
-  X.ev(`RPDB.entries=[{id:'RPW', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, title:'whole', amtM:5, dir:'add', pool:'disc', status:'Pending'}]; RPDB.ts=1; persistRp(); 'ok'`);
-  // the row's figure, the row's stamp, the log's stamp and the stored bytes
-  const state = () => X.ev(`(function(){ var r=rpAll()[0]; return JSON.stringify([r.amtM, r.ts, RPDB.ts, localStorage.getItem('prio27reprog')]); })()`);
-  const typed = t => { const before = state(); X.ev(`rpSetField('RPW', 'amtM', ${J(t)}); 'ok'`);
-    const r = { same: state() === before, amt: X.ev(`String(rpAll()[0].amtM)`), stat: X.ev(`(document.getElementById('shareStat')||{}).textContent||''`) };
-    X.ev(`(function(){ var r=rpAll()[0]; r.amtM=5; r.ts=1; RPDB.ts=1; persistRp(); })(); 'ok'`);   // the row as it was, for the next case
-    return r; };
-  // [what, entry, refused?, what it is recorded as when taken, the message (refused)]
-  const CASES = [
-    ['64 characters: "1", 59 spaces, "oops"', '1' + ' '.repeat(59) + 'oops', true, null, /does not read as an amount/],
-    ['61 characters: "0.000001", 52 zeros, "1" (not whole dollars)', '0.000001' + '0'.repeat(52) + '1', true, null, /not a whole number of dollars/],
-    ['64 characters: a valid start, a bad end', '4.5' + '0'.repeat(60) + 'x', true, null, /does not read as an amount/],
-    ['63 characters: a nonzero digit past the sixth decimal', '2.000000' + '0'.repeat(54) + '7', true, null, /not a whole number of dollars/],
-    ['73 characters: a sign, then spaces, then a stray digit', '-1' + ' '.repeat(70) + '2', true, null, /does not read as an amount/],
-    ['201 characters', '6.' + '0'.repeat(199), true, null, /201 characters long/],
-    ['CONTROL — 59 characters: "1", spaces, "M"', '1' + ' '.repeat(57) + 'M', false, '1', null],
-    ['CONTROL — 60 characters: "2." and zeros', '2.' + '0'.repeat(58), false, '2', null],
-    ['CONTROL — 61 characters: "3." and zeros (the whole entry is whole dollars)', '3.' + '0'.repeat(59), false, '3', null],
-    ['CONTROL — 200 characters: "6." and zeros', '6.' + '0'.repeat(198), false, '6', null],
-    ['CONTROL — over $10 trillion', '10000001', true, null, /more than the \$10,000,000,000,000/],
-    ['CONTROL — blank is a clear', '   ', false, '0', null],
-  ];
-  CASES.forEach(([lbl, t, refused, amt, msg]) => {
-    const r = typed(t);
-    if (refused) w5Chk(name, lbl, 'refused: the row’s figure, its stamp, the log’s stamp and the stored bytes are unchanged, and the message says why',
-      J([r.same, r.amt, msg.test(r.stat)]), J([true, '5', true]));
-    else w5Chk(name, lbl, 'recorded as the whole entry reads', r.amt, amt);
-  });
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, []);
-  await settleBoards();
-})();
-// ==== end v1.99 item 87 ====
+// (v1.99 item 87, the reprogramming $M field, went with the ATR/BTR tracker in v2.02.)
 // ==== v1.99 item 88 (review N04): a locked cycle keeps the RCN / EEIC list it was locked with ====
 // On v1.98's fixture: P's CLIN 0001 is on K1 (11111 / AAAAA) with its AFRC on K3 (33333 / CCCCC). Lock the window; then,
 // in the working list, give K1 new codes (99999 / ZZZZZ) and remove K3. FAILS ON v1.98: the cycle's view read today's
@@ -9160,7 +8788,7 @@ await (async () => {
 
     // ---- C (review round 1). THE WORDS ONCE THE PERSON ACTS ON THEM ----
     // A refusal stood on the status line after the next workbook was made, still saying no file was made: the Excel export
-    // and the ATR/BTR log say nothing of their own. Refused, the title retyped through the board's own field, exported again:
+    // says nothing of its own. Refused, the title retyped through the board's own field, exported again:
     // the workbook is made and the refusal is gone. The chart image's refusal goes when a workbook is made; a line said after
     // a refusal stays; the deck says its own word when it is made.
     const shown = Y => Y.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
@@ -9582,7 +9210,7 @@ await (async () => {
     XO.ev(HELP);
     typed(XI, 'H', 'Plan event');
     const ROUTES = [[XD, 'exportRlgPlan()'], [XD, 'pmoReport()'], [XO, 'crExport()'], [XI, 'exportIdsReq'], [XD, 'exportFlow()'], [XD, 'exportExView()'],
-      [XD, 'exportSrc()'], [XD, 'exportPlans()'], [XD, 'exportFydpPlan()'], [XD, 'exportCycCompare()'], [XD, 'exportReprog()'], [XD, 'exportFcView()'],
+      [XD, 'exportSrc()'], [XD, 'exportPlans()'], [XD, 'exportFydpPlan()'], [XD, 'exportCycCompare()'], [XD, 'exportFcView()'],
       [XD, 'exportCSV()'], [XD, 'exportAceTieout()'], [XD, 'exportExcel()'], [XD, 'exportCoa()'], [XD, 'exportPPT()']];
     const callOf = (c, org) => c === 'exportIdsReq' ? `exportIdsReq(${FORM(org)})` : c;
     for (const [Y, c] of ROUTES) {
@@ -10240,7 +9868,7 @@ await (async () => {
       const B5 = boot({ ls: ls1 });
       B5.ev(`driveStoreOn=function(){ return true; }; _driveDir={queryPermission:function(){ return Promise.resolve('granted'); }, name:'Data'};
         driveStorePull=function(){ setStat('⬇ Loaded O&M from the shared folder (stood in for by this check).'); return Promise.resolve(true); };
-        driveExecPull=function(){ return Promise.resolve(); }; driveAcePull=driveExecPull; driveRpPull=driveExecPull; 'ok'`);
+        driveExecPull=function(){ return Promise.resolve(); }; driveAcePull=driveExecPull; 'ok'`);
       await nap(400);
       w5Chk(name, '(k) a board holding “unassigned” opens · (5) the shared folder answers at opening', 'the folder’s line, then the warning, once',
         line(B5), '⬇ Loaded O&M from the shared folder (stood in for by this check). ' + W1);

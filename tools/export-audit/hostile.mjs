@@ -167,8 +167,8 @@ const CLOSE = tryIt(`document.querySelectorAll('.modal-bg').forEach(function(e){
 // board shows them re-read by the budget rules -- trimmed and re-cased -- so the planted text never
 // reaches the screen verbatim to be recognised; they are still watched by the handler reading.)
 export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'note1', 'desc1', 'cons1', 'recname1', 'ccar1',
-  'pid1', 'ce1', 'wbs1', 'bandname', 'clindesc', 'clinnewdesc', 'customtitle', 'aceset', 'rptitle', 'rpappn', 'destname',
-  'jrnlby', 'subtitle', 'subnewtitle', 'snapname', 'lgtitle', 'bmadd'];
+  'pid1', 'ce1', 'wbs1', 'bandname', 'clindesc', 'clinnewdesc', 'customtitle', 'aceset', 'destname',
+  'jrnlby', 'subtitle', 'subnewtitle', 'snapname', 'bmadd'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).

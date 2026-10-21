@@ -50,7 +50,7 @@ requirement.
 
 **Move the money.** A funding realignment tool that searches for cover across services and fiscal
 years, shows the arithmetic before it suggests anything, and explains what it considered rather than
-only what it chose. Plus a reprogramming (ATR/BTR) tracker, prime CLIN drill, and service
+only what it chose. Plus a prime CLIN drill and service
 realignment that always preserves a requirement's total.
 
 **Reconcile against reality.** Import a monthly CCaR QPE pull and compare it to the board — coverage
@@ -81,7 +81,7 @@ spend forecast — the board's own totals are unchanged — and every figure it 
 a what-if cannot be mistaken for the funded plan once it has been emailed. **◧ Discretionary +
 Mandatory** is the board's actual plan and the default.
 
-**Get it out.** Excel workbooks (full breakouts, ACE tie-out, chart of accounts, ATR/BTR log, spend
+**Get it out.** Excel workbooks (full breakouts, ACE tie-out, chart of accounts, spend
 plan source, CR cash return), CSV priority drills by band and per PMO, and a PowerPoint deck built
 *inside* the real SFCB template so slides land on-brand. The XLSX reader and writer and the PPTX
 writer are all hand-rolled against the browser's native decompression — there is no Office library.

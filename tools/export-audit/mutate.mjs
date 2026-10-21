@@ -1026,17 +1026,10 @@ const MUTATIONS = [
   // ---- the reprogramming log: deducts are negative, and the types stay apart ----------------------
   // v1.97 (item 81): exportReprog nets through rpNetM, exactly, by each row's own appropriation's service -- RETARGETED there, each
   // the same defect.
-  { id: 'rp-deduct-not-negative', area: 'exportReprog', what: 'a deduct adds to the net instead of subtracting',
-    find: "    ys.push([a.y.neg!==(r.dir==='deduct'), a.y]);",
-    repl: "    ys.push([a.y.neg, a.y]);" },
-  { id: 'rp-svc-key-mixes-types', area: 'exportReprog', what: 'BTRs and ATRs net together under one service',
-    find: "{v:rpNetM(byT.BTR.filter(L[1]), amOf),s:N2}", repl: "{v:rpNetM(byT.BTR.concat(byT.ATR).filter(L[1]), amOf),s:N2}" },
-  { id: 'rp-total-drops-atr', area: 'exportReprog', what: 'the grand net forgets the ATRs',
-    find: "{v:rpNetM(byT.BTR.concat(byT.ATR), amOf),s:NB2}]);",
-    repl: "{v:rpNetM(byT.BTR, amOf),s:NB2}]);" },
-  { id: 'rp-subtotal-adds-deducts', area: 'exportReprog', what: 'a type’s subtotal adds deducts instead of netting them',
-    find: "{v:rpNetM(es, amOf),s:NB2}",
-    repl: "{v:rpNetM(es.map(r=>Object.assign({}, r, {dir:'add'})), amOf),s:NB2}" },
+  // v2.02: rp-deduct-not-negative RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: rp-svc-key-mixes-types RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: rp-total-drops-atr RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: rp-subtotal-adds-deducts RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
 
   // ---- the ACE tie-out: funded, estimate, delta, and the line no office reports under ---------------
   { id: 'ace-total-skips-unconfirmed', area: 'exportAceTieout', what: 'the board-funded total forgets every requirement that has not confirmed a line',
@@ -2996,13 +2989,9 @@ const MUTATIONS = [
   { id: 'batch-refusal-goes-on', area: 'importBoards', what: 'a refused batch import still changes memory and says it imported',
     find: "        return fullImportUndone(done, W, r0.txt||'', files.length>1? r0.name+' (one of '+files.length+' files)' : r0.name); }",
     repl: "        fullImportUndone(done, W, r0.txt||'', files.length>1? r0.name+' (one of '+files.length+' files)' : r0.name); }" },
-  { id: 'rp-unreadable-is-empty', area: 'driveRpPush', what: 'a reprogramming log that could not be read is taken for no log, and written over',
-    find: "    catch(e){ if(!(e && e.name==='NotFoundError')){\n      const why=((e&&e.name)&&e.name!=='Error')? e.name : ((e&&e.message)||'error');",
-    repl: "    catch(e){ if(false){\n      const why=((e&&e.name)&&e.name!=='Error')? e.name : ((e&&e.message)||'error');" },
-  { id: 'rp-partial-written-over', area: 'driveRpPush', what: 'a reprogramming log that is not whole is written over',
-    find: "      if(!cur || typeof cur!=='object' || !Array.isArray(cur.entries)){", repl: "      if(false){" },
-  { id: 'rp-no-history', area: 'driveRpPush', what: 'the folder’s reprogramming log is replaced without a copy in the history',
-    find: "      if(await snapKeep(dir, 'rp', 'log', txt, true)!=='kept'){", repl: "      if(false){" },
+  // v2.02: rp-unreadable-is-empty RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: rp-partial-written-over RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: rp-no-history RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: 'sidecar-typed-replaced', area: 'sharedArrived', what: 'a shared state file that answers late replaces what was typed',
     find: "  if(DIRTY){\n    setStat('\\u26a0 The shared state file ('", repl: "  if(false){\n    setStat('\\u26a0 The shared state file ('" },
   { id: 'sidecar-no-keep', area: 'sharedArrived', what: 'a shared state file replaces a reopened draft without keeping it aside',
@@ -3237,11 +3226,11 @@ const MUTATIONS = [
     find: "      pkgSvcEach({items:pk.items, base:pk.base, added:pk.added}, function(v, l, kind, set){ set(pick(v)); });",
     repl: "" },
   { id: "v197w4-rp-left", area: "svcSaveList", what: "this appropriation's reprogramming rows stay by place",
-    find: "      const k=from.indexOf(j); if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });",   // v1.97 integration: retargeted
-    repl: "      const k=from.indexOf(j); if(false){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });" },
+    find: "      if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });",   // v2.02: retargeted (the line split)
+    repl: "      if(false){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });" },
   { id: "v197w4-rp-unstamped", area: "svcSaveList", what: "a reprogramming row moved to its service is not stamped, so a merge can take the old place back",
-    find: "      const k=from.indexOf(j); if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });",   // v1.97 integration: retargeted
-    repl: "      const k=from.indexOf(j); if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpN++; } });" },
+    find: "      if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });",   // v2.02: retargeted (the line split)
+    repl: "      if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpN++; } });" },
   { id: "v197w4-cycle-blind", area: "svcListBlock", what: "a kept cycle's services move, change name or go under it",
     find: "    for(let p=0; p<w; p++) if(list[p]!==old[p]) return true;",
     repl: "    for(let p=0; p<w; p++) if(false) return true;" },
@@ -3251,9 +3240,7 @@ const MUTATIONS = [
   { id: "v197w4-del-asks-first", area: "svcDel", what: "removing a service that cannot go asks first and refuses after",
     find: "  const list=old.filter((s,j)=>j!==i), from=old.map((s,j)=>j).filter(j=>j!==i);\n  const why=svcListBlock(list, from);",
     repl: "  const list=old.filter((s,j)=>j!==i), from=old.map((s,j)=>j).filter(j=>j!==i);\n  const why='';" },
-  { id: "v197w4-rp-delete-blind", area: "svcListBlock", what: "a service with reprogramming rows on it is removed, and the rows read another service",
-    find: "    if(rp) why.push(",
-    repl: "    if(false) why.push(" },
+  // v2.02: v197w4-rp-delete-blind RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v197w4-subs-delete-blind", area: "svcListBlock", what: "a service a held submittal has figures for is removed",
     find: "    if(subs.length) why.push(",
     repl: "    if(false) why.push(" },
@@ -3314,40 +3301,24 @@ const MUTATIONS = [
   // ==== end v1.97 W4 ====
   // ==== v1.97 W5: the reprogramming log by service and in whole dollars, and its money-map cells (items 81, 62) ====
   // the row's service, read from its OWN appropriation's list (item 81)
-  { id: 'w5-rp-svc-board-on-screen', area: 'rpSvcOf', what: 'a row’s service is read against the board on screen, not its own appropriation',
-    find: "  const list=L(r? r.ap : null);", repl: "  const list=SVC.slice();" },
-  { id: 'w5-rp-list-file-before-browser', area: 'rpSvcsOf', what: 'another appropriation’s list is read from the file’s slot before this browser’s stored board, unlike its own opening',
-    find: "const pk=_hasData(emb)? emb : (ls && _hasData(ls.dataPack))? ls.dataPack : (pub && _hasData(pub.dataPack))? pub.dataPack : null;",
-    repl: "const pk=_hasData(emb)? emb : (pub && _hasData(pub.dataPack))? pub.dataPack : (ls && _hasData(ls.dataPack))? ls.dataPack : null;" },
-  { id: 'w5-rp-no-own-list', area: 'rpSvcsOf', what: 'a board with no data pack is taken to have no services, so its rows go unresolved',
-    find: "  return (st && names(st.svc))? st.svc.slice() : null;", repl: "  return null;" },
-  { id: 'w5-rp-legacy-unmarked', area: 'rpSvcOf', what: 'a row read from its position is shown as if its service had been picked',
-    find: "return {name:list[at], how:'pos', list:list, inList:true, at:at};", repl: "return {name:list[at], how:'pick', list:list, inList:true, at:at};" },
+  // v2.02: w5-rp-svc-board-on-screen RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-list-file-before-browser RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-no-own-list RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-legacy-unmarked RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: 'w5-rp-seal-ignored', area: 'rpNamed', what: 'a name an older version left behind wins over the position that version changed',
     find: "Number.isInteger(r.svcPos) && r.svcPos===Number(r.svc); }", repl: "Number.isInteger(r.svcPos); }" },
-  { id: 'w5-rp-pick-from-board', area: 'rpSetField', what: 'the picker takes the board on screen’s services, not the row’s own appropriation’s',
-    find: "    L=rpSvcsOf(r.ap)||[];", repl: "    L=SVC.slice();" },
-  { id: 'w5-rp-move-reads-new-position', area: 'rpSetField', what: 'moving a row to another appropriation reads its old position against the new list',
-    find: "    if(was.name!==null){", repl: "    if(false){" },
-  { id: 'w5-rp-new-entry-board-service', area: 'rpAddEntry', what: 'a new entry starts on the board on screen’s first service, not its own appropriation’s',
-    find: "  const L=rpSvcsOf(ap)||[];", repl: "  const L=SVC.slice();" },
-  { id: 'w5-rp-summary-own-board-only', area: 'exportReprog', what: 'the summary lists the board on screen’s services, not those of the appropriations in the log',
-    find: "  aps.forEach(k=>{ if(k) (Lof(k)||[]).forEach(take); });", repl: "  SVC.forEach(take);" },
-  { id: 'w5-rp-no-unresolved-line', area: 'exportReprog', what: 'a row whose service cannot be read drops out of the summary',
-    find: "  if(all.some(r=>svOf(r).name===null)) lines.push([UNRES, r=>svOf(r).name===null]);", repl: "" },
+  // v2.02: w5-rp-pick-from-board RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-move-reads-new-position RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-new-entry-board-service RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-summary-own-board-only RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-no-unresolved-line RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   // whole dollars (Brad, 5 Oct 2026: "no fractional values")
-  { id: 'w5-rp-fraction-accepted', area: 'rpAmtTyped', what: 'an amount finer than a dollar is recorded',
-    find: "  if(y.c) return {ok:false, why:", repl: "  if(false) return {ok:false, why:" },
-  { id: 'w5-rp-amount-front-only', area: 'rpAmtText', what: 'the $M field reads the front of what is typed (100oops is 100)',
-    find: "[mM]?$/.exec(String(t).trim())", repl: "[mM]?/.exec(String(t).trim())" },
-  { id: 'w5-rp-refused-still-written', area: 'rpSetField', what: 'a refused amount is written over the one the entry had',
-    find: "    if(!amt.ok){ setStat(", repl: "    if(!amt.ok && false){ setStat(" },
-  { id: 'w5-rp-net-drops-fraction', area: 'rpNetM', what: 'a saved fraction of a dollar is dropped from the nets',
-    find: "const u=BigInt(e[1].d+e[1].c.padEnd(S,'0'));", repl: "const u=BigInt(e[1].d+'0'.repeat(S));" },
-  { id: 'w5-rp-fraction-unmarked', area: 'rpBody', what: 'the tracker does not mark an entry saved with a fraction of a dollar',
-    find: "amChk=am.bad || !am.whole;", repl: "amChk=am.bad;" },
-  { id: 'w5-rp-fraction-unnamed', area: 'rpCheckOf', what: 'the export’s Check column does not name an entry that is not whole dollars',
-    find: "  else if(!a.whole) out.push(", repl: "  else if(false) out.push(" },
+  // v2.02: w5-rp-fraction-accepted RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-amount-front-only RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-refused-still-written RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-net-drops-fraction RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-fraction-unmarked RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: w5-rp-fraction-unnamed RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   // ==== end v1.97 W5 ====
   // ==== v1.97 W6: the money map’s nine open cells, except the reprogramming log (item 62) ====
   // item 62: the money map's cells for the Two Spend Plans (service, requirement, lane), the funds flow (appropriation,
@@ -3573,12 +3544,8 @@ const MUTATIONS = [
   { id: "v199-ap-frac-round", area: "apExact", what: "fractional weights are rounded to whole numbers",
     find: "  if(w.every(function(x){ return Number.isSafeInteger(x); })) return w.map(function(x){ return BigInt(x); });",
     repl: "  return w.map(function(x){ return BigInt(Math.round(x)); });" },
-  { id: "v199-rp-slice", area: "rpAmtTyped", what: "the $M field reads only the first 60 characters again",
-    find: "  const t=String((txt===null || txt===undefined)? '' : txt).trim();\n  if(t==='') return {ok:true, m:0, y:{neg:false, d:'0', c:''}};\n  if(t.length>RP_AMT_MAX)",
-    repl: "  const t=String((txt===null || txt===undefined)? '' : txt).trim().slice(0,60);\n  if(t==='') return {ok:true, m:0, y:{neg:false, d:'0', c:''}};\n  if(t.length>RP_AMT_MAX)" },
-  { id: "v199-rp-no-max", area: "rpAmtTyped", what: "an entry of any length is read, with no refusal of one longer than the limit",
-    find: "  if(t.length>RP_AMT_MAX) return {ok:false,",
-    repl: "  if(false) return {ok:false," },
+  // v2.02: v199-rp-slice RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
+  // v2.02: v199-rp-no-max RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v199-batch-stops", area: "lsPutBack", what: "putting the lists back stops at the first that will not go back, as every() did",
     find: "    try{ if(held[i]===null) localStorage.removeItem(W[i][0]); else lsSet(W[i][0], held[i], W[i][2]+' (putting it back)'); }catch(e){}\n  }",
     repl: "    try{ if(held[i]===null) localStorage.removeItem(W[i][0]); else if(!lsSet(W[i][0], held[i], W[i][2]+' (putting it back)')) break; }catch(e){ break; }\n  }" },
@@ -3690,9 +3657,7 @@ const MUTATIONS = [
   { id: "v199-ace-pull-unstaged", area: "driveAcePull", what: "a check of the folder takes each estimate as it reads it",
     find: "      if(!have){ staged[j.key]=j.set; took.push(j.key); continue; }",
     repl: "      if(!have){ staged[j.key]=j.set; ACEDB.sets[j.key]=j.set; took.push(j.key); continue; }" },
-  { id: "v199-rp-kept-after", area: "driveRpPush", what: "the merged log is kept in browser storage only after the folder is written",
-    find: "    const kept=persistRp();",
-    repl: "    const kept=true;" },
+  // v2.02: v199-rp-kept-after RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v199-dest-touched-dropped", area: "destMigrate", what: "a destination list that only joins a name is changed in memory and never stored",
     find: "      if(al.fresh || al.touched) keep=true;      // v1.99 (item 95): a map entry",
     repl: "      if(al.fresh) keep=true;      // v1.99 (item 95): a map entry" },
@@ -4228,8 +4193,8 @@ const MUTATIONS = [
     find: "    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }\n",
     repl: "    if(!base) driveBaseSet(mySlug(), theirs);\n" },
   { id: "v200-u13-pull-unchecked", area: "driveStorePull", what: "every v2.00 (U13) check removed: the refresh loads a newer copy while a save writes (and records a copy as the base) as before U13, and the save lands recording the board saved against its own copy while the screen shows the copy loaded",
-    find: "    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }\n    else if(theirs!==base){ driveClashSay(j, false); render(); }\n    return false;\n  }\n  if(DIRTY){\n    // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board\n    // losing what somebody had just typed.\n    setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes. '\n      +'Nothing was replaced. Save yours, or reload to take theirs.');\n    render(); return false;\n  }\n  // THE EMPTY TEMPLATE HAS NO REQUIREMENTS UNTIL IT REOPENS. `DATA` is a const resolved at boot,\n  // so on the SHELL the folder's copy is persisted and the page reopened once - the same thing the\n  // routed import does. Only when the copy carries requirement data, or this would loop.\n  // A COPY WITH NO REQUIREMENT DATA IS NEVER ADOPTED, by any board. An empty template that saved\n  // before it had loaded anything would otherwise hand every full board a \"newer\" copy with nothing\n  // in it, and a board with no years cannot even draw itself. Nothing is changed here.\n  if(!_hasPack(j.store)){\n    setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' carries no requirement data, so it was not loaded'\n      +(IS_SHELL? ', and this empty template cannot open it.' : ' — this board keeps its own.')\n      +' It needs to be saved once from a board that holds the requirements.');\n    render(); return false;\n  }\n  // v2.00 (U13, Brad 12 Oct): NOT WHILE A SAVE IS UNDER WAY -- checked here, after the last wait and before anything is\n  // changed, so a save that started while the folder was being read is seen too. A save that lands records the copy IT\n  // wrote as the one the work on screen came from, and marks the board saved: a copy loaded while it was writing stayed on\n  // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now\n  // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and\n  // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does\n  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this\n  // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost\n  // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.\n  if(_saveBusy){\n    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);\n    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>",
-    repl: "    if(!base) driveBaseSet(mySlug(), theirs);\n    else if(theirs!==base){ driveClashSay(j, false); render(); }\n    return false;\n  }\n  if(DIRTY){\n    // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board\n    // losing what somebody had just typed.\n    setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes. '\n      +'Nothing was replaced. Save yours, or reload to take theirs.');\n    render(); return false;\n  }\n  // THE EMPTY TEMPLATE HAS NO REQUIREMENTS UNTIL IT REOPENS. `DATA` is a const resolved at boot,\n  // so on the SHELL the folder's copy is persisted and the page reopened once - the same thing the\n  // routed import does. Only when the copy carries requirement data, or this would loop.\n  // A COPY WITH NO REQUIREMENT DATA IS NEVER ADOPTED, by any board. An empty template that saved\n  // before it had loaded anything would otherwise hand every full board a \"newer\" copy with nothing\n  // in it, and a board with no years cannot even draw itself. Nothing is changed here.\n  if(!_hasPack(j.store)){\n    setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' carries no requirement data, so it was not loaded'\n      +(IS_SHELL? ', and this empty template cannot open it.' : ' — this board keeps its own.')\n      +' It needs to be saved once from a board that holds the requirements.');\n    render(); return false;\n  }\n  // v2.00 (U13, Brad 12 Oct): NOT WHILE A SAVE IS UNDER WAY -- checked here, after the last wait and before anything is\n  // changed, so a save that started while the folder was being read is seen too. A save that lands records the copy IT\n  // wrote as the one the work on screen came from, and marks the board saved: a copy loaded while it was writing stayed on\n  // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now\n  // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and\n  // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does\n  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this\n  // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost\n  // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.\n  if(false){\n    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);\n    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>" },
+    find: "    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }\n    else if(theirs!==base){ driveClashSay(j, false); render(); }\n    return false;\n  }\n  if(DIRTY){\n    // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board\n    // losing what somebody had just typed.\n    setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes. '\n      +'Nothing was replaced. Save yours, or reload to take theirs.');\n    render(); return false;\n  }\n  // THE EMPTY TEMPLATE HAS NO REQUIREMENTS UNTIL IT REOPENS. `DATA` is a const resolved at boot,\n  // so on the SHELL the folder's copy is persisted and the page reopened once - the same thing the\n  // routed import does. Only when the copy carries requirement data, or this would loop.\n  // A COPY WITH NO REQUIREMENT DATA IS NEVER ADOPTED, by any board. An empty template that saved\n  // before it had loaded anything would otherwise hand every full board a \"newer\" copy with nothing\n  // in it, and a board with no years cannot even draw itself. Nothing is changed here.\n  if(!_hasPack(j.store)){\n    setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' carries no requirement data, so it was not loaded'\n      +(IS_SHELL? ', and this empty template cannot open it.' : ' — this board keeps its own.')\n      +' It needs to be saved once from a board that holds the requirements.');\n    render(); return false;\n  }\n  // v2.00 (U13, Brad 12 Oct): NOT WHILE A SAVE IS UNDER WAY -- checked here, after the last wait and before anything is\n  // changed, so a save that started while the folder was being read is seen too. A save that lands records the copy IT\n  // wrote as the one the work on screen came from, and marks the board saved: a copy loaded while it was writing stayed on\n  // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now\n  // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and\n  // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does\n  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this\n  // board's copy and nothing wider: the same Connect goes on to load the execution data and cost\n  // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.\n  if(_saveBusy){\n    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);\n    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>",
+    repl: "    if(!base) driveBaseSet(mySlug(), theirs);\n    else if(theirs!==base){ driveClashSay(j, false); render(); }\n    return false;\n  }\n  if(DIRTY){\n    // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board\n    // losing what somebody had just typed.\n    setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' to the shared folder '+esc(liveAge(theirs))+', and you have unsaved changes. '\n      +'Nothing was replaced. Save yours, or reload to take theirs.');\n    render(); return false;\n  }\n  // THE EMPTY TEMPLATE HAS NO REQUIREMENTS UNTIL IT REOPENS. `DATA` is a const resolved at boot,\n  // so on the SHELL the folder's copy is persisted and the page reopened once - the same thing the\n  // routed import does. Only when the copy carries requirement data, or this would loop.\n  // A COPY WITH NO REQUIREMENT DATA IS NEVER ADOPTED, by any board. An empty template that saved\n  // before it had loaded anything would otherwise hand every full board a \"newer\" copy with nothing\n  // in it, and a board with no years cannot even draw itself. Nothing is changed here.\n  if(!_hasPack(j.store)){\n    setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())\n      +' carries no requirement data, so it was not loaded'\n      +(IS_SHELL? ', and this empty template cannot open it.' : ' — this board keeps its own.')\n      +' It needs to be saved once from a board that holds the requirements.');\n    render(); return false;\n  }\n  // v2.00 (U13, Brad 12 Oct): NOT WHILE A SAVE IS UNDER WAY -- checked here, after the last wait and before anything is\n  // changed, so a save that started while the folder was being read is seen too. A save that lands records the copy IT\n  // wrote as the one the work on screen came from, and marks the board saved: a copy loaded while it was writing stayed on\n  // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now\n  // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and\n  // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does\n  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this\n  // board's copy and nothing wider: the same Connect goes on to load the execution data and cost\n  // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.\n  if(false){\n    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);\n    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>" },
   { id: "v200-u13-said-nothing-loaded", area: "driveStorePull", what: "a Connect during a save says nothing was loaded from the shared folder and nothing was changed, while the same Connect goes on to load the execution data, the reprogramming log and cost estimates from the folder; and it says a save was under way when it was Load theirs",
     find: "    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '\n      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '\n      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');\n",
     repl: "    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '\n      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '\n      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');\n" },
@@ -5449,9 +5414,7 @@ const MUTATIONS = [
   { id: "v200-u37-guard-exportcyccompare", area: "exportCycCompare", what: "the refused writer’s null is not checked: exportCycCompare goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx(sheets);\n  if(!bytes) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Cycle Comparison — '",
     repl: "  const bytes=buildXlsx(sheets);\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName('ORBIT Cycle Comparison — '" },
-  { id: "v200-u37-guard-exportreprog", area: "exportReprog", what: "the refused writer’s null is not checked: exportReprog goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildXlsx([sheet]);\n  if(!bytes) return;\n",
-    repl: "  const bytes=buildXlsx([sheet]);\n" },
+  // v2.02: v200-u37-guard-exportreprog RETIRED AS OBSOLETE, not equivalent -- the code it guarded was removed with the ATR/BTR tracker (Brad, 21 Oct 2026).
   { id: "v200-u37-guard-exportfcview", area: "exportFcView", what: "the refused writer’s null is not checked: exportFcView goes on to a Blob, a download and its own word after the refusal",
     find: "  const blob=buildXlsx([sheet]);\n  if(!blob) return;\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName(FYL()+' Spend Plan Forecast - '",
     repl: "  const blob=buildXlsx([sheet]);\n  const a=document.createElement('a');\n  a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));\n  a.download=expName(FYL()+' Spend Plan Forecast - '" },
@@ -6753,6 +6716,12 @@ const MUTATIONS = [
   { id: "v200-u44-d5-fold-held-gone", area: "destFold", what: "a board not yet put right reads its repeats' keys of their own without counting past the keys its list holds: the consolidated board, holding Bravo Yard as \"ddar1\" from one manager's return, reads the second manager's Charlie Yard (\"ddar2\") as its Delta Dock, and R2 and its 300 come across on Delta Dock (D5 SF2)",
     find: "destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });",
     repl: "destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone)) : null]; });" },
+  // v2.02 (Brad, 21 Oct 2026): the ATR/BTR tracker was removed and its log is carried, not shown; removing a service is no
+  // longer refused for the rows on it. A row that carried only the removed service's PLACE is given that service's name,
+  // sealed where it stood. Caught by audit-board's "v1.97 W4 — reprogramming rows and held submittals follow the list".
+  { id: "v202-rp-removed-place-unsealed", area: "svcSaveList", what: "a reprogramming row on a removed service that carried only its place is left there, and reads the next service as its own",
+    find: "      if(k<0 && !named){ r.svcName=old[j]; r.svc=j; r.svcPos=j; r.svcBy='pos'; rpTouch(r); rpN++; return; }\n",
+    repl: "" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

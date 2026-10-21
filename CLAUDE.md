@@ -85,10 +85,10 @@ and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision,
 left menu, top to bottom:
 
 - **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
-  **Execution ▸** (Active Year Execution, Reprogramming Actions, Spend Plan Forecast, CR Cash Needs, QPE coverage,
-  ORBIT vs CCaR), Cycles & compare, Brief. A view lives there and nowhere else.
-- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the six groups as
-  labelled sections (`sec()`), each item one click; a section whose views moved says where they are.
+  **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
+  Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
+- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the groups as
+  labelled sections (`sec()`; five since v2.02, when Execution & reprogramming went with the tracker), each item one click; a section whose views moved says where they are.
 - **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
   out, and packages); **Data** (box `#uiDataPanel`, `dd_data`: a card per source, with when it was last loaded);
   **Program offices ▸** (`dd_offices`: Publish PMO copy, Review submittals, load one or all submittals; hidden in a PMO
@@ -2163,7 +2163,8 @@ So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it an
 writes a file containing the *old* state. `check.mjs` guards this.
 
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
-`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog`, `prio27appn`, `prio27who`,
+`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog` (the reprogramming log: carried, not shown, since
+v2.02), `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
 aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
@@ -4106,6 +4107,32 @@ is drawn, and `drawerOpen()` returns early when docked). The BAE pickers each ta
 K reads every requirement's panel as the browser drew it and fails on anything clipped, ellipsed, spilled, past the edge, a
 field cutting its value or a picker cutting its name. **A new control or figure in the panel must pass K.** A PID is up to 35
 characters (`codeMax`).
+
+### v2.02: ATR/BTR tracking removed; the log is carried, not shown
+
+Brad, 21 Oct 2026: *"For ATR/BTRs and the tracking there, this can be removed entirely from ORBIT. ... ATRs and BTRs do not
+effect future year funding, just active year funding. ORBIT is the future, while CCAR is the active year."*
+
+**Removed:** the ⚖ Reprogramming Actions panel (`#rpPanel`, `rpBody`, `rpSummaryHtml`), the ⬇ ATR/BTR Log export
+(`exportReprog`), the tracker's code (`toggleRp`, the filters, `rpSvcsOf`/`rpListsOf`/`rpSvcOf`, the whole-dollar $M helpers
+`rpAmtTyped`/`rpNetM` and the rest, `rpCheckOf`, `rpSvcSel`, `rpMigrate`, `rpAddEntry`, `rpSetField`, `rpDelEntry`), the
+folder share (`driveRpPush`, `driveRpPull`, `DRIVE_RP` and their calls; the folder's `spmt-reprog.json` is left alone), its
+menu entries (Execution ▸, and the Reports & exports section *Execution & reprogramming*), the Live view row, the guide's
+section, and the refusal in `svcListBlock` to remove a service reprogramming rows sit on (nothing could show or edit them,
+so it could never be satisfied).
+
+**Carried, byte for byte, because deleting user data to tidy up is not a trade this project makes:** `RPDB` (the boot pick
+of the file's `rpDb` and `prio27reprog`, with `sideBootNote`), `persistRp()`, `savedHtmlOf`'s `rpDb` (Save, the PMO copy,
+the work kept aside, the board as it was before a full import), `fileKeyOf`/`sideBootCheck`/`sideBootSay`, a full import's
+carry, `impMemSnap`/`impMemRestore`, `importStores`' merge (`rpMerge`, with `rpGone`/`rpTouch`), `oneAppnHtml`, `pkgStrip`,
+`diagSecrets`, the FYDP frame shim, and the legacy `S.reprog` normalisation. The service-list upkeep keeps a stored row's
+service meaning right (`rpAll`, `rpSlug`, `rpNamed`, `svcRpIdx`): a rename renames `svcName`, a move moves the place and the
+seal, and a row that carried only the PLACE of a removed service is given that service's name, sealed where it stood
+(`v202-rp-removed-place-unsealed`). The tracker can come back to a log that means what it meant.
+
+The feature's checks went with it (audit-recon "the reprogramming log", the five W5 log scenarios, "v1.99 item 87", the ATR
+parts of W7 F1; audit-import NR03, W5.7, item 95's share and U13's share); the carry checks stay, the W2 unsaved-list check
+now changing the log through `persistRp`. 27 mutations retired as obsolete, 3 retargeted, 1 new.
 
 ## Colour: one token, one job
 
