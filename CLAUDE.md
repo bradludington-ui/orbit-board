@@ -268,6 +268,12 @@ zip that is not a workbook, a part missing from the zip, a failed decompression,
 past the shared-string table (which used to yield `undefined` and land as a **blank cell** — missing
 data rather than a damaged file). All four callers already surface `e.message`.
 
+**OOXML's own escape is read, once (v2.02, E2).** A part may spell a character as `_xHHHH_` (a literal underscore that
+would begin one is `_x005F_`). Every text the reader takes goes through one reading: `_xunesc` for the XML, then
+`_xdecode` for the codes. A code for a character a workbook cannot hold is kept as written, so the export refuses it by
+name rather than the board carrying an invisible control character. `xlsxEscSaid()` puts the count on each import's own
+line.
+
 The fixture is built by the board's OWN writer, so a workbook that round-trips proves reader and
 writer agree — and damaging that buffer gives realistically corrupt files instead of invented ones.
 

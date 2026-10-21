@@ -117,7 +117,7 @@ Owner: **C** = the Claude lead, **B** = Brad, **X** = Codex. "Ledger" means `rec
 | # | Action | Owner | Next step |
 |---|---|---|---|
 | E1 | **Built 20 Oct (`224529d`).** **U62**: "Save yours over theirs" can say "Nothing was written." just after it wrote a history copy | C | Reproduce, fix the words, add a check that fails before and passes after. |
-| E2 | **Handoff for Codex written 21 Oct (`recovery/v202/E2-CODEX-HANDOFF.md`); waiting on the memo.** **Decode `_xHHHH_` at import** (U37's named limit: a literal `_xHHHH_` in a workbook is refused) | C, X | Codex P1 was to write the memo first. Build after the memo. |
+| E2 | **Built 21 Oct in this session (Brad: "Don't rely on codex"); `NEXT-VERSION.md` E2. The Codex handoff was not sent.** **Decode `_xHHHH_` at import** (U37's named limit: a literal `_xHHHH_` in a workbook is refused) | C, X | Codex P1 was to write the memo first. Build after the memo. |
 | E3 | **Built 20 Oct (`6f3417b`).** **U72**: beside U44's part (c), Used by can be blank and ✕ can remove a destination another board's file still uses | C | Named limit in v2.00. Fix with a check. |
 | E4 | **Built 20 Oct (`6f3417b`, `9dc0a57`).** **U60**: U18's stopped save writes browser storage before the hold stops it | C | A follow-up to U18. |
 | E5 | **Built 20 Oct (`e64553a`): the workbook sheet, Brad's choice.** **U9 labelling** (Brad, 13 Oct: label the office figure as the planning share and the Spend Plan Source lines as CLIN amounts, with a reconciliation; no dollar moves) | C | Its own small track. Codex's canonical CLIN roll-up is a separate later change. |

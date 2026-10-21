@@ -1,5 +1,8 @@
 # E2 handoff for Codex: decoding `_xHHHH_` when a workbook is imported
 
+> **Not sent.** Brad, 21 Oct 2026: "Don't rely on codex let's make the changes and updates ourselves." E2 was built in the
+> v2.02 session instead; `NEXT-VERSION.md` › E2 answers the questions below.
+
 **From:** the v2.02 working session, 21 Oct 2026, for Brad to send to Codex.
 **Repository:** `bradludington-ui/orbit-board`, branch `ccr-f11beb69-61ml9m`, at `55ba6f3` or later.
 The board's code is the same as `main` (`c357911`) apart from v2.02's E1 to E7 fixes, none of which touch the workbook

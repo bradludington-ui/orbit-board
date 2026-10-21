@@ -186,6 +186,47 @@ against its own block. 2,027 targets, each matching once.
     unchanged.
   - Not run: the mutation sweep (Brad's go, after 24 Oct).
 
+#### E2. A workbook's `_xHHHH_` codes are read as the characters they stand for (Brad, 21 Oct 2026: "Don't rely on codex let's make the changes and updates ourselves")
+The handoff written for Codex that morning (`recovery/v202/E2-CODEX-HANDOFF.md`) was not sent; its questions are answered
+here.
+- **What was wrong.** A workbook part can spell a character as `_x` + four hex digits + `_`. A literal underscore that would
+  begin such a code is written `_x005F_` (OOXML's escaped string). LibreOffice writes a U+000B as `_x000b_`.
+  - `xlsxRead` kept every code as written. A Spend Plan Source, BAE list, CCaR records export or cost estimate that another
+    program wrote reached the board with `_x0020_` where the file meant a space.
+  - Every workbook export carrying that text was then refused (U37's named limit, Brad, 19 Oct).
+  - **Found on the way:** a formula's text result (`t="str"`) was taken raw, so "O&M" in such a cell read "O&amp;M".
+- **The fix.** The reader takes all text through one reading: XML text first (`_xunesc`), codes second (`_xdecode`). That
+  covers shared strings, inline strings, formula text results and sheet names.
+  - Only lower-case `x`, exactly four hex digits of either case, and the closing underscore make a code. The U37 tests
+    measured LibreOffice reading `_X0041_`, `_x41_` and `_x0041` as written.
+  - The text is read once, left to right, so `_x005F_x0041_` is the text `_x0041_`. Two codes that make a surrogate pair are
+    read as one character.
+  - **A code for a character a workbook cannot hold is kept as written:** U+0000–U+0008, U+000B, U+000C, U+000E–U+001F,
+    U+FFFE, U+FFFF, or half of a pair. Nothing is dropped, and the board never carries an invisible control character.
+    Such text is still refused by the workbook export, naming the cell, as before.
+  - Each import's own line now says how many codes were read, and how many were kept with the refusal they will meet
+    (`xlsxEscSaid`). That covers the Spend Plan Source, BAE, CCaR records and cost estimate imports.
+- **Decided by default, Brad's to change:**
+  - **The writer keeps refusing.** It does not switch to writing `_xHHHH_` codes: that reverses the 19 Oct decision and
+    moves U37's 87 mutations. A literal `_xHHHH_` typed on the board, or kept from a file, still refuses a workbook export.
+  - **Text already on a board is left as saved.** Nothing can tell whether a `_x0020_` came from a file or was typed.
+    Importing the file again reads it correctly.
+- **One consequence to know.** Say a BAE list was imported before this fix, with a budget name written with codes, and a
+  requirement's budget choice was stored under that spelling. Importing the list again stores the decoded name. The old
+  choice then no longer matches anything in the list: the RECORD panel says it cannot be used, and the Spend Plan Source
+  and the IDS export refuse it by name. Nothing is used silently. No money is read from text, so no figure moves.
+- **Proof:** audit-import "v2.02 (E2)" builds a workbook by hand, the way another program writes one (ORBIT's writer cannot
+  make one).
+  - 17 shared strings, an inline string, a formula text result and a sheet name are each read against a hand-written
+    expected text. So are the counts and the sentence an import adds.
+  - Then a real import of CCaR records. Its header `_x0043_CaR No` is found as "CCaR No", and its title is decoded. The
+    workbook export takes the decoded title and refuses the kept `_x000b_` by name.
+  - On `c357911`, 19 checks fail. The six texts read as written are CONTROLs and pass on both. All pass here.
+  - 14 mutations `v202-e2-*`, each caught by the block. `xlsx-inline-unescaped` was retargeted to the new line, the same
+    defect, and is still caught. mcount reads 2,064 of 2,064, each matching once.
+  - Not driven by the block: the status lines of the Spend Plan Source, BAE and cost estimate imports. They call the same
+    helper, and the CCaR line, which the block does drive, proves the helper.
+
 ## Open
 
 #### 63. Found while building v1.95, not built

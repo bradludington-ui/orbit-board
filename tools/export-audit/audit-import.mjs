@@ -10785,6 +10785,111 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.02 (E7, U24) ====
+
+// ==== v2.02 (E2): a workbook's _xHHHH_ codes are read as the characters they stand for ====
+// OOXML spells a character as _x + four hex digits + _ (a literal underscore that would begin one is _x005F_); xlsxRead kept
+// every code as written, so a title another program wrote reached the board with the code in it and every workbook export
+// carrying it was refused. The workbook here is written by hand, the way another program writes one: ORBIT's own writer
+// refuses a literal code and cannot make it. Every expected text is written out below.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.02 (E2) — a workbook’s _xHHHH_ codes are read as the characters they stand for';
+  try {
+  const J = JSON.stringify;
+  const { w, ev } = boot();
+  // [shared-string XML text, what the reader must hand back]
+  const SST = [
+    ['_x0041_BC', 'ABC'],
+    ['Tab_x0009_here', 'Tab\there'],
+    ['Line_x000D__x000A_two', 'Line\r\ntwo'],
+    ['_x005F_x0041_', '_x0041_'],                     // the escaped underscore: the text _x0041_, never "A"
+    ['a_x005F_b', 'a_b'],
+    ['_X0041_ _x41_ _x0041', '_X0041_ _x41_ _x0041'],   // not codes: read as written
+    ['v_x000b_t', 'v_x000b_t'],                       // U+000B: a workbook cannot hold it, kept as written
+    ['_xD83D__xDE00_', '😀'],               // two codes, one character
+    ['lone _xD83D_ x', 'lone _xD83D_ x'],             // half of a pair: kept
+    ['lone _xDE00_ x', 'lone _xDE00_ x'],
+    ['_x0000_', '_x0000_'],
+    ['O&amp;M _x0026_ more', 'O&M & more'],
+    ['caf_x00e9_', 'café'],                           // lower-case hex
+    ['_x0041__x0042_', 'AB'],
+    ['__x0041_', '_A'],
+    ['_xFFFF_', '_xFFFF_'],
+    ['_x0026_amp;', '&amp;'],                          // XML first, codes second: the code makes text, never an entity
+  ];
+  // The entries read as written (A6, A7, A9, A10, A11, A16) are CONTROLs: main reads them the same way.
+  const out = JSON.parse(await w.eval(`(async function(){
+    var P='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', SST=${J(SST.map(x => x[0]))};
+    var si=SST.map(function(t){ return '<si><t>'+t+'</t></si>'; }).join('');
+    var cells=SST.map(function(t,i){ return '<row r="'+(i+1)+'"><c r="A'+(i+1)+'" t="s"><v>'+i+'</v></c></row>'; }).join('')
+      +'<row r="'+(SST.length+1)+'"><c r="A'+(SST.length+1)+'" t="inlineStr"><is><t>_x0042_ inline</t></is></c>'
+      +'<c r="B'+(SST.length+1)+'" t="str"><f>A1</f><v>O&amp;M_x0020_str</v></c></row>';
+    var z=_zipStore([
+      ['xl/workbook.xml', _utf8(P+'<workbook xmlns:r="r"><sheets><sheet name="Raw_x0020_Data" sheetId="1" r:id="rId1"/></sheets></workbook>')],
+      ['xl/_rels/workbook.xml.rels', _utf8(P+'<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>')],
+      ['xl/sharedStrings.xml', _utf8(P+'<sst>'+si+'</sst>')],
+      ['xl/worksheets/sheet1.xml', _utf8(P+'<worksheet><sheetData>'+cells+'</sheetData></worksheet>')]]);
+    var o={};
+    try{ var sh=await xlsxRead(z.buffer.slice(z.byteOffset, z.byteOffset+z.byteLength)); o.names=Object.keys(sh); var rows=sh[o.names[0]]||[];
+      o.col=rows.slice(0, SST.length).map(function(r){ return r[0]; }); o.inline=(rows[SST.length]||[])[0]; o.str=(rows[SST.length]||[])[1]; }
+    catch(e){ o.err=String((e&&e.message)||e); }
+    try{ o.esc=JSON.parse(JSON.stringify(XLSX_LAST.esc)); }catch(e){ o.esc='none'; }
+    try{ o.said=xlsxEscSaid(); }catch(e){ o.said='threw'; }
+    // a workbook with no code says nothing
+    var b=buildXlsx([{name:'Plain', cols:[20], rows:[[{v:'O&M plain'}]]}]);
+    try{ await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength)); o.plainSaid=xlsxEscSaid(); }catch(e){ o.plainSaid='threw'; }
+    return JSON.stringify(o);
+  })()`));
+  chk(name, 'reader', 'the hand-made workbook reads', out.err || 'read', 'read');
+  chk(name, 'reader', 'a sheet’s name: Raw_x0020_Data is Raw Data', J(out.names), J(['Raw Data']));
+  SST.forEach(([raw, want], i) => chk(name, 'shared strings', 'A' + (i + 1) + ' ' + J(raw) + ' reads ' + J(want), J((out.col || [])[i]), J(want)));
+  chk(name, 'inline string', '_x0042_ inline reads B inline', J(out.inline), J('B inline'));
+  chk(name, 'formula text', 'a formula’s text result is XML text too: O&amp;M_x0020_str reads O&M str', J(out.str), J('O&M str'));
+  // decoded: A1 1, A2 1, A3 2, A4 1, A5 1, A8 1 (one pair), A12 1, A13 1, A14 2, A15 1, A17 1, the inline 1, the formula 1, the name 1
+  // kept: A7 (U+000B), A9 and A10 (half a pair), A11 (U+0000), A16 (U+FFFF)
+  chk(name, 'counted', 'codes read and codes kept', J(out.esc), J({ dec: 16, kept: 5 }));
+  chk(name, 'said', 'the import’s line says both', out.said,
+    ' 16 characters were written in the file as _xHHHH_ codes and were read as the characters they stand for.'
+    + ' ⚠ 5 _xHHHH_ codes stand for a character a workbook cannot hold and were kept as written: a workbook export carrying'
+    + ' that text is refused, naming the cell. Correct it in the source file and import again.');
+  chk(name, 'said', 'a workbook with no code adds nothing to the line', J(out.plainSaid), J(''));
+
+  // Through a real import: the CCaR records export, its header and a title written with codes.
+  const imp = JSON.parse(await w.eval(`(async function(){
+    var P='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    var rows=[['_x0043_CaR No','Title','OPR'],['JSF1','Engine_x0020_overhaul','WR_x000b_ALC']];
+    var si=[], ix=function(t){ si.push('<si><t>'+t+'</t></si>'); return si.length-1; };
+    var cells=rows.map(function(r,i){ return '<row r="'+(i+1)+'">'+r.map(function(t,j){ return '<c r="'+'ABC'[j]+(i+1)+'" t="s"><v>'+ix(t)+'</v></c>'; }).join('')+'</row>'; }).join('');
+    var z=_zipStore([
+      ['xl/workbook.xml', _utf8(P+'<workbook xmlns:r="r"><sheets><sheet name="Records" sheetId="1" r:id="rId1"/></sheets></workbook>')],
+      ['xl/_rels/workbook.xml.rels', _utf8(P+'<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>')],
+      ['xl/sharedStrings.xml', _utf8(P+'<sst>'+si.join('')+'</sst>')],
+      ['xl/worksheets/sheet1.xml', _utf8(P+'<worksheet><sheetData>'+cells+'</sheetData></worksheet>')]]);
+    var buf=z.buffer.slice(z.byteOffset, z.byteOffset+z.byteLength), said=[];
+    var _a=window.alert; window.alert=function(m){ said.push(String(m)); };
+    await importCcarRecs({ files:[{ name:'records.xlsx', arrayBuffer:function(){ return Promise.resolve(buf); } }], value:'' });
+    var rec=(MS.ccarIdx&&MS.ccarIdx.rows||{})[ccarNorm('JSF1')]||null;
+    var st=(document.getElementById('shareStat')||{}).textContent||'';
+    // the export a title goes into: the decoded one is written, the kept code is refused by name
+    var r1=_xlsxRefused([{name:'S', rows:[[rec? rec.t : '']]}]), r2=_xlsxRefused([{name:'S', rows:[[rec? rec.o : '']]}]);
+    window.alert=_a;
+    return JSON.stringify({ rec: rec? [rec.t, rec.o] : null, tail: st.slice(-600), alerts: said, r1: r1, r2: r2 });
+  })()`));
+  chk(name, 'import', 'the header _x0043_CaR No is found as CCaR No, and the record reads as its file meant',
+    J(imp.rec), J(['Engine overhaul', 'WR_x000b_ALC']));
+  chk(name, 'import', 'the import’s line ends with what the codes came to',
+    imp.tail.endsWith(' 2 characters were written in the file as _xHHHH_ codes and were read as the characters they stand for.'
+      + ' ⚠ 1 _xHHHH_ code stands for a character a workbook cannot hold and was kept as written: a workbook export carrying'
+      + ' that text is refused, naming the cell. Correct it in the source file and import again.'), true);
+  chk(name, 'import', 'a workbook carrying the decoded title is made; one carrying the kept code is refused, naming the cell',
+    J([imp.r1, imp.r2, (imp.alerts[imp.alerts.length - 1] || '').indexOf('cell A1 holds the text _x000b_') >= 0]), J([false, true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+// ==== end v2.02 (E2) ====
 // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
 // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
 // under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put

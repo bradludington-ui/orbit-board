@@ -12544,7 +12544,7 @@ function crGo(id){ if(crOpen) toggleCr(); attGo('oblig', id); }
 // ---------- minimal XLSX reader (native browser decompression, no libraries) ----------
 // What the last workbook read actually contained. Populated by xlsxRead so the import can report
 // on a file it could not make sense of, instead of leaving the user to infer it from a blank chart.
-let XLSX_LAST={names:[], missing:[], unreadable:[]};
+let XLSX_LAST={names:[], missing:[], unreadable:[], esc:{dec:0, kept:0}};
 // XML text back to characters. &amp; LAST: decoded first, the literal text "&lt;" would be turned
 // into "&lt;" and then into "<" by the following pass - one decode too many, and silent.
 function _xunesc(t){
@@ -12552,6 +12552,44 @@ function _xunesc(t){
     .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'")
     .replace(/&#(\d+);/g,function(_,d){ return String.fromCharCode(+d); })
     .replace(/&amp;/g,'&');
+}
+// v2.02 (E2): OOXML'S OWN ESCAPE, _xHHHH_, IS READ AS THE CHARACTER IT STANDS FOR. A workbook part spells a character XML
+// cannot hold as written -- and, in practice, others too -- as _x + four hex digits (one UTF-16 unit) + _, and a literal
+// underscore that would begin one as _x005F_ (ECMA-376's escaped string). LibreOffice reads _x0041_ as "A" and writes a
+// U+000B as _x000b_; it reads _X0041_, _x41_ and _x0041 as written (measured for U37), so only lower-case x, exactly four
+// digits of either case and the closing underscore decode. xlsxRead kept every code as written, so a title another
+// program wrote reached the board with the code in it, and every workbook export carrying it was refused (U37's named
+// limit, Brad, 19 Oct). Read once, left to right: _x005F_x0041_ is the text _x0041_, never "A". Two codes that make one
+// character (a surrogate pair) decode together. A code for a character a workbook cannot hold -- U+0000-U+0008, U+000B,
+// U+000C, U+000E-U+001F, U+FFFE, U+FFFF, or half of a pair -- is KEPT AS WRITTEN, never dropped and never turned into a
+// character the board would then carry invisibly: the export refuses it by name, as before. The count goes to the
+// import's own line (xlsxEscSaid). Text already on a board is left as it was saved: nothing can tell which came from a file.
+function _xdecode(t, n){
+  const s=String(t==null?'':t);
+  if(s.indexOf('_x')<0) return s;
+  const re=/_x([0-9A-Fa-f]{4})_/g, one=/^_x([0-9A-Fa-f]{4})_/;
+  let out='', at=0, m;
+  while((m=re.exec(s))){
+    const u=parseInt(m[1],16);
+    let ch=null, end=re.lastIndex;
+    if(u>=0xD800 && u<=0xDBFF){
+      const m2=one.exec(s.slice(end)), v=m2? parseInt(m2[1],16) : -1;
+      if(v>=0xDC00 && v<=0xDFFF){ ch=String.fromCharCode(u, v); end+=m2[0].length; re.lastIndex=end; }
+    }
+    else if(!(u>=0xDC00 && u<=0xDFFF) && !XML_BADCH.test(String.fromCharCode(u))) ch=String.fromCharCode(u);
+    if(ch===null){ if(n) n.kept++; continue; }
+    out+=s.slice(at, m.index)+ch; at=end;
+    if(n) n.dec++;
+  }
+  return out+s.slice(at);
+}
+// what the last workbook's codes came to, as a sentence for an import's own line ('' when the file held none)
+function xlsxEscSaid(){
+  const e=(XLSX_LAST && XLSX_LAST.esc) || {}, d=+e.dec||0, k=+e.kept||0;
+  return (d? ' '+d+' character'+(d===1?' was':'s were')+' written in the file as '+(d===1?'an _xHHHH_ code':'_xHHHH_ codes')+' and '+(d===1? 'was' : 'were')
+      +' read as the character'+(d===1?'':'s')+' '+(d===1?'it stands':'they stand')+' for.' : '')
+    +(k? ' ⚠ '+k+' _xHHHH_ code'+(k===1?' stands':'s stand')+' for a character a workbook cannot hold and '+(k===1?'was':'were')
+      +' kept as written: a workbook export carrying that text is refused, naming the cell. Correct it in the source file and import again.' : '');
 }
 // EVERY OFFSET BELOW COMES OUT OF THE FILE ITSELF, so a truncated or damaged workbook can point
 // anywhere. Unchecked, a DataView read past the end throws "Offset is outside the bounds of the
@@ -12595,9 +12633,12 @@ async function xlsxRead(buf){
       return new TextDecoder().decode(out);
     }catch(err){ throw BAD(name+' inside it could not be decompressed'); }
   }
+  // v2.02 (E2): every text the reader takes -- shared strings, inline strings, a formula's text result, a sheet's name --
+  // is XML text first (_xunesc) and OOXML's escaped string second (_xdecode), in that order, through this one reading
+  const esc={dec:0, kept:0}, txt=x=>_xdecode(_xunesc(x), esc);
   const sst=[];
   const sx=await get('xl/sharedStrings.xml');
-  if(sx){ for(const m of sx.matchAll(/<si>([\s\S]*?)<\/si>/g)){ let t=''; for(const tm of m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) t+=tm[1]; sst.push(_xunesc(t)); } }
+  if(sx){ for(const m of sx.matchAll(/<si>([\s\S]*?)<\/si>/g)){ let t=''; for(const tm of m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) t+=tm[1]; sst.push(txt(t)); } }
   const wbx=await get('xl/workbook.xml');
   const rels=await get('xl/_rels/workbook.xml.rels');
   // A zip without these is a zip, not a workbook. Reading on would throw on null.matchAll and
@@ -12621,7 +12662,7 @@ async function xlsxRead(buf){
     if(id&&tg) rmap[id]=relPath(tg);
   }
   const sheets={};
-  XLSX_LAST={names:[], missing:[], unreadable:[]};
+  XLSX_LAST={names:[], missing:[], unreadable:[], esc:esc};
   // <sheet\b keeps this off <sheets> and <sheetPr>. Attributes are read individually so their
   // order does not matter, a closing tag is tolerated, and the relationship id is accepted under
   // any namespace prefix — none of which the old single regex allowed.
@@ -12630,7 +12671,7 @@ async function xlsxRead(buf){
     const nameRaw=(at.match(/\bname="([^"]*)"/)||[])[1];
     if(nameRaw===undefined) continue;
     const rid=(at.match(/\b[A-Za-z0-9_.-]*:?id="([^"]*)"/)||[])[1];
-    const nm=_xunesc(nameRaw);
+    const nm=txt(nameRaw);
     XLSX_LAST.names.push(nm);
     const part=rid? rmap[rid] : null;
     if(!part){ XLSX_LAST.missing.push(nm); continue; }
@@ -12650,14 +12691,15 @@ async function xlsxRead(buf){
         const vm=body.match(/<v>([\s\S]*?)<\/v>/);
         // INLINE STRINGS ARE ESCAPED TOO. This branch took the raw XML, so every workbook this
         // app writes came back with &amp; in place of & - and "O&M" is in nearly every budget name.
-        if(t==='inlineStr'){ const im=body.match(/<t[^>]*>([\s\S]*?)<\/t>/); v=im? _xunesc(im[1]):''; }
+        if(t==='inlineStr'){ const im=body.match(/<t[^>]*>([\s\S]*?)<\/t>/); v=im? txt(im[1]):''; }
         // A shared-string index past the end of the table yields undefined, which lands in the
         // sheet as a blank cell and reads as missing data rather than a damaged file.
         else if(vm){ v = t==='s'? (function(){ const ix=parseInt(vm[1]);
                        if(!(ix>=0 && ix<sst.length)) throw BAD('a cell points at text #'+ix
                          +' but its shared-string table holds '+sst.length);
                        return sst[ix]; })()
-                     : (t==='str'? vm[1] : parseFloat(vm[1])); }
+                     // v2.02 (E2): a formula's text result is XML text as well; it was taken raw, so "O&M" read "O&amp;M"
+                     : (t==='str'? txt(vm[1]) : parseFloat(vm[1])); }
         if(v!==null){ cells[ci]=v; if(ci+1>maxc) maxc=ci+1; }
       }
       const arr=[]; for(let i=0;i<maxc;i++) arr.push(cells[i]!==undefined? cells[i]:'');
@@ -12890,7 +12932,7 @@ async function importSrc(inp){
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
     setStat((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
              +(bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Execution \u203a \ud83d\udcc8 Active Year Execution, on the left menu.');
+               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Execution \u203a \ud83d\udcc8 Active Year Execution, on the left menu.'+esc(xlsxEscSaid()));
   }catch(e){
     setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
   }
@@ -15111,7 +15153,7 @@ async function importBud(inp){
       +excluded+' excluded as Flyaway/RDT&E, '+parents+' rollup rows skipped. '
       +'Of the requirement/service pairs here, <b>'+st.one+'</b> settle on their own and <b>'
       +st.many+'</b> need a choice'+(st.none? ', '+st.none+' match nothing':'')+'. '
-      +'💾 Save to bake this into the file.');
+      +'💾 Save to bake this into the file.'+esc(xlsxEscSaid()));
   }catch(e){
     alert('That file could not be read as a Budget Allocation Extract.'+String.fromCharCode(10,10)
       +((e&&e.message)||e)+String.fromCharCode(10,10)
@@ -15339,7 +15381,7 @@ async function importCcarRecs(inp){
       +(dup? ' ('+dup+' number'+(dup===1?'':'s')+' used by more than one record)':'')+'. '
       +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Title and OPR'
       +(amb? '; <b>'+amb+'</b> match an ambiguous number and are left blank rather than guessed':'')+'. '
-      +'💾 Save to bake this into the file.');
+      +'💾 Save to bake this into the file.'+esc(xlsxEscSaid()));
   }catch(e){
     alert('That file could not be read as a CCaR records export.'+String.fromCharCode(10,10)
       +((e&&e.message)||e)+String.fromCharCode(10,10)
@@ -15392,7 +15434,7 @@ async function importAce(inp){
       .map(k=>k+' '+set.skip[k]).join(' \u00b7 ');
     setStat('\ud83d\udcc8 <b>'+esc(key)+'</b> loaded and \ud83d\udd12 locked \u2014 '+set.lines.length+' cost lines across '
       +nAp+' appropriation'+(nAp===1?'':'s')+', FY'+set.years[0]+'\u2013FY'+set.years[set.years.length-1]
-      +'. Not imported: '+esc(sk)+'. \ud83d\udcbe Save to bake it into this file.');
+      +'. Not imported: '+esc(sk)+'. \ud83d\udcbe Save to bake it into this file.'+esc(xlsxEscSaid()));
   }catch(e){
     setStat('\u26a0 Cost estimate import failed: '+esc((e&&e.message)||e));
   }
@@ -26124,7 +26166,8 @@ const XF_GENERAL={0:{fill:false, font:0}, 1:{fill:false, font:1}, 2:{fill:'1B2A4
 // Half of a two-part character is not refused: the encoder writes U+FFFD, which XML allows, and the board's own
 // cuts (a title at 44 or 56 characters, a sheet name at 31) make one out of a whole emoji.
 // Such text can also come in from a workbook another program wrote (LibreOffice writes a U+000B as _x000b_, and
-// xlsxRead keeps that as written), so the words name the file it came from as well as the board.
+// xlsxRead keeps a code for a character a workbook cannot hold as written -- v2.02, E2: every other code it reads as its
+// character), so the words name the file it came from as well as the board.
 const XML_BADCH=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/;
 // what in this text the file cannot carry as written, or '' (xl: a workbook, which also reads _xHHHH_)
 function _xmlBad(t, xl){
