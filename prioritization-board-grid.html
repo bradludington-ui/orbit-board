@@ -32112,8 +32112,7 @@ function exportExcel(){
     pm.rows.push(['Disc + Mand + Unfunded = Ask on every row. \u2605 MC requirement is a MEMO of the '
       +'starred requirements\u2019 own value and is already inside those three \u2014 do not add it in. '
       +'\u2605 MC short vs Disc is that value less what the DISCRETIONARY lane covered; mandatory is '
-      +'not netted off it.']);
-    pm.rows.push([PLAN_SHARE_TXT]);   // v2.02 (E5, ledger U9L)
+      +'not netted off it. '+PLAN_SHARE_TXT]);   // v2.02 (E5, ledger U9L): in the note row, which the sheet's checks read as a note
     sheets.push(pm);
   }
   sheets.push(
