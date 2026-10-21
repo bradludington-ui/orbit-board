@@ -102,6 +102,21 @@ against its own block. 2,027 targets, each matching once.
       - N11: the deck's quoted text trimmed (cosmetic).
       - N6: the chart image checked on its drawn text only. Equivalent today.
     - The checks proposed for N2 and N14 are in the review's notes.
+- **E6's findings built** (Brad, 21 Oct 2026: "Press").
+  - *Sheet names (`b820e7f`).* `sheetNamer(taken, max)` is the funds flow's namer, now shared. It knows every name already
+    in the workbook, makes `\ / ? * [ ] :` and control characters spaces, and numbers a repeat. The workbook's PMO tabs and
+    the Priority Drill's office tabs go through it. audit-recon "v2.02 (E6)", with every name worked out by hand: it fails
+    on `c357911` (repeated sheets, and fewer read back than written) and passes here. Five `v202-e6-*` mutations, each
+    caught. Three U42 mutations were retargeted to the shared namer and are still caught.
+  - *The E5 sheet's note* now says the Spend Plan Source lists every line under the requirement's own office. Its mutant
+    is caught.
+  - *U37's A14 and A15 (`44a8418`).* A14 writes U+2028 and U+2029 and reads them back; A15 checks that a refusal quotes the
+    text around the character it names. Both pass on `c357911`: they close a test gap. Each catches its mutant.
+  - *Checks at `44a8418`:*
+    - `npm run check`;
+    - mcount: 2,040 targets, each matching once;
+    - `npm run audit`: exit 0, nine banners plus the legacy line;
+    - every browser tool and `npm run standards`: only the 8 carried layout-fits D results.
 - **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
   - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
   - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
