@@ -335,7 +335,49 @@ here.
   - The column goes last, after the codes, so nothing read by place moves. The note says what it is.
   - audit-recon "v2.02 (D5a)": a prime over two CLINs and a requirement over two WBS lines, worked by hand. 3 mutations,
     each caught; `v197w6-ace-breakout-year` was retargeted.
-- **Item 89 (with D5b):** being built; recorded when it lands.
+- **Item 89: a locked cycle keeps its own lists** (`a3ff370`; ledger U52, U53).
+  - **What the lock keeps:** `cycLock` stores `keep` (`cycKeepNow()`, `keepV:1`) beside `rcn`:
+    - the destination list;
+    - the bands;
+    - this appropriation's BAE rows;
+    - the PMO list;
+    - the data pack (items and CLINs);
+    - the funds-flow settings, partner and FMS money and the year selection included;
+    - the service list, for the record.
+  - **How the view reads them:**
+    - The plan-level lists go on the view's throwaway copy.
+    - The board-wide lists (`DESTDB`, `BUDDB`, `BASE_ITEMS`, `BASE_ASK`, `CLINS`) are swapped in by `cycSwapIn` and put
+      back exactly by `cycSwapOut` when the view is left. Leaving is proved byte for byte.
+    - `lsSet` refuses the destination and BAE keys while the swap is on.
+  - **Older cycles and copies:** a cycle locked before v2.02 reads today's lists and says so (`cycKeepToday`). A PMO copy
+    carries no `keep`.
+  - **Size:** about 44 KB per cycle on a 115-requirement board, 36 KB of it the data pack.
+  - **Still read live in every view, as the hint says:** execution data, cost estimates, PPBE positions and other
+    appropriations' plans.
+  - **Check:** audit-board "v2.02 (item 89)", 22 checks; 13 fail on `bd59dfa`. On U53's case, the funds flow in the view
+    prints $3,000,290, and the working plan $2,000,290.
+  - **Mutations:** 15 `v202-89-*`, each caught; 5 retargeted, the same defect each.
+  - **Changed expectations, all because the view now reads the lock's lists:** in audit-recon's v1.99 items 97–98, the two
+    U10 blocks and U37.
+- **D5b, a cycle reading its own service names: not built** (Brad, 21 Oct: keep services fixed). While a cycle holds a
+  service, the working board cannot rename, reorder or remove it; it can add one at the end. The builder found two places
+  that would break silently:
+  - the Spruills would drop a renamed service's control;
+  - the cycle's five-year report would lose its PPBE position.
+  Revisit with the hosted rebuild.
+- **A band colour a workbook cannot carry** (Brad, 21 Oct: accepted, with the warning at lock). A cycle locked with such a
+  colour keeps it, and its workbook exports refuse until the cycle is reopened and locked again. The lock's confirm warns
+  first.
+- **The gate on the final tree** (`a3ff370`, 21 Oct, `npm run validate:nightly`, the sweep not run):
+  - Every stage is clean except the browser checks, whose only failures are the 8 carried layout-fits D results.
+  - The suites: 9 banners plus the legacy line, 29.1 min.
+  - The trace matrix: 92 cells, every link holds.
+  - The defect register: 13 known defects, guarded by 43 mutations.
+  - Money coverage: 25/25 surfaces.
+  - The money map: 322 cells, 120 proven, 202 n/a, 0 open.
+  - The fuzz: nothing lost, seed 822561790. The file verifier's self-test held.
+  - mcount: 2,083 of 2,083, each matching once.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct). Every new mutation was run against its own check.
 
 ## Open
 
