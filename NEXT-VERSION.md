@@ -299,6 +299,38 @@ here.
     `-connect-unnamed` by audit-recon's U10 block. Its expectation and the three `v200-u10-folder-pull-*` finds were
     retargeted to the new words.
 
+#### The rest of Brad's 21 Oct decisions, built
+- **ATR/BTR tracking removed** (`bd59dfa`; Brad: "this can be removed entirely from ORBIT").
+  - **Removed:** the ⚖ Reprogramming Actions panel, the ATR/BTR Log export, its menu entries (the Reports & exports section
+    "Execution & reprogramming" and the Execution ▸ flyout entry), sharing over the folder (`driveRpPush`/`driveRpPull`), the
+    Live view row, and its help section.
+  - **Kept, as an inert carrier, so no saved log is lost:** `RPDB` and its boot pick, `rpDb` in every board file, the full
+    import's carry, the import merge (`rpMerge`), the side-list unsaved accounting, and the service-list upkeep of the
+    stored rows.
+  - `svcListBlock` no longer refuses removing a service that log rows sit on: they can no longer be seen or edited.
+  - A row stored only by that service's position is now given the removed service's name (`svcBy:'pos'`), so it does not
+    come to mean the next service. The builder added this beyond the spec; it is guarded by
+    `v202-rp-removed-place-unsealed`.
+  - 27 mutations retired as obsolete, each with a comment where it stood; 3 retargeted; 1 new. Money coverage is 25/25
+    surfaces. The money map is 322 cells, 120 proven, 0 open.
+- **D3: every office's part of a month is within $1 of its exact share** (`7e1d2c9`).
+  - `pmoRound` is a matrix rounding in exact arithmetic, solved by a small max flow. Each cell is held first to the floor or
+    ceiling of its share; only where that cannot meet both margins may a whole-dollar share move a dollar. Both margins
+    stay exact.
+  - audit-board "v2.02 (D3)" covers Brad's counterexample (worst cell exactly $1), the measured worst case and a 3,000-case
+    seeded sweep. On `c357911` the sweep finds a cell $1.06 off.
+  - 3 mutations, each caught.
+- **D4: the shared folder's execution data is merged per appropriation** (`98b58dc`). See the commit and audit-import
+  "v2.02 (D4)": 7 checks fail on `c357911`; 4 mutations, each caught.
+- **D5c, D6a, D6b, D7b, D7c** (`c190c7a`):
+  - D5c: base budget authority taken from a position is whole dollars.
+  - D6a: a file or folder copy written by a newer ORBIT is refused at the door, naming both versions.
+  - D6b: the RCN-EEIC tab's note says what a split prime's Ask less its money means.
+  - D7b: partner and FMS years are offered.
+  - D7c: a year made outside the window says so.
+  - audit-board "v2.02 (D5c, D6a, D7b, D7c)"; 7 mutations, each caught.
+- **D5a, the ACE breakout's Funded column, and item 89 (with D5b):** being built; recorded when they land.
+
 ## Open
 
 #### 63. Found while building v1.95, not built
