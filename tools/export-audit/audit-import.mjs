@@ -10066,6 +10066,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // item, the call the File menu made (mRun), is pressed. Save's File item has no second button: its other way is Ctrl+S.
   const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
   const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+  const hdrText = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`), hdrTitle = ev => ev(`(document.getElementById('saveState')||{}).title||''`);   // v2.02 (E7)
   const fileMenu = async (ev, call) => { const r = ev(`(function(){
       if(${J(call)}==='mRun(saveInPlace)'){ var k=new KeyboardEvent('keydown', {key:'s', ctrlKey:true, bubbles:true, cancelable:true});
         document.dispatchEvent(k); return k.defaultPrevented? 'clicked' : 'Ctrl+S was not taken'; }
@@ -10274,7 +10275,25 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'reopened: K stays on screen, unsaved by the record; S1 kept aside and in the file; the board says the file’s copy was not loaded and nothing was lost',
       J([scr(B.ev), !!flags(B.ev).base.dirty, kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]),
       J([K, true, [S1, 'swap'], S1, true]));
-    chk(name, sc, 'K and S1 are each still in a copy here or in the file (a CONTROL)', J([K, S1].map(m => where(B.ev, fB, m).length > 0)), J([true, true])); }
+    chk(name, sc, 'K and S1 are each still in a copy here or in the file (a CONTROL)', J([K, S1].map(m => where(B.ev, fB, m).length > 0)), J([true, true]));
+    // v2.02 (E7, ledger U19H): the header said "Saved 9:35 AM" -- K's own time -- though no file holds K. FAILS ON c357911.
+    chk(name, sc, 'reopened: the header says Unsaved changes, not Saved, and its tooltip does not open with Saved',
+      J([hdrText(B.ev), /^Saved /.test(hdrTitle(B.ev))]), J(['Unsaved changes · ↶ work kept aside', false])); }
+  // (g2) v2.02 (E7, ledger U15): S1 saved, then S2 typed, and the board reopened before any Save: unsaved, said so. FAILS ON c357911.
+  { const sc = '(g2) the board file: S1 saved, S2 typed, the board reopened before any Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`setNote('A','S2-TYPED'); 'ok'`); await pause(5);
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S2 on screen, unsaved by the record; the header says Unsaved changes, and its tooltip does not open with Saved',
+      J([scr(B.ev), !!flags(B.ev).base.dirty, hdrText(B.ev), /^Saved /.test(hdrTitle(B.ev))]), J(['S2-TYPED', true, 'Unsaved changes · ↶ work kept aside', false])); }
+  // (g3) CONTROL: S1 saved and the board reopened with nothing typed: the header still says Saved, and when.
+  { const sc = '(g3) CONTROL: the board file: S1 saved, the board reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S1 on screen, saved by the record; the header says Saved and the time, and its tooltip opens with Saved',
+      J([scr(B.ev), !!flags(B.ev).base.dirty, /^Saved \d/.test(hdrText(B.ev)) && hdrText(B.ev).endsWith(' · ↶ work kept aside'), /^Saved /.test(hdrTitle(B.ev))]), J([S1, false, true, true])); }
   // (h) NO ROOM TO KEEP WHAT IS ON SCREEN: browser storage refuses the kept copy, so nothing is put back and nothing changes.
   { const sc = '(h) the board file: no room in browser storage to keep S1 aside';
     const { A, f } = await inFile();

@@ -7158,6 +7158,12 @@ function jrnlBody(){
 // §15  SAVE, STATUS LINE, PROMPTS, THE SAVED FILE
 //      save(), setStat(), kept-aside work and the assembled board file
 // ==============================================================================================================
+// v2.02 (E7, ledger U24, U29, U31): A COPY PUT ON SCREEN BY A LOAD IS A CHANGE, in this session and in this browser's record,
+// exactly as an edit is. Loading the shared state file, its automatic load, importing several boards at once and taking the file
+// at opening (when the board works out of the folder) left the record clean against a copy that was no longer on screen: the next
+// 💾 Save asked nothing and wrote the loaded copy over the person's own -- in file mode their saved work was then in no copy the
+// board could reach -- and a save landing during the load recorded the board saved against its own bytes.
+function loadCounted(){ _saveGen++; DIRTY=true; try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){} }
 function save(){
   _diagSec=null;                            // v1.92 (item 18): what the board holds has changed; clean against the new
   if(CYCVIEW) return cycRefuse('Saving');
@@ -7455,9 +7461,12 @@ function bootTakeFile(){
   if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
   if(!confirm('Open the saved file\u2019s version and replace what is on screen?\n\n'
     +'This browser\u2019s own work is NOT kept \u2014 only in a copy you saved yourself.')) return;
+  // v2.02 (E7, U24): not while a save is under way -- a file save that lands afterwards records the bytes IT wrote as the file's,
+  // and the version opened here would then read as saved
+  if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save has landed.'); return; }
   if(applyStore(PUB)===false) return;
   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
-  persist(); DIRTY=false; render();
+  persist(); DIRTY=false; if(driveStoreOn()) loadCounted(); render();   // v2.02 (E7, U29): in the folder, it is not the folder's copy
   setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
 }
 function buildSavedHtml(opts){
@@ -8899,11 +8908,16 @@ function sharedKeepMine(st){
 }
 function adoptShared(){
   if(!SHARED) return;
+  // v2.02 (E7, ledger U29; Brad, 21 Oct 2026, "whatever you recommend"): WHAT IS ON SCREEN IS ALL SAVED, so nothing is kept aside
+  // -- and the next 💾 Save will write the shared copy over the saved one. Said before anything changes, with the way to keep it.
+  if(!CYCVIEW && !ownUnsaved(MS, SHARED, baseGet()) && !confirm('Load the shared state file (published '+fmtTs(SHARED.ts)+') over the board on screen?\n\n'
+    +'What is on screen is saved, so nothing is kept aside: the next \ud83d\udcbe Save will write the shared copy over your saved one. '
+    +'To keep yours, choose Cancel and use \u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy first.')) return;
   if(!sharedKeepMine(SHARED)) return;
   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
   // report as loaded. Saying so beats a status line claiming a load that did not happen.
   if(applyStore(SHARED)===false) return;
-  persist(); render();
+  loadCounted(); persist(); render();   // v2.02 (E7, U24, U29)
   setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
 }
 // ==============================================================================================================
@@ -9003,7 +9017,7 @@ function importBoards(inp){
       return batchImportUndone(W, held, now, take, here, memOk);
     }
     if(W.length) impMixedLift(W.map(function(w){ return w[0]; }));
-    if(applied){ persist(); render(); }
+    if(applied){ loadCounted(); persist(); render(); }   // v2.02 (E7, U31): an import is a change in this browser's record too
     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
     const bad=results.filter(r=>!r.slug||!r.st).map(r=>esc(r.name)+' ('+esc(r.why)+')');
     setStat((ok.length? '\u2b05 Imported: '+ok.join(' · ')+'. Switch appropriations from the dropdown to see each. \ud83d\udcbe Save to bake all of it into this file.':'')
@@ -27311,7 +27325,10 @@ function sideBootSay(){
 function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
 function saveStateShow(){
   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
-  const un=unsavedNow();
+  // v2.02 (E7, ledger U19H, U15): AND THIS BROWSER'S RECORD. unsavedNow() is this session's (DIRTY), which a reopen starts
+  // afresh, so work put back -- or simply typed -- and not saved read "Saved 9:35 AM" once the board was reopened, with the time
+  // of that unsaved work itself, while no file held it. _baseDirty is the record kept beside the board (baseGet().dirty).
+  const un=unsavedNow() || !!_baseDirty;
   // A PMO COPY HAS ONE WAY OUT, AND IT IS NOT SAVE (v1.84). The header said "unsaved changes" and
   // offered 💾 Save on the one board whose Save is refused by design, so an office was invited to
   // press a button that could only say no. On a copy the work is already kept in this browser;
@@ -27323,7 +27340,7 @@ function saveStateShow(){
   // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
   if(ss){ ss.classList.toggle('dirty', un);
     const _st=document.getElementById('shareStat');
-    ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
+    ss.title=(MS.ts && !un? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
   // v1.91 (item 29): a button -- it was a link with no address, which a keyboard never reaches.
   if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type="button" class="keptbtn" onclick="keptPutBack()" '
@@ -33372,7 +33389,7 @@ function sharedArrived(st){
   if((st.ts||0)>=(MS.ts||0)){
     if(!sharedKeepMine(st)) return;
     if(applyStore(st)===false) return;
-    persist(); render();
+    loadCounted(); persist(); render();   // v2.02 (E7, U24, U29)
     setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');
   } else {
     setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one (yours is kept aside first)</button>, or 💾 Save yours.');

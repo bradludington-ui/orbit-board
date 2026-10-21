@@ -3147,7 +3147,7 @@ const MUTATIONS = [
   { id: 'v197w2-folder-owes-lists', area: 'sideUnsaved', what: 'working out of the folder, the board reads unsaved for lists the folder save never writes',
     find: "  return (_sideGen!==_sideSaved || !!(sideBootNote.keys||[]).length) && !driveStoreOn();", repl: "  return (_sideGen!==_sideSaved || !!(sideBootNote.keys||[]).length);" },
   { id: 'v197w2-indicator-board-only', area: 'saveStateShow', what: 'the save state reads the open board alone (v1.96)',
-    find: "  const un=unsavedNow();", repl: "  const un=!!DIRTY;" },
+    find: "  const un=unsavedNow() || !!_baseDirty;", repl: "  const un=!!DIRTY || !!_baseDirty;" },
   { id: 'v197w2-opening-counted', area: 'boot', what: 'what opening the board writes into its lists reads as an unsaved change',
     find: "try{ _sideSaved=_sideGen; }catch(e){}\n", repl: "" },
   { id: 'v197w2-download-stays', area: 'fileMark', what: 'a change after a download still reads “downloaded”, though the copy lacks it',
@@ -6598,6 +6598,11 @@ const MUTATIONS = [
   { id: "v202-e6-recon-note-unsaid", area: "exportExcel", what: "the Office share vs CLIN sheet files CLIN lines under their CLIN's office without saying the Spend Plan Source lists them all under the requirement's own office: a reader filtering that file by PMO finds $0 where the sheet shows $2",
     find: "-- ORBIT\\u2019s reading: the Spend Plan Source itself lists every line under the requirement\\u2019s '\n      +'own office, in its PMO column. Both",
     repl: ". Both" },
+  // v2.02 (E7, ledger U19H, U15): the header reads this browser's record of unsaved work too, not this session's alone.
+  { id: "v202-e7-u19h-session-only", area: "saveStateShow", what: "after a put-back, or an edit, and a reopen with no save, the header says \"Saved 9:35 AM\" -- the unsaved work's own time -- though no file holds it",
+    find: "  const un=unsavedNow() || !!_baseDirty;", repl: "  const un=unsavedNow();" },
+  { id: "v202-e7-u19h-tooltip-saved", area: "saveStateShow", what: "the header's tooltip opens with \"Saved <time> by …\" while the work is unsaved",
+    find: "    ss.title=(MS.ts && !un? 'Saved '", repl: "    ss.title=(MS.ts? 'Saved '" },
   // v2.02 (E7, ledger U9 and U43): the office split by the CLIN asks themselves; every office that holds money listed.
   { id: "v202-e7-u9-weights-fraction", area: "pmoPartsOf", what: "the office split is made by the floating-point fraction again: $3 over CLIN asks 1:2:3 goes $0/$1/$2, not $1/$1/$1",
     find: "return x[2]? (+x[2][i]||0) : x[1]? (+x[1][i]||0) : 1;",
