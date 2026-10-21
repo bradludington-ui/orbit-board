@@ -2018,7 +2018,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
-<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection and, from v1.99, its RCN / EEIC list — so its money, and the codes it was on, read as they were locked. What it still reads as it is now: the <b>destination list</b>, the <b>decision bands</b>, a <b>BAE budget set by rule</b> rather than by name, and any <b>requirement detail its plan never changed</b>. Rename a destination or a band and a cycle’s view shows the new name; the money does not move.</p>
+<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
 <section data-part="team" data-id="t-flow" data-t="The funds flow and the ACE tie-out">
 <p class="v199-h92"><span class="mp" data-m="fydp">FYDP › 🚰 Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
@@ -2615,7 +2615,12 @@ function sideWrote(at){
   sideBootNote.keys=[];               // v1.99 (item 95): the file now holds every list as the board does
   Object.keys(_lsRefused).forEach(function(k){ if(_lsRefused[k]<=at) delete _lsRefused[k]; });
 }
+// v2.02 (item 89): WHILE A LOCKED CYCLE IS ON SCREEN, THE BOARD-WIDE DESTINATION AND BAE LISTS ON THE PAGE ARE THE CYCLE'S, not the
+// board's (cycSwapIn), so nothing may write them to browser storage: the board's own lists are set aside untouched and come back on
+// leaving. A var, because lsSet runs while the board opens, before any let further down has been declared.
+var _cycSwap=null;
 function lsSet(key, val, what){
+  if(_cycSwap && (key===DEST_KEY || key==='prio27buddb')){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
   if(_lsCapture){
     const i=_lsCapture.findIndex(function(w){ return w[0]===key; }), w=[key, String(val), what, String(what||key)];
     if(i>=0) _lsCapture[i]=w; else _lsCapture.push(w);
@@ -13125,6 +13130,7 @@ function budParseName(raw){
 // list found inside any appropriation's own store. Read-only; the next import writes BUDDB.
 let _budLegacySrc;
 function budSrc(){
+  if(_cycSwap && BUDDB!==_cycSwap.BUDDB) return BUDDB;     // v2.02 (item 89): a locked cycle's own list, even an empty one
   if(BUDDB && Array.isArray(BUDDB.rows) && BUDDB.rows.length) return BUDDB;
   if(_budLegacySrc===undefined){
     let best=null;
@@ -16100,6 +16106,24 @@ function destRemap(states, al){
   });
   return n;
 }
+// v2.02 (item 89): a locked cycle's own copy of the destination list (keep.ents) is re-keyed with its years, so the keys its years
+// name are still the entries it kept -- by the name it was locked with. A key re-pointed onto one the copy already holds joins it.
+function destRemapKeeps(al){
+  if(!Object.keys(al||{}).length) return 0;
+  let n=0;
+  Object.keys((CYCDB&&CYCDB.cycles)||{}).forEach(function(k){ const K=(CYCDB.cycles[k]||{}).keep;
+    if(!K || !Array.isArray(K.ents)) return;
+    const moves=function(x){ return x!==undefined && x!==null && Object.prototype.hasOwnProperty.call(al, x) && al[x] && al[x]!==x; };
+    if(!K.ents.some(function(e){ return e && moves(e.k); })) return;
+    const out=[];
+    K.ents.forEach(function(e){ if(!e || typeof e!=='object'){ out.push(e); return; }
+      const to=moves(e.k)? al[e.k] : e.k;
+      if(to!==e.k) n++;
+      if(out.some(function(x){ return x && x.k===to; })) return;
+      out.push(to===e.k? e : Object.assign({}, e, {k:to})); });
+    K.ents=out; });
+  return n;
+}
 function destStoreStates(st){ return Object.keys((st&&st.years)||{}).map(function(y){ return st.years[y]; }); }
 function destCycStates(){
   const out=[];
@@ -16141,7 +16165,7 @@ function destMigrate(){
       let al;
       if(CYCDB.dv && Array.isArray(CYCDB.ents)) al=destFold(CYCDB.ents, ap, true, destRefs(states));
       else { const sg=DESTDB.lsig[ap]; al=Object.assign({}, (sg && DESTDB.lmap[sg])||{}); }
-      const n=destRemap(states, al);
+      const n=destRemap(states, al)+destRemapKeeps(al);
       if(al.fresh || al.touched) keep=true;
       if(al.fresh) stamp=true;
       // v1.99 (item 95): stored whenever what the cycle store holds changes -- not only when a key moved. The link is
@@ -20445,12 +20469,16 @@ function cycLock(){
   // board that carries the cycle was then refused by Import one appropriation and Import several boards; so the question says so
   // first. Read as it is (rcnReg() would give a board with no list an empty one, even on Cancel)
   const odd=rcnListOdd(MS.rcn)[0];
+  const badBand=(BANDS_LIST().filter(function(b){ return b && !/^#?[0-9A-Fa-f]{6}$/.test(String(b.c||'#000000')); })[0]||{}).n||'';
   if(!confirm('Lock the FYDP window as '+blLblTxt(key)+'?\n\n'
     +'FY'+ys.map(y=>y%100).join(', FY')+' — every requirement, its value, allocation and funding by '
     +'service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.'
     +(blank.length? '\n\nFY'+blank.map(y=>y%100).join(', FY')+' hold'+(blank.length===1?'s':'')
       +' no plan yet and will be recorded as such.' : '')
     +(had? '\n\nThis replaces the existing '+blLblTxt(key)+' cycle.' : '')
+    // v2.02 (item 89): the ladder goes with the cycle as it is, so a colour no workbook can carry is said first
+    +(badBand? '\n\nThe decision band ladder it keeps holds a colour ORBIT cannot write into a workbook ('+badBand+'). A locked cycle keeps its '
+      +'ladder as locked, so its Excel workbook and Priority drill will refuse until it is reopened and locked again with the colour put right.' : '')
     +(odd? '\n\nThe RCN / EEIC list it keeps '+(odd.entry? 'holds rcn['+odd.i+'], which '+odd.what : odd.what)+'; '+odd.why+'. A locked '
       +'cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards will refuse every file that '
       +'carries this cycle, on every board of this version.' : '')
@@ -20462,9 +20490,12 @@ function cycLock(){
   // v1.99 (item 88, review N04): THE RCN / EEIC LIST GOES WITH IT. The years hold only pointers (`rcnAsg`, `rcnSvc`,
   // `clinRcn`, `clinRcnSvc`); what a pointer means lives in the appropriation's list, which goes on changing. Kept here,
   // the cycle's view and every report taken from it read the codes it was locked with.
+  // v2.02 (item 89; Brad, 20 and 21 Oct 2026): AND EVERY OTHER LIST IT IS READ THROUGH (cycKeepNow): the destinations, the decision
+  // bands, the BAE budget list, the PMO list, the requirement data and the funds-flow settings. A replacement is a new lock, and
+  // takes today's.
   blStore()[key]={cyc:blCyc, cycYr:yr, base:b, window:ys.slice(), ap:mySlug(), ts:Date.now(), by:whoAmI(),
                   note:(blNote||'').trim(), from:MS.cycle||'', locked:true, partial:false, years:years, proj:proj,
-                  rcn:JSON.parse(JSON.stringify(rcnReg()))};
+                  rcn:JSON.parse(JSON.stringify(rcnReg())), keep:cycKeepNow(), keepV:1};
   // v2.02 (U51): a cycle locked again under its own name keeps its record: when it was first taken, every reopen and lock,
   // and this replacement, so a cycle whose figures changed after it was locked says so
   if(had){ const nb=blStore()[key];
@@ -21033,7 +21064,7 @@ function fydpGather(D, done){
       if(got.why){ a.why=got.why; fin(); return; }
       // the board-wide stores as this board holds them now, and this appropriation's slots as the file had them
       const pub={appns:{}, cycDb:{ts:0, byAp:{}}};
-      pub.execDb=EXDB; pub.aceDb=ACEDB; pub.rpDb=RPDB; pub.budDb=BUDDB;
+      pub.execDb=EXDB; pub.aceDb=ACEDB; pub.rpDb=RPDB; pub.budDb=_cycSwap? _cycSwap.BUDDB : BUDDB;   // v2.02 (item 89): the board's own list, not a view's
       if(PUBS[a.k]) pub.appns[a.k]=PUBS[a.k];
       if(CYC_FILE[a.k]) pub.cycDb.byAp[a.k]=CYC_FILE[a.k];
       const nonce='fydp-'+a.k+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
@@ -21598,6 +21629,7 @@ function cycView(key){
   _cycStash={MS:MS, S:S, dirty:DIRTY, title:document.title};
   CYCVIEW=key;
   const kept=cycRcnOf(c);
+  cycSwapIn(c);                                         // v2.02 (item 89): the board-wide lists it kept, on the page for the view
   MS=cycCopy(c);                                        // v2.00 (U10): made in one place, and made again by a refusal
   const y= MS.years[_cycStash.MS.cur]? +_cycStash.MS.cur : held[0];
   MS.cur=y; FYMON=fyMonths(y); applyState(MS.years[y]); MS.years[y]=S;
@@ -21610,7 +21642,8 @@ function cycView(key){
     +'as the board until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.'
     // v2.02 (U51; Brad, 21 Oct): active-year execution goes on changing whatever cycle is on screen, so its import stays open
     +' A CCaR QPE import (active-year execution) still loads here: it is the year being executed, not the locked plan.'
-    +(kept? '' : ' <span style="color:var(--amber)">⚠ '+esc(CYC_RCN_TODAY)+'</span>'));
+    +(kept? '' : ' <span style="color:var(--amber)">⚠ '+esc(CYC_RCN_TODAY)+'</span>')
+    +(cycKeepToday(c)? ' <span style="color:var(--amber)">⚠ '+esc(cycKeepToday(c))+'</span>' : ''));
 }
 // v2.00 (U10): THE VIEW'S COPY, MADE IN ONE PLACE. cycView puts it on screen and a refused write puts it back
 // (cycReapply): the working plan set aside, with the cycle's years, its base year and the RCN / EEIC list it kept.
@@ -21622,7 +21655,99 @@ function cycCopy(c){
   // its pointers are read against today's list, and the view, the cycle's line and the RCN-EEIC tab say so.
   const kept=cycRcnOf(c);
   if(kept) V.rcn=kept;
+  // v2.02 (item 89): the lists it kept that live on the plan -- the bands, the PMO list and the funds-flow settings, its partner
+  // and FMS money and its year selection among them -- with the destination list cycSwapIn put on the page for the view
+  const K=cycKeepOf(c);
+  if(K.bands){ V.bands=K.bands; V.stdVer=STD_VER; }     // as locked: no standard band is added to a fixed point
+  if(K.pmos) V.pmos=K.pmos;
+  if(K.flow){ const was=V.flow||{}; V.flow=K.flow; if(was.ents) V.flow.ents=was.ents; if(was.dv) V.flow.dv=was.dv; }
+  if(K.ents){ if(!V.flow) V.flow={}; V.flow.ents=DESTDB.ents; V.flow.dv=1; }
   return V;
+}
+// ---- v2.02 (item 89; Brad, 20 and 21 Oct 2026): WHAT A LOCKED CYCLE KEEPS OF ITS OWN --------------------------------------------
+// "When I lock PB27 ... I want it to be report and view only. No changes." A cycle holds its years, its projection and (v1.99) its
+// RCN / EEIC list; every other list its view and its reports are read through went on changing under it: a destination renamed, a
+// band re-coloured or removed, a BAE name retired, an office deleted (its requirements' money moved to their home office in every
+// export taken from the view), the requirement data a later import brought, partner money typed after the lock. From v2.02 the lock
+// keeps a copy of each, and the view puts them on the page in place of today's:
+//   ents      the destination list (board-wide, DESTDB)       bands     the decision band ladder (MS.bands)
+//   bud       this appropriation's part of the BAE list        pmos      the PMO list (MS.pmos)
+//   dataPack  the requirement data the years are read through: the requirements as the data pack carried them, with their
+//             values, and the prime contracts' CLINs (BASE_ITEMS, BASE_ASK, CLINS)
+//   flow      the funds-flow settings (MS.flow without its destination list): partner and FMS money, the year selection, the
+//             appropriations, the rules and the categories
+//   svc       the service list, kept for the record: the view still reads the cycle's figures by place against today's list
+// The service list a board edits is still held fixed under a kept cycle (svcListBlock), so a cycle's figures line up with it.
+const CYC_KEEP_PARTS=[['ents','destinations'], ['bands','decision bands'], ['bud','BAE budget list'], ['pmos','PMO list'],
+  ['dataPack','requirement data'], ['flow','funds-flow settings']];
+function cycKeepNow(){
+  const cp=function(v){ return JSON.parse(JSON.stringify(v)); }, ap=mySlug();
+  const B=budSrc();
+  // only this appropriation's names: every reader of the list asks for this appropriation's (budPickList, budResolve)
+  const rows=(Array.isArray(B.rows)? B.rows : []).filter(function(b){ if(!b || !b.n) return false; const p=budParseName(b.n); return !!p && p.ap===ap; });
+  // the settings as every funds-flow reader sees them (flowCfg), read without writing the defaults into the working plan
+  const F=cp(MS.flow||{}); delete F.ents; delete F.dv;
+  if(!F.rules) F.rules=flowDefRules(); if(!F.other) F.other={}; if(!F.cats || !F.cats.length) F.cats=flowDefCats();
+  return {ents:cp(flowEnts()), bands:cp(BANDS_LIST()), bud:{ts:B.ts||0, rows:cp(rows), files:[]}, pmos:GROUPS.slice(),
+          dataPack:{items:dataPackOf().items, clins:cp(CLINS||{})}, flow:F, svc:SVC.slice()};
+}
+// What a cycle kept, each part as a copy, and only the parts that are what the lock wrote: {} for a cycle locked before v2.02.
+// A part that is not one is left out, and read as today's (cycKeepToday says which).
+function cycKeepOf(c){
+  const K=(c && c.keep && typeof c.keep==='object' && !Array.isArray(c.keep))? c.keep : null, out={};
+  if(!K) return out;
+  const cp=function(v){ return JSON.parse(JSON.stringify(v)); };
+  const isMap=function(v){ return !!v && typeof v==='object' && !Array.isArray(v); };
+  if(Array.isArray(K.ents)) out.ents=cp(K.ents.filter(function(e){ return isMap(e) && e.k!==undefined && e.k!==null && e.k!==''; }));
+  if(Array.isArray(K.bands) && K.bands.length) out.bands=cp(K.bands.filter(isMap));
+  if(isMap(K.bud) && Array.isArray(K.bud.rows)) out.bud={ts:+K.bud.ts||0, rows:cp(K.bud.rows.filter(function(b){ return isMap(b) && typeof b.n==='string'; })), files:[]};
+  if(Array.isArray(K.pmos)) out.pmos=K.pmos.filter(function(g){ return typeof g==='string' && g.trim(); });
+  if(isMap(K.dataPack) && Array.isArray(K.dataPack.items))
+    out.dataPack={items:cp(K.dataPack.items.filter(function(i){ return isMap(i) && typeof i.id==='string' && Array.isArray(i.ask); })),
+                  clins:isMap(K.dataPack.clins)? cp(K.dataPack.clins) : {}};
+  if(isMap(K.flow)) out.flow=cp(K.flow);
+  if(Array.isArray(K.svc)) out.svc=K.svc.filter(function(v){ return typeof v==='string'; });
+  return out;
+}
+// What a cycle on screen says about the lists it did not keep: '' when it kept every one.
+function cycKeepToday(c){
+  const K=cycKeepOf(c), miss=CYC_KEEP_PARTS.filter(function(p){ return !K[p[0]]; }).map(function(p){ return p[1]; });
+  if(!miss.length) return '';
+  const L=miss.length===1? miss[0] : miss.slice(0,-1).join(', ')+' and '+miss[miss.length-1];
+  return 'Its '+L+' '+(miss.length===1? 'is' : 'are')+' read as '+(miss.length===1? 'it is' : 'they are')+' today: '
+    +((c && c.keep)? 'what it kept of '+(miss.length===1? 'it' : 'them')+' cannot be read.' : 'it was locked before v2.02, which did not keep them with a cycle.');
+}
+// THE VIEW'S BOARD-WIDE LISTS (v2.02, item 89). The destination list and the BAE list are the board's, not the plan's, and the
+// requirement data is the data pack the page opened with: none of them is on the throwaway copy of MS. So the view sets the board's
+// own aside (_cycSwap, once) and puts the cycle's on the page; a refusal puts them on again from the cycle (cycReapply), and leaving
+// puts the board's own back, the very objects and in the same order (cycSwapOut), before the working plan is applied again. While
+// they are swapped nothing writes them: save() and persist() refuse in a view, buildSavedHtml throws, and lsSet refuses their keys.
+// DATA, BASE_ITEMS, BASE_ASK and CLINS are consts that closures captured: their contents are swapped, never the bindings.
+function cycSwapIn(c){
+  const K=cycKeepOf(c);
+  if(!K.ents && !K.bud && !K.dataPack) return;
+  if(!_cycSwap) _cycSwap={DESTDB:DESTDB, BUDDB:BUDDB, items:BASE_ITEMS.slice(),
+    ask:Object.keys(BASE_ASK).map(function(k){ return [k, BASE_ASK[k]]; }),
+    clins:Object.keys(CLINS).map(function(k){ return [k, CLINS[k]]; })};
+  const W=_cycSwap;
+  if(K.ents){ const D=JSON.parse(JSON.stringify(W.DESTDB)); D.ents=K.ents; DESTDB=D; } else DESTDB=W.DESTDB;
+  BUDDB=K.bud? K.bud : W.BUDDB;
+  const put=function(items, ask, clins){
+    BASE_ITEMS.length=0; items.forEach(function(i){ BASE_ITEMS.push(i); });
+    Object.keys(BASE_ASK).forEach(function(k){ delete BASE_ASK[k]; }); ask.forEach(function(e){ BASE_ASK[e[0]]=e[1]; });
+    Object.keys(CLINS).forEach(function(k){ delete CLINS[k]; }); clins.forEach(function(e){ CLINS[e[0]]=e[1]; });
+  };
+  if(K.dataPack) put(K.dataPack.items, K.dataPack.items.map(function(i){ return [i.id, i.ask.slice()]; }),
+    Object.keys(K.dataPack.clins).map(function(k){ return [k, K.dataPack.clins[k]]; }));
+  else put(W.items, W.ask, W.clins);
+}
+function cycSwapOut(){
+  const W=_cycSwap; if(!W) return;
+  _cycSwap=null;
+  DESTDB=W.DESTDB; BUDDB=W.BUDDB;
+  BASE_ITEMS.length=0; W.items.forEach(function(i){ BASE_ITEMS.push(i); });
+  Object.keys(BASE_ASK).forEach(function(k){ delete BASE_ASK[k]; }); W.ask.forEach(function(e){ BASE_ASK[e[0]]=e[1]; });
+  Object.keys(CLINS).forEach(function(k){ delete CLINS[k]; }); W.clins.forEach(function(e){ CLINS[e[0]]=e[1]; });
 }
 // The RCN / EEIC list a cycle was locked with (v1.99, item 88): a copy of its entries, or null when it kept none --
 // locked before v1.99, or a list that is not a list. An entry that is not one is left out, as rcnReg's readers would.
@@ -21636,6 +21761,7 @@ function cycRcnTodayNote(){ return (CYCVIEW && !cycRcnOf(blGet(CYCVIEW)))? CYC_R
 function cycLeave(quiet){
   if(!CYCVIEW) return;
   const st=_cycStash; CYCVIEW=''; _cycStash=null;
+  cycSwapOut();                                         // v2.02 (item 89): the board's own lists, the very objects, back first
   MS=st.MS;
   FYMON=fyMonths(MS.cur); applyState(MS.years[MS.cur]); MS.years[MS.cur]=S;
   DIRTY=st.dirty; document.title=st.title;
@@ -21656,6 +21782,7 @@ function cycSyncTags(){
 function cycReapply(){
   const c=blGet(CYCVIEW); if(!c || !c.years || !c.years[MS.cur]) return;
   const y=+MS.cur;
+  cycSwapIn(c);                                         // v2.02 (item 89): the cycle's board-wide lists, made again too
   MS=cycCopy(c); MS.cur=y;
   applyState(MS.years[y]); MS.years[y]=S;
 }
@@ -21744,7 +21871,8 @@ function blBody(){
       +'<td>'+esc(fmtTs(c.ts))+'</td><td>'+esc(c.by||'')+'</td>'
       +'<td>'+(held.length? held.map(fyl).join(', ') : '—')
       +(c.partial? ' <span style="color:var(--amber)" title="a one-year baseline from before cycles held the window: comparable, a Spruills source, not viewable on the drill">(one year, migrated)</span>':'')
-      +((Object.keys(c.years||{}).length && !cycRcnOf(c))? ' <span class="cyc-rcn-today" style="color:var(--amber)" title="'+esc(CYC_RCN_TODAY)+'">(RCN / EEIC: today’s list)</span>' : '')+'</td>'
+      +((Object.keys(c.years||{}).length && !cycRcnOf(c))? ' <span class="cyc-rcn-today" style="color:var(--amber)" title="'+esc(CYC_RCN_TODAY)+'">(RCN / EEIC: today’s list)</span>' : '')
+      +((Object.keys(c.years||{}).length && cycKeepToday(c))? ' <span class="cyc-keep-today" style="color:var(--amber)" title="'+esc(cycKeepToday(c))+'">(other lists: today’s)</span>' : '')+'</td>'
       +'<td class="n">'+(P? (P.reqs||[]).length : '<span class="z">—</span>')+'</td>'
       +'<td class="n">'+(P? fM(ask) : '<span class="z">no '+FYL()+'</span>')+'</td>'
       +'<td class="n">'+(P? fM(fund) : '<span class="z">—</span>')+'</td>'
@@ -21761,12 +21889,15 @@ function blBody(){
 
   // v1.99 (item 98): WHAT A CYCLE KEEPS, AND WHAT IT STILL READS AS IT IS NOW. It said the cycle "still reads correctly
   // after requirements are renamed, re-banded or removed" -- true of the money it copied, not of every label beside it.
-  // Until those lists are kept with the cycle (v2.00), the hint names them, and claims no more than is kept.
+  // v2.02 (item 89): the lists are kept with a cycle locked from v2.02; the hint says so, and claims no more than is kept.
   h+='<div class="hint cyc-keeps" style="margin-top:10px">A locked cycle is a fixed point in time for its money: it copies every '
-    +'year’s plan in its window and its projection rather than pointing at them, and (from v1.99) the RCN / EEIC list it was '
-    +'locked with. <b>It does not keep every list it is read through.</b> Its view and its reports still read these as they '
-    +'are now: the <b>destination list</b> (a destination renamed reads by its new name), the <b>decision bands</b>, a '
-    +'<b>BAE budget set by rule</b> rather than by name, and any <b>requirement detail the plan never changed</b>. '
+    +'year’s plan in its window and its projection rather than pointing at them, the RCN / EEIC list it was locked with (from '
+    +'v1.99), and (from v2.02) every other list it is read through: the <b>destination list</b>, the <b>decision bands</b>, '
+    +'the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> the plan never changed and the <b>funds-flow '
+    +'settings</b>, with their partner and FMS money and year selection. Its view and its reports read those as locked. A cycle '
+    +'locked before v2.02 kept none of them, and still reads them as they are now; its line says so. Execution data (a CCaR '
+    +'pull), the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now for every cycle, and the services it holds keep their names and '
+    +'places on this board while it is kept. '
     +'Locked cycles cannot be overwritten or deleted, and while one is on screen it is report and view only: nothing can be '
     +'reopened, locked or deleted from there. A cycle is reopened (🔓) and locked again from the working plan, and each time is '
     +'stamped with the date and who did it, under its lock. Each one is a '
@@ -30333,8 +30464,11 @@ function exportCSV(){
   // ⚙ Install standard or ⬆ Import ladder done in the view is not kept (with U10 the view is put back at once), and the colour
   // stays refused once the view is left (measured). The general refusal says a locked cycle keeps its text; in a view the band
   // words say where to do it.
-  if(CYCVIEW) refused.forEach(i=>{ extra[i].how+=' In a locked cycle\u2019s view nothing done is kept: \u21a9 Leave the view and do it on '
-    +'the working plan, whose bands the view reads.'; });
+  // v2.02 (item 89): a cycle locked from v2.02 reads the ladder it kept, not the working plan's, so the remedy is to lock it again.
+  if(CYCVIEW) refused.forEach(i=>{ extra[i].how+=(cycKeepOf(blGet(CYCVIEW)).bands? ' In a locked cycle\u2019s view nothing done is kept, and this cycle '
+    +'reads the bands it was locked with: put the colour right on the working plan, then reopen the cycle (\ud83d\udd13) and lock it again.'
+    : ' In a locked cycle\u2019s view nothing done is kept: \u21a9 Leave the view and do it on '
+    +'the working plan, whose bands the view reads.'); });
   const bandXf=i=>XF_EXTRA0+i;                       // banner style id for band index i
   const UNB=XF_EXTRA0+L.length;                      // the "not yet banded" banner
 

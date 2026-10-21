@@ -4050,11 +4050,15 @@ await (async () => {
       return JSON.stringify([h, help, (document.getElementById('blBody')||{}).textContent||'']); })()`);
     let cj; try { cj = JSON.parse(c); } catch { cj = ['', '', c]; }
     w5Chk(name, 'item 98 · the PPBE cycles panel', 'no longer claims the cycle reads correctly after re-banding', /still reads correctly after/.test(cj[2]), false);
-    w5Chk(name, 'item 98 · the PPBE cycles panel', 'says what it keeps, and that it does not keep every list it is read through',
-      J([/RCN \/ EEIC list/.test(cj[0]), /does not keep every list/.test(cj[0])]), J([true, true]));
-    w5Chk(name, 'item 98 · the PPBE cycles panel', 'names what it still reads as it is now: destinations, decision bands, a budget set by rule, requirement detail',
-      J(['destination list', 'decision bands', 'BAE budget set by rule', 'requirement detail'].map(t => cj[0].includes(t))), J([true, true, true, true]));
-    w5Chk(name, 'item 98 · Help', 'the five-year plan’s Help says the same', J(['keeps', 'destination list', 'decision bands', 'BAE budget set by rule'].map(t => cj[1].includes(t))), J([true, true, true, true]));
+    // v2.02 (item 89): a cycle locked from v2.02 keeps the lists v1.99 named as read today; the hint and Help say so, name what
+    // an older cycle still reads as it is now, and what every cycle does (changed on purpose: the cycle now keeps them)
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'says what it keeps: the RCN / EEIC list, and from v2.02 every other list it is read through',
+      J([/RCN \/ EEIC list/.test(cj[0]), /every other list it is read through/.test(cj[0])]), J([true, true]));
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'names each list kept: destinations, decision bands, the BAE budget list, the PMO list, requirement data, funds-flow settings',
+      J(['destination list', 'decision bands', 'BAE budget list', 'PMO list', 'requirement data', 'funds-flow'].map(t => cj[0].includes(t))), J([true, true, true, true, true, true]));
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'and what is still read as it is now: an older cycle’s lists, and for every cycle execution data, estimates and positions',
+      J([/locked before v2.02 kept none of them, and still reads them as they are now/.test(cj[0]), /Execution data/.test(cj[0]), /PPBE positions/.test(cj[0])]), J([true, true, true]));
+    w5Chk(name, 'item 98 · Help', 'the five-year plan’s Help says the same', J(['keeps', 'destination list', 'decision bands', 'BAE budget list', 'PMO list', 'funds-flow settings', 'before v2.02'].map(t => cj[1].includes(t))), J([true, true, true, true, true, true, true]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -6259,19 +6263,21 @@ await (async () => {
     const MAPPING = [['Req A', 'Confirmed - exact line', '1.1', 1100, 900, 200], ['Req R', 'No match', '', 630, '', '']];
     const SOURCE = ['Budget', 'OPR', [['CCA', 'Ev A', 200, '', ''], ['CCA', 'Ev A', 900, '', ''], ['CCR', 'Ev R', 127, '', ''], ['CCR', 'Ev R', 503, '', '']]];
     const VIEW = { files: ['ok', 'ok', 'ok', 'ok'], mapping: MAPPING, reconciliation: [['FY27', 'AV', 900, 1730, 830]], fydp: [['AV', 900, 900]], source: SOURCE,
-      flow: [['Lockheed Martin', 630, 2], ['Depot X', 0, 0], ['Not yet assigned', 1100, 2]] };
+      flow: [['Lockheed Martin', 630, 2], ['Not yet assigned', 1100, 2]] };   // v2.02 (item 89): PB27's list holds no Depot X
     const WORK = Object.assign({}, VIEW, { flow: [['Lockheed Martin', 0, 0], ['Depot X', 630, 2], ['Not yet assigned', 1100, 2]] });
     const DEST = ['Lockheed Martin', 'Pratt & Whitney', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'FRC East, Cherry Point', 'NAWCAD Lakehurst', 'Defense Logistics Agency', 'OC-ALC Oklahoma City', 'Depot X'];
     const ACE0 = ['2027 ACE approved.xlsx', true, [['AV', '1.1', 900]]];
     const LISTS = [ACE0, [], DEST], STORED = [ACE0, null, DEST];
     const PANEL = ['Defense Logistics Agency', 'Depot X', 'FRC East, Cherry Point', 'Lockheed Martin', 'NAWCAD Lakehurst', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'OC-ALC Oklahoma City', 'Pratt & Whitney'];
+    // v2.02 (item 89): the view reads the destination list PB27 was locked with -- Depot X, added since, is not on it (changed on purpose)
+    const LISTS_V = [ACE0, [], DEST.filter(n => n !== 'Depot X')], PANEL_V = PANEL.filter(n => n !== 'Depot X');
     const OFF = what => '🔒 ' + what + ' is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.';
     const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`if(entOpen) toggleEnt(); cycLeave(); 'ok'`);
     const Rto = () => ev(`flowEntName(destOf(itemById('R')).to)`);
     // ---- CONTROL: PB27 viewed, nothing done; then the working plan
     view();
     w5Chk(name, 'PB27 viewed, nothing done', 'CONTROL — the lists, browser storage and the panel as they are; every export carries PB27’s own figures (R to Lockheed Martin)',
-      J([lists(), stored(), panel(), await exportsNow()]), J([LISTS, STORED, PANEL, VIEW]));
+      J([lists(), stored(), panel(), await exportsNow()]), J([LISTS_V, STORED, PANEL_V, VIEW]));
     leave();
     w5Chk(name, 'the working plan, nothing done', 'CONTROL — R goes to Depot X, and every export says so', J([Rto(), await exportsNow()]), J(['Depot X', WORK]));
     // ---- EACH DOOR, with PB27 on screen
@@ -6282,14 +6288,15 @@ await (async () => {
         ['CCA','REFUSED TITLE A','REFUSED OPR','AV','7001'], ['CCR','REFUSED TITLE R','REFUSED OPR','AV','7002']]}], 'ccar-records.xlsx')], value:''})`)],
       ['Lockheed Martin renamed RENAMED DEST in its name field', 'Changing a destination', () => fireDest('name', 'Lockheed Martin', 'RENAMED DEST')],
       ['+ add a destination', 'Adding a destination', () => fireDest('flowAddEnt()')],
-      ['Depot X removed with its ✕, answered OK', 'Removing a destination', () => fireDest('del', 'Depot X')],
+      // v2.02 (item 89): Depot X is not on PB27's list, so the view is asked to remove Pratt & Whitney, which is
+      ['Pratt & Whitney removed with its ✕, answered OK', 'Removing a destination', () => fireDest('del', 'Pratt & Whitney')],
       ['reset the list, answered OK', 'Resetting the destination list', () => fireDest('flowResetEnts()')]];
     for (const [what, door, act] of DOORS) {
       view(); panel(); spy();
       const r = await act(), st = said(), q = asked(), fired = (r === undefined || r === 'fired') ? 'ran' : String(r);
       w5Chk(name, 'PB27 viewed · ' + what, 'refused before anything is read or asked, and the status line says so', J([fired, st, q]), J(['ran', OFF(door), []]));
       w5Chk(name, 'PB27 viewed · ' + what, 'the lists, browser storage and the panel as they were; every export from the view carries PB27’s own figures',
-        J([lists(), stored(), panel(), await exportsNow()]), J([LISTS, STORED, PANEL, VIEW]));
+        J([lists(), stored(), panel(), await exportsNow()]), J([LISTS_V, STORED, PANEL_V, VIEW]));
       leave();
       w5Chk(name, 'PB27 viewed · ' + what + ' · the view left', 'the working plan’s lists, R’s destination and every export are its own, as before',
         J([lists(), stored(), Rto(), await exportsNow()]), J([LISTS, STORED, 'Depot X', WORK]));
@@ -6631,9 +6638,12 @@ await (async () => {
       const KEPT = J([['KEPT BAND', '#123456', 'skip']]);
       w5Chk(name, 'the working plan · the ladder saved', 'CONTROL — the ladder and its copy in browser storage are KEPT BAND alone', J([ladder(), stored()]), J([KEPT, KEPT]));
       ev(`cycView(${J(key)}); 'ok'`); spy(ev);
+      // v2.02 (item 89): the view reads the ladder PB27 was locked with, not KEPT BAND, saved since; each refusal leaves it as it is
+      const VL = ladder();
+      w5Chk(name, 'PB27 viewed', 'CONTROL — the view reads the ladder PB27 was locked with, not KEPT BAND', VL !== KEPT && JSON.parse(VL).length > 1, true);
       ev(`bandStd(); 'ok'`);
-      w5Chk(name, 'PB27 viewed · ⚙ Install standard', 'refused before anything is asked, and the status line says only that; the ladder in the view and in browser storage is still KEPT BAND',
-        J([said(ev), asked(ev), ladder(), stored()]), J([OFF('Installing the standard bands'), [], KEPT, KEPT]));
+      w5Chk(name, 'PB27 viewed · ⚙ Install standard', 'refused before anything is asked, and the status line says only that; the ladder in the view is still PB27’s and in browser storage still KEPT BAND',
+        J([said(ev), asked(ev), ladder(), stored()]), J([OFF('Installing the standard bands'), [], VL, KEPT]));
       spy(ev);
       fileOf(ev, J({ bands: [{ id: 'imp', n: 'IMPORTED BAND', rule: 'full', c: '#654321' }] }), 'F4 ladder.json');
       ev(`globalThis.__rd=0; globalThis.__rdT=FileReader.prototype.readAsText; FileReader.prototype.readAsText=function(){ __rd++; return __rdT.apply(this, arguments); };
@@ -6642,7 +6652,7 @@ await (async () => {
       const imp = [said(ev), asked(ev), ev(`__rd`), ev(`__inp.value`), ladder(), stored()];
       ev(`FileReader.prototype.readAsText=__rdT; 'ok'`);
       w5Chk(name, 'PB27 viewed · ⬆ Import ladder', 'refused before the file is read or anything is asked, the file choice cleared, and the status line says only that; the ladder still KEPT BAND',
-        J(imp), J([OFF('Importing a band ladder'), [], 0, '', KEPT, KEPT]));
+        J(imp), J([OFF('Importing a band ladder'), [], 0, '', VL, KEPT]));
       ev(`cycLeave(); 'ok'`);
       w5Chk(name, 'the two remedies · the view left', 'the working plan’s ladder and its copy in browser storage are still KEPT BAND', J([ladder(), stored()]), J([KEPT, KEPT]));
       // CONTROL: on the working plan Install standard asks, and installs the standard bands above KEPT BAND
@@ -9060,6 +9070,8 @@ await (async () => {
     // words say so and where to do it, and on the working plan they do not; ⚙ Install standard done on the working plan, the
     // view put on screen again makes the drill. Band 0 #abc, a standard band.
     const wView = ' In a locked cycle’s view nothing done is kept: ↩ Leave the view and do it on the working plan, whose bands the view reads.';
+    // v2.02 (item 89): a cycle locked from v2.02 keeps its ladder, so its view reads the colour it was locked with (changed on purpose)
+    const wViewKept = ' In a locked cycle’s view nothing done is kept, and this cycle reads the bands it was locked with: put the colour right on the working plan, then reopen the cycle (🔓) and lock it again.';
     const wAbc = 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “abc”. No file was made, and nothing on the board is changed. ';
     const VW = wOpen(wFile(L0 => { L0[0].c = '#abc'; return L0; }));
     const VWk = VW.ev(`(function(){ MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); var k=Object.keys(blStore())[0]; cycView(k); return k; })()`);
@@ -9068,10 +9080,15 @@ await (async () => {
     const VWp = wDrill(VW), VWstd = JSON.parse(VW.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg, BANDS_LIST()[0].c, CYCVIEW]); })()`));
     VW.ev(`cycView(${J(VWk)}); 'ok'`);
     const VWv1 = VW.ev('String(CYCVIEW)'), VW1 = wDrill(VW);
-    w5Chk(name, 'C · exportCSV() in a locked cycle\'s view, a refused band colour: the words say nothing done there is kept, and where to do it', 'in the view: refused, nothing built, no Blob, no download, nothing changed, the words with the view\'s sentence; on the working plan the words without it; ⚙ Install standard done there, the view again makes the drill',
-      J([VWv, VW0.zips, VW0.blobs, VW0.dl, VW0.msg, VW0.same, VWp.zips, VWp.msg, VWstd, VWv1, VW1.zips, VW1.dl, VW1.msg, [VW0.err, VWp.err, VW1.err], VW.errors.length]),
-      J(['PB|2027', 0, 0, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp + wView, true, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp,
-        ['', '', '#5aa87a', ''], 'PB|2027', 1, 1, '', ['', '', ''], 0]));
+    // v2.02 (item 89): PB27 kept its ladder, #abc and all -- the fix on the working plan does not reach it, and its words say so;
+    // the same cycle with its kept lists taken away (locked before v2.02) reads the working plan's ladder, and makes the drill
+    VW.ev(`cycLeave(); delete blGet(${J(VWk)}).keep; cycView(${J(VWk)}); 'ok'`);
+    const VW2 = wDrill(VW);
+    VW.ev(`cycLeave(); 'ok'`);
+    w5Chk(name, 'C · exportCSV() in a locked cycle\'s view, a refused band colour: the words say nothing done there is kept, and where to do it', 'in the view: refused, nothing built, no Blob, no download, nothing changed, the words with the view\'s sentence; on the working plan the words without it; ⚙ Install standard done there, the view of PB27, which kept its ladder, still refuses with its words; a cycle locked before v2.02 makes the drill',
+      J([VWv, VW0.zips, VW0.blobs, VW0.dl, VW0.msg, VW0.same, VWp.zips, VWp.msg, VWstd, VWv1, VW1.zips, VW1.dl, VW1.msg, VW2.zips, VW2.dl, VW2.msg, [VW0.err, VWp.err, VW1.err, VW2.err], VW.errors.length]),
+      J(['PB|2027', 0, 0, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp + wViewKept, true, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp,
+        ['', '', '#5aa87a', ''], 'PB|2027', 0, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp + wViewKept, 1, 1, '', ['', '', '', ''], 0]));
     // (verify-tests r6) THE "REFUSED TOO" WORDS, PAST TWO BANDS AND IN A VIEW. Two other bands are named in the plural, each by its
     // label, and ⚙ Install standard is offered only when every band refused is standard -- the one named first as well as the
     // others; in a locked cycle's view the view's sentence follows the "refused too" words. Band 0 and band 1 (standard) and band
@@ -9103,7 +9120,7 @@ await (async () => {
     w5Chk(name, 'C · exportCSV() in a locked cycle\'s view, two bands holding a refused colour: both named, and the view\'s sentence after them', 'band 0 and its sub-band 0a in PB\'s view: refused, nothing built, no Blob, no download, nothing changed; 0a named, and the words end with the view\'s sentence',
       J([TVk, TVv, TV0.zips, TV0.blobs, TV0.dl, TV0.msg, TV0.same, TV0.err, TV.errors.length]),
       J(['PB|2027', 'PB|2027', 0, 0, 0,
-        wB0 + 'The colour of band 0a “Readiness degradation” is refused too, and each has to be put right. ' + wTail + wImpEach + wView,
+        wB0 + 'The colour of band 0a “Readiness degradation” is refused too, and each has to be put right. ' + wTail + wImpEach + wViewKept,
         true, '', 0]));
     // (verify-tests r7) THE DECK AND THE CHART IMAGE REFUSE U+FFFF AS THE WORKBOOK DOES; A CELL PAST COLUMN Z IS NAMED BY ITS TWO
     // LETTERS; THE C1 CONTROLS, WHICH XML 1.0 ALLOWS, ARE WRITTEN. A1 runs the 31 characters through the workbook only, and the deck

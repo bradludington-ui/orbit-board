@@ -2556,6 +2556,137 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// ═══ v2.02 (item 89, ledger U52 / U53) — A LOCKED CYCLE KEEPS ITS OWN LISTS ═══════════════════════════════════════════════
+// Brad, 20 Oct 2026: keep the destinations, the bands, the BAE list, and the PMO list with the requirement data pack, with the
+// funds-flow money; 21 Oct: "When I lock PB27 ... I want it to be report and view only. No changes." PB27 is locked with A in
+// office ZED on destination Depot One, band X, a BAE list naming ZED and AV, the data pack titling A "A title" / "A event", and
+// International Partners $3,000,000 for FY27 with FY27 selected. Then the working plan moves on: the destination is renamed, band
+// X removed, the AV discretionary name retired, A moved to AV and ZED deleted, a new data pack retitles A, and the partner money
+// goes to FMS $2,000,000 with ALL YEARS. FAILS ON bd59dfa: the view read every one of those as they are today -- A filed under PSM
+// (its stored ZED dropped against today's list) in the Spend Plan Source, the PMO tabs and the five-year plan, no budget on B's
+// USAF discretionary line, A under "(not yet banded)", the new titles, and TOTAL FUNDING $2,000,290 under "[PB27 LOCKED]".
+{
+  const name = 'v2.02 (item 89) — a locked cycle keeps its own lists';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      localStorage.setItem('prio27who','Brad'); window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.pmos=GROUPS.slice().concat(['ZED']); applyState(S); S.grp.A='ZED';
+      flowEnts(); DESTDB.ents.push({k:'dz1', n:'Depot One', kind:'gov', t:'DEPOT ONE'}); S.dest={A:{to:'dz1'}};
+      BANDS_LIST(); MS.bands.push({id:'bx', n:'Band X', d:'x', rule:'full', crit:false, consReq:false, c:'#123456'}); S.band.A='bx';
+      BUDDB={ts:1700000000009, files:[], rows:['USAF O&M- CAM Discretionary AV','USAF O&M - CAM OBBBA Mandatory AV','USAF O&M- CAM Discretionary ZED'].map(budParseName).filter(Boolean)};
+      _budRegCache=null; persistDest(); persistBud();
+      flowCfg().other[MS.cur]={ip:3000000}; flowCfg().fys=[MS.cur];
+      MS.years[MS.cur]=S; MS.base=MS.cur; save(); blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  const key = 'PB|' + ev('MS.cur');
+  chk(name, 'lock', 'CONTROL — PB27 is locked', ev(`!!(blGet(${J(key)})||{}).locked`), true);
+  // THE WORKING PLAN MOVES ON
+  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Depot Renamed'; persistDest();
+      MS.bands=MS.bands.filter(function(b){ return b.id!=='bx'; });
+      BUDDB.rows.forEach(function(b){ if(b.n==='USAF O&M- CAM Discretionary AV') b.gone=1; }); BUDDB.ts++; _budRegCache=null; persistBud();
+      S.grp.A='AV'; MS.pmos=MS.pmos.filter(function(g){ return g!=='ZED'; });
+      BASE_ITEMS.forEach(function(i){ if(i.id==='A'){ i.title='A retitled'; i.event='A event retitled'; } });
+      flowCfg().other={}; flowCfg().other[MS.cur]={fms:2000000}; flowCfg().fys=null;
+      applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  // every export of the board on screen, read cell by cell
+  const books = (E) => JSON.parse(E(`(function(){ var res={};
+    ['exportExcel','exportSrc','exportFlow','exportFydpPlan'].forEach(function(fn){ var cap=null, o=buildXlsx;
+      buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ window[fn](); }catch(e){ cap=[{name:'threw', rows:[[String(e&&e.message)]]}]; }
+      buildXlsx=o;
+      res[fn]=(cap||[]).map(function(sh){ return {name:sh.name, rows:(sh.rows||[]).map(function(r){ return (r||[]).map(function(c){ return (c&&typeof c==='object'&&'v' in c)? c.v : c; }); })}; }); });
+    return JSON.stringify(res); })()`));
+  const sheet = (B, fn, nm) => ((B[fn] || []).find(s => s.name === nm) || { rows: [] }).rows;
+  const read = (E) => { const B = books(E);
+    const src = (B.exportSrc[0] || { rows: [] }).rows.slice(1).map(r => [r[3], r[4], r[9], r[18]]);
+    const fl = sheet(B, 'exportFlow', 'Funds Flow'), at = l => fl.filter(r => r[0] === l).map(r => r[1]).find(x => typeof x === 'number');
+    const db = sheet(B, 'exportExcel', 'Decision Bands').find(r => r[1] === 'Band X');
+    const pm = sheet(B, 'exportFydpPlan', 'By PMO').filter(r => r[0] === 'ZED' || r[0] === 'AV' || r[0] === 'PSM').map(r => r.slice(0, 6));
+    return { src, flow: [at('US service appropriations'), at('International Partners'), at('Foreign Military Sales'), at('TOTAL FUNDING')],
+      band: db ? db.slice(0, 7) : null, pmo: pm, tabs: B.exportExcel.map(s => s.name).filter(n => /^PMO /.test(n) && n !== 'PMO Matrix'),
+      dest: E(`flowEntName('dz1')`), sheets: Object.keys(B).map(f => f + ':' + B[f].length).join(' ') }; };
+  // the figures as locked, worked out from the fixture: A draws discretionary 100 / 50 / 20; B draws USAF 50 + 30 mandatory, ANG
+  // 10 + 20, STOVL 10; the funds flow's US money is the 290 they draw
+  const LOCKED = {
+    src: [['A event', 'USAF O&M- CAM Discretionary ZED', 100, 'ZED'], ['A event', '', 50, 'ZED'], ['A event', '', 20, 'ZED'],
+          ['B event', 'USAF O&M- CAM Discretionary AV', 50, 'AV'], ['B event', 'USAF O&M - CAM OBBBA Mandatory AV', 30, 'AV'],
+          ['B event', '', 10, 'AV'], ['B event', '', 20, 'AV'], ['B event', '', 10, 'AV']],
+    flow: [290, 3000000, 0, 3000290], band: ['8', 'Band X', 'fund in full', '', '', 1, 170],
+    pmo: [['AV', 1, 130, 130, 120, 10], ['ZED', 1, 170, 170, 170, 0]], tabs: ['PMO AV', 'PMO ZED'], dest: 'Depot One' };
+  // THE WORKING PLAN takes every change (CONTROLS)
+  const w = read(ev);
+  chk(name, 'the working plan', 'CONTROL — A is AV’s, retitled; the retired name and ZED’s are gone; FMS $2,000,000 for ALL YEARS',
+    J([w.src.slice(0, 2), w.flow, w.band, w.pmo, w.dest]),
+    J([[['A event retitled', '', 100, 'AV'], ['A event retitled', '', 50, 'AV']], [290, 0, 2000000, 2000290], null,
+       [['AV', 2, 300, 300, 290, 10]], 'Depot Renamed']));
+  const snap = `JSON.stringify([MS, S, DESTDB, BUDDB, BASE_ITEMS, BASE_ASK, CLINS, GROUPS, DATA.items, DATA.budget, SVC, DIRTY,
+    localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb'), localStorage.getItem(_AP.key)])`;
+  const before = ev(snap);
+  // THE VIEW: every list as locked
+  ev(`cycView(${J(key)}); 'ok'`);
+  const said = ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const v = read(ev);
+  chk(name, 'the view · Spend Plan Source', 'every line’s title, BAE budget and PMO as locked: A in ZED on ZED’s name, B’s USAF discretionary on the name retired since',
+    J(v.src), J(LOCKED.src));
+  chk(name, 'the view · Funds Flow', 'partner and FMS money and the year selection as locked: International Partners $3,000,000, no FMS, TOTAL FUNDING $3,000,290',
+    J(v.flow), J(LOCKED.flow));
+  chk(name, 'the view · Decision Bands', 'band X, removed since, is still A’s band, by its locked name and rule', J(v.band), J(LOCKED.band));
+  chk(name, 'the view · five-year plan By PMO', 'A’s money is ZED’s, the office deleted since', J(v.pmo), J(LOCKED.pmo));
+  chk(name, 'the view · workbook', 'the PMO tabs are AV’s and ZED’s', J(v.tabs), J(LOCKED.tabs));
+  chk(name, 'the view · destination list', 'A’s destination reads by its locked name', v.dest, LOCKED.dest);
+  chk(name, 'the view', 'CONTROL — it says nothing about today’s lists: this cycle kept its own',
+    J([/^👁 Viewing PB27 \(locked\)/.test(said), /read as (it is|they are) today/.test(said)]), J([true, false]));
+  // A REFUSED WRITE puts the kept lists back, the board-wide ones included, and writes nothing to browser storage
+  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Typed In The View'; BUDDB.rows=[]; flowCfg().other[MS.cur]={ip:9}; save(); 'ok'`);
+  chk(name, 'the view · a refused save', 'the destination, the BAE list and the partner money are as locked again',
+    J([ev(`flowEntName('dz1')`), ev(`budResolve('B','USAF','disc').effective`), ev(`flowCalc().ip`)]), J(['Depot One', 'USAF O&M- CAM Discretionary AV', 3000000]));
+  const ls0 = ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`);
+  chk(name, 'the view · storage', 'the destination and BAE lists on the page are the cycle’s, and neither can be written to browser storage',
+    J([ev(`persistDest()`), ev(`persistBud()`), ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`) === ls0]), J([false, false, true]));
+  // LEAVING: the working plan, the board-wide lists and browser storage byte for byte as they were
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'leaving the view', 'the working plan, every board-wide list and browser storage are byte for byte as they were', ev(snap) === before, true);
+  chk(name, 'leaving the view', 'CONTROL — and its exports are today’s again', J(read(ev).src.slice(0, 2)), J(w.src.slice(0, 2)));
+  // A PMO COPY carries the reference cycle's projection only, not the lists (it cannot be viewed)
+  chk(name, 'a PMO copy', 'the reference cycle it carries holds no kept lists', ev(`MS.cycleRef=${J(key)}; JSON.stringify(cycRefOnlyDb()).indexOf('"keep"')<0`), true);
+  // SAVED AND REOPENED: the kept lists travel in the file, and the door takes the board's own file
+  const html = ev('buildSavedHtml()');
+  chk(name, 'the saved file', 'the board’s own file passes the import door', ev(`inboundCheck(${J(html)})`), '');
+  const R = boot({ html });
+  R.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'saved and reopened', 'CONTROL — the reopened working plan reads the new data pack', R.ev(`dispTitle(itemById('A'))`), 'A event retitled');
+  R.ev(`cycView(${J(key)}); 'ok'`);
+  const r = read(R.ev);
+  chk(name, 'saved and reopened, the view', 'every list still as locked',
+    J([r.src, r.flow, r.band, r.pmo, r.tabs, r.dest]), J([LOCKED.src, LOCKED.flow, LOCKED.band, LOCKED.pmo, LOCKED.tabs, LOCKED.dest]));
+  R.ev(`cycLeave(); 'ok'`);
+  // A CYCLE LOCKED BEFORE v2.02 kept none of them: viewed with today's lists, and said so
+  R.ev(`delete blGet(${J(key)}).keep; delete blGet(${J(key)}).keepV; cycView(${J(key)}); 'ok'`);
+  const oSaid = R.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const o = read(R.ev);
+  chk(name, 'a cycle locked before v2.02', 'its view says which lists are read as they are today',
+    oSaid.endsWith('⚠ Its destinations, decision bands, BAE budget list, PMO list, requirement data and funds-flow settings are read as they are today: it was locked before v2.02, which did not keep them with a cycle.'), true);
+  chk(name, 'a cycle locked before v2.02', 'CONTROL — and it reads today’s: the new title, ZED gone (A falls back to its home office, PSM), FMS for ALL YEARS',
+    J([o.src[0], o.flow, o.dest]), J([['A event retitled', '', 100, 'PSM'], [290, 0, 2000000, 2000290], 'Depot Renamed']));
+  R.ev(`cycLeave(); blOpen=true; blBody(); 'ok'`);
+  chk(name, 'a cycle locked before v2.02', 'its line under PPBE cycles says (other lists: today’s)',
+    /\(other lists: today’s\)/.test(R.ev(`document.getElementById('blBody').textContent`)), true);
+  // A CYCLE STORE RE-POINTED (destMigrate, when the store's destination list is not the board's): the kept copy of the list is
+  // re-keyed with its years, so the key its years now name is still the destination it kept, by the name it was locked with
+  ev(`destRemap(destCycStates(), {dz1:'dz9'}); destRemapKeeps({dz1:'dz9'}); cycView(${J(key)}); 'ok'`);
+  chk(name, 'a cycle store re-pointed', 'A’s destination key moved to dz9 in its years and in the list it kept, and reads Depot One',
+    J([ev(`destOf(itemById('A')).to`), ev(`flowEntName('dz9')`)]), J(['dz9', 'Depot One']));
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'errors (control)', 'no script error on either board', J(errors.concat(R.errors)), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ v2.02 (D5c, D6a, D7b, D7c) — Brad's small fixes of 21 Oct ═══════════════════════════════════════════════════
 {
   const name = 'v2.02 (D5c, D6a, D7b, D7c) — whole dollars from a position, newer files refused, partner years offered, a year outside the window said';
