@@ -14964,7 +14964,12 @@ function aceSetMap(id, ws, confirmed){
 // A prime breaks into CLINs, and each CLIN into the WBS logged against it; everything else is one
 // line. This is the shape both the panel's expansion and the workbook's breakout are built from,
 // so the two cannot drift apart.
-function aceAlignRows(id){
+// v2.02 (D5a; Brad, 21 Oct): WITH T, EACH LINE ALSO CARRIES WHAT THE LANES PAY ON IT (`f`, `ftot`). The lines carry the
+// allocation -- what the cost was planned against -- and the mapping tab of the same workbook prints Board funded, so a line
+// read as funded misstated it (ask $100, allocated $100, the lanes pay $60: the line said $100). The requirement's funded
+// dollars (d + m, as Board funded) are spread over its lines per service by each line's allocation, with apportion, so the
+// lines add to Board funded exactly, service by service.
+function aceAlignRows(id, T){
   const it=itemById(id); if(!it) return [];
   const si=siApplies()? siOf(it) : '';
   const ce=DATA.costElems? (((S.costElem||{})[id])||'') : '';
@@ -15016,6 +15021,16 @@ function aceAlignRows(id){
     });
   } else {
     spread('req', '', '', wbsReq(id), svcAlloc(it), rcnAsgOf(id));
+  }
+  if(T){
+    const p=T[id], F=SVC.map(function(_,i){ return p? (+p.d[i]||0)+(+p.m[i]||0) : 0; });
+    out.forEach(function(L){ L.f=SVC.map(function(){ return 0; }); });
+    SVC.forEach(function(_,i){
+      if(!F[i] || !out.length) return;
+      const parts=apportion(F[i], out.map(function(L){ return Math.max(0, +L.v[i]||0); }));
+      out.forEach(function(L, j){ L.f[i]=parts[j]; });
+    });
+    out.forEach(function(L){ L.ftot=L.f.reduce(function(a,b){ return a+b; }, 0); });
   }
   return out;
 }
@@ -30813,15 +30828,17 @@ function exportAceTieout(){
 
   // ---------- 4b. the alignment breakout, one row per FUNDING LINE
   if(isOm || isFf){
-    const cols=[6,10,44,14,22,16,16,16].concat(codeCols);
+    const cols=[6,10,44,14,22,16,16,16].concat(codeCols, [16]);
     const rows=[[{v:'ALIGNMENT BREAKOUT BY FUNDING LINE  ('+scopeLbl+')',s:TI}],[]];
+    // v2.02 (D5a): Funded goes last, after the codes, so no column a reader already finds by place moves
     rows.push(['FY','PMO','Requirement (CCaR Record Name)','CLIN','WBS','Line total',
-               'of which USAF/ANG/AFRC','of which Navy/USMC'].concat(codeHdr)
+               'of which USAF/ANG/AFRC','of which Navy/USMC'].concat(codeHdr, ['Funded'])
                .map(function(v){ return {v:v,s:H}; }));
     let anyRem=false;
+    const TY={};    // v2.02 (D5a): each year's lane walk, taken once inside that year
     scans.forEach(function(sc){
       sc.rows.forEach(function(r){
-        const lines=aceWithYear(sc.fy, function(){ return aceAlignRows(r.id); });
+        const lines=aceWithYear(sc.fy, function(){ return aceAlignRows(r.id, TY[sc.fy]||(TY[sc.fy]=tiers())); });
         lines.forEach(function(L){
           const c=alignCodeCells(L);
           if(L.kind==='rem') anyRem=true;
@@ -30829,7 +30846,7 @@ function exportAceTieout(){
                      (L.kind==='rem'? 'UNASSIGNED' : (L.clin||'')),
                      (L.kind==='rem'? '(no WBS)' : (L.w||'(no WBS)')),
                      {v:L.tot,s:N}, {v:alignRcnPart(L.v),s:N}, {v:alignSiPart(L.v),s:N}]
-                    .concat(isFf? [c.ce] : [c.rcn, c.eeic, c.si]));
+                    .concat(isFf? [c.ce] : [c.rcn, c.eeic, c.si], [{v:L.ftot||0,s:N}]));
         });
       });
     });
@@ -30840,7 +30857,9 @@ function exportAceTieout(){
     rows.push([{v:'A prime breaks into CLINs and each CLIN into the WBS logged against it. Every '
                +'line here is a funding line: the Line total column carries the requirement’s '
                +'allocation (for a prime, each CLIN’s allocation in its grid), not what the lanes '
-               +'pay, which is Board funded on the mapping tab.',s:0}]);
+               +'pay, which is Board funded on the mapping tab. The Funded column is what the lanes pay on the line: the '
+               +'requirement’s Board funded spread over its lines by their allocation, service by service, so a '
+               +'requirement’s lines add up to its Board funded. The two “of which” columns split the Line total.',s:0}]);
     if(isOm){
       rows.push([{v:'One line of accounting funds a CLIN, so a CLIN carries ONE RCN/EEIC for each Air '
                  +'Force service however many WBS sit under it - even where the estimate associates '

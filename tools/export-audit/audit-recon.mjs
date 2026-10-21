@@ -8342,6 +8342,53 @@ await (async () => {
 // and $300 for CLIN 0001 ($700), and the reopened file the same; R2 was [0, 200, 0] twice beside its K1 line, on
 // "__proto__" and on ["__proto__"] alike, and with two WBS logged, WBS 1.1 was three lines of [0, 0, 50] and 1.2 two lines
 // of [0, 100, 0]; CLIN 0001 with its two WBS was five lines of [0, 100, 0]. The 14 CONTROLS pass there and here.
+// ==== v2.02 (D5a): the ACE alignment breakout prints Funded beside each line's allocation ====
+// Brad, 21 Oct 2026: both columns. The breakout's lines carry the allocation and the mapping tab prints Board funded; a line
+// read as funded misstated it. Worked by hand: services USAF / ANG / AFRC, discretionary [60, 50, 0], no mandatory, the order
+// P then R. P (a prime, ask [40, 0, 0], CLINs 0001 [30, 0, 0] and 0002 [10, 0, 0]) draws USAF 40; R (ask [100, 50, 0], WBS
+// 1.1 [70, 20, 0] and 1.2 [30, 30, 0]) draws USAF 20 and ANG 50. So P's lines are funded 30 and 10; R's USAF 20 is split
+// 70:30 into 14 and 6 and its ANG 50 is 20 and 30, so 1.1 is funded 34 and 1.2 is 36 -- against allocations 90 and 60.
+await (async () => {
+  const name = 'v2.02 (D5a) — the ACE alignment breakout prints Funded beside each line’s allocation';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('P', 'AV', [40, 0, 0]), it('R', 'AV', [100, 50, 0])],
+      disc: [60, 50, 0], mand: [0, 0, 0], order: ['P', 'R'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P:'PRIME'}; S.clinNew={P:[{key:'n1',clin:'0001',desc:'a',ccar:'',ask:[30,0,0]},{key:'n2',clin:'0002',desc:'b',ccar:'',ask:[10,0,0]}]};
+      S.clinAlloc={P:{n1:[30,0,0], n2:[10,0,0]}};
+      S.wbs={R:[{w:'1.1', v:[70,20,0]},{w:'1.2', v:[30,30,0]}]};
+      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'9.9', v:{}}]}}; ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=1; aceYr='all';
+      applyState(S); save(); 'ok'`);
+    chk(name, 'fixture', 'the lanes pay P [40, 0, 0] and R [20, 50, 0]',
+      X.ev(`JSON.stringify(['P','R'].map(function(id){ var p=tiers()[id]; return p.d.map(function(v,i){ return v+p.m[i]; }); }))`), J([[40, 0, 0], [20, 50, 0]]));
+    chk(name, 'lines', 'with the lane walk, each line carries its funded dollars by service',
+      X.ev(`(function(){ var T=tiers(); return JSON.stringify(['P','R'].map(function(id){ return aceAlignRows(id, T).map(function(L){ return [L.clin||L.w, L.v, L.f, L.ftot]; }); })); })()`),
+      J([[['0001', [30, 0, 0], [30, 0, 0], 30], ['0002', [10, 0, 0], [10, 0, 0], 10]], [['1.1', [70, 20, 0], [14, 20, 0], 34], ['1.2', [30, 30, 0], [6, 30, 0], 36]]]));
+    chk(name, 'lines', 'CONTROL — without it, a line carries its allocation alone, as before',
+      X.ev(`JSON.stringify(aceAlignRows('R').map(function(L){ return [L.w, L.v, L.f===undefined]; }))`), J([['1.1', [70, 20, 0], true], ['1.2', [30, 30, 0], true]]));
+    const ab = JSON.parse(await w6Book(X.w, 'exportAceTieout'));
+    const al = ab['Alignment Breakout'] || [], ah = headerRow(al, 'FY', 'PMO', 'Line total'), ac = k => colOf(al, ah, k);
+    const got = al.slice(ah + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[2]), String(r[ac('CLIN')] ?? ''), String(r[ac('WBS')] ?? ''), num(r[ac('Line total')]), num(r[ac('Funded')])]);
+    chk(name, 'workbook', 'the Alignment Breakout, from its bytes: each line’s allocation and what the lanes pay on it',
+      J(got), J([['Req P', '0001', '(no WBS)', 30, 30], ['Req P', '0002', '(no WBS)', 10, 10], ['Req R', '', '1.1', 90, 34], ['Req R', '', '1.2', 60, 36]]));
+    chk(name, 'workbook', 'Funded is the last column, so no column read by place moved', ac('Funded'), (al[ah] || []).length - 1);
+    const mp = ab['Mapping by Requirement'] || [], mh = headerRow(mp, 'FY', 'PMO', 'Board funded'), mc = k => colOf(mp, mh, k);
+    const bf = mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[mc('Requirement (CCaR Record Name)')]), num(r[mc('Board funded')])]);
+    chk(name, 'workbook', 'each requirement’s lines add up to its Board funded on the mapping tab: P 40, R 70', J(bf), J([['Req P', 40], ['Req R', 70]]));
+    const note = al.map(w6Lbl).find(t => /Every line here is a funding line/.test(t)) || '';
+    chk(name, 'workbook', 'the note says what the Funded column is', /The Funded column is what the lanes pay on the line/.test(note), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.02 (D5a) ====
+
 await (async () => {
   const name = 'v2.00 (U61) — an RCN / EEIC pointer of "__proto__" never loses or doubles money in the alignment lines or the ACE tie-out';
   const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
