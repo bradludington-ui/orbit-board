@@ -6602,7 +6602,7 @@ const MUTATIONS = [
   { id: "v202-e7-u19h-session-only", area: "saveStateShow", what: "after a put-back, or an edit, and a reopen with no save, the header says \"Saved 9:35 AM\" -- the unsaved work's own time -- though no file holds it",
     find: "  const un=unsavedNow() || !!_baseDirty;", repl: "  const un=unsavedNow();" },
   { id: "v202-e7-u19h-tooltip-saved", area: "saveStateShow", what: "the header's tooltip opens with \"Saved <time> by …\" while the work is unsaved",
-    find: "    ss.title=(MS.ts && !un? 'Saved '", repl: "    ss.title=(MS.ts? 'Saved '" },
+    find: "(un? 'Unsaved changes — last saved ' : 'Saved ')", repl: "'Saved '" },
   // v2.02 (E7, ledger U24, U29, U31): a load that puts another copy on screen is a change, in the session and in the record.
   { id: "v202-e7-u24-load-uncounted", area: "loadCounted", what: "loading the shared state file, its automatic load and importing several boards leave the board recorded clean: the next Save asks nothing and writes the loaded copy over the person's own",
     find: "function loadCounted(){ _saveGen++; DIRTY=true; try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){} }",

@@ -27340,7 +27340,9 @@ function saveStateShow(){
   // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
   if(ss){ ss.classList.toggle('dirty', un);
     const _st=document.getElementById('shareStat');
-    ss.title=(MS.ts && !un? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
+    // v2.02 (E7, U19H): while work is unsaved the tooltip does not open with "Saved" -- but it still says when the board was
+    // last saved, and by whom, so a stopped save leaves that reading as it was.
+    ss.title=(MS.ts? (un? 'Unsaved changes — last saved ' : 'Saved ')+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
   // v1.91 (item 29): a button -- it was a link with no address, which a keyboard never reaches.
   if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type="button" class="keptbtn" onclick="keptPutBack()" '
