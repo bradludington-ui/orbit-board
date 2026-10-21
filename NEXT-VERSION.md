@@ -116,8 +116,10 @@ Current version: **v2.03**. Next: **v2.04**.
   compatible in the DoD IL5 Azure environment and meets or exceed the DoD Zero Trust requirements". So the level is
   **IL5** (not IL4), and **DoD Zero Trust** is a requirement in its own right. A file that is its own database, opened
   from a shared drive and mailed as a PMO copy, cannot meet Zero Trust: there is no identity on each request, no device
-  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107), and
-  the pilot file is hardened (item 106) only until that build replaces it.
+  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107).
+- **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
+  requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
+  interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
 
 #### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
 - **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
@@ -138,20 +140,6 @@ Current version: **v2.03**. Next: **v2.04**.
   above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
   the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
   **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
-
-#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
-- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
-  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
-- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
-  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
-  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
-  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
-  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
-  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
-  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
-  finding fixed or written down, plus `npm audit` for the test tooling.
-- **Proof:** each change ships with a check that fails without it, as every version does.
-- **Not yet built:** waiting on Brad's go, and on the CUI marking wording.
 
 #### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
 - **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
@@ -176,6 +164,21 @@ Current version: **v2.03**. Next: **v2.04**.
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
 
 #### Considered and not recommended
 - **Rewriting the board into separate modules**, and **making the money engine take its inputs as
