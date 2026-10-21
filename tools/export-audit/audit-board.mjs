@@ -2556,6 +2556,44 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// ═══ v2.02 (D5c, D6a, D7b, D7c) — Brad's small fixes of 21 Oct ═══════════════════════════════════════════════════
+{
+  const name = 'v2.02 (D5c, D6a, D7b, D7c) — whole dollars from a position, newer files refused, partner years offered, a year outside the window said';
+  try {
+  const sc = { services: ['USAF', 'ANG', 'STOVL'], items: [it('A', 'PSM', [100, 50, 20])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A'] };
+  const { ev } = boot();
+  seed(ev, sc);
+  ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  // D5c: a position a file carries with fractions is taken in whole dollars
+  ev(`MS.ppbe=MS.ppbe||{}; MS.ppbe['POM|2099']={v:2, split:false, lines:{}, val:{USAF:{L1:{}}}}; MS.ppbe['POM|2099'].val.USAF.L1[MS.cur]={d:1000.6, m:250.4}; bmSeedFromPp('POM|2099'); 'ok'`);
+  chk(name, 'D5c', 'the base budget authority taken from the position is whole dollars', ev(`JSON.stringify([S.bm.disc[0], S.bm.mand[0]])`), JSON.stringify([1001, 250]));
+  // D6a: a file written by a newer ORBIT is refused at the door; the same build and an older one are not
+  const B = ev('BUILD'), html = ev('buildSavedHtml()');
+  const asBuild = v => html.replace(/const BUILD='v[^']*'/, "const BUILD='" + v + "'");
+  const door = t => ev(`inboundCheck(${JSON.stringify(t)})`);
+  chk(name, 'D6a', 'a board file written by v9.00 is refused, naming both versions', door(asBuild('v9.00 (1 Jan 2099)')),
+    'it was written by a newer version of ORBIT (v9.00; this board is ' + B + '), which may carry what this version cannot read or would lose on its next save. Open the board from the shortcut to pick up the new program, and import it there');
+  chk(name, 'D6a', 'CONTROL — the same build and an older one pass', JSON.stringify([door(html), door(asBuild('v1.50 (1 Jan 2026)'))]), JSON.stringify(['', '']));
+  chk(name, 'D6a', 'a shared-folder copy carrying build v9.00 is refused; one with no build passes', JSON.stringify([
+    /^it was written by a newer version of ORBIT \(v9\.00;/.test(door(JSON.stringify({ v: 1, build: 'v9.00 (1 Jan 2099)', ap: 'om' }))),
+    door(JSON.stringify({ v: 1, ap: 'om' }))]), JSON.stringify([true, '']));
+  // D7b: partner money typed for a year the board offers nothing else for is offered, and ALL YEARS counts it
+  const y0 = +ev('MS.cur') - 9;
+  ev(`flowCfg().other[${y0}]={ip:3000000}; flowCfg().fys=null; 'ok'`);
+  chk(name, 'D7b', 'the year is offered', ev(`flowYears().indexOf(${y0})>=0`), true);
+  chk(name, 'D7b', 'and ALL YEARS counts its $3,000,000', ev('flowCalc().ip'), 3000000);
+  // D7c: a year made outside the FYDP window is said
+  const b = +ev('+MS.base||+MS.cur'), far = b + 7;
+  ev(`window.confirm=function(){ return false; }; switchYear(${far}); 'ok'`);
+  chk(name, 'D7c', 'the line says the new year is outside the window', ev(`(document.getElementById('shareStat')||{}).textContent||''`).endsWith(
+    ' ⚠ FY' + (far % 100) + ' is outside the FYDP window (FY' + (b % 100) + '–FY' + ((b + 4) % 100) + '): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'), true);
+  ev(`switchYear(${b + 1}); 'ok'`);
+  chk(name, 'D7c', 'CONTROL — a year inside the window says nothing of it', /outside the FYDP window/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ PPBE CYCLES — THE DELTAS AGAINST THE REFERENCE ═══════════════════════════════════════
 // After a lock the working plan moves on. Every change is read against the lock's projection of
 // the same year: value, allocation, funded (the lane draw), rank, band, PMO, the star, a

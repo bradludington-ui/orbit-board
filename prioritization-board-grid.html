@@ -6417,8 +6417,13 @@ function switchYear(y){
       +cycHeld(CYCVIEW).map(function(v){ return v%100; }).join(', FY')+'.');
     return;
   }
+  let outside='';
   if(!MS.years[y]){
     let seed=null;
+    // v2.02 (D7c; Brad, 21 Oct): a year made outside the FYDP window is in no five-year report, and the funds flow's ALL YEARS
+    // counts it -- the person meant to make it, and is told where it lands
+    { const b=+MS.base||+MS.cur; if(y<b || y>b+4) outside=' ⚠ FY'+(y%100)+' is outside the FYDP window (FY'+(b%100)+'–FY'+((b+4)%100)
+        +'): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'; }
     if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
       seed=JSON.parse(JSON.stringify(S));
       delete seed.ts;
@@ -6435,7 +6440,7 @@ function switchYear(y){
   const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
   if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+blLbl(CYCVIEW)+' (locked)</b> — '+FYL()+'. Read only.'); return; }
   save(); render();
-  setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.');
+  setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.'+esc(outside));
 }
 // IS THIS REQUIREMENT ALREADY IN THAT YEAR? One predicate, used by the preview AND by the copy.
 //
@@ -10316,16 +10321,30 @@ function inboundCheck(txt){
   if(t.length>IN_MAX_BYTES) return 'it is '+(t.length/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB';
   const parts=[];
   if(/^\s*</.test(t) || t.indexOf('id="pubState"')>=0){
+    const nb=inNewerWhy(fullBuildOf(t)); if(nb) return nb;
     const m=t.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
     if(m){ let J; try{ J=JSON.parse(m[1]); }catch(e){ J=undefined; } if(J!==undefined) parts.push(['the saved state', J]); }
     const pk=extractPacks(t);
     if(pk) Object.keys(pk).forEach(function(k){ parts.push(['the requirement list'+(k==='only'? '' : ' ('+k+')'), pk[k]]); });
   } else {
     let J; try{ J=JSON.parse(t); }catch(e){ J=undefined; }
+    if(J && typeof J==='object' && typeof J.build==='string'){ const nb=inNewerWhy(fullBuildOf("const BUILD='"+J.build)); if(nb) return nb; }
     if(J!==undefined) parts.push(['the file', J]);
   }
   for(let i=0;i<parts.length;i++){ const w=inWalk(parts[i][1], parts[i][0]); if(w) return w; }
   return '';
+}
+// v2.02 (D6a; Brad, 21 Oct): A FILE WRITTEN BY A NEWER ORBIT IS REFUSED, at the one door every file passes. A board file says
+// which build wrote it (its BUILD), a shared-folder copy carries `build`; an older ORBIT read either as its own shape --
+// v1.97 does not know a CLIN's per-service RCN choice, and filed that money under the CLIN's standard combination -- and
+// what it does not know it cannot be relied on to keep on its next save. Only a newer (major, minor) is refused: the same
+// build and every older one read as before, and a file that names no build is judged as before.
+function inNewerWhy(b){
+  const me=fullBuildOf("const BUILD='"+BUILD);
+  if(!b || !me || !(b[0]>me[0] || (b[0]===me[0] && b[1]>me[1]))) return '';
+  return 'it was written by a newer version of ORBIT (v'+b[0]+'.'+String(b[1]).padStart(2,'0')+'; this board is '+BUILD
+    +'), which may carry what this version cannot read or would lose on its next save. Open the board from the shortcut to '
+    +'pick up the new program, and import it there';
 }
 // The size, from the file itself, before a byte of it is read into the page.
 function inTooBig(f){ return (f && f.size>IN_MAX_BYTES)? 'it is '+(f.size/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB' : ''; }
@@ -16716,7 +16735,16 @@ function flowYears(){
   flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1): and every year a row is COUNTED in, so ALL YEARS holds every dollar
   flowPlanYears().forEach(f=>y[f]=1);
   flowStoredYears().forEach(f=>y[f]=1);           // v2.00 (U14): and every year this board holds a plan for -- read, never made
+  flowOtherYears().forEach(f=>y[f]=1);            // v2.02 (D7b): and every year partner or FMS money is typed for
   return Object.keys(y).map(Number).sort((a,b)=>a-b);
+}
+// v2.02 (D7b; Brad, 21 Oct): PARTNER AND FMS MONEY IS STORED MONEY, so its year is offered. Typed for a year the board no longer
+// offered (no plan, no execution, outside the window), it was kept and summed only over the years in scope -- so ALL YEARS left
+// it out and said nothing. Read only: nothing is made for a year to be offered.
+function flowOtherYears(){
+  const O=(MS.flow && MS.flow.other) || {};
+  return Object.keys(O).map(Number).filter(function(y){ const o=O[y];
+    return Number.isInteger(y) && y>1990 && y<2100 && o && typeof o==='object' && ((+o.ip||0)!==0 || (+o.fms||0)!==0); });
 }
 // v2.00 (U14, Brad, 12 Oct: "ALL YEARS to include genuine stored plans and execution by effective year within the selected
 // appropriations. Never create or copy a budget merely because a year becomes available"): THE YEARS THIS BOARD HOLDS A PLAN
@@ -23797,7 +23825,8 @@ function bmSeedFromPp(key){
                       +'\n(a position that does not mention a service is not a position that says zero)' : '')
     +(v.outside.length? '\n\nIGNORED — '+lbl+' carries services this board does not: '+v.outside.join(', ') : '')
     +'\n\nAdded funding sources are not touched, and you can edit any of these afterwards.')) return;
-  v.covered.forEach(function(sv){ const i=SVC.indexOf(sv); S.bm.disc[i]=v.d[i]; S.bm.mand[i]=v.m[i]; });
+  // v2.02 (D5c): whole dollars at the door -- a position a file carries with a fraction is taken rounded, as the confirm shows it
+  v.covered.forEach(function(sv){ const i=SVC.indexOf(sv); S.bm.disc[i]=D$(v.d[i]); S.bm.mand[i]=D$(v.m[i]); });
   S.bm.pp={key:key, fy:MS.cur, ts:Date.now(), by:whoAmI(), cov:v.covered.slice(),
            disc:S.bm.disc.slice(), mand:S.bm.mand.slice()};
   applyBudget(); save(); render();
@@ -32053,7 +32082,8 @@ function exportExcel(){
         +'in the rollup above. A prime\u2019s money is on its CLINs\u2019 combinations: the CLIN\u2019s '
         +'choice for the service, else the CLIN\u2019s own, else the requirement\u2019s. A prime whose CLINs '
         +'differ appears once under each combination, its money and its Ask split by its CLIN grid '
-        +'exactly as in PRIME CONTRACTS below. The rows under a combination add to that combination\u2019s row in '
+        +'exactly as in PRIME CONTRACTS below (so its Ask less its money under a combination is that combination\u2019s '
+        +'shortfall; the CLINs\u2019 own requests can differ from the grid once it is edited). The rows under a combination add to that combination\u2019s row in '
         +'the rollup, and each service total here equals the same service total above it. Rank is '
         +'the board\u2019s master rank; Ask is that service\u2019s share of the requirement, so Ask '
         +'above TOTAL is money the service asked for and did not draw. NOT FUNDED sits BELOW each '
