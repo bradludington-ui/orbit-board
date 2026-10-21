@@ -118,7 +118,8 @@ against its own block. 2,027 targets, each matching once.
     - `npm run audit`: exit 0, nine banners plus the legacy line;
     - every browser tool and `npm run standards`: only the 8 carried layout-fits D results.
 - **E7. The non-blockers deferred at the 18 Oct cut, triaged on `981a334`** (21 Oct 2026). Each was a read-only agent
-  working in its own worktree, with the probes kept in the scratchpad. Nothing is built yet.
+  working in its own worktree, with the probes kept in the scratchpad. Built and checked on Brad's go; see *E7's fixes built*
+  below.
   - **U9L: closed.** It is E5.
   - **U28: not seen on this tree.** All 13 of layout-fits J's results pass; only the carried D results fail.
   - **U9: REPRODUCED. A tie between CLIN offices is broken by floating-point error.**
@@ -154,6 +155,27 @@ against its own block. 2,027 targets, each matching once.
       "Unsaved changes", and nothing saved moves.
     - U19H's fuller wording ("Unsaved restored work — not written to the board file") was found false on a file holding
       two appropriations, and stays a separate item.
+- **E7's fixes built** (Brad, 21 Oct 2026: "1. Yes 2. Whatever you recommend 3. Yes"). Commits `8350d5c`, `5cf4cc7`,
+  `fc64bd2` and `4f87359`.
+  - **U9:** `pmoSharesOf` hands `apportion` the CLIN asks themselves as the weights, so a tie is a tie: PRIME-3 at $3 is
+    $1/$1/$1 and at $9 is $2/$3/$4. **U43:** the PMO funding panel and the CR view by PMO list offices with `pmoKeys`, so
+    PRIMES has a row and the TOTAL is the board's. audit-recon "v2.02 (E7)" holds both, from hand-written figures.
+  - **U19H:** the header reads `unsavedNow() || !!_baseDirty`, so after a reopen it says "Unsaved changes" while this
+    browser's record says so. Its tooltip then reads "Unsaved changes — last saved <time> by <who>", and never opens with
+    "Saved". The first cut dropped the stamp from the tooltip, and the U4 check ("the header's saved time and name are what
+    they were before the save") caught it. The board was fixed and U4 was left unchanged. audit-import U19 (g), (g2) and
+    (g3) are the new checks.
+  - **U24, U29, U31** (U29 built as recommended): `loadCounted()` counts a load as a change, in this session and in this
+    browser's record. It is called by `adoptShared`, `sharedArrived`'s automatic load, `importBoards` and, in folder
+    mode, `bootTakeFile`. `bootTakeFile` is refused while a save is under way. Loading the shared copy over a clean board
+    asks first, and says that the next Save will write it over the saved file. audit-import "v2.02 (E7, ledger U24, U29,
+    U31)" has 13 checks.
+  - Mutations: 10 new (`v202-e7-u9-*`, `-u43-*`, `-u19h-*`, `-u24-*`, `-u29-*`), each caught by its own check; 2
+    retargeted (`pmo-frac`, `v197w2-indicator-board-only`). mcount reads 2,050 of 2,050, each matching once.
+  - **Checks on `4f87359`:** `npm run check` passes. `npm run audit` (audit-import alone in the chain): exit 0, nine banners
+    plus the legacy line. Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried
+    layout-fits D results; standards passes.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct).
 - **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
   - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
   - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
