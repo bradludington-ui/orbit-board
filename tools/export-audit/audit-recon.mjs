@@ -7080,7 +7080,7 @@ await (async () => {
       // v2.00 (U10, the round-3 test review): the Live timer's quiet refresh changed nothing, and says nothing
       w5Chk(name, 'PB27 viewed · a Live refresh (quiet) finds Colleague C’s newer copy', 'the status line is as it was: nothing was changed, so nothing is said', J(s1b === s1a), J(true));
       const p2 = await X.ev('driveStorePull(false)');
-      w5Chk(name, 'PB27 viewed · 📡 Connect (a refresh that speaks)', 'refused, and the status line says so', J([p2, said(ev)]), J([false, OFF('Loading from the shared folder')]));
+      w5Chk(name, 'PB27 viewed · 📡 Connect (a refresh that speaks)', 'refused, and the status line says so', J([p2, said(ev)]), J([false, OFF('Loading O&M FY27 from the shared folder')]));
       ev(`cycLeave(); 'ok'`);
       const p3 = await X.ev('driveStorePull(true)');
       w5Chk(name, 'PB27 viewed · the view left · the next Live refresh', 'the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is loaded (COLLEAGUE DESC R)',

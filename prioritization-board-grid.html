@@ -2412,6 +2412,12 @@ let PUB = null;
 // yet at this point, and a board that silently opens blank because its saved state would not parse
 // is the worst thing this tool can do without saying so.
 const _bootLost = [];
+// v2.02 (ledger U47): THE WARNING STAYS IN FRONT WHILE THE BOARD OPENS. The first render said "Could not read … do not save
+// over this file", and the opening's own line -- the shell's, "No saved state in this copy", a PMO copy's quiet greeting --
+// was then set over it in the same opening, so the one sentence that protects the file was gone before anyone read it.
+// While this holds the warning, every line set leads with it (setStat), the way a locked view leads with its 🔒; it is let
+// go once the opening has finished, the shared folder's first answer included.
+let _bootLostHold='';
 /* v1.92 (item 18): WHAT WENT WRONG, KEPT FOR SUPPORT. When something went wrong on somebody's machine the
    only way to learn what was their board -- every dollar and title on it. From the moment the program starts
    the board keeps a short list instead: every warning it shows, what it could not read on opening, and any
@@ -7210,6 +7216,8 @@ function uipDone(ok){
 var _statN=0;
 function setStat(html){
   _statN++;
+  const held=_bootLostHold && String(html).indexOf(_bootLostHold)<0;
+  if(held) html=_bootLostHold+' '+html;
   if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
     html='🔒 <b>Not kept — '+blLbl(CYCVIEW)+' is a locked view.</b> '+html;
   try{ if(diagIsWarn(html)) diagNote('warning', html); }catch(e){}
@@ -7218,7 +7226,7 @@ function setStat(html){
   // until it is hidden; the save state's tooltip always carries it. _statQuiet is set for the one
   // ordinary start-up line, which waits in the tooltip instead.
   try{ const w=document.getElementById('statWrap'), ss=document.getElementById('saveState');
-    if(w){ w.classList.remove('big'); w.classList.toggle('fresh', !!html && !_statQuiet); }
+    if(w){ w.classList.remove('big'); w.classList.toggle('fresh', !!html && (!_statQuiet || !!_bootLostHold)); }
     if(ss) ss.title=el? (el.textContent||'') : ''; statSync(); }catch(e){} }
 var _statQuiet=false;
 // v1.91 (item 29): ONE BUTTON FOR THE MESSAGE, and it is a button. It was a clickable line and a clickable
@@ -20371,6 +20379,11 @@ function cycLock(){
   blStore()[key]={cyc:blCyc, cycYr:yr, base:b, window:ys.slice(), ap:mySlug(), ts:Date.now(), by:whoAmI(),
                   note:(blNote||'').trim(), from:MS.cycle||'', locked:true, partial:false, years:years, proj:proj,
                   rcn:JSON.parse(JSON.stringify(rcnReg()))};
+  // v2.02 (U51): a cycle locked again under its own name keeps its record: when it was first taken, every reopen and lock,
+  // and this replacement, so a cycle whose figures changed after it was locked says so
+  if(had){ const nb=blStore()[key];
+    nb.unlocks=(Array.isArray(had.unlocks)? had.unlocks.slice() : []).concat([{ts:nb.ts, by:nb.by, on:true, replaced:true, was:had.ts||0, wasBy:had.by||''}]);
+    nb.first={ts:(had.first&&had.first.ts)||had.ts||0, by:(had.first&&had.first.by)||had.by||''}; }
   persistCyc();
   MS.cycleRef=key;
   if(!MS.cycle) MS.cycle=key;      // an untagged working plan IS the plan just locked, until it is retagged
@@ -20380,8 +20393,15 @@ function cycLock(){
     +'reference the working plan’s deltas are read against, and a Budget source in the Spruills.'
     +(MS.cycle===key? ' The working plan is still tagged '+blLbl(key)+' — <button class="qb" onclick="cycRetagNext()">🏷 Retag it as '+blLbl(blKey(cycNextOf(key).cyc, cycNextOf(key).yr))+'</button> when the next cycle opens, and what you allocate from then on is its delta.' : ''));
 }
+// v2.02 (ledger U51; Brad, 21 Oct): A LOCKED CYCLE IS REPORT AND VIEW ONLY, AND IT CAN BE REOPENED, STAMPED. "When I lock
+// PB27 I want it to be report and view only. No changes." -- and "it will need to be re-openable ... and it needs to be date
+// stamped, so that we know nobody has made changes." So the view refuses unlocking and deleting any cycle (it unlocked any,
+// the one on screen included, and deleted another -- the comparison then named a cycle that was gone); from the working plan
+// a cycle is reopened and locked again as before, every time stamped in `unlocks`, and that record goes with it when an
+// unlocked cycle is locked again under its own name (cycLock), which replaced the cycle and its record with it.
 function blLock(key,on){
   const b=blGet(key); if(!b) return;
+  if(cycBlock(on? 'Locking a cycle' : 'Unlocking a cycle')) return;
   if(!on && !confirm('Unlock '+blLblTxt(key)+'?\n\nA locked cycle is meant to be a fixed point in time. '
     +'Unlocking lets it be overwritten or deleted. The unlock is stamped with your name.')) return;
   b.locked=!!on;
@@ -20389,8 +20409,23 @@ function blLock(key,on){
   b.unlocks.push({ts:Date.now(), by:whoAmI(), on:!!on});
   persistCyc(); render();
 }
+// v2.02 (U51): the lock's record, as the cycles panel prints it -- one line per event, oldest first, ending with whether the
+// figures are still those it was first locked with
+function cycStampLines(c){
+  const t=x=>esc(fmtTs(x.ts))+(x.by? ' by '+esc(x.by) : '');
+  const f=c.first||{ts:c.ts, by:c.by}, L=['🔒 locked '+t(f)];
+  let replaced=false;
+  (Array.isArray(c.unlocks)? c.unlocks : []).forEach(function(u){
+    if(!u || typeof u!=='object') return;
+    if(u.replaced){ replaced=true; L.push('🔒 locked again '+t(u)+' — its figures replaced'); }
+    else L.push((u.on? '🔒 locked again ' : '🔓 reopened ')+t(u));
+  });
+  L.push(L.length===1? 'never reopened: the figures are as locked' : (replaced? 'the figures are those locked last' : 'the figures are as first locked'));
+  return L;
+}
 function blDelete(key){
   const b=blGet(key); if(!b) return;
+  if(cycBlock('Deleting a cycle')) return;
   if(key===CYCVIEW){ setStat('⚠ <b>'+blLbl(key)+'</b> is on screen — leave the view before deleting it.'); return; }
   if(b.locked){ setStat('⚠ <b>'+blLbl(key)+'</b> is locked — unlock it before deleting.'); return; }
   if(!confirm('Delete the '+blLblTxt(key)+' cycle?\n\nIt cannot be recovered.')) return;
@@ -21487,6 +21522,8 @@ function cycView(key){
     +(c.by? ' by '+esc(c.by):'')+', holding FY'+held.map(function(v){ return v%100; }).join(', FY')
     +'. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent '
     +'as the board until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.'
+    // v2.02 (U51; Brad, 21 Oct): active-year execution goes on changing whatever cycle is on screen, so its import stays open
+    +' A CCaR QPE import (active-year execution) still loads here: it is the year being executed, not the locked plan.'
     +(kept? '' : ' <span style="color:var(--amber)">⚠ '+esc(CYC_RCN_TODAY)+'</span>'));
 }
 // v2.00 (U10): THE VIEW'S COPY, MADE IN ONE PLACE. cycView puts it on screen and a refused write puts it back
@@ -21631,7 +21668,8 @@ function blBody(){
       +'<td>'+(held.length? (CYCVIEW===k? '<button class="qb on" onclick="cycLeave()">↩ Leave view</button> ' : '<button class="qb" onclick="cycView('+jsa(k)+')" title="put this locked plan on the drill, read only">👁 View</button> ') : '')
       +'<button class="qb" onclick="cycCmpOpenWith('+jsa(k)+',\'working\')" title="compare this cycle with the working plan, or with another cycle, year by year">⇄ Compare</button></td>'
       +'<td><button class="qb" onclick="blLock('+jsa(k)+','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
-      +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete('+jsa(k)+')">✕</button>')+'</td></tr>';
+      +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete('+jsa(k)+')">✕</button>')
+      +'<div class="cyc-stamp" style="font-size:9px;color:var(--dim);margin-top:3px">'+cycStampLines(c).join('<br>')+'</div></td></tr>';
   });
   h+='</tbody></table>';
 
@@ -21643,7 +21681,9 @@ function blBody(){
     +'locked with. <b>It does not keep every list it is read through.</b> Its view and its reports still read these as they '
     +'are now: the <b>destination list</b> (a destination renamed reads by its new name), the <b>decision bands</b>, a '
     +'<b>BAE budget set by rule</b> rather than by name, and any <b>requirement detail the plan never changed</b>. '
-    +'Locked cycles cannot be overwritten or deleted. Each one is a '
+    +'Locked cycles cannot be overwritten or deleted, and while one is on screen it is report and view only: nothing can be '
+    +'reopened, locked or deleted from there. A cycle is reopened (🔓) and locked again from the working plan, and each time is '
+    +'stamped with the date and who did it, under its lock. Each one is a '
     +'<b>Budget source</b> in the Spruills, giving a PMO a control tagged to that cycle for every year '
     +'it holds.</div>';
   el.innerHTML=h;
@@ -26946,9 +26986,10 @@ function render(){
   if(_bootLost.length){                     // first render: there is a status bar now
     const lost=_bootLost.slice(); _bootLost.length=0;
     try{ DIAG.boot=DIAG.boot.concat(lost); }catch(e){}   // the board's own descriptions: kept for Save diagnostics
-    try{ setStat('\u26a0 <b>Could not read '+lost.length+' item'+(lost.length===1?'':'s')+' on opening:</b> '
+    try{ const said='\u26a0 <b>Could not read '+lost.length+' item'+(lost.length===1?'':'s')+' on opening:</b> '
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
-      +'checked it, or the unread part will be lost.'); }catch(e){}
+      +'checked it, or the unread part will be lost.';
+      _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
   syncAddPanel(); scoreboard(); chips(); edBody(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
@@ -28341,7 +28382,9 @@ async function driveStorePull(quiet){
   // cycle's: it was kept aside in place of the work this browser holds, the load was refused, and the folder's copy was still
   // recorded as the one the work came from, saved -- so the first refresh after leaving the view replaced that work, kept nowhere.
   // Nothing is changed; the first refresh after leaving the view decides afresh. A quiet refresh (the Live timer) says nothing.
-  if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }
+  // v2.02 (ledger U51, Codex C4a; Brad, 20 Oct): the words name what was refused -- this board's copy of the plan -- since the
+  // same Connect goes on to take the shared lists (the execution data, cost estimates), which stay as they are
+  if(CYCVIEW){ if(!quiet) cycRefuse('Loading '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' from the shared folder'); render(); return false; }
   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
   const own=ownUnsaved(MS, j.store, baseGet());
@@ -33407,9 +33450,10 @@ try{ setTimeout(function(){
       setStat('⚠ The shared folder could not be read on opening — <b>'
         +esc((e&&e.message)||String(e))+'</b>. This board is showing its own last copy — '
         +'press <b>Connect to the shared folder</b> above.');
-    }).then(function(){ destOwnKeep(); });   // v2.00 (U44): the folder's answer keeps the destination list's warning
-  }catch(e){}
-}, 60); }catch(e){}
+    }).then(function(){ destOwnKeep(); })   // v2.00 (U44): the folder's answer keeps the destination list's warning
+      .finally(function(){ _bootLostHold=''; });   // v2.02 (U47): the opening has finished
+  }catch(e){ _bootLostHold=''; }
+}, 60); }catch(e){ _bootLostHold=''; }
 // v1.96 (item 69): the answer, named, so what it does with an answer that arrives after somebody has typed can be tested
 function sharedArrived(st){
   if(st===undefined){

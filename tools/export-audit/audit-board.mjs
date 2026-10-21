@@ -2498,6 +2498,64 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 }
 
 
+// ═══ v2.02 (U51) — A LOCKED CYCLE IS REPORT AND VIEW ONLY; REOPENED FROM THE WORKING PLAN, STAMPED ═══════════════
+// Brad, 21 Oct 2026: "When I lock PB27 ... I want it to be report and view only. No changes." and "it will need to be
+// re-openable ... it needs to be date stamped, so that we know nobody has made changes." A view unlocked any cycle (the one
+// on screen included) and deleted another; a cycle locked again under its own name lost its record of being reopened.
+{
+  const name = 'v2.02 (U51) — a locked cycle is report and view only, reopened from the working plan and stamped';
+  try {
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B'] };
+  const { ev } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      localStorage.setItem('prio27who','Brad'); window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.years[MS.cur]=S; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock(); blCyc='POM'; blYr=MS.cur; cycLock(); 'ok'`);
+  const cur = +ev('MS.cur'), PB = 'PB|' + cur, POM = 'POM|' + cur, LBL = 'PB' + (cur % 100);
+  const lines = k => JSON.parse(ev(`JSON.stringify(cycStampLines(blGet(${JSON.stringify(k)})))`));
+  const shape = L => L.map(x => x.replace(/^(🔒 locked again|🔒 locked|🔓 reopened) .+? by Brad/u, '$1 <when> by Brad'));
+  chk(name, 'taken', 'a new lock: locked, never reopened', JSON.stringify(shape(lines(PB))),
+    JSON.stringify(['🔒 locked <when> by Brad', 'never reopened: the figures are as locked']));
+  // POM reopened from the working plan, so the view has an unlocked cycle to try to delete
+  ev(`blLock(${JSON.stringify(POM)}, false); 'ok'`);
+  chk(name, 'working plan', 'reopening from the working plan works, and is stamped', JSON.stringify([ev(`blGet(${JSON.stringify(POM)}).locked`), shape(lines(POM))]),
+    JSON.stringify([false, ['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', 'the figures are as first locked']]));
+  // the view: nothing about any cycle can change
+  ev(`cycView(${JSON.stringify(PB)}); 'ok'`);
+  const said = () => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  chk(name, 'view', 'the banner says a CCaR QPE import still loads', /A CCaR QPE import \(active-year execution\) still loads here/.test(said()), true);
+  const db0 = ev('JSON.stringify(CYCDB.cycles)');
+  ev(`blLock(${JSON.stringify(PB)}, false); 'ok'`);
+  chk(name, 'view', 'the cycle on screen is not reopened, and the line says why', JSON.stringify([ev(`blGet(${JSON.stringify(PB)}).locked`), said().startsWith('🔒 Unlocking a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([true, true]));
+  ev(`blLock(${JSON.stringify(POM)}, true); 'ok'`);
+  chk(name, 'view', 'another cycle is not locked from the view', JSON.stringify([ev(`blGet(${JSON.stringify(POM)}).locked`), said().startsWith('🔒 Locking a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([false, true]));
+  ev(`blDelete(${JSON.stringify(POM)}); 'ok'`);
+  chk(name, 'view', 'an unlocked cycle is not deleted from the view', JSON.stringify([!!JSON.parse(ev(`JSON.stringify(!!blGet(${JSON.stringify(POM)}))`)), said().startsWith('🔒 Deleting a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([true, true]));
+  chk(name, 'view', 'no cycle and no record moved', ev('JSON.stringify(CYCDB.cycles)') === db0, true);
+  ev(`cycLeave(); 'ok'`);
+  // back on the working plan: reopen PB, change a figure, lock it again under its own name -- the record goes with it
+  const first = +ev(`blGet(${JSON.stringify(PB)}).ts`);
+  ev(`blLock(${JSON.stringify(PB)}, false); setAsk('B',0,'123'); MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'replaced', 'locked again over its own name: the figures are new and the record says so', JSON.stringify([ev(`JSON.stringify(blGet(${JSON.stringify(PB)}).years[MS.cur].asks.B)`), shape(lines(PB))]),
+    JSON.stringify([JSON.stringify([123, 40, 10]), ['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', '🔒 locked again <when> by Brad — its figures replaced', 'the figures are those locked last']]));
+  chk(name, 'replaced', 'the first lock’s time is kept', +ev(`blGet(${JSON.stringify(PB)}).first.ts`), first);
+  // POM locked again without being replaced: its figures are as first locked
+  ev(`blLock(${JSON.stringify(POM)}, true); 'ok'`);
+  chk(name, 'relocked', 'reopened and locked again, nothing replaced', JSON.stringify(shape(lines(POM))),
+    JSON.stringify(['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', '🔒 locked again <when> by Brad', 'the figures are as first locked']));
+  // the cycles panel prints the record
+  ev(`blOpen=true; render(); 'ok'`);
+  chk(name, 'panel', 'each cycle’s row carries its record', ev(`[].slice.call(document.querySelectorAll('#blBody .cyc-stamp')).length`), 2);
+  // and it survives the file
+  const html = ev('buildSavedHtml()');
+  const R = boot({ html });
+  chk(name, 'file', 'save → reopen keeps the record', R.ev(`JSON.stringify((blGet(${JSON.stringify(PB)})||{}).unlocks||[]).length > 2 && (blGet(${JSON.stringify(PB)}).first||{}).ts===${first}`), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ PPBE CYCLES — THE DELTAS AGAINST THE REFERENCE ═══════════════════════════════════════
 // After a lock the working plan moves on. Every change is read against the lock's projection of
 // the same year: value, allocation, funded (the lane draw), rank, band, PMO, the star, a

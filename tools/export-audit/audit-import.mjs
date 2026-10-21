@@ -10890,6 +10890,56 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
 // ==== end v2.02 (E2) ====
+
+// ==== v2.02 (ledger U47): a saved state the board cannot read keeps its warning in front while the board opens ====
+// A file whose saved state is not JSON (a hand-edited or tool-written NaN) opened without it, and the first render said
+// "Could not read … do not save over this file"; the opening's own line was then set over it in the same opening -- the
+// shell's line in a fresh browser, "No saved state in this copy" in one that holds the board -- so the warning was gone
+// before anyone read it. Built here as the ledger's probe built it: a saved file, its state given a NaN as text.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.02 (U47) — an unreadable saved state keeps its warning in front while the board opens';
+  try {
+  const J = JSON.stringify;
+  const pause = ms => new Promise(r => setTimeout(r, ms));
+  const lsOf = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+  const status = ev => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const WARN = '⚠ Could not read 1 item on opening: the saved board state in this file. That data is NOT loaded — do not save over this file until you have checked it, or the unread part will be lost.';
+  const A = boot(); seed(A.ev, base());
+  const good = A.ev('buildSavedHtml()');
+  const bad = good.replace(/(<script type="application\/json" id="pubState">)\{/, '$1{"flowFys":NaN,');
+  chk(name, 'fixture', 'the saved state was given a NaN', bad !== good && /"flowFys":NaN/.test(bad), true);
+  // 1. a fresh browser: the board opens as the shell
+  { const B = boot({ html: bad }); await pause(200);
+    const st = status(B.ev);
+    chk(name, '1 a fresh browser', 'the status line opens with the warning', st.startsWith(WARN), true);
+    chk(name, '1 a fresh browser', 'and the opening’s own line follows it rather than replacing it', /SHELL TEMPLATE/.test(st), true);
+    chk(name, '1 a fresh browser', 'the line is showing, not waiting in a tooltip', B.ev(`document.getElementById('statWrap').classList.contains('fresh')`), true);
+    // once opened, the next message is the board's own (the hold is let go)
+    B.ev(`setStat('After opening.'); 'ok'`);
+    chk(name, '1 a fresh browser', 'a message after the opening is not prefixed', status(B.ev), 'After opening.'); }
+  // 2. a browser that holds the board: its own copy opens, and the warning must still be there
+  { const B = boot({ html: bad, ls: lsOf(A.ev) }); await pause(200);
+    const st = status(B.ev);
+    chk(name, '2 the browser holding the board', 'the status line opens with the warning', st.startsWith(WARN), true);
+    chk(name, '2 the browser holding the board', 'and does not claim the file has no saved state', /No saved state in this copy/.test(st), false); }
+  // 4. a readable file, and a list in browser storage that is not: the file's own greeting is the quiet one that waits in
+  //    the tooltip, and the warning went with it
+  { const ls = lsOf(A.ev); ls.prio27execdb = '{not json';
+    const B = boot({ html: good, ls }); await pause(200);
+    chk(name, '4 a readable file, an unreadable list in storage', 'the warning leads, and it is showing',
+      J([status(B.ev).startsWith('⚠ Could not read 1 item on opening: the imported CCaR execution data held in browser storage.'),
+         B.ev(`document.getElementById('statWrap').classList.contains('fresh')`)]), J([true, true])); }
+  // 3. CONTROL: a readable file opens with no warning, and its opening line is its own
+  { const B = boot({ html: good }); await pause(200);
+    chk(name, '3 CONTROL a readable file', 'no warning', /Could not read/.test(status(B.ev)), false); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+// ==== end v2.02 (U47) ====
 // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
 // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
 // under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put
