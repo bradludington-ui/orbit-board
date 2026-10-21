@@ -67,10 +67,16 @@ against its own block. 2,027 targets, each matching once.
     are $1 and $2. The block throws on `c357911`, where neither the sheet nor the reconciliation exists, and passes here.
     Six mutations `v202-e5-*`, each caught by it. Money coverage, the money map, the trace matrix and the defect register
     hold.
-  - *Not yet seen on screen:* the browser checks.
   - *Not done:* U9 itself, the exact split of the planning share, stays in E7.
-- **Checks on the tree with E1–E5:** the full `npm run audit` is running (audit-import alone in the chain). The browser
-  checks follow it.
+- **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
+  - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
+  - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
+  - Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried layout-fits D results; standards
+    passes.
+  - The first full audit failed one audit-recon check, W6 CE by PMO: it counts every labelled row except the note as a
+    line. E5's sentence had gone in a row of its own; it now sits in that sheet's existing note row, and the check is
+    unchanged.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct).
 
 ## Open
 
