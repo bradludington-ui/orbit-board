@@ -247,6 +247,15 @@ at `layout` (the 8 carried D results) before reaching them. Corrected to six and
 2,083 at v2.02; less 4 retired, plus 16 new: **2,095**, each matching the board once (`mcount`). Every new and retargeted
 target was built with `mkmut.py` and run against its suite: all caught.
 
+#### The gate that passed v2.03 (21 Oct 2026, 5:50–6:30 PM Eastern, on the final board)
+`npm run validate:nightly`, the sweep not run (by rule): defect register (13 defects, 43 guarding mutations), coverage
+25/25, money map 322 cells (120 proven, 202 n/a, 0 open), trace matrix 92 cells, suites clean (9 banners and the legacy
+line, 32.4 min), fuzz nothing lost (seed 961322163), file verifier self-test held; the browser stage failed on the 8
+carried layout-fits D results only. Run after it, by hand: `keys`, `dropdowns`, `leftmenu`, `standards` (0 findings) and
+`dialogs` (46 boxes; after its opener for the message list was added) all pass. Mutation proofs, one at a time: 22 against
+audit-board, `src-budget-made-up` against audit-other, `proposal-gate-open` against its audit-import block (7 of 35
+checks fail on the mutant, none on the board). **The full sweep is still to run (A1), now over 2,095 targets.**
+
 
 ### v2.02 — 21 Oct 2026: saves and loads that never lose work, a locked cycle that is report and view only and keeps its own lists, ATR/BTR removed, exact office cells -- built on Brad's goes of 20 and 21 Oct, shipped on his "go" of 21 Oct
 
