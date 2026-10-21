@@ -112,6 +112,12 @@ Current version: **v2.03**. Next: **v2.04**.
   as a gap, and the hosted design aims at the stricter cloud level the security team names (the handoff says IL5) rather
   than the least that might pass. The plan that follows from these is items 106 and 107; the traceability table itself
   stays outside git (CUI).
+- **The security team's request (9 Oct 2026, shown by Brad on 21 Oct):** apply the standards above "to ensure this is
+  compatible in the DoD IL5 Azure environment and meets or exceed the DoD Zero Trust requirements". So the level is
+  **IL5** (not IL4), and **DoD Zero Trust** is a requirement in its own right. A file that is its own database, opened
+  from a shared drive and mailed as a PMO copy, cannot meet Zero Trust: there is no identity on each request, no device
+  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107), and
+  the pilot file is hardened (item 106) only until that build replaces it.
 
 #### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
 - **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
@@ -157,8 +163,15 @@ Current version: **v2.03**. Next: **v2.04**.
   exports and every check carry over: the suites, the trace matrix, the money map and the fuzz become the rebuild's
   regression net. "The file is its own database" ends here; the saved-file format stays readable so every board people
   hold today can be brought in.
-- **Depends on:** the security team naming the cloud level and the controls the platform provides (what is inherited),
-  and the hosting milestones.
+- **Zero Trust, pillar by pillar (the security team's 9 Oct request):** every request signed in and authorized, never
+  trusted for being inside the network (user); only managed, compliant devices (device); the app reachable only through
+  the enclave, no public endpoint (network); the data labelled CUI, encrypted under keys the program controls, and every
+  export marked and logged (data); every access and change sent to the enclave's monitoring (visibility); and the
+  deployment and its checks automated (automation). **The PMO copy changes most:** in place of a whole-portfolio file
+  mailed to each office, an office signs in and sees and edits only what its role allows, and its submittal is a change
+  held for review on the server.
+- **Depends on:** the controls the IL5 environment provides (what is inherited), the security team's Zero Trust target
+  for this system, and the hosting milestones.
 
 ## Later
 
