@@ -10685,6 +10685,106 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (U19) ====
+// ==== v2.02 (E7, ledger U24, U29, U31): a load puts another copy on screen, and is counted as a change ====
+// The shared state file (its link and its automatic load), ⇊ Import several boards at once and the file's version taken at
+// opening left this browser's record clean against a copy no longer on screen; a save landing during the load did the same.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.02 (E7, U24, U29, U31) — a load is counted as a change';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf } = W1H;
+  const F1 = baseFile('Brad', KEY.brad);
+  const HOUR = 3600000;
+  const scr = ev => ev('String(S.notes.A||"")');
+  const rec = ev => { const fl = flags(ev); return [scr(ev), fl.DIRTY, !!(fl.base && fl.base.dirty)]; };
+  const keptNote = ev => ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'); if(s==null) return null; var st=JSON.parse(s.slice(s.indexOf('\\n')+1));
+    return String(((st.years||{})[st.cur]||{notes:{}}).notes.A||''); })()`);
+  // the shared state file: this board's store with note A = SHARED, stamped `ahead` from now
+  const sidecar = (ev, ahead) => JSON.parse(ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.ts=Date.now()+(${ahead}); st.by='Carol';
+      ((st.years[st.cur]||{}).notes||(st.years[st.cur].notes={})).A='SHARED'; return JSON.stringify(st); })()`));
+  // the status line's "load the shared one" link, pressed
+  const clickLoad = ev => ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='adoptShared()'; });
+    if(bs.length!==1) return 'links: '+bs.length; bs[0].click(); return 'clicked'; })()`);
+  const ASKED = /^Load the shared state file \(published .+\) over the board on screen\?\n\nWhat is on screen is saved, so nothing is kept aside: the next 💾 Save will write the shared copy over your saved one\./;
+  // Brad saves BRAD-1 into the board file (or the folder); the board is then clean
+  const savedFile = async () => { const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); const f = disk(A.w, F1);
+    A.ev(`setNote('A','BRAD-1'); 'ok'`); await A.ev('saveInPlaceFile()'); return { A, f }; };
+  const savedFold = async () => { const fold = folder(); const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','BRAD-1'); 'ok'`); await A.ev('driveStorePush(false)'); return { A, fold }; };
+  // 1. U29, the board file: the link on a saved board asks first; Cancel changes nothing; OK loads and counts it
+  { const sc = '1 U29 file: load the shared one on a saved board';
+    const { A } = await savedFile();
+    chk(name, sc, 'BRAD-1 saved: clean here and in the record (a CONTROL)', J(rec(A.ev)), J(['BRAD-1', false, false]));
+    A.ev(`sharedArrived(${J(sidecar(A.ev, -HOUR))}); globalThis.__q=[]; globalThis.__yes=false; 'ok'`);
+    const c = clickLoad(A.ev); await pause(5);
+    chk(name, sc, 'Cancel: asked once, in the new words; the screen and the record are as they were',
+      J([c, qs(A.ev).length, ASKED.test(qs(A.ev)[0] || ''), ...rec(A.ev)]), J(['clicked', 1, true, 'BRAD-1', false, false]));
+    A.ev(`globalThis.__q=[]; globalThis.__yes=true; 'ok'`);
+    const o = clickLoad(A.ev); await pause(5);
+    chk(name, sc, 'OK: asked once; SHARED on screen, unsaved here and in the record, nothing kept aside',
+      J([o, qs(A.ev).length, ASKED.test(qs(A.ev)[0] || ''), ...rec(A.ev), keptNote(A.ev)]), J(['clicked', 1, true, 'SHARED', true, true, null])); }
+  // 2. U29, the shared folder: the same load leaves the record dirty
+  { const sc = '2 U29 folder: load the shared one on a saved board';
+    const { A } = await savedFold();
+    chk(name, sc, 'BRAD-1 saved to the folder: clean (a CONTROL)', J(rec(A.ev)), J(['BRAD-1', false, false]));
+    A.ev(`sharedArrived(${J(sidecar(A.ev, -HOUR))}); globalThis.__q=[]; 'ok'`);
+    clickLoad(A.ev); await pause(5);
+    chk(name, sc, 'SHARED on screen, unsaved here and in the record; asked once', J([...rec(A.ev), qs(A.ev).length]), J(['SHARED', true, true, 1])); }
+  // 3. U29, the automatic load in the folder, then a reopen: the record is not falsely clean
+  { const sc = '3 U29 folder: the automatic load, then a reopen';
+    const { A, fold } = await savedFold();
+    A.ev(`sharedArrived(${J(sidecar(A.ev, HOUR))}); 'ok'`); await pause(5);
+    chk(name, sc, 'loaded automatically: SHARED on screen, unsaved here and in the record', J(rec(A.ev)), J(['SHARED', true, true]));
+    const B = boot({ html: F1, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Brad', KEY.brad); connect(B.ev, B.w, fold);
+    await B.ev('driveAutoConnect()'); await pause(5);
+    chk(name, sc, 'reopened: SHARED on screen, and the record says unsaved', J([scr(B.ev), !!flags(B.ev).base.dirty]), J(['SHARED', true])); }
+  // 4. U24: the link pressed while a folder save is held at its write; the save lands afterwards
+  { const sc = '4 U24 folder: load the shared one during a save';
+    const { A, fold } = await savedFold();
+    A.ev(`setNote('A','BRAD-2'); 'ok'`);
+    A.ev(`sharedArrived(${J(sidecar(A.ev, HOUR))}); 'ok'`);
+    const g = gate(); fold.hold.main = g; const n0 = fold.hits.main || 0;
+    const p = A.ev('driveStorePush(false)');
+    await until(() => (fold.hits.main || 0) > n0);
+    clickLoad(A.ev); await pause(5);
+    g.open(); await p; await A.ev('_saveChain'); await pause(10);
+    chk(name, sc, 'the save landed: SHARED on screen, still unsaved here and in the record; BRAD-2 kept aside; BRAD-2 in the folder',
+      J([...rec(A.ev), keptNote(A.ev), fold.note(2027, 'A')]), J(['SHARED', true, true, 'BRAD-2', 'BRAD-2'])); }
+  // 5. U24: the file's version taken while a file save is held: refused, nothing replaced
+  { const sc = '5 U24 file: the file’s version taken during a save';
+    const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); const f = disk(A.w, F1);
+    A.ev(`setNote('A','BRAD-2'); 'ok'`);
+    const g = gate(); f.hold.close = g;
+    const p = A.ev('saveInPlaceFile()');
+    await until(() => (f.hits.close || 0) >= 1);
+    A.ev(`bootTakeFile(); 'ok'`);
+    chk(name, sc, 'refused: "not opened", BRAD-2 still on screen', J([/not opened/.test(status(A.ev)), scr(A.ev)]), J([true, 'BRAD-2']));
+    g.open(); await p; await pause(5);
+    chk(name, sc, 'the save lands: BRAD-2 in the file and still on screen', J([W1H.fileNote(f.content, 'A'), scr(A.ev)]), J(['BRAD-2', 'BRAD-2'])); }
+  // 6. U31: ⇊ Import several boards at once on a saved board file, then a reopen
+  { const sc = '6 U31 file: import several boards on a saved board, then a reopen';
+    const { A, f } = await savedFile();
+    const C = boot({ html: F1 }); await pause(80); wire(C.ev, 'Carol', KEY.carol); C.ev(`setNote('A','IMPORT'); 'ok'`);
+    const imp = C.ev('buildSavedHtml()');
+    A.ev(`document.getElementById('shareStat').textContent=''; importBoards({ files:[new File([${J(imp)}], 'carol-board.html')], value:'x' }); 'ok'`);
+    await until(() => /Imported:/.test(status(A.ev))); await pause(5);
+    chk(name, sc, 'imported: IMPORT on screen, unsaved here and in the record', J(rec(A.ev)), J(['IMPORT', true, true]));
+    const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Brad', KEY.brad); disk(B.w, f.content);
+    chk(name, sc, 'reopened: IMPORT on screen, and the record says unsaved', J([scr(B.ev), !!flags(B.ev).base.dirty]), J(['IMPORT', true])); }
+  // 7. CONTROL: the link over typed work keeps it aside and asks nothing new
+  { const sc = '7 CONTROL folder: load the shared one over typed work';
+    const { A } = await savedFold();
+    A.ev(`setNote('A','BRAD-2'); 'ok'`);
+    A.ev(`sharedArrived(${J(sidecar(A.ev, HOUR))}); globalThis.__q=[]; 'ok'`);
+    clickLoad(A.ev); await pause(5);
+    chk(name, sc, 'nothing asked; SHARED on screen; BRAD-2 kept aside (a CONTROL)', J([qs(A.ev).length, scr(A.ev), keptNote(A.ev)]), J([0, 'SHARED', 'BRAD-2'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.02 (E7, U24) ====
 // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
 // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
 // under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put
