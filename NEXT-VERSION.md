@@ -226,6 +226,45 @@ here.
     defect, and is still caught. mcount reads 2,064 of 2,064, each matching once.
   - Not driven by the block: the status lines of the Spend Plan Source, BAE and cost estimate imports. They call the same
     helper, and the CCaR line, which the block does drive, proves the helper.
+  - **Checks on `b21b05d`:**
+    - `npm run check` passes.
+    - `npm run audit`, with audit-import alone in the chain: exit 0, nine banners plus the legacy line.
+    - Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried layout-fits D results fail;
+      standards passes.
+    - Not run: the mutation sweep (Brad's go, after 24 Oct).
+
+#### A2. The first nightly run on v2.01 (21 Oct 2026, 07:00 UTC), read
+- `validate:nightly` on `main` at `c357911`, 26 minutes, with no sweep, by rule.
+  - Its only failures are the 8 carried layout-fits D results.
+  - Defect register: 13 known defects, 43 guarding mutations.
+  - Money coverage: 26 of 26 surfaces.
+  - Money map: 329 cells, 123 proven, 206 n/a, 0 open.
+  - Trace matrix: 92 cells, every link holds.
+  - Fuzz seed 647906417. The verifier self-test held.
+- The data-loss fuzz the same night: 12 boards, nothing lost, seed 896251288.
+- Noticed: both Routines clone into `/home/user/spmt-prioritization-board`, through the old attached URL. That is the known
+  rename leftover, and only the Routine editor on claude.ai can change it.
+
+#### Brad's decisions of 21 Oct 2026 (the rest of the list)
+- **U51, the locked view.**
+  - "Once ORBIT locks a PPBE cycle that means that we're no longer adjusting our baseline plan for that cycle."
+  - A CCaR QPE import stays open, in a view as well: it is active-year execution.
+  - **ATR/BTR tracking is removed from ORBIT entirely** for now. It is active-year funding, and "ORBIT is the future, while
+    CCaR is the active year".
+  - No cycle is deleted while locked: "When I lock PB27 ... I want it to be report and view only. No changes."
+  - Then: "We cannot lock it permanently, it will need to be re-openable ... it needs to be date stamped, so that we know
+    nobody has made changes."
+- **D3:** every office-by-month cell within $1 (an agent measured up to $2.56 today).
+- **D4:** the shared folder's execution data is merged per appropriation.
+- **D5a:** the ACE alignment breakout prints both Allocated and Funded.
+- **D6a:** a file or folder copy written by a newer build is refused.
+- **D7b:** a year holding partner or FMS money is offered in the funds flow.
+- **D5b:** with item 89, a locked cycle reads its own services.
+- **D7c:** a roll-forward that lands outside the FYDP window is warned about.
+- **Recommended and not asked, as small and safe:**
+  - D6b: a note on the RCN-EEIC tab that a split prime's ask follows its money's split.
+  - D5c: `bmSeedFromPp` rounds to whole dollars.
+  - D7a: the `rlgIsUpl` line stays in `d66dd60`, named.
 
 ## Open
 
