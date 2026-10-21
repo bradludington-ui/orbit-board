@@ -2839,6 +2839,55 @@ await (async () => {
   bootRelease(__bm); await settleBoards();
 })();
 
+// ══ v2.02 (E7, ledger U9 and U43) — A TIE BETWEEN CLIN OFFICES GOES TO THE EARLIER CLIN; AN OFFICE ONLY A CLIN NAMES IS A ROW ══
+// PRIME-3 (homed to MxS) draws USAF $D discretionary over CLINs 0010 (MxS) asking 1, 0002 (AV) asking 2 and a third asking 3.
+// Worked out by hand, by exact largest remainder with ties to the earlier CLIN:
+//   D = 3: shares 0.5, 1, 1.5 -> floors 0, 1, 1; the leftover dollar to the 0.5/0.5 tie's earlier CLIN -> $1 / $1 / $1.
+//   D = 9: shares 1.5, 3, 4.5 -> floors 1, 3, 4; the leftover to the earlier of the tie -> $2 / $3 / $4.
+// Run A: the third CLIN is 0008 (TSS). Run B: it is 0001 (PRIMES), an office no requirement is homed to (U43); a requirement B on
+// AV ($1, no money: its lane is dry) keeps AV on the office list. U9 FAILS ON c357911: $0/$1/$2 and $1/$3/$5, the split made by
+// the floating-point fraction (1/6 just under a sixth). U43 FAILS ON c357911: the PMO funding panel has no PRIMES row and its
+// TOTAL Disc reads $1 for the $3 drawn ($4 for $9), and the CR view by PMO has no PRIMES key.
+await (async () => {
+  const name = 'v2.02 (E7) — U9/U43: a tie between CLIN offices goes to the earlier CLIN, and an office only a CLIN names is a row';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const run = (D, third) => {
+    const X = boot();
+    seed(X.ev, { services: ['USAF'], items: [it('PRIME-3', 'MxS', [D]), it('B', 'AV', [1])], disc: [D], mand: [0], order: ['PRIME-3', 'B'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      DATA.clins={'PRIME-3':[{clin:'0010', ask:[1]}, {clin:'0002', ask:[2]}, {clin:'${third}', ask:[3]}]};
+      S.awards={'PRIME-3':{mode:'single', d:FYMON[0][0], day:5}}; applyState(S); save(); pmoSumOpen=true; pmoMatrix(); 'ok'`);
+    return JSON.parse(X.ev(`(function(){ var T=tiers(), it=itemById('PRIME-3');
+      var parts={}; pmoPartsOf(it, T['PRIME-3']).forEach(function(o){ parts[o.g]=o.d[0]; });
+      var fc={}, F=forecast().byPMO; Object.keys(F).forEach(function(k){ fc[k]=Math.round(F[k].tot); });
+      var rows=[].map.call(document.querySelectorAll('#pmBody tr'), function(tr){ return [].map.call(tr.children, function(td){ return td.textContent.trim(); }); });
+      var cr=crBuckets(null, 'pmo');
+      return JSON.stringify({draw:T['PRIME-3'].d[0], parts:parts, fc:fc, rows:rows, cr:cr.keys}); })()`));
+  };
+  const panel = (R, lbl) => { const r = R.rows.find(c => c[0] && c[0].split(/\s/)[0] === lbl); return r ? r[1] : '(no row)'; };
+  for (const [D, want] of [[3, [1, 1, 1]], [9, [2, 3, 4]]]) {
+    const A = run(D, '0008');
+    const sc = 'run A, $' + D + ' over asks 1:2:3 (MxS, AV, TSS)';
+    chk(name, sc, 'CONTROL — PRIME-3 draws the whole $' + D, A.draw, D);
+    chk(name, sc, 'each office’s part (pmoPartsOf): MxS, AV, TSS', JSON.stringify(['MxS', 'AV', 'TSS'].map(g => A.parts[g])), JSON.stringify(want));
+    chk(name, sc, 'the forecast by office, the same dollars', JSON.stringify(['MxS', 'AV', 'TSS'].map(g => A.fc[g])), JSON.stringify(want));
+    chk(name, sc, 'the PMO funding panel’s USAF Disc, the same dollars', JSON.stringify(['MxS', 'AV', 'TSS'].map(g => panel(A, g))), JSON.stringify(want.map(v => '$' + v)));
+  }
+  for (const [D, want] of [[3, [1, 1, 1]], [9, [2, 3, 4]]]) {
+    const B = run(D, '0001');
+    const sc = 'run B, $' + D + ', the third CLIN PRIMES’s (no requirement homed there)';
+    chk(name, sc, 'the PMO funding panel has a PRIMES row, and every office’s USAF Disc: MxS, AV, PRIMES', JSON.stringify(['MxS', 'AV', 'PRIMES'].map(g => panel(B, g))), JSON.stringify(want.map(v => '$' + v)));
+    chk(name, sc, 'the panel’s TOTAL USAF Disc is the $' + D + ' drawn', panel(B, 'TOTAL'), '$' + D);
+    chk(name, sc, 'the CR view by PMO lists PRIMES', B.cr.includes('PRIMES'), true);
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
 // ══ v2.02 (E6, the cross-track export review) — AN OFFICE'S NAME IS MADE A SHEET NAME, NOT COPIED INTO ONE ══════════════════
 // The workbook's PMO tabs ('PMO '+office, cut at 31) and the Priority Drill's office tabs (the office, cut at 31) took the name as
 // it was. Two offices whose names begin alike for 31 characters made two sheets of one name, and ORBIT's own reader then kept

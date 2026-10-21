@@ -12219,7 +12219,11 @@ function pmoSharesOf(it){
       c.ask.forEach((v,i)=>{ bag[g][i]+=v; tot[i]+=v; });
     });
     const out=[];
-    Object.keys(bag).forEach(g=>out.push([g, bag[g].map((v,i)=>tot[i]>0? v/tot[i]:0)]));
+    // v2.02 (E7, ledger U9): AND THE CLIN ASKS THEMSELVES, as the weights the split is made by (pmoPartsOf's wOf). The split was
+    // made by the fraction v/tot: 1/6 is 0.16666666666666666 in floating point, just under a sixth, so apportion -- exact on the
+    // weights it is given -- broke a tie by that error, and $3 across asks 1:2:3 went $0/$1/$2 where $1/$1/$1 is right (the tie
+    // to the earlier CLIN). The fraction stays for what reads a share as one (the forecast's view, the panel's count).
+    Object.keys(bag).forEach(g=>out.push([g, bag[g].map((v,i)=>tot[i]>0? v/tot[i]:0), bag[g].slice()]));
     // A SERVICE NO CLIN COVERS STILL HAS MONEY IN IT. tot[i]===0 makes every group's share of
     // that service 0, so the requirement's dollars there summed to nothing and simply left the
     // by-PMO views -- the roll-up reconciled against itself and quietly disagreed with the board.
@@ -12228,8 +12232,8 @@ function pmoSharesOf(it){
     const gap = tot.map(v=>v>0? 0 : 1);
     if(gap.some(v=>v>0)){
       const own=grpOf(it), row=out.find(r=>r[0]===own);
-      if(row) gap.forEach((v,i)=>{ if(v) row[1][i]=1; });
-      else out.push([own, gap]);
+      if(row) gap.forEach((v,i)=>{ if(v){ row[1][i]=1; row[2][i]=1; } });
+      else out.push([own, gap, gap.slice()]);
     }
     return out.length? out : [[grpOf(it),null]];
   }
@@ -12260,7 +12264,7 @@ function pmoSplit(w, parts, tgt){
 function pmoPartsOf(it, p){
   const sh=pmoSharesOf(it), one=(sh.length===1 && !sh[0][1]);
   const P=sh.map(function(x){ return {g:x[0], frac:x[1], ask:[], d:[], m:[], u:[], mcs:[], land:null}; });
-  const wOf=i=> sh.map(function(x){ return x[1]? (+x[1][i]||0) : 1; });
+  const wOf=i=> sh.map(function(x){ return x[2]? (+x[2][i]||0) : x[1]? (+x[1][i]||0) : 1; });   // v2.02 (E7, U9): the asks, exact
   const lane=(i, k)=> (p && +p[k][i]) || 0;
   const whole=[];
   SVC.forEach(function(s, i){
@@ -12354,7 +12358,9 @@ function crBuckets(scen, by){
     });
   });
   Object.values(bags).forEach(b=>b.items.sort((a,c)=>(a.rank||9e9)-(c.rank||9e9)));
-  if(by==='pmo'){ const keys=GROUPS.filter(g=>bags[g]); return {keys, data:keys.map(g=>bags[g])}; }
+  // v2.02 (E7, ledger U43): every office that holds money, as every other by-office view lists them (pmoKeys): an office only
+  // a CLIN names (PRIMES) had no row, and its money was in no window
+  if(by==='pmo'){ const keys=pmoKeys(bags); return {keys, data:keys.map(g=>bags[g])}; }
   return {keys:SVC.slice(), data:SVC.map((s,i)=>bags[i]||mk())};
 }
 function crData(scen){ return crBuckets(scen, 'svc').data; }
@@ -25811,10 +25817,11 @@ function pmoMatrix(){
       <td style="color:var(--amber)">${a.mc?fM(a.mc):'—'}</td></tr>`;
   };
   const tot=mk();
-  GROUPS.forEach(g=>{ const a=byG[g]; if(!a) return; a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.n+=a.n; });
+  // v2.02 (E7, ledger U43): pmoKeys, not GROUPS -- an office only a CLIN names had no row, and the TOTAL read $1 for $3 drawn
+  pmoKeys(byG).forEach(g=>{ const a=byG[g]; if(!a) return; a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.n+=a.n; });
   const uCell=v=> v>0.5? `<td style="background:var(--redD);color:var(--red);font-weight:800">${fM(v)}</td>` : `<td style="color:var(--dim)">—</td>`;
   el.innerHTML=`<table>${h1}${h2}
-    ${GROUPS.filter(g=>byG[g]).map(g=>row(g,byG[g],null,GCOLOR[g])).join('')}
+    ${pmoKeys(byG).filter(g=>byG[g]).map(g=>row(g,byG[g],null,GCOLOR[g])).join('')}
     ${row('TOTAL',tot,'tot')}
     <tr class="tot" style="opacity:.95"><td>BUDGET AUTHORITY</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${fM(S.discSvc[i])}</td><td style="color:var(--purp)">${fM(S.mandSvc[i])}</td>`).join('')}
