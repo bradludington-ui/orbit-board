@@ -54,7 +54,8 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
   // v2.00 (UI S4): the Import box closes with uiImpClose() and opens with uiImpOpen(). v2.00 (menu): the left menu's three boxes
   // open from their entries, uiGo('imp'|'rep'|'data', this)
   const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(',
-                  uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'" };
+                  uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
+                  msgClose: 'msgOpen(' };   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
