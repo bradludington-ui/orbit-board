@@ -7549,10 +7549,12 @@ await (async () => {
       + (cy ? ' A locked cycle’s entry whose key is not text is kept but not read, as in every ORBIT since v1.99: a requirement on it shows no code there, '
         + 'and its money is on no combination.' : '')
       + ' The RCN-EEIC sheet counts each key once and money on no combination only as not assigned';
-    // the refusal's words: the rule; who saved the file, as the file says it (a fixture is saved by the board under test, v2.01);
+    // the refusal's words: the rule; who saved the file, as the file says it (a fixture is saved by the board under test);
     // and a way that works for that kind of file -- a locked cycle's list is never put right on a board
     const RULE = 'An RCN / EEIC list names each combination once, by a text key of its own.';
-    const NOW = 'This file says ORBIT v2.01 saved it, from a board that held such a list.';
+    // the version is the board under test's own stamp, read from its source: a literal pinned to one release broke at the next BUILD
+    const SAVED_BY = (await import('node:fs')).readFileSync((await import('./boot.mjs')).BOARD, 'utf8').match(/const BUILD='(v\d+\.\d+)/)[1];
+    const NOW = 'This file says ORBIT ' + SAVED_BY + ' saved it, from a board that held such a list.';
     const OLD = 'An ORBIT before this one took such a list without a word and could save it with its board.';
     const PLAN = 'A list that is not a locked cycle’s can be put right on a board of this version, in 🗂 RCN / EEIC, where ✕ on a row marked ⚠ repeats '
       + 'removes that row alone, and the file written again.';
@@ -7568,7 +7570,7 @@ await (async () => {
     const CYCLE_ONLY = 'A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several '
       + 'boards refuse every file that carries that cycle.';
     const LIST_TAIL = why => RULE + ' ' + NOW + ' ' + (/\.cycles\./.test(why) ? CYCLE : PLAN) + ' ' + FULL;
-    const ENTRY_TAIL = 'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry. This file says ORBIT v2.01 saved it, '
+    const ENTRY_TAIL = 'An RCN / EEIC list holds combinations and nothing else. No ORBIT makes such an entry. This file says ORBIT ' + SAVED_BY + ' saved it, '
       + 'from a board that held one.';
     const AT_PB = 'the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn ', AT_WP = 'the RCN / EEIC list at the saved state.appns.om.rcn ';
     const TWICE = 'holds the key “K1” twice (rcn[0] and rcn[1]); a key names one combination';
