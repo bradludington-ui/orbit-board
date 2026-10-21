@@ -336,8 +336,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const shown = await p.evaluate(() => [...document.querySelectorAll('#dd_reports .mi')].filter(e => e.getClientRects().length > 0).map(e => e.textContent.trim().slice(0, 30)));
     await p.keyboard.press('Tab');
     const next = await p.evaluate(() => { const a = document.activeElement; return a ? a.textContent.trim().slice(0, 30) : null; });
-    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the seven workbooks, and Tab goes to the first',
-      first === 'mFind' && shown.length === 7 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
+    // v2.03: six since v2.02 removed the ATR/BTR Log workbook with the tracker. This check is outside verify:grid's run
+    // once layout stops it (the 8 carried D results), so it read seven, failing, from v2.02 until v2.03.
+    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the six workbooks, and Tab goes to the first',
+      first === 'mFind' && shown.length === 6 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
     const shut = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);

@@ -141,7 +141,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     const off = keys.filter(k => (n[k] || 0) !== (WANT[k] || 0)).map(k => `${k}: ${n[k] || 0} (want ${WANT[k] || 0})`
       + (n[k] ? ' — ' + got.filter(c => callOf(c.h) === k).map(c => c.from + ' “' + c.t + '”').join(', ') : ''));
     chk(`A · each of the ${Object.keys(WANT).length} calls the old menus made is on the left menu as often as the inventory says (once; twice for the two named), and nothing else is`,
-      off.length === 0 && Object.keys(WANT).length === 69, off.slice(0, 12).join(' | '));
+      // v2.03: 67 since v2.02 removed the ATR/BTR tracker's two calls; this read 69, failing, from v2.02 (outside verify:grid's run)
+      off.length === 0 && Object.keys(WANT).length === 67, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
