@@ -2839,6 +2839,48 @@ await (async () => {
   bootRelease(__bm); await settleBoards();
 })();
 
+// ══ v2.02 (E6, the cross-track export review) — AN OFFICE'S NAME IS MADE A SHEET NAME, NOT COPIED INTO ONE ══════════════════
+// The workbook's PMO tabs ('PMO '+office, cut at 31) and the Priority Drill's office tabs (the office, cut at 31) took the name as
+// it was. Two offices whose names begin alike for 31 characters made two sheets of one name, and ORBIT's own reader then kept
+// one -- an office's obligation report gone; "R&D/Test [Ops]" wrote characters a sheet name may not hold; an office named
+// "Matrix" made a second "PMO Matrix". Now both go through sheetNamer, the funds flow's namer shared: characters a sheet name
+// may not hold become spaces, a repeat is numbered. Expected names worked out by hand:
+//   "PMO Sustainment Logistics Office East" -> 'PMO Sustainment Logistics Offic' (31); "… West" -> 'PMO Sustainment Logistics Off 2'
+//   "R&D/Test [Ops]" -> 'PMO R&D Test  Ops'; "Matrix" -> 'PMO Matrix 2' (the PMO Matrix sheet holds 'PMO Matrix').
+//   The drill's own tabs carry no prefix, so the two offices already differ within 31 ('…Office Ea', '…Office We'); 'R&D Test  Ops'.
+// FAILS ON c357911: the names are copied, two sheets share one, and the reader returns fewer sheets than were written.
+await (async () => {
+  const name = 'v2.02 (E6) — an office’s name is made a sheet name: no repeat, no character a sheet name may not hold';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const OFF = ['Sustainment Logistics Office East', 'Sustainment Logistics Office West', 'R&D/Test [Ops]', 'Matrix'];
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: OFF.map((g, k) => it('R' + k, g, [100 * (k + 1), 0])), disc: [5000, 0], mand: [0, 0], order: ['R0', 'R1', 'R2', 'R3'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  const names = fn => JSON.parse(X.ev(`(function(){ var got=null, _bx=buildXlsx; buildXlsx=function(sh, x){ got=sh.map(function(s){ return s.name; }); return _bx(sh, x); };
+    try{ ${fn}(); }catch(e){ got=['threw: '+((e&&e.message)||e)]; } buildXlsx=_bx; return JSON.stringify(got||[]); })()`));
+  const xl = names('exportExcel'), dr = names('exportCSV');
+  const uniq = L => new Set(L.map(n => String(n).toLowerCase())).size === L.length;
+  const clean = L => L.every(n => !/[\\\/?*\[\]:\u0000-\u001F]/.test(n) && n.length <= 31 && !/^'|'$/.test(n));
+  chk(name, 'exportExcel', 'the four offices’ tabs, named as worked out', JSON.stringify(xl.filter(n => /^PMO /.test(n) && n !== 'PMO Matrix')),
+    JSON.stringify(['PMO Sustainment Logistics Offic', 'PMO Sustainment Logistics Off 2', 'PMO R&D Test  Ops', 'PMO Matrix 2']));
+  chk(name, 'exportExcel', 'every sheet name differs from every other, ignoring case, and holds nothing a sheet name may not', JSON.stringify([uniq(xl), clean(xl)]), JSON.stringify([true, true]));
+  chk(name, 'exportCSV', 'the Priority Drill’s office tabs, named as worked out', JSON.stringify(dr.filter(n => /Sustain|R&D|Matrix/.test(n))),
+    JSON.stringify(['Sustainment Logistics Office Ea', 'Sustainment Logistics Office We', 'R&D Test  Ops', 'Matrix']));
+  chk(name, 'exportCSV', 'every sheet name differs from every other, ignoring case, and holds nothing a sheet name may not', JSON.stringify([uniq(dr), clean(dr)]), JSON.stringify([true, true]));
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'exportExcel', 'reading the workbook back finds every sheet written: none lost to a repeated name', Object.keys(bk).filter(k => k !== '__err').length, xl.length);
+  chk(name, 'exportExcel', 'each office’s tab carries its own office’s report', JSON.stringify(['PMO Sustainment Logistics Offic', 'PMO Sustainment Logistics Off 2'].map(t => (bk[t] || []).some(r => (r || []).some(c => /Req R0/.test(String(c)))) + '/' + (bk[t] || []).some(r => (r || []).some(c => /Req R1/.test(String(c)))))),
+    JSON.stringify(['true/false', 'false/true']));
+  chk(name, 'sheetNamer', 'a carriage return or other control character in a name becomes a space (a funds-flow category name, the review’s note)',
+    X.ev(`sheetNamer([], 28)('Line1\\rLine2\\u0007', 'x')`), 'Line1 Line2');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
 // ══ v2.02 (E5, ledger U9L) — AN OFFICE'S PLANNING SHARE AND THE SPEND PLAN SOURCE'S CLIN AMOUNTS, NAMED APART AND RECONCILED ══
 // Brad, 13 Oct 2026: label both, reconcile them, move no dollar; 20 Oct: the reconciliation is a workbook sheet. PRIME-3 (home
 // office PRIMES) has CLINs 0010 (MxS) asking USAF 1 and 0002 (AV) asking USAF 3 and ANG 2. It draws USAF $2 discretionary, paid
@@ -2880,8 +2922,9 @@ await (async () => {
   chk(name, 'Office share vs CLIN', 'MxS, AV, the requirement total and TOTAL, each lane: planning, CLIN amounts, difference',
     JSON.stringify(body.map(pick)), JSON.stringify([['MxS', 1, 0, 1, 0, 0, 0], ['AV', 1, 2, -1, 4, 4, 0], ['Requirement total', 2, 2, 0, 4, 4, 0], ['TOTAL', 2, 2, 0, 4, 4, 0]]));
   const notes = oc.slice(hi + 1).filter(r => r && r.length === 1).map(r => String(r[0]));
-  chk(name, 'Office share vs CLIN', 'it says what each figure is, that no dollar is moved, and counts A', JSON.stringify([
-    notes.some(t => /^PLANNING SHARE is the office figure/.test(t) && /CLIN AMOUNTS are what the Spend Plan Source sends/.test(t) && /No dollar is moved/.test(t)),
+  chk(name, 'Office share vs CLIN', 'it says what each figure is, that the Spend Plan Source lists every line under the requirement’s own office (the E6 review), that no dollar is moved, and counts A', JSON.stringify([
+    notes.some(t => /^PLANNING SHARE is the office figure/.test(t) && /CLIN AMOUNTS are what the Spend Plan Source sends/.test(t) && /No dollar is moved/.test(t)
+      && /the Spend Plan Source itself lists every line under the requirement’s own office, in its PMO column/.test(t)),
     notes.some(t => t === '1 other requirement is wholly its own office’s on both readings and is not listed: Disc $5, Mand $0.')]), JSON.stringify([true, true]));
   const has = (sheet, re) => (bk[sheet] || []).some(r => (r || []).some(c => re.test(String(c))));
   chk(name, 'the labels', 'the PMO Matrix and each office’s tab say their office figures are planning shares',

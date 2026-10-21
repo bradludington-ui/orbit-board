@@ -18017,17 +18017,7 @@ function exportFlow(){
   const extAll=F.ext.keys.reduce((a,k)=>a.concat(F.ext.by[k].rows),[]);
   const CD=[52,46,15,10,10,16,15];
   // a tab per category: "what is in that box" is answerable from the file, without the tool open
-  const used={};
-  // v2.00 (U42): a cut never leaves the first half of a two-part character (an emoji) at the end -- the workbook held U+FFFD
-  // there -- and a name never begins or ends with an apostrophe, which a sheet name may not, whether the name had one or the
-  // cut left one. The same lengths as before; an apostrophe inside a name stays.
-  const half=s=>s.replace(/[\uD800-\uDBFF]$/,'');
-  const tabName=(nm,fallback)=>{
-    let t=half(String(nm||fallback).replace(/[\\\/?*\[\]:]/g,' ').slice(0,28)).replace(/^[\s']+|[\s']+$/g,'')||fallback;
-    let i=2; const base=t;
-    while(used[t.toLowerCase()]) t=(half(base.slice(0,26))+' '+(i++));
-    used[t.toLowerCase()]=1; return t;
-  };
+  const tabName=sheetNamer([], 28);
   const sheets=[
     {name:tabName('Funds Flow','Flow'), cols:[46,18,14,14,13], rows:sum},
     {name:tabName('Prime Detail','Prime'), cols:CD, rows:detail(F.prime.LM.rows.concat(F.prime.PW.rows))},
@@ -18513,6 +18503,26 @@ function officeClinRecon(T){
     reqs.push({id:id, it:it, offices:order.map(function(g){ return O[g]; })});
   });
   return {reqs:reqs, other:other};
+}
+// A WORKBOOK'S SHEET NAMES FROM TYPED TEXT, written once (v2.02, E6: the funds flow's own namer, shared). A sheet name may not hold
+// \ / ? * [ ] : or a control character, may not begin or end with an apostrophe, and must differ from every other name in the
+// workbook ignoring case. The PMO tabs and the Priority Drill's office tabs took an office's name as it was: two offices whose
+// names begin alike for 31 characters made two sheets of one name (ORBIT's own reader then kept one, and one office's report
+// was gone), and "R&D/Test [Ops]" wrote characters Excel refuses. sheetNamer(taken, max) answers a namer that knows the names
+// already in the workbook (`taken`), cuts at `max` and numbers a repeat ("… 2"), as the funds flow always did.
+function sheetNamer(taken, max){
+  const used={}; (taken||[]).forEach(function(n){ used[String(n).toLowerCase()]=1; });
+  const M=max||31;
+  // v2.00 (U42): a cut never leaves the first half of a two-part character (an emoji) at the end -- the workbook held U+FFFD
+  // there -- and a name never begins or ends with an apostrophe, which a sheet name may not, whether the name had one or the
+  // cut left one. The same lengths as before; an apostrophe inside a name stays.
+  const half=s=>s.replace(/[\uD800-\uDBFF]$/,'');
+  return function(nm,fallback){
+    let t=half(String(nm||fallback).replace(/[\\\/?*\[\]:\u0000-\u001F]/g,' ').slice(0,M)).replace(/^[\s']+|[\s']+$/g,'')||fallback;
+    let i=2; const base=t;
+    while(used[t.toLowerCase()]) t=(half(base.slice(0,M-2))+' '+(i++));
+    used[t.toLowerCase()]=1; return t;
+  };
 }
 // Mirror of the Spend Plan Source workbook: same tabs, same 32 columns, same widths, same number
 // formats, header row frozen. One tab per appropriation this board holds, exactly as imported.
@@ -30753,6 +30763,7 @@ function exportCSV(){
 
   // ---- a tab per PMO ---------------------------------------------------------------------------
   const sheets=[sum, whole];
+  const pmTab=sheetNamer(sheets.map(function(x){ return x.name; }), 31);   // v2.02 (E6): an office's name, made a sheet name
   PMOS.forEach(pm=>{
     const rows=[[{v:pm+'  —  '+expTitle()+', grouped by band',s:TI}],[]];
     let any=false;
@@ -30764,7 +30775,7 @@ function exportCSV(){
     });
     if(!any) return;
     rows.push(SUB(pm+' — all bands', agg(S.order.map(itemById).filter(it=>it&&grpOf(it)===pm)), SEC));
-    sheets.push({name:pm.slice(0,31), cols:COLS, rows});
+    sheets.push({name:pmTab(pm, 'PMO'), cols:COLS, rows});
   });
 
   const bytes=buildXlsx(sheets, extra);
@@ -32047,7 +32058,8 @@ function exportExcel(){
     rows.push([{v:'PLANNING SHARE is the office figure every by-office view prints (the PMO Matrix, CE by PMO, the PMO tabs, '
       +'the deck, the forecast and the CR view by PMO): the requirement\u2019s draw spread across its offices by its CLINs\u2019 asks. '
       +'CLIN AMOUNTS are what the Spend Plan Source sends on each CLIN line, split by the CLIN grid, each line filed under the '
-      +'office its CLIN belongs to. Both add up to the requirement\u2019s draw in each lane, so a requirement\u2019s differences add '
+      +'office its CLIN belongs to -- ORBIT\u2019s reading: the Spend Plan Source itself lists every line under the requirement\u2019s '
+      +'own office, in its PMO column. Both add up to the requirement\u2019s draw in each lane, so a requirement\u2019s differences add '
       +'to zero; an office\u2019s two figures can differ. No dollar is moved to make them agree.', s:0}]);
     rows.push([{v:R.other.n+' other requirement'+(R.other.n===1? ' is' : 's are')+' wholly '+(R.other.n===1? 'its' : 'their')
       +' own office\u2019s on both readings and '+(R.other.n===1? 'is' : 'are')+' not listed: Disc '+fM(R.other.d)+', Mand '
@@ -32248,6 +32260,7 @@ function exportExcel(){
   };
   // each portion's per-service vector (PICK's third entry), as pmoPartsOf names it for one office
   const PART={disc:'d', mand:'m', mc:'ask', unf:'u'};
+  let pmoTab=null;   // v2.02 (E6): made at the first tab, once every sheet before the PMO tabs is in `sheets`
   pmoKeys(seenG).forEach(g=>{
     const rows=[[{v:g+' — funding by portion (lane model)',s:TI}],[]];
     let any=false;
@@ -32290,7 +32303,8 @@ function exportExcel(){
       const blk=obligBlock(g);
       const at=rows.length;
       blk.forEach(r=>rows.push(r));
-      sheets.push({name:('PMO '+g).slice(0,31), cols:obligCols, rows,
+      if(!pmoTab) pmoTab=sheetNamer(sheets.map(function(x){ return x.name; }), 31);   // v2.02 (E6)
+      sheets.push({name:pmoTab('PMO '+g, 'PMO'), cols:obligCols, rows,
                    merges:obligMerges.map(m=>({r:m.r+at, c:m.c, cs:m.cs}))});
     }
   });
