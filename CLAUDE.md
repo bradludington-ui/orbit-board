@@ -2010,6 +2010,11 @@ takes most of a day on this container, and an unattended one started mid-work ha
 Why not drop the sweep: about 880 targets added in v2.00 and v2.01 have been proven only one at a time, against their own check,
 never as a set. Brad's plan (20 Oct): once v2.01 is on `main`, sweep those first; a full sweep before the hosted rebuild.
 
+**Show only what changed (Brad, 21 Oct 2026).** When a sweep runs, and whenever a mutation or any other modification is
+applied, report only the specific lines that changed, or a unified diff block. Never rewrite the unchanged parts of a
+file or reprint a whole script. A mutant is its id, its find string and its replacement (what `mkmut.py` prints), never
+the board; a suite or tool edit is its diff.
+
 **The nightly Routine runs every stage but the sweep**: `npm run validate:nightly` (`validate-math.mjs --no-sweep`), whose pass line
 says the sweep was not run, so a nightly pass is never read as one that proved the checks bite. The Routine ("Nightly ORBIT math
 validation (no sweep)", 07:00 UTC) was rewritten on 20 Oct: the night before, it ended its turn 44 seconds into a full sweep. The
