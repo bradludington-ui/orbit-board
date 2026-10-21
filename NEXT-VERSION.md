@@ -329,7 +329,13 @@ here.
   - D7b: partner and FMS years are offered.
   - D7c: a year made outside the window says so.
   - audit-board "v2.02 (D5c, D6a, D7b, D7c)"; 7 mutations, each caught.
-- **D5a, the ACE breakout's Funded column, and item 89 (with D5b):** being built; recorded when they land.
+- **D5a: the ACE alignment breakout prints Funded beside each line's allocation** (`f4290c7`).
+  - Each line's Funded is the requirement's Board funded spread over its lines per service by their allocation, with
+    `apportion`, so a requirement's lines add to its Board funded exactly.
+  - The column goes last, after the codes, so nothing read by place moves. The note says what it is.
+  - audit-recon "v2.02 (D5a)": a prime over two CLINs and a requirement over two WBS lines, worked by hand. 3 mutations,
+    each caught; `v197w6-ace-breakout-year` was retargeted.
+- **Item 89 (with D5b):** being built; recorded when it lands.
 
 ## Open
 
