@@ -127,7 +127,7 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Let a whole-store adoption -- ↶ Put this back, the folder's newer copy, the legacy shared state file -- decide
   whether the work on screen is saved before its last wait: decide it, keep it aside (`keepAside`), and adopt in one
   step after the last wait, with the appropriation and year it was asked for pinned. `'occupied'` or no room stops it.
-- Take a failure to read a shared side file (the reprogramming log, a cost estimate) for "no file": only
+- Take a failure to read a shared side file (a cost estimate) for "no file": only
   `NotFoundError` means absent; anything else stops the share. Keep the folder's copy in its history before replacing it.
 - Cut what a repaired award keeps as its original: `awdOrigKeep` keeps it whole, in pieces the import door takes.
 - Give a long menu (more than about ten items) anything but folded groups built with `grp()` in `syncBtns`, one open
@@ -160,8 +160,9 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   landed, or let the automatic save write over what its save said.
 - Change a board's service list anywhere but `svcSaveList(list, from)`, or carry any per-service list across a list
   change by position. A kept PPBE cycle fixes the services it holds.
-- Read a reprogramming row's service against `SVC` instead of `rpSvcOf()` (its own appropriation's list), net the log
-  anywhere but `rpNetM()`, or take a $M amount for it anywhere but `rpAmtTyped()` -- whole dollars only.
+- Drop, rewrite or stop carrying the reprogramming log (`RPDB`, `rpDb` in the file, `prio27reprog`). The ATR/BTR tracker
+  was removed in v2.02 and the log is carried, not shown; the service-list upkeep (`svcSaveList`, `svcRenameKeys`) keeps a
+  stored row's service meaning right, and nothing deletes a row.
 - Ask which RCN/EEIC a dollar is on anywhere but `rcnOfClinSvc()` (a CLIN's money: its choice for the service, its
   standard, then the requirement's) or `rcnAsgOf(id, service)` (a requirement's), or file money on the RCN/EEIC tab
   under a key the list does not hold. Every RCN/EEIC surface reads that one rule, so they agree to the dollar.

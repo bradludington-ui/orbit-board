@@ -182,48 +182,6 @@
    "basis": "arithmetic",
    "asserts": "Chart of accounts: one row per requirement with this year's override; the appropriation summary; a consolidated Full Fund slot with its own override and service count."
   },
-  "re.reprog": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "the reprogramming log",
-   "anchor": "const name = 'the reprogramming log'",
-   "basis": "arithmetic",
-   "asserts": "ATR/BTR log: subtotals by type and net by service re-derived from the entries — compared in $M at 0.005, i.e. to $5,000."
-  },
-  "w5.rpDims": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "v1.97 W5 — the ATR/BTR log by appropriation, fiscal year and service, all and filtered, to the dollar",
-   "anchor": "const name = 'v1.97 W5 — the ATR/BTR log by appropriation, fiscal year and service, all and filtered, to the dollar'",
-   "basis": "arithmetic",
-   "asserts": "Twelve entries, a different whole-dollar amount on each, across four appropriations with four different service lists (the board's own; Full Fund's from the file's slot; Initial Spares' from this browser's stored board, with the file's slot naming other services; OPN's own list on a board with no data pack), three fiscal years, both types, adds and deducts; picked services and positions-only rows, one position its list does not have, one with none. Read back from the file, under ALL and seven filters (one appropriation, one year, both): every entry in its type's table and no other, with its appropriation, year, the service its OWN appropriation's list names, dollars, direction and what is to check; each subtotal and TOTAL to the dollar; a line for every service of the appropriations in scope (Unresolved last), BTR, ATR and total to the dollar; each subtotal the very figure TOTAL prints, and the lines adding to it. Expectations worked out in the suite from the fixture; control: every appropriation, year, service and type nets to a figure no other has."
-  },
-  "w5.rpR10": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "v1.97 W5 — a row whose service cannot be read is Unresolved, and still counted (R10)",
-   "anchor": "const name = 'v1.97 W5 — a row whose service cannot be read is Unresolved, and still counted (R10)'",
-   "basis": "arithmetic",
-   "asserts": "The review's case: a $1,000,000 Full Fund row at position 2 on a one-service O&M board whose file holds no Full Fund list prints Unresolved with its reason, an Unresolved summary line carries the $1,000,000, and TOTAL is the detail's $1,000,000."
-  },
-  "w5.rpFrac": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "v1.97 W5 — an entry saved with a fraction of a dollar is kept as it is, marked, named by the export and counted exactly",
-   "anchor": "const name = 'v1.97 W5 — an entry saved with a fraction of a dollar is kept as it is, marked, named by the export and counted exactly'",
-   "basis": "arithmetic",
-   "asserts": "Entries saved as $100,000.1 and $200,000.2 with a whole $3 deducted: each fraction marked in the tracker and named by the export's Check column with its dollar figure; each kept as saved; the subtotal, each service's line and TOTAL hold the exact 0.2999973 ($299,997.3) and 0.1999972, worked out in the suite."
-  },
-  "w5.rpSaved": {
-   "file": "tools/export-audit/audit-import.mjs",
-   "scenario": "v1.97 W5 — a saved board’s older log reopens with each row read from its own appropriation, marked, and nothing rewritten",
-   "anchor": "const name = 'v1.97 W5 — a saved board’s older log reopens with each row read from its own appropriation, marked, and nothing rewritten'",
-   "basis": "arithmetic",
-   "asserts": "A board file whose log holds positions only (as v1.96 wrote it), reopened: each row read against its own appropriation's list from the file's slot (Full Fund's position 2 is USAF, not O&M's ANG), one Unresolved, each marked; the summary carries every row exactly, the half dollar and the Unresolved row included; controls: nothing rewritten on opening or on saving again."
-  },
-  "w5.rpShared": {
-   "file": "tools/export-audit/audit-import.mjs",
-   "scenario": "v1.97 W5 — the shared log carries each row’s service by name; an older list merges, and an older peer’s change is read from its position",
-   "anchor": "const name = 'v1.97 W5 — the shared log carries each row’s service by name; an older list merges, and an older peer’s change is read from its position'",
-   "basis": "arithmetic",
-   "asserts": "Shared through the folder (driveRpPush) each row carries its service by name with its position; an older version's list merged back (driveRpPull): its new row read from its own appropriation's position, a row whose position the older version changed read from that position, a row it only retitled keeping its picked service; TOTAL BTR, ATR and net to the dollar."
-  },
   "re.ace": {
    "file": "tools/export-audit/audit-recon.mjs",
    "scenario": "the ACE tie-out",
@@ -656,7 +614,7 @@
    "scenario": "W7 — F1: the $M and $K files hold the exact figure, and show it as before",
    "anchor": "const name = 'W7 — F1: the $M and $K files hold the exact figure, and show it as before'",
    "basis": "arithmetic",
-   "asserts": "Read back from the files, every figure scaled to dollars: the Two-Plan Forecast, plan A (discretionary only) and plan B (both pots), every row (the roll-up, each office, both TOTALs), every month, UNSCH and TOTAL, against two walks of the pots written in the suite; the ATR/BTR log's typed $M entries, both subtotals and the net by service; the 1A9A, every window of every requirement and the TOTAL, against the lane walk written in the suite. Controls: each package well-formed, every fraction shown by its own format as before."
+   "asserts": "Read back from the files, every figure scaled to dollars: the Two-Plan Forecast, plan A (discretionary only) and plan B (both pots), every row (the roll-up, each office, both TOTALs), every month, UNSCH and TOTAL, against two walks of the pots written in the suite; the 1A9A, every window of every requirement and the TOTAL, against the lane walk written in the suite. Controls: each package well-formed, every fraction shown by its own format as before."
   },
   "w7.f2": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -1502,59 +1460,6 @@
     "lane": {
      "status": "n/a",
      "why": "States the requirement (ask) only; no lane."
-    }
-   }
-  },
-  "exportReprog": {
-   "registry": "money-coverage",
-   "money": true,
-   "what": "The ATR/BTR reprogramming log: each action, subtotals by type, net by service, in $M of whole dollars. Shared by the four appropriations: each row's service is read from its own appropriation's list (v1.97, item 81), and a row whose service cannot be read is printed and summed as Unresolved.",
-   "cells": {
-    "appropriation": {
-     "status": "proven",
-     "checks": [
-      "w5.rpDims",
-      "w5.rpSaved"
-     ],
-     "note": "every entry under its own appropriation, with that appropriation's own services (the board's own, a file's slot, this browser's stored board, a board with no data pack), under ALL and filtered to one appropriation; the subtotals and the summary to the dollar for each; a saved file's older log read against each appropriation's list in the file (built on Brad's word, 5 Oct 2026, item 62)"
-    },
-    "fiscalYear": {
-     "status": "proven",
-     "checks": [
-      "w5.rpDims"
-     ],
-     "note": "entries in three fiscal years, under ALL and filtered to one year (and to one appropriation and year), every entry, subtotal and summary line to the dollar"
-    },
-    "service": {
-     "status": "proven",
-     "checks": [
-      "w5.rpDims",
-      "w5.rpR10",
-      "w5.rpFrac",
-      "w5.rpSaved",
-      "w5.rpShared"
-     ],
-     "see": [
-      "re.reprog",
-      "w7.f1"
-     ],
-     "note": "each entry's service from its own appropriation's list, every summary line (Unresolved included) to the dollar and exactly equal to the detail; an entry saved with a fraction of a dollar counted exactly; a saved older log and the shared log merged with an older version's list"
-    },
-    "requirement": {
-     "status": "n/a",
-     "why": "Each entry is a reprogramming action with a typed short title, not one of the board's requirements; the log prints each entry's typed amount."
-    },
-    "month": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "lane": {
-     "status": "n/a",
-     "why": "Labels each entry's pool (Disc/Mand); no figure is summed by lane."
     }
    }
   },
@@ -2928,9 +2833,9 @@
   {
    "id": "F1",
    "title": "The workbook writer keeps two decimals, so a sheet printed in $M or $K is not whole dollars in the file",
-   "detail": "buildXlsx writes every non-integer number as Math.round(v*100)/100. Sheets in dollars are unaffected (their figures are whole). Three are not in dollars: the Two-Plan Forecast ($M → to $10,000), the ATR/BTR log ($M as typed → to $10,000) and the 1A9A CR cash return ($K → to $10). Their figures are right before the writer; the file holds the rounding. The deck is the same kind of thing by design (fSM) and is mapped at its display precision. Fixed in v1.95 (item 60): buildXlsx stores the figure as it is (to 15 significant digits, Excel's own precision) and the cell's number format keeps the display; a fraction in a style with no format gets that style's two-decimal twin. Proven by w7.f1 (the three files, to the dollar) and w7.writer.",
+   "detail": "buildXlsx writes every non-integer number as Math.round(v*100)/100. Sheets in dollars are unaffected (their figures are whole). Three are not in dollars: the Two-Plan Forecast ($M → to $10,000), the ATR/BTR log ($M as typed → to $10,000) and the 1A9A CR cash return ($K → to $10). Their figures are right before the writer; the file holds the rounding. The deck is the same kind of thing by design (fSM) and is mapped at its display precision. Fixed in v1.95 (item 60): buildXlsx stores the figure as it is (to 15 significant digits, Excel's own precision) and the cell's number format keeps the display; a fraction in a style with no format gets that style's two-decimal twin. Proven by w7.f1 (the three files, to the dollar) and w7.writer. (The ATR/BTR log was removed with its tracker in v2.02.)",
    "observed": "3 Oct 2026, the files read back with the board's own reader (xlsxRead): the Two-Plan Forecast's SE line, 0.085069 on the sheet, is 0.09 in the file; a reprogramming entry typed 1.2345 ($M) is 1.23; the 1A9A cells for $124,458 and $85,069 are 124.46 and 85.07 ($K).",
-   "cells": "exportExcel × month and × lane (Two-Plan Forecast), exportReprog × service; qualifies crExportRows × CR half."
+   "cells": "exportExcel × month and × lane (Two-Plan Forecast), qualifies crExportRows × CR half."
   },
   {
    "id": "F2",

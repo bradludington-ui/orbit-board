@@ -58,7 +58,6 @@ const REGISTRY = {
   crData:       { money: true,  what: 'CR cash needs by half-month window', via: ['crBuckets', 'landSvc'] },
   exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
   exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk'] },
-  exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
   execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
   exportCycCompare: { money: true, what: 'the two-cycle comparison — A, B and Δ per year, the Changes sheet, and the rows accounting for the totals',

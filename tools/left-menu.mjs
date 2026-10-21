@@ -64,12 +64,12 @@ const WANT = {
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportPPT: 1, toggleEd: 1, execSynopsis: 1, exportCSV: 1,
-  exportFydpPlan: 1, exportCycCompare: 1, exportReprog: 1, exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
+  exportFydpPlan: 1, exportCycCompare: 1, exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
   linkOpen: 1, linkSet: 1,
   // FYDP ▸ (views only)
   toggleFydp: 1, toggleSp: 1, toggleP2: 1, toggleFlow: 1,
-  // Execution ▸ (views only)
-  toggleEx: 1, toggleRp: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
+  // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
+  toggleEx: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
 };
 // The left menu's own furniture, which runs no action of the board's: opening and closing its entries and boxes, a group's
 // heading, the fold.

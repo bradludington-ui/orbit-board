@@ -4,7 +4,7 @@
 //
 //   exportSrc      — the Spend Plan Source workbook, whose Amount column IS lane arithmetic
 //
-// The remaining Excel exports (ACE Tie-Out, Chart of Accounts, ATR/BTR Log, CR Cash Return) carry no
+// The remaining Excel exports (ACE Tie-Out, Chart of Accounts, CR Cash Return) carry no
 // lane, MC or unfunded arithmetic — they reconcile against imported sources — so they are not
 // covered here. The Spend Plan Source used to be on that list and no longer belongs on it: its
 // Amount column is now what DISCRETIONARY paid, straight out of the lane walk. While it was listed

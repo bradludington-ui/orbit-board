@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.01**. Next: **v2.02**.
+Current version: **v2.02**. Next: **v2.03**.
 
 ## Open
 
@@ -99,6 +99,8 @@ Current version: **v2.01**. Next: **v2.02**.
 - **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
   cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
   PPBE cycles panel and Help say so.)*
+- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
+  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
 
 #### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
@@ -115,6 +117,15 @@ Current version: **v2.01**. Next: **v2.02**.
   `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
   reading (fails), then the settled one (passes).
 - **Brad, 8 Oct 2026:** next version, not v2.00.
+- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
+  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
+  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
+  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
+  straight after the click with the settled page.
+- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
+  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
+  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
+  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 ## Later
 
@@ -178,6 +189,384 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.02 — 21 Oct 2026: saves and loads that never lose work, a locked cycle that is report and view only and keeps its own lists, ATR/BTR removed, exact office cells -- built on Brad's goes of 20 and 21 Oct, shipped on his "go" of 21 Oct
+
+`BUILD` is `v2.02 (21 Oct 2026)`. PR #16. The mutation sweep was not run before the ship: Brad scheduled it after the 24 Oct
+usage reset, from a fresh session (A1). Every new mutation was run against its own check.
+
+**Brad's answers of 20 Oct 2026 (evening), at the v2.02 pick-up:**
+- **The sweep (A1):** after the weekly usage reset on Saturday 24 Oct, from a fresh session.
+- **U51:** option 1, Codex C4a. *Its files were in a session scratchpad (`rec/L6/u51/codex-c4a/`) and are on no branch,
+  so it is rebuilt from its description or Codex sends it again.*
+- **Item 89:** all four lists are kept with the cycle: destinations, bands, the BAE list, and the PMO list with the data
+  pack (with U52/U53's funds-flow money).
+- **OCIO evidence (C2):** keep the package built at `f616daa`; no rebuild at `c357911`.
+
+These are decisions, not a go: nothing in the board changes until Brad says go.
+
+#### E1, E3, E4. The queued v2.00 follow-ups (Brad, 20 Oct 2026: "Let's start working through these"), built on the v2.02 branch
+Each check was run on `main`'s board (`c357911`) and on the fix, and each new mutation was built with `mkmut.py` and run
+against its own block. 2,027 targets, each matching once.
+- **E1 (ledger U62).** Say there was a clash and you pressed **Save yours over theirs**. The board keeps their copy in the
+  folder's history first. If they then saved again, your save stopped and said "Nothing was written.", although it had just
+  written their copy into the history. It now says nothing was written over their copy, and that the copy you chose to replace
+  is in the history (`_driveStorePushRun(quiet, fyAsked, keptTheirs)`, `driveClashSay(j, 'kept')`). The words were all that
+  was wrong: no copy was lost and no dollar moved.
+  audit-import "v2.02 (E1)": 1 check fails on `c357911`; it and its 2 CONTROLs pass here. Mutation
+  `v202-e1-kept-says-nothing-written`, caught.
+- **E3 (ledger U72).** Take Full Fund's file, put right on another board so that R1 sits on "dunassigned" Depot U. Open it on
+  O&M, in a browser whose list still holds "unassigned" Depot U2. Reading the plan puts R1 on Depot U2 (`destReadAs`), but the
+  count of who uses each destination (`flowEntUseMap`'s `same`) did not read keys that way. So Depot U2's Used by was blank,
+  and ✕ removed it after asking only "Remove Depot U2?". The count now reads each key as the reading does.
+  audit-import "v2.02 (E3)": 2 checks fail on `c357911`; all 4 pass here. Mutation `v202-e3-own-key-uncounted`, caught.
+  `v200-u40-backuse-uncounted` and `v200-u40-backuse-panel-reset-uncounted` were retargeted to the new line, the same
+  defect each; the U40 block catches them (6 checks and 1) and passes 146 of 146 here.
+- **E4 (ledger U60).** Under the mixed-import hold, U18's stopped folder save wrote the work on screen into browser storage,
+  over the plan the stopped import had left there, before the hold stopped it. The hold is now checked first.
+  In the U18 block:
+  - (14) checks browser storage byte for byte;
+  - (14b) repeats (14) with the folder's copy gone instead of Bob's copy landing;
+  - (8d) and (11d) do the same for browser storage and for a locked view's stamp.
+
+  4 checks fail on `c357911`; all 129 pass here. (8d) and (11d) pass on `c357911` too: they close U60's test gap (lines
+  checked only on a clash), not a defect.
+  Four mutations, `v202-e4-persist-before-hold`, `-hold-only-on-clash`, `-persist-only-on-clash` and `-view-only-on-clash`:
+  each caught. `v200-u18-hold-before-reread` was retargeted to the new order, and (13) still catches it.
+- **E5 (ledger U9L).** An office has two figures, and they are now named apart and reconciled. Brad, 13 Oct 2026: label
+  both, reconcile them, move no dollar; 20 Oct: the reconciliation is a workbook sheet. **No dollar moves.**
+  - *Planning share:* what every by-office view prints (`pmoPartsOf`), the requirement's draw spread across its offices by
+    its CLINs' asks.
+  - *CLIN amounts:* what the Spend Plan Source sends, the same draw split by the CLIN grid one dated piece at a time
+    (`clinSplit`). Office by office it can differ from the planning share.
+  - *The rule:* `clinSuffixOffice` / `clinOfficeOf` say which office a CLIN belongs to. `pmoSharesOf` and the reconciliation
+    both use it.
+  - *The reconciliation:* `srcRowsOf(fy, St, T, rec)` records every line it sends, and `officeClinRecon(T)` reads those
+    lines rather than working them out again. The workbook's new sheet, *Office share vs CLIN*, sits beside the PMO
+    Matrix. For each requirement whose office figures could differ (split across offices, or sent on CLIN lines), it gives
+    each office's planning share, its CLIN amounts and the difference, by lane. Each requirement's differences add to zero,
+    and the requirements left out are counted.
+  - *The label:* `PLAN_SHARE_TXT` names the planning share on the PMO Matrix, CE by PMO, each PMO tab, the deck's Funding
+    by PMO slide, the forecast, the CR view by PMO and the PMO funding panel.
+  - *Built differently from the plan:* the Spend Plan Source itself carries no "CLIN amount" label. It mirrors a real
+    CCaR workbook column for column, so the label is on the reconciliation sheet. No column heading was renamed either,
+    because the suites find columns by name; the label is a note row on each sheet.
+  - *Proof:* audit-recon "v2.02 (E5)" works the figures out by hand. One $2 discretionary draw is split by CLIN asks of
+    1:3, and the Spend Plan Source sends it as two $1 increments. MxS's planning share is $1 and its CLIN amount $0; AV's
+    are $1 and $2. The block throws on `c357911`, where neither the sheet nor the reconciliation exists, and passes here.
+    Six mutations `v202-e5-*`, each caught by it. Money coverage, the money map, the trace matrix and the defect register
+    hold.
+  - *Not done:* U9 itself, the exact split of the planning share, stays in E7.
+- **E6. The three reviews the 19 Oct lean gate skipped**, run 21 Oct 2026 at `efa47e5`. Each was a read-only agent
+  working in its own worktree; each worktree was removed and the repository left untouched.
+  - **UI-C1 re-check: PASS, nothing to fix.**
+    - 3 of UI-C1's 5 routings are still on the board (lines 33614, 33631, 33831). The other 2 went with the flyout code
+      that 439716b deleted, so 6 of its original 10 values are left to check.
+    - `npm run check` fails with exactly those 3 routings reverted, and passes on the board.
+    - In Chromium every corrected control makes the same call with the same value, on the board and on its saved and
+      reopened file, and each one acts.
+    - The saved data matches once its clock values are masked; it was not run with a frozen clock.
+  - **Cross-track review of the exports (G22): one SHOULD-FIX, two notes.** No wrong or dropped dollar was found.
+    - The E5 money held on the hand fixture and on 25 random boards.
+    - E5 holds under a locked view, in a PMO copy and with the ◨ switch.
+    - The U44/U40 destination interactions hold.
+    - **SHOULD-FIX (possibly must-fix) -- office names become sheet names unchecked.** Two places do it: `exportExcel`'s
+      PMO tabs (`('PMO '+g).slice(0,31)`) and the Priority Drill's per-office tabs (`pm.slice(0,31)`). Nothing replaces
+      `/ \ [ ] : * ?` and nothing removes duplicates; the funds flow's `tabName` does both.
+      - Run: offices "Sustainment Logistics Office East" and "… West" gave two sheets named `PMO Sustainment Logistics
+        Offic`. ORBIT's own reader then returned only one of the two.
+      - Run: "R&D/Test [Ops]" kept its `/` and `[ ]`.
+      - Not run: Excel itself, which treats both as damage. Whether its repair drops a tab is unknown.
+    - **Note:** a carriage return in a funds-flow category name reaches the sheet name (`&#13;`). Whether a file can carry
+      one past the import check was not tested.
+    - **Note:** E5's sheet files each CLIN line under its CLIN's office, while the Spend Plan Source lists every line under
+      the requirement's own office (PRIMES). The sheet's note should say so.
+  - **U37 tests review: the tests are strong.**
+    - All 12 sampled `v200-u37-*` mutations are caught, and the block passes 118 of 118.
+    - Of 14 new wrong fixes, 10 are caught. The 4 that survive sit at the edge of the refusal's wording or scope, and none
+      lets a damaged file through:
+      - N2: U+2028/U+2029 refused, though XML allows them. No control covers it.
+      - N14: when a text holds both a literal `_xHHHH_` and a forbidden character, the alert quotes the text around the
+        literal.
+      - N11: the deck's quoted text trimmed (cosmetic).
+      - N6: the chart image checked on its drawn text only. Equivalent today.
+    - The checks proposed for N2 and N14 are in the review's notes.
+- **E6's findings built** (Brad, 21 Oct 2026: "Press").
+  - *Sheet names (`b820e7f`).* `sheetNamer(taken, max)` is the funds flow's namer, now shared. It knows every name already
+    in the workbook, makes `\ / ? * [ ] :` and control characters spaces, and numbers a repeat. The workbook's PMO tabs and
+    the Priority Drill's office tabs go through it. audit-recon "v2.02 (E6)", with every name worked out by hand: it fails
+    on `c357911` (repeated sheets, and fewer read back than written) and passes here. Five `v202-e6-*` mutations, each
+    caught. Three U42 mutations were retargeted to the shared namer and are still caught.
+  - *The E5 sheet's note* now says the Spend Plan Source lists every line under the requirement's own office. Its mutant
+    is caught.
+  - *U37's A14 and A15 (`44a8418`).* A14 writes U+2028 and U+2029 and reads them back; A15 checks that a refusal quotes the
+    text around the character it names. Both pass on `c357911`: they close a test gap. Each catches its mutant.
+  - *Checks at `44a8418`:*
+    - `npm run check`;
+    - mcount: 2,040 targets, each matching once;
+    - `npm run audit`: exit 0, nine banners plus the legacy line;
+    - every browser tool and `npm run standards`: only the 8 carried layout-fits D results.
+- **E7. The non-blockers deferred at the 18 Oct cut, triaged on `981a334`** (21 Oct 2026). Each was a read-only agent
+  working in its own worktree, with the probes kept in the scratchpad. Built and checked on Brad's go; see *E7's fixes built*
+  below.
+  - **U9L: closed.** It is E5.
+  - **U28: not seen on this tree.** All 13 of layout-fits J's results pass; only the carried D results fail.
+  - **U9: REPRODUCED. A tie between CLIN offices is broken by floating-point error.**
+    - PRIME-3 draws $3 across CLIN asks 1:2:3 (MxS, AV, TSS). Exact largest remainder gives $1/$1/$1; `pmoPartsOf`, the
+      forecast and the PMO panel give $0/$1/$2. At $9 they give $1/$3/$5 instead of $2/$3/$4.
+    - Cause: `pmoSharesOf` hands `apportion` the float v/tot, so 1/6 is 0.16666666666666666, just under a sixth.
+    - Fix: hand `apportion` the CLIN asks themselves as the weights (a third entry beside the fraction; `wOf` reads it).
+  - **U43: REPRODUCED.** The PMO funding panel and the CR view by PMO list only `GROUPS`. A CLIN office that no requirement
+    is homed to (PRIMES) has no row there, and the panel's TOTAL Disc reads $1 for the $3 drawn ($4 for $9). Fix: use
+    `pmoKeys`, as every other by-office view does.
+  - With both fixes on a scratch copy: $1/$1/$1, $2/$3/$4, a PRIMES row, and the TOTAL correct. audit, audit-board,
+    audit-other and audit-recon pass on it, so no existing check pins either defect; a new audit-recon block is needed.
+  - **U29 (P1, work can be lost): REPRODUCED.** Board clean with BRAD-1 saved; "load the shared one". The record still
+    says clean, and the next 💾 Save asks nothing and writes the shared copy over the file. BRAD-1 is then only in Teams
+    version history (in folder mode, the folder's history). The shared state file's automatic load, and taking the file
+    at opening in folder mode, do the same.
+  - **U24: REPRODUCED.** Loading the shared copy, its automatic load, and taking the file at opening, each during a save,
+    end recorded as saved against a copy that is not on screen. Importing several boards at once is counted correctly.
+  - **U31: REPRODUCED.** After importing several boards at once, this browser's record is not marked unsaved, so a reopen
+    reads clean. In folder mode, with a newer folder copy, the reopen loads that copy and keeps nothing aside.
+  - Proposed fix for U24, U29 and U31 (+6/−4 lines):
+    - `loadCounted()` counts a load as a change, in this session and in this browser's record. It is called by
+      `adoptShared`, `sharedArrived`'s automatic load and `importBoards`.
+    - `bootTakeFile` is refused while a save is under way.
+    - On a scratch copy the new check fails 10 times on this tree and passes with the fix.
+    - It leaves for Brad: a clean board that loads the shared copy and then saves still writes over the saved file, now
+      honestly said (keeping saved work too would follow U19's rule and use the one kept slot); and Live autosave would
+      then write a loaded copy to the folder.
+  - **U19H: REPRODUCED.** After a put-back and a reopen with no save, the header says "Saved 9:35 AM · ↶ work kept aside",
+    though no file holds the restored work. A plain edit and a reopen say "Saved" too (ledger U15). `saveStateShow()`
+    reads only `unsavedNow()`, which a reopen resets.
+    - Fix: two lines -- `unsavedNow() || !!_baseDirty`, and no "Saved …" tooltip while unsaved. The words become
+      "Unsaved changes", and nothing saved moves.
+    - U19H's fuller wording ("Unsaved restored work — not written to the board file") was found false on a file holding
+      two appropriations, and stays a separate item.
+- **E7's fixes built** (Brad, 21 Oct 2026: "1. Yes 2. Whatever you recommend 3. Yes"). Commits `8350d5c`, `5cf4cc7`,
+  `fc64bd2` and `4f87359`.
+  - **U9:** `pmoSharesOf` hands `apportion` the CLIN asks themselves as the weights, so a tie is a tie: PRIME-3 at $3 is
+    $1/$1/$1 and at $9 is $2/$3/$4. **U43:** the PMO funding panel and the CR view by PMO list offices with `pmoKeys`, so
+    PRIMES has a row and the TOTAL is the board's. audit-recon "v2.02 (E7)" holds both, from hand-written figures.
+  - **U19H:** the header reads `unsavedNow() || !!_baseDirty`, so after a reopen it says "Unsaved changes" while this
+    browser's record says so. Its tooltip then reads "Unsaved changes — last saved <time> by <who>", and never opens with
+    "Saved". The first cut dropped the stamp from the tooltip, and the U4 check ("the header's saved time and name are what
+    they were before the save") caught it. The board was fixed and U4 was left unchanged. audit-import U19 (g), (g2) and
+    (g3) are the new checks.
+  - **U24, U29, U31** (U29 built as recommended): `loadCounted()` counts a load as a change, in this session and in this
+    browser's record. It is called by `adoptShared`, `sharedArrived`'s automatic load, `importBoards` and, in folder
+    mode, `bootTakeFile`. `bootTakeFile` is refused while a save is under way. Loading the shared copy over a clean board
+    asks first, and says that the next Save will write it over the saved file. audit-import "v2.02 (E7, ledger U24, U29,
+    U31)" has 13 checks.
+  - Mutations: 10 new (`v202-e7-u9-*`, `-u43-*`, `-u19h-*`, `-u24-*`, `-u29-*`), each caught by its own check; 2
+    retargeted (`pmo-frac`, `v197w2-indicator-board-only`). mcount reads 2,050 of 2,050, each matching once.
+  - **Checks on `4f87359`:** `npm run check` passes. `npm run audit` (audit-import alone in the chain): exit 0, nine banners
+    plus the legacy line. Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried
+    layout-fits D results; standards passes.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct).
+- **Checks on the tree with E1–E5 (`f96c0df`, 21 Oct 2026):**
+  - `npm run check` passes, and mcount reads 2,033 of 2,033, each matching once.
+  - `npm run audit`, audit-import alone in the chain: exit 0, nine banners plus the legacy line.
+  - Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried layout-fits D results; standards
+    passes.
+  - The first full audit failed one audit-recon check, W6 CE by PMO: it counts every labelled row except the note as a
+    line. E5's sentence had gone in a row of its own; it now sits in that sheet's existing note row, and the check is
+    unchanged.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct).
+
+#### E2. A workbook's `_xHHHH_` codes are read as the characters they stand for (Brad, 21 Oct 2026: "Don't rely on codex let's make the changes and updates ourselves")
+The handoff written for Codex that morning (`recovery/v202/E2-CODEX-HANDOFF.md`) was not sent; its questions are answered
+here.
+- **What was wrong.** A workbook part can spell a character as `_x` + four hex digits + `_`. A literal underscore that would
+  begin such a code is written `_x005F_` (OOXML's escaped string). LibreOffice writes a U+000B as `_x000b_`.
+  - `xlsxRead` kept every code as written. A Spend Plan Source, BAE list, CCaR records export or cost estimate that another
+    program wrote reached the board with `_x0020_` where the file meant a space.
+  - Every workbook export carrying that text was then refused (U37's named limit, Brad, 19 Oct).
+  - **Found on the way:** a formula's text result (`t="str"`) was taken raw, so "O&M" in such a cell read "O&amp;M".
+- **The fix.** The reader takes all text through one reading: XML text first (`_xunesc`), codes second (`_xdecode`). That
+  covers shared strings, inline strings, formula text results and sheet names.
+  - Only lower-case `x`, exactly four hex digits of either case, and the closing underscore make a code. The U37 tests
+    measured LibreOffice reading `_X0041_`, `_x41_` and `_x0041` as written.
+  - The text is read once, left to right, so `_x005F_x0041_` is the text `_x0041_`. Two codes that make a surrogate pair are
+    read as one character.
+  - **A code for a character a workbook cannot hold is kept as written:** U+0000–U+0008, U+000B, U+000C, U+000E–U+001F,
+    U+FFFE, U+FFFF, or half of a pair. Nothing is dropped, and the board never carries an invisible control character.
+    Such text is still refused by the workbook export, naming the cell, as before.
+  - Each import's own line now says how many codes were read, and how many were kept with the refusal they will meet
+    (`xlsxEscSaid`). That covers the Spend Plan Source, BAE, CCaR records and cost estimate imports.
+- **Decided by default, Brad's to change:**
+  - **The writer keeps refusing.** It does not switch to writing `_xHHHH_` codes: that reverses the 19 Oct decision and
+    moves U37's 87 mutations. A literal `_xHHHH_` typed on the board, or kept from a file, still refuses a workbook export.
+  - **Text already on a board is left as saved.** Nothing can tell whether a `_x0020_` came from a file or was typed.
+    Importing the file again reads it correctly.
+- **One consequence to know.** Say a BAE list was imported before this fix, with a budget name written with codes, and a
+  requirement's budget choice was stored under that spelling. Importing the list again stores the decoded name. The old
+  choice then no longer matches anything in the list: the RECORD panel says it cannot be used, and the Spend Plan Source
+  and the IDS export refuse it by name. Nothing is used silently. No money is read from text, so no figure moves.
+- **Proof:** audit-import "v2.02 (E2)" builds a workbook by hand, the way another program writes one (ORBIT's writer cannot
+  make one).
+  - 17 shared strings, an inline string, a formula text result and a sheet name are each read against a hand-written
+    expected text. So are the counts and the sentence an import adds.
+  - Then a real import of CCaR records. Its header `_x0043_CaR No` is found as "CCaR No", and its title is decoded. The
+    workbook export takes the decoded title and refuses the kept `_x000b_` by name.
+  - On `c357911`, 19 checks fail. The six texts read as written are CONTROLs and pass on both. All pass here.
+  - 14 mutations `v202-e2-*`, each caught by the block. `xlsx-inline-unescaped` was retargeted to the new line, the same
+    defect, and is still caught. mcount reads 2,064 of 2,064, each matching once.
+  - Not driven by the block: the status lines of the Spend Plan Source, BAE and cost estimate imports. They call the same
+    helper, and the CCaR line, which the block does drive, proves the helper.
+  - **Checks on `b21b05d`:**
+    - `npm run check` passes.
+    - `npm run audit`, with audit-import alone in the chain: exit 0, nine banners plus the legacy line.
+    - Every `verify:grid` tool, run one by one, and `npm run standards`: only the 8 carried layout-fits D results fail;
+      standards passes.
+    - Not run: the mutation sweep (Brad's go, after 24 Oct).
+
+#### A2. The first nightly run on v2.01 (21 Oct 2026, 07:00 UTC), read
+- `validate:nightly` on `main` at `c357911`, 26 minutes, with no sweep, by rule.
+  - Its only failures are the 8 carried layout-fits D results.
+  - Defect register: 13 known defects, 43 guarding mutations.
+  - Money coverage: 26 of 26 surfaces.
+  - Money map: 329 cells, 123 proven, 206 n/a, 0 open.
+  - Trace matrix: 92 cells, every link holds.
+  - Fuzz seed 647906417. The verifier self-test held.
+- The data-loss fuzz the same night: 12 boards, nothing lost, seed 896251288.
+- Noticed: both Routines clone into `/home/user/spmt-prioritization-board`, through the old attached URL. That is the known
+  rename leftover, and only the Routine editor on claude.ai can change it.
+
+#### Brad's decisions of 21 Oct 2026 (the rest of the list)
+- **U51, the locked view.**
+  - "Once ORBIT locks a PPBE cycle that means that we're no longer adjusting our baseline plan for that cycle."
+  - A CCaR QPE import stays open, in a view as well: it is active-year execution.
+  - **ATR/BTR tracking is removed from ORBIT entirely** for now. It is active-year funding, and "ORBIT is the future, while
+    CCaR is the active year".
+  - No cycle is deleted while locked: "When I lock PB27 ... I want it to be report and view only. No changes."
+  - Then: "We cannot lock it permanently, it will need to be re-openable ... it needs to be date stamped, so that we know
+    nobody has made changes."
+- **D3:** every office-by-month cell within $1 (an agent measured up to $2.56 today).
+- **D4:** the shared folder's execution data is merged per appropriation.
+- **D5a:** the ACE alignment breakout prints both Allocated and Funded.
+- **D6a:** a file or folder copy written by a newer build is refused.
+- **D7b:** a year holding partner or FMS money is offered in the funds flow.
+- **D5b:** with item 89, a locked cycle reads its own services.
+- **D7c:** a roll-forward that lands outside the FYDP window is warned about.
+- **Recommended and not asked, as small and safe:**
+  - D6b: a note on the RCN-EEIC tab that a split prime's ask follows its money's split.
+  - D5c: `bmSeedFromPp` rounds to whole dollars.
+  - D7a: the `rlgIsUpl` line stays in `d66dd60`, named.
+
+#### U47 and U51, built on Brad's decisions of 21 Oct 2026 (`088372b`)
+- **U47: a saved state the board cannot read keeps its warning in front while the board opens.**
+  - Before: the first render said "⚠ Could not read 1 item on opening … do not save over this file". The opening's own line
+    was then set over it in the same opening:
+    - the shell's line, in a fresh browser;
+    - "No saved state in this copy", in a browser holding the board;
+    - a copy's quiet greeting, which waits in the tooltip.
+
+    So the one sentence that protects the file was gone before anyone read it.
+  - Now: while the board opens, every line set leads with the warning (`_bootLostHold`, in `setStat`, the way a locked view
+    leads with its 🔒), and the line shows rather than waiting. The hold is let go once the shared folder's first answer is
+    in.
+  - audit-import "v2.02 (U47)":
+    - 4 checks fail on `c357911`: two openings with the saved state given a NaN as text, and a readable file with an
+      unreadable list in storage.
+    - The rest are CONTROLs.
+    - 5 mutations `v202-u47-*`, each caught. `v200-u44-keep-folder-none` was retargeted (its line gained the release), and
+      audit-recon's U44 block still catches it.
+- **U51: a locked cycle is report and view only; it is reopened from the working plan, and every lock is stamped.**
+  - In a locked view, unlocking, locking and deleting any cycle are refused. Before, the view unlocked any cycle, the one on
+    screen included, and deleted another.
+  - A Connect's refusal names the plan's copy: "Loading O&M FY27 from the shared folder is off …" (Codex C4a).
+  - A CCaR QPE import stays open in a view, and the banner says so.
+  - A cycle locked again under its own name kept no record of being reopened. It now keeps:
+    - when it was first locked (`first`);
+    - every reopen and lock (`unlocks`);
+    - the replacement itself.
+  - The cycles panel prints that record under each lock (`cycStampLines`). It ends with "never reopened: the figures are
+    as locked", "the figures are as first locked" or "the figures are those locked last".
+  - audit-board "v2.02 (U51)" throws on `c357911` and passes here. 8 mutations `v202-u51-*`: 7 are caught by it, and
+    `-connect-unnamed` by audit-recon's U10 block. Its expectation and the three `v200-u10-folder-pull-*` finds were
+    retargeted to the new words.
+
+#### The rest of Brad's 21 Oct decisions, built
+- **ATR/BTR tracking removed** (`bd59dfa`; Brad: "this can be removed entirely from ORBIT").
+  - **Removed:** the ⚖ Reprogramming Actions panel, the ATR/BTR Log export, its menu entries (the Reports & exports section
+    "Execution & reprogramming" and the Execution ▸ flyout entry), sharing over the folder (`driveRpPush`/`driveRpPull`), the
+    Live view row, and its help section.
+  - **Kept, as an inert carrier, so no saved log is lost:** `RPDB` and its boot pick, `rpDb` in every board file, the full
+    import's carry, the import merge (`rpMerge`), the side-list unsaved accounting, and the service-list upkeep of the
+    stored rows.
+  - `svcListBlock` no longer refuses removing a service that log rows sit on: they can no longer be seen or edited.
+  - A row stored only by that service's position is now given the removed service's name (`svcBy:'pos'`), so it does not
+    come to mean the next service. The builder added this beyond the spec; it is guarded by
+    `v202-rp-removed-place-unsealed`.
+  - 27 mutations retired as obsolete, each with a comment where it stood; 3 retargeted; 1 new. Money coverage is 25/25
+    surfaces. The money map is 322 cells, 120 proven, 0 open.
+- **D3: every office's part of a month is within $1 of its exact share** (`7e1d2c9`).
+  - `pmoRound` is a matrix rounding in exact arithmetic, solved by a small max flow. Each cell is held first to the floor or
+    ceiling of its share; only where that cannot meet both margins may a whole-dollar share move a dollar. Both margins
+    stay exact.
+  - audit-board "v2.02 (D3)" covers Brad's counterexample (worst cell exactly $1), the measured worst case and a 3,000-case
+    seeded sweep. On `c357911` the sweep finds a cell $1.06 off.
+  - 3 mutations, each caught.
+- **D4: the shared folder's execution data is merged per appropriation** (`98b58dc`). See the commit and audit-import
+  "v2.02 (D4)": 7 checks fail on `c357911`; 4 mutations, each caught.
+- **D5c, D6a, D6b, D7b, D7c** (`c190c7a`):
+  - D5c: base budget authority taken from a position is whole dollars.
+  - D6a: a file or folder copy written by a newer ORBIT is refused at the door, naming both versions.
+  - D6b: the RCN-EEIC tab's note says what a split prime's Ask less its money means.
+  - D7b: partner and FMS years are offered.
+  - D7c: a year made outside the window says so.
+  - audit-board "v2.02 (D5c, D6a, D7b, D7c)"; 7 mutations, each caught.
+- **D5a: the ACE alignment breakout prints Funded beside each line's allocation** (`f4290c7`).
+  - Each line's Funded is the requirement's Board funded spread over its lines per service by their allocation, with
+    `apportion`, so a requirement's lines add to its Board funded exactly.
+  - The column goes last, after the codes, so nothing read by place moves. The note says what it is.
+  - audit-recon "v2.02 (D5a)": a prime over two CLINs and a requirement over two WBS lines, worked by hand. 3 mutations,
+    each caught; `v197w6-ace-breakout-year` was retargeted.
+- **Item 89: a locked cycle keeps its own lists** (`a3ff370`; ledger U52, U53).
+  - **What the lock keeps:** `cycLock` stores `keep` (`cycKeepNow()`, `keepV:1`) beside `rcn`:
+    - the destination list;
+    - the bands;
+    - this appropriation's BAE rows;
+    - the PMO list;
+    - the data pack (items and CLINs);
+    - the funds-flow settings, partner and FMS money and the year selection included;
+    - the service list, for the record.
+  - **How the view reads them:**
+    - The plan-level lists go on the view's throwaway copy.
+    - The board-wide lists (`DESTDB`, `BUDDB`, `BASE_ITEMS`, `BASE_ASK`, `CLINS`) are swapped in by `cycSwapIn` and put
+      back exactly by `cycSwapOut` when the view is left. Leaving is proved byte for byte.
+    - `lsSet` refuses the destination and BAE keys while the swap is on.
+  - **Older cycles and copies:** a cycle locked before v2.02 reads today's lists and says so (`cycKeepToday`). A PMO copy
+    carries no `keep`.
+  - **Size:** about 44 KB per cycle on a 115-requirement board, 36 KB of it the data pack.
+  - **Still read live in every view, as the hint says:** execution data, cost estimates, PPBE positions and other
+    appropriations' plans.
+  - **Check:** audit-board "v2.02 (item 89)", 22 checks; 13 fail on `bd59dfa`. On U53's case, the funds flow in the view
+    prints $3,000,290, and the working plan $2,000,290.
+  - **Mutations:** 15 `v202-89-*`, each caught; 5 retargeted, the same defect each.
+  - **Changed expectations, all because the view now reads the lock's lists:** in audit-recon's v1.99 items 97–98, the two
+    U10 blocks and U37.
+- **D5b, a cycle reading its own service names: not built** (Brad, 21 Oct: keep services fixed). While a cycle holds a
+  service, the working board cannot rename, reorder or remove it; it can add one at the end. The builder found two places
+  that would break silently:
+  - the Spruills would drop a renamed service's control;
+  - the cycle's five-year report would lose its PPBE position.
+  Revisit with the hosted rebuild.
+- **A band colour a workbook cannot carry** (Brad, 21 Oct: accepted, with the warning at lock). A cycle locked with such a
+  colour keeps it, and its workbook exports refuse until the cycle is reopened and locked again. The lock's confirm warns
+  first.
+- **The gate on the final tree** (`a3ff370`, 21 Oct, `npm run validate:nightly`, the sweep not run):
+  - Every stage is clean except the browser checks, whose only failures are the 8 carried layout-fits D results.
+  - The suites: 9 banners plus the legacy line, 29.1 min.
+  - The trace matrix: 92 cells, every link holds.
+  - The defect register: 13 known defects, guarded by 43 mutations.
+  - Money coverage: 25/25 surfaces.
+  - The money map: 322 cells, 120 proven, 202 n/a, 0 open.
+  - The fuzz: nothing lost, seed 822561790. The file verifier's self-test held.
+  - mcount: 2,083 of 2,083, each matching once.
+  - Not run: the mutation sweep (Brad's go, after 24 Oct). Every new mutation was run against its own check.
 
 ### v2.01 — 20 Oct 2026: what v2.00 left on its branch, D4-1, a readable RECORD panel and a longer PID -- built on Brad's "yes to all" of 20 Oct
 

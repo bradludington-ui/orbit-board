@@ -2498,6 +2498,284 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 }
 
 
+// ═══ v2.02 (U51) — A LOCKED CYCLE IS REPORT AND VIEW ONLY; REOPENED FROM THE WORKING PLAN, STAMPED ═══════════════
+// Brad, 21 Oct 2026: "When I lock PB27 ... I want it to be report and view only. No changes." and "it will need to be
+// re-openable ... it needs to be date stamped, so that we know nobody has made changes." A view unlocked any cycle (the one
+// on screen included) and deleted another; a cycle locked again under its own name lost its record of being reopened.
+{
+  const name = 'v2.02 (U51) — a locked cycle is report and view only, reopened from the working plan and stamped';
+  try {
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B'] };
+  const { ev } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      localStorage.setItem('prio27who','Brad'); window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.years[MS.cur]=S; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock(); blCyc='POM'; blYr=MS.cur; cycLock(); 'ok'`);
+  const cur = +ev('MS.cur'), PB = 'PB|' + cur, POM = 'POM|' + cur, LBL = 'PB' + (cur % 100);
+  const lines = k => JSON.parse(ev(`JSON.stringify(cycStampLines(blGet(${JSON.stringify(k)})))`));
+  const shape = L => L.map(x => x.replace(/^(🔒 locked again|🔒 locked|🔓 reopened) .+? by Brad/u, '$1 <when> by Brad'));
+  chk(name, 'taken', 'a new lock: locked, never reopened', JSON.stringify(shape(lines(PB))),
+    JSON.stringify(['🔒 locked <when> by Brad', 'never reopened: the figures are as locked']));
+  // POM reopened from the working plan, so the view has an unlocked cycle to try to delete
+  ev(`blLock(${JSON.stringify(POM)}, false); 'ok'`);
+  chk(name, 'working plan', 'reopening from the working plan works, and is stamped', JSON.stringify([ev(`blGet(${JSON.stringify(POM)}).locked`), shape(lines(POM))]),
+    JSON.stringify([false, ['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', 'the figures are as first locked']]));
+  // the view: nothing about any cycle can change
+  ev(`cycView(${JSON.stringify(PB)}); 'ok'`);
+  const said = () => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  chk(name, 'view', 'the banner says a CCaR QPE import still loads', /A CCaR QPE import \(active-year execution\) still loads here/.test(said()), true);
+  const db0 = ev('JSON.stringify(CYCDB.cycles)');
+  ev(`blLock(${JSON.stringify(PB)}, false); 'ok'`);
+  chk(name, 'view', 'the cycle on screen is not reopened, and the line says why', JSON.stringify([ev(`blGet(${JSON.stringify(PB)}).locked`), said().startsWith('🔒 Unlocking a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([true, true]));
+  ev(`blLock(${JSON.stringify(POM)}, true); 'ok'`);
+  chk(name, 'view', 'another cycle is not locked from the view', JSON.stringify([ev(`blGet(${JSON.stringify(POM)}).locked`), said().startsWith('🔒 Locking a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([false, true]));
+  ev(`blDelete(${JSON.stringify(POM)}); 'ok'`);
+  chk(name, 'view', 'an unlocked cycle is not deleted from the view', JSON.stringify([!!JSON.parse(ev(`JSON.stringify(!!blGet(${JSON.stringify(POM)}))`)), said().startsWith('🔒 Deleting a cycle is off while ' + LBL + ' is on screen.')]), JSON.stringify([true, true]));
+  chk(name, 'view', 'no cycle and no record moved', ev('JSON.stringify(CYCDB.cycles)') === db0, true);
+  ev(`cycLeave(); 'ok'`);
+  // back on the working plan: reopen PB, change a figure, lock it again under its own name -- the record goes with it
+  const first = +ev(`blGet(${JSON.stringify(PB)}).ts`);
+  ev(`blLock(${JSON.stringify(PB)}, false); setAsk('B',0,'123'); MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'replaced', 'locked again over its own name: the figures are new and the record says so', JSON.stringify([ev(`JSON.stringify(blGet(${JSON.stringify(PB)}).years[MS.cur].asks.B)`), shape(lines(PB))]),
+    JSON.stringify([JSON.stringify([123, 40, 10]), ['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', '🔒 locked again <when> by Brad — its figures replaced', 'the figures are those locked last']]));
+  chk(name, 'replaced', 'the first lock’s time is kept', +ev(`blGet(${JSON.stringify(PB)}).first.ts`), first);
+  // POM locked again without being replaced: its figures are as first locked
+  ev(`blLock(${JSON.stringify(POM)}, true); 'ok'`);
+  chk(name, 'relocked', 'reopened and locked again, nothing replaced', JSON.stringify(shape(lines(POM))),
+    JSON.stringify(['🔒 locked <when> by Brad', '🔓 reopened <when> by Brad', '🔒 locked again <when> by Brad', 'the figures are as first locked']));
+  // the cycles panel prints the record
+  ev(`blOpen=true; render(); 'ok'`);
+  chk(name, 'panel', 'each cycle’s row carries its record', ev(`[].slice.call(document.querySelectorAll('#blBody .cyc-stamp')).length`), 2);
+  // and it survives the file
+  const html = ev('buildSavedHtml()');
+  const R = boot({ html });
+  chk(name, 'file', 'save → reopen keeps the record', R.ev(`JSON.stringify((blGet(${JSON.stringify(PB)})||{}).unlocks||[]).length > 2 && (blGet(${JSON.stringify(PB)}).first||{}).ts===${first}`), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v2.02 (item 89, ledger U52 / U53) — A LOCKED CYCLE KEEPS ITS OWN LISTS ═══════════════════════════════════════════════
+// Brad, 20 Oct 2026: keep the destinations, the bands, the BAE list, and the PMO list with the requirement data pack, with the
+// funds-flow money; 21 Oct: "When I lock PB27 ... I want it to be report and view only. No changes." PB27 is locked with A in
+// office ZED on destination Depot One, band X, a BAE list naming ZED and AV, the data pack titling A "A title" / "A event", and
+// International Partners $3,000,000 for FY27 with FY27 selected. Then the working plan moves on: the destination is renamed, band
+// X removed, the AV discretionary name retired, A moved to AV and ZED deleted, a new data pack retitles A, and the partner money
+// goes to FMS $2,000,000 with ALL YEARS. FAILS ON bd59dfa: the view read every one of those as they are today -- A filed under PSM
+// (its stored ZED dropped against today's list) in the Spend Plan Source, the PMO tabs and the five-year plan, no budget on B's
+// USAF discretionary line, A under "(not yet banded)", the new titles, and TOTAL FUNDING $2,000,290 under "[PB27 LOCKED]".
+{
+  const name = 'v2.02 (item 89) — a locked cycle keeps its own lists';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      localStorage.setItem('prio27who','Brad'); window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.pmos=GROUPS.slice().concat(['ZED']); applyState(S); S.grp.A='ZED';
+      flowEnts(); DESTDB.ents.push({k:'dz1', n:'Depot One', kind:'gov', t:'DEPOT ONE'}); S.dest={A:{to:'dz1'}};
+      BANDS_LIST(); MS.bands.push({id:'bx', n:'Band X', d:'x', rule:'full', crit:false, consReq:false, c:'#123456'}); S.band.A='bx';
+      BUDDB={ts:1700000000009, files:[], rows:['USAF O&M- CAM Discretionary AV','USAF O&M - CAM OBBBA Mandatory AV','USAF O&M- CAM Discretionary ZED'].map(budParseName).filter(Boolean)};
+      _budRegCache=null; persistDest(); persistBud();
+      flowCfg().other[MS.cur]={ip:3000000}; flowCfg().fys=[MS.cur];
+      MS.years[MS.cur]=S; MS.base=MS.cur; save(); blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  const key = 'PB|' + ev('MS.cur');
+  chk(name, 'lock', 'CONTROL — PB27 is locked', ev(`!!(blGet(${J(key)})||{}).locked`), true);
+  // THE WORKING PLAN MOVES ON
+  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Depot Renamed'; persistDest();
+      MS.bands=MS.bands.filter(function(b){ return b.id!=='bx'; });
+      BUDDB.rows.forEach(function(b){ if(b.n==='USAF O&M- CAM Discretionary AV') b.gone=1; }); BUDDB.ts++; _budRegCache=null; persistBud();
+      S.grp.A='AV'; MS.pmos=MS.pmos.filter(function(g){ return g!=='ZED'; });
+      BASE_ITEMS.forEach(function(i){ if(i.id==='A'){ i.title='A retitled'; i.event='A event retitled'; } });
+      flowCfg().other={}; flowCfg().other[MS.cur]={fms:2000000}; flowCfg().fys=null;
+      applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  // every export of the board on screen, read cell by cell
+  const books = (E) => JSON.parse(E(`(function(){ var res={};
+    ['exportExcel','exportSrc','exportFlow','exportFydpPlan'].forEach(function(fn){ var cap=null, o=buildXlsx;
+      buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ window[fn](); }catch(e){ cap=[{name:'threw', rows:[[String(e&&e.message)]]}]; }
+      buildXlsx=o;
+      res[fn]=(cap||[]).map(function(sh){ return {name:sh.name, rows:(sh.rows||[]).map(function(r){ return (r||[]).map(function(c){ return (c&&typeof c==='object'&&'v' in c)? c.v : c; }); })}; }); });
+    return JSON.stringify(res); })()`));
+  const sheet = (B, fn, nm) => ((B[fn] || []).find(s => s.name === nm) || { rows: [] }).rows;
+  const read = (E) => { const B = books(E);
+    const src = (B.exportSrc[0] || { rows: [] }).rows.slice(1).map(r => [r[3], r[4], r[9], r[18]]);
+    const fl = sheet(B, 'exportFlow', 'Funds Flow'), at = l => fl.filter(r => r[0] === l).map(r => r[1]).find(x => typeof x === 'number');
+    const db = sheet(B, 'exportExcel', 'Decision Bands').find(r => r[1] === 'Band X');
+    const pm = sheet(B, 'exportFydpPlan', 'By PMO').filter(r => r[0] === 'ZED' || r[0] === 'AV' || r[0] === 'PSM').map(r => r.slice(0, 6));
+    return { src, flow: [at('US service appropriations'), at('International Partners'), at('Foreign Military Sales'), at('TOTAL FUNDING')],
+      band: db ? db.slice(0, 7) : null, pmo: pm, tabs: B.exportExcel.map(s => s.name).filter(n => /^PMO /.test(n) && n !== 'PMO Matrix'),
+      dest: E(`flowEntName('dz1')`), sheets: Object.keys(B).map(f => f + ':' + B[f].length).join(' ') }; };
+  // the figures as locked, worked out from the fixture: A draws discretionary 100 / 50 / 20; B draws USAF 50 + 30 mandatory, ANG
+  // 10 + 20, STOVL 10; the funds flow's US money is the 290 they draw
+  const LOCKED = {
+    src: [['A event', 'USAF O&M- CAM Discretionary ZED', 100, 'ZED'], ['A event', '', 50, 'ZED'], ['A event', '', 20, 'ZED'],
+          ['B event', 'USAF O&M- CAM Discretionary AV', 50, 'AV'], ['B event', 'USAF O&M - CAM OBBBA Mandatory AV', 30, 'AV'],
+          ['B event', '', 10, 'AV'], ['B event', '', 20, 'AV'], ['B event', '', 10, 'AV']],
+    flow: [290, 3000000, 0, 3000290], band: ['8', 'Band X', 'fund in full', '', '', 1, 170],
+    pmo: [['AV', 1, 130, 130, 120, 10], ['ZED', 1, 170, 170, 170, 0]], tabs: ['PMO AV', 'PMO ZED'], dest: 'Depot One' };
+  // THE WORKING PLAN takes every change (CONTROLS)
+  const w = read(ev);
+  chk(name, 'the working plan', 'CONTROL — A is AV’s, retitled; the retired name and ZED’s are gone; FMS $2,000,000 for ALL YEARS',
+    J([w.src.slice(0, 2), w.flow, w.band, w.pmo, w.dest]),
+    J([[['A event retitled', '', 100, 'AV'], ['A event retitled', '', 50, 'AV']], [290, 0, 2000000, 2000290], null,
+       [['AV', 2, 300, 300, 290, 10]], 'Depot Renamed']));
+  const snap = `JSON.stringify([MS, S, DESTDB, BUDDB, BASE_ITEMS, BASE_ASK, CLINS, GROUPS, DATA.items, DATA.budget, SVC, DIRTY,
+    localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb'), localStorage.getItem(_AP.key)])`;
+  const before = ev(snap);
+  // THE VIEW: every list as locked
+  ev(`cycView(${J(key)}); 'ok'`);
+  const said = ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const v = read(ev);
+  chk(name, 'the view · Spend Plan Source', 'every line’s title, BAE budget and PMO as locked: A in ZED on ZED’s name, B’s USAF discretionary on the name retired since',
+    J(v.src), J(LOCKED.src));
+  chk(name, 'the view · Funds Flow', 'partner and FMS money and the year selection as locked: International Partners $3,000,000, no FMS, TOTAL FUNDING $3,000,290',
+    J(v.flow), J(LOCKED.flow));
+  chk(name, 'the view · Decision Bands', 'band X, removed since, is still A’s band, by its locked name and rule', J(v.band), J(LOCKED.band));
+  chk(name, 'the view · five-year plan By PMO', 'A’s money is ZED’s, the office deleted since', J(v.pmo), J(LOCKED.pmo));
+  chk(name, 'the view · workbook', 'the PMO tabs are AV’s and ZED’s', J(v.tabs), J(LOCKED.tabs));
+  chk(name, 'the view · destination list', 'A’s destination reads by its locked name', v.dest, LOCKED.dest);
+  chk(name, 'the view', 'CONTROL — it says nothing about today’s lists: this cycle kept its own',
+    J([/^👁 Viewing PB27 \(locked\)/.test(said), /read as (it is|they are) today/.test(said)]), J([true, false]));
+  // A REFUSED WRITE puts the kept lists back, the board-wide ones included, and writes nothing to browser storage
+  ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Typed In The View'; BUDDB.rows=[]; flowCfg().other[MS.cur]={ip:9}; save(); 'ok'`);
+  chk(name, 'the view · a refused save', 'the destination, the BAE list and the partner money are as locked again',
+    J([ev(`flowEntName('dz1')`), ev(`budResolve('B','USAF','disc').effective`), ev(`flowCalc().ip`)]), J(['Depot One', 'USAF O&M- CAM Discretionary AV', 3000000]));
+  const ls0 = ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`);
+  chk(name, 'the view · storage', 'the destination and BAE lists on the page are the cycle’s, and neither can be written to browser storage',
+    J([ev(`persistDest()`), ev(`persistBud()`), ev(`JSON.stringify([localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb')])`) === ls0]), J([false, false, true]));
+  // LEAVING: the working plan, the board-wide lists and browser storage byte for byte as they were
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'leaving the view', 'the working plan, every board-wide list and browser storage are byte for byte as they were', ev(snap) === before, true);
+  chk(name, 'leaving the view', 'CONTROL — and its exports are today’s again', J(read(ev).src.slice(0, 2)), J(w.src.slice(0, 2)));
+  // A PMO COPY carries the reference cycle's projection only, not the lists (it cannot be viewed)
+  chk(name, 'a PMO copy', 'the reference cycle it carries holds no kept lists', ev(`MS.cycleRef=${J(key)}; JSON.stringify(cycRefOnlyDb()).indexOf('"keep"')<0`), true);
+  // SAVED AND REOPENED: the kept lists travel in the file, and the door takes the board's own file
+  const html = ev('buildSavedHtml()');
+  chk(name, 'the saved file', 'the board’s own file passes the import door', ev(`inboundCheck(${J(html)})`), '');
+  const R = boot({ html });
+  R.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'saved and reopened', 'CONTROL — the reopened working plan reads the new data pack', R.ev(`dispTitle(itemById('A'))`), 'A event retitled');
+  R.ev(`cycView(${J(key)}); 'ok'`);
+  const r = read(R.ev);
+  chk(name, 'saved and reopened, the view', 'every list still as locked',
+    J([r.src, r.flow, r.band, r.pmo, r.tabs, r.dest]), J([LOCKED.src, LOCKED.flow, LOCKED.band, LOCKED.pmo, LOCKED.tabs, LOCKED.dest]));
+  R.ev(`cycLeave(); 'ok'`);
+  // A CYCLE LOCKED BEFORE v2.02 kept none of them: viewed with today's lists, and said so
+  R.ev(`delete blGet(${J(key)}).keep; delete blGet(${J(key)}).keepV; cycView(${J(key)}); 'ok'`);
+  const oSaid = R.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const o = read(R.ev);
+  chk(name, 'a cycle locked before v2.02', 'its view says which lists are read as they are today',
+    oSaid.endsWith('⚠ Its destinations, decision bands, BAE budget list, PMO list, requirement data and funds-flow settings are read as they are today: it was locked before v2.02, which did not keep them with a cycle.'), true);
+  chk(name, 'a cycle locked before v2.02', 'CONTROL — and it reads today’s: the new title, ZED gone (A falls back to its home office, PSM), FMS for ALL YEARS',
+    J([o.src[0], o.flow, o.dest]), J([['A event retitled', '', 100, 'PSM'], [290, 0, 2000000, 2000290], 'Depot Renamed']));
+  R.ev(`cycLeave(); blOpen=true; blBody(); 'ok'`);
+  chk(name, 'a cycle locked before v2.02', 'its line under PPBE cycles says (other lists: today’s)',
+    /\(other lists: today’s\)/.test(R.ev(`document.getElementById('blBody').textContent`)), true);
+  // A CYCLE STORE RE-POINTED (destMigrate, when the store's destination list is not the board's): the kept copy of the list is
+  // re-keyed with its years, so the key its years now name is still the destination it kept, by the name it was locked with
+  ev(`destRemap(destCycStates(), {dz1:'dz9'}); destRemapKeeps({dz1:'dz9'}); cycView(${J(key)}); 'ok'`);
+  chk(name, 'a cycle store re-pointed', 'A’s destination key moved to dz9 in its years and in the list it kept, and reads Depot One',
+    J([ev(`destOf(itemById('A')).to`), ev(`flowEntName('dz9')`)]), J(['dz9', 'Depot One']));
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'errors (control)', 'no script error on either board', J(errors.concat(R.errors)), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v2.02 (D5c, D6a, D7b, D7c) — Brad's small fixes of 21 Oct ═══════════════════════════════════════════════════
+{
+  const name = 'v2.02 (D5c, D6a, D7b, D7c) — whole dollars from a position, newer files refused, partner years offered, a year outside the window said';
+  try {
+  const sc = { services: ['USAF', 'ANG', 'STOVL'], items: [it('A', 'PSM', [100, 50, 20])], disc: [150, 60, 30], mand: [40, 20, 10], order: ['A'] };
+  const { ev } = boot();
+  seed(ev, sc);
+  ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  // D5c: a position a file carries with fractions is taken in whole dollars
+  ev(`MS.ppbe=MS.ppbe||{}; MS.ppbe['POM|2099']={v:2, split:false, lines:{}, val:{USAF:{L1:{}}}}; MS.ppbe['POM|2099'].val.USAF.L1[MS.cur]={d:1000.6, m:250.4}; bmSeedFromPp('POM|2099'); 'ok'`);
+  chk(name, 'D5c', 'the base budget authority taken from the position is whole dollars', ev(`JSON.stringify([S.bm.disc[0], S.bm.mand[0]])`), JSON.stringify([1001, 250]));
+  // D6a: a file written by a newer ORBIT is refused at the door; the same build and an older one are not
+  const B = ev('BUILD'), html = ev('buildSavedHtml()');
+  const asBuild = v => html.replace(/const BUILD='v[^']*'/, "const BUILD='" + v + "'");
+  const door = t => ev(`inboundCheck(${JSON.stringify(t)})`);
+  chk(name, 'D6a', 'a board file written by v9.00 is refused, naming both versions', door(asBuild('v9.00 (1 Jan 2099)')),
+    'it was written by a newer version of ORBIT (v9.00; this board is ' + B + '), which may carry what this version cannot read or would lose on its next save. Open the board from the shortcut to pick up the new program, and import it there');
+  chk(name, 'D6a', 'CONTROL — the same build and an older one pass', JSON.stringify([door(html), door(asBuild('v1.50 (1 Jan 2026)'))]), JSON.stringify(['', '']));
+  chk(name, 'D6a', 'a shared-folder copy carrying build v9.00 is refused; one with no build passes', JSON.stringify([
+    /^it was written by a newer version of ORBIT \(v9\.00;/.test(door(JSON.stringify({ v: 1, build: 'v9.00 (1 Jan 2099)', ap: 'om' }))),
+    door(JSON.stringify({ v: 1, ap: 'om' }))]), JSON.stringify([true, '']));
+  // D7b: partner money typed for a year the board offers nothing else for is offered, and ALL YEARS counts it
+  const y0 = +ev('MS.cur') - 9;
+  ev(`flowCfg().other[${y0}]={ip:3000000}; flowCfg().fys=null; 'ok'`);
+  chk(name, 'D7b', 'the year is offered', ev(`flowYears().indexOf(${y0})>=0`), true);
+  chk(name, 'D7b', 'and ALL YEARS counts its $3,000,000', ev('flowCalc().ip'), 3000000);
+  // D7c: a year made outside the FYDP window is said
+  const b = +ev('+MS.base||+MS.cur'), far = b + 7;
+  ev(`window.confirm=function(){ return false; }; switchYear(${far}); 'ok'`);
+  chk(name, 'D7c', 'the line says the new year is outside the window', ev(`(document.getElementById('shareStat')||{}).textContent||''`).endsWith(
+    ' ⚠ FY' + (far % 100) + ' is outside the FYDP window (FY' + (b % 100) + '–FY' + ((b + 4) % 100) + '): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'), true);
+  ev(`switchYear(${b + 1}); 'ok'`);
+  chk(name, 'D7c', 'CONTROL — a year inside the window says nothing of it', /outside the FYDP window/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v2.02 (D3) — EVERY OFFICE'S PART OF A MONTH IS WITHIN $1 OF ITS EXACT SHARE ═══════════════════════════════════
+// Brad, 21 Oct 2026. pmoSplit spread one part after another and let a cell drift up to $2.56 from part × weight / total
+// weight, while the record said "about a dollar". Held here: every cell is a whole dollar within $1 of its exact share,
+// every part's row and every office's column exact. The exact share is worked out in the test from the inputs alone.
+{
+  const name = 'v2.02 (D3) — every office’s part of a month is within $1 of its exact share';
+  try {
+  const { ev } = boot();
+  const run = (w, parts, cols) => JSON.parse(ev(`JSON.stringify(pmoSplit(${JSON.stringify(w)}, ${JSON.stringify(parts)}, ${JSON.stringify(cols)}))`));
+  // the worst cell, in exact fractions of a dollar: |X·W − part·w| / W
+  const judge = (w, parts, cols, X) => {
+    const W = w.reduce((a, b) => a + b, 0); let worst = 0, rows = true, colsOk = true;
+    parts.forEach((p, j) => { if (X[j].reduce((a, b) => a + b, 0) !== p) rows = false; X[j].forEach((x, k) => { if (!Number.isInteger(x)) rows = false; worst = Math.max(worst, Math.abs(x * W - p * w[k]) / W); }); });
+    cols.forEach((c, k) => { if (X.reduce((a, r) => a + r[k], 0) !== c) colsOk = false; });
+    return { worst, rows, colsOk };
+  };
+  // Brad's counterexample: shares 2:2:2:3:3, months $4 and $6, each office taking $2. No floor-or-ceiling rounding fits.
+  { const X = run([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2]), J = judge([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2], X);
+    chk(name, 'counterexample', 'every row and column exact, the worst cell exactly $1', JSON.stringify([J.rows, J.colsOk, J.worst]), JSON.stringify([true, true, 1])); }
+  // The measured worst case: weights 4:9:5 and a $3,928,224 part, placed as the forecast does (the office totals by apportion)
+  { const w = [4, 9, 5], parts = [1309408, 1309408, 1309408], tot = 3928224;
+    const cols = JSON.parse(ev(`JSON.stringify(apportion(${tot}, [4,9,5]))`));
+    const J = judge(w, parts, cols, run(w, parts, cols));
+    chk(name, 'measured case', 'within $1, margins exact', JSON.stringify([J.rows, J.colsOk, J.worst <= 1]), JSON.stringify([true, true, true])); }
+  // A seeded sweep: 2-5 offices, 1-6 parts, small and large dollars; the office totals are apportion of the whole, as pmoPartsOf gives them
+  { let seed = 20261021; const rnd = n => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+    let bad = 0, worst = 0, first = '';
+    for (let c = 0; c < 3000; c++) {
+      const K = 2 + rnd(4), Jn = 1 + rnd(6), big = rnd(3) === 0;
+      const w = Array.from({ length: K }, () => 1 + rnd(big ? 9000 : 9));
+      const parts = Array.from({ length: Jn }, () => rnd(big ? 5000000 : 40));
+      const tot = parts.reduce((a, b) => a + b, 0);
+      const cols = JSON.parse(ev(`JSON.stringify(apportion(${tot}, ${JSON.stringify(w)}))`));
+      const J = judge(w, parts, cols, run(w, parts, cols));
+      worst = Math.max(worst, J.worst);
+      if (!J.rows || !J.colsOk || J.worst > 1 + 1e-12) { bad++; if (!first) first = JSON.stringify({ w, parts, cols, worst: J.worst }); }
+    }
+    chk(name, 'sweep', '3,000 seeded cases: margins exact and every cell within $1 (first failure shown)', first || 'none', 'none');
+    chk(name, 'sweep', 'and the worst cell over all of them is at most $1', worst <= 1 + 1e-12, true); }
+  // the rounding itself answers the counterexample (the wide pass), rather than handing it back to the old spread
+  { const X = JSON.parse(ev(`JSON.stringify(typeof pmoRound==='function'? pmoRound([2,2,2,3,3], [4,6], [2,2,2,2,2]) : null)`));
+    chk(name, 'counterexample', 'the matrix rounding answers it itself, within $1', JSON.stringify(X ? [judge([2, 2, 2, 3, 3], [4, 6], [2, 2, 2, 2, 2], X).worst] : null), JSON.stringify([1])); }
+  // a share that is a whole dollar is not moved when the tight rounding fits: two offices, $2 and $2, each taking $2
+  chk(name, 'CONTROL', 'whole-dollar shares stay put: $2 and $2 over 1:1 is $1 and $1 in each', JSON.stringify(run([1, 1], [2, 2], [2, 2])), JSON.stringify([[1, 1], [1, 1]]));
+  // CONTROL: the requirement's own examples from E7 (U9) are unchanged: $3 over 1:2:3 is $1/$1/$1, $9 is $2/$3/$4
+  chk(name, 'CONTROL', 'U9’s ties: $3 over 1:2:3 and $9 over 1:2:3', JSON.stringify([run([1, 2, 3], [3], [1, 1, 1]), run([1, 2, 3], [9], [2, 3, 4])]), JSON.stringify([[[1, 1, 1]], [[2, 3, 4]]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ PPBE CYCLES — THE DELTAS AGAINST THE REFERENCE ═══════════════════════════════════════
 // After a lock the working plan moves on. Every change is read against the lock's projection of
 // the same year: value, allocation, funded (the lane draw), rank, band, PMO, the star, a
@@ -2706,7 +2984,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     // The only fractions a workbook may hold are in cells formatted to show them: the built-in
     // two-decimal styles (10, 11 -- the forecast's $M) or an export's own format with a point or a %.
     ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; 'ok'`);
-    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare'];
+    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare'];
     const sweep = JSON.parse(ev(`(function(){ var res={};
       ${JSON.stringify(EXPORTS)}.forEach(function(fn){
         var cap=null, ex=[], o=buildXlsx, r={sheets:0, cells:0, bad:[]};
@@ -2810,7 +3088,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'add', 'and holds nothing but the split it is born with',
     ev(`JSON.stringify(__held(${JSON.stringify(n4)}).filter(function(k){ return k!=='fsrc'; }))`), '[]');
   chk(name, 'plan', 'the year’s plan holds none of the deleted text', ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
   const inExports = JSON.parse(ev(`(function(){ var hits=[];
     ${JSON.stringify(EXPORTS)}.forEach(function(fn){ var cap=null, o=buildXlsx;
       buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
@@ -2874,7 +3152,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const name = 'restore brings back what remove took';
   try {
   const SVC = ['USAF', 'ANG', 'AFRC'];
-  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan'];
   const setup = `S.alloc.A={m:'t', v:700}; S.mc.A=true; S.notes.A='kept note'; S.titles.A='ZZKEEP renamed';
     if(!S.costElem) S.costElem={}; S.costElem.A='ZZKEEP-CE';
     if(!S.clinAlloc) S.clinAlloc={}; S.clinAlloc.A={n1:[50,20,10]};
@@ -3504,15 +3782,16 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return JSON.stringify([].slice.call(dd.querySelectorAll('.mi, .gh, input')).filter(function(e){
         const g=e.closest('.gbody'), x=e.closest('.uiRs'); return !e.hidden && !(g && g.hidden) && !(x && x.hidden); }).length); })()`)));
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 18 (Find, Pre-flight and the sixteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['18', '5', '3', '9', '7', '4', '4', '1', '5']));
+  // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 17 (Find, Pre-flight and the fifteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['17', '5', '3', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
   const secs = k => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .uiRs h4, #dd_'+${J(k)}+' .uiDc h4'))
       .map(function(h){ return h.textContent; })); })()`));
-  chk(name, 'groups', 'Reports & exports is grouped by the job, its six groups laid out side by side', J([secs('reports'), heads('reports')]),
-    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'Execution & reprogramming', 'CCaR & accounting files', 'Companion tools'], []]));
+  chk(name, 'groups', 'Reports & exports is grouped by the job, its five groups laid out side by side', J([secs('reports'), heads('reports')]),
+    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'CCaR & accounting files', 'Companion tools'], []]));
   chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
     J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
   chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
@@ -3530,13 +3809,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, under Execution ▸, and the section says so',
     J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /Execution ▸/.test(ev(`document.querySelector('#dd_reports .uiRs[data-g="spend"] .uiRsV').textContent`))]),
     J([['togglePlans', 'crExport'], true]));
-  chk(name, 'contents', 'Briefing, Five years & PPBE, Execution & reprogramming, CCaR & accounting files, Companion tools',
+  chk(name, 'contents', 'Briefing, Five years & PPBE, CCaR & accounting files, Companion tools; no Execution & reprogramming section',
     J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
     J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['exportFydpPlan', 'exportCycCompare'],
-       ['exportReprog'], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
+       [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),
-    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleRp', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
+    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
@@ -3588,8 +3867,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         .filter(function(v,i,a){ return a.indexOf(v)===i; }), none: !!none && !none.hidden,
         lines: [].slice.call(dd.querySelectorAll('.uiRsV')).filter(function(v){ return !v.hidden && !v.closest('.uiRs').hidden; }).map(function(v){ return v.closest('.uiRs').getAttribute('data-g'); }) }); })()`));
   const fx = find('excel'), fc = find('cash'), fz = find('zzqq'), ff = find('cash needs');
-  chk(name, 'Find', 'typing "excel" lists the seven workbooks, from four groups at once',
-    J([fx.n, fx.groups, fx.none]), J([7, ['brief', 'fydp', 'exec', 'ccar'], false]));
+  // v2.02: the ATR/BTR log (Excel), and its Execution & reprogramming group, went with the tracker (seven, four groups before)
+  chk(name, 'Find', 'typing "excel" lists the six workbooks, from three groups at once',
+    J([fx.n, fx.groups, fx.none]), J([6, ['brief', 'fydp', 'ccar'], false]));
   chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([2, ['spend'], 0, true]));
   chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['spend'], false]));
   const after = JSON.parse(ev(`(function(){ uiRepClose(); syncBtns(); uiRepOpen();
@@ -4394,34 +4674,39 @@ await (async () => {
   const B = w4Template(['A', 'B', 'C', 'D'], ['R']), ev = B.ev;
   ev(`RPDB.entries=[{id:'r0',ts:1,ap:APPN,fy:2027,type:'BTR',svc:0,amtM:1},{id:'r2',ts:1,ap:APPN,fy:2027,type:'BTR',svc:2,amtM:2},
     {id:'r3',ts:1,ap:APPN,fy:2027,type:'BTR',svc:'3',amtM:4},{id:'rx',ts:1,ap:'OPN',fy:2027,type:'BTR',svc:0,amtM:3},
-    {id:'rn',ts:1,ap:APPN,fy:2027,type:'BTR',svc:1,svcName:'B',svcPos:1,svcBy:'pick',amtM:5}];
+    {id:'rn',ts:1,ap:APPN,fy:2027,type:'BTR',svc:1,svcName:'B',svcPos:1,svcBy:'pick',amtM:5},
+    {id:'rs',ts:1,ap:APPN,fy:2027,type:'BTR',svc:2,svcName:'A',svcPos:0,svcBy:'pick',amtM:6}];
     PMOSUBS=[{pmo:'PSM', svc:['A','B','C','D'], items:{}, base:{}, added:[], forFy:2027}];
     PMOSUBS[0].items[S.custom[0].id]={asks:[11,22,0,44]}; PMOSUBS[0].base[S.custom[0].id]={asks:[1,2,0,4]}; PMOSUBS[0].baseSeen=PMOSUBS[0].base;
     svcMove(0,1); 'ok'`);
-  chk(name, 'move', 'A and B swapped: this appropriation’s rows follow their service, stamped; a held submittal’s figures follow theirs',
+  // rs: an older version moved it to C by its place alone, leaving A's name and seal behind -- the seal no longer matches, so
+  // it is read by its place (C), which the swap does not move (v2.02: proved here since the W5 reader checks went)
+  chk(name, 'move', 'A and B swapped: this appropriation’s rows follow their service, stamped; a broken seal is read by place; a held submittal’s figures follow theirs',
     ev(`JSON.stringify([RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+(SVC[r.svc])+':'+(r.ts>1); }),
       PMOSUBS[0].items[S.custom[0].id].asks, PMOSUBS[0].base[S.custom[0].id].asks])`),
-    J([['r0:A:true', 'r2:C:false', 'r3:D:false', 'rn:B:true'], [22, 11, 0, 44], [2, 1, 0, 4]]));
-  // v1.97 integration: a row named by its service (W5) keeps its name, and its seal moves with its place
+    J([['r0:A:true', 'r2:C:false', 'r3:D:false', 'rn:B:true', 'rs:C:false'], [22, 11, 0, 44], [2, 1, 0, 4]]));
+  // v1.97 integration: a row named by its service (W5) keeps its name, and its seal moves with its place. (v2.02: the log
+  // is carried, not shown -- rpSvcOf went with the tracker -- so the row is read as stored: its name, the seal, its place.)
   chk(name, 'move · a named row', 'rn names B: after the swap it still reads B, sealed at B’s new place',
-    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([rpSvcOf(r).name, rpSvcOf(r).how, r.svcPos, r.svc]); })()`),
-    J(['B', 'pick', 0, 0]));
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([r.svcName, rpNamed(r), r.svcPos, r.svc]); })()`),
+    J(['B', true, 0, 0]));
   chk(name, 'other (control)', 'a row for another appropriation is not this list’s', ev(`JSON.stringify(RPDB.entries.filter(function(r){ return r.ap!==APPN; }).map(function(r){ return r.svc; }))`), J([0]));
   ev(`window.__al=[]; window.__cf=[]; svcDel(1)`);
-  chk(name, 'delete refused', 'A has a reprogramming row and a held submittal’s figures: removing it is refused, saying so, before anything is asked',
-    ev(`JSON.stringify([SVC, window.__cf.length, /1 reprogramming log entry/.test(window.__al[0]||''), /submittal held/.test(window.__al[0]||'')])`),
-    J([['B', 'A', 'C', 'D'], 0, true, true]));
+  // v2.02: the refusal for reprogramming rows went with the tracker; the held submittal's still stands, and says only that
+  chk(name, 'delete refused', 'A has a reprogramming row and a held submittal’s figures: removing it is refused for the submittal alone, before anything is asked',
+    ev(`JSON.stringify([SVC, window.__cf.length, /reprogramming/.test(window.__al[0]||''), /submittal held/.test(window.__al[0]||'')])`),
+    J([['B', 'A', 'C', 'D'], 0, false, true]));
   ev(`svcDel(2)`);
-  chk(name, 'delete', 'C (no submittal figure) has row r2: refused too', ev(`JSON.stringify(SVC)`), J(['B', 'A', 'C', 'D']));
-  ev(`RPDB.entries=RPDB.entries.filter(function(r){ return r.id!=='r2'; }); svcDel(2)`);
-  chk(name, 'delete', 'once nothing is on C it goes, and the rows past it move up with their service',
-    ev(`JSON.stringify([SVC, RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+SVC[r.svc]; }), PMOSUBS[0].items[S.custom[0].id].asks])`),
-    J([['B', 'A', 'D'], ['r0:A', 'r3:D', 'rn:B'], [22, 11, 44]]));
+  chk(name, 'delete', 'C (no submittal figure) has row r2, which carried only its place: C goes; r2 is kept, given C’s name sealed where it stood, and the rows past it move up with their service',
+    ev(`JSON.stringify([SVC, RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+(rpNamed(r)? r.svcName : SVC[r.svc]); }),
+      (function(){ const r=RPDB.entries.find(function(x){ return x.id==='r2'; }); return [r.svcName, r.svcBy, r.svc, r.svcPos, r.ts>1]; })(),
+      PMOSUBS[0].items[S.custom[0].id].asks])`),
+    J([['B', 'A', 'D'], ['r0:A', 'r2:C', 'r3:D', 'rn:B', 'rs:C'], ['C', 'pos', 2, 2, true], [22, 11, 44]]));
   // v1.97 integration: a rename is the same service, and the row named by it follows the new name
   ev(`svcSaveList(['Bz','A','D'], [0,1,2]); 'ok'`);
   chk(name, 'rename · a named row', 'B renamed Bz: the row named B now reads Bz, at the same place, still confirmed',
-    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([SVC, r.svcName, rpSvcOf(r).name, rpSvcOf(r).how, rpSvcOf(r).inList]); })()`),
-    J([['Bz', 'A', 'D'], 'Bz', 'Bz', 'pick', true]));
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([SVC, r.svcName, rpNamed(r), SVC[r.svcPos]]); })()`),
+    J([['Bz', 'A', 'D'], 'Bz', true, 'Bz']));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

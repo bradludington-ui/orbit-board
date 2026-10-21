@@ -85,10 +85,10 @@ and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision,
 left menu, top to bottom:
 
 - **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
-  **Execution ▸** (Active Year Execution, Reprogramming Actions, Spend Plan Forecast, CR Cash Needs, QPE coverage,
-  ORBIT vs CCaR), Cycles & compare, Brief. A view lives there and nowhere else.
-- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the six groups as
-  labelled sections (`sec()`), each item one click; a section whose views moved says where they are.
+  **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
+  Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
+- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the groups as
+  labelled sections (`sec()`; five since v2.02, when Execution & reprogramming went with the tracker), each item one click; a section whose views moved says where they are.
 - **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
   out, and packages); **Data** (box `#uiDataPanel`, `dd_data`: a card per source, with when it was last loaded);
   **Program offices ▸** (`dd_offices`: Publish PMO copy, Review submittals, load one or all submittals; hidden in a PMO
@@ -267,6 +267,12 @@ end-of-directory record, a directory starting past the end, an entry count that 
 zip that is not a workbook, a part missing from the zip, a failed decompression, a cell pointing
 past the shared-string table (which used to yield `undefined` and land as a **blank cell** — missing
 data rather than a damaged file). All four callers already surface `e.message`.
+
+**OOXML's own escape is read, once (v2.02, E2).** A part may spell a character as `_xHHHH_` (a literal underscore that
+would begin one is `_x005F_`). Every text the reader takes goes through one reading: `_xunesc` for the XML, then
+`_xdecode` for the codes. A code for a character a workbook cannot hold is kept as written, so the export refuses it by
+name rather than the board carrying an invisible control character. `xlsxEscSaid()` puts the count on each import's own
+line.
 
 The fixture is built by the board's OWN writer, so a workbook that round-trips proves reader and
 writer agree — and damaging that buffer gives realistically corrupt files instead of invented ones.
@@ -2157,7 +2163,8 @@ So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it an
 writes a file containing the *old* state. `check.mjs` guards this.
 
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
-`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog`, `prio27appn`, `prio27who`,
+`prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog` (the reprogramming log: carried, not shown, since
+v2.02), `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
 aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
@@ -4045,7 +4052,40 @@ With no catcher on record, `mutate.mjs` tries `audit-inject` first for a `v200-*
 catcher still goes first. Order only, never the verdict. Add a prefix there when a new family has one suite built to
 see it.
 
-**Gate.** GATE_V200
+**Gate.** v2.00 shipped on a **text-only lean gate**, not `validate:math`. That was Brad's decision on 18 and 19 Oct: no
+mutation run before the merge, `mutate.mjs` read as text only. It ran on the pinned integration tree `e2d0bc6`, 19 Oct
+2026, Eastern. The merged `b71b18e` adds only `recovery/` records, and its board and tools are identical.
+
+What ran:
+- `npm run check` passed (6:22 am).
+- audit-import, whole and alone: ALL CHECKS PASSED (12 min 52 s).
+- Every other suite, one at a time: passed (audit-board, audit-recon, audit-hostile, audit-ppt, legacy-fsrc, boot-same,
+  audit-inject, audit-other, audit, audit-ui).
+- mcount: 2,015 of 2,015 targets match once.
+- `verify:grid` in both font lanes: only the carried limits (layout-fits D ×8, and toolbar-fits at 1152 px, which the left
+  menu later closed).
+- The text stages at 7:36 am, every one exit 0:
+  - defect register: 13 known defects, guarded by 43 mutations;
+  - money coverage: 26/26 surfaces;
+  - money map: 329 cells, 123 proven, 206 n/a, 0 open;
+  - trace matrix: every link holds;
+  - round-trip fuzz: nothing lost, seed 398037213;
+  - file verifier self-test: held.
+- `npm run standards` found 9 new findings in the new layout. **`main` shipped with them at `b71b18e`.** The fix
+  (`91484f0`, 0 findings at `bcc49cd`) was pushed to the branch after the merge and reached `main` with v2.01.
+
+**Not run:**
+- The mutation sweep, of any target. The 1,139 pre-v2.00 entries were not swept at this tree, and neither were the
+  ~880 v2.00 targets: they were proven one at a time against their own checks, never as a set (v2.02 item A1).
+- The per-commit check agents for the four 19 Oct blocker commits. The builders' checks and the every-suite run above
+  replaced them.
+- UI-C1's acceptance, repeated on the integrated tree.
+- The G22 cross-track review of the exports. The locked-views review was done by Codex (D3); its one finding, D3-1,
+  shipped in v2.01.
+- U37's round-8 tests review. It was stopped; its money review was clean.
+
+Records are on `claude/v200-fixes-wip`: `recovery/v200/evidence/final-e2d0bc6/` and
+`session-records/FINAL-GATE-RUNBOOK.md`.
 
 ### v2.01: what v2.00 left on its branch, a carriage return written as &#13;, a readable RECORD panel, a longer PID
 
@@ -4067,6 +4107,32 @@ is drawn, and `drawerOpen()` returns early when docked). The BAE pickers each ta
 K reads every requirement's panel as the browser drew it and fails on anything clipped, ellipsed, spilled, past the edge, a
 field cutting its value or a picker cutting its name. **A new control or figure in the panel must pass K.** A PID is up to 35
 characters (`codeMax`).
+
+### v2.02: ATR/BTR tracking removed; the log is carried, not shown
+
+Brad, 21 Oct 2026: *"For ATR/BTRs and the tracking there, this can be removed entirely from ORBIT. ... ATRs and BTRs do not
+effect future year funding, just active year funding. ORBIT is the future, while CCAR is the active year."*
+
+**Removed:** the ⚖ Reprogramming Actions panel (`#rpPanel`, `rpBody`, `rpSummaryHtml`), the ⬇ ATR/BTR Log export
+(`exportReprog`), the tracker's code (`toggleRp`, the filters, `rpSvcsOf`/`rpListsOf`/`rpSvcOf`, the whole-dollar $M helpers
+`rpAmtTyped`/`rpNetM` and the rest, `rpCheckOf`, `rpSvcSel`, `rpMigrate`, `rpAddEntry`, `rpSetField`, `rpDelEntry`), the
+folder share (`driveRpPush`, `driveRpPull`, `DRIVE_RP` and their calls; the folder's `spmt-reprog.json` is left alone), its
+menu entries (Execution ▸, and the Reports & exports section *Execution & reprogramming*), the Live view row, the guide's
+section, and the refusal in `svcListBlock` to remove a service reprogramming rows sit on (nothing could show or edit them,
+so it could never be satisfied).
+
+**Carried, byte for byte, because deleting user data to tidy up is not a trade this project makes:** `RPDB` (the boot pick
+of the file's `rpDb` and `prio27reprog`, with `sideBootNote`), `persistRp()`, `savedHtmlOf`'s `rpDb` (Save, the PMO copy,
+the work kept aside, the board as it was before a full import), `fileKeyOf`/`sideBootCheck`/`sideBootSay`, a full import's
+carry, `impMemSnap`/`impMemRestore`, `importStores`' merge (`rpMerge`, with `rpGone`/`rpTouch`), `oneAppnHtml`, `pkgStrip`,
+`diagSecrets`, the FYDP frame shim, and the legacy `S.reprog` normalisation. The service-list upkeep keeps a stored row's
+service meaning right (`rpAll`, `rpSlug`, `rpNamed`, `svcRpIdx`): a rename renames `svcName`, a move moves the place and the
+seal, and a row that carried only the PLACE of a removed service is given that service's name, sealed where it stood
+(`v202-rp-removed-place-unsealed`). The tracker can come back to a log that means what it meant.
+
+The feature's checks went with it (audit-recon "the reprogramming log", the five W5 log scenarios, "v1.99 item 87", the ATR
+parts of W7 F1; audit-import NR03, W5.7, item 95's share and U13's share); the carry checks stay, the W2 unsaved-list check
+now changing the log through `persistRp`. 27 mutations retired as obsolete, 3 retargeted, 1 new.
 
 ## Colour: one token, one job
 

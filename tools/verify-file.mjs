@@ -294,7 +294,7 @@ function crossFoots(sec, html, slug) {
   }
   check(sec, bad.length === 0, `every per-service breakout adds back to its figure (${rowsChecked} rows across ${blocks} blocks)`, bad.slice(0, 3).join(' | '));
   // the other workbooks build at all on this data
-  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare']) {
+  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare']) {
     // the comparison needs a locked cycle for A; a file without one has nothing to compare, which is not a failure
     if (fn === 'exportCycCompare') {
       if (!cmpPrep(ev)) { check(sec, true, `${fn} has no locked cycle to compare, so it is not built here`, 'no cycle holds a year'); continue; }
@@ -315,7 +315,7 @@ function cmpPrep(ev) {
 function cellsOf(html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
   const cells = {};
-  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare']) {
+  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportFydpPlan', 'exportCycCompare']) {
     if (fn === 'exportCycCompare' && !cmpPrep(ev)) continue;
     let sheets; try { sheets = grabSheets(ev, fn); } catch { continue; }
     for (const sh of sheets) {
