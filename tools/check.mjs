@@ -626,6 +626,50 @@ try {
   fail('tools/export-audit/mutate.mjs does not parse: ' + String((e.stderr || e.message)).split('\n').filter(Boolean).slice(0, 3).join(' | '));
 }
 
+// ---- a requirement's fields are named in one place (v2.03, item 20) --------------------------------------
+// REQ_FIELD names every field; the RECORD panel, the pop-ups, the submittal review, the proposal gate, the messages and
+// the guide read it. A test went hollow in v1.86 when one name changed in one place and not another, so this holds the
+// three ways a label used to be spelled by hand: recF() given a label rather than a key; PMO_FIELDS spelling a label;
+// and the three written fields' names -- Impact statement, Description & note, Requirement edit -- written anywhere in
+// the program or the guide but the registry (comments aside: they are history, and are not shown).
+console.log('\nfield labels');
+try {
+  const at = src.indexOf('\nconst REQ_FIELD={');
+  const end = at < 0 ? -1 : src.indexOf('\n};', at);
+  if (at < 0 || end < 0) fail('could not find REQ_FIELD');
+  else {
+    const RF = new Function('return (' + src.slice(at + '\nconst REQ_FIELD='.length, end + 2) + ')')();
+    const keys = new Set(Object.keys(RF));
+    const lits = [...src.matchAll(/\brecF\('([^']*)'\s*,/g)].map(m => m[1]);
+    const notKey = lits.filter(k => !keys.has(k));
+    if (!lits.length) fail('found no recF() call to check');
+    else if (notKey.length) fail(`recF() is given a label, not a REQ_FIELD key: ${notKey.map(k => JSON.stringify(k)).join(', ')}`);
+    else pass(`all ${lits.length} recF() fields are named by a REQ_FIELD key`);
+    const pa = src.indexOf('\nconst PMO_FIELDS = ['), pb = pa < 0 ? -1 : src.indexOf('\n];', pa);
+    const rows = pa < 0 ? [] : src.slice(pa, pb).split('\n').filter(l => /^\s*\['/.test(l));
+    const badRows = rows.filter(l => { const m = l.match(/^\s*\['(\w+)',\s*FL\('(\w+)'\)\],?\s*$/); return !m || m[1] !== m[2] || !keys.has(m[1]); });
+    if (!rows.length) fail('found no PMO_FIELDS entry to check');
+    else if (badRows.length) fail(`PMO_FIELDS spells a label instead of FL(<its key>): ${badRows.map(l => l.trim()).slice(0, 3).join(' | ')}`);
+    else pass(`all ${rows.length} PMO_FIELDS entries read their label from REQ_FIELD`);
+    const own = ['cons', 'dn', 'rec'].map(k => RF[k] && RF[k].l).filter(Boolean);
+    const forms = [...new Set(own.flatMap(l => [l, l.replace(/&/g, '&amp;')]))];
+    const regStart = src.slice(0, at).split('\n').length + 1, regEnd = src.slice(0, end).split('\n').length + 1;
+    const hits = [];
+    lines.forEach((l, i) => {
+      const n = i + 1;
+      if (n >= regStart && n <= regEnd) return;                    // the registry itself
+      if (/^\s*(\/\/|\/\*|\*)/.test(l)) return;                     // a comment line
+      const code = l.replace(/\s\/\/\s.*$/, '');                     // and a trailing comment
+      forms.forEach(f => { if (code.includes(f)) hits.push(n + ': ' + f); });
+    });
+    if (own.length !== 3) fail('REQ_FIELD lost one of cons, dn, rec');
+    else if (hits.length) fail(`a written field's name is spelled outside REQ_FIELD (${hits.length}): ${hits.slice(0, 4).join('; ')}`);
+    else pass('Impact statement, Description & note and Requirement edit are spelled only in REQ_FIELD (the guide reads them by data-fl)');
+  }
+} catch (e) {
+  fail('field labels: ' + e.message);
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

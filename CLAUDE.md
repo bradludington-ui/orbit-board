@@ -1,7 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
-~19,500 lines, 2.8 MB, no dependencies of any kind. It runs from a shared drive or a `file://` URL
+about 34,000 lines, 4.0 MB (1.6 MB of it the PowerPoint template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
 ## One build: `prioritization-board-grid.html` (since v1.88)
@@ -21,12 +21,14 @@ comparison into a check of the grid against its own recorded list (`tools/row-co
 
 What that leaves behind, on purpose:
 
-- **Card-only code paths in the grid file.** `render()` still draws the card row template and the grid
-  wraps it (`const _renderCards = render; render = function(){ _renderCards.apply(this, arguments);
-  gridAfterRender(); };` -- since v1.89 a `gridAfterRender` that throws empties the RECORD panel and
-  says so, rather than leaving the previous figures standing); the in-file guide still carries paragraphs marked `data-b="card"` that the
-  grid never shows; comments still say "both builds". They are unreachable or harmless and were left
-  alone in v1.88 — removing them is risk for no visible gain. Take them out as a version of their own.
+- **Card-only code paths in the grid file -- taken out in v2.03 (item 105).** v1.88 left them, as risk for no
+  visible gain, to go as a version of their own: the guide's `data-b="card"` paragraphs, `fldHasPanel()` and the row
+  expander behind it (`consOpen`, `open[]`, `toggleDetail`, the Filter menu's ☰ By-service detail, which only the
+  card's rows read), and `gridDedupe()`, which stripped handlers `render()` no longer drew. `render()` is still
+  wrapped -- `const renderBoard = render; render = function(){ … renderBoard.apply(this, arguments); …
+  gridAfterRender(); }` -- on purpose: the board renders while the script is still being read (`applyStore` at
+  top level), before the RECORD panel's code and its `let`s exist. Since v1.89 a `gridAfterRender` that throws
+  empties the RECORD panel and says so.
 - **The saved format is shared.** A board saved by any card build opens in the grid: the full-import test
   (`audit-import.mjs`, "a full board comes across whole") builds files written by the v1.80, v1.83,
   v1.85 and v1.87 card builds, and by the v1.87 grid, from this project's history and imports each one.
@@ -2281,8 +2283,10 @@ floor, `#ff6b81` measured 1.85:1. Section 508 adopts that floor by reference, so
 conformance failure rather than a preference.
 
 `readableOn(hue, bg, need)` keeps the hue and walks its lightness toward whichever end the ground
-allows until it clears the floor, stopping at the first step that does; `bandInk(c)` applies it
-against `--panelA`, which is opaque in all five themes and so can be read straight off the token.
+allows until it clears the floor, stopping at the first step that does; `bandInk(c)` applied it
+against `--panelA`, which is opaque in all five themes and so can be read straight off the token. (Since v1.90 the
+row draws the band as a swatch and its name in ordinary ink; nothing called `bandInk` after that, and v2.03 removed it.
+`readableOn` stays: the swatch still uses it.)
 **The variant is derived, never hand-picked.** A second colour per band per theme would be five
 values to keep in step — and an office that adds its own band, which ⚖ Bands exists to let them do,
 would get none of it. The band still reads as itself; it stops being invisible.

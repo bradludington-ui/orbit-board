@@ -1275,18 +1275,15 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   });
   chk(name, 'stale', 'each kind opens, then closes when its requirement is gone', stale.join(',') || 'all', 'all');
 
-  // 2. the routing, which is the half that differs
-  const hasPanel = ev('fldHasPanel()');
-  ev(`consOpen['A']=false; toggleCons('A'); "ok"`);
-  chk(name, 'routing', `a panel build opens the pop-up, one without expands the row (panel: ${hasPanel})`,
-    hasPanel ? (isOpen() && !ev(`!!consOpen['A']`) ? 'pop-up' : 'wrong route')
-             : (!isOpen() && ev(`!!consOpen['A']`) ? 'row' : 'wrong route'),
-    hasPanel ? 'pop-up' : 'row');
-  ev(`fldClose(); consOpen['A']=false; render(); "ok"`);
-  // the description and the note open the one pop-up in BOTH builds (v1.86)
+  // 2. the routing: the impact statement opens the pop-up (v2.03: the card build's row expander, which a board with no
+  // RECORD panel fell back to, is gone)
+  ev(`toggleCons('A'); "ok"`);
+  chk(name, 'routing', 'the impact statement opens the pop-up', isOpen() && ev(`fldOpen && fldOpen.kind`) === 'cons', true);
+  ev(`fldClose(); render(); "ok"`);
+  // the description and the note open the one pop-up (v1.86)
   for (const fn of ['toggleDesc', 'toggleNote']) {
     ev(`${fn}('A'); "ok"`);
-    chk(name, 'routing', `${fn} opens Description & note, in either build`, isOpen() && ev(`fldOpen && fldOpen.kind`) === 'dn', true);
+    chk(name, 'routing', `${fn} opens Description & note`, isOpen() && ev(`fldOpen && fldOpen.kind`) === 'dn', true);
     ev(`fldClose(); "ok"`);
   }
   // ONE NAME EVERYWHERE: nothing on screen still says the old ones
@@ -3783,8 +3780,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         const g=e.closest('.gbody'), x=e.closest('.uiRs'); return !e.hidden && !(g && g.hidden) && !(x && x.hidden); }).length); })()`)));
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 17 (Find, Pre-flight and the fifteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 3, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['17', '5', '3', '9', '7', '4', '4', '1', '5']));
+  // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 17 (Find, Pre-flight and the fifteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 2, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['17', '5', '2', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
@@ -3922,66 +3920,9 @@ const { bootMark: _w1Mark, bootRelease: _w1Release, settleBoards: _w1Settle } = 
 const w1ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 120); } };
 const w1json = (ev, code) => { const r = w1ev(ev, code); try { return JSON.parse(r); } catch { return r; } };
 
-// v1.97 W1, ITEM 72 (review R01): TYPING A BUDGET TOTAL KEEPS EVERY DOLLAR. setBATot scaled each service to x*v/s and
-// applyBudget rounded each on its own: $1 over three equal services was $0 in the lane, $2 was $3, $7 was $6 and
-// $100,000,000 was $99,999,999. Driven through setBATot, the command bar's own writer of the base.
-await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
-  const __bm = _w1Mark();
-  const name = 'v1.97 — a typed budget total keeps every dollar (item 72)';
-  try {
-  const J = JSON.stringify;
-  const { ev } = boot();
-  seed(ev, { services: ['USAF', 'ANG', 'STOVL'], items: [it('A', 'AV', [5, 7, 11])], disc: [0, 0, 0], mand: [0, 0, 0], order: ['A'] });
-  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
-  // types TOTAL into the KIND base, which holds W, with the funding sources ADDS on top; reads the base and the live lane
-  const type = (kind, w, total, adds = []) => w1json(ev, `(function(){
-      S.bm={disc:${J(w)}, mand:${J(w)}, adds:${J(adds)}}; applyBudget();
-      setBATot(${J(kind)}, ${J(total)});
-      return JSON.stringify({b:S.bm[${J(kind)}].slice(), l:(${J(kind)}==='disc'? S.discSvc : S.mandSvc).slice()}); })()`);
-  // [what, lane, the base's shape, what is typed, the dollars typed (read by hand), funding sources]
-  const CASES = [
-    ['$1 over three equal services', 'disc', [1, 1, 1], '$1', 1, []],
-    ['$2 over three equal services', 'disc', [1, 1, 1], '$2', 2, []],
-    ['$7 over three equal services, mandatory', 'mand', [1, 1, 1], '$7', 7, []],
-    ['$100,000,000 over three equal services, mandatory', 'mand', [1, 1, 1], '$100,000,000', 100000000, []],
-    ['$1,000,000,000,000 over three equal services', 'disc', [1, 1, 1], '$1,000,000,000,000', 1000000000000, []],
-    ['$1,000,003 over unequal services 2 : 3 : 5', 'disc', [2, 3, 5], '$1,000,003', 1000003, []],
-    ['$100 over a base of zeros (equal shares)', 'mand', [0, 0, 0], '$100', 100, []],
-    ['$7 over 3 : 1 : 1 with a funding source on each lane', 'disc', [3, 1, 1], '$7', 7,
-      [{ name: 'Congressional add', pool: 'disc', vec: [10, 20, 30] }, { name: 'Supplemental', pool: 'mand', vec: [1, 2, 4] }]],
-  ];
-  CASES.forEach(([lbl, kind, w, typed, T, adds]) => {
-    const r = type(kind, w, typed, adds);
-    if (typeof r !== 'object') { chk(name, lbl, 'the case ran', r, 'ran'); return; }
-    const add = w.map((_, i) => adds.filter(a => a.pool === kind).reduce((s, a) => s + a.vec[i], 0));
-    chk(name, lbl, 'the base is whole dollars that add up to exactly what was typed',
-      J([r.b.every(Number.isSafeInteger), sum(r.b)]), J([true, T]));
-    chk(name, lbl, 'the live lane is the base plus that lane’s funding sources, service by service', J(r.l), J(r.b.map((x, i) => x + add[i])));
-    chk(name, lbl, 'the live lane adds up to exactly what was typed plus the sources', J(sum(r.l)), J(T + sum(add)));
-    const W = sum(w);
-    chk(name, lbl, 'CONTROL — each service is within a dollar of its share of the total (equal shares on a base of zeros)',
-      r.b.every((x, i) => Math.abs(x - (W > 0 ? T * w[i] / W : T / w.length)) < 1), true);
-  });
-  const z = type('disc', [1, 1, 1], '$0');
-  chk(name, '$0', 'CONTROL — $0 typed is a base and a lane of zeros (passes on v1.96)', J(z), J({ b: [0, 0, 0], l: [0, 0, 0] }));
-  // SAVE AND REOPEN: what was typed is what the file carries and what the reopened board's lanes hold
-  ev(`S.bm={disc:[1,1,1], mand:[2,3,5], adds:[{name:'Add', pool:'mand', vec:[0,0,9]}]}; applyBudget(); 'ok'`);
-  type('disc', [1, 1, 1], '$1');
-  w1ev(ev, `S.bm.mand=[2,3,5]; S.bm.adds=[{name:'Add', pool:'mand', vec:[0,0,9]}]; setBATot('mand','$1,000,003'); 'ok'`);
-  const before = w1json(ev, `JSON.stringify({disc:S.bm.disc, mand:S.bm.mand, dl:S.discSvc, ml:S.mandSvc})`);
-  const R = boot({ html: w1ev(ev, 'buildSavedHtml()') });
-  const after = w1json(R.ev, `JSON.stringify({disc:S.bm.disc, mand:S.bm.mand, dl:S.discSvc, ml:S.mandSvc})`);
-  chk(name, 'save and reopen', 'the reopened board holds the base and the lanes exactly as typed', J(after), J(before));
-  chk(name, 'save and reopen', 'and they add up to $1 discretionary and $1,000,003 + $9 mandatory, in whole dollars',
-    J([sum(after.disc || []), sum(after.dl || []), sum(after.mand || []), sum(after.ml || []),
-       [].concat(after.disc || [], after.mand || [], after.dl || [], after.ml || []).every(Number.isSafeInteger)]),
-    J([1, 1, 1000003, 1000012, true]));
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  _w1Release(__bm, []);
-  await _w1Settle();
-})();
+// v1.97 W1, ITEM 72 (review R01) was proved here through setBATot, the command bar's writer of a typed budget total. v2.03
+// (item 104) removed the command bar and setBATot with it: nothing on the page could reach them. The base is typed per
+// service (bmSetBase), which 'v1.97 — typed money...' below still holds to whole dollars.
 
 // v1.97 W1, ITEM 73 (review R02): AN OLD-STYLE SPLIT FUNDS BOTH OF ITS LANES. A whole-requirement split ({m:'split', d, mnd}
 // -- only older files carry one) spread D and M over the same basis independently; on a tie both took the same service
@@ -4193,7 +4134,6 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   keeps('allocation by service', `S.alloc.X={m:'s', v:[400,600]}`, `setSvc('X',1,b)`, `S.alloc.X`);
   keeps('split dollars', `S.fsrc.X={m:'split', dv:[100,200], mv:[30,40]}`, `setFsrcSvc('X','m',1,b)`, `S.fsrc.X`);
   keeps('split dollars, first keystroke', `delete S.fsrc.W`, `setFsrcSvc('W','d',0,b)`, `S.fsrc.W||null`);
-  keeps('budget total', `S.bm={disc:[100,200], mand:[50,60], adds:[]}; applyBudget()`, `setBATot('disc',b)`, `[S.bm.disc, S.discSvc]`);
   keeps('budget base', `S.bm={disc:[100,200], mand:[50,60], adds:[]}; applyBudget()`, `bmSetBase('mand',1,b)`, `[S.bm.mand, S.mandSvc]`);
   keeps('funding source', `S.bm.adds=[{name:'Add', pool:'disc', vec:[11,22]}]; applyBudget()`, `bmSrcSet(0,'vec',0,b)`, `S.bm.adds[0].vec`, SIGNED);
   keeps('award', `S.awards.X={mode:'inc', inc:[{d:'2026-11', day:5, sv:[100,200]}]}`, `setAwdIncSvc('X',0,1,b)`, `S.awards.X.inc[0].sv`);
@@ -4220,12 +4160,6 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const a1 = add('7oops', ''), a2 = add('', '1.2.3');
   chk(name, 'add requirement', 'a USAF value of “7oops”, or a total of “1.2.3”: nothing is added, and the alert names the box',
     J([a1[0], /USAF: .*7oops.* is not an amount/.test(a1[1]), a2[0], /Total: .*1\.2\.3.* is not an amount/.test(a2[1])]), J([0, true, 0, true]));
-  // THE COMMAND BAR: an amount it cannot read changes nothing. (Nothing in this build calls runCmd and the page has no
-  // #cmdOut for it to answer in -- it is given one here -- but it writes the allocation and the base, so it is held too.)
-  chk(name, 'command bar', '“allocate X to $1.2.3” changes nothing and says it could not read the amount',
-    w1ev(ev, `(function(){ if(!document.getElementById('cmdOut')){ const o=document.createElement('div'); o.id='cmdOut'; document.body.appendChild(o); }
-      delete S.fsrc.X; S.alloc.X={m:'t', v:900}; runCmd('allocate X to $1.2.3'); return JSON.stringify([S.alloc.X, /Could not read/.test(document.getElementById('cmdOut').textContent)]); })()`),
-    J([{ m: 't', v: 900 }, true]));
   // A BLANK STILL CLEARS (CONTROL): an empty box is the deliberate reset it always was
   chk(name, 'blank', 'CONTROL — a blank clears: the requirement value to $0, the allocation back to the requirement value, the minimum increment gone (passes on v1.96)',
     w1ev(ev, `(function(){ itemById('X').ask=[500,700]; setAsk('X',0,''); S.alloc.X={m:'t', v:900}; setAlloc('X',''); S.minInc.X=300; setMinInc('X','');
@@ -5058,6 +4992,124 @@ await (async () => {
   }
 }
 // ==== end v1.98 item 83 ====
+
+// ==== v2.03 item 19: a message that matters stays until it is read ====
+// Brad, 21 Oct 2026 (item 19, and "session log, not file"): every message goes through setStat; a warning, a refusal or an
+// import's result is kept UNREAD until More, its ✕ or the message list opens it, and ⚠ N unread says so while a later
+// message is on the line. The list is this tab's: nothing goes into the board, so a refused import still changes nothing.
+// Every expected value below is written by hand from those rules.
+await (async () => {
+  const name = 'v2.03 — a message that matters stays until it is read (item 19)';
+  try {
+    const J = JSON.stringify;
+    const { ev } = boot();
+    seed(ev, { services: SVC3, items: [it('A', 'AV', [5, 7, 11])], disc: [100, 100, 100], mand: [0, 0, 0], order: ['A'] });
+    const st = () => JSON.parse(ev(`JSON.stringify({line:document.getElementById('shareStat').textContent,
+        flag:document.getElementById('statKeep').hidden? '' : document.getElementById('statKeep').textContent,
+        unread:statUnread().map(function(e){ return diagPlain(e.html); })})`));
+    ev(`STAT_LOG.length=0; setStat(''); statSync(); 'ok'`);
+    // 1. an ordinary message replaced by another leaves nothing unread
+    ev(`setStat('Order saved.'); setStat('Filter cleared.'); 'ok'`);
+    chk(name, 'ordinary', 'two ordinary messages: the second is on the line and nothing is unread', J(st()), J({ line: 'Filter cleared.', flag: '', unread: [] }));
+    // 2. a warning on the line is not "earlier": nothing is flagged while it is still the one showing
+    ev(`setStat('⚠ The shared folder could not be read.'); 'ok'`);
+    chk(name, 'warning', 'a warning on the line on its own: no flag, it is the one being shown', st().flag, '');
+    ev(`STAT_LOG.length=0; 'ok'`);
+    // ... and replaced by an ordinary message it stays, flagged
+    ev(`setStat('⚠ The shared folder could not be read.'); setStat('Order saved.'); 'ok'`);
+    chk(name, 'warning', 'a warning then an ordinary message: the ordinary one is on the line, ⚠ 1 unread beside it, the warning kept',
+      J(st()), J({ line: 'Order saved.', flag: '⚠ 1 unread', unread: ['⚠ The shared folder could not be read.'] }));
+    // 3. the list shows it first, and opening the list is reading it
+    const list = JSON.parse(ev(`(function(){ msgOpen(); const b=document.getElementById('msgBody');
+        const r=[document.getElementById('msgPanel').classList.contains('open'), (b.querySelector('tr.unread td:last-child')||{}).textContent||'',
+          [].slice.call(b.querySelectorAll('.msgh')).map(function(h){ return h.textContent; })];
+        msgClose(); return JSON.stringify(r); })()`));
+    chk(name, 'list', 'the list opens with the warning under NOT READ YET (1), the rest under EARLIER',
+      J(list), J([true, '⚠ The shared folder could not be read.', ['NOT READ YET (1)', 'EARLIER']]));
+    chk(name, 'list', 'once the list has been opened nothing is unread and the flag is gone', J(st()), J({ line: 'Order saved.', flag: '', unread: [] }));
+    // 4. More reads the message on the line; so does its ✕
+    ev(`setStat('⛔ Nothing was imported — the file is damaged.'); statToggle(); statToggle(); setStat('Order saved.'); 'ok'`);
+    chk(name, 'More', 'a refusal opened with More, then replaced: nothing unread', J(st().unread), J([]));
+    ev(`setStat('⚠ The deck could not be built.'); statHide(); setStat('Order saved.'); 'ok'`);
+    chk(name, '✕', 'a warning hidden with ✕, then replaced: nothing unread', J(st().unread), J([]));
+    // 5. an import's result is kept like a warning (statKeep)
+    ev(`statKeep('⬅ Imported: Full Fund.'); setStat('Order saved.'); 'ok'`);
+    chk(name, 'import result', 'an import result, then an ordinary message: the result is kept unread', J(st().unread), J(['⬅ Imported: Full Fund.']));
+    ev(`msgOpen(); msgClose(); 'ok'`);
+    // 6. the quiet start-up line is never unread
+    ev(`_statQuiet=true; setStat('⚠ opened quietly'); _statQuiet=false; setStat('Order saved.'); 'ok'`);
+    chk(name, 'quiet', 'a message said quietly at start-up is not kept unread', J(st().unread), J([]));
+    // 7. seventy later messages never push an unread one out
+    ev(`setStat('⚠ Kept one.'); for(var i=0;i<70;i++) setStat('Message '+i+'.'); 'ok'`);
+    chk(name, 'a long session', 'after 70 later messages the unread warning is still there, and the list holds 60',
+      J([st().unread, Number(ev(`STAT_LOG.length`))]), J([['⚠ Kept one.'], 60]));
+    ev(`msgOpen(); msgClose(); 'ok'`);
+    // 8. a refused import: the message is kept, and the board is exactly as it was (nothing written to the file or the journal)
+    const before = ev(`JSON.stringify(MS)`);
+    ev(`const _a=window.alert; window.alert=function(){}; try{ inRefuse('bad.html', 'the order holds something that is not a requirement'); }finally{ window.alert=_a; } setStat('Order saved.'); 'ok'`);
+    chk(name, 'a refused import', 'its message is kept unread', J(st().unread), J(['⚠ Nothing imported — “bad.html” was refused: the order holds something that is not a requirement.']));
+    chk(name, 'a refused import', 'and the store is byte for byte what it was', ev(`JSON.stringify(MS)`) === before, true);
+    chk(name, 'the file', 'no message is ever written into the saved board', /Kept one\./.test(ev(`buildSavedHtml()`).replace(/<template id="helpDoc">[\s\S]*?<\/template>/, '')), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.03 item 19 ====
+
+// ==== v2.03 item 20: a requirement's fields are named in one place ====
+// REQ_FIELD names each field once. THE PROOF IS A RENAME: change a label in the registry, at runtime, and every surface
+// that names the field must say the new name -- the RECORD panel's three buttons, the pop-up's title, 📋 Requirement edit's
+// heading and its field list, the proposal gate, the row's flag and the guide. A surface that spells the name itself keeps
+// the old one and fails here by name. (PMO_FIELDS is read once, as the board opens; npm run check holds it to FL().)
+await (async () => {
+  const name = 'v2.03 — a requirement’s fields are named in one place (item 20)';
+  try {
+    const J = JSON.stringify;
+    const { ev } = boot();
+    seed(ev, { services: SVC3, items: [it('A', 'AV', [5, 7, 11]), it('B', 'AV', [1, 1, 1])], disc: [100, 100, 100], mand: [0, 0, 0], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    // the names as the board ships them, written by hand
+    chk(name, 'the registry', 'the three written fields, with their icons',
+      ev(`JSON.stringify([FLI('cons'), FLI('dn'), FLI('rec'), FL('grp'), FL('dest')])`), J(['⚠ Impact statement', '📄 Description & note', '📋 Requirement edit', 'PMO', 'Goes to']));
+    // what every surface says, read off the page
+    const read = () => JSON.parse(ev(`(function(){
+      const r={};
+      // a band that requires the impact statement, so the row flags it
+      S.band.A='ktlo';   // Keep the Lights On requires the impact statement
+      delete (S.cons||{}).A; render(); setCur('A');
+      r.buttons=[].slice.call(document.querySelectorAll('#inspector .insp-act .a1')).map(function(b){ return b.textContent.trim(); });
+      openFld('A','cons'); r.popup=(document.querySelector('#fldPanel h3')||{}).textContent||''; fldClose();
+      recOpen='A'; render(); r.recHead=(document.getElementById('recHead')||{}).textContent||'';
+      r.recFields=recFields('A', itemById('A')).filter(function(f){ return f.k==='grp'; }).map(function(f){ return f.l; });
+      recOpen=null; render();
+      r.gate=pmoProposalGate('A');
+      r.flag=[].slice.call(document.querySelectorAll('#row-A .exc')).map(function(e){ return e.textContent; }).join(' | ');
+      r.guide=helpSections().some(function(s){ return /Impact statement/.test(s.el.textContent); });
+      r.guideNew=helpSections().some(function(s){ return /Consequence if unfunded/.test(s.el.textContent); });
+      return JSON.stringify(r); })()`));
+    const a = read();
+    chk(name, 'as shipped', 'the RECORD panel’s buttons start with the three names',
+      J(['⚠ Impact statement', '📄 Description & note', '📋 Requirement edit'].map((n, i) => (a.buttons[i] || '').startsWith(n))), J([true, true, true]));
+    chk(name, 'as shipped', 'the row flags the missing impact statement by its name', /Impact statement required/.test(a.flag), true);
+    chk(name, 'as shipped', 'the proposal gate does not list a field the requirement has (its PMO), and lists one it lacks',
+      J([a.gate.indexOf('PMO') >= 0, a.gate.indexOf('Impact statement') >= 0]), J([false, true]));
+    ev(`REQ_FIELD.cons.l='Consequence if unfunded'; REQ_FIELD.dn.l='Notes and description'; REQ_FIELD.rec.l='Record'; REQ_FIELD.grp.l='Office'; 'ok'`);
+    const b = read();
+    ev(`REQ_FIELD.cons.l='Impact statement'; REQ_FIELD.dn.l='Description & note'; REQ_FIELD.rec.l='Requirement edit'; REQ_FIELD.grp.l='PMO'; render(); 'ok'`);
+    chk(name, 'renamed', 'the RECORD panel’s buttons say the new names',
+      J(['⚠ Consequence if unfunded', '📄 Notes and description', '📋 Record'].map((n, i) => (b.buttons[i] || '').startsWith(n))), J([true, true, true]));
+    chk(name, 'renamed', 'the pop-up’s title says the new name', b.popup.includes('⚠ Consequence if unfunded'), true);
+    chk(name, 'renamed', '📋 Requirement edit’s heading says the new name', b.recHead, '📋 RECORD');
+    chk(name, 'renamed', 'its PMO field is called what the registry calls it', J(b.recFields), J(['Office']));
+    chk(name, 'renamed', 'the proposal gate names the missing fields by the new names',
+      J(['Office', 'Consequence if unfunded'].map(n => b.gate.indexOf(n) >= 0)), J([true, true]));
+    chk(name, 'renamed', 'the row’s flag says the new name', /Consequence if unfunded required/.test(b.flag), true);
+    chk(name, 'renamed', 'the guide says the new name, and not the old one', J([b.guideNew, b.guide]), J([true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.03 item 20 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

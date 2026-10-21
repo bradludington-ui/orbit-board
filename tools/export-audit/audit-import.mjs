@@ -3063,10 +3063,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     ev(`(function(){ const c=[...document.querySelectorAll('#row-B .exc')].find(function(x){ return /not drawn/.test(x.textContent); }); return c? c.getAttribute('title') : ''; })()`),
     'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nThe fix list is under Needs attention, at the top.');
   // THE BY SERVICE TABLE'S "drew" LINES ARE THE SAME FACT: one per line, per requirement
-  // the card shows them in the row's By service table, the grid in the RECORD panel's
+  // in the RECORD panel's By service table
   chk(name, 'agree', 'each requirement shows one "drew" line per listed line in its By service table',
     ev(`JSON.stringify(S.order.map(function(id){ let h;
-      if(fldHasPanel()){ setCur(id); h=document.getElementById('inspector').innerHTML; } else h=svcTable(itemById(id));
+      setCur(id); h=document.getElementById('inspector').innerHTML;
       return (h.match(/>drew \\$/g)||[]).length; }))`), JSON.stringify([0, 3, 1, 0, 0]));
   ev(`ndOpen=true; render(); 'ok'`);
   chk(name, 'C · fix list', 'one row per line, and the total', ev(`(function(){ const t=document.querySelector('#ndBody table'); if(!t) return 'none';
@@ -3405,16 +3405,17 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'opens', 'carrying the board’s own version', ev(`document.getElementById('helpVer').textContent===BUILD`), true);
   const secs = JSON.parse(ev(`JSON.stringify(helpSections().map(function(s){ return [s.part, s.id, s.t]; }))`));
   chk(name, 'opens', 'the offices’ part and the portfolio team’s part are both there', [secs.filter(s => s[0] === 'office').length > 8, secs.filter(s => s[0] === 'team').length > 8].join(','), 'true,true');
-  // EVERY SECTION OPENS, under its own title, with this build's paragraphs only
-  const build = ev(`fldHasPanel()? 'grid' : 'card'`);
+  // EVERY SECTION OPENS, under its own title, with no paragraph written for the retired card build (v2.03: the guide
+  // carried them as data-b="card", hidden; they are gone, so nothing in it may carry data-b at all)
+  const build = 'grid';
   let bad = [];
   const other = [];
   secs.forEach(([, id, t]) => { ev(`helpGo(${JSON.stringify(id)}); 'ok'`);
     const h2 = ev(`(document.querySelector('#helpBody h2')||{}).textContent||''`);
     if (h2 !== t) bad.push(id + ': ' + h2);
-    if (ev(`[...document.querySelectorAll('#helpBody [data-b]')].some(function(n){ return n.getAttribute('data-b')!==${JSON.stringify(build)}; })`)) other.push(id); });
+    if (ev(`document.querySelectorAll('#helpBody [data-b]').length > 0 || /\u229e SVC/.test(document.getElementById('helpBody').textContent)`)) other.push(id); });
   chk(name, 'sections', 'every section opens under its own title', bad.join('; ') || 'all', 'all');
-  chk(name, 'sections', 'and no section carries a paragraph written for the other build', other.join(', ') || 'none', 'none');
+  chk(name, 'sections', 'and no section carries a paragraph written for the card build', other.join(', ') || 'none', 'none');
   ev(`helpGo('o-find'); 'ok'`);
   chk(name, 'sections', 'a section reads this build’s way of working, not the other’s',
     /RECORD<\/b> panel on the right/.test(ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);

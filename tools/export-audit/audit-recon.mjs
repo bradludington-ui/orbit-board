@@ -3807,11 +3807,7 @@ await (async () => {
       bad.length ? bad.length + ' differ, e.g. ' + J(bad[0]) : 'none', 'none');
     // ---- every surface that spreads a total by it, read where the board keeps the result
     const ev = c => { try { return JSON.parse(X.ev(c)); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
-    w5Chk(name, 'a typed budget total, $100,000,000', 'the base and the live lane hold the exact split of the base’s shape',
-      J(ev(`(function(){ S.bm={disc:${J(W)}, mand:[0,0,0], adds:[]}; applyBudget(); setBATot('disc','$100,000,000'); return JSON.stringify([S.bm.disc, S.discSvc]); })()`)), J([E8, E8]));
-    w5Chk(name, 'a typed budget total, $10,000,000 over 1 : 1 : 4', 'the tie goes to the lower service',
-      J(ev(`(function(){ S.bm={disc:[1000,1000,4000], mand:[0,0,0], adds:[]}; applyBudget(); setBATot('disc','$10,000,000'); var r=S.bm.disc.slice();
-        S.bm={disc:[1e9,1e9,1e9], mand:[0,0,0], adds:[]}; applyBudget(); return JSON.stringify(r); })()`)), J(TIE));
+    // (v2.03, item 104: the typed budget total went with the command bar, the only thing that could call setBATot.)
     w5Chk(name, 'a total allocation, $100,000,000 on A', 'each service’s allocation is the exact split in the shape of the ask', J(ev(`JSON.stringify(svcAlloc(itemById('A')))`)), J(E8));
     w5Chk(name, 'a total allocation, $10,000,000 on B (1 : 1 : 4)', 'the tie goes to the lower service', J(ev(`JSON.stringify(svcAlloc(itemById('B')))`)), J(TIE));
     w5Chk(name, 'an old-style split, $100,000,000 discretionary on L', 'the lane engine funds each service its exact share', J(ev(`JSON.stringify(tiers().L.d)`)), J(E8));
