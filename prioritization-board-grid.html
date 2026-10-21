@@ -20316,8 +20316,8 @@ const FLD_PARTS={
          ph:function(it){ return 'Notes for '+dispTitle(it)+' \u2014 decisions, caveats, taskers\u2026'; } }
 };
 const FLD_DEF={
-  cons:{ lbl:FLI('cons'), parts:[FLD_PARTS.cons] },
-  dn:  { lbl:FLI('dn'), parts:[FLD_PARTS.desc, FLD_PARTS.note] }
+  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },   // read each time, never once at load (v2.03, item 20)
+  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }
 };
 function openFld(id, kind){ fldOpen={id:id, kind:kind}; fldBody(); }
 function fldClose(){ fldOpen=null; fldBody(); }

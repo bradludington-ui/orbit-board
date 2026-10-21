@@ -1622,8 +1622,8 @@ const MUTATIONS = [
     find: "  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });",
     repl: "  D.parts.forEach(function(p, i){ window[p.set](id, todo.indexOf(p)>=0? vals[i] : ''); });" },
   { id: 'fld-dn-note-first', area: 'FLD_DEF', what: 'the pop-up puts the note first and the description under it',
-    find: "  dn:  { lbl:FLI('dn'), parts:[FLD_PARTS.desc, FLD_PARTS.note] }",   // v2.03: the title is REQ_FIELD's
-    repl: "  dn:  { lbl:FLI('dn'), parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
+    find: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }",   // v2.03: the title is REQ_FIELD's
+    repl: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
   { id: 'fld-impact-old-name', area: 'FLD_DEF', what: 'the impact pop-up keeps its old name',
     find: "  cons:{l:'Impact statement', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'},",   // v2.03: the name lives in REQ_FIELD
     repl: "  cons:{l:'Impact if not funded', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'}," },
@@ -6814,8 +6814,8 @@ const MUTATIONS = [
     find: "  box.querySelectorAll('[data-fl]').forEach(function(n){ const k=n.getAttribute('data-fl'); n.textContent=n.hasAttribute('data-fi')? FLI(k) : FL(k); });",
     repl: "  /* not filled */" },
   { id: "v203-20-popup-own", area: "FLD_DEF", what: "the impact statement's pop-up spells its own title",
-    find: "  cons:{ lbl:FLI('cons'), parts:[FLD_PARTS.cons] },",
-    repl: "  cons:{ lbl:'\\u26a0 Impact statement', parts:[FLD_PARTS.cons] }," },
+    find: "  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },",
+    repl: "  cons:{ get lbl(){ return '\\u26a0 Impact statement'; }, parts:[FLD_PARTS.cons] }," },
   { id: "v203-20-rechead-fixed", area: "recBody", what: "Requirement edit's heading keeps its own spelling",
     find: "  try{ const hd=document.getElementById('recHead'); if(hd) hd.textContent=FLI('rec').toUpperCase(); }catch(e){}   // v2.03 (item 20)",
     repl: "  /* heading as written */" },

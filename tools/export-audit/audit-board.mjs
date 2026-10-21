@@ -5093,16 +5093,16 @@ await (async () => {
     chk(name, 'as shipped', 'the row flags the missing impact statement by its name', /Impact statement required/.test(a.flag), true);
     chk(name, 'as shipped', 'the proposal gate does not list a field the requirement has (its PMO), and lists one it lacks',
       J([a.gate.indexOf('PMO') >= 0, a.gate.indexOf('Impact statement') >= 0]), J([false, true]));
-    ev(`REQ_FIELD.cons.l='Consequence if unfunded'; REQ_FIELD.dn.l='Notes and description'; REQ_FIELD.rec.l='Record'; REQ_FIELD.grp.l='Office'; 'ok'`);
+    ev(`REQ_FIELD.cons.l='Consequence if unfunded'; REQ_FIELD.dn.l='Notes and description'; REQ_FIELD.rec.l='Record'; REQ_FIELD.grp.l='Office'; REQ_FIELD.obCat.l='How the money leaves'; 'ok'`);
     const b = read();
-    ev(`REQ_FIELD.cons.l='Impact statement'; REQ_FIELD.dn.l='Description & note'; REQ_FIELD.rec.l='Requirement edit'; REQ_FIELD.grp.l='PMO'; render(); 'ok'`);
+    ev(`REQ_FIELD.cons.l='Impact statement'; REQ_FIELD.dn.l='Description & note'; REQ_FIELD.rec.l='Requirement edit'; REQ_FIELD.grp.l='PMO'; REQ_FIELD.obCat.l='Obligation category'; render(); 'ok'`);
     chk(name, 'renamed', 'the RECORD panel’s buttons say the new names',
       J(['⚠ Consequence if unfunded', '📄 Notes and description', '📋 Record'].map((n, i) => (b.buttons[i] || '').startsWith(n))), J([true, true, true]));
     chk(name, 'renamed', 'the pop-up’s title says the new name', b.popup.includes('⚠ Consequence if unfunded'), true);
     chk(name, 'renamed', '📋 Requirement edit’s heading says the new name', b.recHead, '📋 RECORD');
     chk(name, 'renamed', 'its PMO field is called what the registry calls it', J(b.recFields), J(['Office']));
-    chk(name, 'renamed', 'the proposal gate names the missing fields by the new names',
-      J(['Office', 'Consequence if unfunded'].map(n => b.gate.indexOf(n) >= 0)), J([true, true]));
+    chk(name, 'renamed', 'the proposal gate names the missing fields by the new names (A has no obligation category or impact statement)',
+      J(['How the money leaves', 'Consequence if unfunded'].map(n => b.gate.indexOf(n) >= 0)), J([true, true]));
     chk(name, 'renamed', 'the row’s flag says the new name', /Consequence if unfunded required/.test(b.flag), true);
     chk(name, 'renamed', 'the guide says the new name, and not the old one', J([b.guideNew, b.guide]), J([true, false]));
   } catch (e) {
