@@ -160,6 +160,12 @@ Current version: **v2.03**. Next: **v2.04**.
   held for review on the server.
 - **Depends on:** the controls the IL5 environment provides (what is inherited), the security team's Zero Trust target
   for this system, and the hosting milestones.
+- **Brad, 21 Oct 2026:** *"Let's start working a plan and drafting it so that when we're ready to execute it we're
+  ready."* Design and execution plan, draft 1, written that day and given to Brad as a file. It is kept OUTSIDE git (it
+  describes the security design of a CUI system). Its shape, for the record: re-host the current interface first, then
+  move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
+  line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
+  D+180, then cutover after authorization); eight questions for the security team.
 
 ## Later
 
