@@ -191,10 +191,28 @@ Current version: **v2.03**. Next: **v2.04**.
 - **Corrections for the write-up before it goes to reviewers:** ORBIT's appropriations are O&M, Full Fund, Initial
   Spares and OPN -- RDT&E is not one, and its BAE budgets are excluded on purpose. "Undefended POM cycles" probably
   means "defended". "Single-source HTML platform" reads better as "a single self-contained HTML file".
-- **Questions for Brad:** (1) build the rules-based anomaly list in the file now, and leave the AI to the Azure build?
-  (2) which tags should a suggestion fill -- the existing fields only (band, cost element, obligation category, RCN/EEIC,
-  SI code), or new "modernization priority" tags (a new field, with its own list)? (3) the anomaly thresholds, or should
-  they be settable?
+- **Brad's answers, 22 Oct 2026:**
+  1. **In v2.04.** The file gets the rules-based half now; the GenAI.mil calls wait for the Azure build (item 107).
+  2. **Nothing is filled in.** ORBIT offers suggestions and analysis for a person to read and decide on. A suggestion is
+     never written to a field by itself; acting on one is the person's own edit, through the field's own editor, and
+     journalled as theirs.
+  3. **No limit:** no fixed threshold built in. Read as: every rule's threshold is the person's to set (none hard-coded
+     as a cap), and the list can show every finding, filtered and sorted by size. *To confirm with Brad.*
+- **What v2.04 builds (proposal, before go):**
+  - **Analysis -- the anomaly list**, one panel, every finding naming the requirement, the year(s), the figure and the
+    rule that raised it, and taking the reader to the requirement: a year-over-year change past the set percentage; money
+    in one FYDP year and none the next (or the reverse); an outyear year against the requirement's own average; execution
+    against plan for the active year; and a change since the reference cycle (`cycDelta`). Read from the figures the
+    board already prints (`fydpData`, `cycDelta`, the execution import), never recomputed, so a finding always matches
+    the surface it points at. An export of the list.
+  - **Suggestions -- classification**, shown beside the empty field and in one review list, each with its reason, for
+    the fields the board already has (cost element, obligation category, RCN/EEIC, SI code, band, PMO): the same
+    requirement's value in the previous year; the value other requirements on the same CCaR record carry; the value
+    most requirements in the same office carry. A suggestion that would conflict with a set value is analysis, not a
+    proposal. "Use this" opens the field's own editor with the value in it; nothing changes until the person saves.
+  - **No new "modernization priority" tag** unless Brad names the list.
+  - Same posture as everything else: a PMO copy shows the analysis and suggestions for its own office; a locked cycle's
+    view shows them read only; nothing goes into the file but the thresholds a person set.
 
 ## Later
 
