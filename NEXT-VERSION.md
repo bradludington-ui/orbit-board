@@ -227,6 +227,9 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ### v2.03 — 21 Oct 2026: cleaner code -- items 104, 105, 19 and 20, built on Brad's "go" of 21 Oct ("Build before": ahead of the sweep)
 
+**Merged** 22 Oct 2026 on Brad's go ("Merge and create handoff for v2.04"), PR #18 as `065bc0d`, before the sweep; the
+sweep (A1) runs on `main` afterwards. Handoff: `recovery/v204/HANDOFF.md`.
+
 Brad, 21 Oct 2026: *"I would like to optimize our code"*, then **cleaner code** (over faster edits, faster test runs and a
 smaller file), all four items, and **build before** the scheduled sweep. Measured first, for the record: opening a 120-
 requirement board takes 1.0–1.6 s and a save about 20 ms; a full redraw takes about 100–180 ms at 120 requirements and
