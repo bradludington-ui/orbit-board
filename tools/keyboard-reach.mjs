@@ -272,12 +272,15 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       chk(`G · ${k}: Esc closes it and leaves focus on its button`, e.open === null && e.focus === 'b_' + k && e.exp === 'false', JSON.stringify(e));
     }
     // Enter on an item runs it, closes the menu and hands focus back to the menu's button
-    await p.evaluate(() => { openMenu = null; svcAll = false; syncBtns(); render(); });
+    // (v2.03: the item driven here was "☰ By-service detail on every row", which the card build's rows read and the grid's
+    // never did; it went with the card leftovers. Fully discretionary only is a filter, shown in the open Funding group.)
+    await p.evaluate(() => { openMenu = null; laneFilter = ''; menuGrpOpen.view = 'fund'; syncBtns(); render(); });
     await p.focus('#b_view'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
-    const steps = await tabTo(p, '#b_view', '#dd_view [onclick^="mRun(()=>{svcAll"], #dd_view [onclick*="svcAll=!svcAll"]', 12);
+    const steps = await tabTo(p, '#b_view', `#dd_view [onclick*="laneFilter=laneFilter==='disc'?'':'disc'"]`, 12);
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
-    const r = await p.evaluate(() => ({ svcAll, open: openMenu, focus: document.activeElement && document.activeElement.id }));
-    chk('G · Enter on a menu item runs it, closes the menu and leaves focus on the menu button', steps > 0 && r.svcAll === true && r.open === null && r.focus === 'b_view',
+    const r = await p.evaluate(() => ({ laneFilter, open: openMenu, focus: document.activeElement && document.activeElement.id }));
+    await p.evaluate(() => { laneFilter = ''; render(); });
+    chk('G · Enter on a menu item runs it, closes the menu and leaves focus on the menu button', steps > 0 && r.laneFilter === 'disc' && r.open === null && r.focus === 'b_view',
       `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(r)}`);
     // a MOUSE press on the page that closes a menu leaves focus there: only a key hands it back to the button
     await p.click('#b_pmo'); await p.waitForTimeout(80);
@@ -333,8 +336,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const shown = await p.evaluate(() => [...document.querySelectorAll('#dd_reports .mi')].filter(e => e.getClientRects().length > 0).map(e => e.textContent.trim().slice(0, 30)));
     await p.keyboard.press('Tab');
     const next = await p.evaluate(() => { const a = document.activeElement; return a ? a.textContent.trim().slice(0, 30) : null; });
-    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the seven workbooks, and Tab goes to the first',
-      first === 'mFind' && shown.length === 7 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
+    // v2.03: six since v2.02 removed the ATR/BTR Log workbook with the tracker. This check is outside verify:grid's run
+    // once layout stops it (the 8 carried D results), so it read seven, failing, from v2.02 until v2.03.
+    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the six workbooks, and Tab goes to the first',
+      first === 'mFind' && shown.length === 6 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
     const shut = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);

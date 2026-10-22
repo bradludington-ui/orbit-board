@@ -1021,6 +1021,12 @@ html[data-theme="harbor"]{--sel:#c7ced8}
 .statbtn{height:24px;min-width:24px;border:1px solid var(--edge);border-radius:12px;background:var(--panel);color:var(--ink);
   font-size:10.5px;font-weight:700;padding:0 9px;cursor:pointer;white-space:nowrap}
 .statbtn[hidden]{display:none}
+.statbtn.statkeep{border-color:var(--amber);color:var(--amber)}
+.msglist{width:100%;border-collapse:collapse;font-size:11.5px}
+.msglist td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+.msglist td.mt{white-space:nowrap;color:var(--dim);width:1%}
+.msglist tr.unread td{background:var(--sel)}
+.msgh{font-size:10.5px;font-weight:800;letter-spacing:.5px;color:var(--mut);margin:12px 0 4px}
 .statbtn:focus-visible,.statx:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .statwrap.big{position:absolute;right:16px;top:44px;z-index:60;max-width:min(620px,92vw);background:var(--panel);
   border:1px solid var(--edge);border-radius:6px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -1655,6 +1661,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div class="statwrap" id="statWrap"><div id="shareStat" role="status" aria-live="polite"></div></div>
     <button type="button" class="statbtn" id="statBtn" aria-expanded="false" aria-controls="statWrap" onclick="statToggle()" hidden>Message</button>
     <button type="button" class="statx" id="statX" onclick="statHide()" aria-label="Hide this message" title="Hide this message — the Message button brings it back" hidden>✕</button>
+    <button type="button" class="statbtn statkeep" id="statKeep" onclick="msgOpen()" hidden>⚠ 1 unread</button>
     <button class="btn quiet" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/></svg><span class="hlp-t">Help</span></button>
   </div>
 </div>
@@ -1841,6 +1848,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div id="ndBody"></div>
   </div>
 </div>
+<div class="modal-bg" id="msgPanel" onclick="if(event.target===this)msgClose()">
+  <div class="modal" style="width:760px;max-width:98vw">
+    <h3><span>MESSAGES THIS SESSION</span> <button class="x" onclick="msgClose()">✕ Close</button></h3>
+    <div id="msgBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="attPanel" onclick="if(event.target===this)attClose()">
   <div class="modal" style="width:1040px;max-width:98vw">
     <h3><span id="attTitle">NEEDS ATTENTION</span> <button class="x" onclick="attClose()">✕ Close</button></h3>
@@ -1871,8 +1884,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="office" data-id="o-find" data-t="Find your requirements">
 <p>Use the <b>PMO</b> box at the top — it reads <b>All offices ▾</b> — and pick your office. The list then holds only your office’s requirements, numbered 1, 2, 3… in your office’s own order. The small <i>master #13</i> under the office badge is where that requirement sits in the whole portfolio. To see everything again, choose <b>All programme offices</b> from the same button.</p>
 <p>You can also type into the search box at the top: it finds a title, an event, a CCaR record or a PID.</p>
-<p data-b="grid"><b>Click any row.</b> Its full record opens in the <b>RECORD</b> panel on the right — everything about the selected requirement lives there. On a laptop-sized screen the panel slides over the list instead; press <b>✕ Close</b> or <span class="kb">Esc</span> to put it away. With a row selected, <span class="kb">J</span> and <span class="kb">K</span> step to the next and previous requirement.</p>
-<p data-b="card"><b>Each row is the requirement.</b> <b>⊞ SVC</b> on a row opens it by service, with its award schedule underneath; the row’s <b>⋯</b> menu holds everything else you can write.</p>
+<p><b>Click any row.</b> Its full record opens in the <b>RECORD</b> panel on the right — everything about the selected requirement lives there. On a laptop-sized screen the panel slides over the list instead; press <b>✕ Close</b> or <span class="kb">Esc</span> to put it away. With a row selected, <span class="kb">J</span> and <span class="kb">K</span> step to the next and previous requirement.</p>
 </section>
 <section data-part="office" data-id="o-explore" data-t="Explore, and take your time">
 <p>This is the part people underuse. With <b>All programme offices</b> showing, drag a row by its <b>⠿</b> handle — or choose <b>Rank</b> in the bar under the header and use its <b>▲ ▼</b> arrows — and watch the discretionary fit, the cutline and the unfunded total move. Try your requirement two ranks higher. Try it below the line.</p>
@@ -1882,24 +1894,22 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="office" data-id="o-update" data-t="Update your requirements">
 <p>Everything on your office’s requirements is yours to update <b>except the money itself</b>: the DISC and MAND allocation is the portfolio team’s, and it is greyed out in your copy. Everything you change travels back with your submittal.</p>
-<p data-b="grid">Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b>⚠ Impact statement</b> (<i>written</i> or <i>not written</i>, amber until it is), <b>📄 Description &amp; note</b> and <b>📋 Requirement edit</b> (<i>6 of 7 not set</i>, amber while any are). Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
-<p data-b="card">On the row: the <b>⚠ Impact statement</b> chip (it says <i>not written</i> until it is), and in the row’s <b>⋯</b> menu, <b>📄 Description &amp; note…</b> and <b>📋 Requirement edit…</b>, which says how many of its fields are still to fill. Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
-<h4>⚠ Impact statement — what happens if this is not funded</h4>
+<p>Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b><span data-fl="cons" data-fi="1"></span></b> (<i>written</i> or <i>not written</i>, amber until it is), <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b> (<i>6 of 7 not set</i>, amber while any are). Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
+<h4><span data-fl="cons" data-fi="1"></span> — what happens if this is not funded</h4>
 <p>The single most valuable thing you can give the portfolio team. Be concrete: name the date something stops, the number of aircraft or people affected, and the consequence that follows. This is the sentence read aloud in a room where someone is deciding what to cut.</p>
 <div class="hx-eg"><b>Useful:</b> If this is not funded, the depot line stops in March 27. Forty aircraft lose scheduled induction through the summer and the backlog carries into FY28 at roughly 1.4× cost.<br><b>Not useful:</b> This requirement is critical and must be funded.</div>
-<h4>📄 Description &amp; note</h4>
+<h4><span data-fl="dn" data-fi="1"></span></h4>
 <p>One box opens with two areas. <b>The description</b>, first, is what the requirement actually is, in plain language — a reader outside your office sees it on the spend plan, and it is often the only explanation they get. <b>The note</b>, underneath, is context for the reviewer: caveats, taskers, where a number came from. They are kept and sent as two separate fields, and <b>✔ Save</b> writes only the one you changed.</p>
 <h4>Requirement value, by service</h4>
-<p data-b="grid">The <b>BY SERVICE</b> table in the RECORD panel has a <b>REQ</b> column you can type into — one row per service. Type the new figure and press <span class="kb">Tab</span>. The <b>↺</b> beside the total puts the published values back.</p>
-<p data-b="card"><b>⊞ SVC</b> on the row opens the by-service table; its top row is the requirement value, one box per service. Type the new figure and press <span class="kb">Tab</span>. <b>↺ orig</b> puts the published values back.</p>
+<p>The <b>BY SERVICE</b> table in the RECORD panel has a <b>REQ</b> column you can type into — one row per service. Type the new figure and press <span class="kb">Tab</span>. The <b>↺</b> beside the total puts the published values back.</p>
 <p>Type a figure as <b>1,234,567</b>, <b>$1,234,567</b>, <b>2.5M</b>, <b>750K</b> or <b>1.2B</b>. Cents are rounded to the nearest dollar, and the message says what was kept. A figure the board cannot read — <i>100oops</i>, <i>1.2.3</i> — one over $10 trillion (the most a file may carry), or one below zero is not taken: the box keeps the figure it had, and the message says why. An empty box clears the figure. The same holds wherever dollars are typed — allocations, budget authority, awards, CLINs, WBS — except that a funding source and a PPBE position figure may be below zero.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
-<p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in 📋 Requirement edit — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
+<p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in <span data-fl="rec" data-fi="1"></span> — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
 <p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, where Save is on the portfolio board. If you have not set your office yet, it asks for it first.</p>
@@ -1912,11 +1922,11 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
 <table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
-<tr><td>Impact statement, description, note</td><td>Sent</td><td>Yours to write — nobody else can.</td></tr>
+<tr><td><span data-fl="cons"></span>, description, note</td><td>Sent</td><td>Yours to write — nobody else can.</td></tr>
 <tr><td>Requirement value, by service</td><td>Sent</td><td>You know your costs. Reviewed carefully.</td></tr>
 <tr><td>Plan event, decision band, ★ Mission Critical</td><td>Sent</td><td>Reviewed like any other field.</td></tr>
 <tr><td>CCaR record, PID, record name, MIPR type, BAE budget</td><td>Sent</td><td>Record-keeping corrections.</td></tr>
-<tr><td>Everything in 📋 Requirement edit</td><td>Sent</td><td>A PMO change hands the requirement to that office.</td></tr>
+<tr><td>Everything in <span data-fl="rec" data-fi="1"></span></td><td>Sent</td><td>A PMO change hands the requirement to that office.</td></tr>
 <tr><td>Award / obligation date, minimum useful increment</td><td>Sent</td><td>You know when it awards and what still buys something.</td></tr>
 <tr><td>Your office’s own ranking</td><td>Sent</td><td>It sets your office’s order, not the portfolio’s.</td></tr>
 <tr><td>A requirement you added</td><td>Sent whole</td><td>As a proposal, once every mandatory field is filled.</td></tr>
@@ -1974,10 +1984,10 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><span class="mp" data-m="imp">Imports &amp; exports › ⇊ Import several boards at once…</span> merges several board files in one go. It takes all of them or none: every file is read and checked first — which appropriation it is, that no two are for the same one, its services against that appropriation’s (a different order is matched up by name if you say so) — and if any is refused, cannot be read, or you answer No, nothing is imported and it says why. It is off while a locked cycle is on screen. Should the board on screen still refuse its appropriation once the files are written, every list is put back and read back; if one cannot be put back, it says which lists hold what, holds 💾 Save and the shared folder, and offers this board as it was and each file it took — save them before anything else, as after a full import that stopped part-way. <span class="mp" data-m="imp">Imports &amp; exports › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
 </section>
 <section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
-<p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
+<p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars, in the <b>BY SERVICE</b> table of the RECORD panel. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
 <p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › Funding › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
 <p>The <b>fix list</b> (also <b>🔧 fix list</b> in the fit strip) lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
-<p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b>, <b>🔧 awards repaired on opening</b>, <b>➖ negative allocations to repair</b>, <b>✈ buy quantities to repair</b> and <b>✂ codes longer than their limit</b>. <b>Go to it</b> selects the requirement and opens what to fill: the Impact statement editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
+<p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b>, <b>🔧 awards repaired on opening</b>, <b>➖ negative allocations to repair</b>, <b>✈ buy quantities to repair</b> and <b>✂ codes longer than their limit</b>. <b>Go to it</b> selects the requirement and opens what to fill: the <span data-fl="cons"></span> editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
 <p>An allocation is never below zero. One typed is refused; one an older file carries is kept exactly as it was saved, counts as $0 in every figure, and is listed under <b>➖ negative allocations to repair</b> until its allocation is typed again or put back to the requirement value.</p>
 <p class="v199-h90">A buy quantity is a whole number from 0: a sign, a decimal point, a letter or a minus sign of any kind is refused and the line keeps what it had. A quantity times its unit cost may not pass $10 trillion, whichever of the two is typed. A quantity an older file carries that is not one is kept exactly as saved, counts as $0, and is listed under <b>✈ buy quantities to repair</b> until it is typed again.</p>
 <p class="v199-h91">A code longer than its limit is refused when typed — CCaR record 12, PID 20, CLIN number 20, CLIN description 140, WBS 40, RCN and EEIC 10, PPBE line codes 12. Nothing changes and the text typed is kept where you typed it (a box opens again holding it, a field keeps it, marked) so it can be corrected. One that arrives in a file or a submittal is kept whole, never cut, and listed under <b>✂ codes longer than their limit</b> and in Pre-flight: CCaR may not match it as it stands.</p>
@@ -2027,13 +2037,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="v199-h96">Working out of the shared folder, replacing the folder’s cost estimate keeps the one it replaces in the folder’s history. <span class="mp" data-m="setup">Setup › 📡 Live view…</span> → <b>🕓 Cost estimates kept</b> lists them, newest first, under the estimate each was kept for; <b>Put this back in the folder</b> makes one the folder’s estimate again. It is checked first (whole, its own estimate, its fingerprint), what the folder holds now is kept in the history first, and nothing is written if that cannot be done or the folder’s copy changes meanwhile. Your board’s own copy is not changed.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
-<p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
-<p data-b="card">On a row: the <b>⚠ Impact statement</b> chip, and in the <b>⋯</b> menu <b>📄 Description &amp; note…</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit…</b>, which says how many of its fields are still to fill.</p>
+<p>In the RECORD panel the three written fields sit straight under the title: <b><span data-fl="cons" data-fi="1"></span></b>, <b><span data-fl="dn" data-fi="1"></span></b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b><span data-fl="rec" data-fi="1"></span></b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
 </section>
 </template>
 <div class="modal-bg" id="recPanel" onclick="if(event.target===this)recOpen=null,render()">
   <div class="modal" style="width:760px;max-width:95vw">
-    <h3>📋 REQUIREMENT EDIT
+    <h3><span id="recHead">📋 REQUIREMENT EDIT</span>
       <button class="x" onclick="recOpen=null;render()">✕ Close</button></h3>
     <div id="recBody"></div>
   </div>
@@ -2359,7 +2368,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 //   §34  BUDGET AUTHORITY, FIT CHART, TRIM
 //   §35  ROW-LEVEL EDITORS
 //   §36  EXPORT WRITERS: XLSX AND POWERPOINT
-//   §37  TEAM SUMMARY, BUY LINES, COMMAND BAR, MAIN RENDER, MENUS
+//   §37  TEAM SUMMARY, BUY LINES, MAIN RENDER, MENUS
 //   §38  LIVE VIEW AND SHARED FOLDER
 //   §39  BUDGET LIST, DIAGNOSTICS, IDS PANEL, COMPANION LINK
 //   §40  ORDERING, ALLOCATION EDITS, ADD AND REMOVE
@@ -2510,9 +2519,29 @@ function writerJournalUndo(e, ms){ try{ const j=(ms||MS).jrnl||[]; const i=j.las
 // which board is the real one -- never to keep anybody out.
 let PMODE=null;
 try{ PMODE = JSON.parse(document.getElementById('pubMode').textContent); }catch(e){}
+// v2.03 (item 20): ONE PLACE FOR EACH FIELD'S NAME. A requirement's fields are named here, once, and everything that
+// names one reads it: the RECORD panel and 📋 Requirement edit (recFields), the pop-ups (FLD_DEF), the submittal review
+// (PMO_FIELDS), the proposal gate, the row's flags, the messages, and the in-file guide (data-fl). v1.86's renames had to
+// be made in six places by hand, and a test went hollow when one name changed in one place and not the other. The key is
+// what code compares (recFields' f.k, the proposal gate); the label is only ever shown. npm run check fails on a recF()
+// given a label instead of a key, and on these three written fields' names spelled anywhere but here. Declared this
+// early because the board draws its rows (and their flags) while the script is still being read.
+const REQ_FIELD={
+  cons:{l:'Impact statement', ic:'\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'},
+  dn:{l:'Description & note', ic:'\ud83d\udcc4'}, rec:{l:'Requirement edit', ic:'\ud83d\udccb'},
+  asks:{l:'Requirement value (by service)'}, ccar:{l:'CCaR record'}, pid:{l:'PID'}, recNames:{l:'CCaR record name'},
+  titles:{l:'Plan event (the name on the row)'}, grp:{l:'PMO'}, band:{l:'Decision band'}, mc:{l:'Mission Critical'},
+  ptype:{l:'Prime contract / OGC'}, obCat:{l:'Obligation category'}, costElem:{l:'Cost element'},
+  wbs:{l:'WBS'}, wbsSplit:{l:'Split by service'}, rcnAsg:{l:'RCN / EEIC'}, rcnSvc:{l:'RCN / EEIC by service'},
+  si:{l:'Navy SI code'}, dest:{l:'Goes to'}, destEnd:{l:'Which awards to'}, mipr:{l:'MIPR type'},
+  budgetAsg:{l:'Budget (BAE)'}, awards:{l:'Award / obligation date'}, awardProj:{l:'Projected award date'},
+  crHalf:{l:'CR half-month'}, minInc:{l:'Minimum useful increment'}
+};
+function FL(k){ const f=Object.prototype.hasOwnProperty.call(REQ_FIELD, k)? REQ_FIELD[k] : null; return f? f.l : String(k); }
+function FLI(k){ const f=Object.prototype.hasOwnProperty.call(REQ_FIELD, k)? REQ_FIELD[k] : null; return f? (f.ic? f.ic+' ' : '')+f.l : String(k); }
 const SANDBOX = !!(PMODE && PMODE.sandbox);
 // A copy cannot move money (allocLocked, v1.84), so it does not offer to. The controls are found by
-// the writer they call, which is the same in both builds and in every panel that draws one.
+// the writer they call, which is the same in every panel that draws one.
 if(SANDBOX){ try{ const _st=document.createElement('style');
   _st.textContent='input[onchange^="setFsrcSvc("],input[onchange^="setAlloc("],input[onchange^="setSvc("],'
     +'select[onchange^="setFsrc("]{pointer-events:none;opacity:.5}'
@@ -2993,7 +3022,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.02 (21 Oct 2026)';
+const BUILD='v2.03 (21 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3092,9 +3121,9 @@ const fM = v=>'$'+Math.round(v).toLocaleString();
    that service's lane still holds and what the allocation covers, so a directed dollar past either
    limit is not funded -- it lands in UFR. An editor that prints only the DIRECTED figure therefore
    shows a service as fully funded beside its own non-zero UFR, and its column stops adding up to
-   its own total. ONE implementation of the second reading, because both builds owe it: the grid
-   renders the split editor in the RECORD panel and the card in the row expander, and neither may
-   state the rule differently from the other. */
+   its own total. ONE implementation of the second reading, read by the RECORD panel's split editor
+   (it was shared with the card build's row expander until that build was retired in v1.88), so a
+   surface added later cannot state the rule differently. */
 const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;
 /* WHICH LIMIT REFUSED THE DOLLAR. Two different things can refuse a directed dollar and they are
    not the same decision, so they must not carry the same sentence. The ROW ALLOCATION is a trim
@@ -3255,7 +3284,7 @@ function attLists(T){
 }
 const ATT_KIND={
   imp:{t:'⚠ IMPACT STATEMENTS MISSING', go:'Write it',
-    why:'Each is in a band that needs the consequence in the requester’s words; without it the unfunded requirement cannot be written. <b>Go to it</b> selects the requirement and opens its Impact statement.'},
+    why:'Each is in a band that needs the consequence in the requester’s words; without it the unfunded requirement cannot be written. <b>Go to it</b> selects the requirement and opens its '+FL('cons')+'.'},
   ccar:{t:'○ WITHOUT A CCaR RECORD', go:'Go to it',
     why:'No CCaR record, so nothing on it reaches CCaR: the Spend Plan Source and the IDS batch cannot place it. <b>Go to it</b> selects the requirement and opens its CCaR record.'},
   oblig:{t:'📅 WITHOUT AN OBLIGATION DATE', go:'Go to it',
@@ -3306,7 +3335,7 @@ function attBody(){
 // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
 function attGo(k, id){
   attOpen=null;
-  if(typeof setCur==='function') setCur(id); else open[id]=true;
+  setCur(id);
   goRow(id);
   if(k==='imp'){ openFld(id, 'cons'); return; }
   if(k==='ccar'){ editCcar(id); return; }
@@ -3371,7 +3400,7 @@ function ndSetAll(){
 }
 function ndOpenRow(id){
   ndOpen=false; ndFocus='';
-  if(typeof setCur==='function') setCur(id); else open[id]=true;   // the card opens its By service table, where the "drew" lines are
+  setCur(id);
   goRow(id);
 }
 // ==============================================================================================================
@@ -3421,20 +3450,6 @@ function readableOn(hue, bg, need){
   }
   return toBlack? '#000000' : '#ffffff';       // the ground is extreme; take the end of the ramp
 }
-/* The ground a row chip actually sits on. Opaque in every theme, so it can be read straight off the
-   token rather than composited. Cached per theme because render() asks for it once per chip and a
-   populated board draws 115 of them. */
-let _chipBgFor = {};
-function chipBg(){
-  let t='';
-  try{ t=String(localStorage.getItem('spmtTheme')); }catch(e){ t='?'; }
-  if(_chipBgFor[t]) return _chipBgFor[t];
-  let v='';
-  try{ v=getComputedStyle(document.documentElement).getPropertyValue('--panelA').trim(); }catch(e){}
-  return (_chipBgFor[t] = v || '#141822');
-}
-// A band's hue, made readable against the chip it is printed on.
-const bandInk = c => readableOn(c, chipBg(), 4.5);
 /* Split a whole-dollar TOTAL across WEIGHTS into whole dollars summing to EXACTLY the total.
    Largest remainder: floor every share, then hand the leftover dollars out one at a time to the
    biggest fractions. Rounding each share on its own does NOT do this -- six services rounded
@@ -3489,7 +3504,7 @@ const fMc = v=>{ const a=Math.abs(v);
   return a>=1e9? '$'+(v/1e9).toFixed(2)+'B' : a>=1e6? '$'+(v/1e6).toFixed(1)+'M'
        : a>=1e3? '$'+Math.round(v/1e3)+'K' : '$'+Math.round(v); };
 let SHARED=null, rmOpen=false, mcOnly=false, filter='ALL', dragId=null, svcFilter=-1;
-let svcAll=false, gsOpen=true, scOpen=true, teamOpen=true, buysOpen=false, ceOpen=true, pmoSumOpen=true, open={};
+let gsOpen=true, scOpen=true, teamOpen=true, buysOpen=false, ceOpen=true, pmoSumOpen=true;
 let taOpen=false;   // unspent discretionary vs the trims that could take it
 let laneFilter='';   // '' | 'disc' (fully discretionary) | 'mand' (spilling) | 'unf' (any unfunded) | 'nd' (set higher than it draws)
 let ndOpen=false, ndFocus='', _ndCache=null;   // the fix list, the requirement it opened on, and ndData() for this render
@@ -7220,13 +7235,44 @@ function uipDone(ok){
 }
 // v1.97 (item 79): every message counts, so the autosave can tell whether its save said anything (liveTick).
 var _statN=0;
-function setStat(html){
+// v2.03 (item 19): ONE WAY TO TELL THE USER, AND A MESSAGE THAT MATTERS STAYS UNTIL IT IS READ. Every message goes through
+// setStat(), one line beside the save state, and the next one replaces it -- which is how an import's report was overwritten
+// in v1.86 by a later message before anyone read it. So every message is also kept, for this session, in STAT_LOG; one
+// that matters -- a warning or refusal (diagIsWarn, the same test Save diagnostics uses) or an import's result
+// (statKeep) -- is KEPT UNREAD until it is opened: More on the line, its ✕, or the message list. While a later message is
+// on the line, ⚠ N unread beside it says one is waiting and opens the list. The list belongs to this browser tab, never
+// to the board: nothing is written into the file or the journal, so a refused import still changes nothing (Brad, 21 Oct
+// 2026). Confirm prompts are not messages and do not change: they are the data-loss guards and must keep stopping the user.
+// Declared without an initializer: the board says things while this script is still being read (applyStore runs above).
+var STAT_LOG = STAT_LOG || [];
+var STAT_LOG_MAX = 60;   // var, not const: a message said before this line is read must not throw
+function statLogPush(html, keep){
+  if(!STAT_LOG) STAT_LOG = [];
+  STAT_LOG.push({n:_statN, t:Date.now(), html:String(html), keep:!!keep, read:!keep});
+  // the list stays short, and it is the READ messages that make room: an unread one is never dropped for a newer one
+  while(STAT_LOG.length > STAT_LOG_MAX){
+    const i = STAT_LOG.findIndex(function(e){ return !(e.keep && !e.read); });
+    STAT_LOG.splice(i < 0 ? 0 : i, 1);
+  }
+}
+// The message on the line now, if the line shows one (setStat('') clears it, and then nothing is "on the line").
+function statCur(){
+  const el=document.getElementById('shareStat'); const L=STAT_LOG||[];
+  return (el && el.textContent.trim() && L.length)? L[L.length-1] : null;
+}
+function statUnread(){ const c=statCur();
+  return (STAT_LOG||[]).filter(function(e){ return e.keep && !e.read && e!==c; }); }
+function statMarkCur(){ const c=statCur(); if(c) c.read=true; }
+// An import's result is kept unread like a warning: it is the report somebody needs to read before the next click.
+function statKeep(html){ return setStat(html, {keep:true}); }
+function setStat(html, o){
   _statN++;
   const held=_bootLostHold && String(html).indexOf(_bootLostHold)<0;
   if(held) html=_bootLostHold+' '+html;
   if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
     html='🔒 <b>Not kept — '+blLbl(CYCVIEW)+' is a locked view.</b> '+html;
   try{ if(diagIsWarn(html)) diagNote('warning', html); }catch(e){}
+  try{ if(html) statLogPush(html, !_statQuiet && ((o && o.keep) || diagIsWarn(html))); }catch(e){}
   const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
   // v1.90: the line lives beside the save state now. A message shows itself there until the next one or
   // until it is hidden; the save state's tooltip always carries it. _statQuiet is set for the one
@@ -7251,15 +7297,36 @@ function statSync(){
   bt.textContent = big? 'Less' : (line? 'More' : 'Message');
   const say = big? 'Show the message on one line' : (line? 'Show the whole message' : 'Show the last message');
   bt.setAttribute('aria-label', say); bt.title=say;
+  const k=document.getElementById('statKeep'), n=statUnread().length;
+  if(k){ k.hidden=!n; k.textContent='\u26a0 '+n+' unread';
+    const ks=n+' earlier message'+(n===1?'':'s')+' you have not read \u2014 show '+(n===1?'it':'them');
+    k.setAttribute('aria-label', ks); k.title=ks; }
 }
 function statToggle(){ const w=document.getElementById('statWrap'); if(!w) return;
   if(w.classList.contains('big')){ w.classList.remove('big'); w.classList.add('fresh'); }
-  else w.classList.add('big','fresh');
+  else { w.classList.add('big','fresh'); statMarkCur(); }
   statSync(); }
 function statHide(){ const w=document.getElementById('statWrap'); if(!w) return;
   const ae=document.activeElement, inside=w.contains(ae) || (ae && ae.id==='statX');
-  w.classList.remove('fresh','big'); statSync();
+  w.classList.remove('fresh','big'); statMarkCur(); statSync();
   if(inside){ const bt=document.getElementById('statBtn'); if(bt && !bt.hidden) bt.focus(); } }
+// THE MESSAGE LIST: this session's messages, the unread ones first. Opening it is reading them.
+let msgIsOpen=false;
+function msgOpen(){ msgIsOpen=true; msgBody(); }
+function msgClose(){ msgIsOpen=false; msgBody(); statSync(); }
+function msgBody(){
+  const bg=document.getElementById('msgPanel'), el=document.getElementById('msgBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(msgIsOpen? ' open' : '');
+  if(!msgIsOpen){ el.innerHTML=''; return; }
+  const L=(STAT_LOG||[]), un=statUnread(), seen=L.filter(function(e){ return un.indexOf(e)<0; });
+  const row=function(e, u){ return '<tr'+(u? ' class="unread"' : '')+'><td class="mt">'+esc(shortTime(e.t))+'</td><td>'+esc(diagPlain(e.html))+'</td></tr>'; };   // as text: a past message's buttons must not act on the board as it is now
+  el.innerHTML='<div style="font-size:11px;color:var(--dim)">What the board said in this tab, newest first. It is kept in this browser tab only, never in the board file, and is gone when the tab closes.</div>'
+    +(un.length? '<div class="msgh">NOT READ YET ('+un.length+')</div><table class="msglist">'+un.slice().reverse().map(function(e){ return row(e, true); }).join('')+'</table>' : '')
+    +'<div class="msgh">'+(un.length? 'EARLIER' : 'THIS SESSION')+'</div>'
+    +(seen.length? '<table class="msglist">'+seen.slice().reverse().map(function(e){ return row(e, false); }).join('')+'</table>'
+                 : '<div style="color:var(--dim);font-size:11px">Nothing yet.</div>');
+  un.forEach(function(e){ e.read=true; });   // opening the list is reading what it shows
+}
 // Esc belongs to the message only while focus is on it, its button or its ✕: pressed anywhere else it is
 // closing a box or the drawer, and must not also pull focus up to the header.
 try{ document.addEventListener('keydown', function(e){
@@ -7521,36 +7588,36 @@ function _fhGet(cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded
 // could carry them would turn a review into an argument about who owns what.
 // asks is per-service dollars, so accepting one moves the cutline; the review makes that explicit.
 const PMO_FIELDS = [
-  ['desc',     'Description'],
-  ['cons',     'Impact statement'],
-  ['notes',    'Note'],
-  ['asks',     'Requirement value (by service)'],
-  ['ccar',     'CCaR record'],
-  ['pid',      'PID'],
-  ['recNames', 'CCaR record name'],
-  ['mipr',     'MIPR type'],
+  ['desc',     FL('desc')],
+  ['cons',     FL('cons')],
+  ['notes',    FL('notes')],
+  ['asks',     FL('asks')],
+  ['ccar',     FL('ccar')],
+  ['pid',      FL('pid')],
+  ['recNames', FL('recNames')],
+  ['mipr',     FL('mipr')],
   // v1.84 -- EVERYTHING ELSE ON THE REQUIREMENT, EXCEPT THE ALLOCATION (Brad, 24 Sep 2026: "edit all
   // available items within the requirement except for the discretionary and mandatory allocations
   // ... I need them to do most of the legwork"). The band and Mission Critical travel too, by his
   // decision the same day. What stays behind is the money itself -- alloc, fsrc, the CLIN drill --
   // and the machinery that moves it (the shortfall absorber, the realignment's UPL marks, the ACE
   // mapping): those are the portfolio team's, and allocLocked() refuses them in a copy.
-  ['titles',   'Plan event (the name on the row)'],
-  ['grp',      'PMO'],
-  ['band',     'Decision band'],
-  ['mc',       'Mission Critical'],
-  ['ptype',    'Prime contract / OGC'],
-  ['obCat',    'Obligation category'],
-  ['wbs',      'WBS'],
-  ['rcnAsg',   'RCN / EEIC'],
-  ['rcnSvc',   'RCN / EEIC by service'],
-  ['si',       'Navy SI code'],
-  ['dest',     'Goes to'],
-  ['costElem', 'Cost element'],
-  ['budgetAsg','Budget (BAE)'],
-  ['awards',   'Award / obligation date'],
-  ['crHalf',   'CR half-month'],
-  ['minInc',   'Minimum useful increment'],
+  ['titles',   FL('titles')],
+  ['grp',      FL('grp')],
+  ['band',     FL('band')],
+  ['mc',       FL('mc')],
+  ['ptype',    FL('ptype')],
+  ['obCat',    FL('obCat')],
+  ['wbs',      FL('wbs')],
+  ['rcnAsg',   FL('rcnAsg')],
+  ['rcnSvc',   FL('rcnSvc')],
+  ['si',       FL('si')],
+  ['dest',     FL('dest')],
+  ['costElem', FL('costElem')],
+  ['budgetAsg',FL('budgetAsg')],
+  ['awards',   FL('awards')],
+  ['crHalf',   FL('crHalf')],
+  ['minInc',   FL('minInc')],
 ];
 const PMO_KEYS = PMO_FIELDS.map(function(f){ return f[0]; });
 const PMO_LBL  = (function(){ const m={}; PMO_FIELDS.forEach(function(f){ m[f[0]]=f[1]; });
@@ -7764,9 +7831,8 @@ function pmoSubmitBuild(){
 // disagree. The two OGC fields are gated on destIsOgc(), the one predicate the panel uses, so they
 // are demanded together or waived together; a mandatory field that cannot apply is a gate people
 // learn to work around.
-const PROPOSAL_MANDATORY=['Prime contract / OGC','PMO','Obligation category','WBS','Goes to',
-  'Which awards to (for an OGC)','MIPR type (for an OGC)','Description','Impact statement',
-  'Requirement value (by service)','Projected award date'];
+const PROPOSAL_MANDATORY=['ptype','grp','obCat','wbs','dest'].map(FL).concat([FL('destEnd')+' (for an OGC)', FL('mipr')+' (for an OGC)'],
+  ['desc','cons','asks','awardProj'].map(FL));
 // Which requirements on this copy are proposals: added here, on the list, and unknown to the board
 // the copy was published from.
 function pmoProposalIds(){
@@ -7777,18 +7843,19 @@ function pmoProposalIds(){
 function pmoProposalGate(id){
   const it=itemById(id); if(!it) return ['requirement missing'];
   const F=recFields(id,it).filter(function(f){ return !f.sec; });
-  const has=function(l){ return F.some(function(f){ return f.l===l && f.set; }); };
+  // v2.03 (item 20): matched on the field's KEY, never its label, so a renamed label cannot empty the gate
+  const has=function(k){ return F.some(function(f){ return f.k===k && f.set; }); };
   const miss=[];
-  ['Prime contract / OGC','PMO','Obligation category','WBS','Goes to'].forEach(function(l){ if(!has(l)) miss.push(l); });
+  ['ptype','grp','obCat','wbs','dest'].forEach(function(k){ if(!has(k)) miss.push(FL(k)); });
   if(destIsOgc(it)){
-    if(!destOf(it).end) miss.push('Which awards to');
-    if(!miprOf(id)) miss.push('MIPR type');
+    if(!destOf(it).end) miss.push(FL('destEnd'));
+    if(!miprOf(id)) miss.push(FL('mipr'));
   }
-  if(!String((S.desc||{})[id]||'').trim()) miss.push('Description');
-  if(!String((S.cons||{})[id]||'').trim()) miss.push('Impact statement');
-  if(!(askTot(it)>0)) miss.push('Requirement value (by service)');
+  if(!String((S.desc||{})[id]||'').trim()) miss.push(FL('desc'));
+  if(!String((S.cons||{})[id]||'').trim()) miss.push(FL('cons'));
+  if(!(askTot(it)>0)) miss.push(FL('asks'));
   const aw=(S.awards||{})[id];
-  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');
+  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));
   return miss;
 }
 function pmoProposalOf(id){
@@ -8520,7 +8587,7 @@ function pmoTake(pkg, fname){
   PMOSUBS.push(held);
   PMOPICK={};
   const n=pmoRows().length;
-  setStat('\u2709 Submittal from <b>'+esc(subFrom(pkg))+'</b>'
+  statKeep('\u2709 Submittal from <b>'+esc(subFrom(pkg))+'</b>'
     + (pkg.by && pkg.by!==pkg.pmo? ' (<b>'+esc(pkg.by)+'</b>)' : '')
     + (dup.length? ' \u2014 replacing an earlier one from the same office' : '')
     + (outOfScope.length? ' \u2014 '+outOfScope.length+' change'+(outOfScope.length===1?'':'s')
@@ -9034,7 +9101,7 @@ function importBoards(inp){
     if(applied){ loadCounted(); persist(); render(); }   // v2.02 (E7, U31): an import is a change in this browser's record too
     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
     const bad=results.filter(r=>!r.slug||!r.st).map(r=>esc(r.name)+' ('+esc(r.why)+')');
-    setStat((ok.length? '\u2b05 Imported: '+ok.join(' · ')+'. Switch appropriations from the dropdown to see each. \ud83d\udcbe Save to bake all of it into this file.':'')
+    statKeep((ok.length? '\u2b05 Imported: '+ok.join(' · ')+'. Switch appropriations from the dropdown to see each. \ud83d\udcbe Save to bake all of it into this file.':'')
       +(bad.length? ' <span style="color:var(--amber)">Skipped: '+bad.join(' · ')+'</span>':''));
   };
   files.forEach((f, i)=>{
@@ -9691,7 +9758,7 @@ function pkgApply(pkg, fname){
   }
   const note=(lockKept.length? ' '+lockKept.length+' locked baseline'+(lockKept.length===1?'':'s')+' kept as they were.' : '')
     +(clash? ' Your local changes were discarded, as confirmed.' : '');
-  setStat((inbound?'📥 Merged ':'📥 Loaded ')+esc(nm)+' package #'+(pkg.seq||0)+(pkg.by? ' from '+esc(pkg.by):'')+'.'+note
+  statKeep((inbound?'📥 Merged ':'📥 Loaded ')+esc(nm)+' package #'+(pkg.seq||0)+(pkg.by? ' from '+esc(pkg.by):'')+'.'+note
     +(wrote? ' <b>Use 💾 Save</b> to write it into the file.'
            : ' ⚠ <b>It could not be written to browser storage</b> — 💾 Save now so it is not lost.'));
   render();
@@ -9897,7 +9964,7 @@ function consTakeApply(fullSt, txt, fname, pick, all){
   const done=lsAll(W);
   if(!done.ok){ impMemRestore(mem); return fullImportUndone(done, W, txt, fname); }
   impMixedLift(W.map(function(w){ return w[0]; }));
-  setStat('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
+  statKeep('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail+' Reopening\u2026');
   location.reload();
 }
@@ -10197,7 +10264,7 @@ function destListOdd(L, bag){
     odd.push({i:I[1], what:'holds the key '+inShow(k)+' '+(n===2? 'twice' : n+' times')+' ('+ps.slice(0,-1).join(', ')+' and '+ps[n-1]+')', why:'a key names one destination'}); });
   return odd.sort(function(x, y){ return x.i-y.i; });
 }
-// v2.00 (U44): WHOSE FILE IT IS decides whether the door applies that rule, for the one check asked for (inboundCheckDest): ''
+// v2.00 (U44): WHOSE FILE IT IS decides whether the door applies that rule, for the one check asked for (_inDestNext): ''
 // a file handed over -- refused; 'board' the user's own board, brought across by a full import -- taken, its lists put right as
 // they come across (destOwnRight), and the import says what it changes; 'copy' the team's own copy in the shared folder or beside
 // the board -- read as before, but for a key that is not text, which no ORBIT writes and which a reading cannot tell from the
@@ -10205,7 +10272,6 @@ function destListOdd(L, bag){
 // refused, a whole board was kept out of the new version and a team's folder copy could not be read. This board reads them right
 // (flowAxisCats, destFold).
 var _inDestNext='', _inDestOwn='';
-function inboundCheckDest(txt, own){ _inDestNext=own; return inboundCheck(txt); }
 // v2.00 (U44): THE USER'S OWN BOARD, TAKEN WHOLE, IS PUT RIGHT AS IT COMES ACROSS, so it never holds a destination list a file
 // handed over is refused for. Every file a board writes carries its list -- its saved file, one appropriation, a PMO copy, a
 // package, the office's submittal back -- so a board that kept one could hand nothing to a board of this version, itself
@@ -10317,7 +10383,7 @@ function inWalk(root, label){
 function inboundCheck(txt){
   _inRcnOwn=_inRcnNext; _inRcnNext=''; _inRcnTxt=txt;   // v2.00 (U32, U33): asked for by inboundCheckOwn, for this check only;
   // and the text checked, which a refusal of it reads to say who saved the file (inRcnTail)
-  _inDestOwn=_inDestNext; _inDestNext='';   // v2.00 (U44): asked for by inboundCheckDest, for this check only
+  _inDestOwn=_inDestNext; _inDestNext='';   // v2.00 (U44): asked for through _inDestNext, for this check only
   const t=(txt===null || txt===undefined)? '' : String(txt);
   if(t.length>IN_MAX_BYTES) return 'it is '+(t.length/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB';
   const parts=[];
@@ -10470,7 +10536,7 @@ function importFullBoard(inp){
 }
 function fullImportText(txt, fname){
   _inRcnNext='board';   // v2.00 (U32, U33): the user's own board (inboundCheckOwn) -- its RCN / EEIC lists as it saved them, said below
-  _inDestNext='board';   // v2.00 (U44): the user's own board (inboundCheckDest) -- its destination lists put right below (destOwnRight)
+  _inDestNext='board';   // v2.00 (U44): the user's own board -- its destination lists put right below (destOwnRight)
   const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
@@ -11020,7 +11086,7 @@ function importState(inp){
       }
       if(applyStore(st)===false){ inp.value=''; return; }
       save(); render();
-      setStat((fromBoard?'\u2b05 Imported saved state from '+esc(f.name):'\ud83d\udcc2 State loaded from file')+(st.ts? ' (saved '+fmtTs(st.ts)+')':'')+'.'
+      statKeep((fromBoard?'\u2b05 Imported saved state from '+esc(f.name):'\ud83d\udcc2 State loaded from file')+(st.ts? ' (saved '+fmtTs(st.ts)+')':'')+'.'
         + carriedTxt
         + importReportHtml(st)
         + ' Review, then \ud83d\udcbe Save to make it this board\u2019s shared picture.');
@@ -12856,14 +12922,6 @@ function srcSvcOf(it, T){
   const d=srcLaneOf(it, T, 'disc'), m=srcLaneOf(it, T, 'mand');
   return d.map(function(v,i){ return (+v||0)+(+m[i]||0); });
 }
-// The importer reads the service back out of the Budget cell, so write it the way that file spells
-// it. STOVL and USMC-B are both the B model; the source calls it USMC STOVL.
-function srcBudget(svc){
-  const v=String(svc||'');
-  if(/^USMC-B$|^STOVL$/i.test(v)) return 'USMC STOVL '+(APPN_LBL[mySlug()]||'');
-  if(/^USMC-C$/i.test(v))         return 'USMC CV '+(APPN_LBL[mySlug()]||'');
-  return v+' '+(APPN_LBL[mySlug()]||'');
-}
 // A requirement with no award date still has to be phased somewhere, or the receiving deck buckets
 // it as prior-year and the whole plan collapses into one bar. Owner's rule: 31 August of the
 // fiscal year — late, deliberately, so an unphased requirement is visibly late rather than
@@ -13007,7 +13065,7 @@ async function importSrc(inp){
     render();
     const bad=report.filter(t=>!t.found).length;
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
-    setStat((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
+    statKeep((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
              +(bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
                : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Execution \u203a \ud83d\udcc8 Active Year Execution, on the left menu.'+esc(xlsxEscSaid()));
   }catch(e){
@@ -15235,7 +15293,7 @@ async function importBud(inp){
     save(); render();
     const mine=kept.filter(function(b){ return b.ap===mySlug(); }).length;
     const st=budAutoStats();
-    setStat('💰 <b>'+esc(f.name)+'</b> ('+esc(D.depts.join(', '))+') — <b>'+D.added.length+'</b> added, '
+    statKeep('💰 <b>'+esc(f.name)+'</b> ('+esc(D.depts.join(', '))+') — <b>'+D.added.length+'</b> added, '
       +D.same.length+' unchanged, <b'+(D.gone.length?' style="color:var(--amber)"':'')+'>'
       +D.gone.length+'</b> retired'
       +(D.goneUse? ' carrying <b style="color:var(--amber)">'+D.goneUse+'</b> assignment'
@@ -15468,7 +15526,7 @@ async function importCcarRecs(inp){
       const rec=ccarRec(c);
       if(rec){ hit++; if(rec.d>1) amb++; }
     });
-    setStat('📇 <b>'+esc(f.name)+'</b> — '+n+' record'+(n===1?'':'s')+' indexed on <b>CCaR No</b>'
+    statKeep('📇 <b>'+esc(f.name)+'</b> — '+n+' record'+(n===1?'':'s')+' indexed on <b>CCaR No</b>'
       +(dup? ' ('+dup+' number'+(dup===1?'':'s')+' used by more than one record)':'')+'. '
       +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Title and OPR'
       +(amb? '; <b>'+amb+'</b> match an ambiguous number and are left blank rather than guessed':'')+'. '
@@ -15523,7 +15581,7 @@ async function importAce(inp){
     spOpen=true; render();
     const sk=Object.keys(set.skip).sort((a,b)=>set.skip[b]-set.skip[a])
       .map(k=>k+' '+set.skip[k]).join(' \u00b7 ');
-    setStat('\ud83d\udcc8 <b>'+esc(key)+'</b> loaded and \ud83d\udd12 locked \u2014 '+set.lines.length+' cost lines across '
+    statKeep('\ud83d\udcc8 <b>'+esc(key)+'</b> loaded and \ud83d\udd12 locked \u2014 '+set.lines.length+' cost lines across '
       +nAp+' appropriation'+(nAp===1?'':'s')+', FY'+set.years[0]+'\u2013FY'+set.years[set.years.length-1]
       +'. Not imported: '+esc(sk)+'. \ud83d\udcbe Save to bake it into this file.'+esc(xlsxEscSaid()));
   }catch(e){
@@ -15562,7 +15620,7 @@ const isAlloc=a=>!/not allocated/i.test(''+a);
 // service must come through here: SVC.indexOf('STOVL') is -1 on Full Fund, so the whole service
 // silently reads as zero and its money vanishes from every per-service figure.
 // The generator already knew they were the same thing (budParseName carries the alias pair, and
-// srcBudget maps both back to "USMC STOVL"); what was missing was a way to translate one to the
+// the export mapped both back to "USMC STOVL"); what was missing was a way to translate one to the
 // other. EX_SVCS and the execution filter stay in SOURCE vocabulary end to end — they are
 // internally consistent and must not be routed through this.
 const SVC_ALIAS={STOVL:'USMC-B','USMC-B':'STOVL'};
@@ -19189,7 +19247,7 @@ function bandImport(inp){
       +(orphan? '\n\n\u26a0 '+orphan+' requirement'+(orphan===1?'':'s')+' sit in a band that file does not '
         +'have, and will become unbanded.' : '\n\nEvery banded requirement keeps its band.'))){
       bandSave(clean);
-      setStat('\u2696 Ladder imported \u2014 '+clean.length+' bands on <b>'+esc(apLabel())+'</b>'
+      statKeep('\u2696 Ladder imported \u2014 '+clean.length+' bands on <b>'+esc(apLabel())+'</b>'
         +(orphan? ', <b style="color:var(--amber)">'+orphan+'</b> requirement'+(orphan===1?'':'s')+' now unbanded':'')+'.');
     }
     inp.value='';
@@ -20231,18 +20289,13 @@ function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.cons||{})[id]; 
   else S.band[id]=v; save(); render(); }
 function setMinInc(id,v){ const n=parseAmt(v); if(amtNo(n, v, 'The minimum useful increment')) return; if(n===null||n<=0) delete S.minInc[id]; else S.minInc[id]=n; save(); render(); }
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
-let consOpen={};
-function toggleCons(id){ if(fldHasPanel()){ openFld(id,'cons'); return; } consOpen[id]=!consOpen[id]; render(); }
+function toggleCons(id){ openFld(id,'cons'); }
 // THE POP-UP FOR THE WRITTEN FIELDS. Note, Description and Impact used to expand the row in
 // place. That is right on a board with nowhere else to put them, and wrong on one where the RECORD
 // panel is two inches away: the edit belongs with the rest of the requirement's fields, not wedged
 // into the middle of the priority list.
-//
-// WHICH BEHAVIOUR YOU GET IS DECIDED BY WHETHER THIS BUILD HAS A PANEL, not by which file it is.
-// (Written for two builds; the card build and tools/parity.mjs were retired in v1.88, so this board always
-// has #inspector. The test stays so there is one implementation.)
+// (The card build, which had no panel and expanded the row instead, was retired in v1.88; its fallback went in v2.03.)
 let fldOpen=null;                 // {id, kind}, or null when nothing is being edited
-function fldHasPanel(){ return !!document.getElementById('inspector'); }
 // DESCRIPTION AND NOTE SHARE ONE POP-UP (v1.86), the description first and the note under it, one
 // Save -- but not one field. Each is still kept, journalled, submitted from a PMO copy, reviewed and
 // exported as itself, and a Save writes only the box whose text changed, so saving the description
@@ -20263,8 +20316,8 @@ const FLD_PARTS={
          ph:function(it){ return 'Notes for '+dispTitle(it)+' \u2014 decisions, caveats, taskers\u2026'; } }
 };
 const FLD_DEF={
-  cons:{ lbl:'\u26a0 Impact statement', parts:[FLD_PARTS.cons] },
-  dn:  { lbl:'\ud83d\udcc4 Description & note', parts:[FLD_PARTS.desc, FLD_PARTS.note] }
+  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },   // read each time, never once at load (v2.03, item 20)
+  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }
 };
 function openFld(id, kind){ fldOpen={id:id, kind:kind}; fldBody(); }
 function fldClose(){ fldOpen=null; fldBody(); }
@@ -20315,10 +20368,10 @@ function fldSave(){
 // The guide travels in the board file, every board and every PMO copy, so there is no link to share and
 // no PDF to send with it, and it can never say a different version from the board it is in. Two parts,
 // for programme offices and for the portfolio team. It opens ONLY from a 📖 button, on its contents;
-// it loads nothing from outside the file, keeps nothing, and moves no figure. Where the two builds
-// differ -- the grid's RECORD panel, the card's row -- a paragraph says which build it is for (data-b),
-// and only this build's shows. Every menu path it names is marked (.mp, data-m) and every button (.bt,
-// data-q), and tools/menu-paths.mjs checks each against the menus and bars of both builds. The web page
+// it loads nothing from outside the file, keeps nothing, and moves no figure. (Until v2.03 a paragraph that
+// differed by build carried data-b and only this build's showed; the card build's went in v2.03.) Every menu
+// path it names is marked (.mp, data-m) and every button (.bt, data-q), and tools/menu-paths.mjs checks each
+// against the menus and bars. The web page
 // and the Teams PDF are made from this same text.
 let helpOpen=false, helpAt='';
 const HELP_PARTS=[['office','For programme offices','Working in a PMO copy, and sending your input back'],
@@ -20328,9 +20381,9 @@ function helpClose(){ helpOpen=false; helpAt=''; helpBody(); }
 function helpGo(at){ helpAt=at||''; helpBody(); const b=document.getElementById('helpBody'); if(b) b.scrollTop=0; }
 function helpSections(){
   const t=document.getElementById('helpDoc'); if(!t || !t.content) return [];
-  const build=fldHasPanel()? 'grid' : 'card';
   const box=document.createElement('div'); box.appendChild(t.content.cloneNode(true));
-  box.querySelectorAll('[data-b]').forEach(function(n){ if(n.getAttribute('data-b')!==build) n.remove(); });
+  // v2.03 (item 20): a field the guide names is read from REQ_FIELD, so the guide cannot call it what the board does not
+  box.querySelectorAll('[data-fl]').forEach(function(n){ const k=n.getAttribute('data-fl'); n.textContent=n.hasAttribute('data-fi')? FLI(k) : FL(k); });
   return [...box.querySelectorAll('section')].map(function(s){
     return {id:s.getAttribute('data-id'), part:s.getAttribute('data-part'), t:s.getAttribute('data-t'), el:s}; });
 }
@@ -20363,11 +20416,6 @@ function helpBody(){
     a.onclick=function(){ helpGo(a.getAttribute('data-go')); return false; }; });
 }
 // v1.93 (item 39): Esc in Help is the box controller's (dlgInit), like every other box.
-function consBox(it){
-  const b=BAND_DEF(it.id);
-  return `<div class="note-detail cons"><textarea placeholder="If this is NOT funded, what happens and when? ${b.consReq?'Required for '+esc(b.n)+' — this text becomes the UFR justification.':'Feeds the UFR if this falls below the line.'}"
-    onchange="setCons(${jsa(it.id)},this.value)">${esc((S.cons||{})[it.id]||'')}</textarea></div>`;
-}
 var _vpDone=false;
 let spOpen=false, spBy='pmo', spFund='board', spAce='board', spPrior=false, spPmo='ALL', spSvc='ALL';
 // per-PMO / per-service breakdown of an imported ACE for one appropriation
@@ -23281,14 +23329,12 @@ function setAsk(id,i,val){
   const next=it.ask.slice();
   next[i] = (v===null||v<0)? 0 : v;
   applyAskVec(id, next);
-  open[id]=true;
   save(); render(); flash(id);
 }
 function resetAsk(id){
   const it=itemById(id); if(!it||!BASE_ASK[id]) return;
   it.ask=BASE_ASK[id].slice();
   if(S.asks) delete S.asks[id];
-  open[id]=true;
   save(); render(); flash(id);
 }
 function editCcar(id, typed){
@@ -23926,20 +23972,6 @@ function applyBudget(){
   S.discSvc=d.map(v=>Math.max(0,D$(v)));
   S.mandSvc=m.map(v=>Math.max(0,D$(v)));
 }
-function setBATot(kind,val){          // (command bar) — writes the BASE component
-  const v=parseAmt(val);
-  if(amtNo(v, val, kind==='disc'? 'Discretionary budget authority' : 'Mandatory budget authority')) return;
-  if(v!==null&&v>=0){
-    const vec = kind==='disc'? S.bm.disc : S.bm.mand;
-    // v1.97 W1 (item 72): THE TYPED TOTAL IS SPLIT WITH apportion(), in the shape the base already has (evenly when it
-    // has none), so the base and the lane are whole dollars that add up to exactly what was typed. Each service used
-    // to be scaled to x*v/s and applyBudget() then rounded each on its own: $1 over three equal services was $0.
-    const nv = apportion(v, vec);
-    if(kind==='disc') S.bm.disc=nv; else S.bm.mand=nv;
-    applyBudget(); save();
-  }
-  render();
-}
 function bmSetBase(kind,i,val){
   const v=parseAmt(val);
   if(amtNo(v, val, (kind==='disc'? 'The discretionary base for ' : 'The mandatory base for ')+(SVC[i]||'this service'))) return;
@@ -24286,7 +24318,7 @@ function pmoReassignHint(){
   const sel=(typeof curRow!=='undefined' && curRow && itemById(curRow))? curRow : null;
   if(sel && typeof toggleRec==='function'){ toggleRec(sel); return; }
   alert('A requirement\u2019s PMO is set on its own record.\n\n'
-    +'Open any requirement\u2019s \ud83d\udccb Requirement edit \u2014 the PMO field is the second one, under '
+    +'Open any requirement\u2019s '+FLI('rec')+' \u2014 the PMO field is the second one, under '
     +'\u201cWhat it is\u201d.\n\n'
     +'The move applies to '+FYL()+' only: the source file keeps its own answer and the record says '
     +'so. Its per-office rank travels with it, landing last in the office it joins.');
@@ -24299,7 +24331,6 @@ function realignAll(id, tgt){
   const total=eff(it);
   const v=SVC.map((s,i)=> i===tgt? total : 0);
   S.alloc[id]={m:'s', v:v};
-  open[id]=true;
   save(); render(); flash(id);
 }
 function zeroSpread(id, src){
@@ -24315,7 +24346,6 @@ function zeroSpread(id, src){
   const add=apportion(moved, cur.map((x,i)=> i===src? 0 : (rest>0? x : 1)));
   const v=cur.map((x,i)=> i===src? 0 : D$(x)+add[i]);
   S.alloc[id]={m:'s', v:v};
-  open[id]=true;
   save(); render(); flash(id);
 }
 function svcShort(T){
@@ -24460,7 +24490,6 @@ function setSvc(id,i,val){
   const c=svcAllocAsSaved(it);
   c[i] = (v===null? 0 : v);
   S.alloc[id]={m:'s', v:c};
-  open[id]=true;
   save(); render(); flash(id);
 }
 function setNote(id,val){
@@ -24562,7 +24591,6 @@ function pickCostElem(id){
     save(); render(); flash(id);
   });
 }
-function toggleDetail(id){ open[id]=!open[id]; render(); }
 // ONE POP-UP FOR BOTH (v1.86): the card build, retired in v1.88, used to open each under its row.
 function toggleNote(id){ openFld(id,'dn'); }
 function toggleDesc(id){ openFld(id,'dn'); }
@@ -24916,7 +24944,10 @@ function toggleRec(id){ recOpen=(recOpen===id)? null : id; render(); }
 // One field: a label, whether it is SET, the control, and an optional note under it. `set` is not
 // decoration -- an unset field is a blank cell in the Spend Plan Source export, and counting them
 // is the only way to find them without opening every requirement in turn.
-function recF(label, set, ctl, note){ return {l:label, set:!!set, c:ctl, n:note||''}; }
+// v2.03 (item 20): a field is named by its REQ_FIELD key; the label is read from there. A per-service line (↳ USAF) is not a
+// field of its own and passes its label as it is.
+function recF(k, set, ctl, note){ const own=Object.prototype.hasOwnProperty.call(REQ_FIELD, k);
+  return {k:own? k : '', l:own? FL(k) : k, set:!!set, c:ctl, n:note||''}; }
 function recSec(t){ return {sec:t}; }
 function recSel(onch, tip, opts){
   return '<select class="cesel" onchange="'+onch+'" title="'+tip+'">'+opts+'</select>';
@@ -24930,36 +24961,36 @@ function recBtn(onc, txt, tip){
 function recFields(id, it){
   const F=[];
   F.push(recSec('What it is'));
-  F.push(recF('Prime contract / OGC', ptypeOf(id),
+  F.push(recF('ptype', ptypeOf(id),
     recBtn('togglePtype('+jsa(id)+')', esc(ptypeOf(id))||'Set prime or OGC…',
            'Switch between a prime contract and an other-government-cost requirement')));
-  F.push(recF('PMO', grpOf(it)===it.grp,
+  F.push(recF('grp', grpOf(it)===it.grp,
     recSel('setGrp('+jsa(id)+',this.value)',
       'Move this requirement to another PMO — this fiscal year only',
       GROUPS.map(function(g){ return '<option value="'+esc(g)+'"'+(grpOf(it)===g?' selected':'')+'>'+esc(g)
         +(g===it.grp?' (from the file)':'')+'</option>'; }).join('')),
     grpOf(it)===it.grp? '' : 'moved from '+esc(it.grp)+' for '+FYL()));
-  F.push(recF('Obligation category', obCatOf(id),
+  F.push(recF('obCat', obCatOf(id),
     recSel('setObCat('+jsa(id)+',this.value)',
       'How this money leaves the building — printed in the Spend Plan Source export',
       '<option value="">— not set —</option>'
       +OB_CATS.map(function(c){ return '<option value="'+esc(c)+'"'+(obCatOf(id)===c?' selected':'')
         +'>'+esc(c)+'</option>'; }).join(''))));
-  if(DATA.costElems) F.push(recF('Cost element', (S.costElem||{})[id],
+  if(DATA.costElems) F.push(recF('costElem', (S.costElem||{})[id],
     recBtn('pickCostElem('+jsa(id)+')', esc((S.costElem||{})[id])||'Choose a cost element…',
            'The cost element this requirement is budgeted against')));
 
   F.push(recSec('Work breakdown'));
   if(ptypeOf(id)==='PRIME'){
-    F.push(recF('WBS', true,
+    F.push(recF('wbs', true,
       recBtn('recOpen=null;toggleClin('+jsa(id)+')', 'Open the 🧾 CLIN drill',
              'A prime is broken down per CLIN, so the WBS is logged there'),
       'logged per CLIN — one thing, one place'));
   } else {
-    F.push(recF('WBS', wbsReq(id).length,
+    F.push(recF('wbs', wbsReq(id).length,
       recBtn('recOpen=null;wbsQuick('+jsa(id)+')', esc(wbsLabel('req',id,''))||'Add a WBS paragraph…',
              'The WBS paragraph this requirement books work against')));
-    if(wbsReq(id).length) F.push(recF('Split by service', wbsReq(id).length>1,
+    if(wbsReq(id).length) F.push(recF('wbsSplit', wbsReq(id).length>1,
       recBtn('recOpen=null;toggleWbs(&quot;req&quot;,'+jsa(id)+',&quot;&quot;)',
              wbsReq(id).length>1? wbsReq(id).length+' lines' : 'one line — split it…',
              'Break the allocation across several WBS paragraphs, per service')));
@@ -24985,7 +25016,7 @@ function recFields(id, it){
     rcl.forEach(function(c){ if(clinAfSvcs(id, c).length) rafMoney=true;
       clinRcnGaps(id, c).forEach(function(sv){ rgap.push('CLIN '+c.clin+' '+sv); }); });
     const rdoneAll=(rsv.length? rdone===rsv.length : !!rcnAsgOf(id));
-    acct.push(recF('RCN / EEIC', rcl.length? (!rgap.length && (rafMoney || rdoneAll)) : rdoneAll,
+    acct.push(recF('rcnAsg', rcl.length? (!rgap.length && (rafMoney || rdoneAll)) : rdoneAll,
       recSel('setRcnAsg('+jsa(id)+',this.value)',
         'Which RCN + EEIC this requirement is funded under — USAF, ANG and AFRC only',
         '<option value="">'+(rmix? '— the services differ —'
@@ -25028,7 +25059,7 @@ function recFields(id, it){
     });
   }
   const siRaw=siRawOf(id);     // v2.00 (U41): shown as it was saved, and selected, until a code is chosen
-  if(siEligible(it)) acct.push(recF('Navy SI code', siOf(it),
+  if(siEligible(it)) acct.push(recF('si', siOf(it),
     recSel('setSi('+jsa(id)+',this.value)', 'Special Interest code for the 1A9A cash return',
       '<option value=""'+((siOf(it) || siRaw!==undefined)?'':' selected')+'>— none —</option>'
       // v2.00 (U57): its value is the text as saved, or the JSON of anything else -- String() threw on {"toString":null}
@@ -25039,14 +25070,14 @@ function recFields(id, it){
   if(acct.length){ F.push(recSec('Accounting lines')); acct.forEach(function(f){ F.push(f); }); }
 
   F.push(recSec('Where the money goes'));
-  F.push(recF('Goes to', destOf(it).to,
+  F.push(recF('dest', destOf(it).to,
     recSel('setDest('+jsa(id)+',&quot;to&quot;,this.value)',
       'Who receives this money first — a prime, or a government activity we MIPR to',
       '<option value=""'+(destOf(it).to?'':' selected')+'>— not logged —</option>'
       +flowEntsAZ().map(function(e){ return '<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k?' selected':'')
         +'>'+esc(e.n)+(e.kind==='gov'?' (gov)':'')+'</option>'; }).join(''))));
   if(destIsOgc(it))
-    F.push(recF('MIPR type', miprOf(id),
+    F.push(recF('mipr', miprOf(id),
       recSel('setMipr('+jsa(id)+',this.value)',
         'How this OGC is funded \u2014 Direct Cite or Reimbursable. The board records which; how and '
         +'when the money is sent is decided outside it.',
@@ -25060,7 +25091,7 @@ function recFields(id, it){
   // rule (BACKLOG entry 1) unsatisfiable for an 'other' destination. Same predicate as MIPR type
   // above, on purpose: the two are satisfied or waived together.
   if(destIsOgc(it))
-    F.push(recF('Which awards to', destOf(it).end,
+    F.push(recF('destEnd', destOf(it).end,
       recSel('setDest('+jsa(id)+',&quot;end&quot;,this.value)',
         'The ultimate recipient, when that activity awards our money on a commercial contract',
         '<option value=""'+(destOf(it).end?'':' selected')+'>— stops there —</option>'
@@ -25082,6 +25113,7 @@ function recBody(){
   if(!it) recOpen=null;                       // removed out from under the panel
   bg.className='modal-bg'+(recOpen?' open':'');
   if(!recOpen){ el.innerHTML=''; return; }
+  try{ const hd=document.getElementById('recHead'); if(hd) hd.textContent=FLI('rec').toUpperCase(); }catch(e){}   // v2.03 (item 20)
   const id=recOpen;
   // Prev / next walk the priority order, so a sweep down the board never needs the menu again.
   const ord=(S.order||[]).filter(function(x){ return !!itemById(x); });
@@ -26501,7 +26533,7 @@ function exportPPT(){
   setStat('📽 PowerPoint deck downloaded — built inside the SFWG/SFCB Membership template (its actual master, layouts, and markings).');
 }
 // ==============================================================================================================
-// §37  TEAM SUMMARY, BUY LINES, COMMAND BAR, MAIN RENDER, MENUS
+// §37  TEAM SUMMARY, BUY LINES, MAIN RENDER, MENUS
 // ==============================================================================================================
 function teamSummary(){
   const wrap=document.getElementById('teamWrap');
@@ -26662,121 +26694,11 @@ function buysPanel(){
     <div style="padding:2px 14px 10px;font-size:9px;color:var(--dim)">Both lines live in the requirement list below (gold dashed rows, ATL team) — drag them anywhere in the priority order; they tier, allocate, MC-flag, and export like any other requirement. Lock prices once agreed; quantities stay adjustable for the drill.</div>`;
 }
 
-// ================= COMMAND BAR (typed or spoken) =================
-let __cands=null, __act=null;
-function cmdSay(msg, ok){
-  document.getElementById('cmdOut').innerHTML =
-    '<span style="color:'+(ok===false?'var(--red)':(ok?'var(--green)':'var(--amber)'))+';font-weight:700">'+msg+'</span>';
-}
-function cmdMatches(name){
-  const q=(name||'').toLowerCase().trim();
-  if(!q) return [];
-  const scored=[];
-  S.order.forEach(id=>{
-    const it=itemById(id); if(!it) return;
-    const t=(dispTitle(it)+' '+it.title+' '+(it.event||'')+' '+ccarOf(it)).toLowerCase();
-    let sc=0;
-    if(t.includes(q)) sc=100+Math.min(40, Math.round(q.length*100/Math.max(1,t.length)));
-    else {
-      const words=q.split(/\s+/).filter(w=>w.length>1);
-      const hit=words.filter(w=>t.includes(w)).length;
-      if(words.length&&hit===words.length) sc=90;
-      else if(words.length&&hit) sc=Math.round(hit/words.length*70);
-    }
-    if(sc>0) scored.push({id, sc, title:dispTitle(it)});
-  });
-  scored.sort((a,b)=>b.sc-a.sc);
-  return scored;
-}
 function goRow(id){
   render(); flash(id);
   const el=document.getElementById('row-'+id);
   if(el&&el.scrollIntoView) el.scrollIntoView({block:'center', behavior:'smooth'});
 }
-function withReq(name, act, describe){
-  const cands=cmdMatches(name);
-  if(!cands.length){ cmdSay('No requirement matches "'+esc(name)+'"', false); return; }
-  const strong=cands.filter(c=>c.sc>=90);
-  if(strong.length===1 || (strong.length>1 && strong[0].sc>strong[1].sc+8)){
-    act(strong[0].id); return;
-  }
-  if(!strong.length && cands.length===1){ act(cands[0].id); return; }
-  __cands=cands.slice(0,4); __act=act;
-  document.getElementById('cmdOut').innerHTML =
-    '<span style="color:var(--amber);font-weight:700">Which one'+(describe?' — '+describe:'')+'?</span> '+
-    __cands.map((c,i)=>'<button type="button" class="nb chip" style="font-size:10px;padding:2px 8px" onclick="resolveCand('+i+')">'+esc(c.title.length>46?c.title.slice(0,46)+'…':c.title)+'</button>').join(' ');
-}
-function resolveCand(i){
-  if(__cands&&__act&&__cands[i]) __act(__cands[i].id);
-  __cands=null; __act=null;
-}
-function runCmd(text){
-  const raw=(''+(text||'')).trim();
-  if(!raw){ return; }
-  const c=raw.toLowerCase().replace(/[.?!]+$/,'').trim();
-  let m;
-  // move <req> to priority <n>
-  if(m=c.match(/^(?:move|put|rank|reprioritize|set)\s+(.+?)\s+(?:to|at|as)\s+(?:priority|rank|position|number|#)\s*(\d+)$/)){
-    const n=parseInt(m[2]);
-    withReq(m[1], id=>{ moveTo(id, n-1); cmdSay('✓ Moved "'+esc(dispTitle(itemById(id)))+'" to priority '+n, true); goRow(id); }, 'to move to priority '+n);
-    return;
-  }
-  // flag / unflag mission critical
-  if(m=c.match(/^(?:flag|mark|make|set)\s+(.+?)\s+(?:as\s+)?(?:mission[- ]critical|mc)$/)){
-    withReq(m[1], id=>{ S.mc[id]=true; save(); cmdSay('✓ ★ "'+esc(dispTitle(itemById(id)))+'" flagged Mission Critical', true); goRow(id); }, 'to flag ★ MC');
-    return;
-  }
-  if(m=c.match(/^(?:unflag|clear|remove)\s+(?:mc|mission[- ]critical)\s+(?:from\s+|on\s+)?(.+)$/) || (m=c.match(/^(?:flag|mark|make|set)\s+(.+?)\s+(?:as\s+)?not\s+(?:mission[- ]critical|mc)$/))){
-    withReq(m[1], id=>{ delete S.mc[id]; save(); cmdSay('✓ ★ removed from "'+esc(dispTitle(itemById(id)))+'"', true); goRow(id); }, 'to unflag');
-    return;
-  }
-  // allocate <req> to $X
-  if(m=c.match(/^(?:allocate|fund|set\s+allocation\s+(?:for|on)?)\s*(.+?)\s+(?:to|at)\s+\$?([\d.,]+\s*[kmb]?)$/)){
-    const amt=parseAmt(m[2]);
-    if(amt===null||Number.isNaN(amt)){ cmdSay('Could not read the amount "'+esc(m[2])+'"'+(Number.isNaN(amt)? ': '+esc(amtRead(m[2]).why) : ''), false); return; }
-    withReq(m[1], id=>{ if(S.fsrc[id]){ cmdSay('"'+esc(dispTitle(itemById(id)))+'" has a ⚙ funding-source override — its allocation is derived (D+M). Clear the override first.', false); return; } setAlloc(id, ''+amt); cmdSay('✓ Allocation on "'+esc(dispTitle(itemById(id)))+'" set to '+fM(amt), true); goRow(id); }, 'to allocate '+fM(amt));
-    return;
-  }
-  // restore allocation
-  if(m=c.match(/^(?:restore|reset)\s+(?:allocation\s+(?:for|on)\s+)?(.+?)(?:\s+allocation)?(?:\s+to\s+(?:full|requested|ask))?$/) && /allocation|full|requested|ask/.test(c)){
-    withReq(m[1], id=>{ if(allocLocked()) return; S.alloc[id]=null; save(); cmdSay('✓ "'+esc(dispTitle(itemById(id)))+'" restored to the requested amount', true); goRow(id); }, 'to restore');
-    return;
-  }
-  // force funding source
-  if(m=c.match(/^(?:force|push|source)\s+(.+?)\s+(?:to|into|as)\s+(discretionary|disc|mandatory|mand|ufr|unfunded|auto|lanes?)$/)){
-    const map={disc:'disc',discretionary:'disc',mand:'mand',mandatory:'mand',ufr:'ufr',unfunded:'ufr',auto:'',lane:'',lanes:''};
-    const mode=map[m[2]];
-    withReq(m[1], id=>{ setFsrc(id, mode); cmdSay('✓ "'+esc(dispTitle(itemById(id)))+'" funding source → '+(mode? mode.toUpperCase():'AUTO (lanes)'), true); goRow(id); }, 'to force '+m[2].toUpperCase());
-    return;
-  }
-  // set BA
-  if(m=c.match(/^set\s+(discretionary|disc|mandatory|mand)\s+(?:ba|budget|topline)\s+(?:to\s+)?\$?([\d.,]+\s*[kmb]?)$/)){
-    const amt=parseAmt(m[2]);
-    if(amt===null||Number.isNaN(amt)){ cmdSay('Could not read the amount'+(Number.isNaN(amt)? ': '+esc(amtRead(m[2]).why) : ''), false); return; }
-    const kind=m[1].startsWith('m')?'mand':'disc';
-    setBATot(kind, ''+amt);
-    cmdSay('✓ '+(kind==='disc'?'Discretionary':'Mandatory')+' BA set to '+fM(amt), true);
-    return;
-  }
-  // note
-  if(m=raw.match(/^(?:add\s+)?note\s+(?:on|to|for)\s+(.+?)\s*[:—-]\s*(.+)$/i)){
-    const txt=m[2].trim();
-    withReq(m[1], id=>{ S.notes[id]=txt; save(); cmdSay('✓ 📝 Note added to "'+esc(dispTitle(itemById(id)))+'"', true); goRow(id); }, 'for the note');
-    return;
-  }
-  // find / search
-  if(m=c.match(/^(?:find|search|show me|where is)\s+(.+)$/)){
-    document.getElementById('q').value=m[1]; render();
-    cmdSay('🔍 Filtered the list to "'+esc(m[1])+'" — clear the search box to see everything.', true);
-    return;
-  }
-  if(c==='help'||c==='?'){
-    cmdSay('Try: "Move &lt;name&gt; to priority 15" · "Flag &lt;name&gt; mission critical" · "Force &lt;name&gt; to UFR / disc / mand / auto" · "Allocate &lt;name&gt; to 12M" · "Set disc BA to 4.7B" · "Note on &lt;name&gt;: text" · "Find &lt;name&gt;"');
-    return;
-  }
-  cmdSay('Didn\'t understand that — type "help" for examples.', false);
-}
-let __rec=null;
 let ptypeFilter='';   // '' | 'PRIME' | 'OGC' — consolidated cross-PMO views
 let hardOpen=false, hardSnap=null, hardCtx=null;
 function toggleHard(){
@@ -26889,7 +26811,6 @@ function render(){
     const changed = a!==null&&a!==undefined;
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
-    const showDetail = svcAll || open[id];
     // ── v1.90 (item 27): THE ROW ───────────────────────────────────────────────────────────────────
     // It draws rank, PMO, the title with ONE quiet line under it, the band, the money and the lane, ★ and ⋯.
     // THE RULE (v1.91, item 32; the same words in AGENTS.md and CLAUDE.md): The row is for triage. Its direct
@@ -26909,7 +26830,7 @@ function render(){
     const _amt=(v,k)=>`<div class="amt ${v>0.005? k : 'z'}">${v>0.005? fM(v) : '—'}</div>`;
     // the exceptions ride at the end of the quiet line, pinned so a long record name cannot push them out
     const _exc=[];
-    if(_bd && _bd.consReq && !(((S.cons||{})[id]||'').trim())) _exc.push(['⚠','Impact statement required','','impact']);
+    if(_bd && _bd.consReq && !(((S.cons||{})[id]||'').trim())) _exc.push(['⚠',FL('cons')+' required','','impact']);
     if(ndData().ids[id]) _exc.push(['▲',fMc(ndData().ids[id])+' not drawn','',fMc(ndData().ids[id]),ndRowTip(id).join('\n')+'\nThe fix list is under Needs attention, at the top.']);
     if(S.mc[id] && _u>0.005) _exc.push(['★','MC short '+fM(unfTotOf(it,t)),'red','MC short']);
     const _excH=_exc.map(e=>`<span class="exc ${e[2]}"${e[4]? ' title="'+esc(e[4])+'"' : ''}>${e[0]} ${esc(e[1])}</span>`).join('');
@@ -26951,7 +26872,6 @@ function render(){
       ${brief? '' : `<div class="mcc"><button class="mcb ${S.mc[id]?'on':''}" aria-pressed="${S.mc[id]?'true':'false'}" aria-label="Mission Critical" onclick="S.mc[${jsa(id)}]=!S.mc[${jsa(id)}];save();render()" title="★ Mission Critical — this must be paid this year${S.mc[id]?' (on — click to clear)':''}">${S.mc[id]?'★':'☆'}</button></div>
       <div class="morec">${rowMenuHtml(it)}</div>`}
       ${clinApplies(id)&&clinOpen[id]&&!brief? clinTable(it):''}
-      ${consOpen[id]? consBox(it):''}
     </div>`;
   });
   if(!h) h='<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
@@ -27316,7 +27236,7 @@ function syncBtns(){
     mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn');
   const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
   const bv=document.getElementById('b_view_t');
-  if(bv) bv.textContent='Filter'+(nFilt?' ●'+nFilt:'')+(svcAll?' ☰':'')+' ▾';
+  if(bv) bv.textContent='Filter'+(nFilt?' ●'+nFilt:'')+' ▾';
   // ── THE PMO MENU ────────────────────────────────────────────────────────────────────────────
   // THE BUTTON SAYS WHAT IS SELECTED. The chips it replaced were visible at a glance; a menu is
   // not, so the selection has to be on the face of it or the board silently shows one office's
@@ -27366,13 +27286,11 @@ function syncBtns(){
       mi('⚙ Manage programme offices…',"mRun(togglePmo)",pmoOpen,
          GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — add, rename, reorder')+
       mi('⇄ Reassign a requirement…',"mRun(pmoReassignHint)",false,
-         'open any requirement’s 📋 Requirement edit and set its PMO there')+
+         'open any requirement’s '+FLI('rec')+' and set its PMO there')+
       ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
         +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render()",false,'clear this selection') : '');
   })();
   document.getElementById('dd_view').innerHTML=
-    '<div class="mlbl">Display</div>'+
-    mi('☰ By-service detail on every row',"svcAll=!svcAll;render()",svcAll)+
     // v1.96 (item 65): the filters fold into Funding and Service; the heading says what is on
     '<div class="msep"></div>'+
     grp('view','fund','Funding',
@@ -30174,7 +30092,6 @@ function reorder(list, id, idx){
   list.splice(idx,0,id);
   save(); render(); flash(id);
 }
-function moveTo(id, idx){ reorder(S.order, id, idx); }
 function setRank(id,val){
   const r=parseInt((''+val).replace(/[^0-9]/g,''));
   if(!r||r<1){ render(); return; }
@@ -30261,7 +30178,6 @@ function setFsrc(id,val){
   if(!val){ delete S.fsrc[id]; save(); render(); flash(id); return; }
   if(val==='split'){
     if(!seedSplit(id)) S.fsrc[id]={m:'split', dv:SVC.map(_=>0), mv:SVC.map(_=>0)};
-    open[id]=true;                    // open the detail so the per-service amounts can be edited
   } else {
     S.fsrc[id]={m:val};
   }
@@ -32212,14 +32128,9 @@ syncAddPanel();
 // §42  GRID INSPECTOR, FOCUS, DIALOGS AND THE BOOT RENDER
 // ==============================================================================================================
 /* ================= THE DOCKED INSPECTOR ======================================================
-   (v2.00: the card build and tools/parity.mjs named below were retired in v1.88; this is the one build.
-   The wrapping is kept as it is.)
-   This whole section is ADDED code. Nothing above it is edited, and that is deliberate: the
-   inspector hangs off render() by wrapping it rather than by rewriting it. Editing render()
-   would mean every future change to the card build's row template had to be re-merged by hand
-   into a function that had already diverged. Wrapping keeps render() byte-identical in both
-   builds — tools/parity.mjs proves that on every run — so a change made to the card build copies
-   straight across with no merge at all.
+   The inspector hangs off render() by wrapping it (renderBoard, below). That was chosen when render()
+   had to stay byte-identical with the card build's; the card build was retired in v1.88, and the
+   wrapping stays because the board renders before this section has been read (see renderBoard).
 
    The inspector is a second VIEW of the selected row, never a second copy of its data: every
    figure below comes from the same accessor the row itself calls, so there is no path by which
@@ -32305,7 +32216,6 @@ function gridAfterRender(){
   const ids = gridIds();
   if(!ids.length){ curRow = null; }
   else if(!curRow || ids.indexOf(curRow) < 0){ curRow = ids[0]; }
-  gridDedupe();
   gridMark();
   inspectorBody();
   gridSticky();
@@ -32338,26 +32248,6 @@ window.addEventListener('resize', function(){ try{ inspSplitFit(); }catch(e){} }
 (function(){ try{ const p = document.getElementById('inspector'); if(!p || typeof ResizeObserver !== 'function') return;
   let w = -1; new ResizeObserver(function(){ const n = p.clientWidth; if(n !== w){ w = n; try{ inspSplitFit(); }catch(e){} } }).observe(p);
 }catch(e){} })();
-// The row is for TRIAGE: rank, star, band, lifecycle. Every edit of the selected requirement
-// belongs on the RECORD inspector, so the handlers that made the row a second editor are stripped
-// here rather than by forking render() (once shared with the card build, retired in v1.88); this is
-// presentation, not logic.
-//
-// Stripping onclick does NOT make these dead: the click bubbles to the document-level delegate
-// that selects the row, so clicking a chip takes you to the field on the right.
-function gridDedupe(){
-  const list = document.getElementById('list'); if(!list) return;
-  // the row expander's button: the expander renders nothing in this build
-  list.querySelectorAll('button.qb[onclick^="toggleDetail("]').forEach(function(b){ b.remove(); });
-  // title, CCaR and PID: the inspector owns all three
-  list.querySelectorAll('[onclick^="toggleDetail("],[onclick^="editTitle("],'
-    + '[onclick^="editCcar("],[onclick^="editPid("]').forEach(function(el){
-    el.removeAttribute('onclick');
-    el.style.cursor = 'default';
-    if(el.classList.contains('tedit')) el.remove();   // the pencil is an editor and nothing else
-  });
-}
-
 function inspField(label, value, cls){
   return '<div class="insp-f ' + (cls||'') + '"><div class="fl">' + label + '</div>'
        + '<div class="fv">' + value + '</div></div>';
@@ -32503,8 +32393,8 @@ function inspectorBody(){
     // hidden"). They sat last, under "Open on the row", below the fold on a laptop for every
     // requirement -- the impact statement included, the one field the PMO workflow exists to collect.
     // Each button says its own state, so an unwritten one reads amber without opening anything. The
-    // impact handler is spelled the way the card build's row chip spells it, so one mutation covers
-    // that route in both builds.
+    // impact handler keeps the entity-quoted spelling the retired card build's row chip used, which
+    // the mutations aimed at this route search for.
     + (function(){
         const w=((S.cons||{})[id]||'').trim(), dsc=((S.desc||{})[id]||'').trim(), nt=((S.notes||{})[id]||'').trim();
         const _b=BAND_OF(id), _req=(_b!==null && BAND_DEF(id).consReq);
@@ -32516,14 +32406,14 @@ function inspectorBody(){
                 w? 'what happens if this is not funded \u2014 click to edit'
                  : (_req? 'this band requires a statement of what happens if it is not funded'
                         : 'say what happens if this is not funded'),
-                '\u26a0 Impact statement', w? 'written' : (_req? 'required \u2014 not written' : 'not written'))
+                FLI('cons'), w? 'written' : (_req? 'required \u2014 not written' : 'not written'))
           + act('onclick="toggleDesc('+jsa(id)+')" ', false,
                 'the description and the note, in one pop-up \u2014 each kept as its own field',
-                '\ud83d\udcc4 Description & note',
+                FLI('dn'),
                 (dsc&&nt)? 'both written' : (dsc? 'description written' : (nt? 'note written' : 'both empty')))
           + act('onclick="toggleRec('+jsa(id)+')" ', C.un>0,
                 'what this requirement is: PMO, category, WBS, destination, budget per service\u2026',
-                '\ud83d\udccb Requirement edit', C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set')
+                FLI('rec'), C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set')
           + '</div>'; })()
     + '<div class="insp-g">'
       + cycDeltaInsp(id)
@@ -32624,7 +32514,12 @@ document.addEventListener('keydown', function(e){
   if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'});
 });
 
-const _renderCards = render;
+// THE BOARD'S render() IS TWO PARTS: renderBoard() draws the rows, the tiles and the panels; the wrapper below keeps the
+// keyboard's place and then draws the RECORD panel (gridAfterRender). Until v2.03 the first part was called _renderCards,
+// from when it was shared with the retired card build. The wrapper stays a reassignment rather than becoming one function
+// declaration on purpose: the board renders while this script is still being read, before the RECORD panel's code and the
+// lets it reads exist, and a hoisted declaration would run that code then (the dead-zone throw the BANDS_STD rule names).
+const renderBoard = render;
 /* v1.92 (item 36): A REDRAW DOES NOT THROW AWAY THE KEYBOARD'S PLACE. render() rebuilds most of the board
    as markup, so the control a keyboard user just pressed -- a fit chip, Funding detail, a row's ⋯ -- was
    replaced by a copy of itself and focus fell back to the top of the page. Before a redraw this notes where
@@ -32875,7 +32770,7 @@ try{ dlgInit(); }catch(e){}
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
 render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   _diagSec=null;                            // v1.92 (item 18): a message after this is cleaned against what is on screen now
-  _renderCards.apply(this, arguments);
+  renderBoard.apply(this, arguments);
   try{ focusRestore(fm); }catch(e){}
   try{ gridAfterRender(); }
   catch(e){
@@ -33139,7 +33034,7 @@ if(_bootRestoreErr){
     +'since then as well \u2014 by <b>'+esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))+' \u2014 and what is on screen '
     +'does not have those changes. \ud83d\udcbe Save will ask before it writes over them; to take theirs instead, \u2b05 Import the file.');
 } else if(_impRep){                         // what a full import brought, now that it is open
-  setStat(_impRep); _impRep=null; _impSaid=true;
+  statKeep(_impRep); _impRep=null; _impSaid=true;   // v2.03 (item 19): the import's report stays until it is read
 } else if((function(){ try{ return attLists().awfix.length; }catch(e){ return 0; } })()){
   // v1.95 (item 53): awards the saved file held in a shape the board could not use, repaired on opening and kept
   // with the record as it was found -- said on every opening until each is marked checked, like the bands below
@@ -34055,7 +33950,7 @@ async function uiSubMany(inp){
     out.taken++;
   }
   out.ok=true;
-  try{ setStat('✉ '+P.length+' submittal'+(P.length===1?'':'s')+' loaded together, in the order picked: <b>'
+  try{ statKeep('✉ '+P.length+' submittal'+(P.length===1?'':'s')+' loaded together, in the order picked: <b>'
     +esc(P.map(function(p){ return subFrom(p.pkg); }).join(', '))+'</b>. <b>Nothing has been applied.</b> '
     +PMOSUBS.length+' held for review.'); }catch(e){}
   try{ subOpenReview(); }catch(e){}

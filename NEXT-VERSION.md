@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.02**. Next: **v2.03**.
+Current version: **v2.03**. Next: **v2.04**.
 
 ## Open
 
@@ -106,6 +106,20 @@ Current version: **v2.02**. Next: **v2.03**.
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
   CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
   Not in the v2.00 code build; it follows once they answer.
+- **Brad, 21 Oct 2026 (answers that move this item):** hosting is **Azure, web-based**; the data is **unclassified CUI**; the
+  interim pilot restrictions stand for now; and on how strictly to read the requirements, **"err on the side of
+  caution"** -- so every control is treated as applying unless the security team rules it out, a partial is recorded
+  as a gap, and the hosted design aims at the stricter cloud level the security team names (the handoff says IL5) rather
+  than the least that might pass. The plan that follows from these is items 106 and 107; the traceability table itself
+  stays outside git (CUI).
+- **The security team's request (9 Oct 2026, shown by Brad on 21 Oct):** apply the standards above "to ensure this is
+  compatible in the DoD IL5 Azure environment and meets or exceed the DoD Zero Trust requirements". So the level is
+  **IL5** (not IL4), and **DoD Zero Trust** is a requirement in its own right. A file that is its own database, opened
+  from a shared drive and mailed as a PMO copy, cannot meet Zero Trust: there is no identity on each request, no device
+  check, and the data travels whole outside any control. Zero Trust is therefore met by the Azure build (item 107).
+- **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
+  requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
+  interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
 
 #### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
 - **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
@@ -127,29 +141,50 @@ Current version: **v2.02**. Next: **v2.03**.
   the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
   **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
+#### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
+- **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
+  sanitization cannot be built into a file on a shared drive. On Azure they come from the platform -- if the design
+  uses them.
+- **What (design first, for Brad and the security team to approve before any build):** sign-in through enterprise
+  identity (CAC), with roles for viewer, office editor and portfolio team; every change written to the enclave's central
+  log; data held server-side, encrypted, backed up; the provider's sanitization for storage. The money engine, the
+  exports and every check carry over: the suites, the trace matrix, the money map and the fuzz become the rebuild's
+  regression net. "The file is its own database" ends here; the saved-file format stays readable so every board people
+  hold today can be brought in.
+- **Zero Trust, pillar by pillar (the security team's 9 Oct request):** every request signed in and authorized, never
+  trusted for being inside the network (user); only managed, compliant devices (device); the app reachable only through
+  the enclave, no public endpoint (network); the data labelled CUI, encrypted under keys the program controls, and every
+  export marked and logged (data); every access and change sent to the enclave's monitoring (visibility); and the
+  deployment and its checks automated (automation). **The PMO copy changes most:** in place of a whole-portfolio file
+  mailed to each office, an office signs in and sees and edits only what its role allows, and its submittal is a change
+  held for review on the server.
+- **Depends on:** the controls the IL5 environment provides (what is inherited), the security team's Zero Trust target
+  for this system, and the hosting milestones.
+- **Brad, 21 Oct 2026:** *"Let's start working a plan and drafting it so that when we're ready to execute it we're
+  ready."* Design and execution plan, draft 1, written that day and given to Brad as a file. It is kept OUTSIDE git (it
+  describes the security design of a CUI system). Its shape, for the record: re-host the current interface first, then
+  move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
+  line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
+  D+180, then cutover after authorization); eight questions for the security team.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
 
-#### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
-  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
-  read it.
-- **What:** one helper for status-line messages that keeps an important one (an import's result, a
-  refusal, a warning) until it is read, instead of letting the next message replace it; import and
-  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
-  they are the data-loss guards and must keep stopping the user.
-
-#### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
-  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
-  went hollow when one name changed in one place and not another.
-- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
-  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
-  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
-  Later versions extend it as fields are touched, never as a big-bang rewrite.
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
 
 #### Considered and not recommended
 - **Rewriting the board into separate modules**, and **making the money engine take its inputs as
@@ -189,6 +224,93 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.03 — 21 Oct 2026: cleaner code -- items 104, 105, 19 and 20, built on Brad's "go" of 21 Oct ("Build before": ahead of the sweep)
+
+Brad, 21 Oct 2026: *"I would like to optimize our code"*, then **cleaner code** (over faster edits, faster test runs and a
+smaller file), all four items, and **build before** the scheduled sweep. Measured first, for the record: opening a 120-
+requirement board takes 1.0–1.6 s and a save about 20 ms; a full redraw takes about 100–180 ms at 120 requirements and
+300–560 ms at 300, nearly all of it rebuilding and laying out every row. That is not in this version.
+
+#### 104. Code nothing can reach -- removed
+- Traced with a real parser from the code that runs and every handler in the markup: 1,604 of 1,619 functions reachable.
+- **Removed:** the command bar (`runCmd`, `cmdMatches`, `withReq`, `resolveCand`, `cmdSay`, `__cands`, `__act`, `__rec`;
+  `goRow` stays, others use it), `setBATot` and `moveTo` (reached only from it), `chipBg`/`bandInk` (unused since v1.90
+  drew the band as a swatch), `srcBudget`, `inboundCheckDest`. 154 lines. §37's banner no longer names the command bar.
+- **Kept, as built:** the four functions only the tests call (`saveInPlaceFile` -- the refusal-first wrapper 64 checks
+  drive -- `svcTable`, `setAwdDate`, `toggleNote`). Moving the tests onto other paths is risk for no gain.
+- **Checks:** audit-board's item-72 block (a typed budget total, through `setBATot`) and the command bar's amount check,
+  and audit-recon's two typed-total lines, went with the code; each says so where it stood. The per-service base
+  (`bmSetBase`) keeps its own checks.
+- **Mutations:** `v197w1-ba-scaled`, `v197w1-guard-setBATot`, `v197w1-guard-runCmd` retired as obsolete (a comment where
+  each stood); `src-budget-made-up` retargeted (its replacement wrote `srcBudget`, now inlined) and proven caught.
+
+#### 105. The card build's leftovers -- removed
+- The guide's five card-only paragraphs and spans; every `data-b` is gone, and `helpSections` no longer filters.
+- `fldHasPanel()`, `consOpen`/`consBox` (the row's own impact box), the row expander's state `open[]` and `toggleDetail`,
+  the `typeof setCur` fallbacks, and the Filter menu's **☰ By-service detail on every row** with `svcAll` -- it set a
+  flag only the card's rows read; in the grid it did nothing. The Filter menu opens with 2 entries, not 3.
+- `gridDedupe()`: it stripped handlers `render()` stopped drawing in v1.90, so it did nothing.
+- **Built differently from the log, and why:** `render()` keeps its wrapper. The inner part is renamed `renderBoard`
+  (was `_renderCards`); it is not folded into one declaration, because the board renders while the script is still being
+  read (`applyStore` at top level), before the RECORD panel's code and `let`s exist -- a hoisted declaration would run it
+  there. The comment says so.
+- Stale "both builds" comments rewritten; CLAUDE.md's size line (34,000 lines, 4.0 MB) and its card-leftovers and
+  `bandInk` notes updated.
+- **Checks changed:** audit-board's pop-up routing (no row fallback to test), audit-import's guide check (now: no section
+  carries `data-b` or the card's ⊞ SVC), the not-drawn check (the RECORD panel only), editors-reachable (selects the
+  row), keyboard-reach G (drives Fully discretionary only in place of the ☰ item), the Filter menu count (3 -> 2).
+- **Mutations:** `help-both-builds` retired as obsolete; `att-go-not-selected` retargeted and proven caught.
+
+#### 19. One way to tell the user -- a message that matters stays until it is read
+- Every message still goes through `setStat`. Each is also kept, for this session, in `STAT_LOG` (60, newest last; an
+  unread one is never dropped for a newer one). A warning or refusal (`diagIsWarn`, the test Save diagnostics uses) or an
+  import's result (`statKeep`, at the eleven places an import reports what it took) is **kept unread** until More, its ✕,
+  or the message list opens it. While a later message is on the line, **⚠ N unread** (`#statKeep`) beside it says so and
+  opens **Messages this session** (`#msgPanel`), unread first. The list shows each message as text: an old message's
+  buttons must not act on the board as it is now. The quiet start-up line is never unread.
+- **Brad, 21 Oct 2026 ("session log, not file"):** the log said import and export failures should also go into the change
+  journal. That would make a refused import change the board, against "Nothing on this board was changed" and the
+  hostile suite's byte-identical store. So nothing is written into the board or the journal; the list is the tab's.
+- Confirm prompts are unchanged.
+- **Checks:** audit-board "v2.03 — a message that matters stays until it is read (item 19)": ordinary messages, a
+  warning alone and replaced, the list and its headings, More, ✕, an import result, the quiet line, 70 later messages, a
+  refused import (kept, store byte-identical), and nothing in the saved file. `panels-render` opens the list (and found
+  that it had no opener until one was given -- a box nobody can reach fails there by design).
+- **Mutations:** nine `v203-19-*`, each caught by its check.
+
+#### 20. One place for each field's name (first slice)
+- `REQ_FIELD` names every requirement field once (key -> label, and an icon for the three written fields); `FL(k)` and
+  `FLI(k)` read it. Declared early: the board draws its rows while the script is read. **Read by:** `recFields`
+  (`recF` takes the key; each field carries `k`), `PMO_FIELDS`, the proposal gate (`PROPOSAL_MANDATORY` and
+  `pmoProposalGate`, which now matches on the key, never a label), the pop-ups' titles (`FLD_DEF`, read each time, not
+  once at load), 📋 Requirement edit's heading, the RECORD panel's three buttons, the row's "required" flag, the Needs
+  attention text and two messages, and the guide (`data-fl`, filled in `helpSections`).
+- **Checks:** `npm run check` "field labels" refuses a `recF()` given a label, a `PMO_FIELDS` row spelling one, and the three
+  written fields' names spelled anywhere in the program or the guide but the registry (proven on three planted
+  mistakes). audit-board "v2.03 — a requirement’s fields are named in one place (item 20)" renames five fields at runtime
+  and every surface must follow -- it found the pop-up titles fixed at load, fixed in this version.
+- **Mutations:** seven `v203-20-*`, each caught; six retargeted to the registry (`proposal-gate-open`,
+  `second-hop-gov-only`, `fld-dn-note-first`, `fld-impact-old-name`, `rec-old-name`, `v198-record-ignores-clins`).
+
+#### Found on the way: two browser checks failing on v2.02 itself
+`keyboard-reach` G2 expected seven Excel workbooks and `left-menu` A 69 calls -- v2.01's counts. v2.02 removed the
+ATR/BTR Log workbook and its two calls; both checks failed on `main` (`b68b319`) and nobody saw, because `verify:grid` stops
+at `layout` (the 8 carried D results) before reaching them. Corrected to six and 67.
+
+#### Mutation targets
+2,083 at v2.02; less 4 retired, plus 16 new: **2,095**, each matching the board once (`mcount`). Every new and retargeted
+target was built with `mkmut.py` and run against its suite: all caught.
+
+#### The gate that passed v2.03 (21 Oct 2026, 5:50–6:30 PM Eastern, on the final board)
+`npm run validate:nightly`, the sweep not run (by rule): defect register (13 defects, 43 guarding mutations), coverage
+25/25, money map 322 cells (120 proven, 202 n/a, 0 open), trace matrix 92 cells, suites clean (9 banners and the legacy
+line, 32.4 min), fuzz nothing lost (seed 961322163), file verifier self-test held; the browser stage failed on the 8
+carried layout-fits D results only. Run after it, by hand: `keys`, `dropdowns`, `leftmenu`, `standards` (0 findings) and
+`dialogs` (46 boxes; after its opener for the message list was added) all pass. Mutation proofs, one at a time: 22 against
+audit-board, `src-budget-made-up` against audit-other, `proposal-gate-open` against its audit-import block (7 of 35
+checks fail on the mutant, none on the board). **The full sweep is still to run (A1), now over 2,095 targets.**
+
 
 ### v2.02 — 21 Oct 2026: saves and loads that never lose work, a locked cycle that is report and view only and keeps its own lists, ATR/BTR removed, exact office cells -- built on Brad's goes of 20 and 21 Oct, shipped on his "go" of 21 Oct
 

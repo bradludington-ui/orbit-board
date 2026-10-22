@@ -126,9 +126,8 @@ for (const [f, file] of Object.entries(made)) {
     await p.waitForFunction(()=>typeof render==='function' && document.querySelectorAll('.row').length>0,
       null, {timeout:30000});
     const font = standin(f) ? await standinProblem(p) : null;
-    // Open the editor the way a person does: select the row in grid, open the detail in card.
-    if (grid) { await p.click('#row-R003'); }
-    else { await p.evaluate(()=>toggleDetail('R003')); }
+    // Open the editor the way a person does: select the row.
+    await p.click('#row-R003');
     await settle(p);
     const r = await p.evaluate(()=>{
       const vis = el => { if(!el) return false; const c=el.getBoundingClientRect();

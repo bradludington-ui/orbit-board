@@ -1,7 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
-~19,500 lines, 2.8 MB, no dependencies of any kind. It runs from a shared drive or a `file://` URL
+about 34,000 lines, 4.0 MB (1.6 MB of it the PowerPoint template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
 ## One build: `prioritization-board-grid.html` (since v1.88)
@@ -21,12 +21,14 @@ comparison into a check of the grid against its own recorded list (`tools/row-co
 
 What that leaves behind, on purpose:
 
-- **Card-only code paths in the grid file.** `render()` still draws the card row template and the grid
-  wraps it (`const _renderCards = render; render = function(){ _renderCards.apply(this, arguments);
-  gridAfterRender(); };` -- since v1.89 a `gridAfterRender` that throws empties the RECORD panel and
-  says so, rather than leaving the previous figures standing); the in-file guide still carries paragraphs marked `data-b="card"` that the
-  grid never shows; comments still say "both builds". They are unreachable or harmless and were left
-  alone in v1.88 — removing them is risk for no visible gain. Take them out as a version of their own.
+- **Card-only code paths in the grid file -- taken out in v2.03 (item 105).** v1.88 left them, as risk for no
+  visible gain, to go as a version of their own: the guide's `data-b="card"` paragraphs, `fldHasPanel()` and the row
+  expander behind it (`consOpen`, `open[]`, `toggleDetail`, the Filter menu's ☰ By-service detail, which only the
+  card's rows read), and `gridDedupe()`, which stripped handlers `render()` no longer drew. `render()` is still
+  wrapped -- `const renderBoard = render; render = function(){ … renderBoard.apply(this, arguments); …
+  gridAfterRender(); }` -- on purpose: the board renders while the script is still being read (`applyStore` at
+  top level), before the RECORD panel's code and its `let`s exist. Since v1.89 a `gridAfterRender` that throws
+  empties the RECORD panel and says so.
 - **The saved format is shared.** A board saved by any card build opens in the grid: the full-import test
   (`audit-import.mjs`, "a full board comes across whole") builds files written by the v1.80, v1.83,
   v1.85 and v1.87 card builds, and by the v1.87 grid, from this project's history and imports each one.
@@ -2008,6 +2010,11 @@ takes most of a day on this container, and an unattended one started mid-work ha
 Why not drop the sweep: about 880 targets added in v2.00 and v2.01 have been proven only one at a time, against their own check,
 never as a set. Brad's plan (20 Oct): once v2.01 is on `main`, sweep those first; a full sweep before the hosted rebuild.
 
+**Show only what changed (Brad, 21 Oct 2026).** When a sweep runs, and whenever a mutation or any other modification is
+applied, report only the specific lines that changed, or a unified diff block. Never rewrite the unchanged parts of a
+file or reprint a whole script. A mutant is its id, its find string and its replacement (what `mkmut.py` prints), never
+the board; a suite or tool edit is its diff.
+
 **The nightly Routine runs every stage but the sweep**: `npm run validate:nightly` (`validate-math.mjs --no-sweep`), whose pass line
 says the sweep was not run, so a nightly pass is never read as one that proved the checks bite. The Routine ("Nightly ORBIT math
 validation (no sweep)", 07:00 UTC) was rewritten on 20 Oct: the night before, it ended its turn 44 seconds into a full sweep. The
@@ -2281,8 +2288,10 @@ floor, `#ff6b81` measured 1.85:1. Section 508 adopts that floor by reference, so
 conformance failure rather than a preference.
 
 `readableOn(hue, bg, need)` keeps the hue and walks its lightness toward whichever end the ground
-allows until it clears the floor, stopping at the first step that does; `bandInk(c)` applies it
-against `--panelA`, which is opaque in all five themes and so can be read straight off the token.
+allows until it clears the floor, stopping at the first step that does; `bandInk(c)` applied it
+against `--panelA`, which is opaque in all five themes and so can be read straight off the token. (Since v1.90 the
+row draws the band as a swatch and its name in ordinary ink; nothing called `bandInk` after that, and v2.03 removed it.
+`readableOn` stays: the swatch still uses it.)
 **The variant is derived, never hand-picked.** A second colour per band per theme would be five
 values to keep in step — and an office that adds its own band, which ⚖ Bands exists to let them do,
 would get none of it. The band still reads as itself; it stops being invisible.
@@ -4133,6 +4142,42 @@ seal, and a row that carried only the PLACE of a removed service is given that s
 The feature's checks went with it (audit-recon "the reprogramming log", the five W5 log scenarios, "v1.99 item 87", the ATR
 parts of W7 F1; audit-import NR03, W5.7, item 95's share and U13's share); the carry checks stay, the W2 unsaved-list check
 now changing the log through `persistRp`. 27 mutations retired as obsolete, 3 retargeted, 1 new.
+
+### v2.03: cleaner code -- what nothing could reach, the card leftovers, one message line, one field registry
+
+Brad, 21 Oct 2026: *"I would like to optimize our code"*, then **cleaner code**, all four items, built before the sweep.
+`NEXT-VERSION.md` › Shipped › v2.03 has every detail.
+
+**Unreachable code is found by a call graph, not by a name count** (item 104). Counting references found nothing dead:
+every function was named somewhere, often only in a comment or by another dead function. A parser-based trace from the
+top-level code and every handler in the markup found 15. The command bar, `setBATot`, `moveTo`, `chipBg`/`bandInk`,
+`srcBudget` and `inboundCheckDest` went; four functions only the tests call stay as the tests' entry points.
+
+**The card build is gone from the code too** (item 105): the guide's `data-b`, `fldHasPanel`, the row expander's state,
+the Filter menu's ☰ By-service detail (which only the card's rows read), and `gridDedupe`. `render()` keeps its wrapper
+(`renderBoard`, then the RECORD panel) on purpose -- see the note at the top of this file.
+
+**A message that matters stays until it is read** (item 19). `setStat()` is still the one way to say something. Every
+message is also kept for the session in `STAT_LOG`; a warning or refusal (`diagIsWarn`) or an import's result
+(`statKeep`) is kept UNREAD until More, its ✕, or the list opens it, and **⚠ N unread** (`#statKeep`) beside the line opens
+**Messages this session** (`#msgPanel`). The list is the tab's and never the board's: nothing goes into the file or the
+journal (Brad: "session log, not file"), so a refused import still changes nothing. Shown as text, so an old message's
+buttons cannot act on the board as it is now. **A new import's result goes through `statKeep()`, not `setStat()`.**
+
+**A requirement's fields are named in one place** (item 20). `REQ_FIELD` (declared early, beside `PMODE`, because the
+board draws its rows while the script is still being read) maps each field's key to its label; `FL(k)` and `FLI(k)` (with
+the icon) read it. `recF()` takes the KEY and each field carries `k`; code compares keys, never labels (the proposal gate
+used to match labels, which is how a test goes hollow on a rename). The guide names a field with
+`<span data-fl="key">` (`data-fi` for the icon), filled by `helpSections`. `npm run check` "field labels" refuses a
+`recF()` given a label, a `PMO_FIELDS` row that spells one, and the three written fields' names spelled anywhere outside
+the registry; audit-board renames fields at runtime and every surface must follow. **A new field gets a `REQ_FIELD` entry
+first; a new surface that names a field reads `FL()`.** The registry is a first slice: other labels are moved onto it as
+they are touched, never as a big-bang rewrite.
+
+**Two browser checks had been failing since v2.02 unseen.** `keyboard-reach` G2 and `left-menu` A still expected the
+ATR/BTR workbook and its two calls. `verify:grid` stops at `layout` (the 8 carried D results), so nothing after it runs
+in the nightly gate: **run `keys`, `dropdowns`, `dialogs`, `leftmenu` and `standards` yourself** after a change that moves
+a menu or an export.
 
 ## Colour: one token, one job
 

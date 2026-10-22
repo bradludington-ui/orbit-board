@@ -1243,8 +1243,8 @@ const MUTATIONS = [
   { id: 'proposal-dropped', area: 'pmoTake', what: 'a proposed requirement arrives and is never offered for review',
     find: "  held.added=(pkg.added||[]).slice();", repl: "  held.added=[];" },
   { id: 'proposal-gate-open', area: 'pmoProposalGate', what: 'a proposal with mandatory fields blank can be sent',
-    find: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');\n  return miss;",
-    repl: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');\n  return [];" },
+    find: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));\n  return miss;",   // v2.03: the label is FL()'s
+    repl: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));\n  return [];" },
   { id: 'proposal-double-add', area: 'pmoTakenAs', what: 'the same submittal imported twice adds the requirement twice',
     find: "  return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;",
     repl: "  return null;" },
@@ -1263,8 +1263,8 @@ const MUTATIONS = [
     find: "  return matRows().filter(function(it){ return !B.applies || B.applies(it); });",
     repl: "  return matRows();" },
   { id: 'second-hop-gov-only', area: 'recFields', what: 'the second-hop control is offered only for a gov destination, so an other-kind OGC can never satisfy the completeness rule',
-    find: "  if(destIsOgc(it))\n    F.push(recF('Which awards to', destOf(it).end,",
-    repl: "  if(destOf(it).to && (flowEnt(destOf(it).to)||{}).kind==='gov')\n    F.push(recF('Which awards to', destOf(it).end," },
+    find: "  if(destIsOgc(it))\n    F.push(recF('destEnd', destOf(it).end,",   // v2.03: recF takes the field's key
+    repl: "  if(destOf(it).to && (flowEnt(destOf(it).to)||{}).kind==='gov')\n    F.push(recF('destEnd', destOf(it).end," },
 
   // ---- the buy lines: seated at boot, and only once -----------------------------------------------
   { id: 'buy-lines-repushed', area: 'boot', what: 'the aircraft buy line is seated again on every reopen of a saved board',
@@ -1318,7 +1318,7 @@ const MUTATIONS = [
     repl: "      r[4]=(svc && budReg().length)? budForRow(id, svc, 'disc') : '';" },
   { id: 'src-budget-made-up', area: 'srcRowsOf', what: "with no BAE list the Budget cell prints a made-up name CCaR rejects",
     find: "      r[4]=(svc && budReg().length)? budForRow(id, svc, lane||'disc') : '';",
-    repl: "      r[4]=svc? (budReg().length? budForRow(id, svc, lane||'disc') : srcBudget(svc)) : '';" },
+    repl: "      r[4]=svc? (budReg().length? budForRow(id, svc, lane||'disc') : svc+' '+(APPN_LBL[mySlug()]||'')) : '';" },  // v2.03: srcBudget is gone; the made-up name is written in place
   { id: 'src-no-warning', area: 'exportSrc', what: "a file with blank budgets is written without a word",
     find: "    if(!confirm(msg)){ setStat('\\u270b Spend Plan Source not exported",
     repl: "    if(false){ setStat('\\u270b Spend Plan Source not exported" },
@@ -1622,13 +1622,14 @@ const MUTATIONS = [
     find: "  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });",
     repl: "  D.parts.forEach(function(p, i){ window[p.set](id, todo.indexOf(p)>=0? vals[i] : ''); });" },
   { id: 'fld-dn-note-first', area: 'FLD_DEF', what: 'the pop-up puts the note first and the description under it',
-    find: "  dn:  { lbl:'\\ud83d\\udcc4 Description & note', parts:[FLD_PARTS.desc, FLD_PARTS.note] }",
-    repl: "  dn:  { lbl:'\\ud83d\\udcc4 Description & note', parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
+    find: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }",   // v2.03: the title is REQ_FIELD's
+    repl: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
   { id: 'fld-impact-old-name', area: 'FLD_DEF', what: 'the impact pop-up keeps its old name',
-    find: "  cons:{ lbl:'\\u26a0 Impact statement', parts:[FLD_PARTS.cons] },",
-    repl: "  cons:{ lbl:'\\u26a0 Impact if not funded', parts:[FLD_PARTS.cons] }," },
+    find: "  cons:{l:'Impact statement', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'},",   // v2.03: the name lives in REQ_FIELD
+    repl: "  cons:{l:'Impact if not funded', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'}," },
   { id: 'rec-old-name', area: 'recPanel', what: 'the requirement edit pop-up keeps its old name',
-    find: "    <h3>📋 REQUIREMENT EDIT", repl: "    <h3>📋 REQUIREMENT RECORD" },
+    find: "  dn:{l:'Description & note', ic:'\\ud83d\\udcc4'}, rec:{l:'Requirement edit', ic:'\\ud83d\\udccb'},",   // v2.03: the heading reads REQ_FIELD
+    repl: "  dn:{l:'Description & note', ic:'\\ud83d\\udcc4'}, rec:{l:'Requirement record', ic:'\\ud83d\\udccb'}," },
   // ---- item 10: mandatory in every consolidated spend plan ---------------------------------------
   // v1.93 (item 40): RETIRED AS OBSOLETE, not equivalent -- fc-mand-only-unscheduled and fc-mand-rides-evenly
   // guarded mandatory RIDING the requirement's dates in the increments' proportions. That code is gone: Brad
@@ -1719,8 +1720,8 @@ const MUTATIONS = [
   // ---- item 9: the guide inside the file ----------------------------------------------------------------
   { id: 'help-opens-itself', area: 'openHelp', what: 'the guide opens by itself',
     find: "let helpOpen=false, helpAt='';", repl: "let helpOpen=true, helpAt='';" },
-  { id: 'help-both-builds', area: 'helpSections', what: 'the guide shows both builds’ paragraphs',
-    find: "  box.querySelectorAll('[data-b]').forEach(function(n){ if(n.getAttribute('data-b')!==build) n.remove(); });", repl: "  /* both builds */" },
+  // 'help-both-builds': retired in v2.03 (item 105) as obsolete -- the guide's card-build paragraphs are gone, and with them the
+  // filter it disabled; audit-import's guide check now fails on any data-b paragraph instead. Not declared equivalent.
   { id: 'help-version-fixed', area: 'helpBody', what: 'the guide states a version of its own',
     find: "  const v=document.getElementById('helpVer'); if(v) v.textContent=BUILD;", repl: "  const v=document.getElementById('helpVer'); if(v) v.textContent='v1.85';" },
   // v1.93 (item 39): help-esc-ignored RETIRED AS OBSOLETE -- the guide's own Esc listener is gone; one controller
@@ -2353,7 +2354,7 @@ const MUTATIONS = [
     find: "        +(A.ccar.length? ae('ccar', '○', A.ccar.length+' without a CCaR record') : '')",
     repl: "        +(A.ccar.length? '<div class=\"e\"><span class=\"g\">○</span> '+A.ccar.length+' without a CCaR record</div>' : '')" },
   { id: 'att-go-not-selected', area: 'attGo', what: 'Go to it closes the list without selecting the requirement',
-    find: "  if(typeof setCur==='function') setCur(id); else open[id]=true;\n  goRow(id);\n  if(k==='imp'){ openFld(id, 'cons'); return; }",
+    find: "  setCur(id);\n  goRow(id);\n  if(k==='imp'){ openFld(id, 'cons'); return; }",   // v2.03: the card fallback is gone
     repl: "  render();\n  if(k==='imp'){ openFld(id, 'cons'); return; }" },
   { id: 'att-go-no-field', area: 'attGo', what: 'Go to it selects the requirement but leaves the award date without the keyboard',
     find: "      if(f && f.focus) f.focus(); } }catch(e){}",
@@ -3006,9 +3007,8 @@ const MUTATIONS = [
   // ==== end v1.96 review ====
   // ==== v1.97 W1: money entry and the engine (items 72, 73, 74, 75) ====
   // The 5 Oct review of v1.96, R01-R04 (items 72-75): each puts one defect back. audit-board and audit-import hold them.
-  { id: "v197w1-ba-scaled", area: "setBATot", what: "a typed budget total is scaled into fractions of a dollar again, and the lane rounds each service on its own",
-    find: "    const nv = apportion(v, vec);\n",
-    repl: "    const nv = vec.reduce((a,b)=>a+b,0)>0? vec.map(x=>x*v/vec.reduce((a,b)=>a+b,0)) : vec.map(_=>v/vec.length);\n" },
+  // "v197w1-ba-scaled": retired in v2.03 (item 104) as obsolete -- the command bar and setBATot it aimed at were removed;
+  // nothing could reach them, so there is no line left for it to break. Not declared equivalent.
   { id: "v197w1-bm-reopen-rounded", area: "applyState", what: "a budget base saved with fractions is rounded service by service on opening, and loses the dollars that were typed",
     find: "  S.bm.disc=fit(bmTot(S.bm.disc)); S.bm.mand=fit(bmTot(S.bm.mand));",
     repl: "  S.bm.disc=fit(S.bm.disc); S.bm.mand=fit(S.bm.mand);" },
@@ -3054,9 +3054,8 @@ const MUTATIONS = [
   { id: "v197w1-guard-setAsk", area: "setAsk", what: "an entry that cannot be taken changes a requirement value (the editor’s guard is gone)",
     find: "  if(amtNo(v, val, 'The requirement value for '+(SVC[i]||'this service'))) return;\n",
     repl: "" },
-  { id: "v197w1-guard-setBATot", area: "setBATot", what: "an entry that cannot be taken changes a budget total (the editor’s guard is gone)",
-    find: "  if(amtNo(v, val, kind==='disc'? 'Discretionary budget authority' : 'Mandatory budget authority')) return;\n",
-    repl: "" },
+  // "v197w1-guard-setBATot": retired in v2.03 (item 104) as obsolete -- the command bar and setBATot it aimed at were removed;
+  // nothing could reach them, so there is no line left for it to break. Not declared equivalent.
   { id: "v197w1-guard-bmSetBase", area: "bmSetBase", what: "an entry that cannot be taken changes a budget base (the editor’s guard is gone)",
     find: "  if(amtNo(v, val, (kind==='disc'? 'The discretionary base for ' : 'The mandatory base for ')+(SVC[i]||'this service'))) return;\n",
     repl: "" },
@@ -3087,9 +3086,8 @@ const MUTATIONS = [
   { id: "v197w1-guard-addReq", area: "addReq", what: "a box Add requirement cannot read is taken for an empty one",
     find: "  if(naBad.length){ alert(",
     repl: "  if(false){ alert(" },
-  { id: "v197w1-guard-runCmd", area: "runCmd", what: "the command bar takes an amount it cannot read",
-    find: "    if(amt===null||Number.isNaN(amt)){ cmdSay('Could not read the amount \"'+esc(m[2])+'\"'",
-    repl: "    if(amt===null){ cmdSay('Could not read the amount \"'+esc(m[2])+'\"'" },
+  // "v197w1-guard-runCmd": retired in v2.03 (item 104) as obsolete -- the command bar and setBATot it aimed at were removed;
+  // nothing could reach them, so there is no line left for it to break. Not declared equivalent.
   { id: "v197w1-buy-product-unbounded", area: "setBuy", what: "a quantity times a unit cost over the bound is taken",
     find: "    if(ok(q) && ok(c) && buyDollars(q, c)===null){",
     repl: "    if(false){" },
@@ -3510,8 +3508,8 @@ const MUTATIONS = [
     find: "  const bad=(mine && (!rcnEntry(mine) || !rcnFits(rcnEntry(mine), svs)));",
     repl: "  const bad=false;" },
   { id: "v198-record-ignores-clins", area: "recFields", what: "the RECORD panel calls a prime\u2019s RCN/EEIC complete from the requirement alone, whatever its CLINs lack",
-    find: "    acct.push(recF('RCN / EEIC', rcl.length? (!rgap.length && (rafMoney || rdoneAll)) : rdoneAll,",
-    repl: "    acct.push(recF('RCN / EEIC', rdoneAll," },
+    find: "    acct.push(recF('rcnAsg', rcl.length? (!rgap.length && (rafMoney || rdoneAll)) : rdoneAll,",   // v2.03: recF takes the key
+    repl: "    acct.push(recF('rcnAsg', rdoneAll," },
   { id: "v198-setter-clear", area: "setRcnClinSvc", what: "clearing a service\u2019s choice on a CLIN keeps it",
     find: "  if(k) A[id][key][svc]=String(k); else delete A[id][key][svc];",
     repl: "  if(k) A[id][key][svc]=String(k);" },
@@ -6778,6 +6776,56 @@ const MUTATIONS = [
     find: "      out.push(to===e.k? e : Object.assign({}, e, {k:to})); });",
     repl: "      out.push(e); });" },
   // ==== end v2.02 (item 89) ====
+  // ==== v2.03 (items 19, 20): a message that matters stays until it is read; a field is named in one place ====
+  { id: "v203-19-warn-not-kept", area: "setStat", what: "a warning or refusal is replaced by the next message and nothing says it was there",
+    find: "  try{ if(html) statLogPush(html, !_statQuiet && ((o && o.keep) || diagIsWarn(html))); }catch(e){}",
+    repl: "  try{ if(html) statLogPush(html, !_statQuiet && !!(o && o.keep)); }catch(e){}" },
+  { id: "v203-19-quiet-kept", area: "setStat", what: "the quiet start-up line is flagged as unread",
+    find: "  try{ if(html) statLogPush(html, !_statQuiet && ((o && o.keep) || diagIsWarn(html))); }catch(e){}",
+    repl: "  try{ if(html) statLogPush(html, ((o && o.keep) || diagIsWarn(html))); }catch(e){}" },
+  { id: "v203-19-import-not-kept", area: "statKeep", what: "an import's result is replaced by the next message unread",
+    find: "function statKeep(html){ return setStat(html, {keep:true}); }",
+    repl: "function statKeep(html){ return setStat(html); }" },
+  { id: "v203-19-trim-drops-unread", area: "statLogPush", what: "a long session pushes an unread warning out of the list",
+    find: "    STAT_LOG.splice(i < 0 ? 0 : i, 1);",
+    repl: "    STAT_LOG.splice(0, 1);" },
+  { id: "v203-19-current-counted", area: "statUnread", what: "the message on the line is flagged as an earlier one",
+    find: "  return (STAT_LOG||[]).filter(function(e){ return e.keep && !e.read && e!==c; }); }",
+    repl: "  return (STAT_LOG||[]).filter(function(e){ return e.keep && !e.read; }); }" },
+  { id: "v203-19-more-not-read", area: "statToggle", what: "opening a message with More does not count as reading it",
+    find: "  else { w.classList.add('big','fresh'); statMarkCur(); }",
+    repl: "  else { w.classList.add('big','fresh'); }" },
+  { id: "v203-19-hide-not-read", area: "statHide", what: "hiding a message with its ✕ does not count as reading it",
+    find: "  w.classList.remove('fresh','big'); statMarkCur(); statSync();",
+    repl: "  w.classList.remove('fresh','big'); statSync();" },
+  { id: "v203-19-list-not-read", area: "msgBody", what: "opening the message list leaves what it showed unread",
+    find: "  un.forEach(function(e){ e.read=true; });   // opening the list is reading what it shows",
+    repl: "  /* not read */" },
+  { id: "v203-19-flag-never", area: "statSync", what: "an unread message is never flagged beside the line",
+    find: "  if(k){ k.hidden=!n; k.textContent='\\u26a0 '+n+' unread';",
+    repl: "  if(k){ k.hidden=true; k.textContent='\\u26a0 '+n+' unread';" },
+  { id: "v203-20-gate-by-label", area: "pmoProposalGate", what: "the proposal gate matches the panel's fields by label, so a field that is set reads as missing",
+    find: "  const has=function(k){ return F.some(function(f){ return f.k===k && f.set; }); };",
+    repl: "  const has=function(k){ return F.some(function(f){ return f.l===k && f.set; }); };" },
+  { id: "v203-20-recf-label-raw", area: "recF", what: "a record field shows its key, not its name",
+    find: "  return {k:own? k : '', l:own? FL(k) : k, set:!!set, c:ctl, n:note||''}; }",
+    repl: "  return {k:own? k : '', l:k, set:!!set, c:ctl, n:note||''}; }" },
+  { id: "v203-20-guide-not-filled", area: "helpSections", what: "the guide leaves the field names it reads from the registry blank",
+    find: "  box.querySelectorAll('[data-fl]').forEach(function(n){ const k=n.getAttribute('data-fl'); n.textContent=n.hasAttribute('data-fi')? FLI(k) : FL(k); });",
+    repl: "  /* not filled */" },
+  { id: "v203-20-popup-own", area: "FLD_DEF", what: "the impact statement's pop-up spells its own title",
+    find: "  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },",
+    repl: "  cons:{ get lbl(){ return '\\u26a0 Impact statement'; }, parts:[FLD_PARTS.cons] }," },
+  { id: "v203-20-rechead-fixed", area: "recBody", what: "Requirement edit's heading keeps its own spelling",
+    find: "  try{ const hd=document.getElementById('recHead'); if(hd) hd.textContent=FLI('rec').toUpperCase(); }catch(e){}   // v2.03 (item 20)",
+    repl: "  /* heading as written */" },
+  { id: "v203-20-flag-spelled", area: "render", what: "the row's missing-impact flag spells the field's name itself",
+    find: "_exc.push(['⚠',FL('cons')+' required',",
+    repl: "_exc.push(['⚠','Impact statement required'," },
+  { id: "v203-20-button-spelled", area: "inspectorBody", what: "the RECORD panel's Requirement edit button spells its own name",
+    find: "                FLI('rec'), C.un?",
+    repl: "                '\\ud83d\\udccb Requirement edit', C.un?" },
+  // ==== end v2.03 (items 19, 20) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
