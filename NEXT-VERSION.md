@@ -88,20 +88,6 @@ Current version: **v2.03**. Next: **v2.04**.
   on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
   showing each CLIN's own request changes what the ask column means.
 
-#### 89. Found while building v1.99: what a locked cycle still reads from today
-- **Logged:** 6 Oct 2026, while building v1.99.
-- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
-  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
-  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
-  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
-  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
-  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
-- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
-  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
-  PPBE cycles panel and Help say so.)*
-- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
-  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
-
 #### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
   CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
@@ -120,26 +106,6 @@ Current version: **v2.03**. Next: **v2.04**.
 - **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
   requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
   interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
-
-#### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
-- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
-  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
-  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
-- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
-  drawer, and a reading taken before layout settles can catch a passing pixel.
-- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
-  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
-  reading (fails), then the settled one (passes).
-- **Brad, 8 Oct 2026:** next version, not v2.00.
-- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
-  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
-  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
-  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
-  straight after the click with the settled page.
-- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
-  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
-  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
-  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 #### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
 - **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
@@ -326,6 +292,40 @@ usage reset, from a fresh session (A1). Every new mutation was run against its o
 - **OCIO evidence (C2):** keep the package built at `f616daa`; no rebuild at `c357911`.
 
 These are decisions, not a go: nothing in the board changes until Brad says go.
+
+#### 89. What a locked cycle still reads from today (built in v2.02, `a3ff370`; moved from Open on 22 Oct 2026)
+- **Logged:** 6 Oct 2026, while building v1.99.
+- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
+  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
+  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
+  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
+  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
+  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
+- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
+  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
+  PPBE cycles panel and Help say so.)*
+- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
+  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
+
+#### 101. The 1400px editors check measures before the drawer settles (built in v2.02; moved from Open on 22 Oct 2026)
+- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
+  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
+  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
+- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
+  drawer, and a reading taken before layout settles can catch a passing pixel.
+- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
+  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
+  reading (fails), then the settled one (passes).
+- **Brad, 8 Oct 2026:** next version, not v2.00.
+- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
+  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
+  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
+  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
+  straight after the click with the settled page.
+- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
+  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
+  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
+  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 #### E1, E3, E4. The queued v2.00 follow-ups (Brad, 20 Oct 2026: "Let's start working through these"), built on the v2.02 branch
 Each check was run on `main`'s board (`c357911`) and on the fix, and each new mutation was built with `mkmut.py` and run
