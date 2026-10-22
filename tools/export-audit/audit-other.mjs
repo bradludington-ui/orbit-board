@@ -1578,6 +1578,61 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// v2.04 (item 109): THE AI REVIEW ROUND TRIP (Brad, 22 Oct 2026). The request carries the plan's own figures; the answer is read
+// through the import door, laid out as a list and checked against the board; NOTHING on the board changes. Every expected figure
+// is worked from the fixture: A asks 100 + 50 = 150 and the lanes (disc 120/30, no mandatory) pay 100 + 30; B asks 80 and finds 20.
+{
+  const name = 'v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied';
+  try {
+  const J = JSON.stringify;
+  const mkI = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { w, ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [mkI('A', [100, 50]), mkI('B', [80, 0])], disc: [120, 30], mand: [0, 0], order: ['A', 'B'] });
+  ev(`S.costElem={A:'Airframe PGSE'}; save(); render(); 'ok'`);
+  const req = ev(`(function(){ var dl=[], oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ dl.push(this.download); };
+    var t=aiExport(); HTMLAnchorElement.prototype.click=oc; return JSON.stringify({t:t, dl:dl}); })()`);
+  const R = JSON.parse(req), body = JSON.parse(R.t.slice(R.t.lastIndexOf('\n{\n') + 1));
+  chk(name, 'request', 'one file is written, named for the request', R.dl.length === 1 && /^ORBIT AI review request/.test(R.dl[0]), true);
+  chk(name, 'request', 'it says the answer is advisory and gives the answer format', /ADVISORY/.test(R.t) && R.t.includes('"format":"orbitAiReview"'), true);
+  const yr = body.fiscalYearOnScreen;
+  chk(name, 'request', 'A’s figures for the year on screen: ask 150; funded 130 (USAF 100 + ANG 30, all ANG disc); unfunded 20',
+    J(body.requirements.find(r => r.id === 'A').years[yr]), J({ ask: 150, alloc: 150, fund: 130, unf: 20 }));
+  chk(name, 'request', 'B’s: ask 80, funded 20 (USAF disc 120 − A’s 100), unfunded 60',
+    J([body.requirements.find(r => r.id === 'B').years[yr]].map(y => [y.ask, y.fund, y.unf])), J([[80, 20, 60]]));
+  chk(name, 'request', 'it carries the board’s own values a suggestion may use', body.allowedValues.obCat.includes('UPL') && body.requirements[0].costElem === 'Airframe PGSE', true);
+  const before = ev(`JSON.stringify(MS)`);
+  const answer = 'Here is my review:\n```json\n' + J({ format: 'orbitAiReview', findings: [
+    { id: 'B', kind: 'anomaly', year: yr, measure: 'unf', figure: 60, severity: 'high', reason: 'Most of B is unfunded.' },
+    { id: 'B', kind: 'anomaly', year: yr, measure: 'fund', figure: 25, severity: 'low', reason: 'A misread figure.' },
+    { id: 'Z', kind: 'anomaly', severity: 'low', reason: 'A requirement the board does not hold.' },
+    { id: 'B', kind: 'suggestion', field: 'obCat', value: 'UPL', severity: 'medium', reason: 'Looks like an unfunded priority.' },
+    { id: 'A', kind: 'suggestion', field: 'costElem', value: 'Not a real element', severity: 'low', reason: 'Invented.' },
+    { id: 'A', kind: 'suggestion', field: 'costElem', value: 'Airframe PGSE', reason: 'Already right.' }] }) + '\n```\n';
+  await w.eval(`(async function(){ await aiImport({files:[{name:'answer.txt', size:${answer.length}, text:async function(){ return ${J(answer)}; }}], value:''}); return 'ok'; })()`);
+  const rows = JSON.parse(ev(`JSON.stringify(AIREV.rows.map(function(r){ return [r.id, r.kind, r.ok, r.checks.join('; ')]; }))`));
+  chk(name, 'answer', 'every finding is listed and checked against the board', J(rows), J([
+    ['B', 'anomaly', true, ''],
+    ['B', 'anomaly', false, 'the board says $20, not $25'],
+    ['Z', 'anomaly', false, 'no requirement “Z” on this board'],
+    ['B', 'suggestion', true, ''],
+    ['A', 'suggestion', false, '“Not a real element” is not one of the board’s Cost element values'],
+    ['A', 'suggestion', true, 'already set to this']]));
+  chk(name, 'answer', 'NOTHING on the board changed: the whole store is byte for byte as before', ev(`JSON.stringify(MS)`) === before, true);
+  const panel = ev(`(document.getElementById('aiBody')||{}).innerHTML||''`);
+  chk(name, 'list', 'the list is open, shows the AI’s reasoning and a Go to it for each requirement on the board',
+    ev(`document.getElementById('aiPanel').className`) + ' | ' + (panel.includes('Most of B is unfunded.') && (panel.match(/aiGo\(/g) || []).length), 'modal-bg open | 5');
+  const refused = await w.eval(`(async function(){ var said=''; var oa=window.alert; window.alert=function(m){ said=String(m); };
+    await aiImport({files:[{name:'bad.json', size:40, text:async function(){ return '{"format":"orbitAiReview","findings":[{"__proto__":{"x":1}}]}'; }}], value:''});
+    window.alert=oa; return said; })()`);
+  chk(name, 'door', 'an answer carrying a built-in name is refused at the import door, and the list read before stays',
+    /was not read as an AI review/.test(refused) && ev(`AIREV.file`) === 'answer.txt', true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

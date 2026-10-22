@@ -45,6 +45,9 @@ const REGISTRY = {
                   via: ['fcViewData', 'forecast', 'landSvc'] },
   srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane (and per increment of an incremental award)',
                   via: ['srcLaneOf', 'srcSvcOf', 'landSvc'] },
+  // v2.04 (item 109): the AI review request carries the plan's figures per requirement and year, for GenAI.mil to read
+  aiExport:     { money: true,  what: 'the AI review request — each requirement’s ask, allocated, funded and unfunded per FYDP year',
+                  via: ['aiRequestText', 'aiFig'] },
   exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },
   crExportRows: { money: true,  what: 'the 1A9A CR cash return' },
   exportExcel:  { money: true,  what: 'the breakouts workbook — lanes, bands, matrices, unfunded' },

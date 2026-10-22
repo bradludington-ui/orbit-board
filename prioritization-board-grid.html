@@ -341,6 +341,11 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:4px 8px}
 .insp-f .fl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800}
 .insp-f .fv{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+/* v2.04 (item 109): the AI review list */
+.aitab{table-layout:auto}
+.aitab td{vertical-align:top}
+.aitab td.aireason{max-width:420px;white-space:pre-wrap}
+.aitab tr.aibad td{background:color-mix(in srgb, var(--amber) 10%, transparent)}
 /* v2.04 (item 108): the CCaR Record Name in the RECORD panel and the CLIN drill, and the offer of its description */
 .insp-f.ccrec .fv{font-weight:600;overflow-wrap:anywhere}
 .insp-f.ccrec .ccdesc{margin-top:4px;min-height:24px;max-width:100%;white-space:normal;text-align:left}
@@ -1714,6 +1719,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <input type="file" id="aceFile" accept=".xlsx" style="display:none" onchange="importAce(this)">
   <input type="file" id="budFile" accept=".xlsx" style="display:none" onchange="importBud(this)">
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
+  <input type="file" id="aiFile" accept=".json,.txt,.md" style="display:none" onchange="aiImport(this)">
 </div>
 <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
 </div>
@@ -1856,6 +1862,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modal" style="width:760px;max-width:98vw">
     <h3><span>MESSAGES THIS SESSION</span> <button class="x" onclick="msgClose()">✕ Close</button></h3>
     <div id="msgBody"></div>
+  </div>
+</div>
+<div class="modal-bg" id="aiPanel" onclick="if(event.target===this)aiClose()">
+  <div class="modal" style="width:1100px;max-width:98vw">
+    <h3><span>AI REVIEW — FOR YOUR DECISION</span> <button class="x" onclick="aiClose()">✕ Close</button></h3>
+    <div id="aiBody"></div>
   </div>
 </div>
 <div class="modal-bg" id="attPanel" onclick="if(event.target===this)attClose()">
@@ -27435,6 +27447,10 @@ function syncBtns(){
     ppt: mi('📽 PowerPoint deck',"mRun(exportPPT)",false,'SFCB template slides'),
     drill: mi('⬇ Priority Drill by Band…',"mRun(exportCSV)",false,'whole 1–N + a tab per PMO'),
     syn: mi('⬇ Exec Synopsis (CSV)',"mRun(execSynopsis)",false,'the one-page picture'),
+    // v2.04 (item 109): the hand-carried round trip to GenAI.mil; nothing is applied from it
+    aix: mi('🤖 Export for AI review…',"mRun(aiExport)",false,'the request for GenAI.mil: instructions and this plan’s figures'),
+    aii: mi('🤖 Import the AI’s answer…',"mRun(()=>document.getElementById('aiFile').click())",false,'read it as a list to decide on — nothing is applied'),
+    aiv: mi('🤖 AI review list',"mRun(aiOpen)",aiIsOpen,AIREV? AIREV.rows.length+' finding'+(AIREV.rows.length===1?'':'s')+' · this tab only' : 'none read in this tab yet'),
     src: mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format'),
     r1a9a: mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar'),
     // v1.92: a fixed label. The preview is worked out when the box opens, never on every redraw for a menu line.
@@ -27530,6 +27546,7 @@ function syncBtns(){
     sec('brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+
     sec('fydp','Five years &amp; PPBE', I.fydpx+I.cycx, '📊 Five-year spend plan, 🏛 PPBE Budget Positions and 📐 Spruills are views, under <b>FYDP ▸</b>')+
     sec('ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+
+    sec('ai','AI review (GenAI.mil)', I.aix+I.aii+I.aiv, 'Advisory only: a person reads every finding and decides')+
     sec('tools','Companion tools', I.link+I.linkset)+
     '</div><div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
   menuFindApply();
@@ -30673,6 +30690,200 @@ function exportCSV(){
   a.download=expName((_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Priority drill exported — funded by band, for the whole order and for each PMO.');
+}
+
+// ==============================================================================================================
+// §AI  AI REVIEW: AN INDEPENDENT ASSESSMENT FROM GenAI.mil, FOR A PERSON TO DECIDE ON (v2.04, item 109)
+//      Brad, 22 Oct 2026: "It does not auto fill, it provides suggestions and analysis for human interaction and decision
+//      management" -- and the anomalies are the AI's own assessment, not thresholds a person sets.
+//      THE FILE NEVER CALLS ANYTHING. It has no network route, a page opened from a file calls out as `Origin: null`, and a
+//      key in it would travel in every save and every PMO copy. So the round trip is carried by hand: aiExport writes the
+//      instructions and the board's figures as one text file, the person gives it to GenAI.mil and saves the answer, and
+//      aiImport reads the answer through the import door and lays it out as a list. NOTHING IS WRITTEN TO THE BOARD: a
+//      finding is read, checked against the board, and acted on (or not) by the person through the field's own editor.
+//      The list lives in this tab only, like the message list, and never in the file: the answer file is the record.
+//      A MODEL CAN BE WRONG, AND THE LIST SAYS WHERE: a requirement the board does not hold, a figure the board does not
+//      print, a value that is not one of the board's own, are each marked on the line.
+// ==============================================================================================================
+const AI_FMT='orbitAiReview';
+const AI_FIELDS={band:'Decision band', costElem:'Cost element', obCat:'Obligation category', grp:'PMO'};
+const AI_MEASURES={ask:'requirement', alloc:'allocated', fund:'funded', unf:'unfunded'};
+let aiIsOpen=false, AIREV=null;            // {file, ts, rows:[...], said}
+function aiFieldNow(it, f){
+  if(f==='band'){ const b=BAND_OF(it.id); const d=b===null? null : BANDS_LIST().filter(function(x){ return x.id===b; })[0]; return d? d.n : ''; }
+  if(f==='costElem') return ((S.costElem||{})[it.id])||'';
+  if(f==='obCat') return obCatOf(it.id)||'';
+  if(f==='grp') return grpOf(it)||'';
+  return '';
+}
+function aiFieldOpts(f){
+  if(f==='band') return BANDS_LIST().map(function(b){ return b.n; });
+  if(f==='costElem') return COST_ELEMS.slice();
+  if(f==='obCat') return OB_CATS.slice();
+  if(f==='grp') return pmoChoices();
+  return [];
+}
+// One requirement's figures for one year of the working plan, as the five-year plan prints them.
+function aiFig(r, m){
+  if(m==='unf') return fydpUnf(r);
+  return fydpSum(r[m]);
+}
+// THE REQUEST: instructions, then the data, in one file a person can upload or paste.
+function aiRequestText(){
+  const D=fydpData('working'), T=tiers(), MR=masterRanks();
+  const reqs=(S.order||[]).map(function(id){ const it=itemById(id); if(!it) return null;
+    const years={};
+    D.held.forEach(function(y){ const r=((D.proj[y]||{}).reqs||[]).filter(function(x){ return x.id===id; })[0]; if(!r) return;
+      years[y]={ask:aiFig(r,'ask'), alloc:aiFig(r,'alloc'), fund:aiFig(r,'fund'), unf:aiFig(r,'unf')}; });
+    const o={id:id, rank:MR[id]||null, title:dispTitle(it), recordName:recName(it)||'', pmo:grpOf(it)||'', ccar:ccarOf(it)||'',
+      missionCritical:!!S.mc[id], description:((S.desc||{})[id]||''), impact:((S.cons||{})[id]||''), years:years};
+    Object.keys(AI_FIELDS).forEach(function(f){ if(f!=='grp') o[f]=aiFieldNow(it, f); });
+    return o; }).filter(Boolean);
+  const data={format:AI_FMT, version:1, board:BUILD, appropriation:(typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug(),
+    fiscalYearOnScreen:MS.cur, years:D.held, services:SVC.slice(), units:'whole US dollars',
+    measures:AI_MEASURES, allowedValues:(function(){ const a={}; Object.keys(AI_FIELDS).forEach(function(f){ a[f]=aiFieldOpts(f); }); return a; })(),
+    requirements:reqs};
+  const ask=[
+    'ORBIT — request for an independent AI review ('+FYL()+', '+((typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug())+', '+(D.held.length? 'FY'+D.held.map(function(y){ return y%100; }).join(', FY') : 'no year')+')',
+    '',
+    'You are reviewing a multi-year budget plan (the Future Years Defense Program window) held in ORBIT. Your answer is ADVISORY:',
+    'a program manager reads every item and decides. Nothing you say is applied by itself.',
+    '',
+    'Do two things, using your own judgement (no fixed thresholds are given):',
+    '1. ANOMALIES -- for each requirement, look across its years and its neighbours for anything a budget analyst should question:',
+    '   outyear spikes or drops, money that appears or disappears between years, a requirement funded unlike similar ones,',
+    '   unfunded amounts that look out of line, a description or impact statement that does not fit the money.',
+    '2. SUGGESTIONS -- where a classification field is empty or looks wrong, suggest a value. Only these fields, and only a value',
+    '   from "allowedValues": '+Object.keys(AI_FIELDS).map(function(f){ return f+' ('+AI_FIELDS[f]+')'; }).join(', ')+'.',
+    '',
+    'Answer with ONE JSON object and nothing else, in exactly this shape:',
+    '{"format":"'+AI_FMT+'","findings":[',
+    '  {"id":"<requirement id>","kind":"anomaly","year":2028,"measure":"ask|alloc|fund|unf","figure":<the figure you are questioning, whole dollars>,"severity":"high|medium|low","reason":"<why, in plain words>"},',
+    '  {"id":"<requirement id>","kind":"suggestion","field":"band|costElem|obCat|grp","value":"<one of allowedValues>","severity":"high|medium|low","reason":"<why>"}',
+    ']}',
+    'Use only requirement ids from the data. Quote figures exactly as the data gives them. "year", "measure" and "figure" are optional',
+    'for an anomaly that is not about one figure. Keep each reason under 1,000 characters.',
+    '',
+    'THE DATA (JSON). Figures are whole US dollars, summed across services, per fiscal year: ask = requirement, alloc = allocated,',
+    'fund = funded (discretionary + mandatory), unf = unfunded.',
+    '',
+    JSON.stringify(data, null, 1)];
+  return ask.join('\n');
+}
+function aiExport(){
+  let txt;
+  try{ txt=aiRequestText(); }catch(e){ setStat('⚠ The AI review request could not be built: '+esc((e&&e.message)||String(e))+'. Nothing was written.'); return; }
+  const fn=expName('ORBIT AI review request — '+((typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug())+' — '+FYL()+' '+new Date().toISOString().slice(0,10)+'.txt');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'})); a.download=fn; a.click();
+  setStat('🤖 <b>'+esc(fn)+'</b> written: '+(S.order||[]).length+' requirements. Give it to GenAI.mil, save its answer as a file, then '
+    +'<b>Reports &amp; exports › AI review › Import the AI’s answer</b>. It holds the board’s figures and text: handle it as you handle the board.');
+  return txt;
+}
+// The answer may arrive wrapped in prose or a code fence: take the one JSON object that carries the format.
+function aiExtract(raw){
+  const s=String(raw==null?'':raw);
+  const i=s.indexOf('{'); if(i<0) return null;
+  const tries=[s.slice(i, s.lastIndexOf('}')+1)];
+  const k=s.indexOf('"'+AI_FMT+'"'); if(k>=0){ const j=s.lastIndexOf('{', k); if(j>=0) tries.push(s.slice(j, s.lastIndexOf('}')+1)); }
+  for(let n=0;n<tries.length;n++){ try{ const J=JSON.parse(tries[n]); if(J && typeof J==='object') return {text:tries[n], J:J}; }catch(e){} }
+  return null;
+}
+// Read the answer into rows, each checked against the board. Pure: returns {rows} or {why}.
+function aiRead(raw){
+  const X=aiExtract(raw);
+  if(!X) return {why:'it holds no JSON object -- save the AI’s answer exactly as it gave it'};
+  const why=inboundCheck(X.text); if(why) return {why:why};
+  const J=X.J;
+  if(J.format!==AI_FMT || !Array.isArray(J.findings)) return {why:'it is not an ORBIT AI review answer (no "format":"'+AI_FMT+'" with a "findings" list)'};
+  if(J.findings.length>5000) return {why:'it holds '+J.findings.length+' findings; the list takes up to 5,000'};
+  const D=fydpData('working');
+  const rows=J.findings.map(function(f, n){
+    const r={n:n+1, id:'', kind:'', year:null, measure:'', figure:null, field:'', value:'', sev:'', reason:'', checks:[], ok:true, board:null, now:''};
+    if(!f || typeof f!=='object' || Array.isArray(f)){ r.checks.push('not a finding'); r.ok=false; return r; }
+    r.id=(typeof f.id==='string')? f.id.slice(0,80) : String(f.id==null?'':f.id).slice(0,80);
+    r.kind=(f.kind==='suggestion')? 'suggestion' : (f.kind==='anomaly'? 'anomaly' : '');
+    r.sev=({high:'high',medium:'medium',low:'low'})[String(f.severity||'').toLowerCase()]||'';
+    r.reason=String(f.reason==null?'':f.reason).slice(0,4000);
+    const it=r.id? itemById(r.id) : null;
+    if(!r.kind){ r.checks.push('kind is neither anomaly nor suggestion'); r.ok=false; }
+    if(!it || (S.order||[]).indexOf(r.id)<0){ r.checks.push('no requirement '+(r.id? '“'+r.id+'” ' : '')+'on this board'); r.ok=false; return r; }
+    if(r.kind==='anomaly'){
+      if(f.year!=null){ r.year=wholeOr(f.year, null); if(r.year===null || D.held.indexOf(r.year)<0){ r.checks.push('FY'+String(f.year).slice(0,8)+' is not a year this plan holds'); r.ok=false; } }
+      if(f.measure!=null){ r.measure=Object.prototype.hasOwnProperty.call(AI_MEASURES, String(f.measure))? String(f.measure) : '';
+        if(!r.measure){ r.checks.push('measure “'+String(f.measure).slice(0,20)+'” is not one ORBIT prints'); r.ok=false; } }
+      if(f.figure!=null){ r.figure=(typeof f.figure==='number' && isFinite(f.figure))? f.figure : NaN;
+        if(isNaN(r.figure)){ r.checks.push('the figure is not a number'); r.ok=false; } }
+      if(r.year!==null && r.measure && D.held.indexOf(r.year)>=0){
+        const pr=((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return x.id===r.id; })[0];
+        r.board=pr? aiFig(pr, r.measure) : 0;
+        if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){
+          r.checks.push('the board says '+fM(r.board)+', not '+fM(r.figure)); r.ok=false; }
+      }
+    } else if(r.kind==='suggestion'){
+      r.field=Object.prototype.hasOwnProperty.call(AI_FIELDS, String(f.field))? String(f.field) : '';
+      r.value=String(f.value==null?'':f.value).slice(0,200);
+      if(!r.field){ r.checks.push('field “'+String(f.field).slice(0,30)+'” is not one the review covers'); r.ok=false; }
+      else {
+        r.now=aiFieldNow(it, r.field);
+        if(aiFieldOpts(r.field).indexOf(r.value)<0){ r.checks.push('“'+r.value+'” is not one of the board’s '+AI_FIELDS[r.field]+' values'); r.ok=false; }
+        else if(r.now===r.value){ r.checks.push('already set to this'); }
+      }
+    }
+    return r; });
+  return {rows:rows};
+}
+async function aiImport(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f) return;
+  try{
+    const big=inTooBig(f); if(big){ alert('“'+f.name+'” was not read: '+big+'.'); return; }
+    const R=aiRead(await f.text());
+    if(R.why){ alert('“'+f.name+'” was not read as an AI review: '+R.why+'.\n\nNothing on this board was changed.');
+      setStat('⚠ AI review not read — “'+esc(f.name)+'”: '+esc(R.why)+'.'); return; }
+    AIREV={file:f.name, ts:Date.now(), rows:R.rows};
+    aiIsOpen=true; aiBody();
+    const bad=R.rows.filter(function(r){ return !r.ok; }).length;
+    statKeep('🤖 AI review <b>'+esc(f.name)+'</b>: '+R.rows.length+' finding'+(R.rows.length===1?'':'s')
+      +(bad? ', <b>'+bad+'</b> marked where the board disagrees' : '')+'. Nothing on the board was changed: each is yours to decide.');
+  }catch(e){ setStat('⚠ AI review not read: '+esc((e&&e.message)||String(e))+'. Nothing was changed.'); }
+  finally{ try{ inp.value=''; }catch(e){} }
+}
+function aiOpen(){ aiIsOpen=true; aiBody(); }
+function aiClose(){ aiIsOpen=false; aiBody(); }
+let aiShow='';                                // '' every finding, 'anomaly', 'suggestion', 'check'
+function aiFilter(v){ aiShow=v; aiBody(); }
+function aiGo(id){ aiIsOpen=false; aiBody(); setCur(id); goRow(id); }
+function aiBody(){
+  const bg=document.getElementById('aiPanel'), el=document.getElementById('aiBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(aiIsOpen? ' open' : '');
+  if(!aiIsOpen){ el.innerHTML=''; return; }
+  const intro='<div class="hint">An independent assessment for you to decide on. ORBIT does not call the AI and does not change anything from this list: '
+    +'<b>🤖 Export for AI review</b> writes the request, you give it to GenAI.mil, and <b>Import the AI’s answer</b> reads its answer here. '
+    +'Each line is checked against the board; a line the board disagrees with is marked. The list is kept in this tab only.</div>';
+  const acts='<div class="fr" style="gap:8px;margin:8px 0">'
+    +'<button type="button" class="btn" onclick="aiExport()">🤖 Export for AI review…</button>'
+    +'<button type="button" class="btn" onclick="document.getElementById(\'aiFile\').click()">⬆ Import the AI’s answer…</button></div>';
+  if(!AIREV){ el.innerHTML=intro+acts+'<div class="hint">No answer read in this tab yet.</div>'; return; }
+  const R=AIREV.rows, cnt=function(fn){ return R.filter(fn).length; };
+  const fb=function(k, lbl, n){ return '<button type="button" class="nb chip'+(aiShow===k?' on':'')+'" aria-pressed="'+(aiShow===k)+'" onclick="aiFilter('+jsa(k)+')">'+lbl+' '+n+'</button>'; };
+  const show=R.filter(function(r){ return !aiShow || (aiShow==='check'? !r.ok : r.kind===aiShow); });
+  const row=function(r){
+    const it=itemById(r.id);
+    const what=r.kind==='suggestion'
+      ? esc(AI_FIELDS[r.field]||r.field||'?')+': '+(r.now? esc(r.now) : '<i>not set</i>')+' → <b>'+esc(r.value)+'</b>'
+      : (r.year? 'FY'+(r.year%100)+' ' : '')+(r.measure? esc(AI_MEASURES[r.measure])+' ' : '')+(r.figure!==null && !isNaN(r.figure)? fM(r.figure) : '');
+    return '<tr'+(r.ok? '' : ' class="aibad"')+'><td>'+r.n+'</td>'
+      +'<td>'+(it? '<b>'+esc(dispTitle(it))+'</b><div class="hint">'+esc(r.id)+'</div>' : esc(r.id||'—'))+'</td>'
+      +'<td>'+esc(r.kind||'?')+(r.sev? '<div class="hint">'+esc(r.sev)+'</div>' : '')+'</td>'
+      +'<td>'+what+'</td><td class="aireason">'+esc(r.reason)+'</td>'
+      +'<td>'+(r.checks.length? '⚠ '+esc(r.checks.join('; ')) : '✓ agrees with the board')+'</td>'
+      +'<td>'+(it? '<button type="button" class="btn" onclick="aiGo('+jsa(r.id)+')">Go to it</button>' : '')+'</td></tr>'; };
+  el.innerHTML=intro+acts
+    +'<div class="hint">'+esc(AIREV.file)+' · read '+esc(shortTs(AIREV.ts))+'</div>'
+    +'<div class="fr" style="gap:6px;flex-wrap:wrap;margin:6px 0">'+fb('', 'Every finding', R.length)+fb('anomaly', 'Anomalies', cnt(function(r){ return r.kind==='anomaly'; }))
+      +fb('suggestion', 'Suggestions', cnt(function(r){ return r.kind==='suggestion'; }))+fb('check', 'The board disagrees', cnt(function(r){ return !r.ok; }))+'</div>'
+    +'<div style="overflow-x:auto"><table class="fctab aitab"><thead><tr><th>#</th><th>Requirement</th><th>Kind</th><th>What</th><th>The AI’s reasoning</th><th>Checked against the board</th><th></th></tr></thead><tbody>'
+    +(show.length? show.map(row).join('') : '<tr><td colspan="7">Nothing in this view.</td></tr>')+'</tbody></table></div>';
 }
 
 function execSynopsis(){

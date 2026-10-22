@@ -6855,6 +6855,23 @@ const MUTATIONS = [
     find: "+((c.ccar && ccarNameOfNum(c.ccar))?",
     repl: "+((false && ccarNameOfNum(c.ccar))?" },
   // ==== end v2.04 (item 108) ====
+  // ==== v2.04 (item 109): the AI review round trip ====
+  { id: "v204-109-figure-unchecked", area: "aiRead", what: "a figure the AI quotes is never checked against the board",
+    find: "if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){",
+    repl: "if(false){" },
+  { id: "v204-109-unknown-req", area: "aiRead", what: "a finding about a requirement the board does not hold reads as an ordinary one",
+    find: "if(!it || (S.order||[]).indexOf(r.id)<0){",
+    repl: "if(false){" },
+  { id: "v204-109-value-unchecked", area: "aiRead", what: "a suggested value that is not one of the board's is offered as one",
+    find: "if(aiFieldOpts(r.field).indexOf(r.value)<0){",
+    repl: "if(false){" },
+  { id: "v204-109-door-skipped", area: "aiRead", what: "the AI's answer skips the import door",
+    find: "const why=inboundCheck(X.text); if(why) return {why:why};",
+    repl: "const why='';" },
+  { id: "v204-109-request-unf", area: "aiFig", what: "the request tells the AI nothing is unfunded",
+    find: "if(m==='unf') return fydpUnf(r);",
+    repl: "if(m==='unf') return 0;" },
+  // ==== end v2.04 (item 109) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
