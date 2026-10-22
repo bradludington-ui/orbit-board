@@ -3710,9 +3710,7 @@ const MUTATIONS = [
   { id: "v200-jrnl-path-proto", area: "jrnlPathSafe", what: "the journal path guard passes __proto__, so Put back can walk into Object.prototype",
     find: "function jrnlPathSafe(p){ return p.every(function(k){ k=String(k); return k!=='__proto__' && k!=='constructor' && k!=='prototype'; }); }",
     repl: "function jrnlPathSafe(p){ return true; }" },
-  { id: "v200-conf-host-open", area: "confSameHost", what: "the Confluence download allow-list is removed, so a server-named host receives the token",
-    find: "  if(typeof link!=='string' || link.charAt(0)!=='/') return false;\n  try{ return new URL(base+link).origin===new URL(base).origin; }catch(e){ return false; }",
-    repl: "  return true;" },
+  // v200-conf-host-open: RETIRED AS OBSOLETE in v2.04 (item 110) -- confSameHost went with the Confluence transport, so there is no line left to break.
   { id: "v200-pkg-seq-text", area: "pkgApply", what: "a package whose sequence is not a number is accepted, bypassing the stale-package check",
     find: "    if(wholeOr(pkg.seq, null)===null){\n      alert('NOT IMPORTED — that package’s number is not a number, so it cannot be checked against this board’s record of what was issued.');\n      return false;\n    }",
     repl: "    if(false){\n      alert('x');\n      return false;\n    }" },
@@ -6883,6 +6881,17 @@ const MUTATIONS = [
     find: "const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;",
     repl: "const unsaved=false;" },
   // ==== end v2.04 (item 106) ====
+  // ==== v2.04 (item 110): Confluence and SharePoint removed ====
+  { id: 'v204-110-mode-kept', area: "liveCfg", what: "a machine set up for Confluence or SharePoint keeps that mode, on, with nothing behind it",
+    find: "  if(c.mode==='conf' || c.mode==='sp'){ c.retired=c.mode; c.mode='drive'; c.on=false; }",
+    repl: "" },
+  { id: 'v204-110-left-on', area: "liveCfg", what: "a machine set up for Confluence or SharePoint opens on the shared folder still switched on",
+    find: "c.retired=c.mode; c.mode='drive'; c.on=false; }",
+    repl: "c.retired=c.mode; c.mode='drive'; }" },
+  { id: 'v204-110-unsaid', area: "liveBody", what: "the live view does not say why it is off",
+    find: "  if(c.retired && c.mode==='drive' && !c.folder)\n",
+    repl: "  if(false)\n" },
+  // ==== end v2.04 (item 110) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

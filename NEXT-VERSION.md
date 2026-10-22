@@ -191,7 +191,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer -- built on Brad's "Go to all" of 22 Oct
+### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence and SharePoint removed -- built on Brad's "Go to all" of 22 Oct
 
 `BUILD` is `v2.04 (22 Oct 2026)`. Brad's go covered items 108, 109 and 106; the list tidy (89 and 101 to v2.02) went first.
 **Not built, and why:** the decisions under items 63, 71, 82 and 84 were never picked, so there was nothing to build; of item
@@ -232,10 +232,24 @@ mutation was run against its own check.
   save file (`prio-fh`); the board file is untouched and the page reopens from it. Asks, and asks again when unsaved changes or
   work kept aside would be lost.
 - **Not built:** the Content-Security-Policy -- `connect-src 'none'` would stop the Live view's Confluence/SharePoint transport
-  and the legacy shared state file, which use `fetch` (Brad to say whether either is in use); SHA-256 fingerprints and a
+  and the legacy shared state file, which use `fetch` (the two were then removed as item 110; the JSON endpoint and the state file
+  still use it); SHA-256 fingerprints and a
   hash-chained journal -- they change what every package, writer record and journal entry carries, a format change of its
   own; CUI markings -- waiting on the security team's wording; the static-analysis scan.
 - Check: audit-other "v2.04 (item 106)"; 3 `v204-106-*` mutations, each caught.
+
+#### 110. Confluence and SharePoint removed (Brad, 22 Oct 2026: "Let's remove the confluence and SharePoint option entirely. Right now it lives on my desktop and long-term removing towards azure")
+- **Removed:** the Live view's Confluence page and SharePoint folder transports -- `conf*` and `sp*` (list, publish, poll,
+  digest, headers, credentials, `confSameHost`), their two entries in `LIVE_MODES`, their branches in `livePublish` and
+  `livePoll`, their fields and hints in the Live view box, and their names in Save diagnostics. What is left: the **shared
+  folder** and the **JSON endpoint** (the only network transport now, and the only user of the Live view's key).
+- **A machine set up for either** opens on the shared folder, **off**, so nothing starts sending anywhere by itself, and the
+  Live view box says the option was removed (`liveCfg` marks `retired`; the note goes once a folder is picked). No board file
+  ever named a transport, so no saved board changes.
+- **Not touched:** the JSON endpoint (Brad to say whether it goes too -- then the file makes no network call but the legacy
+  shared state file, and a Content-Security-Policy becomes possible).
+- Check: audit-inject's D3 (the Confluence download host) is retired with `confSameHost`; in its place "v2.04 item 110"
+  (fails on the v2.04 tree before this change). `v200-conf-host-open` retired as obsolete; 3 `v204-110-*` mutations, each caught.
 
 #### Changed on purpose, each saying so where it changed
 audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review section, Clear this computer); left-menu's

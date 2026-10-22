@@ -224,22 +224,30 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
   }
 }
 
-// ---- D3 — a Confluence download link is followed only on the configured host -----------------------
+// ---- D3 retired in v2.04 (item 110): the Confluence and SharePoint transports are gone, and confSameHost with them -----------
+// Brad, 22 Oct 2026: "Let's remove the confluence and SharePoint option entirely." What stands in D3's place: no network
+// transport but the JSON endpoint is offered, nothing of the two is left to call, and a machine set up for either opens on
+// the shared folder, OFF -- so nothing starts sending anywhere by itself -- and is told why.
 {
   const B = fresh();
-  const out = probe(B, 'D3 Confluence download host (confSameHost)', `(function(){
-    if(typeof confSameHost!=='function') throw new Error('confSameHost is not defined');
-    liveCfg().url = 'https://conf.example.com';
-    return JSON.stringify({
-      sameHost: confSameHost('/download/attachments/1/x.json'),
-      otherHost: confSameHost('https://evil.example/x.json'),
-      userinfo: confSameHost('https://conf.example.com@evil.example/x.json'),
-      dotHost: confSameHost('.evil.example/x.json') }); })()`);
+  const out = probe(B, 'v2.04 item 110 — Confluence and SharePoint removed', `(function(){
+    var modes=LIVE_MODES.map(function(m){ return m.k; }).join(',');
+    var gone=['confSameHost','confPublish','confPoll','spPublish','spPoll','spDigest'].filter(function(n){ try{ return typeof eval(n)==='function'; }catch(e){ return false; } });
+    var got=[];
+    ['conf','sp'].forEach(function(m){
+      localStorage.setItem(LIVE_CFG_LS, JSON.stringify({mode:m, url:'https://wiki.example.com', on:true, every:30}));
+      _liveCfg=null; var c=liveCfg();
+      liveOpen=true; try{ liveBody(); }catch(e){}
+      var h=(document.getElementById('liveBody')||document.body).innerHTML;
+      got.push([c.mode, c.on, /option was removed in v2\\.04/.test(h)].join(' '));
+      liveOpen=false; });
+    localStorage.removeItem(LIVE_CFG_LS); _liveCfg=null;
+    return JSON.stringify({modes:modes, gone:gone.join(','), got:got}); })()`);
   if (out) {
-    chk('D3 Confluence download host (confSameHost)', 'a path on the configured host is allowed', out.sameHost, true);
-    chk('D3 Confluence download host (confSameHost)', 'an absolute URL to another host is refused', out.otherHost, false);
-    chk('D3 Confluence download host (confSameHost)', 'a userinfo trick is refused', out.userinfo, false);
-    chk('D3 Confluence download host (confSameHost)', 'a host-suffix link (.evil.example) is refused', out.dotHost, false);
+    chk('v2.04 item 110 — Confluence and SharePoint removed', 'the live view offers the shared folder and the JSON endpoint only', out.modes, 'drive,json');
+    chk('v2.04 item 110 — Confluence and SharePoint removed', 'nothing of either transport is left to call', out.gone, '');
+    chk('v2.04 item 110 — Confluence and SharePoint removed', 'a machine set up for Confluence, then SharePoint, opens on the shared folder, OFF, and is told why',
+      JSON.stringify(out.got), JSON.stringify(['drive false true', 'drive false true']));
   }
 }
 

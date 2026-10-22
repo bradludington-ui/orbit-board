@@ -27686,7 +27686,7 @@ function syncBtns(){
 
 // ==============================================================================================================
 // §38  LIVE VIEW AND SHARED FOLDER
-//      the network transports (liveNet: Confluence, SharePoint, an endpoint) and the folder store and its history
+//      the network transport (liveNet: a JSON endpoint) and the folder store and its history
 // ==============================================================================================================
 // ============ LIVE VIEW =======================================================================
 /* Everyone sees everyone's current position. Each appropriation is still WRITTEN by one person -
@@ -27715,8 +27715,6 @@ let liveTimer=null, liveOpen=false, liveBusy=false;
 
 const LIVE_MODES=[
   {k:'drive',n:'Shared folder',   d:'a file per appropriation on a network drive — needs nobody\u2019s permission'},
-  {k:'conf', n:'Confluence page', d:'a JSON attachment per appropriation on one wiki page'},
-  {k:'sp',   n:'SharePoint folder', d:'a JSON file per appropriation in a document-library folder — run the probe first; the site has to let this page in'},
   {k:'json', n:'JSON endpoint',   d:'an API of your own that stores and returns the state'}
 ];
 // How long a lock is believed after its holder last touched it. The heartbeat runs on the refresh
@@ -27738,7 +27736,9 @@ function liveCfg(){
   if(c.every===undefined)  c.every=30;
   if(c.on===undefined)     c.on=false;
   if(!c.mode)              c.mode='drive';   // the transport that needs nobody's permission
-  if(c.page===undefined)   c.page='';        // the Confluence page id the attachments hang on
+  // v2.04 (item 110): Confluence and SharePoint are gone. A machine set up for one opens on the shared folder, OFF, so
+  // nothing starts publishing anywhere by itself; liveBody says what happened. The settings left behind are inert.
+  if(c.mode==='conf' || c.mode==='sp'){ c.retired=c.mode; c.mode='drive'; c.on=false; }
   if(c.folder===undefined) c.folder='';      // the name of the chosen shared folder, for display
   if(c.store===undefined)  c.store=false;
   if(c.auto===undefined)   c.auto=true;    // working out of the folder means saving to it    // WORK out of the folder, rather than publish to it
@@ -29090,155 +29090,11 @@ function rpMerge(theirs){
   }
   return {added:added, updated:updated, buried:buried, kept:kept};
 }
-// ---- Confluence transport -------------------------------------------------------------------
-// One page, one attachment per (fiscal year, appropriation). Confluence versions attachments on
-// its own, so publishing repeatedly leaves a history the board does not have to keep.
-function confAttName(fy, ap){ return 'spmt-'+fy+'-'+ap+'.json'; }
-function confPrefix(fy){ return 'spmt-'+fy+'-'; }
-function confBase(){ return String(liveCfg().url||'').replace(/\/+$/,''); }
-function confHdrs(extra){
-  const h=Object.assign({}, extra||{});
-  const k=liveKey();
-  // A personal access token if one is set; otherwise the browser's own Confluence session.
-  if(k) h['Authorization']='Bearer '+k;
-  return h;
-}
-function confCreds(){ return liveKey()? 'omit' : 'include'; }
-// v2.00 (item 99): THE DOWNLOAD LINK COMES FROM THE SERVER and the request carries this machine's token, so it is
-// followed only when it is a path on the Confluence address set here - never to whatever host the link would name.
-function confSameHost(link){
-  const base=confBase();
-  if(typeof link!=='string' || link.charAt(0)!=='/') return false;
-  try{ return new URL(base+link).origin===new URL(base).origin; }catch(e){ return false; }
-}
-async function confList(fy){
-  const c=liveCfg();
-  if(!c.page) throw new Error('no Confluence page id set');
-  const u=confBase()+'/rest/api/content/'+encodeURIComponent(c.page)
-    +'/child/attachment?limit=200&expand=version';
-  const r=await liveNet(u, {method:'GET', headers:confHdrs(), credentials:confCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' listing attachments'
-    +(r.status===404? ' — check the page id' : ''));
-  const j=liveJson(r);
-  return (j.results||[]).filter(function(a){
-    return String(a.title||'').indexOf(confPrefix(fy))===0; });
-}
-async function confPublish(quiet){
-  const c=liveCfg();
-  const fy=MS.cur, ap=mySlug(), name=confAttName(fy, ap);
-  const body=JSON.stringify(livePayload());
-  const existing=(await confList(fy)).filter(function(a){ return a.title===name; })[0];
-  const fd=new FormData();
-  fd.append('file', new Blob([body], {type:'application/json'}), name);
-  fd.append('comment', 'ORBIT '+(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' — '+(whoAmI()||'unknown'));
-  fd.append('minorEdit', 'true');
-  // X-Atlassian-Token is Confluence's XSRF guard. Content-Type is NOT set: the browser has to add
-  // the multipart boundary itself, and setting it by hand produces a body Confluence cannot parse.
-  const u=confBase()+'/rest/api/content/'+encodeURIComponent(c.page)+'/child/attachment'
-    +(existing? '/'+encodeURIComponent(existing.id)+'/data' : '');
-  const r=await liveNet(u, {method:'POST', headers:confHdrs({'X-Atlassian-Token':'nocheck'}),
-                            credentials:confCreds(), body:fd});
-  if(!r.ok) throw new Error('HTTP '+r.status+' uploading '+name);
-  return {name:name, bytes:body.length, updated:!!existing};
-}
-async function confPoll(quiet){
-  const fy=MS.cur;
-  const atts=await confList(fy);
-  const peers={};
-  for(let i=0;i<atts.length;i++){
-    const a=atts[i];
-    const ap=String(a.title||'').slice(confPrefix(fy).length).replace(/\.json$/i,'');
-    if(!ap || ap===mySlug()) continue;          // your own board is the live one
-    const link=(a._links&&a._links.download)||'';
-    if(!link || !confSameHost(link)) continue;
-    const r=await liveNet(confBase()+link, {method:'GET', headers:confHdrs(),
-                                            credentials:confCreds()});
-    if(!r.ok){ continue; }                      // one unreadable attachment is not a failed refresh
-    let j=null;
-    try{ j=JSON.parse(r.text||''); }catch(e){ continue; }
-    peers[ap]={by:(j&&j.by)||'', ts:Date.parse((a.version&&a.version.when)||'')||(j&&j.ts)||0,
-               fy:(j&&j.fy)||fy, store:(j&&j.store)||null};
-  }
-  return peers;
-}
-// ============================================================ SHAREPOINT
-// A folder in a document library, one JSON file per appropriation - the same files the shared
-// folder holds, spoken over SharePoint's REST API. Publishing needs a request digest first
-// (SharePoint's own XSRF guard); every request carries either a bearer token set on this machine
-// or the browser's existing SharePoint sign-in. Whether a page opened from a file is allowed in
-// at all is the question tools/sharepoint_probe.html answers; this code assumes it was yes.
-function spFileName(fy, ap){ return 'spmt-'+fy+'-'+ap+'.json'; }
-function spPrefix(fy){ return 'spmt-'+fy+'-'; }
-function spBase(){ return String(liveCfg().url||'').replace(/\/+$/,''); }
-function spDir(){
-  let d=String(liveCfg().dir||'').trim().replace(/\\/g,'/').replace(/\/+$/,'');
-  if(d && d.charAt(0)!=='/') d='/'+d;
-  return d;
-}
-// A server-relative path inside an OData string literal: each segment URL-encoded, apostrophes doubled.
-function spLit(p){ return String(p).split('/').map(encodeURIComponent).join('/').replace(/'/g, "''"); }
-function spHdrs(extra){
-  const h=Object.assign({'Accept':'application/json;odata=verbose'}, extra||{});
-  const k=liveKey();
-  if(k) h['Authorization']='Bearer '+k;
-  return h;
-}
-function spCreds(){ return liveKey()? 'omit' : 'include'; }
-let _spDigest={v:'', t:0};
-async function spDigest(){
-  if(_spDigest.v && Date.now()-_spDigest.t<20*60*1000) return _spDigest.v;
-  const r=await liveNet(spBase()+'/_api/contextinfo', {method:'POST', headers:spHdrs(), credentials:spCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' asking SharePoint for a request digest'
-    +((r.status===401||r.status===403)? ' — not signed in, or this page is not allowed in' : ''));
-  const j=liveJson(r);
-  const v=(j&&j.d&&j.d.GetContextWebInformation&&j.d.GetContextWebInformation.FormDigestValue)
-    ||(j&&j.FormDigestValue)||'';
-  if(!v) throw new Error('SharePoint answered without a request digest');
-  _spDigest={v:v, t:Date.now()};
-  return v;
-}
-function spRows(j){ return (j&&j.d&&Array.isArray(j.d.results))? j.d.results : ((j&&Array.isArray(j.value))? j.value : []); }
-async function spList(fy){
-  const dir=spDir();
-  if(!spBase()) throw new Error('no SharePoint site set');
-  if(!dir) throw new Error('no SharePoint folder set');
-  const u=spBase()+"/_api/web/GetFolderByServerRelativeUrl('"+spLit(dir)+"')/Files?$select=Name,TimeLastModified,ServerRelativeUrl";
-  const r=await liveNet(u, {method:'GET', headers:spHdrs(), credentials:spCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' listing the folder'+(r.status===404? ' — check the folder path' : ''));
-  return spRows(liveJson(r)).filter(function(f){ return String(f.Name||'').indexOf(spPrefix(fy))===0; });
-}
-async function spPublish(quiet){
-  const fy=MS.cur, ap=mySlug(), name=spFileName(fy, ap);
-  const body=JSON.stringify(livePayload());
-  const dir=spDir(); if(!dir) throw new Error('no SharePoint folder set');
-  const digest=await spDigest();
-  const u=spBase()+"/_api/web/GetFolderByServerRelativeUrl('"+spLit(dir)+"')/Files/add(url='"+encodeURIComponent(name)+"',overwrite=true)";
-  const r=await liveNet(u, {method:'POST', headers:spHdrs({'X-RequestDigest':digest, 'Content-Type':'application/json'}),
-                            credentials:spCreds(), body:body});
-  if(!r.ok){
-    if(r.status===403) _spDigest={v:'', t:0};                     // a stale digest is fetched afresh next time
-    throw new Error('HTTP '+r.status+' uploading '+name+(r.status===403? ' — the digest was refused, or the folder is read-only for you' : ''));
-  }
-  return {name:name, bytes:body.length};
-}
-async function spPoll(quiet){
-  const fy=MS.cur, dir=spDir();
-  const files=await spList(fy);
-  const peers={};
-  for(let i=0;i<files.length;i++){
-    const f=files[i];
-    const ap=String(f.Name||'').slice(spPrefix(fy).length).replace(/\.json$/i,'');
-    if(!ap || ap===mySlug()) continue;          // your own board is the live one
-    const u=spBase()+"/_api/web/GetFileByServerRelativeUrl('"+spLit(dir+'/'+f.Name)+"')/$value";
-    const r=await liveNet(u, {method:'GET', headers:spHdrs(), credentials:spCreds()});
-    if(!r.ok) continue;                         // one unreadable file is not a failed refresh
-    let j=null;
-    try{ j=JSON.parse(r.text||''); }catch(e){ continue; }
-    peers[ap]={by:(j&&j.by)||'', ts:Date.parse(f.TimeLastModified||'')||(j&&j.ts)||0,
-               fy:(j&&j.fy)||fy, store:(j&&j.store)||null};
-  }
-  return peers;
-}
+// v2.04 (item 110; Brad, 22 Oct 2026): THE CONFLUENCE AND SHAREPOINT TRANSPORTS ARE GONE. "Let's remove the confluence and
+// SharePoint option entirely. Right now it lives on my desktop and long-term removing towards azure." They spoke to a wiki
+// page and a document library over fetch, from a page opened as a file; the shared folder and the JSON endpoint remain.
+// A machine set up for either opens on the shared folder, off, and says so (liveCfg, liveBody). Nothing in a board file
+// named either transport, so no saved board changes.
 // NOTHING IS SILENT. A feed that fails quietly is a board showing yesterday's numbers as today's.
 async function livePublish(quiet){
   const c=liveCfg();
@@ -29260,20 +29116,6 @@ async function livePublish(quiet){
       if(ok){ LIVEDB.err=''; LIVEDB.pub=Date.now(); }
       return !!ok;
     }
-    if(c.mode==='sp'){
-      const o=await spPublish(quiet);
-      LIVEDB.err=''; LIVEDB.pub=Date.now();
-      if(!quiet) setStat('⬆ Wrote <b>'+esc(o.name)+'</b> to the SharePoint folder — '
-        +Math.round(o.bytes/1024)+' KB.');
-      return true;
-    }
-    if(c.mode==='conf'){
-      const o=await confPublish(quiet);
-      LIVEDB.err=''; LIVEDB.pub=Date.now();
-      if(!quiet) setStat('⬆ '+(o.updated?'Updated':'Published')+' <b>'+esc(o.name)+'</b> on the '
-        +'Confluence page — '+Math.round(o.bytes/1024)+' KB.');
-      return true;
-    }
     const r=await liveNet(c.url.replace(/\/+$/,'')+'/state', {method:'POST', headers:liveHdrs(),
       credentials:'omit', body:JSON.stringify(livePayload())});
     if(!r.ok) throw new Error('HTTP '+r.status+' '+(r.statusText||''));
@@ -29294,10 +29136,6 @@ async function livePoll(quiet){
     let peers={};
     if(c.mode==='drive'){
       peers=await drivePoll(quiet);
-    } else if(c.mode==='sp'){
-      peers=await spPoll(quiet);
-    } else if(c.mode==='conf'){
-      peers=await confPoll(quiet);
     } else {
       const r=await liveNet(c.url.replace(/\/+$/,'')+'/state?fy='+encodeURIComponent(MS.cur),
         {method:'GET', headers:liveHdrs(), credentials:'omit'});
@@ -29500,35 +29338,23 @@ function liveBody(){
     }
   } else {
     h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:6px">'
-      +'<span class="rlg-lbl">'+(c.mode==='conf'? 'Confluence' : (c.mode==='sp'? 'SharePoint site' : 'Endpoint'))+'</span>'
+      +'<span class="rlg-lbl">Endpoint</span>'
       +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.url)+'" '
         +'placeholder="https://…" onchange="liveSet(&quot;url&quot;,this.value)" '
         +'title="https only — this carries CUI">'
-      +(c.mode==='conf'? '<span class="rlg-lbl">Page id</span>'
-        +'<input class="rlg-in" style="width:110px" value="'+esc(c.page)+'" '
-        +'onchange="liveSet(&quot;page&quot;,this.value)" '
-        +'title="the numeric id of the wiki page the attachments hang on — it is in the page URL">' : '')
-      +(c.mode==='sp'? '<span class="rlg-lbl">Folder</span>'
-        +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.dir)+'" '
-        +'placeholder="/sites/…/Shared Documents/ORBIT/Data" onchange="liveSet(&quot;dir&quot;,this.value)" '
-        +'title="the server-relative path of the library folder, as it appears after the site name in the address bar">' : '')
       +'</div>';
   }
-  if(c.mode==='conf')
-    h+='<div class="hint">One JSON attachment per appropriation, named <b>spmt-'+MS.cur+'-'
-      +esc(mySlug())+'.json</b>. Confluence versions attachments itself, so every publish leaves a '
-      +'history on a page the team can already find and open.</div>';
-  if(c.mode==='sp')
-    h+='<div class="hint">One JSON file per appropriation, named <b>spmt-'+MS.cur+'-'+esc(mySlug())
-      +'.json</b>, in the library folder above; SharePoint keeps its own version history of each. '
-      +'<b>Run tools/sharepoint_probe.html first</b> — it says in one pass whether this page is '
-      +'allowed to talk to the site at all, and which wall it hits if not.</div>';
+  // v2.04 (item 110): a machine that was set up for Confluence or SharePoint is told once where it stands
+  if(c.retired && c.mode==='drive' && !c.folder)
+    h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--amber);padding-left:8px">'
+      +'This computer was set up to share through <b>'+(c.retired==='conf'? 'a Confluence page' : 'a SharePoint folder')+'</b>. '
+      +'That option was removed in v2.04, so the live view is <b>off</b> and set to the shared folder. Pick a folder above to '
+      +'share again; nothing was sent anywhere.</div>';
   // WHETHER THIS BUILD CAN TALK TO IT AT ALL, said here rather than discovered from a failure.
   if(c.mode!=='drive' && !liveHasBridge() && c.url)
     h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--blue);padding-left:8px">'
       +'This is the <b>loose HTML file</b>, so its requests carry <code>Origin: null</code>. '
-      +'Measured on this network the connection succeeds and the browser then blocks the reply, '
-      +'until the reverse proxy in front of the site allows that origin for <code>/rest/api/*</code>. '
+      +'The endpoint has to allow that origin, or the browser blocks its reply. '
       +'The packaged <b>.exe</b> build is not bound by that — it makes the request in its own '
       +'process.</div>';
   if(c.mode!=='drive')
@@ -29538,9 +29364,7 @@ function liveBody(){
       +'onchange="liveSetKey(this.value)" '
       +'title="stored on THIS machine only — it is never written into a saved file or a package">'
     +'<span class="hint" style="margin:0">'+(k? '✓ set on this machine' : 'not set')
-    +' — never travels in a saved file'
-    +(c.mode==='conf'&&!k? ' · leave it blank to use your existing Confluence sign-in' : '')
-    +(c.mode==='sp'&&!k? ' · leave it blank to use your existing SharePoint sign-in' : '')+'</span>'
+    +' — never travels in a saved file</span>'
     +'</div>';
   h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:4px">'
     +'<span class="rlg-lbl">Refresh every</span>'
@@ -29916,7 +29740,7 @@ function diagReport(){
   add('  Save writes to:     '+sv);
   let lv='';
   try{ const c=liveCfg(), set=(c.mode==='drive')? !!c.folder : !!c.url,
-       M={drive:'shared folder', conf:'Confluence page', sp:'SharePoint folder', json:'JSON endpoint'};
+       M={drive:'shared folder', json:'JSON endpoint'};
     lv = !set? 'not set up' : (c.on? 'on' : 'off')+' · '+(M[c.mode]||'other')+' · '+len((LIVEDB||{}).peers)+' other board(s) seen'
        +((LIVEDB && LIVEDB.err)? ' · last error: '+diagClean(LIVEDB.err, true) : ''); }catch(e){}
   add('  Live view:          '+lv);
