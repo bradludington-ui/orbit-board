@@ -168,6 +168,20 @@ Current version: **v2.04**. Next: **v2.05**.
   - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
     off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
     all gets no tab.
+- **Tab 0: Summary, first** (Brad, 22 Oct 2026: "yes"). One page: By appropriation (a row each, the same columns, TOTAL),
+  a chart of Requirement against Allocated by fiscal year for the portfolio (navy and gold, axis from zero, the figures read
+  off the TOTAL row), then By service and By PMO in the same layout. The three tables' TOTALs are the same figure.
+- **Tabs per PMO, after the service tabs** (Brad, 22 Oct 2026: "tabs for each PMO. Same format ... just for each PMO that
+  has any requirement identified"): the service tab's layout -- summary by appropriation, then a block per appropriation --
+  with that office's requirements, all services added. An office with no requirement in the five years gets no tab; an
+  appropriation it holds nothing in is left off its tab. Teal tabs. *To build as the board already counts an office:* the
+  office each year assigns (Brad's Q2, v1.95), so a requirement that moved office is under each for its own years; a prime
+  shared between offices by its CLINs is split by office share (`pmoPartsOf`), and the PMO tabs add up to the
+  appropriation tabs.
+- **A classification marking** at the top and bottom of every page and above every tab's banner (Brad, 22 Oct 2026: "yes").
+  Its WORDING waits on the security team (item 106's CUI markings, item 100); the mock-up shows "CUI" as a placeholder. It
+  is one setting, so the wording changes in one place.
+- **Tab order:** Summary, O&M, Full Fund, Initial Spares, OPN, USAF, ANG, AFRC, STOVL, USMC-C, USN, then the PMOs.
 - **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
   pull from for briefings"). The styled mock-up sent that day is the target:
   - a navy title banner per tab (the plan's name), under it one italic line: the plan and when locked, FY27–FY31,
@@ -189,7 +203,8 @@ Current version: **v2.04**. Next: **v2.05**.
 - **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
   appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
   plan moves; $M cells carry the exact figure.
-- **Open:** Brad's review of the styled mock-up.
+- **Open:** Brad's review of mock-up v2 (summary, PMO tabs, marking); the marking's wording from the security team. A chart
+  in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
 
 ## Later
 
