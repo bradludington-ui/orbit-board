@@ -159,14 +159,42 @@ Current version: **v2.03**. Next: **v2.04**.
     the CLIN drill, and the Description is built one line per CLIN: "CLIN 0001 · JSF1234 — description".
   - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
     requirement's otherwise.
-- **Waiting on:** the exact column headings of the CCaR records export for the Record Name and the short description
-  (Brad owes them). Is Title the Record Name, or is it a column of its own?
+- **The headings (Brad, 22 Oct 2026):** the Record Name is in the column **CCaR No**; the description is in **Short
+  Description**. **Open question:** the import already keys every record on CCaR No as the record NUMBER
+  (`ccarNorm(row[iC])`). If CCaR No holds the name, which column holds the number typed on a requirement -- or does CCaR No
+  carry both ("JSF6789 - Engine depot overhaul")? To be settled with Brad, or from one header row and one sample row
+  (no budget figures needed), before the import is changed.
 - **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
   Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
   cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
 - **Proof, when built:** a check that types a number and reads the RECORD panel and the row; a re-import that changes a
   name; a Description that is kept; a requirement over CLINs with one shared record and with three; and the Spend Plan
   Source's CLIN lines read back for each CLIN's own number and name. Each must fail on v2.03.
+
+#### 109. ORBIT-AI: GenAI.mil suggestions for classification and spend-plan anomalies (Brad, 22 Oct 2026, a proposal for review)
+- **What Brad showed:** a draft project description (written with GenAI.mil): integrate IL5 GenAI.mil APIs into ORBIT for
+  two workflows -- **automated categorization and tagging** (read free-text requirements and suggest funding
+  categories, appropriation codes and modernization priority tags) and **spend plan anomaly and variance detection**
+  (flag outyear spikes, anomalies and execution variances across the FYDP). Human in the loop: every tag and flag is
+  advisory until an authorized Program Manager confirms it; unclassified network, unclassified and CUI data only.
+- **Where it can live:** not in the desktop file. The file runs from a shared drive or `file://` with no network route,
+  `npm run check` refuses anything external, a page opened from a file calls out with `Origin: null`, and any API key in
+  the file would travel in every save and PMO copy. Sending CUI to an outside service also makes the file a connected
+  system, which is what item 100's IL5 / Zero Trust requirements are about -- and Brad set those for the Azure build only.
+  So the AI calls belong in item 107, made server-side under the user's sign-in and logged centrally.
+- **What can be built in the file now, with no AI:** the anomaly half is mostly arithmetic the board already holds --
+  cycle deltas, the cycle comparison, the five-year plan, ORBIT vs CCaR, "not drawn". A rules-based "Anomalies" list
+  (a year-over-year jump above a set percentage, a requirement funded in one year and missing the next, an outyear
+  spike against its own average, execution against plan beyond a threshold) can be exact and checkable, unlike a model.
+  The suggestions half can use the review pattern the PMO submittals already have: proposals in a table, nothing
+  applied until ticked, every accepted change in the change journal.
+- **Corrections for the write-up before it goes to reviewers:** ORBIT's appropriations are O&M, Full Fund, Initial
+  Spares and OPN -- RDT&E is not one, and its BAE budgets are excluded on purpose. "Undefended POM cycles" probably
+  means "defended". "Single-source HTML platform" reads better as "a single self-contained HTML file".
+- **Questions for Brad:** (1) build the rules-based anomaly list in the file now, and leave the AI to the Azure build?
+  (2) which tags should a suggestion fill -- the existing fields only (band, cost element, obligation category, RCN/EEIC,
+  SI code), or new "modernization priority" tags (a new field, with its own list)? (3) the anomaly thresholds, or should
+  they be settable?
 
 ## Later
 
