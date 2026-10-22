@@ -230,24 +230,26 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
 // the shared folder, OFF -- so nothing starts sending anywhere by itself -- and is told why.
 {
   const B = fresh();
-  const out = probe(B, 'v2.04 item 110 — Confluence and SharePoint removed', `(function(){
+  const out = probe(B, 'v2.04 items 110-111 — Confluence, SharePoint and the JSON endpoint removed', `(function(){
     var modes=LIVE_MODES.map(function(m){ return m.k; }).join(',');
-    var gone=['confSameHost','confPublish','confPoll','spPublish','spPoll','spDigest'].filter(function(n){ try{ return typeof eval(n)==='function'; }catch(e){ return false; } });
+    var gone=['confSameHost','confPublish','confPoll','spPublish','spPoll','spDigest','liveNet','liveHdrs','liveKey','liveSetKey'].filter(function(n){ try{ return typeof eval(n)==='function'; }catch(e){ return false; } });
     var got=[];
-    ['conf','sp'].forEach(function(m){
+    ['conf','sp','json'].forEach(function(m){
+      localStorage.setItem(LIVE_KEY_LS, 'a-key-for-'+m);
       localStorage.setItem(LIVE_CFG_LS, JSON.stringify({mode:m, url:'https://wiki.example.com', on:true, every:30}));
       _liveCfg=null; var c=liveCfg();
       liveOpen=true; try{ liveBody(); }catch(e){}
       var h=(document.getElementById('liveBody')||document.body).innerHTML;
-      got.push([c.mode, c.on, /option was removed in v2\\.04/.test(h)].join(' '));
+      got.push([c.mode, c.on, /option was removed in v2\\.04/.test(h), localStorage.getItem(LIVE_KEY_LS)===null].join(' '));
       liveOpen=false; });
     localStorage.removeItem(LIVE_CFG_LS); _liveCfg=null;
     return JSON.stringify({modes:modes, gone:gone.join(','), got:got}); })()`);
   if (out) {
-    chk('v2.04 item 110 — Confluence and SharePoint removed', 'the live view offers the shared folder and the JSON endpoint only', out.modes, 'drive,json');
-    chk('v2.04 item 110 — Confluence and SharePoint removed', 'nothing of either transport is left to call', out.gone, '');
-    chk('v2.04 item 110 — Confluence and SharePoint removed', 'a machine set up for Confluence, then SharePoint, opens on the shared folder, OFF, and is told why',
-      JSON.stringify(out.got), JSON.stringify(['drive false true', 'drive false true']));
+    const N = 'v2.04 items 110-111 — Confluence, SharePoint and the JSON endpoint removed';
+    chk(N, 'the live view offers the shared folder only', out.modes, 'drive');
+    chk(N, 'nothing of the three transports, the network client or the key is left to call', out.gone, '');
+    chk(N, 'a machine set up for Confluence, SharePoint or an endpoint opens on the shared folder, OFF, is told why, and its key is gone',
+      JSON.stringify(out.got), JSON.stringify(['drive false true true', 'drive false true true', 'drive false true true']));
   }
 }
 

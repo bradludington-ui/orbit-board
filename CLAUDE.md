@@ -2230,7 +2230,7 @@ realignment (1600), FYDP (3247), change journal (3794), appropriation packages (
 charts (8216), executive decision tool (10321), QPE coverage (10735), spend plans (11046), PPBE
 baselines (11716), dated snapshots (12618), reprogramming tracker (13708), CLIN drill (14312), WBS
 (14501), XLSX writer (15412), PPTX export (15577), command bar (15841), Live View (16311),
-shared-folder transport and JSON endpoint (16472–17361; Confluence and SharePoint removed in v2.04), companion tools (17774),
+shared-folder transport (16472–17361; Confluence, SharePoint and the JSON endpoint removed in v2.04), companion tools (17774),
 ACE tie-out workbook (18213).
 
 Two embedded Office templates, both base64, both generated-code regions — do not hand-edit:
@@ -4179,7 +4179,7 @@ ATR/BTR workbook and its two calls. `verify:grid` stops at `layout` (the 8 carri
 in the nightly gate: **run `keys`, `dropdowns`, `dialogs`, `leftmenu` and `standards` yourself** after a change that moves
 a menu or an export.
 
-### v2.04: the CCaR records list names the record; an AI review carried by hand; Clear this computer; Confluence and SharePoint removed
+### v2.04: the CCaR records list names the record; an AI review carried by hand; Clear this computer; Confluence, SharePoint and the JSON endpoint removed
 
 Brad, 22 Oct 2026, "Go to all". `NEXT-VERSION.md` › Shipped › v2.04 has every detail.
 
@@ -4199,9 +4199,11 @@ management". A direct GenAI.mil call belongs to the Azure build (item 107), serv
 **Clear this computer** (item 106, in part): every `prio27`/`spmt` key and `prio-fh`, never the file. A new storage key must
 start `prio27` or `spmt`, or Clear this computer will not reach it.
 
-**Confluence and SharePoint are gone** (item 110, Brad: "remove ... entirely", the long-term home being Azure). The Live view
-shares through the shared folder or a JSON endpoint; a machine set up for either removed transport opens on the folder, off,
-and is told. Do not bring a network transport back into the file: the Azure build is where the server talks to anything.
+**Confluence, SharePoint and the JSON endpoint are gone** (items 110, 111; Brad: "remove ... until we get closer to actually
+going live with azure"). The Live view shares through the shared folder only, and the file makes no request to another host
+(the legacy state file beside the board is the one `fetch` left). A machine set up for a removed transport opens on the
+folder, off, is told, and loses its stored key. Do not bring a network transport back into the file: in the Azure build the
+server talks to anything.
 
 **A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
 declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.

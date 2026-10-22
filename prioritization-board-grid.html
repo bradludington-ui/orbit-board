@@ -27686,7 +27686,7 @@ function syncBtns(){
 
 // ==============================================================================================================
 // §38  LIVE VIEW AND SHARED FOLDER
-//      the network transport (liveNet: a JSON endpoint) and the folder store and its history
+//      the shared folder and its history (Confluence, SharePoint and the JSON endpoint were removed in v2.04)
 // ==============================================================================================================
 // ============ LIVE VIEW =======================================================================
 /* Everyone sees everyone's current position. Each appropriation is still WRITTEN by one person -
@@ -27714,8 +27714,7 @@ let LIVEDB={ts:0, peers:{}, err:'', last:0};   // independent store, like EXDB
 let liveTimer=null, liveOpen=false, liveBusy=false;
 
 const LIVE_MODES=[
-  {k:'drive',n:'Shared folder',   d:'a file per appropriation on a network drive — needs nobody\u2019s permission'},
-  {k:'json', n:'JSON endpoint',   d:'an API of your own that stores and returns the state'}
+  {k:'drive',n:'Shared folder',   d:'a file per appropriation on a network drive — needs nobody\u2019s permission'}
 ];
 // How long a lock is believed after its holder last touched it. The heartbeat runs on the refresh
 // timer, so this has to be comfortably longer than one refresh or a working board would time itself
@@ -27736,9 +27735,12 @@ function liveCfg(){
   if(c.every===undefined)  c.every=30;
   if(c.on===undefined)     c.on=false;
   if(!c.mode)              c.mode='drive';   // the transport that needs nobody's permission
-  // v2.04 (item 110): Confluence and SharePoint are gone. A machine set up for one opens on the shared folder, OFF, so
+  // v2.04 (items 110, 111): Confluence, SharePoint and the JSON endpoint are gone. A machine set up for one opens on the shared folder, OFF, so
   // nothing starts publishing anywhere by itself; liveBody says what happened. The settings left behind are inert.
-  if(c.mode==='conf' || c.mode==='sp'){ c.retired=c.mode; c.mode='drive'; c.on=false; }
+  if(c.mode==='conf' || c.mode==='sp' || c.mode==='json'){ c.retired=c.mode; c.mode='drive'; c.on=false; }
+  // v2.04 (item 111): NOTHING USES A KEY NOW, so the one this machine held is removed rather than left behind. It was a
+  // credential for an endpoint, never board data, and Clear this computer would take it anyway.
+  try{ localStorage.removeItem(LIVE_KEY_LS); }catch(e){}
   if(c.folder===undefined) c.folder='';      // the name of the chosen shared folder, for display
   if(c.store===undefined)  c.store=false;
   if(c.auto===undefined)   c.auto=true;    // working out of the folder means saving to it    // WORK out of the folder, rather than publish to it
@@ -27748,50 +27750,11 @@ function liveCfg(){
 function liveSaveCfg(){
   try{ lsSet(LIVE_CFG_LS, JSON.stringify(liveCfg()), 'Your live-view settings'); }catch(e){}
 }
-// ELECTRON DOES THE TALKING WHERE THE BROWSER WILL NOT. The packaged build exposes a bridge that
-// performs the request in its own process, which is not bound by browser CORS; the loose HTML file
-// has no such thing and uses fetch. One client, and it asks rather than assumes.
-function liveHasBridge(){
-  try{ return !!(window.spmtNet && typeof window.spmtNet.request==='function'); }catch(e){ return false; }
-}
-async function liveNet(url, opts){
-  opts=opts||{};
-  if(liveHasBridge()) return await window.spmtNet.request(url, opts);
-  const r=await fetch(url, opts);
-  const text=await r.text();
-  return {ok:r.ok, status:r.status, statusText:r.statusText, text:text};
-}
-function liveJson(res){
-  try{ return JSON.parse(res.text||''); }catch(e){ throw new Error('the reply was not JSON'); }
-}
-// The key is read and written HERE and nowhere near MS. lsSet reports its own failures.
-function liveKey(){ try{ return localStorage.getItem(LIVE_KEY_LS)||''; }catch(e){ return ''; } }
-function liveSetKey(k){
-  k=String(k==null?'':k).trim();
-  if(k) lsSet(LIVE_KEY_LS, k, 'Your live-view key');
-  else { try{ localStorage.removeItem(LIVE_KEY_LS); }catch(e){ /* absent is the wanted state */ } }
-  render();
-  setStat(k? '✓ Live key saved on THIS machine only — it never travels in a saved file.'
-           : '✗ Live key removed from this machine.');
-}
 function liveSet(f, v){
   const c=liveCfg();
-  if(f==='url'){
-    const u=String(v||'').trim();
-    // HTTPS ONLY. This carries CUI; an http endpoint would put it on the wire in clear.
-    if(u && !/^https:\/\//i.test(u)){
-      alert('The live endpoint must be https.'+String.fromCharCode(10,10)
-        +'This publishes requirement and funding data, so an unencrypted endpoint is not offered.');
-      return;
-    }
-    c.url=u;
-    if(!u){ c.on=false; liveStop(); }
-  }
-  else if(f==='every'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10);
+  if(f==='every'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10);
     c.every=(isFinite(n)&&n>=10&&n<=600)? n : 30; if(c.on) liveStart(); }
   else if(f==='mode'){ if(LIVE_MODES.some(function(m){ return m.k===v; })) c.mode=v; }
-  else if(f==='page'){ c.page=String(v||'').replace(/[^0-9]/g,''); }
-  else if(f==='dir'){ c.dir=String(v||'').trim(); }
   else if(f==='auto'){ c.auto=!!v; }
   else if(f==='store'){
     c.store=!!v;
@@ -27801,8 +27764,6 @@ function liveSet(f, v){
   }
   else if(f==='on'){
     c.on=!!v;
-    if(c.on && c.mode!=='drive' && !liveCfg().url){ c.on=false;
-      alert('Set the endpoint first.'); return; }
     if(c.on) liveStart(); else liveStop();
   }
   liveSaveCfg(); render();
@@ -27812,7 +27773,7 @@ function liveStart(){
   liveStop();
   const c=liveCfg();
   // A shared folder has no URL to check — its readiness is a handle, tested when it is used.
-  if(!c.on || (c.mode!=='drive' && !c.url)) return;
+  if(!c.on || c.mode!=='drive') return;
   liveTimer=setInterval(liveTick, Math.max(10, c.every)*1000);
   liveTick();
 }
@@ -27850,11 +27811,6 @@ function livePayload(writer){
 }
 function liveSize(){
   try{ return JSON.stringify(livePayload()).length; }catch(e){ return 0; }
-}
-function liveHdrs(){
-  const h={'Content-Type':'application/json'};
-  const k=liveKey(); if(k) h['x-api-key']=k;
-  return h;
 }
 // ---- Shared folder transport ----------------------------------------------------------------
 // The directory handle is kept exactly the way the save-file handle already is: in IndexedDB, under
@@ -29092,13 +29048,15 @@ function rpMerge(theirs){
 }
 // v2.04 (item 110; Brad, 22 Oct 2026): THE CONFLUENCE AND SHAREPOINT TRANSPORTS ARE GONE. "Let's remove the confluence and
 // SharePoint option entirely. Right now it lives on my desktop and long-term removing towards azure." They spoke to a wiki
-// page and a document library over fetch, from a page opened as a file; the shared folder and the JSON endpoint remain.
+// page and a document library over fetch, from a page opened as a file. The JSON endpoint went the same day (item 111: "remove
+// for now until we get closer to actually going live with azure"), and with it liveNet, the Live view key and the last fetch
+// to another host. The shared folder remains.
 // A machine set up for either opens on the shared folder, off, and says so (liveCfg, liveBody). Nothing in a board file
 // named either transport, so no saved board changes.
 // NOTHING IS SILENT. A feed that fails quietly is a board showing yesterday's numbers as today's.
 async function livePublish(quiet){
   const c=liveCfg();
-  if(c.mode!=='drive' && !c.url){ setStat('⚠ No live endpoint set.'); return false; }
+  if(c.mode!=='drive'){ setStat('⚠ The live view shares through the shared folder only.'); return false; }
   if(liveBusy) return false;
   liveBusy=true;
   try{
@@ -29116,13 +29074,7 @@ async function livePublish(quiet){
       if(ok){ LIVEDB.err=''; LIVEDB.pub=Date.now(); }
       return !!ok;
     }
-    const r=await liveNet(c.url.replace(/\/+$/,'')+'/state', {method:'POST', headers:liveHdrs(),
-      credentials:'omit', body:JSON.stringify(livePayload())});
-    if(!r.ok) throw new Error('HTTP '+r.status+' '+(r.statusText||''));
-    LIVEDB.err=''; LIVEDB.pub=Date.now();
-    if(!quiet) setStat('⬆ Published '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-      +' — '+Math.round(liveSize()/1024)+' KB.');
-    return true;
+    return false;
   }catch(e){
     LIVEDB.err=(e&&e.message)||String(e);
     setStat('⚠ Live publish failed — <b>'+esc(LIVEDB.err)+'</b>. Nothing was sent.');
@@ -29131,23 +29083,9 @@ async function livePublish(quiet){
 }
 async function livePoll(quiet){
   const c=liveCfg();
-  if(c.mode!=='drive' && !c.url) return false;
+  if(c.mode!=='drive') return false;
   try{
-    let peers={};
-    if(c.mode==='drive'){
-      peers=await drivePoll(quiet);
-    } else {
-      const r=await liveNet(c.url.replace(/\/+$/,'')+'/state?fy='+encodeURIComponent(MS.cur),
-        {method:'GET', headers:liveHdrs(), credentials:'omit'});
-      if(!r.ok) throw new Error('HTTP '+r.status+' '+(r.statusText||''));
-      const j=liveJson(r);
-      const rows=Array.isArray(j)? j : (j&&Array.isArray(j.items)? j.items : []);
-      rows.forEach(function(x){
-        if(!x||!x.ap) return;
-        if(x.ap===mySlug()) return;        // your own board is the live one; never read it back
-        peers[x.ap]={by:x.by||'', ts:+x.ts||0, fy:+x.fy||0, store:x.store||null};
-      });
-    }
+    const peers=await drivePoll(quiet);
     // CARRY THE LOCKS THROUGH. drivePoll sets LIVEDB.locks while it walks the folder, and
     // rebuilding LIVEDB from scratch here threw them away - so a second person on the same
     // appropriation was never told, which is the one thing the lock exists to do.
@@ -29187,7 +29125,7 @@ function liveBody(){
   const el=document.getElementById('liveBody'); if(!el) return;
   const pn=document.getElementById('livePanel'); if(pn) pn.style.display=liveOpen?'block':'none';
   if(!liveOpen){ el.innerHTML=''; return; }
-  const c=liveCfg(), k=liveKey();
+  const c=liveCfg();
   // WHO ELSE IS IN THIS APPROPRIATION, before anything else on the panel. Someone needs to know
   // this before they type, not after they save.
   let h='';
@@ -29223,20 +29161,12 @@ function liveBody(){
     +'<b>\u{1F4E6} Appropriation packages</b>.</div>';
   // ---- WHAT WOULD LEAVE THIS MACHINE, said plainly, before it is switched on
   h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--amber);padding-left:8px">'
-    +(c.mode==='drive'
-      ? '<b>This writes requirement and funding data to the shared folder.</b> It stays on the '
-        +'network drive \u2014 nothing leaves it. It writes '
-      : '<b>This sends requirement and funding data off this computer.</b> It publishes ')
+    +'<b>This writes requirement and funding data to the shared folder.</b> It stays on the '
+    +'network drive \u2014 nothing leaves it. It writes '
     +esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' — about <b>'
-    +Math.round(liveSize()/1024)+' KB</b> — to the endpoint below, and nothing else. '
+    +Math.round(liveSize()/1024)+' KB</b> — to the folder below, and nothing else. '
     +'Execution data and cost estimates are never sent, as a package strips them (with the reprogramming log it still carries).</div>';
-  // WHICH TRANSPORT, and what each one needs.
-  h+='<div class="fr" style="flex-wrap:wrap;gap:6px;margin-top:8px">'
-    +'<span class="rlg-lbl">Store it in</span>'
-    +LIVE_MODES.map(function(m){ return '<button class="btn'+(c.mode===m.k?' on':'')+'" '
-      +'style="font-size:10px;padding:3px 10px" onclick="liveSet(&quot;mode&quot;,'+jsa(m.k)+')" '
-      +'title="'+esc(m.d)+'">'+esc(m.n)+'</button>'; }).join('')
-    +'</div>';
+  // ONE TRANSPORT since v2.04 (items 110, 111): the shared folder. There is nothing to choose between.
   if(c.mode==='drive'){
     if(c.folder && !_drivePermProbed){ _drivePermProbed=true; driveProbePerm(); }
     // A FOLDER IS CHOSEN, NOT TYPED. The picker is a user gesture and cannot be opened from a
@@ -29336,36 +29266,13 @@ function liveBody(){
           +'Both are locked, so <b>nothing was changed</b>. Agree which is the approved estimate, '
           +'then whoever holds it can re-import it.</div>';
     }
-  } else {
-    h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:6px">'
-      +'<span class="rlg-lbl">Endpoint</span>'
-      +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.url)+'" '
-        +'placeholder="https://…" onchange="liveSet(&quot;url&quot;,this.value)" '
-        +'title="https only — this carries CUI">'
-      +'</div>';
   }
-  // v2.04 (item 110): a machine that was set up for Confluence or SharePoint is told once where it stands
+  // v2.04 (items 110, 111): a machine that was set up for Confluence, SharePoint or an endpoint is told once where it stands
   if(c.retired && c.mode==='drive' && !c.folder)
     h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--amber);padding-left:8px">'
-      +'This computer was set up to share through <b>'+(c.retired==='conf'? 'a Confluence page' : 'a SharePoint folder')+'</b>. '
+      +'This computer was set up to share through <b>'+({conf:'a Confluence page', sp:'a SharePoint folder', json:'a JSON endpoint'}[c.retired]||'another service')+'</b>. '
       +'That option was removed in v2.04, so the live view is <b>off</b> and set to the shared folder. Pick a folder above to '
       +'share again; nothing was sent anywhere.</div>';
-  // WHETHER THIS BUILD CAN TALK TO IT AT ALL, said here rather than discovered from a failure.
-  if(c.mode!=='drive' && !liveHasBridge() && c.url)
-    h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--blue);padding-left:8px">'
-      +'This is the <b>loose HTML file</b>, so its requests carry <code>Origin: null</code>. '
-      +'The endpoint has to allow that origin, or the browser blocks its reply. '
-      +'The packaged <b>.exe</b> build is not bound by that — it makes the request in its own '
-      +'process.</div>';
-  if(c.mode!=='drive')
-  h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:4px">'
-    +'<span class="rlg-lbl">Key</span>'
-    +'<input class="rlg-in" type="password" style="width:220px" value="'+esc(k)+'" '
-      +'onchange="liveSetKey(this.value)" '
-      +'title="stored on THIS machine only — it is never written into a saved file or a package">'
-    +'<span class="hint" style="margin:0">'+(k? '✓ set on this machine' : 'not set')
-    +' — never travels in a saved file</span>'
-    +'</div>';
   h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:4px">'
     +'<span class="rlg-lbl">Refresh every</span>'
     +'<input class="rlg-in" style="width:60px" value="'+c.every+'" '
@@ -29406,9 +29313,6 @@ function liveBody(){
     h+='<div class="hint" style="margin-top:3px">Read only. Nothing here is applied to your board '
       +'— it lands in its own store, the way the imported execution data does, so a feed can '
       +'never roll back work you are holding.</div>';
-  } else if(c.url){
-    h+='<div class="hint" style="margin-top:8px">Nothing from anyone else yet. They each need the '
-      +'same endpoint and their own key, and to switch Live on.</div>';
   }
   h+='<div class="fr" style="margin-top:10px"><button class="btn" onclick="toggleLive()">Close</button></div>';
   el.innerHTML=h;
@@ -29740,7 +29644,7 @@ function diagReport(){
   add('  Save writes to:     '+sv);
   let lv='';
   try{ const c=liveCfg(), set=(c.mode==='drive')? !!c.folder : !!c.url,
-       M={drive:'shared folder', json:'JSON endpoint'};
+       M={drive:'shared folder'};
     lv = !set? 'not set up' : (c.on? 'on' : 'off')+' · '+(M[c.mode]||'other')+' · '+len((LIVEDB||{}).peers)+' other board(s) seen'
        +((LIVEDB && LIVEDB.err)? ' · last error: '+diagClean(LIVEDB.err, true) : ''); }catch(e){}
   add('  Live view:          '+lv);

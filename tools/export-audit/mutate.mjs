@@ -6883,7 +6883,7 @@ const MUTATIONS = [
   // ==== end v2.04 (item 106) ====
   // ==== v2.04 (item 110): Confluence and SharePoint removed ====
   { id: 'v204-110-mode-kept', area: "liveCfg", what: "a machine set up for Confluence or SharePoint keeps that mode, on, with nothing behind it",
-    find: "  if(c.mode==='conf' || c.mode==='sp'){ c.retired=c.mode; c.mode='drive'; c.on=false; }",
+    find: "  if(c.mode==='conf' || c.mode==='sp' || c.mode==='json'){ c.retired=c.mode; c.mode='drive'; c.on=false; }",
     repl: "" },
   { id: 'v204-110-left-on', area: "liveCfg", what: "a machine set up for Confluence or SharePoint opens on the shared folder still switched on",
     find: "c.retired=c.mode; c.mode='drive'; c.on=false; }",
@@ -6892,6 +6892,14 @@ const MUTATIONS = [
     find: "  if(c.retired && c.mode==='drive' && !c.folder)\n",
     repl: "  if(false)\n" },
   // ==== end v2.04 (item 110) ====
+  // ==== v2.04 (item 111): the JSON endpoint and the Live view key removed ====
+  { id: 'v204-111-json-kept', area: "liveCfg", what: "a machine set up for the JSON endpoint keeps that mode, on, with nothing behind it",
+    find: "c.mode==='sp' || c.mode==='json'){",
+    repl: "c.mode==='sp'){" },
+  { id: 'v204-111-key-left', area: "liveCfg", what: "the endpoint key a machine held is left in its storage with nothing to use it",
+    find: "  try{ localStorage.removeItem(LIVE_KEY_LS); }catch(e){}\n",
+    repl: "" },
+  // ==== end v2.04 (item 111) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

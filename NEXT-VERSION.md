@@ -191,7 +191,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence and SharePoint removed -- built on Brad's "Go to all" of 22 Oct
+### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence, SharePoint and the JSON endpoint removed -- built on Brad's "Go to all" of 22 Oct
 
 `BUILD` is `v2.04 (22 Oct 2026)`. Brad's go covered items 108, 109 and 106; the list tidy (89 and 101 to v2.02) went first.
 **Not built, and why:** the decisions under items 63, 71, 82 and 84 were never picked, so there was nothing to build; of item
@@ -246,10 +246,22 @@ mutation was run against its own check.
 - **A machine set up for either** opens on the shared folder, **off**, so nothing starts sending anywhere by itself, and the
   Live view box says the option was removed (`liveCfg` marks `retired`; the note goes once a folder is picked). No board file
   ever named a transport, so no saved board changes.
-- **Not touched:** the JSON endpoint (Brad to say whether it goes too -- then the file makes no network call but the legacy
-  shared state file, and a Content-Security-Policy becomes possible).
+- The JSON endpoint went the same day, as item 111.
 - Check: audit-inject's D3 (the Confluence download host) is retired with `confSameHost`; in its place "v2.04 item 110"
   (fails on the v2.04 tree before this change). `v200-conf-host-open` retired as obsolete; 3 `v204-110-*` mutations, each caught.
+
+#### 111. The JSON endpoint and the Live view key removed (Brad, 22 Oct 2026: "Let's remove for now until we get closer to actually going live with azure")
+- **Removed:** the JSON endpoint transport (`LIVE_MODES` keeps the shared folder alone), the network client `liveNet` and
+  the packaged build's bridge check, `liveHdrs`, the Live view key (`liveKey`, `liveSetKey`, its field), the endpoint field,
+  the "Store it in" choice (one transport, nothing to choose), the endpoint's Origin note and its branches in `livePublish`,
+  `livePoll`, `liveSet` and `liveStart`. **The file now makes no request to another host.** The only `fetch` left is the
+  legacy shared state file beside the board (`STATEFILE`, the Windows launcher's sidecar).
+- **A machine set up for the endpoint** opens on the shared folder, off, and is told, as for item 110; **its stored key is
+  deleted** (`spmtLiveKey`): a credential with nothing left to use it, never board data.
+- **Back with Azure:** a server-side service, signed in, never a key in a file (item 107).
+- Check: audit-inject "v2.04 items 110-111" (the shared folder only; no transport, client or key left; each of the three
+  set-ups opens off, said, key gone). 2 `v204-111-*` mutations, each caught; `v204-110-mode-kept` retargeted to the line
+  that now carries all three.
 
 #### Changed on purpose, each saying so where it changed
 audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review section, Clear this computer); left-menu's
