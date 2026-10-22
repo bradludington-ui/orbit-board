@@ -160,10 +160,9 @@ Current version: **v2.03**. Next: **v2.04**.
   - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
     requirement's otherwise.
 - **The headings (Brad, 22 Oct 2026):** the Record Name is in the column **CCaR No**; the description is in **Short
-  Description**. **Open question:** the import already keys every record on CCaR No as the record NUMBER
-  (`ccarNorm(row[iC])`). If CCaR No holds the name, which column holds the number typed on a requirement -- or does CCaR No
-  carry both ("JSF6789 - Engine depot overhaul")? To be settled with Brad, or from one header row and one sample row
-  (no budget figures needed), before the import is changed.
+  Description**. **Corrected the same day:** CCaR No holds the number only, no name -- as the import
+  already reads it. **Open question:** which column holds the Record Name? The import already reads **Title**; if Title is
+  the Record Name, item 108 needs only Short Description added to the import.
 - **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
   Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
   cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
@@ -196,8 +195,21 @@ Current version: **v2.03**. Next: **v2.04**.
   2. **Nothing is filled in.** ORBIT offers suggestions and analysis for a person to read and decide on. A suggestion is
      never written to a field by itself; acting on one is the person's own edit, through the field's own editor, and
      journalled as theirs.
-  3. **No limit:** no fixed threshold built in. Read as: every rule's threshold is the person's to set (none hard-coded
-     as a cap), and the list can show every finding, filtered and sorted by size. *To confirm with Brad.*
+  3. **No percentages (corrected the same day):** "I don't want to set a percentage, I want AI to provide an independent
+     assessment." The anomaly analysis is the AI's judgement, not rules with thresholds a person sets.
+- **How an AI assessment can reach the file in v2.04 (proposal):** the file cannot call GenAI.mil (no network route,
+  `Origin: null`, and a key would travel in every save and copy). A hand-carried round trip needs neither:
+  1. **Export for AI review** writes one file: the instructions (what to assess, the answer format) and the board's data
+     for the year or FYDP -- requirements, figures by year and service, classifications, execution against plan.
+  2. The person gives that file to GenAI.mil (the screen Brad showed is marked approved for IL5, CUI and PII) and saves
+     its answer.
+  3. **Import AI review** reads the answer through the import check like any file, and shows it as a review list: each
+     finding or suggestion with the AI's reasoning, the requirement it is about, and Go to it. Nothing is filled in;
+     acting on one is the person's own edit, journalled as theirs. A finding naming a requirement the board does not hold,
+     or a figure that does not match the board, is marked as such, so a model's mistake is visible.
+  The same answer format carries over when the Azure build calls GenAI.mil directly. **To confirm with Brad:** that
+  board data may be given to GenAI.mil (the banner says CUI is authorized; the security team may want to say so).
+  The rules-based list above is dropped unless Brad wants it beside the AI's.
 - **What v2.04 builds (proposal, before go):**
   - **Analysis -- the anomaly list**, one panel, every finding naming the requirement, the year(s), the figure and the
     rule that raised it, and taking the reader to the requirement: a year-over-year change past the set percentage; money
