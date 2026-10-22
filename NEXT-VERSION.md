@@ -136,6 +136,42 @@ Current version: **v2.04**. Next: **v2.05**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
+#### 112. The five-year spend plan workbook, redesigned (Brad, 22 Oct 2026; layout agreed in conversation, mock-up sent)
+- **Logged:** 22 Oct 2026. Not built; waits for go. Mock-ups (made-up data) were sent as files: tab 1 alone, then all ten tabs.
+- **It REPLACES the workbook's tabs** (By Requirement, By PMO, By Service, a tab per PMO). 📊 FYDP Spend Plan (Excel) keeps
+  its menu entry.
+- **What it prints from: the view on screen.** A locked cycle on screen (PB27) prints that lock; the working plan prints the
+  working plan (its cycle tag in the title). The panel's own source picker no longer decides the workbook. The other
+  appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed), from the
+  same cycle; one that holds no such lock is named on its tab, never printed as zero.
+- **Years: the base year and the next four** (FY27-FY31 on a base of 2027), five in all. A year on screen outside that
+  window is not printed. A year in the window the plan does not hold prints —, not 0.
+- **Units: $M to three decimals** ($1,000,000 prints 1.000). Each cell holds the exact figure in millions; only the format
+  rounds, so Excel's own sums agree with the TOTALs to the dollar.
+- **Two figures per year, every sheet:** *Requirement* (the requirement value) and *Allocated* (the requirement's
+  discretionary + mandatory allocation, every service added together). Allocated is what was allocated, not what the lanes
+  drew; where a lane runs dry the gap is unfunded wherever unfunded is reported.
+- **Tabs 1-4: one per appropriation** -- O&M, Full Fund, Initial Spares, OPN.
+  - Two header rows: CCaR Record, Requirement Title, then each fiscal year over its two columns (Requirement, Allocated),
+    then TOTAL over the same two at the far right.
+  - One line per requirement, in 1-N order, grouped under its CCaR record (a record sits where its highest-ranked requirement
+    ranks). The record number is printed once, on the group's first line. Requirements with no record are last, under
+    "No CCaR record".
+  - The requirement title from the board, not the CCaR record name.
+  - Each line's five-year totals at the right; a TOTAL row at the bottom for every column. No subtotals.
+- **Tabs 5-10: one per service** -- USAF, ANG, AFRC, STOVL, USMC-C, USN (the board's names).
+  - **Summary at the top:** one row per appropriation the service carries, the same columns and headings as tabs 1-4, totals
+    at the right and a TOTAL row.
+  - **Below it, one block per appropriation**, laid out exactly as tabs 1-4, with only that service's dollars.
+  - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
+    off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
+    all gets no tab.
+- **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
+  appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
+  plan moves; $M cells carry the exact figure.
+- **Open:** none known. Confirm the ten-tab mock-up, and say whether the panel (📊 Five-year spend plan) should change to
+  match.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
