@@ -341,6 +341,10 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:4px 8px}
 .insp-f .fl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800}
 .insp-f .fv{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+/* v2.04 (item 108): the CCaR Record Name in the RECORD panel and the CLIN drill, and the offer of its description */
+.insp-f.ccrec .fv{font-weight:600;overflow-wrap:anywhere}
+.insp-f.ccrec .ccdesc{margin-top:4px;min-height:24px;max-width:100%;white-space:normal;text-align:left}
+.ccrn{font-size:10px;color:var(--dim);font-weight:600;margin-top:2px;overflow-wrap:anywhere}
 .insp-f.big .fv{font-size:16px;font-weight:800}
 .insp-f.empty{border-style:dashed;color:var(--dim)}
 .insp-lbl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800;margin:10px 0 4px}
@@ -11155,7 +11159,8 @@ const dispTitle = (it, st) => ((st||S).titles||{})[it.id] || it.event || it.titl
 // can never unhook a join that works today.
 const recNameSrc = it => (it && it.title) || '';
 // What a person sees. Overridable per year, exactly as the plan event is.
-const recName = (it, st) => (it && ((((st||S).recNames||{})[it.id]) || it.title)) || '';
+// v2.04 (item 108): the CCaR records list's Title comes between a typed name and the file's own (ccarRecNameOf).
+const recName = (it, st) => (it && ((((st||S).recNames||{})[it.id]) || ((typeof ccarRecNameOf==='function')? ccarRecNameOf(it, st) : '') || it.title)) || '';
 // The key the funds-flow join uses. DELIBERATELY the record name and NOT dispTitle: the QPE's Title
 // column matches the record name for 97.3% of O&M dollars and the Plan Event for 6.2%. Tying this
 // to the display would silently route almost everything to "Not yet assigned".
@@ -14802,6 +14807,76 @@ function ccarCtlOf(it){
   return {v:r.k, why:''};
 }
 function ccarOprOf(it){ const r=ccarRec(ccarOf(it)); return (r&&!(r.d>1))? r.o : ''; }
+/* v2.04 (item 108): THE CCaR RECORDS LIST NAMES THE RECORD AND OFFERS ITS DESCRIPTION (Brad, 22 Oct 2026).
+   The Record Name is READ from the list, never copied, so a newer list renames every requirement on it: a name typed on
+   the board first, then the list's Title, then the data pack's title (recName). A number the list holds under records
+   that disagree reads blank, as ccarTitleOf always has -- never a coin toss.
+   A requirement with no number of its own is named by its CLINs (option (a)): the one record they all share, or
+   "Multiple records (N)", each CLIN's own name shown on its line in the drill.
+   The Description is the person's text. The list's Short Description is OFFERED (ccarDescOf): it fills an EMPTY
+   Description when a number is typed, and otherwise waits behind a button; it never replaces what someone wrote. */
+function ccarNameOfNum(num){ const r=ccarRec(num); return (r&&!(r.d>1))? (r.t||'') : ''; }
+function ccarDescOfNum(num){ const r=ccarRec(num); return (r&&!(r.d>1)&&!r.sc)? (r.s||'') : ''; }
+// The CLINs that carry a record of their own, read without creating anything (clinListRO).
+function ccarClinRecs(it){
+  const out=[]; if(!it) return out;
+  let L=[]; try{ L=clinListRO(it.id); }catch(e){ return out; }
+  L.forEach(function(c){ const k=ccarNorm(c.ccar); if(k) out.push({clin:String(c.clin==null?'':c.clin), num:String(c.ccar).trim(), key:k}); });
+  return out;
+}
+function ccarRecNameOf(it, st){
+  // recName runs from the first render on; before the store is read there is no list to name anything
+  try{ if(!it || typeof MS==='undefined' || !MS || !ccarIdx()) return ''; }catch(e){ return ''; }
+  const own=ccarOf(it, st);
+  if(own) return ccarNameOfNum(own);
+  if(st && st!==S) return '';                     // a CLIN is read off the year on screen only
+  const keys=[]; ccarClinRecs(it).forEach(function(c){ if(keys.indexOf(c.key)<0) keys.push(c.key); });
+  if(!keys.length) return '';
+  if(keys.length===1) return ccarNameOfNum(keys[0]);
+  return 'Multiple records ('+keys.length+')';
+}
+// What the CCaR list would put in the Description: the record's short description; for a requirement named by its
+// CLINs, the one record's, or a line per CLIN ("CLIN 0001 · JSF1234 — description").
+function ccarDescOf(it){
+  if(!it || !ccarIdx()) return '';
+  const own=ccarOf(it);
+  if(own) return ccarDescOfNum(own);
+  const cl=ccarClinRecs(it); if(!cl.length) return '';
+  const keys=[]; cl.forEach(function(c){ if(keys.indexOf(c.key)<0) keys.push(c.key); });
+  if(keys.length===1) return ccarDescOfNum(keys[0]);
+  return cl.map(function(c){ return 'CLIN '+c.clin+' \u00b7 '+c.num+' \u2014 '+(ccarDescOfNum(c.key)||'(no short description in the CCaR list)'); }).join('\n');
+}
+// Fill an empty Description from the list, after a number is typed. Returns true when it wrote.
+function ccarDescFill(id){
+  const it=itemById(id); if(!it) return false;
+  const cur=((S.desc||{})[id]||'').trim(), d=ccarDescOf(it);
+  if(cur || !d) return false;
+  if(!S.desc) S.desc={};
+  S.desc[id]=d; return true;
+}
+// The RECORD panel's button: fills an empty Description, or replaces a written one after asking.
+// The RECORD panel's line: the Record Name the CCaR list gives, and the offer of its short description.
+function ccarInspHtml(id, it){
+  if(!ccarIdx()) return '';
+  const nm=ccarRecNameOf(it), d=ccarDescOf(it), cur=((S.desc||{})[id]||'').trim();
+  if(!nm && !d) return '';
+  let h='<div class="insp-f ccrec" style="grid-column:1 / -1"><div class="fl">CCaR Record Name</div><div class="fv">'
+    +(nm? esc(nm) : '<span style="color:var(--dim)">\u2014 the CCaR list gives none</span>')
+    +((S.recNames||{})[id]? ' <span style="color:var(--dim)">(the board shows the name typed here: '+esc(S.recNames[id])+')</span>' : '')+'</div>';
+  if(d && d!==cur) h+='<button type="button" class="btn ccdesc" onclick="ccarDescUse('+jsa(id)+')" title="'+esc(d)+'">'
+    +(cur? '\ud83d\udcc7 Replace the Description with the CCaR one' : '\ud83d\udcc7 Fill the Description from CCaR')+'</button>';
+  return h+'</div>';
+}
+function ccarDescUse(id){
+  const it=itemById(id); if(!it) return;
+  if(cycBlock('Changing the description')) return;
+  const d=ccarDescOf(it); if(!d){ setStat('\u26a0 The CCaR list has no short description for this requirement.'); return; }
+  const cur=((S.desc||{})[id]||'').trim();
+  if(cur===d) return;
+  if(cur && !confirm('Replace the Description of \u201c'+dispTitle(it)+'\u201d with the CCaR list\u2019s?\n\nNow:\n'+cur+'\n\nCCaR:\n'+d)) return;
+  setDesc(id, d);
+  setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2014 Description '+(cur? 'replaced with' : 'filled from')+' the CCaR list. It is ordinary Description text now: edit it in \ud83d\udcc4 '+esc(FL('dn'))+'.');
+}
 
 /* ============ WBS FROM THE IMPORTED EXECUTION DATA ==========================================
    Column 23 of the Spend Plan Source carries a WBS paragraph. It is headed "Spares WBS" in the
@@ -15493,6 +15568,8 @@ async function importCcarRecs(inp){
     // 162 keys \u2014 so a key behind more than one record cannot be resolved to a single control
     // number and is reported rather than picked from, exactly as Title and OPR already are.
     const iK=hdr.indexOf('Control No');
+    // v2.04 (item 108): the record's short description, offered to the requirement's Description (never written by itself)
+    const iS=hdr.indexOf('Short Description');
     if(iC<0||iT<0) throw new Error('no "CCaR No" and "Title" columns — check this is the CCaR records export');
     const ix={};
     let n=0, dup=0;
@@ -15504,7 +15581,9 @@ async function importCcarRecs(inp){
       const o=(iO>=0)? String(row[iO]||'').trim() : '';
       const pm=(iP>=0)? String(row[iP]||'').trim() : '';
       const kk=(iK>=0)? String(row[iK]||'').trim() : '';
+      const sd=(iS>=0)? String(row[iS]||'').trim() : '';
       if(ix[k]){
+        if(ix[k].s!==sd) ix[k].sc=1;                    // two records under one number describing it differently
         ix[k].d++;
         // A second record that says the same thing is not a conflict; one that disagrees is.
         if(ix[k].t!==t || ix[k].o!==o) ix[k].c=1;
@@ -15512,7 +15591,7 @@ async function importCcarRecs(inp){
         if(kk && !ix[k].k) ix[k].k=kk;
         continue;
       }
-      ix[k]={t:t, o:o, p:pm, k:kk, d:1};
+      ix[k]={t:t, o:o, p:pm, k:kk, s:sd, d:1};
     }
     Object.keys(ix).forEach(function(k){ if(ix[k].d>1) dup++; });
     MS.ccarIdx={ts:Date.now(), file:f.name, n:n, rows:ix};
@@ -15528,7 +15607,8 @@ async function importCcarRecs(inp){
     });
     statKeep('📇 <b>'+esc(f.name)+'</b> — '+n+' record'+(n===1?'':'s')+' indexed on <b>CCaR No</b>'
       +(dup? ' ('+dup+' number'+(dup===1?'':'s')+' used by more than one record)':'')+'. '
-      +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Title and OPR'
+      +(iS<0? 'It has no <b>Short Description</b> column, so no description is offered. ' : '')
+      +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Record Name (Title) and OPR'
       +(amb? '; <b>'+amb+'</b> match an ambiguous number and are left blank rather than guessed':'')+'. '
       +'💾 Save to bake this into the file.'+esc(xlsxEscSaid()));
   }catch(e){
@@ -18647,8 +18727,10 @@ function srcRowsOf(fy, St, T, rec){
       if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt});
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
-      r[2]=ccarOf(it)||'';
-      r[3]=recT || dispTitle(it) || '';
+      // v2.04 (item 108): a CLIN line carries the CLIN's OWN record, number and name, when it has one (Brad, 22 Oct 2026)
+      const cn=(clin && String(clin.ccar||'').trim())? String(clin.ccar).trim() : '';
+      r[2]=cn || ccarOf(it) || '';
+      r[3]=(cn? ccarNameOfNum(cn) : recT) || dispTitle(it) || '';
       // THE BUDGET IS THE BAE NAME, VERBATIM, for this service AND LANE -- or blank. CCaR rejects
       // any name that is not exactly a BAE name, so with no BAE list loaded the cell is BLANK and
       // the export says so before it writes the file (the owner's rule, 23 Sep 2026). It used to
@@ -23346,7 +23428,14 @@ function editCcar(id, typed){
     v=r.v;
     if(!S.ccar) S.ccar={};
     if(v) S.ccar[id]=v; else delete S.ccar[id];
+    const filled=v? ccarDescFill(id) : false;       // v2.04 (item 108): an EMPTY Description only
     save(); render(); flash(id);
+    if(v && ccarIdx()){
+      const nm=ccarRecNameOf(it);
+      setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2192 CCaR <b>'+esc(v)+'</b>'
+        +(nm? ' \u00b7 Record Name <b>'+esc(nm)+'</b>' : (ccarRec(v)? ' \u00b7 the CCaR list holds that number under records that disagree, so no Record Name is taken' : ' \u00b7 not in the CCaR list'))
+        +(filled? ' \u00b7 Description filled from the list' : (((S.desc||{})[id]||'') && ccarDescOf(it) && ccarDescOf(it)!==S.desc[id]? ' \u00b7 the Description already has text, kept; the RECORD panel offers the CCaR one' : ''))+'.');
+    }
   });
 }
 const eff = it => {
@@ -24768,6 +24857,7 @@ function clinSetField(pid,key,field,typed){
       const m=clinMeta(pid); if(!m[key]) m[key]={};
       m[key][field]=v;
     }
+    if(field==='ccar' && v) ccarDescFill(pid);     // v2.04 (item 108): an empty Description only
     save(); render();
   });
 }
@@ -25587,7 +25677,9 @@ function clinTable(it){
       +'<td class="cd"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
         +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</button></td>'
       +'<td class="cc"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
-        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button></td>'
+        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button>'
+        // v2.04 (item 108): each CLIN's own Record Name, from the CCaR list
+        +((c.ccar && ccarNameOfNum(c.ccar))? '<div class="ccrn" title="CCaR Record Name, from the CCaR records list">'+esc(ccarNameOfNum(c.ccar))+'</div>' : '')+'</td>'
       +'<td class="cr"><input class="reqin" value="'+(at? Math.round(at).toLocaleString():'')+'" placeholder="0" '
         +'onchange="clinSetReq('+jsa(pid)+','+jsa(c.key)+',this.value)" onfocus="this.select()" '
         +'title="what this CLIN asks for — spread across services in its current shape"></td>'
@@ -32447,6 +32539,7 @@ function inspectorBody(){
         + '<span class="fl">CCaR record</span><span class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</span></button>'
       + '<button type="button" class="insp-f' + (pid ? '' : ' empty') + '" onclick="editPid('+jsa(id)+')">'
         + '<span class="fl">PID</span><span class="fv">' + (pid ? esc(pid) : '+ assign') + '</span></button>'
+      + ccarInspHtml(id, it)
       + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
         + '<div class="fl">Decision band</div>'
         + '<div class="fv"><select style="width:100%" onchange="setBand('+jsa(id)+',this.value)"'

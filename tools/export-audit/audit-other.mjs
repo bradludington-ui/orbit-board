@@ -1498,6 +1498,86 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// v2.04 (item 108): A RECORD NUMBER NAMES THE RECORD AND OFFERS ITS DESCRIPTION (Brad, 22 Oct 2026). Every expected value is
+// typed here from the records file below; none is read back from the board. A has its own number; B none, its two CLINs on one
+// record; C none, its CLINs on two records (option (a): "Multiple records (2)", a line per CLIN); D's number is held by two
+// records that disagree (no name, never a guess); E has its own number and a Description someone wrote.
+{
+  const name = 'v2.04 (item 108) — the CCaR records list names the record and offers its short description';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG'];
+  const mkI = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { w, ev } = boot();
+  seed(ev, { services: SV, items: ['A', 'B', 'C', 'D', 'E'].map(id => mkI(id, [10, 5])), disc: [100, 100], mand: [0, 0],
+    order: ['A', 'B', 'C', 'D', 'E'] });
+  ev(`S.ccar={A:'JSF1', D:'JSF9', E:'JSF5'}; S.desc={E:'Written by the office'}; S.ptype={B:'PRIME', C:'PRIME'};
+      CLINS.B=[{clin:'0001', desc:'b1', ccar:'JSF2', ask:[5,2]}, {clin:'0002', desc:'b2', ccar:'jsf 2', ask:[5,3]}];
+      CLINS.C=[{clin:'0001', desc:'c1', ccar:'JSF3', ask:[6,2]}, {clin:'0002', desc:'c2', ccar:'JSF4', ask:[4,3]}];
+      DATA.clins=CLINS; save(); render(); 'ok'`);
+  const names = () => ev(`['A','B','C','D','E'].map(function(id){ return recName(itemById(id)); }).join(' | ')`);
+  chk(name, 'before the list', 'CONTROL: with no records file, every Record Name is the data pack’s title', names(),
+    'A title | B title | C title | D title | E title');
+  const ROWS = [['CCaR No', 'Title', 'OPR', 'PMO', 'Control No', 'Short Description'],
+    ['JSF1', 'Engine overhaul record', 'OPR1', 'AV', '7001', 'Overhaul of the F135 engines'],
+    ['JSF2', 'Avionics record', 'OPR2', 'AV', '7002', 'Avionics spares'],
+    ['JSF3', 'Clin three record', 'OPR3', 'AV', '7003', 'Third CLIN work'],
+    ['JSF4', 'Clin four record', 'OPR4', 'AV', '7004', 'Fourth CLIN work'],
+    ['JSF5', 'Support record', 'OPR5', 'AV', '7005', 'Support equipment'],
+    ['JSF9', 'Nine A', 'OPR9', 'AV', '7009', 'Nine A work'],
+    ['JSF9', 'Nine B', 'OPR9', 'AV', '7010', 'Nine B work']];
+  const imp = rows => w.eval(`(async function(){ var b=buildXlsx([{name:'CCaR', cols:[10,20,8,8,8,30], rows:${J(rows)}}]);
+    var ab=b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength);
+    await importCcarRecs({files:[{name:'records.xlsx', arrayBuffer:async function(){ return ab; }}], value:''}); return 'ok'; })()`);
+  await imp(ROWS);
+  chk(name, 'Record Name', 'own number → the list’s Title; one shared CLIN record → its Title; two CLIN records → Multiple records (2); a number the list holds under disagreeing records → the data pack’s title, never a guess; own number → its Title',
+    names(), 'Engine overhaul record | Avionics record | Multiple records (2) | D title | Support record');
+  chk(name, 'import', 'importing the list writes no Description', ev(`JSON.stringify(S.desc)`), J({ E: 'Written by the office' }));
+  chk(name, 'Description offered', 'A: its record’s Short Description; B: the shared record’s; C: one line per CLIN; D: none',
+    ev(`['A','B','C','D'].map(function(id){ return ccarDescOf(itemById(id)); }).join(' || ')`),
+    'Overhaul of the F135 engines || Avionics spares || CLIN 0001 · JSF3 — Third CLIN work\nCLIN 0002 · JSF4 — Fourth CLIN work || ');
+  // TYPING A NUMBER fills an EMPTY Description, and only an empty one
+  ev(`globalThis.__p=window.prompt; window.prompt=function(){ return 'JSF2'; }; editCcar('D'); window.prompt=globalThis.__p; 'ok'`);
+  chk(name, 'typed number', 'D typed JSF2: Record Name and Description follow it', ev(`recName(itemById('D'))+' | '+((S.desc||{}).D||'')`),
+    'Avionics record | Avionics spares');
+  ev(`window.prompt=function(){ return 'JSF1'; }; editCcar('E'); window.prompt=globalThis.__p; 'ok'`);
+  chk(name, 'typed number', 'E typed JSF1: a written Description is kept', ev(`(S.desc||{}).E||''`), 'Written by the office');
+
+  const pE = ev(`(function(){ curRow='E'; try{ inspectorBody(); }catch(e){ return 'threw '+e.message; } return (document.getElementById('inspector')||{}).innerHTML||''; })()`);
+  chk(name, 'RECORD panel', 'E: the panel names the record and offers to REPLACE the Description', /CCaR Record Name[\s\S]*Engine overhaul record[\s\S]*Replace the Description with the CCaR one/.test(pE), true);
+  ev(`globalThis.__c=window.confirm; window.confirm=function(){ return false; }; ccarDescUse('E'); window.confirm=globalThis.__c; 'ok'`);
+  chk(name, 'RECORD panel', 'E: answered no, the written Description stays', ev(`(S.desc||{}).E||''`), 'Written by the office');
+  ev(`globalThis.__c=window.confirm; window.confirm=function(){ return true; }; ccarDescUse('E'); window.confirm=globalThis.__c; 'ok'`);
+  chk(name, 'RECORD panel', 'E: replaced only after the question is answered yes', ev(`(S.desc||{}).E||''`), 'Overhaul of the F135 engines');
+  // A NEWER LIST renames the record: the name is read, never copied
+  await imp(ROWS.map(r => r[0] === 'JSF1' ? ['JSF1', 'Engine overhaul — renamed', 'OPR1', 'AV', '7001', 'x'] : r));
+  chk(name, 'newer list', 'A’s Record Name follows the newer list', ev(`recName(itemById('A'))`), 'Engine overhaul — renamed');
+  chk(name, 'newer list', 'and E’s Description, now ordinary text, does not move', ev(`(S.desc||{}).E||''`), 'Overhaul of the F135 engines');
+  ev(`S.recNames={A:'Typed on the board'}; 'ok'`);
+  chk(name, 'typed name', 'a name typed on the board still wins', ev(`recName(itemById('A'))`), 'Typed on the board');
+  ev(`delete S.recNames.A; 'ok'`);
+  // THE SPEND PLAN SOURCE: a CLIN line carries the CLIN's own record, number and name
+  const src = JSON.parse(ev(`(function(){ var got='[]'; var ob=buildXlsx, oa=window.alert, oc=window.confirm;
+    window.alert=function(){}; window.confirm=function(){ return true; };
+    buildXlsx=function(s){ got=JSON.stringify(s); return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){ got='[]'; } buildXlsx=ob; window.alert=oa; window.confirm=oc; return got; })()`));
+  const rows = ((src[0] || {}).rows || []).slice(1);
+  const lines = rows.filter(r => txt(r[25])).map(r => `${txt(r[25])}:${txt(r[2])}:${txt(r[3])}`);
+  const uniq = [...new Set(lines)].sort().join(' | ');
+  chk(name, 'Spend Plan Source', 'every CLIN line carries the CLIN’s own CCaR number and Record Name', uniq,
+    '0001:JSF2:Avionics record | 0001:JSF3:Clin three record | 0002:JSF4:Clin four record | 0002:jsf 2:Avionics record');
+  chk(name, 'Spend Plan Source', 'CONTROL: a requirement line with its own number keeps it',
+    [...new Set(rows.filter(r => !txt(r[25]) && txt(r[2]) === 'JSF1').map(r => txt(r[3])))].join(','), 'Engine overhaul — renamed');
+  // THE CLIN DRILL shows each CLIN's own Record Name
+  const drill = ev(`(function(){ try{ return clinTable(itemById('C'))||''; }catch(e){ return 'threw '+e.message; } })()`);
+  chk(name, 'CLIN drill', 'each CLIN line names its own record', /Clin three record[\s\S]*Clin four record/.test(drill), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

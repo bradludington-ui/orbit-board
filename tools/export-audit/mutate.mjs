@@ -6826,6 +6826,35 @@ const MUTATIONS = [
     find: "                FLI('rec'), C.un?",
     repl: "                '\\ud83d\\udccb Requirement edit', C.un?" },
   // ==== end v2.03 (items 19, 20) ====
+  // ==== v2.04 (item 108): the CCaR records list names the record and offers its description ====
+  { id: "v204-108-name-not-read", area: "recName", what: "the Record Name never reads the CCaR records list",
+    find: "|| ((typeof ccarRecNameOf==='function')? ccarRecNameOf(it, st) : '') ||",
+    repl: "||" },
+  { id: "v204-108-ambiguous-guessed", area: "ccarNameOfNum", what: "a number held by records that disagree takes the first record's name",
+    find: "return (r&&!(r.d>1))? (r.t||'') : '';",
+    repl: "return r? (r.t||'') : '';" },
+  { id: "v204-108-clins-first", area: "ccarRecNameOf", what: "a requirement over CLINs on two records takes the first CLIN's record name",
+    find: "if(keys.length===1) return ccarNameOfNum(keys[0]);",
+    repl: "if(keys.length>=1) return ccarNameOfNum(keys[0]);" },
+  { id: "v204-108-desc-overwrites", area: "ccarDescFill", what: "typing a number replaces a written Description",
+    find: "if(cur || !d) return false;",
+    repl: "if(!d) return false;" },
+  { id: "v204-108-no-fill", area: "editCcar", what: "typing a number fills no Description",
+    find: "const filled=v? ccarDescFill(id) : false;",
+    repl: "const filled=false;" },
+  { id: "v204-108-replace-unasked", area: "ccarDescUse", what: "the RECORD panel's button replaces a written Description without asking",
+    find: "if(cur && !confirm(",
+    repl: "if(false && !confirm(" },
+  { id: "v204-108-import-no-desc", area: "importCcarRecs", what: "the import drops the Short Description",
+    find: "ix[k]={t:t, o:o, p:pm, k:kk, s:sd, d:1};",
+    repl: "ix[k]={t:t, o:o, p:pm, k:kk, d:1};" },
+  { id: "v204-108-clin-src-requirement", area: "exportSrc", what: "a CLIN line on the Spend Plan Source carries the requirement's record, not its own",
+    find: "r[2]=cn || ccarOf(it) || '';",
+    repl: "r[2]=ccarOf(it) || '';" },
+  { id: "v204-108-drill-unnamed", area: "clinTable", what: "the CLIN drill names no CLIN's record",
+    find: "+((c.ccar && ccarNameOfNum(c.ccar))?",
+    repl: "+((false && ccarNameOfNum(c.ccar))?" },
+  // ==== end v2.04 (item 108) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
