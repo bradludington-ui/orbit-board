@@ -168,11 +168,28 @@ Current version: **v2.04**. Next: **v2.05**.
   - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
     off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
     all gets no tab.
+- **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
+  pull from for briefings"). The styled mock-up sent that day is the target:
+  - a navy title banner per tab (the plan's name), under it one italic line: the plan and when locked, FY27–FY31,
+    "$ in millions", whose share (all services / that service only), the date printed; a gold rule beneath;
+  - headings in navy with white text, the fiscal year over its two columns, Requirement / Allocated beneath in a lighter
+    slate; the TOTAL FY27–FY31 columns in gold, with a light gold shade down every line;
+  - each CCaR record group shaded as a band (alternating), a rule between groups, the record number in bold navy;
+  - the TOTAL row on a grey band, bold, a double rule above it;
+  - on a service tab, a section heading over the summary and over each appropriation's block;
+  - no gridlines; navy tabs for the appropriations, gold for the services; the panes frozen below the headings and right of
+    the title; landscape, one page wide, the heading rows repeated on every printed page, a footer with the plan, page N of
+    M and the date printed;
+  - zero prints as "–".
+  Colours are the board's own (navy, the gold accent). The board's workbook writer (`buildXlsx`) can't do this yet: it
+  has one border style and no tab colour, gridline, print or page setup; the build extends it, and every other export keeps
+  its current look.
+- **The 📊 Five-year spend plan panel matches the workbook** (Brad, 22 Oct 2026): the same picker for the plan, the same
+  appropriation and service views, the same columns, totals and $M figures, so what is on screen is what prints.
 - **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
   appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
   plan moves; $M cells carry the exact figure.
-- **Open:** none known. Confirm the ten-tab mock-up, and say whether the panel (📊 Five-year spend plan) should change to
-  match.
+- **Open:** Brad's review of the styled mock-up.
 
 ## Later
 
