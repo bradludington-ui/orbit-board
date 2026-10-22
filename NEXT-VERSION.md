@@ -242,8 +242,9 @@ audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review se
 inventory (71 calls); panels-render and dialogs-keyboard open the AI review list.
 
 #### The checks v2.04 was proved with (22 Oct 2026)
-`npm run check`; audit, audit-ppt, audit-other, audit-board, audit-hostile, audit-inject, legacy-fsrc, boot-same pass;
-audit-recon fails only its two checks that read 7ee498a from git history, the same on v2.03 (this clone is shallow); keys,
+`npm run check`; every suite passes -- audit, audit-ppt, audit-other, audit-board, audit-import, audit-recon, audit-hostile,
+audit-inject, audit-ui, legacy-fsrc, boot-same (recon and import read older versions from git history: run them in a full
+clone, `git fetch --unshallow`; in a shallow one recon fails two checks, the same on v2.03); keys,
 dialogs, leftmenu, panels, dropdowns, standards (nothing new), menus, controls, editors, hostile, toolbar pass; layout fails only
 the carried D ×8. mcount: every target matches once (2,112). defects, trace and the round-trip fuzz (seed 764238573) hold; the money map holds
 with one cell open: the AI review request's fiscal-year cell (the check holds the year on screen only). The RECORD panel's new
