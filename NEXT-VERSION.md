@@ -206,6 +206,27 @@ Current version: **v2.04**. Next: **v2.05**.
 - **Open:** Brad's review of mock-up v2 (summary, PMO tabs, marking); the marking's wording from the security team. A chart
   in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
 
+#### 113. Every report workbook styled like the five-year spend plan (Brad, 22 Oct 2026: "Can we enhance all of our spreadsheets so that they look presentable like these?")
+- **Logged:** 22 Oct 2026. Not built; waits for go. Ships with item 112, whose styled mock-up v2 is the look (Brad: "I like them!").
+- **Style only** (Brad: "Only update the style for now"). No summary tab or chart is added to these; no figure, unit, row,
+  column, value or formula changes. Each report keeps the units it prints today (dollars, $K or $M, to the decimals it
+  prints now).
+- **Restyled -- the reports people read:** the board workbook (Excel workbook: Funding Streams, Decision Bands, PMO Matrix,
+  Unfunded Requirements, the PMO tabs and the rest), 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan
+  Forecast (by view), Funds Flow, Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change
+  report, the Chart of Accounts (internal use only -- Brad), and the IDS file's second sheet, *Missing data and anomalies*.
+- **Left exactly as they are -- another system reads them:** the Spend Plan Source (CCaR imports it; ORBIT reads its columns
+  back by position), the 1A9A CR Cash Return (a fixed submission format), and the IDS file's *Requirement v1* sheet (the
+  IDS template).
+- **The look, from item 112:** the sheet's existing title row as the navy banner; navy headings with white text; total
+  rows on a grey band with a double rule above; total columns in gold; banded rows; no gridlines; tab colours; headings
+  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; the
+  classification marking in the page header and footer (item 112's one setting). One shared house style in the workbook
+  writer (`buildXlsx`), so every report matches and a later change is made once.
+- **Proof that nothing moved:** `npm run delta` against the commit before reports **zero figures moved** in every workbook;
+  every suite that reads these files passes unchanged; the three left-alone files are byte-identical to today's (compared with the
+  clock held).
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
