@@ -133,6 +133,41 @@ Current version: **v2.03**. Next: **v2.04**.
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
 
+#### 108. A record number fills the Record Name and the Description from the CCaR records list (Brad, 22 Oct 2026)
+- **What Brad asked:** importing the CCaR records brings a Record Name and a short description for each record. Entering a
+  record number on a requirement should look it up in that list, fill the Record Name, and post the record's short
+  description to the requirement's Description.
+- **What the board does today (read from the code on v2.03, 22 Oct):**
+  - `importCcarRecs` keeps five columns only: CCaR No, Title, OPR, PMO and Control No. A short-description column is not
+    read.
+  - `editCcar` stores the number and nothing else: no lookup, no field filled.
+  - The list's Title reaches one place, column D of the Spend Plan Source, and only when the number names one record
+    (`ccarTitleOf`). On the board the Record Name is the data pack's title or a typed override (`recName`), and the
+    Description is what was typed (`S.desc`).
+  - A CLIN can hold its own CCaR number (`clinSetField(..., 'ccar')`), and nothing looks it up either.
+  - **Found on the way:** the Spend Plan Source sends every CLIN line under the REQUIREMENT's CCaR number and title
+    (`r[2]=ccarOf(it)`, `r[3]=recT`), not the CLIN's own record.
+- **Brad's decisions, 22 Oct 2026:**
+  - **Record Name follows the record, live.** It is read from the CCaR list, not copied, so a newer list updates it.
+    Order: a name typed on the board, then the CCaR list's name, then the data pack's title. A number shared by records
+    that disagree reads blank and is flagged, never guessed (as `ccarTitleOf` already does). The funds-flow join keeps
+    the data pack's title and adds the CCaR name as a further key, so it can only gain matches.
+  - **Description is copied in, once.** Entering a record number fills an empty Description with the record's short
+    description. A Description that already holds text is left alone, with a "Replace with the CCaR description" button.
+  - **CLINs with different records: option (a).** The requirement's own CCaR number, if it has one; else the one record
+    every CLIN shares; else the Record Name reads "Multiple records (N)", each CLIN's record name shows on its line in
+    the CLIN drill, and the Description is built one line per CLIN: "CLIN 0001 · JSF1234 — description".
+  - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
+    requirement's otherwise.
+- **Waiting on:** the exact column headings of the CCaR records export for the Record Name and the short description
+  (Brad owes them). Is Title the Record Name, or is it a column of its own?
+- **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
+  Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
+  cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
+- **Proof, when built:** a check that types a number and reads the RECORD panel and the row; a re-import that changes a
+  name; a Description that is kept; a requirement over CLINs with one shared record and with three; and the Spend Plan
+  Source's CLIN lines read back for each CLIN's own number and name. Each must fail on v2.03.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
