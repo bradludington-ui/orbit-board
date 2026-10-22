@@ -27503,6 +27503,8 @@ function syncBtns(){
           return (c.on? 'on \u00b7 ' : 'off \u00b7 ')
             +Object.keys((LIVEDB&&LIVEDB.peers)||{}).length+' other board(s)'; })()),
     diag: mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names'),
+    // v2.04 (item 106): everything ORBIT keeps in this browser, removed in one action; the board FILE is not touched
+    clr: mi('🧹 Clear this computer…',"mRun(clearComputer)",false,'remove everything ORBIT keeps in this browser',' warn'),
     // the mode tools' own items, for the folded menu below 1100px
     add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR'),
     bm: mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources'),
@@ -27584,7 +27586,7 @@ function syncBtns(){
                   'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
       +sep+DENS.map(function(d){
         return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join(''),
-      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : '')))+sep+I.live+I.diag; }
+      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : '')))+sep+I.live+I.diag+I.clr; }
   document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
   { const bb=document.getElementById('b_basis');
     if(bb) bb.textContent='Spend plan basis: '+(scenView==='disc'? 'Disc only' : 'Disc + Mand')+' ▾'; }
@@ -30884,6 +30886,50 @@ function aiBody(){
       +fb('suggestion', 'Suggestions', cnt(function(r){ return r.kind==='suggestion'; }))+fb('check', 'The board disagrees', cnt(function(r){ return !r.ok; }))+'</div>'
     +'<div style="overflow-x:auto"><table class="fctab aitab"><thead><tr><th>#</th><th>Requirement</th><th>Kind</th><th>What</th><th>The AI’s reasoning</th><th>Checked against the board</th><th></th></tr></thead><tbody>'
     +(show.length? show.map(row).join('') : '<tr><td colspan="7">Nothing in this view.</td></tr>')+'</tbody></table></div>';
+}
+
+// ==============================================================================================================
+// §CLR CLEAR THIS COMPUTER (v2.04, item 106; Brad's go of 22 Oct 2026)
+//      Everything ORBIT keeps in this browser, removed in one action: every storage key it writes (each one begins `prio27`
+//      or `spmt` -- the boards, the side lists, the kept-aside work, the writer key, the settings, a PMO copy's own keys),
+//      the same in this tab's session storage, and the remembered save file (IndexedDB `prio-fh`). THE BOARD FILE IS NOT
+//      TOUCHED: it is the record, and what it holds opens again exactly as saved. What is lost is what no file holds --
+//      unsaved changes and work kept aside -- so the question names both when they are there, and the page reopens from
+//      the file at once, before anything can write to storage again.
+// ==============================================================================================================
+const CLR_PREFIX=/^(prio27|spmt)/;
+function clearComputerKeys(){
+  const out=[];
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && CLR_PREFIX.test(k)) out.push(k); } }catch(e){}
+  return out;
+}
+function clearComputerRun(){
+  const keys=clearComputerKeys(), left=[];
+  keys.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  try{ for(let i=sessionStorage.length-1;i>=0;i--){ const k=sessionStorage.key(i); if(k && CLR_PREFIX.test(k)) sessionStorage.removeItem(k); } }catch(e){}
+  try{ indexedDB.deleteDatabase('prio-fh'); }catch(e){}
+  clearComputerKeys().forEach(function(k){ left.push(k); });
+  return {n:keys.length, left:left};
+}
+function clearComputer(){
+  if(cycBlock('Clearing this computer')) return;
+  const keys=clearComputerKeys();
+  let kept=false; try{ kept=!!localStorage.getItem((_AP&&_AP.key? _AP.key : '')+'.kept'); }catch(e){}
+  const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;
+  const warn=(unsaved? '\n\n⚠ This board has UNSAVED CHANGES. They are in this browser only and will be lost. Cancel and 💾 Save first to keep them.' : '')
+    +(kept? '\n\n⚠ Work KEPT ASIDE in this browser will be lost. Cancel and save it as a file first (History & recovery).' : '');
+  if(!confirm('Clear this computer?\n\nThis removes everything ORBIT keeps in this browser ('+keys.length+' item'+(keys.length===1?'':'s')
+    +'): the copies of every board and list, work kept aside, your editor name and writer key, your settings, and the remembered save file.'
+    +'\n\nThe board FILE is not touched: the page reopens from it, exactly as last saved. Next time you save, you will be asked where, '
+    +'and to take the pen again.'+warn)) return;
+  if((unsaved || kept) && !confirm('Last check: the '+(unsaved? 'unsaved changes' : '')+(unsaved&&kept? ' and the ' : '')+(kept? 'work kept aside' : '')
+    +' will be gone for good. Clear anyway?')) return;
+  const R=clearComputerRun();
+  try{ DIRTY=false; }catch(e){}
+  if(R.left.length){ alert('Cleared '+(R.n-R.left.length)+' of '+R.n+' items; '+R.left.length+' could not be removed ('+R.left.join(', ')+'). The page reopens from the file now.'); }
+  try{ window.onbeforeunload=null; }catch(e){}
+  try{ location.reload(); }catch(e){}
+  return R;
 }
 
 function execSynopsis(){

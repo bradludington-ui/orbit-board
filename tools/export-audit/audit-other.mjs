@@ -1633,6 +1633,38 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// v2.04 (item 106): CLEAR THIS COMPUTER removes everything ORBIT keeps in the browser and nothing else, asks first (twice when
+// unsaved work would go), and leaves the board file alone.
+{
+  const name = 'v2.04 (item 106) — Clear this computer';
+  try {
+  const { ev } = boot();
+  seed(ev, { services: ['USAF'], items: [{ id: 'A', grp: 'AV', team: 'AV', sect: '', custom: false, title: 'A', event: 'A', ccar: '', fy26: [0], ask: [10], alloc: null }],
+    disc: [10], mand: [0], order: ['A'] });
+  ev(`localStorage.setItem('prio27om','{}'); localStorage.setItem('prio27om.kept','{"x":1}'); localStorage.setItem('spmtTheme','harbor');
+      localStorage.setItem('prio27who','Brad'); localStorage.setItem('someoneElse','keep me'); sessionStorage.setItem('spmtX','1'); 'ok'`);
+  const keys = () => ev(`(function(){ var a=[]; for(var i=0;i<localStorage.length;i++) a.push(localStorage.key(i)); return a.sort().join(','); })()`);
+  const before = keys();
+  const run = answers => ev(`(function(){ var q=${JSON.stringify(answers)}, asked=[]; var oc=window.confirm;
+    window.confirm=function(m){ asked.push(String(m)); return q.length? q.shift() : false; };
+    try{ location.reload=function(){}; }catch(e){}
+    try{ clearComputer(); }catch(e){ asked.push('threw '+e.message); }
+    window.confirm=oc; return JSON.stringify(asked); })()`);
+  ev(`DIRTY=true; 'ok'`);
+  let asked = JSON.parse(run([false]));
+  chk(name, 'declined', 'answered no: nothing is removed', keys(), before);
+  chk(name, 'declined', 'the question names the unsaved changes and the work kept aside', /UNSAVED CHANGES/.test(asked[0]) && /KEPT ASIDE/.test(asked[0]), true);
+  asked = JSON.parse(run([true, false]));
+  chk(name, 'last check', 'with work that would be lost, a second question; answered no, nothing is removed', asked.length === 2 && keys() === before, true);
+  asked = JSON.parse(run([true, true]));
+  chk(name, 'cleared', 'every prio27 and spmt key goes; a key ORBIT does not own stays', keys(), 'someoneElse');
+  chk(name, 'cleared', 'this tab’s session storage too', ev(`String(sessionStorage.getItem('spmtX'))`), 'null');
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

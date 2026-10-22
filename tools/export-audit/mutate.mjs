@@ -6872,6 +6872,17 @@ const MUTATIONS = [
     find: "if(m==='unf') return fydpUnf(r);",
     repl: "if(m==='unf') return 0;" },
   // ==== end v2.04 (item 109) ====
+  // ==== v2.04 (item 106): Clear this computer ====
+  { id: 'v204-106-clear-everything', area: "clearComputerKeys", what: "Clear this computer removes keys ORBIT does not own",
+    find: "const CLR_PREFIX=/^(prio27|spmt)/;",
+    repl: "const CLR_PREFIX=/^/;" },
+  { id: 'v204-106-no-second-ask', area: "clearComputer", what: "unsaved work or work kept aside is cleared with one question",
+    find: "if((unsaved || kept) && !confirm(",
+    repl: "if(false && !confirm(" },
+  { id: 'v204-106-unsaved-unsaid', area: "clearComputer", what: "the question does not say the board has unsaved changes",
+    find: "const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;",
+    repl: "const unsaved=false;" },
+  // ==== end v2.04 (item 106) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
