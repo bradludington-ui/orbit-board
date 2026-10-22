@@ -60,12 +60,14 @@ const WANT = {
   'themeSetIdx(0)': 1, 'themeSetIdx(1)': 1, 'themeSetIdx(2)': 1, 'themeSetIdx(3)': 1, 'themeSetIdx(4)': 1,
   'uiSetDensity("compact")': 1, 'uiSetDensity("comfortable")': 1, 'uiSetDensity("presentation")': 1,
   toggleDiag: 1,
+  clearComputer: 1,       // v2.04 (item 106): Setup › 🧹 Clear this computer…
   // Data
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportPPT: 1, toggleEd: 1, execSynopsis: 1, exportCSV: 1,
   exportFydpPlan: 1, exportCycCompare: 1, exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
   linkOpen: 1, linkSet: 1,
+  aiExport: 1, '#aiFile': 1, aiOpen: 1,   // v2.04 (item 109): Reports & exports › AI review (GenAI.mil)
   // FYDP ▸ (views only)
   toggleFydp: 1, toggleSp: 1, toggleP2: 1, toggleFlow: 1,
   // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
@@ -142,7 +144,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       + (n[k] ? ' — ' + got.filter(c => callOf(c.h) === k).map(c => c.from + ' “' + c.t + '”').join(', ') : ''));
     chk(`A · each of the ${Object.keys(WANT).length} calls the old menus made is on the left menu as often as the inventory says (once; twice for the two named), and nothing else is`,
       // v2.03: 67 since v2.02 removed the ATR/BTR tracker's two calls; this read 69, failing, from v2.02 (outside verify:grid's run)
-      off.length === 0 && Object.keys(WANT).length === 67, off.slice(0, 12).join(' | '));
+      // v2.04: 71 -- the three AI review entries (item 109) and Clear this computer (item 106)
+      off.length === 0 && Object.keys(WANT).length === 71, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();

@@ -4179,6 +4179,31 @@ ATR/BTR workbook and its two calls. `verify:grid` stops at `layout` (the 8 carri
 in the nightly gate: **run `keys`, `dropdowns`, `dialogs`, `leftmenu` and `standards` yourself** after a change that moves
 a menu or an export.
 
+### v2.04: the CCaR records list names the record; an AI review carried by hand; Clear this computer
+
+Brad, 22 Oct 2026, "Go to all". `NEXT-VERSION.md` › Shipped › v2.04 has every detail.
+
+**The CCaR records list names the record** (item 108). `recName` is a typed name, then the list's **Title**
+(`ccarRecNameOf`), then the data pack's title -- READ, never copied, so a newer list renames. A requirement with no number of
+its own is named by its CLINs: the one record they share, or "Multiple records (N)". The list's **Short Description** is
+offered (`ccarDescOf`), written only into an EMPTY Description when a number is typed (`ccarDescFill`); the RECORD panel offers
+to replace a written one and asks first. **The Description is the person's text: never overwrite it without asking.** A CLIN
+line on the Spend Plan Source carries the CLIN's own number and name.
+
+**The AI review never calls anything** (item 109). The file has no network route and a key would travel in every save, so
+the round trip to GenAI.mil is carried by hand: `aiExport` writes the request, `aiImport` reads the answer through
+`inboundCheck`, `aiRead` checks each line against the board, and the list is advisory and lives in the tab only. **Nothing
+from it is written to the board** -- Brad: "it provides suggestions and analysis for human interaction and decision
+management". A direct GenAI.mil call belongs to the Azure build (item 107), server-side.
+
+**Clear this computer** (item 106, in part): every `prio27`/`spmt` key and `prio-fh`, never the file. A new storage key must
+start `prio27` or `spmt`, or Clear this computer will not reach it.
+
+**A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
+declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.
+**Mutation ids are single-quoted** (`{ id: '…'`): `money-coverage.mjs` reads only that form, so a double-quoted id is invisible
+to the coverage census.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

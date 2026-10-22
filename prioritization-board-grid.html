@@ -3038,7 +3038,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.03 (21 Oct 2026)';
+const BUILD='v2.04 (22 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -6251,6 +6251,9 @@ function setGrp(id, g){
 
 // ============ FYDP: one board, many fiscal years ============
 let MS;                                   // {base, cur, ts, years:{'2027':state, ...}}
+// v2.04 (item 109): the AI review list -- declared here, not with its code, because syncBtns reads them on the first render (the
+// BANDS_STD rule: a `let` further down is still in its dead zone while the board draws during boot)
+let aiIsOpen=false, AIREV=null, aiShow='';   // AIREV {file, ts, rows}; aiShow '' | 'anomaly' | 'suggestion' | 'check'
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -30710,7 +30713,7 @@ function exportCSV(){
 const AI_FMT='orbitAiReview';
 const AI_FIELDS={band:'Decision band', costElem:'Cost element', obCat:'Obligation category', grp:'PMO'};
 const AI_MEASURES={ask:'requirement', alloc:'allocated', fund:'funded', unf:'unfunded'};
-let aiIsOpen=false, AIREV=null;            // {file, ts, rows:[...], said}
+// aiIsOpen and AIREV are declared beside `let MS`: syncBtns reads them on the first render, while the script is still being read
 function aiFieldNow(it, f){
   if(f==='band'){ const b=BAND_OF(it.id); const d=b===null? null : BANDS_LIST().filter(function(x){ return x.id===b; })[0]; return d? d.n : ''; }
   if(f==='costElem') return ((S.costElem||{})[it.id])||'';
@@ -30852,7 +30855,6 @@ async function aiImport(inp){
 }
 function aiOpen(){ aiIsOpen=true; aiBody(); }
 function aiClose(){ aiIsOpen=false; aiBody(); }
-let aiShow='';                                // '' every finding, 'anomaly', 'suggestion', 'check'
 function aiFilter(v){ aiShow=v; aiBody(); }
 function aiGo(id){ aiIsOpen=false; aiBody(); setCur(id); goRow(id); }
 function aiBody(){

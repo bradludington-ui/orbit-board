@@ -636,6 +636,13 @@
    "anchor": "const name = 'v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for'",
    "basis": "arithmetic",
    "asserts": "Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same."
+  },
+  "ot.aiReview": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied",
+   "anchor": "B’s: ask 80, funded 20 (USAF disc 120 − A’s 100), unfunded 60",
+   "basis": "arithmetic",
+   "asserts": "The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes."
   }
  },
  "surfaces": {
@@ -2825,6 +2832,46 @@
     "lane": {
      "status": "n/a",
      "why": "States the requirement and the Controls; no lane draw."
+    }
+   }
+  },
+  "aiExport": {
+   "registry": "money-coverage",
+   "money": true,
+   "what": "The AI review request (v2.04, item 109): each requirement's ask, allocated, funded and unfunded per FYDP year, for GenAI.mil to read.",
+   "cells": {
+    "appropriation": {
+     "status": "n/a",
+     "why": "@oneAppn"
+    },
+    "fiscalYear": {
+     "status": "open",
+     "note": "prints every FYDP year the working plan holds (fydpData, the five-year plan's own projection); the check holds the year on screen only",
+     "why": "the request prints every FYDP year the working plan holds; the check holds only the year on screen, on a fixture with one year",
+     "effort": "small: a second held year with different figures in the item 109 block, each year's figures checked against that year's own state",
+     "group": "v2.04 follow-ups"
+    },
+    "service": {
+     "status": "n/a",
+     "why": "Each figure is the requirement's sum across services; no figure is broken out by service."
+    },
+    "requirement": {
+     "status": "proven",
+     "checks": [
+      "ot.aiReview"
+     ]
+    },
+    "month": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "crHalf": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "lane": {
+     "status": "n/a",
+     "why": "@lanesCombined"
     }
    }
   }

@@ -3781,15 +3781,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 17 (Find, Pre-flight and the fifteen reports and exports, side by side), Setup 5 (three groups, Live view, Save diagnostics), Filter 2, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['17', '5', '2', '9', '7', '4', '4', '1', '5']));
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['20', '6', '2', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
   const secs = k => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .uiRs h4, #dd_'+${J(k)}+' .uiDc h4'))
       .map(function(h){ return h.textContent; })); })()`));
-  chk(name, 'groups', 'Reports & exports is grouped by the job, its five groups laid out side by side', J([secs('reports'), heads('reports')]),
-    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'CCaR & accounting files', 'Companion tools'], []]));
+  chk(name, 'groups', 'Reports & exports is grouped by the job, its six groups laid out side by side (v2.04: AI review)', J([secs('reports'), heads('reports')]),
+    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'CCaR & accounting files', 'AI review (GenAI.mil)', 'Companion tools'], []]));
   chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
     J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
   chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
@@ -3817,7 +3817,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
-       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag']]));
+       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
   chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
     J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt'], 8]));
   // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup. Every list a

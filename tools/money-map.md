@@ -8,8 +8,8 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 46 | 322 | 120 | 52 / 50 / 18 — 6 at display precision | 202 | **0** |
-| money-coverage registry | 29 | 203 | 78 | 43 / 25 / 10 — 3 at display precision | 125 | **0** |
+| **every registered surface** | 47 | 329 | 121 | 53 / 50 / 18 — 6 at display precision | 207 | **1** |
+| money-coverage registry | 30 | 210 | 79 | 44 / 25 / 10 — 3 at display precision | 130 | **1** |
 | trace-matrix surfaces | 17 | 119 | 42 | 9 / 25 / 8 — 3 at display precision | 77 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
@@ -46,6 +46,7 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `forecast` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | n/a |
 | `exportFcView` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | n/a |
 | `srcRowsOf` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | proven·A |
+| `aiExport` | money-coverage | n/a | **OPEN** | n/a | proven·A | n/a | n/a | n/a |
 | `exportSrc` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | proven·A |
 | `crExportRows` | money-coverage | n/a | n/a | n/a | proven·A | n/a | proven·A | n/a |
 | `exportExcel` | money-coverage | n/a | n/a | proven·AG | proven·AG | proven·AG | proven·AG | proven·AG |
@@ -86,7 +87,12 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `Spruills (screen)` | trace › `spGather` | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `Spruills · PMO drill` | trace › `pmoDetail` | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
-## What remains open — 0 cell(s), for Brad to build or explicitly defer
+## What remains open — 1 cell(s), for Brad to build or explicitly defer
+
+### v2.04 follow-ups
+
+- **`aiExport` × Fiscal year** — the request prints every FYDP year the working plan holds; the check holds only the year on screen, on a fixture with one year
+  - *To close:* small: a second held year with different figures in the item 109 block, each year's figures checked against that year's own state
 
 ## Found while mapping
 
@@ -215,6 +221,18 @@ Money-coverage surface. Spend Plan Source rows: one line per requirement, servic
 - **Month** — proven·A: `export-audit/audit-recon.mjs` › *W7 — F2: the Spend Plan Source dates an incremental award a line per increment* [arithmetic] — every line's Month and Date: an incremental award a line per increment on its own day (v1.95 F2, option (a)), held against the forecast and the CR windows as well
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
 - **Funding lane** — proven·A: `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]
+
+### `aiExport`
+
+Money-coverage surface. The AI review request (v2.04, item 109): each requirement's ask, allocated, funded and unfunded per FYDP year, for GenAI.mil to read.
+
+- **Appropriation** — n/a: Built on one appropriation's page from that page's own state — the engine holds one appropriation per page (DATA, SVC and S are its constants) — so it prints no other appropriation's money.
+- **Fiscal year** — **OPEN** (v2.04 follow-ups): the request prints every FYDP year the working plan holds; the check holds only the year on screen, on a fixture with one year
+- **Service** — n/a: Each figure is the requirement's sum across services; no figure is broken out by service.
+- **Requirement** — proven·A: `export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* [arithmetic]
+- **Month** — n/a: Places no money in time: no month, no date, no window.
+- **CR half** — n/a: Places no money in time: no month, no date, no window.
+- **Funding lane** — n/a: States funded money as discretionary + mandatory together; no figure is one lane on its own.
 
 ### `exportSrc`
 
@@ -781,3 +799,4 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `w7.f2` | `tools/export-audit/audit-recon.mjs` › *W7 — F2: the Spend Plan Source dates an incremental award a line per increment* | arithmetic | The Spend Plan Source read back: every line — requirement, service and lane (its BAE budget, verbatim), Date, Month and Amount — against a table written from the fixture (an incremental award stored out of order: a line per increment on its own day, discretionary forward, mandatory backward, the uncovered remainder on 31 August; a day past the month's end its last day; a single award date, and none, one line as before); each requirement's lines per service and lane add up to the lane's draw; an increment's lines differ only in Month, Date and Amount; the same columns. Agreement too: each service's lines by month are forecast()'s months and UNSCHEDULED, each requirement's CR windows crData()'s, each lane's lines spendPlanByMonth()'s. |
 | `v199.flow` | `tools/export-audit/audit-recon.mjs` › *v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year* | arithmetic | The panel set to FY25 + FY26, O&M only: the export states that scope, US $3,000 (O&M’s two years), partner $300 once and labelled portfolio-wide, $3,300, and no Full Fund line; FY27 across every appropriation: O&M planned $5,000 and Full Fund executed $800, $5,800, with the mix named. Every figure is the fixture’s own arithmetic. |
 | `v199.ace` | `tools/export-audit/audit-recon.mjs` › *v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for* | arithmetic | Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same. |
+| `ot.aiReview` | `tools/export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* | arithmetic | The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes. |

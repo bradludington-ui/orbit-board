@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.03**. Next: **v2.04**.
+Current version: **v2.04**. Next: **v2.05**.
 
 ## Open
 
@@ -133,99 +133,6 @@ Current version: **v2.03**. Next: **v2.04**.
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
 
-#### 108. A record number fills the Record Name and the Description from the CCaR records list (Brad, 22 Oct 2026)
-- **What Brad asked:** importing the CCaR records brings a Record Name and a short description for each record. Entering a
-  record number on a requirement should look it up in that list, fill the Record Name, and post the record's short
-  description to the requirement's Description.
-- **What the board does today (read from the code on v2.03, 22 Oct):**
-  - `importCcarRecs` keeps five columns only: CCaR No, Title, OPR, PMO and Control No. A short-description column is not
-    read.
-  - `editCcar` stores the number and nothing else: no lookup, no field filled.
-  - The list's Title reaches one place, column D of the Spend Plan Source, and only when the number names one record
-    (`ccarTitleOf`). On the board the Record Name is the data pack's title or a typed override (`recName`), and the
-    Description is what was typed (`S.desc`).
-  - A CLIN can hold its own CCaR number (`clinSetField(..., 'ccar')`), and nothing looks it up either.
-  - **Found on the way:** the Spend Plan Source sends every CLIN line under the REQUIREMENT's CCaR number and title
-    (`r[2]=ccarOf(it)`, `r[3]=recT`), not the CLIN's own record.
-- **Brad's decisions, 22 Oct 2026:**
-  - **Record Name follows the record, live.** It is read from the CCaR list, not copied, so a newer list updates it.
-    Order: a name typed on the board, then the CCaR list's name, then the data pack's title. A number shared by records
-    that disagree reads blank and is flagged, never guessed (as `ccarTitleOf` already does). The funds-flow join keeps
-    the data pack's title and adds the CCaR name as a further key, so it can only gain matches.
-  - **Description is copied in, once.** Entering a record number fills an empty Description with the record's short
-    description. A Description that already holds text is left alone, with a "Replace with the CCaR description" button.
-  - **CLINs with different records: option (a).** The requirement's own CCaR number, if it has one; else the one record
-    every CLIN shares; else the Record Name reads "Multiple records (N)", each CLIN's record name shows on its line in
-    the CLIN drill, and the Description is built one line per CLIN: "CLIN 0001 · JSF1234 — description".
-  - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
-    requirement's otherwise.
-- **The headings (Brad, 22 Oct 2026):** the Record Name is in the column **CCaR No**; the description is in **Short
-  Description**. **Corrected the same day:** CCaR No holds the number only, no name -- as the import
-  already reads it. **Open question:** which column holds the Record Name? The import already reads **Title**; if Title is
-  the Record Name, item 108 needs only Short Description added to the import.
-- **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
-  Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
-  cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
-- **Proof, when built:** a check that types a number and reads the RECORD panel and the row; a re-import that changes a
-  name; a Description that is kept; a requirement over CLINs with one shared record and with three; and the Spend Plan
-  Source's CLIN lines read back for each CLIN's own number and name. Each must fail on v2.03.
-
-#### 109. ORBIT-AI: GenAI.mil suggestions for classification and spend-plan anomalies (Brad, 22 Oct 2026, a proposal for review)
-- **What Brad showed:** a draft project description (written with GenAI.mil): integrate IL5 GenAI.mil APIs into ORBIT for
-  two workflows -- **automated categorization and tagging** (read free-text requirements and suggest funding
-  categories, appropriation codes and modernization priority tags) and **spend plan anomaly and variance detection**
-  (flag outyear spikes, anomalies and execution variances across the FYDP). Human in the loop: every tag and flag is
-  advisory until an authorized Program Manager confirms it; unclassified network, unclassified and CUI data only.
-- **Where it can live:** not in the desktop file. The file runs from a shared drive or `file://` with no network route,
-  `npm run check` refuses anything external, a page opened from a file calls out with `Origin: null`, and any API key in
-  the file would travel in every save and PMO copy. Sending CUI to an outside service also makes the file a connected
-  system, which is what item 100's IL5 / Zero Trust requirements are about -- and Brad set those for the Azure build only.
-  So the AI calls belong in item 107, made server-side under the user's sign-in and logged centrally.
-- **What can be built in the file now, with no AI:** the anomaly half is mostly arithmetic the board already holds --
-  cycle deltas, the cycle comparison, the five-year plan, ORBIT vs CCaR, "not drawn". A rules-based "Anomalies" list
-  (a year-over-year jump above a set percentage, a requirement funded in one year and missing the next, an outyear
-  spike against its own average, execution against plan beyond a threshold) can be exact and checkable, unlike a model.
-  The suggestions half can use the review pattern the PMO submittals already have: proposals in a table, nothing
-  applied until ticked, every accepted change in the change journal.
-- **Corrections for the write-up before it goes to reviewers:** ORBIT's appropriations are O&M, Full Fund, Initial
-  Spares and OPN -- RDT&E is not one, and its BAE budgets are excluded on purpose. "Undefended POM cycles" probably
-  means "defended". "Single-source HTML platform" reads better as "a single self-contained HTML file".
-- **Brad's answers, 22 Oct 2026:**
-  1. **In v2.04.** The file gets the rules-based half now; the GenAI.mil calls wait for the Azure build (item 107).
-  2. **Nothing is filled in.** ORBIT offers suggestions and analysis for a person to read and decide on. A suggestion is
-     never written to a field by itself; acting on one is the person's own edit, through the field's own editor, and
-     journalled as theirs.
-  3. **No percentages (corrected the same day):** "I don't want to set a percentage, I want AI to provide an independent
-     assessment." The anomaly analysis is the AI's judgement, not rules with thresholds a person sets.
-- **How an AI assessment can reach the file in v2.04 (proposal):** the file cannot call GenAI.mil (no network route,
-  `Origin: null`, and a key would travel in every save and copy). A hand-carried round trip needs neither:
-  1. **Export for AI review** writes one file: the instructions (what to assess, the answer format) and the board's data
-     for the year or FYDP -- requirements, figures by year and service, classifications, execution against plan.
-  2. The person gives that file to GenAI.mil (the screen Brad showed is marked approved for IL5, CUI and PII) and saves
-     its answer.
-  3. **Import AI review** reads the answer through the import check like any file, and shows it as a review list: each
-     finding or suggestion with the AI's reasoning, the requirement it is about, and Go to it. Nothing is filled in;
-     acting on one is the person's own edit, journalled as theirs. A finding naming a requirement the board does not hold,
-     or a figure that does not match the board, is marked as such, so a model's mistake is visible.
-  The same answer format carries over when the Azure build calls GenAI.mil directly. **To confirm with Brad:** that
-  board data may be given to GenAI.mil (the banner says CUI is authorized; the security team may want to say so).
-  The rules-based list above is dropped unless Brad wants it beside the AI's.
-- **What v2.04 builds (proposal, before go):**
-  - **Analysis -- the anomaly list**, one panel, every finding naming the requirement, the year(s), the figure and the
-    rule that raised it, and taking the reader to the requirement: a year-over-year change past the set percentage; money
-    in one FYDP year and none the next (or the reverse); an outyear year against the requirement's own average; execution
-    against plan for the active year; and a change since the reference cycle (`cycDelta`). Read from the figures the
-    board already prints (`fydpData`, `cycDelta`, the execution import), never recomputed, so a finding always matches
-    the surface it points at. An export of the list.
-  - **Suggestions -- classification**, shown beside the empty field and in one review list, each with its reason, for
-    the fields the board already has (cost element, obligation category, RCN/EEIC, SI code, band, PMO): the same
-    requirement's value in the previous year; the value other requirements on the same CCaR record carry; the value
-    most requirements in the same office carry. A suggestion that would conflict with a set value is analysis, not a
-    proposal. "Use this" opens the field's own editor with the value in it; nothing changes until the person saves.
-  - **No new "modernization priority" tag** unless Brad names the list.
-  - Same posture as everything else: a PMO copy shows the analysis and suggestions for its own office; a locked cycle's
-    view shows them read only; nothing goes into the file but the thresholds a person set.
-
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -283,6 +190,157 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer -- built on Brad's "Go to all" of 22 Oct
+
+`BUILD` is `v2.04 (22 Oct 2026)`. Brad's go covered items 108, 109 and 106; the list tidy (89 and 101 to v2.02) went first.
+**Not built, and why:** the decisions under items 63, 71, 82 and 84 were never picked, so there was nothing to build; of item
+106, only Clear this computer (see below for each other part). The mutation sweep was not run (the 20 Oct rule): each new
+mutation was run against its own check.
+
+#### 108, as built
+- `importCcarRecs` reads **Short Description** (`s`; `sc` when two records under one number describe it differently) and says
+  when the file has no such column. **Title** is the Record Name (Brad, 22 Oct); CCaR No is the number only.
+- `recName`: a name typed on the board, then the list's Title (`ccarRecNameOf`), then the data pack's title. Read live, never
+  copied: a newer list renames. A number held by records that disagree gives no name (as `ccarTitleOf`). A requirement with no
+  number of its own is named by its CLINs (option (a)): the one record they share, else **Multiple records (N)**.
+- `ccarDescOf`: the record's Short Description; for a requirement named by its CLINs, the shared record's, or a line per CLIN
+  (`CLIN 0001 · JSF1234 — description`). `ccarDescFill` writes it only into an EMPTY Description, when a number is typed on
+  the requirement (`editCcar`) or on a CLIN (`clinSetField`). The RECORD panel shows the CCaR Record Name and offers
+  "Fill the Description from CCaR" / "Replace the Description with the CCaR one" (`ccarDescUse`, which asks before replacing).
+- The CLIN drill names each CLIN's record. The Spend Plan Source sends a CLIN line under the CLIN's own number and Record Name.
+- **Consequences to know:** the CCaR Title now reaches every surface that prints the Record Name (the exports, the funds-flow
+  join adds it as a key). The ORBIT vs CCaR reconciliation still compares by the requirement's number, so a CLIN line now sent
+  under its own record can show there as a difference until CCaR holds it.
+- Check: audit-other "v2.04 (item 108)" (fails on v2.03); 9 `v204-108-*` mutations, each caught.
+
+#### 109, as built
+- **Reports & exports › AI review (GenAI.mil):** 🤖 Export for AI review (`aiExport`), 🤖 Import the AI's answer (`aiImport`), 🤖
+  AI review list (`#aiPanel`). The request is one text file: the instructions (advisory; anomalies by the AI's own judgement,
+  no thresholds; suggestions only for band, cost element, obligation category and PMO, only from the board's own values) and
+  the working plan's figures per requirement and FYDP year (ask, allocated, funded, unfunded) with its text fields.
+- The answer may be wrapped in prose or a code fence. It goes through `inboundCheck`, then `aiRead` checks every line: a
+  requirement the board does not hold, a year it does not hold, a figure it does not print, a value that is not one of its own,
+  a value already set. Each is marked on the line; nothing is refused for being wrong, nothing is applied for being right.
+- **Nothing is written to the board.** The list (filters, the AI's reasoning, Go to it) lives in this tab only; the answer file
+  is the record. `aiIsOpen`, `AIREV`, `aiShow` are declared beside `let MS` (syncBtns reads them on the first render).
+- **Brad to confirm with the security team:** that board data may be given to GenAI.mil (its banner says IL5, CUI and PII).
+- Check: audit-other "v2.04 (item 109)"; 5 `v204-109-*` mutations, each caught; money-coverage registers `aiExport`.
+
+#### 106, in part: Clear this computer
+- **Setup › 🧹 Clear this computer** (`clearComputer`): every `prio27`/`spmt` key in local and session storage and the remembered
+  save file (`prio-fh`); the board file is untouched and the page reopens from it. Asks, and asks again when unsaved changes or
+  work kept aside would be lost.
+- **Not built:** the Content-Security-Policy -- `connect-src 'none'` would stop the Live view's Confluence/SharePoint transport
+  and the legacy shared state file, which use `fetch` (Brad to say whether either is in use); SHA-256 fingerprints and a
+  hash-chained journal -- they change what every package, writer record and journal entry carries, a format change of its
+  own; CUI markings -- waiting on the security team's wording; the static-analysis scan.
+- Check: audit-other "v2.04 (item 106)"; 3 `v204-106-*` mutations, each caught.
+
+#### Changed on purpose, each saying so where it changed
+audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review section, Clear this computer); left-menu's
+inventory (71 calls); panels-render and dialogs-keyboard open the AI review list.
+
+#### The checks v2.04 was proved with (22 Oct 2026)
+`npm run check`; audit, audit-ppt, audit-other, audit-board, audit-hostile, audit-inject, legacy-fsrc, boot-same pass;
+audit-recon fails only its two checks that read 7ee498a from git history, the same on v2.03 (this clone is shallow); keys,
+dialogs, leftmenu, panels, dropdowns, standards (nothing new), menus, controls, editors, hostile, toolbar pass; layout fails only
+the carried D ×8. mcount: every target matches once (2,112). defects, trace and the round-trip fuzz (seed 764238573) hold; the money map holds
+with one cell open: the AI review request's fiscal-year cell (the check holds the year on screen only). The RECORD panel's new
+line was photographed at 1440 and 1024.
+
+#### 108 (as logged). A record number fills the Record Name and the Description from the CCaR records list (Brad, 22 Oct 2026)
+- **What Brad asked:** importing the CCaR records brings a Record Name and a short description for each record. Entering a
+  record number on a requirement should look it up in that list, fill the Record Name, and post the record's short
+  description to the requirement's Description.
+- **What the board does today (read from the code on v2.03, 22 Oct):**
+  - `importCcarRecs` keeps five columns only: CCaR No, Title, OPR, PMO and Control No. A short-description column is not
+    read.
+  - `editCcar` stores the number and nothing else: no lookup, no field filled.
+  - The list's Title reaches one place, column D of the Spend Plan Source, and only when the number names one record
+    (`ccarTitleOf`). On the board the Record Name is the data pack's title or a typed override (`recName`), and the
+    Description is what was typed (`S.desc`).
+  - A CLIN can hold its own CCaR number (`clinSetField(..., 'ccar')`), and nothing looks it up either.
+  - **Found on the way:** the Spend Plan Source sends every CLIN line under the REQUIREMENT's CCaR number and title
+    (`r[2]=ccarOf(it)`, `r[3]=recT`), not the CLIN's own record.
+- **Brad's decisions, 22 Oct 2026:**
+  - **Record Name follows the record, live.** It is read from the CCaR list, not copied, so a newer list updates it.
+    Order: a name typed on the board, then the CCaR list's name, then the data pack's title. A number shared by records
+    that disagree reads blank and is flagged, never guessed (as `ccarTitleOf` already does). The funds-flow join keeps
+    the data pack's title and adds the CCaR name as a further key, so it can only gain matches.
+  - **Description is copied in, once.** Entering a record number fills an empty Description with the record's short
+    description. A Description that already holds text is left alone, with a "Replace with the CCaR description" button.
+  - **CLINs with different records: option (a).** The requirement's own CCaR number, if it has one; else the one record
+    every CLIN shares; else the Record Name reads "Multiple records (N)", each CLIN's record name shows on its line in
+    the CLIN drill, and the Description is built one line per CLIN: "CLIN 0001 · JSF1234 — description".
+  - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
+    requirement's otherwise.
+- **The headings (Brad, 22 Oct 2026):** the Record Name is in the column **CCaR No**; the description is in **Short
+  Description**. **Corrected the same day:** CCaR No holds the number only, no name -- as the import
+  already reads it. **Open question:** which column holds the Record Name? The import already reads **Title**; if Title is
+  the Record Name, item 108 needs only Short Description added to the import.
+- **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
+  Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
+  cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
+- **Proof, when built:** a check that types a number and reads the RECORD panel and the row; a re-import that changes a
+  name; a Description that is kept; a requirement over CLINs with one shared record and with three; and the Spend Plan
+  Source's CLIN lines read back for each CLIN's own number and name. Each must fail on v2.03.
+
+#### 109 (as logged). ORBIT-AI: GenAI.mil suggestions for classification and spend-plan anomalies (Brad, 22 Oct 2026, a proposal for review)
+- **What Brad showed:** a draft project description (written with GenAI.mil): integrate IL5 GenAI.mil APIs into ORBIT for
+  two workflows -- **automated categorization and tagging** (read free-text requirements and suggest funding
+  categories, appropriation codes and modernization priority tags) and **spend plan anomaly and variance detection**
+  (flag outyear spikes, anomalies and execution variances across the FYDP). Human in the loop: every tag and flag is
+  advisory until an authorized Program Manager confirms it; unclassified network, unclassified and CUI data only.
+- **Where it can live:** not in the desktop file. The file runs from a shared drive or `file://` with no network route,
+  `npm run check` refuses anything external, a page opened from a file calls out with `Origin: null`, and any API key in
+  the file would travel in every save and PMO copy. Sending CUI to an outside service also makes the file a connected
+  system, which is what item 100's IL5 / Zero Trust requirements are about -- and Brad set those for the Azure build only.
+  So the AI calls belong in item 107, made server-side under the user's sign-in and logged centrally.
+- **What can be built in the file now, with no AI:** the anomaly half is mostly arithmetic the board already holds --
+  cycle deltas, the cycle comparison, the five-year plan, ORBIT vs CCaR, "not drawn". A rules-based "Anomalies" list
+  (a year-over-year jump above a set percentage, a requirement funded in one year and missing the next, an outyear
+  spike against its own average, execution against plan beyond a threshold) can be exact and checkable, unlike a model.
+  The suggestions half can use the review pattern the PMO submittals already have: proposals in a table, nothing
+  applied until ticked, every accepted change in the change journal.
+- **Corrections for the write-up before it goes to reviewers:** ORBIT's appropriations are O&M, Full Fund, Initial
+  Spares and OPN -- RDT&E is not one, and its BAE budgets are excluded on purpose. "Undefended POM cycles" probably
+  means "defended". "Single-source HTML platform" reads better as "a single self-contained HTML file".
+- **Brad's answers, 22 Oct 2026:**
+  1. **In v2.04.** The file gets the rules-based half now; the GenAI.mil calls wait for the Azure build (item 107).
+  2. **Nothing is filled in.** ORBIT offers suggestions and analysis for a person to read and decide on. A suggestion is
+     never written to a field by itself; acting on one is the person's own edit, through the field's own editor, and
+     journalled as theirs.
+  3. **No percentages (corrected the same day):** "I don't want to set a percentage, I want AI to provide an independent
+     assessment." The anomaly analysis is the AI's judgement, not rules with thresholds a person sets.
+- **How an AI assessment can reach the file in v2.04 (proposal):** the file cannot call GenAI.mil (no network route,
+  `Origin: null`, and a key would travel in every save and copy). A hand-carried round trip needs neither:
+  1. **Export for AI review** writes one file: the instructions (what to assess, the answer format) and the board's data
+     for the year or FYDP -- requirements, figures by year and service, classifications, execution against plan.
+  2. The person gives that file to GenAI.mil (the screen Brad showed is marked approved for IL5, CUI and PII) and saves
+     its answer.
+  3. **Import AI review** reads the answer through the import check like any file, and shows it as a review list: each
+     finding or suggestion with the AI's reasoning, the requirement it is about, and Go to it. Nothing is filled in;
+     acting on one is the person's own edit, journalled as theirs. A finding naming a requirement the board does not hold,
+     or a figure that does not match the board, is marked as such, so a model's mistake is visible.
+  The same answer format carries over when the Azure build calls GenAI.mil directly. **To confirm with Brad:** that
+  board data may be given to GenAI.mil (the banner says CUI is authorized; the security team may want to say so).
+  The rules-based list above is dropped unless Brad wants it beside the AI's.
+- **What v2.04 builds (proposal, before go):**
+  - **Analysis -- the anomaly list**, one panel, every finding naming the requirement, the year(s), the figure and the
+    rule that raised it, and taking the reader to the requirement: a year-over-year change past the set percentage; money
+    in one FYDP year and none the next (or the reverse); an outyear year against the requirement's own average; execution
+    against plan for the active year; and a change since the reference cycle (`cycDelta`). Read from the figures the
+    board already prints (`fydpData`, `cycDelta`, the execution import), never recomputed, so a finding always matches
+    the surface it points at. An export of the list.
+  - **Suggestions -- classification**, shown beside the empty field and in one review list, each with its reason, for
+    the fields the board already has (cost element, obligation category, RCN/EEIC, SI code, band, PMO): the same
+    requirement's value in the previous year; the value other requirements on the same CCaR record carry; the value
+    most requirements in the same office carry. A suggestion that would conflict with a set value is analysis, not a
+    proposal. "Use this" opens the field's own editor with the value in it; nothing changes until the person saves.
+  - **No new "modernization priority" tag** unless Brad names the list.
+  - Same posture as everything else: a PMO copy shows the analysis and suggestions for its own office; a locked cycle's
+    view shows them read only; nothing goes into the file but the thresholds a person set.
 
 ### v2.03 — 21 Oct 2026: cleaner code -- items 104, 105, 19 and 20, built on Brad's "go" of 21 Oct ("Build before": ahead of the sweep)
 

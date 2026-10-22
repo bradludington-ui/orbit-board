@@ -51,6 +51,7 @@ const SPECIAL = {
   attPanel:  `attShow('oblig');`,
   // v2.03 (item 19): the session's message list, with an unread warning in it (as ⚠ N unread opens it)
   msgPanel:  `setStat('⚠ A warning nobody has read yet.'); setStat('Order saved.'); msgOpen();`,
+  aiPanel:   `aiOpen();`,   // v2.04 (item 109): the AI review list, empty until an answer is read
   // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Imports & exports does
   uiImpPanel: `uiImpOpen();`,
   // v2.00 (menu, 19 Oct): the left menu's other two boxes, opened as Reports & exports and Data open them
