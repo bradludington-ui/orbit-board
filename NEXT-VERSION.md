@@ -132,6 +132,9 @@ Current version: **v2.04**. Next: **v2.05**.
   move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
+- **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
+  update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
+  server-side under the user's sign-in, with a policy that allows exactly those services.
 
 ## Later
 
@@ -231,9 +234,18 @@ mutation was run against its own check.
 - **Setup › 🧹 Clear this computer** (`clearComputer`): every `prio27`/`spmt` key in local and session storage and the remembered
   save file (`prio-fh`); the board file is untouched and the page reopens from it. Asks, and asks again when unsaved changes or
   work kept aside would be lost.
-- **Not built:** the Content-Security-Policy -- `connect-src 'none'` would stop the Live view's Confluence/SharePoint transport
-  and the legacy shared state file, which use `fetch` (the two were then removed as item 110; the JSON endpoint and the state file
-  still use it); SHA-256 fingerprints and a
+- **The Content-Security-Policy, built last** (Brad, 22 Oct 2026, once items 110-111 had removed every outside connection:
+  "Yes for now. Once we build the azure update we'll want to be able to connect"). A `<meta http-equiv="Content-Security-Policy">`
+  in the head, before any script: nothing may load from or connect to another host -- `connect-src 'self' file: data: blob:`
+  (the legacy state file beside the board, the page's own data), images, fonts and frames from the page itself, data: and
+  blob: only, inline script and style (the file is one inline program), no plugins, no `<base>`, no form posts. It travels in
+  every saved board and PMO copy (SRC0 carries it). `npm run check` "content security policy" (present, before any script, no
+  host or network scheme in any directive, connect-src exact) and `npm run csp` (`tools/csp-check.mjs`, in `verify:grid`:
+  the board opened from a file:// URL with no script error; a fetch, an image and a frame to another host each REFUSED BY
+  THE POLICY, read from the securitypolicyviolation event -- this container has no route out, so a plain failure would
+  prove nothing; the five-year plan's srcdoc frame still opens). On v2.03 the four policy checks fail. **Azure:** the hosted
+  build sets its own policy from the server, allowing exactly the services it signs in to (item 107).
+- **Still not built:** SHA-256 fingerprints and a
   hash-chained journal -- they change what every package, writer record and journal entry carries, a format change of its
   own; CUI markings -- waiting on the security team's wording; the static-analysis scan.
 - Check: audit-other "v2.04 (item 106)"; 3 `v204-106-*` mutations, each caught.

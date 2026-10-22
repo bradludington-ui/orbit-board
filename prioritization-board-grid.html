@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- v2.04 (item 106; Brad, 22 Oct 2026: "Yes for now"): THE BROWSER REFUSES ANY CONNECTION TO ANOTHER HOST. The board
+     makes none since items 110-111; this makes sure one added by mistake cannot. connect-src keeps the file beside the board
+     (the legacy shared state file) and the page's own data and blob URLs; nothing http(s). The Azure build replaces this
+     with the server's own policy (item 107). npm run check holds the line; npm run csp proves it in Chromium. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' file: data: blob:; frame-src 'self' about: data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
 <title>Prioritization Board SHELL (grid)</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cmask id='f' maskUnits='userSpaceOnUse' x='1' y='1' width='98' height='98'%3E%3Crect x='1' y='1' width='98' height='98' fill='%23fff'/%3E%3Ccircle cx='80.21' cy='26.4' r='16.3' fill='%23000'/%3E%3C/mask%3E%3Ccircle cx='50' cy='50' r='38.33' fill='none' stroke='%230f5a91' stroke-width='17.34' mask='url(%23f)'/%3E%3Ccircle cx='50' cy='50' r='8.32' fill='%230f5a91'/%3E%3Ccircle cx='80.21' cy='26.4' r='10.75' fill='%23d4a24e'/%3E%3C/svg%3E">
 <style>

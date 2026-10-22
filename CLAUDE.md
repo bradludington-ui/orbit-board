@@ -4205,6 +4205,12 @@ going live with azure"). The Live view shares through the shared folder only, an
 folder, off, is told, and loses its stored key. Do not bring a network transport back into the file: in the Azure build the
 server talks to anything.
 
+**The Content-Security-Policy says so to the browser** (item 106, built once the transports were gone). A `<meta>` in the head,
+before any script, refuses every load from or connection to another host; `connect-src` is exactly `'self' file: data: blob:`.
+`npm run check` holds its text and `npm run csp` proves Chromium enforces it (each refusal read from the
+`securitypolicyviolation` event, because a request that merely fails offline proves nothing). A new feature that needs a
+network source is an Azure feature (item 107), not a hole in this policy.
+
 **A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
 declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.
 **Mutation ids are single-quoted** (`{ id: '…'`): `money-coverage.mjs` reads only that form, so a double-quoted id is invisible
