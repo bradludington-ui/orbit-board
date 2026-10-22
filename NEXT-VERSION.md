@@ -140,10 +140,12 @@ Current version: **v2.04**. Next: **v2.05**.
 - **Logged:** 22 Oct 2026. Not built; waits for go. Mock-ups (made-up data) were sent as files: tab 1 alone, then all ten tabs.
 - **It REPLACES the workbook's tabs** (By Requirement, By PMO, By Service, a tab per PMO). 📊 FYDP Spend Plan (Excel) keeps
   its menu entry.
-- **What it prints from: the view on screen.** A locked cycle on screen (PB27) prints that lock; the working plan prints the
-  working plan (its cycle tag in the title). The panel's own source picker no longer decides the workbook. The other
-  appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed), from the
-  same cycle; one that holds no such lock is named on its tab, never printed as zero.
+- **What it prints from: a plan the person picks** (Brad, 22 Oct 2026: "Let's make it a selectable item"). 📊 FYDP Spend Plan
+  (Excel) opens a short choice -- the working plan (with its cycle tag) and every locked cycle, each with when it was locked --
+  with the plan ON SCREEN chosen when it opens (a locked view on screen: that lock; otherwise the working plan), and Export.
+  Every tab's title and the file name name the plan printed ("ORBIT FYDP Spend Plan — PB27 (locked 15 Oct) — FY27–FY31").
+  The other appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed),
+  from the same cycle picked; one that holds no such lock is named on its tab and prints nothing, never zeros.
 - **Years: the base year and the next four** (FY27-FY31 on a base of 2027), five in all. A year on screen outside that
   window is not printed. A year in the window the plan does not hold prints —, not 0.
 - **Units: $M to three decimals** ($1,000,000 prints 1.000). Each cell holds the exact figure in millions; only the format
