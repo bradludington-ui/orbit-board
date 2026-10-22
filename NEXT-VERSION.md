@@ -178,9 +178,8 @@ Current version: **v2.04**. Next: **v2.05**.
   office each year assigns (Brad's Q2, v1.95), so a requirement that moved office is under each for its own years; a prime
   shared between offices by its CLINs is split by office share (`pmoPartsOf`), and the PMO tabs add up to the
   appropriation tabs.
-- **A classification marking** at the top and bottom of every page and above every tab's banner (Brad, 22 Oct 2026: "yes").
-  Its WORDING waits on the security team (item 106's CUI markings, item 100); the mock-up shows "CUI" as a placeholder. It
-  is one setting, so the wording changes in one place.
+- **No classification marking** (Brad, 22 Oct 2026: "Let's leave the classification marks off"). The mock-up's "CUI"
+  placeholder is not built.
 - **Tab order:** Summary, O&M, Full Fund, Initial Spares, OPN, USAF, ANG, AFRC, STOVL, USMC-C, USN, then the PMOs.
 - **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
   pull from for briefings"). The styled mock-up sent that day is the target:
@@ -203,7 +202,7 @@ Current version: **v2.04**. Next: **v2.05**.
 - **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
   appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
   plan moves; $M cells carry the exact figure.
-- **Open:** Brad's review of mock-up v2 (summary, PMO tabs, marking); the marking's wording from the security team. A chart
+- **Built on PR #20, in v2.04** (Brad, 22 Oct 2026: "press with PR number 20"), mock-up v2 approved ("I like them!"). A chart
   in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
 
 #### 113. Every report workbook styled like the five-year spend plan (Brad, 22 Oct 2026: "Can we enhance all of our spreadsheets so that they look presentable like these?")
@@ -220,8 +219,8 @@ Current version: **v2.04**. Next: **v2.05**.
   IDS template).
 - **The look, from item 112:** the sheet's existing title row as the navy banner; navy headings with white text; total
   rows on a grey band with a double rule above; total columns in gold; banded rows; no gridlines; tab colours; headings
-  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; the
-  classification marking in the page header and footer (item 112's one setting). One shared house style in the workbook
+  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; no
+  classification marking (Brad, 22 Oct). One shared house style in the workbook
   writer (`buildXlsx`), so every report matches and a later change is made once.
 - **Proof that nothing moved:** `npm run delta` against the commit before reports **zero figures moved** in every workbook;
   every suite that reads these files passes unchanged; the three left-alone files are byte-identical to today's (compared with the
