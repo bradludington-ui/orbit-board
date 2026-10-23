@@ -42,9 +42,18 @@ Current version: **v2.04**. Next: **v2.05**.
   `ia-census` and `keyboard-reach` read the box's items. `npm run standards`: the tag is `--mut` on `--panel` (AA in
   every theme); each item stays at least 24px tall. `npm run panels`, `dialogs` and `dropdowns` are rerun. No money
   moves and no export changes.
-- **Open for Brad:** (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
-  (b) whether *Executive decision…* and *Two spend plans…* (on-screen views, tagged VIEW) belong here at all, or under
-  Execution ▸ with the other views, which would leave this box exports only.
+- **Brad, 23 Oct 2026:** *"Under Briefing, let's remove PowerPoint deck, Executive Synopsis, and Executive Decision. I'm not
+  using those."* The prototype was redrawn without them. Briefing is now Excel workbook and Priority drill by band, and the box
+  is 557px tall, down from 662 today. **The box is the only way in to all three** (`exportPPT`, `execSynopsis`, `toggleEd` are
+  called from nowhere else), so taking them off the menu leaves their code unreachable. Item 104's rule is that
+  unreachable code goes. Removing it would take out the 1.6 MB PowerPoint template (`TPL_PARTS`, 40% of the file: about
+  4.0 MB down to about 2.4 MB) with the `#edPanel` box. It would also retire the deck's suite (`audit-ppt.mjs`), the deck
+  checks in audit-recon (9) and the trace matrix (two deck surfaces), `tools/tpl-parts.sha256` and its check, and the
+  deck and synopsis mutations, as ATR/BTR's went in v2.02. No board data is lost: none of the three stores anything.
+  Brad's call, below.
+- **Open for Brad:** (c) take the three off the menu only, or remove their code too (above)? (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
+  (b) whether *Two spend plans…* (an on-screen view, tagged VIEW) belongs here, or under Execution ▸ with the other views,
+  which would leave this box exports only.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
