@@ -8,6 +8,44 @@ Current version: **v2.04**. Next: **v2.05**.
 
 ## Open
 
+#### 114. Reports & exports: the box cleaned up (Brad, 23 Oct 2026, from a photo of the real board: "Need to clean up this pop up. Has too much going on")
+- **What he sees (measured on v2.04, Harbor, 1500 wide; it matches the photo):** six bordered cards in a 3×2 grid, each
+  sized to the tallest in its row, so Spend plan & cash and Companion tools are half empty. 19 lines of text on 16
+  actions: every item carries an emoji, a title and a hint of up to two lines, and three of the six cards close with a
+  sentence that is not an action ("… are views, under Execution ▸", "Advisory only…"). The emoji come out as a mix of
+  colour and plain glyphs on the work machine (⬇, 📊, 🤖, 📒), and three different icons stand for "download". The item text
+  starts 40px in because every item keeps an empty tick column (`.mi .chk`) a report never ticks, so titles, hints and
+  section headings start at three different left edges. Pre-flight is alone on its own line, with its hint about 700px
+  away at the right edge. Names are inconsistent: "(Excel)" on some, "(CSV)" on one, nothing on the deck, "— full
+  breakouts" on one. Companion tools is the only group that holds a setting (*Change the linked tool…*).
+- **Proposed (prototyped on a scratch copy, before and after shown to Brad):**
+  1. **Two columns of plain lists, no cards.** A section is a small uppercase heading with a hairline under it; nothing
+     is boxed, so nothing is half empty. Left: Briefing, Spend plan & cash (FY on the heading), Five years & PPBE.
+     Right: CCaR & accounting files, AI review. The box narrows from 1060 to 860px.
+  2. **One line of title, one line of hint, a format tag on the right**: XLSX, PPTX, CSV, TXT; VIEW for a box that opens
+     on screen first; READ for the AI answer. The tag says what you get; the emoji go from this box. Hints are rewritten
+     to one short line each. The trailing … keeps its usual meaning (it asks something first).
+  3. **No tick column, so one left edge** for the heading, the title and the hint.
+  4. **Pre-flight is a button beside Find**, "✈ Pre-flight check · run before exporting".
+  5. **The three "are views, under …" sentences become one footer line**: "On-screen views are in the left menu under
+     FYDP ▸ and Execution ▸." "Advisory only" moves onto the AI review heading.
+  6. **Companion tools leave the grid.** The linked tool (JPO Slide Printer) is a link in the footer; *Change the linked
+     tool…* moves to Setup, where the other settings are.
+  7. **Titles in sentence case, with no format in the name**: "Excel workbook", "Executive synopsis", "Chart of accounts".
+     The format is on the tag.
+  Measured on the prototype: 688px tall against 662 (two columns instead of three), 16 actions, nothing on screen that
+  is not an action but the one footer line. Find still filters as typed, and a section with nothing found is still
+  hidden. Harbor and Midnight both checked.
+- **What a build has to carry with it:** the calls stay the same and so do their counts; only `linkSet` moves (to
+  Setup), so `npm run leftmenu` is re-pointed in the same commit. The guide and messages name paths like "Reports &
+  exports › Briefing › 📽 PowerPoint deck"; each is reworded to the new title, and `npm run menus` holds them.
+  `ia-census` and `keyboard-reach` read the box's items. `npm run standards`: the tag is `--mut` on `--panel` (AA in
+  every theme); each item stays at least 24px tall. `npm run panels`, `dialogs` and `dropdowns` are rerun. No money
+  moves and no export changes.
+- **Open for Brad:** (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
+  (b) whether *Executive decision…* and *Two spend plans…* (on-screen views, tagged VIEW) belong here at all, or under
+  Execution ▸ with the other views, which would leave this box exports only.
+
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
