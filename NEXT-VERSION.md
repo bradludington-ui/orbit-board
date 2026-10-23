@@ -136,6 +136,60 @@ Current version: **v2.05**. Next: **v2.06**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
+#### 117. Add a requirement from another fiscal year, linked to the one it came from (Brad, 23 Oct 2026)
+- **Asked:** *"While they're in a new fiscal year or any fiscal year for that matter after they selected their pmo at the
+  top when they click add requirement I wanted to be able to select the fiscal year based off of that pmo and then they
+  see all the requirements from that year for them to have as an option to add into the current fiscal year that they're
+  trying to build."* On the identity question: *"We work in sustainment so a lot of activities are funded over and over
+  again every year. I would like to be able to link the requirements together for trend data but keep them as separate
+  actions."* Where: the PMO copy **and** the board. What the list shows: the office's requirements from that year that are
+  **not already in** the year being built.
+- **What is there today (read in v2.05, not changed):**
+  - Add Requirement (`addPanel`, `addReq()`) only takes a requirement typed from scratch: title, event, CCaR, value.
+  - Moving work between years goes the other way. Copy/Move to year (`xferYear`) and Roll forward (`rollApply`) push
+    from the year on screen into another one through `yearCopy()`, and a board requirement keeps its **same id** in
+    every year. So nothing records "this FY27 line is the FY26 line again" as two separate actions.
+  - A PMO copy carries every year of its appropriation (`buildSavedHtml` → `pubsFor(MS)` writes the whole store), so
+    the earlier years are already there to pick from. In a copy, a requirement added is a **proposal**
+    (`NEW-<office>-n`): it goes back whole in the submittal's `added` section (`pmoProposalOf`), is gated by
+    `pmoProposalGate`, and is accepted by `pmoAcceptProposal` with its provenance in `from`.
+- **Proposed fix:**
+  - **Add Requirement gets a second way in: "From another year".** It offers a fiscal-year picker (every year the board
+    holds except the one on screen) and lists that year's requirements for the **office chosen at the top**: the PMO
+    filter when it shows one office; otherwise, in a copy, the office the copy submits for (`myPmo()`); otherwise the
+    Add panel's own PMO box. Each row shows the title, CCaR, PID, event and that year's requirement value. Tick one or
+    several and choose **Add to FY27**.
+  - **"Not already here"** means the year on screen holds neither the same id (it was rolled forward or copied) nor a
+    requirement already linked to it. Those rows are greyed out as "already in FY27" and can't be ticked, so a second
+    run never adds a duplicate.
+  - **Each one is a new, separate requirement** with its own id: `NEW-n` on the board, `NEW-<office>-n` in a copy.
+    Each carries a **link** to the one it came from, `prior: {fy, id}`, stored on the requirement and saved with the
+    board. Starting values come from that year's record: title, event, CCaR, PID, record name, description, impact
+    statement, note, the office's value by service, decision band, classification (cost element, obligation category,
+    RCN/EEIC, SI, WBS, destination, prime/OGC, MIPR, BAE budget), the minimum increment, and award dates shifted by the
+    year difference. **Not carried:** the allocation and the funding split, because the new year's money is decided
+    fresh (in a copy the allocation is locked anyway), and Mission Critical, which is a decision for this year. Every
+    value can be edited after it is added. It lands at the bottom of the priority order and the office's ranking, the
+    way `addReq()` adds.
+  - **In a PMO copy it is a proposal**, like any requirement added there: it is held to the same mandatory fields, goes
+    back in the submittal's `added` section carrying its `prior` link, and when accepted on the board it keeps the
+    link. The review row names it as *"from FY26 R012"*.
+  - **The link is shown, not hidden:** the RECORD panel names it (*Continues FY26 R012 — Title*, with Go to that year),
+    and the Priority Drill and the five-year plan's By Requirement rows carry a *Continues* column so trend data can be
+    pulled across years. A trend report that follows the chain year by year is **not** in this item; it can be logged
+    as its own item once the link is in place.
+  - **Kept safe:** the import door checks `prior` (`fy` a year, `id` the requirement-id rule). Copy and Move to year carry
+    the link. Deleting the earlier requirement leaves the link pointing at nothing, and the panel says *"FY26 R012 —
+    no longer on the board"*. A locked cycle shows the link as it was locked.
+- **To prove it on go:**
+  - Both ways in (board and copy), with the list filtered by office and by "not already here", including a rolled-forward
+    id and an already-linked one.
+  - Every carried field equals the source year's, with award dates shifted, and the allocation and MC are not carried.
+  - The new requirement's own id never repeats (`newReqSeq`).
+  - A save → reopen, a copy → submit → accept round trip keeping `prior`, and a full import of a v2.05 file (no links)
+    unchanged.
+  - Mutations for each rule.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
