@@ -213,6 +213,30 @@ Current version: **v2.05**. Next: **v2.06**.
     off its value, and the line's year boxes are on that row. It is shown failing on v2.05 first.
   - `npm run panels` and `npm run standards` stay clean.
 
+#### 119. PPBE Budget Positions: the TOTAL rows have no Total (Brad, 23 Oct 2026)
+- **Seen (photo of the real board):** in 🏛 PPBE Budget Positions, the bottom line of both tables shows each year's total
+  but leaves the **Total** column empty:
+  - the service table's `<service> TOTAL` row (FY31 $0.15M, FY32 $0.15M, Total blank);
+  - the **ROLL-UP BY SERVICE** table's `ALL SERVICES` row (FY31 $3,292.05M, FY32 $3,466.25M, Total blank), while every
+    service row above it has its Total ($17.32M … $5,993.03M).
+  Brad: *"On the PPBE table I'm missing a total on the bottom line."*
+- **Why (read in v2.05):** both rows are written with a bare `<td></td>` in the Total column (the end of the service
+  table, and `ALL SERVICES` just below it in the panel's render). It is not a figure that failed to add up. The cell was
+  never filled.
+- **Proposed fix:**
+  - The `<service> TOTAL` row's Total is the sum of its year totals (`ppSvcFy(P, sv, y).t` across the years shown). With
+    the split on, the D · M line goes under it, as on the year cells.
+  - The `ALL SERVICES` row's Total is the sum of its year totals (`ppSumFy(P, y)`), the same column style as the service
+    rows (gold rule on the left).
+  - An em dash when there is nothing, as elsewhere in the box.
+  - Both totals are worked out from the same cells that are printed, so the bottom-right cell equals both the sum of
+    the row above it and the sum of the Total column above it.
+- **To prove it on go:** an audit-board check on a position with several services, years and lines (split on and off).
+  - The service TOTAL row's Total equals the sum of its year cells, and the sum of that table's line Totals.
+  - The ALL SERVICES Total equals the sum of its year cells, and the sum of the service rows' Totals.
+  - Each is read off the rendered box, to the cent of the $M shown.
+  - Shown failing on v2.05, with a mutation for each cell.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
