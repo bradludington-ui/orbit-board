@@ -237,6 +237,34 @@ Current version: **v2.05**. Next: **v2.06**.
   - Each is read off the rendered box, to the cent of the $M shown.
   - Shown failing on v2.05, with a mutation for each cell.
 
+#### 120. PPBE Budget Positions: figures entered in $K (Brad, 23 Oct 2026)
+- **Seen (photo of the real board, BES28):** USAF FY27 reads **$2.28M**; Brad: *"it's really 2.28B. It should read
+  something like 2,280.00M"*. ANG ($0.45M) and AFRC ($0.13M) read the same way. STOVL, USMC-C and USN read correctly
+  ($1,553.59M …).
+- **Why (tested on v2.05):** nothing is wrong with the arithmetic. The box reads a bare number as whole dollars:
+  `parseAmt` turns `2,280,000,000`, `2.28B`, `2,280M` and `$2,280,000,000.00` each into $2,280,000,000, and `15,828` into
+  $15,828. Brad, asked to check: *"I entered everything in $K."* The USAF, ANG and AFRC figures came from exhibits in
+  thousands and were typed as printed, so each is stored at 1/1,000 of its value. Every total, the roll-up and the
+  Spruills control read them that way.
+- **Proposed fix (not yet confirmed; Brad can instead choose a one-time ×1,000, or retyping, before go):**
+  - **Each service in the box gets "Entered in: $ / $K"**, kept on the position (per cycle key, per appropriation, per
+    service), defaulting to $ so nothing on any other board moves.
+  - **The model stays in whole dollars.** Under $K, a bare number typed in a year box is read as thousands and stored as
+    dollars (×1,000, through `D$`). A figure with its own unit (`15.8M`, `1.2B`) is read as written. The box shows that
+    service's figures in $K (stored ÷ 1,000) so they match the exhibit. Totals, the roll-up and Spruills read dollars as
+    now, so USAF FY27 prints **$2,280.00M**.
+  - **Turning $K on for a service that already holds figures** asks whether those figures were typed in $K. Yes
+    multiplies them ×1,000 (named, with the service's total before and after, journaled so it can be undone). No turns
+    the setting on for new entries only. Turning it off never changes a stored figure.
+  - The box's heading for that service says *"figures in $K"*, so nobody reads a $K box as dollars.
+- **To prove it on go:** an audit-board check on a position with a $K service and a $ service.
+  - A typed `15,828` under $K stores 15,828,000. A typed `15.8M` stores 15,800,000.
+  - The year box shows 15,828. Totals and the roll-up equal the dollars. Spruills' control matches.
+  - The conversion multiplies only the chosen service, and undo restores it.
+  - Save → reopen and a PMO copy keep the setting.
+  - A v2.05 position (no setting) reads exactly as before.
+  - Mutations for each rule.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
