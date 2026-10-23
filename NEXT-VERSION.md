@@ -66,7 +66,13 @@ Current version: **v2.04**. Next: **v2.05**.
   104. The Help guide and every message that names them are reworded. `money-coverage.mjs`, the money map and the
   trace matrix drop their deck and synopsis surfaces in the same commit, so none of them promises coverage of something
   that is gone. (b) is decided too: *Two Spend Plans…* stays in Spend Plan & Cash.
-- **Open for Brad:** (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
+- **Brad, 23 Oct 2026:** *"Leave the icons off. They're non value added."* That decides (a), read as applying to the
+  whole left menu: the emoji come off every item in the left menu's boxes and flyouts (Reports & exports, Imports &
+  exports, Data, Program offices ▸, Audit ▸, History & recovery ▸, Setup ▸, and the views under FYDP ▸ and Execution ▸).
+  Text that is a symbol rather than an icon stays, because it carries meaning: ✓ ticks, ▸ for a flyout, … for a
+  question asked first, and → and ⇄ inside a hint. The Help guide, messages and every `menu-paths` path are reworded
+  to match, so "Setup › Who and where › 🏷 Services…" becomes "Setup › Who and where › Services…". No questions are
+  left open; item 114 is ready to build on go.
 
 
 #### 63. Found while building v1.95, not built
