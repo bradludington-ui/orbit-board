@@ -4288,6 +4288,11 @@ v1.96 menu block's Reports & exports checks (sections, titles and tags, no icons
 audit-inject: two T4 pins and two K5 pins moved with the lines. Mutations: 15 new (`v205-114-*` 6, `v205-116-*` 9), 9 retargeted,
 26 retired (2,108 targets, each matching once); every new and retargeted one was run against its check and caught.
 
+**Proved with** every suite and browser check on the final tree (layout: only the carried D ×8; standards: nothing new), the
+defect register, money coverage, the money map, the trace matrix, the fuzz and the file verifier; the sweep was not run. The
+first whole run after the push found recon and ui still expecting v2.04's words -- **a change of wording is a change to every
+suite that quotes it: grep the suites for the old text before the run, not after.**
+
 **A test written as a JS string inside `ev(\`…\`)` is a template literal**: `\s` and `\p` there are `s` and `p` unless the
 backslash is doubled. The first cut of the item 116 test "failed" on text with every s removed.
 

@@ -242,6 +242,17 @@ as logged are below the as-built notes. Built on draft PR #22.
 - **Retired as obsolete, 26** (the deck and the synopsis), each with a comment where it stood. 2,108 targets, each matching once.
 - Item 115 is CSS, which jsdom does not lay out; its check is leftmenu G, proved on the board with the old rule.
 
+#### The checks v2.05 was proved with (23 Oct 2026)
+`npm run check`; every suite passes on the final tree -- boot-same, audit, audit-other, audit-board, audit-import, audit-recon (an
+8 GB heap, as in v2.04), legacy-fsrc, audit-hostile, audit-inject, audit-ui. The first whole run, after the build was pushed, found
+19 recon checks and 7 ui checks still expecting v2.04's words (the lock question, the `[PB27 LOCKED]` file names, menu paths with
+icons); their expectations follow the new words in `fda9661`, and both suites pass. Browser: chrome, csp, controls, inspector,
+toolbar, editors, colours, menus, panels, frames, hostile, keys, dropdowns, dialogs, leftmenu (G new) pass; standards: nothing new
+(0 findings); layout fails only the carried D ×8. defects, money coverage (24/24), the money map (301 cells: 108 proven, 192 n/a,
+1 open -- the AI review's, as before), the trace matrix, the round-trip fuzz (seed 956891293) and the file verifier's self-test
+hold. mcount: 2,108 targets, each matching once; every new and retargeted mutation was run against its suite and caught. The
+sweep was not run.
+
 #### 114, as logged. Reports & exports: the box cleaned up (Brad, 23 Oct 2026, from a photo of the real board: "Need to clean up this pop up. Has too much going on")
 - **What he sees (measured on v2.04, Harbor, 1500 wide; it matches the photo):** six bordered cards in a 3×2 grid, each
   sized to the tallest in its row, so Spend plan & cash and Companion tools are half empty. 19 lines of text on 16
