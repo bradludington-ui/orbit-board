@@ -58,9 +58,16 @@ Current version: **v2.04**. Next: **v2.05**.
   The hints stay in sentence case, and the section headings stay in capitals. The section *Briefing* becomes *Working
   Documents*. This replaces point 7's sentence case. A build rewords every guide and message path that names a title or
   "Briefing" (`npm run menus`), for example "Reports & exports › Working Documents › Excel Workbook".
-- **Open for Brad:** (c) take the three off the menu only, or remove their code too (above)? (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
-  (b) whether *Two spend plans…* (an on-screen view, tagged VIEW) belongs here, or under Execution ▸ with the other views,
-  which would leave this box exports only.
+- **Brad, 23 Oct 2026:** *"Remove their code and remove them entirely. Keep the two spend plans where it is."* So (c) is
+  decided: the PowerPoint deck (`exportPPT` and everything only it calls, `TPL_PARTS`, `tools/tpl-parts.sha256` and its
+  check in `check.mjs`), the Executive Synopsis (`execSynopsis`) and the Executive Decision box (`toggleEd`, `#edPanel` and
+  its code) are removed, with the checks and mutations that only they had. They are retired as obsolete, not declared
+  equivalent. A shared helper stays wherever anything else still calls it, and a call graph decides that, as in item
+  104. The Help guide and every message that names them are reworded. `money-coverage.mjs`, the money map and the
+  trace matrix drop their deck and synopsis surfaces in the same commit, so none of them promises coverage of something
+  that is gone. (b) is decided too: *Two Spend Plans…* stays in Spend Plan & Cash.
+- **Open for Brad:** (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
+
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
