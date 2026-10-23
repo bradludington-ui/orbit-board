@@ -175,18 +175,19 @@ console.log('\n' + FILE.split('/').pop());
 // ── B. EVERY v1.89 MENU ITEM IS STILL REACHABLE, BY THE SAME CALL ─────────────────────────────────────
 {
   // The calls the Active year, Budget year, FYDP, Tools and Export menus made in v1.89, as they read -- less toggleRp and
-  // exportReprog, removed with the ATR/BTR tracker in v2.02 (Brad, 21 Oct 2026).
+  // exportReprog, removed with the ATR/BTR tracker in v2.02 (Brad, 21 Oct 2026), and toggleEd, exportPPT and execSynopsis, removed
+  // with Executive Decision, the PowerPoint deck and the Executive Synopsis in v2.05 (item 114; Brad, 23 Oct 2026).
   const OLD = {
     'Active year': ['toggleEx', "getElementById('srcFile').click()", 'toggleQpe', 'toggleDiv'],
     'Budget year': ['toggleFc', 'toggleCr', 'toggleAdd', 'toggleBm', 'convertAllToSplit', 'togglePlans', "setScen('disc')",
-                    "setScen('')", 'toggleCycChg', 'toggleBl', 'togglePos', 'toggleEd', 'toggleBands', 'togglePreviewOrder', 'resetOrder'],
+                    "setScen('')", 'toggleCycChg', 'toggleBl', 'togglePos', 'toggleBands', 'togglePreviewOrder', 'resetOrder'],
     'FYDP': ['toggleSp', 'toggleFydp', 'toggleCycCmp', 'toggleP2', 'toggleAce', "getElementById('aceFile').click()"],
     'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleCoa', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleExw', 'toggleMat',
               'toggleFlow', 'themeSetIdx(0)', 'themeSetIdx(1)', 'themeSetIdx(2)', 'themeSetIdx(3)', 'themeSetIdx(4)',
               "getElementById('budFile').click()", 'toggleBudReg', "getElementById('ccarFile').click()"],
     // v2.04 (item 112): the five-year workbook is reached through its plan picker (fydpPickExport), which exports it
-    'Export': ['togglePf', 'exportExcel', 'exportAceTieout', 'fydpPickExport', 'exportCycCompare', 'exportCoa', 'exportPPT', 'exportCSV',
-               'execSynopsis', 'exportSrc', 'crExport', 'toggleIds', 'linkOpen', 'linkSet'],
+    'Export': ['togglePf', 'exportExcel', 'exportAceTieout', 'fydpPickExport', 'exportCycCompare', 'exportCoa', 'exportCSV',
+               'exportSrc', 'crExport', 'toggleIds', 'linkOpen', 'linkSet'],
   };
   const { p, ctx } = await open(1440, 1000);
   const calls = await p.evaluate(() => {

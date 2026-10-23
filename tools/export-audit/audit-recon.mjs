@@ -590,96 +590,7 @@ const rowCloses = (name, wb) => {
   }
 }
 
-// ══ 9. THE DECK ════════════════════════════════════════════════════════════════════════════════
-// The deck is what actually gets briefed. It rounds to $0.1M, so it is checked at that precision --
-// but a rounded figure still has to be the SAME figure, and its three tables have to agree with
-// each other as well as with the workbook. A deck that disagrees with the workbook it was exported
-// beside is the single most expensive way for this to go wrong.
-{
-  const name = '9 the deck';
-  try {
-  const deck = (() => {
-    ev(`globalThis.__t=[]; globalThis.__ti=[];
-      if(!globalThis.__oT) globalThis.__oT=_pTbl; if(!globalThis.__oI) globalThis.__oI=_pTitle;
-      _pTbl=function(){ var a=arguments; globalThis.__t.push(a[a.length-1]); return ''; };
-      _pTitle=function(t){ globalThis.__ti.push(t); return globalThis.__oI.apply(null,arguments); };
-      if(!globalThis.__oB) globalThis.__oB=buildPptx; buildPptx=function(){ return new Uint8Array(0); };
-      exportPPT(); _pTbl=globalThis.__oT; _pTitle=globalThis.__oI; buildPptx=globalThis.__oB; 'ok'`);
-    return { tables: JSON.parse(ev('JSON.stringify(globalThis.__t)')),
-             titles: JSON.parse(ev('JSON.stringify(globalThis.__ti)')) };
-  })();
-  const cel = c => (c == null) ? '' : (typeof c === 'object' ? String(c.t ?? c.v ?? '') : String(c));
-  // "$34.3M" -> 34300000.  The deck is the only artefact that prints millions, so the parse lives
-  // here rather than in the shared helper.
-  const dollars = v => { const m = /\$?\s*(-?[\d,.]+)\s*M/i.exec(String(v));
-    return m ? parseFloat(m[1].replace(/,/g, '')) * 1e6 : null; };
-  const findRow = (tbl, re) => (tbl || []).find(r => re.test((r || []).map(cel).join(' | ')));
-  // EACH TABLE BY WHAT IT IS, NOT WHERE IT FALLS: v1.86 put the spend plan by month in as slide 3,
-  // and every table after it moved up one. A table is named by a header only it carries, or a row.
-  const hdrOf = t => ((t || [])[0] || []).map(cel).map(x => x.trim().toLowerCase());
-  const tblBy = pred => { const i = deck.tables.findIndex(t => { try { return pred(t); } catch { return false; } }); return i < 0 ? null : i; };
-  const TB = {
-    title:  tblBy(t => !!findRow(t, /Mission Critical total/)),
-    stream: tblBy(t => hdrOf(t).includes('disc funded')),
-    pmo:    tblBy(t => hdrOf(t).includes('★ mc req')),
-    mc:     tblBy(t => !!findRow(t, /TOTAL ★ MISSION CRITICAL/)),
-    ufr:    tblBy(t => !!findRow(t, /TOTAL UNFUNDED/)) };
-  const cellIn = (tbl, rowRe, head) => {
-    const t = tbl == null ? null : deck.tables[tbl]; if (!t) return null;
-    const hdr = (t[0] || []).map(cel).map(x => x.trim());
-    const c = hdr.findIndex(x => x.toLowerCase() === head.toLowerCase());
-    const row = findRow(t, rowRe);
-    return (c < 0 || !row) ? null : dollars(cel(row[c]));
-  };
-  const R = Object.values(F.rows);
-  const board = { ask: T(R.map(r => T(r.ask))), disc: T(R.map(r => T(r.d))),
-    mand: T(R.map(r => T(r.m))), unf: T(R.map(r => T(r.unf))),
-    // READING #1 board-wide: ask less DISCRETIONARY alone. The same per-row figure the MC shortage
-    // is built from, summed over EVERY requirement rather than the starred ones.
-    discUnf: T(R.map(r => T(r.discUnf))),
-    mcValue: T(R.filter(r => r.mc).map(r => T(r.ask))),
-    mcShort: T(R.filter(r => r.mc).map(r => T(r.discUnf))) };
-  const near = (got, want, what, where) => chk(name, where, what,
-    (got !== null && Math.abs(got - want) <= 50000) ? 'agrees'
-      : `${got === null ? 'not found' : '$' + (got / 1e6).toFixed(1) + 'M'} vs $${(want / 1e6).toFixed(1)}M`,
-    'agrees');
-  chk(name, 'shape', 'the deck has its five slides', deck.titles.length >= 5 ? 'yes' : deck.titles.length, 'yes');
-  chk(name, 'shape', 'each table is found, and each is a different one',
-    JSON.stringify(Object.keys(TB).map(k => TB[k] == null ? k + ' missing' : new Set(Object.values(TB)).size === 5 ? 'ok' : k + ' shared')),
-    JSON.stringify(Object.keys(TB).map(() => 'ok')));
-  near(cellIn(TB.stream, /^TOTAL/, 'FY27 Ask'), board.ask, 'the stream table’s ask agrees with the board', 'Funding by Stream');
-  near(cellIn(TB.stream, /^TOTAL/, 'Disc Funded'), board.disc, 'its discretionary agrees', 'Funding by Stream');
-  near(cellIn(TB.stream, /^TOTAL/, 'Mand Drawn'), board.mand, 'its mandatory agrees', 'Funding by Stream');
-  near(cellIn(TB.stream, /^TOTAL/, 'TOTAL Unf'), board.unf, 'its TOTAL unfunded agrees', 'Funding by Stream');
-  near(cellIn(TB.stream, /^TOTAL/, 'Unf vs DISC'), board.discUnf,
-    'its unfunded-vs-discretionary agrees', 'Funding by Stream');
-  near(cellIn(TB.pmo, /^TOTAL/, 'FY27 Ask'), board.ask, 'the PMO table’s ask agrees', 'Funding by PMO');
-  near(cellIn(TB.pmo, /^TOTAL/, 'Discretionary'), board.disc, 'its discretionary agrees', 'Funding by PMO');
-  near(cellIn(TB.pmo, /^TOTAL/, 'Mandatory'), board.mand, 'its mandatory agrees', 'Funding by PMO');
-  near(cellIn(TB.pmo, /^TOTAL/, 'Unfunded'), board.unf, 'its unfunded agrees', 'Funding by PMO');
-  near(cellIn(TB.pmo, /^TOTAL/, '★ MC req'), board.mcValue, 'its MC memo agrees', 'Funding by PMO');
-  near(cellIn(TB.pmo, /^TOTAL/, '★ MC short'), board.mcShort, 'its MC shortfall agrees', 'Funding by PMO');
-  near(cellIn(TB.mc, /TOTAL ★ MISSION CRITICAL/, 'Requirement (must-pay)'), board.mcValue,
-    'the MC slide agrees with the PMO slide', 'Mission Critical');
-  near(cellIn(TB.mc, /TOTAL ★ MISSION CRITICAL/, 'Short vs Disc'), board.mcShort,
-    'and so does its shortfall', 'Mission Critical');
-  {
-    const row = TB.ufr == null ? null : findRow(deck.tables[TB.ufr], /TOTAL UNFUNDED/);
-    const v = row ? dollars((row || []).map(cel).filter(x => /\$/.test(x)).pop()) : null;
-    near(v, board.unf, 'the UFR slide agrees with the stream table', 'Unfunded');
-  }
-  {
-    const row = TB.title == null ? null : findRow(deck.tables[TB.title], /Mission Critical total/);
-    const v = row ? dollars((row || []).map(cel).filter(x => /\$/.test(x)).pop()) : null;
-    near(v, board.mcValue, 'and the title slide agrees with both', 'title slide');
-  }
-  } catch (e) {
-    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
-    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
-    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-}
+// ══ 9. (v2.05, item 114: the deck's block went with the PowerPoint deck.) ═════════════════════════════════════
 
 // ══ 10. THE SAME IDENTITIES ON BOARD SHAPES THAT BREAK DIFFERENT THINGS ════════════════════════
 // One fixture proves one arrangement. These are deliberately awkward in different ways: a service
@@ -1965,7 +1876,7 @@ await (async () => {
 
 // ══ W6.2 THE PRIORITY DRILL, THE DECK AND THE EXECUTIVE SYNOPSIS — every requirement and service ═════════
 await (async () => {
-  const name = 'W6 — the priority drill, the deck and the synopsis: every requirement, service and lane';
+  const name = 'W6 — the priority drill: every requirement, service and lane';
   const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
   const __bm = bootMark();
   try {
@@ -2014,73 +1925,7 @@ await (async () => {
       chk(name, 'drill Summary · funded by PMO and band', g + ': unbanded', cell(sm, hp, row, 'unbanded'), w6S(mem.filter(id => R[id].band === null).map(id => R[id].fT)));
       chk(name, 'drill Summary · funded by PMO and band', g + ': TOTAL', cell(sm, hp, row, 'TOTAL'), w6S(mem.map(id => R[id].fT))); });
   }
-  // ---- the deck: the stream table service by service, both lanes and both pots; the PMO and unfunded slides line by line
-  {
-    X.ev(`globalThis.__w6t=[]; if(!globalThis.__w6oT) globalThis.__w6oT=_pTbl; if(!globalThis.__w6oB) globalThis.__w6oB=buildPptx;
-      _pTbl=function(){ var a=arguments; globalThis.__w6t.push(a[a.length-1]); return ''; }; buildPptx=function(){ return new Uint8Array(0); };
-      try{ exportPPT(); } finally { _pTbl=globalThis.__w6oT; buildPptx=globalThis.__w6oB; } 'ok'`);
-    const tables = JSON.parse(X.ev('JSON.stringify(globalThis.__w6t)'));
-    const ct = c => String((c && typeof c === 'object') ? (c.t ?? c.v ?? '') : (c ?? '')).trim();
-    const fSM = v => X.ev(`fSM(${v})`), show = v => v > 0.5 ? fSM(v) : '—';
-    const tbl = pred => tables.find(t => { try { return pred((t || []).map(r => (r || []).map(ct))); } catch { return false; } }) || [];
-    const at = (t, k) => ((t[0] || []).map(ct)).indexOf(k);
-    const st = tbl(t => t[0][0] === 'Service' && t[0].includes('Disc Funded'));
-    const sk = { [FY + ' Ask']: svcSum(() => true, 'ask'), 'Disc BA': G.discBA, 'Disc Funded': svcSum(() => true, 'd'), 'Mand BA': G.mandBA,
-      'Mand Drawn': svcSum(() => true, 'm'), 'Unf vs DISC': svcSum(() => true, 'du'), 'TOTAL Unf': svcSum(() => true, 'unf') };
-    SV.forEach((sv, i) => { const row = st.find(r => ct(r[0]) === sv) || [];
-      Object.keys(sk).forEach(k => chk(name, 'deck · Funding by Stream · ' + sv, k, ct(row[at(st, k)]), fSM(sk[k][i]))); });
-    const pt = tbl(t => t[0][0] === 'PMO' && t[0].includes('★ MC req'));
-    grps.forEach(g => { const row = pt.find(r => ct(r[0]) === g) || [], mem = ids.filter(id => R[id].grp === g);
-      [[FY + ' Ask', w6S(mem.map(id => R[id].askT)), fSM], ['Discretionary', w6S(mem.map(id => R[id].dT)), fSM], ['Mandatory', w6S(mem.map(id => R[id].mT)), fSM],
-       ['Unfunded', w6S(mem.map(id => R[id].unfT)), show], ['★ MC req', w6S(mem.filter(id => R[id].mc).map(id => R[id].askT)), show],
-       ['★ MC short', w6S(mem.filter(id => R[id].mc).map(id => R[id].duT)), show]]
-        .forEach(([k, want, f]) => chk(name, 'deck · Funding by PMO · ' + g, k, ct(row[at(pt, k)]), f(want))); });
-    const ut = tbl(t => t.some(r => /^TOTAL UNFUNDED/.test(r[2] || '')));
-    const listed = ut.filter(r => ids.some(id => R[id].ev === ct(r[2])));
-    chk(name, 'deck · Unfunded', 'lists every requirement still short, and only those', listed.map(r => ids.find(id => R[id].ev === ct(r[2]))).sort().join(','),
-      ids.filter(id => R[id].unfT > 0.005).sort().join(','));
-    listed.forEach(r => { const id = ids.find(x => R[x].ev === ct(r[2]));
-      chk(name, 'deck · Unfunded · ' + id, FY + ' Ask', ct(r[at(ut, FY + ' Ask')]), fSM(R[id].askT));
-      chk(name, 'deck · Unfunded · ' + id, 'Unfunded', ct(r[at(ut, 'Unfunded')]), fSM(R[id].unfT)); });
-  }
-  // ---- the Executive Funding Synopsis, read off the CSV it writes
-  {
-    X.ev(`globalThis.__w6csv=''; var oB=Blob; Blob=function(p){ globalThis.__w6csv=String((p&&p[0])||''); return new oB(p); };
-      try{ execSynopsis(); } finally { Blob=oB; } 'ok'`);
-    const csv = X.ev('globalThis.__w6csv').replace(/^﻿/, '').split('\r\n').map(line => { const out = []; let cur = '', q = false;
-      for (let k = 0; k < line.length; k++) { const c = line[k];
-        if (q) { if (c === '"') { if (line[k + 1] === '"') { cur += '"'; k++; } else q = false; } else cur += c; }
-        else if (c === '"') q = true; else if (c === ',') { out.push(cur); cur = ''; } else cur += c; }
-      out.push(cur); return out; });
-    const nums = r => (r || []).map(x => String(x).trim() === '' ? null : Number(x));
-    const after = re => csv.findIndex(r => re.test(String(r[0] || '')));
-    const dN = ids.filter(id => R[id].dT > 0.005), fN = ids.filter(id => R[id].fT > 0.005), uN = ids.filter(id => R[id].unfT > 0.005);
-    const d = svcSum(() => true, 'd'), m = svcSum(() => true, 'm'), f = svcSum(() => true, 'f');
-    const line = (lab) => csv.find(r => String(r[0] || '').trim() === lab || String(r[1] || '').trim() === lab) || [];
-    chk(name, 'synopsis', 'budget authority: discretionary, mandatory, whole', [line('Discretionary Budget Authority')[2], line('Mandatory Budget Authority')[2], line('Whole Budget')[2]].map(Number).join('|'),
-      [w6S(G.discBA), w6S(G.mandBA), w6S(G.discBA) + w6S(G.mandBA)].join('|'));
-    const s1 = after(/^1 — FUNDED WITH DISCRETIONARY /);
-    chk(name, 'synopsis · discretionary', 'requirements touched, the total, and each service', JSON.stringify(nums(csv[s1 + 2]).slice(1)), JSON.stringify([dN.length, w6S(d), ...d]));
-    chk(name, 'synopsis · discretionary', 'remaining across the lanes', Number(line('Discretionary remaining across lanes')[2]), w6S(G.discBA.map((b, i) => Math.max(0, b - d[i]))));
-    const s2 = after(/^2 — FUNDED WITH DISCRETIONARY \+ MANDATORY/);
-    chk(name, 'synopsis · both lanes', 'requirements funded, the total, and each service', JSON.stringify(nums(csv[s2 + 2]).slice(1)), JSON.stringify([fN.length, w6S(f), ...f]));
-    chk(name, 'synopsis · mandatory', 'drawn from mandatory, the total and each service', JSON.stringify(nums(csv[s2 + 3]).slice(2)), JSON.stringify([w6S(m), ...m]));
-    chk(name, 'synopsis · mandatory', 'remaining across the lanes', Number(line('Mandatory remaining across lanes')[2]), w6S(G.mandBA.map((b, i) => Math.max(0, b - m[i]))));
-    const mc = ids.filter(id => R[id].mc), mcAsk = svcSum(id => R[id].mc, 'ask'), mcDu = svcSum(id => R[id].mc, 'du');
-    const mr = csv.find(r => String(r[1] || '').trim() === '★ MC requirements') || [];
-    chk(name, 'synopsis · mission critical', 'count, value and each service', JSON.stringify([Number(mr[2]), ...nums(mr).slice(5)]), JSON.stringify([mc.length, w6S(mcAsk), ...mcAsk]));
-    const sr = csv.find(r => /short of the discretionary lane/.test(String(r[1] || ''))) || [];
-    chk(name, 'synopsis · mission critical', 'short of discretionary, the total and each service', JSON.stringify(nums(sr).slice(5)), JSON.stringify([w6S(mcDu), ...mcDu]));
-    chk(name, 'synopsis · mission critical', 'PROGRAM FLOOR', Number((csv.find(r => /PROGRAM FLOOR/.test(String(r[1] || ''))) || [])[3]), w6S(G.discBA) + w6S(mcDu));
-    const hi = csv.findIndex(r => String(r[1] || '') === 'Rank' && String(r[3] || '') === 'Requirement');
-    const items = csv.slice(hi + 1).filter(r => /^\d+$/.test(String(r[1] || '').trim()));
-    chk(name, 'synopsis · mission critical', 'a line for every starred requirement still short', items.map(r => ids.find(id => R[id].rank === +r[1])).sort().join(','),
-      mc.filter(id => R[id].duT > 0.005).sort().join(','));
-    items.forEach(r => { const id = ids.find(x => R[x].rank === +r[1]);
-      chk(name, 'synopsis · mission critical · ' + id, 'PMO, value, short and each service', JSON.stringify([r[2], ...nums(r).slice(4)]), JSON.stringify([R[id].grp, R[id].askT, R[id].duT, ...R[id].du])); });
-    const ur = csv.find(r => String(r[1] || '').trim() === 'Requirements with unfunded portions') || [];
-    chk(name, 'synopsis · unfunded', 'count and total, floored per service', Number(ur[2]) + '|' + Number(ur[5]), uN.length + '|' + w6S(ids.map(id => R[id].unfT)));
-  }
+  // (v2.05, item 114: the deck's tables and the Executive Funding Synopsis were checked here, and went with them.)
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -2521,7 +2366,7 @@ await (async () => {
   const same = ['A|USAF|disc', 'A|USAF|mand'].map(k => got.filter(l => l.id + '|' + l.key === k).map(l => JSON.stringify(l.row.filter((c, j) => ![1, 8, 9].includes(j)))));
   chk(name, 'layout', 'an increment’s lines differ only in Month, Date and Amount', same.map(s => s.length + ':' + new Set(s).size).join(' '), '2:1 2:1');
   // AGREEMENT with the board's own placement, service by service and lane by lane: the forecast's months (an
-  // undated line is its UNSCHEDULED), the deck's spend plan by pot, and the CR half-month windows
+  // undated line is its UNSCHEDULED) and the CR half-month windows
   SVx.forEach((sv, i) => {
     const F = JSON.parse(X.ev(`JSON.stringify(forecast(null, {svc:${i}}).bySvc[${i}])`));
     const mine = l => l.key.startsWith(sv + '|');
@@ -2535,53 +2380,14 @@ await (async () => {
       chk(name, 'CR windows · ' + sv + ' · ' + id, 'each half-month window is the lines dated in it', JSON.stringify(w), JSON.stringify(((C.find(c => c[0] === id) || [])[1]) || Array(12).fill(0)));
     });
   });
-  const SP = JSON.parse(X.ev('JSON.stringify(spendPlanByMonth())'));
-  ['disc', 'mand'].forEach(ln => {
-    const mine = l => l.key.endsWith('|' + ln);
-    chk(name, 'spend plan by pot · ' + ln, 'each month, and what is undated, is the lane’s lines',
-      JSON.stringify(M.map(k => w7S(got.filter(l => mine(l) && l.dt !== AUG31 && l.dt.slice(0, 7) === k).map(l => l.amt))).concat([w7S(got.filter(l => mine(l) && l.dt === AUG31).map(l => l.amt))])),
-      JSON.stringify((ln === 'disc' ? SP.d : SP.m).concat([ln === 'disc' ? SP.ud : SP.um])));
-  });
+  // (v2.05, item 114: the deck's spend plan by pot was held to the lines here, and went with the deck.)
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
   bootRelease(__bm); await settleBoards();
 })();
 
-// ══ W7.4 F3 — THE EXECUTIVE SYNOPSIS is titled and named for the year on screen, and carries that year's money ═══════
-await (async () => {
-  const name = 'W7 — F3: the Executive Synopsis is titled and named for the year on screen';
-  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
-  const __bm = bootMark();
-  try {
-  // Everything is funded (the pots are wide), so each year's funded money is its asks: FY27 [350, 120], FY28 [570, 190]
-  const SVx = ['USAF', 'ANG'];
-  const X = boot();
-  seed(X.ev, { services: SVx, items: [it('A', 'PSM', [300, 100]), it('B', 'ATL', [50, 20])], disc: [5000, 5000], mand: [0, 0], order: ['A', 'B'] });
-  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S;
-    var y=JSON.parse(JSON.stringify(S)); y.asks=Object.assign({}, y.asks||{}, {A:[500,150], B:[70,40]}); MS.years[MS.cur+1]=y; save(); 'ok'`);
-  const synopsis = () => JSON.parse(X.ev(`(function(){ var csv='', dl=''; var oB=Blob, oc=HTMLAnchorElement.prototype.click;
-    Blob=function(p){ csv=String((p&&p[0])||''); return new oB(p); }; HTMLAnchorElement.prototype.click=function(){ dl=this.download||''; };
-    try{ execSynopsis(); } finally { Blob=oB; HTMLAnchorElement.prototype.click=oc; }
-    return JSON.stringify({csv:csv, dl:dl, fy:FYL()}); })()`));
-  const read = s => { const rows = s.csv.replace(/^﻿/, '').split('\r\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '')));
-    const at = rows.findIndex(r => /^2 — FUNDED WITH DISCRETIONARY \+ MANDATORY/.test(r[0] || ''));
-    return { head: rows[0][0], funded: (rows[at + 2] || []).slice(1).map(Number) }; };
-  const s27 = synopsis();
-  X.ev(`switchYear(MS.cur+1); 'ok'`);
-  const s28 = synopsis();
-  chk(name, 'fixture', 'the year on screen moved to FY28', s27.fy + ' ' + s28.fy, 'FY27 FY28');
-  [[s27, 'FY27', [2, 470, 350, 120]], [s28, 'FY28', [2, 760, 570, 190]]].forEach(([s, fy, money]) => {
-    const r = read(s);
-    chk(name, fy, 'its first line names the year on screen', r.head, fy + ' EXECUTIVE FUNDING SYNOPSIS');
-    chk(name, fy, 'and so does its file name', s.dl.startsWith(fy + ' Exec Funding Synopsis '), true);
-    chk(name, fy, 'control: the money is that year’s -- requirements funded, the total and each service', JSON.stringify(r.funded), JSON.stringify(money));
-  });
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm); await settleBoards();
-})();
+// ══ W7.4 F3 (v2.05, item 114: the Executive Synopsis's title and file name were held here, and went with it.) ═══════
 
 // ══ v2.02 (E7, ledger U9 and U43) — A TIE BETWEEN CLIN OFFICES GOES TO THE EARLIER CLIN; AN OFFICE ONLY A CLIN NAMES IS A ROW ══
 // PRIME-3 (homed to MxS) draws USAF $D discretionary over CLINs 0010 (MxS) asking 1, 0002 (AV) asking 2 and a third asking 3.
@@ -6592,7 +6398,7 @@ await (async () => {
     const NAME = 'ORBIT Funds Flow - FY27 all appropriations PLANNED board allocation O M';
     const SCOPE = 'Scope: FY27 · all appropriations · PLANNED (board allocation, O&M)';
     const CALC = [[500000000, 0, 500000000, 0, 0, 500000000], [2027], '{}', '[2027]'];
-    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]];
+    const BOOK = ['ok', NAME + ' [O&M PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]];
     const PANEL = ['500.00', '', ''];
     // ---- CONTROL: PB27 viewed, nothing typed
     ev(`cycView(${J(key)}); 'ok'`);
@@ -6968,7 +6774,7 @@ await (async () => {
     const ALL4 = ['om', 'ff', 'sp', 'opn'];
     const CALC = [[500000000, 0, 500000000, 0, 500000000, 0, 500000000], [2027], ALL4, PS0, RU0, DEPOT[2]];
     const PANEL = ['500.00', 'LM', DEPOT[2], 'flowSetPseudo("on",true)', true];
-    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []];
+    const BOOK = ['ok', NAME + ' [O&M PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []];
     // ---- CONTROL: PB27 viewed, nothing changed
     ev(`cycView(${J(key)}); 'ok'`);
     w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count FY27’s $500,000,000 under Program Operations & Support, every setting as the working plan holds it',
@@ -7087,13 +6893,13 @@ await (async () => {
     // ---- CONTROL: PB27 viewed, nothing changed
     ev(`cycView(${J(key)}); 'ok'`);
     w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count the same $43,000,000, the unfunded row as Lockheed Martin',
-      J([ev('CYCVIEW'), calc(), radio(), await book()]), J(['PB|2027', CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
+      J([ev('CYCVIEW'), calc(), radio(), await book()]), J(['PB|2027', CALC, LM, BOOK(NAME + ' [O&M PB27 LOCKED].xlsx')]));
     // ---- PB27 viewed: "Hold outside the flow" chosen -- refused; the status line is read at once
     const fired = choose('aside'), s = said();
     w5Chk(name, 'PB27 viewed · “Hold outside the flow” chosen for the Unfunded Priority List', 'refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count $43,000,000 with the unfunded row as Lockheed Martin',
       J([fired, s, calc(), radio(), await book()]),
       J(['fired', '🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.',
-        CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
+        CALC, LM, BOOK(NAME + ' [O&M PB27 LOCKED].xlsx')]));
     // ---- CONTROL: the view left -- the working plan holds the setting as it was, and nothing durable moved
     ev(`cycLeave(); 'ok'`);
     w5Chk(name, 'refused · the view left', 'CONTROL — the working plan counts the same $43,000,000; the cycle store and browser storage are byte for byte as they were',
@@ -7805,7 +7611,7 @@ await (async () => {
     // always did, POM27 keeps [K1], and a new board takes the saved file. An entry that is not one ("K9") is said as the door says it.
     // CONTROL: an ordinary [K1, K2] is asked what it always was.
     {
-      const Q = 'Lock the FYDP window as POM27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
+      const Q = 'Lock O&M’s FYDP window as POM27?\n\nThis locks O&M alone; each appropriation is locked on its own board.\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
         + 'budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.';
       const QEND = '\n\nThe working board is not changed.';
       const KEEPS = what => '\n\nThe RCN / EEIC list it keeps ' + what + '. A locked cycle’s list stays as it was locked, so ⬅ Import one '
@@ -7897,9 +7703,9 @@ await (async () => {
     {
       const UNLOCK = 'Unlock PB27?\n\nA locked cycle is meant to be a fixed point in time. Unlocking lets it be overwritten or deleted. The unlock is '
         + 'stamped with your name.';
-      const QPB = 'Lock the FYDP window as PB27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
+      const QPB = 'Lock O&M’s FYDP window as PB27?\n\nThis locks O&M alone; each appropriation is locked on its own board.\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
         + 'budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.'
-        + '\n\nThis replaces the existing PB27 cycle.\n\nThe working board is not changed.';
+        + '\n\nThis replaces the existing O&M PB27 cycle.\n\nThe working board is not changed.';
       const told = '“cycle.html” was not imported: ' + AT_PB + TWICE + '.\n\n' + RULE + ' ' + NOW + ' ' + CYCLE + ' ' + FULL + ' Nothing on this board was changed.';
       // every question `code` asks, kept and answered yes, and what `out` reads after
       const asked = (ev, code, out) => JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; };
@@ -8002,12 +7808,12 @@ await (async () => {
       const X = boot();
       w5Chk(name, 'the help · ⬅ Import one appropriation', 'it says a file carrying a locked cycle whose list breaks the rule is refused, whichever board saved it, and what takes it',
         X.ev(`(function(){ var s=helpSections().filter(function(x){ return x.id==='t-one'; })[0]; if(!s) return 'no section';
-          var p=[].slice.call(s.el.querySelectorAll('p')).filter(function(p){ return /⬅ Import one appropriation…/.test(p.textContent); })[0]; return p? p.textContent : 'no paragraph'; })()`),
-        'Imports & exports › ⬅ Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
+          var p=[].slice.call(s.el.querySelectorAll('p')).filter(function(p){ return /Import one appropriation…/.test(p.textContent); })[0]; return p? p.textContent : 'no paragraph'; })()`),
+        'Imports & exports › Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
           + 'takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked '
           + 'cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a '
           + 'key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved '
-          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and Imports & exports › ⬅ Import a full '
+          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and Imports & exports › Import a full '
           + 'board (new version)… takes it whole.');
     }
     // the door on the rest of the rule
@@ -8563,17 +8369,9 @@ await (async () => {
       J([A11i.made, A11i.zips, A11i.msg.split('. No file was made')[0], A11i.same, A11i.fills, A11i.err]),
       J([false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “#1B#2A#4A”', true, null, '']));
 
-    // ---- B. THE DECK ----
-    const deck = () => JSON.parse(X.ev(`(function(){ var r=__u37('exportPPT()'), q=r.cap? __u37parts(r.cap) : null;
-      return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg, stat:r.stat, same:r.same, err:r.err, title:(S.titles||{}).R1,
-        bad:q? q.bad : null, s5:q? q.P['ppt/slides/slide5.xml'] : ''}); })()`));
-    const t1 = typed(X, 'R1', 'Plan' + VT + 'event'), B1 = deck();
-    w5Chk(name, 'B1 · the deck, a Mission Critical Plan Event holding U+000B', 'typed through the pen as is; no deck (nothing built, no Blob, no download); slide 5, its title and the text named; nothing changed, the Plan Event as typed',
-      J([t1, B1.zips, B1.blobs, B1.dl, B1.msg, B1.stat, B1.same, B1.title, B1.err]),
-      J(['Plan' + VT + 'event', 0, 0, 0,
-        'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+000B]event”. No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.',
-        '⚠ PowerPoint deck not exported — slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+000B]event”. No file was made; the text on the board is unchanged.',
-        true, 'Plan' + VT + 'event', '']));
+    // ---- B. (v2.05, item 114: the deck's refusal was held here, and went with the deck.) The Plan Event, typed through the pen as is ----
+    const t1 = typed(X, 'R1', 'Plan' + VT + 'event');
+    w5Chk(name, 'B · a Mission Critical Plan Event holding U+000B', 'typed through the pen as is', J(t1), J('Plan' + VT + 'event'));
 
     // ---- C. WHERE A PERSON MEETS IT ----
     X.ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:${J('bad' + SOH + 'char')}, svc:['USAF','ANG','AFRC']}]; S.rcnAsg={R1:'K1'}; save(); 'ok'`);
@@ -8623,18 +8421,7 @@ await (async () => {
       J([C6a.ret, C6a.zips, /Not made yet\..*give the reason for this export/.test(b6a), C6b.ret, C6b.zips, C6b.blobs, C6b.dl, C6b.msg, /Not made yet|give the reason/.test(b6b), C6b.same, C6b.err, XI.ev('JSON.stringify(MS.ids)')]),
       J([false, 0, true, false, 0, 0, 0, 'Excel workbook not exported: sheet “Missing data and anomalies”, cell C24 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', false, true, '', J({ org: 21 })]));
 
-    // ---- B2. CONTROL: the deck carries escape-like text as typed ----
-    typed(X, 'R1', '_x0041_ deck');
-    const B2 = deck();
-    w5Chk(name, 'B2 · CONTROL the deck, a Plan Event _x0041_ deck', 'made (one zip, one Blob, one download), nothing said, every part parses, slide 5 carries it as typed',
-      J([B2.zips, B2.blobs, B2.dl, B2.msg, B2.bad, B2.s5.indexOf('<a:t>_x0041_ deck</a:t>') >= 0]), J([1, 1, 1, '', [], true]));
-
-    // B3 (review): the deck quotes the text, not its markup (R&D, never R&amp;D)
-    typed(X, 'R1', 'R&D' + VT + 'event');
-    const B3 = deck();
-    w5Chk(name, 'B3 · the deck, a Plan Event R&D<U+000B>event', 'no deck; the text quoted as typed, not as the slide\'s markup',
-      J([B3.zips, B3.blobs, B3.msg.split('. No file was made')[0]]),
-      J([0, 0, 'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “R&D[U+000B]event”']));
+    // (v2.05, item 114: B2 and B3, the deck's control and its quoting, went with the deck.)
     // C8 (review): an RCN / EEIC title holding U+0001 with the Plan Event ordinary -- exportExcel writes that title only in
     // styled cells of RCN-EEIC by Month; the base wrote it at A5 (read off its own file)
     typed(X, 'R1', 'Plan event');
@@ -8647,7 +8434,7 @@ await (async () => {
     // A refusal stood on the status line after the next workbook was made, still saying no file was made: the Excel export
     // says nothing of its own. Refused, the title retyped through the board's own field, exported again:
     // the workbook is made and the refusal is gone. The chart image's refusal goes when a workbook is made; a line said after
-    // a refusal stays; the deck says its own word when it is made.
+    // a refusal stays.
     const shown = Y => Y.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
     const C9a = route(X, 'exportExcel()'), s9a = shown(X);
     X.ev(`rcnSet(0, 't', 'good char'); 'ok'`);
@@ -8668,13 +8455,6 @@ await (async () => {
     w5Chk(name, 'C · a refusal, a line said after it, then the Excel export made', 'only the refusal is taken down: the line said after it stays',
       J([C11a.zips, C11a.msg, C11b.zips, C11b.dl, s11b]),
       J([0, 'Excel workbook not exported: sheet “Funds Flow”, cell A40 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Ctl[U+000B]”', 1, 1, 'U37-LATER']));
-    typed(X, 'R1', 'Plan' + VT + 'event');
-    const C12a = deck();
-    typed(X, 'R1', 'Plan event');
-    const C12b = deck();
-    w5Chk(name, 'C · the deck refused, the Plan Event retyped, the deck made', 'the deck says its own word when it is made, so the refusal does not stand after it',
-      J([C12a.zips, C12b.zips, C12b.dl, C12b.stat]),
-      J([0, 1, 1, '📽 PowerPoint deck downloaded — built inside the SFWG/SFCB Membership template (its actual master, layouts, and markings).']));
     // (verify-tests r5) a funds-flow destination named 2027<U+000B> -- a code with the character an ordinary paste keeps -- through
     // the destinations list's own setter, which keeps the name as typed. exportFlow is refused, the place named (Funds Flow A40,
     // where the base wrote it, read off its own file), nothing built, no Blob, no download, nothing changed.
@@ -8930,20 +8710,14 @@ await (async () => {
     // slide 5 named (the base wrote slide5.xml not well-formed); a funds-flow destination named Ctl<U+FFFF>, the chart drawn -- no
     // image (the base made its Blob); an RCN code holding U+000B, typed through the registry's own setter -- the Spend Plan Source
     // refused at O&M Raw Data AB2, the RCN column. CONTROL: a cell holding U+0085, U+007F and U+009F is written, every part parses
-    // and the board reads the text back; a Plan Event holding U+0085 makes the Excel export and the deck.
+    // and the board reads the text back; a Plan Event holding U+0085 makes the Excel export.
     const X7 = boot();
     seed(X7.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
     X7.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
     X7.ev(HELP);
     const NCH = String.fromCharCode(0xFFFF);
-    const deck7 = () => JSON.parse(X7.ev(`(function(){ var r=__u37('exportPPT()'), q=r.cap? __u37parts(r.cap) : null;
-      return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg.split('. No file was made')[0], same:r.same, err:r.err, title:(S.titles||{}).R1, bad:q? q.bad : null}); })()`));
-    const R7a = typed(X7, 'R1', 'Plan' + NCH + 'event'), R7b = deck7();
-    typed(X7, 'R1', 'Plan event');
-    w5Chk(name, 'B4 · the deck, a Mission Critical Plan Event holding U+FFFF', 'typed through the pen as is; no deck (nothing built, no Blob, no download); slide 5, its title and the character named; nothing changed, the Plan Event as typed',
-      J([R7a, R7b.zips, R7b.blobs, R7b.dl, R7b.msg, R7b.same, R7b.title, R7b.err]),
-      J(['Plan\uFFFFevent', 0, 0, 0, 'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+FFFF, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+FFFF]event”', true, 'Plan\uFFFFevent', '']));
+    // (v2.05, item 114: B4, the deck refusing U+FFFF, went with the deck.)
     X7.ev(`flowAddEnt(); var ix=flowEnts().length-1; flowSetEnt(ix,'n',${J('Ctl' + NCH)}); flowSetAxis('dest'); flowHtml(); if(!flowOpen) toggleFlow(); 'ok'`);
     const R7c = route(X7, 'flowPng()'), R7d = X7.ev(`String(((document.getElementById('flowSvg')||{}).outerHTML||'').indexOf(${J('Ctl' + NCH)})>=0)`);
     X7.ev(`if(flowOpen) toggleFlow(); flowSetEnt(flowEnts().length-1,'n','Ctl'); flowHtml(); 'ok'`);
@@ -8959,11 +8733,11 @@ await (async () => {
     const R7g = JSON.parse(X7.ev(`(function(){ window.__in=${J([{ name: 'U37', rows: [['a\u0085b', 'c\u007Fd', 'e\u009Ff']] }])}; var r=__u37('buildXlsx(window.__in)'), q=r.ret? __u37parts(r.ret) : null;
       return JSON.stringify({made:!!r.ret, zips:r.zips, msg:r.msg, err:r.err, same:r.same, bad:q? q.bad : null, n:q? q.n : 0}); })()`));
     const R7h = JSON.parse(await X7.w.eval(`(async function(){ var b=buildXlsx(window.__in); if(!b) return JSON.stringify('no workbook'); return JSON.stringify((await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength))).U37); })()`));
-    const R7i = typed(X7, 'R1', 'Plan\u0085event'), R7j = route(X7, 'exportExcel()'), R7k = deck7();
+    const R7i = typed(X7, 'R1', 'Plan\u0085event'), R7j = route(X7, 'exportExcel()');
     typed(X7, 'R1', 'Plan event');
-    w5Chk(name, 'A13 · CONTROL the C1 controls, which XML 1.0 allows', 'a cell holding U+0085, U+007F and U+009F: made, one zip, nothing said, every part parses, the board reads the text back; a Plan Event holding U+0085: the Excel export and the deck are made, every part of the deck parses',
-      J([R7g.made, R7g.zips, R7g.msg, R7g.bad, R7g.n, R7h, R7i, R7j.zips, R7j.blobs, R7j.dl, R7j.msg, R7k.zips, R7k.dl, R7k.msg, R7k.bad, [R7g.err, R7j.err, R7k.err], X7.errors.length]),
-      J([true, 1, '', [], 6, [['a\u0085b', 'c\u007Fd', 'e\u009Ff']], 'Plan\u0085event', 1, 1, 1, '', 1, 1, '', [], ['', '', ''], 0]));
+    w5Chk(name, 'A13 · CONTROL the C1 controls, which XML 1.0 allows', 'a cell holding U+0085, U+007F and U+009F: made, one zip, nothing said, every part parses, the board reads the text back; a Plan Event holding U+0085: the Excel export is made',
+      J([R7g.made, R7g.zips, R7g.msg, R7g.bad, R7g.n, R7h, R7i, R7j.zips, R7j.blobs, R7j.dl, R7j.msg, [R7g.err, R7j.err], X7.errors.length]),
+      J([true, 1, '', [], 6, [['a\u0085b', 'c\u007Fd', 'e\u009Ff']], 'Plan\u0085event', 1, 1, 1, '', ['', ''], 0]));
 
     // (verify-tests r4) "This is a standard band" is said of the bands ⚙ Install standard puts back -- a band whose id is the
     // standard's -- and of no other. Not of a band of this office's own filed under band 0 (0a, second in the ladder), nor of
@@ -9075,7 +8849,7 @@ await (async () => {
     typed(XI, 'H', 'Plan event');
     const ROUTES = [[XD, 'exportRlgPlan()'], [XD, 'pmoReport()'], [XO, 'crExport()'], [XI, 'exportIdsReq'], [XD, 'exportFlow()'], [XD, 'exportExView()'],
       [XD, 'exportSrc()'], [XD, 'exportPlans()'], [XD, 'exportFydpPlan()'], [XD, 'exportCycCompare()'], [XD, 'exportFcView()'],
-      [XD, 'exportCSV()'], [XD, 'exportAceTieout()'], [XD, 'exportExcel()'], [XD, 'exportCoa()'], [XD, 'exportPPT()']];
+      [XD, 'exportCSV()'], [XD, 'exportAceTieout()'], [XD, 'exportExcel()'], [XD, 'exportCoa()']];   // v2.05 (item 114): the deck went
     const callOf = (c, org) => c === 'exportIdsReq' ? `exportIdsReq(${FORM(org)})` : c;
     for (const [Y, c] of ROUTES) {
       const r = route(Y, callOf(c, '21'));
@@ -9088,9 +8862,9 @@ await (async () => {
     w5Chk(name, 'D · flowPng() CONTROL', 'on ordinary data the chart\'s drawing goes into its Blob to be read back as an image, nothing alerted',
       J([D7.blobs, D7.msg, D7.err]), J([1, '', '']));
     const stand = (Y, on) => Y.ev(on
-      ? `window.__u37n=0; window.__u37x=window._xlsxRefused; window.__u37p=window._pptxRefused;
-         _xlsxRefused=function(){ __u37n++; return true; }; _pptxRefused=function(){ __u37n++; return true; }; 'ok'`
-      : `_xlsxRefused=window.__u37x; _pptxRefused=window.__u37p; 'ok'`);
+      ? `window.__u37n=0; window.__u37x=window._xlsxRefused;
+         _xlsxRefused=function(){ __u37n++; return true; }; 'ok'`
+      : `_xlsxRefused=window.__u37x; 'ok'`);
     [XD, XO, XI].forEach(Y => stand(Y, true));
     for (const [Y, c] of ROUTES) {
       Y.ev(`__u37n=0; setStat('U37-MARK'); 'ok'`);
@@ -11374,7 +11148,7 @@ await (async () => {
         at+=30+nl+xl+sz; }
       return JSON.stringify({err:err, bad:bad, runs:runs}); })()`));
     // the workbook writes the Plan Event twice: on its own, and in a line that names the rank and the record
-    const ROUTES = [['exportSrc()', 'the Spend Plan Source', t => [t]], ['exportCSV()', 'the Priority Drill', t => [t]], ['exportPPT()', 'the deck', t => [t]],
+    const ROUTES = [['exportSrc()', 'the Spend Plan Source', t => [t]], ['exportCSV()', 'the Priority Drill', t => [t]],
       ['exportExcel()', 'the workbook', t => [t, '    #1 ' + t + ' [CCR1]']]];
     const CR = 'carriage\rreturn', LF = 'carriage\nreturn';
     w5Chk(name, 'the Plan Event as typed', 'the pen keeps the carriage return', J(typed(CR)), J(CR));

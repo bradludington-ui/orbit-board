@@ -338,8 +338,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const next = await p.evaluate(() => { const a = document.activeElement; return a ? a.textContent.trim().slice(0, 30) : null; });
     // v2.03: six since v2.02 removed the ATR/BTR Log workbook with the tracker. This check is outside verify:grid's run
     // once layout stops it (the 8 carried D results), so it read seven, failing, from v2.02 until v2.03.
-    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the six workbooks, and Tab goes to the first',
-      first === 'mFind' && shown.length === 6 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
+    // v2.05 (item 114): nine -- "(Excel)" left the titles for the XLSX tag, and Find reads the tag's words, so every workbook is
+    // found, the Priority Drill, the 1A9A and the IDS file among them
+    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the nine workbooks, and Tab goes to the first',
+      first === 'mFind' && shown.length === 9 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
     const shut = await p.evaluate(() => ({ open: document.getElementById('uiRepPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
@@ -592,7 +594,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const o = await p.evaluate(() => ({ open: diagOpen, focus: document.activeElement && document.activeElement.id,
       text: document.getElementById('diagPre').textContent }));
-    chk('K · Setup › 🩺 Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
+    chk('K · Setup › Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
       `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify({ open: o.open, focus: o.focus })}`);
     chk('K · the real script error is in it, without the title or the figure', /ERROR {4}.*cannot total … at \$#/.test(o.text)
       && o.text.indexOf(title) < 0 && !/7,654,321/.test(o.text), (o.text.split('\n').filter(l => /ERROR {4}/.test(l))[0] || 'no ERROR line').trim().slice(0, 120));

@@ -19,7 +19,6 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const BOARD = process.env.BOARD || join(HERE, '..', '..', 'prioritization-board-grid.html');
 const SUITES = [
   ['excel', join(HERE, 'audit.mjs')],
-  ['ppt', join(HERE, 'audit-ppt.mjs')],
   ['other', join(HERE, 'audit-other.mjs')],
   // The board derives figures it never exports — the cumulative among them. Without a suite that
   // can see them, a mutation to those lines passes everything and proves nothing.
@@ -228,12 +227,8 @@ const MUTATIONS = [
   { id: 'mc-ce-matrix', area: 'excel', what: 'Cost Element Matrix MC reverts to spill',
     find: '      if(S.mc[id]){ a.mc+=askTot(it); a.mcs+=mcShortOf(it); }',
     repl: '      if(S.mc[id]){ a.mc+=p.spill; a.mcs+=mcShortOf(it); }' },
-  { id: 'mc-ppt-row', area: 'ppt', what: 'MC slide rows print the allocation, not the ask',
-    find: '{t:fSM(askTot(it)),b:1,c:_PPT.AMBER}',
-    repl: '{t:fSM(T[it.id].dT+T[it.id].mT+T[it.id].uT),b:1,c:_PPT.AMBER}' },
-  { id: 'mc-ppt-filter', area: 'ppt', what: 'MC slide drops zero-allocation starred requirements',
-    find: 'const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&askTot(it)>0.5);',
-    repl: 'const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&(T[it.id].dT+T[it.id].mT+T[it.id].uT)>0.5);' },
+  // mc-ppt-row RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // mc-ppt-filter RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
 
   // ---- by-PMO attribution -----------------------------------------------------------------------
   { id: 'pmo-residual', area: 'shares', what: 'uncovered-service residual dropped again',
@@ -265,29 +260,15 @@ const MUTATIONS = [
     repl: '  return SVC.map((s,i)=>Math.max(0, (b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));' },
 
   // ---- the deck's PMO rollup ---------------------------------------------------------------------
-  { id: 'ppt-pmo-share', area: 'ppt', what: 'PMO rollup ignores the per-service CLIN share',
-    // v1.95 (item 60, W7): retargeted to the office's whole-dollar part (pmoPartsOf)
-    find: '          a.ask+=o.ask[i]; a.d+=o.d[i]; a.m+=o.m[i]; a.u+=o.u[i];',
-    repl: '          a.ask+=it.ask[i]; a.d+=p.d[i]; a.m+=p.m[i]; a.u+=unfSvcOf(it,p)[i];' },
-  { id: 'ppt-pmo-keys', area: 'ppt', what: 'PMO rollup drops offices not on the configured list',
-    find: '    const keys=pmoKeys(byG);', repl: '    const keys=GROUPS.filter(g=>byG[g]);' },
-  { id: 'ppt-pmo-count', area: 'ppt', what: 'PMO rollup TOTAL counts a split requirement more than once',
-    find: "{t:''+Object.keys(seenIds).length,b:1,c:'FFFFFF',...TOTF},",
-    repl: "{t:''+tt.n,b:1,c:'FFFFFF',...TOTF}," },
+  // ppt-pmo-share RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-pmo-keys RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-pmo-count RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
 
   // ---- the Priority Drill and the Executive Synopsis ---------------------------------------------
-  { id: 'synopsis-mc-spill', area: 'other', what: 'Exec Synopsis MC reverts to mandatory+unfunded',
-    find: '      mcTot+=askTot(it); SVC.forEach((s,i)=>mcSvc[i]+=it.ask[i]);',
-    repl: '      mcTot+=p.spill; SVC.forEach((s,i)=>mcSvc[i]+=p.m[i]+p.u[i]);' },
-  { id: 'synopsis-mc-short-mand', area: 'other', what: 'Exec Synopsis MC shortage nets off mandatory',
-    find: '      const sh=mcShortSvcOf(it,p), sT=sh.reduce((a,b)=>a+b,0);',
-    repl: '      const sh=SVC.map((s,i)=>Math.max(0,it.ask[i]-p.d[i]-p.m[i])), sT=sh.reduce((a,b)=>a+b,0);' },
-  { id: 'synopsis-unf', area: 'other', what: 'Exec Synopsis unfunded reverts to the lane shortfall only',
-    find: '    const uv=unfTotOf(it,p);\n    if(uv>0.005){ uN++; uTot+=uv; }',
-    repl: '    const uv=p.uT;\n    if(uv>0.005){ uN++; uTot+=uv; }' },
-  { id: 'synopsis-floor', area: 'other', what: 'Exec Synopsis PROGRAM FLOOR built on funded, not BA',
-    find: "  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dBA+mcShortTot));",
-    repl: "  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dTot+mcShortTot));" },
+  // synopsis-mc-spill RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // synopsis-mc-short-mand RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // synopsis-unf RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // synopsis-floor RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   { id: 'drill-pmo-keys', area: 'other', what: 'Priority Drill drops offices not on the configured list',
     find: '  const PMOS=pmoKeys(_pmoSeen);', repl: '  const PMOS=GROUPS.filter(g=>_pmoSeen[g]);' },
   // RE-AIMED when mOf() grew the second unfunded reading: the old find carried the whole return
@@ -324,18 +305,10 @@ const MUTATIONS = [
   // ---- PowerPoint aggregates --------------------------------------------------------------------
   // RE-AIMED when the stream slide gained its second unfunded reading: the find carried the whole
   // accumulation line, so adding aU1 to it matched nothing. Aimed at the aD term alone now.
-  { id: 'ppt-streams-disc', area: 'ppt', what: 'Funding-by-stream discretionary double counts',
-    find: 'allAsk[i]+=it.ask[i]; aD[i]+=p.d[i];',
-    repl: 'allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]*1.05;' },
-  { id: 'ppt-unfunded-total', area: 'ppt', what: 'UFR slide total drops the trim deltas',
-    find: '    const totalU=uIts.reduce((a,it)=>a+unf2(it),0);',
-    repl: '    const totalU=uIts.reduce((a,it)=>a+T[it.id].uT,0);' },
-  { id: 'ppt-ce-rollup', area: 'ppt', what: 'CE rollup swaps discretionary and mandatory',
-    find: '      const a=byCE[ce]; a.n++; a.d+=p.dT; a.m+=p.mT; a.u+=unf2(it);});',
-    repl: '      const a=byCE[ce]; a.n++; a.d+=p.mT; a.m+=p.dT; a.u+=unf2(it);});' },
-  { id: 'ppt-kpi-disc', area: 'ppt', what: 'KPI "Discretionary funded" reads the mandatory total',
-    find: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.dUsed), _PPT.GREEN],",
-    repl: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.mUsed), _PPT.GREEN]," },
+  // ppt-streams-disc RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-unfunded-total RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-ce-rollup RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-kpi-disc RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // ---- the ◨/◧ view toggle, and the marker that has to travel with it -------------------------
   // The toggle changes what the spend-plan family prints. A build that ignores it, or that lets it
   // leak into the rest of the workbook, is wrong in a way that looks like a normal export.
@@ -1193,7 +1166,7 @@ const MUTATIONS = [
   { id: 'view-export-unmarked', area: 'expName', what: 'a file exported from a view is named as the board',
     find: "  if(CYCVIEW && !/LOCKED\\]/.test(s)){", repl: "  if(false){" },
   { id: 'view-title-unmarked', area: 'cycView', what: 'the title an export prints does not say it came from a lock',
-    find: "  document.title=_cycStash.title+' — '+blLblTxt(key)+' LOCKED VIEW';", repl: "  /* untitled */" },
+    find: "  document.title=_cycStash.title+' — '+cycApTxt(key)+' LOCKED VIEW';", repl: "  /* untitled */" },   // v2.05 (item 116): the line names the appropriation
   { id: 'view-load-allowed', area: 'applyStore', what: 'a board can be loaded over a view',
     find: "  if(CYCVIEW){ cycRefuse('Loading a board'); return false; }\n", repl: "" },
   { id: 'view-lock-allowed', area: 'cycLock', what: 'a cycle can be locked from a view of another',
@@ -1203,7 +1176,7 @@ const MUTATIONS = [
   { id: 'view-banner-missing', area: 'render', what: 'the board carries no banner while a lock is on screen',
     find: "  if(CYCVIEW){\n    const c=blGet(CYCVIEW)||{};\n    h+='<div class=\"cutline\"", repl: "  if(false){\n    const c=blGet(CYCVIEW)||{};\n    h+='<div class=\"cutline\"" },
   { id: 'view-header-unmarked', area: 'blBody', what: 'the header shows the working tag while a lock is on screen',
-    find: "    if(t) t.textContent= CYCVIEW? ('VIEWING '+blLblTxt(CYCVIEW)+' (locked)')\n      : (", repl: "    if(t) t.textContent= (" },
+    find: "    if(t) t.textContent= CYCVIEW? ('VIEWING '+cycApTxt(CYCVIEW)+' (locked)')\n      : (", repl: "    if(t) t.textContent= (" },   // v2.05 (item 116)
   { id: 'view-delete-on-screen', area: 'blDelete', what: 'the cycle on screen can be deleted from under the view',
     find: "  if(key===CYCVIEW){ setStat('⚠ <b>'+blLbl(key)+'</b> is on screen — leave the view before deleting it.'); return; }\n", repl: "" },
   // ---- PPBE cycles: the lock is the window, frozen (stage 1, 19 Sep 2026)
@@ -1663,16 +1636,10 @@ const MUTATIONS = [
   { id: 'awd-seed-disc-only', area: 'toggleAwdInc', what: 'switching to increments seeds discretionary alone against a both-lanes balance, reading short at once',
     find: "    const seed={d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))};",
     repl: "    const seed={d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))};" },
-  { id: 'ppt-chart-mand-dropped', area: 'spendPlanByMonth', what: 'the deck’s chart leaves mandatory out of the months',
-    find: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; out.m[k]+=a.mv; } });",
-    repl: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; } });" },
-  { id: 'ppt-chart-unsched-dropped', area: 'spendPlanByMonth', what: 'the deck’s chart drops the money with no date',
-    find: "      out.ud+=L.ud; out.um+=L.um;", repl: "      /* no date, no column */" },
-  { id: 'ppt-chart-ignores-view', area: 'spendPlanByMonth', what: 'the deck’s chart shows the funded plan under the switch',
-    find: "function spendPlanByMonth(){\n  const T=tiers(null, scenOpt());", repl: "function spendPlanByMonth(){\n  const T=tiers();" },
-  { id: 'ppt-chart-no-marker', area: 'exportPPT', what: 'the deck’s chart does not say it is the what-if',
-    find: "    slides.push(_pSlide(hdr('Spend Plan by Month \\u2014 '+FYL()+(scenOn()? '  \\u25e8 DISCRETIONARY ONLY (what-if)' : ''),",
-    repl: "    slides.push(_pSlide(hdr('Spend Plan by Month \\u2014 '+FYL()," },
+  // ppt-chart-mand-dropped RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-chart-unsched-dropped RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-chart-ignores-view RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // ppt-chart-no-marker RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // ---- item 13: what is set higher than it draws ------------------------------------------------------
   { id: 'nd-mand-ignored', area: 'ndData', what: 'a typed mandatory figure higher than it draws is not found',
     find: "      if(drewGap(tM, dM)){", repl: "      if(false){" },
@@ -2863,12 +2830,8 @@ const MUTATIONS = [
     find: "      const L=lane? landSvc(aw, i, +lanes.disc[i]||0, +lanes.mand[i]||0, true) : landSvc(aw, i, v, 0, true);",
     repl: "      const L=lane? landSvc(aw, i, lane==='mand'? 0 : v, lane==='mand'? v : 0, true) : landSvc(aw, i, v, 0, true);" },
   // F3 -- the synopsis's year (audit-recon "W7 — F3: ...")
-  { id: 'w7-synopsis-title-fy27', area: 'execSynopsis', what: 'the synopsis is titled FY27 whatever the year on screen',
-    find: "  line(FYL()+' EXECUTIVE FUNDING SYNOPSIS','', 'exported '+new Date().toLocaleString());",
-    repl: "  line('FY27 EXECUTIVE FUNDING SYNOPSIS','', 'exported '+new Date().toLocaleString());" },
-  { id: 'w7-synopsis-file-fy27', area: 'execSynopsis', what: 'the synopsis file is named FY27 whatever the year on screen',
-    find: "  a.download=expName(FYL()+' Exec Funding Synopsis '+new Date().toISOString().slice(0,10)+'.csv');",
-    repl: "  a.download=expName('FY27 Exec Funding Synopsis '+new Date().toISOString().slice(0,10)+'.csv');" },
+  // w7-synopsis-title-fy27 RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // w7-synopsis-file-fy27 RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // F4 -- an office's share in whole dollars (audit-recon "W7 — F4: ...")
   { id: 'w7-office-share-fraction', area: 'pmoPartsOf', what: 'an office’s share of a CLIN-split requirement goes back to a fraction of a dollar',
     find: "    whole[i]=!one && [a,d,m].every(Number.isInteger) && a>=d+m;",
@@ -2968,19 +2931,19 @@ const MUTATIONS = [
     find: "      lbl('Execution — CCaR')+I.qpe+I.exw, '",
     repl: "      lbl('Execution — CCaR')+I.qpe, '" },
   { id: 'menu-find-no-filter', area: 'menuFindApply', what: 'Find lists everything whatever is typed',
-    find: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
-    repl: "    const hit=true;" },
+    find: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || (e.getAttribute('data-k')||'').indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
+    repl: "    const hit=true;" },   // v2.05 (item 114): retargeted, the line reads the tag's words too
   { id: 'menu-find-no-group-name', area: 'menuFindApply', what: 'a group’s name finds none of its items',
-    find: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
-    repl: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0;" },
+    find: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || (e.getAttribute('data-k')||'').indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
+    repl: "    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || (e.getAttribute('data-k')||'').indexOf(q)>=0;" },   // v2.05 (item 114): retargeted
   { id: 'menu-find-kept', area: 'syncBtns', what: 'Find keeps what was typed after the menu closes',
     find: "  if(!uiRepShown()) menuFindQ='';\n", repl: "" },
   { id: 'menu-find-silent', area: 'menuFindApply', what: 'Find says nothing when nothing matches',
     find: "  const none=dd.querySelector('.mnone'); if(none) none.hidden=!(q && !n);",
     repl: "  const none=dd.querySelector('.mnone'); if(none) none.hidden=true;" },
   { id: 'menu-copy-offices', area: 'syncBtns', what: 'a PMO copy’s Program offices offers Publish PMO copy, Review submittals and the submittal loading (the File menu’s group until v2.00 menu)',
-    find: "      (_SB? '' : offices+'<div class=\"msep\"></div>'+lbl('Submittals from the offices')+loads);",
-    repl: "      (offices+'<div class=\"msep\"></div>'+lbl('Submittals from the offices')+loads);" },
+    find: "      (uiPlain(_SB? '' : offices+'<div class=\"msep\"></div>'+lbl('Submittals from the offices')+loads));",
+    repl: "      (uiPlain(offices+'<div class=\"msep\"></div>'+lbl('Submittals from the offices')+loads));" },   // v2.05 (item 114): the list is written through uiPlain
   // ==== end v1.96 item 65 ====
   // ==== v1.96 (items 66-70): the 4 Oct review of v1.95, NR01-NR05 ====
   { id: 'restore-own-stale', area: 'driveRestore', what: 'Put this back takes the screen for saved, and replaces an edit typed meanwhile',
@@ -3905,8 +3868,8 @@ const MUTATIONS = [
     find: "const ppLblTxt=k=>{ const [c,y]=String(k).split('|'); return c+(parseInt(y)%100); };",
     repl: "const ppLblTxt=k=>{ const [c,y]=String(k).split('|'); return esc(c)+(parseInt(y)%100); };" },
   { id: "v200-cyc-title-html", area: "cycView", what: "the locked view's window title takes the HTML label (full sweep, text)",
-    find: "document.title=_cycStash.title+' — '+blLblTxt(key)+' LOCKED VIEW';",
-    repl: "document.title=_cycStash.title+' — '+blLbl(key)+' LOCKED VIEW';" },
+    find: "document.title=_cycStash.title+' — '+cycApTxt(key)+' LOCKED VIEW';",
+    repl: "document.title=_cycStash.title+' — '+cycAp(key)+' LOCKED VIEW';" },   // v2.05 (item 116): retargeted, the same defect
   { id: "v200-cyc-confirm-html", area: "blDelete", what: "the delete-cycle question takes the HTML label (full sweep, text)",
     find: "if(!confirm('Delete the '+blLblTxt(key)+' cycle?",
     repl: "if(!confirm('Delete the '+blLbl(key)+' cycle?" },
@@ -3914,14 +3877,14 @@ const MUTATIONS = [
     find: "'ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))",
     repl: "'ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))" },
   { id: "v200-cyc-double-escape", area: "blSet", what: "a status line escapes the already-escaped cycle label (full sweep, text)",
-    find: "setStat('⚠ <b>'+blLbl(key)+'</b> is locked. Unlock it first",
-    repl: "setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked. Unlock it first" },
+    find: "setStat('⚠ <b>'+cycAp(key)+'</b> is locked. Unlock it first",
+    repl: "setStat('⚠ <b>'+esc(cycAp(key))+'</b> is locked. Unlock it first" },   // v2.05 (item 116): retargeted, the same defect
   { id: "v200-inspfield-lbl-raw", area: "cycDeltaInsp", what: "the changes inspector draws the text label raw (full sweep)",
     find: "  if(!r.changed) return inspField('Since '+esc(lbl),",
     repl: "  if(!r.changed) return inspField('Since '+lbl," },
   { id: "v200-cmp-menu-raw", area: "Reports menu", what: "the cycle-comparison menu line draws the text labels raw (full sweep)",
-    find: "(cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) :",
-    repl: "(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) :" },
+    find: "cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) :",
+    repl: "cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) :" },   // v2.05 (item 114): retargeted to the box's ri() line
   { id: "v200-putback-markup", area: "jrnlUndo", what: "the Put back question shows the journal label as markup (tags and entities) (full sweep, text)",
     find: "if(!confirm('Put '+diagPlain(jrnlLabel(e))+' back",
     repl: "if(!confirm('Put '+jrnlLabel(e)+' back" },
@@ -3998,12 +3961,8 @@ const MUTATIONS = [
   { id: "v200-pmopanel-plain", area: "pmBody", what: "the PMO panel groups by office in a plain object (key sweep)",
     find: "  const byG=Object.create(null);\n  const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);",
     repl: "  const byG={};\n  const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);" },
-  { id: "v200-pptpmo-plain", area: "exportPPT", what: "the deck's PMO rollup groups by office in a plain object (key sweep)",
-    find: "    const byG=Object.create(null), seenIds={};",
-    repl: "    const byG={}, seenIds={};" },
-  { id: "v200-pptce-plain", area: "exportPPT", what: "the deck's cost element rollup groups by cost element in a plain object (key sweep)",
-    find: "    const byCE=Object.create(null);\n    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;",
-    repl: "    const byCE={};\n    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;" },
+  // v200-pptpmo-plain RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
+  // v200-pptce-plain RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   { id: "v200-xlsce-plain", area: "exportExcel", what: "the workbook's Cost Element Matrix groups by cost element in a plain object (key sweep)",
     find: "    const byCE=Object.create(null);\n    S.order.forEach(id=>{\n      const it=itemById(id); if(!it) return;\n      const p=T[id], ce=ceOf(id);",
     repl: "    const byCE={};\n    S.order.forEach(id=>{\n      const it=itemById(id); if(!it) return;\n      const p=T[id], ce=ceOf(id);" },
@@ -5160,7 +5119,7 @@ const MUTATIONS = [
     find: "+esc(back)+'. '+esc(inRcnTail(back, html))",
     repl: "+esc(back)+'.'" },
   { id: "v200-cycreg-help-refusal-unsaid", area: "help", what: "the help says Import one appropriation takes appropriations back from any board file, and nothing of a file carrying a locked cycle whose list breaks the rule, which it refuses whichever board saved it (verification round 5, tests minor)",
-    find: " A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and <span class=\"mp\" data-m=\"imp\">Imports &amp; exports › ⬅ Import a full board (new version)…</span> takes it whole.",
+    find: " A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and <span class=\"mp\" data-m=\"imp\">Imports &amp; exports › Import a full board (new version)…</span> takes it whole.",
     repl: "" },
   { id: "v200-cycreg-say-cynt-first-only", area: "fullImportText", what: "the full import says a locked cycle's entry whose key is not text is kept but not read only when it is the first odd thing in the list: PB27 [K1, K1, the number 1] is not told it (verification round 5, tests m3)",
     find: "if(cy && r.some(function(x){ return x.nt; })) rcnCyNT=true;",
@@ -5335,9 +5294,7 @@ const MUTATIONS = [
   { id: "v200-u37-xlsx-unchecked", area: "buildXlsx", what: "the workbook writer no longer asks before it builds: a cell, a sheet name or a literal _xHHHH_ goes into the file as it is",
     find: "  if(_xlsxRefused(sheets)) return null;\n",
     repl: "" },
-  { id: "v200-u37-pptx-unchecked", area: "buildPptx", what: "the deck writer no longer asks before it builds: a Plan Event holding U+000B goes into slide 5 raw",
-    find: "  if(_pptxRefused(slideXmls)) return null;\n",
-    repl: "" },
+  // v200-u37-pptx-unchecked RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   { id: "v200-u37-name-unchecked", area: "_xlsxRefused", what: "a sheet name is not checked: Dest<U+000B> or a literal _x00e9_ is written into xl/workbook.xml",
     find: "    if(why){ _xmlRefuse('Excel workbook', 'the name of sheet '+(i+1)+' holds '+why+'. It reads '+_xmlShow(nm)); return true; }\n",
     repl: "" },
@@ -5362,9 +5319,7 @@ const MUTATIONS = [
   { id: "v200-u37-stat-silent", area: "_xmlRefuse", what: "the status line does not say the export was refused: the last message stays, which can be an earlier export’s “downloaded”",
     find: "  setStat('⚠ <b>'+what+' not exported</b> — '+esc(said)+'. No file was made; the text on the board is unchanged.');\n",
     repl: "" },
-  { id: "v200-u37-wrong-slide", area: "_pptxRefused", what: "the deck’s refusal names the slide before the one that holds the character (slide 4 for slide 5)",
-    find: "'slide '+(i+1)+(t?",
-    repl: "'slide '+i+(t?" },
+  // v200-u37-wrong-slide RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   { id: "v200-u37-ids-org-kept", area: "exportIdsReq", what: "the refused IDS export keeps the ORG typed into it, as if the file had been made",
     find: "  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n  // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists\n  if(!MS.ids) MS.ids={};\n  if(MS.ids.org!==org){ MS.ids.org=org; save(); }\n",
     repl: "  // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists\n  if(!MS.ids) MS.ids={};\n  if(MS.ids.org!==org){ MS.ids.org=org; save(); }\n  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }\n" },
@@ -5433,9 +5388,7 @@ const MUTATIONS = [
   { id: "v200-u37-guard-exportcoa", area: "exportCoa", what: "the refused writer’s null is not checked: exportCoa goes on to a Blob, a download and its own word after the refusal",
     find: "  const bytes=buildXlsx([s1,s2,s3], null, xlsxHouse('Chart of Accounts'));\n  if(!bytes) return;\n",
     repl: "  const bytes=buildXlsx([s1,s2,s3], null, xlsxHouse('Chart of Accounts'));\n" },
-  { id: "v200-u37-guard-exportppt", area: "exportPPT", what: "the refused writer’s null is not checked: exportPPT goes on to a Blob, a download and its own word after the refusal",
-    find: "  const bytes=buildPptx(slides);\n  if(!bytes) return;\n",
-    repl: "  const bytes=buildPptx(slides);\n" },
+  // v200-u37-guard-exportppt RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // v2.00 (U37, review round 1): the checks the review added -- a styled cell, the 31st letter of a sheet name, the words.
   { id: "v200-u37-styled-unchecked", area: "_xlsxRefused", what: "a styled cell ({v, s}) is not checked: an RCN / EEIC title holding U+0001 goes raw into RCN-EEIC by Month",
     find: "const x=rows[r][c], v=(x!==null && typeof x==='object')? x.v : x;",
@@ -5452,9 +5405,7 @@ const MUTATIONS = [
   { id: "v200-u37-show-literal-start", area: "_xmlShow", what: "a literal _xHHHH_ late in a long text is quoted from the start, never showing it",
     find: "const s=String(t), m=XML_BADCH.exec(s) || /_x[0-9A-Fa-f]{4}_/.exec(s), i=m? m.index : 0;",
     repl: "const s=String(t), m=XML_BADCH.exec(s), i=m? m.index : 0;" },
-  { id: "v200-u37-deck-markup-shown", area: "_pptxRefused", what: "the deck refusal quotes the slide markup: R&amp;D[U+000B]event for R&D<U+000B>event",
-    find: "+', in the text '+_xmlShow(_xunesc(x.slice(a, b<0? x.length : b))));",
-    repl: "+', in the text '+_xmlShow(x.slice(a, b<0? x.length : b)));" },
+  // v200-u37-deck-markup-shown RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   // v2.00 (U37, review round 1): a refusal left standing after a workbook is made, a locked cycle's text, a literal named by its character.
   { id: "v200-u37-made-missing", area: "buildXlsx", what: "a refusal is never taken down: the title retyped and the workbook made, the status line still says it was not exported and no file was made",
     find: "  _xmlMade();\n",
@@ -5599,9 +5550,7 @@ const MUTATIONS = [
     repl: "+' of '+also.slice(0,1).map(j=>'band '" },
   // v2.00 (U37, review round 7, tests review): the deck and the chart image refuse U+FFFF as the workbook does; a cell past
   // column Z is named by its letters; the C1 controls, which XML 1.0 allows, are written.
-  { id: "v200-u37-deck-c0-only", area: "_pptxRefused", what: "the deck checks the C0 controls only: a Mission Critical Plan Event holding U+FFFF goes into slide 5 raw, and the deck is made with slide5.xml not well-formed",
-    find: "    const x=slideXmls[i], m=XML_BADCH.exec(x);",
-    repl: "    const x=slideXmls[i], m=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/.exec(x);" },
+  // v200-u37-deck-c0-only RETIRED AS OBSOLETE, not equivalent -- v2.05 (item 114): the code it guarded was removed with the PowerPoint deck, the Executive Synopsis and Executive Decision (Brad, 23 Oct 2026: "Remove their code and remove them entirely").
   { id: "v200-u37-png-c0-only", area: "flowPng", what: "the chart image checks the C0 controls only: a destination named Ctl<U+FFFF> goes into the drawing's Blob, and a browser says only \"Could not render\"",
     find: "  const bad=XML_BADCH.exec(src);",
     repl: "  const bad=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/.exec(src);" },
@@ -6983,6 +6932,54 @@ const MUTATIONS = [
     find: "  const bytes=buildXlsx(sheets, SRC_XTRA);",
     repl: "  const bytes=buildXlsx(sheets, SRC_XTRA, xlsxHouse('Spend Plan Source'));" },
   // ==== end v2.04 (item 113) ====
+  // ==== v2.05 (items 114-116): Reports & exports cleaned up, icons off the left menu, each appropriation's lock named and seen ====
+  // Item 115 (the side panels' hint running past its button) is CSS, which jsdom does not lay out: its check is npm run leftmenu G,
+  // proved by hand on the board with the old rule put back (it fails there, four side panels 6px wide).
+  { id: 'v205-114-icons-kept', area: "syncBtns", what: "the left menu's items keep their icons",
+    find: "const uiPlain=h=>String(h).replace(",
+    repl: "const uiPlain=h=>String(h)||String(h).replace(" },
+  { id: 'v205-114-no-format-tag', area: "syncBtns", what: "a report in Reports & exports does not say what kind of file it gives",
+    find: "<span class=\"fmt\" aria-label=\"gives ${fmt}\">${fmt}</span>",
+    repl: "" },
+  { id: 'v205-114-linkset-not-in-setup', area: "syncBtns", what: "Linked tool… is not under Setup › Who and where, so nothing on the left menu changes the companion tool",
+    find: "I.svc+I.pmos+I.ent+I.linkset)",
+    repl: "I.svc+I.pmos+I.ent)" },
+  { id: 'v205-114-briefing-name', area: "syncBtns", what: "the section is still called Briefing",
+    find: "sec('brief','Working Documents',",
+    repl: "sec('brief','Briefing'," },
+  { id: 'v205-116-lock-unnamed', area: "cycApTxt", what: "a lock is named PB27, not O&M PB27, on the status, the list, the view and the file names",
+    find: "function cycApTxt(key, slug){ return appnName(slug||mySlug())+' '+blLblTxt(key); }",
+    repl: "function cycApTxt(key, slug){ return blLblTxt(key); }" },
+  { id: 'v205-116-calendar-first-tag', area: "cycOverview", what: "the calendar the appropriations are on is the first tag found, not the latest",
+    find: "if(q!==null && (!lead || q>cycKeyRank(lead))) lead=r.tag;",
+    repl: "if(q!==null && !lead) lead=r.tag;" },
+  { id: 'v205-116-reopened-reads-locked', area: "cycCellOf", what: "a reopened cycle reads as locked",
+    find: "  if(c.locked){ const f=c.first||{ts:c.ts, by:c.by};",
+    repl: "  if(c.locked || true){ const f=c.first||{ts:c.ts, by:c.by};" },
+  { id: 'v205-116-not-locked-counts-empty', area: "cycNotLocked", what: "an appropriation holding no plan is listed as not yet locked",
+    find: "return !r.own && r.held && cycCellOf(r.cycles[key]).s!=='locked';",
+    repl: "return !r.own && cycCellOf(r.cycles[key]).s!=='locked';" },
+  { id: 'v205-116-tag-from-this-board', area: "cycOverview", what: "every appropriation's working tag is read off the board on screen",
+    find: "tag=(typeof st.cycle==='string')? st.cycle : ''; }",
+    repl: "tag=String(MS.cycle||''); }" },
+  { id: 'v205-116-go-no-mark', area: "cycGoAppn", what: "Go to switches appropriation without the mark, so PPBE cycles is shut when it opens",
+    find: "  try{ localStorage.setItem(CYC_GO_KEY, k); }catch(e){}\n  switchAppn(APPN_LBL[k]);",
+    repl: "  switchAppn(APPN_LBL[k]);" },
+  { id: 'v205-116-offer-on-every-board', area: "boot", what: "a board on the calendar is offered a retag when it opens",
+    find: "  if(me && me.behind && !(typeof SANDBOX!=='undefined' && SANDBOX)){",
+    repl: "  if(me && O.lead && !(typeof SANDBOX!=='undefined' && SANDBOX)){" },
+  { id: 'v205-116-go-on-own-row', area: "cycOverviewHtml", what: "Go to is offered on the board's own row",
+    find: "+'<td>'+(r.own || sb? '' : '<button type=\"button\" class=\"qb\" onclick=\"cycGoAppn('",
+    repl: "+'<td>'+(sb? '' : '<button type=\"button\" class=\"qb\" onclick=\"cycGoAppn('" },
+  { id: 'v205-116-status-silent', area: "cycLock", what: "the lock's status does not say which appropriations have not locked it yet",
+    find: "    +(yet.length? ' <b>Not locked as '+blLbl(key)+' yet:</b> '",
+    repl: "    +(false? ' <b>Not locked as '+blLbl(key)+' yet:</b> '" },
+  { id: 'v205-114-find-ignores-tag', area: "menuFindApply", what: "Find no longer reads a report's format tag: \"excel\" finds one workbook of nine",
+    find: "|| (e.getAttribute('data-k')||'').indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);",
+    repl: "|| !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);" },
+  { id: 'v205-114-foot-not-found', area: "menuFindApply", what: "a view is not found by the box's foot that says where it lives",
+    find: "if(fh) n++; }", repl: "}" },
+  // ==== end v2.05 (items 114-116) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

@@ -551,7 +551,7 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `const reqs=[], pmo=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years,`],
     ['K5 safe maps and refusals (source)', `const ctl=Object.create(null), ctlSvcLevel=`],
-    ['K5 safe maps and refusals (source)', `const byG=Object.create(null), seenIds={};`],
+    // (v2.05, item 114: the deck's PMO roll-up map, `const byG=Object.create(null), seenIds={};`, went with the deck)
     ['K5 safe maps and refusals (source)', `ce:Object.create(null)};`],
     ['K5 safe maps and refusals (source)', `const forOf=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function flowEntUseMap(){\n  const out=Object.create(null);`],
@@ -576,9 +576,9 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)';`],
     ['K5 safe maps and refusals (source)', `  const byGX=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `      const stray=Object.create(null);\n      (set.lines||[]).forEach(function(l){`],
-    // maps no runtime check above reaches: the PMO panel, the deck's cost-element rollup, the workbook's two matrices
+    // maps no runtime check above reaches: the PMO panel, the workbook's two matrices (the deck's cost-element rollup went with
+    // the deck in v2.05, item 114)
     ['K5 safe maps and refusals (source)', `  const byG=Object.create(null);\n  const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);`],
-    ['K5 safe maps and refusals (source)', `    const byCE=Object.create(null);\n    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;`],
     ['K5 safe maps and refusals (source)', `    const byCE=Object.create(null);\n    S.order.forEach(id=>{\n      const it=itemById(id); if(!it) return;\n      const p=T[id], ce=ceOf(id);`],
     ['K5 safe maps and refusals (source)', `    // CE by PMO\n    byP=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function destPkgIn(pkg){\n  const refs=Object.create(null);`],
@@ -661,13 +661,21 @@ const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== Stri
     fid(T4, 'the position label as text keeps "&"', out.pt, 'A&B27');
     fid(T4, 'the position label as HTML is escaped once', out.ph, 'A&amp;B27');
   }
+  // v2.05 (item 116): a lock named with its appropriation -- the same two forms (cycApTxt, cycAp)
+  let ap = null;
+  try { ap = JSON.parse(B.ev(`JSON.stringify({ t: cycApTxt('A&B|2027', 'om'), h: cycAp('A&B|2027', 'om') })`)); }
+  catch (e) { fid(T4, 'the appropriation-named label helpers exist', 'absent', 'present'); }
+  if (ap) {
+    fid(T4, 'a lock named with its appropriation, as text, keeps "&"', ap.t, 'O&M A&B27');
+    fid(T4, 'a lock named with its appropriation, as HTML, is escaped once', ap.h, 'O&amp;M A&amp;B27');
+  }
   const src = readFileSync(BOARD, 'utf8');
-  fid(T4, 'no HTML label is escaped a second time', /esc\((blLbl|ppLbl)\(/.test(src), false);
-  fid(T4, 'the window title of a locked view uses the text label', src.includes("document.title=_cycStash.title+' — '+blLblTxt(key)+' LOCKED VIEW';"), true);
+  fid(T4, 'no HTML label is escaped a second time', /esc\((blLbl|ppLbl|cycAp)\(/.test(src), false);   // v2.05 (item 116): cycAp too
+  fid(T4, 'the window title of a locked view uses the text label', src.includes("document.title=_cycStash.title+' — '+cycApTxt(key)+' LOCKED VIEW';")   /* v2.05 (item 116): the text form names the appropriation */, true);
   fid(T4, 'the delete-cycle question uses the text label', src.includes("if(!confirm('Delete the '+blLblTxt(key)+' cycle?"), true);
   fid(T4, 'the FYDP workbook file name uses the text label', src.includes("'ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))"), true);
   fid(T4, 'the changes inspector escapes its text label where it draws it', (src.match(/inspField\('Since '\+esc\(lbl\),/g) || []).length, 2);
-  fid(T4, 'the cycle-comparison menu line escapes its text labels', src.includes("(cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) :"), true);
+  fid(T4, 'the cycle-comparison menu line escapes its text labels', src.includes("cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) :")   /* v2.05 (item 114): the box's ri() line */, true);
 }
 
 // ---- report ---------------------------------------------------------------------------------------

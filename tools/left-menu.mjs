@@ -15,8 +15,14 @@
 //      stays: Appropriation, Fiscal year, the PMO filter, search, Filter, the message line and Help.
 //   D. A PMO COPY: the Save spot is ✉ Submit input (pmoSubmit), reached once; Program offices is not shown and holds
 //      nothing; Save and Save a copy are still there under ▾, saying they are off.
-//   F. (Brad, 19 Oct) NO REPEAT ON THE TASK BAR: Bands, Executive decision, PowerPoint deck and Exec synopsis are on no task-bar
-//      control in any mode, nor in its folded Tools menu -- the left menu (A) is their one home.
+//   F. (Brad, 19 Oct) NO REPEAT ON THE TASK BAR: Bands is on no task-bar control in any mode, nor in its folded Tools menu --
+//      the left menu (A) is its one home. (Executive decision, the PowerPoint deck and the Exec synopsis were held here too, until
+//      v2.05 removed them, item 114.)
+//   G. (v2.05, items 114 and 115; Brad, 23 Oct 2026) NOTHING ON THE LEFT MENU SCROLLS SIDEWAYS AND NO ITEM CARRIES AN ICON: every
+//      side panel and box, every folded group in it opened in turn, at 1920, 1440, 1366 and 1024 wide, in the board's font and
+//      in the Segoe stand-in -- its scroll width is its width, no item reaches past its edge, and no item's title starts with an
+//      icon (a tick, ● and ○ for the theme in use, and … or ▸ at the end are not icons). Four side panels scrolled 6px on v2.04,
+//      every hint 22px past its button.
 //   E. FOLDED TO ICONS AND FROM THE KEYBOARD ALONE: ‹ folds the menu to 64px; every entry is still there, in order, named
 //      for a screen reader and reached with Tab; Enter opens a flyout with the keyboard in it, Tab reaches its items, Esc
 //      closes it with the keyboard back on its entry; Enter opens a box the same way; Enter on an item runs it and its
@@ -29,6 +35,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { boot, seed } from './export-audit/boot.mjs';
 import { CHROME } from './chrome.mjs';
+import { withStandin } from './font-standin.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const bi = process.argv.indexOf('--board');
@@ -46,8 +53,8 @@ const WANT = {
   // the ▾ beside Save
   publishState: 1,
   // History & recovery
-  toggleLive: 2,          // TWO ON PURPOSE: History & recovery › ↶ Earlier copies… and Setup › 📡 Live view… open the same box (the copies are kept in Live view)
-  keptPutBack: 2,         // TWO ON PURPOSE: History & recovery › ↶ Put back work kept aside…, and the save state's own "↶ work kept aside" notice at the foot, as it was in the context bar
+  toggleLive: 2,          // TWO ON PURPOSE: History & recovery › Earlier copies… and Setup › Live view… open the same box (the copies are kept in Live view)
+  keptPutBack: 2,         // TWO ON PURPOSE: History & recovery › Put back work kept aside…, and the save state's own "↶ work kept aside" notice at the foot, as it was in the context bar
   keptSaveFile: 1, keptDiscard: 1,
   // Program offices
   publishPmoCopy: 1, subOpenReview: 1, "uiPmoLoad('one')": 1, "uiPmoLoad('all')": 1,
@@ -60,11 +67,11 @@ const WANT = {
   'themeSetIdx(0)': 1, 'themeSetIdx(1)': 1, 'themeSetIdx(2)': 1, 'themeSetIdx(3)': 1, 'themeSetIdx(4)': 1,
   'uiSetDensity("compact")': 1, 'uiSetDensity("comfortable")': 1, 'uiSetDensity("presentation")': 1,
   toggleDiag: 1,
-  clearComputer: 1,       // v2.04 (item 106): Setup › 🧹 Clear this computer…
+  clearComputer: 1,       // v2.04 (item 106): Setup › Clear this computer…
   // Data
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
   // Reports & exports
-  togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportPPT: 1, toggleEd: 1, execSynopsis: 1, exportCSV: 1,
+  togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportCSV: 1,   // v2.05 (item 114): the deck, the synopsis and Executive Decision are gone
   fydpPickExport: 1, exportCycCompare: 1,   // v2.04 (item 112): 📊 FYDP Spend Plan (Excel) opens the plan picker first
   exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
   linkOpen: 1, linkSet: 1,
@@ -146,7 +153,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     chk(`A · each of the ${Object.keys(WANT).length} calls the old menus made is on the left menu as often as the inventory says (once; twice for the two named), and nothing else is`,
       // v2.03: 67 since v2.02 removed the ATR/BTR tracker's two calls; this read 69, failing, from v2.02 (outside verify:grid's run)
       // v2.04: 71 -- the three AI review entries (item 109) and Clear this computer (item 106)
-      off.length === 0 && Object.keys(WANT).length === 71, off.slice(0, 12).join(' | '));
+      // v2.05: 68 -- the PowerPoint deck, the Exec synopsis and Executive decision removed (item 114)
+      off.length === 0 && Object.keys(WANT).length === 68, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -199,7 +207,7 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
 {
   let copyFile = '';
   try {
-    // a copy published the way Program offices › 📤 Publish PMO copy… publishes one, from a board with synthetic requirements
+    // a copy published the way Program offices › Publish PMO copy… publishes one, from a board with synthetic requirements
     const SVCN = ['USAF', 'ANG', 'AFRC'];
     const items = Array.from({ length: 6 }, (_, i) => ({ id: 'R' + i, grp: ['PSM', 'ATL'][i % 2], team: 't', sect: '', custom: false,
       title: 'Requirement ' + i, event: 'Ev ' + i, ccar: 'CC' + i, fy26: SVCN.map(() => 0), ask: SVCN.map((_, j) => (i + 1) * (j + 1) * 100000), alloc: null }));
@@ -271,7 +279,7 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     await p.keyboard.press('Escape'); await p.waitForTimeout(120);
     const f2 = await p.evaluate(() => ({ open: document.getElementById('uiFly').classList.contains('open'), focus: document.activeElement && document.activeElement.id, exp: document.getElementById('uiNav_aud').getAttribute('aria-expanded') }));
     chk('E · Audit: Enter opens its flyout beside the icons with the keyboard on its first item; Tab reaches the rest; Esc closes it back onto Audit',
-      J([f1, items, f2]) === J([{ open: true, exp: 'true', inFly: true, first: '🕓 Change journal…', left: 70 }, ['🕘 Save history', '✍ Take the pen…', '✎ My editor name…'], { open: false, focus: 'uiNav_aud', exp: 'false' }]), J([f1, items, f2]));
+      J([f1, items, f2]) === J([{ open: true, exp: 'true', inFly: true, first: 'Change journal…', left: 70 }, ['Save history', 'Take the pen…', 'My editor name…']   /* v2.05 (item 114): no icons */, { open: false, focus: 'uiNav_aud', exp: 'false' }]), J([f1, items, f2]));
     // Enter on an item runs it: the flyout closes, its box opens with the keyboard in it, and Esc gives the keyboard back to Audit
     await p.focus('#uiNav_aud'); await p.keyboard.press('Enter'); await p.waitForTimeout(150);
     await p.keyboard.press('Enter'); await p.waitForTimeout(400);
@@ -279,7 +287,7 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       inBox: !!(document.activeElement && document.activeElement.closest && document.activeElement.closest('.modal-bg')) }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(250);
     const g2 = await p.evaluate(() => ({ jrnl: !!jrnlOpen, focus: document.activeElement && document.activeElement.id }));
-    chk('E · Enter on 🕓 Change journal… closes the flyout and opens the journal with the keyboard in it; Esc gives the keyboard back to Audit',
+    chk('E · Enter on Change journal… closes the flyout and opens the journal with the keyboard in it; Esc gives the keyboard back to Audit',
       J([g1, g2]) === J([{ fly: false, jrnl: true, inBox: true }, { jrnl: false, focus: 'uiNav_aud' }]), J([g1, g2]));
     // a box: Enter opens Reports & exports with the keyboard in Find; Esc closes it back onto its entry
     await p.focus('#uiNav_rep'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
@@ -307,14 +315,66 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       ['review', 'rank', 'fund', 'compare', 'brief'].forEach(m => { uiMode = m; uiApply(); syncBtns(); render();
         out[m] = [...document.querySelectorAll('.tbar [onclick]')].map(e => e.getAttribute('onclick')); });
       uiMode = 'review'; uiApply(); render(); return out; });
-    const REPEATS = ['exportPPT', 'execSynopsis', 'toggleEd', 'toggleBands'];
+    const REPEATS = ['toggleBands'];
     const hits = []; Object.entries(got).forEach(([m, hs]) => hs.forEach(h => { const k = callOf(h); if (REPEATS.includes(k)) hits.push(m + ': ' + h); }));
-    chk('F · Bands, Executive decision, PowerPoint deck and Exec synopsis are on no task-bar control in any mode, nor in its folded Tools menu',
+    chk('F · Bands is on no task-bar control in any mode, nor in its folded Tools menu',
       J(hits) === J([]) && Object.keys(got).length === 5 && got.brief.some(h => callOf(h) === 'briefFull'), J(hits));
     chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('F · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
 }
+
+// ── G. nothing on the left menu scrolls sideways, and no item carries an icon (v2.05, items 114 and 115) ─────────────────────
+{
+  const copy = join(dir, 'standin.html');
+  writeFileSync(copy, withStandin(readFileSync(FILE, 'utf8')));
+  const wide = [], icons = new Set(); let seen = 0;
+  for (const [file, font] of [[FILE, 'board font'], [copy, 'Segoe stand-in']]) for (const w of [1920, 1440, 1366, 1024]) {
+    const { p, ctx, errs } = await open(file, w);
+    try {
+      const measure = (where, tag) => p.evaluate(([where, tag]) => {
+        const box = where === '#uiFly' ? document.querySelector('#uiFly') : document.querySelector(where + ' .modal');
+        const out = { wide: [], icons: [], n: 0 }; if (!box) return out;
+        if (box.scrollWidth > box.clientWidth) out.wide.push(tag + ': scrolls sideways, ' + box.scrollWidth + ' inside ' + box.clientWidth);
+        const r0 = box.getBoundingClientRect(), right = r0.left + box.clientLeft + box.clientWidth;
+        const ICON = /^(?:(?![●○$])[^\p{L}\p{N}\s"'“(])+\s/u;
+        box.querySelectorAll('button').forEach(e => {
+          if (!e.getClientRects().length) return; out.n++;
+          e.querySelectorAll('*').forEach(c => { const r = c.getBoundingClientRect(); if (r.width && r.right > right + 0.5)
+            out.wide.push(tag + ': “' + (e.textContent || '').trim().slice(0, 30) + '” reaches ' + Math.round(r.right - right) + 'px past the edge'); });
+          if (e.classList.contains('gh') || e.classList.contains('x')) return;
+          const b = e.querySelector(':scope > b');
+          const t = b ? b.textContent : [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('');
+          if (ICON.test(t.trim() + ' ')) out.icons.push(t.trim().slice(0, 30));
+        });
+        return out; }, [where, tag]);
+      const navs = await p.evaluate(() => [...document.querySelectorAll('#uiSide button[id^="uiNav_"]')].filter(e => e.getClientRects().length).map(e => e.id));
+      for (const id of navs) {
+        await shut(p); await p.click('#' + id); await p.waitForTimeout(120);
+        const where = await p.evaluate(() => { const f = document.querySelector('#uiFly.open'); if (f) return '#uiFly';
+          const m = document.querySelector('#uiImpPanel.open, #uiRepPanel.open, #uiDataPanel.open'); return m ? '#' + m.id : ''; });
+        if (!where) continue;
+        const tag = font + ' ' + w + ' ' + id.replace('uiNav_', '');
+        const take = r => { seen += r.n; wide.push(...r.wide); r.icons.forEach(i => icons.add(id.replace('uiNav_', '') + ': ' + i)); };
+        take(await measure(where, tag));
+        const gs = await p.evaluate(w => [...document.querySelectorAll(w + ' .gh')].map(h => h.getAttribute('data-g')), where);
+        for (const g of gs) {
+          const was = await p.evaluate(([w, g]) => document.querySelector(w + ' .gh[data-g="' + g + '"]').getAttribute('aria-expanded'), [where, g]);
+          if (was !== 'true') { await p.click(`${where} .gh[data-g="${g}"]`); await p.waitForTimeout(100); }
+          take(await measure(where, tag + ' › ' + g));
+        }
+      }
+      await shut(p);
+      if (errs.length) wide.push(tag0(font, w) + ': page error ' + errs[0]);
+    } catch (e) { wide.push(font + ' ' + w + ': the section did not run: ' + String(e.message || e).split('\n')[0].slice(0, 120)); }
+    await ctx.close();
+  }
+  chk('G · the side panels and boxes were opened and their items read', seen > 400, 'only ' + seen + ' items read');
+  chk('G · nothing on the left menu scrolls sideways, and no item reaches past its edge, at 1920, 1440, 1366 and 1024 in both fonts',
+    wide.length === 0, J([...new Set(wide)].slice(0, 6)) + (wide.length > 6 ? ' … ' + wide.length + ' in all' : ''));
+  chk('G · no item on the left menu starts with an icon', icons.size === 0, J([...icons].slice(0, 8)) + (icons.size > 8 ? ' … ' + icons.size + ' in all' : ''));
+}
+function tag0(f, w) { return f + ' ' + w; }
 
 await b.close();
 console.log(bad ? `\n${bad} left-menu check(s) failed\n` : '\nEvery action has one home on the left menu, it works folded and from the keyboard, and the top bar keeps only what it should\n');

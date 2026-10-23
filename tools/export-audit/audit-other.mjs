@@ -1,6 +1,6 @@
 // Audit the two remaining exports that do lane / Mission Critical math:
 //   exportCSV      — the Priority Drill workbook (1-N by band, plus a tab per PMO)
-//   execSynopsis   — the Executive Funding Synopsis (CSV)
+//   (the Executive Funding Synopsis was removed in v2.05, item 114)
 //
 //   exportSrc      — the Spend Plan Source workbook, whose Amount column IS lane arithmetic
 //
@@ -40,12 +40,13 @@ function captureDrill(ev) {
   return JSON.parse(ev('JSON.stringify(globalThis.__s)'));
 }
 
-// execSynopsis writes a CSV into a Blob; record the text instead of downloading it.
-function captureSynopsis(ev) {
+// A CSV export writes into a Blob; record the text instead of downloading it. (v2.05, item 114: it read the Executive
+// Synopsis, removed with the deck; the CSV the board still writes is the proposed 1-N order.)
+function captureCsv(ev, call) {
   ev(`globalThis.__csv=null;
       if(!globalThis.__oB) globalThis.__oB=Blob;
       Blob=function(parts){ globalThis.__csv=String(parts&&parts[0]||''); return new globalThis.__oB(parts); };
-      execSynopsis();
+      ${call};
       Blob=globalThis.__oB; 'ok'`);
   const raw = ev('globalThis.__csv') || '';
   // the writer quotes every cell and escapes " as ""
@@ -109,11 +110,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 
   const SVC = sc.services, ids = sc.order;
   const askArr = id => sc.items.find(x => x.id === id).ask;
-  const askOf = id => sum(askArr(id));
   const unfOf = id => sum(SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i])));
-  const mcShortOf = id => sum(SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i])));
-  const mcIds = ids.filter(id => sc.mc && sc.mc[id]);
-  const discBA = sum(sc.disc);
 
   // ---------------- the Priority Drill ----------------
   const sheets = captureDrill(ev);
@@ -177,29 +174,6 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     });
   }
 
-  // ---------------- the Executive Synopsis ----------------
-  const csv = captureSynopsis(ev);
-  const row = label => csv.find(r => r.some(c => c.includes(label)));
-  const money = t => { const x = String(t).replace(/[$,]/g, '').trim(); return x ? parseFloat(x) : NaN; };
-  {
-    const mcRow = row('★ MC requirements');
-    if (!mcRow) failures.push({ scenario: name, where: 'Exec Synopsis', what: 'MC block missing', got: 'absent', want: 'present' });
-    else {
-      chk(name, 'Exec Synopsis', '★ MC count == starred requirements on the board',
-        Number(mcRow[2]), mcIds.length);
-      chk(name, 'Exec Synopsis', '★ MC requirement value == sum of MC ask values',
-        money(mcRow[5]), mcIds.reduce((a, id) => a + askOf(id), 0));
-    }
-    const shRow = row('short of the discretionary lane');
-    if (shRow) chk(name, 'Exec Synopsis', '★ MC short == ask - discretionary allocated',
-      money(shRow[5]), mcIds.reduce((a, id) => a + mcShortOf(id), 0));
-    const pf = row('PROGRAM FLOOR');
-    if (pf) chk(name, 'Exec Synopsis', 'PROGRAM FLOOR == Disc BA + MC short',
-      money(pf[3]), discBA + mcIds.reduce((a, id) => a + mcShortOf(id), 0));
-    const uf = row('Requirements with unfunded portions');
-    if (uf) chk(name, 'Exec Synopsis', 'unfunded total floored per service',
-      money(uf[5]), ids.reduce((a, id) => a + unfOf(id), 0));
-  }
 }
 
 // ══ THE SPEND PLAN SOURCE SENDS WHAT THE LANES PAID, EACH LANE ON ITS OWN LINE ═════════════
@@ -787,12 +761,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'kept', 'text and the figures ORBIT formats stay exactly as they were', J(KEEP.map(k => cellOf(k[0]))), J(KEEP.map(k => k[1])));
   chk(name, 'kept', 'a true number stays a number, negative included',
     J([ev(`csvCell(-42)`), ev(`csvCell(3.5)`), ev(`csvCell(0)`), ev(`csvCell(null)`)]), J(['"-42"', '"3.5"', '"0"', '""']));
-  // THROUGH A REAL EXPORT: the Executive Synopsis lists a Mission Critical requirement short of discretionary by the
-  // name the board shows for it (its plan event)
-  seed(ev, { services: ['USAF'], items: [{ id: 'Q', grp: 'AV', team: 'AV', sect: '', custom: false, title: 't', event: '=HYPERLINK("http://x","y")',
+  // THROUGH A REAL EXPORT: the proposed 1-N order lists the requirement by the name the board shows for it (v2.05: it was
+  // the Executive Synopsis, removed with the deck)
+  seed(ev, { services: ['USAF'], items: [{ id: 'Q', grp: 'AV', team: 'AV', sect: '', custom: false, title: '=HYPERLINK("http://x","y")', event: '=HYPERLINK("http://x","y")',
     ccar: '', fy26: [0], ask: [100], alloc: null }], disc: [40], mand: [0], order: ['Q'], mc: { Q: true } });
-  const rows = captureSynopsis(ev);
-  chk(name, 'export', 'the synopsis writes the name as text, apostrophe first',
+  const rows = captureCsv(ev, 'exportProposedOrder()');
+  chk(name, 'export', 'the proposed order writes the name as text, apostrophe first',
     J(rows.flat().filter(c => /HYPERLINK/.test(c))), J([`'=HYPERLINK("http://x","y")`]));
   chk(name, 'export', 'and leaves every figure in it alone', rows.flat().filter(c => /^'[-+$\d]/.test(c)).length, 0);
   } catch (e) {

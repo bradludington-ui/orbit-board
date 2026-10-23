@@ -52,7 +52,6 @@ const REGISTRY = {
   crExportRows: { money: true,  what: 'the 1A9A CR cash return' },
   exportExcel:  { money: true,  what: 'the breakouts workbook — lanes, bands, matrices, unfunded' },
   exportCSV:    { money: true,  what: 'the Priority Drill' },
-  exportPPT:    { money: true,  what: 'the PowerPoint deck' },
   exportPlans:  { money: true,  what: 'Plan A / Plan B two-plan forecast' },
 
   // The five below were recorded gaps from 15 Sep 2026 and were closed on 19 Sep 2026, each with a
@@ -61,7 +60,6 @@ const REGISTRY = {
   crData:       { money: true,  what: 'CR cash needs by half-month window', via: ['crBuckets', 'landSvc'] },
   exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
   exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk'] },
-  execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
   exportCycCompare: { money: true, what: 'the two-cycle comparison — A, B and Δ per year, the Changes sheet, and the rows accounting for the totals',
                   via: ['cycCmpData', 'cycCmpBody'] },
@@ -176,7 +174,7 @@ for (const [name, v] of Object.entries(REGISTRY).filter(([, x]) => !x.money))
 
 // a surface the board has but the registry does not is the stale-list trap: fail, never pass
 const declared = new Set(Object.keys(REGISTRY));
-const found = [...src.matchAll(/^function\s+(export[A-Za-z0-9_]*|execSynopsis|crExportRows|srcRowsOf|crData)\s*\(/gm)]
+const found = [...src.matchAll(/^function\s+(export[A-Za-z0-9_]*|crExportRows|srcRowsOf|crData)\s*\(/gm)]
   .map(m => m[1]);
 const undeclared = [...new Set(found)].filter(n => !declared.has(n));
 if (undeclared.length) fails.push('in the board but not in the REGISTRY: ' + undeclared.join(', ')

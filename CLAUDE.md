@@ -1,7 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
-about 34,000 lines, 4.0 MB (1.6 MB of it the PowerPoint template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
+about 34,000 lines, 2.4 MB (4.0 MB until v2.05 removed the PowerPoint deck and its 1.6 MB template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
 ## One build: `prioritization-board-grid.html` (since v1.88)
@@ -89,21 +89,24 @@ left menu, top to bottom:
 - **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
   **Execution ▸** (Active Year Execution, Spend Plan Forecast, CR Cash Needs, QPE coverage, ORBIT vs CCaR; Reprogramming
   Actions went with the ATR/BTR tracker in v2.02), Cycles & compare, Brief. A view lives there and nowhere else.
-- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the groups as
-  labelled sections (`sec()`; five since v2.02, when Execution & reprogramming went with the tracker), each item one click; a section whose views moved says where they are.
+- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Find with Pre-Flight Check beside it, then two plain
+  lists of sections (`sec()`: Working Documents, Spend Plan & Cash, Five Years & PPBE; CCaR & Accounting Files, AI Review),
+  each item one click, a title in title case with its format on a tag (`ri()`: XLSX, TXT, VIEW, READ), and a foot naming
+  where the views live and linking the companion tool (v2.05, item 114).
 - **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
   out, and packages); **Data** (box `#uiDataPanel`, `dd_data`: a card per source, with when it was last loaded);
   **Program offices ▸** (`dd_offices`: Publish PMO copy, Review submittals, load one or all submittals; hidden in a PMO
   copy); **Audit ▸** (`dd_audit`: change journal, save history, take the pen, my editor name); **History & recovery ▸**
-  (earlier copies, and work kept aside from `dd_kept`); **Setup ▸** (`dd_setup`: Who and where, Codes and structure,
-  Appearance as folded groups, then Live view and Save diagnostics).
+  (earlier copies, and work kept aside from `dd_kept`); **Setup ▸** (`dd_setup`: Who and where -- Linked tool… among it
+  since v2.05 --, Codes and structure, Appearance as folded groups, then Live view, Save diagnostics, Clear this computer).
 - **Foot:** 💾 Save (`#saveBtn`, `saveInPlace()`; Ctrl+S too), its ▾ (`dd_save`: Save a copy), the save state
   (`#saveState`) and who holds the pen. In a PMO copy the button is ✉ Submit input.
 
 `syncBtns()` writes every list, by the same `mi()`/`grp()` items and calls the menus had; a flyout (`#uiFly`) borrows
-its list from `#uiHold` while open. A menu path in a message or the guide names the left-menu entry ("Audit › ✎ My
-editor name…", "Setup › Who and where › 🏷 Services…", "Reports & exports › Briefing › 📽 PowerPoint deck"), and `npm
-run menus` checks each. `npm run leftmenu` holds the whole map: every call the old menus made, reached from the left
+its list from `#uiHold` while open. **No item in the left menu's boxes and side panels carries an icon** (v2.05, item 114:
+`uiPlain()` takes it off where each list is written; the tick, ● and ○, … and ▸ stay). A menu path in a message or the
+guide names the left-menu entry without an icon ("Audit › My editor name…", "Setup › Who and where › Services…",
+"Reports & exports › Working Documents › Excel Workbook"), and `npm run menus` checks each. `npm run leftmenu` holds the whole map: every call the old menus made, reached from the left
 menu exactly once (the named exceptions: Save by Ctrl+S too; Live view from Setup and from Earlier copies; work kept
 aside from History & recovery and the save state's notice), nothing at the top right, nothing repeated on the task bar,
 a PMO copy, and the menu folded and from the keyboard. **The version sections below name the menus as they were** (📁
@@ -1355,17 +1358,16 @@ that moves with the view without a marker saying so.
 
 ```
 npm install        # jsdom, for the audit only
-npm run audit          # all four suites
+npm run audit          # every suite
 npm run audit:export   # the Excel workbook (exportExcel)
-npm run audit:ppt      # the PowerPoint deck (exportPPT)
-npm run audit:other    # the Priority Drill (exportCSV) and Exec Synopsis (execSynopsis)
+npm run audit:other    # the Priority Drill (exportCSV), and more
 npm run audit:board    # figures the board derives and never exports
 ```
 
 Point any of them at the grid build with `BOARD=$PWD/prioritization-board-grid.html`.
 
-**Which exports do lane math at all.** Four do it directly: `exportExcel`, `exportPPT`, `exportCSV`
-and `execSynopsis`. ACE Tie-Out, Chart of Accounts, ATR/BTR Log and CR Cash Return reconcile against
+**Which exports do lane math at all.** Two do it directly since v2.05 removed the deck and the synopsis: `exportExcel`
+and `exportCSV` (it was four, with `exportPPT` and `execSynopsis`). ACE Tie-Out, Chart of Accounts, ATR/BTR Log and CR Cash Return reconcile against
 imported sources and never touch `tiers()`, the star or unfunded, so they stay outside these suites.
 
 **The month-by-month sheets are the exception, and they are easy to miss.** *Spend Plan Source* is
@@ -2172,7 +2174,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog` (the reprogramming log: carried, not shown, since
 v2.02), `prio27appn`, `prio27who`,
-`spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
+`spmtTheme`, `spmtSidecar`, `prio27cycGo` (v2.05: the appropriation a Go to under PPBE cycles is opening, removed when it opens); and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
 aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
 `prio27writerKey` (this browser's writer key; the file holds only its fingerprint) and `prio27impMixed`
@@ -2227,17 +2229,14 @@ Inside the main script, roughly in order: appropriation tables and boot (879–1
 realignment (1600), FYDP (3247), change journal (3794), appropriation packages (4229), RCN/EEIC
 (5418), CR cash view (5790), a from-scratch XLSX reader (5984), budget families (6454), pre-flight
 (7009), WBS from execution data (7342), ACE mapping (7468), CCaR reconciliation (7813), funds-flow
-charts (8216), executive decision tool (10321), QPE coverage (10735), spend plans (11046), PPBE
+charts (8216), decision bands (10321; the executive decision tool there was removed in v2.05), QPE coverage (10735), spend plans (11046), PPBE
 baselines (11716), dated snapshots (12618), reprogramming tracker (13708), CLIN drill (14312), WBS
-(14501), XLSX writer (15412), PPTX export (15577), command bar (15841), Live View (16311),
+(14501), XLSX writer (15412; the PPTX export after it was removed in v2.05), Live View (16311),
 shared-folder transport (16472–17361; Confluence, SharePoint and the JSON endpoint removed in v2.04), companion tools (17774),
 ACE tie-out workbook (18213).
 
-Two embedded Office templates, both base64, both generated-code regions — do not hand-edit:
-
-- **line 15580** — a 1.62 MB PPTX template (58% of the file). Exports are built *inside* the real
-  SFWG/SFCB membership deck so they land on-brand.
-- **15412–15576** — a minimal XLSX writer with its own stylesheet.
+The minimal XLSX writer (§36) carries its own stylesheet. The 1.62 MB PPTX template that sat after it (the SFWG/SFCB
+membership deck the PowerPoint export was built inside) was removed with the deck in v2.05, item 114.
 
 The XLSX reader uses the browser's native `DecompressionStream`; there is no zip library.
 
@@ -4236,6 +4235,66 @@ not, with the reason.
 declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.
 **Mutation ids are single-quoted** (`{ id: '…'`): `money-coverage.mjs` reads only that form, so a double-quoted id is invisible
 to the coverage census.
+
+### v2.05 (items 114–116): Reports & exports cleaned up, the deck removed, no icons on the left menu, each appropriation's lock named
+
+Brad, 23 Oct 2026, from photos of the real board. `NEXT-VERSION.md` › Shipped › v2.05 has every decision.
+
+**Removed entirely** (item 114: "Remove their code and remove them entirely"): the PowerPoint deck (`exportPPT`, `buildPptx`,
+the `_p*` slide builders, `fSM`, `_PPT`, `spendPlanByMonth`, which only the deck's chart read, and `TPL_PARTS` -- the 1.6 MB
+template, with its fence in `check.mjs` and `tools/tpl-parts.sha256`), the Executive Synopsis (`execSynopsis`) and the Executive
+Decision box (`toggleEd`, `edBody`, `#edPanel`). `edCompute`/`edWalk` stay: Preview proposed 1–N order walks the bands by them,
+and the Bands panel now says so. Found with a parser-built call graph, as in item 104. The deck's suite (`audit-ppt.mjs`,
+`npm run audit:ppt`) went with it; so did its block in audit-recon (9), the W6 deck and synopsis checks, the U37 deck checks
+(B1-B4, C12, the deck route in D and in the D4-1 round trip), the v1.86 chart block in audit-import, the synopsis checks in
+audit-other (its CSV-safety check now runs through `exportProposedOrder`, the CSV the board still writes), the trace matrix's two
+deck surfaces (`trace-stated.json` regenerated: only `ppt ·` cells left it), the money map's four rows and six checks, and 26
+mutations, retired as obsolete with a comment where each stood. **No board data is lost**: none of the three stored anything.
+
+**The Reports & exports box** (item 114): two plain lists -- a heading and a rule, never a card -- and each report a title in
+title case (Brad: "all first letters uppercase", small words included), one line of hint and its format on a tag (`ri()`); Find
+with **Pre-Flight Check** beside it; Briefing renamed **Working Documents**; the foot names where each view lives and links the
+companion tool, and *Linked tool…* (changing it) is under Setup › Who and where. **Find reads the tag's words** (`data-k`): the
+titles lost "(Excel)", so without it "excel" found one workbook of nine. Taking words out of a title is a search change; check
+Find. The box is 860px wide (1,060 before).
+
+**No icons on the left menu** (item 114: "Leave the icons off"): `uiPlain()` takes the leading symbols off every item where a
+left-menu list is written (`dd_data`, `dd_setup`, `dd_offices`, `dd_audit`, `dd_kept`, `dd_save`, `dd_boards`), and the
+flyouts' own items were written without them. The tick, ● and ○ for the theme in use, and … and ▸ stay. The nav entries keep
+theirs: folded to a rail, the icon is all that shows. Every guide and message path was reworded (`npm run menus`). The Imports &
+exports cards keep their drawn SVG pictograms; only emoji were taken off.
+
+**The side panels scrolled sideways** (item 115): an item's hint was a whole line wide plus its 22px indent. It is that much
+narrower now (`calc(100% - 22px)`), keeping the indent under the title. `npm run leftmenu` G opens every side panel and box,
+every folded group, at 1920, 1440, 1366 and 1024 in both fonts, and fails on a sideways scroll, an item past its edge or an
+item that starts with an icon -- proved on v2.04, where it fails on all three.
+
+**Each appropriation's lock, named and seen** (item 116; Brad: "lock each appropriation against a PPBE cycle, not just one
+comprehensive lock"). A lock always was one appropriation's (its own `CYCDB`); nothing said so. `cycApTxt(key)`/`cycAp(key)`
+name it "O&M PB27" on the lock button and question, the status line, the cycles list, the view's banner, header tag, title and
+every file name (`expName`'s `[O&M PB27 LOCKED]`). The key stays `PB|2027`. **Locks by appropriation**, at the top of PPBE
+cycles (`cycOverview()`, `cycOverviewHtml()`), reads each appropriation's cycles (`cycStoreOf`) and working tag (`fydpStoreLocal`)
+-- read, never written -- and shows locked, reopened or not locked, with who and when (`cycCellOf`). The appropriations share
+one calendar (Brad), so the latest working tag is the calendar (`cycKeyRank`: year, then POM, BES, DoN, PB) and one behind it
+is flagged; the board on screen offers **Retag … as …** (`cycRetagLead`) in the panel and when it opens. **Go to** switches
+appropriation and leaves `prio27cycGo` in this browser so that board opens with PPBE cycles open; it is never part of the board.
+After a lock the status names the appropriations holding a plan that have not locked that cycle (`cycNotLocked`). Locking and
+reopening stay on each appropriation's own board: a figure for another appropriation worked out on this page would be a second
+engine (the v1.85 rule). **Who can lock is not enforced**: the file has no sign-in; the name is the one typed under Audit › My
+editor name, the folder's permissions are the guard, and Help says the Azure build will enforce the role (item 107).
+
+**Checks.** audit-board: "v2.05 — each appropriation is locked on its own board, named, and seen side by side (item 116)", the
+v1.96 menu block's Reports & exports checks (sections, titles and tags, no icons, Find, Linked tool), the view's names.
+audit-inject: two T4 pins and two K5 pins moved with the lines. Mutations: 15 new (`v205-114-*` 6, `v205-116-*` 9), 9 retargeted,
+26 retired (2,108 targets, each matching once); every new and retargeted one was run against its check and caught.
+
+**Proved with** every suite and browser check on the final tree (layout: only the carried D ×8; standards: nothing new), the
+defect register, money coverage, the money map, the trace matrix, the fuzz and the file verifier; the sweep was not run. The
+first whole run after the push found recon and ui still expecting v2.04's words -- **a change of wording is a change to every
+suite that quotes it: grep the suites for the old text before the run, not after.**
+
+**A test written as a JS string inside `ev(\`…\`)` is a template literal**: `\s` and `\p` there are `s` and `p` unless the
+backslash is doubled. The first cut of the item 116 test "failed" on text with every s removed.
 
 ## Colour: one token, one job
 

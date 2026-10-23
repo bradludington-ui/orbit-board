@@ -606,35 +606,7 @@ function awardOrderSelftest() {
   return { bad, refused: UNSAFE.length, passed: VALID.length };
 }
 
-// ---- the PowerPoint template is data, and only data (v2.00) ------------------------------------
-// TPL_PARTS is the one place a reviewer cannot read: 1.6 MB of base64 on a single line. The fence
-// comment around it (§36) promises it holds no code; this proves it. The line is parsed as JSON,
-// every value must be base64, and its SHA-256 must match the fingerprint recorded beside this file.
-// A change to the template is deliberate and re-records the hash; an accidental edit fails here.
-console.log('\npowerpoint template');
-try {
-  const line = lines.find(l => l.startsWith('const TPL_PARTS='));
-  if (!line) fail('could not find the TPL_PARTS line');
-  else if (lines.filter(l => l.startsWith('const TPL_PARTS=')).length !== 1) fail('TPL_PARTS is declared more than once');
-  else if (!line.endsWith('};')) fail('the TPL_PARTS line does not end its object — it may have been reflowed');
-  else {
-    let obj;
-    try { obj = JSON.parse(line.slice('const TPL_PARTS='.length, -1)); }
-    catch (e) { obj = null; fail(`TPL_PARTS is not a JSON object on one line: ${e.message}`); }
-    if (obj) {
-      const notB64 = Object.keys(obj).filter(k => typeof obj[k] !== 'string' || !/^[A-Za-z0-9+/]*={0,2}$/.test(obj[k]));
-      if (notB64.length) fail(`TPL_PARTS holds a value that is not base64: ${notB64.slice(0, 3).join(', ')}`);
-      else pass(`TPL_PARTS parses as ${Object.keys(obj).length} base64 parts and holds no code`);
-      const { createHash } = await import('node:crypto');
-      const want = readFileSync(new URL('./tpl-parts.sha256', import.meta.url), 'utf8').trim();
-      const got = createHash('sha256').update(line, 'utf8').digest('hex');
-      if (got !== want) fail(`the template line's SHA-256 ${got.slice(0, 12)}… does not match tools/tpl-parts.sha256 ${want.slice(0, 12)}… — if the change was intended, re-record it`);
-      else pass('the template line matches its recorded fingerprint');
-    }
-  }
-} catch (e) {
-  fail(e.message);
-}
+// (v2.05, item 114: the PowerPoint template's fence and fingerprint went with the deck, which Brad had removed.)
 
 // ---- the mutation list parses (v2.01) ------------------------------------------------------------
 // mutate.mjs is read as TEXT during development (mcount.py, mkmut.py), and a text reader forgives what a JavaScript
