@@ -190,6 +190,29 @@ Current version: **v2.05**. Next: **v2.06**.
     unchanged.
   - Mutations for each rule.
 
+#### 118. PPBE Budget Positions: each RCN / EEIC line on one row (Brad, 23 Oct 2026)
+- **Seen (photo of the real board, BES28, USAF, one figure per line):** in the 🏛 PPBE Budget Positions box, each line's RCN
+  box sits on one row and its EEIC box and ✕ wrap onto the next. With two lines (41392 / 57811, 41395 / 57815) it reads as
+  four, and the year figure floats between them. Brad: *"I need those to be line item across ... it makes it very hard to
+  read when it's duplicated lines like that."*
+- **Why (read in v2.05):** the table is `.fctab`, which is `table-layout:fixed`, so the first column's `min-width:210px`
+  is ignored (CLAUDE.md, *Photograph every panel*: "`.fctab` is `table-layout:fixed`, where `min-width` is ignored"). And
+  `.fctab td:first-child` is `white-space:normal`. The column takes an equal share of a box that also holds seven year
+  columns and a Total, and "RCN [box] EEIC [box] ✕" wraps where the space runs out.
+- **Proposed fix:**
+  - The line's label cell (RCN, its box, EEIC, its box, ✕) never wraps, so every RCN / EEIC line is one row: label, then
+    that line's figure under each year, then its Total.
+  - The first column gets an explicit `width`, wide enough for the RCN / EEIC pair, set on a class for this box and not
+    on the shared `.fctab`, so the other tables don't move. The year columns keep their widths, and the box's existing
+    sideways scroll takes any excess on a narrow window.
+  - With the Discretionary / Mandatory split on, the label stays one row over its Discretionary and Mandatory rows, as now.
+  - SI, cost-element and service-level lines are unchanged.
+- **To prove it on go:**
+  - `npm run layout` gains a check: open PPBE Budget Positions with two or more RCN / EEIC lines, at 1920, 1440, 1366 and
+    1024 wide, both fonts. Each line's RCN box, EEIC box and ✕ sit on one row (same top, within a pixel), neither box cuts
+    off its value, and the line's year boxes are on that row. It is shown failing on v2.05 first.
+  - `npm run panels` and `npm run standards` stay clean.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
