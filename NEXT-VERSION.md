@@ -92,6 +92,49 @@ Current version: **v2.04**. Next: **v2.05**.
   the Segoe stand-in, and fails on any panel or box that scrolls sideways or has an item reaching past its edge. It must
   fail on v2.04 (the four panels above) before it is trusted.
 
+#### 116. Lock each appropriation against a PPBE cycle, and see which are locked (Brad, 23 Oct 2026: "I need to have the ability to lock each appropriation against a PPBE cycle, not just one comprehensive lock")
+- **What the board already does (read in the code, and held by v1.85's tests):** a lock is already per appropriation.
+  Each appropriation keeps its own cycle store (`CYCDB`, under `_AP.key+'-cyc'`). 🔒 Lock (`cycLock`) copies only the
+  appropriation on screen, and its tag (`MS.cycle`) and reference (`MS.cycleRef`) are its own. v1.85's tests lock PB27
+  on Full Fund and O&M and leave Spares unlocked.
+- **Why it reads as one comprehensive lock:** (1) nothing says which appropriation. The button reads "🔒 Lock FY27, …
+  as PB27", the question "Lock the FYDP window as PB27?", the cycles list "PB27". (2) There is no view across the
+  appropriations: seeing which hold PB27 means switching to each one. (3) The five-year spend plan workbook picks "PB27"
+  for every appropriation at once, and leaves out one that has not locked it.
+- **Proposed, no data change:**
+  1. **The appropriation is named wherever a lock is.** The button reads "🔒 Lock O&M FY27–FY31 as PB27", and the
+     question, the status line, the cycles list, the locked view's banner, `document.title` and `expName` file names
+     all say "O&M PB27". The stored key stays `PB|2027`: it is already scoped by the store it sits in, and renaming it
+     would break every cycle already locked.
+  2. **A lock overview in the cycles panel:** appropriations down the side, the cycles any of them holds across the
+     top. Each cell shows 🔒 with the date and who locked it, 🔓 reopened (date, who), or *not locked*; beside each
+     appropriation, its working tag. Read from each appropriation's own store (`cycStoreOf`, as the file save already
+     does), never written from here. A cell's button opens that appropriation's board with the cycles panel open, to
+     lock or unlock there.
+  3. **Lock and unlock stay on each appropriation's own board.** The engine computes one appropriation per page, and a
+     figure for another worked out here would be a second engine (the v1.85 rule). No "Lock all".
+- **Brad's decisions (23 Oct 2026):**
+  - **(1) The five-year workbook, a cycle not locked everywhere: (a).** An appropriation that has not locked the cycle
+    stays off it, and every tab says so ("SPARES has not locked PB27; its figures are not on this tab"), as it does
+    now. A locked report never mixes in a working plan.
+  - **(2) "They follow the same calendar and timeline."** So the overview flags an appropriation whose working tag
+    differs from the others' (⚠ "Full Fund is still tagged PB27; O&M, Spares and OPN are BES28"). When an appropriation
+    opens tagged behind the others, its status line offers to retag it (the existing `cycRetagNext`, one click, on its
+    own board). Each appropriation's tag is still written only on its own board, so a retag never writes into another
+    appropriation's storage. After a lock, the status line says which appropriations have not yet locked that cycle.
+  - **(3) "Appropriation Leads or myself can lock or unlock."** Anyone working on that appropriation's board can, as
+    now. Every lock, reopen and lock again is already stamped with the editor's name (`unlocks`, `cycStampLines`), and
+    the overview shows who and when. **What the file cannot do is enforce who.** It has no sign-in: the name is the one
+    typed under Audit › My editor name, and the guard is the folder's permissions and the pen (one writer per board
+    file, v1.95). Enforcing the role (Appropriation Lead or portfolio lead) belongs to the Azure build's sign-in (item
+    107), where it is logged on to the record. Help says this in one sentence.
+- **Checks a build carries:** audit-board: a board with four appropriations, two locked as PB27 and one reopened; the
+  overview's cells against each store; the named labels; the out-of-step tag flag and its offer; nothing written to
+  another appropriation's storage (storage byte-identical outside the board's own key); and the status line after a
+  lock naming the ones still to lock. audit-recon: the five-year workbook with PB27 locked on two of four still leaves
+  the other two off every tab, with the note. Mutations for each. `npm run panels`, `standards`, `keys` and `dialogs`
+  measure the overview.
+
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
