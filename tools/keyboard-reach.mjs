@@ -594,7 +594,7 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const o = await p.evaluate(() => ({ open: diagOpen, focus: document.activeElement && document.activeElement.id,
       text: document.getElementById('diagPre').textContent }));
-    chk('K · Setup › 🩺 Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
+    chk('K · Setup › Save diagnostics is reached by keyboard and opens with Save focused', steps > 0 && o.open && o.focus === 'diagSave',
       `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify({ open: o.open, focus: o.focus })}`);
     chk('K · the real script error is in it, without the title or the figure', /ERROR {4}.*cannot total … at \$#/.test(o.text)
       && o.text.indexOf(title) < 0 && !/7,654,321/.test(o.text), (o.text.split('\n').filter(l => /ERROR {4}/.test(l))[0] || 'no ERROR line').trim().slice(0, 120));

@@ -53,8 +53,8 @@ const WANT = {
   // the ▾ beside Save
   publishState: 1,
   // History & recovery
-  toggleLive: 2,          // TWO ON PURPOSE: History & recovery › ↶ Earlier copies… and Setup › 📡 Live view… open the same box (the copies are kept in Live view)
-  keptPutBack: 2,         // TWO ON PURPOSE: History & recovery › ↶ Put back work kept aside…, and the save state's own "↶ work kept aside" notice at the foot, as it was in the context bar
+  toggleLive: 2,          // TWO ON PURPOSE: History & recovery › Earlier copies… and Setup › Live view… open the same box (the copies are kept in Live view)
+  keptPutBack: 2,         // TWO ON PURPOSE: History & recovery › Put back work kept aside…, and the save state's own "↶ work kept aside" notice at the foot, as it was in the context bar
   keptSaveFile: 1, keptDiscard: 1,
   // Program offices
   publishPmoCopy: 1, subOpenReview: 1, "uiPmoLoad('one')": 1, "uiPmoLoad('all')": 1,
@@ -67,7 +67,7 @@ const WANT = {
   'themeSetIdx(0)': 1, 'themeSetIdx(1)': 1, 'themeSetIdx(2)': 1, 'themeSetIdx(3)': 1, 'themeSetIdx(4)': 1,
   'uiSetDensity("compact")': 1, 'uiSetDensity("comfortable")': 1, 'uiSetDensity("presentation")': 1,
   toggleDiag: 1,
-  clearComputer: 1,       // v2.04 (item 106): Setup › 🧹 Clear this computer…
+  clearComputer: 1,       // v2.04 (item 106): Setup › Clear this computer…
   // Data
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
   // Reports & exports
@@ -207,7 +207,7 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
 {
   let copyFile = '';
   try {
-    // a copy published the way Program offices › 📤 Publish PMO copy… publishes one, from a board with synthetic requirements
+    // a copy published the way Program offices › Publish PMO copy… publishes one, from a board with synthetic requirements
     const SVCN = ['USAF', 'ANG', 'AFRC'];
     const items = Array.from({ length: 6 }, (_, i) => ({ id: 'R' + i, grp: ['PSM', 'ATL'][i % 2], team: 't', sect: '', custom: false,
       title: 'Requirement ' + i, event: 'Ev ' + i, ccar: 'CC' + i, fy26: SVCN.map(() => 0), ask: SVCN.map((_, j) => (i + 1) * (j + 1) * 100000), alloc: null }));

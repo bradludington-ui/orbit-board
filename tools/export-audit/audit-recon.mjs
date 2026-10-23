@@ -6398,7 +6398,7 @@ await (async () => {
     const NAME = 'ORBIT Funds Flow - FY27 all appropriations PLANNED board allocation O M';
     const SCOPE = 'Scope: FY27 · all appropriations · PLANNED (board allocation, O&M)';
     const CALC = [[500000000, 0, 500000000, 0, 0, 500000000], [2027], '{}', '[2027]'];
-    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]];
+    const BOOK = ['ok', NAME + ' [O&M PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]];
     const PANEL = ['500.00', '', ''];
     // ---- CONTROL: PB27 viewed, nothing typed
     ev(`cycView(${J(key)}); 'ok'`);
@@ -6774,7 +6774,7 @@ await (async () => {
     const ALL4 = ['om', 'ff', 'sp', 'opn'];
     const CALC = [[500000000, 0, 500000000, 0, 500000000, 0, 500000000], [2027], ALL4, PS0, RU0, DEPOT[2]];
     const PANEL = ['500.00', 'LM', DEPOT[2], 'flowSetPseudo("on",true)', true];
-    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []];
+    const BOOK = ['ok', NAME + ' [O&M PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [0], [500000000], [0], TOK, DEPOT, []];
     // ---- CONTROL: PB27 viewed, nothing changed
     ev(`cycView(${J(key)}); 'ok'`);
     w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count FY27’s $500,000,000 under Program Operations & Support, every setting as the working plan holds it',
@@ -6893,13 +6893,13 @@ await (async () => {
     // ---- CONTROL: PB27 viewed, nothing changed
     ev(`cycView(${J(key)}); 'ok'`);
     w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count the same $43,000,000, the unfunded row as Lockheed Martin',
-      J([ev('CYCVIEW'), calc(), radio(), await book()]), J(['PB|2027', CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
+      J([ev('CYCVIEW'), calc(), radio(), await book()]), J(['PB|2027', CALC, LM, BOOK(NAME + ' [O&M PB27 LOCKED].xlsx')]));
     // ---- PB27 viewed: "Hold outside the flow" chosen -- refused; the status line is read at once
     const fired = choose('aside'), s = said();
     w5Chk(name, 'PB27 viewed · “Hold outside the flow” chosen for the Unfunded Priority List', 'refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count $43,000,000 with the unfunded row as Lockheed Martin',
       J([fired, s, calc(), radio(), await book()]),
       J(['fired', '🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.',
-        CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
+        CALC, LM, BOOK(NAME + ' [O&M PB27 LOCKED].xlsx')]));
     // ---- CONTROL: the view left -- the working plan holds the setting as it was, and nothing durable moved
     ev(`cycLeave(); 'ok'`);
     w5Chk(name, 'refused · the view left', 'CONTROL — the working plan counts the same $43,000,000; the cycle store and browser storage are byte for byte as they were',
@@ -7611,7 +7611,7 @@ await (async () => {
     // always did, POM27 keeps [K1], and a new board takes the saved file. An entry that is not one ("K9") is said as the door says it.
     // CONTROL: an ordinary [K1, K2] is asked what it always was.
     {
-      const Q = 'Lock the FYDP window as POM27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
+      const Q = 'Lock O&M’s FYDP window as POM27?\n\nThis locks O&M alone; each appropriation is locked on its own board.\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
         + 'budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.';
       const QEND = '\n\nThe working board is not changed.';
       const KEEPS = what => '\n\nThe RCN / EEIC list it keeps ' + what + '. A locked cycle’s list stays as it was locked, so ⬅ Import one '
@@ -7703,9 +7703,9 @@ await (async () => {
     {
       const UNLOCK = 'Unlock PB27?\n\nA locked cycle is meant to be a fixed point in time. Unlocking lets it be overwritten or deleted. The unlock is '
         + 'stamped with your name.';
-      const QPB = 'Lock the FYDP window as PB27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
+      const QPB = 'Lock O&M’s FYDP window as PB27?\n\nThis locks O&M alone; each appropriation is locked on its own board.\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the '
         + 'budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.'
-        + '\n\nThis replaces the existing PB27 cycle.\n\nThe working board is not changed.';
+        + '\n\nThis replaces the existing O&M PB27 cycle.\n\nThe working board is not changed.';
       const told = '“cycle.html” was not imported: ' + AT_PB + TWICE + '.\n\n' + RULE + ' ' + NOW + ' ' + CYCLE + ' ' + FULL + ' Nothing on this board was changed.';
       // every question `code` asks, kept and answered yes, and what `out` reads after
       const asked = (ev, code, out) => JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; };
@@ -7808,12 +7808,12 @@ await (async () => {
       const X = boot();
       w5Chk(name, 'the help · ⬅ Import one appropriation', 'it says a file carrying a locked cycle whose list breaks the rule is refused, whichever board saved it, and what takes it',
         X.ev(`(function(){ var s=helpSections().filter(function(x){ return x.id==='t-one'; })[0]; if(!s) return 'no section';
-          var p=[].slice.call(s.el.querySelectorAll('p')).filter(function(p){ return /⬅ Import one appropriation…/.test(p.textContent); })[0]; return p? p.textContent : 'no paragraph'; })()`),
-        'Imports & exports › ⬅ Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
+          var p=[].slice.call(s.el.querySelectorAll('p')).filter(function(p){ return /Import one appropriation…/.test(p.textContent); })[0]; return p? p.textContent : 'no paragraph'; })()`),
+        'Imports & exports › Import one appropriation… takes appropriations back from any board file. It lists what the file holds and '
           + 'takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked '
           + 'cycles come with it. Nothing else on the board changes. A file that carries a locked cycle whose RCN / EEIC list breaks the rule for one — a '
           + 'key repeated, missing, not text or beginning with two underscores, or something in it that is not an entry — is refused, whichever board saved '
-          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and Imports & exports › ⬅ Import a full '
+          + 'it: a locked cycle’s list stays as it was locked. Such a file opens as a board, and Imports & exports › Import a full '
           + 'board (new version)… takes it whole.');
     }
     // the door on the rest of the rule
