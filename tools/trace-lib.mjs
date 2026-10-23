@@ -275,20 +275,20 @@ if (hasCycles) {
       return D? {ask:D.tot.askNow, funded:D.tot.fundNow, discBA:D.pots.discNow, mandBA:D.pots.mandNow, zero:Math.abs(D.tot.ask)+Math.abs(D.tot.fund)} : null; })())`));
     if (d) { if (d.zero > 0.5) throw new Error('the deltas against the lock just taken are not zero: ' + d.zero); delete d.zero; add('cycle deltas (panel, now)', 'visual', 0.5, d); }
   }
-  // 1e. THE FYDP SPEND PLAN -- the working plan's column for the year on screen. Funded on the report
-  //     IS the board's Funded for that year, and By Service carries the pots beside the draw.
+  // 1e. THE FYDP SPEND PLAN (v2.04, item 112) -- the working plan's appropriation tab, the year on screen. Requirement is
+  //     the requirement and Allocated is discretionary + mandatory drawn: the board's Funded. Printed in $M; read in dollars.
   if (ev(`typeof exportFydpPlan==='function'`)) {
-    const FY = 'FY' + (+ev('MS.cur') % 100), keepSrc = ev('fydpSrc');
+    const FY = 'FY' + (+ev('MS.cur') % 100), keepSrc = ev('fydpSrc'), app = ev('appnName(mySlug())');
     ev(`fydpSrc='working'; 'ok'`);
     const sheets = grab('exportFydpPlan');
     ev(`fydpSrc=${JSON.stringify(keepSrc)}; 'ok'`);
-    const br = rowsOf(sheets.find(s => s.name === 'By Requirement')), bs = rowsOf(sheets.find(s => s.name === 'By Service'));
+    const at = rowsOf(sheets.find(s => s.name === app));
+    const h = at.findIndex(r => txt((r || [])[0]) === 'CCaR Record'), c = h < 0 ? -1 : at[h].findIndex(x => txt(x) === FY);
+    const tot = at.find((r, i) => i > h && txt((r || [])[0]) === 'TOTAL');
+    const $ = x => { const v = num(x); return isNaN(v) ? undefined : Math.round(v * 1e6); };
     add('xl · FYDP Spend Plan', 'Excel', 0.5, {
-      ask:    cellAt(br, /^PMO$/, FY + ' Requirement', /^TOTAL$/),
-      funded: cellAt(br, /^PMO$/, FY + ' Funded', /^TOTAL$/),
-      ufr2:   cellAt(br, /^PMO$/, FY + ' Unfunded', /^TOTAL$/),
-      discBA: cellAt(bs, /^Service$/, FY + ' Disc BA', /^TOTAL$/),
-      mandBA: cellAt(bs, /^Service$/, FY + ' Mand BA', /^TOTAL$/),
+      ask:    tot && c >= 0 ? $(tot[c]) : undefined,
+      funded: tot && c >= 0 ? $(tot[c + 1]) : undefined,
     });
   }
   // 1f. THE CYCLE COMPARISON -- the lock just taken against the working plan. Every Δ must be

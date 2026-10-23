@@ -2339,29 +2339,29 @@ const v185Export = (B, src) => JSON.parse(B.ev(`(function(){ fydpSrc=${JSON.stri
   try{ exportFydpPlan(); }catch(e){ got=JSON.stringify({threw:String((e&&e.message)||e)}); }
   buildXlsx=_b; return got||'null'; })()`));
 const v185Cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
-// the blocks of one PMO tab: {title, hdr, rows}, rows as plain values
+// v2.04 (item 112): the workbook is a Summary, a tab per appropriation, per service and per PMO. A tab's blocks: each the
+// section heading above it ('' on an appropriation tab), its two heading rows and its lines, TOTAL last -- as plain values.
 const v185Blocks = (sh) => {
-  const out = []; let cur = null;
-  for (const r of sh.rows) {
-    const c0 = r && r[0];
-    if (c0 && typeof c0 === 'object' && c0.s === 6) { cur = { title: String(c0.v), hdr: null, rows: [] }; out.push(cur); continue; }
-    if (!cur) continue;
-    if (!r || !r.length) { cur = null; continue; }
-    if (!cur.hdr) { cur.hdr = r.map(v185Cv); continue; }
-    cur.rows.push(r.map(v185Cv));
+  const out = []; if (!sh) return out; let sec = ''; const R = sh.rows;
+  for (let i = 0; i < R.length; i++) {
+    const r = R[i] || [], c0 = r[0];
+    if (c0 && typeof c0 === 'object' && c0.s === 6) { sec = String(c0.v); continue; }
+    const v = r.map(v185Cv);
+    if (v[0] !== 'CCaR Record' || v[1] !== 'Requirement Title') continue;
+    const hdr = v, rows = []; i += 2;
+    for (; i < R.length; i++) { const x = (R[i] || []).map(v185Cv); rows.push(x); if (x[0] === 'TOTAL') break; }
+    out.push({ sec, hdr, rows });
   }
   return out;
 };
-const V185AP = { 'O&M': 'om', 'FULL FUND': 'ff', 'INITIAL SPARES': 'sp', 'OPN': 'opn' };
-const v185ApOf = (b) => V185AP[b.title.split(' — ')[0]];
-// one row of an appropriation's own sheet, by its first cell, as {header: value}
-const v185Row = (sh, first, label) => {
-  const rows = sh.rows.map(r => (r || []).map(v185Cv));
-  const h = rows.findIndex(r => r[0] === first);
-  const r = rows.slice(h + 1).find(x => x[0] === label || x[1] === label);
-  if (!r) return null;
-  const o = {}; rows[h].forEach((k, i) => { o[k] = r[i]; }); return o;
-};
+const V185NAME = { om: 'O&M', ff: 'Full Fund', sp: 'Initial Spares', opn: 'OPN' };
+const v185Tab = (S, n) => (Array.isArray(S) ? S : []).find(s => s.name === n);
+// the appropriation a block on a service or PMO tab belongs to, from its section heading
+const v185ApOf = (b) => Object.keys(V185NAME).find(k => b.sec.split('  ·  ')[0].endsWith(' — ' + V185NAME[k]));
+// a line's figure in whole dollars: FY column + 0 Requirement, + 1 Allocated
+const v185$ = (b, r, fy, k) => { const c = b.hdr.indexOf(fy) + k; const v = r[c]; return typeof v === 'number' ? Math.round(v * 1e6) : v; };
+// the cell texts of a tab, for a sentence anywhere on it
+const v185Says = (sh, re) => !!sh && sh.rows.some(r => (r || []).some(c => re.test(String(v185Cv(c) ?? ''))));
 const v185Store = (ev) => ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); }
   return JSON.stringify({ls:o, pubs:PUBS, ms:MS, cyc:CYCDB}); })()`);
 // A board whose other appropriations are not under test answers its frames at once, unread -- each
@@ -2377,10 +2377,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const __bm = bootMark();
   const name = 'v1.85 — every appropriation, read by its own board, ties to the dollar';
   try {
-  const F = v185Board(null, 'FULL FUND', V185.ff, { F: { m: 't', v: 600 } }, { G: { m: 't', v: 400 } }, true, { H: { m: 't', v: 200 } });
+  // after the lock, G is trimmed too: that frees lane money H then draws, so the lock and today differ in a figure the
+  // workbook prints (Allocated is the lane draw since v2.04; H alone was lane-limited either way)
+  const F = v185Board(null, 'FULL FUND', V185.ff, { F: { m: 't', v: 600 } }, { G: { m: 't', v: 400 } }, true, { H: { m: 't', v: 200 }, G: { m: 't', v: 300 } });
   const P = v185Board(F.ev('buildSavedHtml()'), 'INITIAL SPARES', V185.sp, { I: { m: 't', v: 100 } }, { J: { m: 't', v: 60 } }, false, {});
   const O = v185Board(P.ev('buildSavedHtml()'), null, V185.om, { A: { m: 't', v: 1000 } }, { B: { m: 't', v: 300 } }, true, { E: { m: 't', v: 150 } });
   chk(name, 'fixture', 'the exporting board is O&M', O.ev('APPN'), 'O&M');
+  chk(name, 'fixture', 'the appropriations are named as this suite reads them', O.ev(`JSON.stringify(APPN_SLUGS.map(appnName))`), JSON.stringify(Object.values(V185NAME)));
   const before = v185Store(O.ev);
   const W = v185Export(O, 'working'), C = v185Export(O, 'PB|2027');
   chk(name, 'storage', 'reading the other appropriations changes nothing this browser holds, the file state, or the board', v185Store(O.ev) === before, true);
@@ -2394,85 +2397,56 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     own[k] = { W: v185Export(X, 'working'), C: v185Export(X, 'PB|2027') };
   }
   V185W = { O, W, C, file, own, F };
-  chk(name, 'sheets', 'the three sheets come first, then a tab per PMO across every appropriation',
-    W.map(s => s.name).join(','), 'By Requirement,By PMO,By Service,PSM,AV,CDS,TSS');
-  let blocks = 0, dash = 0, ties = 0, foot = 0;
-  const seenReq = { om: [], ff: [], sp: [] };
-  W.slice(3).forEach(sh => {
-    const p = sh.name;
-    v185Blocks(sh).forEach(b => {
-      blocks++;
-      const k = v185ApOf(b), mine = own[k].W;
-      const yrs = b.hdr.filter(h => / Requirement$/.test(h) && !/^FYDP/.test(h)).map(h => h.split(' ')[0]);
-      // THE BLOCK TOTAL IS THAT APPROPRIATION'S OWN By PMO ROW, every year and the FYDP
-      const tot = b.rows.find(r => /^Total — /.test(String(r[0])));
-      const bp = v185Row(mine.find(s => s.name === 'By PMO'), 'PMO', p);
-      yrs.concat(['FYDP']).forEach(y => {
-        const iq = b.hdr.indexOf(y + ' Requirement'), ia = b.hdr.indexOf(y + ' Allocation');
-        chk(name, p + ' · ' + k, y + ' requirement is the one its own board prints', tot[iq], bp[y + ' Requirement']);
-        chk(name, p + ' · ' + k, y + ' allocation is the one its own board prints', tot[ia], bp[y + ' Allocated']);
-        ties += 2;
-      });
-      // RECORD LINES ADD THE REQUIREMENTS UNDER THEM; THE TOTAL ADDS THE RECORD LINES; EVERY ROW CROSS-FOOTS
-      const num = (v) => typeof v === 'number' ? v : 0;
-      let rec = null; const recs = [], under = [];
-      const closeRec = () => { if (!rec) return; b.hdr.forEach((h, i) => { if (i > 1) chk(name, p + ' · ' + k, 'record ' + rec[0] + ' ' + h + ' adds its requirements', rec[i],
-        under.every(r => r[i] === '—') ? '—' : under.reduce((s2, r) => s2 + num(r[i]), 0)); }); foot++; };
-      b.rows.forEach(r => {
-        if (/^Total — /.test(String(r[0]))) return;
-        if (r[0] !== '') { closeRec(); rec = r; recs.push(r); under.length = 0; }
-        else {
-          under.push(r); seenReq[k].push(r[1]);
-          // each requirement is its own board's By Requirement row
-          const br = v185Row(mine.find(s => s.name === 'By Requirement'), 'PMO', r[1]);
-          yrs.forEach(y => { chk(name, p + ' · ' + k, r[1] + ' ' + y + ' matches its By Requirement row',
-            String(r[b.hdr.indexOf(y + ' Requirement')]) + '/' + String(r[b.hdr.indexOf(y + ' Allocation')]),
-            String(br[y + ' Requirement']) + '/' + String(br[y + ' Allocated'])); });
-        }
-        const fy = b.hdr.map((h, i) => (/ Requirement$/.test(h) && !/^FYDP/.test(h)) ? num(r[i]) : 0).reduce((s, v) => s + v, 0);
-        chk(name, p + ' · ' + k, String(r[0] || r[1]) + ' FYDP requirement adds its years', r[b.hdr.indexOf('FYDP Requirement')], fy);
-      });
-      closeRec();
-      // a column no record holds is a year no plan held: — on the total too, never 0
-      b.hdr.forEach((h, i) => { if (i > 1) chk(name, p + ' · ' + k, 'the block total ' + h + ' adds its record lines', tot[i],
-        recs.every(r => r[i] === '—') ? '—' : recs.reduce((s2, r) => s2 + num(r[i]), 0)); });
-      // A YEAR NO PLAN HELD IS AN EM DASH, never 0
-      ['FY29', 'FY30', 'FY31'].forEach(y => b.rows.forEach(r => { if (r[b.hdr.indexOf(y + ' Requirement')] === '—') dash++; }));
-    });
+  chk(name, 'sheets', 'the Summary, a tab per appropriation that holds a plan, a tab per service, then a tab per PMO across every appropriation',
+    W.map(s => s.name).join(','), 'Summary,O&M,Full Fund,Initial Spares,USAF,ANG,AFRC,PSM,AV,CDS,TSS');
+  // EVERY APPROPRIATION'S TAB IS THE ONE ITS OWN BOARD PRINTS, line for line, and so is its block on every service and PMO tab
+  let ties = 0;
+  ['om', 'ff', 'sp'].forEach(k => {
+    const mine = v185Blocks(v185Tab(own[k].W, V185NAME[k])), got = v185Blocks(v185Tab(W, V185NAME[k]));
+    chk(name, V185NAME[k], 'its tab is the block its own board prints, every line and figure', JSON.stringify(got), JSON.stringify(mine));
+    chk(name, V185NAME[k], 'and that block has lines', (mine[0] || { rows: [] }).rows.length > 1, true);
+    ties++;
   });
-  chk(name, 'coverage', 'the tabs carry the blocks the fixture holds (O&M 3 PMOs, Full Fund 3, Initial Spares 2)', blocks, 8);
-  chk(name, 'coverage', 'every block was tied, every year and the FYDP, both columns', ties, 8 * 6 * 2);
-  chk(name, 'coverage', 'every record line was footed', foot, 8);
-  const lines = W.slice(3).reduce((n, sh) => n + v185Blocks(sh).reduce((m, b) => m + b.rows.length, 0), 0);
+  W.slice(4).forEach(sh => v185Blocks(sh).forEach(b => {
+    const k = v185ApOf(b), mine = v185Blocks(v185Tab(own[k].W, sh.name)).find(x => v185ApOf(x) === k);
+    chk(name, sh.name + ' · ' + k, 'the block is the one its own board prints on this tab', JSON.stringify(b.rows), JSON.stringify(mine ? mine.rows : null));
+    ties++;
+  }));
+  chk(name, 'coverage', 'every block was tied: three appropriation tabs, three per service, and the PMO tabs (O&M 3, Full Fund 3, Initial Spares 2)', ties, 3 + 9 + 8);
+  // A YEAR NO PLAN HELD IS AN EM DASH, never 0 -- on every line of every block
+  let dash = 0, lines = 0;
+  W.slice(1).forEach(sh => v185Blocks(sh).forEach(b => b.rows.forEach(r => { lines++; ['FY29', 'FY30', 'FY31'].forEach(y => { if (r[b.hdr.indexOf(y)] === '—' && r[b.hdr.indexOf(y) + 1] === '—') dash++; }); })));
   chk(name, 'coverage', 'FY29–FY31, which no plan holds, print — on every line of every block', dash, lines * 3);
-  // EVERY REQUIREMENT EXACTLY ONCE, per appropriation
-  const reqOf = (sheets) => { const br = sheets.find(s => s.name === 'By Requirement').rows.map(r => (r || []).map(v185Cv));
-    const h = br.findIndex(r => r[0] === 'PMO'); return br.slice(h + 1).filter(r => r[0] && !/^Subtotal|^TOTAL/.test(String(r[0]))).map(r => r[1]).sort(); };
-  ['om', 'ff', 'sp'].forEach(k => chk(name, 'coverage', k + ': every requirement appears once across the tabs',
-    seenReq[k].slice().sort().join(','), reqOf(own[k].W).join(',')));
-  // THE CCaR RECORDS: one record however it is cased or spaced, and the unrecorded last
-  const av = v185Blocks(W.find(s => s.name === 'AV')).find(b => v185ApOf(b) === 'om');
-  chk(name, 'records', 'JSF5594 carries A, B and the requirement typed " jsf5594 "',
-    av.rows.filter(r => r[0] !== '').map(r => r[0] + ':' + r[1]).join(','), 'JSF5594:3 requirements,Total — O&M:3 requirements');
-  const psm = v185Blocks(W.find(s => s.name === 'PSM'));
-  chk(name, 'records', 'a requirement with no CCaR record sits under "No CCaR record"', psm.find(b => v185ApOf(b) === 'om').rows[0][0], 'No CCaR record');
-  const tss = v185Blocks(W.find(s => s.name === 'TSS')).find(b => v185ApOf(b) === 'ff');
-  const g = tss.rows.find(r => r[1] === 'Req G');
-  chk(name, 'fixture', 'Allocation is not Requirement where the plan trims (Full Fund G, FY28)', g[tss.hdr.indexOf('FY28 Allocation')] !== g[tss.hdr.indexOf('FY28 Requirement')], true);
-  // THE CYCLE IS NAMED, AND THE THREE SHEETS BEFORE THE TABS DO NOT MOVE
-  chk(name, 'cycle', 'every tab names the source and its cycle', W.slice(3).every(sh => /THE WORKING PLAN \(BES28\)/.test(String(v185Cv(sh.rows[0][0])))), true);
-  chk(name, 'cycle', 'every block names its own', W.slice(3).every(sh => v185Blocks(sh).every(b => /the working plan \(BES28\)/.test(b.title))), true);
+  // EVERY LINE ADDS ITS YEARS AT THE RIGHT; THE TOTAL ADDS THE LINES
+  let foot = 0;
+  W.slice(1).forEach(sh => v185Blocks(sh).forEach(b => {
+    const ln = b.rows.slice(0, -1), tot = b.rows[b.rows.length - 1], tc = b.hdr.indexOf('TOTAL FY27–FY31');
+    [0, 1].forEach(k => {
+      ln.forEach(r => chk(name, sh.name, String(r[1]) + ' adds its years', Math.round(r[tc + k] * 1e6), ['FY27', 'FY28'].reduce((s2, y) => s2 + v185$(b, r, y, k), 0)));
+      ['FY27', 'FY28', 'TOTAL FY27–FY31'].forEach(y => chk(name, sh.name, 'TOTAL ' + y + ' adds the lines', v185$(b, tot, y, k), ln.reduce((s2, r) => s2 + v185$(b, r, y, k), 0)));
+    });
+    foot++;
+  }));
+  chk(name, 'coverage', 'every block was footed', foot, 3 + 9 + 8);
+  // THE CCaR RECORDS: one record however it is cased or spaced, printed once, in 1-N order; the unrecorded last
+  const om = v185Blocks(v185Tab(W, 'O&M'))[0] || { rows: [] };
+  chk(name, 'records', 'JSF5594 carries A, B and the requirement typed " jsf5594 ", then JSF1000, then No CCaR record',
+    JSON.stringify(om.rows.map(r => [r[0], r[1]])), JSON.stringify([['JSF5594', 'Req A'], ['', 'Req B'], ['', 'Req D'], ['JSF1000', 'Req E'], ['No CCaR record', 'Req C'], ['TOTAL', '']]));
+  const ffb = v185Blocks(v185Tab(W, 'Full Fund'))[0] || { rows: [] }, g = ffb.rows.find(r => r[1] === 'Req G') || [];
+  chk(name, 'fixture', 'Allocated is not Requirement where the plan trims (Full Fund G, FY28)', v185$(ffb, g, 'FY28', 1) !== v185$(ffb, g, 'FY28', 0), true);
+  // THE CYCLE IS NAMED on every tab
+  chk(name, 'cycle', 'every tab names the source and its cycle', W.every(sh => /^the working plan \(BES28\)  ·  /.test(String(v185Cv(sh.rows[1][0])))), true);
   const alone = (() => { const st = JSON.parse(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(file)[1]);
     st.appns = { om: st.appns.om }; st.cycDb.byAp = { om: st.cycDb.byAp.om };
     const B = boot({ html: file.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b2) => a + JSON.stringify(st).replace(/</g, '\\u003c') + b2) });
     const out = v185Export(B, 'working');
     chk(name, 'unchanged', 'the O&M-only board opens no frame', B.w.__fydpFrames.length, 0);
     return out; })();
-  chk(name, 'unchanged', 'By Requirement, By PMO and By Service are exactly what an O&M-only board prints',
-    JSON.stringify(W.slice(0, 3)), JSON.stringify(alone.slice(0, 3)));
-  chk(name, 'unchanged', 'and an O&M-only board has O&M blocks alone', alone.slice(3).every(sh => v185Blocks(sh).every(b => v185ApOf(b) === 'om')), true);
-  // ONE THAT HOLDS NOTHING IS SAID, NOT HIDDEN
-  chk(name, 'coverage', 'OPN is named as holding no requirements', W.slice(3).every(sh => /OPN holds no requirements on this board/.test(String(v185Cv(sh.rows[2][0])))), true);
+  chk(name, 'unchanged', 'its O&M tab is exactly what the consolidated board prints', JSON.stringify(v185Tab(alone, 'O&M')), JSON.stringify(v185Tab(W, 'O&M')));
+  chk(name, 'unchanged', 'and an O&M-only board has O&M blocks alone', alone.slice(1).every(sh => v185Blocks(sh).every(b => sh.name === 'O&M' || v185ApOf(b) === 'om')), true);
+  // ONE THAT HOLDS NOTHING IS SAID, NOT HIDDEN -- and gets no tab
+  chk(name, 'coverage', 'OPN is named on the Summary as holding no requirements, and has no tab',
+    v185Says(v185Tab(W, 'Summary'), /^OPN holds no requirements on this board$/) + ' ' + !v185Tab(W, 'OPN'), 'true true');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -2484,26 +2458,27 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const name = 'v1.85 — a locked cycle is read as locked, and a missing lock is said';
   try {
   const { C, W, own } = V185W;
-  chk(name, 'sheets', 'the cycle report has the same tabs', C.map(s => s.name).join(','), 'By Requirement,By PMO,By Service,PSM,AV,CDS,TSS');
-  // INITIAL SPARES LOCKED NOTHING: every tab says so, and no working plan stands in for it
-  chk(name, 'missing lock', 'every tab says Initial Spares is not on it, and why',
-    C.slice(3).every(sh => sh.rows.some(r => /^⚠ INITIAL SPARES IS NOT ON THIS TAB — has no PB27 lock/.test(String(v185Cv((r || [])[0]))))), true);
-  chk(name, 'missing lock', 'and no Initial Spares figure is printed', C.slice(3).some(sh => v185Blocks(sh).some(b => v185ApOf(b) === 'sp')), false);
+  chk(name, 'sheets', 'the cycle report has the same tabs', C.map(s => s.name).join(','), 'Summary,O&M,Full Fund,Initial Spares,USAF,ANG,AFRC,PSM,AV,CDS,TSS');
+  // INITIAL SPARES LOCKED NOTHING: the Summary and its tab say so, and no working plan stands in for it
+  const miss = /^⚠ INITIAL SPARES IS NOT IN THIS WORKBOOK — has no PB27 lock\. Its figures are missing here, not zero\.$/;
+  chk(name, 'missing lock', 'the Summary and the Initial Spares tab say it is not in the workbook, and why',
+    v185Says(v185Tab(C, 'Summary'), miss) + ' ' + v185Says(v185Tab(C, 'Initial Spares'), miss), 'true true');
+  chk(name, 'missing lock', 'and no Initial Spares figure is printed',
+    v185Blocks(v185Tab(C, 'Initial Spares')).length + C.slice(4).filter(sh => v185Blocks(sh).some(b => v185ApOf(b) === 'sp')).length, 0);
   // FULL FUND AND O&M TIE TO THEIR OWN PB27 REPORTS
   let n = 0;
-  C.slice(3).forEach(sh => v185Blocks(sh).forEach(b => {
-    const k = v185ApOf(b), bp = v185Row(own[k].C.find(s => s.name === 'By PMO'), 'PMO', sh.name);
-    const tot = b.rows.find(r => /^Total — /.test(String(r[0])));
-    ['FY27', 'FY28', 'FYDP'].forEach(y => { n++;
-      chk(name, sh.name + ' · ' + k, y + ' is its own PB27 By PMO', tot[b.hdr.indexOf(y + ' Requirement')] + '/' + tot[b.hdr.indexOf(y + ' Allocation')],
-        bp[y + ' Requirement'] + '/' + bp[y + ' Allocated']); });
-    chk(name, sh.name + ' · ' + k, 'the block names the lock', /PB27 \(locked\)/.test(b.title), true);
-  }));
-  chk(name, 'coverage', 'the locked blocks were all checked (O&M 3, Full Fund 3)', n, 6 * 3);
+  ['om', 'ff'].forEach(k => { n++;
+    chk(name, V185NAME[k], 'its tab is its own PB27 report', JSON.stringify(v185Blocks(v185Tab(C, V185NAME[k]))), JSON.stringify(v185Blocks(v185Tab(own[k].C, V185NAME[k])))); });
+  C.slice(4).forEach(sh => v185Blocks(sh).forEach(b => { n++;
+    const k = v185ApOf(b), mine = v185Blocks(v185Tab(own[k].C, sh.name)).find(x => v185ApOf(x) === k);
+    chk(name, sh.name + ' · ' + k, 'the block is its own PB27 report', JSON.stringify(b.rows), JSON.stringify(mine ? mine.rows : null)); }));
+  chk(name, 'coverage', 'the locked blocks were all checked (two appropriation tabs, six on the service tabs, six on the PMO tabs)', n, 2 + 6 + 6);
+  chk(name, 'lock', 'every tab names the lock', C.every(sh => /^PB27 \(locked/.test(String(v185Cv(sh.rows[1][0])))), true);
   // THE LOCK, NOT THE WORKING PLAN: Full Fund trimmed H after locking
-  const alloc = (sheets) => { const b = v185Blocks(sheets.find(s => s.name === 'CDS')).find(x => v185ApOf(x) === 'ff'); return b.rows.find(r => r[1] === 'Req H')[3]; };
-  chk(name, 'lock', 'Full Fund’s CDS allocation is the locked one, not today’s', alloc(C) !== alloc(W), true);
-  chk(name, 'lock', 'the working plan carries the later trim', alloc(W), 200);
+  const hAlloc = (sheets) => { const b = v185Blocks(v185Tab(sheets, 'CDS')).find(x => v185ApOf(x) === 'ff'); const r = b && b.rows.find(r => r[1] === 'Req H'); return r ? v185$(b, r, 'FY27', 1) : 'missing'; };
+  chk(name, 'lock', 'Full Fund’s CDS allocation is the locked one, not today’s', hAlloc(C) !== hAlloc(W) && typeof hAlloc(C) === 'number', true);
+  chk(name, 'lock', 'the working plan carries the later trim: it is what Full Fund’s own board prints today',
+    hAlloc(W), (() => { const b = v185Blocks(v185Tab(own.ff.W, 'Full Fund'))[0]; const r = b.rows.find(r => r[1] === 'Req H'); return v185$(b, r, 'FY27', 1); })());
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -2515,42 +2490,44 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const name = 'v1.85 — a block that cannot be trusted is refused, never printed';
   try {
   const { O } = V185W;
-  const tabsSay = (sheets, ap, why) => sheets.slice(3).every(sh => sh.rows.some(r => new RegExp('^⚠ ' + ap + ' IS NOT ON THIS TAB — ' + why).test(String(v185Cv((r || [])[0])))));
-  const noBlock = (sheets, k) => !sheets.slice(3).some(sh => v185Blocks(sh).some(b => v185ApOf(b) === k));
+  const tabsSay = (sheets, ap, why) => { const re = new RegExp('^⚠ ' + ap.toUpperCase() + ' IS NOT IN THIS WORKBOOK — ' + why);
+    return v185Says(v185Tab(sheets, 'Summary'), re) && v185Says(v185Tab(sheets, ap), re); };
+  const noBlock = (sheets, k) => !v185Blocks(v185Tab(sheets, V185NAME[k])).length && !sheets.slice(4).some(sh => v185Blocks(sh).some(b => v185ApOf(b) === k));
   const real0 = O.w.fydpFrame, real = v185Memo(real0);
   // a frame that opened a different saved state
   O.w.fydpFrame = (h, n) => ({ then(ok) { real(h, n).then(r => { if (r.ap === 'ff') r.ts = r.ts + 1; ok(r); }); return this; } });
   let S1 = v185Export(O, 'working');
-  chk(name, 'other state', 'Full Fund is refused on every tab', tabsSay(S1, 'FULL FUND', 'its board opened a different saved state'), true);
+  chk(name, 'other state', 'Full Fund is refused, on the Summary and its own tab', tabsSay(S1, 'Full Fund', 'its board opened a different saved state'), true);
   chk(name, 'other state', 'with no Full Fund figure anywhere', noBlock(S1, 'ff'), true);
   chk(name, 'other state', 'and Initial Spares still read', !noBlock(S1, 'sp'), true);
   // a frame that opened the wrong appropriation, one that failed, one that answered in another shape
   O.w.fydpFrame = (h, n) => ({ then(ok) { real(h, n).then(r => { if (r.ap === 'ff') r.ap = 'om'; if (r.ap === 'sp') { r.err = 'boom'; } ok(r); }); return this; } });
   S1 = v185Export(O, 'working');
-  chk(name, 'wrong board', 'the wrong appropriation is refused', tabsSay(S1, 'FULL FUND', 'the frame opened O&M instead'), true);
-  chk(name, 'failed', 'a frame that failed is refused', tabsSay(S1, 'INITIAL SPARES', 'its board could not be opened \\(boom\\)'), true);
+  chk(name, 'wrong board', 'the wrong appropriation is refused', tabsSay(S1, 'Full Fund', 'the frame opened O&M instead'), true);
+  chk(name, 'failed', 'a frame that failed is refused', tabsSay(S1, 'Initial Spares', 'its board could not be opened \\(boom\\)'), true);
   O.w.fydpFrame = (h, n) => ({ then(ok) { real(h, n).then(r => { if (r.ap === 'ff') r.D.held.push(2031); if (r.ap === 'sp') r.build = 'v0'; ok(r); }); return this; } });
   S1 = v185Export(O, 'working');
-  chk(name, 'shape', 'a year it claims but did not send is refused', tabsSay(S1, 'FULL FUND', 'its board answered in a shape'), true);
-  chk(name, 'shape', 'another build is refused', tabsSay(S1, 'INITIAL SPARES', 'the frame ran a different build'), true);
+  chk(name, 'shape', 'a year it claims but did not send is refused', tabsSay(S1, 'Full Fund', 'its board answered in a shape'), true);
+  chk(name, 'shape', 'another build is refused', tabsSay(S1, 'Initial Spares', 'the frame ran a different build'), true);
   // THE NEWEST COPY IS THE ONE READ: this browser's when newer than the file's, the file's when not.
   // Full Fund's frame is real; Initial Spares' is not under test here.
   O.w.fydpFrame = (h, n) => /"prio27appn":"INITIAL SPARES"/.test(h) ? { then(ok) { ok({ err: 'not needed here', nonce: n }); return this; } } : real0(h, n);
-  const ffAlloc = (sheets) => { const b = v185Blocks(sheets.find(s => s.name === 'AV')).find(x => v185ApOf(x) === 'ff'); return b.rows.find(r => r[1] === 'Req F')[3]; };
+  const ffAlloc = (sheets) => { const b = v185Blocks(v185Tab(sheets, 'Full Fund'))[0]; const r = b && b.rows.find(r => r[1] === 'Req F'); return r ? v185$(b, r, 'FY27', 1) : 'missing'; };
   const put = (dt, v, cyc) => O.ev(`(function(){ const ff=JSON.parse(JSON.stringify(PUBS.ff)); ff.years[ff.cur].alloc.F={m:'t', v:${v}};
     ${cyc ? "ff.cycle='" + cyc + "';" : ''} ff.ts=(+PUBS.ff.ts)+(${dt}); localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(ff)); return 'ok'; })()`);
   put(1000, 333, 'PB|2027');
   const S2 = v185Export(O, 'working');
   chk(name, 'newest', 'a newer copy in this browser is the one read', ffAlloc(S2), 333);
-  // A WORKING PLAN TAGGED UNDER ANOTHER CYCLE IS SAID ON ITS BLOCK -- the tab's cycle is this board's
-  const ffTitle = (sheets) => v185Blocks(sheets.find(s => s.name === 'AV')).find(x => v185ApOf(x) === 'ff').title;
-  chk(name, 'cycle tag', 'Full Fund’s block says its working plan is tagged PB27, not BES28', /⚠ its working plan is tagged PB27, this one BES28$/.test(ffTitle(S2)), true);
-  chk(name, 'cycle tag', 'and O&M’s, tagged as this board is, says nothing', /⚠/.test(v185Blocks(S2.find(s => s.name === 'AV')).find(x => v185ApOf(x) === 'om').title), false);
+  // A WORKING PLAN TAGGED UNDER ANOTHER CYCLE IS SAID WHERE ITS FIGURES ARE -- the workbook's cycle is this board's
+  chk(name, 'cycle tag', 'Full Fund’s tab says its working plan is tagged PB27, not BES28',
+    /⚠ its working plan is tagged PB27, this one BES28$/.test(String(v185Cv(v185Tab(S2, 'Full Fund').rows[1][0]))), true);
+  chk(name, 'cycle tag', 'and so does its block on a PMO tab', /⚠ its working plan is tagged PB27, this one BES28$/.test((v185Blocks(v185Tab(S2, 'AV')).find(x => v185ApOf(x) === 'ff') || { sec: '' }).sec), true);
+  chk(name, 'cycle tag', 'and O&M’s, tagged as this board is, says nothing', /⚠/.test((v185Blocks(v185Tab(S2, 'AV')).find(x => v185ApOf(x) === 'om') || { sec: '⚠' }).sec), false);
   put(-1000, 222);
   chk(name, 'newest', 'an older one is not — the file’s is newer', ffAlloc(v185Export(O, 'working')), 600);
   O.ev(`localStorage.setItem(_SLUGMAP.ff.key, '{not json'); 'ok'`);
   S1 = v185Export(O, 'working');
-  chk(name, 'unreadable', 'a copy this browser cannot read is refused, not skipped', tabsSay(S1, 'FULL FUND', 'its saved state in this browser could not be read'), true);
+  chk(name, 'unreadable', 'a copy this browser cannot read is refused, not skipped', tabsSay(S1, 'Full Fund', 'its saved state in this browser could not be read'), true);
   O.ev(`localStorage.removeItem(_SLUGMAP.ff.key); 'ok'`);
   chk(name, 'newest', 'and with it gone, the file’s is read again', ffAlloc(v185Export(O, 'working')), 600);
   O.w.fydpFrame = real0;
@@ -2571,16 +2548,18 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   A.ev(`window.__cap=null; window.__b=buildXlsx; buildXlsx=function(sh){ window.__cap=JSON.stringify(sh); return new Uint8Array(0); };
     fydpSrc='working'; exportFydpPlan(); 'ok'`);
   chk(name, 'waiting', 'nothing is built before the frames answer', A.ev('window.__cap===null'), true);
-  chk(name, 'waiting', 'the status says which are being opened', /Opening Full Fund, Initial Spares for the PMO tabs/.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
+  chk(name, 'waiting', 'the status says which are being opened', /Opening Full Fund, Initial Spares for the workbook/.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
   A.ev(`exportFydpPlan(); 'ok'`);
   chk(name, 'waiting', 'a second export while waiting is turned away, and says why', /still opening the other appropriations/.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
   for (let i = 0; i < 600 && A.ev('window.__cap===null'); i++) await new Promise(r => setTimeout(r, 50));
   A.ev(`buildXlsx=window.__b; 'ok'`);
   const got = JSON.parse(A.ev('window.__cap') || 'null');
   chk(name, 'answered', 'the workbook is built once they answer', !!got, true);
-  chk(name, 'answered', 'and it is the same workbook', JSON.stringify(got), JSON.stringify(W));
+  // the same workbook, but for the date it was printed: a later run may print on another day
+  const undated = (x) => JSON.stringify(x).replace(/printed \d{4}-\d\d-\d\d/g, 'printed —');
+  chk(name, 'answered', 'and it is the same workbook', undated(got), undated(W));
   chk(name, 'answered', 'the board is free again', A.ev('_fydpBusy'), false);
-  chk(name, 'answered', 'and the status names the tabs', /A tab for each of 4 PMOs — O&amp;M, Full Fund, Initial Spares\./.test(A.ev(`document.getElementById('shareStat').innerHTML`)), true);
+  chk(name, 'answered', 'and the status counts what it holds', /FYDP spend plan exported — the working plan \(BES28\), FY27–FY31: 3 appropriations, 3 services, 4 PMOs\./.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -2624,10 +2603,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const Pc = boot({ html });
   const S2 = v185Export(Pc, 'working');
   chk(name, 'copy', 'no other appropriation is opened', Pc.w.__fydpFrames.length, 0);
-  chk(name, 'copy', 'only O&M blocks are printed', S2.slice(3).every(sh => v185Blocks(sh).every(b => v185ApOf(b) === 'om')) && S2.length > 3, true);
-  chk(name, 'copy', 'and each tab says the copy carries O&M only', S2.slice(3).every(sh => /This PMO copy carries O&M only/.test(String(v185Cv(sh.rows[2][0])))), true);
+  chk(name, 'copy', 'only O&M is printed: its tab, and O&M blocks alone on the service and PMO tabs',
+    S2.map(s => s.name).slice(0, 2).join(',') + ' ' + (S2.length > 2 && S2.slice(2).every(sh => v185Blocks(sh).every(b => v185ApOf(b) === 'om'))) + ' ' + ['Full Fund', 'Initial Spares'].every(n => !v185Tab(S2, n)), 'Summary,O&M true true');
+  chk(name, 'copy', 'and the Summary says the copy carries O&M only', v185Says(v185Tab(S2, 'Summary'), /^This PMO copy carries O&M only\.$/), true);
   // EVERY SHEET SAYS IT IS A COPY, as the copy's other exports do -- the file name alone was stamped before v1.85
-  chk(name, 'stamp', 'every sheet, the three and the PMO tabs, is stamped as a PMO copy snapshot',
+  chk(name, 'stamp', 'every sheet is stamped as a PMO copy snapshot',
     S2.map(sh => /^◨ PMO COPY \(snapshot of \d{4}-\d\d-\d\d, NOT the current plan\)  —  /.test(String(v185Cv(sh.rows[0][0])))).join(','), S2.map(() => 'true').join(','));
   chk(name, 'stamp', 'and the portfolio board’s are not', V185W.W.every(sh => !/PMO COPY/.test(String(v185Cv(sh.rows[0][0])))), true);
   } catch (e) {

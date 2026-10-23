@@ -4211,6 +4211,27 @@ before any script, refuses every load from or connection to another host; `conne
 `securitypolicyviolation` event, because a request that merely fails offline proves nothing). A new feature that needs a
 network source is an Azure feature (item 107), not a hole in this policy.
 
+**The five-year spend plan workbook was rebuilt** (item 112; Brad, 22 Oct 2026). One model (`fydpBookModel`, from each
+appropriation's own `fydpData`) is read by the workbook (`fydpBookSheets`) and the panel (`fydpBody`), so the panel cannot
+print a figure the workbook does not: a Summary with a chart, a tab per appropriation, per service and per PMO; the base year
+and the next four; Requirement and Allocated (**the lane draw, d+m** -- what a lock stores and every other surface calls
+Funded) in $M; 1-N under the CCaR record printed once; — for a year not held. 📊 FYDP Spend Plan (Excel) opens the panel on
+the plan on screen (`fydpOnScreen`) and its Export prints the plan shown. By Requirement, By PMO, By Service, the v1.85 PMO
+tabs, the cost estimate and the PPBE position beside the plan are gone; the sections above that describe them are the record.
+The service tabs and the PMO tabs each partition the appropriation tab.
+
+**Every report workbook wears one house style** (item 113, style only). `buildXlsx(sheets, extra, xlsxHouse(name))` asks for
+it; `_housePlan` paints from the styles the sheet already uses, so an export changes nothing but its call. The Spend Plan
+Source and the 1A9A never ask (CCaR and the comptroller read them in), and the IDS template sheet is `plain` (`idsHouse`).
+audit-other "v2.04 (item 113)" holds the rule that matters: **the values written dressed are the values written plain**, and
+every part is XML another program reads, with counts, cell order and part order as Excel demands. It found the one defect the
+build had: a cell the writer emits (`{v:'', s:2}`) padded a second time -- two cells with one reference, which Excel calls a
+damaged file. **A new export that writes a workbook passes `xlsxHouse`**, or is added to that check's list of the two that do
+not, with the reason.
+
+**recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
+(`exit 134`) on the commit before items 112-113 as well as after. Run them with `NODE_OPTIONS="--max-old-space-size=8192"`.
+
 **A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
 declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.
 **Mutation ids are single-quoted** (`{ id: '…'`): `money-coverage.mjs` reads only that form, so a double-quoted id is invisible

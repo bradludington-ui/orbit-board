@@ -65,7 +65,8 @@ const WANT = {
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportPPT: 1, toggleEd: 1, execSynopsis: 1, exportCSV: 1,
-  exportFydpPlan: 1, exportCycCompare: 1, exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
+  fydpPickExport: 1, exportCycCompare: 1,   // v2.04 (item 112): 📊 FYDP Spend Plan (Excel) opens the plan picker first
+  exportSrc: 1, toggleIds: 1, exportCoa: 1, exportAceTieout: 1,
   linkOpen: 1, linkSet: 1,
   aiExport: 1, '#aiFile': 1, aiOpen: 1,   // v2.04 (item 109): Reports & exports › AI review (GenAI.mil)
   // FYDP ▸ (views only)

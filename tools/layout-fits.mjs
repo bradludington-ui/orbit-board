@@ -184,7 +184,8 @@ console.log('\n' + FILE.split('/').pop());
     'Tools': ['toggleSvcPanel', 'togglePmo', 'toggleCoa', 'toggleEnt', 'toggleRcn', 'toggleSi', 'toggleRlg', 'toggleExw', 'toggleMat',
               'toggleFlow', 'themeSetIdx(0)', 'themeSetIdx(1)', 'themeSetIdx(2)', 'themeSetIdx(3)', 'themeSetIdx(4)',
               "getElementById('budFile').click()", 'toggleBudReg', "getElementById('ccarFile').click()"],
-    'Export': ['togglePf', 'exportExcel', 'exportAceTieout', 'exportFydpPlan', 'exportCycCompare', 'exportCoa', 'exportPPT', 'exportCSV',
+    // v2.04 (item 112): the five-year workbook is reached through its plan picker (fydpPickExport), which exports it
+    'Export': ['togglePf', 'exportExcel', 'exportAceTieout', 'fydpPickExport', 'exportCycCompare', 'exportCoa', 'exportPPT', 'exportCSV',
                'execSynopsis', 'exportSrc', 'crExport', 'toggleIds', 'linkOpen', 'linkSet'],
   };
   const { p, ctx } = await open(1440, 1000);

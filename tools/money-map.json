@@ -201,7 +201,7 @@
    "scenario": "the five-year spend plan",
    "anchor": "const name = 'the five-year spend plan'",
    "basis": "agreement",
-   "asserts": "FYDP spend plan: every requirement × year × requirement/allocated/funded/unfunded against the engine (a second year under aceWithYear); subtotals, TOTAL, By PMO, By Service with both pots per year; the panel; a locked report as locked."
+   "asserts": "FYDP spend plan (v2.04): every tab read back as blocks of lines -- the appropriation tab, each service tab (its own dollars, only the requirements it carries) and each PMO tab (each year under that year's office), 1-N under its CCaR record printed once, no record last; Requirement and Allocated (d+m) per year against the engine (a second year under aceWithYear), — for a year not held, line totals and TOTAL; the Summary's roll-ups and portfolio by year; the panel's views; a locked plan as locked; the picker on the plan on screen."
   },
   "re.cmp": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -209,20 +209,6 @@
    "anchor": "const name = 'comparing two cycles'",
    "basis": "agreement",
    "asserts": "Cycle comparison: every requirement × year Δ (and A, B) against the engine before and after; totals, Σ rows = total Δ, Changes, By PMO; agrees with cycDelta; two locks."
-  },
-  "re.ppbe": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "the PPBE position beside the plan",
-   "anchor": "const name = 'the PPBE position beside the plan'",
-   "basis": "arithmetic",
-   "asserts": "FYDP By Service: the typed PPBE position per service and year, the requirement less it, TOTAL, blank years and services."
-  },
-  "re.aceFydp": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "the cost estimate beside the plan",
-   "anchor": "const name = 'the cost estimate beside the plan'",
-   "basis": "arithmetic",
-   "asserts": "FYDP: the estimate per requirement, PMO and service per year, never another appropriation's lines."
   },
   "w6.book": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -488,14 +474,14 @@
    "scenario": "v1.85 — every appropriation, read by its own board, ties to the dollar",
    "anchor": "const name = 'v1.85 — every appropriation, read by its own board, ties to the dollar'",
    "basis": "agreement",
-   "asserts": "The FYDP PMO tabs on a three-appropriation file: every block's requirement and allocation per year and FYDP is what that appropriation's own board prints, every requirement line once."
+   "asserts": "The FYDP workbook on a three-appropriation file: each appropriation's tab, and its block on every service and PMO tab, is what that appropriation's own board prints, line for line; every line and TOTAL foots; — for years no plan holds; one record however it is cased."
   },
   "im.v185lock": {
    "file": "tools/export-audit/audit-import.mjs",
    "scenario": "v1.85 — a locked cycle is read as locked, and a missing lock is said",
    "anchor": "const name = 'v1.85 — a locked cycle is read as locked, and a missing lock is said'",
    "basis": "agreement",
-   "asserts": "The FYDP PMO tabs for a locked cycle: each appropriation's block ties to its own locked report; one with no lock is refused, never replaced."
+   "asserts": "The FYDP workbook for a locked cycle: each appropriation's tab and blocks tie to its own locked report; one with no lock is refused on the Summary and its tab, never replaced."
   },
   "im.months": {
    "file": "tools/export-audit/audit-import.mjs",
@@ -565,7 +551,7 @@
    "scenario": "v1.95 — the five-year plan files each year under that year’s PMO",
    "anchor": "const name = 'v1.95 — the five-year plan files each year under that year’s PMO'",
    "basis": "agreement",
-   "asserts": "A requirement in AV, then TSS, then AV: each PMO’s Requirement, Allocated, Funded and Unfunded per year equal that year’s projection by PMO (read through aceWithYear) and the lock’s PMO roll-up, to the dollar; By Requirement and the PMO tabs file each year under that year’s PMO; totals unchanged."
+   "asserts": "A requirement in AV, then TSS, then AV: each PMO's Requirement and Allocated per year on the Summary equal that year's projection by PMO (read through aceWithYear) and the lock's PMO roll-up, to the dollar; the PMO tabs carry it for the years that office held it, 0 for the others; totals unchanged."
   },
   "re.cmpPmo": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -1609,7 +1595,7 @@
   "exportFydpPlan": {
    "registry": "money-coverage",
    "money": true,
-   "what": "The five-year spend plan: by requirement, office and service per year, the PMO tabs across every appropriation, the PPBE position and the estimate beside it.",
+   "what": "The five-year spend plan (v2.04): a Summary, a tab per appropriation, per service and per PMO, Requirement and Allocated per year, base year + 4.",
    "cells": {
     "appropriation": {
      "status": "proven",
@@ -1630,9 +1616,7 @@
     "service": {
      "status": "proven",
      "checks": [
-      "re.fydp",
-      "re.ppbe",
-      "re.aceFydp"
+      "re.fydp"
      ]
     },
     "requirement": {
@@ -1651,11 +1635,8 @@
      "why": "@noTime"
     },
     "lane": {
-     "status": "proven",
-     "checks": [
-      "re.fydp"
-     ],
-     "note": "Disc BA and Mand BA per service per year; funded is not split by lane on this export"
+     "status": "n/a",
+     "why": "@lanesCombined"
     }
    }
   },
@@ -2571,7 +2552,7 @@
   "xl · FYDP Spend Plan": {
    "registry": "trace",
    "parent": "exportFydpPlan",
-   "what": "The FYDP spend plan workbook's column for the year on screen.",
+   "what": "The FYDP spend plan workbook's appropriation tab, the year on screen: Requirement and Allocated (the board's Funded).",
    "cells": {
     "appropriation": {
      "status": "proven",
@@ -2590,9 +2571,7 @@
     "service": {
      "status": "proven",
      "checks": [
-      "re.fydp",
-      "re.ppbe",
-      "re.aceFydp"
+      "re.fydp"
      ]
     },
     "requirement": {
@@ -2611,11 +2590,8 @@
      "why": "@noTime"
     },
     "lane": {
-     "status": "proven",
-     "checks": [
-      "re.fydp"
-     ],
-     "note": "Disc BA and Mand BA per service per year; funded is not split by lane on this export"
+     "status": "n/a",
+     "why": "@lanesCombined"
     }
    }
   },

@@ -136,96 +136,6 @@ Current version: **v2.04**. Next: **v2.05**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
-#### 112. The five-year spend plan workbook, redesigned (Brad, 22 Oct 2026; layout agreed in conversation, mock-up sent)
-- **Logged:** 22 Oct 2026. Not built; waits for go. Mock-ups (made-up data) were sent as files: tab 1 alone, then all ten tabs.
-- **It REPLACES the workbook's tabs** (By Requirement, By PMO, By Service, a tab per PMO). 📊 FYDP Spend Plan (Excel) keeps
-  its menu entry.
-- **What it prints from: a plan the person picks** (Brad, 22 Oct 2026: "Let's make it a selectable item"). 📊 FYDP Spend Plan
-  (Excel) opens a short choice -- the working plan (with its cycle tag) and every locked cycle, each with when it was locked --
-  with the plan ON SCREEN chosen when it opens (a locked view on screen: that lock; otherwise the working plan), and Export.
-  Every tab's title and the file name name the plan printed ("ORBIT FYDP Spend Plan — PB27 (locked 15 Oct) — FY27–FY31").
-  The other appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed),
-  from the same cycle picked; one that holds no such lock is named on its tab and prints nothing, never zeros.
-- **Years: the base year and the next four** (FY27-FY31 on a base of 2027), five in all. A year on screen outside that
-  window is not printed. A year in the window the plan does not hold prints —, not 0.
-- **Units: $M to three decimals** ($1,000,000 prints 1.000). Each cell holds the exact figure in millions; only the format
-  rounds, so Excel's own sums agree with the TOTALs to the dollar.
-- **Two figures per year, every sheet:** *Requirement* (the requirement value) and *Allocated* (the requirement's
-  discretionary + mandatory allocation, every service added together). Allocated is what was allocated, not what the lanes
-  drew; where a lane runs dry the gap is unfunded wherever unfunded is reported.
-- **Tabs 1-4: one per appropriation** -- O&M, Full Fund, Initial Spares, OPN.
-  - Two header rows: CCaR Record, Requirement Title, then each fiscal year over its two columns (Requirement, Allocated),
-    then TOTAL over the same two at the far right.
-  - One line per requirement, in 1-N order, grouped under its CCaR record (a record sits where its highest-ranked requirement
-    ranks). The record number is printed once, on the group's first line. Requirements with no record are last, under
-    "No CCaR record".
-  - The requirement title from the board, not the CCaR record name.
-  - Each line's five-year totals at the right; a TOTAL row at the bottom for every column. No subtotals.
-- **Tabs 5-10: one per service** -- USAF, ANG, AFRC, STOVL, USMC-C, USN (the board's names).
-  - **Summary at the top:** one row per appropriation the service carries, the same columns and headings as tabs 1-4, totals
-    at the right and a TOTAL row.
-  - **Below it, one block per appropriation**, laid out exactly as tabs 1-4, with only that service's dollars.
-  - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
-    off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
-    all gets no tab.
-- **Tab 0: Summary, first** (Brad, 22 Oct 2026: "yes"). One page: By appropriation (a row each, the same columns, TOTAL),
-  a chart of Requirement against Allocated by fiscal year for the portfolio (navy and gold, axis from zero, the figures read
-  off the TOTAL row), then By service and By PMO in the same layout. The three tables' TOTALs are the same figure.
-- **Tabs per PMO, after the service tabs** (Brad, 22 Oct 2026: "tabs for each PMO. Same format ... just for each PMO that
-  has any requirement identified"): the service tab's layout -- summary by appropriation, then a block per appropriation --
-  with that office's requirements, all services added. An office with no requirement in the five years gets no tab; an
-  appropriation it holds nothing in is left off its tab. Teal tabs. *To build as the board already counts an office:* the
-  office each year assigns (Brad's Q2, v1.95), so a requirement that moved office is under each for its own years; a prime
-  shared between offices by its CLINs is split by office share (`pmoPartsOf`), and the PMO tabs add up to the
-  appropriation tabs.
-- **No classification marking** (Brad, 22 Oct 2026: "Let's leave the classification marks off"). The mock-up's "CUI"
-  placeholder is not built.
-- **Tab order:** Summary, O&M, Full Fund, Initial Spares, OPN, USAF, ANG, AFRC, STOVL, USMC-C, USN, then the PMOs.
-- **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
-  pull from for briefings"). The styled mock-up sent that day is the target:
-  - a navy title banner per tab (the plan's name), under it one italic line: the plan and when locked, FY27–FY31,
-    "$ in millions", whose share (all services / that service only), the date printed; a gold rule beneath;
-  - headings in navy with white text, the fiscal year over its two columns, Requirement / Allocated beneath in a lighter
-    slate; the TOTAL FY27–FY31 columns in gold, with a light gold shade down every line;
-  - each CCaR record group shaded as a band (alternating), a rule between groups, the record number in bold navy;
-  - the TOTAL row on a grey band, bold, a double rule above it;
-  - on a service tab, a section heading over the summary and over each appropriation's block;
-  - no gridlines; navy tabs for the appropriations, gold for the services; the panes frozen below the headings and right of
-    the title; landscape, one page wide, the heading rows repeated on every printed page, a footer with the plan, page N of
-    M and the date printed;
-  - zero prints as "–".
-  Colours are the board's own (navy, the gold accent). The board's workbook writer (`buildXlsx`) can't do this yet: it
-  has one border style and no tab colour, gridline, print or page setup; the build extends it, and every other export keeps
-  its current look.
-- **The 📊 Five-year spend plan panel matches the workbook** (Brad, 22 Oct 2026): the same picker for the plan, the same
-  appropriation and service views, the same columns, totals and $M figures, so what is on screen is what prints.
-- **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
-  appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
-  plan moves; $M cells carry the exact figure.
-- **Built on PR #20, in v2.04** (Brad, 22 Oct 2026: "press with PR number 20"), mock-up v2 approved ("I like them!"). A chart
-  in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
-
-#### 113. Every report workbook styled like the five-year spend plan (Brad, 22 Oct 2026: "Can we enhance all of our spreadsheets so that they look presentable like these?")
-- **Logged:** 22 Oct 2026. Not built; waits for go. Ships with item 112, whose styled mock-up v2 is the look (Brad: "I like them!").
-- **Style only** (Brad: "Only update the style for now"). No summary tab or chart is added to these; no figure, unit, row,
-  column, value or formula changes. Each report keeps the units it prints today (dollars, $K or $M, to the decimals it
-  prints now).
-- **Restyled -- the reports people read:** the board workbook (Excel workbook: Funding Streams, Decision Bands, PMO Matrix,
-  Unfunded Requirements, the PMO tabs and the rest), 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan
-  Forecast (by view), Funds Flow, Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change
-  report, the Chart of Accounts (internal use only -- Brad), and the IDS file's second sheet, *Missing data and anomalies*.
-- **Left exactly as they are -- another system reads them:** the Spend Plan Source (CCaR imports it; ORBIT reads its columns
-  back by position), the 1A9A CR Cash Return (a fixed submission format), and the IDS file's *Requirement v1* sheet (the
-  IDS template).
-- **The look, from item 112:** the sheet's existing title row as the navy banner; navy headings with white text; total
-  rows on a grey band with a double rule above; total columns in gold; banded rows; no gridlines; tab colours; headings
-  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; no
-  classification marking (Brad, 22 Oct). One shared house style in the workbook
-  writer (`buildXlsx`), so every report matches and a later change is made once.
-- **Proof that nothing moved:** `npm run delta` against the commit before reports **zero figures moved** in every workbook;
-  every suite that reads these files passes unchanged; the three left-alone files are byte-identical to today's (compared with the
-  clock held).
-
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -284,7 +194,7 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence, SharePoint and the JSON endpoint removed -- built on Brad's "Go to all" of 22 Oct
+### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence, SharePoint and the JSON endpoint removed, the five-year spend plan workbook redesigned and every report dressed for briefing -- built on Brad's "Go to all" of 22 Oct, items 112 and 113 on "press with PR number 20"
 
 `BUILD` is `v2.04 (22 Oct 2026)`. Brad's go covered items 108, 109 and 106; the list tidy (89 and 101 to v2.02) went first.
 **Not built, and why:** the decisions under items 63, 71, 82 and 84 were never picked, so there was nothing to build; of item
@@ -365,9 +275,176 @@ mutation was run against its own check.
   set-ups opens off, said, key gone). 2 `v204-111-*` mutations, each caught; `v204-110-mode-kept` retargeted to the line
   that now carries all three.
 
+#### 112, as logged. The five-year spend plan workbook, redesigned (Brad, 22 Oct 2026; layout agreed in conversation, mock-up sent)
+- **Logged:** 22 Oct 2026. Not built; waits for go. Mock-ups (made-up data) were sent as files: tab 1 alone, then all ten tabs.
+- **It REPLACES the workbook's tabs** (By Requirement, By PMO, By Service, a tab per PMO). 📊 FYDP Spend Plan (Excel) keeps
+  its menu entry.
+- **What it prints from: a plan the person picks** (Brad, 22 Oct 2026: "Let's make it a selectable item"). 📊 FYDP Spend Plan
+  (Excel) opens a short choice -- the working plan (with its cycle tag) and every locked cycle, each with when it was locked --
+  with the plan ON SCREEN chosen when it opens (a locked view on screen: that lock; otherwise the working plan), and Export.
+  Every tab's title and the file name name the plan printed ("ORBIT FYDP Spend Plan — PB27 (locked 15 Oct) — FY27–FY31").
+  The other appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed),
+  from the same cycle picked; one that holds no such lock is named on its tab and prints nothing, never zeros.
+- **Years: the base year and the next four** (FY27-FY31 on a base of 2027), five in all. A year on screen outside that
+  window is not printed. A year in the window the plan does not hold prints —, not 0.
+- **Units: $M to three decimals** ($1,000,000 prints 1.000). Each cell holds the exact figure in millions; only the format
+  rounds, so Excel's own sums agree with the TOTALs to the dollar.
+- **Two figures per year, every sheet:** *Requirement* (the requirement value) and *Allocated* (the requirement's
+  discretionary + mandatory allocation, every service added together). Allocated is what was allocated, not what the lanes
+  drew; where a lane runs dry the gap is unfunded wherever unfunded is reported.
+- **Tabs 1-4: one per appropriation** -- O&M, Full Fund, Initial Spares, OPN.
+  - Two header rows: CCaR Record, Requirement Title, then each fiscal year over its two columns (Requirement, Allocated),
+    then TOTAL over the same two at the far right.
+  - One line per requirement, in 1-N order, grouped under its CCaR record (a record sits where its highest-ranked requirement
+    ranks). The record number is printed once, on the group's first line. Requirements with no record are last, under
+    "No CCaR record".
+  - The requirement title from the board, not the CCaR record name.
+  - Each line's five-year totals at the right; a TOTAL row at the bottom for every column. No subtotals.
+- **Tabs 5-10: one per service** -- USAF, ANG, AFRC, STOVL, USMC-C, USN (the board's names).
+  - **Summary at the top:** one row per appropriation the service carries, the same columns and headings as tabs 1-4, totals
+    at the right and a TOTAL row.
+  - **Below it, one block per appropriation**, laid out exactly as tabs 1-4, with only that service's dollars.
+  - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
+    off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
+    all gets no tab.
+- **Tab 0: Summary, first** (Brad, 22 Oct 2026: "yes"). One page: By appropriation (a row each, the same columns, TOTAL),
+  a chart of Requirement against Allocated by fiscal year for the portfolio (navy and gold, axis from zero, the figures read
+  off the TOTAL row), then By service and By PMO in the same layout. The three tables' TOTALs are the same figure.
+- **Tabs per PMO, after the service tabs** (Brad, 22 Oct 2026: "tabs for each PMO. Same format ... just for each PMO that
+  has any requirement identified"): the service tab's layout -- summary by appropriation, then a block per appropriation --
+  with that office's requirements, all services added. An office with no requirement in the five years gets no tab; an
+  appropriation it holds nothing in is left off its tab. Teal tabs. *To build as the board already counts an office:* the
+  office each year assigns (Brad's Q2, v1.95), so a requirement that moved office is under each for its own years; a prime
+  shared between offices by its CLINs is split by office share (`pmoPartsOf`), and the PMO tabs add up to the
+  appropriation tabs.
+- **No classification marking** (Brad, 22 Oct 2026: "Let's leave the classification marks off"). The mock-up's "CUI"
+  placeholder is not built.
+- **Tab order:** Summary, O&M, Full Fund, Initial Spares, OPN, USAF, ANG, AFRC, STOVL, USMC-C, USN, then the PMOs.
+- **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
+  pull from for briefings"). The styled mock-up sent that day is the target:
+  - a navy title banner per tab (the plan's name), under it one italic line: the plan and when locked, FY27–FY31,
+    "$ in millions", whose share (all services / that service only), the date printed; a gold rule beneath;
+  - headings in navy with white text, the fiscal year over its two columns, Requirement / Allocated beneath in a lighter
+    slate; the TOTAL FY27–FY31 columns in gold, with a light gold shade down every line;
+  - each CCaR record group shaded as a band (alternating), a rule between groups, the record number in bold navy;
+  - the TOTAL row on a grey band, bold, a double rule above it;
+  - on a service tab, a section heading over the summary and over each appropriation's block;
+  - no gridlines; navy tabs for the appropriations, gold for the services; the panes frozen below the headings and right of
+    the title; landscape, one page wide, the heading rows repeated on every printed page, a footer with the plan, page N of
+    M and the date printed;
+  - zero prints as "–".
+  Colours are the board's own (navy, the gold accent). The board's workbook writer (`buildXlsx`) can't do this yet: it
+  has one border style and no tab colour, gridline, print or page setup; the build extends it, and every other export keeps
+  its current look.
+- **The 📊 Five-year spend plan panel matches the workbook** (Brad, 22 Oct 2026): the same picker for the plan, the same
+  appropriation and service views, the same columns, totals and $M figures, so what is on screen is what prints.
+- **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
+  appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
+  plan moves; $M cells carry the exact figure.
+- **Built on PR #20, in v2.04** (Brad, 22 Oct 2026: "press with PR number 20"), mock-up v2 approved ("I like them!"). A chart
+  in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
+
+#### 113, as logged. Every report workbook styled like the five-year spend plan (Brad, 22 Oct 2026: "Can we enhance all of our spreadsheets so that they look presentable like these?")
+- **Logged:** 22 Oct 2026. Not built; waits for go. Ships with item 112, whose styled mock-up v2 is the look (Brad: "I like them!").
+- **Style only** (Brad: "Only update the style for now"). No summary tab or chart is added to these; no figure, unit, row,
+  column, value or formula changes. Each report keeps the units it prints today (dollars, $K or $M, to the decimals it
+  prints now).
+- **Restyled -- the reports people read:** the board workbook (Excel workbook: Funding Streams, Decision Bands, PMO Matrix,
+  Unfunded Requirements, the PMO tabs and the rest), 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan
+  Forecast (by view), Funds Flow, Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change
+  report, the Chart of Accounts (internal use only -- Brad), and the IDS file's second sheet, *Missing data and anomalies*.
+- **Left exactly as they are -- another system reads them:** the Spend Plan Source (CCaR imports it; ORBIT reads its columns
+  back by position), the 1A9A CR Cash Return (a fixed submission format), and the IDS file's *Requirement v1* sheet (the
+  IDS template).
+- **The look, from item 112:** the sheet's existing title row as the navy banner; navy headings with white text; total
+  rows on a grey band with a double rule above; total columns in gold; banded rows; no gridlines; tab colours; headings
+  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; no
+  classification marking (Brad, 22 Oct). One shared house style in the workbook
+  writer (`buildXlsx`), so every report matches and a later change is made once.
+- **Proof that nothing moved:** `npm run delta` against the commit before reports **zero figures moved** in every workbook;
+  every suite that reads these files passes unchanged; the three left-alone files are byte-identical to today's (compared with the
+  clock held).
+
+#### 112, as built -- the five-year spend plan workbook (Brad, 22 Oct 2026; "Let's leave the classification marks off and press with PR number 20")
+- **One model, read by the workbook and the panel** (`fydpBookYears`, `fydpBookApp`, `fydpBookVal`, `fydpBookHas`, `fydpBookLines`,
+  `fydpBookAdd`, `fydpBookModel`; the sheets `fydpBookSheets`). Each appropriation's projection -- its own board's `fydpData`,
+  the figures a lock takes -- becomes requirements by year; the tabs and the panel only arrange it.
+- **Tabs:** Summary (By appropriation, the portfolio by fiscal year with its chart, By service, By PMO), then a tab per
+  appropriation that holds a plan, per service with money, per PMO with a requirement. A service or PMO tab is a roll-up by
+  appropriation, then each appropriation's block. Replaced: By Requirement, By PMO, By Service and the v1.85 PMO tabs.
+- **Years:** the plan's base year and the next four (a locked cycle's base is the lock's). A year the plan does not hold
+  prints — and is outside every total; a requirement with nothing in a held year prints 0.000.
+- **Figures:** Requirement and Allocated per year, every service added, in $M to three decimals (the cell holds the exact
+  figure). **Allocated is discretionary + mandatory drawn** -- the projection's `fund`, what every other surface calls
+  Funded -- not the allocation as typed. *This differs from the note logged above* ("what was allocated, not what the lanes
+  drew"); the two part only where a lane cannot pay what was directed, and the draw is what a lock stores. Put to Brad.
+- **Lines:** 1-N under the CCaR record (case- and space-insensitive), printed once on the group's first line, "No CCaR record"
+  last; the board's title; line totals at the right; TOTAL at the bottom; no subtotals.
+- **Services** by name in each year's own list; a requirement the service does not carry, an appropriation it holds nothing in
+  and a service with nothing get no line, block or tab. **PMOs:** each year under the office that year assigns (v1.95), 0
+  in the years another office held it. *Built by the requirement's own office, not split by CLIN share* (the logged note
+  suggested `pmoPartsOf`): a prime shared across offices is under its own office. The PMO tabs, like the service tabs, add up
+  to the appropriation tab.
+- **The plan picked:** 📊 FYDP Spend Plan (Excel) opens the panel on the plan on screen (`fydpOnScreen`, `fydpPickExport`), and
+  its Export button prints the plan shown. Every tab's subtitle names it ("PB27 (locked 15 Oct 2026)"); the file name as before.
+- **The other appropriations** are read by their own boards in sealed frames, as v1.85 read them. One that cannot be read is
+  named on the Summary and on its tab ("⚠ FULL FUND IS NOT IN THIS WORKBOOK — why. Its figures are missing here, not zero.");
+  one that holds nothing is said on the Summary and gets no tab. A working plan tagged under another cycle says so on its tab
+  and its blocks (`tagOf`, kept from v1.85).
+- **A PMO copy** prints its own appropriation, says so on the Summary, and stamps every sheet as a snapshot.
+- **Dropped** (Brad: "Drop both"): the cost estimate and the PPBE position beside the plan. The estimate stays in the ACE
+  Tie-Out, the positions in 🏛 PPBE Budget Positions.
+- **The panel** (📊 Five-year spend plan…) shows the same model: the plan picker, a view picker (Summary, this
+  appropriation, each service, each PMO), the same columns in $M, and the Export button.
+- **Styled** by the house style (item 113), with a chart on the Summary: Requirement (navy) and Allocated (gold) by fiscal
+  year, axis from zero, read off the portfolio-by-year table. **Zero prints 0.000**, not "–" (the logged note's mock-up): a
+  dash means a year not held. A sheet wider than about two landscape pages prints across pages rather than shrinking to one.
+- **Checks:** audit-recon "the five-year spend plan" (rewritten: every tab read back as blocks, against the engine; the panel's
+  views; a locked plan as locked; the picker) and "v1.95 — the five-year plan files each year under that year's PMO"
+  (rewritten for the Summary and the PMO tabs); audit-import's five v1.85 blocks (rewritten: every appropriation's tab and
+  blocks tie to its own board, refusals said, the frames waited for, a PMO copy); audit-board's locked-view lists (the
+  Summary's By PMO); audit-inject K8 (offices named after built-ins add up as text) and three K5 pins; `fydp-frames.mjs` in
+  Chromium; the trace matrix's *xl · FYDP Spend Plan* states Requirement and Funded only now (Disc BA, Mand BA and TOTAL
+  unfunded struck from `trace-stated.json`); the money map's lane cell is n/a (lanes combined).
+- **Mutations:** 24 retargeted to the same defect in the new code; 21 retired as obsolete (the estimate and position
+  columns, the separate Allocated/Funded pair, the By PMO count, the estimate-share map); 10 new `v204-112-*`.
+
+#### 113, as built -- every report workbook dressed for briefing, style only (Brad, 22 Oct 2026)
+- **One house style in the writer.** `buildXlsx(sheets, extra, opts)`: `opts.house` asks for it (`xlsxHouse(name)` gives the
+  footer's report name and the date printed); a sheet with `plain` is written as before; nothing changes for a workbook that
+  does not ask. `_housePlan` reads the sheet's own styles and paints: the title row as a navy banner, the words-only row under
+  it as the italic subtitle with a gold rule, section headings, navy headings (the second heading row slate, TOTAL/FYDP
+  columns gold), banded rows, total rows on grey with a double rule; no gridlines, a tab colour, frozen panes as before,
+  landscape fit to one page wide (unless wider than about two pages), the heading rows repeated on each page, a footer with
+  the report, the sheet, page N of M and the date printed. Fonts and borders are added to the stylesheet (`{{FONTS}}`,
+  `{{BORDERS}}`), shared between entries that ask for the same.
+- **Dressed:** the board workbook, 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan Forecast, Funds Flow,
+  Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change report, the Chart of Accounts, and
+  the IDS file's second sheet (`idsHouse`). **Left as they are:** the Spend Plan Source, the 1A9A CR Cash Return and the IDS
+  file's *Requirement v1* sheet (byte for byte as before).
+- **Found by its check and fixed before it shipped:** a sheet that writes an empty cell as `{v:'', s:2}` had it emitted
+  twice -- once by the writer, once padded by the house style -- two cells with one reference, which Excel reports as damaged.
+  The padding skips every cell the writer emits.
+- **Not changed:** the column widths. A column the report sized narrow (the Priority Drill's *unbanded* and TOTAL) can still
+  show ### in a narrow viewer, as it did before.
+- **Proof that nothing moved:** `npm run delta` against the commit before: 0 figures moved outside the five-year workbook;
+  every restyled workbook read back holds exactly the values it held written plain; the Spend Plan Source is byte-identical.
+- **Check:** audit-other "v2.04 (item 113) — the house style": for eight exports, the values written dressed are the values
+  written plain; every part parses as XML; every count the stylesheet declares is what it holds; every cell's style is
+  declared; cells in column order; parts in the schema's order; every sheet has its gridlines off, a tab colour, landscape and
+  the footer; the five-year chart, its parts and content types, each series the column its name heads; the print titles; the
+  IDS template sheet byte for byte; and which reports ask for the style (all but the two read in elsewhere).
+- **Mutations:** 14 new `v204-113-*`, each caught by that check.
+
 #### Changed on purpose, each saying so where it changed
 audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review section, Clear this computer); left-menu's
 inventory (71 calls); panels-render and dialogs-keyboard open the AI review list.
+Items 112-113: the Reports & exports section expects `fydpPickExport` where `exportFydpPlan` was (audit-board v1.96,
+left-menu, layout-fits B); audit-board's locked-view lists read the five-year Summary's By PMO; recon's U10 blocks no longer
+read the estimate and the position off the five-year workbook (the position is read where it is logged); U37 names the
+refused cell on the O&M tab (B6) where it named By Requirement (B7); audit-import's v1.85 fixture trims G after the lock too, so
+the lock and today differ in a printed figure; `trace-stated.json` strikes Disc BA, Mand BA and TOTAL unfunded off *xl · FYDP
+Spend Plan*; the money map's five-year lane cells are n/a (lanes combined) and its PPBE-position and estimate checks are gone.
 
 #### The checks v2.04 was proved with (22 Oct 2026)
 `npm run check`; every suite passes -- audit, audit-ppt, audit-other, audit-board, audit-import, audit-recon, audit-hostile,
@@ -377,6 +454,18 @@ dialogs, leftmenu, panels, dropdowns, standards (nothing new), menus, controls, 
 the carried D ×8. mcount: every target matches once (2,112). defects, trace and the round-trip fuzz (seed 764238573) hold; the money map holds
 with one cell open: the AI review request's fiscal-year cell (the check holds the year on screen only). The RECORD panel's new
 line was photographed at 1440 and 1024.
+
+**Items 112-113, proved on 22-23 Oct 2026:** `npm run check`; every suite passes -- audit, audit-ppt, audit-other, audit-board,
+audit-import, audit-recon, audit-hostile, audit-inject, audit-ui, legacy-fsrc, boot-same (recon and import with an 8 GB heap:
+at the container's 2 GB default both die out of heap on the commit before as well); fydp-frames (Chromium), leftmenu, panels,
+menus, csp, keys, dialogs, dropdowns, controls, hostile, editors, toolbar, colours, inspector, standards (nothing new) pass;
+layout fails only the carried D ×8. `npm run delta` against the commit before: 0 figures moved outside the five-year workbook;
+every restyled workbook's values identical to its plain twin; the Spend Plan Source byte-identical. mcount: every target
+matches once (2,119). Every one of the 48 new and retargeted mutations was run against its check and caught (recon 26, the
+house-style check 13, import 7, U37 1, inject 1); two first survived and showed checks too weak, each now stronger
+(`v204-112-svc-empty-tab`: the recon fixture gives one service nothing; `v200-u37-guard-exportfydpplan`: caught by U37, which
+the first proof had not run). defects and the trace matrix hold; the money map holds (119 proven, 209 n/a, 1 open -- the AI
+review's, as before); the round-trip fuzz (seed 922123388) and the file verifier's self-test hold. The sweep was not run.
 
 #### 108 (as logged). A record number fills the Record Name and the Description from the CCaR records list (Brad, 22 Oct 2026)
 - **What Brad asked:** importing the CCaR records brings a Record Name and a short description for each record. Entering a

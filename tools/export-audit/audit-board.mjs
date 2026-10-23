@@ -2602,7 +2602,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     const src = (B.exportSrc[0] || { rows: [] }).rows.slice(1).map(r => [r[3], r[4], r[9], r[18]]);
     const fl = sheet(B, 'exportFlow', 'Funds Flow'), at = l => fl.filter(r => r[0] === l).map(r => r[1]).find(x => typeof x === 'number');
     const db = sheet(B, 'exportExcel', 'Decision Bands').find(r => r[1] === 'Band X');
-    const pm = sheet(B, 'exportFydpPlan', 'By PMO').filter(r => r[0] === 'ZED' || r[0] === 'AV' || r[0] === 'PSM').map(r => r.slice(0, 6));
+    // v2.04: the five-year workbook's Summary, By PMO -- the office, its year-on-screen Requirement and Allocated (the lane draw), $M
+    const sm = sheet(B, 'exportFydpPlan', 'Summary'), ph = sm.findIndex(r => r[0] === 'PMO' && !r[1]);
+    const pm = (ph < 0 ? [] : sm.slice(ph + 2)).filter(r => r[0] === 'ZED' || r[0] === 'AV' || r[0] === 'PSM').map(r => [r[0], Math.round(r[2] * 1e6), Math.round(r[3] * 1e6)]);
     return { src, flow: [at('US service appropriations'), at('International Partners'), at('Foreign Military Sales'), at('TOTAL FUNDING')],
       band: db ? db.slice(0, 7) : null, pmo: pm, tabs: B.exportExcel.map(s => s.name).filter(n => /^PMO /.test(n) && n !== 'PMO Matrix'),
       dest: E(`flowEntName('dz1')`), sheets: Object.keys(B).map(f => f + ':' + B[f].length).join(' ') }; };
@@ -2613,13 +2615,13 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
           ['B event', 'USAF O&M- CAM Discretionary AV', 50, 'AV'], ['B event', 'USAF O&M - CAM OBBBA Mandatory AV', 30, 'AV'],
           ['B event', '', 10, 'AV'], ['B event', '', 20, 'AV'], ['B event', '', 10, 'AV']],
     flow: [290, 3000000, 0, 3000290], band: ['8', 'Band X', 'fund in full', '', '', 1, 170],
-    pmo: [['AV', 1, 130, 130, 120, 10], ['ZED', 1, 170, 170, 170, 0]], tabs: ['PMO AV', 'PMO ZED'], dest: 'Depot One' };
+    pmo: [['AV', 130, 120], ['ZED', 170, 170]], tabs: ['PMO AV', 'PMO ZED'], dest: 'Depot One' };
   // THE WORKING PLAN takes every change (CONTROLS)
   const w = read(ev);
   chk(name, 'the working plan', 'CONTROL — A is AV’s, retitled; the retired name and ZED’s are gone; FMS $2,000,000 for ALL YEARS',
     J([w.src.slice(0, 2), w.flow, w.band, w.pmo, w.dest]),
     J([[['A event retitled', '', 100, 'AV'], ['A event retitled', '', 50, 'AV']], [290, 0, 2000000, 2000290], null,
-       [['AV', 2, 300, 300, 290, 10]], 'Depot Renamed']));
+       [['AV', 300, 290]], 'Depot Renamed']));
   const snap = `JSON.stringify([MS, S, DESTDB, BUDDB, BASE_ITEMS, BASE_ASK, CLINS, GROUPS, DATA.items, DATA.budget, SVC, DIRTY,
     localStorage.getItem(DEST_KEY), localStorage.getItem('prio27buddb'), localStorage.getItem(_AP.key)])`;
   const before = ev(snap);
@@ -3809,7 +3811,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     J([['togglePlans', 'crExport'], true]));
   chk(name, 'contents', 'Briefing, Five years & PPBE, CCaR & accounting files, Companion tools; no Execution & reprogramming section',
     J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
-    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['exportFydpPlan', 'exportCycCompare'],
+    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['fydpPickExport', 'exportCycCompare'],
        [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),

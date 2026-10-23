@@ -10,7 +10,7 @@
 // Amount column is now what DISCRETIONARY paid, straight out of the lane walk. While it was listed
 // there it had no money check at all, and changing its basis moved a fixture total from 285 to 150
 // with all twelve suites still green.
-import { boot, seed, cv, stopAtFirstFailure } from './boot.mjs';
+import { boot, seed, cv, stopAtFirstFailure, BOARD } from './boot.mjs';
 
 const failures = [];
 stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
@@ -1659,6 +1659,123 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   asked = JSON.parse(run([true, true]));
   chk(name, 'cleared', 'every prio27 and spmt key goes; a key ORBIT does not own stays', keys(), 'someoneElse');
   chk(name, 'cleared', 'this tab’s session storage too', ev(`String(sessionStorage.getItem('spmtX'))`), 'null');
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.04 (item 113): THE HOUSE STYLE -- every report workbook dressed for briefing, the figures untouched. Brad, 22 Oct 2026:
+// "Only update the style for now." So the check is that nothing but the style moved: each export's workbook, read back,
+// holds exactly the values the same sheets hold written plain; every part is XML another program can read; every count
+// the stylesheet declares is what it holds and every cell's style is one it declares; the cells of a row are in column
+// order and a sheet's parts in the schema's order (Excel refuses either); a sheet that must stay as it is -- the IDS
+// template's Requirement v1 -- is written byte for byte as before; the footer's & is a code, so a literal one is
+// doubled and then escaped. The five-year plan's Summary carries a chart read off its own cells, and its tabs print
+// their headings on every page. The Spend Plan Source and the 1A9A are never dressed: CCaR and the comptroller read them.
+{
+  const name = 'v2.04 (item 113) — the house style: every report dressed, no figure moved';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, SCENARIOS[Object.keys(SCENARIOS)[0]]);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      window.confirm=function(){ return true; }; window.alert=function(){}; HTMLAnchorElement.prototype.click=function(){};
+      S.awards={}; S.awards[S.order[0]]={mode:'single', d:FYMON[2][0], day:3}; applyState(S); MS.years[MS.cur]=S; MS.base=MS.cur; save();
+      blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; fydpSrc='working'; 'ok'`);
+  // the stored zip's parts, each read as another program reads XML; the arguments the export handed the writer
+  ev(`window.__houseParts=function(u){ var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), o={};
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; } return o; }; 'ok'`);
+  const run = async (call) => JSON.parse(await ev(`(async function(){
+    var o=buildXlsx, args=null, got=null;
+    buildXlsx=function(sh, ex, op){ args=[JSON.parse(JSON.stringify(sh)), ex? JSON.parse(JSON.stringify(ex)) : ex, op? JSON.parse(JSON.stringify(op)) : op]; got=o(sh, ex, op); return got; };
+    try{ ${call}; }catch(e){ buildXlsx=o; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    buildXlsx=o;
+    if(!got) return JSON.stringify({err:'no workbook'});
+    var plain=o(args[0], args[1], null), parts=__houseParts(got), pp=__houseParts(plain), bad=[], sch=[], ord=[], xfs=[];
+    var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); };
+    Object.keys(parts).forEach(function(k){ if(/\\.(xml|rels)$/.test(k) && P(parts[k]).getElementsByTagName('parsererror').length) bad.push(k); });
+    var st=P(parts['xl/styles.xml']), cnt={};
+    ['numFmts','fonts','fills','borders','cellXfs'].forEach(function(t){ var e=st.getElementsByTagName(t)[0]; if(e) cnt[t]=[+e.getAttribute('count'), e.children.length]; });
+    var nxf=cnt.cellXfs? cnt.cellXfs[1] : 0;
+    var ORDER=['sheetPr','dimension','sheetViews','sheetFormatPr','cols','sheetData','mergeCells','printOptions','pageMargins','pageSetup','headerFooter','drawing'];
+    var sheets={};
+    Object.keys(parts).filter(function(k){ return /^xl\\/worksheets\\/sheet\\d+\\.xml$/.test(k); }).forEach(function(k){
+      var d=P(parts[k]), ws=d.documentElement, kids=[].slice.call(ws.children).map(function(e){ return e.localName; });
+      var ix=kids.map(function(n){ return ORDER.indexOf(n); }); if(ix.some(function(v,i){ return v<0 || (i && v<ix[i-1]); })) sch.push(k+': '+kids.join(','));
+      [].slice.call(d.getElementsByTagName('row')).forEach(function(r){ var last=-1; [].slice.call(r.getElementsByTagName('c')).forEach(function(c){
+        var ref=c.getAttribute('r'), col=0; ref.replace(/^[A-Z]+/, function(L){ for(var i=0;i<L.length;i++) col=col*26+(L.charCodeAt(i)-64); return L; });
+        if(col<=last) ord.push(k+' '+ref); last=col; var s=+(c.getAttribute('s')||0); if(!(s>=0 && s<nxf)) xfs.push(k+' '+ref+' s='+s); }); });
+      var sv=d.getElementsByTagName('sheetView')[0], ft=d.getElementsByTagName('oddFooter')[0];
+      sheets[k]={grid:sv? sv.getAttribute('showGridLines') : null, tab:!!d.getElementsByTagName('tabColor').length, land:(d.getElementsByTagName('pageSetup')[0]||{getAttribute:function(){ return null; }}).getAttribute('orientation'),
+        foot:ft? ft.textContent : null, same:parts[k]===pp[k]};
+    });
+    var wb=P(parts['xl/workbook.xml']), names=[].slice.call(wb.getElementsByTagName('sheet')).map(function(e){ return e.getAttribute('name'); });
+    var titles=[].slice.call(wb.getElementsByTagName('definedName')).map(function(e){ return {sheet:+e.getAttribute('localSheetId'), ref:e.textContent}; });
+    var a=await xlsxRead(got.buffer.slice(got.byteOffset, got.byteOffset+got.byteLength)), b=await xlsxRead(plain.buffer.slice(plain.byteOffset, plain.byteOffset+plain.byteLength));
+    return JSON.stringify({house:!!(args[2]&&args[2].house), bad:bad, cnt:cnt, sch:sch, ord:ord.slice(0,5), xfs:xfs.slice(0,5), sheets:sheets, names:names, titles:titles,
+      same:JSON.stringify(a)===JSON.stringify(b), nvals:JSON.stringify(a).length, parts:Object.keys(parts), types:parts['[Content_Types].xml'],
+      chart:parts['xl/charts/chart1.xml']||'', rels:parts['xl/worksheets/_rels/sheet1.xml.rels']||'', read:a}); })()`));
+  const CALLS = ['exportExcel()', 'exportCSV()', 'exportPlans()', 'exportFlow()', 'exportCoa()', 'exportFcView()', 'exportCycCompare()', 'exportFydpPlan()'];
+  const R = {};
+  for (const c of CALLS) {
+    const r = R[c] = await run(c);
+    chk(name, c, 'builds, dressed', J([r.err || '', r.house]), J(['', true]));
+    if (r.err) continue;
+    chk(name, c, 'every value is the one the same sheets hold written plain — and there are values', r.same && r.nvals > 200, true);
+    chk(name, c, 'every part is XML another program reads', J(r.bad), '[]');
+    chk(name, c, 'every count the stylesheet declares is what it holds', J(Object.keys(r.cnt).filter(k => r.cnt[k][0] !== r.cnt[k][1])), '[]');
+    chk(name, c, 'every cell’s style is one the stylesheet declares', J(r.xfs), '[]');
+    chk(name, c, 'the cells of a row are in column order', J(r.ord), '[]');
+    chk(name, c, 'a sheet’s parts are in the schema’s order', J(r.sch), '[]');
+    const sh = Object.values(r.sheets);
+    chk(name, c, 'every sheet: no gridlines, a tab colour, landscape, a footer naming the report and the sheet',
+      J(sh.filter(x => !(x.grid === '0' && x.tab && x.land === 'landscape' && /^&L&8ORBIT .+&R&8Page &P of &N  ·  printed \d{4}-\d\d-\d\d$/.test(x.foot || ''))).length), '0');
+  }
+  // the five-year plan: an & in a name is doubled in the footer; the chart reads its own cells; headings repeat on every page
+  const F = R['exportFydpPlan()'];
+  if (!F.err) {
+    const app = ev(`appnName(mySlug())`), ai = F.names.indexOf(app);
+    chk(name, 'FYDP', 'the footer doubles an & in a sheet name, so it prints as one (O&M)',
+      app.indexOf('&') < 0 || (F.sheets['xl/worksheets/sheet' + (ai + 1) + '.xml'].foot || '').indexOf(app.replace(/&/g, '&&')) > 0, true);
+    chk(name, 'FYDP', 'the Summary carries a chart: its drawing, its part and both content types',
+      J([F.parts.indexOf('xl/charts/chart1.xml') >= 0, F.parts.indexOf('xl/drawings/drawing1.xml') >= 0, /Target="\.\.\/drawings\/drawing1\.xml"/.test(F.rels),
+        /PartName="\/xl\/charts\/chart1\.xml" ContentType="application\/vnd\.openxmlformats-officedocument\.drawingml\.chart\+xml"/.test(F.types),
+        /PartName="\/xl\/drawings\/drawing1\.xml"/.test(F.types)]), J([true, true, true, true, true]));
+    // each series is the column its name heads, on the Summary, over the fiscal years
+    const refs = [...F.chart.matchAll(/<c:ser>[\s\S]*?<c:v>([^<]*)<\/c:v>[\s\S]*?<c:cat><c:strRef><c:f>([^<]*)<\/c:f>[\s\S]*?<c:val><c:numRef><c:f>([^<]*)<\/c:f>/g)]
+      .map(m => [m[1], m[2].replace(/&apos;/g, "'"), m[3].replace(/&apos;/g, "'")]);
+    const sm = F.read.Summary || [];
+    const cell = ref => { const m = /^'(.+)'!\$([A-Z]+)\$(\d+):\$([A-Z]+)\$(\d+)$/.exec(ref); if (!m) return null; const col = m[2].charCodeAt(0) - 65;
+      return { sheet: m[1], col, r0: +m[3] - 1, r1: +m[5] - 1 }; };
+    chk(name, 'FYDP chart', 'two series, Requirement then Allocated, each reading the column its name heads on the Summary, over the five fiscal years',
+      J(refs.map(([n, c, v]) => { const C = cell(c), V = cell(v); if (!C || !V) return 'unreadable'; const hdr = sm[V.r0 - 1] || [];
+        return [n, V.sheet, String(hdr[V.col] ?? ''), V.r1 - V.r0 + 1, (sm.slice(C.r0, C.r1 + 1).map(r => String((r || [])[C.col] ?? '')).join(',')), sm.slice(V.r0, V.r1 + 1).every(r => typeof (r || [])[V.col] === 'number' || (r || [])[V.col] === '—')]; })),
+      J(['Requirement', 'Allocated'].map(n => { const y = +ev('MS.base||MS.cur'); return [n, 'Summary', n, 5, [0, 1, 2, 3, 4].map(k => 'FY' + ((y + k) % 100)).join(','), true]; })));
+    chk(name, 'FYDP print titles', 'the appropriation tab repeats its two heading rows on every page; the Summary, service and PMO tabs, whose tables each have their own, do not',
+      J(F.titles.map(t => [F.names[t.sheet], /^'(.+)'!\$(\d+):\$(\d+)$/.test(t.ref) && RegExp.$1 === F.names[t.sheet].replace(/'/g, "''") ? (+RegExp.$3 - +RegExp.$2 + 1) : 'bad ref ' + t.ref])),
+      J([[app, 2]]));
+  }
+  // the IDS file: its Requirement v1 sheet is the template, written exactly as before; the sheet after it is dressed
+  const ids = JSON.parse(ev(`(function(){ var sh=function(){ return [{name:'Requirement v1', cols:[10,10], rows:[['20261022-0001'],[{v:'Ref No',s:2},{v:'Amount',s:2}],[1,1234567]]},
+      {name:'Missing data', cols:[30], rows:[[{v:'IDS — missing data and anomalies',s:7}],['note'],[],[{v:'What',s:2}],['x & y']]}]; };
+    var a=__houseParts(buildXlsx(idsHouse(sh()), IDS_XTRA, xlsxHouse('IDS Batch Import'))), b=__houseParts(buildXlsx(sh(), IDS_XTRA));
+    return JSON.stringify([a['xl/worksheets/sheet1.xml']===b['xl/worksheets/sheet1.xml'], a['xl/worksheets/sheet2.xml']!==b['xl/worksheets/sheet2.xml'] && /showGridLines="0"/.test(a['xl/worksheets/sheet2.xml'])]); })()`));
+  chk(name, 'IDS', 'Requirement v1 is written byte for byte as the plain writer writes it, and the sheet after it is dressed', J(ids), J([true, true]));
+  // the two formats other offices read in are never dressed; every other report is
+  const src = _selfRead(BOARD, 'utf8');
+  const calls = []; const re = /\nfunction ((?:export|pmo|cr)[A-Za-z0-9_]*)\s*\(/g; let m;
+  const fns = [...src.matchAll(re)].map(x => ({ n: x[1], at: x.index }));
+  for (const mm of src.matchAll(/[^A-Za-z_.]buildXlsx\(/g)) {
+    const f = fns.filter(x => x.at < mm.index).pop(); if (!f || !/^(export|pmoReport|crExport)/.test(f.n)) continue;
+    let d = 0, i = mm.index + mm[0].length - 1; for (; i < src.length; i++) { if (src[i] === '(') d++; else if (src[i] === ')' && --d === 0) break; }
+    calls.push([f.n, /xlsxHouse\(|house:true/.test(src.slice(mm.index, i))]);
+  }
+  chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in',
+    J(calls.filter(c => c[1] === /^(exportSrc|crExport)$/.test(c[0])).map(c => c[0])), '[]');
+  chk(name, 'which reports', 'and the list is the thirteen reports that write a workbook and the two that do not', calls.length, 15);
+  ev(`blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
