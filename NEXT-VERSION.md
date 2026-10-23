@@ -75,6 +75,23 @@ Current version: **v2.04**. Next: **v2.05**.
   left open; item 114 is ready to build on go.
 
 
+#### 115. The left menu's side panels scroll sideways (Brad, 23 Oct 2026, from a photo of Audit ▸: "There shouldn't be any scrolling in this view")
+- **What he sees:** Audit ▸ opens with a left/right scrollbar along its foot, holding only four short items.
+- **Reproduced on v2.04 in Chromium, 1440×900, in both the plain font and the Segoe stand-in:** four of the left menu's
+  side panels are 6px wider inside than they are shown, so each one scrolls sideways: Program offices ▸, Audit ▸,
+  Setup ▸ and Save ▾ (`#uiFly`: scroll width 384 against 378 shown; Save 304 against 298). The cause is one CSS rule:
+  an item's hint (`#uiFly button.mi .sub`) is `flex:1 0 100%`, a whole line wide, **plus** `margin-left:22px`, so every
+  hint runs 22px past its button. The panel is `overflow:auto`, so that spill becomes a scrollbar. It shows where a
+  hint is the item's widest line; panels whose titles are wider hide it. The same rule is on the boxes' items
+  (`.uiPanel .uiRs .mi .sub`, `.uiDc`), where it spills the same way but the card does not scroll.
+- **The fix:** the hint starts on the title's own left edge with no indent (item 114's single left edge). The 22px
+  existed to clear the icon, and item 114 takes the icons off. Proved on a scratch copy: with `margin:0` none of the left
+  menu's panels scrolls, in either font.
+- **The check it needs, because nothing caught this:** `npm run leftmenu` opens every side panel and every box but never
+  compared a panel's scroll width with its width. A new section opens each one, at 1920, 1440, 1366 and 1024 wide and in
+  the Segoe stand-in, and fails on any panel or box that scrolls sideways or has an item reaching past its edge. It must
+  fail on v2.04 (the four panels above) before it is trusted.
+
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
