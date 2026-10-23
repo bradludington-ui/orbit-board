@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.03**. Next: **v2.04**.
+Current version: **v2.04**. Next: **v2.05**.
 
 ## Open
 
@@ -88,20 +88,6 @@ Current version: **v2.03**. Next: **v2.04**.
   on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
   showing each CLIN's own request changes what the ask column means.
 
-#### 89. Found while building v1.99: what a locked cycle still reads from today
-- **Logged:** 6 Oct 2026, while building v1.99.
-- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
-  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
-  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
-  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
-  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
-  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
-- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
-  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
-  PPBE cycles panel and Help say so.)*
-- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
-  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
-
 #### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
   CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
@@ -120,26 +106,6 @@ Current version: **v2.03**. Next: **v2.04**.
 - **Brad, 21 Oct 2026:** *"For the desktop platform we currently have we do not need to meet these requirements. These
   requirements are for the eventual web based azure hosted application."* The file keeps running as the pilot under the
   interim restrictions; the standards above, IL5 and Zero Trust apply to item 107 only. Item 106 moved to Later.
-
-#### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
-- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
-  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
-  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
-- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
-  drawer, and a reading taken before layout settles can catch a passing pixel.
-- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
-  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
-  reading (fails), then the settled one (passes).
-- **Brad, 8 Oct 2026:** next version, not v2.00.
-- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
-  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
-  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
-  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
-  straight after the click with the settled page.
-- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
-  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
-  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
-  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 #### 107. The Azure web build (Brad, 21 Oct 2026: Azure, web-based, CUI)
 - **Why:** sign-in, access by role, a central audit log, encryption at rest and in transit, backups and media
@@ -166,6 +132,9 @@ Current version: **v2.03**. Next: **v2.04**.
   move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
+- **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
+  update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
+  server-side under the user's sign-in, with a policy that allows exactly those services.
 
 ## Later
 
@@ -224,6 +193,372 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence, SharePoint and the JSON endpoint removed, the five-year spend plan workbook redesigned and every report dressed for briefing -- built on Brad's "Go to all" of 22 Oct, items 112 and 113 on "press with PR number 20"
+
+`BUILD` is `v2.04 (22 Oct 2026)`. Brad's go covered items 108, 109 and 106; the list tidy (89 and 101 to v2.02) went first.
+**Not built, and why:** the decisions under items 63, 71, 82 and 84 were never picked, so there was nothing to build; of item
+106, only Clear this computer (see below for each other part). The mutation sweep was not run (the 20 Oct rule): each new
+mutation was run against its own check.
+
+#### 108, as built
+- `importCcarRecs` reads **Short Description** (`s`; `sc` when two records under one number describe it differently) and says
+  when the file has no such column. **Title** is the Record Name (Brad, 22 Oct); CCaR No is the number only.
+- `recName`: a name typed on the board, then the list's Title (`ccarRecNameOf`), then the data pack's title. Read live, never
+  copied: a newer list renames. A number held by records that disagree gives no name (as `ccarTitleOf`). A requirement with no
+  number of its own is named by its CLINs (option (a)): the one record they share, else **Multiple records (N)**.
+- `ccarDescOf`: the record's Short Description; for a requirement named by its CLINs, the shared record's, or a line per CLIN
+  (`CLIN 0001 · JSF1234 — description`). `ccarDescFill` writes it only into an EMPTY Description, when a number is typed on
+  the requirement (`editCcar`) or on a CLIN (`clinSetField`). The RECORD panel shows the CCaR Record Name and offers
+  "Fill the Description from CCaR" / "Replace the Description with the CCaR one" (`ccarDescUse`, which asks before replacing).
+- The CLIN drill names each CLIN's record. The Spend Plan Source sends a CLIN line under the CLIN's own number and Record Name.
+- **Consequences to know:** the CCaR Title now reaches every surface that prints the Record Name (the exports, the funds-flow
+  join adds it as a key). The ORBIT vs CCaR reconciliation still compares by the requirement's number, so a CLIN line now sent
+  under its own record can show there as a difference until CCaR holds it.
+- Check: audit-other "v2.04 (item 108)" (fails on v2.03); 9 `v204-108-*` mutations, each caught.
+
+#### 109, as built
+- **Reports & exports › AI review (GenAI.mil):** 🤖 Export for AI review (`aiExport`), 🤖 Import the AI's answer (`aiImport`), 🤖
+  AI review list (`#aiPanel`). The request is one text file: the instructions (advisory; anomalies by the AI's own judgement,
+  no thresholds; suggestions only for band, cost element, obligation category and PMO, only from the board's own values) and
+  the working plan's figures per requirement and FYDP year (ask, allocated, funded, unfunded) with its text fields.
+- The answer may be wrapped in prose or a code fence. It goes through `inboundCheck`, then `aiRead` checks every line: a
+  requirement the board does not hold, a year it does not hold, a figure it does not print, a value that is not one of its own,
+  a value already set. Each is marked on the line; nothing is refused for being wrong, nothing is applied for being right.
+- **Nothing is written to the board.** The list (filters, the AI's reasoning, Go to it) lives in this tab only; the answer file
+  is the record. `aiIsOpen`, `AIREV`, `aiShow` are declared beside `let MS` (syncBtns reads them on the first render).
+- **Brad to confirm with the security team:** that board data may be given to GenAI.mil (its banner says IL5, CUI and PII).
+- Check: audit-other "v2.04 (item 109)"; 5 `v204-109-*` mutations, each caught; money-coverage registers `aiExport`.
+
+#### 106, in part: Clear this computer
+- **Setup › 🧹 Clear this computer** (`clearComputer`): every `prio27`/`spmt` key in local and session storage and the remembered
+  save file (`prio-fh`); the board file is untouched and the page reopens from it. Asks, and asks again when unsaved changes or
+  work kept aside would be lost.
+- **The Content-Security-Policy, built last** (Brad, 22 Oct 2026, once items 110-111 had removed every outside connection:
+  "Yes for now. Once we build the azure update we'll want to be able to connect"). A `<meta http-equiv="Content-Security-Policy">`
+  in the head, before any script: nothing may load from or connect to another host -- `connect-src 'self' file: data: blob:`
+  (the legacy state file beside the board, the page's own data), images, fonts and frames from the page itself, data: and
+  blob: only, inline script and style (the file is one inline program), no plugins, no `<base>`, no form posts. It travels in
+  every saved board and PMO copy (SRC0 carries it). `npm run check` "content security policy" (present, before any script, no
+  host or network scheme in any directive, connect-src exact) and `npm run csp` (`tools/csp-check.mjs`, in `verify:grid`:
+  the board opened from a file:// URL with no script error; a fetch, an image and a frame to another host each REFUSED BY
+  THE POLICY, read from the securitypolicyviolation event -- this container has no route out, so a plain failure would
+  prove nothing; the five-year plan's srcdoc frame still opens). On v2.03 the four policy checks fail. **Azure:** the hosted
+  build sets its own policy from the server, allowing exactly the services it signs in to (item 107).
+- **Still not built:** SHA-256 fingerprints and a
+  hash-chained journal -- they change what every package, writer record and journal entry carries, a format change of its
+  own; CUI markings -- waiting on the security team's wording; the static-analysis scan.
+- Check: audit-other "v2.04 (item 106)"; 3 `v204-106-*` mutations, each caught.
+
+#### 110. Confluence and SharePoint removed (Brad, 22 Oct 2026: "Let's remove the confluence and SharePoint option entirely. Right now it lives on my desktop and long-term removing towards azure")
+- **Removed:** the Live view's Confluence page and SharePoint folder transports -- `conf*` and `sp*` (list, publish, poll,
+  digest, headers, credentials, `confSameHost`), their two entries in `LIVE_MODES`, their branches in `livePublish` and
+  `livePoll`, their fields and hints in the Live view box, and their names in Save diagnostics. What is left: the **shared
+  folder** and the **JSON endpoint** (the only network transport now, and the only user of the Live view's key).
+- **A machine set up for either** opens on the shared folder, **off**, so nothing starts sending anywhere by itself, and the
+  Live view box says the option was removed (`liveCfg` marks `retired`; the note goes once a folder is picked). No board file
+  ever named a transport, so no saved board changes.
+- The JSON endpoint went the same day, as item 111.
+- Check: audit-inject's D3 (the Confluence download host) is retired with `confSameHost`; in its place "v2.04 item 110"
+  (fails on the v2.04 tree before this change). `v200-conf-host-open` retired as obsolete; 3 `v204-110-*` mutations, each caught.
+
+#### 111. The JSON endpoint and the Live view key removed (Brad, 22 Oct 2026: "Let's remove for now until we get closer to actually going live with azure")
+- **Removed:** the JSON endpoint transport (`LIVE_MODES` keeps the shared folder alone), the network client `liveNet` and
+  the packaged build's bridge check, `liveHdrs`, the Live view key (`liveKey`, `liveSetKey`, its field), the endpoint field,
+  the "Store it in" choice (one transport, nothing to choose), the endpoint's Origin note and its branches in `livePublish`,
+  `livePoll`, `liveSet` and `liveStart`. **The file now makes no request to another host.** The only `fetch` left is the
+  legacy shared state file beside the board (`STATEFILE`, the Windows launcher's sidecar).
+- **A machine set up for the endpoint** opens on the shared folder, off, and is told, as for item 110; **its stored key is
+  deleted** (`spmtLiveKey`): a credential with nothing left to use it, never board data.
+- **Back with Azure:** a server-side service, signed in, never a key in a file (item 107).
+- Check: audit-inject "v2.04 items 110-111" (the shared folder only; no transport, client or key left; each of the three
+  set-ups opens off, said, key gone). 2 `v204-111-*` mutations, each caught; `v204-110-mode-kept` retargeted to the line
+  that now carries all three.
+
+#### 112, as logged. The five-year spend plan workbook, redesigned (Brad, 22 Oct 2026; layout agreed in conversation, mock-up sent)
+- **Logged:** 22 Oct 2026. Not built; waits for go. Mock-ups (made-up data) were sent as files: tab 1 alone, then all ten tabs.
+- **It REPLACES the workbook's tabs** (By Requirement, By PMO, By Service, a tab per PMO). 📊 FYDP Spend Plan (Excel) keeps
+  its menu entry.
+- **What it prints from: a plan the person picks** (Brad, 22 Oct 2026: "Let's make it a selectable item"). 📊 FYDP Spend Plan
+  (Excel) opens a short choice -- the working plan (with its cycle tag) and every locked cycle, each with when it was locked --
+  with the plan ON SCREEN chosen when it opens (a locked view on screen: that lock; otherwise the working plan), and Export.
+  Every tab's title and the file name name the plan printed ("ORBIT FYDP Spend Plan — PB27 (locked 15 Oct) — FY27–FY31").
+  The other appropriations are read the way the PMO tabs read them today (each opened by its own board, never recomputed),
+  from the same cycle picked; one that holds no such lock is named on its tab and prints nothing, never zeros.
+- **Years: the base year and the next four** (FY27-FY31 on a base of 2027), five in all. A year on screen outside that
+  window is not printed. A year in the window the plan does not hold prints —, not 0.
+- **Units: $M to three decimals** ($1,000,000 prints 1.000). Each cell holds the exact figure in millions; only the format
+  rounds, so Excel's own sums agree with the TOTALs to the dollar.
+- **Two figures per year, every sheet:** *Requirement* (the requirement value) and *Allocated* (the requirement's
+  discretionary + mandatory allocation, every service added together). Allocated is what was allocated, not what the lanes
+  drew; where a lane runs dry the gap is unfunded wherever unfunded is reported.
+- **Tabs 1-4: one per appropriation** -- O&M, Full Fund, Initial Spares, OPN.
+  - Two header rows: CCaR Record, Requirement Title, then each fiscal year over its two columns (Requirement, Allocated),
+    then TOTAL over the same two at the far right.
+  - One line per requirement, in 1-N order, grouped under its CCaR record (a record sits where its highest-ranked requirement
+    ranks). The record number is printed once, on the group's first line. Requirements with no record are last, under
+    "No CCaR record".
+  - The requirement title from the board, not the CCaR record name.
+  - Each line's five-year totals at the right; a TOTAL row at the bottom for every column. No subtotals.
+- **Tabs 5-10: one per service** -- USAF, ANG, AFRC, STOVL, USMC-C, USN (the board's names).
+  - **Summary at the top:** one row per appropriation the service carries, the same columns and headings as tabs 1-4, totals
+    at the right and a TOTAL row.
+  - **Below it, one block per appropriation**, laid out exactly as tabs 1-4, with only that service's dollars.
+  - A requirement the service does not carry (no requirement and no allocation for it in any of the five years) is left
+    off. An appropriation the service carries nothing in is left off (OPN appears only on USN). A service with nothing at
+    all gets no tab.
+- **Tab 0: Summary, first** (Brad, 22 Oct 2026: "yes"). One page: By appropriation (a row each, the same columns, TOTAL),
+  a chart of Requirement against Allocated by fiscal year for the portfolio (navy and gold, axis from zero, the figures read
+  off the TOTAL row), then By service and By PMO in the same layout. The three tables' TOTALs are the same figure.
+- **Tabs per PMO, after the service tabs** (Brad, 22 Oct 2026: "tabs for each PMO. Same format ... just for each PMO that
+  has any requirement identified"): the service tab's layout -- summary by appropriation, then a block per appropriation --
+  with that office's requirements, all services added. An office with no requirement in the five years gets no tab; an
+  appropriation it holds nothing in is left off its tab. Teal tabs. *To build as the board already counts an office:* the
+  office each year assigns (Brad's Q2, v1.95), so a requirement that moved office is under each for its own years; a prime
+  shared between offices by its CLINs is split by office share (`pmoPartsOf`), and the PMO tabs add up to the
+  appropriation tabs.
+- **No classification marking** (Brad, 22 Oct 2026: "Let's leave the classification marks off"). The mock-up's "CUI"
+  placeholder is not built.
+- **Tab order:** Summary, O&M, Full Fund, Initial Spares, OPN, USAF, ANG, AFRC, STOVL, USMC-C, USN, then the PMOs.
+- **Styled for briefing** (Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of or
+  pull from for briefings"). The styled mock-up sent that day is the target:
+  - a navy title banner per tab (the plan's name), under it one italic line: the plan and when locked, FY27–FY31,
+    "$ in millions", whose share (all services / that service only), the date printed; a gold rule beneath;
+  - headings in navy with white text, the fiscal year over its two columns, Requirement / Allocated beneath in a lighter
+    slate; the TOTAL FY27–FY31 columns in gold, with a light gold shade down every line;
+  - each CCaR record group shaded as a band (alternating), a rule between groups, the record number in bold navy;
+  - the TOTAL row on a grey band, bold, a double rule above it;
+  - on a service tab, a section heading over the summary and over each appropriation's block;
+  - no gridlines; navy tabs for the appropriations, gold for the services; the panes frozen below the headings and right of
+    the title; landscape, one page wide, the heading rows repeated on every printed page, a footer with the plan, page N of
+    M and the date printed;
+  - zero prints as "–".
+  Colours are the board's own (navy, the gold accent). The board's workbook writer (`buildXlsx`) can't do this yet: it
+  has one border style and no tab colour, gridline, print or page setup; the build extends it, and every other export keeps
+  its current look.
+- **The 📊 Five-year spend plan panel matches the workbook** (Brad, 22 Oct 2026): the same picker for the plan, the same
+  appropriation and service views, the same columns, totals and $M figures, so what is on screen is what prints.
+- **Checks to build with it:** the six service tabs add to each appropriation tab, line by line and in total; each
+  appropriation tab ties to that board's own figures for the same cycle and year; a lock prints as locked after the working
+  plan moves; $M cells carry the exact figure.
+- **Built on PR #20, in v2.04** (Brad, 22 Oct 2026: "press with PR number 20"), mock-up v2 approved ("I like them!"). A chart
+  in the workbook is new for the board's writer (it has written none before) -- the build adds a chart part.
+
+#### 113, as logged. Every report workbook styled like the five-year spend plan (Brad, 22 Oct 2026: "Can we enhance all of our spreadsheets so that they look presentable like these?")
+- **Logged:** 22 Oct 2026. Not built; waits for go. Ships with item 112, whose styled mock-up v2 is the look (Brad: "I like them!").
+- **Style only** (Brad: "Only update the style for now"). No summary tab or chart is added to these; no figure, unit, row,
+  column, value or formula changes. Each report keeps the units it prints today (dollars, $K or $M, to the decimals it
+  prints now).
+- **Restyled -- the reports people read:** the board workbook (Excel workbook: Funding Streams, Decision Bands, PMO Matrix,
+  Unfunded Requirements, the PMO tabs and the rest), 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan
+  Forecast (by view), Funds Flow, Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change
+  report, the Chart of Accounts (internal use only -- Brad), and the IDS file's second sheet, *Missing data and anomalies*.
+- **Left exactly as they are -- another system reads them:** the Spend Plan Source (CCaR imports it; ORBIT reads its columns
+  back by position), the 1A9A CR Cash Return (a fixed submission format), and the IDS file's *Requirement v1* sheet (the
+  IDS template).
+- **The look, from item 112:** the sheet's existing title row as the navy banner; navy headings with white text; total
+  rows on a grey band with a double rule above; total columns in gold; banded rows; no gridlines; tab colours; headings
+  frozen; landscape, one page wide, heading rows repeated, a footer with the report, page N of M and the date printed; no
+  classification marking (Brad, 22 Oct). One shared house style in the workbook
+  writer (`buildXlsx`), so every report matches and a later change is made once.
+- **Proof that nothing moved:** `npm run delta` against the commit before reports **zero figures moved** in every workbook;
+  every suite that reads these files passes unchanged; the three left-alone files are byte-identical to today's (compared with the
+  clock held).
+
+#### 112, as built -- the five-year spend plan workbook (Brad, 22 Oct 2026; "Let's leave the classification marks off and press with PR number 20")
+- **One model, read by the workbook and the panel** (`fydpBookYears`, `fydpBookApp`, `fydpBookVal`, `fydpBookHas`, `fydpBookLines`,
+  `fydpBookAdd`, `fydpBookModel`; the sheets `fydpBookSheets`). Each appropriation's projection -- its own board's `fydpData`,
+  the figures a lock takes -- becomes requirements by year; the tabs and the panel only arrange it.
+- **Tabs:** Summary (By appropriation, the portfolio by fiscal year with its chart, By service, By PMO), then a tab per
+  appropriation that holds a plan, per service with money, per PMO with a requirement. A service or PMO tab is a roll-up by
+  appropriation, then each appropriation's block. Replaced: By Requirement, By PMO, By Service and the v1.85 PMO tabs.
+- **Years:** the plan's base year and the next four (a locked cycle's base is the lock's). A year the plan does not hold
+  prints — and is outside every total; a requirement with nothing in a held year prints 0.000.
+- **Figures:** Requirement and Allocated per year, every service added, in $M to three decimals (the cell holds the exact
+  figure). **Allocated is discretionary + mandatory drawn** -- the projection's `fund`, what every other surface calls
+  Funded -- not the allocation as typed. *This differs from the note logged above* ("what was allocated, not what the lanes
+  drew"); the two part only where a lane cannot pay what was directed, and the draw is what a lock stores. Put to Brad.
+- **Lines:** 1-N under the CCaR record (case- and space-insensitive), printed once on the group's first line, "No CCaR record"
+  last; the board's title; line totals at the right; TOTAL at the bottom; no subtotals.
+- **Services** by name in each year's own list; a requirement the service does not carry, an appropriation it holds nothing in
+  and a service with nothing get no line, block or tab. **PMOs:** each year under the office that year assigns (v1.95), 0
+  in the years another office held it. *Built by the requirement's own office, not split by CLIN share* (the logged note
+  suggested `pmoPartsOf`): a prime shared across offices is under its own office. The PMO tabs, like the service tabs, add up
+  to the appropriation tab.
+- **The plan picked:** 📊 FYDP Spend Plan (Excel) opens the panel on the plan on screen (`fydpOnScreen`, `fydpPickExport`), and
+  its Export button prints the plan shown. Every tab's subtitle names it ("PB27 (locked 15 Oct 2026)"); the file name as before.
+- **The other appropriations** are read by their own boards in sealed frames, as v1.85 read them. One that cannot be read is
+  named on the Summary and on its tab ("⚠ FULL FUND IS NOT IN THIS WORKBOOK — why. Its figures are missing here, not zero.");
+  one that holds nothing is said on the Summary and gets no tab. A working plan tagged under another cycle says so on its tab
+  and its blocks (`tagOf`, kept from v1.85).
+- **A PMO copy** prints its own appropriation, says so on the Summary, and stamps every sheet as a snapshot.
+- **Dropped** (Brad: "Drop both"): the cost estimate and the PPBE position beside the plan. The estimate stays in the ACE
+  Tie-Out, the positions in 🏛 PPBE Budget Positions.
+- **The panel** (📊 Five-year spend plan…) shows the same model: the plan picker, a view picker (Summary, this
+  appropriation, each service, each PMO), the same columns in $M, and the Export button.
+- **Styled** by the house style (item 113), with a chart on the Summary: Requirement (navy) and Allocated (gold) by fiscal
+  year, axis from zero, read off the portfolio-by-year table. **Zero prints 0.000**, not "–" (the logged note's mock-up): a
+  dash means a year not held. A sheet wider than about two landscape pages prints across pages rather than shrinking to one.
+- **Checks:** audit-recon "the five-year spend plan" (rewritten: every tab read back as blocks, against the engine; the panel's
+  views; a locked plan as locked; the picker) and "v1.95 — the five-year plan files each year under that year's PMO"
+  (rewritten for the Summary and the PMO tabs); audit-import's five v1.85 blocks (rewritten: every appropriation's tab and
+  blocks tie to its own board, refusals said, the frames waited for, a PMO copy); audit-board's locked-view lists (the
+  Summary's By PMO); audit-inject K8 (offices named after built-ins add up as text) and three K5 pins; `fydp-frames.mjs` in
+  Chromium; the trace matrix's *xl · FYDP Spend Plan* states Requirement and Funded only now (Disc BA, Mand BA and TOTAL
+  unfunded struck from `trace-stated.json`); the money map's lane cell is n/a (lanes combined).
+- **Mutations:** 24 retargeted to the same defect in the new code; 21 retired as obsolete (the estimate and position
+  columns, the separate Allocated/Funded pair, the By PMO count, the estimate-share map); 10 new `v204-112-*`.
+
+#### 113, as built -- every report workbook dressed for briefing, style only (Brad, 22 Oct 2026)
+- **One house style in the writer.** `buildXlsx(sheets, extra, opts)`: `opts.house` asks for it (`xlsxHouse(name)` gives the
+  footer's report name and the date printed); a sheet with `plain` is written as before; nothing changes for a workbook that
+  does not ask. `_housePlan` reads the sheet's own styles and paints: the title row as a navy banner, the words-only row under
+  it as the italic subtitle with a gold rule, section headings, navy headings (the second heading row slate, TOTAL/FYDP
+  columns gold), banded rows, total rows on grey with a double rule; no gridlines, a tab colour, frozen panes as before,
+  landscape fit to one page wide (unless wider than about two pages), the heading rows repeated on each page, a footer with
+  the report, the sheet, page N of M and the date printed. Fonts and borders are added to the stylesheet (`{{FONTS}}`,
+  `{{BORDERS}}`), shared between entries that ask for the same.
+- **Dressed:** the board workbook, 🎯 Priority Drill, Two Spend Plans, Cycle Comparison, Spend Plan Forecast, Funds Flow,
+  Active Year Execution, Funding Realignment plan, ACE Tie-Out, the PMO submittal change report, the Chart of Accounts, and
+  the IDS file's second sheet (`idsHouse`). **Left as they are:** the Spend Plan Source, the 1A9A CR Cash Return and the IDS
+  file's *Requirement v1* sheet (byte for byte as before).
+- **Found by its check and fixed before it shipped:** a sheet that writes an empty cell as `{v:'', s:2}` had it emitted
+  twice -- once by the writer, once padded by the house style -- two cells with one reference, which Excel reports as damaged.
+  The padding skips every cell the writer emits.
+- **Not changed:** the column widths. A column the report sized narrow (the Priority Drill's *unbanded* and TOTAL) can still
+  show ### in a narrow viewer, as it did before.
+- **Proof that nothing moved:** `npm run delta` against the commit before: 0 figures moved outside the five-year workbook;
+  every restyled workbook read back holds exactly the values it held written plain; the Spend Plan Source is byte-identical.
+- **Check:** audit-other "v2.04 (item 113) — the house style": for eight exports, the values written dressed are the values
+  written plain; every part parses as XML; every count the stylesheet declares is what it holds; every cell's style is
+  declared; cells in column order; parts in the schema's order; every sheet has its gridlines off, a tab colour, landscape and
+  the footer; the five-year chart, its parts and content types, each series the column its name heads; the print titles; the
+  IDS template sheet byte for byte; and which reports ask for the style (all but the two read in elsewhere).
+- **Mutations:** 14 new `v204-113-*`, each caught by that check.
+
+#### Changed on purpose, each saying so where it changed
+audit-board v1.96's menu counts (Reports & exports 20, Setup 6, the AI review section, Clear this computer); left-menu's
+inventory (71 calls); panels-render and dialogs-keyboard open the AI review list.
+Items 112-113: the Reports & exports section expects `fydpPickExport` where `exportFydpPlan` was (audit-board v1.96,
+left-menu, layout-fits B); audit-board's locked-view lists read the five-year Summary's By PMO; recon's U10 blocks no longer
+read the estimate and the position off the five-year workbook (the position is read where it is logged); U37 names the
+refused cell on the O&M tab (B6) where it named By Requirement (B7); audit-import's v1.85 fixture trims G after the lock too, so
+the lock and today differ in a printed figure; `trace-stated.json` strikes Disc BA, Mand BA and TOTAL unfunded off *xl · FYDP
+Spend Plan*; the money map's five-year lane cells are n/a (lanes combined) and its PPBE-position and estimate checks are gone.
+
+#### The checks v2.04 was proved with (22 Oct 2026)
+`npm run check`; every suite passes -- audit, audit-ppt, audit-other, audit-board, audit-import, audit-recon, audit-hostile,
+audit-inject, audit-ui, legacy-fsrc, boot-same (recon and import read older versions from git history: run them in a full
+clone, `git fetch --unshallow`; in a shallow one recon fails two checks, the same on v2.03); keys,
+dialogs, leftmenu, panels, dropdowns, standards (nothing new), menus, controls, editors, hostile, toolbar pass; layout fails only
+the carried D ×8. mcount: every target matches once (2,112). defects, trace and the round-trip fuzz (seed 764238573) hold; the money map holds
+with one cell open: the AI review request's fiscal-year cell (the check holds the year on screen only). The RECORD panel's new
+line was photographed at 1440 and 1024.
+
+**Items 112-113, proved on 22-23 Oct 2026:** `npm run check`; every suite passes -- audit, audit-ppt, audit-other, audit-board,
+audit-import, audit-recon, audit-hostile, audit-inject, audit-ui, legacy-fsrc, boot-same (recon and import with an 8 GB heap:
+at the container's 2 GB default both die out of heap on the commit before as well); fydp-frames (Chromium), leftmenu, panels,
+menus, csp, keys, dialogs, dropdowns, controls, hostile, editors, toolbar, colours, inspector, standards (nothing new) pass;
+layout fails only the carried D ×8. `npm run delta` against the commit before: 0 figures moved outside the five-year workbook;
+every restyled workbook's values identical to its plain twin; the Spend Plan Source byte-identical. mcount: every target
+matches once (2,119). Every one of the 48 new and retargeted mutations was run against its check and caught (recon 26, the
+house-style check 13, import 7, U37 1, inject 1); two first survived and showed checks too weak, each now stronger
+(`v204-112-svc-empty-tab`: the recon fixture gives one service nothing; `v200-u37-guard-exportfydpplan`: caught by U37, which
+the first proof had not run). defects and the trace matrix hold; the money map holds (119 proven, 209 n/a, 1 open -- the AI
+review's, as before); the round-trip fuzz (seed 922123388) and the file verifier's self-test hold. The sweep was not run.
+
+#### 108 (as logged). A record number fills the Record Name and the Description from the CCaR records list (Brad, 22 Oct 2026)
+- **What Brad asked:** importing the CCaR records brings a Record Name and a short description for each record. Entering a
+  record number on a requirement should look it up in that list, fill the Record Name, and post the record's short
+  description to the requirement's Description.
+- **What the board does today (read from the code on v2.03, 22 Oct):**
+  - `importCcarRecs` keeps five columns only: CCaR No, Title, OPR, PMO and Control No. A short-description column is not
+    read.
+  - `editCcar` stores the number and nothing else: no lookup, no field filled.
+  - The list's Title reaches one place, column D of the Spend Plan Source, and only when the number names one record
+    (`ccarTitleOf`). On the board the Record Name is the data pack's title or a typed override (`recName`), and the
+    Description is what was typed (`S.desc`).
+  - A CLIN can hold its own CCaR number (`clinSetField(..., 'ccar')`), and nothing looks it up either.
+  - **Found on the way:** the Spend Plan Source sends every CLIN line under the REQUIREMENT's CCaR number and title
+    (`r[2]=ccarOf(it)`, `r[3]=recT`), not the CLIN's own record.
+- **Brad's decisions, 22 Oct 2026:**
+  - **Record Name follows the record, live.** It is read from the CCaR list, not copied, so a newer list updates it.
+    Order: a name typed on the board, then the CCaR list's name, then the data pack's title. A number shared by records
+    that disagree reads blank and is flagged, never guessed (as `ccarTitleOf` already does). The funds-flow join keeps
+    the data pack's title and adds the CCaR name as a further key, so it can only gain matches.
+  - **Description is copied in, once.** Entering a record number fills an empty Description with the record's short
+    description. A Description that already holds text is left alone, with a "Replace with the CCaR description" button.
+  - **CLINs with different records: option (a).** The requirement's own CCaR number, if it has one; else the one record
+    every CLIN shares; else the Record Name reads "Multiple records (N)", each CLIN's record name shows on its line in
+    the CLIN drill, and the Description is built one line per CLIN: "CLIN 0001 · JSF1234 — description".
+  - **The Spend Plan Source:** a CLIN line carries the CLIN's own record number and record name when it has one, and the
+    requirement's otherwise.
+- **The headings (Brad, 22 Oct 2026):** the Record Name is in the column **CCaR No**; the description is in **Short
+  Description**. **Corrected the same day:** CCaR No holds the number only, no name -- as the import
+  already reads it. **Open question:** which column holds the Record Name? The import already reads **Title**; if Title is
+  the Record Name, item 108 needs only Short Description added to the import.
+- **To settle in the build:** what a PMO copy and a submittal carry (the Description filled from CCaR is ordinary
+  Description text and travels; the live Record Name needs the list in the copy); how a locked cycle reads the list (a
+  cycle keeps its lists since v2.02, item 89; the CCaR records index is board-wide).
+- **Proof, when built:** a check that types a number and reads the RECORD panel and the row; a re-import that changes a
+  name; a Description that is kept; a requirement over CLINs with one shared record and with three; and the Spend Plan
+  Source's CLIN lines read back for each CLIN's own number and name. Each must fail on v2.03.
+
+#### 109 (as logged). ORBIT-AI: GenAI.mil suggestions for classification and spend-plan anomalies (Brad, 22 Oct 2026, a proposal for review)
+- **What Brad showed:** a draft project description (written with GenAI.mil): integrate IL5 GenAI.mil APIs into ORBIT for
+  two workflows -- **automated categorization and tagging** (read free-text requirements and suggest funding
+  categories, appropriation codes and modernization priority tags) and **spend plan anomaly and variance detection**
+  (flag outyear spikes, anomalies and execution variances across the FYDP). Human in the loop: every tag and flag is
+  advisory until an authorized Program Manager confirms it; unclassified network, unclassified and CUI data only.
+- **Where it can live:** not in the desktop file. The file runs from a shared drive or `file://` with no network route,
+  `npm run check` refuses anything external, a page opened from a file calls out with `Origin: null`, and any API key in
+  the file would travel in every save and PMO copy. Sending CUI to an outside service also makes the file a connected
+  system, which is what item 100's IL5 / Zero Trust requirements are about -- and Brad set those for the Azure build only.
+  So the AI calls belong in item 107, made server-side under the user's sign-in and logged centrally.
+- **What can be built in the file now, with no AI:** the anomaly half is mostly arithmetic the board already holds --
+  cycle deltas, the cycle comparison, the five-year plan, ORBIT vs CCaR, "not drawn". A rules-based "Anomalies" list
+  (a year-over-year jump above a set percentage, a requirement funded in one year and missing the next, an outyear
+  spike against its own average, execution against plan beyond a threshold) can be exact and checkable, unlike a model.
+  The suggestions half can use the review pattern the PMO submittals already have: proposals in a table, nothing
+  applied until ticked, every accepted change in the change journal.
+- **Corrections for the write-up before it goes to reviewers:** ORBIT's appropriations are O&M, Full Fund, Initial
+  Spares and OPN -- RDT&E is not one, and its BAE budgets are excluded on purpose. "Undefended POM cycles" probably
+  means "defended". "Single-source HTML platform" reads better as "a single self-contained HTML file".
+- **Brad's answers, 22 Oct 2026:**
+  1. **In v2.04.** The file gets the rules-based half now; the GenAI.mil calls wait for the Azure build (item 107).
+  2. **Nothing is filled in.** ORBIT offers suggestions and analysis for a person to read and decide on. A suggestion is
+     never written to a field by itself; acting on one is the person's own edit, through the field's own editor, and
+     journalled as theirs.
+  3. **No percentages (corrected the same day):** "I don't want to set a percentage, I want AI to provide an independent
+     assessment." The anomaly analysis is the AI's judgement, not rules with thresholds a person sets.
+- **How an AI assessment can reach the file in v2.04 (proposal):** the file cannot call GenAI.mil (no network route,
+  `Origin: null`, and a key would travel in every save and copy). A hand-carried round trip needs neither:
+  1. **Export for AI review** writes one file: the instructions (what to assess, the answer format) and the board's data
+     for the year or FYDP -- requirements, figures by year and service, classifications, execution against plan.
+  2. The person gives that file to GenAI.mil (the screen Brad showed is marked approved for IL5, CUI and PII) and saves
+     its answer.
+  3. **Import AI review** reads the answer through the import check like any file, and shows it as a review list: each
+     finding or suggestion with the AI's reasoning, the requirement it is about, and Go to it. Nothing is filled in;
+     acting on one is the person's own edit, journalled as theirs. A finding naming a requirement the board does not hold,
+     or a figure that does not match the board, is marked as such, so a model's mistake is visible.
+  The same answer format carries over when the Azure build calls GenAI.mil directly. **To confirm with Brad:** that
+  board data may be given to GenAI.mil (the banner says CUI is authorized; the security team may want to say so).
+  The rules-based list above is dropped unless Brad wants it beside the AI's.
+- **What v2.04 builds (proposal, before go):**
+  - **Analysis -- the anomaly list**, one panel, every finding naming the requirement, the year(s), the figure and the
+    rule that raised it, and taking the reader to the requirement: a year-over-year change past the set percentage; money
+    in one FYDP year and none the next (or the reverse); an outyear year against the requirement's own average; execution
+    against plan for the active year; and a change since the reference cycle (`cycDelta`). Read from the figures the
+    board already prints (`fydpData`, `cycDelta`, the execution import), never recomputed, so a finding always matches
+    the surface it points at. An export of the list.
+  - **Suggestions -- classification**, shown beside the empty field and in one review list, each with its reason, for
+    the fields the board already has (cost element, obligation category, RCN/EEIC, SI code, band, PMO): the same
+    requirement's value in the previous year; the value other requirements on the same CCaR record carry; the value
+    most requirements in the same office carry. A suggestion that would conflict with a set value is analysis, not a
+    proposal. "Use this" opens the field's own editor with the value in it; nothing changes until the person saves.
+  - **No new "modernization priority" tag** unless Brad names the list.
+  - Same posture as everything else: a PMO copy shows the analysis and suggestions for its own office; a locked cycle's
+    view shows them read only; nothing goes into the file but the thresholds a person set.
 
 ### v2.03 — 21 Oct 2026: cleaner code -- items 104, 105, 19 and 20, built on Brad's "go" of 21 Oct ("Build before": ahead of the sweep)
 
@@ -326,6 +661,40 @@ usage reset, from a fresh session (A1). Every new mutation was run against its o
 - **OCIO evidence (C2):** keep the package built at `f616daa`; no rebuild at `c357911`.
 
 These are decisions, not a go: nothing in the board changes until Brad says go.
+
+#### 89. What a locked cycle still reads from today (built in v2.02, `a3ff370`; moved from Open on 22 Oct 2026)
+- **Logged:** 6 Oct 2026, while building v1.99.
+- **A locked cycle reads other lists from today (item 88's inventory).** Its view reads, as they are now: the destination
+  list (`S.dest` holds keys into the board's one list), the bands (`MS.bands`), the BAE list (a budget set by rule is worked
+  out against today's list; a chosen one is kept by name), and the appropriation's requirement data pack (the base titles
+  and values of requirements the cycle never changed -- the pack changes only when an import brings a different one).
+  Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
+  is Brad's call. SI codes and PMOs are stored as codes and need nothing.
+- **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
+  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
+  PPBE cycles panel and Help say so.)*
+- **Brad, 20 Oct 2026:** keep all four with the cycle -- destinations, bands, the BAE list, and the PMO list with the
+  data pack (ledger U52/U53, the funds-flow money with it). Built on go.
+
+#### 101. The 1400px editors check measures before the drawer settles (built in v2.02; moved from Open on 22 Oct 2026)
+- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
+  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
+  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
+- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
+  drawer, and a reading taken before layout settles can catch a passing pixel.
+- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
+  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
+  reading (fails), then the settled one (passes).
+- **Brad, 8 Oct 2026:** next version, not v2.00.
+- **Built (20 Oct 2026, v2.02; test tool only, the board is unchanged):** `settle(p)` replaces both fixed 300 ms waits.
+  It reads the page every two animation frames until three readings in a row match. A reading covers the page's
+  width, the RECORD panel's box and transform, and every editor button's box. Fonts are awaited first.
+  `EDITORS_WAIT=fixed` puts the old wait back. `EDITORS_WAIT=early` is the proof mode: it compares a reading taken
+  straight after the click with the settled page.
+- **Proved:** with the settle wait, all 44 measurements pass (7 widths × 2 fonts × 2 panel modes, plus the 16
+  above-the-fold checks), in 43 s. In the early mode, 34 of the 44 readings taken straight after a click differed from
+  the settled page. That is the kind of reading the fixed wait could catch, and the settle wait never takes one.
+  **Not shown:** the original 1px failure itself. It was never reproduced, in 13 runs before this either.
 
 #### E1, E3, E4. The queued v2.00 follow-ups (Brad, 20 Oct 2026: "Let's start working through these"), built on the v2.02 branch
 Each check was run on `main`'s board (`c357911`) and on the fix, and each new mutation was built with `mkmut.py` and run

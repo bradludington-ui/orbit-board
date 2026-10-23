@@ -2230,7 +2230,7 @@ realignment (1600), FYDP (3247), change journal (3794), appropriation packages (
 charts (8216), executive decision tool (10321), QPE coverage (10735), spend plans (11046), PPBE
 baselines (11716), dated snapshots (12618), reprogramming tracker (13708), CLIN drill (14312), WBS
 (14501), XLSX writer (15412), PPTX export (15577), command bar (15841), Live View (16311),
-shared-folder / Confluence / SharePoint transports (16472–17361), companion tools (17774),
+shared-folder transport (16472–17361; Confluence, SharePoint and the JSON endpoint removed in v2.04), companion tools (17774),
 ACE tie-out workbook (18213).
 
 Two embedded Office templates, both base64, both generated-code regions — do not hand-edit:
@@ -4178,6 +4178,64 @@ they are touched, never as a big-bang rewrite.
 ATR/BTR workbook and its two calls. `verify:grid` stops at `layout` (the 8 carried D results), so nothing after it runs
 in the nightly gate: **run `keys`, `dropdowns`, `dialogs`, `leftmenu` and `standards` yourself** after a change that moves
 a menu or an export.
+
+### v2.04: the CCaR records list names the record; an AI review carried by hand; Clear this computer; Confluence, SharePoint and the JSON endpoint removed
+
+Brad, 22 Oct 2026, "Go to all". `NEXT-VERSION.md` › Shipped › v2.04 has every detail.
+
+**The CCaR records list names the record** (item 108). `recName` is a typed name, then the list's **Title**
+(`ccarRecNameOf`), then the data pack's title -- READ, never copied, so a newer list renames. A requirement with no number of
+its own is named by its CLINs: the one record they share, or "Multiple records (N)". The list's **Short Description** is
+offered (`ccarDescOf`), written only into an EMPTY Description when a number is typed (`ccarDescFill`); the RECORD panel offers
+to replace a written one and asks first. **The Description is the person's text: never overwrite it without asking.** A CLIN
+line on the Spend Plan Source carries the CLIN's own number and name.
+
+**The AI review never calls anything** (item 109). The file has no network route and a key would travel in every save, so
+the round trip to GenAI.mil is carried by hand: `aiExport` writes the request, `aiImport` reads the answer through
+`inboundCheck`, `aiRead` checks each line against the board, and the list is advisory and lives in the tab only. **Nothing
+from it is written to the board** -- Brad: "it provides suggestions and analysis for human interaction and decision
+management". A direct GenAI.mil call belongs to the Azure build (item 107), server-side.
+
+**Clear this computer** (item 106, in part): every `prio27`/`spmt` key and `prio-fh`, never the file. A new storage key must
+start `prio27` or `spmt`, or Clear this computer will not reach it.
+
+**Confluence, SharePoint and the JSON endpoint are gone** (items 110, 111; Brad: "remove ... until we get closer to actually
+going live with azure"). The Live view shares through the shared folder only, and the file makes no request to another host
+(the legacy state file beside the board is the one `fetch` left). A machine set up for a removed transport opens on the
+folder, off, is told, and loses its stored key. Do not bring a network transport back into the file: in the Azure build the
+server talks to anything.
+
+**The Content-Security-Policy says so to the browser** (item 106, built once the transports were gone). A `<meta>` in the head,
+before any script, refuses every load from or connection to another host; `connect-src` is exactly `'self' file: data: blob:`.
+`npm run check` holds its text and `npm run csp` proves Chromium enforces it (each refusal read from the
+`securitypolicyviolation` event, because a request that merely fails offline proves nothing). A new feature that needs a
+network source is an Azure feature (item 107), not a hole in this policy.
+
+**The five-year spend plan workbook was rebuilt** (item 112; Brad, 22 Oct 2026). One model (`fydpBookModel`, from each
+appropriation's own `fydpData`) is read by the workbook (`fydpBookSheets`) and the panel (`fydpBody`), so the panel cannot
+print a figure the workbook does not: a Summary with a chart, a tab per appropriation, per service and per PMO; the base year
+and the next four; Requirement and Allocated (**the lane draw, d+m** -- what a lock stores and every other surface calls
+Funded) in $M; 1-N under the CCaR record printed once; — for a year not held. 📊 FYDP Spend Plan (Excel) opens the panel on
+the plan on screen (`fydpOnScreen`) and its Export prints the plan shown. By Requirement, By PMO, By Service, the v1.85 PMO
+tabs, the cost estimate and the PPBE position beside the plan are gone; the sections above that describe them are the record.
+The service tabs and the PMO tabs each partition the appropriation tab.
+
+**Every report workbook wears one house style** (item 113, style only). `buildXlsx(sheets, extra, xlsxHouse(name))` asks for
+it; `_housePlan` paints from the styles the sheet already uses, so an export changes nothing but its call. The Spend Plan
+Source and the 1A9A never ask (CCaR and the comptroller read them in), and the IDS template sheet is `plain` (`idsHouse`).
+audit-other "v2.04 (item 113)" holds the rule that matters: **the values written dressed are the values written plain**, and
+every part is XML another program reads, with counts, cell order and part order as Excel demands. It found the one defect the
+build had: a cell the writer emits (`{v:'', s:2}`) padded a second time -- two cells with one reference, which Excel calls a
+damaged file. **A new export that writes a workbook passes `xlsxHouse`**, or is added to that check's list of the two that do
+not, with the reason.
+
+**recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
+(`exit 134`) on the commit before items 112-113 as well as after. Run them with `NODE_OPTIONS="--max-old-space-size=8192"`.
+
+**A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
+declared them with their code, and the left menu silently lost its Reports & exports box on boot. `npm run leftmenu` caught it.
+**Mutation ids are single-quoted** (`{ id: '…'`): `money-coverage.mjs` reads only that form, so a double-quoted id is invisible
+to the coverage census.
 
 ## Colour: one token, one job
 

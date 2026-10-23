@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- v2.04 (item 106; Brad, 22 Oct 2026: "Yes for now"): THE BROWSER REFUSES ANY CONNECTION TO ANOTHER HOST. The board
+     makes none since items 110-111; this makes sure one added by mistake cannot. connect-src keeps the file beside the board
+     (the legacy shared state file) and the page's own data and blob URLs; nothing http(s). The Azure build replaces this
+     with the server's own policy (item 107). npm run check holds the line; npm run csp proves it in Chromium. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' file: data: blob:; frame-src 'self' about: data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
 <title>Prioritization Board SHELL (grid)</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cmask id='f' maskUnits='userSpaceOnUse' x='1' y='1' width='98' height='98'%3E%3Crect x='1' y='1' width='98' height='98' fill='%23fff'/%3E%3Ccircle cx='80.21' cy='26.4' r='16.3' fill='%23000'/%3E%3C/mask%3E%3Ccircle cx='50' cy='50' r='38.33' fill='none' stroke='%230f5a91' stroke-width='17.34' mask='url(%23f)'/%3E%3Ccircle cx='50' cy='50' r='8.32' fill='%230f5a91'/%3E%3Ccircle cx='80.21' cy='26.4' r='10.75' fill='%23d4a24e'/%3E%3C/svg%3E">
 <style>
@@ -341,6 +346,15 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:4px 8px}
 .insp-f .fl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800}
 .insp-f .fv{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+/* v2.04 (item 109): the AI review list */
+.aitab{table-layout:auto}
+.aitab td{vertical-align:top}
+.aitab td.aireason{max-width:420px;white-space:pre-wrap}
+.aitab tr.aibad td{background:color-mix(in srgb, var(--amber) 10%, transparent)}
+/* v2.04 (item 108): the CCaR Record Name in the RECORD panel and the CLIN drill, and the offer of its description */
+.insp-f.ccrec .fv{font-weight:600;overflow-wrap:anywhere}
+.insp-f.ccrec .ccdesc{margin-top:4px;min-height:24px;max-width:100%;white-space:normal;text-align:left}
+.ccrn{font-size:10px;color:var(--dim);font-weight:600;margin-top:2px;overflow-wrap:anywhere}
 .insp-f.big .fv{font-size:16px;font-weight:800}
 .insp-f.empty{border-style:dashed;color:var(--dim)}
 .insp-lbl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800;margin:10px 0 4px}
@@ -758,8 +772,12 @@ table.sp tr.lreq td:first-child,table.sp tr.lctl td:first-child{font-weight:700;
 .fydpt tr.tot td:first-child{background:var(--panelA)}
 .fydpt td.n,.fydpt th.n{white-space:nowrap}
 .fydpt thead tr:first-child th+th{border-left:2px solid var(--edge);text-align:center;color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.4px}
-.fydpt:not(.c4) thead tr+tr th:nth-child(3n+2),.fydpt:not(.c4) tbody td:nth-child(3n+2){border-left:2px solid var(--edge);padding-left:10px}
-.fydpt.c4 thead tr+tr th:nth-child(4n+2),.fydpt.c4 tbody td:nth-child(4n+2){border-left:2px solid var(--edge);padding-left:10px}
+.fydpbook thead tr+tr th:nth-child(2n+1),.fydpbook tbody td:nth-child(2n+3){border-left:2px solid var(--edge);padding-left:10px}
+.fydpbook td:nth-child(2){min-width:200px}
+.fydpbook tr.band td{background:var(--panelA)}
+.fydpbook .fydptot{background:color-mix(in srgb,var(--gold) 14%,var(--panel))}
+.fydpbook tr.tot td{border-top:2px double var(--edge);font-weight:700}
+.fydpsec{margin:12px 0 4px;font-size:12px;color:var(--ink);border-bottom:2px solid var(--edge);padding-bottom:2px}
 
 table.sp{border-collapse:collapse;width:100%;font-size:10.5px;table-layout:fixed}
 table.sp td:first-child,table.sp th:first-child{white-space:normal;overflow-wrap:anywhere}
@@ -1710,6 +1728,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <input type="file" id="aceFile" accept=".xlsx" style="display:none" onchange="importAce(this)">
   <input type="file" id="budFile" accept=".xlsx" style="display:none" onchange="importBud(this)">
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
+  <input type="file" id="aiFile" accept=".json,.txt,.md" style="display:none" onchange="aiImport(this)">
 </div>
 <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
 </div>
@@ -1852,6 +1871,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modal" style="width:760px;max-width:98vw">
     <h3><span>MESSAGES THIS SESSION</span> <button class="x" onclick="msgClose()">✕ Close</button></h3>
     <div id="msgBody"></div>
+  </div>
+</div>
+<div class="modal-bg" id="aiPanel" onclick="if(event.target===this)aiClose()">
+  <div class="modal" style="width:1100px;max-width:98vw">
+    <h3><span>AI REVIEW — FOR YOUR DECISION</span> <button class="x" onclick="aiClose()">✕ Close</button></h3>
+    <div id="aiBody"></div>
   </div>
 </div>
 <div class="modal-bg" id="attPanel" onclick="if(event.target===this)attClose()">
@@ -3022,7 +3047,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.03 (21 Oct 2026)';
+const BUILD='v2.04 (22 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4575,7 +4600,7 @@ function exportRlgPlan(){
   const tot=rows.reduce(function(a,r){ return a+r.v; },0);
   out.push([{v:'TOTAL', s:4},'','','','','',{v:tot, s:NB},'','','','']);
   const wb=buildXlsx([{name:'Funding plan',
-                       cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}]);
+                       cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}], null, xlsxHouse('Funding Plan'));
   if(!wb) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([wb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -6235,6 +6260,9 @@ function setGrp(id, g){
 
 // ============ FYDP: one board, many fiscal years ============
 let MS;                                   // {base, cur, ts, years:{'2027':state, ...}}
+// v2.04 (item 109): the AI review list -- declared here, not with its code, because syncBtns reads them on the first render (the
+// BANDS_STD rule: a `let` further down is still in its dead zone while the board draws during boot)
+let aiIsOpen=false, AIREV=null, aiShow='';   // AIREV {file, ts, rows}; aiShow '' | 'anomaly' | 'suggestion' | 'check'
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -8222,7 +8250,7 @@ function pmoReport(){
     +'out. Applying replaces what is here now. Nothing in this file has been applied \u2014 it is the '
     +'review, not the result. DECISION / NOTES is left blank on purpose: it is yours to fill in and '
     +'keep as the record of what was accepted and why.'}]);
-  const blob=buildXlsx([sheet]);
+  const blob=buildXlsx([sheet], null, xlsxHouse('Submittal Review'));
   if(!blob) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -11155,7 +11183,8 @@ const dispTitle = (it, st) => ((st||S).titles||{})[it.id] || it.event || it.titl
 // can never unhook a join that works today.
 const recNameSrc = it => (it && it.title) || '';
 // What a person sees. Overridable per year, exactly as the plan event is.
-const recName = (it, st) => (it && ((((st||S).recNames||{})[it.id]) || it.title)) || '';
+// v2.04 (item 108): the CCaR records list's Title comes between a typed name and the file's own (ccarRecNameOf).
+const recName = (it, st) => (it && ((((st||S).recNames||{})[it.id]) || ((typeof ccarRecNameOf==='function')? ccarRecNameOf(it, st) : '') || it.title)) || '';
 // The key the funds-flow join uses. DELIBERATELY the record name and NOT dispTitle: the QPE's Title
 // column matches the record name for 97.3% of O&M dollars and the Plan Event for 6.2%. Tying this
 // to the display would silently route almost everything to "Not yet assigned".
@@ -14454,7 +14483,7 @@ function exportIdsReq(opts){
     '⚠ <b>IDS workbook not made</b> — '+esc(probs[0])+(probs.length>1? ' (and '+(probs.length-1)+' more)' : '')+'.');
   // 4. THE FILE
   const when=new Date(), org=+String(f.org).trim();
-  const bytes=buildXlsx(idsSheets(P, f, when), IDS_XTRA);
+  const bytes=buildXlsx(idsHouse(idsSheets(P, f, when)), IDS_XTRA, xlsxHouse('IDS Batch Import'));
   // v2.00 (U37): refused and said why -- before the ORG below is kept, and with no earlier prompt problem left in the
   // box as the reason
   if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }
@@ -14802,6 +14831,76 @@ function ccarCtlOf(it){
   return {v:r.k, why:''};
 }
 function ccarOprOf(it){ const r=ccarRec(ccarOf(it)); return (r&&!(r.d>1))? r.o : ''; }
+/* v2.04 (item 108): THE CCaR RECORDS LIST NAMES THE RECORD AND OFFERS ITS DESCRIPTION (Brad, 22 Oct 2026).
+   The Record Name is READ from the list, never copied, so a newer list renames every requirement on it: a name typed on
+   the board first, then the list's Title, then the data pack's title (recName). A number the list holds under records
+   that disagree reads blank, as ccarTitleOf always has -- never a coin toss.
+   A requirement with no number of its own is named by its CLINs (option (a)): the one record they all share, or
+   "Multiple records (N)", each CLIN's own name shown on its line in the drill.
+   The Description is the person's text. The list's Short Description is OFFERED (ccarDescOf): it fills an EMPTY
+   Description when a number is typed, and otherwise waits behind a button; it never replaces what someone wrote. */
+function ccarNameOfNum(num){ const r=ccarRec(num); return (r&&!(r.d>1))? (r.t||'') : ''; }
+function ccarDescOfNum(num){ const r=ccarRec(num); return (r&&!(r.d>1)&&!r.sc)? (r.s||'') : ''; }
+// The CLINs that carry a record of their own, read without creating anything (clinListRO).
+function ccarClinRecs(it){
+  const out=[]; if(!it) return out;
+  let L=[]; try{ L=clinListRO(it.id); }catch(e){ return out; }
+  L.forEach(function(c){ const k=ccarNorm(c.ccar); if(k) out.push({clin:String(c.clin==null?'':c.clin), num:String(c.ccar).trim(), key:k}); });
+  return out;
+}
+function ccarRecNameOf(it, st){
+  // recName runs from the first render on; before the store is read there is no list to name anything
+  try{ if(!it || typeof MS==='undefined' || !MS || !ccarIdx()) return ''; }catch(e){ return ''; }
+  const own=ccarOf(it, st);
+  if(own) return ccarNameOfNum(own);
+  if(st && st!==S) return '';                     // a CLIN is read off the year on screen only
+  const keys=[]; ccarClinRecs(it).forEach(function(c){ if(keys.indexOf(c.key)<0) keys.push(c.key); });
+  if(!keys.length) return '';
+  if(keys.length===1) return ccarNameOfNum(keys[0]);
+  return 'Multiple records ('+keys.length+')';
+}
+// What the CCaR list would put in the Description: the record's short description; for a requirement named by its
+// CLINs, the one record's, or a line per CLIN ("CLIN 0001 · JSF1234 — description").
+function ccarDescOf(it){
+  if(!it || !ccarIdx()) return '';
+  const own=ccarOf(it);
+  if(own) return ccarDescOfNum(own);
+  const cl=ccarClinRecs(it); if(!cl.length) return '';
+  const keys=[]; cl.forEach(function(c){ if(keys.indexOf(c.key)<0) keys.push(c.key); });
+  if(keys.length===1) return ccarDescOfNum(keys[0]);
+  return cl.map(function(c){ return 'CLIN '+c.clin+' \u00b7 '+c.num+' \u2014 '+(ccarDescOfNum(c.key)||'(no short description in the CCaR list)'); }).join('\n');
+}
+// Fill an empty Description from the list, after a number is typed. Returns true when it wrote.
+function ccarDescFill(id){
+  const it=itemById(id); if(!it) return false;
+  const cur=((S.desc||{})[id]||'').trim(), d=ccarDescOf(it);
+  if(cur || !d) return false;
+  if(!S.desc) S.desc={};
+  S.desc[id]=d; return true;
+}
+// The RECORD panel's button: fills an empty Description, or replaces a written one after asking.
+// The RECORD panel's line: the Record Name the CCaR list gives, and the offer of its short description.
+function ccarInspHtml(id, it){
+  if(!ccarIdx()) return '';
+  const nm=ccarRecNameOf(it), d=ccarDescOf(it), cur=((S.desc||{})[id]||'').trim();
+  if(!nm && !d) return '';
+  let h='<div class="insp-f ccrec" style="grid-column:1 / -1"><div class="fl">CCaR Record Name</div><div class="fv">'
+    +(nm? esc(nm) : '<span style="color:var(--dim)">\u2014 the CCaR list gives none</span>')
+    +((S.recNames||{})[id]? ' <span style="color:var(--dim)">(the board shows the name typed here: '+esc(S.recNames[id])+')</span>' : '')+'</div>';
+  if(d && d!==cur) h+='<button type="button" class="btn ccdesc" onclick="ccarDescUse('+jsa(id)+')" title="'+esc(d)+'">'
+    +(cur? '\ud83d\udcc7 Replace the Description with the CCaR one' : '\ud83d\udcc7 Fill the Description from CCaR')+'</button>';
+  return h+'</div>';
+}
+function ccarDescUse(id){
+  const it=itemById(id); if(!it) return;
+  if(cycBlock('Changing the description')) return;
+  const d=ccarDescOf(it); if(!d){ setStat('\u26a0 The CCaR list has no short description for this requirement.'); return; }
+  const cur=((S.desc||{})[id]||'').trim();
+  if(cur===d) return;
+  if(cur && !confirm('Replace the Description of \u201c'+dispTitle(it)+'\u201d with the CCaR list\u2019s?\n\nNow:\n'+cur+'\n\nCCaR:\n'+d)) return;
+  setDesc(id, d);
+  setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2014 Description '+(cur? 'replaced with' : 'filled from')+' the CCaR list. It is ordinary Description text now: edit it in \ud83d\udcc4 '+esc(FL('dn'))+'.');
+}
 
 /* ============ WBS FROM THE IMPORTED EXECUTION DATA ==========================================
    Column 23 of the Spend Plan Source carries a WBS paragraph. It is headed "Spares WBS" in the
@@ -15493,6 +15592,8 @@ async function importCcarRecs(inp){
     // 162 keys \u2014 so a key behind more than one record cannot be resolved to a single control
     // number and is reported rather than picked from, exactly as Title and OPR already are.
     const iK=hdr.indexOf('Control No');
+    // v2.04 (item 108): the record's short description, offered to the requirement's Description (never written by itself)
+    const iS=hdr.indexOf('Short Description');
     if(iC<0||iT<0) throw new Error('no "CCaR No" and "Title" columns — check this is the CCaR records export');
     const ix={};
     let n=0, dup=0;
@@ -15504,7 +15605,9 @@ async function importCcarRecs(inp){
       const o=(iO>=0)? String(row[iO]||'').trim() : '';
       const pm=(iP>=0)? String(row[iP]||'').trim() : '';
       const kk=(iK>=0)? String(row[iK]||'').trim() : '';
+      const sd=(iS>=0)? String(row[iS]||'').trim() : '';
       if(ix[k]){
+        if(ix[k].s!==sd) ix[k].sc=1;                    // two records under one number describing it differently
         ix[k].d++;
         // A second record that says the same thing is not a conflict; one that disagrees is.
         if(ix[k].t!==t || ix[k].o!==o) ix[k].c=1;
@@ -15512,7 +15615,7 @@ async function importCcarRecs(inp){
         if(kk && !ix[k].k) ix[k].k=kk;
         continue;
       }
-      ix[k]={t:t, o:o, p:pm, k:kk, d:1};
+      ix[k]={t:t, o:o, p:pm, k:kk, s:sd, d:1};
     }
     Object.keys(ix).forEach(function(k){ if(ix[k].d>1) dup++; });
     MS.ccarIdx={ts:Date.now(), file:f.name, n:n, rows:ix};
@@ -15528,7 +15631,8 @@ async function importCcarRecs(inp){
     });
     statKeep('📇 <b>'+esc(f.name)+'</b> — '+n+' record'+(n===1?'':'s')+' indexed on <b>CCaR No</b>'
       +(dup? ' ('+dup+' number'+(dup===1?'':'s')+' used by more than one record)':'')+'. '
-      +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Title and OPR'
+      +(iS<0? 'It has no <b>Short Description</b> column, so no description is offered. ' : '')
+      +'On this board <b>'+hit+'</b> of '+have+' requirements carrying a CCaR number now find a Record Name (Title) and OPR'
       +(amb? '; <b>'+amb+'</b> match an ambiguous number and are left blank rather than guessed':'')+'. '
       +'💾 Save to bake this into the file.'+esc(xlsxEscSaid()));
   }catch(e){
@@ -18265,7 +18369,7 @@ function exportFlow(){
   F.cats.filter((c,i)=>F.cats.findIndex(x=>x.k===c.k)===i).forEach(c=>sheets.push({name:tabName(c.n,c.to||c.k), cols:CD,
     rows:detail((F.ext.by[c.k]||{rows:[]}).rows)}));
   if(F.upl.rows.length) sheets.push({name:tabName('Unfunded (UPL)','UPL'), cols:CD, rows:detail(F.upl.rows)});
-  const bytes=buildXlsx(sheets);
+  const bytes=buildXlsx(sheets, null, xlsxHouse('Funds Flow'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -18591,7 +18695,7 @@ function exportExView(){
     sheets.push({name:(APPN_LBL[exA]+' FY'+(exFy%100)).slice(0,31), cols:[26].concat(Array(W.NCOL).fill(10)).concat([13,13,13,8]), rows});
     label=APPN_LBL[exA]+' FY'+(exFy%100)+(exSvc!=='ALL'?' '+exSvc:'');
   }
-  const bytes=buildXlsx(sheets);
+  const bytes=buildXlsx(sheets, null, xlsxHouse('Active Year Execution'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -18647,8 +18751,10 @@ function srcRowsOf(fy, St, T, rec){
       if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt});
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
-      r[2]=ccarOf(it)||'';
-      r[3]=recT || dispTitle(it) || '';
+      // v2.04 (item 108): a CLIN line carries the CLIN's OWN record, number and name, when it has one (Brad, 22 Oct 2026)
+      const cn=(clin && String(clin.ccar||'').trim())? String(clin.ccar).trim() : '';
+      r[2]=cn || ccarOf(it) || '';
+      r[3]=(cn? ccarNameOfNum(cn) : recT) || dispTitle(it) || '';
       // THE BUDGET IS THE BAE NAME, VERBATIM, for this service AND LANE -- or blank. CCaR rejects
       // any name that is not exactly a BAE name, so with no BAE list loaded the cell is BLANK and
       // the export says so before it writes the file (the owner's rule, 23 Sep 2026). It used to
@@ -20099,7 +20205,7 @@ function exportPlans(){
   const bytes=buildXlsx([
     sheet('PLAN A \u2014 Discretionary only','a',R.aBud,R.aT,R.A.__cut,'DISCRETIONARY ONLY'),
     sheet('PLAN B \u2014 Disc + Mandatory','b',R.bBud,R.bT,R.B.__cut,'DISCRETIONARY + MANDATORY'),
-    cmp]);
+    cmp], null, xlsxHouse('Two Spend Plans'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -20652,7 +20758,7 @@ function cycSetWorking(cyc, yr){
 // TOTAL unfunded -- and never netted across services. A year the source never held prints an em
 // dash, never 0, and stays outside the FYDP totals.
 let fydpOpen=false, fydpSrc='working';
-function toggleFydp(){ fydpOpen=!fydpOpen; render(); }
+function toggleFydp(){ fydpOpen=!fydpOpen; if(fydpOpen){ fydpSrc=fydpOnScreen(); fydpView='sum'; } render(); }
 function fydpSetSrc(v){ fydpSrc=v||'working'; render(); }
 // THE YEARS A REPORT COVERS: the FYDP window, and the year on screen when it sits outside it --
 // the same span a lock takes, so the report and the lock agree on what "the five years" are.
@@ -20685,237 +20791,236 @@ const fydpSum=a=>(a||[]).reduce(function(x,y){ return x+(+y||0); },0);
 // Unfunded, per requirement: Σ[svc] max(0, ask − funded). The floor is per service so a service
 // with money to spare never offsets one that is short.
 function fydpUnf(r){ let u=0; (r.ask||[]).forEach(function(a,i){ u+=Math.max(0, (+a||0)-((r.fund||r.alloc||[])[i]||0)); }); return u; }
-// THE OFFICIAL PPBE POSITION beside the plan: the position logged under the same cycle key (the
-// working plan's tag, or the locked cycle's key) in 🏛 PPBE Budget Positions, by service, for the
-// year -- read live from MS.ppbe, which a lock never copies, because the position is the
-// comptroller's figure and not the board's. null when nothing is logged for that cycle, service
-// and year, printed as an em dash and never 0, so an unlogged position cannot read as a position
-// of nothing.
-function fydpPosKey(D){ return (D.src==='working')? (MS.cycle||'') : D.src; }
-function fydpPos(D, sv, y){
-  const key=fydpPosKey(D); if(!key) return null;
-  const P=(MS.ppbe||{})[key]; if(!P) return null;
-  const N=ppNorm(P);
-  const logged=ppKeysOf(N, sv).some(function(k){ return !!((((N.val||{})[sv]||{})[k]||{})[y]); });
-  if(!logged) return null;
-  return ppSvcFy(N, sv, y).t;
-}
-// The position added over the services that log one for the year; null when none does.
-function fydpPosTot(D, y){
-  let t=0, n=0;
-  D.svc.forEach(function(sv){ const p=fydpPos(D, sv, y); if(p===null) return; n++; t+=p; });
-  return n? t : null;
-}
 // The cycles a report can read: any that holds a projection -- a full lock, a migrated one-year
 // baseline, or the reference a PMO copy carries. Viewing on the drill needs the years (cycHeld).
 function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); return Object.keys((c&&c.proj)||{}).length>0; }); }
-// THE ANNUAL COST ESTIMATE beside the plan. Which estimate is the reader's choice (fydpAce), exactly
-// as the source is; the figures are that set's lines for THIS appropriation, read live from ACEDB --
-// a lock never copies an estimate, and neither does a cycle's report. By PMO it is the estimate PMO a
-// board PMO draws from (acePmoFor: PSM read AV's line before 2026), and two board PMOs that share one
-// estimate PMO share one figure, printed once and named on the other rows rather than split by a
-// rule nobody agreed. By service it is the line's own service. By requirement it is only what the
-// requirement CONFIRMED in the tie-out (its claimed WBS lines, read from that year's own state),
-// blank otherwise -- and a subtotal of requirement rows would double a shared line, so subtotals and
-// TOTAL read the estimate's own PMO and appropriation figures, as the tie-out does. A year the
-// estimate carries no figure for prints an em dash, never 0.
-let fydpAce=null;   // null: the latest set the first time it is asked for; '': none
-function fydpAceKey(){
-  const keys=aceSetKeys().sort();
-  if(fydpAce===null) fydpAce= keys.length? keys[keys.length-1] : '';
-  if(fydpAce && !aceSet(fydpAce)) fydpAce= keys.length? keys[keys.length-1] : '';
-  return fydpAce;
+// ============================ THE FIVE-YEAR SPEND PLAN WORKBOOK (v2.04, item 112) ==================
+// Brad, 22 Oct 2026, item by item: a tab per appropriation (O&M, Full Fund, Initial Spares, OPN), then a tab per service
+// (USAF, ANG, AFRC, STOVL, USMC-C, USN) and a tab per PMO, a Summary first with a chart; the base year and the next four;
+// two figures a year -- Requirement and Allocated, "the discretionary and mandatory totals for that requirement", every
+// service added together -- in $M to three decimals; the requirements in 1-N order under their CCaR record, the record
+// printed once, "No CCaR record" last; line totals at the right, a TOTAL row at the bottom, no subtotals; the plan printed
+// is picked, starting on the one on screen; styled for briefing (the house style); no classification marking. It replaced
+// By Requirement, By PMO, By Service and the PMO tabs of v1.85, and the cost estimate and PPBE position beside the plan
+// (Brad: drop both -- the estimate stays in the ACE Tie-Out, the positions in PPBE Budget Positions).
+//
+// ONE MODEL, READ BY THE WORKBOOK AND THE PANEL. fydpBookModel turns each appropriation's projection -- its own board's
+// fydpData, the figures a lock takes -- into requirements by year; the tabs and the panel only arrange it, so the panel
+// cannot print a figure the workbook does not. Allocated is the lane draw, discretionary + mandatory (the projection's
+// fund). A requirement's year on a SERVICE tab is that service's own dollars (found by the service's NAME in that year's
+// list); on a PMO tab it is the requirement's dollars in the years that PMO held it (v1.95: PMOs are assigned by year),
+// 0 in the years another office did. A year the plan does not hold prints —, never 0, and is outside every total.
+// The service tabs add up to the appropriation tabs, and so do the PMO tabs: each partitions the same money.
+// THE YEARS: the plan's base year and the next four. A locked cycle's base is the lock's.
+function fydpBookYears(D){
+  const c=(D && D.src!=='working')? blGet(D.src) : null;
+  const b=(c && +c.base) || +MS.base || +MS.cur, out=[];
+  for(let y=b; y<=b+4; y++) out.push(y);
+  return out;
 }
-function fydpSetAce(v){ fydpAce=v||''; render(); }
-function fydpAceLines(k){ const set=aceSet(k), ap=mySlug(); return set? (set.lines||[]).filter(function(l){ return l.ap===ap; }) : []; }
-function fydpAceYears(k){ const ys={}; fydpAceLines(k).forEach(function(l){ Object.keys(l.v||{}).forEach(function(y){ if(l.v[y]) ys[y]=1; }); }); return Object.keys(ys).map(Number).sort(function(a,b){ return a-b; }); }
-// the lines picked, added for one year: null when no picked line carries that year
-function fydpAceSum(k, y, pick){
-  let t=0, n=0;
-  fydpAceLines(k).forEach(function(l){ if(pick && !pick(l)) return; const v=(l.v||{})[y]; if(v===undefined||v===null) return; n++; t+=v; });
-  return n? t : null;
-}
-function fydpAceTot(k, y){ return fydpAceSum(k, y, null); }
-function fydpAcePmo(k, boardPmo, y){ const a=acePmoFor(k, boardPmo); return fydpAceSum(k, y, function(l){ return l.pmo===a; }); }
-function fydpAceSvc(k, sv, y){ return fydpAceSum(k, y, function(l){ return l.svc===sv; }); }
-// what one requirement confirmed, from the state of that year: null when unconfirmed or the year is not held
-function fydpAceReq(k, id, y, st){
-  const m=st && st.aceMap && st.aceMap[id]; if(!m || !m.ok || !Array.isArray(m.w) || !m.w.length) return null;
-  let t=0, n=0;
-  m.w.forEach(function(w){ const v=fydpAceSum(k, y, function(l){ return aceNormWbs(l.wbs)===aceNormWbs(w); }); if(v!==null){ n++; t+=v; } });
-  return n? t : null;
-}
-// board PMOs that share one estimate PMO: the figure is printed on the first and the rest name it
-function fydpAceShare(k, groups){ const seen=Object.create(null), out={}; groups.forEach(function(g){ const a=acePmoFor(k, g.grp); if(seen[a]){ out[g.grp]=seen[a]; } else seen[a]=g.grp; }); return out; }
-// EACH YEAR'S MONEY UNDER THE PMO THAT YEAR ASSIGNS (v1.95, Brad, 3 Oct 2026: "PMOs can change under
-// reorganizations, leave the PMO assigned by year, as it's reported as that PMO in that year"). A row
-// is one requirement under one PMO, holding the years that PMO held it: moved from AV in FY27 to TSS
-// in FY28, it is a row under AV with FY27 and a row under TSS with FY28, so each PMO's year is that
-// year's projection -- and its lock -- to the dollar. Every row was filed under its LATEST year's PMO,
-// which put FY27's money under an office that did not hold it in FY27. Each year's money is in exactly
-// one row, so every total is what it was; a requirement that never moves is one row, as it was. The
-// rows are keyed requirement + PMO (row.id is the requirement); n counts requirements, not rows, and
-// at[id][y] is the row holding that requirement's year y.
-function fydpRows(D){
-  const rows={}, order=[], at={}, last={};
-  D.held.forEach(function(y){
-    (D.proj[y].reqs||[]).forEach(function(r,i){
-      const k=r.id+'\u0000'+(r.grp||'');
-      if(!rows[k]){ rows[k]={id:r.id, title:r.title, grp:r.grp, ccar:r.ccar||'', band:r.band||'', rank:i+1, fy:{}}; order.push(k); }
-      const row=rows[k];
-      row.title=r.title; row.ccar=r.ccar||''; row.band=r.band||'';     // the latest naming of the years it holds
-      row.fy[y]={ask:fydpSum(r.ask), alloc:fydpSum(r.alloc), fund:fydpSum(r.fund||r.alloc), unf:fydpUnf(r)};
-      (at[r.id]=at[r.id]||{})[y]=k; last[r.id]=k;
+function fydpBookApp(X, Y){
+  const reqs=Object.create(null), order=[];
+  const held=Y.filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); });
+  held.forEach(function(y){
+    const P=X.proj[y], sv=(P.svc||X.svc||[]).slice();
+    P.reqs.forEach(function(r){
+      if(!reqs[r.id]){ reqs[r.id]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(r.id); }
+      const q=reqs[r.id];
+      q.title=String(r.title||r.id); q.ccar=String(r.ccar||'').replace(/\s+/g,' ').trim();   // the latest year's naming
+      q.fy[y]={grp:String(r.grp||''), svc:sv, ask:(r.ask||[]).map(function(v){ return +v||0; }),
+               alloc:(r.fund||r.alloc||[]).map(function(v){ return +v||0; })};
     });
   });
-  order.forEach(function(k){
-    const row=rows[k], t={ask:0, alloc:0, fund:0, unf:0};
-    D.held.forEach(function(y){ const f=row.fy[y]; if(!f) return; t.ask+=f.ask; t.alloc+=f.alloc; t.fund+=f.fund; t.unf+=f.unf; });
-    row.tot=t;
-    row.home=(last[row.id]===k);       // the row a year it does not hold is shown on (the latest year's PMO)
-  });
-  const byG=Object.create(null); order.forEach(function(k){ const g=rows[k].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(k); });
-  const groups=pmoKeys(byG).map(function(g){ return {grp:g, ids:byG[g].slice().sort(function(a,b){ return rows[a].rank-rows[b].rank; })}; });
-  return {rows:rows, groups:groups, order:order, at:at, n:Object.keys(at).length};
+  return {held:held, reqs:reqs, order:order};
 }
-// A requirement's confirmed estimate for year y goes on the ONE row that holds that year -- or, for a
-// year no row of it holds, on the row of its latest year's PMO -- never on every row it has.
-function fydpRowYear(R, k, y){ const r=R.rows[k], a=(R.at||{})[r.id]||{}; return a[y]? a[y]===k : !!r.home; }
-// A subtotal over some rows: per held year, then across the years held.
-function fydpSub(ids, rows, D){
-  const out={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0}};
-  D.held.forEach(function(y){
-    const s={ask:0, alloc:0, fund:0, unf:0}; let n=0;
-    ids.forEach(function(id){ const f=(rows[id]||{fy:{}}).fy[y]; if(!f) return; n++; s.ask+=f.ask; s.alloc+=f.alloc; s.fund+=f.fund; s.unf+=f.unf; });
-    out.fy[y]=s; out.tot.ask+=s.ask; out.tot.alloc+=s.alloc; out.tot.fund+=s.fund; out.tot.unf+=s.unf;
+// one requirement's year under a filter: null when the plan does not hold the year
+function fydpBookVal(M, id, y, f){
+  if(M.held.indexOf(y)<0) return null;
+  const e=M.reqs[id].fy[y]; if(!e) return {a:0, l:0};
+  if(f && f.pmo!==undefined) return e.grp===f.pmo? {a:fydpSum(e.ask), l:fydpSum(e.alloc)} : {a:0, l:0};
+  if(f && f.svc!==undefined){ const i=e.svc.indexOf(f.svc); return i<0? {a:0, l:0} : {a:e.ask[i]||0, l:e.alloc[i]||0}; }
+  return {a:fydpSum(e.ask), l:fydpSum(e.alloc)};
+}
+function fydpBookHas(M, id, Y, f){
+  return Y.some(function(y){ const e=M.reqs[id].fy[y]; if(!e) return false;
+    if(f && f.pmo!==undefined) return e.grp===f.pmo;
+    if(f && f.svc!==undefined){ const v=fydpBookVal(M, id, y, f); return !!(v && (v.a || v.l)); }
+    return true; });
+}
+// the lines of one block: grouped under the CCaR record in the order the record first ranks, no record last
+function fydpBookLines(M, Y, f){
+  const ids=M.order.filter(function(id){ return fydpBookHas(M, id, Y, f); });
+  const recs=[], by=Object.create(null), loose=[];
+  ids.forEach(function(id){ const c=M.reqs[id].ccar; if(!c){ loose.push(id); return; }
+    const k=c.toUpperCase(); if(!by[k]){ by[k]={lbl:c, ids:[]}; recs.push(k); } by[k].ids.push(id); });
+  const groups=recs.map(function(k){ return {rec:by[k].lbl, ids:by[k].ids}; });
+  if(loose.length) groups.push({rec:'No CCaR record', ids:loose, none:true});
+  const out={lines:[], fy:{}, tot:{a:0, l:0}};
+  Y.forEach(function(y){ out.fy[y]= M.held.indexOf(y)<0? null : {a:0, l:0}; });
+  groups.forEach(function(g, gi){
+    g.ids.forEach(function(id, n){
+      const L={id:id, rec: n? '' : g.rec, title:M.reqs[id].title, band:gi%2? 0 : 1, fy:{}, tot:{a:0, l:0}};
+      Y.forEach(function(y){ const v=fydpBookVal(M, id, y, f); L.fy[y]=v;
+        if(v){ L.tot.a+=v.a; L.tot.l+=v.l; out.fy[y].a+=v.a; out.fy[y].l+=v.l; } });
+      out.tot.a+=L.tot.a; out.tot.l+=L.tot.l;
+      out.lines.push(L);
+    });
   });
   return out;
 }
-// By service, per held year: the projection's vectors added over requirements, the pots beside them.
-function fydpSvc(D){
-  const out={};
-  D.svc.forEach(function(sv,i){
-    const row={svc:sv, fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
-    D.held.forEach(function(y){
-      const P=D.proj[y], s={ask:0, alloc:0, fund:0, unf:0, disc:(P.disc||[])[i]||0, mand:(P.mand||[])[i]||0};
-      (P.reqs||[]).forEach(function(r){
-        const a=(r.ask||[])[i]||0, al=(r.alloc||[])[i]||0, f=(r.fund||r.alloc||[])[i]||0;
-        s.ask+=a; s.alloc+=al; s.fund+=f; s.unf+=Math.max(0, a-f);
-      });
-      row.fy[y]=s; Object.keys(s).forEach(function(k){ row.tot[k]+=s[k]; });
-    });
-    out[sv]=row;
-  });
-  return out;
+// totals of several blocks added (a service's appropriations, the portfolio)
+function fydpBookAdd(Y, blocks){
+  const o={fy:{}, tot:{a:0, l:0}};
+  Y.forEach(function(y){ const xs=blocks.map(function(b){ return b.fy[y]; }).filter(function(v){ return !!v; });
+    o.fy[y]= xs.length? {a:fydpSum(xs.map(function(v){ return v.a; })), l:fydpSum(xs.map(function(v){ return v.l; }))} : null; });
+  blocks.forEach(function(b){ o.tot.a+=b.tot.a; o.tot.l+=b.tot.l; });
+  return o;
 }
-function exportFydpPlan(){
-  if(_fydpBusy){ setStat('📊 The five-year spend plan is still opening the other appropriations — it downloads as soon as they answer.'); return; }
-  const D=fydpData(fydpSrc);
-  if(!D){ alert('That cycle is no longer held. Pick a source in 📊 Five-year spend plan.'); return; }
-  if(!D.held.length){ alert('No year of '+D.label+' holds a plan, so there is nothing to print.'); return; }
-  const R=fydpRows(D);
-  const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
-  const fyl=function(y){ return 'FY'+(y%100); };
-  const span=fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1]);
-  const title='ORBIT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
-  // A PMO COPY'S WORKBOOK SAYS SO ACROSS THE TOP OF EVERY SHEET, as its other exports do (v1.85). The
-  // file name was stamped already; the sheets were not, and a sheet copied out of the workbook lost it.
-  const cpy=function(t){ return SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+t : t; };
-  const cell=function(f,k,s){ return f? {v:f[k], s:(s||N)} : {v:'—', s:0}; };
-  // the cost estimate beside the plan: the chosen set, this appropriation, as it stands now
-  const AK=fydpAceKey(), hasAce=!!AK;
-  const stOf=function(y){ return D.src==='working'? (+y===+MS.cur? S : MS.years[y]) : (((blGet(D.src)||{}).years)||{})[y]; };
-  const aceCell=function(v,st){ return (v===null||v===undefined)? {v:'—',s:0} : (typeof v==='string'? {v:v,s:0} : {v:v,s:st}); };
-  const aceFydp=function(est,st){ let t=0,n=0,txt=null; D.years.forEach(function(y){ const v=est(y); if(typeof v==='string'){ txt=v; return; } if(v===null||v===undefined) return; n++; t+=v; }); return txt? {v:txt,s:0} : (n? {v:t,s:st} : {v:'—',s:0}); };
-  const share=hasAce? fydpAceShare(AK, R.groups) : {};
-  const aceGrp=function(g){ return function(y){ return share[g]? '(with '+share[g]+')' : fydpAcePmo(AK, g, y); }; };
-  const aceTotF=function(y){ return fydpAceTot(AK, y); };
-  const note={v:'One row per requirement, the years across; PMO subtotals and the portfolio total. Funded is the lane draw (discretionary + mandatory); Unfunded is requirement less funded, floored per service. A year the source never held prints —, not 0, and is outside the FYDP totals. Years held: '
-    +D.held.map(fyl).join(', ')+'.'+(D.ts? ' Locked '+fmtTs(D.ts)+(D.by? ' by '+D.by : '')+'.' : ' The working plan as it stands.'), s:0};
-  note.v+= hasAce
-    ? ' ACE estimate: '+AK+' for this appropriation, read as it stands now (a lock never copies an estimate). By requirement, only what the requirement confirmed in the tie-out — blank when unconfirmed — so subtotals and TOTAL read the estimate’s own PMO and appropriation figures rather than adding requirement rows; a board PMO that shares an estimate PMO with another shows the figure once and names it on the other. The FYDP estimate adds every window year the estimate carries, held or not. — where the estimate carries no figure.'
-    : ' No cost estimate is selected.';
+// THE MODEL. D: the plan picked; A: fydpGather's answer (each appropriation, its own board's D or why not).
+function fydpBookModel(D, A){
+  const Y=fydpBookYears(D);
+  const apps=A.map(function(a){ return {k:a.k, name:appnName(a.k), own:!!a.own, why:a.why||'', none:!!a.none, skip:!!a.skip,
+    cycle:a.cycle||'', ts:a.ts||0, by:a.by||'', D:a.D, M:(a.D && a.D.held && a.D.held.length)? fydpBookApp(a.D, Y) : null}; });
+  apps.forEach(function(p){ if(p.M && !p.M.held.length){ p.M=null; p.none=true; p.why=p.why||'holds no plan from FY'+(Y[0]%100)+' to FY'+(Y[4]%100); } });
+  const got=apps.filter(function(p){ return !!p.M; });
+  got.forEach(function(p){ p.all=fydpBookLines(p.M, Y, null); });
+  // the services, in this board's order then any other appropriation's; the offices, configured first
+  const svcs=[]; SVC.forEach(function(s){ if(svcs.indexOf(s)<0) svcs.push(s); });
+  got.forEach(function(p){ p.M.held.forEach(function(y){ ((p.D.proj[y]||{}).svc||p.D.svc||[]).forEach(function(s){ if(svcs.indexOf(s)<0) svcs.push(s); }); }); });
+  const pm=Object.create(null);
+  got.forEach(function(p){ p.M.order.forEach(function(id){ Y.forEach(function(y){ const e=p.M.reqs[id].fy[y]; if(e) pm[e.grp||'(no PMO)']=1; }); }); });
+  const by=function(f){ return got.map(function(p){ return {app:p, b:fydpBookLines(p.M, Y, f)}; }).filter(function(x){ return x.b.lines.length; }); };
+  const svc=svcs.map(function(s){ const bl=by({svc:s}); return {name:s, blocks:bl, sum:fydpBookAdd(Y, bl.map(function(x){ return x.b; }))}; })
+    .filter(function(x){ return x.blocks.length; });
+  const pmo=pmoKeys(pm).map(function(g){ const bl=by({pmo:g==='(no PMO)'? '' : g}); return {name:g, blocks:bl, sum:fydpBookAdd(Y, bl.map(function(x){ return x.b; }))}; })
+    .filter(function(x){ return x.blocks.length; });
+  return {D:D, years:Y, apps:apps, got:got, svc:svc, pmo:pmo, total:fydpBookAdd(Y, got.map(function(p){ return p.all; }))};
+}
+// The plan's name as the workbook prints it: "the working plan (PB27)", "PB27 (locked 15 Oct 2026)"
+function fydpPlanLbl(D){ return D.src==='working'? D.label : blLblTxt(D.src)+' (locked'+(D.ts? ' '+fmtTs(D.ts) : '')+')'; }
+// THE SHEETS. Styles: 1 bold, 2 heading, 6 section, 7 title; 16 / 17 the $M figure and the bold one; 18 a dash, centred.
+// The house style (buildXlsx's opts.house) paints them; nothing here sets a colour.
+const FYDP_XTRA=[{fmt:'#,##0.000', fill:false}, {fmt:'#,##0.000', bold:true, fill:false}, {fill:false, center:true}];
+function fydpBookSheets(B){
+  const D=B.D, Y=B.years, NUM=XF_EXTRA0, NUMB=XF_EXTRA0+1, DASH=XF_EXTRA0+2;
+  const fyl=function(y){ return 'FY'+(y%100); }, span=fyl(Y[0])+'–'+fyl(Y[Y.length-1]);
+  const M$=function(v){ return v/1e6; };
+  const plan=fydpPlanLbl(D), printed=new Date().toISOString().slice(0,10);
+  const cpy=function(s){ return SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+s : s; };
+  const sub=function(scope, more){ return plan+'  ·  '+span+'  ·  $ in millions  ·  '+scope+'  ·  printed '+printed+(more? '  ·  '+more : ''); };
+  const cols=[14,42].concat(Y.map(function(){ return [13,13]; }).flat()).concat([15,15]);
+  const used=Object.create(null);
+  const tab=function(p){
+    let n=String(p).replace(/[\[\]:*?\/\\]/g,'-').replace(/^'+|'+$/g,'').trim().slice(0,31)||'Tab';
+    if(n.toLowerCase()==='history') n='History (tab)';
+    let s=n, i=2; while(used[s.toLowerCase()]){ const x=' ('+(i++)+')'; s=n.slice(0,31-x.length)+x; }
+    used[s.toLowerCase()]=1; return s;
+  };
+  // the two heading rows: the fiscal year over its two columns, Requirement and Allocated beneath, TOTAL at the right
+  const head=function(rows, merges, a, b){
+    const r=rows.length, h1=[{v:a,s:2},{v:b,s:2}], h2=[{v:'',s:2},{v:'',s:2}];
+    if(!b) merges.push({r:r, c:0, cs:2});
+    Y.forEach(function(y,j){ h1.push({v:fyl(y),s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Allocated',s:2}); merges.push({r:r, c:2+2*j, cs:2}); });
+    h1.push({v:'TOTAL '+span,s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Allocated',s:2}); merges.push({r:r, c:2+2*Y.length, cs:2});
+    rows.push(h1, h2);
+  };
+  const figs=function(row, fy, tot, st){
+    Y.forEach(function(y){ const v=fy[y]; if(!v) row.push({v:'—',s:DASH},{v:'—',s:DASH}); else row.push({v:M$(v.a),s:st},{v:M$(v.l),s:st}); });
+    row.push({v:M$(tot.a),s:NUMB},{v:M$(tot.l),s:NUMB});
+    return row;
+  };
+  const total=function(rows, lbl, b){ const r=figs([{v:lbl,s:1},''], b.fy, b.tot, NUMB); r.total=true; rows.push(r); };
+  const block=function(rows, merges, b){
+    head(rows, merges, 'CCaR Record', 'Requirement Title');
+    b.lines.forEach(function(L){ const r=figs([{v:L.rec,s:1},{v:L.title,s:0}], L.fy, L.tot, NUM); r.band=L.band; r.total=false; rows.push(r); });
+    total(rows, 'TOTAL', b);
+  };
+  const summary=function(rows, merges, lbl, items){   // a roll-up: one row a name, the TOTAL beneath
+    head(rows, merges, lbl, '');
+    items.forEach(function(x, i){ const r=figs([{v:x.name,s:1},''], x.b.fy, x.b.tot, NUM); r.band=i%2? 0 : 1; r.total=false; rows.push(r); });
+    total(rows, 'TOTAL', fydpBookAdd(Y, items.map(function(x){ return x.b; })));
+  };
   const sheets=[];
-  // ---------- 1. by requirement
+  // another appropriation's working plan tagged under a different cycle than this one is said where its figures are (v1.85)
+  const tagOf=function(p){ const mine=MS.cycle||'';
+    return (D.src!=='working' || p.own || !p.M || (p.cycle||'')===mine)? '' : '⚠ its working plan is tagged '+(p.cycle? blLblTxt(p.cycle) : 'with no cycle')+', this one '+(mine? blLblTxt(mine) : 'with no cycle'); };
+  const srcOf=function(p){
+    if(p.own || D.src!=='working') return '';
+    const t=tagOf(p);
+    return 'read from '+p.name+'’s own board, its newest saved copy'+(p.ts? ' ('+fmtTs(p.ts)+(p.by? ', '+p.by : '')+')' : '')+(t? '  ·  '+t : '');
+  };
+  const missing=B.apps.filter(function(p){ return !p.M && !p.skip; });
+  const say=function(p){ return p.none? p.name+' '+(p.why||'holds no requirements') : '⚠ '+p.name.toUpperCase()+' IS NOT IN THIS WORKBOOK — '+(p.why||'it could not be read')+'. Its figures are missing here, not zero.'; };
+  // ---- Summary
   {
-    const hdr=['PMO','Requirement','CCaR','Band'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const rows=[[{v:cpy(title),s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
-    const put=function(lbl, r, s, sub, est){
-      const line=[sub? {v:lbl,s:B} : lbl, sub? '' : r.title, sub? '' : r.ccar, sub? '' : r.band];
-      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',sub?NB:N), cell(f,'alloc',sub?NB:N), cell(f,'fund',sub?NB:N), cell(f,'unf',sub?NB:N)); if(hasAce) line.push(aceCell(est(y), sub?NB:N)); });
-      line.push({v:s.tot.ask,s:sub?NB:N},{v:s.tot.alloc,s:sub?NB:N},{v:s.tot.fund,s:sub?NB:N},{v:s.tot.unf,s:sub?NB:N}); if(hasAce) line.push(aceFydp(est, sub?NB:N));
-      rows.push(line);
-    };
-    R.groups.forEach(function(g){
-      g.ids.forEach(function(k){ const r=R.rows[k]; put(r.grp, r, {fy:r.fy, tot:r.tot}, false, function(y){ return fydpRowYear(R, k, y)? fydpAceReq(AK, r.id, y, stOf(y)) : null; }); });
-      put('Subtotal — '+g.grp, {}, fydpSub(g.ids, R.rows, D), true, aceGrp(g.grp));
-    });
+    const rows=[[{v:cpy('FYDP SPEND PLAN — SUMMARY'),s:7}],[{v:sub('every appropriation, every service'),s:0}],[]], merges=[];
+    rows.push([{v:'By appropriation',s:6}]);
+    summary(rows, merges, 'Appropriation', B.got.map(function(p){ return {name:p.name, b:p.all}; }));
+    if(missing.length || SANDBOX) rows.push([]);
+    missing.forEach(function(p){ rows.push([{v:say(p),s:p.none? 0 : 1}]); });
+    if(SANDBOX) rows.push([{v:'This PMO copy carries '+appnName(mySlug())+' only.',s:0}]);
     rows.push([]);
-    put('TOTAL', {}, fydpSub(R.order, R.rows, D), true, aceTotF);
-    sheets.push({name:'By Requirement', cols:[10,44,16,14].concat(D.years.map(function(){ return [14,14,14,14].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16].concat(hasAce?[16]:[])), freeze:4, rows:rows});
-  }
-  // ---------- 2. by PMO
-  {
-    const hdr=['PMO','Requirements'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const rows=[[{v:cpy(title+' — BY PMO'),s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
-    const put=function(lbl, n, s, st, est){
-      const line=[{v:lbl,s:st},{v:n,s:0}];
-      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',st), cell(f,'alloc',st), cell(f,'fund',st), cell(f,'unf',st)); if(hasAce) line.push(aceCell(est(y), st)); });
-      line.push({v:s.tot.ask,s:st},{v:s.tot.alloc,s:st},{v:s.tot.fund,s:st},{v:s.tot.unf,s:st}); if(hasAce) line.push(aceFydp(est, st));
-      rows.push(line);
-    };
-    R.groups.forEach(function(g){ put(g.grp, g.ids.length, fydpSub(g.ids, R.rows, D), N, aceGrp(g.grp)); });
+    // the portfolio by fiscal year, and the chart read off it
+    rows.push([{v:'Portfolio by fiscal year',s:6}]);
+    const c0=rows.length;
+    rows.push([{v:'Fiscal year',s:2},{v:'',s:2},{v:'Requirement',s:2},{v:'Allocated',s:2}]);
+    Y.forEach(function(y, i){ const v=B.total.fy[y]; const r=[{v:fyl(y),s:1},''].concat(v? [{v:M$(v.a),s:NUM},{v:M$(v.l),s:NUM}] : [{v:'—',s:DASH},{v:'—',s:DASH}]); r.band=i%2? 0 : 1; r.total=false; rows.push(r); });
+    { const r=[{v:'TOTAL',s:1},'',{v:M$(B.total.tot.a),s:NUMB},{v:M$(B.total.tot.l),s:NUMB}]; r.total=true; rows.push(r); }
+    const chart={from:[5, c0-1], to:[2+2*Y.length+2, c0+16], title:'Requirement vs Allocated, '+span+' ($M)', yTitle:'$M',
+      cats:[0, c0+1, c0+Y.length], series:[{name:'Requirement', col:2, row0:c0+1, row1:c0+Y.length, color:HOUSE.NAVY},
+        {name:'Allocated', col:3, row0:c0+1, row1:c0+Y.length, color:HOUSE.GOLD}]};
+    while(rows.length<c0+18) rows.push([]);
+    rows.push([{v:'By service',s:6}]);
+    summary(rows, merges, 'Service', B.svc.map(function(x){ return {name:x.name, b:x.sum}; }));
     rows.push([]);
-    put('TOTAL', R.n, fydpSub(R.order, R.rows, D), NB, aceTotF);
-    sheets.push({name:'By PMO', cols:[14,14].concat(D.years.map(function(){ return [14,14,14,14].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16].concat(hasAce?[16]:[])), freeze:4, rows:rows});
+    rows.push([{v:'By PMO',s:6}]);
+    summary(rows, merges, 'PMO', B.pmo.map(function(x){ return {name:x.name, b:x.sum}; }));
+    sheets.push({name:tab('Summary'), cols:cols, rows:rows, merges:merges, tab:'502B85', chart:B.got.length? chart : null, titles:false});
   }
-  // ---------- 3. by service, with the official PPBE position beside the plan
-  {
-    const V=fydpSvc(D), posKey=fydpPosKey(D);
-    const hdr=['Service'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const posNote=' PPBE position: the official position logged under '+(posKey? blLblTxt(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
-    const rows=[[{v:cpy(title+' — BY SERVICE'),s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
-    const K=['ask','alloc','fund','unf','disc','mand'];
-    const pos=function(sv, y){ return sv===null? fydpPosTot(D, y) : fydpPos(D, sv, y); };   // one service, or the services added for TOTAL
-    const put=function(lbl, sv, row, st){
-      const line=[{v:lbl,s:st}];
-      let pT=0, pAll=true;
-      D.years.forEach(function(y){ const f=row.fy[y]; K.forEach(function(k){ line.push(cell(f,k,st)); });
-        const p=f? pos(sv, y) : null;
-        if(p===null){ if(f) pAll=false; line.push({v:'—',s:0},{v:'—',s:0}); }
-        else { pT+=p; line.push({v:p,s:st},{v:f.ask-p,s:st}); }
-        if(hasAce) line.push(aceCell(sv===null? fydpAceTot(AK, y) : fydpAceSvc(AK, sv, y), st)); });
-      K.forEach(function(k){ line.push({v:row.tot[k],s:st}); });
-      if(D.held.length && pAll) line.push({v:pT,s:st},{v:row.tot.ask-pT,s:st}); else line.push({v:'—',s:0},{v:'—',s:0});
-      if(hasAce) line.push(aceFydp(function(y){ return sv===null? fydpAceTot(AK, y) : fydpAceSvc(AK, sv, y); }, st));
-      rows.push(line);
-    };
-    const tot={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
-    D.held.forEach(function(y){ tot.fy[y]={ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}; });
-    D.svc.forEach(function(sv){ const r=V[sv]; put(sv, sv, r, N);
-      D.held.forEach(function(y){ K.forEach(function(k){ tot.fy[y][k]+=r.fy[y][k]; }); });
-      K.forEach(function(k){ tot.tot[k]+=r.tot[k]; }); });
-    rows.push([]);
-    put('TOTAL', null, tot, NB);
-    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13,15,17].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16,15,15,16,18].concat(hasAce?[16]:[])), freeze:4, rows:rows});
-  }
-  // ---------- 4. a tab per PMO, every appropriation (v1.85) -- the others are opened, never recomputed
+  // ---- a tab per appropriation
+  B.apps.forEach(function(p){
+    if(p.skip || (!p.M && p.none)) return;       // nothing to print: said on the Summary, no empty tab (as a service)
+    const rows=[[{v:cpy('FYDP SPEND PLAN — '+p.name.toUpperCase()),s:7}],[{v:sub('all services', srcOf(p)),s:0}],[]], merges=[];
+    let fz=0;
+    if(!p.M) rows.push([{v:say(p),s:p.none? 0 : 1}]);
+    else { fz=rows.length+2; block(rows, merges, p.all); }
+    sheets.push({name:tab(p.name), cols:cols, rows:rows, merges:merges, tab:HOUSE.NAVY, freeze: fz? 'C'+(fz+1) : 0});
+  });
+  // ---- a tab per service, then per PMO: the roll-up by appropriation, then each appropriation's block
+  const rollTab=function(x, scope, colr){
+    const rows=[[{v:cpy('FYDP SPEND PLAN — '+x.name),s:7}],[{v:sub(scope),s:0}],[]], merges=[];
+    rows.push([{v:x.name+' — summary by appropriation',s:6}]);
+    summary(rows, merges, 'Appropriation', x.blocks.map(function(z){ return {name:z.app.name, b:z.b}; }));
+    x.blocks.forEach(function(z){ const t=tagOf(z.app); rows.push([]); rows.push([{v:x.name+' — '+z.app.name+(t? '  ·  '+t : ''),s:6}]); block(rows, merges, z.b); });
+    sheets.push({name:tab(x.name), cols:cols, rows:rows, merges:merges, tab:colr, freeze:'C3', titles:false});
+  };
+  B.svc.forEach(function(x){ rollTab(x, x.name+' share only', HOUSE.GOLD); });
+  B.pmo.forEach(function(x){ rollTab(x, x.name+' requirements, all services', '2E7D6B'); });
+  return sheets;
+}
+// The panel's plan, and the workbook's, start on the plan on screen: a locked cycle being viewed, else the working plan.
+function fydpOnScreen(){ return (CYCVIEW && cycReportable().indexOf(CYCVIEW)>=0)? CYCVIEW : 'working'; }
+// 📊 FYDP Spend Plan (Excel): the choice of plan first -- the panel, open on the plan on screen, with its Export button
+function fydpPickExport(){ fydpSrc=fydpOnScreen(); fydpView='sum'; fydpOpen=true; render(); setStat('📊 Pick the plan to print, then <b>Export the workbook</b>.'); }
+function exportFydpPlan(src){
+  if(_fydpBusy){ setStat('📊 The five-year spend plan is still opening the other appropriations — it downloads as soon as they answer.'); return; }
+  if(typeof src==='string' && src) fydpSrc=src;
+  const D=fydpData(fydpSrc);
+  if(!D){ alert('That cycle is no longer held. Pick a plan in 📊 Five-year spend plan.'); return; }
+  const Y=fydpBookYears(D), fyl=function(y){ return 'FY'+(y%100); }, span=fyl(Y[0])+'–'+fyl(Y[Y.length-1]);
+  if(!Y.some(function(y){ return D.held.indexOf(y)>=0; })){ alert('No year of '+D.label+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan, so there is nothing to print.'); return; }
   const finish=function(A){
-    const P=fydpPmoSheets(D, A, sheets.map(function(s){ return s.name; }));
-    P.sheets.forEach(function(s){ sheets.push(s); });
-    const bytes=buildXlsx(sheets);
+    const B=fydpBookModel(D, A), sheets=fydpBookSheets(B);
+    const bytes=buildXlsx(sheets, FYDP_XTRA, {house:true, title:'ORBIT FYDP Spend Plan — '+fydpPlanLbl(D), printed:new Date().toISOString().slice(0,10)});
     if(!bytes) return;
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
     a.click();
-    setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.n+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.'+P.said);
+    const miss=B.apps.filter(function(p){ return !p.M && !p.skip && !p.none; });
+    setStat('📊 FYDP spend plan exported — '+esc(fydpPlanLbl(D))+', '+span+': '+B.got.length+' appropriation'+(B.got.length===1?'':'s')+', '
+      +B.svc.length+' service'+(B.svc.length===1?'':'s')+', '+B.pmo.length+' PMO'+(B.pmo.length===1?'':'s')+'.'
+      +(miss.length? ' ⚠ Not in it: '+miss.map(function(p){ return '<b>'+esc(p.name)+'</b> ('+esc(p.why)+')'; }).join('; ')+'.' : ''));
   };
   let got=null, later=false, waiting=[];
   _fydpBusy=true;
@@ -20929,16 +21034,11 @@ function exportFydpPlan(){
   }catch(e){ _fydpBusy=false; throw e; }
   if(got){ finish(got); return; }
   later=true;
-  setStat('📊 Opening '+esc(waiting.join(', '))+' for the PMO tabs — each opens as its own board, read-only, in a sealed frame. The workbook downloads when '+(waiting.length===1? 'it answers' : 'they answer')+'.');
+  setStat('📊 Opening '+esc(waiting.join(', '))+' for the workbook — each opens as its own board, read-only, in a sealed frame. The workbook downloads when '+(waiting.length===1? 'it answers' : 'they answer')+'.');
 }
-// ============================ THE SPEND PLAN BY PMO, EVERY APPROPRIATION (v1.85) ===========
-// After By Requirement, By PMO and By Service -- which do not change -- the workbook carries a tab
-// per programme office. Each tab holds one block per appropriation the office has requirements in,
-// in the board's appropriation order, and each block lists the office's CCaR records with the
-// requirements that roll up to each beneath it, "No CCaR record" last. Requirement and Allocation
-// (the board's Allocated) sit side by side for every fiscal year of the source, the FYDP total at
-// the far right, the block's total at the bottom. Appropriations are never added together: they
-// are different money.
+// ============================ EVERY APPROPRIATION, READ BY ITS OWN BOARD (v1.85) ===========
+// The five-year workbook (v2.04, item 112) prints all four appropriations: its appropriation, service and PMO tabs are
+// read from each one's own board, never added together across a guess.
 //
 // THE OTHER APPROPRIATIONS ARE READ, NOT RECOMPUTED HERE. The lane engine runs on one appropriation
 // per page -- DATA, SVC and the baseline are constants of the drill that is open -- so a Full Fund
@@ -21125,148 +21225,64 @@ function fydpGather(D, done){
   one();
   return waiting;
 }
-// The tabs. A: fydpGather's answer; taken: the sheet names already used. {sheets, said}: said is what
-// the status line adds.
-function fydpPmoSheets(D, A, taken){
-  const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
-  const fyl=function(y){ return 'FY'+(y%100); };
-  const spanOf=function(X){ return fyl(X.years[0])+'–'+fyl(X.years[X.years.length-1]); };
-  const cell=function(f,k,s){ return f? {v:f[k], s:s} : {v:'—', s:0}; };
-  const nm=function(a){ return appnName(a.k); };
-  const got=A.filter(function(a){ return a.D && a.D.held.length; }).map(function(a){ return {a:a, R:fydpRows(a.D)}; });
-  const union={}; got.forEach(function(g){ g.R.groups.forEach(function(x){ union[x.grp]=1; }); });
-  const pmos=pmoKeys(union);
-  const refused=A.filter(function(a){ return !a.D && !a.skip && !a.none; });
-  const none=A.filter(function(a){ return !a.D && a.none; });
-  const skipped=A.filter(function(a){ return a.skip; });
-  const srcOf=function(a){
-    const X=a.D;
-    if(X.src!=='working') return X.label+(X.ts? ', locked '+fmtTs(X.ts)+(X.by? ' by '+X.by : '') : '');
-    return X.label+(a.own? ', as it stands on this board' : ', its newest saved copy'+(a.ts? ' ('+fmtTs(a.ts)+(a.by? ', '+a.by : '')+')' : ''));
-  };
-  const note='One block per appropriation this office holds requirements in, each read by that appropriation’s own board from '
-    +(D.src==='working'? 'its working plan' : blLblTxt(D.src)+' as locked')+', so each block ties to the By PMO sheet that board prints. '
-    +'Under each CCaR record, the requirements that roll up to it; requirements with no CCaR record last. Requirement and Allocation '
-    +'(the board’s Allocated) for each fiscal year, the FYDP total at the right, each block’s total at the bottom. A year the plan never '
-    +'held prints —, not 0, and is outside the totals. Appropriations are not added together.';
-  const readLine='Read: '+got.map(function(g){ return nm(g.a)+' — '+srcOf(g.a); }).join(' · ')
-    +(none.length? '. '+none.map(function(a){ return nm(a)+' '+a.why; }).join('; ') : '')
-    +(skipped.length? '. This PMO copy carries '+appnName(mySlug())+' only' : '')+'.';
-  const used={}; (taken||[]).forEach(function(n){ used[String(n).toLowerCase()]=1; });
-  const tab=function(p){
-    let n=String(p).replace(/[\[\]:*?\/\\]/g,'-').replace(/^'+|'+$/g,'').trim().slice(0,31)||'PMO';
-    if(n.toLowerCase()==='history') n='History (PMO)';
-    let t=n, i=2;
-    while(used[t.toLowerCase()]){ const sfx=' ('+(i++)+')'; t=n.slice(0,31-sfx.length)+sfx; }
-    used[t.toLowerCase()]=1;
-    return t;
-  };
-  const sheets=pmos.map(function(p){
-    const head=p+' — FYDP SPEND PLAN BY APPROPRIATION — '+D.label.toUpperCase();
-    const rows=[[{v:SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+head : head, s:TI}], [{v:note, s:0}], [{v:readLine, s:0}]];
-    refused.forEach(function(a){ rows.push([{v:'⚠ '+nm(a).toUpperCase()+' IS NOT ON THIS TAB — '+a.why+'. Its figures are missing here, not zero.', s:B}]); });
-    const without=got.filter(function(g){ return !g.R.groups.some(function(x){ return x.grp===p; }); }).map(function(g){ return nm(g.a); });
-    if(without.length) rows.push([{v:'No '+p+' requirements in '+without.join(', ')+'.', s:0}]);
-    rows.push([]);
-    let nY=0;
-    got.forEach(function(g){
-      const grp=g.R.groups.filter(function(x){ return x.grp===p; })[0]; if(!grp) return;
-      const X=g.a.D, R=g.R;
-      nY=Math.max(nY, X.years.length);
-      const warn=(X.src==='working' && g.a.cycle!==(MS.cycle||''))
-        ? ' — ⚠ its working plan is tagged '+(g.a.cycle? blLblTxt(g.a.cycle) : 'with no cycle')+', this one '+(MS.cycle? blLblTxt(MS.cycle) : 'with none') : '';
-      rows.push([{v:appnLbl(g.a.k)+' — '+X.label+' — '+spanOf(X)+warn, s:SEC}]);
-      const hdr=['CCaR record','Requirement'];
-      X.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocation'); });
-      hdr.push('FYDP Requirement','FYDP Allocation');
-      rows.push(hdr.map(function(v){ return {v:v, s:H}; }));
-      const put=function(c0, c1, s, st){
-        const L=[c0, c1];
-        X.years.forEach(function(y){ const f=s.fy[y]; L.push(cell(f,'ask',st), cell(f,'alloc',st)); });
-        L.push({v:s.tot.ask, s:st}, {v:s.tot.alloc, s:st});
-        rows.push(L);
-      };
-      // records in the order their first requirement ranks, one record however its id is cased or spaced
-      const recs=[], by={}, loose=[];
-      grp.ids.forEach(function(id){
-        const c=String(R.rows[id].ccar||'').replace(/\s+/g,' ').trim();
-        if(!c){ loose.push(id); return; }
-        const key=c.toUpperCase();
-        if(!by[key]){ by[key]={lbl:c, ids:[]}; recs.push(key); }
-        by[key].ids.push(id);
-      });
-      const rec=function(lbl, ids){
-        put({v:lbl, s:B}, ids.length+' requirement'+(ids.length===1?'':'s'), fydpSub(ids, R.rows, X), NB);
-        ids.forEach(function(id){ const r=R.rows[id]; put('', r.title, {fy:r.fy, tot:r.tot}, N); });
-      };
-      recs.forEach(function(key){ rec(by[key].lbl, by[key].ids); });
-      if(loose.length) rec('No CCaR record', loose);
-      put({v:'Total — '+nm(g.a), s:B}, grp.ids.length+' requirement'+(grp.ids.length===1?'':'s'), fydpSub(grp.ids, R.rows, X), NB);
-      rows.push([]);
-    });
-    const cols=[18,46]; for(let i=0; i<nY; i++) cols.push(14,14); cols.push(16,16);
-    return {name:tab(p), cols:cols, freeze:'C1', rows:rows};
-  });
-  let said=' A tab for each of '+pmos.length+' PMO'+(pmos.length===1?'':'s')+(got.length? ' — '+got.map(function(g){ return nm(g.a); }).join(', ') : '')+'.';
-  if(none.length) said+=' '+esc(none.map(function(a){ return nm(a)+' '+a.why; }).join('; '))+'.';
-  if(refused.length) said+=' ⚠ <b>Not read</b>: '+refused.map(function(a){ return '<b>'+esc(nm(a))+'</b> ('+esc(a.why)+')'; }).join('; ')+' — every PMO tab says so.';
-  return {sheets:sheets, said:said};
-}
+// THE PANEL MATCHES THE WORKBOOK (Brad, 22 Oct 2026). It reads the same model for the appropriation on screen -- the
+// others open in sealed frames, which the workbook waits for and a panel redrawn on every edit should not -- and shows one
+// view at a time: the Summary's tables, this appropriation's tab, or a service's or a PMO's block for it. The plan picker
+// starts on the plan on screen, and Export prints the plan it shows.
+let fydpView='sum';
+function fydpSetView(v){ fydpView=v||'sum'; render(); }
+function fM3(v){ return (v/1e6).toLocaleString('en-US',{minimumFractionDigits:3, maximumFractionDigits:3}); }
 function fydpBody(){
   const bg=document.getElementById('fydpPanel'), el=document.getElementById('fydpBody');
   if(!bg||!el) return;
   bg.className='modal-bg'+(fydpOpen?' open':'');
   if(!fydpOpen){ el.innerHTML=''; return; }
   let D=fydpData(fydpSrc); if(!D){ fydpSrc='working'; D=fydpData('working'); }
-  const fyl=function(y){ return 'FY'+(y%100); };
-  const AK=fydpAceKey(), hasAce=!!AK, aceKeys=aceSetKeys().sort();
-  const aceTd=function(v){ return (v===null||v===undefined)? '<span class="z">—</span>' : (typeof v==='string'? '<span class="z">'+esc(v)+'</span>' : fM(v)); };
-  const aceFydpV=function(est){ let t=0,n=0,txt=null; D.years.forEach(function(y){ const v=est(y); if(typeof v==='string'){ txt=v; return; } if(v===null||v===undefined) return; n++; t+=v; }); return txt? txt : (n? t : null); };
-  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
-    +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
+  const B=fydpBookModel(D, [{k:mySlug(), D:D, own:true}]), Y=B.years, fyl=function(y){ return 'FY'+(y%100); };
+  const span=fyl(Y[0])+'–'+fyl(Y[Y.length-1]), own=B.got[0]||null;
+  const views=[['sum','Summary']].concat(own? [['app', appnName(mySlug())]] : [])
+    .concat(B.svc.map(function(x){ return ['s:'+x.name, x.name]; })).concat(B.pmo.map(function(x){ return ['p:'+x.name, 'PMO '+x.name]; }));
+  if(!views.some(function(v){ return v[0]===fydpView; })) fydpView='sum';
+  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Plan '
+    +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the plan the workbook prints: the working plan as it stands, or a locked cycle as it was locked">'
     +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')':'')+'</option>'
-    +cycReportable().map(function(k){ return '<option value="'+esc(k)+'"'+(fydpSrc===k?' selected':'')+'>'+blLbl(k)+' (locked)</option>'; }).join('')
-    +'</select> Cost estimate '
-    +(aceKeys.length
-      ? '<select style="font-size:10px;padding:3px 6px" onchange="fydpSetAce(this.value)" title="the annual cost estimate printed beside the plan — this appropriation’s lines, as they stand now">'
-        +'<option value=""'+(hasAce?'':' selected')+'>none</option>'
-        +aceKeys.map(function(k){ return '<option value="'+esc(k)+'"'+(AK===k?' selected':'')+'>'+esc(k)+'</option>'; }).join('')+'</select>'
-      : '<span style="color:var(--dim);font-size:10px">none imported</span>')
-    +' <b style="color:var(--gold)">'+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</b>'
-    +' <span style="color:var(--dim);font-size:10px">years held: '+(D.held.length? D.held.map(fyl).join(', ') : 'none')+(D.ts? ' · locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'') : '')+'</span>'
+    +cycReportable().map(function(k){ const c=blGet(k)||{}; return '<option value="'+esc(k)+'"'+(fydpSrc===k?' selected':'')+'>'+blLbl(k)+' (locked'+(c.ts? ' '+esc(fmtTs(c.ts)) : '')+')</option>'; }).join('')
+    +'</select> View <select style="font-size:10px;padding:3px 6px" onchange="fydpSetView(this.value)" title="one tab of the workbook, for this appropriation">'
+    +views.map(function(v){ return '<option value="'+esc(v[0])+'"'+(fydpView===v[0]?' selected':'')+'>'+esc(v[1])+'</option>'; }).join('')+'</select>'
+    +' <b style="color:var(--gold)">'+span+'</b> <span style="color:var(--dim);font-size:10px">$ in millions</span>'
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
-  if(!D.held.length){ h+='<div class="hint">No year of '+esc(D.label)+' holds a plan.</div>'; el.innerHTML=h; return; }
-  const R=fydpRows(D);
-  const share=hasAce? fydpAceShare(AK, R.groups) : {};
-  const aceGrp=function(g){ return function(y){ return share[g]? '(with '+share[g]+')' : fydpAcePmo(AK, g, y); }; };
-  const perY=hasAce? 4 : 3, estTh=hasAce? '<th class="n">Estimate</th>' : '';
-  h+='<div style="max-height:60vh;overflow:auto"><table class="po fydpt'+(hasAce?' c4':'')+'"><thead><tr><th>PMO</th>'
-    +D.years.map(function(y){ return '<th colspan="'+perY+'">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
-    +'<th colspan="'+perY+'">FYDP '+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</th></tr><tr><th></th>'
-    +D.years.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'+estTh; }).join('')
-    +'<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'+estTh+'</tr></thead><tbody>';
-  const line=function(lbl, s, cls, est){
-    return '<tr'+(cls? ' class="'+cls+'"':'')+'><td><b>'+esc(lbl)+'</b></td>'
-      +D.years.map(function(y){ const f=s.fy[y]; return (f? '<td class="n">'+fM(f.ask)+'</td><td class="n">'+fM(f.fund)+'</td><td class="n">'+fM(f.unf)+'</td>'
-        : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>')
-        +(hasAce? '<td class="n">'+aceTd(est(y))+'</td>' : ''); }).join('')
-      +'<td class="n">'+fM(s.tot.ask)+'</td><td class="n">'+fM(s.tot.fund)+'</td><td class="n">'+fM(s.tot.unf)+'</td>'
-      +(hasAce? '<td class="n">'+aceTd(aceFydpV(est))+'</td>' : '')+'</tr>';
+  if(!own){ h+='<div class="hint">No year of '+esc(D.label)+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan.</div>'; el.innerHTML=h; return; }
+  const th='<tr><th rowspan="2">%A%</th><th rowspan="2">%B%</th>'+Y.map(function(y){ return '<th colspan="2">'+fyl(y)+'</th>'; }).join('')
+    +'<th colspan="2" class="fydptot">TOTAL '+span+'</th></tr><tr>'+Y.map(function(){ return '<th class="n">Requirement</th><th class="n">Allocated</th>'; }).join('')
+    +'<th class="n fydptot">Requirement</th><th class="n fydptot">Allocated</th></tr>';
+  const cells=function(fy, tot){ return Y.map(function(y){ const v=fy[y]; return v? '<td class="n">'+fM3(v.a)+'</td><td class="n">'+fM3(v.l)+'</td>'
+      : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>'; }).join('')
+    +'<td class="n fydptot"><b>'+fM3(tot.a)+'</b></td><td class="n fydptot"><b>'+fM3(tot.l)+'</b></td>'; };
+  const block=function(b){
+    let s='<table class="po fydpt fydpbook"><thead>'+th.replace('%A%','CCaR Record').replace('%B%','Requirement Title')+'</thead><tbody>';
+    b.lines.forEach(function(L){ s+='<tr'+(L.band? ' class="band"':'')+'><td><b>'+esc(L.rec)+'</b></td><td>'+esc(L.title)+'</td>'+cells(L.fy, L.tot)+'</tr>'; });
+    return s+'<tr class="tot"><td><b>TOTAL</b></td><td></td>'+cells(b.fy, b.tot)+'</tr></tbody></table>';
   };
-  R.groups.forEach(function(g){ h+=line(g.grp+' ('+g.ids.length+')', fydpSub(g.ids, R.rows, D), '', aceGrp(g.grp)); });
-  h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot', function(y){ return fydpAceTot(AK, y); });
-  h+='</tbody></table></div>';
-  if(hasAce) h+='<div class="hint" style="margin-top:6px">Cost estimate <b>'+esc(AK)+'</b> beside the plan: this appropriation’s lines as they stand, by the estimate’s own PMO (a board PMO that shares an estimate PMO shows it once); years the estimate carries: '+(fydpAceYears(AK).map(fyl).join(', ')||'none')+'. On the workbook a requirement’s row shows only what it confirmed in the tie-out.</div>';
-  { // the official position beside the plan, per held year
-    const pk=fydpPosKey(D), T=fydpSub(R.order, R.rows, D);
-    const gap=function(v){ return Math.abs(v)<0.5? '$0' : cycSgn(v); };
-    h+='<div class="hint fydppos" style="margin-top:6px">'+(pk
-      ? 'PPBE position <b>'+blLbl(pk)+'</b> beside the plan: '+D.held.map(function(y){ const p=fydpPosTot(D, y);
-          return fyl(y)+' '+(p===null? '<span class="z">none logged</span>' : fM(p)+' · requirement − position '+gap(T.fy[y].ask-p)); }).join(' · ')
-      : 'No cycle tag on the working plan, so no PPBE position is printed beside it.')+'</div>';
+  const roll=function(lbl, items){
+    let s='<table class="po fydpt fydpbook"><thead>'+th.replace('%A%',lbl).replace('%B%','')+'</thead><tbody>';
+    items.forEach(function(x, i){ s+='<tr'+(i%2? '' : ' class="band"')+'><td><b>'+esc(x.name)+'</b></td><td></td>'+cells(x.b.fy, x.b.tot)+'</tr>'; });
+    const T=fydpBookAdd(Y, items.map(function(x){ return x.b; }));
+    return s+'<tr class="tot"><td><b>TOTAL</b></td><td></td>'+cells(T.fy, T.tot)+'</tr></tbody></table>';
+  };
+  h+='<div style="max-height:60vh;overflow:auto">';
+  if(fydpView==='sum'){
+    h+='<h4 class="fydpsec">By appropriation</h4>'+roll('Appropriation', [{name:own.name, b:own.all}])
+      +'<h4 class="fydpsec">By service</h4>'+roll('Service', B.svc.map(function(x){ return {name:x.name, b:x.sum}; }))
+      +'<h4 class="fydpsec">By PMO</h4>'+roll('PMO', B.pmo.map(function(x){ return {name:x.name, b:x.sum}; }));
+  } else if(fydpView==='app'){ h+=block(own.all); }
+  else {
+    const x=(fydpView[0]==='s'? B.svc : B.pmo).filter(function(z){ return z.name===fydpView.slice(2); })[0];
+    h+= x? block(x.blocks[0].b) : '';
   }
-  h+='<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
-  h+='<div class="hint" style="margin-top:6px">After those three sheets the workbook carries <b>a tab per PMO</b>: one block for each appropriation the office holds requirements in — '+APPN_SLUGS.map(appnName).join(', ')+' — its CCaR records with the requirements that roll up to each beneath, Requirement and Allocation by year, row totals at the right and block totals at the bottom. Each other appropriation is opened as its own board, read-only in a sealed frame, from the same source'+(SANDBOX? ' (a PMO copy carries this appropriation only)' : '')+'; one that cannot be read is named on every tab, never left out quietly.</div>';
+  h+='</div><div class="hint" style="margin-top:8px">'+esc(fydpPlanLbl(D))+'. The workbook is this, for every appropriation: a Summary with a chart, a tab per appropriation ('
+    +APPN_SLUGS.map(appnName).join(', ')+'), a tab per service and a tab per PMO, each a roll-up by appropriation and then each appropriation’s block. '
+    +'Requirement is the requirement value; Allocated is what discretionary and mandatory pay. A year the plan does not hold prints —. '
+    +'The other appropriations are opened as their own boards, read-only in sealed frames, from the same plan'+(SANDBOX? ' (a PMO copy carries this appropriation only)' : '')+'.</div>';
   el.innerHTML=h;
 }
 // ============================ COMPARING TWO CYCLES =========================================
@@ -21431,7 +21447,7 @@ function exportCycCompare(){
     put('TOTAL', D.order, NB, D.n);
     sheets.push({name:'By PMO', cols:[14,12].concat(D.years.map(()=>[14,14,14,14,14,14,14,14,14,14,14,14]).flat()), freeze:4, rows:rows});
   }
-  const bytes=buildXlsx(sheets);
+  const bytes=buildXlsx(sheets, null, xlsxHouse('Cycle Comparison'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -23282,7 +23298,7 @@ function exportFcView(){
   sheet.rows.push([{v:D.by.head,s:SEC}]); sheet.rows.push(hdr);
   D.by.rows.forEach(r=>sheet.rows.push(line(r.label,r.b)));
   sheet.rows.push(line('TOTAL',totOf(D.by.rows.map(r=>r.b)),true));
-  const blob=buildXlsx([sheet]);
+  const blob=buildXlsx([sheet], null, xlsxHouse('Spend Plan Forecast'));
   if(!blob) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -23346,7 +23362,14 @@ function editCcar(id, typed){
     v=r.v;
     if(!S.ccar) S.ccar={};
     if(v) S.ccar[id]=v; else delete S.ccar[id];
+    const filled=v? ccarDescFill(id) : false;       // v2.04 (item 108): an EMPTY Description only
     save(); render(); flash(id);
+    if(v && ccarIdx()){
+      const nm=ccarRecNameOf(it);
+      setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2192 CCaR <b>'+esc(v)+'</b>'
+        +(nm? ' \u00b7 Record Name <b>'+esc(nm)+'</b>' : (ccarRec(v)? ' \u00b7 the CCaR list holds that number under records that disagree, so no Record Name is taken' : ' \u00b7 not in the CCaR list'))
+        +(filled? ' \u00b7 Description filled from the list' : (((S.desc||{})[id]||'') && ccarDescOf(it) && ccarDescOf(it)!==S.desc[id]? ' \u00b7 the Description already has text, kept; the RECORD panel offers the CCaR one' : ''))+'.');
+    }
   });
 }
 const eff = it => {
@@ -24768,6 +24791,7 @@ function clinSetField(pid,key,field,typed){
       const m=clinMeta(pid); if(!m[key]) m[key]={};
       m[key][field]=v;
     }
+    if(field==='ccar' && v) ccarDescFill(pid);     // v2.04 (item 108): an empty Description only
     save(); render();
   });
 }
@@ -25587,7 +25611,9 @@ function clinTable(it){
       +'<td class="cd"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
         +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</button></td>'
       +'<td class="cc"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
-        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button></td>'
+        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button>'
+        // v2.04 (item 108): each CLIN's own Record Name, from the CCaR list
+        +((c.ccar && ccarNameOfNum(c.ccar))? '<div class="ccrn" title="CCaR Record Name, from the CCaR records list">'+esc(ccarNameOfNum(c.ccar))+'</div>' : '')+'</td>'
       +'<td class="cr"><input class="reqin" value="'+(at? Math.round(at).toLocaleString():'')+'" placeholder="0" '
         +'onchange="clinSetReq('+jsa(pid)+','+jsa(c.key)+',this.value)" onfocus="this.select()" '
         +'title="what this CLIN asks for — spread across services in its current shape"></td>'
@@ -25969,16 +25995,16 @@ const XF_EXTRA0 = 16;
 const _STYLES_HEAD=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <numFmts count="{{NNFMT}}"><numFmt numFmtId="164" formatCode="#,##0"/><numFmt numFmtId="165" formatCode="#,##0.00"/><numFmt numFmtId="166" formatCode="&quot;$&quot;#,##0"/>{{NUMFMTS}}</numFmts>
-<fonts count="8"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="10"/><name val="Calibri"/></font>
+<fonts count="{{NFONTS}}"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="10"/><name val="Calibri"/></font>
 <font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FF9C0006"/><name val="Calibri"/></font>
 <font><b/><sz val="13"/><color rgb="FF1B2A4A"/><name val="Calibri"/></font><font><sz val="10"/><color rgb="FF1F6E43"/><name val="Calibri"/></font>
 <font><sz val="10"/><color rgb="FF7A5A00"/><name val="Calibri"/></font>
-<font><b/><sz val="11"/><color rgb="FF1A1A1A"/><name val="Calibri"/><family val="2"/></font></fonts>
+<font><b/><sz val="11"/><color rgb="FF1A1A1A"/><name val="Calibri"/><family val="2"/></font>{{FONTS}}</fonts>
 <fills count="{{NFILLS}}"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>
 <fill><patternFill patternType="solid"><fgColor rgb="FF1B2A4A"/></patternFill></fill>
 <fill><patternFill patternType="solid"><fgColor rgb="FFFFC7CE"/></patternFill></fill>
 <fill><patternFill patternType="solid"><fgColor rgb="FFD9DDE5"/></patternFill></fill>{{FILLS}}</fills>
-<borders count="2"><border/><border><left style="medium"><color rgb="FF404040"/></left><right style="medium"><color rgb="FF404040"/></right><top style="medium"><color rgb="FF404040"/></top><bottom style="medium"><color rgb="FF404040"/></bottom><diagonal/></border></borders>
+<borders count="{{NBORDERS}}"><border/><border><left style="medium"><color rgb="FF404040"/></left><right style="medium"><color rgb="FF404040"/></right><top style="medium"><color rgb="FF404040"/></top><bottom style="medium"><color rgb="FF404040"/></bottom><diagonal/></border>{{BORDERS}}</borders>
 <cellStyleXfs count="1"><xf/></cellStyleXfs>
 <cellXfs count="{{NXF}}"><xf/><xf fontId="1"/><xf fontId="2" fillId="2" applyFill="1"/>
 <xf numFmtId="164" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" applyNumberFormat="1"/>
@@ -25998,28 +26024,57 @@ function _stylesXml(extra){
   // must not paint the cell. Entries that DO ask for one land at the same index they always did,
   // so the Priority Drill's band banners are unmoved.
   let nfill=5, fills='';
+  // v2.04 (item 113): a HOUSE entry (e.house) shares a fill, a format, a font and a border with every house entry that
+  // asks for the same one; every other entry gets its own fill, at the index it always had.
+  const hFill=Object.create(null), hFmt=Object.create(null), hFont=Object.create(null), hBord=Object.create(null);
   const fillOf=extra.map(e=>{
     if(e.fill===false) return 0;
-    fills+='<fill><patternFill patternType="solid"><fgColor rgb="FF'
-      +String(e.fill||'D9DDE5').replace('#','').toUpperCase()+'"/></patternFill></fill>';
+    const c=String(e.fill||'D9DDE5').replace('#','').toUpperCase();
+    if(e.house && hFill[c]) return hFill[c];
+    fills+='<fill><patternFill patternType="solid"><fgColor rgb="FF'+c+'"/></patternFill></fill>';
+    if(e.house) hFill[c]=nfill;
     return nfill++;
+  });
+  let nfont=8, fonts='';
+  const fontOf=extra.map(e=>{
+    const f=e.fontSpec; if(!f) return null;
+    const k=JSON.stringify(f); if(hFont[k]!==undefined) return hFont[k];
+    fonts+='<font>'+(f.b?'<b/>':'')+(f.i?'<i/>':'')+'<sz val="'+(+f.sz||10)+'"/><color rgb="FF'+String(f.color||'1A1A1A').toUpperCase()+'"/><name val="Calibri"/></font>';
+    return (hFont[k]=nfont++);
+  });
+  let nbord=2, bords='';
+  const bordOf=extra.map(e=>{
+    const b=e.borderSpec; if(!b) return null;
+    const k=JSON.stringify(b); if(hBord[k]!==undefined) return hBord[k];
+    const side=function(n){ const x=b[n]; return x? '<'+n+' style="'+x[0]+'"><color rgb="FF'+String(x[1]).toUpperCase()+'"/></'+n+'>' : '<'+n+'/>'; };
+    bords+='<border>'+side('left')+side('right')+side('top')+side('bottom')+'<diagonal/></border>';
+    return (hBord[k]=nbord++);
   });
   // 164-166 are taken; arbitrary format codes are allocated from 167 up so an export can mirror a
   // source workbook's own formats instead of approximating them.
   let nfmt=167, numfmts='';
   const fmtOf=extra.map(e=>{
     if(!e.fmt) return 0;
+    if(e.house && hFmt[e.fmt]) return hFmt[e.fmt];
     numfmts+='<numFmt numFmtId="'+nfmt+'" formatCode="'+_xesc(e.fmt)+'"/>';
+    if(e.house) hFmt[e.fmt]=nfmt;
     return nfmt++;
   });
   const xfs=extra.map((e,i)=>{
     // nf: a built-in format by its id -- buildXlsx's two-decimal twins (2, "0.00")
     const nid=fmtOf[i]? fmtOf[i] : (e.nf? e.nf : (e.money? 166 : 0));
     const fid=fillOf[i];
+    if(e.align){
+      const a=e.align;
+      return '<xf'+(nid?' numFmtId="'+nid+'" applyNumberFormat="1"':'')+' fontId="'+(fontOf[i]!==null? fontOf[i] : 0)+'" applyFont="1"'
+        +(fid?' fillId="'+fid+'" applyFill="1"':'')+(bordOf[i]!==null?' borderId="'+bordOf[i]+'" applyBorder="1"':'')
+        +' applyAlignment="1"><alignment'+(a.h?' horizontal="'+a.h+'"':'')+(a.v?' vertical="'+a.v+'"':'')
+        +(a.indent?' indent="'+a.indent+'"':'')+(a.wrap?' wrapText="1"':'')+'/></xf>';
+    }
     return '<xf'+(nid?' numFmtId="'+nid+'" applyNumberFormat="1"':'')
-      +' fontId="'+(e.font!=null? e.font : (e.white?2:(e.bold?1:0)))+'"'
+      +' fontId="'+(fontOf[i]!==null? fontOf[i] : (e.font!=null? e.font : (e.white?2:(e.bold?1:0))))+'"'
       +(fid?' fillId="'+fid+'" applyFill="1"':'')
-      +(e.border?' borderId="1" applyBorder="1"':'')
+      +(bordOf[i]!==null?' borderId="'+bordOf[i]+'" applyBorder="1"' : (e.border?' borderId="1" applyBorder="1"':''))
       // The element must actually close, and Excel ignores an alignment it was not told to apply.
       // CENTRE is for a heading banded across a group of columns: left-aligned in a merged span it
       // sits over the first column and reads as that column's heading rather than the group's.
@@ -26036,6 +26091,8 @@ function _stylesXml(extra){
   return _STYLES_HEAD
     .replace('{{NNFMT}}',  ()=>String(3+(nfmt-167))).replace('{{NUMFMTS}}', ()=>numfmts)
     .replace('{{NFILLS}}', ()=>String(nfill)).replace('{{FILLS}}', ()=>fills)
+    .replace('{{NFONTS}}', ()=>String(nfont)).replace('{{FONTS}}', ()=>fonts)
+    .replace('{{NBORDERS}}', ()=>String(nbord)).replace('{{BORDERS}}', ()=>bords)
     .replace('{{NXF}}',    ()=>String(XF_EXTRA0+extra.length)).replace('{{XFS}}', ()=>xfs);
 }
 // THE BUILT-IN STYLES WITH NO NUMBER FORMAT OF THEIR OWN (General), as _stylesXml entries -- what a two-decimal
@@ -26122,7 +26179,186 @@ function _xlsxStyleRefused(extra){
   }
   return false;
 }
-function buildXlsx(sheets, extra){
+
+// ============ THE HOUSE STYLE (v2.04, items 112-113) ============
+// Brad, 22 Oct 2026: "make it look prettier, as something I could easily use to brief off of" -- then "enhance all of our
+// spreadsheets so that they look presentable like these", style only. buildXlsx(sheets, extra, {house:true, ...}) paints a
+// workbook in the look of the five-year spend plan's approved mock-up, and changes NOTHING a reader of the file reads:
+// every cell keeps its place, its value and its number format; what is added is colour, font, border, alignment, empty
+// STYLED cells (no value -- a banner's fill across the sheet, a band across a table), row heights, the sheet view (no
+// gridlines, the tab's colour), print setup and, where a sheet asks, a chart. A workbook another system reads in (the
+// Spend Plan Source, the 1A9A, the IDS Requirement sheet) never asks, and is written byte for byte as before.
+// The rules read what the sheet already says, so no caller is changed to get them:
+//   a TITLE row (its first cell in style 7) is the navy banner, across the sheet; the row under it, if it is only words in
+//   style 0, is the italic subtitle with a gold rule beneath; a HEADING row (style 2) is navy, a second heading row under
+//   it slate; a heading reading TOTAL… or FYDP… marks its column (or its merged span) a TOTAL column, gold down the table;
+//   a row whose first words are TOTAL / GRAND TOTAL / Subtotal is a total row (grey band, bold, a double rule above);
+//   other rows of a table are banded in turn (a row may say its band: row.band = 0 or 1, as the five-year plan's CCaR
+//   groups do); a SECTION row (style 6) is a navy heading with a rule under it, across the sheet. A blank row ends a table.
+// A cell the caller gave its own fill (a lane colour, a band's banner) keeps it.
+const HOUSE={NAVY:'1B2A4A', SLATE:'3C5070', GOLD:'D4A24E', GOLDM:'E6C17A', GOLDL:'FBF1DC', BAND:'F3F5F9', TOT:'E4E8EF',
+  INK:'1A1A1A', MUT:'5A6475', LINE:'C9CFD9', WHITE:'FFFFFF', RED:'9C0006', GREEN:'1F6E43', AMBER:'7A5A00'};
+// what the writer's fixed fonts (0-7) are, in the house's terms
+const HOUSE_FONT={0:{sz:10,color:HOUSE.INK}, 1:{sz:10,b:1,color:HOUSE.NAVY}, 2:{sz:10,b:1,color:HOUSE.WHITE}, 3:{sz:10,b:1,color:HOUSE.RED},
+  4:{sz:14,b:1,color:HOUSE.WHITE}, 5:{sz:10,color:HOUSE.GREEN}, 6:{sz:10,color:HOUSE.AMBER}, 7:{sz:11,b:1,color:HOUSE.NAVY}};
+// the house reading of a style the sheet uses: a fixed id (0-15) or an entry of the export's own list
+function _houseBase(st, xtra){
+  const H=HOUSE, F=HOUSE_FONT;
+  const fixed={0:{font:F[0]}, 1:{font:F[1]}, 2:{font:F[2], fill:H.NAVY, align:{h:'center',v:'center',wrap:1}}, 3:{nf:164, font:F[0]},
+    4:{nf:164, font:{sz:10,b:1,color:H.INK}}, 5:{nf:164, font:F[3]}, 6:{font:{sz:11,b:1,color:H.NAVY}, sec:1},
+    7:{font:F[4], fill:H.NAVY, align:{v:'center',indent:1}, title:1}, 8:{nf:164, font:F[5]}, 9:{nf:164, font:F[6]},
+    10:{nf:165, font:F[0]}, 11:{nf:165, font:{sz:10,b:1,color:H.INK}}, 12:{nf:166, font:F[0]}, 13:{nf:166, font:{sz:10,b:1,color:H.INK}},
+    14:{nf:166, font:F[3]}, 15:{nf:166, font:{sz:10,b:1,color:H.INK}, fill:H.TOT}};
+  if(st<XF_EXTRA0) return Object.assign({}, fixed[st]||fixed[0]);
+  const e=xtra[st-XF_EXTRA0]||{};
+  const o={fmt:e.fmt||'', nf:e.fmt? 0 : (e.nf||(e.money?166:0)),
+    font: e.fontSpec? e.fontSpec : (e.white? F[2] : (e.font!=null? (F[e.font]||F[0]) : (e.bold? {sz:10,b:1,color:H.INK} : F[0]))),
+    fill: e.fill===false? '' : String(e.fill||'D9DDE5').replace('#','').toUpperCase(), own:e.fill!==false};
+  if(e.center||e.wrap) o.align={h:e.center?'center':undefined, v:'center', wrap:e.wrap?1:undefined};
+  if(e.house) return Object.assign({}, e, {font:e.fontSpec, fill:e.fill===false?'':e.fill});
+  return o;
+}
+// The plan for one sheet: the style each cell is written in, the empty cells to emit, row heights, what the sheet adds.
+function _housePlan(s, xtra){
+  const H=HOUSE, rows=s.rows||[], out={st:{}, pad:{}, ht:{}, titles:null};
+  let W=(s.cols||[]).length; rows.forEach(function(r){ W=Math.max(W, (r||[]).length); });
+  const reg=Object.create(null);
+  const xf=function(spec){
+    const e={house:1, fill:spec.fill||false, fontSpec:spec.font||HOUSE_FONT[0], borderSpec:spec.border||null,
+      align:spec.align||{v:'center'}};
+    if(spec.fmt) e.fmt=spec.fmt; else if(spec.nf) e.nf=spec.nf;
+    const k=JSON.stringify(e); if(reg[k]!==undefined) return reg[k];
+    xtra.push(e); return (reg[k]=XF_EXTRA0+xtra.length-1);
+  };
+  const merges=(s.merges||[]);
+  const txt=function(c){ return (c&&typeof c==='object')? c.v : c; };
+  const sty=function(c){ return (c&&typeof c==='object')? (c.s||0) : 0; };
+  const firstText=function(r){ for(let i=0;i<(r||[]).length;i++){ const v=txt(r[i]); if(v!==null&&v!==undefined&&v!=='') return typeof v==='string'? v : ''; } return ''; };
+  const blank=function(r){ return !(r||[]).some(function(c){ const v=txt(c); return v!==null&&v!==undefined&&v!==''; }); };
+  let tbl=null, prevTitle=false, band=0, hdrRun=0;
+  rows.forEach(function(r, ri){
+    r=r||[];
+    const set=function(ci, spec){ (out.st[ri]=out.st[ri]||{})[ci]=xf(spec); };
+    // a cell the writer emits itself is never padded again: {v:'', s:2} is written as an (empty) cell of its own, and a
+    // second cell with the same reference is a file Excel calls damaged
+    const padTo=function(n, fn){ const has={}; r.forEach(function(c,ci){ if(!(c===null||c===undefined||c==='')) has[ci]=1; });
+      for(let ci=0; ci<n; ci++) if(!has[ci]) (out.pad[ri]=out.pad[ri]||[]).push([ci, xf(fn(ci))]); };
+    const one=function(spec){ return function(){ return spec; }; };
+    if(blank(r)){ tbl=null; prevTitle=false; hdrRun=0; return; }
+    const s0=sty(r[0]);
+    // the banner
+    if(s0===7){
+      const b=_houseBase(7, xtra); r.forEach(function(c,ci){ set(ci, b); }); padTo(W, one(b)); out.ht[ri]=26; prevTitle=true; tbl=null; hdrRun=0; return;
+    }
+    // the subtitle: words only, under the banner
+    const words=r.every(function(c){ const v=txt(c); return v===''||v===null||v===undefined||(typeof v==='string' && sty(c)===0); });
+    if(prevTitle && words){
+      const b={font:{sz:10,i:1,color:H.MUT}, border:{bottom:['medium',H.GOLD]}, align:{v:'center',indent:1}};
+      r.forEach(function(c,ci){ set(ci, b); }); padTo(W, one(b)); out.ht[ri]=18; prevTitle=false; return;
+    }
+    prevTitle=false;
+    // a section heading
+    if(s0===6 && r.filter(function(c){ const v=txt(c); return v!==''&&v!==null&&v!==undefined; }).length<=1){
+      const b={font:{sz:11,b:1,color:H.NAVY}, border:{bottom:['medium',H.NAVY]}, align:{v:'center'}};
+      r.forEach(function(c,ci){ set(ci, b); }); padTo(W, one(b)); out.ht[ri]=20; tbl=null; hdrRun=0; return;
+    }
+    // a heading row
+    if(r.some(function(c){ return sty(c)===2; })){
+      if(!tbl || !hdrRun){ tbl={w:r.length, tot:{}}; band=0; }
+      tbl.w=Math.max(tbl.w, r.length);
+      r.forEach(function(c,ci){ const v=txt(c); if(sty(c)===2 && typeof v==='string' && /^(TOTAL|FYDP)\b/i.test(v.trim())){
+        tbl.tot[ci]=1; merges.forEach(function(m){ if(m.r===ri && m.c===ci) for(let k=0;k<Math.max(1,m.cs||1);k++) tbl.tot[ci+k]=1; }); } });
+      const second=hdrRun>0;
+      // a heading wraps only where its longest word fits its column: a narrow column must not break a word letter by letter
+      const fits=function(ci){ const v=txt(r[ci]); if(typeof v!=='string' || !v) return true;
+        let wd=(s.cols||[])[ci]||10; merges.forEach(function(m){ if(m.r===ri && m.c===ci) for(let k=1;k<Math.max(1,m.cs||1);k++) wd+=(s.cols||[])[ci+k]||10; });
+        return Math.max.apply(null, v.split(/\s+/).map(function(w){ return w.length; }))<=wd-1; };
+      const spec=function(ci){ const tot=tbl.tot[ci];
+        return {font:{sz:10,b:1,color: tot? H.NAVY : H.WHITE}, fill: tot? (second? H.GOLDM : H.GOLD) : (second? H.SLATE : H.NAVY),
+          align:{h: (ci<2 && !tot)? 'left':'center', v:'center', wrap: fits(ci)? 1 : undefined, indent: ci<2? 1 : 0}, border:{left: ci>0? ['thin', H.WHITE] : null}}; };
+      for(let ci=0; ci<tbl.w; ci++) set(ci, spec(ci));
+      padTo(tbl.w, spec);
+      // a heading that wraps gets the lines it needs (a width unit holds about one character at 10pt bold); a merged
+      // heading has its whole span
+      let lines=1; r.forEach(function(c,ci){ const v=txt(c); if(typeof v!=='string' || !v) return;
+        let wd=(s.cols||[])[ci]||10; merges.forEach(function(m){ if(m.r===ri && m.c===ci) for(let k=1;k<Math.max(1,m.cs||1);k++) wd+=(s.cols||[])[ci+k]||10; });
+        if(Math.max.apply(null, v.split(/\s+/).map(function(w){ return w.length; }))<=wd-1) lines=Math.max(lines, Math.ceil(v.length/Math.max(4, wd-1))); });
+      out.ht[ri]=Math.max(second? 17 : 20, Math.min(4,lines)*13+6);
+      if(s.titles!==false){ if(!out.titles) out.titles=[ri, ri]; else if(out.titles[1]===ri-1 && hdrRun) out.titles[1]=ri; }
+      hdrRun++; return;
+    }
+    hdrRun=0;
+    const isTot=/^(grand\s+)?total\b|^subtotal\b|—\s*total by month$/i.test(String(firstText(r)).trim());
+    const sub=/^subtotal\b/i.test(String(firstText(r)).trim());
+    if(!tbl){
+      // a row outside any table: its own styles in the house's fonts
+      r.forEach(function(c,ci){ const b=_houseBase(sty(c), xtra); if(isTot){ b.font=Object.assign({}, b.font, {b:1}); } set(ci, b); });
+      return;
+    }
+    if(typeof r.band==='number') band=r.band; else band=band? 0 : 1;
+    const w=Math.max(tbl.w, r.length);
+    const spec=function(c, ci){
+      const b=_houseBase(sty(c), xtra), tot=tbl.tot[ci];
+      const own=b.own && b.fill;
+      if(isTot){
+        b.font=Object.assign({}, b.font||HOUSE_FONT[0], {b:1, sz:10, color: H.NAVY});      // the report's own size: a wider total would not fit its column
+        if(!own) b.fill= tot? H.GOLD : H.TOT;
+        b.border= sub? {top:['thin',H.NAVY]} : {top:['double',H.NAVY], bottom:['medium',H.NAVY]};
+      } else {
+        if(!own) b.fill= tot? H.GOLDL : (band? H.BAND : '');
+        b.border={bottom:['thin',H.LINE]};
+      }
+      if(!b.align) b.align= (typeof txt(c)==='string')? {v:'center', indent: ci===1? 1 : 0} : {h:'right', v:'center'};
+      delete b.own; delete b.title; delete b.sec;
+      return b;
+    };
+    for(let ci=0; ci<w; ci++) set(ci, spec(r[ci], ci));
+    padTo(w, function(ci){ return spec('', ci); });
+    if(isTot) out.ht[ri]=19;
+  });
+  return out;
+}
+// A chart on a sheet (the five-year plan's summary): a clustered column chart, its series read off the sheet's own cells.
+// s.chart = {from:[col,row], to:[col,row], title, cats:[col,row0,row1], series:[{name, col, row0, row1, color}], yFmt}
+function _houseChartXml(sname, ch){
+  const q="'"+String(sname).replace(/'/g,"''")+"'!";
+  const ref=function(c,r0,r1){ return q+'$'+_colL(c)+'$'+(r0+1)+':$'+_colL(c)+'$'+(r1+1); };
+  const ser=ch.series.map(function(sr,i){
+    return '<c:ser><c:idx val="'+i+'"/><c:order val="'+i+'"/><c:tx><c:v>'+_xesc(sr.name)+'</c:v></c:tx>'
+      +'<c:spPr><a:solidFill><a:srgbClr val="'+sr.color+'"/></a:solidFill></c:spPr><c:invertIfNegative val="0"/>'
+      +'<c:cat><c:strRef><c:f>'+_xesc(ref(ch.cats[0],ch.cats[1],ch.cats[2]))+'</c:f></c:strRef></c:cat>'
+      +'<c:val><c:numRef><c:f>'+_xesc(ref(sr.col,sr.row0,sr.row1))+'</c:f></c:numRef></c:val></c:ser>';
+  }).join('');
+  const tx=function(t,sz,b){ return '<c:tx><c:rich><a:bodyPr/><a:p><a:pPr><a:defRPr sz="'+sz+'" b="'+(b?1:0)+'"/></a:pPr><a:r><a:rPr lang="en-US" sz="'+sz+'" b="'+(b?1:0)+'"><a:solidFill><a:srgbClr val="'+HOUSE.NAVY+'"/></a:solidFill></a:rPr><a:t>'+_xesc(t)+'</a:t></a:r></a:p></c:rich></c:tx>'; };
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    +'<c:roundedCorners val="0"/><c:chart><c:title>'+tx(ch.title,1400,1)+'<c:overlay val="0"/></c:title><c:autoTitleDeleted val="0"/><c:plotArea><c:layout/>'
+    +'<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>'+ser
+    +'<c:gapWidth val="80"/><c:axId val="5001"/><c:axId val="5002"/></c:barChart>'
+    +'<c:catAx><c:axId val="5001"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="General" sourceLinked="0"/><c:tickLblPos val="nextTo"/><c:crossAx val="5002"/><c:crosses val="autoZero"/><c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/></c:catAx>'
+    +'<c:valAx><c:axId val="5002"/><c:scaling><c:orientation val="minMax"/><c:min val="0"/></c:scaling><c:delete val="0"/><c:axPos val="l"/>'
+    +'<c:title>'+tx(ch.yTitle||'$M',1000,0)+'<c:overlay val="0"/></c:title><c:numFmt formatCode="'+_xesc(ch.yFmt||'#,##0.0')+'" sourceLinked="0"/><c:tickLblPos val="nextTo"/><c:crossAx val="5001"/><c:crosses val="autoZero"/><c:crossBetween val="between"/></c:valAx>'
+    +'</c:plotArea><c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend><c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart></c:chartSpace>';
+}
+function _houseDrawingXml(ch){
+  const at=function(tag,p){ return '<xdr:'+tag+'><xdr:col>'+p[0]+'</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>'+p[1]+'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:'+tag+'>'; };
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+    +'<xdr:twoCellAnchor>'+at('from',ch.from)+at('to',ch.to)
+    +'<xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="2" name="Chart 1"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>'
+    +'<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">'
+    +'<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId1"/>'
+    +'</a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor></xdr:wsDr>';
+}
+// THE REPORTS THAT ASK FOR IT (item 113): buildXlsx(sheets, extra, xlsxHouse('Funds Flow')). The Spend Plan Source and the
+// 1A9A never do: CCaR and the comptroller read them in, so their layout and look are the format.
+function xlsxHouse(name){ return {house:true, title:'ORBIT '+name, printed:new Date().toISOString().slice(0,10)}; }
+// The IDS file: its Requirement v1 sheet is the IDS template and is written exactly as it was (plain); the sheets after it
+// are for people.
+function idsHouse(sheets){ (sheets||[]).forEach(function(s,i){ if(i===0) s.plain=true; }); return sheets; }
+// Header and footer codes: & starts a code, so a literal one is doubled.
+function _houseHf(s){ return String(s).replace(/&/g,'&&'); }
+function buildXlsx(sheets, extra, opts){
   // v2.00 (U37): refused, and said where, before anything is built; every caller returns on null
   if(_xlsxRefused(sheets)) return null;
   if(_xlsxStyleRefused(extra)) return null;
@@ -26164,7 +26400,10 @@ function buildXlsx(sheets, extra){
     sheets.map((s,i)=>'<Relationship Id="rId'+(i+2)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+
     '</Relationships>')]);
   const sheetFiles=[];
+  // v2.04 (items 112-113): the house style, when asked for. Nothing below changes for a workbook that does not ask.
+  const house=!!(opts && opts.house), defs=[], charts=[];
   sheets.forEach((s,i)=>{
+    const hp=(house && !s.plain)? _housePlan(s, xtra) : null;
     let cols='';
     if(s.cols) cols='<cols>'+s.cols.map((w,j)=>'<col min="'+(j+1)+'" max="'+(j+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols>';
     // sheetViews must precede cols in the schema, or Excel rejects the part.
@@ -26173,6 +26412,17 @@ function buildXlsx(sheets, extra){
     // "C2" means. Mirroring a template means mirroring this too - a pane in the wrong place is
     // invisible in every value check, because the file opens and every figure is right.
     const views=(function(){
+      if(hp){
+        let xs=0, ys=0;
+        if(typeof s.freeze==='string'){ const m=/^([A-Za-z]+)([0-9]+)$/.exec(String(s.freeze).trim());
+          if(m){ const L=m[1].toUpperCase(); for(let i=0;i<L.length;i++) xs=xs*26+(L.charCodeAt(i)-64); xs-=1; ys=(+m[2])-1; } }
+        else if(s.freeze) ys=+s.freeze;
+        let pane='';
+        if(xs>0 || ys>0){ const tl=_colL(Math.max(0,xs))+(Math.max(0,ys)+1), pn= xs>0 && ys>0 ? 'bottomRight' : (xs>0? 'topRight' : 'bottomLeft');
+          pane='<pane '+(xs>0? 'xSplit="'+xs+'" ':'')+(ys>0? 'ySplit="'+ys+'" ':'')+'topLeftCell="'+tl+'" activePane="'+pn+'" state="frozen"/>'
+            +'<selection pane="'+pn+'" activeCell="'+tl+'" sqref="'+tl+'"/>'; }
+        return '<sheetViews><sheetView showGridLines="0" workbookViewId="0">'+pane+'</sheetView></sheetViews>';
+      }
       if(!s.freeze) return '';
       let xs=0, ys=0;
       if(typeof s.freeze==='string'){
@@ -26192,17 +26442,29 @@ function buildXlsx(sheets, extra){
         +'</sheetView></sheetViews>';
     })();
     const rows=s.rows.map((r,ri)=>{
+      const hst=hp && hp.st[ri];
       const cells=(r||[]).map((c,ci)=>{
         if(c===null||c===undefined||c==='') return '';
         const ref=_colL(ci)+(ri+1);
         let v=c, st=0;
         if(typeof c==='object'){ v=c.v; st=c.s||0; }
+        if(hst && hst[ci]!==undefined) st=hst[ci];
         if(typeof v==='number'){
           const x=Number.isInteger(v)? v : +v.toPrecision(15);
           return '<c r="'+ref+'" s="'+((Number.isInteger(x) || !isFinite(x))? st : xfTwo(st))+'"><v>'+x+'</v></c>';
         }
         return '<c r="'+ref+'" s="'+st+'" t="inlineStr"><is><t xml:space="preserve">'+_xesc(v)+'</t></is></c>';
       }).join('');
+      if(hp && (hp.pad[ri] || hp.ht[ri])){
+        // the house's styled empty cells, in column order among the row's own (an empty cell carries no value)
+        const own=[];
+        (r||[]).forEach((c,ci)=>{ if(!(c===null||c===undefined||c==='')) own.push(ci); });
+        const parts=[]; const ownXml=cells.split(/(?=<c r=")/).filter(Boolean);
+        own.forEach((ci,k)=>parts.push([ci, ownXml[k]]));
+        (hp.pad[ri]||[]).forEach(p=>parts.push([p[0], '<c r="'+_colL(p[0])+(ri+1)+'" s="'+p[1]+'"/>']));
+        parts.sort((a,b)=>a[0]-b[0]);
+        return '<row r="'+(ri+1)+'"'+(hp.ht[ri]? ' ht="'+hp.ht[ri]+'" customHeight="1"' : '')+'>'+parts.map(p=>p[1]).join('')+'</row>';
+      }
       return '<row r="'+(ri+1)+'">'+cells+'</row>';
     }).join('');
     // A HEADING BANDED ACROSS A GROUP OF COLUMNS. sheet.merges is a list of {r, c, cs} -- the row,
@@ -26219,12 +26481,42 @@ function buildXlsx(sheets, extra){
               +_colL(m.c+Math.max(1,m.cs||1)-1)+(m.r+1)+'"/>'; }).join('')
         + '</mergeCells>'
       : '';
+    if(hp){
+      const tab=String(s.tab||opts.tab||HOUSE.NAVY).replace('#','').toUpperCase();
+      // one page wide when it still reads: a sheet wider than about two landscape pages prints across pages instead
+      const wide=(s.cols||[]).reduce(function(a,b){ return a+(+b||10); },0) > 260;
+      const pre='<sheetPr><tabColor rgb="FF'+tab+'"/>'+(wide? '' : '<pageSetUpPr fitToPage="1"/>')+'</sheetPr>';
+      const foot='&L&8'+_houseHf((opts.title||'ORBIT')+' — '+s.name)+'&R&8Page &P of &N  ·  printed '+_houseHf(opts.printed||new Date().toISOString().slice(0,10));
+      let post='<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>'
+        +'<pageSetup orientation="landscape"'+(wide? '' : ' fitToWidth="1" fitToHeight="0"')+'/><headerFooter><oddFooter>'+_xesc(foot)+'</oddFooter></headerFooter>';
+      if(s.chart){ charts.push({sheet:i+1, ch:s.chart, name:s.name}); post+='<drawing r:id="rId1"/>'; }
+      if(hp.titles) defs.push('<definedName name="_xlnm.Print_Titles" localSheetId="'+i+'">'+_xesc("'"+String(s.name.slice(0,31)).replace(/'/g,"''")+"'")+'!$'+(hp.titles[0]+1)+':$'+(hp.titles[1]+1)+'</definedName>');
+      sheetFiles.push(['xl/worksheets/sheet'+(i+1)+'.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        +pre+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+post+'</worksheet>')]);
+      return;
+    }
     sheetFiles.push(['xl/worksheets/sheet'+(i+1)+'.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+'</worksheet>')]);
   });
   // the styles once the sheets have said which twins they need; the parts stay in their order
   files.push(['xl/styles.xml',_utf8(_stylesXml(xtra))]);
   sheetFiles.forEach(f=>files.push(f));
+  if(house && (defs.length || charts.length)){
+    // the print titles live in the workbook part; a chart is a drawing on its sheet and a chart part, each with its links
+    if(defs.length){ const wi=files.findIndex(f=>f[0]==='xl/workbook.xml');
+      files[wi]=['xl/workbook.xml', _utf8(new TextDecoder().decode(files[wi][1]).replace('</sheets></workbook>','</sheets><definedNames>'+defs.join('')+'</definedNames></workbook>'))]; }
+    charts.forEach((c,k)=>{
+      files.push(['xl/worksheets/_rels/sheet'+c.sheet+'.xml.rels', _utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing'+(k+1)+'.xml"/></Relationships>')]);
+      files.push(['xl/drawings/drawing'+(k+1)+'.xml', _utf8(_houseDrawingXml(c.ch))]);
+      files.push(['xl/drawings/_rels/drawing'+(k+1)+'.xml.rels', _utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart'+(k+1)+'.xml"/></Relationships>')]);
+      files.push(['xl/charts/chart'+(k+1)+'.xml', _utf8(_houseChartXml(c.name, c.ch))]);
+    });
+    if(charts.length){ const ci=files.findIndex(f=>f[0]==='[Content_Types].xml');
+      files[ci]=['[Content_Types].xml', _utf8(new TextDecoder().decode(files[ci][1]).replace('</Types>',
+        charts.map((c,k)=>'<Override PartName="/xl/drawings/drawing'+(k+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>'
+          +'<Override PartName="/xl/charts/chart'+(k+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>').join('')+'</Types>'))]; }
+  }
   return _zipStore(files);
 }
 
@@ -27329,13 +27621,13 @@ function syncBtns(){
         'any year or combination — active years through the FYDP'),
     // views: the FYDP
     sp: mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns'),
-    fydp: mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service · a tab per PMO — a locked cycle or the working plan'),
+    fydp: mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'each appropriation, service and PMO, base year + 4, in $M — the working plan or a locked cycle'),
     ppbe: mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN'),
     // what goes out
     pf: mi('✈ Pre-flight check…',"mRun(togglePf)",pfOpen,'what would be dropped, rejected or unexplainable'),
     xl: mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':'')),
     acex: mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines'),
-    fydpx: mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service, a tab per PMO'),
+    fydpx: mi('📊 FYDP Spend Plan (Excel)',"mRun(fydpPickExport)",false,'pick the plan, then export · summary, a tab per appropriation, service and PMO, styled for briefing'),
     cycx: mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO'),
     // It reaches every appropriation, so it says so on the menu.
     coax: mi('📒 Chart of Accounts (Excel)',"mRun(exportCoa)",false,
@@ -27343,6 +27635,10 @@ function syncBtns(){
     ppt: mi('📽 PowerPoint deck',"mRun(exportPPT)",false,'SFCB template slides'),
     drill: mi('⬇ Priority Drill by Band…',"mRun(exportCSV)",false,'whole 1–N + a tab per PMO'),
     syn: mi('⬇ Exec Synopsis (CSV)',"mRun(execSynopsis)",false,'the one-page picture'),
+    // v2.04 (item 109): the hand-carried round trip to GenAI.mil; nothing is applied from it
+    aix: mi('🤖 Export for AI review…',"mRun(aiExport)",false,'the request for GenAI.mil: instructions and this plan’s figures'),
+    aii: mi('🤖 Import the AI’s answer…',"mRun(()=>document.getElementById('aiFile').click())",false,'read it as a list to decide on — nothing is applied'),
+    aiv: mi('🤖 AI review list',"mRun(aiOpen)",aiIsOpen,AIREV? AIREV.rows.length+' finding'+(AIREV.rows.length===1?'':'s')+' · this tab only' : 'none read in this tab yet'),
     src: mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format'),
     r1a9a: mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar'),
     // v1.92: a fixed label. The preview is worked out when the box opens, never on every redraw for a menu line.
@@ -27395,6 +27691,8 @@ function syncBtns(){
           return (c.on? 'on \u00b7 ' : 'off \u00b7 ')
             +Object.keys((LIVEDB&&LIVEDB.peers)||{}).length+' other board(s)'; })()),
     diag: mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names'),
+    // v2.04 (item 106): everything ORBIT keeps in this browser, removed in one action; the board FILE is not touched
+    clr: mi('🧹 Clear this computer…',"mRun(clearComputer)",false,'remove everything ORBIT keeps in this browser',' warn'),
     // the mode tools' own items, for the folded menu below 1100px
     add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR'),
     bm: mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources'),
@@ -27438,6 +27736,7 @@ function syncBtns(){
     sec('brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+
     sec('fydp','Five years &amp; PPBE', I.fydpx+I.cycx, '📊 Five-year spend plan, 🏛 PPBE Budget Positions and 📐 Spruills are views, under <b>FYDP ▸</b>')+
     sec('ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+
+    sec('ai','AI review (GenAI.mil)', I.aix+I.aii+I.aiv, 'Advisory only: a person reads every finding and decides')+
     sec('tools','Companion tools', I.link+I.linkset)+
     '</div><div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
   menuFindApply();
@@ -27475,7 +27774,7 @@ function syncBtns(){
                   'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
       +sep+DENS.map(function(d){
         return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join(''),
-      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : '')))+sep+I.live+I.diag; }
+      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : '')))+sep+I.live+I.diag+I.clr; }
   document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
   { const bb=document.getElementById('b_basis');
     if(bb) bb.textContent='Spend plan basis: '+(scenView==='disc'? 'Disc only' : 'Disc + Mand')+' ▾'; }
@@ -27572,7 +27871,7 @@ function syncBtns(){
 
 // ==============================================================================================================
 // §38  LIVE VIEW AND SHARED FOLDER
-//      the network transports (liveNet: Confluence, SharePoint, an endpoint) and the folder store and its history
+//      the shared folder and its history (Confluence, SharePoint and the JSON endpoint were removed in v2.04)
 // ==============================================================================================================
 // ============ LIVE VIEW =======================================================================
 /* Everyone sees everyone's current position. Each appropriation is still WRITTEN by one person -
@@ -27600,10 +27899,7 @@ let LIVEDB={ts:0, peers:{}, err:'', last:0};   // independent store, like EXDB
 let liveTimer=null, liveOpen=false, liveBusy=false;
 
 const LIVE_MODES=[
-  {k:'drive',n:'Shared folder',   d:'a file per appropriation on a network drive — needs nobody\u2019s permission'},
-  {k:'conf', n:'Confluence page', d:'a JSON attachment per appropriation on one wiki page'},
-  {k:'sp',   n:'SharePoint folder', d:'a JSON file per appropriation in a document-library folder — run the probe first; the site has to let this page in'},
-  {k:'json', n:'JSON endpoint',   d:'an API of your own that stores and returns the state'}
+  {k:'drive',n:'Shared folder',   d:'a file per appropriation on a network drive — needs nobody\u2019s permission'}
 ];
 // How long a lock is believed after its holder last touched it. The heartbeat runs on the refresh
 // timer, so this has to be comfortably longer than one refresh or a working board would time itself
@@ -27624,7 +27920,12 @@ function liveCfg(){
   if(c.every===undefined)  c.every=30;
   if(c.on===undefined)     c.on=false;
   if(!c.mode)              c.mode='drive';   // the transport that needs nobody's permission
-  if(c.page===undefined)   c.page='';        // the Confluence page id the attachments hang on
+  // v2.04 (items 110, 111): Confluence, SharePoint and the JSON endpoint are gone. A machine set up for one opens on the shared folder, OFF, so
+  // nothing starts publishing anywhere by itself; liveBody says what happened. The settings left behind are inert.
+  if(c.mode==='conf' || c.mode==='sp' || c.mode==='json'){ c.retired=c.mode; c.mode='drive'; c.on=false; }
+  // v2.04 (item 111): NOTHING USES A KEY NOW, so the one this machine held is removed rather than left behind. It was a
+  // credential for an endpoint, never board data, and Clear this computer would take it anyway.
+  try{ localStorage.removeItem(LIVE_KEY_LS); }catch(e){}
   if(c.folder===undefined) c.folder='';      // the name of the chosen shared folder, for display
   if(c.store===undefined)  c.store=false;
   if(c.auto===undefined)   c.auto=true;    // working out of the folder means saving to it    // WORK out of the folder, rather than publish to it
@@ -27634,50 +27935,11 @@ function liveCfg(){
 function liveSaveCfg(){
   try{ lsSet(LIVE_CFG_LS, JSON.stringify(liveCfg()), 'Your live-view settings'); }catch(e){}
 }
-// ELECTRON DOES THE TALKING WHERE THE BROWSER WILL NOT. The packaged build exposes a bridge that
-// performs the request in its own process, which is not bound by browser CORS; the loose HTML file
-// has no such thing and uses fetch. One client, and it asks rather than assumes.
-function liveHasBridge(){
-  try{ return !!(window.spmtNet && typeof window.spmtNet.request==='function'); }catch(e){ return false; }
-}
-async function liveNet(url, opts){
-  opts=opts||{};
-  if(liveHasBridge()) return await window.spmtNet.request(url, opts);
-  const r=await fetch(url, opts);
-  const text=await r.text();
-  return {ok:r.ok, status:r.status, statusText:r.statusText, text:text};
-}
-function liveJson(res){
-  try{ return JSON.parse(res.text||''); }catch(e){ throw new Error('the reply was not JSON'); }
-}
-// The key is read and written HERE and nowhere near MS. lsSet reports its own failures.
-function liveKey(){ try{ return localStorage.getItem(LIVE_KEY_LS)||''; }catch(e){ return ''; } }
-function liveSetKey(k){
-  k=String(k==null?'':k).trim();
-  if(k) lsSet(LIVE_KEY_LS, k, 'Your live-view key');
-  else { try{ localStorage.removeItem(LIVE_KEY_LS); }catch(e){ /* absent is the wanted state */ } }
-  render();
-  setStat(k? '✓ Live key saved on THIS machine only — it never travels in a saved file.'
-           : '✗ Live key removed from this machine.');
-}
 function liveSet(f, v){
   const c=liveCfg();
-  if(f==='url'){
-    const u=String(v||'').trim();
-    // HTTPS ONLY. This carries CUI; an http endpoint would put it on the wire in clear.
-    if(u && !/^https:\/\//i.test(u)){
-      alert('The live endpoint must be https.'+String.fromCharCode(10,10)
-        +'This publishes requirement and funding data, so an unencrypted endpoint is not offered.');
-      return;
-    }
-    c.url=u;
-    if(!u){ c.on=false; liveStop(); }
-  }
-  else if(f==='every'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10);
+  if(f==='every'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10);
     c.every=(isFinite(n)&&n>=10&&n<=600)? n : 30; if(c.on) liveStart(); }
   else if(f==='mode'){ if(LIVE_MODES.some(function(m){ return m.k===v; })) c.mode=v; }
-  else if(f==='page'){ c.page=String(v||'').replace(/[^0-9]/g,''); }
-  else if(f==='dir'){ c.dir=String(v||'').trim(); }
   else if(f==='auto'){ c.auto=!!v; }
   else if(f==='store'){
     c.store=!!v;
@@ -27687,8 +27949,6 @@ function liveSet(f, v){
   }
   else if(f==='on'){
     c.on=!!v;
-    if(c.on && c.mode!=='drive' && !liveCfg().url){ c.on=false;
-      alert('Set the endpoint first.'); return; }
     if(c.on) liveStart(); else liveStop();
   }
   liveSaveCfg(); render();
@@ -27698,7 +27958,7 @@ function liveStart(){
   liveStop();
   const c=liveCfg();
   // A shared folder has no URL to check — its readiness is a handle, tested when it is used.
-  if(!c.on || (c.mode!=='drive' && !c.url)) return;
+  if(!c.on || c.mode!=='drive') return;
   liveTimer=setInterval(liveTick, Math.max(10, c.every)*1000);
   liveTick();
 }
@@ -27736,11 +27996,6 @@ function livePayload(writer){
 }
 function liveSize(){
   try{ return JSON.stringify(livePayload()).length; }catch(e){ return 0; }
-}
-function liveHdrs(){
-  const h={'Content-Type':'application/json'};
-  const k=liveKey(); if(k) h['x-api-key']=k;
-  return h;
 }
 // ---- Shared folder transport ----------------------------------------------------------------
 // The directory handle is kept exactly the way the save-file handle already is: in IndexedDB, under
@@ -28976,159 +29231,17 @@ function rpMerge(theirs){
   }
   return {added:added, updated:updated, buried:buried, kept:kept};
 }
-// ---- Confluence transport -------------------------------------------------------------------
-// One page, one attachment per (fiscal year, appropriation). Confluence versions attachments on
-// its own, so publishing repeatedly leaves a history the board does not have to keep.
-function confAttName(fy, ap){ return 'spmt-'+fy+'-'+ap+'.json'; }
-function confPrefix(fy){ return 'spmt-'+fy+'-'; }
-function confBase(){ return String(liveCfg().url||'').replace(/\/+$/,''); }
-function confHdrs(extra){
-  const h=Object.assign({}, extra||{});
-  const k=liveKey();
-  // A personal access token if one is set; otherwise the browser's own Confluence session.
-  if(k) h['Authorization']='Bearer '+k;
-  return h;
-}
-function confCreds(){ return liveKey()? 'omit' : 'include'; }
-// v2.00 (item 99): THE DOWNLOAD LINK COMES FROM THE SERVER and the request carries this machine's token, so it is
-// followed only when it is a path on the Confluence address set here - never to whatever host the link would name.
-function confSameHost(link){
-  const base=confBase();
-  if(typeof link!=='string' || link.charAt(0)!=='/') return false;
-  try{ return new URL(base+link).origin===new URL(base).origin; }catch(e){ return false; }
-}
-async function confList(fy){
-  const c=liveCfg();
-  if(!c.page) throw new Error('no Confluence page id set');
-  const u=confBase()+'/rest/api/content/'+encodeURIComponent(c.page)
-    +'/child/attachment?limit=200&expand=version';
-  const r=await liveNet(u, {method:'GET', headers:confHdrs(), credentials:confCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' listing attachments'
-    +(r.status===404? ' — check the page id' : ''));
-  const j=liveJson(r);
-  return (j.results||[]).filter(function(a){
-    return String(a.title||'').indexOf(confPrefix(fy))===0; });
-}
-async function confPublish(quiet){
-  const c=liveCfg();
-  const fy=MS.cur, ap=mySlug(), name=confAttName(fy, ap);
-  const body=JSON.stringify(livePayload());
-  const existing=(await confList(fy)).filter(function(a){ return a.title===name; })[0];
-  const fd=new FormData();
-  fd.append('file', new Blob([body], {type:'application/json'}), name);
-  fd.append('comment', 'ORBIT '+(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' — '+(whoAmI()||'unknown'));
-  fd.append('minorEdit', 'true');
-  // X-Atlassian-Token is Confluence's XSRF guard. Content-Type is NOT set: the browser has to add
-  // the multipart boundary itself, and setting it by hand produces a body Confluence cannot parse.
-  const u=confBase()+'/rest/api/content/'+encodeURIComponent(c.page)+'/child/attachment'
-    +(existing? '/'+encodeURIComponent(existing.id)+'/data' : '');
-  const r=await liveNet(u, {method:'POST', headers:confHdrs({'X-Atlassian-Token':'nocheck'}),
-                            credentials:confCreds(), body:fd});
-  if(!r.ok) throw new Error('HTTP '+r.status+' uploading '+name);
-  return {name:name, bytes:body.length, updated:!!existing};
-}
-async function confPoll(quiet){
-  const fy=MS.cur;
-  const atts=await confList(fy);
-  const peers={};
-  for(let i=0;i<atts.length;i++){
-    const a=atts[i];
-    const ap=String(a.title||'').slice(confPrefix(fy).length).replace(/\.json$/i,'');
-    if(!ap || ap===mySlug()) continue;          // your own board is the live one
-    const link=(a._links&&a._links.download)||'';
-    if(!link || !confSameHost(link)) continue;
-    const r=await liveNet(confBase()+link, {method:'GET', headers:confHdrs(),
-                                            credentials:confCreds()});
-    if(!r.ok){ continue; }                      // one unreadable attachment is not a failed refresh
-    let j=null;
-    try{ j=JSON.parse(r.text||''); }catch(e){ continue; }
-    peers[ap]={by:(j&&j.by)||'', ts:Date.parse((a.version&&a.version.when)||'')||(j&&j.ts)||0,
-               fy:(j&&j.fy)||fy, store:(j&&j.store)||null};
-  }
-  return peers;
-}
-// ============================================================ SHAREPOINT
-// A folder in a document library, one JSON file per appropriation - the same files the shared
-// folder holds, spoken over SharePoint's REST API. Publishing needs a request digest first
-// (SharePoint's own XSRF guard); every request carries either a bearer token set on this machine
-// or the browser's existing SharePoint sign-in. Whether a page opened from a file is allowed in
-// at all is the question tools/sharepoint_probe.html answers; this code assumes it was yes.
-function spFileName(fy, ap){ return 'spmt-'+fy+'-'+ap+'.json'; }
-function spPrefix(fy){ return 'spmt-'+fy+'-'; }
-function spBase(){ return String(liveCfg().url||'').replace(/\/+$/,''); }
-function spDir(){
-  let d=String(liveCfg().dir||'').trim().replace(/\\/g,'/').replace(/\/+$/,'');
-  if(d && d.charAt(0)!=='/') d='/'+d;
-  return d;
-}
-// A server-relative path inside an OData string literal: each segment URL-encoded, apostrophes doubled.
-function spLit(p){ return String(p).split('/').map(encodeURIComponent).join('/').replace(/'/g, "''"); }
-function spHdrs(extra){
-  const h=Object.assign({'Accept':'application/json;odata=verbose'}, extra||{});
-  const k=liveKey();
-  if(k) h['Authorization']='Bearer '+k;
-  return h;
-}
-function spCreds(){ return liveKey()? 'omit' : 'include'; }
-let _spDigest={v:'', t:0};
-async function spDigest(){
-  if(_spDigest.v && Date.now()-_spDigest.t<20*60*1000) return _spDigest.v;
-  const r=await liveNet(spBase()+'/_api/contextinfo', {method:'POST', headers:spHdrs(), credentials:spCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' asking SharePoint for a request digest'
-    +((r.status===401||r.status===403)? ' — not signed in, or this page is not allowed in' : ''));
-  const j=liveJson(r);
-  const v=(j&&j.d&&j.d.GetContextWebInformation&&j.d.GetContextWebInformation.FormDigestValue)
-    ||(j&&j.FormDigestValue)||'';
-  if(!v) throw new Error('SharePoint answered without a request digest');
-  _spDigest={v:v, t:Date.now()};
-  return v;
-}
-function spRows(j){ return (j&&j.d&&Array.isArray(j.d.results))? j.d.results : ((j&&Array.isArray(j.value))? j.value : []); }
-async function spList(fy){
-  const dir=spDir();
-  if(!spBase()) throw new Error('no SharePoint site set');
-  if(!dir) throw new Error('no SharePoint folder set');
-  const u=spBase()+"/_api/web/GetFolderByServerRelativeUrl('"+spLit(dir)+"')/Files?$select=Name,TimeLastModified,ServerRelativeUrl";
-  const r=await liveNet(u, {method:'GET', headers:spHdrs(), credentials:spCreds()});
-  if(!r.ok) throw new Error('HTTP '+r.status+' listing the folder'+(r.status===404? ' — check the folder path' : ''));
-  return spRows(liveJson(r)).filter(function(f){ return String(f.Name||'').indexOf(spPrefix(fy))===0; });
-}
-async function spPublish(quiet){
-  const fy=MS.cur, ap=mySlug(), name=spFileName(fy, ap);
-  const body=JSON.stringify(livePayload());
-  const dir=spDir(); if(!dir) throw new Error('no SharePoint folder set');
-  const digest=await spDigest();
-  const u=spBase()+"/_api/web/GetFolderByServerRelativeUrl('"+spLit(dir)+"')/Files/add(url='"+encodeURIComponent(name)+"',overwrite=true)";
-  const r=await liveNet(u, {method:'POST', headers:spHdrs({'X-RequestDigest':digest, 'Content-Type':'application/json'}),
-                            credentials:spCreds(), body:body});
-  if(!r.ok){
-    if(r.status===403) _spDigest={v:'', t:0};                     // a stale digest is fetched afresh next time
-    throw new Error('HTTP '+r.status+' uploading '+name+(r.status===403? ' — the digest was refused, or the folder is read-only for you' : ''));
-  }
-  return {name:name, bytes:body.length};
-}
-async function spPoll(quiet){
-  const fy=MS.cur, dir=spDir();
-  const files=await spList(fy);
-  const peers={};
-  for(let i=0;i<files.length;i++){
-    const f=files[i];
-    const ap=String(f.Name||'').slice(spPrefix(fy).length).replace(/\.json$/i,'');
-    if(!ap || ap===mySlug()) continue;          // your own board is the live one
-    const u=spBase()+"/_api/web/GetFileByServerRelativeUrl('"+spLit(dir+'/'+f.Name)+"')/$value";
-    const r=await liveNet(u, {method:'GET', headers:spHdrs(), credentials:spCreds()});
-    if(!r.ok) continue;                         // one unreadable file is not a failed refresh
-    let j=null;
-    try{ j=JSON.parse(r.text||''); }catch(e){ continue; }
-    peers[ap]={by:(j&&j.by)||'', ts:Date.parse(f.TimeLastModified||'')||(j&&j.ts)||0,
-               fy:(j&&j.fy)||fy, store:(j&&j.store)||null};
-  }
-  return peers;
-}
+// v2.04 (item 110; Brad, 22 Oct 2026): THE CONFLUENCE AND SHAREPOINT TRANSPORTS ARE GONE. "Let's remove the confluence and
+// SharePoint option entirely. Right now it lives on my desktop and long-term removing towards azure." They spoke to a wiki
+// page and a document library over fetch, from a page opened as a file. The JSON endpoint went the same day (item 111: "remove
+// for now until we get closer to actually going live with azure"), and with it liveNet, the Live view key and the last fetch
+// to another host. The shared folder remains.
+// A machine set up for either opens on the shared folder, off, and says so (liveCfg, liveBody). Nothing in a board file
+// named either transport, so no saved board changes.
 // NOTHING IS SILENT. A feed that fails quietly is a board showing yesterday's numbers as today's.
 async function livePublish(quiet){
   const c=liveCfg();
-  if(c.mode!=='drive' && !c.url){ setStat('⚠ No live endpoint set.'); return false; }
+  if(c.mode!=='drive'){ setStat('⚠ The live view shares through the shared folder only.'); return false; }
   if(liveBusy) return false;
   liveBusy=true;
   try{
@@ -29146,27 +29259,7 @@ async function livePublish(quiet){
       if(ok){ LIVEDB.err=''; LIVEDB.pub=Date.now(); }
       return !!ok;
     }
-    if(c.mode==='sp'){
-      const o=await spPublish(quiet);
-      LIVEDB.err=''; LIVEDB.pub=Date.now();
-      if(!quiet) setStat('⬆ Wrote <b>'+esc(o.name)+'</b> to the SharePoint folder — '
-        +Math.round(o.bytes/1024)+' KB.');
-      return true;
-    }
-    if(c.mode==='conf'){
-      const o=await confPublish(quiet);
-      LIVEDB.err=''; LIVEDB.pub=Date.now();
-      if(!quiet) setStat('⬆ '+(o.updated?'Updated':'Published')+' <b>'+esc(o.name)+'</b> on the '
-        +'Confluence page — '+Math.round(o.bytes/1024)+' KB.');
-      return true;
-    }
-    const r=await liveNet(c.url.replace(/\/+$/,'')+'/state', {method:'POST', headers:liveHdrs(),
-      credentials:'omit', body:JSON.stringify(livePayload())});
-    if(!r.ok) throw new Error('HTTP '+r.status+' '+(r.statusText||''));
-    LIVEDB.err=''; LIVEDB.pub=Date.now();
-    if(!quiet) setStat('⬆ Published '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-      +' — '+Math.round(liveSize()/1024)+' KB.');
-    return true;
+    return false;
   }catch(e){
     LIVEDB.err=(e&&e.message)||String(e);
     setStat('⚠ Live publish failed — <b>'+esc(LIVEDB.err)+'</b>. Nothing was sent.');
@@ -29175,27 +29268,9 @@ async function livePublish(quiet){
 }
 async function livePoll(quiet){
   const c=liveCfg();
-  if(c.mode!=='drive' && !c.url) return false;
+  if(c.mode!=='drive') return false;
   try{
-    let peers={};
-    if(c.mode==='drive'){
-      peers=await drivePoll(quiet);
-    } else if(c.mode==='sp'){
-      peers=await spPoll(quiet);
-    } else if(c.mode==='conf'){
-      peers=await confPoll(quiet);
-    } else {
-      const r=await liveNet(c.url.replace(/\/+$/,'')+'/state?fy='+encodeURIComponent(MS.cur),
-        {method:'GET', headers:liveHdrs(), credentials:'omit'});
-      if(!r.ok) throw new Error('HTTP '+r.status+' '+(r.statusText||''));
-      const j=liveJson(r);
-      const rows=Array.isArray(j)? j : (j&&Array.isArray(j.items)? j.items : []);
-      rows.forEach(function(x){
-        if(!x||!x.ap) return;
-        if(x.ap===mySlug()) return;        // your own board is the live one; never read it back
-        peers[x.ap]={by:x.by||'', ts:+x.ts||0, fy:+x.fy||0, store:x.store||null};
-      });
-    }
+    const peers=await drivePoll(quiet);
     // CARRY THE LOCKS THROUGH. drivePoll sets LIVEDB.locks while it walks the folder, and
     // rebuilding LIVEDB from scratch here threw them away - so a second person on the same
     // appropriation was never told, which is the one thing the lock exists to do.
@@ -29235,7 +29310,7 @@ function liveBody(){
   const el=document.getElementById('liveBody'); if(!el) return;
   const pn=document.getElementById('livePanel'); if(pn) pn.style.display=liveOpen?'block':'none';
   if(!liveOpen){ el.innerHTML=''; return; }
-  const c=liveCfg(), k=liveKey();
+  const c=liveCfg();
   // WHO ELSE IS IN THIS APPROPRIATION, before anything else on the panel. Someone needs to know
   // this before they type, not after they save.
   let h='';
@@ -29271,20 +29346,12 @@ function liveBody(){
     +'<b>\u{1F4E6} Appropriation packages</b>.</div>';
   // ---- WHAT WOULD LEAVE THIS MACHINE, said plainly, before it is switched on
   h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--amber);padding-left:8px">'
-    +(c.mode==='drive'
-      ? '<b>This writes requirement and funding data to the shared folder.</b> It stays on the '
-        +'network drive \u2014 nothing leaves it. It writes '
-      : '<b>This sends requirement and funding data off this computer.</b> It publishes ')
+    +'<b>This writes requirement and funding data to the shared folder.</b> It stays on the '
+    +'network drive \u2014 nothing leaves it. It writes '
     +esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' — about <b>'
-    +Math.round(liveSize()/1024)+' KB</b> — to the endpoint below, and nothing else. '
+    +Math.round(liveSize()/1024)+' KB</b> — to the folder below, and nothing else. '
     +'Execution data and cost estimates are never sent, as a package strips them (with the reprogramming log it still carries).</div>';
-  // WHICH TRANSPORT, and what each one needs.
-  h+='<div class="fr" style="flex-wrap:wrap;gap:6px;margin-top:8px">'
-    +'<span class="rlg-lbl">Store it in</span>'
-    +LIVE_MODES.map(function(m){ return '<button class="btn'+(c.mode===m.k?' on':'')+'" '
-      +'style="font-size:10px;padding:3px 10px" onclick="liveSet(&quot;mode&quot;,'+jsa(m.k)+')" '
-      +'title="'+esc(m.d)+'">'+esc(m.n)+'</button>'; }).join('')
-    +'</div>';
+  // ONE TRANSPORT since v2.04 (items 110, 111): the shared folder. There is nothing to choose between.
   if(c.mode==='drive'){
     if(c.folder && !_drivePermProbed){ _drivePermProbed=true; driveProbePerm(); }
     // A FOLDER IS CHOSEN, NOT TYPED. The picker is a user gesture and cannot be opened from a
@@ -29384,50 +29451,13 @@ function liveBody(){
           +'Both are locked, so <b>nothing was changed</b>. Agree which is the approved estimate, '
           +'then whoever holds it can re-import it.</div>';
     }
-  } else {
-    h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:6px">'
-      +'<span class="rlg-lbl">'+(c.mode==='conf'? 'Confluence' : (c.mode==='sp'? 'SharePoint site' : 'Endpoint'))+'</span>'
-      +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.url)+'" '
-        +'placeholder="https://…" onchange="liveSet(&quot;url&quot;,this.value)" '
-        +'title="https only — this carries CUI">'
-      +(c.mode==='conf'? '<span class="rlg-lbl">Page id</span>'
-        +'<input class="rlg-in" style="width:110px" value="'+esc(c.page)+'" '
-        +'onchange="liveSet(&quot;page&quot;,this.value)" '
-        +'title="the numeric id of the wiki page the attachments hang on — it is in the page URL">' : '')
-      +(c.mode==='sp'? '<span class="rlg-lbl">Folder</span>'
-        +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.dir)+'" '
-        +'placeholder="/sites/…/Shared Documents/ORBIT/Data" onchange="liveSet(&quot;dir&quot;,this.value)" '
-        +'title="the server-relative path of the library folder, as it appears after the site name in the address bar">' : '')
-      +'</div>';
   }
-  if(c.mode==='conf')
-    h+='<div class="hint">One JSON attachment per appropriation, named <b>spmt-'+MS.cur+'-'
-      +esc(mySlug())+'.json</b>. Confluence versions attachments itself, so every publish leaves a '
-      +'history on a page the team can already find and open.</div>';
-  if(c.mode==='sp')
-    h+='<div class="hint">One JSON file per appropriation, named <b>spmt-'+MS.cur+'-'+esc(mySlug())
-      +'.json</b>, in the library folder above; SharePoint keeps its own version history of each. '
-      +'<b>Run tools/sharepoint_probe.html first</b> — it says in one pass whether this page is '
-      +'allowed to talk to the site at all, and which wall it hits if not.</div>';
-  // WHETHER THIS BUILD CAN TALK TO IT AT ALL, said here rather than discovered from a failure.
-  if(c.mode!=='drive' && !liveHasBridge() && c.url)
-    h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--blue);padding-left:8px">'
-      +'This is the <b>loose HTML file</b>, so its requests carry <code>Origin: null</code>. '
-      +'Measured on this network the connection succeeds and the browser then blocks the reply, '
-      +'until the reverse proxy in front of the site allows that origin for <code>/rest/api/*</code>. '
-      +'The packaged <b>.exe</b> build is not bound by that — it makes the request in its own '
-      +'process.</div>';
-  if(c.mode!=='drive')
-  h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:4px">'
-    +'<span class="rlg-lbl">Key</span>'
-    +'<input class="rlg-in" type="password" style="width:220px" value="'+esc(k)+'" '
-      +'onchange="liveSetKey(this.value)" '
-      +'title="stored on THIS machine only — it is never written into a saved file or a package">'
-    +'<span class="hint" style="margin:0">'+(k? '✓ set on this machine' : 'not set')
-    +' — never travels in a saved file'
-    +(c.mode==='conf'&&!k? ' · leave it blank to use your existing Confluence sign-in' : '')
-    +(c.mode==='sp'&&!k? ' · leave it blank to use your existing SharePoint sign-in' : '')+'</span>'
-    +'</div>';
+  // v2.04 (items 110, 111): a machine that was set up for Confluence, SharePoint or an endpoint is told once where it stands
+  if(c.retired && c.mode==='drive' && !c.folder)
+    h+='<div class="hint" style="margin-top:6px;border-left:3px solid var(--amber);padding-left:8px">'
+      +'This computer was set up to share through <b>'+({conf:'a Confluence page', sp:'a SharePoint folder', json:'a JSON endpoint'}[c.retired]||'another service')+'</b>. '
+      +'That option was removed in v2.04, so the live view is <b>off</b> and set to the shared folder. Pick a folder above to '
+      +'share again; nothing was sent anywhere.</div>';
   h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:4px">'
     +'<span class="rlg-lbl">Refresh every</span>'
     +'<input class="rlg-in" style="width:60px" value="'+c.every+'" '
@@ -29468,9 +29498,6 @@ function liveBody(){
     h+='<div class="hint" style="margin-top:3px">Read only. Nothing here is applied to your board '
       +'— it lands in its own store, the way the imported execution data does, so a feed can '
       +'never roll back work you are holding.</div>';
-  } else if(c.url){
-    h+='<div class="hint" style="margin-top:8px">Nothing from anyone else yet. They each need the '
-      +'same endpoint and their own key, and to switch Live on.</div>';
   }
   h+='<div class="fr" style="margin-top:10px"><button class="btn" onclick="toggleLive()">Close</button></div>';
   el.innerHTML=h;
@@ -29802,7 +29829,7 @@ function diagReport(){
   add('  Save writes to:     '+sv);
   let lv='';
   try{ const c=liveCfg(), set=(c.mode==='drive')? !!c.folder : !!c.url,
-       M={drive:'shared folder', conf:'Confluence page', sp:'SharePoint folder', json:'JSON endpoint'};
+       M={drive:'shared folder'};
     lv = !set? 'not set up' : (c.on? 'on' : 'off')+' · '+(M[c.mode]||'other')+' · '+len((LIVEDB||{}).peers)+' other board(s) seen'
        +((LIVEDB && LIVEDB.err)? ' · last error: '+diagClean(LIVEDB.err, true) : ''); }catch(e){}
   add('  Live view:          '+lv);
@@ -30574,13 +30601,250 @@ function exportCSV(){
     sheets.push({name:pmTab(pm, 'PMO'), cols:COLS, rows});
   });
 
-  const bytes=buildXlsx(sheets, extra);
+  const bytes=buildXlsx(sheets, extra, xlsxHouse('Priority Drill'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName((_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Priority drill exported — funded by band, for the whole order and for each PMO.');
+}
+
+// ==============================================================================================================
+// §AI  AI REVIEW: AN INDEPENDENT ASSESSMENT FROM GenAI.mil, FOR A PERSON TO DECIDE ON (v2.04, item 109)
+//      Brad, 22 Oct 2026: "It does not auto fill, it provides suggestions and analysis for human interaction and decision
+//      management" -- and the anomalies are the AI's own assessment, not thresholds a person sets.
+//      THE FILE NEVER CALLS ANYTHING. It has no network route, a page opened from a file calls out as `Origin: null`, and a
+//      key in it would travel in every save and every PMO copy. So the round trip is carried by hand: aiExport writes the
+//      instructions and the board's figures as one text file, the person gives it to GenAI.mil and saves the answer, and
+//      aiImport reads the answer through the import door and lays it out as a list. NOTHING IS WRITTEN TO THE BOARD: a
+//      finding is read, checked against the board, and acted on (or not) by the person through the field's own editor.
+//      The list lives in this tab only, like the message list, and never in the file: the answer file is the record.
+//      A MODEL CAN BE WRONG, AND THE LIST SAYS WHERE: a requirement the board does not hold, a figure the board does not
+//      print, a value that is not one of the board's own, are each marked on the line.
+// ==============================================================================================================
+const AI_FMT='orbitAiReview';
+const AI_FIELDS={band:'Decision band', costElem:'Cost element', obCat:'Obligation category', grp:'PMO'};
+const AI_MEASURES={ask:'requirement', alloc:'allocated', fund:'funded', unf:'unfunded'};
+// aiIsOpen and AIREV are declared beside `let MS`: syncBtns reads them on the first render, while the script is still being read
+function aiFieldNow(it, f){
+  if(f==='band'){ const b=BAND_OF(it.id); const d=b===null? null : BANDS_LIST().filter(function(x){ return x.id===b; })[0]; return d? d.n : ''; }
+  if(f==='costElem') return ((S.costElem||{})[it.id])||'';
+  if(f==='obCat') return obCatOf(it.id)||'';
+  if(f==='grp') return grpOf(it)||'';
+  return '';
+}
+function aiFieldOpts(f){
+  if(f==='band') return BANDS_LIST().map(function(b){ return b.n; });
+  if(f==='costElem') return COST_ELEMS.slice();
+  if(f==='obCat') return OB_CATS.slice();
+  if(f==='grp') return pmoChoices();
+  return [];
+}
+// One requirement's figures for one year of the working plan, as the five-year plan prints them.
+function aiFig(r, m){
+  if(m==='unf') return fydpUnf(r);
+  return fydpSum(r[m]);
+}
+// THE REQUEST: instructions, then the data, in one file a person can upload or paste.
+function aiRequestText(){
+  const D=fydpData('working'), T=tiers(), MR=masterRanks();
+  const reqs=(S.order||[]).map(function(id){ const it=itemById(id); if(!it) return null;
+    const years={};
+    D.held.forEach(function(y){ const r=((D.proj[y]||{}).reqs||[]).filter(function(x){ return x.id===id; })[0]; if(!r) return;
+      years[y]={ask:aiFig(r,'ask'), alloc:aiFig(r,'alloc'), fund:aiFig(r,'fund'), unf:aiFig(r,'unf')}; });
+    const o={id:id, rank:MR[id]||null, title:dispTitle(it), recordName:recName(it)||'', pmo:grpOf(it)||'', ccar:ccarOf(it)||'',
+      missionCritical:!!S.mc[id], description:((S.desc||{})[id]||''), impact:((S.cons||{})[id]||''), years:years};
+    Object.keys(AI_FIELDS).forEach(function(f){ if(f!=='grp') o[f]=aiFieldNow(it, f); });
+    return o; }).filter(Boolean);
+  const data={format:AI_FMT, version:1, board:BUILD, appropriation:(typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug(),
+    fiscalYearOnScreen:MS.cur, years:D.held, services:SVC.slice(), units:'whole US dollars',
+    measures:AI_MEASURES, allowedValues:(function(){ const a={}; Object.keys(AI_FIELDS).forEach(function(f){ a[f]=aiFieldOpts(f); }); return a; })(),
+    requirements:reqs};
+  const ask=[
+    'ORBIT — request for an independent AI review ('+FYL()+', '+((typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug())+', '+(D.held.length? 'FY'+D.held.map(function(y){ return y%100; }).join(', FY') : 'no year')+')',
+    '',
+    'You are reviewing a multi-year budget plan (the Future Years Defense Program window) held in ORBIT. Your answer is ADVISORY:',
+    'a program manager reads every item and decides. Nothing you say is applied by itself.',
+    '',
+    'Do two things, using your own judgement (no fixed thresholds are given):',
+    '1. ANOMALIES -- for each requirement, look across its years and its neighbours for anything a budget analyst should question:',
+    '   outyear spikes or drops, money that appears or disappears between years, a requirement funded unlike similar ones,',
+    '   unfunded amounts that look out of line, a description or impact statement that does not fit the money.',
+    '2. SUGGESTIONS -- where a classification field is empty or looks wrong, suggest a value. Only these fields, and only a value',
+    '   from "allowedValues": '+Object.keys(AI_FIELDS).map(function(f){ return f+' ('+AI_FIELDS[f]+')'; }).join(', ')+'.',
+    '',
+    'Answer with ONE JSON object and nothing else, in exactly this shape:',
+    '{"format":"'+AI_FMT+'","findings":[',
+    '  {"id":"<requirement id>","kind":"anomaly","year":2028,"measure":"ask|alloc|fund|unf","figure":<the figure you are questioning, whole dollars>,"severity":"high|medium|low","reason":"<why, in plain words>"},',
+    '  {"id":"<requirement id>","kind":"suggestion","field":"band|costElem|obCat|grp","value":"<one of allowedValues>","severity":"high|medium|low","reason":"<why>"}',
+    ']}',
+    'Use only requirement ids from the data. Quote figures exactly as the data gives them. "year", "measure" and "figure" are optional',
+    'for an anomaly that is not about one figure. Keep each reason under 1,000 characters.',
+    '',
+    'THE DATA (JSON). Figures are whole US dollars, summed across services, per fiscal year: ask = requirement, alloc = allocated,',
+    'fund = funded (discretionary + mandatory), unf = unfunded.',
+    '',
+    JSON.stringify(data, null, 1)];
+  return ask.join('\n');
+}
+function aiExport(){
+  let txt;
+  try{ txt=aiRequestText(); }catch(e){ setStat('⚠ The AI review request could not be built: '+esc((e&&e.message)||String(e))+'. Nothing was written.'); return; }
+  const fn=expName('ORBIT AI review request — '+((typeof APPN_LBL!=='undefined' && APPN_LBL[mySlug()])||mySlug())+' — '+FYL()+' '+new Date().toISOString().slice(0,10)+'.txt');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'})); a.download=fn; a.click();
+  setStat('🤖 <b>'+esc(fn)+'</b> written: '+(S.order||[]).length+' requirements. Give it to GenAI.mil, save its answer as a file, then '
+    +'<b>Reports &amp; exports › AI review › Import the AI’s answer</b>. It holds the board’s figures and text: handle it as you handle the board.');
+  return txt;
+}
+// The answer may arrive wrapped in prose or a code fence: take the one JSON object that carries the format.
+function aiExtract(raw){
+  const s=String(raw==null?'':raw);
+  const i=s.indexOf('{'); if(i<0) return null;
+  const tries=[s.slice(i, s.lastIndexOf('}')+1)];
+  const k=s.indexOf('"'+AI_FMT+'"'); if(k>=0){ const j=s.lastIndexOf('{', k); if(j>=0) tries.push(s.slice(j, s.lastIndexOf('}')+1)); }
+  for(let n=0;n<tries.length;n++){ try{ const J=JSON.parse(tries[n]); if(J && typeof J==='object') return {text:tries[n], J:J}; }catch(e){} }
+  return null;
+}
+// Read the answer into rows, each checked against the board. Pure: returns {rows} or {why}.
+function aiRead(raw){
+  const X=aiExtract(raw);
+  if(!X) return {why:'it holds no JSON object -- save the AI’s answer exactly as it gave it'};
+  const why=inboundCheck(X.text); if(why) return {why:why};
+  const J=X.J;
+  if(J.format!==AI_FMT || !Array.isArray(J.findings)) return {why:'it is not an ORBIT AI review answer (no "format":"'+AI_FMT+'" with a "findings" list)'};
+  if(J.findings.length>5000) return {why:'it holds '+J.findings.length+' findings; the list takes up to 5,000'};
+  const D=fydpData('working');
+  const rows=J.findings.map(function(f, n){
+    const r={n:n+1, id:'', kind:'', year:null, measure:'', figure:null, field:'', value:'', sev:'', reason:'', checks:[], ok:true, board:null, now:''};
+    if(!f || typeof f!=='object' || Array.isArray(f)){ r.checks.push('not a finding'); r.ok=false; return r; }
+    r.id=(typeof f.id==='string')? f.id.slice(0,80) : String(f.id==null?'':f.id).slice(0,80);
+    r.kind=(f.kind==='suggestion')? 'suggestion' : (f.kind==='anomaly'? 'anomaly' : '');
+    r.sev=({high:'high',medium:'medium',low:'low'})[String(f.severity||'').toLowerCase()]||'';
+    r.reason=String(f.reason==null?'':f.reason).slice(0,4000);
+    const it=r.id? itemById(r.id) : null;
+    if(!r.kind){ r.checks.push('kind is neither anomaly nor suggestion'); r.ok=false; }
+    if(!it || (S.order||[]).indexOf(r.id)<0){ r.checks.push('no requirement '+(r.id? '“'+r.id+'” ' : '')+'on this board'); r.ok=false; return r; }
+    if(r.kind==='anomaly'){
+      if(f.year!=null){ r.year=wholeOr(f.year, null); if(r.year===null || D.held.indexOf(r.year)<0){ r.checks.push('FY'+String(f.year).slice(0,8)+' is not a year this plan holds'); r.ok=false; } }
+      if(f.measure!=null){ r.measure=Object.prototype.hasOwnProperty.call(AI_MEASURES, String(f.measure))? String(f.measure) : '';
+        if(!r.measure){ r.checks.push('measure “'+String(f.measure).slice(0,20)+'” is not one ORBIT prints'); r.ok=false; } }
+      if(f.figure!=null){ r.figure=(typeof f.figure==='number' && isFinite(f.figure))? f.figure : NaN;
+        if(isNaN(r.figure)){ r.checks.push('the figure is not a number'); r.ok=false; } }
+      if(r.year!==null && r.measure && D.held.indexOf(r.year)>=0){
+        const pr=((D.proj[r.year]||{}).reqs||[]).filter(function(x){ return x.id===r.id; })[0];
+        r.board=pr? aiFig(pr, r.measure) : 0;
+        if(r.figure!==null && !isNaN(r.figure) && Math.round(r.figure)!==Math.round(r.board)){
+          r.checks.push('the board says '+fM(r.board)+', not '+fM(r.figure)); r.ok=false; }
+      }
+    } else if(r.kind==='suggestion'){
+      r.field=Object.prototype.hasOwnProperty.call(AI_FIELDS, String(f.field))? String(f.field) : '';
+      r.value=String(f.value==null?'':f.value).slice(0,200);
+      if(!r.field){ r.checks.push('field “'+String(f.field).slice(0,30)+'” is not one the review covers'); r.ok=false; }
+      else {
+        r.now=aiFieldNow(it, r.field);
+        if(aiFieldOpts(r.field).indexOf(r.value)<0){ r.checks.push('“'+r.value+'” is not one of the board’s '+AI_FIELDS[r.field]+' values'); r.ok=false; }
+        else if(r.now===r.value){ r.checks.push('already set to this'); }
+      }
+    }
+    return r; });
+  return {rows:rows};
+}
+async function aiImport(inp){
+  const f=inp&&inp.files&&inp.files[0]; if(!f) return;
+  try{
+    const big=inTooBig(f); if(big){ alert('“'+f.name+'” was not read: '+big+'.'); return; }
+    const R=aiRead(await f.text());
+    if(R.why){ alert('“'+f.name+'” was not read as an AI review: '+R.why+'.\n\nNothing on this board was changed.');
+      setStat('⚠ AI review not read — “'+esc(f.name)+'”: '+esc(R.why)+'.'); return; }
+    AIREV={file:f.name, ts:Date.now(), rows:R.rows};
+    aiIsOpen=true; aiBody();
+    const bad=R.rows.filter(function(r){ return !r.ok; }).length;
+    statKeep('🤖 AI review <b>'+esc(f.name)+'</b>: '+R.rows.length+' finding'+(R.rows.length===1?'':'s')
+      +(bad? ', <b>'+bad+'</b> marked where the board disagrees' : '')+'. Nothing on the board was changed: each is yours to decide.');
+  }catch(e){ setStat('⚠ AI review not read: '+esc((e&&e.message)||String(e))+'. Nothing was changed.'); }
+  finally{ try{ inp.value=''; }catch(e){} }
+}
+function aiOpen(){ aiIsOpen=true; aiBody(); }
+function aiClose(){ aiIsOpen=false; aiBody(); }
+function aiFilter(v){ aiShow=v; aiBody(); }
+function aiGo(id){ aiIsOpen=false; aiBody(); setCur(id); goRow(id); }
+function aiBody(){
+  const bg=document.getElementById('aiPanel'), el=document.getElementById('aiBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(aiIsOpen? ' open' : '');
+  if(!aiIsOpen){ el.innerHTML=''; return; }
+  const intro='<div class="hint">An independent assessment for you to decide on. ORBIT does not call the AI and does not change anything from this list: '
+    +'<b>🤖 Export for AI review</b> writes the request, you give it to GenAI.mil, and <b>Import the AI’s answer</b> reads its answer here. '
+    +'Each line is checked against the board; a line the board disagrees with is marked. The list is kept in this tab only.</div>';
+  const acts='<div class="fr" style="gap:8px;margin:8px 0">'
+    +'<button type="button" class="btn" onclick="aiExport()">🤖 Export for AI review…</button>'
+    +'<button type="button" class="btn" onclick="document.getElementById(\'aiFile\').click()">⬆ Import the AI’s answer…</button></div>';
+  if(!AIREV){ el.innerHTML=intro+acts+'<div class="hint">No answer read in this tab yet.</div>'; return; }
+  const R=AIREV.rows, cnt=function(fn){ return R.filter(fn).length; };
+  const fb=function(k, lbl, n){ return '<button type="button" class="nb chip'+(aiShow===k?' on':'')+'" aria-pressed="'+(aiShow===k)+'" onclick="aiFilter('+jsa(k)+')">'+lbl+' '+n+'</button>'; };
+  const show=R.filter(function(r){ return !aiShow || (aiShow==='check'? !r.ok : r.kind===aiShow); });
+  const row=function(r){
+    const it=itemById(r.id);
+    const what=r.kind==='suggestion'
+      ? esc(AI_FIELDS[r.field]||r.field||'?')+': '+(r.now? esc(r.now) : '<i>not set</i>')+' → <b>'+esc(r.value)+'</b>'
+      : (r.year? 'FY'+(r.year%100)+' ' : '')+(r.measure? esc(AI_MEASURES[r.measure])+' ' : '')+(r.figure!==null && !isNaN(r.figure)? fM(r.figure) : '');
+    return '<tr'+(r.ok? '' : ' class="aibad"')+'><td>'+r.n+'</td>'
+      +'<td>'+(it? '<b>'+esc(dispTitle(it))+'</b><div class="hint">'+esc(r.id)+'</div>' : esc(r.id||'—'))+'</td>'
+      +'<td>'+esc(r.kind||'?')+(r.sev? '<div class="hint">'+esc(r.sev)+'</div>' : '')+'</td>'
+      +'<td>'+what+'</td><td class="aireason">'+esc(r.reason)+'</td>'
+      +'<td>'+(r.checks.length? '⚠ '+esc(r.checks.join('; ')) : '✓ agrees with the board')+'</td>'
+      +'<td>'+(it? '<button type="button" class="btn" onclick="aiGo('+jsa(r.id)+')">Go to it</button>' : '')+'</td></tr>'; };
+  el.innerHTML=intro+acts
+    +'<div class="hint">'+esc(AIREV.file)+' · read '+esc(shortTs(AIREV.ts))+'</div>'
+    +'<div class="fr" style="gap:6px;flex-wrap:wrap;margin:6px 0">'+fb('', 'Every finding', R.length)+fb('anomaly', 'Anomalies', cnt(function(r){ return r.kind==='anomaly'; }))
+      +fb('suggestion', 'Suggestions', cnt(function(r){ return r.kind==='suggestion'; }))+fb('check', 'The board disagrees', cnt(function(r){ return !r.ok; }))+'</div>'
+    +'<div style="overflow-x:auto"><table class="fctab aitab"><thead><tr><th>#</th><th>Requirement</th><th>Kind</th><th>What</th><th>The AI’s reasoning</th><th>Checked against the board</th><th></th></tr></thead><tbody>'
+    +(show.length? show.map(row).join('') : '<tr><td colspan="7">Nothing in this view.</td></tr>')+'</tbody></table></div>';
+}
+
+// ==============================================================================================================
+// §CLR CLEAR THIS COMPUTER (v2.04, item 106; Brad's go of 22 Oct 2026)
+//      Everything ORBIT keeps in this browser, removed in one action: every storage key it writes (each one begins `prio27`
+//      or `spmt` -- the boards, the side lists, the kept-aside work, the writer key, the settings, a PMO copy's own keys),
+//      the same in this tab's session storage, and the remembered save file (IndexedDB `prio-fh`). THE BOARD FILE IS NOT
+//      TOUCHED: it is the record, and what it holds opens again exactly as saved. What is lost is what no file holds --
+//      unsaved changes and work kept aside -- so the question names both when they are there, and the page reopens from
+//      the file at once, before anything can write to storage again.
+// ==============================================================================================================
+const CLR_PREFIX=/^(prio27|spmt)/;
+function clearComputerKeys(){
+  const out=[];
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && CLR_PREFIX.test(k)) out.push(k); } }catch(e){}
+  return out;
+}
+function clearComputerRun(){
+  const keys=clearComputerKeys(), left=[];
+  keys.forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+  try{ for(let i=sessionStorage.length-1;i>=0;i--){ const k=sessionStorage.key(i); if(k && CLR_PREFIX.test(k)) sessionStorage.removeItem(k); } }catch(e){}
+  try{ indexedDB.deleteDatabase('prio-fh'); }catch(e){}
+  clearComputerKeys().forEach(function(k){ left.push(k); });
+  return {n:keys.length, left:left};
+}
+function clearComputer(){
+  if(cycBlock('Clearing this computer')) return;
+  const keys=clearComputerKeys();
+  let kept=false; try{ kept=!!localStorage.getItem((_AP&&_AP.key? _AP.key : '')+'.kept'); }catch(e){}
+  const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;
+  const warn=(unsaved? '\n\n⚠ This board has UNSAVED CHANGES. They are in this browser only and will be lost. Cancel and 💾 Save first to keep them.' : '')
+    +(kept? '\n\n⚠ Work KEPT ASIDE in this browser will be lost. Cancel and save it as a file first (History & recovery).' : '');
+  if(!confirm('Clear this computer?\n\nThis removes everything ORBIT keeps in this browser ('+keys.length+' item'+(keys.length===1?'':'s')
+    +'): the copies of every board and list, work kept aside, your editor name and writer key, your settings, and the remembered save file.'
+    +'\n\nThe board FILE is not touched: the page reopens from it, exactly as last saved. Next time you save, you will be asked where, '
+    +'and to take the pen again.'+warn)) return;
+  if((unsaved || kept) && !confirm('Last check: the '+(unsaved? 'unsaved changes' : '')+(unsaved&&kept? ' and the ' : '')+(kept? 'work kept aside' : '')
+    +' will be gone for good. Clear anyway?')) return;
+  const R=clearComputerRun();
+  try{ DIRTY=false; }catch(e){}
+  if(R.left.length){ alert('Cleared '+(R.n-R.left.length)+' of '+R.n+' items; '+R.left.length+' could not be removed ('+R.left.join(', ')+'). The page reopens from the file now.'); }
+  try{ window.onbeforeunload=null; }catch(e){}
+  try{ location.reload(); }catch(e){}
+  return R;
 }
 
 function execSynopsis(){
@@ -30978,7 +31242,7 @@ function exportAceTieout(){
     sheets.push({name:'How to read this', cols:[110], rows:rows});
   }
 
-  const bytes=buildXlsx(sheets);
+  const bytes=buildXlsx(sheets, null, xlsxHouse('ACE Tie-Out'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -32109,7 +32373,7 @@ function exportExcel(){
                    merges:obligMerges.map(m=>({r:m.r+at, c:m.c, cs:m.cs}))});
     }
   });
-  const bytes=buildXlsx(sheets, XTRA);
+  const bytes=buildXlsx(sheets, XTRA, xlsxHouse('Prioritization Board'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -32447,6 +32711,7 @@ function inspectorBody(){
         + '<span class="fl">CCaR record</span><span class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</span></button>'
       + '<button type="button" class="insp-f' + (pid ? '' : ' empty') + '" onclick="editPid('+jsa(id)+')">'
         + '<span class="fl">PID</span><span class="fv">' + (pid ? esc(pid) : '+ assign') + '</span></button>'
+      + ccarInspHtml(id, it)
       + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
         + '<div class="fl">Decision band</div>'
         + '<div class="fv"><select style="width:100%" onchange="setBand('+jsa(id)+',this.value)"'
@@ -32986,7 +33251,7 @@ function exportCoa(){
       {v:r.flags.join('  ·  '),s:0}]);
   });
 
-  const bytes=buildXlsx([s1,s2,s3]);
+  const bytes=buildXlsx([s1,s2,s3], null, xlsxHouse('Chart of Accounts'));
   if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));

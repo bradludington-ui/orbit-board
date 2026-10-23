@@ -8,9 +8,9 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 46 | 322 | 120 | 52 / 50 / 18 — 6 at display precision | 202 | **0** |
-| money-coverage registry | 29 | 203 | 78 | 43 / 25 / 10 — 3 at display precision | 125 | **0** |
-| trace-matrix surfaces | 17 | 119 | 42 | 9 / 25 / 8 — 3 at display precision | 77 | **0** |
+| **every registered surface** | 47 | 329 | 119 | 53 / 50 / 16 — 6 at display precision | 209 | **1** |
+| money-coverage registry | 30 | 210 | 78 | 44 / 25 / 9 — 3 at display precision | 131 | **1** |
+| trace-matrix surfaces | 17 | 119 | 41 | 9 / 25 / 7 — 3 at display precision | 78 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
 
@@ -46,6 +46,7 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `forecast` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | n/a |
 | `exportFcView` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | n/a |
 | `srcRowsOf` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | proven·A |
+| `aiExport` | money-coverage | n/a | **OPEN** | n/a | proven·A | n/a | n/a | n/a |
 | `exportSrc` | money-coverage | n/a | n/a | proven·A | proven·A | proven·A | n/a | proven·A |
 | `crExportRows` | money-coverage | n/a | n/a | n/a | proven·A | n/a | proven·A | n/a |
 | `exportExcel` | money-coverage | n/a | n/a | proven·AG | proven·AG | proven·AG | proven·AG | proven·AG |
@@ -58,7 +59,7 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `execSynopsis` | money-coverage | n/a | proven·A | proven·G | proven·G | n/a | n/a | proven·G |
 | `exportAceTieout` | money-coverage | n/a | proven·A | n/a | proven·G | n/a | n/a | n/a |
 | `exportCycCompare` | money-coverage | n/a | proven·G | n/a | proven·G | n/a | n/a | proven·G |
-| `exportFydpPlan` | money-coverage | proven·G | proven·G | proven·AG | proven·G | n/a | n/a | proven·G |
+| `exportFydpPlan` | money-coverage | proven·G | proven·G | proven·G | proven·G | n/a | n/a | n/a |
 | `cycDelta` | money-coverage | n/a | proven·AG | n/a | proven·AG | n/a | n/a | proven·A |
 | `cycProjOf` | money-coverage | n/a | proven·G | proven·G | proven·G | n/a | n/a | proven·G |
 | `spGather` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | n/a |
@@ -81,12 +82,17 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `ppt · KPI slide` | trace › `exportPPT` | n/a | n/a | n/a | n/a | n/a | n/a | proven·AG·d |
 | `ppt · Funding by Stream` | trace › `exportPPT` | n/a | n/a | proven·G·d | n/a | n/a | n/a | proven·G·d |
 | `cycle deltas (panel, now)` | trace › `cycDelta` | n/a | proven·AG | n/a | proven·AG | n/a | n/a | proven·A |
-| `xl · FYDP Spend Plan` | trace › `exportFydpPlan` | proven·G | proven·G | proven·AG | proven·G | n/a | n/a | proven·G |
+| `xl · FYDP Spend Plan` | trace › `exportFydpPlan` | proven·G | proven·G | proven·G | proven·G | n/a | n/a | n/a |
 | `xl · Cycle Comparison` | trace › `exportCycCompare` | n/a | proven·G | n/a | proven·G | n/a | n/a | proven·G |
 | `Spruills (screen)` | trace › `spGather` | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `Spruills · PMO drill` | trace › `pmoDetail` | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
-## What remains open — 0 cell(s), for Brad to build or explicitly defer
+## What remains open — 1 cell(s), for Brad to build or explicitly defer
+
+### v2.04 follow-ups
+
+- **`aiExport` × Fiscal year** — the request prints every FYDP year the working plan holds; the check holds only the year on screen, on a fixture with one year
+  - *To close:* small: a second held year with different figures in the item 109 block, each year's figures checked against that year's own state
 
 ## Found while mapping
 
@@ -215,6 +221,18 @@ Money-coverage surface. Spend Plan Source rows: one line per requirement, servic
 - **Month** — proven·A: `export-audit/audit-recon.mjs` › *W7 — F2: the Spend Plan Source dates an incremental award a line per increment* [arithmetic] — every line's Month and Date: an incremental award a line per increment on its own day (v1.95 F2, option (a)), held against the forecast and the CR windows as well
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
 - **Funding lane** — proven·A: `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]
+
+### `aiExport`
+
+Money-coverage surface. The AI review request (v2.04, item 109): each requirement's ask, allocated, funded and unfunded per FYDP year, for GenAI.mil to read.
+
+- **Appropriation** — n/a: Built on one appropriation's page from that page's own state — the engine holds one appropriation per page (DATA, SVC and S are its constants) — so it prints no other appropriation's money.
+- **Fiscal year** — **OPEN** (v2.04 follow-ups): the request prints every FYDP year the working plan holds; the check holds only the year on screen, on a fixture with one year
+- **Service** — n/a: Each figure is the requirement's sum across services; no figure is broken out by service.
+- **Requirement** — proven·A: `export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* [arithmetic]
+- **Month** — n/a: Places no money in time: no month, no date, no window.
+- **CR half** — n/a: Places no money in time: no month, no date, no window.
+- **Funding lane** — n/a: States funded money as discretionary + mandatory together; no figure is one lane on its own.
 
 ### `exportSrc`
 
@@ -362,15 +380,15 @@ Money-coverage surface. Two cycles compared: A, B and Δ per year — by require
 
 ### `exportFydpPlan`
 
-Money-coverage surface. The five-year spend plan: by requirement, office and service per year, the PMO tabs across every appropriation, the PPBE position and the estimate beside it.
+Money-coverage surface. The five-year spend plan (v2.04): a Summary, a tab per appropriation, per service and per PMO, Requirement and Allocated per year, base year + 4.
 
 - **Appropriation** — proven·G: `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — a locked cycle is read as locked, and a missing lock is said* [agreement]
 - **Fiscal year** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]; `export-audit/audit-recon.mjs` › *v1.95 — the five-year plan files each year under that year’s PMO* [agreement] — each year filed under the PMO that year assigns (Brad’s Q2)
-- **Service** — proven·AG: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-recon.mjs` › *the PPBE position beside the plan* [arithmetic]; `export-audit/audit-recon.mjs` › *the cost estimate beside the plan* [arithmetic]
+- **Service** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]
 - **Requirement** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]
 - **Month** — n/a: Places no money in time: no month, no date, no window.
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
-- **Funding lane** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement] — Disc BA and Mand BA per service per year; funded is not split by lane on this export
+- **Funding lane** — n/a: States funded money as discretionary + mandatory together; no figure is one lane on its own.
 
 ### `cycDelta`
 
@@ -638,15 +656,15 @@ Trace-matrix surface of `cycDelta`. The Changes panel's 'Now' side against the l
 
 ### `xl · FYDP Spend Plan`
 
-Trace-matrix surface of `exportFydpPlan`. The FYDP spend plan workbook's column for the year on screen.
+Trace-matrix surface of `exportFydpPlan`. The FYDP spend plan workbook's appropriation tab, the year on screen: Requirement and Allocated (the board's Funded).
 
 - **Appropriation** — proven·G: `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — a locked cycle is read as locked, and a missing lock is said* [agreement]
 - **Fiscal year** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]
-- **Service** — proven·AG: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-recon.mjs` › *the PPBE position beside the plan* [arithmetic]; `export-audit/audit-recon.mjs` › *the cost estimate beside the plan* [arithmetic]
+- **Service** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]
 - **Requirement** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]
 - **Month** — n/a: Places no money in time: no month, no date, no window.
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
-- **Funding lane** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement] — Disc BA and Mand BA per service per year; funded is not split by lane on this export
+- **Funding lane** — n/a: States funded money as discretionary + mandatory together; no figure is one lane on its own.
 
 ### `xl · Cycle Comparison`
 
@@ -718,10 +736,8 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `re.coa` | `tools/export-audit/audit-recon.mjs` › *the chart of accounts* | arithmetic | Chart of accounts: one row per requirement with this year's override; the appropriation summary; a consolidated Full Fund slot with its own override and service count. |
 | `re.ace` | `tools/export-audit/audit-recon.mjs` › *the ACE tie-out* | agreement | ACE tie-out on the year on screen: board funded (the lane draw), estimate (the confirmed lines) and delta per requirement and per PMO; a line nobody aligns to is stated and kept out. |
 | `re.cr` | `tools/export-audit/audit-recon.mjs` › *CR cash needs — the sheet cross-foots* | agreement | CR Cash Needs: every service row, window by window and No date, is crData()'s; TOTAL and CUMULATIVE. |
-| `re.fydp` | `tools/export-audit/audit-recon.mjs` › *the five-year spend plan* | agreement | FYDP spend plan: every requirement × year × requirement/allocated/funded/unfunded against the engine (a second year under aceWithYear); subtotals, TOTAL, By PMO, By Service with both pots per year; the panel; a locked report as locked. |
+| `re.fydp` | `tools/export-audit/audit-recon.mjs` › *the five-year spend plan* | agreement | FYDP spend plan (v2.04): every tab read back as blocks of lines -- the appropriation tab, each service tab (its own dollars, only the requirements it carries) and each PMO tab (each year under that year's office), 1-N under its CCaR record printed once, no record last; Requirement and Allocated (d+m) per year against the engine (a second year under aceWithYear), — for a year not held, line totals and TOTAL; the Summary's roll-ups and portfolio by year; the panel's views; a locked plan as locked; the picker on the plan on screen. |
 | `re.cmp` | `tools/export-audit/audit-recon.mjs` › *comparing two cycles* | agreement | Cycle comparison: every requirement × year Δ (and A, B) against the engine before and after; totals, Σ rows = total Δ, Changes, By PMO; agrees with cycDelta; two locks. |
-| `re.ppbe` | `tools/export-audit/audit-recon.mjs` › *the PPBE position beside the plan* | arithmetic | FYDP By Service: the typed PPBE position per service and year, the requirement less it, TOTAL, blank years and services. |
-| `re.aceFydp` | `tools/export-audit/audit-recon.mjs` › *the cost estimate beside the plan* | arithmetic | FYDP: the estimate per requirement, PMO and service per year, never another appropriation's lines. |
 | `w6.book` | `tools/export-audit/audit-recon.mjs` › *W6 — the breakouts workbook: every requirement, service, lane, month and window* | agreement | The workbook read back from its bytes: every service row of Funding Streams, every requirement row of Decision Bands (and the band summary and running totals), the three lists and Unfunded Requirements, every office × service × lane of the PMO Matrix and its BA and unfunded blocks, every PMO tab's portion sections and obligation report (month by month), every CR requirement line window by window, and the RCN-EEIC and SI month sheets month by month — against tiers' lane vectors, the clamped basis, the fixture's budget authority and its award date. |
 | `w6.ce` | `tools/export-audit/audit-recon.mjs` › *W6 — the cost-element sheets: every cost element, service and lane* | agreement | Cost Element Matrix: every cost element × service × lane, MC columns, BA and unfunded blocks; CE by PMO: every office and cost element line — against the lane walk. |
 | `w6.drill` | `tools/export-audit/audit-recon.mjs` › *W6 — the priority drill, the deck and the synopsis: every requirement, service and lane* | agreement | The drill read back: every requirement row (allocated, both lanes, funded, both readings, funded per service) on 1-N by Band and its PMO tab, the Summary's budget authority, bands and PMO × band; the deck's stream table per service (both pots and draws), PMO table and Unfunded slide per requirement; the synopsis per service and lane, MC per service and per short requirement. |
@@ -759,8 +775,8 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `pp.kpi` | `tools/export-audit/audit-ppt.mjs` › *SCENARIOS — the KPI table* | agreement | The KPI slide: discretionary funded, mandatory drawn, MC total and short, the floor — at the slide's format (fSM). |
 | `pp.stream` | `tools/export-audit/audit-ppt.mjs` › *SCENARIOS — Funding by Stream* | agreement | The stream slide, every service: ask, disc funded, mand drawn and both readings — at fSM (whole dollars below $1,000, which the suite's fixtures are). |
 | `pp.mc` | `tools/export-audit/audit-ppt.mjs` › *SCENARIOS — the Mission Critical slide* | agreement | The MC slide: each starred requirement's value and short, and the totals. |
-| `im.v185` | `tools/export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* | agreement | The FYDP PMO tabs on a three-appropriation file: every block's requirement and allocation per year and FYDP is what that appropriation's own board prints, every requirement line once. |
-| `im.v185lock` | `tools/export-audit/audit-import.mjs` › *v1.85 — a locked cycle is read as locked, and a missing lock is said* | agreement | The FYDP PMO tabs for a locked cycle: each appropriation's block ties to its own locked report; one with no lock is refused, never replaced. |
+| `im.v185` | `tools/export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* | agreement | The FYDP workbook on a three-appropriation file: each appropriation's tab, and its block on every service and PMO tab, is what that appropriation's own board prints, line for line; every line and TOTAL foots; — for years no plan holds; one record however it is cased. |
+| `im.v185lock` | `tools/export-audit/audit-import.mjs` › *v1.85 — a locked cycle is read as locked, and a missing lock is said* | agreement | The FYDP workbook for a locked cycle: each appropriation's tab and blocks tie to its own locked report; one with no lock is refused on the Summary and its tab, never replaced. |
 | `im.months` | `tools/export-audit/audit-import.mjs` › *v1.86 — every funded dollar lands in a month or UNSCHEDULED, by one rule* | arithmetic | The forecast's months and UNSCHEDULED (written from the fixture); CR windows folded to months; CR by PMO; the 1A9A rows; the PMO tabs' spend plans add to the forecast. |
 | `im.deckChart` | `tools/export-audit/audit-import.mjs` › *v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar* | arithmetic | The deck's spend-plan chart: every month and UNSCHEDULED to the dollar, and each pot per bar. |
 | `im.switch` | `tools/export-audit/audit-import.mjs` › *v1.86 — the ◨ switch moves every spend plan together, and the pot views stay put* | arithmetic | The discretionary-only switch withholds mandatory from every spend plan (forecast, CR panel, fit chart, PMO tab spend plan) and moves no pot view. |
@@ -770,7 +786,7 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `bo.drillOther` | `tools/export-audit/audit-board.mjs` › *v1.95 — the PMO drill reads another appropriation from its own state* | arithmetic | Another appropriation’s requirement is filed under the PMO its own state gives, once (ids colliding across appropriations); its Controls are printed as unknown, not guessed; its Spruills rows by PMO. |
 | `bo.spruills` | `tools/export-audit/audit-board.mjs` › *Spruills reads the board it is on* | arithmetic | The board’s own block, year on screen: Total Requirements = the asks, Available Funding = disc + mand, Delta, the rows by PMO adding to the total. |
 | `bo.spruillsYears` | `tools/export-audit/audit-board.mjs` › *v1.95 — the Spruills by service, by year and for another appropriation* | arithmetic | By hand, two years whose asks and budgets differ: the board’s rows by service, Total Requirements, Available Funding and Delta each year; Full Fund (three services, its own payload and state) the same, and its rows by PMO with an override and an added requirement; rows add to the total in every block and year. |
-| `re.fydpPmo` | `tools/export-audit/audit-recon.mjs` › *v1.95 — the five-year plan files each year under that year’s PMO* | agreement | A requirement in AV, then TSS, then AV: each PMO’s Requirement, Allocated, Funded and Unfunded per year equal that year’s projection by PMO (read through aceWithYear) and the lock’s PMO roll-up, to the dollar; By Requirement and the PMO tabs file each year under that year’s PMO; totals unchanged. |
+| `re.fydpPmo` | `tools/export-audit/audit-recon.mjs` › *v1.95 — the five-year plan files each year under that year’s PMO* | agreement | A requirement in AV, then TSS, then AV: each PMO's Requirement and Allocated per year on the Summary equal that year's projection by PMO (read through aceWithYear) and the lock's PMO roll-up, to the dollar; the PMO tabs carry it for the years that office held it, 0 for the others; totals unchanged. |
 | `re.cmpPmo` | `tools/export-audit/audit-recon.mjs` › *v1.95 — the cycle comparison files each year under that year’s PMO* | agreement | Two locks that disagree about a requirement’s PMO in one year: each PMO’s A, B and Δ per year equal each cycle’s own PMO roll-up; the requirement sits under the right PMO on each side; totals and every Changes CHECK unchanged. |
 | `tr.spruills` | `tools/trace-lib.mjs` › *1g. the Spruills and its PMO drill (the trace matrix)* | agreement | On the trace fixtures, the year on screen: the Spruills table’s requirement and the drill’s added over every PMO against the truth; the drill’s Controls whole dollars, adding to the year’s projection, and the same from Board budgets as from the lock just taken. |
 | `w7.f5` | `tools/export-audit/audit-recon.mjs` › *W7 — F5: the CR Cash Needs footnote states the rule since v1.94* | arithmetic | The CR Cash Needs sheet read back: its footnote says each award sits in the half of the month its own date falls in, and nothing on it says to flip a half; (control) an award on the 20th sits in the second half. |
@@ -781,3 +797,4 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `w7.f2` | `tools/export-audit/audit-recon.mjs` › *W7 — F2: the Spend Plan Source dates an incremental award a line per increment* | arithmetic | The Spend Plan Source read back: every line — requirement, service and lane (its BAE budget, verbatim), Date, Month and Amount — against a table written from the fixture (an incremental award stored out of order: a line per increment on its own day, discretionary forward, mandatory backward, the uncovered remainder on 31 August; a day past the month's end its last day; a single award date, and none, one line as before); each requirement's lines per service and lane add up to the lane's draw; an increment's lines differ only in Month, Date and Amount; the same columns. Agreement too: each service's lines by month are forecast()'s months and UNSCHEDULED, each requirement's CR windows crData()'s, each lane's lines spendPlanByMonth()'s. |
 | `v199.flow` | `tools/export-audit/audit-recon.mjs` › *v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year* | arithmetic | The panel set to FY25 + FY26, O&M only: the export states that scope, US $3,000 (O&M’s two years), partner $300 once and labelled portfolio-wide, $3,300, and no Full Fund line; FY27 across every appropriation: O&M planned $5,000 and Full Fund executed $800, $5,800, with the mix named. Every figure is the fixture’s own arithmetic. |
 | `v199.ace` | `tools/export-audit/audit-recon.mjs` › *v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for* | arithmetic | Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same. |
+| `ot.aiReview` | `tools/export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* | arithmetic | The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes. |

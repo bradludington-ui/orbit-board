@@ -175,6 +175,28 @@ console.log('\noffline');
   else pass('no linked scripts or stylesheets');
 }
 
+// ---- 5b. the Content-Security-Policy (v2.04, item 106): the browser refuses any connection to another host ---------------
+// The file makes no request to another host since items 110-111; the policy makes sure one added by mistake cannot. It must
+// be in the head, before any script, and no directive may name a host or a network scheme.
+console.log('\ncontent security policy');
+{
+  const m = src.match(/<meta http-equiv="Content-Security-Policy" content="([^"]*)">/);
+  if (!m) fail('the Content-Security-Policy meta tag is missing');
+  else {
+    const pol = m[1], at = src.indexOf(m[0]), firstScript = src.search(/<script\b/i);
+    const dir = Object.fromEntries(pol.split(';').map(s => s.trim()).filter(Boolean).map(s => { const p = s.split(/\s+/); return [p[0], p.slice(1)]; }));
+    if (firstScript >= 0 && at > firstScript) fail('the policy comes after a script, so that script runs unchecked');
+    else pass('the policy is set before any script runs');
+    const net = pol.split(/[;\s]+/).filter(x => /^(https?:|wss?:|\*|[a-z0-9.-]+\.[a-z]{2,})/i.test(x));
+    if (net.length) fail(`the policy allows a network source: ${net.join(', ')}`);
+    else pass('no directive allows a host or a network scheme');
+    for (const d of ['default-src', 'connect-src', 'object-src', 'base-uri', 'form-action'])
+      if (!dir[d]) fail(`the policy has no ${d}`);
+    if (dir['connect-src'] && dir['connect-src'].join(' ') !== "'self' file: data: blob:") fail(`connect-src is "${dir['connect-src'].join(' ')}"`);
+    else pass("connect-src is 'self' file: data: blob:");
+  }
+}
+
 // ---- every inline handler names a function that exists --------------------------------------
 // A control whose handler was renamed does not throw at load and does not look broken: the markup
 // is there, the checkbox draws, the click raises a ReferenceError into the console and NOTHING

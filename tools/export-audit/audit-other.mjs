@@ -10,7 +10,7 @@
 // Amount column is now what DISCRETIONARY paid, straight out of the lane walk. While it was listed
 // there it had no money check at all, and changing its basis moved a fixture total from 285 to 150
 // with all twelve suites still green.
-import { boot, seed, cv, stopAtFirstFailure } from './boot.mjs';
+import { boot, seed, cv, stopAtFirstFailure, BOARD } from './boot.mjs';
 
 const failures = [];
 stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
@@ -1492,6 +1492,290 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const panel = ev(`(function(){ planOpen=true; planOnly=''; planBody(); var h=(document.getElementById('planBody')||{}).innerHTML||''; planOpen=false; planBody(); return h; })()`);
   chk(name, 'panel', 'the panel lists the unallocated requirement', panel.includes(ev(`esc(dispTitle(itemById('U')))`)), true);
   chk(name, 'panel', 'with a “not funded by either plan” filter counting it', /Not funded by either plan<span class="n">1<\/span>/.test(panel), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.04 (item 108): A RECORD NUMBER NAMES THE RECORD AND OFFERS ITS DESCRIPTION (Brad, 22 Oct 2026). Every expected value is
+// typed here from the records file below; none is read back from the board. A has its own number; B none, its two CLINs on one
+// record; C none, its CLINs on two records (option (a): "Multiple records (2)", a line per CLIN); D's number is held by two
+// records that disagree (no name, never a guess); E has its own number and a Description someone wrote.
+{
+  const name = 'v2.04 (item 108) — the CCaR records list names the record and offers its short description';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG'];
+  const mkI = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { w, ev } = boot();
+  seed(ev, { services: SV, items: ['A', 'B', 'C', 'D', 'E'].map(id => mkI(id, [10, 5])), disc: [100, 100], mand: [0, 0],
+    order: ['A', 'B', 'C', 'D', 'E'] });
+  ev(`S.ccar={A:'JSF1', D:'JSF9', E:'JSF5'}; S.desc={E:'Written by the office'}; S.ptype={B:'PRIME', C:'PRIME'};
+      CLINS.B=[{clin:'0001', desc:'b1', ccar:'JSF2', ask:[5,2]}, {clin:'0002', desc:'b2', ccar:'jsf 2', ask:[5,3]}];
+      CLINS.C=[{clin:'0001', desc:'c1', ccar:'JSF3', ask:[6,2]}, {clin:'0002', desc:'c2', ccar:'JSF4', ask:[4,3]}];
+      DATA.clins=CLINS; save(); render(); 'ok'`);
+  const names = () => ev(`['A','B','C','D','E'].map(function(id){ return recName(itemById(id)); }).join(' | ')`);
+  chk(name, 'before the list', 'CONTROL: with no records file, every Record Name is the data pack’s title', names(),
+    'A title | B title | C title | D title | E title');
+  const ROWS = [['CCaR No', 'Title', 'OPR', 'PMO', 'Control No', 'Short Description'],
+    ['JSF1', 'Engine overhaul record', 'OPR1', 'AV', '7001', 'Overhaul of the F135 engines'],
+    ['JSF2', 'Avionics record', 'OPR2', 'AV', '7002', 'Avionics spares'],
+    ['JSF3', 'Clin three record', 'OPR3', 'AV', '7003', 'Third CLIN work'],
+    ['JSF4', 'Clin four record', 'OPR4', 'AV', '7004', 'Fourth CLIN work'],
+    ['JSF5', 'Support record', 'OPR5', 'AV', '7005', 'Support equipment'],
+    ['JSF9', 'Nine A', 'OPR9', 'AV', '7009', 'Nine A work'],
+    ['JSF9', 'Nine B', 'OPR9', 'AV', '7010', 'Nine B work']];
+  const imp = rows => w.eval(`(async function(){ var b=buildXlsx([{name:'CCaR', cols:[10,20,8,8,8,30], rows:${J(rows)}}]);
+    var ab=b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength);
+    await importCcarRecs({files:[{name:'records.xlsx', arrayBuffer:async function(){ return ab; }}], value:''}); return 'ok'; })()`);
+  await imp(ROWS);
+  chk(name, 'Record Name', 'own number → the list’s Title; one shared CLIN record → its Title; two CLIN records → Multiple records (2); a number the list holds under disagreeing records → the data pack’s title, never a guess; own number → its Title',
+    names(), 'Engine overhaul record | Avionics record | Multiple records (2) | D title | Support record');
+  chk(name, 'import', 'importing the list writes no Description', ev(`JSON.stringify(S.desc)`), J({ E: 'Written by the office' }));
+  chk(name, 'Description offered', 'A: its record’s Short Description; B: the shared record’s; C: one line per CLIN; D: none',
+    ev(`['A','B','C','D'].map(function(id){ return ccarDescOf(itemById(id)); }).join(' || ')`),
+    'Overhaul of the F135 engines || Avionics spares || CLIN 0001 · JSF3 — Third CLIN work\nCLIN 0002 · JSF4 — Fourth CLIN work || ');
+  // TYPING A NUMBER fills an EMPTY Description, and only an empty one
+  ev(`globalThis.__p=window.prompt; window.prompt=function(){ return 'JSF2'; }; editCcar('D'); window.prompt=globalThis.__p; 'ok'`);
+  chk(name, 'typed number', 'D typed JSF2: Record Name and Description follow it', ev(`recName(itemById('D'))+' | '+((S.desc||{}).D||'')`),
+    'Avionics record | Avionics spares');
+  ev(`window.prompt=function(){ return 'JSF1'; }; editCcar('E'); window.prompt=globalThis.__p; 'ok'`);
+  chk(name, 'typed number', 'E typed JSF1: a written Description is kept', ev(`(S.desc||{}).E||''`), 'Written by the office');
+
+  const pE = ev(`(function(){ curRow='E'; try{ inspectorBody(); }catch(e){ return 'threw '+e.message; } return (document.getElementById('inspector')||{}).innerHTML||''; })()`);
+  chk(name, 'RECORD panel', 'E: the panel names the record and offers to REPLACE the Description', /CCaR Record Name[\s\S]*Engine overhaul record[\s\S]*Replace the Description with the CCaR one/.test(pE), true);
+  ev(`globalThis.__c=window.confirm; window.confirm=function(){ return false; }; ccarDescUse('E'); window.confirm=globalThis.__c; 'ok'`);
+  chk(name, 'RECORD panel', 'E: answered no, the written Description stays', ev(`(S.desc||{}).E||''`), 'Written by the office');
+  ev(`globalThis.__c=window.confirm; window.confirm=function(){ return true; }; ccarDescUse('E'); window.confirm=globalThis.__c; 'ok'`);
+  chk(name, 'RECORD panel', 'E: replaced only after the question is answered yes', ev(`(S.desc||{}).E||''`), 'Overhaul of the F135 engines');
+  // A NEWER LIST renames the record: the name is read, never copied
+  await imp(ROWS.map(r => r[0] === 'JSF1' ? ['JSF1', 'Engine overhaul — renamed', 'OPR1', 'AV', '7001', 'x'] : r));
+  chk(name, 'newer list', 'A’s Record Name follows the newer list', ev(`recName(itemById('A'))`), 'Engine overhaul — renamed');
+  chk(name, 'newer list', 'and E’s Description, now ordinary text, does not move', ev(`(S.desc||{}).E||''`), 'Overhaul of the F135 engines');
+  ev(`S.recNames={A:'Typed on the board'}; 'ok'`);
+  chk(name, 'typed name', 'a name typed on the board still wins', ev(`recName(itemById('A'))`), 'Typed on the board');
+  ev(`delete S.recNames.A; 'ok'`);
+  // THE SPEND PLAN SOURCE: a CLIN line carries the CLIN's own record, number and name
+  const src = JSON.parse(ev(`(function(){ var got='[]'; var ob=buildXlsx, oa=window.alert, oc=window.confirm;
+    window.alert=function(){}; window.confirm=function(){ return true; };
+    buildXlsx=function(s){ got=JSON.stringify(s); return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){ got='[]'; } buildXlsx=ob; window.alert=oa; window.confirm=oc; return got; })()`));
+  const rows = ((src[0] || {}).rows || []).slice(1);
+  const lines = rows.filter(r => txt(r[25])).map(r => `${txt(r[25])}:${txt(r[2])}:${txt(r[3])}`);
+  const uniq = [...new Set(lines)].sort().join(' | ');
+  chk(name, 'Spend Plan Source', 'every CLIN line carries the CLIN’s own CCaR number and Record Name', uniq,
+    '0001:JSF2:Avionics record | 0001:JSF3:Clin three record | 0002:JSF4:Clin four record | 0002:jsf 2:Avionics record');
+  chk(name, 'Spend Plan Source', 'CONTROL: a requirement line with its own number keeps it',
+    [...new Set(rows.filter(r => !txt(r[25]) && txt(r[2]) === 'JSF1').map(r => txt(r[3])))].join(','), 'Engine overhaul — renamed');
+  // THE CLIN DRILL shows each CLIN's own Record Name
+  const drill = ev(`(function(){ try{ return clinTable(itemById('C'))||''; }catch(e){ return 'threw '+e.message; } })()`);
+  chk(name, 'CLIN drill', 'each CLIN line names its own record', /Clin three record[\s\S]*Clin four record/.test(drill), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.04 (item 109): THE AI REVIEW ROUND TRIP (Brad, 22 Oct 2026). The request carries the plan's own figures; the answer is read
+// through the import door, laid out as a list and checked against the board; NOTHING on the board changes. Every expected figure
+// is worked from the fixture: A asks 100 + 50 = 150 and the lanes (disc 120/30, no mandatory) pay 100 + 30; B asks 80 and finds 20.
+{
+  const name = 'v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied';
+  try {
+  const J = JSON.stringify;
+  const mkI = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { w, ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [mkI('A', [100, 50]), mkI('B', [80, 0])], disc: [120, 30], mand: [0, 0], order: ['A', 'B'] });
+  ev(`S.costElem={A:'Airframe PGSE'}; save(); render(); 'ok'`);
+  const req = ev(`(function(){ var dl=[], oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ dl.push(this.download); };
+    var t=aiExport(); HTMLAnchorElement.prototype.click=oc; return JSON.stringify({t:t, dl:dl}); })()`);
+  const R = JSON.parse(req), body = JSON.parse(R.t.slice(R.t.lastIndexOf('\n{\n') + 1));
+  chk(name, 'request', 'one file is written, named for the request', R.dl.length === 1 && /^ORBIT AI review request/.test(R.dl[0]), true);
+  chk(name, 'request', 'it says the answer is advisory and gives the answer format', /ADVISORY/.test(R.t) && R.t.includes('"format":"orbitAiReview"'), true);
+  const yr = body.fiscalYearOnScreen;
+  chk(name, 'request', 'A’s figures for the year on screen: ask 150; funded 130 (USAF 100 + ANG 30, all ANG disc); unfunded 20',
+    J(body.requirements.find(r => r.id === 'A').years[yr]), J({ ask: 150, alloc: 150, fund: 130, unf: 20 }));
+  chk(name, 'request', 'B’s: ask 80, funded 20 (USAF disc 120 − A’s 100), unfunded 60',
+    J([body.requirements.find(r => r.id === 'B').years[yr]].map(y => [y.ask, y.fund, y.unf])), J([[80, 20, 60]]));
+  chk(name, 'request', 'it carries the board’s own values a suggestion may use', body.allowedValues.obCat.includes('UPL') && body.requirements[0].costElem === 'Airframe PGSE', true);
+  const before = ev(`JSON.stringify(MS)`);
+  const answer = 'Here is my review:\n```json\n' + J({ format: 'orbitAiReview', findings: [
+    { id: 'B', kind: 'anomaly', year: yr, measure: 'unf', figure: 60, severity: 'high', reason: 'Most of B is unfunded.' },
+    { id: 'B', kind: 'anomaly', year: yr, measure: 'fund', figure: 25, severity: 'low', reason: 'A misread figure.' },
+    { id: 'Z', kind: 'anomaly', severity: 'low', reason: 'A requirement the board does not hold.' },
+    { id: 'B', kind: 'suggestion', field: 'obCat', value: 'UPL', severity: 'medium', reason: 'Looks like an unfunded priority.' },
+    { id: 'A', kind: 'suggestion', field: 'costElem', value: 'Not a real element', severity: 'low', reason: 'Invented.' },
+    { id: 'A', kind: 'suggestion', field: 'costElem', value: 'Airframe PGSE', reason: 'Already right.' }] }) + '\n```\n';
+  await w.eval(`(async function(){ await aiImport({files:[{name:'answer.txt', size:${answer.length}, text:async function(){ return ${J(answer)}; }}], value:''}); return 'ok'; })()`);
+  const rows = JSON.parse(ev(`JSON.stringify(AIREV.rows.map(function(r){ return [r.id, r.kind, r.ok, r.checks.join('; ')]; }))`));
+  chk(name, 'answer', 'every finding is listed and checked against the board', J(rows), J([
+    ['B', 'anomaly', true, ''],
+    ['B', 'anomaly', false, 'the board says $20, not $25'],
+    ['Z', 'anomaly', false, 'no requirement “Z” on this board'],
+    ['B', 'suggestion', true, ''],
+    ['A', 'suggestion', false, '“Not a real element” is not one of the board’s Cost element values'],
+    ['A', 'suggestion', true, 'already set to this']]));
+  chk(name, 'answer', 'NOTHING on the board changed: the whole store is byte for byte as before', ev(`JSON.stringify(MS)`) === before, true);
+  const panel = ev(`(document.getElementById('aiBody')||{}).innerHTML||''`);
+  chk(name, 'list', 'the list is open, shows the AI’s reasoning and a Go to it for each requirement on the board',
+    ev(`document.getElementById('aiPanel').className`) + ' | ' + (panel.includes('Most of B is unfunded.') && (panel.match(/aiGo\(/g) || []).length), 'modal-bg open | 5');
+  const refused = await w.eval(`(async function(){ var said=''; var oa=window.alert; window.alert=function(m){ said=String(m); };
+    await aiImport({files:[{name:'bad.json', size:40, text:async function(){ return '{"format":"orbitAiReview","findings":[{"__proto__":{"x":1}}]}'; }}], value:''});
+    window.alert=oa; return said; })()`);
+  chk(name, 'door', 'an answer carrying a built-in name is refused at the import door, and the list read before stays',
+    /was not read as an AI review/.test(refused) && ev(`AIREV.file`) === 'answer.txt', true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.04 (item 106): CLEAR THIS COMPUTER removes everything ORBIT keeps in the browser and nothing else, asks first (twice when
+// unsaved work would go), and leaves the board file alone.
+{
+  const name = 'v2.04 (item 106) — Clear this computer';
+  try {
+  const { ev } = boot();
+  seed(ev, { services: ['USAF'], items: [{ id: 'A', grp: 'AV', team: 'AV', sect: '', custom: false, title: 'A', event: 'A', ccar: '', fy26: [0], ask: [10], alloc: null }],
+    disc: [10], mand: [0], order: ['A'] });
+  ev(`localStorage.setItem('prio27om','{}'); localStorage.setItem('prio27om.kept','{"x":1}'); localStorage.setItem('spmtTheme','harbor');
+      localStorage.setItem('prio27who','Brad'); localStorage.setItem('someoneElse','keep me'); sessionStorage.setItem('spmtX','1'); 'ok'`);
+  const keys = () => ev(`(function(){ var a=[]; for(var i=0;i<localStorage.length;i++) a.push(localStorage.key(i)); return a.sort().join(','); })()`);
+  const before = keys();
+  const run = answers => ev(`(function(){ var q=${JSON.stringify(answers)}, asked=[]; var oc=window.confirm;
+    window.confirm=function(m){ asked.push(String(m)); return q.length? q.shift() : false; };
+    try{ location.reload=function(){}; }catch(e){}
+    try{ clearComputer(); }catch(e){ asked.push('threw '+e.message); }
+    window.confirm=oc; return JSON.stringify(asked); })()`);
+  ev(`DIRTY=true; 'ok'`);
+  let asked = JSON.parse(run([false]));
+  chk(name, 'declined', 'answered no: nothing is removed', keys(), before);
+  chk(name, 'declined', 'the question names the unsaved changes and the work kept aside', /UNSAVED CHANGES/.test(asked[0]) && /KEPT ASIDE/.test(asked[0]), true);
+  asked = JSON.parse(run([true, false]));
+  chk(name, 'last check', 'with work that would be lost, a second question; answered no, nothing is removed', asked.length === 2 && keys() === before, true);
+  asked = JSON.parse(run([true, true]));
+  chk(name, 'cleared', 'every prio27 and spmt key goes; a key ORBIT does not own stays', keys(), 'someoneElse');
+  chk(name, 'cleared', 'this tab’s session storage too', ev(`String(sessionStorage.getItem('spmtX'))`), 'null');
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.04 (item 113): THE HOUSE STYLE -- every report workbook dressed for briefing, the figures untouched. Brad, 22 Oct 2026:
+// "Only update the style for now." So the check is that nothing but the style moved: each export's workbook, read back,
+// holds exactly the values the same sheets hold written plain; every part is XML another program can read; every count
+// the stylesheet declares is what it holds and every cell's style is one it declares; the cells of a row are in column
+// order and a sheet's parts in the schema's order (Excel refuses either); a sheet that must stay as it is -- the IDS
+// template's Requirement v1 -- is written byte for byte as before; the footer's & is a code, so a literal one is
+// doubled and then escaped. The five-year plan's Summary carries a chart read off its own cells, and its tabs print
+// their headings on every page. The Spend Plan Source and the 1A9A are never dressed: CCaR and the comptroller read them.
+{
+  const name = 'v2.04 (item 113) — the house style: every report dressed, no figure moved';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, SCENARIOS[Object.keys(SCENARIOS)[0]]);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      window.confirm=function(){ return true; }; window.alert=function(){}; HTMLAnchorElement.prototype.click=function(){};
+      S.awards={}; S.awards[S.order[0]]={mode:'single', d:FYMON[2][0], day:3}; applyState(S); MS.years[MS.cur]=S; MS.base=MS.cur; save();
+      blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; fydpSrc='working'; 'ok'`);
+  // the stored zip's parts, each read as another program reads XML; the arguments the export handed the writer
+  ev(`window.__houseParts=function(u){ var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), o={};
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; } return o; }; 'ok'`);
+  const run = async (call) => JSON.parse(await ev(`(async function(){
+    var o=buildXlsx, args=null, got=null;
+    buildXlsx=function(sh, ex, op){ args=[JSON.parse(JSON.stringify(sh)), ex? JSON.parse(JSON.stringify(ex)) : ex, op? JSON.parse(JSON.stringify(op)) : op]; got=o(sh, ex, op); return got; };
+    try{ ${call}; }catch(e){ buildXlsx=o; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    buildXlsx=o;
+    if(!got) return JSON.stringify({err:'no workbook'});
+    var plain=o(args[0], args[1], null), parts=__houseParts(got), pp=__houseParts(plain), bad=[], sch=[], ord=[], xfs=[];
+    var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); };
+    Object.keys(parts).forEach(function(k){ if(/\\.(xml|rels)$/.test(k) && P(parts[k]).getElementsByTagName('parsererror').length) bad.push(k); });
+    var st=P(parts['xl/styles.xml']), cnt={};
+    ['numFmts','fonts','fills','borders','cellXfs'].forEach(function(t){ var e=st.getElementsByTagName(t)[0]; if(e) cnt[t]=[+e.getAttribute('count'), e.children.length]; });
+    var nxf=cnt.cellXfs? cnt.cellXfs[1] : 0;
+    var ORDER=['sheetPr','dimension','sheetViews','sheetFormatPr','cols','sheetData','mergeCells','printOptions','pageMargins','pageSetup','headerFooter','drawing'];
+    var sheets={};
+    Object.keys(parts).filter(function(k){ return /^xl\\/worksheets\\/sheet\\d+\\.xml$/.test(k); }).forEach(function(k){
+      var d=P(parts[k]), ws=d.documentElement, kids=[].slice.call(ws.children).map(function(e){ return e.localName; });
+      var ix=kids.map(function(n){ return ORDER.indexOf(n); }); if(ix.some(function(v,i){ return v<0 || (i && v<ix[i-1]); })) sch.push(k+': '+kids.join(','));
+      [].slice.call(d.getElementsByTagName('row')).forEach(function(r){ var last=-1; [].slice.call(r.getElementsByTagName('c')).forEach(function(c){
+        var ref=c.getAttribute('r'), col=0; ref.replace(/^[A-Z]+/, function(L){ for(var i=0;i<L.length;i++) col=col*26+(L.charCodeAt(i)-64); return L; });
+        if(col<=last) ord.push(k+' '+ref); last=col; var s=+(c.getAttribute('s')||0); if(!(s>=0 && s<nxf)) xfs.push(k+' '+ref+' s='+s); }); });
+      var sv=d.getElementsByTagName('sheetView')[0], ft=d.getElementsByTagName('oddFooter')[0];
+      sheets[k]={grid:sv? sv.getAttribute('showGridLines') : null, tab:!!d.getElementsByTagName('tabColor').length, land:(d.getElementsByTagName('pageSetup')[0]||{getAttribute:function(){ return null; }}).getAttribute('orientation'),
+        foot:ft? ft.textContent : null, same:parts[k]===pp[k]};
+    });
+    var wb=P(parts['xl/workbook.xml']), names=[].slice.call(wb.getElementsByTagName('sheet')).map(function(e){ return e.getAttribute('name'); });
+    var titles=[].slice.call(wb.getElementsByTagName('definedName')).map(function(e){ return {sheet:+e.getAttribute('localSheetId'), ref:e.textContent}; });
+    var a=await xlsxRead(got.buffer.slice(got.byteOffset, got.byteOffset+got.byteLength)), b=await xlsxRead(plain.buffer.slice(plain.byteOffset, plain.byteOffset+plain.byteLength));
+    return JSON.stringify({house:!!(args[2]&&args[2].house), bad:bad, cnt:cnt, sch:sch, ord:ord.slice(0,5), xfs:xfs.slice(0,5), sheets:sheets, names:names, titles:titles,
+      same:JSON.stringify(a)===JSON.stringify(b), nvals:JSON.stringify(a).length, parts:Object.keys(parts), types:parts['[Content_Types].xml'],
+      chart:parts['xl/charts/chart1.xml']||'', rels:parts['xl/worksheets/_rels/sheet1.xml.rels']||'', read:a}); })()`));
+  const CALLS = ['exportExcel()', 'exportCSV()', 'exportPlans()', 'exportFlow()', 'exportCoa()', 'exportFcView()', 'exportCycCompare()', 'exportFydpPlan()'];
+  const R = {};
+  for (const c of CALLS) {
+    const r = R[c] = await run(c);
+    chk(name, c, 'builds, dressed', J([r.err || '', r.house]), J(['', true]));
+    if (r.err) continue;
+    chk(name, c, 'every value is the one the same sheets hold written plain — and there are values', r.same && r.nvals > 200, true);
+    chk(name, c, 'every part is XML another program reads', J(r.bad), '[]');
+    chk(name, c, 'every count the stylesheet declares is what it holds', J(Object.keys(r.cnt).filter(k => r.cnt[k][0] !== r.cnt[k][1])), '[]');
+    chk(name, c, 'every cell’s style is one the stylesheet declares', J(r.xfs), '[]');
+    chk(name, c, 'the cells of a row are in column order', J(r.ord), '[]');
+    chk(name, c, 'a sheet’s parts are in the schema’s order', J(r.sch), '[]');
+    const sh = Object.values(r.sheets);
+    chk(name, c, 'every sheet: no gridlines, a tab colour, landscape, a footer naming the report and the sheet',
+      J(sh.filter(x => !(x.grid === '0' && x.tab && x.land === 'landscape' && /^&L&8ORBIT .+&R&8Page &P of &N  ·  printed \d{4}-\d\d-\d\d$/.test(x.foot || ''))).length), '0');
+  }
+  // the five-year plan: an & in a name is doubled in the footer; the chart reads its own cells; headings repeat on every page
+  const F = R['exportFydpPlan()'];
+  if (!F.err) {
+    const app = ev(`appnName(mySlug())`), ai = F.names.indexOf(app);
+    chk(name, 'FYDP', 'the footer doubles an & in a sheet name, so it prints as one (O&M)',
+      app.indexOf('&') < 0 || (F.sheets['xl/worksheets/sheet' + (ai + 1) + '.xml'].foot || '').indexOf(app.replace(/&/g, '&&')) > 0, true);
+    chk(name, 'FYDP', 'the Summary carries a chart: its drawing, its part and both content types',
+      J([F.parts.indexOf('xl/charts/chart1.xml') >= 0, F.parts.indexOf('xl/drawings/drawing1.xml') >= 0, /Target="\.\.\/drawings\/drawing1\.xml"/.test(F.rels),
+        /PartName="\/xl\/charts\/chart1\.xml" ContentType="application\/vnd\.openxmlformats-officedocument\.drawingml\.chart\+xml"/.test(F.types),
+        /PartName="\/xl\/drawings\/drawing1\.xml"/.test(F.types)]), J([true, true, true, true, true]));
+    // each series is the column its name heads, on the Summary, over the fiscal years
+    const refs = [...F.chart.matchAll(/<c:ser>[\s\S]*?<c:v>([^<]*)<\/c:v>[\s\S]*?<c:cat><c:strRef><c:f>([^<]*)<\/c:f>[\s\S]*?<c:val><c:numRef><c:f>([^<]*)<\/c:f>/g)]
+      .map(m => [m[1], m[2].replace(/&apos;/g, "'"), m[3].replace(/&apos;/g, "'")]);
+    const sm = F.read.Summary || [];
+    const cell = ref => { const m = /^'(.+)'!\$([A-Z]+)\$(\d+):\$([A-Z]+)\$(\d+)$/.exec(ref); if (!m) return null; const col = m[2].charCodeAt(0) - 65;
+      return { sheet: m[1], col, r0: +m[3] - 1, r1: +m[5] - 1 }; };
+    chk(name, 'FYDP chart', 'two series, Requirement then Allocated, each reading the column its name heads on the Summary, over the five fiscal years',
+      J(refs.map(([n, c, v]) => { const C = cell(c), V = cell(v); if (!C || !V) return 'unreadable'; const hdr = sm[V.r0 - 1] || [];
+        return [n, V.sheet, String(hdr[V.col] ?? ''), V.r1 - V.r0 + 1, (sm.slice(C.r0, C.r1 + 1).map(r => String((r || [])[C.col] ?? '')).join(',')), sm.slice(V.r0, V.r1 + 1).every(r => typeof (r || [])[V.col] === 'number' || (r || [])[V.col] === '—')]; })),
+      J(['Requirement', 'Allocated'].map(n => { const y = +ev('MS.base||MS.cur'); return [n, 'Summary', n, 5, [0, 1, 2, 3, 4].map(k => 'FY' + ((y + k) % 100)).join(','), true]; })));
+    chk(name, 'FYDP print titles', 'the appropriation tab repeats its two heading rows on every page; the Summary, service and PMO tabs, whose tables each have their own, do not',
+      J(F.titles.map(t => [F.names[t.sheet], /^'(.+)'!\$(\d+):\$(\d+)$/.test(t.ref) && RegExp.$1 === F.names[t.sheet].replace(/'/g, "''") ? (+RegExp.$3 - +RegExp.$2 + 1) : 'bad ref ' + t.ref])),
+      J([[app, 2]]));
+  }
+  // the IDS file: its Requirement v1 sheet is the template, written exactly as before; the sheet after it is dressed
+  const ids = JSON.parse(ev(`(function(){ var sh=function(){ return [{name:'Requirement v1', cols:[10,10], rows:[['20261022-0001'],[{v:'Ref No',s:2},{v:'Amount',s:2}],[1,1234567]]},
+      {name:'Missing data', cols:[30], rows:[[{v:'IDS — missing data and anomalies',s:7}],['note'],[],[{v:'What',s:2}],['x & y']]}]; };
+    var a=__houseParts(buildXlsx(idsHouse(sh()), IDS_XTRA, xlsxHouse('IDS Batch Import'))), b=__houseParts(buildXlsx(sh(), IDS_XTRA));
+    return JSON.stringify([a['xl/worksheets/sheet1.xml']===b['xl/worksheets/sheet1.xml'], a['xl/worksheets/sheet2.xml']!==b['xl/worksheets/sheet2.xml'] && /showGridLines="0"/.test(a['xl/worksheets/sheet2.xml'])]); })()`));
+  chk(name, 'IDS', 'Requirement v1 is written byte for byte as the plain writer writes it, and the sheet after it is dressed', J(ids), J([true, true]));
+  // the two formats other offices read in are never dressed; every other report is
+  const src = _selfRead(BOARD, 'utf8');
+  const calls = []; const re = /\nfunction ((?:export|pmo|cr)[A-Za-z0-9_]*)\s*\(/g; let m;
+  const fns = [...src.matchAll(re)].map(x => ({ n: x[1], at: x.index }));
+  for (const mm of src.matchAll(/[^A-Za-z_.]buildXlsx\(/g)) {
+    const f = fns.filter(x => x.at < mm.index).pop(); if (!f || !/^(export|pmoReport|crExport)/.test(f.n)) continue;
+    let d = 0, i = mm.index + mm[0].length - 1; for (; i < src.length; i++) { if (src[i] === '(') d++; else if (src[i] === ')' && --d === 0) break; }
+    calls.push([f.n, /xlsxHouse\(|house:true/.test(src.slice(mm.index, i))]);
+  }
+  chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in',
+    J(calls.filter(c => c[1] === /^(exportSrc|crExport)$/.test(c[0])).map(c => c[0])), '[]');
+  chk(name, 'which reports', 'and the list is the thirteen reports that write a workbook and the two that do not', calls.length, 15);
+  ev(`blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });

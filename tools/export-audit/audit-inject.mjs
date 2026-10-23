@@ -224,22 +224,32 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
   }
 }
 
-// ---- D3 — a Confluence download link is followed only on the configured host -----------------------
+// ---- D3 retired in v2.04 (item 110): the Confluence and SharePoint transports are gone, and confSameHost with them -----------
+// Brad, 22 Oct 2026: "Let's remove the confluence and SharePoint option entirely." What stands in D3's place: no network
+// transport but the JSON endpoint is offered, nothing of the two is left to call, and a machine set up for either opens on
+// the shared folder, OFF -- so nothing starts sending anywhere by itself -- and is told why.
 {
   const B = fresh();
-  const out = probe(B, 'D3 Confluence download host (confSameHost)', `(function(){
-    if(typeof confSameHost!=='function') throw new Error('confSameHost is not defined');
-    liveCfg().url = 'https://conf.example.com';
-    return JSON.stringify({
-      sameHost: confSameHost('/download/attachments/1/x.json'),
-      otherHost: confSameHost('https://evil.example/x.json'),
-      userinfo: confSameHost('https://conf.example.com@evil.example/x.json'),
-      dotHost: confSameHost('.evil.example/x.json') }); })()`);
+  const out = probe(B, 'v2.04 items 110-111 — Confluence, SharePoint and the JSON endpoint removed', `(function(){
+    var modes=LIVE_MODES.map(function(m){ return m.k; }).join(',');
+    var gone=['confSameHost','confPublish','confPoll','spPublish','spPoll','spDigest','liveNet','liveHdrs','liveKey','liveSetKey'].filter(function(n){ try{ return typeof eval(n)==='function'; }catch(e){ return false; } });
+    var got=[];
+    ['conf','sp','json'].forEach(function(m){
+      localStorage.setItem(LIVE_KEY_LS, 'a-key-for-'+m);
+      localStorage.setItem(LIVE_CFG_LS, JSON.stringify({mode:m, url:'https://wiki.example.com', on:true, every:30}));
+      _liveCfg=null; var c=liveCfg();
+      liveOpen=true; try{ liveBody(); }catch(e){}
+      var h=(document.getElementById('liveBody')||document.body).innerHTML;
+      got.push([c.mode, c.on, /option was removed in v2\\.04/.test(h), localStorage.getItem(LIVE_KEY_LS)===null].join(' '));
+      liveOpen=false; });
+    localStorage.removeItem(LIVE_CFG_LS); _liveCfg=null;
+    return JSON.stringify({modes:modes, gone:gone.join(','), got:got}); })()`);
   if (out) {
-    chk('D3 Confluence download host (confSameHost)', 'a path on the configured host is allowed', out.sameHost, true);
-    chk('D3 Confluence download host (confSameHost)', 'an absolute URL to another host is refused', out.otherHost, false);
-    chk('D3 Confluence download host (confSameHost)', 'a userinfo trick is refused', out.userinfo, false);
-    chk('D3 Confluence download host (confSameHost)', 'a host-suffix link (.evil.example) is refused', out.dotHost, false);
+    const N = 'v2.04 items 110-111 — Confluence, SharePoint and the JSON endpoint removed';
+    chk(N, 'the live view offers the shared folder only', out.modes, 'drive');
+    chk(N, 'nothing of the three transports, the network client or the key is left to call', out.gone, '');
+    chk(N, 'a machine set up for Confluence, SharePoint or an endpoint opens on the shared folder, OFF, is told why, and its key is gone',
+      JSON.stringify(out.got), JSON.stringify(['drive false true true', 'drive false true true', 'drive false true true']));
   }
 }
 
@@ -452,7 +462,7 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
   }
 }
 {
-  const F = 'K8 lookups by a value the board uses as a key (flowSubOf, ppSetV, rpMerge tombstones, acePmoGroups, fydpAceShare, spProjByPmo, forecast)';
+  const F = 'K8 lookups by a value the board uses as a key (flowSubOf, ppSetV, rpMerge tombstones, acePmoGroups, fydpBookModel, spProjByPmo, forecast)';
   const B = fresh();
   const out = probe(B, F, `(function(){ var o={};
     o.flowSub=[flowSubOf('constructor'), flowSubOf('hasOwnProperty'), flowSubOf('toString')].map(function(x){ return x===null? 'null' : typeof x; }).join(',');
@@ -461,8 +471,10 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
     var res=rpMerge({ entries:[], gone:{} }); o.rpKept=RPDB.entries.length+'/'+res.buried;
     MS.aceAlign={ X:{ AV:'constructor', PSM:'__proto__' } };
     try{ var g=acePmoGroups('X'); o.groups=['__proto__','constructor'].map(function(k){ return (Object.prototype.hasOwnProperty.call(g,k) && Array.isArray(g[k]))? g[k].join('+') : 'missing'; }).join(','); }catch(e){ o.groups='threw '+e.message; }
-    try{ var sh=fydpAceShare('X', [ { grp:'AV' }, { grp:'PSM' }, { grp:'TSS' } ]);
-      o.share=Object.keys(sh).map(function(k){ return typeof sh[k]; }).join(','); }catch(e){ o.share='threw '+e.message; }
+    try{ var y=fydpBookYears({src:'working'})[0], X={src:'working', svc:['USAF'], held:[y], proj:{}};
+      X.proj[y]={svc:['USAF'], reqs:[ { id:'R1', title:'R1', grp:'constructor', ask:[5], fund:[5] }, { id:'R2', title:'R2', grp:'__proto__', ask:[7], fund:[4] } ]};
+      var bk=fydpBookModel(X, [ { k:mySlug(), D:X, own:true } ]);
+      o.share=bk.pmo.map(function(p){ return p.name+'='+p.sum.tot.a+'/'+p.sum.tot.l; }).sort().join(',')+(({}).fy===undefined? '' : ' polluted'); }catch(e){ o.share='threw '+e.message; }
     try{ var sp=spProjByPmo({ svc:['USAF'], reqs:[ { id:'R1', grp:'constructor', ask:[5], alloc:[5], fund:[5] }, { id:'R2', grp:'__proto__', ask:[7], alloc:[7], fund:[7] } ] }, null);
       o.sp=Object.keys(sp).sort().join(',')+':'+(sp['__proto__']? sp['__proto__'].ask[0] : 'none'); }catch(e){ o.sp='threw '+e.message; }
     try{ DATA.items[0].grp='__proto__'; forecast(); o.fc=(({}).tot===undefined && ({}).unsch===undefined)? 'clean' : 'polluted'; }catch(e){ o.fc='threw '+e.message; }
@@ -472,7 +484,7 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
     chk(F, 'a PPBE figure for a line keyed __proto__ is written to the line, not onto every object', out.pp, 'clean');
     chk(F, 'a reprogramming row is not buried by an inherited tombstone', out.rpKept, '1/0');
     chk(F, 'estimate offices named after built-ins group as text, each holding its own board office', out.groups, 'PSM,AV');
-    chk(F, 'an office sharing an estimate office is named by text, never a built-in', out.share.indexOf('function')<0 && out.share.indexOf('threw')<0, true);
+    chk(F, 'the five-year workbook’s PMO tabs add requirements under offices named after built-ins as text', out.share, '__proto__=7/4,constructor=5/5');
     chk(F, "a cycle's requirements under offices named after built-ins add up under those names", out.sp, '__proto__,constructor:7');
     chk(F, 'the forecast by office writes nothing onto Object.prototype', out.fc, 'clean');
   }
@@ -557,7 +569,10 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `    exA=null; exFy=null; exX=Object.create(null); exXT={};`],
     ['K5 safe maps and refusals (source)', `exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }`],
     ['K5 safe maps and refusals (source)', `function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }`],
-    ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); order.forEach(function(k){ const g=rows[k].grp||'(no PMO)';`],
+    // v2.04 (item 112): the five-year workbook groups by office and by CCaR record through maps with no prototype
+    ['K5 safe maps and refusals (source)', `  const pm=Object.create(null);\n  got.forEach(function(p){ p.M.order.forEach(function(id){`],
+    ['K5 safe maps and refusals (source)', `  const recs=[], by=Object.create(null), loose=[];`],
+    ['K5 safe maps and refusals (source)', `  const reqs=Object.create(null), order=[];`],
     ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)';`],
     ['K5 safe maps and refusals (source)', `  const byGX=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `      const stray=Object.create(null);\n      (set.lines||[]).forEach(function(l){`],

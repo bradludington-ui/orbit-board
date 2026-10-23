@@ -1,6 +1,6 @@
 // THE OTHER APPROPRIATIONS' FRAMES, IN A REAL BROWSER (v1.85).
 //
-// The five-year spend plan's PMO tabs read every appropriation other than the open one by opening
+// The five-year spend plan's tabs read every appropriation other than the open one by opening
 // it as its own board in a sandboxed srcdoc frame. jsdom runs no such frame, so the suites stand a
 // second board in for it (tools/export-audit/boot.mjs); this is the check that the real thing does
 // what the stand-in assumes, in Chromium, on both builds:
@@ -10,8 +10,8 @@
 //   2. An export from O&M opens Full Fund in a frame, waits for it, downloads the workbook, and
 //      leaves no frame behind -- and the Full Fund blocks carry no refusal.
 //   3. Every byte of browser storage is what it was before the export.
-//   4. Each Full Fund block total is what Full Fund's own board prints on its By PMO sheet when the
-//      same browser switches to it and exports: every year and the FYDP, requirement and allocation.
+//   4. The Full Fund tab, and Full Fund's block on every service and PMO tab, is what Full Fund's own board
+//      prints when the same browser switches to it and exports (v2.04: the workbook of item 112).
 //
 //   node tools/fydp-frames.mjs
 import { chromium } from 'playwright-core';
@@ -30,14 +30,15 @@ const FF = { items: [it('F', 'AV', [700, 100, 60], 'JSF7000'), it('G', 'TSS', [5
 let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${what}${detail ? '   ' + detail : ''}`); };
 const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
-const blocks = (sh) => { const out = []; let cur = null;
-  for (const r of sh.rows) { const c0 = r && r[0];
-    if (c0 && typeof c0 === 'object' && c0.s === 6) { cur = { title: String(c0.v), hdr: null, rows: [] }; out.push(cur); continue; }
-    if (!cur) continue; if (!r || !r.length) { cur = null; continue; }
-    if (!cur.hdr) { cur.hdr = r.map(cv); continue; } cur.rows.push(r.map(cv)); }
+// v2.04 (item 112): a tab's blocks -- the section heading above each ('' on an appropriation tab), its lines, TOTAL last
+const blocks = (sh) => { const out = []; if (!sh) return out; let sec = ''; const R = sh.rows;
+  for (let i = 0; i < R.length; i++) { const r = R[i] || [], c0 = r[0];
+    if (c0 && typeof c0 === 'object' && c0.s === 6) { sec = String(c0.v); continue; }
+    const v = r.map(cv); if (v[0] !== 'CCaR Record' || v[1] !== 'Requirement Title') continue;
+    const rows = []; i += 2; for (; i < R.length; i++) { const x = (R[i] || []).map(cv); rows.push(x); if (x[0] === 'TOTAL') break; }
+    out.push({ sec, hdr: v, rows }); }
   return out; };
-const rowOf = (sh, first, label) => { const rows = sh.rows.map(r => (r || []).map(cv)); const h = rows.findIndex(r => r[0] === first);
-  const r = rows.slice(h + 1).find(x => x[0] === label); if (!r) return null; const o = {}; rows[h].forEach((k, i) => { o[k] = r[i]; }); return o; };
+const tab = (S, n) => (S || []).find(s => s.name === n);
 // seed one plan on the open board and save it into browser storage
 const seedAndSave = (p, sc) => p.evaluate(({ sc, SV }) => {
   SVC.length = 0; SV.forEach(s => SVC.push(s)); DATA.services = SVC; MS.cur = 2027; MS.base = 2027;
@@ -106,29 +107,25 @@ for (const build of ['prioritization-board-grid.html']) {
   chk('and no frame is left behind', X.after === 0);
   chk('every byte of browser storage is what it was', (await storage(p)) === before);
   const names = (X.sheets || []).map(s => s.name).join(',');
-  chk('the PMO tabs follow the three sheets', names === 'By Requirement,By PMO,By Service,PSM,AV,CDS,TSS', names);
-  const refused = (X.sheets || []).slice(3).filter(sh => sh.rows.some(r => /^⚠/.test(String(cv((r || [])[0])))));
+  chk('the Summary, a tab per appropriation that holds a plan, per service, then per PMO', names === 'Summary,O&M,Full Fund,USAF,ANG,AFRC,PSM,AV,CDS,TSS', names);
+  const refused = (X.sheets || []).filter(sh => sh.rows.some(r => (r || []).some(c => / IS NOT IN THIS WORKBOOK — /.test(String(cv(c) ?? '')))));
   chk('no tab carries a refusal', refused.length === 0, refused.map(s => s.name).join(','));
 
-  // 3. THE SAME BROWSER, SWITCHED TO FULL FUND: its own By PMO is what the O&M export printed
+  // 3. THE SAME BROWSER, SWITCHED TO FULL FUND: its own tabs print what the O&M export printed for it
   await p.evaluate(() => localStorage.setItem('prio27appn', 'FULL FUND'));
   await p.reload(); await p.waitForTimeout(700);
   chk('the board reopens as Full Fund', await p.evaluate(() => APPN + '|' + S.order.join(',')) === 'FULL FUND|F,G,H');
   const Y = await exportPlan(p);
-  const bp = (Y.sheets || []).find(s => s.name === 'By PMO');
-  let ties = 0, off = [];
-  (X.sheets || []).slice(3).forEach(sh => blocks(sh).filter(b2 => /^FULL FUND — /.test(b2.title)).forEach(b2 => {
-    const tot = b2.rows.find(r => /^Total — /.test(String(r[0]))), own = rowOf(bp, 'PMO', sh.name);
-    ['FY27', 'FY28', 'FY29', 'FY30', 'FY31', 'FYDP'].forEach(y => {
-      ties++;
-      const a = tot[b2.hdr.indexOf(y + ' Requirement')] + '/' + tot[b2.hdr.indexOf(y + ' Allocation')];
-      const w = own[y + ' Requirement'] + '/' + own[y + ' Allocated'];
-      if (a !== w) off.push(`${sh.name} ${y} ${a} vs ${w}`);
-    });
-  }));
-  chk('each Full Fund block total is Full Fund’s own By PMO row, every year and the FYDP', ties === 18 && !off.length, `${ties} ties` + (off.length ? ' · ' + off.slice(0, 3).join(' | ') : ''));
-  chk('an allocation below the requirement came through as such (F, trimmed to 600)',
-    rowOf(bp, 'PMO', 'AV')['FY27 Allocated'] === 600);
+  let ties = 0; const off = [];
+  const same = (what, a, w) => { ties++; if (JSON.stringify(a) !== JSON.stringify(w)) off.push(what); };
+  same('Full Fund tab', blocks(tab(X.sheets, 'Full Fund')), blocks(tab(Y.sheets, 'Full Fund')));
+  (X.sheets || []).slice(3).forEach(sh => blocks(sh).filter(b2 => / — Full Fund$/.test(b2.sec)).forEach(b2 => {
+    const own = blocks(tab(Y.sheets, sh.name)).find(x => / — Full Fund$/.test(x.sec));
+    same(sh.name, b2.rows, own ? own.rows : null); }));
+  chk('the Full Fund tab, and Full Fund’s block on each service and PMO tab, is what Full Fund’s own board prints', ties === 7 && !off.length, `${ties} ties` + (off.length ? ' · ' + off.join(', ') : ''));
+  const fl = (blocks(tab(Y.sheets, 'Full Fund'))[0] || { hdr: [], rows: [] }), fr = fl.rows.find(r => r[1] === 'Req F') || [];
+  chk('an allocation below the requirement came through as such (F, trimmed to 600, all of it drawn)',
+    Math.round(fr[fl.hdr.indexOf('FY27') + 1] * 1e6) === 600 && Math.round(fr[fl.hdr.indexOf('FY27')] * 1e6) === 860);
   chk('nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   await ctx.close();
 }
