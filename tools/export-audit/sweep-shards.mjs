@@ -66,7 +66,7 @@ mkdirSync(OUT, { recursive: true });
 // The suites, in mutate.mjs's order. `split` = cut into blocks. legacy-fsrc is not in mutate.mjs's list;
 // it runs whole here, and its failure sentence is its banner (it prints no "FAILING CHECK").
 const SUITES = [
-  ['excel', 'audit.mjs'], ['ppt', 'audit-ppt.mjs'], ['other', 'audit-other.mjs'], ['board', 'audit-board.mjs'],
+  ['excel', 'audit.mjs'], ['other', 'audit-other.mjs'], ['board', 'audit-board.mjs'],
   ['recon', 'audit-recon.mjs', 'split'], ['import', 'audit-import.mjs', 'split'],
   ['hostile', 'audit-hostile.mjs'], ['inject', 'audit-inject.mjs'], ['ui', 'audit-ui.mjs'],
   ['legacy', 'legacy-fsrc.mjs'],

@@ -487,7 +487,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // backward from the last, neither past an award's amount; what they do not cover is UNSCHEDULED in
 // either lane. Every figure below is stated from the scenario, never read back from the board, and the
 // same table is then demanded of every surface that places money in months: landSvc itself, the
-// forecast's TOTAL, the deck's chart (by lane), and the CR windows.
+// forecast's TOTAL, and the CR windows.
 {
   const name = 'v1.93 — mandatory awards last';
   try {
@@ -564,14 +564,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // a placement is in date order whatever order the awards are stored in
   chk(name, 'E', 'the placements come back in date order', JSON.stringify(L.E[0].at.map(a => a[0])), JSON.stringify([J, Fb, M]));
 
-  // EVERY SURFACE AGREES WITH THE TABLE: the deck's chart by lane, the forecast's TOTAL, the CR windows
-  const sp = JSON.parse(ev('JSON.stringify(spendPlanByMonth())'));
-  for (let k = 0; k < 12; k++) {
-    chk(name, 'deck chart', `month ${k + 1} discretionary`, Math.round(sp.d[k]), dsum.d[k]);
-    chk(name, 'deck chart', `month ${k + 1} mandatory`, Math.round(sp.m[k]), dsum.m[k]);
-  }
-  chk(name, 'deck chart', 'undated discretionary', Math.round(sp.ud), dsum.ud);
-  chk(name, 'deck chart', 'undated mandatory', Math.round(sp.um), dsum.um);
+  // EVERY SURFACE AGREES WITH THE TABLE: the forecast's TOTAL, the CR windows (v2.05, item 114: and the deck's chart by lane,
+  // until the deck was removed; the lanes are held above, placement by placement)
   const fc = JSON.parse(ev(`(function(){ var F=forecast(), m=FYMON.map(function(){ return 0; }), u=0;
     F.rollRows.forEach(function(b){ b.m.forEach(function(v,k){ m[k]+=v; }); u+=b.unsch; }); return JSON.stringify({m:m, u:u}); })()`));
   for (let k = 0; k < 12; k++) chk(name, 'forecast', `month ${k + 1} total`, Math.round(fc.m[k]), dsum.d[k] + dsum.m[k]);
@@ -2432,10 +2426,10 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'view', 'on the year the plan was on', +ev('MS.cur'), cur);
   chk(name, 'view', 'every year on the drill is the cycle’s, so every panel reads the lock', ev(`JSON.stringify(MS.years[MS.cur+1].asks.A)`), JSON.stringify([200, 100, 40]));
   chk(name, 'view', 'the chart of accounts prints the locked ask', ev(`coaRows().filter(function(r){ return r.id==='B'; })[0].ask`), 130);
-  chk(name, 'view', 'the header says so', /VIEWING PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
-  chk(name, 'view', 'the board carries the banner', /VIEWING PB\d\d \(LOCKED\)/.test(ev(`document.getElementById('list').textContent`)), true);
+  chk(name, 'view', 'the header says so, naming the appropriation (v2.05, item 116)', /VIEWING O&M PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
+  chk(name, 'view', 'the board carries the banner, naming the appropriation (v2.05, item 116)', /VIEWING O&M PB\d\d \(LOCKED\)/.test(ev(`document.getElementById('list').textContent`)), true);
   chk(name, 'view', 'the title says so, for every export that prints it', /LOCKED VIEW/.test(ev('document.title')), true);
-  chk(name, 'view', 'and every file name says so', /\[PB\d\d LOCKED\]\.xlsx$/.test(ev(`expName('ORBIT Breakouts.xlsx')`)), true);
+  chk(name, 'view', 'and every file name says so, naming the appropriation (v2.05, item 116)', /\[O&M PB\d\d LOCKED\]\.xlsx$/.test(ev(`expName('ORBIT Breakouts.xlsx')`)), true);
   // writes are refused, and revert
   ev(`setAsk('B',0,'999'); 'ok'`);
   chk(name, 'writes', 'an edit is refused and reverts on screen', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([80, 40, 10]));
@@ -2638,7 +2632,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'the view · workbook', 'the PMO tabs are AV’s and ZED’s', J(v.tabs), J(LOCKED.tabs));
   chk(name, 'the view · destination list', 'A’s destination reads by its locked name', v.dest, LOCKED.dest);
   chk(name, 'the view', 'CONTROL — it says nothing about today’s lists: this cycle kept its own',
-    J([/^👁 Viewing PB27 \(locked\)/.test(said), /read as (it is|they are) today/.test(said)]), J([true, false]));
+    J([/^👁 Viewing O&M PB27 \(locked\)/.test(said), /read as (it is|they are) today/.test(said)]), J([true, false]));
   // A REFUSED WRITE puts the kept lists back, the board-wide ones included, and writes nothing to browser storage
   ev(`DESTDB.ents.filter(function(e){ return e.k==='dz1'; })[0].n='Typed In The View'; BUDDB.rows=[]; flowCfg().other[MS.cur]={ip:9}; save(); 'ok'`);
   chk(name, 'the view · a refused save', 'the destination, the BAE list and the partner money are as locked again',
@@ -3784,14 +3778,17 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
   chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['20', '6', '2', '9', '7', '4', '4', '1', '5']));
+    // v2.05 (item 114): 15 -- the deck, the synopsis and Executive decision removed, and the companion tool a link at the box's foot
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '7', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
   const secs = k => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .uiRs h4, #dd_'+${J(k)}+' .uiDc h4'))
       .map(function(h){ return h.textContent; })); })()`));
-  chk(name, 'groups', 'Reports & exports is grouped by the job, its six groups laid out side by side (v2.04: AI review)', J([secs('reports'), heads('reports')]),
-    J([['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'CCaR & accounting files', 'AI review (GenAI.mil)', 'Companion tools'], []]));
+  // v2.05 (item 114): two lists -- Working Documents (Briefing, renamed), Spend Plan & Cash with its year beside it, Five Years &
+  // PPBE; then CCaR & Accounting Files and AI Review, advisory only. Companion tools is the box's foot.
+  chk(name, 'groups', 'Reports & exports is grouped by the job, in two lists, nothing folded', J([secs('reports'), heads('reports')]),
+    J([['Working Documents', 'Spend Plan & Cash ' + ev('FYL()'), 'Five Years & PPBE', 'CCaR & Accounting Files', 'AI Review advisory only'], []]));
   chk(name, 'groups', 'Setup and Filter fold', J([heads('setup'), heads('view')]),
     J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Funding', 'Service — funded requirements only']]));
   chk(name, 'groups', 'Data is a card for each source', J(secs('data')), J(['Execution — CCaR QPE', 'CCaR records', 'Annual Cost Estimate', 'Budget extract (BAE)']));
@@ -3806,13 +3803,38 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const callsIn = sel => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll(${J(sel)})).map(${callOf})); })()`));
   const flyCalls = k => JSON.parse(ev(`(function(){ const d=document.createElement('div'); d.innerHTML=uiFlyItems(${J(k)});
       return JSON.stringify([].slice.call(d.querySelectorAll('button[onclick]')).map(${callOf})); })()`));
-  chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, under Execution ▸, and the section says so',
-    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /Execution ▸/.test(ev(`document.querySelector('#dd_reports .uiRs[data-g="spend"] .uiRsV').textContent`))]),
+  chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, and the box’s foot says where each view lives',
+    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /CR Cash Needs under Execution ▸; the five-year spend plan, PPBE Budget Positions and Spruills under FYDP ▸/.test(ev(`document.querySelector('#dd_reports .uiRfoot').textContent`))]),
     J([['togglePlans', 'crExport'], true]));
-  chk(name, 'contents', 'Briefing, Five years & PPBE, CCaR & accounting files, Companion tools; no Execution & reprogramming section',
+  // v2.05 (item 114; Brad, 23 Oct 2026): Briefing is Working Documents, without the deck, the synopsis and Executive decision; the
+  // companion tool is a link at the foot, and changing it is a setting, under Setup › Who and where
+  chk(name, 'contents', 'Working Documents, Five Years & PPBE, CCaR & Accounting Files; no Execution & reprogramming section and no Companion tools section',
     J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => callsIn(`#dd_reports .uiRs[data-g="${g}"] .mi`))),
-    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['fydpPickExport', 'exportCycCompare'],
-       [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
+    J([['exportExcel', 'exportCSV'], ['fydpPickExport', 'exportCycCompare'],
+       [], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], []]));
+  chk(name, 'contents', 'the companion tool is the link at the box’s foot, and Linked tool… is under Setup › Who and where',
+    J([callsIn('#dd_reports .uiRfoot button'), calls('setup', 'who').includes('linkSet')]), J([['linkOpen'], true]));
+  chk(name, 'contents', 'the sections, in order: Working Documents, Spend Plan & Cash (the year beside it), Five Years & PPBE, CCaR & Accounting Files, AI Review (advisory only)',
+    ev(`(function(){ syncBtns(); return [].slice.call(document.querySelectorAll('#dd_reports .uiRs h4')).map(function(h){ return h.textContent.replace(/\\s+/g,' ').trim(); }).join(' | '); })()`),
+    'Working Documents | Spend Plan & Cash ' + ev('FYL()') + ' | Five Years & PPBE | CCaR & Accounting Files | AI Review advisory only');
+  // v2.05 (item 114; Brad, 23 Oct 2026: "Leave the icons off. They're non value added"): no item in the left menu's boxes and side
+  // panels starts with an icon -- read off what each list holds, every folded group included (the browser check G does it as drawn)
+  chk(name, 'contents', 'no item on the left menu starts with an icon (a tick, ● and ○ for the theme in use are not icons)',
+    ev(`(function(){ _keptMeta={t:1790000000000, why:'folder', by:'K Jones'}; syncBtns(); var bad=[];
+      ['dd_reports','dd_data','dd_setup','dd_offices','dd_audit','dd_kept','dd_save','dd_boards'].forEach(function(k){
+        [].slice.call(document.querySelectorAll('#'+k+' button.mi')).forEach(function(b){
+          var x=b.querySelector(':scope > b'), t=x? x.textContent : [].slice.call(b.childNodes).filter(function(n){ return n.nodeType===3; }).map(function(n){ return n.textContent; }).join('');
+          if(/^(?:(?![●○$])[^\\p{L}\\p{N}\\s"'“(])+\\s/u.test(t.trim()+' ')) bad.push(k+': '+t.trim().slice(0,30)); }); });
+      ['fydp','exec','hist'].forEach(function(k){ var d=document.createElement('div'); d.innerHTML=uiFlyItems(k);
+        [].slice.call(d.querySelectorAll('button')).forEach(function(b){ var t=[].slice.call(b.childNodes).filter(function(n){ return n.nodeType===3; }).map(function(n){ return n.textContent; }).join('');
+          if(/^(?:(?![●○$])[^\\p{L}\\p{N}\\s"'“(])+\\s/u.test(t.trim()+' ')) bad.push(k+': '+t.trim().slice(0,30)); }); });
+      _keptMeta=null; syncBtns(); return JSON.stringify(bad); })()`), '[]');
+  chk(name, 'contents', 'every report: a title in title case with no icon, and the kind of file it gives on a tag',
+    ev(`(function(){ syncBtns(); return [].slice.call(document.querySelectorAll('#dd_reports .mi.ri')).map(function(b){
+      var t=[].slice.call(b.childNodes).filter(function(n){ return n.nodeType===3; }).map(function(n){ return n.textContent; }).join('').trim();
+      return t+' ['+((b.querySelector('.fmt')||{}).textContent||'')+']'; }).join(' | '); })()`),
+    'Excel Workbook [XLSX] | Priority Drill By Band… [XLSX] | Two Spend Plans… [VIEW] | CR Cash Return (1A9A) [XLSX] | FYDP Spend Plan… [XLSX] | Cycle Comparison [XLSX] | '
+    + 'Spend Plan Source [XLSX] | IDS Batch Import… [XLSX] | Chart Of Accounts [XLSX] | ACE Tie-Out [XLSX] | Export For GenAI.mil… [TXT] | Import The Answer… [READ] | Review List [VIEW]');
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),
     J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
@@ -3821,7 +3843,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
        ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
   chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
-    J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt'], 8]));
+    J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'linkSet'], 8]));   // v2.05 (item 114): Linked tool…
   // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup. Every list a
   // menu or the left menu draws is searched.
   const homes = ev(`(function(){ syncBtns(); const out={};
@@ -3865,18 +3887,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const none=dd.querySelector('.mnone');
       return JSON.stringify({ n: vis.length, groups: vis.map(function(e){ const x=e.closest('.uiRs'); return x? x.getAttribute('data-g') : 'top'; })
         .filter(function(v,i,a){ return a.indexOf(v)===i; }), none: !!none && !none.hidden,
-        lines: [].slice.call(dd.querySelectorAll('.uiRsV')).filter(function(v){ return !v.hidden && !v.closest('.uiRs').hidden; }).map(function(v){ return v.closest('.uiRs').getAttribute('data-g'); }) }); })()`));
+        lines: [].slice.call(dd.querySelectorAll('.uiRfoot .uiRsV.found')).map(function(){ return 'foot'; }) }); })()`));   // v2.05 (item 114): the foot
   const fx = find('excel'), fc = find('cash'), fz = find('zzqq'), ff = find('cash needs');
   // v2.02: the ATR/BTR log (Excel), and its Execution & reprogramming group, went with the tracker (seven, four groups before)
-  chk(name, 'Find', 'typing "excel" lists the six workbooks, from three groups at once',
-    J([fx.n, fx.groups, fx.none]), J([6, ['brief', 'fydp', 'ccar'], false]));
+  // v2.05 (item 114): "(Excel)" left the titles for the XLSX tag, and Find reads the tag's words -- so "excel" finds every workbook
+  chk(name, 'Find', 'typing "excel" lists the nine workbooks, from four groups at once',
+    J([fx.n, fx.groups, fx.none]), J([9, ['brief', 'spend', 'fydp', 'ccar'], false]));
   chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([2, ['spend'], 0, true]));
-  chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['spend'], false]));
+  chk(name, 'Find', 'a view that lives on the left menu is found by the line that says where it is', J([ff.n, ff.lines, ff.none]), J([0, ['foot'], false]));
   const after = JSON.parse(ev(`(function(){ uiRepClose(); syncBtns(); uiRepOpen();
       const f=document.getElementById('mFind'); const r=JSON.stringify([f? f.value : null, menuFindQ]); uiRepClose(); return r; })()`));
   chk(name, 'Find', 'closing the box clears it', J(after), J(['', '']));
   chk(name, 'Find', 'and it is a labelled search box at the top of the box',
-    ev(`(function(){ syncBtns(); const f=document.getElementById('dd_reports').firstElementChild; return JSON.stringify([f.tagName, f.type, f.getAttribute('aria-label')]); })()`),
+    ev(`(function(){ syncBtns(); const f=document.querySelector('#dd_reports > .uiRtop > input:first-child'); return JSON.stringify([f.tagName, f.type, f.getAttribute('aria-label')]); })()`),   // v2.05 (item 114): first in the box's top row, Pre-Flight Check beside it
     J(['INPUT', 'search', 'Find a report or export']));
   // FILTER: the group holding a filter that is on opens by itself, and the headings say what is on
   const auto = JSON.parse(ev(`(function(){ menuGrpOpen={}; laneFilter='unf'; mcOnly=false; svcFilter=-1; openMenu=null; toggleMenu('view');
@@ -5112,6 +5135,98 @@ await (async () => {
   }
 })();
 // ==== end v2.03 item 20 ====
+
+// ==== v2.05 item 116 ====
+// ═══ v2.05 (item 116; Brad, 23 Oct 2026) — EACH APPROPRIATION IS LOCKED ON ITS OWN BOARD, NAMED, AND SEEN SIDE BY SIDE ═══════════
+// "I need to have the ability to lock each appropriation against a PPBE cycle, not just one comprehensive lock." A lock always
+// was one appropriation's; nothing on screen said so. The fixture makes every reading disagree: O&M (the board on screen) locks
+// PB27 here; Full Fund has PB27 locked by its lead and is tagged BES28; Initial Spares locked PB27 and reopened it and is still
+// tagged PB27; OPN holds nothing. So the overview must tell locked from reopened from never, name who and when, find the
+// calendar the others are on (BES28, the latest tag, not the commonest), say which are behind it, leave OPN out of "not locked
+// yet" (it holds no plan), and write nothing into any other appropriation's storage.
+await (async () => {
+  const name = 'v2.05 — each appropriation is locked on its own board, named, and seen side by side (item 116)';
+  try {
+  const J = JSON.stringify;
+  const T1 = 1790100000000, T2 = 1790200000000;
+  const ffStore = { ts: T1, base: 2027, cur: 2027, cycle: 'BES|2028', years: { 2027: { order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [] } } };
+  const spStore = { ts: T1, base: 2027, cur: 2027, cycle: 'PB|2027', years: { 2027: { order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [] } } };
+  const ffCyc = { ts: T1, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap: 'ff', locked: true, ts: T1, by: 'F Lead', first: { ts: T1, by: 'F Lead' }, unlocks: [], years: {}, proj: {} } } };
+  const spCyc = { ts: T2, cycles: { 'PB|2027': { cyc: 'PB', cycYr: 2027, ap: 'sp', locked: false, ts: T1, by: 'S Lead', unlocks: [{ ts: T2, by: 'S Lead', on: false }], years: {}, proj: {} } } };
+  const LS = { prio27ff: JSON.stringify(ffStore), 'prio27ff-cyc': JSON.stringify(ffCyc), prio27sp: JSON.stringify(spStore), 'prio27sp-cyc': JSON.stringify(spCyc) };
+  const { ev, errors } = boot({ ls: LS });
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.cycle=''; save(); 'ok'`);
+  const OTHERS = ['prio27ff', 'prio27ff-cyc', 'prio27sp', 'prio27sp-cyc', 'prio27opn', 'prio27opn-cyc', 'prio27appn'];
+  const otherLs = () => J(OTHERS.map(k => ev(`localStorage.getItem(${J(k)})`)));
+  const before = otherLs();
+  // ---- the lock, named, and what has not locked it yet
+  ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+  const stat = ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  chk(name, 'lock', 'the status names the appropriation’s lock: O&M PB27', /O&M PB27 locked/.test(stat), true);
+  chk(name, 'lock', 'and names what holds a plan and has not locked PB27 -- Initial Spares (reopened), not Full Fund (locked), not OPN (no plan)',
+    (/Not locked as PB27 yet: (.*?) — each is locked on its own board/.exec(stat) || [])[1] || 'not said', 'Initial Spares');
+  const me = ev('whoAmI()');
+  // ---- the overview, as data
+  const O = JSON.parse(ev(`JSON.stringify((function(){ var O=cycOverview(); return {lead:O.lead, keys:O.keys, rows:O.rows.map(function(r){
+      return [r.k, r.own, r.held, r.tag, r.behind, cycCellOf(r.cycles['PB|2027'])]; })}; })())`));
+  chk(name, 'overview', 'every appropriation, in order; the board on screen marked; which hold a plan',
+    J(O.rows.map(r => [r[0], r[1], r[2]])), J([['om', true, true], ['ff', false, true], ['sp', false, true], ['opn', false, false]]));
+  chk(name, 'overview', 'each one’s working tag, read from its own saved state', J(O.rows.map(r => r[3])), J(['PB|2027', 'BES|2028', 'PB|2027', '']));
+  chk(name, 'overview', 'the calendar the others are on is the latest tag (BES28), not the commonest (PB27)', O.lead, 'BES|2028');
+  chk(name, 'overview', 'behind it: O&M and Initial Spares; not Full Fund, and not OPN, which holds no plan', J(O.rows.map(r => r[4])), J([true, false, true, false]));
+  chk(name, 'overview', 'PB27: locked here (by this editor), locked by F Lead, reopened by S Lead, never on OPN',
+    J(O.rows.map(r => [r[5].s, r[5].by, r[0] === 'om' ? 'now' : r[5].ts])), J([['locked', me, 'now'], ['locked', 'F Lead', T1], ['open', 'S Lead', T2], ['none', undefined, undefined]]));
+  // ---- the overview, as drawn in the PPBE cycles panel
+  ev(`blOpen=true; render(); 'ok'`);
+  const D = JSON.parse(ev(`JSON.stringify((function(){ var t=document.querySelector('#blBody .cyc-ovt'); if(!t) return null;
+      return {rows:[].slice.call(t.querySelectorAll('tbody tr')).map(function(tr){ return [tr.getAttribute('data-ap'),
+        [].slice.call(tr.querySelectorAll('td')).map(function(td){ return td.textContent.replace(/\\s+/g,' ').trim(); })]; }),
+        head:[].slice.call(t.querySelectorAll('thead th')).map(function(th){ return th.textContent.trim(); }),
+        step:((document.querySelector('#blBody .cyc-ov-step')||{}).textContent||'').replace(/\\s+/g,' ').trim(),
+        retag:!!document.querySelector('#blBody .cyc-ov-step button[onclick="cycRetagLead()"]'),
+        list:((document.querySelector('#blBody table.po:not(.cyc-ovt) tbody td b')||{}).textContent||''),
+        lockBtn:([].slice.call(document.querySelectorAll('#blBody button')).filter(function(b){ return /^🔒 Lock /.test(b.textContent); })[0]||{}).textContent||''}; })())`));
+  chk(name, 'panel', 'the table is drawn: Appropriation, Working plan, one column per cycle any of them holds', J(D && D.head), J(['Appropriation', 'Working plan', 'PB27', '']));
+  chk(name, 'panel', 'each row says what the data says, and Go to is on every other appropriation’s row, never on this board’s',
+    J(D.rows.map(r => [r[0], r[1][1].replace(/ ⚠ behind$/, '|behind'), (/not locked|reopened|locked/.exec(r[1][2]) || [''])[0], / · (F Lead|S Lead)$/.test(r[1][2]) ? RegExp.$1 : '', r[1][3]])),
+    J([['om', 'PB27|behind', 'locked', '', ''], ['ff', 'BES28', 'locked', 'F Lead', 'Go to Full Fund'], ['sp', 'PB27|behind', 'reopened', 'S Lead', 'Go to Initial Spares'], ['opn', '—', 'not locked', '', 'Go to OPN']]));
+  chk(name, 'panel', 'it says who is behind the calendar and what the others are on',
+    /O&M is still tagged PB27; Initial Spares is still tagged PB27; Full Fund is on BES28/.test(D.step), true);
+  chk(name, 'panel', 'and offers the retag on this board only, because this board is behind', D.retag, true);
+  chk(name, 'panel', 'the cycles list and the lock button name the appropriation', J([D.list, /^🔒 Lock O&M FY\d\d(–FY\d\d)? as PB27$/.test(D.lockBtn)]), J(['O&M PB27', true]));
+  // ---- the retag moves this board to the calendar, and nothing else
+  ev(`cycRetagLead(); 'ok'`);
+  chk(name, 'retag', 'O&M is retagged BES28, and no longer behind', J([ev('MS.cycle'), JSON.parse(ev('JSON.stringify(cycOverview().rows[0].behind)'))]), J(['BES|2028', false]));
+  // ---- the locked view says whose lock it is: the title, the header tag, every file name
+  ev(`cycView('PB|2027'); 'ok'`);
+  chk(name, 'view', 'the window title, the header tag and a file name say O&M PB27',
+    J([/O&M PB27 LOCKED VIEW$/.test(ev('document.title')), ev(`(document.getElementById('cycTag')||{}).textContent`), /\[O&M PB27 LOCKED\]/.test(ev(`expName('ORBIT x.xlsx')`))]),
+    J([true, 'VIEWING O&M PB27 (locked)', true]));
+  ev(`cycLeave(true); 'ok'`);
+  // ---- Go to: the appropriation switch, and a mark this browser reads when that board opens
+  ev(`window.__sw=[]; window.__swWas=switchAppn; switchAppn=function(a){ window.__sw.push(a); }; blOpen=true; render();
+      var b=document.querySelector('#blBody tr[data-ap="ff"] button'); if(b) b.click(); switchAppn=window.__swWas; 'ok'`);
+  chk(name, 'go to', 'Go to Full Fund switches to FULL FUND and leaves the mark for it', J([JSON.parse(ev('JSON.stringify(window.__sw)')), ev(`localStorage.getItem('prio27cycGo')`)]), J([['FULL FUND'], 'ff']));
+  ev(`localStorage.removeItem('prio27cycGo'); 'ok'`);
+  chk(name, 'storage', 'nothing was written into another appropriation’s storage', otherLs(), before);
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  // ---- the Full Fund board, opened from the mark: PPBE cycles open, the mark gone
+  const F = boot({ appn: 'FULL FUND', ls: Object.assign({}, LS, { prio27cycGo: 'ff' }) });
+  chk(name, 'go to', 'the board it opens is Full Fund, with PPBE cycles open, and the mark is gone',
+    J([F.ev('mySlug()'), F.ev('String(blOpen)'), F.ev(`localStorage.getItem('prio27cycGo')`)]), J(['ff', 'true', null]));
+  // ---- the Initial Spares board, behind the calendar: its opening says so and offers the retag
+  const P = boot({ appn: 'INITIAL SPARES', ls: LS });
+  const ps = P.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  chk(name, 'opening', 'a board behind the calendar says so when it opens, and offers the retag',
+    J([/Initial Spares is tagged PB27, and the other appropriations are on BES28/.test(ps), !!P.ev(`String(!!document.querySelector('#shareStat button[onclick="cycRetagLead()"]'))`).match(/true/)]), J([true, true]));
+  const N = boot({ appn: 'FULL FUND', ls: LS });
+  chk(name, 'opening', 'a board on the calendar says nothing of it', /other appropriations are on/.test(N.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.05 item 116 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

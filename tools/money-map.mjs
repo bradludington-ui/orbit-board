@@ -223,7 +223,7 @@ md.push('| status | means |', '|---|---|');
 md.push('| `proven·A` | proven to the dollar by checks that compute what they expect independently — from the fixture\'s own numbers, or an identity that must hold whatever the code does (**arithmetic**) |');
 md.push('| `proven·G` | proven to the dollar by checks that read what they expect from the board\'s own helpers (tiers(), crData(), forecast() …): the surface **agrees** with the board, which is right only if the helper is |');
 md.push('| `proven·AG` | both kinds of check |');
-md.push('| `·d` | proven at the surface\'s own display precision (the deck: fSM), not to the dollar |');
+md.push('| `·d` | proven at the surface\'s own display precision, not to the dollar |');
 md.push('| `n/a` | the surface does not carry that dimension (the reason is given) |');
 md.push('| **OPEN** | not proven: what is missing, what closing it takes, listed below for Brad to build or defer |');
 md.push('', '| dimension | carried when | proven when |', '|---|---|---|');

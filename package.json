@@ -5,7 +5,6 @@
   "scripts": {
     "check": "node tools/check.mjs prioritization-board-grid.html",
     "audit:export": "node tools/export-audit/audit.mjs",
-    "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
     "audit:other": "node tools/export-audit/audit-other.mjs",
     "audit": "npm run audit:suites --silent",
     "mutate": "node tools/export-audit/mutate.mjs",
@@ -28,7 +27,7 @@
     "hostile": "node tools/hostile-render.mjs",
     "frames": "node tools/fydp-frames.mjs",
     "menus": "node tools/menu-paths.mjs",
-    "audit:suites": "node tools/export-audit/boot-same.mjs && npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy && npm run audit:hostile && npm run audit:inject && npm run audit:ui",
+    "audit:suites": "node tools/export-audit/boot-same.mjs && npm run audit:export && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy && npm run audit:hostile && npm run audit:inject && npm run audit:ui",
     "coverage:money": "node tools/money-coverage.mjs",
     "validate:math": "node tools/validate-math.mjs",
     "validate:nightly": "node tools/validate-math.mjs --no-sweep",

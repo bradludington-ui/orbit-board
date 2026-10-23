@@ -2970,36 +2970,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
-await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
-  const __bm = bootMark();
-  const name = 'v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar';
-  try {
-  const { ev } = v10Board();
-  const deck = (on) => { ev(`setScen(${JSON.stringify(on ? 'disc' : '')}); window.__sl=null; if(!window.__bp) window.__bp=buildPptx;
-    buildPptx=function(s){ window.__sl=s; return window.__bp(s); }; exportPPT(); buildPptx=window.__bp; 'ok'`);
-    return JSON.parse(ev('JSON.stringify(window.__sl)')); };
-  const sl = deck(false);
-  const ch = sl.find(x => /Spend Plan by Month/.test(x));
-  chk(name, 'chart', 'the deck carries the chart slide, third', sl.indexOf(ch), 2);
-  const bars = [...ch.matchAll(/descr="([^"]+)"/g)].map(m => m[1].replace(/&amp;/g, '&'));
-  const val = (lbl, pot) => { const b = bars.find(x => x.startsWith(lbl + ' — ' + pot + ' ')); return b ? +b.split(' $')[1].replace(/,/g, '') : 0; };
-  const M = JSON.parse(ev('JSON.stringify(FYMON.map(function(x){ return x[1]; }))'));
-  const got = M.concat(['UNSCHEDULED']).map(l => val(l, 'discretionary') + val(l, 'mandatory'));
-  chk(name, 'chart', 'every month and UNSCHEDULED is the forecast’s, to the dollar', got.join(','), V10FC.m.concat([V10FC.u]).map(Math.round).join(','));
-  chk(name, 'chart', 'each pot, per bar', JSON.stringify(['OCT', 'NOV', 'DEC', 'FEB'].map(p => M.find(m => m.startsWith(p))).map(l => [val(l, 'discretionary'), val(l, 'mandatory')])),
-    JSON.stringify([[300, 0], [500, 0], [400, 200], [400, 0]]));
-  chk(name, 'chart', 'the figures are printed beneath every bar, and the total', /<a:t>TOTAL<\/a:t>/.test(ch) && (ch.match(/<a:tr /g) || []).length === 4, true);
-  chk(name, 'chart', 'no what-if marker on the funded plan', /DISCRETIONARY ONLY/.test(ch), false);
-  const sl2 = deck(true);
-  const ch2 = sl2.find(x => /Spend Plan by Month/.test(x));
-  chk(name, 'switch', 'under the switch it says so, and carries no mandatory', /◨ DISCRETIONARY ONLY/.test(ch2) + ' ' + /mandatory \$/.test(ch2), 'true false');
-  ev(`setScen(''); 'ok'`);
-  } catch (e) {
-    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
-  }
-  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
-  await settleBoards();   // and let the loop turn: a closed board is freed only then
-})();
+// (v2.05, item 114: 'v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar' went with the PowerPoint deck.)
 
 
 // ═══ v1.86 — SET HIGHER THAN IT DRAWS: FOUND, FLAGGED AND FIXED ══════════════════════════════════

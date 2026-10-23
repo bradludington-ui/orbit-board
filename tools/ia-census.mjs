@@ -164,7 +164,7 @@ const dupLabels = Object.entries(labelCounts).filter(([, w]) => w.length > 1);
 // on the toolbar -- as a menu item calling a function the board does not have.
 const defined = new Set([...src.matchAll(/^(?:async\s+)?function\s+([A-Za-z0-9_$]+)\s*\(/gm)].map(m => m[1]));
 const deadActions = [...new Set(allItems.map(i => fnOf(i.action)).filter(f => f && !defined.has(f)))];
-const exportFns = [...new Set([...src.matchAll(/^(?:async\s+)?function\s+(export[A-Za-z0-9_]*|execSynopsis)\s*\(/gm)].map(m => m[1]))];
+const exportFns = [...new Set([...src.matchAll(/^(?:async\s+)?function\s+(export[A-Za-z0-9_]*)\s*\(/gm)].map(m => m[1]))];
 // TWO DIFFERENT FINDINGS, and collapsing them reported six healthy exports as orphans. An export
 // reached by a BUTTON but not by a menu item is an information-architecture observation -- worth a
 // reviewer's attention, not a defect. An export reached by NOTHING clickable is a defect: a feature

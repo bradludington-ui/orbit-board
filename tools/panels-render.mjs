@@ -141,7 +141,7 @@ for (const f of ['prioritization-board-grid.html']) {
   // Closing is not a matter of removing the class: render() reads each panel's OPEN FLAG and puts
   // it straight back. Reset the flags, re-render, then strip whatever survived.
   const FALSE = ['aceOpen','bandPanelOpen','blOpen','bmOpen','budOpen','coaPanelOpen','crOpen','divOpen',
-    'edOpen','entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
+    'entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
     'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];

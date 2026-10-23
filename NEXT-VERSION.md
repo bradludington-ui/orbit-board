@@ -4,136 +4,9 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.04**. Next: **v2.05**.
+Current version: **v2.05**. Next: **v2.06**.
 
 ## Open
-
-#### 114. Reports & exports: the box cleaned up (Brad, 23 Oct 2026, from a photo of the real board: "Need to clean up this pop up. Has too much going on")
-- **What he sees (measured on v2.04, Harbor, 1500 wide; it matches the photo):** six bordered cards in a 3×2 grid, each
-  sized to the tallest in its row, so Spend plan & cash and Companion tools are half empty. 19 lines of text on 16
-  actions: every item carries an emoji, a title and a hint of up to two lines, and three of the six cards close with a
-  sentence that is not an action ("… are views, under Execution ▸", "Advisory only…"). The emoji come out as a mix of
-  colour and plain glyphs on the work machine (⬇, 📊, 🤖, 📒), and three different icons stand for "download". The item text
-  starts 40px in because every item keeps an empty tick column (`.mi .chk`) a report never ticks, so titles, hints and
-  section headings start at three different left edges. Pre-flight is alone on its own line, with its hint about 700px
-  away at the right edge. Names are inconsistent: "(Excel)" on some, "(CSV)" on one, nothing on the deck, "— full
-  breakouts" on one. Companion tools is the only group that holds a setting (*Change the linked tool…*).
-- **Proposed (prototyped on a scratch copy, before and after shown to Brad):**
-  1. **Two columns of plain lists, no cards.** A section is a small uppercase heading with a hairline under it; nothing
-     is boxed, so nothing is half empty. Left: Briefing, Spend plan & cash (FY on the heading), Five years & PPBE.
-     Right: CCaR & accounting files, AI review. The box narrows from 1060 to 860px.
-  2. **One line of title, one line of hint, a format tag on the right**: XLSX, PPTX, CSV, TXT; VIEW for a box that opens
-     on screen first; READ for the AI answer. The tag says what you get; the emoji go from this box. Hints are rewritten
-     to one short line each. The trailing … keeps its usual meaning (it asks something first).
-  3. **No tick column, so one left edge** for the heading, the title and the hint.
-  4. **Pre-flight is a button beside Find**, "✈ Pre-flight check · run before exporting".
-  5. **The three "are views, under …" sentences become one footer line**: "On-screen views are in the left menu under
-     FYDP ▸ and Execution ▸." "Advisory only" moves onto the AI review heading.
-  6. **Companion tools leave the grid.** The linked tool (JPO Slide Printer) is a link in the footer; *Change the linked
-     tool…* moves to Setup, where the other settings are.
-  7. **Titles in sentence case, with no format in the name**: "Excel workbook", "Executive synopsis", "Chart of accounts".
-     The format is on the tag.
-  Measured on the prototype: 688px tall against 662 (two columns instead of three), 16 actions, nothing on screen that
-  is not an action but the one footer line. Find still filters as typed, and a section with nothing found is still
-  hidden. Harbor and Midnight both checked.
-- **What a build has to carry with it:** the calls stay the same and so do their counts; only `linkSet` moves (to
-  Setup), so `npm run leftmenu` is re-pointed in the same commit. The guide and messages name paths like "Reports &
-  exports › Briefing › 📽 PowerPoint deck"; each is reworded to the new title, and `npm run menus` holds them.
-  `ia-census` and `keyboard-reach` read the box's items. `npm run standards`: the tag is `--mut` on `--panel` (AA in
-  every theme); each item stays at least 24px tall. `npm run panels`, `dialogs` and `dropdowns` are rerun. No money
-  moves and no export changes.
-- **Brad, 23 Oct 2026:** *"Under Briefing, let's remove PowerPoint deck, Executive Synopsis, and Executive Decision. I'm not
-  using those."* The prototype was redrawn without them. Briefing is now Excel workbook and Priority drill by band, and the box
-  is 557px tall, down from 662 today. **The box is the only way in to all three** (`exportPPT`, `execSynopsis`, `toggleEd` are
-  called from nowhere else), so taking them off the menu leaves their code unreachable. Item 104's rule is that
-  unreachable code goes. Removing it would take out the 1.6 MB PowerPoint template (`TPL_PARTS`, 40% of the file: about
-  4.0 MB down to about 2.4 MB) with the `#edPanel` box. It would also retire the deck's suite (`audit-ppt.mjs`), the deck
-  checks in audit-recon (9) and the trace matrix (two deck surfaces), `tools/tpl-parts.sha256` and its check, and the
-  deck and synopsis mutations, as ATR/BTR's went in v2.02. No board data is lost: none of the three stores anything.
-  Brad's call, below.
-- **Brad, 23 Oct 2026:** *"For titles let's ensure all first letters are uppercase. Let's change Briefing to Working
-  Documents."* Every item title capitalises the first letter of every word, small words included, as he asked: Excel
-  Workbook, Priority Drill By Band…, Two Spend Plans…, CR Cash Return (1A9A), FYDP Spend Plan…, Cycle Comparison, Spend
-  Plan Source, IDS Batch Import…, Chart Of Accounts, ACE Tie-Out, Export For GenAI.mil…, Import The Answer…, Review List.
-  The hints stay in sentence case, and the section headings stay in capitals. The section *Briefing* becomes *Working
-  Documents*. This replaces point 7's sentence case. A build rewords every guide and message path that names a title or
-  "Briefing" (`npm run menus`), for example "Reports & exports › Working Documents › Excel Workbook".
-- **Brad, 23 Oct 2026:** *"Remove their code and remove them entirely. Keep the two spend plans where it is."* So (c) is
-  decided: the PowerPoint deck (`exportPPT` and everything only it calls, `TPL_PARTS`, `tools/tpl-parts.sha256` and its
-  check in `check.mjs`), the Executive Synopsis (`execSynopsis`) and the Executive Decision box (`toggleEd`, `#edPanel` and
-  its code) are removed, with the checks and mutations that only they had. They are retired as obsolete, not declared
-  equivalent. A shared helper stays wherever anything else still calls it, and a call graph decides that, as in item
-  104. The Help guide and every message that names them are reworded. `money-coverage.mjs`, the money map and the
-  trace matrix drop their deck and synopsis surfaces in the same commit, so none of them promises coverage of something
-  that is gone. (b) is decided too: *Two Spend Plans…* stays in Spend Plan & Cash.
-- **Brad, 23 Oct 2026:** *"Leave the icons off. They're non value added."* That decides (a), read as applying to the
-  whole left menu: the emoji come off every item in the left menu's boxes and flyouts (Reports & exports, Imports &
-  exports, Data, Program offices ▸, Audit ▸, History & recovery ▸, Setup ▸, and the views under FYDP ▸ and Execution ▸).
-  Text that is a symbol rather than an icon stays, because it carries meaning: ✓ ticks, ▸ for a flyout, … for a
-  question asked first, and → and ⇄ inside a hint. The Help guide, messages and every `menu-paths` path are reworded
-  to match, so "Setup › Who and where › 🏷 Services…" becomes "Setup › Who and where › Services…". No questions are
-  left open; item 114 is ready to build on go.
-
-
-#### 115. The left menu's side panels scroll sideways (Brad, 23 Oct 2026, from a photo of Audit ▸: "There shouldn't be any scrolling in this view")
-- **What he sees:** Audit ▸ opens with a left/right scrollbar along its foot, holding only four short items.
-- **Reproduced on v2.04 in Chromium, 1440×900, in both the plain font and the Segoe stand-in:** four of the left menu's
-  side panels are 6px wider inside than they are shown, so each one scrolls sideways: Program offices ▸, Audit ▸,
-  Setup ▸ and Save ▾ (`#uiFly`: scroll width 384 against 378 shown; Save 304 against 298). The cause is one CSS rule:
-  an item's hint (`#uiFly button.mi .sub`) is `flex:1 0 100%`, a whole line wide, **plus** `margin-left:22px`, so every
-  hint runs 22px past its button. The panel is `overflow:auto`, so that spill becomes a scrollbar. It shows where a
-  hint is the item's widest line; panels whose titles are wider hide it. The same rule is on the boxes' items
-  (`.uiPanel .uiRs .mi .sub`, `.uiDc`), where it spills the same way but the card does not scroll.
-- **The fix:** the hint starts on the title's own left edge with no indent (item 114's single left edge). The 22px
-  existed to clear the icon, and item 114 takes the icons off. Proved on a scratch copy: with `margin:0` none of the left
-  menu's panels scrolls, in either font.
-- **The check it needs, because nothing caught this:** `npm run leftmenu` opens every side panel and every box but never
-  compared a panel's scroll width with its width. A new section opens each one, at 1920, 1440, 1366 and 1024 wide and in
-  the Segoe stand-in, and fails on any panel or box that scrolls sideways or has an item reaching past its edge. It must
-  fail on v2.04 (the four panels above) before it is trusted.
-
-#### 116. Lock each appropriation against a PPBE cycle, and see which are locked (Brad, 23 Oct 2026: "I need to have the ability to lock each appropriation against a PPBE cycle, not just one comprehensive lock")
-- **What the board already does (read in the code, and held by v1.85's tests):** a lock is already per appropriation.
-  Each appropriation keeps its own cycle store (`CYCDB`, under `_AP.key+'-cyc'`). 🔒 Lock (`cycLock`) copies only the
-  appropriation on screen, and its tag (`MS.cycle`) and reference (`MS.cycleRef`) are its own. v1.85's tests lock PB27
-  on Full Fund and O&M and leave Spares unlocked.
-- **Why it reads as one comprehensive lock:** (1) nothing says which appropriation. The button reads "🔒 Lock FY27, …
-  as PB27", the question "Lock the FYDP window as PB27?", the cycles list "PB27". (2) There is no view across the
-  appropriations: seeing which hold PB27 means switching to each one. (3) The five-year spend plan workbook picks "PB27"
-  for every appropriation at once, and leaves out one that has not locked it.
-- **Proposed, no data change:**
-  1. **The appropriation is named wherever a lock is.** The button reads "🔒 Lock O&M FY27–FY31 as PB27", and the
-     question, the status line, the cycles list, the locked view's banner, `document.title` and `expName` file names
-     all say "O&M PB27". The stored key stays `PB|2027`: it is already scoped by the store it sits in, and renaming it
-     would break every cycle already locked.
-  2. **A lock overview in the cycles panel:** appropriations down the side, the cycles any of them holds across the
-     top. Each cell shows 🔒 with the date and who locked it, 🔓 reopened (date, who), or *not locked*; beside each
-     appropriation, its working tag. Read from each appropriation's own store (`cycStoreOf`, as the file save already
-     does), never written from here. A cell's button opens that appropriation's board with the cycles panel open, to
-     lock or unlock there.
-  3. **Lock and unlock stay on each appropriation's own board.** The engine computes one appropriation per page, and a
-     figure for another worked out here would be a second engine (the v1.85 rule). No "Lock all".
-- **Brad's decisions (23 Oct 2026):**
-  - **(1) The five-year workbook, a cycle not locked everywhere: (a).** An appropriation that has not locked the cycle
-    stays off it, and every tab says so ("SPARES has not locked PB27; its figures are not on this tab"), as it does
-    now. A locked report never mixes in a working plan.
-  - **(2) "They follow the same calendar and timeline."** So the overview flags an appropriation whose working tag
-    differs from the others' (⚠ "Full Fund is still tagged PB27; O&M, Spares and OPN are BES28"). When an appropriation
-    opens tagged behind the others, its status line offers to retag it (the existing `cycRetagNext`, one click, on its
-    own board). Each appropriation's tag is still written only on its own board, so a retag never writes into another
-    appropriation's storage. After a lock, the status line says which appropriations have not yet locked that cycle.
-  - **(3) "Appropriation Leads or myself can lock or unlock."** Anyone working on that appropriation's board can, as
-    now. Every lock, reopen and lock again is already stamped with the editor's name (`unlocks`, `cycStampLines`), and
-    the overview shows who and when. **What the file cannot do is enforce who.** It has no sign-in: the name is the one
-    typed under Audit › My editor name, and the guard is the folder's permissions and the pen (one writer per board
-    file, v1.95). Enforcing the role (Appropriation Lead or portfolio lead) belongs to the Azure build's sign-in (item
-    107), where it is logged on to the record. Help says this in one sentence.
-- **Checks a build carries:** audit-board: a board with four appropriations, two locked as PB27 and one reopened; the
-  overview's cells against each store; the named labels; the out-of-step tag flag and its offer; nothing written to
-  another appropriation's storage (storage byte-identical outside the board's own key); and the status line after a
-  lock naming the ones still to lock. audit-recon: the five-year workbook with PB27 locked on two of four still leaves
-  the other two off every tab, with the note. Mutations for each. `npm run panels`, `standards`, `keys` and `dialogs`
-  measure the overview.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -320,6 +193,182 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.05 — 23 Oct 2026: Reports & exports cleaned up, the PowerPoint deck, Executive Synopsis and Executive Decision removed, no icons on the left menu, its side panels no longer scroll, and each appropriation's PPBE lock named and seen side by side -- built on Brad's "Go" of 23 Oct
+
+Items 114, 115 and 116, logged and decided with Brad the same day from two photos of the real board and a question. The entries
+as logged are below the as-built notes. Built on draft PR #22.
+
+#### 114, as built
+- **Removed entirely**, as Brad decided: the PowerPoint deck with its 1.6 MB template (`TPL_PARTS`, its fence in `check.mjs`,
+  `tools/tpl-parts.sha256`), the Executive Synopsis and Executive Decision. A parser-built call graph found one more function
+  only the deck reached (`spendPlanByMonth`, its chart) and nothing else; `edCompute` and `edWalk` stay, because Preview proposed
+  1–N order walks the bands by them (the Bands panel's note now says so, not "Executive Decision"). The board is 2.4 MB, from
+  4.0 MB. No board data is lost: none of the three stored anything.
+- **The box**, as prototyped and agreed: two plain lists; title case on every title (small words included, as Brad asked);
+  the format on a tag; Pre-Flight Check beside Find; Working Documents; *Linked tool…* under Setup › Who and where, the
+  companion tool a link at the foot. **Differs from the log in two places, both for Find:** the titles lost "(Excel)", so
+  Find "excel" found one workbook of nine -- Find now reads each tag's words too (XLSX is "excel workbook xlsx"); and the
+  foot names each view ("Spend Plan Forecast and CR Cash Needs under Execution ▸; the five-year spend plan, PPBE Budget
+  Positions and Spruills under FYDP ▸"), not just the two menus, so Find "cash needs" still finds where that view lives.
+- **Icons off the left menu**: every item in its boxes and side panels (`uiPlain()` where each list is written; the flyouts'
+  own items written without). The tick, ● and ○, … and ▸ stay, as Brad confirmed. The nav entries keep their icons, because
+  folded to a rail the icon is all that shows; the Imports & exports cards keep their drawn pictograms (not emoji). Every
+  guide and message path was reworded without the icon.
+
+#### 115, as built
+- **Differs from the log:** the hint keeps its 22px indent and is that much narrower (`calc(100% - 22px)`). The log said the
+  indent would go with the icons; measured, it clears the 14px tick column and the 8px gap, so it lines the hint up under the
+  title, and the tick column stays for the items that tick (the themes, Live view).
+- `npm run leftmenu` G, as logged: every side panel and box, every folded group, at 1920, 1440, 1366 and 1024 wide, in the
+  board's font and the Segoe stand-in -- no sideways scroll, no item past its edge, and no item starting with an icon. It fails
+  on v2.04 on all three (Program offices, Audit, Setup and Save 6px wide, and the icons).
+
+#### 116, as built
+- As logged and decided. The naming helpers are `cycApTxt`/`cycAp`; the overview `cycOverview`/`cycOverviewHtml`/`cycCellOf`;
+  the calendar `cycKeyRank` (year, then POM, BES, DoN, PB -- cycNextOf's chain), led by the latest tag; `cycNotLocked` for the
+  status after a lock; `cycRetagLead` for the retag; `cycGoAppn` for Go to, which leaves `prio27cycGo` in this browser for the
+  board it opens (read once on opening, never in the board; it starts `prio27`, so Clear this computer reaches it). The
+  locked view's banner and the year menu's line name the appropriation too.
+
+#### Mutations
+- **New, 15:** `v205-114-icons-kept`, `-no-format-tag`, `-linkset-not-in-setup`, `-briefing-name`, `-find-ignores-tag`,
+  `-foot-not-found`; `v205-116-lock-unnamed`, `-calendar-first-tag`, `-reopened-reads-locked`, `-not-locked-counts-empty`,
+  `-tag-from-this-board`, `-go-no-mark`, `-offer-on-every-board`, `-go-on-own-row`, `-status-silent`. Each caught by its check.
+- **Retargeted, 9**, the same defect on the line that now carries it: `view-title-unmarked`, `view-header-unmarked`,
+  `v200-cyc-title-html`, `v200-cyc-double-escape` (and audit-inject's guard against a second escape now covers `cycAp`),
+  `v200-cmp-menu-raw`, `menu-copy-offices`, `menu-find-no-filter`, `menu-find-no-group-name`,
+  `v200-cycreg-help-refusal-unsaid` (its find string named a path with an icon).
+- **Retired as obsolete, 26** (the deck and the synopsis), each with a comment where it stood. 2,108 targets, each matching once.
+- Item 115 is CSS, which jsdom does not lay out; its check is leftmenu G, proved on the board with the old rule.
+
+#### 114, as logged. Reports & exports: the box cleaned up (Brad, 23 Oct 2026, from a photo of the real board: "Need to clean up this pop up. Has too much going on")
+- **What he sees (measured on v2.04, Harbor, 1500 wide; it matches the photo):** six bordered cards in a 3×2 grid, each
+  sized to the tallest in its row, so Spend plan & cash and Companion tools are half empty. 19 lines of text on 16
+  actions: every item carries an emoji, a title and a hint of up to two lines, and three of the six cards close with a
+  sentence that is not an action ("… are views, under Execution ▸", "Advisory only…"). The emoji come out as a mix of
+  colour and plain glyphs on the work machine (⬇, 📊, 🤖, 📒), and three different icons stand for "download". The item text
+  starts 40px in because every item keeps an empty tick column (`.mi .chk`) a report never ticks, so titles, hints and
+  section headings start at three different left edges. Pre-flight is alone on its own line, with its hint about 700px
+  away at the right edge. Names are inconsistent: "(Excel)" on some, "(CSV)" on one, nothing on the deck, "— full
+  breakouts" on one. Companion tools is the only group that holds a setting (*Change the linked tool…*).
+- **Proposed (prototyped on a scratch copy, before and after shown to Brad):**
+  1. **Two columns of plain lists, no cards.** A section is a small uppercase heading with a hairline under it; nothing
+     is boxed, so nothing is half empty. Left: Briefing, Spend plan & cash (FY on the heading), Five years & PPBE.
+     Right: CCaR & accounting files, AI review. The box narrows from 1060 to 860px.
+  2. **One line of title, one line of hint, a format tag on the right**: XLSX, PPTX, CSV, TXT; VIEW for a box that opens
+     on screen first; READ for the AI answer. The tag says what you get; the emoji go from this box. Hints are rewritten
+     to one short line each. The trailing … keeps its usual meaning (it asks something first).
+  3. **No tick column, so one left edge** for the heading, the title and the hint.
+  4. **Pre-flight is a button beside Find**, "✈ Pre-flight check · run before exporting".
+  5. **The three "are views, under …" sentences become one footer line**: "On-screen views are in the left menu under
+     FYDP ▸ and Execution ▸." "Advisory only" moves onto the AI review heading.
+  6. **Companion tools leave the grid.** The linked tool (JPO Slide Printer) is a link in the footer; *Change the linked
+     tool…* moves to Setup, where the other settings are.
+  7. **Titles in sentence case, with no format in the name**: "Excel workbook", "Executive synopsis", "Chart of accounts".
+     The format is on the tag.
+  Measured on the prototype: 688px tall against 662 (two columns instead of three), 16 actions, nothing on screen that
+  is not an action but the one footer line. Find still filters as typed, and a section with nothing found is still
+  hidden. Harbor and Midnight both checked.
+- **What a build has to carry with it:** the calls stay the same and so do their counts; only `linkSet` moves (to
+  Setup), so `npm run leftmenu` is re-pointed in the same commit. The guide and messages name paths like "Reports &
+  exports › Briefing › 📽 PowerPoint deck"; each is reworded to the new title, and `npm run menus` holds them.
+  `ia-census` and `keyboard-reach` read the box's items. `npm run standards`: the tag is `--mut` on `--panel` (AA in
+  every theme); each item stays at least 24px tall. `npm run panels`, `dialogs` and `dropdowns` are rerun. No money
+  moves and no export changes.
+- **Brad, 23 Oct 2026:** *"Under Briefing, let's remove PowerPoint deck, Executive Synopsis, and Executive Decision. I'm not
+  using those."* The prototype was redrawn without them. Briefing is now Excel workbook and Priority drill by band, and the box
+  is 557px tall, down from 662 today. **The box is the only way in to all three** (`exportPPT`, `execSynopsis`, `toggleEd` are
+  called from nowhere else), so taking them off the menu leaves their code unreachable. Item 104's rule is that
+  unreachable code goes. Removing it would take out the 1.6 MB PowerPoint template (`TPL_PARTS`, 40% of the file: about
+  4.0 MB down to about 2.4 MB) with the `#edPanel` box. It would also retire the deck's suite (`audit-ppt.mjs`), the deck
+  checks in audit-recon (9) and the trace matrix (two deck surfaces), `tools/tpl-parts.sha256` and its check, and the
+  deck and synopsis mutations, as ATR/BTR's went in v2.02. No board data is lost: none of the three stores anything.
+  Brad's call, below.
+- **Brad, 23 Oct 2026:** *"For titles let's ensure all first letters are uppercase. Let's change Briefing to Working
+  Documents."* Every item title capitalises the first letter of every word, small words included, as he asked: Excel
+  Workbook, Priority Drill By Band…, Two Spend Plans…, CR Cash Return (1A9A), FYDP Spend Plan…, Cycle Comparison, Spend
+  Plan Source, IDS Batch Import…, Chart Of Accounts, ACE Tie-Out, Export For GenAI.mil…, Import The Answer…, Review List.
+  The hints stay in sentence case, and the section headings stay in capitals. The section *Briefing* becomes *Working
+  Documents*. This replaces point 7's sentence case. A build rewords every guide and message path that names a title or
+  "Briefing" (`npm run menus`), for example "Reports & exports › Working Documents › Excel Workbook".
+- **Brad, 23 Oct 2026:** *"Remove their code and remove them entirely. Keep the two spend plans where it is."* So (c) is
+  decided: the PowerPoint deck (`exportPPT` and everything only it calls, `TPL_PARTS`, `tools/tpl-parts.sha256` and its
+  check in `check.mjs`), the Executive Synopsis (`execSynopsis`) and the Executive Decision box (`toggleEd`, `#edPanel` and
+  its code) are removed, with the checks and mutations that only they had. They are retired as obsolete, not declared
+  equivalent. A shared helper stays wherever anything else still calls it, and a call graph decides that, as in item
+  104. The Help guide and every message that names them are reworded. `money-coverage.mjs`, the money map and the
+  trace matrix drop their deck and synopsis surfaces in the same commit, so none of them promises coverage of something
+  that is gone. (b) is decided too: *Two Spend Plans…* stays in Spend Plan & Cash.
+- **Brad, 23 Oct 2026:** *"Leave the icons off. They're non value added."* That decides (a), read as applying to the
+  whole left menu: the emoji come off every item in the left menu's boxes and flyouts (Reports & exports, Imports &
+  exports, Data, Program offices ▸, Audit ▸, History & recovery ▸, Setup ▸, and the views under FYDP ▸ and Execution ▸).
+  Text that is a symbol rather than an icon stays, because it carries meaning: ✓ ticks, ▸ for a flyout, … for a
+  question asked first, and → and ⇄ inside a hint. The Help guide, messages and every `menu-paths` path are reworded
+  to match, so "Setup › Who and where › 🏷 Services…" becomes "Setup › Who and where › Services…". No questions are
+  left open; item 114 is ready to build on go.
+
+
+#### 115, as logged. The left menu's side panels scroll sideways (Brad, 23 Oct 2026, from a photo of Audit ▸: "There shouldn't be any scrolling in this view")
+- **What he sees:** Audit ▸ opens with a left/right scrollbar along its foot, holding only four short items.
+- **Reproduced on v2.04 in Chromium, 1440×900, in both the plain font and the Segoe stand-in:** four of the left menu's
+  side panels are 6px wider inside than they are shown, so each one scrolls sideways: Program offices ▸, Audit ▸,
+  Setup ▸ and Save ▾ (`#uiFly`: scroll width 384 against 378 shown; Save 304 against 298). The cause is one CSS rule:
+  an item's hint (`#uiFly button.mi .sub`) is `flex:1 0 100%`, a whole line wide, **plus** `margin-left:22px`, so every
+  hint runs 22px past its button. The panel is `overflow:auto`, so that spill becomes a scrollbar. It shows where a
+  hint is the item's widest line; panels whose titles are wider hide it. The same rule is on the boxes' items
+  (`.uiPanel .uiRs .mi .sub`, `.uiDc`), where it spills the same way but the card does not scroll.
+- **The fix:** the hint starts on the title's own left edge with no indent (item 114's single left edge). The 22px
+  existed to clear the icon, and item 114 takes the icons off. Proved on a scratch copy: with `margin:0` none of the left
+  menu's panels scrolls, in either font.
+- **The check it needs, because nothing caught this:** `npm run leftmenu` opens every side panel and every box but never
+  compared a panel's scroll width with its width. A new section opens each one, at 1920, 1440, 1366 and 1024 wide and in
+  the Segoe stand-in, and fails on any panel or box that scrolls sideways or has an item reaching past its edge. It must
+  fail on v2.04 (the four panels above) before it is trusted.
+
+#### 116, as logged. Lock each appropriation against a PPBE cycle, and see which are locked (Brad, 23 Oct 2026: "I need to have the ability to lock each appropriation against a PPBE cycle, not just one comprehensive lock")
+- **What the board already does (read in the code, and held by v1.85's tests):** a lock is already per appropriation.
+  Each appropriation keeps its own cycle store (`CYCDB`, under `_AP.key+'-cyc'`). 🔒 Lock (`cycLock`) copies only the
+  appropriation on screen, and its tag (`MS.cycle`) and reference (`MS.cycleRef`) are its own. v1.85's tests lock PB27
+  on Full Fund and O&M and leave Spares unlocked.
+- **Why it reads as one comprehensive lock:** (1) nothing says which appropriation. The button reads "🔒 Lock FY27, …
+  as PB27", the question "Lock the FYDP window as PB27?", the cycles list "PB27". (2) There is no view across the
+  appropriations: seeing which hold PB27 means switching to each one. (3) The five-year spend plan workbook picks "PB27"
+  for every appropriation at once, and leaves out one that has not locked it.
+- **Proposed, no data change:**
+  1. **The appropriation is named wherever a lock is.** The button reads "🔒 Lock O&M FY27–FY31 as PB27", and the
+     question, the status line, the cycles list, the locked view's banner, `document.title` and `expName` file names
+     all say "O&M PB27". The stored key stays `PB|2027`: it is already scoped by the store it sits in, and renaming it
+     would break every cycle already locked.
+  2. **A lock overview in the cycles panel:** appropriations down the side, the cycles any of them holds across the
+     top. Each cell shows 🔒 with the date and who locked it, 🔓 reopened (date, who), or *not locked*; beside each
+     appropriation, its working tag. Read from each appropriation's own store (`cycStoreOf`, as the file save already
+     does), never written from here. A cell's button opens that appropriation's board with the cycles panel open, to
+     lock or unlock there.
+  3. **Lock and unlock stay on each appropriation's own board.** The engine computes one appropriation per page, and a
+     figure for another worked out here would be a second engine (the v1.85 rule). No "Lock all".
+- **Brad's decisions (23 Oct 2026):**
+  - **(1) The five-year workbook, a cycle not locked everywhere: (a).** An appropriation that has not locked the cycle
+    stays off it, and every tab says so ("SPARES has not locked PB27; its figures are not on this tab"), as it does
+    now. A locked report never mixes in a working plan.
+  - **(2) "They follow the same calendar and timeline."** So the overview flags an appropriation whose working tag
+    differs from the others' (⚠ "Full Fund is still tagged PB27; O&M, Spares and OPN are BES28"). When an appropriation
+    opens tagged behind the others, its status line offers to retag it (the existing `cycRetagNext`, one click, on its
+    own board). Each appropriation's tag is still written only on its own board, so a retag never writes into another
+    appropriation's storage. After a lock, the status line says which appropriations have not yet locked that cycle.
+  - **(3) "Appropriation Leads or myself can lock or unlock."** Anyone working on that appropriation's board can, as
+    now. Every lock, reopen and lock again is already stamped with the editor's name (`unlocks`, `cycStampLines`), and
+    the overview shows who and when. **What the file cannot do is enforce who.** It has no sign-in: the name is the one
+    typed under Audit › My editor name, and the guard is the folder's permissions and the pen (one writer per board
+    file, v1.95). Enforcing the role (Appropriation Lead or portfolio lead) belongs to the Azure build's sign-in (item
+    107), where it is logged on to the record. Help says this in one sentence.
+- **Checks a build carries:** audit-board: a board with four appropriations, two locked as PB27 and one reopened; the
+  overview's cells against each store; the named labels; the out-of-step tag flag and its offer; nothing written to
+  another appropriation's storage (storage byte-identical outside the board's own key); and the status line after a
+  lock naming the ones still to lock. audit-recon: the five-year workbook with PB27 locked on two of four still leaves
+  the other two off every tab, with the note. Mutations for each. `npm run panels`, `standards`, `keys` and `dialogs`
+  measure the overview.
+
 
 ### v2.04 — 22 Oct 2026: the CCaR records list names the record, an AI review for GenAI.mil, Clear this computer, Confluence, SharePoint and the JSON endpoint removed, the five-year spend plan workbook redesigned and every report dressed for briefing -- built on Brad's "Go to all" of 22 Oct, items 112 and 113 on "press with PR number 20"
 

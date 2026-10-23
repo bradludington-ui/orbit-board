@@ -226,8 +226,8 @@
   },
   "w6.drill": {
    "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "W6 — the priority drill, the deck and the synopsis: every requirement, service and lane",
-   "anchor": "const name = 'W6 — the priority drill, the deck and the synopsis: every requirement, service and lane'",
+   "scenario": "W6 — the priority drill: every requirement, service and lane",
+   "anchor": "const name = 'W6 — the priority drill: every requirement, service and lane'",
    "basis": "agreement",
    "asserts": "The drill read back: every requirement row (allocated, both lanes, funded, both readings, funded per service) on 1-N by Band and its PMO tab, the Summary's budget authority, bands and PMO × band; the deck's stream table per service (both pots and draws), PMO table and Unfunded slide per requirement; the synopsis per service and lane, MC per service and per short requirement."
   },
@@ -399,13 +399,6 @@
    "basis": "agreement",
    "asserts": "The drill's whole-order tab, each requirement's Unfunded and Unfunded vs DISC, floored per service; the by-PMO TOTAL is the funded topline."
   },
-  "ot.synopsis": {
-   "file": "tools/export-audit/audit-other.mjs",
-   "scenario": "SCENARIOS — the Executive Synopsis",
-   "anchor": "★ MC requirement value == sum of MC ask values",
-   "basis": "agreement",
-   "asserts": "The synopsis: MC count, value and short; PROGRAM FLOOR; the unfunded total floored per service."
-  },
   "ot.src": {
    "file": "tools/export-audit/audit-other.mjs",
    "scenario": "spend plan source",
@@ -448,27 +441,6 @@
    "basis": "arithmetic",
    "asserts": "IDS: one budget and control across two services is one row carrying both."
   },
-  "pp.kpi": {
-   "file": "tools/export-audit/audit-ppt.mjs",
-   "scenario": "SCENARIOS — the KPI table",
-   "anchor": "PROGRAM FLOOR == Disc BA + MC short",
-   "basis": "agreement",
-   "asserts": "The KPI slide: discretionary funded, mandatory drawn, MC total and short, the floor — at the slide's format (fSM)."
-  },
-  "pp.stream": {
-   "file": "tools/export-audit/audit-ppt.mjs",
-   "scenario": "SCENARIOS — Funding by Stream",
-   "anchor": "TOTAL Unf floored per service",
-   "basis": "agreement",
-   "asserts": "The stream slide, every service: ask, disc funded, mand drawn and both readings — at fSM (whole dollars below $1,000, which the suite's fixtures are)."
-  },
-  "pp.mc": {
-   "file": "tools/export-audit/audit-ppt.mjs",
-   "scenario": "SCENARIOS — the Mission Critical slide",
-   "anchor": "row short == ask - discretionary allocated",
-   "basis": "agreement",
-   "asserts": "The MC slide: each starred requirement's value and short, and the totals."
-  },
   "im.v185": {
    "file": "tools/export-audit/audit-import.mjs",
    "scenario": "v1.85 — every appropriation, read by its own board, ties to the dollar",
@@ -489,13 +461,6 @@
    "anchor": "const name = 'v1.86 — every funded dollar lands in a month or UNSCHEDULED, by one rule'",
    "basis": "arithmetic",
    "asserts": "The forecast's months and UNSCHEDULED (written from the fixture); CR windows folded to months; CR by PMO; the 1A9A rows; the PMO tabs' spend plans add to the forecast."
-  },
-  "im.deckChart": {
-   "file": "tools/export-audit/audit-import.mjs",
-   "scenario": "v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar",
-   "anchor": "const name = 'v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar'",
-   "basis": "arithmetic",
-   "asserts": "The deck's spend-plan chart: every month and UNSCHEDULED to the dollar, and each pot per bar."
   },
   "im.switch": {
    "file": "tools/export-audit/audit-import.mjs",
@@ -587,13 +552,6 @@
    "anchor": "const name = 'W7 — F1: the writer stores every figure as it is, and a fraction in a plain style shows two decimals'",
    "basis": "arithmetic",
    "asserts": "buildXlsx on a stated row: every figure stored as it is (to 15 significant digits, float noise dropped); a fraction in a style with no number format gets that style's two-decimal twin (same font and fill), one per style; a whole figure, or a style with a format of its own, keeps its style; the package well-formed, every count holding what it says."
-  },
-  "w7.f3": {
-   "file": "tools/export-audit/audit-recon.mjs",
-   "scenario": "W7 — F3: the Executive Synopsis is titled and named for the year on screen",
-   "anchor": "const name = 'W7 — F3: the Executive Synopsis is titled and named for the year on screen'",
-   "basis": "arithmetic",
-   "asserts": "On a board whose FY27 and FY28 asks differ, the synopsis exported on each year: its first line and file name name that year, and (control) its funded count, total and each service are that year's asks."
   },
   "w7.f1": {
    "file": "tools/export-audit/audit-recon.mjs",
@@ -1200,61 +1158,6 @@
     }
    }
   },
-  "exportPPT": {
-   "registry": "money-coverage",
-   "money": true,
-   "what": "The PowerPoint deck: KPI, Funding by Stream, the spend-plan chart, PMO roll-up, Mission Critical, Unfunded, cost elements.",
-   "cells": {
-    "appropriation": {
-     "status": "n/a",
-     "why": "@oneAppn"
-    },
-    "fiscalYear": {
-     "status": "n/a",
-     "why": "@oneYear"
-    },
-    "service": {
-     "status": "proven",
-     "checks": [
-      "pp.stream",
-      "w6.drill"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars"
-    },
-    "requirement": {
-     "status": "proven",
-     "checks": [
-      "pp.mc",
-      "w6.drill"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars",
-     "note": "each starred requirement (MC slide) and each requirement still short (Unfunded slide)"
-    },
-    "month": {
-     "status": "proven",
-     "checks": [
-      "im.deckChart",
-      "bo.mandLast"
-     ],
-     "note": "the spend-plan chart, month by month and UNSCHEDULED, each pot, to the dollar"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@monthsNotHalf"
-    },
-    "lane": {
-     "status": "proven",
-     "checks": [
-      "pp.kpi",
-      "pp.stream",
-      "w6.drill",
-      "im.deckChart"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars",
-     "note": "the chart's pots are to the dollar; the tables at the deck's format"
-    }
-   }
-  },
   "exportPlans": {
    "registry": "money-coverage",
    "money": true,
@@ -1453,53 +1356,6 @@
     "lane": {
      "status": "n/a",
      "why": "States the requirement (ask) only; no lane."
-    }
-   }
-  },
-  "execSynopsis": {
-   "registry": "money-coverage",
-   "money": true,
-   "what": "The Executive Funding Synopsis (CSV): both lanes by service, Mission Critical, the floor, unfunded.",
-   "cells": {
-    "appropriation": {
-     "status": "n/a",
-     "why": "@oneAppn"
-    },
-    "fiscalYear": {
-     "status": "proven",
-     "checks": [
-      "w7.f3"
-     ],
-     "note": "titled and named for the year on screen, its figures that year's (v1.95 F3)"
-    },
-    "service": {
-     "status": "proven",
-     "checks": [
-      "w6.drill"
-     ]
-    },
-    "requirement": {
-     "status": "proven",
-     "checks": [
-      "w6.drill",
-      "ot.synopsis"
-     ],
-     "note": "each starred requirement still short: value, short, each service"
-    },
-    "month": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "lane": {
-     "status": "proven",
-     "checks": [
-      "w6.drill",
-      "ot.synopsis"
-     ]
     }
    }
   },
@@ -2419,91 +2275,6 @@
     }
    }
   },
-  "ppt · KPI slide": {
-   "registry": "trace",
-   "parent": "exportPPT",
-   "what": "The deck's KPI table.",
-   "cells": {
-    "appropriation": {
-     "status": "n/a",
-     "why": "@oneAppn"
-    },
-    "fiscalYear": {
-     "status": "n/a",
-     "why": "@oneYear"
-    },
-    "service": {
-     "status": "n/a",
-     "why": "@totalsOnly"
-    },
-    "requirement": {
-     "status": "n/a",
-     "why": "@noReq"
-    },
-    "month": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "lane": {
-     "status": "proven",
-     "checks": [
-      "pp.kpi",
-      "tr.matrix"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars"
-    }
-   }
-  },
-  "ppt · Funding by Stream": {
-   "registry": "trace",
-   "parent": "exportPPT",
-   "what": "The deck's Funding by Stream table: one row per service.",
-   "cells": {
-    "appropriation": {
-     "status": "n/a",
-     "why": "@oneAppn"
-    },
-    "fiscalYear": {
-     "status": "n/a",
-     "why": "@oneYear"
-    },
-    "service": {
-     "status": "proven",
-     "checks": [
-      "pp.stream",
-      "w6.drill"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars"
-    },
-    "requirement": {
-     "status": "n/a",
-     "why": "One row per service; no requirement row."
-    },
-    "month": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "crHalf": {
-     "status": "n/a",
-     "why": "@noTime"
-    },
-    "lane": {
-     "status": "proven",
-     "checks": [
-      "pp.stream",
-      "w6.drill"
-     ],
-     "see": [
-      "tr.matrix"
-     ],
-     "precision": "the deck's own format (fSM): to the dollar below $1,000, then $K, then $0.1M — it cannot print briefing-scale money to the dollar, and the check holds the printed text to fSM of the true dollars"
-    }
-   }
-  },
   "cycle deltas (panel, now)": {
    "registry": "trace",
    "parent": "cycDelta",
@@ -2870,7 +2641,7 @@
   {
    "id": "F3",
    "title": "The Executive Funding Synopsis is titled FY27 whatever the year",
-   "detail": "execSynopsis writes 'FY27 EXECUTIVE FUNDING SYNOPSIS' and names the file 'FY27 Exec Funding Synopsis …' as literals; the figures are the year on screen's. Fixed in v1.95 (item 60): FYL() in the first line and the file name. Proven by w7.f3.",
+   "detail": "execSynopsis writes 'FY27 EXECUTIVE FUNDING SYNOPSIS' and names the file 'FY27 Exec Funding Synopsis …' as literals; the figures are the year on screen's. Fixed in v1.95 (item 60): FYL() in the first line and the file name. Proven by w7.f3, until the synopsis was removed in v2.05 (item 114).",
    "observed": "3 Oct 2026, the synopsis exported with FY28 on screen (MS.cur 2028): its first line and its file name both say FY27.",
    "cells": "execSynopsis × fiscal year."
   },
@@ -2889,7 +2660,7 @@
    "cells": "none (wording only)."
   }
  ],
- "unregisteredNote": "The map is as complete as the two registries. money-coverage discovers only functions named export*, execSynopsis, crExportRows, srcRowsOf and crData; the trace matrix lists what it harvests. These print money on screen and are in neither, so they are not rows here. Registering them (money-coverage REGISTRY, with a mutation each) would bring them into the map automatically.",
+ "unregisteredNote": "The map is as complete as the two registries. money-coverage discovers only functions named export*, crExportRows, srcRowsOf and crData; the trace matrix lists what it harvests. These print money on screen and are in neither, so they are not rows here. Registering them (money-coverage REGISTRY, with a mutation each) would bring them into the map automatically.",
  "unregistered": [
   {
    "name": "absorbCalc",

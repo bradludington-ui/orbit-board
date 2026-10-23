@@ -229,42 +229,7 @@ if (hasCycles) {
   add('xl · Spend Plan Source', 'Excel', 0.5, { funded: rows.length ? t : undefined });
 }
 
-// 6. THE DECK. Abbreviated to $M/$B on the slide, so it is compared at that resolution -- the
-//    tolerance is the rounding the format imposes, not a licence for the figure to drift.
-{
-  const tbls = JSON.parse(ev(`(function(){
-    globalThis.__t=[];
-    if(!globalThis.__oTbl) globalThis.__oTbl=_pTbl;
-    if(!globalThis.__oPptx) globalThis.__oPptx=buildPptx;
-    _pTbl=function(){ var a=arguments; globalThis.__t.push(a[a.length-1]); return ''; };
-    buildPptx=function(){ return new Uint8Array(0); };
-    try{ exportPPT(); }catch(e){}
-    _pTbl=globalThis.__oTbl; buildPptx=globalThis.__oPptx;
-    return JSON.stringify(globalThis.__t); })()`));
-  const cellText = c => String((c && typeof c === 'object' && 't' in c) ? c.t : (c ?? '')).trim();
-  const un = s => { const m = /^\$?([\d.,]+)\s*([BMK])?$/.exec(String(s).replace(/,/g, ''));
-    if (!m) return undefined;
-    const n = Number(m[1]); return m[2] === 'B' ? n * 1e9 : m[2] === 'M' ? n * 1e6 : m[2] === 'K' ? n * 1e3 : n; };
-  // the KPI table: a two-column list of measure -> amount
-  const kpi = tbls.find(t => t.some(r => /^Measure$/.test(cellText(r[0]))));
-  const kv = re => { const r = (kpi || []).find(x => re.test(cellText(x[0]))); return r ? un(cellText(r[1])) : undefined; };
-  add('ppt · KPI slide', 'PowerPoint', 60000, {
-    discBA: kv(/^Discretionary BA$/), mandBA: kv(/^Mandatory BA$/),
-    ufr1: kv(/^Unfunded vs DISC/), ufr2: kv(/^TOTAL Unfunded/), mcTotal: kv(/Mission Critical total/),
-  });
-  // the stream table: services down, a TOTAL row across
-  const st = tbls.find(t => t.some(r => /^Service$/.test(cellText(r[0]))));
-  const sc = h => { if (!st) return undefined;
-    const hr = st.find(r => /^Service$/.test(cellText(r[0]))) || [];
-    const i = hr.findIndex(c => new RegExp(h).test(cellText(c)));
-    const tr = st.find(r => /^TOTAL$/.test(cellText(r[0])));
-    return (i < 0 || !tr) ? undefined : un(cellText(tr[i])); };
-  add('ppt · Funding by Stream', 'PowerPoint', 60000, {
-    ask: sc(' Ask$'), discBA: sc('^Disc BA$'), disc: sc('^Disc Funded$'),
-    mandBA: sc('^Mand BA$'), mand: sc('^Mand Drawn$'),
-    ufr1: sc('^Unf vs DISC$'), ufr2: sc('^TOTAL Unf$'),
-  });
-}
+// 6. (v2.05, item 114: the deck's two surfaces went with the PowerPoint deck.)
 
 
   // 1d. THE DELTAS' NOW SIDE -- what the Changes panel prints as 'Now' against the lock. The lock
