@@ -51,6 +51,13 @@ Current version: **v2.04**. Next: **v2.05**.
   checks in audit-recon (9) and the trace matrix (two deck surfaces), `tools/tpl-parts.sha256` and its check, and the
   deck and synopsis mutations, as ATR/BTR's went in v2.02. No board data is lost: none of the three stores anything.
   Brad's call, below.
+- **Brad, 23 Oct 2026:** *"For titles let's ensure all first letters are uppercase. Let's change Briefing to Working
+  Documents."* Every item title capitalises the first letter of every word, small words included, as he asked: Excel
+  Workbook, Priority Drill By Band…, Two Spend Plans…, CR Cash Return (1A9A), FYDP Spend Plan…, Cycle Comparison, Spend
+  Plan Source, IDS Batch Import…, Chart Of Accounts, ACE Tie-Out, Export For GenAI.mil…, Import The Answer…, Review List.
+  The hints stay in sentence case, and the section headings stay in capitals. The section *Briefing* becomes *Working
+  Documents*. This replaces point 7's sentence case. A build rewords every guide and message path that names a title or
+  "Briefing" (`npm run menus`), for example "Reports & exports › Working Documents › Excel Workbook".
 - **Open for Brad:** (c) take the three off the menu only, or remove their code too (above)? (a) the emoji: off in this box only (the prototype), or off across every left-menu box for one look?
   (b) whether *Two spend plans…* (an on-screen view, tagged VIEW) belongs here, or under Execution ▸ with the other views,
   which would leave this box exports only.
