@@ -214,9 +214,13 @@ the log it says so here.
   the change journal, which walks the year states and not `MS.ppbe`; it is recorded on the position instead (`P.kx`) and undone
   from the same place, as the log's "undone" asked.
 
-**Proved with:** `npm run check`; every suite on the final tree; the new jsdom blocks, each failing on v2.05; `npm run layout` L,
-failing on v2.05; the other browser checks; the defect register, money coverage, the money map, the trace matrix, the fuzz and the
-file verifier. The mutation sweep was not run (Brad's rule of 20 Oct); the 30 new mutations were each run against their own block.
+**Proved with** (24 Oct, on the final tree): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED, recon and import once
+the clone's history was fetched (`git fetch --unshallow`: both read old builds by commit, and a shallow clone fails them with
+"invalid object name", which is not a defect); the two new jsdom blocks, each failing on v2.05; every browser check, `npm run
+layout` failing only on its carried D ×8 and its new L passing (L fails on v2.05); `npm run standards` with nothing new; the defect
+register (13, guarded by 43), money coverage (24/24), the money map (301 cells, 108 proven, 192 n/a, 1 open -- the same as v2.05:
+the map's report did not change), the trace matrix (every link holds), the fuzz (seed 683198728) and the file verifier's self-test.
+The mutation sweep was not run (Brad's rule of 20 Oct); the 30 new mutations were each run against their own block and caught.
 
 #### The items as logged
 

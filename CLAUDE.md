@@ -4228,7 +4228,7 @@ build had: a cell the writer emits (`{v:'', s:2}`) padded a second time -- two c
 damaged file. **A new export that writes a workbook passes `xlsxHouse`**, or is added to that check's list of the two that do
 not, with the reason.
 
-**recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
+**recon and import read old builds from git history** (`git show <sha>:…`): in a fresh shallow clone they fail with *invalid object name*; run `git fetch --unshallow` first (v2.06). **recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
 (`exit 134`) on the commit before items 112-113 as well as after. Run them with `NODE_OPTIONS="--max-old-space-size=8192"`.
 
 **A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
