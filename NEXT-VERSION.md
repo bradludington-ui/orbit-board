@@ -194,6 +194,15 @@ Current version: **v2.06**. Next: **v2.07**.
   - **Legible, nothing off the screen, no scrolling.** Measured in Chromium at 1366×768 and up; the box must fit whole.
   - **Kept as proposed:** narrow-screen single column, keyboard and screen-reader labels, Esc asks before discarding, Edit the
     whole record later as its own item.
+- **Mock-up, revision 2** (24 Oct; rendered on the real board, Harbor and Midnight, measured at 1366×657 and 1920×969 -- no
+  scrolling, nothing cut, every label 11-12 px): three columns -- Identity and Classification; Requirement by service with a BAE
+  picker per service, then Where the money goes; Narrative and Ready to add -- and the From another year tab with a *ready* /
+  *N to fill* mark per row and *Add 2 · finish 1*. The required list, in the box and in a copy's proposal gate: plan event, Prime /
+  OGC, the requirement, a budget for every service with a value, obligation category, WBS, Goes to, description, impact
+  statement, and for an OGC, which awards to and MIPR type. (A copy's gate loses the award date and gains the budgets.)
+- **Brad, 24 Oct 2026:** *"I agree"* to both: on the board with *All offices* showing, the box asks which office first and locks
+  it once chosen (one office chosen at the top is used as is); below 1366 px wide the box is one column and scrolls, 1366 and up
+  fit whole.
 
 ## Later
 
