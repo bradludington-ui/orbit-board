@@ -168,9 +168,11 @@ Current version: **v2.06**. Next: **v2.07**.
   text); nothing is written until Add, and Cancel or Esc discards (the box's fields are `data-held`). On the board a requirement
   can be added with fields missing and finished later; in a PMO copy it is a proposal and Add says which of the ten are still
   missing (the gate is unchanged).
-- **To decide before go:** whether Mission Critical belongs in the add box (a star is a decision for this year; the row owns it
-  today); whether *Add* on the board should also require the ten, as the copy does; and whether the old strip goes entirely (the
-  mock-up assumes it does, one home for one action).
+- **Brad, 24 Oct 2026:** *"Starts unstarred."* -- Mission Critical is not in the box; a new requirement starts unstarred and
+  is starred from its row. *"All required to be added."* -- **Add is refused until every required field is filled, on the board
+  as in a copy** (the ten `pmoProposalGate` names); the button says how many remain. *"Yes the strip would go away now that we
+  have the pop up."* -- `#addPanel` goes; every way in (Review's Add requirement, the left menu's, the empty-year message) opens
+  the box. *"Let's continue to refine this before we build."* -- refinements under discussion, not yet decided.
 
 ## Later
 
