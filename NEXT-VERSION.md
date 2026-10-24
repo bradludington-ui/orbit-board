@@ -136,6 +136,42 @@ Current version: **v2.06**. Next: **v2.07**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
+#### 121. Add Requirement as one pop-up that builds the whole record (Brad, 24 Oct 2026)
+- **Asked:** *"I want it to be a pop up box that allows us to build and include all the relevant information from the pop up
+  panel. I want to be able to select everything from PMO to Prime/OGC. Add Service dollar requirement amounts, not funding
+  allocations, just requirement amounts. Also include all the main information used in the pop up panel we see and can update
+  in the already built requirements."*
+- **What is there today (v2.06):** Add Requirement is a strip under the task bar (`#addPanel`). It takes PMO, title, plan event,
+  CCaR and the value by service (or one total), and v2.06 added *Or from another year* beneath it. Everything else -- Prime/OGC,
+  PID, band, the classifications, where the money goes, the award date and the narrative -- is filled in afterwards, in the
+  RECORD panel and 📋 Requirement edit. In a PMO copy a proposal can only be sent once ten mandatory fields are filled
+  (`pmoProposalGate`), so an office adds a line and then goes looking for those ten in three places.
+- **Proposed (mock-up rendered on the real board, Harbor and Midnight, 24 Oct):** a box (`.modal-bg`, under the v1.93 box
+  controller: named, Esc, focus kept, typing guarded) titled *＋ Add requirement — FY27*, with two tabs: **New requirement**
+  and **From another year** (item 117's picker, moved in). The new requirement is six sections, in the order of the RECORD
+  panel, each field read by its `REQ_FIELD` label (`FL()`):
+  1. **Identity:** plan event (required), CCaR record name, PMO (required; defaults to the office chosen at the top), Prime
+     contract / OGC (required, a two-way switch), CCaR record, PID, decision band, Mission Critical.
+  2. **Requirement value by service:** one box per service, the total beneath, and *Spread a total…*. Requirement only: no
+     discretionary, mandatory or allocation box, and the line says funding is set on the board. Beside each service, its
+     accounting (RCN / EEIC for USAF, ANG and AFRC; SI for STOVL, USMC-C and USN), shown once it has a value.
+  3. **Classification:** obligation category (required), cost element, WBS (required), RCN / EEIC, Navy SI code, Budget (BAE).
+  4. **Where the money goes:** Goes to (required); *Which awards to* and MIPR type appear, required, only for an OGC
+     (`destIsOgc`).
+  5. **Schedule:** projected award date (required), one award or incremental, minimum useful increment.
+  6. **Narrative:** description (required), note, impact statement (required).
+  A rail on the right: the requirement total, services with a value, where it lands in the order (the bottom), *Split · no
+  allocation*, the reference it will get, and **Ready to add N of 10** with each mandatory field ticked or flagged -- the same
+  list `pmoProposalGate` uses, read from it, never restated. Footer: Cancel, *Add and open its record*, **Add requirement**.
+- **Rules it keeps:** the value is requirement only and lands on a Split with no allocation, as `addReq()` does now
+  (`seedSplit`); whole dollars through `parseAmt`/`apportion`; codes through `codeTake` (refused, never cut, the box keeping the
+  text); nothing is written until Add, and Cancel or Esc discards (the box's fields are `data-held`). On the board a requirement
+  can be added with fields missing and finished later; in a PMO copy it is a proposal and Add says which of the ten are still
+  missing (the gate is unchanged).
+- **To decide before go:** whether Mission Critical belongs in the add box (a star is a decision for this year; the row owns it
+  today); whether *Add* on the board should also require the ten, as the copy does; and whether the old strip goes entirely (the
+  mock-up assumes it does, one home for one action).
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
