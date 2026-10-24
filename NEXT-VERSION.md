@@ -172,7 +172,28 @@ Current version: **v2.06**. Next: **v2.07**.
   is starred from its row. *"All required to be added."* -- **Add is refused until every required field is filled, on the board
   as in a copy** (the ten `pmoProposalGate` names); the button says how many remain. *"Yes the strip would go away now that we
   have the pop up."* -- `#addPanel` goes; every way in (Review's Add requirement, the left menu's, the empty-year message) opens
-  the box. *"Let's continue to refine this before we build."* -- refinements under discussion, not yet decided.
+  the box. *"Let's continue to refine this before we build."*
+- **Brad, 24 Oct 2026 (refinements):**
+  - **From another year:** the complete ones are added at once; each incomplete one opens in the New requirement form, prefilled
+    and linked, to be finished and added. **Add says what is missing:** pressed early, it goes to the first missing field and
+    outlines the rest; the button reads *Add requirement — N still needed*.
+  - **Decision band: not in the box.** *"That should be allocated by the SFWG."*
+  - **No duplicate warning.** *"There could be a valid reason and it will be caught and discussed in reviews."*
+  - **The record title is never typed.** *"When the record number is typed in, it auto fills the Record Title. Nobody should be
+    typing in the Record Title."* It shows read-only, from the CCaR list (`ccarRecNameOf`); the CCaR description fills an empty
+    Description, as `ccarDescFill` does.
+  - **One office.** *"Once they select their PMO, that's the only PMO they can support with adding requirements."* The PMO is
+    the office chosen (in a copy, the office it submits for, `myPmo`), shown and not changeable in the box.
+  - **No award date, no obligation date, no increments.** *"This far out, people are just guessing at award dates."* The
+    projected award date leaves the required list, in the box and in a PMO copy's proposal gate.
+  - **Budget (BAE) required, by service, from that office's budgets only.** *"I need them to select the appropriate budget.
+    Only that PMO's budgets should pop up."* One picker per service with a value, listing that office's names for that service
+    (`budPickList`, the office's own, discretionary or lane-less, since nothing is funded yet).
+  - **No RCN / EEIC in the box.** *"If the RCN/EEIC doesn't carry over, then don't have them add it in ... My O&M appropriation
+    team should be allocating those."* It comes only with a requirement brought in from another year.
+  - **Legible, nothing off the screen, no scrolling.** Measured in Chromium at 1366×768 and up; the box must fit whole.
+  - **Kept as proposed:** narrow-screen single column, keyboard and screen-reader labels, Esc asks before discarding, Edit the
+    whole record later as its own item.
 
 ## Later
 
