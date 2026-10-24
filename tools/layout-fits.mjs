@@ -483,6 +483,44 @@ for (const [pass, docked] of PASSES) {
   }
 }
 
+// ── L. PPBE BUDGET POSITIONS: EACH RCN / EEIC LINE ON ONE ROW (v2.06, item 118) ─────────────────────────────
+// .fctab is table-layout:fixed, where min-width is ignored; the line-label column took an equal share with the years and
+// "RCN [box] EEIC [box] ✕" wrapped onto a second row, so two lines read as four (Brad's photo, BES28 USAF). Two lines with
+// ten-digit figures, one figure per line and split, at four widths: every line's RCN box, EEIC box and ✕ share one row,
+// no box cuts its value, and a line's year boxes sit on its label's row.
+{
+  const fails = []; let lines = 0;
+  for (const split of [false, true]) for (const w of [1920, 1440, 1366, 1024]) {
+    const { p, ctx } = await open(w, 900, 'review');
+    const r = await p.evaluate((sp) => {
+      window.confirm = () => true; MS.ppbe = MS.ppbe || {}; ppCyc = 'BES'; ppYr = 2028; ppSvcIdx = 0;
+      ppLineAdd('USAF'); ppLineAdd('USAF'); const L = ppPos().lines.USAF;
+      ppLineSet('USAF', L[0].k, 'rcn', '41392'); ppLineSet('USAF', L[0].k, 'eeic', '57811');
+      ppLineSet('USAF', L[1].k, 'rcn', '41395'); ppLineSet('USAF', L[1].k, 'eeic', '57815');
+      [2026, 2027, 2028, 2029, 2030, 2031, 2032].forEach((y, i) => { ppSetV('USAF', L[0].k, y, 'd', String(2280000000 + i)); ppSetV('USAF', L[1].k, y, 'd', String(15828000 + i)); });
+      ppSplitSet(sp); ppOpen = false; toggleP2();
+      const out = [], tb = document.querySelector('#ppBody table.fctab'); let n = 0;
+      for (const td of [...tb.querySelectorAll('td')].filter(c => c.querySelector('input[onchange^="ppLineSet"]'))) {   // by what it holds, not its class
+        n++;
+        const parts = [...td.querySelectorAll('input, button')].map(e => e.getBoundingClientRect());
+        const tops = parts.map(b => Math.round(b.top));
+        if (Math.max(...tops) - Math.min(...tops) > 1) out.push('line ' + n + ': its RCN, EEIC and ✕ are on ' + new Set(tops).size + ' rows');
+        for (const i of td.querySelectorAll('input')) if (i.scrollWidth > i.clientWidth + 1) out.push('line ' + n + ': "' + i.value + '" cut');
+        const row = td.parentElement, rows = sp ? [row.nextElementSibling, row.nextElementSibling && row.nextElementSibling.nextElementSibling] : [row];
+        for (const rr of rows) for (const i of rr.querySelectorAll('input[onchange^="ppSetV"]')) {
+          if (i.scrollWidth > i.clientWidth + 1) out.push('line ' + n + ': year box "' + i.value + '" cut');
+          if (!sp && Math.abs(i.getBoundingClientRect().top - parts[0].top) > 6) out.push('line ' + n + ': a year box is off its row');
+        }
+      }
+      return { out, n };
+    }, split);
+    lines += r.n; r.out.forEach(o => fails.push(`${w}px${split ? ' split' : ''}: ${o}`));
+    await ctx.close();
+  }
+  chk('L · PPBE Budget Positions: every RCN / EEIC line on one row, nothing cut, at 1920, 1440, 1366 and 1024, split and not',
+    fails.length === 0 && lines === 16, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 3).join('; ')}` : `${lines} lines read`);
+}
+
 await b.close();
 console.log(bad ? `\n${bad} layout check(s) failed\n` : '\nThe layout holds: the posture is the scorecards, no menu item was lost, nothing is clipped, the requirements are on screen, Brief is read-only, and the modes change no data'
   + ' -- with the RECORD panel sliding over and docked\n');

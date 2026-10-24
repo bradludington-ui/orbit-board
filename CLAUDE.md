@@ -4296,6 +4296,45 @@ suite that quotes it: grep the suites for the old text before the run, not after
 **A test written as a JS string inside `ev(\`…\`)` is a template literal**: `\s` and `\p` there are `s` and `p` unless the
 backslash is doubled. The first cut of the item 116 test "failed" on text with every s removed.
 
+### v2.06 (items 117–120): a requirement from another year, linked; the PPBE positions box reads straight, closes its totals and takes $K
+
+Brad, 23 Oct 2026, from photos of the real board; built on his "Go" of 24 Oct. `NEXT-VERSION.md` › Shipped › v2.06 has every
+decision.
+
+**Add from another year, linked (item 117).** The Add panel's second way in, *Or from another year* (`naFromDraw`): a fiscal
+year (every year holding requirements but the one on screen), then that year's requirements for the office chosen at the top
+(`naFromOffice`: the PMO filter, else a copy's own office, else the panel's PMO box). Each one added is a NEW requirement with
+its own id (`reqFromYear`; `NEW-n`, `NEW-<office>-n` in a copy) carrying `it.prior = {fy, id}` -- Brad: *"link the requirements
+together for trend data but keep them as separate actions"*. That is NOT Copy to year or Roll forward, which keep a board
+requirement's id. What starts from that year's record is `NA_FROM_CARRY` plus the CCaR, the value by service and the award dates
+moved by the year difference; the allocation, the funding split, ★ MC, the CLIN breakdown, the cost-estimate tie and the UPL
+mark are not carried. **An added requirement's id is its year's own** (`newReqSeq` numbers each year by itself, as `yearCopy`
+does), so FY27's NEW-1 and FY28's NEW-1 can be two requirements: `naFromHere` matches by id only an id from the board's data;
+an added one is "already here" when linked or by its event and title. The link is read by `priorLink`/`priorTxt`: the RECORD
+panel's *Continues FY27 A — title* (`priorHtml`, *no longer on the board* when that year lost it), the Priority Drill's last
+column *Continues*, the review row (*from FY27 …*). It travels: Copy to year, a save, a PMO copy's proposal (`pmoProposalOf`),
+`pmoTake` (`priorOk`), `pmoAcceptProposal`. The door refuses any other shape (`inPriorWhy`, on a plan's added requirement and
+a submittal's proposal). A trend report that follows the chain is not built; the links are in place for one.
+
+**PPBE Budget Positions (items 118–120).** Each RCN / EEIC line is one row: `.fctab` is `table-layout:fixed`, where `min-width`
+is ignored, so the label column now has a `width` (`PP_LBL_W`), its cell never wraps (`td.pplbl`) and the table is as wide as
+its columns (the wrapper scrolls). Both TOTAL rows have their Total (`ppTotCell`, from the cells the row prints; a bare
+`<td></td>` before). A service can be **entered in $K** (`P.unit[svc]='k'`; Brad's USAF exhibits are in thousands, and BES28
+USAF FY27 read $2.28M for $2.28B): **the model stays in whole dollars** -- a bare number typed under $K is read through amtRead's
+own K (`ppAmtIn`, never rounded first), a figure with its own unit is read as written, the boxes show thousands (`ppAmtShow`).
+Turning $K on for a service holding figures asks whether they were typed in $K; yes multiplies them and records it on the position
+(`P.kx`), because `MS.ppbe` is outside the change journal; *undo the ×1,000* (`ppUnitUndo`) divides back and refuses while a
+figure would not come back to a whole dollar. Turning $K off never moves a figure.
+
+**Checks.** audit-board "v2.06 — PPBE Budget Positions: the TOTAL corners, and figures entered in $K (items 119, 120)" reads both
+corners off the rendered box and holds each to its row and its column (n figures may sit n cents off, the $M rounding); audit-import
+"v2.06 — add a requirement from another year, linked…" covers the picker, the office, "already here" both ways, what is and is not
+carried, the drill, a reopen, the door, Copy to year, and a PMO copy through submit and accept. `npm run layout` L opens the
+box (`toggleP2` -- setting `ppOpen` alone leaves it hidden, and the first cut measured nothing but zeros) and holds every line
+to one row at four widths; it fails on v2.05. Mutations: 30 new (`v206-117-*` 18, `v206-118-*` 2, `v206-119-*` 4, `v206-120-*`
+6), each run against its block on its own mutant and caught. The two 118 mutants pass the browser check one at a time (the
+width alone, or the no-wrap alone, holds the row at these fonts) and are caught by the jsdom check; v2.05, with neither, fails it.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
