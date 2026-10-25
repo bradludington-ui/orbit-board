@@ -296,6 +296,11 @@ finding re-run by a second agent trying to refute it: 3 confirmed, 10 reported, 
    link. 12. The record-name pen did nothing on a brought-in requirement. 13. Add threw when its year had gone.
 14. (older than v2.06) A PMO copy switched to another year submitted that year's work under the published year.
 Tested by two new blocks failing on the candidate and 20 `v206-fix-*` mutations each caught; six older mutations retargeted.
+**A second review of the fixes** (25 Oct) confirmed four more, all fixed: a requirement copied back into the year whose added
+requirement it continues was added twice; a proposal continuing A from another year than the board's linked requirement was
+not flagged; a copy of an added requirement given to another office was offered again by the picker (Copy to year now links
+the copy to its source); and a service renamed onto a name a PPBE position still held took over that position's figures and
+$K setting (now refused). Two new blocks, 5 `v206-fix2-*` mutations, each caught.
 
 **Proved with** (24 Oct, on the candidate before the review fixes): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED, recon and import once
 the clone's history was fetched (`git fetch --unshallow`: both read old builds by commit, and a shallow clone fails them with

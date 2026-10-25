@@ -5298,14 +5298,17 @@ await (async () => {
   chk(name, 'item 120', 'after a reopen USAF is still entered in $K, with its conversion on record, and the dollars are the same',
     J([R.ev(`String(ppUnitK(MS.ppbe['BES|2028'],'USAF'))`), R.ev(`String(!!MS.ppbe['BES|2028'].kx.USAF)`), R.ev(`String(ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).t)`)]),
     J(['true', 'true', '2295828000']));
-  // ---- undo: refused while a figure would not come back to a whole dollar, then put back exactly
+  // ---- undo (review fix): only the cells the conversion multiplied are divided; the three typed since stay as typed
   ev(`ppUnitUndo('USAF'); 'ok'`);
-  chk(name, 'item 120', 'the undo is refused while $15,828,500 cannot come back to a whole dollar', J([val().USAF[ev('__k1')][2029].d, ev(`String(ppUnitK(ppPos(),'USAF'))`)]), J([15828500, 'true']));
-  ev(`ppSetV('USAF',__k1,2029,'d','0'); ppSetV('USAF',__k2,2027,'d','500'); ppSetV('USAF',__k2,2028,'d','0'); ppUnitUndo('USAF'); 'ok'`);
   V = val();
-  chk(name, 'item 120', 'undo divides every USAF figure by 1,000 and returns it to dollars',
-    J([V.USAF[ev('__k1')][2027].d, V.USAF[ev('__k1')][2028].d, V.USAF[ev('__k2')][2027].d, ev(`String(ppUnitK(ppPos(),'USAF'))`), ev(`String(!!(ppPos().kx||{}).USAF)`)]),
-    J([15828, 2000, 500, 'false', 'false']));
+  chk(name, 'item 120', 'undo divides the figures the conversion multiplied, leaves the ones typed since, and returns USAF to dollars',
+    J([V.USAF[ev('__k1')][2027].d, V.USAF[ev('__k1')][2028].d, V.USAF[ev('__k2')][2027].d, V.USAF[ev('__k2')][2028].d, V.USAF[ev('__k1')][2029].d,
+       ev(`String(ppUnitK(ppPos(),'USAF'))`), ev(`String(!!(ppPos().kx||{}).USAF)`)]),
+    J([15828, 2000, 2280000000, 15800000, 15828500, 'false', 'false']));
+  // a record that names a figure which would not come back to a whole dollar (only a hand-made file can carry one) is refused
+  ev(`(function(){ const P=ppPos(); P.unit=P.unit||{}; P.unit.USAF='k'; P.kx=P.kx||{}; P.kx.USAF={t:1, cells:[[__k1,'2029','d',15828500]]}; })(); ppUnitUndo('USAF'); 'ok'`);
+  chk(name, 'item 120', 'the undo is refused while $15,828,500 cannot come back to a whole dollar', J([val().USAF[ev('__k1')][2029].d, ev(`String(ppUnitK(ppPos(),'USAF'))`)]), J([15828500, 'true']));
+  ev(`(function(){ const P=ppPos(); delete P.kx.USAF; delete P.unit.USAF; })(); 'ok'`);
   // ---- told no: the setting turns on and no stored figure moves; turning it off never moves one either
   ev(`window.confirm=function(){ return false; }; ppUnitSet('USAF','k'); 'ok'`);
   chk(name, 'item 120', 'told no, $K is on and nothing stored moved', J([ev(`String(ppUnitK(ppPos(),'USAF'))`), val().USAF[ev('__k1')][2027].d]), J(['true', 15828]));
@@ -5373,6 +5376,46 @@ await (async () => {
   }
 })();
 // ==== end v2.06 review fixes (PPBE) ====
+
+// ==== v2.06 second review (PPBE) ====
+// ═══ v2.06 — THE SECOND REVIEW: A RENAME ONTO A NAME A PPBE POSITION STILL HOLDS (25 Oct 2026) ═════════════════════════════════
+// A position keeps a service that left the list, by name. Removing ANG and renaming USAF to ANG -- in one save, or ANG removed
+// first -- laid USAF's figures over ANG's, and USAF took ANG's $K setting: a figure typed for it was then stored 1,000 times too
+// large. Such a rename is refused, naming the position. Fails on 1e3e313.
+await (async () => {
+  const name = 'v2.06 — the second review: a service is not renamed onto a name a PPBE position still holds';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG', 'STOVL'], ['R']), ev = B.ev;
+  ev(`window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; window.confirm=function(){ return true; };
+      MS.ppbe=MS.ppbe||{}; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; ppOpen=true;
+      ppLineAdd('ANG'); window.__a=ppPos().lines.ANG[0].k; ppSetV('ANG',__a,2027,'d','2,000'); ppUnitSet('ANG','k');
+      ppLineAdd('USAF'); window.__u=ppPos().lines.USAF[0].k; ppSetV('USAF',__u,2027,'d','5,000,000'); 'ok'`);
+  const pos = () => JSON.parse(ev(`JSON.stringify({unit:ppPos().unit||{}, kx:Object.keys(ppPos().kx||{}), val:ppPos().val})`));
+  chk(name, 'fixture', 'ANG in $K holds $2,000,000; USAF in dollars holds $5,000,000',
+    J([pos().val.ANG[ev('__a')][2027].d, pos().val.USAF[ev('__u')][2027].d, pos().unit.ANG]), J([2000000, 5000000, 'k']));
+  // in one save: ANG removed, USAF renamed ANG
+  const one = ev(`String(svcSaveList(['ANG','STOVL'], [0,2]))`);
+  let P = pos();
+  chk(name, 'one save', 'removing ANG and renaming USAF onto its name is refused, naming the position, and nothing moves',
+    J([one, ev('SVC.join()'), /BES28/.test(ev(`window.__al.join('|')`)), P.val.ANG[ev('__a')][2027].d, P.val.USAF[ev('__u')][2027].d, P.unit.ANG, P.unit.USAF || '']),
+    J(['false', 'USAF,ANG,STOVL', true, 2000000, 5000000, 'k', '']));
+  // in two: ANG removed (the position keeps it), then USAF renamed ANG
+  ev(`window.__al=[]; svcSaveList(['USAF','STOVL'], [0,2]); 'ok'`);
+  chk(name, 'two saves', 'ANG removed, the position still holds its $2,000,000 and its $K setting',
+    J([ev('SVC.join()'), pos().val.ANG[ev('__a')][2027].d, pos().unit.ANG]), J(['USAF,STOVL', 2000000, 'k']));
+  const two = ev(`String(svcSaveList(['ANG','STOVL'], [0,1]))`);
+  P = pos();
+  chk(name, 'two saves', 'then renaming USAF to ANG is refused, and USAF keeps its dollars and its own entry',
+    J([two, ev('SVC.join()'), P.val.ANG[ev('__a')][2027].d, P.val.USAF[ev('__u')][2027].d, P.unit.USAF || '']), J(['false', 'USAF,STOVL', 2000000, 5000000, '']));
+  // CONTROL: a rename onto a name nothing holds goes through
+  chk(name, 'control', 'renaming USAF onto a fresh name is taken', J([ev(`String(svcSaveList(['USAF-A','STOVL'], [0,1]))`), ev('SVC.join()')]), J(['true', 'USAF-A,STOVL']));
+  chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 second review (PPBE) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

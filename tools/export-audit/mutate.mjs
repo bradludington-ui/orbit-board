@@ -7036,7 +7036,7 @@ const MUTATIONS = [
   { id: 'v206-117-door-blind-sub', area: "inShapeWhy", what: "a submittal whose link is not a year and an id is let in",
     find: "|| (w=inPriorWhy(a.prior, at+'.prior'))) return w; }", repl: ") return w; }" },
   { id: 'v206-117-yearcopy-drops-link', area: "yearCopy", what: "Copy to year leaves the link behind",
-    find: "it.prior? {prior:{fy:+it.prior.fy, id:String(it.prior.id)}} : {}", repl: "{}" },
+    find: "it.prior? {prior:{fy:+it.prior.fy, id:String(it.prior.id)}}     //", repl: "false? {}     //" },
   { id: 'v206-117-drill-silent', area: "exportCSV", what: "the Priority Drill's Continues column is blank",
     find: "s:M})), priorTxt(it)]; };", repl: "s:M})), '']; };" },
   { id: 'v206-117-gone-hidden', area: "priorLink", what: "a link to a requirement its year no longer holds still reads as if it were there",
@@ -7086,6 +7086,18 @@ const MUTATIONS = [
   { id: 'v206-fix-copy-submits-other-year', area: "pmoSubmit", what: "a copy switched to another year submits that year's work under the year it was published for",
     find: "  if(SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy){", repl: "  if(false){" },
   // ==== end v2.06 (the pre-merge review's fixes) ====
+  // ==== v2.06 (the second review of the fixes) ====
+  { id: 'v206-fix2-copyback-unseen', area: "yearLinkOf", what: "a requirement brought into FY28 and copied back to FY27 is not seen as the added requirement it continues there, and the year holds the work twice",
+    find: "if(p && /^NEW-/.test(String(p.id)) && +p.fy===(y===undefined? cur : +y)", repl: "if(false && p && /^NEW-/.test(String(p.id)) && +p.fy===(y===undefined? cur : +y)" },
+  { id: 'v206-fix2-proposal-year', area: "pmoPriorHere", what: "a proposal continuing a board-data requirement from another year than the board's linked requirement names is not flagged",
+    find: "    && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];", repl: "    && +i.prior.fy===+p.fy; })[0];" },
+  { id: 'v206-fix2-rename-onto-position', area: "svcListBlock", what: "a service renamed onto a name a PPBE position still holds lays its figures over that position's and takes its $K setting",
+    find: "  if(onto.length) why.push(", repl: "  if(false) why.push(" },
+  { id: 'v206-fix2-copy-unlinked', area: "yearCopy", what: "a copy of an added requirement carries no link, so once given to another office the picker offers it again",
+    find: "                   : (mode==='c'? {prior:{fy:+MS.cur, id:String(id)}} : {})));", repl: "                   : {}));" },
+  { id: 'v206-fix2-chain-by-office', area: "naFromHere", what: "a copy of a linked requirement, given to another office, is not seen as the same work by its link",
+    find: "    if(src && src.prior && x.prior && String(x.prior.id)===String(src.prior.id)", repl: "    if(false && src && src.prior && x.prior && String(x.prior.id)===String(src.prior.id)" },
+  // ==== end v2.06 (the second review of the fixes) ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

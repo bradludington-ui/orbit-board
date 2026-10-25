@@ -3619,6 +3619,18 @@ function svcListBlock(list, from){
         return '  • '+blLblTxt(k)+(c.locked? ' (locked)' : ' (unlocked)')+' holds '+(svcCycSvcs(c)||old.slice(0, svcCycWidth(c))).join(', '); }).join('\n')
     + '\nThose services keep their names and places while it is kept. A service can still be added at the end of the list.');
   const gone=old.map(function(s,j){ return j; }).filter(function(j){ return from.indexOf(j)<0; });
+  // A RENAME ONTO A NAME A PPBE POSITION STILL HOLDS (second review). A position keeps a service that left the list, by
+  // name; a service renamed onto that name would lay its figures over the position's, and take its $K setting.
+  const ppHeld=function(nm){ return Object.keys(MS.ppbe||{}).filter(function(key){ const P=MS.ppbe[key];
+    if(!P || typeof P!=='object') return false;
+    const h=function(m){ return !!m && typeof m==='object' && !Array.isArray(m) && Object.prototype.hasOwnProperty.call(m, nm); };
+    return P.v===2? (h(P.val) || h(P.lines) || h(P.unit) || h(P.kx)) : h(P); }); };
+  const onto=[];
+  list.forEach(function(s,k){ const j=from[k], o=old.indexOf(s);
+    if(j<0 || old[j]===s || (o>=0 && from.indexOf(o)>=0)) return;          // not a rename, or onto a service that moves too
+    const ks=ppHeld(s); if(ks.length) onto.push('  • '+old[j]+' → '+s+': '+ks.map(ppLblTxt).join(', ')); });
+  if(onto.length) why.push('A PPBE position still holds figures for a service of that name, which is no longer on the list:\n'
+    + onto.join('\n') + '\nRenaming onto it would put one service’s figures over the other’s. Choose another name.');
   if(gone.length){
     const nm=gone.map(function(j){ return old[j]; }).join(', ');
     // v2.02: the refusal for reprogramming rows on a removed service went with the tracker -- nothing can show or edit them,
@@ -6516,6 +6528,8 @@ function yearLinkOf(id, y){
   if(hit) return hit.id;
   const p=it && it.prior;
   if(p && !/^NEW-/.test(String(p.id)) && Array.isArray(T.order) && T.order.indexOf(String(p.id))>=0) return String(p.id);
+  // an added original, in the year its own number belongs to (second review): copied back there, it is the same work
+  if(p && /^NEW-/.test(String(p.id)) && +p.fy===(y===undefined? cur : +y) && Array.isArray(T.order) && T.order.indexOf(String(p.id))>=0) return String(p.id);
   if(p){ const twin=(T.custom||[]).filter(function(x){ return inT(x) && x.id!==id && x.prior
     && String(x.prior.id)===String(p.id) && +x.prior.fy===+p.fy; })[0]; if(twin) return twin.id; }
   return '';
@@ -6606,7 +6620,8 @@ function yearCopy(id, y, mode, opts){
     // record name is gone.
     T.custom.push(Object.assign({id:tid, grp:grpOf(it), sect:'new', custom:true, team:it.team, title:it.title,
                    event:it.event, ccar:'', fy26:SVC.map(_=>0), ask:it.ask.slice(), alloc:null},
-                   it.prior? {prior:{fy:+it.prior.fy, id:String(it.prior.id)}} : {}));   // v2.06 (item 117): the link goes with it
+                   it.prior? {prior:{fy:+it.prior.fy, id:String(it.prior.id)}}     // v2.06 (item 117): the link goes with it
+                   : (mode==='c'? {prior:{fy:+MS.cur, id:String(id)}} : {})));     // a copy continues its source (second review)
   } else {
     T.removed=T.removed.filter(x=>x!==id);               // restore/ensure present
     T.asks[id]=it.ask.slice();                           // carry the current requirement value
@@ -7938,7 +7953,8 @@ function pmoPriorHere(p){
   if(!p || !p.id) return '';
   const id=String(p.id), on=S.order||[];
   if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
-  const x=(DATA.items||[]).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && String(i.prior.id)===id && +i.prior.fy===+p.fy; })[0];
+  const x=(DATA.items||[]).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && String(i.prior.id)===id
+    && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];     // a board-data id is that activity whatever year it names (second review)
   return x? x.id : '';
 }
 function pmoTakenAs(a, pkg){
@@ -30371,6 +30387,9 @@ function naFromHere(y, id, src, g){
   return (DATA.items||[]).some(function(x){
     if(!x || on.indexOf(x.id)<0) return false;
     if(x.prior && +x.prior.fy===+y && x.prior.id===id) return true;
+    // the same work as the source by the source's own link, whatever office holds it now (second review)
+    if(src && src.prior && x.prior && String(x.prior.id)===String(src.prior.id)
+       && (!/^NEW-/.test(String(src.prior.id)) || +x.prior.fy===+src.prior.fy)) return true;
     // the same office's added requirement by its event and title: another office's of the same name is its own (review fix)
     return !!(src && src.custom && x.custom && x.event===src.event && x.title===src.title && (g===undefined || grpOf(x)===g));
   });

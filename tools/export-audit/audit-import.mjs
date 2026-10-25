@@ -11931,6 +11931,62 @@ await (async () => {
 })();
 // ==== end v2.06 review fixes ====
 
+// ==== v2.06 second review ====
+// ═══ v2.06 — THE SECOND REVIEW OF THE FIXES (25 Oct 2026) ══════════════════════════════════════════════════════════════════════
+// A second review of the fixes above confirmed three more ways the same work could land in a year twice: a requirement brought
+// back into the year whose added requirement it continues; a proposal continuing a board-data requirement from another year
+// than the one the board's linked requirement names; and a requirement copied forward and then given to another office.
+// Each fails on 1e3e313.
+await (async () => {
+  const name = 'v2.06 — the second review: a copy back, a proposal from another year, and a copy given to another office are the same work';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: MINE, items: [it('A', 'PSM', [900, 200, 100]), it('B', 'AV', [50, 0, 0])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] };
+  const { ev, errors } = boot(); seed(ev, sc); asBooted(ev, sc);
+  const add = (g, t, v) => ev(`toggleAdd(); document.getElementById('naGrp').value=${J(g)}; document.getElementById('naTitle').value=${J(t)};
+      document.getElementById('naEvent').value=''; document.getElementById('naSvc0').value=${J(String(v))}; document.getElementById('naSvc1').value='0';
+      document.getElementById('naSvc2').value='0'; addReq(); toggleAdd(); S.custom[S.custom.length-1].id`);
+  ev(`window.__cf=[]; window.confirm=function(m){ window.__cf.push(String(m)); return !/already carries/.test(m); }; window.alert=function(m){ window.__cf.push('ALERT '+String(m)); };
+      syncAddPanel(); syncNaGrp(); 'ok'`);
+  const n1 = add('PSM', 'Sustaining engineering', 400);
+  const n2 = add('PSM', 'Program office support', 10);
+  // ---- a copy forward carries a link to what it copies, and given to another office it is still the same work
+  ev(`save(); xferYear(${J(n2)},'c2028'); 'ok'`);
+  ev(`switchYear(2028); 'ok'`);
+  const cp = JSON.parse(ev(`JSON.stringify(S.custom.map(function(c){ return [c.id, c.title, c.prior||null]; }))`));
+  chk(name, 'a copy forward', 'Copy to year links FY27’s added requirement to its copy', J(cp), J([['NEW-1', 'Program office support', { fy: 2027, id: n2 }]]));
+  ev(`S.grp=S.grp||{}; S.grp['NEW-1']='AV'; save(); render(); setPmoFilter('PSM'); toggleAdd(); naFromPick(2027); 'ok'`);
+  const listed = JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]')]; }))`));
+  chk(name, 'a copy given to AV', 'its copy now AV’s in FY28, PSM’s Program office support is already here; Sustaining engineering is not',
+    J(listed), J([['A', true], [n1, true], [n2, false]]));
+  // ---- a chain: FY27's added requirement continues A (here, from a year not held); its copy, given to AV, is the same work
+  ev(`switchYear(2027); var c={id:'NEW-9', grp:'PSM', sect:'new', custom:true, title:'Depot chain', event:'', ccar:'', fy26:[0,0,0], ask:[30,0,0], alloc:null, prior:{fy:2025, id:'A'}};
+      S.custom.push(c); DATA.items.push(c); S.order.push('NEW-9'); save(); xferYear('NEW-9','c2028'); switchYear(2028);
+      var k=S.custom.filter(function(x){ return x.title==='Depot chain'; })[0]; S.grp[k.id]='AV'; save(); window.__chain=k.id; 'ok'`);
+  chk(name, 'a chain', 'the copy keeps the link to FY25 A, and the picker counts FY27’s NEW-9 as already here',
+    J([JSON.parse(ev(`JSON.stringify(itemById(__chain).prior)`)), ev(`String(naFromHere(2027, 'NEW-9', yrItemOf(MS.years[2027], 'NEW-9'), 'PSM'))`)]),
+    J([{ fy: 2025, id: 'A' }, 'true']));
+  // ---- brought into FY28 and copied back: FY27 already holds the work it continues
+  ev(`toggleAdd(); toggleAdd(); naFromPick(2027); naFromTick(${J(n1)}, true); naFromAdd(); window.__b=S.custom[S.custom.length-1].id; S.recNames=S.recNames||{}; S.recNames[__b]='FY28 record'; save(); 'ok'`);
+  chk(name, 'a copy back', 'FY28’s Sustaining engineering continues FY27’s', ev(`JSON.stringify(itemById(__b).prior)`), J({ fy: 2027, id: n1 }));
+  ev(`window.__cf=[]; xferYear(__b,'c2027'); 'ok'`);
+  chk(name, 'a copy back', 'Copy to FY27 asks, naming it, and (told no) FY27 holds it once',
+    J([/already carries/.test(ev(`window.__cf.join('|')`)), ev(`yearLinkOf(__b, 2027)`), ev(`String(MS.years[2027].custom.filter(function(c){ return c.title==='Sustaining engineering'; }).length)`)]),
+    J([true, n1, '1']));
+  // ---- a proposal continuing A from another year than the board's linked requirement names
+  ev(`switchYear(2027); S.removed=['A']; S.order=S.order.filter(function(x){ return x!=='A'; });
+      var d={id:'NEW-44', grp:'PSM', sect:'new', custom:true, title:'Depot (from FY26)', event:'', ccar:'', fy26:[0,0,0], ask:[900,0,0], alloc:null, prior:{fy:2026, id:'A'}};
+      S.custom.push(d); DATA.items.push(d); S.order.push('NEW-44'); 'ok'`);
+  chk(name, 'a proposal', 'a proposal of A brought from FY24 is flagged (NEW-9 and NEW-44 continue A from FY25 and FY26); an added id still needs its year',
+    J([ev(`pmoPriorHere({fy:2024, id:'A'})`), ev(`pmoPriorHere({fy:2026, id:'A'})`), ev(`pmoPriorHere({fy:2026, id:'NEW-9'})`)]), J(['NEW-9', 'NEW-9', '']));
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 second review ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

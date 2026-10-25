@@ -4360,6 +4360,16 @@ serious finding re-run by a second trying to refute it, confirmed three defects 
 Checks: audit-import "v2.06 — the pre-merge review’s fixes…" and audit-board "v2.06 — the pre-merge review’s PPBE fixes…", both
 failing on the candidate (be4de83); 20 `v206-fix-*` mutations, each caught by its block; six older ones retargeted to the lines
 the fixes rewrote (`v197w1-guard-ppSetV`, `v197w4-rename-ppbe-left`, three `v206-120-*`, `v206-117-proposal-drops-link`).
+**A second review of those fixes** (each finding re-run by an agent trying to refute it) confirmed four more, all fixed:
+`yearLinkOf` now sees an added original in its own year (a requirement brought into FY28 and copied back to FY27 asked
+nothing and put the work there twice); `pmoPriorHere` reads a board-data id whatever year the link names, as `yearLinkOf`
+does; **Copy to year links a copy of an added requirement to its source** (`prior`, copy only, not move) and `naFromHere`
+matches by the source's own link, so a copy given to another office is still the same work to the picker; and
+`svcListBlock` refuses a rename onto a name a PPBE position still holds for a service no longer on the list (it laid one
+service's figures over the other's and handed over the $K setting). The undo's refusal now guards only a hand-made record:
+a recorded cell is always a multiple of 1,000. Checks: audit-import "v2.06 — the second review: …", audit-board "v2.06 — the
+second review: a service is not renamed onto a name a PPBE position still holds"; 5 `v206-fix2-*` mutations, each caught;
+`v206-117-yearcopy-drops-link` retargeted.
 
 ## Colour: one token, one job
 
