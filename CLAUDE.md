@@ -4416,7 +4416,7 @@ in that is complete is added at once; one that is not opens in New requirement f
 (`arQueue`, `arFinNext`, *Skip this one*), carrying what the box does not show (`AR_CARRIED`).
 
 **Fits whole at 1366 × 768 and up, one column that scrolls below** (Brad). Three columns at 1 : 1.75 : 1; the PID spans its
-grid (a 35-character PID); the services table is 58 / 118 px and the rest for the budget picker, which prints the longest real
+grid (a 35-character PID); the services table is 66 / 110 px (the service name never wraps) and the rest for the budget picker, which prints the longest real
 BAE name whole in both fonts. `npm run layout` M measures it in Harbor and Midnight, this font and the Segoe stand-in.
 
 **The reviewer sees what the box required.** A box-made proposal has no record title until the CCaR list names it, so the
