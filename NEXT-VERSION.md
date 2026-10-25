@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.06**. Next: **v2.07**.
+Current version: **v2.07**. Next: **v2.08**.
 
 ## Open
 
@@ -136,6 +136,113 @@ Current version: **v2.06**. Next: **v2.07**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
+#### 122. Edit the whole record in one box (Brad, 24 Oct 2026, kept from item 121: "Edit the whole record later as its own item")
+- **Asked:** item 121's box builds a requirement's whole record when it is added; editing one afterwards still means the RECORD
+  panel, 📋 Requirement edit and the written-field pop-ups.
+- **What is there today (v2.07):** the Add box (`#addPanel`) reads its required list from `reqNeeds()` and writes through
+  `reqCreate()`; nothing edits an existing requirement through it.
+- **Proposed:** not yet -- to be worked out with Brad: which fields, whether the box replaces 📋 Requirement edit, and how it
+  sits beside the rule that the RECORD panel is the editor ("The row is triage").
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v2.07 — 25 Oct 2026: Add requirement is one box that builds the whole record -- built on Brad's "Go on 121" of 25 Oct
+
+Item 121, logged 24 Oct with Brad's answers and two mock-ups he saw, built as logged. Where the build differs from the log, or
+had to decide something the log does not say, it says so here.
+
+- **Built as logged:** the strip is gone and every way in opens the box; two tabs; one office, asked first when *All offices* is
+  showing and locked once chosen; the record title read from the CCaR list, never typed, its description filling an empty one;
+  a BAE budget per service with a value, from that office's names only; no star, band, award date or RCN / EEIC; Add refused
+  until every required field is filled, on the board as in a copy, the button counting them and Add pressed early going to the
+  first; From another year adding the complete ones at once and opening the rest, filled in and linked, to be finished; whole at
+  1366 × 768 and up, one column that scrolls below; keyboard and screen-reader labels; Esc asks before typing is lost.
+- **Decided in the build, not asked:**
+  - **A budget is waived where nothing can be chosen** -- a service whose office has no name for it in this appropriation, or a
+    board with no BAE list loaded. Shown on the rail as waived and why. Required everywhere, it would stop every add on a board
+    whose list is not loaded yet.
+  - **The record title is the CCaR list's title at Add**, or none; the RECORD panel's name still reads the live list first
+    (`recName`), so a newer list renames it.
+  - **The money is unchanged from the strip:** a new requirement lands at the bottom on a Split that draws only what the lanes
+    hold below every requirement above it (`seedSplit`), and the box says so.
+  - **From another year carries what it carried in v2.06** (the band and the award dates moved forward among it); the box only
+    decides whether the record is complete.
+  - **The From another year tab draws for the box's office**, and a copy on another year than the one it was published for opens
+    no box (anything added there could never be sent).
+- **Found by the four test agents and fixed before the review** (each with a check that fails without it, and a mutation):
+  the office question locked the first office on the first arrow key (WCAG 3.2.2: a keyboard user could reach no other); a
+  budget picked for a service whose value was then erased was still written; a value typed with cents was rounded silently; a
+  CCaR number the list holds twice was said to be missing; a refused code said "nothing changed" twice; the PID field cut a
+  35-character PID and the budget picker cut the longest real BAE name; a box-made proposal reached the reviewer as "(untitled)"
+  under its provisional id, and its budgets, PID and narrative -- all required in the box -- were not shown before accepting;
+  `budParseName` built a RegExp from an office's raw name (an office named *C++* stopped the board drawing); and, not item 121,
+  a BAE file entry with no readable date and an estimate with no totals each stopped every redraw while their panel was open.
+- **Not changed, on purpose:** the row's ⋯ *Rename the CCaR record name* stays; a copy published before v2.07 still gates its
+  proposals by the v2.06 list (the board does not judge a proposal again when it arrives); editing the whole record in one box is
+  item 122.
+
+**Mutations:** 93 new (`v207-121-*` and four `v207-*`), each run against its own block on a mutant of the final board and caught;
+8 retargeted to the box (`proposal-gate-open`, `add-total-divides`, `add-total-rounds-each`, `add-total-leftover-last`,
+`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`). 2,256 targets, each matching once.
+
+#### The item as logged
+
 #### 121. Add Requirement as one pop-up that builds the whole record (Brad, 24 Oct 2026)
 - **Asked:** *"I want it to be a pop up box that allows us to build and include all the relevant information from the pop up
   panel. I want to be able to select everything from PMO to Prime/OGC. Add Service dollar requirement amounts, not funding
@@ -203,64 +310,6 @@ Current version: **v2.06**. Next: **v2.07**.
 - **Brad, 24 Oct 2026:** *"I agree"* to both: on the board with *All offices* showing, the box asks which office first and locks
   it once chosen (one office chosen at the top is used as is); below 1366 px wide the box is one column and scrolls, 1366 and up
   fit whole.
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
-- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
-  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
-- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
-  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
-  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
-  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
-  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
-  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
-  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
-  finding fixed or written down, plus `npm audit` for the test tooling.
-- **Proof:** each change ships with a check that fails without it, as every version does.
-- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
-  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v2.06 — 24 Oct 2026: add a requirement from another fiscal year, linked; PPBE Budget Positions on one row, with its totals closed and figures entered in $K -- built on Brad's "Go" of 24 Oct
 
