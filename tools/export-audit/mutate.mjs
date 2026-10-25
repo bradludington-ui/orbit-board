@@ -1213,9 +1213,10 @@ const MUTATIONS = [
   // ---- a copy proposes a new requirement -----------------------------------------------------------
   { id: 'proposal-dropped', area: 'pmoTake', what: 'a proposed requirement arrives and is never offered for review',
     find: "  held.added=(pkg.added||[]).slice();", repl: "  held.added=[];" },
+  // v2.07 (item 121): retargeted -- the gate is reqNeeds() on the requirement's draft, and the award date left it
   { id: 'proposal-gate-open', area: 'pmoProposalGate', what: 'a proposal with mandatory fields blank can be sent',
-    find: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));\n  return miss;",   // v2.03: the label is FL()'s
-    repl: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));\n  return [];" },
+    find: "  return reqNeeds(d).filter(function(x){ return !x.ok; }).map(function(x){ return x.l; });",
+    repl: "  return [];" },
   { id: 'proposal-double-add', area: 'pmoTakenAs', what: 'the same submittal imported twice adds the requirement twice',
     find: "  return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;",
     repl: "  return null;" },
@@ -1835,18 +1836,18 @@ const MUTATIONS = [
     repl: "'<option value=\"'+g+'\"'+(grpOf(it)===g?' selected':'')+'>'+g" },
 
   // ---- v1.89 item 22: a requirement added by its total is whole dollars that add up to it ---------------
-  { id: 'add-total-divides', area: 'addReq', what: 'the total is divided across the services, cents and all (v1.88 and before)',
-    find: '  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',
-    repl: '  else if(tot!==null&&tot>0) ask=SVC.map(function(){ return tot/SVC.length; });' },
-  { id: 'add-total-rounds-each', area: 'addReq', what: 'each service’s share rounded by itself: $1,000,000 across six becomes $1,000,002',
-    find: '  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',
-    repl: '  else if(tot!==null&&tot>0) ask=SVC.map(function(){ return Math.round(tot/SVC.length); });' },
-  { id: 'add-total-leftover-last', area: 'addReq', what: 'the dollars left over go to the last services, not the first (Brad, 30 Sep)',
-    find: '  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',
-    repl: '  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; })).reverse();' },
-  { id: 'add-whole-refusal-gone', area: 'addReq', what: 'a requirement carrying cents is put on the board instead of refused',
-    find: '  if(!ask.every(Number.isInteger)){\n    alert(\'This requirement was not added',
-    repl: '  if(false){\n    alert(\'This requirement was not added' },
+  { id: 'add-total-divides', area: 'arSpread', what: 'the total is divided across the services, cents and all (v1.88 and before)',
+    find: '  if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',   // v2.07: the box's Spread evenly
+    repl: '  if(tot!==null&&tot>0) ask=SVC.map(function(){ return tot/SVC.length; });' },
+  { id: 'add-total-rounds-each', area: 'arSpread', what: 'each service’s share rounded by itself: $1,000,000 across six becomes $1,000,002',
+    find: '  if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',   // v2.07: the box's Spread evenly
+    repl: '  if(tot!==null&&tot>0) ask=SVC.map(function(){ return Math.round(tot/SVC.length); });' },
+  { id: 'add-total-leftover-last', area: 'arSpread', what: 'the dollars left over go to the last services, not the first (Brad, 30 Sep)',
+    find: '  if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));',   // v2.07: the box's Spread evenly
+    repl: '  if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; })).reverse();' },
+  { id: 'add-whole-refusal-gone', area: 'arAdd', what: 'a requirement carrying cents is put on the board instead of refused',
+    find: '  if(!d.ask.every(Number.isInteger)){\n    arSay(\'This requirement was not added',   // v2.07: the box
+    repl: '  if(false){\n    arSay(\'This requirement was not added' },
 
   // ---- v1.89 item 24: an added requirement never inherits a deleted one's data ------------------------
   { id: 'reqseq-hwm-ignored', area: 'newReqSeq', what: 'the highest number ever handed out is not consulted: a deleted newest number is reused',
@@ -3053,9 +3054,9 @@ const MUTATIONS = [
   { id: "v197w1-guard-setFsrcSvc", area: "setFsrcSvc", what: "an entry that cannot be taken changes a split’s dollars (the editor’s guard is gone)",
     find: "  if(amtNo(parseAmt(val), val, (kind==='d'? 'The discretionary dollars for ' : 'The mandatory dollars for ')+(SVC[i]||'this service'))) return;\n",
     repl: "" },
-  { id: "v197w1-guard-addReq", area: "addReq", what: "a box Add requirement cannot read is taken for an empty one",
-    find: "  if(naBad.length){ alert(",
-    repl: "  if(false){ alert(" },
+  { id: "v197w1-guard-addReq", area: "arAdd", what: "a box Add requirement cannot read is taken for an empty one",
+    find: "  if(R.bad.length){ arMark(",   // v2.07: the box
+    repl: "  if(false){ arMark(" },
   // "v197w1-guard-runCmd": retired in v2.03 (item 104) as obsolete -- the command bar and setBATot it aimed at were removed;
   // nothing could reach them, so there is no line left for it to break. Not declared equivalent.
   { id: "v197w1-buy-product-unbounded", area: "setBuy", what: "a quantity times a unit cost over the bound is taken",
@@ -3598,9 +3599,9 @@ const MUTATIONS = [
   { id: "v199-rcn-cut", area: "rcnSet", what: "an RCN or EEIC over 10 characters is cut and stored",
     find: "    if(r.why){ codeRefusedIn(el, (field==='rcn'? 'RCN' : 'EEIC')+' not changed', r.why); return; } }",
     repl: "    if(r.why){ val=String(val).trim().slice(0,10); } }" },
-  { id: "v199-newreq-ccar-cut", area: "addReq", what: "the new-requirement form cuts its CCaR record to 12 and adds the requirement",
-    find: "  if(ccR.why){ alert('This requirement was not added. '+ccR.why+'. Nothing on the board was changed; the form keeps what you typed.'); return; }\n  const cc=ccR.v;",
-    repl: "  const cc=String(document.getElementById('naCcar').value||'').trim().slice(0,12);" },
+  { id: "v199-newreq-ccar-cut", area: "arAdd", what: "the new-requirement form cuts its CCaR record to 12 and adds the requirement",
+    find: "  codes.forEach(function(c){ const t=codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });",   // v2.07: the box
+    repl: "  codes.forEach(function(c){ code[c[1]]=arVal(c[0]).trim().slice(0, codeMax(c[1])); });" },
   { id: "v199-flow-export-lastyear", area: "exportFlow", what: "the funds-flow export writes the last year across every appropriation, not the panel's selection",
     find: "  const F=flowCalc(), H=2, TI=7, SEC=6, M=12, MB=13;",
     repl: "  const F=flowCalc(flowYears()[flowYears().length-1]), H=2, TI=7, SEC=6, M=12, MB=13;" },
@@ -7013,8 +7014,8 @@ const MUTATIONS = [
     find: "if(!(src && src.custom) && on.indexOf(id)>=0) return true;", repl: "if(on.indexOf(id)>=0) return true;" },
   { id: 'v206-117-link-not-here', area: "naFromHere", what: "a requirement already brought in (linked) is offered again, and a second run adds it twice",
     find: "if(x.prior && +x.prior.fy===+y && x.prior.id===id) return true;", repl: "" },
-  { id: 'v206-117-no-link', area: "reqFromYear", what: "the new requirement carries no link to the one it came from: no trend data",
-    find: "ask:askVecOf(src.ask), alloc:null, prior:{fy:+y, id:id}};", repl: "ask:askVecOf(src.ask), alloc:null};" },
+  { id: 'v206-117-no-link', area: "reqCreate", what: "the new requirement carries no link to the one it came from: no trend data",
+    find: "  if(from) it.prior={fy:+y, id:id};", repl: "" },   // v2.07: the one writer
   { id: 'v206-117-carries-star-and-money', area: "NA_FROM_CARRY", what: "the star and the allocation come across from the earlier year, deciding this year's money",
     find: "'wbs','dest','band','budgetAsg','minInc'];", repl: "'wbs','dest','band','budgetAsg','minInc','mc','alloc'];" },
   { id: 'v206-117-drops-description', area: "NA_FROM_CARRY", what: "the description written in the earlier year does not come across",

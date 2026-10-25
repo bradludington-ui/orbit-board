@@ -25,7 +25,9 @@ trap the codebase has already fallen into once, the entry says which.
   field, and sends everything else the office edited — the contract the old guard had for an added
   row, kept, because holding forty field edits hostage to one half-filled proposal is a rule people
   learn to work around by deleting the proposal. The Add panel says it is a proposal and lists the
-  mandatory set.
+  mandatory set. **v2.07 (item 121):** the Add panel is a box that asks for the whole record, and its
+  Add is refused until every required field is filled -- on the board as in a copy. The list is one
+  function, `reqNeeds()`, read by the box, `pmoProposalGate()` and Pre-flight.
 - **Review renders it as one row**, accept or decline, with a one-line summary; the change report
   carries it; a re-imported submittal shows it as *already added as NEW-n* and it cannot be ticked.
 - **Accept creates it the way `addReq()` does**, at the bottom of the consolidated listing and last
@@ -70,7 +72,13 @@ replaces the format; it does not loosen the guard.
 
 ### Mandatory before a PMO may submit a new requirement
 
-**Settled.** The RECORD panel's set, less the two the accounting team owns, plus four more:
+**Superseded by v2.07 (item 121; Brad, 24 Oct 2026).** The required list is now: the plan event, prime contract /
+OGC, the requirement by service, a BAE budget for every service with a value (where the office has one to choose),
+obligation category, WBS (not for a prime contract: logged per CLIN), Goes to, the description and the impact
+statement, and for an OGC which awards to and the MIPR type. The PMO and the projected award date left it ("this
+far out, people are just guessing at award dates"). The table below is the list as first settled.
+
+**Settled (v1.7x).** The RECORD panel's set, less the two the accounting team owns, plus four more:
 
 | Field | Note |
 |---|---|
