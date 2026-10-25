@@ -349,6 +349,55 @@ for (const build of BUILDS) {
     if (!rcnShown.b || !rcnShown.s) record(build, theme, { sc: 'coverage', key: 'the CLIN grid’s RCN / EEIC by service was not on screen to measure',
       detail: `the by-service button ${rcnShown.b ? 'was' : 'was NOT'} drawn in both states; its line ${rcnShown.s ? 'was' : 'was NOT'} open`, n: 1 });
 
+    // v2.07 (item 121): THE ADD BOX, measured with all of it on screen. Opened for PSM (the BAE list loaded above offers PSM's
+    // names): four services' values typed, so their budget pickers show, one chosen; a destination that is not a prime, so
+    // the two OGC fields show; a CCaR number typed; then Add pressed early, so the missing fields are marked and the box says
+    // what is missing. Then From another year, on another year holding two of PSM's requirements, one ready and one not,
+    // with the incomplete one ticked; then that one brought in, so the box shows it filled in to finish, with Skip. Each state
+    // must be on screen, or the run fails: a box measured short of its form passes by being absent.
+    const addShown = await page.evaluate(() => { try {
+      if (typeof arShow !== 'function') return { n: false, y: false, f: false };
+      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
+      setPmoFilter('PSM'); if (arOn()) arHide(); toggleAdd();
+      const v = (id, x) => { const e = document.getElementById(id); if (e) e.value = x; };
+      v('arEvent', 'Depot field team travel'); v('arV0', '1,250,000'); v('arV1', '300,000'); v('arV3', '200,000'); v('arV5', '150,000'); arUpdate();
+      const g = flowEntsAZ().filter(e => e.kind !== 'prime')[0]; arPt('OGC'); v('arTo', g ? g.k : ''); arUpdate();
+      const o = [].filter.call(document.getElementById('arB0').options, x => x.value)[0]; if (o) v('arB0', o.value);
+      v('arCcar', 'JSF5000'); arCcarTyped(); arAdd(false);
+      const sh = id => { const e = document.getElementById(id); return !!e && e.getClientRects().length > 0; };
+      return { n: sh('arEvent') && sh('arB0') && sh('arB1') && sh('arEnd') && sh('arMipr') && !!document.querySelector('#arNew .miss')
+        && /still needed/.test(document.getElementById('arMsg').textContent) };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const yrShown = await page.evaluate(() => { try {
+      const Y = MS.cur - 1, base = { order: [], alloc: {}, mc: {}, removed: [], titles: {}, ccar: {}, pid: {}, ptype: {}, obCat: {}, wbs: {}, dest: {},
+        desc: {}, cons: {}, budgetAsg: {}, discSvc: SVC.map(() => 0), mandSvc: SVC.map(() => 0), custom: [] };
+      const mk = (id, ev, tot) => ({ id, grp: 'PSM', team: 'PSM', sect: 'new', custom: true, title: '', event: ev, ccar: '',
+        fy26: SVC.map(() => 0), ask: SVC.map((s, i) => i === 0 ? tot : 0), alloc: null });
+      base.custom = [mk('NEW-1', 'Engine module repair capacity, FY26 surge', 900000), mk('NEW-2', 'Low observable restoration kits', 400000)];
+      base.order = S.order.filter(id => grpOf(itemById(id)) === 'PSM').slice(0, 2).concat(['NEW-1', 'NEW-2']);
+      const prime = (flowEntsAZ().filter(e => e.kind === 'prime')[0] || {}).k || '';
+      Object.assign(base.ptype, { 'NEW-1': 'PRIME' }); Object.assign(base.obCat, { 'NEW-1': OB_CATS[0] });
+      base.dest['NEW-1'] = { to: prime, end: '' }; base.desc['NEW-1'] = 'Repair line capacity'; base.cons['NEW-1'] = 'The line stops in March.';
+      base.budgetAsg['NEW-1'] = { USAF: 'USAF O&M- CAM Discretionary PSM' }; base.ccar['NEW-2'] = 'JSF5011'; base.pid['NEW-2'] = 'PID9011';
+      MS.years[Y] = base;
+      arTab('yr'); naFromPick(String(Y)); naFromTick('NEW-2', true);
+      const b = document.getElementById('naFromBtn');
+      return document.querySelectorAll('#naFromWrap tr[data-id]').length >= 4 && !!document.querySelector('#naFromWrap .ar-pill.ok')
+        && !!document.querySelector('#naFromWrap .ar-pill.no') && !!b && !b.disabled;
+    } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const finShown = await page.evaluate(() => { try {
+      naFromAdd(); const fb = document.getElementById('arFinBar');
+      return !!fb && !fb.hidden && !!fb.querySelector('button') && arTabOn === 'new';
+    } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { arHide(); delete MS.years[MS.cur - 1]; setPmoFilter('ALL'); } catch (e) {} });
+    if (!addShown.n || !yrShown || !finShown) record(build, theme, { sc: 'coverage', key: 'the Add box was not on screen whole to measure',
+      detail: `the form with budget pickers, the OGC fields and the missing marked ${addShown.n ? 'was' : 'was NOT'} shown; `
+        + `From another year with its rows ${yrShown ? 'was' : 'was NOT'}; one being finished ${finShown ? 'was' : 'was NOT'}`
+        + (addShown.err ? ' (' + addShown.err + ')' : ''), n: 1 });
+
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.
     if (theme === THEMES[0]) {
@@ -384,6 +433,31 @@ for (const build of BUILDS) {
       for (const k of noFocus)
         record(build, theme, { sc: 'focus', key: k,
           detail: 'focusing it changes no outline, shadow, border or background', n: 1 });
+      // v2.07 (item 121): and the Add box's own controls, sampled with the box open -- behind it the board is inert, so the
+      // sample above never reached them, and with the box open nothing else can be focused
+      const boxFocus = await page.evaluate(() => { try {
+        setPmoFilter('PSM'); if (arOn()) arHide(); toggleAdd();
+        const e0 = document.getElementById('arV0'); if (e0) e0.value = '1,000'; arPt('OGC');
+        const g = flowEntsAZ().filter(e => e.kind !== 'prime')[0]; const to = document.getElementById('arTo'); if (to && g) to.value = g.k; arUpdate();
+        const seen = new Set(), bad = [];
+        const sig = el => { const cs = getComputedStyle(el);
+          return [cs.outlineStyle, cs.outlineWidth, cs.outlineColor, cs.boxShadow, cs.borderColor, cs.backgroundColor].join('|'); };
+        let n = 0;
+        for (const el of document.querySelectorAll('#addPanel .modal button, #addPanel .modal input, #addPanel .modal select, #addPanel .modal textarea')) {
+          const k = el.tagName + '|' + (el.className || '') + '|' + (el.type || '');
+          if (seen.has(k)) continue; seen.add(k);
+          const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+          const before = sig(el); el.focus(); if (document.activeElement !== el) continue;
+          n++; if (before === sig(el)) bad.push(k); el.blur();
+        }
+        arHide(); setPmoFilter('ALL');
+        return { bad, n };
+      } catch (e) { return { bad: [], n: 0 }; } });
+      for (const k of boxFocus.bad)
+        record(build, theme, { sc: 'focus', key: k,
+          detail: 'focusing it changes no outline, shadow, border or background', n: 1 });
+      if (boxFocus.n < 5) record(build, theme, { sc: 'coverage', key: 'the Add box’s controls were not sampled for a visible focus',
+        detail: `${boxFocus.n} control shape(s) of the box took focus to be sampled`, n: 1 });
     }
     await page.close();
   }

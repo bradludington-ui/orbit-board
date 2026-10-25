@@ -1756,6 +1756,396 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// v2.07 (item 121): ONE BOX BUILDS THE WHOLE RECORD (Brad, 24 Oct 2026). The strip took a title and a value and left every
+// other field to be found afterwards in three places; a PMO copy then refused to send the proposal until ten of them were
+// filled. The box asks for them all before Add, for ONE office, and writes nothing until Add. Each rule is driven here through
+// the rendered controls -- a value set and its input / change events fired, a rendered button clicked -- and every expected
+// figure, list and label is typed from the fixture below and Brad's rules, never read back from the board:
+//   offices PSM and AV; services USAF, ANG, STOVL; A (PSM, ★, event 'alpha event') ranked over B (AV) and C (PSM);
+//   PSM's office ranking A, C; FY26 holds P26 (PSM) and V26 (AV);
+//   the BAE list: PSM has one Discretionary USAF name, one Mandatory USAF name, one lane-less ANG name, a retired and a
+//   Full Fund USAF name, and no STOVL name; AV has a USAF and a STOVL name; one name has no office (a legacy budget); and one
+//   names NEWO, an office that does not exist yet;
+//   the CCaR records list: JSF1 'Engine overhaul record' (Overhaul of the F135 engines), JSF2 'Avionics record' (Avionics
+//   spares); JSF7 is in no list.
+{
+  const name = 'v2.07 — the Add requirement box (item 121)';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mkI = (id, grp, ask, ev) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: ev,
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { ev } = boot();
+  seed(ev, { services: SV, items: [mkI('A', 'PSM', [100, 40, 20], 'alpha event'), mkI('B', 'AV', [50, 0, 0], 'bravo event'),
+    mkI('C', 'PSM', [30, 10, 0], 'charlie event')], disc: [200, 100, 50], mand: [50, 20, 10], order: ['A', 'B', 'C'], mc: { A: true } });
+  const BAE = { psmDisc: 'USAF O&M- CAM Discretionary PSM', psmMand: 'USAF O&M - CAM OBBBA Mandatory PSM', psmAng: 'USAF O&M - ANG CAM PSM',
+    psmGone: 'USAF O&M- CAM PES Discretionary PSM', psmFF: 'USAF F-35 Full Fund Supt Discretionary PSM', avDisc: 'USAF O&M- CAM Discretionary AV',
+    avStovl: 'USMC STOVL O&M -1A9A FL Discretionary AV', legacy: 'USAF O&M- CAM', newo: 'USAF O&M- CAM Discretionary NEWO',
+    cpp: 'USAF O&M- CAM Discretionary C++' };
+  const OB = 'PMO LM Contract';
+  ev(`(function(){
+    BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.pmoOrder={PSM:['A','C'], AV:['B']};
+    var T=freshYearState(); T.order=['P26','V26'];
+    T.custom=[{id:'P26', grp:'PSM', team:'PSM', sect:'new', custom:true, title:'P26 title', event:'PSM last year', ccar:'', fy26:[0,0,0], ask:[5,0,0], alloc:null},
+              {id:'V26', grp:'AV', team:'AV', sect:'new', custom:true, title:'V26 title', event:'AV last year', ccar:'', fy26:[0,0,0], ask:[7,0,0], alloc:null}];
+    MS.years['2026']=T;
+    var B=${J(BAE)};
+    BUDDB={ts:1790000000121, files:[], rows:Object.keys(B).map(function(k){ return k==='psmGone'? {n:B[k], gone:1} : {n:B[k]}; })};
+    _budRegCache=null;
+    MS.ccarIdx={rows:{JSF1:{t:'Engine overhaul record', o:'OPR1', p:'PSM', d:1, k:'7001', s:'Overhaul of the F135 engines'},
+                      JSF2:{t:'Avionics record', o:'OPR2', p:'PSM', d:1, k:'7002', s:'Avionics spares'},
+                      JSF8:{t:'Shared number', o:'OPR8', p:'PSM', d:2, k:'7008', s:'Held twice'}}};
+    save(); render();
+    window.__asked=[]; window.__ans=false; window.confirm=function(m){ window.__asked.push(String(m)); return window.__ans; };
+    window.__g=function(id){ return document.getElementById(id); };
+    window.__key=function(k, t){ t=t||document.activeElement||document.body;
+      t.dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:true, cancelable:true})); dlgSync(); };
+    // a person types: the value replaced, then its input and change events
+    window.__set=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.focus(); e.value=v;
+      e.dispatchEvent(new Event('input', {bubbles:true})); e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+    // a person picks from a rendered select: refused if the box does not offer it
+    window.__pick=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.value=v; if(e.value!==String(v)) return 'not offered';
+      e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+    window.__click=function(sel){ var b=document.querySelector(sel); if(!b) return 'no '+sel; b.click(); dlgSync(); return 'ok'; };
+    window.__cancel=function(){ var b=[].slice.call(document.querySelectorAll('#arFt button')).filter(function(x){ return x.textContent==='Cancel'; })[0];
+      if(!b) return 'no Cancel'; b.click(); dlgSync(); return 'ok'; };
+    window.__box=function(){ var h=function(id){ var e=__g(id); return e? e.hidden : null; };
+      return JSON.stringify({open:arOpen, cls:/\\bopen\\b/.test(__g('addPanel').className), off:arOff, step:h('arOffStep'), form:h('arNew'), yr:h('arYr'),
+        who:__g('arWho')? __g('arWho').textContent : null}); };
+    window.__rail=function(){ return JSON.stringify([].slice.call(document.querySelectorAll('#arChk li')).map(function(li){
+      return li.className+':'+li.childNodes[1].textContent+(li.querySelector('span:not(.sr)')? li.querySelector('span:not(.sr)').textContent : ''); })); };
+    window.__opts=function(id){ var e=__g(id); return e? [].slice.call(e.options).map(function(o){ return o.value; }) : null; };
+    window.__snap=function(){ var o={}; Object.keys(S).forEach(function(k){ o[k]=JSON.stringify(S[k]); }); return o; };
+    window.__diff=function(a, nid){ var b=__snap(), out=[], isO=function(v){ return !!v && typeof v==='object' && !Array.isArray(v); };
+      Object.keys(a).concat(Object.keys(b)).filter(function(k,i,arr){ return arr.indexOf(k)===i; }).sort().forEach(function(k){
+        if(a[k]===b[k]) return;
+        var x=a[k]===undefined? undefined : JSON.parse(a[k]), y=b[k]===undefined? undefined : JSON.parse(b[k]);
+        if((x===undefined || isO(x)) && isO(y)){ x=x||{};
+          var sub=Object.keys(x).concat(Object.keys(y)).filter(function(s,i,arr){ return arr.indexOf(s)===i && JSON.stringify(x[s])!==JSON.stringify(y[s]); });
+          out.push(k+'['+sub.map(function(s){ return s===nid? 'NEW' : s; }).join(',')+']'); }
+        else out.push(k); });
+      return out; };
+    return 'ok'; })()`);
+  const box = () => JSON.parse(ev(`__box()`));
+  const rail = () => JSON.parse(ev(`__rail()`));
+  const btn = () => ev(`__g('arAddBtn').textContent`);
+  const val = id => ev(`(__g(${J(id)})||{value:'(none)'}).value`);
+  const say = () => ev(`__g('arMsg')? __g('arMsg').textContent : '(no message line)'`);
+  const store = () => ev(`JSON.stringify(MS)`);
+  const RAIL9 = ['Plan event', 'Prime contract / OGC', 'Requirement value', 'Budget', 'Obligation category', 'WBS', 'Goes to', 'Description', 'Impact statement'];
+
+  // ── (1) ONE OFFICE. "Once they select their PMO, that's the only PMO they can support with adding requirements." ─────────
+  // One office chosen at the top is used as is, and said.
+  ev(`setPmoFilter('PSM'); __click('#toolAdd'); 'ok'`);
+  let b = box();
+  chk(name, 'office', 'PSM chosen at the top: the box opens for PSM, asks nothing, shows the form, and says whose it is',
+    J([b.open, b.cls, b.off, b.step, b.form, /^For PSM — the only office this box adds for \(the office chosen at the top\)/.test(b.who)]),
+    J([true, true, 'PSM', true, false, true]));
+  chk(name, 'office', 'a box under the box controller: a modal dialog named from its heading',
+    ev(`(function(){ var m=document.querySelector('#addPanel .modal'); return [m.getAttribute('role'), m.getAttribute('aria-modal'), /^＋ Add requirement/.test(m.getAttribute('aria-label')||'')].join(' · '); })()`),
+    'dialog · true · true');
+  ev(`__cancel(); 'ok'`);
+  // All offices: the box asks first, and shows no form until it is answered
+  ev(`setPmoFilter('ALL'); __click('#toolAdd'); 'ok'`);
+  b = box();
+  chk(name, 'office', 'All offices: the box asks which office first, and shows neither the form nor the year list',
+    J([b.open, b.off, b.step, b.form, b.yr, b.who]), J([true, '', false, true, true, 'Choose the office first.']));
+  chk(name, 'office', 'the question offers every office on the board', J(JSON.parse(ev(`JSON.stringify(__opts('arOffice'))`))), J(['', 'ATL', 'PSM', 'PP', 'AV', 'MxS', 'CDS', 'TSS', 'BOP']));
+  let ms0 = store();
+  ev(`__click('#arAddBtn'); 'ok'`);
+  chk(name, 'office', 'Add before the office is chosen: refused in the box, nothing written',
+    J([say(), store() === ms0, box().open]), J(['Choose the office first: pick it, or move to it with the arrow keys and press Enter.', true, true]));
+  // A KEYBOARD MOVE ONLY MOVES (v2.07 review): Chromium fires change on every arrow key of a closed select, and the first
+  // ArrowDown locked the box to the first office and sent the keyboard on -- no other office could be reached. Moved through
+  // with the arrow keys, each move firing change as Chromium does: nothing chosen. Enter: the one moved to.
+  ev(`(function(){ var s=__g('arOffice'); ['ATL','PSM'].forEach(function(v){ __key('ArrowDown', s); s.value=v; s.dispatchEvent(new Event('change', {bubbles:true})); }); return 'ok'; })()`);
+  chk(name, 'office', 'moved through with the arrow keys, each move firing change: no office chosen yet, the question still asked',
+    J([box().off, box().step, box().form]), J(['', false, true]));
+  ev(`__key('Enter', __g('arOffice')); 'ok'`);
+  chk(name, 'office', 'Enter on it: the office moved to is chosen, and the keyboard goes on to the plan event',
+    J([box().off, box().step, box().form, ev(`document.activeElement && document.activeElement.id`)]), J(['PSM', true, false, 'arEvent']));
+  ev(`__cancel(); __click('#toolAdd'); 'ok'`);
+  chk(name, 'office', 'CONTROL: reopened, the question is asked again', J([box().off, box().step]), J(['', false]));
+  chk(name, 'office', 'answering the question (a change on the rendered select)', ev(`__pick('arOffice', 'PSM')`), 'ok');
+  b = box();
+  chk(name, 'office', 'answered PSM: the question goes, the form shows, the office is said as chosen here',
+    J([b.off, b.step, b.form, /^For PSM — the only office this box adds for \(chosen here\)/.test(b.who)]), J(['PSM', true, false, true]));
+  // the budgets and the year list follow it
+  ev(`__set('arV0', '1'); __set('arV1', '1'); 'ok'`);
+  chk(name, 'office', 'the budgets offered are PSM’s', J(JSON.parse(ev(`JSON.stringify([__opts('arB0'), __opts('arB1')])`))), J([['', BAE.psmDisc], ['', BAE.psmAng]]));
+  ev(`__set('arV0', ''); __set('arV1', ''); __click('#arTabYr'); 'ok'`);
+  chk(name, 'office', 'From another year: FY26 is offered', ev(`__pick('naFromFy', '2026')`), 'ok');
+  const yrRows = () => ev(`[].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return r.getAttribute('data-id'); }).join(',')`);
+  chk(name, 'office', 'the year list is PSM’s: P26, never AV’s V26', yrRows(), 'P26');
+  // NOTHING IN THE BOX CHANGES IT: the one control that sets the office is the question, gone once answered; and the
+  // office chosen on the board behind the box does not reach into it
+  chk(name, 'office', 'the only control in the box that sets the office is the question, and it is hidden once answered',
+    ev(`(function(){ var c=[].slice.call(document.querySelectorAll('#addPanel [onchange], #addPanel [onclick], #addPanel [oninput], #addPanel [onkeydown]')).filter(function(e){
+      return /arSetOffice|arOffPick|arOffKey|setPmoFilter|arOff\\s*=/.test((e.getAttribute('onchange')||'')+(e.getAttribute('onclick')||'')+(e.getAttribute('oninput')||'')+(e.getAttribute('onkeydown')||'')); });
+      return c.map(function(e){ return e.id; }).join(',')+' · '+(c.length===1 && c[0].closest('[hidden]')!==null); })()`), 'arOffice · true');
+  ev(`setPmoFilter('AV'); 'ok'`);
+  chk(name, 'office', 'AV chosen on the board behind the open box: the box still adds for PSM, its year list still PSM’s',
+    J([box().off, yrRows()]), J(['PSM', 'P26']));
+  ev(`__click('#arTabNew'); __set('arV0', '1'); 'ok'`);
+  chk(name, 'office', 'and its budgets still PSM’s', J(JSON.parse(ev(`JSON.stringify(__opts('arB0'))`))), J(['', BAE.psmDisc]));
+  ev(`__cancel(); setPmoFilter('PSM'); 'ok'`);
+  // and AV's own box lists AV's year
+  ev(`setPmoFilter('AV'); __click('#toolAdd'); __click('#arTabYr'); __pick('naFromFy', '2026'); 'ok'`);
+  chk(name, 'office', 'CONTROL: a box for AV lists AV’s V26', yrRows(), 'V26');
+  ev(`__cancel(); setPmoFilter('PSM'); __click('#toolAdd'); 'ok'`);
+
+  // ── (2) THE REQUIRED LIST, AND ADD PRESSED EARLY ─────────────────────────────────────────────────────────────────────
+  // "All required to be added." The rail is the proposal gate's own list: plan event, Prime / OGC, the requirement, a budget
+  // for every service with a value (nothing to choose yet), obligation category, WBS, Goes to, description, impact statement.
+  chk(name, 'required', 'the rail lists every required field, each still needed, the budget waived until a service has a value',
+    J(rail()), J(RAIL9.map(l => l === 'Budget' ? 'na:Budget · once a service has a value' : 'no:' + l)));
+  chk(name, 'required', 'and it is reqNeeds() on what the box holds, field for field',
+    J(rail().map(r => r.split(':')[1].split(' · ')[0])), ev(`JSON.stringify(reqNeeds(arRead().d).map(function(x){ return arShort(x.l); }))`));
+  chk(name, 'required', 'the button and the count say 8 still needed', btn() + ' · ' + ev(`__g('arReadyN').textContent`), 'Add requirement — 8 still needed · 1 of 9');
+  ms0 = store();
+  const n0 = ev(`S.order.length+' · '+S.custom.length+' · '+DATA.items.length`);
+  ev(`__click('#arAddBtn'); 'ok'`);
+  chk(name, 'Add early', 'Add pressed with nothing filled: nothing added, nothing written to the store, the box stays open',
+    J([ev(`S.order.length+' · '+S.custom.length+' · '+DATA.items.length`), store() === ms0, box().open]), J([n0, true, true]));
+  chk(name, 'Add early', 'it says how many are still needed, and which',
+    say(), '8 still needed before it can be added: Plan event · Prime contract / OGC · Requirement value · Obligation category · WBS · Goes to · Description · Impact statement.');
+  chk(name, 'Add early', 'every missing field is marked, and nothing else',
+    ev(`[].slice.call(document.querySelectorAll('#arNew .miss')).map(function(e){ return e.id; }).join(',')`), 'arF_titles,arF_ptype,arF_obCat,arF_wbs,arV0,arF_dest,arF_desc,arF_cons');
+  chk(name, 'Add early', 'and the first of them has the keyboard', ev(`document.activeElement && document.activeElement.id`), 'arEvent');
+  chk(name, 'Add early', 'the message is the box’s own -- an alert inside it, never the status line the box covers',
+    ev(`__g('arMsg').closest('#addPanel .modal')!==null && __g('arMsg').getAttribute('role')==='alert'`), true);
+  // the count follows what is typed, and a mark comes off a field as soon as it is answered
+  ev(`__set('arEvent', 'Depot tooling'); 'ok'`);
+  chk(name, 'count', 'the plan event typed: 7 still needed, its mark gone', btn() + ' · ' + ev(`__g('arF_titles').classList.contains('miss')`), 'Add requirement — 7 still needed · false');
+  ev(`__click('#arPtO'); 'ok'`);
+  chk(name, 'count', 'OGC pressed: 6 still needed, the switch says which', btn() + ' · ' + ev(`__g('arPtO').getAttribute('aria-pressed')+'/'+__g('arPtP').getAttribute('aria-pressed')`),
+    'Add requirement — 6 still needed · true/false');
+
+  // "Spread a total" puts WHOLE dollars into the boxes, the leftover to the first services (v1.89; Brad, 30 Sep 2026: $100
+  // across three is 34 / 33 / 33), there to be read and changed before Add -- never a share with cents, never one rounded alone
+  const vals = () => J([val('arV0'), val('arV1'), val('arV2'), ev(`__g('arTot').textContent`)]);
+  ev(`__set('arSpread', '100'); __click('#arNew .ar-spread button'); 'ok'`);
+  chk(name, 'spread', '$100 over three services: 34 / 33 / 33, the total $100, the spread box emptied', vals() + ' ' + val('arSpread'),
+    J(['34', '33', '33', '$100']) + ' ');
+  ev(`__set('arSpread', '1,000,000'); __click('#arNew .ar-spread button'); 'ok'`);
+  chk(name, 'spread', '$1,000,000 over three: 333,334 / 333,333 / 333,333, to the dollar', vals(), J(['333,334', '333,333', '333,333', '$1,000,000']));
+  ev(`__set('arSpread', '12abc'); __click('#arNew .ar-spread button'); 'ok'`);
+  chk(name, 'spread', 'a total that cannot be read spreads nothing, and says so', J([/^The total was not spread: /.test(say()), JSON.parse(vals())]),
+    J([true, ['333,334', '333,333', '333,333', '$1,000,000']]));
+  ev(`__set('arSpread', ''); __set('arV0', ''); __set('arV1', ''); __set('arV2', ''); 'ok'`);
+
+  // ── (3) BUDGETS: "Only that PMO's budgets should pop up." ────────────────────────────────────────────────────────────
+  chk(name, 'budgets', 'no service has a value: no picker shows, each says why',
+    ev(`[0,1,2].map(function(i){ return __g('arB'+i).hidden+':'+__g('arBn'+i).textContent; }).join(' | ')`),
+    'true:add a value to choose a budget | true:add a value to choose a budget | true:add a value to choose a budget');
+  ev(`__set('arV0', '1.2M'); 'ok'`);
+  chk(name, 'budgets', 'USAF given a value: its picker shows PSM’s one USAF name -- not AV’s, not the Mandatory one, not the legacy, retired or Full Fund names',
+    J([ev(`__g('arB0').hidden`), JSON.parse(ev(`JSON.stringify(__opts('arB0'))`)), ev(`__g('arB1').hidden`)]), J([false, ['', BAE.psmDisc], true]));
+  chk(name, 'budgets', 'and the rail now asks for one budget', J(rail()[3]), J('no:Budget · 0 of 1 chosen'));
+  ev(`__set('arV1', '350,000'); __set('arV2', '100'); 'ok'`);
+  chk(name, 'budgets', 'ANG: PSM’s lane-less ANG name; STOVL: PSM has none, so no picker, and it says so',
+    J([JSON.parse(ev(`JSON.stringify(__opts('arB1'))`)), ev(`__g('arB2').hidden`), ev(`__g('arBn2').textContent`)]),
+    J([['', BAE.psmAng], true, 'no STOVL budget is listed for PSM']));
+  chk(name, 'budgets', 'the rail asks for two -- STOVL is waived -- and the total is the three values', J([rail()[3], ev(`__g('arTot').textContent`)]),
+    J(['no:Budget · 0 of 2 chosen', '$1,550,100']));
+  chk(name, 'budgets', 'AV’s USAF name cannot be chosen for a PSM requirement', ev(`__pick('arB0', ${J(BAE.avDisc)})`), 'not offered');
+  chk(name, 'budgets', 'nor PSM’s Mandatory one', ev(`__pick('arB0', ${J(BAE.psmMand)})`), 'not offered');
+  ev(`__pick('arB0', ${J(BAE.psmDisc)}); __pick('arB1', ${J(BAE.psmAng)}); 'ok'`);
+  chk(name, 'budgets', 'both chosen: the rail says 2 of 2', J(rail()[3]), J('ok:Budget · 2 of 2 chosen'));
+
+  // ── (4) WHERE THE MONEY GOES: the OGC fields only for a government activity; a PRIME is never asked for a WBS ──────────
+  ev(`__pick('arTo', 'lm'); 'ok'`);
+  chk(name, 'OGC', 'Goes to a prime: Which awards to and MIPR type are neither shown nor asked for',
+    J([ev(`__g('arF_destEnd').hidden+' · '+__g('arF_mipr').hidden`), rail().some(r => /Which awards to|MIPR type/.test(r))]), J(['true · true', false]));
+  ev(`__pick('arTo', 'dla'); 'ok'`);
+  chk(name, 'OGC', 'Goes to a government activity: both shown, and both required',
+    J([ev(`__g('arF_destEnd').hidden+' · '+__g('arF_mipr').hidden`), rail().filter(r => /Which awards to|MIPR type/.test(r))]),
+    J(['false · false', ['no:Which awards to', 'no:MIPR type']]));
+  ev(`__set('arWbs', '1.2.3'); 'ok'`);
+  ev(`__click('#arPtP'); 'ok'`);
+  chk(name, 'PRIME', 'Prime contract pressed: the WBS box goes, says it is logged per CLIN, and the rail does not ask for it',
+    J([ev(`__g('arWbs').hidden`), ev(`__g('arWbsNote').textContent`), rail()[5]]), J([true, 'logged per CLIN, in its CLIN drill once it is added', 'ok:WBS']));
+  ev(`__set('arWbs', ''); 'ok'`);
+  chk(name, 'PRIME', 'even with nothing typed in it', J(rail()[5]), J('ok:WBS'));
+  ev(`__click('#arPtO'); 'ok'`);
+  chk(name, 'PRIME', 'back to OGC: the WBS is shown and asked for again', J([ev(`__g('arWbs').hidden`), rail()[5]]), J([false, 'no:WBS']));
+
+  // ── (5) THE RECORD TITLE IS READ, NEVER TYPED; THE LIST'S DESCRIPTION FILLS AN EMPTY ONE ─────────────────────────────
+  // "When the record number is typed in, it auto fills the Record Title. Nobody should be typing in the Record Title."
+  chk(name, 'record title', 'the box’s fields are these and no others -- no record title, band, star, award date or RCN / EEIC to type',
+    ev(`[].slice.call(document.querySelectorAll('#arNew input, #arNew select, #arNew textarea')).map(function(e){ return e.id; }).join(',')`),
+    'arEvent,arPtype,arCcar,arPid,arOb,arWbs,arV0,arB0,arV1,arB1,arV2,arB2,arSpread,arTo,arEnd,arMipr,arDesc,arCons,arNote');
+  chk(name, 'record title', 'before a record is typed the title says where it comes from',
+    ev(`__g('arRecT').tagName+' · '+__g('arRecT').textContent`), 'SPAN · filled from the CCaR records list when the record is typed');
+  ev(`__set('arCcar', 'jsf 1'); 'ok'`);
+  chk(name, 'record title', 'jsf 1 typed: the list’s title, read only, and its short description in the empty description',
+    J([ev(`__g('arRecT').textContent`), val('arDesc')]), J(['Engine overhaul record', 'Overhaul of the F135 engines']));
+  ev(`__set('arCcar', 'JSF2'); 'ok'`);
+  chk(name, 'record title', 'changed to JSF2: the title and the description the box filled both follow it',
+    J([ev(`__g('arRecT').textContent`), val('arDesc')]), J(['Avionics record', 'Avionics spares']));
+  ev(`__set('arCcar', 'JSF7'); 'ok'`);
+  chk(name, 'record title', 'JSF7, in no list: no title, said so, and the filled description goes with the record it came from',
+    J([ev(`__g('arRecT').textContent`), val('arDesc')]), J(['not in the CCaR records list', '']));
+  ev(`__set('arCcar', 'JSF8'); 'ok'`);
+  chk(name, 'record title', 'JSF8, which the list holds twice: no title taken, and it says the number is held twice -- not that it is missing',
+    J([ev(`__g('arRecT').textContent`), val('arDesc')]), J(['held by 2 records in the CCaR records list — no title is taken from it', '']));
+  ev(`__set('arDesc', 'Written by the office'); __set('arCcar', 'JSF1'); 'ok'`);
+  chk(name, 'record title', 'a description somebody typed is never overwritten by the list’s', J([ev(`__g('arRecT').textContent`), val('arDesc')]),
+    J(['Engine overhaul record', 'Written by the office']));
+
+  // ── (6) ADD WRITES EXACTLY WHAT THE BOX HOLDS ─────────────────────────────────────────────────────────────────────────
+  ev(`__set('arPid', 'P-77'); __pick('arOb', ${J(OB)}); __set('arWbs', '1.2.3'); __pick('arEnd', 'lm'); __pick('arMipr', 'direct');
+      __set('arCons', 'The line stops.'); __set('arNote', 'a note'); 'ok'`);
+  chk(name, 'Add', 'every required field answered: the button says Add requirement, 11 of 11', btn() + ' · ' + ev(`__g('arReadyN').textContent`),
+    'Add requirement · 11 of 11');
+  chk(name, 'Add', 'and the rail ticks all eleven, the budget among them',
+    J(rail().map(r => r.split(':')[0])), J(Array(11).fill('ok')));
+  // A FIGURE THAT CANNOT BE READ, A CODE OVER ITS LIMIT: refused, never cut and never taken for $0, the box keeping the text
+  ms0 = store();
+  ev(`__set('arCcar', 'JSF1234567890'); __click('#arAddBtn'); 'ok'`);
+  chk(name, 'refused', 'a CCaR record of 13 characters: not added, nothing written, the text kept and marked',
+    J([/^This requirement was not added\. The CCaR record .* is 13 characters; it can be at most 12\..*the box keeps what you typed\.$/.test(say()),
+       store() === ms0, box().open, val('arCcar'), ev(`__g('arF_ccar')? __g('arF_ccar').classList.contains('miss')+' · '+__g('arCcar').getAttribute('aria-invalid') : 'the box is gone'`)]),
+    J([true, true, true, 'JSF1234567890', 'true · true']));
+  chk(name, 'refused', 'and it says nothing was changed once, not twice', (say().match(/[Nn]othing/g) || []).length, 1);
+  ev(`__set('arCcar', 'JSF1'); __set('arV2', '1.5.0'); __click('#arAddBtn'); 'ok'`);
+  chk(name, 'refused', 'a STOVL value that cannot be read: not added -- never taken for $0 -- nothing written, the text kept, the keyboard on it',
+    J([/^This requirement was not added\. STOVL: .*the box keeps what you typed\.$/.test(say()), store() === ms0, val('arV2'),
+       ev(`document.activeElement && document.activeElement.id`), val('arDesc')]), J([true, true, '1.5.0', 'arV2', 'Written by the office']));
+  ev(`__set('arV2', '100'); 'ok'`);
+  // THE REFERENCE IS PEEKED, NEVER SPENT: asked twice it is the same number and the year is untouched; the add then gets it
+  const pk = JSON.parse(ev(`(function(){ var s0=JSON.stringify(S), a=newReqSeqPeek(), b=newReqSeqPeek(); return JSON.stringify([a, b, JSON.stringify(S)===s0]); })()`));
+  chk(name, 'reference', 'peeked twice: one number, and the year state unchanged', J([pk[0] === pk[1], pk[2]]), J([true, true]));
+  const NID = 'NEW-' + pk[0];
+  chk(name, 'reference', 'the rail names that reference', ev(`/reference ${NID}(?![0-9])/.test((__g('arSum')||{}).textContent||'')`), true);
+  ev(`window.__s0=__snap(); window.__y26=JSON.stringify(MS.years['2026']); window.__n=DATA.items.length;
+      window.__saves=0; window.__caps=0; if(!window.__os) window.__os=save; if(!window.__oj) window.__oj=jrnlCapture;
+      save=function(){ window.__saves++; return window.__os.apply(this, arguments); };
+      jrnlCapture=function(){ window.__caps++; return window.__oj.apply(this, arguments); };
+      __click('#arAddBtn');
+      save=window.__os; jrnlCapture=window.__oj; 'ok'`);
+  b = box();
+  chk(name, 'Add', 'Add: the box closes and empties', J([b.open, b.cls, ev(`__g('arBody').innerHTML`)]), J([false, false, '']));
+  chk(name, 'Add', 'the new requirement has the peeked reference and sits at the bottom of the order and of PSM’s ranking',
+    J([ev(`S.order[S.order.length-1]`), JSON.parse(ev(`JSON.stringify(S.pmoOrder.PSM)`))]), J([NID, ['A', 'C', NID]]));
+  chk(name, 'Add', 'it writes the requirement, the order, PSM’s ranking, its Split and the box’s fields -- and nothing else',
+    J(JSON.parse(ev(`JSON.stringify(__diff(__s0, ${J(NID)}))`))),
+    J(['budgetAsg[NEW]', 'ccar[NEW]', 'cons[NEW]', 'custom', 'desc[NEW]', 'dest[NEW]', 'fsrc[NEW]', 'mipr[NEW]', 'newSeq', 'notes[NEW]',
+       'obCat[NEW]', 'order', 'pid[NEW]', 'pmoOrder[PSM]', 'ptype[NEW]', 'wbs[NEW]']));
+  chk(name, 'Add', 'each one as the box held it',
+    ev(`(function(){ var n=${J(NID)}; return JSON.stringify([S.ccar[n], S.pid[n], S.ptype[n], S.obCat[n], S.wbs[n], S.dest[n], S.mipr[n], S.desc[n], S.notes[n], S.cons[n]]); })()`),
+    J(['JSF1', 'P-77', 'OGC', OB, [{ w: '1.2.3', v: [] }], { to: 'dla', end: 'lm' }, 'direct', 'Written by the office', 'a note', 'The line stops.']));
+  chk(name, 'Add', 'the requirement: PSM, the plan event typed, the CCaR list’s title, the values as typed, added, unstarred',
+    ev(`(function(){ var it=itemById(${J(NID)}); return JSON.stringify([it.grp, it.event, it.title, it.ask, !!it.custom, !!S.mc[it.id], DATA.items.length-__n, recName(it)]); })()`),
+    J(['PSM', 'Depot tooling', 'Engine overhaul record', [1200000, 350000, 100], true, false, 1, 'Engine overhaul record']));
+  chk(name, 'Add', 'on a Split, and FY26 untouched', J([ev(`(S.fsrc[${J(NID)}]||{m:'none'}).m`), ev(`JSON.stringify(MS.years['2026'])===__y26`)]), J(['split', true]));
+  chk(name, 'Add', 'ONE save, so ONE journal capture', ev(`__saves+' · '+__caps`), '1 · 1');
+  chk(name, 'budgets', 'the Discretionary name lands under USAF|disc, the lane-less one under the bare service',
+    ev(`JSON.stringify(S.budgetAsg[${J(NID)}])`), J({ 'USAF|disc': BAE.psmDisc, ANG: BAE.psmAng }));
+  chk(name, 'budgets', 'and the budget authority calls both chosen',
+    ev(`['USAF','ANG'].map(function(s){ return budResolve(${J(NID)}, s, 'disc').status; }).join(' · ')`), 'chosen · chosen');
+  chk(name, 'Add', 'the proposal gate on the new requirement asks for nothing', ev(`JSON.stringify(pmoProposalGate(${J(NID)}))`), '[]');
+  chk(name, 'Add', 'CONTROL: the same gate on A, which carries none of it, names every field A lacks', ev(`JSON.stringify(pmoProposalGate('A'))`),
+    J(['Prime contract / OGC', 'Budget (BAE)', 'Obligation category', 'WBS', 'Goes to', 'Description', 'Impact statement']));
+  chk(name, 'Add', 'and the status line says what was added, where', ev(`__g('shareStat').textContent`),
+    `➕ Added ${NID} — Depot tooling — to FY27 for PSM, at the bottom of the order.`);
+
+  // ── (7) CANCEL AND ESC: nothing is written until Add, and typing is never lost to a stray key ───────────────────────────
+  ms0 = store();
+  ev(`__click('#toolAdd'); __set('arEvent', 'qz'); __asked=[]; __ans=false; __key('Escape'); 'ok'`);
+  chk(name, 'Esc', 'typed, then Esc: it asks first; Cancel keeps the box and the typing',
+    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), box().open, val('arEvent')]), J([1, true, true, 'qz']));
+  ev(`__asked=[]; __ans=true; __key('Escape'); 'ok'`);
+  chk(name, 'Esc', 'Esc and OK: the box closes and nothing is written', J([ev(`__asked.length`), box().open, store() === ms0]), J([1, false, true]));
+  ev(`__click('#toolAdd'); __set('arEvent', 'qz'); __set('arV0', '5'); __asked=[]; __cancel(); 'ok'`);
+  chk(name, 'Cancel', 'typed, then Cancel: it closes without asking, and nothing is written', J([ev(`__asked.length`), box().open, store() === ms0]), J([0, false, true]));
+  ev(`__click('#toolAdd'); 'ok'`);
+  chk(name, 'Cancel', 'reopened: every field is empty and the rail starts again',
+    J([ev(`[].slice.call(document.querySelectorAll('#arNew input, #arNew select, #arNew textarea')).filter(function(e){ return e.value!==''; }).map(function(e){ return e.id; }).join(',')`), btn()]),
+    J(['', 'Add requirement — 8 still needed']));
+  ev(`__asked=[]; __key('Escape'); 'ok'`);
+  chk(name, 'Esc', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), box().open]), J([0, false]));
+
+  // ── (8) "ADD AND OPEN ITS RECORD" takes off a filter that would hide it, and says so ─────────────────────────────────
+  ev(`__g('q').value='alpha'; mcOnly=true; render(); __click('#toolAdd');
+      __set('arEvent', 'Test bench'); __set('arWbs', 'W-9'); __click('#arPtP'); __set('arCcar', 'JSF7'); __set('arV0', '500');
+      __pick('arB0', ${J(BAE.psmDisc)}); __pick('arOb', ${J(OB)}); __pick('arTo', 'lm'); __set('arDesc', 'Bench.'); __set('arCons', 'No bench.');
+      __set('arV1', '5'); __pick('arB1', ${J(BAE.psmAng)}); __set('arV1', '');
+      __click('#arAddOpen'); 'ok'`);
+  await new Promise(r => setTimeout(r, 30));
+  const N2 = ev(`S.order[S.order.length-1]`);
+  chk(name, 'open its record', 'the search and ★-only are off, the new requirement is on screen and its record open',
+    J([ev(`__g('q').value`), ev(`mcOnly`), ev(`curRow`) === N2, ev(`!!__g('row-'+curRow)`), N2 !== NID]), J(['', false, true, true, true]));
+  chk(name, 'open its record', 'and the status line says which filters came off', ev(`__g('shareStat').textContent`),
+    `Showing ${N2} in its record — the search, ★ Mission Critical only were taken off so it can be seen.`);
+  chk(name, 'open its record', 'a PRIME with a WBS typed before Prime was pressed: no WBS written; a CCaR in no list: no title',
+    ev(`JSON.stringify([S.ptype[${J(N2)}], (S.wbs||{})[${J(N2)}]===undefined, itemById(${J(N2)}).title])`), J(['PRIME', true, '']));
+  // A BUDGET IS WRITTEN ONLY FOR A SERVICE WITH A VALUE (v2.07 review): ANG was given a value and a budget, then its value
+  // erased -- its picker hid and kept the choice, and the requirement was written with a budget for a service asking $0
+  chk(name, 'open its record', 'ANG given a value and a budget, then its value erased: only USAF’s budget is written',
+    ev(`JSON.stringify([itemById(${J(N2)}).ask, S.budgetAsg[${J(N2)}]])`), J([[500, 0, 0], { 'USAF|disc': BAE.psmDisc }]));
+
+  // ── (3, again) NO BAE LIST LOADED: there is nothing to choose, so every service is waived and the requirement is added ─
+  ev(`window.__bud=BUDDB; BUDDB={ts:1790000000122, files:[], rows:[]}; _budRegCache=null; __click('#toolAdd');
+      __set('arEvent', 'No list yet'); __click('#arPtO'); __set('arV0', '40.60'); __set('arV1', '2'); __pick('arOb', ${J(OB)}); __set('arWbs', '4.5');
+      __pick('arTo', 'lm'); __set('arDesc', 'd'); __set('arCons', 'c'); 'ok'`);
+  chk(name, 'no BAE list', 'no picker shows; each service with a value says no list is loaded',
+    ev(`[0,1,2].map(function(i){ return __g('arB'+i).hidden+':'+__g('arBn'+i).textContent; }).join(' | ')`),
+    'true:no BAE list is loaded — chosen once one is | true:no BAE list is loaded — chosen once one is | true:add a value to choose a budget');
+  chk(name, 'no BAE list', 'the budget is waived on the rail, and nothing else is missing', J([rail()[3], btn()]), J(['na:Budget · no BAE list is loaded', 'Add requirement']));
+  ev(`__click('#arAddBtn'); 'ok'`);
+  const N3 = ev(`S.order[S.order.length-1]`);
+  chk(name, 'no BAE list', 'Add: it is added, with no budget written', J([box().open, ev(`itemById(${J(N3)}).event`), ev(`(S.budgetAsg||{})[${J(N3)}]===undefined`)]),
+    J([false, 'No list yet', true]));
+  // A FIGURE ROUNDED TO A WHOLE DOLLAR IS SAID (v2.07 review), as every other money editor says it (amtNo)
+  chk(name, 'no BAE list', 'USAF typed as 40.60: added as $41, and the status line says it was entered as $41',
+    J([ev(`itemById(${J(N3)}).ask[0]`), /USAF: “40\.60” was entered as \$41 — the board keeps whole dollars\.$/.test(ev(`__g('shareStat').textContent`))]), J([41, true]));
+  ev(`BUDDB=window.__bud; _budRegCache=null; 'ok'`);
+
+  // ── (9) A LOCKED CYCLE, J / K, AND THE EMPTY YEAR ──────────────────────────────────────────────────────────────────
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+  chk(name, 'locked', 'a locked cycle on screen: Add requirement opens nothing, and says why',
+    J([ev(`String(arShow())`), ev(`__click('#toolAdd')`), box().open, box().cls, /Adding requirements is off while/.test(ev(`__g('shareStat').textContent`))]),
+    J(['false', 'ok', false, false, true]));
+  ev(`cycLeave(); blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
+  ev(`setPmoFilter('ALL'); __g('q').value=''; render(); setCur('A'); if(document.activeElement) document.activeElement.blur(); __key('j', document.body); 'ok'`);
+  chk(name, 'J / K', 'CONTROL: with no box open, J moves the selection from A to the next row', ev(`curRow`), 'B');
+  ev(`setCur('A'); __click('#toolAdd'); __pick('arOffice', 'PSM'); __g('arPtP').focus(); __key('j', __g('arPtP')); __key('k', __g('arPtP')); 'ok'`);
+  chk(name, 'J / K', 'J and K pressed on a button in the box leave the selection behind it where it was',
+    J([ev(`document.activeElement && document.activeElement.id`), ev(`curRow`)]), J(['arPtP', 'A']));
+  ev(`__cancel(); 'ok'`);
+  {
+    const E = boot();
+    seed(E.ev, { services: ['USAF'], items: [], disc: [0], mand: [0], order: [] });
+    E.ev(`render(); 'ok'`);
+    chk(name, 'empty year', 'a year with no requirements says so, and its button opens the box',
+      E.ev(`(function(){ var l=document.getElementById('list'), b=l.querySelector('button'); var t=l.textContent.replace(/\\s+/g,' ').trim();
+        if(!b) return t+' · no button'; b.click(); return t+' · '+arOpen+' · '+/\\bopen\\b/.test(document.getElementById('addPanel').className); })()`),
+      'FY27 holds no requirements yet. ＋ Add requirement · true · true');
+  }
+
+  // ── (10) THE BUDGET LIST FOLLOWS THE OFFICES; AN OFFICE NAMED LIKE A PATTERN ─────────────────────────────────────────
+  // "An office added in Setup offered no budgets until the page was reloaded": the list was cached without the offices.
+  chk(name, 'offices', 'CONTROL: before NEWO exists its budget names no office, so nobody is offered it',
+    ev(`(budReg().filter(function(b){ return b.n===${J(BAE.newo)}; })[0]||{}).pmo`), '');
+  ev(`window.__oup=uiPrompt; window.__pmoName='NEWO'; uiPrompt=function(m, d, cb){ cb(window.__pmoName); }; pmoAdd(); uiPrompt=window.__oup; 'ok'`);
+  ev(`setPmoFilter('NEWO'); __click('#toolAdd'); __set('arV0', '10'); 'ok'`);
+  chk(name, 'offices', 'NEWO added in Setup, no reload: the box for NEWO offers its budget',
+    J([box().off, JSON.parse(ev(`JSON.stringify(__opts('arB0'))`))]), J(['NEWO', ['', BAE.newo]]));
+  ev(`__cancel(); 'ok'`);
+  chk(name, 'offices', 'an office named C++ is added, and nothing throws',
+    ev(`(function(){ try{ window.__pmoName='C++'; uiPrompt=function(m, d, cb){ cb(window.__pmoName); }; pmoAdd(); uiPrompt=window.__oup;
+      setPmoFilter('ALL'); __click('#toolAdd'); __pick('arOffice', 'C++'); __set('arV0', '10'); return GROUPS.indexOf('C++')>=0? 'ok' : 'not added'; }
+      catch(e){ uiPrompt=window.__oup; return 'threw: '+e.message; } })()`), 'ok');
+  chk(name, 'offices', 'and the box for C++ offers C++’s budget', J([box().off, JSON.parse(ev(`JSON.stringify(__opts('arB0'))`))]), J(['C++', ['', BAE.cpp]]));
+  ev(`__cancel(); 'ok'`);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

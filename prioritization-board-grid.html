@@ -1316,7 +1316,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 #addPanel .ar-off{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
 #addPanel .ar-off select{min-width:220px}
 #addPanel .ar-fin{margin:6px 0 0;padding:6px 10px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;background:var(--panelA);font-size:12px}
-#addPanel .ar-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.55fr) minmax(0,1fr);gap:12px;padding:8px 16px;flex:1;min-height:0}
+#addPanel .ar-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.75fr) minmax(0,1fr);gap:12px;padding:8px 16px;flex:1;min-height:0}
 #addPanel .ar-col{display:flex;flex-direction:column;gap:8px;min-width:0}
 #addPanel .ar-sec{border:1px solid var(--line);border-radius:8px;background:var(--panelA);padding:7px 10px 9px}
 #addPanel .ar-sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
@@ -6369,7 +6369,7 @@ let naFromFy=0, naFromSel={}, naFromFor=null;
 // v2.07 (item 121): the Add requirement box -- open, its tab, the one office it adds for (and how that was decided), the
 // requirements brought in from another year still to finish, the one being finished, and the description the CCaR list filled.
 // syncBtns() reads arOpen on the first render, so these live here too (the BANDS_STD rule).
-let arOpen=false, arTabOn='new', arOff='', arOffHow='', arQueue=[], arFin=null, arDescAuto='';
+let arOpen=false, arTabOn='new', arOff='', arOffHow='', arQueue=[], arFin=null, arDescAuto='', arOffNav=false;
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -8371,8 +8371,10 @@ function pmoFmtVal(k, v){
   if(k==='crHalf' && typeof v==='object') return 'second half of '+Object.keys(v).sort().map(ymLbl).join(', ')
     +' \u2014 an old CR mark, no longer used: the award dates decide';
   if(k==='__new' && v && typeof v==='object'){
-    const parts=[v.title||'(untitled)'];
-    if(v.event) parts.push(v.event);
+    // v2.07 (item 121): a requirement made in the Add box has no record title until the CCaR list names it -- it is read by
+    // its plan event (a renamed one first), never as "(untitled)"
+    const nm=v.titles||v.event||'', parts=[v.title||nm||'(untitled)'];
+    if(nm && nm!==parts[0]) parts.push(nm);
     parts.push(SVC.map(function(s,i){ return s+' '+fM((v.ask||[])[i]||0); }).join(' · '));
     if(v.ptype) parts.push(v.ptype);
     if(v.obCat) parts.push(v.obCat);
@@ -8384,12 +8386,29 @@ function pmoFmtVal(k, v){
     if(v.band) parts.push(pmoFmtVal('band', v.band));
     if(v.mc) parts.push('\u2605 MC');
     if(v.costElem) parts.push(v.costElem);
+    // v2.07 (item 121): what the box requires is what the reviewer sees -- the budgets (each marked where this board's BAE
+    // list does not offer it for that office: accepted, it would read "chosen, and cannot be used"), the PID and the narrative
+    if(v.pid) parts.push(FL('pid')+' '+v.pid);
+    const bt=pmoNewBudTxt(v); if(bt) parts.push(bt);
+    if(v.desc) parts.push(FL('desc')+': '+v.desc);
+    if(v.cons) parts.push(FL('cons')+': '+v.cons);
+    if(v.notes) parts.push(FL('notes')+': '+v.notes);
     return parts.join(' · ');
   }
   if(typeof v==='object') return pkgCanon(v);
   return String(v);
 }
 
+function pmoNewBudTxt(v){
+  const A=v && v.budgetAsg; if(!A || typeof A!=='object') return '';
+  const ks=Object.keys(A).sort(); if(!ks.length) return '';
+  return FL('budgetAsg')+' '+ks.map(function(x){
+    const p=x.split('|'), lane=p[1]==='mand'? 'mand' : 'disc', n=String(A[x]==null? '' : A[x]);
+    let ok=false;
+    try{ ok=!!v.grp && budPickListFor(v.grp, p[0], lane).some(function(b){ return String(b.n).toUpperCase()===n.toUpperCase(); }); }catch(e){}
+    return p[0]+(p[1]? ' '+(p[1]==='mand'? 'mandatory' : 'discretionary') : '')+': '+n
+      +(ok? '' : ' ⚠ not offered for '+(v.grp||'its office')+' on this board'); }).join(' · ');
+}
 // THE CHANGE REPORT, BEFORE ANYTHING IS APPLIED. A spreadsheet the team can read away from the
 // app, argue with, and keep -- one row per proposed field, with what the board says today beside
 // what the office proposes. Exported from the review, so it describes exactly what is on offer.
@@ -8421,7 +8440,7 @@ function pmoReport(){
     if(r.isNew){
       sheet.rows.push([
         r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
-        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.titles||r.prop.title||r.prop.nid)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
+        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.titles||r.prop.event||r.prop.title||r.prop.nid)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
           +(r.prop.prior && !r.taken && pmoPriorHere(r.prop.prior)? ' — '+FYL()+' already holds '+pmoPriorHere(r.prop.prior) : ''), r.prop.ccar||'',
         'New requirement (proposed)', '—', pmoFmtVal('__new', r.prop), '',
         r.taken? 'already added as '+r.taken : (PMOPICK[pickKey(r)]? 'ticked to accept' : 'not accepted'),
@@ -8951,7 +8970,7 @@ function subBody(){
             +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
         +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
           +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
-        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.titles||a.title||a.nid)
+        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.titles||a.event||a.title||a.nid)
           +' <span style="color:var(--dim)">'+esc(a.grp)+'</span>'
           +(a.prior? '<br><span class="subprior" style="color:var(--dim);font-size:9px">from FY'+(a.prior.fy%100)+' '+esc(a.prior.id)+'</span>' : '')
           +(a.prior && !r.taken && pmoPriorHere(a.prior)? '<br><span class="subhere" style="color:var(--amber);font-size:9px;font-weight:800">'
@@ -13385,7 +13404,8 @@ function budParseName(raw){
   let rest=n;
   for(let i=0;i<BUD_APPN.length;i++){ const mm=BUD_APPN[i][0].exec(n); if(mm){ rest=n.slice(mm.index+mm[0].length); break; } }
   rest=rest.replace(BUD_FAM_DROP,' ').replace(/\bOBBBA\b|\bMandatory\b|\bDiscretionary\b/gi,' ');
-  if(pmo) rest=rest.replace(new RegExp('\\b'+pmo+'\\s*$','i'),' ');
+  // the office comes off the end as text too: the line above was escaped in v2.07 and this one was not, so "C++" still threw
+  if(pmo) rest=rest.replace(new RegExp('\\b'+String(pmo).replace(/[.*+?^$()|[\]\\{}]/g,'\\$&')+'\\s*$','i'),' ');
   return {n:n, ap:ap, pmo:pmo, svc:svc, dm:dm, line:budNorm(rest), hand:BUD_HAND.test(n)};
 }
 // Where the list is held: the board-wide store, or -- on a board saved before v1.83 -- the newest
@@ -23096,9 +23116,9 @@ function spBodyDraw(el){
       const A=(aceSet.appn||{})[APPN_SLUG[b.name]];
       G.years.forEach(y=>{
         if(!A){ b.req[y]=undefined; return; }
-        if(spBy==='svc' && spSvc!=='ALL'){ b.req[y]=(A.svc[spSvc]||{})[y]; return; }
-        if(spBy==='pmo' && spPmo!=='ALL'){ b.req[y]=(A.pmo[spPmo]||{})[y]; return; }
-        b.req[y]=A.tot[y];
+        if(spBy==='svc' && spSvc!=='ALL'){ b.req[y]=((A.svc||{})[spSvc]||{})[y]; return; }
+        if(spBy==='pmo' && spPmo!=='ALL'){ b.req[y]=((A.pmo||{})[spPmo]||{})[y]; return; }
+        b.req[y]=(A.tot||{})[y];
       });
       b.rows=aceRows(aceSet, APPN_SLUG[b.name], G.years);
     });
@@ -29669,7 +29689,7 @@ function budRegBody(){
     files.forEach(function(x){
       h+='<tr><td style="text-align:left"><b>'+esc(x.dept)+'</b></td>'
         +'<td style="text-align:left">'+esc(x.file)+'</td><td>'+esc(x.n)+'</td>'
-        +'<td>'+esc(new Date(x.ts).toISOString().slice(0,10))+'</td></tr>';
+        +'<td>'+esc(isFinite(new Date(x && x.ts))? new Date(x.ts).toISOString().slice(0,10) : '—')+'</td></tr>';
     });
     h+='</table>';
   } else {
@@ -30418,7 +30438,7 @@ function arShow(){
   if(cycBlock('Adding requirements')) return false;
   if(arCopyOtherYear()) return false;
   const o=arOfficeStart();
-  arOpen=true; arTabOn='new'; arOff=o.g; arOffHow=o.how; arQueue=[]; arFin=null; arDescAuto='';
+  arOpen=true; arTabOn='new'; arOff=o.g; arOffHow=o.how; arQueue=[]; arFin=null; arDescAuto=''; arOffNav=false;
   naFromFy=0; naFromSel={};
   // the whole form, both tabs, drawn in the same step that opens the box: the box controller snapshots its fields when
   // it first sees the box open, and a field drawn after that would be typed into unguarded
@@ -30470,9 +30490,11 @@ function arDraw(){
   let h='<div class="ar-top"><div id="arWho" class="ar-who"></div>'
     // with no office yet, the box asks first; once answered it is kept, and never changed in the box
     +'<div class="ar-off" id="arOffStep"'+(arOff? ' hidden' : '')+'><label class="ar-l" for="arOffice">Which office are you adding for?</label>'
-    +'<select id="arOffice" data-held="1" onchange="arSetOffice(this.value)"><option value="">— choose the office —</option>'
+    +'<select id="arOffice" data-held="1" onkeydown="arOffKey(event)" onmousedown="arOffMouse()" onchange="arOffPick(this.value)">'
+    +'<option value="">— choose the office —</option>'
     +offs.map(function(g){ return '<option value="'+esc(g)+'">'+esc(g)+'</option>'; }).join('')+'</select>'
-    +'<span class="ar-n">Once chosen it is the only office this box adds for'+(T? ', and the office this copy submits for' : '')+'.</span></div>'
+    +'<span class="ar-n">Pick it, or move to it with the arrow keys and press Enter. Once chosen it is the only office this box adds for'
+    +(T? ', and the office this copy submits for' : '')+'.</span></div>'
     +'<div id="arFinBar" class="ar-fin" hidden></div></div>';
   // ---- New requirement: three columns -- Identity and Classification; the value and budget by service, then where the money
   //      goes; the narrative and what is still needed
@@ -30485,7 +30507,7 @@ function arDraw(){
     +'<button type="button" id="arPtO" aria-pressed="false" onclick="arPt(\'OGC\')">OGC</button></div>'
     +'<input type="hidden" id="arPtype" data-held="1" value=""></div>'
     +arField('arCcar', 'ccar', arInp('arCcar', {on:'arCcarTyped()', ph:'e.g. JSF3087'}))
-    +arField('arPid', 'pid', arInp('arPid', {ph:'optional'}))
+    +arField('arPid', 'pid', arInp('arPid', {ph:'optional'}), {span:1})
     +'<div class="ar-f span2"><span class="ar-l" id="arRecL">'+esc(FL('recNames'))+'<em>from the CCaR records list</em></span>'
     +'<span class="ar-ro" id="arRecT" aria-labelledby="arRecL"></span></div>'
     +'</div></section>'
@@ -30496,7 +30518,7 @@ function arDraw(){
     +'</div></section></div>';
   // the value, one box per service, and beside each the office's budgets for that service
   h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="arS3"><h4 id="arS3">'+esc(FL('asks'))+'<span>what is asked for, never funding</span></h4>'
-    +'<table class="ar-svc"><colgroup><col style="width:64px"><col style="width:132px"><col></colgroup>'
+    +'<table class="ar-svc"><colgroup><col style="width:58px"><col style="width:118px"><col></colgroup>'
     +'<tr><th scope="col">Service</th><th scope="col">Requirement ($)</th><th scope="col" id="arBudH">'+esc(FL('budgetAsg'))+'</th></tr>'
     +SVC.map(function(s,i){
       return '<tr><th scope="row">'+esc(s)+'</th><td>'+arInp('arV'+i, {inp:'decimal', ph:'0', lbl:s+' '+FYL()+' requirement value'})+'</td>'
@@ -30541,6 +30563,17 @@ function arSetOffice(g){
   arOfficeApply();
   const f=arEl(arTabOn==='yr'? 'naFromFy' : 'arEvent'); if(f) try{ f.focus(); }catch(e){}
 }
+// THE OFFICE IS CHOSEN, NEVER BRUSHED PAST (v2.07 review): a closed select fires change on every arrow key in Chromium, so
+// the first ArrowDown locked the box to the first office and sent the keyboard on to the plan event -- no other office could
+// be reached from the keyboard (WCAG 3.2.2 On Input). A keyboard move only moves; Enter chooses. A pick with the mouse
+// chooses at once, as before.
+function arOffKey(e){
+  const k=e && e.key;
+  if(k==='Enter'){ if(e.preventDefault) e.preventDefault(); arOffNav=false; arSetOffice(arVal('arOffice')); return; }
+  if(!e.altKey && !e.ctrlKey && !e.metaKey && (/^(Arrow(Up|Down|Left|Right)|Home|End|PageUp|PageDown)$/.test(k||'') || (k && k.length===1 && k!==' '))) arOffNav=true;
+}
+function arOffMouse(){ arOffNav=false; }
+function arOffPick(v){ if(arOffNav) return; arSetOffice(v); }
 function arOfficeApply(){
   const step=arEl('arOffStep'); if(step) step.hidden=!!arOff;
   const T=(typeof SANDBOX!=='undefined' && SANDBOX);
@@ -30607,15 +30640,18 @@ function arSpread(){
 }
 // What the box holds, as the record it would add -- the draft reqNeeds() judges -- and every figure it could not read.
 function arRead(){
-  const bad=[], ask=SVC.map(function(s,i){ const raw=arVal('arV'+i), v=parseAmt(raw);
+  const bad=[], rnd=[], ask=SVC.map(function(s,i){ const raw=arVal('arV'+i), v=parseAmt(raw);
     if(Number.isNaN(v)){ bad.push({id:'arV'+i, m:s+': '+amtRead(raw).why}); return 0; }
+    if(v>0 && amtRead(raw).rounded) rnd.push(s+': '+inShow(raw.trim())+' was entered as '+fM(v));
     return (v===null||v<0)? 0 : v; });
-  const bud={}; SVC.forEach(function(s,i){ const n=arVal('arB'+i); if(n) bud[s]=n; });
+  // a budget is read only where its service has a value: the picker of a service whose value was erased is hidden and
+  // keeps its choice, and a budget for a service asking $0 is one no line of the RECORD panel would ever show
+  const bud={}; SVC.forEach(function(s,i){ const n=arVal('arB'+i); if(n && ask[i]>0) bud[s]=n; });
   const pt=arVal('arPtype'), to=arVal('arTo'), og=destKeyIsOgc(to);
   const d={grp:arOff, event:arVal('arEvent').trim(), ptype:pt, ask:ask, bud:bud, obCat:arVal('arOb'),
            wbs:(arFin && arFin.wbsKeep)? true : arVal('arWbs').trim(), to:to, end:og? arVal('arEnd') : '', mipr:og? arVal('arMipr') : '',
            desc:arVal('arDesc').trim(), cons:arVal('arCons').trim()};
-  return {d:d, bad:bad, og:og};
+  return {d:d, bad:bad, og:og, rnd:rnd};
 }
 // Draw what follows from what is typed: the total, the budget pickers, the OGC fields, the record title, what is still
 // needed and the button's count. Fields are shown and hidden here, never redrawn.
@@ -30642,7 +30678,11 @@ function arUpdate(){
     : keep? 'carried from FY'+(arFin.y%100)+': '+arFin.wbsTxt+' — edit it in the record once added' : '';
   const cc=arVal('arCcar').trim(), rt=arEl('arRecT');
   if(rt){ const nm=(arFin && arFin.recName) || (cc? ccarNameOfNum(cc) : '') || (arFin? arFin.title : '');
-    rt.textContent= nm || (cc? 'not in the CCaR records list' : 'filled from the CCaR records list when the record is typed');
+    const rec=cc? ccarRec(cc) : null;
+    rt.textContent= nm || (!cc? 'filled from the CCaR records list when the record is typed'
+      : (rec && rec.d>1)? 'held by '+rec.d+' records in the CCaR records list — no title is taken from it'
+      : !ccarIdx()? 'no CCaR records list is loaded — named once one is'
+      : 'not in the CCaR records list');
     rt.classList.toggle('dim', !nm); }
   const need=reqNeeds(d), miss=need.filter(function(x){ return !x.ok; });
   const ch=arEl('arChk');
@@ -30692,7 +30732,7 @@ function arNeedIds(need, d){
 function arAdd(open){
   if(cycBlock('Adding requirements')) return;
   if(arCopyOtherYear()) return;
-  if(!arOff){ arSay('Choose the office first.'); arMark(['arOffice']); return; }
+  if(!arOff){ arSay('Choose the office first: pick it, or move to it with the arrow keys and press Enter.'); arMark(['arOffice']); return; }
   [].forEach.call(document.querySelectorAll('#arNew .miss'), function(e){ e.classList.remove('miss'); });
   [].forEach.call(document.querySelectorAll('#arNew [aria-invalid]'), function(e){ e.removeAttribute('aria-invalid'); });
   const R=arRead(), d=R.d, code={};
@@ -30701,7 +30741,8 @@ function arAdd(open){
   const codes=[['arCcar','ccar'],['arPid','pid']].concat((d.ptype==='PRIME' || (arFin && arFin.wbsKeep))? [] : [['arWbs','wbs']]);
   codes.forEach(function(c){ const t=codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });
   if(R.bad.length){ arMark(R.bad.map(function(b){ return b.id; }));
-    arSay('This requirement was not added. '+esc(R.bad.map(function(b){ return b.m; }).join('. '))+'. Nothing on the board was changed; the box keeps what you typed.');
+    arSay('This requirement was not added. '+esc(R.bad.map(function(b){ return String(b.m).replace(/[.\s]*Nothing was changed\.?$/, ''); }).join('. '))
+      +'. Nothing on the board was changed; the box keeps what you typed.');
     return; }
   const miss=reqNeeds(d).filter(function(x){ return !x.ok; });
   if(miss.length){ arMark(arNeedIds(miss, d));
@@ -30731,7 +30772,8 @@ function arAdd(open){
   setStat('➕ Added <b>'+esc(nid)+'</b> — '+esc(d.event)+' — to '+FYL()+' for '+esc(arOff)+', at the bottom of the order'
     +(fin? ', linked to FY'+(fin.y%100)+' '+esc(fin.id) : '')
     +((typeof SANDBOX!=='undefined' && SANDBOX)? ' — a proposal, sent whole with your submittal.' : '.')
-    +(more? ' '+more+' more to finish from FY'+(fin.y%100)+'.' : ''));
+    +(more? ' '+more+' more to finish from FY'+(fin.y%100)+'.' : '')
+    +(R.rnd.length? ' ℹ '+esc(R.rnd.join('; '))+' — the board keeps whole dollars.' : ''));
   if(more) arSay('Added '+esc(nid)+'. The next one from FY'+(arFin.y%100)+' is filled in below.', true);
 }
 // "Add and open its record": the RECORD panel opens on the requirement just added. A filter that would hide it is taken off

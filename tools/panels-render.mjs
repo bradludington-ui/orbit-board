@@ -62,10 +62,30 @@ const SPECIAL = {
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';
               document.getElementById('uipVal').value='FY27 POM Draft';
               document.getElementById('uipPanel').className='modal-bg open';`,
+  // v2.07 (item 121): THE ADD BOX. Opened bare (every office showing) it asks only which office, so the form would go unmeasured:
+  // it is opened for the office chosen at the top, with values typed so each service's budget names are offered, a destination
+  // that is not a prime so the OGC fields show, then again on From another year with a requirement of the other year ticked.
+  // Each entry of a list is a pass of its own, under its own label.
+  addPanel: [
+    ['addPanel (New requirement)', `setPmoFilter('PSM'); toggleAdd();
+      document.getElementById('arV0').value='1,250,000'; document.getElementById('arV1').value='300,000'; arUpdate();
+      var g=flowEntsAZ().filter(function(e){ return e.kind!=='prime'; })[0]; arPt('OGC');
+      document.getElementById('arTo').value=g? g.k : ''; arUpdate();
+      var o=[].filter.call(document.getElementById('arB0').options, function(x){ return x.value; })[0];
+      if(o) document.getElementById('arB0').value=o.value;
+      document.getElementById('arCcar').value='JSF5000'; arCcarTyped();`,
+      // REACHED: the form is showing, the first service's budget picker and the two OGC fields are shown, the record title read in
+      `(function(){ var sh=function(id){ var e=document.getElementById(id); return !!e && !!e.getClientRects().length; };
+        return [!sh('arEvent') && 'the form', !sh('arB0') && 'a budget picker', !sh('arEnd') && 'Which awards to', !sh('arMipr') && 'MIPR type',
+          !/Sustainment/.test((document.getElementById('arRecT')||{}).textContent||'') && 'the CCaR record title'].filter(Boolean).join(', '); })()`],
+    ['addPanel (From another year)', `setPmoFilter('PSM'); toggleAdd(); arTab('yr'); naFromPick(String(MS.cur-1)); naFromTick('R9', true);`,
+      `(function(){ var n=document.querySelectorAll('#naFromWrap tr[data-id]').length, b=document.getElementById('naFromBtn');
+        return [n<4 && 'the other year’s rows ('+n+')', !(b && !b.disabled && b.getClientRects().length) && 'an enabled Add button'].filter(Boolean).join(', '); })()`],
+  ],
 };
-// Inline panels: class "addp", shown with style.display, not a modal backdrop.
+// Inline panels: class "addp", shown with style.display, not a modal backdrop. (v2.07, item 121: the Add strip became a box,
+// #addPanel, and is swept with the boxes above.)
 const INLINE = {
-  addPanel: `toggleAdd();`,
   rmPanel:  `rmOpen=true; render();`,
 };
 // v1.90 (item 27): Active year, Budget year, FYDP, Tools and Export became Reports & exports, Data and
@@ -91,9 +111,11 @@ const dir = mkdtempSync(join(tmpdir(), 'spmt-panels-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const b = await chromium.launch({ executablePath: CHROME,
                                   args: ['--no-sandbox'] });
+// BOARD=<file> measures another board (a planted defect, an older build); the default is the program
+const BOARD = resolve(process.env.BOARD || join(ROOT, 'prioritization-board-grid.html'));
 for (const f of ['prioritization-board-grid.html']) {
-  console.log('\n' + f);
-  const { ev } = boot({ html: readFileSync(resolve(ROOT, f), 'utf8') });
+  console.log('\n' + BOARD.split('/').pop());
+  const { ev } = boot({ html: readFileSync(BOARD, 'utf8') });
   seed(ev, sc);
   // rmPanel only appears when something HAS been removed, and addPanel needs a service list, so
   // the board this runs on carries both. A panel that cannot be opened because the fixture is
@@ -102,6 +124,15 @@ for (const f of ['prioritization-board-grid.html']) {
       S.order.forEach(function(id,i){ if(i%3===0) S.band[id]='pdm'; S.pid[id]='PID'+(9000+i); });
       ['R9','R10','R11'].forEach(function(id){ var k=S.order.indexOf(id);
         if(k>=0){ S.order.splice(k,1); S.removed.push(id); } });
+      // v2.07 (item 121): what the Add box shows has to be on the board to be measured -- a BAE list with PSM names on two
+      // services (the box offers an office's names per service), a CCaR records list (a typed number reads its title and
+      // description in), and another year holding PSM requirements, one of them (R9, removed here) not in this year
+      BUDDB={ts:Date.now(), rows:[{n:'USAF O&M NON AFRC NON ANG CAM Discretionary PSM'}, {n:'USAF O&M - ANG CAM Discretionary PSM'},
+        {n:'USAF O&M NON AFRC NON ANG CAM Mandatory PSM'}], files:[]}; persistBud();
+      MS.ccarIdx={ts:Date.now(), file:'ccar.xlsx', n:1, rows:{JSF5000:{t:'Sustainment engineering support, air vehicle', o:'', p:'PSM', k:'5000', s:'Engineering support to the fleet', d:1}}};
+      (function(){ var T={order:['R0','R3','R6','R9'], alloc:{}, mc:{}, custom:[], removed:[], titles:{}, ccar:{}, pid:{},
+          discSvc:SVC.map(function(){ return 0; }), mandSvc:SVC.map(function(){ return 0; })};
+        MS.years[MS.cur-1]=T; })();
       applyState(S); save(); 'ok'`);
   const file = join(dir, f);
   writeFileSync(file, ev('buildSavedHtml()'));
@@ -149,6 +180,10 @@ for (const f of ['prioritization-board-grid.html']) {
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };
     F.forEach(n => set(n, 'false')); N.forEach(n => set(n, 'null'));
+    // v2.07 (item 121): the Add box is closed by its own code (it empties its body), and the office its passes chose at the top
+    // is put back to every office
+    try { if (arOn()) arHide(); } catch (_) {}
+    set('filter', "'ALL'");
     try { render(); } catch (_) {}
     document.querySelectorAll('.modal-bg').forEach(e => { e.className = 'modal-bg'; e.style.display = ''; });
     document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open'));
@@ -196,14 +231,18 @@ for (const f of ['prioritization-board-grid.html']) {
     chk(`${id}: every control in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
 
-  for (const { id, fn } of panels) {
+  for (const { id, fn } of panels) for (const [lbl, setup, reach] of (Array.isArray(SPECIAL[id]) ? SPECIAL[id]
+      : [[id, SPECIAL[id] || (fn ? `${fn}();` : null)]])) {
     await closeAll();
-    const setup = SPECIAL[id] || (fn ? `${fn}();` : null);
     if (!setup) { chk(`${id} can be opened`, false, 'no opener — add it to SPECIAL'); continue; }
-    const r = await p.evaluate(({ id, setup }) => {
+    const r = await p.evaluate(({ id, setup, reach }) => {
       try { (0, eval)(setup); } catch (e) { return { err: String(e.message).slice(0, 120) }; }
       const el = document.getElementById(id); if (!el) return { err: 'no #' + id };
       const cs = getComputedStyle(el), md = el.querySelector('.modal');
+      // a pass that names what it is opened to show says whether it is showing it -- a box opened short of its form is a box
+      // measured short of its form (v2.07, item 121)
+      let missing = '';
+      if (reach) try { missing = (0, eval)(reach); } catch (e) { missing = 'threw: ' + String(e.message).slice(0, 80); }
       // A field narrower than the value inside it hides part of that value with no sign that
       // anything is missing. Six of the eight standard destinations read "Defense Logistics A",
       // "OC-ALC Oklahoma", "NAWCWD China La" in their own edit boxes, and the allocation field on
@@ -215,16 +254,17 @@ for (const f of ['prioritization-board-grid.html']) {
         if (over > 1) clipped.push(`"${inp.value}" needs ${inp.scrollWidth}px in ${inp.clientWidth}px`);
       });
       return { disp: cs.display, vis: cs.visibility, h: md ? md.getBoundingClientRect().height : 0,
-               text: md ? (md.innerText || '') : '', clipped, kb: window.__kbOff(md) };
-    }, { id, setup });
+               text: md ? (md.innerText || '') : '', clipped, kb: window.__kbOff(md), missing };
+    }, { id, setup, reach: reach || '' });
     const open = !r.err && r.disp !== 'none' && r.vis !== 'hidden' && r.h > 10;
-    chk(`${id} opens`, open, r.err || (open ? '' : `display:${r.disp} height:${r.h}`));
+    chk(`${lbl} opens`, open, r.err || (open ? '' : `display:${r.disp} height:${r.h}`));
     if (!open) continue;
+    if (reach) chk(`${lbl} shows what it was opened for`, !r.missing, r.missing ? 'not shown: ' + r.missing : '');
     const ent = ENTS.exec(r.text || '');
-    chk(`${id} shows no escaped entity`, !ent,
+    chk(`${lbl} shows no escaped entity`, !ent,
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
-    chk(`${id} clips none of its own fields`, r.clipped.length === 0, r.clipped.slice(0, 3).join('; '));
-    chk(`${id}: every control in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
+    chk(`${lbl} clips none of its own fields`, r.clipped.length === 0, r.clipped.slice(0, 3).join('; '));
+    chk(`${lbl}: every control in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
   await closeAll();
 
