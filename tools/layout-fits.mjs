@@ -593,7 +593,10 @@ const BOX_STATES = [
     return n >= 5 ? [] : ['the other year’s rows (' + n + ')'];
   }],
   ['one brought in being finished', () => {
-    naFromAdd();
+    // the form still holds what the first state typed, so bringing one in to finish asks first (v2.07 review): answered OK, as
+    // a person who wants it finished would
+    const c0 = window.confirm; window.confirm = () => true;
+    try { naFromAdd(); } finally { window.confirm = c0; }
     const fb = document.getElementById('arFinBar');
     return fb && !fb.hidden && arTabOn === 'new' ? [] : ['the bar of the one being finished'];
   }],

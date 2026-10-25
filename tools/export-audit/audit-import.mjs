@@ -12239,6 +12239,525 @@ await (async () => {
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
 // ==== end v2.07 item 121 (import) ====
+// ==== v2.07 review (import) ====
+// ═══ v2.07 — THE REVIEW OF THE ADD BOX (25 Oct 2026) ════════════════════════════════════════════════════════════════════════════
+// An independent review of v2.07 confirmed six defects around the box, and most are one family: a requirement made in the box
+// has NO RECORD TITLE until the CCaR records list names it, and code written when every added requirement carried a typed title
+// still told requirements apart by plan event and title. Each check below fails on the board with its fix taken out.
+//  1. Roll forward (yearHas): two box-made requirements of one plan event -- different offices, records and values -- were one
+//     requirement to it. The first was copied, the second reported "already there and left alone", and never reached FY28. By
+//     name only where there is a name; a copy is found by its link, even one that took the same id there (yearLinkOf skips it).
+//  2. From another year (naFromHere): the same on the picker -- bring one in and the other read "already in FY28", untickable.
+//  3. naFromAdd: whatever New requirement held was thrown away, without a word, the moment anything came in from another year:
+//     the box closed, or the first one to finish was written over it. (second review) The first fix made what was ticked wait
+//     behind the typing, which no design asked for; now a form typed by hand is replaced only if the person says so, asked
+//     before anything is added -- Cancel changes nothing -- and one being finished keeps its place, those ticked after it
+//     waiting behind it, counted on its bar and never added twice.
+//  4. A copy's proposal gate (reqDraftOf, reqNeeds): a requirement the lanes pay only from mandatory shows the RECORD panel's
+//     mandatory line alone, and a budget picked there was never read -- once cleared, the proposal was held back for good.
+//  5. The reviewer (pmoNewName): a proposal from a copy before v2.07 -- the strip's event '(added at drill)' and a typed title --
+//     was named by the event alone, so every one of them read the same in the review and the change report.
+//  6. Finishing one brought in (arFinNext, reqDraftFrom): a WBS list holding a null line threw; a lone blank WBS line was
+//     "ready" in the list and asked for in the box; a budget stored in another letter case was chosen in the list and not in
+//     the box; and the box's "Also carried" line spelled field names of its own instead of the registry's (FL).
+// THE SECOND REVIEW of those fixes found more of families 1-2 and 4: a year started as a copy of this one holds a box-made
+// requirement under the same id with no link (Roll forward copied it again, the picker offered it both ways); a requirement
+// whose ORIGINAL is the year on screen was offered back to it; two box-made requirements on ONE CCaR record share a record
+// title as well as a plan event, so the name rule made them one again once either was copied; and a proposal paid only from
+// mandatory was held back where its office has no mandatory name to choose, or where the discretionary name picked in the
+// box was retired since, beside a valid one on its mandatory line.
+// Six boards: R (Roll forward, the picker), F (the form kept, finishing one brought in), a board B with its PMO copy P (the
+// gate, the reviewer), and B2 with its copy P2 (the gate, second review). FY27 is last year and FY28 the year on screen
+// wherever a year is brought in.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.07 — the review of the Add box: Roll forward, From another year, the budget gate, the reviewer';
+  try {
+  const J = JSON.stringify;
+  const listedIn = (ev) => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){
+      return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]')]; }))`));
+  // tick through the rendered checkboxes, then the rendered Add button, as a person does
+  const tickIn = (ev, ids) => ev(`${J(ids)}.forEach(function(id){ var b=document.querySelector('#naFromWrap tr[data-id="'+id+'"] input');
+      b.checked=true; b.dispatchEvent(new Event('change')); }); document.getElementById('naFromBtn').click(); 'ok'`);
+
+  // ═══ BOARD R — ROLL FORWARD (1) AND THE PICKER (2) ════════════════════════════════════════════════════════════════════════
+  const scR = { services: MINE, items: [it('A', 'PSM', [900, 200, 100]), it('B', 'AV', [50, 0, 0])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] };
+  const R = boot(); seed(R.ev, scR); asBooted(R.ev, scR);
+  R.ev(AR_FILL);
+  R.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+  const OB = R.ev('OB_CATS[0]');
+  // the box, filled the way a person fills it, for the office chosen at the top; no BAE list and no CCaR records list here, so
+  // no budget is asked for and no record title is read: what the box adds has a plan event and nothing in its title
+  const boxAdd = (ev, g, o) => ev(`(function(){ if(arOn()) toggleAdd(); setPmoFilter(${J(g)}); toggleAdd(); var n0=S.custom.length;
+      __arFill(${J(Object.assign({ pt: 'PRIME', ob: OB, to: 'lm', desc: 'Keeps the line running.', cons: 'The line stops.' }, o))});
+      document.getElementById('arAddBtn').click();
+      return S.custom.length>n0? S.custom[S.custom.length-1].id : 'not added: '+document.getElementById('arMsg').textContent; })()`);
+  boxAdd(R.ev, 'PSM', { event: 'Engine depot support', ccar: 'JSF1001', v: [400, 0, 0] });
+  boxAdd(R.ev, 'AV', { event: 'Engine depot support', ccar: 'JSF2002', v: [250, 50, 0] });
+  // a third of the same plan event, continuing FY26's A as From another year links one (FY26 is not on this board: the link
+  // is what matters)
+  R.ev(`(function(){ var n=reqCreate('PSM', {title:'', event:'Engine depot support', ask:[30, 0, 0]}); itemById(n).prior={fy:2026, id:'A'};
+      setPmoFilter('ALL'); save(); render(); return n; })()`);
+  chk(name, '1 · fixture', 'three FY27 requirements of one plan event and no record title: PSM’s and AV’s from the box, with their own records and values, and PSM’s continuing FY26 A',
+    R.ev(`JSON.stringify(S.custom.map(function(c){ return [c.id, grpOf(c), c.event, c.title, c.ask, ccarOf(c), c.prior||null]; }))`),
+    J([['NEW-1', 'PSM', 'Engine depot support', '', [400, 0, 0], 'JSF1001', null], ['NEW-2', 'AV', 'Engine depot support', '', [250, 50, 0], 'JSF2002', null],
+       ['NEW-3', 'PSM', 'Engine depot support', '', [30, 0, 0], '', { fy: 2026, id: 'A' }]]));
+  // Roll forward as its panel runs it: the requirements ticked, FY28 ticked, rollApply(), and its own report
+  const roll = (ids) => R.ev(`(function(){ rollPick={}; ${J(ids)}.forEach(function(id){ rollPick[id]=1; }); rollYrs={2028:1};
+      rollApply(); return document.getElementById('shareStat').textContent; })()`);
+  const fy28 = () => JSON.parse(R.ev(`JSON.stringify(((MS.years[2028]||{}).custom||[]).map(function(c){ return [c.id, c.title, c.prior||null]; }))`));
+  const r1 = roll(['NEW-1', 'NEW-2']);
+  chk(name, '1 · roll forward', 'both are copied into FY28 — “2 copies created”, none “already there”', /Rolled forward — 2 copies created across FY28\. /.test(r1), true);
+  chk(name, '1 · roll forward', 'FY28 holds both, each linked to the one it copies, under the same ids', J(fy28()),
+    J([['NEW-1', '', { fy: 2027, id: 'NEW-1' }], ['NEW-2', '', { fy: 2027, id: 'NEW-2' }]]));
+  const r2 = roll(['NEW-1', 'NEW-2']);
+  chk(name, '1 · roll forward', 'rolled again, each is found in FY28 by its link — though its copy took the same id there — and nothing is added',
+    J([/Every requirement you ticked is already in FY28 — nothing to do/.test(r2), fy28().length]), J([true, 2]));
+  const r3 = roll(['NEW-3']);
+  chk(name, '1 · roll forward', 'the one continuing FY26 A is copied too, as NEW-3, keeping the link it carries',
+    J([/Rolled forward — 1 copy created across FY28\. /.test(r3), fy28()[2] || null]), J([true, ['NEW-3', '', { fy: 2026, id: 'A' }]]));
+  const r4 = roll(['NEW-3']);
+  chk(name, '1 · roll forward', 'and rolled again it is found by that link, its copy holding the same id, and nothing is added',
+    J([/already in FY28 — nothing to do/.test(r4), fy28().length]), J([true, 3]));
+  // CONTROL — where there IS a record title, the name still decides, as before: FY28 gets a requirement of its own called what
+  // FY27's “Engine overhaul” is called, never linked to it; FY27's “Depot tooling”, of the same plan event, is its own.
+  // (second review) Both Engine overhauls are NEW-4, so the year-started-as-a-copy rule (same id, no link) finds it too: the
+  // name rule alone is held by the Spares kit control further down, whose two ids differ.
+  R.ev(`(function(){ reqCreate('PSM', {title:'Engine overhaul', event:'Depot line', ask:[100, 0, 0]});
+      reqCreate('PSM', {title:'Depot tooling', event:'Depot line', ask:[60, 0, 0]}); save();
+      switchYear(2028); reqCreate('PSM', {title:'Engine overhaul', event:'Depot line', ask:[90, 0, 0]}); save(); switchYear(2027); return 'ok'; })()`);
+  const r5 = roll(['NEW-4', 'NEW-5']);
+  chk(name, '1 · roll forward', 'control — two titled ones: the one FY28 already holds by name is left alone, the other is copied',
+    J([/Rolled forward — 1 copy created across FY28 · 1 already there and left alone\./.test(r5), fy28().slice(3)]),
+    J([true, [['NEW-4', 'Engine overhaul', null], ['NEW-5', 'Depot tooling', { fy: 2027, id: 'NEW-5' }]]]));
+
+  // ── 2 · FROM ANOTHER YEAR: two of one office and one plan event, neither titled ─────────────────────────────────────────
+  boxAdd(R.ev, 'PSM', { event: 'Program office support', v: [10, 0, 0] });
+  boxAdd(R.ev, 'PSM', { event: 'Program office support', v: [20, 5, 0] });
+  chk(name, '2 · fixture', 'FY27 holds PSM’s NEW-6 and NEW-7, one plan event, no record title, different values',
+    R.ev(`JSON.stringify(S.custom.slice(5).map(function(c){ return [c.id, grpOf(c), c.event, c.title, c.ask]; }))`),
+    J([['NEW-6', 'PSM', 'Program office support', '', [10, 0, 0]], ['NEW-7', 'PSM', 'Program office support', '', [20, 5, 0]]]));
+  const pick27 = () => R.ev(`if(arOn()) toggleAdd(); setPmoFilter('PSM'); toggleAdd(); document.getElementById('arTabYr').click(); naFromPick(2027); 'ok'`);
+  R.ev(`if(arOn()) toggleAdd(); setPmoFilter('ALL'); switchYear(2028); 'ok'`);
+  pick27();
+  chk(name, '2 · the picker', 'control — before either is brought in, both can be ticked', J(listedIn(R.ev).filter(r => /^NEW-[67]$/.test(r[0]))), J([['NEW-6', true], ['NEW-7', true]]));
+  tickIn(R.ev, ['NEW-6']);
+  chk(name, '2 · the picker', 'NEW-6, ready, is brought into FY28 at once, linked to it', R.ev(`JSON.stringify((S.custom[S.custom.length-1]||{}).prior||null)`), J({ fy: 2027, id: 'NEW-6' }));
+  pick27();
+  // every other FY27 requirement of PSM's is already in FY28 one way or another: NEW-1 and NEW-5 copied (their links), NEW-3
+  // copied (the FY26 link it shares), NEW-4 by name (FY28's own “Engine overhaul”); A was never taken
+  chk(name, '2 · the picker', 'NEW-6 is now “already here”, and NEW-7 — the same office, plan event and blank title — can still be ticked',
+    J(listedIn(R.ev)), J([['A', true], ['NEW-1', false], ['NEW-3', false], ['NEW-4', false], ['NEW-5', false], ['NEW-6', false], ['NEW-7', true]]));
+  chk(name, '2 · the picker', 'its row does not say it is already in FY28; NEW-6’s does',
+    J(['NEW-6', 'NEW-7'].map(id => /already in FY28/.test(R.ev(`document.querySelector('#naFromWrap tr[data-id="${id}"]').textContent`)))), J([true, false]));
+  tickIn(R.ev, ['NEW-7']);
+  chk(name, '2 · the picker', 'and ticked, it is brought in: FY28 holds both, each linked to its own',
+    R.ev(`JSON.stringify(S.custom.filter(function(c){ return c.event==='Program office support'; }).map(function(c){ return [c.ask, c.prior||null]; }))`),
+    J([[[10, 0, 0], { fy: 2027, id: 'NEW-6' }], [[20, 5, 0], { fy: 2027, id: 'NEW-7' }]]));
+
+  // ── 1–2 · THE SECOND REVIEW: a year started as a copy, an original on screen, two on one CCaR record ──────────────────────
+  // FY28 now holds NEW-1 to NEW-7 (part 1's copies and its own, part 2's two brought in); FY27 the same seven numbers.
+  const rollTo = (ids, y) => R.ev(`(function(){ rollPick={}; ${J(ids)}.forEach(function(id){ rollPick[id]=1; }); rollYrs={}; rollYrs[${y}]=1;
+      rollApply(); return document.getElementById('shareStat').textContent; })()`);
+  const pickFrom = (y) => R.ev(`if(arOn()) toggleAdd(); setPmoFilter('PSM'); toggleAdd(); document.getElementById('arTabYr').click(); naFromPick(${y}); 'ok'`);
+  const goYear = (y) => R.ev(`if(arOn()) toggleAdd(); setPmoFilter('ALL'); switchYear(${y}); String(MS.cur)`);
+  // a row of From another year: [can it be ticked, the year its row says it is already in ('' for none)]
+  const rowOf = (id) => JSON.parse(R.ev(`(function(){ var r=document.querySelector('#naFromWrap tr[data-id="${id}"]'); if(!r) return 'null';
+      return JSON.stringify([!!r.querySelector('input[type=checkbox]'), (/ — already in (FY\\d+)$/.exec(r.children[1].textContent)||[])[1]||'']); })()`));
+  const yrCustom = (y) => JSON.parse(R.ev(`JSON.stringify(((MS.years[${y}]||{}).custom||[]).map(function(c){ return [c.id, c.event, c.title, c.prior||null]; }))`));
+  // (i) A YEAR STARTED AS A COPY: switchYear() answered OK copies the whole year, every added requirement under its own id and
+  // with no link -- the one shape neither the id test (board data only) nor the link test could see
+  const CY = boxAdd(R.ev, 'PSM', { event: 'Copied-year buy', v: [35, 0, 0] });
+  chk(name, '1 · a year started as a copy', 'FY29 is started from a copy of FY28 (the question answered OK)', goYear(2029), '2029');
+  chk(name, '1 · a year started as a copy', 'FY28’s box-made NEW-8 — no record title — is in FY29 under the same id, with no link',
+    J([CY, yrCustom(2029).filter(c => c[1] === 'Copied-year buy')]), J(['NEW-8', [['NEW-8', 'Copied-year buy', '', null]]]));
+  pickFrom(2028);
+  chk(name, '2 · a year started as a copy', 'on FY29, From another year › FY28 lists NEW-8 as already in FY29, not to be ticked', J(rowOf('NEW-8')), J([false, 'FY29']));
+  const U9 = boxAdd(R.ev, 'PSM', { event: 'Unrelated buy', v: [5, 0, 0] });
+  goYear(2028);
+  const S9 = boxAdd(R.ev, 'PSM', { event: 'Second-year buy', v: [6, 0, 0] });
+  chk(name, '1 · a year started as a copy', 'control — after the copy, FY29 and FY28 each add a NEW-9 of their own: one number, two requirements',
+    J([U9, S9]), J(['NEW-9', 'NEW-9']));
+  pickFrom(2029);
+  chk(name, '2 · a year started as a copy', 'on FY28, From another year › FY29: NEW-8 is already in FY28; FY29’s own NEW-9 — FY28’s number, another requirement — can be ticked',
+    J([rowOf('NEW-8'), rowOf('NEW-9')]), J([[false, 'FY28'], [true, '']]));
+  const r6 = rollTo(['NEW-8', 'NEW-9'], 2029);
+  chk(name, '1 · a year started as a copy', 'Roll forward of FY28’s NEW-8 and NEW-9 into FY29: NEW-8 is found there, the copy the year started from; NEW-9 is copied',
+    /Rolled forward — 1 copy created across FY29 · 1 already there and left alone\./.test(r6), true);
+  chk(name, '1 · a year started as a copy', 'FY29 still holds one Copied-year buy, and FY28’s NEW-9 as its NEW-10, linked to it, beside its own NEW-9',
+    J(yrCustom(2029).filter(c => /^(Copied-year|Unrelated|Second-year) buy$/.test(c[1]))),
+    J([['NEW-8', 'Copied-year buy', '', null], ['NEW-9', 'Unrelated buy', '', null], ['NEW-10', 'Second-year buy', '', { fy: 2028, id: 'NEW-9' }]]));
+  // (ii) AN ORIGINAL ON SCREEN: FY27's NEW-1 was rolled into FY28 as NEW-1, linked to it. Back on FY27, offered from FY28, it is
+  // the requirement FY27 already holds -- its own original
+  goYear(2027); pickFrom(2028);
+  chk(name, '2 · an original on screen', 'on FY27, From another year › FY28: NEW-1 — FY27’s own NEW-1 rolled forward, linked to it — is already in FY27',
+    J(rowOf('NEW-1')), J([false, 'FY27']));
+  chk(name, '2 · an original on screen', 'control — FY28’s NEW-8 and NEW-9, which FY27 never held, can be ticked', J([rowOf('NEW-8'), rowOf('NEW-9')]), J([[true, ''], [true, '']]));
+  // (iii) TWO ON ONE CCaR RECORD: the records list names both of a pair alike, so they share a record title as well as a plan
+  // event -- a name, and still two requirements. A candidate whose link shows it to be the other one's copy is not this one.
+  R.ev(`MS.ccarIdx={ts:1700000000061, file:'records.xlsx', n:2, rows:{}};
+    MS.ccarIdx.rows[ccarNorm('JSF3001')]={t:'Depot line record', o:'PSM', p:'PSM', k:'', s:'', d:1};
+    MS.ccarIdx.rows[ccarNorm('JSF3002')]={t:'Test cell record', o:'PSM', p:'PSM', k:'', s:'', d:1}; 'ok'`);
+  const D1 = boxAdd(R.ev, 'PSM', { event: 'Depot line buy', ccar: 'JSF3001', v: [15, 0, 0] });
+  const D2 = boxAdd(R.ev, 'PSM', { event: 'Depot line buy', ccar: 'JSF3001', v: [25, 0, 0] });
+  const T1 = boxAdd(R.ev, 'PSM', { event: 'Test cell buy', ccar: 'JSF3002', v: [45, 0, 0] });
+  const T2 = boxAdd(R.ev, 'PSM', { event: 'Test cell buy', ccar: 'JSF3002', v: [55, 0, 0] });
+  chk(name, '1 · two on one record', 'FY27 holds two pairs, each on one CCaR record and of one plan event, named alike by the records list, with different values',
+    R.ev(`JSON.stringify(${J([D1, D2, T1, T2])}.map(function(id){ var c=itemById(id); return c? [id, c.event, c.title, ccarOf(c), c.ask] : id; }))`),
+    J([['NEW-8', 'Depot line buy', 'Depot line record', 'JSF3001', [15, 0, 0]], ['NEW-9', 'Depot line buy', 'Depot line record', 'JSF3001', [25, 0, 0]],
+       ['NEW-10', 'Test cell buy', 'Test cell record', 'JSF3002', [45, 0, 0]], ['NEW-11', 'Test cell buy', 'Test cell record', 'JSF3002', [55, 0, 0]]]));
+  const r7 = rollTo([D1, D2], 2028);
+  chk(name, '1 · two on one record', 'Roll forward copies both of the first pair into FY28 — “2 copies created”, none “already there”', /Rolled forward — 2 copies created across FY28\. /.test(r7), true);
+  chk(name, '1 · two on one record', 'FY28 holds both, each linked to its own', J(yrCustom(2028).filter(c => c[2] === 'Depot line record')),
+    J([['NEW-10', 'Depot line buy', 'Depot line record', { fy: 2027, id: 'NEW-8' }], ['NEW-11', 'Depot line buy', 'Depot line record', { fy: 2027, id: 'NEW-9' }]]));
+  goYear(2028); pickFrom(2027);
+  chk(name, '2 · two on one record', 'control — on FY28, before either of the second pair is brought in, both can be ticked', J([rowOf(T1), rowOf(T2)]), J([[true, ''], [true, '']]));
+  tickIn(R.ev, [T1]);
+  chk(name, '2 · two on one record', 'control — with nothing typed in New requirement, NEW-10, ready, is added at once and the box closes, as before',
+    J([R.ev(`String(arOn())`), yrCustom(2028).filter(c => c[2] === 'Test cell record').map(c => c[3])]), J(['false', [{ fy: 2027, id: 'NEW-10' }]]));
+  pickFrom(2027);
+  chk(name, '2 · two on one record', 'NEW-10 brought in is already in FY28; NEW-11 — the same record title, plan event and office — can still be ticked',
+    J([rowOf(T1), rowOf(T2)]), J([[false, 'FY28'], [true, '']]));
+  tickIn(R.ev, [T2]);
+  chk(name, '2 · two on one record', 'and ticked, it is brought in: FY28 holds both, each linked to its own',
+    J(yrCustom(2028).filter(c => c[2] === 'Test cell record').map(c => c[3])), J([{ fy: 2027, id: 'NEW-10' }, { fy: 2027, id: 'NEW-11' }]));
+  // CONTROL — a copy made before v2.06 carried no link: a titled requirement is still found by its name, under another id
+  goYear(2027);
+  const SK = R.ev(`(function(){ var n=reqCreate('PSM', {title:'Spares kit', event:'Spares line', ask:[70, 0, 0]}); save(); render(); return n; })()`);
+  goYear(2028);
+  const SK8 = R.ev(`(function(){ var n=reqCreate('PSM', {title:'Spares kit', event:'Spares line', ask:[70, 0, 0]}); save(); render(); return n; })()`);
+  pickFrom(2027);
+  chk(name, '2 · two on one record', 'control — FY27’s titled Spares kit (NEW-12) and FY28’s, unlinked (NEW-14): on FY28 the picker reads it already in FY28, by its name',
+    J([SK, SK8, rowOf(SK)]), J(['NEW-12', 'NEW-14', [false, 'FY28']]));
+  goYear(2027);
+  const r8 = rollTo([SK], 2028);
+  chk(name, '1 · two on one record', 'control — and Roll forward leaves it alone, already in FY28 by its name, though their ids differ',
+    J([/Every requirement you ticked is already in FY28 — nothing to do/.test(r8), yrCustom(2028).filter(c => c[2] === 'Spares kit').length]), J([true, 1]));
+  // (iv) ONE NUMBER AND ONE PLAN EVENT, TWO REQUIREMENTS. After a copy both years number from the same count, so AV adding one
+  // in FY29 and PSM one in FY28 can draw the same NEW-n, both 'Engine depot support' with no record title -- different offices,
+  // records and values. The copy rule took them for one: Roll forward said "already there" and the picker greyed PSM's out.
+  // It asks the office and the CCaR record too. (Both counts are set level first, so the two really do share a number; last on this board, so no number above moves.)
+  R.ev(`MS.years[2028].newSeq=60; MS.years[2029].newSeq=60; save(); 'ok'`);
+  goYear(2029);
+  const A61 = boxAdd(R.ev, 'AV', { event: 'Engine depot support', ccar: 'JSF2002', v: [250, 50, 0] });
+  goYear(2028);
+  const P61 = boxAdd(R.ev, 'PSM', { event: 'Engine depot support', ccar: 'JSF1001', v: [400, 0, 0] });
+  chk(name, '1 · a year started as a copy', 'the fixture: AV’s FY29 requirement and PSM’s FY28 one share a number and a plan event', J([A61, P61]), J(['NEW-61', 'NEW-61']));
+  goYear(2029); pickFrom(2028);
+  chk(name, '2 · a year started as a copy', 'on FY29, From another year › FY28 for PSM: PSM’s NEW-61 can be ticked -- AV’s NEW-61 here is not it',
+    J(rowOf('NEW-61')), J([true, '']));
+  goYear(2028);
+  const r61 = rollTo(['NEW-61'], 2029);
+  chk(name, '1 · a year started as a copy', 'Roll forward of PSM’s NEW-61 into FY29, which holds AV’s NEW-61: one copy is created, nothing said to be there already',
+    /Rolled forward — 1 copy created across FY29\./.test(r61) && !/already there/.test(r61), true);
+  chk(name, '1 · a year started as a copy', 'FY29 now holds both: AV’s own NEW-61, and PSM’s as a new one linked to it',
+    J(yrCustom(2029).filter(c => c[1] === 'Engine depot support' && (c[0] === 'NEW-61' || (c[3] && c[3].id === 'NEW-61'))).map(c => [c[0] === 'NEW-61' ? 'own' : 'copy', c[3]])),
+    J([['own', null], ['copy', { fy: 2028, id: 'NEW-61' }]]));
+
+  // ═══ BOARD F — THE FORM KEPT (3), FINISHING ONE BROUGHT IN (6) ════════════════════════════════════════════════════════════
+  // A BAE list names PSM's budget for each service, so a budget is asked for wherever there is a value. FY27's requirements are
+  // made with reqCreate(), the box's one writer: R1 carries every required field; R2 and R3 lack their impact statement; W1's
+  // WBS list holds a null line and W2's one WBS line is blank (each set as an older file can hold it); C1's budget is stored in
+  // lower case; B1 carries a decision band and lacks its impact statement; R2b, like R1, carries every required field. Each of
+  // the others lacks exactly one thing. FY26 holds one more lacking its impact statement, as its NEW-4 (a year whose first three
+  // added requirements were deleted), so FY27's NEW-4 and FY26's are two requirements of one number.
+  const BUD = { USAF: 'USAF O&M- CAM Discretionary PSM', ANG: 'USAF O&M - ANG CAM Discretionary PSM', AFRC: 'USAF O&M - AFRC CAM Discretionary PSM' };
+  const scF = { services: MINE, items: [it('A', 'PSM', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] };
+  const F = boot(); seed(F.ev, scF); asBooted(F.ev, scF);
+  F.ev(AR_FILL);
+  F.ev(`(function(){ window.alert=function(){}; window.confirm=function(){ return false; };
+      BUDDB={ts:1700000000071, files:[], rows:${J(Object.values(BUD))}.map(function(n){ return {n:n}; })}; _budRegCache=null;
+      var mk=function(ev, ask, o){ return reqCreate('PSM', {title:'', event:ev, ask:ask}, null, Object.assign({ptype:'OGC', obCat:OB_CATS[0], to:'lm',
+        desc:'Described.', cons:'Lost if unfunded.', wbs:'1.2.3', bud:{USAF:${J(BUD.USAF)}}}, o||{})); };
+      mk('Ready one', [100, 0, 0]); mk('Needs one', [200, 0, 0], {cons:''}); mk('Needs two', [300, 0, 0], {cons:''});
+      mk('Null WBS line', [40, 0, 0]); mk('Blank WBS line', [50, 0, 0]); mk('Lower-case budget', [60, 0, 0], {cons:''});
+      var b=mk('Banded one', [70, 0, 0], {cons:''}); S.band[b]=BANDS_LIST()[1].id;
+      mk('Ready two', [80, 0, 0]);
+      save(); switchYear(2026);     // told no: FY26 starts blank
+      S.newSeq=3; mk('Old needs one', [90, 0, 0], {cons:''});
+      save(); switchYear(2028);     // told no: FY28 starts blank
+      var T=MS.years[2027]; T.wbs['NEW-4']=[null]; T.wbs['NEW-5']=[{w:'', v:[]}]; T.budgetAsg['NEW-6']={'USAF|disc':${J(BUD.USAF.toLowerCase())}};
+      window.confirm=function(){ return true; }; return 'ok'; })()`);
+  chk(name, '3 · fixture', 'FY28 on screen and blank; FY27 holds R1–B1 as NEW-1 to NEW-7 and R2b as NEW-8; FY26 its one as NEW-4',
+    F.ev(`JSON.stringify([MS.cur, S.order.length, MS.years[2027].custom.map(function(c){ return c.id+' '+c.event; }), MS.years[2026].custom.map(function(c){ return c.id+' '+c.event; })])`),
+    J([2028, 0, ['NEW-1 Ready one', 'NEW-2 Needs one', 'NEW-3 Needs two', 'NEW-4 Null WBS line', 'NEW-5 Blank WBS line', 'NEW-6 Lower-case budget', 'NEW-7 Banded one', 'NEW-8 Ready two'],
+       ['NEW-4 Old needs one']]));
+  const openF = () => F.ev(`if(arOn()) toggleAdd(); setPmoFilter('PSM'); toggleAdd(); 'ok'`);
+  const yrF = (y) => F.ev(`document.getElementById('arTabYr').click(); naFromPick(${y || 2027}); 'ok'`);
+  // what the box holds; q is what waits, by year and id (FY26's NEW-4 and FY27's are two), ao whether Add and open is hidden
+  const box = () => JSON.parse(F.ev(`(function(){ var $=function(id){ return document.getElementById(id); }, fb=$('arFinBar');
+      return JSON.stringify({open:arOn() && !!$('addPanel') && $('addPanel').classList.contains('open'), tab:$('arTabNew')? $('arTabNew').getAttribute('aria-pressed') : '',
+        ev:$('arEvent')? $('arEvent').value : null, v0:$('arV0')? $('arV0').value : null, fin:(!fb || fb.hidden)? '' : fb.textContent,
+        q:arQueue.map(function(x){ return 'FY'+(x.y%100)+' '+x.id; }), btn:$('arAddBtn')? $('arAddBtn').textContent : '', msg:$('arMsg')? $('arMsg').textContent : '',
+        ao:$('arAddOpen')? $('arAddOpen').hidden : null, n:S.custom.length}); })()`));
+
+  // ── 3 · WHAT THE FORM HOLDS IS NEVER THROWN AWAY UNASKED ──────────────────────────────────────────────────────────────
+  // (second review) A form typed by hand is replaced only if the person says so, asked BEFORE anything is added: Cancel changes
+  // nothing. One being finished keeps its place; those ticked after it wait behind it, counted on its bar, and a row in the form
+  // or waiting is never offered again. Every question the box asks is kept here, and answered OK (__ans) or Cancel.
+  F.ev(`globalThis.__asked=[]; globalThis.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; }; 'ok'`);
+  const asked = () => JSON.parse(F.ev(`JSON.stringify(__asked.splice(0))`));
+  const made = () => JSON.parse(F.ev(`JSON.stringify(S.custom.map(function(c){ return [c.event, c.ask, c.prior||null]; }))`));
+  const statF = () => F.ev(`document.getElementById('shareStat').textContent`);
+  const DISCARD = 'Finishing the one you ticked replaces what is typed in New requirement now. Discard what you typed?';
+  openF();
+  F.ev(`__arFill({event:'Typed in the form', v:[700, 0, 0]})`);
+  // (a) only a READY one ticked while the form holds typing: added at once, nothing asked, the typing stays
+  yrF(); tickIn(F.ev, ['NEW-1']);
+  const a = box();
+  chk(name, '3 · the form kept', '(a) a ready one ticked in From another year while the form holds typing is added at once, linked to FY27 NEW-1, and nothing is asked',
+    J([made(), asked()]), J([[['Ready one', [100, 0, 0], { fy: 2027, id: 'NEW-1' }]], []]));
+  chk(name, '3 · the form kept', '(a) and the box stays open, back on New requirement, holding what was typed — and says so',
+    J([a.open, a.tab, a.ev, a.v0, a.q, a.fin, /What you typed in New requirement is still there\./.test(a.msg)]), J([true, 'true', 'Typed in the form', '700', [], '', true]));
+  // (b) a ready one and one that needs finishing, ticked while the form holds typing: the box asks first, and Cancel is answered
+  F.ev(`__ans=false; 'ok'`);
+  yrF(); tickIn(F.ev, ['NEW-8', 'NEW-2']);
+  const b = box();
+  chk(name, '3 · the form kept', '(b) one that needs finishing, ticked beside a ready one while the form holds typing: the box asks first, once, what it would discard',
+    J(asked()), J([DISCARD]));
+  chk(name, '3 · the form kept', '(b) Cancel changes nothing — nothing added, not even the ready one; nothing waits; the typing stays — and the box says so',
+    J([made().length, b.q, b.fin, b.ev, b.v0, b.msg]), J([1, [], '', 'Typed in the form', '700', 'Nothing was added. What you typed in New requirement is still there.']));
+  chk(name, '3 · the form kept', '(b) and both stay ticked, for the person to decide', F.ev(`document.getElementById('naFromBtn').textContent`), 'Add 1 · finish 1');
+  // OK this time: the ready one is added, and the one to finish takes the typing's place
+  F.ev(`__ans=true; document.getElementById('naFromBtn').click(); 'ok'`);
+  const b2 = box();
+  chk(name, '3 · the form kept', '(b) asked again and answered OK: the ready one is added, linked to FY27 NEW-8',
+    J([asked(), made().slice(1)]), J([[DISCARD], [['Ready two', [80, 0, 0], { fy: 2027, id: 'NEW-8' }]]]));
+  chk(name, '3 · the form kept', '(b) and NEW-2 opens in the form in place of the typing, nothing behind it, with Add and open offered',
+    J([b2.tab, /^Finishing FY27 NEW-2 — Needs one\. It is added/.test(b2.fin), b2.ev, b2.v0, b2.q, b2.ao]), J(['true', true, 'Needs one', '200', [], false]));
+  // (c) one BEING FINISHED keeps its place: those ticked after it wait behind it, nothing asked, counted on its bar as they stand
+  yrF(); tickIn(F.ev, ['NEW-3']);
+  const c = box();
+  chk(name, '3 · the form kept', '(c) with NEW-2 being finished, NEW-3 ticked waits behind it: nothing asked, NEW-2 stays as it was, its bar counting one more',
+    J([asked(), made().length, c.tab, /^Finishing FY27 NEW-2 — Needs one · 1 more after this\./.test(c.fin), c.ev, c.v0, c.q]),
+    J([[], 2, 'true', true, 'Needs one', '200', ['FY27 NEW-3']]));
+  chk(name, '3 · the form kept', '(c) and while one waits, Add and open its record is not offered: only the last can be opened',
+    `${c.ao}|${F.ev(`String(document.getElementById('arAddBtn').hidden)`)}`, 'true|false');
+  yrF(2026); tickIn(F.ev, ['NEW-4']);
+  const c26 = box();
+  chk(name, '3 · the form kept', '(c) one ticked from FY26 waits too: NEW-2 still in the form, its bar counting two more',
+    J([asked(), /^Finishing FY27 NEW-2 — Needs one · 2 more after this\./.test(c26.fin), c26.ev, c26.q]), J([[], true, 'Needs one', ['FY27 NEW-3', 'FY26 NEW-4']]));
+  yrF();
+  const rowsC = JSON.parse(F.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){
+      var p=r.querySelector('.ar-pill'); return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]'), p? p.textContent : '',
+        / — in New requirement, to finish$/.test(r.children[1].textContent)]; }))`));
+  chk(name, '3 · the form kept', '(c) FY27’s list reads NEW-2 and NEW-3 “in New requirement, to finish”, with no checkbox and no Ready pill; its NEW-4 — FY26’s NEW-4 waits, not FY27’s — can be ticked',
+    J(rowsC.filter(r => ['NEW-2', 'NEW-3', 'NEW-4'].indexOf(r[0]) >= 0)), J([['NEW-2', false, '', true], ['NEW-3', false, '', true], ['NEW-4', true, '1 to fill', false]]));
+  F.ev(`naFromSel={'NEW-2':1, 'NEW-3':1}; naFromAdd(); 'ok'`);
+  const c3 = box();
+  chk(name, '3 · the form kept', '(c) ticked again by any route, neither is added twice or queued twice, and nothing is asked',
+    J([asked(), made().length, /^Finishing FY27 NEW-2 — Needs one · 2 more after this\./.test(c3.fin), c3.q]), J([[], 2, true, ['FY27 NEW-3', 'FY26 NEW-4']]));
+  // (d) NEW-2 finished and added: the next opens, and Add's status line names every year what still waits comes from
+  F.ev(`__arFill({cons:'Finished here.'}); document.getElementById('arAddBtn').click(); 'ok'`);
+  const d = box();
+  chk(name, '3 · the form kept', '(d) NEW-2 finished is added, linked to FY27 NEW-2, and NEW-3 opens next, its bar counting the one from FY26 behind it',
+    J([made().slice(2), /^Finishing FY27 NEW-3 — Needs two · 1 more after this\./.test(d.fin), d.ev, d.q, d.ao]),
+    J([[['Needs one', [200, 0, 0], { fy: 2027, id: 'NEW-2' }]], true, 'Needs two', ['FY26 NEW-4'], true]));
+  chk(name, '3 · the form kept', '(d) Add’s status line counts the two still to finish and names both years they come from; the box says the next is below',
+    J([/linked to FY27 NEW-2\. 2 more to finish from FY27 and FY26\./.test(statF()), d.msg]), J([true, 'Added NEW-3. The next one from FY27 is filled in below.']));
+  const skip = () => F.ev(`[].slice.call(document.querySelectorAll('#arFinBar button')).filter(function(b){ return /Skip this one/.test(b.textContent); })[0].click(); 'ok'`);
+  skip();
+  const e3 = box();
+  chk(name, '3 · the form kept', '(e) NEW-3 skipped, FY26’s NEW-4 opens, the last one: nothing after it, and Add and open its record is offered again',
+    J([/^Finishing FY26 NEW-4 — Old needs one\. It is added/.test(e3.fin), e3.ev, e3.q, e3.ao]), J([true, 'Old needs one', [], false]));
+  F.ev(`__arFill({cons:'Finished too.'}); document.getElementById('arAddBtn').click(); 'ok'`);
+  chk(name, '3 · the form kept', '(e) added, it is linked to FY26 NEW-4, the box closes, and the status line counts nothing more to finish',
+    J([made().slice(3), box().open, /more to finish/.test(statF()), asked()]), J([[['Old needs one', [90, 0, 0], { fy: 2026, id: 'NEW-4' }]], false, false, []]));
+  F.ev(`window.confirm=function(){ return true; }; 'ok'`);
+
+  // ── 6 · FINISHING ONE BROUGHT IN: the list and the box agree ─────────────────────────────────────────────────────────────
+  openF(); yrF();
+  const ready = JSON.parse(F.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){
+      var p=r.querySelector('.ar-pill'); return [r.getAttribute('data-id'), r.lastElementChild.textContent, p? p.getAttribute('title')||'' : '']; }))`));
+  chk(name, '6 · the Ready column', 'W1 (a null WBS line) and W2 (a blank one) each need their WBS; C1 (its budget in lower case) and B1 only their impact statement',
+    J(ready.filter(r => ['NEW-4', 'NEW-5', 'NEW-6', 'NEW-7'].indexOf(r[0]) >= 0)),
+    J([['NEW-4', '1 to fill', 'still needs: WBS'], ['NEW-5', '1 to fill', 'still needs: WBS'], ['NEW-6', '1 to fill', 'still needs: Impact statement'],
+       ['NEW-7', '1 to fill', 'still needs: Impact statement']]));
+  const still = () => F.ev(`[].slice.call(document.querySelectorAll('#arChk li.no')).map(function(l){ return l.textContent; }).join(' | ')`);
+  const e0 = F.errors.length;
+  tickIn(F.ev, ['NEW-4', 'NEW-5', 'NEW-6', 'NEW-7']);
+  const w1 = box();
+  chk(name, '6 · a null WBS line', 'W1 opens in the box to finish, without an error, three more after it',
+    J([F.errors.length - e0, /^Finishing FY27 NEW-4 — Null WBS line · 3 more after this\./.test(w1.fin), w1.ev]), J([0, true, 'Null WBS line']));
+  chk(name, '6 · a null WBS line', 'and asks for its WBS — the one thing the Ready column said it lacks', J([w1.btn, still()]), J(['Add requirement — 1 still needed', '!WBS — still needed']));
+  F.ev(`__arFill({wbs:'4.4.1'}); document.getElementById('arAddBtn').click(); 'ok'`);
+  chk(name, '6 · a null WBS line', 'given one, it is added, linked to FY27 NEW-4, carrying that WBS and no null line',
+    F.ev(`(function(){ var c=S.custom[S.custom.length-1]; return JSON.stringify([c.prior||null, S.wbs[c.id]||null]); })()`), J([{ fy: 2027, id: 'NEW-4' }, [{ w: '4.4.1', v: [] }]]));
+  const w2 = box();
+  chk(name, '6 · a blank WBS line', 'W2 opens next, asking for its WBS: the same one thing, as the Ready column counted it',
+    J([/^Finishing FY27 NEW-5 — Blank WBS line/.test(w2.fin), w2.btn, still()]), J([true, 'Add requirement — 1 still needed', '!WBS — still needed']));
+  F.ev(`__arFill({wbs:'5.5.1'}); document.getElementById('arAddBtn').click(); 'ok'`);
+  const c1 = box();
+  chk(name, '6 · a budget in another case', 'C1 opens with its USAF budget chosen, in the BAE list’s own spelling, and asks only for its impact statement',
+    J([/^Finishing FY27 NEW-6 — Lower-case budget/.test(c1.fin), F.ev(`document.getElementById('arB0').value`), c1.btn, still()]),
+    J([true, BUD.USAF, 'Add requirement — 1 still needed', '!Impact statement — still needed']));
+  F.ev(`__arFill({cons:'Stops.'}); document.getElementById('arAddBtn').click(); 'ok'`);
+  chk(name, '6 · a budget in another case', 'added, it carries the budget as the list spells it',
+    F.ev(`(function(){ var c=S.custom[S.custom.length-1]; return JSON.stringify([c.prior||null, (S.budgetAsg||{})[c.id]||null]); })()`),
+    J([{ fy: 2027, id: 'NEW-6' }, { 'USAF|disc': BUD.USAF }]));
+  const sum = () => F.ev(`document.getElementById('arSum').textContent`);
+  const b1 = box();
+  chk(name, '6 · also carried', 'B1 opens last, and the box names what comes with it by the field’s own name: “Also carried from FY27: Decision band.”',
+    J([/^Finishing FY27 NEW-7 — Banded one\./.test(b1.fin), /Also carried from FY27: Decision band\.$/.test(sum())]), J([true, true]));
+  skip();
+  // the field renamed in the registry (REQ_FIELD, v2.03 item 20): the line follows it, as every surface that names a field must
+  F.ev(`REQ_FIELD.band.l='Priority band'; 'ok'`);
+  yrF(); tickIn(F.ev, ['NEW-7']);
+  chk(name, '6 · also carried', 'with Decision band renamed Priority band, B1 opened again says “Also carried from FY27: Priority band.”',
+    J([/^Finishing FY27 NEW-7 — Banded one\./.test(box().fin), /Also carried from FY27: Priority band\.$/.test(sum())]), J([true, true]));
+  F.ev(`REQ_FIELD.band.l='Decision band'; toggleAdd(); 'ok'`);
+
+  // ═══ BOARD B AND ITS PMO COPY P — THE BUDGET GATE (4) AND THE REVIEWER (5) ════════════════════════════════════════════════
+  // AV's A, at the top, takes every USAF and ANG discretionary dollar; PSM's C asks AFRC only. In the copy PSM adds M in the box
+  // (USAF 200, ANG 100: the lanes pay both from mandatory alone); K (USAF 400: mandatory pays 300, 100 is unfunded -- an
+  // unfunded part line); K2 (AFRC 100: discretionary pays it); and O, as a copy before v2.07 made one -- the strip's
+  // '(added at drill)' and a typed title. The BAE list holds PSM's USAF names in both lanes, ANG's lane-less, AFRC's in both.
+  const BB = { USAF_D: 'USAF O&M- CAM Discretionary PSM', USAF_M: 'USAF O&M- CAM Mandatory PSM', ANG_L: 'USAF O&M - ANG CAM PSM',
+    AFRC_D: 'USAF O&M - AFRC CAM Discretionary PSM', AFRC_M: 'USAF O&M - AFRC CAM Mandatory PSM' };
+  const scB = { services: MINE, items: [it('A', 'AV', [1000, 600, 0]), it('C', 'PSM', [0, 0, 40])],
+    disc: [1000, 600, 300], mand: [500, 150, 80], order: ['A', 'C'] };
+  const B = boot(); seed(B.ev, scB); asBooted(B.ev, scB);
+  B.ev(`applyState(S); window.alert=function(){}; window.confirm=function(){ return true; };
+    BUDDB={ts:1700000000081, files:[], rows:${J(Object.values(BB))}.map(function(n){ return {n:n}; })}; _budRegCache=null; save(); 'ok'`);
+  const P = boot({ html: v184Publish(B.ev) });
+  P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; };
+    try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} 'ok'`);
+  chk(name, '4 · fixture', 'control — the copy offers PSM’s USAF mandatory name on a mandatory line, its discretionary one on a discretionary line, ANG’s lane-less one on both',
+    P.ev(`JSON.stringify([['USAF','mand'],['USAF','disc'],['ANG','mand'],['ANG','disc']].map(function(q){ return budPickListFor('PSM', q[0], q[1]).map(function(b){ return b.n; }); }))`),
+    J([[BB.USAF_M], [BB.USAF_D], [BB.ANG_L], [BB.ANG_L]]));
+  P.ev(`toggleAdd(); 'ok'`);
+  const fm = JSON.parse(P.ev(`__arFill({event:'Mandatory-only buy', pt:'PRIME', v:[200, 100, 0], bud:${J({ USAF: BB.USAF_D, ANG: BB.ANG_L })}, ob:OB_CATS[0], to:'lm',
+    desc:'Bought on mandatory.', cons:'The buy slips a year.'})`));
+  chk(name, '4 · fixture', 'M, filled in the box with a budget for each service, needs nothing more', fm.btn, 'Add requirement');
+  P.ev(`document.getElementById('arAddBtn').click(); 'ok'`);
+  const ids = JSON.parse(P.ev(`(function(){ var f={ptype:'PRIME', obCat:OB_CATS[0], to:'lm', desc:'Described.', cons:'Slips.'};
+    var k=reqCreate('PSM', {title:'', event:'Short buy', ask:[400, 0, 0]}, null, f);
+    var k2=reqCreate('PSM', {title:'', event:'Reserve buy', ask:[0, 0, 100]}, null, f);
+    var o=reqCreate('PSM', {title:'Engine spares buy', event:'(added at drill)', ask:[0, 0, 50]}, null, Object.assign({bud:{AFRC:${J(BB.AFRC_D)}}}, f));
+    save(); render(); return JSON.stringify([S.custom[0].id, k, k2, o]); })()`));
+  const [M, K, K2, O] = ids;
+  chk(name, '4 · fixture', 'the lanes pay M only from mandatory, K from mandatory with an unfunded part, K2 from discretionary',
+    P.ev(`JSON.stringify(${J([M, K, K2])}.map(function(id){ return budLines(id); }))`),
+    J([[{ svc: 'USAF', lane: 'mand' }, { svc: 'ANG', lane: 'mand' }], [{ svc: 'USAF', lane: 'mand' }, { svc: 'USAF', lane: '', part: true }], [{ svc: 'AFRC', lane: 'disc' }]]));
+  const gate = (id) => P.ev(`JSON.stringify(pmoProposalGate(${J(id)}))`);
+  const BL = P.ev(`FL('budgetAsg')`);
+  const asg = (id) => P.ev(`JSON.stringify((S.budgetAsg||{})[${J(id)}]||null)`);
+  // THE RECORD PANEL, as a person uses it: a rendered picker changed, a rendered button clicked
+  const choose = (id, label, v) => P.ev(`(function(){ setCur(${J(id)});
+      var s=document.querySelector(${J('#inspector select[aria-label="BAE budget, ' + label + '"]')}); if(!s) return 'no picker';
+      s.value=${J(v)}; if(s.value!==${J(v)}) return 'not offered'; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const press = (id, sel) => P.ev(`(function(){ setCur(${J(id)}); var b=document.querySelector(${J(sel)}); if(!b) return 'no button'; b.click(); return 'ok'; })()`);
+  chk(name, '4 · the budget gate', 'control — M as the box made it passes the gate', gate(M), '[]');
+  // (i) back to the rule on ANG's mandatory line, then the lane-less name picked again there
+  chk(name, '4 · the budget gate', '(i) “clear” on ANG’s mandatory line takes the choice off, and the gate asks for a budget again',
+    J([press(M, '#inspector button[aria-label="Clear the ANG mandatory budget"]'), asg(M), gate(M)]), J(['ok', J({ 'USAF|disc': BB.USAF_D }), J([BL])]));
+  chk(name, '4 · the budget gate', '(i) PSM’s lane-less ANG name picked again on that mandatory line: kept under it, and M passes the gate',
+    J([choose(M, 'ANG mandatory', BB.ANG_L), asg(M), gate(M)]), J(['ok', J({ 'USAF|disc': BB.USAF_D, 'ANG|mand': BB.ANG_L }), '[]']));
+  // (ii) Clear all, then the mandatory lines' own names picked: USAF's a mandatory name, ANG's lane-less
+  chk(name, '4 · the budget gate', '(ii) “Clear all” takes every choice off, and the gate asks for a budget',
+    J([press(M, '#inspector .budfoot button'), asg(M), gate(M)]), J(['ok', 'null', J([BL])]));
+  chk(name, '4 · the budget gate', '(ii) PSM’s USAF mandatory name and ANG’s lane-less one picked on the mandatory lines: M passes the gate again',
+    J([choose(M, 'USAF mandatory', BB.USAF_M), choose(M, 'ANG mandatory', BB.ANG_L), asg(M), gate(M)]),
+    J(['ok', 'ok', J({ 'USAF|mand': BB.USAF_M, 'ANG|mand': BB.ANG_L }), '[]']));
+  // CONTROL — a choice kept for mandatory money is not a budget for a line whose dollars want a discretionary one: K's USAF
+  // shows an unfunded part line beside its mandatory one, K2's AFRC a discretionary line
+  chk(name, '4 · the budget gate', 'control — K, holding only the mandatory name picked on its USAF mandatory line, is still gated: its unfunded part wants a discretionary budget',
+    J([choose(K, 'USAF mandatory', BB.USAF_M), asg(K), gate(K)]), J(['ok', J({ 'USAF|mand': BB.USAF_M }), J([BL])]));
+  P.ev(`setBudAsg(${J(K2)}, 'AFRC', ${J(BB.AFRC_M)}, 'mand'); 'ok'`);
+  chk(name, '4 · the budget gate', 'control — K2, paid from discretionary and holding only a choice kept for mandatory money, is still gated', gate(K2), J([BL]));
+  chk(name, '4 · the budget gate', 'control — O, as an older copy made it, with its budget, passes', gate(O), '[]');
+  const sub = v184Submit(P, 'PSM');
+  const added = (sub.pkg || {}).added || [];
+  const told = sub.alerts.filter(x => /missing mandatory fields/.test(x))[0] || '';
+  chk(name, '4 · submit', 'Submit sends M and O; K and K2 are held back, each by name, needing their budget',
+    J([added.map(x => x.nid), told.indexOf('Short buy\n      needs: ' + BL + '\n') >= 0, told.indexOf('Reserve buy\n      needs: ' + BL + '\n') >= 0, /Mandatory-only buy/.test(told)]),
+    J([[M, O], true, true, false]));
+  chk(name, '4 · submit', 'M carries the budgets picked on its mandatory lines', J((added.filter(x => x.nid === M)[0] || {}).budgetAsg || null),
+    J({ 'USAF|mand': BB.USAF_M, 'ANG|mand': BB.ANG_L }));
+
+  // ── 5 · THE REVIEWER: each proposal by the name its row will read ──────────────────────────────────────────────────────
+  B.ev(`PMOSUBS=[]; PMOPICK={}; pmoTake(${J(sub.pkg)}, 'psm.json'); subOpen=true; render(); 'ok'`);
+  const rowNames = JSON.parse(B.ev(`JSON.stringify([].slice.call(document.querySelectorAll('input[type=checkbox][onchange*="__new"]')).map(function(cb){
+      var nb=[].slice.call(cb.closest('tr').querySelectorAll('b')).filter(function(x){ return x.textContent==='NEW'; })[0];
+      return nb? 'NEW '+String((nb.nextSibling && nb.nextSibling.nodeValue)||'').trim() : '(no NEW mark)'; }))`));
+  chk(name, '5 · the reviewer', 'in the review, the older proposal reads by its plan event and its typed title; the box-made one by its plan event alone',
+    J(rowNames), J(['NEW Mandatory-only buy', 'NEW (added at drill) — Engine spares buy']));
+  const book = JSON.parse(await B.w.eval(`(async function(){
+    var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength));
+    return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  const brows = book.rows || [], BH = (brows.find(r => r.map(String).indexOf('Proposed') >= 0) || []).map(String);
+  chk(name, '5 · the reviewer', 'and in the change report, read back from the workbook, the same names after “NEW — ”',
+    J(brows.map(r => String(r[BH.indexOf('Requirement')] || '')).filter(t => /^NEW — /.test(t))),
+    J(['NEW — Mandatory-only buy', 'NEW — (added at drill) — Engine spares buy']));
+
+  // ═══ BOARD B2 AND ITS PMO COPY P2 — THE BUDGET GATE, SECOND REVIEW (4) ════════════════════════════════════════════════════
+  // AV's A takes every USAF and ANG discretionary dollar, so each of PSM's three below is paid from mandatory alone. PSM's BAE
+  // names: USAF discretionary and mandatory on two lines each (CAM, DEPOT); ANG discretionary only -- so the RECORD panel's ANG
+  // mandatory line has nothing to offer. A re-import then retires USAF's CAM discretionary name and its DEPOT mandatory one.
+  const BG = { USAF_D: 'USAF O&M- CAM Discretionary PSM', USAF_D2: 'USAF O&M- DEPOT Discretionary PSM', USAF_M: 'USAF O&M- CAM Mandatory PSM',
+    USAF_M2: 'USAF O&M- DEPOT Mandatory PSM', ANG_D: 'USAF O&M - ANG CAM Discretionary PSM' };
+  const scB2 = { services: MINE, items: [it('A', 'AV', [1000, 600, 0])], disc: [1000, 600, 300], mand: [500, 150, 80], order: ['A'] };
+  const B2 = boot(); seed(B2.ev, scB2); asBooted(B2.ev, scB2);
+  B2.ev(`applyState(S); window.alert=function(){}; window.confirm=function(){ return true; };
+    BUDDB={ts:1700000000091, files:[], rows:${J(Object.values(BG))}.map(function(n){ return {n:n}; })}; _budRegCache=null; save(); 'ok'`);
+  const P2 = boot({ html: v184Publish(B2.ev) });
+  P2.ev(AR_FILL);
+  P2.ev(`window.alert=function(){}; window.confirm=function(){ return true; };
+    try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} 'ok'`);
+  const lists2 = () => P2.ev(`JSON.stringify([['USAF','disc'],['USAF','mand'],['ANG','disc'],['ANG','mand']].map(function(q){ return budPickListFor('PSM', q[0], q[1]).map(function(b){ return b.n; }); }))`);
+  chk(name, '4 · the gate, second review', 'control — the copy offers PSM’s two USAF discretionary names on a discretionary line, its two mandatory ones on a mandatory line, ANG’s discretionary name, and no ANG name for a mandatory line',
+    lists2(), J([[BG.USAF_D, BG.USAF_D2], [BG.USAF_M, BG.USAF_M2], [BG.ANG_D], []]));
+  const add2 = (o) => P2.ev(`(function(){ if(arOn()) toggleAdd(); toggleAdd(); var n0=S.custom.length;
+      __arFill(${J(Object.assign({ pt: 'PRIME', ob: OB, to: 'lm', desc: 'Bought on mandatory.', cons: 'The buy slips a year.' }, o))});
+      document.getElementById('arAddBtn').click();
+      return S.custom.length>n0? S.custom[S.custom.length-1].id : 'not added: '+document.getElementById('arMsg').textContent; })()`);
+  const N1 = add2({ event: 'Guard buy', v: [0, 100, 0], bud: { ANG: BG.ANG_D } });
+  const N2 = add2({ event: 'Active buy', v: [200, 0, 0], bud: { USAF: BG.USAF_D } });
+  const N3 = add2({ event: 'Depot-line buy', v: [100, 0, 0], bud: { USAF: BG.USAF_D2 } });
+  const gate2 = (id) => P2.ev(`JSON.stringify(pmoProposalGate(${J(id)}))`);
+  const asg2 = (id) => P2.ev(`JSON.stringify((S.budgetAsg||{})[${J(id)}]||null)`);
+  const choose2 = (id, label, v) => P2.ev(`(function(){ setCur(${J(id)});
+      var s=document.querySelector(${J('#inspector select[aria-label="BAE budget, ' + label + '"]')}); if(!s) return 'no picker';
+      s.value=${J(v)}; if(s.value!==${J(v)}) return 'not offered'; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const press2 = (id, sel) => P2.ev(`(function(){ setCur(${J(id)}); var b=document.querySelector(${J(sel)}); if(!b) return 'no button'; b.click(); return 'ok'; })()`);
+  chk(name, '4 · the gate, second review', 'fixture — the box adds all three, each with the discretionary name picked for it, and the lanes pay each from mandatory alone',
+    J([[N1, N2, N3], [N1, N2, N3].map(id => [JSON.parse(asg2(id)), JSON.parse(P2.ev(`JSON.stringify(budLines(${J(id)}))`))])]),
+    J([['NEW-PSM-1', 'NEW-PSM-2', 'NEW-PSM-3'], [[{ 'ANG|disc': BG.ANG_D }, [{ svc: 'ANG', lane: 'mand' }]], [{ 'USAF|disc': BG.USAF_D }, [{ svc: 'USAF', lane: 'mand' }]],
+       [{ 'USAF|disc': BG.USAF_D2 }, [{ svc: 'USAF', lane: 'mand' }]]]]));
+  chk(name, '4 · the gate, second review', 'control — each passes the gate as the box made it', J([N1, N2, N3].map(gate2)), J(['[]', '[]', '[]']));
+  // (iii) N1: its ANG mandatory line has nothing to offer -- once the box's choice is cleared, nothing can be chosen there
+  chk(name, '4 · the gate, second review', '(iii) N1’s ANG mandatory line offers no budget to choose: its office’s ANG names are all discretionary', choose2(N1, 'ANG mandatory', BG.ANG_D), 'not offered');
+  chk(name, '4 · the gate, second review', '(iii) “Clear all” takes the box’s choice off, and N1 passes the gate: a budget nothing can be chosen for is waived, as the box waives one',
+    J([press2(N1, '#inspector .budfoot button'), asg2(N1), gate2(N1)]), J(['ok', 'null', '[]']));
+  // (iv) N2 and N3: a mandatory name picked on the mandatory line, beside the discretionary one the box picked
+  chk(name, '4 · the gate, second review', '(iv) N2: PSM’s CAM mandatory name picked on its USAF mandatory line, beside the CAM discretionary one from the box',
+    J([choose2(N2, 'USAF mandatory', BG.USAF_M), asg2(N2), gate2(N2)]), J(['ok', J({ 'USAF|disc': BG.USAF_D, 'USAF|mand': BG.USAF_M }), '[]']));
+  chk(name, '4 · the gate, second review', '(iv) N3: PSM’s DEPOT mandatory name picked on its USAF mandatory line, beside the DEPOT discretionary one from the box',
+    J([choose2(N3, 'USAF mandatory', BG.USAF_M2), asg2(N3), gate2(N3)]), J(['ok', J({ 'USAF|disc': BG.USAF_D2, 'USAF|mand': BG.USAF_M2 }), '[]']));
+  // a BAE re-import marks USAF's CAM discretionary name and its DEPOT mandatory one retired
+  P2.ev(`BUDDB={ts:1700000000092, files:[], rows:${J(Object.values(BG))}.map(function(n){ return ${J([BG.USAF_D, BG.USAF_M2])}.indexOf(n)>=0? {n:n, gone:1} : {n:n}; })};
+    _budRegCache=null; render(); 'ok'`);
+  chk(name, '4 · the gate, second review', '(iv) control — after the re-import PSM still has a USAF name for a discretionary line (DEPOT), so a USAF budget is still asked for',
+    lists2(), J([[BG.USAF_D2], [BG.USAF_M], [BG.ANG_D], []]));
+  chk(name, '4 · the gate, second review', '(iv) N2, its box-picked discretionary name retired since, passes on the valid name its mandatory line holds', gate2(N2), '[]');
+  chk(name, '4 · the gate, second review', '(iv) control — N3 keeps its usable discretionary choice: the retired mandatory one is never taken in its place', gate2(N3), '[]');
+  const sub2 = v184Submit(P2, 'PSM');
+  chk(name, '4 · the gate, second review', 'Submit sends all three, holding none back',
+    J([((sub2.pkg || {}).added || []).map(x => x.nid), sub2.alerts.some(x => /missing mandatory fields/.test(x))]), J([[N1, N2, N3], false]));
+  chk(name, 'errors', 'no page error on any of the six boards', J([R.errors.length, F.errors.length, B.errors.length, P.errors.length, B2.errors.length, P2.errors.length]), J([0, 0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+// ==== end v2.07 review (import) ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

@@ -4437,9 +4437,54 @@ empty year, offices); audit-import "v2.07 — the Add box in a PMO copy (item 12
 an older proposal held back for its budget, the review and the change report, accepted, a copy on another year) and the
 v2.06 blocks migrated to the box; audit-board's add fixtures through `reqCreate` and the box, and "v2.07 — a BAE file entry with
 no date, or an estimate with no totals, does not stop the board drawing"; the hostile sweep through nine steps of the box;
-`npm run panels`, `dialogs`, `keys` M, `standards` and `layout` M. **93 new mutations** (`v207-121-*`, `v207-*`), each run
-against its own block on a mutant and caught; 8 older ones retargeted to the box (`proposal-gate-open`, `add-total-*` 3,
-`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`).
+`npm run panels`, `dialogs`, `keys` M, `standards` and `layout` M; and the review's two blocks, audit-other "v2.07 — the
+review of the Add box: rounding, an office named (AV), …" and audit-import "v2.07 — the review of the Add box: Roll forward,
+From another year, the budget gate, the reviewer". **154 new mutations** (92 `v207-121-*` and `v207-*` from the build, 31
+`v207-rv-*` from the review, 31 `v207-rv2-*` / `v207-rv3-*` from the second review), each run against its own block on a mutant
+of the final board and caught; 8 older ones retargeted to the box (`proposal-gate-open`, `add-total-*` 3,
+`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`). 2,317 targets, each matching
+once.
+
+**Found by an independent review before merge, fixed in v2.07** (25 Oct; six reviewers by area, each finding re-run by a
+skeptic trying to refute it: 16 distinct defects confirmed, 1 refuted):
+- **By name only where there is a name.** A box-made requirement has no record title until the CCaR list names it, so `yearHas`
+  and `naFromHere` matched every requirement of one plan event by "event + blank title": Roll forward promised two copies and
+  made one ("already there"), and From another year greyed out a different requirement. The name test needs a title now, and
+  `yearHas` finds a rolled copy by its link itself (`yearLinkOf` skips a copy that took the same id).
+- **What the form holds is never thrown away**: adding from From another year emptied New requirement (or closed the box);
+  now those to finish wait behind what the form holds (`naFromAdd`).
+- **The proposal gate reads a budget chosen on the mandatory line** where the RECORD panel shows that service no other line
+  (`reqDraftOf` via `budLines`), checked against the office's names in any lane; a copy's proposal funded only from mandatory
+  could otherwise be held back for good after a clear.
+- **The box:** every rounding said, to $0 and in Spread evenly's total; an office named from punctuation ("(AV)") gets its
+  budgets (`budParseName`'s one pattern, `offRe`, no word boundary, no lookbehind); an early Add's marks come off the control
+  as well as its box; a key that opens the office list hands the choice back to the list; *Add and open its record* takes
+  off a PMO filter that hides the new row, and is hidden while more brought in wait to be finished; a ticked row in From
+  another year keeps the keyboard (`naFromCb_<id>`); a budget stored in another letter case is preselected; a WBS that is
+  null or one blank line is read alike by the Ready column and the form; *Also carried* names fields by `FL()`.
+- **The reviewer** reads a proposal as its row will (`pmoNewName`: plan event, and a typed record title beside it -- a
+  copy before v2.07 left the event "(added at drill)").
+- Text that still described the strip (the Review tool's tooltip, Reset year's message, Submit's hold-back message).
+- **And two the review's own fixes needed**, found by the agents writing their checks: a requirement brought in can now wait
+  behind one typed by hand, and Add's status line read the year off the one just added and threw (it reads the one now
+  open, `nx`); and the office pattern stopped matching an office that starts with punctuation glued to the word before it
+  ("…Discretionary(AV)", as it did before) -- such a name needs no separator, one that starts with a letter still does.
+
+**A second review of those fixes** (three reviewers, each finding re-run by a skeptic: 12 confirmed, 0 refuted), all fixed:
+- **"The same work", once more.** A year started as a copy holds a box-made requirement under the same id with no link: found
+  by the id and its name, in `yearHas` and `naFromHere`. A candidate whose link shows it is the copy of ANOTHER requirement of
+  that year is never this one, whatever the names (two box-made ones on one CCaR record and one plan event). A requirement whose
+  original is the one on screen reads "already in" (`naFromHere`, yearLinkOf's rule).
+- **The queue, redesigned.** The first review's fix let ones brought in wait behind a form typed by hand, invisibly, with no
+  Skip, dropped by the next Add or by Esc. Now: a row in the form or waiting (`naFromWaiting`) cannot be ticked again (it was
+  added twice); one being finished keeps its place and its bar counts what waits behind it live (`arFinBarDraw`); a form typed
+  by hand is replaced only after a question, and Cancel changes nothing (`arFormHeld`); Add's status line names every year
+  still waiting.
+- **The gate:** on a service only mandatory pays, a usable mandatory choice wins over a retired discretionary one, and a
+  service whose mandatory line has nothing to offer (the office's names are all discretionary) is waived (`nolist`).
+- A WBS refused for its length keeps its mark while other fields are typed; Reset year's message reads as a sentence.
+- And one more, found writing those checks: after a copy both years number from the same count, so the copy rule (same id,
+  no link, same name) took two requirements added later, one each side, for one. It asks the office and the CCaR record too.
 
 **Not changed, on purpose:** the row's ⋯ *Rename the CCaR record name* stays (the box does not type a record title; a person may
 still name a record by hand afterwards); a copy published before v2.07 still gates its proposals by the v2.06 list (the board

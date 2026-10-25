@@ -388,7 +388,10 @@ for (const build of BUILDS) {
     } catch (e) { return false; } });
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
     const finShown = await page.evaluate(() => { try {
-      naFromAdd(); const fb = document.getElementById('arFinBar');
+      // the form still holds what was typed, so bringing one in to finish asks first (v2.07 review): answered OK
+      const c0 = window.confirm; window.confirm = () => true;
+      try { naFromAdd(); } finally { window.confirm = c0; }
+      const fb = document.getElementById('arFinBar');
       return !!fb && !fb.hidden && !!fb.querySelector('button') && arTabOn === 'new';
     } catch (e) { return false; } });
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);

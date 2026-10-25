@@ -2146,6 +2146,294 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// v2.07 REVIEW OF THE ADD BOX (25 Oct 2026). An independent review of v2.07 found the box saying less, or doing less, than
+// the person at it would expect, in seven places; each is fixed and held here through the rendered controls -- a value set and
+// its input / change events fired, a rendered button clicked, a key pressed on the control -- with every expectation typed from
+// the fixture below and the rule it states, never read back from the board:
+//   offices PSM and AV, then "(AV)" added through Setup; services USAF, ANG, STOVL; A (PSM) ranked over B (AV);
+//   FY26 holds P26 and Q26, both PSM's and both missing fields, so each opens in New requirement to be finished;
+//   the BAE list: PSM has a Discretionary USAF name and a lane-less ANG one; AV a USAF and a STOVL name (ending " AV");
+//   and one USAF name ends "(AV)".
+// A second review of those fixes (25 Oct 2026) added here: a WBS Add refused for its length keeps its mark until it is right;
+// one ticked to finish while another is being finished waits behind it (Add and open hidden until the last); and Reset year's
+// line names the Add requirement box there is.
+{
+  const name = 'v2.07 — the review of the Add box: rounding, an office named (AV), the marks, the office keys, the PMO filter, a ticked row, Add and open';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mkI = (id, grp, ask, ev) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: ev,
+    ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { ev } = boot();
+  seed(ev, { services: SV, items: [mkI('A', 'PSM', [100, 40, 20], 'alpha event'), mkI('B', 'AV', [50, 0, 0], 'bravo event')],
+    disc: [200, 100, 50], mand: [50, 20, 10], order: ['A', 'B'] });
+  const BAE = { psmDisc: 'USAF O&M- CAM Discretionary PSM', psmAng: 'USAF O&M - ANG CAM PSM', avDisc: 'USAF O&M- CAM Discretionary AV',
+    avStovl: 'USMC STOVL O&M -1A9A FL Discretionary AV', parAv: 'USAF O&M- CAM Discretionary (AV)' };
+  const OB = 'PMO LM Contract';
+  ev(`(function(){
+    BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.pmoOrder={PSM:['A'], AV:['B']};
+    var T=freshYearState(); T.order=['P26','Q26'];
+    T.custom=[{id:'P26', grp:'PSM', team:'PSM', sect:'new', custom:true, title:'P26 title', event:'papa event', ccar:'', fy26:[0,0,0], ask:[5,0,0], alloc:null},
+              {id:'Q26', grp:'PSM', team:'PSM', sect:'new', custom:true, title:'Q26 title', event:'quebec event', ccar:'', fy26:[0,0,0], ask:[7,0,0], alloc:null}];
+    MS.years['2026']=T;
+    var B=${J(BAE)};
+    BUDDB={ts:1790000000125, files:[], rows:Object.keys(B).map(function(k){ return {n:B[k]}; })};
+    _budRegCache=null;
+    save(); render();
+    window.__asked=[]; window.__ans=false; window.confirm=function(m){ window.__asked.push(String(m)); return window.__ans; };
+    window.__g=function(id){ return document.getElementById(id); };
+    // a key pressed on a control, with Alt held where asked
+    window.__key=function(k, t, o){ t=t||document.activeElement||document.body; var d={key:k, bubbles:true, cancelable:true};
+      if(o) for(var p in o) d[p]=o[p]; t.dispatchEvent(new KeyboardEvent('keydown', d)); dlgSync(); };
+    window.__set=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.focus(); e.value=v;
+      e.dispatchEvent(new Event('input', {bubbles:true})); e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+    window.__pick=function(id, v){ var e=__g(id); if(!e) return 'no #'+id; e.value=v; if(e.value!==String(v)) return 'not offered';
+      e.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; };
+    window.__click=function(sel){ var b=document.querySelector(sel); if(!b) return 'no '+sel; b.click(); dlgSync(); return 'ok'; };
+    window.__cancel=function(){ var b=[].slice.call(document.querySelectorAll('#arFt button')).filter(function(x){ return x.textContent==='Cancel'; })[0];
+      if(!b) return 'no Cancel'; b.click(); dlgSync(); return 'ok'; };
+    window.__box=function(){ var h=function(id){ var e=__g(id); return e? e.hidden : null; };
+      return JSON.stringify({open:arOpen, off:arOff, step:h('arOffStep'), form:h('arNew')}); };
+    window.__rail=function(){ return JSON.stringify([].slice.call(document.querySelectorAll('#arChk li')).map(function(li){
+      return li.className+':'+li.childNodes[1].textContent+(li.querySelector('span:not(.sr)')? li.querySelector('span:not(.sr)').textContent : ''); })); };
+    window.__opts=function(id){ var e=__g(id); return e? [].slice.call(e.options).map(function(o){ return o.value; }) : null; };
+    // what an early Add marked, as the page has it: the outlined boxes, and the controls a screen reader hears as invalid
+    window.__marks=function(){ var ids=function(s){ return [].slice.call(document.querySelectorAll(s)).map(function(e){ return e.id; }).join(','); };
+      return ids('#arNew .miss')+' | '+ids('#arNew [aria-invalid]'); };
+    // every required field answered, a prime contract (so no WBS), USAF only
+    window.__fill=function(evn){ __set('arEvent', evn); __click('#arPtP'); __set('arV0', '500'); __pick('arB0', B.psmDisc);
+      __pick('arOb', ${J(OB)}); __pick('arTo', 'lm'); __set('arDesc', 'd'); __set('arCons', 'c'); return 'ok'; };
+    return 'ok'; })()`);
+  const box = () => JSON.parse(ev(`__box()`));
+  const rail = () => JSON.parse(ev(`__rail()`));
+  const val = id => ev(`(__g(${J(id)})||{value:'(none)'}).value`);
+  const say = () => ev(`__g('arMsg')? __g('arMsg').textContent+' · '+__g('arMsg').className : '(no message line)'`);
+  const stat = () => ev(`__g('shareStat').textContent`);
+  const marks = () => ev(`__marks()`);
+
+  // ── ROUNDING IS SAID. A total spread, or a figure typed, that is not whole dollars is kept as whole dollars -- and the box
+  // says so, as every other money editor does (amtNo). "1,000,000.50" spread over three went in as 333,334 / 334 / 333 with
+  // the box silent, so the person read $1,000,001 back without being told the .50 had become a dollar.
+  ev(`setPmoFilter('PSM'); __click('#toolAdd'); 'ok'`);
+  chk(name, 'rounding', 'CONTROL: the box opens for PSM, the office chosen at the top', J([box().open, box().off, box().form]), J([true, 'PSM', false]));
+  ev(`__set('arSpread', '1,000,000.50'); __click('#arNew .ar-spread button'); 'ok'`);
+  chk(name, 'rounding', 'a total of 1,000,000.50 spread: $1,000,001 in whole dollars, the leftover two to the first two services, and the box says the total was rounded',
+    J([val('arV0'), val('arV1'), val('arV2'), ev(`__g('arTot').textContent`), say()]),
+    J(['333,334', '333,334', '333,333', '$1,000,001', 'The total “1,000,000.50” was entered as $1,000,001 — the board keeps whole dollars. · ar-msg ok']));
+  ev(`__set('arSpread', '300'); __click('#arNew .ar-spread button'); 'ok'`);
+  chk(name, 'rounding', 'CONTROL: a total in whole dollars spreads 100 / 100 / 100 and says nothing',
+    J([val('arV0'), val('arV1'), val('arV2'), say()]), J(['100', '100', '100', ' · ar-msg']));
+  ev(`__cancel(); 'ok'`);
+
+  // ── AN OFFICE NAMED "(AV)" GETS ITS OWN BUDGETS. The rule took an office's name off the end of a BAE name only after a
+  // word boundary, and there is none between a space and "(": an office added in Setup as "(AV)" was offered nothing, its
+  // budget shown waived for want of a name the list does hold. The office's name now starts its own word whatever it starts
+  // with -- one pattern, used both to find the office and to take it off the funding line -- and "(AV)" still never takes AV's.
+  chk(name, '(AV)', 'CONTROL: before "(AV)" is an office, the name ending "(AV)" names no office -- not AV',
+    ev(`budParseName(${J(BAE.parAv)}).pmo`), '');
+  ev(`window.__oup=uiPrompt; uiPrompt=function(m, d, cb){ cb('(AV)'); }; pmoAdd(); uiPrompt=window.__oup; 'ok'`);
+  chk(name, '(AV)', '"(AV)" is added through Setup', ev(`GROUPS.indexOf('(AV)')>=0`), true);
+  chk(name, '(AV)', 'its BAE name is read as (AV)’s, discretionary, on the CAM line -- "(AV)" taken off the end, as "PSM" is off PSM’s',
+    ev(`(function(){ var p=budParseName(${J(BAE.parAv)}); return [p.pmo, p.dm, p.line].join(' · '); })()`), '(AV) · disc · CAM');
+  chk(name, '(AV)', 'CONTROL: AV’s own name is still AV’s, on the same line',
+    ev(`(function(){ var p=budParseName(${J(BAE.avDisc)}); return [p.pmo, p.dm, p.line].join(' · '); })()`), 'AV · disc · CAM');
+  // a name that starts with punctuation needs no separator before it: glued to the word before, it was (AV)'s before v2.07 and
+  // still is; a name that starts with a letter still needs one ("DiscretionaryPSM" names nobody)
+  chk(name, '(AV)', 'a BAE name with "(AV)" glued to the word before it is (AV)’s too; one with PSM glued on names nobody',
+    J([ev(`budParseName('USAF O&M- CAM Discretionary(AV)').pmo`), ev(`budParseName('USAF O&M- CAM DiscretionaryPSM').pmo`)]), J(['(AV)', '']));
+  ev(`setPmoFilter('(AV)'); __click('#toolAdd'); __set('arV0', '10'); __set('arV2', '10'); 'ok'`);
+  chk(name, '(AV)', 'the box for (AV): USAF offers (AV)’s own name and never AV’s; STOVL, which only AV has a name for, shows no picker and says so',
+    J([box().off, JSON.parse(ev(`JSON.stringify(__opts('arB0'))`)), ev(`__g('arB0').hidden`), ev(`__g('arB2').hidden`), ev(`__g('arBn2').textContent`)]),
+    J(['(AV)', ['', BAE.parAv], false, true, 'no STOVL budget is listed for (AV)']));
+  chk(name, '(AV)', 'and the rail asks for that one budget -- 0 of 1 chosen, never waived', J(rail()[3]), J('no:Budget · 0 of 1 chosen'));
+  ev(`__pick('arB0', ${J(BAE.parAv)}); 'ok'`);
+  chk(name, '(AV)', 'chosen: 1 of 1', J(rail()[3]), J('ok:Budget · 1 of 1 chosen'));
+  ev(`__cancel(); setPmoFilter('AV'); __click('#toolAdd'); __set('arV0', '10'); __set('arV2', '10'); 'ok'`);
+  chk(name, '(AV)', 'CONTROL: the box for AV offers AV’s USAF and STOVL names, never (AV)’s',
+    J(JSON.parse(ev(`JSON.stringify([__opts('arB0'), __opts('arB2')])`))), J([['', BAE.avDisc], ['', BAE.avStovl]]));
+  ev(`__cancel(); 'ok'`);
+
+  // ── A MARK COMES OFF WHERE IT WAS PUT. Add pressed early outlines every missing field and tells a screen reader each control
+  // is invalid. Answering a field took the outline off its box only: the first value box (outlined itself, outside any field
+  // box), every control's "invalid", the Prime / OGC switch's, and a CCaR record refused for its length and then corrected all
+  // stayed marked -- a box that read as wrong when it was right. Each mark now comes off as its field is answered.
+  ev(`setPmoFilter('PSM'); __click('#toolAdd'); __click('#arAddBtn'); 'ok'`);
+  const M0 = ['arF_titles', 'arF_ptype', 'arF_obCat', 'arF_wbs', 'arV0', 'arF_dest', 'arF_desc', 'arF_cons'];
+  const I0 = ['arEvent', 'arPtP', 'arOb', 'arWbs', 'arV0', 'arTo', 'arDesc', 'arCons'];
+  const left = (m, i) => m.join(',') + ' | ' + i.join(',');
+  chk(name, 'marks', 'Add pressed with nothing filled: every missing field outlined, and its control marked invalid', marks(), left(M0, I0));
+  const STEPS = [
+    ['the plan event typed', `__set('arEvent', 'Marks event')`, 'arF_titles', 'arEvent'],
+    ['OGC pressed', `__click('#arPtO')`, 'arF_ptype', 'arPtP'],
+    ['a USAF value typed (the first value box carries its own outline)', `__set('arV0', '500')`, 'arV0', 'arV0'],
+    ['an obligation category chosen', `__pick('arOb', ${J(OB)})`, 'arF_obCat', 'arOb'],
+    ['a WBS typed', `__set('arWbs', '1.2')`, 'arF_wbs', 'arWbs'],
+    ['Goes to chosen', `__pick('arTo', 'lm')`, 'arF_dest', 'arTo'],
+    ['a description typed', `__set('arDesc', 'd')`, 'arF_desc', 'arDesc'],
+    ['an impact statement typed', `__set('arCons', 'c')`, 'arF_cons', 'arCons'],
+  ];
+  let mL = M0.slice(), iL = I0.slice();
+  STEPS.forEach(([what, act, m, i]) => {
+    ev(`${act}; 'ok'`);
+    mL = mL.filter(x => x !== m); iL = iL.filter(x => x !== i);
+    chk(name, 'marks', what + ': its outline and its control’s mark come off, every other mark stays', marks(), left(mL, iL));
+  });
+  ev(`__click('#arAddBtn'); 'ok'`);
+  chk(name, 'marks', 'Add again with only USAF’s budget unchosen: its picker alone is marked', marks(), 'arB0 | arB0');
+  ev(`__pick('arB0', ${J(BAE.psmDisc)}); 'ok'`);
+  chk(name, 'marks', 'the budget chosen: no mark left on its picker', marks(), ' | ');
+  ev(`__set('arCcar', 'JSF1234567890'); __click('#arAddBtn'); 'ok'`);
+  chk(name, 'marks', 'a CCaR record of 13 characters: refused, its field outlined and its box marked', marks(), 'arF_ccar | arCcar');
+  ev(`__set('arCcar', 'JSF1'); 'ok'`);
+  chk(name, 'marks', 'corrected to JSF1: nothing in the box is marked any more', marks(), ' | ');
+
+  // ── A WBS ADD REFUSED FOR ITS LENGTH STAYS MARKED UNTIL IT IS ONE ADD TAKES (second review). The rail counts a WBS as
+  // answered once anything is typed in it, so the first keystroke anywhere else in the box took the outline and the "invalid"
+  // off a WBS of 41 characters -- the box read as right, and Add refused it again. The mark now stays until the WBS is one Add
+  // takes (40 characters at most, codeMax), or until Prime contract is pressed: a prime's WBS is logged per CLIN, so the box
+  // asks for none and the hidden field is not wrong.
+  const W41 = '1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16.17';      // 41 characters
+  const wbsNo = 'This requirement was not added. The WBS “' + W41 + '” is 41 characters; it can be at most 40. '
+    + 'Nothing on the board was changed; the box keeps what you typed. · ar-msg bad';
+  ev(`__set('arWbs', ${J(W41)}); __click('#arAddBtn'); 'ok'`);
+  chk(name, 'WBS mark', 'a WBS of 41 characters: Add refuses it, outlines its field and marks its box, and nothing is added',
+    J([marks(), say(), ev(`S.order.join(',')`)]), J(['arF_wbs | arWbs', wbsNo, 'A,B']));
+  ev(`__set('arCons', 'c, and more'); __set('arEvent', 'Marks event'); 'ok'`);
+  chk(name, 'WBS mark', 'the impact statement and the plan event typed again: the WBS is still 41 characters, and keeps its outline and its mark',
+    marks(), 'arF_wbs | arWbs');
+  ev(`__set('arWbs', '1.2.3'); 'ok'`);
+  chk(name, 'WBS mark', 'corrected to 1.2.3: its outline and its mark come off, and nothing in the box is marked', marks(), ' | ');
+  ev(`__set('arWbs', ${J(W41)}); __click('#arAddBtn'); 'ok'`);
+  chk(name, 'WBS mark', 'CONTROL: 41 characters again and Add: marked again, nothing added', J([marks(), ev(`S.order.join(',')`)]), J(['arF_wbs | arWbs', 'A,B']));
+  ev(`__click('#arPtP'); 'ok'`);
+  chk(name, 'WBS mark', 'Prime contract pressed: the WBS is hidden (logged per CLIN) and its outline and its mark come off',
+    J([ev(`__g('arWbs').hidden`), marks()]), J([true, ' | ']));
+  ev(`__click('#arPtO'); __set('arWbs', '1.2'); 'ok'`);
+  chk(name, 'WBS mark', 'CONTROL: OGC again, the WBS shown and set to 1.2: nothing marked', J([ev(`__g('arWbs').hidden`), marks()]), J([false, ' | ']));
+
+  // A FIGURE ROUNDED TO $0 IS SAID TOO. "0.40" typed for STOVL went in as $0, and the status line, which says every other
+  // rounding, said nothing: it was said only for a figure that rounded to more than $0.
+  ev(`__set('arV2', '0.40'); __click('#arAddBtn'); 'ok'`);
+  const N1 = ev(`S.order[S.order.length-1]`);
+  chk(name, 'rounding', 'STOVL typed as 0.40: added, STOVL at $0', J([box().open, ev(`itemById(${J(N1)}).event`), JSON.parse(ev(`JSON.stringify(itemById(${J(N1)}).ask)`))]),
+    J([false, 'Marks event', [500, 0, 0]]));
+  chk(name, 'rounding', 'and the status line says STOVL was entered as $0',
+    (stat().match(/ℹ .*$/) || ['(nothing said of a rounding)'])[0], 'ℹ STOVL: “0.40” was entered as $0 — the board keeps whole dollars.');
+
+  // ── THE OFFICE QUESTION: A KEY THAT OPENS THE LIST HANDS THE CHOICE BACK TO IT. A keyboard move only moves (the v2.07
+  // review's first fix: Chromium fires change on every arrow key of a closed select). But a person who moved with an arrow key
+  // and then opened the list -- Space, F4 or Alt+ArrowDown -- and picked from it was ignored: the pick fired change like a
+  // move, and the box went on asking. A pick from the open list chooses, as a mouse pick does.
+  ev(`setPmoFilter('ALL'); 'ok'`);
+  const OPENERS = [['Space', ' ', false], ['F4', 'F4', false], ['Alt+ArrowDown', 'ArrowDown', true]];
+  OPENERS.forEach(([lbl, k, alt]) => {
+    ev(`__click('#toolAdd'); (function(){ var s=__g('arOffice'); s.focus(); __key('ArrowDown', s); s.value='ATL'; s.dispatchEvent(new Event('change', {bubbles:true})); })(); 'ok'`);
+    chk(name, 'office keys', lbl + ': CONTROL: ArrowDown first only moves -- no office chosen, the question still asked', J([box().off, box().step, box().form]), J(['', false, true]));
+    ev(`(function(){ var s=__g('arOffice'); __key(${J(k)}, s, {altKey:${alt}}); s.value='PSM'; s.dispatchEvent(new Event('change', {bubbles:true})); })(); 'ok'`);
+    chk(name, 'office keys', lbl + ' opens the list and PSM is picked from it: PSM chosen, the question gone, the form shown',
+      J([box().off, box().step, box().form]), J(['PSM', true, false]));
+    ev(`__cancel(); 'ok'`);
+  });
+  ev(`__click('#toolAdd'); (function(){ var s=__g('arOffice'); s.focus(); ['ArrowDown', 'ArrowUp', 'End', 'p'].forEach(function(k){
+      __key(k, s); s.value='PSM'; s.dispatchEvent(new Event('change', {bubbles:true})); }); })(); 'ok'`);
+  chk(name, 'office keys', 'CONTROL: ArrowDown, ArrowUp, End and a letter -- each a move, each firing change -- choose nothing',
+    J([box().off, box().step, box().form]), J(['', false, true]));
+  ev(`__key('Enter', __g('arOffice')); 'ok'`);
+  chk(name, 'office keys', 'CONTROL: and Enter chooses the office moved to', J([box().off, box().step]), J(['PSM', true]));
+  ev(`__cancel(); 'ok'`);
+
+  // ── "ADD AND OPEN ITS RECORD" TAKES OFF THE PMO FILTER THAT HIDES IT. The box adds for the office it opened with, and the
+  // office shown behind it can change while it is open: added for PSM with AV showing, the new requirement was not on screen,
+  // the RECORD panel fell back to an AV row, and nothing said why. The PMO filter comes off, and is named.
+  ev(`setPmoFilter('PSM'); __click('#toolAdd'); setPmoFilter('AV'); __fill('Filter event'); __click('#arAddOpen'); 'ok'`);
+  await new Promise(r => setTimeout(r, 30));
+  const N2 = ev(`S.order[S.order.length-1]`);
+  chk(name, 'PMO filter', 'added for PSM with AV showing behind the box: the PMO filter is off, the new PSM requirement is the current row and on screen',
+    J([N2 !== N1, ev(`itemById(${J(N2)}).event`), ev(`grpOf(itemById(${J(N2)}))`), ev(`filter`), ev(`curRow`) === N2, ev(`!!__g('row-'+curRow)`)]),
+    J([true, 'Filter event', 'PSM', 'ALL', true, true]));
+  chk(name, 'PMO filter', 'and the status line names the PMO filter as taken off', stat(),
+    `Showing ${N2} in its record — the PMO filter was taken off so it can be seen.`);
+  ev(`setPmoFilter('PSM'); __click('#toolAdd'); __fill('Own office event'); __click('#arAddOpen'); 'ok'`);
+  await new Promise(r => setTimeout(r, 30));
+  const N3 = ev(`S.order[S.order.length-1]`);
+  chk(name, 'PMO filter', 'CONTROL: PSM showing and added for PSM: the filter stays, the requirement is on screen, and nothing is said to have come off',
+    J([N3 !== N2, ev(`filter`), ev(`curRow`) === N3, ev(`!!__g('row-'+curRow)`), /taken off/.test(stat())]), J([true, 'PSM', true, true, false]));
+
+  // ── A TICKED ROW KEEPS THE KEYBOARD; ONLY THE LAST ONE TO FINISH CAN BE OPENED. jsdom lays nothing out, so for these two the
+  // page is given the browser's one fact the dialog controller reads -- an element is drawn when nothing over it is hidden --
+  // and the box is reconciled by hand (dlgSync) where a browser's observer would. Ticking a row of From another year redraws
+  // the list: the checkbox had no id, so the controller could not find it again and sent the keyboard to the year picker at
+  // the top, and the next Tab started over. Each checkbox is found again by its own id.
+  ev(`window.__gcr=Element.prototype.getClientRects;
+      Element.prototype.getClientRects=function(){ for(var e=this; e; e=e.parentElement){ if(e.hidden || (e.style && e.style.display==='none')) return []; }
+        return this.isConnected? [{top:0, left:0, right:1, bottom:1, width:1, height:1}] : []; }; 'ok'`);
+  ev(`__click('#toolAdd'); __click('#arTabYr'); __pick('naFromFy', '2026'); 'ok'`);
+  chk(name, 'a ticked row', 'CONTROL: PSM’s FY26 list holds P26 and Q26, each to be ticked',
+    ev(`[].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return r.getAttribute('data-id')+':'+!!r.querySelector('input[type=checkbox]'); }).join(',')`),
+    'P26:true,Q26:true');
+  const tick = id => ev(`(function(){ var c=document.querySelector('#naFromWrap tr[data-id=${J(id)}] input[type=checkbox]'); c.focus(); c.checked=true;
+      c.dispatchEvent(new Event('change', {bubbles:true})); dlgSync(); var a=document.activeElement, r=a && a.closest? a.closest('tr[data-id]') : null;
+      return [a && a.id, r && r.getAttribute('data-id'), a && a.type, a && a.checked].join(' · '); })()`);
+  chk(name, 'a ticked row', 'P26 ticked: the list is redrawn and the keyboard is on P26’s own checkbox, ticked -- not on the year picker', tick('P26'),
+    'naFromCb_P26 · P26 · checkbox · true');
+  chk(name, 'a ticked row', 'then Q26 ticked: the keyboard on Q26’s, and the button offers both to finish', tick('Q26') + ' · ' + ev(`__g('naFromBtn').textContent`),
+    'naFromCb_Q26 · Q26 · checkbox · true · Finish 2 in New requirement');
+  // The box stays open over the record until the last one brought in is finished, so "Add and open its record" on any but the
+  // last would open a record behind a box that does not close: it was offered on every one.
+  ev(`__click('#naFromBtn'); 'ok'`);
+  const ft = () => ev(`[__g('arAddOpen').hidden, __g('arAddBtn').hidden, /Finishing FY26 (P26|Q26)/.exec(__g('arFinBar').textContent)[1]].join(' · ')`);
+  chk(name, 'Add and open', 'finishing P26, Q26 still waiting: Add requirement is offered, Add and open its record is not', ft(), 'true · false · P26');
+  ev(`__click('#arFinBar button'); 'ok'`);
+  chk(name, 'Add and open', 'P26 skipped, Q26 the last: Add and open its record is offered again', ft(), 'false · false · Q26');
+  // (second review) One being finished keeps its place: more ticked to finish wait BEHIND it, its bar counts them as they
+  // stand, and Add and open goes again while any wait -- then comes back for the last.
+  const bar = () => ev(`(function(){ var t=__g('arFinBar').textContent, m=/ · (\\d+) more after this\\./.exec(t);
+      return /Finishing FY26 (P26|Q26)/.exec(t)[1]+' · '+(m? m[1] : 0)+' waiting'; })()`);
+  ev(`__click('#arTabYr'); 'ok'`);
+  chk(name, 'Add and open', 'CONTROL: Q26 is in the form, so From another year lists it as in New requirement, with no checkbox; P26, skipped, can be ticked',
+    ev(`[].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return r.getAttribute('data-id')+':'
+      +!!r.querySelector('input[type=checkbox]')+':'+/— in New requirement, to finish/.test(r.textContent); }).join(',')`),
+    'P26:true:false,Q26:false:true');
+  chk(name, 'Add and open', 'P26 ticked again: the button offers one to finish', tick('P26') + ' · ' + ev(`__g('naFromBtn').textContent`),
+    'naFromCb_P26 · P26 · checkbox · true · Finish 1 in New requirement');
+  ev(`__click('#naFromBtn'); 'ok'`);
+  chk(name, 'Add and open', 'brought in while Q26 is being finished: the box is back on New requirement with Q26 still in it, its bar counts P26 waiting, '
+    + 'Add requirement is offered and Add and open its record is not',
+    J([box().form, bar(), ft()]), J([false, 'Q26 · 1 waiting', 'true · false · Q26']));
+  chk(name, 'Add and open', 'and the box and the status line say it waits behind the one being finished',
+    J([say(), stat()]), J(['1 to finish in New requirement, after the one being finished. · ar-msg ok', '1 to finish in New requirement, after the one being finished.']));
+  ev(`__fill('Q26 finished'); __click('#arAddBtn'); 'ok'`);
+  const NQ = ev(`S.order[S.order.length-1]`);
+  chk(name, 'Add and open', 'Q26 finished and added, linked to FY26 Q26; P26, the last, opens: Add and open its record is offered again',
+    J([NQ !== N3, ev(`itemById(${J(NQ)}).event`), JSON.parse(ev(`JSON.stringify(itemById(${J(NQ)}).prior)`)), bar(), ft()]),
+    J([true, 'Q26 finished', { fy: 2026, id: 'Q26' }, 'P26 · 0 waiting', 'false · false · P26']));
+  chk(name, 'Add and open', 'the status line names the one added and the one still to finish', stat(),
+    `➕ Added ${NQ} — Q26 finished — to FY27 for PSM, at the bottom of the order, linked to FY26 Q26. 1 more to finish from FY26.`);
+  ev(`__fill('P26 finished'); __click('#arAddOpen'); 'ok'`);
+  const NP = ev(`S.order[S.order.length-1]`);
+  chk(name, 'Add and open', 'P26 finished with Add and open its record: added, linked to FY26 P26, the box closed and the new requirement the current row',
+    J([NP !== NQ, ev(`itemById(${J(NP)}).event`), JSON.parse(ev(`JSON.stringify(itemById(${J(NP)}).prior)`)), box().open, ev(`curRow`) === NP]),
+    J([true, 'P26 finished', { fy: 2026, id: 'P26' }, false, true]));
+  ev(`Element.prototype.getClientRects=window.__gcr; 'ok'`);
+
+  // ── RESET YEAR NAMES THE BOX THERE IS (second review). The blank year's line sent people to "✎ Board → Add Requirement",
+  // a menu the board no longer has; it names Review's Add requirement, as a sentence of its own.
+  ev(`window.__asked=[]; window.__ans=true; resetYear(); window.__ans=false; 'ok'`);
+  chk(name, 'Reset year', 'Reset year asks first, and FY27 is left with no requirements',
+    J([ev(`__asked.length`), /^Reset FY27 to BLANK\?/.test(ev(`__asked[0]||''`)), ev(`S.order.length`)]), J([1, true, 0]));
+  chk(name, 'Reset year', 'the status line sends people to Add requirement under Requirements › Review, in a sentence of its own', stat(),
+    '🗑 FY27 is now BLANK — no requirements, zero BA. Use Add requirement (Requirements › Review) to add requirements, restore baseline '
+    + 'items from the 🗑 Removed list (Restore all brings the full set back), or roll data in via Import.');
+  chk(name, 'Reset year', 'CONTROL: the button it names is there, in the Review tools, called Add requirement',
+    ev(`(function(){ var b=__g('t_review') && __g('t_review').querySelector('#toolAdd'); return b? b.textContent.trim() : '(not in the Review tools)'; })()`),
+    'Add requirement');
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

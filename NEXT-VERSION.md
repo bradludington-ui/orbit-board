@@ -233,13 +233,48 @@ had to decide something the log does not say, it says so here.
   under its provisional id, and its budgets, PID and narrative -- all required in the box -- were not shown before accepting;
   `budParseName` built a RegExp from an office's raw name (an office named *C++* stopped the board drawing); and, not item 121,
   a BAE file entry with no readable date and an estimate with no totals each stopped every redraw while their panel was open.
+- **Found by an independent review before merge and fixed** (25 Oct; six reviewers, one per area -- data loss, money, the required
+  list, escaping, the box, regressions -- each finding re-run from scratch by a second agent trying to refute it: 20 confirmed,
+  16 distinct, 1 refuted): Roll forward made one copy of two box-made requirements sharing a plan event and said the other was
+  already there, and From another year greyed out the second (the "same work" test matched a blank title); adding from From
+  another year threw away what was typed in New requirement; a copy's proposal funded only from mandatory could be held back
+  for good once its budget was cleared; a figure rounded to $0, or a spread total, was rounded silently; an office named
+  "(AV)" never got its budgets; an early Add's marks stayed on answered fields; an office picked in the opened list after an
+  arrow key was not taken; *Add and open its record* opened a record a PMO filter hid, and did nothing while more waited to be
+  finished; ticking a row from the keyboard sent the keyboard to the year select; a budget stored in another letter case and
+  a blank or null WBS line made the Ready column and the form disagree (a null one threw); *Also carried* spelled field names
+  by hand; the review named every pre-v2.07 proposal "(added at drill)"; three texts still described the strip. Refuted: the
+  Remove confirm naming "Multiple records (2)" (the board's own record name, as everywhere else).
+  The agents writing the checks for those fixes found two more in the fixes themselves, both fixed: an Add while a brought-in
+  requirement waited behind typed work threw on its status line, and an office starting with punctuation glued to the word
+  before it ("…Discretionary(AV)") no longer matched.
+- **A second review, of those fixes** (25 Oct; three reviewers, each finding re-run by a skeptic: 12 confirmed, none refuted),
+  all fixed: Roll forward copied a box-made requirement again into a year started as a copy, and From another year offered it
+  back in both directions; From another year offered back a requirement whose original was the one on screen; two box-made
+  requirements on one CCaR record and one plan event were still taken for one; the same requirement could be ticked again while
+  it waited or was being finished, and was added twice; ones waiting behind a form typed by hand could not be seen or skipped,
+  were dropped by the next Add or by Esc, and the bar's count went stale (the queue was redesigned: it now only ever follows
+  one being finished, and replacing what was typed by hand is asked first); Add's status line named one year for a list
+  spanning two; a proposal only mandatory pays was still held back where the office had no mandatory name, or where a retired
+  discretionary choice outranked a valid mandatory one; a WBS refused for its length lost its mark; and Reset year's message
+  began a sentence in lowercase.
+  Writing their checks found one more, fixed: after a year was started as a copy, two requirements added later, one each side,
+  that drew the same number and shared a plan event were taken for one (the copy rule now asks the office and the CCaR record).
 - **Not changed, on purpose:** the row's ⋯ *Rename the CCaR record name* stays; a copy published before v2.07 still gates its
   proposals by the v2.06 list (the board does not judge a proposal again when it arrives); editing the whole record in one box is
   item 122.
 
-**Mutations:** 93 new (`v207-121-*` and four `v207-*`), each run against its own block on a mutant of the final board and caught;
-8 retargeted to the box (`proposal-gate-open`, `add-total-divides`, `add-total-rounds-each`, `add-total-leftover-last`,
-`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`). 2,256 targets, each matching once.
+**Proved with** (25 Oct, on the final tree): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED; every browser check
+(`verify:grid`'s and `npm run standards`), `npm run layout` failing only on its carried D ×8, its M -- the box whole at 1366×657 and
+1920×969 in Harbor and Midnight, both fonts, and one column below 1366 -- passing; `npm run standards` with nothing new; the
+defect register (13, guarded by 43), money coverage (24/24), the money map (301 cells, 108 proven, 192 n/a, 1 open -- as v2.06),
+the trace matrix (every link holds), the fuzz (seed 678881496) and the file verifier's self-test.
+
+**Mutations:** 154 new -- 92 from the build (`v207-121-*` and two `v207-*`), 31 from the review (`v207-rv-*`) and 31 from the
+second review (`v207-rv2-*`, `v207-rv3-*`) -- each run against its own block on a mutant of the final board and caught; 8 older
+ones retargeted to the box (`proposal-gate-open`, `add-total-divides`, `add-total-rounds-each`, `add-total-leftover-last`,
+`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`). 2,317 targets, each matching once.
+The mutation sweep was not run (Brad's rule of 20 Oct).
 
 #### The item as logged
 
