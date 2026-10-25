@@ -659,6 +659,7 @@ The map is as complete as the two registries. money-coverage discovers only func
 - `the RECORD panel` — A requirement's per-service funding table and split editor. *Held by:* audit-board directed vs drawn; tools/inspector-agrees.mjs.
 - `ndData` — Needs attention: typed figures higher than they draw, by service and lane. *Held by:* audit-import v1.86 'a typed figure higher than it draws…'.
 - `the PPBE Budget Positions panel` — The logged position by service and year (ppSvcFy). *Held by:* audit-recon 'the PPBE position beside the plan' (through the FYDP sheet).
+- `the Add requirement box (arUpdate: #arTot, #arSum; arSpread)` — The box that builds a new requirement (v2.07, item 121): the total of the value by service as typed (#arTot), the summary beside the rail that repeats it (#arSum), and Spread evenly, which puts a typed total into the services in whole dollars by apportion(). It prints what is typed, before anything is on the board; the requirement it adds is then held by every check of an added requirement. *Held by:* audit-other 'v2.07 — the Add requirement box (item 121)' (the total as values are typed; $100 and $1,000,000 spread over three services to the dollar; a total that cannot be read spreads nothing).
 
 ## Checks cited
 

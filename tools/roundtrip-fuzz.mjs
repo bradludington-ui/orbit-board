@@ -464,10 +464,13 @@ for (let round = 1; round <= ROUNDS; round++) {
   try {
     const r = JSON.parse(ev(`(function(){
       window.confirm=function(){ return true; }; window.alert=function(){};
-      var add=function(t){ _addPanelSvc=null; syncAddPanel(); var n0=S.custom.length;
-        document.getElementById('naTitle').value=t; document.getElementById('naTot').value='1000';
-        SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=''; });
-        document.getElementById('naGrp').value=GROUPS[0]; addReq();
+      // v2.07 (item 121): the strip and addReq() are gone. reqCreate() is the one writer every way of adding goes through
+      // (the Add box, a requirement brought in from another year, one finished in the box); with no fields of the box's
+      // it writes exactly what addReq() did -- title, event, the value, the office, the Split seed -- so "inherits nothing"
+      // below still means what it meant: anything else under the new id came from the deleted one.
+      var add=function(t){ var n0=S.custom.length;
+        var nid=reqCreate(GROUPS[0], {title:t, event:'(added at drill)', ask:apportion(1000, SVC.map(function(){ return 1; }))});
+        if(nid){ save(); render(); }
         return S.custom.length>n0? S.custom[S.custom.length-1].id : ''; };
       var held=function(id){ var out=[];
         Object.keys(S).forEach(function(k){ var bag=S[k]; if(!bag || typeof bag!=='object' || Array.isArray(bag)) return;

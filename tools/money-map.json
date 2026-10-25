@@ -2686,6 +2686,11 @@
    "name": "the PPBE Budget Positions panel",
    "what": "The logged position by service and year (ppSvcFy).",
    "held": "audit-recon 'the PPBE position beside the plan' (through the FYDP sheet)."
+  },
+  {
+   "name": "the Add requirement box (arUpdate: #arTot, #arSum; arSpread)",
+   "what": "The box that builds a new requirement (v2.07, item 121): the total of the value by service as typed (#arTot), the summary beside the rail that repeats it (#arSum), and Spread evenly, which puts a typed total into the services in whole dollars by apportion(). It prints what is typed, before anything is on the board; the requirement it adds is then held by every check of an added requirement.",
+   "held": "audit-other 'v2.07 — the Add requirement box (item 121)' (the total as values are typed; $100 and $1,000,000 spread over three services to the dollar; a total that cannot be read spreads nothing)."
   }
  ]
 }

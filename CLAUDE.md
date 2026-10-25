@@ -4371,6 +4371,125 @@ a recorded cell is always a multiple of 1,000. Checks: audit-import "v2.06 — t
 second review: a service is not renamed onto a name a PPBE position still holds"; 5 `v206-fix2-*` mutations, each caught;
 `v206-117-yearcopy-drops-link` retargeted.
 
+### v2.07 (item 121): Add requirement is one box that builds the whole record
+
+Brad, 24 Oct 2026 (the request, the mock-up he saw twice and his answers, item by item); built on his "Go on 121" of 25 Oct.
+`NEXT-VERSION.md` › Shipped › v2.07 has every decision.
+
+**The strip is gone; the box is `#addPanel`**, a `.modal-bg` under the v1.93 box controller (named from its heading, Esc asks
+before typing is lost, the keyboard kept inside). Every way in opens it: Review's ＋ Add requirement (`uiAddReq`), the Review
+tools, the empty-year message. Two tabs, buttons with `aria-pressed` (never ARIA tabs): **New requirement** and **From another
+year** (item 117's picker, moved in). `arShow()` draws the whole form ONCE (`arDraw`); `render()` only toggles the box
+(`arSync`) and never redraws a field, which would take the caret and the text with it. `arHide()` empties it. Nothing is written
+until Add, and then once: `reqCreate()` and one `save()`.
+
+**One office** (Brad: *"Once they select their PMO, that's the only PMO they can support"*). `arOfficeStart()`: a copy's own office
+(`myPmo`), else the office chosen at the top, else the box asks first (`#arOffStep`) and `arSetOffice()` locks it for as long as
+the box is open. **A keyboard move only moves** (`arOffKey`, `arOffPick`, `arOffNav`): Chromium fires `change` on every arrow key
+of a closed select, and the first cut locked the box to the first office on the first ArrowDown; Enter chooses, a pick with the
+mouse chooses at once.
+
+**What the box holds, and what it does not.** The plan event, Prime contract / OGC (two buttons), the CCaR record and PID
+(through `codeTake`: refused over the limit, never cut, the box keeping the text), the value by service (`parseAmt`, whole
+dollars, a figure rounded to the dollar said on Add; *Spread evenly* through `apportion`), a BAE budget per service with a value
+from **that office's** names only (`budPickListFor(office, svc, 'disc')`, written by `budPutUnf` as the RECORD panel's not-funded
+line writes it; a budget is read only where its service has a value), obligation category, cost element, WBS (never for a prime:
+logged per CLIN), Goes to, and for a government activity (`destKeyIsOgc`) which awards to and the MIPR type, description, impact
+statement and note. **Not in it, by Brad's word:** Mission Critical (*"Starts unstarred"*), the decision band (*"allocated by the
+SFWG"*), award and obligation dates (*"people are just guessing"*), RCN / EEIC (the O&M team's, unless carried from another year),
+and the record title, which is never typed: it is read from the CCaR records list for the number typed (`ccarNameOfNum`), and that
+list's short description fills an EMPTY description, or one the box filled itself (`arDescAuto`), never one somebody wrote.
+
+**The required list is ONE function, `reqNeeds(draft)`**, read by the box's rail and its Add, by a copy's proposal gate
+(`pmoProposalGate` → `reqDraftOf`) and Pre-flight, and by From another year's *Ready* column (`reqDraftFrom`). The plan event,
+Prime / OGC, the requirement, a budget for every service with a value, obligation category, WBS (waived for a prime), Goes to,
+description, impact statement; and, for a government activity, which awards to and MIPR type. **A budget is asked for only where
+one can be chosen**: a service whose office has no name for it, or a board with no BAE list, is shown waived -- a required field
+nobody can fill would stop every add. Until v2.07 a copy's gate also asked for the projected award date and the PMO, and not for
+the plan event or the budgets. Add pressed early marks every missing field, sends the keyboard to the first, and the button
+reads *Add requirement — N still needed*.
+
+**`reqCreate(g, rec, from, f)` is the one writer of a new requirement**: the box, a requirement brought in from another year
+(`reqFromYear`, the carry of item 117 unchanged), and every test fixture (`addReq()` is gone). It writes the requirement, the
+order (bottom), the office's ranking and its Split (`seedSplit`), then the box's fields; it never saves. A requirement brought
+in that is complete is added at once; one that is not opens in New requirement filled in from its year's record and linked
+(`arQueue`, `arFinNext`, *Skip this one*), carrying what the box does not show (`AR_CARRIED`).
+
+**Fits whole at 1366 × 768 and up, one column that scrolls below** (Brad). Three columns at 1 : 1.75 : 1; the PID spans its
+grid (a 35-character PID); the services table is 66 / 110 px (the service name never wraps) and the rest for the budget picker, which prints the longest real
+BAE name whole in both fonts. `npm run layout` M measures it in Harbor and Midnight, this font and the Segoe stand-in.
+
+**The reviewer sees what the box required.** A box-made proposal has no record title until the CCaR list names it, so the
+review, `pmoFmtVal('__new')` and the change report read it by its plan event (`titles || event`), never "(untitled)" or its
+provisional id; and the proposed text carries the PID, the budgets (`pmoNewBudTxt`, each marked *⚠ not offered for PSM on this
+board* where this board's BAE list does not offer it -- accepted, it would read "chosen, and cannot be used"), the description,
+the impact statement and the note.
+
+**Found on the way, fixed:** `budParseName` built its second RegExp from the raw office name (the first was escaped), so an
+office named *C++* made `budReg()` throw and the board stop drawing; `budReg()`'s cache is keyed on the offices too (one added
+in Setup got no budgets until a reload); and, found by the hostile sweep, a BAE file entry with no readable date
+(`budRegBody`) and an estimate with no totals (`spBodyDraw`) each stopped every redraw while their panel was open.
+
+**Checks.** audit-other "v2.07 — the Add requirement box (item 121)" (the box through its rendered controls: office, the
+keyboard on the office question, the required list, Add early, Spread, budgets, OGC, prime, the record title, refusals, the
+reference peeked not spent, exactly what Add writes, Esc and Cancel, Add and open, no BAE list, a locked cycle, J / K, the
+empty year, offices); audit-import "v2.07 — the Add box in a PMO copy (item 121)" (the copy's office, the budgets travelling,
+an older proposal held back for its budget, the review and the change report, accepted, a copy on another year) and the
+v2.06 blocks migrated to the box; audit-board's add fixtures through `reqCreate` and the box, and "v2.07 — a BAE file entry with
+no date, or an estimate with no totals, does not stop the board drawing"; the hostile sweep through nine steps of the box;
+`npm run panels`, `dialogs`, `keys` M, `standards` and `layout` M; and the review's two blocks, audit-other "v2.07 — the
+review of the Add box: rounding, an office named (AV), …" and audit-import "v2.07 — the review of the Add box: Roll forward,
+From another year, the budget gate, the reviewer". **154 new mutations** (92 `v207-121-*` and `v207-*` from the build, 31
+`v207-rv-*` from the review, 31 `v207-rv2-*` / `v207-rv3-*` from the second review), each run against its own block on a mutant
+of the final board and caught; 8 older ones retargeted to the box (`proposal-gate-open`, `add-total-*` 3,
+`add-whole-refusal-gone`, `v197w1-guard-addReq`, `v199-newreq-ccar-cut`, `v206-117-no-link`). 2,317 targets, each matching
+once.
+
+**Found by an independent review before merge, fixed in v2.07** (25 Oct; six reviewers by area, each finding re-run by a
+skeptic trying to refute it: 16 distinct defects confirmed, 1 refuted):
+- **By name only where there is a name.** A box-made requirement has no record title until the CCaR list names it, so `yearHas`
+  and `naFromHere` matched every requirement of one plan event by "event + blank title": Roll forward promised two copies and
+  made one ("already there"), and From another year greyed out a different requirement. The name test needs a title now, and
+  `yearHas` finds a rolled copy by its link itself (`yearLinkOf` skips a copy that took the same id).
+- **What the form holds is never thrown away**: adding from From another year emptied New requirement (or closed the box);
+  now those to finish wait behind what the form holds (`naFromAdd`).
+- **The proposal gate reads a budget chosen on the mandatory line** where the RECORD panel shows that service no other line
+  (`reqDraftOf` via `budLines`), checked against the office's names in any lane; a copy's proposal funded only from mandatory
+  could otherwise be held back for good after a clear.
+- **The box:** every rounding said, to $0 and in Spread evenly's total; an office named from punctuation ("(AV)") gets its
+  budgets (`budParseName`'s one pattern, `offRe`, no word boundary, no lookbehind); an early Add's marks come off the control
+  as well as its box; a key that opens the office list hands the choice back to the list; *Add and open its record* takes
+  off a PMO filter that hides the new row, and is hidden while more brought in wait to be finished; a ticked row in From
+  another year keeps the keyboard (`naFromCb_<id>`); a budget stored in another letter case is preselected; a WBS that is
+  null or one blank line is read alike by the Ready column and the form; *Also carried* names fields by `FL()`.
+- **The reviewer** reads a proposal as its row will (`pmoNewName`: plan event, and a typed record title beside it -- a
+  copy before v2.07 left the event "(added at drill)").
+- Text that still described the strip (the Review tool's tooltip, Reset year's message, Submit's hold-back message).
+- **And two the review's own fixes needed**, found by the agents writing their checks: a requirement brought in can now wait
+  behind one typed by hand, and Add's status line read the year off the one just added and threw (it reads the one now
+  open, `nx`); and the office pattern stopped matching an office that starts with punctuation glued to the word before it
+  ("…Discretionary(AV)", as it did before) -- such a name needs no separator, one that starts with a letter still does.
+
+**A second review of those fixes** (three reviewers, each finding re-run by a skeptic: 12 confirmed, 0 refuted), all fixed:
+- **"The same work", once more.** A year started as a copy holds a box-made requirement under the same id with no link: found
+  by the id and its name, in `yearHas` and `naFromHere`. A candidate whose link shows it is the copy of ANOTHER requirement of
+  that year is never this one, whatever the names (two box-made ones on one CCaR record and one plan event). A requirement whose
+  original is the one on screen reads "already in" (`naFromHere`, yearLinkOf's rule).
+- **The queue, redesigned.** The first review's fix let ones brought in wait behind a form typed by hand, invisibly, with no
+  Skip, dropped by the next Add or by Esc. Now: a row in the form or waiting (`naFromWaiting`) cannot be ticked again (it was
+  added twice); one being finished keeps its place and its bar counts what waits behind it live (`arFinBarDraw`); a form typed
+  by hand is replaced only after a question, and Cancel changes nothing (`arFormHeld`); Add's status line names every year
+  still waiting.
+- **The gate:** on a service only mandatory pays, a usable mandatory choice wins over a retired discretionary one, and a
+  service whose mandatory line has nothing to offer (the office's names are all discretionary) is waived (`nolist`).
+- A WBS refused for its length keeps its mark while other fields are typed; Reset year's message reads as a sentence.
+- And one more, found writing those checks: after a copy both years number from the same count, so the copy rule (same id,
+  no link, same name) took two requirements added later, one each side, for one. It asks the office and the CCaR record too.
+
+**Not changed, on purpose:** the row's ⋯ *Rename the CCaR record name* stays (the box does not type a record title; a person may
+still name a record by hand afterwards); a copy published before v2.07 still gates its proposals by the v2.06 list (the board
+does not judge a proposal again when it arrives); editing the whole record in one box is item 122.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

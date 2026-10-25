@@ -20,6 +20,9 @@
 //   L. The repaired-award controls (v1.96, item 64): the 🔧 entry under Needs attention, its list, Go to it, and
 //      ✓ Checked in the award block, each reached and used from the keyboard. The board this runs on carries two
 //      awards the board repaired when it opened, so these controls are on screen to be checked.
+//   M. The Add box (v2.07, item 121): Enter on Add requirement opens it with the keyboard inside, the office question is
+//      answered from the keyboard, Tab reaches every field, the tabs and the Prime/OGC switch work with Enter and Space,
+//      Add pressed early sends the keyboard to the first field still needed, and Esc asks before typing is lost.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -613,6 +616,120 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`K · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── M. THE ADD BOX, FROM THE KEYBOARD (v2.07, item 121) ─────────────────────────────────────────────────
+// The whole record is typed in one box, so all of it has to be there for the keyboard: Enter on Add requirement opens it
+// with the keyboard inside -- on the office question while every office shows, and that question answered from the
+// keyboard moves on to the plan event; Tab reaches every field, each service's budget picker and the two OGC fields
+// included; the two tabs and the Prime/OGC switch are buttons that Enter and Space press (no ARIA tabs claimed); Add pressed
+// early sends the keyboard to the first field still needed and says what is missing, inside the box; Esc asks before what
+// was typed is lost, Cancel keeps it, OK closes and hands the keyboard back to Add requirement.
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    const asked = []; let answer = false;
+    p.on('dialog', d => { asked.push(d.message()); return answer ? d.accept() : d.dismiss(); });
+    // what the box offers has to be on the board to be reached: a BAE list with PSM's names for two services
+    await p.evaluate(() => { BUDDB = { ts: Date.now(), files: [], rows: [{ n: 'USAF O&M NON AFRC NON ANG CAM Discretionary PSM' },
+      { n: 'USAF O&M - ANG CAM Discretionary PSM' }] }; persistBud(); _budRegCache = null; setPmoFilter('ALL'); });
+    const act = () => p.evaluate(() => { const a = document.activeElement;
+      return { id: a ? (a.id || a.tagName.toLowerCase()) : null, inBox: !!(a && a.closest && a.closest('#addPanel')) }; });
+    const isOpen = () => p.evaluate(() => document.getElementById('addPanel').classList.contains('open'));
+    // with every office showing: the box opens on the office question, answered from the keyboard
+    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    let a = await act();
+    chk('M · Enter on Add requirement opens the box with the keyboard in it -- on the office question while every office shows',
+      (await isOpen()) && a.inBox && a.id === 'arOffice', JSON.stringify(a));
+    const want = await p.evaluate(() => [...document.getElementById('arOffice').options].findIndex(o => o.value === 'PSM'));
+    for (let i = 0; i < want; i++) await p.keyboard.press('ArrowDown');
+    await p.waitForTimeout(200);
+    // a move only moves (v2.07 review): Chromium fires change on every arrow key of a closed select, and the first one used
+    // to choose the first office and send the keyboard on, so no other office could be reached from the keyboard
+    a = await act();
+    const moved = await p.evaluate(() => ({ off: arOff, at: document.getElementById('arOffice').value }));
+    chk('M · moving through the offices with the arrow keys chooses none of them: the question keeps the keyboard',
+      moved.off === '' && moved.at === 'PSM' && a.id === 'arOffice', JSON.stringify({ office: moved.off, at: moved.at, focus: a.id }));
+    await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+    a = await act();
+    const off = await p.evaluate(() => arOff);
+    chk('M · Enter chooses the office moved to: the box is locked to it, and the keyboard goes on to the plan event',
+      off === 'PSM' && a.id === 'arEvent', JSON.stringify({ office: off, focus: a.id }));
+    // the rest from the box as one office chosen at the top opens it: closed (asked first: the office answer was typed),
+    // PSM chosen at the top, then Enter on Add requirement opens it straight on its form, the keyboard on the plan event
+    answer = true; await p.keyboard.press('Escape'); await p.waitForTimeout(200); answer = false;
+    if (await isOpen()) await p.evaluate(() => arHide());
+    await p.evaluate(() => setPmoFilter('PSM'));
+    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    a = await act();
+    chk('M · with one office chosen at the top, Enter opens the box on its form with the keyboard on the plan event',
+      (await isOpen()) && a.id === 'arEvent' && (await p.evaluate(() => arOff)) === 'PSM', JSON.stringify(a));
+    // the Prime/OGC switch: Space and Enter press each, and the one pressed says so
+    const pt = () => p.evaluate(() => ({ v: document.getElementById('arPtype').value, p: document.getElementById('arPtP').getAttribute('aria-pressed'),
+      o: document.getElementById('arPtO').getAttribute('aria-pressed'), tag: document.getElementById('arPtO').tagName }));
+    await p.focus('#arPtO'); await p.keyboard.press(' '); await p.waitForTimeout(80);
+    const r1 = await pt();
+    await p.focus('#arPtP'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+    const r2 = await pt();
+    await p.focus('#arPtO'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+    const r3 = await pt();
+    chk('M · the Prime/OGC switch is two buttons: Space and Enter press each, and the pressed one says so',
+      r1.tag === 'BUTTON' && r1.v === 'OGC' && r1.o === 'true' && r1.p === 'false' && r2.v === 'PRIME' && r2.p === 'true' && r2.o === 'false' && r3.v === 'OGC',
+      JSON.stringify([r1, r2, r3]));
+    // typed from the keyboard: the plan event and two services' values -- their budget pickers appear; a destination that
+    // is not a prime -- the two OGC fields appear
+    await p.focus('#arEvent'); await p.keyboard.type('Depot support');
+    await p.focus('#arV0'); await p.keyboard.type('1,000,000');
+    await p.focus('#arV1'); await p.keyboard.type('250K');
+    const gov = await p.evaluate(() => (flowEntsAZ().filter(e => e.kind !== 'prime')[0] || {}).k || '');
+    await p.selectOption('#arTo', gov); await p.waitForTimeout(120);
+    for (const sel of ['#arB0', '#arB1']) { await p.focus(sel); await p.keyboard.press('ArrowDown'); await p.waitForTimeout(80); }
+    // Tab reaches every field, forward, without leaving the box
+    const NAMED = ['arTabNew', 'arTabYr', 'arEvent', 'arPtP', 'arPtO', 'arCcar', 'arPid', 'arOb', 'arWbs', 'arV0', 'arV1', 'arV2', 'arV3', 'arV4',
+      'arV5', 'arB0', 'arB1', 'arSpread', 'arTo', 'arEnd', 'arMipr', 'arDesc', 'arCons', 'arNote', 'arAddOpen', 'arAddBtn'];
+    const shown = await p.evaluate(ids => ids.filter(id => { const e = document.getElementById(id); return !!e && !e.disabled && e.getClientRects().length > 0; }), NAMED);
+    const missing = NAMED.filter(id => shown.indexOf(id) < 0);
+    chk('M · every field is on screen to be reached: the tabs, the record, each service’s value and the budget pickers typed for, the OGC fields, Add',
+      !missing.length, missing.length ? 'not on screen: ' + missing.join(', ') : NAMED.length + ' controls');
+    const all = await p.evaluate(() => [...document.querySelectorAll('#addPanel .modal button, #addPanel .modal input, #addPanel .modal select, #addPanel .modal textarea')]
+      .filter(e => !e.disabled && e.type !== 'hidden' && e.getClientRects().length > 0).length);
+    await p.focus('#arTabNew');
+    const seen = new Set(); let left = null;
+    for (let i = 0; i < all + 4; i++) { await p.keyboard.press('Tab'); const s = await act(); if (!s.inBox) { left = s.id; break; } seen.add(s.id); }
+    const notReached = NAMED.filter(id => !seen.has(id));
+    chk('M · Tab reaches every field of the box, and never leaves it', !notReached.length && !left,
+      left ? 'Tab left the box, to ' + left : notReached.length ? 'never reached: ' + notReached.join(', ') : `${seen.size} controls reached in ${all + 4} Tab(s)`);
+    // the two tabs: Enter and Space press them, and each shows its own part
+    const tabs = () => p.evaluate(() => ({ yr: document.getElementById('arTabYr').getAttribute('aria-pressed'), nw: document.getElementById('arTabNew').getAttribute('aria-pressed'),
+      yrShown: !document.getElementById('arYr').hidden, nwShown: !document.getElementById('arNew').hidden,
+      roles: document.querySelectorAll('#addPanel [role="tablist"], #addPanel [role="tab"], #addPanel [role="tabpanel"]').length }));
+    await p.focus('#arTabYr'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const t1 = await tabs();
+    await p.focus('#arTabNew'); await p.keyboard.press(' '); await p.waitForTimeout(120);
+    const t2 = await tabs();
+    const kept = await p.evaluate(() => document.getElementById('arEvent').value);
+    chk('M · the two tabs are buttons Enter and Space press, each shows its own part, no ARIA tabs are claimed, and what was typed stays',
+      t1.yr === 'true' && t1.nw === 'false' && t1.yrShown && !t1.nwShown && t2.nw === 'true' && t2.nwShown && !t2.yrShown && t1.roles === 0 && kept === 'Depot support',
+      JSON.stringify({ t1, t2, kept }));
+    // Add pressed early: the keyboard goes to the first field still needed, which is marked, and the box says what is missing
+    await p.focus('#arAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+    a = await act();
+    const early = await p.evaluate(() => ({ msg: document.getElementById('arMsg').textContent, inv: document.getElementById('arOb').getAttribute('aria-invalid'),
+      added: S.order.filter(id => /^NEW-/.test(id)).length }));
+    chk('M · Add pressed early sends the keyboard to the first field still needed (the obligation category), marked, and says what is missing in the box',
+      a.id === 'arOb' && early.inv === 'true' && /still needed/.test(early.msg) && early.added === 0, JSON.stringify({ focus: a.id, ...early }));
+    // Esc asks; Cancel keeps the box and the text; OK closes it and hands the keyboard back to Add requirement
+    asked.length = 0; answer = false;
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const k1 = { asked: asked.some(m => /Discard what you typed\?/.test(m)), open: await isOpen(), text: await p.evaluate(() => (document.getElementById('arEvent') || {}).value) };
+    chk('M · Esc asks before what was typed is lost, and Cancel keeps the box with the text in it', k1.asked && k1.open && k1.text === 'Depot support', JSON.stringify(k1));
+    answer = true; await p.keyboard.press('Escape'); await p.waitForTimeout(250); answer = false;
+    a = await act();
+    chk('M · OK closes it and hands the keyboard back to Add requirement', !(await isOpen()) && a.id === 'uiAddBtn', JSON.stringify(a));
+    await p.evaluate(() => setPmoFilter('ALL'));
+    chk('M · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`M · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, and the repaired-award controls, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls and the Add box, and each one works\n');
 process.exit(bad ? 1 : 0);

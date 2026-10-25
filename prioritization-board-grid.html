@@ -1296,6 +1296,110 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 
 /* 📖 HELP (v1.86): the guide, inside the file. The board's own tokens, so it reads in both themes. */
 #helpPanel .modal{width:980px;max-width:98vw}
+/* ＋ ADD REQUIREMENT (v2.07, item 121): one box that builds the whole record. 1366 x 768 and up it fits whole, nothing
+   scrolled and nothing cut (Brad: "everything legible and not running off the screen or needing to scroll"); narrower, it
+   is one column that scrolls. tools/layout-fits.mjs M measures it. */
+#addPanel.modal-bg.open{align-items:center;padding-top:0}
+#addPanel .modal{width:min(1320px,96vw);max-width:none;max-height:calc(100vh - 16px);padding:0;display:flex;flex-direction:column;overflow:hidden;font-size:12px}
+#addPanel .modal h3{margin:0;padding:9px 16px 0;border-bottom:1px solid var(--line);align-items:flex-end;gap:12px;font-size:14px;letter-spacing:.4px}
+#addPanel .ar-ttl{padding-bottom:8px;white-space:nowrap}
+#addPanel .ar-sp{flex:1}
+#addPanel .ar-tabs{display:flex;gap:4px}
+#addPanel .ar-tabs button{white-space:nowrap;font:inherit;font-size:12px;font-weight:700;letter-spacing:0;border:1px solid var(--edge);border-bottom:none;border-radius:8px 8px 0 0;padding:6px 13px;min-height:28px;background:var(--panel2);color:var(--mut);cursor:pointer}
+#addPanel .ar-tabs button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:inset 0 3px 0 var(--gold)}
+#addPanel .modal h3 .x{margin-bottom:7px}
+#addPanel #arBody{display:flex;flex-direction:column;flex:1;min-height:0}
+#addPanel .ar-top{padding:7px 16px 0}
+#addPanel .ar-who{font-size:12px;color:var(--mut)}
+#addPanel .ar-who b{color:var(--ink)}
+#addPanel .ar-req{color:var(--dim);margin-left:6px}
+#addPanel .ar-off{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+#addPanel .ar-off select{min-width:220px}
+#addPanel .ar-fin{margin:6px 0 0;padding:6px 10px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;background:var(--panelA);font-size:12px}
+#addPanel .ar-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.75fr) minmax(0,1fr);gap:12px;padding:8px 16px;flex:1;min-height:0}
+#addPanel .ar-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+#addPanel .ar-sec{border:1px solid var(--line);border-radius:8px;background:var(--panelA);padding:7px 10px 9px}
+#addPanel .ar-sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
+#addPanel .ar-sec>h4 span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--dim);margin-left:6px}
+#addPanel .ar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+#addPanel .ar-grid.ar-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+#addPanel .ar-grid.ar-g1{grid-template-columns:minmax(0,1fr)}
+#addPanel .ar-f{display:flex;flex-direction:column;gap:2px;min-width:0}
+#addPanel .ar-f.span2{grid-column:1 / -1}
+#addPanel .ar-f[hidden]{display:none}
+#addPanel .ar-l{font-size:11px;font-weight:700;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#addPanel .ar-l i{font-style:normal;color:var(--amber);margin-left:2px}
+#addPanel .ar-l em{font-style:normal;font-weight:600;color:var(--dim);margin-left:6px}
+#addPanel .ar-n{font-size:11px;color:var(--dim)}
+#addPanel .ar-n:empty{display:none}
+#addPanel .ar-f input,#addPanel .ar-f select,#addPanel .ar-f textarea,#addPanel .ar-ro,#addPanel .ar-off select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px;width:100%;box-sizing:border-box}
+#addPanel .ar-ro{display:flex;align-items:center;background:var(--panel2);border-style:dashed;font-weight:600}
+#addPanel .ar-ro.dim{font-weight:500;color:var(--dim)}
+#addPanel .ar-f textarea{resize:none;height:54px;line-height:1.35}
+#addPanel .ar-f textarea.short{height:34px}
+#addPanel .ar-f.miss input,#addPanel .ar-f.miss select,#addPanel .ar-f.miss textarea,#addPanel .ar-svc .miss,#addPanel .ar-f.miss .ar-seg{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
+#addPanel .ar-seg{display:flex;border:1px solid var(--edge);border-radius:6px;overflow:hidden;min-height:28px}
+#addPanel .ar-seg button{flex:1;font:inherit;font-size:12px;font-weight:700;color:var(--mut);background:var(--panel);border:none;min-height:28px;cursor:pointer}
+#addPanel .ar-seg button[aria-pressed="true"]{background:var(--gold);color:var(--onGold)}
+#addPanel .ar-seg button+button{border-left:1px solid var(--edge)}
+#addPanel table.ar-svc{width:100%;border-collapse:collapse;table-layout:fixed}
+#addPanel .ar-svc th{font-size:11px;color:var(--dim);text-align:left;font-weight:700;padding:0 4px 4px}
+#addPanel .ar-svc th[scope="row"]{font-size:12px;font-weight:800;color:var(--ink);padding:3px 4px;border-top:1px solid var(--lineSoft);white-space:nowrap}
+#addPanel .ar-svc td{padding:3px 4px;border-top:1px solid var(--lineSoft);vertical-align:middle}
+#addPanel .ar-svc input,#addPanel .ar-svc select{width:100%;box-sizing:border-box;font:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
+#addPanel .ar-svc td>input{text-align:right;font-variant-numeric:tabular-nums}
+#addPanel .ar-svc select[hidden]{display:none}
+#addPanel .ar-svc .ar-na{font-size:11px;color:var(--dim)}
+#addPanel .ar-svc tr.tot th,#addPanel .ar-svc tr.tot td{font-weight:800;border-top:2px solid var(--line2);padding-top:5px;font-size:12.5px}
+#addPanel .ar-svc #arTot{text-align:right;font-variant-numeric:tabular-nums}
+#addPanel .ar-spread{display:flex;gap:6px;align-items:center}
+#addPanel .ar-spread input{flex:1;min-width:0;text-align:right}
+#addPanel .ar-spread .qb{white-space:nowrap;min-height:28px;font-size:11.5px}
+#addPanel .ar-note{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.35}
+#addPanel .ar-chk{list-style:none;margin:0;padding:0;font-size:11.5px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+#addPanel .ar-chk li{display:flex;gap:6px;align-items:center;padding:1px 0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#addPanel .ar-chk li span{color:var(--dim);font-weight:500}
+#addPanel .ar-chk li .sr,#addPanel .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#addPanel .ar-chk li i{font-style:normal;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex:none}
+#addPanel .ar-chk li.ok i{background:var(--green);color:var(--onGold)}
+#addPanel .ar-chk li.na i{border:1.5px solid var(--dim);color:var(--dim)}
+#addPanel .ar-chk li.no i{border:1.5px solid var(--amber);color:var(--amber)}
+#addPanel .ar-chk li.no{color:var(--amber);font-weight:700}
+#addPanel .ar-sum{margin-top:7px;font-size:11.5px;color:var(--mut);line-height:1.4}
+#addPanel .ar-sum b{color:var(--ink)}
+#addPanel .ar-yr{padding:8px 16px;flex:1;min-height:0;overflow:auto}
+#addPanel .ar-yrhd{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;margin-bottom:8px}
+#addPanel .ar-yrhd select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
+#addPanel table.ar-list{width:100%;border-collapse:collapse;font-size:12px}
+#addPanel .ar-list th{font-size:11px;color:var(--dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line2)}
+#addPanel .ar-list td{padding:4px 6px;border-bottom:1px solid var(--lineSoft)}
+#addPanel .ar-list td.r,#addPanel .ar-list th.r{text-align:right;font-variant-numeric:tabular-nums}
+#addPanel .ar-list tr.here td{color:var(--dim)}
+#addPanel .ar-list input[type="checkbox"]{width:24px;height:24px;margin:0}
+#addPanel .ar-pill{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:9px;white-space:nowrap}
+#addPanel .ar-pill.ok{background:var(--greenD);color:var(--green)}
+#addPanel .ar-pill.no{border:1px solid var(--amber);color:var(--amber)}
+#addPanel .ar-yrft{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+#addPanel .ar-ft{display:flex;align-items:center;gap:10px;padding:8px 16px;border-top:1px solid var(--line);background:var(--panel)}
+#addPanel .ar-ft .sp{flex:1}
+#addPanel .ar-ft .btn{font-size:12px;padding:6px 14px;min-height:30px}
+#addPanel .ar-ft .btn[hidden]{display:none}
+#addPanel .ar-ft .btn.pri,#addPanel .ar-yrft .btn.pri{background:var(--gold);color:var(--onGold);border-color:var(--gold)}
+#addPanel .btn[disabled]{background:var(--panel2);color:var(--mut);border-color:var(--edge);cursor:not-allowed}
+#addPanel .ar-msg{font-size:12px;line-height:1.35;max-width:62%}
+#addPanel .ar-msg.bad{color:var(--amber);font-weight:600}
+#addPanel .ar-msg.ok{color:var(--ink)}
+#addPanel [hidden]{display:none!important}
+/* under 1366 the three columns do not fit legibly: one column, and the box scrolls */
+@media (max-width:1365px){
+  #addPanel .modal{overflow:auto}
+  #addPanel #arBody{flex:none;min-height:auto}
+  #addPanel .ar-body{grid-template-columns:minmax(0,1fr);flex:none}
+  #addPanel .modal h3{flex-wrap:wrap}
+  #addPanel .ar-msg{max-width:none}
+  #addPanel .ar-ft{flex-wrap:wrap;position:sticky;bottom:0}
+}
+@media (max-width:640px){ #addPanel .ar-grid,#addPanel .ar-grid.ar-g3{grid-template-columns:minmax(0,1fr)} #addPanel .ar-chk{grid-template-columns:1fr} }
 #helpBody{max-height:76vh;overflow:auto;line-height:1.55;font-size:12.5px;padding-right:4px}
 #helpBody h2{font-size:16px;margin:2px 0 10px}
 #helpBody h4{font-size:12.5px;margin:14px 0 4px;color:var(--gold)}
@@ -1719,7 +1823,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <!-- Each mode's tools are always in the page; the mode shows its own. Nothing here is a copy of a
        control: each button runs the same function its menu item did. -->
   <div class="modetools" id="t_review" role="group" aria-label="Review tools">
-    <button class="btn" id="toolAdd" onclick="toggleAdd()" title="Add a requirement to the year on screen — value by service and CCaR"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
+    <button class="btn" id="toolAdd" onclick="toggleAdd()" title="Add a requirement to the year on screen — the whole record, in one box"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
     <button class="btn" onclick="toggleMat()" title="Find what is unanswered and set it across many requirements at once">Classify requirements</button>
     <span id="rmChipWrap"></span>
   </div>
@@ -1957,9 +2061,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
-<p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
-<p>A requirement your office carries year after year can be brought in from another year instead of typed again: in the same panel, under <i>Or from another year</i>, choose the fiscal year. The list shows your office’s requirements in that year — the office chosen at the top, or the one this copy submits for — and greys out any already in this year. Tick the ones to bring in and press <i>Add</i>. Each comes in as a new requirement of its own, linked to the one it came from (its record says <i>Continues FY26 …</i>, and the Priority Drill’s <i>Continues</i> column carries it), with that year’s value, record, description, impact statement, classifications and award dates moved forward. The allocation, the funding split and ★ Mission Critical are not carried: they are decided for this year.</p>
-<p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in <span data-fl="rec" data-fi="1"></span> — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
+<p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. One box builds the whole record, for the office this copy submits for and no other (it asks once, if the copy does not know the office yet): the plan event, prime contract or OGC, the CCaR record and PID, the requirement value by service with a BAE budget for each service that has a value, the classification, where the money goes, and the narrative. The record’s name is never typed: it is read from the CCaR records list as the record is typed, and the list’s short description fills an empty description. The band, ★ Mission Critical, the award dates and RCN / EEIC are not in the box: the portfolio team sets them. It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
+<p>A requirement your office carries year after year can be brought in instead of typed again: in the same box, <i>From another year</i>, choose the fiscal year. The list shows your office’s requirements in that year, greys out any already in this year, and marks each one <i>ready</i> or with how many fields it still needs. Tick the ones to bring in and press <i>Add</i>: a ready one is added at once, and one that still needs fields opens in <i>New requirement</i>, filled in, to finish and add (or to skip). Each comes in as a new requirement of its own, linked to the one it came from (its record says <i>Continues FY26 …</i>, and the Priority Drill’s <i>Continues</i> column carries it), with that year’s value, record, description, impact statement, classifications and award dates moved forward. The allocation, the funding split and ★ Mission Critical are not carried: they are decided for this year.</p>
+<p><i>Add</i> is refused until every required field is filled, and says which are still missing: the plan event, prime contract / OGC, the requirement value, a BAE budget for each service with a value (where your office has one to choose), obligation category, WBS (a prime contract’s is logged per CLIN, in its CLIN drill), <i>Goes to</i> (and, where the money goes to a government activity, <i>Which awards to</i> and the MIPR type), the description and the impact statement. It travels whole in your submittal, flagged as new. A requirement added before this version is held to the same list when you submit: if one is incomplete, the copy names it and what it still needs, holds that one back, and sends everything else.</p>
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
 <p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, where Save is on the portfolio board. If you have not set your office yet, it asks for it first.</p>
@@ -2011,6 +2115,10 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state at the foot of the left menu says <i>↶ work kept aside</i>, and one click puts it back.</p>
 <p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="aud">Audit › Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
 <p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a cycle locked or unlocked, a destination, an imported cost estimate, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state at the foot of the left menu says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import or a check of the folder for cost estimates takes nothing unless it reads to the end.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
+</section>
+<section data-part="team" data-id="t-add" data-t="Adding a requirement">
+<p><b class="bt" data-q="#toolAdd">＋ Add requirement</b> opens one box that builds the whole record, for one office: the office chosen at the top, or — with all offices showing — the one you choose when the box opens, kept for as long as it is open. Everything a requirement needs is asked for at once, and <i>Add</i> is refused until it is all there, naming what is missing and taking you to the first of it — the same list a PMO copy is held to when it submits a proposal. A BAE budget is asked for each service with a value, from that office’s budgets alone; where the office has none for a service, or no BAE list is loaded, it is not asked for and is chosen later in the record.</p>
+<p>The value is the requirement, never funding: the requirement lands at the bottom of the order on a Split, drawing only what the lanes hold below everything above it, and its band, ★ Mission Critical, award dates and RCN / EEIC are set on the board afterwards. Its record name is read from the CCaR records list, never typed. <i>Add and open its record</i> adds it and opens its record on the right; if a filter would hide it, the filter is taken off and the message says so. <i>From another year</i> brings in requirements the office held in another year, linked to the ones they came from: the ready ones at once, the rest one by one in the form to finish (if you were typing one by hand, you are asked before it is replaced).</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
 <p><span class="mp" data-m="offices">Program offices › Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
@@ -2203,18 +2311,14 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div id="svcList"></div>
   </div>
 </div>
-<div class="addp" id="addPanel">
-  <div class="fr"><b style="color:var(--gold);font-size:11px">ADD REQUIREMENT</b>
-    <label>PMO</label><select id="naGrp" onchange="naFromDraw()"></select>
-    <input id="naTitle" style="width:260px" placeholder="Requirement title (required)">
-    <input id="naEvent" style="width:180px" placeholder="Plan event (optional)">
-    <input id="naCcar" style="width:100px" placeholder="CCaR (opt)">
-    <label>FY27 ask:</label><span id="naSvcWrap"></span>
-    <input id="naTot" style="width:100px" placeholder="or $ total">
-    <button class="btn" onclick="addReq()">Add to board</button></div>
-  <div class="hint">Set the requirement value BY SERVICE in the boxes (blank = $0), or type one total to spread it evenly. New requirements land at the BOTTOM of the priority order — drag them where the group decides. They save with the board and flow into the export with Ref NEW-#.</div>
-  <div class="hint" id="naProposeHint" style="display:none"></div>
-  <div id="naFromWrap"></div>
+<!-- v2.07 (item 121): Add requirement is one box that builds the whole record (the strip that was here took a title and a value) -->
+<div class="modal-bg" id="addPanel" onclick="if(event.target===this)toggleAdd()">
+  <div class="modal ar-m">
+    <h3><span class="ar-ttl">＋ Add requirement <span id="arFy"></span></span><span class="ar-sp"></span>
+      <span class="ar-tabs" role="group" aria-label="How to add"><button type="button" id="arTabNew" aria-pressed="true" onclick="arTab('new')">New requirement</button><button type="button" id="arTabYr" aria-pressed="false" onclick="arTab('yr')">From another year</button></span>
+      <button type="button" class="x" onclick="toggleAdd()">✕ Close</button></h3>
+    <div id="arBody"></div>
+  </div>
 </div>
 
 <div class="modal-bg" id="uipPanel">
@@ -3013,9 +3117,9 @@ function syncSvc(){
 }
 /* THE PMO LIST, EDITABLE. `GROUPS` IS MUTATED IN PLACE AND NEVER REASSIGNED — twenty-five
    places read it, every one of them when it runs, so changing its CONTENTS leaves all of them
-   correct with no edit. Rebinding would mean auditing twenty-five sites for a captured reference,
-   and the one that really does capture it is not a call site at all: a line of boot code fills the
-   Add Requirement panel's <select> once (see syncNaGrp).
+   correct with no edit. Rebinding would mean auditing twenty-five sites for a captured reference.
+   (The Add Requirement strip's office <select> was once filled from it by boot code alone; the Add box
+   that replaced the strip in v2.07 reads the list each time it opens.)
    GROUPS_SEED is the list as shipped — kept so a board can be reset to it, and so an appropriation
    nobody has edited reads exactly as it always did. */
 const GROUPS_SEED = ['ATL','PSM','PP','AV','MxS','CDS','TSS','BOP'];
@@ -3074,7 +3178,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.06 (25 Oct 2026)';
+const BUILD='v2.07 (25 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5638,16 +5742,6 @@ function svcPanelBody(){
         : '<div class="hint" style="margin-top:10px">These services come from the requirement data loaded into this board, so the list is fixed here — '
           +'their order and names, and adding or removing one, are set in the source data.</div>');
 }
-let _addPanelSvc=null;
-function syncAddPanel(){
-  const w=document.getElementById('naSvcWrap'); if(!w) return;
-  const want=SVC.join('|');
-  if(_addPanelSvc===want) return;               // only rebuild when the service list changed
-  _addPanelSvc=want;
-  w.innerHTML = SVC.length
-    ? SVC.map((s,i)=>'<input id="naSvc'+i+'" style="width:86px" placeholder="'+esc(s)+'" title="'+esc(s)+' '+FYL()+' requirement value">').join('')
-    : '<span class="hint">No services yet — set them up first in Setup › Who and where › Services.</span>';
-}
 // ==============================================================================================================
 // §11  LOADING A BOARD
 //      service-alignment guard, award check and repair, state normalisation (applyState), the FYDP store (applyStore)
@@ -6269,9 +6363,13 @@ let MS;                                   // {base, cur, ts, years:{'2027':state
 // v2.04 (item 109): the AI review list -- declared here, not with its code, because syncBtns reads them on the first render (the
 // BANDS_STD rule: a `let` further down is still in its dead zone while the board draws during boot)
 let aiIsOpen=false, AIREV=null, aiShow='';
-// v2.06 (item 117): the Add panel's "from another year" picker -- the year chosen and what is ticked. Read by syncNaGrp(), which
-// runs while the script is still being read, so declared here (the BANDS_STD rule).
-let naFromFy=0, naFromSel={}, naFromFor=null;   // AIREV {file, ts, rows}; aiShow '' | 'anomaly' | 'suggestion' | 'check'
+// v2.06 (item 117): the "from another year" picker -- the year chosen and what is ticked. Read while the board draws (once by the
+// strip's syncNaGrp() at boot, which v2.07 retired with the strip), so declared here (the BANDS_STD rule).
+let naFromFy=0, naFromSel={}, naFromFor=null;
+// v2.07 (item 121): the Add requirement box -- open, its tab, the one office it adds for (and how that was decided), the
+// requirements brought in from another year still to finish, the one being finished, and the description the CCaR list filled.
+// syncBtns() reads arOpen on the first render, so these live here too (the BANDS_STD rule).
+let arOpen=false, arTabOn='new', arOff='', arOffHow='', arQueue=[], arFin=null, arDescAuto='', arOffNav=false;
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -6508,8 +6606,22 @@ function switchYear(y){
 function yearHas(id, y){
   const T=MS.years[y]; if(!T) return false;
   const it=itemById(id); if(!it) return false;
+  // v2.07 review: by name only where there is a name -- a requirement made in the Add box has no record title until the
+  // CCaR list names it, so the event and a blank title matched every requirement of the same plan event, and Roll forward
+  // reported one never copied as "already there"; a copy made since v2.06 is found by its link, here as well as in
+  // yearLinkOf (which skips a copy that took the same id)
+  // (second review) And a year started as a copy of this one holds it under the same id with no link at all -- found by the
+  // id, its name, its office and its CCaR record (after a copy both years number from the same count, so two requirements
+  // added later on each side can share an id and a plan event); and a candidate its link shows to be the copy of ANOTHER requirement of this year is not this one,
+  // whatever their names (two box-made ones on one CCaR record and one plan event share a name)
   if(it.custom && (T.custom||[]).some(function(x){
-    return x && x.event===it.event && x.title===it.title; })) return true;
+    if(!x) return false;
+    const other=!!(x.prior && +x.prior.fy===+MS.cur && String(x.prior.id)!==String(id));
+    return (it.title && !other && x.event===it.event && x.title===it.title)
+      || (x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title
+          && grpOf(x, T)===grpOf(it) && ccarOf(x, T)===ccarOf(it))
+      || (x.prior && String(x.prior.id)===String(id) && +x.prior.fy===+MS.cur)
+      || (it.prior && x.prior && String(x.prior.id)===String(it.prior.id) && +x.prior.fy===+it.prior.fy); })) return true;
   if(!it.custom && Array.isArray(T.order) && T.order.indexOf(id)>=0) return true;
   return !!yearLinkOf(id, y);
 }
@@ -6716,7 +6828,7 @@ function resetYear(){
   applyState(MS.years[MS.cur]);
   MS.years[MS.cur]=S;
   save(); render();
-  setStat('🗑 '+FYL()+' is now BLANK — no requirements, zero BA. Add requirements via ✎ Board → Add Requirement, restore baseline items from the 🗑 Removed list (Restore all brings the full set back), or roll data in via Import.');
+  setStat('🗑 '+FYL()+' is now BLANK — no requirements, zero BA. Use Add requirement (Requirements › Review) to add requirements, restore baseline items from the 🗑 Removed list (Restore all brings the full set back), or roll data in via Import.');
 }
 // ---- ROLLING REQUIREMENTS FORWARD -----------------------------------------------------------
 //
@@ -7893,38 +8005,90 @@ function pmoSubmitBuild(){
 // cannot send one until every mandatory field is filled -- the gate is in the copy, where the
 // person who can fill the field is still sitting, and it is also on the Pre-flight panel.
 //
-// THE MANDATORY SET is the RECORD panel's, less the two the accounting team owns (RCN/EEIC, Navy SI
-// code), plus the four the panel does not carry. The record fields are read through recFields().set
-// -- the same answer the panel shows -- rather than restated here, so the gate and the panel cannot
-// disagree. The two OGC fields are gated on destIsOgc(), the one predicate the panel uses, so they
-// are demanded together or waived together; a mandatory field that cannot apply is a gate people
-// learn to work around.
-const PROPOSAL_MANDATORY=['ptype','grp','obCat','wbs','dest'].map(FL).concat([FL('destEnd')+' (for an OGC)', FL('mipr')+' (for an OGC)'],
-  ['desc','cons','asks','awardProj'].map(FL));
+// THE REQUIRED SET (v2.07, item 121; Brad, 24 Oct 2026): the same list in the Add box and in a copy's proposal gate, from
+// ONE function, reqNeeds(), so the box and the gate cannot disagree about what a requirement needs. It judges a DRAFT --
+// what the box holds before anything is written, a requirement in another year about to be brought in, or one on the board
+// (reqDraftOf, which reads the record fields through recFields().set, the answer the RECORD panel shows). The list: the plan
+// event, Prime contract / OGC, the requirement, a BAE budget for every service with a value, obligation category, WBS (a
+// prime contract's is logged per CLIN, so it is never asked for), Goes to, the description and the impact statement; and,
+// where the money goes to a government activity (destIsOgc's predicate), which awards to and the MIPR type, demanded
+// together or waived together. Until v2.07 a copy's gate also asked for the projected award date and the PMO, and not for
+// the plan event or the budgets.
+// A BUDGET IS ASKED FOR ONLY WHERE ONE CAN BE CHOSEN: a service whose office has no name for it in this appropriation, or a
+// board with no BAE list loaded, has nothing to choose from, and a required field nobody can fill would stop every add.
+// It is shown as waived, and the RECORD panel takes the budget once the list has one.
 // Which requirements on this copy are proposals: added here, on the list, and unknown to the board
 // the copy was published from.
 function pmoProposalIds(){
   const base=(PMODE&&PMODE.base)||{};
   return (S.order||[]).filter(function(id){ const it=itemById(id); return !!(it && it.custom && !base[id]); });
 }
-// The mandatory fields a proposal is still missing, by the label the person will see. Empty = ready.
-function pmoProposalGate(id){
-  const it=itemById(id); if(!it) return ['requirement missing'];
+// d: {grp, event, ptype, ask[], bud:{svc:name}, obCat, wbs, to, end, mipr, desc, cons}. Returns every required field,
+// in the order the box lists them, each {k, l (the label, read through FL() when asked), ok, w (waived), n (a note)}.
+function reqNeeds(d){
+  const out=[], add=function(k, ok, n, w){ out.push({k:k, l:FL(k), ok:!!ok, n:n||'', w:!!w}); };
+  const ask=(d && d.ask)||[];
+  add('titles', String(d.event||'').trim());
+  add('ptype', d.ptype==='PRIME' || d.ptype==='OGC');
+  add('asks', ask.reduce(function(a,b){ return a+(+b||0); }, 0)>0);
+  let need=0, got=0, anyVal=false;
+  SVC.forEach(function(s,i){ if(!(+ask[i]>0)) return; anyVal=true;
+    const L=d.grp? budPickListFor(d.grp, s, 'disc') : []; if(!L.length || (d.nolist && d.nolist[s])) return; need++;
+    const n=String((d.bud||{})[s]||'').trim().toUpperCase();
+    // any of the office's names for the service: the box offers only discretionary or lane-less ones, the RECORD panel's
+    // mandatory line its mandatory or lane-less ones (the waiver stays the discretionary list's, above)
+    if(n && budPickListFor(d.grp, s, '').some(function(b){ return String(b.n).toUpperCase()===n; })) got++; });
+  add('budgetAsg', got===need, need? got+' of '+need+' chosen'
+    : !anyVal? 'once a service has a value' : !budReg().length? 'no BAE list is loaded' : 'none listed for '+(d.grp||'this office'), !need);
+  add('obCat', d.obCat);
+  add('wbs', d.ptype==='PRIME' || d.wbs);
+  add('dest', d.to);
+  if(destKeyIsOgc(d.to)){ add('destEnd', d.end); add('mipr', d.mipr); }
+  add('desc', String(d.desc||'').trim());
+  add('cons', String(d.cons||'').trim());
+  return out;
+}
+// A requirement on the board, as the draft reqNeeds() judges.
+function reqDraftOf(id){
+  const it=itemById(id); if(!it) return null;
   const F=recFields(id,it).filter(function(f){ return !f.sec; });
   // v2.03 (item 20): matched on the field's KEY, never its label, so a renamed label cannot empty the gate
   const has=function(k){ return F.some(function(f){ return f.k===k && f.set; }); };
-  const miss=[];
-  ['ptype','grp','obCat','wbs','dest'].forEach(function(k){ if(!has(k)) miss.push(FL(k)); });
-  if(destIsOgc(it)){
-    if(!destOf(it).end) miss.push(FL('destEnd'));
-    if(!miprOf(id)) miss.push(FL('mipr'));
-  }
-  if(!String((S.desc||{})[id]||'').trim()) miss.push(FL('desc'));
-  if(!String((S.cons||{})[id]||'').trim()) miss.push(FL('cons'));
-  if(!(askTot(it)>0)) miss.push(FL('asks'));
-  const aw=(S.awards||{})[id];
-  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push(FL('awardProj'));
-  return miss;
+  const A=((S.budgetAsg||{})[id])||{}, bud={};
+  // v2.07 review: a service the lanes pay only from mandatory shows the RECORD panel's mandatory line alone, and a budget
+  // chosen there is the one the office can set -- unread, the proposal was held back for good after a clear. Only there: a
+  // not-funded line's dollars want a discretionary (or lane-less) budget, and a choice kept for mandatory money is not one.
+  // (second review) There, a usable choice on that line wins over a discretionary one the record no longer shows that cannot
+  // be used (retired since); and where that line's picker has nothing to offer -- the office's names for the service are
+  // all discretionary -- nothing can be chosen, and the service is waived, as the box waives one with nothing to choose.
+  const BL=budLines(id), g=grpOf(it), nolist={};
+  const okN=function(s, n){ n=String(n||'').trim().toUpperCase();
+    return !!n && budPickListFor(g, s, '').some(function(b){ return String(b.n).toUpperCase()===n; }); };
+  SVC.forEach(function(s){ let k=budStoredFor(A, s, 'disc');
+    if(!BL.some(function(q){ return q.svc===s && q.lane!=='mand'; })){
+      const km=budStoredFor(A, s, 'mand');
+      if(km && (!k || (!okN(s, A[k]) && okN(s, A[km])))) k=km;
+      if(!budPickListFor(g, s, 'mand').length) nolist[s]=1; }
+    if(k) bud[s]=A[k]; });
+  return {grp:g, nolist:nolist, event:dispTitle(it), ptype:has('ptype')? ptypeOf(id) : '', ask:it.ask, bud:bud,
+          obCat:has('obCat')? obCatOf(id) : '', wbs:has('wbs'), to:has('dest')? destOf(it).to : '', end:destOf(it).end,
+          mipr:miprOf(id), desc:(S.desc||{})[id]||'', cons:(S.cons||{})[id]||''};
+}
+// A requirement of year state T as it would be brought into this year for office g -- what reqCreate() carries.
+function reqDraftFrom(T, id, src, g){
+  const pick=function(k){ const b=T[k]; return (b && typeof b==='object' && Object.prototype.hasOwnProperty.call(b, id))? b[id] : undefined; };
+  const A=pick('budgetAsg')||{}, bud={};
+  SVC.forEach(function(s){ const k=budStoredFor(A, s, 'disc'); if(k) bud[s]=A[k]; });
+  // the WBS as the form will carry it (arFinNext): one line with no split goes into the box as its text, so a blank one is no WBS
+  const dst=pick('dest')||{}, wl=(Array.isArray(pick('wbs'))? pick('wbs') : []).filter(function(x){ return x && typeof x==='object'; });
+  const one=wl.length===1 && (!Array.isArray(wl[0].v) || !wl[0].v.length);
+  return {grp:g, event:dispTitle(src, T), ptype:pick('ptype')||'', ask:askVecOf(src.ask), bud:bud, obCat:pick('obCat')||'',
+          wbs:wl.length>0 && !(one && !String(wl[0].w||'').trim()), to:dst.to||'', end:dst.end||'', mipr:pick('mipr')||'', desc:pick('desc')||'', cons:pick('cons')||''};
+}
+// The required fields a proposal is still missing, by the label the person will see. Empty = ready.
+function pmoProposalGate(id){
+  const d=reqDraftOf(id); if(!d) return ['requirement missing'];
+  return reqNeeds(d).filter(function(x){ return !x.ok; }).map(function(x){ return x.l; });
 }
 function pmoProposalOf(id){
   const it=itemById(id);
@@ -7960,7 +8124,7 @@ function pmoPriorHere(p){
 function pmoTakenAs(a, pkg){
   return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;
 }
-// ACCEPT: create the requirement the way addReq() creates one, at the BOTTOM of the consolidated
+// ACCEPT: create the requirement much as reqCreate() makes one, at the BOTTOM of the consolidated
 // listing for the SFWG to place, with the office's own ask values, and every field the proposal
 // carried. Every store write lands in the change journal through save(), like any edit by hand.
 function pmoAcceptProposal(r){
@@ -7969,7 +8133,7 @@ function pmoAcceptProposal(r){
   const g=(GROUPS.indexOf(a.grp)>=0)? a.grp : (GROUPS[0]||a.grp);
   const it={id:'NEW-'+newReqSeq(), grp:g, sect:'new', custom:true,
             team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
-            title:a.title||'(proposed requirement)', event:a.event||'(proposed by '+r.from+')',
+            title:a.title||'', event:a.event||'(proposed by '+r.from+')',
             ccar:'', fy26:SVC.map(function(){ return 0; }), ask:askVecOf(a.ask), alloc:null,
             from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};
   if(a.prior) it.prior={fy:a.prior.fy, id:a.prior.id};      // v2.06 (item 117)
@@ -8041,7 +8205,7 @@ function pmoSubmit(){
       +gaps.map(function(g){ const it=itemById(g.id);
           return '  • '+(recName(it)||dispTitle(it))+'\n      needs: '+g.miss.join(', '); }).join('\n')
       +'\n\nA proposed requirement travels whole, for the portfolio team to accept, and every mandatory '
-      +'field has to be filled before it can. Open its record (☰) to fill them, then submit again.\n\n'
+      +'field has to be filled before it can. Select its row to open its record and fill them, then submit again.\n\n'
       +'Everything else you edited is still being sent.');
   }
   const gapIds=gaps.map(function(g){ return g.id; });
@@ -8239,8 +8403,10 @@ function pmoFmtVal(k, v){
   if(k==='crHalf' && typeof v==='object') return 'second half of '+Object.keys(v).sort().map(ymLbl).join(', ')
     +' \u2014 an old CR mark, no longer used: the award dates decide';
   if(k==='__new' && v && typeof v==='object'){
-    const parts=[v.title||'(untitled)'];
-    if(v.event) parts.push(v.event);
+    // v2.07 (item 121): a requirement made in the Add box has no record title until the CCaR list names it -- it is read by
+    // its plan event (a renamed one first), never as "(untitled)"
+    const nm=v.titles||v.event||'', parts=[v.title||nm||'(untitled)'];
+    if(nm && nm!==parts[0]) parts.push(nm);
     parts.push(SVC.map(function(s,i){ return s+' '+fM((v.ask||[])[i]||0); }).join(' · '));
     if(v.ptype) parts.push(v.ptype);
     if(v.obCat) parts.push(v.obCat);
@@ -8252,12 +8418,33 @@ function pmoFmtVal(k, v){
     if(v.band) parts.push(pmoFmtVal('band', v.band));
     if(v.mc) parts.push('\u2605 MC');
     if(v.costElem) parts.push(v.costElem);
+    // v2.07 (item 121): what the box requires is what the reviewer sees -- the budgets (each marked where this board's BAE
+    // list does not offer it for that office: accepted, it would read "chosen, and cannot be used"), the PID and the narrative
+    if(v.pid) parts.push(FL('pid')+' '+v.pid);
+    const bt=pmoNewBudTxt(v); if(bt) parts.push(bt);
+    if(v.desc) parts.push(FL('desc')+': '+v.desc);
+    if(v.cons) parts.push(FL('cons')+': '+v.cons);
+    if(v.notes) parts.push(FL('notes')+': '+v.notes);
     return parts.join(' · ');
   }
   if(typeof v==='object') return pkgCanon(v);
   return String(v);
 }
 
+// A proposed requirement's name in the review and the change report: as its row will read it (dispTitle -- a renamed plan
+// event, else the plan event), with a typed record title beside it where it differs: a copy before v2.07 required the title
+// and left the event '(added at drill)'.
+function pmoNewName(a){ const n=a.titles||a.event||''; return (n||a.title||a.nid)+(n && a.title && a.title!==n? ' — '+a.title : ''); }
+function pmoNewBudTxt(v){
+  const A=v && v.budgetAsg; if(!A || typeof A!=='object') return '';
+  const ks=Object.keys(A).sort(); if(!ks.length) return '';
+  return FL('budgetAsg')+' '+ks.map(function(x){
+    const p=x.split('|'), lane=p[1]==='mand'? 'mand' : 'disc', n=String(A[x]==null? '' : A[x]);
+    let ok=false;
+    try{ ok=!!v.grp && budPickListFor(v.grp, p[0], lane).some(function(b){ return String(b.n).toUpperCase()===n.toUpperCase(); }); }catch(e){}
+    return p[0]+(p[1]? ' '+(p[1]==='mand'? 'mandatory' : 'discretionary') : '')+': '+n
+      +(ok? '' : ' ⚠ not offered for '+(v.grp||'its office')+' on this board'); }).join(' · ');
+}
 // THE CHANGE REPORT, BEFORE ANYTHING IS APPLIED. A spreadsheet the team can read away from the
 // app, argue with, and keep -- one row per proposed field, with what the board says today beside
 // what the office proposes. Exported from the review, so it describes exactly what is on offer.
@@ -8289,7 +8476,7 @@ function pmoReport(){
     if(r.isNew){
       sheet.rows.push([
         r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
-        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.titles||r.prop.title||r.prop.nid)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
+        {v:'', s:N}, r.prop.grp, 'NEW — '+pmoNewName(r.prop)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
           +(r.prop.prior && !r.taken && pmoPriorHere(r.prop.prior)? ' — '+FYL()+' already holds '+pmoPriorHere(r.prop.prior) : ''), r.prop.ccar||'',
         'New requirement (proposed)', '—', pmoFmtVal('__new', r.prop), '',
         r.taken? 'already added as '+r.taken : (PMOPICK[pickKey(r)]? 'ticked to accept' : 'not accepted'),
@@ -8819,7 +9006,7 @@ function subBody(){
             +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
         +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
           +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
-        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.titles||a.title||a.nid)
+        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(pmoNewName(a))
           +' <span style="color:var(--dim)">'+esc(a.grp)+'</span>'
           +(a.prior? '<br><span class="subprior" style="color:var(--dim);font-size:9px">from FY'+(a.prior.fy%100)+' '+esc(a.prior.id)+'</span>' : '')
           +(a.prior && !r.taken && pmoPriorHere(a.prior)? '<br><span class="subhere" style="color:var(--amber);font-size:9px;font-weight:800">'
@@ -11289,21 +11476,6 @@ const PRIME_ICON='<svg viewBox="0 0 100 100" width="11" height="11" style="verti
 let pmoOpen=false;
 function togglePmo(){ pmoOpen=!pmoOpen; render(); }
 
-// The Add Requirement panel's office picker. Filled at boot AND whenever the list changes — it was
-// boot-only, so an office added later never appeared there until the file was reopened.
-function syncNaGrp(){
-  const el=document.getElementById('naGrp'); if(!el) return;
-  el.innerHTML=GROUPS.map(function(g){ return '<option>'+esc(g)+'</option>'; }).join('');
-  // ON A PMO COPY, ADDING IS PROPOSING. Said on the panel itself, with the mandatory list, so the
-  // person adding one learns the rule before they type rather than from a refusal at submit time.
-  const ph=document.getElementById('naProposeHint');
-  if(ph){ ph.style.display=(typeof SANDBOX!=='undefined' && SANDBOX)? '' : 'none';
-    if(typeof SANDBOX!=='undefined' && SANDBOX)
-      ph.innerHTML='<b>On a PMO copy this is a PROPOSAL.</b> It travels back with your submittal flagged as '
-        +'new, for the portfolio team to accept or decline, and it cannot be sent until every mandatory '
-        +'field is filled: '+PROPOSAL_MANDATORY.map(esc).join(' · ')+'. Open its record (☰) to fill them.'; }
-  naFromDraw();
-}
 
 /* Write the list and put the board back in step with it. applyState re-normalises this year's
    assignments against the new list, which is what makes a removal actually take effect; pmoSync
@@ -11313,7 +11485,6 @@ function pmoSave(list){
   MS.pmos=list.slice();
   pmoSync();
   applyState(MS.years[MS.cur]);
-  syncNaGrp();
   save(); render();
 }
 
@@ -13258,8 +13429,14 @@ function budParseName(raw){
   if(!n || BUD_EXCLUDE.test(n)) return null;
   let ap=''; for(let i=0;i<BUD_APPN.length;i++){ if(BUD_APPN[i][0].test(n)){ ap=BUD_APPN[i][1]; break; } }
   if(!ap) return null;                       // a parent or rollup row, not a requirement budget
-  let pmo='';
-  GROUPS.forEach(function(g){ if(new RegExp('\\b'+g+'\\s*$','i').test(n)) pmo=g; });
+  let pmo='', pmoRe=null;
+  // an office's name is matched as text (v2.07): one named "C++" made the rule throw "Nothing to repeat". It starts its own
+  // word -- a word boundary before a name that starts with punctuation, "(AV)", never matched (v2.07 review) -- and the one
+  // pattern is used on both lines, which drifted once already (the second was left unescaped)
+  // (a name that starts with punctuation needs no separator before it: "...Discretionary(AV)" is (AV)'s too)
+  const offRe=function(g){ g=String(g); return new RegExp((/^[A-Za-z0-9_]/.test(g)? '(?:^|[^A-Za-z0-9_])' : '')
+    +g.replace(/[.*+?^$()|[\]\\{}]/g,'\\$&')+'\\s*$','i'); };
+  GROUPS.forEach(function(g){ const re=offRe(g); if(re.test(n)){ pmo=g; pmoRe=re; } });
   let svc=[]; for(let i=0;i<BUD_SVC.length;i++){ if(BUD_SVC[i][0].test(n)){ svc=BUD_SVC[i][1].slice(); break; } }
   const dm=/discretionary/i.test(n)? 'disc' : (/mandator/i.test(n)? 'mand' : '');
   // THE FUNDING LINE: what is left once the appropriation, the service, the lane and the PMO are
@@ -13268,7 +13445,8 @@ function budParseName(raw){
   let rest=n;
   for(let i=0;i<BUD_APPN.length;i++){ const mm=BUD_APPN[i][0].exec(n); if(mm){ rest=n.slice(mm.index+mm[0].length); break; } }
   rest=rest.replace(BUD_FAM_DROP,' ').replace(/\bOBBBA\b|\bMandatory\b|\bDiscretionary\b/gi,' ');
-  if(pmo) rest=rest.replace(new RegExp('\\b'+pmo+'\\s*$','i'),' ');
+  // the office comes off the end by the same pattern (the separator before it goes with it; budNorm drops it anyway)
+  if(pmoRe) rest=rest.replace(pmoRe,' ');
   return {n:n, ap:ap, pmo:pmo, svc:svc, dm:dm, line:budNorm(rest), hand:BUD_HAND.test(n)};
 }
 // Where the list is held: the board-wide store, or -- on a board saved before v1.83 -- the newest
@@ -13294,10 +13472,13 @@ function budSrc(){
 let _budRegCache=null;
 function budReg(){
   const src=budSrc(), raw=src.rows||[];
-  if(_budRegCache && _budRegCache.raw===raw && _budRegCache.n===raw.length && _budRegCache.ts===src.ts) return _budRegCache.rows;
+  // v2.07: the offices are part of the key -- a name's office is read against GROUPS, and an office added in Setup offered
+  // no budgets until the page was reloaded
+  const gk=GROUPS.join('\u0001');
+  if(_budRegCache && _budRegCache.raw===raw && _budRegCache.n===raw.length && _budRegCache.ts===src.ts && _budRegCache.gk===gk) return _budRegCache.rows;
   const rows=[];
   raw.forEach(function(b){ if(!b || !b.n) return; const p=budParseName(b.n); if(!p) return; p.gone=b.gone? 1 : 0; rows.push(p); });
-  _budRegCache={raw:raw, n:raw.length, ts:src.ts, rows:rows};
+  _budRegCache={raw:raw, n:raw.length, ts:src.ts, gk:gk, rows:rows};
   return rows;
 }
 // ---- THE RULE (v1.83) -----------------------------------------------------------------------
@@ -13330,7 +13511,11 @@ function budNorm(s){ return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' 
 // service and PMO, this lane or none -- never a legacy or retired name. Hand-pick lines included.
 function budPickList(id, svc, lane){
   const it=itemById(id); if(!it) return [];
-  const pmo=grpOf(it)||'';
+  return budPickListFor(grpOf(it)||'', svc, lane);
+}
+// The same list for an office, before there is a requirement to read it from (the Add box, v2.07). Never called with no
+// office from there: an empty office lifts the office filter and lists every office's names.
+function budPickListFor(pmo, svc, lane){
   return budReg().filter(function(b){
     if(b.ap!==mySlug() || !b.pmo || b.gone) return false;
     if(pmo && b.pmo!==pmo) return false;
@@ -14631,8 +14816,8 @@ function preflight(){
       if(miss.length) rows.push({id:id, label:(recName(itemById(id))||pfName(id)), sub:'needs '+miss.join(', ')}); });
     add('block','newreq','A proposed requirement is missing mandatory fields',
       'A requirement added on this copy travels back whole, for the portfolio team to accept, and it '
-      +'cannot be sent until every mandatory field is filled. Submit input is refused while any of '
-      +'these is open.', rows);
+      +'cannot be sent until every required field is filled. Submit input holds each of these back, by '
+      +'name, and sends everything else.', rows);
   }
 
   // 2. allocated more than asked. IDS refuses a line whose approved exceeds its requirement, and
@@ -16718,8 +16903,10 @@ function setMipr(id,v){
 // never on a name list: "LM or P&W" goes stale the day a prime is renamed or a third one is added,
 // which is the trap that blanked a whole appropriation in Spruills. ONE predicate, shared with the
 // Goes-to completeness rule, so the two are satisfied or waived together.
-function destIsOgc(it){
-  const to=destOf(it).to; if(!to) return false;
+function destIsOgc(it){ return destKeyIsOgc(destOf(it).to); }
+// the same predicate on a destination's key, for a record not yet on the board (the Add box, v2.07)
+function destKeyIsOgc(to){
+  if(!to) return false;
   const e=flowEnt(to); return !!e && e.kind!=='prime';
 }
 // The ULTIMATE recipient: where it ends up. If nothing was recorded for the second hop, the money
@@ -22970,9 +23157,9 @@ function spBodyDraw(el){
       const A=(aceSet.appn||{})[APPN_SLUG[b.name]];
       G.years.forEach(y=>{
         if(!A){ b.req[y]=undefined; return; }
-        if(spBy==='svc' && spSvc!=='ALL'){ b.req[y]=(A.svc[spSvc]||{})[y]; return; }
-        if(spBy==='pmo' && spPmo!=='ALL'){ b.req[y]=(A.pmo[spPmo]||{})[y]; return; }
-        b.req[y]=A.tot[y];
+        if(spBy==='svc' && spSvc!=='ALL'){ b.req[y]=((A.svc||{})[spSvc]||{})[y]; return; }
+        if(spBy==='pmo' && spPmo!=='ALL'){ b.req[y]=((A.pmo||{})[spPmo]||{})[y]; return; }
+        b.req[y]=(A.tot||{})[y];
       });
       b.rows=aceRows(aceSet, APPN_SLUG[b.name], G.years);
     });
@@ -26988,7 +27175,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -27136,7 +27323,10 @@ function render(){
       ${clinApplies(id)&&clinOpen[id]&&!brief? clinTable(it):''}
     </div>`;
   });
-  if(!h) h='<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
+  if(!h) h=(!(S.order||[]).length && !CYCVIEW)
+    ? '<div style="color:var(--dim);padding:30px;text-align:center">'+FYL()+' holds no requirements yet. '
+      +'<button type="button" class="btn" onclick="toggleAdd()">＋ Add requirement</button></div>'
+    : '<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
   document.getElementById('list').innerHTML=h;
   document.getElementById('pmoActs').innerHTML = pmoMode()?
     `<button class="btn warn" style="font-size:11px;padding:5px 10px" onclick="zeroPMO()" title="set every ${esc(filter)} allocation to $0 — start the PMO's allocations from a clean slate">⓪ Zero ${esc(filter)} allocations</button>
@@ -27588,7 +27778,7 @@ function syncBtns(){
   // in Reports & exports (every view and every export, by horizon), Data (everything that brings data
   // in), Setup (the shape of the board, and how it looks to you), or on its mode's tools in the task
   // bar. tools/layout-fits.mjs carries the old list and fails by name if one goes missing.
-  const addOpen=document.getElementById('addPanel').style.display==='block';
+  const addOpen=arOn();
   const sep='<div class="msep"></div>', lbl=function(t){ return '<div class="mlbl">'+t+'</div>'; };
   const I={
     // views: the budget year
@@ -27673,7 +27863,7 @@ function syncBtns(){
     // v2.04 (item 106): everything ORBIT keeps in this browser, removed in one action; the board FILE is not touched
     clr: mi('🧹 Clear this computer…',"mRun(clearComputer)",false,'remove everything ORBIT keeps in this browser',' warn'),
     // the mode tools' own items, for the folded menu below 1100px
-    add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR'),
+    add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'the whole record, in one box'),
     bm: mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources'),
     split: (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
       return mi('⚙ Convert all to Split…',"mRun(convertAllToSplit)",false,
@@ -29540,7 +29730,7 @@ function budRegBody(){
     files.forEach(function(x){
       h+='<tr><td style="text-align:left"><b>'+esc(x.dept)+'</b></td>'
         +'<td style="text-align:left">'+esc(x.file)+'</td><td>'+esc(x.n)+'</td>'
-        +'<td>'+esc(new Date(x.ts).toISOString().slice(0,10))+'</td></tr>';
+        +'<td>'+esc(isFinite(new Date(x && x.ts))? new Date(x.ts).toISOString().slice(0,10) : '—')+'</td></tr>';
     });
     h+='</table>';
   } else {
@@ -30244,63 +30434,495 @@ function setFsrcSvc(id, kind, i, val){
   fo[kind==='d'?'dv':'mv'][i] = (v===null||v<0)? 0 : v;
   save(); render(); flash(id);
 }
-function toggleAdd(){
-  const p=document.getElementById('addPanel');
-  const on = p.style.display!=='block';
-  p.style.display = on? 'block':'none';
-  if(on) naFromDraw();
-  syncBtns();
+// ═══ v2.07 (item 121): ADD REQUIREMENT IS ONE BOX THAT BUILDS THE WHOLE RECORD ════════════════════════════════════════════
+// Brad, 24 Oct 2026: "a pop up box that allows us to build and include all the relevant information". The strip under the
+// task bar (#addPanel, v1.x-v2.06) took a title, a plan event, a CCaR and the value, and everything else was looked for
+// afterwards in three places. The box asks for the record at once, and his rules for it are these:
+//  - ONE OFFICE. "Once they select their PMO, that's the only PMO they can support with adding requirements." A copy adds for
+//    the office it submits for (myPmo); the board for the office chosen at the top, or -- with All offices showing -- the
+//    box asks first and keeps that answer while it is open. It is shown, never changed, in the box.
+//  - EVERY REQUIRED FIELD BEFORE ADD, on the board as in a copy. The list is reqNeeds() -- the proposal gate's own list,
+//    read from it, never restated: plan event, Prime contract / OGC, the requirement, a BAE budget for every service with a
+//    value, obligation category, WBS, Goes to, description, impact statement, and for an OGC which awards to and the MIPR
+//    type. Add pressed early goes to the first one missing and outlines the rest; its button counts them.
+//  - NOT IN THE BOX: the decision band ("allocated by the SFWG"), Mission Critical (a new requirement starts unstarred), the
+//    award and obligation dates ("this far out, people are just guessing"), RCN / EEIC ("my O&M appropriation team should be
+//    allocating those") -- only a requirement brought in from another year carries them -- and the record title, which is
+//    "never typed": it is read from the CCaR records list as the CCaR record is typed.
+//  - The value is the REQUIREMENT, never an allocation. It lands at the bottom of the order on a Split, as the strip's addReq()
+//    always landed one: seedSplit() records what the lanes still hold below every requirement above it.
+//  - Nothing is written until Add; Cancel or Esc discards (every field is data-held, so the box controller asks first).
+// Everything the box writes is a container the board already keeps (REQ_MAPS), so nothing new travels in a file.
+function arOn(){ return typeof arOpen!=='undefined' && arOpen; }
+function arEl(id){ return document.getElementById(id); }
+function arVal(id){ const e=arEl(id); return e? String(e.value==null? '' : e.value) : ''; }
+// A PMO copy adds only to the year it was published for: a proposal made in another year could never be sent (pmoSubmit
+// refuses while that year is on screen, and the published year's submit never sees it).
+function arCopyOtherYear(){
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy)) return false;
+  const m='⚠ This copy was published for FY'+(PMODE.fy%100)+' and is showing FY'+(MS.cur%100)+'. A requirement added '
+    +'here could never be sent — go back to FY'+(PMODE.fy%100)+' to add one.';
+  try{ setStat(m); }catch(e){}
+  if(arOn()) arSay(m);
+  return true;
 }
-function addReq(){
-  const t=(document.getElementById('naTitle').value||'').trim();
-  if(!t){ alert('Enter a requirement title.'); return; }
-  const svcVals=SVC.map((s,i)=>{ const v=parseAmt(document.getElementById('naSvc'+i).value); return (v===null||v<0)?0:v; });
-  const svcSum=svcVals.reduce((a,b)=>a+b,0);
-  const tot=parseAmt(document.getElementById('naTot').value);
-  // v1.97 W1 (item 75): a box that cannot be read stops the add -- it is never taken for an empty one
-  const naBad=SVC.map((s,i)=>Number.isNaN(svcVals[i])? s+': '+amtRead(document.getElementById('naSvc'+i).value).why : '')
-    .concat(Number.isNaN(tot)? ['Total: '+amtRead(document.getElementById('naTot').value).why] : []).filter(Boolean);
-  if(naBad.length){ alert('This requirement was not added. '+naBad.join('. ')+'. Nothing on the board was changed.'); return; }
+// THE OFFICE THE BOX ADDS FOR, when it opens. A copy: the office it submits for. The board: the office chosen at the top --
+// one office showing is used as is -- else nothing, and the box asks.
+function arOfficeStart(){
+  if(typeof SANDBOX!=='undefined' && SANDBOX){ const m=myPmo(); return m? {g:m, how:'the office this copy submits for'} : {g:'', how:''}; }
+  if(typeof filter!=='undefined' && filter && filter!=='ALL') return {g:filter, how:'the office chosen at the top'};
+  return {g:'', how:''};
+}
+function arOfficeChoices(){ return (typeof SANDBOX!=='undefined' && SANDBOX)? pmoChoices() : GROUPS.slice(); }
+function toggleAdd(){ if(arOn()) arHide(); else arShow(); }
+function arShow(){
+  if(cycBlock('Adding requirements')) return false;
+  if(arCopyOtherYear()) return false;
+  const o=arOfficeStart();
+  arOpen=true; arTabOn='new'; arOff=o.g; arOffHow=o.how; arQueue=[]; arFin=null; arDescAuto=''; arOffNav=false;
+  naFromFy=0; naFromSel={};
+  // the whole form, both tabs, drawn in the same step that opens the box: the box controller snapshots its fields when
+  // it first sees the box open, and a field drawn after that would be typed into unguarded
+  arDraw();
+  const bg=arEl('addPanel'); if(bg) bg.classList.add('open');
+  try{ syncBtns(); }catch(e){}
+  return true;
+}
+function arHide(){
+  arOpen=false; arQueue=[]; arFin=null;
+  const bg=arEl('addPanel'); if(bg) bg.classList.remove('open');
+  const b=arEl('arBody'); if(b) b.innerHTML='';
+  try{ syncBtns(); }catch(e){}
+}
+// render()'s part: the box's state only. It never redraws a field -- a redraw would take the caret, and the text, with it.
+function arSync(){ const bg=arEl('addPanel'); if(bg) bg.classList.toggle('open', arOn()); }
+function arSay(h, ok){ const m=arEl('arMsg'); if(!m) return; m.innerHTML=h||''; m.className='ar-msg'+(h? (ok? ' ok' : ' bad') : ''); }
+
+// ---- the form ------------------------------------------------------------------------------------------------------------
+const AR_CTL={titles:'arEvent', ptype:'arPtP', asks:'arV0', budgetAsg:'arB0', obCat:'arOb', costElem:'arCe', wbs:'arWbs',
+  dest:'arTo', destEnd:'arEnd', mipr:'arMipr', desc:'arDesc', cons:'arCons'};
+function arField(id, k, ctl, o){
+  o=o||{};
+  return '<div class="ar-f'+(o.span? ' span2' : '')+'" id="arF_'+k+'"'+(o.hide? ' hidden' : '')+'>'
+    +'<label class="ar-l" for="'+id+'">'+esc(o.l||FL(k))+(o.req? '<i aria-hidden="true">*</i>' : '')+(o.tag? '<em>'+o.tag+'</em>' : '')+'</label>'
+    +ctl+(o.note!==undefined? '<span class="ar-n" id="'+id+'Note">'+o.note+'</span>' : '')+'</div>';
+}
+function arInp(id, o){
+  o=o||{};
+  return '<input id="'+id+'" data-held="1" autocomplete="off"'+(o.req? ' aria-required="true"' : '')
+    +(o.ph? ' placeholder="'+esc(o.ph)+'"' : '')+(o.inp? ' inputmode="'+o.inp+'"' : '')+(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')
+    +' oninput="'+(o.on||'arUpdate()')+'">';
+}
+function arSel(id, opts, o){
+  o=o||{};
+  return '<select id="'+id+'" data-held="1"'+(o.req? ' aria-required="true"' : '')+(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')
+    +' onchange="'+(o.on||'arUpdate()')+'">'+opts+'</select>';
+}
+function arDestOpts(first){
+  return '<option value="">'+first+'</option>'+flowEntsAZ().map(function(e){
+    return '<option value="'+esc(e.k)+'">'+esc(e.n)+(e.kind==='gov'? ' (gov)' : '')+'</option>'; }).join('');
+}
+function arDraw(){
+  const el=arEl('arBody'); if(!el) return;
+  const fy=arEl('arFy'); if(fy) fy.textContent='— '+FYL();
+  const T=(typeof SANDBOX!=='undefined' && SANDBOX);
+  const ce=!!(DATA && DATA.costElems);
+  const offs=arOfficeChoices();
+  let h='<div class="ar-top"><div id="arWho" class="ar-who"></div>'
+    // with no office yet, the box asks first; once answered it is kept, and never changed in the box
+    +'<div class="ar-off" id="arOffStep"'+(arOff? ' hidden' : '')+'><label class="ar-l" for="arOffice">Which office are you adding for?</label>'
+    +'<select id="arOffice" data-held="1" onkeydown="arOffKey(event)" onmousedown="arOffMouse()" onchange="arOffPick(this.value)">'
+    +'<option value="">— choose the office —</option>'
+    +offs.map(function(g){ return '<option value="'+esc(g)+'">'+esc(g)+'</option>'; }).join('')+'</select>'
+    +'<span class="ar-n">Pick it, or move to it with the arrow keys and press Enter. Once chosen it is the only office this box adds for'
+    +(T? ', and the office this copy submits for' : '')+'.</span></div>'
+    +'<div id="arFinBar" class="ar-fin" hidden></div></div>';
+  // ---- New requirement: three columns -- Identity and Classification; the value and budget by service, then where the money
+  //      goes; the narrative and what is still needed
+  h+='<div class="ar-body" id="arNew"'+(arOff? '' : ' hidden')+'>'
+    +'<div class="ar-col">'
+    +'<section class="ar-sec" aria-labelledby="arS1"><h4 id="arS1">Identity</h4><div class="ar-grid">'
+    +arField('arEvent', 'titles', arInp('arEvent', {req:1, ph:'what the row is called'}), {req:1, span:1})
+    +'<div class="ar-f span2" id="arF_ptype"><span class="ar-l" id="arPtL">'+esc(FL('ptype'))+'<i aria-hidden="true">*</i></span>'
+    +'<div class="ar-seg" role="group" aria-labelledby="arPtL"><button type="button" id="arPtP" aria-pressed="false" onclick="arPt(\'PRIME\')">Prime contract</button>'
+    +'<button type="button" id="arPtO" aria-pressed="false" onclick="arPt(\'OGC\')">OGC</button></div>'
+    +'<input type="hidden" id="arPtype" data-held="1" value=""></div>'
+    +arField('arCcar', 'ccar', arInp('arCcar', {on:'arCcarTyped()', ph:'e.g. JSF3087'}))
+    +arField('arPid', 'pid', arInp('arPid', {ph:'optional'}), {span:1})
+    +'<div class="ar-f span2"><span class="ar-l" id="arRecL">'+esc(FL('recNames'))+'<em>from the CCaR records list</em></span>'
+    +'<span class="ar-ro" id="arRecT" aria-labelledby="arRecL"></span></div>'
+    +'</div></section>'
+    +'<section class="ar-sec" aria-labelledby="arS2"><h4 id="arS2">Classification</h4><div class="ar-grid">'
+    +arField('arOb', 'obCat', arSel('arOb', '<option value="">— choose —</option>'+OB_CATS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join(''), {req:1}), {req:1, span:!ce})
+    +(ce? arField('arCe', 'costElem', arSel('arCe', '<option value="">— optional —</option>'+COST_ELEMS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join(''))) : '')
+    +arField('arWbs', 'wbs', arInp('arWbs', {req:1, ph:'e.g. 1.2.3'}), {req:1, span:1, note:''})
+    +'</div></section></div>';
+  // the value, one box per service, and beside each the office's budgets for that service
+  h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="arS3"><h4 id="arS3">'+esc(FL('asks'))+'<span>what is asked for, never funding</span></h4>'
+    +'<table class="ar-svc"><colgroup><col style="width:66px"><col style="width:110px"><col></colgroup>'
+    +'<tr><th scope="col">Service</th><th scope="col">Requirement ($)</th><th scope="col" id="arBudH">'+esc(FL('budgetAsg'))+'</th></tr>'
+    +SVC.map(function(s,i){
+      return '<tr><th scope="row">'+esc(s)+'</th><td>'+arInp('arV'+i, {inp:'decimal', ph:'0', lbl:s+' '+FYL()+' requirement value'})+'</td>'
+        +'<td><select id="arB'+i+'" data-held="1" aria-label="'+esc(s+' '+FL('budgetAsg'))+'" onchange="arUpdate()" hidden></select>'
+        +'<span class="ar-na" id="arBn'+i+'"></span></td></tr>'; }).join('')
+    +'<tr class="tot"><th scope="row">Total</th><td id="arTot">$0</td><td><span class="ar-spread">'
+    +'<input id="arSpread" data-held="1" inputmode="decimal" aria-label="A total to spread evenly over the services" placeholder="or a total…" autocomplete="off">'
+    +'<button type="button" class="qb" onclick="arSpread()">Spread evenly</button></span></td></tr></table>'
+    +'<div class="ar-note">Whole dollars · 1,234,567, 1.2M or 750K · a blank service is $0. Funding is set on the board, not here.</div></section>'
+    +'<section class="ar-sec" aria-labelledby="arS4"><h4 id="arS4">Where the money goes</h4><div class="ar-grid">'
+    +arField('arTo', 'dest', arSel('arTo', arDestOpts('— choose —'), {req:1}), {req:1, span:1})
+    +arField('arEnd', 'destEnd', arSel('arEnd', arDestOpts('— choose —'), {req:1}), {req:1, hide:1, tag:'OGC'})
+    +arField('arMipr', 'mipr', arSel('arMipr', '<option value="">— choose —</option>'+Object.keys(MIPR_LBL).map(function(k){
+        return '<option value="'+k+'">'+esc(MIPR_LBL[k])+'</option>'; }).join(''), {req:1}), {req:1, hide:1, tag:'OGC'})
+    +'</div></section></div>';
+  h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="arS5"><h4 id="arS5">Narrative</h4><div class="ar-grid ar-g1">'
+    +arField('arDesc', 'desc', '<textarea id="arDesc" data-held="1" aria-required="true" oninput="arDescTyped()"></textarea>', {req:1, tag:'filled from the CCaR list when empty'})
+    +arField('arCons', 'cons', '<textarea id="arCons" data-held="1" aria-required="true" placeholder="what is lost, and when, if it is not funded" oninput="arUpdate()"></textarea>', {req:1})
+    +arField('arNote', 'notes', '<textarea id="arNote" data-held="1" class="short" placeholder="optional"></textarea>')
+    +'</div></section>'
+    +'<section class="ar-sec" aria-labelledby="arS6"><h4 id="arS6">Ready to add<span id="arReadyN"></span></h4><ul class="ar-chk" id="arChk"></ul>'
+    +'<div class="ar-sum" id="arSum"></div></section></div></div>';
+  // ---- From another year (item 117, moved in): the picker draws into #naFromWrap
+  h+='<div class="ar-yr" id="arYr" hidden><div id="naFromWrap"></div></div>';
+  h+='<div class="ar-ft" id="arFt"><div id="arMsg" class="ar-msg" role="alert" aria-live="assertive"></div><span class="sp"></span>'
+    +'<button type="button" class="btn" onclick="toggleAdd()">Cancel</button>'
+    +'<button type="button" class="btn" id="arAddOpen" onclick="arAdd(true)">Add and open its record</button>'
+    +'<button type="button" class="btn pri" id="arAddBtn" onclick="arAdd(false)">Add requirement</button></div>';
+  el.innerHTML=h;
+  arTab(arTabOn, true);
+  arOfficeApply();
+}
+// the office is chosen: kept for as long as the box is open, and (in a copy) as the office it submits for
+function arSetOffice(g){
+  if(!g || arOfficeChoices().indexOf(g)<0) return;
+  arOff=g;
+  if(typeof SANDBOX!=='undefined' && SANDBOX){
+    try{ localStorage.setItem('prio27pmo', g); }catch(e){}
+    try{ const b=arEl('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
+    arOffHow='the office this copy submits for';
+  } else arOffHow='chosen here';
+  arOfficeApply();
+  const f=arEl(arTabOn==='yr'? 'naFromFy' : 'arEvent'); if(f) try{ f.focus(); }catch(e){}
+}
+// THE OFFICE IS CHOSEN, NEVER BRUSHED PAST (v2.07 review): a closed select fires change on every arrow key in Chromium, so
+// the first ArrowDown locked the box to the first office and sent the keyboard on to the plan event -- no other office could
+// be reached from the keyboard (WCAG 3.2.2 On Input). A keyboard move only moves; Enter chooses. A pick with the mouse
+// chooses at once, as before.
+function arOffKey(e){
+  const k=e && e.key;
+  if(k==='Enter'){ if(e.preventDefault) e.preventDefault(); arOffNav=false; arSetOffice(arVal('arOffice')); return; }
+  // a key that opens the list hands the choice back to it: a pick made there chooses, as a mouse pick does (v2.07 review)
+  if(k===' ' || k==='F4' || (e.altKey && /^Arrow(Up|Down)$/.test(k||''))){ arOffNav=false; return; }
+  if(!e.altKey && !e.ctrlKey && !e.metaKey && (/^(Arrow(Up|Down|Left|Right)|Home|End|PageUp|PageDown)$/.test(k||'') || (k && k.length===1 && k!==' '))) arOffNav=true;
+}
+function arOffMouse(){ arOffNav=false; }
+function arOffPick(v){ if(arOffNav) return; arSetOffice(v); }
+function arOfficeApply(){
+  const step=arEl('arOffStep'); if(step) step.hidden=!!arOff;
+  const T=(typeof SANDBOX!=='undefined' && SANDBOX);
+  const who=arEl('arWho');
+  if(who) who.innerHTML= arOff
+    ? 'For <b>'+esc(arOff)+'</b> — the only office this box adds for ('+esc(arOffHow)+')'
+      +(T? '. On a PMO copy it is a proposal, sent whole with your submittal.' : '.')+' <span class="ar-req">* required</span>'
+    : 'Choose the office first.';
+  const bh=arEl('arBudH'); if(bh) bh.innerHTML=esc(FL('budgetAsg'))+(arOff? ' — '+esc(arOff)+'’s budgets only' : '');
+  SVC.forEach(function(s,i){ arBudFill(i); });
+  arTab(arTabOn, true);
+  naFromDraw();
+  arUpdate();
+}
+// a service's budgets: this appropriation's names for the office and the service, discretionary or lane-less (nothing is
+// funded when it is added, and a not-funded line is the discretionary lane's -- budPutUnf, as the RECORD panel's picker)
+function arBudFill(i){
+  const sel=arEl('arB'+i); if(!sel) return;
+  const keep=sel.value, L=arOff? budPickListFor(arOff, SVC[i], 'disc') : [];
+  sel.innerHTML='<option value="">— choose —</option>'+L.map(function(b){
+    return '<option value="'+esc(b.n)+'">'+esc(b.n)+(b.hand? ' (by hand only)' : '')+'</option>'; }).join('');
+  if(keep && L.some(function(b){ return b.n===keep; })) sel.value=keep;
+}
+function arTab(t, quiet){
+  arTabOn=(t==='yr')? 'yr' : 'new';
+  const nw=arEl('arNew'), yr=arEl('arYr');
+  if(nw) nw.hidden=!arOff || arTabOn!=='new';
+  if(yr) yr.hidden=!arOff || arTabOn!=='yr';
+  const a=arEl('arTabNew'), b=arEl('arTabYr');
+  if(a) a.setAttribute('aria-pressed', String(arTabOn==='new'));
+  if(b) b.setAttribute('aria-pressed', String(arTabOn==='yr'));
+  ['arAddOpen','arAddBtn'].forEach(function(id){ const e=arEl(id); if(e) e.hidden=(arTabOn!=='new'); });
+  // the box stays open over the record until the last one brought in is finished, so only the last can be opened
+  const ao=arEl('arAddOpen'); if(ao && arQueue.length) ao.hidden=true;
+  if(arTabOn==='yr' && !quiet) naFromDraw();
+}
+function arPt(v){
+  const h=arEl('arPtype'); if(h) h.value=(v==='PRIME'||v==='OGC')? v : '';
+  arUpdate();
+}
+// The CCaR record names the record: its title is read from the CCaR records list, never typed (Brad), and its short
+// description fills an EMPTY description -- or one this box filled itself -- never one somebody wrote (ccarDescFill's rule).
+function arCcarTyped(){
+  const cc=arVal('arCcar').trim(), d=arEl('arDesc');
+  if(d && (!d.value.trim() || d.value===arDescAuto)){ const s=cc? ccarDescOfNum(cc) : ''; d.value=s; arDescAuto=s; }
+  arUpdate();
+}
+function arDescTyped(){ const d=arEl('arDesc'); if(d && d.value!==arDescAuto) arDescAuto=''; arUpdate(); }
+// "Spread a total..." puts whole dollars into the boxes, there to be read and changed before Add.
+function arSpread(){
+  const raw=arVal('arSpread'), tot=parseAmt(raw);
+  if(Number.isNaN(tot)){ arSay('The total was not spread: '+esc(amtRead(raw).why)+'.'); return; }
+  const rounded=amtRead(raw).rounded;
+  if(!(tot>0) || !SVC.length){ arSay('Type a total above $0 to spread it.'); return; }
   let ask;
-  if(svcSum>0) ask=svcVals;
   // A TOTAL IS SPREAD WITH apportion(), NEVER BY DIVIDING IT (v1.89). tot/SVC.length left a fraction
   // on every service: the workbook printed 999,999.9999999999 and an unfunded row of
   // $1.000000000000007, and the reopen rounded each service by itself, so $1,000,000 typed across
   // six services came back as $1,000,002. apportion() gives whole dollars that add up to exactly what
   // was typed; the dollars left over go to the first services in the list (Brad, 30 Sep 2026: $100
   // across three is 34 / 33 / 33).
-  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));
-  else { alert('Set the FY27 requirement value — either by service or as one total.'); return; }
+  if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));
+  SVC.forEach(function(s,i){ const e=arEl('arV'+i); if(e) e.value=ask[i]? ask[i].toLocaleString('en-US') : ''; });
+  const sp=arEl('arSpread'); if(sp) sp.value='';
+  arSay(rounded? 'The total '+esc(inShow(String(raw).trim()))+' was entered as '+fM(tot)+' — the board keeps whole dollars.' : '', true);
+  arUpdate();
+}
+// What the box holds, as the record it would add -- the draft reqNeeds() judges -- and every figure it could not read.
+function arRead(){
+  const bad=[], rnd=[], ask=SVC.map(function(s,i){ const raw=arVal('arV'+i), v=parseAmt(raw);
+    if(Number.isNaN(v)){ bad.push({id:'arV'+i, m:s+': '+amtRead(raw).why}); return 0; }
+    if(amtRead(raw).rounded) rnd.push(s+': '+inShow(raw.trim())+' was entered as '+fM(v));
+    return (v===null||v<0)? 0 : v; });
+  // a budget is read only where its service has a value: the picker of a service whose value was erased is hidden and
+  // keeps its choice, and a budget for a service asking $0 is one no line of the RECORD panel would ever show
+  const bud={}; SVC.forEach(function(s,i){ const n=arVal('arB'+i); if(n && ask[i]>0) bud[s]=n; });
+  const pt=arVal('arPtype'), to=arVal('arTo'), og=destKeyIsOgc(to);
+  const d={grp:arOff, event:arVal('arEvent').trim(), ptype:pt, ask:ask, bud:bud, obCat:arVal('arOb'),
+           wbs:(arFin && arFin.wbsKeep)? true : arVal('arWbs').trim(), to:to, end:og? arVal('arEnd') : '', mipr:og? arVal('arMipr') : '',
+           desc:arVal('arDesc').trim(), cons:arVal('arCons').trim()};
+  return {d:d, bad:bad, og:og, rnd:rnd};
+}
+// Draw what follows from what is typed: the total, the budget pickers, the OGC fields, the record title, what is still
+// needed and the button's count. Fields are shown and hidden here, never redrawn.
+function arUpdate(){
+  if(!arEl('arNew')) return;
+  const R=arRead(), d=R.d, list=budReg();
+  const tot=d.ask.reduce(function(a,b){ return a+b; }, 0);
+  const te=arEl('arTot'); if(te) te.textContent=fM(tot);
+  SVC.forEach(function(s,i){
+    const sel=arEl('arB'+i), na=arEl('arBn'+i); if(!sel || !na) return;
+    const has=d.ask[i]>0, n=sel.options.length-1;
+    sel.hidden=!has || !n;
+    na.textContent= !has? 'add a value to choose a budget'
+      : !list.length? 'no BAE list is loaded — chosen once one is'
+      : !n? 'no '+s+' budget is listed for '+(arOff||'this office') : '';
+  });
+  const fe=arEl('arF_destEnd'), fm=arEl('arF_mipr'); if(fe) fe.hidden=!R.og; if(fm) fm.hidden=!R.og;
+  const pp=arEl('arPtP'), po=arEl('arPtO');
+  if(pp) pp.setAttribute('aria-pressed', String(d.ptype==='PRIME')); if(po) po.setAttribute('aria-pressed', String(d.ptype==='OGC'));
+  // a prime contract's WBS is logged per CLIN, in its CLIN drill once added -- the RECORD panel's rule (recFields)
+  const w=arEl('arWbs'), wn=arEl('arWbsNote'), keep=!!(arFin && arFin.wbsKeep);
+  if(w) w.hidden=(d.ptype==='PRIME') || keep;
+  if(wn) wn.textContent= d.ptype==='PRIME'? 'logged per CLIN, in its CLIN drill once it is added'
+    : keep? 'carried from FY'+(arFin.y%100)+': '+arFin.wbsTxt+' — edit it in the record once added' : '';
+  const cc=arVal('arCcar').trim(), rt=arEl('arRecT');
+  if(rt){ const nm=(arFin && arFin.recName) || (cc? ccarNameOfNum(cc) : '') || (arFin? arFin.title : '');
+    const rec=cc? ccarRec(cc) : null;
+    rt.textContent= nm || (!cc? 'filled from the CCaR records list when the record is typed'
+      : (rec && rec.d>1)? 'held by '+rec.d+' records in the CCaR records list — no title is taken from it'
+      : !ccarIdx()? 'no CCaR records list is loaded — named once one is'
+      : 'not in the CCaR records list');
+    rt.classList.toggle('dim', !nm); }
+  const need=reqNeeds(d), miss=need.filter(function(x){ return !x.ok; });
+  const ch=arEl('arChk');
+  if(ch) ch.innerHTML=need.map(function(x){
+    const st=x.w? 'na' : x.ok? 'ok' : 'no';
+    return '<li class="'+st+'"><i aria-hidden="true">'+(x.w? '–' : x.ok? '✓' : '!')+'</i>'+esc(arShort(x.l))
+      +(x.n? ' <span>· '+esc(x.n)+'</span>' : '')+'<span class="sr">'+(x.w? ' — nothing to choose' : x.ok? ' — done' : ' — still needed')+'</span></li>'; }).join('');
+  const rn=arEl('arReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;
+  const btn=arEl('arAddBtn'); if(btn) btn.textContent='Add requirement'+(miss.length? ' — '+miss.length+' still needed' : '');
+  const sm=arEl('arSum');
+  if(sm){ const ref=arOff? reqNewId(arOff, newReqSeqPeek()) : '';
+    sm.innerHTML='<b>'+fM(tot)+'</b> requirement'+(arOff? ' · reference <b>'+esc(ref)+'</b>' : '')
+      +'<br>It lands at the bottom of the order, on a Split that draws only what the lanes hold below every requirement above it. '
+      +'The SFWG sets its band'+(rcnApplies()? ', the O&amp;M team its RCN / EEIC' : '')+'.'
+      +(arFin && arFin.carried.length? '<br>Also carried from FY'+(arFin.y%100)+': '+esc(arFin.carried.join(', '))+'.' : ''); }
+  // a mark set by an early Add comes off its field as soon as that field is answered
+  // -- from the control as well as its box: the first value box carries the mark itself, and aria-invalid stayed on every
+  // control until the next Add (v2.07 review)
+  const unmark=function(e){ if(!e) return; e.classList.remove('miss'); e.removeAttribute('aria-invalid');
+    const f=e.closest? e.closest('.ar-f') : null; if(f) f.classList.remove('miss'); };
+  need.forEach(function(x){ if(!x.ok) return;
+    // a WBS Add would refuse for its length is answered on the rail but still wrong: its mark stays (second review)
+    if(x.k==='wbs' && d.ptype!=='PRIME' && !(arFin && arFin.wbsKeep) && codeTake(arVal('arWbs'), 'wbs').why) return;
+    const f=arEl('arF_'+x.k); if(f) f.classList.remove('miss');
+    (x.k==='ptype'? ['arPtP','arPtO'] : (x.k==='asks' || x.k==='budgetAsg')? [] : [AR_CTL[x.k]]).forEach(function(id){ unmark(arEl(id)); }); });
+  SVC.forEach(function(s,i){ const sel=arEl('arB'+i); if(sel && (sel.hidden || sel.value)) unmark(sel);
+    const v=arEl('arV'+i); if(v && tot>0 && !Number.isNaN(parseAmt(v.value))) unmark(v); });
+  [['arCcar','ccar'],['arPid','pid']].forEach(function(c){ const e=arEl(c[0]); if(e && !codeTake(e.value, c[1]).why) unmark(e); });
+}
+function arShort(l){ return String(l).replace(/\s*\([^)]*\)\s*$/,''); }
+// the reference a requirement added now would get, worked out without spending the number (newReqSeq() keeps it)
+function newReqSeqPeek(T){
+  T=T||S;
+  const had=Object.prototype.hasOwnProperty.call(T, 'newSeq'), keep=T.newSeq;
+  const n=newReqSeq(T);
+  if(had) T.newSeq=keep; else delete T.newSeq;
+  return n;
+}
+// outline what is missing and send the keyboard to the first of it
+function arMark(ids){
+  let first=null;
+  ids.forEach(function(id){ const e=arEl(id); if(!e) return;
+    const f=e.closest? e.closest('.ar-f') : null; (f||e).classList.add('miss'); e.setAttribute('aria-invalid','true');
+    if(!first && !e.hidden) first=e; });
+  if(first) try{ first.focus(); }catch(e){}
+}
+function arNeedIds(need, d){
+  const ids=[];
+  need.forEach(function(x){
+    if(x.k==='budgetAsg'){ SVC.forEach(function(s,i){ const sel=arEl('arB'+i); if(sel && !sel.hidden && !sel.value) ids.push('arB'+i); }); return; }
+    if(x.k==='ptype'){ ids.push('arPtP'); return; }
+    if(x.k==='asks'){ ids.push('arV0'); return; }
+    if(AR_CTL[x.k]) ids.push(AR_CTL[x.k]); });
+  return ids;
+}
+// ---- Add -------------------------------------------------------------------------------------------------------------------
+function arAdd(open){
+  if(cycBlock('Adding requirements')) return;
+  if(arCopyOtherYear()) return;
+  if(!arOff){ arSay('Choose the office first: pick it, or move to it with the arrow keys and press Enter.'); arMark(['arOffice']); return; }
+  [].forEach.call(document.querySelectorAll('#arNew .miss'), function(e){ e.classList.remove('miss'); });
+  [].forEach.call(document.querySelectorAll('#arNew [aria-invalid]'), function(e){ e.removeAttribute('aria-invalid'); });
+  const R=arRead(), d=R.d, code={};
+  // v1.97 W1 (item 75): a box that cannot be read stops the add -- it is never taken for an empty one. v1.99 (item 91): a
+  // code over its limit is refused, never cut. Either way the box keeps everything typed.
+  const codes=[['arCcar','ccar'],['arPid','pid']].concat((d.ptype==='PRIME' || (arFin && arFin.wbsKeep))? [] : [['arWbs','wbs']]);
+  codes.forEach(function(c){ const t=codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });
+  if(R.bad.length){ arMark(R.bad.map(function(b){ return b.id; }));
+    arSay('This requirement was not added. '+esc(R.bad.map(function(b){ return String(b.m).replace(/[.\s]*Nothing was changed\.?$/, ''); }).join('. '))
+      +'. Nothing on the board was changed; the box keeps what you typed.');
+    return; }
+  const miss=reqNeeds(d).filter(function(x){ return !x.ok; });
+  if(miss.length){ arMark(arNeedIds(miss, d));
+    arSay('<b>'+miss.length+' still needed</b> before it can be added: '+esc(miss.map(function(x){ return arShort(x.l); }).join(' · '))+'.');
+    return; }
   // WHOLE DOLLARS OR NOTHING. Nothing above can produce a cent today; this is what stops the next
   // path that does from putting one on the board, where every export would carry it.
-  if(!ask.every(Number.isInteger)){
-    alert('This requirement was not added: its value by service ('+ask.join(' / ')+') is not in whole dollars. '
+  if(!d.ask.every(Number.isInteger)){
+    arSay('This requirement was not added: its value by service ('+esc(d.ask.join(' / '))+') is not in whole dollars. '
       +'Nothing on the board was changed.');
     return;
   }
-  const g=document.getElementById('naGrp').value;
-  const ev=(document.getElementById('naEvent').value||'').trim();
-  // v1.99 (item 91): a CCaR record over 12 characters is refused, never cut -- the form keeps everything typed
-  const ccR=codeTake(document.getElementById('naCcar').value, 'ccar');
-  if(ccR.why){ alert('This requirement was not added. '+ccR.why+'. Nothing on the board was changed; the form keeps what you typed.'); return; }
-  const cc=ccR.v;
-  // THE NUMBER IS THE LAST SEGMENT. On a PMO copy the id also carries the office -- NEW-PSM-1 -- so
-  // two offices proposing at once can never mint the same id, and a reviewer can tell whose it is
-  // before opening it. split('-')[1] read 'PSM' as the number and would have minted NEW-PSM-NaN.
-  const n=newReqSeq();
-  const it={id:reqNewId(g, n), grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
-            ccar:'', fy26:SVC.map(_=>0), ask:ask, alloc:null};
-  S.custom.push(it); DATA.items.push(it); S.order.push(it.id);
-  // A new requirement is born on Split, seeded from the lane walk that now includes it. The menu
-  // no longer offers auto (lanes), so landing there would leave a requirement in a mode the user
-  // can see the effects of but never choose again.
-  seedSplit(it.id);
-  if(cc) S.ccar[it.id]=cc;
-  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
-  S.pmoOrder[g].push(it.id);
-  ['naTitle','naEvent','naTot','naCcar'].forEach(id=>document.getElementById(id).value='');
-  SVC.forEach((s,i)=>document.getElementById('naSvc'+i).value='');
-  save(); render(); flash(it.id);
+  const og=R.og, f={ccar:code.ccar, pid:code.pid, ptype:d.ptype, obCat:d.obCat,
+    costElem:(DATA && DATA.costElems)? arVal('arCe') : undefined,
+    wbs:(d.ptype==='PRIME' || (arFin && arFin.wbsKeep))? undefined : code.wbs,
+    to:d.to, end:og? d.end : '', mipr:og? d.mipr : '', desc:d.desc, notes:arVal('arNote').trim(), cons:d.cons, bud:d.bud, event:d.event};
+  const fin=arFin;
+  const nid=reqCreate(arOff, {title:(code.ccar? ccarNameOfNum(code.ccar) : '') || (fin? fin.title : ''), event:d.event, ask:d.ask},
+    fin? {y:fin.y, id:fin.id} : null, f);
+  if(!nid){ arSay('This requirement was not added: FY'+(fin.y%100)+' no longer holds it. Nothing on the board was changed.'); return; }
+  save();
+  const more=arQueue.length;
+  if(more){ arFinNext(); render(); }
+  else { arHide(); render(); }
+  flash(nid);
+  if(open && !more) arOpenRecord(nid);
+  // the next one to finish is the one now open -- read from it, never from the one just added, which may have been typed by
+  // hand with requirements brought in waiting behind it (arFin null): its year threw (v2.07 review)
+  const nx=arFin;
+  setStat('➕ Added <b>'+esc(nid)+'</b> — '+esc(d.event)+' — to '+FYL()+' for '+esc(arOff)+', at the bottom of the order'
+    +(fin? ', linked to FY'+(fin.y%100)+' '+esc(fin.id) : '')
+    +((typeof SANDBOX!=='undefined' && SANDBOX)? ' — a proposal, sent whole with your submittal.' : '.')
+    +(nx? ' '+(arQueue.length+1)+' more to finish from FY'+[nx.y].concat(arQueue.map(function(q){ return q.y; }))
+      .filter(function(v,i,a){ return a.indexOf(v)===i; }).map(function(v){ return v%100; }).join(' and FY')+'.' : '')
+    +(R.rnd.length? ' ℹ '+esc(R.rnd.join('; '))+' — the board keeps whole dollars.' : ''));
+  if(more) arSay('Added '+esc(nid)+'.'+(nx? ' The next one from FY'+(nx.y%100)+' is filled in below.' : ''), true);
+}
+// "Add and open its record": the RECORD panel opens on the requirement just added. A filter that would hide it is taken off
+// first, and said -- the panel would otherwise fall back to the first row on screen and show somebody else's record.
+function arOpenRecord(nid){
+  const off=[];
+  try{
+    if((document.getElementById('q').value||'').trim()){ document.getElementById('q').value=''; off.push('the search'); }
+    if(mcOnly){ mcOnly=false; off.push('★ Mission Critical only'); }
+    if(laneFilter){ laneFilter=''; off.push('the lane filter'); }
+    if(ptypeFilter){ ptypeFilter=''; off.push('the prime / OGC filter'); }
+    if(svcFilter>=0){ svcFilter=-1; off.push('the service filter'); }
+    // a copy adds for its own office whatever office is showing (v2.07 review)
+    { const it=itemById(nid); if(typeof filter!=='undefined' && filter!=='ALL' && it && grpOf(it)!==filter){ filter='ALL'; off.push('the PMO filter'); } }
+  }catch(e){}
+  if(off.length) render();
+  setCur(nid);
+  try{ const r=document.getElementById('row-'+nid); if(r && r.scrollIntoView) r.scrollIntoView({block:'nearest'}); }catch(e){}
+  try{ const b=document.querySelector('#inspector button'); if(b) b.focus(); }catch(e){}
+  if(off.length) setTimeout(function(){ setStat('Showing '+esc(nid)+' in its record — '+esc(off.join(', '))+' '+(off.length===1?'was':'were')+' taken off so it can be seen.'); }, 0);
+}
+// ---- finishing one brought in from another year ----------------------------------------------------------------------------
+// One with every required field is added at once; one missing any opens here, filled in from that year's record and linked
+// to it, to be finished and added -- or skipped. What it carries that the box does not show (RCN / EEIC, the band, the award
+// dates, the minimum increment, a Navy SI code, a typed record name) comes with it on Add, as Add from another year carries it.
+const AR_CARRIED=['rcnAsg', 'rcnSvc', 'band', 'si', 'minInc', 'recNames'];
+function arFinNext(){
+  arFin=null; arDescAuto='';
+  while(arQueue.length){
+    const q=arQueue.shift(), T=(MS.years||{})[q.y], src=T? yrItemOf(T, q.id) : null;
+    if(!src) continue;
+    const pick=function(k){ const b=T[k]; return (b && typeof b==='object' && Object.prototype.hasOwnProperty.call(b, q.id))? b[q.id] : undefined; };
+    const w=pick('wbs'), wl=(Array.isArray(w)? w : []).filter(function(x){ return x && typeof x==='object'; });
+    const one=wl.length===1 && (!Array.isArray(wl[0].v) || !wl[0].v.length);
+    const carried=AR_CARRIED.filter(function(k){ const v=pick(k); return v!==undefined && v!==null && v!=='' && !(typeof v==='object' && !Object.keys(v).length); })
+      .map(function(k){ return FL(k); });
+    if((T.awards||{})[q.id]) carried.push('the award dates, moved forward');
+    arFin={y:q.y, id:q.id, title:src.title||'', recName:pick('recNames')||'', wbsKeep:wl.length>0 && !one,
+      wbsTxt:wl.map(function(x){ return x && x.w; }).filter(Boolean).join(', '), carried:carried, name:dispTitle(src, T)};
+    arReset();
+    const dst=pick('dest')||{}, A=pick('budgetAsg')||{};
+    const put=function(id, v){ const e=arEl(id); if(e) e.value=(v===undefined||v===null)? '' : String(v); };
+    put('arEvent', dispTitle(src, T)); put('arPtype', pick('ptype')||''); put('arCcar', ccarOf(src, T)); put('arPid', pick('pid')||'');
+    askVecOf(src.ask).forEach(function(v,i){ put('arV'+i, v? v.toLocaleString('en-US') : ''); });
+    put('arOb', pick('obCat')||''); put('arCe', pick('costElem')||''); put('arWbs', one? wl[0].w : '');
+    put('arTo', dst.to||''); put('arEnd', dst.end||''); put('arMipr', pick('mipr')||'');
+    put('arDesc', pick('desc')||''); put('arCons', pick('cons')||''); put('arNote', pick('notes')||'');
+    SVC.forEach(function(s,i){ const k=budStoredFor(A, s, 'disc'), sel=arEl('arB'+i);
+      const o=(k && sel)? [].filter.call(sel.options, function(o){ return o.value && o.value.toUpperCase()===String(A[k]).toUpperCase(); })[0] : null;
+      if(o) sel.value=o.value; });
+    arFinBarDraw();
+    arTab('new', true);
+    arUpdate();
+    const miss=reqNeeds(arRead().d).filter(function(x){ return !x.ok; });
+    const ids=arNeedIds(miss, arRead().d), e=arEl(ids[0]||'arEvent'); if(e) try{ e.focus(); }catch(x){}
+    return true;
+  }
+  arReset();
+  const fb=arEl('arFinBar'); if(fb){ fb.hidden=true; fb.innerHTML=''; }
+  arTab(arTabOn, true);
+  arUpdate();
+  return false;
+}
+// the bar of the one being finished, counting what waits behind it as it stands now -- more can be brought in behind it
+// (v2.07 second review: the count was taken when it opened and went stale)
+function arFinBarDraw(){
+  const fb=arEl('arFinBar'); if(!fb || !arFin) return;
+  fb.hidden=false;
+  fb.innerHTML='Finishing <b>FY'+(arFin.y%100)+' '+esc(arFin.id)+' — '+esc(arFin.name)+'</b>'
+    +(arQueue.length? ' · '+arQueue.length+' more after this' : '')+'. It is added as a new '+FYL()+' requirement, linked to that one. '
+    +'<button type="button" class="qb" onclick="arSkip()">Skip this one</button>';
+}
+// anything typed in New requirement (a field the box holds with something in it)
+function arFormHeld(){
+  return [].some.call(document.querySelectorAll('#arNew input[data-held], #arNew select[data-held], #arNew textarea[data-held]'),
+    function(e){ return String(e.value||'').trim()!==''; });
+}
+function arSkip(){
+  const was=arFin;
+  if(!arFinNext()) arSay(was? 'Skipped FY'+(was.y%100)+' '+esc(was.id)+'. Nothing more to finish.' : '', true);
+  else arSay(was? 'Skipped FY'+(was.y%100)+' '+esc(was.id)+'.' : '', true);
+}
+// every field back to empty: the box's own fields are data-held, so a discard leaves their text for the box to clear
+function arReset(){
+  ['arEvent','arPtype','arCcar','arPid','arOb','arCe','arWbs','arTo','arEnd','arMipr','arDesc','arCons','arNote','arSpread']
+    .concat(SVC.map(function(s,i){ return 'arV'+i; }), SVC.map(function(s,i){ return 'arB'+i; }))
+    .forEach(function(id){ const e=arEl(id); if(e) e.value=''; });
+  [].forEach.call(document.querySelectorAll('#arNew .miss'), function(e){ e.classList.remove('miss'); });
+  [].forEach.call(document.querySelectorAll('#arNew [aria-invalid]'), function(e){ e.removeAttribute('aria-invalid'); });
 }
 // The next number for an added requirement is newReqSeq(), beside yearCopy(): never one used before.
 //
@@ -30319,7 +30941,7 @@ function removeReq(id){
   if(!it) return;
   const note = it.custom? '(This ad-hoc requirement is deleted for good.)'
                         : '(Restore any time from the Removed list.)';
-  if(!confirm('Remove "'+it.title+'" from the drill?\n'+note)) return;
+  if(!confirm('Remove "'+(recName(it)||dispTitle(it)||id)+'" from the drill?\n'+note)) return;
   if(it.custom){ S.custom=S.custom.filter(x=>x.id!==id); reqPurge(S, id); }
   else if(!S.removed.includes(id)) S.removed.push(id);
   const i=DATA.items.findIndex(x=>x.id===id);
@@ -30349,7 +30971,8 @@ function restoreReq(id){
 // again every year. I would like to be able to link the requirements together for trend data but keep them as separate
 // actions." So each one brought in is a NEW requirement with its own id, carrying a link to the one it came from --
 // it.prior = {fy, id} -- and NOT the same id rolled forward, which Copy to year and Roll forward still do. The office is
-// the one chosen at the top (the PMO filter), else a copy's own office, else the panel's PMO box. A requirement the
+// the Add box's (naFromOffice reads arOff): a copy's own office, else the one chosen at the top, else the one chosen in the
+// box. A requirement the
 // year on screen already holds -- the same id, one already linked to it, or an added one by its event and title (the
 // test yearHas() uses) -- is listed and cannot be ticked, so running it twice never adds one twice. On a PMO copy each is
 // a proposal like any requirement added there, and its link travels in the submittal (pmoProposalOf).
@@ -30371,12 +30994,8 @@ function naFromYears(){
   return Object.keys(MS.years||{}).map(Number).filter(function(y){ const T=MS.years[y];
     return y && y!==+MS.cur && T && Array.isArray(T.order) && T.order.length; }).sort(function(a,b){ return b-a; });
 }
-function naFromOffice(){
-  if(typeof filter!=='undefined' && filter && filter!=='ALL') return {g:filter, how:'the office chosen at the top'};
-  if(typeof SANDBOX!=='undefined' && SANDBOX && myPmo()) return {g:myPmo(), how:'the office this copy submits for'};
-  const el=document.getElementById('naGrp');
-  return {g:(el && el.value) || GROUPS[0] || '', how:'the PMO box above'};
-}
+// v2.07 (item 121): the office is the Add box's -- the one office it adds for (arOfficeStart, arSetOffice)
+function naFromOffice(){ return {g:arOff||'', how:arOffHow||''}; }
 // Is requirement `id` of year y already in the year on screen? The same id, one linked to it, or an added one by its event
 // and title.
 // AN ADDED REQUIREMENT'S ID IS ITS YEAR'S OWN: NEW-1 in FY27 and NEW-1 in FY28 can be two different requirements (newReqSeq
@@ -30384,21 +31003,39 @@ function naFromOffice(){
 function naFromHere(y, id, src, g){
   const on=S.order||[];
   if(!(src && src.custom) && on.indexOf(id)>=0) return true;
+  // v2.07 second review: the source continues a requirement this year holds -- the original itself (yearLinkOf's rule: a
+  // board-data id whatever year the link names, an added one only in its own year)
+  if(src && src.prior && on.indexOf(String(src.prior.id))>=0
+     && (!/^NEW-/.test(String(src.prior.id)) || +src.prior.fy===+MS.cur)) return true;
   return (DATA.items||[]).some(function(x){
     if(!x || on.indexOf(x.id)<0) return false;
     if(x.prior && +x.prior.fy===+y && x.prior.id===id) return true;
     // the same work as the source by the source's own link, whatever office holds it now (second review)
     if(src && src.prior && x.prior && String(x.prior.id)===String(src.prior.id)
        && (!/^NEW-/.test(String(src.prior.id)) || +x.prior.fy===+src.prior.fy)) return true;
-    // the same office's added requirement by its event and title: another office's of the same name is its own (review fix)
-    return !!(src && src.custom && x.custom && x.event===src.event && x.title===src.title && (g===undefined || grpOf(x)===g));
+    if(!(src && src.custom && x.custom)) return false;
+    // v2.07 second review: one year started as a copy of the other holds it under the same id with no link -- and the same
+    // office and CCaR record (two added later, one each side, can share an id and a plan event)
+    if(x.id===id && !x.prior && !src.prior && x.event===src.event && x.title===src.title
+       && grpOf(x)===grpOf(src, MS.years[y]) && ccarOf(x)===ccarOf(src, MS.years[y])) return true;
+    // the same office's added requirement by its event and title: another office's of the same name is its own (review fix);
+    // v2.07 review: only where there is a name (a box-made one has none until the CCaR list names it), and never one its
+    // link shows to be another requirement's copy from that year (two on one record and one plan event share a name)
+    const other=!!(x.prior && +x.prior.fy===+y && String(x.prior.id)!==String(id));
+    return !!(src.title && !other && x.event===src.event && x.title===src.title && (g===undefined || grpOf(x)===g));
   });
+}
+// v2.07 second review: one in the form being finished, or waiting to be -- ticked again, it was added twice
+function naFromWaiting(y, id){
+  return !!(arFin && +arFin.y===+y && arFin.id===id) || arQueue.some(function(q){ return +q.y===+y && q.id===id; });
 }
 function naFromRows(y, g){
   const T=MS.years[y]; if(!T) return [];
   return (T.order||[]).map(function(id){ const it=yrItemOf(T, id); return it? {id:id, it:it, T:T} : null; })
     .filter(function(r){ return r && grpOf(r.it, r.T)===g; })
-    .map(function(r){ r.here=naFromHere(y, r.id, r.it, g); return r; });
+    .map(function(r){ r.here=naFromHere(y, r.id, r.it, g); r.wait=!r.here && naFromWaiting(y, r.id);
+      // v2.07 (item 121): what it would still need once brought in -- reqNeeds() on the record it would carry
+      r.need=(r.here || r.wait)? [] : reqNeeds(reqDraftFrom(r.T, r.id, r.it, g)).filter(function(x){ return !x.ok; }); return r; });
 }
 function naFromPick(v){ naFromFy=parseInt(v,10)||0; naFromSel={}; naFromDraw(); }
 function naFromTick(id, on){ if(on) naFromSel[id]=1; else delete naFromSel[id]; naFromDraw(); }
@@ -30409,80 +31046,135 @@ function naFromDraw(){
   if(naFromFy && (naFromFy===+MS.cur || ys.indexOf(naFromFy)<0)){ naFromFy=0; naFromSel={}; }
   const of=naFromOffice(), g=of.g;
   naFromFor=g;      // the office the list was drawn for; Add refuses if it has changed since (review fix)
-  let h='<div class="fr nafrom" style="margin-top:6px"><b style="color:var(--gold);font-size:11px">OR FROM ANOTHER YEAR</b>'
-    +'<label for="naFromFy">Fiscal year</label><select id="naFromFy" onchange="naFromPick(this.value)">'
-    +'<option value="">'+(ys.length? '\u2014 choose \u2014' : 'no other year holds requirements')+'</option>'
+  if(!g){ el.innerHTML='<div class="ar-note">Choose the office first.</div>'; return; }
+  let h='<div class="ar-yrhd nafrom"><label class="ar-l" for="naFromFy">Bring in from</label><select id="naFromFy" onchange="naFromPick(this.value)">'
+    +'<option value="">'+(ys.length? '— choose a year —' : 'no other year holds requirements')+'</option>'
     +ys.map(function(y){ return '<option value="'+y+'"'+(naFromFy===y?' selected':'')+'>FY'+(y%100)+'</option>'; }).join('')+'</select>'
-    +'<span class="hint" style="margin:0">'+esc(g||'No office')+'\u2019s requirements ('+esc(of.how)+'). Each one you add is a new '
-    +FYL()+' requirement, linked to the one it came from.</span></div>';
+    +'<div class="ar-note" style="margin:0">'+esc(g)+'’s requirements in that year ('+esc(of.how)+'). Each one you add is a new '
+    +FYL()+' requirement, linked to the one it came from. One with every required field is added at once; one missing any '
+    +'opens in <b>New requirement</b>, filled in, to finish.</div></div>';
   if(naFromFy){
     const rows=naFromRows(naFromFy, g);
-    Object.keys(naFromSel).forEach(function(id){ if(!rows.some(function(r){ return r.id===id && !r.here; })) delete naFromSel[id]; });
-    const n=Object.keys(naFromSel).length;
-    if(!rows.length) h+='<div class="hint">'+esc(g)+' has no requirements in FY'+(naFromFy%100)+'.</div>';
+    Object.keys(naFromSel).forEach(function(id){ if(!rows.some(function(r){ return r.id===id && !r.here && !r.wait; })) delete naFromSel[id]; });
+    const pickd=rows.filter(function(r){ return naFromSel[r.id] && !r.here && !r.wait; });
+    const nReady=pickd.filter(function(r){ return !r.need.length; }).length, nFin=pickd.length-nReady;
+    if(!rows.length) h+='<div class="ar-note">'+esc(g)+' has no requirements in FY'+(naFromFy%100)+'.</div>';
     else {
-      h+='<div style="max-height:280px;overflow:auto;margin-top:4px"><table class="fctab nafromtab" style="table-layout:auto">'
-        +'<tr><th></th><th style="text-align:left">FY'+(naFromFy%100)+' requirement</th><th style="text-align:left">CCaR</th>'
-        +'<th style="text-align:left">PID</th><th style="text-align:left">Plan event</th><th>FY'+(naFromFy%100)+' value</th></tr>';
+      h+='<table class="ar-list nafromtab"><tr><th scope="col" style="width:34px"><span class="sr">Add</span></th><th scope="col">FY'+(naFromFy%100)+' requirement</th>'
+        +'<th scope="col">CCaR</th><th scope="col">PID</th><th scope="col" class="r">FY'+(naFromFy%100)+' requirement value</th><th scope="col">Ready</th></tr>';
       rows.forEach(function(r){
-        const tot=(r.it.ask||[]).reduce(function(a,b){ return a+(+b||0); }, 0);
-        h+='<tr'+(r.here?' style="opacity:.55"':'')+' data-id="'+esc(r.id)+'"><td>'+(r.here
-            ? '<span title="already in '+FYL()+'">\u2713</span>'
-            : '<input type="checkbox" aria-label="Add '+esc(dispTitle(r.it, r.T))+'" '+(naFromSel[r.id]?'checked ':'')
+        const tot=(r.it.ask||[]).reduce(function(a,b){ return a+(+b||0); }, 0), nm=dispTitle(r.it, r.T);
+        h+='<tr data-id="'+esc(r.id)+'"'+((r.here || r.wait)? ' class="here"' : '')+'><td>'+(r.here
+            ? '<span title="already in '+FYL()+'">✓</span>'
+            : r.wait? '<span title="in New requirement, to finish">⋯</span>'
+            : '<input type="checkbox" id="naFromCb_'+esc(r.id)+'" aria-label="Add '+esc(nm)+'" '+(naFromSel[r.id]?'checked ':'')
               +'onchange="naFromTick('+jsa(r.id)+',this.checked)">')+'</td>'
-          +'<td style="text-align:left">'+esc(dispTitle(r.it, r.T))+(r.here? ' <span style="color:var(--dim)">\u2014 already in '+FYL()+'</span>' : '')+'</td>'
-          +'<td style="text-align:left">'+esc(ccarOf(r.it, r.T))+'</td><td style="text-align:left">'+esc((r.T.pid||{})[r.id]||'')+'</td>'
-          +'<td style="text-align:left">'+esc(r.it.event||'')+'</td><td>'+fM(tot)+'</td></tr>';
+          +'<td>'+esc(nm)+(r.here? ' — already in '+FYL() : r.wait? ' — in New requirement, to finish' : '')+'</td>'
+          +'<td>'+esc(ccarOf(r.it, r.T))+'</td><td>'+esc((r.T.pid||{})[r.id]||'')+'</td><td class="r">'+fM(tot)+'</td><td>'
+          +((r.here || r.wait)? '' : !r.need.length? '<span class="ar-pill ok">ready</span>'
+            : '<span class="ar-pill no" title="'+esc('still needs: '+r.need.map(function(x){ return arShort(x.l); }).join(', '))+'">'
+              +r.need.length+' to fill</span>')+'</td></tr>';
       });
-      h+='</table></div><div class="fr" style="margin-top:4px"><button class="btn" onclick="naFromAdd()"'+(n?'':' disabled')+'>Add '+n
-        +' to '+FYL()+'</button><span class="hint" style="margin:0">Carried: the value by service, the record, every classification and '
-        +'the award dates (moved '+((+MS.cur-naFromFy)>0?'+':'')+(+MS.cur-naFromFy)+' year'+(Math.abs(+MS.cur-naFromFy)===1?'':'s')
-        +'). Not carried: the allocation, the funding split and \u2605 Mission Critical \u2014 decided for '+FYL()+'.</span></div>';
+      const lbl= !pickd.length? 'Tick the ones to bring in' : nReady && nFin? 'Add '+nReady+' · finish '+nFin
+        : nFin? 'Finish '+nFin+' in New requirement' : 'Add '+nReady+' to '+FYL();
+      h+='</table><div class="ar-yrft"><button type="button" class="btn pri" id="naFromBtn" onclick="naFromAdd()"'+(pickd.length?'':' disabled')+'>'+lbl+'</button>'
+        +'<span class="ar-note" style="margin:0">Carried: the value by service, the record, every classification and the award dates (moved '
+        +((+MS.cur-naFromFy)>0?'+':'')+(+MS.cur-naFromFy)+' year'+(Math.abs(+MS.cur-naFromFy)===1?'':'s')
+        +'). Not carried: the allocation, the funding split and ★ Mission Critical — decided for '+FYL()+'.</span></div>';
     }
   }
   el.innerHTML=h;
 }
-// ONE requirement of year y, as a new requirement of the year on screen, linked to it. Returns the new id.
-function reqFromYear(y, id, g){
-  const T=MS.years[y], src=yrItemOf(T, id); if(!src) return '';
+// THE ONE WRITER OF A NEW REQUIREMENT (v2.07, item 121). The Add box, a requirement brought in from another year and the box
+// finishing one brought in all come here, so a new requirement is made one way: its number past every one the year has used
+// (newReqSeq), its id (reqNewId), the bottom of the order and of its office's ranking, a Split seeded from the lane walk that
+// now includes it. With `from` ({y, id}) it carries what that year's record holds -- NA_FROM_CARRY, the CCaR, the award dates
+// moved forward -- and the link to it. `f` is what the box shows: each field set, or cleared when left blank; a field the box
+// does not show is left as carried. No save() here: the caller saves once, so the journal records one change.
+function reqCreate(g, rec, from, f){
+  let T=null, src=null;
+  if(from){ T=(MS.years||{})[from.y]; src=T? yrItemOf(T, from.id) : null; if(!src) return ''; }
+  const y=from? from.y : 0, id=from? from.id : '';
   const n=newReqSeq();
   const nid=reqNewId(g, n);
   const it={id:nid, grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
-            title:src.title||'', event:src.event||'', ccar:'', fy26:SVC.map(function(){ return 0; }),
-            ask:askVecOf(src.ask), alloc:null, prior:{fy:+y, id:id}};
+            title:rec.title||'', event:rec.event||'', ccar:'', fy26:SVC.map(function(){ return 0; }),
+            ask:rec.ask.slice(), alloc:null};
+  if(from) it.prior={fy:+y, id:id};
   S.custom.push(it); DATA.items.push(it); S.order.push(nid);
   if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
   S.pmoOrder[g].push(nid);
-  NA_FROM_CARRY.forEach(function(k){ const bag=T[k]; if(!bag || typeof bag!=='object' || !Object.prototype.hasOwnProperty.call(bag, id)) return;
-    const v=bag[id]; if(v===undefined || v===null || v==='') return;
-    if(!S[k] || typeof S[k]!=='object') S[k]={};
-    S[k][nid]=JSON.parse(JSON.stringify(v)); });
-  const cc=ccarOf(src, T); if(cc) S.ccar[nid]=cc;
-  const aw=(T.awards||{})[id];
-  if(aw){ const c=JSON.parse(JSON.stringify(aw)), dy=+MS.cur-(+y);
-    const sh=function(k){ const m=/^(\d{4})-(\d{2})$/.exec(k); return m? (parseInt(m[1])+dy)+'-'+m[2] : k; };
-    if(c.d) c.d=sh(c.d); if(c.inc) c.inc.forEach(function(x){ if(x.d) x.d=sh(x.d); });
-    S.awards[nid]=c; }
+  if(from){
+    NA_FROM_CARRY.forEach(function(k){ const bag=T[k]; if(!bag || typeof bag!=='object' || !Object.prototype.hasOwnProperty.call(bag, id)) return;
+      const v=bag[id]; if(v===undefined || v===null || v==='') return;
+      if(!S[k] || typeof S[k]!=='object') S[k]={};
+      S[k][nid]=JSON.parse(JSON.stringify(v)); });
+    const cc=ccarOf(src, T); if(cc) S.ccar[nid]=cc;
+    const aw=(T.awards||{})[id];
+    if(aw){ const c=JSON.parse(JSON.stringify(aw)), dy=+MS.cur-(+y);
+      const sh=function(k){ const m=/^(\d{4})-(\d{2})$/.exec(k); return m? (parseInt(m[1])+dy)+'-'+m[2] : k; };
+      if(c.d) c.d=sh(c.d); if(c.inc) c.inc.forEach(function(x){ if(x.d) x.d=sh(x.d); });
+      S.awards[nid]=c; }
+  }
+  // A new requirement is born on Split, seeded from the lane walk that now includes it. The menu
+  // no longer offers auto (lanes), so landing there would leave a requirement in a mode the user
+  // can see the effects of but never choose again.
   seedSplit(nid);
+  if(f){
+    const put=function(k, v){ if(v===undefined) return; if(!S[k] || typeof S[k]!=='object') S[k]={};
+      if(v===''||v===null) delete S[k][nid]; else S[k][nid]=v; };
+    put('ccar', f.ccar); put('pid', f.pid); put('ptype', f.ptype); put('obCat', f.obCat); put('costElem', f.costElem);
+    if(f.wbs!==undefined) put('wbs', f.wbs? [{w:f.wbs, v:[]}] : '');
+    if(f.to!==undefined) put('dest', (f.to||f.end)? {to:f.to||'', end:f.end||''} : '');
+    put('mipr', f.mipr); put('desc', f.desc); put('notes', f.notes); put('cons', f.cons);
+    // a budget chosen in the box answers the discretionary line, as the RECORD panel's not-funded picker writes it
+    if(f.bud && Object.keys(f.bud).length){ if(!S.budgetAsg) S.budgetAsg={};
+      const A=S.budgetAsg[nid]||{}; Object.keys(f.bud).forEach(function(sv){ budPutUnf(A, sv, f.bud[sv]); }); S.budgetAsg[nid]=A; }
+    // the plan event typed in the box is the requirement's own, as editTitle keeps an added one's
+    if(f.event!==undefined){ it.event=f.event; if(S.titles) delete S.titles[nid]; }
+  }
   return nid;
+}
+// ONE requirement of year y, as a new requirement of the year on screen, linked to it. Returns the new id.
+function reqFromYear(y, id, g){
+  const T=MS.years[y], src=yrItemOf(T, id); if(!src) return '';
+  return reqCreate(g, {title:src.title||'', event:src.event||'', ask:askVecOf(src.ask)}, {y:y, id:id});
 }
 function naFromAdd(){
   if(cycBlock('Adding requirements')) return;
+  if(arCopyOtherYear()) return;
   const y=naFromFy, g=naFromOffice().g;
   // review fixes: the year may have gone (a board loaded since), and the office may have changed since the list was drawn
   if(!y || !(MS.years||{})[y]){ naFromFy=0; naFromSel={}; naFromDraw(); return; }
   if(g!==naFromFor){ naFromSel={}; naFromDraw();
-    setStat('\u26a0 The office changed to <b>'+esc(g)+'</b> since the list was drawn \u2014 nothing was added. The list now shows '+esc(g)+'\u2019s requirements.'); return; }
-  const ids=Object.keys(naFromSel).filter(function(id){ const src=yrItemOf(MS.years[y], id);
-    return (MS.years[y].order||[]).indexOf(id)>=0 && src && grpOf(src, MS.years[y])===g && !naFromHere(y, id, src, g); });
-  if(!y || !ids.length) return;
-  const made=ids.map(function(id){ return reqFromYear(y, id, g); }).filter(Boolean);
+    arSay('⚠ The office changed to <b>'+esc(g)+'</b> since the list was drawn — nothing was added. The list now shows '+esc(g)+'’s requirements.'); return; }
+  const rows=naFromRows(y, g).filter(function(r){ return naFromSel[r.id] && !r.here && !r.wait; });
+  if(!rows.length) return;
+  // v2.07 (item 121): one with every required field is added at once; one missing any opens in New requirement, filled in
+  const ready=rows.filter(function(r){ return !r.need.length; }), fin=rows.filter(function(r){ return r.need.length; });
+  // v2.07 review: WHAT THE FORM HOLDS IS NEVER THROWN AWAY UNASKED. It was emptied for the first to finish -- or the box
+  // closed -- without a word. One being finished keeps its place, and those to finish wait behind it, counted on its bar.
+  // One typed by hand is replaced only if the person says so, asked before anything is added: Cancel changes nothing.
+  const busy=!!arFin, typed=!busy && arFormHeld();
+  if(fin.length && typed && !confirm('Finishing '+(fin.length===1? 'the one you ticked' : 'the '+fin.length+' you ticked')
+      +' replaces what is typed in New requirement now. Discard what you typed?')){
+    arSay('Nothing was added. What you typed in New requirement is still there.', true); return; }
+  const made=ready.map(function(r){ return reqFromYear(y, r.id, g); }).filter(Boolean);
   naFromSel={};
-  save(); render(); naFromDraw();
+  if(made.length) save();
+  arQueue=arQueue.concat(fin.map(function(r){ return {y:y, id:r.id}; }));
+  if(busy){ arTab('new'); arFinBarDraw(); }
+  else if(arQueue.length) arFinNext();
+  else if(typed) arTab('new');
+  else arHide();
+  render();
   if(made.length) flash(made[0]);
-  setStat('\u2795 Added <b>'+made.length+'</b> requirement'+(made.length===1?'':'s')+' from FY'+(y%100)+' to '+FYL()
+  const msg=(made.length? '➕ Added <b>'+made.length+'</b> requirement'+(made.length===1?'':'s')+' from FY'+(y%100)+' to '+FYL()
     +', each linked to the one it came from, at the bottom of the order'
-    +((typeof SANDBOX!=='undefined' && SANDBOX)? ' \u2014 proposals, sent with your submittal once every mandatory field is filled.' : '.'));
+    +((typeof SANDBOX!=='undefined' && SANDBOX)? ' — proposals, sent whole with your submittal.' : '.') : '')
+    +(fin.length? (made.length? ' ' : '')+fin.length+' to finish in New requirement'+(busy? ', after the one being finished.' : '.') : '');
+  setStat(msg);
+  if(fin.length || typed) arSay(msg+(typed && !fin.length? ' What you typed in New requirement is still there.' : ''), true);
 }
 // "Continues FY26 R012 -- title": the link, said where the requirement is read. The year it names may since have lost the
 // requirement; that is said too, never hidden.
@@ -32481,13 +33173,9 @@ function exportExcel(){
   a.download=expName(scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
 }
-// THE ONE PLACE THAT CAPTURED THE LIST. Boot code, run once, so a PMO added later never
-// appeared here until the file was reopened. It is a function now, and the PMO editor calls it.
-syncNaGrp();
 document.getElementById('appnSel').innerHTML = Object.keys(APPNS).map(a=>'<option '+(a===APPN?'selected':'')+'>'+a+'</option>').join('');
 document.getElementById('appnLbl').textContent = APPN+' PRIORITIZATION';
 { const bt=document.getElementById('bldTag'); if(bt){ bt.textContent=String(BUILD).split(' ')[0]; bt.title='ORBIT '+BUILD; } }
-syncAddPanel();
 
 // ==============================================================================================================
 // §42  GRID INSPECTOR, FOCUS, DIALOGS AND THE BOOT RENDER
@@ -32869,6 +33557,8 @@ document.addEventListener('keydown', function(e){
   if(e.ctrlKey || e.metaKey || e.altKey) return;
   const a = document.activeElement;
   if(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
+  // v2.07: nor while a box is open -- a key pressed on one of its buttons moved the selection behind it
+  try{ if(DLG.stack.length) return; }catch(x){}
   const k = e.key.toLowerCase();
   if(k !== 'j' && k !== 'k') return;
   const ids = gridIds(); if(!ids.length) return;
@@ -34034,7 +34724,7 @@ function uiAddReq(){
     try{ setStat('ℹ Add requirement is in <b>Requirements › Review</b>, as in the Review tools.'); }catch(e){}
     return false;
   }
-  toggleAdd();
+  if(!arOn()) arShow();
   return true;
 }
 // ── THE LEFT MENU'S BOXES: Imports & exports, Reports & exports, Data ─────────────────────────────────────────

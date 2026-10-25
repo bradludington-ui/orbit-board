@@ -100,12 +100,42 @@ export function buildHostile(html) {
     BANDS_LIST().push({id:P('bandid'), n:P('bandname'), d:P('banddesc'), rule:'skip', crit:false, consReq:false,
       c:'#123456" onmouseover="__pw(\\'bandcolour\\')'});
     // the board-wide stores
-    BUDDB={ts:Date.now(), rows:[{ap:mySlug(), svc:SVC[0], name:'USAF O&M - CAM Discretionary AV '+P('baename'), amt:1234}], files:[P('baefile')]}; persistBud();
+    // v2.07 (item 121): the list is read by each row's NAME (n), re-parsed by budReg(); a row carrying only 'name' is never
+    // parsed, so it reached no screen. Two that parse, with hostile text inside them, one for PSM and one for the hostile
+    // office -- the Add box offers an office's names per service, and so does the RECORD panel's budget section.
+    BUDDB={ts:Date.now(), rows:[{ap:mySlug(), svc:SVC[0], name:'USAF O&M - CAM Discretionary AV '+P('baename'), amt:1234},
+      {n:'USAF O&M - CAM '+P('baepsm')+' Discretionary PSM'}, {n:'USAF O&M - CAM '+P('baegrp')+' Discretionary '+P('grp')}],
+      // a file entry is {dept, file, ts, n}, as importBud writes it: one written as a bare string carried no ts, and the
+      // register's 'Imported' date threw on it inside render() -- every redraw after the register opened stopped there, so
+      // the rest of this sweep looked at a board that had stopped drawing (v2.07, found while extending the sweep)
+      files:[{dept:P('baedept'), file:P('baefile'), ts:Date.now(), n:2}]}; persistBud();
     EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[[P('execccar'), 812345]]}}}; persistExdb();
-    ACEDB={ts:Date.now(), sets:{}}; ACEDB.sets[P('aceset')]={fp:'fp-1', locked:true, appn:{om:{pmo:{AV:{2027:900}}}}, lines:[]}; persistAce();
+    ACEDB={ts:Date.now(), sets:{}}; ACEDB.sets[P('aceset')]={fp:'fp-1', locked:true, appn:{om:{tot:{2027:900}, pmo:{AV:{2027:900}}, svc:{}}}, lines:[]}; persistAce();
+    // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
+    // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
     RPDB={ts:Date.now(), entries:[{id:P('rpid'), ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:P('rpappn'), pec:P('rppec'), bpac:P('rpbpac'),
       title:P('rptitle'), amtM:2, dir:'deduct', pool:'disc', status:'Pending', hac:'', sac:''}]}; persistRp();
     try{ flowAddEnt(); flowSetEnt(flowEnts().length-1,'n',P('destname')); flowSetEnt(flowEnts().length-1,'t',P('destterms')); }catch(e){}
+    // v2.07 (item 121): the CCaR records list -- a record's title and short description are read into the Add box when its
+    // number is typed (the record title shown, the description filled)
+    MS.ccarIdx={ts:Date.now(), file:P('ccarfile'), n:1, rows:{JSF9001:{t:P('ccarlisttitle'), o:P('ccaropr'), p:'PSM', k:'9001', s:P('ccarlistdesc'), d:1}}};
+    // v2.07 (item 121): A SECOND YEAR, for the Add box's From another year tab: its rows draw that year's titles, events, CCaR
+    // and PID numbers, and one brought in that is not complete opens in the New tab filled in from its record. The year on
+    // screen's own requirements are listed as already here; an added one of PSM's and one of the hostile office's are not.
+    (function(){ var Y=MS.cur-1, ask=SVC.map(function(){ return 30000; });
+      var T={order:['R0', 'H'+P('id'), 'R4', 'NEW-1', 'NEW-'+P('yrid'), 'NEW-3'], alloc:{}, mc:{}, removed:[], titles:{}, ccar:{}, pid:{},
+        desc:{}, cons:{}, notes:{}, recNames:{}, wbs:{}, dest:{}, budgetAsg:{},
+        custom:[{id:'NEW-1', grp:'PSM', sect:'new', custom:true, title:P('yrtitle1'), event:P('yrevent1'), ccar:'', fy26:SVC.map(function(){ return 0; }), ask:ask.slice(), alloc:null},
+                {id:'NEW-'+P('yrid'), grp:'PSM', sect:'new', custom:true, title:P('yrtitle2'), event:P('yrevent2'), ccar:'', fy26:SVC.map(function(){ return 0; }), ask:ask.slice(), alloc:null},
+                {id:'NEW-3', grp:P('grp'), sect:'new', custom:true, title:P('yrtitle3'), event:P('yrevent3'), ccar:'', fy26:SVC.map(function(){ return 0; }), ask:ask.slice(), alloc:null}],
+        discSvc:SVC.map(function(){ return 0; }), mandSvc:SVC.map(function(){ return 0; })};
+      T.titles.R0=P('yrrename0'); T.ccar.R0=P('yrccar0');
+      T.ccar['NEW-1']=P('yrccar1'); T.pid['NEW-1']=P('yrpid1'); T.desc['NEW-1']=P('yrdesc1'); T.cons['NEW-1']=P('yrcons1');
+      T.notes['NEW-1']=P('yrnote1'); T.recNames['NEW-1']=P('yrrecname1'); T.wbs['NEW-1']=[{w:P('yrwbs1'), v:[]}, {w:P('yrwbs1b'), v:[]}];
+      var dk=(flowEnts().filter(function(e){ return String(e.n).indexOf('destname')>=0; })[0]||{}).k||'';
+      T.dest['NEW-1']={to:dk, end:dk}; T.budgetAsg['NEW-1']={USAF:'USAF O&M - CAM '+P('baepsm')+' Discretionary PSM'};
+      T.ccar['NEW-3']=P('yrccar3'); T.pid['NEW-3']=P('yrpid3');
+      MS.years[Y]=T; })();
     // the journal and the save log name people; a person's name is text from another machine
     if(!Array.isArray(MS.jrnl)) MS.jrnl=[];
     MS.jrnl.push({t:Date.now()-5000, by:P('jrnlby'), fy:MS.cur, p:['titles','R0'], a:P('jrnla'), b:P('jrnlb')});
@@ -159,16 +189,23 @@ const SPECIAL = {
   uiImpPanel: `uiImpOpen();`, uiRepPanel: `uiRepOpen();`, uiDataPanel: `uiDataOpen();`,
 };
 const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
+// v2.07 (item 121): the Add box is open while arOpen says so -- render() puts its class back -- so it is closed by its own code
 const CLOSE = tryIt(`document.querySelectorAll('.modal-bg').forEach(function(e){ e.className='modal-bg'; });
-  document.querySelectorAll('.menu.open').forEach(function(m){ m.classList.remove('open'); });`);
+  document.querySelectorAll('.menu.open').forEach(function(m){ m.classList.remove('open'); });
+  if(typeof arOn==='function' && arOn()) arHide();`);
 
 // NOT HOLLOW: a field that was planted and never drawn proves nothing about how it is drawn. Each of these
-// must be seen somewhere in the sweep as the text it is. (The BAE list's names are planted too, but the
-// board shows them re-read by the budget rules -- trimmed and re-cased -- so the planted text never
-// reaches the screen verbatim to be recognised; they are still watched by the handler reading.)
+// must be seen somewhere in the sweep as the text it is. (The BAE list's first row is planted under 'name', which the
+// board never reads -- budReg() reads 'n' -- so it reaches no screen; it is kept as it was. The two planted under 'n'
+// since v2.07 are offered whole by the Add box and the RECORD panel, and are below.)
 export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'note1', 'desc1', 'cons1', 'recname1', 'ccar1',
   'pid1', 'ce1', 'wbs1', 'bandname', 'clindesc', 'clinnewdesc', 'customtitle', 'aceset', 'destname',
-  'jrnlby', 'subtitle', 'subnewtitle', 'snapname', 'bmadd'];
+  'jrnlby', 'subtitle', 'subnewtitle', 'snapname', 'bmadd',
+  // v2.07 (item 121): the Add box -- the budget names it offers each office (these two are offered whole, as the list holds
+  // them), the CCaR list's record title and description read in when a number is typed, and another year's rows: a here
+  // row's renamed title, an added one's plan event, CCaR and PID, the hostile office's, and one filled in to finish
+  'baepsm', 'baegrp', 'ccarlisttitle', 'ccarlistdesc', 'yrrename0', 'yrevent1', 'yrccar1', 'yrpid1', 'yrevent2', 'yrevent3',
+  'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).
@@ -203,10 +240,37 @@ export async function hostileSweep(run, settle = async () => {}) {
     var m=(el.getAttribute('onclick')||'').match(/([A-Za-z_$][\\w$]*)\\s*\\(\\s*\\)/); return {id:el.id, fn:m? m[1] : null}; }))`));
   let opened = 0;
   for (const { id, fn } of panels) {
+    if (id === 'addPanel') continue;                 // swept step by step below
     const setup = SPECIAL[id] || (fn ? `${fn}();` : null); if (!setup) continue;
     await run(tryIt(setup)); await look(`panel ${id}`); await run(CLOSE); opened++;
   }
-  for (const s of ['toggleAdd();', 'rmOpen=true; render();']) { await run(tryIt(s)); await look(s); }
+  // v2.07 (item 121): THE ADD BOX, the whole way through. Opened bare it asks only for the office -- the strip's old opener,
+  // 'toggleAdd();', reached nothing else -- so it is opened for an office chosen at the top (PSM) and for the hostile office
+  // chosen in the box, with values typed so each service's budget names are offered, a CCaR number from the records list
+  // typed, a destination that is not a prime chosen so the OGC fields show, Add pressed early and with a code over its
+  // limit (each refusal is said inside the box), then From another year: the other year's rows for each office, two
+  // incomplete ones ticked and brought in, each filled in to finish, and skipped.
+  const G = JSON.stringify(P('grp')), HY = JSON.stringify('NEW-' + P('yrid'));
+  const fill = `arEl('arV0').value='1,000'; arEl('arV1').value='2,000'; arUpdate();
+    var dk=(flowEnts().filter(function(e){ return String(e.n).indexOf('destname')>=0; })[0]||{}).k||'';
+    arPt('OGC'); arEl('arTo').value=dk; arUpdate(); arEl('arEnd').value=dk; arEl('arMipr').value='direct';
+    var o=[].filter.call(arEl('arB0').options, function(x){ return x.value; })[0]; if(o) arEl('arB0').value=o.value; arUpdate();`;
+  const BOX = [
+    ['the Add box: which office', `setPmoFilter('ALL'); if(arOn()) arHide(); toggleAdd();`],
+    ['the Add box: PSM, chosen at the top', `arHide(); setPmoFilter('PSM'); toggleAdd(); ${fill}
+      arEl('arCcar').value='JSF9001'; arCcarTyped();`],
+    ['the Add box: PSM, Add pressed early', `arAdd(false);`],
+    ['the Add box: PSM, a code over its limit', `arEl('arPid').value=${JSON.stringify(P('boxpid') + 'x'.repeat(40))}; arAdd(false);`],
+    ['the Add box: the hostile office, chosen in the box', `arHide(); setPmoFilter('ALL'); toggleAdd(); arSetOffice(${G}); ${fill}`],
+    ['the Add box: the hostile office, from another year', `arTab('yr'); naFromPick(String(MS.cur-1)); naFromTick('NEW-3', true);`],
+    ['the Add box: PSM, from another year', `arHide(); setPmoFilter('PSM'); toggleAdd(); arTab('yr'); naFromPick(String(MS.cur-1));
+      naFromTick('NEW-1', true); naFromTick(${HY}, true);`],
+    ['the Add box: finishing one brought in', `naFromAdd();`],
+    ['the Add box: the next one to finish', `arSkip();`],
+  ];
+  for (const [w, s] of BOX) { await run(tryIt(s)); await look(w); }
+  await run(tryIt(`arHide(); setPmoFilter('ALL');`)); opened++;
+  for (const s of ['rmOpen=true; render();']) { await run(tryIt(s)); await look(s); }
   const menus = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('.menu[id^="m_"]')).map(function(e){ return e.id.slice(2); }))`));
   for (const k of menus) { await run(tryIt(`toggleMenu(${JSON.stringify(k)});`)); await look(`menu ${k}`); await run(CLOSE); }
   // v2.00 (menu, 19 Oct): what the toolbar's Reports & exports, Data, Setup and File menus held is on the LEFT MENU: its boxes

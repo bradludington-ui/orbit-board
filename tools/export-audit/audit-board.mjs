@@ -2929,6 +2929,40 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// THE ADD BOX, DRIVEN THE WAY A PERSON DRIVES IT (v2.07, item 121). The strip that took a title and an optional total is
+// gone: Add requirement is one box that builds the whole record, and Add is refused until every required field is answered.
+// So every check of the add path types into the rendered box -- each field with the event a person's typing fires, each
+// button clicked -- and reads what the box says (#arMsg, #arReadyN, #arChk), never the function behind a control: calling
+// the function is exactly what missed subPick() (v1.84). __arFill answers every required field for an office that has no
+// BAE list loaded, where the budget is waived ("no BAE list is loaded"); a test that is about one field overrides it.
+// Evaluated once on a board: AR_DRIVE.
+const AR_DRIVE = `(function(){
+  globalThis.__arPut=function(id, v){ var e=document.getElementById(id); if(!e) throw new Error('the Add box has no #'+id);
+    e.value=String(v); e.dispatchEvent(new Event(e.tagName==='SELECT'? 'change' : 'input', {bubbles:true})); };
+  globalThis.__arBtn=function(re){ var b=[].filter.call(document.querySelectorAll('#addPanel button'), function(x){ return re.test(x.textContent.trim()); })[0];
+    if(!b) throw new Error('the Add box has no button '+re); b.click(); };
+  // open it (fresh), and answer "Which office are you adding for?" when it asks
+  globalThis.__arOpen=function(g){ if(arOn()) toggleAdd(); toggleAdd(); if(typeof dlgSync==='function') dlgSync();
+    if(!arOn()) throw new Error('the Add box did not open');
+    if(g && !document.getElementById('arOffStep').hidden) __arPut('arOffice', g); };
+  // o: {event, ptype:'PRIME'|'OGC', vals:[..], spread, gov, wbs, ccar, pid, desc, cons}
+  globalThis.__arFill=function(o){ o=o||{};
+    __arPut('arEvent', o.event!==undefined? o.event : 'Added in the box');
+    document.getElementById(o.ptype==='OGC'? 'arPtO' : 'arPtP').click();
+    (o.vals||[]).forEach(function(v,i){ __arPut('arV'+i, v); });
+    if(o.spread!==undefined){ __arPut('arSpread', o.spread); __arBtn(/^Spread evenly$/); }
+    __arPut('arOb', OB_CATS[0]);
+    var e=flowEntsAZ().filter(function(x){ return destKeyIsOgc(x.k)===!!o.gov; })[0];
+    __arPut('arTo', e.k);
+    if(o.gov){ __arPut('arEnd', e.k); __arPut('arMipr', 'direct'); }
+    if(o.ptype==='OGC') __arPut('arWbs', o.wbs!==undefined? o.wbs : '1.1');
+    if(o.ccar!==undefined) __arPut('arCcar', o.ccar);
+    if(o.pid!==undefined) __arPut('arPid', o.pid);
+    __arPut('arDesc', o.desc!==undefined? o.desc : 'What it buys');
+    __arPut('arCons', o.cons!==undefined? o.cons : 'What is lost if it is not funded');
+    return document.getElementById('arReadyN').textContent; };
+  return 'ok'; })()`;
+
 // v1.89, ITEM 22: A REQUIREMENT ADDED BY ITS TOTAL IS WHOLE DOLLARS THAT ADD UP TO THAT TOTAL.
 // addReq() divided the total by the number of services and kept the fraction. Before a reopen the
 // workbook printed 999,999.9999999999 and an unfunded row of $1.000000000000007, with two sheets
@@ -2936,6 +2970,10 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // typed across six came back as $1,000,002. Driven through the form, the way a person adds one.
 // The oracle is arithmetic, not apportion(): floor(total/n) each, one more for the first total%n.
 // Compared as TEXT: chk() allows 0.005 on numbers, which 999,999.9999999999 passes.
+// v2.07 (item 121): the total is typed into the Add box's "or a total…" and spread with its Spread evenly button, which
+// puts the whole dollars into the service boxes to be read before Add; every other required field is answered. No BAE
+// list is loaded, so the budget is waived on every service (CV can never carry a BAE name, and a list would add budget
+// lines to the Spend Plan Source the export sweep below reads): the board is kept as it was, and what is held is the spread.
 {
   const name = 'whole dollars — a requirement added by its total';
   try {
@@ -2948,21 +2986,30 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       disc: svcs.map(() => 5000000), mand: svcs.map(() => 100000), order: ['A', 'B'], mc: { B: true } });
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
         applyState(S); save(); window.alert=function(m){ globalThis.__al=String(m); }; 'ok'`);
+    ev(AR_DRIVE);
     return ev;
   };
-  const addByTotal = (ev, title, tot) => JSON.parse(ev(`(function(){ _addPanelSvc=null; syncAddPanel();
-      var n0=S.custom.length; globalThis.__al='';
-      document.getElementById('naTitle').value=${JSON.stringify(title)};
-      document.getElementById('naTot').value=${JSON.stringify(String(tot))};
-      document.getElementById('naGrp').value=GROUPS[0]; addReq();
-      var c=S.custom.length>n0? S.custom[S.custom.length-1] : null;
-      return JSON.stringify(c? {id:c.id, ask:c.ask, item:(itemById(c.id)||{}).ask} : null); })()`));
+  // the box opened, the office chosen, the total spread with the box's own button, every other required field answered,
+  // and Add pressed; what the service boxes showed, the rail's count, and what the box said if it stayed open
+  const addByTotal = (ev, title, tot) => JSON.parse(ev(`(function(){
+      var n0=S.custom.length; __arOpen(GROUPS[0]);
+      var ready=__arFill({event:${JSON.stringify(title)}, spread:${JSON.stringify(String(tot))}});
+      var boxes=SVC.map(function(s,i){ return document.getElementById('arV'+i).value; });
+      __arBtn(/^Add requirement/);
+      var c=S.custom.length>n0? S.custom[S.custom.length-1] : null, m=document.getElementById('arMsg');
+      var out={g:c? {id:c.id, ask:c.ask, item:(itemById(c.id)||{}).ask} : null, ready:ready, boxes:boxes, open:arOn(), msg:m? m.textContent : ''};
+      if(arOn()) toggleAdd();
+      return JSON.stringify(out); })()`));
   for (const [n, totals] of [[6, [1000000, 5, 100]], [3, [100, 1000000]], [1, [7]]]) {
     const ev = board(n);
     const added = totals.map(tot => [tot, addByTotal(ev, 'By total ' + tot, tot)]);
     const R = boot({ html: ev('buildSavedHtml()') });
-    for (const [tot, g] of added) {
-      const at = `${n} service(s), $${tot.toLocaleString()} typed`;
+    for (const [tot, a] of added) {
+      const at = `${n} service(s), $${tot.toLocaleString()} typed`, g = a.g;
+      chk(name, at, 'the box’s rail read every required field answered before Add, so nothing but the spread could stop it',
+        /^(\d+) of \1$/.test(a.ready), true);
+      chk(name, at, 'Spread evenly put whole dollars into the service boxes, the first services taking what is left over',
+        JSON.stringify(a.boxes), JSON.stringify(want(tot, n).map(v => v ? v.toLocaleString('en-US') : '')));
       chk(name, at, 'the requirement was added', !!g, true);
       if (!g) continue;
       chk(name, at, 'every service a whole dollar', g.ask.every(Number.isInteger) && g.item.every(Number.isInteger), true);
@@ -3000,12 +3047,16 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     }
     // THE REFUSAL. Nothing can produce a cent through the form today, so the guard is proved by
     // standing in for the spread with one that does: the requirement must not be added at all.
+    // v2.07 (item 121): a spread that made cents could not reach Add either -- the box re-reads each service box through
+    // parseAmt, which takes whole dollars at the door -- so it is the box's READING that is stood in for, with one that
+    // carries a quarter on every service with a value.
     const n0 = ev('S.custom.length+"/"+DATA.items.length');
-    ev(`globalThis.__apx=apportion; apportion=function(t,w){ return w.map(function(){ return t/w.length; }); }; 'ok'`);
+    ev(`globalThis.__arRx=arRead; arRead=function(){ var r=__arRx(); r.d.ask=r.d.ask.map(function(v){ return v>0? v+0.25 : v; }); return r; }; 'ok'`);
     const refused = addByTotal(ev, 'Would carry cents', 100);
-    ev(`apportion=globalThis.__apx; 'ok'`);
-    chk(name, 'refusal', 'a value that is not whole dollars is never put on the board', refused === null && ev('S.custom.length+"/"+DATA.items.length') === n0, true);
-    chk(name, 'refusal', 'and the person is told why', /not in whole dollars/.test(ev('globalThis.__al')), true);
+    ev(`arRead=globalThis.__arRx; 'ok'`);
+    chk(name, 'refusal', 'a value that is not whole dollars is never put on the board', refused.g === null && ev('S.custom.length+"/"+DATA.items.length') === n0, true);
+    chk(name, 'refusal', 'and the person is told why, in the box, which stays open holding what was typed',
+      JSON.stringify([/not in whole dollars/.test(refused.msg), refused.open]), JSON.stringify([true, true]));
   }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
@@ -3041,10 +3092,10 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] });
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
         applyState(S); save(); window.confirm=function(){ return true; }; window.alert=function(){};
-        globalThis.__add=function(t){ _addPanelSvc=null; syncAddPanel(); var n0=S.custom.length;
-          document.getElementById('naTitle').value=t; document.getElementById('naTot').value='';
-          SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=String(100*(i+1)); });
-          document.getElementById('naGrp').value=GROUPS[0]; addReq();
+        // v2.07 (item 121): the one writer every add ends in (reqCreate), given what the old strip wrote -- a title, the
+        // event it defaulted to, the value by service -- and nothing else, so "nothing but the split" still means it
+        globalThis.__add=function(t){ var n0=S.custom.length;
+          reqCreate(GROUPS[0], {title:t, event:'(added at drill)', ask:SVC.map(function(s,i){ return 100*(i+1); })}); save(); render();
           return S.custom.length>n0? S.custom[S.custom.length-1].id : ''; };
         // every container, the UPL mark and the what-if levels that hold something under this id
         globalThis.__held=function(id, st){ st=st||S; var out=[];
@@ -3094,10 +3145,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const R = boot({ html: ev('buildSavedHtml()') });
   R.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
   chk(name, 'reopen', 'the reopened plan holds none of the deleted text either', R.ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
-  R.ev(`removeReq(${JSON.stringify(n4)}); _addPanelSvc=null; syncAddPanel();
-    document.getElementById('naTitle').value='After reopen';
-    SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value='10'; });
-    document.getElementById('naGrp').value=GROUPS[0]; addReq(); 'ok'`);
+  R.ev(`removeReq(${JSON.stringify(n4)});
+    reqCreate(GROUPS[0], {title:'After reopen', event:'(added at drill)', ask:SVC.map(function(){ return 10; })}); save(); render(); 'ok'`);
   chk(name, 'reopen', 'the newest deleted after a reopen: its number is still never reused',
     R.ev('S.custom[S.custom.length-1].id'), 'NEW-5');
   // A PROPOSAL ACCEPTED FROM AN OFFICE is numbered the same way.
@@ -3130,6 +3179,21 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const kinds = JSON.parse(C(`(function(){ var d=cycCmpData('PB|'+MS.cur,'working'), r=d&&d.fy[MS.cur]? d.fy[MS.cur].rows : {};
     return JSON.stringify({a:(r[${JSON.stringify(c1)}]||{}).kind||'', b:(r[${JSON.stringify(c2)}]||{}).kind||''}); })()`));
   chk(name, 'cycle compare', 'the locked one reads as removed, the new one as added', `${kinds.a} ${kinds.b} ${c1 !== c2}`, 'removed added true');
+  // v2.07 (item 121): THROUGH THE ADD BOX. The box writes a whole record in the one writer; after a delete, the requirement
+  // it adds takes a new number and holds exactly what was typed into it -- its split, and the five fields this fill answers
+  // -- with nothing of the deleted one, and no entry at all for a field the box left blank (the note, the CCaR, the PID).
+  const X = mk();
+  X(AR_DRIVE);
+  X(`__add('One'); __add('Two'); __add('Doomed'); __fill('NEW-3'); removeReq('NEW-3'); 'ok'`);
+  const bx = JSON.parse(X(`(function(){ var n0=S.custom.length; __arOpen(GROUPS[0]);
+      __arFill({event:'Typed in the box', vals:['1,000','2,000','3,000'], desc:'Typed desc', cons:'Typed impact'}); __arBtn(/^Add requirement/);
+      var id=S.custom.length>n0? S.custom[S.custom.length-1].id : '';
+      return JSON.stringify({id:id, held:__held(id).filter(function(k){ return k!=='fsrc'; }).sort(),
+        vals:[S.ptype[id], S.obCat[id]===OB_CATS[0], (S.desc||{})[id], (S.cons||{})[id], !!((S.dest||{})[id]||{}).to, (itemById(id)||{}).event],
+        zz:JSON.stringify(S).indexOf('ZZDEL')}); })()`));
+  chk(name, 'the Add box', 'after a delete, the box’s requirement takes a new number and holds exactly what was typed, nothing of the deleted one',
+    JSON.stringify(bx), JSON.stringify({ id: 'NEW-4', held: ['cons', 'desc', 'dest', 'obCat', 'ptype'],
+      vals: ['PRIME', true, 'Typed desc', 'Typed impact', true, 'Typed in the box'], zz: -1 }));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -3642,9 +3706,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       setAlloc('ODD','101'); setAlloc('UNEQ','101'); setAlloc('ZERO','101'); setAlloc('PRM','23999999');
       setSvc('OVER',0,'150'); setSvc('OVER',1,'10'); setFsrc('UFR','ufr'); 'ok'`);
   ev(`switchYear(${cur + 1}); setGrp('MOVE','TSS'); switchYear(${cur}); 'ok'`);          // FY+1 rolled forward; MOVE moves there only
-  ev(`render(); document.getElementById('naTitle').value='ADDED'; document.getElementById('naEvent').value='e';
-      document.getElementById('naGrp').value='AV'; document.getElementById('naTot').value='';
-      document.getElementById('naSvc0').value='9000000'; document.getElementById('naSvc1').value='1000000'; addReq(); 'ok'`);
+  // v2.07 (item 121): added through the one writer the Add box ends in, with what the strip wrote: a title, an event, the value
+  ev(`render(); reqCreate('AV', {title:'ADDED', event:'e', ask:[9000000, 1000000]}); save(); render(); 'ok'`);
   const nid = ev('S.custom[S.custom.length-1].id');
   ev(`yearCopy(${J(nid)}, ${cur + 1}, 'c'); save(); setAsk('STAY',0,'8000000'); 'ok'`);  // the year on screen's ask only
   // THE TRUTH, by hand: [USAF, ANG] allocated and asked, per PMO, per year. PRM is a prime under
@@ -3722,9 +3785,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 10 * M])], disc: [100 * M, 100 * M], mand: [0, 0], order: ['A'] });
   ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
   // O&M adds its own NEW-1 and moves it to TSS: the ids collide, the states do not
-  ev(`render(); document.getElementById('naTitle').value='OM added'; document.getElementById('naEvent').value='e';
-      document.getElementById('naGrp').value='AV'; document.getElementById('naTot').value='';
-      document.getElementById('naSvc0').value='2000000'; document.getElementById('naSvc1').value='0'; addReq(); setGrp('NEW-1','TSS');
+  // v2.07 (item 121): through the one writer the Add box ends in, with what the strip wrote
+  ev(`render(); reqCreate('AV', {title:'OM added', event:'e', ask:[2000000, 0]}); save(); render(); setGrp('NEW-1','TSS');
       spAce='board'; spFund='board'; 'ok'`);
   const cur = +ev('MS.cur');
   const blk = (g, n) => JSON.parse(ev(`JSON.stringify(pmoDetail(${J(g)}, [MS.cur]).filter(function(b){ return b.name===${J(n)}; })[0]||null)`));
@@ -4177,14 +4239,26 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     w1ev(ev, `(function(){ DATA.buys=true; S.buys={ac:{base:[0,0], adj:[2,3], cost:[1000,2000], locked:false}, eng:{base:[0,0], adj:[0,0], cost:[0,0], locked:false}};
       setBuy('ac','cost',0,'$6,000,000,000,000'); const c=S.buys.ac.cost.slice(); delete DATA.buys; return JSON.stringify(c); })()`), J([1000, 2000]));
   // ADD REQUIREMENT: a box it cannot read stops the add; nothing is added, and the alert names the box
-  const add = (svc0, tot) => w1json(ev, `JSON.stringify((function(){ render(); syncAddPanel(); const n0=S.custom.length, al=[], _a=window.alert; window.alert=function(m){ al.push(String(m)); };
-      document.getElementById('naTitle').value='New one'; document.getElementById('naEvent').value='e'; document.getElementById('naGrp').value='AV';
-      document.getElementById('naSvc0').value=${J(svc0)}; document.getElementById('naSvc1').value=''; document.getElementById('naTot').value=${J(tot)};
-      try{ addReq(); }finally{ window.alert=_a; }
-      return [S.custom.length-n0, al.join(' | ')]; })())`);
-  const a1 = add('7oops', ''), a2 = add('', '1.2.3');
-  chk(name, 'add requirement', 'a USAF value of “7oops”, or a total of “1.2.3”: nothing is added, and the alert names the box',
-    J([a1[0], /USAF: .*7oops.* is not an amount/.test(a1[1]), a2[0], /Total: .*1\.2\.3.* is not an amount/.test(a2[1])]), J([0, true, 0, true]));
+  // v2.07 (item 121): typed into the Add box, with every other required field answered and ANG given $500 -- so a USAF box
+  // taken for an empty one would let the requirement on, and "nothing is added" holds only because the box was read. The box
+  // says it in its own message line (a refusal behind an open box would be out of sight), and keeps the entry, marked. The
+  // total is the box's "or a total…": Spread evenly refuses one it cannot read, changes no service box, and says why.
+  w1ev(ev, AR_DRIVE);
+  const add = svc0 => w1json(ev, `JSON.stringify((function(){ render(); var n0=S.custom.length; __arOpen('AV');
+      __arFill({event:'New one', vals:[${J(svc0)}, '500']}); __arBtn(/^Add requirement/);
+      var m=document.getElementById('arMsg'), v=document.getElementById('arV0');
+      var r=[S.custom.length-n0, m? m.textContent : '', v? v.value : '', v? v.getAttribute('aria-invalid') : null, arOn()];
+      if(arOn()) toggleAdd(); return r; })())`);
+  const spread = tot => w1json(ev, `JSON.stringify((function(){ render(); var n0=S.custom.length; __arOpen('AV');
+      __arPut('arV0', '300'); __arPut('arV1', '400'); __arPut('arSpread', ${J(tot)}); __arBtn(/^Spread evenly$/);
+      var m=document.getElementById('arMsg');
+      var r=[S.custom.length-n0, m? m.textContent : '', [document.getElementById('arV0').value, document.getElementById('arV1').value], document.getElementById('arSpread').value];
+      if(arOn()) toggleAdd(); return r; })())`);
+  const a1 = add('7oops'), a2 = spread('1.2.3');
+  chk(name, 'add requirement', 'a USAF value of “7oops”: nothing is added, the box names the box it could not read, and keeps the entry, marked',
+    J([a1[0], /USAF: .*7oops.* is not an amount/.test(a1[1]), a1[2], a1[3], a1[4]]), J([0, true, '7oops', 'true', true]));
+  chk(name, 'add requirement', 'a total of “1.2.3”: Spread evenly leaves every service box as it was, and says it could not read the total',
+    J([a2[0], /total was not spread: .*1\.2\.3.* is not an amount/.test(a2[1]), a2[2], a2[3]]), J([0, true, ['300', '400'], '1.2.3']));
   // A BLANK STILL CLEARS (CONTROL): an empty box is the deliberate reset it always was
   chk(name, 'blank', 'CONTROL — a blank clears: the requirement value to $0, the allocation back to the requirement value, the minimum increment gone (passes on v1.96)',
     w1ev(ev, `(function(){ itemById('X').ask=[500,700]; setAsk('X',0,''); S.alloc.X={m:'t', v:900}; setAlloc('X',''); S.minInc.X=300; setMinInc('X','');
@@ -4330,14 +4404,32 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       rcnSet(0,'rcn','12345678901',el); rcnSet(0,'eeic','ABCDEFGHIJK',el); return [MS.rcn[0].rcn, MS.rcn[0].eeic, el.getAttribute('aria-invalid')]; })())`);
   chk(name, 'RCN and EEIC, typed', '11 characters each: refused, the list keeps 11111 / AAAAA, and the field is marked', J(rc), J(['11111', 'AAAAA', 'true']));
   // THE NEW-REQUIREMENT FORM: a 13-character CCaR adds nothing, and the form keeps what was typed
-  const nf = w1json(ev, `JSON.stringify((function(){ render(); syncAddPanel(); const n0=S.custom.length, al=[], _a=window.alert; window.alert=function(m){ al.push(String(m)); };
-      document.getElementById('naTitle').value='Proposed one'; document.getElementById('naEvent').value='e'; document.getElementById('naGrp').value='AV';
-      document.getElementById('naSvc0').value='100'; document.getElementById('naSvc1').value=''; document.getElementById('naTot').value='';
-      document.getElementById('naCcar').value=${J(L(13))};
-      try{ addReq(); }finally{ window.alert=_a; }
-      return [S.custom.length-n0, document.getElementById('naCcar').value, document.getElementById('naTitle').value, document.getElementById('naCcar').hasAttribute('maxlength')]; })())`);
-  chk(name, 'the new-requirement form', '13 characters of CCaR: nothing is added, the form keeps the CCaR and the title, and the field has no silent cut',
-    J(nf), J([0, L(13), 'Proposed one', false]));
+  // v2.07 (item 121): the form is the Add box, and it takes a PID and a WBS too. One code over its limit at a time -- a CCaR
+  // of 13, a PID of 36, a WBS of 41 -- with everything else answered, so each refusal is that code's own: nothing is added,
+  // the box says the limit, keeps every field as typed, and none of the three has a maxlength to cut it silently. The
+  // requirement is an OGC, so the box asks for its WBS (a prime's is logged per CLIN). CONTROL: at their limits (12, 35,
+  // 40) all three are taken whole.
+  w1ev(ev, AR_DRIVE);
+  const boxTry = o => w1json(ev, `JSON.stringify((function(){ render(); var n0=S.custom.length; __arOpen('AV');
+      __arFill(${J(Object.assign({ event: 'Proposed one', ptype: 'OGC', vals: ['100', ''], gov: true }, o))});
+      __arBtn(/^Add requirement/);
+      var g=function(id){ return document.getElementById(id); }, m=g('arMsg');
+      var r={added:S.custom.length-n0, msg:m? m.textContent : '', open:arOn(),
+        kept:['arCcar','arPid','arWbs','arEvent','arDesc','arCons'].map(function(id){ return g(id)? g(id).value : null; }),
+        cut:['arCcar','arPid','arWbs'].filter(function(id){ return !g(id) || g(id).hasAttribute('maxlength'); }),
+        id:S.custom.length>n0? S.custom[S.custom.length-1].id : ''};
+      if(arOn()) toggleAdd(); return r; })())`);
+  const okC = { ccar: L(12), pid: L(35), wbs: '1.'.repeat(19) + '12' };
+  for (const [k, lbl, over, lim] of [['ccar', 'CCaR record', L(13), 12], ['pid', 'PID', L(36), 35], ['wbs', 'WBS', '1.'.repeat(20) + '1', 40]]) {
+    const typed = { ...okC, [k]: over };
+    const r = boxTry(typed);
+    chk(name, 'the new-requirement form', `${lbl} of ${over.length} characters: nothing is added, the box says the limit, keeps every field as typed, and none of the three codes has a silent cut`,
+      J([r.added, new RegExp('at most ' + lim).test(r.msg), r.open, r.kept, r.cut]),
+      J([0, true, true, [typed.ccar, typed.pid, typed.wbs, 'Proposed one', 'What it buys', 'What is lost if it is not funded'], []]));
+  }
+  const atLim = boxTry(okC);
+  chk(name, 'the new-requirement form', 'CONTROL — at their limits (12, 35, 40) the three codes are taken whole',
+    w1ev(ev, `JSON.stringify([S.ccar[${J(atLim.id)}], S.pid[${J(atLim.id)}], ((S.wbs[${J(atLim.id)}]||[])[0]||{}).w])`), J([okC.ccar, okC.pid, okC.wbs]));
   // READING CHANGES NOTHING: the check runs as the board draws, so a prime with no CLIN entries must not gain empty ones
   const ro = w1json(ev, `JSON.stringify((function(){ ['clinMeta','clinNew','clinRm'].forEach(function(k){ if(S[k]) delete S[k].P; });
       codeIssues(); attLists(); return ['clinMeta','clinNew','clinRm'].map(function(k){ return !!(S[k] && S[k].P!==undefined); }); })())`);
@@ -4487,8 +4579,10 @@ function w4Template(names, reqs) {
   B.ev(`localStorage.setItem('prio27who','w4'); window.__al=[]; window.__cf=[]; window.__pr=0;
     alert=function(m){ window.__al.push(String(m)); }; confirm=function(m){ window.__cf.push(String(m)); return true; };`);
   for (const s of names) B.ev(`prompt=function(){ return ${JSON.stringify(s)}; }; svcAdd();`);
-  for (const r of reqs) B.ev(`document.getElementById('naTitle').value=${JSON.stringify(r)};
-    SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=String(100*(i+1)); }); addReq();`);
+  // v2.07 (item 121): the one writer the Add box ends in, given what the strip wrote -- a title, the event it defaulted to, the
+  // value by service, the first office -- and nothing else: no service-width list but the value and its split, no note
+  for (const r of reqs) B.ev(`reqCreate(GROUPS[0], {title:${JSON.stringify(r)}, event:'(added at drill)',
+    ask:SVC.map(function(s,i){ return 100*(i+1); })}); save(); render(); 'ok'`);
   return B;
 }
 // Every numeric list of width n in a state, with its path.
@@ -5093,6 +5187,7 @@ await (async () => {
     const { ev } = boot();
     seed(ev, { services: SVC3, items: [it('A', 'AV', [5, 7, 11]), it('B', 'AV', [1, 1, 1])], disc: [100, 100, 100], mand: [0, 0, 0], order: ['A', 'B'] });
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    ev(AR_DRIVE);
     // the names as the board ships them, written by hand
     chk(name, 'the registry', 'the three written fields, with their icons',
       ev(`JSON.stringify([FLI('cons'), FLI('dn'), FLI('rec'), FL('grp'), FL('dest')])`), J(['⚠ Impact statement', '📄 Description & note', '📋 Requirement edit', 'PMO', 'Goes to']));
@@ -5107,7 +5202,18 @@ await (async () => {
       recOpen='A'; render(); r.recHead=(document.getElementById('recHead')||{}).textContent||'';
       r.recFields=recFields('A', itemById('A')).filter(function(f){ return f.k==='grp'; }).map(function(f){ return f.l; });
       recOpen=null; render();
+      // v2.07 (item 121): the gate no longer asks for the PMO, so the field A HAS is its Prime contract / OGC -- a prime, whose
+      // WBS is logged per CLIN. A gate that matched the panel's fields by label would read both as missing.
+      S.ptype=S.ptype||{}; S.ptype.A='PRIME'; r.ptypeL=FL('ptype'); r.wbsL=FL('wbs');
       r.gate=pmoProposalGate('A');
+      // the Add box (v2.07, item 121): its rail, its field labels and its refusal name the fields as the registry does when
+      // the box opens -- a list captured once, the way PROPOSAL_MANDATORY was, would go on saying the old names
+      __arOpen('AV');
+      r.rail=[].slice.call(document.querySelectorAll('#arChk li')).map(function(li){ return li.textContent; }).join(' | ');
+      r.labels=['cons','obCat'].map(function(k){ var l=document.querySelector('#arF_'+k+' label'); return l? l.textContent : '(no field)'; });
+      __arBtn(/^Add requirement/);
+      r.refusal=(document.getElementById('arMsg')||{}).textContent||'';
+      toggleAdd(); delete S.ptype.A;
       r.flag=[].slice.call(document.querySelectorAll('#row-A .exc')).map(function(e){ return e.textContent; }).join(' | ');
       r.guide=helpSections().some(function(s){ return /Impact statement/.test(s.el.textContent); });
       r.guideNew=helpSections().some(function(s){ return /Consequence if unfunded/.test(s.el.textContent); });
@@ -5116,8 +5222,12 @@ await (async () => {
     chk(name, 'as shipped', 'the RECORD panel’s buttons start with the three names',
       J(['⚠ Impact statement', '📄 Description & note', '📋 Requirement edit'].map((n, i) => (a.buttons[i] || '').startsWith(n))), J([true, true, true]));
     chk(name, 'as shipped', 'the row flags the missing impact statement by its name', /Impact statement required/.test(a.flag), true);
-    chk(name, 'as shipped', 'the proposal gate does not list a field the requirement has (its PMO), and lists one it lacks',
-      J([a.gate.indexOf('PMO') >= 0, a.gate.indexOf('Impact statement') >= 0]), J([false, true]));
+    chk(name, 'as shipped', 'the proposal gate does not list a field the requirement has (its Prime contract / OGC, and a prime’s WBS), and lists one it lacks',
+      J([a.gate.indexOf(a.ptypeL) >= 0, a.gate.indexOf(a.wbsL) >= 0, a.gate.indexOf('Impact statement') >= 0]), J([false, false, true]));
+    chk(name, 'as shipped', 'the Add box’s rail, its field labels and its refusal name the fields by the registry’s names',
+      J([/Impact statement/.test(a.rail), /Obligation category/.test(a.rail), a.labels.map(l => l.split('*')[0]),
+         /Impact statement/.test(a.refusal), /Obligation category/.test(a.refusal)]),
+      J([true, true, ['Impact statement', 'Obligation category'], true, true]));
     ev(`REQ_FIELD.cons.l='Consequence if unfunded'; REQ_FIELD.dn.l='Notes and description'; REQ_FIELD.rec.l='Record'; REQ_FIELD.grp.l='Office'; REQ_FIELD.obCat.l='How the money leaves'; 'ok'`);
     const b = read();
     ev(`REQ_FIELD.cons.l='Impact statement'; REQ_FIELD.dn.l='Description & note'; REQ_FIELD.rec.l='Requirement edit'; REQ_FIELD.grp.l='PMO'; REQ_FIELD.obCat.l='Obligation category'; render(); 'ok'`);
@@ -5129,6 +5239,11 @@ await (async () => {
     chk(name, 'renamed', 'the proposal gate names the missing fields by the new names (A has no obligation category or impact statement)',
       J(['How the money leaves', 'Consequence if unfunded'].map(n => b.gate.indexOf(n) >= 0)), J([true, true]));
     chk(name, 'renamed', 'the row’s flag says the new name', /Consequence if unfunded required/.test(b.flag), true);
+    chk(name, 'renamed', 'the Add box’s rail, field labels and refusal say the new names, and not the old ones',
+      J([/Consequence if unfunded/.test(b.rail), /How the money leaves/.test(b.rail), /Impact statement|Obligation category/.test(b.rail),
+         b.labels.map(l => l.split('*')[0]), /Consequence if unfunded/.test(b.refusal), /How the money leaves/.test(b.refusal),
+         /Impact statement|Obligation category/.test(b.refusal)]),
+      J([true, true, false, ['Consequence if unfunded', 'How the money leaves'], true, true, false]));
     chk(name, 'renamed', 'the guide says the new name, and not the old one', J([b.guideNew, b.guide]), J([true, false]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
@@ -5416,6 +5531,36 @@ await (async () => {
   }
 })();
 // ==== end v2.06 second review (PPBE) ====
+// ==== v2.07 (found by the hostile sweep) ====
+// ═══ v2.07 — A BAE FILE ENTRY WITH NO DATE, AN ESTIMATE WITH NO TOTALS: THE BOARD STILL DRAWS ═══════════════════════════════════
+// Found while the hostile fixture was given real shapes: the BAE register printed each file's date with
+// new Date(ts).toISOString(), which throws on an entry with no readable date, and the Spruills read an estimate's
+// appropriation totals as A.tot[y], which throws on one carrying none. Both run inside render(), so while either panel was
+// open every redraw stopped there and nothing after it was drawn. Neither shape is refused at the door; both are drawn as
+// what they are.
+await (async () => {
+  const name = 'v2.07 — a BAE file entry with no date, or an estimate with no totals, does not stop the board drawing';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG'], ['R']), ev = B.ev;
+  const drew = () => ev(`(function(){ try{ render(); return 'drew'; }catch(e){ return 'threw: '+e.message; } })()`);
+  ev(`BUDDB={ts:1790000000201, files:[{dept:'USAF', file:'bae.xlsx', n:1}, 'x'], rows:[{n:'USAF O&M- CAM Discretionary R'}]}; _budRegCache=null;
+      budOpen=true; 'ok'`);
+  chk(name, 'BAE register', 'open on a file entry with no date, and one that is not an entry: every redraw still draws', drew(), 'drew');
+  chk(name, 'BAE register', 'the entry with no date is listed, its date a dash',
+    ev(`(function(){ var r=[].slice.call(document.querySelectorAll('#budRegPanel tr')).map(function(t){ return t.textContent; }).filter(function(t){ return /bae\.xlsx/.test(t); }); return r.length+' · '+/—$/.test(r[0]||''); })()`), '1 · true');
+  ev(`budOpen=false; render();
+      ACEDB.sets=ACEDB.sets||{}; ACEDB.sets.X={appn:{}}; APPN_SLUGS.forEach(function(k){ ACEDB.sets.X.appn[k]={pmo:{R:{2027:900}}}; });
+      spAce='X'; spOpen=true; 'ok'`);
+  chk(name, 'Spruills', 'open on an estimate whose appropriations carry no totals: every redraw still draws', drew(), 'drew');
+  chk(name, 'Spruills', 'and the panel is drawn', ev(`(document.getElementById('spBody')||document.getElementById('spPanel')||{}).textContent.length>0`), true);
+  ev(`spOpen=false; spAce='board'; render(); 'ok'`);
+  chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.07 (found by the hostile sweep) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

@@ -31,6 +31,11 @@
 //      shows. On a board with a BAE list and a requirement short by ten-digit figures in every service. It used to print the UFR
 //      total as "$655,479,0..." and cut the budget pickers' names.
 //
+//   M. (v2.07, item 121) The Add box fits whole -- nothing scrolls, nothing is cut, nothing runs off the window -- at 1366 x 657 and
+//      1920 x 969, with six services, a budget picker on each, the OGC fields and what is still needed showing, on both tabs and
+//      with one brought in being finished, in Harbor and Midnight and in the Segoe stand-in; below 1366 it is one column that
+//      scrolls.
+//
 //   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
 //   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
 //   1400px is the layout these checks were written against (v1.89 clipped the row menus there), and beside the sidebar it
@@ -45,6 +50,7 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
+import { withStandin, standinProblem } from './font-standin.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -106,10 +112,10 @@ const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox']
 // v2.00 (UI S4, fix round): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside
 // the table sets it (prio27uiDock = '1' in this browser). Without it the panel slides over the table, the board's default.
 const PASSES = [['sliding over', false], ['docked', true]];
-const open = async (w, h, mode, density, docked = false, at = file) => {
+const open = async (w, h, mode, density, docked = false, at = file, theme = 'harbor') => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
-  await ctx.addInitScript(([m, d]) => { try { localStorage.setItem('spmtTheme', 'harbor');
-    if (m) localStorage.setItem('spmtMode', m); if (d) localStorage.setItem('spmtDensity', d); } catch (e) {} }, [mode || '', density || '']);
+  await ctx.addInitScript(([m, d, t]) => { try { localStorage.setItem('spmtTheme', t);
+    if (m) localStorage.setItem('spmtMode', m); if (d) localStorage.setItem('spmtDensity', d); } catch (e) {} }, [mode || '', density || '', theme]);
   if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
@@ -519,6 +525,130 @@ for (const [pass, docked] of PASSES) {
   }
   chk('L · PPBE Budget Positions: every RCN / EEIC line on one row, nothing cut, at 1920, 1440, 1366 and 1024, split and not',
     fails.length === 0 && lines === 16, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 3).join('; ')}` : `${lines} lines read`);
+}
+
+// ── M. THE ADD BOX FITS WHOLE (v2.07, item 121) ──────────────────────────────────────────────────────────────
+// Brad: "everything legible and not running off the screen or needing to scroll". The box that builds the whole record is
+// measured with all of it showing -- six services' values, a budget picker on each (the longest name chosen), the two OGC
+// fields, the CCaR record's title read in, Add pressed early so the missing fields are marked and the box says what is
+// missing -- then on From another year with that year's rows, then with one brought in being finished. At 1366 x 657 (a
+// 1366 x 768 laptop's window) and 1920 x 969, in Harbor and Midnight, in this machine's font and in the Segoe stand-in: the
+// box sits inside the window, nothing in it scrolls or is cut below, no field cuts its value, no picker cuts the name it
+// shows, no label, rail line or text is cut or past the box's edge. Below 1366 (1280 x 720) it is one column and the box
+// scrolls, and still nothing is cut sideways.
+const boxUnreadable = () => {
+  const m = document.querySelector('#addPanel .modal'), out = [];
+  if (!m) return ['no box'];
+  const mr = m.getBoundingClientRect();
+  if (mr.top < -1 || mr.left < -1 || mr.bottom > innerHeight + 1 || mr.right > innerWidth + 1)
+    out.push(`the box runs off the window: ${Math.round(mr.left)},${Math.round(mr.top)}-${Math.round(mr.right)},${Math.round(mr.bottom)} in ${innerWidth}x${innerHeight}`);
+  const say = e => { const t = String(/^(INPUT|TEXTAREA)$/.test(e.tagName) ? e.value : e.textContent || '').replace(/\s+/g, ' ').trim();
+    return (e.id ? '#' + e.id : (e.className && typeof e.className === 'string' ? e.tagName.toLowerCase() + '.' + e.className.split(' ')[0] : e.tagName.toLowerCase()))
+      + ' "' + t.slice(0, 40) + '"'; };
+  const cv = document.createElement('canvas').getContext('2d');
+  for (const e of [m, ...m.querySelectorAll('*')]) {
+    const b = e.getBoundingClientRect(); if (!b.width || !b.height) continue;
+    const cs = getComputedStyle(e); if (cs.visibility === 'hidden' || e.closest('.sr')) continue;
+    if (e.tagName !== 'TEXTAREA' && e.tagName !== 'SELECT' && /auto|scroll|hidden|clip/.test(cs.overflowY + cs.overflowX)) {
+      if (e.scrollHeight > e.clientHeight + 1 && !/ellipsis/.test(cs.textOverflow)) out.push('scrolls or cuts below: ' + say(e) + ' ' + e.scrollHeight + '>' + e.clientHeight);
+      if (e.scrollWidth > e.clientWidth + 1 && /auto|scroll/.test(cs.overflowX)) out.push('scrolls sideways: ' + say(e) + ' ' + e.scrollWidth + '>' + e.clientWidth);
+    }
+    if (e.tagName === 'SELECT') {
+      const o = e.options[e.selectedIndex]; if (!o) continue;
+      cv.font = cs.font; const tw = cv.measureText(o.text).width;
+      const room = e.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20;
+      if (tw > room + 1) out.push('picker cuts its name: ' + say(e) + ' "' + o.text.slice(0, 50) + '" ' + Math.round(tw) + '>' + Math.round(room));
+      continue;
+    }
+    if (e.tagName === 'INPUT' && /^(text|search|number|)$/.test(e.type) && e.scrollWidth > e.clientWidth + 1) { out.push('field cuts its value: ' + say(e)); continue; }
+    const own = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (own && (cs.textOverflow === 'ellipsis' || /hidden|clip/.test(cs.overflowX)) && e.scrollWidth > e.clientWidth + 1) { out.push('text cut: ' + say(e) + ' ' + e.scrollWidth + '>' + e.clientWidth); continue; }
+    if ((own || /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(e.tagName)) && (b.right > mr.right + 1 || b.left < mr.left - 1 || b.bottom > mr.bottom + 1))
+      { out.push('past the box’s edge: ' + say(e)); continue; }
+    const cell = own && e.closest('td, th');
+    if (cell && cell !== e && m.contains(cell)) { const c = cell.getBoundingClientRect();
+      if (b.right > c.right + 1 || b.left < c.left - 1) out.push('spills out of its cell: ' + say(e)); }
+    else if (own && /^(TD|TH)$/.test(e.tagName) && e.scrollWidth > e.clientWidth + 1) out.push('spills out of its cell: ' + say(e));
+  }
+  return [...new Set(out)];
+};
+// the box in each of its three states; returns what is not shown that should be, and what is unreadable
+const BOX_STATES = [
+  ['New requirement, filled, Add pressed early', () => {
+    setPmoFilter('PSM'); if (arOn()) arHide(); toggleAdd();
+    const set = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
+    set('arEvent', 'Depot tooling for the F135 engine line'); arPt('OGC'); set('arCcar', 'JSF3087'); set('arPid', 'PID-' + '4'.repeat(31));
+    [123456789, 98765432, 87654321, 76543210, 65432109, 54321098].forEach((v, i) => set('arV' + i, v.toLocaleString('en-US')));
+    SVC.forEach((s, i) => { const sel = document.getElementById('arB' + i); if (!sel) return;
+      const o = [...sel.options].filter(x => x.value).sort((a, c) => c.value.length - a.value.length)[0]; if (o) set('arB' + i, o.value); });
+    const g = flowEntsAZ().filter(e => e.kind !== 'prime').sort((a, c) => c.n.length - a.n.length)[0];
+    set('arTo', g ? g.k : ''); set('arEnd', g ? g.k : ''); set('arWbs', '1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16'); set('arDesc', 'Tooling the F135 line cannot run without; replaces 1990s fixtures at end of life.');
+    arAdd(false);
+    const sh = id => { const e = document.getElementById(id); return !!e && e.getClientRects().length > 0; };
+    return ['arB0', 'arB1', 'arB2', 'arB3', 'arB4', 'arB5', 'arEnd', 'arMipr', 'arMsg'].filter(id => !sh(id) || (id === 'arMsg' && !/still needed/.test(document.getElementById(id).textContent)));
+  }],
+  ['From another year, a year’s rows', () => {
+    arTab('yr'); naFromPick(String(MS.cur - 1)); naFromTick('NEW-91', true);
+    const n = document.querySelectorAll('#naFromWrap tr[data-id]').length;
+    return n >= 5 ? [] : ['the other year’s rows (' + n + ')'];
+  }],
+  ['one brought in being finished', () => {
+    // the form still holds what the first state typed, so bringing one in to finish asks first (v2.07 review): answered OK, as
+    // a person who wants it finished would
+    const c0 = window.confirm; window.confirm = () => true;
+    try { naFromAdd(); } finally { window.confirm = c0; }
+    const fb = document.getElementById('arFinBar');
+    return fb && !fb.hidden && arTabOn === 'new' ? [] : ['the bar of the one being finished'];
+  }],
+];
+{
+  // the K board, and: every service with a budget for PSM under a long name, the CCaR records list with a long record title,
+  // and the year before holding PSM's requirements -- three added ones not in this year, one of them complete
+  ev(`BUDDB.rows=BUDDB.rows.concat(['USAF O&M NON AFRC NON ANG CAM Discretionary PSM', 'USAF O&M - AFRC CAM Discretionary PSM',
+      'USMC CV O&M -1A9A FL Discretionary PSM'].map(budParseName).filter(Boolean)); BUDDB.ts=1700000000051; _budRegCache=null;
+    MS.ccarIdx={ts:1700000000052, file:'ccar.xlsx', n:1, rows:{JSF3087:{t:'F-35 propulsion depot activation, support equipment and tooling for the F135 line', o:'', p:'PSM', k:'3087',
+      s:'Depot activation tooling', d:1}}};
+    var Y=MS.cur-1, T={order:S.order.filter(function(id){ return grpOf(itemById(id))==='PSM'; }), alloc:{}, mc:{}, removed:[], custom:[], titles:{}, ccar:{}, pid:{},
+      ptype:{}, obCat:{}, wbs:{}, dest:{}, desc:{}, cons:{}, budgetAsg:{}, discSvc:SVC.map(function(){ return 0; }), mandSvc:SVC.map(function(){ return 0; })};
+    [['NEW-91','Engine module repair capacity, FY26 surge'], ['NEW-92','Low observable restoration kits'], ['NEW-93','Supply chain data analytics']]
+      .forEach(function(x, i){ T.custom.push({id:x[0], grp:'PSM', team:'PSM', sect:'new', custom:true, title:'', event:x[1], ccar:'', fy26:SVC.map(function(){ return 0; }),
+        ask:SVC.map(function(s, j){ return (i+1)*(j+3)*1234567; }), alloc:null}); T.order.push(x[0]); T.ccar[x[0]]='JSF'+(3090+i); T.pid[x[0]]='PID-'+(5100+i); });
+    T.desc['NEW-91']='Keeps the line open'; T.cons['NEW-91']='Engines wait for repair into FY28.';
+    MS.years[Y]=T; applyState(S); save(); 'ok'`);
+  const fileM = join(dir, 'board-m.html'), fileMS = join(dir, 'board-m-segoe.html');
+  writeFileSync(fileM, ev('buildSavedHtml()'));
+  writeFileSync(fileMS, withStandin(readFileSync(fileM, 'utf8')));
+  const fails = [], notShown = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileM], ['the Segoe stand-in', fileMS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1366, 657], [1920, 969]]) {
+        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
+        if (at === fileMS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        const tag = `${w}x${h} ${theme || 'midnight'} ${font}`;
+        for (const [state, fn] of BOX_STATES) {
+          const r = await p.evaluate(([fn, look]) => { const miss = (0, eval)('(' + fn + ')')(); return { miss, bad: (0, eval)('(' + look + ')')() }; },
+            [fn.toString(), boxUnreadable.toString()]);
+          read++;
+          r.miss.forEach(x => notShown.push(`${tag}, ${state}: ${x}`));
+          r.bad.slice(0, 4).forEach(x => fails.push(`${tag}, ${state}: ${x}`));
+        }
+        await ctx.close();
+      }
+  chk('M · the Add box shows all of itself in every state measured: six budget pickers, the OGC fields, what is missing, another year’s rows, one being finished',
+    notShown.length === 0 && read === 24, notShown.length ? `not shown: ${notShown.slice(0, 4).join('; ')}` : `${read} states`);
+  chk('M · the Add box fits whole at 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in: nothing scrolls, nothing is cut, nothing runs off',
+    fails.length === 0, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
+  // below 1366: one column, and the box scrolls -- and still nothing is cut sideways
+  const { p, ctx } = await open(1280, 720, 'review', '', false, fileM);
+  const r = await p.evaluate(([fn, look]) => { (0, eval)('(' + fn + ')')();
+    const m = document.querySelector('#addPanel .modal'), cols = [...document.querySelectorAll('#arNew .ar-col')].map(c => Math.round(c.getBoundingClientRect().left));
+    const ft = document.getElementById('arAddBtn').getBoundingClientRect();
+    return { cols, scrolls: m.scrollHeight > m.clientHeight + 1, foot: ft.bottom <= innerHeight + 1 && ft.top >= 0,
+      side: (0, eval)('(' + look + ')')().filter(x => !/^scrolls or cuts below: (#addPanel|div\.modal)|^past the box’s edge: .*/.test(x) || /sideways|cuts its|cut:|spills/.test(x)) };
+  }, [BOX_STATES[0][1].toString(), boxUnreadable.toString()]);
+  await ctx.close();
+  chk('M · below 1366 (1280x720) the box is one column that scrolls, with Add on screen, and nothing is cut sideways',
+    r.cols.length === 3 && new Set(r.cols).size === 1 && r.scrolls && r.foot && !r.side.length, JSON.stringify(r).slice(0, 300));
 }
 
 await b.close();

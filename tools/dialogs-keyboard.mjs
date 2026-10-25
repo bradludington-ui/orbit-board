@@ -55,14 +55,17 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
   // open from their entries, uiGo('imp'|'rep'|'data', this)
   const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(',
                   uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
-                  msgClose: 'msgOpen(', aiClose: 'aiOpen(' };   // v2.04 (item 109): the AI review list   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
+                  msgClose: 'msgOpen(', aiClose: 'aiOpen(',   // v2.04 (item 109): the AI review list   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
+                  // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
+                  // page (#uiAddBtn, uiAddReq) -- the Review tools' own button and the folded menu item call toggleAdd too
+                  toggleAdd: 'uiAddReq(' };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
   return { id: bg.id, pat };
 }));
 const viaFn = [];
-let opened = 0, typed = 0, impBack = 0;
+let opened = 0, typed = 0, impBack = 0, addFields = 0;
 const st = () => p.evaluate(() => { const a = document.activeElement;
   const bg = a && a.closest ? a.closest('body > .modal-bg') : null;
   return { in: bg ? bg.id : null, id: a ? (a.id || a.tagName.toLowerCase()) : null }; });
@@ -118,9 +121,14 @@ const openBox = async box => {
   await p.evaluate(() => { const e = document.querySelector('[data-probe]'); if (e) e.removeAttribute('data-probe'); });
   return how;
 };
+// v2.07 (item 121): A BOX THAT ASKS FIRST. The Add box opened with every office showing asks only which office -- a select,
+// nothing to type in -- so the typing guard would go unchecked on it. One office is chosen at the top first, as a person adding
+// for their own office has it, and the box opens on its form; every office is put back after.
+const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilter('ALL')`] };
 for (const box of BOXES) {
   if (box.id === 'uipPanel') { skipped.push('uipPanel (the in-app prompt opens only where the browser has no prompt of its own)'); continue; }
   if (!box.pat) { bad.push(`${box.id}: no way to open it found`); continue; }
+  if (PRE[box.id]) await p.evaluate(c => { try { (0, eval)(c); } catch (e) {} }, PRE[box.id][0]);
   await p.evaluate(() => { window.scrollTo(0, 0); document.body.focus(); });
   let how = await openBox(box);
   if (!how || !(await isOpen(box.id))) {
@@ -155,6 +163,9 @@ for (const box of BOXES) {
   if (await isOpen(box.id)) { bad.push(`${box.id}: Esc did not close it`); await p.evaluate(id => { const bg = document.getElementById(id); bg.classList.remove('open'); bg.style.display = 'none';
     if (typeof dlgSync === 'function') dlgSync(); }, box.id); continue; }
   const s1 = await st();
+  // v2.07 (item 121): the Add box, opened by Enter on Add requirement, hands the keyboard back to that button
+  if (box.id === 'addPanel' && (how.fn || s1.id !== 'uiAddBtn'))
+    bad.push(`addPanel: ${how.fn ? 'Enter on #uiAddBtn did not open it' : 'closing left the keyboard on ' + s1.id + ', not on #uiAddBtn'}`);
   if (!how.fn) {
     const want = how.menu ? 'b_' + how.menu : (how.left ? 'uiNav_' + how.left : null);
     if (s1.in || s1.id === 'body' || (want && s1.id !== want && !(await p.evaluate(() => !!document.activeElement.closest('.menu')))))
@@ -168,6 +179,8 @@ for (const box of BOXES) {
       && e.getClientRects().length && (e.tagName === 'TEXTAREA' || /^(text|search|)$/.test(e.getAttribute('type') || ''))
       && !(e.hasAttribute('oninput') && !e.hasAttribute('data-held')));     // a filter applied as typed has nothing to lose
     if (!f) return null; f.setAttribute('data-probe-f', '1'); return true; }, box.id); })();
+  // v2.07 (item 121): the Add box must be checked on its form's text fields, not on the office question alone
+  if (box.id === 'addPanel' && !field) bad.push('addPanel: no text field of its form was found to type in -- it opened short of its form');
   if (field) {
     typed++;
     await p.focus('[data-probe-f="1"]'); await p.keyboard.type('qz');
@@ -200,6 +213,28 @@ for (const box of BOXES) {
     }
   } else if (await isOpen(box.id)) { await p.keyboard.press('Escape'); await p.waitForTimeout(150); }
   await p.evaluate(() => { const f = document.querySelector('[data-probe-f]'); if (f) f.removeAttribute('data-probe-f'); });
+  // v2.07 (item 121): EVERY FIELD OF THE ADD BOX, not the first one. It is a whole record typed in one sitting, and a field the
+  // box controller does not guard (one with no data-held, or drawn after the box opened) loses its text to a stray Esc while
+  // the field above it was safe. Each text field in turn: typed into, Esc asks, Cancel keeps it, the typing taken back out.
+  if (box.id === 'addPanel') {
+    await reopen();
+    const ids = await p.evaluate(() => [...document.querySelectorAll('#addPanel .modal input, #addPanel .modal textarea')]
+      .filter(e => !e.disabled && !e.readOnly && e.getClientRects().length && (e.tagName === 'TEXTAREA' || /^(text|search|)$/.test(e.getAttribute('type') || '')))
+      .map(e => e.id));
+    if (ids.length < 10) bad.push(`addPanel: only ${ids.length} text field(s) of its form were on screen to check (${ids.join(', ')})`);
+    addFields = ids.length;
+    for (const fid of ids) {
+      if (!(await isOpen('addPanel'))) { bad.push(`addPanel: closed before ${fid} was checked`); break; }
+      asked.length = 0; confirmAnswer = false;
+      await p.focus('#' + fid); await p.keyboard.type('qz'); await p.keyboard.press('Escape'); await p.waitForTimeout(120);
+      const v = await p.evaluate(id => (document.getElementById(id) || {}).value, fid);
+      if (!asked.some(m => /Discard what you typed\?/.test(m))) bad.push(`addPanel: typing in #${fid}, then Esc: it did not ask before discarding`);
+      if (!(await isOpen('addPanel')) || !(v || '').includes('qz')) { bad.push(`addPanel: typing in #${fid}, then Esc, Cancel: the box or the text was lost`); break; }
+      await p.focus('#' + fid); await p.keyboard.press('Backspace'); await p.keyboard.press('Backspace');
+    }
+    if (await isOpen('addPanel')) { confirmAnswer = true; await p.keyboard.press('Escape'); await p.waitForTimeout(150); confirmAnswer = false; }
+  }
+  if (PRE[box.id]) await p.evaluate(c => { try { (0, eval)(c); } catch (e) {} }, PRE[box.id][1]);
 }
 // v2.00 (UI S4): THE IMPORT BOX HANDS THE KEYBOARD BACK TO THE CONTROL THAT OPENED IT -- the toolbar's Import or the
 // sidebar's Imports -- on Esc, ✕ Close, Cancel and a click outside. Opened from the keyboard (Enter), and by a mouse click
@@ -251,6 +286,7 @@ if (back.in !== 'pfPanel' || !(await isOpen('pfPanel'))) bad.push(`stacked: Esc 
 await p.keyboard.press('Escape'); await p.waitForTimeout(200);
 await ctx.close();
 console.log(`\n${pass} -- boxes: ${opened} opened (${opened - viaFn.length} from their own menu or button by keyboard, ${viaFn.length} by their switch: ${viaFn.join(', ') || 'none'}), ${typed} with a text field typed in`);
+console.log(`the Add box: ${addFields} text field(s) of its form typed into one by one (Esc must ask on each)`);
 if (impWant) console.log(`the left menu's boxes handed the keyboard back to their entries ${impBack} time(s) of ${impWant} (Imports & exports, Reports & exports and Data, by key and by a click that takes no focus, each way of closing each)`);
 if (impBack !== impWant) bad.push(`the left menu's boxes handed the keyboard back ${impBack} time(s) of ${impWant}`);
 if (errs.length) bad.push('page errors: ' + errs.slice(0, 3).join(' | '));
