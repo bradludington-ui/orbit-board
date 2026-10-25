@@ -5325,6 +5325,55 @@ await (async () => {
 })();
 // ==== end v2.06 items 119, 120 ====
 
+// ==== v2.06 review fixes (PPBE) ====
+// ═══ v2.06 — THE PRE-MERGE REVIEW'S PPBE FIXES (25 Oct 2026) ═══════════════════════════════════════════════════════════════════
+// A service renamed kept its "$K" setting under the old name, so the next figure typed as printed was stored at a thousandth;
+// the undo divided figures typed since and stayed offered with $K off; the rounding message named a figure 1,000 times too
+// small; and ALL SERVICES' corner counted a service the board no longer lists with no row above it. Each fails on be4de83.
+await (async () => {
+  const name = 'v2.06 — the pre-merge review’s PPBE fixes: a rename keeps $K, the undo puts back only what it multiplied, the message, a service no longer listed';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG', 'STOVL'], ['R']), ev = B.ev;
+  ev(`MS.ppbe=MS.ppbe||{}; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; ppOpen=true;
+      ppLineAdd('USAF'); var L=ppPos().lines.USAF; window.__k=L[0].k;
+      ppSetV('USAF',__k,2027,'d','15,828'); ppSetV('USAF',__k,2028,'d','2,000'); ppUnitSet('USAF','k'); 'ok'`);
+  const val = () => JSON.parse(ev(`JSON.stringify(ppPos().val)`));
+  chk(name, 'fixture', 'USAF in $K, its two figures multiplied', J([val().USAF[ev('__k')][2027].d, val().USAF[ev('__k')][2028].d]), J([15828000, 2000000]));
+  // ---- 5: the message names what was read
+  ev(`ppSetV('USAF',__k,2029,'d','1,234.5675'); 'ok'`);
+  chk(name, '5 · the message', 'a fractional thousand is stored to the dollar, and the message names that dollar figure',
+    J([val().USAF[ev('__k')][2029].d, /\$1,234,568/.test(ev(`document.getElementById('shareStat').textContent`))]), J([1234568, true]));
+  // ---- 4: a figure typed since is not divided
+  ev(`ppSetV('USAF',__k,2029,'d','15.8M'); ppSetV('USAF',__k,2030,'d','3,000'); window.__cf=[]; ppUnitUndo('USAF'); 'ok'`);
+  const u = val().USAF[ev('__k')];
+  chk(name, '4 · the undo', 'undo divides the two figures it multiplied and leaves the two typed since, and says so',
+    J([u[2027].d, u[2028].d, u[2029].d, u[2030].d, /2 other figures on USAF, typed or changed since, are left as they are/.test(ev(`window.__cf.join('|')`))]), J([15828, 2000, 15800000, 3000000, true]));
+  ev(`ppUnitSet('USAF','k'); 'ok'`);
+  chk(name, '4 · the undo', 'turned on again with figures in place, it asks and multiplies them', JSON.parse(ev(`JSON.stringify(ppPos().val.USAF[__k][2027].d)`)), 15828000);
+  ev(`ppUnitSet('USAF',''); 'ok'`);
+  chk(name, '4 · the undo', 'turned off, the ×1,000 record goes and no undo is offered',
+    J([ev(`String(!!(ppPos().kx||{}).USAF)`), ev(`String([].slice.call(document.querySelectorAll('#ppBody .ppunit button')).some(function(b){ return /undo/.test(b.textContent); }))`)]), J(['false', 'false']));
+  // ---- 3: a renamed service keeps its $K setting and its record
+  ev(`ppUnitSet('USAF','k'); svcSaveList(['USAF-A','ANG','STOVL'], [0,1,2]); 'ok'`);
+  chk(name, '3 · a rename', 'USAF renamed USAF-A keeps $K and its ×1,000 record',
+    J([ev(`String(ppUnitK(ppPos(),'USAF-A'))`), ev(`String(!!(ppPos().kx||{})['USAF-A'])`), ev(`String(!!(ppPos().unit||{}).USAF)`)]), J(['true', 'true', 'false']));
+  ev(`ppSetV('USAF-A',__k,2031,'d','7,000'); 'ok'`);
+  chk(name, '3 · a rename', 'and a figure typed as printed after the rename is read in $K', JSON.parse(ev(`JSON.stringify(ppPos().val['USAF-A'][__k][2031].d)`)), 7000000);
+  // ---- 6: a service the position holds that the board no longer lists
+  ev(`ppPos().val.OLDSVC={x:{2027:{d:5000000,m:0}}}; render(); 'ok'`);
+  const roll = JSON.parse(ev(`(function(){ var t=document.querySelectorAll('#ppBody table.fctab')[1]; return JSON.stringify([].slice.call(t.querySelectorAll('tr')).map(function(r){ return [].slice.call(r.children).map(function(c){ return (c.firstChild&&c.firstChild.nodeType===3? c.firstChild.textContent : c.textContent).trim(); }); })); })()`));
+  const ti = roll[0].indexOf('Total'), m = s => (s === '—' || !s) ? 0 : Math.round(parseFloat(String(s).replace(/[$,M]/g, '')) * 100);
+  const body = roll.slice(1, -1), all = roll[roll.length - 1];
+  chk(name, '6 · not on this board', 'the service the board no longer lists is a row, and ALL SERVICES’ corner is the column above it',
+    J([body.some(r => /^OLDSVC/.test(r[0])), Math.abs(m(all[ti]) - body.reduce((t, r) => t + m(r[ti]), 0)) <= body.length]), J([true, true]));
+  chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 review fixes (PPBE) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

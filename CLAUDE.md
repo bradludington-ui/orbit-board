@@ -4335,6 +4335,32 @@ to one row at four widths; it fails on v2.05. Mutations: 30 new (`v206-117-*` 18
 6), each run against its block on its own mutant and caught. The two 118 mutants pass the browser check one at a time (the
 width alone, or the no-wrap alone, holds the row at these fonts) and are caught by the jsdom check; v2.05, with neither, fails it.
 
+**The pre-merge review (25 Oct 2026; Brad: "Fixes plus the second review, then merge").** Five independent reviewers, each
+serious finding re-run by a second trying to refute it, confirmed three defects and reported ten more; all are fixed:
+- **A linked requirement is the same work.** `yearLinkOf(id, y)` names the requirement in a year that carries `id` by its link
+  (a board-data id whatever year the link names; an added one only its own year), and `yearHas` reads it -- so Roll forward
+  skips it, Copy and Move to year ask, Restore asks and Restore all names them (Cancel keeps them removed). A proposal that
+  continues something the year already holds says so on the review row (`pmoPriorHere`); accepting it is still the reviewer's
+  call (Brad: duplicates "will be caught and discussed in reviews").
+- **A proposal carries its renamed plan event** (`titles`, through `pmoTake` and `pmoAcceptProposal`).
+- **$K survives a service rename** (`svcRenameKeys` re-keys `P.unit` and `P.kx`); **the undo puts back only the cells the
+  conversion multiplied** (`P.kx[svc].cells`, each only while it still holds what it became) and is offered only while $K is on;
+  turning $K off ends it. **The message names what was read** (`ppAmtText` hands amtNo the K-suffixed text).
+- **ALL SERVICES adds the column above it**: a service the position holds and the board no longer lists is a row
+  (*not on this board*).
+- **The picker:** "already here" by event and title is the same office's only; Add refuses if the office changed since the
+  list was drawn (`naFromFor`), or the year has gone.
+- **`reqNewId(g, n)`** mints a copy's `NEW-<office>-n` without a character an id may not carry (an office named *Brad's*
+  minted an id the import check refused, the whole submittal with it; addReq had the same scheme).
+- **A link to a year not held** says *FY25 is not on this board* (or *not in this locked cycle*), never *no longer on the board*.
+  **Reset year keeps the numbers handed out** (`newSeq`), so a link never lands on a new requirement. **The record-name pen**
+  replaces a carried record name.
+- **A PMO copy submits only the year it was published for** (`pmoSubmit`): switched to another year it built a package of that
+  year's work under the published one. Older than v2.06, reached anew by *Go to FY..*.
+Checks: audit-import "v2.06 — the pre-merge review’s fixes…" and audit-board "v2.06 — the pre-merge review’s PPBE fixes…", both
+failing on the candidate (be4de83); 20 `v206-fix-*` mutations, each caught by its block; six older ones retargeted to the lines
+the fixes rewrote (`v197w1-guard-ppSetV`, `v197w4-rename-ppbe-left`, three `v206-120-*`, `v206-117-proposal-drops-link`).
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -282,7 +282,22 @@ the log it says so here.
   the change journal, which walks the year states and not `MS.ppbe`; it is recorded on the position instead (`P.kx`) and undone
   from the same place, as the log's "undone" asked.
 
-**Proved with** (24 Oct, on the final tree): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED, recon and import once
+**Found by an independent review before merge, fixed in v2.06** (25 Oct; Brad: *"Fixes plus the second review, then merge"*).
+Five reviewers, one per area (round trips, money, the PMO copy, the import check and escaping, regressions), each serious
+finding re-run by a second agent trying to refute it: 3 confirmed, 10 reported, 1 older defect found on the way. All fixed:
+1. A copy's proposal dropped a renamed plan event; the board accepted it under the old name.
+2. Roll forward, Copy and Move to year, Restore and Restore all added a requirement the year already carried as a linked
+   requirement, and its value counted twice; a proposal continuing something the year holds is now flagged on review.
+3. Renaming a service dropped its $K setting, so the next figure typed as printed was stored 1,000 times too small.
+4. The undo divided figures typed since, and stayed offered with $K off. 5. The rounding message named a figure 1,000 times
+   too small. 6. ALL SERVICES counted a service the board no longer lists with no row above it.
+7. "Already here" ignored the office. 8. Add filed under a changed office. 9. An office named *Brad's* minted ids the import
+   check refused (addReq too). 10. A link to a year not held read *no longer on the board*. 11. Reset year reused NEW-1 under a
+   link. 12. The record-name pen did nothing on a brought-in requirement. 13. Add threw when its year had gone.
+14. (older than v2.06) A PMO copy switched to another year submitted that year's work under the published year.
+Tested by two new blocks failing on the candidate and 20 `v206-fix-*` mutations each caught; six older mutations retargeted.
+
+**Proved with** (24 Oct, on the candidate before the review fixes): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED, recon and import once
 the clone's history was fetched (`git fetch --unshallow`: both read old builds by commit, and a shallow clone fails them with
 "invalid object name", which is not a defect); the two new jsdom blocks, each failing on v2.05; every browser check, `npm run
 layout` failing only on its carried D ×8 and its new L passing (L fails on v2.05); `npm run standards` with nothing new; the defect

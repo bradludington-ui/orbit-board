@@ -3074,7 +3074,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.06 (24 Oct 2026)';
+const BUILD='v2.06 (25 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3654,7 +3654,8 @@ function svcRenameKeys(ren){
   });
   Object.keys(MS.ppbe||{}).forEach(function(key){ const P=MS.ppbe[key];
     if(!P || typeof P!=='object') return;
-    if(P.v===2){ P.lines=reKey(P.lines, false); P.val=reKey(P.val, false); }
+    if(P.v===2){ P.lines=reKey(P.lines, false); P.val=reKey(P.val, false);
+      if(P.unit) P.unit=reKey(P.unit, false); if(P.kx) P.kx=reKey(P.kx, false); }   // v2.06 (review fix): the $K setting and its record
     else MS.ppbe[key]=reKey(P, false);
   });
   if(has(spSvc)){ spSvc=ren[spSvc]; MS.spSvc=spSvc; }
@@ -6258,7 +6259,7 @@ let MS;                                   // {base, cur, ts, years:{'2027':state
 let aiIsOpen=false, AIREV=null, aiShow='';
 // v2.06 (item 117): the Add panel's "from another year" picker -- the year chosen and what is ticked. Read by syncNaGrp(), which
 // runs while the script is still being read, so declared here (the BANDS_STD rule).
-let naFromFy=0, naFromSel={};   // AIREV {file, ts, rows}; aiShow '' | 'anomaly' | 'suggestion' | 'check'
+let naFromFy=0, naFromSel={}, naFromFor=null;   // AIREV {file, ts, rows}; aiShow '' | 'anomaly' | 'suggestion' | 'check'
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -6495,9 +6496,29 @@ function switchYear(y){
 function yearHas(id, y){
   const T=MS.years[y]; if(!T) return false;
   const it=itemById(id); if(!it) return false;
-  if(it.custom) return (T.custom||[]).some(function(x){
-    return x && x.event===it.event && x.title===it.title; });
-  return Array.isArray(T.order) && T.order.indexOf(id)>=0;
+  if(it.custom && (T.custom||[]).some(function(x){
+    return x && x.event===it.event && x.title===it.title; })) return true;
+  if(!it.custom && Array.isArray(T.order) && T.order.indexOf(id)>=0) return true;
+  return !!yearLinkOf(id, y);
+}
+// v2.06 (review fix): A REQUIREMENT BROUGHT IN FROM ANOTHER YEAR IS THE SAME WORK, under its own id. The id tests above
+// could not see it, so Roll forward, Copy and Move to year and Restore put the original into a year that already
+// carried it as a linked requirement, and its value counted twice. This names the requirement in year y (the year on
+// screen when y is omitted) that carries requirement `id` of the year on screen, or that `id` itself continues: a link
+// to a board-data id is that activity whatever year it names; a link to an added one names its own year.
+function yearLinkOf(id, y){
+  const T=(y===undefined)? S : (MS.years||{})[y]; if(!T) return '';
+  const it=itemById(id), cur=+MS.cur;
+  const custom=!!(it && it.custom) || /^NEW-/.test(String(id));
+  const inT=function(x){ return x && (y===undefined || (T.order||[]).indexOf(x.id)>=0); };
+  const hit=(T.custom||[]).filter(function(x){ return inT(x) && x.prior && x.id!==id && String(x.prior.id)===String(id)
+    && (!custom || +x.prior.fy===cur); })[0];
+  if(hit) return hit.id;
+  const p=it && it.prior;
+  if(p && !/^NEW-/.test(String(p.id)) && Array.isArray(T.order) && T.order.indexOf(String(p.id))>=0) return String(p.id);
+  if(p){ const twin=(T.custom||[]).filter(function(x){ return inT(x) && x.id!==id && x.prior
+    && String(x.prior.id)===String(p.id) && +x.prior.fy===+p.fy; })[0]; if(twin) return twin.id; }
+  return '';
 }
 // THE MECHANICS OF A YEAR COPY, with no prompts and no rendering in them.
 //
@@ -6661,6 +6682,9 @@ function xferYear(id, code){
   if(!isCustom && MS.years[y] && Array.isArray(MS.years[y].order) && MS.years[y].order.includes(id)
      && !confirm('FY'+(y%100)+' already has "'+nm+'" on the board — overwrite its FY'+(y%100)
                  +' values with this copy?')) return;
+  { const lk=yearLinkOf(id, y);
+    if(lk && !confirm('FY'+(y%100)+' already carries "'+nm+'" as '+lk+', linked to it.\n\nOK — '+(mode==='c'?'copy':'move')
+      +' it anyway: FY'+(y%100)+' will hold both, and the requirement value counts twice.\nCancel — leave FY'+(y%100)+' as it is.')) return; }
   const _r=yearCopy(id, y, mode);
   if(!_r.ok) return;
   save(); render();
@@ -6669,7 +6693,11 @@ function xferYear(id, code){
 function resetYear(){
   if(cycBlock('Resetting a year')) return;
   if(!confirm('Reset '+FYL()+' to BLANK?\n\nEverything in this year is erased — the board will show NO requirements and zero BA. Baseline items move to the Removed list (restorable). Other fiscal years are untouched.\n\nThis cannot be undone (unless you re-import an older saved board).')) return;
+  // v2.06 (review fix): the numbers this year has handed out stay handed out, so a requirement added after the reset never
+  // takes an old one's id -- which another year's link (it.prior) would then read as the requirement it continues
+  const seq=newReqSeq(S);
   MS.years[MS.cur]=freshYearState();
+  MS.years[MS.cur].newSeq=seq;
   applyState(MS.years[MS.cur]);
   MS.years[MS.cur]=S;
   save(); render();
@@ -7897,11 +7925,22 @@ function pmoProposalOf(id){
           si:(S.si||{})[id]||'', rcnAsg:(S.rcnAsg||{})[id]||'',
           budgetAsg:pmoVal(S,'budgetAsg',id), rcnSvc:pmoVal(S,'rcnSvc',id), crHalf:pmoVal(S,'crHalf',id),
           // v2.06 (item 117): the requirement it continues, so the board keeps the link when it accepts it
-          prior:it.prior? {fy:+it.prior.fy, id:String(it.prior.id)} : null};
+          prior:it.prior? {fy:+it.prior.fy, id:String(it.prior.id)} : null,
+          // v2.06 (review fix): the plan event as renamed with the pen -- a requirement brought in carries one (S.titles)
+          titles:(S.titles||{})[id]||''};
 }
 // Has this board already taken this proposal? Provenance on the accepted requirement -- the office
 // and the provisional id -- is what says so, and it is what stops the same submittal imported twice
 // from adding the requirement twice.
+// v2.06 (review fix): the requirement the year on screen already holds that a proposal brought in from another year
+// continues -- the original under its own id, or another requirement linked to the same one. '' when none.
+function pmoPriorHere(p){
+  if(!p || !p.id) return '';
+  const id=String(p.id), on=S.order||[];
+  if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
+  const x=(DATA.items||[]).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && String(i.prior.id)===id && +i.prior.fy===+p.fy; })[0];
+  return x? x.id : '';
+}
 function pmoTakenAs(a, pkg){
   return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;
 }
@@ -7918,6 +7957,7 @@ function pmoAcceptProposal(r){
             ccar:'', fy26:SVC.map(function(){ return 0; }), ask:askVecOf(a.ask), alloc:null,
             from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};
   if(a.prior) it.prior={fy:a.prior.fy, id:a.prior.id};      // v2.06 (item 117)
+  if(a.titles){ if(!S.titles) S.titles={}; S.titles[it.id]=a.titles; }   // v2.06 (review fix): the name the office saw
   S.custom.push(it); DATA.items.push(it);
   S.order.push(it.id);
   if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
@@ -7951,6 +7991,14 @@ function pmoAcceptProposal(r){
 }
 function pmoSubmit(){
   if(cycBlock('Submitting input')) return;
+  // v2.06 (review fix): A COPY SUBMITS THE YEAR IT WAS PUBLISHED FOR. Switched to another year (the year menu, or Go to on a
+  // linked requirement), Submit built a package of THAT year's state under the published year, and the office's real edits
+  // were not sent.
+  if(SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy){
+    alert('This copy was published for FY'+(PMODE.fy%100)+' and is showing '+FYL()+'.\n\nSwitch back to FY'+(PMODE.fy%100)
+      +' to submit: a submittal carries the year the copy was published for. Nothing was sent.');
+    return;
+  }
   if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
     + 'your changes are already on it.'); return; }
   // THE OFFICE IS PART OF THE PACKAGE, so ask for it before anything else is built. Re-entering
@@ -8225,7 +8273,8 @@ function pmoReport(){
     if(r.isNew){
       sheet.rows.push([
         r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
-        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.title||r.prop.nid)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : ''), r.prop.ccar||'',
+        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.titles||r.prop.title||r.prop.nid)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
+          +(r.prop.prior && !r.taken && pmoPriorHere(r.prop.prior)? ' — '+FYL()+' already holds '+pmoPriorHere(r.prop.prior) : ''), r.prop.ccar||'',
         'New requirement (proposed)', '—', pmoFmtVal('__new', r.prop), '',
         r.taken? 'already added as '+r.taken : (PMOPICK[pickKey(r)]? 'ticked to accept' : 'not accepted'),
         '']);
@@ -8547,7 +8596,7 @@ function pmoTake(pkg, fname){
   }
   pkg.added.forEach(function(a){
     a.nid=String(a.nid||''); a.grp=String(a.grp||''); a.title=String(a.title||'').trim();
-    ['event','ccar','desc','cons','notes','pid','recNames','mipr','obCat','ptype'].forEach(function(k){
+    ['event','ccar','desc','cons','notes','pid','recNames','mipr','obCat','ptype','titles'].forEach(function(k){
       a[k]=(a[k]===undefined||a[k]===null)? '' : String(a[k]); });
     a.ask=askVecOf(a.ask);
     // v1.84 -- the fields a proposal gained, through the same rules as an edit
@@ -8754,9 +8803,11 @@ function subBody(){
             +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
         +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
           +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
-        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.title||a.nid)
+        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.titles||a.title||a.nid)
           +' <span style="color:var(--dim)">'+esc(a.grp)+'</span>'
           +(a.prior? '<br><span class="subprior" style="color:var(--dim);font-size:9px">from FY'+(a.prior.fy%100)+' '+esc(a.prior.id)+'</span>' : '')
+          +(a.prior && !r.taken && pmoPriorHere(a.prior)? '<br><span class="subhere" style="color:var(--amber);font-size:9px;font-weight:800">'
+            +esc(FYL())+' ALREADY HOLDS '+esc(pmoPriorHere(a.prior))+' \u2014 accepting adds it again</span>' : '')
           +(r.taken? '<br><span style="color:var(--green);font-size:9px;font-weight:800">ALREADY ADDED AS '+esc(r.taken)+'</span>':'')+'</td>'
         +'<td style="text-align:left">New requirement (proposed)</td>'
         +'<td style="text-align:left;color:var(--dim)">—</td>'
@@ -22203,11 +22254,13 @@ function ppSvcsOf(Praw){
 // written; the boxes show the service's figures in $K. Every total, the roll-up and the Spruills read dollars as before.
 // The setting lives on the position (P.unit[svc]='k'), so it travels with the board, its copies and its cycles.
 function ppUnitK(P, sv){ return !!(P && P.unit && Object.prototype.hasOwnProperty.call(P.unit, sv) && P.unit[sv]==='k'); }
-function ppAmtIn(P, sv, val){
+// The text the figure is read from: under $K a bare number takes amtRead's own K. ppSetV hands the same text to amtNo, so a
+// rounding or refusal message names what was read (it named a figure 1,000 times smaller -- review fix).
+function ppAmtText(P, sv, val){
   const t=String(val==null? '' : val).trim();
-  if(ppUnitK(P, sv) && t && !/[kmb]\s*$/i.test(t)) return parseAmt(t+'K', {neg:true});
-  return parseAmt(val, {neg:true});
+  return (ppUnitK(P, sv) && t && !/[kmb]\s*$/i.test(t))? t+'K' : val;
 }
+function ppAmtIn(P, sv, val){ return parseAmt(ppAmtText(P, sv, val), {neg:true}); }
 function ppAmtShow(P, sv, v){
   if(!v) return '';
   if(ppUnitK(P, sv)) return (v/1000).toLocaleString(undefined, {maximumFractionDigits:3});
@@ -22240,7 +22293,9 @@ function ppUnitSet(sv, u){
     if(conv){
       figs.forEach(f=>{ P.val[sv][f[0]][f[1]][f[2]]=D$(f[3]*1000); });
       if(!P.kx) P.kx={};
-      P.kx[sv]={t:Date.now(), by:whoAmI()||'', n:figs.length, from:before, to:ppSvcSum(P, sv)};
+      // the cells it multiplied and what each became: the undo puts back these and nothing typed since (review fix)
+      P.kx[sv]={t:Date.now(), by:whoAmI()||'', n:figs.length, from:before, to:ppSvcSum(P, sv),
+                cells:figs.map(function(f){ return [f[0], String(f[1]), f[2], D$(f[3]*1000)]; })};
     }
     save(); render();
     setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are now entered in $K'
@@ -22249,28 +22304,39 @@ function ppUnitSet(sv, u){
   }
   if(!ppUnitK(P, sv)) return;
   delete P.unit[sv];
+  const hadKx=!!(P.kx && P.kx[sv]); if(P.kx) delete P.kx[sv];   // review fix: figures typed in dollars from here are never divided
   save(); render();
-  setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are entered in dollars again. No figure changed.');
+  setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are entered in dollars again. No figure changed.'
+    +(hadKx? ' The \u00d71,000 made when $K was turned on can no longer be undone from here.' : ''));
 }
 // PUT A CONVERSION BACK: every figure on the service divided by 1,000 and the setting back to dollars. Refused, naming
 // the figure, when one would not come back to a whole dollar -- the board holds no cents.
 function ppUnitUndo(sv){
   if(cycBlock('Changing a PPBE position')) return;
   const P=ppPos(), rec=P.kx&&P.kx[sv]; if(!rec) return;
-  const figs=ppSvcFigs(P, sv), odd=figs.filter(f=>f[3]%1000);
+  // only the cells the conversion multiplied, and only while each still holds what it became (review fix): a figure typed
+  // since -- in $K, or with its own unit -- is not divided, and is named
+  const V=((P.val||{})[sv])||{};
+  const recd=Array.isArray(rec.cells)? rec.cells : ppSvcFigs(P, sv).map(function(f){ return [f[0], String(f[1]), f[2], f[3]]; });
+  const figs=recd.filter(function(c){ const cell=(V[c[0]]||{})[c[1]]; return cell && +cell[c[2]]===+c[3]; })
+    .map(function(c){ return [c[0], c[1], c[2], +c[3]]; });
+  const since=ppSvcFigs(P, sv).length-figs.length;     // every other figure on the service: typed or changed since
+  const odd=figs.filter(f=>f[3]%1000);
   if(odd.length){ alert('The \u00d71,000 on '+sv+' was not undone: '+odd.length+' figure'+(odd.length===1?'':'s')+' ('
     +odd.slice(0,3).map(f=>'FY'+String(f[1]).slice(-2)+' $'+f[3].toLocaleString()).join(', ')+(odd.length>3?' \u2026':'')
     +') would not come back to a whole dollar. Nothing was changed.'); return; }
-  if(!confirm('Undo the \u00d71,000 on '+sv+' in '+ppLblTxt(ppKey())+'?\n\nEvery figure on '+sv+' is divided by 1,000 \u2014 '
-    +fM2(ppSvcSum(P, sv))+' becomes '+fM2(ppSvcSum(P, sv)/1000)+' \u2014 and its figures are entered in dollars again.')) return;
+  const moved=figs.reduce((a,f)=>a+f[3],0);
+  if(!confirm('Undo the \u00d71,000 on '+sv+' in '+ppLblTxt(ppKey())+'?\n\nThe '+figs.length+' figure'+(figs.length===1?'':'s')+' it multiplied '
+    +(figs.length===1?'is':'are')+' divided by 1,000 \u2014 '+fM2(moved)+' becomes '+fM2(moved/1000)+' \u2014 and '+sv+'\u2019s figures are entered in dollars again.'
+    +(since? '\n\n'+since+' other figure'+(since===1?'':'s')+' on '+sv+', typed or changed since, '+(since===1?'is':'are')+' left as '+(since===1?'it is':'they are')+'.' : ''))) return;
   figs.forEach(f=>{ P.val[sv][f[0]][f[1]][f[2]]=f[3]/1000; });
   delete P.kx[sv]; if(P.unit) delete P.unit[sv];
   save(); render();
   setStat('\u{1F3DB} The \u00d71,000 on '+esc(sv)+' was undone \u2014 '+esc(sv)+' totals '+fM2(ppSvcSum(P, sv))+' again.');
 }
 function ppSetV(sv, k, fy, which, val){
-  const P=ppPos(), v=ppAmtIn(P, sv, val);
-  if(amtNo(v, val, 'The position figure', {neg:true})) return;
+  const P=ppPos(), txt=ppAmtText(P, sv, val), v=ppAmtIn(P, sv, val);
+  if(amtNo(v, txt, 'The position figure', {neg:true})) return;
   if(!P.val) P.val={};
   if(!Object.prototype.hasOwnProperty.call(P.val, sv)) P.val[sv]={};
   if(!Object.prototype.hasOwnProperty.call(P.val[sv], k)) P.val[sv][k]={};
@@ -22381,7 +22447,7 @@ function ppBody(){
   h+='<div style="margin-bottom:6px">Service: '
     +SVC.map((x,i)=>'<button class="btn '+(ppSvcIdx===i?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="ppSvcIdx='+i+';render()">'+esc(x)+'</button>').join(' ')
     +' <span style="font-size:9px;color:var(--dim);margin-left:6px">'+esc(sv)+' budgets at <b>'+KINDLBL[kind]+'</b> level</span></div>';
-  { const k1=ppUnitK(P, sv), rec=P.kx&&P.kx[sv];
+  { const k1=ppUnitK(P, sv), rec=k1 && P.kx && P.kx[sv];   // the undo is offered only while $K is on (review fix)
     h+='<div class="ppunit" style="margin-bottom:6px;font-size:10px">'+esc(sv)+' figures entered in: '
       +'<button type="button" class="btn'+(k1?'':' on')+'" aria-pressed="'+(!k1)+'" style="font-size:10px;padding:3px 9px" onclick="ppUnitSet('+jsa(sv)+','+jsa('')+')">$</button> '
       +'<button type="button" class="btn'+(k1?' on':'')+'" aria-pressed="'+k1+'" style="font-size:10px;padding:3px 9px" onclick="ppUnitSet('+jsa(sv)+','+jsa('k')+')">$K</button>'
@@ -22467,6 +22533,14 @@ function ppBody(){
       +yrs.map(y=>{ const t=ppSvcFy(P,x,y); tot+=t.t;
         return '<td'+(x===sv?' style="background:rgba(214,180,106,.10)"':'')+'>'
           +(t.t>0? fM2(t.t)+(split&&(t.d>0||t.m>0)? '<div style="font-size:8px;color:var(--dim)">'+(t.d>0?fM2(t.d)+' D':'')+(t.d>0&&t.m>0?' \u00b7 ':'')+(t.m>0?fM2(t.m)+' M':'')+'</div>':'') : '\u2014')+'</td>'; }).join('')
+      +'<td style="border-left:1px solid var(--gold);font-weight:700">'+(tot?fM2(tot):'\u2014')+'</td></tr>';
+  });
+  // v2.06 (review fix): a service this position holds that the board no longer lists is still in ALL SERVICES and in the
+  // Spruills, so it is a row here too -- the corner adds the column above it
+  ppSvcsOf(P).filter(x=>SVC.indexOf(x)<0 && yrs.some(y=>ppSvcFy(P,x,y).t)).forEach(x=>{
+    let tot=0;
+    h+='<tr class="ppgone"><td style="text-align:left;font-weight:700">'+esc(x)+' <span style="font-weight:400;color:var(--dim)">(not on this board)</span></td>'
+      +yrs.map(y=>{ const t=ppSvcFy(P,x,y); tot+=t.t; return '<td>'+(t.t? fM2(t.t) : '\u2014')+'</td>'; }).join('')
       +'<td style="border-left:1px solid var(--gold);font-weight:700">'+(tot?fM2(tot):'\u2014')+'</td></tr>';
   });
   h+='<tr class="tot"><td style="text-align:left">ALL SERVICES</td>'
@@ -25894,6 +25968,9 @@ function editRecName(id){
     uiPrompt('CCaR Record Name \u2014 how the source file files this requirement:', recName(it), function(v){
       if(v===null) return;
       it.title=(''+v).trim();
+      // one brought in from another year (or accepted from a copy) can carry a record name, which recName() reads first: the
+      // typed name replaces it, or the pen did nothing visible (review fix)
+      if(S.recNames && Object.prototype.hasOwnProperty.call(S.recNames, id)) delete S.recNames[id];
       save(); render(); flash(id);
     });
     return;
@@ -27469,7 +27546,7 @@ function syncBtns(){
       mi('⇄ Reassign a requirement…',"mRun(pmoReassignHint)",false,
          'open any requirement’s '+FLI('rec')+' and set its PMO there')+
       ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
-        +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render()",false,'clear this selection') : '');
+        +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render();naFromDraw()",false,'clear this selection') : '');
   })();
   document.getElementById('dd_view').innerHTML=
     // v1.96 (item 65): the filters fold into Funding and Service; the heading says what is on
@@ -30195,7 +30272,7 @@ function addReq(){
   // two offices proposing at once can never mint the same id, and a reviewer can tell whose it is
   // before opening it. split('-')[1] read 'PSM' as the number and would have minted NEW-PSM-NaN.
   const n=newReqSeq();
-  const it={id:((typeof SANDBOX!=='undefined' && SANDBOX)? 'NEW-'+g+'-'+n : 'NEW-'+n), grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
+  const it={id:reqNewId(g, n), grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
             ccar:'', fy26:SVC.map(_=>0), ask:ask, alloc:null};
   S.custom.push(it); DATA.items.push(it); S.order.push(it.id);
   // A new requirement is born on Split, seeded from the lane walk that now includes it. The menu
@@ -30235,7 +30312,21 @@ function removeReq(id){
   Object.keys(S.pmoOrder).forEach(g=>{ S.pmoOrder[g]=S.pmoOrder[g].filter(x=>x!==id); });
   save(); render();
 }
-function restoreReq(id){ S.removed=S.removed.filter(x=>x!==id); applyState(S); save(); render(); }
+// A NEW REQUIREMENT'S ID: NEW-n on the board, NEW-<office>-n on a PMO copy. The office's name goes into the id without any
+// character an id may not carry (IN_ID_BAD -- a quote mark, < >, a backquote, a backslash, |, a control character), cut to
+// 40: an office named "Brad's" minted NEW-Brad's-1, which the board's import check refused, and the whole submittal with it
+// (review fix; addReq had the same scheme).
+function reqNewId(g, n){
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return 'NEW-'+n;
+  const o=String(g||'').replace(/[\u0000-\u001f\u007f<>"'`\\|]/g,'').slice(0,40);
+  return 'NEW-'+(o? o+'-' : '')+n;
+}
+function restoreReq(id){
+  // v2.06 (review fix): this year may already carry it as a requirement brought in from another year
+  const lk=yearLinkOf(id), it=(BASE_ITEMS||[]).filter(x=>x.id===id)[0];
+  if(lk && !confirm(FYL()+' already carries "'+(it? dispTitle(it) : id)+'" as '+lk+', brought in from another year and linked to it.\n\n'
+    +'OK — restore it anyway: '+FYL()+' will hold both, and the requirement value counts twice.\nCancel — leave it removed.')) return;
+  S.removed=S.removed.filter(x=>x!==id); applyState(S); save(); render(); }
 // ── ADD FROM ANOTHER YEAR (v2.06, item 117; Brad, 23 Oct 2026) ─────────────────────────────────────────────────
 // "After they selected their PMO at the top, when they click Add Requirement, select the fiscal year ... and see all the
 // requirements from that year to add into the current fiscal year." And: "a lot of activities are funded over and over
@@ -30274,20 +30365,21 @@ function naFromOffice(){
 // and title.
 // AN ADDED REQUIREMENT'S ID IS ITS YEAR'S OWN: NEW-1 in FY27 and NEW-1 in FY28 can be two different requirements (newReqSeq
 // numbers each year by itself, as yearCopy does), so only an id from the board's data is matched by id.
-function naFromHere(y, id, src){
+function naFromHere(y, id, src, g){
   const on=S.order||[];
   if(!(src && src.custom) && on.indexOf(id)>=0) return true;
   return (DATA.items||[]).some(function(x){
     if(!x || on.indexOf(x.id)<0) return false;
     if(x.prior && +x.prior.fy===+y && x.prior.id===id) return true;
-    return !!(src && src.custom && x.custom && x.event===src.event && x.title===src.title);
+    // the same office's added requirement by its event and title: another office's of the same name is its own (review fix)
+    return !!(src && src.custom && x.custom && x.event===src.event && x.title===src.title && (g===undefined || grpOf(x)===g));
   });
 }
 function naFromRows(y, g){
   const T=MS.years[y]; if(!T) return [];
   return (T.order||[]).map(function(id){ const it=yrItemOf(T, id); return it? {id:id, it:it, T:T} : null; })
     .filter(function(r){ return r && grpOf(r.it, r.T)===g; })
-    .map(function(r){ r.here=naFromHere(y, r.id, r.it); return r; });
+    .map(function(r){ r.here=naFromHere(y, r.id, r.it, g); return r; });
 }
 function naFromPick(v){ naFromFy=parseInt(v,10)||0; naFromSel={}; naFromDraw(); }
 function naFromTick(id, on){ if(on) naFromSel[id]=1; else delete naFromSel[id]; naFromDraw(); }
@@ -30297,6 +30389,7 @@ function naFromDraw(){
   const ys=naFromYears();
   if(naFromFy && (naFromFy===+MS.cur || ys.indexOf(naFromFy)<0)){ naFromFy=0; naFromSel={}; }
   const of=naFromOffice(), g=of.g;
+  naFromFor=g;      // the office the list was drawn for; Add refuses if it has changed since (review fix)
   let h='<div class="fr nafrom" style="margin-top:6px"><b style="color:var(--gold);font-size:11px">OR FROM ANOTHER YEAR</b>'
     +'<label for="naFromFy">Fiscal year</label><select id="naFromFy" onchange="naFromPick(this.value)">'
     +'<option value="">'+(ys.length? '\u2014 choose \u2014' : 'no other year holds requirements')+'</option>'
@@ -30334,7 +30427,7 @@ function naFromDraw(){
 function reqFromYear(y, id, g){
   const T=MS.years[y], src=yrItemOf(T, id); if(!src) return '';
   const n=newReqSeq();
-  const nid=((typeof SANDBOX!=='undefined' && SANDBOX)? 'NEW-'+g+'-'+n : 'NEW-'+n);
+  const nid=reqNewId(g, n);
   const it={id:nid, grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
             title:src.title||'', event:src.event||'', ccar:'', fy26:SVC.map(function(){ return 0; }),
             ask:askVecOf(src.ask), alloc:null, prior:{fy:+y, id:id}};
@@ -30357,7 +30450,12 @@ function reqFromYear(y, id, g){
 function naFromAdd(){
   if(cycBlock('Adding requirements')) return;
   const y=naFromFy, g=naFromOffice().g;
-  const ids=Object.keys(naFromSel).filter(function(id){ return (MS.years[y].order||[]).indexOf(id)>=0 && !naFromHere(y, id, yrItemOf(MS.years[y], id)); });
+  // review fixes: the year may have gone (a board loaded since), and the office may have changed since the list was drawn
+  if(!y || !(MS.years||{})[y]){ naFromFy=0; naFromSel={}; naFromDraw(); return; }
+  if(g!==naFromFor){ naFromSel={}; naFromDraw();
+    setStat('\u26a0 The office changed to <b>'+esc(g)+'</b> since the list was drawn \u2014 nothing was added. The list now shows '+esc(g)+'\u2019s requirements.'); return; }
+  const ids=Object.keys(naFromSel).filter(function(id){ const src=yrItemOf(MS.years[y], id);
+    return (MS.years[y].order||[]).indexOf(id)>=0 && src && grpOf(src, MS.years[y])===g && !naFromHere(y, id, src, g); });
   if(!y || !ids.length) return;
   const made=ids.map(function(id){ return reqFromYear(y, id, g); }).filter(Boolean);
   naFromSel={};
@@ -30373,16 +30471,27 @@ function priorLink(it){
   const p=it && it.prior; if(!p || typeof p!=='object') return null;
   const y=+p.fy, T=(MS.years||{})[y], src=T? yrItemOf(T, p.id) : null;
   const on=!!(T && src && (T.order||[]).indexOf(p.id)>=0);
-  return {fy:y, id:String(p.id), on:on, title:on? dispTitle(src, T) : ''};
+  return {fy:y, id:String(p.id), on:on, held:!!T, title:on? dispTitle(src, T) : ''};
 }
 function priorTxt(it){ const L=priorLink(it); if(!L) return '';
-  return 'FY'+(L.fy%100)+' '+L.id+(L.on? ' \u2014 '+L.title : ' \u2014 no longer on the board'); }
+  // a year not held at all is not a requirement removed: a locked cycle's view holds only its own years (review fix)
+  return 'FY'+(L.fy%100)+' '+L.id+(L.on? ' \u2014 '+L.title
+    : L.held? ' \u2014 no longer on the board'
+    : ' \u2014 FY'+(L.fy%100)+(typeof CYCVIEW!=='undefined' && CYCVIEW? ' is not in this locked cycle' : ' is not on this board')); }
 function priorHtml(it){
   const L=priorLink(it); if(!L) return '';
   return '<div class="insp-prior" style="font-size:10px;color:var(--dim);margin:2px 0 4px">Continues <b style="color:var(--ink)">'+esc(priorTxt(it))+'</b>'
     +(L.on && L.fy!==+MS.cur? ' <button type="button" class="qb" onclick="switchYear('+L.fy+')">Go to FY'+(L.fy%100)+'</button>' : '')+'</div>';
 }
-function restoreAll(){ S.removed=[]; applyState(S); save(); render(); }
+function restoreAll(){
+  // v2.06 (review fix): what this year already carries as a linked requirement is named, and kept out unless asked for
+  const linked=(S.removed||[]).filter(function(id){ return !!yearLinkOf(id); });
+  let keep=[];
+  if(linked.length && !confirm(linked.length+' of the removed requirements '+(linked.length===1?'is':'are')+' already in '+FYL()
+      +' as a requirement brought in from another year and linked to it:\n\n'
+      +linked.map(function(id){ const it=(BASE_ITEMS||[]).filter(x=>x.id===id)[0]; return '  • '+(it? dispTitle(it) : id)+' — as '+yearLinkOf(id); }).join('\n')
+      +'\n\nOK — restore every one, these too (their value would count twice).\nCancel — restore the others and leave these removed.')) keep=linked;
+  S.removed=keep.slice(); applyState(S); save(); render(); }
 
 // ==============================================================================================================
 // §41  EXCEL WORKBOOKS
