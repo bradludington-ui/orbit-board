@@ -5228,6 +5228,195 @@ await (async () => {
 })();
 // ==== end v2.05 item 116 ====
 
+// ==== v2.06 items 119, 120 ====
+// ═══ v2.06 (items 119, 120; Brad, 23 Oct 2026) — PPBE BUDGET POSITIONS: THE TOTAL CORNERS, AND FIGURES ENTERED IN $K ═══════════
+// 119: both TOTAL rows closed on a bare <td></td>, so the Total column stopped one row short. Each corner is read off the
+// rendered box and held to BOTH its row and the column above it, split on and off. 120: USAF's exhibits are in $K and were
+// typed as printed, so BES28 USAF FY27 read $2.28M for $2.28B. The fixture logs USAF in $K and STOVL in dollars, so a rule
+// applied to every service, or to none, cannot pass; the conversion is undone and the setting travels through a reopen.
+await (async () => {
+  const name = 'v2.06 — PPBE Budget Positions: the TOTAL corners, and figures entered in $K (items 119, 120)';
+  try {
+  const J = JSON.stringify;
+  const { ev, errors } = boot({});
+  seed(ev, { services: ['USAF', 'ANG', 'STOVL'], items: [it('A', 'PSM', [100, 50, 30])], disc: [150, 60, 40], mand: [20, 10, 5], order: ['A'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); save(); 'ok'`);
+  ev(`window.confirm=function(){ return true; }; window.alert=function(){}; MS.ppbe=MS.ppbe||{}; ppCyc='BES'; ppYr=2028; ppOpen=true; ppSvcIdx=0;
+      ppLineAdd('USAF'); ppLineAdd('USAF');
+      var L=ppPos().lines.USAF; window.__k1=L[0].k; window.__k2=L[1].k;
+      ppSetV('USAF',__k1,2027,'d','15,828'); ppSetV('USAF',__k1,2028,'d','2,000'); ppSetV('USAF',__k2,2027,'d','500');
+      ppSetV('USAF',__k2,2026,'d','7,000'); ppSetV('STOVL','si_OT',2026,'d','41,000,000');   // the window's FIRST year carries money
+      ppSetV('STOVL','si_LA',2027,'d','1,250,130,000'); ppSetV('STOVL','si_EN',2028,'d','303,460,000'); render(); 'ok'`);
+  // ---- read a table's cells off the rendered box
+  const read = () => JSON.parse(ev(`(function(){ var t=document.querySelectorAll('#ppBody table.fctab');
+      function rows(tb){ return [].slice.call(tb.querySelectorAll('tr')).map(function(r){ return [].slice.call(r.children).map(function(c){ return (c.firstChild&&c.firstChild.nodeType===3? c.firstChild.textContent : c.textContent).trim(); }); }); }
+      return JSON.stringify({svc:rows(t[0]), roll:rows(t[1])}); })()`));
+  const m = s => (s === '—' || s === '') ? 0 : Math.round(parseFloat(String(s).replace(/[$,M]/g, '')) * 100);   // $M to the cent shown
+  // each printed figure is rounded to the cent of the $M shown, so n figures may sit n cents off the corner they add to
+  const near = (got, cells) => { const want = cells.reduce((t, x) => t + m(x), 0); return Math.abs(got - want) <= cells.length ? got : want; };
+  const corner = (tab, label) => { const hdr = tab[0], r = tab.find(x => x[0] === label); const ti = hdr.indexOf('Total');
+    return { r, ti, cell: r ? r[ti] : undefined, yrs: r ? r.slice(1, ti) : [], body: tab.slice(1).filter(x => x !== r && x.length === hdr.length) }; };
+  const holds = (split) => {
+    const T = read();
+    const s = corner(T.svc, 'USAF TOTAL'), a = corner(T.roll, 'ALL SERVICES');
+    chk(name, 'item 119' + split, 'the USAF TOTAL row has a Total, and it is its row', J([s.cell !== undefined && s.cell !== '' && s.cell !== '—', m(s.cell)]), J([true, near(m(s.cell), s.yrs)]));
+    const sCol = s.body.filter(x => x[0] !== '').map(x => x[s.ti]);
+    chk(name, 'item 119' + split, 'the USAF TOTAL corner is the Total column above it', m(s.cell), near(m(s.cell), sCol));
+    chk(name, 'item 119' + split, 'the ALL SERVICES row has a Total, and it is its row', J([a.cell !== undefined && a.cell !== '' && a.cell !== '—', m(a.cell)]), J([true, near(m(a.cell), a.yrs)]));
+    chk(name, 'item 119' + split, 'the ALL SERVICES corner is the service Totals above it', m(a.cell), near(m(a.cell), a.body.map(x => x[a.ti])));
+    return T;
+  };
+  holds('');
+  const lbl118 = (when) => chk(name, 'item 118', 'each RCN / EEIC label cell is marked not to wrap, and the label column carries a width' + when,
+    J([ev(`String(document.querySelectorAll('#ppBody table.fctab')[0].querySelectorAll('td.pplbl').length)`), /(^|;)\s*width:\s*\d+px/.test(ev(`document.querySelector('#ppBody table.fctab th').getAttribute('style')`))]), J(['2', true]));
+  lbl118(' (one figure per line)');
+  // ---- 120: USAF to $K. Its three figures were typed in thousands; the conversion multiplies them, and only them
+  ev(`ppUnitSet('USAF','k'); 'ok'`);
+  const val = () => JSON.parse(ev(`JSON.stringify(ppPos().val)`));
+  let V = val();
+  chk(name, 'item 120', 'turning USAF to $K, told yes, multiplies its figures by 1,000', J([V.USAF[ev('__k1')][2027].d, V.USAF[ev('__k1')][2028].d, V.USAF[ev('__k2')][2027].d]), J([15828000, 2000000, 500000]));
+  chk(name, 'item 120', 'and STOVL, entered in dollars, is untouched', J([V.STOVL.si_LA[2027].d, V.STOVL.si_EN[2028].d]), J([1250130000, 303460000]));
+  chk(name, 'item 120', 'USAF FY27 now totals $16.33M in dollars', ev(`String(ppSvcFy(ppPos(),'USAF',2027).t)`), '16328000');
+  // a bare number is thousands; one with its own unit is read as written; a fraction of a thousand is not rounded first
+  ev(`ppSetV('USAF',__k2,2027,'d','2,280,000'); ppSetV('USAF',__k2,2028,'d','15.8M'); ppSetV('USAF',__k1,2029,'d','15,828.5'); 'ok'`);
+  V = val();
+  chk(name, 'item 120', 'under $K, 2,280,000 is $2,280,000,000; 15.8M is $15,800,000; 15,828.5 is $15,828,500',
+    J([V.USAF[ev('__k2')][2027].d, V.USAF[ev('__k2')][2028].d, V.USAF[ev('__k1')][2029].d]), J([2280000000, 15800000, 15828500]));
+  ev(`ppSetV('STOVL','si_LA',2029,'d','15,828'); 'ok'`);
+  chk(name, 'item 120', 'STOVL, still in dollars, reads 15,828 as $15,828', val().STOVL.si_LA[2029].d, 15828);
+  ev(`ppSvcIdx=0; render(); 'ok'`);
+  const box = JSON.parse(ev(`JSON.stringify({v:[].slice.call(document.querySelectorAll('#ppBody table.fctab')[0].querySelectorAll('input[onchange^="ppSetV"]')).map(function(i){ return i.value; }).filter(Boolean),
+      h:document.querySelector('#ppBody table.fctab th').textContent, u:[].slice.call(document.querySelectorAll('#ppBody .ppunit button[aria-pressed="true"]')).map(function(b){ return b.textContent; }).join()==='$K'})`));
+  chk(name, 'item 120', 'the USAF boxes show $K, the heading says so, and $K is the pressed choice',
+    J([box.v.includes('2,280,000') && box.v.includes('15,828') && box.v.includes('15,828.5'), /figures in \$K/.test(box.h), box.u]), J([true, true, true]));
+  const T2 = holds(' ($K)');
+  const usafRoll = T2.roll.find(x => x[0] === 'USAF');
+  chk(name, 'item 120', 'the roll-up prints USAF FY27 as $2,295.83M', usafRoll[T2.roll[0].indexOf('FY27')], '$2,295.83M');
+  // ---- the setting and the conversion travel with the board
+  const html = ev(`buildSavedHtml()`);
+  const R = boot({ html });
+  chk(name, 'item 120', 'after a reopen USAF is still entered in $K, with its conversion on record, and the dollars are the same',
+    J([R.ev(`String(ppUnitK(MS.ppbe['BES|2028'],'USAF'))`), R.ev(`String(!!MS.ppbe['BES|2028'].kx.USAF)`), R.ev(`String(ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).t)`)]),
+    J(['true', 'true', '2295828000']));
+  // ---- undo (review fix): only the cells the conversion multiplied are divided; the three typed since stay as typed
+  ev(`ppUnitUndo('USAF'); 'ok'`);
+  V = val();
+  chk(name, 'item 120', 'undo divides the figures the conversion multiplied, leaves the ones typed since, and returns USAF to dollars',
+    J([V.USAF[ev('__k1')][2027].d, V.USAF[ev('__k1')][2028].d, V.USAF[ev('__k2')][2027].d, V.USAF[ev('__k2')][2028].d, V.USAF[ev('__k1')][2029].d,
+       ev(`String(ppUnitK(ppPos(),'USAF'))`), ev(`String(!!(ppPos().kx||{}).USAF)`)]),
+    J([15828, 2000, 2280000000, 15800000, 15828500, 'false', 'false']));
+  // a record that names a figure which would not come back to a whole dollar (only a hand-made file can carry one) is refused
+  ev(`(function(){ const P=ppPos(); P.unit=P.unit||{}; P.unit.USAF='k'; P.kx=P.kx||{}; P.kx.USAF={t:1, cells:[[__k1,'2029','d',15828500]]}; })(); ppUnitUndo('USAF'); 'ok'`);
+  chk(name, 'item 120', 'the undo is refused while $15,828,500 cannot come back to a whole dollar', J([val().USAF[ev('__k1')][2029].d, ev(`String(ppUnitK(ppPos(),'USAF'))`)]), J([15828500, 'true']));
+  ev(`(function(){ const P=ppPos(); delete P.kx.USAF; delete P.unit.USAF; })(); 'ok'`);
+  // ---- told no: the setting turns on and no stored figure moves; turning it off never moves one either
+  ev(`window.confirm=function(){ return false; }; ppUnitSet('USAF','k'); 'ok'`);
+  chk(name, 'item 120', 'told no, $K is on and nothing stored moved', J([ev(`String(ppUnitK(ppPos(),'USAF'))`), val().USAF[ev('__k1')][2027].d]), J(['true', 15828]));
+  ev(`ppUnitSet('USAF',''); 'ok'`);
+  chk(name, 'item 120', 'turning $K off moves nothing', J([ev(`String(ppUnitK(ppPos(),'USAF'))`), val().USAF[ev('__k1')][2027].d]), J(['false', 15828]));
+  // ---- split on: the corners carry the D · M line and still close
+  ev(`window.confirm=function(){ return true; }; ppSplitSet(true); ppSetV('USAF',__k1,2027,'m','1,000'); render(); 'ok'`);
+  holds(' (split)');
+  const dm = ev(`(document.querySelectorAll('#ppBody table.fctab')[0].querySelector('td.pptot')||{}).textContent||''`);
+  chk(name, 'item 119 (split)', 'the USAF TOTAL corner states its D and M', /^\$[\d.,]+M\$[\d.,]+M D · \$[\d.,]+M M$/.test(dm), true);
+  // ---- 118: an RCN / EEIC line's label cell never wraps, and its column has a width
+  lbl118(' (split)');
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 items 119, 120 ====
+
+// ==== v2.06 review fixes (PPBE) ====
+// ═══ v2.06 — THE PRE-MERGE REVIEW'S PPBE FIXES (25 Oct 2026) ═══════════════════════════════════════════════════════════════════
+// A service renamed kept its "$K" setting under the old name, so the next figure typed as printed was stored at a thousandth;
+// the undo divided figures typed since and stayed offered with $K off; the rounding message named a figure 1,000 times too
+// small; and ALL SERVICES' corner counted a service the board no longer lists with no row above it. Each fails on be4de83.
+await (async () => {
+  const name = 'v2.06 — the pre-merge review’s PPBE fixes: a rename keeps $K, the undo puts back only what it multiplied, the message, a service no longer listed';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG', 'STOVL'], ['R']), ev = B.ev;
+  ev(`MS.ppbe=MS.ppbe||{}; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; ppOpen=true;
+      ppLineAdd('USAF'); var L=ppPos().lines.USAF; window.__k=L[0].k;
+      ppSetV('USAF',__k,2027,'d','15,828'); ppSetV('USAF',__k,2028,'d','2,000'); ppUnitSet('USAF','k'); 'ok'`);
+  const val = () => JSON.parse(ev(`JSON.stringify(ppPos().val)`));
+  chk(name, 'fixture', 'USAF in $K, its two figures multiplied', J([val().USAF[ev('__k')][2027].d, val().USAF[ev('__k')][2028].d]), J([15828000, 2000000]));
+  // ---- 5: the message names what was read
+  ev(`ppSetV('USAF',__k,2029,'d','1,234.5675'); 'ok'`);
+  chk(name, '5 · the message', 'a fractional thousand is stored to the dollar, and the message names that dollar figure',
+    J([val().USAF[ev('__k')][2029].d, /\$1,234,568/.test(ev(`document.getElementById('shareStat').textContent`))]), J([1234568, true]));
+  // ---- 4: a figure typed since is not divided
+  ev(`ppSetV('USAF',__k,2029,'d','15.8M'); ppSetV('USAF',__k,2030,'d','3,000'); window.__cf=[]; ppUnitUndo('USAF'); 'ok'`);
+  const u = val().USAF[ev('__k')];
+  chk(name, '4 · the undo', 'undo divides the two figures it multiplied and leaves the two typed since, and says so',
+    J([u[2027].d, u[2028].d, u[2029].d, u[2030].d, /2 other figures on USAF, typed or changed since, are left as they are/.test(ev(`window.__cf.join('|')`))]), J([15828, 2000, 15800000, 3000000, true]));
+  ev(`ppUnitSet('USAF','k'); 'ok'`);
+  chk(name, '4 · the undo', 'turned on again with figures in place, it asks and multiplies them', JSON.parse(ev(`JSON.stringify(ppPos().val.USAF[__k][2027].d)`)), 15828000);
+  ev(`ppUnitSet('USAF',''); 'ok'`);
+  chk(name, '4 · the undo', 'turned off, the ×1,000 record goes and no undo is offered',
+    J([ev(`String(!!(ppPos().kx||{}).USAF)`), ev(`String([].slice.call(document.querySelectorAll('#ppBody .ppunit button')).some(function(b){ return /undo/.test(b.textContent); }))`)]), J(['false', 'false']));
+  // ---- 3: a renamed service keeps its $K setting and its record
+  ev(`ppUnitSet('USAF','k'); svcSaveList(['USAF-A','ANG','STOVL'], [0,1,2]); 'ok'`);
+  chk(name, '3 · a rename', 'USAF renamed USAF-A keeps $K and its ×1,000 record',
+    J([ev(`String(ppUnitK(ppPos(),'USAF-A'))`), ev(`String(!!(ppPos().kx||{})['USAF-A'])`), ev(`String(!!(ppPos().unit||{}).USAF)`)]), J(['true', 'true', 'false']));
+  ev(`ppSetV('USAF-A',__k,2031,'d','7,000'); 'ok'`);
+  chk(name, '3 · a rename', 'and a figure typed as printed after the rename is read in $K', JSON.parse(ev(`JSON.stringify(ppPos().val['USAF-A'][__k][2031].d)`)), 7000000);
+  // ---- 6: a service the position holds that the board no longer lists
+  ev(`ppPos().val.OLDSVC={x:{2027:{d:5000000,m:0}}}; render(); 'ok'`);
+  const roll = JSON.parse(ev(`(function(){ var t=document.querySelectorAll('#ppBody table.fctab')[1]; return JSON.stringify([].slice.call(t.querySelectorAll('tr')).map(function(r){ return [].slice.call(r.children).map(function(c){ return (c.firstChild&&c.firstChild.nodeType===3? c.firstChild.textContent : c.textContent).trim(); }); })); })()`));
+  const ti = roll[0].indexOf('Total'), m = s => (s === '—' || !s) ? 0 : Math.round(parseFloat(String(s).replace(/[$,M]/g, '')) * 100);
+  const body = roll.slice(1, -1), all = roll[roll.length - 1];
+  chk(name, '6 · not on this board', 'the service the board no longer lists is a row, and ALL SERVICES’ corner is the column above it',
+    J([body.some(r => /^OLDSVC/.test(r[0])), Math.abs(m(all[ti]) - body.reduce((t, r) => t + m(r[ti]), 0)) <= body.length]), J([true, true]));
+  chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 review fixes (PPBE) ====
+
+// ==== v2.06 second review (PPBE) ====
+// ═══ v2.06 — THE SECOND REVIEW: A RENAME ONTO A NAME A PPBE POSITION STILL HOLDS (25 Oct 2026) ═════════════════════════════════
+// A position keeps a service that left the list, by name. Removing ANG and renaming USAF to ANG -- in one save, or ANG removed
+// first -- laid USAF's figures over ANG's, and USAF took ANG's $K setting: a figure typed for it was then stored 1,000 times too
+// large. Such a rename is refused, naming the position. Fails on 1e3e313.
+await (async () => {
+  const name = 'v2.06 — the second review: a service is not renamed onto a name a PPBE position still holds';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG', 'STOVL'], ['R']), ev = B.ev;
+  ev(`window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; window.confirm=function(){ return true; };
+      MS.ppbe=MS.ppbe||{}; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; ppOpen=true;
+      ppLineAdd('ANG'); window.__a=ppPos().lines.ANG[0].k; ppSetV('ANG',__a,2027,'d','2,000'); ppUnitSet('ANG','k');
+      ppLineAdd('USAF'); window.__u=ppPos().lines.USAF[0].k; ppSetV('USAF',__u,2027,'d','5,000,000'); 'ok'`);
+  const pos = () => JSON.parse(ev(`JSON.stringify({unit:ppPos().unit||{}, kx:Object.keys(ppPos().kx||{}), val:ppPos().val})`));
+  chk(name, 'fixture', 'ANG in $K holds $2,000,000; USAF in dollars holds $5,000,000',
+    J([pos().val.ANG[ev('__a')][2027].d, pos().val.USAF[ev('__u')][2027].d, pos().unit.ANG]), J([2000000, 5000000, 'k']));
+  // in one save: ANG removed, USAF renamed ANG
+  const one = ev(`String(svcSaveList(['ANG','STOVL'], [0,2]))`);
+  let P = pos();
+  chk(name, 'one save', 'removing ANG and renaming USAF onto its name is refused, naming the position, and nothing moves',
+    J([one, ev('SVC.join()'), /BES28/.test(ev(`window.__al.join('|')`)), P.val.ANG[ev('__a')][2027].d, P.val.USAF[ev('__u')][2027].d, P.unit.ANG, P.unit.USAF || '']),
+    J(['false', 'USAF,ANG,STOVL', true, 2000000, 5000000, 'k', '']));
+  // in two: ANG removed (the position keeps it), then USAF renamed ANG
+  ev(`window.__al=[]; svcSaveList(['USAF','STOVL'], [0,2]); 'ok'`);
+  chk(name, 'two saves', 'ANG removed, the position still holds its $2,000,000 and its $K setting',
+    J([ev('SVC.join()'), pos().val.ANG[ev('__a')][2027].d, pos().unit.ANG]), J(['USAF,STOVL', 2000000, 'k']));
+  const two = ev(`String(svcSaveList(['ANG','STOVL'], [0,1]))`);
+  P = pos();
+  chk(name, 'two saves', 'then renaming USAF to ANG is refused, and USAF keeps its dollars and its own entry',
+    J([two, ev('SVC.join()'), P.val.ANG[ev('__a')][2027].d, P.val.USAF[ev('__u')][2027].d, P.unit.USAF || '']), J(['false', 'USAF,STOVL', 2000000, 5000000, '']));
+  // CONTROL: a rename onto a name nothing holds goes through
+  chk(name, 'control', 'renaming USAF onto a fresh name is taken', J([ev(`String(svcSaveList(['USAF-A','STOVL'], [0,1]))`), ev('SVC.join()')]), J(['true', 'USAF-A,STOVL']));
+  chk(name, 'errors', 'no page error', B.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 second review (PPBE) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

@@ -4228,7 +4228,7 @@ build had: a cell the writer emits (`{v:'', s:2}`) padded a second time -- two c
 damaged file. **A new export that writes a workbook passes `xlsxHouse`**, or is added to that check's list of the two that do
 not, with the reason.
 
-**recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
+**recon and import read old builds from git history** (`git show <sha>:…`): in a fresh shallow clone they fail with *invalid object name*; run `git fetch --unshallow` first (v2.06). **recon and import need a bigger heap on this container.** The default here is about 2 GB, and both die out of heap at it
 (`exit 134`) on the commit before items 112-113 as well as after. Run them with `NODE_OPTIONS="--max-old-space-size=8192"`.
 
 **A `let` that `syncBtns` reads is declared beside `let MS`** (the AI list's `aiIsOpen`/`AIREV`): the first build of 109
@@ -4295,6 +4295,81 @@ suite that quotes it: grep the suites for the old text before the run, not after
 
 **A test written as a JS string inside `ev(\`…\`)` is a template literal**: `\s` and `\p` there are `s` and `p` unless the
 backslash is doubled. The first cut of the item 116 test "failed" on text with every s removed.
+
+### v2.06 (items 117–120): a requirement from another year, linked; the PPBE positions box reads straight, closes its totals and takes $K
+
+Brad, 23 Oct 2026, from photos of the real board; built on his "Go" of 24 Oct. `NEXT-VERSION.md` › Shipped › v2.06 has every
+decision.
+
+**Add from another year, linked (item 117).** The Add panel's second way in, *Or from another year* (`naFromDraw`): a fiscal
+year (every year holding requirements but the one on screen), then that year's requirements for the office chosen at the top
+(`naFromOffice`: the PMO filter, else a copy's own office, else the panel's PMO box). Each one added is a NEW requirement with
+its own id (`reqFromYear`; `NEW-n`, `NEW-<office>-n` in a copy) carrying `it.prior = {fy, id}` -- Brad: *"link the requirements
+together for trend data but keep them as separate actions"*. That is NOT Copy to year or Roll forward, which keep a board
+requirement's id. What starts from that year's record is `NA_FROM_CARRY` plus the CCaR, the value by service and the award dates
+moved by the year difference; the allocation, the funding split, ★ MC, the CLIN breakdown, the cost-estimate tie and the UPL
+mark are not carried. **An added requirement's id is its year's own** (`newReqSeq` numbers each year by itself, as `yearCopy`
+does), so FY27's NEW-1 and FY28's NEW-1 can be two requirements: `naFromHere` matches by id only an id from the board's data;
+an added one is "already here" when linked or by its event and title. The link is read by `priorLink`/`priorTxt`: the RECORD
+panel's *Continues FY27 A — title* (`priorHtml`, *no longer on the board* when that year lost it), the Priority Drill's last
+column *Continues*, the review row (*from FY27 …*). It travels: Copy to year, a save, a PMO copy's proposal (`pmoProposalOf`),
+`pmoTake` (`priorOk`), `pmoAcceptProposal`. The door refuses any other shape (`inPriorWhy`, on a plan's added requirement and
+a submittal's proposal). A trend report that follows the chain is not built; the links are in place for one.
+
+**PPBE Budget Positions (items 118–120).** Each RCN / EEIC line is one row: `.fctab` is `table-layout:fixed`, where `min-width`
+is ignored, so the label column now has a `width` (`PP_LBL_W`), its cell never wraps (`td.pplbl`) and the table is as wide as
+its columns (the wrapper scrolls). Both TOTAL rows have their Total (`ppTotCell`, from the cells the row prints; a bare
+`<td></td>` before). A service can be **entered in $K** (`P.unit[svc]='k'`; Brad's USAF exhibits are in thousands, and BES28
+USAF FY27 read $2.28M for $2.28B): **the model stays in whole dollars** -- a bare number typed under $K is read through amtRead's
+own K (`ppAmtIn`, never rounded first), a figure with its own unit is read as written, the boxes show thousands (`ppAmtShow`).
+Turning $K on for a service holding figures asks whether they were typed in $K; yes multiplies them and records it on the position
+(`P.kx`), because `MS.ppbe` is outside the change journal; *undo the ×1,000* (`ppUnitUndo`) divides back and refuses while a
+figure would not come back to a whole dollar. Turning $K off never moves a figure.
+
+**Checks.** audit-board "v2.06 — PPBE Budget Positions: the TOTAL corners, and figures entered in $K (items 119, 120)" reads both
+corners off the rendered box and holds each to its row and its column (n figures may sit n cents off, the $M rounding); audit-import
+"v2.06 — add a requirement from another year, linked…" covers the picker, the office, "already here" both ways, what is and is not
+carried, the drill, a reopen, the door, Copy to year, and a PMO copy through submit and accept. `npm run layout` L opens the
+box (`toggleP2` -- setting `ppOpen` alone leaves it hidden, and the first cut measured nothing but zeros) and holds every line
+to one row at four widths; it fails on v2.05. Mutations: 30 new (`v206-117-*` 18, `v206-118-*` 2, `v206-119-*` 4, `v206-120-*`
+6), each run against its block on its own mutant and caught. The two 118 mutants pass the browser check one at a time (the
+width alone, or the no-wrap alone, holds the row at these fonts) and are caught by the jsdom check; v2.05, with neither, fails it.
+
+**The pre-merge review (25 Oct 2026; Brad: "Fixes plus the second review, then merge").** Five independent reviewers, each
+serious finding re-run by a second trying to refute it, confirmed three defects and reported ten more; all are fixed:
+- **A linked requirement is the same work.** `yearLinkOf(id, y)` names the requirement in a year that carries `id` by its link
+  (a board-data id whatever year the link names; an added one only its own year), and `yearHas` reads it -- so Roll forward
+  skips it, Copy and Move to year ask, Restore asks and Restore all names them (Cancel keeps them removed). A proposal that
+  continues something the year already holds says so on the review row (`pmoPriorHere`); accepting it is still the reviewer's
+  call (Brad: duplicates "will be caught and discussed in reviews").
+- **A proposal carries its renamed plan event** (`titles`, through `pmoTake` and `pmoAcceptProposal`).
+- **$K survives a service rename** (`svcRenameKeys` re-keys `P.unit` and `P.kx`); **the undo puts back only the cells the
+  conversion multiplied** (`P.kx[svc].cells`, each only while it still holds what it became) and is offered only while $K is on;
+  turning $K off ends it. **The message names what was read** (`ppAmtText` hands amtNo the K-suffixed text).
+- **ALL SERVICES adds the column above it**: a service the position holds and the board no longer lists is a row
+  (*not on this board*).
+- **The picker:** "already here" by event and title is the same office's only; Add refuses if the office changed since the
+  list was drawn (`naFromFor`), or the year has gone.
+- **`reqNewId(g, n)`** mints a copy's `NEW-<office>-n` without a character an id may not carry (an office named *Brad's*
+  minted an id the import check refused, the whole submittal with it; addReq had the same scheme).
+- **A link to a year not held** says *FY25 is not on this board* (or *not in this locked cycle*), never *no longer on the board*.
+  **Reset year keeps the numbers handed out** (`newSeq`), so a link never lands on a new requirement. **The record-name pen**
+  replaces a carried record name.
+- **A PMO copy submits only the year it was published for** (`pmoSubmit`): switched to another year it built a package of that
+  year's work under the published one. Older than v2.06, reached anew by *Go to FY..*.
+Checks: audit-import "v2.06 — the pre-merge review’s fixes…" and audit-board "v2.06 — the pre-merge review’s PPBE fixes…", both
+failing on the candidate (be4de83); 20 `v206-fix-*` mutations, each caught by its block; six older ones retargeted to the lines
+the fixes rewrote (`v197w1-guard-ppSetV`, `v197w4-rename-ppbe-left`, three `v206-120-*`, `v206-117-proposal-drops-link`).
+**A second review of those fixes** (each finding re-run by an agent trying to refute it) confirmed four more, all fixed:
+`yearLinkOf` now sees an added original in its own year (a requirement brought into FY28 and copied back to FY27 asked
+nothing and put the work there twice); `pmoPriorHere` reads a board-data id whatever year the link names, as `yearLinkOf`
+does; **Copy to year links a copy of an added requirement to its source** (`prior`, copy only, not move) and `naFromHere`
+matches by the source's own link, so a copy given to another office is still the same work to the picker; and
+`svcListBlock` refuses a rename onto a name a PPBE position still holds for a service no longer on the list (it laid one
+service's figures over the other's and handed over the $K setting). The undo's refusal now guards only a hand-made record:
+a recorded cell is always a multiple of 1,000. Checks: audit-import "v2.06 — the second review: …", audit-board "v2.06 — the
+second review: a service is not renamed onto a name a PPBE position still holds"; 5 `v206-fix2-*` mutations, each caught;
+`v206-117-yearcopy-drops-link` retargeted.
 
 ## Colour: one token, one job
 

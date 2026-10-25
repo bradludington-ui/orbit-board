@@ -11696,6 +11696,297 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 (U30) ====
 
+// ==== v2.06 item 117 ====
+// ═══ v2.06 (item 117; Brad, 23 Oct 2026) — ADD A REQUIREMENT FROM ANOTHER YEAR, LINKED TO THE ONE IT CAME FROM ══════════════════
+// "When they click add requirement I wanted to be able to select the fiscal year based off of that pmo and then they see all
+// the requirements from that year", and: "link the requirements together for trend data but keep them as separate actions."
+// The fixture makes every rule matter: FY27 holds two PSM requirements from the board's data (A, C), an added PSM one (NEW-1)
+// and an AV one (B); C is rolled forward into FY28 by Copy to year, so it is already there under its own id; A carries a
+// trimmed allocation, a funding split and the star, none of which may come across; NEW-1 carries every mandatory field, so a
+// copy's proposal of it passes the gate the moment it is added. Board, then a PMO copy, then the board accepting it.
+await (async () => {
+  const name = 'v2.06 — add a requirement from another year, linked to the one it came from (item 117)';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: MINE, items: [it('A', 'PSM', [900, 200, 100]), it('C', 'PSM', [300, 80, 40]), it('B', 'AV', [50, 0, 0])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'C', 'B'] };
+  const { ev, errors } = boot(); seed(ev, sc); asBooted(ev, sc);
+  ev(`window.confirm=function(){ return false; }; window.alert=function(){};
+      S.desc.A='Annual depot support.'; S.band.A='safety'; S.mc.A=true; S.pid={A:'PID-A'}; S.ccar.A='JSF1001';
+      setAwdDate('A', FYMON[5][0]); window.__awA=S.awards.A.d; S.alloc.A={m:'t', v:800}; S.titles.A='Depot support';
+      syncAddPanel(); syncNaGrp(); toggleAdd(); document.getElementById('naGrp').value='PSM'; document.getElementById('naTitle').value='Sustaining engineering';
+      document.getElementById('naEvent').value='SE annual'; document.getElementById('naSvc0').value='400'; document.getElementById('naSvc1').value='0'; document.getElementById('naSvc2').value='0';
+      addReq(); toggleAdd(); var n=S.custom[S.custom.length-1].id; window.__n1=n;
+      setDesc(n,'Engineering the fleet cannot fly without.'); setCons(n,'Grounding risk.'); setObCat(n, OB_CATS[0]); S.ptype[n]='OGC';
+      setDest(n,'to','pax'); setDest(n,'end','dla'); setMipr(n,'direct'); wbsStore('req',n,null,[{w:'1.2.3', v:[]}]); setAwdDate(n, FYMON[3][0]);
+      save(); yearCopy('C', 2028, 'c'); save(); switchYear(2028); 'ok'`);
+  const n1 = ev('__n1');
+  // FY28 gets an added requirement of its own, typed by hand: it is FY28's NEW-1, a different requirement from FY27's NEW-1
+  ev(`toggleAdd(); document.getElementById('naGrp').value='PSM'; document.getElementById('naTitle').value='Typed in FY28';
+      document.getElementById('naSvc0').value='5'; document.getElementById('naSvc1').value='0'; document.getElementById('naSvc2').value='0'; addReq(); toggleAdd(); 'ok'`);
+  chk(name, 'fixture', 'FY28 holds C (copied forward) and its own NEW-1; FY27 has its NEW-1', J([String(ev('MS.cur')), ev('S.order.join()'), n1]), J(['2028', 'C,NEW-1', 'NEW-1']));
+  // ---- the picker: the office at the top, the year chosen
+  ev(`setPmoFilter('PSM'); toggleAdd(); naFromPick(2027); 'ok'`);
+  const listed = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]')]; }))`));
+  chk(name, 'picker', 'FY27 lists PSM’s requirements only: A and FY27’s NEW-1 can be ticked (FY28’s NEW-1 is another requirement), C is already here', J(listed()), J([['A', true], ['C', false], ['NEW-1', true]]));
+  chk(name, 'picker', 'it says whose they are and how the office was chosen', /PSM’s requirements \(the office chosen at the top\)/.test(ev(`document.getElementById('naFromWrap').textContent`)), true);
+  ev(`setPmoFilter('AV'); 'ok'`);
+  chk(name, 'picker', 'the office filter changes the list: AV shows B', J(listed()), J([['B', true]]));
+  ev(`setPmoFilter('PSM'); 'ok'`);
+  // ---- add A and NEW-1 through the rendered checkboxes
+  ev(`['A','NEW-1'].forEach(function(id){ var b=document.querySelector('#naFromWrap tr[data-id="'+id+'"] input'); b.checked=true; b.dispatchEvent(new Event('change')); });
+      var btn=[].slice.call(document.querySelectorAll('#naFromWrap button')).filter(function(b){ return /^Add 2 to FY28$/.test(b.textContent); })[0]; if(btn) btn.click(); 'ok'`);
+  const got = JSON.parse(ev(`JSON.stringify(S.custom.map(function(c){ return {id:c.id, prior:c.prior||null, ask:c.ask, grp:grpOf(c), title:dispTitle(c),
+      desc:S.desc[c.id]||'', band:(S.band||{})[c.id]||'', pid:(S.pid||{})[c.id]||'', ccar:ccarOf(c), award:((S.awards||{})[c.id]||{}).d||'',
+      mc:!!S.mc[c.id], alloc:(S.alloc||{})[c.id]||null}; }))`));
+  // an added requirement's number is its year's own (newReqSeq): FY28 starts at NEW-1 though FY27 has a NEW-1 -- a different requirement
+  chk(name, 'add', 'two new requirements, each its own id in FY28', J(got.slice(1).map(g => g.id)), J(['NEW-2', 'NEW-3']));
+  chk(name, 'add', 'each linked to the one it came from', J(got.map(g => g.prior)), J([null, { fy: 2027, id: 'A' }, { fy: 2027, id: 'NEW-1' }]));
+  const a = got[1];
+  chk(name, 'add', 'A’s value, title, description, band, PID and CCaR come across', J([a.ask, a.title, a.desc, a.band, a.pid, a.ccar, a.grp]),
+    J([[900, 200, 100], 'Depot support', 'Annual depot support.', 'safety', 'PID-A', 'JSF1001', 'PSM']));
+  const awA = ev('__awA');
+  chk(name, 'add', 'its award date moves forward one year', a.award, (Number(awA.slice(0, 4)) + 1) + awA.slice(4));
+  chk(name, 'add', 'the star and the trimmed allocation stay behind', J([a.mc, a.alloc]), J([false, null]));
+  chk(name, 'add', 'they land at the bottom of the order, after C', ev('S.order.join()'), 'C,NEW-1,NEW-2,NEW-3');
+  chk(name, 'add', 'FY27 is untouched', ev(`JSON.stringify(MS.years[2027].order)+'|'+MS.years[2027].custom.length+'|'+!!MS.years[2027].mc.A`), J(['A', 'C', 'B', n1]) + '|1|true');
+  chk(name, 'again', 'run again, A and NEW-1 are already here and cannot be ticked', J(listed()), J([['A', false], ['C', false], ['NEW-1', false]]));
+  ev(`naFromSel={A:1}; naFromAdd(); 'ok'`);
+  chk(name, 'again', 'and even ticked by hand, nothing is added twice', ev('S.custom.length'), '3');
+  // ---- the RECORD panel says what it continues, and the Priority Drill carries it
+  chk(name, 'record', 'the RECORD panel names the requirement it continues', ev(`curRow='NEW-2'; render(); (document.querySelector('#inspector .insp-prior')||{}).textContent||''`), 'Continues FY27 A — Depot support Go to FY27');
+  const drill = JSON.parse(ev(`(function(){ globalThis.__ob=buildXlsx; buildXlsx=function(sh){ globalThis.__s=sh; return new Uint8Array(0); };
+      exportCSV(); buildXlsx=globalThis.__ob; return JSON.stringify(globalThis.__s); })()`));
+  const tab = drill.find(sh => (sh.rows || []).some(r => (r || []).some(c => c && (c.v === 'Continues' || c === 'Continues'))));
+  const cv2 = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+  const hdr = tab ? tab.rows.find(r => r.some(c => cv2(c) === 'Continues')).map(cv2) : [];
+  const ci = hdr.indexOf('Continues'), ri = hdr.indexOf('Requirement (CCaR Record Name)');
+  const byRef = Object.fromEntries((tab ? tab.rows : []).filter(r => r && r.length === hdr.length && cv2(r[ci]) !== 'Continues').map(r => [String(cv2(r[ri])), cv2(r[ci])]));
+  chk(name, 'drill', 'the Priority Drill’s last column is Continues, one width for it', J([ci === hdr.length - 1, Number(ev('drillCols().length')) === hdr.length]), J([true, true]));
+  chk(name, 'drill', 'the copy of A reads FY27 A, C reads nothing', J([Object.values(byRef).filter(v => /^FY27 A — Depot support$/.test(v)).length, byRef.C || '']), J([1, '']));
+  // ---- the link survives a save and reopen, and the door refuses a malformed one
+  const R = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'after a reopen the links are there', R.ev(`JSON.stringify(MS.years[2028].custom.map(function(c){ return c.prior||null; }))`), J([null, { fy: 2027, id: 'A' }, { fy: 2027, id: 'NEW-1' }]));
+  const bad = ev(`(function(){ var m=JSON.parse(JSON.stringify(MS)); m.years[2028].custom[1].prior={fy:'next', id:'A'}; return inboundCheck(JSON.stringify(m)); })()`);
+  chk(name, 'door', 'a file whose link is not a year and an id is refused', /link to an earlier requirement/.test(bad), true);
+  const bad2 = ev(`(function(){ var m=JSON.parse(JSON.stringify(MS)); m.years[2028].custom[1].prior={fy:2027, id:'__proto__'}; return inboundCheck(JSON.stringify(m)); })()`);
+  chk(name, 'door', 'and so is one naming a built-in as the requirement', bad2 !== '', true);
+  // ---- the earlier requirement removed: the link says so
+  ev(`MS.years[2027].order=MS.years[2027].order.filter(function(x){ return x!=='A'; }); curRow='NEW-2'; render(); 'ok'`);
+  chk(name, 'record', 'when FY27 no longer holds A, the panel says so', ev(`(document.querySelector('#inspector .insp-prior')||{}).textContent||''`), 'Continues FY27 A — no longer on the board');
+  ev(`MS.years[2027].order.unshift('A'); 'ok'`);
+  // ---- copy to another year carries the link
+  ev(`yearCopy('NEW-2', 2029, 'c'); 'ok'`);
+  chk(name, 'year copy', 'Copy to year carries the link', ev(`JSON.stringify(MS.years[2029].custom[0].prior)`), J({ fy: 2027, id: 'A' }));
+  // ---- a PMO copy: the office's own requirements, a proposal, the link in the package, kept when accepted
+  ev(`['NEW-2','NEW-3'].forEach(function(id){ S.custom=S.custom.filter(function(x){ return x.id!==id; }); reqPurge(S,id); DATA.items=DATA.items.filter(function(x){ return x.id!==id; });
+      S.order=S.order.filter(function(x){ return x!==id; }); Object.keys(S.pmoOrder).forEach(function(g){ S.pmoOrder[g]=S.pmoOrder[g].filter(function(x){ return x!==id; }); }); });
+      setPmoFilter('ALL'); save(); 'ok'`);
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline(), pv:PMO_PV};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  P.ev(`try{ localStorage.setItem('prio27who','R. Jones'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} window.alert=function(){}; window.confirm=function(){ return false; }; 'ok'`);
+  chk(name, 'copy', 'the copy opens on FY28 and holds FY27', P.ev(`MS.cur+'|'+!!MS.years[2027]+'|'+SANDBOX`), '2028|true|true');
+  P.ev(`toggleAdd(); naFromPick(2027); 'ok'`);
+  chk(name, 'copy', 'with no office chosen at the top, the copy’s own office (PSM) is used', /PSM’s requirements \(the office this copy submits for\)/.test(P.ev(`document.getElementById('naFromWrap').textContent`)), true);
+  P.ev(`naFromTick('NEW-1', true); naFromAdd(); 'ok'`);
+  const pid = P.ev(`S.custom[S.custom.length-1].id`);
+  chk(name, 'copy', 'it is a proposal, under the office’s id, linked to FY27 NEW-1', J([/^NEW-PSM-\d+$/.test(pid), P.ev(`JSON.stringify(S.custom[S.custom.length-1].prior)`)]), J([true, J({ fy: 2027, id: 'NEW-1' })]));
+  chk(name, 'copy', 'everything the gate asks for came across from FY27, so it can be sent', P.ev(`JSON.stringify(pmoProposalGate('${pid}'))`), '[]');
+  const sub = JSON.parse(P.ev(`(function(){ let cap=null; const _B=window.Blob;
+    window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+    try{ pmoSubmit(); }catch(e){} window.Blob=_B; return JSON.stringify(cap? JSON.parse(cap) : null); })()`));
+  const add0 = ((sub || {}).added || [])[0] || {};
+  chk(name, 'travel', 'the submittal carries it, with its link', J([add0.nid, add0.prior]), J([pid, { fy: 2027, id: 'NEW-1' }]));
+  ev(`window.alert=function(){}; window.confirm=function(){ return true; }; pmoTake(${J(sub)}, 'psm.json'); 'ok'`);
+  chk(name, 'review', 'the review row says where it came from', /from FY27 NEW-1/.test(ev(`subOpen=true; render(); (document.querySelector('.subprior')||{}).textContent||''`)), true);
+  ev(`subPickAll(true); pmoApply(); 'ok'`);
+  const acc = JSON.parse(ev(`JSON.stringify((function(){ var c=S.custom.filter(function(x){ return x.from && x.from.nid==='${pid}'; })[0]||{}; return {id:c.id, prior:c.prior||null}; })())`));
+  chk(name, 'accept', 'accepted on the board, it keeps the link', J(acc.prior), J({ fy: 2027, id: 'NEW-1' }));
+  const forged = J(Object.assign({}, sub, { added: [Object.assign({}, add0, { prior: { fy: 2027, id: 'a"b' } })] }));
+  chk(name, 'door', 'a submittal whose link is not a year and an id is refused at the door', /link to an earlier requirement/.test(ev(`inboundCheck(${J(forged)})`)), true);
+  chk(name, 'errors', 'no page error on the board or the copy', J([errors.length, P.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 item 117 ====
+
+// ==== v2.06 review fixes ====
+// ═══ v2.06 — THE PRE-MERGE REVIEW'S FIXES (25 Oct 2026) ═══════════════════════════════════════════════════════════════════════
+// An independent review of v2.06 before merge confirmed three defects and reported ten more; Brad: "Fixes plus the second
+// review, then merge". Each check below fails on the v2.06 candidate (be4de83). The fixture: FY27 holds PSM's A and C (board
+// data), AV's B, and two added PSM requirements -- NEW-1 'Sustaining engineering' and NEW-2 'Program office support' (no plan
+// event, so the default one). FY28 starts blank, and AV adds its own 'Program office support' there, so a test by title and
+// event alone cannot tell the two offices apart.
+await (async () => {
+  const name = 'v2.06 — the pre-merge review’s fixes: linked work is not added twice, the picker’s office, ids, Reset, the record name, and a copy submits its own year';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: MINE, items: [it('A', 'PSM', [900, 200, 100]), it('C', 'PSM', [300, 80, 40]), it('B', 'AV', [50, 0, 0])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'C', 'B'] };
+  const { ev, errors } = boot(); seed(ev, sc); asBooted(ev, sc);
+  const add = (g, t, v) => ev(`toggleAdd(); document.getElementById('naGrp').value=${J(g)}; document.getElementById('naTitle').value=${J(t)};
+      document.getElementById('naEvent').value=''; document.getElementById('naSvc0').value=${J(String(v))}; document.getElementById('naSvc1').value='0';
+      document.getElementById('naSvc2').value='0'; addReq(); toggleAdd(); S.custom[S.custom.length-1].id`);
+  ev(`window.__cf=[]; window.confirm=function(m){ window.__cf.push(String(m)); return false; }; window.alert=function(m){ window.__cf.push('ALERT '+String(m)); };
+      syncAddPanel(); syncNaGrp(); 'ok'`);
+  const n1 = add('PSM', 'Sustaining engineering', 400), n2 = add('PSM', 'Program office support', 10);
+  ev(`save(); switchYear(2028); 'ok'`);
+  const av = add('AV', 'Program office support', 20);
+  chk(name, 'fixture', 'FY27 holds NEW-1 and NEW-2 for PSM; FY28 holds AV’s own Program office support', J([n1, n2, av, String(ev('MS.cur'))]), J(['NEW-1', 'NEW-2', 'NEW-1', '2028']));
+  // ---- 7: another office's requirement of the same title and event does not grey yours out
+  ev(`setPmoFilter('PSM'); toggleAdd(); naFromPick(2027); 'ok'`);
+  const listed = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]')]; }))`));
+  chk(name, '7 · the office', 'PSM’s Program office support can be ticked though AV has one of the same name in FY28',
+    J(listed()), J([['A', true], ['C', true], ['NEW-1', true], ['NEW-2', true]]));
+  // ---- 8: the office changed since the list was drawn: nothing is added, and the list is redrawn
+  ev(`naFromTick('A', true); filter='ALL'; ptypeFilter=''; document.getElementById('naGrp').value='AV'; naFromAdd(); 'ok'`);
+  chk(name, '8 · the office', 'with the office changed under the list, Add adds nothing and says why',
+    J([Number(ev('S.custom.length')), /office changed/.test(ev(`document.getElementById('shareStat').textContent`))]), J([1, true]));
+  ev(`setPmoFilter('PSM'); naFromPick(2027); naFromTick('A', true); naFromTick('NEW-1', true); naFromAdd(); 'ok'`);
+  const brought = JSON.parse(ev(`JSON.stringify(S.custom.filter(function(c){ return c.prior; }).map(function(c){ return [c.id, c.prior]; }))`));
+  chk(name, 'fixture', 'A and FY27’s NEW-1 brought into FY28, linked', J(brought), J([['NEW-2', { fy: 2027, id: 'A' }], ['NEW-3', { fy: 2027, id: 'NEW-1' }]]));
+  // ---- 13: a year that has gone since the list was drawn
+  ev(`naFromFy=2031; naFromSel={A:1}; 'ok'`);
+  const thrown = ev(`(function(){ try{ naFromAdd(); return 'ok:'+naFromFy; }catch(e){ return 'threw '+e.message; } })()`);
+  chk(name, '13 · a year gone', 'Add with the year gone adds nothing and does not throw', thrown, 'ok:0');
+  // ---- 2: Restore, Restore all, Copy and Move to year, Roll forward see the linked requirement
+  ev(`window.__cf=[]; restoreReq('A'); 'ok'`);
+  chk(name, '2 · restore', 'Restore A asks, naming the linked requirement, and (told no) leaves it removed',
+    J([/already carries .* as NEW-2/.test(ev(`window.__cf.join('|')`)), ev(`String(S.removed.indexOf('A')>=0 && S.order.indexOf('A')<0)`)]), J([true, 'true']));
+  ev(`window.__cf=[]; restoreAll(); 'ok'`);
+  chk(name, '2 · restore all', 'Restore all names A and, told no, restores B and C and leaves A removed',
+    J([/A — as NEW-2/.test(ev(`window.__cf.join('|')`)), JSON.parse(ev(`JSON.stringify(S.removed)`)), ['B', 'C'].every(x => JSON.parse(ev('JSON.stringify(S.order)')).indexOf(x) >= 0)]),
+    J([true, ['A'], true]));
+  ev(`switchYear(2027); 'ok'`);
+  ev(`rollPick={A:1}; rollPick[${J(n1)}]=1; rollYrs={2028:1}; 'ok'`);
+  chk(name, '2 · roll forward', 'Roll forward from FY27 counts A and NEW-1 as already in FY28, and creates nothing',
+    ev(`JSON.stringify(rollPlan().per)`), J([{ y: 2028, create: 0, exists: 2, blank: false }]));
+  chk(name, '2 · roll forward', 'and yearCopy, asked to skip what is there, skips both',
+    J([JSON.parse(ev(`JSON.stringify(yearCopy('A', 2028, 'c', {skipExisting:true}))`)).status, JSON.parse(ev(`JSON.stringify(yearCopy(${J(n1)}, 2028, 'c', {skipExisting:true}))`)).status]), J(['exists', 'exists']));
+  ev(`window.__cf=[]; window.confirm=function(m){ window.__cf.push(String(m)); return !/already carries/.test(m); }; xferYear('A','c2028'); xferYear('A','m2028'); 'ok'`);
+  chk(name, '2 · copy and move', 'Copy and Move to year ask, naming NEW-2, and (told no) leave FY28 as it was',
+    J([(ev(`window.__cf.join('|')`).match(/already carries/g) || []).length, ev(`MS.years[2028].order.indexOf('A')`), ev(`String(MS.years[2027].order.indexOf('A')>=0)`)]), J([2, -1, 'true']));
+  ev(`window.confirm=function(m){ window.__cf.push(String(m)); return false; }; 'ok'`);
+  // ---- 10: a link to a year this board does not hold
+  ev(`S.custom.push({id:'NEW-90', grp:'PSM', sect:'new', custom:true, title:'x', event:'x', ccar:'', fy26:[0,0,0], ask:[1,0,0], alloc:null, prior:{fy:2025, id:'A'}}); 'ok'`);
+  chk(name, '10 · a year not held', 'a link to a year the board does not hold says so, not "no longer on the board"',
+    ev(`priorTxt(S.custom[S.custom.length-1])`), 'FY25 A — FY25 is not on this board');
+  ev(`S.custom.pop(); 'ok'`);
+  // ---- 12: the record-name pen on a brought-in requirement that carries a record name
+  ev(`switchYear(2028); S.recNames=S.recNames||{}; S.recNames['NEW-2']='carried from FY27'; uiPrompt=function(m,d,cb){ cb('Typed in FY28'); }; editRecName('NEW-2'); 'ok'`);
+  chk(name, '12 · record name', 'the pen renames a brought-in requirement that carried a record name', ev(`recName(itemById('NEW-2'))`), 'Typed in FY28');
+  // ---- 11: Reset year keeps the numbers handed out, so a link never lands on a new requirement
+  ev(`switchYear(2027); window.confirm=function(){ return true; }; resetYear(); window.confirm=function(m){ window.__cf.push(String(m)); return false; }; 'ok'`);
+  const after = add('PSM', 'Unrelated after the reset', 5);
+  ev(`switchYear(2028); 'ok'`);
+  chk(name, '11 · reset', 'after Reset year a new requirement takes a new number, and FY28’s link to FY27 NEW-1 says it is gone',
+    J([['NEW-1', 'NEW-2'].indexOf(after) < 0, ev(`priorTxt(itemById('NEW-3'))`)]), J([true, 'FY27 NEW-1 — no longer on the board']));
+  chk(name, 'errors', 'no page error on the board', errors.length, 0);
+
+  // ---- the PMO copy: 1, 14, 9, and the review's warning
+  const B = boot(); seed(B.ev, sc); asBooted(B.ev, sc);
+  B.ev(`window.confirm=function(){ return false; }; window.alert=function(){}; S.titles.A='Depot support (renamed)'; save(); switchYear(2028); 'ok'`);
+  const html = B.ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline(), pv:PMO_PV};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  P.ev(`try{ localStorage.setItem('prio27who','R. Jones'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; window.confirm=function(){ return false; }; 'ok'`);
+  P.ev(`toggleAdd(); naFromPick(2027); naFromTick('A', true); naFromAdd(); var n=S.custom[S.custom.length-1].id; window.__pid=n;
+      setDesc(n,'Annual depot support.'); setCons(n,'Line stops.'); setObCat(n, OB_CATS[0]); S.ptype[n]='OGC'; setDest(n,'to','pax'); setDest(n,'end','dla'); setMipr(n,'direct');
+      wbsStore('req',n,null,[{w:'1.2.3', v:[]}]); setAwdDate(n, FYMON[3][0]); 'ok'`);
+  const pid = P.ev('__pid');
+  chk(name, '1 · plan event', 'the copy shows the brought-in requirement under its renamed plan event', P.ev(`dispTitle(itemById(${J(pid)}))`), 'Depot support (renamed)');
+  const submit = () => JSON.parse(P.ev(`(function(){ let cap=null; const _B=window.Blob; window.__al=[];
+    window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+    try{ pmoSubmit(); }catch(e){ window.__al.push('THREW '+e.message); } window.Blob=_B; return JSON.stringify({pkg: cap? JSON.parse(cap) : null, al: window.__al}); })()`));
+  // ---- 14: a copy switched to another year does not submit
+  P.ev(`switchYear(2027); 'ok'`);
+  const s14 = submit();
+  chk(name, '14 · copy year', 'switched to FY27, the FY28 copy refuses to submit and says why', J([s14.pkg, /published for FY28 and is showing FY27/.test(s14.al.join('|'))]), J([null, true]));
+  P.ev(`switchYear(2028); 'ok'`);
+  const s1 = submit();
+  const a0 = ((s1.pkg || {}).added || [])[0] || {};
+  chk(name, '1 · plan event', 'back on FY28 it submits, and the proposal carries the renamed plan event', J([a0.nid, a0.titles]), J([pid, 'Depot support (renamed)']));
+  // ---- the board already holds A when the proposal arrives: the review row says so
+  B.ev(`window.confirm=function(){ return true; }; restoreReq('A'); 'ok'`);
+  B.ev(`window.alert=function(){}; pmoTake(${J(s1.pkg)}, 'psm.json'); subOpen=true; render(); 'ok'`);
+  chk(name, '2 · review', 'the review row names the renamed plan event and says FY28 already holds A',
+    J([/Depot support \(renamed\)/.test(B.ev(`(document.querySelector('.subprior')||{}).parentNode? document.querySelector('.subprior').parentNode.textContent : ''`)),
+       B.ev(`(document.querySelector('.subhere')||{}).textContent||''`)]), J([true, 'FY28 ALREADY HOLDS A — accepting adds it again']));
+  B.ev(`subPickAll(true); pmoApply(); 'ok'`);
+  const acc = JSON.parse(B.ev(`JSON.stringify((function(){ var c=S.custom.filter(function(x){ return x.from && x.from.nid===${J(pid)}; })[0]||{}; return [c.id, dispTitle(c), c.prior||null]; })())`));
+  chk(name, '1 · plan event', 'accepted, it keeps the renamed plan event and its link', J(acc), J(['NEW-1', 'Depot support (renamed)', { fy: 2027, id: 'A' }]));
+  // ---- 9: an office's name in a new id never carries a character an id may not
+  chk(name, '9 · ids', 'on a copy an office named Brad’s mints NEW-Brads-1, which the import check takes',
+    J([P.ev(`reqNewId("Brad's", 1)`), P.ev(`inIdWhy(reqNewId("Brad's", 1), 'x')`), B.ev(`reqNewId("Brad's", 1)`)]), J(['NEW-Brads-1', '', 'NEW-1']));
+  chk(name, 'errors', 'no page error on the copy or its board', J([P.errors.length, B.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 review fixes ====
+
+// ==== v2.06 second review ====
+// ═══ v2.06 — THE SECOND REVIEW OF THE FIXES (25 Oct 2026) ══════════════════════════════════════════════════════════════════════
+// A second review of the fixes above confirmed three more ways the same work could land in a year twice: a requirement brought
+// back into the year whose added requirement it continues; a proposal continuing a board-data requirement from another year
+// than the one the board's linked requirement names; and a requirement copied forward and then given to another office.
+// Each fails on 1e3e313.
+await (async () => {
+  const name = 'v2.06 — the second review: a copy back, a proposal from another year, and a copy given to another office are the same work';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: MINE, items: [it('A', 'PSM', [900, 200, 100]), it('B', 'AV', [50, 0, 0])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] };
+  const { ev, errors } = boot(); seed(ev, sc); asBooted(ev, sc);
+  const add = (g, t, v) => ev(`toggleAdd(); document.getElementById('naGrp').value=${J(g)}; document.getElementById('naTitle').value=${J(t)};
+      document.getElementById('naEvent').value=''; document.getElementById('naSvc0').value=${J(String(v))}; document.getElementById('naSvc1').value='0';
+      document.getElementById('naSvc2').value='0'; addReq(); toggleAdd(); S.custom[S.custom.length-1].id`);
+  ev(`window.__cf=[]; window.confirm=function(m){ window.__cf.push(String(m)); return !/already carries/.test(m); }; window.alert=function(m){ window.__cf.push('ALERT '+String(m)); };
+      syncAddPanel(); syncNaGrp(); 'ok'`);
+  const n1 = add('PSM', 'Sustaining engineering', 400);
+  const n2 = add('PSM', 'Program office support', 10);
+  // ---- a copy forward carries a link to what it copies, and given to another office it is still the same work
+  ev(`save(); xferYear(${J(n2)},'c2028'); 'ok'`);
+  ev(`switchYear(2028); 'ok'`);
+  const cp = JSON.parse(ev(`JSON.stringify(S.custom.map(function(c){ return [c.id, c.title, c.prior||null]; }))`));
+  chk(name, 'a copy forward', 'Copy to year links FY27’s added requirement to its copy', J(cp), J([['NEW-1', 'Program office support', { fy: 2027, id: n2 }]]));
+  ev(`S.grp=S.grp||{}; S.grp['NEW-1']='AV'; save(); render(); setPmoFilter('PSM'); toggleAdd(); naFromPick(2027); 'ok'`);
+  const listed = JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#naFromWrap tr[data-id]')).map(function(r){ return [r.getAttribute('data-id'), !!r.querySelector('input[type=checkbox]')]; }))`));
+  chk(name, 'a copy given to AV', 'its copy now AV’s in FY28, PSM’s Program office support is already here; Sustaining engineering is not',
+    J(listed), J([['A', true], [n1, true], [n2, false]]));
+  // ---- a chain: FY27's added requirement continues A (here, from a year not held); its copy, given to AV, is the same work
+  ev(`switchYear(2027); var c={id:'NEW-9', grp:'PSM', sect:'new', custom:true, title:'Depot chain', event:'', ccar:'', fy26:[0,0,0], ask:[30,0,0], alloc:null, prior:{fy:2025, id:'A'}};
+      S.custom.push(c); DATA.items.push(c); S.order.push('NEW-9'); save(); xferYear('NEW-9','c2028'); switchYear(2028);
+      var k=S.custom.filter(function(x){ return x.title==='Depot chain'; })[0]; S.grp[k.id]='AV'; save(); window.__chain=k.id; 'ok'`);
+  chk(name, 'a chain', 'the copy keeps the link to FY25 A, and the picker counts FY27’s NEW-9 as already here',
+    J([JSON.parse(ev(`JSON.stringify(itemById(__chain).prior)`)), ev(`String(naFromHere(2027, 'NEW-9', yrItemOf(MS.years[2027], 'NEW-9'), 'PSM'))`)]),
+    J([{ fy: 2025, id: 'A' }, 'true']));
+  // ---- brought into FY28 and copied back: FY27 already holds the work it continues
+  ev(`toggleAdd(); toggleAdd(); naFromPick(2027); naFromTick(${J(n1)}, true); naFromAdd(); window.__b=S.custom[S.custom.length-1].id; S.recNames=S.recNames||{}; S.recNames[__b]='FY28 record'; save(); 'ok'`);
+  chk(name, 'a copy back', 'FY28’s Sustaining engineering continues FY27’s', ev(`JSON.stringify(itemById(__b).prior)`), J({ fy: 2027, id: n1 }));
+  ev(`window.__cf=[]; xferYear(__b,'c2027'); 'ok'`);
+  chk(name, 'a copy back', 'Copy to FY27 asks, naming it, and (told no) FY27 holds it once',
+    J([/already carries/.test(ev(`window.__cf.join('|')`)), ev(`yearLinkOf(__b, 2027)`), ev(`String(MS.years[2027].custom.filter(function(c){ return c.title==='Sustaining engineering'; }).length)`)]),
+    J([true, n1, '1']));
+  // ---- a proposal continuing A from another year than the board's linked requirement names
+  ev(`switchYear(2027); S.removed=['A']; S.order=S.order.filter(function(x){ return x!=='A'; });
+      var d={id:'NEW-44', grp:'PSM', sect:'new', custom:true, title:'Depot (from FY26)', event:'', ccar:'', fy26:[0,0,0], ask:[900,0,0], alloc:null, prior:{fy:2026, id:'A'}};
+      S.custom.push(d); DATA.items.push(d); S.order.push('NEW-44'); 'ok'`);
+  chk(name, 'a proposal', 'a proposal of A brought from FY24 is flagged (NEW-9 and NEW-44 continue A from FY25 and FY26); an added id still needs its year',
+    J([ev(`pmoPriorHere({fy:2024, id:'A'})`), ev(`pmoPriorHere({fy:2026, id:'A'})`), ev(`pmoPriorHere({fy:2026, id:'NEW-9'})`)]), J(['NEW-9', 'NEW-9', '']));
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.06 second review ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

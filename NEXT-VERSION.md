@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.05**. Next: **v2.06**.
+Current version: **v2.06**. Next: **v2.07**.
 
 ## Open
 
@@ -136,6 +136,74 @@ Current version: **v2.05**. Next: **v2.06**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
+#### 121. Add Requirement as one pop-up that builds the whole record (Brad, 24 Oct 2026)
+- **Asked:** *"I want it to be a pop up box that allows us to build and include all the relevant information from the pop up
+  panel. I want to be able to select everything from PMO to Prime/OGC. Add Service dollar requirement amounts, not funding
+  allocations, just requirement amounts. Also include all the main information used in the pop up panel we see and can update
+  in the already built requirements."*
+- **What is there today (v2.06):** Add Requirement is a strip under the task bar (`#addPanel`). It takes PMO, title, plan event,
+  CCaR and the value by service (or one total), and v2.06 added *Or from another year* beneath it. Everything else -- Prime/OGC,
+  PID, band, the classifications, where the money goes, the award date and the narrative -- is filled in afterwards, in the
+  RECORD panel and 📋 Requirement edit. In a PMO copy a proposal can only be sent once ten mandatory fields are filled
+  (`pmoProposalGate`), so an office adds a line and then goes looking for those ten in three places.
+- **Proposed (mock-up rendered on the real board, Harbor and Midnight, 24 Oct):** a box (`.modal-bg`, under the v1.93 box
+  controller: named, Esc, focus kept, typing guarded) titled *＋ Add requirement — FY27*, with two tabs: **New requirement**
+  and **From another year** (item 117's picker, moved in). The new requirement is six sections, in the order of the RECORD
+  panel, each field read by its `REQ_FIELD` label (`FL()`):
+  1. **Identity:** plan event (required), CCaR record name, PMO (required; defaults to the office chosen at the top), Prime
+     contract / OGC (required, a two-way switch), CCaR record, PID, decision band, Mission Critical.
+  2. **Requirement value by service:** one box per service, the total beneath, and *Spread a total…*. Requirement only: no
+     discretionary, mandatory or allocation box, and the line says funding is set on the board. Beside each service, its
+     accounting (RCN / EEIC for USAF, ANG and AFRC; SI for STOVL, USMC-C and USN), shown once it has a value.
+  3. **Classification:** obligation category (required), cost element, WBS (required), RCN / EEIC, Navy SI code, Budget (BAE).
+  4. **Where the money goes:** Goes to (required); *Which awards to* and MIPR type appear, required, only for an OGC
+     (`destIsOgc`).
+  5. **Schedule:** projected award date (required), one award or incremental, minimum useful increment.
+  6. **Narrative:** description (required), note, impact statement (required).
+  A rail on the right: the requirement total, services with a value, where it lands in the order (the bottom), *Split · no
+  allocation*, the reference it will get, and **Ready to add N of 10** with each mandatory field ticked or flagged -- the same
+  list `pmoProposalGate` uses, read from it, never restated. Footer: Cancel, *Add and open its record*, **Add requirement**.
+- **Rules it keeps:** the value is requirement only and lands on a Split with no allocation, as `addReq()` does now
+  (`seedSplit`); whole dollars through `parseAmt`/`apportion`; codes through `codeTake` (refused, never cut, the box keeping the
+  text); nothing is written until Add, and Cancel or Esc discards (the box's fields are `data-held`). On the board a requirement
+  can be added with fields missing and finished later; in a PMO copy it is a proposal and Add says which of the ten are still
+  missing (the gate is unchanged).
+- **Brad, 24 Oct 2026:** *"Starts unstarred."* -- Mission Critical is not in the box; a new requirement starts unstarred and
+  is starred from its row. *"All required to be added."* -- **Add is refused until every required field is filled, on the board
+  as in a copy** (the ten `pmoProposalGate` names); the button says how many remain. *"Yes the strip would go away now that we
+  have the pop up."* -- `#addPanel` goes; every way in (Review's Add requirement, the left menu's, the empty-year message) opens
+  the box. *"Let's continue to refine this before we build."*
+- **Brad, 24 Oct 2026 (refinements):**
+  - **From another year:** the complete ones are added at once; each incomplete one opens in the New requirement form, prefilled
+    and linked, to be finished and added. **Add says what is missing:** pressed early, it goes to the first missing field and
+    outlines the rest; the button reads *Add requirement — N still needed*.
+  - **Decision band: not in the box.** *"That should be allocated by the SFWG."*
+  - **No duplicate warning.** *"There could be a valid reason and it will be caught and discussed in reviews."*
+  - **The record title is never typed.** *"When the record number is typed in, it auto fills the Record Title. Nobody should be
+    typing in the Record Title."* It shows read-only, from the CCaR list (`ccarRecNameOf`); the CCaR description fills an empty
+    Description, as `ccarDescFill` does.
+  - **One office.** *"Once they select their PMO, that's the only PMO they can support with adding requirements."* The PMO is
+    the office chosen (in a copy, the office it submits for, `myPmo`), shown and not changeable in the box.
+  - **No award date, no obligation date, no increments.** *"This far out, people are just guessing at award dates."* The
+    projected award date leaves the required list, in the box and in a PMO copy's proposal gate.
+  - **Budget (BAE) required, by service, from that office's budgets only.** *"I need them to select the appropriate budget.
+    Only that PMO's budgets should pop up."* One picker per service with a value, listing that office's names for that service
+    (`budPickList`, the office's own, discretionary or lane-less, since nothing is funded yet).
+  - **No RCN / EEIC in the box.** *"If the RCN/EEIC doesn't carry over, then don't have them add it in ... My O&M appropriation
+    team should be allocating those."* It comes only with a requirement brought in from another year.
+  - **Legible, nothing off the screen, no scrolling.** Measured in Chromium at 1366×768 and up; the box must fit whole.
+  - **Kept as proposed:** narrow-screen single column, keyboard and screen-reader labels, Esc asks before discarding, Edit the
+    whole record later as its own item.
+- **Mock-up, revision 2** (24 Oct; rendered on the real board, Harbor and Midnight, measured at 1366×657 and 1920×969 -- no
+  scrolling, nothing cut, every label 11-12 px): three columns -- Identity and Classification; Requirement by service with a BAE
+  picker per service, then Where the money goes; Narrative and Ready to add -- and the From another year tab with a *ready* /
+  *N to fill* mark per row and *Add 2 · finish 1*. The required list, in the box and in a copy's proposal gate: plan event, Prime /
+  OGC, the requirement, a budget for every service with a value, obligation category, WBS, Goes to, description, impact
+  statement, and for an OGC, which awards to and MIPR type. (A copy's gate loses the award date and gains the budgets.)
+- **Brad, 24 Oct 2026:** *"I agree"* to both: on the board with *All offices* showing, the box asks which office first and locks
+  it once chosen (one office chosen at the top is used as is); below 1366 px wide the box is one column and scrolls, 1366 and up
+  fit whole.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -193,6 +261,185 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.06 — 24 Oct 2026: add a requirement from another fiscal year, linked; PPBE Budget Positions on one row, with its totals closed and figures entered in $K -- built on Brad's "Go" of 24 Oct
+
+Items 117–120, logged 23 Oct from Brad's request and three photos of the real board, built as logged. Where the build differs from
+the log it says so here.
+
+- **117 — built as logged, with two differences.** (A locked cycle stores its years whole, links included; that was not tested on its own.)
+  - **An added requirement's id is its year's own.** `newReqSeq` numbers each year by itself (as `yearCopy` always has), so FY27's
+    NEW-1 and FY28's NEW-1 can be two different requirements. "Already here" therefore matches an added requirement by its link,
+    or by its event and title (`yearHas`'s test), and never by id; a requirement from the board's data is matched by id. The test
+    holds a FY28 NEW-1 typed by hand beside FY27's NEW-1 for exactly this.
+  - **The five-year plan has no By Requirement sheet since v2.04** (item 112 rebuilt the workbook), so the *Continues* column is
+    on the Priority Drill only (its last column, so nothing before it moved). The RECORD panel and the PMO review row say it too.
+- **118 — built as logged.** On v2.05 the line's RCN box sat on one row and its EEIC box and ✕ on the next (measured in Chromium:
+  the label column was 140 px of a 1,262 px table). The column is now 262 px, the label does not wrap, and every year box is 84 px
+  in a 96 px column (the box held $2,280,000,000 with room).
+- **119 — built as logged.**
+- **120 — built as logged** (Brad chose the per-service setting by going ahead with the logged proposal). The conversion is not in
+  the change journal, which walks the year states and not `MS.ppbe`; it is recorded on the position instead (`P.kx`) and undone
+  from the same place, as the log's "undone" asked.
+
+**Found by an independent review before merge, fixed in v2.06** (25 Oct; Brad: *"Fixes plus the second review, then merge"*).
+Five reviewers, one per area (round trips, money, the PMO copy, the import check and escaping, regressions), each serious
+finding re-run by a second agent trying to refute it: 3 confirmed, 10 reported, 1 older defect found on the way. All fixed:
+1. A copy's proposal dropped a renamed plan event; the board accepted it under the old name.
+2. Roll forward, Copy and Move to year, Restore and Restore all added a requirement the year already carried as a linked
+   requirement, and its value counted twice; a proposal continuing something the year holds is now flagged on review.
+3. Renaming a service dropped its $K setting, so the next figure typed as printed was stored 1,000 times too small.
+4. The undo divided figures typed since, and stayed offered with $K off. 5. The rounding message named a figure 1,000 times
+   too small. 6. ALL SERVICES counted a service the board no longer lists with no row above it.
+7. "Already here" ignored the office. 8. Add filed under a changed office. 9. An office named *Brad's* minted ids the import
+   check refused (addReq too). 10. A link to a year not held read *no longer on the board*. 11. Reset year reused NEW-1 under a
+   link. 12. The record-name pen did nothing on a brought-in requirement. 13. Add threw when its year had gone.
+14. (older than v2.06) A PMO copy switched to another year submitted that year's work under the published year.
+Tested by two new blocks failing on the candidate and 20 `v206-fix-*` mutations each caught; six older mutations retargeted.
+**A second review of the fixes** (25 Oct) confirmed four more, all fixed: a requirement copied back into the year whose added
+requirement it continues was added twice; a proposal continuing A from another year than the board's linked requirement was
+not flagged; a copy of an added requirement given to another office was offered again by the picker (Copy to year now links
+the copy to its source); and a service renamed onto a name a PPBE position still held took over that position's figures and
+$K setting (now refused). Two new blocks, 5 `v206-fix2-*` mutations, each caught.
+
+**Proved with** (24 Oct, on the candidate before the review fixes): `npm run check`; boot-same and every suite -- ALL CHECKS PASSED, recon and import once
+the clone's history was fetched (`git fetch --unshallow`: both read old builds by commit, and a shallow clone fails them with
+"invalid object name", which is not a defect); the two new jsdom blocks, each failing on v2.05; every browser check, `npm run
+layout` failing only on its carried D ×8 and its new L passing (L fails on v2.05); `npm run standards` with nothing new; the defect
+register (13, guarded by 43), money coverage (24/24), the money map (301 cells, 108 proven, 192 n/a, 1 open -- the same as v2.05:
+the map's report did not change), the trace matrix (every link holds), the fuzz (seed 683198728) and the file verifier's self-test.
+The mutation sweep was not run (Brad's rule of 20 Oct); the 30 new mutations were each run against their own block and caught.
+
+#### The items as logged
+
+#### 117. Add a requirement from another fiscal year, linked to the one it came from (Brad, 23 Oct 2026)
+- **Asked:** *"While they're in a new fiscal year or any fiscal year for that matter after they selected their pmo at the
+  top when they click add requirement I wanted to be able to select the fiscal year based off of that pmo and then they
+  see all the requirements from that year for them to have as an option to add into the current fiscal year that they're
+  trying to build."* On the identity question: *"We work in sustainment so a lot of activities are funded over and over
+  again every year. I would like to be able to link the requirements together for trend data but keep them as separate
+  actions."* Where: the PMO copy **and** the board. What the list shows: the office's requirements from that year that are
+  **not already in** the year being built.
+- **What is there today (read in v2.05, not changed):**
+  - Add Requirement (`addPanel`, `addReq()`) only takes a requirement typed from scratch: title, event, CCaR, value.
+  - Moving work between years goes the other way. Copy/Move to year (`xferYear`) and Roll forward (`rollApply`) push
+    from the year on screen into another one through `yearCopy()`, and a board requirement keeps its **same id** in
+    every year. So nothing records "this FY27 line is the FY26 line again" as two separate actions.
+  - A PMO copy carries every year of its appropriation (`buildSavedHtml` → `pubsFor(MS)` writes the whole store), so
+    the earlier years are already there to pick from. In a copy, a requirement added is a **proposal**
+    (`NEW-<office>-n`): it goes back whole in the submittal's `added` section (`pmoProposalOf`), is gated by
+    `pmoProposalGate`, and is accepted by `pmoAcceptProposal` with its provenance in `from`.
+- **Proposed fix:**
+  - **Add Requirement gets a second way in: "From another year".** It offers a fiscal-year picker (every year the board
+    holds except the one on screen) and lists that year's requirements for the **office chosen at the top**: the PMO
+    filter when it shows one office; otherwise, in a copy, the office the copy submits for (`myPmo()`); otherwise the
+    Add panel's own PMO box. Each row shows the title, CCaR, PID, event and that year's requirement value. Tick one or
+    several and choose **Add to FY27**.
+  - **"Not already here"** means the year on screen holds neither the same id (it was rolled forward or copied) nor a
+    requirement already linked to it. Those rows are greyed out as "already in FY27" and can't be ticked, so a second
+    run never adds a duplicate.
+  - **Each one is a new, separate requirement** with its own id: `NEW-n` on the board, `NEW-<office>-n` in a copy.
+    Each carries a **link** to the one it came from, `prior: {fy, id}`, stored on the requirement and saved with the
+    board. Starting values come from that year's record: title, event, CCaR, PID, record name, description, impact
+    statement, note, the office's value by service, decision band, classification (cost element, obligation category,
+    RCN/EEIC, SI, WBS, destination, prime/OGC, MIPR, BAE budget), the minimum increment, and award dates shifted by the
+    year difference. **Not carried:** the allocation and the funding split, because the new year's money is decided
+    fresh (in a copy the allocation is locked anyway), and Mission Critical, which is a decision for this year. Every
+    value can be edited after it is added. It lands at the bottom of the priority order and the office's ranking, the
+    way `addReq()` adds.
+  - **In a PMO copy it is a proposal**, like any requirement added there: it is held to the same mandatory fields, goes
+    back in the submittal's `added` section carrying its `prior` link, and when accepted on the board it keeps the
+    link. The review row names it as *"from FY26 R012"*.
+  - **The link is shown, not hidden:** the RECORD panel names it (*Continues FY26 R012 — Title*, with Go to that year),
+    and the Priority Drill and the five-year plan's By Requirement rows carry a *Continues* column so trend data can be
+    pulled across years. A trend report that follows the chain year by year is **not** in this item; it can be logged
+    as its own item once the link is in place.
+  - **Kept safe:** the import door checks `prior` (`fy` a year, `id` the requirement-id rule). Copy and Move to year carry
+    the link. Deleting the earlier requirement leaves the link pointing at nothing, and the panel says *"FY26 R012 —
+    no longer on the board"*. A locked cycle shows the link as it was locked.
+- **To prove it on go:**
+  - Both ways in (board and copy), with the list filtered by office and by "not already here", including a rolled-forward
+    id and an already-linked one.
+  - Every carried field equals the source year's, with award dates shifted, and the allocation and MC are not carried.
+  - The new requirement's own id never repeats (`newReqSeq`).
+  - A save → reopen, a copy → submit → accept round trip keeping `prior`, and a full import of a v2.05 file (no links)
+    unchanged.
+  - Mutations for each rule.
+
+#### 118. PPBE Budget Positions: each RCN / EEIC line on one row (Brad, 23 Oct 2026)
+- **Seen (photo of the real board, BES28, USAF, one figure per line):** in the 🏛 PPBE Budget Positions box, each line's RCN
+  box sits on one row and its EEIC box and ✕ wrap onto the next. With two lines (41392 / 57811, 41395 / 57815) it reads as
+  four, and the year figure floats between them. Brad: *"I need those to be line item across ... it makes it very hard to
+  read when it's duplicated lines like that."*
+- **Why (read in v2.05):** the table is `.fctab`, which is `table-layout:fixed`, so the first column's `min-width:210px`
+  is ignored (CLAUDE.md, *Photograph every panel*: "`.fctab` is `table-layout:fixed`, where `min-width` is ignored"). And
+  `.fctab td:first-child` is `white-space:normal`. The column takes an equal share of a box that also holds seven year
+  columns and a Total, and "RCN [box] EEIC [box] ✕" wraps where the space runs out.
+- **Proposed fix:**
+  - The line's label cell (RCN, its box, EEIC, its box, ✕) never wraps, so every RCN / EEIC line is one row: label, then
+    that line's figure under each year, then its Total.
+  - The first column gets an explicit `width`, wide enough for the RCN / EEIC pair, set on a class for this box and not
+    on the shared `.fctab`, so the other tables don't move. The year columns keep their widths, and the box's existing
+    sideways scroll takes any excess on a narrow window.
+  - With the Discretionary / Mandatory split on, the label stays one row over its Discretionary and Mandatory rows, as now.
+  - SI, cost-element and service-level lines are unchanged.
+- **To prove it on go:**
+  - `npm run layout` gains a check: open PPBE Budget Positions with two or more RCN / EEIC lines, at 1920, 1440, 1366 and
+    1024 wide, both fonts. Each line's RCN box, EEIC box and ✕ sit on one row (same top, within a pixel), neither box cuts
+    off its value, and the line's year boxes are on that row. It is shown failing on v2.05 first.
+  - `npm run panels` and `npm run standards` stay clean.
+
+#### 119. PPBE Budget Positions: the TOTAL rows have no Total (Brad, 23 Oct 2026)
+- **Seen (photo of the real board):** in 🏛 PPBE Budget Positions, the bottom line of both tables shows each year's total
+  but leaves the **Total** column empty:
+  - the service table's `<service> TOTAL` row (FY31 $0.15M, FY32 $0.15M, Total blank);
+  - the **ROLL-UP BY SERVICE** table's `ALL SERVICES` row (FY31 $3,292.05M, FY32 $3,466.25M, Total blank), while every
+    service row above it has its Total ($17.32M … $5,993.03M).
+  Brad: *"On the PPBE table I'm missing a total on the bottom line."*
+- **Why (read in v2.05):** both rows are written with a bare `<td></td>` in the Total column (the end of the service
+  table, and `ALL SERVICES` just below it in the panel's render). It is not a figure that failed to add up. The cell was
+  never filled.
+- **Proposed fix:**
+  - The `<service> TOTAL` row's Total is the sum of its year totals (`ppSvcFy(P, sv, y).t` across the years shown). With
+    the split on, the D · M line goes under it, as on the year cells.
+  - The `ALL SERVICES` row's Total is the sum of its year totals (`ppSumFy(P, y)`), the same column style as the service
+    rows (gold rule on the left).
+  - An em dash when there is nothing, as elsewhere in the box.
+  - Both totals are worked out from the same cells that are printed, so the bottom-right cell equals both the sum of
+    the row above it and the sum of the Total column above it.
+- **To prove it on go:** an audit-board check on a position with several services, years and lines (split on and off).
+  - The service TOTAL row's Total equals the sum of its year cells, and the sum of that table's line Totals.
+  - The ALL SERVICES Total equals the sum of its year cells, and the sum of the service rows' Totals.
+  - Each is read off the rendered box, to the cent of the $M shown.
+  - Shown failing on v2.05, with a mutation for each cell.
+
+#### 120. PPBE Budget Positions: figures entered in $K (Brad, 23 Oct 2026)
+- **Seen (photo of the real board, BES28):** USAF FY27 reads **$2.28M**; Brad: *"it's really 2.28B. It should read
+  something like 2,280.00M"*. ANG ($0.45M) and AFRC ($0.13M) read the same way. STOVL, USMC-C and USN read correctly
+  ($1,553.59M …).
+- **Why (tested on v2.05):** nothing is wrong with the arithmetic. The box reads a bare number as whole dollars:
+  `parseAmt` turns `2,280,000,000`, `2.28B`, `2,280M` and `$2,280,000,000.00` each into $2,280,000,000, and `15,828` into
+  $15,828. Brad, asked to check: *"I entered everything in $K."* The USAF, ANG and AFRC figures came from exhibits in
+  thousands and were typed as printed, so each is stored at 1/1,000 of its value. Every total, the roll-up and the
+  Spruills control read them that way.
+- **Proposed fix (not yet confirmed; Brad can instead choose a one-time ×1,000, or retyping, before go):**
+  - **Each service in the box gets "Entered in: $ / $K"**, kept on the position (per cycle key, per appropriation, per
+    service), defaulting to $ so nothing on any other board moves.
+  - **The model stays in whole dollars.** Under $K, a bare number typed in a year box is read as thousands and stored as
+    dollars (×1,000, through `D$`). A figure with its own unit (`15.8M`, `1.2B`) is read as written. The box shows that
+    service's figures in $K (stored ÷ 1,000) so they match the exhibit. Totals, the roll-up and Spruills read dollars as
+    now, so USAF FY27 prints **$2,280.00M**.
+  - **Turning $K on for a service that already holds figures** asks whether those figures were typed in $K. Yes
+    multiplies them ×1,000 (named, with the service's total before and after, journaled so it can be undone). No turns
+    the setting on for new entries only. Turning it off never changes a stored figure.
+  - The box's heading for that service says *"figures in $K"*, so nobody reads a $K box as dollars.
+- **To prove it on go:** an audit-board check on a position with a $K service and a $ service.
+  - A typed `15,828` under $K stores 15,828,000. A typed `15.8M` stores 15,800,000.
+  - The year box shows 15,828. Totals and the roll-up equal the dollars. Spruills' control matches.
+  - The conversion multiplies only the chosen service, and undo restores it.
+  - Save → reopen and a PMO copy keep the setting.
+  - A v2.05 position (no setting) reads exactly as before.
+  - Mutations for each rule.
 
 ### v2.05 — 23 Oct 2026: Reports & exports cleaned up, the PowerPoint deck, Executive Synopsis and Executive Decision removed, no icons on the left menu, its side panels no longer scroll, and each appropriation's PPBE lock named and seen side by side -- built on Brad's "Go" of 23 Oct
 
