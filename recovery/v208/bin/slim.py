@@ -17,13 +17,20 @@ while i<end:
         while j<end and L[j]!=closer: j+=1
         blocks.append((i,j)); i=j+1
     else: i+=1
-keep=set()
+keep=set(); scen=0; hit={k:0 for k in keys}
 for (a,b) in blocks:
     body='\n'.join(L[a:b+1])
     m=re.search(r"^  const name = '([^']+)'", body, re.M)
     if m is None:
         keep.add((a,b)); continue           # helper / self-check blocks without a scenario name stay
-    if any(k in m.group(1) for k in keys): keep.add((a,b))
+    mine=[k for k in keys if k in m.group(1)]
+    for k in mine: hit[k]+=1
+    if mine: keep.add((a,b)); scen+=1
+# A NAME THAT MATCHES NO SCENARIO IS REFUSED, NOT RUN. 'kept N' counts the helper and self-check blocks too, so it is never
+# 0: a misspelt name used to keep no scenario, run nothing, and read as a pass (found by the v2.08 handoff's review).
+miss=[k for k in keys if not hit[k]]
+if miss or not keys:
+    sys.exit('slim: no scenario named ' + (', '.join(repr(k) for k in miss) if miss else '(none given)') + ' in ' + suite)
 drop=[blk for blk in blocks if blk not in keep]
 outL=[]; i=0
 dset=set()
@@ -32,4 +39,4 @@ for idx,l in enumerate(L):
     if idx in dset: continue
     outL.append(l)
 open(out,'w').write('\n'.join(outL))
-print('kept', len(keep), 'of', len(blocks), 'blocks; dropped', len(drop))
+print('kept', len(keep), 'of', len(blocks), 'blocks (' + str(scen) + ' scenarios); dropped', len(drop))

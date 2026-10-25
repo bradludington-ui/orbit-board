@@ -28,6 +28,9 @@
 # The test tools' exact versions (playwright-core, jsdom and what they pull in), so a fresh clone installs what the
 # recorded results used: npm ci. The board itself still has no dependencies (OCIO POA&M P-05, 19 Oct 2026).
 !package-lock.json
+# Each v2.07 mutation and the check that caught it, so recovery/v208/bin/prove.py can prove any of them again. Source,
+# not run output (the v2.08 handoff).
+!recovery/v208/v207-proofs.json
 
 # tooling only — the board itself has no dependencies
 node_modules/
@@ -41,3 +44,8 @@ node_modules/
 
 # Logo generator output. Run output, not source: the chosen files are copied up a level and committed.
 assets/logo/generated/
+
+# Suite copies the provers write beside the suites (their imports are relative) and remove when they finish; a run
+# killed part-way leaves them. Never source (recovery/v208/bin/prove.py, tools/export-audit/sweep-shards.mjs).
+tools/export-audit/_slim-prove-*.mjs
+tools/export-audit/_shard-*.mjs

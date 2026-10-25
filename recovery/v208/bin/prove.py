@@ -10,10 +10,13 @@
 # OUT.jsonl gets one line per mutation: CAUGHT (exit 1 with a FAILING CHECK banner), SURVIVED (exit 0 with ALL CHECKS
 #   PASSED), or CRASHED (anything else: no verdict, which is never a catch). Ids already in OUT are skipped, so a run cut off
 #   by a restart resumes. A block that "threw" is reported beside its verdict: a catch by a throw is weaker than by a check.
-# Env: JOBS (default 4), HEAP (MB, default 6144 -- recon and import die at this container's ~2 GB default), TIMEOUT (s, 1500).
+# Env: JOBS (default 4), HEAP (MB, default 6144 -- recon and import die at this container's ~2 GB default; keep JOBS x HEAP
+#   within about 12 GB on a 15 GB machine), TIMEOUT (s, 1500). The heap is ADDED to NODE_OPTIONS, which here already carries
+#   the proxy's --use-openssl-ca.
 # Slimmed suites are written beside the originals as _slim-prove-<hash>.mjs (their imports are relative) and removed at the
-# end; a run killed part-way leaves them behind -- read `git status` before a commit.
-import json, subprocess, sys, os, re, hashlib, tempfile
+# end, on Ctrl-C and on SIGTERM/SIGHUP; only SIGKILL or a container restart leaves them (git ignores them since v2.08's
+# handoff). A scenario name that matches nothing is refused by slim.py before anything runs.
+import json, subprocess, sys, os, re, hashlib, tempfile, shutil, signal
 from concurrent.futures import ThreadPoolExecutor
 R = os.getcwd(); EA = os.path.join(R, 'tools', 'export-audit'); BIN = os.path.dirname(os.path.abspath(__file__))
 if not os.path.exists(os.path.join(EA, 'mutate.mjs')): sys.exit('run from the repository root')
@@ -31,29 +34,35 @@ if os.path.exists(out):
     for l in open(out): done.add(json.loads(l)['id'])
 MUT = tempfile.mkdtemp(prefix='prove-mut-')
 slims = {}
+def _stop(sig, frame): raise SystemExit(128 + sig)      # so the finally below still removes what this run wrote
+for _s in (signal.SIGTERM, signal.SIGHUP): signal.signal(_s, _stop)
 def slim_for(suite, keys):
     k = (suite, tuple(keys))
     if k in slims: return slims[k]
     f = os.path.join(EA, '_slim-prove-' + hashlib.md5(repr(k).encode()).hexdigest()[:8] + '.mjs')
     r = subprocess.run(['python3', '-I', '-B', os.path.join(BIN, 'slim.py'), os.path.join(EA, suite), f] + list(keys), capture_output=True, text=True)
-    # a slim that kept no scenario would run nothing and read as SURVIVED -- refuse it instead
-    m = re.search(r'kept (\d+) of', r.stdout)
-    if not m or not re.search(r'dropped', r.stdout) or r.returncode: raise SystemExit('slim failed: ' + r.stdout + r.stderr)
+    # a slim that kept no scenario would run nothing and read as SURVIVED -- slim.py refuses a name that matches nothing
+    if r.returncode or not re.search(r'\((\d*[1-9]\d*) scenarios\)', r.stdout):
+        try: os.remove(f)
+        except OSError: pass
+        raise SystemExit('slim failed for ' + suite + ': ' + (r.stdout + r.stderr).strip())
     slims[k] = f; return f
-jobs = []
-for m in A:
-    if m['id'] in done or (only and m['id'] not in only): continue
-    s, _, rest = m['caughtBy'].partition(' / ')
-    suite = suite_of(s)
-    keys = [k.strip() for k in rest.split(';') if k.strip()]
-    if suite not in WHOLE and not keys: raise SystemExit(m['id'] + ': no scenario named after the suite')
-    jobs.append((m, os.path.join(EA, suite) if suite in WHOLE else slim_for(suite, keys)))
+def plan():
+    jobs = []
+    for m in A:
+        if m['id'] in done or (only and m['id'] not in only): continue
+        s, _, rest = m['caughtBy'].partition(' / ')
+        suite = suite_of(s)
+        keys = [k.strip() for k in rest.split(';') if k.strip()]
+        if suite not in WHOLE and not keys: raise SystemExit(m['id'] + ': no scenario named after the suite')
+        jobs.append((m, os.path.join(EA, suite) if suite in WHOLE else slim_for(suite, keys)))
+    return jobs
 def run(job):
     m, f = job; mut = os.path.join(MUT, m['id'] + '.html')
     r = subprocess.run(['python3', '-I', '-B', os.path.join(R, 'recovery', 'v200', 'bin', 'mkmut.py'), os.path.join(EA, 'mutate.mjs'),
                         os.path.join(R, 'prioritization-board-grid.html'), m['id'], mut], capture_output=True, text=True)
     if r.returncode != 0: return {'id': m['id'], 'verdict': 'NOT APPLIED', 'detail': (r.stdout + r.stderr)[-400:]}
-    env = dict(os.environ, BOARD=mut, NODE_OPTIONS='--max-old-space-size=' + os.environ.get('HEAP', '6144'))
+    env = dict(os.environ, BOARD=mut, NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + ' --max-old-space-size=' + os.environ.get('HEAP', '6144')).strip())
     try:
         p = subprocess.run(['node', f], capture_output=True, text=True, env=env, timeout=int(os.environ.get('TIMEOUT', '1500')), cwd=R)
         o = p.stdout + p.stderr
@@ -66,12 +75,16 @@ def run(job):
     lines = [l for l in o.split('\n') if l.strip().startswith(('✗', 'FAIL', '-', '•')) or 'got' in l][:6]
     return {'id': m['id'], 'verdict': v, 'fails': fails[:1], 'threw': threw, 'suite': os.path.basename(f),
             'detail': '\n'.join(lines)[:600] if v != 'CAUGHT' or threw else ''}
+ex = None
 try:
-    with ThreadPoolExecutor(max_workers=int(os.environ.get('JOBS', '4'))) as ex:
-        for res in ex.map(run, jobs):
-            with open(out, 'a') as fh: fh.write(json.dumps(res, ensure_ascii=False) + '\n')
-            print(res['verdict'], res['id'], res.get('fails'), 'threw' if res.get('threw') else '', flush=True)
+    jobs = plan()
+    ex = ThreadPoolExecutor(max_workers=int(os.environ.get('JOBS', '4')))
+    for res in ex.map(run, jobs):
+        with open(out, 'a') as fh: fh.write(json.dumps(res, ensure_ascii=False) + '\n')
+        print(res['verdict'], res['id'], res.get('fails'), 'threw' if res.get('threw') else '', flush=True)
 finally:
+    if ex: ex.shutdown(wait=False, cancel_futures=True)
     for f in set(slims.values()):
         try: os.remove(f)
         except OSError: pass
+    shutil.rmtree(MUT, ignore_errors=True)
