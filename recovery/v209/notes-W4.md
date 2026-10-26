@@ -80,7 +80,8 @@ Built on Brad's "Go on v2.09" (26 Oct 2026), from NEXT-VERSION item 128 and the 
 - Run and passing on this board: audit, audit-other, audit-board, audit-hostile, audit-inject whole; audit-recon slimmed to
   this block and the 26 older blocks that read the SI tab, its words or the RCN tab (4 agreement, W6, W7 F1, v1.98 item 83,
   v1.99 item 88, U10, U32/U33, U36, U37, U41, U56/U57, U58/U59, U61); audit-import slimmed to the three blocks that touch
-  `S.si` / the SI code (v1.84 ×2, v1.86 months); `npm run check`; the money map and money coverage.
+  `S.si` / the SI code (v1.84 ×2, v1.86 months); `npm run check`; the money map and money coverage; in Chromium
+  `npm run panels`, `hostile`, `menus`, `standards` (nothing new), `controls` (60 recorded, 60 now) and `dialogs`.
 
 ## Mutations
 
@@ -90,7 +91,8 @@ the pend gate, the tab dropped, the allocation printed (funded rows and pend row
 TOTAL and in a row total, the grand total without the no-code group, the no-code group dropped, empty codes hidden, size
 order, the position for the rank, CLIN lines gone, the unsplit service dropped, fractional CLIN parts, CLIN value read as
 funded, the CLIN read leaving state, the heading "allocated", a `<SVC> TOTAL` label, the title's mark, the TOTAL column used,
-the label column narrow, the overview's two notes, the CR status line, Needs attention's Go to it. 1 retargeted:
+the label column narrow, the overview's two notes, the CR status line, Needs attention's Go to it. All 29 (28 new and the
+retargeted one) CAUGHT on the final board, none by a block that threw. 1 retargeted:
 `v200-u41-workbook-label` (the SI call's last line now ends `crSvcName,` before `{byReq:true})`). None retired.
 `mcount.py`: 2,422 entries, every one matching once.
 
@@ -106,6 +108,9 @@ the label column narrow, the overview's two notes, the CR status line, Needs att
 
 - The RCN / EEIC registry panel's hint still says "Assign a combo to a requirement from its ⋯ menu" (the same stale words,
   for RCN). Not in item 128; not changed.
+- The SI tab's own title row still reads "Special Interest allocations by service and month" for funded dollars (the
+  RCN tab's says the same of RCN / EEIC). Left as it was, since the rest of the tab is unchanged by Brad's decision; the
+  section's own headings say funded.
 - An Air Force-only requirement carrying EN by the PP rule is out of scope (Brad's scope, the tab's own rule): not listed.
 - The section's CLIN lines and the Spend Plan Source's CLIN lines are split from different pieces of the same money (once
   per service here; per dated piece and lane there), so a CLIN's two figures can differ by a dollar; the note says so.
