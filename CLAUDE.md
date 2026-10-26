@@ -4589,7 +4589,10 @@ at 1366: the written fields are 68px and 42px (taller by dragging), and the requ
 all; 9 older ones retired as obsolete; 17 retargeted; 2,394 targets, each matching once. Two of the second review's first
 SURVIVED, both a fixture that could not reach its target: the "agreed" part stored both sides' Goes to in one shape, so
 comparing as stored changed nothing, and the F2 check fired Chromium's change AFTER the redraw, when the browser fires it
-inside. **To stand in for a browser event jsdom does not fire, fire it where the browser does.** Each was proved against its own
+inside. **To stand in for a browser event jsdom does not fire, fire it where the browser does.** And the nightly on the final
+commit failed one OLDER check (v1.84 expected an accepted Goes to stored with `end:''`): `prove.py` runs only the blocks it
+names, so a fix that changes what an older block expects is seen only by the whole suite. Run every suite whole before calling
+a fix done. Each was proved against its own
 check with `recovery/v208/bin/prove.py` (`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
 
 **Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is (v2.08, cited at `f416366`; every line
