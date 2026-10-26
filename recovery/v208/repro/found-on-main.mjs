@@ -29,15 +29,20 @@ const copyOf = ev => boot({ html: ev(String.raw`(function(){ const mode={sandbox
 //    redraw is measured here; the tick is read from the code, not run against a real folder.
 {
   const { ev } = board({ services: ['USAF'], items: [it('A', 'PSM', [100])], disc: [100], mand: [0], order: ['A'] });
-  ev(`openFld('A','cons'); document.getElementById('fld-cons').value='typed, not yet saved'; render(); "ok"`);
-  const a = ev(`(document.getElementById('fld-cons')||{}).value`);
-  ev(`fldClose(); openFld('A','dn'); document.getElementById('fld-desc').value='typed, not yet saved'; render(); "ok"`);
-  const b = ev(`(document.getElementById('fld-desc')||{}).value`);
+  // v2.08: the pop-ups went with item 122; the edit box holds the same two fields (fld-* before, er* since)
+  const box = ev(`typeof openFld==='function'? 'fld' : 'er'`);
+  const fid = k => box === 'fld' ? 'fld-' + k : ({ cons: 'erCons', desc: 'erDesc' })[k];
+  const open = k => box === 'fld' ? `openFld('A',${JSON.stringify(k === 'desc' ? 'dn' : k)})` : `openEdit('A',${JSON.stringify(k)})`;
+  const close = box === 'fld' ? 'fldClose()' : 'erClose()';
+  ev(`${open('cons')}; var x=document.getElementById(${JSON.stringify(fid('cons'))}); x.value='typed, not yet saved'; x.dispatchEvent(new Event('input')); render(); "ok"`);
+  const a = ev(`(document.getElementById(${JSON.stringify(fid('cons'))})||{}).value`);
+  ev(`${close}; ${open('desc')}; var x=document.getElementById(${JSON.stringify(fid('desc'))}); x.value='typed, not yet saved'; x.dispatchEvent(new Event('input')); render(); "ok"`);
+  const b = ev(`(document.getElementById(${JSON.stringify(fid('desc'))})||{}).value`);
   say('popup-redraw-loses-typing', a !== 'typed, not yet saved' || b !== 'typed, not yet saved',
       'a render() while a written-field pop-up is open replaces the typing (impact: ' + JSON.stringify(a) + ', description: ' + JSON.stringify(b) + ')');
-  ev(`fldClose(); setCur('A'); render(); "ok"`);
+  ev(`${close}; setCur('A'); render(); "ok"`);
   const typed = ev(`(function(){ var a=document.querySelector('#inspector input[onchange^="setAsk("]'), m=document.querySelector('#inspector input[onchange^="setMinInc("]');
-    if(!a||!m) return 'no inputs'; a.value='123456'; m.value='777'; render();
+    if(!a||!m) return 'no inputs'; a.value='123456'; a.dispatchEvent(new Event('input')); m.value='777'; m.dispatchEvent(new Event('input')); render();
     a=document.querySelector('#inspector input[onchange^="setAsk("]'); m=document.querySelector('#inspector input[onchange^="setMinInc("]');
     return JSON.stringify([a&&a.value, m&&m.value]); })()`);
   say('record-redraw-loses-typing', typed !== '["123456","777"]',
@@ -71,8 +76,13 @@ const copyOf = ev => boot({ html: ev(String.raw`(function(){ const mode={sandbox
   withBase(ev, items); ev('render(); "ok"');
   const nid = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50]}, null, {event:'EV-NEW'}); save(); render(); return n; })()`);
   const P = copyOf(ev);
-  P.ev(`window.prompt=function(){ return 'EV-RENAMED'; }; editTitle(${JSON.stringify(nid)}); window.prompt=function(){ return 'RECNAME-X'; }; editRecName(${JSON.stringify(nid)}); "ok"`);
-  P.ev(`window.prompt=function(){ return 'A-RENAMED'; }; editTitle('A'); "ok"`);
+  // v2.08: the renames are made in the edit box (editTitle and the record-name rename are retired; the record name is read)
+  const ren = (id, t) => P.ev(`typeof editTitle==='function'
+      ? (window.prompt=function(){ return ${JSON.stringify(t)}; }, editTitle(${JSON.stringify(id)}), 'ok')
+      : (openEdit(${JSON.stringify(id)},'titles'), document.getElementById('erEvent').value=${JSON.stringify(t)}, erSave(), 'ok')`);
+  ren(nid, 'EV-RENAMED');
+  P.ev(`typeof editRecName==='function'? (window.prompt=function(){ return 'RECNAME-X'; }, editRecName(${JSON.stringify(nid)}), 'ok') : 'retired'`);
+  ren('A', 'A-RENAMED');
   const shown = P.ev(`dispTitle(itemById(${JSON.stringify(nid)}))`), sent = P.ev('JSON.stringify(pmoSubmitBuild())');
   say('copy-drops-added-renames', shown === 'EV-RENAMED' && sent.indexOf('EV-RENAMED') < 0 && sent.indexOf('RECNAME-X') < 0,
       'the copy shows ' + JSON.stringify(shown) + ' for ' + nid + '; its submittal holds ' + sent);

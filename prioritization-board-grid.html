@@ -705,7 +705,6 @@ button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .note-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px}
 .note-detail textarea{width:100%;min-height:44px;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:11.5px;padding:6px 8px;font-family:inherit;resize:vertical}
 /* The pop-up editor borrows the same shape. Without font-family:inherit a bare textarea falls back to the browser's monospace, which reads as a different application. */
-#fldBody textarea{width:100%;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:12px;line-height:1.5;padding:8px 10px;font-family:inherit;resize:vertical}
 .note-detail textarea:focus{outline:none;border-color:var(--gold)}
 .note-snip{font-size:10px;color:var(--amber);margin-top:2px;font-style:italic}
 .stdtag{font-size:8px;font-weight:800;letter-spacing:.5px;padding:1px 5px;border-radius:3px;
@@ -944,7 +943,7 @@ input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
 }
 /* ── 1.4.11 applied: every control that drew its edge in --line draws it in --edge (states keep their own). */
 .btn,.qb,.mcb,.perb,.chip,.search,.rlg-in,.rank .ud button,.buys input,.rank input,.acts input,.addp input,.addp select,
-.svc-detail input,.clin-detail .ch select,.clin-detail input,.note-detail textarea,#fldBody textarea,.rchip,.rchip.add,.fitchip,
+.svc-detail input,.clin-detail .ch select,.clin-detail input,.note-detail textarea,.rchip,.rchip.add,.fitchip,
 .lanechip,.insp-f,input[type=date],input.q,input,select,textarea{border-color:var(--edge)}
 .btn:hover{border-color:var(--edge2)}
 /* ── 2.5.8 TARGET SIZE — every pointer target is at least 24×24 CSS px. Inline text targets (a title,
@@ -1299,107 +1298,107 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 /* ＋ ADD REQUIREMENT (v2.07, item 121): one box that builds the whole record. 1366 x 768 and up it fits whole, nothing
    scrolled and nothing cut (Brad: "everything legible and not running off the screen or needing to scroll"); narrower, it
    is one column that scrolls. tools/layout-fits.mjs M measures it. */
-#addPanel.modal-bg.open{align-items:center;padding-top:0}
-#addPanel .modal{width:min(1320px,96vw);max-width:none;max-height:calc(100vh - 16px);padding:0;display:flex;flex-direction:column;overflow:hidden;font-size:12px}
-#addPanel .modal h3{margin:0;padding:9px 16px 0;border-bottom:1px solid var(--line);align-items:flex-end;gap:12px;font-size:14px;letter-spacing:.4px}
-#addPanel .ar-ttl{padding-bottom:8px;white-space:nowrap}
-#addPanel .ar-sp{flex:1}
-#addPanel .ar-tabs{display:flex;gap:4px}
-#addPanel .ar-tabs button{white-space:nowrap;font:inherit;font-size:12px;font-weight:700;letter-spacing:0;border:1px solid var(--edge);border-bottom:none;border-radius:8px 8px 0 0;padding:6px 13px;min-height:28px;background:var(--panel2);color:var(--mut);cursor:pointer}
-#addPanel .ar-tabs button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:inset 0 3px 0 var(--gold)}
-#addPanel .modal h3 .x{margin-bottom:7px}
-#addPanel #arBody{display:flex;flex-direction:column;flex:1;min-height:0}
-#addPanel .ar-top{padding:7px 16px 0}
-#addPanel .ar-who{font-size:12px;color:var(--mut)}
-#addPanel .ar-who b{color:var(--ink)}
-#addPanel .ar-req{color:var(--dim);margin-left:6px}
-#addPanel .ar-off{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
-#addPanel .ar-off select{min-width:220px}
-#addPanel .ar-fin{margin:6px 0 0;padding:6px 10px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;background:var(--panelA);font-size:12px}
-#addPanel .ar-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.75fr) minmax(0,1fr);gap:12px;padding:8px 16px;flex:1;min-height:0}
-#addPanel .ar-col{display:flex;flex-direction:column;gap:8px;min-width:0}
-#addPanel .ar-sec{border:1px solid var(--line);border-radius:8px;background:var(--panelA);padding:7px 10px 9px}
-#addPanel .ar-sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
-#addPanel .ar-sec>h4 span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--dim);margin-left:6px}
-#addPanel .ar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
-#addPanel .ar-grid.ar-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-#addPanel .ar-grid.ar-g1{grid-template-columns:minmax(0,1fr)}
-#addPanel .ar-f{display:flex;flex-direction:column;gap:2px;min-width:0}
-#addPanel .ar-f.span2{grid-column:1 / -1}
-#addPanel .ar-f[hidden]{display:none}
-#addPanel .ar-l{font-size:11px;font-weight:700;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#addPanel .ar-l i{font-style:normal;color:var(--amber);margin-left:2px}
-#addPanel .ar-l em{font-style:normal;font-weight:600;color:var(--dim);margin-left:6px}
-#addPanel .ar-n{font-size:11px;color:var(--dim)}
-#addPanel .ar-n:empty{display:none}
-#addPanel .ar-f input,#addPanel .ar-f select,#addPanel .ar-f textarea,#addPanel .ar-ro,#addPanel .ar-off select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px;width:100%;box-sizing:border-box}
-#addPanel .ar-ro{display:flex;align-items:center;background:var(--panel2);border-style:dashed;font-weight:600}
-#addPanel .ar-ro.dim{font-weight:500;color:var(--dim)}
-#addPanel .ar-f textarea{resize:none;height:54px;line-height:1.35}
-#addPanel .ar-f textarea.short{height:34px}
-#addPanel .ar-f.miss input,#addPanel .ar-f.miss select,#addPanel .ar-f.miss textarea,#addPanel .ar-svc .miss,#addPanel .ar-f.miss .ar-seg{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
-#addPanel .ar-seg{display:flex;border:1px solid var(--edge);border-radius:6px;overflow:hidden;min-height:28px}
-#addPanel .ar-seg button{flex:1;font:inherit;font-size:12px;font-weight:700;color:var(--mut);background:var(--panel);border:none;min-height:28px;cursor:pointer}
-#addPanel .ar-seg button[aria-pressed="true"]{background:var(--gold);color:var(--onGold)}
-#addPanel .ar-seg button+button{border-left:1px solid var(--edge)}
-#addPanel table.ar-svc{width:100%;border-collapse:collapse;table-layout:fixed}
-#addPanel .ar-svc th{font-size:11px;color:var(--dim);text-align:left;font-weight:700;padding:0 4px 4px}
-#addPanel .ar-svc th[scope="row"]{font-size:12px;font-weight:800;color:var(--ink);padding:3px 4px;border-top:1px solid var(--lineSoft);white-space:nowrap}
-#addPanel .ar-svc td{padding:3px 4px;border-top:1px solid var(--lineSoft);vertical-align:middle}
-#addPanel .ar-svc input,#addPanel .ar-svc select{width:100%;box-sizing:border-box;font:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
-#addPanel .ar-svc td>input{text-align:right;font-variant-numeric:tabular-nums}
-#addPanel .ar-svc select[hidden]{display:none}
-#addPanel .ar-svc .ar-na{font-size:11px;color:var(--dim)}
-#addPanel .ar-svc tr.tot th,#addPanel .ar-svc tr.tot td{font-weight:800;border-top:2px solid var(--line2);padding-top:5px;font-size:12.5px}
-#addPanel .ar-svc #arTot{text-align:right;font-variant-numeric:tabular-nums}
-#addPanel .ar-spread{display:flex;gap:6px;align-items:center}
-#addPanel .ar-spread input{flex:1;min-width:0;text-align:right}
-#addPanel .ar-spread .qb{white-space:nowrap;min-height:28px;font-size:11.5px}
-#addPanel .ar-note{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.35}
-#addPanel .ar-chk{list-style:none;margin:0;padding:0;font-size:11.5px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
-#addPanel .ar-chk li{display:flex;gap:6px;align-items:center;padding:1px 0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#addPanel .ar-chk li span{color:var(--dim);font-weight:500}
-#addPanel .ar-chk li .sr,#addPanel .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-#addPanel .ar-chk li i{font-style:normal;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex:none}
-#addPanel .ar-chk li.ok i{background:var(--green);color:var(--onGold)}
-#addPanel .ar-chk li.na i{border:1.5px solid var(--dim);color:var(--dim)}
-#addPanel .ar-chk li.no i{border:1.5px solid var(--amber);color:var(--amber)}
-#addPanel .ar-chk li.no{color:var(--amber);font-weight:700}
-#addPanel .ar-sum{margin-top:7px;font-size:11.5px;color:var(--mut);line-height:1.4}
-#addPanel .ar-sum b{color:var(--ink)}
-#addPanel .ar-yr{padding:8px 16px;flex:1;min-height:0;overflow:auto}
-#addPanel .ar-yrhd{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;margin-bottom:8px}
-#addPanel .ar-yrhd select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
-#addPanel table.ar-list{width:100%;border-collapse:collapse;font-size:12px}
-#addPanel .ar-list th{font-size:11px;color:var(--dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line2)}
-#addPanel .ar-list td{padding:4px 6px;border-bottom:1px solid var(--lineSoft)}
-#addPanel .ar-list td.r,#addPanel .ar-list th.r{text-align:right;font-variant-numeric:tabular-nums}
-#addPanel .ar-list tr.here td{color:var(--dim)}
-#addPanel .ar-list input[type="checkbox"]{width:24px;height:24px;margin:0}
-#addPanel .ar-pill{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:9px;white-space:nowrap}
-#addPanel .ar-pill.ok{background:var(--greenD);color:var(--green)}
-#addPanel .ar-pill.no{border:1px solid var(--amber);color:var(--amber)}
-#addPanel .ar-yrft{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
-#addPanel .ar-ft{display:flex;align-items:center;gap:10px;padding:8px 16px;border-top:1px solid var(--line);background:var(--panel)}
-#addPanel .ar-ft .sp{flex:1}
-#addPanel .ar-ft .btn{font-size:12px;padding:6px 14px;min-height:30px}
-#addPanel .ar-ft .btn[hidden]{display:none}
-#addPanel .ar-ft .btn.pri,#addPanel .ar-yrft .btn.pri{background:var(--gold);color:var(--onGold);border-color:var(--gold)}
-#addPanel .btn[disabled]{background:var(--panel2);color:var(--mut);border-color:var(--edge);cursor:not-allowed}
-#addPanel .ar-msg{font-size:12px;line-height:1.35;max-width:62%}
-#addPanel .ar-msg.bad{color:var(--amber);font-weight:600}
-#addPanel .ar-msg.ok{color:var(--ink)}
-#addPanel [hidden]{display:none!important}
+:is(#addPanel,#editPanel).modal-bg.open{align-items:center;padding-top:0}
+:is(#addPanel,#editPanel) .modal{width:min(1320px,96vw);max-width:none;max-height:calc(100vh - 16px);padding:0;display:flex;flex-direction:column;overflow:hidden;font-size:12px}
+:is(#addPanel,#editPanel) .modal h3{margin:0;padding:9px 16px 0;border-bottom:1px solid var(--line);align-items:flex-end;gap:12px;font-size:14px;letter-spacing:.4px}
+:is(#addPanel,#editPanel) .ar-ttl{padding-bottom:8px;white-space:nowrap}
+:is(#addPanel,#editPanel) .ar-sp{flex:1}
+:is(#addPanel,#editPanel) .ar-tabs{display:flex;gap:4px}
+:is(#addPanel,#editPanel) .ar-tabs button{white-space:nowrap;font:inherit;font-size:12px;font-weight:700;letter-spacing:0;border:1px solid var(--edge);border-bottom:none;border-radius:8px 8px 0 0;padding:6px 13px;min-height:28px;background:var(--panel2);color:var(--mut);cursor:pointer}
+:is(#addPanel,#editPanel) .ar-tabs button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:inset 0 3px 0 var(--gold)}
+:is(#addPanel,#editPanel) .modal h3 .x{margin-bottom:7px}
+:is(:is(#addPanel,#editPanel) #arBody,#editPanel #erBody){display:flex;flex-direction:column;flex:1;min-height:0}
+:is(#addPanel,#editPanel) .ar-top{padding:7px 16px 0}
+:is(#addPanel,#editPanel) .ar-who{font-size:12px;color:var(--mut)}
+:is(#addPanel,#editPanel) .ar-who b{color:var(--ink)}
+:is(#addPanel,#editPanel) .ar-req{color:var(--dim);margin-left:6px}
+:is(#addPanel,#editPanel) .ar-off{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+:is(#addPanel,#editPanel) .ar-off select{min-width:220px}
+:is(#addPanel,#editPanel) .ar-fin{margin:6px 0 0;padding:6px 10px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;background:var(--panelA);font-size:12px}
+:is(#addPanel,#editPanel) .ar-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.75fr) minmax(0,1fr);gap:12px;padding:8px 16px;flex:1;min-height:0}
+:is(#addPanel,#editPanel) .ar-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+:is(#addPanel,#editPanel) .ar-sec{border:1px solid var(--line);border-radius:8px;background:var(--panelA);padding:7px 10px 9px}
+:is(#addPanel,#editPanel) .ar-sec>h4{margin:0 0 6px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
+:is(#addPanel,#editPanel) .ar-sec>h4 span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--dim);margin-left:6px}
+:is(#addPanel,#editPanel) .ar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+:is(#addPanel,#editPanel) .ar-grid.ar-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+:is(#addPanel,#editPanel) .ar-grid.ar-g1{grid-template-columns:minmax(0,1fr)}
+:is(#addPanel,#editPanel) .ar-f{display:flex;flex-direction:column;gap:2px;min-width:0}
+:is(#addPanel,#editPanel) .ar-f.span2{grid-column:1 / -1}
+:is(#addPanel,#editPanel) .ar-f[hidden]{display:none}
+:is(#addPanel,#editPanel) .ar-l{font-size:11px;font-weight:700;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#addPanel,#editPanel) .ar-l i{font-style:normal;color:var(--amber);margin-left:2px}
+:is(#addPanel,#editPanel) .ar-l em{font-style:normal;font-weight:600;color:var(--dim);margin-left:6px}
+:is(#addPanel,#editPanel) .ar-n{font-size:11px;color:var(--dim)}
+:is(#addPanel,#editPanel) .ar-n:empty{display:none}
+:is(#addPanel,#editPanel) .ar-f input,:is(#addPanel,#editPanel) .ar-f select,:is(#addPanel,#editPanel) .ar-f textarea,:is(#addPanel,#editPanel) .ar-ro,:is(#addPanel,#editPanel) .ar-off select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px;width:100%;box-sizing:border-box}
+:is(#addPanel,#editPanel) .ar-ro{display:flex;align-items:center;background:var(--panel2);border-style:dashed;font-weight:600}
+:is(#addPanel,#editPanel) .ar-ro.dim{font-weight:500;color:var(--dim)}
+:is(#addPanel,#editPanel) .ar-f textarea{resize:none;height:54px;line-height:1.35}
+:is(#addPanel,#editPanel) .ar-f textarea.short{height:34px}
+:is(#addPanel,#editPanel) .ar-f.miss input,:is(#addPanel,#editPanel) .ar-f.miss select,:is(#addPanel,#editPanel) .ar-f.miss textarea,:is(#addPanel,#editPanel) .ar-svc .miss,:is(#addPanel,#editPanel) .ar-f.miss .ar-seg{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
+:is(#addPanel,#editPanel) .ar-seg{display:flex;border:1px solid var(--edge);border-radius:6px;overflow:hidden;min-height:28px}
+:is(#addPanel,#editPanel) .ar-seg button{flex:1;font:inherit;font-size:12px;font-weight:700;color:var(--mut);background:var(--panel);border:none;min-height:28px;cursor:pointer}
+:is(#addPanel,#editPanel) .ar-seg button[aria-pressed="true"]{background:var(--gold);color:var(--onGold)}
+:is(#addPanel,#editPanel) .ar-seg button+button{border-left:1px solid var(--edge)}
+:is(#addPanel,#editPanel) table.ar-svc{width:100%;border-collapse:collapse;table-layout:fixed}
+:is(#addPanel,#editPanel) .ar-svc th{font-size:11px;color:var(--dim);text-align:left;font-weight:700;padding:0 4px 4px}
+:is(#addPanel,#editPanel) .ar-svc th[scope="row"]{font-size:12px;font-weight:800;color:var(--ink);padding:3px 4px;border-top:1px solid var(--lineSoft);white-space:nowrap}
+:is(#addPanel,#editPanel) .ar-svc td{padding:3px 4px;border-top:1px solid var(--lineSoft);vertical-align:middle}
+:is(#addPanel,#editPanel) .ar-svc input,:is(#addPanel,#editPanel) .ar-svc select{width:100%;box-sizing:border-box;font:inherit;font-size:12px;padding:4px 7px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
+:is(#addPanel,#editPanel) .ar-svc td>input{text-align:right;font-variant-numeric:tabular-nums}
+:is(#addPanel,#editPanel) .ar-svc select[hidden]{display:none}
+:is(#addPanel,#editPanel) .ar-svc .ar-na{font-size:11px;color:var(--dim)}
+:is(#addPanel,#editPanel) .ar-svc tr.tot th,:is(#addPanel,#editPanel) .ar-svc tr.tot td{font-weight:800;border-top:2px solid var(--line2);padding-top:5px;font-size:12.5px}
+:is(#addPanel,#editPanel) .ar-svc #arTot{text-align:right;font-variant-numeric:tabular-nums}
+:is(#addPanel,#editPanel) .ar-spread{display:flex;gap:6px;align-items:center}
+:is(#addPanel,#editPanel) .ar-spread input{flex:1;min-width:0;text-align:right}
+:is(#addPanel,#editPanel) .ar-spread .qb{white-space:nowrap;min-height:28px;font-size:11.5px}
+:is(#addPanel,#editPanel) .ar-note{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.35}
+:is(#addPanel,#editPanel) .ar-chk{list-style:none;margin:0;padding:0;font-size:11.5px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+:is(#addPanel,#editPanel) .ar-chk li{display:flex;gap:6px;align-items:center;padding:1px 0;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#addPanel,#editPanel) .ar-chk li span{color:var(--dim);font-weight:500}
+:is(#addPanel,#editPanel) .ar-chk li .sr,:is(#addPanel,#editPanel) .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+:is(#addPanel,#editPanel) .ar-chk li i{font-style:normal;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;flex:none}
+:is(#addPanel,#editPanel) .ar-chk li.ok i{background:var(--green);color:var(--onGold)}
+:is(#addPanel,#editPanel) .ar-chk li.na i{border:1.5px solid var(--dim);color:var(--dim)}
+:is(#addPanel,#editPanel) .ar-chk li.no i{border:1.5px solid var(--amber);color:var(--amber)}
+:is(#addPanel,#editPanel) .ar-chk li.no{color:var(--amber);font-weight:700}
+:is(#addPanel,#editPanel) .ar-sum{margin-top:7px;font-size:11.5px;color:var(--mut);line-height:1.4}
+:is(#addPanel,#editPanel) .ar-sum b{color:var(--ink)}
+:is(#addPanel,#editPanel) .ar-yr{padding:8px 16px;flex:1;min-height:0;overflow:auto}
+:is(#addPanel,#editPanel) .ar-yrhd{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center;margin-bottom:8px}
+:is(#addPanel,#editPanel) .ar-yrhd select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px}
+:is(#addPanel,#editPanel) table.ar-list{width:100%;border-collapse:collapse;font-size:12px}
+:is(#addPanel,#editPanel) .ar-list th{font-size:11px;color:var(--dim);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line2)}
+:is(#addPanel,#editPanel) .ar-list td{padding:4px 6px;border-bottom:1px solid var(--lineSoft)}
+:is(#addPanel,#editPanel) .ar-list td.r,:is(#addPanel,#editPanel) .ar-list th.r{text-align:right;font-variant-numeric:tabular-nums}
+:is(#addPanel,#editPanel) .ar-list tr.here td{color:var(--dim)}
+:is(#addPanel,#editPanel) .ar-list input[type="checkbox"]{width:24px;height:24px;margin:0}
+:is(#addPanel,#editPanel) .ar-pill{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:9px;white-space:nowrap}
+:is(#addPanel,#editPanel) .ar-pill.ok{background:var(--greenD);color:var(--green)}
+:is(#addPanel,#editPanel) .ar-pill.no{border:1px solid var(--amber);color:var(--amber)}
+:is(#addPanel,#editPanel) .ar-yrft{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+:is(#addPanel,#editPanel) .ar-ft{display:flex;align-items:center;gap:10px;padding:8px 16px;border-top:1px solid var(--line);background:var(--panel)}
+:is(#addPanel,#editPanel) .ar-ft .sp{flex:1}
+:is(#addPanel,#editPanel) .ar-ft .btn{font-size:12px;padding:6px 14px;min-height:30px}
+:is(#addPanel,#editPanel) .ar-ft .btn[hidden]{display:none}
+:is(#addPanel,#editPanel) .ar-ft .btn.pri,:is(#addPanel,#editPanel) .ar-yrft .btn.pri{background:var(--gold);color:var(--onGold);border-color:var(--gold)}
+:is(#addPanel,#editPanel) .btn[disabled]{background:var(--panel2);color:var(--mut);border-color:var(--edge);cursor:not-allowed}
+:is(#addPanel,#editPanel) .ar-msg{font-size:12px;line-height:1.35;max-width:62%}
+:is(#addPanel,#editPanel) .ar-msg.bad{color:var(--amber);font-weight:600}
+:is(#addPanel,#editPanel) .ar-msg.ok{color:var(--ink)}
+:is(#addPanel,#editPanel) [hidden]{display:none!important}
 /* under 1366 the three columns do not fit legibly: one column, and the box scrolls */
 @media (max-width:1365px){
-  #addPanel .modal{overflow:auto}
-  #addPanel #arBody{flex:none;min-height:auto}
-  #addPanel .ar-body{grid-template-columns:minmax(0,1fr);flex:none}
-  #addPanel .modal h3{flex-wrap:wrap}
-  #addPanel .ar-msg{max-width:none}
-  #addPanel .ar-ft{flex-wrap:wrap;position:sticky;bottom:0}
+  :is(#addPanel,#editPanel) .modal{overflow:auto}
+  :is(:is(#addPanel,#editPanel) #arBody,#editPanel #erBody){flex:none;min-height:auto}
+  :is(#addPanel,#editPanel) .ar-body{grid-template-columns:minmax(0,1fr);flex:none}
+  :is(#addPanel,#editPanel) .modal h3{flex-wrap:wrap}
+  :is(#addPanel,#editPanel) .ar-msg{max-width:none}
+  :is(#addPanel,#editPanel) .ar-ft{flex-wrap:wrap;position:sticky;bottom:0}
 }
-@media (max-width:640px){ #addPanel .ar-grid,#addPanel .ar-grid.ar-g3{grid-template-columns:minmax(0,1fr)} #addPanel .ar-chk{grid-template-columns:1fr} }
+@media (max-width:640px){ :is(#addPanel,#editPanel) .ar-grid,:is(#addPanel,#editPanel) .ar-grid.ar-g3{grid-template-columns:minmax(0,1fr)} :is(#addPanel,#editPanel) .ar-chk{grid-template-columns:1fr} }
 #helpBody{max-height:76vh;overflow:auto;line-height:1.55;font-size:12.5px;padding-right:4px}
 #helpBody h2{font-size:16px;margin:2px 0 10px}
 #helpBody h4{font-size:12.5px;margin:14px 0 4px;color:var(--gold)}
@@ -1981,12 +1980,6 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   </div>
 </div>
 
-<div class="modal-bg" id="fldPanel" onclick="if(event.target===this)fldClose()">
-  <div class="modal" style="width:720px;max-width:95vw">
-    <h3 id="fldTitle">✎ EDIT</h3>
-    <div id="fldBody"></div>
-  </div>
-</div>
 
 <div class="modal-bg" id="ndPanel" onclick="if(event.target===this)ndOpen=false,render()">
   <div class="modal" style="width:1180px;max-width:98vw">
@@ -2046,19 +2039,19 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="office" data-id="o-update" data-t="Update your requirements">
 <p>Everything on your office’s requirements is yours to update <b>except the money itself</b>: the DISC and MAND allocation is the portfolio team’s, and it is greyed out in your copy. Everything you change travels back with your submittal.</p>
-<p>Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b><span data-fl="cons" data-fi="1"></span></b> (<i>written</i> or <i>not written</i>, amber until it is), <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b> (<i>6 of 7 not set</i>, amber while any are). Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
+<p>Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b><span data-fl="cons" data-fi="1"></span></b> (<i>written</i> or <i>not written</i>, amber until it is), <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b> (<i>6 of 8 still needed</i>, amber while any are). Each opens the same box — the whole record, at that field — and nothing is written until you press <b>Save</b>; <b>Cancel</b> or <span class="kb">Esc</span> leaves the record as it was, asking first if you typed anything.</p>
 <h4><span data-fl="cons" data-fi="1"></span> — what happens if this is not funded</h4>
 <p>The single most valuable thing you can give the portfolio team. Be concrete: name the date something stops, the number of aircraft or people affected, and the consequence that follows. This is the sentence read aloud in a room where someone is deciding what to cut.</p>
 <div class="hx-eg"><b>Useful:</b> If this is not funded, the depot line stops in March 27. Forty aircraft lose scheduled induction through the summer and the backlog carries into FY28 at roughly 1.4× cost.<br><b>Not useful:</b> This requirement is critical and must be funded.</div>
 <h4><span data-fl="dn" data-fi="1"></span></h4>
-<p>One box opens with two areas. <b>The description</b>, first, is what the requirement actually is, in plain language — a reader outside your office sees it on the spend plan, and it is often the only explanation they get. <b>The note</b>, underneath, is context for the reviewer: caveats, taskers, where a number came from. They are kept and sent as two separate fields, and <b>✔ Save</b> writes only the one you changed.</p>
+<p>In the box’s <b>Narrative</b>: <b>the description</b> is what the requirement actually is, in plain language — a reader outside your office sees it on the spend plan, and it is often the only explanation they get. <b>The note</b>, underneath the impact statement, is context for the reviewer: caveats, taskers, where a number came from. They are kept and sent as two separate fields, and <b>Save</b> writes only what you changed.</p>
 <h4>Requirement value, by service</h4>
 <p>The <b>BY SERVICE</b> table in the RECORD panel has a <b>REQ</b> column you can type into — one row per service. Type the new figure and press <span class="kb">Tab</span>. The <b>↺</b> beside the total puts the published values back.</p>
 <p>Type a figure as <b>1,234,567</b>, <b>$1,234,567</b>, <b>2.5M</b>, <b>750K</b> or <b>1.2B</b>. Cents are rounded to the nearest dollar, and the message says what was kept. A figure the board cannot read — <i>100oops</i>, <i>1.2.3</i> — one over $10 trillion (the most a file may carry), or one below zero is not taken: the box keeps the figure it had, and the message says why. An empty box clears the figure. The same holds wherever dollars are typed — allocations, budget authority, awards, CLINs, WBS — except that a funding source and a PPBE position figure may be below zero.</p>
 <p>In <b>PPBE Budget Positions</b> each service can be set to <i>figures entered in $K</i>, for exhibits printed in thousands: a plain number typed there is read as that many thousand dollars (15,828 is $15,828,000), a figure with its own unit (15.8M) is read as written, the boxes show thousands, and every total is in dollars. Setting it on a service that already holds figures asks whether those were typed in $K; if they were, they are multiplied by 1,000, and <i>undo the ×1,000</i> beside the setting puts them back.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title opens the record at it), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b><span data-fl="rec" data-fi="1"></span></b> — one box for the whole record: the plan event, the CCaR record and PID, prime contract or OGC, PMO (to hand a requirement to another office; it asks first and says what follows), obligation category, the cost element, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z; a destination that is not a government activity clears which awards to and the MIPR type), the description, the impact statement and the note. The CCaR record name is read from the CCaR records list and is not typed. The box lists what is still needed; you can save before it is complete. In a copy, it says at the top when what you change will not be sent — another office’s requirement, or a year the copy cannot submit — and the 🧾 CLIN drill is read only: nothing in it is sent.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. One box builds the whole record, for the office this copy submits for and no other (it asks once, if the copy does not know the office yet): the plan event, prime contract or OGC, the CCaR record and PID, the requirement value by service with a BAE budget for each service that has a value, the classification, where the money goes, and the narrative. The record’s name is never typed: it is read from the CCaR records list as the record is typed, and the list’s short description fills an empty description. The band, ★ Mission Critical, the award dates and RCN / EEIC are not in the box: the portfolio team sets them. It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
@@ -2079,7 +2072,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <tr><td><span data-fl="cons"></span>, description, note</td><td>Sent</td><td>Yours to write — nobody else can.</td></tr>
 <tr><td>Requirement value, by service</td><td>Sent</td><td>You know your costs. Reviewed carefully.</td></tr>
 <tr><td>Plan event, decision band, ★ Mission Critical</td><td>Sent</td><td>Reviewed like any other field.</td></tr>
-<tr><td>CCaR record, PID, record name, MIPR type, BAE budget</td><td>Sent</td><td>Record-keeping corrections.</td></tr>
+<tr><td>CCaR record, PID, MIPR type, BAE budget</td><td>Sent</td><td>Record-keeping corrections. The record name is read from the CCaR records list.</td></tr>
 <tr><td>Everything in <span data-fl="rec" data-fi="1"></span></td><td>Sent</td><td>A PMO change hands the requirement to that office.</td></tr>
 <tr><td>Award / obligation date, minimum useful increment</td><td>Sent</td><td>You know when it awards and what still buys something.</td></tr>
 <tr><td>Your office’s own ranking</td><td>Sent</td><td>It sets your office’s order, not the portfolio’s.</td></tr>
@@ -2196,16 +2189,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="v199-h96">Working out of the shared folder, replacing the folder’s cost estimate keeps the one it replaces in the folder’s history. <span class="mp" data-m="setup">Setup › Live view…</span> → <b>🕓 Cost estimates kept</b> lists them, newest first, under the estimate each was kept for; <b>Put this back in the folder</b> makes one the folder’s estimate again. It is checked first (whole, its own estimate, its fingerprint), what the folder holds now is kept in the history first, and nothing is written if that cannot be done or the folder’s copy changes meanwhile. Your board’s own copy is not changed.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
-<p>In the RECORD panel the three written fields sit straight under the title: <b><span data-fl="cons" data-fi="1"></span></b>, <b><span data-fl="dn" data-fi="1"></span></b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b><span data-fl="rec" data-fi="1"></span></b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
+<p>In the RECORD panel the three written fields sit straight under the title: <b><span data-fl="cons" data-fi="1"></span></b>, <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b>, which says how many of the required fields are still to fill. All three open one box — the whole record, at that field — held until <b>Save</b>, which writes only what changed, in one save; it refuses if the record changed underneath it while it was open. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
 </section>
 </template>
-<div class="modal-bg" id="recPanel" onclick="if(event.target===this)recOpen=null,render()">
-  <div class="modal" style="width:760px;max-width:95vw">
-    <h3><span id="recHead">📋 REQUIREMENT EDIT</span>
-      <button class="x" onclick="recOpen=null;render()">✕ Close</button></h3>
-    <div id="recBody"></div>
-  </div>
-</div>
 
 <div class="modal-bg" id="acePanel" onclick="if(event.target===this)toggleAce()">
   <div class="modal" style="width:1120px;max-width:97vw">
@@ -2318,6 +2304,14 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
       <span class="ar-tabs" role="group" aria-label="How to add"><button type="button" id="arTabNew" aria-pressed="true" onclick="arTab('new')">New requirement</button><button type="button" id="arTabYr" aria-pressed="false" onclick="arTab('yr')">From another year</button></span>
       <button type="button" class="x" onclick="toggleAdd()">✕ Close</button></h3>
     <div id="arBody"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="editPanel" onclick="if(event.target===this)erClose()">
+  <div class="modal ar-m">
+    <h3><span class="ar-ttl" id="erTtl">✎</span><span class="ar-sp"></span>
+      <button type="button" class="x" onclick="erClose()">✕ Close</button></h3>
+    <div id="erBody"></div>
   </div>
 </div>
 
@@ -2676,7 +2670,7 @@ function writerJournalUndo(e, ms){ try{ const j=(ms||MS).jrnl||[]; const i=j.las
 let PMODE=null;
 try{ PMODE = JSON.parse(document.getElementById('pubMode').textContent); }catch(e){}
 // v2.03 (item 20): ONE PLACE FOR EACH FIELD'S NAME. A requirement's fields are named here, once, and everything that
-// names one reads it: the RECORD panel and 📋 Requirement edit (recFields), the pop-ups (FLD_DEF), the submittal review
+// names one reads it: the RECORD panel, the edit box (v2.08) and Classify (recFields), the submittal review
 // (PMO_FIELDS), the proposal gate, the row's flags, the messages, and the in-file guide (data-fl). v1.86's renames had to
 // be made in six places by hand, and a test went hollow when one name changed in one place and not the other. The key is
 // what code compares (recFields' f.k, the proposal gate); the label is only ever shown. npm run check fails on a recF()
@@ -3499,11 +3493,12 @@ function attGo(k, id){
   attOpen=null;
   setCur(id);
   goRow(id);
-  if(k==='imp'){ openFld(id, 'cons'); return; }
-  if(k==='ccar'){ editCcar(id); return; }
+  // v2.08 (item 122): the impact statement and the CCaR record are in the edit box, which opens at the field
+  if(k==='imp'){ openEdit(id, 'cons'); return; }
+  if(k==='ccar'){ openEdit(id, 'ccar'); return; }
   if(k==='neg' || k==='code') return;
   // v2.00 (U41): the RECORD panel, at the Navy SI code that shows the code as saved
-  if(k==='si'){ recOpen=id; render(); try{ const f=document.querySelector('#recBody select[onchange^="setSi("]'); if(f && f.focus) f.focus(); }catch(e){} return; }
+  if(k==='si'){ openEdit(id, 'si'); return; }
   if(k==='buy'){ buysOpen=true; render(); try{ const w=document.getElementById('buysWrap'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){} return; }
   try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
     if(blk){ if(blk.scrollIntoView) blk.scrollIntoView({block:'center'});
@@ -6342,6 +6337,18 @@ function applyState(st){
 // `st` reads ANOTHER appropriation's year state (the chart of accounts spans all four).
 // Omitted, it is this board's own `S` and nothing about the 44 existing call sites changes.
 function grpOf(o, st){ const T=st||S; return (o && ((T&&T.grp||{})[o.id] || o.grp)) || ''; }
+// THE MOVE ITSELF, without saving: the office for this year, and the requirement last in the new office's ranking (it is
+// taken out of every other). setGrp and the edit box's writer (reqApply) both move through it.
+function grpMove(id, g){
+  const itm=itemById(id); if(!itm) return;
+  if(!S.grp) S.grp={};
+  if(g===itm.grp) delete S.grp[id]; else S.grp[id]=g;
+  Object.keys(S.pmoOrder||{}).forEach(function(k){
+    if(Array.isArray(S.pmoOrder[k])) S.pmoOrder[k]=S.pmoOrder[k].filter(function(x){ return x!==id; });
+  });
+  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
+  S.pmoOrder[g].push(id);
+}
 // Move one requirement to another PMO. The per-PMO rankings have to move with it, or it keeps a
 // rank in an office it has left.
 function setGrp(id, g){
@@ -6353,12 +6360,7 @@ function setGrp(id, g){
   // last (unjournalled: pmoOrder is in JRNL_SKIP) while saying it "is already in" that office -- from a bulk set, or an arrow
   // key through a PMO select, which fires change on every office it passes.
   if(was===g){ setStat('\ud83c\udff7 '+esc(dispTitle(itm))+' is already in '+esc(g)+'.'); return; }
-  if(g===home) delete S.grp[id]; else S.grp[id]=g;
-  Object.keys(S.pmoOrder||{}).forEach(function(k){
-    if(Array.isArray(S.pmoOrder[k])) S.pmoOrder[k]=S.pmoOrder[k].filter(function(x){ return x!==id; });
-  });
-  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
-  S.pmoOrder[g].push(id);
+  grpMove(id, g);
   save(); render();
   try{ flash(id); }catch(e){}   // the move itself may filter the row out of the current view
   setStat('\ud83c\udff7 Moved <b>'+esc(dispTitle(itm))+'</b> from '+esc(was)+' to <b>'+esc(g)+'</b>'
@@ -6378,6 +6380,9 @@ let naFromFy=0, naFromSel={}, naFromFor=null;
 // requirements brought in from another year still to finish, the one being finished, and the description the CCaR list filled.
 // syncBtns() reads arOpen on the first render, so these live here too (the BANDS_STD rule).
 let arOpen=false, arTabOn='new', arOff='', arOffHow='', arQueue=[], arFin=null, arDescAuto='', arOffNav=false;
+// v2.08 (item 122): the edit box -- the requirement it holds, where it opened, the record as it opened (what Save compares
+// against), and the description the CCaR list filled. render() reads erOpen (erSync), so these live here too.
+let erOpen=null, erAt='', erSnap=null, erDescAuto='';
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -12351,17 +12356,6 @@ function togglePtype(id){
   const cur=ptypeOf(id);
   S.ptype[id]= cur==='PRIME'? 'OGC' : 'PRIME';
   save(); render(); flash(id);
-}
-function editPid(id, typed){
-  const it=itemById(id); if(!it) return;
-  uiPrompt('PID number for "'+dispTitle(it)+'" (up to '+codeMax('pid')+' characters):', typed!=null? typed : pidOf(it), v=>{
-    if(v===null) return;
-    // v1.99 (item 91): longer than 20 is refused -- the PID stays, and the box opens again holding what was typed
-    const r=codeTake(v, 'pid'); if(r.why){ setStat('\u26a0 <b>PID not changed.</b> '+esc(r.why)+'.'); editPid(id, v); return; }
-    v=r.v;
-    if(v) S.pid[id]=v; else delete S.pid[id];
-    save(); render(); flash(id);
-  });
 }
 const fM2=v=>'$'+(v/1e6).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
 const _MN3=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -20659,79 +20653,8 @@ function setBand(id,v){ if(v===''){ delete S.band[id]; }
   else S.band[id]=v; save(); render(); }
 function setMinInc(id,v){ const n=parseAmt(v); if(amtNo(n, v, 'The minimum useful increment')) return; if(n===null||n<=0) delete S.minInc[id]; else S.minInc[id]=n; save(); render(); }
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
-function toggleCons(id){ openFld(id,'cons'); }
-// THE POP-UP FOR THE WRITTEN FIELDS. Note, Description and Impact used to expand the row in
-// place. That is right on a board with nowhere else to put them, and wrong on one where the RECORD
-// panel is two inches away: the edit belongs with the rest of the requirement's fields, not wedged
-// into the middle of the priority list.
-// (The card build, which had no panel and expanded the row instead, was retired in v1.88; its fallback went in v2.03.)
-let fldOpen=null;                 // {id, kind}, or null when nothing is being edited
-// DESCRIPTION AND NOTE SHARE ONE POP-UP (v1.86), the description first and the note under it, one
-// Save -- but not one field. Each is still kept, journalled, submitted from a PMO copy, reviewed and
-// exported as itself, and a Save writes only the box whose text changed, so saving the description
-// never re-stamps the note as edited, or blanks it.
-const FLD_PARTS={
-  cons:{ k:'cons', lbl:'', set:'setCons',
-         get:function(id){ return (S.cons||{})[id]||''; },
-         ph:function(it){ const b=BAND_DEF(it.id);
-           return 'If this is NOT funded, what happens and when? '
-             +(b && b.consReq? 'Required for '+b.n+' \u2014 this text becomes the UFR justification.'
-                             : 'Feeds the UFR if this falls below the line.'); } },
-  desc:{ k:'desc', lbl:'Description \u2014 what shows on the spend plan read-out', set:'setDesc',
-         get:function(id){ return (S.desc||{})[id]||''; },
-         ph:function(it){ return 'What is '+dispTitle(it)+' for? Plain-language description \u2014 this '
-             +'is what shows up on the spend plan read-out.'; } },
-  note:{ k:'note', lbl:'Note \u2014 for the board, not the read-out', set:'setNote',
-         get:function(id){ return S.notes[id]||''; },
-         ph:function(it){ return 'Notes for '+dispTitle(it)+' \u2014 decisions, caveats, taskers\u2026'; } }
-};
-const FLD_DEF={
-  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },   // read each time, never once at load (v2.03, item 20)
-  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }
-};
-function openFld(id, kind){ fldOpen={id:id, kind:kind}; fldBody(); }
-function fldClose(){ fldOpen=null; fldBody(); }
-function fldBody(){
-  const bg=document.getElementById('fldPanel'), el=document.getElementById('fldBody');
-  if(!bg||!el) return;
-  const it=fldOpen? itemById(fldOpen.id) : null;
-  if(!it) fldOpen=null;                      // removed out from under the editor
-  bg.className='modal-bg'+(fldOpen?' open':'');
-  if(!fldOpen){ el.innerHTML=''; return; }
-  const D=FLD_DEF[fldOpen.kind];
-  if(!D){ fldOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
-  const t=document.getElementById('fldTitle');
-  if(t) t.innerHTML=esc(D.lbl)+'  <span style="font-weight:600;text-transform:none;letter-spacing:0;'
-    +'color:var(--mut)">'+esc(dispTitle(it))+'</span>'
-    +'<button class="x" onclick="fldClose()">\u2715 Close</button>';
-  const two=D.parts.length>1;
-  el.innerHTML=D.parts.map(function(p, i){
-      return (p.lbl? '<label for="fld-'+p.k+'" style="display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;'
-          +'text-transform:uppercase;color:var(--mut);margin:'+(i? '10px' : '0')+' 0 4px">'+esc(p.lbl)+'</label>' : '')
-        +'<textarea id="fld-'+p.k+'" data-held="1" style="width:100%;min-height:'+(two? (i? 110 : 150) : 190)+'px" placeholder="'
-        +esc(p.ph(it))+'">'+esc(p.get(it.id))+'</textarea>'; }).join('')
-    +'<div class="fr" style="margin-top:9px">'
-    +'<button class="btn pub" onclick="fldSave()">\u2714 Save</button>'
-    +'<button class="btn" onclick="fldClose()">Cancel</button>'
-    +'<span class="hint">'+(two? 'Each is kept as its own field; only what you changed is written.'
-                               : 'Saved against this requirement and written into the board.')+'</span></div>';
-  setTimeout(function(){ try{ document.getElementById('fld-'+D.parts[0].k).focus(); }catch(e){} }, 50);
-}
-// the text as a textarea hands it back, for asking whether it changed
-function fldSame(a, b){ return String(a==null?'':a).replace(/\r\n?/g,'\n')===String(b==null?'':b).replace(/\r\n?/g,'\n'); }
-function fldSave(){
-  if(!fldOpen) return;
-  const D=FLD_DEF[fldOpen.kind];
-  if(!D) return;
-  const id=fldOpen.id;
-  // every box is read BEFORE the pop-up closes: the setter renders, and render() draws it away
-  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? a.value : null; });
-  if(vals.some(function(v){ return v===null; })) return;
-  fldOpen=null;              // close FIRST: the setter renders, and render() draws this panel
-  const todo=D.parts.filter(function(p, i){ return !fldSame(vals[i], p.get(id)); });
-  if(!todo.length){ fldBody(); return; }
-  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });
-}
+// v2.08 (item 122): the impact statement is written in the edit box (the pop-up it had went with Requirement edit)
+function toggleCons(id){ openEdit(id,'cons'); }
 // ---- 📖 HELP: THE GUIDE, INSIDE THE FILE (v1.86) --------------------------------------------------------
 // Brad, 25 Sep 2026: "Can we add the help file to the tool itself so that when we push it out, everyone
 // has access to it?" -- and -- "I don't want it to automatically pop up but I want it to be available."
@@ -23832,25 +23755,6 @@ function resetAsk(id){
   if(S.asks) delete S.asks[id];
   save(); render(); flash(id);
 }
-function editCcar(id, typed){
-  const it=itemById(id); if(!it) return;
-  uiPrompt('CCaR record for "'+dispTitle(it)+'" (up to 12 characters, e.g. JSF6789 or PP JSF6789):', typed!=null? typed : ccarOf(it), v=>{
-    if(v===null) return;
-    // v1.99 (item 91): longer than 12 is refused -- the record stays, and the box opens again holding what was typed
-    const r=codeTake(v, 'ccar'); if(r.why){ setStat('\u26a0 <b>CCaR record not changed.</b> '+esc(r.why)+'.'); editCcar(id, v); return; }
-    v=r.v;
-    if(!S.ccar) S.ccar={};
-    if(v) S.ccar[id]=v; else delete S.ccar[id];
-    const filled=v? ccarDescFill(id) : false;       // v2.04 (item 108): an EMPTY Description only
-    save(); render(); flash(id);
-    if(v && ccarIdx()){
-      const nm=ccarRecNameOf(it);
-      setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2192 CCaR <b>'+esc(v)+'</b>'
-        +(nm? ' \u00b7 Record Name <b>'+esc(nm)+'</b>' : (ccarRec(v)? ' \u00b7 the CCaR list holds that number under records that disagree, so no Record Name is taken' : ' \u00b7 not in the CCaR list'))
-        +(filled? ' \u00b7 Description filled from the list' : (((S.desc||{})[id]||'') && ccarDescOf(it) && ccarDescOf(it)!==S.desc[id]? ' \u00b7 the Description already has text, kept; the RECORD panel offers the CCaR one' : ''))+'.');
-    }
-  });
-}
 const eff = it => {
   const a=S.alloc[it.id];
   if(a===null||a===undefined) return askTot(it);
@@ -24818,10 +24722,10 @@ function chips(){
 // them there rather than pretending not to know. With a row selected it simply opens it.
 function pmoReassignHint(){
   const sel=(typeof curRow!=='undefined' && curRow && itemById(curRow))? curRow : null;
-  if(sel && typeof toggleRec==='function'){ toggleRec(sel); return; }
+  if(sel){ openEdit(sel, 'grp'); return; }
   alert('A requirement\u2019s PMO is set on its own record.\n\n'
-    +'Open any requirement\u2019s '+FLI('rec')+' \u2014 the PMO field is the second one, under '
-    +'\u201cWhat it is\u201d.\n\n'
+    +'Select a requirement and open its '+FLI('rec')+' in the RECORD panel \u2014 the PMO is under '
+    +'\u201cIdentity\u201d.\n\n'
     +'The move applies to '+FYL()+' only: the source file keeps its own answer and the record says '
     +'so. Its per-office rank travels with it, landing last in the office it joins.');
 }
@@ -25052,10 +24956,8 @@ function rowMenuHtml(it){
     // and the row's own lifecycle.
     // The consequence came off this menu when the RECORD panel got its own way in: in this build
     // these fields are edited from the panel, and one route each is the whole point.
-    // Reachable here as well as on the row, because the row only shows the record name when it
-    // differs from the plan event — and after a rename that makes them match, it would vanish.
-    +mi('✎ Rename the CCaR record name','editRecName('+jsa(id)+')',
-        (S.recNames||{})[id]? 'renamed' : '')
+    // v2.08 (item 122, D9): the CCaR record-name rename that stood here is retired -- the record name is read from the
+    // CCaR records list, never typed (Brad: "Nobody should be typing in the Record Title"); one typed before stays.
     // THE RECORD IS A FORM AND LIVES IN A PANEL. What a requirement IS -- PMO, obligation
     // category, WBS, RCN/EEIC, SI, budget per service, destination -- used to hang here as up to
     // sixteen more rows, six of them added by the BAE registry alone. The unset count rides on the
@@ -25094,8 +24996,8 @@ function pickCostElem(id){
   });
 }
 // ONE POP-UP FOR BOTH (v1.86): the card build, retired in v1.88, used to open each under its row.
-function toggleNote(id){ openFld(id,'dn'); }
-function toggleDesc(id){ openFld(id,'dn'); }
+function toggleNote(id){ openEdit(id,'notes'); }
+function toggleDesc(id){ openEdit(id,'desc'); }
 // Description = what this requirement IS, in plain words. Distinct from Notes, which carry
 // decisions, caveats and taskers. The description is what a spend-plan reader needs, so it is
 // carried into the exports that the printed spend plan will be built from.
@@ -25461,8 +25363,8 @@ function wbsLabel(kind,a,b){
 // What a requirement IS, as opposed to what you do to it. Everything here used to hang off the
 // per-row ⋯ menu, which reached 23 rows on a board with the BAE registry loaded; the verbs stayed
 // there and this is the rest. One editor, not two -- rowMenuHtml no longer renders any of it.
-let recOpen=null;                    // requirement id, or null
-function toggleRec(id){ recOpen=(recOpen===id)? null : id; render(); }
+// v2.08 (item 122): 📋 Requirement edit is the edit box, at its top
+function toggleRec(id){ openEdit(id, 'rec'); }
 // One field: a label, whether it is SET, the control, and an optional note under it. `set` is not
 // decoration -- an unset field is a blank cell in the Spend Plan Source export, and counting them
 // is the only way to find them without opening every requirement in turn.
@@ -25508,15 +25410,15 @@ function recFields(id, it){
   F.push(recSec('Work breakdown'));
   if(ptypeOf(id)==='PRIME'){
     F.push(recF('wbs', true,
-      recBtn('recOpen=null;toggleClin('+jsa(id)+')', 'Open the 🧾 CLIN drill',
+      recBtn('toggleClin('+jsa(id)+')', 'Open the 🧾 CLIN drill',
              'A prime is broken down per CLIN, so the WBS is logged there'),
       'logged per CLIN — one thing, one place'));
   } else {
     F.push(recF('wbs', wbsReq(id).length,
-      recBtn('recOpen=null;wbsQuick('+jsa(id)+')', esc(wbsLabel('req',id,''))||'Add a WBS paragraph…',
+      recBtn('wbsQuick('+jsa(id)+')', esc(wbsLabel('req',id,''))||'Add a WBS paragraph…',
              'The WBS paragraph this requirement books work against')));
     if(wbsReq(id).length) F.push(recF('wbsSplit', wbsReq(id).length>1,
-      recBtn('recOpen=null;toggleWbs(&quot;req&quot;,'+jsa(id)+',&quot;&quot;)',
+      recBtn('toggleWbs(&quot;req&quot;,'+jsa(id)+',&quot;&quot;)',
              wbsReq(id).length>1? wbsReq(id).length+' lines' : 'one line — split it…',
              'Break the allocation across several WBS paragraphs, per service')));
   }
@@ -25623,57 +25525,6 @@ function recFields(id, it){
         +flowEntsAZ().map(function(e){ return '<option value="'+esc(e.k)+'"'+(destOf(it).end===e.k?' selected':'')
           +'>'+esc(e.n)+'</option>'; }).join(''))));
   return F;
-}
-// How many fields are offered, and how many are answered. The menu entry carries this so a gap is
-// visible without opening anything.
-function recCount(id, it){
-  let n=0, un=0;
-  recFields(id, it).forEach(function(f){ if(f.sec) return; n++; if(!f.set) un++; });
-  return {n:n, un:un};
-}
-function recBody(){
-  const bg=document.getElementById('recPanel'), el=document.getElementById('recBody');
-  if(!bg||!el) return;
-  const it=recOpen? itemById(recOpen) : null;
-  if(!it) recOpen=null;                       // removed out from under the panel
-  bg.className='modal-bg'+(recOpen?' open':'');
-  if(!recOpen){ el.innerHTML=''; return; }
-  try{ const hd=document.getElementById('recHead'); if(hd) hd.textContent=FLI('rec').toUpperCase(); }catch(e){}   // v2.03 (item 20)
-  const id=recOpen;
-  // Prev / next walk the priority order, so a sweep down the board never needs the menu again.
-  const ord=(S.order||[]).filter(function(x){ return !!itemById(x); });
-  const at=ord.indexOf(id);
-  const step=function(d){
-    if(at<0||!ord.length) return '';
-    const t=ord[(at+d+ord.length)%ord.length];
-    return '<button class="btn" style="font-size:10px;padding:3px 9px" onclick="recOpen='+jsa(t)+';render()" title="'+esc(dispTitle(itemById(t))||t)+'">'+(d<0?'↑ prev':'next ↓')
-      +'</button>';
-  };
-  const C=recCount(id, it);
-  let h='<div class="rec-hd"><b style="font-size:12px">'+esc(dispTitle(it)||id)+'</b>'
-    +(recName(it) && recName(it)!==dispTitle(it)
-       ? '<span style="color:var(--dim)">'+esc(recName(it))+'</span>' : '')
-    +'<span style="color:var(--dim)">'+esc(grpOf(it))+'</span>'
-    +(at>=0? '<span style="color:var(--dim)">#'+(at+1)+' of '+ord.length+'</span>' : '')
-    +'<span class="nav">'+step(-1)+step(1)+'</span></div>';
-  // The per-year caveat, said rather than left to be discovered: these are S, not DATA.
-  h+='<div class="hint">Recorded against <b>'+FYL()+'</b> only — a copy of this requirement in '
-    +'another fiscal year carries its own answers. '
-    +(C.un? '<b style="color:var(--amber)">'+C.un+' of '+C.n+' not set.</b>'
-          : '<b style="color:var(--green)">All '+C.n+' set.</b>')
-    +'</div>';
-  h+='<div class="rec-grid">';
-  recFields(id, it).forEach(function(f){
-    if(f.sec){ h+='<div class="rec-sec">'+esc(f.sec)+'</div>'; return; }
-    h+='<div class="rec-f'+(f.set?'':' un')+'"><span class="rl">'+esc(f.l)+'</span>'+f.c
-      +(f.n? '<div class="hint" style="margin-top:2px">'+f.n+'</div>' : '')+'</div>';
-  });
-  h+='</div>';
-  h+='<div class="hint" style="margin-top:10px;border-top:1px solid var(--lineSoft);padding-top:8px">'
-    +'These fields are what the <b>Spend Plan Source</b> export prints, except where a field '
-    +'says otherwise. A field left unset is a blank cell in that workbook — the export '
-    +'never guesses one.</div>';
-  el.innerHTML=h;
 }
 
 // ---- THE CLASSIFICATION MATRIX ---------------------------------------------------------------
@@ -26205,59 +26056,9 @@ function clinTable(it){
               +'changing a CLIN never moves an increment.' : '')
     +'</div></div>';
 }
-function editTitle(id){
-  const it=itemById(id);
-  if(!it) return;
-  // The pen renames what the ROW SHOWS, which since the naming change is the PLAN EVENT. Writing
-  // it.title here renames the CCaR RECORD NAME instead, and dispTitle reads the plan event first --
-  // so on an added requirement the typed name vanished into a field the row never displays.
-  const shownDefault = it.event || it.title;      // what dispTitle falls back to with no override
-  uiPrompt('Plan Event \u2014 the name shown on the row:', dispTitle(it), v=>{
-    if(v===null) return;
-    const t=v.trim();
-    if(!t){ alert('The plan event cannot be empty.'); return; }
-    if(it.custom){
-      // an added requirement owns its own fields, so the plan event is edited directly and no
-      // override layer is needed; its record name is left alone
-      it.event=t; delete S.titles[id];
-    }
-    else if(t===shownDefault){ delete S.titles[id]; }   // typed back to the underlying plan event
-    else S.titles[id]=t;
-    save(); render(); flash(id);
-  });
-}
 
-// The CCaR Record Name. Separate from editTitle because they are separate names: the row shows
-// the plan event, and on OPN every requirement shares one event so only this tells them apart.
-function editRecName(id){
-  const it=itemById(id);
-  if(!it) return;
-  if(it.custom){
-    // an added requirement owns its fields outright — no override layer, and no join to protect
-    uiPrompt('CCaR Record Name \u2014 how the source file files this requirement:', recName(it), function(v){
-      if(v===null) return;
-      it.title=(''+v).trim();
-      // one brought in from another year (or accepted from a copy) can carry a record name, which recName() reads first: the
-      // typed name replaces it, or the pen did nothing visible (review fix)
-      if(S.recNames && Object.prototype.hasOwnProperty.call(S.recNames, id)) delete S.recNames[id];
-      save(); render(); flash(id);
-    });
-    return;
-  }
-  uiPrompt('CCaR Record Name \u2014 how the source file files this requirement.\n\n'
-    +'The file says: '+recNameSrc(it)+'\n\n'
-    +'Renaming is safe: the funds-flow join, the execution WBS pull and LM/PW detection all keep '
-    +'reading the original as well, so a rename can only ADD a match \u2014 type the name your '
-    +'Spend Plan Source uses and a requirement that was not joining will start to.\n\n'
-    +'Blank restores the file\u2019s own name.', recName(it), function(v){
-    if(v===null) return;
-    const t=(''+v).trim();
-    if(!S.recNames) S.recNames={};
-    if(!t || t===recNameSrc(it)) delete S.recNames[id];   // blank, or typed back to the original
-    else S.recNames[id]=t;
-    save(); render(); flash(id);
-  });
-}
+// v2.08 (item 122): the plan event, the CCaR record and the PID are edited in the edit box (openEdit), and the CCaR record
+// name is read from the CCaR records list, never typed (Brad, D9: the row's rename is retired; a name typed before stays).
 // #8, Production Engineering Support, added 23 Sep 2026 right before Fixed JPO Support: the PES
 // budgets on Full Fund. A requirement's cost element is SAVED BY NAME, so inserting one moves no
 // existing choice; only a number typed into the cost element prompt follows the new order.
@@ -27241,7 +27042,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -31196,7 +30997,7 @@ function reqCreate(g, rec, from, f){
     // a budget chosen in the box answers the discretionary line, as the RECORD panel's not-funded picker writes it
     if(f.bud && Object.keys(f.bud).length){ if(!S.budgetAsg) S.budgetAsg={};
       const A=S.budgetAsg[nid]||{}; Object.keys(f.bud).forEach(function(sv){ budPutUnf(A, sv, f.bud[sv]); }); S.budgetAsg[nid]=A; }
-    // the plan event typed in the box is the requirement's own, as editTitle keeps an added one's
+    // the plan event typed in the box is the requirement's own, as the edit box keeps an added one's (reqApply)
     if(f.event!==undefined){ it.event=f.event; if(S.titles) delete S.titles[nid]; }
   }
   return nid;
@@ -31269,6 +31070,375 @@ function restoreAll(){
       +linked.map(function(id){ const it=(BASE_ITEMS||[]).filter(x=>x.id===id)[0]; return '  • '+(it? dispTitle(it) : id)+' — as '+yearLinkOf(id); }).join('\n')
       +'\n\nOK — restore every one, these too (their value would count twice).\nCancel — restore the others and leave these removed.')) keep=linked;
   S.removed=keep.slice(); applyState(S); save(); render(); }
+
+// ═══ v2.08 (item 122): EDIT THE WHOLE RECORD IN ONE BOX ═══════════════════════════════════════════════════════════════════
+// Brad, 24 Oct 2026 ("Edit the whole record later as its own item") and his decisions of 26 Oct (D1-D12 of
+// recovery/v208/ITEM-122-BRIEF.md: "Agree on all, D9 retire the rename"). One box, #editPanel, replaces 📋 Requirement edit
+// and the ⚠ Impact statement and 📄 Description & note pop-ups:
+//  - THE RECORD FIELDS (D1): everything Requirement edit held, plus the plan event, the CCaR record, the PID, the description,
+//    the note and the impact statement. The value by service, the BAE budgets, the band, ★, the awards and Planning stay on
+//    the RECORD panel (D4: no money in the box). The record title is read from the CCaR records list, never typed (D9: the
+//    row's ⋯ rename is retired; a name typed before stays).
+//  - OPENED from the RECORD panel's buttons -- each at its own field -- Needs attention's Go to and the PMO hint (D2, D3);
+//    never from the row, which is triage.
+//  - A HELD DRAFT (D6): drawn once when it opens (the Add box's rule: a redraw would take the typing -- F2), nothing written
+//    until Save, and then only the fields that changed, through reqApply(), in one save(). Esc and Cancel discard (every
+//    field is data-held, so the box controller asks first). Save refuses if the requirement was removed, or its record
+//    changed, while the box was open.
+//  - THE REQUIRED LIST WARNS, never blocks (D5): reqNeeds() on what the box holds; the value and the budgets are set in the
+//    RECORD panel and the list says so.
+//  - THE OFFICE (D8) is changed on Save after a question naming what follows; a PMO copy's own proposal keeps its office.
+//  - A PMO COPY (D7) says up front when an edit will not be sent: another office's requirement, or the copy on a year it
+//    cannot submit.
+//  - Goes to that is not a government activity takes Which awards to and the MIPR type with it (D10, F4).
+function erOn(){ return typeof erOpen!=='undefined' && !!erOpen; }
+function erEl(id){ return document.getElementById(id); }
+function erVal(id){ const e=erEl(id); return e? String(e.value==null? '' : e.value) : ''; }
+// WHAT THE BOX EDITS, as stored: the snapshot it opens with, and what Save compares against to know what changed and whether
+// anything moved underneath it. One reader, so the two can never disagree about a field.
+function erStored(id){
+  const it=itemById(id); if(!it) return null;
+  const w=wbsReq(id), rs=((S.rcnSvc||{})[id])||{};
+  return {titles:dispTitle(it), ccar:((S.ccar||{})[id]||it.ccar||''), pid:(S.pid||{})[id]||'', ptype:ptypeOf(id), grp:grpOf(it),
+    obCat:obCatOf(id), costElem:(S.costElem||{})[id]||'',
+    wbs:(w.length===1 && !(w[0].v||[]).length)? String(w[0].w||'') : (w.length? '\u0001'+JSON.stringify(w) : ''),
+    rcnAsg:(S.rcnAsg||{})[id]||'', rcnSvc:JSON.stringify(Object.keys(rs).sort().map(function(k){ return [k, rs[k]]; })),
+    si:erSiCur(it),
+    to:destOf(it).to, end:destOf(it).end, mipr:miprOf(id),
+    desc:(S.desc||{})[id]||'', notes:(S.notes||{})[id]||'', cons:(S.cons||{})[id]||''};
+}
+// A copy's word on whether an edit here is sent (D7): pmoSubmit's own rule -- a requirement the copy knew is sent by the office
+// it had at publication (pmoHomeOf, so a hand-over is sent), one the copy added by its office now.
+function erNotSent(id){
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return '';
+  if(PMODE && PMODE.fy && +MS.cur!==+PMODE.fy) return 'This copy was published for FY'+(PMODE.fy%100)+' and is showing FY'
+    +(MS.cur%100)+': nothing edited here can be sent. Go back to FY'+(PMODE.fy%100)+' to edit what you submit.';
+  const me=myPmo(), it=itemById(id); if(!me || !it) return '';
+  const own=(pmoProposalIds().indexOf(id)>=0)? grpOf(it) : pmoHomeOf(id);
+  return own===me? '' : 'This is '+own+'’s requirement, and this copy submits for '+me+': what you change here is kept on this '
+    +'copy and is not sent with ✉ Submit input.';
+}
+// the SI choice as its picker shows it: a saved value that is not one of the five is '\u0003' (kept as saved, never chosen
+// again by the box), else siOf -- the stored code or the derived one
+function erSiCur(it){ if(!siApplies() || !siEligible(it)) return ''; const raw=siRawOf(it.id);
+  return (raw!==undefined && !siKnown(raw))? '\u0003' : siOf(it); }
+function erIsProposal(id){ return typeof SANDBOX!=='undefined' && SANDBOX && pmoProposalIds().indexOf(id)>=0; }
+// where each opener lands: a field's control, or the top
+const ER_AT={titles:'erEvent', ccar:'erCcar', pid:'erPid', ptype:'erPtP', grp:'erGrp', obCat:'erOb', costElem:'erCe', wbs:'erWbs',
+  rcnAsg:'erRcn', si:'erSi', dest:'erTo', destEnd:'erEnd', mipr:'erMipr', desc:'erDesc', notes:'erNote', cons:'erCons', rec:'erEvent'};
+function openEdit(id, at){
+  if(cycBlock('Editing a requirement’s record')) return false;
+  const it=itemById(id); if(!it) return false;
+  if(erOn() && erOpen!==id && erDirty() && !confirm('Discard what you typed for '+dispTitle(itemById(erOpen)||{})+'?')) return false;
+  erOpen=id; erAt=at||'rec'; erSnap=erStored(id); erDescAuto='';
+  // drawn in the same step that opens the box: the box controller snapshots the fields when it first sees it open
+  erDraw();
+  const bg=erEl('editPanel'); if(bg) bg.classList.add('open');
+  try{ dlgSync(); }catch(e){}
+  const f=erEl(ER_AT[erAt]||'erEvent'); if(f && !f.disabled) try{ f.focus(); if(f.select && f.tagName==='INPUT') f.select(); }catch(e){}
+  return true;
+}
+// the box holds typing it would lose: a field differs from what it opened with
+function erDirty(){ if(!erOn() || !erSnap) return false; const D=erRead(); return Object.keys(erChanges(D)).length>0; }
+function erClose(){
+  erOpen=null; erSnap=null; erDescAuto='';
+  const bg=erEl('editPanel'); if(bg) bg.classList.remove('open');
+  const b=erEl('erBody'); if(b) b.innerHTML='';
+}
+// render()'s part: the box's state only, never its fields (a redraw would take what is typed)
+function erSync(){ const bg=erEl('editPanel'); if(bg) bg.classList.toggle('open', erOn()); }
+function erSay(h, ok){ const m=erEl('erMsg'); if(!m) return; m.innerHTML=h||''; m.className='ar-msg'+(h? (ok? ' ok' : ' bad') : ''); }
+function erField(id, k, ctl, o){
+  o=o||{};
+  return '<div class="ar-f'+(o.span? ' span2' : '')+'" id="erF_'+k+'"'+(o.hide? ' hidden' : '')+'>'
+    +'<label class="ar-l" for="'+id+'">'+esc(o.l||FL(k))+(o.req? '<i aria-hidden="true">*</i>' : '')+(o.tag? '<em>'+o.tag+'</em>' : '')+'</label>'
+    +ctl+(o.note!==undefined? '<span class="ar-n" id="'+id+'Note">'+o.note+'</span>' : '')+'</div>';
+}
+function erInp(id, v, o){
+  o=o||{};
+  return '<input id="'+id+'" data-held="1" autocomplete="off" value="'+esc(v||'')+'"'+(o.ph? ' placeholder="'+esc(o.ph)+'"' : '')
+    +(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')+' oninput="'+(o.on||'erUpdate()')+'">';
+}
+function erSel(id, opts, o){
+  o=o||{};
+  return '<select id="'+esc(id)+'" data-held="1"'+(o.dis? ' disabled' : '')+(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')
+    +' onchange="'+(o.on||'erUpdate()')+'">'+opts+'</select>';
+}
+function erOpt(v, t, cur){ return '<option value="'+esc(v)+'"'+(String(cur)===String(v)? ' selected' : '')+'>'+esc(t)+'</option>'; }
+function erDraw(){
+  const el=erEl('erBody'); if(!el) return;
+  const id=erOpen, it=itemById(id); if(!it){ el.innerHTML=''; return; }
+  const V=erSnap, ce=!!(DATA && DATA.costElems);
+  const hd=erEl('erTtl'); if(hd) hd.textContent='✎ '+FL('rec')+' — '+FYL();
+  const ord=(S.order||[]).filter(function(x){ return !!itemById(x); }), at=ord.indexOf(id);
+  const ns=erNotSent(id), prop=erIsProposal(id);
+  let h='<div class="ar-top"><div class="ar-who er-who"><b>'+esc(dispTitle(it))+'</b> · '+esc(grpOf(it))
+    +(at>=0? ' · #'+(at+1)+' of '+ord.length : '')+' · recorded against <b>'+FYL()+'</b> only'
+    +'<span class="er-nav"><button type="button" class="qb" onclick="erStep(-1)" aria-label="the requirement above">↑ prev</button>'
+    +'<button type="button" class="qb" onclick="erStep(1)" aria-label="the requirement below">next ↓</button></span></div>'
+    +(ns? '<div class="ar-fin er-notsent" role="note">'+esc(ns)+'</div>' : '')+'</div>';
+  // ---- three columns: Identity and Classification; accounting and where the money goes; the narrative and what is needed
+  h+='<div class="ar-body" id="erMain"><div class="ar-col">'
+    +'<section class="ar-sec" aria-labelledby="erS1"><h4 id="erS1">Identity</h4><div class="ar-grid">'
+    +erField('erEvent', 'titles', erInp('erEvent', V.titles, {ph:'what the row is called'}), {req:1, span:1})
+    +erField('erCcar', 'ccar', erInp('erCcar', V.ccar, {on:'erCcarTyped()', ph:'e.g. JSF3087'}))
+    +erField('erPid', 'pid', erInp('erPid', V.pid, {ph:'optional'}))
+    +'<div class="ar-f span2"><span class="ar-l" id="erRecL">'+esc(FL('recNames'))+'<em>from the CCaR records list</em></span>'
+    +'<span class="ar-ro" id="erRecT" aria-labelledby="erRecL"></span></div>'
+    +'<div class="ar-f span2" id="erF_ptype"><span class="ar-l" id="erPtL">'+esc(FL('ptype'))+'<i aria-hidden="true">*</i></span>'
+    +'<div class="ar-seg" role="group" aria-labelledby="erPtL"><button type="button" id="erPtP" aria-pressed="false" onclick="erPt(\'PRIME\')">Prime contract</button>'
+    +'<button type="button" id="erPtO" aria-pressed="false" onclick="erPt(\'OGC\')">OGC</button></div>'
+    +'<input type="hidden" id="erPtype" data-held="1" value="'+esc(V.ptype)+'"></div>'
+    +erField('erGrp', 'grp', erSel('erGrp', GROUPS.concat(GROUPS.indexOf(V.grp)<0? [V.grp] : []).map(function(g){
+        return erOpt(g, g+(g===it.grp? ' (from the file)' : ''), V.grp); }).join(''), {dis:prop}),
+      {span:1, note:prop? 'a requirement this copy proposes keeps the office it was added for' : FYL()+' only — moving it asks first'})
+    +'</div></section>'
+    +'<section class="ar-sec" aria-labelledby="erS2"><h4 id="erS2">Classification</h4><div class="ar-grid">'
+    +erField('erOb', 'obCat', erSel('erOb', erOpt('', '— not set —', V.obCat)+OB_CATS.map(function(c){ return erOpt(c, c, V.obCat); }).join('')), {req:1, span:!ce})
+    +(ce? erField('erCe', 'costElem', erSel('erCe', erOpt('', '— not set —', V.costElem)+COST_ELEMS.concat(V.costElem && COST_ELEMS.indexOf(V.costElem)<0? [V.costElem] : [])
+        .map(function(c){ return erOpt(c, c, V.costElem); }).join(''))) : '')
+    +'<div class="ar-f span2" id="erF_wbs"><label class="ar-l" for="erWbs">'+esc(FL('wbs'))+'<i aria-hidden="true">*</i></label>'
+    +erInp('erWbs', V.wbs.charAt(0)==='\u0001'? '' : V.wbs, {ph:'e.g. 1.2.3'})
+    +'<span class="ar-n" id="erWbsNote"></span>'
+    +'<span class="er-wbsgo" id="erWbsGo"><button type="button" class="qb" onclick="erGo(\'wbs\')">Open the WBS split…</button>'
+    +'<button type="button" class="qb" onclick="erGo(\'clin\')">Open the \u{1F9FE} CLIN drill…</button></span></div>'
+    +'</div></section></div>';
+  // accounting lines (O&M), then where the money goes
+  h+='<div class="ar-col">';
+  const acct=[];
+  if(rcnApplies() && rcnEligible(it)){
+    acct.push(erField('erRcn', 'rcnAsg', erSel('erRcn', erOpt('', '— not assigned —', V.rcnAsg)+rcnReg().map(function(e){
+      return erOpt(e.k, rcnLabel(e.k)||'(blank)', V.rcnAsg); }).join('')), {span:1}));
+    const rsv=rcnFundedSvcs(id), rs=((S.rcnSvc||{})[id])||{};
+    if(rsv.length){
+      acct.push('<div class="ar-f span2"><span class="ar-l">'+esc(FL('rcnSvc'))+'</span>'
+        +'<button type="button" class="qb" id="erRcnSvcT" aria-expanded="'+(!!rcnSvcOpen[id])+'" aria-controls="erRcnSvcRows" onclick="erRcnSvcToggle()">'
+        +'per service…</button></div>'
+        +'<div class="ar-f span2 er-rcnsvc" id="erRcnSvcRows"'+(rcnSvcOpen[id]? '' : ' hidden')+'><table class="ar-svc">'
+        +rsv.map(function(sv){ const ch=rs[sv]||'';
+          return '<tr><th scope="row">'+esc(sv)+'</th><td>'+erSel('erRs_'+sv, erOpt('', '— use the requirement’s own —', ch)
+            +rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice(); return ok.indexOf(sv)>=0; })
+              .map(function(e){ return erOpt(e.k, rcnLabel(e.k)||'(blank)', ch); }).join(''), {lbl:sv+' RCN / EEIC'})+'</td></tr>'; }).join('')
+        +'</table></div>');
+    }
+  }
+  if(siEligible(it)){
+    const raw=siRawOf(id), cur=V.si;
+    acct.push(erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
+      +(cur==='\u0003'? '<option value="\u0003" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
+      +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1}));
+  }
+  if(acct.length) h+='<section class="ar-sec" aria-labelledby="erS3"><h4 id="erS3">Accounting lines</h4><div class="ar-grid">'+acct.join('')+'</div></section>';
+  h+='<section class="ar-sec" aria-labelledby="erS4"><h4 id="erS4">Where the money goes</h4><div class="ar-grid">'
+    +erField('erTo', 'dest', erSel('erTo', erOpt('', '— not logged —', V.to)+flowEntsAZ().map(function(e){
+        return erOpt(e.k, e.n+(e.kind==='gov'? ' (gov)' : ''), V.to); }).join('')), {req:1, span:1})
+    +erField('erEnd', 'destEnd', erSel('erEnd', erOpt('', '— stops there —', V.end)+flowEntsAZ().map(function(e){
+        return erOpt(e.k, e.n, V.end); }).join('')), {req:1, hide:1, tag:'OGC'})
+    +erField('erMipr', 'mipr', erSel('erMipr', erOpt('', '— not set —', V.mipr)+Object.keys(MIPR_LBL).map(function(k){
+        return erOpt(k, MIPR_LBL[k], V.mipr); }).join('')), {req:1, hide:1, tag:'OGC'})
+    +'</div><div class="ar-note">The value by service, the BAE budgets, the decision band, ★, the awards and Planning are set in the RECORD panel.</div></section></div>';
+  h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="erS5"><h4 id="erS5">Narrative</h4><div class="ar-grid ar-g1">'
+    +erField('erDesc', 'desc', '<textarea id="erDesc" data-held="1" oninput="erDescTyped()">'+esc(V.desc)+'</textarea>', {req:1, tag:'filled from the CCaR list when empty'})
+    +erField('erCons', 'cons', '<textarea id="erCons" data-held="1" placeholder="what is lost, and when, if it is not funded" oninput="erUpdate()">'+esc(V.cons)+'</textarea>', {req:1})
+    +erField('erNote', 'notes', '<textarea id="erNote" data-held="1" class="short" placeholder="decisions, caveats, taskers…" oninput="erUpdate()">'+esc(V.notes)+'</textarea>')
+    +'</div></section>'
+    +'<section class="ar-sec" aria-labelledby="erS6"><h4 id="erS6">Still needed<span id="erReadyN"></span></h4><ul class="ar-chk" id="erChk"></ul>'
+    +'<div class="ar-sum">Saving with fields still needed is fine: the list is a reminder.'+(typeof SANDBOX!=='undefined' && SANDBOX && prop? ' A proposal is held back at Submit until it is complete.' : '')+'</div></section></div></div>';
+  h+='<div class="ar-ft" id="erFt"><div id="erMsg" class="ar-msg" role="alert" aria-live="assertive"></div><span class="sp"></span>'
+    +'<button type="button" class="btn" onclick="erClose()">Cancel</button>'
+    +'<button type="button" class="btn pri" id="erSaveBtn" onclick="erSave()">Save</button></div>';
+  el.innerHTML=h;
+  erUpdate();
+}
+function erPt(v){ const h=erEl('erPtype'); if(h) h.value=(v==='PRIME'||v==='OGC')? v : ''; erUpdate(); }
+function erRcnSvcToggle(){
+  if(!erOn()) return;
+  rcnSvcOpen[erOpen]=!rcnSvcOpen[erOpen];
+  const r=erEl('erRcnSvcRows'), t=erEl('erRcnSvcT');
+  if(r) r.hidden=!rcnSvcOpen[erOpen]; if(t) t.setAttribute('aria-expanded', String(!!rcnSvcOpen[erOpen]));
+}
+// The CCaR record names the record and may fill an EMPTY description -- or one this box filled -- never one somebody wrote
+function erCcarTyped(){
+  const cc=erVal('erCcar').trim(), d=erEl('erDesc');
+  if(d && (!d.value.trim() || d.value===erDescAuto)){ const s=cc? ccarDescOfNum(cc) : ''; if(s || d.value===erDescAuto){ d.value=s; erDescAuto=s; } }
+  erUpdate();
+}
+function erDescTyped(){ const d=erEl('erDesc'); if(d && d.value!==erDescAuto) erDescAuto=''; erUpdate(); }
+// What the box holds, as the stored shape erStored() gives -- so the two compare field by field
+function erRead(){
+  const V=erSnap||{};
+  const D={titles:erVal('erEvent').trim(), ccar:erVal('erCcar'), pid:erVal('erPid'), ptype:erVal('erPtype'), grp:erVal('erGrp')||V.grp,
+    obCat:erVal('erOb'), costElem:erEl('erCe')? erVal('erCe') : V.costElem,
+    wbs:(V.wbs||'').charAt(0)==='\u0001' || ptypeOf(erOpen)==='PRIME'? V.wbs : erVal('erWbs'),
+    rcnAsg:erEl('erRcn')? erVal('erRcn') : V.rcnAsg, rcnSvc:V.rcnSvc, si:V.si,
+    to:erVal('erTo'), end:'', mipr:'', desc:erVal('erDesc'), notes:erVal('erNote'), cons:erVal('erCons')};
+  if(destKeyIsOgc(D.to)){ D.end=erVal('erEnd'); D.mipr=erVal('erMipr'); }
+  // per-service RCN / EEIC: the rows drawn, the rest as stored
+  if(erEl('erRcnSvcRows')){ const rs=Object.assign({}, ((S.rcnSvc||{})[erOpen])||{});
+    [].forEach.call(document.querySelectorAll('#erRcnSvcRows select'), function(s){ const sv=s.id.slice(5); if(s.value) rs[sv]=s.value; else delete rs[sv]; });
+    D.rcnSvc=JSON.stringify(Object.keys(rs).sort().map(function(k){ return [k, rs[k]]; })); }
+  // the SI code: a choice of one of the five, or the kept / derived entry left as it was
+  if(erEl('erSi')) D.si=erVal('erSi');
+  return D;
+}
+// the fields that differ from what the box opened with. Text compares as a textarea hands it back (CRLF is LF); codes and the
+// plan event as they will be stored (trimmed); a description, note or statement as typed, trimmed (their setters' rule).
+function erChanges(D){
+  const V=erSnap||{}, out={};
+  const tx=function(v){ return String(v==null? '' : v).replace(/\r\n?/g,'\n').trim(); };
+  Object.keys(D).forEach(function(k){
+    const a=(k==='desc'||k==='notes'||k==='cons'||k==='titles'||k==='ccar'||k==='pid'||k==='wbs')? tx(D[k]) : String(D[k]==null? '' : D[k]);
+    const b=(k==='desc'||k==='notes'||k==='cons'||k==='titles'||k==='ccar'||k==='pid'||k==='wbs')? tx(V[k]) : String(V[k]==null? '' : V[k]);
+    if(a!==b) out[k]=D[k];
+  });
+  return out;
+}
+// the draft reqNeeds() judges, from what the box holds -- the value and the budgets as stored (they are not in the box)
+function erDraft(D){
+  const st=reqDraftOf(erOpen)||{};
+  return {grp:D.grp, nolist:st.nolist, event:D.titles, ptype:D.ptype, ask:st.ask||[], bud:st.bud||{}, obCat:D.obCat,
+    wbs:D.ptype==='PRIME' || !!String(D.wbs||'').trim(), to:D.to, end:D.end, mipr:D.mipr, desc:String(D.desc||'').trim(), cons:String(D.cons||'').trim()};
+}
+function erUpdate(){
+  if(!erOn() || !erEl('erMain')) return;
+  const D=erRead(), og=destKeyIsOgc(D.to);
+  const fe=erEl('erF_destEnd'), fm=erEl('erF_mipr'); if(fe) fe.hidden=!og; if(fm) fm.hidden=!og;
+  const pp=erEl('erPtP'), po=erEl('erPtO');
+  if(pp) pp.setAttribute('aria-pressed', String(D.ptype==='PRIME')); if(po) po.setAttribute('aria-pressed', String(D.ptype==='OGC'));
+  // a prime's WBS is per CLIN; a split one is edited in its own panel -- shown, never re-typed here
+  const V=erSnap||{}, split=(V.wbs||'').charAt(0)==='\u0001', prime=D.ptype==='PRIME';
+  const w=erEl('erWbs'), wn=erEl('erWbsNote'), wg=erEl('erWbsGo');
+  if(w) w.hidden=prime || split;
+  if(wn) wn.textContent= prime? 'a prime contract’s WBS is logged per CLIN, in its CLIN drill'
+    : split? wbsLabel('req', erOpen, '')+' — split over '+wbsReq(erOpen).length+' lines' : '';
+  if(wg){ wg.hidden=!(prime || split);
+    const b=wg.querySelectorAll('button'); if(b[0]) b[0].hidden=!split || prime; if(b[1]) b[1].hidden=!prime; }
+  const cc=D.ccar.trim(), rt=erEl('erRecT'), it=itemById(erOpen);
+  if(rt && it){ const typed=(S.recNames||{})[erOpen];
+    const nm=typed || (cc? ccarNameOfNum(cc) : '') || (!cc? it.title||'' : '');
+    rt.textContent= nm || (!cc? 'named from the CCaR records list when the record is typed' : !ccarIdx()? 'no CCaR records list is loaded'
+      : (ccarRec(cc)||{}).d>1? 'held by several records in the CCaR records list — no title is taken from it' : 'not in the CCaR records list');
+    rt.classList.toggle('dim', !nm); }
+  const need=reqNeeds(erDraft(D)), miss=need.filter(function(x){ return !x.ok; });
+  const ch=erEl('erChk');
+  if(ch) ch.innerHTML=need.map(function(x){
+    const panel=(x.k==='asks' || x.k==='budgetAsg');
+    const st=x.w? 'na' : x.ok? 'ok' : 'no';
+    return '<li class="'+st+'"><i aria-hidden="true">'+(x.w? '–' : x.ok? '✓' : '!')+'</i>'+esc(arShort(x.l))
+      +(panel && !x.ok? ' <span>· set in the RECORD panel</span>' : (x.n? ' <span>· '+esc(x.n)+'</span>' : ''))
+      +'<span class="sr">'+(x.w? ' — nothing to choose' : x.ok? ' — done' : ' — still needed')+'</span></li>'; }).join('');
+  const rn=erEl('erReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;
+  const n=Object.keys(erChanges(D)).length, sb=erEl('erSaveBtn');
+  if(sb) sb.textContent=n? 'Save '+n+' change'+(n===1? '' : 's') : 'Save';
+}
+// ↑ prev / next ↓ walk the priority order; typing not yet saved is asked about first, never dropped
+function erStep(d){
+  if(!erOn()) return;
+  const ord=(S.order||[]).filter(function(x){ return !!itemById(x); }), at=ord.indexOf(erOpen);
+  if(at<0 || ord.length<2) return;
+  const t=ord[(at+d+ord.length)%ord.length];
+  if(erDirty() && !confirm('Discard what you typed for '+dispTitle(itemById(erOpen))+' and open '+dispTitle(itemById(t))+'?')) return;
+  erOpen=null;
+  openEdit(t, 'rec');
+}
+// the WBS split and the CLIN drill have their own editors: the box closes first, asking if it holds typing
+function erGo(what){
+  if(!erOn()) return;
+  const id=erOpen;
+  if(erDirty() && !confirm('Discard what you typed in this record to open the '+(what==='clin'? 'CLIN drill' : 'WBS split')+'?')) return;
+  erClose();
+  if(what==='clin') toggleClin(id); else toggleWbs('req', id, '');
+}
+function erSave(){
+  if(!erOn()) return;
+  if(cycBlock('Editing a requirement’s record')) return;
+  const id=erOpen, it=itemById(id);
+  if(!it){ erSay('This requirement is no longer on the board in '+FYL()+' — nothing was saved. Cancel closes the box.'); return; }
+  const now=erStored(id);
+  if(JSON.stringify(now)!==JSON.stringify(erSnap)){
+    const moved=Object.keys(now).filter(function(k){ return now[k]!==erSnap[k]; }).map(function(k){
+      return ({titles:FL('titles'), to:FL('dest'), end:FL('destEnd')})[k] || FL(k); });
+    erSay('Its record changed while this box was open ('+esc(moved.join(', '))+') — nothing was saved. Cancel, and open it again to see the record as it is now.');
+    return;
+  }
+  const D=erRead(), ch=erChanges(D);
+  if(!Object.keys(ch).length){ erClose(); setStat('Nothing changed on '+esc(dispTitle(it))+'.'); return; }
+  // refused before anything is written, the typing kept in the box
+  const bad=[];
+  if(ch.titles!==undefined && !String(D.titles).trim()) bad.push(['erEvent', 'The plan event cannot be empty']);
+  [['ccar','erCcar'],['pid','erPid'],['wbs','erWbs']].forEach(function(c){
+    if(ch[c[0]]===undefined) return; const r=codeTake(D[c[0]], c[0]); if(r.why) bad.push([c[1], r.why]); });
+  if(bad.length){ erSay('<b>Nothing was saved.</b> '+bad.map(function(b){ return esc(b[1]); }).join(' · ')+'.');
+    bad.forEach(function(b){ const e=erEl(b[0]); if(e){ e.setAttribute('aria-invalid','true'); const f=e.closest? e.closest('.ar-f') : null; if(f) f.classList.add('miss'); } });
+    const f=erEl(bad[0][0]); if(f) try{ f.focus(); }catch(e){}
+    return; }
+  // THE OFFICE (D8): asked first, naming what follows
+  if(ch.grp!==undefined){
+    if(erIsProposal(id)){ erSay('A requirement this copy proposes keeps the office it was added for.'); return; }
+    const lost=budChoicesNaming(id, erSnap.grp);
+    if(!confirm('Move '+dispTitle(it)+' from '+erSnap.grp+' to '+D.grp+'?\n\n'
+      +'  • '+FYL()+' only: another fiscal year keeps its own office.\n'
+      +'  • It goes last in '+D.grp+'’s ranking (re-rank it from the PMO view).\n'
+      +(lost.n? '  • '+lost.n+' BAE budget choice'+(lost.n===1? '' : 's')+' name'+(lost.n===1? 's' : '')+' '+erSnap.grp
+        +' and cannot be used for '+D.grp+(lost.funded? '; while a funded line has none it can use, the Spend Plan Source refuses until a budget is picked again' : '')+'.\n' : '')
+      +'\nOK to save the move with the rest of your changes.')) return;
+  }
+  const msg=reqApply(id, ch, D);
+  erClose();
+  setStat('✎ '+esc(dispTitle(itemById(id)||it))+': saved '+msg.map(esc).join(', ')+'.');
+  try{ flash(id); }catch(e){}
+}
+// the BAE choices a requirement holds that name an office (budParseName's pmo), and whether any answers a funded line
+function budChoicesNaming(id, g){
+  const A=((S.budgetAsg||{})[id])||{}; let n=0, funded=false;
+  const lines=budLines(id);
+  Object.keys(A).forEach(function(k){ const p=budParseName(A[k]); if(!p || p.pmo!==g) return; n++;
+    const sv=k.split('|')[0], ln=k.split('|')[1]||'';
+    if(lines.some(function(q){ return q.svc===sv && q.lane && (!ln || q.lane===ln); })) funded=true; });
+  return {n:n, funded:funded};
+}
+// ONE WRITER FOR AN EDIT (item 122): the setters' own rules, applied to the fields that changed, without their save() or
+// render(), then ONE save() -- one journal capture -- and one render(). Four setters act even on a value that has not changed
+// (setGrp re-ranked, togglePtype toggles, setSi on the derived code stores nothing, re-entering a CCaR record filled a description), so the
+// box never calls them for a field it did not change, and a field it did change is written as the setter writes it.
+function reqApply(id, ch, D){
+  const it=itemById(id); if(!it) return [];
+  const said=[];
+  if(ch.titles!==undefined){ const t=String(ch.titles).trim();
+    // the plan event: a board-data requirement's rename is an override (S.titles); an added one owns its event -- except
+    // one a PMO copy knew at publication, whose rename must travel (F5): the submittal reads S.titles
+    const knew=typeof SANDBOX!=='undefined' && SANDBOX && PMODE && Object.prototype.hasOwnProperty.call(PMODE.base||{}, id);
+    if(it.custom && !knew){ it.event=t; delete S.titles[id]; }
+    else if(t===(it.event || it.title)) delete S.titles[id];
+    else S.titles[id]=t;
+    said.push(FL('titles')); }
+  if(ch.ccar!==undefined){ const v=codeTake(ch.ccar, 'ccar').v; if(!S.ccar) S.ccar={}; if(v) S.ccar[id]=v; else delete S.ccar[id]; said.push(FL('ccar')); }
+  if(ch.pid!==undefined){ const v=codeTake(ch.pid, 'pid').v; if(!S.pid) S.pid={}; if(v) S.pid[id]=v; else delete S.pid[id]; said.push(FL('pid')); }
+  if(ch.ptype!==undefined){ if(!S.ptype) S.ptype={}; if(ch.ptype==='PRIME'||ch.ptype==='OGC') S.ptype[id]=ch.ptype; else delete S.ptype[id]; said.push(FL('ptype')); }
+  if(ch.grp!==undefined && GROUPS.indexOf(ch.grp)>=0){ grpMove(id, ch.grp); said.push(FL('grp')+' ('+ch.grp+', last in its ranking)'); }
+  if(ch.obCat!==undefined){ if(!S.obCat) S.obCat={}; if(ch.obCat && OB_CATS.indexOf(ch.obCat)>=0) S.obCat[id]=ch.obCat; else delete S.obCat[id]; said.push(FL('obCat')); }
+  if(ch.costElem!==undefined){ if(!S.costElem) S.costElem={}; if(ch.costElem && COST_ELEMS.indexOf(ch.costElem)>=0) S.costElem[id]=ch.costElem; else delete S.costElem[id]; said.push(FL('costElem')); }
+  if(ch.wbs!==undefined && ptypeOf(id)!=='PRIME' && wbsReq(id).length<=1 && !((wbsReq(id)[0]||{}).v||[]).length){
+    const t=codeTake(ch.wbs, 'wbs').v; if(!S.wbs) S.wbs={}; if(t) S.wbs[id]=[{w:t, v:[]}]; else delete S.wbs[id]; said.push(FL('wbs')); }
+  if(ch.rcnAsg!==undefined && rcnApplies()){ if(!S.rcnAsg) S.rcnAsg={}; if(ch.rcnAsg) S.rcnAsg[id]=ch.rcnAsg; else delete S.rcnAsg[id]; said.push(FL('rcnAsg')); }
+  if(ch.rcnSvc!==undefined && rcnApplies()){ const L=JSON.parse(ch.rcnSvc), o={}; L.forEach(function(p){ o[p[0]]=p[1]; });
+    if(!S.rcnSvc) S.rcnSvc={}; if(Object.keys(o).length) S.rcnSvc[id]=o; else delete S.rcnSvc[id]; said.push(FL('rcnSvc')); }
+  // setSi's rule: the derived code stores nothing, so it goes on following the PMO and prime rules
+  if(ch.si!==undefined && siApplies() && (!ch.si || SI_CODES.some(function(x){ return x[0]===ch.si; }))){
+    if(!S.si) S.si={}; if(ch.si===siDefault(it)) delete S.si[id]; else S.si[id]=ch.si; said.push(FL('si')); }
+  if(ch.to!==undefined || ch.end!==undefined || ch.mipr!==undefined){
+    const to=D.to||'', og=destKeyIsOgc(to);
+    if(!S.dest) S.dest={};
+    const end=og? (D.end||'') : '';
+    if(to || end) S.dest[id]={to:to, end:end}; else delete S.dest[id];
+    if(!S.mipr) S.mipr={};
+    if(og && D.mipr && MIPR_LBL[D.mipr]) S.mipr[id]=D.mipr; else delete S.mipr[id];
+    if(ch.to!==undefined) said.push(FL('dest')); if(ch.end!==undefined) said.push(FL('destEnd')); if(ch.mipr!==undefined) said.push(FL('mipr')); }
+  [['desc','desc'],['notes','notes'],['cons','cons']].forEach(function(p){ if(ch[p[0]]===undefined) return;
+    if(!S[p[1]]) S[p[1]]={}; const v=String(ch[p[0]]).replace(/\r\n?/g,'\n').trim(); if(v) S[p[1]][id]=v; else delete S[p[1]][id]; said.push(FL(p[0])); });
+  save(); render();
+  return said;
+}
 
 // ==============================================================================================================
 // §41  EXCEL WORKBOOKS
@@ -33375,9 +33545,33 @@ function drawerBar(){
   return '<div class="drawerbar"><span>RECORD</span>'
     + '<button type="button" onclick="drawerClose()" title="Close (Esc)">\u2715 Close</button></div>';
 }
+// v2.08 (F2): A REDRAW KEEPS WHAT IS TYPED. The RECORD panel's own figures (the value by service, Disc and Mand, the minimum
+// increment, the absorber's floor) apply on change; a redraw before that -- a Live view tick every 30 s by default, or any
+// other render() -- put back the stored figure and took the typing with it. An input typed into and not yet committed is
+// marked (__pend, from the input event; its change clears it), read before the panel is drawn and put back after, the
+// keyboard and the caret with it. Matched by its handler, which names the requirement, so typing never follows the panel
+// to another requirement.
+document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);
+document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
+function inspHeld(el){
+  return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend; }).map(function(i){
+    return {h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd}; });
+}
+function inspHeldBack(el, held){
+  held.forEach(function(x){
+    const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
+    if(!i) return;
+    i.value=x.v; i.__pend=true;
+    if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}
+  });
+}
 function inspectorBody(){
   const el = document.getElementById('inspector');
   if(!el) return;
+  const held = inspHeld(el);
+  try{ inspectorDraw(el); } finally { if(held.length) inspHeldBack(el, held); }
+}
+function inspectorDraw(el){
   const it = curRow && DATA.items.filter(function(x){ return x.id === curRow; })[0];
   if(!it){
     el.innerHTML = drawerBar() + '<div class="insp-empty">No requirement selected.<br>'
@@ -33500,7 +33694,7 @@ function inspectorBody(){
       + '<span style="color:var(--dim);font-size:10px">' + (pos>=0? (pos+1) : '—') + ' of ' + ids.length + '</span></div>'
     + '<div class="insp-bd">'
     + '<div class="insp-ttl">' + esc(dispTitle(it))
-      + ' <button type="button" class="tedit" onclick="editTitle('+jsa(id)+')" title="Rename the requirement" aria-label="Rename the requirement">\u270e</button></div>'
+      + ' <button type="button" class="tedit" onclick="openEdit('+jsa(id)+',&quot;titles&quot;)" title="Rename the requirement — its plan event, in the record" aria-label="Rename the requirement">\u270e</button></div>'
     // WHAT IT IS, IN ONE QUIET LINE. \u2605 MC is a triage decision made while scanning the list, so the
     // ROW owns it; this says it, it does not set it. The band is not echoed: its own field below
     // shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
@@ -33518,7 +33712,10 @@ function inspectorBody(){
     + (function(){
         const w=((S.cons||{})[id]||'').trim(), dsc=((S.desc||{})[id]||'').trim(), nt=((S.notes||{})[id]||'').trim();
         const _b=BAND_OF(id), _req=(_b!==null && BAND_DEF(id).consReq);
-        const C=recCount(id, it);
+        // v2.08 (item 122, D11): the count is the required list's -- what reqNeeds() still finds missing -- not the
+        // classification fields recFields() counts
+        const N=reqNeeds(reqDraftOf(id)||{}), C={n:N.filter(function(x){ return !x.w; }).length,
+          un:N.filter(function(x){ return !x.ok && !x.w; }).length};
         const act=function(on, warn, tip, a1, a2){ return '<button type="button" class="insp-act'+(warn?' warn':'')+'" '+on
           +'title="'+esc(tip)+'"><span class="a1">'+a1+'</span><span class="a2">'+a2+'</span></button>'; };
         return '<div class="insp-acts">'
@@ -33532,8 +33729,8 @@ function inspectorBody(){
                 FLI('dn'),
                 (dsc&&nt)? 'both written' : (dsc? 'description written' : (nt? 'note written' : 'both empty')))
           + act('onclick="toggleRec('+jsa(id)+')" ', C.un>0,
-                'what this requirement is: PMO, category, WBS, destination, budget per service\u2026',
-                FLI('rec'), C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set')
+                'the whole record, in one box: plan event, CCaR, PID, PMO, category, WBS, destination, the narrative\u2026',
+                FLI('rec'), C.un? C.un+' of '+C.n+' still needed' : 'all '+C.n+' set')
           + '</div>'; })()
     + '<div class="insp-g">'
       + cycDeltaInsp(id)
@@ -33563,9 +33760,10 @@ function inspectorBody(){
     + '<div class="insp-g">'
       // v1.91 (item 29): BUTTONS. They were clickable boxes a keyboard never reached, and nothing else edits
       // either figure, so a keyboard user could not change a CCaR record or a PID at all.
-      + '<button type="button" class="insp-f' + (ccar ? '' : ' empty') + '" onclick="editCcar('+jsa(id)+')">'
+      // v2.08 (item 122): each opens the edit box at its own field -- one editor each
+      + '<button type="button" class="insp-f' + (ccar ? '' : ' empty') + '" onclick="openEdit('+jsa(id)+',&quot;ccar&quot;)">'
         + '<span class="fl">CCaR record</span><span class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</span></button>'
-      + '<button type="button" class="insp-f' + (pid ? '' : ' empty') + '" onclick="editPid('+jsa(id)+')">'
+      + '<button type="button" class="insp-f' + (pid ? '' : ' empty') + '" onclick="openEdit('+jsa(id)+',&quot;pid&quot;)">'
         + '<span class="fl">PID</span><span class="fv">' + (pid ? esc(pid) : '+ assign') + '</span></button>'
       + ccarInspHtml(id, it)
       + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
@@ -33719,7 +33917,7 @@ function focusRestore(m){
 const DLG={stack:[], hist:[], inerted:[], bypass:false};
 const DLG_ASK='Discard what you typed?\n\nOK discards it and closes the box. Cancel keeps the box open with your text in it.';
 // boxes whose ✕ Close (or, for the prompt, Cancel) is drawn by their own code rather than in the page's markup
-const DLG_DRAWN_CLOSE=['fldPanel','uipPanel'];
+const DLG_DRAWN_CLOSE=['uipPanel'];
 function dlgBoxes(){ return [].slice.call(document.querySelectorAll('body > .modal-bg[id]')); }
 function dlgVisible(e){ try{ return !!(e && e.isConnected && e.getClientRects().length); }catch(x){ return false; } }
 // open: the class most boxes use, or the inline display five older boxes set for themselves (journal, review,
