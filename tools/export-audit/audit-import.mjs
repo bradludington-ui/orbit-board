@@ -2167,8 +2167,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'apply', 'Mission Critical lands', got.mc, true);
   chk(name, 'apply', 'the record fields land', [got.ptype, got.obCat, got.rcnAsg, got.si, got.costElem, got.minInc].join('|'),
     'OGC|DESA Contract|r1|LA|Airframe PGSE|12345');
+  // v2.08 second review: an accepted Goes to is written in setDest's shape -- behind a prime (lm), no second hop at all
   chk(name, 'apply', 'the structured fields land whole', JSON.stringify([got.wbs, got.rcnSvc, got.dest, got.budgetAsg, got.awards, got.crHalf]),
-    JSON.stringify([[{w:'1.2.3'}], {USAF:'r1'}, {to:'lm', end:''}, {'USAF|disc':'USAF O&M - CAM Discretionary AV'},
+    JSON.stringify([[{w:'1.2.3'}], {USAF:'r1'}, {to:'lm'}, {'USAF|disc':'USAF O&M - CAM Discretionary AV'},
       {mode:'single', d:'2026-12', day:9}, {'2026-12':1}]));
   chk(name, 'apply', 'the hand-over lands, and moves its office rank with it', got.grpD + ' ' + (got.psm || []).includes('D') + ' ' + (got.av || []).includes('D'), 'PSM true false');
   chk(name, 'apply', 'the office ranking lands as the office’s own order', (got.av || []).join(','), 'B,A');

@@ -312,7 +312,23 @@ was brought from v2.07 to v2.08:
 
 `review:which` names v2.08 for the board, and for a saved board, a PMO copy and a one-appropriation board written by it.
 
-**Proved with** (26 Oct, on the final tree): to be filled in when `validate:nightly` (running on 3898d95) and the second review of the fixes report.
+**Proved with** (26 Oct, on the final board, `f416366`):
+- `npm run check`; every mutation target matches once (2,394 of 2,394).
+- `npm run validate:nightly` on `8d81b2e`, 15:07–15:53 UTC:
+  - the defect register (13 defects, guarded by 43 mutations), money coverage (24/24 surfaces), the money map (301 cells:
+    108 proven, 192 n/a, 1 open, as v2.07) and the trace matrix (77 cells, every link holds);
+  - the fuzz (seed 875937630) and the file verifier's self-test;
+  - boot-same and the export, other and board suites passed. The import suite failed one check: the v1.84 block still
+    expected an accepted Goes to stored with `end:''`, the shape the second review's fix stopped writing. The expectation
+    was updated, and the chain's rest was run on its own: import whole, then recon, legacy, hostile, inject and ui. All
+    passed. The blocks `prove.py` ran clean had not included v1.84's; only a whole suite reaches every expectation;
+  - the browser stage failed only on layout's 8 D checks, carried since v2.00.
+- Every browser check, run on its own: controls, inspector, toolbar, editors, colours, menus, panels, frames, hostile,
+  csp, layout (A–N, only the carried D ×8 failing), keys (P and Q new), dropdowns, dialogs, leftmenu and standards
+  (nothing new).
+- The browser-only fixes, by hand mutant in Chromium, each failing the check aimed at it and nothing else: Classify's
+  office cell choosing at once (keys Q, the two clicks); without the cell's `onmousedown` (keys Q, the mouse pick); the
+  F2 handler left on, or the hold dropped once `__pend` is cleared (keys P); the kept option's long text (layout N).
 
 **Mutations:** 86 new: 41 from the build (`v208-f*`, `v208-absorb*`, `v208-122-*`; a 42nd was retired in the review), 29 from
 the review (`v208-rv-*`) and 16 from the second review (`v208-rv2-*`). Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
