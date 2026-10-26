@@ -536,8 +536,8 @@ for (const [pass, docked] of PASSES) {
 // box sits inside the window, nothing in it scrolls or is cut below, no field cuts its value, no picker cuts the name it
 // shows, no label, rail line or text is cut or past the box's edge. Below 1366 (1280 x 720) it is one column and the box
 // scrolls, and still nothing is cut sideways.
-const boxUnreadable = () => {
-  const m = document.querySelector('#addPanel .modal'), out = [];
+const boxUnreadable = (sel) => {
+  const m = document.querySelector(sel || '#addPanel .modal'), out = [];
   if (!m) return ['no box'];
   const mr = m.getBoundingClientRect();
   if (mr.top < -1 || mr.left < -1 || mr.bottom > innerHeight + 1 || mr.right > innerWidth + 1)
@@ -648,6 +648,60 @@ const BOX_STATES = [
   }, [BOX_STATES[0][1].toString(), boxUnreadable.toString()]);
   await ctx.close();
   chk('M · below 1366 (1280x720) the box is one column that scrolls, with Add on screen, and nothing is cut sideways',
+    r.cols.length === 3 && new Set(r.cols).size === 1 && r.scrolls && r.foot && !r.side.length, JSON.stringify(r).slice(0, 300));
+}
+
+// ── N. THE EDIT BOX FITS WHOLE (v2.08, item 122) ─────────────────────────────────────────────────────────────
+// The box that edits the whole record, measured as M measures the Add box (no layout check measured it, the review found): on
+// the M board, a requirement given a plan event, a 35-character PID, a CCaR record whose title is long, the longest
+// government activity for Goes to and Which awards to with a MIPR type, a paragraph in each written field, and its per-service
+// RCN / EEIC rows open where it has them. The plan event is M's: it has no length limit, and a one-line field shows what fits,
+// in both boxes alike. At 1366 x 657 and 1920 x 969, Harbor and Midnight, this font and the Segoe stand-in:
+// the box sits inside the window, nothing in it scrolls or is cut, no field cuts its value, no picker its name.
+const ER_STATE = () => {
+  setPmoFilter('ALL'); if (typeof erOn === 'function' && erOn()) erClose();
+  const id = S.order.filter(x => ptypeOf(x) !== 'PRIME')[0];
+  if (typeof rcnSvcOpen !== 'undefined') rcnSvcOpen[id] = true;
+  setCur(id); openEdit(id, 'rec');
+  const set = (eid, v) => { const e = document.getElementById(eid); if (!e) return; e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
+  set('erEvent', 'Depot tooling for the F135 engine line'); erPt('OGC'); set('erCcar', 'JSF3087'); set('erPid', 'PID-' + '4'.repeat(31));
+  const g = flowEntsAZ().filter(e => e.kind !== 'prime').sort((a, c) => c.n.length - a.n.length)[0];
+  set('erTo', g ? g.k : ''); set('erEnd', g ? g.k : ''); set('erMipr', 'reimb'); set('erWbs', '1.2.3.4.5.6.7.8.9.10.11.12.13.14.15.16');
+  const para = 'Tooling the F135 line cannot run without; it replaces 1990s fixtures at the end of their life and keeps two test cells open. ';
+  set('erDesc', para + para); set('erCons', 'If this is not funded the line stops in March and forty engines wait into FY28. ' + para); set('erNote', 'Agreed at the September SFWG.');
+  const sh = eid => { const e = document.getElementById(eid); return !!e && e.getClientRects().length > 0; };
+  return ['erEnd', 'erMipr', 'erChk', 'erSaveBtn', 'erToPanel'].filter(eid => !sh(eid));
+};
+{
+  const fails = [], notShown = []; let read = 0;
+  const fileM = join(dir, 'board-m.html'), fileMS = join(dir, 'board-m-segoe.html');
+  for (const [font, at] of [['this machine’s font', fileM], ['the Segoe stand-in', fileMS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1366, 657], [1920, 969]]) {
+        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
+        if (at === fileMS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        const tag = `${w}x${h} ${theme || 'midnight'} ${font}`;
+        const r = await p.evaluate(([fn, look]) => { const miss = (0, eval)('(' + fn + ')')(); return { miss, bad: (0, eval)('(' + look + ')')('#editPanel .modal') }; },
+          [ER_STATE.toString(), boxUnreadable.toString()]);
+        read++;
+        r.miss.forEach(x => notShown.push(`${tag}: ${x}`));
+        r.bad.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
+        await ctx.close();
+      }
+  chk('N · the edit box shows all of itself: the OGC fields, the required list, Save and the way to the RECORD panel',
+    notShown.length === 0 && read === 8, notShown.length ? `not shown: ${notShown.slice(0, 4).join('; ')}` : `${read} states`);
+  chk('N · the edit box fits whole at 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in: nothing scrolls, nothing is cut, nothing runs off',
+    fails.length === 0, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 6).join('; ')}` : `${read} states read`);
+  // below 1366: one column, and the box scrolls -- with Save on screen, and nothing cut sideways (as M holds the Add box)
+  const { p, ctx } = await open(1280, 720, 'review', '', false, fileM);
+  const r = await p.evaluate(([fn, look]) => { (0, eval)('(' + fn + ')')();
+    const m = document.querySelector('#editPanel .modal'), cols = [...document.querySelectorAll('#erMain .ar-col')].map(c => Math.round(c.getBoundingClientRect().left));
+    const ft = document.getElementById('erSaveBtn').getBoundingClientRect();
+    return { cols, scrolls: m.scrollHeight > m.clientHeight + 1, foot: ft.bottom <= innerHeight + 1 && ft.top >= 0,
+      side: (0, eval)('(' + look + ')')('#editPanel .modal').filter(x => !/^scrolls or cuts below: (#editPanel|div\.modal)|^past the box’s edge: .*/.test(x) || /sideways|cuts its|cut:|spills/.test(x)) };
+  }, [ER_STATE.toString(), boxUnreadable.toString()]);
+  await ctx.close();
+  chk('N · below 1366 (1280x720) the box is one column that scrolls, with Save on screen, and nothing is cut sideways',
     r.cols.length === 3 && new Set(r.cols).size === 1 && r.scrolls && r.foot && !r.side.length, JSON.stringify(r).slice(0, 300));
 }
 

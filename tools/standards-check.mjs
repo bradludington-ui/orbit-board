@@ -401,6 +401,27 @@ for (const build of BUILDS) {
         + `From another year with its rows ${yrShown ? 'was' : 'was NOT'}; one being finished ${finShown ? 'was' : 'was NOT'}`
         + (addShown.err ? ' (' + addShown.err + ')' : ''), n: 1 });
 
+    // v2.08 (item 122): THE EDIT BOX, measured with all of it on screen, as the Add box is: a requirement made an OGC sent to
+    // a government activity, so Which awards to and the MIPR type show, its per-service RCN / EEIC rows open where it has
+    // them, and the required list drawn. It must be on screen, or the run fails: a box measured short of its form passes by
+    // being absent. Behind it the board is inert, so nothing else on the page reached it.
+    const edShown = await page.evaluate(() => { try {
+      if (typeof openEdit !== 'function') return { n: false };
+      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
+      const id = S.order.filter(x => ptypeOf(x) !== 'PRIME')[0];
+      if (typeof rcnSvcOpen !== 'undefined') rcnSvcOpen[id] = true;
+      setCur(id); openEdit(id, 'rec');
+      const v = (eid, x) => { const e = document.getElementById(eid); if (!e) return; e.value = x;
+        e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
+      erPt('OGC'); const g = flowEntsAZ().filter(e => e.kind !== 'prime')[0]; v('erTo', g ? g.k : '');
+      const sh = eid => { const e = document.getElementById(eid); return !!e && e.getClientRects().length > 0; };
+      return { n: ['erEvent', 'erPid', 'erEnd', 'erMipr', 'erDesc', 'erCons', 'erNote', 'erChk', 'erToPanel', 'erSaveBtn'].every(sh) };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { if (erOn()) erClose(); } catch (e) {} });
+    if (!edShown.n) record(build, theme, { sc: 'coverage', key: 'the edit box was not on screen whole to measure',
+      detail: 'the box with the OGC fields, the written fields and the required list was NOT shown' + (edShown.err ? ' (' + edShown.err + ')' : ''), n: 1 });
+
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.
     if (theme === THEMES[0]) {
@@ -461,6 +482,30 @@ for (const build of BUILDS) {
           detail: 'focusing it changes no outline, shadow, border or background', n: 1 });
       if (boxFocus.n < 5) record(build, theme, { sc: 'coverage', key: 'the Add box’s controls were not sampled for a visible focus',
         detail: `${boxFocus.n} control shape(s) of the box took focus to be sampled`, n: 1 });
+      // v2.08 (item 122): and the edit box's, the same way
+      const edFocus = await page.evaluate(() => { try {
+        const id = S.order.filter(x => ptypeOf(x) !== 'PRIME')[0]; setCur(id); openEdit(id, 'rec'); erPt('OGC');
+        const g = flowEntsAZ().filter(e => e.kind !== 'prime')[0], to = document.getElementById('erTo');
+        if (to && g) { to.value = g.k; to.dispatchEvent(new Event('change', { bubbles: true })); }
+        const seen = new Set(), bad = [];
+        const sig = el => { const cs = getComputedStyle(el);
+          return [cs.outlineStyle, cs.outlineWidth, cs.outlineColor, cs.boxShadow, cs.borderColor, cs.backgroundColor].join('|'); };
+        let n = 0;
+        for (const el of document.querySelectorAll('#editPanel .modal button, #editPanel .modal input, #editPanel .modal select, #editPanel .modal textarea')) {
+          const k = el.tagName + '|' + (el.className || '') + '|' + (el.type || '');
+          if (seen.has(k)) continue; seen.add(k);
+          const r = el.getBoundingClientRect(); if (!r.width || !r.height) continue;
+          const before = sig(el); el.focus(); if (document.activeElement !== el) continue;
+          n++; if (before === sig(el)) bad.push(k); el.blur();
+        }
+        erClose();
+        return { bad, n };
+      } catch (e) { return { bad: [], n: 0 }; } });
+      for (const k of edFocus.bad)
+        record(build, theme, { sc: 'focus', key: k,
+          detail: 'focusing it changes no outline, shadow, border or background', n: 1 });
+      if (edFocus.n < 5) record(build, theme, { sc: 'coverage', key: 'the edit box’s controls were not sampled for a visible focus',
+        detail: `${edFocus.n} control shape(s) of the box took focus to be sampled`, n: 1 });
     }
     await page.close();
   }

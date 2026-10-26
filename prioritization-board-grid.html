@@ -1390,15 +1390,25 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 :is(#addPanel,#editPanel) .ar-msg.ok{color:var(--ink)}
 :is(#addPanel,#editPanel) [hidden]{display:none!important}
 /* v2.08 (item 122): the edit box's own furniture -- the walk buttons apart from the line they sit on, the WBS links, and the
-   written fields tall enough to read a paragraph (they were the Add box's 54px; the pop-ups they replaced were 150-190px) */
+   written fields tall enough to read a paragraph (they were the Add box's 54px; the pop-ups they replaced were 150-190px) and
+   taller by dragging. The box fits whole at 1366 x 657 (layout-fits N): 68px and 42px, and the required list in the Add box's
+   two columns, each line wrapping in its own column rather than cut, and its sections a little tighter than the Add box's
+   (96px, 60px and one column ran 160px past the window). */
 #editPanel .er-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #editPanel .er-nav{margin-left:auto;display:inline-flex;gap:6px}
 #editPanel .er-wbsgo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 #editPanel .er-notsent{margin-top:6px}
 #editPanel .ar-body{overflow:auto}
-#editPanel .ar-f textarea{height:96px;resize:vertical}
-#editPanel .ar-f textarea.short{height:60px}
-#editPanel .ar-chk{grid-template-columns:minmax(0,1fr)}
+#editPanel .ar-f textarea{height:68px;resize:vertical}
+#editPanel .ar-f textarea.short{height:42px}
+#editPanel .ar-chk{grid-template-columns:repeat(2,minmax(0,1fr))}
+#editPanel .ar-chk li{padding:0}
+#editPanel .ar-body{padding:6px 16px}
+#editPanel .ar-col{gap:6px}
+#editPanel .ar-sec{padding:6px 10px 7px}
+#editPanel .ar-sec>h4{margin-bottom:4px}
+#editPanel .ar-grid{gap:5px 10px}
+#editPanel .ar-svc td,#editPanel .ar-svc th[scope="row"]{padding-top:2px;padding-bottom:2px}
 #editPanel .ar-chk li{white-space:normal;overflow:visible}
 #editPanel .ar-sum .qb{margin-top:5px;white-space:normal;text-align:left}
 /* under 1366 the three columns do not fit legibly: one column, and the box scrolls */
@@ -3188,7 +3198,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.07 (25 Oct 2026)';
+const BUILD='v2.08 (26 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
