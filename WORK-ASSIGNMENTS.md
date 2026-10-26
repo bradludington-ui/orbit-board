@@ -15,22 +15,22 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 
 ## Current implementation assignment
 
-- Task and approved scope: v2.00 (item 99), the security version: the security review's injection holes, the structural
-  guards and the reviewability cleanup (Brad, 7 Oct); and, confirmed by Brad on 9 Oct, every hole the final review and the
-  full sweep of the board found, plus the built-in-name key class (an id, name, title or key such as __proto__,
-  constructor or toString).
-- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on claude/orbit-v2.00), confirmed by Brad
-  on 9 Oct. No outgoing owner: Claude has held v2.00 since 7 Oct.
-- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, package.json, NEXT-VERSION.md, CLAUDE.md and
-  this entry. Excluded: AGENTS.md, .agents/**, item 100 (DoD standards, waiting on the security team) and item 101 (next
-  version).
-- Isolated branch and base commit SHA: claude/orbit-v2.00, based on v1.99 (6388472), main merged in at f9b4413.
+- Task and approved scope: v2.08 -- item 122 (edit the whole record in one box, Brad's decisions D1-D12 of 26 Oct, D9:
+  retire the rename), the defects F1-F7 of `recovery/v208/ITEM-122-BRIEF.md` §5 (F6: lock the drill) and the shortfall
+  absorber refused in a PMO copy (Brad, 26 Oct: "build them with 122 in v2.08", "Go on v2.08"); item 123 (the security
+  review kit, "Go on 123").
+- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on ccr-0b15d8d5-ypf61n), named by Brad's go
+  of 26 Oct. The v2.07 lead stopped at the handoff commit (PR #25, d920ea0).
+- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, review/**, SECURITY-REVIEW.md, package.json,
+  .gitignore, NEXT-VERSION.md, CLAUDE.md, AGENTS.md (the rules item 122 changes), recovery/v208/** and this entry.
+  Excluded: the sweep (no named go), U63/U64 and the rest of the handoff's §6 lists, items 100 and 107.
+- Isolated branch and base commit SHA: ccr-0b15d8d5-ypf61n, based on main ddf6b4b (v2.07 f508fdb plus records).
 - Status: editing.
-- Required bounded checks and designated gate owner: tools/check.mjs, npm run audit:suites, audit-inject against v1.99 and
-  the candidate, a presweep of every new mutation; gate owner Claude (npm run validate:math, run as the restart-proof
-  batch runner).
-- Handoff commit SHA and changed files: given at the PR.
-- Known risks, blocked checks and reviewer findings: listed in NEXT-VERSION.md under v2.00 at the PR.
+- Required bounded checks and designated gate owner: npm run check; every suite; the browser checks (verify:grid, keys,
+  dropdowns, dialogs, leftmenu, standards); each new mutation proved with recovery/v208/bin/prove.py; mcount; review with
+  skeptics; validate:nightly on the final tree. Gate owner Claude. No sweep.
+- Handoff commit SHA and changed files: given at the PR (#27).
+- Known risks, blocked checks and reviewer findings: listed in NEXT-VERSION.md under v2.08 at the PR.
 - Brad's integration/merge/publication authorization, if given: not given. Nothing merges without Brad's go.
 
 The four recurring monitors retain read-only scope.
