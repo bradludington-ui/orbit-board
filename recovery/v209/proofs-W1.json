@@ -1,0 +1,138 @@
+[
+ {
+  "id": "v209-w1-click-opens-panel",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-quiet-ignored",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-drill-blank-opens",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-ask-every-service",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-newclin-grid-zero",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-newclin-grid-follows",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-base-grid-follows",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-fill-fractions",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-apply-fractions",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-foot-value-is-requests",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-foot-diff-alarm",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-keyboard-lost",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-not-delivered",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-delivered-twice",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-back-to-left",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-overrides-box",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-not-after-render",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-gone",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-commits",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-typing-not-marked",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-held-left-silent",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-held-not-noted",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-held-enter-silent",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-route-panel-over-drill",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-route-keyboard-left",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-route-classify-left-open",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-route-classify-toggles",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-route-hidden-silent",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-rowmenu-eats-click",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-copy-wbs-live",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-copy-ask-live",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v197w1-guard-clinSetReq",
+  "caughtBy": "audit-board / v1.97 — typed money is read whole"
+ },
+ {
+  "id": "v208-f2-typing-not-marked",
+  "caughtBy": "audit-board / v2.08 — the defects found mapping item 122"
+ },
+ {
+  "id": "v208-rv-clin-toggled-shut",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box: kept values"
+ }
+]

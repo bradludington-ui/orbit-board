@@ -33895,7 +33895,6 @@ function heldCommit(t){
 }
 document.addEventListener('blur', function(e){ heldCommit(e.target); }, true);
 document.addEventListener('keydown', function(e){ if(e.key==='Enter') heldCommit(e.target); }, true);
-document.addEventListener('change', function(e){ const t=e.target; if(t) t.__held=undefined; }, true);
 function inspHeld(el){
   // ONLY THE FIELD THAT HAS THE KEYBOARD: a browser commits a field when it loses it, so that is the one place typing can wait
   // uncommitted. Held by its mark alone, a field put back once was held again on every later redraw -- over the stored

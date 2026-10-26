@@ -5578,15 +5578,19 @@ await (async () => {
     ev(`(function(){ var a=${q('setAsk(')}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input')); return 'ok'; })()`);
     ev(`render(); render(); 'ok'`);
     chk(name, 'F2', 'two redraws later the value by service still holds what was typed', ev(`${q('setAsk(')}.value`), '123456');
+    // v2.09 W1: the keyboard and "nothing written" are read here, before the keyboard leaves the value. Since v2.09 a figure put
+    // back by a redraw and then left is applied (heldCommit, item 125), as a browser applies any field left after typing; v2.08
+    // left it unapplied, the old figure kept under the one on screen. So the minimum increment is typed once the value is left.
+    chk(name, 'F2', 'and the keyboard is still in the value it was typing', ev(`document.activeElement===${q('setAsk(')}`), true);
+    chk(name, 'F2', 'nothing was written while it was only typed', ev(`JSON.stringify([itemById('A').ask[0], (S.minInc||{}).A||null])`), JSON.stringify([100, null]));
+    ev(`(function(){ var m=${q('setMinInc(')}; m.focus(); return 'ok'; })()`);
+    chk(name, 'F2', 'left for the minimum increment, the value put back is applied (v2.09)', ev(`itemById('A').ask[0]`), 123456);
     ev(`(function(){ var m=${q('setMinInc(')}; m.focus(); m.value='777'; m.dispatchEvent(new Event('input')); return 'ok'; })()`);
     ev(`render(); 'ok'`);
     chk(name, 'F2', 'and so does the minimum increment, typed with the keyboard in it', ev(`${q('setMinInc(')}.value`), '777');
-    ev(`(function(){ var a=${q('setAsk(')}; a.focus(); return 'ok'; })()`);
-    chk(name, 'F2', 'and the keyboard is still in the value it was typing', ev(`document.activeElement===${q('setAsk(')}`), true);
-    chk(name, 'F2', 'nothing was written while it was only typed', ev(`JSON.stringify([itemById('A').ask[0], (S.minInc||{}).A||null])`), JSON.stringify([100, null]));
-    ev(`(function(){ var a=${q('setAsk(')}; a.value='123456'; a.focus(); return 'ok'; })()`);
-    ev(`(function(){ var a=${q('setAsk(')}; a.dispatchEvent(new Event('change')); return 'ok'; })()`);
-    chk(name, 'F2', 'committed, the value is written', ev(`itemById('A').ask[0]`), 123456);
+    chk(name, 'F2', 'and the minimum increment is not written while it is only typed', ev(`JSON.stringify((S.minInc||{}).A||null)`), 'null');
+    ev(`(function(){ var m=${q('setMinInc(')}; m.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'F2', 'committed, the minimum increment is written', ev(`(S.minInc||{}).A`), 777);
     ev(`setCur('B'); render(); 'ok'`);
     chk(name, 'F2', 'CONTROL — typing never follows the panel to another requirement', ev(`${q('setMinInc(')}.value`), '');
   });
@@ -5923,9 +5927,11 @@ await (async () => {
     ev(`(function(){ var b=${btn}; b.dispatchEvent(new Event('pointerup', {bubbles:true})); return 'ok'; })()`); await tick(40);
     chk(name, 'a press', 'typed, then ↑ Apply grid to row pressed: the figure is stored and the button asks its question once, on that press',
       ev(`JSON.stringify([clinVec('P', clinList('P')[0])[2], __cf, S.alloc.P && S.alloc.P.m])`), J([400001, 1, 's']));
-    ev(`__cf=0; ${press(bx('setClinSvc', 'b0', 2), btn)}`);
+    // declined, so the button's own press redraws nothing and is still there for a second delivery to reach
+    ev(`__cf=0; window.confirm=function(){ __cf++; return false; }; ${press(bx('setClinSvc', 'b0', 2), btn)}`);
     ev(`(function(){ var b=${btn}; b.dispatchEvent(new Event('pointerup', {bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`); await tick(40);
     chk(name, 'a press', 'CONTROL: and where the browser delivers that click itself, it is not delivered a second time', ev(`__cf`), 1);
+    ev(`window.confirm=function(){ __cf++; return true; }; 'ok'`);
     // the RECORD panel's own boxes are redrawn by the same redraw: a press there survives too
     ev(`setCur('P'); 'ok'`);
     ev(press(bx('setClinSvc', 'b1', 2), `__by('#inspector', 'setAsk("P",1,')`));
@@ -5942,8 +5948,9 @@ await (async () => {
   part('row hold', () => {
     const { ev } = mk();
     // Chromium fires change on the focused field as innerHTML removes it: #list's rows are replaced here with that change fired
-    const redraw = sel => `(function(){ var A=${sel}, L=document.getElementById('list'), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-      Object.defineProperty(L, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){ if(A.isConnected) A.dispatchEvent(new Event('change', {bubbles:true})); D.set.call(this, v); }});
+    // (once, as Chromium fires it once: a change that redrew again would otherwise fire it again inside its own redraw)
+    const redraw = sel => `(function(){ var A=${sel}, L=document.getElementById('list'), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML'), once=false;
+      Object.defineProperty(L, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){ if(!once && A.isConnected){ once=true; A.dispatchEvent(new Event('change', {bubbles:true})); } D.set.call(this, v); }});
       try{ render(); } finally { delete L.innerHTML; } window.__A=A; return 'ok'; })()`;
     const typed = (sel, v) => `(function(){ var A=${sel}; A.focus(); A.value=${J(v)}; A.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`;
     ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
