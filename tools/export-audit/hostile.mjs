@@ -182,8 +182,8 @@ const SCAN = `JSON.stringify((function(){
 
 // Panels whose opener needs a context -- the same list tools/panels-render.mjs keeps.
 const SPECIAL = {
-  matPanel: `matOpen=true; matBody();`, rollPanel: `rollOpen=true; rollBody();`, recPanel: `recOpen=S.order[0]; recBody();`,
-  wbsPanel: `toggleWbs('req', S.order[0], '');`, subPanel: `subOpenReview();`, fldPanel: `openFld(S.order[0], 'cons');`,
+  matPanel: `matOpen=true; matBody();`, rollPanel: `rollOpen=true; rollBody();`, editPanel: `openEdit(S.order[0], 'rec');`,
+  wbsPanel: `toggleWbs('req', S.order[0], '');`, subPanel: `subOpenReview();`,
   ndPanel: `ndOpen=true; render();`, helpPanel: `openHelp('');`,
   // v2.00 (menu, 19 Oct): the left menu's three boxes close by uiImpClose / uiRepClose / uiDataClose; each opens as its entry opens it
   uiImpPanel: `uiImpOpen();`, uiRepPanel: `uiRepOpen();`, uiDataPanel: `uiDataOpen();`,
@@ -192,7 +192,8 @@ const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
 // v2.07 (item 121): the Add box is open while arOpen says so -- render() puts its class back -- so it is closed by its own code
 const CLOSE = tryIt(`document.querySelectorAll('.modal-bg').forEach(function(e){ e.className='modal-bg'; });
   document.querySelectorAll('.menu.open').forEach(function(m){ m.classList.remove('open'); });
-  if(typeof arOn==='function' && arOn()) arHide();`);
+  if(typeof arOn==='function' && arOn()) arHide();
+  if(typeof erOn==='function' && erOn()) erClose();`);
 
 // NOT HOLLOW: a field that was planted and never drawn proves nothing about how it is drawn. Each of these
 // must be seen somewhere in the sweep as the text it is. (The BAE list's first row is planted under 'name', which the
@@ -229,10 +230,10 @@ export async function hostileSweep(run, settle = async () => {}) {
     await run(tryIt(`setCur(${q});`)); await look(`requirement ${w}`);
     await run(tryIt(`toggleRowMenu(${q}, {stopPropagation:function(){}});`)); await look(`row menu ${w}`);
     await run(tryIt(`rowMenuId=null; render();`));
-    for (const f of ['cons', 'desc', 'notes']) { await run(tryIt(`openFld(${q}, '${f}');`)); await look(`${f} pop-up ${w}`); await run(CLOSE); }
-    await run(tryIt(`recOpen=${q}; recBody();`)); await look(`record panel ${w}`);
+    // v2.08 (item 122): the edit box holds the record, the written fields included (the pop-ups and Requirement edit went)
+    await run(tryIt(`openEdit(${q}, 'rec');`)); await look(`edit box ${w}`); await run(CLOSE);
     await run(tryIt(`toggleWbs('req', ${q}, '');`)); await look(`WBS ${w}`);
-    await run(tryIt(`recOpen=null; wbsOpen=null; render();`)); await run(CLOSE);
+    await run(tryIt(`wbsOpen=null; render();`)); await run(CLOSE);
   }
   await run(tryIt(`toggleClin('PRIME-2');`)); await look('the CLIN drill');
   await run(tryIt(`clinOpen={}; render();`));

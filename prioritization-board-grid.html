@@ -31118,10 +31118,11 @@ function erNotSent(id){
   return own===me? '' : 'This is '+own+'’s requirement, and this copy submits for '+me+': what you change here is kept on this '
     +'copy and is not sent with ✉ Submit input.';
 }
-// the SI choice as its picker shows it: a saved value that is not one of the five is '\u0003' (kept as saved, never chosen
-// again by the box), else siOf -- the stored code or the derived one
+// the SI choice as its picker shows it: a saved value that is not one of the five is its text as saved (or its JSON), the
+// value of its own "kept as saved" choice, which the box never writes back (v2.00 U41/U57's rule); else siOf -- the stored
+// code or the derived one
 function erSiCur(it){ if(!siApplies() || !siEligible(it)) return ''; const raw=siRawOf(it.id);
-  return (raw!==undefined && !siKnown(raw))? '\u0003' : siOf(it); }
+  return (raw!==undefined && !siKnown(raw))? (typeof raw==='string'? raw : siRawShow(raw)) : siOf(it); }
 function erIsProposal(id){ return typeof SANDBOX!=='undefined' && SANDBOX && pmoProposalIds().indexOf(id)>=0; }
 // where each opener lands: a field's control, or the top
 const ER_AT={titles:'erEvent', ccar:'erCcar', pid:'erPid', ptype:'erPtP', grp:'erGrp', obCat:'erOb', costElem:'erCe', wbs:'erWbs',
@@ -31151,7 +31152,7 @@ function erSay(h, ok){ const m=erEl('erMsg'); if(!m) return; m.innerHTML=h||''; 
 function erField(id, k, ctl, o){
   o=o||{};
   return '<div class="ar-f'+(o.span? ' span2' : '')+'" id="erF_'+k+'"'+(o.hide? ' hidden' : '')+'>'
-    +'<label class="ar-l" for="'+id+'">'+esc(o.l||FL(k))+(o.req? '<i aria-hidden="true">*</i>' : '')+(o.tag? '<em>'+o.tag+'</em>' : '')+'</label>'
+    +'<label class="ar-l" for="'+id+'">'+esc(o.l || FL(k))+(o.req? '<i aria-hidden="true">*</i>' : '')+(o.tag? '<em>'+o.tag+'</em>' : '')+'</label>'
     +ctl+(o.note!==undefined? '<span class="ar-n" id="'+id+'Note">'+o.note+'</span>' : '')+'</div>';
 }
 function erInp(id, v, o){
@@ -31225,7 +31226,7 @@ function erDraw(){
   if(siEligible(it)){
     const raw=siRawOf(id), cur=V.si;
     acct.push(erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
-      +(cur==='\u0003'? '<option value="\u0003" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
+      +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1}));
   }
   if(acct.length) h+='<section class="ar-sec" aria-labelledby="erS3"><h4 id="erS3">Accounting lines</h4><div class="ar-grid">'+acct.join('')+'</div></section>';
@@ -31314,17 +31315,18 @@ function erUpdate(){
   if(wg){ wg.hidden=!(prime || split);
     const b=wg.querySelectorAll('button'); if(b[0]) b[0].hidden=!split || prime; if(b[1]) b[1].hidden=!prime; }
   const cc=D.ccar.trim(), rt=erEl('erRecT'), it=itemById(erOpen);
-  if(rt && it){ const typed=(S.recNames||{})[erOpen];
-    const nm=typed || (cc? ccarNameOfNum(cc) : '') || (!cc? it.title||'' : '');
+  // the record name the board reads (recName) while the CCaR record is the one stored; for one newly typed, the list's name
+  if(rt && it){ const typed=(S.recNames||{})[erOpen], same=cc===String((erSnap||{}).ccar||'').trim();
+    const nm=same? recName(it) : (typed || (cc && ccarNameOfNum(cc)) || (!cc? it.title||'' : ''));
     rt.textContent= nm || (!cc? 'named from the CCaR records list when the record is typed' : !ccarIdx()? 'no CCaR records list is loaded'
       : (ccarRec(cc)||{}).d>1? 'held by several records in the CCaR records list — no title is taken from it' : 'not in the CCaR records list');
     rt.classList.toggle('dim', !nm); }
   const need=reqNeeds(erDraft(D)), miss=need.filter(function(x){ return !x.ok; });
   const ch=erEl('erChk');
-  if(ch) ch.innerHTML=need.map(function(x){
+  if(ch) ch.innerHTML = need.map(function(x){ const lbl=arShort(x.l);
     const panel=(x.k==='asks' || x.k==='budgetAsg');
     const st=x.w? 'na' : x.ok? 'ok' : 'no';
-    return '<li class="'+st+'"><i aria-hidden="true">'+(x.w? '–' : x.ok? '✓' : '!')+'</i>'+esc(arShort(x.l))
+    return '<li class="'+st+'"><i aria-hidden="true">'+(x.w? '–' : x.ok? '✓' : '!')+'</i>'+esc(lbl)
       +(panel && !x.ok? ' <span>· set in the RECORD panel</span>' : (x.n? ' <span>· '+esc(x.n)+'</span>' : ''))
       +'<span class="sr">'+(x.w? ' — nothing to choose' : x.ok? ' — done' : ' — still needed')+'</span></li>'; }).join('');
   const rn=erEl('erReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;

@@ -136,19 +136,23 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const id = await p.evaluate(() => gridRows()[1].id.replace(/^row-/, ''));
     await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(250);
     for (const [what, sel, value, read] of [
-      ['CCaR record', '#inspector [onclick^="editCcar("]', 'JSF9911', id => S.ccar[id]],
-      ['PID', '#inspector [onclick^="editPid("]', 'PID7733', id => S.pid[id]],
-      ['rename', '#inspector [onclick^="editTitle("]', 'Renamed from the keyboard', id => S.titles[id]]]) {
+      // v2.08 (item 122): each opens the edit box at its field; the value is typed there and saved with the box's Save
+      ['CCaR record', '#inspector [onclick^="openEdit("][onclick*=\'"ccar"\']', 'JSF9911', id => S.ccar[id]],
+      ['PID', '#inspector [onclick^="openEdit("][onclick*=\'"pid"\']', 'PID7733', id => S.pid[id]],
+      ['rename', '#inspector [onclick^="openEdit("][onclick*=\'"titles"\']', 'Renamed from the keyboard', id => S.titles[id]]]) {
       const shape = await p.evaluate(s => { const e = document.querySelector(s); return e ? { tag: e.tagName, tab: e.tabIndex } : null; }, sel);
       // a keyboard user arriving in the panel starts at its top (the rename pencil sits above the editors)
       await p.evaluate(() => { const i = document.getElementById('inspector'); i.setAttribute('tabindex', '-1'); });
       const steps = await tabTo(p, '#inspector', sel, 60);
-      answers.push(value);
-      if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+      if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+        // the box opens with the field's text selected: type over it, then Tab to Save and press Enter
+        await p.keyboard.type(value);
+        for (let k = 0; k < 80 && !(await p.evaluate(() => (document.activeElement || {}).id === 'erSaveBtn')); k++) await p.keyboard.press('Tab');
+        await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
       const got = await p.evaluate(({ id, src }) => (new Function('id', 'return (' + src + ')(id)'))(id), { id, src: read.toString() });
       chk(`D · ${what} is a button, reached with Tab and changed from the keyboard (${pass})`, !!shape && shape.tag === 'BUTTON' && steps >= 0 && got === value,
         `${shape ? shape.tag : 'missing'} · ${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · now ${JSON.stringify(got)}`);
-      // the next field is reached from the panel's top again; put the panel back on screen after the prompt
+      // the next field is reached from the panel's top again; put the panel back on screen after the box
       if (!docked) { await p.keyboard.press('Escape'); await p.waitForTimeout(250); }
       await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(200);
     }

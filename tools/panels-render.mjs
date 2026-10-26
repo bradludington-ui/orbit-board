@@ -37,11 +37,10 @@ const sc = { services: SVCN, items,
 const SPECIAL = {
   matPanel:  `matOpen=true; matBody();`,
   rollPanel: `rollOpen=true; rollBody();`,
-  recPanel:  `recOpen=S.order[0]; recBody();`,
+  // v2.08 (item 122): the edit box, the whole record (Requirement edit and the written-field pop-up went into it)
+  editPanel: `openEdit(S.order[0], 'rec');`,
   wbsPanel:  `toggleWbs('req', S.order[0], '');`,
   subPanel:  `subOpenReview();`,
-  // The pop-up editor for the three written fields. It needs a requirement to be editing.
-  fldPanel:  `openFld(S.order[0], 'cons');`,
   // v1.86: the fix list for what is set higher than it draws -- a split typed past the requirement
   // value on the last row, so the panel has a line to show -- and the guide, open on its contents.
   ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
@@ -176,13 +175,14 @@ for (const f of ['prioritization-board-grid.html']) {
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
     'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];
-  const NUL = ['recOpen', 'wbsOpen', 'attOpen'];
+  const NUL = ['wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };
     F.forEach(n => set(n, 'false')); N.forEach(n => set(n, 'null'));
     // v2.07 (item 121): the Add box is closed by its own code (it empties its body), and the office its passes chose at the top
     // is put back to every office
     try { if (arOn()) arHide(); } catch (_) {}
+    try { if (erOn()) erClose(); } catch (_) {}   // v2.08 (item 122): the edit box, by its own code
     set('filter', "'ALL'");
     try { render(); } catch (_) {}
     document.querySelectorAll('.modal-bg').forEach(e => { e.className = 'modal-bg'; e.style.display = ''; });

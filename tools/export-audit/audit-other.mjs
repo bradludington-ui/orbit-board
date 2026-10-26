@@ -1289,9 +1289,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'go to it', 'no date: B selected, its award date has the keyboard',
     ev(`(function(){ var a=document.activeElement; return [curRow, !!(a && a.closest && a.closest('#inspector .awdblk')), a && a.type].join(' · '); })()`), 'B · true · date');
   ev(`attShow('imp'); attGo('imp','C'); 'ok'`);
-  chk(name, 'go to it', 'impact: C selected and its Impact statement editor open', ev(`J=JSON.stringify; J([curRow, fldOpen && fldOpen.id, fldOpen && fldOpen.kind])`), J(['C', 'C', 'cons']));
-  ev(`fldClose(); attShow('ccar'); window.__asked=''; attGo('ccar','B'); 'ok'`);
-  chk(name, 'go to it', 'CCaR: B selected and its CCaR record asked for', ev(`curRow+' · '+/CCaR record for "B event"/.test(window.__asked)`), 'B · true');
+  // v2.08 (item 122): the edit box, open at the field
+  chk(name, 'go to it', 'impact: C selected and its record open at the impact statement', ev(`J=JSON.stringify; J([curRow, erOpen, document.activeElement && document.activeElement.id])`), J(['C', 'C', 'erCons']));
+  ev(`erClose(); attShow('ccar'); attGo('ccar','B'); 'ok'`);
+  chk(name, 'go to it', 'CCaR: B selected and its record open at the CCaR record', ev(`[curRow, erOpen, document.activeElement && document.activeElement.id].join(' · ')`), 'B · B · erCcar');
+  ev(`erClose(); 'ok'`);
   // FIXED FROM THE LIST, IT LEAVES THE LIST AND THE COUNT AT ONCE
   ev(`S.ccar=S.ccar||{}; S.ccar.B='JSF2'; save(); render(); 'ok'`);
   chk(name, 'fixed', 'B given a CCaR record: the count and the list drop it', J([entries()[1], open('ccar').rows.length]), J(['BUTTON ○ 1 without a CCaR record', 2]));
@@ -1344,21 +1346,22 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   st = state();
   chk(name, 'Esc', 'Esc closes the box (crOpen false), nothing left inert, nothing asked', J([ev(`crOpen`), st.stack, st.inert, ev(`__asked.length`)]), J([false, [], [], 0]));
   // TYPING GUARDED: the Impact statement editor saves only with its own Save, so what is typed waits there
-  ev(`openFld('A','cons'); dlgSync(); __type(document.getElementById('fld-cons'), ' unless'); 'ok'`);
-  chk(name, 'typing', 'the editor is open with the typing in it', ev(`fldOpen && fldOpen.id+' · '+document.getElementById('fld-cons').value`), 'A · the line stops unless');
+  // v2.08 (item 122): the impact statement is written in the edit box, held until its Save
+  ev(`openEdit('A','cons'); dlgSync(); __type(document.getElementById('erCons'), ' unless'); 'ok'`);
+  chk(name, 'typing', 'the editor is open with the typing in it', ev(`erOpen && erOpen+' · '+document.getElementById('erCons').value`), 'A · the line stops unless');
   ev(`__asked=[]; __ans=false; __key('Escape'); 'ok'`);
   chk(name, 'typing', 'Esc asks first; Cancel keeps the box and the typing, and saves nothing',
-    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`), ev(`S.cons.A`)]),
+    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`), ev(`S.cons.A`)]),
     J([1, true, true, 'the line stops unless', 'the line stops']));
-  ev(`__asked=[]; document.querySelector('#fldPanel h3 button.x').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
-  chk(name, 'typing', '✕ Close asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
-  ev(`__asked=[]; document.getElementById('fldPanel').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
-  chk(name, 'typing', 'a click on the backdrop asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; document.querySelector('#editPanel h3 button.x').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', '✕ Close asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; document.getElementById('editPanel').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', 'a click on the backdrop asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`)]), J([1, true, 'the line stops unless']));
   ev(`__asked=[]; __ans=true; __key('Escape'); 'ok'`);
-  chk(name, 'typing', 'Esc and OK: the box closes and the stored statement is untouched', J([ev(`__asked.length`), ev(`fldOpen`), ev(`S.cons.A`), state().stack]), J([1, null, 'the line stops', []]));
+  chk(name, 'typing', 'Esc and OK: the box closes and the stored statement is untouched', J([ev(`__asked.length`), ev(`erOpen`), ev(`S.cons.A`), state().stack]), J([1, null, 'the line stops', []]));
   // nothing typed: no question at all
-  ev(`__asked=[]; openFld('A','cons'); dlgSync(); __key('Escape'); 'ok'`);
-  chk(name, 'typing', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), ev(`fldOpen`)]), J([0, null]));
+  ev(`__asked=[]; openEdit('A','cons'); dlgSync(); __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), ev(`erOpen`)]), J([0, null]));
   // a field the box commits on change: typed and not yet committed is guarded; once committed, nothing to lose
   ev(`toggleEnt(); dlgSync(); window.__f=[].slice.call(document.querySelectorAll('#entPanel .modal input')).filter(function(e){ return !e.disabled && /^(text|)$/.test(e.getAttribute('type')||'') && !e.hasAttribute('oninput'); })[0];
     __type(__f, 'qz'); __asked=[]; __ans=false; __key('Escape'); 'ok'`);
@@ -1512,10 +1515,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     ev(`['A','B','C','D'].map(function(id){ return ccarDescOf(itemById(id)); }).join(' || ')`),
     'Overhaul of the F135 engines || Avionics spares || CLIN 0001 · JSF3 — Third CLIN work\nCLIN 0002 · JSF4 — Fourth CLIN work || ');
   // TYPING A NUMBER fills an EMPTY Description, and only an empty one
-  ev(`globalThis.__p=window.prompt; window.prompt=function(){ return 'JSF2'; }; editCcar('D'); window.prompt=globalThis.__p; 'ok'`);
+  // v2.08 (item 122): typed in the edit box, which fills its description box and writes both on Save
+  const ccBox = (id, v) => ev(`(function(){ openEdit(${J(id)},'ccar'); var e=document.getElementById('erCcar'); e.value=${J(v)}; e.dispatchEvent(new Event('input')); erSave(); return 'ok'; })()`);
+  ccBox('D', 'JSF2');
   chk(name, 'typed number', 'D typed JSF2: Record Name and Description follow it', ev(`recName(itemById('D'))+' | '+((S.desc||{}).D||'')`),
     'Avionics record | Avionics spares');
-  ev(`window.prompt=function(){ return 'JSF1'; }; editCcar('E'); window.prompt=globalThis.__p; 'ok'`);
+  ccBox('E', 'JSF1');
   chk(name, 'typed number', 'E typed JSF1: a written Description is kept', ev(`(S.desc||{}).E||''`), 'Written by the office');
 
   const pE = ev(`(function(){ curRow='E'; try{ inspectorBody(); }catch(e){ return 'threw '+e.message; } return (document.getElementById('inspector')||{}).innerHTML||''; })()`);
@@ -2433,6 +2438,152 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
   }
 }
+
+// ==== v2.08 item 122: edit the whole record in one box (Brad, 26 Oct 2026: D1-D12, D9 retire the rename) ====
+// The box is driven through its own controls: each value is typed into the field (an input event, as typing makes) or chosen
+// (a change event), and Save is its button. Every expected value is written out here, from the fixture. Every check fails on
+// v2.07 (the box does not exist there) unless it is marked CONTROL.
+{
+  const name = 'v2.08 — the edit box: the whole record, held until Save, written once (item 122)';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask, x) => Object.assign({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask }, x || {});
+  const { ev, errors } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [80, 0]), itx('C', 'AV', [60, 0]), itx('D', 'PSM', [40, 0])],
+             disc: [400, 400], mand: [0, 0], order: ['A', 'B', 'C', 'D'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.ccar.A='JSF1'; S.pid.A='PID-A'; S.ptype.A='OGC'; S.obCat=S.obCat||{}; S.obCat.A=OB_CATS[0];
+      S.wbs=S.wbs||{}; S.wbs.A=[{w:'1.2.3', v:[]}]; S.wbs.B=[{w:'4.1', v:[1,0]},{w:'4.2', v:[0,1]}];
+      S.dest=S.dest||{}; S.dest.A={to:'pax', end:'lm'}; S.mipr=S.mipr||{}; S.mipr.A='direct';
+      S.desc.A='What A is.'; S.notes.A='A note.'; S.cons.A='A stops.';
+      S.pmoOrder.PSM=['A','B','D']; S.pmoOrder.AV=['C']; save();
+      window.__asked=[]; window.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; };
+      window.__saves=0; var _s=save; save=function(){ __saves++; return _s.apply(this, arguments); }; setCur('A'); render(); 'ok'`);
+  const g = id => `document.getElementById(${J(id)})`;
+  const put = (id, v) => ev(`(function(){ var e=${g(id)}; e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const val = id => ev(`(${g(id)}||{value:'(no field)'}).value`);
+  const open = () => ev(`/(^| )open( |$)/.test(${g('editPanel')}.className)`);
+  const btn = id => ev(`${g(id)}.click(); 'ok'`);
+
+  // ---- it opens holding the record
+  ev(`toggleRec('A'); 'ok'`);
+  chk(name, 'opens', 'Requirement edit opens the box at the plan event', J([open(), ev(`document.activeElement.id`)]), J([true, 'erEvent']));
+  chk(name, 'opens', 'every field holds what is stored',
+    J(['erEvent', 'erCcar', 'erPid', 'erPtype', 'erGrp', 'erOb', 'erWbs', 'erTo', 'erEnd', 'erMipr', 'erDesc', 'erNote', 'erCons'].map(val)),
+    J(['EV-A', 'JSF1', 'PID-A', 'OGC', 'PSM', ev('OB_CATS[0]'), '1.2.3', 'pax', 'lm', 'direct', 'What A is.', 'A note.', 'A stops.']));
+  chk(name, 'opens', 'the OGC fields are shown for a government activity', J([ev(`${g('erF_destEnd')}.hidden`), ev(`${g('erF_mipr')}.hidden`)]), J([false, false]));
+  chk(name, 'opens', 'the CCaR record name is shown, never a field to type in', J([ev(`${g('erRecT')}.tagName`), ev(`${g('erRecT')}.textContent`)]), J(['SPAN', 'Rec A']));
+  chk(name, 'opens', 'nothing in it edits money: no value, budget, allocation or band control',
+    ev(`document.querySelectorAll('#erBody [onchange*="setAsk"],#erBody [onchange*="setFsrc"],#erBody [onchange*="setBand"],#erBody [onchange*="budLine"],#erBody [onchange*="setAlloc"]').length`), 0);
+
+  // ---- a redraw while it holds typing keeps the typing (F2 cannot reach it)
+  put('erPid', 'PID-NEW'); ev(`render(); render(); 'ok'`);
+  chk(name, 'held', 'two redraws later the typing is still in the box, and nothing is written', J([val('erPid'), ev(`S.pid.A`)]), J(['PID-NEW', 'PID-A']));
+  chk(name, 'held', 'the Save button counts the changes', ev(`${g('erSaveBtn')}.textContent`), 'Save 1 change');
+  // ---- Cancel writes nothing
+  const s0 = ev(`JSON.stringify(S)`);
+  btn('erFt'); ev(`(function(){ [].filter.call(document.querySelectorAll('#erFt button'), function(b){ return b.textContent==='Cancel'; })[0].click(); return 'ok'; })()`);
+  chk(name, 'Cancel', 'Cancel closes the box and writes nothing', J([open(), ev(`JSON.stringify(S)`) === s0]), J([false, true]));
+
+  // ---- Save writes exactly what changed, in one save()
+  ev(`toggleRec('A'); __saves=0; 'ok'`);
+  const pmo0 = ev(`JSON.stringify(S.pmoOrder)`), j0 = Number(ev(`(MS.jrnl||[]).length`));
+  put('erPid', 'PID-NEW'); put('erNote', 'A note, revised.');
+  ev(`erPt('OGC'); 'ok'`);   // OGC again: set, never toggled
+  btn('erSaveBtn');
+  chk(name, 'Save', 'it wrote the two fields typed', J([ev(`S.pid.A`), ev(`S.notes.A`)]), J(['PID-NEW', 'A note, revised.']));
+  chk(name, 'Save', 'Prime contract / OGC chosen again is still OGC', ev(`S.ptype.A`), 'OGC');
+  chk(name, 'Save', 'in one save()', ev(`__saves`), 1);
+  chk(name, 'Save', 'the journal has an entry per changed field and no other', J(JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).slice(${j0}).map(function(e){ return (e.p||[])[0]; }).sort())`))), J(['notes', 'pid']));
+  chk(name, 'Save', 'an unchanged office leaves every ranking as it was', ev(`JSON.stringify(S.pmoOrder)`), pmo0);
+  chk(name, 'Save', 'it closes, and says what it saved', J([open(), ev(`document.getElementById('shareStat').textContent`)]), J([false, '✎ EV-A: saved PID, Note.']));
+
+  // ---- the plan event: a board-data requirement's rename is an override; typed back, it goes
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', 'A renamed'); btn('erSaveBtn');
+  chk(name, 'plan event', 'a rename of a board-data requirement is kept as an override', J([ev(`S.titles.A`), ev(`dispTitle(itemById('A'))`)]), J(['A renamed', 'A renamed']));
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', 'EV-A'); btn('erSaveBtn');
+  chk(name, 'plan event', 'typed back to the file’s own, the override is gone', ev(`S.titles.A===undefined`), true);
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', '   '); btn('erSaveBtn');
+  chk(name, 'plan event', 'empty is refused: nothing written, the box stays open saying why', J([open(), ev(`S.titles.A===undefined`), ev(`${g('erMsg')}.textContent.indexOf('The plan event cannot be empty')>=0`)]), J([true, true, true]));
+  ev(`erClose(); 'ok'`);
+
+  // ---- a split WBS is shown, never retyped; Save of another field leaves it
+  ev(`toggleRec('B'); 'ok'`);
+  chk(name, 'WBS', 'a split WBS: no field to retype it, and its split named with a way to it',
+    J([ev(`${g('erWbs')}.hidden`), ev(`${g('erWbsNote')}.textContent.indexOf('split over 2 lines')>=0`), ev(`${g('erWbsGo')}.hidden`)]), J([true, true, false]));
+  const wbsB = ev(`JSON.stringify(S.wbs.B)`);
+  put('erDesc', 'What B is.'); btn('erSaveBtn');
+  chk(name, 'WBS', 'and Save of another field leaves the split exactly as it was', ev(`JSON.stringify(S.wbs.B)`), wbsB);
+
+  // ---- D10: a Goes to that is not a government activity takes Which awards to and the MIPR type with it
+  ev(`toggleRec('A'); 'ok'`); put('erTo', 'pw');
+  chk(name, 'D10', 'switched to a prime, the OGC fields are hidden', J([ev(`${g('erF_destEnd')}.hidden`), ev(`${g('erF_mipr')}.hidden`)]), J([true, true]));
+  btn('erSaveBtn');
+  chk(name, 'D10', 'saved: Goes to is the prime, Which awards to and the MIPR type are cleared', ev(`JSON.stringify([S.dest.A, (S.mipr||{}).A||null])`), J([{ to: 'pw', end: '' }, null]));
+
+  // ---- the CCaR record fills an EMPTY description, never a written one; re-entered, it changes nothing
+  // a CCaR records list, for this part only
+  ev(`MS.ccarIdx={n:1, rows:{}}; MS.ccarIdx.rows[ccarNorm('JSF9')]={t:'Nine record', s:'What nine is', d:1}; 'ok'`);
+  ev(`toggleRec('C'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'an empty description is filled from the CCaR list, and the record name read', J([val('erDesc'), ev(`${g('erRecT')}.textContent`)]), J(['What nine is', 'Nine record']));
+  btn('erSaveBtn');
+  chk(name, 'CCaR', 'saved, both are written', J([ev(`S.ccar.C`), ev(`S.desc.C`)]), J(['JSF9', 'What nine is']));
+  ev(`toggleRec('A'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'a written description is never replaced', val('erDesc'), 'What A is.');
+  ev(`erClose(); toggleRec('C'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'the same number typed again: nothing to save', ev(`${g('erSaveBtn')}.textContent`), 'Save');
+  ev(`erClose(); delete MS.ccarIdx; 'ok'`);
+
+  // ---- the office (D8): asked first, naming what follows; Cancel moves nothing; OK puts it last in the new office
+  ev(`toggleRec('A'); __asked=[]; __ans=false; 'ok'`); put('erGrp', 'AV'); btn('erSaveBtn');
+  chk(name, 'office', 'Save asks, naming this fiscal year only and last in the new office’s ranking',
+    J([ev(`__asked.length`), ev(`__asked[0].indexOf('FY27 only')>=0`), ev(`__asked[0].indexOf('last in AV')>=0`)]), J([1, true, true]));
+  chk(name, 'office', 'answered Cancel, nothing moved and the box is still open with the choice', J([ev(`grpOf(itemById('A'))`), open(), val('erGrp')]), J(['PSM', true, 'AV']));
+  ev(`__ans=true; 'ok'`); btn('erSaveBtn');
+  chk(name, 'office', 'answered OK, it moved, last in AV, out of PSM', J([ev(`grpOf(itemById('A'))`), ev(`JSON.stringify(S.pmoOrder.AV)`), ev(`S.pmoOrder.PSM.indexOf('A')`)]), J(['AV', J(['C', 'A']), -1]));
+
+  // ---- changed while the box was open: nothing written
+  ev(`toggleRec('D'); 'ok'`); put('erPid', 'TYPED'); ev(`S.pid.D='FROM ELSEWHERE'; 'ok'`); btn('erSaveBtn');
+  chk(name, 'changed meanwhile', 'its record changed under the box: Save refuses and writes nothing', J([ev(`S.pid.D`), open(), ev(`${g('erMsg')}.textContent.indexOf('changed while this box was open')>=0`)]), J(['FROM ELSEWHERE', true, true]));
+  ev(`erClose(); 'ok'`);
+
+  // ---- prev / next: typing not saved is asked about first
+  ev(`toggleRec('B'); __asked=[]; __ans=false; 'ok'`); put('erNote', 'typed in B');
+  ev(`erStep(1); 'ok'`);
+  chk(name, 'next', 'next ↓ with typing asks first; Cancel stays on B with the typing', J([ev(`__asked.length`), ev(`erOpen`), val('erNote')]), J([1, 'B', 'typed in B']));
+  ev(`__ans=true; erStep(1); 'ok'`);
+  chk(name, 'next', 'OK opens the next requirement, and B kept nothing', J([ev(`erOpen`), ev(`(S.notes||{}).B||''`)]), J(['C', '']));
+  ev(`erClose(); 'ok'`);
+
+  // ---- the required list warns (D5); the RECORD panel's 📋 count reads it (D11)
+  ev(`toggleRec('D'); 'ok'`);
+  const rail = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#erChk li'), function(l){ return l.className+':'+l.textContent.split(' — ')[0]; }))`));
+  chk(name, 'D5', 'the list is reqNeeds’ own, in its order', J(rail.map(r => r.split(':')[1].replace(/[✓!–]/, '').split(' · ')[0])),
+    J(['Plan event', 'Prime contract / OGC', 'Requirement value', 'Budget', 'Obligation category', 'WBS', 'Goes to', 'Description', 'Impact statement']));
+  ev(`erClose(); setCur('D'); render(); 'ok'`);
+  chk(name, 'D11', 'the 📋 button counts what the list still needs', ev(`[].map.call(document.querySelectorAll('#inspector .insp-act .a2'), function(e){ return e.textContent; })[2]`), '6 of 8 still needed');
+
+  // ---- D9: the record name is read, never typed -- the row's rename is gone
+  ev(`toggleRowMenu('A', {stopPropagation:function(){}}); 'ok'`);
+  chk(name, 'D9', 'the row’s ⋯ menu offers no rename of the CCaR record name', ev(`document.body.innerHTML.indexOf('Rename the CCaR record name')`), -1);
+  ev(`rowMenuId=null; render(); 'ok'`);
+
+  // ---- D12: in Brief, Needs attention's Go to opens the box
+  ev(`uiSetMode('brief'); attShow('imp'); attGo('imp','D'); 'ok'`);
+  chk(name, 'D12', 'in Brief, Go to opens the box at the impact statement', J([open(), ev(`erOpen`), ev(`document.activeElement.id`)]), J([true, 'D', 'erCons']));
+  ev(`erClose(); uiSetMode('review'); 'ok'`);
+
+  // ---- a locked cycle: the box does not open
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+  chk(name, 'locked', 'on a locked cycle the box does not open', J([ev(`openEdit('A','rec')`), open()]), J([false, false]));
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 160);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.08 item 122 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

@@ -1,0 +1,182 @@
+[
+ {
+  "id": "v208-f1-band-clears-impact",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f3-same-office-reranks",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f3-bulk-rewrites-same",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f4-destof-end-unguarded",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f4-mipr-unguarded",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f4-setdest-keeps-end",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f7-rcnsvc-by-label",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f7-rcnsvc-bulk-writes-budget",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f7-rcnsvc-any-combination",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f6-copy-clins-open",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f6-wbs-open",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f6-copy-silent",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-absorber-unlocked",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-absorbfloor-unlocked",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-122-writes-unchanged",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-save-writes-nothing",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-save-per-field",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-ptype-toggles",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-board-event-to-item",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-copy-rename-not-sent",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-122-desc-overwritten",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-redrawn-by-render",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-office-moves-always",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-split-wbs-retypeable",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-ogc-kept",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-rail-drops-waived",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-count-waived",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-changed-meanwhile",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-removed-saves",
+  "caughtBy": "audit-board / the edit box: the written fields"
+ },
+ {
+  "id": "v208-122-office-unasked",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-prev-discards",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-copy-foreign-silent",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-122-copy-other-year-silent",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-122-handover-said-not-sent",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-122-proposal-office-open",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-122-cycle-not-blocked",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "v208-122-refusal-drops-text",
+  "caughtBy": "audit-board / v1.99 — a code longer than its limit"
+ },
+ {
+  "id": "v208-122-label-spelled",
+  "caughtBy": "audit-board / v2.03 — a requirement’s fields are named"
+ },
+ {
+  "id": "v208-122-heading-spelled",
+  "caughtBy": "audit-board / v2.03 — a requirement’s fields are named"
+ },
+ {
+  "id": "v208-f2-held-not-put-back",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f2-typing-not-marked",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v208-f2-keyboard-lost",
+  "caughtBy": "audit-board / v2.08 — the defects"
+ },
+ {
+  "id": "v204-108-no-fill",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "att-go-not-selected",
+  "caughtBy": "audit-other / v1.93 — Needs attention"
+ },
+ {
+  "id": "v200-u41-goto-row-only",
+  "caughtBy": "audit-recon / v2.00 (U41)"
+ }
+]

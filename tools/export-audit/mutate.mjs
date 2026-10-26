@@ -390,12 +390,8 @@ const MUTATIONS = [
   // The pop-up editor, driven directly by audit-board in BOTH builds -- the machinery is shared and
   // only the routing differs, so a mutation here cannot survive on whichever build does not route
   // through it in the UI.
-  { id: 'fld-save-drops-edit', area: 'fldSave', what: 'the pop-up reports a save and writes nothing',
-    find: "  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? a.value : null; });",
-    repl: "  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? p.get(fldOpen.id) : null; });" },
-  { id: 'fld-stale-stays-open', area: 'fldBody', what: 'the editor stays open on a requirement that has gone',
-    find: "  if(!it) fldOpen=null;                      // removed out from under the editor",
-    repl: "  // removed out from under the editor" },
+  // fld-save-drops-edit: retired as obsolete in v2.08 -- the pop-up and fldSave went with item 122; the edit box's Save is v208-122-save-writes-nothing
+  // fld-stale-stays-open: retired as obsolete in v2.08 -- the pop-up went with item 122; a requirement gone under the edit box is v208-122-removed-saves
   { id: 'impact-band-gated', area: 'rowChipsHtml', what: 'the impact statement is reachable only where a band demands one',
     find: `onclick="toggleCons('+jsa(id)+')" `,
     repl: `data-x="'+esc(id)+'" ` },
@@ -1599,15 +1595,9 @@ const MUTATIONS = [
     find: "JSON.stringify({appns:appns, destDb:DESTDB, execDb:EXDB",
     repl: "JSON.stringify({appns:appns, execDb:EXDB" },
   // ---- item 12: the written editors, and one name each ------------------------------------------
-  { id: 'fld-dn-writes-both', area: 'fldSave', what: 'saving the description re-writes the unchanged note, re-stamping it as an edit',
-    find: "  const todo=D.parts.filter(function(p, i){ return !fldSame(vals[i], p.get(id)); });",
-    repl: "  const todo=D.parts.slice();" },
-  { id: 'fld-dn-blanks-other', area: 'fldSave', what: 'saving one of the two fields blanks the other',
-    find: "  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });",
-    repl: "  D.parts.forEach(function(p, i){ window[p.set](id, todo.indexOf(p)>=0? vals[i] : ''); });" },
-  { id: 'fld-dn-note-first', area: 'FLD_DEF', what: 'the pop-up puts the note first and the description under it',
-    find: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.desc, FLD_PARTS.note] }",   // v2.03: the title is REQ_FIELD's
-    repl: "  dn:  { get lbl(){ return FLI('dn'); }, parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
+  // fld-dn-writes-both: retired as obsolete in v2.08 -- the pop-up went with item 122; the edit box writes only what changed: v208-122-writes-unchanged
+  // fld-dn-blanks-other: retired as obsolete in v2.08 -- the pop-up went with item 122; the edit box writes only what changed: v208-122-writes-unchanged
+  // fld-dn-note-first: retired as obsolete in v2.08 -- the pop-up and FLD_DEF went with item 122
   { id: 'fld-impact-old-name', area: 'FLD_DEF', what: 'the impact pop-up keeps its old name',
     find: "  cons:{l:'Impact statement', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'},",   // v2.03: the name lives in REQ_FIELD
     repl: "  cons:{l:'Impact if not funded', ic:'\\u26a0'}, desc:{l:'Description'}, notes:{l:'Note'}," },
@@ -2332,8 +2322,8 @@ const MUTATIONS = [
     find: "        +(A.ccar.length? ae('ccar', '○', A.ccar.length+' without a CCaR record') : '')",
     repl: "        +(A.ccar.length? '<div class=\"e\"><span class=\"g\">○</span> '+A.ccar.length+' without a CCaR record</div>' : '')" },
   { id: 'att-go-not-selected', area: 'attGo', what: 'Go to it closes the list without selecting the requirement',
-    find: "  setCur(id);\n  goRow(id);\n  if(k==='imp'){ openFld(id, 'cons'); return; }",   // v2.03: the card fallback is gone
-    repl: "  render();\n  if(k==='imp'){ openFld(id, 'cons'); return; }" },
+    find: "  setCur(id);\n  goRow(id);\n  // v2.08 (item 122): the impact statement",   // v2.08: retargeted (attGo opens the edit box)
+    repl: "  render();\n  // v2.08 (item 122): the impact statement" },
   { id: 'att-go-no-field', area: 'attGo', what: 'Go to it selects the requirement but leaves the award date without the keyboard',
     find: "      if(f && f.focus) f.focus(); } }catch(e){}",
     repl: "      } }catch(e){}" },
@@ -3581,9 +3571,7 @@ const MUTATIONS = [
   { id: "v199-code-cut", area: "codeTake", what: "a typed code over its limit is cut to it, without a word",
     find: "  if(t.length<=max) return {v:t};",
     repl: "  if(t.length<=max || true) return {v:t.slice(0,max)};" },
-  { id: "v199-pid-text-dropped", area: "editPid", what: "a refused PID's box does not open again with what was typed",
-    find: "PID not changed.</b> '+esc(r.why)+'.'); editPid(id, v); return; }",
-    repl: "PID not changed.</b> '+esc(r.why)+'.'); return; }" },
+  // v199-pid-text-dropped: retired as obsolete in v2.08 -- editPid's prompt went with item 122; the edit box keeps refused text: v208-122-refusal-drops-text
   { id: "v199-submittal-ccar-cut", area: "pmoAcceptProposal", what: "a submittal's CCaR record is cut to 12 on the way in",
     find: "  if(a.ccar) S.ccar[id]=String(a.ccar);",
     repl: "  if(a.ccar) S.ccar[id]=String(a.ccar).slice(0,12);" },
@@ -4463,8 +4451,8 @@ const MUTATIONS = [
     find: "      si.map(function(c){ return {id:c.id, label:pfName(c.id), sub:c.label}; })); }\n",
     repl: "      [].map(function(c){ return {id:c.id, label:pfName(c.id), sub:c.label}; })); }\n" },
   { id: "v200-u41-goto-row-only", area: "attGo", what: "Go to it selects the requirement but does not open the RECORD panel its list says it opens",
-    find: "  if(k==='si'){ recOpen=id; render(); try{",
-    repl: "  if(k==='si'){ render(); try{" },
+    find: "  if(k==='si'){ openEdit(id, 'si'); return; }",   // v2.08: retargeted (the edit box holds the SI code)
+    repl: "  if(k==='si'){ render(); return; }" },
   { id: "v200-u41-overview-label", area: "siMatrix", what: "the overview's row says \"no code set\" over R1's and R9's money, though each holds a code the file carried",
     find: "(siIssues().length? '— no recognized code —' : NOCODE)",
     repl: "NOCODE" },
@@ -6768,12 +6756,8 @@ const MUTATIONS = [
   { id: "v203-20-guide-not-filled", area: "helpSections", what: "the guide leaves the field names it reads from the registry blank",
     find: "  box.querySelectorAll('[data-fl]').forEach(function(n){ const k=n.getAttribute('data-fl'); n.textContent=n.hasAttribute('data-fi')? FLI(k) : FL(k); });",
     repl: "  /* not filled */" },
-  { id: "v203-20-popup-own", area: "FLD_DEF", what: "the impact statement's pop-up spells its own title",
-    find: "  cons:{ get lbl(){ return FLI('cons'); }, parts:[FLD_PARTS.cons] },",
-    repl: "  cons:{ get lbl(){ return '\\u26a0 Impact statement'; }, parts:[FLD_PARTS.cons] }," },
-  { id: "v203-20-rechead-fixed", area: "recBody", what: "Requirement edit's heading keeps its own spelling",
-    find: "  try{ const hd=document.getElementById('recHead'); if(hd) hd.textContent=FLI('rec').toUpperCase(); }catch(e){}   // v2.03 (item 20)",
-    repl: "  /* heading as written */" },
+  // v203-20-popup-own: retired as obsolete in v2.08 -- FLD_DEF went with item 122; the edit box's labels read FL(): v208-122-label-spelled
+  // v203-20-rechead-fixed: retired as obsolete in v2.08 -- recBody went with item 122; the edit box's heading reads FL(): v208-122-heading-spelled
   { id: "v203-20-flag-spelled", area: "render", what: "the row's missing-impact flag spells the field's name itself",
     find: "_exc.push(['⚠',FL('cons')+' required',",
     repl: "_exc.push(['⚠','Impact statement required'," },
@@ -6794,9 +6778,9 @@ const MUTATIONS = [
   { id: 'v204-108-desc-overwrites', area: "ccarDescFill", what: "typing a number replaces a written Description",
     find: "if(cur || !d) return false;",
     repl: "if(!d) return false;" },
-  { id: 'v204-108-no-fill', area: "editCcar", what: "typing a number fills no Description",
-    find: "const filled=v? ccarDescFill(id) : false;",
-    repl: "const filled=false;" },
+  { id: 'v204-108-no-fill', area: "erCcarTyped", what: "typing a number fills no Description",   // v2.08: retargeted (the edit box)
+    find: "const s=cc? ccarDescOfNum(cc) : ''; if(s || d.value===erDescAuto){",
+    repl: "const s=''; if(false){" },
   { id: 'v204-108-replace-unasked', area: "ccarDescUse", what: "the RECORD panel's button replaces a written Description without asking",
     find: "if(cur && !confirm(",
     repl: "if(false && !confirm(" },
@@ -7082,8 +7066,7 @@ const MUTATIONS = [
     find: "return {fy:y, id:String(p.id), on:on, held:!!T,", repl: "return {fy:y, id:String(p.id), on:on, held:true," },
   { id: 'v206-fix-reset-reuses', area: "resetYear", what: "after Reset year a new requirement takes an old id, and another year's link reads it as the one it continues",
     find: "  MS.years[MS.cur].newSeq=seq;\n", repl: "" },
-  { id: 'v206-fix-recname-pen', area: "editRecName", what: "the record-name pen does nothing visible on a requirement that carries a record name",
-    find: "      if(S.recNames && Object.prototype.hasOwnProperty.call(S.recNames, id)) delete S.recNames[id];", repl: "" },
+  // v206-fix-recname-pen: retired as obsolete in v2.08 -- the record-name rename is retired (item 122, D9)
   { id: 'v206-fix-copy-submits-other-year', area: "pmoSubmit", what: "a copy switched to another year submits that year's work under the year it was published for",
     find: "  if(SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy){", repl: "  if(false){" },
   // ==== end v2.06 (the pre-merge review's fixes) ====
@@ -7452,6 +7435,71 @@ const MUTATIONS = [
   { id: 'v208-absorbfloor-unlocked', area: "setAbsorbFloor", what: "a PMO copy can set the absorber's floor",
     find: "function setAbsorbFloor(v){ if(allocLocked()) return; const x", repl: "function setAbsorbFloor(v){ const x" },
   // ==== end v2.08 defects ====
+  // ==== v2.08 item 122 -- the edit box (audit-other "v2.08 — the edit box", audit-import "v2.08 — the edit box in a PMO copy",
+  //      audit-board "the edit box: the written fields" and the item 20 and item 91 blocks) ====
+  { id: 'v208-122-writes-unchanged', area: "erChanges", what: "Save writes every field in the box, the ones nobody changed too: the note re-stamped, a journal line per field",
+    find: "    if(a!==b) out[k]=D[k];", repl: "    out[k]=D[k];" },
+  { id: 'v208-122-save-writes-nothing', area: "erSave", what: "Save closes the box and says it saved, and writes nothing",
+    find: "  const msg=reqApply(id, ch, D);", repl: "  const msg=Object.keys(ch);" },
+  { id: 'v208-122-save-per-field', area: "reqApply", what: "Save saves once per field written, so one edit is several saves",
+    find: "if(v) S.pid[id]=v; else delete S.pid[id]; said.push(FL('pid')); }", repl: "if(v) S.pid[id]=v; else delete S.pid[id]; said.push(FL('pid')); save(); }" },
+  { id: 'v208-122-ptype-toggles', area: "erPt", what: "choosing Prime contract / OGC again toggles it to the other",
+    find: "function erPt(v){ const h=erEl('erPtype'); if(h) h.value=(v==='PRIME'||v==='OGC')? v : ''; erUpdate(); }",
+    repl: "function erPt(v){ const h=erEl('erPtype'); if(h) h.value=(h.value===v)? (v==='PRIME'? 'OGC' : 'PRIME') : v; erUpdate(); }" },
+  { id: 'v208-122-board-event-to-item', area: "reqApply", what: "a board-data requirement's renamed plan event is written into the item, where a file reload loses it, not kept as an override",
+    find: "    if(it.custom && !knew){ it.event=t; delete S.titles[id]; }", repl: "    if(true){ it.event=t; delete S.titles[id]; }" },
+  { id: 'v208-122-copy-rename-not-sent', area: "reqApply", what: "a PMO copy's rename of a requirement the board added is shown and never sent (F5)",
+    find: "    const knew=typeof SANDBOX!=='undefined' && SANDBOX && PMODE && Object.prototype.hasOwnProperty.call(PMODE.base||{}, id);",
+    repl: "    const knew=false;" },
+  { id: 'v208-122-desc-overwritten', area: "erCcarTyped", what: "typing a CCaR record replaces a description somebody wrote with the CCaR list's",
+    find: "  if(d && (!d.value.trim() || d.value===erDescAuto)){ const s=cc? ccarDescOfNum(cc)", repl: "  if(d){ const s=cc? ccarDescOfNum(cc)" },
+  { id: 'v208-122-redrawn-by-render', area: "erSync", what: "every redraw draws the box's fields again, and what is typed is lost",
+    find: "function erSync(){ const bg=erEl('editPanel'); if(bg) bg.classList.toggle('open', erOn()); }",
+    repl: "function erSync(){ const bg=erEl('editPanel'); if(bg) bg.classList.toggle('open', erOn()); if(erOn()){ erSnap=erStored(erOpen); erDraw(); } }" },
+  { id: 'v208-122-office-moves-always', area: "reqApply", what: "any Save moves the requirement to the bottom of its office's ranking",
+    find: "  if(ch.grp!==undefined && GROUPS.indexOf(ch.grp)>=0){ grpMove(id, ch.grp);", repl: "  if(GROUPS.indexOf(D.grp)>=0){ grpMove(id, D.grp);" },
+  { id: 'v208-122-split-wbs-retypeable', area: "erUpdate", what: "a split WBS is offered as one line to retype",
+    find: "  if(w) w.hidden=prime || split;", repl: "  if(w) w.hidden=prime;" },
+  { id: 'v208-122-ogc-kept', area: "reqApply", what: "Goes to switched to a prime keeps the hidden Which awards to (D10)",
+    find: "    const end=og? (D.end||'') : '';", repl: "    const end=D.end||(erSnap||{}).end||'';" },
+  { id: 'v208-122-rail-drops-waived', area: "erUpdate", what: "the box's list of what is needed leaves out what is waived",
+    find: "  const need=reqNeeds(erDraft(D)), miss=", repl: "  const need=reqNeeds(erDraft(D)).filter(function(x){ return !x.w; }), miss=" },
+  { id: 'v208-122-count-waived', area: "inspectorDraw", what: "the 📋 button counts the waived fields among those it says are needed (D11)",
+    find: "        const N=reqNeeds(reqDraftOf(id)||{}), C={n:N.filter(function(x){ return !x.w; }).length,", repl: "        const N=reqNeeds(reqDraftOf(id)||{}), C={n:N.length," },
+  { id: 'v208-122-changed-meanwhile', area: "erSave", what: "Save writes over a record that changed while the box was open",
+    find: "  if(JSON.stringify(now)!==JSON.stringify(erSnap)){", repl: "  if(false){" },
+  { id: 'v208-122-removed-saves', area: "erSave", what: "Save on a requirement gone from under the box does not say it is gone",
+    find: "  if(!it){ erSay('This requirement is no longer on the board in '+FYL()+' — nothing was saved. Cancel closes the box.'); return; }\n",
+    repl: "" },
+  { id: 'v208-122-office-unasked', area: "erSave", what: "a change of office is saved without asking, and nothing says what follows (D8)",
+    find: "    if(!confirm('Move '+dispTitle(it)+' from '", repl: "    if(false && !confirm('Move '+dispTitle(it)+' from '" },
+  { id: 'v208-122-prev-discards', area: "erStep", what: "next ↓ throws away what is typed without asking",
+    find: "  if(erDirty() && !confirm('Discard what you typed for '+dispTitle(itemById(erOpen))+' and open '", repl: "  if(false && !confirm('Discard what you typed for '+dispTitle(itemById(erOpen))+' and open '" },
+  { id: 'v208-122-copy-foreign-silent', area: "erNotSent", what: "in a PMO copy the box says nothing when an edit to another office's requirement will not be sent (D7)",
+    find: "  return own===me? '' : 'This is '+own+", repl: "  return true? '' : 'This is '+own+" },
+  { id: 'v208-122-copy-other-year-silent', area: "erNotSent", what: "a PMO copy on a year it cannot submit lets edits be made with nothing said",
+    find: "  if(PMODE && PMODE.fy && +MS.cur!==+PMODE.fy) return 'This copy was published for FY'", repl: "  if(false) return 'This copy was published for FY'" },
+  { id: 'v208-122-handover-said-not-sent', area: "erNotSent", what: "a requirement the office handed over in its copy is said to be another office's, though the hand-over is sent",
+    find: "  const own=(pmoProposalIds().indexOf(id)>=0)? grpOf(it) : pmoHomeOf(id);", repl: "  const own=grpOf(it);" },
+  { id: 'v208-122-proposal-office-open', area: "erDraw", what: "a copy's own proposal can be moved to another office in the box",
+    find: "        return erOpt(g, g+(g===it.grp? ' (from the file)' : ''), V.grp); }).join(''), {dis:prop}),",
+    repl: "        return erOpt(g, g+(g===it.grp? ' (from the file)' : ''), V.grp); }).join(''), {dis:false})," },
+  { id: 'v208-122-cycle-not-blocked', area: "openEdit", what: "the box opens on a locked cycle",
+    find: "function openEdit(id, at){\n  if(cycBlock('Editing a requirement’s record')) return false;", repl: "function openEdit(id, at){" },
+  { id: 'v208-122-refusal-drops-text', area: "erSave", what: "a refused code closes the box and the text typed is lost",
+    find: "    const f=erEl(bad[0][0]); if(f) try{ f.focus(); }catch(e){}\n    return; }", repl: "    erClose(); return; }" },
+  { id: 'v208-122-label-spelled', area: "erField", what: "the box spells its field labels, so after a rename the impact statement keeps its old name",
+    find: "+esc(o.l || FL(k))+", repl: "+esc(o.l || ({cons:'Impact statement'})[k] || FL(k))+" },
+  { id: 'v208-122-heading-spelled', area: "erDraw", what: "the box's heading spells its own name",
+    find: "  const hd=erEl('erTtl'); if(hd) hd.textContent='✎ '+FL('rec')+' — '+FYL();", repl: "  const hd=erEl('erTtl'); if(hd) hd.textContent='✎ Requirement edit — '+FYL();" },
+  { id: 'v208-f2-held-not-put-back', area: "inspectorBody", what: "a RECORD panel redraw puts back the stored figure over what is being typed (F2)",
+    find: "  try{ inspectorDraw(el); } finally { if(held.length) inspHeldBack(el, held); }", repl: "  inspectorDraw(el);" },
+  { id: 'v208-f2-typing-not-marked', area: "inspectorBody", what: "typing in the RECORD panel is never marked as held, so a redraw replaces it (F2)",
+    find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);",
+    repl: "" },
+  { id: 'v208-f2-keyboard-lost', area: "inspHeldBack", what: "a redraw keeps the typing but takes the keyboard out of the field",
+    find: "    if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}", repl: "" },
+  // ==== end v2.08 item 122 ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

@@ -990,7 +990,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const chip = () => ev(`(function(){
     var row=document.getElementById('row-A');
     var scopes=[['row', row]];
-    var ins=document.getElementById('inspector')||document.getElementById('recPanel');
+    var ins=document.getElementById('inspector');
     if(ins) scopes.push(['panel', ins]);
     for (var s=0;s<scopes.length;s++){
       var el=scopes[s][1]; if(!el) continue;
@@ -1197,16 +1197,13 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
-// ══ the pop-up editor saves what was typed, and opens where there is a panel to open it from ══
-// Note, Description and Impact used to expand the row. On the grid build they are a pop-up now,
-// because the RECORD panel is right there and an edit belongs with the requirement's other fields.
-//
-// TWO PROPERTIES, and they are checked separately on purpose. The machinery is byte-identical in
-// both builds -- only the ROUTING differs, on whether this build has an #inspector -- so the save
-// path is driven directly here in BOTH, and a mutation to it cannot survive on the build that does
-// not happen to route through it. The routing is then asserted per build.
+// ══ the edit box saves what was typed, and opens where it is asked to (v2.08, item 122) ══
+// Note, Description and Impact were a pop-up from v1.86, and 📋 Requirement edit a box of its own. v2.08 made them one box,
+// the whole record, held until Save (Brad, 26 Oct 2026). What this held of the pop-up still holds: each written field is its
+// own field, a Save writes only what changed -- the unchanged note is never re-stamped or trimmed -- and a requirement gone
+// from under the box leaves it saying so, not throwing. Driven through the box's own controls.
 {
-  const name = 'the pop-up editor';
+  const name = 'the edit box: the written fields';
   try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
@@ -1215,70 +1212,56 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   seed(ev, sc);
   ev('render(); if(typeof setCur==="function") setCur("A"); "ok"');
   if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
-
-  const isOpen = () => ev(`(function(){ var e=document.getElementById('fldPanel');
+  const isOpen = () => ev(`(function(){ var e=document.getElementById('editPanel');
     return e? /\\bopen\\b/.test(e.className) : false; })()`);
+  const put = (id, v) => ev(`(function(){ var e=document.getElementById(${JSON.stringify(id)}); e.value=${JSON.stringify(v)}; e.dispatchEvent(new Event('input')); return 'ok'; })()`);
 
-  // 1. the save path, driven directly, in whichever build this is
-  ev(`openFld('A','cons'); "ok"`);
-  chk(name, 'cons', 'opens on the requirement', isOpen(), true);
-  chk(name, 'cons', 'titled with the one name the board uses', ev(`document.getElementById('fldTitle').textContent.indexOf('\u26a0 Impact statement')===0`), true);
-  chk(name, 'cons', 'loads what is already stored',
-    ev(`(document.getElementById('fld-cons')||{}).value===undefined? 'no field' : 'present'`), 'present');
-  ev(`document.getElementById('fld-cons').value='Depot line stops in March.'; fldSave(); "ok"`);
+  // 1. the impact statement
+  ev(`toggleCons('A'); "ok"`);
+  chk(name, 'cons', 'opens on the requirement, at the impact statement', isOpen() + ' · ' + ev(`document.activeElement && document.activeElement.id`), 'true · erCons');
+  chk(name, 'cons', 'labelled with the one name the board uses', ev(`(document.querySelector('label[for="erCons"]')||{}).textContent.indexOf('Impact statement')===0`), true);
+  put('erCons', 'Depot line stops in March.');
+  ev(`erSave(); "ok"`);
   chk(name, 'cons', 'saves what was typed', ev(`(S.cons||{})['A']||''`), 'Depot line stops in March.');
   chk(name, 'cons', 'and closes once saved', isOpen(), false);
 
-  // DESCRIPTION & NOTE: one pop-up, two fields. The description first, the note under it, one Save
-  // -- and each still its own field: kept, journalled and sent as itself.
-  ev(`openFld('A','dn'); "ok"`);
-  chk(name, 'desc & note', 'one pop-up holds both, the description first',
-    ev(`[...document.querySelectorAll('#fldBody textarea')].map(function(t){ return t.id; }).join(',')`), 'fld-desc,fld-note');
-  chk(name, 'desc & note', 'titled Description & note', ev(`document.getElementById('fldTitle').textContent.indexOf('\ud83d\udcc4 Description & note')===0`), true);
-  ev(`document.getElementById('fld-desc').value='Sustains the fielded capability.';
-      document.getElementById('fld-note').value='Agreed at the Sep SFWG.'; fldSave(); "ok"`);
+  // DESCRIPTION AND NOTE: each its own field -- kept, journalled and sent as itself
+  ev(`toggleDesc('A'); "ok"`);
+  chk(name, 'desc & note', 'the description opens the box at the description', ev(`document.activeElement && document.activeElement.id`), 'erDesc');
+  put('erDesc', 'Sustains the fielded capability.'); put('erNote', 'Agreed at the Sep SFWG.');
+  ev(`erSave(); "ok"`);
   chk(name, 'desc & note', 'saves both, each to its own field', ev(`[(S.desc||{}).A, S.notes.A].join(' | ')`), 'Sustains the fielded capability. | Agreed at the Sep SFWG.');
   chk(name, 'desc & note', 'and closes once saved', isOpen(), false);
-  // SAVING ONE NEVER RE-STAMPS OR BLANKS THE OTHER. The note is held exactly as an import left it,
-  // spacing and all; a save that wrote it back would trim it and journal it as an edit nobody made.
+  // SAVING ONE NEVER RE-STAMPS OR TRIMS THE OTHER. The note is held exactly as an import left it, spacing and all.
   ev(`S.notes.A='Agreed at the Sep SFWG.  '; save(); "ok"`);
   const j0 = ev(`(MS.jrnl||[]).length`);
-  ev(`openFld('A','dn'); document.getElementById('fld-desc').value='Sustains the fielded fleet.'; fldSave(); "ok"`);
+  ev(`toggleDesc('A'); "ok"`); put('erDesc', 'Sustains the fielded fleet.'); ev(`erSave(); "ok"`);
   chk(name, 'desc & note', 'a changed description is written', ev(`(S.desc||{}).A`), 'Sustains the fielded fleet.');
   chk(name, 'desc & note', 'the unchanged note is not written at all', ev(`JSON.stringify(S.notes.A)`), JSON.stringify('Agreed at the Sep SFWG.  '));
   chk(name, 'desc & note', 'and the journal records the description alone',
     ev(`JSON.stringify((MS.jrnl||[]).slice(${j0}).map(function(e){ return (e.p||[])[0]; }))`), '["desc"]');
-  ev(`openFld('A','dn'); document.getElementById('fld-desc').value=''; fldSave(); "ok"`);
+  ev(`toggleDesc('A'); "ok"`); put('erDesc', ''); ev(`erSave(); "ok"`);
   chk(name, 'desc & note', 'clearing the description leaves the note', ev(`[JSON.stringify((S.desc||{}).A||null), JSON.stringify(S.notes.A)].join(' | ')`),
     'null | ' + JSON.stringify('Agreed at the Sep SFWG.  '));
-  ev(`openFld('A','dn'); fldSave(); "ok"`);
+  const j1 = ev(`(MS.jrnl||[]).length`);
+  ev(`toggleNote('A'); erSave(); "ok"`);
   chk(name, 'desc & note', 'a Save with nothing changed writes nothing and closes', isOpen() + ' ' + ev(`(MS.jrnl||[]).length`) + ' ' + ev(`JSON.stringify(S.notes.A)`),
-    'false ' + ev(`(MS.jrnl||[]).length`) + ' ' + JSON.stringify('Agreed at the Sep SFWG.  '));
-  // A requirement removed out from under the editor must not leave it open on nothing -- for every
-  // kind of editor the board HAS. (v1.86: this read kind 'note', which v1.86 retired; an unknown kind
-  // closes the editor by another line, so the check passed with the guard removed, and the gate's
-  // sweep said so. The kinds now come from the board, and there must be some.)
-  const kinds = JSON.parse(ev('JSON.stringify(Object.keys(FLD_DEF))'));
-  chk(name, 'stale', 'the board has editor kinds to check', kinds.length >= 2, true);
-  const stale = kinds.filter(k => {
-    ev(`openFld('A',${JSON.stringify(k)}); "ok"`);
-    const opened = isOpen();
-    let err = '';
-    try { ev(`fldOpen={id:'GONE', kind:${JSON.stringify(k)}}; fldBody(); "ok"`); } catch (e) { err = String(e.message || e); }
-    return !opened || err || isOpen();
-  });
-  chk(name, 'stale', 'each kind opens, then closes when its requirement is gone', stale.join(',') || 'all', 'all');
+    'false ' + j1 + ' ' + JSON.stringify('Agreed at the Sep SFWG.  '));
+  // A REQUIREMENT GONE FROM UNDER THE BOX: it stays open, says so on Save, writes nothing, and nothing throws
+  ev(`toggleCons('A'); "ok"`); put('erCons', 'typed after it went');
+  const before = ev(`JSON.stringify(S)`);
+  let err = '';
+  try { ev(`erOpen='GONE'; render(); erSave(); "ok"`); } catch (e) { err = String(e.message || e); }
+  chk(name, 'stale', 'a requirement gone from under the box: nothing thrown', err || 'none', 'none');
+  chk(name, 'stale', 'Save says it is no longer on the board', ev(`/no longer on the board/.test(document.getElementById('erMsg').textContent)`), true);
+  chk(name, 'stale', 'and writes nothing', ev(`JSON.stringify(S)`) === before, true);
+  ev(`erClose(); "ok"`);
 
-  // 2. the routing: the impact statement opens the pop-up (v2.03: the card build's row expander, which a board with no
-  // RECORD panel fell back to, is gone)
-  ev(`toggleCons('A'); "ok"`);
-  chk(name, 'routing', 'the impact statement opens the pop-up', isOpen() && ev(`fldOpen && fldOpen.kind`) === 'cons', true);
-  ev(`fldClose(); render(); "ok"`);
-  // the description and the note open the one pop-up (v1.86)
-  for (const fn of ['toggleDesc', 'toggleNote']) {
+  // 2. the routing: each RECORD panel button opens the one box at its own field
+  for (const [fn, f] of [['toggleCons', 'erCons'], ['toggleDesc', 'erDesc'], ['toggleNote', 'erNote'], ['toggleRec', 'erEvent']]) {
     ev(`${fn}('A'); "ok"`);
-    chk(name, 'routing', `${fn} opens Description & note`, isOpen() && ev(`fldOpen && fldOpen.kind`) === 'dn', true);
-    ev(`fldClose(); "ok"`);
+    chk(name, 'routing', `${fn} opens the box at ${f}`, isOpen() + ' · ' + ev(`document.activeElement && document.activeElement.id`), 'true · ' + f);
+    ev(`erClose(); "ok"`);
   }
   // ONE NAME EVERYWHERE: nothing on screen still says the old ones
   ev(`S.cons={}; S.band.A=BANDS_LIST()[0].id; render(); if(typeof inspectorBody==='function') inspectorBody(); "ok"`);
@@ -1286,9 +1269,6 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'names', 'no "📋 Record", "Impact —", "CONSEQUENCE" or "REQUIREMENT RECORD" is left on screen',
     ['\ud83d\udccb Record', 'Impact \u2014', 'CONSEQUENCE', 'REQUIREMENT RECORD'].filter(t => shown.indexOf(JSON.parse('"' + t + '"')) >= 0).join(',') || 'none', 'none');
   } catch (e) {
-    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
-    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
-    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
 }
@@ -4364,20 +4344,21 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const L = n => 'A'.repeat(n);
   const ask = (code, answers) => w1json(ev, `JSON.stringify((function(){ __pr=[]; __ans=${J(answers)}; setStat(''); ${code};
       return {pr:__pr.slice(), stat:document.getElementById('shareStat').textContent}; })())`);
-  // PID: 36 refused (kept PID-OLD; the box opens again holding the 36); 35 taken (a CONTROL). v2.01 (Brad, 20 Oct): the limit
-  // is 35, not 20 -- a 21- to 35-character PID, refused before, is taken whole, and the prompt says the limit
-  let r = ask(`editPid('X')`, [L(36)]);
-  chk(name, 'PID, typed', '36 characters: refused, the PID stays, and the box opens again holding what was typed',
-    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 35/.test(r.stat)]), J(['PID-OLD', 2, L(36), true]));
-  ask(`editPid('X')`, [L(35)]);
+  // PID: 36 refused (kept PID-OLD; the box keeps the 36 typed); 35 taken (a CONTROL). v2.01 (Brad, 20 Oct): the limit is 35.
+  // v2.08 (item 122): typed in the edit box, which keeps what was typed and writes nothing when Save refuses.
+  const inBox = (f, v) => w1json(ev, `JSON.stringify((function(){ setStat(''); openEdit('X', ${J(f === 'erPid' ? 'pid' : 'ccar')});
+      var e=document.getElementById(${J(f)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); erSave();
+      var r={open:erOn(), kept:(document.getElementById(${J(f)})||{}).value, msg:(document.getElementById('erMsg')||{}).textContent||''};
+      erClose(); return r; })())`);
+  let r = inBox('erPid', L(36));
+  chk(name, 'PID, typed', '36 characters: refused, the PID stays, and the box stays open holding what was typed',
+    J([w1ev(ev, `S.pid.X`), r.open, r.kept, /at most 35/.test(r.msg)]), J(['PID-OLD', true, L(36), true]));
+  inBox('erPid', L(35));
   chk(name, 'PID, typed', 'CONTROL — 35 characters are taken whole', w1ev(ev, `S.pid.X`), L(35));
-  const pq = w1json(ev, `JSON.stringify((function(){ var q=''; var _p=uiPrompt; uiPrompt=function(t){ q=String(t); };
-    try{ editPid('X'); } finally { uiPrompt=_p; } return q; })())`);
-  chk(name, 'PID, typed', 'v2.01: the prompt says the limit is 35', String(/\(up to 35 characters\):$/.test(pq)), 'true');
   // CCaR record: 13 refused, 12 taken
-  r = ask(`editCcar('X')`, [L(13)]);
-  chk(name, 'CCaR record, typed', '13 characters: refused, the record stays, and the box opens again holding them',
-    J([w1ev(ev, `ccarOf(itemById('X'))`), r.pr[1], /at most 12/.test(r.stat)]), J(['CC-OLD', L(13), true]));
+  r = inBox('erCcar', L(13));
+  chk(name, 'CCaR record, typed', '13 characters: refused, the record stays, and the box stays open holding them',
+    J([w1ev(ev, `ccarOf(itemById('X'))`), r.kept, /at most 12/.test(r.msg)]), J(['CC-OLD', L(13), true]));
   // CLIN number and description, on a prime
   const n0 = Number(w1ev(ev, `clinList('P').length`));
   r = ask(`clinAdd('P')`, [L(21)]);
@@ -5198,10 +5179,11 @@ await (async () => {
       S.band.A='ktlo';   // Keep the Lights On requires the impact statement
       delete (S.cons||{}).A; render(); setCur('A');
       r.buttons=[].slice.call(document.querySelectorAll('#inspector .insp-act .a1')).map(function(b){ return b.textContent.trim(); });
-      openFld('A','cons'); r.popup=(document.querySelector('#fldPanel h3')||{}).textContent||''; fldClose();
-      recOpen='A'; render(); r.recHead=(document.getElementById('recHead')||{}).textContent||'';
+      // v2.08 (item 122): the edit box -- its heading, its impact statement's label and its PMO's
+      toggleRec('A'); r.popup=(document.querySelector('label[for="erCons"]')||{}).textContent||'';
+      r.recHead=(document.getElementById('erTtl')||{}).textContent||'';
+      r.boxGrp=(document.querySelector('label[for="erGrp"]')||{}).textContent||''; erClose();
       r.recFields=recFields('A', itemById('A')).filter(function(f){ return f.k==='grp'; }).map(function(f){ return f.l; });
-      recOpen=null; render();
       // v2.07 (item 121): the gate no longer asks for the PMO, so the field A HAS is its Prime contract / OGC -- a prime, whose
       // WBS is logged per CLIN. A gate that matched the panel's fields by label would read both as missing.
       S.ptype=S.ptype||{}; S.ptype.A='PRIME'; r.ptypeL=FL('ptype'); r.wbsL=FL('wbs');
@@ -5233,8 +5215,9 @@ await (async () => {
     ev(`REQ_FIELD.cons.l='Impact statement'; REQ_FIELD.dn.l='Description & note'; REQ_FIELD.rec.l='Requirement edit'; REQ_FIELD.grp.l='PMO'; REQ_FIELD.obCat.l='Obligation category'; render(); 'ok'`);
     chk(name, 'renamed', 'the RECORD panel’s buttons say the new names',
       J(['⚠ Consequence if unfunded', '📄 Notes and description', '📋 Record'].map((n, i) => (b.buttons[i] || '').startsWith(n))), J([true, true, true]));
-    chk(name, 'renamed', 'the pop-up’s title says the new name', b.popup.includes('⚠ Consequence if unfunded'), true);
-    chk(name, 'renamed', '📋 Requirement edit’s heading says the new name', b.recHead, '📋 RECORD');
+    chk(name, 'renamed', 'the edit box’s impact statement says the new name', b.popup.includes('Consequence if unfunded'), true);
+    chk(name, 'renamed', 'the edit box’s heading says the new name', b.recHead.indexOf('✎ Record —')===0, true);
+    chk(name, 'renamed', 'and its PMO field is called what the registry calls it', b.boxGrp.indexOf('Office')===0, true);
     chk(name, 'renamed', 'its PMO field is called what the registry calls it', J(b.recFields), J(['Office']));
     chk(name, 'renamed', 'the proposal gate names the missing fields by the new names (A has no obligation category or impact statement)',
       J(['How the money leaves', 'Consequence if unfunded'].map(n => b.gate.indexOf(n) >= 0)), J([true, true]));
@@ -5581,6 +5564,23 @@ await (async () => {
     ev(`(function(){ var s=document.querySelector('#inspector select[onchange^="setBand("]'); s.value=''; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
     chk(name, 'F1', 'the band is cleared', ev(`S.band.A===undefined`), true);
     chk(name, 'F1', 'and the impact statement is still there, whole', ev(`(S.cons.A||'').length`), 427);
+  });
+
+  // ---- F2: a redraw keeps what is typed in the RECORD panel's own figures, until it is committed
+  part('F2', () => {
+    const { ev } = mk({ services: ['USAF', 'ANG'], items: [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [70, 0])], disc: [300, 300], mand: [0, 0], order: ['A', 'B'] });
+    ev(`setCur('A'); render(); 'ok'`);
+    const q = sel => `document.querySelector('#inspector input[onchange^=${JSON.stringify(sel)}]')`;
+    ev(`(function(){ var a=${q('setAsk(')}, m=${q('setMinInc(')}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input'));
+        m.value='777'; m.dispatchEvent(new Event('input')); a.focus(); return 'ok'; })()`);
+    ev(`render(); render(); 'ok'`);
+    chk(name, 'F2', 'two redraws later the value by service and the minimum increment still hold what was typed', ev(`JSON.stringify([${q('setAsk(')}.value, ${q('setMinInc(')}.value])`), JSON.stringify(['123456', '777']));
+    chk(name, 'F2', 'and the keyboard is still in the value it was typing', ev(`document.activeElement===${q('setAsk(')}`), true);
+    chk(name, 'F2', 'nothing was written while it was only typed', ev(`JSON.stringify([itemById('A').ask[0], (S.minInc||{}).A||null])`), JSON.stringify([100, null]));
+    ev(`(function(){ var a=${q('setAsk(')}; a.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'F2', 'committed, the value is written', ev(`itemById('A').ask[0]`), 123456);
+    ev(`setCur('B'); render(); 'ok'`);
+    chk(name, 'F2', 'CONTROL — typing never follows the panel to another requirement', ev(`${q('setMinInc(')}.value`), '');
   });
 
   // ---- F3: the office it is already in changes nothing; a bulk set leaves rows already set alone

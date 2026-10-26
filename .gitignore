@@ -34,6 +34,7 @@
 # Each v2.07 mutation and the check that caught it, so recovery/v208/bin/prove.py can prove any of them again. Source,
 # not run output (the v2.08 handoff).
 !recovery/v208/v207-proofs.json
+!recovery/v208/v208-proofs.json
 
 # tooling only — the board itself has no dependencies
 node_modules/

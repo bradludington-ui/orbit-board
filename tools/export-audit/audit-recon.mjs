@@ -4981,9 +4981,10 @@ await (async () => {
         stat:document.getElementById('shareStat').textContent}); })()`));
     const siTab = async B => { const b = await book(B, 'exportExcel');
       return (((b.book || {})['SI Codes by Month']) || []).filter(r => r && typeof cell(r[14]) === 'number').map(r => [cell(r[0]), cell(r[14])]); };
-    const field = B => B.w.document.querySelector('#recBody select[onchange^="setSi("]');
-    const choose = (B, id, v) => { B.ev(`recOpen=${J(id)}; render(); 'ok'`); const f = field(B);
-      if (f) { f.value = v; f.dispatchEvent(new B.w.Event('change', { bubbles: true })); } return !!f; };
+    const field = B => B.w.document.querySelector('#erSi');
+    // v2.08 (item 122): the code is chosen in the edit box and written on its Save
+    const choose = (B, id, v) => { B.ev(`openEdit(${J(id)},'si'); 'ok'`); const f = field(B);
+      if (f) { f.value = v; f.dispatchEvent(new B.w.Event('change', { bubbles: true })); B.ev(`erSave(); 'ok'`); } return !!f; };
     const X = boot();
     seed(X.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [
       it('R1', 'AV', [0, 200 * K, 900 * K]), it('R2', 'AV', [0, 100 * K, 300 * K]), it('R3', 'AV', [0, 0, 50 * K]),
@@ -5023,9 +5024,9 @@ await (async () => {
         J(['🏷 SI CODES TO REPAIR', [['1', 'Ev R1', 'AV', L1], ['9', 'Ev R9', 'AV', L9]]]));
       B.ev(`attGo('si','R1'); 'ok'`);
       w5Chk(name, where, 'Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard',
-        B.ev(`JSON.stringify([recOpen, (function(){ var s=document.querySelector('#recBody select[onchange^="setSi("]'); return s? [s.value, s.options[s.selectedIndex].text, Array.from(s.options).map(function(o){ return o.value; }), document.activeElement===s] : 'NO FIELD'; })()])`),
+        B.ev(`JSON.stringify([erOpen, (function(){ var s=document.querySelector('#erSi'); return s? [s.value, s.options[s.selectedIndex].text, Array.from(s.options).map(function(o){ return o.value; }), document.activeElement===s] : 'NO FIELD'; })()])`),
         J(['R1', ['at', '“at” — not one of the five, kept as saved', ['', 'at', 'LA', 'EN', 'OT', 'FL', 'AT'], true]]));
-      B.ev(`recOpen=null; render(); 'ok'`);
+      B.ev(`erClose(); render(); 'ok'`);
       w5Chk(name, where, 'a bulk write of AT on all nine counts R1 and R9 as answers it would overwrite: blank 1, same 1, differ 7',
         B.ev(`(function(){ matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; var P=matBulkPreview(); return JSON.stringify([P.n, P.blank, P.same, P.differ]); })()`),
         J([9, 1, 1, 7]));
@@ -5105,7 +5106,7 @@ await (async () => {
     N.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
       S.si={R1:'at'}; MS.years[MS.cur]=S; 'ok'`);
     const NR = boot({ html: N.ev('buildSavedHtml()') });
-    NR.ev(`recOpen='R1'; render(); 'ok'`);
+    NR.ev(`openEdit('R1','si'); 'ok'`);
     w5Chk(name, 'no Navy or Marine money', 'R1 (USAF/ANG only) has the Navy SI code field, showing "at"; CONTROL — blank R2 gains none',
       J([field(NR) ? field(NR).value : 'NO FIELD', NR.ev(`siEligible(itemById('R2'))`)]), J(['at', false]));
     const picked2 = choose(NR, 'R1', 'AT');
@@ -5126,10 +5127,12 @@ await (async () => {
       LR.ev(`JSON.stringify([CYCVIEW, S.si, siOf(itemById('R1')), (attLists().si||[]).map(function(r){ return r.id; })])`),
       J(['PB|2027', { R1: 'at', R2: 'EN' }, '', ['R1']]));
     const pickedL = choose(LR, 'R1', 'AT');
-    w5Chk(name, 'locked cycle view', 'AT chosen there is refused: the code stays as saved, and the status line says R1 keeps it',
+    // v2.08 (item 122): the record is edited in the edit box, which does not open on a locked view (cycBlock) -- the code
+    // stays as saved and the status line says why, where the RECORD panel's select once took the choice and save() refused it
+    w5Chk(name, 'locked cycle view', 'AT cannot be chosen there: the edit box does not open, the code stays as saved, and the status line says why',
       J([pickedL, JSON.parse(LR.ev('JSON.stringify(S.si)')),
-         LR.ev(`(document.getElementById('shareStat')||{}).textContent||''`).replace(/^🔒 Not kept — PB27 is a locked view\. /, '')]),
-      J([true, { R1: 'at', R2: 'EN' }, '🏷 Ev R1 keeps SI “at” as saved, not one of LA, EN, OT, FL or AT. The CR cash export leaves the cell blank.']));
+         /^🔒 Editing a requirement’s record is off while PB27 is on screen/.test(LR.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]),
+      J([false, { R1: 'at', R2: 'EN' }, true]));
     LR.ev(`cycLeave(true); 'ok'`);
     w5Chk(name, 'locked cycle view', 'left, the working plan still holds R1’s code as saved',
       LR.ev(`JSON.stringify([CYCVIEW, S.si])`), J(['', { R1: 'at', R2: 'EN' }]));
@@ -5184,8 +5187,8 @@ await (async () => {
     const preview = R => { try { return R.ev(`JSON.stringify((function(){ var p=matBulkPreview(); return [p.n,p.blank,p.same,p.differ]; })())`); }
       catch (e) { return 'threw: ' + e.message; } };
     const field = R => { try { R.ev(`attGo('si','A'); 'ok'`);
-        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]');
-        return J([R.ev('recOpen'), f ? f.options[f.selectedIndex].textContent : 'NO FIELD']);
+        const f = R.w.document.querySelector('#erSi');
+        return J([R.ev('erOpen'), f ? f.options[f.selectedIndex].textContent : 'NO FIELD']);
       } catch (e) { return 'threw: ' + e.message; } };
     for (const [where, raw, stored] of [['empty list', [], '{"A":[],"B":"","C":"EN"}'],
       ['code inside a list', ['AT'], '{"A":["AT"],"B":"","C":"EN"}'],
@@ -5208,7 +5211,7 @@ await (async () => {
     w5Chk(name, 'object with non-callable toString', 'Go to it opens A and the field shows its JSON as kept as saved', field(O),
       J(['A', '“{"toString":null}” — not one of the five, kept as saved']));
     // Closing the panel also lets the unfixed board build its saved file, so retention is an independent control.
-    O.ev(`recOpen=null; 'ok'`);
+    O.ev(`erClose(); 'ok'`);
     const OQ = boot({ html: O.ev('buildSavedHtml()') });
     w5Chk(name, 'object with non-callable toString', 'CONTROL — object survives save/reopen, its code stays blank and $611 stays funded',
       OQ.ev(`JSON.stringify([S.si,siOf(itemById('A')),tiers().A.dT])`), J([{A:{toString:null},B:'',C:'EN'},'',611]));
@@ -5217,8 +5220,8 @@ await (async () => {
     w5Chk(name, 'null alone', 'CONTROL — a saved null is an answer a bulk write overwrites, as before', preview(Nl), '[3,1,0,2]');
     // the kept choice, chosen again as drawn, is refused by setSi: the saved list stays exactly as it was
     const again = R => { try { R.ev(`attGo('si','A'); 'ok'`);
-        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]'); if (!f) return 'NO FIELD';
-        f.dispatchEvent(new R.w.Event('change', { bubbles: true })); return R.ev('JSON.stringify(S.si)');
+        const f = R.w.document.querySelector('#erSi'); if (!f) return 'NO FIELD';
+        f.dispatchEvent(new R.w.Event('change', { bubbles: true })); R.ev(`erSave(); 'ok'`); return R.ev('JSON.stringify(S.si)');
       } catch (e) { return 'threw: ' + e.message; } };
     w5Chk(name, 'the kept choice chosen again', 'CONTROL — choosing “[]” or “["AT"]” again in A’s field writes nothing over the saved list',
       J([again(make([])), again(make(['AT']))]), J(['{"A":[],"B":"","C":"EN"}', '{"A":["AT"],"B":"","C":"EN"}']));
@@ -5285,8 +5288,8 @@ await (async () => {
     };
     const tryEv = (R, s) => { try { return R.ev(s); } catch (e) { return 'threw: ' + e.message; } };
     // AT chosen in A's field as Go to it draws it, the record panel closed after
-    const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#recBody select[onchange^="setSi("]');
-      if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); recOpen=null; return 'chosen'; })()`);
+    const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#erSi');
+      if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); erSave(); return 'chosen'; })()`);
     const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
     // the change journal opened as a person opens it; one requirement's lines as drawn: What | Was | Became, newest first
     const journal = (R, id) => tryEv(R, `(function(){ jrnlOpen=false; toggleJrnl();
@@ -8223,8 +8226,9 @@ await (async () => {
         if(/\\.(xml|rels)$/.test(k) && new DOMParser().parseFromString(t,'application/xml').getElementsByTagName('parsererror').length) bad.push(k);
         at+=30+nl+xl+sz; }
       return {n:Object.keys(P).length, bad:bad, P:P}; }; 'ok'`;
-    const typed = (Y, id, v) => JSON.parse(Y.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
-      try{ editTitle(${J(id)}); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{})[${J(id)}]); })()`));
+    // v2.08 (item 122): through the edit box's one writer (reqApply) -- the box's text field would strip the line break before
+    // the writer saw it (an <input> holds one line), and the break is what this proves the workbooks keep
+    const typed = (Y, id, v) => JSON.parse(Y.ev(`(function(){ reqApply(${J(id)}, {titles:${J(v)}}, {}); save(); return JSON.stringify((S.titles||{})[${J(id)}]); })()`));
     const X = boot();
     seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
@@ -11125,8 +11129,8 @@ await (async () => {
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
     // the Plan Event typed through the pen, as a person types it
-    const typed = v => JSON.parse(X.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
-      try{ editTitle('R1'); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{}).R1); })()`));
+    // v2.08 (item 122): through the edit box's one writer, reqApply (an <input> would strip the line break first)
+    const typed = v => JSON.parse(X.ev(`(function(){ reqApply('R1', {titles:${J(v)}}, {}); save(); return JSON.stringify((S.titles||{}).R1); })()`));
     // run one export; unzip the first Blob it made; every text run holding "carriage", as a standard XML reader reads it
     const read = call => JSON.parse(X.ev(`(function(){
       var cap=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click, err='';

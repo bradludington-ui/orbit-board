@@ -5433,7 +5433,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // FY27 and kept FY28, and FY27's text then existed nowhere. Edits in two years that cancelled left no
 // line at all; an edit just after a put-back rewrote the put-back line; a clock set back still counted
 // as inside the minute; two loads inside a minute became one; and a new year's line read "undefined".
-// Driven through the real editors: the Description & note box (openFld → fldSave), switchYear, and the
+// Driven through the real editors: the Description & note box (the edit box: openEdit → erSave, v2.08), switchYear, and the
 // journal's own Put back (jrnlUndo). The clock is held still and moved by hand, so "inside a minute"
 // is a fact of the test rather than of how quickly the machine ran it.
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -5448,7 +5448,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save();
       globalThis.__T=Date.now(); Date.now=function(){ return globalThis.__T; }; 'ok'`);
     B.later = ms => B.ev(`globalThis.__T+=${ms}; 'ok'`);
-    B.note = (id, v) => B.ev(`openFld(${J(id)},'dn'); document.getElementById('fld-note').value=${J(v)}; fldSave(); 'ok'`);
+    B.note = (id, v) => B.ev(`openEdit(${J(id)},'notes'); document.getElementById('erNote').value=${J(v)}; erSave(); 'ok'`);   // v2.08: the edit box
     B.year = y => B.ev(`switchYear(${y}); 'ok'`);
     B.n = () => +B.ev('(MS.jrnl||[]).length');
     B.lines = from => JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).slice(${from}).map(function(e){ return [e.fy, (e.p||[]).join('.'), e.a, e.b, e.f? 1 : 0]; }))`));
@@ -9954,9 +9954,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       var it=[].slice.call(document.querySelectorAll('#uiFly button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
       if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
     await pause(15); await ev('_saveChain'); await pause(20); return r; };
-  // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
-  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('fld-note'); if(!t) return 'no editor';
-    t.value=${J(text)}; var bs=[].slice.call(document.querySelectorAll('#fldBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='fldSave()'; });
+  // The 📄 Description & note button opens the edit box (v2.08): type the note, press its Save.
+  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('erNote'); if(!t) return 'no editor';
+    t.value=${J(text)}; t.dispatchEvent(new Event('input')); var bs=[].slice.call(document.querySelectorAll('#erBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='erSave()'; });
     if(bs.length!==1) return 'save buttons: '+bs.length; bs[0].click(); return 'typed'; })()`);
   // The status line's "✍ Take the pen…" -- the refusal's own button --, answered OK; then the save it makes is waited for.
   const takePenBtn = async (ev, f) => { const w0 = f.writes;
@@ -11990,9 +11990,12 @@ await (async () => {
   chk(name, '10 · a year not held', 'a link to a year the board does not hold says so, not "no longer on the board"',
     ev(`priorTxt(S.custom[S.custom.length-1])`), 'FY25 A — FY25 is not on this board');
   ev(`S.custom.pop(); 'ok'`);
-  // ---- 12: the record-name pen on a brought-in requirement that carries a record name
-  ev(`switchYear(2028); S.recNames=S.recNames||{}; S.recNames['NEW-2']='carried from FY27'; uiPrompt=function(m,d,cb){ cb('Typed in FY28'); }; editRecName('NEW-2'); 'ok'`);
-  chk(name, '12 · record name', 'the pen renames a brought-in requirement that carried a record name', ev(`recName(itemById('NEW-2'))`), 'Typed in FY28');
+  // ---- 12: a brought-in requirement's carried record name. v2.08 (item 122, D9): the record name is read, never typed -- the
+  // row's rename is retired -- so the carried name stays, and the edit box shows it read only.
+  ev(`switchYear(2028); S.recNames=S.recNames||{}; S.recNames['NEW-2']='carried from FY27'; render(); 'ok'`);
+  chk(name, '12 · record name', 'the carried record name is shown, and nothing offers to rename it',
+    J([ev(`recName(itemById('NEW-2'))`), ev(`typeof editRecName`), ev(`(function(){ openEdit('NEW-2','rec'); var t=(document.getElementById('erRecT')||{}).textContent||''; erClose(); return t; })()`)]),
+    J(['carried from FY27', 'undefined', 'carried from FY27']));
   // ---- 11: Reset year keeps the numbers handed out, so a link never lands on a new requirement
   ev(`switchYear(2027); window.confirm=function(){ return true; }; resetYear(); window.confirm=function(m){ window.__cf.push(String(m)); return false; }; 'ok'`);
   const after = add('PSM', 'Unrelated after the reset', 5);
@@ -12758,6 +12761,78 @@ await (async () => {
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
 // ==== end v2.07 review (import) ====
+
+// ==== v2.08 item 122 (import): the edit box in a PMO copy (D7), and F5 ====
+// A copy edits through the same box. What it sends is pmoSubmit's own rule: the office's requirements (judged by the office
+// at publication, pmoHomeOf, so a hand-over is sent), and nothing of another office's -- which the box says up front. F5: a
+// requirement the portfolio board added, renamed in the copy, was shown renamed and never sent. Expected values are written
+// out here; every check fails on v2.07 (no box) unless it is marked CONTROL.
+await (async () => {
+  const name = 'v2.08 — the edit box in a PMO copy: what is sent, what is said, and an added requirement’s rename (item 122, F5)';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const items = [itx('A', 'PSM', [100, 0]), itx('A2', 'PSM', [90, 0]), itx('B', 'AV', [80, 0])];
+    const B0 = boot(); seed(B0.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'A2', 'B'] });
+    B0.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); render(); return n; })()`);
+    const html = B0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const P = boot({ html }); const ev = P.ev;
+    ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; window.alert=function(){}; render(); 'ok'`);
+    const put = (id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const notice = () => ev(`(document.querySelector('#erBody .er-notsent')||{}).textContent||''`);
+    // the office's own requirement: nothing said, the edits sent
+    ev(`openEdit('A','rec'); 'ok'`);
+    chk(name, 'own office', 'CONTROL — the office’s own requirement: the box says nothing about sending', notice(), '');
+    put('erPid', 'PID-COPY'); put('erDesc', 'Typed in the copy.'); put('erCons', 'Stops in May.'); ev(`erSave(); 'ok'`);
+    // another office's: said at the top, and not sent
+    ev(`openEdit('B','rec'); 'ok'`);
+    chk(name, 'another office', 'another office’s requirement: the box says up front that edits are kept here and not sent',
+      J([notice().indexOf('AV’s requirement') >= 0, notice().indexOf('not sent') >= 0]), J([true, true]));
+    put('erPid', 'PID-B'); ev(`erSave(); 'ok'`);
+    // a hand-over: A2 moved to AV in the copy -- the office it had at publication sends it, so nothing is said, before or after
+    ev(`openEdit('A2','grp'); 'ok'`); put('erGrp', 'AV'); ev(`erSave(); 'ok'`);
+    ev(`openEdit('A2','rec'); 'ok'`);
+    chk(name, 'hand-over', 'a requirement handed to another office in the copy is still the office’s to send: nothing said', notice(), '');
+    ev(`erClose(); 'ok'`);
+    // F5: the requirement the board added, renamed in the copy
+    ev(`openEdit(${J(nid)},'titles'); 'ok'`); put('erEvent', 'EV-NEW renamed'); ev(`erSave(); 'ok'`);
+    chk(name, 'F5', 'the copy shows the rename', ev(`dispTitle(itemById(${J(nid)}))`), 'EV-NEW renamed');
+    // the package, as Submit builds it
+    const wire = JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const I = wire.items || {};
+    chk(name, 'package', 'the office’s own edits travel', J([I.A && I.A.pid, I.A && I.A.desc, I.A && I.A.cons]), J(['PID-COPY', 'Typed in the copy.', 'Stops in May.']));
+    chk(name, 'package', 'the hand-over travels', J(I.A2 && I.A2.grp), J('AV'));
+    chk(name, 'F5', 'the added requirement’s rename travels', J(I[nid] && I[nid].titles), J('EV-NEW renamed'));
+    chk(name, 'package', 'CONTROL — another office’s requirement does not', J(I.B || null), 'null');
+    // applied at the board, it is what typing it there gives
+    const X = boot(); seed(X.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'A2', 'B'] });
+    X.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    X.ev(`(function(){ reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); return 'ok'; })()`);
+    X.ev(`window.alert=function(){}; window.confirm=function(){return true;}; pmoTake(${J(wire)}, 's.json');
+      PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+    chk(name, 'applied', 'at the board: the edits, the hand-over and the rename land',
+      J([X.ev(`S.pid.A`), X.ev(`S.desc.A`), X.ev(`S.cons.A`), X.ev(`grpOf(itemById('A2'))`), X.ev(`dispTitle(itemById(${J(nid)}))`)]),
+      J(['PID-COPY', 'Typed in the copy.', 'Stops in May.', 'AV', 'EV-NEW renamed']));
+    // the copy's own proposal keeps the office it was added for
+    const pid2 = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+    ev(`openEdit(${J(pid2)},'rec'); 'ok'`);
+    chk(name, 'proposal', 'a requirement the copy proposes: its office cannot be changed in the box', ev(`document.getElementById('erGrp').disabled`), true);
+    ev(`erClose(); 'ok'`);
+    // a copy on a year it cannot submit says so
+    ev(`PMODE.fy=MS.cur-1; openEdit('A','rec'); 'ok'`);
+    chk(name, 'another year', 'on a year the copy was not published for, the box says nothing edited can be sent', notice().indexOf('nothing edited here can be sent') >= 0, true);
+    ev(`erClose(); PMODE.fy=MS.cur; 'ok'`);
+    chk(name, 'errors', 'no page error in the copy', P.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 (import) ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
