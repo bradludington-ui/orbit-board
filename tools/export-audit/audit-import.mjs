@@ -13136,7 +13136,7 @@ await (async () => {
   chk(name, 'submit', 'FY30’s baseline is FY30’s own: A at 1,500, C and NEW-1 with no description', J(sec(2030).base),
     J({ A: { asks: [1500, 300, 150] }, C: { desc: null }, 'NEW-1': { desc: 'Described: Board-added FY30' } }));
   chk(name, 'submit', 'FY30 proposes its own new requirement, and neither NEW-1 nor NEW-2, which the board added there', J((sec(2030).added || []).map(a => a.nid)), J([a30.id]));
-  chk(name, 'submit', 'FY30 sends no ranking: the board’s own FY30 order is not the office’s', sec(2030).rank === undefined, true);
+  chk(name, 'submit', 'FY30 is sent, and with no ranking: the board’s own FY30 order is not the office’s', J([!!BY[2030], sec(2030).rank === undefined]), J([true, true]));
   chk(name, 'submit', 'FY31: B’s and A’s descriptions, the proposal brought in with its link, and PSM’s own ranking against FY31’s as published',
     J([sec(2031).items, (sec(2031).added || []).map(a => [a.nid, a.prior]), sec(2031).rank]),
     J([{ A: { desc: 'A, written by PSM in FY31' }, B: { desc: 'B, written by PSM in FY31' } }, [[f31.id, { fy: 2029, id: a29.id }]], { order: ['B', 'A'], was: ['A', 'B'] }]));
