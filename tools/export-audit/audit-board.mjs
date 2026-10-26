@@ -5749,15 +5749,28 @@ await (async () => {
   });
 
   // ---- a redraw that commits the typed figure (Chromium fires change on the field it removes) leaves nothing to put back
-  part('redraw commits', () => {
+  // v2.08 second review: Chromium fires change on the focused field as the redraw removes it. Committed there, the panel drew
+  // the old figure, the keyboard fell to the page and the rest of the typing was lost. The held field's handler is off for
+  // the redraw: nothing is committed by it, the typing and the keyboard stay, leaving the field commits the whole figure.
+  // (jsdom fires nothing on removal, so the change is fired here as Chromium fires it; npm run keys P drives Chromium.)
+  part('redraw holds', () => {
     const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100])], disc: [300], mand: [0], order: ['A'] });
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); setCur('A'); render(); 'ok'`);
     const q = `document.querySelector('#inspector input[onchange^="setAsk("]')`;
-    ev(`(function(){ var a=${q}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input')); window.__old=a; render();
-        __old.dispatchEvent(new Event('change')); return 'ok'; })()`);
-    chk(name, 'redraw commits', 'the figure committed by the redraw is stored', ev(`itemById('A').ask[0]`), 123456);
+    // Chromium fires change on the focused field AS the redraw removes it; jsdom fires nothing. The draw is wrapped so the
+    // change lands where Chromium's does: inside the redraw, after the panel has read what is held, before it is drawn again.
+    ev(`(function(){ var a=${q}; a.focus(); a.value='123'; a.dispatchEvent(new Event('input')); window.__old=a;
+        var d0=inspectorDraw; inspectorDraw=function(){ __old.dispatchEvent(new Event('change')); return d0.apply(this, arguments); };
+        try{ render(); } finally { inspectorDraw=d0; } return 'ok'; })()`);
+    chk(name, 'redraw holds', 'the change Chromium fires on the field the redraw removed commits nothing', ev(`itemById('A').ask[0]`), 100);
+    chk(name, 'redraw holds', 'the new field holds the typing, with the keyboard', JSON.stringify(ev(`(function(){ var a=${q}; return [a.value, document.activeElement===a, !!a.__pend, a!==__old]; })()`)),
+      JSON.stringify(['123', true, true, true]));
+    ev(`(function(){ var a=${q}; a.value='123456'; a.dispatchEvent(new Event('input')); a.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'redraw holds', 'leaving the field commits the whole figure', ev(`itemById('A').ask[0]`), 123456);
+    ev(`render(); 'ok'`);
+    chk(name, 'redraw holds', 'committed, a later redraw shows the stored figure', ev(`${q}.value`).replace(/,/g, ''), '123456');
     ev(`document.activeElement.blur(); resetAsk('A'); 'ok'`);   // ↺ is clicked: the keyboard leaves the figure
-    chk(name, 'redraw commits', 'put back with ↺, the panel shows the stored figure, not the old typing', JSON.stringify([ev(`itemById('A').ask[0]`), ev(`${q}.value`)]), JSON.stringify([100, '100']));
+    chk(name, 'redraw holds', 'put back with ↺, the panel shows the stored figure, not the old typing', JSON.stringify([ev(`itemById('A').ask[0]`), ev(`${q}.value`)]), JSON.stringify([100, '100']));
   });
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });

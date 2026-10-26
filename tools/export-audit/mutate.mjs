@@ -2856,8 +2856,7 @@ const MUTATIONS = [
     find: "if(jrnlSet(MS.cur, [r.key, r.id], r.prop)){ awdKeepFix(r.id, old); n++; } return; }",
     repl: "if(jrnlSet(MS.cur, [r.key, r.id], r.prop)){ n++; } return; }" },
   { id: 'pmo-rows-compare-bookkeeping', area: 'pmoRows', what: 'the review compares an award’s repair record as part of it',
-    find: "        const now=pmoNow(id,k), bare=function(v){ return k==='awards'? awdBare(v) : v; };",
-    repl: "        const now=pmoNow(id,k), bare=function(v){ return v; };" },
+    find: "  if(k==='awards') return awdBare(v);", repl: "  if(k==='awards') return v;" },   // v2.08 second review: retargeted to pmoBare
   // v1.95 (integration): an import that reorders the services reorders the WBS lines and the CLIN grid too
   { id: 'remap-wbs-left', area: 'svcRemapState', what: 'the WBS lines keep the file’s service order',
     find: "  Object.keys(st.wbs||{}).forEach(function(k){ wbsPick(st.wbs[k]); });\n", repl: "" },
@@ -7447,7 +7446,7 @@ const MUTATIONS = [
     find: "function erPt(v){ const h=erEl('erPtype'); if(h) h.value=(v==='PRIME'||v==='OGC')? v : ''; erUpdate(); }",
     repl: "function erPt(v){ const h=erEl('erPtype'); if(h) h.value=(h.value===v)? (v==='PRIME'? 'OGC' : 'PRIME') : v; erUpdate(); }" },
   { id: 'v208-122-board-event-to-item', area: "reqApply", what: "a board-data requirement's renamed plan event is written into the item, where a file reload loses it, not kept as an override",
-    find: "    if(it.custom){ it.event=t; delete S.titles[id]; }", repl: "    if(true){ it.event=t; delete S.titles[id]; }" },   // v2.08 review: retargeted
+    find: "    if(t===(it.event || it.title)) delete S.titles[id];\n", repl: "    if(true){ it.event=t; delete S.titles[id]; } else if(t===(it.event || it.title)) delete S.titles[id];\n" },   // v2.08 second review: retargeted
   // v208-122-copy-rename-not-sent: retired as obsolete in v2.08's review -- the `knew` rule it broke is gone; an added requirement's plan event is read by pmoVal (v208-rv-f5-event-unread)
   { id: 'v208-122-desc-overwritten', area: "erCcarTyped", what: "typing a CCaR record replaces a description somebody wrote with the CCaR list's",
     find: "  if(d && (!d.value.trim() || d.value===erDescAuto)){ const s=cc? ccarDescOfNum(cc)", repl: "  if(d){ const s=cc? ccarDescOfNum(cc)" },
@@ -7491,7 +7490,7 @@ const MUTATIONS = [
   { id: 'v208-122-heading-spelled', area: "erDraw", what: "the box's heading spells its own name",
     find: "  const hd=erEl('erTtl'); if(hd) hd.textContent='✎ '+FL('rec')+' — '+FYL();", repl: "  const hd=erEl('erTtl'); if(hd) hd.textContent='✎ Requirement edit — '+FYL();" },
   { id: 'v208-f2-held-not-put-back', area: "inspectorBody", what: "a RECORD panel redraw puts back the stored figure over what is being typed (F2)",
-    find: "  try{ inspectorDraw(el); } finally { if(held.length) inspHeldBack(el, held); }", repl: "  inspectorDraw(el);" },
+    find: "    if(held.length) inspHeldBack(el, held); }", repl: "    }" },   // v2.08 second review: retargeted
   { id: 'v208-f2-typing-not-marked', area: "inspectorBody", what: "typing in the RECORD panel is never marked as held, so a redraw replaces it (F2)",
     find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);",
     repl: "" },
@@ -7533,7 +7532,7 @@ const MUTATIONS = [
   { id: 'v208-rv-exw-alerts', area: "execWbsApply", what: "WBS from execution data in a copy alerts once per CLIN and counts the refused writes as written",
     find: "    if(pr.kind==='clin' && typeof SANDBOX!=='undefined' && SANDBOX){ locked++; return; }\n", repl: "" },
   { id: 'v208-rv-ccar-clear-says-saved', area: "erSave", what: "clearing a CCaR record the file carries says it saved, and changes nothing",
-    find: "  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar)\n", repl: "  if(false)\n" },
+    find: "  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar && !((S.ccar||{})[id]))\n", repl: "  if(false)\n" },   // v2.08 second review: retargeted
   { id: 'v208-rv-step-snapshot', area: "openEdit", what: "after next ↓ the box controller compares the next record's fields with the first's",
     find: "  if(was) try{ DLG.stack.forEach(function(r){ if(r.bg===bg) r.snap=dlgSnap(bg); }); }catch(e){}", repl: "" },
   { id: 'v208-rv-si-follows-gone', area: "erDraw", what: "with no code stored the SI picker reads none, and a move in the same Save stores the old derived code",
@@ -7552,7 +7551,7 @@ const MUTATIONS = [
   { id: 'v208-rv-no-way-to-panel', area: "erGo", what: "the way to the value and budgets closes the box and leaves the keyboard nowhere",
     find: "if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); }", repl: "if(i){ }" },
   { id: 'v208-rv-rectag-fixed', area: "erUpdate", what: "the record name's tag says it is from the CCaR list whatever it was read from",
-    find: ": ((cc && ccarNameOfNum(cc))? 'from the CCaR records list' : 'from the file'); }", repl: ": 'from the CCaR records list'; }" },
+    find: ": ((cc? ccarNameOfNum(cc) : (same && ccarRecNameOf(it)))? 'from the CCaR records list' : 'from the file'); }", repl: ": 'from the CCaR records list'; }" },   // v2.08 second review: retargeted
   { id: 'v208-rv-brief-opens', area: "openEdit", what: "in Brief, whose label says requirements cannot be edited there, Go to opens the edit box",
     find: "  if(typeof uiMode!=='undefined' && uiMode==='brief'){", repl: "  if(false){" },
   { id: 'v208-rv-dest-use-hidden', area: "flowEntUse", what: "a second hop hidden on a prime counts as a use, and the delete question says money moves",
@@ -7560,6 +7559,43 @@ const MUTATIONS = [
   { id: 'v208-rv-absorber-x-live', area: "SANDBOX style", what: "the absorber's ✕ in a PMO copy looks live, and answers with the allocation lock",
     find: ",button[onclick^=\"setAbsorber(\"]{pointer-events:none;opacity:.5}'", repl: "{pointer-events:none;opacity:.5}'" },
   // ==== end v2.08 item 122 -- the review's fixes ====
+  // ==== v2.08 item 122 -- the second review's fixes (26 Oct 2026) ====
+  // Each proved against its own block with recovery/v208/bin/prove.py. Three fixes are browser-only (Classify's office cell
+  // choosing after a click elsewhere, a press on the cell letting the mouse choose at once, the kept option's width): their
+  // checks are npm run keys Q and npm run layout N, proved by hand mutants in Chromium.
+  { id: 'v208-rv2-dest-compared-as-stored', area: "pmoBare", what: "a Goes to both sides agree on is offered, as a conflict, because one store wrote end:'' and the other did not",
+    find: "  if(k==='dest' && typeof v==='object'){", repl: "  if(false && k==='dest' && typeof v==='object'){" },
+  { id: 'v208-rv2-wbs-compared-as-stored', area: "pmoBare", what: "a WBS both sides agree on is offered, as a conflict, because one carries v:[] and the other nothing",
+    find: "  if(k==='wbs' && Array.isArray(v)){ const o=", repl: "  if(false && k==='wbs' && Array.isArray(v)){ const o=" },
+  { id: 'v208-rv2-old-copy-rename-never-settles', area: "pmoRows", what: "an older copy's cleared override on an added requirement is offered again after every Apply, as a conflict",
+    find: "        if(k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=", repl: "        if(false && k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=" },
+  { id: 'v208-rv2-door-dest-shape', area: "pmoNorm", what: "an accepted Goes to is written with end:'', not in setDest's shape",
+    find: "[true, (function(to, end){ return end? {to:to, end:end} : {to:to}; })(", repl: "[true, (function(to, end){ return {to:to, end:end}; })(" },
+  { id: 'v208-rv2-bulk-office-counts-proposal', area: "matBulk", what: "Classify's bulk office in a copy counts the copy's own proposal as moved, though it is not",
+    find: "              applies:function(it){ return !erIsProposal(it.id); },", repl: "              applies:function(it){ return true; }," },
+  { id: 'v208-rv2-rename-filed-by-place', area: "reqApply", what: "an added requirement's rename is written into the item and journalled by its place, so Put back after a delete renames another",
+    find: "    if(t===(it.event || it.title)) delete S.titles[id];\n", repl: "    if(it.custom){ it.event=t; delete S.titles[id]; } else if(t===(it.event || it.title)) delete S.titles[id];\n" },
+  { id: 'v208-rv2-ccar-file-typed-override', area: "reqApply", what: "the file's own CCaR record typed back is kept as an override, hiding a later change in the file",
+    find: "if(v && v!==String(it.ccar||'')) S.ccar[id]=v; else delete S.ccar[id];", repl: "if(v) S.ccar[id]=v; else delete S.ccar[id];" },
+  { id: 'v208-rv2-ccar-back-unsaid', area: "reqApply", what: "a CCaR record typed over the file's, cleared, does not say the file's record is back",
+    find: "    said.push(FL('ccar')+(!v && it.ccar? ' (back to the file’s '+it.ccar+')' : '')); }", repl: "    said.push(FL('ccar')); }" },
+  { id: 'v208-rv2-si-rule-counted', area: "erChanges", what: "an SI code the rules give anyway, picked with none stored, is counted as a change and said to be saved",
+    find: "  if(out.si!==undefined && V.si==='\\u0004' && out.si===erSiRule(itemById(erOpen), D)) delete out.si;", repl: "" },
+  { id: 'v208-rv2-si-rule-stored-office', area: "erSiRule", what: "the SI rule is read for the office stored, not the office the box holds, so a move with EN picked counts EN as a change",
+    find: "  if(D.grp==='PP') return 'EN'; return ''; }", repl: "  if(grpOf(it)==='PP') return 'EN'; return ''; }" },
+  { id: 'v208-rv2-rcn-note-stale', area: "erUpdate", what: "the note under RCN / EEIC keeps naming the stored combination under a field showing another",
+    find: "  const rnt=erEl('erRcnNote'); if(rnt && erEl('erRcn')) rnt.innerHTML=erRcnNote(erOpen, D);\n", repl: "" },
+  { id: 'v208-rv2-rcn-note-ignores-service', area: "erRcnNote", what: "the note gives every service the requirement's combination, ignoring a service's own",
+    find: "  const kOf=function(sv){ return D? (own[sv] || D.rcnAsg || '') : rcnAsgOf(id, sv); };", repl: "  const kOf=function(sv){ return D? (D.rcnAsg || '') : rcnAsgOf(id, sv); };" },
+  { id: 'v208-rv2-panel-wrong-requirement', area: "erGo", what: "after ↑ prev / next ↓ the way to the RECORD panel opens the requirement the box first opened on",
+    find: "  if(what==='record'){ try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}", repl: "  if(what==='record'){ try{ try{ dlgSync(); }catch(e){}" },
+  { id: 'v208-rv2-kept-option-long', area: "erKeep", what: "a kept value's option carries its explanation, which a closed select cannot wrap, and the value is cut",
+    find: "    +esc(show||cur)+' (kept)</option>' : '';", repl: "    +esc(show||cur)+' — not on the list, kept as saved</option>' : '';" },
+  { id: 'v208-rv2-f2-change-commits-in-redraw', area: "inspectorBody", what: "the change Chromium fires as a redraw removes the typed field commits the half-typed figure",
+    find: "  held.forEach(function(x){ try{ x.el.removeAttribute('onchange'); }catch(e){} });\n", repl: "" },
+  { id: 'v208-rv2-f2-hold-dropped', area: "inspHeldBack", what: "a field committed as the redraw removed it is not put back, and the rest of the typing is lost",
+    find: "function inspHeldBack(el, held){\n  held.forEach(function(x){\n    const i=", repl: "function inspHeldBack(el, held){\n  held.forEach(function(x){\n    if(x.el && !x.el.__pend) return;\n    const i=" },
+  // ==== end v2.08 item 122 -- the second review's fixes ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

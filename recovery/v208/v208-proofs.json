@@ -153,7 +153,7 @@
  },
  {
   "id": "v208-f2-held-not-put-back",
-  "caughtBy": "audit-board / v2.08 — the defects"
+  "caughtBy": "audit-board / =v2.08 — the review of the defect fixes: Classify’s per-service bulk and office cell, WBS from execution in a copy, a redraw that commits"
  },
  {
   "id": "v208-f2-typing-not-marked",
@@ -213,7 +213,7 @@
  },
  {
   "id": "v208-rv-ccar-clear-says-saved",
-  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel; =v2.08 — the review of the edit box: kept values, the WBS after OGC, Goes to’s shape, prev/next, the SI code, the words"
  },
  {
   "id": "v208-rv-step-snapshot",
@@ -241,7 +241,7 @@
  },
  {
   "id": "v208-rv-rectag-fixed",
-  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel; =v2.08 — the review of the edit box: kept values, the WBS after OGC, Goes to’s shape, prev/next, the SI code, the words"
  },
  {
   "id": "v208-rv-f5-event-unread",
@@ -294,5 +294,73 @@
  {
   "id": "v208-rv-absorber-x-live",
   "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv2-dest-compared-as-stored",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-wbs-compared-as-stored",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-old-copy-rename-never-settles",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-door-dest-shape",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-bulk-office-counts-proposal",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-rename-filed-by-place",
+  "caughtBy": "audit-import / =v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id"
+ },
+ {
+  "id": "v208-rv2-ccar-file-typed-override",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-ccar-back-unsaid",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-si-rule-counted",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-si-rule-stored-office",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-rcn-note-stale",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-rcn-note-ignores-service",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-panel-wrong-requirement",
+  "caughtBy": "audit-other / =v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel"
+ },
+ {
+  "id": "v208-rv2-kept-option-long",
+  "caughtBy": "audit-other / =v2.08 — the review of the edit box: kept values, the WBS after OGC, Goes to’s shape, prev/next, the SI code, the words"
+ },
+ {
+  "id": "v208-rv2-f2-change-commits-in-redraw",
+  "caughtBy": "audit-board / =v2.08 — the review of the defect fixes: Classify’s per-service bulk and office cell, WBS from execution in a copy, a redraw that commits"
+ },
+ {
+  "id": "v208-rv2-f2-hold-dropped",
+  "caughtBy": "audit-board / =v2.08 — the review of the defect fixes: Classify’s per-service bulk and office cell, WBS from execution in a copy, a redraw that commits"
+ },
+ {
+  "id": "pmo-rows-compare-bookkeeping",
+  "caughtBy": "audit-import / =v1.95 — accepting an office’s award over a repaired one keeps the original"
  }
 ]

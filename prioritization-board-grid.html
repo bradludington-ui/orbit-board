@@ -7896,7 +7896,8 @@ function pmoNorm(k, v){
     case 'mipr':  return MIPR_LBL[v]? [true, v] : [false];
     case 'si':    return SI_CODES.some(function(x){ return x[0]===v; })? [true, v] : [false];
     case 'minInc':{ const n=+v; return (typeof v!=='object' && isFinite(n) && n>=0)? [true, n] : [false]; }
-    case 'dest':  return obj(v)? [true, {to:String(v.to||''), end:String(v.end||'')}] : [false];
+    // setDest's shape (v2.08 second review): the second hop only when there is one, so what is applied is what setDest writes
+    case 'dest':  return obj(v)? [true, (function(to, end){ return end? {to:to, end:end} : {to:to}; })(String(v.to||''), String(v.end||''))] : [false];
     case 'budgetAsg': case 'rcnSvc':
       return (obj(v) && Object.keys(v).every(function(x){ return typeof v[x]==='string'; }))
         ? [true, JSON.parse(JSON.stringify(v))] : [false];
@@ -8358,6 +8359,21 @@ function pmoNow(id, key){
   if(key==='asks' && v===null){ const it=itemById(id); if(it) v=it.ask.slice(); }
   return v;
 }
+// A FIELD AS IT IS READ, for the review's two tests ("already says it", "changed since"). Goes to is read by destOf -- a second
+// hop only behind a government activity -- so {to:'lm'} and {to:'lm', end:''} are one answer; a WBS line with no per-service
+// split is one whether it carries v:[] or nothing; an award without its repair bookkeeping (awdBare). Compared as stored, a
+// Goes to or a WBS both sides agreed on was offered as a change, flagged as a conflict (v2.08 second review; older than v2.08
+// for setDest and the WBS panel).
+function pmoBare(k, v){
+  if(v===undefined || v===null) return null;
+  if(k==='awards') return awdBare(v);
+  if(k==='dest' && typeof v==='object'){ const to=String(v.to||''), end=(to && destKeyIsOgc(to))? String(v.end||'') : '';
+    return (to || end)? (end? {to:to, end:end} : {to:to}) : null; }
+  if(k==='wbs' && Array.isArray(v)){ const o=v.map(function(e){ return (e && typeof e==='object')
+      ? ((Array.isArray(e.v) && e.v.length)? {w:String(e.w||''), v:e.v} : {w:String(e.w||'')}) : e; });
+    return o.length? o : null; }
+  return v;
+}
 // EVERY HELD SUBMITTAL, AS ONE LIST. A row carries the package it came from, so the reviewer can
 // see who proposed what and a tick can never mean two different things.
 // A row that this board has SINCE come to agree with drops out on its own -- pmoSame() below --
@@ -8372,7 +8388,14 @@ function pmoRows(){
       PMO_KEYS.forEach(function(k){
         const prop=pkg.items[id][k];
         if(prop===undefined) return;
-        const now=pmoNow(id,k), bare=function(v){ return k==='awards'? awdBare(v) : v; };
+        // v2.08 second review: an older copy (v2.07 and before) renamed a requirement the board added by writing its event and
+        // dropping the override, and sent that as null -- "clear the override". Compared with the event the board now reads
+        // (pmoVal's F5 fallback) it never agreed, so the row came back after every Apply as a conflict nobody made. Such a
+        // proposal is compared with the override alone.
+        const it0=it;
+        let now=pmoNow(id,k);
+        if(k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=pmoVal({titles:S.titles||{}}, 'titles', id);
+        const bare=function(v){ return pmoBare(k, v); };
         if(pmoSame(bare(now), bare(prop))) return;          // already says what they propose
         const was=(base[id]||{})[k];
         rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo,
@@ -25430,13 +25453,30 @@ function recF(k, set, ctl, note, lbl){ const own=Object.prototype.hasOwnProperty
   return {k:own? k : '', id:k, l:own? FL(k) : (lbl||k), set:!!set, c:ctl, n:note||''}; }
 function recSec(t){ return {sec:t}; }
 // a select whose change is held while the keyboard moves through it: Enter, or leaving it, chooses
+// A PRESS ELSEWHERE THAT TAKES THE KEYBOARD AWAY chooses only once its click has done its work (v2.08 second review). Chosen
+// as the blur came -- on mousedown -- the move redrew Classify before mouseup, the control pressed was gone, and its click
+// (bulk Apply, another row's Prime / OGC) did nothing under a status line that read as if it had.
+let _selPtrDown=false;
+document.addEventListener('pointerdown', function(){ _selPtrDown=true; }, true);
+['pointerup','pointercancel'].forEach(function(t){ document.addEventListener(t, function(){ setTimeout(function(){ _selPtrDown=false; }, 0); }, true); });
 function selNavKey(e, el){
   const k=e && e.key;
   if(k==='Enter'){ if(el.__nav){ el.__nav=false; if(e.preventDefault) e.preventDefault(); el.dispatchEvent(new Event('change')); } return; }
   if(k===' ' || k==='F4' || (e.altKey && /^Arrow(Up|Down)$/.test(k||''))){ el.__nav=false; return; }
   if(!e.altKey && !e.ctrlKey && !e.metaKey && (/^(Arrow(Up|Down|Left|Right)|Home|End|PageUp|PageDown)$/.test(k||'') || (k && k.length===1 && k!==' '))) el.__nav=true;
 }
-function selNavBlur(el){ if(!el.__nav) return; el.__nav=false; if(el.value!==el.getAttribute('data-v')) el.dispatchEvent(new Event('change')); }
+// Leaving chooses whatever the cell shows that the board does not (arrowed to, or a list opened by the mouse and closed with
+// it showing) -- but not when the leaving was a redraw taking the cell away.
+function selNavBlur(el){
+  el.__nav=false;
+  if(!el.isConnected || el.value===el.getAttribute('data-v')) return;
+  const go=function(){ if(el.value!==el.getAttribute('data-v')) el.dispatchEvent(new Event('change')); };
+  if(!_selPtrDown){ go(); return; }
+  let done=false;
+  const fire=function(){ if(done) return; done=true; window.removeEventListener('click', fire); setTimeout(go, 0); };
+  window.addEventListener('click', fire);                                   // after the pressed control's own click
+  document.addEventListener('pointerup', function(){ setTimeout(fire, 60); }, {capture:true, once:true});   // a press with no click
+}
 function recSel(onch, tip, opts){
   return '<select class="cesel" onchange="'+onch+'" title="'+tip+'">'+opts+'</select>';
 }
@@ -25454,9 +25494,10 @@ function recFields(id, it){
            'Switch between a prime contract and an other-government-cost requirement')));
   // v2.08 review (F3's arrow-key path): a closed select fires change on every arrow key in Chromium, so arrowing past an
   // office and back moved the requirement there and back -- last in its own office's ranking, unjournalled. A keyboard move
-  // only moves; Enter, or leaving the field, chooses (selNavKey / selNavBlur). A pick with the mouse chooses at once.
+  // only moves; Enter, or leaving the field, chooses (selNavKey / selNavBlur). A press on the cell clears the hold, so a pick
+  // with the mouse chooses at once.
   F.push(recF('grp', grpOf(it)===it.grp,
-    recSel('if(!this.__nav)setGrp('+jsa(id)+',this.value)" onkeydown="selNavKey(event,this)" onblur="selNavBlur(this)" data-v="'+esc(grpOf(it)),
+    recSel('if(!this.__nav)setGrp('+jsa(id)+',this.value)" onkeydown="selNavKey(event,this)" onblur="selNavBlur(this)" onmousedown="this.__nav=false" data-v="'+esc(grpOf(it)),
       'Move this requirement to another PMO — this fiscal year only',
       GROUPS.map(function(g){ return '<option value="'+esc(g)+'"'+(grpOf(it)===g?' selected':'')+'>'+esc(g)
         +(g===it.grp?' (from the file)':'')+'</option>'; }).join('')),
@@ -25642,6 +25683,9 @@ function matRows(){
 function matBulk(){
   const out={};
   out['grp']={opts:GROUPS.map(function(g){ return [g,g]; }),
+              // v2.08 second review: a requirement a PMO copy proposes keeps its office (D8; setGrp refuses it), so the bulk set
+              // does not reach it -- counted, it read "overwritten" on a row that never moved
+              applies:function(it){ return !erIsProposal(it.id); },
               get:function(it){ return grpOf(it); },
               set:function(id,v){ setGrp(id,v); }};
   out['obCat']={opts:OB_CATS.map(function(c){ return [c,c]; }),
@@ -31201,13 +31245,21 @@ function erNotSent(id){
 function erSiCur(it){ if(!siApplies() || !siEligible(it)) return ''; const v=(S.si||{})[it.id];
   if(v===undefined) return '\u0004';
   return siKnown(v)? v : (typeof v==='string'? v : siRawShow(v)); }
-// each service's RCN / EEIC as the board resolves it today (rcnAsgOf), the note Requirement edit showed under the field
-function erRcnNote(id){
+// each service's RCN / EEIC, the note Requirement edit showed under the field -- as the BOX holds them (a service's own choice,
+// else the requirement's), redrawn as the field changes: drawn once from the stored record, it named the old combination
+// under a field showing the new one (v2.08 second review)
+function erRcnNote(id, D){
   const rsv=rcnFundedSvcs(id); if(!rsv.length) return '';
-  const k0=rcnAsgOf(id, rsv[0]), mix=rsv.some(function(sv){ return rcnAsgOf(id, sv)!==k0; });
-  return esc(rsv.map(function(sv){ const k=rcnAsgOf(id, sv); return sv+' '+(k? (rcnLabel(k)||'(blank)') : 'not set'); }).join(' · '))
+  const own={}; if(D && D.rcnSvc) try{ JSON.parse(D.rcnSvc).forEach(function(p){ own[p[0]]=p[1]; }); }catch(e){}
+  const kOf=function(sv){ return D? (own[sv] || D.rcnAsg || '') : rcnAsgOf(id, sv); };
+  const k0=kOf(rsv[0]), mix=rsv.some(function(sv){ return kOf(sv)!==k0; });
+  return esc(rsv.map(function(sv){ const k=kOf(sv); return sv+' '+(k? (rcnLabel(k)||'(blank)') : 'not set'); }).join(' · '))
     +(mix? ' — the services differ: set them per service' : '');
 }
+// what the PMO and prime rules give for the office and type the BOX holds (siDefault reads them as stored) -- picked with
+// nothing stored, it stores nothing (setSi's rule), so it is no change (v2.08 second review: "Save 1 change", "saved")
+function erSiRule(it, D){ if(!it || !siApplies()) return ''; if(D.ptype==='PRIME' && siPrime(it)==='LM') return 'LA';
+  if(D.grp==='PP') return 'EN'; return ''; }
 function erIsProposal(id){ return typeof SANDBOX!=='undefined' && SANDBOX && pmoProposalIds().indexOf(id)>=0; }
 // where each opener lands: a field's control, or the top
 const ER_AT={titles:'erEvent', ccar:'erCcar', pid:'erPid', ptype:'erPtP', grp:'erGrp', obCat:'erOb', costElem:'erCe', wbs:'erWbs',
@@ -31264,8 +31316,10 @@ function erOpt(v, t, cur){ return '<option value="'+esc(v)+'"'+(String(cur)===St
 // -- an obligation category, a destination, an RCN / EEIC combination an office added in its copy, a per-service choice its
 // service has since been taken off -- as "not set", and Save deleted it while saying it had saved it. It gets an option of its
 // own, selected, as the office, the cost element and the SI code always had; Save leaves it alone unless another is chosen.
+// Short, because a closed select cannot wrap: "— not on the list, kept as saved" cut the value at 1366 (v2.08 second review).
 function erKeep(cur, held, show){
-  return (cur && !held)? '<option value="'+esc(cur)+'" selected>'+esc(show||cur)+' — not on the list, kept as saved</option>' : '';
+  return (cur && !held)? '<option value="'+esc(cur)+'" selected title="not on the list — kept as saved; Save leaves it as it is">'
+    +esc(show||cur)+' (kept)</option>' : '';
 }
 function erDraw(){
   const el=erEl('erBody'); if(!el) return;
@@ -31406,6 +31460,7 @@ function erChanges(D){
     const b=(k==='desc'||k==='notes'||k==='cons'||k==='titles'||k==='ccar'||k==='pid'||k==='wbs')? tx(V[k]) : String(V[k]==null? '' : V[k]);
     if(a!==b) out[k]=D[k];
   });
+  if(out.si!==undefined && V.si==='\u0004' && out.si===erSiRule(itemById(erOpen), D)) delete out.si;
   return out;
 }
 // the draft reqNeeds() judges, from what the box holds -- the value and the budgets as stored (they are not in the box)
@@ -31440,7 +31495,9 @@ function erUpdate(){
     rt.classList.toggle('dim', !nm);
     // where the name shown comes from, said as it is: the list, a name typed before v2.08 (kept), or the file
     const tg=erEl('erRecTag'); if(tg) tg.textContent= !nm? 'read, never typed'
-      : (same && typed)? 'typed before v2.08, kept' : ((cc && ccarNameOfNum(cc))? 'from the CCaR records list' : 'from the file'); }
+      : (same && typed)? 'typed before v2.08, kept'
+      // a requirement with no record of its own is named by its CLINs' record in the list (v2.08 second review: "from the file")
+      : ((cc? ccarNameOfNum(cc) : (same && ccarRecNameOf(it)))? 'from the CCaR records list' : 'from the file'); }
   const need=reqNeeds(erDraft(D)), miss=need.filter(function(x){ return !x.ok; });
   const ch=erEl('erChk');
   if(ch) ch.innerHTML = need.map(function(x){ const lbl=arShort(x.l);
@@ -31452,6 +31509,7 @@ function erUpdate(){
   // the count the RECORD panel's 📋 button shows: what is still needed, of the fields asked for (a waived one is not asked for)
   const asked=need.filter(function(x){ return !x.w; }), still=asked.filter(function(x){ return !x.ok; });
   const rn=erEl('erReadyN'); if(rn) rn.textContent= still.length? still.length+' of '+asked.length+' still needed' : 'all '+asked.length+' set';
+  const rnt=erEl('erRcnNote'); if(rnt && erEl('erRcn')) rnt.innerHTML=erRcnNote(erOpen, D);
   const n=Object.keys(erChanges(D)).length, sb=erEl('erSaveBtn');
   if(sb) sb.textContent=n? 'Save '+n+' change'+(n===1? '' : 's') : 'Save';
 }
@@ -31473,7 +31531,12 @@ function erGo(what){
   erClose();
   // the keyboard goes back to the record's own button first, so the panel opened next hands it back there
   try{ const b=document.querySelector('#inspector [onclick^="toggleRec("]'); if(b) b.focus(); }catch(e){}
-  if(what==='record'){ try{ const i=document.querySelector('#inspector input[onchange^="setAsk("]'); if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){} return; }
+  // the RECORD panel shows the box's own requirement (after ↑ prev / next ↓ it showed the one the box opened on), and the
+  // keyboard goes to its value once the box controller has lifted the panel's inert (v2.08 second review)
+  if(what==='record'){ try{ if(curRow!==id) setCur(id); try{ dlgSync(); }catch(e){}
+    const h='setAsk('+JSON.stringify(id)+',', i=[].filter.call(document.querySelectorAll('#inspector input[onchange]'), function(x){
+      return (x.getAttribute('onchange')||'').indexOf(h)===0; })[0];
+    if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){} return; }
   // the drill is opened, never toggled shut when it was already open
   if(what==='clin'){ clinOpen[id]=true; render(); } else toggleWbs('req', id, '');
 }
@@ -31496,8 +31559,9 @@ function erSave(){
   if(ch.titles!==undefined && !String(D.titles).trim()) bad.push(['erEvent', 'The plan event cannot be empty']);
   [['ccar','erCcar'],['pid','erPid'],['wbs','erWbs']].forEach(function(c){
     if(ch[c[0]]===undefined) return; const r=codeTake(D[c[0]], c[0]); if(r.why) bad.push([c[1], r.why]); });
-  // the record the file carries is read whenever none is typed, so clearing the box cannot clear it (it never could)
-  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar)
+  // the record the file carries is read whenever none is typed, so clearing the box cannot clear it (it never could). One
+  // typed over it can be: clearing it puts the file's back (v2.08 second review: refused, the override could not be removed)
+  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar && !((S.ccar||{})[id]))
     bad.push(['erCcar', 'The CCaR record '+it.ccar+' comes from the file and cannot be cleared here — type another to replace it']);
   if(bad.length){ erSay('<b>Nothing was saved.</b> '+bad.map(function(b){ return esc(b[1]); }).join(' · ')+'.');
     bad.forEach(function(b){ const e=erEl(b[0]); if(e){ e.setAttribute('aria-invalid','true'); const f=e.closest? e.closest('.ar-f') : null; if(f) f.classList.add('miss'); } });
@@ -31516,7 +31580,8 @@ function erSave(){
   }
   const msg=reqApply(id, ch, D);
   erClose();
-  setStat('✎ '+esc(dispTitle(itemById(id)||it))+': saved '+msg.map(esc).join(', ')+'.');
+  // a field whose setter stores nothing for it (an SI code the rules give anyway) is not said to be saved
+  setStat(msg.length? '✎ '+esc(dispTitle(itemById(id)||it))+': saved '+msg.map(esc).join(', ')+'.' : 'Nothing changed on '+esc(dispTitle(itemById(id)||it))+'.');
   try{ flash(id); }catch(e){}
 }
 // the BAE choices a requirement holds that name an office (budParseName's pmo), and whether any answers a funded line
@@ -31536,13 +31601,16 @@ function reqApply(id, ch, D){
   const it=itemById(id); if(!it) return [];
   const said=[];
   if(ch.titles!==undefined){ const t=String(ch.titles).trim();
-    // the plan event: a board-data requirement's rename is an override (S.titles); an added one owns its event (it.event),
-    // which pmoVal reads for it, so a copy sends its rename (F5) and the board reads it to compare
-    if(it.custom){ it.event=t; delete S.titles[id]; }
-    else if(t===(it.event || it.title)) delete S.titles[id];
+    // the plan event: a rename is an override (S.titles) for every requirement, an added one too, filed by its id. pmoVal
+    // reads the override, else an added one's own event, so a copy sends its rename (F5) and the board compares it. Written
+    // into an added one's event (v2.08 review), the journal filed it by its place in the added list, and Put back after a
+    // delete above it renamed another requirement -- in a copy, one Submit then sent (v2.08 second review).
+    if(t===(it.event || it.title)) delete S.titles[id];
     else S.titles[id]=t;
     said.push(FL('titles')); }
-  if(ch.ccar!==undefined){ const v=codeTake(ch.ccar, 'ccar').v; if(!S.ccar) S.ccar={}; if(v) S.ccar[id]=v; else delete S.ccar[id]; said.push(FL('ccar')); }
+  // the file's own record typed again is no override (as the plan event's rule): it would hide a later change in the file
+  if(ch.ccar!==undefined){ const v=codeTake(ch.ccar, 'ccar').v; if(!S.ccar) S.ccar={}; if(v && v!==String(it.ccar||'')) S.ccar[id]=v; else delete S.ccar[id];
+    said.push(FL('ccar')+(!v && it.ccar? ' (back to the file’s '+it.ccar+')' : '')); }
   if(ch.pid!==undefined){ const v=codeTake(ch.pid, 'pid').v; if(!S.pid) S.pid={}; if(v) S.pid[id]=v; else delete S.pid[id]; said.push(FL('pid')); }
   if(ch.ptype!==undefined){ if(!S.ptype) S.ptype={}; if(ch.ptype==='PRIME'||ch.ptype==='OGC') S.ptype[id]=ch.ptype; else delete S.ptype[id]; said.push(FL('ptype')); }
   if(ch.grp!==undefined && GROUPS.indexOf(ch.grp)>=0){ grpMove(id, ch.grp); said.push(FL('grp')+' ('+ch.grp+', last in its ranking)'); }
@@ -31555,7 +31623,9 @@ function reqApply(id, ch, D){
     if(!S.rcnSvc) S.rcnSvc={}; if(Object.keys(o).length) S.rcnSvc[id]=o; else delete S.rcnSvc[id]; said.push(FL('rcnSvc')); }
   // setSi's rule: the derived code stores nothing, so it goes on following the PMO and prime rules
   if(ch.si!==undefined && siApplies() && (ch.si==='\u0004' || !ch.si || SI_CODES.some(function(x){ return x[0]===ch.si; }))){
-    if(!S.si) S.si={}; if(ch.si==='\u0004' || ch.si===siDefault(it)) delete S.si[id]; else S.si[id]=ch.si; said.push(FL('si')); }
+    if(!S.si) S.si={}; const was=S.si[id];
+    if(ch.si==='\u0004' || ch.si===siDefault(it)) delete S.si[id]; else S.si[id]=ch.si;
+    if(S.si[id]!==was) said.push(FL('si')); }
   // WHERE THE MONEY GOES, written the way setDest writes it (v2.08 review): only the fields that changed, Which awards to only
   // for a government activity, and nothing carried over from a destination that was not one -- a second hop or MIPR type hidden
   // since v2.08 (F4) never comes back. Rewriting the whole record on a MIPR-type edit sent a Goes to nobody had changed, and a
@@ -33697,15 +33767,13 @@ document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagN
 document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
 function inspHeld(el){
   // ONLY THE FIELD THAT HAS THE KEYBOARD: a browser commits a field when it loses it, so that is the one place typing can wait
-  // uncommitted. Held by its mark alone, a field Chromium had committed as the redraw removed it (its change fires on the
-  // field removed, where no listener of the page hears it) was put back with its typing, marked, on every later redraw --
-  // over the stored figure, after ↺ (v2.08 review).
+  // uncommitted. Held by its mark alone, a field put back once was held again on every later redraw -- over the stored
+  // figure, after ↺ (v2.08 review).
   return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend && document.activeElement===i; }).map(function(i){
     return {el:i, h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd}; });
 }
 function inspHeldBack(el, held){
   held.forEach(function(x){
-    if(x.el && !x.el.__pend) return;            // committed while the panel was drawn (Chromium): nothing is held
     const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
     if(!i) return;
     i.value=x.v; i.__pend=true;
@@ -33716,7 +33784,14 @@ function inspectorBody(){
   const el = document.getElementById('inspector');
   if(!el) return;
   const held = inspHeld(el);
-  try{ inspectorDraw(el); } finally { if(held.length) inspHeldBack(el, held); }
+  // CHROMIUM FIRES CHANGE ON A FOCUSED FIELD AS innerHTML REMOVES IT, and the page hears it: the half-typed figure was
+  // committed inside the redraw, the panel drew the figure from before, the keyboard fell to the page and the rest of the
+  // typing went nowhere (v2.08 second review -- jsdom fires nothing, so no suite saw it; npm run keys P does). The held
+  // field's handler is taken off for the redraw, and given back if the field is still there.
+  held.forEach(function(x){ try{ x.el.removeAttribute('onchange'); }catch(e){} });
+  try{ inspectorDraw(el); } finally {
+    held.forEach(function(x){ try{ if(x.el.isConnected) x.el.setAttribute('onchange', x.h); }catch(e){} });
+    if(held.length) inspHeldBack(el, held); }
 }
 function inspectorDraw(el){
   const it = curRow && DATA.items.filter(function(x){ return x.id === curRow; })[0];

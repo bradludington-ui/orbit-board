@@ -734,6 +734,80 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`M · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── P. A REDRAW WHILE A RECORD PANEL FIGURE IS TYPED (v2.08, F2; the second review) ─────────────────────────────────
+// Chromium fires change on a focused field as innerHTML removes it, and the page hears it: the half-typed figure was
+// committed inside the redraw, the panel drew the figure from before, the keyboard fell to the page and the rest of the
+// typing went nowhere. jsdom fires nothing on removal, so only a browser can hold this. A redraw (render(), what a Live
+// view tick does) in the middle of typing must commit nothing and keep the typing and the keyboard; Tab commits it whole.
+{
+  try {
+    const { p, ctx, errs } = await open('review', 1920);
+    const id = await p.evaluate(() => { const id = S.order[3]; setCur(id); render(); return id; });
+    const sel = '#inspector input[onchange^="setFsrcSvc("]';
+    const read = () => p.evaluate(([id, sel]) => { const inp = document.querySelector(sel), f = (S.fsrc || {})[id];
+      return { stored: f && f.dv ? f.dv[0] : null, field: inp ? inp.value : null, kb: document.activeElement === inp }; }, [id, sel]);
+    const r0 = await read();
+    await p.click(sel, { clickCount: 3 }); await p.keyboard.type('25');
+    await p.evaluate(() => render());
+    const r1 = await read();
+    chk('P · a redraw while a RECORD panel figure is typed commits nothing, and the typing and the keyboard stay',
+      r1.stored === r0.stored && r1.field === '25' && r1.kb, JSON.stringify({ before: r0, mid: r1 }));
+    await p.keyboard.type('00000'); await p.keyboard.press('Tab'); await p.waitForTimeout(200);
+    const r2 = await read();
+    chk('P · leaving the field commits the whole figure', r2.stored === 2500000, JSON.stringify(r2));
+    chk('P · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`P · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
+// ── Q. CLASSIFY'S OFFICE CELL: AN ARROW KEY, THEN A CLICK ELSEWHERE (v2.08, the second review) ──────────────────────
+// An arrow key in the office cell only moves; leaving the cell chooses. Chosen as the blur came -- on the mousedown of a
+// click elsewhere -- the move redrew Classify before mouseup, the control pressed was gone, and its click did nothing. Now
+// the click happens and the office is chosen after it; and a press on the cell itself lets a mouse pick choose at once.
+{
+  try {
+    const run = async (arrow, target) => {
+      const { p, ctx, errs } = await open('review', 1600);
+      p.on('dialog', d => d.accept());
+      await p.evaluate(() => { try { localStorage.setItem('prio27who', 'BLL'); } catch (e) {} });
+      const ids = await p.evaluate(() => { matOpen = true; render(); matSet('bulkF', 'obCat'); matSet('bulkV', OB_CATS[1]); return [S.order[0], S.order[1]]; });
+      const cell = `#matBody select[onchange*='setGrp('][onchange*='"${ids[0]}"']`;
+      const g0 = await p.evaluate(id => grpOf(itemById(id)), ids[0]);
+      await p.focus(cell);
+      if (arrow) await p.keyboard.press('ArrowDown');
+      const shown = await p.evaluate(c => document.querySelector(c).value, cell);
+      const n0 = await p.evaluate(() => S.order.filter(x => obCatOf(x) === OB_CATS[1]).length);
+      if (target === 'apply') await p.click('#matBody button[onclick="matApplyBulk()"]');
+      else if (target === 'ptype') await p.click(`#matBody button[onclick^="togglePtype("][onclick*='"${ids[1]}"']`);
+      await p.waitForTimeout(250);
+      const r = await p.evaluate(([a, b2, ob]) => ({ office: grpOf(itemById(a)), n: S.order.filter(x => obCatOf(x) === ob).length, pt2: ptypeOf(b2) }),
+        [ids[0], ids[1], await p.evaluate(() => OB_CATS[1])]);
+      await ctx.close();
+      return { g0, shown, n0, ...r, errs: errs.length };
+    };
+    const a = await run(true, 'apply');
+    chk('Q · an arrow key in the office cell, then a click on bulk Apply: the Apply runs, and the office is chosen after it',
+      a.n > a.n0 && a.office === a.shown && a.office !== a.g0 && !a.errs, JSON.stringify(a));
+    const t = await run(true, 'ptype');
+    chk('Q · an arrow key, then a click on another row’s Prime / OGC: the click lands, and the office is chosen',
+      t.pt2 !== '' && t.office === t.shown && t.office !== t.g0 && !t.errs, JSON.stringify(t));
+    // a press on the cell after an arrow key: the mouse's pick chooses at once, with the keyboard still in the cell
+    {
+      const { p, ctx, errs } = await open('review', 1600);
+      const id = await p.evaluate(() => { matOpen = true; render(); return S.order[0]; });
+      const cell = `#matBody select[onchange*='setGrp('][onchange*='"${id}"']`;
+      const g0 = await p.evaluate(x => grpOf(itemById(x)), id);
+      const pick = await p.evaluate(([x, g]) => GROUPS.filter(o => o !== g).slice(-1)[0], [id, g0]);
+      await p.focus(cell); await p.keyboard.press('ArrowDown');
+      await p.dispatchEvent(cell, 'mousedown'); await p.selectOption(cell, pick); await p.waitForTimeout(150);
+      const g1 = await p.evaluate(x => grpOf(itemById(x)), id);
+      chk('Q · after an arrow key, a pick with the mouse chooses at once', g1 === pick, JSON.stringify({ from: g0, pick, now: g1 }));
+      chk('Q · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+      await ctx.close();
+    }
+  } catch (e) { chk(`Q · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
 console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls and the Add box, and each one works\n');
 process.exit(bad ? 1 : 0);

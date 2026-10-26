@@ -4538,6 +4538,27 @@ rename"), the seven defects found mapping item 122 ("build them with 122 in v2.0
     a mouse pick and never brushed past by an arrow key (`selNavKey`). A copy's proposal keeps its office (`setGrp`).
   - **WBS from execution data** in a copy counts the CLINs it could not write apart. The absorber's ✕ is dimmed in a copy.
   - **F2 holds only the focused field.** An `input` event on a field that is no longer in the page reaches nothing.
+- **A second review, of those fixes** (`wf_f7756a59-8e9`: 11 confirmed, 2 partly, none refuted), all fixed:
+  - **The review compares a field as it is read, never as it is stored** (`pmoBare`: awards without their bookkeeping, Goes to
+    as `destOf` reads it, a WBS line without an empty vector). `{to:'lm'}` and `{to:'lm', end:''}` are one answer; compared
+    as stored, a Goes to or a WBS both sides agreed on was offered as a conflict. An accepted Goes to is written in `setDest`'s
+    shape (`pmoNorm`). **A new field the review compares, whose setters can store one answer two ways, goes through `pmoBare`.**
+  - **A rename is an override filed by id, for every requirement** (`reqApply` writes `S.titles[id]`, never `it.event` on an
+    added one). The journal files an added requirement's own fields by its PLACE in `S.custom` (`['custom', 1, …]`), so a
+    Put back after a delete above it lands on the next one; the plan event is now out of that, and the rest is item 124.
+  - A rename a copy older than v2.08 sent as a cleared override (null) is compared with the override alone, so it settles.
+  - Classify's bulk office in a copy counts the copy's own proposal as left alone (`matBulk` `grp`: `applies`).
+  - **F2 in Chromium.** The browser fires `change` on the focused field as `innerHTML` removes it, and the page hears it.
+    `inspectorBody()` takes the held field's `onchange` off for the redraw, and `inspHeldBack` puts the typing back whatever
+    that change did to `__pend`. jsdom fires nothing: audit-board fires it inside the draw (`inspectorDraw` wrapped), and
+    `npm run keys` P types into the real panel in Chromium.
+  - **Classify's office cell chooses after the click, not on its mousedown** (`selNavBlur`, `_selPtrDown`): chosen on the
+    mousedown, the redraw took the clicked control away and the click went nowhere. A press on the cell itself lets a mouse
+    pick choose at once (`__nav` cleared). `npm run keys` Q.
+  - The CCaR record: typing the file's own record back leaves no override, and clearing an override says it is back to the
+    file's. The SI code: a pick the rules give anyway is no change (`erSiRule`). The record name's source, the RCN / EEIC note
+    under the field (`erRcnNote`, from the draft, service by service), and the way to the RECORD panel after ↑ prev / next ↓
+    follow the box. A kept value's option reads "(kept)", the explanation on hover: a closed select cannot wrap.
 
 **The defects** (each reproduced on v2.07 by `recovery/v208/repro/found-on-main.mjs`, which now reads PRESENT on v2.07 and GONE
 here):
@@ -4559,11 +4580,16 @@ written fields" (the pop-up block, migrated); audit-other "v2.08 — the edit bo
 once (item 122)"; audit-import "v2.08 — the edit box in a PMO copy … (item 122, F5)". Every one fails on v2.07. The pop-up,
 Requirement edit and prompt checks were migrated, as `ITEM-122-BRIEF.md` §6 listed. The review's checks are audit-other "v2.08 —
 the review of the edit box …", audit-board "v2.08 — the review of the defect fixes …" and audit-import "v2.08 — the review in a
-PMO copy …". Each fails on 65cc26a. `npm run layout` N measures the box, filled with long values, at 1366 × 657 and 1920 × 969, in
+PMO copy …"; each fails on 65cc26a. The second review's are audit-other "v2.08 — the second review of the edit box …",
+audit-import "v2.08 — the second review in a PMO copy …", audit-board's "redraw holds", `npm run keys` P and Q, and layout N
+holding kept values; each fails on 3898d95. `npm run layout` N measures the box, filled with long values, at 1366 × 657 and 1920 × 969, in
 Harbor and Midnight, in this font and the Segoe stand-in, and one column below 1366. Its first run found the box 160px too tall
 at 1366: the written fields are 68px and 42px (taller by dragging), and the required list has two columns, as the Add box's. Mutations: 42 new from the build (`v208-f*`, `v208-absorb*`,
-`v208-122-*`; the review retired one of them) and 29 from the review (`v208-rv-*`), 70 in all; 9 older ones retired as
-obsolete; 12 retargeted. Each was proved against its own
+`v208-122-*`; the review retired one of them), 29 from the review (`v208-rv-*`) and 16 from the second (`v208-rv2-*`), 86 in
+all; 9 older ones retired as obsolete; 17 retargeted; 2,394 targets, each matching once. Two of the second review's first
+SURVIVED, both a fixture that could not reach its target: the "agreed" part stored both sides' Goes to in one shape, so
+comparing as stored changed nothing, and the F2 check fired Chromium's change AFTER the redraw, when the browser fires it
+inside. **To stand in for a browser event jsdom does not fire, fire it where the browser does.** Each was proved against its own
 check with `recovery/v208/bin/prove.py` (`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
 
 **Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is (v2.08, cited at `3898d95`; every line

@@ -662,6 +662,10 @@ const ER_STATE = () => {
   setPmoFilter('ALL'); if (typeof erOn === 'function' && erOn()) erClose();
   const id = S.order.filter(x => ptypeOf(x) !== 'PRIME')[0];
   if (typeof rcnSvcOpen !== 'undefined') rcnSvcOpen[id] = true;
+  // stored values the lists do not hold, kept as saved: the option said "— not on the list, kept as saved" and a closed
+  // select cannot wrap, so the value was cut (v2.08 second review)
+  S.obCat = S.obCat || {}; S.obCat[id] = 'Contract services (FY24 file)';
+  S.rcnSvc = S.rcnSvc || {}; S.rcnSvc[id] = {}; rcnFundedSvcs(id).forEach(sv => { S.rcnSvc[id][sv] = 'R8|E8'; });
   setCur(id); openEdit(id, 'rec');
   const set = (eid, v) => { const e = document.getElementById(eid); if (!e) return; e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
   set('erEvent', 'Depot tooling for the F135 engine line'); erPt('OGC'); set('erCcar', 'JSF3087'); set('erPid', 'PID-' + '4'.repeat(31));
@@ -670,7 +674,9 @@ const ER_STATE = () => {
   const para = 'Tooling the F135 line cannot run without; it replaces 1990s fixtures at the end of their life and keeps two test cells open. ';
   set('erDesc', para + para); set('erCons', 'If this is not funded the line stops in March and forty engines wait into FY28. ' + para); set('erNote', 'Agreed at the September SFWG.');
   const sh = eid => { const e = document.getElementById(eid); return !!e && e.getClientRects().length > 0; };
-  return ['erEnd', 'erMipr', 'erChk', 'erSaveBtn', 'erToPanel'].filter(eid => !sh(eid));
+  const kept = eid => { const e = document.getElementById(eid); return !!e && / \(kept\)$/.test((e.options[e.selectedIndex] || {}).text || ''); };
+  return ['erEnd', 'erMipr', 'erChk', 'erSaveBtn', 'erToPanel'].filter(eid => !sh(eid))
+    .concat(kept('erOb') ? [] : ['the kept obligation category']).concat(document.querySelector('#erRcnSvcRows select') && !document.querySelector('#erRcnSvcRows option[title]') ? ['the kept per-service RCN / EEIC'] : []);
 };
 {
   const fails = [], notShown = []; let read = 0;
@@ -688,7 +694,7 @@ const ER_STATE = () => {
         r.bad.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
         await ctx.close();
       }
-  chk('N · the edit box shows all of itself: the OGC fields, the required list, Save and the way to the RECORD panel',
+  chk('N · the edit box shows all of itself: the OGC fields, the required list, Save, the way to the RECORD panel and values kept as saved',
     notShown.length === 0 && read === 8, notShown.length ? `not shown: ${notShown.slice(0, 4).join('; ')}` : `${read} states`);
   chk('N · the edit box fits whole at 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in: nothing scrolls, nothing is cut, nothing runs off',
     fails.length === 0, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 6).join('; ')}` : `${read} states read`);

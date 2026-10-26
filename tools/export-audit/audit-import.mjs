@@ -12903,6 +12903,112 @@ await (async () => {
 })();
 // ==== end v2.08 item 122 -- the review, in a PMO copy ====
 
+// ==== v2.08 item 122 -- the second review, in a PMO copy (26 Oct 2026) ====
+// The second round's submittal findings on the first round's fixes (3898d95), each failing there: a Goes to or a WBS both sides
+// agree on offered as a conflict, an older copy's cleared rename that never settled, Classify's bulk office counting a copy's
+// own proposal as moved, and Put back of a rename landing on another added requirement. Expected values are written out here.
+await (async () => {
+  const name = 'v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); } };
+    const mkBoard = (items) => { const B = boot(); seed(B.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: items.map(i => i.id) });
+      B.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; render(); 'ok'`);
+      return B; };
+    const mkCopy = (B) => { const P = boot({ html: B.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+        base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`) });
+      P.ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; render(); 'ok'`);
+      return P; };
+    const putIn = (ev, id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const boxSet = (ev, id, at, pairs) => { ev(`openEdit(${J(id)},${J(at)}); 'ok'`); pairs.forEach(p => putIn(ev, p[0], p[1])); ev(`erSave(); 'ok'`); };
+    const submitted = ev => JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const rowsOf = (ev, ids) => JSON.parse(ev(`JSON.stringify(pmoRows().filter(function(r){ return ${J(ids)}.indexOf(r.id)>=0; }).map(function(r){ return [r.id, r.key, !!r.conflict]; }))`));
+
+    // ---- a Goes to or a WBS both sides agree on is not offered; a real Goes to change applies in setDest's shape
+    part('agreed', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0]), itx('B', 'PSM', [100, 0]), itx('C', 'PSM', [100, 0]), itx('D', 'PSM', [100, 0]), itx('E', 'PSM', [100, 0])]);
+      B0.ev(`setDest('A','to','pw'); setDest('C','to','pw'); save(); 'ok'`);
+      const P = mkCopy(B0);
+      boxSet(P.ev, 'E', 'dest', [['erTo', 'pax']]);                      // the office: a government activity, in its box
+      B0.ev(`setDest('E','to','pax'); setDest('E','end',''); save(); 'ok'`);   // the board: the same, its second hop set to none
+      boxSet(P.ev, 'A', 'dest', [['erTo', 'lm']]);                       // the office, in its box
+      boxSet(P.ev, 'B', 'wbs', [['erWbs', '1.2']]);
+      P.ev(`setDest('C','to','lm'); save(); 'ok'`);                       // the office, in Classify
+      boxSet(P.ev, 'D', 'dest', [['erTo', 'lm']]);                       // a change the board did not make
+      boxSet(B0.ev, 'A', 'dest', [['erTo', 'lm']]);                      // the board agrees, in its box
+      boxSet(B0.ev, 'B', 'wbs', [['erWbs', '1.2']]);
+      boxSet(B0.ev, 'C', 'dest', [['erTo', 'lm']]);
+      chk(name, 'agreed', 'the fixture: the board stores setDest’s and the box’s shapes', J([B0.ev(`JSON.stringify(S.dest.A)`), B0.ev(`JSON.stringify(S.wbs.B)`)]),
+        J(['{"to":"lm"}', '[{"w":"1.2","v":[]}]']));
+      chk(name, 'agreed', 'the fixture: E is stored in two shapes that read alike (the second hop set to none, and never set)',
+        J([B0.ev(`JSON.stringify(S.dest.E)`), P.ev(`JSON.stringify(S.dest.E)`), B0.ev(`JSON.stringify(destOf(itemById('E')))`) === P.ev(`JSON.stringify(destOf(itemById('E')))`)]),
+        J(['{"to":"pax","end":""}', '{"to":"pax"}', true]));
+      const wire = submitted(P.ev);
+      B0.ev(`pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      chk(name, 'agreed', 'what both sides say is not offered; only D’s Goes to is, with no conflict', J(rowsOf(B0.ev, ['A', 'B', 'C', 'D', 'E'])), J([['D', 'dest', false]]));
+      B0.ev(`PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'agreed', 'applied, D’s Goes to is stored as setDest stores it, and nothing is left to review', J([B0.ev(`JSON.stringify(S.dest.D)`), rowsOf(B0.ev, ['A', 'B', 'C', 'D', 'E']).length]),
+        J(['{"to":"lm"}', 0]));
+    });
+
+    // ---- an older copy renamed an added requirement by clearing its override, and sent null: applied, the row settles
+    part('older copy', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0])]);
+      const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); S.titles[n]='X-override'; save(); render(); return n; })()`);
+      const P = mkCopy(B0);
+      boxSet(P.ev, 'A', 'notes', [['erNote', 'a note']]);
+      const wire = submitted(P.ev);
+      chk(name, 'older copy', 'the fixture: the copy’s baseline holds the override', P.ev(`PMODE.base[${J(nid)}].titles`), 'X-override');
+      // what a v2.07 copy's pen sent: the override cleared, against the baseline it was published with
+      wire.items[nid] = { titles: null }; wire.base = wire.base || {}; wire.base[nid] = { titles: 'X-override' };
+      B0.ev(`pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      chk(name, 'older copy', 'offered once, against the override, with no conflict', J(rowsOf(B0.ev, [nid])), J([[nid, 'titles', false]]));
+      B0.ev(`PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'older copy', 'applied: the override goes, the added requirement reads its own event, and the row is gone',
+        J([B0.ev(`(S.titles||{})[${J(nid)}]===undefined`), B0.ev(`dispTitle(itemById(${J(nid)}))`), rowsOf(B0.ev, [nid]).length]), J([true, 'EV-NEW', 0]));
+      B0.ev(`__al.length=0; PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'older copy', 'a second Apply finds nothing ticked, rather than "applied" again', B0.ev(`__al.some(function(m){ return m.indexOf('Nothing is ticked')===0; })`), true);
+    });
+
+    // ---- Classify's bulk office in a copy leaves the copy's own proposal where it is, and counts it so
+    part('bulk office', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0]), itx('B', 'PSM', [80, 0]), itx('E', 'AV', [60, 0])]);
+      const P = mkCopy(B0); const ev = P.ev;
+      const nid = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+      ev(`matOpen=true; matPmo='PSM'; render(); matSet('bulkF','grp'); matSet('bulkV','AV'); __asked.length=0; matApplyBulk(); 'ok'`);
+      chk(name, 'bulk office', 'the question counts the two that move, and the proposal as left alone',
+        J([/ON 2 REQUIREMENTS/.test(ev(`String(__asked[0]||'')`)), /1 never offer this field and are left alone/.test(ev(`String(__asked[0]||'')`))]), J([true, true]));
+      chk(name, 'bulk office', 'the two moved, the proposal kept its office', J(['A', 'B', nid].map(x => ev(`grpOf(itemById(${J(x)}))`))), J(['AV', 'AV', 'PSM']));
+      chk(name, 'bulk office', 'and the status line says so', ev(`document.getElementById('shareStat').textContent`),
+        '✓ PMO set to AV on 2 requirements — 2 had a different answer and were overwritten; 1 never offer this field and were left alone.');
+    });
+
+    // ---- a rename in a copy is filed by id: Put back after a delete above it puts back that requirement's own name
+    part('put back by id', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0])]);
+      ['NEW one', 'NEW two', 'NEW three'].forEach(e => B0.ev(`reqCreate('PSM', {title:'', event:${J(e)}, ask:[10,0]}, null, {event:${J(e)}}); save(); render(); 'ok'`));
+      const ids = JSON.parse(B0.ev(`JSON.stringify(S.custom.map(function(c){ return c.id; }))`));
+      const P = mkCopy(B0); const ev = P.ev;
+      boxSet(ev, ids[1], 'titles', [['erEvent', 'TWO renamed in the copy']]);
+      const ent = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).map(function(e,i){ return {i:i, p:e.p}; }).filter(function(e,i){ return JSON.stringify(MS.jrnl[e.i].b).indexOf('TWO renamed')>=0; }))`));
+      chk(name, 'put back by id', 'the rename is journalled by the requirement’s id', J(ent.map(e => e.p)), J([['titles', ids[1]]]));
+      ev(`removeReq(${J(ids[0])}); jrnlUndo(${ent[0].i}); render(); 'ok'`);
+      chk(name, 'put back by id', 'Put back after a delete above it: the second keeps its own name, the third is untouched',
+        J([ids[1], ids[2]].map(x => ev(`dispTitle(itemById(${J(x)}))`))), J(['NEW two', 'NEW three']));
+      const wire = submitted(ev), I = (wire && wire.items) || {};    // nothing left to send builds no package at all
+      chk(name, 'put back by id', 'and Submit proposes no plan event for either', J([ids[1], ids[2]].map(x => (I[x] || {}).titles === undefined)), J([true, true]));
+    });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 -- the second review, in a PMO copy ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

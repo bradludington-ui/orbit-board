@@ -2611,8 +2611,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         S.obCat=S.obCat||{}; S.obCat.A='Contract (old)'; S.dest=S.dest||{}; S.dest.A={to:'zz'}; S.rcnAsg=S.rcnAsg||{}; S.rcnAsg.A='R9|E9';
         S.rcnSvc=S.rcnSvc||{}; S.rcnSvc.A={USAF:'R8|E8'}; rcnSvcOpen.A=true; save(); setCur('A'); render(); toggleRec('A'); 'ok'`);
     chk(name, 'kept as saved', 'opened with nothing typed, there is nothing to save', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    // v2.08 second review: the option is short -- "(kept)" -- because a closed select cannot wrap; its hover says why
     chk(name, 'kept as saved', 'each picker shows the value as stored, kept as saved',
-      J(['erOb', 'erTo', 'erRcn', 'erRs_USAF'].map(i => ev(`(function(){ var s=document.getElementById(${J(i)}); return s.value+' | '+(s.options[s.selectedIndex].text.indexOf('kept as saved')>=0); })()`))),
+      J(['erOb', 'erTo', 'erRcn', 'erRs_USAF'].map(i => ev(`(function(){ var s=document.getElementById(${J(i)}), o=s.options[s.selectedIndex];
+        return s.value+' | '+(/ \\(kept\\)$/.test(o.text) && (o.getAttribute('title')||'').indexOf('kept as saved')>=0); })()`))),
       J(['Contract (old) | true', 'zz | true', 'R9|E9 | true', 'R8|E8 | true']));
     putIn(ev, 'erNote', 'only a note'); btn(ev, 'erSaveBtn');
     chk(name, 'kept as saved', 'Save of a note leaves all four as they were, and says only the note',
@@ -2706,6 +2708,108 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 // ==== end v2.08 item 122 -- the review ====
+
+// ==== v2.08 item 122 -- the second review of the edit box (26 Oct 2026) ====
+// A second round of reviewers on the first round's fixes (3898d95), each finding re-run by a skeptic. Each part fails there and
+// passes here; every expected value is written out from the fixture.
+{
+  const name = 'v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask, x) => Object.assign({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask }, x || {});
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).split('\n')[0].slice(0, 160), got: 'threw', want: 'ran' }); } };
+  const mk = (services, items, order) => { const b = boot(); seed(b.ev, { services, items, disc: services.map(() => 500), mand: services.map(() => 0), order });
+    b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.__asked=[]; window.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; }; render(); 'ok'`); return b; };
+  const putIn = (ev, id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const btn = (ev, id) => ev(`document.getElementById(${J(id)}).click(); 'ok'`);
+  const stat = ev => ev(`document.getElementById('shareStat').textContent`);
+
+  // ---- a CCaR record typed over the file's is cleared back to the file's; the file's own still cannot be
+  part('CCaR typed over the file’s', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 0], { ccar: 'JSF1234' }), itx('B', 'PSM', [100, 0], { ccar: 'JSF5555' })], ['A', 'B']);
+    ev(`S.ccar=S.ccar||{}; S.ccar.A='JSF9999'; save(); render(); openEdit('A','ccar'); 'ok'`);
+    chk(name, 'CCaR typed over the file’s', 'the box shows the record typed over the file’s', ev(`document.getElementById('erCcar').value`), 'JSF9999');
+    putIn(ev, 'erCcar', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'cleared, the typed record goes and the file’s is read again', J([ev(`erOn()`), ev(`(S.ccar||{}).A===undefined`), ev(`ccarOf(itemById('A'))`)]),
+      J([false, true, 'JSF1234']));
+    chk(name, 'CCaR typed over the file’s', 'and the status line says so', stat(ev), '✎ EV-A: saved CCaR record (back to the file’s JSF1234).');
+    ev(`openEdit('B','ccar'); 'ok'`); putIn(ev, 'erCcar', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'the file’s own record, nothing typed over it, still cannot be cleared', J([ev(`erOn()`), ev(`ccarOf(itemById('B'))`)]), J([true, 'JSF5555']));
+    ev(`erClose(); S.ccar.A='JSF9999'; save(); openEdit('A','ccar'); 'ok'`); putIn(ev, 'erCcar', 'JSF1234'); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'the file’s own record typed back leaves no record typed over it', J([ev(`(S.ccar||{}).A===undefined`), ev(`ccarOf(itemById('A'))`)]),
+      J([true, 'JSF1234']));
+  });
+
+  // ---- the SI code: a pick the PMO and prime rules give anyway, with no code stored, is no change and is not said
+  part('SI rule', () => {
+    const { ev } = mk(['USN', 'STOVL'], [itx('A', 'PP', [100, 0]), itx('B', 'PSM', [100, 0]), itx('C', 'PSM', [100, 0])], ['A', 'B', 'C']);
+    chk(name, 'SI rule', 'the fixture: O&M, A on PP derives EN, B and C on PSM derive none', J([ev(`siApplies()`), ev(`siOf(itemById('A'))`), ev(`siOf(itemById('B'))`)]), J([true, 'EN', '']));
+    const j0 = +ev(`(MS.jrnl||[]).length`);
+    ev(`openEdit('A','si'); 'ok'`); putIn(ev, 'erSi', 'EN');
+    chk(name, 'SI rule', 'EN picked on PP, which the rules give anyway, is no change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'Save says nothing changed, stores nothing and journals nothing', J([stat(ev), ev(`(S.si||{}).A===undefined`), +ev(`(MS.jrnl||[]).length`) - j0]),
+      J(['Nothing changed on EV-A.', true, 0]));
+    ev(`openEdit('B','si'); 'ok'`); putIn(ev, 'erSi', '');
+    chk(name, 'SI rule', '— none — on PSM, where the rules give none, is no change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    ev(`erClose(); openEdit('C','si'); 'ok'`); putIn(ev, 'erSi', 'LA');
+    chk(name, 'SI rule', 'a code the rules do not give is a change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save 1 change');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'stored, and said', J([ev(`S.si.C`), stat(ev)]), J(['LA', '✎ EV-C: saved Navy SI code.']));
+    // moved to PP in the same Save with EN picked: EN is what the rules give the office the box holds -- no code is stored
+    ev(`openEdit('B','si'); 'ok'`); putIn(ev, 'erGrp', 'PP'); putIn(ev, 'erSi', 'EN');
+    chk(name, 'SI rule', 'moved to PP with EN picked: only the office is a change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save 1 change');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'saved: B is on PP, no code stored, and it reads EN by the rules', J([ev(`grpOf(itemById('B'))`), ev(`(S.si||{}).B===undefined`), ev(`siOf(itemById('B'))`)]),
+      J(['PP', true, 'EN']));
+  });
+
+  // ---- where the record name shown comes from: a prime named by its CLINs' record reads it from the list
+  part('record name source', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 0], { title: '' }), itx('B', 'PSM', [100, 0], { title: '' }), itx('D', 'PSM', [100, 0], { title: 'PACK TITLE' })], ['A', 'B', 'D']);
+    ev(`MS.ccarIdx={ts:1700000000001, file:'recs.xlsx', n:2, rows:{JSF1:{t:'DEPOT RECORD ONE', s:'one', d:1}, JSF2:{t:'FIELD RECORD TWO', s:'two', d:1}}};
+        S.ptype=S.ptype||{}; S.ptype.A='PRIME'; S.ptype.B='PRIME'; S.ptype.D='PRIME';
+        S.clinNew=S.clinNew||{}; S.clinNew.A=[{key:'n1', clin:'0001', desc:'one', ccar:'JSF1'}];
+        S.clinNew.B=[{key:'n1', clin:'0001', desc:'one', ccar:'JSF1'},{key:'n2', clin:'0002', desc:'two', ccar:'JSF2'}]; save(); render(); 'ok'`);
+    const line = id => { ev(`openEdit(${J(id)},'rec'); 'ok'`);
+      const r = ev(`document.getElementById('erRecT').textContent+' | '+document.getElementById('erRecTag').textContent`); ev(`erClose(); 'ok'`); return r; };
+    chk(name, 'record name source', 'a prime named by its CLINs’ one record: from the CCaR records list', line('A'), 'DEPOT RECORD ONE | from the CCaR records list');
+    chk(name, 'record name source', 'one named by several: from the CCaR records list', line('B'), 'Multiple records (2) | from the CCaR records list');
+    chk(name, 'record name source', 'one the list does not name shows its file title: from the file', line('D'), 'PACK TITLE | from the file');
+  });
+
+  // ---- the note under RCN / EEIC follows what the box holds, the requirement's own and each service's
+  part('RCN note', () => {
+    const { ev } = mk(['USAF', 'ANG', 'AFRC'], [itx('A', 'PSM', [100, 50, 0])], ['A']);
+    ev(`MS.rcn=[{k:'r1', rcn:'12345', eeic:'ABCDE', t:'Depot', svc:['USAF','ANG','AFRC']},{k:'r2', rcn:'54321', eeic:'EDCBA', t:'Field', svc:['USAF','ANG','AFRC']}];
+        S.rcnAsg=S.rcnAsg||{}; S.rcnAsg.A='r2'; rcnSvcOpen.A=true; save(); setCur('A'); render(); openEdit('A','rcnAsg'); 'ok'`);
+    const note = () => ev(`document.getElementById('erRcnNote').textContent`);
+    const L1 = ev(`rcnLabel('r1')`), L2 = ev(`rcnLabel('r2')`);
+    chk(name, 'RCN note', 'opened: the stored combination, for each service with money', note(), 'USAF ' + L2 + ' · ANG ' + L2);
+    putIn(ev, 'erRcn', 'r1');
+    chk(name, 'RCN note', 'another picked: the note names it for every service', note(), 'USAF ' + L1 + ' · ANG ' + L1);
+    putIn(ev, 'erRs_USAF', 'r2');
+    chk(name, 'RCN note', 'USAF given its own: the note names each, and that they differ', note(), 'USAF ' + L2 + ' · ANG ' + L1 + ' — the services differ: set them per service');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'RCN note', 'saved, the board reads what the note said', J(['USAF', 'ANG'].map(sv => ev(`rcnAsgOf('A', ${J(sv)})`))), J(['r2', 'r1']));
+  });
+
+  // ---- the way to the RECORD panel opens the box's own requirement, after ↑ prev / next ↓ too
+  part('to the RECORD panel', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [80, 20])], ['A', 'B']);
+    ev(`setCur('A'); render(); document.querySelector('#inspector [onclick^="toggleRec("]').click(); dlgSync(); 'ok'`);
+    ev(`document.querySelector('#editPanel button[onclick="erStep(1)"]').click(); dlgSync(); 'ok'`);
+    chk(name, 'to the RECORD panel', 'after next ↓ the box is on B', ev(`erOpen`), 'B');
+    ev(`document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
+    chk(name, 'to the RECORD panel', 'the box closes and the RECORD panel shows B', J([ev(`erOn()`), ev(`curRow`)]), J([false, 'B']));
+    chk(name, 'to the RECORD panel', 'the keyboard is on B’s own value', ev(`(document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("B",')===0`), true);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.08 item 122 -- the second review ====
 
 
 {

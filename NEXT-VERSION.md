@@ -137,6 +137,11 @@ Current version: **v2.08**. Next: **v2.09**.
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
 #### 124. Found while building v2.08, not built
+- **Put back of an added requirement's field after a delete above it can land on the next one** (the v2.08 second review;
+  older than v2.08). The journal files an added requirement's fields, such as its value by service, by its place in
+  `S.custom`, as `['custom', 1, 'ask', 0]`. Delete one above it, and Put back writes to the requirement that moved into that
+  place. v2.08 keeps the plan event out of this, because a rename is now an override filed by id; the other fields are as
+  before. Proposed: journal an added requirement by its id, so that `jrnlSet` finds it by id and refuses once it is gone.
 - **A "no SI code" chosen by hand in a PMO copy is not sent** (the v2.08 review, F13; older than v2.08). `S.si[id] = ''`
   is how the board stores a hand-chosen *none*, and `pmoVal` reads `''` as absent, as it does for every field since v1.84.
   The submittal therefore never carries it, and the portfolio board goes on deriving the code from the PMO and prime rules.
@@ -239,8 +244,9 @@ the log, or had to decide something the log does not say, it says so here.
   (`wf_cc204adf-d52`). Every one fails on 65cc26a:
   - Save erased a stored value the box's lists did not hold (above).
   - A WBS typed after Prime → OGC was not saved.
-  - Goes to was written in a different shape from `setDest`'s, which gave phantom review rows and conflicts. A Goes to edit
-    made an empty MIPR container; put back from the journal, that would have deleted every MIPR type set since.
+  - Goes to was written in a different shape from `setDest`'s, which gave phantom review rows and conflicts (the root, a
+    review that compared fields as stored, was found by the second review: below). A Goes to edit made an empty MIPR
+    container; put back from the journal, that would have deleted every MIPR type set since.
   - A second hop hidden behind a prime came back when its Goes to became a government activity through Classify (older than
     v2.08). It was also counted as a destination in use.
   - F5 at the board's end: the review read only `S.titles`, so a board-added requirement renamed on both sides showed no
@@ -254,6 +260,40 @@ the log, or had to decide something the log does not say, it says so here.
   - The SI picker went stale after an office change in the box.
   - F2 in Chromium put typed text back over a value already committed.
   - Each has a check and a mutation (`v208-rv-*`).
+  - Of the 16, F13 is older than v2.08 and is logged as item 124, not built.
+- **A second review, of those fixes** (26 Oct; three reviewers on the submittal path, the box, and money and Classify, each
+  finding re-run by a skeptic, `wf_f7756a59-8e9`: 11 confirmed, 2 partly, none refuted), all fixed. Each has a check that fails
+  on `3898d95` and a mutation (`v208-rv2-*`) or, where only a browser can see it, a Chromium check:
+  - **A Goes to or a WBS both sides agreed on was offered as a conflict.** The review compared them as stored, and `{to:'lm'}`
+    differs from `{to:'lm', end:''}`; the first round's fix moved the box to `setDest`'s shape and exposed it. The root is
+    older than v2.08: `setDest` and the WBS panel did the same. The review now compares each field as it is read
+    (`pmoBare`), and an accepted Goes to is written in `setDest`'s shape.
+  - **A rename sent by a copy older than v2.08 never settled.** Such a copy cleared an added requirement's override and sent
+    null. Compared with the event the board reads, the row came back after every Apply as a conflict nobody made. It is now
+    compared with the override alone.
+  - **Classify's bulk office in a copy counted the copy's own proposal as moved**, in the question and the status line, though
+    the first round had made it stay. The proposal is now left out and counted as left alone.
+  - **Put back of a rename in a copy could land on another added requirement.** The first round wrote an added requirement's
+    rename into the item, so the journal filed it by its place in the added list. After a delete above it, Put back renamed
+    the next one, and Submit sent that name. A rename is now an override filed by the requirement's id, for every requirement.
+  - **F2 no longer held the typing in Chromium.** The browser fires change on the focused field as the redraw removes it.
+    That committed the half-typed figure; the panel drew the old figure; the keyboard fell to the page; and the rest of the
+    typing was lost. The held field's handler is now taken off for the redraw (`npm run keys` P).
+  - **An arrow key in Classify's office cell swallowed the next click.** The office was chosen on the click's mousedown, and
+    the redraw took the clicked control away. The office is now chosen after the click, and a press on the cell lets a mouse
+    pick choose at once (`npm run keys` Q).
+  - **A CCaR record typed over the file's could not be cleared** back to the file's. The status line now says when it is,
+    and typing the file's own record back leaves no override.
+  - **The SI code:** a pick that the PMO and prime rules give anyway, made with no code stored, was counted as a change and
+    said to be saved. It is now no change.
+  - **The record name's source:** a prime named by its CLINs' record read "from the file". It now reads "from the CCaR
+    records list".
+  - **The RCN / EEIC note** under the field kept naming the stored combination. It now follows what the box holds, service by
+    service.
+  - **"The value and budgets, in the RECORD panel…" after ↑ prev / next ↓** opened the requirement the box had first opened
+    on. It now opens the box's own requirement.
+  - **A kept value's option** carried its explanation, which a closed select cannot wrap, so the value was cut. It now reads
+    "(kept)", with the explanation on hover; `npm run layout` N measures the box holding kept values.
 - **Found by the layout check written for the box, and fixed:** at 1366 × 657 the box ran about 160px past the window, so its
   middle scrolled. The written fields are now 68px and 42px and can be dragged taller. The required list has two columns, as
   the Add box's does. `npm run layout` N holds the box whole at 1366 × 657 and 1920 × 969, in Harbor and Midnight, in both
@@ -266,7 +306,7 @@ the log, or had to decide something the log does not say, it says so here.
 was brought from v2.07 to v2.08:
 - every line citation was moved with the diff and checked against the function or banner it names;
 - the edit box was added to the map: where it draws stored text, through `esc()`, and that its handlers carry no board value;
-- `review/sinks.csv` was regenerated: 574 rows in 263 functions;
+- `review/sinks.csv` was regenerated: 575 rows in 263 functions;
 - `review/builds.json` gained a v2.08 entry naming `3898d95`, the branch commit that carries this board file. After the merge
   the entry can name the merge commit instead; the fingerprint is the same if the file is byte-identical.
 
@@ -274,11 +314,11 @@ was brought from v2.07 to v2.08:
 
 **Proved with** (26 Oct, on the final tree): to be filled in when `validate:nightly` (running on 3898d95) and the second review of the fixes report.
 
-**Mutations:** 70 new: 41 from the build (`v208-f*`, `v208-absorb*`, `v208-122-*`; a 42nd was retired in the review) and 29 from
-the review (`v208-rv-*`). Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
+**Mutations:** 86 new: 41 from the build (`v208-f*`, `v208-absorb*`, `v208-122-*`; a 42nd was retired in the review), 29 from
+the review (`v208-rv-*`) and 16 from the second review (`v208-rv2-*`). Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
 `recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). 9 older ones were retired as obsolete, each with a comment where it
-stood: the pop-up, `FLD_DEF`, `recBody`, the PID prompt and the record-name pen went with item 122. 12 were retargeted.
-2,378 targets, each matching once. The mutation sweep was not run (Brad's rule of 20 Oct).
+stood: the pop-up, `FLD_DEF`, `recBody`, the PID prompt and the record-name pen went with item 122. 17 were retargeted.
+2,394 targets, each matching once. The mutation sweep was not run (Brad's rule of 20 Oct).
 
 #### The items as logged
 
