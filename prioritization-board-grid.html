@@ -1389,6 +1389,18 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 :is(#addPanel,#editPanel) .ar-msg.bad{color:var(--amber);font-weight:600}
 :is(#addPanel,#editPanel) .ar-msg.ok{color:var(--ink)}
 :is(#addPanel,#editPanel) [hidden]{display:none!important}
+/* v2.08 (item 122): the edit box's own furniture -- the walk buttons apart from the line they sit on, the WBS links, and the
+   written fields tall enough to read a paragraph (they were the Add box's 54px; the pop-ups they replaced were 150-190px) */
+#editPanel .er-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#editPanel .er-nav{margin-left:auto;display:inline-flex;gap:6px}
+#editPanel .er-wbsgo{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+#editPanel .er-notsent{margin-top:6px}
+#editPanel .ar-body{overflow:auto}
+#editPanel .ar-f textarea{height:96px;resize:vertical}
+#editPanel .ar-f textarea.short{height:60px}
+#editPanel .ar-chk{grid-template-columns:minmax(0,1fr)}
+#editPanel .ar-chk li{white-space:normal;overflow:visible}
+#editPanel .ar-sum .qb{margin-top:5px;white-space:normal;text-align:left}
 /* under 1366 the three columns do not fit legibly: one column, and the box scrolls */
 @media (max-width:1365px){
   :is(#addPanel,#editPanel) .modal{overflow:auto}
@@ -2039,7 +2051,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="office" data-id="o-update" data-t="Update your requirements">
 <p>Everything on your office’s requirements is yours to update <b>except the money itself</b>: the DISC and MAND allocation is the portfolio team’s, and it is greyed out in your copy. Everything you change travels back with your submittal.</p>
-<p>Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b><span data-fl="cons" data-fi="1"></span></b> (<i>written</i> or <i>not written</i>, amber until it is), <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b> (<i>6 of 8 still needed</i>, amber while any are). Each opens the same box — the whole record, at that field — and nothing is written until you press <b>Save</b>; <b>Cancel</b> or <span class="kb">Esc</span> leaves the record as it was, asking first if you typed anything.</p>
+<p>Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b><span data-fl="cons" data-fi="1"></span></b> (<i>written</i> or <i>not written</i>, amber until it is), <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b> (<i>6 of 8 still needed</i>, amber while any are). Each opens the same box — the whole record, at that field — and nothing is written until you press <b>Save</b>. <b>Cancel</b> leaves the record as it was; <span class="kb">Esc</span> and <b>✕ Close</b> do too, asking first if you typed anything.</p>
 <h4><span data-fl="cons" data-fi="1"></span> — what happens if this is not funded</h4>
 <p>The single most valuable thing you can give the portfolio team. Be concrete: name the date something stops, the number of aircraft or people affected, and the consequence that follows. This is the sentence read aloud in a room where someone is deciding what to cut.</p>
 <div class="hx-eg"><b>Useful:</b> If this is not funded, the depot line stops in March 27. Forty aircraft lose scheduled induction through the summer and the backlog carries into FY28 at roughly 1.4× cost.<br><b>Not useful:</b> This requirement is critical and must be funded.</div>
@@ -2141,7 +2153,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b>, <b>🔧 awards repaired on opening</b>, <b>➖ negative allocations to repair</b>, <b>✈ buy quantities to repair</b> and <b>✂ codes longer than their limit</b>. <b>Go to it</b> selects the requirement and opens what to fill: the <span data-fl="cons"></span> editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
 <p>An allocation is never below zero. One typed is refused; one an older file carries is kept exactly as it was saved, counts as $0 in every figure, and is listed under <b>➖ negative allocations to repair</b> until its allocation is typed again or put back to the requirement value.</p>
 <p class="v199-h90">A buy quantity is a whole number from 0: a sign, a decimal point, a letter or a minus sign of any kind is refused and the line keeps what it had. A quantity times its unit cost may not pass $10 trillion, whichever of the two is typed. A quantity an older file carries that is not one is kept exactly as saved, counts as $0, and is listed under <b>✈ buy quantities to repair</b> until it is typed again.</p>
-<p class="v199-h91">A code longer than its limit is refused when typed — CCaR record 12, PID 20, CLIN number 20, CLIN description 140, WBS 40, RCN and EEIC 10, PPBE line codes 12. Nothing changes and the text typed is kept where you typed it (a box opens again holding it, a field keeps it, marked) so it can be corrected. One that arrives in a file or a submittal is kept whole, never cut, and listed under <b>✂ codes longer than their limit</b> and in Pre-flight: CCaR may not match it as it stands.</p>
+<p class="v199-h91">A code longer than its limit is refused when typed — CCaR record 12, PID 35, CLIN number 20, CLIN description 140, WBS 40, RCN and EEIC 10, PPBE line codes 12. Nothing changes and the text typed is kept where you typed it (a box opens again holding it, a field keeps it, marked) so it can be corrected. One that arrives in a file or a submittal is kept whole, never cut, and listed under <b>✂ codes longer than their limit</b> and in Pre-flight: CCaR may not match it as it stands.</p>
 </section>
 <section data-part="team" data-id="t-spend" data-t="The spend plan: when the money lands">
 <p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return, the Spend Plan Source and the deck’s chart agree month by month:</p>
@@ -4201,6 +4213,7 @@ function exwApply(){
   const r=execWbsApply(null);
   setStat('🧱 WBS from execution data — <b>'+r.wrote+'</b> written'
     +(r.skipped? ', '+r.skipped+' left alone (already had one)':'')
+    +(r.locked? ', '+r.locked+' on a CLIN left alone (a PMO copy\u2019s CLINs are the portfolio team\u2019s)':'')
     +(r.scan.conflicts.length? ', '+r.scan.conflicts.length+' in conflict and skipped':'')+'.');
   render();
 }
@@ -6354,6 +6367,11 @@ function grpMove(id, g){
 function setGrp(id, g){
   const itm=itemById(id); if(!itm) return;
   if(GROUPS.indexOf(g)<0) return;
+  // v2.08 (D8): a requirement a PMO copy proposes keeps the office it was added for, however it is reached (Classify, or a bulk
+  // set); moved, Submit withheld it as another office's
+  if(typeof SANDBOX!=='undefined' && SANDBOX && grpOf(itm)!==g && pmoProposalIds().indexOf(id)>=0){
+    setStat('\u26a0 '+esc(dispTitle(itm))+' is a requirement this copy proposes: it keeps the office it was added for ('+esc(grpOf(itm))+').');
+    try{ render(); }catch(e){} return; }
   if(!S.grp) S.grp={};
   const was=grpOf(itm), home=itm.grp;
   // v2.08 (F3): the office it is already in changes nothing. It took the requirement out of its office's ranking and put it
@@ -7827,7 +7845,12 @@ function pmoKeysOf(mode){ return (mode && (mode.pv||0)>=PMO_PV)? PMO_KEYS : PMO_
 // same way -- otherwise clearing a note reads as a change on every export.
 function pmoVal(state, key, id){
   const bag = (state||{})[key] || {};
-  const v = bag[id];
+  let v = bag[id];
+  // v2.08 (F5): AN ADDED REQUIREMENT'S PLAN EVENT IS ITS OWN EVENT -- it keeps it on the item, not in S.titles. Read only as
+  // S.titles, a copy's rename of one the board added was never sent, and the board compared the copy's name with a blank.
+  if(key==='titles' && (v===undefined || v===null || v==='')){
+    const c=((state||{}).custom||[]).filter(function(x){ return x && x.id===id; })[0];
+    if(c && c.event) v=String(c.event); }
   // Absent, empty and "off" are one value. A cleared budget assignment leaves {} behind, an unticked
   // star leaves false; either compared against an absent baseline would read as a change nobody made.
   if(v===undefined || v===null || v===false) return null;
@@ -8001,6 +8024,9 @@ function pmoSubmitBuild(){
   (S.order||[]).forEach(function(id){
     const was=base[id]||{}, one={};
     keys.forEach(function(k){
+      // a copy published before v2.08 had no baseline for an added requirement's plan event: sending its event now would
+      // propose, against nothing, a name nobody changed
+      if(k==='titles' && was.titles===undefined && S.custom && S.custom.some(function(x){ return x && x.id===id; })) return;
       let now=pmoVal(S,k,id);
       if(k==='asks' && now===null){ const it=itemById(id); if(it) now=it.ask.slice(); }
       const before=(was[k]===undefined)? null : was[k];
@@ -8205,6 +8231,9 @@ function pmoSubmit(){
   // else is sent either, because a package that quietly left one requirement behind is exactly the
   // failure this replaced -- the office believing it had submitted something it had not.
   const base0=(PMODE&&PMODE.base)||{};
+  // v2.08 review: one the copy did not hold at publication and did not add -- removed on the board, restored here -- has no
+  // baseline to send against. It was dropped without a word; it is named below with the other requirements not sent.
+  const unpub=Object.keys(items).filter(function(id){ return !base0[id] && pmoProposalIds().indexOf(id)<0; });
   Object.keys(items).forEach(function(id){ if(!base0[id]) delete items[id]; });   // travels whole, below
   const owned=pmoProposalIds().filter(function(id){ const it=itemById(id); return it && grpOf(it)===pmo; });
   const gaps=owned.map(function(id){ return {id:id, miss:pmoProposalGate(id)}; }).filter(function(g){ return g.miss.length; });
@@ -8245,6 +8274,13 @@ function pmoSubmit(){
       +'\n\nA submittal proposes changes to '+pmo+'\u2019s own requirements. If one of these looks '
       +'wrong, raise it with the office that owns it or at the SFWG \u2014 the portfolio team cannot '
       +'take it from '+pmo+'.\n\nEverything else you edited is still being sent.');
+  }
+  if(unpub.length){
+    alert('\u26a0 '+unpub.length+' requirement'+(unpub.length===1?'':'s')+' you edited '+(unpub.length===1?'was':'were')
+      +' not on the board when this copy was published (removed there, and restored in this copy), so '
+      +(unpub.length===1?'it is':'they are')+' NOT being sent:\n\n  \u2022 '
+      +unpub.map(function(id){ const it=itemById(id); return it? (recName(it)||dispTitle(it)) : id; }).join('\n  \u2022 ')
+      +'\n\nIf one of these should come back, raise it with the portfolio team.\n\nEverything else you edited is still being sent.');
   }
   const n=Object.keys(items).length+added.length;
   const rank=pmoRankBuild(pmo);
@@ -15263,8 +15299,10 @@ function execWbsScan(fys){
 // Write the agreed proposals. Only ever the ones every row agreed on.
 function execWbsApply(fys){
   const scan=execWbsScan(fys);
-  let wrote=0, skipped=0;
+  let wrote=0, skipped=0, locked=0;
   scan.props.forEach(function(pr){
+    // v2.08 (F6): a PMO copy's CLINs are the portfolio team's -- counted apart, not refused one alert at a time
+    if(pr.kind==='clin' && typeof SANDBOX!=='undefined' && SANDBOX){ locked++; return; }
     const cur=(pr.kind==='clin')? wbsClin(pr.id, pr.clinKey) : wbsReq(pr.id);
     // Never overwrite a paragraph somebody typed. The execution file is a source, not an authority.
     if(cur && cur.length && cur.some(function(e){ return e.w; })){ skipped++; return; }
@@ -15272,7 +15310,7 @@ function execWbsApply(fys){
     wrote++;
   });
   save(); render();
-  return {wrote:wrote, skipped:skipped, scan:scan};
+  return {wrote:wrote, skipped:skipped, locked:locked, scan:scan};
 }
 /* ===================== ACE MAPPING: requirements <-> cost estimate =========================
    The estimate is imported and locked elsewhere; this ties it to the board.
@@ -16926,6 +16964,9 @@ function setDest(id, field, k){
   if(k && !flowEnt(k)) return;
   if(!S.dest) S.dest={};
   const cur=S.dest[id] || {};
+  // v2.08 review (F9): leaving a destination that was not a government activity, a second hop or MIPR type hidden since F4 is
+  // dropped -- moved on to a government activity, it would come back as an answer nobody gave
+  if(field==='to' && !destKeyIsOgc(cur.to||'')){ delete cur.end; if(S.mipr) delete S.mipr[id]; }
   cur[field]=k||'';
   // v2.08 (F4, D10): a Goes to that is not a government activity -- a prime, or nothing -- takes the second hop and the MIPR
   // type with it; kept, they were hidden and misfiled the money
@@ -25376,6 +25417,14 @@ function toggleRec(id){ openEdit(id, 'rec'); }
 function recF(k, set, ctl, note, lbl){ const own=Object.prototype.hasOwnProperty.call(REQ_FIELD, k);
   return {k:own? k : '', id:k, l:own? FL(k) : (lbl||k), set:!!set, c:ctl, n:note||''}; }
 function recSec(t){ return {sec:t}; }
+// a select whose change is held while the keyboard moves through it: Enter, or leaving it, chooses
+function selNavKey(e, el){
+  const k=e && e.key;
+  if(k==='Enter'){ if(el.__nav){ el.__nav=false; if(e.preventDefault) e.preventDefault(); el.dispatchEvent(new Event('change')); } return; }
+  if(k===' ' || k==='F4' || (e.altKey && /^Arrow(Up|Down)$/.test(k||''))){ el.__nav=false; return; }
+  if(!e.altKey && !e.ctrlKey && !e.metaKey && (/^(Arrow(Up|Down|Left|Right)|Home|End|PageUp|PageDown)$/.test(k||'') || (k && k.length===1 && k!==' '))) el.__nav=true;
+}
+function selNavBlur(el){ if(!el.__nav) return; el.__nav=false; if(el.value!==el.getAttribute('data-v')) el.dispatchEvent(new Event('change')); }
 function recSel(onch, tip, opts){
   return '<select class="cesel" onchange="'+onch+'" title="'+tip+'">'+opts+'</select>';
 }
@@ -25391,8 +25440,11 @@ function recFields(id, it){
   F.push(recF('ptype', ptypeOf(id),
     recBtn('togglePtype('+jsa(id)+')', esc(ptypeOf(id))||'Set prime or OGC…',
            'Switch between a prime contract and an other-government-cost requirement')));
+  // v2.08 review (F3's arrow-key path): a closed select fires change on every arrow key in Chromium, so arrowing past an
+  // office and back moved the requirement there and back -- last in its own office's ranking, unjournalled. A keyboard move
+  // only moves; Enter, or leaving the field, chooses (selNavKey / selNavBlur). A pick with the mouse chooses at once.
   F.push(recF('grp', grpOf(it)===it.grp,
-    recSel('setGrp('+jsa(id)+',this.value)',
+    recSel('if(!this.__nav)setGrp('+jsa(id)+',this.value)" onkeydown="selNavKey(event,this)" onblur="selNavBlur(this)" data-v="'+esc(grpOf(it)),
       'Move this requirement to another PMO — this fiscal year only',
       GROUPS.map(function(g){ return '<option value="'+esc(g)+'"'+(grpOf(it)===g?' selected':'')+'>'+esc(g)
         +(g===it.grp?' (from the file)':'')+'</option>'; }).join('')),
@@ -25623,6 +25675,9 @@ function matBulk(){
     out['rcnSvc|'+sv]={opts:rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
                                    return ok.indexOf(sv)>=0; })
                                  .map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
+              // only where the record offers that service's line: an RCN / EEIC requirement with money or a value on it
+              // (v2.08 review: the class registered as bulk-write-where-the-field-is-not-offered)
+              applies:function(it){ return rcnEligible(it) && rcnFundedSvcs(it.id).indexOf(sv)>=0; },
               get:function(it){ return ((S.rcnSvc||{})[it.id]||{})[sv]||''; },
               set:function(id,v){ setRcnSvc(id, sv, v); }};
   });
@@ -27159,7 +27214,7 @@ function render(){
                             : `<span title="award/obligation date — full funded amount forecasts in this month${_aw.day?'; day '+_aw.day+' sets the CR half-month window':''}">Award ${_aw.day? _aw.day+' ':''}${esc(String(ymLbl(_aw.d)).replace(/\b([A-Z])([A-Z]{2})\b/,function(m,a,b){ return a+b.toLowerCase(); }))}</span>`) : '',
       ptypeOf(id)? `<span class="x">${ptypeOf(id)==='PRIME'? PRIME_ICON+' Prime' : 'OGC'}</span>` : '',
       ((S.costElem||{})[id])? `<span class="x">${esc((S.costElem||{})[id])}</span>` : '',
-      (recName(it)&&recName(it)!==dispTitle(it))? `<span class="x" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Rename it from the row’s ⋯ menu.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>` : '',
+      (recName(it)&&recName(it)!==dispTitle(it))? `<span class="x" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. It is read from the CCaR records list${(S.recNames||{})[id]?'; the name shown was typed before v2.08 and is kept':''}.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>` : '',
       note? `<span class="x" title="${esc(note)}">📝 note</span>` : '',
       fundM && _bd? `<span class="x">${_bi>=0? _bi+' · ':''}${esc(_bd.n)}</span>` : ''].filter(Boolean).join(' · ');
     const _band=`<div class="bandc" title="Decision band — the funding rule travels with the band. Set it on the RECORD panel; manage the ladder in ⚖ Bands.">`
@@ -31082,8 +31137,8 @@ function restoreAll(){
 //  - OPENED from the RECORD panel's buttons -- each at its own field -- Needs attention's Go to and the PMO hint (D2, D3);
 //    never from the row, which is triage.
 //  - A HELD DRAFT (D6): drawn once when it opens (the Add box's rule: a redraw would take the typing -- F2), nothing written
-//    until Save, and then only the fields that changed, through reqApply(), in one save(). Esc and Cancel discard (every
-//    field is data-held, so the box controller asks first). Save refuses if the requirement was removed, or its record
+//    until Save, and then only the fields that changed, through reqApply(), in one save(). Cancel discards; Esc and ✕ ask
+//    first when anything is typed (every field is data-held). Save refuses if the requirement was removed, or its record
 //    changed, while the box was open.
 //  - THE REQUIRED LIST WARNS, never blocks (D5): reqNeeds() on what the box holds; the value and the budgets are set in the
 //    RECORD panel and the list says so.
@@ -31113,30 +31168,57 @@ function erNotSent(id){
   if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return '';
   if(PMODE && PMODE.fy && +MS.cur!==+PMODE.fy) return 'This copy was published for FY'+(PMODE.fy%100)+' and is showing FY'
     +(MS.cur%100)+': nothing edited here can be sent. Go back to FY'+(PMODE.fy%100)+' to edit what you submit.';
-  const me=myPmo(), it=itemById(id); if(!me || !it) return '';
-  const own=(pmoProposalIds().indexOf(id)>=0)? grpOf(it) : pmoHomeOf(id);
+  const it=itemById(id); if(!it) return '';
+  // v2.08 review: one that was not on the board when the copy was published -- removed there, restored here -- is not a
+  // proposal and has no baseline, so nothing edited on it is sent (Submit says so too)
+  const prop=pmoProposalIds().indexOf(id)>=0;
+  if(!prop && PMODE && PMODE.base && !Object.prototype.hasOwnProperty.call(PMODE.base, id))
+    return 'This requirement was not on the board when this copy was published (it had been removed there): what you change '
+      +'here is kept on this copy and is not sent with \u2709 Submit input.';
+  const me=myPmo();
+  if(!me) return 'Choose the office this copy submits for (\u2709 Submit input asks): only that office\u2019s requirements are sent.';
+  const own=prop? grpOf(it) : pmoHomeOf(id);
   return own===me? '' : 'This is '+own+'’s requirement, and this copy submits for '+me+': what you change here is kept on this '
     +'copy and is not sent with ✉ Submit input.';
 }
 // the SI choice as its picker shows it: a saved value that is not one of the five is its text as saved (or its JSON), the
 // value of its own "kept as saved" choice, which the box never writes back (v2.00 U41/U57's rule); else siOf -- the stored
 // code or the derived one
-function erSiCur(it){ if(!siApplies() || !siEligible(it)) return ''; const raw=siRawOf(it.id);
-  return (raw!==undefined && !siKnown(raw))? (typeof raw==='string'? raw : siRawShow(raw)) : siOf(it); }
+// v2.08 review: with no code stored, the code FOLLOWS the PMO and prime rules (siDefault) -- an option of its own, '\u0004', so
+// moving the requirement to another office in the same Save is followed, and "none" can be chosen over a derived code
+function erSiCur(it){ if(!siApplies() || !siEligible(it)) return ''; const v=(S.si||{})[it.id];
+  if(v===undefined) return '\u0004';
+  return siKnown(v)? v : (typeof v==='string'? v : siRawShow(v)); }
+// each service's RCN / EEIC as the board resolves it today (rcnAsgOf), the note Requirement edit showed under the field
+function erRcnNote(id){
+  const rsv=rcnFundedSvcs(id); if(!rsv.length) return '';
+  const k0=rcnAsgOf(id, rsv[0]), mix=rsv.some(function(sv){ return rcnAsgOf(id, sv)!==k0; });
+  return esc(rsv.map(function(sv){ const k=rcnAsgOf(id, sv); return sv+' '+(k? (rcnLabel(k)||'(blank)') : 'not set'); }).join(' · '))
+    +(mix? ' — the services differ: set them per service' : '');
+}
 function erIsProposal(id){ return typeof SANDBOX!=='undefined' && SANDBOX && pmoProposalIds().indexOf(id)>=0; }
 // where each opener lands: a field's control, or the top
 const ER_AT={titles:'erEvent', ccar:'erCcar', pid:'erPid', ptype:'erPtP', grp:'erGrp', obCat:'erOb', costElem:'erCe', wbs:'erWbs',
   rcnAsg:'erRcn', si:'erSi', dest:'erTo', destEnd:'erEnd', mipr:'erMipr', desc:'erDesc', notes:'erNote', cons:'erCons', rec:'erEvent'};
 function openEdit(id, at){
   if(cycBlock('Editing a requirement’s record')) return false;
+  if(typeof uiMode!=='undefined' && uiMode==='brief'){
+    const bi=itemById(id); setStat('Presentation view — requirements can’t be edited here. Switch to Review to edit '+(bi? esc(dispTitle(bi)) : 'it')+'.');
+    return false; }
   const it=itemById(id); if(!it) return false;
   if(erOn() && erOpen!==id && erDirty() && !confirm('Discard what you typed for '+dispTitle(itemById(erOpen)||{})+'?')) return false;
+  const bg=erEl('editPanel'), was=!!(bg && bg.classList.contains('open'));
   erOpen=id; erAt=at||'rec'; erSnap=erStored(id); erDescAuto='';
   // drawn in the same step that opens the box: the box controller snapshots the fields when it first sees it open
   erDraw();
-  const bg=erEl('editPanel'); if(bg) bg.classList.add('open');
+  if(bg) bg.classList.add('open');
   try{ dlgSync(); }catch(e){}
-  const f=erEl(ER_AT[erAt]||'erEvent'); if(f && !f.disabled) try{ f.focus(); if(f.select && f.tagName==='INPUT') f.select(); }catch(e){}
+  // ↑ prev / next ↓ redraw the box while it is open: its snapshot is taken again, or Esc compared the next record's fields
+  // with the first's -- asking about typing nobody did, and closing without asking over typing that matched them (review)
+  if(was) try{ DLG.stack.forEach(function(r){ if(r.bg===bg) r.snap=dlgSnap(bg); }); }catch(e){}
+  // the field asked for has the keyboard; a code or name asked for by its own button is selected, ready to be typed over --
+  // the whole record (📋) is not, so a first keystroke never replaces the plan event
+  const f=erEl(ER_AT[erAt]||'erEvent'); if(f && !f.disabled) try{ f.focus(); if(erAt!=='rec' && f.select && f.tagName==='INPUT') f.select(); }catch(e){}
   return true;
 }
 // the box holds typing it would lose: a field differs from what it opened with
@@ -31166,6 +31248,13 @@ function erSel(id, opts, o){
     +' onchange="'+(o.on||'erUpdate()')+'">'+opts+'</select>';
 }
 function erOpt(v, t, cur){ return '<option value="'+esc(v)+'"'+(String(cur)===String(v)? ' selected' : '')+'>'+esc(t)+'</option>'; }
+// A STORED VALUE THE LIST DOES NOT HOLD IS KEPT AS SAVED (v2.08 review). A picker built only from its list showed such a value
+// -- an obligation category, a destination, an RCN / EEIC combination an office added in its copy, a per-service choice its
+// service has since been taken off -- as "not set", and Save deleted it while saying it had saved it. It gets an option of its
+// own, selected, as the office, the cost element and the SI code always had; Save leaves it alone unless another is chosen.
+function erKeep(cur, held, show){
+  return (cur && !held)? '<option value="'+esc(cur)+'" selected>'+esc(show||cur)+' — not on the list, kept as saved</option>' : '';
+}
 function erDraw(){
   const el=erEl('erBody'); if(!el) return;
   const id=erOpen, it=itemById(id); if(!it){ el.innerHTML=''; return; }
@@ -31175,16 +31264,17 @@ function erDraw(){
   const ns=erNotSent(id), prop=erIsProposal(id);
   let h='<div class="ar-top"><div class="ar-who er-who"><b>'+esc(dispTitle(it))+'</b> · '+esc(grpOf(it))
     +(at>=0? ' · #'+(at+1)+' of '+ord.length : '')+' · recorded against <b>'+FYL()+'</b> only'
-    +'<span class="er-nav"><button type="button" class="qb" onclick="erStep(-1)" aria-label="the requirement above">↑ prev</button>'
-    +'<button type="button" class="qb" onclick="erStep(1)" aria-label="the requirement below">next ↓</button></span></div>'
+    // the buttons are named by what they show (WCAG 2.5.3), and say where they go in their tooltip
+    +'<span class="er-nav"><button type="button" class="qb" onclick="erStep(-1)" title="'+esc(at>0? dispTitle(itemById(ord[at-1]))||'' : (ord.length? dispTitle(itemById(ord[ord.length-1]))||'' : ''))+'">↑ prev</button>'
+    +'<button type="button" class="qb" onclick="erStep(1)" title="'+esc(ord.length? dispTitle(itemById(ord[(at+1)%ord.length]))||'' : '')+'">next ↓</button></span></div>'
     +(ns? '<div class="ar-fin er-notsent" role="note">'+esc(ns)+'</div>' : '')+'</div>';
   // ---- three columns: Identity and Classification; accounting and where the money goes; the narrative and what is needed
   h+='<div class="ar-body" id="erMain"><div class="ar-col">'
     +'<section class="ar-sec" aria-labelledby="erS1"><h4 id="erS1">Identity</h4><div class="ar-grid">'
     +erField('erEvent', 'titles', erInp('erEvent', V.titles, {ph:'what the row is called'}), {req:1, span:1})
     +erField('erCcar', 'ccar', erInp('erCcar', V.ccar, {on:'erCcarTyped()', ph:'e.g. JSF3087'}))
-    +erField('erPid', 'pid', erInp('erPid', V.pid, {ph:'optional'}))
-    +'<div class="ar-f span2"><span class="ar-l" id="erRecL">'+esc(FL('recNames'))+'<em>from the CCaR records list</em></span>'
+    +erField('erPid', 'pid', erInp('erPid', V.pid, {ph:'optional'}), {span:1})   // a 35-character PID is read whole
+    +'<div class="ar-f span2"><span class="ar-l" id="erRecL">'+esc(FL('recNames'))+'<em id="erRecTag">read, never typed</em></span>'
     +'<span class="ar-ro" id="erRecT" aria-labelledby="erRecL"></span></div>'
     +'<div class="ar-f span2" id="erF_ptype"><span class="ar-l" id="erPtL">'+esc(FL('ptype'))+'<i aria-hidden="true">*</i></span>'
     +'<div class="ar-seg" role="group" aria-labelledby="erPtL"><button type="button" id="erPtP" aria-pressed="false" onclick="erPt(\'PRIME\')">Prime contract</button>'
@@ -31192,59 +31282,67 @@ function erDraw(){
     +'<input type="hidden" id="erPtype" data-held="1" value="'+esc(V.ptype)+'"></div>'
     +erField('erGrp', 'grp', erSel('erGrp', GROUPS.concat(GROUPS.indexOf(V.grp)<0? [V.grp] : []).map(function(g){
         return erOpt(g, g+(g===it.grp? ' (from the file)' : ''), V.grp); }).join(''), {dis:prop}),
-      {span:1, note:prop? 'a requirement this copy proposes keeps the office it was added for' : FYL()+' only — moving it asks first'})
+      {span:1, note:prop? 'a requirement this copy proposes keeps the office it was added for'
+        : (grpOf(it)!==it.grp? 'moved from '+esc(it.grp)+' for '+FYL()+' · ' : '')+FYL()+' only — moving it asks first'})
     +'</div></section>'
     +'<section class="ar-sec" aria-labelledby="erS2"><h4 id="erS2">Classification</h4><div class="ar-grid">'
-    +erField('erOb', 'obCat', erSel('erOb', erOpt('', '— not set —', V.obCat)+OB_CATS.map(function(c){ return erOpt(c, c, V.obCat); }).join('')), {req:1, span:!ce})
+    +erField('erOb', 'obCat', erSel('erOb', erOpt('', '— not set —', V.obCat)+erKeep(V.obCat, OB_CATS.indexOf(V.obCat)>=0)
+        +OB_CATS.map(function(c){ return erOpt(c, c, V.obCat); }).join('')), {req:1, span:1})
     +(ce? erField('erCe', 'costElem', erSel('erCe', erOpt('', '— not set —', V.costElem)+COST_ELEMS.concat(V.costElem && COST_ELEMS.indexOf(V.costElem)<0? [V.costElem] : [])
         .map(function(c){ return erOpt(c, c, V.costElem); }).join(''))) : '')
     +'<div class="ar-f span2" id="erF_wbs"><label class="ar-l" for="erWbs">'+esc(FL('wbs'))+'<i aria-hidden="true">*</i></label>'
     +erInp('erWbs', V.wbs.charAt(0)==='\u0001'? '' : V.wbs, {ph:'e.g. 1.2.3'})
     +'<span class="ar-n" id="erWbsNote"></span>'
-    +'<span class="er-wbsgo" id="erWbsGo"><button type="button" class="qb" onclick="erGo(\'wbs\')">Open the WBS split…</button>'
+    +'<span class="er-wbsgo" id="erWbsGo"><button type="button" class="qb" id="erWbsSplit" onclick="erGo(\'wbs\')">Open the WBS split…</button>'
     +'<button type="button" class="qb" onclick="erGo(\'clin\')">Open the \u{1F9FE} CLIN drill…</button></span></div>'
     +'</div></section></div>';
   // accounting lines (O&M), then where the money goes
   h+='<div class="ar-col">';
   const acct=[];
   if(rcnApplies() && rcnEligible(it)){
-    acct.push(erField('erRcn', 'rcnAsg', erSel('erRcn', erOpt('', '— not assigned —', V.rcnAsg)+rcnReg().map(function(e){
-      return erOpt(e.k, rcnLabel(e.k)||'(blank)', V.rcnAsg); }).join('')), {span:1}));
+    acct.push(erField('erRcn', 'rcnAsg', erSel('erRcn', erOpt('', '— not assigned —', V.rcnAsg)
+      +erKeep(V.rcnAsg, rcnReg().some(function(e){ return e.k===V.rcnAsg; }))+rcnReg().map(function(e){
+      return erOpt(e.k, rcnLabel(e.k)||'(blank)', V.rcnAsg); }).join('')), {span:1, note:erRcnNote(id)}));
     const rsv=rcnFundedSvcs(id), rs=((S.rcnSvc||{})[id])||{};
     if(rsv.length){
       acct.push('<div class="ar-f span2"><span class="ar-l">'+esc(FL('rcnSvc'))+'</span>'
         +'<button type="button" class="qb" id="erRcnSvcT" aria-expanded="'+(!!rcnSvcOpen[id])+'" aria-controls="erRcnSvcRows" onclick="erRcnSvcToggle()">'
-        +'per service…</button></div>'
+        +(rcnSvcOpen[id]? 'hide' : 'per service…')+'</button></div>'
         +'<div class="ar-f span2 er-rcnsvc" id="erRcnSvcRows"'+(rcnSvcOpen[id]? '' : ' hidden')+'><table class="ar-svc">'
         +rsv.map(function(sv){ const ch=rs[sv]||'';
+          const L=rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice(); return ok.indexOf(sv)>=0; });
           return '<tr><th scope="row">'+esc(sv)+'</th><td>'+erSel('erRs_'+sv, erOpt('', '— use the requirement’s own —', ch)
-            +rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice(); return ok.indexOf(sv)>=0; })
-              .map(function(e){ return erOpt(e.k, rcnLabel(e.k)||'(blank)', ch); }).join(''), {lbl:sv+' RCN / EEIC'})+'</td></tr>'; }).join('')
+            +erKeep(ch, L.some(function(e){ return e.k===ch; }), rcnLabel(ch)||ch)
+            +L.map(function(e){ return erOpt(e.k, rcnLabel(e.k)||'(blank)', ch); }).join(''), {lbl:sv+' RCN / EEIC'})+'</td></tr>'; }).join('')
         +'</table></div>');
     }
   }
   if(siEligible(it)){
     const raw=siRawOf(id), cur=V.si;
     acct.push(erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
+      +(raw===undefined && cur==='\u0004'? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
       +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1}));
   }
   if(acct.length) h+='<section class="ar-sec" aria-labelledby="erS3"><h4 id="erS3">Accounting lines</h4><div class="ar-grid">'+acct.join('')+'</div></section>';
   h+='<section class="ar-sec" aria-labelledby="erS4"><h4 id="erS4">Where the money goes</h4><div class="ar-grid">'
-    +erField('erTo', 'dest', erSel('erTo', erOpt('', '— not logged —', V.to)+flowEntsAZ().map(function(e){
+    +erField('erTo', 'dest', erSel('erTo', erOpt('', '— not logged —', V.to)+erKeep(V.to, !!flowEnt(V.to))+flowEntsAZ().map(function(e){
         return erOpt(e.k, e.n+(e.kind==='gov'? ' (gov)' : ''), V.to); }).join('')), {req:1, span:1})
-    +erField('erEnd', 'destEnd', erSel('erEnd', erOpt('', '— stops there —', V.end)+flowEntsAZ().map(function(e){
+    +erField('erEnd', 'destEnd', erSel('erEnd', erOpt('', '— stops there —', V.end)+erKeep(V.end, !!flowEnt(V.end))+flowEntsAZ().map(function(e){
         return erOpt(e.k, e.n, V.end); }).join('')), {req:1, hide:1, tag:'OGC'})
-    +erField('erMipr', 'mipr', erSel('erMipr', erOpt('', '— not set —', V.mipr)+Object.keys(MIPR_LBL).map(function(k){
-        return erOpt(k, MIPR_LBL[k], V.mipr); }).join('')), {req:1, hide:1, tag:'OGC'})
+    +erField('erMipr', 'mipr', erSel('erMipr', erOpt('', '— not set —', V.mipr)+erKeep(V.mipr, !!MIPR_LBL[V.mipr])+Object.keys(MIPR_LBL).map(function(k){
+        return erOpt(k, MIPR_LBL[k], V.mipr); }).join('')), {req:1, hide:1, tag:'OGC',
+        note:'prints on the \u{1F3AF} Priority Drill, not the Spend Plan Source'})
     +'</div><div class="ar-note">The value by service, the BAE budgets, the decision band, ★, the awards and Planning are set in the RECORD panel.</div></section></div>';
   h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="erS5"><h4 id="erS5">Narrative</h4><div class="ar-grid ar-g1">'
     +erField('erDesc', 'desc', '<textarea id="erDesc" data-held="1" oninput="erDescTyped()">'+esc(V.desc)+'</textarea>', {req:1, tag:'filled from the CCaR list when empty'})
     +erField('erCons', 'cons', '<textarea id="erCons" data-held="1" placeholder="what is lost, and when, if it is not funded" oninput="erUpdate()">'+esc(V.cons)+'</textarea>', {req:1})
     +erField('erNote', 'notes', '<textarea id="erNote" data-held="1" class="short" placeholder="decisions, caveats, taskers…" oninput="erUpdate()">'+esc(V.notes)+'</textarea>')
     +'</div></section>'
-    +'<section class="ar-sec" aria-labelledby="erS6"><h4 id="erS6">Still needed<span id="erReadyN"></span></h4><ul class="ar-chk" id="erChk"></ul>'
-    +'<div class="ar-sum">Saving with fields still needed is fine: the list is a reminder.'+(typeof SANDBOX!=='undefined' && SANDBOX && prop? ' A proposal is held back at Submit until it is complete.' : '')+'</div></section></div></div>';
+    +'<section class="ar-sec" aria-labelledby="erS6"><h4 id="erS6">Required<span id="erReadyN"></span></h4><ul class="ar-chk" id="erChk"></ul>'
+    +'<div class="ar-sum">Saving with fields still needed is fine: the list is a reminder.'+(typeof SANDBOX!=='undefined' && SANDBOX && prop? ' A proposal is held back at Submit until it is complete.' : '')
+    // D5's way there: the value and the budgets are the RECORD panel's
+    +' <button type="button" class="qb" id="erToPanel" onclick="erGo(\'record\')">The value and budgets, in the RECORD panel…</button></div></section></div></div>';
   h+='<div class="ar-ft" id="erFt"><div id="erMsg" class="ar-msg" role="alert" aria-live="assertive"></div><span class="sp"></span>'
     +'<button type="button" class="btn" onclick="erClose()">Cancel</button>'
     +'<button type="button" class="btn pri" id="erSaveBtn" onclick="erSave()">Save</button></div>';
@@ -31256,7 +31354,8 @@ function erRcnSvcToggle(){
   if(!erOn()) return;
   rcnSvcOpen[erOpen]=!rcnSvcOpen[erOpen];
   const r=erEl('erRcnSvcRows'), t=erEl('erRcnSvcT');
-  if(r) r.hidden=!rcnSvcOpen[erOpen]; if(t) t.setAttribute('aria-expanded', String(!!rcnSvcOpen[erOpen]));
+  if(r) r.hidden=!rcnSvcOpen[erOpen];
+  if(t){ t.setAttribute('aria-expanded', String(!!rcnSvcOpen[erOpen])); t.textContent=rcnSvcOpen[erOpen]? 'hide' : 'per service…'; }
 }
 // The CCaR record names the record and may fill an EMPTY description -- or one this box filled -- never one somebody wrote
 function erCcarTyped(){
@@ -31268,9 +31367,12 @@ function erDescTyped(){ const d=erEl('erDesc'); if(d && d.value!==erDescAuto) er
 // What the box holds, as the stored shape erStored() gives -- so the two compare field by field
 function erRead(){
   const V=erSnap||{};
-  const D={titles:erVal('erEvent').trim(), ccar:erVal('erCcar'), pid:erVal('erPid'), ptype:erVal('erPtype'), grp:erVal('erGrp')||V.grp,
+  // v2.08 review: the WBS is read by the type the BOX holds -- a requirement switched from Prime to OGC here shows its WBS
+  // field, and what is typed in it is saved (read by the stored type, it was dropped without a word)
+  const pt=erVal('erPtype');
+  const D={titles:erVal('erEvent').trim(), ccar:erVal('erCcar'), pid:erVal('erPid'), ptype:pt, grp:erVal('erGrp')||V.grp,
     obCat:erVal('erOb'), costElem:erEl('erCe')? erVal('erCe') : V.costElem,
-    wbs:(V.wbs||'').charAt(0)==='\u0001' || ptypeOf(erOpen)==='PRIME'? V.wbs : erVal('erWbs'),
+    wbs:(V.wbs||'').charAt(0)==='\u0001' || pt==='PRIME'? V.wbs : erVal('erWbs'),
     rcnAsg:erEl('erRcn')? erVal('erRcn') : V.rcnAsg, rcnSvc:V.rcnSvc, si:V.si,
     to:erVal('erTo'), end:'', mipr:'', desc:erVal('erDesc'), notes:erVal('erNote'), cons:erVal('erCons')};
   if(destKeyIsOgc(D.to)){ D.end=erVal('erEnd'); D.mipr=erVal('erMipr'); }
@@ -31312,15 +31414,21 @@ function erUpdate(){
   if(w) w.hidden=prime || split;
   if(wn) wn.textContent= prime? 'a prime contract’s WBS is logged per CLIN, in its CLIN drill'
     : split? wbsLabel('req', erOpen, '')+' — split over '+wbsReq(erOpen).length+' lines' : '';
-  if(wg){ wg.hidden=!(prime || split);
-    const b=wg.querySelectorAll('button'); if(b[0]) b[0].hidden=!split || prime; if(b[1]) b[1].hidden=!prime; }
+  // one line can be split from here too (Requirement edit's "one line — split it…"), in the WBS panel
+  const lines=wbsReq(erOpen).length;
+  if(wg){ wg.hidden=!(prime || lines);
+    const b=wg.querySelectorAll('button'); if(b[0]){ b[0].hidden=prime || !lines; b[0].textContent=split? 'Open the WBS split…' : 'Split it by service…'; }
+    if(b[1]) b[1].hidden=!prime; }
   const cc=D.ccar.trim(), rt=erEl('erRecT'), it=itemById(erOpen);
   // the record name the board reads (recName) while the CCaR record is the one stored; for one newly typed, the list's name
   if(rt && it){ const typed=(S.recNames||{})[erOpen], same=cc===String((erSnap||{}).ccar||'').trim();
     const nm=same? recName(it) : (typed || (cc && ccarNameOfNum(cc)) || (!cc? it.title||'' : ''));
     rt.textContent= nm || (!cc? 'named from the CCaR records list when the record is typed' : !ccarIdx()? 'no CCaR records list is loaded'
       : (ccarRec(cc)||{}).d>1? 'held by several records in the CCaR records list — no title is taken from it' : 'not in the CCaR records list');
-    rt.classList.toggle('dim', !nm); }
+    rt.classList.toggle('dim', !nm);
+    // where the name shown comes from, said as it is: the list, a name typed before v2.08 (kept), or the file
+    const tg=erEl('erRecTag'); if(tg) tg.textContent= !nm? 'read, never typed'
+      : (same && typed)? 'typed before v2.08, kept' : ((cc && ccarNameOfNum(cc))? 'from the CCaR records list' : 'from the file'); }
   const need=reqNeeds(erDraft(D)), miss=need.filter(function(x){ return !x.ok; });
   const ch=erEl('erChk');
   if(ch) ch.innerHTML = need.map(function(x){ const lbl=arShort(x.l);
@@ -31329,7 +31437,9 @@ function erUpdate(){
     return '<li class="'+st+'"><i aria-hidden="true">'+(x.w? '–' : x.ok? '✓' : '!')+'</i>'+esc(lbl)
       +(panel && !x.ok? ' <span>· set in the RECORD panel</span>' : (x.n? ' <span>· '+esc(x.n)+'</span>' : ''))
       +'<span class="sr">'+(x.w? ' — nothing to choose' : x.ok? ' — done' : ' — still needed')+'</span></li>'; }).join('');
-  const rn=erEl('erReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;
+  // the count the RECORD panel's 📋 button shows: what is still needed, of the fields asked for (a waived one is not asked for)
+  const asked=need.filter(function(x){ return !x.w; }), still=asked.filter(function(x){ return !x.ok; });
+  const rn=erEl('erReadyN'); if(rn) rn.textContent= still.length? still.length+' of '+asked.length+' still needed' : 'all '+asked.length+' set';
   const n=Object.keys(erChanges(D)).length, sb=erEl('erSaveBtn');
   if(sb) sb.textContent=n? 'Save '+n+' change'+(n===1? '' : 's') : 'Save';
 }
@@ -31347,9 +31457,13 @@ function erStep(d){
 function erGo(what){
   if(!erOn()) return;
   const id=erOpen;
-  if(erDirty() && !confirm('Discard what you typed in this record to open the '+(what==='clin'? 'CLIN drill' : 'WBS split')+'?')) return;
+  if(erDirty() && !confirm('Discard what you typed in this record to open the '+(what==='clin'? 'CLIN drill' : what==='record'? 'RECORD panel' : 'WBS split')+'?')) return;
   erClose();
-  if(what==='clin') toggleClin(id); else toggleWbs('req', id, '');
+  // the keyboard goes back to the record's own button first, so the panel opened next hands it back there
+  try{ const b=document.querySelector('#inspector [onclick^="toggleRec("]'); if(b) b.focus(); }catch(e){}
+  if(what==='record'){ try{ const i=document.querySelector('#inspector input[onchange^="setAsk("]'); if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){} return; }
+  // the drill is opened, never toggled shut when it was already open
+  if(what==='clin'){ clinOpen[id]=true; render(); } else toggleWbs('req', id, '');
 }
 function erSave(){
   if(!erOn()) return;
@@ -31370,6 +31484,9 @@ function erSave(){
   if(ch.titles!==undefined && !String(D.titles).trim()) bad.push(['erEvent', 'The plan event cannot be empty']);
   [['ccar','erCcar'],['pid','erPid'],['wbs','erWbs']].forEach(function(c){
     if(ch[c[0]]===undefined) return; const r=codeTake(D[c[0]], c[0]); if(r.why) bad.push([c[1], r.why]); });
+  // the record the file carries is read whenever none is typed, so clearing the box cannot clear it (it never could)
+  if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar)
+    bad.push(['erCcar', 'The CCaR record '+it.ccar+' comes from the file and cannot be cleared here — type another to replace it']);
   if(bad.length){ erSay('<b>Nothing was saved.</b> '+bad.map(function(b){ return esc(b[1]); }).join(' · ')+'.');
     bad.forEach(function(b){ const e=erEl(b[0]); if(e){ e.setAttribute('aria-invalid','true'); const f=e.closest? e.closest('.ar-f') : null; if(f) f.classList.add('miss'); } });
     const f=erEl(bad[0][0]); if(f) try{ f.focus(); }catch(e){}
@@ -31407,10 +31524,9 @@ function reqApply(id, ch, D){
   const it=itemById(id); if(!it) return [];
   const said=[];
   if(ch.titles!==undefined){ const t=String(ch.titles).trim();
-    // the plan event: a board-data requirement's rename is an override (S.titles); an added one owns its event -- except
-    // one a PMO copy knew at publication, whose rename must travel (F5): the submittal reads S.titles
-    const knew=typeof SANDBOX!=='undefined' && SANDBOX && PMODE && Object.prototype.hasOwnProperty.call(PMODE.base||{}, id);
-    if(it.custom && !knew){ it.event=t; delete S.titles[id]; }
+    // the plan event: a board-data requirement's rename is an override (S.titles); an added one owns its event (it.event),
+    // which pmoVal reads for it, so a copy sends its rename (F5) and the board reads it to compare
+    if(it.custom){ it.event=t; delete S.titles[id]; }
     else if(t===(it.event || it.title)) delete S.titles[id];
     else S.titles[id]=t;
     said.push(FL('titles')); }
@@ -31426,15 +31542,27 @@ function reqApply(id, ch, D){
   if(ch.rcnSvc!==undefined && rcnApplies()){ const L=JSON.parse(ch.rcnSvc), o={}; L.forEach(function(p){ o[p[0]]=p[1]; });
     if(!S.rcnSvc) S.rcnSvc={}; if(Object.keys(o).length) S.rcnSvc[id]=o; else delete S.rcnSvc[id]; said.push(FL('rcnSvc')); }
   // setSi's rule: the derived code stores nothing, so it goes on following the PMO and prime rules
-  if(ch.si!==undefined && siApplies() && (!ch.si || SI_CODES.some(function(x){ return x[0]===ch.si; }))){
-    if(!S.si) S.si={}; if(ch.si===siDefault(it)) delete S.si[id]; else S.si[id]=ch.si; said.push(FL('si')); }
+  if(ch.si!==undefined && siApplies() && (ch.si==='\u0004' || !ch.si || SI_CODES.some(function(x){ return x[0]===ch.si; }))){
+    if(!S.si) S.si={}; if(ch.si==='\u0004' || ch.si===siDefault(it)) delete S.si[id]; else S.si[id]=ch.si; said.push(FL('si')); }
+  // WHERE THE MONEY GOES, written the way setDest writes it (v2.08 review): only the fields that changed, Which awards to only
+  // for a government activity, and nothing carried over from a destination that was not one -- a second hop or MIPR type hidden
+  // since v2.08 (F4) never comes back. Rewriting the whole record on a MIPR-type edit sent a Goes to nobody had changed, and a
+  // {to, end:''} beside setDest's {to} read as a change between two equal destinations.
   if(ch.to!==undefined || ch.end!==undefined || ch.mipr!==undefined){
-    const to=D.to||'', og=destKeyIsOgc(to);
-    if(!S.dest) S.dest={};
-    const end=og? (D.end||'') : '';
-    if(to || end) S.dest[id]={to:to, end:end}; else delete S.dest[id];
-    if(!S.mipr) S.mipr={};
-    if(og && D.mipr && MIPR_LBL[D.mipr]) S.mipr[id]=D.mipr; else delete S.mipr[id];
+    const og=destKeyIsOgc(D.to||'');
+    const was=Object.assign({}, (S.dest||{})[id]||{}), wasOg=destKeyIsOgc(was.to||'');
+    if(ch.to!==undefined || ch.end!==undefined){
+      const cur=was;
+      if(ch.to!==undefined){ if(!wasOg) delete cur.end; cur.to=D.to||''; }
+      if(ch.end!==undefined && og) cur.end=D.end||'';
+      if(!og) delete cur.end;
+      if(!cur.to && !cur.end){ if(S.dest) delete S.dest[id]; }
+      else { if(!S.dest) S.dest={}; S.dest[id]=cur; }
+    }
+    if(S.mipr && Object.prototype.hasOwnProperty.call(S.mipr, id) && (!og || (ch.to!==undefined && !wasOg))) delete S.mipr[id];
+    if(og && ch.mipr!==undefined){
+      if(D.mipr && MIPR_LBL[D.mipr]){ if(!S.mipr) S.mipr={}; S.mipr[id]=D.mipr; }
+      else if(S.mipr) delete S.mipr[id]; }
     if(ch.to!==undefined) said.push(FL('dest')); if(ch.end!==undefined) said.push(FL('destEnd')); if(ch.mipr!==undefined) said.push(FL('mipr')); }
   [['desc','desc'],['notes','notes'],['cons','cons']].forEach(function(p){ if(ch[p[0]]===undefined) return;
     if(!S[p[1]]) S[p[1]]={}; const v=String(ch[p[0]]).replace(/\r\n?/g,'\n').trim(); if(v) S[p[1]][id]=v; else delete S[p[1]][id]; said.push(FL(p[0])); });
@@ -33556,11 +33684,16 @@ function drawerBar(){
 document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);
 document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
 function inspHeld(el){
-  return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend; }).map(function(i){
-    return {h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd}; });
+  // ONLY THE FIELD THAT HAS THE KEYBOARD: a browser commits a field when it loses it, so that is the one place typing can wait
+  // uncommitted. Held by its mark alone, a field Chromium had committed as the redraw removed it (its change fires on the
+  // field removed, where no listener of the page hears it) was put back with its typing, marked, on every later redraw --
+  // over the stored figure, after ↺ (v2.08 review).
+  return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend && document.activeElement===i; }).map(function(i){
+    return {el:i, h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd}; });
 }
 function inspHeldBack(el, held){
   held.forEach(function(x){
+    if(x.el && !x.el.__pend) return;            // committed while the panel was drawn (Chromium): nothing is held
     const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
     if(!i) return;
     i.value=x.v; i.__pend=true;
@@ -33727,7 +33860,7 @@ function inspectorDraw(el){
                         : 'say what happens if this is not funded'),
                 FLI('cons'), w? 'written' : (_req? 'required \u2014 not written' : 'not written'))
           + act('onclick="toggleDesc('+jsa(id)+')" ', false,
-                'the description and the note, in one pop-up \u2014 each kept as its own field',
+                'the description and the note, in the record \u2014 each kept as its own field',
                 FLI('dn'),
                 (dsc&&nt)? 'both written' : (dsc? 'description written' : (nt? 'note written' : 'both empty')))
           + act('onclick="toggleRec('+jsa(id)+')" ', C.un>0,

@@ -76,10 +76,6 @@
   "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
  },
  {
-  "id": "v208-122-copy-rename-not-sent",
-  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
- },
- {
   "id": "v208-122-desc-overwritten",
   "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
  },
@@ -178,5 +174,117 @@
  {
   "id": "v200-u41-goto-row-only",
   "caughtBy": "audit-recon / v2.00 (U41)"
+ },
+ {
+  "id": "v208-rv-kept-obcat",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-kept-dest",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-kept-rcn",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-kept-rcnsvc",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-wbs-by-stored-type",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-dest-rewritten",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-mipr-container",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-hop-box",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-hop-setdest",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-ccar-clear-says-saved",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-step-snapshot",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-si-follows-gone",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-rail-count",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-wbs-one-line-unsplittable",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-clin-toggled-shut",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-no-way-to-panel",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-rectag-fixed",
+  "caughtBy": "audit-other / v2.08 — the review of the edit box"
+ },
+ {
+  "id": "v208-rv-f5-event-unread",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v208-rv-f5-old-copy",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v208-rv-restored-box-silent",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v208-rv-restored-submit-silent",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v208-rv-proposal-moved",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v208-rv-rcnsvc-everywhere",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv-exw-alerts",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv-f2-any-marked",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv-classify-arrow",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv-brief-opens",
+  "caughtBy": "audit-other / v2.08 — the edit box: the whole record"
+ },
+ {
+  "id": "pmo-submits-everything",
+  "caughtBy": "audit-import / =PMO copy"
  }
 ]

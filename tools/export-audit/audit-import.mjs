@@ -12834,6 +12834,75 @@ await (async () => {
 })();
 // ==== end v2.08 item 122 (import) ====
 
+// ==== v2.08 item 122 -- the review, in a PMO copy (26 Oct 2026) ====
+// The reviewers' copy findings, each failing on the board they reviewed (65cc26a): a requirement restored in a copy, a
+// board-added requirement renamed on both sides, a copy's own proposal moved in Classify, a kept value. Expected values are
+// written out here.
+await (async () => {
+  const name = 'v2.08 — the review in a PMO copy: a restored requirement, a rename on both sides, a proposal’s office, a kept value';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); } };
+    const items = [itx('A', 'PSM', [100, 0]), itx('R', 'PSM', [70, 0]), itx('B', 'AV', [80, 0])];
+    const B0 = boot(); seed(B0.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'R', 'B'] });
+    B0.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.obCat=S.obCat||{}; S.obCat.A='Contract (old)'; save(); 'ok'`);
+    const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); return n; })()`);
+    B0.ev(`window.confirm=function(){ return true; }; removeReq('R'); save(); render(); 'ok'`);   // R is removed when the copy goes out
+    const html = B0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    // the board renames its own added requirement after the copy went out
+    B0.ev(`openEdit(${J(nid)},'titles'); document.getElementById('erEvent').value='BOARD NAME'; erSave(); 'ok'`);
+    const P = boot({ html }); const ev = P.ev;
+    ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; render(); 'ok'`);
+    const put = (id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const notice = () => ev(`(document.querySelector('#erBody .er-notsent')||{}).textContent||''`);
+    part('restored', () => {
+      ev(`restoreReq('R'); render(); openEdit('R','rec'); 'ok'`);
+      chk(name, 'restored', 'a requirement restored in the copy: the box says up front that edits to it are not sent', notice().indexOf('not on the board when this copy was published') >= 0, true);
+      put('erDesc', 'typed on R'); ev(`erSave(); 'ok'`);
+    });
+    part('kept value', () => {
+      ev(`openEdit('A','rec'); 'ok'`); put('erNote', 'note on A'); ev(`erSave(); 'ok'`);
+    });
+    part('rename', () => {
+      ev(`openEdit(${J(nid)},'titles'); 'ok'`); put('erEvent', 'COPY NAME'); ev(`erSave(); 'ok'`);
+    });
+    part('proposal office', () => {
+      const p2 = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+      ev(`setGrp(${J(p2)},'AV'); 'ok'`);
+      chk(name, 'proposal office', 'Classify (setGrp) cannot move a proposal of the copy to another office', ev(`grpOf(itemById(${J(p2)}))`), 'PSM');
+      ev(`removeReq(${J(p2)}); 'ok'`);
+    });
+    const wire = JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const I = wire.items || {};
+    part('restored', () => {
+      chk(name, 'restored', 'and Submit names it as not sent, rather than dropping it without a word',
+        ev(`__al.some(function(m){ return m.indexOf('not on the board when this copy was published')>=0 && m.indexOf('Rec R')>=0; })`), true);
+    });
+    part('kept value', () => {
+      chk(name, 'kept value', 'a note typed on A travels; A’s obligation category, off the list, is not proposed as cleared', J(I.A || null), J({ notes: 'note on A' }));
+    });
+    part('rename', () => {
+      chk(name, 'rename', 'the copy’s rename of the board-added requirement travels', J((I[nid] || {}).titles), J('COPY NAME'));
+      // a copy published before v2.08 had no baseline for an added requirement's plan event: nothing is proposed against nothing
+      chk(name, 'rename', 'from a copy published before v2.08 (no baseline for it), the added requirement’s plan event is not proposed',
+        ev(`(function(){ var t=PMODE.base[${J(nid)}].titles; delete PMODE.base[${J(nid)}].titles; var r=(pmoSubmitBuild()[${J(nid)}]||{}).titles; PMODE.base[${J(nid)}].titles=t; return r===undefined; })()`), true);
+      const X = B0;   // the board, with its own newer rename
+      X.ev(`window.alert=function(){}; pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      const row = JSON.parse(X.ev(`JSON.stringify(pmoRows().filter(function(r){ return r.id===${J(nid)} && r.key==='titles'; }).map(function(r){ return [r.now, r.prop, !!r.conflict]; }))`));
+      chk(name, 'rename', 'at the board the row reads the board’s own newer name and flags the conflict', J(row), J([['BOARD NAME', 'COPY NAME', true]]));
+    });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 -- the review, in a PMO copy ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

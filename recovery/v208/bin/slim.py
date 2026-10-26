@@ -23,7 +23,8 @@ for (a,b) in blocks:
     m=re.search(r"^  const name = '([^']+)'", body, re.M)
     if m is None:
         keep.add((a,b)); continue           # helper / self-check blocks without a scenario name stay
-    mine=[k for k in keys if k in m.group(1)]
+    # a name given as '=<name>' matches that scenario exactly (v2.08: 'PMO copy' is a substring of a dozen others)
+    mine=[k for k in keys if (k[1:]==m.group(1) if k.startswith('=') else k in m.group(1))]
     for k in mine: hit[k]+=1
     if mine: keep.add((a,b)); scen+=1
 # A NAME THAT MATCHES NO SCENARIO IS REFUSED, NOT RUN. 'kept N' counts the helper and self-check blocks too, so it is never

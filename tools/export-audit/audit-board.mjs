@@ -5571,12 +5571,17 @@ await (async () => {
     const { ev } = mk({ services: ['USAF', 'ANG'], items: [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [70, 0])], disc: [300, 300], mand: [0, 0], order: ['A', 'B'] });
     ev(`setCur('A'); render(); 'ok'`);
     const q = sel => `document.querySelector('#inspector input[onchange^=${JSON.stringify(sel)}]')`;
-    ev(`(function(){ var a=${q('setAsk(')}, m=${q('setMinInc(')}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input'));
-        m.value='777'; m.dispatchEvent(new Event('input')); a.focus(); return 'ok'; })()`);
+    // typed into the value with the keyboard in it (the one field a browser leaves uncommitted: leaving a field commits it)
+    ev(`(function(){ var a=${q('setAsk(')}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input')); return 'ok'; })()`);
     ev(`render(); render(); 'ok'`);
-    chk(name, 'F2', 'two redraws later the value by service and the minimum increment still hold what was typed', ev(`JSON.stringify([${q('setAsk(')}.value, ${q('setMinInc(')}.value])`), JSON.stringify(['123456', '777']));
+    chk(name, 'F2', 'two redraws later the value by service still holds what was typed', ev(`${q('setAsk(')}.value`), '123456');
+    ev(`(function(){ var m=${q('setMinInc(')}; m.focus(); m.value='777'; m.dispatchEvent(new Event('input')); return 'ok'; })()`);
+    ev(`render(); 'ok'`);
+    chk(name, 'F2', 'and so does the minimum increment, typed with the keyboard in it', ev(`${q('setMinInc(')}.value`), '777');
+    ev(`(function(){ var a=${q('setAsk(')}; a.focus(); return 'ok'; })()`);
     chk(name, 'F2', 'and the keyboard is still in the value it was typing', ev(`document.activeElement===${q('setAsk(')}`), true);
     chk(name, 'F2', 'nothing was written while it was only typed', ev(`JSON.stringify([itemById('A').ask[0], (S.minInc||{}).A||null])`), JSON.stringify([100, null]));
+    ev(`(function(){ var a=${q('setAsk(')}; a.value='123456'; a.focus(); return 'ok'; })()`);
     ev(`(function(){ var a=${q('setAsk(')}; a.dispatchEvent(new Event('change')); return 'ok'; })()`);
     chk(name, 'F2', 'committed, the value is written', ev(`itemById('A').ask[0]`), 123456);
     ev(`setCur('B'); render(); 'ok'`);
@@ -5672,6 +5677,75 @@ await (async () => {
   }
 })();
 // ==== end v2.08 defects ====
+
+// ==== v2.08 -- the review of the defect fixes (26 Oct 2026) ====
+// Each part fails on the board the reviewers read (65cc26a); expected values are written out here.
+await (async () => {
+  const name = 'v2.08 — the review of the defect fixes: Classify’s per-service bulk and office cell, WBS from execution in a copy, a redraw that commits';
+  try {
+  const itx = (id, grp, ask) => ({ id, title: 'Req ' + id, event: 'EV-' + id, grp, ask });
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  const mk = (sc) => { const b = boot(); seed(b.ev, sc); b.ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; render(); 'ok'`); return b; };
+
+  // ---- the per-service RCN / EEIC bulk set reaches only the rows that offer that service's line
+  part('rcnSvc bulk', () => {
+    const { ev } = mk({ services: ['USAF', 'ANG', 'AFRC'], items: [itx('A', 'AV', [100, 50, 0]), itx('B', 'AV', [10, 0, 0]), itx('C', 'AV', [0, 40, 0])],
+      disc: [300, 300, 300], mand: [0, 0, 0], order: ['A', 'B', 'C'] });
+    ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}]; matOpen=true; rcnSvcOpen.A=true; matPmo='ALL'; matMissing='';
+        matSet('bulkF','rcnSvc|USAF'); matSet('bulkV','K1'); 'ok'`);
+    const P = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
+    chk(name, 'rcnSvc bulk', 'the preview reaches A and B, which carry USAF, and leaves C alone', JSON.stringify([P.n, P.skip]), JSON.stringify([2, 1]));
+    ev(`matApplyBulk(); 'ok'`);
+    chk(name, 'rcnSvc bulk', 'and writes USAF’s line on A and B only', ev(`JSON.stringify(S.rcnSvc||{})`), JSON.stringify({ A: { USAF: 'K1' }, B: { USAF: 'K1' } }));
+  });
+
+  // ---- Classify's office cell: a keyboard move only moves; Enter or leaving it chooses
+  part('office cell', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100]), itx('B', 'PSM', [100])], disc: [200], mand: [0], order: ['A', 'B'] });
+    ev(`S.pmoOrder.PSM=['A','B']; save(); matOpen=true; render(); 'ok'`);
+    const sel = `[].filter.call(document.querySelectorAll('#matBody select'), function(s){ return (s.getAttribute('onchange')||'').indexOf('setGrp(')>=0 && (s.getAttribute('onchange')||'').indexOf('"A"')>=0; })[0]`;
+    // ArrowDown to the next office and ArrowUp back, as Chromium fires change on each
+    ev(`(function(){ var s=${sel}; var o=s.value;
+        s.dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowDown'})); s.value=GROUPS[(GROUPS.indexOf(o)+1)%GROUPS.length]; s.dispatchEvent(new Event('change'));
+        s=${sel}; s.dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowUp'})); s.value=o; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'office cell', 'arrowing past an office and back moves nothing: A is still first in PSM', JSON.stringify([ev(`grpOf(itemById('A'))`), ev(`JSON.stringify(S.pmoOrder.PSM)`)]), JSON.stringify(['PSM', '["A","B"]']));
+    ev(`(function(){ var s=${sel}; s.dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowDown'})); s.value='AV'; s.dispatchEvent(new Event('change'));
+        s.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter'})); return 'ok'; })()`);
+    chk(name, 'office cell', 'Enter chooses: A moves to AV', ev(`grpOf(itemById('A'))`), 'AV');
+  });
+
+  // ---- WBS from execution data in a PMO copy: a CLIN's is left, counted, and nothing is refused one alert at a time
+  part('WBS from execution', () => {
+    const items = [itx('A', 'PSM', [100]), itx('P', 'PSM', [100])];
+    const P0 = mk({ services: ['USAF'], items, disc: [300], mand: [0], order: ['A', 'P'] });
+    P0.ev(`(function(){ BASE_ITEMS.length=0; ${JSON.stringify(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); S.ptype.P='PRIME'; save(); return 'ok'; })()`);
+    const html = P0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const C = boot({ html }); const ev = C.ev;
+    ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); };
+        execWbsScan=function(){ return {props:[{kind:'req', id:'A', para:'1.2'}, {kind:'clin', id:'P', clinKey:'k1', para:'2.1'}, {kind:'clin', id:'P', clinKey:'k2', para:'2.2'}], conflicts:[]}; };
+        exwApply(); 'ok'`);
+    chk(name, 'WBS from execution', 'in a copy: 1 written, 2 on a CLIN left alone, and no alert', JSON.stringify([ev(`JSON.stringify(S.wbs.A)`), ev(`document.getElementById('shareStat').textContent.indexOf('1</b> written')>=0 || /\\b1 written/.test(document.getElementById('shareStat').textContent)`),
+        ev(`document.getElementById('shareStat').textContent.indexOf('2 on a CLIN left alone')>=0`), ev(`__al.length`)]),
+      JSON.stringify(['[{"w":"1.2","v":[]}]', true, true, 0]));
+  });
+
+  // ---- a redraw that commits the typed figure (Chromium fires change on the field it removes) leaves nothing to put back
+  part('redraw commits', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100])], disc: [300], mand: [0], order: ['A'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); setCur('A'); render(); 'ok'`);
+    const q = `document.querySelector('#inspector input[onchange^="setAsk("]')`;
+    ev(`(function(){ var a=${q}; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input')); window.__old=a; render();
+        __old.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'redraw commits', 'the figure committed by the redraw is stored', ev(`itemById('A').ask[0]`), 123456);
+    ev(`document.activeElement.blur(); resetAsk('A'); 'ok'`);   // ↺ is clicked: the keyboard leaves the figure
+    chk(name, 'redraw commits', 'put back with ↺, the panel shows the stored figure, not the old typing', JSON.stringify([ev(`itemById('A').ask[0]`), ev(`${q}.value`)]), JSON.stringify([100, '100']));
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 -- the review of the defect fixes ====
 
 
 {

@@ -42,9 +42,12 @@ const copyOf = ev => boot({ html: ev(String.raw`(function(){ const mode={sandbox
       'a render() while a written-field pop-up is open replaces the typing (impact: ' + JSON.stringify(a) + ', description: ' + JSON.stringify(b) + ')');
   ev(`${close}; setCur('A'); render(); "ok"`);
   const typed = ev(`(function(){ var a=document.querySelector('#inspector input[onchange^="setAsk("]'), m=document.querySelector('#inspector input[onchange^="setMinInc("]');
-    if(!a||!m) return 'no inputs'; a.value='123456'; a.dispatchEvent(new Event('input')); m.value='777'; m.dispatchEvent(new Event('input')); render();
-    a=document.querySelector('#inspector input[onchange^="setAsk("]'); m=document.querySelector('#inspector input[onchange^="setMinInc("]');
-    return JSON.stringify([a&&a.value, m&&m.value]); })()`);
+    // typed as a person types: the keyboard in the field (a browser commits a field the keyboard leaves)
+    if(!a||!m) return 'no inputs'; a.focus(); a.value='123456'; a.dispatchEvent(new Event('input')); render();
+    a=document.querySelector('#inspector input[onchange^="setAsk("]'); const av=a&&a.value;
+    m=document.querySelector('#inspector input[onchange^="setMinInc("]'); m.focus(); m.value='777'; m.dispatchEvent(new Event('input')); render();
+    m=document.querySelector('#inspector input[onchange^="setMinInc("]');
+    return JSON.stringify([av, m&&m.value]); })()`);
   say('record-redraw-loses-typing', typed !== '["123456","777"]',
       'a render() while a RECORD panel figure is typed but not committed puts back the stored one ([value, minimum increment] after: ' + typed + ')');
 }
