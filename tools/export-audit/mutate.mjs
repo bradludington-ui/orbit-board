@@ -7596,6 +7596,18 @@ const MUTATIONS = [
   { id: 'v208-rv2-f2-hold-dropped', area: "inspHeldBack", what: "a field committed as the redraw removed it is not put back, and the rest of the typing is lost",
     find: "function inspHeldBack(el, held){\n  held.forEach(function(x){\n    const i=", repl: "function inspHeldBack(el, held){\n  held.forEach(function(x){\n    if(x.el && !x.el.__pend) return;\n    const i=" },
   // ==== end v2.08 item 122 -- the second review's fixes ====
+  // ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+  // ==== end v2.09 W1 ====
+
+  // ==== v2.09 W2 (item 126): a PMO copy's five years ====
+  // ==== end v2.09 W2 ====
+
+  // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+  // ==== end v2.09 W3 ====
+
+  // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
+  // ==== end v2.09 W4 ====
+
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
