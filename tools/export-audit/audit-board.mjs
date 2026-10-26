@@ -4209,7 +4209,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   keeps('PPBE position', `MS.ppbe=MS.ppbe||{}; ppYr=2027; ppSetV('USAF','k1',2027,'d','5000')`, `ppSetV('USAF','k1',2027,'d',b)`, `ppPos().val`, SIGNED);
   keeps('CLIN allocation', `S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[10,20]}]}; S.clinAlloc={P1:{n1:[10,20]}}`,
     `setClinSvc('P1','n1',0,b)`, `S.clinAlloc.P1.n1`);
-  keeps('CLIN request', `S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[10,20]}]}`, `clinSetReq('P1','n1',b)`, `S.clinNew.P1[0].ask`);
+  // v2.09 W1: a CLIN's request is typed per service (item 125, clinSetAsk); the guard is the same, on one service's box
+  keeps('CLIN request', `S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[10,20]}]}`, `clinSetAsk('P1','n1',0,b)`, `S.clinNew.P1[0].ask`);
   keeps('WBS figure', `S.wbs={X:[{w:'1.1', v:[5,6]},{w:'1.2', v:[7,8]}]}`, `wbsSetVal('req','X','',0,1,b)`, `S.wbs.X`);
   keeps('unit cost', `DATA.buys=true; S.buys={ac:{base:[0,0], adj:[2,3], cost:[1000,2000], locked:false}, eng:{base:[0,0], adj:[0,0], cost:[0,0], locked:false}}`,
     `setBuy('ac','cost',0,b)`, `S.buys.ac.cost`);
@@ -4248,9 +4249,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     w1ev(ev, `(function(){ setStat(''); setAsk('X',1,'1,234.56'); return JSON.stringify([itemById('X').ask[1], /entered as \\$1,235/.test(document.getElementById('shareStat').textContent)]); })()`),
     J([1235, true]));
   // THE CLIN REQUEST IS SPREAD IN WHOLE DOLLARS that add up to what was typed
-  chk(name, 'CLIN request', '$100 over a CLIN asking [1, 2] is [33, 67]: whole dollars, adding up to $100',
-    w1ev(ev, `(function(){ S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[1,2]}]}; clinSetReq('P1','n1','$100'); return JSON.stringify(S.clinNew.P1[0].ask); })()`),
-    J([33, 67]));
+  // v2.09 W1: there is no spread any more (item 125: a CLIN's request is typed per service, clinSetAsk). What this held -- a
+  // CLIN request is whole dollars -- is held on one service's box: $100.40 is $100 there, and the other service is untouched.
+  chk(name, 'CLIN request', '$100.40 typed as a CLIN’s first service’s request is $100: whole dollars, the other service untouched',
+    w1ev(ev, `(function(){ S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[1,2]}]}; clinSetAsk('P1','n1',0,'$100.40'); return JSON.stringify(S.clinNew.P1[0].ask); })()`),
+    J([100, 2]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -5660,8 +5663,9 @@ await (async () => {
     ev(`window.alert=function(m){ window._al=(window._al||[]).concat([String(m)]); }; window.confirm=function(){ return true; }; render(); 'ok'`);
     const before = ev(`JSON.stringify([S.clinNew||{}, S.clinMeta||{}, S.clinAlloc||{}, S.clinWbs||{}, S.absorb||'', S.absorbFloor||0])`);
     const k = ev(`(clinList('A')[0]||{}).key`);
+    // v2.09 W1: clinSetAsk below -- the CLIN request is typed per service (item 125); still one of the seven CLIN writers
     ev(`window.prompt=function(m){ return /number/.test(m)? 'CLIN88' : 'More'; }; clinAdd('A');
-        clinSetReq('A',${J(k)},'500'); setClinSvc('A',${J(k)},0,'40'); wbsStore('clin','A',${J(k)},[{w:'P1.2',v:[]}]);
+        clinSetAsk('A',${J(k)},0,'500'); setClinSvc('A',${J(k)},0,'40'); wbsStore('clin','A',${J(k)},[{w:'P1.2',v:[]}]);
         window.prompt=function(){ return 'JSF5555'; }; clinSetField('A',${J(k)},'ccar'); clinRemove('A',${J(k)}); clinResetGrid('A');
         setAbsorber('B',true); setAbsorbFloor('1000'); 'ok'`);
     chk(name, 'F6', 'in the copy, nothing in the CLIN drill or the absorber changed',
@@ -5780,6 +5784,250 @@ await (async () => {
 
 
 // ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+// Brad, 26 Oct 2026: "if I click a requirement amount on a CLIN, it sends me to the panel pop up and I'm unable to edit CLIN
+// requirement amounts." What jsdom can see of it: a CLIN's request typed per service (Brad's decision), whole dollars in ↓ Fill
+// from row and ↑ Apply grid to row, a new CLIN's grid starting as its first request, the drill's foot beside the prime's
+// requirement value, a click that uses a control selecting the row quietly, a press a redraw took away, a redraw that holds a
+// half-typed row figure (the change Chromium fires on a field the redraw removes is fired here, where Chromium fires it), and
+// the two ways into the drill. Chromium's half -- a real pointer, every recorded control, four layouts -- is npm run pointer
+// (tools/pointer-edit.mjs). Each part fails on the v2.08 board (ebe702e) unless it says CONTROL; expected values are worked
+// out here from the fixture, never read back from the board.
+await (async () => {
+  const name = 'v2.09 — CLIN amounts and the row controls: the request by service, whole dollars, a new CLIN, the foot, a click that uses a control, a press, a redraw, the routes (item 125)';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  const partA = async (tag, fn) => { try { await fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  const tick = ms => new Promise(r => setTimeout(r, ms));
+  // a prime P on three services that asks USAF and ANG only, with two CLINs from the board's data; Q an ordinary requirement
+  const mk = () => {
+    const B = boot(); const items = [itx('P', 'AV', [4000, 500, 0]), itx('Q', 'AV', [100, 0, 0])];
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items, disc: [9000, 9000, 9000], mand: [0, 0, 0], order: ['P', 'Q'] });
+    B.ev(`(function(){ BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P:'PRIME'}; CLINS.P=[{clin:'0001', desc:'Depot', ccar:'', ask:[1000,200,0]}, {clin:'0002', desc:'Spares', ccar:'', ask:[500,0,0]}];
+      window.__cf=0; window.confirm=function(){ __cf++; return true; }; window.__al=[]; window.alert=function(m){ __al.push(String(m)); };
+      UI2.on=true; UI2.dock=false; clinOpen={P:true}; save(); render();
+      // a control by the writer its handler calls, in a row or the RECORD panel (no quoting games with selectors)
+      window.__by=function(sc, pre){ return [].filter.call(document.querySelectorAll(sc+' input'), function(i){ return (i.getAttribute('onchange')||'').indexOf(pre)===0; })[0]; };
+      return 'ok'; })()`);
+    return B;
+  };
+  // a box in P's drill by the writer it calls
+  const bx = (fn, key, j) => `__by('#row-P', ${J(fn + '("P",' + J(key) + ',' + j + ',')})`;
+  const put = (sel, v) => `(function(){ var i=${sel}; i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input', {bubbles:true})); i.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`;
+
+  // ---- 1. a CLIN's request is typed per service, and writes that service only
+  part('request by service', () => {
+    const { ev } = mk();
+    chk(name, 'request by service', 'each CLIN has a request box per service (6) beside its allocation boxes (6), each named',
+      ev(`(function(){ var r=document.querySelectorAll('#row-P input[onchange^="clinSetAsk("]'), a=document.querySelectorAll('#row-P input[onchange^="setClinSvc("]');
+        return [r.length, a.length, r[1].getAttribute('aria-label'), a[1].getAttribute('aria-label')].join(' | '); })()`),
+      '6 | 6 | ANG request, CLIN 0001 | ANG allocation, CLIN 0001');
+    ev(put(bx('clinSetAsk', 'b0', 1), '250'));
+    chk(name, 'request by service', 'ANG’s request on CLIN 0001 typed as 250: its request is [1000, 250, 0], the other services untouched',
+      ev(`JSON.stringify(clinList('P')[0].ask)`), J([1000, 250, 0]));
+    chk(name, 'request by service', 'and its allocation is not moved: the two stay independent (Brad)', ev(`JSON.stringify(clinVec('P', clinList('P')[0]))`), J([1000, 200, 0]));
+    chk(name, 'request by service', 'the line’s request total is read from its boxes: $1,250, and vs request says the allocation is $50 short',
+      ev(`(function(){ var tr=${bx('clinSetAsk', 'b0', 0)}.closest('tr'), nx=tr.nextElementSibling; return tr.querySelector('td.ct').textContent+' | '+nx.querySelector('td.off').textContent; })()`),
+      '$1,250 | −$50');
+    ev(put(bx('clinSetAsk', 'b0', 0), 'abc'));
+    chk(name, 'request by service', 'an entry that is not an amount changes nothing, and says why', ev(`JSON.stringify([clinList('P')[0].ask, /CLIN request for USAF was not changed/.test(document.getElementById('shareStat').textContent)])`),
+      J([[1000, 250, 0], true]));
+    ev(put(bx('clinSetAsk', 'b0', 0), ''));
+    chk(name, 'request by service', 'a blank box clears that service’s request', ev(`JSON.stringify(clinList('P')[0].ask)`), J([0, 250, 0]));
+    chk(name, 'request by service', 'and the prime’s requirement value is never moved by a CLIN request', ev(`JSON.stringify(itemById('P').ask)`), J([4000, 500, 0]));
+  });
+
+  // ---- 2. a new CLIN asks nothing of a service until it is typed; its allocation starts as its first request, then stays apart
+  part('new CLIN', () => {
+    const { ev } = mk();
+    ev(`(function(){ var q=['0009','Ninth line']; window.prompt=function(){ return q.shift(); }; clinAdd('P'); return 'ok'; })()`);
+    chk(name, 'new CLIN', 'CONTROL: added, it asks nothing of any service yet', ev(`JSON.stringify(clinList('P')[2].ask)`), J([0, 0, 0]));
+    ev(put(bx('clinSetAsk', 'n1', 0), '900'));
+    chk(name, 'new CLIN', 'USAF’s first request, 900: its USAF allocation starts as 900 (it read $0, the whole request short, until ↺ Reset)',
+      ev(`JSON.stringify([clinList('P')[2].ask, clinVec('P', clinList('P')[2])])`), J([[900, 0, 0], [900, 0, 0]]));
+    ev(put(bx('setClinSvc', 'n1', 0), '700')); ev(put(bx('clinSetAsk', 'n1', 0), '1200'));
+    chk(name, 'new CLIN', 'then an allocation of 700 typed and the request raised to 1,200: the allocation stays 700 (independent from then on)',
+      ev(`JSON.stringify(clinVec('P', clinList('P')[2]))`), J([700, 0, 0]));
+    ev(put(bx('clinSetAsk', 'n1', 1), '50'));
+    chk(name, 'new CLIN', 'ANG’s first request, 50: ANG’s allocation starts there too; AFRC asks and holds nothing',
+      ev(`JSON.stringify([clinList('P')[2].ask, clinVec('P', clinList('P')[2])])`), J([[1200, 50, 0], [700, 50, 0]]));
+    ev(put(bx('clinSetAsk', 'b0', 2), '75'));
+    chk(name, 'new CLIN', 'CONTROL: a CLIN from the board’s data keeps its allocation when its request is typed, as before', ev(`JSON.stringify(clinVec('P', clinList('P')[0]))`), J([1000, 200, 0]));
+  });
+
+  // ---- 3. whole dollars in ↓ Fill from row and ↑ Apply grid to row
+  part('whole dollars', () => {
+    const { ev } = mk();
+    // the row allocation [100, 7, 0] over CLINs asking USAF 1000 and 500, ANG 200 and 0: 66⅔ and 33⅓ by hand; [67, 33] in whole dollars
+    ev(`S.alloc.P={m:'s', v:[100,7,0]}; save(); render(); clinFromRow('P'); 'ok'`);
+    chk(name, 'whole dollars', '↓ Fill from row: USAF’s $100 over requests of 1,000 and 500 is 67 and 33, ANG’s $7 all on 0001 -- whole dollars that add up to the row',
+      ev(`JSON.stringify(clinList('P').map(function(c){ return clinVec('P', c); }))`), J([[67, 7, 0], [33, 0, 0]]));
+    // a grid holding fractions (an older Fill from row): 10.1 + 20.2 is 30.299999999999997 as a float; the row gets whole dollars
+    ev(`S.clinAlloc.P={b0:[10.1,3,0], b1:[20.2,4,0]}; save(); clinToRow('P'); 'ok'`);
+    chk(name, 'whole dollars', '↑ Apply grid to row on a grid of 10.1 + 20.2 and 3 + 4: the row allocation is [30, 7, 0], whole dollars adding up to the grid’s total',
+      ev(`JSON.stringify(S.alloc.P)`), J({ m: 's', v: [30, 7, 0] }));
+  });
+
+  // ---- 4. the foot: the CLINs' requests beside the prime's requirement value, information only
+  part('foot', () => {
+    const { ev } = mk();
+    const rows = J(JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#row-P .clin-detail tfoot tr'), function(r){ return [].map.call(r.children, function(td){ return td.textContent; }).join('|'); }))`)).slice(0, 3));
+    chk(name, 'foot', 'CLIN REQUESTS [1,500 · 200 · 0] = 1,700; REQUIREMENT VALUE [4,000 · 500 · 0] = 4,500; the difference by service',
+      rows, J(['CLIN REQUESTS||$1,500|$200|$0|$1,700||||', 'REQUIREMENT VALUE (the prime’s, by service)||$4,000|$500|$0|$4,500||||',
+        'REQUIREMENT − CLIN REQUESTS (information only)||+$3K|+$300|—|+$3K||||']));
+    chk(name, 'foot', 'the difference is information, not a warning: its cells are not the amber of a mismatch',
+      ev(`[].map.call(document.querySelectorAll('#row-P .clin-detail tfoot tr.cvdiff td'), function(td){ return td.className; }).slice(1, 5).join(',')`), ',inf,inf,ok');
+    chk(name, 'foot', 'and the line above the grid names the requirement value', ev(`/requested \\$1,700 · requirement value \\$4,500/.test(document.querySelector('#row-P .clin-detail .ch').textContent)`), true);
+  });
+
+  // ---- 5. a click that uses a control in the row selects it quietly; a click on the row itself opens the RECORD panel
+  part('quiet', () => {
+    const { ev } = mk();
+    const st = `(function(){ var p=document.getElementById('inspector'), s=document.getElementById('drawerScrim'); return [curRow, p.classList.contains('open'), !!(s && s.classList.contains('on'))].join(','); })()`;
+    const click = sel => `(function(){ var e=${sel}; e.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`;
+    // as a mousedown does: the control takes the keyboard, then the click comes
+    ev(`drawerClose(); curRow='Q'; ${bx('setClinSvc', 'b0', 0)}.focus(); 'ok'`); ev(click(bx('setClinSvc', 'b0', 0)));
+    chk(name, 'quiet', 'a click into a CLIN’s box selects P and leaves the RECORD panel where it was, the keyboard in the box',
+      ev(st) + ',' + ev(`document.activeElement===${bx('setClinSvc', 'b0', 0)}`), 'P,false,false,true');
+    ev(`drawerClose(); curRow='P'; document.querySelector('#row-Q input[onchange^="setRank("]').focus(); 'ok'`); ev(click(`document.querySelector('#row-Q input[onchange^="setRank("]')`));
+    chk(name, 'quiet', 'and a click into another row’s rank box selects it the same way', ev(st), 'Q,false,false');
+    ev(`drawerClose(); curRow='Q'; document.activeElement.blur(); 'ok'`); ev(click(`document.querySelector('#row-P .clin-detail .svc-hint')`));
+    chk(name, 'quiet', 'a click on an empty part of the drill, which takes no keyboard, is the drill’s too', ev(st), 'P,false,false');
+    ev(`drawerClose(); document.activeElement.blur(); 'ok'`); ev(click(`document.querySelector('#row-Q .t1')`));
+    chk(name, 'quiet', 'CONTROL: a click on a row’s title selects it and opens the RECORD panel over the table', ev(st), 'Q,true,true');
+  });
+
+  // ---- 6. a press a redraw took away: the keyboard goes to the control in its place, and a button's press is delivered once
+  await partA('a press', async () => {
+    const { ev } = mk();
+    // what Chromium does on a mousedown in box B while A holds typing: pointerdown, then A loses the keyboard and its change
+    // redraws the rows before B can take it
+    const press = (a, b) => `(function(){ var A=${a}, B=${b}; A.focus(); A.value='400001'; A.dispatchEvent(new Event('input', {bubbles:true}));
+      window.__B=B; B.dispatchEvent(new Event('pointerdown', {bubbles:true})); A.blur(); A.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`;
+    ev(press(bx('setClinSvc', 'b0', 1), bx('setClinSvc', 'b1', 1)));
+    chk(name, 'a press', 'typed into one box and pressed the next: the figure is stored, and the box standing where the pressed one was has the keyboard',
+      ev(`JSON.stringify([clinVec('P', clinList('P')[0])[1], !__B.isConnected, document.activeElement===${bx('setClinSvc', 'b1', 1)}])`), J([400001, true, true]));
+    ev(`document.activeElement.dispatchEvent(new Event('pointerup', {bubbles:true})); 'ok'`); await tick(30);
+    // the field just left: Chromium can leave the keyboard on it as its change fires, and the redraw then gives it back -- never
+    const left = `(function(){ var A=${bx('setClinSvc', 'b0', 0)}, B=${bx('setClinSvc', 'b0', 1)}; A.focus(); A.value='555'; A.dispatchEvent(new Event('input', {bubbles:true}));
+      B.dispatchEvent(new Event('pointerdown', {bubbles:true})); A.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`;
+    ev(left);
+    chk(name, 'a press', 'with the keyboard still on the field just left as its change redraws: the keyboard goes to the box pressed, not back to that field',
+      ev(`JSON.stringify([clinVec('P', clinList('P')[0])[0], (document.activeElement.getAttribute('onchange')||'').slice(0, 22)])`), J([555, 'setClinSvc("P","b0",1,']));
+    ev(`document.activeElement.dispatchEvent(new Event('pointerup', {bubbles:true})); 'ok'`); await tick(30);
+    // a drill button pressed after typing: its press is delivered once, when the pointer comes up on it
+    const btn = `document.querySelector('#row-P button[onclick^="clinToRow("]')`;
+    ev(`__cf=0; ${press(bx('setClinSvc', 'b0', 2), btn)}`);
+    ev(`(function(){ var b=${btn}; b.dispatchEvent(new Event('pointerup', {bubbles:true})); return 'ok'; })()`); await tick(40);
+    chk(name, 'a press', 'typed, then ↑ Apply grid to row pressed: the figure is stored and the button asks its question once, on that press',
+      ev(`JSON.stringify([clinVec('P', clinList('P')[0])[2], __cf, S.alloc.P && S.alloc.P.m])`), J([400001, 1, 's']));
+    ev(`__cf=0; ${press(bx('setClinSvc', 'b0', 2), btn)}`);
+    ev(`(function(){ var b=${btn}; b.dispatchEvent(new Event('pointerup', {bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`); await tick(40);
+    chk(name, 'a press', 'CONTROL: and where the browser delivers that click itself, it is not delivered a second time', ev(`__cf`), 1);
+    // the RECORD panel's own boxes are redrawn by the same redraw: a press there survives too
+    ev(`setCur('P'); 'ok'`);
+    ev(press(bx('setClinSvc', 'b1', 2), `__by('#inspector', 'setAsk("P",1,')`));
+    chk(name, 'a press', 'typed in the drill, then the RECORD panel’s ANG value pressed: the panel’s box has the keyboard after the redraw',
+      ev(`(document.activeElement.getAttribute('onchange')||'').slice(0, 12)`), 'setAsk("P",1');
+    ev(`document.activeElement.dispatchEvent(new Event('pointerup', {bubbles:true})); 'ok'`); await tick(30);
+    // CONTROL: a redraw that put the keyboard somewhere on purpose keeps it there
+    ev(`(function(){ var B=${bx('setClinSvc', 'b1', 2)}; B.dispatchEvent(new Event('pointerdown', {bubbles:true})); document.getElementById('q').focus(); render(); return 'ok'; })()`);
+    chk(name, 'a press', 'CONTROL: a press whose redraw left the keyboard on purpose elsewhere (the search box here) is not taken from there', ev(`document.activeElement.id`), 'q');
+    ev(`document.dispatchEvent(new Event('pointerup', {bubbles:true})); 'ok'`); await tick(30);
+  });
+
+  // ---- 7. a redraw while a row figure is half typed commits nothing; left, it is applied
+  part('row hold', () => {
+    const { ev } = mk();
+    // Chromium fires change on the focused field as innerHTML removes it: #list's rows are replaced here with that change fired
+    const redraw = sel => `(function(){ var A=${sel}, L=document.getElementById('list'), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+      Object.defineProperty(L, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){ if(A.isConnected) A.dispatchEvent(new Event('change', {bubbles:true})); D.set.call(this, v); }});
+      try{ render(); } finally { delete L.innerHTML; } window.__A=A; return 'ok'; })()`;
+    const typed = (sel, v) => `(function(){ var A=${sel}; A.focus(); A.value=${J(v)}; A.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`;
+    ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+    const al = `document.querySelector('#row-Q input[onchange^="setAlloc("]')`;
+    ev(typed(al, '12')); ev(redraw(al));
+    chk(name, 'row hold', 'Fund’s allocation half typed (12) and the rows redrawn: nothing is applied, and the new box holds the 12 with the keyboard',
+      ev(`JSON.stringify([S.alloc.Q===undefined, ${al}.value, document.activeElement===${al}, ${al}!==__A])`), J([true, '12', true, true]));
+    ev(`(function(){ var a=${al}; a.value='123456'; a.dispatchEvent(new Event('input', {bubbles:true})); a.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+    chk(name, 'row hold', 'CONTROL: typed on and left, the whole figure is applied', ev(`JSON.stringify(S.alloc.Q)`), J({ m: 't', v: 123456 }));
+    // typed whole, then a redraw, then Enter with nothing typed since: the browser fires no change for a value a script put back
+    ev(typed(al, '777')); ev(redraw(al)); const mid = ev(`JSON.stringify(S.alloc.Q)`);
+    ev(`(function(){ var a=${al}; a.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); return 'ok'; })()`);
+    chk(name, 'row hold', 'typed whole (777) and redrawn: still 123,456; then Enter with nothing typed since: the 777 is applied',
+      J([mid, ev(`JSON.stringify(S.alloc.Q)`)]), J([J({ m: 't', v: 123456 }), J({ m: 't', v: 777 })]));
+    ev(`uiMode='review'; uiApply(); render(); 'ok'`);
+    const rk = `document.querySelector('#row-Q input[onchange^="setRank("]')`;
+    ev(typed(rk, '1')); ev(redraw(rk)); const o1 = ev(`JSON.stringify(S.order)`);
+    chk(name, 'row hold', 'the rank box half typed and redrawn: the order is as it was', o1, J(['P', 'Q']));
+    ev(`(function(){ var a=${rk}; a.blur(); return 'ok'; })()`);
+    chk(name, 'row hold', 'and left with nothing typed since: the rank is applied then, Q first', J([o1, ev(`JSON.stringify(S.order)`)]), J([J(['P', 'Q']), J(['Q', 'P'])]));
+    const cr = bx('clinSetAsk', 'b0', 1);
+    ev(typed(cr, '9')); ev(redraw(cr));
+    chk(name, 'row hold', 'a CLIN request half typed and redrawn: the request is as it was, the box holds the 9', ev(`JSON.stringify([clinList('P')[0].ask[1], ${cr}.value])`), J([200, '9']));
+  });
+
+  // ---- 8. the RECORD panel's hold applies a figure put back once it is left with nothing typed since (it was silent)
+  part('panel hold', () => {
+    const { ev } = mk();
+    ev(`setCur('Q'); render(); 'ok'`);
+    const q = `__by('#inspector', 'setAsk("Q",0,')`;
+    ev(`(function(){ var a=${q}; a.focus(); a.value='4321'; a.dispatchEvent(new Event('input', {bubbles:true})); render(); return 'ok'; })()`);
+    chk(name, 'panel hold', 'CONTROL (v2.08): the RECORD panel holds the typing across a redraw, applying nothing', ev(`JSON.stringify([itemById('Q').ask[0], ${q}.value])`), J([100, '4321']));
+    ev(`(function(){ var a=${q}; a.blur(); return 'ok'; })()`);
+    chk(name, 'panel hold', 'left with nothing typed since, the figure put back is applied', ev(`itemById('Q').ask[0]`), 4321);
+  });
+
+  // ---- 9. the ways into the drill from elsewhere open it where it can be used
+  part('routes', () => {
+    const { ev } = mk();
+    const st = `(function(){ var a=document.activeElement, d=document.querySelector('#row-P .clin-detail');
+      return [!!clinOpen.P, !!d, document.getElementById('inspector').classList.contains('open'), document.getElementById('drawerScrim').classList.contains('on'),
+        erOn(), matOpen, !!(a && d && d.contains(a)), (a && a.getAttribute('onchange')||'').slice(0, 22)].join(','); })()`;
+    for (const shut of [true, false]) {
+      ev(`clinOpen.P=${!shut}; setCur('P'); render(); openEdit('P','rec'); dlgSync(); 'ok'`);
+      ev(`document.querySelector('#editPanel button[onclick="erGo(\\'clin\\')"]').click(); dlgSync(); 'ok'`);
+      chk(name, 'routes', `the edit box’s Open the 🧾 CLIN drill (drill ${shut ? 'shut' : 'open'}): the drill is open, the box and the sliding panel are closed, the keyboard is on its first box`,
+        ev(st), 'true,true,false,false,false,false,true,clinSetAsk("P","b0",0,');
+    }
+    for (const k of [1, 2]) {
+      ev(`matOpen=true; matPmo='ALL'; matMissing=''; render(); dlgSync(); 'ok'`);
+      ev(`[].filter.call(document.querySelectorAll('#matBody button'), function(b){ return /^(clinGo|toggleClin)\\("P"\\)/.test(b.getAttribute('onclick')||''); })[0].click(); dlgSync(); 'ok'`);
+      chk(name, 'routes', `the Classify grid’s Open the 🧾 CLIN drill (press ${k}): the grid is closed, the drill is open -- never shut -- and has the keyboard`,
+        ev(st), 'true,true,false,false,false,false,true,clinSetAsk("P","b0",0,');
+    }
+    ev(`document.getElementById('q').value='zzz-no-such'; render(); clinGo('P'); 'ok'`);
+    chk(name, 'routes', 'a prime the search hides: the drill is left open for when it shows, and the message says why it is not on screen',
+      ev(`JSON.stringify([!!clinOpen.P, /not in the list as it is searched or filtered/.test(document.getElementById('shareStat').textContent)])`), J([true, true]));
+  });
+
+  // ---- 10. a row's ⋯ menu left open does not eat the first click into the drill
+  part('row menu', () => {
+    const { ev } = mk();
+    ev(`rowMenuId='Q'; render(); window.__E=${bx('setClinSvc', 'b0', 2)}; __E.focus(); __E.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); 'ok'`);
+    chk(name, 'row menu', 'with Q’s ⋯ menu open, a click into P’s CLIN box: the box is still there with the keyboard, and the menu is shut',
+      ev(`JSON.stringify([__E.isConnected, document.activeElement===__E, rowMenuId, !!document.querySelector('.rowmenu.open')])`), J([true, true, null, false]));
+  });
+
+  // ---- 11. in a PMO copy the drill's WBS button is dimmed with the rest of the drill
+  part('copy', () => {
+    const { ev } = mk();
+    // a CLIN the file carries (the board's data CLINs above are put in memory only, and a copy is opened from the file)
+    ev(`S.clinNew={P:[{key:'n1', clin:'0003', desc:'Added', ccar:'', ask:[10,0,0]}]}; save(); 'ok'`);
+    const html = ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const C = boot({ html });
+    const css = C.ev(`[].map.call(document.querySelectorAll('style'), function(s){ return s.textContent; }).join('')`);
+    chk(name, 'copy', 'the copy dims a CLIN’s WBS button, and the request boxes by their writer', J([css.indexOf(`[onclick^='toggleWbs("clin"']`) >= 0, css.indexOf('input[onchange^="clinSetAsk("]') >= 0]), J([true, true]));
+    C.ev(`clinOpen={P:true}; render(); 'ok'`);
+    chk(name, 'copy', 'CONTROL: and the copy’s CLIN WBS button is what that rule matches', C.ev(`!!document.querySelector('#row-P .clin-detail [onclick^=\\'toggleWbs("clin"\\']')`), true);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.09 W1 ====
 
 // ==== v2.09 W2 (item 126): a PMO copy's five years ====

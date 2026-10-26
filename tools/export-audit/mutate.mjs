@@ -3028,8 +3028,9 @@ const MUTATIONS = [
   { id: "v197w1-guard-setClinSvc", area: "setClinSvc", what: "an entry that cannot be taken changes a CLIN allocation (the editor’s guard is gone)",
     find: "  if(amtNo(v, val, 'The CLIN allocation for '+(SVC[j]||'this service'))) return;\n",
     repl: "" },
-  { id: "v197w1-guard-clinSetReq", area: "clinSetReq", what: "an entry that cannot be taken changes a CLIN request (the editor’s guard is gone)",
-    find: "  if(amtNo(v, val, 'The CLIN request')) return;\n",
+  // v2.09 W1: retargeted — the CLIN request is typed per service (clinSetAsk, item 125); its guard is the same line there
+  { id: "v197w1-guard-clinSetReq", area: "clinSetAsk", what: "an entry that cannot be taken changes a CLIN request (the editor’s guard is gone)",
+    find: "  if(amtNo(v, val, 'The CLIN request for '+(SVC[j]||'this service'))) return;\n",
     repl: "" },
   { id: "v197w1-guard-wbsSetVal", area: "wbsSetVal", what: "an entry that cannot be taken changes a WBS figure (the editor’s guard is gone)",
     find: "  if(amtNo(n, val, 'The WBS figure for '+(SVC[j]||'this service'))) return;\n",
@@ -3051,9 +3052,9 @@ const MUTATIONS = [
   { id: "v197w1-buy-product-unbounded", area: "setBuy", what: "a quantity times a unit cost over the bound is taken",
     find: "    if(ok(q) && ok(c) && buyDollars(q, c)===null){",
     repl: "    if(false){" },
-  { id: "v197w1-clin-req-scaled", area: "clinSetReq", what: "a CLIN request is spread into fractions of a dollar again",
-    find: "  const ask = apportion(v, cur>0 ? c.ask : SVC.map(_=>1));",
-    repl: "  const ask = cur>0 ? c.ask.map(x=>x*v/cur) : SVC.map(_=>v/SVC.length);" },
+  // "v197w1-clin-req-scaled": v2.09 W1: retired as obsolete — a CLIN's request is no longer a total spread across services
+  // (item 125: typed per service, clinSetAsk), so the spread it broke is gone; there is no line left for it to break. The
+  // whole-dollar rule on the drill is held by v209-w1-fill-fractions and v209-w1-apply-fractions. Not declared equivalent.
   { id: "v197w1-eff-negative", area: "eff", what: "the allocation total printed in the Priority Drill counts a negative from a file below zero",
     find: "  if(a.m==='t') return Math.max(0, a.v);\n  return a.v.reduce((x,y)=>x+Math.max(0, y),0);",
     repl: "  if(a.m==='t') return a.v;\n  return a.v.reduce((x,y)=>x+y,0);" },
@@ -7492,8 +7493,8 @@ const MUTATIONS = [
   { id: 'v208-f2-held-not-put-back', area: "inspectorBody", what: "a RECORD panel redraw puts back the stored figure over what is being typed (F2)",
     find: "    if(held.length) inspHeldBack(el, held); }", repl: "    }" },   // v2.08 second review: retargeted
   { id: 'v208-f2-typing-not-marked', area: "inspectorBody", what: "typing in the RECORD panel is never marked as held, so a redraw replaces it (F2)",
-    find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);",
-    repl: "" },
+    find: "document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list')) t.__pend=true; }, true);",
+    repl: "" },   // v2.09 W1: retargeted — the same listener marks the rows too (item 125)
   { id: 'v208-f2-keyboard-lost', area: "inspHeldBack", what: "a redraw keeps the typing but takes the keyboard out of the field",
     find: "    if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}", repl: "" },
   // ==== end v2.08 item 122 ====
@@ -7546,8 +7547,9 @@ const MUTATIONS = [
     repl: "  const rn=erEl('erReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;" },
   { id: 'v208-rv-wbs-one-line-unsplittable', area: "erUpdate", what: "a WBS of one line can no longer be split from the record",
     find: "if(b[0]){ b[0].hidden=prime || !lines;", repl: "if(b[0]){ b[0].hidden=prime || !split;" },
-  { id: 'v208-rv-clin-toggled-shut', area: "erGo", what: "Open the CLIN drill closes a drill that was already open",
-    find: "  if(what==='clin'){ clinOpen[id]=true; render(); } else toggleWbs('req', id, '');", repl: "  if(what==='clin') toggleClin(id); else toggleWbs('req', id, '');" },
+  // v2.09 W1: retargeted — erGo('clin') opens the drill through clinGo (item 125), where the drill is opened, never toggled
+  { id: 'v208-rv-clin-toggled-shut', area: "clinGo", what: "Open the CLIN drill closes a drill that was already open",
+    find: "  clinOpen[id]=true; curRow=id;\n  render();", repl: "  clinOpen[id]=!clinOpen[id]; curRow=id;\n  render();" },
   { id: 'v208-rv-no-way-to-panel', area: "erGo", what: "the way to the value and budgets closes the box and leaves the keyboard nowhere",
     find: "if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); }", repl: "if(i){ }" },
   { id: 'v208-rv-rectag-fixed', area: "erUpdate", what: "the record name's tag says it is from the CCaR list whatever it was read from",

@@ -219,7 +219,12 @@ table.clingrid td{padding:1px 5px;text-align:right;font-variant-numeric:tabular-
 table.clingrid td.cl{text-align:left;font-weight:700;color:var(--ink);white-space:nowrap}
 table.clingrid td.cd{text-align:left;color:var(--mut);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 table.clingrid td.cc{text-align:left;color:var(--gold)}
-table.clingrid td.cr{color:var(--dim)}
+/* v2.09 (item 125): a CLIN is two lines, its request then its allocation; the label names which, and the line between them
+   is dropped so the two read as one CLIN */
+table.clingrid td.clbl{color:var(--dim);text-align:left;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+table.clingrid tr.creq td:not([rowspan]){border-bottom:0}
+table.clingrid tr.cval td{color:var(--mut)}
+table.clingrid td.inf{color:var(--mut)}
 table.clingrid td.ct{font-weight:700}
 /* v1.98 (item 83): the conformance run opens a CLIN drill now and found these, unmeasured until then: the "—" at
    1.5-2.3:1 (1.4.3), the in-cell buttons' edges at 1.2-1.8:1 (1.4.11) and the row's 🧾 button 22px tall (2.5.8). */
@@ -234,7 +239,7 @@ table.clingrid td.cx .qb:hover{color:var(--red);border-color:var(--red)}
 .cnew{font-size:7.5px;font-weight:800;background:var(--green);color:var(--onGold);border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .cmod{font-size:9px;color:var(--gold);margin-left:4px}
 .crestore{padding:6px 2px 0;font-size:10px;color:var(--mut);display:flex;gap:5px;align-items:center;flex-wrap:wrap}
-table.clingrid input.reqin{color:var(--mut);min-width:88px}
+table.clingrid input.reqin{color:var(--mut)}
 table.clingrid input{width:100%;min-width:74px;text-align:right;font-size:10px;padding:1px 4px;
   font-variant-numeric:tabular-nums;background:var(--panel);border:1px solid var(--line);border-radius:3px;color:var(--ink)}
 table.clingrid input:focus{border-color:var(--gold);outline:none}
@@ -2719,7 +2724,9 @@ if(SANDBOX){ try{ const _st=document.createElement('style');
     +'select[onchange^="setFsrc("],input[onchange^="setAbsorber("],input[onchange^="setAbsorbFloor("],button[onclick^="setAbsorber("]{pointer-events:none;opacity:.5}'
     // v2.08 (F6): the CLIN drill is the portfolio team's -- nothing in it travels with a submittal (clinLocked)
     +'[onclick^="clinAdd("],[onclick^="clinSetField("],[onclick^="clinRemove("],[onclick^="clinRestore("],'
-    +'[onclick^="clinResetGrid("],[onclick^="clinFromRow("],[onclick^="rcnClinReset("],input[onchange^="clinSetReq("],input[onchange^="setClinSvc("],'
+    +'[onclick^="clinResetGrid("],[onclick^="clinFromRow("],[onclick^="rcnClinReset("],input[onchange^="clinSetAsk("],input[onchange^="setClinSvc("],'
+    // v2.09 (item 125): and a CLIN's WBS, whose panel refuses every write in a copy (wbsStore) -- it looked live, and opened
+    +'[onclick^=\'toggleWbs("clin"\'],'
     +'select[onchange^="setRcnClin"]{pointer-events:none;opacity:.5}'
     +'[onclick^="setFsrc("],[onclick^="zeroPMO("],[onclick^="restorePMO("],[onclick^="clinToRow("],'
     +'[onclick^="resetAlloc("],[onclick^="zeroSpread("],[onclick^="realignAll("],[onclick*="convertAllToSplit"]'
@@ -25108,6 +25115,27 @@ function clinSplitRow(id){
 }
 let clinOpen = {};
 function toggleClin(id){ clinOpen[id]=!clinOpen[id]; render(); }
+// v2.09 (item 125): THE DRILL OPENED FROM ELSEWHERE OPENS WHERE IT CAN BE USED. The edit box's way in drew it under the RECORD
+// panel and its scrim, with the keyboard left in the panel; the Classify grid's toggled it behind the still-open grid, so a
+// second press shut it again. Both come here: whatever is over the row is closed (the edit box, the Classify grid, the panel
+// sliding over), the drill is opened -- never toggled -- and the keyboard goes to its first box, scrolled into view. A
+// closed sliding panel is only moved off screen, so the keyboard must not be left in it. The row's own 🧾 still toggles.
+function clinGo(id){
+  if(!clinApplies(id)) return;
+  try{ if(typeof erOn==='function' && erOn()) erClose(); }catch(e){}
+  try{ matOpen=false; }catch(e){}
+  try{ drawerClose(); }catch(e){}
+  clinOpen[id]=true; curRow=id;
+  render();
+  const r=document.getElementById('row-'+id), d=r? r.querySelector('.clin-detail') : null;
+  if(!d){ const it0=itemById(id); setStat('\u26a0 '+esc(it0? dispTitle(it0) : id)+'\u2019s 🧾 CLIN drill opens in its row, and '
+      +((typeof uiMode!=='undefined' && uiMode==='brief')? 'Brief draws no drill.' : 'the row is not in the list as it is searched or filtered: clear that and it is open there.'));
+    return; }
+  // in a PMO copy the drill is read only (clinLocked): the keyboard goes to the row's 🧾, not into a box that refuses
+  const f=SANDBOX? r.querySelector('.clinbtn') : (d.querySelector('input') || d.querySelector('button'));
+  try{ (f || d).scrollIntoView({block:'center'}); }catch(e){}
+  try{ if(f) f.focus({preventScroll:true}); }catch(e){}
+}
 function clinAskTot(c){ return (c.ask||[]).reduce((a,b)=>a+b,0); }
 
 // ---- the working CLIN list -------------------------------------------------------------------
@@ -25239,7 +25267,7 @@ function clinAdd(pid, typedNum, typedDesc){
       while(taken.has(k)){ i++; k='n'+i; }
       L.push({key:k, clin:num, desc:rd.v, ccar:'', ask:SVC.map(_=>0)});
       save(); render();
-      setStat('Added CLIN <b>'+esc(num)+'</b>. Set its requested amount and allocate it by service in the grid.');
+      setStat('Added CLIN <b>'+esc(num)+'</b>. Type its request service by service; each service\u2019s allocation starts as that request.');
     });
   });
 }
@@ -25265,18 +25293,24 @@ function clinSetField(pid,key,field,typed){
     save(); render();
   });
 }
-// The requested amount is a total, spread across services in the line's existing shape — evenly
-// when it has none yet, which is the case for a line you just added.
-function clinSetReq(pid,key,val){
+// v2.09 (item 125, Brad: "a request per service, typed directly"): A CLIN'S REQUEST IS TYPED SERVICE BY SERVICE. It was one
+// total, spread in the line's existing shape -- evenly over every service on the board for a line just added, so a USAF-only
+// prime's new CLIN asked STOVL, USMC CV and USN for money (measured: $90,000 became $15,000 on each of six). Each service's box
+// writes that service's request (c.ask[j]) and nothing else; the line's total is read from them. The request and the
+// allocation grid stay two sets of figures (Brad), with one exception for a line just added: its grid has nothing to be
+// independent OF yet, so a service's grid cell starts as that service's first request -- the first figure typed into a
+// service the line asked nothing of, on a grid cell nobody has given a figure. From then on the two stay apart, and
+// "vs request" shows the gap. (The grid used to be captured at $0 as the new line was first drawn, and read the whole
+// request short until ↺ Reset.)
+function clinSetAsk(pid,key,j,val){
   if(clinLocked()) return;
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   const v=parseAmt(val);
-  if(amtNo(v, val, 'The CLIN request')) return;
-  if(v===null||v<0){ render(); return; }
-  const cur=clinAskTot(c);
-  // v1.97 W1: whole dollars that add up to exactly what was typed (it was x*v/cur, a fraction on every service)
-  const ask = apportion(v, cur>0 ? c.ask : SVC.map(_=>1));
-  if(c.added){ const row=clinNew(pid).find(x=>x.key===key); if(row) row.ask=ask; }
+  if(amtNo(v, val, 'The CLIN request for '+(SVC[j]||'this service'))) return;
+  const was=+c.ask[j]||0, now=(v===null)? 0 : v;
+  const ask=SVC.map(function(sv,i){ return +c.ask[i]||0; }); ask[j]=now;
+  if(c.added){ const row=clinNew(pid).find(x=>x.key===key); if(row) row.ask=ask;
+    const g=clinVec(pid,c); if(!was && !(+g[j])) g[j]=now; }
   else { const m=clinMeta(pid); if(!m[key]) m[key]={}; m[key].ask=ask; }
   save(); render();
 }
@@ -25318,15 +25352,21 @@ function clinFromRow(pid){
   if(!confirm('Fill the CLIN grid from the row allocation?\n\n'
     +'Each service’s row amount is spread across the CLINs in proportion to what they requested. '
     +'Anything you typed into the grid is replaced.')) return;
+  // v2.09 (item 125): WHOLE DOLLARS. Each service's row figure was spread by hand, row*ask/askJ, and the grid held fractions
+  // (33.333333333333336 a CLIN, measured). apportion() hands out whole dollars that add up to the row figure exactly.
   SVC.forEach((sv,j)=>{
-    const askJ=L.reduce((a,c)=>a+(c.ask[j]||0),0);
-    L.forEach(c=>{ clinVec(pid,c)[j] = askJ>0? (row[j]||0)*(c.ask[j]||0)/askJ : 0; });
+    const w=L.map(c=>+c.ask[j]||0);
+    const part=w.some(x=>x>0)? apportion(D$(row[j]||0), w) : L.map(_=>0);
+    L.forEach((c,ci)=>{ clinVec(pid,c)[j] = part[ci]; });
   });
   save(); render(); flash(pid);
 }
 function clinToRow(pid){
   if(allocLocked()) return;
-  const v=clinSvcTot(pid);
+  // v2.09 (item 125): WHOLE DOLLARS. The grid's sums went into the row allocation as they stood, so a grid holding fractions
+  // (an older Fill from row) wrote 6.999999999999999 there. The grid's total, in whole dollars, is shared out by apportion()
+  // in the shape of its per-service sums: whole dollars on every service, adding up to the grid's total.
+  const g=clinSvcTot(pid), v=apportion(D$(g.reduce((a,b)=>a+b,0)), g);
   if(!confirm('Set the row allocation to what the CLIN grid adds up to?\n\n'
     +SVC.map((sv,j)=>'  '+sv+'  '+fM(v[j])).join('\n')
     +'\n\nThis is what the board will fund, and what the cutlines and exports will use.')) return;
@@ -25456,9 +25496,53 @@ function recSec(t){ return {sec:t}; }
 // A PRESS ELSEWHERE THAT TAKES THE KEYBOARD AWAY chooses only once its click has done its work (v2.08 second review). Chosen
 // as the blur came -- on mousedown -- the move redrew Classify before mouseup, the control pressed was gone, and its click
 // (bulk Apply, another row's Prime / OGC) did nothing under a status line that read as if it had.
-let _selPtrDown=false;
-document.addEventListener('pointerdown', function(){ _selPtrDown=true; }, true);
-['pointerup','pointercancel'].forEach(function(t){ document.addEventListener(t, function(){ setTimeout(function(){ _selPtrDown=false; }, 0); }, true); });
+// v2.09 (item 125): THE SAME CASE, EVERYWHERE A FIELD IS LEFT BY A PRESS. A figure typed and left for the next box with the
+// mouse is applied on the mousedown, and its redraw rebuilt the rows under the pointer: the box pressed was gone before it
+// took the keyboard, so every second figure typed by click-to-move went nowhere, and a drill button pressed after typing did
+// nothing (measured on every layout). The press is honoured instead: its control is noted as the pointer goes down, and if a
+// redraw takes it away before its click, the keyboard goes to the control standing in its place once the WHOLE redraw is
+// done (the RECORD panel's too: ptrAfterRender, from render()), and a button's press is delivered once, when the pointer
+// comes up on it. Found by what it calls -- its handler names the requirement, the CLIN and the service -- in the nearest
+// element with an id, never guessed by position: a figure typed into the wrong box is the one thing this must not do. The
+// field just left never gets the keyboard back (the v1.92 rule), and a redraw that put the keyboard somewhere on purpose (a
+// box that opened) keeps it there. One record of the press for both cases: PTR.down is what the office cell waits on.
+var PTR={down:false, at:null, clicked:false, lost:null, t:0};
+function ptrSig(el){
+  const h=el && el.getAttribute && (el.getAttribute('onchange') || el.getAttribute('onclick') || el.getAttribute('oninput'));
+  if(!h) return null;
+  let box=el.parentElement; while(box && !box.id) box=box.parentElement;
+  const t=el.tagName.toLowerCase(), same=function(x){ return (x.getAttribute('onchange') || x.getAttribute('onclick') || x.getAttribute('oninput'))===h; };
+  const all=box? [].filter.call(box.querySelectorAll(t), same) : [];
+  return {el:el, t:t, h:h, box:box? box.id : '', n:all.indexOf(el)};
+}
+function ptrLoc(t){ const a=t && t.closest && t.closest('input,select,textarea,button'); return a? ptrSig(a) : null; }
+function ptrFind(m){
+  const box=m.box? document.getElementById(m.box) : null; if(!box) return null;
+  const all=[].filter.call(box.querySelectorAll(m.t), function(x){ return (x.getAttribute('onchange') || x.getAttribute('onclick') || x.getAttribute('oninput'))===m.h; });
+  return (m.n>=0 && all[m.n])? all[m.n] : (all.length===1? all[0] : null);
+}
+function ptrAfterRender(){
+  const P=PTR.at;
+  if(!PTR.down || PTR.clicked || !P || !P.el || P.el.isConnected || Date.now()-PTR.t>3000) return;   // a press, still going
+  PTR.at=null;
+  const n=ptrFind(P); if(!n) return;
+  const now=document.activeElement, left=(typeof _chgFrom!=='undefined')? _chgFrom : null;
+  const ls=(left && left!==n)? ptrSig(left) : null, ns=(now && now.getAttribute)? ptrSig(now) : null;
+  // free: the keyboard is on nothing, or back on the field just left (a redraw put it there, not the person)
+  const free=!now || now===document.body || now===document.documentElement || !!(ls && ns && ls.t===ns.t && ls.h===ns.h);
+  if(!free) return;
+  try{ n.focus({preventScroll:true}); }catch(e){}
+  if(n.tagName==='BUTTON') PTR.lost=n;
+}
+document.addEventListener('pointerdown', function(e){ PTR.down=true; PTR.clicked=false; PTR.lost=null; PTR.t=Date.now();
+  try{ PTR.at=ptrLoc(e.target); }catch(x){ PTR.at=null; } }, true);
+window.addEventListener('click', function(e){ PTR.clicked=true;
+  if(PTR.lost && e.target && e.target.nodeType===1 && PTR.lost.contains(e.target)) PTR.lost=null; }, true);   // the browser delivered it
+['pointerup','pointercancel'].forEach(function(t){ document.addEventListener(t, function(e){
+  const on=(t==='pointerup')? e.target : null;
+  setTimeout(function(){ const L=PTR.lost; PTR.down=false; PTR.at=null; PTR.lost=null;
+    // a press lost to a redraw is a click only if the pointer came up on the control standing in its place
+    if(L && on && L.isConnected && L.contains(on)) try{ L.click(); }catch(x){} }, 0); }, true); });
 function selNavKey(e, el){
   const k=e && e.key;
   if(k==='Enter'){ if(el.__nav){ el.__nav=false; if(e.preventDefault) e.preventDefault(); el.dispatchEvent(new Event('change')); } return; }
@@ -25471,7 +25555,7 @@ function selNavBlur(el){
   el.__nav=false;
   if(!el.isConnected || el.value===el.getAttribute('data-v')) return;
   const go=function(){ if(el.value!==el.getAttribute('data-v')) el.dispatchEvent(new Event('change')); };
-  if(!_selPtrDown){ go(); return; }
+  if(!PTR.down){ go(); return; }
   let done=false;
   const fire=function(){ if(done) return; done=true; window.removeEventListener('click', fire); setTimeout(go, 0); };
   window.addEventListener('click', fire);                                   // after the pressed control's own click
@@ -25515,7 +25599,7 @@ function recFields(id, it){
   F.push(recSec('Work breakdown'));
   if(ptypeOf(id)==='PRIME'){
     F.push(recF('wbs', true,
-      recBtn('toggleClin('+jsa(id)+')', 'Open the 🧾 CLIN drill',
+      recBtn('clinGo('+jsa(id)+')', 'Open the 🧾 CLIN drill',
              'A prime is broken down per CLIN, so the WBS is logged there'),
       'logged per CLIN — one thing, one place'));
   } else {
@@ -26026,7 +26110,7 @@ function clinRcnCell(pid, c){
   const ex=svs.filter(function(sv){ return !!clinRcnSvcOf(pid, c.key)[sv]; });
   const gaps=clinRcnGaps(pid, c), open=!!rcnClinOpen[pid+'|'+c.key];
   const bad=(mine && (!rcnEntry(mine) || !rcnFits(rcnEntry(mine), svs)));
-  return '<td class="cw rcnc"><select class="cesel'+(bad?' rcnbad':'')+'" style="max-width:190px" '
+  return '<td class="cw rcnc" rowspan="2"><select class="cesel'+(bad?' rcnbad':'')+'" style="max-width:190px" '
     +'onchange="setRcnClin('+jsa(pid)+','+jsa(c.key)+',this.value)" '
     +'aria-label="RCN / EEIC for CLIN '+esc(c.clin)+'" '
     +'title="CLIN '+esc(c.clin)+'’s RCN/EEIC — the standard for every Air Force service on it'
@@ -26081,36 +26165,51 @@ function clinTable(it){
   const diffT=rowT-gridT;
   const dcell=v=>Math.abs(v)<0.5 ? '<td class="ok">—</td>'
     : '<td class="off">'+(v>0?'+':'−')+fMc(Math.abs(v))+'</td>';
+  // v2.09 (item 125, Brad: "show the prime's requirement value, never enforce it"): the CLINs' requests by service beside the
+  // prime's own requirement value, and the difference. Information only -- nothing here sets the requirement value, and the
+  // grid still feeds none of the funding math. (A prime's CLINs asked $510,000 against a $4,109,485 requirement on the test
+  // board, and nothing said so.)
+  const rq=SVC.map((sv,j)=>L.reduce((a,c)=>a+(+c.ask[j]||0),0)), rqT=rq.reduce((a,b)=>a+b,0);
+  const rv=SVC.map((sv,j)=>+it.ask[j]||0), rvT=rv.reduce((a,b)=>a+b,0);
+  const icell=v=>Math.abs(v)<0.5 ? '<td class="ok">—</td>'
+    : '<td class="inf">'+(v>0?'+':'−')+fMc(Math.abs(v))+'</td>';
+  const fig=x=>(+x? Math.round(+x).toLocaleString() : '');
   const aw=S.awards[pid];
   const isInc=aw&&aw.mode==='inc';
   const gone=clinRemovedList(pid);
 
   const rows=L.map(c=>{
     const v=clinVec(pid,c), rt=v.reduce((a,b)=>a+b,0), at=clinAskTot(c), d=rt-at;
-    return '<tr>'
-      +'<td class="cl"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'clin\')" '
+    // v2.09 (item 125): TWO LINES A CLIN, ONE SET OF SERVICE COLUMNS. The first line is its request, typed service by service;
+    // the second its allocation, the grid. The CLIN's own cells span both, so the drill is no wider than it was.
+    return '<tr class="creq">'
+      +'<td class="cl" rowspan="2"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'clin\')" '
         +'title="click to change the CLIN number">'+esc(c.clin)+'</button>'
         +(c.added? '<span class="cnew">NEW</span>' : (c.edited? '<span class="cmod" title="changed from the board data">✎</span>':''))+'</td>'
-      +'<td class="cd"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
+      +'<td class="cd" rowspan="2"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
         +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</button></td>'
-      +'<td class="cc"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
+      +'<td class="cc" rowspan="2"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
         +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button>'
         // v2.04 (item 108): each CLIN's own Record Name, from the CCaR list
         +((c.ccar && ccarNameOfNum(c.ccar))? '<div class="ccrn" title="CCaR Record Name, from the CCaR records list">'+esc(ccarNameOfNum(c.ccar))+'</div>' : '')+'</td>'
-      +'<td class="cr"><input class="reqin" value="'+(at? Math.round(at).toLocaleString():'')+'" placeholder="0" '
-        +'onchange="clinSetReq('+jsa(pid)+','+jsa(c.key)+',this.value)" onfocus="this.select()" '
-        +'title="what this CLIN asks for — spread across services in its current shape"></td>'
-      +SVC.map((sv,j)=>'<td><input value="'+(v[j]? Math.round(v[j]).toLocaleString():'')+'" placeholder="0"'
-        +' onchange="setClinSvc('+jsa(pid)+','+jsa(c.key)+','+j+',this.value)" onfocus="this.select()"'
-        +' title="'+esc(sv+' — CLIN '+c.clin+' · requested '+fM(c.ask[j]||0))+'"></td>').join('')
-      +'<td class="ct">'+fM(rt)+'</td>'
-      +(Math.abs(d)<0.5? '<td class="ok">—</td>' : '<td class="off">'+(d>0?'+':'−')+fMc(Math.abs(d))+'</td>')
-      +'<td class="cw"><button type="button" class="nb cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
+      +'<td class="clbl">Request</td>'
+      +SVC.map((sv,j)=>'<td><input class="reqin" value="'+fig(c.ask[j])+'" placeholder="0"'
+        +' onchange="clinSetAsk('+jsa(pid)+','+jsa(c.key)+','+j+',this.value)" onfocus="this.select()"'
+        +' aria-label="'+esc(sv+' request, CLIN '+c.clin)+'" title="'+esc(sv+' — what CLIN '+c.clin+' asks for')+'"></td>').join('')
+      +'<td class="ct">'+fM(at)+'</td><td></td>'
+      +'<td class="cw" rowspan="2"><button type="button" class="nb cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
         +'title="log the WBS for this CLIN — several are allowed, split by service">'
         +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</button></td>'
       +(rcnApplies()? clinRcnCell(pid, c) : '')
-      +'<td class="cx"><button class="qb" onclick="clinRemove('+jsa(pid)+','+jsa(c.key)+')" '
+      +'<td class="cx" rowspan="2"><button class="qb" onclick="clinRemove('+jsa(pid)+','+jsa(c.key)+')" '
         +'title="'+(c.added?'delete this added CLIN':'remove this CLIN (restorable)')+'">✕</button></td>'
+      +'</tr>'
+      +'<tr class="calloc"><td class="clbl">Allocation</td>'
+      +SVC.map((sv,j)=>'<td><input value="'+fig(v[j])+'" placeholder="0"'
+        +' onchange="setClinSvc('+jsa(pid)+','+jsa(c.key)+','+j+',this.value)" onfocus="this.select()"'
+        +' aria-label="'+esc(sv+' allocation, CLIN '+c.clin)+'" title="'+esc(sv+' — CLIN '+c.clin+' · requested '+fM(c.ask[j]||0))+'"></td>').join('')
+      +'<td class="ct">'+fM(rt)+'</td>'
+      +(Math.abs(d)<0.5? '<td class="ok">—</td>' : '<td class="off">'+(d>0?'+':'−')+fMc(Math.abs(d))+'</td>')
       +'</tr>'
       +(rcnApplies()? clinRcnStrip(pid, c) : '');
   }).join('');
@@ -26120,7 +26219,8 @@ function clinTable(it){
     +(SANDBOX? '<div class="hint clin-locked" style="color:var(--amber)">In a PMO copy the CLIN breakdown is read only: '
       +'nothing in it travels back with \u2709 Submit input. To change a CLIN, tell the portfolio team.</div>' : '')
     +'<div class="ch"><b>🧾 CLIN ALLOCATION BY SERVICE</b>'
-      +'<span style="color:var(--dim);font-size:10px">'+L.length+' line'+(L.length===1?'':'s')+' · requested '+fM(primeReq(pid))+'</span>'
+      +'<span style="color:var(--dim);font-size:10px">'+L.length+' line'+(L.length===1?'':'s')+' · requested '+fM(primeReq(pid))
+        +' · requirement value '+fM(rvT)+'</span>'
       +'<span style="flex:1"></span>'
       +'<button class="qb" onclick="clinAdd('+jsa(pid)+')" title="add a CLIN to this contract">＋ Add CLIN</button>'
       +'<button class="qb" onclick="clinFromRow('+jsa(pid)+')" title="spread each service’s row allocation across the CLINs in the shape of their requests">↓ Fill from row</button>'
@@ -26133,13 +26233,19 @@ function clinTable(it){
       +'<button class="qb" onclick="clinResetGrid('+jsa(pid)+')" title="every CLIN allocation back to its requested amount — numbers, names and additions are kept">↺ Reset allocations</button>'
     +'</div>'
     +'<div class="cscroll"><table class="clingrid">'
-      +'<thead><tr><th>CLIN</th><th>Description</th><th>CCaR</th><th>Request</th>'
+      +'<thead><tr><th>CLIN</th><th>Description</th><th>CCaR</th><th></th>'
       +SVC.map(sv=>'<th>'+esc(sv)+'</th>').join('')
-      +'<th>CLIN total</th><th>vs request</th><th>WBS</th>'
+      +'<th>Total</th><th>vs request</th><th>WBS</th>'
       +(rcnApplies()? '<th>RCN / EEIC</th>' : '')
       +'<th></th></tr></thead><tbody>'+rows+'</tbody>'
       +'<tfoot>'
-      +'<tr class="ctot"><td colspan="3">CLIN GRID TOTAL</td><td>'+fM(primeReq(pid))+'</td>'
+      +'<tr class="ctot creqt"><td colspan="3">CLIN REQUESTS</td><td></td>'
+        +SVC.map((sv,j)=>'<td>'+fM(rq[j])+'</td>').join('')+'<td>'+fM(rqT)+'</td><td></td><td></td>'+CPAD+'<td></td></tr>'
+      +'<tr class="cval"><td colspan="3">REQUIREMENT VALUE (the prime’s, by service)</td><td></td>'
+        +SVC.map((sv,j)=>'<td>'+fM(rv[j])+'</td>').join('')+'<td>'+fM(rvT)+'</td><td></td><td></td>'+CPAD+'<td></td></tr>'
+      +'<tr class="cval cvdiff"><td colspan="3">REQUIREMENT − CLIN REQUESTS (information only)</td><td></td>'
+        +SVC.map((sv,j)=>icell(rv[j]-rq[j])).join('')+icell(rvT-rqT)+'<td></td><td></td>'+CPAD+'<td></td></tr>'
+      +'<tr class="ctot"><td colspan="3">CLIN GRID TOTAL (allocation)</td><td></td>'
         +SVC.map((sv,j)=>'<td>'+fM(cs[j])+'</td>').join('')+'<td>'+fM(gridT)+'</td><td></td><td></td>'+CPAD+'<td></td></tr>'
       +'<tr class="crow"><td colspan="3">ROW ALLOCATION (what the board funds)</td><td></td>'
         +SVC.map((sv,j)=>'<td>'+fM(row[j]||0)+'</td>').join('')+'<td>'+fM(rowT)+'</td><td></td><td></td>'+CPAD+'<td></td></tr>'
@@ -26152,6 +26258,9 @@ function clinTable(it){
     +'<div class="svc-hint">'
       +(rcnApplies()? 'A CLIN’s RCN / EEIC is the standard for every Air Force service on it; <b>by service</b> '
         +'gives one service its own, and a service whose money is on none says <b>not set</b>. ' : '')
+      +'Each CLIN’s <b>Request</b> is typed service by service, and its <b>Allocation</b> boxes are a separate set: '
+      +'<b>vs request</b> shows the gap. The requirement value and its difference from the CLIN requests are for '
+      +'information only; nothing here changes the requirement value. '
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
       +'contract. Your changes sit over the board data, so removed lines can be put back and a fresh '
       +'data import never overwrites them. '
@@ -27450,7 +27559,11 @@ try{
 }catch(e){}
 if(document.addEventListener) document.addEventListener('click', e=>{
   if(openMenu && e.target && e.target.closest && !e.target.closest('.menu')){ openMenu=null; syncBtns(); }
-  if(rowMenuId && e.target && e.target.closest && !e.target.closest('.rowmenu')){ rowMenuId=null; render(); }
+  // v2.09 (item 125): a click outside a row's open ⋯ menu shuts it IN PLACE, without a redraw. This listener runs before the
+  // row's own, and the redraw it made took the clicked control away first: the first click into a CLIN box, or on a row's
+  // title, while any ⋯ menu was open did nothing.
+  if(rowMenuId && e.target && e.target.closest && !e.target.closest('.rowmenu')){ rowMenuId=null;
+    [].forEach.call(document.querySelectorAll('.rowmenu.open'), function(m){ m.classList.remove('open'); }); }
 });
 // EVERY DROP-DOWN SHOWS ALL OF ITS ITEMS (v1.93, item 43). Measured on v1.92: a row's ⋯ menu was clipped by the
 // list's own scroll box -- 194px of it hidden on the last row, at any window size -- and Reports & exports (877px)
@@ -31537,8 +31650,8 @@ function erGo(what){
     const h='setAsk('+JSON.stringify(id)+',', i=[].filter.call(document.querySelectorAll('#inspector input[onchange]'), function(x){
       return (x.getAttribute('onchange')||'').indexOf(h)===0; })[0];
     if(i){ i.focus(); if(i.scrollIntoView) i.scrollIntoView({block:'center'}); } }catch(e){} return; }
-  // the drill is opened, never toggled shut when it was already open
-  if(what==='clin'){ clinOpen[id]=true; render(); } else toggleWbs('req', id, '');
+  // the drill is opened, never toggled shut when it was already open -- and opened where it can be used (clinGo)
+  if(what==='clin') clinGo(id); else toggleWbs('req', id, '');
 }
 function erSave(){
   if(!erOn()) return;
@@ -33654,11 +33767,13 @@ try{ window.addEventListener('resize', gridSticky); }catch(e){}
 function gridRows(){ return [].slice.call(document.querySelectorAll('#list .row')); }
 function gridIds(){ return gridRows().map(function(r){ return r.id.replace(/^row-/,''); }); }
 
-function setCur(id){
+function setCur(id, quiet){
   if(!id) return;
   curRow = id;
   gridMark();
   inspectorBody();
+  // v2.09 (item 125): quiet selects and nothing more -- for a click that was USING a control in the row (see the delegate)
+  if(quiet) return;
   // Selecting a row is what OPENS the drawer -- the guide says "click any row, its record opens on
   // the right", and that sentence has to stay true at every width. Docked, this is inert.
   drawerOpen();
@@ -33763,8 +33878,24 @@ function drawerBar(){
 // marked (__pend, from the input event; its change clears it), read before the panel is drawn and put back after, the
 // keyboard and the caret with it. Matched by its handler, which names the requirement, so typing never follows the panel
 // to another requirement.
-document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector')) t.__pend=true; }, true);
+// v2.09 (item 125): and the rows -- a CLIN's boxes, the rank box, Fund's allocation box (see render()). On Fund's box a
+// redraw while it was half typed moved $1,807,894 to $12 while the box still showed the old figure (measured).
+document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list')) t.__pend=true; }, true);
 document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
+// v2.09 (item 125): A FIGURE PUT BACK IS STILL APPLIED WHEN IT IS LEFT. A browser fires change only for a value typed since the
+// field took its value, and a value put back by a script counts as taken: a figure typed whole, then a redraw, then Enter or
+// Tab, and nothing was applied -- the box showed the figure and the board kept the old one (npm run pointer C found it on the
+// rank box; the RECORD panel's hold had it too). The figure put back is noted (__held); left, or Entered, with exactly that
+// figure still in it -- the one case the browser stays silent -- its change is fired here, once. Anything typed after it is
+// the browser's own change, as ever.
+function heldCommit(t){
+  if(!t || t.__held===undefined) return;
+  const v=t.__held; t.__held=undefined;
+  if(t.isConnected && t.value===v && t.getAttribute('onchange')) t.dispatchEvent(new Event('change'));
+}
+document.addEventListener('blur', function(e){ heldCommit(e.target); }, true);
+document.addEventListener('keydown', function(e){ if(e.key==='Enter') heldCommit(e.target); }, true);
+document.addEventListener('change', function(e){ const t=e.target; if(t) t.__held=undefined; }, true);
 function inspHeld(el){
   // ONLY THE FIELD THAT HAS THE KEYBOARD: a browser commits a field when it loses it, so that is the one place typing can wait
   // uncommitted. Held by its mark alone, a field put back once was held again on every later redraw -- over the stored
@@ -33776,7 +33907,7 @@ function inspHeldBack(el, held){
   held.forEach(function(x){
     const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
     if(!i) return;
-    i.value=x.v; i.__pend=true;
+    i.value=x.v; i.__pend=true; i.__held=x.v;      // v2.09: left with nothing typed since, it is applied (heldCommit)
     if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}
   });
 }
@@ -34033,9 +34164,20 @@ function inspectorDraw(el){
 }
 
 // Selection by delegation, so render() never has to know the inspector exists.
+// v2.09 (item 125, Brad: "if I click a requirement amount on a CLIN, it sends me to the panel pop up"): A CLICK THAT USES A
+// CONTROL IN THE ROW IS USING THE CONTROL, NOT CHOOSING THE ROW. Every click in a row selected it, and selecting slides the
+// RECORD panel over and gives it the keyboard -- so a click into a CLIN box, the rank box, Fund's allocation box or an RCN /
+// EEIC picker put the panel over it and the typing went into the panel; the next click hit its scrim. Now the row is selected
+// quietly (the docked panel still follows it; nothing slides over, the keyboard stays where the click put it) when the press
+// put the keyboard on a control inside the row -- read off the page, not a list of tag names, so a control added later is
+// covered -- or landed anywhere in the CLIN drill, the drill's own editor (a copy's dimmed boxes let the click through to
+// their cells). A click on the row itself -- its title, its quiet line, empty space -- still opens the RECORD panel.
 document.addEventListener('click', function(e){
-  const row = e.target && e.target.closest && e.target.closest('#list .row');
-  if(row) setCur(row.id.replace(/^row-/,''));
+  const t = e.target, row = t && t.closest && t.closest('#list .row');
+  if(!row) return;
+  const id = row.id.replace(/^row-/,''), a = document.activeElement;
+  if((a && a !== row && row.contains(a)) || t.closest('.clin-detail')){ if(curRow !== id) setCur(id, true); return; }
+  setCur(id);
 });
 // J / K walk the list, the way the rest of the board's keyboard affordances read. Ignored while a
 // field has focus, or typing a rank into a row would jump the selection out from under you.
@@ -34313,7 +34455,15 @@ try{ dlgInit(); }catch(e){}
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
 render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   _diagSec=null;                            // v1.92 (item 18): a message after this is cleaned against what is on screen now
-  renderBoard.apply(this, arguments);
+  // v2.09 (item 125): A REDRAW KEEPS WHAT IS TYPED IN A ROW, as v2.08 made the RECORD panel keep it (inspectorBody): the
+  // field with the keyboard, typed into and not yet committed, is read before the rows are drawn and put back after, the
+  // keyboard and the caret with it; its handler is off while the rows are drawn, because Chromium fires change on a focused
+  // field as innerHTML removes it, which committed the half-typed figure. Matched by its handler, which names the requirement.
+  const lst=document.getElementById('list'), lh=lst? inspHeld(lst) : [];
+  lh.forEach(function(x){ try{ x.el.removeAttribute('onchange'); }catch(e){} });
+  try{ renderBoard.apply(this, arguments); }
+  finally{ lh.forEach(function(x){ try{ if(x.el.isConnected) x.el.setAttribute('onchange', x.h); }catch(e){} });
+    if(lh.length) inspHeldBack(lst, lh); }
   try{ focusRestore(fm); }catch(e){}
   try{ gridAfterRender(); }
   catch(e){
@@ -34324,6 +34474,8 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // v2.09 (item 125): a control pressed as this redraw took it away gets the keyboard back, the RECORD panel's included
+  try{ ptrAfterRender(); }catch(e){}
   // last, once the RECORD panel is drawn too: the menus are fitted to what is on screen, and a box that closed
   // hands the keyboard to its opener as it now stands (the RECORD panel's buttons are redrawn just above)
   try{ fitMenus(); }catch(e){}
