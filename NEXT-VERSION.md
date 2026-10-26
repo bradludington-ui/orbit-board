@@ -141,8 +141,43 @@ Current version: **v2.07**. Next: **v2.08**.
   panel, 📋 Requirement edit and the written-field pop-ups.
 - **What is there today (v2.07):** the Add box (`#addPanel`) reads its required list from `reqNeeds()` and writes through
   `reqCreate()`; nothing edits an existing requirement through it.
-- **Proposed:** not yet -- to be worked out with Brad: which fields, whether the box replaces 📋 Requirement edit, and how it
-  sits beside the rule that the RECORD panel is the editor ("The row is triage").
+- **Proposed:** the decisions D1–D12 of `recovery/v208/ITEM-122-BRIEF.md` §3, each with a recommendation.
+- **Brad's decisions (26 Oct 2026: "Agree on all, D9 retire the rename"):**
+  - **D1** the record fields: everything 📋 Requirement edit holds, plus plan event, CCaR, PID, description, note, impact
+    statement. Value by service, BAE budgets, band, ★, awards and Planning stay where they are.
+  - **D2** the box replaces 📋 Requirement edit and the ⚠ and 📄 pop-ups; the RECORD panel's three buttons stay and each
+    opens the box at its own section. Classify stays the many-requirements editor.
+  - **D3** it opens from the RECORD panel's buttons, Needs attention's Go to and the PMO hint (`pmoReassignHint`); not from
+    the row's ⋯, not by double-click.
+  - **D4** no money in the box: neither the value by service nor budgets.
+  - **D5** required fields warn (a rail from `reqNeeds`), never block; the value and budgets marked "set in the RECORD
+    panel" with a way there. A copy's proposal is still held at Submit.
+  - **D6** a held draft, one Save, only the changed fields, one `save()`; Esc asks first; Save refuses if the requirement
+    was removed or changed meanwhile.
+  - **D7** the same box in a PMO copy, saying up front when an edit will not be sent (another office's requirement by
+    `pmoHomeOf`; a year the copy cannot submit).
+  - **D8** the office is editable, applied on Save after a confirm naming: this fiscal year only; last in the new office's
+    ranking; N budget choices that name the old office become unusable (and a funded one stops the Spend Plan Source until
+    picked again). Refused for a requirement the copy itself added.
+  - **D9** the record title is read-only from the CCaR list, **and the row's ⋯ "Rename the CCaR record name" is retired.**
+    Record names already typed stay stored and keep showing; nothing is deleted.
+  - **D10** when Goes to stops being a government activity, Save (and `setDest`) clears Which awards to and the MIPR type.
+  - **D11** the 📋 button's "not set" count reads `reqNeeds`.
+  - **D12** Brief: test whatever Needs attention's Go to does there (it opens the box under D3).
+- **Built with it in v2.08 (Brad, 26 Oct: "build them with 122 in v2.08"):** the brief's §5 defects, reproduced on v2.07
+  by `recovery/v208/repro/found-on-main.mjs` (every one PRESENT, 26 Oct):
+  - **F1** clearing the band leaves the impact statement.
+  - **F2** the pop-ups go with D2 and the box is drawn once; the RECORD panel's own figure fields keep typing across a
+    redraw.
+  - **F3** `setGrp` does nothing when the office is unchanged; Classify's bulk office set skips rows already set.
+  - **F4** D10 from now on; for boards already saved, readers ignore Which awards to and the MIPR type unless Goes to is a
+    government activity (nothing deleted). An entry in `math-defects.json`.
+  - **F5** a PMO copy sends the plan event of a requirement the portfolio board added (the record-name rename is retired
+    under D9).
+  - **F6** (Brad: "lock the drill") the CLIN drill is locked in a PMO copy, saying why its edits are not sent.
+  - **F7** `matBulk` entries keyed by field key, not label.
+  - and `setAbsorber` / `setAbsorbFloor` refused in a PMO copy (`allocLocked`).
+  Each with its own check failing on v2.07 first, and mutations.
 
 #### 123. Refresh the security review kit for the current board (Brad, 26 Oct 2026: "Yes, log it for v2.08")
 - **Logged:** 26 Oct 2026. Brad's decision: keep `claude/security-review-kit` (`b6f1ffc`, 7 Oct) as it is, not merged and not
