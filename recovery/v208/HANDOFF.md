@@ -3,7 +3,7 @@
 **Written** 25–26 Oct 2026, the evening v2.07 merged, by the v2.07 lead (Claude, session
 `session_014mJNv6BPPuvFvfY5dqYCz4`), for Brad and whoever picks up v2.08: a new Claude session, Codex, or Brad.
 
-**Where it is:** `recovery/v208/HANDOFF.md` on branch `ccr-ce1f5388-a75g07`, draft PR #25. Beside it:
+**Where it is:** `recovery/v208/HANDOFF.md` on `main` (written on branch `ccr-ce1f5388-a75g07`, merged as PR #25). Beside it:
 `ITEM-122-BRIEF.md` (the design brief for v2.08's one queued item), `repro/found-on-main.mjs` (seven defects found while
 writing this, reproduced), and `bin/prove.py` + `bin/slim.py` + `v207-proofs.json` (how v2.07's mutations were proved
 without a sweep; `prove.py` now runs each check on the unmutated board first; with that in place all 154 were re-proved,
@@ -50,7 +50,7 @@ for what was still missing. Behaviours were tested in jsdom, not taken from read
 | Mutation targets | 2,317, each matching exactly once (`mcount.py`). |
 | Mutation sweep | No full sweep since about 8 Oct: v2.00's first candidate `608444e`, 1,150 targets, 1,139 caught, 11 equivalent (superseded: its board had defects). The last sweep of a shipped version: v1.99, 7 Oct. Never on a merged v2.00+ tree; a 20-target pilot ran 20 Oct (§6, A2). |
 | Nightly validation | Last on v2.05 (`db41c0a`, 25 Oct 07:00 UTC): only the carried D ×8 failed. **Never on v2.00, v2.03, v2.06 or v2.07.** |
-| Open PRs | #25 (this, draft); #15, #17, #19, #21 (old handoff drafts; close them once B12 is done). |
+| Open PRs | None after 26 Oct: Brad had #25 (this) merged and the old handoff drafts #15, #17, #19, #21 closed (B12). |
 | Branches | `ccr-ce1f5388-a75g07` is this one, restarted from `main` after #24 merged. **Not on `main`, keep read-only:** `claude/security-review-kit` (`b6f1ffc`, 7 Oct, a review kit for v1.99: tools and a reviewer's guide; Brad: keep, merge or drop?); `claude/v200-fixes-wip` (`3fab8ef`, 20 Oct: the v2.00 gate runbook and records CLAUDE.md cites, `build_evidence.sh`, `focus-block.py`); `codex/v200-reports-20261013` and `codex/v200-reports-round2-20261013` (Codex's v2.00 review reports); and the heads of the open handoff PRs #15, #17, #19, #21. The other `ccr-*` and `claude/orbit-v1.9x` branches are merged history. |
 | `orbit-review-mcp` | Last commit `acbeb7e` (10 Oct). Its README says deployment is pending, but its deploy workflow succeeded that day (run #5, 21:53 UTC, commit `77ba405` installs an orbit-board token as a Worker secret), so a Cloudflare Worker with a read token for this repository is **probably live**. Its check list still names `audit-ppt.mjs` (removed in v2.05). Brad: keep it running and update it, or take it down and revoke the token (E1). |
 | Item 122 (the queued item) | Logged 24 Oct, not designed. The brief is ready for Brad (`ITEM-122-BRIEF.md`). |
@@ -175,7 +175,7 @@ on `main`; **it has not been updated since 19 Oct**, so `NEXT-VERSION.md` and th
 | B9 | Item 71's remainder: the shared side-list write window (per-writer files and SharePoint eTags were his 6 Oct direction; SharePoint is gone since v2.04; v2.02's D4 narrowed it for execution data), and the launcher sidecar, already off unless a browser sets `spmtSidecar=1` (the team opens the board from a shortcut; Brad, 30 Sep: nobody uses the desktop app) | `NEXT-VERSION.md` 71 | Fold the window into the Azure build (107); retire the sidecar unless he names an office that uses it |
 | B10 | Item 84: the RCN-EEIC ask column for a split prime (v2.02 D6b added a note; his 6 Oct "stays for review"), and its compatibility review of older versions reading v1.98+ files (Brad, 6 Oct). D6a covers v2.02+ readers only. | 84 | Ask whether the note and D6a close them |
 | B11 | Item 82: its 6 Oct review asks for his rule before the funds-flow and ACE totals are called certified (v1.99's worked examples exist); and three of its bullets are choices nobody made: a kept PPBE cycle fixes the services it holds; journal entries from before a service-list change can no longer be put back; `bmSeedFromPp` rounds each figure (v2.02 D5c) but does not apportion a fraction arriving in a file | 82 | Ask whether the examples meet his rule; one line each on the three |
-| B12 | Merge PR #25 (records only: `recovery/v208` and three `.gitignore` lines; the board is unchanged), so a session branching from `main` sees this tracker (the lesson in §8). Close PRs #15, #17, #19, #21, after carrying PR #19's `NEXT-VERSION.md` line recording v2.03's merge on his go (`065bc0d`) to `main` (PR #21's M1 and M3 are B5 and C5 here). And `claude/security-review-kit` (`b6f1ffc`). | §1 | Merge #25; close all four; ask about the kit |
+| B12 | **Done 26 Oct** (Brad: "Merge PR #25 and close the old handoff PRs"): #25 merged; #15, #17, #19, #21 closed, after PR #19's `NEXT-VERSION.md` line recording v2.03's merge (`065bc0d`) was carried to `main` (PR #21's M1 and M3 are B5 and C5 here). Still open: `claude/security-review-kit` (`b6f1ffc`). | §1 | Ask about the kit |
 | B13 | Is v2.07 where people open the board? A release tag? (None exists.) Since v2.02 (D6a) an older ORBIT refuses a file written by a newer one: a board saved in v2.07 cannot be opened by v2.02–v2.06, so everyone moves together. | — | Put v2.07 where people open it; tag it on his word |
 | B14 | v2.07's five choices "decided in the build, not asked" (`NEXT-VERSION.md` v2.07): a required budget waived where nothing can be chosen; the record title from the CCaR list at Add; the money unchanged from the strip; From another year carrying what v2.06 carried; the From another year tab drawn for the box's office | `NEXT-VERSION.md` v2.07 | Confirm them, the waiver above all, before item 122 reuses `reqNeeds` |
 | B15 | Item 117's follow-up: a trend report that follows the year-to-year links ("can be logged as its own item once the link is in place"; the link shipped). And BACKLOG entry 8: a diff of PPBE positions in the cycle comparison? | `NEXT-VERSION.md` v2.06, `BACKLOG.md` | Log them if he wants them |
@@ -217,8 +217,8 @@ v2.00. Any other browser failure is real.
 
 ### F. In flight
 
-As of the commit that adds this text (26 Oct, about 1:30 UTC): no background job, sweep, agent or Routine change is
-running; nothing is uncommitted; PR #25 is a draft. The re-run of v2.07's 154 mutants finished (all CAUGHT,
+As of the commit that adds this text (26 Oct): no background job, sweep, agent or Routine change is running; nothing is
+uncommitted; PR #25 is being merged on Brad's word (B12). The re-run of v2.07's 154 mutants finished (all CAUGHT,
 `recovery/v208/v207-proved.jsonl`). The scratchpad (the gathered evidence behind this file, the claim-by-claim results, the repro scratch, v2.07's
 mock-ups) leaves with this session.
 
