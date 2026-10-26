@@ -6,8 +6,8 @@
 **Where it is:** `recovery/v208/HANDOFF.md` on branch `ccr-ce1f5388-a75g07`, draft PR #25. Beside it:
 `ITEM-122-BRIEF.md` (the design brief for v2.08's one queued item), `repro/found-on-main.mjs` (seven defects found while
 writing this, reproduced), and `bin/prove.py` + `bin/slim.py` + `v207-proofs.json` (how v2.07's mutations were proved
-without a sweep; `prove.py` now runs each check on the unmutated board first, and every check v2.07's were proved
-against passes it). The branch also adds three `.gitignore` lines (keep `v207-proofs.json`; ignore the provers'
+without a sweep; `prove.py` now runs each check on the unmutated board first; with that in place all 154 were re-proved,
+and `v207-proved.jsonl` keeps their verdicts). The branch also adds three `.gitignore` lines (keep `v207-proofs.json`; ignore the provers'
 `_slim-prove-*` and `_shard-*` copies). **It changes nothing in the board.**
 
 **How it was made:** five read-only agents gathered the facts (carried-over actions, the open queue and the ledger, test
@@ -46,7 +46,7 @@ for what was still missing. Behaviours were tested in jsdom, not taken from read
 | Thing | State |
 |---|---|
 | `main` | **v2.07**, `f508fdb`. Board 35,029 lines, 2,461,036 bytes. `npm run check` passes. |
-| v2.07's own proof | **Re-checked at handoff, on `f508fdb`:** `npm run check`; defect register 13 defects / 43 guards; money coverage 24/24; money map 301 cells: 108 proven, 192 n/a, 1 open; trace matrix 77 cells, every link holds; file verifier self-test; `mcount` 2,317. **From v2.07's record only (25 Oct, final tree):** boot-same, every suite, every browser check (layout fails only the carried D ×8; its M passes), `standards` nothing new, fuzz seed 678881496, and 154 new mutations each run against its own block and CAUGHT (their ids are `v207-proofs.json`; `prove.py`'s output was not kept). **Re-run at handoff:** every one of those checks passes on the unmutated board (`prove.py`'s new clean step, 26 Oct), so none of the 154 catches came from a check that fails anyway; the mutants themselves are being re-run so their verdicts are kept (§6 F). |
+| v2.07's own proof | **Re-checked at handoff, on `f508fdb`:** `npm run check`; defect register 13 defects / 43 guards; money coverage 24/24; money map 301 cells: 108 proven, 192 n/a, 1 open; trace matrix 77 cells, every link holds; file verifier self-test; `mcount` 2,317. **From v2.07's record only (25 Oct, final tree):** boot-same, every suite, every browser check (layout fails only the carried D ×8; its M passes), `standards` nothing new, fuzz seed 678881496, and 154 new mutations each run against its own block and CAUGHT (their ids are `v207-proofs.json`; `prove.py`'s output was not kept). **Re-run at handoff (26 Oct, 1:08–1:26 UTC):** every one of those checks passes on the unmutated board (`prove.py`'s new clean step), and all 154 mutants are CAUGHT again, each by its own check; the verdicts are kept in `recovery/v208/v207-proved.jsonl`. In 19 a block also threw, and each of those 19 also failed named got/want assertions, so no catch rests on a throw alone. |
 | Mutation targets | 2,317, each matching exactly once (`mcount.py`). |
 | Mutation sweep | No full sweep since about 8 Oct: v2.00's first candidate `608444e`, 1,150 targets, 1,139 caught, 11 equivalent (superseded: its board had defects). The last sweep of a shipped version: v1.99, 7 Oct. Never on a merged v2.00+ tree; a 20-target pilot ran 20 Oct (§6, A2). |
 | Nightly validation | Last on v2.05 (`db41c0a`, 25 Oct 07:00 UTC): only the carried D ×8 failed. **Never on v2.00, v2.03, v2.06 or v2.07.** |
@@ -217,11 +217,9 @@ v2.00. Any other browser failure is real.
 
 ### F. In flight
 
-As of the commit that adds this text (26 Oct, about 1:15 UTC): one background job, `prove.py` re-running v2.07's 154
-mutants against their own checks (2 jobs). Its verdicts will be committed beside the proofs list as
-`recovery/v208/v207-proved.jsonl`, and this paragraph updated. **If that file is not on the branch, the run did not
-finish**: run it again (§9, Commands; it resumes from what it wrote). No sweep, agent or Routine change is running; PR #25
-is a draft. The scratchpad (the gathered evidence behind this file, the claim-by-claim results, the repro scratch, v2.07's
+As of the commit that adds this text (26 Oct, about 1:30 UTC): no background job, sweep, agent or Routine change is
+running; nothing is uncommitted; PR #25 is a draft. The re-run of v2.07's 154 mutants finished (all CAUGHT,
+`recovery/v208/v207-proved.jsonl`). The scratchpad (the gathered evidence behind this file, the claim-by-claim results, the repro scratch, v2.07's
 mock-ups) leaves with this session.
 
 ## 7. Brad's standing rules (from `recovery/v202/HANDOFF.md` §5, updated; rules 1–2, 6–7 and 9–11 are written only in handoffs, C12; `CLAUDE.md` and `AGENTS.md` win where they speak)
