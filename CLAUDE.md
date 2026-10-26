@@ -4522,6 +4522,22 @@ rename"), the seven defects found mapping item 122 ("build them with 122 in v2.0
   keeps its office. The renamed plan event of a requirement the board added is kept as an override (`S.titles`) so it is
   sent (F5).
 - Goes to that is not a government activity takes which awards to and the MIPR type with it (D10).
+- **The review of the box** (three reviewers, each finding re-run by a skeptic, `wf_cc204adf-d52`), all fixed:
+  - **Kept as saved.** A stored value the box's lists do not hold (an obligation category, Goes to, RCN / EEIC, a service's
+    own) is offered as itself, marked, and left alone. Read as not set, Save deleted it.
+  - **Goes to** is written in `setDest`'s shape, changing only what changed. No empty MIPR container is made. A hop hidden
+    behind a prime never comes back, from the box or from `setDest`, and is not counted as a destination in use
+    (`flowEntUse`).
+  - **A WBS typed after Prime → OGC is saved.** The SI code has *follows the rules* (`'\u0004'`: deletes `S.si`).
+  - **↑ prev / next ↓** re-snapshots the box controller.
+  - **In Brief the box does not open** and says so: Brief's label says nothing is edited there.
+  - **F5 at both ends.** An added requirement's plan event is its own event (`pmoVal`), compared and sent. Copies older
+    than v2.08 are excepted.
+  - **A requirement restored in a copy** is said in the box, and named at Submit (it was published removed).
+  - **Classify.** The per-service RCN / EEIC bulk reaches only rows that offer it. The office cell is chosen with Enter or
+    a mouse pick and never brushed past by an arrow key (`selNavKey`). A copy's proposal keeps its office (`setGrp`).
+  - **WBS from execution data** in a copy counts the CLINs it could not write apart. The absorber's ✕ is dimmed in a copy.
+  - **F2 holds only the focused field.** An `input` event on a field that is no longer in the page reaches nothing.
 
 **The defects** (each reproduced on v2.07 by `recovery/v208/repro/found-on-main.mjs`, which now reads PRESENT on v2.07 and GONE
 here):
@@ -4541,9 +4557,14 @@ here):
 **Checks.** audit-board "v2.08 — the defects found mapping item 122" (a part per defect, F2 included) and "the edit box: the
 written fields" (the pop-up block, migrated); audit-other "v2.08 — the edit box: the whole record, held until Save, written
 once (item 122)"; audit-import "v2.08 — the edit box in a PMO copy … (item 122, F5)". Every one fails on v2.07. The pop-up,
-Requirement edit and prompt checks were migrated, as `ITEM-122-BRIEF.md` §6 listed. Mutations: 42 new (`v208-f*`, `v208-absorb*`,
-`v208-122-*`), 9 retired as obsolete, 8 retargeted; each proved against its own check with `recovery/v208/bin/prove.py`
-(`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
+Requirement edit and prompt checks were migrated, as `ITEM-122-BRIEF.md` §6 listed. The review's checks are audit-other "v2.08 —
+the review of the edit box …", audit-board "v2.08 — the review of the defect fixes …" and audit-import "v2.08 — the review in a
+PMO copy …". Each fails on 65cc26a. `npm run layout` N measures the box, filled with long values, at 1366 × 657 and 1920 × 969, in
+Harbor and Midnight, in this font and the Segoe stand-in, and one column below 1366. Its first run found the box 160px too tall
+at 1366: the written fields are 68px and 42px (taller by dragging), and the required list has two columns, as the Add box's. Mutations: 42 new from the build (`v208-f*`, `v208-absorb*`,
+`v208-122-*`; the review retired one of them) and 29 from the review (`v208-rv-*`), 70 in all; 9 older ones retired as
+obsolete; 12 retargeted. Each was proved against its own
+check with `recovery/v208/bin/prove.py` (`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
 
 **Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is, `tools/review/` (four `review:*` scripts)
 and `review/builds.json` naming v2.00–v2.08, from `claude/security-review-kit` (`b6f1ffc`, kept as the record of what the
