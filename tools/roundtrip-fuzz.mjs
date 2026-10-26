@@ -241,6 +241,9 @@ const populate = (ev, sc) => ev(`(function(){
         title:NASTY[2], event:'custom event', ccar:'', fy26:SVC.map(function(){return 0;}),
         ask:SVC.map(function(){return ${int(1, 99999)};}), alloc:null}); }catch(e){}
   try{ S.removed.push('GONE-1','GONE-2'); }catch(e){}
+  // v2.09 (item 126): the highest added-requirement number handed out, which a PMO copy now writes on the year it adds in
+  // (reqSeqNext: one count across every year of the copy) -- a number a reopen must keep, or an id is handed out twice
+  S.newSeq=${int(40, 900)};
   applyState(S); save();
   return 'ok'; })()`);
 
@@ -454,6 +457,88 @@ for (let round = 1; round <= ROUNDS; round++) {
           `copy held ${JSON.stringify(typed[id][k])?.slice(0, 70)}\n          offered  ${JSON.stringify(offered[id][k])?.slice(0, 70)}`);
     }
   } catch (e) { fail(round, 'PMO copy', 'threw', String(e.message).slice(0, 150)); }
+
+  // ---- TRIP 4b (v2.09, item 126): THE SAME, IN AN OUT-YEAR. A copy submits every year of the FYDP, each against that year's
+  // own baseline. A field changed in an out-year must arrive in THAT year's bag with the value the copy held; a field it did
+  // not change, in any year, must be in no bag -- read against the published year's baseline, every out-year field the board
+  // held differently there travelled as an edit nobody made, and on apply overwrote the board's own later edits. The board is
+  // a fresh one from this one's saved file, which holds the next year since TRIP 3, published the way the menu publishes it.
+  try {
+    const B2 = boot({ html: ev('buildSavedHtml()') });
+    B2.ev(`URL.createObjectURL=function(){ return 'blob:x'; }; URL.revokeObjectURL=function(){}; window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+    const oy = Number(B2.ev('MS.cur')) + 1;
+    if (B2.ev(`String(!!MS.years[${oy}] && (MS.years[${oy}].order||[]).length>0)`) !== 'true') throw new Error('the board holds no FY' + (oy % 100) + ' plan to work in');
+    const copyHtml = B2.ev(`(function(){ var cap=null, _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      try{ localStorage.setItem('prio27who','FUZZ'); }catch(e){}
+      try{ publishPmoCopy(); }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+    if (!copyHtml || /^THREW/.test(copyHtml)) throw new Error('publishPmoCopy wrote no copy' + (copyHtml ? ': ' + copyHtml.slice(0, 120) : ''));
+    const P = boot({ html: copyHtml });
+    P.ev(`URL.createObjectURL=function(){ return 'blob:x'; }; URL.revokeObjectURL=function(){}; window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+    if (P.ev(`String(!!(PMODE && PMODE.yb && PMODE.yb[${oy}]))`) !== 'true') throw new Error('the copy carries no baseline for FY' + (oy % 100));
+    P.ev(`switchYear(${oy}); 'ok'`);
+    const office = P.ev(`(function(){ var c={}; S.order.forEach(function(id){ var it=itemById(id);
+      if(it){ var g=grpOf(it); c[g]=(c[g]||0)+1; } });
+      return Object.keys(c).sort(function(a,b){ return c[b]-c[a]; })[0]||''; })()`);
+    if (!office) throw new Error('no office owns a requirement in FY' + (oy % 100) + ' on the copy');
+    const typed = JSON.parse(P.ev(`(function(){
+      try{ localStorage.setItem('prio27who','Fuzz Lead'); localStorage.setItem('prio27pmo',${JSON.stringify(office)}); }catch(e){}
+      var NASTY=${JSON.stringify(NASTY)}; var out={}; var i=0, base=PMODE.yb[${oy}]||{};
+      S.order.forEach(function(id){ var it=itemById(id); if(!it || grpOf(it)!==${JSON.stringify(office)} || !base[id]) return;
+        i++;
+        // every other one is left alone (the first is always edited), so a requirement nobody touched in the out-year is there
+        // to be wrongly sent, beside the fields left alone on the edited ones
+        if(!(i%2)) return;
+        S.desc[id]=NASTY[(i+2)%NASTY.length]+' out-year';
+        S.notes[id]=NASTY[(i+5)%NASTY.length]+' out-year';
+        S.asks[id]=SVC.map(function(_,j){ return 2000*(j+1)+i; });
+        S.pid[id]='PIDY'+(8000+i);
+        out[id]={};
+        PMO_KEYS.forEach(function(k){ out[id][k]=pmoVal(S,k,id); });
+      });
+      save(); switchYear(PMODE.fy); return JSON.stringify(out); })()`));
+    const edited = Object.keys(typed);
+    if (!edited.length) throw new Error(`office ${office} owns no requirement in FY${oy % 100} to edit`);
+    const yb = JSON.parse(P.ev(`JSON.stringify(PMODE.yb[${oy}]||{})`));
+    const changed = (id, k) => { const b = (yb[id] || {})[k]; return JSON.stringify(typed[id][k]) !== JSON.stringify(b === undefined ? null : b); };
+    const wire = JSON.parse(P.ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ if(!cap && opts && opts.type==='application/json') cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){ return JSON.stringify({err:String(e.message)}); }
+      window.Blob=_B; return cap||'null'; })()`));
+    if (!wire || wire.err) throw new Error('pmoSubmit did not build a package' + (wire && wire.err ? ': ' + wire.err : ''));
+    trips++;
+    const bag = ((wire.byYear || {})[oy] || {}).items || {};
+    for (const id of edited) for (const k of Object.keys(typed[id])) {
+      const sent = (bag[id] || {})[k];
+      if (changed(id, k)) {
+        if (JSON.stringify(sent) !== JSON.stringify(typed[id][k]))
+          fail(round, 'PMO copy, out-year → submit', `FY${oy % 100} ${id}.${k} changed on the copy is not what that year's bag carries`,
+            `copy held ${JSON.stringify(typed[id][k])?.slice(0, 70)}\n          package  ${JSON.stringify(sent)?.slice(0, 70)}`);
+      } else if (sent !== undefined)
+        fail(round, 'PMO copy, out-year → submit', `FY${oy % 100} ${id}.${k} was not changed on the copy and is in the package anyway`,
+          `baseline ${JSON.stringify((yb[id] || {})[k])?.slice(0, 70)}\n          package  ${JSON.stringify(sent)?.slice(0, 70)}`);
+    }
+    // nothing was changed in any other year, so no other year has a bag, and the published year's carries nothing
+    const others = Object.keys(wire.byYear || {}).filter(y => +y !== oy);
+    if (others.length || Object.keys(wire.items || {}).length || (wire.added || []).length)
+      fail(round, 'PMO copy, out-year → submit', 'a year nobody changed is in the package',
+        `other years ${JSON.stringify(others)}, published year's items ${JSON.stringify(Object.keys(wire.items || {})).slice(0, 80)}`);
+    // the board takes it and offers each of that year's fields, in that year, with the value the copy held
+    const rows = JSON.parse(B2.ev(`(function(){ PMOSUBS.length=0; pmoTake(${JSON.stringify(wire)}, 'fuzz5.json');
+      return JSON.stringify(pmoRows().map(function(r){ return {fy:r.fy, id:r.id, key:r.key, prop:r.prop}; })); })()`));
+    const offered = {};
+    rows.forEach(r => { if (r.fy === oy) (offered[r.id] ||= {})[r.key] = r.prop; else fail(round, 'out-year submit → take → review', `a row is offered for FY${r.fy % 100}, not FY${oy % 100}`, `${r.id}.${r.key}`); });
+    for (const id of edited) for (const k of Object.keys(typed[id])) {
+      if (!changed(id, k)) continue;
+      const same = B2.ev(`pmoSame(pmoNow(${JSON.stringify(id)}, ${JSON.stringify(k)}, ${oy}), ${JSON.stringify(typed[id][k])})`);
+      if (same === true || same === 'true') continue;
+      if (!offered[id] || !(k in offered[id]))
+        fail(round, 'out-year submit → take → review', `FY${oy % 100} ${id}.${k} was sent and is not offered for review`, `package carries ${JSON.stringify(typed[id][k])?.slice(0, 70)}`);
+      else if (JSON.stringify(offered[id][k]) !== JSON.stringify(typed[id][k]))
+        fail(round, 'out-year submit → take → review', `FY${oy % 100} ${id}.${k} is offered with a value the copy never held`,
+          `copy held ${JSON.stringify(typed[id][k])?.slice(0, 70)}\n          offered  ${JSON.stringify(offered[id][k])?.slice(0, 70)}`);
+    }
+  } catch (e) { fail(round, 'PMO copy, out-year', 'threw', String(e.message).slice(0, 150)); }
 
   // ---- TRIP 5 (v1.89): an added requirement deleted, another added. Everything this board holds
   // under ANY requirement is copied onto an added one -- every container populate() filled, found by
