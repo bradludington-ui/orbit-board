@@ -7,6 +7,7 @@
 #   audit-board, audit-other, audit-import, audit-recon, audit-hostile, audit-inject, audit (the short forms board, other,
 #   import, recon, hostile, inject work too). Scenario substrings pick the blocks slim.py keeps; audit-hostile and
 #   audit-inject always run whole. Give ids after OUT to run only those.
+# Each check is first run on the unmutated board (see `clean` below); one that fails there judges nothing.
 # OUT.jsonl gets one line per mutation: CAUGHT (exit 1 with a FAILING CHECK banner), SURVIVED (exit 0 with ALL CHECKS
 #   PASSED), or CRASHED (anything else: no verdict, which is never a catch). Ids already in OUT are skipped, so a run cut off
 #   by a restart resumes. A block that "threw" is reported beside its verdict: a catch by a throw is weaker than by a check.
@@ -75,10 +76,34 @@ def run(job):
     lines = [l for l in o.split('\n') if l.strip().startswith(('✗', 'FAIL', '-', '•')) or 'got' in l][:6]
     return {'id': m['id'], 'verdict': v, 'fails': fails[:1], 'threw': threw, 'suite': os.path.basename(f),
             'detail': '\n'.join(lines)[:600] if v != 'CAUGHT' or threw else ''}
+# EVERY CHECK IS RUN ON THE UNMUTATED BOARD FIRST, and a mutation is judged only by a check that passes there. A slim keeps
+# only the named blocks, so a kept block that reads a top-level `let` an earlier block writes (audit-import's V14, V185W,
+# V186L, W2FX, W2THEIRS, W3FILES) fails on every board, and would read EVERY mutant as CAUGHT -- the check that cannot fail.
+# sweep-shards.mjs calibrates for the same reason. Found by the v2.08 handoff's completeness check; every check v2.07's 154
+# were proved against passes this step (26 Oct). CALIBRATE_ONLY=1 runs only this step. A check that fails clean is NOT CLEAN: its mutations get
+# no verdict and are not written to OUT (so a re-run after adding the writer block to caughtBy picks them up).
+def clean(f):
+    env = dict(os.environ, BOARD=os.path.join(R, 'prioritization-board-grid.html'),
+               NODE_OPTIONS=(os.environ.get('NODE_OPTIONS', '') + ' --max-old-space-size=' + os.environ.get('HEAP', '6144')).strip())
+    try:
+        p = subprocess.run(['node', f], capture_output=True, text=True, env=env, timeout=int(os.environ.get('TIMEOUT', '1500')), cwd=R)
+        o = p.stdout + p.stderr
+    except subprocess.TimeoutExpired:
+        p = None; o = 'TIMEOUT'
+    ok = bool(p) and p.returncode == 0 and 'ALL CHECKS PASSED' in o
+    return f, ok, '' if ok else ' | '.join(l.strip() for l in o.strip().split('\n')[-4:])[:400]
 ex = None
 try:
     jobs = plan()
     ex = ThreadPoolExecutor(max_workers=int(os.environ.get('JOBS', '4')))
+    name = {f: s + ' / ' + '; '.join(k) for (s, k), f in slims.items()}
+    cal = {}
+    for f, ok, why in ex.map(clean, sorted({f for _, f in jobs})):
+        cal[f] = ok
+        print(('clean     ' if ok else 'NOT CLEAN ') + name.get(f, os.path.basename(f)) + ('' if ok else ' -- ' + why), flush=True)
+    bad = [m['id'] for m, f in jobs if not cal[f]]
+    if bad: print('no verdict (their check fails on the unmutated board):', ' '.join(bad), flush=True)
+    jobs = [] if os.environ.get('CALIBRATE_ONLY') else [j for j in jobs if cal[j[1]]]
     for res in ex.map(run, jobs):
         with open(out, 'a') as fh: fh.write(json.dumps(res, ensure_ascii=False) + '\n')
         print(res['verdict'], res['id'], res.get('fails'), 'threw' if res.get('threw') else '', flush=True)
