@@ -334,11 +334,15 @@ Current version: **v2.08**. Next: **v2.09**.
      menu already scrolls there.
   6. **The words that say Save is off change with it:** `sandboxBlock`, the copy's greeting, Submit's title, the storage-refused
      messages, and the guide's *💾 Save says it is turned off* and *reopen the same file in the same browser*.
-- **The board side, built with it (data loss; on main today):**
+- **The board side, built with it (data loss; on main today).** Brad, 26 Oct: *"Import of a PMO Copy can only be through the
+  PMO import screen."* The PMO import screen (Program offices › Review submittals and the loads beside it) takes only the
+  office's ✉ Submit input file (`.json`), and that stays the one door for an office's work. Today nothing stops a PMO copy's
+  `.html` going through the board's other doors instead, and the board enforces the rule:
   - **⬅ Import a full board of a PMO copy destroys the board's locked cycles** and rolls every other appropriation back to
-    the copy's publish date. The copy carries cycles as projections only, and the import takes them as the locks. Once
-    offices hold saved copies, one will be sent instead of a submittal. Every board import door refuses a file that is a PMO
-    copy, names the office, and asks for its ✉ Submit input file.
+    the copy's publish date (reproduced). The copy carries cycles as projections only, and the import takes them as the
+    locks. Once offices hold saved copies, one will be sent instead of a submittal. Every board import door other than the
+    PMO import screen refuses a file that is a PMO copy, names the office, and says to bring in its ✉ Submit input file on
+    the PMO import screen.
   - **The board's own Save refuses to write over a PMO copy file,** as it already refuses a file that is not a board. A
     saved copy is a board-shaped file next to the board, and one HOLD ON that does not say *PMO copy* is all that stands
     between them.
