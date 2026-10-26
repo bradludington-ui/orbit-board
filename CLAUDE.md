@@ -4490,6 +4490,66 @@ skeptic trying to refute it: 16 distinct defects confirmed, 1 refuted):
 still name a record by hand afterwards); a copy published before v2.07 still gates its proposals by the v2.06 list (the board
 does not judge a proposal again when it arrives); editing the whole record in one box is item 122.
 
+### v2.08 (items 122, 123; F1–F7): the whole record in one box, the defects found mapping it, the security review kit
+
+Brad, 26 Oct 2026: his answers to the twelve decisions of `recovery/v208/ITEM-122-BRIEF.md` ("Agree on all, D9 retire the
+rename"), the seven defects found mapping item 122 ("build them with 122 in v2.08", F6: "lock the drill"), and "Go on 123".
+`NEXT-VERSION.md` › Shipped › v2.08 has every decision.
+
+**One box edits a requirement's record (item 122).** `#editPanel` (prefix `er`) replaces 📋 Requirement edit (`recPanel`,
+`recBody`, `recOpen`, `recCount`) and the ⚠ / 📄 pop-ups (`fldPanel`, `FLD_DEF`, `openFld`, `fldSave`); the prompts
+`editTitle`, `editCcar`, `editPid` and the row's `editRecName` went with them.
+- **Opened** by `openEdit(id, at)` from the RECORD panel's three buttons (`toggleCons`, `toggleDesc`, `toggleNote`,
+  `toggleRec` -- each at its own field), its ✎, CCaR and PID buttons, Needs attention's Go to (`attGo` imp, ccar, si) and the
+  PMO hint (`pmoReassignHint`). Never from the row. On a locked cycle it does not open (`cycBlock`).
+- **Holds the record fields** (D1): plan event, CCaR record, PID, Prime contract / OGC, PMO, obligation category, cost
+  element, WBS (one line; a split or a prime's is shown with a way to its own editor), RCN / EEIC and per service, Navy SI
+  code, Goes to, which awards to and MIPR type (an OGC's only), description, impact statement, note. **No money** (D4): the
+  value by service, the BAE budgets, the band, ★, the awards and Planning stay on the RECORD panel. The record title is read
+  (`recName` for the stored CCaR record, the list's name for one newly typed), never typed (D9).
+- **A held draft** (D6), drawn once when it opens (`erDraw`; render() only toggles it, `erSync` -- the Add box's rule, so F2
+  cannot reach it). `erStored(id)` is the record as stored, `erSnap` it as the box opened, `erRead()` what the box holds,
+  `erChanges()` the difference. **Save** (`erSave`) refuses when the requirement is gone or its record changed under the box,
+  refuses a code over its limit or an empty plan event with the typing kept, asks before an office change naming what
+  follows (D8: this year only, last in the new office's ranking, the BAE choices naming the old office), then writes through
+  **`reqApply(id, changes, draft)`, the one edit writer**: each changed field by its setter's rule, without their `save()`
+  and `render()`, then one `save()` (one journal capture: an entry per changed path) and one `render()`. Cancel, ✕ and Esc
+  discard; the box controller asks first (every field is `data-held`). ↑ prev / next ↓ ask before throwing typing away.
+- **The required list warns** (D5): `reqNeeds()` on `erDraft(erRead())`, the value and budgets said to be set in the RECORD
+  panel; the 📋 button counts the same list (D11).
+- **A PMO copy** (D7): `erNotSent(id)` says up front when an edit will not be sent -- another office's requirement (judged by
+  `pmoHomeOf`, so a hand-over is sent; a proposal by its office now), or a year the copy cannot submit. A copy's own proposal
+  keeps its office. The renamed plan event of a requirement the board added is kept as an override (`S.titles`) so it is
+  sent (F5).
+- Goes to that is not a government activity takes which awards to and the MIPR type with it (D10).
+
+**The defects** (each reproduced on v2.07 by `recovery/v208/repro/found-on-main.mjs`, which now reads PRESENT on v2.07 and GONE
+here):
+- **F1** `setBand('')` leaves the impact statement.
+- **F2** `inspectorBody()` keeps an input typed into and not committed (`__pend`, set on input, cleared on change) across a
+  redraw, its keyboard and caret too (`inspHeld`, `inspHeldBack`; matched by handler, so never on another requirement).
+- **F3** `setGrp` does nothing for the office a requirement is in (its move is `grpMove`, shared with `reqApply`); Classify's
+  bulk set leaves rows that already say the value alone, and says so.
+- **F4** `destOf()` reads the second hop, and `miprOf()` the MIPR type, only for a government activity; `setDest` clears both
+  when Goes to is not one. A file saved before keeps them, read as nothing.
+- **F6** `clinLocked()`: in a PMO copy every CLIN drill writer refuses with a reason, the copy's style dims them, and the drill
+  says it is read only.
+- **F7** Classify keys columns and bulk setters by field id (`recF` gives `id`; `matColLbl` prints the label): the per-service
+  RCN / EEIC column `rcnSvc|USAF` sets RCN / EEIC; the bulk budget setters are `bud|USAF`.
+- `setAbsorber` and `setAbsorbFloor` are refused in a copy (`allocLocked`).
+
+**Checks.** audit-board "v2.08 — the defects found mapping item 122" (a part per defect, F2 included) and "the edit box: the
+written fields" (the pop-up block, migrated); audit-other "v2.08 — the edit box: the whole record, held until Save, written
+once (item 122)"; audit-import "v2.08 — the edit box in a PMO copy … (item 122, F5)". Every one fails on v2.07. The pop-up,
+Requirement edit and prompt checks were migrated, as `ITEM-122-BRIEF.md` §6 listed. Mutations: 42 new (`v208-f*`, `v208-absorb*`,
+`v208-122-*`), 9 retired as obsolete, 8 retargeted; each proved against its own check with `recovery/v208/bin/prove.py`
+(`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
+
+**Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is, `tools/review/` (four `review:*` scripts)
+and `review/builds.json` naming v2.00–v2.08, from `claude/security-review-kit` (`b6f1ffc`, kept as the record of what the
+security team was given). Whether the guide goes to the security team, and whether `which-build.mjs` joins the checks, are
+Brad's.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
