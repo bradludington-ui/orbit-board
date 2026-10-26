@@ -8420,9 +8420,9 @@ function pmoSubmit(){
   if(rank) pkg.rank=rank;
   // v2.09 W2 (item 126): THE OTHER YEARS, AND THE BUILD. build is what makes a board older than this one refuse the file whole
   // (the import check's newer-build rule): read by a v2.08 board, the top of the package is a one-year submittal it would
-  // take, and every out-year in it would be dropped without a word. fys is the years this copy submits for, which says the
-  // package is a five-year one even when only one year has something in it.
-  pkg.build=BUILD; pkg.fys=pmoCopyYears();
+  // take, and every out-year in it would be dropped without a word. fys is the years a five-year copy submits for, which says
+  // the package is a five-year one even when only one year has something in it.
+  pkg.build=BUILD; if(PMODE && PMODE.yb) pkg.fys=pmoCopyYears();
   const by={};
   secs.forEach(function(s){ if(s===pub || s.fy===pub.fy) return;
     if(!Object.keys(s.items).length && !s.added.length && !s.rank) return;
@@ -8569,8 +8569,12 @@ function pmoRows(){
         const was=(base[id]||{})[k];
         rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo, fy:fy,
                    id:id, key:k, it:it, now:now, prop:prop,
-                   gone:!it,                                 // a requirement this board no longer has
-                   conflict: was!==undefined && !pmoSame(bare(now), bare(was))});
+                   gone:!it && !!T,                          // a requirement this board no longer has
+                   // v2.09 W2 (item 126): a year this board has not started. Nothing there can be compared yet; Apply asks how to
+                   // start the year (decision 2) and reads the row in it then -- read as "no longer on this board", it could
+                   // never be ticked, and Apply never asked
+                   unstarted:!T,
+                   conflict: !!T && was!==undefined && !pmoSame(bare(now), bare(was))});
       });
     });
     // A PROPOSED REQUIREMENT IS ONE ROW, accepted or declined whole. It stays offered until this
@@ -8754,7 +8758,8 @@ function pmoReport(){
       {v:r.it? (MR(r.fy)[r.id]||'') : '', s:N},
       r.it? grpOf(r.it, T) : (r.rank? r.office : ''),
       r.it? (recName(r.it, T)||dispTitle(r.it, T))
-          : (r.rank? r.office+'\u2019s own ranking \u2014 '+r.prop.length+' requirements' : r.id+' (no longer on this board)'),
+          : (r.rank? r.office+'\u2019s own ranking \u2014 '+r.prop.length+' requirements'
+             : r.id+(r.unstarted? ' (FY'+(r.fy%100)+' is not started on this board)' : ' (no longer on this board)')),
       r.it? ccarOf(r.it, T) : '',
       PMO_LBL[r.key]||r.key,
       pmoFmtVal(r.key, r.now),
@@ -8838,7 +8843,13 @@ function pmoApply(){
   need.forEach(function(y){ MS.years[y]=pmoYearStart(y, how[y]==='roll'); });
   const t0=Date.now();          // entries from this apply are read back by time: the journal trims from the front
   let n=0;
+  const notThere=[];
   pmoEachYear(rows, function(r){
+    // v2.09 W2 (item 126): A ROW FOR A YEAR JUST STARTED is read in it now. A change to a requirement the year was not started
+    // with -- started blank, or the requirement not in the year it was rolled from -- or one another office owns there, is not
+    // written: written, it was a value filed under a requirement the year does not hold.
+    if(r.unstarted && r.key!=='__new' && r.key!=='__rank'){ const it=itemById(r.id);
+      if(!it || (r.scoped && grpOf(it)!==r.from)){ notThere.push('FY'+(r.fy%100)+' \u2014 '+r.id+' \u00b7 '+(PMO_LBL[r.key]||r.key)); return; } }
     // The requirement value goes through the same path a typed edit takes. jrnlSet() writes the
     // store key it is given, which is right for every other field and silently wrong for this one.
     if(r.key==='__new'){ if(pmoAcceptProposal(r)) n++; return; }
@@ -8868,6 +8879,9 @@ function pmoApply(){
   const left=pmoRows().filter(function(r){ return !r.taken && !r.gone; }).length;
   // WHAT THE JOURNAL ACTUALLY HOLDS, read back rather than promised (v1.89).
   const more=(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(more)' && (e.t||0)>=t0; })[0];
+  if(notThere.length) alert('\u26a0 '+notThere.length+' ticked change'+(notThere.length===1?'':'s')+' could not be applied: '
+    +(notThere.length===1?'its requirement is':'their requirements are')+' not in the year as it was started, or another office owns '
+    +(notThere.length===1?'it':'them')+' there.\n\n  \u2022 '+notThere.join('\n  \u2022 ')+'\n\nEverything else ticked was applied.');
   setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b> to <b>'+esc(pmoYearsLbl(ys))+'</b>'
     + (need.length? ' (started '+esc(need.map(function(y){ return 'FY'+(y%100)+(how[y]==='roll'? ' from '+FYL() : ' blank'); }).join(', '))+')' : '')+'. '
     + (more? 'The first '+JRNL_PER_SAVE+' are in the change journal one by one; the rest are recorded there as one line \u2014 <b>'
@@ -9013,19 +9027,21 @@ function pmoTakeYears(pkg, fname){
       const n0=PMOSUBS.length, s0=said.length;
       pmoTake(sub, fname, mk);
       if(PMOSUBS.length>n0){ held.push({fy:p.fy, notes:said.slice(s0)}); continue; }
-      if(mk.empty){ empty.push({fy:p.fy, out:mk.empty}); continue; }
+      if(mk.empty){ empty.push({fy:p.fy, out:mk.empty, unread:mk.unread||[]}); continue; }
       bad=said[said.length-1]||'it could not be read'; badFy=p.fy; break;
     }
   } finally {
     window.alert=keep.alert; window.setStat=keep.setStat; window.statKeep=keep.statKeep; window.subOpenReview=keep.sor;
   }
   const out=[].concat.apply([], empty.map(function(e){ return e.out.map(function(x){ return 'FY'+(e.fy%100)+' \u2014 '+x; }); }));
+  const unread=[].concat.apply([], empty.map(function(e){ return e.unread.map(function(x){ return 'FY'+(e.fy%100)+' \u2014 '+x; }); }));
   if(bad || !held.length){
     PMOSUBS=was; PMOPICK=pickWas;
     alert(bad? '⚠ That submittal could not be taken: its FY'+(badFy%100)+' part was refused, so nothing in it was loaded.\n\n'+bad
       : 'That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own requirements in any year.\n\n'
         +out.length+' proposed change'+(out.length===1?'':'s')+' '+(out.length===1?'was':'were')+' for requirements another office owns'
-        +(out.length? ':\n  \u2022 '+out.join('\n  \u2022 ') : '')+'\n\nA submittal can only carry its own. Nothing was loaded.');
+        +(out.length? ':\n  \u2022 '+out.join('\n  \u2022 ') : '')
+        +(unread.length? '\n\n'+unread.length+' could not be read:\n  \u2022 '+unread.join('\n  \u2022 ') : '')+'\n\nA submittal can only carry its own. Nothing was loaded.');
     return;
   }
   const mine=PMOSUBS.slice(was.length);
@@ -9045,6 +9061,8 @@ function pmoTakeYears(pkg, fname){
         +(away.length===1? 'it' : 'each')+' before anything goes into it.' : '')
     + notes.filter(function(m, i, a){ return !/^\u2709/.test(m) && a.indexOf(m)===i; }).map(function(m){ return ' '+m; }).join(''));
   const info=[].concat.apply([], held.map(function(h){ return h.notes.map(function(m){ return 'FY'+(h.fy%100)+': '+m; }); }));
+  if(unread.length) info.push('\u26a0 '+unread.length+' proposed field'+(unread.length===1?'':'s')+' in that submittal could not be read and '
+    +(unread.length===1?'was':'were')+' left out:\n  \u2022 '+unread.join('\n  \u2022 '));
   if(out.length) info.push('\u2139 '+out.length+' proposed change'+(out.length===1?'':'s')+' '+(out.length===1?'is':'are')
     +' for requirements '+pkg.pmo+' does not own in that year, so '+(out.length===1?'it was':'they were')+' dropped:\n  \u2022 '
     +out.join('\n  \u2022 '));
@@ -9254,7 +9272,8 @@ function pmoTake(pkg, fname, part){
     pkg.added=pkg.added.filter(function(a){ if(a.grp===pkg.pmo) return true;
       outOfScope.push(a.grp+' — '+(a.title||a.nid)+' (proposed new)'); return false; });
     if(!Object.keys(pkg.items).length && !pkg.added.length && !pkg.rank){
-      if(part){ part.empty=outOfScope; return; }   // v2.09 W2: one year of a five-year file -- its other years are still taken
+      // v2.09 W2: one year of a five-year file -- its other years are still taken, and what this year left out is still said
+      if(part){ part.empty=outOfScope; part.unread=_unread.slice(); return; }
       alert('That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own '
         +'requirements.\n\n'+outOfScope.length+' proposed change'+(outOfScope.length===1?'':'s')
         +' '+(outOfScope.length===1?'was':'were')+' for requirements another office owns, and a '
@@ -9466,6 +9485,7 @@ function subBody(){
                                             +' <span style="color:var(--dim)">'+esc(grpOf(r.it, T))+'</span>'
                                           : r.rank? '<b>'+esc(r.office)+'</b>\u2019s own ranking <span style="color:var(--dim)">'
                                               +r.prop.length+' requirements \u2014 the master list is not changed</span>'
+                                          : r.unstarted? '<span style="color:var(--amber)">'+esc(r.id)+' \u2014 FY'+(r.fy%100)+' is not started on this board: \u2714 Apply asks how to start it</span>'
                                           : '<span style="color:var(--red)">'+esc(r.id)+' \u2014 not on this board</span>')+'</td>'
       +'<td style="text-align:left">'+esc(PMO_LBL[r.key]||r.key)
         +(r.conflict? '<br><span style="color:var(--amber);font-size:9px;font-weight:800">CONFLICT \u2014 changed here too</span>':'')+'</td>'
