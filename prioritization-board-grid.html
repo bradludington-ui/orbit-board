@@ -9312,7 +9312,10 @@ function pmoTake(pkg, fname, part){
         +' for another office\u2019s requirements dropped' : '')
     + '. <b>Nothing has been applied.</b> '+PMOSUBS.length+' submittal'+(PMOSUBS.length===1?'':'s')
     + ' held, '+n+' proposed change'+(n===1?'':'s')+' in total.'
-    + (forFy!==MS.cur? ' It is held for <b>FY'+(forFy%100)+'</b> and applies only while FY'+(forFy%100)+' is on screen.' : ''));
+    // v2.09 W2 (item 126; decision 4): Apply puts it into the year it is held for, whatever year is on screen -- "applies only
+    // while FY28 is on screen" was v1.95's rule, and stopped being true
+    + (forFy!==MS.cur? ' It is held for <b>FY'+(forFy%100)+'</b>: ✔ Apply puts it into FY'+(forFy%100)+', whatever year is on screen'
+        +((MS.years||{})[forFy]? '' : ', and asks how to start that year first')+'.' : ''));
   if(_unread.length){
     alert('\u26a0 '+_unread.length+' proposed field'+(_unread.length===1?'':'s')+' in that submittal could '
       +'not be read and '+(_unread.length===1?'was':'were')+' left out:\n\n  \u2022 '+_unread.join('\n  \u2022 ')
@@ -31570,13 +31573,23 @@ function naFromAdd(){
 // requirement; that is said too, never hidden.
 function priorLink(it){
   const p=it && it.prior; if(!p || typeof p!=='object') return null;
-  const y=+p.fy, T=(MS.years||{})[y], src=T? yrItemOf(T, p.id) : null;
-  const on=!!(T && src && (T.order||[]).indexOf(p.id)>=0);
-  return {fy:y, id:String(p.id), on:on, held:!!T, title:on? dispTitle(src, T) : ''};
+  const y=+p.fy, T=(MS.years||{})[y];
+  let id=String(p.id), src=T? yrItemOf(T, id) : null;
+  // v2.09 W2 (item 126): A LINK TO ANOTHER OF AN OFFICE'S PROPOSALS names the id the copy gave it (NEW-PSM-1), which this board
+  // never holds: brought into FY29 from the office's own FY28 proposal, and that one accepted in a later Apply than this one,
+  // it read "no longer on the board". It is read through the accepted requirement's provenance -- the office and the id.
+  if(T && !src && /^NEW-/.test(id) && it.from && it.from.pmo){
+    const c=(T.custom||[]).filter(function(x){ return x && x.from && x.from.pmo===it.from.pmo && x.from.nid===id; })[0];
+    if(c){ id=String(c.id); src=yrItemOf(T, id); } }
+  const on=!!(T && src && (T.order||[]).indexOf(id)>=0);
+  // an office's proposal this board has not taken (the board numbers its own NEW-n): not a requirement it once held
+  const prop=!src && !!(it.from && it.from.pmo) && /^NEW-/.test(id) && !/^NEW-\d+$/.test(id);
+  return {fy:y, id:id, on:on, held:!!T, title:on? dispTitle(src, T) : '', prop:prop? String(it.from.pmo) : ''};
 }
 function priorTxt(it){ const L=priorLink(it); if(!L) return '';
   // a year not held at all is not a requirement removed: a locked cycle's view holds only its own years (review fix)
   return 'FY'+(L.fy%100)+' '+L.id+(L.on? ' \u2014 '+L.title
+    : L.prop? ' \u2014 '+L.prop+' proposed it, and it has not been accepted'
     : L.held? ' \u2014 no longer on the board'
     : ' \u2014 FY'+(L.fy%100)+(typeof CYCVIEW!=='undefined' && CYCVIEW? ' is not in this locked cycle' : ' is not on this board')); }
 function priorHtml(it){
