@@ -4,7 +4,7 @@
 `session_014mJNv6BPPuvFvfY5dqYCz4`), for Brad and whoever picks up v2.08: a new Claude session, Codex, or Brad.
 
 **Where it is:** `recovery/v208/HANDOFF.md` on `main` (written on branch `ccr-ce1f5388-a75g07`, merged as PR #25). Beside it:
-`ITEM-122-BRIEF.md` (the design brief for v2.08's one queued item), `repro/found-on-main.mjs` (seven defects found while
+`ITEM-122-BRIEF.md` (the design brief for item 122, the item v2.08 was queued around), `repro/found-on-main.mjs` (seven defects found while
 writing this, reproduced), and `bin/prove.py` + `bin/slim.py` + `v207-proofs.json` (how v2.07's mutations were proved
 without a sweep; `prove.py` now runs each check on the unmutated board first; with that in place all 154 were re-proved,
 and `v207-proved.jsonl` keeps their verdicts). The branch also adds three `.gitignore` lines (keep `v207-proofs.json`; ignore the provers'
@@ -51,9 +51,9 @@ for what was still missing. Behaviours were tested in jsdom, not taken from read
 | Mutation sweep | No full sweep since about 8 Oct: v2.00's first candidate `608444e`, 1,150 targets, 1,139 caught, 11 equivalent (superseded: its board had defects). The last sweep of a shipped version: v1.99, 7 Oct. Never on a merged v2.00+ tree; a 20-target pilot ran 20 Oct (§6, A2). |
 | Nightly validation | Last on v2.05 (`db41c0a`, 25 Oct 07:00 UTC): only the carried D ×8 failed. **Never on v2.00, v2.03, v2.06 or v2.07.** |
 | Open PRs | None after 26 Oct: Brad had #25 (this) merged and the old handoff drafts #15, #17, #19, #21 closed (B12). |
-| Branches | `ccr-ce1f5388-a75g07` is this one, restarted from `main` after #24 merged. **Not on `main`, keep read-only:** `claude/security-review-kit` (`b6f1ffc`, 7 Oct, a review kit for v1.99: tools and a reviewer's guide; Brad: keep, merge or drop?); `claude/v200-fixes-wip` (`3fab8ef`, 20 Oct: the v2.00 gate runbook and records CLAUDE.md cites, `build_evidence.sh`, `focus-block.py`); `codex/v200-reports-20261013` and `codex/v200-reports-round2-20261013` (Codex's v2.00 review reports); and the heads of the open handoff PRs #15, #17, #19, #21. The other `ccr-*` and `claude/orbit-v1.9x` branches are merged history. |
+| Branches | `ccr-ce1f5388-a75g07` is this one, restarted from `main` after #24 merged. **Not on `main`, keep read-only:** `claude/security-review-kit` (`b6f1ffc`, 7 Oct, a review kit for v1.99: tools and a reviewer's guide; Brad, 26 Oct: keep it as it is, and refresh it for the current board as item 123); `claude/v200-fixes-wip` (`3fab8ef`, 20 Oct: the v2.00 gate runbook and records CLAUDE.md cites, `build_evidence.sh`, `focus-block.py`); `codex/v200-reports-20261013` and `codex/v200-reports-round2-20261013` (Codex's v2.00 review reports); and the heads of the open handoff PRs #15, #17, #19, #21. The other `ccr-*` and `claude/orbit-v1.9x` branches are merged history. |
 | `orbit-review-mcp` | Last commit `acbeb7e` (10 Oct). Its README says deployment is pending, but its deploy workflow succeeded that day (run #5, 21:53 UTC, commit `77ba405` installs an orbit-board token as a Worker secret), so a Cloudflare Worker with a read token for this repository is **probably live**. Its check list still names `audit-ppt.mjs` (removed in v2.05). Brad: keep it running and update it, or take it down and revoke the token (E1). |
-| Item 122 (the queued item) | Logged 24 Oct, not designed. The brief is ready for Brad (`ITEM-122-BRIEF.md`). |
+| Queued items | **122** (edit the whole record in one box): logged 24 Oct, not designed; the brief is ready for Brad (`ITEM-122-BRIEF.md`). **123** (refresh the security review kit for the current board): logged 26 Oct (`NEXT-VERSION.md`). |
 
 ## 2. Access and permissions
 
@@ -93,7 +93,7 @@ report comes about half an hour later; the fuzz and the Interface Review report 
 
 ## 4. Found while writing this: seven defects on `main`, all older than v2.07
 
-None is logged in `NEXT-VERSION.md` yet; log them on Brad's word (items 123 onward are free). Each is reproduced in jsdom by
+None is logged in `NEXT-VERSION.md` yet; log them on Brad's word (items 124 onward are free; 123 is the security review kit's refresh). Each is reproduced in jsdom by
 `node recovery/v208/repro/found-on-main.mjs` (eight checks; it prints PRESENT or GONE and changes nothing). F1–F4 were found
 by the item 122 audit, F5–F7 by this handoff's claim-by-claim check. Details and proposed fixes are in `ITEM-122-BRIEF.md` §5.
 
@@ -127,7 +127,7 @@ counting a load does not stop Save writing over the file.
 
 ## 5. Item 122: edit the whole record in one box
 
-v2.08's one queued item, logged 24 Oct (*"Edit the whole record later as its own item"*). `ITEM-122-BRIEF.md` holds
+v2.08's first queued item, logged 24 Oct (*"Edit the whole record later as its own item"*). `ITEM-122-BRIEF.md` holds
 the groundwork:
 - §1–2: a field-by-field map of every surface that edits a record today (the RECORD panel, Requirement edit, the two
   pop-ups, the WBS panel, the CLIN drill, the Classify grid, the row, and the Add box);
@@ -175,7 +175,7 @@ on `main`; **it has not been updated since 19 Oct**, so `NEXT-VERSION.md` and th
 | B9 | Item 71's remainder: the shared side-list write window (per-writer files and SharePoint eTags were his 6 Oct direction; SharePoint is gone since v2.04; v2.02's D4 narrowed it for execution data), and the launcher sidecar, already off unless a browser sets `spmtSidecar=1` (the team opens the board from a shortcut; Brad, 30 Sep: nobody uses the desktop app) | `NEXT-VERSION.md` 71 | Fold the window into the Azure build (107); retire the sidecar unless he names an office that uses it |
 | B10 | Item 84: the RCN-EEIC ask column for a split prime (v2.02 D6b added a note; his 6 Oct "stays for review"), and its compatibility review of older versions reading v1.98+ files (Brad, 6 Oct). D6a covers v2.02+ readers only. | 84 | Ask whether the note and D6a close them |
 | B11 | Item 82: its 6 Oct review asks for his rule before the funds-flow and ACE totals are called certified (v1.99's worked examples exist); and three of its bullets are choices nobody made: a kept PPBE cycle fixes the services it holds; journal entries from before a service-list change can no longer be put back; `bmSeedFromPp` rounds each figure (v2.02 D5c) but does not apportion a fraction arriving in a file | 82 | Ask whether the examples meet his rule; one line each on the three |
-| B12 | **Done 26 Oct** (Brad: "Merge PR #25 and close the old handoff PRs"): #25 merged; #15, #17, #19, #21 closed, after PR #19's `NEXT-VERSION.md` line recording v2.03's merge (`065bc0d`) was carried to `main` (PR #21's M1 and M3 are B5 and C5 here). Still open: `claude/security-review-kit` (`b6f1ffc`). | §1 | Ask about the kit |
+| B12 | **Done 26 Oct** (Brad: "Merge PR #25 and close the old handoff PRs"): #25 merged; #15, #17, #19, #21 closed, after PR #19's `NEXT-VERSION.md` line recording v2.03's merge (`065bc0d`) was carried to `main` (PR #21's M1 and M3 are B5 and C5 here). The kit (`b6f1ffc`): kept, its refresh logged as item 123 (Brad, 26 Oct). | §1 | — |
 | B13 | Is v2.07 where people open the board? A release tag? (None exists.) Since v2.02 (D6a) an older ORBIT refuses a file written by a newer one: a board saved in v2.07 cannot be opened by v2.02–v2.06, so everyone moves together. | — | Put v2.07 where people open it; tag it on his word |
 | B14 | v2.07's five choices "decided in the build, not asked" (`NEXT-VERSION.md` v2.07): a required budget waived where nothing can be chosen; the record title from the CCaR list at Add; the money unchanged from the strip; From another year carrying what v2.06 carried; the From another year tab drawn for the box's office | `NEXT-VERSION.md` v2.07 | Confirm them, the waiver above all, before item 122 reuses `reqNeeds` |
 | B15 | Item 117's follow-up: a trend report that follows the year-to-year links ("can be logged as its own item once the link is in place"; the link shipped). And BACKLOG entry 8: a diff of PPBE positions in the cycle comparison? | `NEXT-VERSION.md` v2.06, `BACKLOG.md` | Log them if he wants them |
