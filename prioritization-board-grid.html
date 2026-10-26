@@ -8954,10 +8954,6 @@ function pkgSvcEach(pkg, fn){
   bag(pkg.items, '');
   bag(pkg.base, ' (the baseline it was written against)');
   (Array.isArray(pkg.added)? pkg.added : []).forEach(function(a){ if(a && typeof a==='object') one(a, (a.title||a.nid||'?')+' (proposed new)', 'ask'); });
-  // v2.09 W2 (item 126): and every other year of a five-year submittal, named by its year
-  if(pkg.byYear && typeof pkg.byYear==='object' && !Array.isArray(pkg.byYear)) Object.keys(pkg.byYear).forEach(function(y){
-    const q=pkg.byYear[y]; if(!q || typeof q!=='object') return;
-    pkgSvcEach({items:q.items, base:q.base, added:q.added}, function(v, lbl, kind, set){ fn(v, 'FY'+(y%100)+' — '+lbl, kind, set); }); });
 }
 // A package with per-service figures and no service list: refused, naming every list it carries (v1.95, item 51).
 function pmoNoListRefuse(pkg){
@@ -35883,16 +35879,11 @@ async function uiSubMany(inp){
     if(!(J && J.spmtPkg && J.dir==='submit')) return early('“'+f.name+'” is not a programme office’s submittal');
     P.push({name:f.name, txt:txt, pkg:J});
   }
-  // v2.09 W2 (item 126): ONE FILE PER OFFICE, AND ONE PER OFFICE AND YEAR. A five-year file is its office's whole submission
-  // and replaces whatever that office has held, so a second file from the office beside it is the question this refuses; two
-  // one-year files from copies published from two years are two years' work, and are taken side by side (pmoTake holds each
-  // for its own year).
   const seen={};
-  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg), five=pmoFive(P[i].pkg), fy=String(P[i].pkg.fy);
-    const j=Object.prototype.hasOwnProperty.call(seen, o)? seen[o].filter(function(x){ return x.five || five || x.fy===fy; })[0] : null;
-    if(j)
-      return early('“'+P[j.i].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
-    (seen[o]||(seen[o]=[])).push({i:i, five:five, fy:fy}); }
+  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg);
+    if(Object.prototype.hasOwnProperty.call(seen, o))
+      return early('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
+    seen[o]=i; }
   // the review may have changed while the files were read; the batch is measured against it as it is now -- and from
   // here to the end nothing waits, so nothing else can change the board while the batch runs
   was=uiBatchSnap();
