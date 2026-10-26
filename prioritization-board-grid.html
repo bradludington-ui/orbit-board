@@ -2700,7 +2700,11 @@ const SANDBOX = !!(PMODE && PMODE.sandbox);
 // the writer they call, which is the same in every panel that draws one.
 if(SANDBOX){ try{ const _st=document.createElement('style');
   _st.textContent='input[onchange^="setFsrcSvc("],input[onchange^="setAlloc("],input[onchange^="setSvc("],'
-    +'select[onchange^="setFsrc("]{pointer-events:none;opacity:.5}'
+    +'select[onchange^="setFsrc("],input[onchange^="setAbsorber("],input[onchange^="setAbsorbFloor("]{pointer-events:none;opacity:.5}'
+    // v2.08 (F6): the CLIN drill is the portfolio team's -- nothing in it travels with a submittal (clinLocked)
+    +'[onclick^="clinAdd("],[onclick^="clinSetField("],[onclick^="clinRemove("],[onclick^="clinRestore("],'
+    +'[onclick^="clinResetGrid("],[onclick^="clinFromRow("],[onclick^="rcnClinReset("],input[onchange^="clinSetReq("],input[onchange^="setClinSvc("],'
+    +'select[onchange^="setRcnClin"]{pointer-events:none;opacity:.5}'
     +'[onclick^="setFsrc("],[onclick^="zeroPMO("],[onclick^="restorePMO("],[onclick^="clinToRow("],'
     +'[onclick^="resetAlloc("],[onclick^="zeroSpread("],[onclick^="realignAll("],[onclick*="convertAllToSplit"]'
     +'{display:none!important}';
@@ -3261,12 +3265,14 @@ function absorbCalc(T){
   return {sf, id, absorbed, absorbedTot:absorbed.reduce((a,b)=>a+b,0),
           unabsorbed, unabsorbedTot:unabsorbed.reduce((a,b)=>a+b,0), capped, floor, allocTot:aTot};
 }
+// v2.08: refused in a PMO copy, as every allocation control is (the PMO_FIELDS comment always said allocLocked refused it)
 function setAbsorber(id,on){
+  if(allocLocked()) return;
   S.absorb = on? id : '';
   if(!on) S.absorbFloor=0;
   save(); render();
 }
-function setAbsorbFloor(v){ const x=parseAmt(v); if(amtNo(x, v, 'The floor')) return; S.absorbFloor=(x&&x>0)? x : 0; save(); render(); }
+function setAbsorbFloor(v){ if(allocLocked()) return; const x=parseAmt(v); if(amtNo(x, v, 'The floor')) return; S.absorbFloor=(x&&x>0)? x : 0; save(); render(); }
 function laneOf(t){ const d=t.dT>0.005, m=t.mT>0.005;
   return d&&m? 'split' : (m? 'mand' : (d? 'disc' : 'unf')); }
 const LANELBL={disc:'DISCRETIONARY', mand:'MANDATORY', split:'BOTH', unf:'UNFUNDED'};
@@ -6343,6 +6349,10 @@ function setGrp(id, g){
   if(GROUPS.indexOf(g)<0) return;
   if(!S.grp) S.grp={};
   const was=grpOf(itm), home=itm.grp;
+  // v2.08 (F3): the office it is already in changes nothing. It took the requirement out of its office's ranking and put it
+  // last (unjournalled: pmoOrder is in JRNL_SKIP) while saying it "is already in" that office -- from a bulk set, or an arrow
+  // key through a PMO select, which fires change on every office it passes.
+  if(was===g){ setStat('\ud83c\udff7 '+esc(dispTitle(itm))+' is already in '+esc(g)+'.'); return; }
   if(g===home) delete S.grp[id]; else S.grp[id]=g;
   Object.keys(S.pmoOrder||{}).forEach(function(k){
     if(Array.isArray(S.pmoOrder[k])) S.pmoOrder[k]=S.pmoOrder[k].filter(function(x){ return x!==id; });
@@ -6351,9 +6361,7 @@ function setGrp(id, g){
   S.pmoOrder[g].push(id);
   save(); render();
   try{ flash(id); }catch(e){}   // the move itself may filter the row out of the current view
-  setStat(was===g
-    ? '\ud83c\udff7 '+esc(dispTitle(itm))+' is already in '+esc(g)+'.'
-    : '\ud83c\udff7 Moved <b>'+esc(dispTitle(itm))+'</b> from '+esc(was)+' to <b>'+esc(g)+'</b>'
+  setStat('\ud83c\udff7 Moved <b>'+esc(dispTitle(itm))+'</b> from '+esc(was)+' to <b>'+esc(g)+'</b>'
       +(g===home? ' \u2014 back to where the source file has it.' : ' \u2014 '+FYL()+' only.')
       +' It is last in '+esc(g)+'; reorder from the PMO view.');
 }
@@ -12140,7 +12148,7 @@ function rcnOfClin(id, key, svc){
   return m[key] || rcnAsgOf(id, svc) || '';
 }
 function setRcnClin(id, key, k){
-  if(!rcnApplies()) return;
+  if(!rcnApplies() || clinLocked()) return;
   if(!S.clinRcn) S.clinRcn={};
   if(!S.clinRcn[id]) S.clinRcn[id]={};
   if(k) S.clinRcn[id][key]=k; else delete S.clinRcn[id][key];
@@ -12162,7 +12170,7 @@ function rcnOfClinSvc(id, key, svc){
   return (typeof o==='string' && o)? o : rcnOfClin(id, key, svc);
 }
 function setRcnClinSvc(id, key, svc, k){
-  if(!rcnApplies()) return;
+  if(!rcnApplies() || clinLocked()) return;
   if(!S.clinRcnSvc || typeof S.clinRcnSvc!=='object' || Array.isArray(S.clinRcnSvc)) S.clinRcnSvc={};
   const A=S.clinRcnSvc;
   if(!A[id] || typeof A[id]!=='object' || Array.isArray(A[id])) A[id]={};
@@ -12173,6 +12181,7 @@ function setRcnClinSvc(id, key, svc, k){
   save(); render();
 }
 function rcnClinReset(id, key){
+  if(clinLocked()) return;
   const A=S.clinRcnSvc;
   if(A && typeof A==='object' && A[id] && typeof A[id]==='object'){ delete A[id][key]; if(!Object.keys(A[id]).length) delete A[id]; }
   save(); render();
@@ -16885,15 +16894,21 @@ const DEST_NONE='unassigned';
 let flowEntOpen=false;
 const DEST_SPLIT='destsplit';   // same title, requirements pointing different ways
 // Per requirement, per year — the same shape as the other overrides. {to, end}
+// v2.08 (F4): the second hop is read only where the first is a government activity. A requirement switched to a prime, or with
+// Goes to cleared, kept its "which awards to", hidden and unclearable, and the funds flow by final destination filed the
+// prime's money under it. setDest clears it from now on; one saved before is kept in the file and read as nothing.
 function destOf(it){
   const d=(S.dest||{})[it&&it.id] || {};
-  return {to:d.to||'', end:d.end||''};
+  const to=d.to||'';
+  return {to:to, end:(to && destKeyIsOgc(to))? (d.end||'') : ''};
 }
 // MIPR TYPE. How an OGC's money is sent: Direct Cite, or Reimbursable. The board records WHICH and
 // stops there -- how the money is actually sent and when are internal decisions this deliberately
 // does not model, so nothing downstream keys off this beyond printing it.
 const MIPR_LBL=Object.assign(Object.create(null), {direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'});
-function miprOf(id){ return (S.mipr||{})[id]||''; }
+// v2.08 (F4): the MIPR type is an OGC's -- read only while the requirement goes to a government activity (destOf's rule)
+function miprOf(id){ const v=(S.mipr||{})[id]||''; if(!v) return '';
+  const it=itemById(id); return (it && destIsOgc(it))? v : ''; }
 function setMipr(id,v){
   if(!S.mipr) S.mipr={};
   if(v && MIPR_LBL[v]) S.mipr[id]=v; else delete S.mipr[id];
@@ -16918,6 +16933,9 @@ function setDest(id, field, k){
   if(!S.dest) S.dest={};
   const cur=S.dest[id] || {};
   cur[field]=k||'';
+  // v2.08 (F4, D10): a Goes to that is not a government activity -- a prime, or nothing -- takes the second hop and the MIPR
+  // type with it; kept, they were hidden and misfiled the money
+  if(!destKeyIsOgc(cur.to)){ delete cur.end; if(S.mipr) delete S.mipr[id]; }
   if(!cur.to && !cur.end) delete S.dest[id]; else S.dest[id]=cur;
   save(); render(); try{ flash(id); }catch(e){}
   const d=destOf(itm);
@@ -20634,7 +20652,10 @@ function edCompute(ord){
           fullBA:(S.discSvc||[]).reduce((a,b)=>a+b,0)+(S.mandSvc||[]).reduce((a,b)=>a+b,0),
           minGap, fullGap, critCount, unfundedAtFull, bandCount, unbanded, needCons};
 }
-function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.cons||{})[id]; }
+// v2.08 (F1): clearing the band leaves the impact statement. It deleted S.cons[id] with the band since the first commit, from
+// when the statement was asked for only on a critical band; it is asked for on every requirement now, and a statement longer
+// than the journal keeps (JRNL_BIG) could not be put back.
+function setBand(id,v){ if(v===''){ delete S.band[id]; }
   else S.band[id]=v; save(); render(); }
 function setMinInc(id,v){ const n=parseAmt(v); if(amtNo(n, v, 'The minimum useful increment')) return; if(n===null||n<=0) delete S.minInc[id]; else S.minInc[id]=n; save(); render(); }
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
@@ -25201,7 +25222,18 @@ function clinSplit(pid, i, amt){
   return out;
 }
 function clinSvcTot(pid){ const L=clinList(pid); return SVC.map((sv,j)=>L.reduce((a,c)=>a+(clinVec(pid,c)[j]||0),0)); }
+// v2.08 (F6, Brad: "lock the drill"): A PMO COPY CANNOT CHANGE A PRIME'S CLINs. No CLIN container travels with a submittal
+// (PMO_FIELDS carries none), so an office's CLIN edits were kept on the copy and never sent, with nothing saying so. Every
+// writer the drill reaches asks here first; the copy also dims the drill's controls (the style beside SANDBOX).
+function clinLocked(){
+  if(typeof SANDBOX==='undefined' || !SANDBOX) return false;
+  alert('A prime\u2019s CLIN breakdown is kept by the portfolio team, so it cannot be changed in a PMO copy: nothing in '
+    +'the CLIN drill travels back with \u2709 Submit input.\n\nTo change a CLIN, tell the portfolio team.');
+  try{ render(); }catch(e){}
+  return true;
+}
 function setClinSvc(pid,key,j,val){
+  if(clinLocked()) return;
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   const v=parseAmt(val);
   if(amtNo(v, val, 'The CLIN allocation for '+(SVC[j]||'this service'))) return;
@@ -25211,6 +25243,7 @@ function setClinSvc(pid,key,j,val){
 
 // ---- managing the lines ------------------------------------------------------------------------
 function clinAdd(pid, typedNum, typedDesc){
+  if(clinLocked()) return;
   uiPrompt('CLIN number for the new line (e.g. 3001 or 0001AB):', typedNum||'', num=>{
     if(num===null) return;
     // v1.99 (item 91): a number or description over its limit adds nothing; the box opens again holding the text
@@ -25233,6 +25266,7 @@ function clinAdd(pid, typedNum, typedDesc){
   });
 }
 function clinSetField(pid,key,field,typed){
+  if(clinLocked()) return;
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   const LBL={clin:'CLIN number', desc:'description', ccar:'CCaR record'};
   const KIND={clin:'clin', desc:'clinDesc', ccar:'ccar'};
@@ -25256,6 +25290,7 @@ function clinSetField(pid,key,field,typed){
 // The requested amount is a total, spread across services in the line's existing shape — evenly
 // when it has none yet, which is the case for a line you just added.
 function clinSetReq(pid,key,val){
+  if(clinLocked()) return;
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   const v=parseAmt(val);
   if(amtNo(v, val, 'The CLIN request')) return;
@@ -25268,6 +25303,7 @@ function clinSetReq(pid,key,val){
   save(); render();
 }
 function clinRemove(pid,key){
+  if(clinLocked()) return;
   const c=clinList(pid).find(x=>x.key===key); if(!c) return;
   if(!confirm((c.added? 'Delete added CLIN ':'Remove CLIN ')+c.clin+'?\n\n'
     +(c.added? 'It is gone for good.' : 'It can be put back from “restore” under the grid.')
@@ -25286,16 +25322,19 @@ function clinRemove(pid,key){
   save(); render();
 }
 function clinRestore(pid,key){
+  if(clinLocked()) return;
   S.clinRm[pid]=clinRm(pid).filter(k=>k!==key);
   save(); render();
 }
 function clinResetGrid(pid){
+  if(clinLocked()) return;
   if(!confirm('Reset every CLIN allocation back to its requested amount, by service?\n\n'
     +'CLIN numbers, descriptions and additions are kept. The row allocation is not touched.')) return;
   delete (S.clinAlloc||{})[pid];
   save(); render();
 }
 function clinFromRow(pid){
+  if(clinLocked()) return;
   const it=itemById(pid); if(!it) return;
   const row=svcAlloc(it), L=clinList(pid);
   if(!confirm('Fill the CLIN grid from the row allocation?\n\n'
@@ -25350,6 +25389,7 @@ function wbsResolve(list, parent){
 }
 function wbsStore(kind,a,b,list){
   if(kind==='clin'){
+    if(clinLocked()) return;
     if(!S.clinWbs) S.clinWbs={};
     if(!S.clinWbs[a]) S.clinWbs[a]={};
     if(list.length) S.clinWbs[a][b]=list; else delete S.clinWbs[a][b];
@@ -25427,9 +25467,12 @@ function toggleRec(id){ recOpen=(recOpen===id)? null : id; render(); }
 // decoration -- an unset field is a blank cell in the Spend Plan Source export, and counting them
 // is the only way to find them without opening every requirement in turn.
 // v2.03 (item 20): a field is named by its REQ_FIELD key; the label is read from there. A per-service line (↳ USAF) is not a
-// field of its own and passes its label as it is.
-function recF(k, set, ctl, note){ const own=Object.prototype.hasOwnProperty.call(REQ_FIELD, k);
-  return {k:own? k : '', l:own? FL(k) : k, set:!!set, c:ctl, n:note||''}; }
+// field of its own: it passes an id of its own (rcnSvc|USAF) and its label (lbl).
+// v2.08 (F7): every field carries `id` -- its key, or the per-service line's own id -- and the Classify grid keys its columns
+// and its bulk setters by it. Keyed by label, the per-service RCN / EEIC column "↳ USAF" found the bulk BUDGET setter of the
+// same name, and a bulk set there wrote BAE budgets on every row shown.
+function recF(k, set, ctl, note, lbl){ const own=Object.prototype.hasOwnProperty.call(REQ_FIELD, k);
+  return {k:own? k : '', id:k, l:own? FL(k) : (lbl||k), set:!!set, c:ctl, n:note||''}; }
 function recSec(t){ return {sec:t}; }
 function recSel(onch, tip, opts){
   return '<select class="cesel" onchange="'+onch+'" title="'+tip+'">'+opts+'</select>';
@@ -25528,7 +25571,7 @@ function recFields(id, it){
           +'with none'+(rgap.length? ' — not set: '+esc(rgap.join(', ')) : '')+'</div>' : '')));
     if(rcnSvcOpen[id]) rsv.forEach(function(sv){
       const chosen=((S.rcnSvc||{})[id]||{})[sv]||'';
-      acct.push(recF('↳ '+sv, !!rcnAsgOf(id, sv),
+      acct.push(recF('rcnSvc|'+sv, !!rcnAsgOf(id, sv),
         recSel('setRcnSvc('+jsa(id)+','+jsa(sv)+',this.value)',
           'The RCN + EEIC this service’s share is funded under',
           '<option value="">— use the requirement’s own —</option>'
@@ -25537,7 +25580,7 @@ function recFields(id, it){
               return ok.indexOf(sv)>=0; })
             .map(function(e){ return '<option value="'+esc(e.k)+'"'+(chosen===e.k?' selected':'')
               +'>'+esc(rcnLabel(e.k)||'(blank)')+'</option>'; }).join('')),
-        chosen? '' : 'following the requirement'));
+        chosen? '' : 'following the requirement', '↳ '+sv));
     });
   }
   const siRaw=siRawOf(id);     // v2.00 (U41): shown as it was saved, and selected, until a code is chosen
@@ -25657,16 +25700,22 @@ function matCols(){
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const f=recFields(id, it).filter(function(x){ return !x.sec; });
-    if(f.length>most){ most=f.length; cols=f.map(function(x){ return x.l; }); }
+    if(f.length>most){ most=f.length; cols=f.map(function(x){ return x.id; }); }
   });
   return cols;
+}
+// v2.08 (F7): a column is a field's id; what the grid prints over it is the field's label, read where it is drawn
+function matColLbl(c){
+  if(Object.prototype.hasOwnProperty.call(REQ_FIELD, c)) return FL(c);
+  if(String(c).indexOf('rcnSvc|')===0) return '\u21b3 '+String(c).slice(7);
+  return String(c);
 }
 function matRows(){
   return (S.order||[]).map(function(id){ return itemById(id); }).filter(function(it){
     if(!it) return false;
     if(matPmo!=='ALL' && grpOf(it)!==matPmo) return false;
     if(matMissing){
-      const f=recFields(it.id, it).filter(function(x){ return x.l===matMissing; })[0];
+      const f=recFields(it.id, it).filter(function(x){ return x.id===matMissing; })[0];
       if(!f || f.set) return false;              // not offered here, or already answered
     }
     return true;
@@ -25677,13 +25726,13 @@ function matRows(){
 // honest: any list-valued field the grid renders and this does not know about fails a check.
 function matBulk(){
   const out={};
-  out['PMO']={opts:GROUPS.map(function(g){ return [g,g]; }),
+  out['grp']={opts:GROUPS.map(function(g){ return [g,g]; }),
               get:function(it){ return grpOf(it); },
               set:function(id,v){ setGrp(id,v); }};
-  out['Obligation category']={opts:OB_CATS.map(function(c){ return [c,c]; }),
+  out['obCat']={opts:OB_CATS.map(function(c){ return [c,c]; }),
               get:function(it){ return obCatOf(it.id); },
               set:function(id,v){ setObCat(id,v); }};
-  out['Goes to']={opts:flowEntsAZ().map(function(e){ return [e.k, e.n+(e.kind==='gov'?' (gov)':'')]; }),
+  out['dest']={opts:flowEntsAZ().map(function(e){ return [e.k, e.n+(e.kind==='gov'?' (gov)':'')]; }),
               get:function(it){ return destOf(it).to; },
               set:function(id,v){ setDest(id,'to',v); }};
   // APPLIES. A bulk write used to land on every row matRows() returned, whether or not that
@@ -25693,7 +25742,7 @@ function matBulk(){
   // saying so. 'Which awards to' had done the same since it shipped. An entry with no applies()
   // applies to every requirement; the two that do not are keyed on destIsOgc, the same predicate
   // the record panel uses to offer them, so the sweep and the panel can never disagree.
-  out['Which awards to']={opts:flowEntsAZ().map(function(e){ return [e.k,e.n]; }),
+  out['destEnd']={opts:flowEntsAZ().map(function(e){ return [e.k,e.n]; }),
               applies:function(it){ return destIsOgc(it); },
               get:function(it){ return destOf(it).end; },
               set:function(id,v){ setDest(id,'end',v); }};
@@ -25701,27 +25750,37 @@ function matBulk(){
   // pivot table stops adding up. matBulkOk() is what made this mandatory -- the record panel
   // offers MIPR type the moment a requirement routes to a government activity, and a list-valued
   // field the grid shows with no bulk setter means the sweep silently covers less than the grid.
-  out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),
+  out['mipr']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),
               applies:function(it){ return destIsOgc(it); },
               get:function(it){ return miprOf(it.id); },
               set:function(id,v){ setMipr(id,v); }};
-  out['Prime contract / OGC']={opts:[['PRIME','PRIME'],['OGC','OGC']],
+  out['ptype']={opts:[['PRIME','PRIME'],['OGC','OGC']],
               get:function(it){ return ptypeOf(it.id); },
               set:function(id,v){ if(!S.ptype) S.ptype={}; S.ptype[id]=v; }};
-  if(siApplies()) out['Navy SI code']={opts:SI_CODES.map(function(c){ return [c[0], c[0]+' \u2014 '+c[1]]; }),
+  if(siApplies()) out['si']={opts:SI_CODES.map(function(c){ return [c[0], c[0]+' \u2014 '+c[1]]; }),
               // v2.00 (U41): a code kept from a file is an answer a bulk write overwrites, and the question counts it so
               // v2.00 (U56): read as saved, or as its JSON if it is not text -- String() read [] as no answer and ["AT"] as AT
               get:function(it){ const r=siRawOf(it.id); return r!==undefined? (typeof r==='string'? r : siRawShow(r)) : siOf(it); },
               set:function(id,v){ setSi(id,v); }};
-  if(rcnApplies()) out['RCN / EEIC']={opts:rcnReg().map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
+  if(rcnApplies()) out['rcnAsg']={opts:rcnReg().map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
               get:function(it){ return rcnAsgOf(it.id); },
               set:function(id,v){ setRcnAsg(id,v); }};
-  if(DATA.costElems) out['Cost element']={opts:COST_ELEMS.map(function(c){ return [c,c]; }),
+  // v2.08 (F7): the per-service RCN / EEIC column (↳ USAF, once a requirement's services are opened) sets that service's own
+  // combination, the record field's own setter and the same combinations it offers -- never the budget
+  if(rcnApplies()) RCN_SVCS.forEach(function(sv){
+    if(SVC.indexOf(sv)<0) return;
+    out['rcnSvc|'+sv]={opts:rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
+                                   return ok.indexOf(sv)>=0; })
+                                 .map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
+              get:function(it){ return ((S.rcnSvc||{})[it.id]||{})[sv]||''; },
+              set:function(id,v){ setRcnSvc(id, sv, v); }};
+  });
+  if(DATA.costElems) out['costElem']={opts:COST_ELEMS.map(function(c){ return [c,c]; }),
               get:function(it){ return (S.costElem||{})[it.id]||''; },
               set:function(id,v){ if(!S.costElem) S.costElem={}; S.costElem[id]=v; }};
   // ONE COLUMN, sweeping the FAMILY. Six per-service columns on O&M asked the same question six
   // times over; the family answers it once and the variants follow.
-  if(budReg().length) out['Budget']={
+  if(budReg().length) out['budFam']={
               opts:(function(){ const F=budFams();
                 return Object.keys(F).filter(function(k){ return F[k].ap===mySlug(); })
                   .sort(function(a,b){ return F[a].lbl<F[b].lbl? -1:1; })
@@ -25730,7 +25789,7 @@ function matBulk(){
               get:function(it){ const k=budFamOf(it.id); return k==='*'? '' : k; },
               set:function(id,v){ setBudFam(id, v); }};
   SVC.forEach(function(sv){
-    out['\u21b3 '+sv]={opts:budReg().filter(function(b){ return b.ap===mySlug() && !!b.pmo && !b.gone; })
+    out['bud|'+sv]={opts:budReg().filter(function(b){ return b.ap===mySlug() && !!b.pmo && !b.gone; })
                                  .map(function(b){ return [b.n,b.n]; }),
               get:function(it){ return budAsgOf(it.id, sv, 'disc') || budAsgOf(it.id, sv, 'mand'); },
               // THE LANE FOLLOWS THE NAME: a Mandatory name is the mandatory line's budget, a
@@ -25746,8 +25805,8 @@ function matBulk(){
 function matBulkOk(){
   const bulk=matBulk(), missing=[];
   matCols().forEach(function(c){
-    if(c==='WBS' || c==='Split by service') return;      // free-form: no list to offer
-    if(!bulk[c]) missing.push(c);
+    if(c==='wbs' || c==='wbsSplit') return;      // free-form: no list to offer
+    if(!bulk[c]) missing.push(matColLbl(c));
   });
   return missing;
 }
@@ -25775,25 +25834,29 @@ function matBulkPreview(){
   rows.forEach(function(it){
     const cur=String(B.get(it)||'');
     if(!cur) blank++; else if(cur===matBulkV) same++; else differ++;
-    if(matBulkF==='RCN / EEIC' && matClinOwn(it.id).k) clinOwn++;
+    if(matBulkF==='rcnAsg' && matClinOwn(it.id).k) clinOwn++;
   });
   return {n:rows.length, blank:blank, same:same, differ:differ, skip:all.length-rows.length,
-          field:matBulkF, val:matBulkV, clinOwn:clinOwn};
+          field:matColLbl(matBulkF), val:matBulkV, clinOwn:clinOwn};
 }
 function matApplyBulk(){
   const B=matBulk()[matBulkF], P=matBulkPreview();
   if(!B || !P){ setStat('\u26a0 Choose a field and a value first.'); return; }
-  if(!confirm('SET '+matBulkF+' = "'+matBulkV+'" ON '+P.n+' REQUIREMENT'+(P.n===1?'':'S')+'?\n\n'
+  const FN=matColLbl(matBulkF), nw=P.n-P.same;
+  if(!nw){ setStat('\u2713 '+esc(FN)+' already reads <b>'+esc(matBulkV)+'</b> on every one of the '+P.n
+    +' requirement'+(P.n===1?'':'s')+' it applies to \u2014 nothing to change.'); return; }
+  if(!confirm('SET '+FN+' = "'+matBulkV+'" ON '+nw+' REQUIREMENT'+(nw===1?'':'S')+'?\n\n'
     +'  '+P.blank+' have no answer yet\n'
-    +'  '+P.same+' already say exactly this\n'
+    +(P.same? '  '+P.same+' already say exactly this and are left alone\n' : '')
     +'  '+P.differ+' say something ELSE and would be OVERWRITTEN\n'
     +(P.skip? '  '+P.skip+' never offer this field and are left alone\n' : '')+'\n'
     +'This cannot be undone. Save first if you are unsure.')) return;
-  const rows=matBulkRows(B);
+  // v2.08 (F3): a row that already says this is left alone -- set again, an office re-ranked every row already in it
+  const rows=matBulkRows(B).filter(function(it){ return String(B.get(it)||'')!==matBulkV; });
   rows.forEach(function(it){ B.set(it.id, matBulkV); });
   save(); render();
-  setStat('\u2713 '+esc(matBulkF)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
-    +' requirement'+(rows.length===1?'':'s')+(P.differ? ' \u2014 '+P.differ+' had a different answer and were overwritten' : '')
+  setStat('\u2713 '+esc(FN)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
+    +' requirement'+(rows.length===1?'':'s')+(P.same? ' ('+P.same+' already said it and were left alone)' : '')+(P.differ? ' \u2014 '+P.differ+' had a different answer and were overwritten' : '')
     +(P.skip? (P.differ?'; ':' \u2014 ')+P.skip+' never offer this field and were left alone' : '')+'.');
 }
 function matBody(){
@@ -25811,13 +25874,13 @@ function matBody(){
   cols.forEach(function(c){
     let n=0, un=0;
     all.forEach(function(it){
-      const f=recFields(it.id, it).filter(function(x){ return x.l===c; })[0];
+      const f=recFields(it.id, it).filter(function(x){ return x.id===c; })[0];
       if(!f) return; n++; if(!f.set) un++;
     });
     if(!n) return;
     h+='<button class="btn'+(matMissing===c?' on':'')+'" style="font-size:9.5px;padding:3px 8px" '
       +'onclick="matSet(&quot;missing&quot;,'+jsa(matMissing===c?'':c)+')" '
-      +'title="show only the requirements missing this">'+esc(c)+' <b style="color:'
+      +'title="show only the requirements missing this">'+esc(matColLbl(c))+' <b style="color:'
       +(un? 'var(--amber)':'var(--green)')+'">'+un+'</b> of '+n+'</button>';
   });
   h+='</div>';
@@ -25844,7 +25907,7 @@ function matBody(){
       +'<select class="btn" style="font-size:10px;padding:3px 8px" onchange="matSet(&quot;bulkF&quot;,this.value)">'
       +'<option value="">\u2014 choose a field \u2014</option>'
       +cols.filter(function(c){ return !!bulk[c]; }).map(function(c){
-          return '<option value="'+esc(c)+'"'+(matBulkF===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')
+          return '<option value="'+esc(c)+'"'+(matBulkF===c?' selected':'')+'>'+esc(matColLbl(c))+'</option>'; }).join('')
       +'</select>';
     if(bulk[matBulkF]){
       h+='<span class="rlg-lbl">to</span>'
@@ -25864,7 +25927,7 @@ function matBody(){
       +(P.clinOwn? ' \u00b7 <span class="mat-clinown">'+P.clinOwn+' prime'+(P.clinOwn===1?' has':'s have')+' CLINs with their own, which keep it</span>' : '')+'</span>';
     h+='</div>';
     // v1.99 (item 97): what this column sets, said where it is set
-    if(matBulkF==='RCN / EEIC') h+='<div class="hint mat-rcnnote">This sets each requirement\u2019s own RCN / EEIC: the default a CLIN with none '
+    if(matBulkF==='rcnAsg') h+='<div class="hint mat-rcnnote">This sets each requirement\u2019s own RCN / EEIC: the default a CLIN with none '
       +'of its own uses. A CLIN\u2019s own choice (its standard, or one for a service) is made in its CLIN drill and is not changed here.</div>';
     const gap=matBulkOk();
     if(gap.length) h+='<div class="hint" style="color:var(--amber)">These columns cannot be set in '
@@ -25882,18 +25945,18 @@ function matBody(){
     +'<colgroup><col style="width:'+MAT_NAMEW+'px">'
     +cols.map(function(){ return '<col style="width:'+MAT_COLW+'px">'; }).join('')+'</colgroup>'
     +'<tr><th style="text-align:left">Requirement</th>'
-    +cols.map(function(c){ return '<th style="text-align:left">'+esc(c)+'</th>'; }).join('')+'</tr>';
+    +cols.map(function(c){ return '<th style="text-align:left">'+esc(matColLbl(c))+'</th>'; }).join('')+'</tr>';
   rows.slice(0, MAT_CAP).forEach(function(it){
     const F={};
-    recFields(it.id, it).forEach(function(x){ if(!x.sec) F[x.l]=x; });
+    recFields(it.id, it).forEach(function(x){ if(!x.sec) F[x.id]=x; });
     h+='<tr><td style="text-align:left" title="'+esc(dispTitle(it))+'">'
       +'<span style="color:var(--dim)">'+esc(grpOf(it))+'</span> '+esc(exClip(dispTitle(it)))+'</td>';
     cols.forEach(function(c){
       const f=F[c];
-      if(!f){ h+='<td class="mat-na" title="this requirement is not asked for '+esc(c)+'">\u2014</td>'; return; }
+      if(!f){ h+='<td class="mat-na" title="this requirement is not asked for '+esc(matColLbl(c))+'">\u2014</td>'; return; }
       // v1.99 (item 97): a prime whose CLINs carry their own RCN / EEIC says how many, under the requirement's own
       let own='';
-      if(c==='RCN / EEIC'){ const o=matClinOwn(it.id);
+      if(c==='rcnAsg'){ const o=matClinOwn(it.id);
         if(o.k) own='<div class="mat-clinown" style="font-size:9px;color:var(--dim)">'+o.k+' of '+o.n+' CLIN'+(o.n===1?'':'s')
           +' carr'+(o.k===1?'ies its':'y their')+' own</div>'; }
       h+='<td class="mat-c'+(f.set?'':' un')+'">'+f.c+own+'</td>';
@@ -26091,6 +26154,9 @@ function clinTable(it){
   }).join('');
 
   return '<div class="clin-detail">'
+    // v2.08 (F6): said where the drill is, in a copy -- what an office reads here is the portfolio team's breakdown
+    +(SANDBOX? '<div class="hint clin-locked" style="color:var(--amber)">In a PMO copy the CLIN breakdown is read only: '
+      +'nothing in it travels back with \u2709 Submit input. To change a CLIN, tell the portfolio team.</div>' : '')
     +'<div class="ch"><b>🧾 CLIN ALLOCATION BY SERVICE</b>'
       +'<span style="color:var(--dim);font-size:10px">'+L.length+' line'+(L.length===1?'':'s')+' · requested '+fM(primeReq(pid))+'</span>'
       +'<span style="flex:1"></span>'

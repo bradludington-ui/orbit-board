@@ -382,8 +382,8 @@ const MUTATIONS = [
     find: "  const crW=crWins(), crD=crData(scenOpt());",
     repl: "  const crW=crWins(), crD=crData();" },
   { id: 'mipr-no-bulk-setter', area: 'matBulk', what: 'the matrix draws a MIPR column it cannot sweep',
-    find: "  out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),",
-    repl: "  if(false) out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),"},
+    find: "  out['mipr']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),",   // v2.08 (F7): keyed by field key
+    repl: "  if(false) out['mipr']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),"},
   { id: 'mipr-bulk-writes-label', area: 'matBulk', what: 'a bulk MIPR set writes the label, not the value',
     find: "              get:function(it){ return miprOf(it.id); },\n              set:function(id,v){ setMipr(id,v); }};",
     repl: "              get:function(it){ return miprOf(it.id); },\n              set:function(id,v){ setMipr(id, MIPR_LBL[v]||v); }};" },
@@ -3661,10 +3661,10 @@ const MUTATIONS = [
     find: "        if(o.k) own=",
     repl: "        if(false) own=" },
   { id: "v199-mat-preview-clinown", area: "matBulkPreview", what: "the bulk preview does not count the primes whose CLINs keep their own",
-    find: "    if(matBulkF==='RCN / EEIC' && matClinOwn(it.id).k) clinOwn++;",
+    find: "    if(matBulkF==='rcnAsg' && matClinOwn(it.id).k) clinOwn++;",   // v2.08 (F7): keyed by field key
     repl: "" },
   { id: "v199-mat-rcnnote-gone", area: "matBody", what: "the bulk set does not say what the RCN / EEIC column sets",
-    find: "    if(matBulkF==='RCN / EEIC') h+='<div class=\"hint mat-rcnnote\"",
+    find: "    if(matBulkF==='rcnAsg') h+='<div class=\"hint mat-rcnnote\"",   // v2.08 (F7): keyed by field key
     repl: "    if(false) h+='<div class=\"hint mat-rcnnote\"" },
   { id: "v199-cycle-keeps-claim", area: "blBody", what: "the cycles panel claims a cycle reads correctly whatever is renamed, and names nothing it reads today",
     find: "+'locked before v2.02 kept none of them, and still reads them as they are now; its line says so. Execution data (a CCaR '",   // v2.02: retargeted (item 89 rewrote the hint)
@@ -5782,8 +5782,8 @@ const MUTATIONS = [
     find: "+flowEntsAZ().map(function(e){ return '<option value=\"'+esc(e.k)+'\"'+(destOf(it).end===e.k?' selected':'')",
     repl: "+flowEntsAZ(true).map(function(e){ return '<option value=\"'+esc(e.k)+'\"'+(destOf(it).end===e.k?' selected':'')" },
   { id: "v200-u44-awards-bulk-every", area: "matBulk", what: "the bulk setter's Which awards to offers dA twice, once as Bravo Yard",
-    find: "out['Which awards to']={opts:flowEntsAZ().map(function(e){ return [e.k,e.n]; }),",
-    repl: "out['Which awards to']={opts:flowEntsAZ(true).map(function(e){ return [e.k,e.n]; })," },
+    find: "out['destEnd']={opts:flowEntsAZ().map(function(e){ return [e.k,e.n]; }),",   // v2.08 (F7): keyed by field key
+    repl: "out['destEnd']={opts:flowEntsAZ(true).map(function(e){ return [e.k,e.n]; })," },
   { id: "v200-u44-own-plans-unsaid", area: "destOwnRight", what: "the full import puts the plans' copies of the list right without a word when the board's own list is clean: Put it right on a board whose kept Full Fund holds \"unassigned\" asks without saying what it changes",
     find: "  return [said.length? 'The destination list, put right as it comes across",
     repl: "  return !said.length? '' : [said.length? 'The destination list, put right as it comes across" },
@@ -6763,8 +6763,8 @@ const MUTATIONS = [
     find: "  const has=function(k){ return F.some(function(f){ return f.k===k && f.set; }); };",
     repl: "  const has=function(k){ return F.some(function(f){ return f.l===k && f.set; }); };" },
   { id: "v203-20-recf-label-raw", area: "recF", what: "a record field shows its key, not its name",
-    find: "  return {k:own? k : '', l:own? FL(k) : k, set:!!set, c:ctl, n:note||''}; }",
-    repl: "  return {k:own? k : '', l:k, set:!!set, c:ctl, n:note||''}; }" },
+    find: "  return {k:own? k : '', id:k, l:own? FL(k) : (lbl||k), set:!!set, c:ctl, n:note||''}; }",   // v2.08 (F7): retargeted
+    repl: "  return {k:own? k : '', id:k, l:k, set:!!set, c:ctl, n:note||''}; }" },
   { id: "v203-20-guide-not-filled", area: "helpSections", what: "the guide leaves the field names it reads from the registry blank",
     find: "  box.querySelectorAll('[data-fl]').forEach(function(n){ const k=n.getAttribute('data-fl'); n.textContent=n.hasAttribute('data-fi')? FLI(k) : FL(k); });",
     repl: "  /* not filled */" },
@@ -7421,6 +7421,37 @@ const MUTATIONS = [
   { id: 'v207-rv3-picker-copy-rule-other-office', area: "naFromHere", what: "after a year is started as a copy, From another year greys out PSM's requirement because AV's of the same number and plan event is on screen",
     find: "       && grpOf(x)===grpOf(src, MS.years[y]) && ccarOf(x)===ccarOf(src, MS.years[y])) return true;", repl: ") return true;" },
   // ==== end v2.07 item 121 -- the second review ====
+  // ==== v2.08 -- the defects found mapping item 122 (audit-board "v2.08 — the defects found mapping item 122") ====
+  { id: 'v208-f1-band-clears-impact', area: "setBand", what: "clearing the decision band deletes the impact statement, a long one past what the journal can put back",
+    find: "function setBand(id,v){ if(v===''){ delete S.band[id]; }", repl: "function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.cons||{})[id]; }" },
+  { id: 'v208-f3-same-office-reranks', area: "setGrp", what: "setting a requirement to the office it is in puts it last in that office's ranking, unjournalled, while saying it is already there",
+    find: "  if(was===g){ setStat('\\ud83c\\udff7 '+esc(dispTitle(itm))+' is already in '+esc(g)+'.'); return; }\n", repl: "" },
+  { id: 'v208-f3-bulk-rewrites-same', area: "matApplyBulk", what: "a bulk set writes every row again, those that already say it too: a bulk PSM set re-ranks every row already in PSM",
+    find: "  const rows=matBulkRows(B).filter(function(it){ return String(B.get(it)||'')!==matBulkV; });", repl: "  const rows=matBulkRows(B);" },
+  { id: 'v208-f4-destof-end-unguarded', area: "destOf", what: "a requirement on a prime keeps its old second hop as its final destination: the funds flow by final destination files a prime's money under Lockheed Martin",
+    find: "  return {to:to, end:(to && destKeyIsOgc(to))? (d.end||'') : ''};", repl: "  return {to:to, end:d.end||''};" },
+  { id: 'v208-f4-mipr-unguarded', area: "miprOf", what: "a requirement on a prime still reads its old MIPR type, which the Priority Drill prints against the prime",
+    find: "  const it=itemById(id); return (it && destIsOgc(it))? v : ''; }", repl: "  return v; }" },
+  { id: 'v208-f4-setdest-keeps-end', area: "setDest", what: "switching Goes to from a government activity to a prime keeps the second hop and the MIPR type in the file",
+    find: "  if(!destKeyIsOgc(cur.to)){ delete cur.end; if(S.mipr) delete S.mipr[id]; }\n", repl: "" },
+  { id: 'v208-f7-rcnsvc-by-label', area: "recFields", what: "the per-service RCN / EEIC line is keyed by its label again, so Classify's ↳ USAF column has no bulk setter of its own",
+    find: "      acct.push(recF('rcnSvc|'+sv, !!rcnAsgOf(id, sv),", repl: "      acct.push(recF('\\u21b3 '+sv, !!rcnAsgOf(id, sv)," },
+  { id: 'v208-f7-rcnsvc-bulk-writes-budget', area: "matBulk", what: "Classify's bulk ↳ USAF writes the BAE budget, not the RCN / EEIC the column holds",
+    find: "    out['bud|'+sv]={opts:budReg()", repl: "    out['rcnSvc|'+sv]={opts:budReg()" },
+  { id: 'v208-f7-rcnsvc-any-combination', area: "matBulk", what: "the per-service bulk set offers combinations that service cannot carry",
+    find: "    out['rcnSvc|'+sv]={opts:rcnReg().filter(function(e){ const ok=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();\n                                   return ok.indexOf(sv)>=0; })",
+    repl: "    out['rcnSvc|'+sv]={opts:rcnReg().filter(function(e){ return true; })" },
+  { id: 'v208-f6-copy-clins-open', area: "clinLocked", what: "a PMO copy's CLIN drill takes every edit, and none of it is sent with Submit input",
+    find: "  if(typeof SANDBOX==='undefined' || !SANDBOX) return false;\n  alert('A prime\\u2019s CLIN breakdown", repl: "  if(true) return false;\n  alert('A prime\\u2019s CLIN breakdown" },
+  { id: 'v208-f6-wbs-open', area: "wbsStore", what: "a PMO copy can still change a CLIN's WBS, which is never sent",
+    find: "    if(clinLocked()) return;\n    if(!S.clinWbs) S.clinWbs={};", repl: "    if(!S.clinWbs) S.clinWbs={};" },
+  { id: 'v208-f6-copy-silent', area: "clinTable", what: "a PMO copy's CLIN drill does not say it is read only",
+    find: "    +(SANDBOX? '<div class=\"hint clin-locked\"", repl: "    +(false? '<div class=\"hint clin-locked\"" },
+  { id: 'v208-absorber-unlocked', area: "setAbsorber", what: "a PMO copy can set the shortfall absorber, though the copy says allocation is the portfolio team's",
+    find: "function setAbsorber(id,on){\n  if(allocLocked()) return;\n", repl: "function setAbsorber(id,on){\n" },
+  { id: 'v208-absorbfloor-unlocked', area: "setAbsorbFloor", what: "a PMO copy can set the absorber's floor",
+    find: "function setAbsorbFloor(v){ if(allocLocked()) return; const x", repl: "function setAbsorbFloor(v){ const x" },
+  // ==== end v2.08 defects ====
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

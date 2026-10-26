@@ -1348,11 +1348,11 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   // first time a requirement was routed to a government activity, and nothing said so, because
   // no suite had ever called it on a board with a destination logged.
   chk(name, 'matrix', 'the matrix offers it as a column once a requirement is an OGC',
-    ev(`matCols().indexOf('MIPR type')>=0`), true);
+    ev(`matCols().indexOf('mipr')>=0`), true);
   chk(name, 'matrix', 'and the bulk sweep has a setter for every column it draws',
     ev(`JSON.stringify(matBulkOk())`), '[]');
   chk(name, 'matrix', 'a bulk set writes the value, not the label',
-    ev(`matSet('bulkF','MIPR type'); matSet('bulkV','direct'); matApplyBulk(); miprOf('A')`),
+    ev(`matSet('bulkF','mipr'); matSet('bulkV','direct'); matApplyBulk(); miprOf('A')`),
     'direct');
   // The year copy is NOT asserted here. 'mipr' is on yearCopy()'s normalise list, and
   // `copy / move between years` in audit-import.mjs reads that list out of the board's own source
@@ -1394,7 +1394,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     JSON.stringify(['A']));
 
   // THE PREVIEW SAYS WHO IS REACHED AND WHO IS LEFT ALONE, before anything is written.
-  ev(`matPmo='ALL'; matMissing=''; matSet('bulkF','MIPR type'); matSet('bulkV','direct'); 'ok'`);
+  ev(`matPmo='ALL'; matMissing=''; matSet('bulkF','mipr'); matSet('bulkV','direct'); 'ok'`);
   const P = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
   chk(name, 'preview', 'it reaches the one requirement that offers the field', P.n, 1);
   chk(name, 'preview', 'and says how many never offer it', P.skip, 2);
@@ -1409,14 +1409,14 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ev(`JSON.stringify(Object.keys(S.mipr||{}))`), JSON.stringify(['A']));
 
   // 'Which awards to' is the other gated field, and it has been landing on primes since it shipped.
-  ev(`matSet('bulkF','Which awards to'); matSet('bulkV','dla'); matApplyBulk(); 'ok'`);
+  ev(`matSet('bulkF','destEnd'); matSet('bulkV','dla'); matApplyBulk(); 'ok'`);
   chk(name, 'second hop', 'the OGC takes the ultimate recipient', ev(`destOf(itemById('A')).end`), 'dla');
   chk(name, 'second hop', 'the prime does not', ev(`destOf(itemById('B')).end||'(none)'`), '(none)');
 
   // AN ENTRY WITH NO applies() STILL REACHES EVERYONE -- the fix must not have narrowed the sweep
   // for the fields every requirement offers, which is the trap the obvious fix would have fallen
   // into. Obligation category is offered on every record.
-  ev(`matSet('bulkF','Obligation category'); matSet('bulkV',OB_CATS[0]); 'ok'`);
+  ev(`matSet('bulkF','obCat'); matSet('bulkV',OB_CATS[0]); 'ok'`);
   const Q = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
   chk(name, 'ungated', 'a field every requirement offers reaches all three', Q.n, 3);
   chk(name, 'ungated', 'and leaves none alone', Q.skip, 0);
@@ -1425,7 +1425,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ev(`['A','B','C'].filter(function(id){ return obCatOf(id)===OB_CATS[0]; }).length`), 3);
   // The per-service budget setters are bulk-only -- no record label -- and must still be offered.
   chk(name, 'ungated', 'the bulk-only per-service budget setters are still in the sweep',
-    ev(`Object.keys(matBulk()).some(function(k){ return k.indexOf('\u21b3 ')===0; })`), true);
+    ev(`Object.keys(matBulk()).some(function(k){ return k.indexOf('bud|')===0; })`), true);
 
   // THE SECOND-HOP CONTROL IS OFFERED FOR EVERY NON-PRIME KIND, not only 'gov'. BACKLOG entry 1's
   // completeness rule cannot be satisfied for an 'other' destination otherwise, and the two gates
@@ -5561,6 +5561,118 @@ await (async () => {
   }
 })();
 // ==== end v2.07 (found by the hostile sweep) ====
+
+// ==== v2.08: the defects found mapping item 122 (F1, F3, F4, F6, F7, the absorber; Brad, 26 Oct 2026) ====
+// Each was reproduced on v2.07 by recovery/v208/repro/found-on-main.mjs. Every expected value below is written out here, from
+// the fixture, and every check fails on v2.07 unless it is marked CONTROL.
+await (async () => {
+  const name = 'v2.08 — the defects found mapping item 122: band, office, Goes to, Classify, a copy’s CLINs and absorber';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask) => ({ id, title: 'Req ' + id, event: 'EV-' + id, grp, ask });
+  const mk = (sc) => { const b = boot(); seed(b.ev, sc); b.ev(`window.alert=function(m){ window._al=(window._al||[]).concat([String(m)]); }; window.confirm=function(){ return true; }; render(); 'ok'`); return b; };
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+
+  // ---- F1: clearing the decision band leaves the impact statement -- through the RECORD panel's own select
+  part('F1', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100])], disc: [100], mand: [0], order: ['A'] });
+    ev(`S.cons.A='Depot line stops in March. '+'x'.repeat(400); S.band.A=BANDS_LIST()[0].id; save(); setCur('A'); render(); 'ok'`);
+    chk(name, 'F1', 'fixture: A carries a band and a 427-character impact statement', ev(`[!!S.band.A, (S.cons.A||'').length].join(' · ')`), 'true · 427');
+    ev(`(function(){ var s=document.querySelector('#inspector select[onchange^="setBand("]'); s.value=''; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'F1', 'the band is cleared', ev(`S.band.A===undefined`), true);
+    chk(name, 'F1', 'and the impact statement is still there, whole', ev(`(S.cons.A||'').length`), 427);
+  });
+
+  // ---- F3: the office it is already in changes nothing; a bulk set leaves rows already set alone
+  part('F3', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100]), itx('B', 'PSM', [100]), itx('C', 'PSM', [100]), itx('D', 'AV', [100])],
+      disc: [400], mand: [0], order: ['A', 'B', 'C', 'D'] });
+    ev(`S.pmoOrder.PSM=['A','B','C']; S.pmoOrder.AV=['D']; save(); 'ok'`);
+    const j0 = ev(`(MS.jrnl||[]).length`);
+    ev(`setGrp('A','PSM'); 'ok'`);
+    chk(name, 'F3', 'setGrp(A, the office it is in) leaves the PSM ranking as it was', ev(`JSON.stringify(S.pmoOrder.PSM)`), J(['A', 'B', 'C']));
+    chk(name, 'F3', 'and says it is already there', ev(`/is already in PSM/.test(document.getElementById('shareStat').textContent)`), true);
+    chk(name, 'F3', 'and journals nothing', ev(`(MS.jrnl||[]).length`), Number(j0));
+    ev(`matPmo='ALL'; matMissing=''; matSet('bulkF','grp'); matSet('bulkV','PSM'); 'ok'`);
+    const P = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
+    chk(name, 'F3', 'CONTROL: the bulk preview counts three already PSM and one to move', [P.same, P.differ].join(' · '), '3 · 1');
+    ev(`matApplyBulk(); 'ok'`);
+    chk(name, 'F3', 'a bulk PSM set moves only D, last; A, B and C keep their order', ev(`JSON.stringify(S.pmoOrder.PSM)`), J(['A', 'B', 'C', 'D']));
+    chk(name, 'F3', 'its line says it was written on one requirement, not four', ev(`/set to <b>PSM<[/]b> on 1 requirement /.test(document.getElementById('shareStat').innerHTML)`), true);
+    chk(name, 'F3', 'and its line says three were left alone', ev(`/3 already said it and were left alone/.test(document.getElementById('shareStat').textContent)`), true);
+  });
+
+  // ---- F4: a Goes to that is not a government activity takes the second hop and the MIPR type with it
+  part('F4', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100]), itx('B', 'PSM', [100]), itx('C', 'PSM', [100])],
+      disc: [300], mand: [0], order: ['A', 'B', 'C'] });
+    ev(`setDest('A','to','pax'); setDest('A','end','lm'); setMipr('A','direct'); setDest('A','to','pw'); 'ok'`);
+    chk(name, 'F4', 'A switched to Pratt & Whitney: the stored second hop is cleared', ev(`(S.dest.A||{}).end===undefined`), true);
+    chk(name, 'F4', 'its MIPR type is cleared', ev(`(S.mipr||{}).A===undefined`), true);
+    chk(name, 'F4', 'and its final destination is the prime', ev(`destEndOf(itemById('A'))`), 'pw');
+    chk(name, 'F4', 'the funds flow by final destination files it under Pratt & Whitney', ev(`JSON.stringify(flowDestResolve(['A'],'end'))`), J(['pw']));
+    ev(`setDest('A','to','pax'); setMipr('A','reimb'); setDest('A','to',''); 'ok'`);
+    chk(name, 'F4', 'Goes to cleared takes the MIPR type and the record with it', ev(`[(S.dest||{}).A===undefined, (S.mipr||{}).A===undefined].join(' · ')`), 'true · true');
+    // a board saved before v2.08: B is on a prime with a hidden second hop and MIPR type
+    ev(`S.dest.B={to:'pw', end:'lm'}; S.mipr.B='direct'; save(); 'ok'`);
+    chk(name, 'F4', 'one saved before: the hidden second hop is read as nothing', ev(`destEndOf(itemById('B'))`), 'pw');
+    chk(name, 'F4', 'its MIPR type is read as nothing', ev(`miprOf('B')`), '');
+    chk(name, 'F4', 'and nothing is deleted from the file', ev(`[S.dest.B.end, S.mipr.B].join(' · ')`), 'lm · direct');
+    ev(`setDest('C','to','pax'); setDest('C','end','lm'); setMipr('C','direct'); 'ok'`);
+    chk(name, 'F4', 'CONTROL: an OGC keeps both', ev(`[destEndOf(itemById('C')), miprOf('C')].join(' · ')`), 'lm · direct');
+  });
+
+  // ---- F7: Classify's per-service RCN / EEIC column sets RCN / EEIC, never the budget
+  part('F7', () => {
+    const { ev } = mk({ services: ['USAF', 'ANG', 'AFRC'], items: [itx('A', 'AV', [100, 50, 0]), itx('B', 'AV', [10, 0, 0])],
+      disc: [300, 300, 300], mand: [0, 0, 0], order: ['A', 'B'] });
+    const OM = ['USAF O&M - ANG CAM Discretionary AV', 'USAF O&M- CAM Discretionary AV', 'USAF O&M - CAM OBBBA Mandatory AV'];
+    ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}, {k:'K2', rcn:'22222', eeic:'BBBBB', t:'', svc:['ANG']}];
+        BUDDB={ts:1700000000009, files:[], rows:${J(OM)}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+        matOpen=true; rcnSvcOpen['A']=true; render(); 'ok'`);
+    const offered = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#matBody .mat-bulk select')[0].options, function(o){ return [o.value, o.textContent]; }))`));
+    chk(name, 'F7', 'the bulk set offers the per-service column under its own label', J(offered.filter(o => o[0] === 'rcnSvc|USAF')), J([['rcnSvc|USAF', '↳ USAF']]));
+    ev(`(function(){ var s=document.querySelectorAll('#matBody .mat-bulk select')[0]; s.value='rcnSvc|USAF'; s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'F7', 'its values are the combinations USAF can carry, not budget names',
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#matBody .mat-bulk select')[1].options, function(o){ return o.value; }))`), J(['', 'K1']));
+    ev(`(function(){ var s=document.querySelectorAll('#matBody .mat-bulk select')[1]; s.value='K1'; s.dispatchEvent(new Event('change'));
+        document.querySelector('#matBody button[onclick="matApplyBulk()"]').click(); return 'ok'; })()`);
+    chk(name, 'F7', 'applied, it writes USAF’s RCN / EEIC on both rows', ev(`JSON.stringify([((S.rcnSvc||{}).A||{}).USAF, ((S.rcnSvc||{}).B||{}).USAF])`), J(['K1', 'K1']));
+    chk(name, 'F7', 'and no budget', ev(`JSON.stringify(S.budgetAsg||{})`), '{}');
+    chk(name, 'F7', 'CONTROL: every column the grid draws has a bulk setter', ev(`JSON.stringify(matBulkOk())`), '[]');
+  });
+
+  // ---- F6 and the absorber: a PMO copy cannot change a prime's CLINs or the shortfall absorber, and says so
+  part('F6', () => {
+    const items = [itx('A', 'PSM', [100, 50, 0]), itx('B', 'PSM', [80, 0, 0])];
+    const P0 = mk({ services: ['USAF', 'ANG', 'AFRC'], items, disc: [300, 300, 300], mand: [0, 0, 0], order: ['A', 'B'] });
+    P0.ev(`(function(){ BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); S.ptype.A='PRIME'; save(); render(); return 'ok'; })()`);
+    P0.ev(`window.prompt=function(m){ return /number/.test(m)? 'CLIN77' : 'Spares'; }; clinAdd('A'); 'ok'`);
+    chk(name, 'F6', 'CONTROL: on the portfolio board a CLIN can be added', P0.ev(`clinList('A').some(function(c){ return c.clin==='CLIN77'; })`), true);
+    const html = P0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const C = boot({ html }); const ev = C.ev;
+    ev(`window.alert=function(m){ window._al=(window._al||[]).concat([String(m)]); }; window.confirm=function(){ return true; }; render(); 'ok'`);
+    const before = ev(`JSON.stringify([S.clinNew||{}, S.clinMeta||{}, S.clinAlloc||{}, S.clinWbs||{}, S.absorb||'', S.absorbFloor||0])`);
+    const k = ev(`(clinList('A')[0]||{}).key`);
+    ev(`window.prompt=function(m){ return /number/.test(m)? 'CLIN88' : 'More'; }; clinAdd('A');
+        clinSetReq('A',${J(k)},'500'); setClinSvc('A',${J(k)},0,'40'); wbsStore('clin','A',${J(k)},[{w:'P1.2',v:[]}]);
+        window.prompt=function(){ return 'JSF5555'; }; clinSetField('A',${J(k)},'ccar'); clinRemove('A',${J(k)}); clinResetGrid('A');
+        setAbsorber('B',true); setAbsorbFloor('1000'); 'ok'`);
+    chk(name, 'F6', 'in the copy, nothing in the CLIN drill or the absorber changed',
+      ev(`JSON.stringify([S.clinNew||{}, S.clinMeta||{}, S.clinAlloc||{}, S.clinWbs||{}, S.absorb||'', S.absorbFloor||0])`), before);
+    chk(name, 'F6', 'each CLIN writer said why (seven refusals)', ev(`(window._al||[]).filter(function(m){ return /CLIN breakdown is kept by the portfolio team/.test(m); }).length`), 7);
+    chk(name, 'absorber', 'the absorber and its floor were refused as allocation (two refusals)', ev(`(window._al||[]).filter(function(m){ return /allocation is set by the portfolio team/.test(m); }).length`), 2);
+    ev(`toggleClin('A'); render(); 'ok'`);
+    chk(name, 'F6', 'the drill says it is read only in a copy', ev(`!!document.querySelector('.clin-detail .clin-locked')`), true);
+    chk(name, 'F6', 'CONTROL: the portfolio board’s drill says nothing of the kind', P0.ev(`toggleClin('A'); render(); !!document.querySelector('.clin-detail .clin-locked')`), false);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 defects ====
+
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

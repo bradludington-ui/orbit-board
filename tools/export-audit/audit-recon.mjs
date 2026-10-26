@@ -3640,7 +3640,7 @@ await (async () => {
       return JSON.stringify({own:own, others:others.reduce(function(a,b){ return a+b; },0)}); })()`) || '{}');
     w5Chk(name, 'item 97 · the Classify grid', 'the prime’s RCN / EEIC cell says 1 of 2 CLINs carries its own', J(g.own), J(['1 of 2 CLINs carries its own']));
     w5Chk(name, 'item 97 · the Classify grid', 'CONTROL — a requirement with no CLINs says nothing of them', J(g.others), J(0));
-    const p = JSON.parse(ev(`(function(){ matBulkF='RCN / EEIC'; matBulkV='K2'; matBody(); const P=matBulkPreview();
+    const p = JSON.parse(ev(`(function(){ matBulkF='rcnAsg'; matBulkV='K2'; matBody(); const P=matBulkPreview();
       return JSON.stringify([P.clinOwn, (document.querySelector('#matBody .mat-prev .mat-clinown')||{}).textContent||'', (document.querySelector('#matBody .mat-rcnnote')||{}).textContent||'']); })()`) || '[]');
     w5Chk(name, 'item 97 · the bulk preview', 'it counts the prime whose CLINs keep their own, and says so', J([p[0], p[1]]), J([1, '1 prime has CLINs with their own, which keep it']));
     w5Chk(name, 'item 97 · the bulk preview', 'and says what the column sets: the requirement’s own, not a CLIN’s', /not changed here/.test(p[2]) && /default a CLIN with none/.test(p[2]), true);
@@ -5027,7 +5027,7 @@ await (async () => {
         J(['R1', ['at', '“at” — not one of the five, kept as saved', ['', 'at', 'LA', 'EN', 'OT', 'FL', 'AT'], true]]));
       B.ev(`recOpen=null; render(); 'ok'`);
       w5Chk(name, where, 'a bulk write of AT on all nine counts R1 and R9 as answers it would overwrite: blank 1, same 1, differ 7',
-        B.ev(`(function(){ matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; var P=matBulkPreview(); return JSON.stringify([P.n, P.blank, P.same, P.differ]); })()`),
+        B.ev(`(function(){ matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; var P=matBulkPreview(); return JSON.stringify([P.n, P.blank, P.same, P.differ]); })()`),
         J([9, 1, 1, 7]));
       B.ev(`siShown=true; siOpen=true; siMatrix(); 'ok'`);
       w5Chk(name, where, 'the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%',
@@ -5178,7 +5178,7 @@ await (async () => {
         flowCfg().rules.lm='Req A'; S.ptype={A:'PRIME'}; applyState(S); save();
         S.si={A:${J(raw)},B:'',C:'EN'}; MS.years[MS.cur]=S; 'ok'`);
       const R = boot({ html: X.ev('buildSavedHtml()') });
-      R.ev(`matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; 'ok'`);
+      R.ev(`matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; 'ok'`);
       return R;
     };
     const preview = R => { try { return R.ev(`JSON.stringify((function(){ var p=matBulkPreview(); return [p.n,p.blank,p.same,p.differ]; })())`); }
@@ -5287,7 +5287,7 @@ await (async () => {
     // AT chosen in A's field as Go to it draws it, the record panel closed after
     const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#recBody select[onchange^="setSi("]');
       if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); recOpen=null; return 'chosen'; })()`);
-    const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
+    const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
     // the change journal opened as a person opens it; one requirement's lines as drawn: What | Was | Became, newest first
     const journal = (R, id) => tryEv(R, `(function(){ jrnlOpen=false; toggleJrnl();
       return JSON.stringify(Array.from(document.querySelectorAll('#jrnlBody tr')).filter(function(t){ return t.cells.length>4 && t.cells[2].textContent==='sustainment indicator — Ev ${id}'; })
@@ -9330,7 +9330,7 @@ await (async () => {
           return (i && td.length>3 && /^(Alpha Depot|Bravo Yard)$/.test(i.value))? [i.value, td[3].textContent] : null; }).filter(Boolean);
         render(); var m=/(\\d+) places? money can go/.exec(document.body.textContent||'');
         return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : [],
-          matBulk()['Goes to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }), used, m? +m[1] : 0]); })()`));
+          matBulk()['dest'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }), used, m? +m[1] : 0]); })()`));
       const del = (X, i, ans) => JSON.parse(X.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return ${ans}; };
         window.alert=function(m){ al.push(String(m)); }; flowDelEnt(${i});
         return JSON.stringify([qs, al, flowEnts().slice(8).map(function(e){ return [e.k, e.n]; }), destOf(itemById('R1')).to, DESTDB.gone.indexOf('dA')>=0]); })()`));
@@ -9687,7 +9687,7 @@ await (async () => {
           var s=d.querySelector('select'); return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : []]); })()`),
         J(['Alpha Depot', ['Alpha Depot']]));
       w5Chk(name, 'T4 dA Alpha Depot then dA Bravo Yard · the bulk setter’s Which awards to', 'offers dA once, as Alpha Depot',
-        X.ev(`JSON.stringify(matBulk()['Which awards to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }))`), J(['Alpha Depot']));
+        X.ev(`JSON.stringify(matBulk()['destEnd'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }))`), J(['Alpha Depot']));
       bootRelease(mk, []); await settleBoards();
     }
     // T5: a full import that kept Full Fund holding "unassigned"; Put it right's question says what it puts right

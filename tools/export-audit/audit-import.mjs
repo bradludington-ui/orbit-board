@@ -2820,7 +2820,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const k = A.ev(`destByName('Aardvark Depot').k`);
   chk(name, 'add', 'a new destination gets a key of its own, not the next x', /^d[0-9a-z]{8,}$/.test(k), true);
   chk(name, 'add', 'and reads first, A to Z', v186AZ(A.ev)[0], 'Aardvark Depot');
-  chk(name, 'pickers', 'the Goes to bulk list reads A to Z', A.ev(`JSON.stringify(matBulk()['Goes to'].opts.map(function(o){ return o[1].replace(/ \\(gov\\)$/,''); }))`),
+  chk(name, 'pickers', 'the Goes to bulk list reads A to Z', A.ev(`JSON.stringify(matBulk()['dest'].opts.map(function(o){ return o[1].replace(/ \\(gov\\)$/,''); }))`),
     JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
   chk(name, 'pickers', 'the panel reads A to Z', JSON.stringify([...A.ev('flowEntEditor()').matchAll(/<input[^>]*value="([^"]*)" onchange="flowSetEnt\(\d+,&quot;n&quot;/g)].map(m => m[1].replace(/&amp;/g, '&'))),
     JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
