@@ -217,6 +217,13 @@
    "basis": "agreement",
    "asserts": "The workbook read back from its bytes: every service row of Funding Streams, every requirement row of Decision Bands (and the band summary and running totals), the three lists and Unfunded Requirements, every office × service × lane of the PMO Matrix and its BA and unfunded blocks, every PMO tab's portion sections and obligation report (month by month), every CR requirement line window by window, and the RCN-EEIC and SI month sheets month by month — against tiers' lane vectors, the clamped basis, the fixture's budget authority and its award date."
   },
+  "re.siByReq": {
+   "file": "tools/export-audit/audit-recon.mjs",
+   "scenario": "v2.09 W4 (item 128) — the SI tab lists the requirements under each SI code",
+   "anchor": "const name = 'v2.09 W4 (item 128) — the SI tab lists the requirements under each SI code'",
+   "basis": "arithmetic",
+   "asserts": "The SI tab's requirements by code, read back from its bytes on a Split board with two not-drawn lines (so funded, the allocation and the requirement value are three figures): every requirement's funded STOVL / USMC CV / USN against the fixture's own figures (NO DATE included, the discretionary-only view too), each row adding across, its requirement value from the fixture's asks; each code's TOTAL against its rows and against that code's row in each service block; the last TOTAL against the service totals and the roll-up; a prime's CLIN lines in whole dollars adding to it; which requirements are listed, in priority order, in both views; the RCN-EEIC tab and the rest of the workbook unchanged from v2.08."
+  },
   "w6.ce": {
    "file": "tools/export-audit/audit-recon.mjs",
    "scenario": "W6 — the cost-element sheets: every cost element, service and lane",
@@ -1038,7 +1045,8 @@
      "checks": [
       "w6.book",
       "w6.ce",
-      "w7.f4"
+      "w7.f4",
+      "re.siByReq"
      ],
      "see": [
       "au.fsSvc",
@@ -1056,9 +1064,10 @@
       "w6.book",
       "au.tierLists",
       "au.unfSheet",
-      "au.oblReport"
+      "au.oblReport",
+      "re.siByReq"
      ],
-     "note": "every requirement row on Decision Bands, the three lists, Unfunded Requirements, the PMO tabs (portions and obligation report), the CR lines and the RCN-EEIC requirement section"
+     "note": "every requirement row on Decision Bands, the three lists, Unfunded Requirements, the PMO tabs (portions and obligation report), the CR lines and the RCN-EEIC requirement section, and the SI tab’s requirements under each SI code (re.siByReq, v2.09 item 128)"
     },
     "month": {
      "status": "proven",

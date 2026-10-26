@@ -3476,7 +3476,7 @@ const ATT_KIND={
   code:{t:'✂ CODES LONGER THAN THEIR LIMIT', go:'Go to it',
     why:'A CCaR record is at most 12 characters, a PID 35, a CLIN number 20, a CLIN description 140 and a WBS 40. These arrived longer, in a file or from another board, and are kept whole \u2014 never cut, because a cut code can be another record. CCaR may not match them: correct each where it is set. <b>Go to it</b> selects the requirement.'},
   si:{t:'🏷 SI CODES TO REPAIR', go:'Go to it',
-    why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s RECORD panel, where its Navy SI code shows the code as saved.'},
+    why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('si')+', which shows the code as saved.'},
   awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
     why:'The awards do not yet cover the funded amount, discretionary + mandatory, so the rest is UNSCHEDULED in every spend plan. Discretionary fills the awards forward from the first and mandatory backward from the last, so what is short is usually mandatory. <b>Go to it</b> opens the award block, where <b>↵ put on last</b> covers it.'}
 };
@@ -3519,7 +3519,7 @@ function attGo(k, id){
   if(k==='imp'){ openEdit(id, 'cons'); return; }
   if(k==='ccar'){ openEdit(id, 'ccar'); return; }
   if(k==='neg' || k==='code') return;
-  // v2.00 (U41): the RECORD panel, at the Navy SI code that shows the code as saved
+  // v2.00 (U41): at the Navy SI code that shows the code as saved -- in the edit box since v2.08 (item 122)
   if(k==='si'){ openEdit(id, 'si'); return; }
   if(k==='buy'){ buysOpen=true; render(); try{ const w=document.getElementById('buysWrap'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){} return; }
   try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
@@ -12966,7 +12966,8 @@ function crExport(){
   setStat('⬇ CR cash return — '+rows.length+' requirement'+(rows.length===1?'':'s')+', '
     +crScope(' + ')+' combined, twelve 15-day windows Oct–Mar.'
     +(noSi? ' <b style="color:var(--amber)">'+noSi+' with no SI code</b> — those cells are blank; '
-       +'set them from each row’s ⋯ menu.' : (rawSi? '' : ' Every row carries an SI code.'))
+       // v2.09 (item 128): the row's ⋯ menu has had no SI entry since the record fields moved off the row; it is the edit box
+       +'set them in each requirement’s '+FLI('rec')+', at its '+FL('si')+'.' : (rawSi? '' : ' Every row carries an SI code.'))
     +(rawSi? ' <b style="color:var(--amber)">'+rawSi+' with an SI code from a file that is not one of LA, EN, OT, FL or AT</b> '
        +'(kept as saved, listed in Needs attention) — '+(rawSi===1? 'its cell is' : 'their cells are')+' blank'+(noSi? ' too' : '')+'.' : ''));
 }
@@ -26310,13 +26311,14 @@ function siMatrix(){
     +esc(crScope(', '))+' only — USAF, ANG and AFRC do not use Special Interest codes, so their '
     +'money is out of scope here rather than uncoded, and is not in these totals. Same scope as the '
     +'1A9A CR cash return.'
+    // v2.09 (item 128): set in the edit box (the row's ⋯ menu has had no SI entry since the record fields left the row)
     +(uncoded>0.005 && rawTot<=0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no code yet — set '
-      +'one from a requirement’s ⋯ menu.':'')
+      +'one in a requirement’s '+FLI('rec')+', at its '+FL('si')+'.':'')
     // v2.00 (U41): money under a code from a file the board does not recognize is in that row, and said to be
     +(rawTot>0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no recognized code: '+fM(rawTot)+' of it is on '
       +nRaw+' requirement'+(nRaw===1?'':'s')+' whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, '
       +'listed in Needs attention)'+(uncoded-rawTot>0.005? ' and '+fM(uncoded-rawTot)+' carries no code yet' : '')
-      +' — set one from a requirement’s ⋯ menu.' : '')
+      +' — set one in a requirement’s '+FLI('rec')+', at its '+FL('si')+'.' : '')
     +(nDerived? ' '+nDerived+' of '+(nDerived+nSet)+' coded requirements take a <b>derived</b> code '
       +'(an LM prime reads as Airframe, Propulsion as Engine); those re-derive if the requirement '
       +'changes, and choosing the derived answer stores nothing.':'')
@@ -33084,7 +33086,8 @@ function exportExcel(){
           }
         }
         if(tot<=0.005){
-          if(O.detail && ask>0.005){
+          // v2.09 (item 128): the SI tab's requirement section lists what asks and draws nothing too, at $0
+          if((O.detail || O.byReq) && ask>0.005){
             if(parts){
               const pp=parts.filter(function(P){ return P.ask>0.005; }), mx=pp.length>1;
               pp.forEach(function(P){ pendTo(g, P.k, {id:id, it:it, ask:P.ask, mixed:mx}); });
@@ -33102,15 +33105,17 @@ function exportExcel(){
     // The tab is dropped when there is nothing to place. But a board with no Air Force money funded
     // yet - a fresh cycle, or a CR before controls are loaded - is exactly when the list of what
     // still needs a combination is worth having, so the breakout alone is reason enough to print
-    // it. The SI tab declares no breakout, so it disappears as it always did.
+    // it. v2.09 (item 128): so is the SI tab's list of requirements by code -- an EN requirement nothing paid yet is
+    // the one that list exists to show, so asks with nothing funded keep the tab as they keep the RCN one.
     const anyMoney=bag.some(function(b){ return Object.keys(b).length>0; })
-      || (O.detail && pend.some(function(p){ return Object.keys(p).length>0; }));
+      || ((O.detail || O.byReq) && pend.some(function(p){ return Object.keys(p).length>0; }));
     if(!anyMoney) return null;
 
     // The breakout adds four columns to the right of the rollup's grid and needs a wider label
     // column: a combination reads "12345 / ABCDE  <title>" and a requirement carries its rank and
-    // record name, neither of which fits the 34 the rollup alone needed.
-    const cols=[O.detail? 52 : 34].concat(FYMON.map(function(){ return 13; })).concat([13,15])
+    // record name, neither of which fits the 34 the rollup alone needed. v2.09 (item 128): nor does the SI tab's
+    // requirement section, whose rows carry the same rank and record name.
+    const cols=[(O.detail || O.byReq)? 52 : 34].concat(FYMON.map(function(){ return 13; })).concat([13,15])
       .concat(O.detail? [14,15,18,12] : []).concat(O.clinOf? [34] : []);
     const rows=[[{v:scenTitle(title),s:TI}],[]];
     const hdr=function(extra,lead){ return [{v:lead||'',s:H}]
@@ -33163,6 +33168,134 @@ function exportExcel(){
       +'date set \u2014 it is shown rather than dropped or placed in a month nobody chose. '
       +'The same month-placement rules as the '+FYL()+' Two-Plan Forecast sheet, though that sheet '
       +'models two plans rather than this board\u2019s own allocations.',s:0}]);
+
+    /* ---- v2.09 (item 128): THE REQUIREMENTS UNDER EACH SI CODE --------------------------------
+       Brad, 26 Oct 2026: "I need an EN section that shows each requirement assigned to EN and then the amounts for STOVL,
+       USMC CV, and USN." The rollup says how much rides each code and cannot say which requirements make it up. This
+       does, for every code in the tab's order and then the requirements carrying none, so every dollar on the tab sits
+       on exactly one requirement row here.
+       IT IS THE SAME PASS TURNED ON ITS SIDE. A row is the requirement's own entries in bag -- exactly what addTo was
+       handed for each service -- so a code's TOTAL is that code's row in each service block above by construction, and
+       the last TOTAL is the roll-up. Reading the lanes again here would be a second answer that could drift from the
+       rows it sits under. The figure is FUNDED (what the lanes drew, the dollars the months spread, NO DATE included),
+       never "Allocated": that word is the allocation on Unfunded Requirements, and on a not-drawn line the allocation
+       is money no lane paid. The requirement value sits beside it in columns of its own and enters no total. A
+       requirement that asks on these services and draws nothing is listed at $0 (pend): an EN requirement the lanes
+       could not reach is the one a reader most needs to find. The section's columns stop well short of the rollup's
+       TOTAL column, which stays empty on every row here, and its labels never read "<SVC> TOTAL" or end "TOTAL BY
+       MONTH", which name the rollup's rows. */
+    if(O.byReq){
+      const zs=function(){ return svcNames.map(function(){ return 0; }); };
+      const add=function(a){ return a.reduce(function(x,y){ return x+y; },0); };
+      const at=Object.create(null);                 // board priority order; a requirement id is a key from a file
+      S.order.forEach(function(id,i){ if(!(id in at)) at[id]=i; });
+      // one entry per requirement under code k: funded and requirement value per service, read off bag and pend
+      const reqsOf=function(k){
+        const by=Object.create(null), L=[];
+        const get=function(r){ if(!by[r.id]){ by[r.id]={id:r.id, it:r.it, f:zs(), a:zs()}; L.push(by[r.id]); } return by[r.id]; };
+        svcNames.forEach(function(_,g){
+          ((bag[g][k]||{}).its||[]).forEach(function(r){ const q=get(r); q.f[g]+=add(r.m)+r.nod; q.a[g]+=r.ask; });
+          (pend[g][k]||[]).forEach(function(r){ get(r).a[g]+=r.ask; });
+        });
+        return L.sort(function(x,y){ return at[x.id]-at[y.id]; });
+      };
+      // label, funded per service, total funded, then the requirement value per service (a TOTAL row has none)
+      const cellOf=function(v,s){ return (v===null || v===undefined)? '' : {v:v,s:s}; };
+      const qLine=function(label, f, a, st){
+        return [{v:label,s:st||0}].concat(f.map(function(v){ return cellOf(v, st===SEC? NB : N); }))
+          .concat([{v:add(f.map(function(v){ return +v||0; })),s:NB}])
+          .concat(a? a.map(function(v){ return cellOf(v, N); }) : []);
+      };
+      const svcWords=function(L){ const s=L.map(shown); return s.length<2? s.join('') : s.slice(0,-1).join(', ')+' or '+s[s.length-1]; };
+      // A PRIME IS OBLIGATED ONE CLIN AT A TIME, so its row is followed by a line per CLIN: the prime's funded figure and
+      // its requirement value on each service, prorated by the CLIN grid's share through clinSplit -- whole dollars that
+      // add to the prime's row. A service the grid holds nothing for gives no share to split by: that money is put on
+      // a line of its own rather than divided on a guess, so the lines still add to the prime on every service.
+      // AN EXPORT CHANGES NOTHING IT READS. clinList and clinVec make the CLIN containers they read, and write each CLIN's
+      // default share into S.clinAlloc (clinListRO says why that matters). On a board where nothing else in this workbook
+      // splits the prime -- no RCN tab, no funded line in the Spend Plan Source -- this section would be the first to, and
+      // a default frozen there stops following the CLIN's own ask. So whatever the read added or replaced for this prime
+      // is put back: the very objects that were there, never a copy (a copy through JSON would turn a NaN into null).
+      const clinRead=function(pid, fn){
+        const own=function(o, k){ return !!(o && typeof o==='object' && Object.prototype.hasOwnProperty.call(o, k)); };
+        const was=['clinMeta','clinNew','clinRm','clinAlloc'].map(function(n){
+          const box=S[n], val=own(box, pid)? box[pid] : undefined;
+          return {n:n, top:own(S, n), box:box, has:own(box, pid), val:val,
+            keys:(val && typeof val==='object' && !Array.isArray(val))? Object.keys(val).map(function(k){ return [k, val[k]]; }) : null}; });
+        try{ return fn(); }
+        finally{ was.forEach(function(w){
+          if(!w.top){ delete S[w.n]; return; }
+          if(S[w.n]!==w.box){ S[w.n]=w.box; return; }
+          if(!w.has){ if(own(w.box, pid)) delete w.box[pid]; return; }
+          if(w.box[pid]!==w.val){ w.box[pid]=w.val; return; }
+          if(!w.keys) return;
+          const cur=w.val, had=Object.create(null);
+          w.keys.forEach(function(kv){ had[kv[0]]=1; if(cur[kv[0]]!==kv[1]) cur[kv[0]]=kv[1]; });
+          Object.keys(cur).forEach(function(k){ if(!had[k]) delete cur[k]; }); }); }
+      };
+      const clinLines=function(q){
+        if(!(typeof clinApplies==='function' && clinApplies(q.id))) return [];
+        // asked without creating anything first: clinList makes empty CLIN containers for a prime that has none
+        if(!clinListRO(q.id).length) return [];
+        const got=clinRead(q.id, function(){ const cl=clinList(q.id)||[];
+          return {cl:cl,
+            fS:idx.map(function(si,g){ return clinSplit(q.id, si, q.f[g]); }),
+            aS:idx.map(function(si,g){ return clinSplit(q.id, si, q.a[g]); })}; });
+        const cl=got.cl, fS=got.fS, aS=got.aS;
+        if(!cl.length) return [];
+        const out=[];
+        cl.forEach(function(c,ci){
+          const f=fS.map(function(P){ return P.length? P[ci].part : null; }), a=aS.map(function(P){ return P.length? P[ci].part : null; });
+          if(f.concat(a).some(function(v){ return v!==null && Math.abs(v)>0.005; }))
+            out.push(qLine('        CLIN '+String(c.clin==null? '' : c.clin)+(c.desc? '   '+c.desc : ''), f, a));
+        });
+        const un=svcNames.filter(function(_,g){ return !fS[g].length && (Math.abs(q.f[g])>0.005 || Math.abs(q.a[g])>0.005); });
+        if(!un.length) return out;
+        if(!out.length) return [[{v:'        the CLIN grid holds nothing for '+svcWords(un)+', so this money is not split by CLIN',s:0}]];
+        const keep=function(v,g){ return fS[g].length? null : v; };
+        out.push(qLine('        not on a CLIN \u2014 the CLIN grid holds nothing for '+svcWords(un),
+          q.f.map(keep), q.a.map(keep)));
+        return out;
+      };
+      const plain=String(noneLbl).replace(/^\u2014\s*|\s*\u2014$/g,'');
+      const grandF=zs();
+      // Laid out as the rollup above is, so the house style dresses it the same way: a heading per code, the column
+      // headings under it, the rows, and a TOTAL whose label starts with the word, as a total row's does.
+      // (a row of its own each time: the writer is handed every row as its own array)
+      const head=function(){ return [{v:'Requirement / CLIN',s:H}].concat(svcNames.map(function(sv){ return {v:shown(sv)+' funded',s:H}; }))
+        .concat([{v:'Total funded',s:H}]).concat(svcNames.map(function(sv){ return {v:shown(sv)+' requirement value',s:H}; })); };
+      rows.push([]);
+      rows.push([{v:scenTitle('REQUIREMENTS UNDER EACH SI CODE'),s:TI}]);
+      rows.push([]);
+      keys.concat([NONE]).forEach(function(k){
+        const L=reqsOf(k);
+        if(k===NONE && !L.length) return;           // a code always shows; "none" only when a requirement carries none
+        const cnt=L.length+' requirement'+(L.length===1?'':'s');
+        rows.push([{v:(k===NONE? noneLbl+'   ('+cnt+', still to code)' : labelOf(k)+'   ('+cnt+')'),s:SEC}]);
+        rows.push(head());
+        const sub=zs();
+        if(!L.length) rows.push([{v:'    no requirement on '+svcWords(svcNames)+' carries this code',s:0}]);
+        L.forEach(function(q){
+          rows.push(qLine('    #'+(MR[q.id]||'-')+'  '+(recName(q.it)||dispTitle(q.it)), q.f, q.a));
+          clinLines(q).forEach(function(r){ rows.push(r); });
+          q.f.forEach(function(v,g){ sub[g]+=v; grandF[g]+=v; });
+        });
+        rows.push(qLine('TOTAL \u2014 '+(k===NONE? plain : labelOf(k)), sub, null, SEC));
+        rows.push([]);
+      });
+      rows.push(qLine('TOTAL \u2014 every requirement above: the roll-up', grandF, null, SEC));
+      rows.push([]);
+      rows.push([{v:'One row per requirement, under its SI code, with what it is FUNDED on each service: what the lanes drew ('
+        +(scenOn()? 'DISCRETIONARY ONLY \u2014 mandatory withheld' : 'discretionary + mandatory')+'), the same dollars the '
+        +'months above spread, NO DATE included. Each code\u2019s TOTAL is that code\u2019s row in each service block above, '
+        +'and the last TOTAL is the roll-up. The requirement value is what the requirement asks on each service; it is '
+        +'beside the funded figure to compare and is in no total. A requirement that asks on these services and draws '
+        +'nothing is listed at $0. A prime\u2019s CLIN lines are its funded figure and its requirement value prorated by the '
+        +'CLIN grid\u2019s share, the split the Spend Plan Source uses, so they add to the prime\u2019s row (the Spend Plan '
+        +'Source splits each dated piece and lane on its own, so its CLIN lines can sit a dollar from these); money on a '
+        +'service the grid holds nothing for is on a line of its own. Rank is the board\u2019s master rank. USAF, ANG and '
+        +'AFRC money does not use Special Interest codes and is not on this tab.',s:0}]);
+    }
 
     /* ---- WHICH REQUIREMENTS SIT UNDER EACH COMBINATION ------------------------------------
        The rollup says how much money rides each line of accounting. It cannot say WHICH
@@ -33339,7 +33472,9 @@ function exportExcel(){
                      return k+(c? '  '+c[1] : ''); },
         function(it){ return siOf(it); },
         // v2.00 (U41): with a code from a file the board does not recognize, that money is in this row, and the row says so
-        siIssues().length? '\u2014 no recognized SI code \u2014' : '\u2014 no SI code set \u2014', crSvcName)
+        siIssues().length? '\u2014 no recognized SI code \u2014' : '\u2014 no SI code set \u2014', crSvcName,
+        // v2.09 (item 128): and below the rollup, the requirements under each code (RCN declares none, so its tab is unchanged)
+        {byReq:true})
     : null;
 
   // v2.02 (E5, ledger U9L): THE OFFICES' PLANNING SHARES AGAINST THE CLIN AMOUNTS THE SPEND PLAN SOURCE SENDS (officeClinRecon),
