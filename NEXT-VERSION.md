@@ -144,6 +144,41 @@ Current version: **v2.07**. Next: **v2.08**.
 - **Proposed:** not yet -- to be worked out with Brad: which fields, whether the box replaces 📋 Requirement edit, and how it
   sits beside the rule that the RECORD panel is the editor ("The row is triage").
 
+#### 123. Refresh the security review kit for the current board (Brad, 26 Oct 2026: "Yes, log it for v2.08")
+- **Logged:** 26 Oct 2026. Brad's decision: keep `claude/security-review-kit` (`b6f1ffc`, 7 Oct) as it is, not merged and not
+  deleted, and refresh it for the current board in v2.08. The branch stays the record of what his security team was given.
+- **What it is:** the kit built for v1.99 (on `6de4432`), no board change. `SECURITY-REVIEW.md` is a reviewer's guide with no
+  findings; those are in the owner's private annex, which cites the guide's line numbers. `tools/review/` has four tools, all
+  Node built-ins, run by four `review:*` npm scripts:
+  - `fingerprint.mjs`: the code fingerprint a saved board keeps.
+  - `which-build.mjs`: names the release behind any board file, from `review/builds.json`.
+  - `sinks.mjs`: every place text becomes page markup, written to `review/sinks.csv`, with no verdicts.
+  - `bundle.mjs`: the style, markup and script at their board line numbers, with a manifest of hashes.
+- **Why not merge it as it is** (measured 26 Oct on v2.07, `f508fdb`): the guide is wrong about today's board in ways a
+  security reader would act on.
+  - It says the file sets no Content-Security-Policy; v2.04 added one.
+  - It describes Confluence (15 mentions) and SharePoint (22), removed in v2.04, and the PowerPoint template, removed in v2.05.
+  - Its line numbers are v1.99's: 31,333 lines then, 35,029 in v2.07.
+- **The tools still run on v2.07:**
+  - `fingerprint.mjs` prints its three fingerprints.
+  - `which-build.mjs` answers "UNKNOWN BUILD: not a reviewed release" (exit 1). That is correct: only v1.99 is in
+    `builds.json`.
+  - `sinks.mjs` finds 572 rows in 261 functions (537 rows at v1.99).
+  - `bundle.mjs` writes its files and lays them back over all 35,029 board lines, then reports a PROBLEM: there is no
+    `TPL_PARTS` left to unpack.
+- **Proposed**, on a branch from `main`, merged on Brad's go:
+  - Rewrite `SECURITY-REVIEW.md` for the current board: the CSP and what it refuses; the shared folder as the only
+    transport; the AI review's hand-carried request and answer; v2.00's escape-where-drawn and the import door's key rules;
+    places named by the `// §NN` banners rather than line numbers alone; today's threat model.
+  - Add v2.07 and each later release to `review/builds.json`.
+  - Drop the template step from `bundle.mjs`.
+  - Regenerate `review/sinks.csv`.
+- **Why now:** `which-build.mjs` lets anyone prove which release a saved board file holds. That is evidence for the OCIO
+  package (6 Nov) and for the security team's open questions (`recovery/v208/HANDOFF.md` §6, E1 and E4).
+- **Brad's call:**
+  - whether the refreshed guide goes to the security team as a new version, and whether their annex is refreshed with it;
+  - whether `which-build.mjs` joins `npm run check` or the nightly, so a release is added to `builds.json` as it ships.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
