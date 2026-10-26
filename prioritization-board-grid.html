@@ -2080,6 +2080,11 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>A requirement your office carries year after year can be brought in instead of typed again: in the same box, <i>From another year</i>, choose the fiscal year. The list shows your office’s requirements in that year, greys out any already in this year, and marks each one <i>ready</i> or with how many fields it still needs. Tick the ones to bring in and press <i>Add</i>: a ready one is added at once, and one that still needs fields opens in <i>New requirement</i>, filled in, to finish and add (or to skip). Each comes in as a new requirement of its own, linked to the one it came from (its record says <i>Continues FY26 …</i>, and the Priority Drill’s <i>Continues</i> column carries it), with that year’s value, record, description, impact statement, classifications and award dates moved forward. The allocation, the funding split and ★ Mission Critical are not carried: they are decided for this year.</p>
 <p><i>Add</i> is refused until every required field is filled, and says which are still missing: the plan event, prime contract / OGC, the requirement value, a BAE budget for each service with a value (where your office has one to choose), obligation category, WBS (a prime contract’s is logged per CLIN, in its CLIN drill), <i>Goes to</i> (and, where the money goes to a government activity, <i>Which awards to</i> and the MIPR type), the description and the impact statement. It travels whole in your submittal, flagged as new. A requirement added before this version is held to the same list when you submit: if one is incomplete, the copy names it and what it still needs, holds that one back, and sends everything else.</p>
 </section>
+<section data-part="office" data-id="o-years" data-t="Which years you can work in">
+<p>A copy covers the base year and the four years after it — the years named on the bar across the top (<i>…, for FY28–FY32</i>). Pick a year in the <b>Fiscal year</b> box at the top: in every one of them you can update your office’s requirements and propose new ones. <b class="bt" data-q="#subBanner">✉ Submit input</b> sends every year in one file, whichever year is on screen, and each year’s changes are read against that year as it stood when the copy was published.</p>
+<p>A year the portfolio board had not started when the copy was published reads <i>not started</i> in the box. It opens blank, for new requirements only: when your submittal reaches the board, the portfolio team is asked to start that year before anything you proposed goes into it.</p>
+<p>A requirement that recurs is added one year at a time. In each year, <b class="bt" data-q="#toolAdd">＋ Add requirement</b> › <i>From another year</i> brings it in as a requirement of its own, linked to the one it came from. Rolling requirements forward, copying or moving one to another year, setting the base year and resetting a year are the portfolio team’s, and are off in a copy.</p>
+</section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
 <p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, where Save is on the portfolio board. If you have not set your office yet, it asks for it first.</p>
 <p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message at the top right confirms it (hidden, the <b>Message</b> button there brings it back). Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
@@ -2138,12 +2143,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
 <p><span class="mp" data-m="offices">Program offices › Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
 <p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, so publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
+<p>The copy covers the base year and the four years after it, each as the board holds it when you publish. A year this board has not started is offered too: it opens blank in the copy, for new requirements only. In the copy, offices cannot roll requirements forward, copy or move one to another year, move the base year or reset a year.</p>
 <p>The copy carries this guide, and opens it from <b>📖 How this copy works</b> in its top bar; it never opens by itself.</p>
 </section>
 <section data-part="team" data-id="t-subs" data-t="Taking submittals back">
 <p><span class="mp" data-m="offices">Program offices › Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review, or every office’s at once with <span class="mp" data-m="offices">Program offices › Load all submissions at once…</span>; load them all and review them together.</p>
 <p>Every proposed field arrives <b>unticked</b>, beside what the board says today. A field this board changed too since the copy was published is marked as a <b>conflict</b>. <b>📄 Export change report</b> gives the whole round as a workbook for the SFWG. Tick what you accept — a new requirement and an office’s ranking are each taken whole or not at all — then <b>✔ Apply ticked</b>. The allocation never travels in a submittal, and nothing is applied until you apply it.</p>
-<p>A submittal applies to the <b>fiscal year it was written for</b>. If that is not the year on screen, loading it says so, naming both years, and holds it for its own year; a second question lets you hold it for the year on screen instead. The review shows the year each submittal is held for, and <b>✔ Apply ticked</b> applies nothing while a ticked submittal is held for another year: switch to that year first. Award changes show each award’s date and its dollars by service. A submittal whose services are listed in a different order is matched up by name, awards included; one that does not say which services its figures are for, or carries a list for the wrong number of services, is refused and the figures are named.</p>
+<p>A submittal applies to the <b>fiscal years it was written for</b>. A copy sends one file for every year it covers; loading it holds each year’s changes for that year, and the review groups them under each year. A file from a copy published before this version carries one year: if that is not the year on screen, loading it says so, naming both years, and holds it for its own year; a second question lets you hold it for the year on screen instead. <b>✔ Apply ticked</b> puts every ticked year’s changes into their own years at once, and asks first, naming each year and how many changes go into it; a year this board has not started is started first, rolled forward or blank, as you choose, before anything goes into it. Award changes show each award’s date and its dollars by service. A submittal whose services are listed in a different order is matched up by name, awards included; one that does not say which services its figures are for, or carries a list for the wrong number of services, is refused and the figures are named.</p>
 </section>
 <section data-part="team" data-id="t-full" data-t="A new version: import the full board">
 <p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="imp">Imports &amp; exports › Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
@@ -6616,7 +6622,15 @@ function switchYear(y){
     // counts it -- the person meant to make it, and is told where it lands
     { const b=+MS.base||+MS.cur; if(y<b || y>b+4) outside=' ⚠ FY'+(y%100)+' is outside the FYDP window (FY'+(b%100)+'–FY'+((b+4)%100)
         +'): it is in no five-year report or locked cycle, and the funds flow’s ALL YEARS counts its plan.'; }
-    if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
+    // v2.09 W2 (item 126): IN A PMO COPY A YEAR IS NEVER ROLLED FORWARD. A year the portfolio board had not started opens
+    // BLANK, for new requirements only (Brad's decision 2): rolled forward, it held the year on screen's requirements under
+    // their own ids, which the board's own FY30 -- started later, its own way -- need not hold at all, and every edit to them
+    // reached the review as a requirement missing. A year the copy does not submit for is not started here at all.
+    if(typeof SANDBOX!=='undefined' && SANDBOX){
+      if(!pmoBaseOf(y)){ setStat('\u26a0 This copy submits for '+esc(pmoYearsLbl())+'. FY'+(y%100)+' is not one of them, and is not started here.');
+        try{ render(); }catch(e){} return; }
+      seed=freshYearState();
+    } else if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
       seed=JSON.parse(JSON.stringify(S));
       delete seed.ts;
       shiftAwardYears(seed, y-MS.cur);
@@ -6633,6 +6647,21 @@ function switchYear(y){
   if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+blLbl(CYCVIEW)+' (locked)</b> — '+FYL()+'. Read only.'); return; }
   save(); render(); naFromDraw();
   setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.'+esc(outside));
+}
+// v2.09 W2 (item 126): IN A PMO COPY THE YEARS ARE THE PORTFOLIO BOARD'S (Brad, 26 Oct 2026: Roll forward and Copy and Move to
+// year switched off in a copy; Roll requirements forward, Set base year and Reset year with them). Each submits a year against
+// that year's own baseline, so each tool that puts a requirement into another year under an id the board does not know -- or
+// reshapes the year a baseline describes -- makes a submittal the board would misread: a requirement rolled into FY30 here was
+// counted twice once the board rolled the same one forward itself. A requirement that recurs comes into a year one year at a
+// time, by ＋ Add requirement › From another year: a requirement of its own, linked to the one it came from (decision 5).
+function copyYearBlock(what){
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return false;
+  alert('\u26a0 '+what+' is turned off in a PMO copy.\n\n'
+    +'This copy submits for '+pmoYearsLbl()+', each year against the board as it stood when the copy was published, and the '
+    +'years are the portfolio team\u2019s to shape.\n\n'
+    +'To bring a requirement that recurs into another year, switch to that year and use \uff0b Add requirement \u203a From '
+    +'another year: it comes in as a requirement of its own, linked to the one it came from.');
+  return true;
 }
 // IS THIS REQUIREMENT ALREADY IN THAT YEAR? One predicate, used by the preview AND by the copy.
 //
@@ -6834,6 +6863,7 @@ function yearCopy(id, y, mode, opts){
 
 function xferYear(id, code){
   if(!code) return;
+  if(copyYearBlock(code[0]==='m'? 'Move to year' : 'Copy to year')){ try{ render(); }catch(e){} return; }   // v2.09 W2 (item 126)
   const mode=code[0], y=parseInt(code.slice(1));
   render();                                    // reset the select display
   if(!y||y===MS.cur) return;
@@ -6860,6 +6890,7 @@ function xferYear(id, code){
 }
 function resetYear(){
   if(cycBlock('Resetting a year')) return;
+  if(copyYearBlock('Resetting a year')) return;   // v2.09 W2 (item 126)
   if(!confirm('Reset '+FYL()+' to BLANK?\n\nEverything in this year is erased — the board will show NO requirements and zero BA. Baseline items move to the Removed list (restorable). Other fiscal years are untouched.\n\nThis cannot be undone (unless you re-import an older saved board).')) return;
   // v2.06 (review fix): the numbers this year has handed out stay handed out, so a requirement added after the reset never
   // takes an old one's id -- which another year's link (it.prior) would then read as the requirement it continues
@@ -6886,7 +6917,7 @@ function resetYear(){
 // they are - including any edits already made in that year. That is the whole reason yearCopy
 // takes skipExisting: without it a second run would quietly revert a year somebody had worked on.
 let rollOpen=false, rollPick={}, rollYrs={}, rollPmo='ALL';
-function toggleRoll(){ rollOpen=!rollOpen; render(); }
+function toggleRoll(){ if(!rollOpen && copyYearBlock('Rolling requirements forward')) return; rollOpen=!rollOpen; render(); }   // v2.09 W2: not in a copy
 // The FYDP WINDOW, not the years that happen to hold state - the same rule rlgAllYears and the
 // funds flow follow. A year nobody has touched is exactly where these are going.
 function rollYears(){
@@ -6929,6 +6960,7 @@ function rollPlan(){
 }
 function rollApply(){
   if(cycBlock('Rolling requirements forward')) return;
+  if(copyYearBlock('Rolling requirements forward')) return;   // v2.09 W2 (item 126)
   const p=rollPlan();
   if(!p.ids.length){ setStat('⚠ Nothing is ticked — choose the requirements to roll forward.'); return; }
   if(!p.years.length){ setStat('⚠ No year is ticked — choose which years to roll them into.'); return; }
@@ -7038,6 +7070,7 @@ function rollBody(){
 
 function setBaseYear(){
   if(cycBlock('Moving the base year')) return;
+  if(copyYearBlock('Moving the base year')) return;   // v2.09 W2 (item 126)
   uiPrompt('FYDP base year (the first year of the five-year window):', ''+MS.base, v=>{
   if(v===null) return;
   const y=parseInt((''+v).replace(/[^0-9]/g,''));
@@ -7921,13 +7954,59 @@ function pmoNorm(k, v){
     default: return [true, v];
   }
 }
+// ── A COPY CARRIES EVERY YEAR OF THE FYDP (v2.09 W2, item 126; Brad, 26 Oct 2026) ─────────────────────────────────────────
+// "I need them to be able to add requirements for the base year plus four years." A copy held every year the board holds, and
+// described one: its baseline (mode.base), its office rankings (mode.ord) and every reader of them were the published year's,
+// so Add was refused in FY29-FY32, Submit was refused there, and an edit to an out-year requirement was kept on the copy and
+// never sent. Lifting the gates alone sent fields nobody touched (compared against FY28's baseline), dropped a requirement whose
+// office differs by year, and sent a requirement the board added in an out-year back as the office's own proposal -- counted
+// twice once accepted. So a copy records, for every year of the FYDP window, that year's OWN baseline and office rankings
+// (mode.yb[fy], mode.yord[fy]; the published year keeps mode.fy, mode.base and mode.ord, so nothing about it changed), and each
+// reader below reads the baseline of the year on screen -- which, inside aceWithYear(), is the year being read. mode.yn names
+// the years the board had not started: they open blank in the copy, for new requirements only (Brad's decision 2).
+// PMO_PV IS NOT RAISED. It is the FIELD-SET version (pmoKeysOf), and a v2.09 copy carries v1.84's fields: raised, every copy
+// already published would read as the pre-v1.84 eight. A five-year copy is one with mode.yb.
+// The years this copy submits for, oldest first: the year it was published for, and every year it carries a baseline for.
+function pmoCopyYears(){
+  if(!(PMODE && PMODE.fy)) return [];
+  const L=[+PMODE.fy];
+  if(PMODE.yb && typeof PMODE.yb==='object') Object.keys(PMODE.yb).forEach(function(y){ y=+y; if(y && L.indexOf(y)<0) L.push(y); });
+  return L.sort(function(a, b){ return a-b; });
+}
+// The baseline year fy is read against, or null when this copy cannot submit for it -- a year outside the window, or a copy
+// with no baseline for it at all. Nothing is a proposal there and nothing is sent from it.
+function pmoBaseOf(fy){
+  if(!PMODE) return null;
+  if(+fy===+PMODE.fy) return PMODE.base||{};
+  const yb=PMODE.yb;
+  return (yb && typeof yb==='object' && Object.prototype.hasOwnProperty.call(yb, fy) && yb[fy] && typeof yb[fy]==='object')? yb[fy] : null;
+}
+// That year's office rankings as published, or null
+function pmoOrdOf(fy){
+  if(!PMODE) return null;
+  if(+fy===+PMODE.fy) return PMODE.ord||null;
+  const yo=PMODE.yord;
+  return (yo && typeof yo==='object' && Object.prototype.hasOwnProperty.call(yo, fy) && yo[fy] && typeof yo[fy]==='object')? yo[fy] : null;
+}
+// A year the portfolio board had not started when this copy was published
+function pmoYearNew(fy){ return !!(PMODE && Array.isArray(PMODE.yn) && PMODE.yn.map(Number).indexOf(+fy)>=0); }
+// The years as they are said: FY28–FY32, or FY28, FY30 where they are not consecutive
+function pmoYearsLbl(L){
+  L=(L||pmoCopyYears()).map(Number).filter(Boolean).sort(function(a, b){ return a-b; });
+  if(!L.length) return '';
+  const fy=function(y){ return 'FY'+(y%100); };
+  if(L.length>1 && L[L.length-1]-L[0]===L.length-1) return fy(L[0])+'–'+fy(L[L.length-1]);
+  return L.map(fy).join(', ');
+}
 // Whose requirement it is for the purpose of a submittal: the office that owned it when this copy was
 // published. A copy that hands a requirement to another office must still send that hand-over;
 // reading the office NOW would drop it as "another office's", the one edit that proves it was meant.
+// v2.09 W2 (item 126): in THAT year -- an office is assigned by year (v1.95, Brad's Q2), so the published year's office
+// dropped the out-year edit of a requirement its office took over in that year as another office's
 function pmoHomeOf(id){
   const it=itemById(id); if(!it) return '';
   if(PMODE && (PMODE.pv||0)>=PMO_PV){
-    const b=((PMODE.base||{})[id])||{};
+    const b=((pmoBaseOf(MS.cur)||{})[id])||{};
     return (b.grp!==undefined && b.grp!==null)? b.grp : it.grp;
   }
   return grpOf(it);
@@ -7938,10 +8017,12 @@ function pmoHomeOf(id){
 const pmoSeqSame=function(a,b){ return (a||[]).join('\u0001')===(b||[]).join('\u0001'); };
 function pmoRankBuild(pmo){
   if(!(PMODE && (PMODE.pv||0)>=PMO_PV && PMODE.ord)) return null;
-  const base=(PMODE.base)||{};
+  // v2.09 W2 (item 126): the year on screen's own ranking as published -- the published year's sent the board's own out-year
+  // order as the office's
+  const base=pmoBaseOf(MS.cur), ord=pmoOrdOf(MS.cur); if(!base || !ord) return null;
   const had=function(id){ return Object.prototype.hasOwnProperty.call(base, id); };
   const now=(((S.pmoOrder||{})[pmo])||[]).filter(had);
-  const was=(((PMODE.ord||{})[pmo])||[]).filter(had);
+  const was=((ord[pmo])||[]).filter(had);
   const inN={}, inW={}; now.forEach(function(x){ inN[x]=1; }); was.forEach(function(x){ inW[x]=1; });
   if(pmoSeqSame(now.filter(function(x){ return inW[x]; }), was.filter(function(x){ return inN[x]; }))) return null;
   return {order:now, was:was};
@@ -7951,6 +8032,8 @@ function pmoRankBuild(pmo){
 // The copy is this board, plus a baked-in mode and a BASELINE of every contributable field as it
 // stands right now. The baseline is what makes a submittal small and honest: the sandbox sends back
 // only what its reader actually changed, and it can say so without guessing.
+// v2.09 W2 (item 126): read through aceWithYear() for every other year of the window, so each year's baseline is taken from
+// that year's own state, as applied -- what the copy itself reads when it opens that year
 function pmoBaseline(){
   const base={};
   (S.order||[]).forEach(function(id){
@@ -7961,6 +8044,14 @@ function pmoBaseline(){
     base[id]=one;
   });
   return base;
+}
+// v2.09 W2 (item 126): the years a copy published now submits for -- the FYDP window (base..base+4, the span Roll forward and
+// the five-year plan read), and the year on screen where it sits outside it
+function pmoPubYears(){
+  const b=+MS.base||+MS.cur, L=[];
+  for(let y=b; y<=b+4; y++) L.push(y);
+  if(L.indexOf(+MS.cur)<0) L.push(+MS.cur);
+  return L;
 }
 function publishPmoCopy(){
   if(cycBlock('Publishing a PMO copy')) return;
@@ -7978,6 +8069,15 @@ function publishPmoCopy(){
   // reader's browser last had selected.
   const mode={sandbox:true, by:who, ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline(),
               pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))};
+  // v2.09 W2 (item 126): EVERY OTHER YEAR OF THE FYDP WINDOW, its own baseline and office rankings, read in that year; a year
+  // the board has not started is offered too (Brad's decision 2), with an empty baseline, and named in yn
+  const yb={}, yord={}, yn=[];
+  pmoPubYears().forEach(function(y){
+    if(y===+MS.cur) return;
+    if(!(MS.years||{})[y]){ yb[y]={}; yord[y]={}; yn.push(y); return; }
+    aceWithYear(y, function(){ yb[y]=pmoBaseline(); yord[y]=JSON.parse(JSON.stringify(S.pmoOrder||{})); });
+  });
+  mode.yb=yb; mode.yord=yord; mode.yn=yn;
   const html=pmoCopyHtml(mode);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
@@ -8003,6 +8103,10 @@ function myPmo(){ try{ return localStorage.getItem('prio27pmo')||''; }catch(e){ 
 function pmoChoices(){
   const seen=Object.create(null);
   (S.order||[]).forEach(function(id){ const it=itemById(id); if(it) seen[grpOf(it)]=1; });
+  // v2.09 W2 (item 126): and every other year the copy submits for -- an office whose only requirements are an out-year's
+  // could not be chosen from the published year
+  if(typeof SANDBOX!=='undefined' && SANDBOX) pmoCopyYears().forEach(function(y){ const T=(MS.years||{})[y]; if(!T || T===S) return;
+    (T.order||[]).forEach(function(id){ const it=yrItemOf(T, id); if(it) seen[grpOf(it, T)]=1; }); });
   const out=pmoKeys(seen).filter(Boolean);
   return out.length? out : GROUPS.slice();
 }
@@ -8029,7 +8133,9 @@ function pickMyPmo(then){
   });
 }
 function pmoSubmitBuild(){
-  const base=(PMODE && PMODE.base) || {};
+  // v2.09 W2 (item 126): against the baseline of the year on screen -- the published year's sent every out-year field the board
+  // held differently there as an edit the office made; a year the copy cannot submit for sends nothing
+  const base=pmoBaseOf(MS.cur); if(!base) return {};
   const keys=pmoKeysOf(PMODE);
   const out={};
   (S.order||[]).forEach(function(id){
@@ -8070,7 +8176,9 @@ function pmoSubmitBuild(){
 // Which requirements on this copy are proposals: added here, on the list, and unknown to the board
 // the copy was published from.
 function pmoProposalIds(){
-  const base=(PMODE&&PMODE.base)||{};
+  // v2.09 W2 (item 126): unknown to the year on screen's own baseline -- the published year's took a requirement the board added
+  // in an out-year for the office's proposal, and it came back as a second one
+  const base=pmoBaseOf(MS.cur); if(!base) return [];
   return (S.order||[]).filter(function(id){ const it=itemById(id); return !!(it && it.custom && !base[id]); });
 }
 // d: {grp, event, ptype, ask[], bud:{svc:name}, obCat, wbs, to, end, mipr, desc, cons}. Returns every required field,
@@ -8156,23 +8264,31 @@ function pmoProposalOf(id){
           // v2.06 (item 117): the requirement it continues, so the board keeps the link when it accepts it
           prior:it.prior? {fy:+it.prior.fy, id:String(it.prior.id)} : null,
           // v2.06 (review fix): the plan event as renamed with the pen -- a requirement brought in carries one (S.titles)
-          titles:(S.titles||{})[id]||''};
+          titles:(S.titles||{})[id]||'',
+          // v2.09 W2 (item 126): the year it is proposed for, which the board holds it for and nothing else
+          fy:+MS.cur};
 }
 // Has this board already taken this proposal? Provenance on the accepted requirement -- the office
 // and the provisional id -- is what says so, and it is what stops the same submittal imported twice
 // from adding the requirement twice.
 // v2.06 (review fix): the requirement the year on screen already holds that a proposal brought in from another year
 // continues -- the original under its own id, or another requirement linked to the same one. '' when none.
-function pmoPriorHere(p){
+// v2.09 W2 (item 126): in year fy, the year the proposal is held for (the year on screen when omitted)
+function pmoPriorHere(p, fy){
   if(!p || !p.id) return '';
-  const id=String(p.id), on=S.order||[];
+  const T=(fy===undefined || +fy===+MS.cur)? S : ((MS.years||{})[fy]||{});
+  const id=String(p.id), on=T.order||[];
   if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
-  const x=(DATA.items||[]).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && String(i.prior.id)===id
+  const x=((T===S)? (DATA.items||[]) : itemsOf(BASE_ITEMS, T)).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && String(i.prior.id)===id
     && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];     // a board-data id is that activity whatever year it names (second review)
   return x? x.id : '';
 }
+// v2.09 W2 (item 126): in the year the package is held for -- it is that year's requirement it would add. The year is not part
+// of the key: a v2.09 copy numbers its proposals across every year (reqSeqNext), so one id is one proposal, and a proposal the
+// board accepted and then rolled forward (switchYear's roll carries `from`) is the same proposal there, not a second one.
 function pmoTakenAs(a, pkg){
-  return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;
+  const T=(MS.years||{})[pmoHeldFy(pkg)]||{};
+  return (T.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;
 }
 // ACCEPT: create the requirement much as reqCreate() makes one, at the BOTTOM of the consolidated
 // listing for the SFWG to place, with the office's own ask values, and every field the proposal
@@ -8185,8 +8301,14 @@ function pmoAcceptProposal(r){
             team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
             title:a.title||'', event:a.event||'(proposed by '+r.from+')',
             ccar:'', fy26:SVC.map(function(){ return 0; }), ask:askVecOf(a.ask), alloc:null,
-            from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};
+            from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now(), fy:+MS.cur}};
   if(a.prior) it.prior={fy:a.prior.fy, id:a.prior.id};      // v2.06 (item 117)
+  // v2.09 W2 (item 126): A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS names its provisional id, which this board does not hold.
+  // Brought in from another year in the copy (decision 5), it is re-pointed to the requirement that proposal became here, once
+  // accepted -- Apply takes the years oldest first, so one accepted in the same batch is found -- or the link names nothing.
+  if(it.prior && /^NEW-/.test(String(it.prior.id))){ const PT=(MS.years||{})[it.prior.fy];
+    const got=((PT && PT.custom)||[]).filter(function(c){ return c && c.from && c.from.pmo===r.from && c.from.nid===it.prior.id; })[0];
+    if(got) it.prior.id=got.id; }
   if(a.titles){ if(!S.titles) S.titles={}; S.titles[it.id]=a.titles; }   // v2.06 (review fix): the name the office saw
   S.custom.push(it); DATA.items.push(it);
   S.order.push(it.id);
@@ -8224,30 +8346,22 @@ function pmoSubmit(){
   // v2.06 (review fix): A COPY SUBMITS THE YEAR IT WAS PUBLISHED FOR. Switched to another year (the year menu, or Go to on a
   // linked requirement), Submit built a package of THAT year's state under the published year, and the office's real edits
   // were not sent.
-  if(SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy){
-    alert('This copy was published for FY'+(PMODE.fy%100)+' and is showing '+FYL()+'.\n\nSwitch back to FY'+(PMODE.fy%100)
-      +' to submit: a submittal carries the year the copy was published for. Nothing was sent.');
-    return;
-  }
-  if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
+  // v2.09 W2 (item 126): A COPY SUBMITS EVERY YEAR IT CARRIES A BASELINE FOR, whatever year is on screen, each year from its
+  // own state against its own baseline (pmoSubmitYear, read inside aceWithYear). The published year travels where it always
+  // has -- items, base, added and rank at the top of the package -- and every other year with something to send in byYear,
+  // under its year. One Submit, one file, every year (Brad's decision 3).
+  if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board — '
     + 'your changes are already on it.'); return; }
   // THE OFFICE IS PART OF THE PACKAGE, so ask for it before anything else is built. Re-entering
   // through the callback rather than looping means a cancelled prompt simply stops.
   const pmo=myPmo();
   if(!pmo){ pickMyPmo(function(){ pmoSubmit(); }); return; }
-  const items=pmoSubmitBuild();
-  // A REQUIREMENT ADDED IN THIS COPY IS A PROPOSAL. It cannot travel as field deltas -- the board has
-  // no id to attach them to -- so it goes WHOLE, in the package's own section, flagged as new. And it
-  // is gated HERE, in the copy: a proposal with a mandatory field blank is not sent, and nothing
-  // else is sent either, because a package that quietly left one requirement behind is exactly the
-  // failure this replaced -- the office believing it had submitted something it had not.
-  const base0=(PMODE&&PMODE.base)||{};
-  // v2.08 review: one the copy did not hold at publication and did not add -- removed on the board, restored here -- has no
-  // baseline to send against. It was dropped without a word; it is named below with the other requirements not sent.
-  const unpub=Object.keys(items).filter(function(id){ return !base0[id] && pmoProposalIds().indexOf(id)<0; });
-  Object.keys(items).forEach(function(id){ if(!base0[id]) delete items[id]; });   // travels whole, below
-  const owned=pmoProposalIds().filter(function(id){ const it=itemById(id); return it && grpOf(it)===pmo; });
-  const gaps=owned.map(function(id){ return {id:id, miss:pmoProposalGate(id)}; }).filter(function(g){ return g.miss.length; });
+  const Y=pmoCopyYears().filter(function(y){ return +y===+MS.cur || !!(MS.years||{})[y]; });
+  const secs=Y.map(function(y){ return aceWithYear(y, function(){ return pmoSubmitYear(pmo); }); });
+  const pub=secs.filter(function(s){ return s.fy===+PMODE.fy; })[0]
+    || {fy:+PMODE.fy, items:{}, base:{}, added:[], rank:null, gaps:[], foreign:[], unpub:[]};
+  const all=function(k){ return [].concat.apply([], secs.map(function(s){ return s[k]; })); };
+  const gaps=all('gaps'), foreign=all('foreign'), unpub=all('unpub');
   // WITHHELD BY NAME, and the rest still goes. An incomplete proposal is not sent; the office is told
   // which one, and which fields it needs, while they are still sitting there. Everything else they
   // edited travels as usual -- holding forty field edits hostage to one half-filled proposal would be
@@ -8255,67 +8369,43 @@ function pmoSubmit(){
   if(gaps.length){
     alert('⚠ '+gaps.length+' requirement'+(gaps.length===1?'':'s')+' you added in this copy '
       +(gaps.length===1?'is':'are')+' missing mandatory fields and '+(gaps.length===1?'is':'are')+' NOT being sent:\n\n'
-      +gaps.map(function(g){ const it=itemById(g.id);
-          return '  • '+(recName(it)||dispTitle(it))+'\n      needs: '+g.miss.join(', '); }).join('\n')
+      +pmoYrLines(gaps, function(g){ return '  • '+g.name+'\n      needs: '+g.miss.join(', '); })
       +'\n\nA proposed requirement travels whole, for the portfolio team to accept, and every mandatory '
       +'field has to be filled before it can. Select its row to open its record and fill them, then submit again.\n\n'
       +'Everything else you edited is still being sent.');
   }
-  const gapIds=gaps.map(function(g){ return g.id; });
-  const proposals=owned.filter(function(id){ return gapIds.indexOf(id)<0; });
-  const added=proposals.map(pmoProposalOf);
-  // ── SCOPED TO THIS OFFICE, AND NOBODY ELSE'S ───────────────────────────────────────────────
-  // The rule is the requirement's OWN office -- grpOf -- and deliberately not a CLIN share. Under
-  // shares, both part-owners of a split prime could propose the same field and the portfolio team
-  // would have to arbitrate; under this rule two submittals can never contest one field, which is
-  // what lets several be reviewed side by side at all.
   // IT IS CAUGHT HERE, in the copy, where the person who made the edit is still sitting. Dropping
   // it quietly at the far end would leave an office believing it had submitted something it had not.
-  const foreign=Object.keys(items).filter(function(id){
-    const it=itemById(id); return !it || pmoHomeOf(id)!==pmo; });
-  // a proposal for another office does not travel either, and is named in the same message
-  pmoProposalIds().forEach(function(id){ const it=itemById(id); if(it && grpOf(it)!==pmo) foreign.push(id); });
-  foreign.forEach(function(id){ delete items[id]; });
   if(foreign.length){
-    const nm=foreign.map(function(id){ const it=itemById(id);
-      return it? (grpOf(it)+' \u2014 '+(recName(it)||dispTitle(it))) : id; });
-    alert('\u26a0 '+foreign.length+' requirement'+(foreign.length===1?'':'s')+' you edited '
+    alert('⚠ '+foreign.length+' requirement'+(foreign.length===1?'':'s')+' you edited '
       +(foreign.length===1?'belongs':'belong')+' to another programme office, so '
-      +(foreign.length===1?'it is':'they are')+' NOT being sent:\n\n  \u2022 '+nm.join('\n  \u2022 ')
-      +'\n\nA submittal proposes changes to '+pmo+'\u2019s own requirements. If one of these looks '
-      +'wrong, raise it with the office that owns it or at the SFWG \u2014 the portfolio team cannot '
+      +(foreign.length===1?'it is':'they are')+' NOT being sent:\n\n'+pmoYrLines(foreign, function(f){ return '  • '+f.name; })
+      +'\n\nA submittal proposes changes to '+pmo+'’s own requirements. If one of these looks '
+      +'wrong, raise it with the office that owns it or at the SFWG — the portfolio team cannot '
       +'take it from '+pmo+'.\n\nEverything else you edited is still being sent.');
   }
   if(unpub.length){
-    alert('\u26a0 '+unpub.length+' requirement'+(unpub.length===1?'':'s')+' you edited '+(unpub.length===1?'was':'were')
-      +' not on the board when this copy was published (removed there, and restored in this copy), so '
-      +(unpub.length===1?'it is':'they are')+' NOT being sent:\n\n  \u2022 '
-      +unpub.map(function(id){ const it=itemById(id); return it? (recName(it)||dispTitle(it)) : id; }).join('\n  \u2022 ')
+    alert('⚠ '+unpub.length+' requirement'+(unpub.length===1?'':'s')+' you edited '+(unpub.length===1?'was':'were')
+      +' not on the board when this copy was published (removed there, and restored in this copy, or in a year the board had '
+      +'not started), so '+(unpub.length===1?'it is':'they are')+' NOT being sent:\n\n'
+      +pmoYrLines(unpub, function(u){ return '  • '+u.name; })
       +'\n\nIf one of these should come back, raise it with the portfolio team.\n\nEverything else you edited is still being sent.');
   }
-  const n=Object.keys(items).length+added.length;
-  const rank=pmoRankBuild(pmo);
-  if(!n && !rank){ alert('Nothing to send yet.\n\nEdit a description, an impact statement, a requirement '
-    + 'value or any other field on one of '+pmo+'\u2019s requirements, then submit.'
+  const n=secs.reduce(function(a, s){ return a+Object.keys(s.items).length+s.added.length; }, 0);
+  const anyRank=secs.some(function(s){ return !!s.rank; });
+  if(!n && !anyRank){ alert('Nothing to send yet.\n\nEdit a description, an impact statement, a requirement '
+    + 'value or any other field on one of '+pmo+'’s requirements, then submit.'
     + ((PMODE && (PMODE.pv||0)>=PMO_PV)
-        ? ' Re-ranking '+pmo+'\u2019s own list (with only '+pmo+' showing) is sent too; moving rows in the '
-          + 'whole portfolio is yours to explore and is not \u2014 that order stays the portfolio team\u2019s.'
-        : ' Moving rows around is yours to explore and is not sent \u2014 the priority order stays the portfolio team\u2019s.')); return; }
+        ? ' Re-ranking '+pmo+'’s own list (with only '+pmo+' showing) is sent too; moving rows in the '
+          + 'whole portfolio is yours to explore and is not — that order stays the portfolio team’s.'
+        : ' Moving rows around is yours to explore and is not sent — the priority order stays the portfolio team’s.')); return; }
   const who=whoAmI();
   // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
   // which has no such entry -- so an office following it opened the one menu that could not help,
   // on the first step of the workflow. Checked against the rendered menu, not from memory.
-  if(!who || who==='unknown'){ alert('Put your name in first \u2014 Audit \u203a \u270e My editor '
-    + 'name\u2026\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
-  // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
-  // board would compare the proposal against itself and every field would look uncontested. What is
-  // needed is what the board said WHEN THE COPY WAS PUBLISHED, and only this file knows that.
-  const base={};
-  Object.keys(items).forEach(function(id){
-    const was=((PMODE&&PMODE.base)||{})[id]||{}, one={};
-    Object.keys(items[id]).forEach(function(k){ one[k]=(was[k]===undefined)? null : was[k]; });
-    base[id]=one;
-  });
+  if(!who || who==='unknown'){ alert('Put your name in first — Audit › ✎ My editor '
+    + 'name…\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
+  const items=pub.items, base=pub.base, added=pub.added, rank=pub.rank;
   // THE SERVICE LIST TRAVELS TOO. A requirement value is an array indexed by service POSITION, so a
   // submittal read on a board whose services have changed since would land each figure against the
   // wrong service -- with the row total unchanged, so nothing would look wrong. Same failure the
@@ -8328,17 +8418,84 @@ function pmoSubmit(){
              pv:(pmoKeysOf(PMODE)===PMO_KEYS? PMO_PV : 1),
              items:items, base:base, added:added, dest:flowEnts()};
   if(rank) pkg.rank=rank;
+  // v2.09 W2 (item 126): THE OTHER YEARS, AND THE BUILD. build is what makes a board older than this one refuse the file whole
+  // (the import check's newer-build rule): read by a v2.08 board, the top of the package is a one-year submittal it would
+  // take, and every out-year in it would be dropped without a word. fys is the years this copy submits for, which says the
+  // package is a five-year one even when only one year has something in it.
+  pkg.build=BUILD; pkg.fys=pmoCopyYears();
+  const by={};
+  secs.forEach(function(s){ if(s===pub || s.fy===pub.fy) return;
+    if(!Object.keys(s.items).length && !s.added.length && !s.rank) return;
+    by[s.fy]={items:s.items, base:s.base, added:s.added}; if(s.rank) by[s.fy].rank=s.rank; });
+  if(Object.keys(by).length) pkg.byYear=by;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
   a.download=expName('ORBIT SUBMITTAL - '+pmo.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
     + who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
     + new Date().toISOString().slice(0,10)+'.json');
   a.click();
-  setStat('\u2709 Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> \u2014 '
+  const nNew=secs.reduce(function(a, s){ return a+s.added.length; }, 0);
+  const yrs=secs.filter(function(s){ return Object.keys(s.items).length || s.added.length || s.rank; }).map(function(s){ return s.fy; });
+  setStat('✉ Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> — '
     + n+' requirement'+(n===1?'':'s')
-    + (added.length? ' (<b>'+added.length+' proposed new</b>)' : '')
-    + (rank? ' and <b>'+esc(pmo)+'\u2019s own ranking</b>' : '')
+    + (nNew? ' (<b>'+nNew+' proposed new</b>)' : '')
+    + (anyRank? ' and <b>'+esc(pmo)+'’s own ranking</b>' : '')
+    + (yrs.length? ', for '+esc(pmoYearsLbl(yrs)) : '')
     + '. Send it to the portfolio team; they review every field before anything is applied.');
+}
+// ONE YEAR OF A SUBMITTAL, from the year on screen (v2.09 W2, item 126) -- pmoSubmit() reads each year the copy submits for
+// through aceWithYear(), so S, itemById and MS.cur are that year's here, and every name is read in it. Nothing is said here:
+// what is withheld comes back by name, with its year, and pmoSubmit says it once for every year.
+function pmoSubmitYear(pmo){
+  const fy=+MS.cur, nameOf=function(id){ const it=itemById(id); return it? (recName(it)||dispTitle(it)) : id; };
+  const items=pmoSubmitBuild();
+  // A REQUIREMENT ADDED IN THIS COPY IS A PROPOSAL. It cannot travel as field deltas -- the board has
+  // no id to attach them to -- so it goes WHOLE, in the package's own section, flagged as new. And it
+  // is gated HERE, in the copy: a proposal with a mandatory field blank is not sent, and nothing
+  // else is sent either, because a package that quietly left one requirement behind is exactly the
+  // failure this replaced -- the office believing it had submitted something it had not.
+  const base0=pmoBaseOf(MS.cur)||{};
+  // v2.08 review: one the copy did not hold at publication and did not add -- removed on the board, restored here -- has no
+  // baseline to send against. It was dropped without a word; it is named below with the other requirements not sent.
+  const unpub=Object.keys(items).filter(function(id){ return !base0[id] && pmoProposalIds().indexOf(id)<0; });
+  Object.keys(items).forEach(function(id){ if(!base0[id]) delete items[id]; });   // travels whole, below
+  const owned=pmoProposalIds().filter(function(id){ const it=itemById(id); return it && grpOf(it)===pmo; });
+  const gaps=owned.map(function(id){ return {id:id, miss:pmoProposalGate(id)}; }).filter(function(g){ return g.miss.length; });
+  const gapIds=gaps.map(function(g){ return g.id; });
+  const proposals=owned.filter(function(id){ return gapIds.indexOf(id)<0; });
+  const added=proposals.map(pmoProposalOf);
+  // ── SCOPED TO THIS OFFICE, AND NOBODY ELSE'S ───────────────────────────────────────────────
+  // The rule is the requirement's OWN office -- grpOf -- and deliberately not a CLIN share. Under
+  // shares, both part-owners of a split prime could propose the same field and the portfolio team
+  // would have to arbitrate; under this rule two submittals can never contest one field, which is
+  // what lets several be reviewed side by side at all.
+  const foreign=Object.keys(items).filter(function(id){
+    const it=itemById(id); return !it || pmoHomeOf(id)!==pmo; });
+  // a proposal for another office does not travel either, and is named in the same message
+  pmoProposalIds().forEach(function(id){ const it=itemById(id); if(it && grpOf(it)!==pmo) foreign.push(id); });
+  foreign.forEach(function(id){ delete items[id]; });
+  const rank=pmoRankBuild(pmo);
+  // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
+  // board would compare the proposal against itself and every field would look uncontested. What is
+  // needed is what the board said WHEN THE COPY WAS PUBLISHED, and only this file knows that.
+  const base={};
+  Object.keys(items).forEach(function(id){
+    const was=base0[id]||{}, one={};
+    Object.keys(items[id]).forEach(function(k){ one[k]=(was[k]===undefined)? null : was[k]; });
+    base[id]=one;
+  });
+  return {fy:fy, items:items, base:base, added:added, rank:rank,
+          gaps:gaps.map(function(g){ return {fy:fy, name:nameOf(g.id), miss:g.miss}; }),
+          foreign:foreign.map(function(id){ const it=itemById(id); return {fy:fy, name:it? (grpOf(it)+' — '+nameOf(id)) : id}; }),
+          unpub:unpub.map(function(id){ return {fy:fy, name:nameOf(id)}; })};
+}
+// What a submittal withholds, said by year (v2.09 W2, item 126): as it always read where everything is the published year's,
+// and under each year's own heading once anything is another year's -- an out-year line with no year on it reads as FY28's.
+function pmoYrLines(L, one){
+  if(L.every(function(x){ return +x.fy===+PMODE.fy; })) return L.map(one).join('\n');
+  const ys=L.map(function(x){ return +x.fy; }).filter(function(y, i, a){ return a.indexOf(y)===i; }).sort(function(a, b){ return a-b; });
+  return ys.map(function(y){ return 'FY'+(y%100)+(pmoYearNew(y)? ' (not started on the portfolio board when this copy was published)' : '')+':\n'
+    +L.filter(function(x){ return +x.fy===y; }).map(one).join('\n'); }).join('\n\n');
 }
 
 // ── REVIEWING WHAT CAME BACK ──────────────────────────────────────────────────
@@ -8354,11 +8511,21 @@ let PMOSUBS=[];                        // every submittal held, in the order it 
 let PMOPICK={};                        // 'src|id|field' -> true; nothing is ticked to begin with
 const pickKey=r=>r.src+'|'+r.id+'|'+r.key;
 const subFrom=p=>(p&&(p.pmo||p.by))||'?';
-function pmoNow(id, key){
-  let v=pmoVal(S,key,id);
-  if(key==='asks' && v===null){ const it=itemById(id); if(it) v=it.ask.slice(); }
+// v2.09 W2 (item 126): as year fy holds it -- the year a package is held for, never simply the year on screen
+function pmoNow(id, key, fy){
+  const T=(fy===undefined || +fy===+MS.cur)? S : (MS.years||{})[fy];
+  let v=pmoVal(T,key,id);
+  if(key==='asks' && v===null){ const it=(T===S)? itemById(id) : pmoItemIn(fy, id); if(it) v=it.ask.slice(); }
   return v;
 }
+// The board's priority ranks in year fy, for the review and the change report (masterRanks() for the year on screen)
+function pmoRanksIn(fy){
+  if(fy===undefined || +fy===+MS.cur) return masterRanks();
+  const out={}; ((((MS.years||{})[fy])||{}).order||[]).forEach(function(id, i){ out[id]=i+1; });
+  return out;
+}
+// The year a held package is held for -- one built before v1.95 (or by hand) names none, and is the year on screen's
+function pmoHeldFy(pkg){ return (pkg && pkg.forFy!==undefined && pkg.forFy!==null && isFinite(+pkg.forFy))? +pkg.forFy : +MS.cur; }
 // A FIELD AS IT IS READ, for the review's two tests ("already says it", "changed since"). Goes to is read by destOf -- a second
 // hop only behind a government activity -- so {to:'lm'} and {to:'lm', end:''} are one answer; a WBS line with no per-service
 // split is one whether it carries v:[] or nothing; an award without its repair bookkeeping (awdBare). Compared as stored, a
@@ -8383,8 +8550,10 @@ function pmoRows(){
   const rows=[];
   PMOSUBS.forEach(function(pkg, si){
     const base=(pkg.baseSeen)||{};
+    // v2.09 W2 (item 126): every row read in the year its package is held for, and carrying that year
+    const fy=pmoHeldFy(pkg), T=(MS.years||{})[fy];
     Object.keys(pkg.items||{}).forEach(function(id){
-      const it=itemById(id);
+      const it=pmoItemIn(fy, id);
       PMO_KEYS.forEach(function(k){
         const prop=pkg.items[id][k];
         if(prop===undefined) return;
@@ -8393,12 +8562,12 @@ function pmoRows(){
         // (pmoVal's F5 fallback) it never agreed, so the row came back after every Apply as a conflict nobody made. Such a
         // proposal is compared with the override alone.
         const it0=it;
-        let now=pmoNow(id,k);
-        if(k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=pmoVal({titles:S.titles||{}}, 'titles', id);
+        let now=pmoNow(id,k,fy);
+        if(k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=pmoVal({titles:(T||{}).titles||{}}, 'titles', id);
         const bare=function(v){ return pmoBare(k, v); };
         if(pmoSame(bare(now), bare(prop))) return;          // already says what they propose
         const was=(base[id]||{})[k];
-        rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo,
+        rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo, fy:fy,
                    id:id, key:k, it:it, now:now, prop:prop,
                    gone:!it,                                 // a requirement this board no longer has
                    conflict: was!==undefined && !pmoSame(bare(now), bare(was))});
@@ -8407,7 +8576,7 @@ function pmoRows(){
     // A PROPOSED REQUIREMENT IS ONE ROW, accepted or declined whole. It stays offered until this
     // board has taken it; once it has, the row says so and cannot be ticked again.
     (pkg.added||[]).forEach(function(a){
-      rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo,
+      rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo, fy:fy,
                  id:a.nid, key:'__new', it:null, now:null, prop:a, gone:false, conflict:false,
                  isNew:true, taken:pmoTakenAs(a, pkg)});
     });
@@ -8415,15 +8584,15 @@ function pmoRows(){
     // this board still has in that office; the master list is never part of it -- accepting it sets
     // the office's own ranking and nothing else (Brad, 24 Sep 2026: "store it only").
     if(pkg.rank && pkg.pmo){
-      const g=pkg.pmo, mine=(((S.pmoOrder||{})[g])||[]);
-      const prop=pkg.rank.order.filter(function(id){ const it=itemById(id);
-        return !!it && grpOf(it)===g && mine.indexOf(id)>=0; });
+      const g=pkg.pmo, mine=((((T||{}).pmoOrder||{})[g])||[]);
+      const prop=pkg.rank.order.filter(function(id){ const it=pmoItemIn(fy, id);
+        return !!it && grpOf(it, T)===g && mine.indexOf(id)>=0; });
       const now=mine.filter(function(id){ return prop.indexOf(id)>=0; });
       if(prop.length>1 && !pmoSeqSame(now, prop)){
         const inW={}; pkg.rank.was.forEach(function(x){ inW[x]=1; });
         const common=now.filter(function(x){ return inW[x]; });
         const wasC=pkg.rank.was.filter(function(x){ return common.indexOf(x)>=0; });
-        rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:true,
+        rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:true, fy:fy,
                    id:'__rank|'+g, key:'__rank', it:null, now:now, prop:prop, gone:false,
                    rank:true, office:g, conflict:!pmoSeqSame(common, wasC)});
       }
@@ -8431,10 +8600,12 @@ function pmoRows(){
   });
   // Grouped by office, then in the board's own priority order, so the list reads the way the board
   // does rather than in whatever order the packages happened to be imported.
-  const MR=masterRanks();
+  // v2.09 W2 (item 126): by year first (decision 3: the review groups the changes under each year), each in that year's order
+  const MRs=Object.create(null), MR=function(y){ return MRs[y]||(MRs[y]=pmoRanksIn(y)); };
   return rows.sort(function(a,b){
+    if(a.fy!==b.fy) return a.fy-b.fy;
     if(a.from!==b.from) return a.from<b.from? -1 : 1;
-    const ra=MR[a.id]||1e9, rb=MR[b.id]||1e9;
+    const ra=MR(a.fy)[a.id]||1e9, rb=MR(b.fy)[b.id]||1e9;
     if(ra!==rb) return ra-rb;
     return PMO_KEYS.indexOf(a.key)-PMO_KEYS.indexOf(b.key);
   });
@@ -8535,12 +8706,19 @@ function pmoReport(){
   const rows=pmoRows();
   if(!rows.length){ alert('Nothing to report \u2014 this submittal proposes no change this board has not already made.'); return; }
   const TI={b:1,sz:13}, H={b:1,bg:'DDDDDD'}, N={};
-  const MR=masterRanks();          // a local everywhere else in this file; the report needs it too
+  // v2.09 W2 (item 126): EACH ROW IN THE YEAR IT IS HELD FOR, UNDER THAT YEAR'S TITLE. The report read the year on screen: an
+  // FY30 package taken on FY28 printed FY28's figure as "On the board now" under an FY28 title, and said "for FY30" a line
+  // below. Its rank, office, name and CCaR are that year's; the title names the year (or the years, each then under its own
+  // heading row -- one cell, so a reader of the table still finds the rows under the header).
+  const ys=rows.map(function(r){ return r.fy; }).filter(function(y, i, a){ return a.indexOf(y)===i; }).sort(function(a, b){ return a-b; });
+  const TY=function(y){ return (+y===+MS.cur)? S : (MS.years||{})[y]; };
+  const MRs=Object.create(null), MR=function(y){ return MRs[y]||(MRs[y]=pmoRanksIn(y)); };
+  const yTitle=function(L){ return expTitle().replace(FYL(), pmoYearsLbl(L)); };
   // ONE SHEET FOR THE WHOLE ROUND. Submitted by / Sent are columns rather than a header line,
   // because with several offices in the file a single header cannot say who sent what -- and the
   // spreadsheet is the thing that gets mailed on and argued with away from the app.
   const sheet={name:'Proposed changes', cols:[10,8,10,44,13,26,44,44,11,13,18],
-    rows:[[{v:expTitle()+'  \u2014  '+PMOSUBS.length+' SUBMITTAL'+(PMOSUBS.length===1?'':'S')
+    rows:[[{v:yTitle(ys)+'  \u2014  '+PMOSUBS.length+' SUBMITTAL'+(PMOSUBS.length===1?'':'S')
             +' FROM '+PMOSUBS.map(subFrom).join(', ')
             +'  \u2014  '+rows.length+' proposed change'+(rows.length===1?'':'s')
             +'  \u2014  NOTHING BELOW HAS BEEN APPLIED',s:TI}],
@@ -8554,12 +8732,18 @@ function pmoReport(){
           [{v:'Submitted by',s:H},{v:'Rank',s:H},{v:'PMO',s:H},{v:'Requirement',s:H},{v:'CCaR',s:H},
            {v:'Field',s:H},{v:'On the board now',s:H},{v:'Proposed',s:H},{v:'Conflict',s:H},
            {v:'Status',s:H},{v:'Decision / notes',s:H}]]};
+  let yOn=null;
   rows.forEach(function(r){
+    if(ys.length>1 && r.fy!==yOn){ yOn=r.fy;
+      const nY=rows.filter(function(x){ return x.fy===r.fy; }).length;
+      sheet.rows.push([{v:yTitle([r.fy])+'  \u2014  '+nY+' proposed change'+(nY===1?'':'s')
+        +((MS.years||{})[r.fy]? '' : '  \u2014  NOT STARTED ON THIS BOARD: APPLY ASKS HOW TO START IT FIRST'), s:TI}]); }
+    const T=TY(r.fy);
     if(r.isNew){
       sheet.rows.push([
         r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
         {v:'', s:N}, r.prop.grp, 'NEW — '+pmoNewName(r.prop)+(r.prop.prior? ' (from FY'+(r.prop.prior.fy%100)+' '+r.prop.prior.id+')' : '')
-          +(r.prop.prior && !r.taken && pmoPriorHere(r.prop.prior)? ' — '+FYL()+' already holds '+pmoPriorHere(r.prop.prior) : ''), r.prop.ccar||'',
+          +(r.prop.prior && !r.taken && pmoPriorHere(r.prop.prior, r.fy)? ' — FY'+(r.fy%100)+' already holds '+pmoPriorHere(r.prop.prior, r.fy) : ''), r.prop.ccar||'',
         'New requirement (proposed)', '—', pmoFmtVal('__new', r.prop), '',
         r.taken? 'already added as '+r.taken : (PMOPICK[pickKey(r)]? 'ticked to accept' : 'not accepted'),
         '']);
@@ -8567,11 +8751,11 @@ function pmoReport(){
     }
     sheet.rows.push([
       r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
-      {v:r.it? (MR[r.id]||'') : '', s:N},
-      r.it? grpOf(r.it) : (r.rank? r.office : ''),
-      r.it? (recName(r.it)||dispTitle(r.it))
+      {v:r.it? (MR(r.fy)[r.id]||'') : '', s:N},
+      r.it? grpOf(r.it, T) : (r.rank? r.office : ''),
+      r.it? (recName(r.it, T)||dispTitle(r.it, T))
           : (r.rank? r.office+'\u2019s own ranking \u2014 '+r.prop.length+' requirements' : r.id+' (no longer on this board)'),
-      r.it? ccarOf(r.it) : '',
+      r.it? ccarOf(r.it, T) : '',
       PMO_LBL[r.key]||r.key,
       pmoFmtVal(r.key, r.now),
       pmoFmtVal(r.key, r.prop),
@@ -8602,28 +8786,22 @@ function pmoApply(){
   if(!PMOSUBS.length) return;
   const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone && !r.taken; });
   if(!rows.length){ alert('Nothing is ticked. Tick the changes you want, then apply.'); return; }
-  // ── ONLY INTO THE YEAR EACH WAS ACCEPTED FOR (v1.95, item 52) ─────────────────────────────────────────────
-  // pmoApply() writes into the year on screen. A package is held with the year the reviewer accepted it for
-  // (pmoTake), and switching years leaves the held packages where they are -- so the year is checked HERE, at the
-  // write, every time. One ticked package for another year stops the whole apply, naming every office's year:
-  // nothing is written to a year the reviewer did not confirm.
-  const forOf=Object.create(null);
-  rows.forEach(function(r){ forOf[r.from]=(PMOSUBS[r.src]||{}).forFy; });
-  if(Object.keys(forOf).some(function(o){ return forOf[o]!==MS.cur; })){
-    const away=Object.keys(forOf).filter(function(o){ return forOf[o]!==MS.cur; });
-    alert('\u26a0 Nothing was applied. A submittal applies only to the fiscal year it was accepted for, and this board is on '+FYL()+'.\n\n  \u2022 '
-      +Object.keys(forOf).map(function(o){ const y=forOf[o];
-        return o+' \u2014 for '+((typeof y==='number')? 'FY'+(y%100) : 'no year')+(y===MS.cur? ' (the year on screen)' : ''); }).join('\n  \u2022 ')
-      +'\n\nSwitch to the year '+(away.length===1? 'it was' : 'each was')+' accepted for to apply '+away.join(', ')+'\u2019s, or untick '
-      +(away.length===1? 'it' : 'them')+'. To apply a submittal to a different year, load its file again and choose that year.');
-    return;
-  }
+  // ── EACH INTO ITS OWN YEAR (v2.09 W2, item 126; Brad, 26 Oct 2026, decision 4) ─────────────────────────────────────
+  // "Apply puts every ticked year's changes into their own years at once, with a confirmation naming each year and how many
+  // changes go into it." This replaces v1.95's rule (item 52), which applied only into the year on screen and refused the
+  // whole apply while a ticked package was held for another year. What that rule protected -- nothing written to a year the
+  // reviewer did not confirm -- is held by the question, which names every year and how many changes go into it, and by the
+  // write, made in the year each package is held for and nowhere else (pmoEachYear). A year this board has not started is
+  // started first, rolled forward or blank as the reviewer chooses (decision 2), and nothing at all is done if they stop.
+  const ys=rows.map(function(r){ return r.fy; }).filter(function(y, i, a){ return a.indexOf(y)===i; }).sort(function(a, b){ return a-b; });
+  const need=ys.filter(function(y){ return !(MS.years||{})[y]; });
+  const nOf=function(y){ return rows.filter(function(r){ return r.fy===y; }).length; };
   // TWO SUBMITTALS TICKED ON ONE FIELD. Scoping makes this impossible between two scoped packages
   // -- an office owns a requirement or it does not -- but an UNSCOPED legacy package loaded beside
   // a scoped one can still reach a field the other owns. Applying both would let whichever ran last
   // win, silently, and the spreadsheet would record both as accepted.
   const seen={}, clash=[];
-  rows.forEach(function(r){ const k=r.id+'|'+r.key;
+  rows.forEach(function(r){ const k=r.fy+'|'+r.id+'|'+r.key;   // v2.09 W2: one field of one year
     if(seen[k]) clash.push(r.from+' and '+seen[k]+' \u2014 '
       +(r.it? (recName(r.it)||dispTitle(r.it)) : r.id)+' \u00b7 '+(PMO_LBL[r.key]||r.key));
     else seen[k]=r.from; });
@@ -8637,15 +8815,30 @@ function pmoApply(){
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
   const offices=rows.map(function(r){ return r.from; })
     .filter(function(v,i,a){ return a.indexOf(v)===i; });
-  if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+offices.join(', ')+' to '+FYL()+'?'
+  if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+offices.join(', ')+' to '+pmoYearsLbl(ys)+'?'
+    + '\n\n  \u2022 '+ys.map(function(y){ const k=nOf(y); return 'FY'+(y%100)+' \u2014 '+k+' change'+(k===1?'':'s')
+        +(+y===+MS.cur? ' (the year on screen)' : '')+(need.indexOf(y)>=0? ' \u2014 not started on this board: you are asked how to start it first' : ''); }).join('\n  \u2022 ')
     + (nConf? '\n\n\u26a0 '+nConf+' of them overwrite a field THIS BOARD changed since the copy went out.' : '')
     + '\n\nEach one is recorded in the change journal, so it can be found and undone later'
     // v1.89: true only up to the journal's per-save limit, and the question now says where it stops.
     + (rows.length>JRNL_PER_SAVE? ' \u2014 the first '+JRNL_PER_SAVE+' one by one. Past that, the journal records one line '
        +'saying how many more, and those cannot be undone from it one at a time.' : '.'))) return;
+  // A year this board has not started: every choice is made before anything is written, so stopping at any one starts no
+  // year and applies nothing
+  const how=Object.create(null);
+  for(let i=0;i<need.length;i++){ const y=need[i], fyl='FY'+(y%100);
+    if(confirm(fyl+' has not been started on this board, and '+nOf(y)+' ticked change'+(nOf(y)===1?'':'s')+' go into it.\n\n'
+        +'OK \u2014 ROLL FORWARD: start '+fyl+' from a copy of '+FYL()+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '
+        +(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)), then apply.\n'
+        +'Cancel \u2014 start it blank instead, or apply nothing.')) how[y]='roll';
+    else if(confirm('Start '+fyl+' BLANK \u2014 no requirements, zero BA \u2014 and apply into it?\n\n'
+        +'OK \u2014 start '+fyl+' blank.\nCancel \u2014 apply nothing, and start no year.')) how[y]='blank';
+    else { setStat('Nothing was applied, and no year was started.'); return; }
+  }
+  need.forEach(function(y){ MS.years[y]=pmoYearStart(y, how[y]==='roll'); });
   const t0=Date.now();          // entries from this apply are read back by time: the journal trims from the front
   let n=0;
-  rows.forEach(function(r){
+  pmoEachYear(rows, function(r){
     // The requirement value goes through the same path a typed edit takes. jrnlSet() writes the
     // store key it is given, which is right for every other field and silently wrong for this one.
     if(r.key==='__new'){ if(pmoAcceptProposal(r)) n++; return; }
@@ -8670,10 +8863,13 @@ function pmoApply(){
   // skips a field the board has come to agree with; what is left is what was NOT accepted, still
   // there for the next pass. Clearing them here would throw away every untaken proposal the moment
   // the first batch was applied.
-  const left=pmoRows().length;
+  // v2.09 W2 (item 126): what can still be accepted -- not a proposal already added, nor a change to a requirement this board
+  // no longer has: counted, they read "1 proposed change still held for review" with nothing left that could be ticked
+  const left=pmoRows().filter(function(r){ return !r.taken && !r.gone; }).length;
   // WHAT THE JOURNAL ACTUALLY HOLDS, read back rather than promised (v1.89).
   const more=(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(more)' && (e.t||0)>=t0; })[0];
-  setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b>. '
+  setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b> to <b>'+esc(pmoYearsLbl(ys))+'</b>'
+    + (need.length? ' (started '+esc(need.map(function(y){ return 'FY'+(y%100)+(how[y]==='roll'? ' from '+FYL() : ' blank'); }).join(', '))+')' : '')+'. '
     + (more? 'The first '+JRNL_PER_SAVE+' are in the change journal one by one; the rest are recorded there as one line \u2014 <b>'
              +esc(String(more.b))+'</b>. '
            : 'Every one is in the change journal. ')
@@ -8682,6 +8878,26 @@ function pmoApply(){
   if(typeof subBody==='function') subBody();
 }
 
+// v2.09 W2 (item 126): each ticked row written in the year it is held for, the oldest year first (so a proposal brought in
+// from another of the office's proposals finds the requirement that one became): the year on screen is set aside and put back
+// (aceWithYear), so every setter writes that year's state, and its journal entries name that year. A year that does not exist
+// is never written -- aceWithYear would read the year on screen in its place.
+function pmoEachYear(rows, fn){
+  const by=Object.create(null);
+  rows.forEach(function(r){ (by[r.fy]||(by[r.fy]=[])).push(r); });
+  Object.keys(by).map(Number).sort(function(a, b){ return a-b; }).forEach(function(y){
+    if(!(MS.years||{})[y]) return;
+    aceWithYear(y, function(){ by[y].forEach(fn); applyState(MS.years[MS.cur]); });
+  });
+}
+// A year this board has not started, as Apply starts it: switchYear()'s roll forward from the year on screen, or blank
+function pmoYearStart(y, roll){
+  if(!roll) return freshYearState();
+  const seed=JSON.parse(JSON.stringify(S));
+  delete seed.ts;
+  shiftAwardYears(seed, y-MS.cur);
+  return seed;
+}
 // THE OFFICE'S OWN RANKING, accepted. The proposed requirements take the office's list in the order
 // proposed; any this board holds in that office that the proposal did not rank (accepted since the copy
 // went out, or moved in) keep their order after them. S.order -- the master list -- is not touched.
@@ -8724,6 +8940,10 @@ function pkgSvcEach(pkg, fn){
   bag(pkg.items, '');
   bag(pkg.base, ' (the baseline it was written against)');
   (Array.isArray(pkg.added)? pkg.added : []).forEach(function(a){ if(a && typeof a==='object') one(a, (a.title||a.nid||'?')+' (proposed new)', 'ask'); });
+  // v2.09 W2 (item 126): and every other year of a five-year submittal, named by its year
+  if(pkg.byYear && typeof pkg.byYear==='object' && !Array.isArray(pkg.byYear)) Object.keys(pkg.byYear).forEach(function(y){
+    const q=pkg.byYear[y]; if(!q || typeof q!=='object') return;
+    pkgSvcEach({items:q.items, base:q.base, added:q.added}, function(v, lbl, kind, set){ fn(v, 'FY'+(y%100)+' — '+lbl, kind, set); }); });
 }
 // A package with per-service figures and no service list: refused, naming every list it carries (v1.95, item 51).
 function pmoNoListRefuse(pkg){
@@ -8735,10 +8955,111 @@ function pmoNoListRefuse(pkg){
     +(L.length>12? '\n  • and '+(L.length-12)+' more' : '')
     +'\n\nEvery submittal a PMO copy writes names its services. Ask the office to submit again from its copy.');
 }
+// ── A YEAR OF A SUBMITTAL IS READ IN THAT YEAR (v2.09 W2, item 126) ────────────────────────────────────────────────────────
+// A requirement as year fy holds it, or null where that year does not (removed there, never there, or a year this board has
+// not started) -- itemById() for the year on screen, so what the review and the take read there is what they always read.
+// The review, the change report and the scope at take all read a held package in the year it is held for: read in the year on
+// screen, an FY30 package showed FY28's figure as "On the board now", under FY28's title.
+function pmoItemIn(fy, id){
+  if(+fy===+MS.cur) return itemById(id)||null;
+  const T=(MS.years||{})[fy]; if(!T) return null;
+  if((T.removed||[]).indexOf(id)>=0) return null;
+  return yrItemOf(T, id);
+}
+// A submittal from a five-year copy: one that names the years its copy covers (fys), or carries years under byYear
+function pmoFive(pkg){ return !!pkg && (Array.isArray(pkg.fys) || pkg.byYear!==undefined); }
+// A FIVE-YEAR SUBMITTAL, TAKEN YEAR BY YEAR (Brad, 26 Oct 2026, decision 3: one file per office, covering every year; the
+// board splits it by year when it is loaded). Each year goes through pmoTake's own path, held for that year: the services
+// guard, the door's field rules, the scope read in that year. It is taken WHOLE OR NOT AT ALL -- a year refused refuses the
+// file, naming that year, and the review is left exactly as it was. Nothing is asked about which year a part is for: each is
+// its own (decision 4 puts each into its own year at Apply), and a year this board has not started is held all the same --
+// Apply asks how to start it. The file replaces every year its office has held before: it is that office's whole submission.
+function pmoTakeYears(pkg, fname){
+  const fyOk=function(v){ v=(typeof v==='string' && /^\s*\d{4}\s*$/.test(v))? +v : v;
+    return (typeof v==='number' && v===Math.floor(v) && v>=1990 && v<=2199)? v : 0; };
+  const top=fyOk(pkg.fy);
+  if(!top){ alert('⚠ That submittal names a fiscal year this board cannot read ('+inShow(String(JSON.stringify(pkg.fy)))+').\n\n'
+    +'The file is damaged or was not written by ORBIT. Nothing was loaded.'); return; }
+  if(!pkg.pmo){ alert('⚠ That submittal covers several fiscal years and does not say which programme office it is from. Every copy that '
+    +'writes one names its office, so the file is damaged or was not written by ORBIT. Nothing was loaded.'); return; }
+  const by=pkg.byYear;
+  if(by!==undefined && !(by && typeof by==='object' && !Array.isArray(by))){
+    alert('⚠ That submittal’s years cannot be read. The file is damaged or was not written by ORBIT. Nothing was loaded.'); return; }
+  const parts=[{fy:top, items:pkg.items, base:pkg.base, added:pkg.added, rank:pkg.rank}];
+  const ks=Object.keys(by||{});
+  for(let i=0;i<ks.length;i++){ const k=ks[i], y=fyOk(k), q=by[k];
+    if(!y || String(y)!==k || y===top || !q || typeof q!=='object' || Array.isArray(q)){
+      alert('⚠ That submittal carries a year this board cannot read ('+inShow(k)+').\n\nThe file is damaged or was not written by ORBIT. Nothing was loaded.'); return; }
+    parts.push({fy:y, items:q.items, base:q.base, added:q.added, rank:q.rank}); }
+  parts.sort(function(a, b){ return a.fy-b.fy; });
+  const has=function(p){ return !!((p.items && typeof p.items==='object' && Object.keys(p.items).length)
+    || (Array.isArray(p.added) && p.added.length) || (p.rank && typeof p.rank==='object')); };
+  if(!parts.some(has)){ alert('That submittal is empty \u2014 it proposes no changes.'); return; }
+  const was=PMOSUBS.slice(), pickWas=PMOPICK, of=(+pkg.ts||0)+'|'+subFrom(pkg);
+  const keep={alert:window.alert, setStat:window.setStat, statKeep:window.statKeep, sor:window.subOpenReview};
+  const said=[], notes=[], held=[], empty=[];
+  let bad='', badFy=0, first=true;
+  try{
+    // what each year says is gathered and said once, for the file; the review opens once
+    window.alert=function(m){ said.push(String(m)); };
+    window.setStat=function(m){ notes.push(String(m)); };
+    window.statKeep=function(){}; window.subOpenReview=function(){};
+    for(let i=0;i<parts.length;i++){ const p=parts[i];
+      if(!has(p)) continue;
+      const sub={}; Object.keys(pkg).forEach(function(k){ if(k!=='byYear') sub[k]=pkg[k]; });
+      sub.fy=p.fy; sub.items=p.items; sub.base=p.base; sub.added=p.added; sub.rank=p.rank;
+      if(sub.rank===undefined) delete sub.rank;
+      const mk={fy:p.fy, of:of, first:first, whole:pkg}; first=false;
+      const n0=PMOSUBS.length, s0=said.length;
+      pmoTake(sub, fname, mk);
+      if(PMOSUBS.length>n0){ held.push({fy:p.fy, notes:said.slice(s0)}); continue; }
+      if(mk.empty){ empty.push({fy:p.fy, out:mk.empty}); continue; }
+      bad=said[said.length-1]||'it could not be read'; badFy=p.fy; break;
+    }
+  } finally {
+    window.alert=keep.alert; window.setStat=keep.setStat; window.statKeep=keep.statKeep; window.subOpenReview=keep.sor;
+  }
+  const out=[].concat.apply([], empty.map(function(e){ return e.out.map(function(x){ return 'FY'+(e.fy%100)+' \u2014 '+x; }); }));
+  if(bad || !held.length){
+    PMOSUBS=was; PMOPICK=pickWas;
+    alert(bad? '⚠ That submittal could not be taken: its FY'+(badFy%100)+' part was refused, so nothing in it was loaded.\n\n'+bad
+      : 'That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own requirements in any year.\n\n'
+        +out.length+' proposed change'+(out.length===1?'':'s')+' '+(out.length===1?'was':'were')+' for requirements another office owns'
+        +(out.length? ':\n  \u2022 '+out.join('\n  \u2022 ') : '')+'\n\nA submittal can only carry its own. Nothing was loaded.');
+    return;
+  }
+  const mine=PMOSUBS.slice(was.length);
+  const dup=was.filter(function(pk){ return subFrom(pk)===subFrom(pkg); });
+  PMOSUBS=was.filter(function(pk){ return dup.indexOf(pk)<0; }).concat(mine);
+  PMOPICK={};
+  const n=pmoRows().length, yrs=held.map(function(h){ return h.fy; });
+  const away=yrs.filter(function(y){ return !(MS.years||{})[y]; });
+  statKeep('\u2709 Submittal from <b>'+esc(subFrom(pkg))+'</b>'
+    + (pkg.by && pkg.by!==pkg.pmo? ' (<b>'+esc(pkg.by)+'</b>)' : '')
+    + ', for <b>'+esc(pmoYearsLbl(yrs))+'</b>, each year held for that year'
+    + (dup.length? ' \u2014 replacing '+dup.length+' held earlier from the same office' : '')
+    + (out.length? ' \u2014 '+out.length+' change'+(out.length===1?'':'s')+' for another office\u2019s requirements dropped' : '')
+    + '. <b>Nothing has been applied.</b> '+PMOSUBS.length+' submittal'+(PMOSUBS.length===1?'':'s')
+    + ' held, '+n+' proposed change'+(n===1?'':'s')+' in total.'
+    + (away.length? ' This board has not started <b>'+esc(pmoYearsLbl(away))+'</b>: \u2714 Apply asks how to start '
+        +(away.length===1? 'it' : 'each')+' before anything goes into it.' : '')
+    + notes.filter(function(m, i, a){ return !/^\u2709/.test(m) && a.indexOf(m)===i; }).map(function(m){ return ' '+m; }).join(''));
+  const info=[].concat.apply([], held.map(function(h){ return h.notes.map(function(m){ return 'FY'+(h.fy%100)+': '+m; }); }));
+  if(out.length) info.push('\u2139 '+out.length+' proposed change'+(out.length===1?'':'s')+' '+(out.length===1?'is':'are')
+    +' for requirements '+pkg.pmo+' does not own in that year, so '+(out.length===1?'it was':'they were')+' dropped:\n  \u2022 '
+    +out.join('\n  \u2022 '));
+  if(info.length) alert(info.join('\n\n'));
+  if(typeof subOpenReview==='function') subOpenReview();
+}
 // Take delivery of a submittal: hold it for review, record what this board said at the moment the
 // PMO copy was published so a conflict can be spotted, and open the review. NOTHING IS APPLIED.
 // v2.00 (UI S3): uiTakeDry dry-runs this on a copy, holding back only alert, confirm, setStat, subOpenReview, destPkgIn, PMOSUBS and PMOPICK -- anything else this comes to change must be held back there too.
-function pmoTake(pkg, fname){
+// v2.09 W2 (item 126): a five-year submittal goes to pmoTakeYears(), which takes each of its years through here with `part`
+// ({fy, of, first, whole}): held for that year without a question, its scope read in that year, and said once for the file.
+// Nothing new is changed on the way: no year is started or switched to (Apply does that), and the split is only more held
+// packages, which uiTakeDry already holds back.
+function pmoTake(pkg, fname, part){
+  if(!part && pkg && typeof pkg==='object' && pmoFive(pkg)) return pmoTakeYears(pkg, fname);
   pkg.items=(pkg.items && typeof pkg.items==='object')? pkg.items : {};
   pkg.added=(Array.isArray(pkg.added)? pkg.added : []).filter(function(a){ return a && typeof a==='object'; });
   if(pkg.rank!==undefined && !(pkg.rank && typeof pkg.rank==='object')) delete pkg.rank;
@@ -8760,7 +9081,7 @@ function pmoTake(pkg, fname){
   const pfy=(typeof pkg.fy==='string' && /^\s*\d{4}\s*$/.test(pkg.fy))? +pkg.fy : pkg.fy;
   if(pfy===undefined || pfy===null || pfy===''){
     if(!confirm('⚠ That submittal does not say which fiscal year it was written for.\n\n'
-      +'OK — hold it for '+FYL()+', the year on screen. It can be applied only while '+FYL()+' is on screen.\n'
+      +'OK — hold it for '+FYL()+', the year on screen. It applies to '+FYL()+' alone.\n'
       +'Cancel — load nothing.')) return;
     forFy=MS.cur;
   } else if(!(typeof pfy==='number' && pfy===Math.floor(pfy) && pfy>=1990 && pfy<=2199)){
@@ -8771,9 +9092,12 @@ function pmoTake(pkg, fname){
     forFy=pfy;
   } else {
     const fyl='FY'+(pfy%100);
-    if(confirm('That submittal was written for '+fyl+', and this board is on '+FYL()+'.'
-        +(MS.years[pfy]? '' : '\n\nThis board has no '+fyl+' yet. Switching to '+fyl+' starts it.')
-        +'\n\nOK — hold it for '+fyl+'. It can be applied only while '+fyl+' is on screen.\n'
+    // v2.09 W2 (item 126): a year of a five-year submittal is that year's, and is not asked about; and Apply puts what a
+    // reviewer ticks into the year each package is held for, whatever year is on screen (Brad's decision 4)
+    if(part) forFy=pfy;
+    else if(confirm('That submittal was written for '+fyl+', and this board is on '+FYL()+'.'
+        +(MS.years[pfy]? '' : '\n\nThis board has no '+fyl+' yet: \u2714 Apply asks how to start it before anything goes into it.')
+        +'\n\nOK — hold it for '+fyl+'. It applies to '+fyl+' alone.\n'
         +'Cancel — apply it to another year, or load nothing.')) forFy=pfy;
     else if(confirm('Hold it for '+FYL()+' instead — the year on screen?\n\n'
         +'It was written for '+fyl+': its values, its text and its award dates would be applied to '+FYL()+'.\n\n'
@@ -8831,7 +9155,7 @@ function pmoTake(pkg, fname){
       +'\n\nThis board has '+SVC.length+': '+SVC.join(', ')+'.\n\nThe file is damaged or was written against a different board. Nothing was loaded.');
     return;
   }
-  destPkgIn(pkg);
+  if(!part || part.first) destPkgIn(part? part.whole : pkg);   // v2.09 W2: every year of a five-year file, once
   // ── WHAT IS REVIEWED MUST BE WHAT WOULD LAND ────────────────────────────────────────────────
   // The review, the spreadsheet and pmoApply() all read the package, but only pmoApply() used to
   // put a requirement value through the board's rule for one. A package carrying -5,000,000 and a
@@ -8840,6 +9164,9 @@ function pmoTake(pkg, fname){
   // spreadsheet that did not describe the board it produced. Normalise once, here at the door, so
   // every reader downstream agrees by construction.
   const _wrong=[], _unread=[], _conv=[];
+  // v2.09 W2 (item 126): a requirement as the year it is held for holds it -- an id the board added names a different
+  // requirement in each year
+  const yT=(MS.years||{})[forFy], yName=function(id){ const x=pmoItemIn(forFy, id); return x? (recName(x, yT)||dispTitle(x, yT)) : id; };
   Object.keys(pkg.items||{}).forEach(function(id){
     const one=pkg.items[id]; if(!one) return;
     if(one.asks!==undefined && one.asks!==null){
@@ -8858,7 +9185,7 @@ function pmoTake(pkg, fname){
     PMO_KEYS.forEach(function(k){
       if(k==='asks' || one[k]===undefined) return;
       const r=pmoNorm(k, one[k]);
-      const who=(itemById(id)? (recName(itemById(id))||dispTitle(itemById(id))) : id)+' \u2014 '+(PMO_LBL[k]||k);
+      const who=yName(id)+' \u2014 '+(PMO_LBL[k]||k);
       if(r[0]){ one[k]=r[1]; if(r[2] && r[2].length) _conv.push(who+': '+r[2].join('; ')); }
       else { _unread.push(who+(r[2]? ': it '+r[2] : '')); delete one[k]; }
     });
@@ -8896,6 +9223,10 @@ function pmoTake(pkg, fname){
     a.mc=!!a.mc;
     a.prior=priorOk(a.prior)? {fy:+a.prior.fy, id:a.prior.id} : null;   // v2.06 (item 117): the door refused any other shape
   });
+  // v2.09 W2 (item 126): A PROPOSAL SAYS WHICH YEAR IT IS FOR (pmoProposalOf), and is held for that year only. One filed under
+  // another year is a damaged file: it is left out and named, never put into a year it was not written for.
+  if(part) pkg.added=pkg.added.filter(function(a){ if(a.fy===undefined || a.fy===null || +a.fy===+forFy) return true;
+    _unread.push((a.title||a.nid)+' (proposed new): it says it is for '+inShow(String(a.fy))+', and it was sent under FY'+(forFy%100)); return false; });
   // THE OFFICE'S OWN RANKING arrives as two lists of requirement ids. Anything else is not a ranking.
   if(pkg.rank){
     const ids=function(L){ return Array.isArray(L) && L.every(function(x){ return typeof x==='string'; }); };
@@ -8908,17 +9239,22 @@ function pmoTake(pkg, fname){
   // two of them can never contest one field, so there is no arbitration and no last-one-wins.
   // A requirement this board no longer has is NOT dropped here -- the review marks it 'gone' with
   // its own symbol, which tells the reviewer something a silent drop would not.
+  // v2.09 W2 (item 126): IN THE YEAR IT IS HELD FOR. Read in the year on screen, a valid package was refused whole ("proposes
+  // nothing on PSM's own requirements... Nothing was loaded") wherever an office differs between the years, or an id the board
+  // added names another office's requirement in the year on screen -- reachable before v2.09, with a copy published from FY30
+  // and taken while FY28 was on screen.
   let outOfScope=[];
   if(pkg.pmo){
     Object.keys(pkg.items).forEach(function(id){
-      const it=itemById(id);
-      if(!it || grpOf(it)===pkg.pmo) return;
-      outOfScope.push(grpOf(it)+' \u2014 '+(recName(it)||dispTitle(it)));
+      const it=pmoItemIn(forFy, id);
+      if(!it || grpOf(it, yT)===pkg.pmo) return;
+      outOfScope.push(grpOf(it, yT)+' \u2014 '+(recName(it, yT)||dispTitle(it, yT)));
       delete pkg.items[id];
     });
     pkg.added=pkg.added.filter(function(a){ if(a.grp===pkg.pmo) return true;
       outOfScope.push(a.grp+' — '+(a.title||a.nid)+' (proposed new)'); return false; });
     if(!Object.keys(pkg.items).length && !pkg.added.length && !pkg.rank){
+      if(part){ part.empty=outOfScope; return; }   // v2.09 W2: one year of a five-year file -- its other years are still taken
       alert('That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own '
         +'requirements.\n\n'+outOfScope.length+' proposed change'+(outOfScope.length===1?'':'s')
         +' '+(outOfScope.length===1?'was':'were')+' for requirements another office owns, and a '
@@ -8936,7 +9272,10 @@ function pmoTake(pkg, fname){
   // A SECOND PACKAGE FROM THE SAME OFFICE REPLACES THE FIRST. Two rounds from one office stacked
   // side by side would offer the reviewer the same field twice with different answers, which is the
   // arbitration the scope exists to avoid.
-  const dup=PMOSUBS.map(function(pk,i){ return subFrom(pk)===subFrom(pkg)? i : -1; })
+  // v2.09 W2 (item 126): FOR THE SAME YEAR. One office's packages for two years propose two years' fields, and replacing the
+  // first dropped a whole year from the review (reachable before v2.09, with copies published from two years). A five-year
+  // file replaces every year its office has held (pmoTakeYears), so its years never replace one another here.
+  const dup=PMOSUBS.map(function(pk,i){ return (!part && subFrom(pk)===subFrom(pkg) && +pk.forFy===+forFy)? i : -1; })
     .filter(function(i){ return i>=0; });
   dup.slice().reverse().forEach(function(i){ PMOSUBS.splice(i,1); });
   const held=JSON.parse(JSON.stringify(pkg));
@@ -8946,6 +9285,7 @@ function pmoTake(pkg, fname){
   // the conflict flag never once fired.
   held.baseSeen=pkg.base||{};
   held.forFy=forFy;                    // the year the reviewer accepted it for; pmoApply() writes nowhere else
+  if(part) held.part=part.of;          // v2.09 W2: one year of a five-year file
   held.added=(pkg.added||[]).slice();
   PMOSUBS.push(held);
   PMOPICK={};
@@ -9017,12 +9357,16 @@ function subBody(){
   if(!subOpen){ el.innerHTML=''; return; }
   const load='<button class="qb" onclick="document.getElementById(&quot;stateFile&quot;).click()" title="an ORBIT SUBMITTAL \u2026 .json from a programme office">\u2b05 Load a submittal file\u2026</button>';
   if(!PMOSUBS.length){ el.innerHTML='<div class="hint" style="margin-bottom:8px">No submittals loaded. Load each programme office\u2019s file \u2014 they are reviewed together.</div>'+load; return; }
-  const rows=pmoRows(), MR=masterRanks();
+  const rows=pmoRows();
+  // v2.09 W2 (item 126): every row in the year its package is held for -- its rank, its name and its office that year's
+  const MRs=Object.create(null), MR=function(y){ return MRs[y]||(MRs[y]=pmoRanksIn(y)); };
+  const TY=function(y){ return (+y===+MS.cur)? S : (MS.years||{})[y]; };
   const nPick=rows.filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; }).length;
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
   const nNew=rows.filter(function(r){ return r.isNew && !r.taken; }).length;
   const nOpen=PMOSUBS.filter(function(pk){ return !pk.pmo; }).length;
-  const nAway=PMOSUBS.filter(function(pk){ return pk.forFy!==MS.cur; }).length;   // v1.95 (item 52)
+  const nAway=PMOSUBS.filter(function(pk){ return pmoHeldFy(pk)!==+MS.cur; }).length;   // v1.95 (item 52)
+  const nNot=PMOSUBS.filter(function(pk){ return !(MS.years||{})[pmoHeldFy(pk)]; }).length;   // v2.09 W2: a year not started
   // ONE LINE PER SUBMITTAL, so the round reads as a round: who sent what, when, and how much of it
   // is still on the table. The per-office counts come from the same pmoRows() the table below uses,
   // so a heading can never disagree with the list under it.
@@ -9035,8 +9379,10 @@ function subBody(){
     +(nConf? ' <b style="color:var(--amber)">'+nConf+' would overwrite a field this board changed since.</b>':'')
     +(nOpen? ' <b style="color:var(--amber)">'+nOpen+' '+(nOpen===1?'is':'are')+' unscoped and may '
       +'reach another office\u2019s requirements.</b>':'')
-    +(nAway? ' <b style="color:var(--amber)">'+nAway+' '+(nAway===1?'is':'are')+' held for another year and '
-      +(nAway===1?'applies':'apply')+' only while that year is on screen.</b>':'')
+    // v2.09 W2 (item 126; decision 4): Apply puts each into the year it is held for, whatever year is on screen
+    +(nAway? ' <b style="color:var(--amber)">'+nAway+' '+(nAway===1?'is':'are')+' held for another year than the one on screen; '
+      +'\u2714 Apply puts each into its own year.</b>':'')
+    +(nNot? ' <b style="color:var(--amber)">'+nNot+' '+(nNot===1?'is':'are')+' for a year this board has not started; Apply asks how to start it first.</b>':'')
     +'</div>';
   h+='<table class="fctab" style="width:100%;margin-bottom:8px"><tr>'
     +'<th style="text-align:left">From</th><th style="text-align:left">Sent by</th>'
@@ -9049,8 +9395,8 @@ function subBody(){
           +(pk.fromTs? '<br><span style="font-size:9px">copy published '
             +esc(new Date(pk.fromTs).toLocaleDateString())+'</span>':'')
           // v1.95 (item 52): the year it is held for, and that it applies nowhere else
-          +'<br><span class="subfy" style="font-size:9px;font-weight:800;color:'+(pk.forFy===MS.cur? 'var(--dim)' : 'var(--amber)')+'">for FY'
-            +(pk.forFy%100)+(pk.forFy===MS.cur? '' : ' \u2014 applies only while FY'+(pk.forFy%100)+' is on screen')+'</span></td>'
+          +'<br><span class="subfy" style="font-size:9px;font-weight:800;color:'+(pmoHeldFy(pk)===+MS.cur? 'var(--dim)' : 'var(--amber)')+'">for FY'
+            +(pmoHeldFy(pk)%100)+((MS.years||{})[pmoHeldFy(pk)]? '' : ' \u2014 not started on this board')+(pk.part? ' \u2014 one year of a five-year file' : '')+'</span></td>'
           +'<td style="text-align:center;font-weight:800">'+mine+'</td>'
           +'<td style="text-align:right;white-space:nowrap">'
           +'<button class="qb" onclick="subPickAll(true,'+i+')">Tick these</button> '
@@ -9077,8 +9423,18 @@ function subBody(){
     +'<tr><th></th><th style="text-align:left">From</th>'
     +'<th style="text-align:left">Requirement</th><th style="text-align:left">Field</th>'
     +'<th style="text-align:left">On the board now</th><th style="text-align:left">Proposed</th></tr>';
+  // v2.09 W2 (item 126): grouped under each year (decision 3) once any row is for a year other than the one on screen
+  const ys=rows.map(function(r){ return r.fy; }).filter(function(y, i, a){ return a.indexOf(y)===i; });
+  const yHead=ys.length>1 || (ys.length===1 && ys[0]!==+MS.cur);
+  let yOn=null;
   rows.forEach(function(r){
     const key=pickKey(r);
+    if(yHead && r.fy!==yOn){ yOn=r.fy;
+      const nY=rows.filter(function(x){ return x.fy===r.fy; }).length;
+      h+='<tr class="subyr"><td colspan="6" style="text-align:left;font-weight:800;background:var(--panelA)">FY'+(r.fy%100)
+        +' <span style="color:var(--dim);font-weight:400">\u2014 '+nY+' proposed change'+(nY===1?'':'s')
+        +((MS.years||{})[r.fy]? '' : ' \u00b7 not started on this board: \u2714 Apply asks how to start it first')+'</span></td></tr>'; }
+    const T=TY(r.fy);
     if(r.isNew){
       const a=r.prop;
       h+='<tr style="background:rgba(120,200,120,.08)">'
@@ -9091,8 +9447,8 @@ function subBody(){
         +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(pmoNewName(a))
           +' <span style="color:var(--dim)">'+esc(a.grp)+'</span>'
           +(a.prior? '<br><span class="subprior" style="color:var(--dim);font-size:9px">from FY'+(a.prior.fy%100)+' '+esc(a.prior.id)+'</span>' : '')
-          +(a.prior && !r.taken && pmoPriorHere(a.prior)? '<br><span class="subhere" style="color:var(--amber);font-size:9px;font-weight:800">'
-            +esc(FYL())+' ALREADY HOLDS '+esc(pmoPriorHere(a.prior))+' \u2014 accepting adds it again</span>' : '')
+          +(a.prior && !r.taken && pmoPriorHere(a.prior, r.fy)? '<br><span class="subhere" style="color:var(--amber);font-size:9px;font-weight:800">'
+            +'FY'+(r.fy%100)+' ALREADY HOLDS '+esc(pmoPriorHere(a.prior, r.fy))+' \u2014 accepting adds it again</span>' : '')
           +(r.taken? '<br><span style="color:var(--green);font-size:9px;font-weight:800">ALREADY ADDED AS '+esc(r.taken)+'</span>':'')+'</td>'
         +'<td style="text-align:left">New requirement (proposed)</td>'
         +'<td style="text-align:left;color:var(--dim)">—</td>'
@@ -9106,8 +9462,8 @@ function subBody(){
           +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
       +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
         +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
-      +'<td style="text-align:left">'+(r.it? '<b>#'+(MR[r.id]||'')+'</b> '+esc(recName(r.it)||dispTitle(r.it))
-                                            +' <span style="color:var(--dim)">'+esc(grpOf(r.it))+'</span>'
+      +'<td style="text-align:left">'+(r.it? '<b>#'+(MR(r.fy)[r.id]||'')+'</b> '+esc(recName(r.it, T)||dispTitle(r.it, T))
+                                            +' <span style="color:var(--dim)">'+esc(grpOf(r.it, T))+'</span>'
                                           : r.rank? '<b>'+esc(r.office)+'</b>\u2019s own ranking <span style="color:var(--dim)">'
                                               +r.prop.length+' requirements \u2014 the master list is not changed</span>'
                                           : '<span style="color:var(--red)">'+esc(r.id)+' \u2014 not on this board</span>')+'</td>'
@@ -9127,6 +9483,9 @@ function subBanner(){
     +'font-weight:800;font-size:11px;letter-spacing:.04em;text-align:center">'
     +'\u25e8 PMO COPY \u2014 a snapshot'+(PMODE&&PMODE.by? ' published by '+esc(PMODE.by):'')
     +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
+    // v2.09 W2 (item 126): THE YEARS IT SUBMITS FOR, on the bar the whole time somebody is working -- with five years in a copy,
+    // nothing else on screen said which of them a submittal carries
+    +(pmoCopyYears().length? ', for <span class="subyrs">'+esc(pmoYearsLbl())+'</span>' : '')
     +'. Work in it freely \u2014 nothing here reaches the portfolio board.'
     // THE SCOPE IS VISIBLE THE WHOLE TIME somebody is working, not asked for once at the end. A
     // submittal carries one office's requirements, so knowing which office that is belongs beside
@@ -10606,6 +10965,16 @@ function inShapeWhy(o, path, asPlan){
       return (one && typeof one==='object')? inAwdWhy(one.awards, sN, sS, path+'.'+bag+'.'+id+'.awards') : ''; }))) return w;
     if(Array.isArray(o.added)) for(let i=0;i<o.added.length;i++){ const a=o.added[i];
       if(a && typeof a==='object' && (w=inAwdWhy(a.awards, sN, sS, path+'.added['+i+'].awards'))) return w; }
+    // v2.09 W2 (item 126): A FIVE-YEAR SUBMITTAL carries every year but the published one under byYear, by year. Each year is
+    // held to the same rules as the top of the package -- its ids, its figures, its awards against the package's own service
+    // list -- through these same lines, and a key that is not a fiscal year is refused: it is the year the section applies to.
+    if(o.byYear!==undefined){
+      if(!o.byYear || typeof o.byYear!=='object' || Array.isArray(o.byYear)) return 'the years at '+path+'.byYear are not a set of years';
+      for(const k of Object.keys(o.byYear)){ const q=o.byYear[k], at=path+'.byYear.'+k;
+        if(!/^\d{4}$/.test(k) || +k<1990 || +k>2199) return 'the year '+inShow(k)+' at '+path+'.byYear is not a fiscal year';
+        if(!q || typeof q!=='object' || Array.isArray(q)) return 'the year at '+at+' is not a year of a submittal';
+        if((w=inShapeWhy({spmtPkg:o.spmtPkg, dir:'submit', svc:o.svc, items:q.items, base:q.base, added:q.added}, at, false))) return w; }
+    }
   }
   return '';
 }
@@ -14883,9 +15252,19 @@ function preflight(){
   //     applies, shown here so it is found before the refusal rather than by it.
   if(typeof SANDBOX!=='undefined' && SANDBOX && typeof pmoProposalIds==='function'){
     const rows=[];
-    pmoProposalIds().forEach(function(id){ const miss=pmoProposalGate(id);
-      // named the way the submit alert names it -- the title the office typed -- not the plan event
-      if(miss.length) rows.push({id:id, label:(recName(itemById(id))||pfName(id)), sub:'needs '+miss.join(', ')}); });
+    // v2.09 W2 (item 126): every year the copy submits for, each read in its own year -- Submit holds back an out-year's
+    // proposal too. One in another year is named with its year, and is not a row on screen to go to.
+    const _nd=_ndCache, onFy=+MS.cur;
+    pmoCopyYears().filter(function(y){ return +y===onFy || !!(MS.years||{})[y]; }).forEach(function(fy){
+      const r0=rows.length;
+      aceWithYear(fy, function(){
+        pmoProposalIds().forEach(function(id){ const miss=pmoProposalGate(id);
+          // named the way the submit alert names it -- the title the office typed -- not the plan event
+          if(miss.length) rows.push({id:id, label:(recName(itemById(id))||pfName(id)), sub:'needs '+miss.join(', ')}); });
+      });
+      if(+fy!==onFy) rows.slice(r0).forEach(function(r){ r.label='FY'+(fy%100)+' \u2014 '+r.label; r.id=''; });
+    });
+    _ndCache=_nd;
     add('block','newreq','A proposed requirement is missing mandatory fields',
       'A requirement added on this copy travels back whole, for the portfolio team to accept, and it '
       +'cannot be sent until every required field is filled. Submit input holds each of these back, by '
@@ -16688,10 +17067,13 @@ function destMigrate(){
 // with it; one published before carries the appropriation's old list, read as it was read here.
 function destPkgIn(pkg){
   const refs=Object.create(null);
-  const each=function(fn){
-    [pkg.items, pkg.base].forEach(function(m){ Object.keys(m||{}).forEach(function(id){ if(m[id] && m[id].dest && typeof m[id].dest==='object') fn(m[id].dest); }); });
-    (pkg.added||[]).forEach(function(a){ if(a && a.dest && typeof a.dest==='object') fn(a.dest); });
-  };
+  // v2.09 W2 (item 126): every year of a five-year submittal -- its out-years name destinations by the same list
+  const secs=[pkg].concat((pkg.byYear && typeof pkg.byYear==='object')? Object.keys(pkg.byYear).map(function(y){ return pkg.byYear[y]; })
+    .filter(function(q){ return q && typeof q==='object'; }) : []);
+  const each=function(fn){ secs.forEach(function(q){
+    [q.items, q.base].forEach(function(m){ Object.keys(m||{}).forEach(function(id){ if(m[id] && m[id].dest && typeof m[id].dest==='object') fn(m[id].dest); }); });
+    (Array.isArray(q.added)? q.added : []).forEach(function(a){ if(a && a.dest && typeof a.dest==='object') fn(a.dest); });
+  }); };
   each(function(d){ if(d.to) refs[d.to]=1; if(d.end) refs[d.end]=1; });
   let al;
   if(Array.isArray(pkg.dest)){ al=destFold(pkg.dest, pkg.ap||mySlug(), true, refs); if(al.fresh || al.touched) persistDest(); }
@@ -27663,19 +28045,19 @@ function syncBtns(){
     winYears.map(y=>mi('FY'+(y%100)+(y===MS.base?'  (base year)':''),
       y===MS.cur? "openMenu=null;syncBtns()" : `mRun(()=>switchYear(${y}))`,
       y===MS.cur,
-      MS.years[y]? (y===MS.cur?'working now':'has data') : 'not started')).join('')+
+      MS.years[y]? (y===MS.cur?'working now':'has data') : (SANDBOX? 'not started — opens blank, for new requirements' : 'not started'))).join('')+
     (extraYears.length? '<div class="msep"></div>'+extraYears.map(y=>mi('FY'+(y%100)+' (outside window)', y===MS.cur? "openMenu=null;syncBtns()":`mRun(()=>switchYear(${y}))`, y===MS.cur, MS.years[y]?'has data':'')).join(''):'')+
     '<div class="msep"></div><div class="mlbl">Across the years</div>'+
     // It belongs here, beside the years it writes into, and it is a VERB about this board's
     // fiscal years - not part of the board's shape, which is what Tools holds.
     mi('🗓 Roll requirements forward…',"mRun(toggleRoll)",rollOpen,
-       'copy chosen requirements into chosen out-years')+
+       SANDBOX? 'off in a PMO copy' : 'copy chosen requirements into chosen out-years')+
     // v1.96 (item 65): ONE HOME FOR EACH ACTION. Funding realignment moves whole requirements between years, and Set
     // base year and Reset were here AND under Setup › Maintenance; all three live here now, and only here.
     mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
        'source a lump sum by moving whole requirements between years')+
-    mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window')+
-    mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn');
+    mi('⚙ Set base year…',"mRun(setBaseYear)",false,SANDBOX? 'off in a PMO copy' : 'rolls the 5-year window')+
+    mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,SANDBOX? 'off in a PMO copy' : 'empties this year only',' warn');
   const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
   const bv=document.getElementById('b_view_t');
   if(bv) bv.textContent='Filter'+(nFilt?' ●'+nFilt:'')+' ▾';
@@ -30434,12 +30816,13 @@ function setFsrcSvc(id, kind, i, val){
 function arOn(){ return typeof arOpen!=='undefined' && arOpen; }
 function arEl(id){ return document.getElementById(id); }
 function arVal(id){ const e=arEl(id); return e? String(e.value==null? '' : e.value) : ''; }
-// A PMO copy adds only to the year it was published for: a proposal made in another year could never be sent (pmoSubmit
-// refuses while that year is on screen, and the published year's submit never sees it).
+// A PMO copy adds only to a year it submits for: a proposal made in any other year could never be sent.
+// v2.09 W2 (item 126): every year of the FYDP window it carries a baseline for -- it was the published year alone, and in
+// FY29-FY32 Add did nothing but say so in a line cut short ("This copy was publis…").
 function arCopyOtherYear(){
-  if(!(typeof SANDBOX!=='undefined' && SANDBOX && PMODE && PMODE.fy && +MS.cur!==+PMODE.fy)) return false;
-  const m='⚠ This copy was published for FY'+(PMODE.fy%100)+' and is showing FY'+(MS.cur%100)+'. A requirement added '
-    +'here could never be sent — go back to FY'+(PMODE.fy%100)+' to add one.';
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX && PMODE && PMODE.fy && !pmoBaseOf(MS.cur))) return false;
+  const m='⚠ This copy submits for '+pmoYearsLbl()+'. A requirement added in FY'+(MS.cur%100)+' could never be sent — '
+    +'add it in one of those years.';
   try{ setStat(m); }catch(e){}
   if(arOn()) arSay(m);
   return true;
@@ -30717,7 +31100,7 @@ function arUpdate(){
   const rn=arEl('arReadyN'); if(rn) rn.textContent=(need.length-miss.length)+' of '+need.length;
   const btn=arEl('arAddBtn'); if(btn) btn.textContent='Add requirement'+(miss.length? ' — '+miss.length+' still needed' : '');
   const sm=arEl('arSum');
-  if(sm){ const ref=arOff? reqNewId(arOff, newReqSeqPeek()) : '';
+  if(sm){ const ref=arOff? reqNewId(arOff, reqSeqNext(true)) : '';
     sm.innerHTML='<b>'+fM(tot)+'</b> requirement'+(arOff? ' · reference <b>'+esc(ref)+'</b>' : '')
       +'<br>It lands at the bottom of the order, on a Split that draws only what the lanes hold below every requirement above it. '
       +'The SFWG sets its band'+(rcnApplies()? ', the O&amp;M team its RCN / EEIC' : '')+'.'
@@ -30744,6 +31127,19 @@ function newReqSeqPeek(T){
   const n=newReqSeq(T);
   if(had) T.newSeq=keep; else delete T.newSeq;
   return n;
+}
+// THE NEXT NUMBER FOR A NEW REQUIREMENT IN THE YEAR ON SCREEN -- and, on a PMO copy, never one ANY year of the copy has used
+// (v2.09 W2, item 126). Each year numbers by itself (newReqSeq), so an office proposing in FY28 and in FY30 minted NEW-PSM-1
+// twice; one office's two proposals then shared the one id the board recognises a proposal by (pmoTakenAs), and the second
+// read "already added" the moment the first was accepted and rolled forward. One count across the copy: an id names one
+// proposal, whatever year it is in. `peek` works the number out without spending it, for the box's preview.
+function reqSeqNext(peek){
+  const n=peek? newReqSeqPeek() : newReqSeq();
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return n;
+  let m=n;
+  Object.keys(MS.years||{}).forEach(function(y){ const T=MS.years[y]; if(T && typeof T==='object' && T!==S) m=Math.max(m, newReqSeqPeek(T)); });
+  if(!peek && m>n) S.newSeq=m;
+  return m;
 }
 // outline what is missing and send the keyboard to the first of it
 function arMark(ids){
@@ -31073,7 +31469,7 @@ function reqCreate(g, rec, from, f){
   let T=null, src=null;
   if(from){ T=(MS.years||{})[from.y]; src=T? yrItemOf(T, from.id) : null; if(!src) return ''; }
   const y=from? from.y : 0, id=from? from.id : '';
-  const n=newReqSeq();
+  const n=reqSeqNext();
   const nid=reqNewId(g, n);
   const it={id:nid, grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
             title:rec.title||'', event:rec.event||'', ccar:'', fy26:SVC.map(function(){ return 0; }),
@@ -31222,13 +31618,17 @@ function erStored(id){
 // it had at publication (pmoHomeOf, so a hand-over is sent), one the copy added by its office now.
 function erNotSent(id){
   if(!(typeof SANDBOX!=='undefined' && SANDBOX)) return '';
-  if(PMODE && PMODE.fy && +MS.cur!==+PMODE.fy) return 'This copy was published for FY'+(PMODE.fy%100)+' and is showing FY'
-    +(MS.cur%100)+': nothing edited here can be sent. Go back to FY'+(PMODE.fy%100)+' to edit what you submit.';
+  // v2.09 W2 (item 126): a copy submits every year of the FYDP it carries a baseline for; only another year sends nothing
+  if(PMODE && PMODE.fy && !pmoBaseOf(MS.cur)) return 'This copy submits for '+pmoYearsLbl()+', and is showing FY'
+    +(MS.cur%100)+': nothing edited here can be sent. Go to one of those years to edit what you submit.';
   const it=itemById(id); if(!it) return '';
   // v2.08 review: one that was not on the board when the copy was published -- removed there, restored here -- is not a
   // proposal and has no baseline, so nothing edited on it is sent (Submit says so too)
   const prop=pmoProposalIds().indexOf(id)>=0;
-  if(!prop && PMODE && PMODE.base && !Object.prototype.hasOwnProperty.call(PMODE.base, id))
+  if(!prop && PMODE && pmoYearNew(MS.cur))
+    return 'FY'+(MS.cur%100)+' had not been started on the portfolio board when this copy was published, so only a requirement '
+      +'you add here is sent for it: what you change on this one is kept on this copy and is not sent with \u2709 Submit input.';
+  if(!prop && PMODE && !Object.prototype.hasOwnProperty.call(pmoBaseOf(MS.cur)||{}, id))
     return 'This requirement was not on the board when this copy was published (it had been removed there): what you change '
       +'here is kept on this copy and is not sent with \u2709 Submit input.';
   const me=myPmo();
@@ -35463,11 +35863,16 @@ async function uiSubMany(inp){
     if(!(J && J.spmtPkg && J.dir==='submit')) return early('“'+f.name+'” is not a programme office’s submittal');
     P.push({name:f.name, txt:txt, pkg:J});
   }
+  // v2.09 W2 (item 126): ONE FILE PER OFFICE, AND ONE PER OFFICE AND YEAR. A five-year file is its office's whole submission
+  // and replaces whatever that office has held, so a second file from the office beside it is the question this refuses; two
+  // one-year files from copies published from two years are two years' work, and are taken side by side (pmoTake holds each
+  // for its own year).
   const seen={};
-  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg);
-    if(Object.prototype.hasOwnProperty.call(seen, o))
-      return early('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
-    seen[o]=i; }
+  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg), five=pmoFive(P[i].pkg), fy=String(P[i].pkg.fy);
+    const j=Object.prototype.hasOwnProperty.call(seen, o)? seen[o].filter(function(x){ return x.five || five || x.fy===fy; })[0] : null;
+    if(j)
+      return early('“'+P[j.i].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
+    (seen[o]||(seen[o]=[])).push({i:i, five:five, fy:fy}); }
   // the review may have changed while the files were read; the batch is measured against it as it is now -- and from
   // here to the end nothing waits, so nothing else can change the board while the batch runs
   was=uiBatchSnap();
