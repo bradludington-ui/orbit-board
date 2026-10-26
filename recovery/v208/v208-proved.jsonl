@@ -70,3 +70,5 @@
 {"id": "v208-rv-classify-arrow", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7d775394.mjs", "detail": ""}
 {"id": "v208-rv-brief-opens", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-232dccc6.mjs", "detail": ""}
 {"id": "pmo-submits-everything", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-c0817861.mjs", "detail": ""}
+{"id": "v208-rv-dest-use-hidden", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7d775394.mjs", "detail": ""}
+{"id": "v208-rv-absorber-x-live", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7d775394.mjs", "detail": ""}

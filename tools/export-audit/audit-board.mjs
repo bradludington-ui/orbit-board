@@ -5730,6 +5730,24 @@ await (async () => {
       JSON.stringify(['[{"w":"1.2","v":[]}]', true, true, 0]));
   });
 
+  // ---- a destination counted as in use only where the board reads it
+  part('destination use', () => {
+    const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100]), itx('B', 'PSM', [100])], disc: [200], mand: [0], order: ['A', 'B'] });
+    ev(`S.dest={A:{to:'pw', end:'lm'}, B:{to:'pax', end:'lm'}}; save(); 'ok'`);   // A's 'lm' is hidden on a prime (a board saved before v2.08)
+    chk(name, 'destination use', 'Lockheed Martin is in use by B only: A’s hidden second hop moves no money', ev(`flowEntUse('lm')`), 1);
+  });
+
+  // ---- the absorber's ✕ in a PMO copy is dimmed with the other allocation controls
+  part('absorber ✕', () => {
+    const items = [itx('A', 'PSM', [100])];
+    const P0 = mk({ services: ['USAF'], items, disc: [300], mand: [0], order: ['A'] });
+    P0.ev(`(function(){ BASE_ITEMS.length=0; ${JSON.stringify(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); S.absorb='A'; save(); return 'ok'; })()`);
+    const html = P0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const C = boot({ html });
+    chk(name, 'absorber ✕', 'the copy’s style dims the ✕ that stops the absorber', C.ev(`[].some.call(document.querySelectorAll('style'), function(st){ return st.textContent.indexOf('button[onclick^="setAbsorber("]')>=0; })`), true);
+  });
+
   // ---- a redraw that commits the typed figure (Chromium fires change on the field it removes) leaves nothing to put back
   part('redraw commits', () => {
     const { ev } = mk({ services: ['USAF'], items: [itx('A', 'PSM', [100])], disc: [300], mand: [0], order: ['A'] });

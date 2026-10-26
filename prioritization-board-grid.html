@@ -2706,7 +2706,7 @@ const SANDBOX = !!(PMODE && PMODE.sandbox);
 // the writer they call, which is the same in every panel that draws one.
 if(SANDBOX){ try{ const _st=document.createElement('style');
   _st.textContent='input[onchange^="setFsrcSvc("],input[onchange^="setAlloc("],input[onchange^="setSvc("],'
-    +'select[onchange^="setFsrc("],input[onchange^="setAbsorber("],input[onchange^="setAbsorbFloor("]{pointer-events:none;opacity:.5}'
+    +'select[onchange^="setFsrc("],input[onchange^="setAbsorber("],input[onchange^="setAbsorbFloor("],button[onclick^="setAbsorber("]{pointer-events:none;opacity:.5}'
     // v2.08 (F6): the CLIN drill is the portfolio team's -- nothing in it travels with a submittal (clinLocked)
     +'[onclick^="clinAdd("],[onclick^="clinSetField("],[onclick^="clinRemove("],[onclick^="clinRestore("],'
     +'[onclick^="clinResetGrid("],[onclick^="clinFromRow("],[onclick^="rcnClinReset("],input[onchange^="clinSetReq("],input[onchange^="setClinSvc("],'
@@ -16674,7 +16674,9 @@ function flowEntUse(k){
   let n=0; const seen=[];
   [S].concat(destStoreStates(MS)).forEach(function(st){
     if(!st || seen.indexOf(st)>=0) return; seen.push(st);
-    Object.keys(st.dest||{}).forEach(function(id){ const d=st.dest[id]||{}; if(d.to===k || d.end===k) n++; });
+    // v2.08 review: a second hop is counted only where it is read -- behind a government activity (destOf's rule, F4); one hidden
+    // on a prime moves no money, and the question asked before a delete said it did
+    Object.keys(st.dest||{}).forEach(function(id){ const d=st.dest[id]||{}; if(d.to===k || (d.end===k && destKeyIsOgc(d.to||''))) n++; });
   });
   return n;
 }

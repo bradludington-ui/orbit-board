@@ -7555,6 +7555,10 @@ const MUTATIONS = [
     find: ": ((cc && ccarNameOfNum(cc))? 'from the CCaR records list' : 'from the file'); }", repl: ": 'from the CCaR records list'; }" },
   { id: 'v208-rv-brief-opens', area: "openEdit", what: "in Brief, whose label says requirements cannot be edited there, Go to opens the edit box",
     find: "  if(typeof uiMode!=='undefined' && uiMode==='brief'){", repl: "  if(false){" },
+  { id: 'v208-rv-dest-use-hidden', area: "flowEntUse", what: "a second hop hidden on a prime counts as a use, and the delete question says money moves",
+    find: "if(d.to===k || (d.end===k && destKeyIsOgc(d.to||''))) n++;", repl: "if(d.to===k || d.end===k) n++;" },
+  { id: 'v208-rv-absorber-x-live', area: "SANDBOX style", what: "the absorber's ✕ in a PMO copy looks live, and answers with the allocation lock",
+    find: ",button[onclick^=\"setAbsorber(\"]{pointer-events:none;opacity:.5}'", repl: "{pointer-events:none;opacity:.5}'" },
   // ==== end v2.08 item 122 -- the review's fixes ====
 ];
 

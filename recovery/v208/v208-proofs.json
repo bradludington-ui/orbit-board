@@ -286,5 +286,13 @@
  {
   "id": "pmo-submits-everything",
   "caughtBy": "audit-import / =PMO copy"
+ },
+ {
+  "id": "v208-rv-dest-use-hidden",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
+ },
+ {
+  "id": "v208-rv-absorber-x-live",
+  "caughtBy": "audit-board / v2.08 — the review of the defect fixes"
  }
 ]
