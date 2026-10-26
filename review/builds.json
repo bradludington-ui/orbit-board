@@ -91,6 +91,16 @@
       "code": "302101da9b334cad932562e284c64f2dff7c76d93dd51e3691945d1672ffdc47",
       "script": "79a9b7f897158301072a3eda9ab23583edec567f40dc5a4dccd7346af9c6e891",
       "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.07."
+    },
+    {
+      "release": "v2.08",
+      "build": "v2.08 (26 Oct 2026)",
+      "commit": "3898d958816edca703dd5992e98713c63953b88e",
+      "blob": "391a53005cbe1383518a0b59f05639a258331a14",
+      "fileSha256": "0c0b9e98c14b484c6e0753a4a4de8ca71c54a32d426b472210f3d9670cb3c377",
+      "code": "70567b07135741aba6fe1fb0927b1662d68080701082071724ef6b9609ebf3d8",
+      "script": "4b8010d0fe144757b2733c3df274cf7652c047deb1864268181a2ae989e0c04d",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.08."
     }
   ]
 }

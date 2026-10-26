@@ -1,573 +1,575 @@
 line,col,kind,function,context,source
-2643,5,setStat call,writerMay,code,setStat('⛔ <b>Not saved.</b> <b>'+esc(w.by||'someone')+'</b> holds the pen for '+esc(what)
-2650,14,setStat call,writerMay,code,if(quiet){ setStat('Not saved automatically: '+esc(what)+' has no writer recorded yet. Press 💾 Save to become its writer.'); return false; }
-2654,5,setStat call,writerMay,code,setStat('Save canceled — nothing written.'); return false; }
-2823,10,setStat call,lsSet,code,try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
-3466,20,innerHTML =,attBody,code,if(!attOpen){ el.innerHTML=''; return; }
-3470,21,innerHTML =,attBody,code,"if(!L.length){ el.innerHTML=h+'<div style=""padding:10px;color:var(--green);font-weight:700"">✓ Nothing left on this list.</div>'; return; }"
-3489,6,innerHTML =,attBody,code,el.innerHTML=h;
-3511,19,innerHTML =,ndBody,code,if(!ndOpen){ el.innerHTML=''; return; }
-3520,21,innerHTML =,ndBody,code,"if(!L.length){ el.innerHTML=h+'<div style=""padding:10px;color:var(--green);font-weight:700"">✓ Nothing is set higher than it draws.</div>'; return; }"
-3535,6,innerHTML =,ndBody,code,el.innerHTML=h;
-3542,3,setStat call,ndSetDrawn,code,"setStat('▲ '+esc(dispTitle(it))+' — '+esc(SVC[g.i])+' '+(g.lane==='d'?'discretionary':'mandatory')+' set to what it drew, <b>'"
-3554,3,setStat call,ndSetAll,code,setStat('▲ '+N.list.length+' line'+(N.list.length===1?'':'s')+' on '+N.n+' requirement'+(N.n===1?'':'s')+' set to what they drew — '
-3872,5,setStat call,svcAdd,code,setStat('🏷 Added service <b>'+esc(v)+'</b> — requirement values and allocations can now be entered for it.');
-3884,7,setStat call,svcRen,code,"setStat('🏷 Renamed <b>'+esc(was)+'</b> to <b>'+esc(v)+'</b> — the same service, so every figure stays where it was.');"
-3920,5,setStat call,svcDel,code,"setStat('🏷 Removed service <b>'+esc(old[i])+'</b>'+(held.length? ' and what it held' : '')+' — every other service keeps its own figures, in every fiscal year."
-3928,5,setStat call,svcMove,code,"setStat('🏷 Moved <b>'+esc(t)+'</b> '+(d<0? 'up' : 'down')+' — its figures moved with it, in every fiscal year.');"
-3990,20,innerHTML =,aceBody,code,if(!aceOpen){ el.innerHTML=''; return; }
-3994,8,innerHTML =,aceBody,code,"el.innerHTML='<div class=""hint"">No Annual Cost Estimate has been imported yet. '"
-4195,6,innerHTML =,aceBody,code,el.innerHTML=h;
-4201,3,setStat call,exwApply,code,setStat('🧱 WBS from execution data — <b>'+r.wrote+'</b> written'
-4210,20,innerHTML =,exwBody,code,if(!exwOpen){ el.innerHTML=''; return; }
-4214,8,innerHTML =,exwBody,code,"el.innerHTML='<div class=""hint"">No execution data has been imported for '"
-4231,8,innerHTML =,exwBody,code,el.innerHTML=h; return;
-4289,6,innerHTML =,exwBody,code,el.innerHTML=h;
-4324,3,setStat call,themeSet,code,setStat('\ud83c\udfa8 Colours set to <b>'+esc(themeName())+'</b>. This is your own setting \u2014 '
-4392,14,setStat call,rlgSetSvc,code,if(r.why){ setStat('⚠ <b>'+esc(sv)+'’s need was not changed.</b> '+esc(r.why)+'.'); render(); return; }
-4409,14,setStat call,rlgSetCap,code,if(r.why){ setStat('⚠ <b>The cap was not changed.</b> '+esc(r.why)+'.'); render(); return; }
-4459,3,setStat call,rlgToggleUplAll,code,setStat((on?'\u2717 Unmarked':'\u2713 Marked')+' <b>'+esc(title)+'</b> as a UPL pot in '
-4712,21,setStat call,exportRlgPlan,code,if(!rows.length){ setStat('\u26a0 Nothing to export yet \u2014 no UPL selected and no move suggested.'); return; }
-4754,3,setStat call,exportRlgPlan,code,setStat('\u2b07 Exported the funding plan \u2014 '+rows.length+' line'+(rows.length===1?'':'s')
-5089,16,setStat call,rlgSet,code,if(r.why){ setStat('⚠ <b>The target was not changed.</b> '+esc(r.why)+'.'); render(); return; }
-5110,18,setStat call,rlgAddManual,code,if(r.why){ setStat('⚠ <b>No credit was added.</b> '+esc(r.why)+'.'); return; }
-5114,7,setStat call,rlgAddManual,code,setStat('💵 Credit added: <b>'+esc(n)+'</b> '+fM2(r.v)+'.');
-5125,20,innerHTML =,rlgBody,code,if(!rlgOpen){ el.innerHTML=''; return; }
-5648,6,innerHTML =,rlgBody,code,el.innerHTML=h;
-5659,20,innerHTML =,rcnBody,code,if(!rcnOpen){ el.innerHTML=''; return; }
-5661,8,innerHTML =,rcnBody,code,"el.innerHTML='<div class=""hint"">RCN and EEIC are an O&amp;M Air Force classification. '"
-5708,6,innerHTML =,rcnBody,code,el.innerHTML=h;
-5718,6,innerHTML =,entBody,code,el.innerHTML = entOpen? flowEntEditor() : '';
-5724,25,innerHTML =,svcPanelBody,code,if(!svcPanelOpen){ el.innerHTML=''; return; }
-5735,6,innerHTML =,svcPanelBody,code,el.innerHTML = rows
-6354,3,setStat call,setGrp,code,setStat(was===g
-6567,5,setStat call,switchYear,code,setStat('🔒 <b>'+blLbl(CYCVIEW)+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
-6592,26,setStat call,switchYear,code,if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+blLbl(CYCVIEW)+' (locked)</b> — '+FYL()+'. Read only.'); return; }
-6594,3,setStat call,switchYear,code,"setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.'+esc(outside));"
-6818,3,setStat call,xferYear,code,"setStat((mode==='c'?'🗓 Copied':'🗓 Moved')+' ""'+esc(nm)+'"" to FY'+(y%100)+' — switch there from the 🗓 menu to see it'+(MS.years[y].order.length===1?' (FY'+(y%"
-6831,3,setStat call,resetYear,code,"setStat('🗑 '+FYL()+' is now BLANK — no requirements, zero BA. Use Add requirement (Requirements › Review) to add requirements, restore baseline items from the "
-6892,22,setStat call,rollApply,code,if(!p.ids.length){ setStat('⚠ Nothing is ticked — choose the requirements to roll forward.'); return; }
-6893,24,setStat call,rollApply,code,if(!p.years.length){ setStat('⚠ No year is ticked — choose which years to roll them into.'); return; }
-6895,5,setStat call,rollApply,code,"setStat('✔ Every requirement you ticked is already in '+p.years.map(function(y){ return 'FY'+(y%100); }).join(', ')"
-6921,3,setStat call,rollApply,code,setStat('🗓 Rolled forward — <b>'+made+'</b> cop'+(made===1?'y':'ies')+' created across '
-6931,21,innerHTML =,rollBody,code,if(!rollOpen){ el.innerHTML=''; return; }
-6995,6,innerHTML =,rollBody,code,el.innerHTML=h;
-7006,3,setStat call,setBaseYear,code,setStat('🗓 FYDP window set to FY'+(y%100)+' – FY'+((y+4)%100)+'. Yearly ACE import can plug in here later.');
-7092,23,setStat call,saveSerial,code,if(_saveBusy){ try{ setStat('⏳ A save is already under way — this one runs as soon as it finishes.'); }catch(e){} }
-7110,48,setStat call,persist,code,if(_persistFail){ _persistFail=false; try{ setStat('✓ Browser storage is accepting changes again.'); }catch(e){} }
-7114,10,setStat call,persist,code,try{ setStat('⚠ <b>This change is not in browser storage</b> — it was refused ('
-7249,25,setStat call,jrnlUndo,code,"if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its "
-7252,31,setStat call,jrnlUndo,code,"if(!jrnlSet(fy, e.p, e.a)){ setStat('⚠ That value could not be put back — the shape of the state has moved on since.'); return; }"
-7261,3,setStat call,jrnlUndo,code,setStat('↶ Put back: <b>'+jrnlLabel(e)+'</b> — recorded in the journal.');
-7319,21,innerHTML =,jrnlBody,code,if(!jrnlOpen){ el.innerHTML=''; return; }
-7362,6,innerHTML =,jrnlBody,code,el.innerHTML=h;
-7394,3,setStat call,showLog,code,setStat('🕘 <b>Save history</b> (this file): '+(lg.length? lg.map(e=>esc(e.by||'?')+' — '+fmtTs(e.ts)).join('  ·  ') : 'no stamped saves yet')+
-7447,33,setStat call,statKeep,code,"function statKeep(html){ return setStat(html, {keep:true}); }"
-7456,60,innerHTML =,setStat,code,const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
-7500,22,innerHTML =,msgBody,code,if(!msgIsOpen){ el.innerHTML=''; return; }
-7503,6,innerHTML =,msgBody,code,"el.innerHTML='<div style=""font-size:11px;color:var(--dim)"">What the board said in this tab, newest first. It is kept in this browser tab only, never in the boar"
-7537,7,setStat call,whoAmI,code,setStat('\u{1F464} Editor name set to <b>'+esc(nv)+'</b> — stamped on future saves.');
-7618,27,setStat call,keptPutBack,code,if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
-7623,18,setStat call,keptPutBack,code,"if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put i"
-7650,49,setStat call,keptPutBack,code,let st; try{ st=JSON.parse(k.raw); }catch(e){ setStat('⚠ The work kept aside could not be read ('+esc(e.message)+'). It is still kept; nothing was changed.'); r
-7656,15,setStat call,keptPutBack,code,"catch(e){ setStat('⚠ There is no room to keep what is on screen while the kept work is put back, so <b>nothing was changed</b>. '"
-7681,3,setStat call,keptPutBack,code,setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. '
-7690,27,setStat call,keptSaveFile,code,if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
-7703,3,setStat call,keptSaveFile,code,setStat('⬇ The work kept aside on '+esc(fmtTs(k.meta.t))+' was saved as a file in your Downloads folder. '
-7711,3,setStat call,keptDiscard,code,setStat('The work kept aside on '+esc(fmtTs(k.meta.t))+' was discarded.');
-7727,18,setStat call,bootTakeFile,code,"if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save h"
-7731,3,setStat call,bootTakeFile,code,setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
-7940,3,setStat call,publishPmoCopy,code,setStat('\u{1F4E4} PMO copy published \u2014 upload it to Teams or the shared folder. '
-7978,64,innerHTML =,pickMyPmo,code,try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
-7979,5,setStat call,pickMyPmo,code,setStat('\u{1F3E2} Submitting for <b>'+esc(hit)+'</b> \u2014 only '+esc(hit)
-8277,3,setStat call,pmoSubmit,code,setStat('\u2709 Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> \u2014 '
-8514,3,setStat call,pmoReport,code,setStat('\u{1F4C4} Change report exported \u2014 '+rows.length+' proposed change'+(rows.length===1?'':'s')
-8594,3,setStat call,pmoApply,code,"setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b>. '"
-8738,7,setStat call,pmoTake,code,setStat('\u2139 That submittal lists the services in a different order; its per-service figures '
-8920,3,setStat call,subDrop,code,setStat('Submittal from <b>'+esc(subFrom(pk))+'</b> removed from the review. '
-8929,3,setStat call,subClearAll,code,setStat('Review cleared. Nothing already applied was undone.');
-8935,20,innerHTML =,subBody,code,if(!subOpen){ el.innerHTML=''; return; }
-8937,27,innerHTML =,subBody,code,"if(!PMOSUBS.length){ el.innerHTML='<div class=""hint"" style=""margin-bottom:8px"">No submittals loaded. Load each programme office\u2019s file \u2014 they are revi"
-8987,24,innerHTML =,subBody,code,"if(!rows.length){ el.innerHTML=h+'<div class=""hint"">This submittal proposes nothing this board has not already got.</div>'; return; }"
-9038,6,innerHTML =,subBody,code,el.innerHTML=h;
-9122,17,setStat call,saveInPlace,code,catch(e){ setStat('⚠ Could not save to the shared folder — <b>'
-9140,5,setStat call,_saveInPlaceFileRun,code,setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
-9150,7,setStat call,_saveInPlaceFileRun,code,"setStat('💾 First save: pick THIS board file (where you opened it — shared drive / synced Teams folder). After this once, Save writes straight to it.');"
-9161,7,setStat call,_saveInPlaceFileRun,code,setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” could not be read to check whether anyone saved it after you ('
-9173,9,setStat call,_saveInPlaceFileRun,code,"setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is not a board ORBIT can read, so it was not written over. '"
-9193,11,setStat call,_saveInPlaceFileRun,code,"setStat('Save canceled — '+esc(by)+'’s changes are untouched. '+(reo? 'Reopen or ⬅ Import' : '⬅ Import')+' this file to load their version, then redo your edits"
-9218,5,setStat call,_saveInPlaceFileRun,code,"setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — ""'+esc(h.name||FNAME)+'"" now carries this state. '+fmtTs(Date.now())"
-9223,35,setStat call,_saveInPlaceFileRun,code,if(e&&e.name==='AbortError'){ setStat('Save canceled — nothing written.'); return; }
-9226,7,setStat call,_saveInPlaceFileRun,code,setStat('⛔ <b>Not saved — this board file is read-only for you</b>'
-9231,5,setStat call,_saveInPlaceFileRun,code,setStat('⚠ In-place save failed ('+esc((e&&e.message)||e)+') — downloading a copy instead.');
-9247,3,setStat call,publishState,code,"setStat('💾 Saved — updated board downloaded to your Downloads folder. Copy it onto the shared drive, replacing the old board file. '"
-9266,24,setStat call,sharedKeepMine,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }"
-9268,5,setStat call,sharedKeepMine,code,"setStat('\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '"
-9286,3,setStat call,adoptShared,code,setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
-9308,5,setStat call,importBoards > none,code,setStat('⛔ <b>Nothing was imported</b> — '+esc(why)+'. This board is exactly as it was.');
-9555,12,setStat call,pkgIssue,code,if(!st){ setStat('⚠ No '+(PKG_NAMES[ap]||ap)+' data on this board to hand over.'); return; }
-9569,7,setStat call,pkgIssue,code,setStat((PKG_NAMES[ap]||ap)+' left out as package #'+led0.seq+'. Nothing was issued.');
-9595,3,setStat call,pkgIssue,code,setStat('⬆ Issued '+(PKG_NAMES[ap]||ap)+' package #'+esc(seq)+'. Send it to the manager; import their '
-9637,5,setStat call,pkgPushAll,code,setStat('Nothing pushed.');
-9648,9,setStat call,pkgPushAll,code,setStat('\u2b06 Pushed '+done.length+' of '+have.length+' baseline'+(have.length===1?'':'s')
-9665,12,setStat call,pkgSendBack,code,if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
-9675,3,setStat call,pkgSendBack,code,setStat('\u2b06 '+esc(nm)+' saved as a return package. Send it to whoever sent you this file: on their board it '
-9700,3,setStat call,pkgReturn,code,setStat('⬆ '+(PKG_NAMES[ap]||ap)+' return package #'+pkg.seq+' saved. Send it back to be merged. '
-9830,20,innerHTML =,pkgBody,code,if(!pkgOpen){ el.innerHTML=''; return; }
-9894,6,innerHTML =,pkgBody,code,el.innerHTML=h;
-9975,55,setStat call,pkgApply,code,'+'\n\nTake it anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
-9986,64,setStat call,pkgApply,code,'+'\n\nTake the package anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
-9997,5,setStat call,pkgApply,code,setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
-10013,7,setStat call,pkgApply,code,setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
-10178,21,setStat call,consTakePick,code,if(v===null){ setStat('Nothing imported.'); return; }
-10180,15,setStat call,consTakePick,code,if(!v){ setStat('Nothing imported \u2014 no appropriation was named.'); return; }
-10246,42,setStat call,consTakeApply,code,"if(!taken.length){ impMemRestore(mem); setStat('Nothing imported'+(skipped.length? ' \u2014 '+esc(skipped.join(', '))"
-10317,3,setStat call,codeRefusedIn,code,setStat('\u26a0 <b>'+esc(head)+'.</b> '+esc(why)+'.');
-10792,3,setStat call,inRefuse,code,setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
-10863,7,setStat call,fullImportText,code,setStat('Nothing imported — '+esc(_SLUGMAP[k].t)+' has work of this board’s own that you kept.');
-10908,5,setStat call,fullImportText,code,setStat('Nothing imported.'); return false;
-10968,3,setStat call,fullImportText,code,setStat(rep+' Reopening…');
-10983,5,setStat call,fullImportUndone,code,setStat('⛔ <b>Nothing was imported</b> — '+esc(what)+'; this board is exactly as it was.');
-11005,3,setStat call,fullImportUndone,code,"setStat('⛔ <b>The import stopped part-way, and this browser could not be put back as it was.</b> Browser storage refused '"
-11151,3,setStat call,batchImportUndone,code,"setStat('⛔ <b>⇊ Import several boards stopped part-way, and this browser could not be put back as it was.</b> '"
-11161,14,setStat call,impMixedBlock,code,if(!quiet) setStat(impMixedMsg(what));
-11171,3,setStat call,impMixedClear,code,setStat('💾 Save is allowed again.');
-11232,7,setStat call,exportOneAppn,code,"setStat('⬇ '+esc(_SLUGMAP[k].t)+' exported as a working board of its own — its plan, its locked cycles, its execution '"
-11333,9,setStat call,importState > r.onload,code,"setStat('🧩 Loaded '+seeded.join(', ')+carriedTxt+' — reopening…');"
-11362,19,setStat call,importState > r.onload,code,catch(e){ setStat('\u26a0 That file could not be read into '+_SLUGMAP[target].t+'.'); }
-11364,9,setStat call,importState > r.onload,code,setStat('🧩 '+_SLUGMAP[target].t+' loaded'+carriedTxt+' — switching to it…');
-11374,9,setStat call,importState > r.onload,code,setStat('🧩 Data loaded'+carriedTxt+' — rebooting the template with your board\u2026');
-11422,33,setStat call,amtNo,code,if(Number.isNaN(v) || r.why){ setStat('⚠ <b>'+esc(what)+' was not changed.</b> '+esc(r.why || inShow(val)+' could not be read')+'.');
-11424,17,setStat call,amtNo,code,if(r.rounded) setStat('ℹ '+esc(what)+': '+esc(inShow(String(val).trim()))+' was entered as <b>'+fM(r.v)+'</b> — the board keeps whole dollars.');
-11494,57,setStat call,pmoAdd,code,"const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not added.'); return; }"
-11495,31,setStat call,pmoAdd,code,if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
-11497,5,setStat call,pmoAdd,code,setStat('Added PMO <b>'+esc(v)+'</b> — it is now offered wherever a requirement’s office '
-11505,5,setStat call,pmoRename,code,"setStat('⚠ <b>'+esc(g)+'</b> is the office the source file homes requirements to, so the '"
-11513,57,setStat call,pmoRename,code,"const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not renamed.'); return; }"
-11514,31,setStat call,pmoRename,code,if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
-11523,5,setStat call,pmoRename,code,"setStat('Renamed <b>'+esc(g)+'</b> to <b>'+esc(v)+'</b> — every requirement moved to it, in '"
-11538,5,setStat call,pmoDel,code,setStat('⚠ <b>'+esc(g)+'</b> cannot be removed — the source file homes requirements to it. '
-11548,3,setStat call,pmoDel,code,setStat('Removed PMO <b>'+esc(g)+'</b>.'+(n? ' '+n+' requirement'+(n===1?'':'s')
-11558,3,setStat call,pmoReset,code,setStat('PMO list reset to the standard set.');
-11565,20,innerHTML =,pmoBody,code,if(!pmoOpen){ el.innerHTML=''; return; }
-11568,6,innerHTML =,pmoBody,code,el.innerHTML=
-11723,5,setStat call,coaAddGroup,code,setStat('⚠ <b>'+esc(pmo)+'</b> is not an office on this board. Offices are added in '
-11733,5,setStat call,coaAddGroup,code,setStat('Added <b>'+esc(pmo)+' › '+esc(v)+'</b> — file the CCaR records that belong to it.');
-11767,7,setStat call,coaAddRec,code,setStat('⚠ <b>'+esc(v)+'</b> is already filed under '+esc(g.n)+'.'); return; }
-11771,5,setStat call,coaAddRec,code,setStat(inPlay[v]
-11804,25,innerHTML =,coaPanelBody,code,if(!coaPanelOpen){ el.innerHTML=''; return; }
-11937,6,innerHTML =,coaPanelBody,code,el.innerHTML=h;
-12026,118,setStat call,rcnSet,code,const st=document.getElementById('shareStat'); if(st && /^⚠ RCN \/ EEIC title not changed\./.test(st.textContent)) setStat('');
-12210,3,setStat call,setRcnAsg,code,setStat(k? '\ud83c\udff7 '+esc(dispTitle(it))+' \u2192 <b>'+esc(rcnLabel(k))+'</b>'
-12335,3,setStat call,setSi,code,setStat(now? '\ud83c\udff7 '+esc(dispTitle(itm))+' \u2192 SI <b>'+esc(now)+'</b> '+esc(SI_LBL(now))
-12351,44,setStat call,editPid,code,"const r=codeTake(v, 'pid'); if(r.why){ setStat('\u26a0 <b>PID not changed.</b> '+esc(r.why)+'.'); editPid(id, v); return; }"
-12434,3,setStat call,fillLastAwd,code,"setStat('\u21b5 Latest award set to the remaining balance, discretionary + mandatory, per service \u2014 '"
-12894,3,setStat call,crExport,code,"setStat('⬇ CR cash return — '+rows.length+' requirement'+(rows.length===1?'':'s')+', '"
-12936,3,setStat call,crClearOldMarks,code,"setStat('\u2713 '+n+' old CR half-month mark'+(n===1?'':'s')+' cleared \u2014 the award dates decide, as they already did; no figure moved.');"
-13285,5,setStat call,importSrc,code,setStat('\ud83d\udce5 Reading '+esc(f.name)+'\u2026');
-13330,5,setStat call,importSrc,code,setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
-13714,5,setStat call,budUnfSet,code,"setStat('\u26a0 <b>'+esc(name)+'</b> is a mandatory budget. A requirement with no money yet is unfunded, and '"
-13754,3,setStat call,budLineClear,code,setStat(k? '↺ <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : ' (not funded yet)')+'</b> on <b>'
-13765,3,setStat call,budClearAll,code,setStat('✗ '+n+' budget choice'+(n===1?'':'s')+' cleared on <b>'+esc(dispTitle(itemById(id)))
-13933,11,setStat call,setBudFam,code,if(!f){ setStat('\u26a0 That budget is no longer in the list \u2014 re-import the extract.'); return; }
-13951,3,setStat call,setBudFam,code,setStat('\u2713 <b>'+esc(f.lbl)+'</b> assigned on '+set.length+' line'+(set.length===1?'':'s')
-14001,5,setStat call,driveCopyHint,code,"setStat('\u2713 Copied <b style=""font-family:monospace"">'+esc(dh.data)+'</b> \u2014 paste it into the '"
-14003,13,setStat call,driveCopyHint,code,catch(e){ setStat('Select the path and copy it with Ctrl+C \u2014 the clipboard is not available here.'); }
-14064,3,setStat call,driveConnectNow,code,"setStat('⏳ Asking for the shared folder… if the browser asks under the address bar, answer it.');"
-14071,7,setStat call,driveConnectNow,code,setStat('⚠ The shared folder is still not connected — <b>'+esc((e&&e.message)||String(e))
-14075,5,setStat call,driveConnectNow,code,"setStat('✓ Connected for reading. To save there as well, press <b>✎ Allow editing</b> in \u{1F4E1} Live view.');"
-14114,78,innerHTML =,driveBar,code,function driveBar(){ const el=document.getElementById('driveBar'); if(el) el.innerHTML=driveBarHtml(); }
-14115,51,setStat call,driveSay,code,"function driveSay(t, cls){ driveCheckSay(t, cls); setStat(t); }"
-14161,37,setStat call,driveReconnect,code,"try{ await driveDir(true,'read'); setStat('✓ Reconnected to the shared folder.'); }"
-14162,13,setStat call,driveReconnect,code,catch(e){ setStat('⚠ '+esc((e&&e.message)||String(e))); render(); return; }
-14176,60,innerHTML =,driveCheckSay,code,const el=document.getElementById('liveCheck'); if(el) el.innerHTML=_driveCheckLog.join('');
-14706,3,setStat call,idsRefuse,code,setStat(html);
-14743,5,setStat call,exportIdsReq,code,setStat('⚠ <b>Diagnostic workbook saved — it holds NO uploadable IDS rows.</b> Do not upload it. Every contribution '
-14746,5,setStat call,exportIdsReq,code,"setStat('⬇ IDS workbook — <b>'+P.rows.length+'</b> row'+(P.rows.length===1?'':'s')+' on Requirement v1, every one <b>'"
-14982,60,setStat call,pfCopy,code,"try{ navigator.clipboard.writeText(txt).then(function(){ setStat('✓ Pre-flight list copied.'); },"
-14983,21,setStat call,pfCopy,code,function(){ setStat('Could not reach the clipboard.'); }); }
-14984,13,setStat call,pfCopy,code,catch(e){ setStat('Could not reach the clipboard.'); }
-14989,19,innerHTML =,pfBody,code,if(!pfOpen){ el.innerHTML=''; return; }
-14992,16,innerHTML =,pfBody,code,"catch(e){ el.innerHTML='<div class=""hint"" style=""color:var(--red)"">The check could not run — '"
-15036,6,innerHTML =,pfBody,code,el.innerHTML=h;
-15053,3,setStat call,setObCat,code,setStat(v? '\U0001f4dd '+esc(dispTitle(it))+' → <b>'+esc(v)+'</b>'
-15140,35,setStat call,ccarDescUse,code,const d=ccarDescOf(it); if(!d){ setStat('\u26a0 The CCaR list has no short description for this requirement.'); return; }
-15145,3,setStat call,ccarDescUse,code,setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2014 Description '+(cur? 'replaced with' : 'filled from')+' the CCaR list. It is ordinary Description text now: e
-15528,20,setStat call,aceConfirm,code,if(!sug.length){ setStat('\u26a0 Nothing to confirm \u2014 no WBS on this requirement matches a line in this estimate.'); return; }
-15536,23,setStat call,aceConfirmRoll,code,if(!f.roll.length){ setStat('\u26a0 Nothing beneath that number in this estimate.'); return; }
-15539,3,setStat call,aceConfirmRoll,code,setStat('\ud83d\udcc8 '+esc(dispTitle(it))+' \u2192 <b>'+f.roll.length+'</b> estimate line'
-15580,5,setStat call,importBud,code,setStat('💰 Reading '+esc(f.name)+'…');
-15623,7,setStat call,importBud,code,setStat('✋ Budget import cancelled — nothing was changed.');
-15652,5,setStat call,importBud,code,setStat('⚠ Budget import failed — nothing was changed.');
-15763,60,setStat call,divCopy,code,"try{ navigator.clipboard.writeText(txt).then(function(){ setStat('✓ Reconciliation copied.'); },"
-15764,21,setStat call,divCopy,code,function(){ setStat('Could not reach the clipboard.'); }); }
-15765,13,setStat call,divCopy,code,catch(e){ setStat('Could not reach the clipboard.'); }
-15770,20,innerHTML =,divBody,code,if(!divOpen){ el.innerHTML=''; return; }
-15773,16,innerHTML =,divBody,code,"catch(e){ el.innerHTML='<div class=""hint"" style=""color:var(--red)"">The comparison could not run — '"
-15777,8,innerHTML =,divBody,code,"el.innerHTML='<div class=""hint"" style=""border-left:3px solid var(--amber);padding-left:9px"">'"
-15818,6,innerHTML =,divBody,code,el.innerHTML=h;
-15827,5,setStat call,importCcarRecs,code,setStat('📇 Reading '+esc(f.name)+'…');
-15885,5,setStat call,importCcarRecs,code,setStat('⚠ CCaR records import failed — nothing was changed.');
-15897,5,setStat call,importAce,code,setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
-15919,9,setStat call,importAce,code,setStat('Import canceled \u2014 the locked <b>'+esc(key)+'</b> estimate is untouched.');
-15935,5,setStat call,importAce,code,setStat('\u26a0 Cost estimate import failed: '+esc((e&&e.message)||e));
-16711,3,setStat call,flowAddEnt,code,"setStat('📍 Added a destination for every appropriation — name it, and give it match terms if you '"
-16730,5,setStat call,flowDelEnt,code,"setStat('📍 Removed <b>'+esc(e.n)+'</b>, which had the same key as <b>'+esc(rep.n)+'</b>. No requirement was changed.');"
-16773,3,setStat call,flowDelEnt,code,setStat('📍 Removed <b>'+esc(e.n)+'</b>'
-16864,3,setStat call,destOwnBlock,code,setStat('⚠ <b>'+esc(what)+' is refused</b> — nothing was written. '+destOwnSay());
-16871,78,setStat call,destOwnKeep,code,if(ow && de && de.textContent.indexOf(DEST_OWN_HEAD)<0){ _statQuiet=false; setStat(de.innerHTML? de.innerHTML+' '+ow : ow); } }catch(e){} }
-16924,3,setStat call,setDest,code,setStat(d.to
-17430,14,setStat call,flowSetOther,code,if(r.why){ setStat('⚠ <b>That Funds Flow figure was not changed.</b> '+esc(r.why)+'.'); render(); return; }
-17431,17,setStat call,flowSetOther,code,if(r.rounded) setStat('ℹ '+esc(inShow(String(v).trim()))+' $M was entered as <b>'+fM(r.v)+'</b> — the board keeps whole dollars.');
-17540,6,innerHTML =,flowBody,code,el.innerHTML = flowOpen? flowHtml() : '';
-18159,12,setStat call,flowPng,code,if(!el){ setStat('\u26a0 Open the Funds Flow view first.'); return; }
-18186,17,setStat call,flowPng > img.onload,code,if(!b){ setStat('\u26a0 Could not build the image \u2014 use \u2b07 Export instead.'); return; }
-18191,9,setStat call,flowPng > img.onload,code,setStat('\u2b07 Saved a '+(w*SCALE)+'\u00d7'+(h*SCALE)+' PNG \u2014 drop it straight onto a slide.');
-18193,16,setStat call,flowPng > img.onload,code,}catch(e){ setStat('\u26a0 Could not build the image: '+(e&&e.message||e)); }
-18196,53,setStat call,flowPng > img.onerror,code,img.onerror=function(){ URL.revokeObjectURL(url); setStat('\u26a0 Could not render the chart to an image.'); };
-18624,3,setStat call,exportFlow,code,"setStat('⬇ Exported: funds flow '+esc(F.label)+' — summary, prime detail, OGC detail.');"
-18756,26,innerHTML =,exBody,code,if(!exOpen){ if(el) el.innerHTML=''; return; }
-18760,8,innerHTML =,exBody,code,"el.innerHTML='<div class=""hint"">No execution data yet — Data › Import CCaR QPE and pick your monthly ""Spend Plan Source File.xlsx"". FY24–FY26 plan events (with "
-18794,8,innerHTML =,exBody,code,el.innerHTML=h+t; return;
-18893,6,innerHTML =,exBody,code,el.innerHTML=h;
-18949,3,setStat call,exportExView,code,setStat('\u2b07 Exported: Active Year Execution — '+label+'.');
-19141,7,setStat call,exportSrc,code,setStat('\u270b Spend Plan Source not exported \u2014 <b>'+bad.length+'</b> line'+(bad.length===1?' has':'s have')
-19176,24,setStat call,exportSrc,code,if(!confirm(msg)){ setStat('\u270b Spend Plan Source not exported \u2014 '+blank.length+' line'
-19185,3,setStat call,exportSrc,code,setStat('⬇ Exported '+n+' row'+(n===1?'':'s')+' across '+sheets.length+' tab'
-19256,8,setStat call,bandsSyncStandard,code,try{ setStat('\u2696 The organization added '+(missing.length===1?'a standard band':'standard bands')
-19423,5,setStat call,bandAdd,code,setStat(P? ('Added sub-band <b>'+esc(BAND_LBL(id)||'')+' '+esc(v)+'</b> under <b>'+esc(P.n)
-19501,3,setStat call,bandStd,code,setStat('⚖ Standard bands '+STD_RANGE()+' installed on <b>'+esc(apLabel())+'</b>. '
-19525,22,setStat call,bandCopyAll,code,if(!peers.length){ setStat('\u26a0 No other appropriation is available in this file to copy to.'); return; }
-19556,3,setStat call,bandCopyAll,code,setStat('\u2696 Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
-19567,3,setStat call,bandExport,code,setStat('\u2b07 Ladder exported \u2014 share this file to put the same bands on another board.');
-19579,30,setStat call,bandImport > rd.onload,code,if(!list||!list.length){ setStat('\u26a0 That file does not carry a band ladder.'); inp.value=''; return; }
-19593,24,setStat call,bandImport > rd.onload,code,if(!clean.length){ setStat('\u26a0 No usable bands in that file.'); inp.value=''; return; }
-19722,20,innerHTML =,qpeBody,code,if(!qpeOpen){ el.innerHTML=''; return; }
-19725,8,innerHTML =,qpeBody,code,"el.innerHTML='<div class=""hint"">No CCaR QPE has been imported on this board, so there is '"
-19791,6,innerHTML =,qpeBody,code,el.innerHTML=h;
-19799,26,innerHTML =,bandPanelBody,code,if(!bandPanelOpen){ el.innerHTML=''; return; }
-19808,6,innerHTML =,bandPanelBody,code,el.innerHTML =
-19915,3,setStat call,applyProposedOrder,code,setStat('\u2696 <b>Published</b> \u2014 the proposed order is now the live 1\u2013N ('+moved
-20135,21,innerHTML =,planBody,code,if(!planOpen){ el.innerHTML=''; return; }
-20305,6,innerHTML =,planBody,code,el.innerHTML=wiHtml+h;
-20459,3,setStat call,exportPlans,code,"setStat('⬇ Both spend plans exported — Plan A, Plan B, and what the mandatory top line changes.');"
-20487,19,innerHTML =,poBody,code,if(!poOpen){ el.innerHTML=''; return; }
-20536,6,innerHTML =,poBody,code,el.innerHTML=h;
-20567,3,setStat call,exportProposedOrder,code,setStat('\u2b07 Proposed order exported \u2014 nothing on the board was changed.');
-20679,20,innerHTML =,fldBody,code,if(!fldOpen){ el.innerHTML=''; return; }
-20681,53,innerHTML =,fldBody,code,if(!D){ fldOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
-20683,11,innerHTML =,fldBody,code,"if(t) t.innerHTML=esc(D.lbl)+'  <span style=""font-weight:600;text-transform:none;letter-spacing:0;'"
-20687,6,innerHTML =,fldBody,code,"el.innerHTML=D.parts.map(function(p, i){"
-20742,21,innerHTML =,helpBody,code,if(!helpOpen){ el.innerHTML=''; return; }
-20749,8,innerHTML =,helpBody,code,"el.innerHTML='<p class=""hx-lead"">This guide is part of the board file, so it matches the board you have open: '"
-20763,6,innerHTML =,helpBody,code,el.innerHTML=nav+'<h2>'+esc(s.t)+'</h2>'+s.el.innerHTML;
-20863,5,setStat call,cycLock,code,setStat('⚠ <b>'+cycAp(key)+'</b> is locked. Unlock it first if you really mean to replace it.');
-20868,19,setStat call,cycLock,code,if(!ys.length){ setStat('⚠ Nothing to lock — no year in the FYDP window holds a plan.'); return; }
-20916,3,setStat call,cycLock,code,"setStat('🔒 <b>'+cycAp(key)+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '"
-21037,22,setStat call,blDelete,code,if(key===CYCVIEW){ setStat('⚠ <b>'+blLbl(key)+'</b> is on screen — leave the view before deleting it.'); return; }
-21038,17,setStat call,blDelete,code,if(b.locked){ setStat('⚠ <b>'+blLbl(key)+'</b> is locked — unlock it before deleting.'); return; }
-21083,3,setStat call,cycSetWorking,code,setStat(MS.cycle? '🏷 Working plan tagged <b>'+blLbl(MS.cycle)+'</b>'
-21341,93,setStat call,fydpPickExport,code,"function fydpPickExport(){ fydpSrc=fydpOnScreen(); fydpView='sum'; fydpOpen=true; render(); setStat('📊 Pick the plan to print, then <b>Export the workbook</b>."
-21343,18,setStat call,exportFydpPlan,code,if(_fydpBusy){ setStat('📊 The five-year spend plan is still opening the other appropriations — it downloads as soon as they answer.'); return; }
-21358,5,setStat call,exportFydpPlan > finish,code,"setStat('📊 FYDP spend plan exported — '+esc(fydpPlanLbl(D))+', '+span+': '+B.got.length+' appropriation'+(B.got.length===1?'':'s')+', '"
-21369,17,setStat call,exportFydpPlan,code,catch(e){ setStat('⚠ The five-year spend plan could not be built — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was downloaded.'); }
-21374,3,setStat call,exportFydpPlan,code,"setStat('📊 Opening '+esc(waiting.join(', '))+' for the workbook — each opens as its own board, read-only, in a sealed frame. The workbook downloads when '+(wai"
-21499,10,srcdoc,fydpFrame,code,fr.srcdoc=html;
-21576,21,innerHTML =,fydpBody,code,if(!fydpOpen){ el.innerHTML=''; return; }
-21591,124,innerHTML =,fydpBody,code,"if(!own){ h+='<div class=""hint"">No year of '+esc(D.label)+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan.</div>'; el.innerHTML=h; return; }"
-21623,6,innerHTML =,fydpBody,code,el.innerHTML=h;
-21793,3,setStat call,exportCycCompare,code,"setStat('⇄ Cycle comparison exported — '+esc(la)+' ⇄ '+esc(lb)+', '+D.years.length+' year'+(D.years.length===1?'':'s')+' compared.');"
-21799,23,innerHTML =,cycCmpBody,code,if(!cycCmpOpen){ el.innerHTML=''; return; }
-21811,185,innerHTML =,cycCmpBody,code,… plan or with another cycle.</div>'; el.innerHTML=h; return; }
-21812,64,innerHTML =,cycCmpBody,code,"if(!cycCmpA){ h+='<div class=""hint"">Pick cycle A.</div>'; el.innerHTML=h; return; }"
-21813,98,innerHTML =,cycCmpBody,code,"if(cycCmpA===cycCmpB){ h+='<div class=""hint"">Pick two different sources to compare.</div>'; el.innerHTML=h; return; }"
-21815,72,innerHTML =,cycCmpBody,code,"if(!D){ h+='<div class=""hint"">A source is no longer held.</div>'; el.innerHTML=h; return; }"
-21819,129,innerHTML =,cycCmpBody,code,"if(!D.years.length){ h+='<div class=""hint"">The two sources hold no year in common, so there is nothing to compare.</div>'; el.innerHTML=h; return; }"
-21843,6,innerHTML =,cycCmpBody,code,el.innerHTML=h;
-21959,23,innerHTML =,cycChgBody,code,if(!cycChgOpen){ el.innerHTML=''; return; }
-21961,16,innerHTML =,cycChgBody,code,"if(!ref){ el.innerHTML='<div class=""hint"">No reference cycle. Lock one under 📌 PPBE cycles, or pick a locked cycle there as the reference, and the changes sinc"
-21963,14,innerHTML =,cycChgBody,code,"if(!D){ el.innerHTML='<div class=""hint""><b>'+blLbl(ref)+'</b> holds no '+FYL()+' plan, so there is nothing to compare this year against. It holds FY'+cycHeld(re"
-21982,129,innerHTML =,cycChgBody,code,"if(!rows.length && !D.removed.length){ h+='<div class=""hint"">Nothing has changed since '+esc(lbl)+' for '+FYL()+'.</div>'; el.innerHTML=h; return; }"
-22006,6,innerHTML =,cycChgBody,code,el.innerHTML=h;
-22024,5,setStat call,cycView,code,"setStat('⚠ <b>'+blLbl(key)+'</b> holds no plan to show — it was migrated from a one-year baseline, '"
-22040,3,setStat call,cycView,code,setStat('👁 <b>Viewing '+cycAp(key)+' (locked)</b> — the plan as it stood '+esc(fmtTs(c.ts))
-22172,3,setStat call,cycLeave,code,setStat('↩ Back on the working plan'+(MS.cycle? ' — <b>'+blLbl(MS.cycle)+'</b>':'')+'.');
-22193,3,setStat call,cycRefuse,code,"setStat('🔒 <b>'+esc(what)+' is off while '+blLbl(CYCVIEW)+' is on screen.</b> It is a locked cycle, read only — '"
-22212,19,innerHTML =,blBody,code,if(!blOpen){ el.innerHTML=''; return; }
-22259,8,innerHTML =,blBody,code,el.innerHTML=h; return;
-22309,6,innerHTML =,blBody,code,el.innerHTML=h;
-22504,5,setStat call,ppUnitSet,code,setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are now entered in $K'
-22512,3,setStat call,ppUnitSet,code,setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are entered in dollars again. No figure changed.'
-22538,3,setStat call,ppUnitUndo,code,"setStat('\u{1F3DB} The \u00d71,000 on '+esc(sv)+' was undone \u2014 '+esc(sv)+' totals '+fM2(ppSvcSum(P, sv))+' again.');"
-22595,26,innerHTML =,ppBody,code,if(!ppOpen){ if(el) el.innerHTML=''; return; }
-22644,8,innerHTML =,ppBody,code,"el.innerHTML=h+'<div class=""hint"">No services on this board yet \u2014 set them in \ud83c\udff7 Services first.</div>';"
-22762,6,innerHTML =,ppBody,code,el.innerHTML=h;
-23146,26,innerHTML =,spBody,code,if(!spOpen){ if(el) el.innerHTML=''; return; }
-23245,6,innerHTML =,spBodyDraw,code,el.innerHTML=h;
-23386,3,setStat call,posTake,code,setStat('📷 <b>'+esc(nm)+'</b> snapshotted and locked — '+FYL()+'’s plan '
-23398,17,setStat call,posDelete,code,if(s.locked){ setStat('⚠ <b>'+esc(posLbl(s))+'</b> is locked — unlock it before deleting.'); return; }
-23463,20,innerHTML =,posBody,code,if(!posOpen){ el.innerHTML=''; return; }
-23477,8,innerHTML =,posBody,code,el.innerHTML=h; return;
-23565,6,innerHTML =,posBody,code,el.innerHTML=h;
-23575,26,innerHTML =,bmBody,code,if(!bmOpen){ if(el) el.innerHTML=''; return; }
-23598,6,innerHTML =,bmBody,code,el.innerHTML=h;
-23612,26,innerHTML =,crBody,code,if(!crOpen){ if(el) el.innerHTML=''; return; }
-23663,6,innerHTML =,crBody,code,el.innerHTML=h
-23703,26,innerHTML =,fcBody,code,if(!fcOpen){ if(el) el.innerHTML=''; return; }
-23706,17,innerHTML =,fcBody,code,if(ttl) ttl.innerHTML='\ud83d\udcc5 '+FYL()+' PROJECTED SPEND PLAN FORECAST \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
-23714,11,innerHTML =,fcBody,code,"ctl.innerHTML='<label for=""fcView"">Show</label> <select id=""fcView"" onchange=""fcPick(this.value)"">'"
-23726,6,innerHTML =,fcBody,code,el.innerHTML=
-23765,3,setStat call,exportFcView,code,"setStat('\u2b07 '+FYL()+' Spend Plan Forecast exported \u2014 '+esc(vl)+', exactly as shown.');"
-23819,45,setStat call,editCcar,code,"const r=codeTake(v, 'ccar'); if(r.why){ setStat('\u26a0 <b>CCaR record not changed.</b> '+esc(r.why)+'.'); editCcar(id, v); return; }"
-23827,7,setStat call,editCcar,code,setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2192 CCaR <b>'+esc(v)+'</b>'
-24173,37,innerHTML =,scoreboard,code,document.getElementById('fitBar').innerHTML =
-24183,38,innerHTML =,scoreboard,code,document.getElementById('svcWarn').innerHTML = sh.length?
-24189,9,innerHTML =,scoreboard,code,sco.innerHTML=h;
-24190,39,innerHTML =,scoreboard,code,"document.getElementById('scMini').innerHTML='<span style=""color:var(--dim)"">(click to minimize)</span>';"
-24193,9,innerHTML =,scoreboard,code,sco.innerHTML='';
-24194,39,innerHTML =,scoreboard,code,document.getElementById('scMini').innerHTML=
-24238,10,innerHTML =,scoreboard,code,pe.innerHTML = !SVC.length? '' :
-24357,5,setStat call,bmSeedFromPp,code,setStat('⚠ <b>'+esc(lbl)+'</b> has nothing logged for '+FYL()+' — there is nothing to take.');
-24377,3,setStat call,bmSeedFromPp,code,setStat('🏛 '+FYL()+'’s base budget authority taken from <b>'+esc(lbl)+'</b> for '
-24616,19,innerHTML =,svcSummary,code,if(!gsOpen){ el.innerHTML=''; return; }
-24660,6,innerHTML =,svcSummary,code,"el.innerHTML=(scenOn()? '<div class=""hint"" style=""margin:4px 0;color:var(--amber);font-weight:700"">\u25e8 '+esc(SCEN_TAG)"
-24709,19,innerHTML =,taBody,code,if(!taOpen){ el.innerHTML=''; return; }
-24713,8,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note"">Every discretionary lane is spent \u2014 there is nothing left to place. '"
-24718,8,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note""><b>'+fM(startTot)+'</b> of discretionary is unspent and '"
-24742,6,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note""><b>'+fM(startTot)+'</b> of discretionary budget authority is '"
-24792,56,innerHTML =,chips,code,const el=document.getElementById('chips'); if(el) el.innerHTML='';
-24938,3,setStat call,awdFixOk,code,setStat('\u2713 '+esc(it? dispTitle(it) : id)+' \u2014 the repaired award is marked checked. The award as it was saved stays with it.');
-25069,17,setStat call,pickCostElem,code,if(!hit){ setStat('⚠ No cost element matches “'+esc(v)+'” — nothing changed.'); return; }
-25218,17,setStat call,clinAdd,code,"if(rn.why){ setStat('\u26a0 <b>No CLIN added.</b> '+esc(rn.why)+'.'); clinAdd(pid, num); return; }"
-25224,19,setStat call,clinAdd,code,"if(rd.why){ setStat('\u26a0 <b>No CLIN added.</b> '+esc(rd.why)+'.'); clinAdd(pid, num, desc); return; }"
-25231,7,setStat call,clinAdd,code,setStat('Added CLIN <b>'+esc(num)+'</b>. Set its requested amount and allocate it by service in the grid.');
-25243,16,setStat call,clinSetField,code,"if(r.why){ setStat('\u26a0 <b>CLIN '+esc(c.clin)+' not changed.</b> '+esc(r.why)+'.'); clinSetField(pid, key, field, v); return; }"
-25245,31,setStat call,clinSetField,code,if(field==='clin' && !v){ setStat('⚠ A CLIN needs a number — nothing changed.'); return; }
-25408,16,setStat call,wbsQuick,code,"if(r.why){ setStat('\u26a0 <b>WBS not changed.</b> '+esc(r.why)+'.'); wbsQuick(id, v); return; }"
-25597,20,innerHTML =,recBody,code,if(!recOpen){ el.innerHTML=''; return; }
-25633,6,innerHTML =,recBody,code,el.innerHTML=h;
-25785,17,setStat call,matApplyBulk,code,if(!B || !P){ setStat('\u26a0 Choose a field and a value first.'); return; }
-25795,3,setStat call,matApplyBulk,code,setStat('\u2713 '+esc(matBulkF)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
-25803,20,innerHTML =,matBody,code,if(!matOpen){ el.innerHTML=''; return; }
-25912,6,innerHTML =,matBody,code,el.innerHTML=h;
-25924,20,innerHTML =,wbsBody,code,if(!wbsOpen){ el.innerHTML=''; return; }
-25933,54,innerHTML =,wbsBody,code,if(!it){ wbsOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
-25980,6,innerHTML =,wbsBody,code,el.innerHTML=h;
-26235,37,innerHTML =,pmoMatrix,code,document.getElementById('pmWarn').innerHTML = shorts.length?
-26237,23,innerHTML =,pmoMatrix,code,if(!pmoSumOpen){ el.innerHTML=''; return; }
-26251,6,innerHTML =,pmoMatrix,code,el.innerHTML=`<table>${h1}${h2}
-26285,19,innerHTML =,siMatrix,code,if(!siOpen){ el.innerHTML=''; return; }
-26347,6,innerHTML =,siMatrix,code,el.innerHTML=h;
-26355,19,innerHTML =,ceSummary,code,if(!ceOpen){ el.innerHTML=''; return; }
-26380,37,innerHTML =,ceSummary,code,document.getElementById('ceWarn').innerHTML = shorts.length?
-26408,6,innerHTML =,ceSummary,code,"el.innerHTML=`<div style=""padding:8px 14px 4px;display:flex;gap:6px;flex-wrap:wrap"">${tabs}</div>"
-26601,3,setStat call,_xmlRefuse,code,setStat('⚠ <b>'+what+' not exported</b> — '+esc(said)+'. No file was made; the text on the board is unchanged.');
-26606,45,setStat call,_xmlMade,code,function _xmlMade(){ if(_xmlStood===_statN) setStat(''); _xmlStood=-1; }
-26993,21,innerHTML =,teamSummary,code,if(!teamOpen){ el.innerHTML=''; return; }
-27015,6,innerHTML =,teamSummary,code,el.innerHTML=`<table><tr><th>Team</th><th>FY27 Ask</th><th>Disc drawn</th><th>★ MC need</th><th>Mand drawn</th><th>Unfunded</th>${SVC.map(s=>`<th>${esc(s)} fund
-27084,16,setStat call,setBuy,code,if(r.why){ setStat('\u26a0 <b>'+(field==='adj'? 'The adjusted' : 'The baseline')+' quantity for '+esc(SVC[i]||'this service')
-27094,7,setStat call,setBuy,code,setStat('\u26a0 <b>Not changed.</b> '+esc(SVC[i]||'This service')+'\u2019s quantity times its unit cost would be more than '
-27111,21,innerHTML =,buysPanel,code,if(!buysOpen){ el.innerHTML=''; return; }
-27141,6,innerHTML =,buysPanel,code,"el.innerHTML = tbl('ac','✈ AIRCRAFT') + tbl('eng','⚙ ENGINES') +"
-27176,25,setStat call,render,code,_bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
-27199,10,innerHTML =,render,code,"gh.innerHTML=(H[uiMode]||base).map(function(c){ return '<div class=""'+(c[1]||'')+'"">'+esc(c[0])+'</div>'; }).join(''); } }"
-27330,35,innerHTML =,render,code,document.getElementById('list').innerHTML=h;
-27331,38,innerHTML =,render,code,document.getElementById('pmoActs').innerHTML = pmoMode()?
-27334,41,innerHTML =,render,code,document.getElementById('rmChipWrap').innerHTML = S.removed.length?
-27342,8,innerHTML =,render,code,"rp.innerHTML='<div class=""fr""><b style=""color:var(--red);font-size:11px"">REMOVED REQUIREMENTS</b> <button class=""btn"" onclick=""restoreAll()"">↩ Restore all</butt"
-27346,40,innerHTML =,render,code,} else { rp.style.display='none'; rp.innerHTML=''; }
-27608,13,innerHTML =,saveStateShow,code,if(ss) ss.innerHTML = _sb ? (un ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
-27619,26,innerHTML +=,saveStateShow,code,"if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type=""button"" class=""keptbtn"" onclick=""keptPutBack()"" '"
-27624,32,innerHTML =,saveStateShow,code,"sb.className='btn pri'; sb.innerHTML='<span class=""uiSvIc"" aria-hidden=""true"">\u2709</span><span class=""uiSvT""> Submit input</span>'; sb.setAttribute('onclick',"
-27683,36,innerHTML =,syncBtns,code,document.getElementById('dd_fy').innerHTML=
-27719,8,innerHTML =,syncBtns,code,dd.innerHTML=
-27757,38,innerHTML =,syncBtns,code,document.getElementById('dd_view').innerHTML=
-27902,41,innerHTML =,syncBtns,code,document.getElementById('dd_reports').innerHTML=
-27926,38,innerHTML =,syncBtns,code,"document.getElementById('dd_data').innerHTML=uiPlain('<div class=""uiDg"">'+"
-27943,39,innerHTML =,syncBtns,code,document.getElementById('dd_setup').innerHTML=
-27953,39,innerHTML =,syncBtns,code,document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
-27958,15,innerHTML =,syncBtns,code,if(cv) cv.innerHTML = CYCVIEW
-27968,45,innerHTML =,syncBtns,code,document.getElementById('dd_modetools').innerHTML=lbl(nm+' tools')+(T[uiMode]||'');
-27978,15,innerHTML =,syncBtns,code,"if(fc) fc.innerHTML=F.map(function(f){ return '<span class=""fchip"">'+esc(f[0])"
-27995,41,innerHTML =,syncBtns,code,document.getElementById('dd_offices').innerHTML=
-27998,38,innerHTML =,syncBtns,code,document.getElementById('dd_save').innerHTML=
-28002,38,innerHTML =,syncBtns,code,document.getElementById('dd_kept').innerHTML=
-28008,39,innerHTML =,syncBtns,code,document.getElementById('dd_audit').innerHTML=
-28022,40,innerHTML =,syncBtns,code,document.getElementById('dd_boards').innerHTML=
-28153,17,setStat call,liveTick,code,catch(e){ setStat('⚠ Automatic save to the shared folder failed — <b>'
-28156,33,setStat call,liveTick,code,if(done && _statN===said) setStat('✓ Saved to the shared folder automatically — '
-28207,3,setStat call,drivePick,code,setStat('⏳ Choose the <b>Data</b> folder in the window that opened and press <b>Select Folder</b>. '
-28216,5,setStat call,drivePick,code,"setStat('✓ Shared folder set to <b>'+esc(nm)+'</b> — this page can read it, and it is remembered on this machine. '"
-28222,40,setStat call,drivePick,code,if(/abort/i.test((e&&e.name)||'')) setStat('Folder choice ended without a folder — nothing changed. '
-28225,10,setStat call,drivePick,code,else setStat('\u26a0 That folder could not be used \u2014 '+esc((e&&e.message)||String(e))
-28410,5,setStat call,driveRelease,code,setStat('✓ Released the editing lock on '+esc(APPN_LBL[mySlug()]||mySlug())
-28412,14,setStat call,driveRelease,code,}catch(e){ setStat('⚠ Could not release the lock — '+esc((e&&e.message)||String(e))
-28461,16,setStat call,driveStorePull,code,if(!quiet) setStat('⚠ The shared folder is not connected — <b>'+esc(LIVEDB.err)
-28469,16,setStat call,driveStorePull,code,if(!quiet) setStat('\u26a0 The shared folder\u2019s copy of '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-28473,22,setStat call,driveStorePull,code,if(!j){ if(!quiet) setStat('The shared folder holds nothing for '
-28478,5,setStat call,driveStorePull,code,"setStat(liveTooNewMsg(j, APPN_LBL[mySlug()]||mySlug()));"
-28504,5,setStat call,driveStorePull,code,setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())
-28516,5,setStat call,driveStorePull,code,setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())
-28533,16,setStat call,driveStorePull,code,"if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '"
-28549,24,setStat call,driveStorePull,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }"
-28551,5,setStat call,driveStorePull,code,setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
-28561,5,setStat call,driveStorePull,code,setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' from the shared folder \u2014 reopening\u2026');
-28568,21,setStat call,driveStorePull,code,if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-28591,5,setStat call,_driveStorePushRun,code,setStat('⚠ The save asked for '+esc(APPN_LBL[ap]||ap)+' FY'+(fyAsked%100)+' did not run: the board moved to FY'+(fy%100)
-28602,5,setStat call,_driveStorePushRun,code,setStat('⛔ The shared folder’s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' could not be read — <b>'
-28617,5,setStat call,_driveStorePushRun,code,setStat('⚠ Not saved: the board moved to FY'+(MS.cur%100)+' while the shared folder’s copy of FY'+(fy%100)
-28637,5,setStat call,_driveStorePushRun,code,setStat('⚠ This board carries no requirement data — <b>nothing was written</b> to the shared folder. '
-28664,9,setStat call,_driveStorePushRun,code,setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)
-28706,12,setStat call,_driveStorePushRun,code,else setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' '
-28744,33,setStat call,_driveStorePushRun,code,if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '
-28747,38,setStat call,_driveStorePushRun,code,if(!quiet || !clean || may!=='me') setStat('✅ Saved '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)
-28765,3,setStat call,driveClashSay,code,setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
-28794,13,setStat call,_driveResolveRun,code,catch(e){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' could not be read \u2014 <b>'+esc((e&&e.message)||String(e))
-28812,7,setStat call,_driveResolveRun,code,"setStat('\u26d4 Their copy could not be kept in the shared folder\u2019s history, so <b>nothing was written</b>. '"
-28818,22,setStat call,_driveResolveRun,code,"if(liveTooNew(j)){ setStat(liveTooNewMsg(j, APPN_LBL[ap]||ap)); render(); return false; }"
-28819,27,setStat call,_driveResolveRun,code,"if(!_hasPack(j.store)){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' carries no requirement data, so it was not loaded.'); render(); return fal"
-28824,48,setStat call,_driveResolveRun,code,"if(kept==='occupied' && !driveBaseOf(ap)){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder', true)); render(); return false; }"
-28825,28,setStat call,_driveResolveRun,code,"if(kept==='occupied'){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder')); render(); return false; }"
-28827,7,setStat call,_driveResolveRun,code,"setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '"
-28837,3,setStat call,_driveResolveRun,code,setStat('\u2b07 Loaded <b>'+esc(by)+'</b>\u2019s copy of '+esc(lbl)+'.'
-28856,15,setStat call,takePen,code,"if(!h){ setStat('✍ To take the pen, press 💾 Save once to pick this board file first.'); return; }"
-28862,14,setStat call,takePen,code,}catch(e){ setStat('⚠ Could not read who holds the pen — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was changed.'); return; }
-28863,24,setStat call,takePen,code,if(writerIsMe(cur)){ setStat('✍ You already hold the pen for '+esc(what)+'.'); return; }
-28878,13,innerHTML =,driveHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--mut)"">reading the folder…</span>';"
-28886,15,innerHTML =,driveHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--red)"">Could not read the folder — '"
-28894,47,innerHTML =,driveHistBody,code,if(_driveHistFor!==MS.cur+'|'+mySlug()){ el.innerHTML=''; return; }
-28896,8,innerHTML =,driveHistBody,code,"el.innerHTML='<span style=""color:var(--mut)"">No earlier copies kept yet. Each time the folder is written, the copy '"
-28901,6,innerHTML =,driveHistBody,code,"el.innerHTML='<div style=""color:var(--mut);margin-bottom:4px"">Earlier copies of <b>'"
-28919,5,setStat call,driveRestore,code,setStat('⚠ <b>Nothing was put back.</b> That list of earlier copies is not for '+esc(APPN_LBL[pinAp]||pinAp)
-28928,5,setStat call,driveRestore > stop,code,setStat('⚠ <b>Nothing was put back.</b> The board moved to another appropriation or year while the folder was '
-28940,24,setStat call,driveRestore,code,"if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }"
-28941,29,setStat call,driveRestore,code,if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
-28945,7,setStat call,driveRestore,code,setStat('⚠ <b>Nothing was put back.</b> That copy is named for '+esc(APPN_LBL[pinAp]||pinAp)+' FY'+(pinYr%100)
-28954,15,setStat call,driveRestore,code,catch(e){ setStat('\u26a0 The copy in the folder now could not be read \u2014 <b>'+esc((e&&e.message)||String(e))+'</b> \u2014 so nothing was put back.'); retur
-28957,7,setStat call,driveRestore,code,"setStat('\u26a0 The copy in the folder now could not be kept in the history, so nothing was put back.'); return; }"
-28969,26,setStat call,driveRestore,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }"
-28971,7,setStat call,driveRestore,code,"setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '"
-28986,5,setStat call,driveRestore,code,setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
-28992,5,setStat call,driveRestore,code,setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
-29023,7,setStat call,driveExecPush,code,setStat('⚠ The execution data was <b>not shared</b>: the shared folder’s copy could not be read ('+esc((e&&e.message)||String(e))
-29028,16,setStat call,driveExecPush,code,if(!quiet) setStat('⬆ Execution data shared to the folder — everyone gets it on their next '
-29032,5,setStat call,driveExecPush,code,setStat('⚠ Could not share the execution data — '+esc((e&&e.message)||String(e)));
-29048,16,setStat call,driveExecPull,code,if(!quiet) setStat('⬇ Execution data updated from the shared folder for '
-29113,16,setStat call,driveAcePush,code,"if(!quiet) setStat('⚠ No cost estimate is loaded on this board, so there is nothing to share.');"
-29140,24,setStat call,driveAcePush,code,if(!quiet || left) setStat((wrote
-29150,5,setStat call,driveAcePush,code,setStat('⚠ Could not share the cost estimate — '+esc((e&&e.message)||String(e)));
-29160,13,setStat call,driveAceReplace,code,"if(!set){ setStat('⚠ '+esc(k)+' is not on this board, so there is nothing to share.'); return false; }"
-29166,7,setStat call,driveAceReplace,code,"setStat('⬆ <b>'+esc(k)+'</b> shared to the folder, which held no copy of it.'); render(); return true; }"
-29167,40,setStat call,driveAceReplace,code,"if(f.j && aceSameAs(f.j, k, set)){ setStat('✔ The folder already holds your '+esc(k)+' — nothing needed writing.'); return true; }"
-29168,24,setStat call,driveAceReplace,code,"if(!('txt' in f)){ setStat('⛔ The folder’s '+esc(k)+' is there, but '+esc(f.bad)+', so it cannot be kept in the history first. '"
-29176,34,setStat call,driveAceReplace,code,if(g.none || g.txt!==f.txt){ setStat('⛔ The folder’s '+esc(k)+' changed while you were deciding. <b>Nothing was written.</b> '
-29179,7,setStat call,driveAceReplace,code,"setStat('⛔ The folder’s '+esc(k)+' could not be kept in the shared folder’s history, so <b>nothing was written</b>.'); return false; }"
-29182,5,setStat call,driveAceReplace,code,setStat('⬆ Your <b>'+esc(k)+'</b> replaced the shared folder’s ('+esc(whose)+'). Theirs is kept in the folder’s history.');
-29186,5,setStat call,driveAceReplace,code,setStat('⚠ Could not replace the folder’s '+esc(k)+' — '+esc((e&&e.message)||String(e)));
-29197,13,innerHTML =,aceHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--mut)"">reading the folder…</span>';"
-29210,15,innerHTML =,aceHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--red)"">Could not read the folder — '+esc((e&&e.message)||String(e))+'</span>';"
-29223,8,innerHTML =,aceHistBody,code,"el.innerHTML='<span style=""color:var(--mut)"">No earlier copies of a cost estimate kept yet. Replacing the folder’s '"
-29229,6,innerHTML =,aceHistBody,code,"el.innerHTML='<div style=""color:var(--mut);margin-bottom:4px"">Earlier copies of the shared cost estimates, newest first. '"
-29247,5,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That list of earlier copies has been read again since. Choose from the list shown now.');
-29253,24,setStat call,aceRestore,code,if(!driveStoreOn()){ setStat('⚠ <b>Nothing was put back.</b> This board is not working out of a shared folder.'); return false; }
-29260,15,setStat call,aceRestore,code,catch(e){ setStat('⚠ <b>Nothing was put back.</b> The kept copy could not be read — '+esc((e&&e.message)||String(e))+'.'); return false; }
-29264,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That kept copy is not a whole estimate.'); return false; }
-29266,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That kept copy’s figures do not match its fingerprint.'); return false; }
-29268,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That copy was kept for '+esc(label)+' but holds '+esc(j.key)+'.'); return false; }
-29271,7,setStat call,aceRestore,code,"setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' is there, but '+esc(f.bad)"
-29273,33,setStat call,aceRestore,code,if(!f.none && f.txt===txt){ setStat('✔ The folder already holds that copy of '+esc(label)+' — nothing needed writing.'); return true; }
-29281,9,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' could not be kept in its history first.'); return false; }
-29285,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' changed while it was being kept'
-29290,5,setStat call,aceRestore,code,setStat('↶ The shared folder’s <b>'+esc(label)+'</b> is the copy kept at <b>'+esc(pretty)+'</b> again'
-29295,5,setStat call,aceRestore,code,setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
-29342,7,setStat call,driveAcePull,code,setStat(m);
-29346,16,setStat call,driveAcePull,code,if(!quiet) setStat('⚠ Could not check the folder for cost estimates — '+esc((e&&e.message)||String(e))+'. Nothing was taken from it.');
-29419,25,setStat call,livePublish,code,if(c.mode!=='drive'){ setStat('⚠ The live view shares through the shared folder only.'); return false; }
-29429,9,setStat call,livePublish,code,"setStat('\u26a0 <b>Not published.</b> You are watching this folder, not working out of it. Publishing writes the folder\u2019s '"
-29440,5,setStat call,livePublish,code,setStat('⚠ Live publish failed — <b>'+esc(LIVEDB.err)+'</b>. Nothing was sent.');
-29454,16,setStat call,livePoll,code,if(!quiet) setStat('↻ Live view refreshed — '+Object.keys(peers).length
-29460,16,setStat call,livePoll,code,if(!quiet) setStat('⚠ Live refresh failed — <b>'+esc(LIVEDB.err)+'</b>.');
-29487,21,innerHTML =,liveBody,code,if(!liveOpen){ el.innerHTML=''; return; }
-29678,6,innerHTML =,liveBody,code,el.innerHTML=h;
-29694,11,setStat call,budClearRetired,code,if(!n){ setStat('Nothing points at a retired budget.'); return; }
-29699,30,setStat call,budClearRetired,code,'+'There is no undo.')) { setStat('\u2716 Nothing was cleared.'); return; }
-29708,3,setStat call,budClearRetired,code,setStat('\u2713 Cleared '+n+' assignment'+(n===1?'':'s')+' that pointed at a retired budget.');
-29713,20,innerHTML =,budRegBody,code,if(!budOpen){ el.innerHTML=''; return; }
-29716,8,innerHTML =,budRegBody,code,"el.innerHTML='<div class=""hint"">No budget list held yet. Import the CCaR Budget Allocation '"
-29809,6,innerHTML =,budRegBody,code,el.innerHTML=h;
-29830,32,DOMParser.parseFromString,diagPlain,code,"try{ const d=new DOMParser().parseFromString('<!doctype html><body>'+s, 'text/html'); return (d.body && d.body.textContent) || ''; }"
-30076,3,setStat call,diagSave,code,setStat('🩺 Diagnostics saved to your downloads as <b>'+esc(a.download)+'</b>. Nothing was sent anywhere — send the file to whoever is helping you.');
-30098,20,innerHTML =,idsBody,code,if(!idsOpen){ el.innerHTML=''; return; }
-30110,14,innerHTML =,idsBody,code,"if(!P){ el.innerHTML=h+'<div class=""fr"" style=""margin-top:10px""><button class=""btn"" onclick=""toggleIds()"">Close</button></div>'; return; }"
-30210,6,innerHTML =,idsBody,code,el.innerHTML=h;
-30241,20,setStat call,linkSet,code,if(!L.name){ setStat('Companion tool link removed.'); return; }
-30242,7,setStat call,linkSet,code,setStat(linkOpenable(L.name)
-30266,3,setStat call,linkOpen,code,setStat('\u{1F517} Opening <b>'+esc(L.name)+'</b>. If nothing appeared it is not in this folder \u2014 '
-30465,8,setStat call,arCopyOtherYear,code,try{ setStat(m); }catch(e){}
-30494,35,innerHTML =,arHide,code,const b=arEl('arBody'); if(b) b.innerHTML='';
-30499,64,innerHTML =,arSay,code,"function arSay(h, ok){ const m=arEl('arMsg'); if(!m) return; m.innerHTML=h||''; m.className='ar-msg'+(h? (ok? ' ok' : ' bad') : ''); }"
-30591,6,innerHTML =,arDraw,code,el.innerHTML=h;
-30601,45,innerHTML =,arSetOffice,code,try{ const b=arEl('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
-30624,15,innerHTML =,arOfficeApply,code,if(who) who.innerHTML= arOff
-30628,38,innerHTML =,arOfficeApply,code,const bh=arEl('arBudH'); if(bh) bh.innerHTML=esc(FL('budgetAsg'))+(arOff? ' — '+esc(arOff)+'’s budgets only' : '');
-30639,7,innerHTML =,arBudFill,code,"sel.innerHTML='<option value="""">— choose —</option>'+L.map(function(b){"
-30735,13,innerHTML =,arUpdate,code,if(ch) ch.innerHTML=need.map(function(x){
-30743,8,innerHTML =,arUpdate,code,sm.innerHTML='<b>'+fM(tot)+'</b> requirement'+(arOff? ' · reference <b>'+esc(ref)+'</b>' : '')
-30831,3,setStat call,arAdd,code,"setStat('➕ Added <b>'+esc(nid)+'</b> — '+esc(d.event)+' — to '+FYL()+' for '+esc(arOff)+', at the bottom of the order'"
-30856,41,setStat call,arOpenRecord,code,"if(off.length) setTimeout(function(){ setStat('Showing '+esc(nid)+' in its record — '+esc(off.join(', '))+' '+(off.length===1?'was':'were')+' taken off so it ca"
-30895,57,innerHTML =,arFinNext,code,const fb=arEl('arFinBar'); if(fb){ fb.hidden=true; fb.innerHTML=''; }
-30905,6,innerHTML =,arFinBarDraw,code,fb.innerHTML='Finishing <b>FY'+(arFin.y%100)+' '+esc(arFin.id)+' — '+esc(arFin.name)+'</b>'
-31044,87,innerHTML =,naFromDraw,code,if(typeof MS==='undefined' || !MS || !MS.years || typeof S==='undefined' || !S){ el.innerHTML=''; return; }
-31049,14,innerHTML =,naFromDraw,code,"if(!g){ el.innerHTML='<div class=""ar-note"">Choose the office first.</div>'; return; }"
-31086,6,innerHTML =,naFromDraw,code,el.innerHTML=h;
-31176,3,setStat call,naFromAdd,code,setStat(msg);
-31471,3,setStat call,exportCSV,code,"setStat('⬇ Priority drill exported — funded by band, for the whole order and for each PMO.');"
-31554,40,setStat call,aiExport,code,try{ txt=aiRequestText(); }catch(e){ setStat('⚠ The AI review request could not be built: '+esc((e&&e.message)||String(e))+'. Nothing was written.'); return; }
-31558,3,setStat call,aiExport,code,"setStat('🤖 <b>'+esc(fn)+'</b> written: '+(S.order||[]).length+' requirements. Give it to GenAI.mil, save its answer as a file, then '"
-31621,7,setStat call,aiImport,code,setStat('⚠ AI review not read — “'+esc(f.name)+'”: '+esc(R.why)+'.'); return; }
-31627,14,setStat call,aiImport,code,}catch(e){ setStat('⚠ AI review not read: '+esc((e&&e.message)||String(e))+'. Nothing was changed.'); }
-31637,21,innerHTML =,aiBody,code,if(!aiIsOpen){ el.innerHTML=''; return; }
-31644,18,innerHTML =,aiBody,code,"if(!AIREV){ el.innerHTML=intro+acts+'<div class=""hint"">No answer read in this tab yet.</div>'; return; }"
-31659,6,innerHTML =,aiBody,code,el.innerHTML=intro+acts
-32044,3,setStat call,exportAceTieout,code,"setStat('\ud83d\udcc8 ACE Tie-Out workbook exported \u2014 <b>'+esc(k)+'</b>, '+scopeLbl"
-33176,36,innerHTML =,(top level),code,document.getElementById('appnSel').innerHTML = Object.keys(APPNS).map(a=>'<option '+(a===APPN?'selected':'')+'>'+a+'</option>').join('');
-33317,8,innerHTML =,inspectorBody,code,"el.innerHTML = drawerBar() + '<div class=""insp-empty"">No requirement selected.<br>'"
-33430,6,innerHTML =,inspectorBody,code,el.innerHTML = drawerBar() +
-33836,17,innerHTML =,render,code,"if(el) el.innerHTML='<div class=""insp-empty"">The record panel could not be drawn ('+esc(why)+'), so it is empty '"
-33838,10,setStat call,render,code,try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
-33851,63,innerHTML =,(top level),code,try{ const _b=document.getElementById('subBanner'); if(_b) _b.innerHTML=subBanner(); }catch(e){}
-34052,3,setStat call,exportCoa,code,setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
-34061,3,setStat call,(top level),code,setStat('\u26a0 <b>This board could not read its saved state from browser storage</b> \u2014 '
-34067,3,setStat call,(top level),code,setStat(impMixedMsg(''));
-34072,3,setStat call,(top level),code,"setStat(keptOccupiedMsg(_bootHeld.by, _bootHeld.ts, 'the saved file')"
-34078,3,setStat call,(top level),code,setStat('\u26a0 <b>The saved file is newer</b> \u2014 '+esc(_bootHeld.by||'someone')+' saved it '+esc(fmtTs(_bootHeld.ts))
-34085,3,setStat call,(top level),code,setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
-34090,3,setStat call,(top level),code,"setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '"
-34099,3,setStat call,(top level),code,setStat('🔧 <b>'+L.length+' award'+(L.length===1? '' : 's')+' repaired on opening '+(L.length===1? 'is' : 'are')+' waiting to be checked</b>'
-34106,3,setStat call,(top level),code,setStat('\u26a0 <b>Decision bands from an older ladder</b> \u2014 '+list+'. This board\u2019s ladder '
-34113,3,setStat call,(top level),code,setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: Imports & exports → ⬅ Import a full board… and pick 
-34114,42,setStat call,(top level),code,} else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
-34123,21,setStat call,(top level),code,_statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+destNotice());
-34133,23,setStat call,(top level),code,_statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+'🏷 <b>'+esc(appnName(mySlug()))+'</b> is '
-34165,102,setStat call,(top level),code,try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'); _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+ow); } 
-34186,7,setStat call,(top level),code,setStat('⚠ The shared folder could not be read on opening — <b>'
-34196,95,setStat call,sharedArrived,code,if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No saved state in this copy — make sure you ope
-34200,95,setStat call,sharedArrived,code,if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No shared state file found next to the board — 
-34209,5,setStat call,sharedArrived,code,"setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working, so <b>nothing was replaced</b>. '"
-34218,5,setStat call,sharedArrived,code,"setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');"
-34220,5,setStat call,sharedArrived,code,"setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type=""button"" class=""nb lnk"" onclick=""adoptShared()"">load the shared "
-34305,7,innerHTML =,uiBoot,code,"c.innerHTML='<span class=""tlbl"">Cycle</span><button type=""button"" class=""btn"" id=""uiCycBtn"" aria-expanded=""false"" aria-haspopup=""true"" onclick=""uiPop(\'uiCycPop"
-34374,8,innerHTML =,uiSync,code,cl.innerHTML=r? '&#8250;' : '&#8249;';
-34395,6,innerHTML =,uiKpisNa,code,"el.innerHTML=[['ask','Total Ask'],['disc','Discretionary'],['mand','Mandatory'],['ufr','Total UFR']].map(function(c){"
-34406,61,innerHTML =,uiKpis,code,if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
-34414,12,innerHTML =,uiKpis,code,el.innerHTML=html;
-34475,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Columns</div>'"
-34482,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Plan on screen</div>'"
-34492,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Density</div>'"
-34621,5,innerHTML =,uiFlyOpen,code,f.innerHTML=uiFlyItems(k);
-34692,9,innerHTML =,uiDrawerTabs,code,"strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){"
-34699,6,innerHTML =,uiDrawerTabs,code,"ov.innerHTML='<div><b>Lifecycle</b> <span class=""d"">pending — the board has no lifecycle field for a requirement yet</span></div>'"
-34703,8,innerHTML =,uiDrawerTabs,code,"hist.innerHTML='<div class=""h"">History</div>'+(last? '<p>'+last+'</p>' : '')"
-34724,10,setStat call,uiAddReq,code,"try{ setStat('ℹ Add requirement is in <b>Requirements › Review</b>, as in the Review tools.'); }catch(e){}"
-34755,25,setStat call,uiPmoLoad,code,if(uiSandbox()){ try{ setStat('ℹ Loading submittals is not offered in a PMO copy.'); }catch(e){} return; }
-34961,10,setStat call,uiSubMany > refuse,code,try{ setStat((partway? '⚠ The batch stopped part-way — ' : '⚠ Nothing loaded — ')+esc(opt.stat || why)
+2659,5,setStat call,writerMay,code,setStat('⛔ <b>Not saved.</b> <b>'+esc(w.by||'someone')+'</b> holds the pen for '+esc(what)
+2666,14,setStat call,writerMay,code,if(quiet){ setStat('Not saved automatically: '+esc(what)+' has no writer recorded yet. Press 💾 Save to become its writer.'); return false; }
+2670,5,setStat call,writerMay,code,setStat('Save canceled — nothing written.'); return false; }
+2843,10,setStat call,lsSet,code,try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
+3488,20,innerHTML =,attBody,code,if(!attOpen){ el.innerHTML=''; return; }
+3492,21,innerHTML =,attBody,code,"if(!L.length){ el.innerHTML=h+'<div style=""padding:10px;color:var(--green);font-weight:700"">✓ Nothing left on this list.</div>'; return; }"
+3511,6,innerHTML =,attBody,code,el.innerHTML=h;
+3534,19,innerHTML =,ndBody,code,if(!ndOpen){ el.innerHTML=''; return; }
+3543,21,innerHTML =,ndBody,code,"if(!L.length){ el.innerHTML=h+'<div style=""padding:10px;color:var(--green);font-weight:700"">✓ Nothing is set higher than it draws.</div>'; return; }"
+3558,6,innerHTML =,ndBody,code,el.innerHTML=h;
+3565,3,setStat call,ndSetDrawn,code,"setStat('▲ '+esc(dispTitle(it))+' — '+esc(SVC[g.i])+' '+(g.lane==='d'?'discretionary':'mandatory')+' set to what it drew, <b>'"
+3577,3,setStat call,ndSetAll,code,setStat('▲ '+N.list.length+' line'+(N.list.length===1?'':'s')+' on '+N.n+' requirement'+(N.n===1?'':'s')+' set to what they drew — '
+3895,5,setStat call,svcAdd,code,setStat('🏷 Added service <b>'+esc(v)+'</b> — requirement values and allocations can now be entered for it.');
+3907,7,setStat call,svcRen,code,"setStat('🏷 Renamed <b>'+esc(was)+'</b> to <b>'+esc(v)+'</b> — the same service, so every figure stays where it was.');"
+3943,5,setStat call,svcDel,code,"setStat('🏷 Removed service <b>'+esc(old[i])+'</b>'+(held.length? ' and what it held' : '')+' — every other service keeps its own figures, in every fiscal year."
+3951,5,setStat call,svcMove,code,"setStat('🏷 Moved <b>'+esc(t)+'</b> '+(d<0? 'up' : 'down')+' — its figures moved with it, in every fiscal year.');"
+4013,20,innerHTML =,aceBody,code,if(!aceOpen){ el.innerHTML=''; return; }
+4017,8,innerHTML =,aceBody,code,"el.innerHTML='<div class=""hint"">No Annual Cost Estimate has been imported yet. '"
+4218,6,innerHTML =,aceBody,code,el.innerHTML=h;
+4224,3,setStat call,exwApply,code,setStat('🧱 WBS from execution data — <b>'+r.wrote+'</b> written'
+4234,20,innerHTML =,exwBody,code,if(!exwOpen){ el.innerHTML=''; return; }
+4238,8,innerHTML =,exwBody,code,"el.innerHTML='<div class=""hint"">No execution data has been imported for '"
+4255,8,innerHTML =,exwBody,code,el.innerHTML=h; return;
+4313,6,innerHTML =,exwBody,code,el.innerHTML=h;
+4348,3,setStat call,themeSet,code,setStat('\ud83c\udfa8 Colours set to <b>'+esc(themeName())+'</b>. This is your own setting \u2014 '
+4416,14,setStat call,rlgSetSvc,code,if(r.why){ setStat('⚠ <b>'+esc(sv)+'’s need was not changed.</b> '+esc(r.why)+'.'); render(); return; }
+4433,14,setStat call,rlgSetCap,code,if(r.why){ setStat('⚠ <b>The cap was not changed.</b> '+esc(r.why)+'.'); render(); return; }
+4483,3,setStat call,rlgToggleUplAll,code,setStat((on?'\u2717 Unmarked':'\u2713 Marked')+' <b>'+esc(title)+'</b> as a UPL pot in '
+4736,21,setStat call,exportRlgPlan,code,if(!rows.length){ setStat('\u26a0 Nothing to export yet \u2014 no UPL selected and no move suggested.'); return; }
+4778,3,setStat call,exportRlgPlan,code,setStat('\u2b07 Exported the funding plan \u2014 '+rows.length+' line'+(rows.length===1?'':'s')
+5113,16,setStat call,rlgSet,code,if(r.why){ setStat('⚠ <b>The target was not changed.</b> '+esc(r.why)+'.'); render(); return; }
+5134,18,setStat call,rlgAddManual,code,if(r.why){ setStat('⚠ <b>No credit was added.</b> '+esc(r.why)+'.'); return; }
+5138,7,setStat call,rlgAddManual,code,setStat('💵 Credit added: <b>'+esc(n)+'</b> '+fM2(r.v)+'.');
+5149,20,innerHTML =,rlgBody,code,if(!rlgOpen){ el.innerHTML=''; return; }
+5672,6,innerHTML =,rlgBody,code,el.innerHTML=h;
+5683,20,innerHTML =,rcnBody,code,if(!rcnOpen){ el.innerHTML=''; return; }
+5685,8,innerHTML =,rcnBody,code,"el.innerHTML='<div class=""hint"">RCN and EEIC are an O&amp;M Air Force classification. '"
+5732,6,innerHTML =,rcnBody,code,el.innerHTML=h;
+5742,6,innerHTML =,entBody,code,el.innerHTML = entOpen? flowEntEditor() : '';
+5748,25,innerHTML =,svcPanelBody,code,if(!svcPanelOpen){ el.innerHTML=''; return; }
+5759,6,innerHTML =,svcPanelBody,code,el.innerHTML = rows
+6383,5,setStat call,setGrp,code,setStat('\u26a0 '+esc(dispTitle(itm))+' is a requirement this copy proposes: it keeps the office it was added for ('+esc(grpOf(itm))+').');
+6390,16,setStat call,setGrp,code,if(was===g){ setStat('\ud83c\udff7 '+esc(dispTitle(itm))+' is already in '+esc(g)+'.'); return; }
+6394,3,setStat call,setGrp,code,setStat('\ud83c\udff7 Moved <b>'+esc(dispTitle(itm))+'</b> from '+esc(was)+' to <b>'+esc(g)+'</b>'
+6608,5,setStat call,switchYear,code,setStat('🔒 <b>'+blLbl(CYCVIEW)+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
+6633,26,setStat call,switchYear,code,if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+blLbl(CYCVIEW)+' (locked)</b> — '+FYL()+'. Read only.'); return; }
+6635,3,setStat call,switchYear,code,"setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.'+esc(outside));"
+6859,3,setStat call,xferYear,code,"setStat((mode==='c'?'🗓 Copied':'🗓 Moved')+' ""'+esc(nm)+'"" to FY'+(y%100)+' — switch there from the 🗓 menu to see it'+(MS.years[y].order.length===1?' (FY'+(y%"
+6872,3,setStat call,resetYear,code,"setStat('🗑 '+FYL()+' is now BLANK — no requirements, zero BA. Use Add requirement (Requirements › Review) to add requirements, restore baseline items from the "
+6933,22,setStat call,rollApply,code,if(!p.ids.length){ setStat('⚠ Nothing is ticked — choose the requirements to roll forward.'); return; }
+6934,24,setStat call,rollApply,code,if(!p.years.length){ setStat('⚠ No year is ticked — choose which years to roll them into.'); return; }
+6936,5,setStat call,rollApply,code,"setStat('✔ Every requirement you ticked is already in '+p.years.map(function(y){ return 'FY'+(y%100); }).join(', ')"
+6962,3,setStat call,rollApply,code,setStat('🗓 Rolled forward — <b>'+made+'</b> cop'+(made===1?'y':'ies')+' created across '
+6972,21,innerHTML =,rollBody,code,if(!rollOpen){ el.innerHTML=''; return; }
+7036,6,innerHTML =,rollBody,code,el.innerHTML=h;
+7047,3,setStat call,setBaseYear,code,setStat('🗓 FYDP window set to FY'+(y%100)+' – FY'+((y+4)%100)+'. Yearly ACE import can plug in here later.');
+7133,23,setStat call,saveSerial,code,if(_saveBusy){ try{ setStat('⏳ A save is already under way — this one runs as soon as it finishes.'); }catch(e){} }
+7151,48,setStat call,persist,code,if(_persistFail){ _persistFail=false; try{ setStat('✓ Browser storage is accepting changes again.'); }catch(e){} }
+7155,10,setStat call,persist,code,try{ setStat('⚠ <b>This change is not in browser storage</b> — it was refused ('
+7290,25,setStat call,jrnlUndo,code,"if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its "
+7293,31,setStat call,jrnlUndo,code,"if(!jrnlSet(fy, e.p, e.a)){ setStat('⚠ That value could not be put back — the shape of the state has moved on since.'); return; }"
+7302,3,setStat call,jrnlUndo,code,setStat('↶ Put back: <b>'+jrnlLabel(e)+'</b> — recorded in the journal.');
+7360,21,innerHTML =,jrnlBody,code,if(!jrnlOpen){ el.innerHTML=''; return; }
+7403,6,innerHTML =,jrnlBody,code,el.innerHTML=h;
+7435,3,setStat call,showLog,code,setStat('🕘 <b>Save history</b> (this file): '+(lg.length? lg.map(e=>esc(e.by||'?')+' — '+fmtTs(e.ts)).join('  ·  ') : 'no stamped saves yet')+
+7488,33,setStat call,statKeep,code,"function statKeep(html){ return setStat(html, {keep:true}); }"
+7497,60,innerHTML =,setStat,code,const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
+7541,22,innerHTML =,msgBody,code,if(!msgIsOpen){ el.innerHTML=''; return; }
+7544,6,innerHTML =,msgBody,code,"el.innerHTML='<div style=""font-size:11px;color:var(--dim)"">What the board said in this tab, newest first. It is kept in this browser tab only, never in the boar"
+7578,7,setStat call,whoAmI,code,setStat('\u{1F464} Editor name set to <b>'+esc(nv)+'</b> — stamped on future saves.');
+7659,27,setStat call,keptPutBack,code,if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
+7664,18,setStat call,keptPutBack,code,"if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put i"
+7691,49,setStat call,keptPutBack,code,let st; try{ st=JSON.parse(k.raw); }catch(e){ setStat('⚠ The work kept aside could not be read ('+esc(e.message)+'). It is still kept; nothing was changed.'); r
+7697,15,setStat call,keptPutBack,code,"catch(e){ setStat('⚠ There is no room to keep what is on screen while the kept work is put back, so <b>nothing was changed</b>. '"
+7722,3,setStat call,keptPutBack,code,setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. '
+7731,27,setStat call,keptSaveFile,code,if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
+7744,3,setStat call,keptSaveFile,code,setStat('⬇ The work kept aside on '+esc(fmtTs(k.meta.t))+' was saved as a file in your Downloads folder. '
+7752,3,setStat call,keptDiscard,code,setStat('The work kept aside on '+esc(fmtTs(k.meta.t))+' was discarded.');
+7768,18,setStat call,bootTakeFile,code,"if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save h"
+7772,3,setStat call,bootTakeFile,code,setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
+7986,3,setStat call,publishPmoCopy,code,setStat('\u{1F4E4} PMO copy published \u2014 upload it to Teams or the shared folder. '
+8024,64,innerHTML =,pickMyPmo,code,try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
+8025,5,setStat call,pickMyPmo,code,setStat('\u{1F3E2} Submitting for <b>'+esc(hit)+'</b> \u2014 only '+esc(hit)
+8336,3,setStat call,pmoSubmit,code,setStat('\u2709 Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> \u2014 '
+8573,3,setStat call,pmoReport,code,setStat('\u{1F4C4} Change report exported \u2014 '+rows.length+' proposed change'+(rows.length===1?'':'s')
+8653,3,setStat call,pmoApply,code,"setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b>. '"
+8797,7,setStat call,pmoTake,code,setStat('\u2139 That submittal lists the services in a different order; its per-service figures '
+8979,3,setStat call,subDrop,code,setStat('Submittal from <b>'+esc(subFrom(pk))+'</b> removed from the review. '
+8988,3,setStat call,subClearAll,code,setStat('Review cleared. Nothing already applied was undone.');
+8994,20,innerHTML =,subBody,code,if(!subOpen){ el.innerHTML=''; return; }
+8996,27,innerHTML =,subBody,code,"if(!PMOSUBS.length){ el.innerHTML='<div class=""hint"" style=""margin-bottom:8px"">No submittals loaded. Load each programme office\u2019s file \u2014 they are revi"
+9046,24,innerHTML =,subBody,code,"if(!rows.length){ el.innerHTML=h+'<div class=""hint"">This submittal proposes nothing this board has not already got.</div>'; return; }"
+9097,6,innerHTML =,subBody,code,el.innerHTML=h;
+9181,17,setStat call,saveInPlace,code,catch(e){ setStat('⚠ Could not save to the shared folder — <b>'
+9199,5,setStat call,_saveInPlaceFileRun,code,setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
+9209,7,setStat call,_saveInPlaceFileRun,code,"setStat('💾 First save: pick THIS board file (where you opened it — shared drive / synced Teams folder). After this once, Save writes straight to it.');"
+9220,7,setStat call,_saveInPlaceFileRun,code,setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” could not be read to check whether anyone saved it after you ('
+9232,9,setStat call,_saveInPlaceFileRun,code,"setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is not a board ORBIT can read, so it was not written over. '"
+9252,11,setStat call,_saveInPlaceFileRun,code,"setStat('Save canceled — '+esc(by)+'’s changes are untouched. '+(reo? 'Reopen or ⬅ Import' : '⬅ Import')+' this file to load their version, then redo your edits"
+9277,5,setStat call,_saveInPlaceFileRun,code,"setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — ""'+esc(h.name||FNAME)+'"" now carries this state. '+fmtTs(Date.now())"
+9282,35,setStat call,_saveInPlaceFileRun,code,if(e&&e.name==='AbortError'){ setStat('Save canceled — nothing written.'); return; }
+9285,7,setStat call,_saveInPlaceFileRun,code,setStat('⛔ <b>Not saved — this board file is read-only for you</b>'
+9290,5,setStat call,_saveInPlaceFileRun,code,setStat('⚠ In-place save failed ('+esc((e&&e.message)||e)+') — downloading a copy instead.');
+9306,3,setStat call,publishState,code,"setStat('💾 Saved — updated board downloaded to your Downloads folder. Copy it onto the shared drive, replacing the old board file. '"
+9325,24,setStat call,sharedKeepMine,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }"
+9327,5,setStat call,sharedKeepMine,code,"setStat('\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '"
+9345,3,setStat call,adoptShared,code,setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
+9367,5,setStat call,importBoards > none,code,setStat('⛔ <b>Nothing was imported</b> — '+esc(why)+'. This board is exactly as it was.');
+9614,12,setStat call,pkgIssue,code,if(!st){ setStat('⚠ No '+(PKG_NAMES[ap]||ap)+' data on this board to hand over.'); return; }
+9628,7,setStat call,pkgIssue,code,setStat((PKG_NAMES[ap]||ap)+' left out as package #'+led0.seq+'. Nothing was issued.');
+9654,3,setStat call,pkgIssue,code,setStat('⬆ Issued '+(PKG_NAMES[ap]||ap)+' package #'+esc(seq)+'. Send it to the manager; import their '
+9696,5,setStat call,pkgPushAll,code,setStat('Nothing pushed.');
+9707,9,setStat call,pkgPushAll,code,setStat('\u2b06 Pushed '+done.length+' of '+have.length+' baseline'+(have.length===1?'':'s')
+9724,12,setStat call,pkgSendBack,code,if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
+9734,3,setStat call,pkgSendBack,code,setStat('\u2b06 '+esc(nm)+' saved as a return package. Send it to whoever sent you this file: on their board it '
+9759,3,setStat call,pkgReturn,code,setStat('⬆ '+(PKG_NAMES[ap]||ap)+' return package #'+pkg.seq+' saved. Send it back to be merged. '
+9889,20,innerHTML =,pkgBody,code,if(!pkgOpen){ el.innerHTML=''; return; }
+9953,6,innerHTML =,pkgBody,code,el.innerHTML=h;
+10034,55,setStat call,pkgApply,code,'+'\n\nTake it anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
+10045,64,setStat call,pkgApply,code,'+'\n\nTake the package anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
+10056,5,setStat call,pkgApply,code,setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
+10072,7,setStat call,pkgApply,code,setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
+10237,21,setStat call,consTakePick,code,if(v===null){ setStat('Nothing imported.'); return; }
+10239,15,setStat call,consTakePick,code,if(!v){ setStat('Nothing imported \u2014 no appropriation was named.'); return; }
+10305,42,setStat call,consTakeApply,code,"if(!taken.length){ impMemRestore(mem); setStat('Nothing imported'+(skipped.length? ' \u2014 '+esc(skipped.join(', '))"
+10376,3,setStat call,codeRefusedIn,code,setStat('\u26a0 <b>'+esc(head)+'.</b> '+esc(why)+'.');
+10851,3,setStat call,inRefuse,code,setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
+10922,7,setStat call,fullImportText,code,setStat('Nothing imported — '+esc(_SLUGMAP[k].t)+' has work of this board’s own that you kept.');
+10967,5,setStat call,fullImportText,code,setStat('Nothing imported.'); return false;
+11027,3,setStat call,fullImportText,code,setStat(rep+' Reopening…');
+11042,5,setStat call,fullImportUndone,code,setStat('⛔ <b>Nothing was imported</b> — '+esc(what)+'; this board is exactly as it was.');
+11064,3,setStat call,fullImportUndone,code,"setStat('⛔ <b>The import stopped part-way, and this browser could not be put back as it was.</b> Browser storage refused '"
+11210,3,setStat call,batchImportUndone,code,"setStat('⛔ <b>⇊ Import several boards stopped part-way, and this browser could not be put back as it was.</b> '"
+11220,14,setStat call,impMixedBlock,code,if(!quiet) setStat(impMixedMsg(what));
+11230,3,setStat call,impMixedClear,code,setStat('💾 Save is allowed again.');
+11291,7,setStat call,exportOneAppn,code,"setStat('⬇ '+esc(_SLUGMAP[k].t)+' exported as a working board of its own — its plan, its locked cycles, its execution '"
+11392,9,setStat call,importState > r.onload,code,"setStat('🧩 Loaded '+seeded.join(', ')+carriedTxt+' — reopening…');"
+11421,19,setStat call,importState > r.onload,code,catch(e){ setStat('\u26a0 That file could not be read into '+_SLUGMAP[target].t+'.'); }
+11423,9,setStat call,importState > r.onload,code,setStat('🧩 '+_SLUGMAP[target].t+' loaded'+carriedTxt+' — switching to it…');
+11433,9,setStat call,importState > r.onload,code,setStat('🧩 Data loaded'+carriedTxt+' — rebooting the template with your board\u2026');
+11481,33,setStat call,amtNo,code,if(Number.isNaN(v) || r.why){ setStat('⚠ <b>'+esc(what)+' was not changed.</b> '+esc(r.why || inShow(val)+' could not be read')+'.');
+11483,17,setStat call,amtNo,code,if(r.rounded) setStat('ℹ '+esc(what)+': '+esc(inShow(String(val).trim()))+' was entered as <b>'+fM(r.v)+'</b> — the board keeps whole dollars.');
+11553,57,setStat call,pmoAdd,code,"const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not added.'); return; }"
+11554,31,setStat call,pmoAdd,code,if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
+11556,5,setStat call,pmoAdd,code,setStat('Added PMO <b>'+esc(v)+'</b> — it is now offered wherever a requirement’s office '
+11564,5,setStat call,pmoRename,code,"setStat('⚠ <b>'+esc(g)+'</b> is the office the source file homes requirements to, so the '"
+11572,57,setStat call,pmoRename,code,"const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not renamed.'); return; }"
+11573,31,setStat call,pmoRename,code,if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
+11582,5,setStat call,pmoRename,code,"setStat('Renamed <b>'+esc(g)+'</b> to <b>'+esc(v)+'</b> — every requirement moved to it, in '"
+11597,5,setStat call,pmoDel,code,setStat('⚠ <b>'+esc(g)+'</b> cannot be removed — the source file homes requirements to it. '
+11607,3,setStat call,pmoDel,code,setStat('Removed PMO <b>'+esc(g)+'</b>.'+(n? ' '+n+' requirement'+(n===1?'':'s')
+11617,3,setStat call,pmoReset,code,setStat('PMO list reset to the standard set.');
+11624,20,innerHTML =,pmoBody,code,if(!pmoOpen){ el.innerHTML=''; return; }
+11627,6,innerHTML =,pmoBody,code,el.innerHTML=
+11782,5,setStat call,coaAddGroup,code,setStat('⚠ <b>'+esc(pmo)+'</b> is not an office on this board. Offices are added in '
+11792,5,setStat call,coaAddGroup,code,setStat('Added <b>'+esc(pmo)+' › '+esc(v)+'</b> — file the CCaR records that belong to it.');
+11826,7,setStat call,coaAddRec,code,setStat('⚠ <b>'+esc(v)+'</b> is already filed under '+esc(g.n)+'.'); return; }
+11830,5,setStat call,coaAddRec,code,setStat(inPlay[v]
+11863,25,innerHTML =,coaPanelBody,code,if(!coaPanelOpen){ el.innerHTML=''; return; }
+11996,6,innerHTML =,coaPanelBody,code,el.innerHTML=h;
+12085,118,setStat call,rcnSet,code,const st=document.getElementById('shareStat'); if(st && /^⚠ RCN \/ EEIC title not changed\./.test(st.textContent)) setStat('');
+12270,3,setStat call,setRcnAsg,code,setStat(k? '\ud83c\udff7 '+esc(dispTitle(it))+' \u2192 <b>'+esc(rcnLabel(k))+'</b>'
+12395,3,setStat call,setSi,code,setStat(now? '\ud83c\udff7 '+esc(dispTitle(itm))+' \u2192 SI <b>'+esc(now)+'</b> '+esc(SI_LBL(now))
+12483,3,setStat call,fillLastAwd,code,"setStat('\u21b5 Latest award set to the remaining balance, discretionary + mandatory, per service \u2014 '"
+12943,3,setStat call,crExport,code,"setStat('⬇ CR cash return — '+rows.length+' requirement'+(rows.length===1?'':'s')+', '"
+12985,3,setStat call,crClearOldMarks,code,"setStat('\u2713 '+n+' old CR half-month mark'+(n===1?'':'s')+' cleared \u2014 the award dates decide, as they already did; no figure moved.');"
+13334,5,setStat call,importSrc,code,setStat('\ud83d\udce5 Reading '+esc(f.name)+'\u2026');
+13379,5,setStat call,importSrc,code,setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
+13763,5,setStat call,budUnfSet,code,"setStat('\u26a0 <b>'+esc(name)+'</b> is a mandatory budget. A requirement with no money yet is unfunded, and '"
+13803,3,setStat call,budLineClear,code,setStat(k? '↺ <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : ' (not funded yet)')+'</b> on <b>'
+13814,3,setStat call,budClearAll,code,setStat('✗ '+n+' budget choice'+(n===1?'':'s')+' cleared on <b>'+esc(dispTitle(itemById(id)))
+13982,11,setStat call,setBudFam,code,if(!f){ setStat('\u26a0 That budget is no longer in the list \u2014 re-import the extract.'); return; }
+14000,3,setStat call,setBudFam,code,setStat('\u2713 <b>'+esc(f.lbl)+'</b> assigned on '+set.length+' line'+(set.length===1?'':'s')
+14050,5,setStat call,driveCopyHint,code,"setStat('\u2713 Copied <b style=""font-family:monospace"">'+esc(dh.data)+'</b> \u2014 paste it into the '"
+14052,13,setStat call,driveCopyHint,code,catch(e){ setStat('Select the path and copy it with Ctrl+C \u2014 the clipboard is not available here.'); }
+14113,3,setStat call,driveConnectNow,code,"setStat('⏳ Asking for the shared folder… if the browser asks under the address bar, answer it.');"
+14120,7,setStat call,driveConnectNow,code,setStat('⚠ The shared folder is still not connected — <b>'+esc((e&&e.message)||String(e))
+14124,5,setStat call,driveConnectNow,code,"setStat('✓ Connected for reading. To save there as well, press <b>✎ Allow editing</b> in \u{1F4E1} Live view.');"
+14163,78,innerHTML =,driveBar,code,function driveBar(){ const el=document.getElementById('driveBar'); if(el) el.innerHTML=driveBarHtml(); }
+14164,51,setStat call,driveSay,code,"function driveSay(t, cls){ driveCheckSay(t, cls); setStat(t); }"
+14210,37,setStat call,driveReconnect,code,"try{ await driveDir(true,'read'); setStat('✓ Reconnected to the shared folder.'); }"
+14211,13,setStat call,driveReconnect,code,catch(e){ setStat('⚠ '+esc((e&&e.message)||String(e))); render(); return; }
+14225,60,innerHTML =,driveCheckSay,code,const el=document.getElementById('liveCheck'); if(el) el.innerHTML=_driveCheckLog.join('');
+14755,3,setStat call,idsRefuse,code,setStat(html);
+14792,5,setStat call,exportIdsReq,code,setStat('⚠ <b>Diagnostic workbook saved — it holds NO uploadable IDS rows.</b> Do not upload it. Every contribution '
+14795,5,setStat call,exportIdsReq,code,"setStat('⬇ IDS workbook — <b>'+P.rows.length+'</b> row'+(P.rows.length===1?'':'s')+' on Requirement v1, every one <b>'"
+15031,60,setStat call,pfCopy,code,"try{ navigator.clipboard.writeText(txt).then(function(){ setStat('✓ Pre-flight list copied.'); },"
+15032,21,setStat call,pfCopy,code,function(){ setStat('Could not reach the clipboard.'); }); }
+15033,13,setStat call,pfCopy,code,catch(e){ setStat('Could not reach the clipboard.'); }
+15038,19,innerHTML =,pfBody,code,if(!pfOpen){ el.innerHTML=''; return; }
+15041,16,innerHTML =,pfBody,code,"catch(e){ el.innerHTML='<div class=""hint"" style=""color:var(--red)"">The check could not run — '"
+15085,6,innerHTML =,pfBody,code,el.innerHTML=h;
+15102,3,setStat call,setObCat,code,setStat(v? '\U0001f4dd '+esc(dispTitle(it))+' → <b>'+esc(v)+'</b>'
+15189,35,setStat call,ccarDescUse,code,const d=ccarDescOf(it); if(!d){ setStat('\u26a0 The CCaR list has no short description for this requirement.'); return; }
+15194,3,setStat call,ccarDescUse,code,setStat('\ud83d\udcc7 '+esc(dispTitle(it))+' \u2014 Description '+(cur? 'replaced with' : 'filled from')+' the CCaR list. It is ordinary Description text now: e
+15579,20,setStat call,aceConfirm,code,if(!sug.length){ setStat('\u26a0 Nothing to confirm \u2014 no WBS on this requirement matches a line in this estimate.'); return; }
+15587,23,setStat call,aceConfirmRoll,code,if(!f.roll.length){ setStat('\u26a0 Nothing beneath that number in this estimate.'); return; }
+15590,3,setStat call,aceConfirmRoll,code,setStat('\ud83d\udcc8 '+esc(dispTitle(it))+' \u2192 <b>'+f.roll.length+'</b> estimate line'
+15631,5,setStat call,importBud,code,setStat('💰 Reading '+esc(f.name)+'…');
+15674,7,setStat call,importBud,code,setStat('✋ Budget import cancelled — nothing was changed.');
+15703,5,setStat call,importBud,code,setStat('⚠ Budget import failed — nothing was changed.');
+15814,60,setStat call,divCopy,code,"try{ navigator.clipboard.writeText(txt).then(function(){ setStat('✓ Reconciliation copied.'); },"
+15815,21,setStat call,divCopy,code,function(){ setStat('Could not reach the clipboard.'); }); }
+15816,13,setStat call,divCopy,code,catch(e){ setStat('Could not reach the clipboard.'); }
+15821,20,innerHTML =,divBody,code,if(!divOpen){ el.innerHTML=''; return; }
+15824,16,innerHTML =,divBody,code,"catch(e){ el.innerHTML='<div class=""hint"" style=""color:var(--red)"">The comparison could not run — '"
+15828,8,innerHTML =,divBody,code,"el.innerHTML='<div class=""hint"" style=""border-left:3px solid var(--amber);padding-left:9px"">'"
+15869,6,innerHTML =,divBody,code,el.innerHTML=h;
+15878,5,setStat call,importCcarRecs,code,setStat('📇 Reading '+esc(f.name)+'…');
+15936,5,setStat call,importCcarRecs,code,setStat('⚠ CCaR records import failed — nothing was changed.');
+15948,5,setStat call,importAce,code,setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
+15970,9,setStat call,importAce,code,setStat('Import canceled \u2014 the locked <b>'+esc(key)+'</b> estimate is untouched.');
+15986,5,setStat call,importAce,code,setStat('\u26a0 Cost estimate import failed: '+esc((e&&e.message)||e));
+16764,3,setStat call,flowAddEnt,code,"setStat('📍 Added a destination for every appropriation — name it, and give it match terms if you '"
+16783,5,setStat call,flowDelEnt,code,"setStat('📍 Removed <b>'+esc(e.n)+'</b>, which had the same key as <b>'+esc(rep.n)+'</b>. No requirement was changed.');"
+16826,3,setStat call,flowDelEnt,code,setStat('📍 Removed <b>'+esc(e.n)+'</b>'
+16917,3,setStat call,destOwnBlock,code,setStat('⚠ <b>'+esc(what)+' is refused</b> — nothing was written. '+destOwnSay());
+16924,78,setStat call,destOwnKeep,code,if(ow && de && de.textContent.indexOf(DEST_OWN_HEAD)<0){ _statQuiet=false; setStat(de.innerHTML? de.innerHTML+' '+ow : ow); } }catch(e){} }
+16989,3,setStat call,setDest,code,setStat(d.to
+17495,14,setStat call,flowSetOther,code,if(r.why){ setStat('⚠ <b>That Funds Flow figure was not changed.</b> '+esc(r.why)+'.'); render(); return; }
+17496,17,setStat call,flowSetOther,code,if(r.rounded) setStat('ℹ '+esc(inShow(String(v).trim()))+' $M was entered as <b>'+fM(r.v)+'</b> — the board keeps whole dollars.');
+17605,6,innerHTML =,flowBody,code,el.innerHTML = flowOpen? flowHtml() : '';
+18224,12,setStat call,flowPng,code,if(!el){ setStat('\u26a0 Open the Funds Flow view first.'); return; }
+18251,17,setStat call,flowPng > img.onload,code,if(!b){ setStat('\u26a0 Could not build the image \u2014 use \u2b07 Export instead.'); return; }
+18256,9,setStat call,flowPng > img.onload,code,setStat('\u2b07 Saved a '+(w*SCALE)+'\u00d7'+(h*SCALE)+' PNG \u2014 drop it straight onto a slide.');
+18258,16,setStat call,flowPng > img.onload,code,}catch(e){ setStat('\u26a0 Could not build the image: '+(e&&e.message||e)); }
+18261,53,setStat call,flowPng > img.onerror,code,img.onerror=function(){ URL.revokeObjectURL(url); setStat('\u26a0 Could not render the chart to an image.'); };
+18689,3,setStat call,exportFlow,code,"setStat('⬇ Exported: funds flow '+esc(F.label)+' — summary, prime detail, OGC detail.');"
+18821,26,innerHTML =,exBody,code,if(!exOpen){ if(el) el.innerHTML=''; return; }
+18825,8,innerHTML =,exBody,code,"el.innerHTML='<div class=""hint"">No execution data yet — Data › Import CCaR QPE and pick your monthly ""Spend Plan Source File.xlsx"". FY24–FY26 plan events (with "
+18859,8,innerHTML =,exBody,code,el.innerHTML=h+t; return;
+18958,6,innerHTML =,exBody,code,el.innerHTML=h;
+19014,3,setStat call,exportExView,code,setStat('\u2b07 Exported: Active Year Execution — '+label+'.');
+19206,7,setStat call,exportSrc,code,setStat('\u270b Spend Plan Source not exported \u2014 <b>'+bad.length+'</b> line'+(bad.length===1?' has':'s have')
+19241,24,setStat call,exportSrc,code,if(!confirm(msg)){ setStat('\u270b Spend Plan Source not exported \u2014 '+blank.length+' line'
+19250,3,setStat call,exportSrc,code,setStat('⬇ Exported '+n+' row'+(n===1?'':'s')+' across '+sheets.length+' tab'
+19321,8,setStat call,bandsSyncStandard,code,try{ setStat('\u2696 The organization added '+(missing.length===1?'a standard band':'standard bands')
+19488,5,setStat call,bandAdd,code,setStat(P? ('Added sub-band <b>'+esc(BAND_LBL(id)||'')+' '+esc(v)+'</b> under <b>'+esc(P.n)
+19566,3,setStat call,bandStd,code,setStat('⚖ Standard bands '+STD_RANGE()+' installed on <b>'+esc(apLabel())+'</b>. '
+19590,22,setStat call,bandCopyAll,code,if(!peers.length){ setStat('\u26a0 No other appropriation is available in this file to copy to.'); return; }
+19621,3,setStat call,bandCopyAll,code,setStat('\u2696 Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
+19632,3,setStat call,bandExport,code,setStat('\u2b07 Ladder exported \u2014 share this file to put the same bands on another board.');
+19644,30,setStat call,bandImport > rd.onload,code,if(!list||!list.length){ setStat('\u26a0 That file does not carry a band ladder.'); inp.value=''; return; }
+19658,24,setStat call,bandImport > rd.onload,code,if(!clean.length){ setStat('\u26a0 No usable bands in that file.'); inp.value=''; return; }
+19787,20,innerHTML =,qpeBody,code,if(!qpeOpen){ el.innerHTML=''; return; }
+19790,8,innerHTML =,qpeBody,code,"el.innerHTML='<div class=""hint"">No CCaR QPE has been imported on this board, so there is '"
+19856,6,innerHTML =,qpeBody,code,el.innerHTML=h;
+19864,26,innerHTML =,bandPanelBody,code,if(!bandPanelOpen){ el.innerHTML=''; return; }
+19873,6,innerHTML =,bandPanelBody,code,el.innerHTML =
+19980,3,setStat call,applyProposedOrder,code,setStat('\u2696 <b>Published</b> \u2014 the proposed order is now the live 1\u2013N ('+moved
+20200,21,innerHTML =,planBody,code,if(!planOpen){ el.innerHTML=''; return; }
+20370,6,innerHTML =,planBody,code,el.innerHTML=wiHtml+h;
+20524,3,setStat call,exportPlans,code,"setStat('⬇ Both spend plans exported — Plan A, Plan B, and what the mandatory top line changes.');"
+20552,19,innerHTML =,poBody,code,if(!poOpen){ el.innerHTML=''; return; }
+20601,6,innerHTML =,poBody,code,el.innerHTML=h;
+20632,3,setStat call,exportProposedOrder,code,setStat('\u2b07 Proposed order exported \u2014 nothing on the board was changed.');
+20739,21,innerHTML =,helpBody,code,if(!helpOpen){ el.innerHTML=''; return; }
+20746,8,innerHTML =,helpBody,code,"el.innerHTML='<p class=""hx-lead"">This guide is part of the board file, so it matches the board you have open: '"
+20760,6,innerHTML =,helpBody,code,el.innerHTML=nav+'<h2>'+esc(s.t)+'</h2>'+s.el.innerHTML;
+20860,5,setStat call,cycLock,code,setStat('⚠ <b>'+cycAp(key)+'</b> is locked. Unlock it first if you really mean to replace it.');
+20865,19,setStat call,cycLock,code,if(!ys.length){ setStat('⚠ Nothing to lock — no year in the FYDP window holds a plan.'); return; }
+20913,3,setStat call,cycLock,code,"setStat('🔒 <b>'+cycAp(key)+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '"
+21034,22,setStat call,blDelete,code,if(key===CYCVIEW){ setStat('⚠ <b>'+blLbl(key)+'</b> is on screen — leave the view before deleting it.'); return; }
+21035,17,setStat call,blDelete,code,if(b.locked){ setStat('⚠ <b>'+blLbl(key)+'</b> is locked — unlock it before deleting.'); return; }
+21080,3,setStat call,cycSetWorking,code,setStat(MS.cycle? '🏷 Working plan tagged <b>'+blLbl(MS.cycle)+'</b>'
+21338,93,setStat call,fydpPickExport,code,"function fydpPickExport(){ fydpSrc=fydpOnScreen(); fydpView='sum'; fydpOpen=true; render(); setStat('📊 Pick the plan to print, then <b>Export the workbook</b>."
+21340,18,setStat call,exportFydpPlan,code,if(_fydpBusy){ setStat('📊 The five-year spend plan is still opening the other appropriations — it downloads as soon as they answer.'); return; }
+21355,5,setStat call,exportFydpPlan > finish,code,"setStat('📊 FYDP spend plan exported — '+esc(fydpPlanLbl(D))+', '+span+': '+B.got.length+' appropriation'+(B.got.length===1?'':'s')+', '"
+21366,17,setStat call,exportFydpPlan,code,catch(e){ setStat('⚠ The five-year spend plan could not be built — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was downloaded.'); }
+21371,3,setStat call,exportFydpPlan,code,"setStat('📊 Opening '+esc(waiting.join(', '))+' for the workbook — each opens as its own board, read-only, in a sealed frame. The workbook downloads when '+(wai"
+21496,10,srcdoc,fydpFrame,code,fr.srcdoc=html;
+21573,21,innerHTML =,fydpBody,code,if(!fydpOpen){ el.innerHTML=''; return; }
+21588,124,innerHTML =,fydpBody,code,"if(!own){ h+='<div class=""hint"">No year of '+esc(D.label)+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan.</div>'; el.innerHTML=h; return; }"
+21620,6,innerHTML =,fydpBody,code,el.innerHTML=h;
+21790,3,setStat call,exportCycCompare,code,"setStat('⇄ Cycle comparison exported — '+esc(la)+' ⇄ '+esc(lb)+', '+D.years.length+' year'+(D.years.length===1?'':'s')+' compared.');"
+21796,23,innerHTML =,cycCmpBody,code,if(!cycCmpOpen){ el.innerHTML=''; return; }
+21808,185,innerHTML =,cycCmpBody,code,… plan or with another cycle.</div>'; el.innerHTML=h; return; }
+21809,64,innerHTML =,cycCmpBody,code,"if(!cycCmpA){ h+='<div class=""hint"">Pick cycle A.</div>'; el.innerHTML=h; return; }"
+21810,98,innerHTML =,cycCmpBody,code,"if(cycCmpA===cycCmpB){ h+='<div class=""hint"">Pick two different sources to compare.</div>'; el.innerHTML=h; return; }"
+21812,72,innerHTML =,cycCmpBody,code,"if(!D){ h+='<div class=""hint"">A source is no longer held.</div>'; el.innerHTML=h; return; }"
+21816,129,innerHTML =,cycCmpBody,code,"if(!D.years.length){ h+='<div class=""hint"">The two sources hold no year in common, so there is nothing to compare.</div>'; el.innerHTML=h; return; }"
+21840,6,innerHTML =,cycCmpBody,code,el.innerHTML=h;
+21956,23,innerHTML =,cycChgBody,code,if(!cycChgOpen){ el.innerHTML=''; return; }
+21958,16,innerHTML =,cycChgBody,code,"if(!ref){ el.innerHTML='<div class=""hint"">No reference cycle. Lock one under 📌 PPBE cycles, or pick a locked cycle there as the reference, and the changes sinc"
+21960,14,innerHTML =,cycChgBody,code,"if(!D){ el.innerHTML='<div class=""hint""><b>'+blLbl(ref)+'</b> holds no '+FYL()+' plan, so there is nothing to compare this year against. It holds FY'+cycHeld(re"
+21979,129,innerHTML =,cycChgBody,code,"if(!rows.length && !D.removed.length){ h+='<div class=""hint"">Nothing has changed since '+esc(lbl)+' for '+FYL()+'.</div>'; el.innerHTML=h; return; }"
+22003,6,innerHTML =,cycChgBody,code,el.innerHTML=h;
+22021,5,setStat call,cycView,code,"setStat('⚠ <b>'+blLbl(key)+'</b> holds no plan to show — it was migrated from a one-year baseline, '"
+22037,3,setStat call,cycView,code,setStat('👁 <b>Viewing '+cycAp(key)+' (locked)</b> — the plan as it stood '+esc(fmtTs(c.ts))
+22169,3,setStat call,cycLeave,code,setStat('↩ Back on the working plan'+(MS.cycle? ' — <b>'+blLbl(MS.cycle)+'</b>':'')+'.');
+22190,3,setStat call,cycRefuse,code,"setStat('🔒 <b>'+esc(what)+' is off while '+blLbl(CYCVIEW)+' is on screen.</b> It is a locked cycle, read only — '"
+22209,19,innerHTML =,blBody,code,if(!blOpen){ el.innerHTML=''; return; }
+22256,8,innerHTML =,blBody,code,el.innerHTML=h; return;
+22306,6,innerHTML =,blBody,code,el.innerHTML=h;
+22501,5,setStat call,ppUnitSet,code,setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are now entered in $K'
+22509,3,setStat call,ppUnitSet,code,setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are entered in dollars again. No figure changed.'
+22535,3,setStat call,ppUnitUndo,code,"setStat('\u{1F3DB} The \u00d71,000 on '+esc(sv)+' was undone \u2014 '+esc(sv)+' totals '+fM2(ppSvcSum(P, sv))+' again.');"
+22592,26,innerHTML =,ppBody,code,if(!ppOpen){ if(el) el.innerHTML=''; return; }
+22641,8,innerHTML =,ppBody,code,"el.innerHTML=h+'<div class=""hint"">No services on this board yet \u2014 set them in \ud83c\udff7 Services first.</div>';"
+22759,6,innerHTML =,ppBody,code,el.innerHTML=h;
+23143,26,innerHTML =,spBody,code,if(!spOpen){ if(el) el.innerHTML=''; return; }
+23242,6,innerHTML =,spBodyDraw,code,el.innerHTML=h;
+23383,3,setStat call,posTake,code,setStat('📷 <b>'+esc(nm)+'</b> snapshotted and locked — '+FYL()+'’s plan '
+23395,17,setStat call,posDelete,code,if(s.locked){ setStat('⚠ <b>'+esc(posLbl(s))+'</b> is locked — unlock it before deleting.'); return; }
+23460,20,innerHTML =,posBody,code,if(!posOpen){ el.innerHTML=''; return; }
+23474,8,innerHTML =,posBody,code,el.innerHTML=h; return;
+23562,6,innerHTML =,posBody,code,el.innerHTML=h;
+23572,26,innerHTML =,bmBody,code,if(!bmOpen){ if(el) el.innerHTML=''; return; }
+23595,6,innerHTML =,bmBody,code,el.innerHTML=h;
+23609,26,innerHTML =,crBody,code,if(!crOpen){ if(el) el.innerHTML=''; return; }
+23660,6,innerHTML =,crBody,code,el.innerHTML=h
+23700,26,innerHTML =,fcBody,code,if(!fcOpen){ if(el) el.innerHTML=''; return; }
+23703,17,innerHTML =,fcBody,code,if(ttl) ttl.innerHTML='\ud83d\udcc5 '+FYL()+' PROJECTED SPEND PLAN FORECAST \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
+23711,11,innerHTML =,fcBody,code,"ctl.innerHTML='<label for=""fcView"">Show</label> <select id=""fcView"" onchange=""fcPick(this.value)"">'"
+23723,6,innerHTML =,fcBody,code,el.innerHTML=
+23762,3,setStat call,exportFcView,code,"setStat('\u2b07 '+FYL()+' Spend Plan Forecast exported \u2014 '+esc(vl)+', exactly as shown.');"
+24151,37,innerHTML =,scoreboard,code,document.getElementById('fitBar').innerHTML =
+24161,38,innerHTML =,scoreboard,code,document.getElementById('svcWarn').innerHTML = sh.length?
+24167,9,innerHTML =,scoreboard,code,sco.innerHTML=h;
+24168,39,innerHTML =,scoreboard,code,"document.getElementById('scMini').innerHTML='<span style=""color:var(--dim)"">(click to minimize)</span>';"
+24171,9,innerHTML =,scoreboard,code,sco.innerHTML='';
+24172,39,innerHTML =,scoreboard,code,document.getElementById('scMini').innerHTML=
+24216,10,innerHTML =,scoreboard,code,pe.innerHTML = !SVC.length? '' :
+24335,5,setStat call,bmSeedFromPp,code,setStat('⚠ <b>'+esc(lbl)+'</b> has nothing logged for '+FYL()+' — there is nothing to take.');
+24355,3,setStat call,bmSeedFromPp,code,setStat('🏛 '+FYL()+'’s base budget authority taken from <b>'+esc(lbl)+'</b> for '
+24594,19,innerHTML =,svcSummary,code,if(!gsOpen){ el.innerHTML=''; return; }
+24638,6,innerHTML =,svcSummary,code,"el.innerHTML=(scenOn()? '<div class=""hint"" style=""margin:4px 0;color:var(--amber);font-weight:700"">\u25e8 '+esc(SCEN_TAG)"
+24687,19,innerHTML =,taBody,code,if(!taOpen){ el.innerHTML=''; return; }
+24691,8,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note"">Every discretionary lane is spent \u2014 there is nothing left to place. '"
+24696,8,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note""><b>'+fM(startTot)+'</b> of discretionary is unspent and '"
+24720,6,innerHTML =,taBody,code,"el.innerHTML='<div class=""ta-note""><b>'+fM(startTot)+'</b> of discretionary budget authority is '"
+24770,56,innerHTML =,chips,code,const el=document.getElementById('chips'); if(el) el.innerHTML='';
+24916,3,setStat call,awdFixOk,code,setStat('\u2713 '+esc(it? dispTitle(it) : id)+' \u2014 the repaired award is marked checked. The award as it was saved stays with it.');
+25045,17,setStat call,pickCostElem,code,if(!hit){ setStat('⚠ No cost element matches “'+esc(v)+'” — nothing changed.'); return; }
+25206,17,setStat call,clinAdd,code,"if(rn.why){ setStat('\u26a0 <b>No CLIN added.</b> '+esc(rn.why)+'.'); clinAdd(pid, num); return; }"
+25212,19,setStat call,clinAdd,code,"if(rd.why){ setStat('\u26a0 <b>No CLIN added.</b> '+esc(rd.why)+'.'); clinAdd(pid, num, desc); return; }"
+25219,7,setStat call,clinAdd,code,setStat('Added CLIN <b>'+esc(num)+'</b>. Set its requested amount and allocate it by service in the grid.');
+25232,16,setStat call,clinSetField,code,"if(r.why){ setStat('\u26a0 <b>CLIN '+esc(c.clin)+' not changed.</b> '+esc(r.why)+'.'); clinSetField(pid, key, field, v); return; }"
+25234,31,setStat call,clinSetField,code,if(field==='clin' && !v){ setStat('⚠ A CLIN needs a number — nothing changed.'); return; }
+25403,16,setStat call,wbsQuick,code,"if(r.why){ setStat('\u26a0 <b>WBS not changed.</b> '+esc(r.why)+'.'); wbsQuick(id, v); return; }"
+25762,17,setStat call,matApplyBulk,code,if(!B || !P){ setStat('\u26a0 Choose a field and a value first.'); return; }
+25764,12,setStat call,matApplyBulk,code,if(!nw){ setStat('\u2713 '+esc(FN)+' already reads <b>'+esc(matBulkV)+'</b> on every one of the '+P.n
+25776,3,setStat call,matApplyBulk,code,setStat('\u2713 '+esc(FN)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
+25784,20,innerHTML =,matBody,code,if(!matOpen){ el.innerHTML=''; return; }
+25893,6,innerHTML =,matBody,code,el.innerHTML=h;
+25905,20,innerHTML =,wbsBody,code,if(!wbsOpen){ el.innerHTML=''; return; }
+25914,54,innerHTML =,wbsBody,code,if(!it){ wbsOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
+25961,6,innerHTML =,wbsBody,code,el.innerHTML=h;
+26169,37,innerHTML =,pmoMatrix,code,document.getElementById('pmWarn').innerHTML = shorts.length?
+26171,23,innerHTML =,pmoMatrix,code,if(!pmoSumOpen){ el.innerHTML=''; return; }
+26185,6,innerHTML =,pmoMatrix,code,el.innerHTML=`<table>${h1}${h2}
+26219,19,innerHTML =,siMatrix,code,if(!siOpen){ el.innerHTML=''; return; }
+26281,6,innerHTML =,siMatrix,code,el.innerHTML=h;
+26289,19,innerHTML =,ceSummary,code,if(!ceOpen){ el.innerHTML=''; return; }
+26314,37,innerHTML =,ceSummary,code,document.getElementById('ceWarn').innerHTML = shorts.length?
+26342,6,innerHTML =,ceSummary,code,"el.innerHTML=`<div style=""padding:8px 14px 4px;display:flex;gap:6px;flex-wrap:wrap"">${tabs}</div>"
+26535,3,setStat call,_xmlRefuse,code,setStat('⚠ <b>'+what+' not exported</b> — '+esc(said)+'. No file was made; the text on the board is unchanged.');
+26540,45,setStat call,_xmlMade,code,function _xmlMade(){ if(_xmlStood===_statN) setStat(''); _xmlStood=-1; }
+26927,21,innerHTML =,teamSummary,code,if(!teamOpen){ el.innerHTML=''; return; }
+26949,6,innerHTML =,teamSummary,code,el.innerHTML=`<table><tr><th>Team</th><th>FY27 Ask</th><th>Disc drawn</th><th>★ MC need</th><th>Mand drawn</th><th>Unfunded</th>${SVC.map(s=>`<th>${esc(s)} fund
+27018,16,setStat call,setBuy,code,if(r.why){ setStat('\u26a0 <b>'+(field==='adj'? 'The adjusted' : 'The baseline')+' quantity for '+esc(SVC[i]||'this service')
+27028,7,setStat call,setBuy,code,setStat('\u26a0 <b>Not changed.</b> '+esc(SVC[i]||'This service')+'\u2019s quantity times its unit cost would be more than '
+27045,21,innerHTML =,buysPanel,code,if(!buysOpen){ el.innerHTML=''; return; }
+27075,6,innerHTML =,buysPanel,code,"el.innerHTML = tbl('ac','✈ AIRCRAFT') + tbl('eng','⚙ ENGINES') +"
+27110,25,setStat call,render,code,_bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
+27133,10,innerHTML =,render,code,"gh.innerHTML=(H[uiMode]||base).map(function(c){ return '<div class=""'+(c[1]||'')+'"">'+esc(c[0])+'</div>'; }).join(''); } }"
+27264,35,innerHTML =,render,code,document.getElementById('list').innerHTML=h;
+27265,38,innerHTML =,render,code,document.getElementById('pmoActs').innerHTML = pmoMode()?
+27268,41,innerHTML =,render,code,document.getElementById('rmChipWrap').innerHTML = S.removed.length?
+27276,8,innerHTML =,render,code,"rp.innerHTML='<div class=""fr""><b style=""color:var(--red);font-size:11px"">REMOVED REQUIREMENTS</b> <button class=""btn"" onclick=""restoreAll()"">↩ Restore all</butt"
+27280,40,innerHTML =,render,code,} else { rp.style.display='none'; rp.innerHTML=''; }
+27542,13,innerHTML =,saveStateShow,code,if(ss) ss.innerHTML = _sb ? (un ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
+27553,26,innerHTML +=,saveStateShow,code,"if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type=""button"" class=""keptbtn"" onclick=""keptPutBack()"" '"
+27558,32,innerHTML =,saveStateShow,code,"sb.className='btn pri'; sb.innerHTML='<span class=""uiSvIc"" aria-hidden=""true"">\u2709</span><span class=""uiSvT""> Submit input</span>'; sb.setAttribute('onclick',"
+27617,36,innerHTML =,syncBtns,code,document.getElementById('dd_fy').innerHTML=
+27653,8,innerHTML =,syncBtns,code,dd.innerHTML=
+27691,38,innerHTML =,syncBtns,code,document.getElementById('dd_view').innerHTML=
+27836,41,innerHTML =,syncBtns,code,document.getElementById('dd_reports').innerHTML=
+27860,38,innerHTML =,syncBtns,code,"document.getElementById('dd_data').innerHTML=uiPlain('<div class=""uiDg"">'+"
+27877,39,innerHTML =,syncBtns,code,document.getElementById('dd_setup').innerHTML=
+27887,39,innerHTML =,syncBtns,code,document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
+27892,15,innerHTML =,syncBtns,code,if(cv) cv.innerHTML = CYCVIEW
+27902,45,innerHTML =,syncBtns,code,document.getElementById('dd_modetools').innerHTML=lbl(nm+' tools')+(T[uiMode]||'');
+27912,15,innerHTML =,syncBtns,code,"if(fc) fc.innerHTML=F.map(function(f){ return '<span class=""fchip"">'+esc(f[0])"
+27929,41,innerHTML =,syncBtns,code,document.getElementById('dd_offices').innerHTML=
+27932,38,innerHTML =,syncBtns,code,document.getElementById('dd_save').innerHTML=
+27936,38,innerHTML =,syncBtns,code,document.getElementById('dd_kept').innerHTML=
+27942,39,innerHTML =,syncBtns,code,document.getElementById('dd_audit').innerHTML=
+27956,40,innerHTML =,syncBtns,code,document.getElementById('dd_boards').innerHTML=
+28087,17,setStat call,liveTick,code,catch(e){ setStat('⚠ Automatic save to the shared folder failed — <b>'
+28090,33,setStat call,liveTick,code,if(done && _statN===said) setStat('✓ Saved to the shared folder automatically — '
+28141,3,setStat call,drivePick,code,setStat('⏳ Choose the <b>Data</b> folder in the window that opened and press <b>Select Folder</b>. '
+28150,5,setStat call,drivePick,code,"setStat('✓ Shared folder set to <b>'+esc(nm)+'</b> — this page can read it, and it is remembered on this machine. '"
+28156,40,setStat call,drivePick,code,if(/abort/i.test((e&&e.name)||'')) setStat('Folder choice ended without a folder — nothing changed. '
+28159,10,setStat call,drivePick,code,else setStat('\u26a0 That folder could not be used \u2014 '+esc((e&&e.message)||String(e))
+28344,5,setStat call,driveRelease,code,setStat('✓ Released the editing lock on '+esc(APPN_LBL[mySlug()]||mySlug())
+28346,14,setStat call,driveRelease,code,}catch(e){ setStat('⚠ Could not release the lock — '+esc((e&&e.message)||String(e))
+28395,16,setStat call,driveStorePull,code,if(!quiet) setStat('⚠ The shared folder is not connected — <b>'+esc(LIVEDB.err)
+28403,16,setStat call,driveStorePull,code,if(!quiet) setStat('\u26a0 The shared folder\u2019s copy of '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+28407,22,setStat call,driveStorePull,code,if(!j){ if(!quiet) setStat('The shared folder holds nothing for '
+28412,5,setStat call,driveStorePull,code,"setStat(liveTooNewMsg(j, APPN_LBL[mySlug()]||mySlug()));"
+28438,5,setStat call,driveStorePull,code,setStat('⚠ <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())
+28450,5,setStat call,driveStorePull,code,setStat('⚠ The shared folder’s copy of '+esc(APPN_LBL[mySlug()]||mySlug())
+28467,16,setStat call,driveStorePull,code,"if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '"
+28483,24,setStat call,driveStorePull,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }"
+28485,5,setStat call,driveStorePull,code,setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
+28495,5,setStat call,driveStorePull,code,setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' from the shared folder \u2014 reopening\u2026');
+28502,21,setStat call,driveStorePull,code,if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+28525,5,setStat call,_driveStorePushRun,code,setStat('⚠ The save asked for '+esc(APPN_LBL[ap]||ap)+' FY'+(fyAsked%100)+' did not run: the board moved to FY'+(fy%100)
+28536,5,setStat call,_driveStorePushRun,code,setStat('⛔ The shared folder’s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' could not be read — <b>'
+28551,5,setStat call,_driveStorePushRun,code,setStat('⚠ Not saved: the board moved to FY'+(MS.cur%100)+' while the shared folder’s copy of FY'+(fy%100)
+28571,5,setStat call,_driveStorePushRun,code,setStat('⚠ This board carries no requirement data — <b>nothing was written</b> to the shared folder. '
+28598,9,setStat call,_driveStorePushRun,code,setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)
+28640,12,setStat call,_driveStorePushRun,code,else setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' '
+28678,33,setStat call,_driveStorePushRun,code,if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '
+28681,38,setStat call,_driveStorePushRun,code,if(!quiet || !clean || may!=='me') setStat('✅ Saved '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)
+28699,3,setStat call,driveClashSay,code,setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
+28728,13,setStat call,_driveResolveRun,code,catch(e){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' could not be read \u2014 <b>'+esc((e&&e.message)||String(e))
+28746,7,setStat call,_driveResolveRun,code,"setStat('\u26d4 Their copy could not be kept in the shared folder\u2019s history, so <b>nothing was written</b>. '"
+28752,22,setStat call,_driveResolveRun,code,"if(liveTooNew(j)){ setStat(liveTooNewMsg(j, APPN_LBL[ap]||ap)); render(); return false; }"
+28753,27,setStat call,_driveResolveRun,code,"if(!_hasPack(j.store)){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' carries no requirement data, so it was not loaded.'); render(); return fal"
+28758,48,setStat call,_driveResolveRun,code,"if(kept==='occupied' && !driveBaseOf(ap)){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder', true)); render(); return false; }"
+28759,28,setStat call,_driveResolveRun,code,"if(kept==='occupied'){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder')); render(); return false; }"
+28761,7,setStat call,_driveResolveRun,code,"setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '"
+28771,3,setStat call,_driveResolveRun,code,setStat('\u2b07 Loaded <b>'+esc(by)+'</b>\u2019s copy of '+esc(lbl)+'.'
+28790,15,setStat call,takePen,code,"if(!h){ setStat('✍ To take the pen, press 💾 Save once to pick this board file first.'); return; }"
+28796,14,setStat call,takePen,code,}catch(e){ setStat('⚠ Could not read who holds the pen — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was changed.'); return; }
+28797,24,setStat call,takePen,code,if(writerIsMe(cur)){ setStat('✍ You already hold the pen for '+esc(what)+'.'); return; }
+28812,13,innerHTML =,driveHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--mut)"">reading the folder…</span>';"
+28820,15,innerHTML =,driveHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--red)"">Could not read the folder — '"
+28828,47,innerHTML =,driveHistBody,code,if(_driveHistFor!==MS.cur+'|'+mySlug()){ el.innerHTML=''; return; }
+28830,8,innerHTML =,driveHistBody,code,"el.innerHTML='<span style=""color:var(--mut)"">No earlier copies kept yet. Each time the folder is written, the copy '"
+28835,6,innerHTML =,driveHistBody,code,"el.innerHTML='<div style=""color:var(--mut);margin-bottom:4px"">Earlier copies of <b>'"
+28853,5,setStat call,driveRestore,code,setStat('⚠ <b>Nothing was put back.</b> That list of earlier copies is not for '+esc(APPN_LBL[pinAp]||pinAp)
+28862,5,setStat call,driveRestore > stop,code,setStat('⚠ <b>Nothing was put back.</b> The board moved to another appropriation or year while the folder was '
+28874,24,setStat call,driveRestore,code,"if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }"
+28875,29,setStat call,driveRestore,code,if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
+28879,7,setStat call,driveRestore,code,setStat('⚠ <b>Nothing was put back.</b> That copy is named for '+esc(APPN_LBL[pinAp]||pinAp)+' FY'+(pinYr%100)
+28888,15,setStat call,driveRestore,code,catch(e){ setStat('\u26a0 The copy in the folder now could not be read \u2014 <b>'+esc((e&&e.message)||String(e))+'</b> \u2014 so nothing was put back.'); retur
+28891,7,setStat call,driveRestore,code,"setStat('\u26a0 The copy in the folder now could not be kept in the history, so nothing was put back.'); return; }"
+28903,26,setStat call,driveRestore,code,"if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }"
+28905,7,setStat call,driveRestore,code,"setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '"
+28920,5,setStat call,driveRestore,code,setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
+28926,5,setStat call,driveRestore,code,setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
+28957,7,setStat call,driveExecPush,code,setStat('⚠ The execution data was <b>not shared</b>: the shared folder’s copy could not be read ('+esc((e&&e.message)||String(e))
+28962,16,setStat call,driveExecPush,code,if(!quiet) setStat('⬆ Execution data shared to the folder — everyone gets it on their next '
+28966,5,setStat call,driveExecPush,code,setStat('⚠ Could not share the execution data — '+esc((e&&e.message)||String(e)));
+28982,16,setStat call,driveExecPull,code,if(!quiet) setStat('⬇ Execution data updated from the shared folder for '
+29047,16,setStat call,driveAcePush,code,"if(!quiet) setStat('⚠ No cost estimate is loaded on this board, so there is nothing to share.');"
+29074,24,setStat call,driveAcePush,code,if(!quiet || left) setStat((wrote
+29084,5,setStat call,driveAcePush,code,setStat('⚠ Could not share the cost estimate — '+esc((e&&e.message)||String(e)));
+29094,13,setStat call,driveAceReplace,code,"if(!set){ setStat('⚠ '+esc(k)+' is not on this board, so there is nothing to share.'); return false; }"
+29100,7,setStat call,driveAceReplace,code,"setStat('⬆ <b>'+esc(k)+'</b> shared to the folder, which held no copy of it.'); render(); return true; }"
+29101,40,setStat call,driveAceReplace,code,"if(f.j && aceSameAs(f.j, k, set)){ setStat('✔ The folder already holds your '+esc(k)+' — nothing needed writing.'); return true; }"
+29102,24,setStat call,driveAceReplace,code,"if(!('txt' in f)){ setStat('⛔ The folder’s '+esc(k)+' is there, but '+esc(f.bad)+', so it cannot be kept in the history first. '"
+29110,34,setStat call,driveAceReplace,code,if(g.none || g.txt!==f.txt){ setStat('⛔ The folder’s '+esc(k)+' changed while you were deciding. <b>Nothing was written.</b> '
+29113,7,setStat call,driveAceReplace,code,"setStat('⛔ The folder’s '+esc(k)+' could not be kept in the shared folder’s history, so <b>nothing was written</b>.'); return false; }"
+29116,5,setStat call,driveAceReplace,code,setStat('⬆ Your <b>'+esc(k)+'</b> replaced the shared folder’s ('+esc(whose)+'). Theirs is kept in the folder’s history.');
+29120,5,setStat call,driveAceReplace,code,setStat('⚠ Could not replace the folder’s '+esc(k)+' — '+esc((e&&e.message)||String(e)));
+29131,13,innerHTML =,aceHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--mut)"">reading the folder…</span>';"
+29144,15,innerHTML =,aceHistShow,code,"if(el) el.innerHTML='<span style=""color:var(--red)"">Could not read the folder — '+esc((e&&e.message)||String(e))+'</span>';"
+29157,8,innerHTML =,aceHistBody,code,"el.innerHTML='<span style=""color:var(--mut)"">No earlier copies of a cost estimate kept yet. Replacing the folder’s '"
+29163,6,innerHTML =,aceHistBody,code,"el.innerHTML='<div style=""color:var(--mut);margin-bottom:4px"">Earlier copies of the shared cost estimates, newest first. '"
+29181,5,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That list of earlier copies has been read again since. Choose from the list shown now.');
+29187,24,setStat call,aceRestore,code,if(!driveStoreOn()){ setStat('⚠ <b>Nothing was put back.</b> This board is not working out of a shared folder.'); return false; }
+29194,15,setStat call,aceRestore,code,catch(e){ setStat('⚠ <b>Nothing was put back.</b> The kept copy could not be read — '+esc((e&&e.message)||String(e))+'.'); return false; }
+29198,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That kept copy is not a whole estimate.'); return false; }
+29200,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That kept copy’s figures do not match its fingerprint.'); return false; }
+29202,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> That copy was kept for '+esc(label)+' but holds '+esc(j.key)+'.'); return false; }
+29205,7,setStat call,aceRestore,code,"setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' is there, but '+esc(f.bad)"
+29207,33,setStat call,aceRestore,code,if(!f.none && f.txt===txt){ setStat('✔ The folder already holds that copy of '+esc(label)+' — nothing needed writing.'); return true; }
+29215,9,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' could not be kept in its history first.'); return false; }
+29219,7,setStat call,aceRestore,code,setStat('⚠ <b>Nothing was put back.</b> The folder’s '+esc(label)+' changed while it was being kept'
+29224,5,setStat call,aceRestore,code,setStat('↶ The shared folder’s <b>'+esc(label)+'</b> is the copy kept at <b>'+esc(pretty)+'</b> again'
+29229,5,setStat call,aceRestore,code,setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
+29276,7,setStat call,driveAcePull,code,setStat(m);
+29280,16,setStat call,driveAcePull,code,if(!quiet) setStat('⚠ Could not check the folder for cost estimates — '+esc((e&&e.message)||String(e))+'. Nothing was taken from it.');
+29353,25,setStat call,livePublish,code,if(c.mode!=='drive'){ setStat('⚠ The live view shares through the shared folder only.'); return false; }
+29363,9,setStat call,livePublish,code,"setStat('\u26a0 <b>Not published.</b> You are watching this folder, not working out of it. Publishing writes the folder\u2019s '"
+29374,5,setStat call,livePublish,code,setStat('⚠ Live publish failed — <b>'+esc(LIVEDB.err)+'</b>. Nothing was sent.');
+29388,16,setStat call,livePoll,code,if(!quiet) setStat('↻ Live view refreshed — '+Object.keys(peers).length
+29394,16,setStat call,livePoll,code,if(!quiet) setStat('⚠ Live refresh failed — <b>'+esc(LIVEDB.err)+'</b>.');
+29421,21,innerHTML =,liveBody,code,if(!liveOpen){ el.innerHTML=''; return; }
+29612,6,innerHTML =,liveBody,code,el.innerHTML=h;
+29628,11,setStat call,budClearRetired,code,if(!n){ setStat('Nothing points at a retired budget.'); return; }
+29633,30,setStat call,budClearRetired,code,'+'There is no undo.')) { setStat('\u2716 Nothing was cleared.'); return; }
+29642,3,setStat call,budClearRetired,code,setStat('\u2713 Cleared '+n+' assignment'+(n===1?'':'s')+' that pointed at a retired budget.');
+29647,20,innerHTML =,budRegBody,code,if(!budOpen){ el.innerHTML=''; return; }
+29650,8,innerHTML =,budRegBody,code,"el.innerHTML='<div class=""hint"">No budget list held yet. Import the CCaR Budget Allocation '"
+29743,6,innerHTML =,budRegBody,code,el.innerHTML=h;
+29764,32,DOMParser.parseFromString,diagPlain,code,"try{ const d=new DOMParser().parseFromString('<!doctype html><body>'+s, 'text/html'); return (d.body && d.body.textContent) || ''; }"
+30010,3,setStat call,diagSave,code,setStat('🩺 Diagnostics saved to your downloads as <b>'+esc(a.download)+'</b>. Nothing was sent anywhere — send the file to whoever is helping you.');
+30032,20,innerHTML =,idsBody,code,if(!idsOpen){ el.innerHTML=''; return; }
+30044,14,innerHTML =,idsBody,code,"if(!P){ el.innerHTML=h+'<div class=""fr"" style=""margin-top:10px""><button class=""btn"" onclick=""toggleIds()"">Close</button></div>'; return; }"
+30144,6,innerHTML =,idsBody,code,el.innerHTML=h;
+30175,20,setStat call,linkSet,code,if(!L.name){ setStat('Companion tool link removed.'); return; }
+30176,7,setStat call,linkSet,code,setStat(linkOpenable(L.name)
+30200,3,setStat call,linkOpen,code,setStat('\u{1F517} Opening <b>'+esc(L.name)+'</b>. If nothing appeared it is not in this folder \u2014 '
+30399,8,setStat call,arCopyOtherYear,code,try{ setStat(m); }catch(e){}
+30428,35,innerHTML =,arHide,code,const b=arEl('arBody'); if(b) b.innerHTML='';
+30433,64,innerHTML =,arSay,code,"function arSay(h, ok){ const m=arEl('arMsg'); if(!m) return; m.innerHTML=h||''; m.className='ar-msg'+(h? (ok? ' ok' : ' bad') : ''); }"
+30525,6,innerHTML =,arDraw,code,el.innerHTML=h;
+30535,45,innerHTML =,arSetOffice,code,try{ const b=arEl('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
+30558,15,innerHTML =,arOfficeApply,code,if(who) who.innerHTML= arOff
+30562,38,innerHTML =,arOfficeApply,code,const bh=arEl('arBudH'); if(bh) bh.innerHTML=esc(FL('budgetAsg'))+(arOff? ' — '+esc(arOff)+'’s budgets only' : '');
+30573,7,innerHTML =,arBudFill,code,"sel.innerHTML='<option value="""">— choose —</option>'+L.map(function(b){"
+30669,13,innerHTML =,arUpdate,code,if(ch) ch.innerHTML=need.map(function(x){
+30677,8,innerHTML =,arUpdate,code,sm.innerHTML='<b>'+fM(tot)+'</b> requirement'+(arOff? ' · reference <b>'+esc(ref)+'</b>' : '')
+30765,3,setStat call,arAdd,code,"setStat('➕ Added <b>'+esc(nid)+'</b> — '+esc(d.event)+' — to '+FYL()+' for '+esc(arOff)+', at the bottom of the order'"
+30790,41,setStat call,arOpenRecord,code,"if(off.length) setTimeout(function(){ setStat('Showing '+esc(nid)+' in its record — '+esc(off.join(', '))+' '+(off.length===1?'was':'were')+' taken off so it ca"
+30829,57,innerHTML =,arFinNext,code,const fb=arEl('arFinBar'); if(fb){ fb.hidden=true; fb.innerHTML=''; }
+30839,6,innerHTML =,arFinBarDraw,code,fb.innerHTML='Finishing <b>FY'+(arFin.y%100)+' '+esc(arFin.id)+' — '+esc(arFin.name)+'</b>'
+30978,87,innerHTML =,naFromDraw,code,if(typeof MS==='undefined' || !MS || !MS.years || typeof S==='undefined' || !S){ el.innerHTML=''; return; }
+30983,14,innerHTML =,naFromDraw,code,"if(!g){ el.innerHTML='<div class=""ar-note"">Choose the office first.</div>'; return; }"
+31020,6,innerHTML =,naFromDraw,code,el.innerHTML=h;
+31110,3,setStat call,naFromAdd,code,setStat(msg);
+31218,28,setStat call,openEdit,code,const bi=itemById(id); setStat('Presentation view — requirements can’t be edited here. Switch to Review to edit '+(bi? esc(dispTitle(bi)) : 'it')+'.');
+31241,35,innerHTML =,erClose,code,const b=erEl('erBody'); if(b) b.innerHTML='';
+31245,64,innerHTML =,erSay,code,"function erSay(h, ok){ const m=erEl('erMsg'); if(!m) return; m.innerHTML=h||''; m.className='ar-msg'+(h? (ok? ' ok' : ' bad') : ''); }"
+31272,49,innerHTML =,erDraw,code,"const id=erOpen, it=itemById(id); if(!it){ el.innerHTML=''; return; }"
+31361,6,innerHTML =,erDraw,code,el.innerHTML=h;
+31446,13,innerHTML =,erUpdate,code,if(ch) ch.innerHTML = need.map(function(x){ const lbl=arShort(x.l);
+31493,43,setStat call,erSave,code,if(!Object.keys(ch).length){ erClose(); setStat('Nothing changed on '+esc(dispTitle(it))+'.'); return; }
+31519,3,setStat call,erSave,code,"setStat('✎ '+esc(dispTitle(itemById(id)||it))+': saved '+msg.map(esc).join(', ')+'.');"
+31849,3,setStat call,exportCSV,code,"setStat('⬇ Priority drill exported — funded by band, for the whole order and for each PMO.');"
+31932,40,setStat call,aiExport,code,try{ txt=aiRequestText(); }catch(e){ setStat('⚠ The AI review request could not be built: '+esc((e&&e.message)||String(e))+'. Nothing was written.'); return; }
+31936,3,setStat call,aiExport,code,"setStat('🤖 <b>'+esc(fn)+'</b> written: '+(S.order||[]).length+' requirements. Give it to GenAI.mil, save its answer as a file, then '"
+31999,7,setStat call,aiImport,code,setStat('⚠ AI review not read — “'+esc(f.name)+'”: '+esc(R.why)+'.'); return; }
+32005,14,setStat call,aiImport,code,}catch(e){ setStat('⚠ AI review not read: '+esc((e&&e.message)||String(e))+'. Nothing was changed.'); }
+32015,21,innerHTML =,aiBody,code,if(!aiIsOpen){ el.innerHTML=''; return; }
+32022,18,innerHTML =,aiBody,code,"if(!AIREV){ el.innerHTML=intro+acts+'<div class=""hint"">No answer read in this tab yet.</div>'; return; }"
+32037,6,innerHTML =,aiBody,code,el.innerHTML=intro+acts
+32422,3,setStat call,exportAceTieout,code,"setStat('\ud83d\udcc8 ACE Tie-Out workbook exported \u2014 <b>'+esc(k)+'</b>, '+scopeLbl"
+33554,36,innerHTML =,(top level),code,document.getElementById('appnSel').innerHTML = Object.keys(APPNS).map(a=>'<option '+(a===APPN?'selected':'')+'>'+a+'</option>').join('');
+33724,8,innerHTML =,inspectorDraw,code,"el.innerHTML = drawerBar() + '<div class=""insp-empty"">No requirement selected.<br>'"
+33837,6,innerHTML =,inspectorDraw,code,el.innerHTML = drawerBar() +
+34247,17,innerHTML =,render,code,"if(el) el.innerHTML='<div class=""insp-empty"">The record panel could not be drawn ('+esc(why)+'), so it is empty '"
+34249,10,setStat call,render,code,try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
+34262,63,innerHTML =,(top level),code,try{ const _b=document.getElementById('subBanner'); if(_b) _b.innerHTML=subBanner(); }catch(e){}
+34463,3,setStat call,exportCoa,code,setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
+34472,3,setStat call,(top level),code,setStat('\u26a0 <b>This board could not read its saved state from browser storage</b> \u2014 '
+34478,3,setStat call,(top level),code,setStat(impMixedMsg(''));
+34483,3,setStat call,(top level),code,"setStat(keptOccupiedMsg(_bootHeld.by, _bootHeld.ts, 'the saved file')"
+34489,3,setStat call,(top level),code,setStat('\u26a0 <b>The saved file is newer</b> \u2014 '+esc(_bootHeld.by||'someone')+' saved it '+esc(fmtTs(_bootHeld.ts))
+34496,3,setStat call,(top level),code,setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
+34501,3,setStat call,(top level),code,"setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '"
+34510,3,setStat call,(top level),code,setStat('🔧 <b>'+L.length+' award'+(L.length===1? '' : 's')+' repaired on opening '+(L.length===1? 'is' : 'are')+' waiting to be checked</b>'
+34517,3,setStat call,(top level),code,setStat('\u26a0 <b>Decision bands from an older ladder</b> \u2014 '+list+'. This board\u2019s ladder '
+34524,3,setStat call,(top level),code,setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: Imports & exports → ⬅ Import a full board… and pick 
+34525,42,setStat call,(top level),code,} else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
+34534,21,setStat call,(top level),code,_statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+destNotice());
+34544,23,setStat call,(top level),code,_statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+'🏷 <b>'+esc(appnName(mySlug()))+'</b> is '
+34576,102,setStat call,(top level),code,try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'); _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+ow); } 
+34597,7,setStat call,(top level),code,setStat('⚠ The shared folder could not be read on opening — <b>'
+34607,95,setStat call,sharedArrived,code,if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No saved state in this copy — make sure you ope
+34611,95,setStat call,sharedArrived,code,if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No shared state file found next to the board — 
+34620,5,setStat call,sharedArrived,code,"setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working, so <b>nothing was replaced</b>. '"
+34629,5,setStat call,sharedArrived,code,"setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');"
+34631,5,setStat call,sharedArrived,code,"setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type=""button"" class=""nb lnk"" onclick=""adoptShared()"">load the shared "
+34716,7,innerHTML =,uiBoot,code,"c.innerHTML='<span class=""tlbl"">Cycle</span><button type=""button"" class=""btn"" id=""uiCycBtn"" aria-expanded=""false"" aria-haspopup=""true"" onclick=""uiPop(\'uiCycPop"
+34785,8,innerHTML =,uiSync,code,cl.innerHTML=r? '&#8250;' : '&#8249;';
+34806,6,innerHTML =,uiKpisNa,code,"el.innerHTML=[['ask','Total Ask'],['disc','Discretionary'],['mand','Mandatory'],['ufr','Total UFR']].map(function(c){"
+34817,61,innerHTML =,uiKpis,code,if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
+34825,12,innerHTML =,uiKpis,code,el.innerHTML=html;
+34886,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Columns</div>'"
+34893,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Plan on screen</div>'"
+34903,7,innerHTML =,uiPopFill,code,"p.innerHTML='<div class=""uiFh"">Density</div>'"
+35032,5,innerHTML =,uiFlyOpen,code,f.innerHTML=uiFlyItems(k);
+35103,9,innerHTML =,uiDrawerTabs,code,"strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){"
+35110,6,innerHTML =,uiDrawerTabs,code,"ov.innerHTML='<div><b>Lifecycle</b> <span class=""d"">pending — the board has no lifecycle field for a requirement yet</span></div>'"
+35114,8,innerHTML =,uiDrawerTabs,code,"hist.innerHTML='<div class=""h"">History</div>'+(last? '<p>'+last+'</p>' : '')"
+35135,10,setStat call,uiAddReq,code,"try{ setStat('ℹ Add requirement is in <b>Requirements › Review</b>, as in the Review tools.'); }catch(e){}"
+35166,25,setStat call,uiPmoLoad,code,if(uiSandbox()){ try{ setStat('ℹ Loading submittals is not offered in a PMO copy.'); }catch(e){} return; }
+35372,10,setStat call,uiSubMany > refuse,code,try{ setStat((partway? '⚠ The batch stopped part-way — ' : '⚠ Nothing loaded — ')+esc(opt.stat || why)
