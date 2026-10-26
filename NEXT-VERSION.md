@@ -302,12 +302,12 @@ the log, or had to decide something the log does not say, it says so here.
   still the many-requirements editor. A copy published before v2.08 still sends the plan event the old way (the review
   excepts it).
 
-**Item 123** is as logged under it below; it needed no board change. Once the v2.08 board was final (`3898d95`), the guide
+**Item 123** is as logged under it below; it needed no board change. Once the v2.08 board was final (`f416366`, after the second review), the guide
 was brought from v2.07 to v2.08:
 - every line citation was moved with the diff and checked against the function or banner it names;
 - the edit box was added to the map: where it draws stored text, through `esc()`, and that its handlers carry no board value;
 - `review/sinks.csv` was regenerated: 575 rows in 263 functions;
-- `review/builds.json` gained a v2.08 entry naming `3898d95`, the branch commit that carries this board file. After the merge
+- `review/builds.json` gained a v2.08 entry naming `f416366`, the branch commit that carries this board file. After the merge
   the entry can name the merge commit instead; the fingerprint is the same if the file is byte-identical.
 
 `review:which` names v2.08 for the board, and for a saved board, a PMO copy and a one-appropriation board written by it.

@@ -4592,7 +4592,7 @@ comparing as stored changed nothing, and the F2 check fired Chromium's change AF
 inside. **To stand in for a browser event jsdom does not fire, fire it where the browser does.** Each was proved against its own
 check with `recovery/v208/bin/prove.py` (`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). No sweep.
 
-**Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is (v2.08, cited at `3898d95`; every line
+**Item 123** (no board change): `SECURITY-REVIEW.md` rewritten for the board as it is (v2.08, cited at `f416366`; every line
 citation checked against the symbol it names), `tools/review/` (four `review:*` scripts) and `review/builds.json` naming
 v2.00–v2.08 (v2.08 by its branch commit until it merges), from `claude/security-review-kit` (`b6f1ffc`, kept as the record of what the
 security team was given). Whether the guide goes to the security team, and whether `which-build.mjs` joins the checks, are

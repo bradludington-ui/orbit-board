@@ -95,11 +95,11 @@
     {
       "release": "v2.08",
       "build": "v2.08 (26 Oct 2026)",
-      "commit": "3898d958816edca703dd5992e98713c63953b88e",
-      "blob": "391a53005cbe1383518a0b59f05639a258331a14",
-      "fileSha256": "0c0b9e98c14b484c6e0753a4a4de8ca71c54a32d426b472210f3d9670cb3c377",
-      "code": "70567b07135741aba6fe1fb0927b1662d68080701082071724ef6b9609ebf3d8",
-      "script": "4b8010d0fe144757b2733c3df274cf7652c047deb1864268181a2ae989e0c04d",
+      "commit": "f416366046eb827c0c07e63ea67680259166eb05",
+      "blob": "96b8b0e8ebf9159a80083d37fb966602f88a87d4",
+      "fileSha256": "e2f7c779bef4bb8ecd81688524664b227876c4a3b5b5b06b8f137a9f713f9886",
+      "code": "ab3b283ec555d419b7208bfa1344d1872e77953d5bdc9138e48cb04ac2bddbaf",
+      "script": "500c265d47c52039484cee82db550aaf54c4b08067f9b9a3ac7a43d5aae64f21",
       "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.08."
     }
   ]

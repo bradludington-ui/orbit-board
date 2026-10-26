@@ -10,7 +10,7 @@ private annex held by the owner (section 11).
 **Where things are named.** The board's main script is divided by 42 section banners, `// §01` to `// §42`,
 listed at the top of the script; search the file for `§` and a number to jump to one. This guide names a
 place by its banner and its function, then gives the line in `prioritization-board-grid.html` at commit
-`3898d95` (the branch commit that carries the final v2.08 board file), BUILD `v2.08 (26 Oct 2026)`. Lines
+`f416366` (the branch commit that carries the final v2.08 board file), BUILD `v2.08 (26 Oct 2026)`. Lines
 move with every build; banners and function names do not (section 3).
 
 **This guide replaces the v1.99 edition.** The v1.99 edition is kept unchanged on the branch
@@ -47,7 +47,7 @@ frame-src 'self' about: data: blob:; object-src 'none'; base-uri 'none'; form-ac
 
 **How it runs today.** The team opens the file in Microsoft Edge from a synced folder or a shared drive,
 with a `file://` address. The code turns that address into a Windows path to help people find the data
-folder (`driveWinPath`, §25, line 14025). Work between saves is kept in the browser's storage.
+folder (`driveWinPath`, §25, line 14048). Work between saves is kept in the browser's storage.
 
 > **The deployment model is under review.** The owner's security team asked whether ORBIT stays a file
 > opened in Edge, or becomes a web application hosted in the Azure IL5 environment (`NEXT-VERSION.md`
@@ -65,7 +65,7 @@ folder (`driveWinPath`, §25, line 14025). Work between saves is kept in the bro
 | 1774-2496 | Body markup: header, left menu, dialog shells, the grid. Nine hidden file inputs at 1879-1886 and 1978, and one at 2492. The in-file help is a `<template id="helpDoc">` at 2036-2216 |
 | 2497 | `<script type="application/json" id="pubState">`: the saved board data (`null` in a release) |
 | 2500 | `<script type="application/json" id="pubMode">`: the PMO-copy mode (`null` in a release) |
-| 2501-35439 | The main script, §01-§42. It carries the workbook writer's stylesheet as a string (line 26391 starts it) |
+| 2501-35514 | The main script, §01-§42. It carries the workbook writer's stylesheet as a string (line 26435 starts it) |
 
 **How it saves: by rewriting its own source.**
 
@@ -76,8 +76,8 @@ folder (`driveWinPath`, §25, line 14025). Work between saves is kept in the bro
    is written as `\u003c`, so the data cannot close the script element, and the replacement is a function,
    so `$` patterns in the data are inert. Save, the PMO copy, the work kept aside and the board as it was
    before a failed import all go through it.
-3. 💾 Save (`saveInPlace` and `_saveInPlaceFileRun`, §17, lines 9168 and 9194) uses the File System Access
-   API. The first time it asks for the file (`showSaveFilePicker`, line 9210) and keeps the handle in
+3. 💾 Save (`saveInPlace` and `_saveInPlaceFileRun`, §17, lines 9191 and 9217) uses the File System Access
+   API. The first time it asks for the file (`showSaveFilePicker`, line 9233) and keeps the handle in
    IndexedDB. Each time it reads the file back first, refuses to write over a file it cannot read or that is
    not a board, checks who wrote it last (section 9), then writes. In a browser without the API it
    downloads a copy instead. One save runs at a time, in the page and across tabs (`saveSerial`, §13, line
@@ -104,8 +104,8 @@ that saved it. Section 2 says how to check which program that is.
 | side stores | Board-wide lists kept beside the stores: execution rows `EXDB`, cost estimates `ACEDB`, the BAE budget list `BUDDB`, the reprogramming log `RPDB` (carried, no longer shown), locked PPBE cycles `CYCDB`, destinations `DESTDB` |
 | `PUB`, `PUBS` | The data read from this file's `pubState` island; `PUBS` holds every appropriation's slot |
 | PMO copy | A copy of the board for one office (`pubMode` set, `SANDBOX` true, §02). The office edits it and sends back a submittal |
-| submittal | A JSON file an office sends back from its PMO copy (`pmoSubmit`, §16, line 8221) |
-| package | A JSON file carrying one appropriation between boards (`pkgIssue`, §18, line 9603) |
+| submittal | A JSON file an office sends back from its PMO copy (`pmoSubmit`, §16, line 8222) |
+| package | A JSON file carrying one appropriation between boards (`pkgIssue`, §18, line 9626) |
 | journal | The change log inside the store (§14), with "Put back" |
 | the door | The import check, `inboundCheck` and the functions it calls (§19), section 4 |
 
@@ -115,15 +115,15 @@ that saved it. Section 2 says how to check which program that is.
 
 | | |
 |---|---|
-| File | `prioritization-board-grid.html` at commit `3898d958816edca703dd5992e98713c63953b88e`, the branch commit that carries the final v2.08 board file |
+| File | `prioritization-board-grid.html` at commit `f416366046eb827c0c07e63ea67680259166eb05`, the branch commit that carries the final v2.08 board file |
 | BUILD stamp (line 3201) | `v2.08 (26 Oct 2026)` |
-| git blob (`git hash-object`) | `391a53005cbe1383518a0b59f05639a258331a14` |
-| SHA-256 of the file | `0c0b9e98c14b484c6e0753a4a4de8ca71c54a32d426b472210f3d9670cb3c377` |
-| Code fingerprint (scheme `orbit-code-v1`) | `70567b07135741aba6fe1fb0927b1662d68080701082071724ef6b9609ebf3d8` |
+| git blob (`git hash-object`) | `96b8b0e8ebf9159a80083d37fb966602f88a87d4` |
+| SHA-256 of the file | `e2f7c779bef4bb8ecd81688524664b227876c4a3b5b5b06b8f137a9f713f9886` |
+| Code fingerprint (scheme `orbit-code-v1`) | `ab3b283ec555d419b7208bfa1344d1872e77953d5bdc9138e48cb04ac2bddbaf` |
 
 `review/builds.json` holds the same values for every release from v1.99 to v2.08, each computed by the tool
 below from the release file at its commit. Each entry names the commit on `main` that shipped the release,
-except v2.08's, which names `3898d95`, the branch commit that carries its final board file.
+except v2.08's, which names `f416366`, the branch commit that carries its final board file.
 
 **Two hashes, two questions.**
 
@@ -184,9 +184,9 @@ Checked for v2.08 (26 Oct 2026, under jsdom): the blank release, a saved board, 
 v2.08.
 
 To move a user's data onto the current program: open the blank board and use **Imports & exports › Import a full
-board (new version)…** (`importFullBoard`, §20, line 10874). That reads the old
+board (new version)…** (`importFullBoard`, §20, line 10897). That reads the old
 file's data through the import door and leaves its program behind. It takes boards saved by v1.80 or
-later, and refuses one written by a newer version (`inNewerWhy`, §19, line 10759).
+later, and refuses one written by a newer version (`inNewerWhy`, §19, line 10782).
 
 **Caveats.**
 
@@ -223,7 +223,7 @@ It splits the board for scanners and writes to `review/out/` (ignored by git), o
 | `MANIFEST.txt` | The SHA-256 of the board and of each file, one per line in the form `sha256sum` writes |
 
 The three text files are **padded, not cut**: line N of each is line N of the board, and columns are kept.
-Whatever belongs to another file is blanked, so a scanner's "board.js line 10733" is board line 10733. The
+Whatever belongs to another file is blanked, so a scanner's "board.js line 10756" is board line 10733. The
 tool reads the three files back and fails if, laid over each other, they do not give back every line of the
 board. It refuses a saved board (one with data in it), so budget data never lands in the working tree.
 
@@ -241,11 +241,11 @@ When searching the board itself, cut long lines: `grep -n 'pattern' prioritizati
 1. The import door (§19) and the importers it guards (§18, §20, §24, §26; section 4).
 2. Opening: §01-§04 (the boot of `PUB`, the side stores and the storage layer), §11 (loading a board), §13
    (the start-up restore).
-3. HTML output: `esc` and `jsa` (§40, lines 30288 and 30294), `setStat` (§15, line 7489), then
-   `review/sinks.csv` (section 7). The edit box (§40, lines 31141-31583, `openEdit` to `reqApply`), new in
+3. HTML output: `esc` and `jsa` (§40, lines 30332 and 30338), `setStat` (§15, line 7489), then
+   `review/sinks.csv` (section 7). The edit box (§40, lines 31185-31653, `openEdit` to `reqApply`), new in
    v2.08, draws a requirement's stored text and is the one writer of what it edits (section 7).
 4. The shared folder (§25 for connecting, §38 for the engine).
-5. The five-year plan's frames (§31, `fydpFrameMem` to `fydpTake`, lines 21436-21522).
+5. The five-year plan's frames (§31, `fydpFrameMem` to `fydpTake`, lines 21459-21545).
 6. The PMO copy and the submittal path (§02, §16).
 7. The exports: the XLSX writer (§36), CSV (`csvCell`, §29), the AI review request (§41).
 
@@ -253,8 +253,8 @@ When searching the board itself, cut long lines: `grep -n 'pattern' prioritizati
 
 The banners, as the script lists them, and the lines each spans in v2.08. A banner names what the section
 mostly holds; a few functions sit in a section named for its neighbours, under banner comments of their own:
-the AI review (`// §AI`, line 31853) and Clear this computer (`// §CLR`, line 32046) inside §41, and the Add
-box (line 30371) and the edit box (line 31141) inside §40.
+the AI review (`// §AI`, line 31923) and Clear this computer (`// §CLR`, line 32116) inside §41, and the Add
+box (line 30415) and the edit box (line 31185) inside §40.
 
 | § | Lines | Section |
 |---|---|---|
@@ -273,33 +273,33 @@ box (line 30371) and the edit box (line 31141) inside §40.
 | 13 | 7051-7161 | Start-up restore and saving to browser storage |
 | 14 | 7162-7405 | Change journal |
 | 15 | 7406-7799 | Save, status line, prompts, the saved file |
-| 16 | 7800-9124 | PMO copies: publish, submit, review, apply |
-| 17 | 9125-9347 | Outbound gate, in-place save and downloads |
-| 18 | 9348-10314 | Import: several boards, appropriation packages, consolidated files |
-| 19 | 10315-10854 | The import check |
-| 20 | 10855-11449 | Full-board import, one appropriation out, the import router |
-| 21 | 11450-11999 | Typed amounts, PMO list, chart of accounts |
-| 22 | 12000-12533 | Classification, the landing rule, award dates |
-| 23 | 12534-12989 | Spend-plan forecast and continuing resolution |
-| 24 | 12990-14005 | Reading workbooks (`xlsxRead`, `importSrc`) |
-| 25 | 14006-15087 | Shared-folder connection, budget list, IDS export, pre-flight |
-| 26 | 15088-16127 | CCaR, WBS, ACE mapping, BAE import, execution helpers |
-| 27 | 16128-18691 | Funds flow |
-| 28 | 18692-19259 | Active-year execution and the Spend Plan Source export |
-| 29 | 19260-20634 | Decision bands, QPE coverage, proposed order, two spend plans |
-| 30 | 20635-20788 | Executive decision walk, written fields, help guide |
-| 31 | 20789-23272 | PPBE cycles, five-year spend plan, budget positions, Spruills |
-| 32 | 23273-23766 | Snapshots, budget management, CR and forecast panels |
-| 33 | 23767-24278 | The lane engine |
-| 34 | 24279-24743 | Budget authority, fit chart, trim |
-| 35 | 24744-26349 | Row-level editors |
-| 36 | 26350-26918 | Export writer: XLSX |
-| 37 | 26919-27981 | Team summary, buy lines, main render, menus |
-| 38 | 27982-29615 | Live view and shared folder |
-| 39 | 29616-30206 | Budget list, diagnostics, IDS panel, companion link |
-| 40 | 30207-31585 | Ordering, allocation edits, add and remove; `esc`, `jsa`; the Add box and the edit box |
-| 41 | 31586-33558 | Excel workbooks; the AI review; Clear this computer |
-| 42 | 33559-35439 | Grid inspector, focus, dialogs and the boot render |
+| 16 | 7800-9147 | PMO copies: publish, submit, review, apply |
+| 17 | 9148-9370 | Outbound gate, in-place save and downloads |
+| 18 | 9371-10337 | Import: several boards, appropriation packages, consolidated files |
+| 19 | 10338-10877 | The import check |
+| 20 | 10878-11472 | Full-board import, one appropriation out, the import router |
+| 21 | 11473-12022 | Typed amounts, PMO list, chart of accounts |
+| 22 | 12023-12556 | Classification, the landing rule, award dates |
+| 23 | 12557-13012 | Spend-plan forecast and continuing resolution |
+| 24 | 13013-14028 | Reading workbooks (`xlsxRead`, `importSrc`) |
+| 25 | 14029-15110 | Shared-folder connection, budget list, IDS export, pre-flight |
+| 26 | 15111-16150 | CCaR, WBS, ACE mapping, BAE import, execution helpers |
+| 27 | 16151-18714 | Funds flow |
+| 28 | 18715-19282 | Active-year execution and the Spend Plan Source export |
+| 29 | 19283-20657 | Decision bands, QPE coverage, proposed order, two spend plans |
+| 30 | 20658-20811 | Executive decision walk, written fields, help guide |
+| 31 | 20812-23295 | PPBE cycles, five-year spend plan, budget positions, Spruills |
+| 32 | 23296-23789 | Snapshots, budget management, CR and forecast panels |
+| 33 | 23790-24301 | The lane engine |
+| 34 | 24302-24766 | Budget authority, fit chart, trim |
+| 35 | 24767-26393 | Row-level editors |
+| 36 | 26394-26962 | Export writer: XLSX |
+| 37 | 26963-28025 | Team summary, buy lines, main render, menus |
+| 38 | 28026-29659 | Live view and shared folder |
+| 39 | 29660-30250 | Budget list, diagnostics, IDS panel, companion link |
+| 40 | 30251-31655 | Ordering, allocation edits, add and remove; `esc`, `jsa`; the Add box and the edit box |
+| 41 | 31656-33628 | Excel workbooks; the AI review; Clear this computer |
+| 42 | 33629-35514 | Grid inspector, focus, dialogs and the boot render |
 
 ### The biggest review hardships
 
@@ -311,12 +311,12 @@ box (line 30371) and the edit box (line 31141) inside §40.
   Some helpers take HTML by contract and insert their arguments as given: the menu builders `mi` and `grp`
   inside `syncBtns` (§37), `recSel` and `recBtn` (§35), `inspField` (§42), `driveCheckSay` (§25),
   `setStat` (§15), and in the edit box `erSay` and the control, note and tag `erField` is handed (§40).
-- **Code inside strings.** The five-year plan's frame shim (`fydpFrameHtml`, §31, line 21452) is JavaScript
+- **Code inside strings.** The five-year plan's frame shim (`fydpFrameHtml`, §31, line 21475) is JavaScript
   written as a string literal and spliced into a copy of the page. Linters and code-only scans do not see it.
-- **Dispatch by name.** `uiFlyItems` (§42, line 34993) tests `typeof window[fn]` for names from fixed text;
+- **Dispatch by name.** `uiFlyItems` (§42, line 35068) tests `typeof window[fn]` for names from fixed text;
   it is the one `window[...]` left in the file (v2.08 removed the written-field pop-up's `fldSave`, which
-  called a setter named in a fixed list). `render` is replaced by a wrapper (§42, line 34239) after
-  `const renderBoard = render` (line 33990), so every `render()` call also runs focus restore, the
+  called a setter named in a fixed list). `render` is replaced by a wrapper (§42, line 34314) after
+  `const renderBoard = render` (line 34065), so every `render()` call also runs focus restore, the
   inspector, menu fitting and the dialog controller.
 - **Boot code between definitions.** Top-level code runs in the middle of the file as well as at its end, and
   order matters: several reads are guarded against the temporal dead zone.
@@ -331,13 +331,13 @@ box (line 30371) and the edit box (line 31141) inside §40.
 
 ### The import check: `inboundCheck`, `inWalk`, `inShapeWhy`, `IN_KEY_BAD`
 
-**Where.** §19, lines 10315-10854. It is called by `importBoards`, `consTakeApply` (§18), `fullImportText`,
+**Where.** §19, lines 10338-10854. It is called by `importBoards`, `consTakeApply` (§18), `fullImportText`,
 `exportOneAppn`, `importState` (§20), `bandImport` (§29), `driveParse` (§38, every shared-folder read),
 `aiRead` (§41, the AI answer), `loadShared` (§42, the legacy state file) and `uiSubMany` (§42, several
-submittals at once). `inTooBig` (line 10767) refuses a file on its size before any of it is read. A refusal
-goes through `inRefuse` (line 10846), one message, and nothing on the board changes.
+submittals at once). `inTooBig` (line 10790) refuses a file on its size before any of it is read. A refusal
+goes through `inRefuse` (line 10869), one message, and nothing on the board changes.
 
-`inboundCheckOwn(txt, own)` (line 10472) is the same check told whose file it is: `''` a file handed over
+`inboundCheckOwn(txt, own)` (line 10495) is the same check told whose file it is: `''` a file handed over
 (every rule), `'board'` the person's own board brought across by a full import, `'copy'` the team's own copy
 in the shared folder or beside the board. The difference is confined to two list rules (repeated RCN/EEIC
 keys and destination-list repairs), which an older ORBIT saved without complaint; every other rule applies
@@ -349,31 +349,31 @@ to all three.
 2. **Version.** A board file whose BUILD, or a JSON file whose `build`, is a newer (major, minor) than this
    board's is refused (`inNewerWhy`, v2.02).
 3. **What it parses.** If the text starts with `<` (after any white space) or contains `id="pubState"`, it
-   parses the first `pubState` island and the requirement lists that `extractPacks` (§18, line 9502) finds.
+   parses the first `pubState` island and the requirement lists that `extractPacks` (§18, line 9525) finds.
    Otherwise it parses the whole text as JSON. A part that does not parse is not checked here; the importer
    reports it in its own words.
-4. **Every value** (`inWalk`, line 10712, iterative so deep nesting cannot overflow the stack):
+4. **Every value** (`inWalk`, line 10735, iterative so deep nesting cannot overflow the stack):
    - more than 5,000,000 entries: refused;
    - numbers must be finite and within ±1e15 (`IN_MAX_NUM`);
    - text at most 200,000 characters (`IN_MAX_TEXT`);
    - nesting at most 64 (`IN_MAX_DEPTH`);
-   - a key in `IN_KEY_BAD` (line 10352): refused. Since v2.00 that is `__proto__`, `prototype` and every
+   - a key in `IN_KEY_BAD` (line 10375): refused. Since v2.00 that is `__proto__`, `prototype` and every
      name `Object.prototype` carries in this browser (`constructor`, `toString`, `valueOf`, `hasOwnProperty`
      and the rest), read from the browser itself. It is a `Set`, so the test is not answered by the
      prototype it guards.
-5. **Recognised shapes** (`inShapeWhy`, line 10476), wherever they sit in the file: a requirement list, a
+5. **Recognised shapes** (`inShapeWhy`, line 10499), wherever they sit in the file: a requirement list, a
    year's plan (in a board, a cycle, a snapshot or a package), a band ladder, an office or service list, a
    submittal, a change journal entry. In those shapes:
-   - **ids** (`inIdWhy`, line 10411): text of 1-80 characters with no control character, `<`, `>`, `"`,
-     `'`, backquote, backslash or `|` (`IN_ID_BAD`, line 10345); not a name in `IN_KEY_BAD`; not beginning
-     with two underscores. The keys of the per-requirement maps in `IN_ID_MAPS` (line 10356) and a
+   - **ids** (`inIdWhy`, line 10434): text of 1-80 characters with no control character, `<`, `>`, `"`,
+     `'`, backquote, backslash or `|` (`IN_ID_BAD`, line 10368); not a name in `IN_KEY_BAD`; not beginning
+     with two underscores. The keys of the per-requirement maps in `IN_ID_MAPS` (line 10379) and a
      submittal's item keys are held to the same rule;
-   - **service, office and band names** (`inNameWhy`, line 10421): text of at most 200 characters with no
+   - **service, office and band names** (`inNameWhy`, line 10444): text of at most 200 characters with no
      control character, `<`, `>`, `"`, backquote or backslash (`IN_NAME_BAD`), and not a name in
      `IN_KEY_BAD`. Names typed into the board are held to the same rule;
-   - **values used as keys** (`IN_VAL_KEYS`, line 10354: `id`, `nid`, `k`, `key`, `grp`, `pmo`, `svc`,
+   - **values used as keys** (`IN_VAL_KEYS`, line 10377: `id`, `nid`, `k`, `key`, `grp`, `pmo`, `svc`,
      `ap`): wherever such a field sits, its text value may not be a name in `IN_KEY_BAD`;
-   - **amounts** (`inAmtWhy`, line 10428): a number within ±1e13 (`IN_MAX_AMT`), or text that reads as one
+   - **amounts** (`inAmtWhy`, line 10451): a number within ±1e13 (`IN_MAX_AMT`), or text that reads as one
      ("1,234,567");
    - **band colours**: a `#` hex colour;
    - **awards**: `awdNorm` in door mode (§11, line 6008);
@@ -390,7 +390,7 @@ to all three.
 - **Free text.** Titles, events, notes and descriptions may hold any character within the length limit. They
   are made safe where they are drawn (section 7), not at the door.
 - **Workbooks.** The `.xlsx` imports do not pass the door. They are read cell by cell (`xlsxRead`, §24, line
-  13047); maps keyed by a value read from a workbook are created with no prototype (section 7).
+  13070); maps keyed by a value read from a workbook are created with no prototype (section 7).
 - **Data that arrives another way.** Browser storage read at opening, the kept-aside copy, other
   appropriations' stores, the board's own `pubState`, and the five-year plan's frame replies do not pass the
   door. Each row below says how it is checked instead.
@@ -400,23 +400,23 @@ to all three.
 | Where | Function | What comes in | How it is checked |
 |---|---|---|---|
 | lines 1879-1886, 1978, 2492 | (markup) | Ten hidden `<input type="file">` elements, each calling an importer with `onchange` | See the importers below |
-| §20, 11297 | `importState` | One file (`#stateFile`): a board HTML, a state JSON, a package, a submittal or a consolidated file | `inTooBig`, then `inboundCheck` before any route, then `JSON.parse`. Submittals go to `pmoTake`, packages to `pkgApply`. Some routes reload the page |
-| §20, 10874, 10887 | `importFullBoard`, `fullImportText` | One whole board (`#fullFile`) | `inTooBig`, `inboundCheck`, the `pubState` pattern, a BUILD of v1.80 or later and not newer, a confirm per appropriation and one for the whole import. Every storage key written through `lsAll`, all or nothing. Reloads |
-| §18, 9350 | `importBoards` | Several boards at once (`#multiFile`) | `inTooBig` and `inboundCheck` on each; one refused file refuses all. Two files for one appropriation are refused. `svcGuardImport` per appropriation; one `lsAll` commit |
-| §18, 9489, 9502 | `_scanJson`, `extractPacks` | The requirement list after the first `const APPNS = ` or `const emb = ` in an imported board's script | A brace-matching scan, then `JSON.parse`. The door uses the same `extractPacks`, so it checks the object the importer uses |
-| §16, 8718 | `pmoTake` | A submittal, routed from `importState`, or several at once (`uiSubMany`, §42, line 35317) | `ap` must match this board; `fy` checked; the service list is required when there are per-service figures and must match (a reorder is remapped by name); widths must equal the board's; every field normalised by `pmoNorm` (§16, line 7885); out-of-scope items dropped. Nothing is applied until a reviewer ticks it (`pmoApply`, line 8578) |
-| §18, 9955 | `pkgApply` | A package, routed from `importState` | `spmtPkg===1`, `ap` and `ms` present, `seq` a whole number and `ap` one of the board's own keys; `svcGuardImport` against the target appropriation's services; a staleness test against the ledger; a preview confirm; locked baselines kept |
-| §18, 10135, 10200 | `importStores`, `cycTake` | The side stores in an imported file | Execution: newer time wins per appropriation. Estimates: a missing key is taken, the same fingerprint is a no-op, a different one is reported. Reprogramming log: `rpMerge` (§38). Cycles: missing keys taken, held ones kept |
-| §18, 10227, 10259 | `consTakePick`, `consTakeApply` | Appropriations picked from a consolidated file | `inboundCheck`, `svcGuardImport` per appropriation, a conflict confirm, a preview confirm, one `lsAll` commit with memory restore, then a reload |
-| §27, 16666 | `destPkgIn` | A submittal's destination list and the destination keys on its items | Own-key lookups only; `destFold` (line 16412) turns names into text and allows known kinds only |
-| §29, 19634 | `bandImport` | A band ladder `.json` (`#bandFile`) | `inTooBig`, `inboundCheck`, `JSON.parse`, then a field allowlist; colour must be a six-digit hex colour. Confirm before replacing |
-| §24, 13047 | `xlsxRead` | Any `.xlsx` a person picks: the ZIP directory, headers, deflate streams and XML parts | Every offset is bounds-checked and each failure is named; entries inflated with `DecompressionStream('deflate-raw')`; OOXML's `_xHHHH_` escape read once, a code for a character a workbook cannot hold kept as written. XML read with regular expressions |
-| §24, 13329 | `importSrc` | The CCaR QPE execution workbook (`#srcFile`) | Staged, committed only after every tab is read; cells normalised by `normSrcRow` |
-| §26, 15624 | `importBud` | The BAE workbook (`#budFile`), its `Budget Name` column | Header required; names parsed by `budParseName`; confirm when budgets would be retired |
-| §26, 15871 | `importCcarRecs` | The CCaR records workbook (`#ccarFile`) | `CCaR No` and `Title` headers required; keys normalised by `ccarNorm`; duplicates and conflicts flagged |
-| §26, 15940 | `importAce` | The ACE cost-estimate workbook (`#aceFile`); the set key comes from the file name | `aceParse` reads fixed columns; appropriation, office and service through allowlists; a set name in `IN_KEY_BAD` is refused. Confirm before replacing a locked set |
-| §41, 31993 | `aiImport` | The AI review answer (`#aiFile`), section "The AI review" below | `inTooBig`, then `aiRead`: `inboundCheck` on the JSON it finds, then each line checked against the board |
-| §38, 28779 | `takePen` | The board's own file on disk, read through the stored handle | No inboundCheck. Only `writerShape(p.writer)` is used from it |
+| §20, 11320 | `importState` | One file (`#stateFile`): a board HTML, a state JSON, a package, a submittal or a consolidated file | `inTooBig`, then `inboundCheck` before any route, then `JSON.parse`. Submittals go to `pmoTake`, packages to `pkgApply`. Some routes reload the page |
+| §20, 10897, 10910 | `importFullBoard`, `fullImportText` | One whole board (`#fullFile`) | `inTooBig`, `inboundCheck`, the `pubState` pattern, a BUILD of v1.80 or later and not newer, a confirm per appropriation and one for the whole import. Every storage key written through `lsAll`, all or nothing. Reloads |
+| §18, 9373 | `importBoards` | Several boards at once (`#multiFile`) | `inTooBig` and `inboundCheck` on each; one refused file refuses all. Two files for one appropriation are refused. `svcGuardImport` per appropriation; one `lsAll` commit |
+| §18, 9512, 9525 | `_scanJson`, `extractPacks` | The requirement list after the first `const APPNS = ` or `const emb = ` in an imported board's script | A brace-matching scan, then `JSON.parse`. The door uses the same `extractPacks`, so it checks the object the importer uses |
+| §16, 8741 | `pmoTake` | A submittal, routed from `importState`, or several at once (`uiSubMany`, §42, line 35392) | `ap` must match this board; `fy` checked; the service list is required when there are per-service figures and must match (a reorder is remapped by name); widths must equal the board's; every field normalised by `pmoNorm` (§16, line 7885); out-of-scope items dropped. Nothing is applied until a reviewer ticks it (`pmoApply`, line 8601) |
+| §18, 9978 | `pkgApply` | A package, routed from `importState` | `spmtPkg===1`, `ap` and `ms` present, `seq` a whole number and `ap` one of the board's own keys; `svcGuardImport` against the target appropriation's services; a staleness test against the ledger; a preview confirm; locked baselines kept |
+| §18, 10158, 10223 | `importStores`, `cycTake` | The side stores in an imported file | Execution: newer time wins per appropriation. Estimates: a missing key is taken, the same fingerprint is a no-op, a different one is reported. Reprogramming log: `rpMerge` (§38). Cycles: missing keys taken, held ones kept |
+| §18, 10250, 10282 | `consTakePick`, `consTakeApply` | Appropriations picked from a consolidated file | `inboundCheck`, `svcGuardImport` per appropriation, a conflict confirm, a preview confirm, one `lsAll` commit with memory restore, then a reload |
+| §27, 16689 | `destPkgIn` | A submittal's destination list and the destination keys on its items | Own-key lookups only; `destFold` (line 16435) turns names into text and allows known kinds only |
+| §29, 19657 | `bandImport` | A band ladder `.json` (`#bandFile`) | `inTooBig`, `inboundCheck`, `JSON.parse`, then a field allowlist; colour must be a six-digit hex colour. Confirm before replacing |
+| §24, 13070 | `xlsxRead` | Any `.xlsx` a person picks: the ZIP directory, headers, deflate streams and XML parts | Every offset is bounds-checked and each failure is named; entries inflated with `DecompressionStream('deflate-raw')`; OOXML's `_xHHHH_` escape read once, a code for a character a workbook cannot hold kept as written. XML read with regular expressions |
+| §24, 13352 | `importSrc` | The CCaR QPE execution workbook (`#srcFile`) | Staged, committed only after every tab is read; cells normalised by `normSrcRow` |
+| §26, 15647 | `importBud` | The BAE workbook (`#budFile`), its `Budget Name` column | Header required; names parsed by `budParseName`; confirm when budgets would be retired |
+| §26, 15894 | `importCcarRecs` | The CCaR records workbook (`#ccarFile`) | `CCaR No` and `Title` headers required; keys normalised by `ccarNorm`; duplicates and conflicts flagged |
+| §26, 15963 | `importAce` | The ACE cost-estimate workbook (`#aceFile`); the set key comes from the file name | `aceParse` reads fixed columns; appropriation, office and service through allowlists; a set name in `IN_KEY_BAD` is refused. Confirm before replacing a locked set |
+| §41, 32063 | `aiImport` | The AI review answer (`#aiFile`), section "The AI review" below | `inTooBig`, then `aiRead`: `inboundCheck` on the JSON it finds, then each line checked against the board |
+| §38, 28823 | `takePen` | The board's own file on disk, read through the stored handle | No inboundCheck. Only `writerShape(p.writer)` is used from it |
 
 No file is taken by drag and drop: the row drag moves rows within the page.
 
@@ -425,14 +425,14 @@ No file is taken by drag and drop: the row drag moves rows within the page.
 **ORBIT makes no call to an AI service.** The file has no network route, and a credential would travel in
 every save, so the round trip to GenAI.mil is carried by hand. All of it is in §41:
 
-- `aiRequestText` (line 31889) builds a text file: instructions for the answer's format, then a JSON
+- `aiRequestText` (line 31959) builds a text file: instructions for the answer's format, then a JSON
   object holding the appropriation, the years the working plan holds, the services and, for every
   requirement on the board, its id, rank, title, record name, office, CCaR record, Mission Critical flag,
   description, impact statement, a few classification fields, and per year its requirement, allocation,
-  funded and unfunded figures in whole dollars. `aiExport` (line 31930) downloads it. The status line tells
+  funded and unfunded figures in whole dollars. `aiExport` (line 32000) downloads it. The status line tells
   the person it holds the board's figures and text and is to be handled as the board is.
-- `aiImport` (line 31993) reads the answer the person saved. `aiExtract` takes the JSON object out of any
-  prose around it; `aiRead` (line 31950) runs `inboundCheck` on it, requires `format` and a `findings` list
+- `aiImport` (line 32063) reads the answer the person saved. `aiExtract` takes the JSON object out of any
+  prose around it; `aiRead` (line 32020) runs `inboundCheck` on it, requires `format` and a `findings` list
   of at most 5,000, cuts every text field to a fixed length, and checks each finding against the board: the
   requirement is on the board, the year is held, the measure and field are on fixed lists
   (own-key lookups), the value is one of the board's own, and a quoted figure equals the board's.
@@ -446,15 +446,15 @@ every save, so the round trip to GenAI.mil is carried by hand. All of it is in �
 |---|---|---|---|
 | theme script, line 1753 | (top level) | `spmtTheme` | Allowlist (navy, parchment, blueprint, harbor); anything else removes `data-theme` |
 | §08, 4327, 4359 | `themeGet`, `uiLoad` | `spmtTheme`, `spmtMode`, `spmtDensity`, `spmtDetail` | Allowlists (`THEMES`, `UI_MODES`, `UI_DENS`); `spmtDetail` compared to `'1'` |
-| §42, 34660-34662 | (top level) | `prio27uiRail`, `prio27uiDock`, `prio27uiCols`: the left menu's layout | Compared to `'1'`; `prio27uiCols` must be a plain object |
-| §37, 27289 | `menuGrp` | `spmtMenuGroups` | Must be a plain object; used in equality tests only |
+| §42, 34735-34737 | (top level) | `prio27uiRail`, `prio27uiDock`, `prio27uiCols`: the left menu's layout | Compared to `'1'`; `prio27uiCols` must be a plain object |
+| §37, 27333 | `menuGrp` | `spmtMenuGroups` | Must be a plain object; used in equality tests only |
 | §14, 7346 | `jrnlSeen` | `spmtSeen` | Coerced to a number |
 | §02, 2640 | `writerKey` | `prio27writerKey` | Must match `^[0-9a-f]{32}$`, otherwise regenerated with `crypto.getRandomValues` (`Math.random` if that fails) |
 | §03 | side-store boot | `prio27execdb`, `prio27acedb`, `prio27buddb`, `prio27destdb`, `prio27reprog`, `<key>-cyc`, each against the file's copy | `JSON.parse` in try/catch; the copy with the newer time wins; a small shape check each. No inboundCheck |
 | §03, 2945 | `_impRep` | `prio27impRep`: the HTML report of a full import | Read once at opening and removed; built with `esc()` where it was written |
 | §04, 2983, 3012 | `APPN`, `switchAppn` | `prio27appn`, and `PUB.only` | Checked against the appropriation tables; default O&M |
 | §04, 3054 | `cycStoreOf` | Other appropriations' `-cyc` keys and the file's `cycDb.byAp` | `cycles` must be an object |
-| §31, 20995 | `CYC_GO_KEY` | `prio27cycGo`: the appropriation a "Go to" under PPBE cycles is opening | Compared to this board's slug, then removed |
+| §31, 21018 | `CYC_GO_KEY` | `prio27cycGo`: the appropriation a "Go to" under PPBE cycles is opening | Compared to this board's slug, then removed |
 | §04, 3091 | `DATA` | `.dataPack` inside the stored store | Only `_hasData`. No inboundCheck |
 | §13 | boot restore | `localStorage[<key>]`, the whole store, to `applyStore` | `JSON.parse` in try/catch; `applyStore` runs `svcGuardImport` and `applyState`'s repairs. No inboundCheck |
 | §13, 7146 | `persist` | Writes the whole store to `localStorage[<key>]` | Refused while a locked cycle is on screen; a full-storage error is reported |
@@ -464,83 +464,83 @@ every save, so the round trip to GenAI.mil is carried by hand. All of it is in �
 | §15, 7620, 7653 | `keepAside`, `keptPutBack` | `<key>.kept`: one kept-aside store | Meta parsed in try/catch; the store goes to `applyStore`. No inboundCheck |
 | §15, 7783 | `pubsFor` | Every other appropriation's store, embedded into every saved board | Shape test; newer time wins. No inboundCheck |
 | §15, 7797-7798 | `_fhPut`, `_fhGet` | IndexedDB `prio-fh`, store `h`, key `FNAME`: the saved file's handle | Permission asked again before each use |
-| §16, 7998, 8008 | `myPmo`, `pickMyPmo` | `prio27pmo` | `pickMyPmo` stores only a value from the office list |
-| §18, 9557, 9596 | `pkgStoreOf`, `pkgPut` | Another appropriation's store (or `PUBS`), written with `lsSet` | Shape test only |
-| §20, 11109 | `IMP_MIXED_KEY` | `prio27impMixed`: a failed import's hold | Parsed in try/catch; list checks |
-| §29, 19456, 19571, 19587 | `bandsAdoptPending`, `bandPeers`, `bandCopyAll` | `prio27bands_<slug>`: a ladder another appropriation left pending; `bandCopyAll` rewrites each other appropriation's stored store after a confirm | Read, parsed, removed; adopted when its time is newer |
-| §31, 21405 | `fydpStoreLocal` | Another appropriation's store, or `PUBS` when newer | Shape test |
-| §31, 21436 | `fydpFrameMem` | Copies every `localStorage` key of this origin except `spmtLive`, `spmtLiveKey` and `*.kept` into the frame's memory | See "Frame messages" |
-| §37, 27467 | `sideBootCheck` | `prio27sideOpen`: hashes of what opening wrote | Reset unless it matches this file's time |
-| §38, 28023 | `liveCfg`, `liveSaveCfg` | `spmtLive`: live-view settings (mode, interval, on, the folder's name) | Parsed in try/catch; a machine set up for a removed transport is moved to the shared folder, off. `spmtLiveKey`, the key the removed transports used, is deleted on every read (line 28037) |
-| §38, 28115-28127 | `driveIdb`, `drivePut`, `driveGet` | IndexedDB `prio-fh`, key `spmt-live-dir`: the shared folder's handle | Permission queried on each use (`driveDir`, line 28172) |
+| §16, 7999, 8009 | `myPmo`, `pickMyPmo` | `prio27pmo` | `pickMyPmo` stores only a value from the office list |
+| §18, 9580, 9619 | `pkgStoreOf`, `pkgPut` | Another appropriation's store (or `PUBS`), written with `lsSet` | Shape test only |
+| §20, 11132 | `IMP_MIXED_KEY` | `prio27impMixed`: a failed import's hold | Parsed in try/catch; list checks |
+| §29, 19479, 19594, 19610 | `bandsAdoptPending`, `bandPeers`, `bandCopyAll` | `prio27bands_<slug>`: a ladder another appropriation left pending; `bandCopyAll` rewrites each other appropriation's stored store after a confirm | Read, parsed, removed; adopted when its time is newer |
+| §31, 21428 | `fydpStoreLocal` | Another appropriation's store, or `PUBS` when newer | Shape test |
+| §31, 21459 | `fydpFrameMem` | Copies every `localStorage` key of this origin except `spmtLive`, `spmtLiveKey` and `*.kept` into the frame's memory | See "Frame messages" |
+| §37, 27511 | `sideBootCheck` | `prio27sideOpen`: hashes of what opening wrote | Reset unless it matches this file's time |
+| §38, 28067 | `liveCfg`, `liveSaveCfg` | `spmtLive`: live-view settings (mode, interval, on, the folder's name) | Parsed in try/catch; a machine set up for a removed transport is moved to the shared folder, off. `spmtLiveKey`, the key the removed transports used, is deleted on every read (line 28081) |
+| §38, 28159-28171 | `driveIdb`, `drivePut`, `driveGet` | IndexedDB `prio-fh`, key `spmt-live-dir`: the shared folder's handle | Permission queried on each use (`driveDir`, line 28216) |
 | §39 | `diagSecrets`, `diagStoreOf` | Every `prio27`/`spmt` key, for the redaction list and counts | Try/catch; shape tests |
-| §42, 34556 | `loadShared` | `spmtSidecar`: opt-in for the legacy state file | Strictly `=== '1'` |
+| §42, 34631 | `loadShared` | `spmtSidecar`: opt-in for the legacy state file | Strictly `=== '1'` |
 
 ### Shared folder (File System Access API)
 
-Every read of a folder file goes through `driveParse` (§38, line 28383): `inboundCheckOwn(txt, 'copy')`,
+Every read of a folder file goes through `driveParse` (§38, line 28427): `inboundCheckOwn(txt, 'copy')`,
 then `JSON.parse`.
 
 | Where | Function | What comes in or goes out | How it is checked |
 |---|---|---|---|
-| §25, 14057; §38, 28131 | `driveOpenPicker`, `drivePick` | The folder, chosen in `showDirectoryPicker({mode:'read'})`; its name kept in `spmtLive` | The browser's own permission prompt; write permission is asked for separately |
-| §25, 14077, 14111 | `driveAutoConnect`, `driveConnectNow` | On opening and on a click: pulls the store, execution rows and estimates | Only when write permission is already granted (automatic) or after a click |
-| §25, 14165 | `driveWriteTest` | Writes, reads back and removes `spmt-check-xxxxx.txt` | Content must start with `ok ` |
-| §25, 14011 | `liveLeaving` | On leaving the page, removes this board's lock file | Only with the live view on; errors ignored |
-| §38, 28204, 28216 | `snapMatch`, `snapList` | Lists `history/` names | A pattern with the year and appropriation escaped |
-| §38, 28280, 28286 | `driveWrite`, `driveRead` | Raw write (`createWritable`) and raw read of a named file | Callers decide; reads then go through `driveParse` |
-| §38, 28296 | `drivePoll` | Peer lock files `spmt-<fy>-<ap>.lock.json` and peer boards `spmt-<fy>-<ap>.json` | `driveParse`; `liveTooNew`; a lock counts when `by` is set and its time is fresh |
-| §38, 28333, 28340 | `driveHeartbeat`, `driveRelease` | Writes and removes this user's lock file `{by, ts, fy, ap}` | Outbound; errors ignored |
-| §38, 28371, 28389 | `driveStoreRead`, `driveStorePull` | This appropriation's folder copy, adopted through `applyStore` | Only `NotFoundError` means absent; `driveParse`; `liveTooNew`; time against the store and the recorded base; refused over unsaved work; `keepAside` first; `svcGuardImport` |
-| §38, 28510, 28516 | `driveStorePush`, `_driveStorePushRun` | The folder save, through `saveSerial`: `livePayload` (line 28100) = `pkgStrip(MS)` plus `by`, `ts` and `writer` | Target and year fixed before the first wait; a copy it cannot read is never overwritten; the base-time clash check; `writerMay`; the folder's copy kept in `history/` first, or nothing is written |
-| §38, 29351 | `livePublish` | ⬆ Publish now: the same folder save | Refuses any mode but the shared folder |
-| §38, 28715, 28721 | `driveResolve`, `_driveResolveRun` | Keeps theirs in history and saves over it, or adopts theirs | Confirm; `liveTooNew`; `keepAside` |
-| §38, 28843 | `driveRestore` | A history copy chosen from a list | Name pinned to the year and appropriation; `driveParse`; `ap` and `fy` must equal the pinned values; the current copy kept first; unsaved work kept aside first |
-| §38, 28948, 28970 | `driveExecPush`, `driveExecPull` | `spmt-exec.json` (execution rows) | Pull: `driveParse`; requires `exec` and a newer time |
-| §38, 29020-29233 | `driveAceFile`, `driveAcePush`, `driveAceReplace`, `aceHistShow`, `aceRestore`, `driveAcePull` | `spmt-ace-<name>.json`, one per estimate set, and their history copies | `driveParse`; shape; fingerprint. Push only where the folder has none; replace after a confirm and a re-read, history first; restore checks the name and reads the kept copy back byte for byte |
-| §31, 21416 | `fydpStoreFolder` | Another appropriation's folder copy, read only | `driveParse`; `liveTooNew`; used only when newer than the local copy |
+| §25, 14080; §38, 28175 | `driveOpenPicker`, `drivePick` | The folder, chosen in `showDirectoryPicker({mode:'read'})`; its name kept in `spmtLive` | The browser's own permission prompt; write permission is asked for separately |
+| §25, 14100, 14134 | `driveAutoConnect`, `driveConnectNow` | On opening and on a click: pulls the store, execution rows and estimates | Only when write permission is already granted (automatic) or after a click |
+| §25, 14188 | `driveWriteTest` | Writes, reads back and removes `spmt-check-xxxxx.txt` | Content must start with `ok ` |
+| §25, 14034 | `liveLeaving` | On leaving the page, removes this board's lock file | Only with the live view on; errors ignored |
+| §38, 28248, 28260 | `snapMatch`, `snapList` | Lists `history/` names | A pattern with the year and appropriation escaped |
+| §38, 28324, 28330 | `driveWrite`, `driveRead` | Raw write (`createWritable`) and raw read of a named file | Callers decide; reads then go through `driveParse` |
+| §38, 28340 | `drivePoll` | Peer lock files `spmt-<fy>-<ap>.lock.json` and peer boards `spmt-<fy>-<ap>.json` | `driveParse`; `liveTooNew`; a lock counts when `by` is set and its time is fresh |
+| §38, 28377, 28384 | `driveHeartbeat`, `driveRelease` | Writes and removes this user's lock file `{by, ts, fy, ap}` | Outbound; errors ignored |
+| §38, 28415, 28433 | `driveStoreRead`, `driveStorePull` | This appropriation's folder copy, adopted through `applyStore` | Only `NotFoundError` means absent; `driveParse`; `liveTooNew`; time against the store and the recorded base; refused over unsaved work; `keepAside` first; `svcGuardImport` |
+| §38, 28554, 28560 | `driveStorePush`, `_driveStorePushRun` | The folder save, through `saveSerial`: `livePayload` (line 28144) = `pkgStrip(MS)` plus `by`, `ts` and `writer` | Target and year fixed before the first wait; a copy it cannot read is never overwritten; the base-time clash check; `writerMay`; the folder's copy kept in `history/` first, or nothing is written |
+| §38, 29395 | `livePublish` | ⬆ Publish now: the same folder save | Refuses any mode but the shared folder |
+| §38, 28759, 28765 | `driveResolve`, `_driveResolveRun` | Keeps theirs in history and saves over it, or adopts theirs | Confirm; `liveTooNew`; `keepAside` |
+| §38, 28887 | `driveRestore` | A history copy chosen from a list | Name pinned to the year and appropriation; `driveParse`; `ap` and `fy` must equal the pinned values; the current copy kept first; unsaved work kept aside first |
+| §38, 28992, 29014 | `driveExecPush`, `driveExecPull` | `spmt-exec.json` (execution rows) | Pull: `driveParse`; requires `exec` and a newer time |
+| §38, 29064-29277 | `driveAceFile`, `driveAcePush`, `driveAceReplace`, `aceHistShow`, `aceRestore`, `driveAcePull` | `spmt-ace-<name>.json`, one per estimate set, and their history copies | `driveParse`; shape; fingerprint. Push only where the folder has none; replace after a confirm and a re-read, history first; restore checks the name and reads the kept copy back byte for byte |
+| §31, 21439 | `fydpStoreFolder` | Another appropriation's folder copy, read only | `driveParse`; `liveTooNew`; used only when newer than the local copy |
 
 The board no longer reads or writes the folder's reprogramming log (`spmt-reprog.json`); a copy already
 there is left alone.
 
 ### The legacy state file beside the board
 
-`loadShared` (§42, line 34547) is the one HTTP-style read the board still makes. It asks for
+`loadShared` (§42, line 34622) is the one HTTP-style read the board still makes. It asks for
 `prio-state-<slug>.json` (`STATEFILE`, §05, line 3214), relative to the board:
 
 - **Opened from `file:`** (today's use): only when `localStorage.spmtSidecar` is exactly `'1'`, an
-  `XMLHttpRequest` `GET STATEFILE?t=<time>` (line 34560). Without that setting no request is made.
-- **Served over `http(s)`:** `fetch(STATEFILE, {cache:'no-store'})` (line 34569), every time the board opens.
+  `XMLHttpRequest` `GET STATEFILE?t=<time>` (line 34635). Without that setting no request is made.
+- **Served over `http(s)`:** `fetch(STATEFILE, {cache:'no-store'})` (line 34644), every time the board opens.
 
-Either way the answer passes `inboundCheckOwn(text, 'copy')`, then `JSON.parse`. `sharedArrived` (line 34605)
+Either way the answer passes `inboundCheckOwn(text, 'copy')`, then `JSON.parse`. `sharedArrived` (line 34680)
 adopts it only through `applyStore`, never over work typed in this session, and keeps unsaved work aside
-first (`sharedKeepMine`, §17, line 9319).
+first (`sharedKeepMine`, §17, line 9342).
 
 ### Downloads (files the board writes through the browser)
 
 | Where | Function | What goes out | What is checked first |
 |---|---|---|---|
 | §15, 7791 | `savedHtmlOf` | Every board file (section 1) | `<` written as `\u003c`; a function replacer |
-| §17, 9294, 9310 | `publishState`, `publishJson` | The board as HTML (when saving in place is not possible), or the raw store JSON | `sandboxBlock` and `cycBlock` |
-| §16, 7964; §04, 3082 | `publishPmoCopy`, `pmoCopyHtml` | A PMO copy: the board plus a baseline, with `pubMode` written in, carrying one reference cycle as a projection only | Refused in a cycle view or a PMO copy; confirm. `pubMode` JSON has `<` escaped |
-| §16, 8221 | `pmoSubmit` | A submittal JSON | The copy's own year only; office scope; required fields on new requirements; a name required |
-| §18, 9603, 9720, 9742 | `pkgIssue`, `pkgSendBack`, `pkgReturn` | A package JSON | `pkgStrip` (line 9550) removes `execDb`, `aceDb`, `rpDb`, `cycDb` and `sync` |
+| §17, 9317, 9333 | `publishState`, `publishJson` | The board as HTML (when saving in place is not possible), or the raw store JSON | `sandboxBlock` and `cycBlock` |
+| §16, 7965; §04, 3082 | `publishPmoCopy`, `pmoCopyHtml` | A PMO copy: the board plus a baseline, with `pubMode` written in, carrying one reference cycle as a projection only | Refused in a cycle view or a PMO copy; confirm. `pubMode` JSON has `<` escaped |
+| §16, 8222 | `pmoSubmit` | A submittal JSON | The copy's own year only; office scope; required fields on new requirements; a name required |
+| §18, 9626, 9743, 9765 | `pkgIssue`, `pkgSendBack`, `pkgReturn` | A package JSON | `pkgStrip` (line 9573) removes `execDb`, `aceDb`, `rpDb`, `cycDb` and `sync` |
 | §15, 7729 | `keptSaveFile` | The kept-aside work as a board file | File name through `expName` |
-| §20, 11095 | `fullImportRescue` | The board as it was before a failed import, or the imported file's own text | Offers back only text the person imported or the board built |
-| §20, 11268, 11241 | `exportOneAppn`, `appnsOnlyIn` | One appropriation as a working board | `sandboxBlock` and the cycle view; the file written is put through `inboundCheck` so the message can say if a later import would refuse it; `appnsOnlyIn` writes `</` as `<\/` |
-| §09, §16, §23, §25, §27, §28, §29, §31, §32, §41, §42 | `exportRlgPlan`, `pmoReport`, `crExport`, `exportIdsReq`, `exportFlow`, `exportExView`, `exportSrc`, `exportPlans`, `exportFydpPlan`, `exportCycCompare`, `exportFcView`, `exportCSV` (an `.xlsx` despite its name), `exportAceTieout`, `exportExcel`, `exportCoa` | `.xlsx` workbooks built by `buildXlsx` (§36, line 26756) | Text XML-escaped by `_xesc` (line 26383: `&`, `<`, `>`, `"`, and a carriage return as `&#13;`); every text cell an inline string, so no cell is a formula. `exportIdsReq` refuses in a cycle view, in a PMO copy, when its own reconciliation (`idsCheck`) fails, or when its prompt fails `idsFormProblems` |
-| §29, 20616 | `exportProposedOrder` | The proposed 1-N order as `.csv` | Every cell through `csvCell` (line 20609): a leading apostrophe on a cell that starts (after any spaces) with `=`, `+`, `-`, `@` (or their full-width forms) or with a tab, CR or LF, unless it is a figure ORBIT formatted; quotes doubled; a BOM first |
-| §29, 19626 | `bandExport` | The band ladder as JSON | File name stripped |
-| §27, 18222 | `flowPng` | The funds-flow chart as PNG: its SVG drawn on a canvas | File name stripped |
-| §41, 31930 | `aiExport` | The AI review request (`.txt`), section "The AI review" | File name through `expName` |
-| §39, 30003 | `diagSave` | The diagnostics text file | Messages through `diagClean` (line 29868): by design it holds no dollar figure, title, name, CCaR record, PID or budget name |
+| §20, 11118 | `fullImportRescue` | The board as it was before a failed import, or the imported file's own text | Offers back only text the person imported or the board built |
+| §20, 11291, 11264 | `exportOneAppn`, `appnsOnlyIn` | One appropriation as a working board | `sandboxBlock` and the cycle view; the file written is put through `inboundCheck` so the message can say if a later import would refuse it; `appnsOnlyIn` writes `</` as `<\/` |
+| §09, §16, §23, §25, §27, §28, §29, §31, §32, §41, §42 | `exportRlgPlan`, `pmoReport`, `crExport`, `exportIdsReq`, `exportFlow`, `exportExView`, `exportSrc`, `exportPlans`, `exportFydpPlan`, `exportCycCompare`, `exportFcView`, `exportCSV` (an `.xlsx` despite its name), `exportAceTieout`, `exportExcel`, `exportCoa` | `.xlsx` workbooks built by `buildXlsx` (§36, line 26800) | Text XML-escaped by `_xesc` (line 26427: `&`, `<`, `>`, `"`, and a carriage return as `&#13;`); every text cell an inline string, so no cell is a formula. `exportIdsReq` refuses in a cycle view, in a PMO copy, when its own reconciliation (`idsCheck`) fails, or when its prompt fails `idsFormProblems` |
+| §29, 20639 | `exportProposedOrder` | The proposed 1-N order as `.csv` | Every cell through `csvCell` (line 20632): a leading apostrophe on a cell that starts (after any spaces) with `=`, `+`, `-`, `@` (or their full-width forms) or with a tab, CR or LF, unless it is a figure ORBIT formatted; quotes doubled; a BOM first |
+| §29, 19649 | `bandExport` | The band ladder as JSON | File name stripped |
+| §27, 18245 | `flowPng` | The funds-flow chart as PNG: its SVG drawn on a canvas | File name stripped |
+| §41, 32000 | `aiExport` | The AI review request (`.txt`), section "The AI review" | File name through `expName` |
+| §39, 30047 | `diagSave` | The diagnostics text file | Messages through `diagClean` (line 29912): by design it holds no dollar figure, title, name, CCaR record, PID or budget name |
 
 ### Clipboard
 
 | Where | Function | What goes out | How it is checked |
 |---|---|---|---|
-| §25, 14047 | `driveCopyHint` | The data-folder path worked out from the page's address | Derived from `location.href` only |
-| §25, 15020; §26, 15804 | `pfCopy`, `divCopy` | The pre-flight list or the reconciliation as plain text (titles, budget names) | Tags removed |
+| §25, 14070 | `driveCopyHint` | The data-folder path worked out from the page's address | Derived from `location.href` only |
+| §25, 15043; §26, 15827 | `pfCopy`, `divCopy` | The pre-flight list or the reconciliation as plain text (titles, budget names) | Tags removed |
 
 The board never reads the clipboard and has no paste handler.
 
@@ -551,10 +551,10 @@ The five-year plan reads each other appropriation by running a copy of this page
 
 | Where | Function | What happens | How it is checked |
 |---|---|---|---|
-| §31, 21452 | `fydpFrameHtml` | Builds the frame's page from `SRC0`: `pubState` replaced with the side stores and one appropriation's slot, and a shim script inserted before the first `<script>`. The shim gives the frame an in-memory `localStorage`, removes `indexedDB`, stubs `alert`/`confirm`/`prompt`, and answers with `parent.postMessage(r,"*")` (line 21465) | Both JSON blobs have `<` escaped; the replacement uses a function |
-| §31, 21436 | `fydpFrameMem` | The frame's in-memory storage: a copy of every `localStorage` key of this origin except `spmtLive`, `spmtLiveKey` and `*.kept`; `prio27appn` set; the folder copy added when newer | |
-| §31, 21477 | `fydpFrame` | `<iframe sandbox="allow-scripts">`, hidden off screen, filled with `srcdoc`; a `message` listener | A message is taken only if `e.source` is the frame's window, the data is an object, and its `nonce` matches. Listener and frame removed when done; a time limit (`FYDP_FRAME_WAIT`) |
-| §31, 21504 | `fydpTake` | The frame's answer | `ap` must match; `build === BUILD`; no lost data or restore error; `ts` equal to the expected stamp; the source asked for; lists where lists are expected |
+| §31, 21475 | `fydpFrameHtml` | Builds the frame's page from `SRC0`: `pubState` replaced with the side stores and one appropriation's slot, and a shim script inserted before the first `<script>`. The shim gives the frame an in-memory `localStorage`, removes `indexedDB`, stubs `alert`/`confirm`/`prompt`, and answers with `parent.postMessage(r,"*")` (line 21488) | Both JSON blobs have `<` escaped; the replacement uses a function |
+| §31, 21459 | `fydpFrameMem` | The frame's in-memory storage: a copy of every `localStorage` key of this origin except `spmtLive`, `spmtLiveKey` and `*.kept`; `prio27appn` set; the folder copy added when newer | |
+| §31, 21500 | `fydpFrame` | `<iframe sandbox="allow-scripts">`, hidden off screen, filled with `srcdoc`; a `message` listener | A message is taken only if `e.source` is the frame's window, the data is an object, and its `nonce` matches. Listener and frame removed when done; a time limit (`FYDP_FRAME_WAIT`) |
+| §31, 21527 | `fydpTake` | The frame's answer | `ap` must match; `build === BUILD`; no lost data or restore error; `ts` equal to the expected stamp; the source asked for; lists where lists are expected |
 
 The frame's origin is opaque (`sandbox` without `allow-same-origin`), so the browser keeps it out of the
 page's own storage, IndexedDB and files. A `srcdoc` frame inherits the page's Content-Security-Policy. There
@@ -564,8 +564,8 @@ is no other `message` listener in the file.
 
 | Where | Function | What is read or done | How it is checked |
 |---|---|---|---|
-| §25, 14025, 14038, 14227 | `driveWinPath`, `driveHint`, `driveCheck` | `location.href` and `location.protocol`, turned into a Windows path | Only `file:` addresses; `decodeURIComponent` in try/catch |
-| §39, 29908 | `diagReport` | `location.protocol`, `location.host`, and the browser name and major version (`diagBrowser`) | Reduced to a phrase |
+| §25, 14048, 14061, 14250 | `driveWinPath`, `driveHint`, `driveCheck` | `location.href` and `location.protocol`, turned into a Windows path | Only `file:` addresses; `decodeURIComponent` in try/catch |
+| §39, 29952 | `diagReport` | `location.protocol`, `location.host`, and the browser name and major version (`diagBrowser`) | Reduced to a phrase |
 | several | `switchAppn`, the importers, `driveStorePull`, `clearComputer` | `location.reload()` after a switch, an import or a clear | The reload reads browser storage again |
 
 The board never reads the query string, the fragment, `window.name` or the referrer.
@@ -574,7 +574,7 @@ The board never reads the query string, the fragment, `window.name` or the refer
 
 | Where | Function | What is opened | How it is checked |
 |---|---|---|---|
-| §39, 30158-30204 | `linkOpenable`, `linkSet`, `linkOpen` | An `<a target="_blank" rel="noopener">` to `encodeURI(name)`, clicked by script. The name is typed in `linkSet` (Setup › Who and where › Linked tool…) and kept in the store, so it travels in the saved file | `linkOpenable`: the name must end in `.htm` or `.html`, and if it has a scheme it must be `file:`, `http:` or `https:` (a drive letter is not a scheme) |
+| §39, 30202-30248 | `linkOpenable`, `linkSet`, `linkOpen` | An `<a target="_blank" rel="noopener">` to `encodeURI(name)`, clicked by script. The name is typed in `linkSet` (Setup › Who and where › Linked tool…) and kept in the store, so it travels in the saved file | `linkOpenable`: the name must end in `.htm` or `.html`, and if it has a scheme it must be `file:`, `http:` or `https:` (a drive letter is not a scheme) |
 
 There is no `window.open` in the file. A navigation is not a connection, so `connect-src` does not govern
 the companion link.
@@ -588,14 +588,14 @@ the companion link.
 | §02, 2637 | `writerShape` | `PUB.writer` `{by, fp, t}`, and the same record from the file on disk at save time | `fp` text of 1-64 characters; `by` cut to 60; `t` a number |
 | §02, 2692 | top level | `PMODE = JSON.parse(pubMode)` | Try/catch; `PMODE.ap` checked against the appropriation tables; `PMODE.ts` is used in storage key names |
 | §01, 2609, 2613 | error listeners | `error` and `unhandledrejection` messages | Through `diagClean`; kept in memory only |
-| §30, 20728-20736 | `helpSections`, `helpBody` | The in-file `<template id="helpDoc">`, written with `innerHTML` | Shipped content, not data |
+| §30, 20751-20759 | `helpSections`, `helpBody` | The in-file `<template id="helpDoc">`, written with `innerHTML` | Shipped content, not data |
 | §15, 7439 | `uiPrompt` | Typed input: editor name, office name, base year, grouping, CCaR number, appropriation pick | Each caller checks its own input; office and service names through `inNameWhy` |
 | §07, 3888, 3898 | `svcAdd`, `svcRen` | Typed service names | Trimmed; `inNameWhy`; duplicates refused without case |
-| several | `clinAdd`, `clinSetField`, `wbsQuick`, `rcnSet` | Typed codes and names | Codes through `codeTake` (§19, line 10367): refused over the limit, never cut; names trimmed |
-| §40, 31215, 31480, 31535 | `openEdit`, `erSave`, `reqApply` | A requirement's record typed in the edit box (`#editPanel`, v2.08): plan event, CCaR record, PID, prime or OGC, office, obligation category, cost element, WBS, RCN / EEIC, Navy SI code, where the money goes, description, impact statement, note. The record title is read from the CCaR records list, never typed | Held in the box until Save; nothing is written before. Save refuses, the typing kept, when the requirement is gone or its record changed while the box was open, when the plan event is empty, or when a code is over its limit (`codeTake`); an office change is confirmed first. `reqApply` writes only the fields that changed, each by its setter's rule (office from `GROUPS`, obligation category from `OB_CATS`, cost element from `COST_ELEMS`, SI code from `SI_CODES`, MIPR type from `MIPR_LBL`; Goes to, Which awards to and RCN / EEIC as their pickers hold them: the board's lists, or the value already stored), then one `save()`. Refused on a locked cycle and in Brief |
-| §21, 11491 | `amtReadM`, and `parseAmt` | Typed money | The whole entry read; rounded to a whole dollar and said; bounded by `IN_MAX_AMT` |
-| §37, 27101 | `render` | The search box `#q` | Used only for lower-case substring matching |
-| §31, 22017 | `cycView` | A cycle's stored years, deep-copied and run through `applyState` | The cycle must hold years |
+| several | `clinAdd`, `clinSetField`, `wbsQuick`, `rcnSet` | Typed codes and names | Codes through `codeTake` (§19, line 10390): refused over the limit, never cut; names trimmed |
+| §40, 31267, 31543, 31600 | `openEdit`, `erSave`, `reqApply` | A requirement's record typed in the edit box (`#editPanel`, v2.08): plan event, CCaR record, PID, prime or OGC, office, obligation category, cost element, WBS, RCN / EEIC, Navy SI code, where the money goes, description, impact statement, note. The record title is read from the CCaR records list, never typed | Held in the box until Save; nothing is written before. Save refuses, the typing kept, when the requirement is gone or its record changed while the box was open, when the plan event is empty, or when a code is over its limit (`codeTake`); an office change is confirmed first. `reqApply` writes only the fields that changed, each by its setter's rule (office from `GROUPS`, obligation category from `OB_CATS`, cost element from `COST_ELEMS`, SI code from `SI_CODES`, MIPR type from `MIPR_LBL`; Goes to, Which awards to and RCN / EEIC as their pickers hold them: the board's lists, or the value already stored), then one `save()`. Refused on a locked cycle and in Brief |
+| §21, 11514 | `amtReadM`, and `parseAmt` | Typed money | The whole entry read; rounded to a whole dollar and said; bounded by `IN_MAX_AMT` |
+| §37, 27145 | `render` | The search box `#q` | Used only for lower-case substring matching |
+| §31, 22040 | `cycView` | A cycle's stored years, deep-copied and run through `applyState` | The cycle must hold years |
 
 ---
 
@@ -626,15 +626,15 @@ inside `connect-src`. No `WebSocket`, `EventSource` or `sendBeacon`, and no exte
 JSON endpoint, with an API key kept in browser storage, through a function that also used a packaged
 desktop build's bridge (`window.spmtNet`) when present. v2.04 (items 110 and 111) removed all three
 transports, the key and the bridge. A machine still set up for one opens on the shared folder, turned off,
-and is told (`liveCfg`, §38, line 28023); its stored key is deleted. The live view now has one mode, the
-shared folder (`LIVE_MODES`, line 28010).
+and is told (`liveCfg`, §38, line 28067); its stored key is deleted. The live view now has one mode, the
+shared folder (`LIVE_MODES`, line 28054).
 
 **The shared folder is not network code.** It uses the File System Access API on a folder the person picks.
 If that folder is synced by OneDrive or SharePoint, the sync client moves the files, outside the board.
 
 **The live view is off by default.** Its settings live in `spmtLive`, per machine: `on` false, `mode`
-`drive`, `every` 30 seconds (10 to 600). When it is on, `liveStart` (§38, line 28066) runs `liveTick`
-(line 28077) on that interval: when the team works out of the folder and the board has unsaved changes, it saves
+`drive`, `every` 30 seconds (10 to 600). When it is on, `liveStart` (§38, line 28110) runs `liveTick`
+(line 28121) on that interval: when the team works out of the folder and the board has unsaved changes, it saves
 to the folder (`driveStorePush`), then refreshes from the folder.
 
 ---
@@ -694,9 +694,9 @@ Nothing is written to any remote service.
 This bears on media sanitization (NIST SP 800-88 Rev. 1, as the owner's security team named it; section
 10).
 
-**Clear this computer** (Setup › Clear this computer; `clearComputer`, §41, line 32068, since v2.04) removes,
+**Clear this computer** (Setup › Clear this computer; `clearComputer`, §41, line 32138, since v2.04) removes,
 in one action, every `localStorage` and `sessionStorage` key beginning `prio27` or `spmt` (`CLR_PREFIX`, line
-32054) and deletes the IndexedDB database `prio-fh` (the remembered file and folder handles). It asks first,
+32124) and deletes the IndexedDB database `prio-fh` (the remembered file and folder handles). It asks first,
 naming unsaved changes and kept-aside work when there are any, and asks a second time if so; it is refused
 while a locked cycle is on screen. It then reloads the page from the file, and reports any key it could not
 remove. **It does not touch the board file**, the downloads or the shared folder, and it does not overwrite
@@ -721,25 +721,26 @@ anything before deleting it. A web page cannot sanitize a disk; that falls to th
 escaped at the point it is written into markup, an attribute or an inline handler, however it arrived. The
 import door is not relied on to have cleaned it (CLAUDE.md, "v2.00 (item 99)").
 
-- **`esc()`** (§40, line 30288) is for text written into HTML and for quoted attribute values. It replaces `&`
+- **`esc()`** (§40, line 30332) is for text written into HTML and for quoted attribute values. It replaces `&`
   with `&amp;`, `<` with `&lt;`, `"` with `&quot;` and `'` with `&#39;`. It leaves `>` alone. It is used
   where text is parsed as HTML and nowhere else: a value is never escaped where it is built, nor in a
   `confirm()`/`alert()` message, a workbook cell, a file name or `document.title`.
-- **`jsa()`** (§40, line 30294) is the only way a value goes into inline handler code:
+- **`jsa()`** (§40, line 30338) is the only way a value goes into inline handler code:
   `esc(JSON.stringify(String(v)))`, with `null` and `undefined` as `''`, so the value reaches the handler as
   one string literal. `npm run check` fails on a value concatenated into handler code any other way.
 - **Labels in two forms.** `blLblTxt`/`ppLblTxt` give a cycle or position label as text; `blLbl`/`ppLbl`
   (§31) return it escaped once, for markup.
 - **Markup made plain.** Where markup has to become text (a confirm, the journal search, a copy to the
-  clipboard), `diagPlain()` (§39, line 29761) decodes it through `DOMParser` into a separate inert document
+  clipboard), `diagPlain()` (§39, line 29805) decodes it through `DOMParser` into a separate inert document
   and reads the text back.
 - **`setStat()`** (§15, line 7489) writes its argument into the status line with `innerHTML`. Its callers pass
   HTML, so each must escape the values it puts in.
 - **Helpers that take HTML by contract** insert their arguments as given, so each caller must escape: `mi`,
   `grp`, `recSel`, `recBtn`, `inspField`, `driveCheckSay`, `erSay`, `erField` (section 3). Since v2.08 the
-  office field's handler argument to `recSel` also carries `onkeydown`, `onblur` and `data-v` attributes, the
-  requirement id through `jsa()` and the office through `esc()` (`recFields`, §35).
-- **The edit box** (`#editPanel`; v2.08, §40, lines 31141-31583). `erDraw` (line 31270) draws it once, when it
+  office field's handler argument to `recSel` also carries `onkeydown`, `onblur`, `onmousedown` and `data-v`
+  attributes, the requirement id through `jsa()` and the office through `esc()` (`recFields`, §35);
+  `onmousedown` is fixed text.
+- **The edit box** (`#editPanel`; v2.08, §40, lines 31185-31653). `erDraw` (line 31324) draws it once, when it
   opens, from `erStored` (the record as stored); `render()` only shows or hides it (`erSync`). Every stored
   value it writes into markup goes through `esc()`: an input's value (`erInp`), a textarea's text, each
   option's value and text (`erOpt`), a stored value its list does not hold (`erKeep`), the SI code kept as
@@ -748,8 +749,9 @@ import door is not relied on to have cleaned it (CLAUDE.md, "v2.00 (item 99)").
   are fixed text. Its inline handlers carry no value from the board (the requirement it holds is the global
   `erOpen`), so it has no `jsa()` site. `erSay` (the box's message line) and the control, note and tag
   `erField` is handed are HTML by contract; their callers pass fixed text, `FYL()`, or values through `esc()`.
-  `erUpdate` writes the required list (`#erChk`) with each label and note through `esc()`, and the record
-  title, the WBS note and the count with `textContent`. Nothing the box holds is written until Save, and then
+  `erUpdate` writes the required list (`#erChk`) with each label and note through `esc()`, the RCN / EEIC note
+  (`erRcnNote`, the service names and the combinations' labels through one `esc()`), and the record title, the
+  WBS note and the count with `textContent`. Nothing the box holds is written until Save, and then
   only by `reqApply` (section 4). The RECORD panel's ✎, CCaR record and PID buttons open it with the id
   through `jsa()` (`inspectorDraw`, §42).
 - **Band colours** written into a `style` attribute go through `readableOn` (§06, line 3617), which keeps a hex
@@ -759,26 +761,26 @@ import door is not relied on to have cleaned it (CLAUDE.md, "v2.00 (item 99)").
   `Object.create(null)`, and a fixed table looked up by an imported value is read by own key
   (`Object.prototype.hasOwnProperty.call`). So a name such as `__proto__` or `toString` can neither read a
   built-in nor write onto every object in the page.
-- **Exports.** XML text through `_xesc` (§36, line 26383); CSV cells through `csvCell` (§29, line 20609). See
+- **Exports.** XML text through `_xesc` (§36, line 26427); CSV cells through `csvCell` (§29, line 20632). See
   section 4, "Downloads".
 - **No code from strings.** A scan of the running scripts finds no `eval`, `new Function` or timer given a
-  string. `window[...]` is used once: `uiFlyItems` (§42, line 34993) tests names written in its own code (the
+  string. `window[...]` is used once: `uiFlyItems` (§42, line 35068) tests names written in its own code (the
   pop-up's `fldSave`, which named a setter from a fixed list, went in v2.08). One `setAttribute('onclick', …)`
-  (§37, line 27558) sets a fixed string.
+  (§37, line 27602) sets a fixed string.
 
 **The sink list.** `node tools/review/sinks.mjs` writes `review/sinks.csv`: every place in the board's source
 where a string is handed to the browser as HTML, with line, column, kind, the named functions around it,
-whether it sits in code or in a string, and the source line. It holds no verdicts. Counts at `3898d95`:
+whether it sits in code or in a string, and the source line. It holds no verdicts. Counts at `f416366`:
 
 | Kind | Count |
 |---|---:|
-| `innerHTML =` | 209 |
+| `innerHTML =` | 210 |
 | `innerHTML +=` | 1 |
 | `setStat` call (writes with `innerHTML`) | 362 |
 | `srcdoc` (the five-year plan's frame) | 1 |
 | `DOMParser.parseFromString` (`diagPlain`: a separate document, text read back) | 1 |
 | `outerHTML =` or `+=`, `insertAdjacentHTML`, `document.write`, `createContextualFragment`, `setHTMLUnsafe` | 0 |
-| **Total** | **574**, in 263 functions |
+| **Total** | **575**, in 263 functions |
 
 Five more matches sit in comments and are not listed. A function that builds an HTML string and returns it is
 not a row: its string becomes markup where it reaches one of the sinks above.
