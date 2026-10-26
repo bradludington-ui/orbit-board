@@ -45,6 +45,10 @@
     "keys": "node tools/keyboard-reach.mjs",
     "dropdowns": "node tools/dropdowns-visible.mjs",
     "dialogs": "node tools/dialogs-keyboard.mjs",
+    "review:bundle": "node tools/review/bundle.mjs",
+    "review:fingerprint": "node tools/review/fingerprint.mjs",
+    "review:which": "node tools/review/which-build.mjs",
+    "review:sinks": "node tools/review/sinks.mjs",
     "leftmenu": "node tools/left-menu.mjs",
     "csp": "node tools/csp-check.mjs"
   },

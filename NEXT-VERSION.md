@@ -178,6 +178,25 @@ Current version: **v2.07**. Next: **v2.08**.
 - **Brad's call:**
   - whether the refreshed guide goes to the security team as a new version, and whether their annex is refreshed with it;
   - whether `which-build.mjs` joins `npm run check` or the nightly, so a release is added to `builds.json` as it ships.
+- **Built on branch `ccr-0b15d8d5-ypf61n`, 26 Oct 2026, awaiting Brad's go to merge** (Brad: "Go on 123"). No board change, no
+  BUILD bump. `claude/security-review-kit` (`b6f1ffc`) is left untouched as the record of what the security team was given.
+  - The kit's files brought across from `b6f1ffc`: `tools/review/` (four tools and `lib.mjs`), `review/builds.json`,
+    `review/sinks.csv`, the four `review:*` npm scripts and the two `.gitignore` lines.
+  - `SECURITY-REVIEW.md` rewritten for v2.07, every claim checked against the board at `f508fdb`: the Content-Security-Policy
+    directive by directive; the shared folder as the only transport and the one remaining request (the legacy state file);
+    the AI review's hand-carried request and answer; Clear this computer; escape-where-drawn, `jsa()`, the door's key rules
+    (`IN_KEY_BAD`, `IN_VAL_KEYS`) and the prototype-free maps; the newer-version refusal; places named by `§NN` banner and
+    function, with lines secondary; the threat model without the live-view credential. Dropped as no longer true: Confluence,
+    SharePoint, the JSON endpoint and its key, the desktop bridge, the PowerPoint template and its skipping instructions, the
+    reprogramming share, and the v1.99 list of uncalled functions (v2.03 removed them).
+  - `review/builds.json`: v2.00 to v2.07 added, each from the release commit on `main`, fingerprinted by the kit's own tool;
+    each entry's `gate` says how far that release was tested (v1.99's corrected from `pending` to the gate it passed).
+    `which-build.mjs` names v2.07 for the board at HEAD, and for a saved board, a PMO copy and a one-appropriation board
+    of it.
+  - `bundle.mjs`: the template step removed (it reported a PROBLEM on every board since v2.05).
+  - `review/sinks.csv` regenerated: 572 rows in 261 functions (537 at v1.99).
+  - Still Brad's: whether the refreshed guide goes to the security team as a new version and the annex is refreshed with
+    it (the annex cites v1.99's lines and sink rows); and whether `which-build.mjs` joins `npm run check` or the nightly.
 
 ## Later
 
