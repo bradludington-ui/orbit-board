@@ -13132,6 +13132,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, 'never the board’s', 'the copy’s handle is kept under one key of its own, naming this copy and this office',
       i127J([keys.length, keys.length === 1 && keys[0].indexOf(String(M0.ts)) >= 0 && /PSM/.test(keys[0]) && P.store.get(keys[0]) === f1.h]), i127J([1, true]));
     chk(name, 'never the board’s', 'the save wrote without consulting the writer record, which is still the board’s', i127J([f1.writes, i127ev(P.ev, '__wm'), i127ev(P.ev, 'WRITER && WRITER.by')]), i127J([1, 0, 'BLL']));
+    // the next Save writes the same file in place: the save it wrote is the one the work came from, so it asks nothing
+    P.ev(`setDesc('A','PSM again'); __q=[]; 'ok'`); await i127save(P);
+    chk(name, 'save', 'the next Save writes the same file again: no picker, nothing asked', i127J([P.picks.length, i127ev(P.ev, '__q.length'), f1.writes, i127desc(f1.content, 'A')]),
+      i127J([1, 0, 2, 'PSM again']));
     // ANOTHER MACHINE: the file opened with empty storage
     const R = await i127open(f1.content, '');
     chk(name, 'reopened', 'the file opens as this PMO copy: the same mode, on the same storage keys',
@@ -13143,8 +13147,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, 'reopened', 'the banner says so', /\u{1F3E2} PSM/u.test(i127ev(R.ev, `document.getElementById('subBanner').textContent`)), true);
     chk(name, 'reopened', 'and that it is saved', /^Saved/.test(i127state(R.ev)), true);
     i127wire(R.ev, 'PSM Lead');    // the editor name is the person's own, given on that machine
-    const pkgR = i127submit(R.ev).pkg;
-    chk(name, 'reopened', 'Submit sends the same package (less its clock): items, baseline, proposal, ranking, publish stamp', i127J(i127noTs(pkgR)), i127J(i127noTs(pkg0)));
+    const pkgR = i127submit(R.ev).pkg, pkg1 = i127submit(P.ev).pkg;
+    chk(name, 'reopened', 'Submit sends the same package (less its clock): items, baseline, proposal, ranking, publish stamp', i127J(i127noTs(pkgR)), i127J(i127noTs(pkg1)));
+    chk(name, 'reopened', 'which is the package from before any save, with the description typed since', i127J(i127noTs(pkg1)),
+      i127J(i127noTs(Object.assign({}, pkg0, { items: Object.assign({}, pkg0.items, { A: Object.assign({}, pkg0.items.A, { desc: 'PSM again' }) }) }))));
     chk(name, 'reopened', 'against the copy as it was published', i127J([pkgR && pkgR.fromTs, pkgR && pkgR.base && pkgR.base.B]), i127J([M0.ts, { cons: null, asks: [300, 80, 40] }]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
@@ -13173,7 +13179,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       ['AV’s file of this copy', fAV.content, /AV’s work/], ['PSM’s file of another copy', fOther.content, /another PMO copy/],
       ['a file that is not a board', 'not a board at all', /not a board/]];
     for (const [what, content, why] of tries) {
-      const f = i127disk(what + '.html', content); i127picker(P.w, f, P.picks);
+      const f = i127disk('picked.html', content); i127picker(P.w, f, P.picks);     // a neutral name: the reason must come from the check, not the file name
       const n0 = P.picks.length; await i127save(P);
       chk(name, what, 'Save asks which file, and refuses this one: nothing written', i127J([P.picks.length - n0, f.writes, f.content === content]), i127J([1, 0, true]));
       chk(name, what, 'it says why', /Not saved/.test(i127status(P.ev)) && why.test(i127status(P.ev)), true);
@@ -13395,6 +13401,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // reopened in that browser: the copy reads its own lists; the board reads its own, and nothing it did not do is unsaved
     const P2 = await i127open(C0, 'Pat', i127ls(P.ev));
     chk(name, 'reopened', 'the copy reads its own lists back (a CONTROL: so did v2.08, from the board’s own keys)', lists(P2.ev), i127J([['COPY ROW'], 'COPYEX', ['COPYACE'], ['COPY RP']]));
+    // opened from the copy as published, which does not carry them: the lists this browser holds read unsaved, as on the board
+    chk(name, 'reopened', 'the lists this browser holds that the file opened does not carry read unsaved, as on the board',
+      i127J([i127ev(P2.ev, 'JSON.stringify((sideBootNote.keys||[]).indexOf(BUDDB_KEY)>=0)'), /Unsaved changes/.test(i127state(P2.ev))]), i127J(['true', true]));
     const BB = boot({ html: B.ev('buildSavedHtml()'), ls: i127ls(P.ev) }); await i127pause(60);
     chk(name, 'reopened', 'the board reads its own, with nothing of the copy’s counted as its unsaved change',
       i127J([JSON.parse(lists(BB.ev))[0], BB.ev('JSON.stringify(sideBootNote.keys||[])')]), i127J([['BOARD NEWER'], '[]']));
