@@ -5985,6 +5985,12 @@ await (async () => {
     chk(name, 'panel hold', 'CONTROL (v2.08): the RECORD panel holds the typing across a redraw, applying nothing', ev(`JSON.stringify([itemById('Q').ask[0], ${q}.value])`), J([100, '4321']));
     ev(`(function(){ var a=${q}; a.blur(); return 'ok'; })()`);
     chk(name, 'panel hold', 'left with nothing typed since, the figure put back is applied', ev(`itemById('Q').ask[0]`), 4321);
+    // only the box with the keyboard is held: one marked as typed that lost the keyboard with no change (only a script leaves a
+    // box that way) is drawn from the board on the next redraw. (v208-rv-f2-any-marked survived the v2.08 board's own suite,
+    // found while proving these; this pins it.)
+    ev(`(function(){ var a=${q}; a.focus(); a.value='999'; a.dispatchEvent(new Event('input', {bubbles:true})); document.getElementById('q').focus(); render(); return 'ok'; })()`);
+    chk(name, 'panel hold', 'CONTROL: a box marked as typed that has lost the keyboard is not held over the stored figure by a redraw',
+      ev(`${q}.value`).replace(/,/g, ''), '4321');
   });
 
   // ---- 9. the ways into the drill from elsewhere open it where it can be used

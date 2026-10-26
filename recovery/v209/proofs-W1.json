@@ -134,5 +134,9 @@
  {
   "id": "v208-rv-clin-toggled-shut",
   "caughtBy": "audit-other / v2.08 — the review of the edit box: kept values"
+ },
+ {
+  "id": "v208-rv-f2-any-marked",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
  }
 ]

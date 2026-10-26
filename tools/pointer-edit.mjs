@@ -214,6 +214,17 @@ if (want('A')) for (const [layout, w, h] of LAYOUTS) {
       chk(`${tag} · ⋯ › ✕ Remove from the board: removed, the panel stays off the table`, rm && quiet(s6, layout), JSON.stringify({ rm, s6 }));
       await p.evaluate(id => { restoreReq(id); clinOpen[id] = true; render(); }, id);
     }
+    // the ⠿ handle: dragged with the mouse onto the row two above, the requirement moves up the order
+    {
+      const k0 = (await read(p, id)).rank;
+      const up = await p.evaluate(([id, k]) => S.order[k - 3], [id, k0]);
+      await p.evaluate(u => document.getElementById('row-' + u).scrollIntoView({ block: 'center' }), up); await p.waitForTimeout(80);
+      const a = await (await p.$(`#row-${id} .grip`)).boundingBox(), t = await (await p.$(`#row-${up} .t1`)).boundingBox();
+      await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down();
+      await p.mouse.move(t.x + t.width / 2, t.y + t.height / 3, { steps: 10 }); await p.mouse.up(); await p.waitForTimeout(300);
+      const r = await read(p, id), s = await st(p);
+      chk(`${tag} · ⠿ dragged onto the row two above: the requirement moves up, the panel stays off the table`, r.rank < k0 && quiet(s, layout), JSON.stringify({ k0, rank: r.rank, s }));
+    }
     // the rank arrows, in Rank
     {
       await p.evaluate(() => { uiMode = 'rank'; uiApply(); render(); });
@@ -324,6 +335,17 @@ if (want('C')) for (const [layout, w, h] of [['sliding', 1920, 1000], ['docked',
       await p.keyboard.type('3456'); await p.keyboard.press('Tab'); await p.waitForTimeout(200);
       const v2 = await get();
       chk(`${tag} · ${what}: leaving it commits the whole figure`, done(v2), JSON.stringify(v2));
+    }
+    // typed whole, then the redraw, then Tab with nothing typed since: a browser fires no change for a value a script put back
+    {
+      const sel = `#row-${id} input[onchange^="setAlloc("]`;
+      await press(p, sel); await typeIn(p, '424242', null);
+      await p.evaluate(() => render()); await p.waitForTimeout(120);
+      const mid = await p.evaluate(id => JSON.stringify(S.alloc[id]), id);
+      await p.keyboard.press('Tab'); await p.waitForTimeout(200);
+      const v = await p.evaluate(id => JSON.stringify(S.alloc[id]), id);
+      chk(`${tag} · Fund’s allocation typed whole, redrawn, then Tab with nothing typed since: applied then, and not before`,
+        mid === q({ m: 't', v: 123456 }) && v === q({ m: 't', v: 424242 }), JSON.stringify({ mid, v }));
     }
     // the rank box, in Review
     await p.evaluate(() => { uiMode = 'review'; uiApply(); render(); });
