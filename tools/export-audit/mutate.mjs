@@ -1434,12 +1434,10 @@ const MUTATIONS = [
   { id: 'copy-save-button', area: 'syncBtns', what: "a copy's header still offers Save",
     find: "  if(sb && _sb){",
     repl: "  if(sb && false){" },
-  { id: 'copy-save-state', area: 'syncBtns', what: "a copy's header still says unsaved changes",
-    find: "  if(ss) ss.innerHTML = _sb ? ",
-    repl: "  if(ss) ss.innerHTML = false ? " },
-  { id: 'copy-file-menu', area: 'syncBtns', what: "a copy's File menu still describes Save as writing the file",
-    find: "_SB? 'turned off in a PMO copy \\u2014 use \\u2709 Submit input' : 'writes back to this file, in place'",
-    repl: "'writes back to this file, in place'" },
+  // copy-save-state: v2.09 W3: retired as obsolete -- a copy's save state reads as the board's on purpose since item 127 (Saved,
+  //   Unsaved changes); the copy's own branch, never "Saved" before the work is saved for an office, is v209-w3-state-pristine-saved
+  // copy-file-menu: v2.09 W3: retired as obsolete -- the ▾'s off Save and Save a copy are gone with item 127; it offers the
+  //   copy's own Save a copy, v209-w3-dd-save-board-call
   { id: 'copy-boot-line', area: '(boot)', what: "a copy opens saying Save to pass it on",
     find: "_statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)",
     repl: "_statQuiet=true; setStat(false" },
@@ -2578,11 +2576,13 @@ const MUTATIONS = [
     find: "  const rd=function(k){ if(Object.prototype.hasOwnProperty.call(held, k)) return held[k];",
     repl: "  const rd=function(k){ if(false) return held[k];" },
   { id: 'ace-store-past-lsset', area: 'persistAce', what: 'the cost estimates are written past lsSet, and a refusal never reaches Save diagnostics',
-    find: "function persistAce(){ return lsSet('prio27acedb', JSON.stringify(ACEDB), 'The cost estimates'); }",
-    repl: "function persistAce(){ try{ localStorage.setItem('prio27acedb', JSON.stringify(ACEDB)); return true; }catch(e){ return false; } }" },
+    // v2.09 W3: retargeted — the key is ACEDB_KEY (sealed in a copy); the same write past lsSet
+    find: "function persistAce(){ return lsSet(ACEDB_KEY, JSON.stringify(ACEDB), 'The cost estimates'); }",
+    repl: "function persistAce(){ try{ localStorage.setItem(ACEDB_KEY, JSON.stringify(ACEDB)); return true; }catch(e){ return false; } }" },
   { id: 'rp-store-past-lsset', area: 'persistRp', what: 'the reprogramming log is written past lsSet, and a refusal never reaches Save diagnostics',
-    find: "function persistRp(){ return lsSet('prio27reprog', JSON.stringify(RPDB), 'The reprogramming log'); }",
-    repl: "function persistRp(){ try{ localStorage.setItem('prio27reprog', JSON.stringify(RPDB)); return true; }catch(e){ return false; } }" },
+    // v2.09 W3: retargeted — the key is RPDB_KEY (sealed in a copy); the same write past lsSet
+    find: "function persistRp(){ return lsSet(RPDB_KEY, JSON.stringify(RPDB), 'The reprogramming log'); }",
+    repl: "function persistRp(){ try{ localStorage.setItem(RPDB_KEY, JSON.stringify(RPDB)); return true; }catch(e){ return false; } }" },
   // item 49 (review R06): sharing a cost estimate -- driveAceFile, driveAcePush, driveAceReplace, driveAcePull
   { id: 'acefile-unreadable-is-none', area: 'driveAceFile', what: 'a folder copy that cannot be read is taken for no copy, and share mine writes over it',
     find: "  catch(e){ if(e && e.name==='NotFoundError') return {none:true};\n    return {bad:'it could not be read ('",
@@ -3069,9 +3069,11 @@ const MUTATIONS = [
   { id: 'v197w2-own-key-as-list', area: 'fileKeyOf', what: 'the open board’s own key counts as a list the folder save does not write, so the folder save is not owed it',
     find: "    if(key===_AP.key) return 'board';\n", repl: "" },
   { id: 'v197w2-reprog-key-missed', area: 'fileKeyOf', what: 'the reprogramming log is not one of the lists the file carries (v1.96)',
-    find: "['prio27execdb','prio27acedb','prio27reprog','prio27buddb'].indexOf(key)>=0", repl: "['prio27execdb','prio27acedb','prio27buddb'].indexOf(key)>=0" },
+    // v2.09 W3: retargeted — the keys are the constants (sealed in a copy); the same list missing the log
+    find: "[EXDB_KEY,ACEDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0", repl: "[EXDB_KEY,ACEDB_KEY,BUDDB_KEY].indexOf(key)>=0" },
   { id: 'v197w2-dest-key-missed', area: 'fileKeyOf', what: 'the destination list is not one of the lists the file carries, so a folder save acknowledges it',
-    find: "    if(key===DEST_KEY || ['prio27execdb'", repl: "    if(['prio27execdb'" },
+    // v2.09 W3: retargeted — the keys are the constants (sealed in a copy); the same list missing the destinations
+    find: "    if(key===DEST_KEY || [EXDB_KEY", repl: "    if([EXDB_KEY" },
   { id: 'v197w2-other-boards-missed', area: 'fileKeyOf', what: 'another appropriation’s board written here (a package) is not counted',
     find: "    for(const k in _SLUGMAP) if(key===_SLUGMAP[k].key || key===_SLUGMAP[k].key+'-cyc') return 'side';", repl: "    for(const k in _SLUGMAP) if(key===_SLUGMAP[k].key+'-cyc') return 'side';" },
   { id: 'v197w2-cycles-missed', area: 'fileKeyOf', what: 'the locked cycles are not counted (v1.96: an unlock read as saved)',
@@ -6703,7 +6705,8 @@ const MUTATIONS = [
     find: "  cycSwapIn(c);                                         // v2.02 (item 89): the cycle's board-wide lists, made again too\n",
     repl: "" },
   { id: "v202-89-lsset-writes-swapped", area: "lsSet", what: "the cycle's destination and BAE lists on the page can be written to browser storage while the view is on",
-    find: "  if(_cycSwap && (key===DEST_KEY || key==='prio27buddb')){",
+    // v2.09 W3: retargeted — the BAE list's key is BUDDB_KEY (sealed in a copy); the same gate dropped
+    find: "  if(_cycSwap && (key===DEST_KEY || key===BUDDB_KEY)){",
     repl: "  if(false){" },
   { id: "v202-89-view-unsaid", area: "cycView", what: "a cycle locked before v2.02 says nothing on its view about the lists it reads as they are today",
     find: "    +(cycKeepToday(c)? ' <span style=\"color:var(--amber)\">⚠ '+esc(cycKeepToday(c))+'</span>' : ''));",
@@ -7181,7 +7184,8 @@ const MUTATIONS = [
   { id: 'v207-121-copy-office-guessed', area: "arOfficeStart", what: "a PMO copy with no office set adds for the first office on the list instead of asking",
     find: "  if(typeof SANDBOX!=='undefined' && SANDBOX){ const m=myPmo(); return m? {g:m, how:'the office this copy submits for'} : {g:'', how:''}; }", repl: "  if(typeof SANDBOX!=='undefined' && SANDBOX){ const m=myPmo()||pmoChoices()[0]||''; return m? {g:m, how:'the office this copy submits for'} : {g:'', how:''}; }" },
   { id: 'v207-121-copy-office-not-kept', area: "arSetOffice", what: "the office chosen in a copy's Add box is forgotten: the copy asks again, and submits for none",
-    find: "    try{ localStorage.setItem('prio27pmo', g); }catch(e){}", repl: "" },
+    // v2.09 W3: retargeted — the office is set through pmoMineSet() (kept in the page should storage refuse); the same forgetting
+    find: "    pmoMineSet(g);        // v2.09 (item 127): kept in this page too, should browser storage refuse it\n", repl: "" },
   { id: 'v207-121-pick-list-every-office', area: "budPickListFor", what: "the Add box's budget picker offers every office's budgets, not only the office's own",
     find: "    if(pmo && b.pmo!==pmo) return false;", repl: "" },
   { id: 'v207-121-proposal-drops-budgets', area: "pmoProposalOf", what: "a proposal leaves the budgets the office chose behind",
