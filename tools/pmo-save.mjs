@@ -20,6 +20,11 @@
 //   H. A FILE MOVED AFTER ITS FIRST SAVE (v2.09 review), with a real file handle (the origin-private file system, so the page
 //      is served from 127.0.0.1): the browser reads the moved file's handle as NotFoundError; Save says so and forgets the
 //      handle, and after a reopen it asks where the file is -- the copy's Save and the board's.
+//   I. A PAGE THAT SAVED KEEPS ITS OFFICE (v2.09 second review): the copy as published, its office read from the browser's
+//      setting, saves for ATL; a choice of PSM in a second tab then leaves it on ATL, Submit and the next Save with it.
+//   J. A NEWER OFFICE FILE, THEN THE COPY AS PUBLISHED (v2.09 second review), in one browser: opening the newer file leaves in
+//      browser storage what it put on screen, so the copy opened next shows that save and this browser's unsaved work only in
+//      the kept slot, said not to be on screen; put back, it is on its own office.
 //
 //   node tools/pmo-save.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -281,6 +286,75 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     await hb.close().catch(() => {});
   }
   srv.close();
+}
+
+// ── I: a page that saved keeps the office it saved for (v2.09 second review) ─────────────────────────────────────────────
+// The copy as published, opened in a browser whose office setting says ATL, nobody choosing in it: its office is the setting's.
+// Once it has saved for ATL, a choice of PSM in a second tab of the same browser must not re-point it.
+{
+  const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Sue'); } catch (e) {} });
+  try {
+    const T1 = await openIn(ctx, copyFile);
+    await T1.p.evaluate(STANDIN);
+    const at = p => p.evaluate(() => ({ off: myPmo(), banner: (document.getElementById('subBanner') || {}).textContent || '', add: arOfficeStart().g,
+      setting: localStorage.getItem('prio27pmo'), mark: pmoForOf(MS) }));
+    await T1.p.evaluate(() => { localStorage.setItem('prio27pmo', 'ATL'); setDesc('R1', 'Sue for ATL'); });
+    const a0 = await at(T1.p);
+    chk('I · the copy as published takes its office from the browser’s setting, nobody having chosen in it (a CONTROL)', a0.off === 'ATL' && a0.mark === '', J(a0));
+    await T1.p.evaluate(() => pmoSaveCopy()); await T1.p.waitForTimeout(600);
+    const s1 = await T1.p.evaluate(() => ({ writes: window.__disk.writes, mark: pmoForOf(MS) }));
+    chk('I · its Save writes ATL’s file and marks the work ATL’s (the fixture)', J(s1) === J({ writes: 1, mark: 'ATL' }), J(s1));
+    const T2 = await openIn(ctx, copyFile);
+    await T2.p.evaluate(() => { window.prompt = () => 'PSM'; pickMyPmo(); });
+    const a1 = await at(T1.p);
+    chk('I · a choice of PSM in a second tab is the browser’s setting (a CONTROL), and the page that saved stays on ATL, its bar and its Add box with it',
+      J([a1.setting, a1.off, /\u{1F3E2} ATL/u.test(a1.banner), a1.add]) === J(['PSM', 'ATL', true, 'ATL']), J(a1));
+    await T1.p.evaluate(() => { setDesc('R1', 'Sue for ATL, again'); window.__al = []; window.confirm = m => { window.__al.push(String(m)); return true; };
+      window.alert = m => { window.__al.push(String(m)); }; });
+    const blocked = await T1.p.evaluate(() => pmoForBlock());
+    await T1.p.evaluate(() => pmoSaveCopy()); await T1.p.waitForTimeout(600);
+    const s2 = await T1.p.evaluate(() => ({ writes: window.__disk.writes, asked: window.__al.length, picked: window.__picked.length }));
+    chk('I · its Submit is not refused, and its next Save asks nothing and writes ATL’s file again', J([blocked, s2.asked, s2.picked, s2.writes]) === J([false, 0, 1, 2]), J([blocked, s2]));
+    const T3 = await openIn(ctx, copyFile);
+    chk('I · nothing threw', [T1, T2, T3].every(t => t.errs.length === 0), [...T1.errs, ...T2.errs, ...T3.errs].slice(0, 2).join(' | '));
+  } catch (e) { chk('I · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+  await ctx.close();
+}
+
+// ── J: a newer office file, the copy as published, then the newer file again, in one browser (v2.09 second review) ─────────
+// Opening the newer file must leave in browser storage what it put on screen, so the next opening reads this browser's own
+// unsaved work as kept aside, never as saved; it is put back on the office it belongs to.
+{
+  const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Ann'); } catch (e) {} });
+  try {
+    const look = p => p.evaluate(() => { const d = (st, id) => { try { return String(((st.years[st.cur] || {}).desc || {})[id]); } catch (e) { return 'ERR'; } };
+      let ls = null; try { ls = JSON.parse(localStorage.getItem(_AP.key)); } catch (e) { ls = null; }
+      const k = keptCopy(); let ks = null; try { ks = k ? JSON.parse(k.raw) : null; } catch (e) { ks = null; }
+      return { R0: String((S.desc || {}).R0), R1: String((S.desc || {}).R1), lsR0: ls ? d(ls, 'R0') : null, lsR1: ls ? d(ls, 'R1') : null,
+        keptR1: ks ? d(ks, 'R1') : null, dirty: !!baseGet().dirty, off: myPmo(), line: (document.getElementById('shareStat') || {}).textContent || '' }; });
+    const T1 = await openIn(ctx, copyFile);
+    await T1.p.evaluate(() => { localStorage.setItem('prio27pmo', 'ATL'); setDesc('R1', 'Ann for ATL, unsaved'); });
+    await T1.p.close();
+    await new Promise(r => setTimeout(r, 20));
+    const X = boot({ html: copyHtml }); X.ev(`setDesc('R0','PSM wrote R0, later'); MS.pmoFor={pmo:'PSM'}; 'ok'`);
+    const psmLater = join(dir, 'office', 'PSM file, later.html'); writeFileSync(psmLater, X.ev('buildSavedHtml()'));
+    const T2 = await openIn(ctx, psmLater);
+    const j2 = await look(T2.p);
+    chk('J · PSM’s newer file opens, and Ann’s unsaved work is kept aside (a CONTROL)', J([j2.R0, j2.keptR1]) === J(['PSM wrote R0, later', 'Ann for ATL, unsaved']), J(j2));
+    chk('J · browser storage holds what is now on screen, so the record calling it clean is true', J([j2.lsR0, j2.lsR1, j2.dirty]) === J(['PSM wrote R0, later', 'undefined', false]), J(j2));
+    await T2.p.close();
+    const T3 = await openIn(ctx, copyFile);
+    const j3 = await look(T3.p);
+    chk('J · the copy as published opens the newer save, and Ann’s work is only in the kept slot, which the line says is not on screen',
+      J([j3.R0, j3.R1, j3.keptR1, /PSM’s work/.test(j3.line), /is not what is on screen/.test(j3.line)]) === J(['PSM wrote R0, later', 'undefined', 'Ann for ATL, unsaved', true, true]), J(j3));
+    await T3.p.evaluate(() => { window.confirm = () => true; keptPutBack(); });
+    const j4 = await look(T3.p);
+    chk('J · put back, her work is on screen on her own office, ATL', J([j4.R1, j4.off]) === J(['Ann for ATL, unsaved', 'ATL']), J(j4));
+    chk('J · nothing threw', [T2, T3].every(t => t.errs.length === 0), [...T2.errs, ...T3.errs].slice(0, 2).join(' | '));
+  } catch (e) { chk('J · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+  await ctx.close();
 }
 
 await b.close();
