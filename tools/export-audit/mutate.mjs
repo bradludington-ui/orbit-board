@@ -8448,6 +8448,37 @@ const MUTATIONS = [
     find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets.slice(0,1), out.extra);" },
   { id: 'v210-int-export-house-style', area: "exportFdc", what: "Export asks for the house style, which repaints the slides' colours and drops the page set-up",
     find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets, out.extra, xlsxHouse('FYDP Disconnects'));" },
+  // v2.10 review (fixer a): each caught by its own "v2.10 review — FYDP Disconnects: …" block in audit-other.mjs, proved one at a
+  // time (recovery/v210/proofs-RV-a.json, proved-RV-a.jsonl). A-1, the alias:
+  { id: 'v210-rv-a-alias-dropped', area: "FDC_GROUPS", what: "a service sheet takes a service by its own name alone: Full Fund's USMC-B reaches no sheet, STOVL prints PROCUREMENT controls $0 and the four sheets stop adding up to the Summary",
+    find: "if(a && g.svcs.indexOf(a)<0) g.svcs.push(a); });",
+    repl: "if(a && g.svcs.indexOf(a)<0) void a; });" },
+  // A-2, a figure left by a click
+  { id: 'v210-rv-a-click-not-waited', area: "fdcIntlSet", what: "an International figure left by a click is drawn into the box at once, the box controller hands the keyboard back to it, and the next figure lands in the year just left",
+    find: "const paint=function(f){ if(away && !tab) setTimeout(f, 0); else f(); };",
+    repl: "const paint=function(f){ f(); };" },
+  // A-3, the shared folder
+  { id: 'v210-rv-a-folder-not-read', area: "fdcStores", what: "with the team on the shared folder another appropriation is read from this browser's older copy, not the folder's",
+    find: "if(!r.why && driveStoreOn()){",
+    repl: "if(false){" },
+  { id: 'v210-rv-a-reading-unsaid', area: "fdcStores", what: "an appropriation the folder has not answered for yet is drawn as one with no position logged",
+    find: "if(!F){ out.wait=true; return out; }",
+    repl: "if(!F){ return out; }" },
+  { id: 'v210-rv-a-folder-fail-falls-back', area: "fdcFolderRead", what: "a shared folder that cannot be read falls back to this browser's older copy without a word",
+    find: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object')? r : loc); },",
+    repl: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object' && !r.why)? r : loc); }," },
+  { id: 'v210-rv-a-answer-not-drawn', area: "fdcFolderRead", what: "the box stays on Reading the shared folder after the folder has answered",
+    find: "if(!starting && _fdcFold===R) fdcSync();",
+    repl: "void starting;" },
+  { id: 'v210-rv-a-export-not-waiting', area: "exportFdc", what: "Export pressed while the shared folder is being read does not wait for it: it refuses, and nothing is downloaded",
+    find: "if(!R.done){",
+    repl: "if(false){" },
+  { id: 'v210-rv-a-read-once', area: "toggleFdc", what: "the shared folder is read once a session, so a newer save there never reaches the box again",
+    find: "if(fdcOpen) _fdcFold=null;",
+    repl: "void 0;" },
+  { id: 'v210-rv-a-pick-lost-reading', area: "fdcHtml", what: "while the shared folder is read the cycle picked falls back, so a cycle only another appropriation logs is lost",
+    find: "if(!st.reading){ fdcAceK=st.ace; fdcCycK=st.cyc; }",
+    repl: "fdcAceK=st.ace; fdcCycK=st.cyc;" },
   // ==== end v2.10 A ====
 
   // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====

@@ -2293,7 +2293,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
-<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here; a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
+<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it; Full Fund’s USMC-B is the STOVL sheet’s); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
@@ -6533,6 +6533,9 @@ let erOpen=null, erAt='', erSnap=null, erDescAuto='';
 // they start at $0 every time the board opens -- and switching appropriation reopens it. By kind (ir, if), appropriation and year.
 let fdcOpen=false, fdcAceK='', fdcCycK='', fdcTabOn=0;
 const FDC_INTL={ir:Object.create(null), if:Object.create(null)};
+// v2.10 review (A-3): with the team on the shared folder, the other appropriations as the folder answers for them
+// (fdcFolderRead) -- read when the box opens, held while it is open; null until then
+let _fdcFold=null;
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -24485,7 +24488,8 @@ function spBodyDraw(el){
 // READ, NEVER RECOMPUTED. The requirement is the chosen estimate's own lines (ACEDB); the controls are each appropriation's
 // own PPBE Budget Position under the chosen cycle, Discretionary and Mandatory -- the board on screen's from MS, every
 // other appropriation's from its own store as its own board opens it (fydpStoreLocal: browser storage, or the file's copy
-// when that is newer). Nothing here is a second engine: every figure is a sum of figures the board already holds, each
+// when that is newer; with the team on the shared folder, the folder's copy when that is newer -- fdcFolderRead, v2.10
+// review). Nothing here is a second engine: every figure is a sum of figures the board already holds, each
 // rounded at the door to a whole dollar (an estimate line is $M times a million, which a float does not always hold
 // whole), so the workbook's totals foot exactly. OPN is not included (Brad).
 //
@@ -24501,11 +24505,19 @@ const FDC_MARK='CUI//REL TO US DoW';      // above the title and in the footer o
 const FDC_APS=[{k:'om', band:'O&M', req:'O&M'}, {k:'ff', band:'PROCUREMENT', req:'Prod Support'},
   {k:'sp', band:'INITIAL SPARES', req:'Initial Spares'}];
 // the service sheets: their slide titles and row headings (Brad's slides), and the board's services each one adds up --
-// matched by name; a service in none of them is counted on the Summary alone, and the box names it
+// matched by name; a service in none of them is counted on the Summary alone, and the box names it.
+// v2.10 review (A-1): AND BY THE OTHER NAME THE BOARD'S ALIAS TABLE GIVES IT. Full Fund's own service list calls the F-35B
+// service 'USMC-B' and keys its PPBE positions by it; the estimate files it 'STOVL' (aceSvcOf). Matched by name alone, Full
+// Fund's F-35B controls reached no service sheet: STOVL printed PROCUREMENT controls $0 against the whole requirement, and the
+// four sheets stopped adding up to the Summary. SVC_ALIAS itself, never svcBoardOf: the other appropriations' stores are not
+// the board on screen, and each group takes both names whichever board is open.
 const FDC_GROUPS=[{name:'USAF', title:'USAF CTOL', air:'USAF F-35A', svcs:['USAF','ANG','AFRC']},
   {name:'STOVL', title:'USMC STOVL', air:'USMC F-35B', svcs:['STOVL']},
   {name:'USMC CV', title:'USMC CV', air:'USMC F-35C', svcs:['USMC-C']},
-  {name:'USN CV', title:'USN CV', air:'USN F-35C', svcs:['USN']}];
+  {name:'USN CV', title:'USN CV', air:'USN F-35C', svcs:['USN']}].map(function(g){
+  g.svcs.slice().forEach(function(sv){ const a=Object.prototype.hasOwnProperty.call(SVC_ALIAS, sv)? SVC_ALIAS[sv] : '';
+    if(a && g.svcs.indexOf(a)<0) g.svcs.push(a); });
+  return g; });
 const FDC_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const FDC_CYC_RE=/^(POM|BES|DoN|PB)\|\d{4}$/;
 function fdcYY(y){ return String(((y%100)+100)%100).padStart(2,'0'); }
@@ -24525,11 +24537,46 @@ function fdcStores(){
     if(a.k===own){ out.ppbe=(MS && MS.ppbe && typeof MS.ppbe==='object')? MS.ppbe : {}; return out; }
     if(sb){ out.why='a PMO copy holds '+appnName(own)+' alone'; return out; }
     let r; try{ r=fydpStoreLocal(a.k); }catch(e){ r={st:null, why:'its saved state could not be read'}; }
+    // v2.10 review (A-3): in the shared folder, its own board opens the folder's copy when that is newer -- so that is the copy
+    // read here, as the folder answered (fdcFolderRead), and nothing is said of it until the folder has answered
+    if(!r.why && driveStoreOn()){
+      const F=_fdcFold && _fdcFold.got[a.k];
+      if(!F){ out.wait=true; return out; }
+      r=F;
+    }
     if(r.why){ out.why=r.why; return out; }
     const p=r.st && r.st.ppbe;
     out.ppbe=(p && typeof p==='object' && !Array.isArray(p))? p : {};
     return out;
   });
+}
+// v2.10 review (A-3): WITH THE TEAM ON THE SHARED FOLDER, ANOTHER APPROPRIATION IS READ AS ITS OWN BOARD OPENS IT -- the
+// folder's copy when that is newer -- through fydpStoreFolder, as the five-year plan reads it. Read from this browser's copy
+// alone, the box set an estimate the folder keeps current against controls weeks old, and with no copy here said Full Fund
+// "has no position logged" while the folder held one. The folder answers later: it is read when the box opens and held while
+// it stays open (read again at the next opening); until it has answered the box says it is reading and states no figure, and
+// Export waits for the same answer. A folder that cannot be read is named, and nothing is said of a position not looked at.
+function fdcFolderRead(){
+  const R={got:Object.create(null), wait:[], done:false}, own=mySlug();
+  _fdcFold=R;
+  let left=1, starting=true;
+  const one=function(){
+    if(--left) return;
+    R.done=true;
+    if(!starting && _fdcFold===R) fdcSync();
+    R.wait.splice(0).forEach(function(f){ try{ f(); }catch(e){ setStat('⚠ FYDP Disconnects could not be exported — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was downloaded.'); } });
+  };
+  FDC_APS.forEach(function(a){
+    if(a.k===own) return;
+    let loc; try{ loc=fydpStoreLocal(a.k); }catch(e){ loc={st:null, why:'its saved state could not be read'}; }
+    left++;
+    let over=false;
+    const fin=function(r){ if(over) return; over=true; R.got[a.k]=r; one(); };
+    fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object')? r : loc); },
+      function(e){ fin({st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+')'}); });
+  });
+  one(); starting=false;
+  return R;
 }
 // every cycle a position is logged under in any of the three, newest first
 function fdcCycs(stores){
@@ -24549,16 +24596,19 @@ function fdcPosHeld(Q, y){
 // pick, which falls back to the newest estimate and to the working plan's cycle (else the newest one logged).
 function fdcState(opts){
   opts=opts||{};
-  const stores=fdcStores(), aces=fdcAces(), cycs=fdcCycs(stores);
+  const stores=fdcStores(), aces=fdcAces(), cycs=fdcCycs(stores), wait=stores.filter(function(s){ return s.wait; });
   let ace=(opts.ace!==undefined)? String(opts.ace) : fdcAceK, cyc=(opts.cyc!==undefined)? String(opts.cyc) : fdcCycK;
   if(opts.ace===undefined && aces.indexOf(ace)<0) ace=aces[0]||'';
   if(opts.cyc===undefined && cycs.indexOf(cyc)<0) cyc=(MS && cycs.indexOf(String(MS.cycle||''))>=0)? String(MS.cycle) : (cycs[0]||'');
   let why='';
   if(!aces.length) why='No cost estimate is loaded: Data \u203a Import Annual Cost Estimate\u2026 brings one in.';
   else if(aces.indexOf(ace)<0) why='The cost estimate '+inShow(ace)+' is not held on this board.';
+  // v2.10 review (A-3): until the shared folder has answered for an appropriation, nothing is said of its positions
+  else if(wait.length) why='Reading the shared folder for '+wait.map(function(s){ return s.name; }).join(' and ')
+    +': each is read as its own board opens it, the folder\u2019s copy when that is newer\u2026';
   else if(!cycs.length) why='No PPBE position is logged for O&M, Full Fund or Initial Spares: FYDP \u203a PPBE Budget Positions\u2026 logs one.';
   else if(cycs.indexOf(cyc)<0) why='No PPBE position is logged under '+inShow(cyc)+' for O&M, Full Fund or Initial Spares.';
-  return {stores:stores, aces:aces, cycs:cycs, ace:ace, cyc:cyc, why:why};
+  return {stores:stores, aces:aces, cycs:cycs, ace:ace, cyc:cyc, why:why, reading:wait.length>0};
 }
 // THE MODEL (the contract's shape). opts: {ace, cyc} to name them, {intl} for the International figures (the box's own,
 // FDC_INTL, otherwise). null when there is nothing to build (fdcState(opts).why says what).
@@ -24717,8 +24767,9 @@ function fdcTableHtml(M, sh){
 }
 function fdcHtml(){
   if(typeof SANDBOX!=='undefined' && SANDBOX) return '<div class="fdcnote warn">FYDP Disconnects is not offered in a PMO copy: it sets O&amp;M, Full Fund and Initial Spares side by side, and this copy holds '+esc(appnName(mySlug()))+' alone.</div>';
+  if(driveStoreOn() && !_fdcFold) fdcFolderRead();       // v2.10 review (A-3): the folder answers, then the box redraws
   const st=fdcState();
-  fdcAceK=st.ace; fdcCycK=st.cyc;
+  if(!st.reading){ fdcAceK=st.ace; fdcCycK=st.cyc; }      // a cycle logged only in a store still being read is still the pick
   const date=function(ts){ return ts? new Date(+ts).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : ''; };
   let h='<div class="fdcbar"><label>Cost estimate<select id="fdcAce" onchange="fdcPick(\'ace\', this.value)"'+(st.aces.length? '' : ' disabled')+'>'
     +(st.aces.length? st.aces.map(function(k){ const s=ACEDB.sets[k];
@@ -24730,8 +24781,10 @@ function fdcHtml(){
       : '<option value="">none logged</option>')+'</select></label>';
   const M=st.why? null : fdcModel();
   if(M) h+='<span class="fdcyrs">Years <b>FY'+fdcYY(M.years[0])+'–FY'+fdcYY(M.years[M.years.length-1])+'</b> · FYDP FY'+fdcYY(M.sum[0])+'–FY'+fdcYY(M.sum[M.sum.length-1])+'</span>';
-  h+='<span class="sp"></span><button type="button" class="btn on" id="fdcExport" onclick="exportFdc()"'+(M? '' : ' disabled')+'>Export to Excel (5 sheets)</button></div>';
-  if(!M) return h+'<div class="fdcnote warn" id="fdcWhy">'+esc(st.why)+'</div>';
+  // v2.10 review (A-3): while the shared folder is read, Export is offered and waits for the answer (exportFdc)
+  const rd=st.reading && st.why.indexOf('Reading the shared folder')===0;
+  h+='<span class="sp"></span><button type="button" class="btn on" id="fdcExport" onclick="exportFdc()"'+(M || rd? '' : ' disabled')+'>Export to Excel (5 sheets)</button></div>';
+  if(!M) return h+'<div class="fdcnote'+(rd? '' : ' warn')+'" id="fdcWhy"'+(rd? ' role="status"' : '')+'>'+esc(st.why)+'</div>';
   h+='<div class="fdcnote" id="fdcKeep">The International figures typed on the Summary are kept for this session only: they are not saved with the board, '
     +'and are lost when the board reloads — switching appropriation reloads it. Each starts at $0. Type them in $M: a bare number is millions.</div>';
   fdcNotes(st, M).forEach(function(t){ h+='<div class="fdcnote warn">⚠ '+esc(t)+'</div>'; });
@@ -24773,6 +24826,7 @@ function toggleFdc(){
     return;
   }
   fdcOpen=!fdcOpen;
+  if(fdcOpen) _fdcFold=null;         // v2.10 review (A-3): each opening reads the shared folder afresh
   render();
 }
 function fdcPick(kind, v){
@@ -24782,30 +24836,42 @@ function fdcPick(kind, v){
 function fdcTab(i){ fdcTabOn=+i||0; fdcDraw(); }
 // An International figure, typed in $M through the board's $M reader (a bare number is millions; whole dollars; never
 // below zero). Kept in FDC_INTL alone -- no save(), no journal -- and only the figures it moves are drawn again, in place:
-// the field keeps the keyboard, so Tab goes on to the next year as it would anywhere.
+// the field keeps the keyboard, so Tab goes on to the next year as it would anywhere, and a click on another box lands there.
 function fdcIntlSet(el){
   if(!el || !el.getAttribute) return;
   const kind=el.getAttribute('data-k'), ap=el.getAttribute('data-ap'), fy=parseInt(el.getAttribute('data-fy'), 10);
   if(!(kind==='ir' || kind==='if') || !FDC_APS.some(function(a){ return a.k===ap; }) || !fy) return;
   const M=FDC_INTL[kind][ap] || (FDC_INTL[kind][ap]=Object.create(null));
-  const was=Number.isInteger(M[fy])? M[fy] : 0, r=amtReadM(el.value), msg=document.getElementById('fdcMsg');
-  if(r.why){ el.value=fdcInShow(was); if(msg){ msg.className='fdcmsg bad'; msg.textContent='The International figure was not changed: '+r.why+'.'; } return; }
-  M[fy]=(r.v===null)? 0 : r.v;
-  el.value=fdcInShow(M[fy]);
-  if(msg){ msg.className='fdcmsg'; msg.textContent=r.rounded? 'Entered as '+fM(M[fy])+': the board keeps whole dollars.' : ''; }
   // A Tab leaving the field is still on its way to the next one when the browser fires this change, the keyboard nowhere for
   // that moment. The figures drawn again below would have the box controller give the box back its last control -- this
   // field -- and the Tab would be lost (measured in Chromium: the keyboard stayed on the year just typed). So the keyboard is
   // put where the Tab was going first, inside the box.
-  const a=document.activeElement, bg=document.getElementById('fdcPanel');
-  if((!a || a===document.body || a===document.documentElement) && (_navStep===1 || _navStep===-1) && bg){
+  // v2.10 review (A-2): A CLICK leaving it is on its way too, and nothing says where. Chromium fires the change with the
+  // keyboard nowhere while the click's focus is still to land; anything written into the box then -- a figure drawn again, the
+  // message line, its class alone -- has the box controller hand the keyboard back to this field, the click's focus is
+  // dropped, and the next figure lands in the year just left (measured: 250 typed in FY28, FY30 clicked and 7 typed, and FY28
+  // read $2,507M with FY30 $0; a sheet tab clicked left the keyboard on the estimate picker). So with the keyboard nowhere and
+  // no Tab on its way, every write into the box waits until the click has landed. The figure itself is kept at once.
+  const a=document.activeElement, bg=document.getElementById('fdcPanel'), away=!a || a===document.body || a===document.documentElement;
+  const tab=away && (_navStep===1 || _navStep===-1);
+  const paint=function(f){ if(away && !tab) setTimeout(f, 0); else f(); };
+  const was=Number.isInteger(M[fy])? M[fy] : 0, r=amtReadM(el.value), msg=function(cls, t){
+    paint(function(){ const m=document.getElementById('fdcMsg'); if(m){ m.className=cls; m.textContent=t; } }); };
+  if(r.why){ el.value=fdcInShow(was); msg('fdcmsg bad', 'The International figure was not changed: '+r.why+'.'); return; }
+  M[fy]=(r.v===null)? 0 : r.v;
+  el.value=fdcInShow(M[fy]);
+  msg('fdcmsg', r.rounded? 'Entered as '+fM(M[fy])+': the board keeps whole dollars.' : '');
+  if(tab && bg){
     const t=dlgTabbables(dlgModal(bg)), i=t.indexOf(el), nx=(i>=0)? t[(i+_navStep+t.length)%t.length] : null;
     if(nx){ try{ nx.focus({preventScroll:true}); }catch(x){} }
   }
-  const Mo=fdcModel(), sh=Mo && Mo.sheets[fdcTabOn];
-  if(!sh){ fdcDraw(); return; }
-  sh.rows.forEach(function(r0, ri){ if(r0.t!=='line') return;
-    r0.vals.concat([r0.tot]).forEach(function(v, ci){ const td=document.getElementById('fdcC_'+ri+'_'+ci); if(td) td.innerHTML=fdcCell(r0, v); }); });
+  paint(function(){
+    if(!fdcOpen) return;
+    const Mo=fdcModel(), sh=Mo && Mo.sheets[fdcTabOn];
+    if(!sh){ fdcDraw(); return; }
+    sh.rows.forEach(function(r0, ri){ if(r0.t!=='line') return;
+      r0.vals.concat([r0.tot]).forEach(function(v, ci){ const td=document.getElementById('fdcC_'+ri+'_'+ci); if(td) td.innerHTML=fdcCell(r0, v); }); });
+  });
 }
 function fdcFileName(M){
   return 'ORBIT FYDP Disconnects — '+M.ace.label+' vs '+M.cyc.label+' — FY'+fdcYY(M.years[0])+'–FY'+fdcYY(M.years[M.years.length-1])+'.xlsx';
@@ -24814,6 +24880,16 @@ function fdcFileName(M){
 // view's mark reaches the file. It only reads, so a locked cycle on screen exports as the working plan does.
 function exportFdc(){
   if(typeof SANDBOX!=='undefined' && SANDBOX){ alert('FYDP Disconnects is not offered in a PMO copy: it sets O&M, Full Fund and Initial Spares side by side, and this copy holds '+appnName(mySlug())+' alone.'); return; }
+  // v2.10 review (A-3): in the shared folder the workbook waits for the answer the box is waiting for (or reads one itself)
+  if(driveStoreOn()){
+    const R=_fdcFold || fdcFolderRead();
+    if(!R.done){
+      if(R.wait.indexOf(exportFdc)<0) R.wait.push(exportFdc);
+      const w=fdcStores().filter(function(s){ return s.wait; }).map(function(s){ return s.name; });
+      setStat('📉 FYDP Disconnects is reading the shared folder for '+esc(w.join(' and ') || 'the other appropriations')+' — the workbook downloads as soon as it answers.');
+      return;
+    }
+  }
   const M=fdcModel();
   if(!M){ alert('FYDP Disconnects cannot be exported. '+fdcState().why); return; }
   const out=fdcSheets(M);

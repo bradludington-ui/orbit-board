@@ -3214,6 +3214,263 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 }
+// ---- v2.10 review (A-1): a service named by its appropriation's own alias reaches its sheet ----------------------------------
+// Full Fund's own service list calls the F-35B service 'USMC-B' and keys its PPBE positions by it; the estimate files it 'STOVL'
+// (aceSvcOf). On 4c531a0 the STOVL sheet printed PROCUREMENT controls $0 against the whole requirement, the four service
+// sheets came short of the Summary's controls by exactly Full Fund's F-35B, and the box named USMC-B as counted on the Summary
+// only. Every figure below is worked out from the fixture's literals, the STOVL sheet taking both names (the board's alias
+// table); run with O&M on screen and Full Fund in this browser's storage, then with Full Fund on screen (its own list) and O&M
+// in storage -- which board is open must not decide which name counts. A service in no group stays on the Summary alone (XSVC
+// in the estimate, NAVY-X in Full Fund's position): the four sheets plus those add up to the Summary, line by line, year by
+// year. On 4c531a0 the block fails 16 checks (Full Fund's lines); the rest pass there, the CONTROLs and what must not move.
+{
+  const name = 'v2.10 review — FYDP Disconnects: Full Fund’s USMC-B is the STOVL sheet’s, and the service sheets add up to the Summary (A-1)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const ACE6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], FF6 = ['USAF', 'ANG', 'AFRC', 'USMC-B', 'USMC-C', 'USN'];
+    const YRS = [2027, 2028, 2029, 2030, 2031, 2032], APS = ['om', 'ff', 'sp'];
+    const lines = [];
+    APS.forEach((ap, a) => ACE6.forEach((sv, s) => { const v = {}; YRS.forEach(y => { v[y] = (a + 1) * 1e9 + (s + 1) * 1e7 + (y - 2020) * 1e5; }); lines.push({ ap, pmo: 'AV', svc: sv, v }); }));
+    { const v = {}; YRS.forEach(y => { v[y] = 3e6 + y; }); lines.push({ ap: 'ff', pmo: 'AV', svc: 'XSVC', v }); }        // in no group
+    const SETS = { '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines, appn: {}, skip: {} } };
+    const posOf = (list, a) => { const P = { v: 2, split: true, lines: {}, val: {} };
+      list.forEach((sv, s) => { P.lines[sv] = [{ k: '_all', all: true }]; P.val[sv] = { _all: {} };
+        YRS.forEach(y => { P.val[sv]._all[y] = { d: (a + 1) * 2e8 + (s + 1) * 3e6 + (y - 2020) * 1e4, m: (s + 1) * 1e5 + a * 1e3 + (y - 2020) }; }); });
+      return P; };
+    const POS = { om: posOf(ACE6, 0), ff: posOf(FF6.concat(['NAVY-X']), 1), sp: posOf(ACE6, 2) };
+    // the rule: a sheet takes a service by its name or by its other name in the board's alias table
+    const GRP = [['USAF', ['USAF', 'ANG', 'AFRC']], ['STOVL', ['STOVL', 'USMC-B']], ['USMC CV', ['USMC-C']], ['USN CV', ['USN']]];
+    const lane = (ap, svcs, y, w) => Object.keys(POS[ap].val).filter(sv => svcs.includes(sv)).reduce((t, sv) => t + POS[ap].val[sv]._all[y][w], 0);
+    const reqOf = (ap, svcs, y) => lines.filter(l => l.ap === ap && svcs.includes(l.svc)).reduce((t, l) => t + l.v[y], 0);
+    const T5 = f => YRS.slice(1).reduce((t, y) => t + f(y), 0);
+    const pick = (rows, ap, k) => rows.filter(r => r.t === 'line' && r.ap === ap && (k === 'us' ? / Req( - US Only)?$/.test(r.label)
+      : k === 'ctl' ? /Controls$/.test(r.label) : r.label === (k === 'd' ? 'Discretionary' : 'Mandatory')))[0] || { vals: [], tot: 'missing' };
+    const lone = { us: { ff: ['XSVC'] }, d: { ff: ['NAVY-X'] }, m: { ff: ['NAVY-X'] }, ctl: { ff: ['NAVY-X'] } };
+    const loneOf = (k, ap, y) => { const L = (lone[k] || {})[ap] || []; return k === 'us' ? reqOf(ap, L, y) : k === 'ctl' ? lane(ap, L, y, 'd') + lane(ap, L, y, 'm') : lane(ap, L, y, k); };
+    const money = v => '$' + Math.round(v / 1e6).toLocaleString('en-US');
+    const ST = ['STOVL', 'USMC-B'], ctlST = (ap, y) => lane(ap, ST, y, 'd') + lane(ap, ST, y, 'm');
+    const run = (B, label) => {
+      const M = parse(E(B.ev, `JSON.stringify(fdcModel({ace:'2025ACE', cyc:'BES|2028'}))`)) || { sheets: [] };
+      const sh = n => (M.sheets || []).filter(s => s.name === n)[0] || { rows: [] };
+      chk(name, label, 'the years are FY27–FY32 (a CONTROL on the fixture: every year below is held)', J(M.years), J(YRS));
+      // the STOVL sheet: Full Fund's USMC-B, O&M's and Spares' STOVL, each from its own position, against the estimate's STOVL
+      APS.forEach(ap => {
+        const S = sh('STOVL').rows;
+        chk(name, label + ' · STOVL · ' + ap, 'the controls are this appropriation’s F-35B position, discretionary + mandatory, every year and the FYDP',
+          J([pick(S, ap, 'ctl').vals, pick(S, ap, 'ctl').tot]), J([YRS.map(y => ctlST(ap, y)), T5(y => ctlST(ap, y))]));
+        chk(name, label + ' · STOVL · ' + ap, 'Discretionary and Mandatory', J([pick(S, ap, 'd').vals, pick(S, ap, 'm').vals]),
+          J([YRS.map(y => lane(ap, ST, y, 'd')), YRS.map(y => lane(ap, ST, y, 'm'))]));
+        chk(name, label + ' · STOVL · ' + ap, 'the delta is those controls less the estimate’s STOVL requirement',
+          J((S.filter(r => r.ap === ap && r.style === 'delta')[0] || {}).vals), J(YRS.map(y => ctlST(ap, y) - reqOf(ap, ['STOVL'], y))));
+      });
+      chk(name, label, 'the fixture reaches what it tests (a CONTROL): Full Fund’s F-35B is logged under USMC-B alone, and it is not $0',
+        J([Object.keys(POS.ff.val).includes('STOVL'), lane('ff', ['USMC-B'], 2028, 'd') > 0]), J([false, true]));
+      // the four sheets, plus what no sheet takes, are the Summary: every appropriation, line, year and the FYDP total
+      const sum = sh('Summary').rows;
+      APS.forEach(ap => ['us', 'ctl', 'd', 'm'].forEach(k => {
+        const got = YRS.map((y, i) => GRP.reduce((t, g) => t + (pick(sh(g[0]).rows, ap, k).vals[i] || 0), 0) + loneOf(k, ap, y));
+        const gotT = GRP.reduce((t, g) => t + (+pick(sh(g[0]).rows, ap, k).tot || 0), 0) + T5(y => loneOf(k, ap, y));
+        chk(name, label + ' · foots · ' + ap, k + ': the four service sheets plus the services no sheet takes are the Summary’s line, each year and the FYDP',
+          J([got, gotT]), J([pick(sum, ap, k).vals, pick(sum, ap, k).tot]));
+      }));
+      const all = Object.keys(POS.ff.val);
+      chk(name, label + ' · foots', 'and the Summary is the whole position (a CONTROL: the identity above is not two copies of one mistake)',
+        J(pick(sum, 'ff', 'ctl').vals), J(YRS.map(y => lane('ff', all, y, 'd') + lane('ff', all, y, 'm'))));
+      // the notes name only what no sheet takes
+      E(B.ev, `if(!fdcOpen) toggleFdc(); fdcTab(0); 'ok'`);
+      chk(name, label + ' · the box', 'Counted on the Summary only names XSVC and NAVY-X, and never USMC-B',
+        E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcBody .fdcnote.warn'), function(n){ return n.textContent; }).filter(function(t){ return /Summary only/.test(t); }))`),
+        J(['⚠ Counted on the Summary only, on no service sheet: XSVC (2025 ACE); NAVY-X (Full Fund BES28).']));
+      // and the STOVL tab draws Full Fund's controls, never $0
+      E(B.ev, `fdcTab(2); 'ok'`);
+      const ri = sh('STOVL').rows.findIndex(r => r.t === 'line' && r.ap === 'ff' && /Controls$/.test(r.label));
+      chk(name, label + ' · the box', 'the STOVL tab draws PROCUREMENT’s controls from Full Fund’s USMC-B',
+        E(B.ev, `JSON.stringify([0,1,2,3,4,5,6].map(function(c){ var td=document.getElementById('fdcC_${ri}_'+c); return td? td.textContent : null; }))`),
+        J(YRS.map(y => money(ctlST('ff', y))).concat([money(T5(y => ctlST('ff', y)))])));
+      E(B.ev, `fdcTab(0); toggleFdc(); 'ok'`);
+    };
+    const store = (P, svcs) => J({ base: 2028, cur: 2028, ts: 5, years: {}, order: [], ppbe: { 'BES|2028': P }, dataPack: svcs ? { services: svcs, items: [], budget: [] } : undefined });
+    // O&M on screen, Full Fund and Spares in this browser's storage
+    const O = boot();
+    seed(O.ev, { services: ACE6, items: [], disc: ACE6.map(() => 0), mand: ACE6.map(() => 0), order: [] });
+    E(O.ev, `ACEDB.sets=${J(SETS)}; ACEDB.ts=4000; MS.ppbe={'BES|2028':${J(POS.om)}}; MS.cycle='BES|2028';
+      localStorage.setItem(_SLUGMAP.ff.key, ${J(store(POS.ff, FF6))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(POS.sp))}); render(); 'ok'`);
+    chk(name, 'O&M on screen', 'the board on screen is O&M (a CONTROL)', E(O.ev, `mySlug()`), 'om');
+    run(O, 'O&M on screen');
+    // Full Fund on screen: its own list says USMC-B; O&M's position, in storage, says STOVL
+    const F = boot({ appn: 'FULL FUND', ls: { prio27om: store(POS.om), prio27sp: store(POS.sp),
+      prio27ff: J({ base: 2028, cur: 2028, ts: 5, years: { 2028: { order: [] } }, order: [], dataPack: { services: FF6, items: [], budget: [] } }) } });
+    E(F.ev, `ACEDB.sets=${J(SETS)}; ACEDB.ts=4000; MS.ppbe={'BES|2028':${J(POS.ff)}}; MS.cycle='BES|2028'; render(); 'ok'`);
+    chk(name, 'Full Fund on screen', 'the board on screen is Full Fund, its own services naming USMC-B (a CONTROL)',
+      E(F.ev, `JSON.stringify([mySlug(), SVC.indexOf('USMC-B')>=0, SVC.indexOf('STOVL')>=0])`), J(['ff', true, false]));
+    run(F, 'Full Fund on screen');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.10 review (A-2): an International figure left by a CLICK keeps the click's keyboard -------------------------------------
+// Chromium fires the change of a figure typed and left with the mouse while the keyboard is nowhere, the click's focus still to
+// land. On 4c531a0 fdcIntlSet drew the figures it moves at that moment, the box controller handed the keyboard back to the year
+// just left, the click's focus was dropped and the next figure went into that year (250 in FY28, FY30 clicked, 7 typed: FY28
+// $2,507M, FY30 $0); a sheet tab clicked left the keyboard on the estimate picker. Here the click is delivered as Chromium
+// delivers it -- pointerdown on what is clicked, the field left with the keyboard nowhere, its change, the box controller's turn
+// (the observer's microtask), then the click's focus, which lands only if nothing took the keyboard meanwhile, then the click.
+// jsdom lays nothing out, so what is on screen (getClientRects) is stood in for while it runs; npm run keys (R) is Chromium,
+// with a real mouse. On 4c531a0 the block fails 3 checks; the other two pass there (the figure is taken, and the CONTROL).
+{
+  const name = 'v2.10 review — FYDP Disconnects: an International figure left by a click keeps the click’s keyboard (A-2)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const SV6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const B = boot();
+    seed(B.ev, { services: SV6, items: [], disc: SV6.map(() => 0), mand: SV6.map(() => 0), order: [] });
+    E(B.ev, `(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=${J(SV6)}, L=[];
+      ['om','ff','sp'].forEach(function(ap, a){ S6.forEach(function(sv, s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6; }); L.push({ap:ap, pmo:'AV', svc:sv, v:v}); }); });
+      ACEDB.sets={'2025ACE':{label:'2025ACE', ts:2000, years:Y, lines:L, appn:{}, skip:{}}};
+      var val={}, lines={}; S6.forEach(function(sv, s){ lines[sv]=[{k:'_all', all:true}]; val[sv]={_all:{}};
+        [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
+      MS.ppbe={'BES|2028':{v:2, split:true, lines:lines, val:val}}; MS.cycle='BES|2028'; toggleFdc(); })(); 'ok'`);
+    // (a browser has run every microtask before a person clicks: the observer's records from the redraws before are delivered first)
+    const click = (from, to, typed) => B.w.eval(`(async function(){ var gr=Element.prototype.getClientRects; Element.prototype.getClientRects=function(){ return [{}]; };
+      try{ await new Promise(function(r){ setTimeout(r, 0); });
+        var a=document.getElementById(${J(from)}), b=document.getElementById(${J(to)});
+        a.focus(); a.value=${J(typed)}; a.dispatchEvent(new Event('input',{bubbles:true}));
+        b.dispatchEvent(new Event('pointerdown',{bubbles:true}));
+        a.blur(); a.dispatchEvent(new Event('change',{bubbles:true}));
+        await null; await null;
+        var a2=document.activeElement; if(!a2 || a2===document.body) b.focus();
+        b.click();
+        await new Promise(function(r){ setTimeout(r, 20); });
+        return (document.activeElement||{}).id||''; }
+      finally{ Element.prototype.getClientRects=gr; } })()`);
+    const typeHere = v => E(B.ev, `(function(){ var e=document.activeElement; if(!e || !e.id) return 'nowhere'; e.value=${J(v)};
+      e.dispatchEvent(new Event('input',{bubbles:true})); e.dispatchEvent(new Event('change',{bubbles:true})); return e.id; })()`);
+    const c0 = E(B.ev, `document.getElementById('fdcC_1_1').textContent`);
+    const k1 = await click('fdcIn_ir_om_2028', 'fdcIn_ir_om_2030', '250');
+    chk(name, 'a click on the next box', '250 typed in FY28 and FY30 clicked: the keyboard is on FY30, where it was clicked', k1, 'fdcIn_ir_om_2030');
+    chk(name, 'a click on the next box', 'FY28 is taken, and the figures it moves are drawn once the click has landed (O&M’s FY28 requirement $250M up)',
+      J([E(B.ev, `FDC_INTL.ir.om[2028]`), E(B.ev, `document.getElementById('fdcC_1_1').textContent`) === '$' + (Number(c0.replace(/[$,]/g, '')) + 250).toLocaleString('en-US')]), J([250000000, true]));
+    chk(name, 'a click on the next box', 'and the 7 typed next goes into FY30, not FY28', J([typeHere('7'), E(B.ev, `JSON.stringify(FDC_INTL.ir.om)`)]),
+      J(['fdcIn_ir_om_2030', J({ 2028: 250000000, 2030: 7000000 })]));
+    const k2 = await click('fdcIn_if_om_2031', 'fdcTab_1', '3');
+    chk(name, 'a click on a sheet tab', '3 typed in FY31’s International Funding and the USAF tab clicked: the tab is pressed and has the keyboard, the figure taken for FY31',
+      J([k2, E(B.ev, `document.getElementById('fdcTab_1').getAttribute('aria-pressed')`), E(B.ev, `JSON.stringify(FDC_INTL.if.om)`)]), J(['fdcTab_1', 'true', J({ 2031: 3000000 })]));
+    chk(name, 'a click on a sheet tab', 'nothing threw (a CONTROL)', J(B.errors.slice(0, 2)), J([]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.10 review (A-3): with the team on the shared folder, another appropriation is read as its own board opens it -----------
+// In folder mode Full Fund's own board opens the folder's copy when that is newer (driveStorePull); the five-year plan reads it
+// so (fydpStoreFolder). On 4c531a0 the box read this browser's copy alone: controls weeks old beside the folder's current
+// estimate, and with no copy here "Full Fund has no BES28 position logged" while the folder held one. Here: a Full Fund board
+// writes the folder's copy (newer) and this browser's (older), each from its own livePayload(); O&M is on screen in folder mode
+// with a stand-in folder. The box must say it is reading and state nothing until the folder has answered, then draw the folder's
+// figures; Export pressed meanwhile waits for that answer and downloads once; with no copy in this browser it reads the folder
+// the same way; a folder that cannot be read is named and nothing is said of a position not looked at; and each opening reads
+// it again. Every figure is the fixture's. On 4c531a0 the block fails 8 checks; the rest pass there (the CONTROLs, and what
+// the fix must keep: no claim of a missing position, the tables once it has answered).
+{
+  const name = 'v2.10 review — FYDP Disconnects: in the shared folder, another appropriation is read as its own board opens it (A-3)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], YRS = [2027, 2028, 2029, 2030, 2031, 2032];
+    const seedIt = ev => { seed(ev, { services: SV, items: [{ id: 'A', grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec A', event: 'EV-A', ccar: '', fy26: SV.map(() => 0), ask: [100, 0, 0, 0, 0, 200], alloc: null }],
+      disc: [1e9, 0, 0, 0, 0, 1e9], mand: SV.map(() => 0), order: ['A'] });
+      E(ev, `BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); 'ok'`); };
+    const posOf = f => { const v = {}; YRS.forEach(y => { v[y] = f(y); }); return { v: 2, split: false, lines: { USN: [{ k: '_all', all: true }] }, val: { USN: { _all: v } } }; };
+    const OLD = y => ({ d: 1e6, m: 0 }), NEW = y => ({ d: 50e6 + y, m: 2e6 + y }), NEWER = y => ({ d: 70e6 + y, m: 3e6 + y });
+    // Full Fund's own board writes both copies, as it saves them (the folder save puts the data pack in first: _driveStorePushRun)
+    const F = boot({ appn: 'FULL FUND' });
+    seedIt(F.ev);
+    const mk = (ts, f, extra) => E(F.ev, `(function(){ MS.ppbe=${J({ 'BES|2028': posOf(f) })}; ${extra || ''} MS.ts=${ts}; MS.dataPack=dataPackOf();
+      var p=livePayload(); p.ts=${ts}; return JSON.stringify(p); })()`);
+    const folderTxt = mk(20000, NEW, `MS.ppbe['POM|2029']=${J(posOf(y => ({ d: 9e6 + y, m: 0 })))};`);
+    const newerTxt = mk(30000, NEWER);
+    const oldStore = J((parse(mk(10, OLD)) || {}).store);
+    const FILE = E(F.ev, `driveName(MS.cur, 'ff')`);
+    const ace = { label: '2025ACE', ts: 5, years: YRS, appn: {}, skip: {}, lines: [{ ap: 'om', pmo: 'PSM', svc: 'USN', v: Object.fromEntries(YRS.map(y => [y, 3e6])) },
+      { ap: 'ff', pmo: 'PSM', svc: 'USN', v: Object.fromEntries(YRS.map(y => [y, 60e6])) }] };
+    const folder = (granted) => `(function(){ var files=window.__fold={}; files[${J(FILE)}]=${J(folderTxt)}; return {
+      name:'team', kind:'directory',
+      queryPermission: async function(){ return ${granted ? "'granted'" : "'denied'"}; }, requestPermission: async function(){ return ${granted ? "'granted'" : "'denied'"}; },
+      getFileHandle: async function(n){ if(Object.prototype.hasOwnProperty.call(files, n)) return {name:n, getFile: async function(){ return {text: async function(){ return files[n]; }, lastModified:1}; }};
+        var e=new Error('not found: '+n); e.name='NotFoundError'; throw e; },
+      getDirectoryHandle: async function(){ var e=new Error('nf'); e.name='NotFoundError'; throw e; },
+      values: async function*(){ for(var k of Object.keys(files)) yield {kind:'file', name:k}; } }; })()`;
+    const board = (withOld, granted) => {
+      const ls = { spmtLive: J({ store: true, mode: 'drive', on: false, folder: 'team' }) };
+      if (withOld) ls.prio27ff = oldStore;
+      const O = boot({ ls });
+      seedIt(O.ev);
+      E(O.ev, `ACEDB.sets={'2025ACE':${J(ace)}}; ACEDB.ts=4000; MS.ppbe={'BES|2028':${J(posOf(y => ({ d: 2e6, m: 0 })))}}; MS.cycle='BES|2028';
+        _driveDir=${folder(granted)}; render(); 'ok'`);
+      return O;
+    };
+    const settle = async O => { for (let i = 0; i < 100; i++) { await new Promise(r => setTimeout(r, 10)); if (E(O.ev, `!!(_fdcFold && _fdcFold.done)`) === true) break; }
+      await new Promise(r => setTimeout(r, 20)); };
+    const ffRows = O => parse(E(O.ev, `(function(){ var M=fdcModel(); if(!M) return 'null';
+      return JSON.stringify(M.sheets[0].rows.filter(function(r){ return r.t==='line' && r.ap==='ff' && (/Controls$/.test(r.label) || r.style==='ital'); }).map(function(r){ return r.vals; })); })()`));
+    const want = f => [YRS.map(y => f(y).d + f(y).m), YRS.map(y => f(y).d), YRS.map(y => f(y).m)];
+    const notes = O => parse(E(O.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcBody .fdcnote'), function(n){ return n.textContent; }))`)) || [];
+    const claims = O => notes(O).filter(t => /Full Fund (has|holds) no/.test(t));
+    // ---- 1. this browser holds an older copy; the folder a newer one ------------------------------------------------------------
+    const O = board(true, true);
+    chk(name, 'the fixture', 'folder mode is on, this browser’s Full Fund copy is the older one, and the five-year plan’s reader takes the folder’s (a CONTROL)',
+      J([E(O.ev, `driveStoreOn()`), E(O.ev, `fydpStoreLocal('ff').st.ts`), await O.w.eval(`(async function(){ var r=await fydpStoreFolder('ff', fydpStoreLocal('ff')); return JSON.stringify([!!r.folder, ppSvcFy(r.st.ppbe['BES|2028'],'USN',2028)]); })()`)]),
+      J([true, 10, J([true, { d: NEW(2028).d, m: NEW(2028).m, t: NEW(2028).d + NEW(2028).m }])]));
+    // opened, and Export pressed at once: the box is reading, states no figure, and the workbook waits
+    E(O.ev, `window.__exp={n:0, model:null}; window.__oS=fdcSheets; window.__oB=buildXlsx; window.__oC=HTMLAnchorElement.prototype.click;
+      fdcSheets=function(m){ window.__exp.model=JSON.stringify(m); return {sheets:[{name:'S', cols:[10], rows:[['x']]}], extra:{}}; };
+      buildXlsx=function(){ return new Uint8Array([1]); }; HTMLAnchorElement.prototype.click=function(){ window.__exp.n++; };
+      window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; toggleFdc(); 'ok'`);
+    const reading = E(O.ev, `JSON.stringify([(document.getElementById('fdcWhy')||{}).textContent||null, !!document.getElementById('fdcPage'), fdcModel()===null])`);
+    chk(name, 'reading', 'the box says it is reading the shared folder for Full Fund and Initial Spares, and draws no table and no model until it has answered',
+      reading, J(['Reading the shared folder for Full Fund and Initial Spares: each is read as its own board opens it, the folder’s copy when that is newer…', false, true]));
+    chk(name, 'reading', 'and says nothing of a position it has not looked at', J(claims(O)), J([]));
+    E(O.ev, `document.getElementById('fdcExport').click(); 'ok'`);
+    chk(name, 'reading', 'Export pressed while it reads downloads nothing yet, refuses nothing, and says the workbook waits for the folder',
+      J([E(O.ev, `window.__exp.n`), E(O.ev, `window.__al.length`), /reading the shared folder for Full Fund and Initial Spares — the workbook downloads as soon as it answers/.test(E(O.ev, `document.getElementById('shareStat').textContent`))]), J([0, 0, true]));
+    await settle(O);
+    chk(name, 'answered', 'then the box draws Full Fund’s controls, Discretionary and Mandatory from the folder’s copy, every year', J(ffRows(O)), J(want(NEW)));
+    chk(name, 'answered', 'the reading line is gone and the tables are on screen', E(O.ev, `JSON.stringify([!!document.getElementById('fdcWhy'), !!document.getElementById('fdcPage')])`), J([false, true]));
+    chk(name, 'answered', 'and the box claims no missing Full Fund position', J(claims(O)), J([]));
+    const exM = parse(E(O.ev, `window.__exp.model`)) || { sheets: [{ rows: [] }] };
+    chk(name, 'answered', 'the waiting Export downloaded once, with the folder’s figures',
+      J([E(O.ev, `window.__exp.n`), (exM.sheets[0].rows.filter(r => r.t === 'line' && r.ap === 'ff' && /Controls$/.test(r.label))[0] || {}).vals]), J([1, want(NEW)[0]]));
+    // a cycle logged only in the folder's copy stays picked across the next opening, while the folder is read again
+    E(O.ev, `fdcPick('cyc', 'POM|2029'); toggleFdc(); toggleFdc(); 'ok'`);
+    await settle(O);
+    chk(name, 'answered', 'a cycle only the folder’s copy logs (POM29), picked, is still the pick once the folder answers again',
+      E(O.ev, `(document.querySelector('#fdcCyc option:checked')||{}).value`), 'POM|2029');
+    // each opening reads the folder afresh: a newer save reaches the box the next time it opens
+    E(O.ev, `fdcPick('cyc', 'BES|2028'); toggleFdc(); window.__fold[${J(FILE)}]=${J(newerTxt)}; toggleFdc(); 'ok'`);
+    await settle(O);
+    chk(name, 'opened again', 'the folder saved again since: the next opening draws the newer copy', J(ffRows(O)), J(want(NEWER)));
+    E(O.ev, `fdcSheets=window.__oS; buildXlsx=window.__oB; HTMLAnchorElement.prototype.click=window.__oC; toggleFdc(); 'ok'`);
+    // ---- 2. no Full Fund copy in this browser at all ----------------------------------------------------------------------------
+    const N = board(false, true);
+    chk(name, 'no copy here', 'this browser holds no Full Fund copy (a CONTROL)', J(E(N.ev, `fydpStoreLocal('ff').st`)), J(null));
+    E(N.ev, `toggleFdc(); 'ok'`);
+    await settle(N);
+    chk(name, 'no copy here', 'the folder’s copy is read all the same: Full Fund’s controls are the folder’s, and nothing says it has no position', J([ffRows(N), claims(N)]), J([want(NEW), []]));
+    // ---- 3. a folder that cannot be read ----------------------------------------------------------------------------------------
+    const D = board(true, false);
+    E(D.ev, `toggleFdc(); 'ok'`);
+    await settle(D);
+    const dn = notes(D).filter(t => /^⚠ Full Fund/.test(t));
+    chk(name, 'folder unreadable', 'the box names the folder for Full Fund, and never says it has no position or prints this browser’s older copy',
+      J([dn.length === 1 && /^⚠ Full Fund: its controls cannot be read here \(the shared folder could not be read \(.+\), so its newest copy is unknown\), so they print —\.$/.test(dn[0]), claims(D), (ffRows(D) || [])[0]]),
+      J([true, [], YRS.map(() => null)]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.10 A ====
 
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====

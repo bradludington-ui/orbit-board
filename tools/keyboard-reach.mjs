@@ -25,7 +25,8 @@
 //      Add pressed early sends the keyboard to the first field still needed, and Esc asks before typing is lost.
 //   R. FYDP Disconnects (v2.10, item 130): opened from FYDP ▸ by Enter with the keyboard inside, Tab walks its pickers, Export and
 //      its sheet tabs, Enter presses a tab, an International figure typed and left with Tab is taken and the keyboard goes on to
-//      the next year, and Esc closes it with the keyboard back on FYDP ▸.
+//      the next year, one left by clicking the next box (or a sheet tab) with the mouse leaves the keyboard where the click put
+//      it (v2.10 review, A-2), and Esc closes it with the keyboard back on FYDP ▸.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -851,6 +852,21 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       kept: FDC_INTL.ir.om[2028], cell: document.querySelector('#fdcPage tbody tr:nth-child(2) td:nth-child(3)').textContent }));
     chk('R · an International figure typed and left with Tab is taken in $M, its requirement drawn again, and the keyboard is on the next year',
       r.focus === 'fdcIn_ir_om_2029' && r.val === '$250' && r.kept === 250000000 && r.cell !== c0, JSON.stringify({ before: c0, ...r }));
+    // v2.10 review (A-2): the same figure left with a CLICK, a real mouse on the next box. Chromium fires the change with the
+    // keyboard nowhere and the click's focus still to land, and a figure drawn again at that moment had the box controller hand
+    // the keyboard back to the year just left: the next figure typed went into it (FY28 read $2,507M, FY30 $0). And a sheet tab
+    // clicked after a figure is typed keeps the keyboard (it was left on the estimate picker).
+    await p.click('#fdcIn_ir_om_2030'); await p.keyboard.press('Control+a'); await p.keyboard.type('7');
+    await p.click('#fdcIn_ir_om_2031'); await p.waitForTimeout(150);
+    await p.keyboard.press('Control+a'); await p.keyboard.type('3');
+    const k1 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om) }));
+    chk('R · a figure typed and left by clicking the next box: the keyboard is on the box clicked, and the next figure goes there',
+      k1.focus === 'fdcIn_ir_om_2031' && k1.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000 }), JSON.stringify(k1));
+    await p.click('#fdcTab_1'); await p.waitForTimeout(200);
+    const k2 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om),
+      pressed: [...document.querySelectorAll('#fdcBody .fdctabs button')].map(b => b.getAttribute('aria-pressed')).join() }));
+    chk('R · then a sheet tab clicked: the tab is pressed and has the keyboard, and the figure typed is taken for its own year',
+      k2.focus === 'fdcTab_1' && k2.pressed === 'false,true,false,false,false' && k2.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000, 2031: 3000000 }), JSON.stringify(k2));
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
     const e = await p.evaluate(() => ({ open: document.getElementById('fdcPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
     chk('R · Esc closes it, the keyboard back on FYDP ▸', !e.open && e.focus === 'uiNav_fydp', JSON.stringify(e));
