@@ -80,7 +80,7 @@ const REGISTRY = {
   // the delta and % Funded, and the International figures typed on its Summary: the model (fdcModel) is what the box draws and
   // what the workbook prints (fdcSheets, the workbook's own builder, is registered with it where it is defined)
   exportFdc:    { money: true,  what: 'FYDP Disconnects — the cost estimate against a PPBE cycle’s controls, by appropriation and service group, with the delta and % Funded, on screen and in Excel',
-                  via: ['fdcModel', 'fdcState', 'fdcStores', 'fdcCycs', 'fdcAces', 'fdcPosHeld', 'fdcIntlSet', 'fdcMoney', 'fdcHtml', 'fdcSync', 'FDC_APS', 'FDC_GROUPS'] },
+                  via: ['fdcModel', 'fdcState', 'fdcStores', 'fdcCycs', 'fdcAces', 'fdcPosHeld', 'fdcIntlSet', 'fdcMoney', 'fdcHtml', 'fdcSync', 'FDC_APS', 'FDC_GROUPS', 'fdcSheets'] },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:

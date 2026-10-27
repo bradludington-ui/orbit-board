@@ -1758,7 +1758,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in, and FYDP Disconnects, which has the slides’ own look',
     J(calls.filter(c => c[1] === NOHOUSE.test(c[0])).map(c => c[0])), '[]');
   chk(name, 'which reports', 'and the list is the thirteen reports that write a workbook and the two (three, with FYDP Disconnects) that do not',
-    calls.length, fns.some(f => f.n === 'exportFdc') ? 16 : 15);
+    calls.length, 16);   // v2.10 integration: exportFdc is on the board, so the count is 16 outright
   ev(`blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
@@ -3170,6 +3170,24 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       return JSON.stringify([got? JSON.stringify(got)===JSON.stringify(fdcModel()) : null, built, name, al.length]); })()`);
     chk(name, 'Export to Excel', 'it hands fdcSheets the model on screen (International figures included) and buildXlsx what that returns, and names the file for the estimate, the cycle and the years',
       exp(B.ev), J([true, [1, 1], 'ORBIT FYDP Disconnects — 2025 ACE vs BES28 — FY27–FY32.xlsx', 0]));
+    // ---- END TO END (v2.10 integration): the real fdcSheets and buildXlsx, nothing stood in but the download. The parts above
+    // hand the workbook a stand-in, because A and B were built apart; this is where the two meet. Five sheets in order, and the
+    // Summary's O&M requirement and the USAF sheet's O&M controls, FY28, are the box's own figures in the bytes.
+    const e2e = J(parse(E(B.ev, `(function(){ var u=null, oB=window.buildXlsx, oC=HTMLAnchorElement.prototype.click; var M=fdcModel();
+      window.buildXlsx=function(s, x, o){ u=oB(s, x, o); return u; }; HTMLAnchorElement.prototype.click=function(){};
+      try{ exportFdc(); } finally { window.buildXlsx=oB; HTMLAnchorElement.prototype.click=oC; }
+      if(!u) return JSON.stringify({err:'no workbook'});
+      var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), parts={};
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        parts[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+      var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); };
+      var names=[].slice.call(P(parts['xl/workbook.xml']).getElementsByTagName('sheet')).map(function(s){ return s.getAttribute('name'); });
+      var nums=function(k){ return [].slice.call(P(parts['xl/worksheets/sheet'+k+'.xml']).getElementsByTagName('v')).map(function(v){ return +v.textContent; }); };
+      var want1=M.sheets[0].rows.filter(function(r){ return r.t==='line' && r.ap==='om' && r.style==='bold'; })[0].vals[1];
+      var want2=M.sheets[1].rows.filter(function(r){ return r.t==='line' && r.ap==='om' && /Controls/.test(r.label); })[0].vals[1];
+      return JSON.stringify({names:names, sum:nums(1).indexOf(want1)>=0, usaf:nums(2).indexOf(want2)>=0, whole:Number.isInteger(want1) && Number.isInteger(want2)}); })()`)));
+    chk(name, 'end to end', 'Export writes the five sheets in order, and the bytes hold the box’s own Summary and USAF figures, whole dollars',
+      e2e, J({ names: ['Summary', 'USAF', 'STOVL', 'USMC CV', 'USN CV'], sum: true, usaf: true, whole: true }));
     // ---- a locked cycle on screen: it only reads, so it works, and the file says which lock --------------------------------
     E(B.ev, `blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
     chk(name, 'a locked view', 'on PB27 locked the model is the working plan’s, read from the same stores, International figures and all', canon(parse(pageModel(B.ev, { ace: '2025ACE', cyc: 'BES|2028' }))), canon(W1));

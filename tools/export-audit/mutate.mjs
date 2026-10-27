@@ -8443,6 +8443,11 @@ const MUTATIONS = [
   { id: 'v210-a-export-without-intl', area: "exportFdc", what: "the workbook is handed a model without the International figures typed in the box",
     find: "const out=fdcSheets(M);",
     repl: "const out=fdcSheets(fdcModel({intl:{ir:{}, if:{}}}));" },
+  // v2.10 integration: A's exportFdc meets B's fdcSheets -- each undoes what the end-to-end part holds
+  { id: 'v210-int-export-drops-sheets', area: "exportFdc", what: "Export writes only the Summary: the four service sheets fdcSheets laid out never reach the file",
+    find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets.slice(0,1), out.extra);" },
+  { id: 'v210-int-export-house-style', area: "exportFdc", what: "Export asks for the house style, which repaints the slides' colours and drops the page set-up",
+    find: "const bytes=buildXlsx(out.sheets, out.extra);", repl: "const bytes=buildXlsx(out.sheets, out.extra, xlsxHouse('FYDP Disconnects'));" },
   // ==== end v2.10 A ====
 
   // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
