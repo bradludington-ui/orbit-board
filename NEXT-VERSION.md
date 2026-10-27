@@ -450,7 +450,8 @@ was re-run by a skeptic trying to refute it. The fixers' records are `recovery/v
 - **The run before it**, on `8d9ede3`, died out of heap in audit-board (exit 134). v2.09's blocks took that suite past node's
   ~2 GB default heap on this container, so the chain never reached import or recon. The gate now gives the suites 8 GB
   (`tools/validate-math.mjs`), as CLAUDE.md already said import and recon need.
-- **Every browser check, on its own:** running as this was written; its result is added here before the merge.
+- **Every browser check, on its own, on the final board.** keys, dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer (309 ok)
+  and standards (nothing new) all pass. In the nightly's run, layout fails only its carried D ×8.
 - **The combined proof:** every v2.09 mutation against its own check on the merged board (`recovery/v209/proved-integrated.jsonl`).
   291 were caught. `v209-rv2-clin-row-unbounded` is declared equivalent, backed by a check that every row control names its
   requirement.
