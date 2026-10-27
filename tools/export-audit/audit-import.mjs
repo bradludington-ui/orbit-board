@@ -5207,22 +5207,26 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const say = (ev) => w3said(ev).map(d => d[0] + ': ' + d[1]).join('\n');
 
   // (a) an FY28 package on a board that has no FY28, on FY27
+  // v2.09 W2 (item 126): on purpose -- a copy's submittal now names the years it covers, so each year is held for its own
+  // year without a question, and Apply puts it into that year whatever is on screen (Brad's decision 4), starting a year the
+  // board has not started first (decision 2). What item 52 protected still holds: nothing lands in FY27.
   const A = boot({ html: FY27 }); w3dlg(A.ev);
   const a0 = where(A.ev);
   A.ev(`pmoTake(${JSON.stringify(av28)}, 'av28.json'); 'ok'`);
   const aTake = say(A.ev);
-  chk(name, 'no FY28 on the board', 'taking it names both years, and that this board has no FY28 yet',
-    /written for FY28, and this board is on FY27/.test(aTake) && /has no FY28 yet/.test(aTake), true);
+  chk(name, 'no FY28 on the board', 'taking it asks nothing, and the status line says this board has not started FY28 and Apply asks how to start it',
+    aTake === '' && /has not started FY28: ✔ Apply asks how to start it/.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
   chk(name, 'no FY28 on the board', 'it is held for FY28', A.ev('PMOSUBS[0].forFy'), 2028);
   A.ev(`subPickAll(true); pmoApply(); 'ok'`);
   const aApply = say(A.ev);
-  chk(name, 'no FY28 on the board', 'applying on FY27 is refused, naming the office’s year', /Nothing was applied/.test(aApply) && /AV — for FY28/.test(aApply), true);
-  chk(name, 'no FY28 on the board', 'and nothing is written to FY27', where(A.ev), a0);
-  // switching to FY28 (rolled forward) is what lets it apply -- and there its award date is in the year
-  A.ev(`switchYear(2028); subPickAll(true); pmoApply(); 'ok'`); say(A.ev);
-  chk(name, 'no FY28 on the board', 'on FY28 it applies to FY28 alone',
+  chk(name, 'no FY28 on the board', 'applying on FY27 asks once, naming FY28 and how many go into it, then how to start FY28',
+    /Apply 3 changes from AV to FY28\?/.test(aApply) && /FY28 — 3 changes — not started on this board/.test(aApply) && /FY28 has not been started on this board/.test(aApply), true);
+  chk(name, 'no FY28 on the board', 'and nothing is written to FY27', JSON.parse(where(A.ev))[0], JSON.parse(a0)[0]);
+  // FY28 started by rolling FY27 forward, the answer given -- and there its award date is in the year
+  chk(name, 'no FY28 on the board', 'it applies to FY28 alone',
     JSON.parse(where(A.ev)).join(' / '),
     'FY27 -|null|null|-|null / FY28 FY28 scope (AV)|[1500000,2000000]|{"mode":"single","d":"2027-10","day":5}|-|null');
+  A.ev(`switchYear(2028); 'ok'`); say(A.ev);
   const aCash = w3cash(A.ev);
   chk(name, 'no FY28 on the board', 'control (v1.94 reached it by the wrong road) — A’s cash lands in 1–15 OCT of FY28, by service',
     JSON.stringify([aCash['CR USAF']['1–15 OCT'], aCash['CR USN']['1–15 OCT']]), JSON.stringify([1500000, 2000000]));
@@ -5234,10 +5238,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const b0 = where(B.ev);
     B.ev(`subPickAll(true); pmoApply(); 'ok'`);
     const bApply = say(B.ev);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'applying on FY28 is refused, naming FY27', /Nothing was applied/.test(bApply) && /AV — for FY27/.test(bApply), true);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'and nothing is written to either year', where(B.ev), b0);
-    B.ev(`switchYear(2027); subPickAll(true); pmoApply(); 'ok'`); say(B.ev);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'control (v1.94 applied it here as well) — back on FY27 it applies to FY27',
+    // v2.09 W2 (item 126): on purpose -- Apply on FY28 puts it into FY27, the year it is held for, and the question names it
+    chk(name, 'switched to FY28 (' + lbl + ')', 'applying on FY28 asks, naming FY27, the year it is held for', /Apply 3 changes from AV to FY27\?/.test(bApply), true);
+    chk(name, 'switched to FY28 (' + lbl + ')', 'and FY28, on screen, is not written', JSON.parse(where(B.ev))[1], JSON.parse(b0)[1]);
+    chk(name, 'switched to FY28 (' + lbl + ')', 'control (v1.94 applied it here as well) — it lands in FY27',
       JSON.parse(where(B.ev))[0], 'FY27 FY27 scope (AV)|[1200000,2000000]|{"mode":"single","d":"2026-11","day":20}|-|null');
   }
 
@@ -5246,19 +5250,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   C.ev(`pmoTake(${JSON.stringify(av27)}, 'av27.json'); pmoTake(${JSON.stringify(psm28)}, 'psm28.json'); 'ok'`); say(C.ev);
   chk(name, 'mixed years', 'each is held for its own year', C.ev(`JSON.stringify(PMOSUBS.map(function(p){ return p.pmo+':'+p.forFy; }))`), JSON.stringify(['AV:2027', 'PSM:2028']));
   C.ev(`switchYear(2028); subPickAll(true); 'ok'`);
-  const c0 = where(C.ev);
   C.ev(`pmoApply(); 'ok'`);
   const cApply = say(C.ev);
-  chk(name, 'mixed years', 'applying both on FY28 is refused, naming each office’s year',
-    /Nothing was applied/.test(cApply) && /AV — for FY27\n/.test(cApply) && /PSM — for FY28 \(the year on screen\)/.test(cApply), true);
-  chk(name, 'mixed years', 'and nothing is written to either year', where(C.ev), c0);
-  C.ev(`subPickAll(false, PMOSUBS.findIndex(function(p){ return p.pmo==='AV'; })); pmoApply(); 'ok'`); say(C.ev);
-  chk(name, 'mixed years', 'with AV’s unticked, PSM’s applies to FY28 and only there',
+  // v2.09 W2 (item 126): on purpose -- one Apply puts each office's into its own year, the question naming each year
+  chk(name, 'mixed years', 'applying both on FY28 asks once, naming each year and how many go into it',
+    /to FY27–FY28\?/.test(cApply) && /FY27 — 3 changes\n/.test(cApply) && /FY28 — 2 changes \(the year on screen\)/.test(cApply), true);
+  chk(name, 'mixed years', 'AV’s lands in FY27 and PSM’s in FY28, each there only',
     JSON.parse(where(C.ev)).join(' / '),
-    'FY27 -|null|null|-|null / FY28 -|null|null|FY28 scope (PSM)|{"mode":"single","d":"2027-12","day":5}');
+    'FY27 FY27 scope (AV)|[1200000,2000000]|{"mode":"single","d":"2026-11","day":20}|-|null / FY28 -|null|null|FY28 scope (PSM)|{"mode":"single","d":"2027-12","day":5}');
 
   // (d) a package that names no year: asked about, and held for the year on screen only if the reviewer says so
-  const noFy = JSON.parse(JSON.stringify(av27)); delete noFy.fy;
+  // v2.09 W2 (item 126): a copy's submittal now names the years it covers and always its year; the question is for a package
+  // from a copy published before v2.09, so the file is made one: no fys, no byYear
+  const noFy = JSON.parse(JSON.stringify(av27)); delete noFy.fy; delete noFy.fys; delete noFy.byYear;
   const D = boot({ html: FY28on27 }); w3dlg(D.ev, [false]);
   D.ev(`pmoTake(${JSON.stringify(noFy)}, 'nofy.json'); 'ok'`);
   chk(name, 'no year', 'a package with no year is asked about, and declining loads nothing',
@@ -5267,7 +5271,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'no year', 'saying yes holds it for the year on screen, FY27', D.ev('PMOSUBS[0].forFy'), 2027);
   // (e) applying to another year is an explicit choice that names it
   const E = boot({ html: FY27 }); w3dlg(E.ev, [false, true]);
-  E.ev(`pmoTake(${JSON.stringify(av28)}, 'av28.json'); 'ok'`);
+  // v2.09 W2 (item 126): asked only of a package from a copy published before v2.09 -- one that names its years is held for each
+  const av28old = JSON.parse(JSON.stringify(av28)); delete av28old.fys; delete av28old.byYear;
+  E.ev(`pmoTake(${JSON.stringify(av28old)}, 'av28.json'); 'ok'`);
   const eTake = w3said(E.ev);
   chk(name, 'another year', 'declining FY28 asks, naming FY27, whether to hold it for FY27 instead',
     eTake.length === 2 && /Hold it for FY27 instead/.test(eTake[1][1]) && /written for FY28/.test(eTake[1][1]), true);
@@ -12024,10 +12030,14 @@ await (async () => {
   const submit = () => JSON.parse(P.ev(`(function(){ let cap=null; const _B=window.Blob; window.__al=[];
     window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
     try{ pmoSubmit(); }catch(e){ window.__al.push('THREW '+e.message); } window.Blob=_B; return JSON.stringify({pkg: cap? JSON.parse(cap) : null, al: window.__al}); })()`));
-  // ---- 14: a copy switched to another year does not submit
+  // ---- 14: a copy switched to another year submits each year from its own state
+  // v2.09 W2 (item 126): on purpose -- a copy submits every year of the FYDP it covers, whatever year is on screen. What this
+  // guarded (FY27's state sent under FY28) is held by each year being built from its own state: FY28's proposal travels as
+  // FY28's, and FY27, which nobody changed, sends nothing.
   P.ev(`switchYear(2027); 'ok'`);
   const s14 = submit();
-  chk(name, '14 · copy year', 'switched to FY27, the FY28 copy refuses to submit and says why', J([s14.pkg, /published for FY28 and is showing FY27/.test(s14.al.join('|'))]), J([null, true]));
+  chk(name, '14 · copy year', 'switched to FY27, the FY28 copy submits: FY28’s proposal at the top, as FY28’s, and nothing for FY27',
+    J([(s14.pkg || {}).fy, ((s14.pkg || {}).added || []).map(a => a.nid), Object.keys((s14.pkg || {}).byYear || {})]), J([2028, [pid], []]));
   P.ev(`switchYear(2028); 'ok'`);
   const s1 = submit();
   const a0 = ((s1.pkg || {}).added || [])[0] || {};
@@ -12131,7 +12141,8 @@ await (async () => {
   B.ev(`applyState(S); window.alert=function(){}; window.confirm=function(){ return true; };
     BUDDB={ts:1700000000041, files:[], rows:${J(Object.values(BUD))}.map(function(n){ return {n:n}; })}; _budRegCache=null;
     setDesc('D','Annual.'); setCons('D','Stops.'); setObCat('D', OB_CATS[0]); S.ptype.D='PRIME'; setDest('D','to','lm'); budUnfSet('D','USAF',${J(BUD.USAF)});
-    save(); yearCopy('C', 2028, 'c'); save(); 'ok'`);
+    save(); yearCopy('C', 2028, 'c'); save();
+    yearCopy('C', 2032, 'c'); save(); 'ok'`);   // v2.09 W2 (item 126): a year outside the FYDP window, which a copy does not submit for
   const P = boot({ html: v184Publish(B.ev) });
   P.ev(AR_FILL);
   P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); }catch(e){} 'ok'`);
@@ -12223,15 +12234,17 @@ await (async () => {
     J([{ 'USAF|disc': BUD.USAF, ANG: BUD.ANG }, ['chosen', 'chosen']]));
 
   // ── A COPY SHOWING ANOTHER YEAR ADDS NOTHING ──────────────────────────────────────────────────────────────────────────
-  // Switched to FY28 (the year menu, or Go to on a linked requirement), anything added here could never be sent: Submit
-  // refuses there, and FY27's submit never sees it.
-  P.ev(`switchYear(2028); 'ok'`);
+  // Switched to a year it does not submit for (the year menu, or Go to on a linked requirement), anything added there could
+  // never be sent.
+  // v2.09 W2 (item 126): on purpose -- a copy submits for every year of the FYDP window (FY27-FY31 here), so FY28 is one it adds
+  // to now; the year it does not submit for is FY32, outside the window, which the board held when the copy was published
+  P.ev(`switchYear(2032); 'ok'`);
   const n0 = P.ev('String(S.custom.length)');
-  chk(name, 'other year', 'control — from FY28, FY27’s D is PSM’s and ready, so Add from another year would bring it in at once',
+  chk(name, 'other year', 'control — from FY32, FY27’s D is PSM’s and ready, so Add from another year would bring it in at once',
     P.ev(`JSON.stringify(naFromRows(2027, 'PSM').filter(function(r){ return r.id==='D'; }).map(function(r){ return [r.here, r.need.length]; }))`), J([[false, 0]]));
   chk(name, 'other year', 'the box will not open, and says why',
     J([P.ev(`String(arShow())+'|'+String(arOn())+'|'+document.getElementById('addPanel').classList.contains('open')`),
-       /published for FY27 and is showing FY28/.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['false|false|false', true]));
+       /submits for FY27–FY31\. A requirement added in FY32 could never be sent/.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['false|false|false', true]));
   P.ev(`arOff='PSM'; naFromFor='PSM'; naFromFy=2027; naFromSel={D:1}; naFromAdd(); 'ok'`);
   chk(name, 'other year', 'and Add from another year adds nothing there and opens nothing to finish',
     J([P.ev('String(S.custom.length)'), P.ev('String(arQueue.length)'), P.ev('String(arOn())')]), J([n0, '0', 'false']));
@@ -13014,6 +13027,507 @@ await (async () => {
 // ==== end v2.09 W1 ====
 
 // ==== v2.09 W2 (item 126): a PMO copy's five years ====
+// A PMO COPY ADDS AND EDITS REQUIREMENTS IN EVERY YEAR OF THE FYDP (Brad, 26 Oct 2026: "I need them to be able to add
+// requirements for the base year plus four years"). The round trip end to end, through the board's own paths: a real board
+// file whose base year is FY28 and which holds plans for FY28-FY32, a real copy published from it, the office's work in the
+// copy through the Add box, From another year and the ordinary setters, the real pmoSubmit(), and the receiving board's
+// pmoTake(), review, change report and pmoApply(). The fixture makes every rule matter: FY30 holds a different value for A
+// than FY28 does (so a review that reads the year on screen shows the wrong figure), C is AV's in FY28 and PSM's in FY30
+// only (so a scope read in the wrong year drops PSM's edit), the board's own NEW-1 is PSM's in FY30 and AV's in FY28 (the
+// same id, two requirements), PSM's FY30 ranking differs from FY28's (so a ranking read against the wrong year is sent as
+// the office's), and FY29 and FY31 hold no added requirement (so per-year numbering gives both years' proposals one id).
+const w209it = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '',
+  fy26: ask.map(() => 0), ask, alloc: null });
+const W209_SC = { services: ['USAF', 'ANG', 'AFRC'],
+  items: [w209it('A', 'PSM', [900, 200, 100]), w209it('B', 'PSM', [300, 80, 40]), w209it('C', 'AV', [500, 0, 0]), w209it('D', 'AV', [200, 0, 0])],
+  disc: [3000, 600, 300], mand: [500, 100, 50], order: ['A', 'B', 'C', 'D'] };
+// a requirement the board (or the copy) adds, every required field filled
+const w209mk = (g, ev, a) => `reqCreate(${JSON.stringify(g)}, {title:'', event:${JSON.stringify(ev)}, ask:${JSON.stringify(a || [250, 0, 0])}}, null,
+  {event:${JSON.stringify(ev)}, ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'Described: '+${JSON.stringify(ev)}, cons:'Stops without it.'})`;
+// The board: base FY28, FY29-FY32 each started from FY28 by Roll forward (switchYear's own), then FY30 given its differences
+// and FY28 an AV requirement under FY30's NEW-1 id. `drop` leaves years not started.
+const w209board = (drop = [], more = '') => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+  MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+  applyState(MS.years[2028]); MS.years[2028]=S;
+  [2029,2030,2031,2032].forEach(function(y){ switchYear(2028); switchYear(y); });
+  switchYear(2030);
+  applyAskVec('A',[1500,300,150]); grpMove('C','PSM');
+  window.__n30=${w209mk('PSM', 'Board-added FY30')};
+  S.pmoOrder.PSM=['B','A'].concat(S.pmoOrder.PSM.filter(function(x){ return x!=='A' && x!=='B'; }));
+  save(); switchYear(2028);
+  window.__n28=${w209mk('AV', 'Board-added FY28 for AV')}; save();
+  ${more};
+  ${JSON.stringify(drop)}.forEach(function(y){ delete MS.years[y]; }); save()`);
+// the Add box in the copy, through its own controls: the plan event, a prime contract, a value, the classification and the narrative
+// (a box that will not open is said, not thrown: on a board where it does not, every check after it still runs and says so)
+const w209add = (P, ev, v) => JSON.parse(P.ev(`(function(){ var n0=S.custom.length; toggleAdd(); var open=arOn();
+  if(!open) return JSON.stringify({opened:false, btn:'', id:'', still:false});
+  var f=JSON.parse(__arFill({event:${JSON.stringify(ev)}, pt:'PRIME',
+  v:${JSON.stringify(v)}, ob:OB_CATS[0], to:'lm', desc:'Proposed: '+${JSON.stringify(ev)}, cons:'Stops without it.'}));
+  document.getElementById('arAddBtn').click(); var n=(S.custom.length>n0)? (S.custom[S.custom.length-1]||{}).id||'' : '';
+  return JSON.stringify({opened:open, btn:f.btn, id:n, still:arOn()}); })()`));
+const w209ev = (b, js) => { try { return b.ev(js); } catch (e) { return 'THREW ' + String((e && e.message) || e).slice(0, 120); } };
+const w209years = (ev) => JSON.parse(ev(`JSON.stringify(Object.keys(MS.years).map(Number).sort())`));
+
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a PMO copy submits every year of the FYDP, and the board takes each into its own year (item 126)';
+  try {
+  const J = JSON.stringify;
+  // and FY30 a second requirement the board added, for AV, under an id (NEW-2) FY28 does not hold -- so a copy that reads FY28's
+  // baseline in FY30 takes it for one the office added
+  const B = boot({ html: w209board([], `switchYear(2030); window.__n30b=${w209mk('AV', 'Board-added FY30 for AV')}; save(); switchYear(2028)`) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — base FY28, plans FY28-FY32, FY30 holds A at 1,500, C is AV’s in FY28 and PSM’s in FY30, NEW-1 is PSM’s in FY30 and AV’s in FY28, NEW-2 AV’s in FY30 alone',
+    J([B.ev('MS.base'), w209years(B.ev), B.ev(`JSON.stringify([yrItemOf(MS.years[2030],'A').ask[0], grpOf(yrItemOf(MS.years[2028],'C'),MS.years[2028]),
+      grpOf(yrItemOf(MS.years[2030],'C'),MS.years[2030]), grpOf(yrItemOf(MS.years[2030],'NEW-1'),MS.years[2030]), grpOf(yrItemOf(MS.years[2028],'NEW-1'),MS.years[2028]),
+      grpOf(yrItemOf(MS.years[2030],'NEW-2'),MS.years[2030]), !!yrItemOf(MS.years[2028],'NEW-2')])`)]),
+    J([2028, [2028, 2029, 2030, 2031, 2032], J([1500, 'AV', 'PSM', 'PSM', 'AV', 'AV', false])]));
+  const html = v184Publish(B.ev);
+  // after publishing, the board changes A's description in FY30 and in FY31
+  B.ev(`switchYear(2030); setDesc('A','The board, after publishing (FY30)'); switchYear(2031); setDesc('A','The board, after publishing (FY31)');
+    switchYear(2028); save(); 'ok'`);
+
+  // ── THE COPY: five years, each with its own baseline ─────────────────────────────────────────────────────────────────
+  const P = boot({ html });
+  P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'publish', 'the copy says the years it submits for, FY28 to FY32, and carries a baseline for each year but the published one',
+    w209ev(P, `JSON.stringify([pmoCopyYears(), Object.keys(PMODE.yb||{}).sort(), PMODE.yn, PMODE.fy, PMODE.pv])`), J([[2028, 2029, 2030, 2031, 2032], ['2029', '2030', '2031', '2032'], [], 2028, 2]));
+  chk(name, 'publish', 'each year’s baseline is that year’s own: A at 1,500 in FY30, at 900 in FY28; C under PSM in FY30; NEW-1 in FY30’s',
+    w209ev(P, `JSON.stringify([((PMODE.yb||{})[2030]||{}).A.asks[0], PMODE.base.A.asks[0], (((PMODE.yb||{})[2030]||{}).C||{}).grp, !!((PMODE.yb||{})[2030]||{})['NEW-1'], ((PMODE.yord||{})[2030]||{}).PSM])`),
+    J([1500, 900, 'PSM', true, ['B', 'A', 'C', 'NEW-1']]));
+  chk(name, 'publish', 'the banner names the years the copy submits for', w209ev(P, `(document.querySelector('#subBanner .subyrs')||{}).textContent||''`), 'FY28–FY32');
+  // FY28, the published year: a note
+  P.ev(`setNote('A','A note from PSM (FY28)'); 'ok'`);
+  // FY29: a new requirement through the Add box
+  w209ev(P, `switchYear(2029); 'ok'`);
+  const a29 = w209add(P, 'PSM new FY29', [400, 0, 0]);
+  chk(name, 'add', 'in FY29 the Add box opens, and a complete requirement is added', J([a29.opened, a29.btn, !!a29.id, a29.still]), J([true, 'Add requirement', true, false]));
+  // FY30: a new requirement, A's value, C's description (PSM's only in FY30) and the board's own NEW-1's description
+  w209ev(P, `switchYear(2030); 'ok'`);
+  const a30 = w209add(P, 'PSM new FY30', [300, 50, 0]);
+  chk(name, 'add', 'in FY30 too', J([a30.opened, !!a30.id]), J([true, true]));
+  chk(name, 'edit', 'in FY30 the edit box says nothing about it not being sent: an edit here is sent', w209ev(P, `erNotSent('C')`), '');
+  P.ev(`setAsk('A',0,'1600'); setDesc('C','C, written by PSM in FY30'); setDesc('NEW-1','NEW-1, written by PSM in FY30'); 'ok'`);
+  // FY31: B's and A's descriptions, PSM's own ranking, and FY29's proposal brought in From another year
+  w209ev(P, `switchYear(2031); 'ok'`);
+  P.ev(`setDesc('B','B, written by PSM in FY31'); setDesc('A','A, written by PSM in FY31');
+    S.pmoOrder.PSM=['B','A'].concat((S.pmoOrder.PSM||[]).filter(function(x){ return x!=='A' && x!=='B'; })); save(); 'ok'`);
+  const f31 = JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(2029); naFromTick(${J(a29.id)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null, open:o}); })()`) || '{}');
+  chk(name, 'add', 'in FY31 FY29’s proposal is brought in From another year, as a requirement of its own linked to it', J([!!f31.id && f31.id !== a29.id, f31.prior]), J([true, { fy: 2029, id: a29.id }]));
+  const ids = [a29.id, a30.id, f31.id];
+  chk(name, 'ids', 'the copy’s proposals carry three different ids, one count across the years (FY29 and FY31 both started from none)',
+    J([new Set(ids).size, ids.every(x => /^NEW-PSM-\d+$/.test(x))]), J([3, true]));
+  w209ev(P, `switchYear(2028); 'ok'`);
+
+  // ── SUBMIT: one file, every year ────────────────────────────────────────────────────────────────────────────────────
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'submit', 'from FY28 on screen, one package, nothing withheld, carrying the build and the years', J([!!sub.pkg, sub.alerts, pkg.fy, pkg.fys, pkg.build === P.ev('BUILD')]),
+    J([true, [], 2028, [2028, 2029, 2030, 2031, 2032], true]));
+  const BY = pkg.byYear || {}, sec = y => BY[y] || {};
+  chk(name, 'submit', 'control — the published year stays at the top of the package, where it always was: A’s note, nothing else', J([pkg.items, pkg.added, pkg.rank || null]), J([{ A: { notes: 'A note from PSM (FY28)' } }, [], null]));
+  chk(name, 'submit', 'the other years under byYear, each that has something to send', J(Object.keys(BY).sort()), J(['2029', '2030', '2031']));
+  chk(name, 'submit', 'FY29: its proposal, saying it is for FY29', J([Object.keys(sec(2029).items || {}), (sec(2029).added || []).map(a => [a.nid, a.fy, a.event])]),
+    J([[], [[a29.id, 2029, 'PSM new FY29']]]));
+  chk(name, 'submit', 'FY30: A’s value, C’s description (PSM’s in FY30) and NEW-1’s description -- and nothing of A it did not touch',
+    J(sec(2030).items), J({ A: { asks: [1600, 300, 150] }, C: { desc: 'C, written by PSM in FY30' }, 'NEW-1': { desc: 'NEW-1, written by PSM in FY30' } }));
+  chk(name, 'submit', 'FY30’s baseline is FY30’s own: A at 1,500, C and NEW-1 with no description', J(sec(2030).base),
+    J({ A: { asks: [1500, 300, 150] }, C: { desc: null }, 'NEW-1': { desc: 'Described: Board-added FY30' } }));
+  chk(name, 'submit', 'FY30 proposes its own new requirement, and neither NEW-1 nor NEW-2, which the board added there', J((sec(2030).added || []).map(a => a.nid)), J([a30.id]));
+  chk(name, 'submit', 'FY30 is sent, and with no ranking: the board’s own FY30 order is not the office’s', J([!!BY[2030], sec(2030).rank === undefined]), J([true, true]));
+  chk(name, 'submit', 'FY31: B’s and A’s descriptions, the proposal brought in with its link, and PSM’s own ranking against FY31’s as published',
+    J([sec(2031).items, (sec(2031).added || []).map(a => [a.nid, a.prior]), sec(2031).rank]),
+    J([{ A: { desc: 'A, written by PSM in FY31' }, B: { desc: 'B, written by PSM in FY31' } }, [[f31.id, { fy: 2029, id: a29.id }]], { order: ['B', 'A'], was: ['A', 'B'] }]));
+  chk(name, 'submit', 'control — the board’s door takes it', B.ev(`inboundCheck(${J(J(pkg))})`), '');
+
+  // ── TAKE: split by year, each held for its own year, in that year's scope ──────────────────────────────────────────
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`);
+  const said = w3said(B.ev);
+  chk(name, 'take', 'control — taken on FY28 with nothing asked, and nothing said but the status line', J(said.map(d => d[0])), J([]));
+  chk(name, 'take', 'one held package per year, each held for its own year', w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return [p.pmo, p.forFy, Object.keys(p.items||{}).sort(), (p.added||[]).map(function(a){ return a.nid; })]; }))`),
+    J([['PSM', 2028, ['A'], []], ['PSM', 2029, [], [a29.id]], ['PSM', 2030, ['A', 'C', 'NEW-1'], [a30.id]], ['PSM', 2031, ['A', 'B'], [f31.id]]]));
+  chk(name, 'scope', 'C and NEW-1 are PSM’s in FY30, the year they are held for -- neither is dropped as AV’s, the office FY28 on screen gives them',
+    w209ev(B, `JSON.stringify((PMOSUBS.filter(function(p){ return p.forFy===2030; })[0]||{items:{}}).items.C ? 'C kept' : 'C dropped')`), J('C kept'));
+  chk(name, 'take', 'control — no year is started or switched to by taking it', J([w209years(B.ev), B.ev('MS.cur')]), J([[2028, 2029, 2030, 2031, 2032], 2028]));
+
+  // ── THE REVIEW: each row in its own year ─────────────────────────────────────────────────────────────────────────────
+  const rows = JSON.parse(w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, r.key==='__new'? null : r.now, r.key==='__new'? r.prop.nid : r.prop, r.conflict]; }))`) || '[]');
+  const row = (fy, id, k) => rows.filter(r => r[0] === fy && r[1] === id && r[2] === k)[0] || null;
+  chk(name, 'review', 'rows in year order, every one carrying its year', J(rows.map(r => r[0])), J([2028, 2029, 2030, 2030, 2030, 2030, 2031, 2031, 2031, 2031]));
+  chk(name, 'review', 'A’s FY30 value: on the board now is FY30’s 1,500, not FY28’s 900, and no conflict', J(row(2030, 'A', 'asks')), J([2030, 'A', 'asks', [1500, 300, 150], [1600, 300, 150], false]));
+  chk(name, 'review', 'A’s FY31 description: the board changed it too, after publishing -- a conflict, and the only one', J([row(2031, 'A', 'desc'), rows.filter(r => r[5]).length]),
+    J([[2031, 'A', 'desc', 'The board, after publishing (FY31)', 'A, written by PSM in FY31', true], 1]));
+  chk(name, 'review', 'PSM’s FY31 ranking is offered as one row', !!row(2031, '__rank|PSM', '__rank'), true);
+  B.ev(`subOpen=true; render(); 'ok'`);
+  const heads = JSON.parse(w209ev(B, `JSON.stringify([].slice.call(document.querySelectorAll('#subBody tr.subyr')).map(function(t){ return t.textContent.split(' ')[0]; }))`) || '[]');
+  chk(name, 'review', 'the review groups its rows under each year', J(heads), J(['FY28', 'FY29', 'FY30', 'FY31']));
+  const rowText = w209ev(B, `(function(){ var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /C, written by PSM in FY30/.test(r.textContent); })[0]; return t? t.textContent : ''; })()`);
+  chk(name, 'review', 'C’s FY30 row names it as FY30 has it, under PSM', J([/Rec C/.test(rowText), /PSM/.test(rowText)]), J([true, true]));
+  const newText = w209ev(B, `(function(){ var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /NEW-1, written by PSM in FY30/.test(r.textContent); })[0]; return t? t.textContent : ''; })()`);
+  chk(name, 'review', 'NEW-1’s FY30 row names the requirement FY30 holds under that id, not the one FY28 holds', J([/Board-added FY30/.test(newText), /for AV/.test(newText)]), J([true, false]));
+  // the change report: the years in its title, each year's rows under its own heading, each value that year's
+  const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  const brows = book.rows || [];
+  chk(name, 'report', 'its title names the years it covers, not the year on screen', /^FY28–FY31 /.test(String((brows[0] || [])[0] || '')), true);
+  const hdrAt = brows.findIndex(r => r.map(String).indexOf('Proposed') >= 0), BH = (brows[hdrAt] || []).map(String);
+  const yrHeads = brows.slice(hdrAt + 1).filter(r => r.length === 1 && /^FY\d\d /.test(String(r[0]))).map(r => String(r[0]).slice(0, 4));
+  chk(name, 'report', 'each year’s rows under its own heading', J(yrHeads), J(['FY28', 'FY29', 'FY30', 'FY31']));
+  const aFy30 = brows.filter(r => String(r[BH.indexOf('Field')] || '') === 'Requirement value (by service)')[0] || [];
+  chk(name, 'report', 'A’s FY30 value: On the board now is FY30’s', String(aFy30[BH.indexOf('On the board now')] || ''), w209ev(B, `pmoFmtVal('asks',[1500,300,150])`));
+
+  // ── APPLY: every ticked year into its own year, at once ──────────────────────────────────────────────────────────────
+  const before28 = w209ev(B, `JSON.stringify([MS.years[2028].asks||{}, MS.years[2028].grp||{}, MS.years[2028].desc||{}, MS.years[2028].order])`);
+  const t0 = +B.ev('Date.now()');
+  w3dlg(B.ev);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const asked = w3said(B.ev);
+  const q = (asked.filter(d => d[0] === 'confirm')[0] || [])[1] || '';
+  chk(name, 'apply', 'one question, naming each year and how many changes go into it',
+    J([asked.length, /^Apply 10 changes from PSM to FY28–FY31\?/.test(q), ['FY28 — 1 change (the year on screen)', 'FY29 — 1 change', 'FY30 — 4 changes', 'FY31 — 4 changes'].map(t => q.indexOf(t) >= 0)]),
+    J([1, true, [true, true, true, true]]));
+  const yv = (y, js) => w209ev(B, `(function(){ var T=MS.years[${y}]; return JSON.stringify(${js}); })()`);
+  chk(name, 'apply', 'control — FY28: A’s note, and nothing else moved there', J([yv(2028, `(T.notes||{}).A`), yv(2028, `[T.asks||{}, T.grp||{}, T.desc||{}, T.order]`)]),
+    J([J('A note from PSM (FY28)'), J(JSON.parse(before28))]));
+  const new29 = JSON.parse(yv(2029, `T.custom.filter(function(c){ return c.from && c.from.nid===${J(a29.id)}; }).map(function(c){ return [c.id, c.event, c.from.fy]; })`) || '[]');
+  chk(name, 'apply', 'FY29: the proposal accepted there, its provenance carrying the year', J(new29.map(x => x.slice(1))), J([['PSM new FY29', 2029]]));
+  chk(name, 'apply', 'FY30: A’s value, C’s and NEW-1’s descriptions, and its own proposal; A’s description is still the board’s',
+    yv(2030, `[(T.asks||{}).A, T.desc.C, T.desc['NEW-1'], T.custom.filter(function(c){ return c.from && c.from.nid===${J(a30.id)}; }).length, T.desc.A, T.custom.length]`),
+    J([[1600, 300, 150], 'C, written by PSM in FY30', 'NEW-1, written by PSM in FY30', 1, 'The board, after publishing (FY30)', 3]));
+  chk(name, 'apply', 'FY31: B’s and A’s descriptions, PSM’s ranking (and not the master order), and the proposal brought in, linked to the FY29 requirement it became',
+    yv(2031, `[T.desc.B, T.desc.A, T.pmoOrder.PSM.slice(0,2), T.order.slice(0,4), (T.custom.filter(function(c){ return c.from && c.from.nid===${J(f31.id)}; })[0]||{}).prior]`),
+    J(['B, written by PSM in FY31', 'A, written by PSM in FY31', ['B', 'A'], ['A', 'B', 'C', 'D'], { fy: 2029, id: (new29[0] || [])[0] }]));
+  chk(name, 'apply', 'control — FY32 is untouched, and the year on screen is still FY28', J([yv(2032, `[T.desc||{}, (T.custom||[]).length]`), B.ev('MS.cur')]), J([J([{}, 0]), 2028]));
+  chk(name, 'apply', 'control — nothing is left that could be accepted, and the line says so',
+    J([w209ev(B, `pmoRows().filter(function(r){ return !r.taken && !r.gone; }).length`), /Nothing is left to review/.test(B.ev(`document.getElementById('shareStat').textContent`))]), J([0, true]));
+  // the journal names each change's year
+  chk(name, 'apply', 'each change is in the change journal under its own year',
+    w209ev(B, `JSON.stringify([['notes','A'],['asks','A'],['desc','C'],['desc','B']].map(function(p){ return (MS.jrnl||[]).filter(function(e){ return (e.t||0)>=${t0}
+      && e.p && e.p[0]===p[0] && e.p[1]===p[1]; }).map(function(e){ return e.fy; }); }))`),
+    J([[2028], [2030], [2030], [2031]]));
+  chk(name, 'errors', 'control — no page error on the copy or the board', J([P.errors.length, B.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A YEAR THE BOARD HAD NOT STARTED (Brad's decision 2): offered in the copy, opened there blank for new requirements only; at
+// review the team is asked to start it -- rolled forward or blank -- before anything goes into it, and stopping starts nothing.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a year the board had not started: blank in the copy, started at Apply (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board([2032]) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board holds FY28-FY31, and FY32 is not started', J(w209years(B.ev)), J([2028, 2029, 2030, 2031]));
+  const html = v184Publish(B.ev);
+  const P = boot({ html });
+  P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'copy', 'the copy submits for FY32 too, and knows the board had not started it', w209ev(P, `JSON.stringify([pmoCopyYears().indexOf(2032)>=0, PMODE.yn])`), J([true, [2032]]));
+  chk(name, 'copy', 'the Fiscal year menu says FY32 opens blank, for new requirements',
+    /FY32\s*not started — opens blank, for new requirements/.test(P.ev(`(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`)), true);
+  w3dlg(P.ev);
+  w209ev(P, `switchYear(2032); 'ok'`);
+  chk(name, 'copy', 'FY32 opens blank, without asking to roll the year on screen forward',
+    J([w3said(P.ev).filter(d => d[0] === 'confirm').length, P.ev('MS.cur'), P.ev('S.order.length')]), J([0, 2032, 0]));
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+  const a32 = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  chk(name, 'copy', 'in FY32 the Add box opens and a complete requirement is added', J([a32.opened, !!a32.id]), J([true, true]));
+  // one missing its fields: Pre-flight names it, under FY32, as Submit will hold it back
+  w209ev(P, `reqCreate('PSM', {title:'', event:'Half done FY32', ask:[50,0,0]}); save(); switchYear(2028); 'ok'`);
+  chk(name, 'copy', 'from FY28, Pre-flight names the FY32 proposal still missing fields, by its year',
+    w209ev(P, `JSON.stringify(preflight().find.filter(function(f){ return f.k==='newreq'; }).map(function(f){ return f.rows.map(function(r){ return r.label; }); }))`), J([['FY32 — Half done FY32']]));
+  w209ev(P, `switchYear(2032); 'ok'`);
+  // a requirement from the board's data, restored here, is not sent: the board had no FY32 to send it against
+  w209ev(P, `restoreReq('B'); setDesc('B','B restored in FY32'); 'ok'`);
+  chk(name, 'copy', 'a requirement restored in FY32 says it is not sent, because the board had not started FY32',
+    /FY32 had not been started on the portfolio board/.test(w209ev(P, `erNotSent('B')`)), true);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'submit', 'FY32 travels: its proposal alone', J([Object.keys(((pkg.byYear || {})[2032] || {}).items || {}), (((pkg.byYear || {})[2032] || {}).added || []).map(a => a.nid)]), J([[], [a32.id]]));
+  const told = sub.alerts.filter(a => /not on the board when this copy was published/.test(a))[0] || '';
+  chk(name, 'submit', 'the restored one is named under FY32, as a year the board had not started', /FY32 \(not started on the portfolio board when this copy was published\):\n  • Rec B/.test(told), true);
+  const held = sub.alerts.filter(a => /missing mandatory fields/.test(a))[0] || '';
+  chk(name, 'submit', 'the incomplete one is held back, named under FY32', /FY32 \(not started[^)]*\):\n  • Half done FY32\n      needs: /.test(held), true);
+
+  // ── AT THE BOARD ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`);
+  chk(name, 'take', 'held for FY32, nothing asked, and the line says this board has not started FY32',
+    J([w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return p.forFy; }))`), w3said(B.ev).length, /has not started FY32: ✔ Apply asks how to start it/.test(B.ev(`document.getElementById('shareStat').textContent`))]),
+    J([J([2032]), 0, true]));
+  B.ev(`subOpen=true; render(); 'ok'`);
+  chk(name, 'review', 'the review’s FY32 heading says the board has not started it',
+    /FY32.*not started on this board/.test(w209ev(B, `(document.querySelector('#subBody tr.subyr')||{}).textContent||''`)), true);
+  // stopped at the second question: nothing started, nothing applied
+  w3dlg(B.ev, [true, false, false]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const q1 = w3said(B.ev).filter(d => d[0] === 'confirm').map(d => d[1]);
+  chk(name, 'apply', 'Apply asks, naming FY32 as not started, then how to start it: rolled forward, or blank',
+    J([q1.length, /FY32 — 1 change — not started on this board/.test(q1[0] || ''), /FY32 has not been started on this board/.test(q1[1] || '') && /ROLL FORWARD/.test(q1[1] || ''), /Start FY32 BLANK/.test(q1[2] || '')]),
+    J([3, true, true, true]));
+  chk(name, 'apply', 'stopped, it starts no year and applies nothing, and says so',
+    J([w209years(B.ev), w209ev(B, `pmoRows().filter(function(r){ return !r.taken; }).length`), /Nothing was applied, and no year was started/.test(B.ev(`document.getElementById('shareStat').textContent`))]),
+    J([[2028, 2029, 2030, 2031], 1, true]));
+  // started blank: the proposal lands in FY32 alone
+  w3dlg(B.ev, [true, false, true]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'apply', 'started blank: FY32 holds the proposal alone, with no budget authority, and the other years are as they were',
+    J([w209years(B.ev), w209ev(B, `(function(){ var T=MS.years[2032]; return JSON.stringify([T.order.length, (T.custom[0]||{}).event, (T.custom[0]||{}).from? T.custom[0].from.fy : null,
+      (T.discSvc||[]).concat(T.mandSvc||[]).reduce(function(a,b){ return a+(+b||0); }, 0)]); })()`), B.ev('MS.cur'), w209ev(B, `MS.years[2031].custom.length`)]),
+    J([[2028, 2029, 2030, 2031, 2032], J([1, 'PSM new FY32', 2032, 0]), 2028, 0]));
+  // A FILE FROM AN OLDER COPY FOR A YEAR THIS BOARD LACKS (FY33): its changes can be ticked, and Apply starts the year first.
+  // Started blank, a change to a requirement the year was not started with is not written -- it would be a value filed under a
+  // requirement the year does not hold -- and is named; the proposal lands.
+  const old33 = { spmtPkg: 1, dir: 'submit', ap: '', fy: 2033, ts: 1760000009000, by: 'Lead', pmo: 'PSM', fromTs: 1, svc: ['USAF', 'ANG', 'AFRC'], pv: 2,
+    items: { B: { desc: 'B for FY33' } }, base: { B: { desc: null } },
+    added: [{ nid: 'NEW-PSM-77', grp: 'PSM', title: '', event: 'Proposed for FY33', ask: [90, 0, 0], ptype: 'PRIME', obCat: '', dest: { to: 'lm', end: '' }, desc: 'd', cons: 'c' }] };
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(old33)}, 'old33.json'); 'ok'`);
+  chk(name, 'a year this board lacks', 'its change can be ticked, said to be in a year not started',
+    w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, !!r.gone, !!r.unstarted]; }))`), J([[2033, 'NEW-PSM-77', '__new', false, false], [2033, 'B', 'desc', false, true]]));
+  w3dlg(B.ev, [true, false, true]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const s33 = w3said(B.ev);
+  chk(name, 'a year this board lacks', 'started blank: B’s change is not written there, and is named; the proposal lands',
+    J([s33.some(d => d[0] === 'alert' && /could not be applied/.test(d[1]) && /FY33 — B · Description/.test(d[1])),
+       w209ev(B, `JSON.stringify([((MS.years[2033]||{}).desc||{}).B===undefined, ((MS.years[2033]||{}).custom||[]).map(function(c){ return c.event; })])`)]),
+    J([true, J([true, ['Proposed for FY33']])]));
+  chk(name, 'errors', 'control — no page error on the copy or the board', J([P.errors.length, B.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// ONE OFFICE'S YEARS, HELD SIDE BY SIDE, AND WHAT IS LEFT AFTER APPLY. Before v2.09 a second package from an office replaced
+// the first whatever year each was for -- reachable with copies published from two years -- and the count after Apply counted
+// a proposal already accepted and a change to a requirement the board no longer has. A five-year file is the office's whole
+// submission and replaces every year that office has held, whole or not at all; the batch loader takes one file per office --
+// a five-year file is one -- and its dry run holds back what pmoTake does, the split included.
+const w209pkg = (o) => Object.assign({ spmtPkg: 1, dir: 'submit', ap: '', ts: 1760000000000, by: 'Lead', pmo: 'PSM', fromTs: 1, svc: ['USAF', 'ANG', 'AFRC'], pv: 2,
+  items: {}, base: {}, added: [] }, o);
+const w209prop = (nid, ev, fy) => Object.assign({ nid, grp: 'PSM', title: '', event: ev, ask: [120, 0, 0], ptype: 'PRIME', obCat: '', dest: { to: 'lm', end: '' },
+  desc: 'd', cons: 'c' }, fy ? { fy } : {});
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — one office’s years held side by side, a five-year file replacing them, the batch and its dry run (item 126)';
+  try {
+  const J = JSON.stringify;
+  const html = w209board();
+  const B = boot({ html });
+  const held = () => JSON.parse(w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return [p.pmo, p.forFy, Object.keys(p.items||{}).join(',')+'|'+(p.added||[]).map(function(a){ return a.nid; }).join(',')]; }))`) || '[]');
+  // two files from copies published before v2.09, one each for FY29 and FY30, from PSM: both held
+  const old29 = w209pkg({ fy: 2029, items: { B: { desc: 'B for FY29 (first round)' } }, base: { B: { desc: null } } });
+  const old30 = w209pkg({ fy: 2030, items: { B: { desc: 'B for FY30' } }, base: { B: { desc: null } } });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(old29)}, 'a.json'); pmoTake(${J(old30)}, 'b.json'); 'ok'`);
+  chk(name, 'by year', 'one office’s files for two years are both held, each for its year', J(held()), J([['PSM', 2029, 'B|'], ['PSM', 2030, 'B|']]));
+  chk(name, 'by year', 'the line says Apply puts the FY30 file into FY30, whatever year is on screen -- not that it applies only while FY30 is',
+    /It is held for FY30: ✔ Apply puts it into FY30, whatever year is on screen\./.test(B.ev(`document.getElementById('shareStat').textContent`)), true);
+  const old29b = w209pkg({ fy: 2029, ts: 1760000001000, items: { B: { desc: 'B for FY29 (second round)' } }, base: { B: { desc: null } } });
+  w209ev(B, `pmoTake(${J(old29b)}, 'c.json'); 'ok'`);
+  chk(name, 'by year', 'and the same office’s file for the same year again replaces that year’s alone',
+    J([held(), w209ev(B, `(PMOSUBS.filter(function(p){ return p.forFy===2029; })[0]||{items:{B:{}}}).items.B.desc`)]), J([[['PSM', 2030, 'B|'], ['PSM', 2029, 'B|']], 'B for FY29 (second round)']));
+  // a five-year file replaces every year the office has held
+  const five = w209pkg({ fy: 2028, ts: 1760000002000, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'), items: { A: { notes: 'A five-year' } }, base: { A: { notes: null } },
+    byYear: { 2031: { items: { B: { desc: 'B for FY31' } }, base: { B: { desc: null } }, added: [w209prop('NEW-PSM-9', 'Five-year FY31', 2031)] } } });
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(five)}, 'five.json'); 'ok'`);
+  chk(name, 'five-year', 'a five-year file replaces every year PSM held, and is held one package per year', J(held()), J([['PSM', 2028, 'A|'], ['PSM', 2031, 'B|NEW-PSM-9']]));
+  chk(name, 'five-year', 'nothing asked, and the line says what it replaced', J([w3said(B.ev).length, /replacing 2 held earlier from the same office/.test(B.ev(`document.getElementById('shareStat').textContent`))]), J([0, true]));
+  // a proposal filed under another year than it says it is for is left out and named, never put into either
+  const wrongFy = w209pkg({ fy: 2028, ts: 1760000003000, fys: [2028, 2029], items: { A: { notes: 'x' } }, base: { A: { notes: null } },
+    byYear: { 2029: { items: {}, base: {}, added: [w209prop('NEW-PSM-8', 'Says FY30', 2030)] } } });
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(wrongFy)}, 'w.json'); 'ok'`);
+  const wSaid = w3said(B.ev).map(d => d[1]).join('\n');
+  chk(name, 'five-year', 'a proposal sent under FY29 that says it is for FY30 is left out, named', J([/NEW-PSM-8|Says FY30/.test(wSaid) && /it says it is for “2030”, and it was sent under FY29/.test(wSaid),
+    held().map(h => h[1])]), J([true, [2028]]));
+  // a five-year file whose year the board cannot read is refused whole, and the review is as it was
+  const badYear = JSON.parse(J(five)); badYear.byYear = { 'FY31': badYear.byYear[2031] };
+  const h0 = J(held());
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(badYear)}, 'bad.json'); 'ok'`);
+  chk(name, 'five-year', 'one carrying a year the board cannot read is refused whole, and nothing held changes',
+    J([/carries a year this board cannot read/.test(w3said(B.ev).map(d => d[1]).join('\n')), J(held()) === h0]), J([true, true]));
+
+  // a five-year file whose later year cannot be taken is not taken at all: its earlier year, already through, is not left held
+  const later = JSON.parse(J(five)); later.ts = 1760000003500; later.byYear[2031].items.B.asks = [1, 2];
+  const h1 = J(held());
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(later)}, 'later.json'); 'ok'`);
+  chk(name, 'five-year', 'one whose FY31 is refused is refused whole, naming FY31, and the review is as it was',
+    J([/its FY31 part was refused/.test(w3said(B.ev).map(d => d[1]).join('\n')), J(held()) === h1]), J([true, true]));
+
+  // ── WHAT IS LEFT AFTER APPLY (reachable before v2.09, with a one-year file) ───────────────────────────────────────────
+  const one = w209pkg({ fy: 2028, ts: 1760000004000, pmo: 'AV', items: { D: { desc: 'D by AV' }, GONE: { desc: 'not here' } }, base: { D: { desc: null }, GONE: { desc: null } },
+    added: [Object.assign(w209prop('NEW-AV-1', 'AV proposal'), { grp: 'AV' })] });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(one)}, 'one.json'); subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'after apply', 'with the proposal taken and a requirement gone, the line says nothing is left to review',
+    J([/Nothing is left to review/.test(B.ev(`document.getElementById('shareStat').textContent`)), w209ev(B, `pmoRows().filter(function(r){ return r.taken || r.gone; }).length`)]), J([true, 2]));
+
+  // ── A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS, the two accepted in two Applies ────────────────────────────────────────
+  // FY31's proposal was brought in, in the copy, from the office's own FY29 proposal, so its link names the id the copy gave
+  // that one (NEW-PSM-21), which this board never holds. Accepted alone, the link says so; FY29's accepted later, it reads the
+  // requirement that proposal became.
+  const linked = w209pkg({ fy: 2028, ts: 1760000007000, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'),
+    byYear: { 2029: { items: {}, base: {}, added: [w209prop('NEW-PSM-21', 'Recurs, FY29', 2029)] },
+      2031: { items: {}, base: {}, added: [Object.assign(w209prop('NEW-PSM-22', 'Recurs, FY31', 2031), { prior: { fy: 2029, id: 'NEW-PSM-21' } })] } } });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(linked)}, 'linked.json');
+    subPick(PMOSUBS.map(function(p){ return p.forFy; }).indexOf(2031), 'NEW-PSM-22', '__new', true); pmoApply(); 'ok'`);
+  const lk = () => w209ev(B, `(function(){ var c=((MS.years[2031]||{}).custom||[]).filter(function(x){ return x.from && x.from.nid==='NEW-PSM-22'; })[0];
+    return c? priorTxt(c) : 'not accepted'; })()`);
+  chk(name, 'link', 'FY31’s accepted alone: its link to the office’s FY29 proposal says PSM proposed that one and it has not been accepted',
+    lk(), 'FY29 NEW-PSM-21 — PSM proposed it, and it has not been accepted');
+  w3dlg(B.ev);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const id29 = w209ev(B, `(((MS.years[2029]||{}).custom||[]).filter(function(x){ return x.from && x.from.nid==='NEW-PSM-21'; })[0]||{}).id||''`);
+  const lk2 = lk();
+  chk(name, 'link', 'FY29’s accepted in a later Apply: the FY31 link reads the requirement it became', J([/^NEW-\d+$/.test(id29), lk2.indexOf('FY29 ' + id29 + ' — ') === 0,
+    /not been accepted|no longer/.test(lk2)]), J([true, true, false]));
+
+  // ── THE BATCH, AND ITS DRY RUN ─────────────────────────────────────────────────────────────────────────────────────────
+  const X = boot({ html });
+  X.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; PMOSUBS=[]; PMOPICK={}; switchYear(2029); 'ok'`);
+  const dry = JSON.parse(w209ev(X, `(function(){ var s0=PMOSUBS, y0=JSON.stringify(Object.keys(MS.years)), c0=MS.cur, r=uiTakeDry(${J(five)}, 'five.json');
+    return JSON.stringify({ok:r.ok, asks:r.asks.length, same:PMOSUBS===s0 && PMOSUBS.length===0, years:JSON.stringify(Object.keys(MS.years))===y0, cur:MS.cur===c0}); })()`) || '{}');
+  chk(name, 'dry run', 'the dry run of a five-year file, taken on FY29, would take it without a question, and holds back everything it did',
+    J(dry), J({ ok: true, asks: 0, same: true, years: true, cur: true }));
+  const files = (L) => { X.w.__f = L.map(([n, t]) => new X.w.File([t], n, { type: 'application/json' })); };
+  const oneAv = w209pkg({ fy: 2029, ts: 1760000005000, pmo: 'AV', items: { D: { desc: 'D by AV, FY29' } }, base: { D: { desc: null } } });
+  files([['five.json', J(five)], ['av.json', J(oneAv)]]);
+  const r1 = JSON.parse(J(await X.w.uiSubMany({ files: X.w.__f, value: '' })));
+  chk(name, 'batch', 'a five-year file and another office’s file load together, every year of the five-year file held',
+    J([r1.ok, r1.taken, w209ev(X, `JSON.stringify(PMOSUBS.map(function(p){ return p.pmo+':'+p.forFy; }))`)]), J([true, 2, J(['PSM:2028', 'PSM:2031', 'AV:2029'])]));
+  X.ev(`PMOSUBS=[]; PMOPICK={}; 'ok'`);
+  files([['five.json', J(five)], ['five2.json', J(Object.assign({}, five, { ts: 1760000006000 }))]]);
+  const r2 = JSON.parse(J(await X.w.uiSubMany({ files: X.w.__f, value: '' })));
+  chk(name, 'batch', 'control — two files from one office in one batch are refused, and nothing is held', J([r2.ok, /both from PSM/.test(r2.why), X.ev('PMOSUBS.length')]), J([false, true, 0]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, X.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// IN A COPY THE YEARS ARE THE PORTFOLIO TEAM'S (Brad, 26 Oct 2026: Roll forward and Copy and Move to year switched off in a copy;
+// Roll requirements forward, Set base year and Reset year with them). Each is refused with a reason, and changes nothing; the
+// guide's office part says which years a copy covers and what happens to a year the board has not started.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — the year tools are off in a PMO copy, and the guide says which years it covers (item 126)';
+  try {
+  const J = JSON.stringify;
+  // PP holds a requirement in FY31 alone
+  const B = boot({ html: w209board([], `switchYear(2031); ${w209mk('PP', 'PP in FY31 alone')}; save(); switchYear(2028)`) });
+  const P = boot({ html: v184Publish(B.ev) });
+  P.ev(`try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'offices', 'from FY28, the office list a copy submits for offers PP, whose only requirement is FY31’s', w209ev(P, `String(pmoChoices().indexOf('PP')>=0)`), 'true');
+  const state = () => P.ev(`JSON.stringify([MS.base, MS.cur, Object.keys(MS.years), Object.keys(MS.years).map(function(y){ return MS.years[y].order; }), rollOpen])`);
+  const s0 = state();
+  const tryOne = (lbl, js) => { w3dlg(P.ev); w209ev(P, js + '; \'ok\''); const d = w3said(P.ev);
+    return [lbl, d.length === 1 && d[0][0] === 'alert' && /is turned off in a PMO copy/.test(d[0][1]) && /From another year/.test(d[0][1]), state() === s0]; };
+  const got = [tryOne('Copy to year', `xferYear('A','c2029')`), tryOne('Move to year', `xferYear('A','m2029')`),
+    tryOne('Roll requirements forward', `toggleRoll()`), tryOne('Roll forward (apply)', `rollPick={A:1}; rollYrs={2029:1}; rollApply()`),
+    tryOne('Set base year', `window.prompt=function(){ return '2030'; }; setBaseYear()`), tryOne('Reset year', `resetYear()`)];
+  chk(name, 'year tools', 'each is refused, saying so and pointing to From another year, and nothing changes',
+    J(got), J(got.map(g => [g[0], true, true])));
+  chk(name, 'year tools', 'the Fiscal year menu says they are off', (P.ev(`(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`).match(/off in a PMO copy/g) || []).length, 3);
+  const guide = w209ev(P, `(function(){ var s=helpSections().filter(function(x){ return x.id==='o-years'; })[0]; return s? s.part+'|'+s.t+'|'+s.el.textContent : ''; })()`);
+  chk(name, 'guide', 'the office part says which years a copy covers, that a year not started opens blank for new requirements, and how a requirement that recurs comes in',
+    J([/^office\|Which years you can work in\|/.test(guide), /base year and the four years after it/.test(guide), /opens blank, for new requirements only/.test(guide), /From another year/.test(guide)]), J([true, true, true, true]));
+  chk(name, 'errors', 'control — no page error', J([P.errors.length]), J([0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A BOARD OLDER THAN THE COPY REFUSES ITS SUBMITTAL WHOLE. Read by v2.08, the top of a five-year package is a one-year
+// submittal it would take, and every out-year in it would be dropped without a word. The package says which build wrote it,
+// and the import check's newer-build rule (v2.02) refuses it at the door, naming the version. Until the integration raises
+// BUILD this board is still v2.08's, so the check reads the package as the v2.09 copy writes it: one minor version on.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a v2.08 board refuses a five-year submittal whole (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  const P = boot({ html: v184Publish(B.ev) });
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; switchYear(2030); setDesc('A','A, FY30, from the copy'); switchYear(2028); 'ok'`);
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  chk(name, 'package', 'the package says which build wrote it, and the years it covers', J([pkg.build === P.ev('BUILD'), Array.isArray(pkg.fys), !!(pkg.byYear || {})[2030]]), J([true, true, true]));
+  const sent = Object.assign({}, pkg, { build: /^v2\.0[0-8]\b/.test(String(pkg.build || '')) || !pkg.build ? 'v2.09 (26 Oct 2026)' : pkg.build });
+  const O = boot({ html: v14Old('ebe702e', 'prioritization-board-grid.html') });
+  chk(name, 'the v2.08 board', 'control — it is the v2.08 board', O.ev('BUILD'), 'v2.08 (26 Oct 2026)');
+  chk(name, 'the v2.08 board', 'control — its import check refuses the file whole, naming the version that wrote it',
+    /written by a newer version of ORBIT \(v2\.09; this board is v2\.08/.test(O.ev(`inboundCheck(${J(J(sent))})`)), true);
+  w3dlg(O.ev);
+  await w3drive(O.ev, 'importState', 'ORBIT SUBMITTAL - PSM.json', J(sent));
+  chk(name, 'the v2.08 board', 'control — through its own file door: refused, and no submittal held', J([/was not imported/.test(w3said(O.ev).map(d => d[1]).join('\n')), O.ev('PMOSUBS.length')]), J([true, 0]));
+  chk(name, 'this board', 'this board takes the same file, every year of it', w209ev(B, `(function(){ window.alert=function(){}; window.confirm=function(){ return true; }; PMOSUBS=[];
+    pmoTake(${J(pkg)}, 's.json'); return JSON.stringify(PMOSUBS.map(function(p){ return p.forFy; })); })()`), J([2030]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// THE DOOR AND THE DESTINATION LIST READ EVERY YEAR. A five-year submittal carries its out-years under byYear, and each is held
+// to the rules the top of the package is: an id the board would draw, an amount within range, an award of the package's own
+// service width, a key that is a fiscal year. And each names destinations by the copy's list, re-pointed onto this board's.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — the door and the destination list read every year of a five-year submittal (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  B.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+  const good = w209pkg({ fy: 2028, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'), dest: JSON.parse(B.ev('JSON.stringify(flowEnts())')),
+    items: { A: { notes: 'n' } }, base: { A: { notes: null } }, byYear: { 2030: { items: { A: { desc: 'ok' } }, base: { A: { desc: null } }, added: [] } } });
+  chk(name, 'door', 'control — a well-formed five-year submittal passes', B.ev(`inboundCheck(${J(J(good))})`), '');
+  const bad = (f) => { const p = JSON.parse(J(good)); f(p); return B.ev(`inboundCheck(${J(J(p))})`); };
+  const said = [
+    bad(p => { p.byYear[2030].items['A"x'] = { desc: 'quote' }; }),
+    bad(p => { p.byYear[2030].items.A.asks = [1e14, 0, 0]; }),
+    bad(p => { p.byYear[2030].items.A.awards = { mode: 'inc', inc: [{ d: '2029-10', day: 5, sv: [1, 2] }] }; }),
+    bad(p => { p.byYear[2030].added = [w209prop('NEW"1', 'Bad id', 2030)]; }),
+    bad(p => { p.byYear.FY31 = p.byYear[2030]; }),
+  ];
+  chk(name, 'door', 'an out-year’s bad id, figure, award and proposal, and a year that is not a year, are each refused, naming the year',
+    J(said.map(w => /byYear/.test(w))), J([true, true, true, true, true]));
+  chk(name, 'door', 'the year that is not a year is named as such', /the year “FY31” at the file\.byYear is not a fiscal year/.test(said[4]), true);
+  // the copy's destination list keys Lockheed Martin as zq1; its FY30 requirement goes to zq1: taken, it goes to this board's lm
+  const re = JSON.parse(J(good));
+  re.dest = re.dest.map(e => e.k === 'lm' ? Object.assign({}, e, { k: 'zq1' }) : e);
+  re.byYear[2030].items.A = { dest: { to: 'zq1' } }; re.byYear[2030].base.A = { dest: null };
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(re)}, 'dest.json'); 'ok'`);
+  chk(name, 'destinations', 'an out-year’s destination is re-pointed onto this board’s list, as the published year’s is',
+    w209ev(B, `JSON.stringify(((PMOSUBS.filter(function(p){ return p.forFy===2030; })[0]||{items:{A:{}}}).items.A||{}).dest||null)`), J({ to: 'lm' }));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length]), J([0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.09 W2 ====
 
 // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====

@@ -1,0 +1,262 @@
+[
+ {
+  "id": "v209-w2-publish-no-years",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-publish-baseline-published-year",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-readers-published-base",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-home-published-year",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-proposals-published-base",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-rank-published-ord",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-submit-published-base",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-submit-year-on-screen-only",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-no-build",
+  "caughtBy": "audit-import / v2.09 W2 — a v2.08 board refuses"
+ },
+ {
+  "id": "v209-w2-no-fys",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-proposal-no-year",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-ids-per-year",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-add-published-year-only",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-edit-said-not-sent",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-notstarted-misnamed",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-copy-rolls-forward",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-copy-xfer-open",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-copy-roll-panel-open",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-copy-roll-apply-open",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-copy-base-year-open",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-copy-reset-open",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-banner-silent",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-choices-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — the year tools are off"
+ },
+ {
+  "id": "v209-w2-preflight-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-door-years-unread",
+  "caughtBy": "audit-import / v2.09 W2 — the door and the destination list"
+ },
+ {
+  "id": "v209-w2-door-year-key",
+  "caughtBy": "audit-import / v2.09 W2 — the door and the destination list"
+ },
+ {
+  "id": "v209-w2-dest-years-unread",
+  "caughtBy": "audit-import / v2.09 W2 — the door and the destination list"
+ },
+ {
+  "id": "v209-w2-take-top-year-only",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-take-parts-asked",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-scope-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-replace-any-year",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-five-keeps-earlier",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-five-part-left-held",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-proposal-year-ignored",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-emptied-year-silent",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-now-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-rows-item-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-taken-year-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-report-title-on-screen",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-report-years-run-together",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-review-years-run-together",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-unstarted-gone",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-accept-no-year",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-link-not-repointed",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-apply-no-start-asked",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-apply-stop-starts-blank",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-apply-question-no-years",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v209-w2-apply-unstarted-orphan",
+  "caughtBy": "audit-import / v2.09 W2 — a year the board had not started"
+ },
+ {
+  "id": "v209-w2-left-counts-taken",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-link-proposal-unresolved",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-link-proposal-said-gone",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "v209-w2-take-line-screen-only",
+  "caughtBy": "audit-import / v2.09 W2 — one office"
+ },
+ {
+  "id": "pmo-conflict-blind",
+  "caughtBy": "audit-import / submittal review; handoff — the change report; v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "submit-foreign-silent",
+  "caughtBy": "audit-import / scoped submittals"
+ },
+ {
+  "id": "take-ignores-scope",
+  "caughtBy": "audit-import / scoped submittals"
+ },
+ {
+  "id": "proposal-double-add",
+  "caughtBy": "audit-import / a copy proposes a new requirement"
+ },
+ {
+  "id": "proposal-ask-dropped",
+  "caughtBy": "audit-import / a copy proposes a new requirement"
+ },
+ {
+  "id": "w3-apply-any-year",
+  "caughtBy": "audit-import / held proposals apply only to the year; v2.09 W2 — a PMO copy submits every year"
+ },
+ {
+  "id": "v206-fix-proposal-drops-titles",
+  "caughtBy": "audit-import / the pre-merge review’s fixes: linked work"
+ },
+ {
+  "id": "v206-fix-review-no-warning",
+  "caughtBy": "audit-import / the pre-merge review’s fixes: linked work"
+ },
+ {
+  "id": "v206-fix-copy-submits-other-year",
+  "caughtBy": "audit-import / the pre-merge review’s fixes: linked work"
+ },
+ {
+  "id": "v208-122-copy-other-year-silent",
+  "caughtBy": "audit-import / v2.08 — the edit box in a PMO copy"
+ },
+ {
+  "id": "v208-rv-restored-box-silent",
+  "caughtBy": "audit-import / v2.08 — the review in a PMO copy"
+ },
+ {
+  "id": "v206-117-gone-hidden",
+  "caughtBy": "audit-import / v2.06 — add a requirement from another year"
+ },
+ {
+  "id": "v206-fix-gone-year-text",
+  "caughtBy": "audit-import / the pre-merge review’s fixes: linked work"
+ }
+]
