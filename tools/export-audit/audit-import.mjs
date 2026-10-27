@@ -3418,7 +3418,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'never by itself', 'and only a 📖 button opens it', ev(`JSON.stringify([...document.querySelectorAll('[onclick]')].filter(function(e){ return e.getAttribute('onclick').indexOf('openHelp(')>=0; }).map(function(e){ return e.id || e.textContent.trim(); }))`), JSON.stringify(['helpBtn']));
   const doc = ev(`document.getElementById('helpDoc').innerHTML`);
   chk(name, 'offline', 'it loads nothing from outside the file', /https?:\/\/|<img|<link|<script|<iframe|url\(/i.test(doc), false);
-  chk(name, 'size', 'it adds under 60 KB to the file', doc.length < 60000, true);
+  // v2.10: the FYDP Disconnects paragraph took the guide to 61,040 characters (59,662 in v2.09); the budget is raised to 64 KB on
+  // purpose -- the guide grows with the board -- and still says when it grows a lot
+  chk(name, 'size', 'it adds under 64 KB to the file', doc.length < 64000, true);
   const money = () => ev(`JSON.stringify({ms:MS.years, ls:(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })()})`);
   const before = money();
   ev(`openHelp(''); 'ok'`);
@@ -13480,8 +13482,10 @@ await (async () => {
   const sent = Object.assign({}, pkg, { build: /^v2\.0[0-8]\b/.test(String(pkg.build || '')) || !pkg.build ? 'v2.09 (26 Oct 2026)' : pkg.build });
   const O = boot({ html: v14Old('ebe702e', 'prioritization-board-grid.html') });
   chk(name, 'the v2.08 board', 'control — it is the v2.08 board', O.ev('BUILD'), 'v2.08 (26 Oct 2026)');
+  // v2.10: the version named is the package's own (v2.10 from this board), not a pinned "v2.09"
+  const sentV = String(sent.build).split(' ')[0].replace(/\./g, '\\.');
   chk(name, 'the v2.08 board', 'control — its import check refuses the file whole, naming the version that wrote it',
-    /written by a newer version of ORBIT \(v2\.09; this board is v2\.08/.test(O.ev(`inboundCheck(${J(J(sent))})`)), true);
+    new RegExp('written by a newer version of ORBIT \\(' + sentV + '; this board is v2\\.08').test(O.ev(`inboundCheck(${J(J(sent))})`)), true);
   w3dlg(O.ev);
   await w3drive(O.ev, 'importState', 'ORBIT SUBMITTAL - PSM.json', J(sent));
   chk(name, 'the v2.08 board', 'control — through its own file door: refused, and no submittal held', J([/was not imported/.test(w3said(O.ev).map(d => d[1]).join('\n')), O.ev('PMOSUBS.length')]), J([true, 0]));
@@ -15179,6 +15183,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
 // ==== end v2.09 W4 ====
+
+// ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+// ==== end v2.10 A ====
+
+// ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+// ==== end v2.10 B ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

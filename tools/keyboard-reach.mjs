@@ -23,6 +23,10 @@
 //   M. The Add box (v2.07, item 121): Enter on Add requirement opens it with the keyboard inside, the office question is
 //      answered from the keyboard, Tab reaches every field, the tabs and the Prime/OGC switch work with Enter and Space,
 //      Add pressed early sends the keyboard to the first field still needed, and Esc asks before typing is lost.
+//   R. FYDP Disconnects (v2.10, item 130): opened from FYDP ▸ by Enter with the keyboard inside, Tab walks its pickers, Export and
+//      its sheet tabs, Enter presses a tab, an International figure typed and left with Tab is taken and the keyboard goes on to
+//      the next year, one left by clicking the next box (or a sheet tab) with the mouse leaves the keyboard where the click put
+//      it (v2.10 review, A-2), and Esc closes it with the keyboard back on FYDP ▸.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -808,6 +812,69 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`Q · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── R. FYDP DISCONNECTS, FROM THE KEYBOARD (v2.10, item 130) ─────────────────────────────────────────────────────
+// FYDP ▸ by Enter, then its item by Enter: the box opens with the keyboard inside. Tab reaches the two pickers, Export and the
+// five sheet tabs; Enter on a tab presses it alone. On the Summary an International figure is typed and Tab leaves it: it is
+// taken in $M, the figures it moves are drawn again in place, and the keyboard is on the next year's box -- the redraw does not
+// take it (a whole redraw at that moment would). Esc closes the box with the keyboard back on FYDP ▸. A cost estimate and a
+// BES28 position are put on the board first: bare, the box has no tables to reach.
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    await p.evaluate(() => { const Y = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033], S6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], L = [];
+      ['om', 'ff', 'sp'].forEach((ap, a) => S6.forEach((sv, s) => { const v = {}; Y.forEach(y => { v[y] = (a + 1) * 9e8 + (s + 1) * 4e7 + (y - 2020) * 3e6; }); L.push({ ap, pmo: 'AV', svc: sv, v }); }));
+      ACEDB.sets['2025ACE'] = { label: '2025ACE', ts: Date.now(), years: Y, lines: L, appn: {}, skip: {} };
+      const val = {}, lines = {}; S6.forEach((sv, s) => { lines[sv] = [{ k: '_all', all: true }]; val[sv] = { _all: {} };
+        [2027, 2028, 2029, 2030, 2031, 2032].forEach(y => { val[sv]._all[y] = { d: (s + 1) * 1.3e8 + (y - 2027) * 2e6, m: y === 2027 ? 5e6 : 0 }; }); });
+      MS.ppbe = MS.ppbe || {}; MS.ppbe['BES|2028'] = { v: 2, split: true, lines, val }; MS.cycle = 'BES|2028'; });
+    await p.focus('#uiNav_fydp'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    let found = -1;
+    for (let i = 0; i < 8; i++) { if (await p.evaluate(() => /toggleFdc/.test((document.activeElement || {}).getAttribute ? document.activeElement.getAttribute('onclick') || '' : ''))) { found = i; break; } await p.keyboard.press('Tab'); }
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const o = await p.evaluate(() => ({ open: document.getElementById('fdcPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fdcPanel')) }));
+    chk('R · FYDP ▸, then FYDP Disconnects… by Enter: the box opens with the keyboard inside', found >= 0 && o.open && o.inBox, JSON.stringify({ found, ...o }));
+    // Tab from the estimate picker reaches the cycle picker, Export and every tab, in that order
+    const order = [];
+    await p.focus('#fdcAce');
+    for (let i = 0; i < 8; i++) { order.push(await p.evaluate(() => document.activeElement.id)); await p.keyboard.press('Tab'); }
+    chk('R · Tab walks the estimate, the cycle, Export to Excel and the five sheet tabs, in that order',
+      JSON.stringify(order) === JSON.stringify(['fdcAce', 'fdcCyc', 'fdcExport', 'fdcTab_0', 'fdcTab_1', 'fdcTab_2', 'fdcTab_3', 'fdcTab_4']), JSON.stringify(order));
+    await p.focus('#fdcTab_2'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const tb = await p.evaluate(() => ({ pressed: [...document.querySelectorAll('#fdcBody .fdctabs button')].map(b => b.getAttribute('aria-pressed')).join(),
+      sub: document.querySelector('#fdcPage .fdct2').textContent, focus: document.activeElement.id }));
+    chk('R · Enter on STOVL presses it alone, shows its sheet, and the keyboard stays on it',
+      tb.pressed === 'false,false,true,false,false' && /USMC STOVL/.test(tb.sub) && tb.focus === 'fdcTab_2', JSON.stringify(tb));
+    await p.focus('#fdcTab_0'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const cell = () => p.evaluate(() => document.querySelector('#fdcPage tbody tr:nth-child(2) td:nth-child(3)').textContent);
+    const c0 = await cell();
+    await p.focus('#fdcIn_ir_om_2028'); await p.keyboard.press('Control+a'); await p.keyboard.type('250'); await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const r = await p.evaluate(() => ({ focus: document.activeElement.id, val: document.getElementById('fdcIn_ir_om_2028').value,
+      kept: FDC_INTL.ir.om[2028], cell: document.querySelector('#fdcPage tbody tr:nth-child(2) td:nth-child(3)').textContent }));
+    chk('R · an International figure typed and left with Tab is taken in $M, its requirement drawn again, and the keyboard is on the next year',
+      r.focus === 'fdcIn_ir_om_2029' && r.val === '$250' && r.kept === 250000000 && r.cell !== c0, JSON.stringify({ before: c0, ...r }));
+    // v2.10 review (A-2): the same figure left with a CLICK, a real mouse on the next box. Chromium fires the change with the
+    // keyboard nowhere and the click's focus still to land, and a figure drawn again at that moment had the box controller hand
+    // the keyboard back to the year just left: the next figure typed went into it (FY28 read $2,507M, FY30 $0). And a sheet tab
+    // clicked after a figure is typed keeps the keyboard (it was left on the estimate picker).
+    await p.click('#fdcIn_ir_om_2030'); await p.keyboard.press('Control+a'); await p.keyboard.type('7');
+    await p.click('#fdcIn_ir_om_2031'); await p.waitForTimeout(150);
+    await p.keyboard.press('Control+a'); await p.keyboard.type('3');
+    const k1 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om) }));
+    chk('R · a figure typed and left by clicking the next box: the keyboard is on the box clicked, and the next figure goes there',
+      k1.focus === 'fdcIn_ir_om_2031' && k1.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000 }), JSON.stringify(k1));
+    await p.click('#fdcTab_1'); await p.waitForTimeout(200);
+    const k2 = await p.evaluate(() => ({ focus: document.activeElement.id, intl: JSON.stringify(FDC_INTL.ir.om),
+      pressed: [...document.querySelectorAll('#fdcBody .fdctabs button')].map(b => b.getAttribute('aria-pressed')).join() }));
+    chk('R · then a sheet tab clicked: the tab is pressed and has the keyboard, and the figure typed is taken for its own year',
+      k2.focus === 'fdcTab_1' && k2.pressed === 'false,true,false,false,false' && k2.intl === JSON.stringify({ 2028: 250000000, 2030: 7000000, 2031: 3000000 }), JSON.stringify(k2));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const e = await p.evaluate(() => ({ open: document.getElementById('fdcPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    chk('R · Esc closes it, the keyboard back on FYDP ▸', !e.open && e.focus === 'uiNav_fydp', JSON.stringify(e));
+    chk('R · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`R · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls and the Add box, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box and FYDP Disconnects, and each one works\n');
 process.exit(bad ? 1 : 0);

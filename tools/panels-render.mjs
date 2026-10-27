@@ -31,6 +31,14 @@ const sc = { services: SVCN, items,
   mand: [62, 12, 6, 10, 4, 6].map(p => p * 1e6),
   order: items.map(x => x.id), mc: { R0: true, R3: true } };
 
+// v2.10 (item 130): a cost estimate across O&M, Full Fund and Spares, six services, and O&M's BES28 position, put on the board in
+// the page -- what FYDP Disconnects sets side by side. The box is drawn by its own code, from the board's stores.
+const FDC_SEED = `(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
+  ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6+0.4; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
+  ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now(), years:Y, lines:L, appn:{}, skip:{}};
+  var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
+    [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
+  MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; MS.cycle='BES|2028'; })(); `;
 // Panels whose opener is not reachable from the backdrop's own onclick: they need a context —
 // a drilled-down cell, a selected requirement, a pending submittal. Drive each the way the
 // product does. A panel added to the file without an entry here is caught by the generic sweep.
@@ -80,6 +88,16 @@ const SPECIAL = {
     ['addPanel (From another year)', `setPmoFilter('PSM'); toggleAdd(); arTab('yr'); naFromPick(String(MS.cur-1)); naFromTick('R9', true);`,
       `(function(){ var n=document.querySelectorAll('#naFromWrap tr[data-id]').length, b=document.getElementById('naFromBtn');
         return [n<4 && 'the other year’s rows ('+n+')', !(b && !b.disabled && b.getClientRects().length) && 'an enabled Add button'].filter(Boolean).join(', '); })()`],
+  ],
+  // v2.10 (item 130): FYDP Disconnects. Opened bare it has no cost estimate and no position to set side by side, and says so --
+  // a box measured short of its tables. So a cost estimate and a BES28 position are put on the board first (O&M's own; Full Fund
+  // and Spares say they log none), an International figure typed on the Summary, then the USAF sheet.
+  fdcPanel: [
+    ['fdcPanel (Summary)', FDC_SEED + `toggleFdc(); var e=document.getElementById('fdcIn_ir_om_2028'); if(e){ e.value='1,234.5'; e.dispatchEvent(new Event('change',{bubbles:true})); }`,
+      `(function(){ var n=document.querySelectorAll('#fdcPage tbody tr').length, e=document.getElementById('fdcIn_ir_om_2028');
+        return [n<40 && 'the Summary’s rows ('+n+')', !(e && e.value==='$1,234.5') && 'the International figure typed'].filter(Boolean).join(', '); })()`],
+    ['fdcPanel (USAF)', FDC_SEED + `toggleFdc(); fdcTab(1);`,
+      `(function(){ var t=(document.querySelector('#fdcPage .fdct2')||{}).textContent||''; return /USAF CTOL/.test(t)? '' : 'the USAF sheet ('+t+')'; })()`],
   ],
 };
 // Inline panels: class "addp", shown with style.display, not a modal backdrop. (v2.07, item 121: the Add strip became a box,
@@ -174,7 +192,7 @@ for (const f of ['prioritization-board-grid.html']) {
     'entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
-    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen'];
+    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen','fdcOpen'];
   const NUL = ['wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };

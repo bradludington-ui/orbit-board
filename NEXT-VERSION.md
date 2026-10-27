@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.09**. Next: **v2.10**.
+Current version: **v2.10**. Next: **v2.11**.
 
 ## Open
 
@@ -149,6 +149,7 @@ Current version: **v2.09**. Next: **v2.10**.
   *follows the rules*), and test it through submit and accept.
 
 #### 129. Found by the third review of v2.09, held for v2.10 (Brad, 27 Oct 2026: "Fix the regressions only")
+*Not in v2.10:* Brad's "Go" of 27 Oct took the plan that kept v2.10 to item 130 alone, so these still wait.
 Brad, asked how to shorten the finish: *"I'm confident that we'll catch duplicative entries. We will be reviewing spend plans
 monthly for updates and edits, so the PMOs will be seeing a fresh PMO Copy to update on a monthly basis with the SFWG reviewing
 it as well."* So v2.09 fixed only what its own second-round fixes broke, and these wait. Each was reproduced, and confirmed by
@@ -177,6 +178,165 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
 - **Still Brad's:** the office files of one published copy share that copy's plan key in a browser (notes-RV2-save.md). The
   newest save opened there is what the copy as published opens next; this browser's own work is kept aside, and the line
   says so. Sealing the plan key per office file would change where every copy's work is kept.
+
+#### 131. Found while building v2.10, not built
+Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none is a regression of v2.10's.
+- **A service in no group reaches the Summary only, and the workbook does not say so** (Brad's call). The same holds for an
+  appropriation whose copy could not be read: its lines print —, and only the box says why. FYDP Disconnects groups
+  services by exact name (USAF with ANG and AFRC; STOVL with Full Fund's USMC-B; USMC-C; USN). A service renamed in Setup to
+  a name outside those, or a position keyed `usmc-b` or `USMC STOVL`, counts on the Summary only. The box names it ("Counted on the
+  Summary only"), but the workbook carries none of the box's notes, so a service tab can print $0 controls with nothing to say
+  why. Options: a note line under the table in the workbook only when a service is ungrouped (it changes the slides' look in
+  that case alone), or matching services case- and space-insensitively.
+- **The five-year plan reads a copy in the shared folder that cannot be read as "none there"** (older than v2.10, since v1.85).
+  `fydpStoreFolder` without `strict` takes a copy mid-sync, cut short or not a board as no copy, and uses this browser's.
+  v2.10 gave FYDP Disconnects the strict reading (only NotFoundError means none, as `driveStoreRead` reads it); the five-year
+  plan's export refuses an appropriation's block on its own checks, but which copy it opens is still decided the old way.
+  Proposed: pass `strict` from `fydpGather` too.
+- **The Spruills and Locks by appropriation read another appropriation from this browser's copy alone** (older than v2.10).
+  `spDefs` and `cycOverview` read the way FYDP Disconnects did before its A-3 fix; in the shared folder their figures can be
+  older than the folder's. Proposed: the same folder read.
+- **The house style's indents are not drawn** (older than v2.10, since v2.04). `_houseBase` / `_housePlan` write the title band,
+  the subtitle and some column-B text with `indent="1"` and no horizontal alignment, which Excel and LibreOffice do not draw
+  (WB-1's finding, in every dressed workbook). Proposed: `horizontal="left"` beside the indent; every dressed workbook's
+  styles change, so its byte checks move with it.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v2.10 — 27 Oct 2026: FYDP Disconnects, the Spruill charts by appropriation, on screen and in Excel -- built on Brad's "Go" of 27 Oct
+
+Item 130 was built as Brad decided it on 27 Oct (his decisions are under the item below). It was built by two builders in
+parallel from the slot commit `35d0dd0`, to a contract they shared (`recovery/v210/item130-contract.md`): **A**, the figures and
+the box (`notes-A.md`); **B**, the workbook (`notes-B.md`). They were joined at `4c531a0`, reviewed, fixed, and merged onto `main`
+after v2.09 merged. Where the build differs from the log, or had to decide something the log does not say, it says so here.
+
+**What is on the board.**
+- **FYDP › FYDP Disconnects…** (`#fdcPanel`, `toggleFdc`), after the Spruills: a box under the box controller, with the cost
+  estimate picker (every set, newest first), the PPBE controls picker (every cycle a position is logged under in O&M, Full
+  Fund or Initial Spares, newest first, each naming who logged it), the years, Export to Excel, and five sheet tabs: *Summary*,
+  *USAF* (with ANG and AFRC), *STOVL*, *USMC CV*, *USN CV*. The page is white in every theme, in the slides' colours, with the
+  CUI marking above the title and in the footer.
+- **The figures are read, never worked out again** (`fdcModel`). The requirement is the chosen estimate's lines for O&M,
+  Full Fund and Spares (OPN never), each year a whole dollar. The controls are each appropriation's PPBE Budget Position under
+  the chosen cycle, discretionary and mandatory, from that appropriation's own store, as its own board opens it. A year an
+  appropriation logs no position for prints —, never $0, and a delta, % Funded or FYDP total that needs it is — too.
+- **The International requirement and funding** are typed on the Summary in $M (a bare number is millions, through
+  `amtReadM`), start at $0, and are kept for the session only (`FDC_INTL`): in no store, journal, storage or file.
+- **The workbook** (`exportFdc` → `fdcSheets` → `buildXlsx`): the five sheets in the slides' look -- the merged titles (26 and
+  22 pt), the navy band over the years, light-blue appropriation bands, the navy total band, bold, indented and italic lines,
+  the delta under a heavy rule, money as whole dollars shown in millions with a shortfall red in parentheses, % Funded, —
+  for a year with no position, the footer and the marking; Arial, no gridlines, landscape, one page per sheet; no house style.
+  `buildXlsx` gained opt-in options for it (`heights`, `grid:false`, `page`, a font name, shared fills and formats); a
+  workbook that asks for none of them is byte-identical to v2.09's (B's proof: 279 workbooks from every suite compared byte for
+  byte, none differing).
+
+**Decided in the build.**
+- **Not offered in a PMO copy**, which holds one appropriation; it refuses with the reason.
+- **A locked cycle view works** (it only reads); the file name carries the lock's mark.
+- **On screen the appropriation band's text is navy, not white**: white on the band's `#8DB4E2` is 2.15:1, under Section 508's
+  4.5:1 (WCAG 1.4.3), and `npm run standards` reports it. The workbook keeps the slides' white. Brad may want the screen white
+  anyway; it would be a standards finding.
+- **Services match by name**, in the groups above; Full Fund's `USMC-B` is the STOVL sheet's (the board's own alias table).
+  A service in no group counts on the Summary only, and the box names it (item 131 for the workbook).
+- **One page tall as well as wide**, printed centred; the marking in row 1 and in the footer row.
+- **The box never redraws under a figure being typed**: a committed International figure redraws the cells it moves in
+  place, and the keyboard goes where the Tab or the click sent it.
+
+**Found by review before merge, and fixed.** Two reviewers (the figures and the box; the workbook) raised six findings on
+`4c531a0`; a skeptic re-ran each, and four were confirmed and two refuted. Every fix has a check that fails on `4c531a0`, and
+a mutation; a second skeptic re-checked each fix.
+- **A-1 (blocker): Full Fund's F-35B controls, keyed `USMC-B`, reached no service sheet.** The STOVL sheet printed PROCUREMENT
+  controls $0 against the whole requirement, and the four service sheets did not add up to the Summary. Each group now also
+  takes the alias the board's own table gives its services.
+- **A-2: after typing an International figure, clicking another box or a sheet tab pulled the keyboard back** to the box
+  just left, so the next figure landed in the wrong year, and after a tab click an arrow key changed the estimate. The figure
+  is kept at once; the box's redraw waits for the click's focus to land.
+- **A-3: in the shared folder, another appropriation was read from this browser's copy alone**, so the controls could be weeks
+  old, and with no copy here the box said Full Fund "has no BES28 position logged" while the folder held one. It is now read as
+  its own board opens it, the folder's copy when newer; until the folder answers the box says it is reading and states no
+  figure, and Export waits for the same answer. **The skeptic found one route the fix missed** -- a copy in the folder that
+  cannot be read at that moment (mid-sync, cut short, not a board) still stood in this browser's copy, or the false claim --
+  fixed after the skeptics (`d0c7ab2`): only "no copy there" means none, as the board's own folder read has it; anything else
+  names the appropriation and prints —. Two more skeptics re-checked that (96 routes each way; the five-year plan identical in all
+  34 folder situations) and found one minor gap it opened: with no readable appropriation logging a position, the box said none
+  was logged for a Full Fund it had not read. It now names the unreadable one with why, and leaves it out of that list.
+- **WB-1: the indented lines printed flush left in the workbook**: an indent with no horizontal alignment, which Excel does
+  not draw. Indented lines are now left-aligned; every other style is unchanged byte for byte.
+- **Logged, not built (item 131):** the A-1 skeptic's ungrouped-service residual (Brad's call), the five-year plan's folder
+  reading, the Spruills' and the locks table's storage-only reading, and the house style's indents.
+
+**Proved with** (on the final board, `c319bb3`; the commits after it change only audit-import and these notes):
+- `npm run check` passes, and every mutation target matches once (2,784 of 2,784).
+- **`npm run validate:nightly`** (27 Oct): the defect register (13 known defects, guarded by 43 mutations), money coverage (25 of
+  25 surfaces), the money map (308 cells: 112 proven, 195 n/a, 1 open -- the AI review request by fiscal year, open since v2.04),
+  the trace matrix (77 cells), the fuzz (seed 125755453) and the file verifier's self-test all hold. The browser stage fails only
+  on layout's 8 D checks, carried since v2.00 (layout O, FYDP Disconnects, holds at every width).
+- **The suites:** boot-same, export, other and board passed inside the nightly. Its chain stopped in audit-import on two
+  expectations v2.10 had moved: the guide's 60 KB budget (the FYDP Disconnects paragraph took it to 61,040 characters; the
+  budget is now 64 KB, said in the check) and the v2.08 board's refusal, which named a pinned "v2.09" where the package now
+  says v2.10. With those updated, import, recon, legacy, hostile, inject and ui each passed whole on the same board.
+- **The browser checks the gate does not reach**, run on their own on the final board: keys, dropdowns, dialogs, leftmenu,
+  pmosave, pmoyears, pointer and standards (nothing new; the baseline is empty) all pass.
+- **Mutations:** 133 new (`v210-*`), none older retired or retargeted, each proved CAUGHT against its own check
+  (`recovery/v210/proved-*.jsonl`). The sweep was not run (Brad's rule of 20 Oct).
+
+#### The item as logged
 
 #### 130. FYDP Disconnects: the Spruill charts at appropriation level, on screen and in Excel (Brad, 27 Oct 2026)
 - **Asked** (from photos of his PB27 slides, *F-35 Sustainment Summary* and *PB27 Service Detail – USAF CTOL*; no figure from
@@ -243,64 +403,6 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
   - the CUI marks are on every sheet;
   - the Excel cells read back, styles included, from the bytes;
   - the money map and money coverage register the new surface.
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
-- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
-  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
-- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
-  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
-  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
-  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
-  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
-  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
-  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
-  finding fixed or written down, plus `npm audit` for the test tooling.
-- **Proof:** each change ships with a check that fails without it, as every version does.
-- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
-  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v2.09 — 27 Oct 2026: CLIN amounts typed with the mouse, a PMO copy's five years, Save in a PMO copy, the SI tab by code -- built on Brad's "Go on v2.09" of 26 Oct, merged on his "Merge when ready" of 27 Oct
 

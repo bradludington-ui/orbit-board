@@ -1,7 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
-about 37,000 lines, 2.7 MB (4.0 MB until v2.05 removed the PowerPoint deck and its 1.6 MB template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
+about 38,000 lines, 2.7 MB (4.0 MB until v2.05 removed the PowerPoint deck and its 1.6 MB template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
 ## One build: `prioritization-board-grid.html` (since v1.88)
@@ -4703,6 +4703,53 @@ each fixer's record). What they leave for the next change:
   layout's carried D ×8, so run `keys`, `dropdowns`, `dialogs`, `leftmenu`, the three new ones and `standards` yourself.
 - **`validate:nightly` gives the suites 8 GB** (`tools/validate-math.mjs`, `SUITE_HEAP`). v2.09 took audit-board past node's
   ~2 GB default here, and the first nightly died in it before import and recon.
+
+### v2.10 (item 130): FYDP Disconnects -- the Spruill charts by appropriation, on screen and in Excel
+
+Brad, 27 Oct 2026, from photos of his PB27 Spruill slides: *"I need to produce these Excel spreadsheets with this exact look,
+color scheme, structure, etc."*; built on his "Go" by two builders to one contract (`recovery/v210/item130-contract.md`: A the
+figures and the box, B the workbook), joined at `4c531a0`, reviewed and fixed. `NEXT-VERSION.md` › Shipped › v2.10 has every
+decision; `recovery/v210/notes-*.md` each builder's and fixer's record.
+
+**FYDP › FYDP Disconnects** (`#fdcPanel`, `toggleFdc`) sets a cost estimate's requirement against a PPBE cycle's controls,
+appropriation by appropriation (O&M, Procurement = Full Fund, Initial Spares; OPN never): a *Summary* and a sheet each for
+USAF (with ANG and AFRC), STOVL, USMC CV and USN CV. **`fdcModel(opts)` reads, it never works a figure out again**: the
+requirement is `ACEDB`'s lines, the controls each appropriation's PPBE Budget Position under the cycle (`ppSvcFy`, d and m),
+both `D$` at the door. A year an appropriation logs no position for is null and prints —, never $0; anything that needs it
+is null too. The International requirement and funding (Summary only) are `FDC_INTL`, typed in $M through `amtReadM`, kept
+for the session and in nothing the board saves. `exportFdc` → `fdcSheets(model)` → `buildXlsx`: the slides' look, no house
+style (audit-other "v2.04 (item 113)" lists it beside the Spend Plan Source and the 1A9A; the count is 16). Not in a PMO copy.
+
+What it leaves for the next change:
+- **A service is grouped by its name, and a name the groups do not hold is the Summary's alone.** `FDC_GROUPS` takes the board's
+  own alias table (`SVC_ALIAS`, read by own key), so Full Fund's `USMC-B` is the STOVL sheet's; the box names any service in no
+  group, and the workbook carries none of the box's notes (item 131). **A sheet that should add up to another is checked by
+  adding it up**: A-1 shipped to review with STOVL printing $0 Procurement controls because every check read each sheet alone.
+- **Another appropriation is read as its own board opens it**, the shared folder's copy when newer (`fdcFolderRead` →
+  `fydpWhen(fydpStoreFolder(k, loc, true))`), and the box states no figure until the folder has answered (Export waits for the
+  same answer). **`strict`: only NotFoundError means "no copy there"** -- a copy mid-sync, cut short or not a board names that
+  appropriation and prints —, as `driveStoreRead` reads it, and an appropriation not read is never listed among those that log
+  no position. The five-year plan still calls it without `strict` (item 131).
+- **A redraw on a change event waits when a pointer is moving the keyboard.** Chromium fires `change` on the field being left
+  before the click's focus lands; redrawn then, the box controller hands the keyboard back to the field just left and the next
+  figure goes in the wrong year. `fdcIntlSet` stores the figure at once and defers the box's writes (`setTimeout 0`) when the
+  keyboard is nowhere and no Tab is on its way. Held by `npm run keys` R with a real mouse.
+- **`buildXlsx`'s new options are opt-in names on a sheet**: `heights`, `grid:false`, `page:{wide, tall}`, a font `name`, and
+  `share` for fills and formats in `_stylesXml`. A workbook asking for none is byte-identical to v2.09's (B's hook compared 279
+  workbooks from every suite). **An indent needs a horizontal alignment**: Excel and LibreOffice draw `indent` only beside left,
+  right or distributed, so `fdcSheets` writes `horizontal="left"` with it (WB-1); the house style has the same omission (item 131).
+- **On screen the appropriation band's text is navy** (white on `#8DB4E2` is 2.15:1, a 1.4.3 finding); the workbook prints the
+  slides' white. The mock-up (`recovery/v210/item130-mockup/`) uses invented figures: no figure from Brad's slides is in the repo.
+
+**Checks.** audit-other's "v2.10 A" (every line of the five sheets from the fixture's literals; the box through its rendered
+controls; nothing stored), "v2.10 B" (the workbook read back from the bytes, every cell's look), the end-to-end export, and
+the review's four blocks (A-1 adding the sheets up, both ways round; A-2; A-3 with a stand-in folder, part 4 a copy that
+cannot be read; WB-1). Browser: layout-fits O, keys R, panels, dialogs, left-menu, menu-paths, standards. Money coverage and
+the money map register `exportFdc`. **Mutations:** 133 new (`v210-*`: A 54, B 61, integration 2, review 16), none older retired
+or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`). 2,784 targets. **A fix round that runs
+only the suites its checks live in leaves the others' expectations unrun**: the review's fixers ran other and board whole, and
+the nightly then stopped in import on two expectations v2.10 had moved (the guide's size budget, now 64 KB; a version string
+pinned to v2.09). Run every suite whole once on the integrated board before the gate.
 
 ## Colour: one token, one job
 
