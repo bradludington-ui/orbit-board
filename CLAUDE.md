@@ -4723,7 +4723,7 @@ style (audit-other "v2.04 (item 113)" lists it beside the Spend Plan Source and 
 What it leaves for the next change:
 - **A service is grouped by its name, and a name the groups do not hold is the Summary's alone.** `FDC_GROUPS` takes the board's
   own alias table (`SVC_ALIAS`, read by own key), so Full Fund's `USMC-B` is the STOVL sheet's; the box names any service in no
-  group, and the workbook carries none of the box's notes (item 131). **A sheet that should add up to another is checked by
+  group, and since v2.11 so does every sheet of the workbook. **A sheet that should add up to another is checked by
   adding it up**: A-1 shipped to review with STOVL printing $0 Procurement controls because every check read each sheet alone.
 - **Another appropriation is read as its own board opens it**, the shared folder's copy when newer (`fdcFolderRead` →
   `fydpWhen(fydpStoreFolder(k, loc, true))`), and the box states no figure until the folder has answered (Export waits for the
@@ -4738,8 +4738,8 @@ What it leaves for the next change:
   `share` for fills and formats in `_stylesXml`. A workbook asking for none is byte-identical to v2.09's (B's hook compared 279
   workbooks from every suite). **An indent needs a horizontal alignment**: Excel and LibreOffice draw `indent` only beside left,
   right or distributed, so `fdcSheets` writes `horizontal="left"` with it (WB-1); the house style has the same omission (item 131).
-- **On screen the appropriation band's text is navy** (white on `#8DB4E2` is 2.15:1, a 1.4.3 finding); the workbook prints the
-  slides' white. The mock-up (`recovery/v210/item130-mockup/`) uses invented figures: no figure from Brad's slides is in the repo.
+- **On screen the appropriation band's text is navy** (white on `#8DB4E2` is 2.15:1, a 1.4.3 finding; Brad kept it, 27 Oct); the
+  workbook prints the slides' white. The mock-up (`recovery/v210/item130-mockup/`) uses invented figures: no figure from Brad's slides is in the repo.
 
 **Checks.** audit-other's "v2.10 A" (every line of the five sheets from the fixture's literals; the box through its rendered
 controls; nothing stored), "v2.10 B" (the workbook read back from the bytes, every cell's look), the end-to-end export, and
@@ -4750,6 +4750,22 @@ or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`
 only the suites its checks live in leaves the others' expectations unrun**: the review's fixers ran other and board whole, and
 the nightly then stopped in import on two expectations v2.10 had moved (the guide's size budget, now 64 KB; a version string
 pinned to v2.09). Run every suite whole once on the integrated board before the gate.
+
+### v2.11: the FYDP Disconnects workbook names the services counted on the Summary only
+
+Brad, 27 Oct 2026: *"Keep the band text navy; add the workbook note line."* `fdcLoneSay(st, M)` (moved out of `fdcNotes`) is
+the one statement of the services no sheet takes; `fdcModel` carries it as `M.note` **only when there is one**, `fdcNotes`
+prints `M.note`, and `fdcSheets` writes it under the table on every sheet (merged across, italic Arial 10, left and wrapped,
+14 pt for each line it wraps to -- `fdcWrapLines`, words packed at about 120 characters, a longer word taking the lines it needs,
+held at Excel's 409-point row limit -- a blank row each side, the footer last). **Size a wrapped row by the lines its words wrap
+to, never by its length**: the first cut divided the length, and the review's long unbroken names were cut top and bottom. **A model with no note is the v2.10 model and
+its workbook the v2.10 workbook**: audit-other "v2.11 — …" reads v2.10's `fdcSheets` out of git (`b2cb041`) and compares, so a
+shallow clone needs `git fetch --unshallow` first, as recon and import already do. A note the box shows and the workbook
+writes come from one string; never word the workbook's from the notes list.
+
+**Checks.** audit-other "v2.11 — …" (the model, the box and five sheets from the bytes; long names; a 250-character estimate
+service; the no-note workbook against v2.10's from git) and the A block's oracle. 15 new mutations (`v211-*`), 1 retargeted;
+88 proved (`recovery/v211-proved.jsonl`). 2,799 targets.
 
 ## Colour: one token, one job
 

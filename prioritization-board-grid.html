@@ -2293,7 +2293,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
-<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
+<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s; a service no sheet takes is counted on the Summary only, and every sheet of the workbook says so under its table); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
@@ -3314,7 +3314,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.10 (27 Oct 2026)';
+const BUILD='v2.11 (27 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -24730,8 +24730,15 @@ function fdcModel(opts){
       head:g.air+' TY$M', cols:cols, rows:G});
   });
   const now=new Date();
-  return {ace:{key:st.ace, label:ACE}, cyc:{key:st.cyc, label:CYC}, years:years, sum:sum, marking:FDC_MARK,
+  const M={ace:{key:st.ace, label:ACE}, cyc:{key:st.cyc, label:CYC}, years:years, sum:sum, marking:FDC_MARK,
     footer:FDC_MONTHS[now.getMonth()]+' '+now.getFullYear()+' / Sustainment Finance / PSM', sheets:sheets};
+  // v2.11 (Brad, 27 Oct 2026: "add the workbook note line"): the services no sheet takes, said once, here -- the box prints
+  // this sentence and the workbook writes it under every sheet's table, so from one reading the two cannot word it
+  // differently. (A box left open while another tab saves an appropriation is a reading behind Export: item 131.) Only when
+  // there is one: a model without it is the v2.10 model, and its workbook the v2.10 workbook.
+  const note=fdcLoneSay(st, M);
+  if(note) M.note=note;
+  return M;
 }
 // What the box says beside the tables: an appropriation it cannot read, one with no position under the cycle or none for
 // some of the years, years the estimate does not carry, and services counted on the Summary alone. Text, escaped where drawn.
@@ -24748,14 +24755,19 @@ function fdcNotes(st, M){
   (set.lines||[]).forEach(function(l){ if(l && l.v && typeof l.v==='object') Object.keys(l.v).forEach(function(y){ ok[+y]=1; }); });
   const gone=M.years.filter(function(y){ return !ok[y]; });
   if(gone.length) out.push(M.ace.label+' carries no figure for '+fy(gone)+', so the requirement prints — there.');
-  const grouped=Object.create(null), lone=[];
+  if(M.note) out.push(M.note);
+  return out;
+}
+// The services counted on the Summary and on no service sheet -- a line of the estimate, or a service in a position under the
+// cycle, whose name no group (FDC_GROUPS, with the board's aliases) holds -- and where each came from; '' when there is none.
+function fdcLoneSay(st, M){
+  const set=ACEDB.sets[st.ace]||{}, grouped=Object.create(null), lone=[];
   FDC_GROUPS.forEach(function(g){ g.svcs.forEach(function(sv){ grouped[sv]=1; }); });
   const loneOne=function(sv, where){ sv=String(sv); if(grouped[sv]) return; const f=lone.filter(function(x){ return x.sv===sv; })[0];
     if(f){ if(f.at.indexOf(where)<0) f.at.push(where); } else lone.push({sv:sv, at:[where]}); };
   (set.lines||[]).forEach(function(l){ if(l && FDC_APS.some(function(a){ return a.k===l.ap; })) loneOne(l.svc, M.ace.label); });
   st.stores.forEach(function(s){ if(fdcHeld(s, st.cyc)) ppSvcsOf(s.ppbe[st.cyc]).forEach(function(sv){ loneOne(sv, s.name+' '+M.cyc.label); }); });
-  if(lone.length) out.push('Counted on the Summary only, on no service sheet: '+lone.map(function(x){ return x.sv+' ('+x.at.join(', ')+')'; }).join('; ')+'.');
-  return out;
+  return lone.length? 'Counted on the Summary only, on no service sheet: '+lone.map(function(x){ return x.sv+' ('+x.at.join(', ')+')'; }).join('; ')+'.' : '';
 }
 // ---- the box ----
 function fdcMoney(v){
@@ -28767,6 +28779,20 @@ const FDC_XL={NAVY:'1F3864', BAND:'8DB4E2', SVCHDR:'9BC2E6', SEP:'404040', GRID:
   FOOT:'595959', MONEY:'$#,##0,,;[Red]($#,##0,,)', PCT:'0%', FONT:'Arial', LBL:52, YR:13};
 // a line's look, by the model's style: bold totals; indented plain and italic parts; the delta under a heavy rule
 const FDC_LINE={bold:{b:1}, sub:{indent:2}, ital:{i:1, indent:2}, delta:{rule:1}, pct:{}};
+// The lines a text wraps to at about `w` characters a line: words packed greedily, as a spreadsheet wraps them, and a word
+// longer than a line taking the lines it needs. v2.11 review (page-1): the note's row was sized by its length alone, and a
+// note of long unbroken service names wrapped to more lines than that, cut at the top and bottom on the printed page.
+// Excel holds a row to 409 points, which is where the caller stops.
+function fdcWrapLines(text, w){
+  let lines=0, cur=0;
+  String(text).split(/\s+/).forEach(function(word){
+    const n=word.length; if(!n) return;
+    if(cur && cur+1+n>w){ lines++; cur=0; }
+    if(n>w){ if(cur){ lines++; cur=0; } lines+=Math.floor(n/w); cur=n%w; return; }
+    cur+= (cur? 1 : 0)+n;
+  });
+  return lines+(cur? 1 : 0) || 1;
+}
 function fdcSheets(model){
   const X=FDC_XL, extra=[], seen=Object.create(null);
   // a text the model leaves out is an empty cell, never the word "undefined"
@@ -28778,6 +28804,7 @@ function fdcSheets(model){
     const k=JSON.stringify(o); if(seen[k]!==undefined) return seen[k];
     const e={share:1, fill:o.fill||false, fontSpec:{b:o.b?1:0, i:o.i?1:0, sz:o.sz||11, color:o.color||X.INK, name:X.FONT},
       align:{h:o.h || (o.indent? 'left' : undefined), v:'center', indent:o.indent||0}};
+    if(o.wrap) e.align.wrap=1;
     if(o.fmt) e.fmt=o.fmt;
     // the table's grid; the delta line's heavy black rule above it
     if(o.grid) e.borderSpec={left:['thin',X.GRID], right:['thin',X.GRID], top: o.rule? ['medium',X.INK] : ['thin',X.GRID], bottom:['thin',X.GRID]};
@@ -28826,6 +28853,18 @@ function fdcSheets(model){
     // page as the one above the title is. Column A is four year-columns wide, so a span of n-4 columns from B (B:D for six
     // years and the total) has the table's own centre at its centre.
     if(rows[rows.length-1].length) rows.push([]);
+    // v2.11 (Brad, 27 Oct 2026): the services counted on the Summary and on no service sheet, said under the table on every
+    // sheet, as the box says it. A service sheet otherwise printed $0 controls for a service renamed out of its group with
+    // nothing to say why, and the four sheets did not add up to the Summary. Only when the model carries one: the slides'
+    // look is unchanged otherwise. Merged across the table and wrapped, the row as tall as the lines it wraps to, with a
+    // blank row before the footer.
+    if(model.note){
+      const nr=rows.length, nt=tx(model.note);
+      rows.push([{v:nt, s:look({i:1, sz:10, h:'left', wrap:1})}]);
+      merges.push({r:nr, c:0, cs:W});
+      heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));
+      rows.push([]);
+    }
     const k=n-4;
     if(k>1) merges.push({r:rows.length, c:1, cs:k});
     rows.push([{v:tx(model.footer), s:look({sz:12, color:X.FOOT})}, {v:tx(model.marking), s:look({b:1, h:'center'})}]);

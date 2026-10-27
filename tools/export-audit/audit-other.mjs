@@ -3002,8 +3002,16 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
           L(air + ' Delta', 'delta', sub(gc, gu)), PC('% Funded', gc, gu));
         sheets.push({ name: gname, kind: 'service', title: 'F-35 Sustainment', subtitle: CYC + ' Service Detail – ' + title, head: air + ' TY$M', cols, rows: G }); });
       const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], now = new Date();
-      return { ace: { key: setKey, label: ACE }, cyc: { key: cycKey, label: CYC }, years, sum, marking: 'CUI//REL TO US DoW',
+      const out = { ace: { key: setKey, label: ACE }, cyc: { key: cycKey, label: CYC }, years, sum, marking: 'CUI//REL TO US DoW',
         footer: MON[now.getMonth()] + ' ' + now.getFullYear() + ' / Sustainment Finance / PSM', sheets };
+      // v2.11: the services no sheet takes -- an estimate line, then each appropriation's position under the cycle, in that
+      // order -- said once, and carried by the model only when there is one (STOVL also takes Full Fund's USMC-B)
+      const grouped = new Set(GROUPS.flatMap(g => g[3]).concat(['USMC-B'])), STORE = { om: 'O&M', ff: 'Full Fund', sp: 'Initial Spares' }, lone = [];
+      const one = (sv, at) => { if (grouped.has(sv)) return; const f = lone.find(x => x.sv === sv); if (f) { if (!f.at.includes(at)) f.at.push(at); } else lone.push({ sv, at: [at] }); };
+      set.lines.forEach(l => { if (STORE[l.ap]) one(l.svc, ACE); });
+      ['om', 'ff', 'sp'].forEach(ap => { const P = POS[ap][cycKey]; if (P) Object.keys(P.val).forEach(sv => one(sv, STORE[ap] + ' ' + CYC)); });
+      if (lone.length) out.note = 'Counted on the Summary only, on no service sheet: ' + lone.map(x => x.sv + ' (' + x.at.join(', ') + ')').join('; ') + '.';
+      return out;
     };
     // how the box prints a figure: millions, a shortfall red in parentheses, nothing to state as an em dash
     const money = v => v === null ? '—' : (v < 0 ? '($' + Math.round(-v / 1e6).toLocaleString('en-US') + ')' : '$' + Math.round(v / 1e6).toLocaleString('en-US'));
@@ -3834,6 +3842,161 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 // ==== end v2.10 B ====
+
+// ==== v2.11: FYDP Disconnects -- the workbook names the services counted on the Summary only ====
+// Brad, 27 Oct 2026: "Keep the band text navy; add the workbook note line". A service no sheet takes -- an estimate line, or a
+// service in a position under the cycle, whose name no group holds (renamed in Setup, say) -- is counted on the Summary alone.
+// The box always said so; the workbook carried none of the box's notes, so a service tab could print $0 controls with nothing to
+// say why. fdcModel now carries the box's sentence (M.note, from fdcLoneSay) and fdcSheets writes it under the table on every
+// sheet: merged across the table, italic, 10 pt, left and wrapped, the row as tall as the lines it wraps to (long unbroken
+// names included, up to Excel's 409-point limit -- the review's page-1), a blank row on each side, the
+// footer last. With no such service there is no note and nothing moves: the model has no note key, and fdcSheets writes what
+// v2.10's wrote for the same model, read from git (b2cb041). Every expectation is typed from the fixture's literals.
+// FAILS ON b2cb041 (v2.10) on every note check; the no-note checks pass there by construction (CONTROLs).
+{
+  const name = 'v2.11 — the FYDP Disconnects workbook says, under every sheet’s table, which services are counted on the Summary only';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], YRS = [2027, 2028, 2029, 2030, 2031, 2032], APS = ['om', 'ff', 'sp'];
+    const SHEETS = ['Summary', 'USAF', 'STOVL', 'USMC CV', 'USN CV'];
+    const linesOf = extra => { const L = [];
+      APS.forEach((ap, a) => SV.forEach((sv, s) => { const v = {}; YRS.forEach(y => { v[y] = (a + 1) * 1e9 + (s + 1) * 1e7 + (y - 2020) * 1e5; }); L.push({ ap, pmo: 'AV', svc: sv, v }); }));
+      if (extra) { const v = {}; YRS.forEach(y => { v[y] = 3e6 + y; }); L.push({ ap: 'om', pmo: 'AV', svc: 'XSVC', v }); }
+      return L; };
+    const posOf = (list, a) => { const P = { v: 2, split: true, lines: {}, val: {} };
+      list.forEach((sv, s) => { P.lines[sv] = [{ k: '_all', all: true }]; P.val[sv] = { _all: {} };
+        YRS.forEach(y => { P.val[sv]._all[y] = { d: (a + 1) * 2e8 + (s + 1) * 3e6 + (y - 2020) * 1e4, m: (s + 1) * 1e5 + a * 1e3 }; }); });
+      return P; };
+    const store = P => J({ base: 2028, cur: 2028, ts: 5, years: {}, order: [], ppbe: { 'BES|2028': P } });
+    // a board with O&M on screen and Full Fund and Spares in this browser; `lone` adds a service in no group to each source
+    const board = lone => {
+      const B = boot();
+      seed(B.ev, { services: SV, items: [], disc: SV.map(() => 0), mand: SV.map(() => 0), order: [] });
+      const SETS = { '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines: linesOf(lone), appn: {}, skip: {} } };
+      const P = { om: posOf(lone ? SV.concat(['F-35B']) : SV, 0), ff: posOf(lone ? SV.concat(['NAVY-X']) : SV, 1), sp: posOf(lone ? SV.concat(['USMC STOVL']) : SV, 2) };
+      E(B.ev, `ACEDB.sets=${J(SETS)}; ACEDB.ts=4000; MS.ppbe={'BES|2028':${J(P.om)}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(P.ff))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(P.sp))}); render(); 'ok'`);
+      return B;
+    };
+    // the sentence, from the fixture: the estimate's line first, then each appropriation's position in the box's order
+    const NOTE = 'Counted on the Summary only, on no service sheet: XSVC (2025 ACE); F-35B (O&M BES28); NAVY-X (Full Fund BES28); USMC STOVL (Initial Spares BES28).';
+    const HT = 28;   // it wraps to two lines at about 120 characters, 14 pt a line
+    // the workbook Export writes, read the way another program reads it: unzipped from the bytes, every part parsed, every row's
+    // cells, merges and height, and the look of the cell that holds the note
+    const book = B => parse(E(B.ev, `(function(){ var u=null, oB=window.buildXlsx, oC=HTMLAnchorElement.prototype.click;
+      window.buildXlsx=function(s, x, o){ u=oB(s, x, o); return u; }; HTMLAnchorElement.prototype.click=function(){};
+      try{ exportFdc(); } finally { window.buildXlsx=oB; HTMLAnchorElement.prototype.click=oC; }
+      if(!u) return JSON.stringify({err:'no workbook'});
+      var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), parts={};
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        parts[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+      var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); }, A=function(x){ return [].slice.call(x||[]); };
+      var bad=Object.keys(parts).filter(function(k){ return /\\.xml$|\\.rels$/.test(k) && P(parts[k]).getElementsByTagName('parsererror').length; });
+      var st=P(parts['xl/styles.xml']);
+      var fonts=A(st.getElementsByTagName('fonts')[0].children).map(function(f){ var g=function(t){ return f.getElementsByTagName(t)[0]; };
+        return {i:g('i')?1:0, b:g('b')?1:0, sz:g('sz')? +g('sz').getAttribute('val') : null, name:g('name')? g('name').getAttribute('val') : null}; });
+      var xfs=A(st.getElementsByTagName('cellXfs')[0].children).map(function(x){ var a=x.getElementsByTagName('alignment')[0];
+        return {font:fonts[+(x.getAttribute('fontId')||0)], h:a? a.getAttribute('horizontal') : null, wrap:a? a.getAttribute('wrapText') : null}; });
+      var names=A(P(parts['xl/workbook.xml']).getElementsByTagName('sheet')).map(function(s){ return s.getAttribute('name'); });
+      var sheets=names.map(function(nm, k){ var d=P(parts['xl/worksheets/sheet'+(k+1)+'.xml']);
+        var rows=A(d.getElementsByTagName('row')).map(function(r){ return {r:+r.getAttribute('r'), ht:r.getAttribute('ht'), cells:A(r.getElementsByTagName('c')).map(function(c){
+          var t=A(c.getElementsByTagName('t')).map(function(e){ return e.textContent; }).join(''), v=c.getElementsByTagName('v')[0];
+          return {ref:c.getAttribute('r'), s:+(c.getAttribute('s')||0), text: t || (v? v.textContent : '')}; })}; });
+        var merges=A(d.getElementsByTagName('mergeCell')).map(function(m){ return m.getAttribute('ref'); });
+        return {name:nm, rows:rows, merges:merges}; });
+      return JSON.stringify({bad:bad, xfs:xfs, sheets:sheets}); })()`));
+    // ---- a service in no group, in every source: the model, the box and every sheet of the workbook say so ------------------
+    const B = board(true);
+    const M = parse(E(B.ev, `JSON.stringify(fdcModel({ace:'2025ACE', cyc:'BES|2028'}))`)) || {};
+    chk(name, 'the model', 'the model carries the box’s sentence, naming every service no sheet takes and where it came from', M.note, NOTE);
+    E(B.ev, `if(!fdcOpen) toggleFdc(); 'ok'`);
+    chk(name, 'the box', 'the box says the same sentence, once',
+      E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcBody .fdcnote'), function(n){ return n.textContent; }).filter(function(t){ return /Summary only/.test(t); }))`),
+      J(['⚠ ' + NOTE]));
+    E(B.ev, `toggleFdc(); 'ok'`);
+    const W = book(B) || { sheets: [], xfs: [], bad: ['no workbook'] };
+    chk(name, 'the workbook', 'every part parses, and the five sheets are there in order (CONTROL)', J([W.bad, W.sheets.map(s => s.name)]), J([[], SHEETS]));
+    SHEETS.forEach(sn => {
+      const sh = W.sheets.filter(s => s.name === sn)[0] || { rows: [], merges: [] };
+      const hits = sh.rows.filter(r => r.cells.some(c => c.text === NOTE));
+      const nr = hits.length ? hits[0] : { r: -1, cells: [] };
+      const last = sh.rows[sh.rows.length - 1] || { r: 0, cells: [] };
+      const at = r => sh.rows.filter(x => x.r === r)[0] || { cells: [] };
+      const nc = nr.cells.filter(c => c.text === NOTE)[0] || { ref: '', s: -1 };
+      const look = W.xfs[nc.s] || { font: {} };
+      chk(name, 'the workbook · ' + sn, 'the note is written once, in column A, as the box words it', J([hits.length, nc.ref]), J([1, 'A' + nr.r]));
+      chk(name, 'the workbook · ' + sn, 'merged across the table (A to H: the label, six years and the FYDP total)', sh.merges.includes('A' + nr.r + ':H' + nr.r), true);
+      chk(name, 'the workbook · ' + sn, 'italic Arial 10 pt, left and wrapped, the row as tall as its lines',
+        J([look.font.i, look.font.sz, look.font.name, look.h, look.wrap, +nr.ht]), J([1, 10, 'Arial', 'left', '1', HT]));
+      chk(name, 'the workbook · ' + sn, 'under the table: a blank row above it, a blank row below it, then the footer row with the marking, last',
+        J([at(nr.r - 1).cells.length, at(nr.r + 1).cells.length, last.r, last.cells.map(c => c.text)]),
+        J([0, 0, nr.r + 2, [(M.footer || ''), 'CUI//REL TO US DoW']]));
+    });
+    // ---- long unbroken names (v2.11 review, page-1): the row is as tall as the lines the note WRAPS to ----------------------
+    // Each name is one 61-character word, so a line holds one name and its place: seven names wrap to seven lines (98 pt),
+    // where the note's length alone said five (70 pt) and LibreOffice cut its first and last lines. Forty wrap to forty, which
+    // Excel's 409-point row limit holds (the length alone said 364).
+    const longName = i => 'LONG' + String(i).padStart(2, '0') + 'X'.repeat(55);
+    [[7, 98], [40, 409]].forEach(([k, ht]) => {
+      const LB = boot();
+      seed(LB.ev, { services: SV, items: [], disc: SV.map(() => 0), mand: SV.map(() => 0), order: [] });
+      const names = Array.from({ length: k }, (_, i) => longName(i));
+      E(LB.ev, `ACEDB.sets=${J({ '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines: linesOf(false), appn: {}, skip: {} } })}; ACEDB.ts=4000;
+        MS.ppbe={'BES|2028':${J(posOf(SV.concat(names), 0))}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(posOf(SV, 1)))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(posOf(SV, 2)))}); render(); 'ok'`);
+      const want = 'Counted on the Summary only, on no service sheet: ' + names.map(n => n + ' (O&M BES28)').join('; ') + '.';
+      const LW = book(LB) || { sheets: [] };
+      const got = SHEETS.map(sn => { const sh = LW.sheets.filter(x => x.name === sn)[0] || { rows: [] };
+        const r = sh.rows.filter(x => x.cells.some(c => c.text === want))[0]; return r ? +r.ht : null; });
+      chk(name, 'long names · ' + k, 'every sheet carries the note whole, its row ' + ht + ' pt: the lines it wraps to' + (ht === 409 ? ', held at Excel’s 409-point limit' : ''),
+        J(got), J(SHEETS.map(() => ht)));
+    });
+    // a word longer than a line takes the lines it needs: an estimate line's service is read from a workbook cell, and a
+    // 250-character one is two full lines and part of a third -- four with the words around it (56 pt), never three (42)
+    {
+      const LB = boot(), big = 'LONG' + 'X'.repeat(246);
+      seed(LB.ev, { services: SV, items: [], disc: SV.map(() => 0), mand: SV.map(() => 0), order: [] });
+      const lines = linesOf(false); { const v = {}; YRS.forEach(y => { v[y] = 4e6 + y; }); lines.push({ ap: 'om', pmo: 'AV', svc: big, v }); }
+      E(LB.ev, `ACEDB.sets=${J({ '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines, appn: {}, skip: {} } })}; ACEDB.ts=4000;
+        MS.ppbe={'BES|2028':${J(posOf(SV, 0))}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(posOf(SV, 1)))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(posOf(SV, 2)))}); render(); 'ok'`);
+      const want = 'Counted on the Summary only, on no service sheet: ' + big + ' (2025 ACE).';
+      const LW = book(LB) || { sheets: [] };
+      chk(name, 'a word longer than a line', 'a 250-character service name: the note’s row is 56 pt on every sheet (four lines)',
+        J(SHEETS.map(sn => { const sh = LW.sheets.filter(x => x.name === sn)[0] || { rows: [] }; const r = sh.rows.filter(x => x.cells.some(c => c.text === want))[0]; return r ? +r.ht : null; })),
+        J(SHEETS.map(() => 56)));
+    }
+    // ---- no service outside the groups: no note, and the workbook is v2.10's -----------------------------------------------
+    const N = board(false);
+    const MN = E(N.ev, `JSON.stringify(fdcModel({ace:'2025ACE', cyc:'BES|2028'}))`);
+    chk(name, 'nothing ungrouped', 'the model has no note at all (a CONTROL on the fixture: every service is in a group)', Object.prototype.hasOwnProperty.call(parse(MN) || {}, 'note'), false);
+    E(N.ev, `if(!fdcOpen) toggleFdc(); 'ok'`);
+    chk(name, 'nothing ungrouped', 'and the box names no service counted on the Summary only',
+      E(N.ev, `[].filter.call(document.querySelectorAll('#fdcBody .fdcnote'), function(n){ return /Summary only/.test(n.textContent); }).length`), 0);
+    E(N.ev, `toggleFdc(); 'ok'`);
+    const WN = book(N) || { sheets: [] };
+    chk(name, 'nothing ungrouped', 'no sheet of the workbook carries the sentence, and each ends on its footer row two below the table',
+      J(WN.sheets.map(s => s.rows.some(r => r.cells.some(c => /Summary only/.test(c.text))))), J(SHEETS.map(() => false)));
+    // the same model through v2.10's own fdcSheets (git b2cb041): what it writes is what this board writes
+    const { execFileSync } = await import('node:child_process');
+    const root = _selfPath(new URL('../..', import.meta.url));
+    let v210 = null;
+    try { v210 = execFileSync('git', ['-C', root, 'show', 'b2cb041:prioritization-board-grid.html'], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { failures.push({ scenario: name, where: 'nothing ungrouped', what: 'v2.10’s board could not be read from git (a shallow clone? git fetch --unshallow): ' + String((e && e.message) || e).slice(0, 120), got: 'unread', want: 'read' }); }
+    if (v210) {
+      const O = boot({ html: v210 });
+      chk(name, 'nothing ungrouped', 'the board read from git is v2.10 (a CONTROL)', O.ev('BUILD'), 'v2.10 (27 Oct 2026)');
+      const mine = E(N.ev, `JSON.stringify(fdcSheets(${MN}))`), theirs = E(O.ev, `JSON.stringify(fdcSheets(${MN}))`);
+      chk(name, 'nothing ungrouped', 'fdcSheets writes, for a model with no note, exactly what v2.10’s fdcSheets wrote: every row, merge, height and style',
+        mine === theirs && mine.length > 1000, true);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.11 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
