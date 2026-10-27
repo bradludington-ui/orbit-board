@@ -6184,6 +6184,163 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 })();
+// v2.09 second review (clin): AFTER A COMMIT THE KEYBOARD GOES BACK TO THE SAME REQUIREMENT'S CONTROL, OR NOWHERE. The keyboard's
+// place across a redraw was found again by a control's first class, counted across the whole list when its row had none:
+// Fund's allocation box on a per-service allocation is class "svcmode", a total typed into it is stored as a total, the box drawn
+// again has no class, and the count took the NEXT per-service requirement's box -- Enter left the keyboard there, and the next
+// figure typed replaced that requirement's allocation; Tab left it on that requirement's ★ (Chromium, ba3c294, and v2.08).
+// What jsdom can see: which control has the keyboard after the commit, and where the next figure lands. jsdom has no layout,
+// so the step Tab takes to the control after the box is Chromium's (npm run pointer G); here Tab finds the box itself again.
+// Each part fails on ba3c294 unless it says CONTROL.
+await (async () => {
+  const name = 'v2.09 second review — clin: after a commit the keyboard goes back to the same requirement’s control, or nowhere';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  // P a prime with two CLINs (its drill open); Q and Q2 each on a per-service allocation (what ↑ Apply grid to row writes),
+  // asking USAF and ANG so a total re-spread by the ask differs from the allocation held; R on a total; T plain
+  const mk = (dock) => {
+    const B = boot(); const items = [itx('P', 'AV', [4000, 500, 0]), itx('Q', 'AV', [600, 400, 0]), itx('Q2', 'AV', [600, 400, 0]), itx('R', 'AV', [300, 0, 0]), itx('T', 'AV', [200, 0, 0])];
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items, disc: [9000, 9000, 9000], mand: [0, 0, 0], order: ['P', 'Q', 'Q2', 'R', 'T'] });
+    B.ev(`(function(){ BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P:'PRIME'}; CLINS.P=[{clin:'0001', desc:'Depot', ccar:'', ask:[1000,200,0]}, {clin:'0002', desc:'Spares', ccar:'', ask:[500,0,0]}];
+      S.alloc.Q={m:'s', v:[1000,0,0]}; S.alloc.Q2={m:'s', v:[2000,0,0]}; S.alloc.R={m:'t', v:250};
+      window.confirm=function(){ return true; }; window.alert=function(){};
+      // jsdom has no CSS.escape, which the board's count of a control by its class calls: the browser's, for class names
+      if(typeof CSS==='undefined') window.CSS={escape:function(s){ return String(s).replace(/[^a-zA-Z0-9_-]/g, function(c){ return '\\\\'+c; }); }};
+      UI2.on=true; UI2.dock=${dock ? 'true' : 'false'}; clinOpen={P:true}; uiMode='fund'; uiApply(); save(); render();
+      window.__by=function(sc, pre){ return [].filter.call(document.querySelectorAll(sc+' input'), function(i){ return (i.getAttribute('onchange')||'').indexOf(pre)===0; })[0]; };
+      // who has the keyboard: the writer its handler calls, and the requirement it belongs to
+      window.__kb=function(){ var a=document.activeElement; if(!a || a===document.body) return 'nowhere';
+        var r=a.closest('#list .row[id]'), p=a.closest('#inspector'); return (a.getAttribute('onchange')||a.getAttribute('onclick')||'').replace(/,this\\.value\\)$/, ')').slice(0, 40)+' @'+(r? r.id : p? 'panel:'+curRow : '-'); };
+      return 'ok'; })()`);
+    return B;
+  };
+  // a figure committed as Chromium commits it: Enter -- the key, then change, the box still the page's focus; Tab -- the key,
+  // the box loses the keyboard, then change
+  const commit = (sel, v, key) => `(function(){ var A=${sel}; A.focus(); A.value=${J(v)}; A.dispatchEvent(new Event('input', {bubbles:true}));
+    A.dispatchEvent(new KeyboardEvent('keydown', {key:${J(key)}, bubbles:true}));
+    if(${J(key)}==='Tab') A.blur(); A.dispatchEvent(new Event('change', {bubbles:true})); return __kb(); })()`;
+  // the next figure typed into whatever has the keyboard, and Enter
+  const next = v => `(function(){ var A=document.activeElement; if(!A || A===document.body) return 'nothing has the keyboard';
+    A.value=${J(v)}; A.dispatchEvent(new Event('input', {bubbles:true})); A.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}));
+    A.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`;
+  const box = id => `document.querySelector('#row-${id} input[onchange^="setAlloc("]')`;
+  const AL = `JSON.stringify([S.alloc.Q, S.alloc.Q2])`;
+
+  // ---- 1. the finding: Fund's box on a per-service allocation, Enter
+  part('Fund, per service, Enter', () => {
+    const { ev } = mk(false);
+    chk(name, 'Fund, per service, Enter', 'CONTROL: Q’s and Q2’s boxes are drawn per service (class svcmode), R’s as a total',
+      ev(`[${box('Q')}.className, ${box('Q2')}.className, ${box('R')}.className].join(',')`), 'svcmode,svcmode,');
+    chk(name, 'Fund, per service, Enter', '2,500 typed into Q’s box and Entered: the keyboard stays on Q’s box -- not Q2’s', ev(commit(box('Q'), '2,500', 'Enter')), 'setAlloc("Q") @row-Q');
+    ev(next('7,000'));
+    chk(name, 'Fund, per service, Enter', 'and the next figure, 7,000, is Q’s: Q is a $7,000 total, Q2 keeps its per-service [2,000, 0, 0]',
+      ev(AL), J([{ m: 't', v: 7000 }, { m: 's', v: [2000, 0, 0] }]));
+  });
+  // ---- 2. Tab: the box found again is Q's, and the step to the control after it is taken from there
+  part('Fund, per service, Tab', () => {
+    const { ev } = mk(false);
+    chk(name, 'Fund, per service, Tab', '2,500 typed into Q’s box and Tabbed: the control found again is Q’s box (Chromium then steps to Q’s ★), not Q2’s',
+      ev(commit(box('Q'), '2,500', 'Tab')), 'setAlloc("Q") @row-Q');
+    chk(name, 'Fund, per service, Tab', 'and Q2’s allocation and ★ are untouched', ev(`JSON.stringify([S.alloc.Q2, !!S.mc.Q2])`), J([{ m: 's', v: [2000, 0, 0] }, false]));
+  });
+  // ---- 3. the only per-service requirement, and the last: the keyboard went to the page (nothing to count), now it stays
+  part('one per-service row', () => {
+    const { ev } = mk(false);
+    ev(`S.alloc.Q2={m:'t', v:900}; save(); render(); 'ok'`);
+    chk(name, 'one per-service row', 'with Q the only per-service requirement, Enter after 2,500 keeps the keyboard on Q’s box', ev(commit(box('Q'), '2,500', 'Enter')), 'setAlloc("Q") @row-Q');
+    const B2 = mk(false);
+    chk(name, 'one per-service row', 'and on Q2, the last per-service one, Enter after 3,000 keeps it on Q2’s', B2.ev(commit(box('Q2'), '3,000', 'Enter')), 'setAlloc("Q2") @row-Q2');
+  });
+  // ---- 4. a commit that takes the row out of the list: nowhere, never the row standing in its place
+  part('row gone', () => {
+    const { ev } = mk(false);
+    ev(`S.mc={Q:true, Q2:true}; mcOnly=true; render(); 'ok'`);
+    const star = `[].filter.call(document.querySelectorAll('#row-Q button'), function(b){ return /^S\\.mc\\["Q"\\]/.test(b.getAttribute('onclick')||''); })[0]`;
+    ev(`(function(){ var b=${star}; b.focus(); b.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`);
+    chk(name, 'row gone', 'Mission Critical only: Q’s ★ cleared from the keyboard takes Q off the list, and the keyboard goes nowhere -- not to Q2’s ★, where Space would clear Q2’s',
+      ev(`JSON.stringify([!!document.getElementById('row-Q'), __kb()])`), J([false, 'nowhere']));
+    chk(name, 'row gone', 'CONTROL: Q2 is still Mission Critical', ev(`!!S.mc.Q2`), true);
+  });
+  // ---- 5. the rest keep their place, as they did: a total, the rank box at its new place, a CLIN box
+  part('the rest', () => {
+    const { ev } = mk(false);
+    chk(name, 'the rest', 'CONTROL: Fund’s box on a total (R): Enter keeps the keyboard on R’s box', ev(commit(box('R'), '260', 'Enter')), 'setAlloc("R") @row-R');
+    ev(`uiMode='review'; uiApply(); render(); 'ok'`);
+    chk(name, 'the rest', 'CONTROL: T’s rank box, 1 Entered: T moves to the top, and the keyboard is on T’s rank box there',
+      ev(commit(`document.querySelector('#row-T input[onchange^="setRank("]')`, '1', 'Enter')) + ' ' + ev(`S.order[0]`), 'setRank("T") @row-T T');
+    chk(name, 'the rest', 'CONTROL: a CLIN’s ANG request, 250 Entered: the keyboard stays on that CLIN’s ANG request',
+      ev(commit(`__by('#row-P', 'clinSetAsk("P","b0",1,')`, '250', 'Enter')), 'clinSetAsk("P","b0",1) @row-P');
+    chk(name, 'the rest', 'CONTROL: and a CLIN’s ANG allocation, 150 Tabbed: the box found again is that one',
+      ev(commit(`__by('#row-P', 'setClinSvc("P","b0",1,')`, '150', 'Tab')), 'setClinSvc("P","b0",1) @row-P');
+  });
+  // ---- 6. the RECORD panel's boxes: drawn after the rows, they lost the keyboard on every commit
+  part('RECORD panel', () => {
+    const { ev } = mk(true);
+    ev(`uiMode='review'; uiApply(); setCur('T'); render(); 'ok'`);
+    chk(name, 'RECORD panel', 'T’s value by service in the RECORD panel, USAF 210 Entered: stored, and the keyboard stays on that box',
+      ev(commit(`__by('#inspector', 'setAsk("T",0,')`, '210', 'Enter')) + ' ' + ev(`itemById('T').ask[0]`), 'setAsk("T",0) @panel:T 210');
+    chk(name, 'RECORD panel', 'and ANG 20 Tabbed: the box found again is T’s ANG (Chromium steps on to the box after it)',
+      ev(commit(`__by('#inspector', 'setAsk("T",1,')`, '20', 'Tab')), 'setAsk("T",1) @panel:T');
+  });
+  // ---- 7. the panel drawn for another requirement: nothing in it is that control, even one whose handler names no requirement
+  // (its ✕ Close here; in Chromium the panel's tabs are the same case)
+  part('panel, another requirement', () => {
+    const { ev } = mk(true);
+    ev(`uiMode='review'; uiApply(); setCur('Q'); render(); 'ok'`);
+    const close = `[].filter.call(document.querySelectorAll('#inspector button'), function(b){ return b.getAttribute('onclick')==='drawerClose()'; })[0]`;
+    ev(`(function(){ var b=${close}; b.focus(); return 'ok'; })()`);
+    chk(name, 'panel, another requirement', 'CONTROL: the keyboard is on Q’s RECORD panel’s ✕ Close, whose handler names no requirement', ev(`__kb()`), 'drawerClose() @panel:Q');
+    // a redraw that takes Q off the list (Mission Critical only, Q2 the only star): the panel is drawn for Q2
+    ev(`S.mc={Q2:true}; mcOnly=true; render(); 'ok'`);
+    chk(name, 'panel, another requirement', 'the panel now shows Q2, and the keyboard is nowhere -- not on Q2’s panel', ev(`JSON.stringify([curRow, __kb()])`), J(['Q2', 'nowhere']));
+  });
+  // ---- 8. never into a closed sliding drawer, which is only moved off screen
+  part('closed drawer', () => {
+    const { ev } = mk(false);
+    ev(`uiMode='review'; uiApply(); setCur('T'); drawerClose(); 'ok'`);
+    // only a script leaves the keyboard in a closed drawer; a redraw must not put it back there
+    ev(`(function(){ __by('#inspector', 'setAsk("T",0,').focus(); render(); return 'ok'; })()`);
+    chk(name, 'closed drawer', 'the drawer closed, a redraw: the keyboard is not put back in it', ev(`JSON.stringify([document.getElementById('inspector').classList.contains('open'), __kb()])`), J([false, 'nowhere']));
+  });
+  // ---- 8b. a control removed never hands the keyboard to the one moved into its place
+  part('a control removed', () => {
+    const { ev } = mk(false);
+    ev(`uiMode='review'; uiApply(); render(); 'ok'`);
+    const x = k => `[].filter.call(document.querySelectorAll('#row-P button'), function(b){ return b.getAttribute('onclick')===${J('clinRemove("P",' + J(k) + ')')}; })[0]`;
+    ev(`(function(){ var b=${x('b0')}; b.focus(); b.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`);
+    chk(name, 'a control removed', 'CLIN 0001’s ✕ pressed from the keyboard: the line is removed and the keyboard goes nowhere -- not to CLIN 0002’s ✕ moved into its place, where the next Enter would remove that one too',
+      ev(`JSON.stringify([clinList('P').map(function(c){ return c.clin; }), __kb()])`), J([['0002'], 'nowhere']));
+  });
+  // ---- 8c. CONTROL: a control whose handler says its own state keeps the keyboard where the box is drawn again the same
+  part('a fit chip', () => {
+    const { ev } = mk(false);
+    const chip = `document.querySelectorAll('#fitBar .fitchip')[1]`;
+    ev(`(function(){ var b=${chip}; b.focus(); b.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); return 'ok'; })()`);
+    chk(name, 'a fit chip', 'CONTROL (v1.92): ANG’s fit chip pressed from the keyboard filters to ANG, and the keyboard stays on that chip, though its handler now says svcFilter=-1',
+      ev(`JSON.stringify([svcFilter, document.activeElement===${chip}, document.activeElement.getAttribute('onclick')])`), J([1, true, 'svcFilter=-1;render()']));
+  });
+  // ---- 9. the receipt for the row's bound: every control drawn in a row is named by a handler that names its requirement, so a
+  // control found again by its handler can only be its own requirement's (a control with no handler, or one naming no
+  // requirement, added to the row would fail here first)
+  part('every row control names its requirement', () => {
+    const { ev } = mk(false);
+    const scan = `(function(){ var bad=[], n=0; document.querySelectorAll('#list .row[id]').forEach(function(r){ var id=r.id.replace(/^row-/, '');
+      r.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]').forEach(function(el){ if(el.disabled) return; n++;
+        var h=el.getAttribute('onchange')||el.getAttribute('onclick')||el.getAttribute('oninput');
+        if(!h || h.indexOf(JSON.stringify(id))<0) bad.push(id+': '+el.tagName+' '+(h||'(no handler)').slice(0, 40)); }); });
+      return JSON.stringify([n>0, bad]); })()`;
+    for (const m of ['fund', 'review', 'rank']) {
+      ev(`uiMode=${J(m)}; uiApply(); rowMenuId='Q'; render(); 'ok'`);
+      chk(name, 'every row control names its requirement', `${m}, the drill and a ⋯ menu open: every control in every row is named by a handler naming its requirement`, ev(scan), J([true, []]));
+    }
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.09 W1 ====
 
 // ==== v2.09 W2 (item 126): a PMO copy's five years ====

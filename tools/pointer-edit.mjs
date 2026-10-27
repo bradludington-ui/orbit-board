@@ -27,6 +27,14 @@
 //      F3. Fund's allocation box on a per-service allocation (↑ Apply grid to row with the mouse, and a nine-digit one an
 //          older board may carry) shows its figure whole, inside its cell, and a click at its centre goes into it -- not
 //          onto ★ -- at 1366 and 1920, sliding and docked, and at the narrow Fund columns (1600 docked, 1000).
+//   G. What the second review of v2.09 found here (clin), with real keys and the mouse: after a commit the keyboard goes back to
+//      the same control of the SAME requirement, or nowhere. Two primes put on a per-service allocation by ↑ Apply grid to
+//      row, pressed with the mouse; in Fund, a figure typed into the first one's box and Entered keeps the keyboard there and
+//      the next figure is that requirement's (on ba3c294 it went to the second's box, and replaced its allocation); Tabbed,
+//      the keyboard is on the first one's ★ (it was the second's, where Space cleared its Mission Critical). And the rest keep
+//      their place: the rank box, a CLIN's boxes and the RECORD panel's -- Enter stays, Tab goes to the control after it, in
+//      the same requirement (the RECORD panel's lost the keyboard on every commit). And ✕ on a CLIN from the keyboard leaves
+//      the keyboard nowhere, not on the next CLIN's ✕ moved into its place. 1366 and 1920, sliding and docked.
 //
 // It stands its own prime up in the page, as standards-check.mjs does, and never changes the shared fixture
 // (tools/ia-fixture.mjs), which every other browser check and the accessibility baseline read.
@@ -576,6 +584,87 @@ if (want('F')) {
       await ctx.close();
     } catch (e) { chk(`${t3} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
   }
+}
+
+// ── G. THE SECOND REVIEW OF v2.09 (clin): AFTER A COMMIT, THE SAME REQUIREMENT'S CONTROL OR NOWHERE ─────────────────────────
+// The keyboard's place across a redraw was found again by the control's first class; Fund's box on a per-service allocation
+// is class svcmode and loses it once a total is typed, so the count across the list took the next per-service requirement's.
+if (want('G')) for (const [layout, w, h] of LAYOUTS) {
+  const tag = `G · ${layout} ${w}`;
+  try {
+    const { p, ctx, errs, dlg, id } = await open(layout, w, h);
+    // a second prime, after the first in the list; neither on a Split, so ↑ Apply grid to row is offered on both
+    const id2 = await p.evaluate(pid => { const r = S.order.find((x, i) => i > S.order.indexOf(pid) + 1 && !CLINS[x]);
+      S.ptype[r] = 'PRIME'; CLINS[r] = [{ clin: '0101', desc: 'Second prime line', ccar: '', ask: [300000, 40000, 0, 0, 0, 0] }];
+      delete S.fsrc[pid]; delete S.fsrc[r]; delete S.alloc[pid]; delete S.alloc[r]; clinOpen[r] = true; save(); render(); return r; }, id);
+    for (const r of [id, id2]) { dlg.answers = [true]; await press(p, btn(r, 'clinToRow'), { wait: 300 }); }
+    const al = () => p.evaluate(([a, c]) => [S.alloc[a], S.alloc[c]].map(x => JSON.stringify(x === undefined ? null : x)), [id, id2]);
+    const [a0, c0] = await al();
+    const others = () => p.evaluate(([a, c]) => JSON.stringify(Object.keys(S.alloc).filter(k => k !== a && k !== c).sort().map(k => [k, S.alloc[k]]).concat(Object.keys(S.mc).filter(k => k !== a && k !== c).sort().map(k => [k, !!S.mc[k]]))), [id, id2]);
+    chk(`${tag} · CONTROL: ↑ Apply grid to row pressed with the mouse on both primes puts each on a per-service allocation`, /"m":"s"/.test(a0) && /"m":"s"/.test(c0), JSON.stringify({ a0, c0 }));
+    await p.evaluate(() => { try { drawerClose(); } catch (e) {} uiMode = 'fund'; uiApply(); render(); });
+    const fb = r => `#row-${r} input[onchange^="setAlloc("]`;
+    const o0 = await others();
+    // G1. Enter: the keyboard stays on the first prime's box, and the next figure is the first prime's
+    await press(p, fb(id)); await typeIn(p, '500,000');
+    const s1 = await st(p);
+    await typeIn(p, '520,000');
+    const s2 = await st(p), [a1, c1] = await al();
+    chk(`${tag} · Fund: 500,000 typed into the first prime’s box and Entered: the keyboard stays on that box, not the second prime’s`,
+      s1.focus === `input setAlloc(${q(id)})`, JSON.stringify(s1));
+    chk(`${tag} · and the next figure typed and Entered, 520,000, is the first prime’s total; the second keeps its per-service allocation, and nothing else moved`,
+      a1 === q({ m: 't', v: 520000 }) && c1 === c0 && s2.focus === `input setAlloc(${q(id)})` && (await others()) === o0, JSON.stringify({ a1, c1, c0, s2 }));
+    // G2. Tab: the keyboard is on the first prime's ★, and Space there is the first prime's
+    await p.evaluate(([r, v]) => { S.alloc[r] = JSON.parse(v); save(); render(); }, [id, a0]);
+    const mc0 = await p.evaluate(([a, c]) => [!!S.mc[a], !!S.mc[c]], [id, id2]);
+    await press(p, fb(id)); await typeIn(p, '500,000', 'Tab');
+    const s3 = await st(p);
+    await p.keyboard.press('Space'); await p.waitForTimeout(200);
+    const mc1 = await p.evaluate(([a, c]) => [!!S.mc[a], !!S.mc[c]], [id, id2]), [, c3] = await al();
+    chk(`${tag} · Fund: 500,000 typed into the first prime’s box and Tabbed: the keyboard is on the first prime’s ★, not the second’s`,
+      s3.focus.startsWith(`button S.mc[${q(id)}]`), JSON.stringify(s3));
+    chk(`${tag} · and Space there turns the first prime’s ★, the second prime’s ★ and allocation as they were, and nothing else moved`,
+      mc1[0] === !mc0[0] && mc1[1] === mc0[1] && c3 === c0 && (await others()) === o0, JSON.stringify({ mc0, mc1, c3, c0 }));
+    // G3. the rank box, in Review: Enter stays on it where the row has moved to; Tab goes on within the same requirement
+    await p.evaluate(() => { uiMode = 'review'; uiApply(); render(); });
+    const rr = await p.evaluate(pid => S.order.find((x, i) => i > 6 && !CLINS[x]), id), rb = `#row-${rr} input[onchange^="setRank("]`;
+    await press(p, rb); await typeIn(p, '4');
+    const s4 = await st(p), k4 = await p.evaluate(r => S.order.indexOf(r) + 1, rr);
+    await press(p, rb); await typeIn(p, '6', 'Tab');
+    const s5 = await p.evaluate(r => { const a = document.activeElement, row = a && a.closest && a.closest('.row[id]'); return { row: row ? row.id : '', h: a ? (a.getAttribute('onclick') || a.getAttribute('onchange') || '').slice(0, 40) : '' }; }, rr);
+    chk(`${tag} · the rank box: 4 Entered moves the requirement to 4 and the keyboard stays on its rank box; 6 Tabbed moves it again and the keyboard goes on to a control of the same requirement`,
+      k4 === 4 && s4.focus === `input setRank(${q(rr)})` && s5.row === 'row-' + rr && s5.h.indexOf(q(rr)) >= 0 && (await p.evaluate(r => S.order.indexOf(r) + 1, rr)) === 6,
+      JSON.stringify({ k4, s4, s5 }));
+    // G4. a CLIN's boxes: Enter stays on the box; Tab goes to the next service's box of the same CLIN
+    await press(p, box(id, 'clinSetAsk', 'b0', 1)); await typeIn(p, '33333');
+    const s6 = await st(p);
+    await press(p, box(id, 'setClinSvc', 'b0', 1)); await typeIn(p, '4444', 'Tab');
+    const s7 = await st(p), r7 = await read(p, id);
+    chk(`${tag} · a CLIN’s boxes: a request Entered keeps the keyboard on it; an allocation Tabbed goes on to the next service’s allocation of the same CLIN; both stored`,
+      s6.focus === `input clinSetAsk(${q(id)},"b0",1)` && s7.focus === `input setClinSvc(${q(id)},"b0",2)` && r7.ask.b0[1] === 33333 && r7.grid.b0[1] === 4444,
+      JSON.stringify({ s6, s7, ask: r7.ask.b0, grid: r7.grid.b0 }));
+    // a control removed: ✕ on CLIN 0001 from the keyboard; the keyboard must not be left on CLIN 0002's ✕, moved into its place
+    await p.evaluate(sel => { const b = document.querySelector(sel); b.scrollIntoView({ block: 'center' }); b.focus(); }, btn(id, 'clinRemove', 'b0'));
+    dlg.answers = [true]; await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const s10 = await st(p), r10 = await read(p, id);
+    chk(`${tag} · ✕ on CLIN 0001 from the keyboard: the line is removed and the keyboard goes nowhere -- not to CLIN 0002’s ✕ in its place, where the next Enter would remove it`,
+      s10.focus === 'body' && r10.keys.join() === 'b1:0002,n1:0003', JSON.stringify({ s10, keys: r10.keys }));
+    // G5. the RECORD panel's boxes: Enter stays; Tab goes on to the box after it, in the same requirement's panel
+    const rid = await p.evaluate(pid => S.order.find((x, i) => i > 3 && !CLINS[x] && x !== pid), id);
+    await press(p, `#row-${rid} .t1`); await p.waitForTimeout(250);
+    const pv = j => `#inspector input[onchange^=${q('setAsk(' + q(rid) + ',' + j + ',')}]`;
+    await press(p, pv(0)); await typeIn(p, '123456');
+    const s8 = await st(p);
+    await press(p, pv(1)); await typeIn(p, '23456', 'Tab');
+    const s9 = await p.evaluate(r => { const a = document.activeElement; return { inPanel: !!(a && a.closest && a.closest('#inspector')), cur: curRow,
+      h: a ? (a.getAttribute('onchange') || a.getAttribute('onclick') || '').slice(0, 40) : '' }; }, rid);
+    const av = await p.evaluate(r => itemById(r).ask.slice(0, 2), rid);
+    chk(`${tag} · the RECORD panel: the value by service Entered keeps the keyboard on that box; the next one Tabbed goes on to the box after it in the same requirement’s panel; both stored`,
+      s8.focus === `input setAsk(${q(rid)},0)` && s8.inPanel && s9.inPanel && s9.cur === rid && s9.h.indexOf(q(rid)) >= 0 && s9.h.indexOf('setAsk(' + q(rid) + ',1,') < 0 && av[0] === 123456 && av[1] === 23456,
+      JSON.stringify({ s8, s9, av }));
+    chk(`${tag} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`${tag} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
 }
 
 await b.close();

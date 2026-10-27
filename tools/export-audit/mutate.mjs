@@ -7679,6 +7679,48 @@ const MUTATIONS = [
     find: ".row .acts.alloc .mode-tag{position:absolute;left:6px;top:-6px;width:auto;line-height:9px;padding:0 3px;background:var(--panel);pointer-events:none}", repl: "" },
   { id: 'v209-rv-clin-svc-tag-catches-click', area: "CSS", what: "Fund's SVC tag, on the box's edge, takes a click meant for the box and opens the RECORD panel",
     find: "background:var(--panel);pointer-events:none}", repl: "background:var(--panel)}" },
+  // v2.09 second review (clin): after a commit the keyboard goes back to the same requirement's control, or nowhere. Each proved
+  // against audit-board's "v2.09 second review — clin" block (recovery/v209/proofs-RV2-clin.json); real keys and the mouse in
+  // Chromium are npm run pointer G.
+  { id: 'v209-rv2-clin-found-by-class', area: "focusMark", what: "after a commit the control is found again by its first class, so Fund's box on a per-service allocation -- class svcmode until a total is typed into it -- is not found again, and the keyboard is lost (counted across the list, it went to the next per-service requirement's box, and the next figure replaced that requirement's allocation)",
+    find: "  const tag=a.tagName.toLowerCase(), h=ctlH(a), sc=focusScope(a), c0=", repl: "  const tag=a.tagName.toLowerCase(), h=null, sc=focusScope(a), c0=" },
+  { id: 'v209-rv2-clin-no-place-fallback', area: "focusRestore", what: "a control whose handler says its own state is never found again once pressed, so a fit chip pressed from the keyboard drops the keyboard to the page (v1.92 kept it)",
+    find: "    if(put(byH || ((K && c.k>=0 && K.length===c.kn)? K[c.k] : null))) return;", repl: "    if(put(byH)) return;" },
+  { id: 'v209-rv2-clin-place-moved', area: "focusRestore", what: "a control removed hands the keyboard to the one moved into its place: ✕ on a CLIN from the keyboard leaves it on the next CLIN's ✕, and the next Enter removes that one too",
+    find: "(K && c.k>=0 && K.length===c.kn)", repl: "(K && c.k>=0)" },
+  { id: 'v209-rv2-clin-restore-before-panel', area: "render", what: "the keyboard's place is restored between the rows and the RECORD panel, so a figure committed in the RECORD panel leaves the keyboard on the page after every Enter and Tab",
+    find: String.raw`    if(lh.length) inspHeldBack(lst, lh); }
+  try{ gridAfterRender(); }
+  catch(e){
+    const why=(e&&e.message)||String(e);
+    try{ const el=document.getElementById('inspector');
+      if(el) el.innerHTML='<div class="insp-empty">The record panel could not be drawn ('+esc(why)+'), so it is empty '
+        +'rather than showing figures from before. Click the row again; if this repeats, use <b>Setup \u203a \ud83e\ude7a Save diagnostics</b> and send that file \u2014 it holds no figures or titles.</div>'; }catch(e2){}
+    try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
+      +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
+  }
+  // v2.09 second review: the keyboard's place once the rows AND the RECORD panel are drawn (it ran between them, so a box the
+  // panel redrew kept nothing)
+  try{ focusRestore(fm); }catch(e){}
+`,
+    repl: String.raw`    if(lh.length) inspHeldBack(lst, lh); }
+  try{ focusRestore(fm); }catch(e){}
+  try{ gridAfterRender(); }
+  catch(e){
+    const why=(e&&e.message)||String(e);
+    try{ const el=document.getElementById('inspector');
+      if(el) el.innerHTML='<div class="insp-empty">The record panel could not be drawn ('+esc(why)+'), so it is empty '
+        +'rather than showing figures from before. Click the row again; if this repeats, use <b>Setup \u203a \ud83e\ude7a Save diagnostics</b> and send that file \u2014 it holds no figures or titles.</div>'; }catch(e2){}
+    try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
+      +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
+  }
+` },
+  { id: 'v209-rv2-clin-panel-other-requirement', area: "focusRestore", what: "the RECORD panel drawn for another requirement gets the keyboard back on its own copy of the control, through a handler that names no requirement (its ✕ Close, its tabs)",
+    find: "(m.cur!==curRow || (drawerNarrow()", repl: "((drawerNarrow()" },
+  { id: 'v209-rv2-clin-into-closed-drawer', area: "focusRestore", what: "a redraw puts the keyboard back inside a closed sliding drawer, which is only moved off screen",
+    find: "m.cur!==curRow || (drawerNarrow() && !sc.classList.contains('open'))", repl: "m.cur!==curRow" },
+  { id: 'v209-rv2-clin-row-unbounded', area: "focusScope", equivalent: 'every control drawn in a row is named by a handler that names its requirement -- audit-board "v2.09 second review — clin" (every row control names its requirement) asserts it in Fund, Review and Rank with the CLIN drill and a ⋯ menu open -- so a control found again by its handler can only be its own row\'s, bounded or not. A control with no handler, or one whose handler names no requirement, added to a row fails that part first, and this stops being equivalent', what: "a row's control is looked for across the whole list, not in its own row, so one with no handler of its own could be found again in another requirement's row",
+    find: "(a.closest('#list .row[id]') || a.closest('#inspector'))", repl: "a.closest('#inspector')" },
   // ==== end v2.09 W1 ====
 
   // ==== v2.09 W2 (item 126): a PMO copy's five years ====
