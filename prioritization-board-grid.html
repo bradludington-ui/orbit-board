@@ -11166,11 +11166,11 @@ function pmoCopyRefuse(fname, txt, tail){
   alert('“'+fname+'” was not imported: '+why+(tail||'')+'.\n\n'
     +(SANDBOX? 'A copy’s work is never imported into another copy. Open that file itself to carry on in it; ✉ Submit input sends its work to the portfolio team.'
       : 'A PMO copy comes in only through the PMO import screen: ask '+who+' for its ✉ Submit input file and load it under '
-        +'Program offices › Review submittals…, where every field is reviewed before anything is applied. Taken here, a copy would replace '
+        +'Program offices \u203a Review submittals\u2026 \u2014 every field is reviewed there before anything is applied. Taken here, a copy would replace '
         +'this board’s plans — and its locked cycles, which a copy carries only as a reference — with none of that review.')
     +'\n\nNothing '+(SANDBOX? 'in this copy' : 'on this board')+' was changed.');
   setStat('⚠ Nothing imported — “'+esc(fname)+'” '+esc(why)+'. '
-    +(SANDBOX? 'Open it itself to work in it.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices › Review submittals….'));
+    +(SANDBOX? 'Open it itself to work in it.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices \u203a Review submittals\u2026.'));
   return true;
 }
 // ==============================================================================================================

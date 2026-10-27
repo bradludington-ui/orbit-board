@@ -107,6 +107,26 @@ never takes a full import). A first open of a copy reads what its file carries.
 retired as obsolete (`copy-save-state`, `copy-file-menu`); `pmo-gate-open`, `copy-save-button` and `copy-boot-line` kept and
 proved still biting. Every one proved against its own check (`recovery/v209/proved-W3.jsonl`).
 
+## Proved with (27 Oct 2026, on the final tree of `v209-w3`)
+
+- `npm run check`; mcount 2,434 of 2,434 targets matching once.
+- Whole: audit-board, audit-other, audit.mjs, audit-hostile, audit-inject, audit-ui, legacy-fsrc, boot-same — all pass.
+- Slimmed: every audit-import block naming a function W3 touched (81 scenarios, with the V14/V185W/V186L writers) and every
+  audit-recon block naming one (35 scenarios) — all pass. The integration runs every suite whole.
+- The round-trip fuzz (seeds 767218406, 680204519): nothing lost.
+- Browser: leftmenu, menus, keys, standards (0 findings), panels, dialogs, dropdowns, controls, hostile, editors, layout (only
+  the 8 carried D failures), and the new `tools/pmo-save.mjs` (37 checks; 14 fail on v2.08, the rest are CONTROLs or did not run
+  there for want of the new Save).
+- Every new check run on v2.08 (`board-ebe702e.html`): the audit-import slot 46 of its 53 reached checks fail there, its 7
+  CONTROLs aside, and four blocks stop where they open a file only the new Save writes; the audit-other block 12 of 16 (4 CONTROLs).
+
+## New keys (for CLAUDE.md's storage list)
+
+- In a PMO copy only: `prio27execdb-pmo<ts>`, `prio27acedb-pmo<ts>`, `prio27buddb-pmo<ts>`, `prio27reprog-pmo<ts>` and
+  `prio27sideOpen-pmo<ts>` (the copy's publish stamp), beside the plan, cycle and destination keys a copy already sealed.
+- In the handle store (IndexedDB `prio-fh`, store `h`): `pmo-copy|<publish stamp>|<office>`, beside the board's `FNAME` entry.
+- In the saved state: `MS.pmoFor = {pmo}` in a copy's plan; the board drops it on every load.
+
 ## Not built, or left
 
 - A Save that waited while the office was changed is refused (`_pmoSaveCopyRun`'s office check); no check reaches that race.
