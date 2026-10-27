@@ -3582,8 +3582,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const MONEY = '$#,##0,,;[Red]($#,##0,,)', PCT = '0%';
   const GRID = { left: 'thin:FF808080', right: 'thin:FF808080', top: 'thin:FF808080', bottom: 'thin:FF808080' };
   const RULE = Object.assign({}, GRID, { top: 'medium:FF000000' });
+  // v2.10 review: an indented look is aligned left, or Excel does not draw the indent (WB-1); every other look as it was
   const LK = (o = {}) => ({ font: { b: o.b ? 1 : 0, i: o.i ? 1 : 0, sz: o.sz || 11, color: 'FF' + (o.color || '000000'), name: 'Arial' },
-    fill: o.fill ? 'FF' + o.fill : null, border: o.border || null, fmt: o.fmt || 'General', h: o.h || null, indent: o.indent || 0 });
+    fill: o.fill ? 'FF' + o.fill : null, border: o.border || null, fmt: o.fmt || 'General', h: o.h || (o.indent ? 'left' : null), indent: o.indent || 0 });
   const LINE = { bold: { b: 1 }, sub: { indent: 2 }, ital: { i: 1, indent: 2 }, delta: {}, pct: {} };
   const L = c => String.fromCharCode(65 + c);
   const expect = sh => {
@@ -3735,6 +3736,83 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
     var s=o['xl/worksheets/sheet1.xml']; return JSON.stringify([/sheetPr|pageSetup|printOptions|showGridLines|ht=/.test(s), /Arial/.test(o['xl/styles.xml'])]); })()`));
   chk(name, 'CONTROL · an ordinary sheet', 'a sheet that asks for no page, gridlines or heights is written without them, in Calibri', J(plain), J([false, false]));
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 160);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+// v2.10 review (WB-1): THE INDENTED LINES WERE PRINTED FLUSH. fdcSheets gave a 'sub' and an 'ital' label indent="2" and no
+// horizontal alignment, and Excel draws an indent only under left, right or distributed alignment: rendered, '… - US Only',
+// 'Discretionary' and 'Mandatory' started at the same x as the bold totals, while the box indents them 22px and the contract
+// calls them indented lines. THE CHECK reads each line's label and first figure out of the bytes buildXlsx made -- the
+// <alignment> element its cell's style carries in xl/styles.xml, attribute by attribute -- found by the label's own text,
+// and expects it from the model's style, typed here: an indented line is left, vertical centre, indent 2; a bold, delta or %
+// line has no horizontal and no indent, as before; every figure is right with no indent, as before.
+// FAILS ON 4c531a0 (the indented labels carry no horizontal): the six indented lines; the flush lines and the CONTROL pass there.
+{
+  const name = 'v2.10 review — the FYDP Disconnects workbook draws its indented lines indented: left alignment beside the indent (WB-1)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  const COLS = ['FY27', 'FY28', 'FY29', 'FY30', 'FY31', 'FY32', 'FY28-32'];
+  const ln = (label, style, k) => ({ t: 'line', label, style, vals: [1, 2, 3, 4, 5, 6].map(j => k * 1000000 + j), tot: k * 5000000 + 20 });
+  const MODEL = {
+    years: [2027, 2028, 2029, 2030, 2031, 2032], sum: [2028, 2029, 2030, 2031, 2032],
+    marking: 'CUI', footer: 'October 2026 / PSM',
+    sheets: [
+      { name: 'Summary', kind: 'summary', title: 'Summary', subtitle: 'ACE / BES28', corner: '(TY$M)', over: 'Delta', head: 'Appropriation', cols: COLS,
+        rows: [{ t: 'band', label: 'O&M' }, ln('O&M Required', 'bold', 1), ln('O&M Req - US Only', 'sub', 2), ln('International Req Total', 'sub', 3),
+          ln('O&M Controls', 'bold', 4), ln('O&M Discretionary', 'ital', 5), ln('O&M Mandatory', 'ital', 6), ln('O&M Delta', 'delta', 7),
+          { t: 'line', label: 'O&M % Funded', style: 'pct', vals: [0.9, 0.91, 0.92, 0.93, 0.94, 0.95], tot: 0.93 },
+          { t: 'gap' }, { t: 'navy', label: 'Total DoD' }, ln('Required Funding', 'bold', 8), ln('DoD Delta', 'delta', 9)] },
+      { name: 'USAF', kind: 'service', title: 'USAF', subtitle: 'BES28 Service Detail', head: 'USAF TY$M', cols: COLS,
+        rows: [ln('USAF Req', 'bold', 10), ln('USAF Controls', 'bold', 11), ln('USAF Discretionary', 'ital', 12), ln('USAF Mandatory', 'ital', 13),
+          ln('USAF Delta', 'delta', 14), { t: 'sep' }, ln('USAF Total Sustainment', 'bold', 15)] },
+    ],
+  };
+  // ---- the look, by the model's style ----
+  const LEFT = { horizontal: 'left', indent: '2', vertical: 'center' }, FLUSH = { vertical: 'center' }, FIG = { horizontal: 'right', vertical: 'center' };
+  const WANT = { sub: LEFT, ital: LEFT, bold: FLUSH, delta: FLUSH, pct: FLUSH };
+  // ---- the bytes, read as another program reads them: every cell's <alignment>, by its style ----
+  const R = JSON.parse(ev(`(function(){ try{
+    var F=fdcSheets(${J(MODEL)}), u=buildXlsx(F.sheets, F.extra);
+    if(!u) return JSON.stringify({err:'no workbook'});
+    var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), parts={};
+    while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+      parts[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+    var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); }, A=function(x){ return [].slice.call(x||[]); };
+    var xfs=A(P(parts['xl/styles.xml']).getElementsByTagName('cellXfs')[0].children).map(function(x){
+      var a=x.getElementsByTagName('alignment')[0], o={}; if(!a) return null;
+      A(a.attributes).map(function(t){ return t.name; }).sort().forEach(function(n){ o[n]=a.getAttribute(n); }); return o; });
+    var sheets=[1,2].map(function(k){ var out={}, d=P(parts['xl/worksheets/sheet'+k+'.xml']||'<x/>');
+      A(d.getElementsByTagName('row')).forEach(function(r){ var c=A(r.getElementsByTagName('c')), a=c[0];
+        if(!a || a.getAttribute('t')!=='inlineStr') return; var tt=a.getElementsByTagName('t')[0];
+        out[tt? tt.textContent : '']=[xfs[+(a.getAttribute('s')||0)]||null, c[1]? xfs[+(c[1].getAttribute('s')||0)]||null : 'no figure']; });
+      return out; });
+    return JSON.stringify({sheets:sheets});
+  }catch(e){ return JSON.stringify({err:String((e&&e.message)||e)}); } })()`));
+  chk(name, 'the workbook', 'fdcSheets lays it out and buildXlsx writes it', J(R.err || ''), J(''));
+  MODEL.sheets.forEach((m, si) => {
+    const got = (R.sheets || [])[si] || {}, lines = m.rows.filter(r => r.t === 'line');
+    const ind = lines.filter(r => WANT[r.style] === LEFT);
+    // the fixture carries what the fix is about: indented lines, plain and italic, beside the flush ones
+    chk(name, m.name, 'the fixture really does carry indented lines, italic among them, beside lines that are not indented',
+      J([ind.length >= 2, lines.length > ind.length, ind.some(r => r.style === 'ital')]), J([true, true, true]));
+    lines.forEach(r => {
+      chk(name, m.name + ' · ' + r.label, r.style + ' line: its label ' + (WANT[r.style] === LEFT ? 'aligned left beside its indent of 2, so Excel draws the indent' : 'with no horizontal alignment and no indent, as before')
+        + '; its first figure right, no indent', J(got[r.label] || null), J([WANT[r.style], FIG]));
+    });
+  });
+  // CONTROL: the left alignment is fdcSheets' own -- the writer still writes exactly what an entry asks, so a workbook whose
+  // style asks for an indent and names no alignment (the house style's title band, the Excel workbook's indented column)
+  // keeps every byte it had
+  const plain = JSON.parse(ev(`(function(){ var u=buildXlsx([{name:'P', cols:[10], rows:[[{v:'a', s:XF_EXTRA0}]]}], [{align:{v:'center', indent:1}}]),
+    dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), o={};
+    while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+      o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+    return JSON.stringify((o['xl/styles.xml'].match(/<alignment[^>]*indent="1"[^>]*\\/>/g)||[])); })()`));
+  chk(name, 'CONTROL · the writer', 'an entry that asks for an indent and no alignment, outside FYDP Disconnects, is written as it asks: no horizontal',
+    J(plain), J(['<alignment vertical="center" indent="1"/>']));
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 160);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
