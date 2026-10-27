@@ -1751,9 +1751,14 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     let d = 0, i = mm.index + mm[0].length - 1; for (; i < src.length; i++) { if (src[i] === '(') d++; else if (src[i] === ')' && --d === 0) break; }
     calls.push([f.n, /xlsxHouse\(|house:true/.test(src.slice(mm.index, i))]);
   }
-  chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in',
-    J(calls.filter(c => c[1] === /^(exportSrc|crExport)$/.test(c[0])).map(c => c[0])), '[]');
-  chk(name, 'which reports', 'and the list is the thirteen reports that write a workbook and the two that do not', calls.length, 15);
+  // v2.10 B: FYDP Disconnects (exportFdc, item 130) joins the reports that do not ask: it is drawn in the look of Brad's own
+  // Spruill slides ("this exact look, color scheme, structure"), and the house would paint its colours over theirs. Until
+  // builder A's exportFdc is on the board there are fifteen; with it, sixteen (the integration should make that 16 outright).
+  const NOHOUSE = /^(exportSrc|crExport|exportFdc)$/;
+  chk(name, 'which reports', 'every report workbook asks for the house style but the Spend Plan Source and the 1A9A, which CCaR and the comptroller read in, and FYDP Disconnects, which has the slides’ own look',
+    J(calls.filter(c => c[1] === NOHOUSE.test(c[0])).map(c => c[0])), '[]');
+  chk(name, 'which reports', 'and the list is the thirteen reports that write a workbook and the two (three, with FYDP Disconnects) that do not',
+    calls.length, fns.some(f => f.n === 'exportFdc') ? 16 : 15);
   ev(`blLock('PB|'+MS.cur, false); blDelete('PB|'+MS.cur); 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
@@ -2895,6 +2900,237 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== end v2.10 A ====
 
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+// Brad, 27 Oct 2026, of his Spruill charts: "I need to produce these Excel spreadsheets with this exact look, color scheme,
+// structure, etc." fdcSheets(model) lays out the sheets the box's model hands it and buildXlsx writes them. The model here is
+// HAND-BUILT in the contract's shape (recovery/v210/item130-contract.md), so the check needs nothing of the figures' builder:
+// a Summary and a USAF sheet, distinct figures on every line and year, a negative, a positive delta, a year with no position
+// (null) inside and outside the FYDP total's years, % Funded, an imported label holding & and <.
+// THE CHECK reads the workbook the way another program does: the bytes buildXlsx made, unzipped, every part parsed with the
+// page's DOMParser, every cell's style resolved through xl/styles.xml to its fill colour, font (bold, italic, size, colour,
+// name), border, number format and alignment. Every expectation is typed below from the contract's look -- never read
+// back from fdcSheets: the marking, the two merged titles (26 and 22 pt), the corner label and the navy band over the years,
+// the navy (Summary) or light-blue (service) heading row, light-blue appropriation bands, the navy total band, the dark-grey
+// separator, bold / indented / italic lines, the delta under a heavy black rule, money as whole dollars shown in millions
+// with a shortfall red in parentheses, % Funded as 0%, "—" for a null, the footer row with the marking; column widths 52 and
+// 13, landscape and one page, no gridlines, Arial, no house style; and the part order and counts Excel demands.
+// FAILS ON 35d0dd0 (no fdcSheets: no workbook), every check but the CONTROLs.
+{
+  const name = 'v2.10 B (item 130) — the FYDP Disconnects workbook: the slides’ look, read back from the bytes';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  const COLS = ['FY27', 'FY28', 'FY29', 'FY30', 'FY31', 'FY32', 'FY28-32'];
+  // the FYDP total is the five years after the first; null when any of them is null
+  const tot = v => v.slice(1).some(x => x === null) ? null : v.slice(1).reduce((a, b) => a + b, 0);
+  const ln = (label, style, vals, extra = {}) => Object.assign({ t: 'line', label, style, vals, tot: tot(vals) }, extra);
+  const MODEL = {
+    ace: { key: 'a1', label: '2025 ACE' }, cyc: { key: 'BES|2028', label: 'BES28' },
+    years: [2027, 2028, 2029, 2030, 2031, 2032], sum: [2028, 2029, 2030, 2031, 2032],
+    marking: 'CUI//REL TO US DoW', footer: 'October 2026 / Sustainment Finance / PSM',
+    sheets: [
+      { name: 'Summary', kind: 'summary', title: 'F-35 Sustainment Summary', subtitle: '2025 ACE <rev 2> / BES28',
+        corner: '(TY$M) Total Position', over: 'Delta from BES28', head: 'Appropriation', cols: COLS,
+        rows: [
+          { t: 'band', label: 'O&M' },
+          ln('2025 ACE O&M Required', 'bold', [4234101000, 4484202000, 4655303000, 4886404000, 5196505000, 5274606000], { ap: 'om' }),
+          ln('2025 ACE - O&M Req - US Only', 'sub', [4134101000, 4384202000, 4555303000, 4786404000, 5096505000, 5174606000], { ap: 'om' }),
+          ln('2025 ACE - International Req Total', 'sub', [100000000, 100000001, 100000002, 100000003, 100000004, 100000005], { ap: 'om', input: 'ir' }),
+          ln('BES28 O&M Controls', 'bold', [null, 3937001000, 4177002000, 4712003000, 4813004000, 4895005000], { ap: 'om' }),
+          ln('Discretionary', 'ital', [null, 3900001000, 4170002000, 4700003000, 4803004000, 4885005000], { ap: 'om' }),
+          ln('Mandatory', 'ital', [null, 37000000, 7000000, 12000000, 10000000, 10000000], { ap: 'om' }),
+          ln('International Funding', 'bold', [0, 1000, 25000000, 0, 2000, 0], { ap: 'om', input: 'if' }),
+          ln('Delta (2025 ACE vs BES28)', 'delta', [null, -547200000, -453301000, -174401000, -383499000, -379601000], { ap: 'om' }),
+          { t: 'line', label: '% Funded', style: 'pct', vals: [null, 0.878, 0.9026, 0.9643, 0.9262, 0.928], tot: 0.9201, ap: 'om' },
+          { t: 'gap' },
+          { t: 'band', label: 'PROCUREMENT' },
+          ln('2025 ACE Prod Support Required', 'bold', [1278000001, 1390000002, 1371000003, 1525000004, 1527000005, 1597000006], { ap: 'ff' }),
+          ln('BES28 Prod Support Controls', 'bold', [964000000, 1349000000, null, 1396000000, 1260000000, 1376000000], { ap: 'ff' }),
+          ln('Delta (2025 ACE vs BES28)', 'delta', [-314000001, 41000002, null, -129000004, -267000005, -221000006], { ap: 'ff' }),
+          { t: 'gap' },
+          { t: 'navy', label: 'F-35 Sustainment - Total DoD' },
+          ln('2025 ACE Required Funding', 'bold', [5512101001, 5874202002, 6026303003, 6411404004, 6723505005, 6871606006]),
+          ln('DoD Delta (2025 ACE vs BES28)', 'delta', [-1111000007, -791000008, -914000009, -411000010, -732000011, -768000012]),
+          { t: 'line', label: '% Funded (BES28)', style: 'pct', vals: [0.84, 0.89, 0.88, 0.95, 0.91, 0.912], tot: 0.91 },
+        ] },
+      { name: 'USAF', kind: 'service', title: 'F-35 Sustainment', subtitle: 'BES28 Service Detail – USAF CTOL',
+        head: 'USAF F-35A TY$M', cols: COLS,
+        rows: [
+          ln('2025 ACE - O&M Req', 'bold', [2240101000, 2342202000, 2394303000, 2582404000, 2829505000, 2763606000], { ap: 'om' }),
+          ln('BES28 Controls', 'bold', [1943001000, 1949002000, 2163003000, 2522004000, 2668005000, 2519006000], { ap: 'om' }),
+          ln('Discretionary', 'ital', [1818001000, 1949002000, 2163003000, 2522004000, 2668005000, 2519006000], { ap: 'om' }),
+          ln('Mandatory', 'ital', [125000000, 0, 0, 0, 0, 0], { ap: 'om' }),
+          ln('USAF F-35A Delta', 'delta', [-297100000, -393200000, -231300000, -60400000, 160500000, -244600000], { ap: 'om' }),
+          { t: 'line', label: '% Funded', style: 'pct', vals: [0.87, 0.83, 0.9, 0.98, 1.06, 0.91], tot: 0.92, ap: 'om' },
+          { t: 'sep' },
+          ln('2025 ACE - Total Sustainment', 'bold', [3430000001, 3645000002, 3714000003, 3972000004, 4262000005, 4205000006]),
+          ln('USAF F-35A Delta', 'delta', [-518000001, -479000002, -465000003, -184000004, -371000005, -418000006]),
+          { t: 'line', label: '% Funded', style: 'pct', vals: [0.85, 0.87, 0.87, 0.95, 0.91, 0.9], tot: 0.9 },
+        ] },
+    ],
+  };
+  // ---- the look, as the contract states it ----
+  const NAVY = '1F3864', BAND = '8DB4E2', SVCH = '9BC2E6', SEP = '404040', WHITE = 'FFFFFF', FOOT = '595959';
+  const MONEY = '$#,##0,,;[Red]($#,##0,,)', PCT = '0%';
+  const GRID = { left: 'thin:FF808080', right: 'thin:FF808080', top: 'thin:FF808080', bottom: 'thin:FF808080' };
+  const RULE = Object.assign({}, GRID, { top: 'medium:FF000000' });
+  const LK = (o = {}) => ({ font: { b: o.b ? 1 : 0, i: o.i ? 1 : 0, sz: o.sz || 11, color: 'FF' + (o.color || '000000'), name: 'Arial' },
+    fill: o.fill ? 'FF' + o.fill : null, border: o.border || null, fmt: o.fmt || 'General', h: o.h || null, indent: o.indent || 0 });
+  const LINE = { bold: { b: 1 }, sub: { indent: 2 }, ital: { i: 1, indent: 2 }, delta: {}, pct: {} };
+  const L = c => String.fromCharCode(65 + c);
+  const expect = sh => {
+    const n = sh.cols.length, rows = [], merges = [];
+    const put = (cells, ht) => { const r = rows.length + 1; rows.push({ r, ht: ht || null, cells: cells.map((c, j) => [L(j) + r, c[0], c[1]]) }); return r; };
+    const all = (label, lk) => [[label, lk]].concat(sh.cols.map(() => ['', lk]));
+    merges.push('A' + put([[MODEL.marking, LK({ b: 1, h: 'center' })]]) + ':' + L(n) + rows.length);
+    merges.push('A' + put([[sh.title, LK({ b: 1, sz: 26, h: 'center' })]], 36) + ':' + L(n) + rows.length);
+    merges.push('A' + put([[sh.subtitle, LK({ b: 1, sz: 22, h: 'center' })]], 30) + ':' + L(n) + rows.length);
+    put([]);
+    const sum = sh.kind === 'summary';
+    if (sum) {
+      const nv = LK({ b: 1, color: WHITE, fill: NAVY, h: 'center' });
+      merges.push('B' + put([[sh.corner, LK({ b: 1, sz: 9 })]].concat(sh.cols.map((c, j) => [j ? '' : sh.over, nv]))) + ':' + L(n) + rows.length);
+    }
+    const hd = sum ? { b: 1, color: WHITE, fill: NAVY, border: GRID } : { b: 1, fill: SVCH, border: GRID };
+    put([[sh.head, LK(hd)]].concat(sh.cols.map(c => [c, LK(Object.assign({ h: 'center' }, hd))])));
+    for (const r of sh.rows) {
+      if (r.t === 'gap') put([]);
+      else if (r.t === 'band') put(all(r.label, LK({ b: 1, color: WHITE, fill: BAND, border: GRID })));
+      else if (r.t === 'navy') put(all(r.label, LK({ b: 1, color: WHITE, fill: NAVY, border: GRID })));
+      else if (r.t === 'sep') put(all('', LK({ fill: SEP, border: GRID })), 9);
+      else {
+        const s = LINE[r.style], bd = r.style === 'delta' ? RULE : GRID;
+        const num = LK({ b: s.b, i: s.i, border: bd, h: 'right', fmt: r.style === 'pct' ? PCT : MONEY });
+        put([[r.label, LK({ b: s.b, i: s.i, indent: s.indent, border: bd })]].concat(r.vals.concat([r.tot]).map(v => [v === null ? '—' : v, num])));
+      }
+    }
+    if (rows[rows.length - 1].cells.length) put([]);
+    merges.push('B' + put([[MODEL.footer, LK({ sz: 12, color: FOOT })], [MODEL.marking, LK({ b: 1, h: 'center' })]]) + ':D' + rows.length);
+    return { rows, merges };
+  };
+  // ---- the workbook, read as another program reads it ----
+  const R = JSON.parse(ev(`(function(){ try{
+    var F=fdcSheets(${J(MODEL)}), u=buildXlsx(F.sheets, F.extra);
+    if(!u) return JSON.stringify({err:'no workbook'});
+    var dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), parts={}, order=[];
+    while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+      var k=td.decode(u.subarray(at+30,at+30+nl)); order.push(k); parts[k]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+    var P=function(t){ return new DOMParser().parseFromString(t,'application/xml'); };
+    var bad=order.filter(function(k){ return P(parts[k]).getElementsByTagName('parsererror').length>0; });
+    var A=function(x){ return [].slice.call(x||[]); }, one=function(d,t){ return d.getElementsByTagName(t)[0]; };
+    var st=P(parts['xl/styles.xml']), cnt={};
+    ['numFmts','fonts','fills','borders','cellXfs'].forEach(function(t){ var e=one(st,t); cnt[t]=e? [+e.getAttribute('count'), e.children.length] : null; });
+    var fmts={'0':'General'}, codes=[];
+    A(one(st,'numFmts').children).forEach(function(n){ fmts[n.getAttribute('numFmtId')]=n.getAttribute('formatCode'); codes.push(n.getAttribute('formatCode')); });
+    var fonts=A(one(st,'fonts').children).map(function(f){ var g=function(t){ return f.getElementsByTagName(t)[0]; };
+      return {b:g('b')?1:0, i:g('i')?1:0, sz:g('sz')? +g('sz').getAttribute('val') : null, color:g('color')? g('color').getAttribute('rgb') : null, name:g('name')? g('name').getAttribute('val') : null}; });
+    var fills=A(one(st,'fills').children).map(function(f){ var p=f.getElementsByTagName('patternFill')[0], c=f.getElementsByTagName('fgColor')[0];
+      return (p && p.getAttribute('patternType')==='solid' && c)? c.getAttribute('rgb') : null; });
+    var borders=A(one(st,'borders').children).map(function(b){ var o={}, any=0; ['left','right','top','bottom'].forEach(function(n){ var e=b.getElementsByTagName(n)[0];
+      if(e && e.getAttribute('style')){ var c=e.getElementsByTagName('color')[0]; o[n]=e.getAttribute('style')+':'+(c? c.getAttribute('rgb') : ''); any=1; } }); return any? o : null; });
+    var xfs=A(one(st,'cellXfs').children).map(function(x){ var a=x.getElementsByTagName('alignment')[0], nf=x.getAttribute('numFmtId')||'0';
+      return {font:fonts[+(x.getAttribute('fontId')||0)]||'no font', fill:fills[+(x.getAttribute('fillId')||0)]||null, border:borders[+(x.getAttribute('borderId')||0)]||null,
+        fmt:fmts[nf]===undefined? 'undeclared '+nf : fmts[nf], h:a && a.getAttribute('horizontal')? a.getAttribute('horizontal') : null,
+        indent:a && a.getAttribute('indent')? +a.getAttribute('indent') : 0}; });
+    var wb=P(parts['xl/workbook.xml']), rels=P(parts['xl/_rels/workbook.xml.rels']), tgt={};
+    A(rels.getElementsByTagName('Relationship')).forEach(function(r){ tgt[r.getAttribute('Id')]=r.getAttribute('Target'); });
+    var sheets=A(wb.getElementsByTagName('sheet')).map(function(s){
+      var k='xl/'+tgt[s.getAttribute('r:id')], d=P(parts[k]||'<x/>'), ws=d.documentElement, out={name:s.getAttribute('name'), part:k};
+      out.kids=A(ws.children).map(function(e){ return e.localName; });
+      out.cols=A(d.getElementsByTagName('col')).map(function(c){ return [+c.getAttribute('min'), +c.getAttribute('max'), +c.getAttribute('width'), c.getAttribute('customWidth')]; });
+      out.rows=A(d.getElementsByTagName('row')).map(function(r){ return {r:+r.getAttribute('r'), ht:r.getAttribute('ht')? +r.getAttribute('ht') : null, custom:r.getAttribute('customHeight'),
+        cells:A(r.getElementsByTagName('c')).map(function(c){ var t=c.getAttribute('t')||'n', v;
+          if(t==='inlineStr'){ var tt=c.getElementsByTagName('t')[0]; v=tt? tt.textContent : ''; } else { var vv=c.getElementsByTagName('v')[0]; v=vv? Number(vv.textContent) : null; }
+          return {ref:c.getAttribute('r'), t:t, v:v, s:+(c.getAttribute('s')||0)}; })}; });
+      var mc=one(d,'mergeCells'); out.mcount=mc? +mc.getAttribute('count') : 0;
+      out.merges=A(d.getElementsByTagName('mergeCell')).map(function(m){ return m.getAttribute('ref'); });
+      var sv=one(d,'sheetView'), ps=one(d,'pageSetup'), pr=one(d,'pageSetUpPr'), po=one(d,'printOptions');
+      out.page={grid:sv? sv.getAttribute('showGridLines') : null, fitToPage:pr? pr.getAttribute('fitToPage') : null, orientation:ps? ps.getAttribute('orientation') : null,
+        fitToWidth:ps? ps.getAttribute('fitToWidth') : null, fitToHeight:ps? ps.getAttribute('fitToHeight') : null, centred:po? po.getAttribute('horizontalCentered') : null};
+      out.house=[d.getElementsByTagName('tabColor').length, d.getElementsByTagName('headerFooter').length];
+      return out; });
+    return JSON.stringify({order:order, bad:bad, cnt:cnt, codes:codes, xfs:xfs, fills:fills, sheets:sheets,
+      types:parts['[Content_Types].xml']||''});
+  }catch(e){ return JSON.stringify({err:String((e&&e.message)||e)}); } })()`));
+  const SH = R.sheets || [];
+  chk(name, 'the workbook', 'fdcSheets lays it out and buildXlsx writes it: every part is XML another program reads',
+    J([R.err || '', R.bad]), J(['', []]));
+  chk(name, 'the sheets', 'the model’s sheets, by its names, in its order: Summary, then USAF', J(SH.map(s => s.name)), J(['Summary', 'USAF']));
+  // ---- every cell, value and look ----
+  const lookOf = s => (R.xfs || [])[s] || 'no style ' + s;
+  MODEL.sheets.forEach((m, si) => {
+    const got = SH[si] || { rows: [], merges: [], cols: [], page: {}, kids: [], house: [] }, want = expect(m);
+    chk(name, m.name, 'its rows are the ones the layout makes, in order: the marking, two titles, a blank, ' + (m.kind === 'summary' ? 'the corner and the band over the years, ' : '')
+      + 'the headings, every row of the model, a blank and the footer', J(got.rows.map(r => r.r)), J(want.rows.map(r => r.r)));
+    want.rows.forEach(w => {
+      const g = got.rows.find(r => r.r === w.r) || { r: null, cells: [] };
+      chk(name, m.name + ' row ' + w.r, 'the row is there, and every cell: its value and its look -- fill, font, border, number format, alignment',
+        J([g.r, g.cells.map(c => [c.ref, c.v, lookOf(c.s)])]), J([w.r, w.cells]));
+    });
+    chk(name, m.name, 'the merges: the marking and both titles across the table' + (m.kind === 'summary' ? ', the band over the years' : '') + ', the footer’s marking centred on the page',
+      J([got.merges, got.mcount]), J([want.merges, want.merges.length]));
+    chk(name, m.name, 'row heights: the titles 36 and 30 points' + (m.kind === 'summary' ? '' : ', the separator 9') + ', nothing else set',
+      J(got.rows.filter(r => r.ht !== null).map(r => [r.r, r.ht, r.custom])), J(want.rows.filter(r => r.ht).map(r => [r.r, r.ht, '1'])));
+    chk(name, m.name, 'column A 52 wide, the six years and the FYDP total 13 each', J(got.cols), J([[1, 1, 52, '1']].concat(COLS.map((c, j) => [j + 2, j + 2, 13, '1']))));
+    chk(name, m.name, 'printed as a slide: no gridlines, landscape, one page wide and one tall, centred', J(got.page),
+      J({ grid: '0', fitToPage: '1', orientation: 'landscape', fitToWidth: '1', fitToHeight: '1', centred: '1' }));
+    chk(name, m.name, 'no house style: no tab colour, no house footer', J(got.house), J([0, 0]));
+    chk(name, m.name, 'the parts of the sheet in the order the schema demands (Excel refuses a part out of order)', J(got.kids),
+      J(['sheetPr', 'sheetViews', 'cols', 'sheetData', 'mergeCells', 'printOptions', 'pageMargins', 'pageSetup']));
+    const cellsOut = got.rows.flatMap(r => r.cells.map(c => [r.r, c.ref])).filter(([r, ref], i, a) => {
+      const col = ref.charCodeAt(0), row = +ref.slice(1), prev = i && a[i - 1][0] === r ? a[i - 1][1].charCodeAt(0) : 0;
+      return row !== r || col <= prev; });
+    const ncell = got.rows.reduce((a, r) => a + r.cells.length, 0);
+    chk(name, m.name, 'every cell sits in its own row, in column order (Excel calls anything else damaged) -- and there are cells',
+      J([ncell > 0, cellsOut]), J([true, []]));
+    chk(name, m.name, 'every cell’s style is one the stylesheet declares -- and there are cells',
+      J([ncell > 0, got.rows.flatMap(r => r.cells.filter(c => !(c.s >= 0 && c.s < (R.xfs || []).length)).map(c => c.ref))]), J([true, []]));
+    // the claims a reader makes of the sheet, one by one
+    chk(name, m.name, 'the CUI marking above the title and in the footer row', J([(got.rows[0] || { cells: [] }).cells.map(c => c.v),
+      (got.rows[got.rows.length - 1] || { cells: [] }).cells.map(c => c.v)]), J([[MODEL.marking], [MODEL.footer, MODEL.marking]]));
+  });
+  // ---- the claims a reader makes, typed out ----
+  const cellAt = (sheet, ref) => { for (const r of ((SH.find(s => s.name === sheet) || {}).rows || [])) for (const c of r.cells) if (c.ref === ref) return [c.v, lookOf(c.s)]; return null; };
+  chk(name, 'Summary B11', 'BES28 O&M Controls in FY27 (no position logged) prints “—”, never $0, and its FYDP total still adds FY28–32',
+    J([cellAt('Summary', 'B11') && cellAt('Summary', 'B11')[0], cellAt('Summary', 'H11') && cellAt('Summary', 'H11')[0]]), J(['—', 3937001000 + 4177002000 + 4712003000 + 4813004000 + 4895005000]));
+  chk(name, 'Summary H20', 'Prod Support Controls has no FY29 position, inside the FYDP: its total is “—”, not the four years it has',
+    J(cellAt('Summary', 'H20') && cellAt('Summary', 'H20')[0]), J('—'));
+  chk(name, 'Summary C15', 'a shortfall is stored as the negative whole dollars it is, and its format shows millions, red in parentheses',
+    J(cellAt('Summary', 'C15') && [cellAt('Summary', 'C15')[0], cellAt('Summary', 'C15')[1].fmt, Number.isInteger(cellAt('Summary', 'C15')[0])]), J([-547200000, MONEY, true]));
+  chk(name, 'Summary C21', 'a positive delta is stored positive, black under the same format', J(cellAt('Summary', 'C21') && cellAt('Summary', 'C21')[0]), J(41000002));
+  chk(name, 'Summary A15', 'the delta line sits under a heavy black rule, across the whole row', J(['A', 'B', 'H'].map(c => { const x = cellAt('Summary', c + '15'); return x && x[1].border && x[1].border.top; })),
+    J(['medium:FF000000', 'medium:FF000000', 'medium:FF000000']));
+  chk(name, 'Summary C16', '% Funded holds the fraction and shows it as 0%', J(cellAt('Summary', 'C16') && [cellAt('Summary', 'C16')[0], cellAt('Summary', 'C16')[1].fmt]), J([0.878, PCT]));
+  chk(name, 'Summary A3', 'an imported label holding < reads back as typed, and the band holding & reads O&M', J([cellAt('Summary', 'A3') && cellAt('Summary', 'A3')[0], cellAt('Summary', 'A7') && cellAt('Summary', 'A7')[0]]),
+    J(['2025 ACE <rev 2> / BES28', 'O&M']));
+  chk(name, 'USAF row 5', 'a service sheet’s heading row is light blue (9BC2E6) with black bold text, not the Summary’s navy',
+    J(cellAt('USAF', 'A5') && [cellAt('USAF', 'A5')[1].fill, cellAt('USAF', 'A5')[1].font.color, cellAt('USAF', 'A5')[1].font.b]), J(['FF9BC2E6', 'FF000000', 1]));
+  chk(name, 'USAF row 12', 'the separator between sections is dark grey (404040), 9 points tall, across the table',
+    J([((SH[1] || { rows: [] }).rows.find(r => r.r === 12) || {}).ht, ['A', 'H'].map(c => { const x = cellAt('USAF', c + '12'); return x && x[1].fill; })]), J([9, ['FF404040', 'FF404040']]));
+  chk(name, 'every cell', 'every cell of the workbook is Arial', J([...new Set(SH.flatMap(s => s.rows.flatMap(r => r.cells.map(c => (lookOf(c.s).font || {}).name))))]), J(['Arial']));
+  // ---- the stylesheet and the package ----
+  chk(name, 'styles', 'every count the stylesheet declares (number formats, fonts, fills, borders, cell styles) is what it holds',
+    J([Object.keys(R.cnt || {}), Object.keys(R.cnt || {}).filter(k => !R.cnt[k] || R.cnt[k][0] !== R.cnt[k][1])]), J([['numFmts', 'fonts', 'fills', 'borders', 'cellXfs'], []]));
+  chk(name, 'styles', 'the money format and the percent are each declared once, shared by every style that uses them',
+    J([(R.codes || []).filter(c => c === MONEY).length, (R.codes || []).filter(c => c === PCT).length]), J([1, 1]));
+  const fl = (R.fills || []).filter(Boolean);
+  const worn = [...new Set(SH.flatMap(s => s.rows.flatMap(r => r.cells.map(c => lookOf(c.s).fill)).filter(Boolean)))].sort();
+  chk(name, 'styles', 'the cells wear four fills -- navy, the separator grey, light blue, the service blue -- and no fill colour is declared twice, however many styles wear it',
+    J([worn, fl.length > 0 && fl.length === new Set(fl).size]), J([['FF1F3864', 'FF404040', 'FF8DB4E2', 'FF9BC2E6'], true]));
+  chk(name, 'package', 'the parts in Excel’s order: content types, relationships, the workbook and its links, the styles, then each sheet',
+    J(R.order), J(['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml']));
+  chk(name, 'package', 'each sheet is declared in the content types', J([1, 2].map(i => (R.types || '').indexOf('PartName="/xl/worksheets/sheet' + i + '.xml"') >= 0)), J([true, true]));
+  // CONTROL: the writer's new options are opt-in -- an ordinary sheet that asks for none is written as before: no sheetPr,
+  // no page, gridlines shown, Calibri
+  const plain = JSON.parse(ev(`(function(){ var u=buildXlsx([{name:'P', cols:[10], rows:[[{v:'a',s:1}],[12]]}]), dv=new DataView(u.buffer, u.byteOffset, u.byteLength), at=0, td=new TextDecoder(), o={};
+    while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){ var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+      o[td.decode(u.subarray(at+30,at+30+nl))]=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); at+=30+nl+xl+sz; }
+    var s=o['xl/worksheets/sheet1.xml']; return JSON.stringify([/sheetPr|pageSetup|printOptions|showGridLines|ht=/.test(s), /Arial/.test(o['xl/styles.xml'])]); })()`));
+  chk(name, 'CONTROL · an ordinary sheet', 'a sheet that asks for no page, gridlines or heights is written without them, in Calibri', J(plain), J([false, false]));
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 160);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.10 B ====
 
 {
