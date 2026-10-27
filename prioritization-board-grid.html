@@ -2761,8 +2761,10 @@ const SANDBOX = !!(PMODE && PMODE.sandbox);
 const SIDE_SFX=SANDBOX? '-pmo'+(PMODE.ts||0) : '';
 const EXDB_KEY='prio27execdb'+SIDE_SFX, ACEDB_KEY='prio27acedb'+SIDE_SFX, BUDDB_KEY='prio27buddb'+SIDE_SFX, RPDB_KEY='prio27reprog'+SIDE_SFX;
 // v2.09 (item 127): the office set in this page ({g, ok}: ok when browser storage took it too), so a browser whose storage
-// refuses still submits and saves for the office it was told -- myPmo() reads it before storage only then. Declared this
-// early: a copy adopts its file's office as it opens, before the board is drawn.
+// refuses still submits and saves for the office it was told. v2.09 review: and whatever storage holds -- once this page has
+// an office of its own, chosen here or adopted from the work it opened, myPmo() reads it and not the browser's setting, which
+// every page opened from file:// shares (see myPmo). Declared this early: a copy adopts its file's office as it opens,
+// before the board is drawn.
 let _pmoMem=null;
 // A copy cannot move money (allocLocked, v1.84), so it does not offer to. The controls are found by
 // the writer they call, which is the same in every panel that draws one.
@@ -7865,6 +7867,37 @@ function bootTakeFile(){
   persist(); DIRTY=false; if(driveStoreOn()) loadCounted(); render();   // v2.02 (E7, U29): in the folder, it is not the folder's copy
   setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
 }
+// v2.09 review: OPEN THE OFFICE'S FILE AS IT WAS SAVED, IN A PMO COPY, KEEPING THIS BROWSER'S WORK ASIDE FIRST. Two people in one
+// office take turns in one file (Brad, 26 Oct 2026), and Save asks before it writes over the other's newer save. Cancelled, it
+// sent them to open the office's file for the other's version -- and once this browser's work was newer than that save (an
+// edit after it, or only a year switched and back), the copy opened this browser's work over it, said "⬅ Import the file",
+// and ⬅ Import refused the file (a copy's work is opened, never imported). Every way out ended at OK on the HOLD ON, which
+// wrote over the colleague's work. This is the way out the opening line offers: the work on screen is kept aside whole, to be
+// put back any time, and the file's own save opens. Other work already kept aside, or no room to keep it: nothing changes.
+function pmoTakeFile(){
+  if(!SANDBOX || !(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
+  if(cycBlock('Opening the file\u2019s version')) return;
+  // not while a save is under way: one that lands afterwards records the bytes it wrote as the save the work came from (bootTakeFile's rule)
+  if(_saveBusy){ setStat('\u23f3 The file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save has landed.'); return; }
+  const off=pmoForOf(PUB), by=PUB.by||'', ts=+(PUB.ts||0);
+  if(!confirm('Open '+(off? off+'\u2019s file' : 'the file')+' as it was saved'+(by? ' by '+by : '')+' '+fmtTs(ts)+'?\n\n'
+    +'What is on screen now is kept aside in this browser first, not lost: put it back any time from History & recovery.')) return;
+  const ka=keepAside(MS, {why:'file', by:by, ts:ts}, baseGet());
+  if(ka==='occupied'){ setStat(keptOccupiedMsg(by, ts, 'the saved file')+' Then choose <b>open the file\u2019s version</b> again.'); render(); return; }
+  if(ka!==true){
+    setStat('\u26a0 The file\u2019s version was <b>not opened</b>: there is no room in this browser to keep what is on screen aside first, '
+      +'so nothing was changed. \u2b07 Save a copy of yours first (\u25be beside \ud83d\udcbe Save), then open the file\u2019s version.');
+    render(); return;
+  }
+  if(applyStore(PUB)===false) return;
+  LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+  pmoAdopt();      // the office of the work now on screen
+  persist(); DIRTY=false; _bootMoved=0; render();
+  try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
+  setStat('\ud83d\udce6 Opened '+(off? '<b>'+esc(off)+'</b>\u2019s file' : 'the file')+' as it was saved'+(by? ' by <b>'+esc(by)+'</b>' : '')+' '+esc(fmtTs(ts))
+    +'. What was on screen is <b>kept aside</b>, not lost: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> '
+    +'(or from History &amp; recovery, any time).');
+}
 function buildSavedHtml(opts){
   if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
@@ -8177,10 +8210,16 @@ function publishPmoCopy(){
 // A submittal carries ONE office's requirements. That office is chosen in the copy, kept in the
 // browser like the editor name, and shown in the banner the whole time somebody is working -- not
 // asked for once at the end, where a wrong answer is discovered after the work is done.
-// v2.09 (item 127): storage first, as it always was -- unless storage refused the office this page was last told, which then
-// stands for as long as the page is open (_pmoMem): a full browser kept submitting for the office before.
-function myPmo(){ let v=''; try{ v=localStorage.getItem('prio27pmo')||''; }catch(e){ v=''; }
-  return (_pmoMem && !_pmoMem.ok)? _pmoMem.g : v; }
+// v2.09 (item 127): kept in this page (_pmoMem) as well as in the browser, so storage refusing the office does not lose it.
+// v2.09 review: THE OFFICE A PAGE HAS IS THAT PAGE'S. The browser's setting ('prio27pmo') is shared by every page opened from
+// file:// -- every copy, every office's file, every tab -- and this read it first on every call, so a page followed whatever
+// another page wrote there: opening AV's file in a second tab re-pointed the first, whose bar still said PSM, and its Add
+// box filed a new requirement under AV inside PSM's file, its Submit was refused for an office nobody chose there, and its
+// Save offered to write PSM's work over AV's own file. The browser's setting is read only while this page has no office of
+// its own -- the copy as published, before anyone in it has chosen -- so the person's own choice still carries to the next
+// copy they open, as it always has.
+function myPmo(){ if(_pmoMem) return _pmoMem.g;
+  let v=''; try{ v=localStorage.getItem('prio27pmo')||''; }catch(e){ v=''; } return v; }
 function pmoMineSet(g){ g=String(g||''); let ok=true; try{ localStorage.setItem('prio27pmo', g); }catch(e){ ok=false; } _pmoMem={g:g, ok:ok}; }
 // ── WHICH OFFICE A COPY'S WORK WAS SAVED FOR (v2.09, item 127) ────────────────────────────────────────────────────────
 // Brad, 26 Oct 2026: "They operate out of one PMO Copy. They can save and make edits, but submit one full five year plan" --
@@ -8199,9 +8238,14 @@ function pmoForOf(ms){
 }
 // Opening: the office the work on screen was saved for becomes the office this copy submits for and saves for. The editor
 // name stays the person's own (prio27who): the submittal records who sent it.
+// v2.09 review: IN THIS PAGE ONLY. It wrote the office into the browser's setting, which every copy and every tab reads, so
+// opening one office's file to look at it set the office for all of them: another copy's unsaved work, never saved for any
+// office, then added for, saved for and was marked as the other office's, asking nothing, and its Submit dropped its own
+// office's edits as another's. The file's office is the file's (Brad, 26 Oct 2026: reopening adopts the office the file was
+// saved for); only the person's own choice (pickMyPmo, the Add box) writes the browser's setting, as in v2.08.
 function pmoAdopt(){
   const g=pmoForOf(MS);
-  if(g && myPmo()!==g) pmoMineSet(g);
+  if(g) _pmoMem={g:g, ok:true};
 }
 // Submit sends for the office the work was saved for, and no other: chosen another office since, this work is still that
 // office's, and the package would carry it under the wrong name. Nothing is sent, and both ways out are said.
@@ -9842,6 +9886,15 @@ async function _saveInPlaceFileRun(){
     let txt;
     try{ txt=await (await h.getFile()).text(); }
     catch(e){
+      // v2.09 review: A BOARD FILE NO LONGER WHERE IT WAS SAVED (moved, renamed or deleted): the handle is forgotten, so the next
+      // Save asks where it is, as the copy's Save now does. Kept, every Save failed with "if it is syncing, try again" and the
+      // picker never opened again in this browser. Nothing is written; the file picked next is read and checked before any write.
+      if(e && e.name==='NotFoundError'){
+        FH=null; try{ _fhPut(null); }catch(e2){}
+        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is no longer where it was saved (moved, renamed or deleted), so nothing was '
+          +'written. Press 💾 Save again: it asks where the board file is now — pick it there.');
+        return;
+      }
       setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” could not be read to check whether anyone saved it after you ('
         +esc((e&&e.message)||String(e))+'), so it was not written over. If it is syncing, try again in a moment, or use '
         +'<b>⬇ Save a copy</b>.');
@@ -9944,6 +9997,7 @@ function publishState(){
     +'<button type="button" class="nb lnk" onclick="publishJson()">Or download the .json state file</button> (advanced, for the state-file workflow).');
 }
 function publishJson(){
+  if(sandboxBlock('Downloading the state file')) return;   // v2.09 review: a copy's plan as a state file is the board's ⬅ Import's to take
   if(cycBlock('Downloading the state file')) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(MS)],{type:'application/json'}));
@@ -10047,6 +10101,16 @@ async function _pmoSaveCopyRun(off){
     let txt;
     try{ txt=await (await h.getFile()).text(); }
     catch(e){
+      // v2.09 review: A FILE NO LONGER WHERE IT WAS SAVED -- moved to another folder, renamed or deleted -- is not one to wait for:
+      // the handle names a place with nothing in it. Kept, every later Save failed the same way, in this tab and after a reopen
+      // (the handle is in this browser's store), and never asked where the file is now. It is forgotten, so the next Save asks;
+      // nothing is written over a file that was not read, and the file picked next is checked as any first Save's is.
+      if(e && e.name==='NotFoundError'){
+        pmoFhForget(k);
+        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||'that file')+'” is no longer where it was saved (moved, renamed or deleted), so nothing '
+          +'was written. Press 💾 Save again: it asks where '+esc(off)+'’s file is now — pick it there, or make a new one.');
+        return;
+      }
       setStat('⛔ <b>Not saved.</b> “'+esc(h.name||'that file')+'” could not be read to check that it is '+esc(off)+'’s file ('
         +esc((e&&e.message)||String(e))+'), so it was not written over. If it is syncing, try again in a moment, or use <b>⬇ Save a copy</b>.');
       return;
@@ -10069,9 +10133,18 @@ async function _pmoSaveCopyRun(off){
         const q=LASTKNOWN
           ? '⚠ HOLD ON — '+by+' saved '+off+'’s file at '+fmtTs(fts)+'. That is not the save the copy you are working from came from, so their changes are not on your screen.'
           : '⚠ HOLD ON — '+off+'’s file was last saved by '+by+' at '+fmtTs(fts)+', and this browser cannot tell whether that was before or after the copy you are working from.';
+        // v2.09 review: the way out Cancel names has to work. Opening the file again opens this browser's newer work over it,
+        // so its opening line offers the file's own version, keeping this browser's work aside first (pmoTakeFile) -- unless other
+        // work is kept aside already, which is never replaced: then that is dealt with first, and Cancel says so.
+        const kept=!!_keptMeta;
         if(!confirm(q+'\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\n'
-          +'Cancel — don’t save (open '+off+'’s file to pick up their changes first).')){
-          setStat('Save canceled — '+esc(by)+'’s changes are untouched. Open '+esc(off)+'’s file to load their version, then redo your edits.');
+          +'Cancel — don’t save (open '+off+'’s file again to pick up their changes first'+(kept? '' : ', keeping yours aside')+').')){
+          setStat('Save canceled — '+esc(by)+'’s changes are untouched. To load their version, open '+esc(off)+'’s file again'
+            +(kept? '. This browser already keeps other work aside, and kept work is never replaced, so deal with it first: '
+                +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> · '
+                +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> · '
+                +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.'
+              : ': if this browser’s work opens instead, its opening line offers <b>open the file’s version</b>, which keeps yours aside first, to put back any time.'));
           return;
         }
       }
@@ -10420,6 +10493,11 @@ function pkgPut(ap, st){
 
 // ---------------------------------------------------------------- issue (consolidated -> manager)
 function pkgIssue(ap, quiet){
+  // v2.09 review: NOT FROM A PMO COPY (Brad, 26 Oct 2026: "Import of a PMO Copy can only be through the PMO import screen"). A copy's
+  // package carried its whole plan -- another office's requirements as the office had edited them, and the allocations as published
+  // -- and the board's ⬅ Import replaced the appropriation with it, none of the review a submittal gets. Refused here, as every way
+  // a copy's work leaves it except ✉ Submit input is (sandboxBlock).
+  if(sandboxBlock('Issuing a package')) return;
   // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
   if(cycBlock('Issuing a package')) return;
   if(destOwnBlock('Issuing the '+(PKG_NAMES[ap]||ap)+' package')) return;   // v2.00 (U44): before the ledger moves
@@ -10482,6 +10560,7 @@ function pkgIssue(ap, quiet){
 // Hand every appropriation this board holds to its manager at once. The per-appropriation issue
 // is unchanged and still the way to re-issue a single one later; this is the one-time seeding.
 function pkgPushAll(){
+  if(sandboxBlock('Pushing baselines to the managers')) return;   // v2.09 review: as pkgIssue, before a package is staggered out
   if(cycBlock('Pushing baselines to the managers')) return;   // v2.00 (U10): as pkgIssue
   const all=APPN_SLUGS;
   const have=all.filter(function(ap){ return !!pkgPackOf(ap); });
@@ -10537,6 +10616,7 @@ function pkgPushAll(){
 // so it carries no signature: the receiving board reads its own journal to say what it changed in
 // the meantime (pkgMineSince), and the ledger number the file carried keeps a newer issue in charge.
 function pkgSendBack(ap){
+  if(sandboxBlock('Sending a package back')) return;   // v2.09 review: as pkgIssue -- a copy's work goes back as its ✉ Submit input
   if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
   const nm=PKG_NAMES[ap]||ap;
   const st=pkgStoreOf(ap);
@@ -10559,6 +10639,7 @@ function pkgReturnable(){
   return (p&&p.ap===mySlug())? p : null;
 }
 function pkgReturn(){
+  if(sandboxBlock('Saving a return package')) return;   // v2.09 review: as pkgIssue
   if(cycBlock('Saving a return package')) return;   // v2.00 (U10): as pkgIssue -- it returned the cycle on screen as the work
   if(destOwnBlock('Sending the '+(PKG_NAMES[mySlug()]||mySlug())+' return package')) return;   // v2.00 (U44): its consolidated board refuses it
   const src=pkgReturnable();
@@ -10706,6 +10787,15 @@ function pkgBody(){
   const el=document.getElementById('pkgBody');
   if(!el) return;
   if(!pkgOpen){ el.innerHTML=''; return; }
+  // v2.09 review: in a PMO copy the panel offered ⬆ Send back -- "Were you sent this whole file to work on one appropriation? Use
+  // ⬆ Send back" -- and ⬆ Issue, each a package of the copy's whole plan that the board took at ⬅ Import. Every package writer
+  // refuses in a copy now (sandboxBlock), and the panel says where an office's work goes instead.
+  if(SANDBOX){
+    el.innerHTML='<div class="hint">Appropriation packages are the portfolio team’s: they hand an appropriation to its manager '
+      +'and take it back. A PMO copy issues, sends back and pushes none. Your office’s work goes to the portfolio team as '
+      +'<b>✉ Submit input</b>, at the foot of the left menu, and they review it field by field before anything is applied.</div>';
+    return;
+  }
   const cons=pkgIsCons();
   let h='';
 
@@ -10775,6 +10865,7 @@ function pkgApply(pkg, fname){
   if(!pkg || pkg.spmtPkg!==PKG_VER || !pkg.ap || !pkg.ms){
     alert('That is not an ORBIT appropriation package.'); return false;
   }
+  if(pkgCopyRefuse(pkg, fname)) return false;     // v2.09 review: a PMO copy comes in only through the PMO import screen
   // v2.00 (item 99): the appropriation is a KEY here (PUBS, _SLUGMAP, the ledger), so it has to be one of this board's own.
   // An unknown code reached the status line as the package's own text, and __proto__ handed back Object.prototype as
   // the store, whose ledger then wrote .sync onto every object in the page. Every real package names om, ff, sp or opn.
@@ -11697,13 +11788,42 @@ function pmoCopyRefuse(fname, txt, tail){
   const why=pmoCopyWhy(txt); if(!why) return false;
   const c=pmoCopyOfText(txt), who=c.pmo || 'the office';
   alert('“'+fname+'” was not imported: '+why+(tail||'')+'.\n\n'
-    +(SANDBOX? 'A copy’s work is never imported into another copy. Open that file itself to carry on in it; ✉ Submit input sends its work to the portfolio team.'
+    // v2.09 review: this copy's own file for an office says how its saved version is reached -- reopened, it may open this
+    // browser's newer work instead, and then its opening line offers the file's own version, this browser's work kept aside
+    +(SANDBOX? (c.ts===(+((PMODE&&PMODE.ts)||0)) && c.ap===String((PMODE&&PMODE.ap)||'') && c.pmo
+        ? 'It is this copy’s own file for '+c.pmo+', and a copy’s file is opened, never imported. Open that file itself to carry on in it: if this '
+          +'browser’s newer work opens instead, its opening line offers to open the file’s version, keeping this browser’s work aside first.'
+        : 'A copy’s work is never imported into another copy. Open that file itself to carry on in it; ✉ Submit input sends its work to the portfolio team.')
       : 'A PMO copy comes in only through the PMO import screen: ask '+who+' for its ✉ Submit input file and load it under '
         +'Program offices \u203a Review submittals\u2026 \u2014 every field is reviewed there before anything is applied. Taken here, a copy would replace '
         +'this board’s plans — and its locked cycles, which a copy carries only as a reference — with none of that review.')
     +'\n\nNothing '+(SANDBOX? 'in this copy' : 'on this board')+' was changed.');
   setStat('⚠ Nothing imported — “'+esc(fname)+'” '+esc(why)+'. '
     +(SANDBOX? 'Open it itself to work in it.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices \u203a Review submittals\u2026.'));
+  return true;
+}
+// v2.09 review: AN APPROPRIATION PACKAGE WRITTEN IN A PMO COPY is the same door by another name. A copy no longer writes one
+// (pkgIssue and the rest refuse in a copy), but a copy published before this one still offers ⬆ Send back and ⬆ Issue, and its
+// package replaced the appropriation here -- the copy's whole plan, another office's requirements as edited there and the
+// allocations as published -- after a question that never said it came from a PMO copy. Known by what it carries: work saved
+// for an office (pmoFor, which the board itself never keeps), or the PMO COPY stamp every file a copy writes is named with.
+function pkgCopyWhy(pkg, fname){
+  const g=pmoForOf(pkg && pkg.ms);
+  if(g) return 'it is a package written in a PMO copy, holding '+g+'’s work';
+  if(/\[PMO COPY \d{4}-\d\d-\d\d\]/.test(String(fname||''))) return 'it is a package written in a PMO copy (its name says so)';
+  return '';
+}
+function pkgCopyRefuse(pkg, fname){
+  const why=pkgCopyWhy(pkg, fname); if(!why) return false;
+  const who=pmoForOf(pkg && pkg.ms) || 'the office', head='“'+fname+'” was not imported: '+why;
+  alert(head+'.\n\n'
+    +(SANDBOX? 'A copy’s work is never imported into another copy; ✉ Submit input sends it to the portfolio team.'
+      : 'A PMO copy comes in only through the PMO import screen: ask '+who+' for its ✉ Submit input file and load it under '
+        +'Program offices › Review submittals… — every field is reviewed there before anything is applied. Taken here, the copy’s '
+        +'package would replace this appropriation with the office’s copy of it, other offices’ requirements and all, with none of that review.')
+    +'\n\nNothing '+(SANDBOX? 'in this copy' : 'on this board')+' was changed.');
+  setStat('⚠ Nothing imported — “'+esc(fname)+'” '+esc(why)+'. '
+    +(SANDBOX? '✉ Submit input sends a copy’s work.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices › Review submittals….'));
   return true;
 }
 // ==============================================================================================================
@@ -11962,7 +12082,12 @@ function fullImportRescue(which){
 // board as it was. So saving in place and to the shared folder is refused until the person says the board on
 // screen is the one to keep. The mark is kept in browser storage as well, so a reload does not lift it (best
 // effort: storage was refusing writes, and then only this page holds it). ⬇ Save a copy is never refused.
-const IMP_MIXED_KEY='prio27impMixed';
+// v2.09 review: SEALED TO A PMO COPY, as its plan, its cycles and its side lists are (SIDE_SFX; '' on the board, whose mark and
+// behaviour are unchanged). A copy opened in the portfolio team's browser read the board's own mark: it opened on the board's
+// hold, its 💾 Save was refused for a mix in lists it never reads or writes, and it offered "allow saving again…" -- which,
+// clicked there, lifted the board's hold, so the board's next Save wrote the mix over the one whole copy the hold protected.
+// A copy never takes a full import, so a hold it reads is the board's; now it never reads, shows or clears one but its own.
+const IMP_MIXED_KEY='prio27impMixed'+SIDE_SFX;
 // A LATER IMPORT THAT LANDS WHOLE LIFTS THE HOLD (v1.95, review): once every list a stopped import left mixed has been
 // written again, all or nothing, storage holds no mix. The board's own message says to free some storage and import
 // again; doing that left Save refused, and the next opening said the import had stopped part-way, until the hold was
@@ -35779,11 +35904,23 @@ if(_bootRestoreErr){
   setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
     +'. This browser held work that no saved copy had; it is <b>kept aside</b>, not lost: '
     +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).');
+} else if(_bootMoved && SANDBOX && !pmoForOf(PUB)){
+  // v2.09 review: THE COPY AS IT WAS PUBLISHED, opened in a browser whose work was last saved to the office's own file. It said the
+  // file "has been saved since then as well -- by BLL" at the publish time, beside a save state reading Saved: the copy as
+  // published is older than the office's file, and nobody saved it since. What is true is said instead.
+  _bootSaid=true;
+  setStat('\u25e8 Opened <b>this browser\u2019s copy</b> of '+(pmoForOf(MS)? '<b>'+esc(pmoForOf(MS))+'</b>\u2019s' : 'your office\u2019s')+' work. '
+    +'This file is the PMO copy as it was published'+(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()) : '')
+    +', which every office opens; the work was last saved to a file of its own, and \ud83d\udcbe Save writes it there.');
 } else if(_bootMoved){
   _bootSaid=true;
   setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '
     +'since then as well \u2014 by <b>'+esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))+' \u2014 and what is on screen '
-    +'does not have those changes. \ud83d\udcbe Save will ask before it writes over them; to take theirs instead, \u2b05 Import the file.');
+    +'does not have those changes. \ud83d\udcbe Save will ask before it writes over them; to take theirs instead, '
+    // v2.09 review: a copy refuses ⬅ Import of a copy's file (its work is opened, never imported), so it offers the file's own
+    // version, keeping this browser's work aside first (pmoTakeFile)
+    +(SANDBOX? '<button type="button" class="nb lnk" onclick="pmoTakeFile()">open the file\u2019s version</button> \u2014 what is on screen is kept aside first, not lost.'
+             : '\u2b05 Import the file.'));
 } else if(_impRep){                         // what a full import brought, now that it is open
   statKeep(_impRep); _impRep=null; _impSaid=true;   // v2.03 (item 19): the import's report stays until it is read
 } else if((function(){ try{ return attLists().awfix.length; }catch(e){ return 0; } })()){
