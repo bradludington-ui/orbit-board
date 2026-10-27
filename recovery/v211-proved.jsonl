@@ -54,3 +54,15 @@
 {"id": "v210-b-titles-unmerged", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
 {"id": "v210-b-titles-short", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
 {"id": "v210-b-over-unmerged", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-over-fill-stops", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-corner-size", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-summary-head-blue", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-head-left", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-gap-dropped", "verdict": "CAUGHT", "fails": ["15"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-band-black-text", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-total-band-light", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-band-fill-stops", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-sep-full-height", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-gridlines-on", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-pages-tall", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
+{"id": "v210-b-no-page", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-e20545f6.mjs", "detail": ""}
