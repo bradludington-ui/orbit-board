@@ -118,3 +118,20 @@ The A-1 skeptic's residual -- a service renamed in Setup to a name in no group a
 reaches the Summary only; the box names it, the workbook carries no note, so a service tab can print $0 controls with nothing to
 say why -- is the owner's call, put to him with the ship notes. The WB-1 skeptic's note (the house style's indents carry no
 horizontal alignment either, since v2.04) is older than v2.10 and is logged.
+
+### The second skeptics (on 72b56db, `wf_0d3ccbac-c7a`)
+
+Two skeptics re-checked the strict reading: one for the fix on every route (jsdom, Chromium with a stand-in folder and with a real
+origin-private folder, 96 cases each way), one for what it could break (the five-year plan, ordinary folder mode, folder mode off,
+the whole box in Chromium at 1366 and 1920). Both confirmed it; the five-year plan was identical in all 34 folder situations.
+One minor problem, introduced by it, fixed:
+- **With no readable appropriation logging a position, the box said "No PPBE position is logged for O&M, Full Fund or Initial
+  Spares" of a Full Fund it had not read**, and named no unreadable copy (fdcState tested for no cycles before it looked at a
+  store's `why`, and the notes that would name it run only once a model is built). Now an unreadable appropriation is left out of
+  that list and named with why ("Full Fund’s controls cannot be read here (…)"). Check: part 5 of the A-3 block (two checks,
+  failing on 72b56db). Mutations `v210-rv-a-unread-listed-as-none`, `v210-rv-a-unread-unsaid`.
+- **The note's wording** nested the browser's and the parser's messages three brackets deep; it is said in a few words now
+  ("could not be opened (it may be syncing)", "is cut short or damaged", "is not a saved board"). Part 4's patterns follow.
+- Notes, not changed: a same-build copy with a future LIVE_VER and no `store` would read "is not a saved board" (it cannot arise:
+  a newer build is refused first); and the workbook gives no reason for an appropriation's dashes (item 131).
+- `proofs-RV-a3.json` / `proved-RV-a3.jsonl`: the two new mutations, the four strict ones, and fdcState's two older ones.

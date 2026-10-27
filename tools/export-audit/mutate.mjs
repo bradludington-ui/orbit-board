@@ -8516,6 +8516,13 @@ const MUTATIONS = [
   { id: 'v210-rv-a-strict-none-unreadable', area: "fydpStoreFolder", what: "an appropriation with no copy in the shared folder is said to be unreadable there, rather than read from this browser",
     find: "if(strict && !(e && e.name==='NotFoundError')) return bad(",
     repl: "if(strict) return bad(" },
+  // the second skeptic's route (after 72b56db): nothing readable logs a position, and Full Fund's copy cannot be read
+  { id: 'v210-rv-a-unread-listed-as-none', area: "fdcState", what: "an appropriation whose shared-folder copy could not be read is said to log no PPBE position",
+    find: "const who=unread.length? or(read) : 'O&M, Full Fund or Initial Spares';",
+    repl: "const who='O&M, Full Fund or Initial Spares';" },
+  { id: 'v210-rv-a-unread-unsaid', area: "fdcState", what: "with no position readable, the appropriation whose copy could not be read is not named",
+    find: "+(said? ' '+said : '');",
+    repl: ";" },
   // ==== end v2.10 A ====
 
   // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====

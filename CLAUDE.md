@@ -4728,7 +4728,8 @@ What it leaves for the next change:
 - **Another appropriation is read as its own board opens it**, the shared folder's copy when newer (`fdcFolderRead` →
   `fydpWhen(fydpStoreFolder(k, loc, true))`), and the box states no figure until the folder has answered (Export waits for the
   same answer). **`strict`: only NotFoundError means "no copy there"** -- a copy mid-sync, cut short or not a board names that
-  appropriation and prints —, as `driveStoreRead` reads it. The five-year plan still calls it without `strict` (item 131).
+  appropriation and prints —, as `driveStoreRead` reads it, and an appropriation not read is never listed among those that log
+  no position. The five-year plan still calls it without `strict` (item 131).
 - **A redraw on a change event waits when a pointer is moving the keyboard.** Chromium fires `change` on the field being left
   before the click's focus lands; redrawn then, the box controller hands the keyboard back to the field just left and the next
   figure goes in the wrong year. `fdcIntlSet` stores the figure at once and defers the box's writes (`setTimeout 0`) when the
@@ -4744,8 +4745,8 @@ What it leaves for the next change:
 controls; nothing stored), "v2.10 B" (the workbook read back from the bytes, every cell's look), the end-to-end export, and
 the review's four blocks (A-1 adding the sheets up, both ways round; A-2; A-3 with a stand-in folder, part 4 a copy that
 cannot be read; WB-1). Browser: layout-fits O, keys R, panels, dialogs, left-menu, menu-paths, standards. Money coverage and
-the money map register `exportFdc`. **Mutations:** 131 new (`v210-*`: A 54, B 61, integration 2, review 14), none older retired
-or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`). 2,782 targets.
+the money map register `exportFdc`. **Mutations:** 133 new (`v210-*`: A 54, B 61, integration 2, review 16), none older retired
+or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`). 2,784 targets.
 
 ## Colour: one token, one job
 

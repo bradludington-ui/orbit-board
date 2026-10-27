@@ -1,0 +1,34 @@
+[
+ {
+  "id": "v210-rv-a-unread-listed-as-none",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-unread-unsaid",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-copy-unreadable-falls-back",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-strict-not-a-board-taken",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-strict-none-unreadable",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-folder-fail-falls-back",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-a-cycle-default-newest",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-no-ace-why",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ }
+]

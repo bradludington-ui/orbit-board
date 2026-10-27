@@ -22667,10 +22667,11 @@ function fydpStoreFolder(k, got, strict){
     try{ dir=await driveDir(false,'read'); }
     catch(e){ return {st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+'), so its newest copy is unknown'}; }
     let j=null, none=false;
-    const bad=function(how){ return {st:null, why:'the shared folder’s copy '+how+', so its newest copy is unknown'}; };
+    // said in a few words of its own: the browser's and the parser's messages nested three brackets deep in the box's note
+    const bad=function(how){ return {st:null, why:'the shared folder’s copy '+how}; };
     try{ j=driveParse(await driveRead(dir, driveName((got.st&&got.st.cur)||MS.cur, k))); }
     catch(e){ if(e && e.refused) return {st:null, why:e.message};
-      if(strict && !(e && e.name==='NotFoundError')) return bad('could not be read ('+((e&&e.message)||String(e))+')');
+      if(strict && !(e && e.name==='NotFoundError')) return bad((e && e.name==='SyntaxError')? 'is cut short or damaged' : 'could not be opened (it may be syncing)');
       j=null; none=true; }
     if(strict && !none && !(j && j.store)) return bad('is not a saved board');
     if(!j || !j.store) return got;
@@ -24619,8 +24620,17 @@ function fdcState(opts){
   // v2.10 review (A-3): until the shared folder has answered for an appropriation, nothing is said of its positions
   else if(wait.length) why='Reading the shared folder for '+wait.map(function(s){ return s.name; }).join(' and ')
     +': each is read as its own board opens it, the folder\u2019s copy when that is newer\u2026';
-  else if(!cycs.length) why='No PPBE position is logged for O&M, Full Fund or Initial Spares: FYDP \u203a PPBE Budget Positions\u2026 logs one.';
-  else if(cycs.indexOf(cyc)<0) why='No PPBE position is logged under '+inShow(cyc)+' for O&M, Full Fund or Initial Spares.';
+  // v2.10 review (A-3, the second skeptic): an appropriation whose copy could not be read is never in a list of those that log
+  // no position -- the box has not looked at it -- and is named with why, as the notes name it once a model is built
+  else if(!cycs.length || cycs.indexOf(cyc)<0){
+    const unread=stores.filter(function(s){ return s.why; }), read=stores.filter(function(s){ return !s.why; }).map(function(s){ return s.name; });
+    const or=function(a){ return a.length<2? (a[0]||'') : a.slice(0,-1).join(', ')+' or '+a[a.length-1]; };
+    const said=unread.map(function(s){ return s.name+'\u2019s controls cannot be read here ('+s.why+').'; }).join(' ');
+    const who=unread.length? or(read) : 'O&M, Full Fund or Initial Spares';
+    why=(!read.length)? said
+      : (!cycs.length? 'No PPBE position is logged for '+who+': FYDP \u203a PPBE Budget Positions\u2026 logs one.'
+        : 'No PPBE position is logged under '+inShow(cyc)+' for '+who+'.')+(said? ' '+said : '');
+  }
   return {stores:stores, aces:aces, cycs:cycs, ace:ace, cyc:cyc, why:why, reading:wait.length>0};
 }
 // THE MODEL (the contract's shape). opts: {ace, cyc} to name them, {intl} for the International figures (the box's own,

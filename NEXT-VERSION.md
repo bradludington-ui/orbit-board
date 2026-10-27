@@ -181,7 +181,8 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
 
 #### 131. Found while building v2.10, not built
 Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none is a regression of v2.10's.
-- **A service in no group reaches the Summary only, and the workbook does not say so** (Brad's call). FYDP Disconnects groups
+- **A service in no group reaches the Summary only, and the workbook does not say so** (Brad's call). The same holds for an
+  appropriation whose copy could not be read: its lines print —, and only the box says why. FYDP Disconnects groups
   services by exact name (USAF with ANG and AFRC; STOVL with Full Fund's USMC-B; USMC-C; USN). A service renamed in Setup to
   a name outside those, or a position keyed `usmc-b` or `USMC STOVL`, counts on the Summary only. The box names it ("Counted on the
   Summary only"), but the workbook carries none of the box's notes, so a service tab can print $0 controls with nothing to say
@@ -312,7 +313,9 @@ a mutation; a second skeptic re-checked each fix.
   figure, and Export waits for the same answer. **The skeptic found one route the fix missed** -- a copy in the folder that
   cannot be read at that moment (mid-sync, cut short, not a board) still stood in this browser's copy, or the false claim --
   fixed after the skeptics (`d0c7ab2`): only "no copy there" means none, as the board's own folder read has it; anything else
-  names the appropriation and prints —.
+  names the appropriation and prints —. Two more skeptics re-checked that (96 routes each way; the five-year plan identical in all
+  34 folder situations) and found one minor gap it opened: with no readable appropriation logging a position, the box said none
+  was logged for a Full Fund it had not read. It now names the unreadable one with why, and leaves it out of that list.
 - **WB-1: the indented lines printed flush left in the workbook**: an indent with no horizontal alignment, which Excel does
   not draw. Indented lines are now left-aligned; every other style is unchanged byte for byte.
 - **Logged, not built (item 131):** the A-1 skeptic's ungrouped-service residual (Brad's call), the five-year plan's folder

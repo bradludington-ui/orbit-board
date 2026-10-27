@@ -3374,7 +3374,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // it again. Every figure is the fixture's. On 4c531a0 the block fails 8 checks; the rest pass there (the CONTROLs, and what
 // the fix must keep: no claim of a missing position, the tables once it has answered). Part 4 (the skeptic's route, on e29f128's
 // board): the folder reads but Full Fund's copy in it does not -- mid-sync, cut short, not a board -- with and without a copy in
-// this browser; the six checks fail on e29f128, which took this browser's copy or said Full Fund had no position.
+// this browser; the six checks fail on e29f128, which took this browser's copy or said Full Fund had no position. Part 5 (the
+// second skeptic's, on 72b56db): no readable appropriation logs a position and Full Fund's copy cannot be read -- the box said
+// none was logged for Full Fund; both checks fail on 72b56db.
 {
   const name = 'v2.10 review — FYDP Disconnects: in the shared folder, another appropriation is read as its own board opens it (A-3)';
   try {
@@ -3478,8 +3480,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // logged" while the folder held one. Now each is named, its controls print —, and nothing is guessed -- with or without a
     // copy in this browser.
     const ROUTES = [
-      ['mid-sync', `window.__foldErr='NotReadableError'`, /could not be read \(.+\)/],
-      ['cut short', `window.__fold[${J(FILE)}]=${J(folderTxt.slice(0, Math.floor(folderTxt.length / 2)))}`, /could not be read \(.+\)/],
+      ['mid-sync', `window.__foldErr='NotReadableError'`, /could not be opened \(it may be syncing\)/],
+      ['cut short', `window.__fold[${J(FILE)}]=${J(folderTxt.slice(0, Math.floor(folderTxt.length / 2)))}`, /is cut short or damaged/],
       ['not a board', `window.__fold[${J(FILE)}]=${J(J({ v: 1, ts: 40000 }))}`, /is not a saved board/],
     ];
     for (const [route, plant, how] of ROUTES) for (const here of [true, false]) {
@@ -3487,7 +3489,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       E(B.ev, `${plant}; toggleFdc(); 'ok'`);
       await settle(B);
       const bn = notes(B).filter(t => /^⚠ Full Fund/.test(t));
-      const re = new RegExp('^⚠ Full Fund: its controls cannot be read here \\(the shared folder’s copy ' + how.source + ', so its newest copy is unknown\\), so they print —\\.$');
+      const re = new RegExp('^⚠ Full Fund: its controls cannot be read here \\(the shared folder’s copy ' + how.source + '\\), so they print —\\.$');
       chk(name, 'copy unreadable — ' + route + (here ? ', older copy here' : ', no copy here'),
         'Full Fund’s copy is named as unreadable, its controls print —, and the box neither claims a missing position nor prints this browser’s copy',
         J([bn.length === 1 && re.test(bn[0]), claims(B), (ffRows(B) || [])[0]]), J([true, [], YRS.map(() => null)]));
@@ -3495,6 +3497,19 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       chk(name, 'copy unreadable — ' + route + (here ? ', older copy here' : ', no copy here'),
         'Initial Spares, with no copy in the folder, is read as having none there: no position logged, never unreadable',
         J([notes(B).some(t => /^⚠ Initial Spares has no BES28 position logged/.test(t)), notes(B).some(t => /^⚠ Initial Spares: its controls cannot be read here/.test(t))]), J([true, false]));
+      E(B.ev, `toggleFdc(); 'ok'`);
+    }
+    // ---- 5. nothing readable logs a position, and Full Fund's copy cannot be read (the second skeptic's route) ---------------------
+    // fdcState said "No PPBE position is logged for O&M, Full Fund or Initial Spares" -- of an appropriation it never read. The
+    // appropriation that could not be read is named, with why, and left out of the list of those that log nothing.
+    for (const here of [true, false]) {
+      const B = board(here, true);
+      E(B.ev, `MS.ppbe={}; window.__foldErr='NotReadableError'; toggleFdc(); 'ok'`);
+      await settle(B);
+      chk(name, 'nothing readable' + (here ? ', older copy here' : ', no copy here'),
+        'the box names Full Fund as unreadable and says only O&M and Initial Spares log no position; no model, no claim of Full Fund',
+        J([E(B.ev, `(document.getElementById('fdcWhy')||{}).textContent||null`), E(B.ev, `fdcModel()===null`)]),
+        J(['No PPBE position is logged for O&M or Initial Spares: FYDP › PPBE Budget Positions… logs one. Full Fund’s controls cannot be read here (the shared folder’s copy could not be opened (it may be syncing)).', true]));
       E(B.ev, `toggleFdc(); 'ok'`);
     }
     // the five-year plan keeps its older reading (strict unset): the same mid-sync copy hands back this browser's copy (a CONTROL)
