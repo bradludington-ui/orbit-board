@@ -1527,6 +1527,13 @@ html.ui-on #uiSide #saveState{display:flex;flex-wrap:wrap;background:transparent
 html.ui-on #uiSide #saveState b{color:#fff}
 html.ui-on #uiSide #saveState.dirty b{color:#ffcf70}
 html.ui-on #uiSide #saveState .keptbtn{color:#ffd88a;text-decoration:underline}
+/* v2.09 (item 127): a PMO copy's 💾 Save, above the primary ✉ Submit input -- plain, with the ▾'s edge against the navy (1.4.11) */
+#uiSide .uiSvRow[hidden]{display:none}
+#uiSide #pmoSaveBtn{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;font-size:13px;font-weight:600;
+  border:1px solid #8fa6bb;border-radius:7px;background:transparent;color:#fff;cursor:pointer;padding:0 10px;font-family:inherit}
+#uiSide #pmoSaveBtn:hover,#uiSide #pmoSaveBtn:focus-visible{background:var(--uiNav2)}
+#uiSide #pmoSaveBtn:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:2px}
+#uiSide #pmoSaveBtn.dirty{border-color:#ffcf70}
 #uiSide .uiSvPen{font-size:11.5px;color:#ffd88a;padding:0 2px}
 #uiSide .uiSvPen:empty{display:none}
 #uiSide .uiSave .t{font-size:10.5px;color:var(--uiNavMut);padding:0 2px}
@@ -1536,6 +1543,9 @@ html.ui-rail #uiSide #saveBtn{flex:none;width:44px;height:40px;padding:0;positio
 html.ui-rail #uiSide #saveBtn_t,html.ui-rail #uiSide #saveBtn .uiSvT,html.ui-rail #uiSide #saveState,html.ui-rail #uiSide .uiSvPen{display:none}
 html.ui-rail #uiSide #saveBtn .uiSvIc{font-size:16px}
 html.ui-rail #uiSide .uiSvMore{min-height:24px;width:44px}
+html.ui-rail #uiSide #pmoSaveBtn{flex:none;width:44px;height:40px;padding:0;position:relative}
+html.ui-rail #uiSide #pmoSaveBtn .uiSvT{display:none}
+html.ui-rail #uiSide #pmoSaveBtn.dirty::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ff6b5e;box-shadow:0 0 0 2px var(--uiNav)}
 /* folded to icons, unsaved work shows as a dot on the Save icon (the button itself turns amber, as it always has) */
 html.ui-rail #uiSide #saveBtn.dirty::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ff6b5e;box-shadow:0 0 0 2px var(--uiNav)}
 /* the three boxes */
@@ -1804,6 +1814,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
        saveInPlace()), the same save state (#saveState, saveStateShow()) and, beside it, ▾ for Save a copy. In a PMO copy the
        button is ✉ Submit input (pmoSubmit()), as saveStateShow() has always made it. -->
   <div class="uiFoot uiSave" id="uiSave">
+    <!-- v2.09 (item 127): a PMO copy's 💾 Save (pmoSaveCopy()), above ✉ Submit input; pmoFootSet() shows it and puts the ▾ beside it -->
+    <div class="uiSvRow" id="pmoSaveRow" hidden><button type="button" id="pmoSaveBtn" onclick="pmoSaveCopy()" title="Save your office’s work in its own file."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span class="uiSvT">Save</span></button></div>
     <div class="uiSvRow"><button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button><button type="button" class="uiSvMore" id="uiNav_save" aria-haspopup="true" aria-expanded="false" aria-label="More ways to save: Save a copy" title="Save a copy…" onclick="uiGo('save',this)">&#9662;</button></div>
     <span class="savestate" id="saveState" title=""></span>
     <span class="uiSvPen" id="uiSavePen"></span>
@@ -2061,7 +2073,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="office" data-id="o-explore" data-t="Explore, and take your time">
 <p>This is the part people underuse. With <b>All programme offices</b> showing, drag a row by its <b>⠿</b> handle — or choose <b>Rank</b> in the bar under the header and use its <b>▲ ▼</b> arrows — and watch the discretionary fit, the cutline and the unfunded total move. Try your requirement two ranks higher. Try it below the line.</p>
 <p><b>With only your office showing, moving a row sets your office’s own ranking.</b> That ranking is sent back with your submittal. The portfolio order and the cutline do not move — switch back to all offices to see the money move.</p>
-<p>You cannot break anything. Moving rows in the whole portfolio is not sent — that order is the portfolio team’s call. Your work is saved in your own browser, so closing the tab and coming back later is safe. It is not saved to the file or to Teams.</p>
+<p>You cannot break anything. Moving rows in the whole portfolio is not sent — that order is the portfolio team’s call. Your work is kept in your own browser as you go, so closing the tab and coming back later is safe; <b>💾 Save</b> keeps it in your office’s own file, to carry to another machine or hand to a colleague (<a data-go="o-save">Save your work</a>).</p>
 <div class="hx-note"><b>If you are sent a newer copy.</b> Your work belongs to the copy you did it in. A newer copy opens showing the portfolio as it stood when that one was published — it will not carry your work across, and your older copy still has it. So submit before you switch to a new copy.</div>
 </section>
 <section data-part="office" data-id="o-update" data-t="Update your requirements">
@@ -2090,8 +2102,14 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>A year the portfolio board had not started when the copy was published reads <i>not started</i> in the box. It opens blank, for new requirements only: when your submittal reaches the board, the portfolio team is asked to start that year before anything you proposed goes into it.</p>
 <p>A requirement that recurs is added one year at a time. In each year, <b class="bt" data-q="#toolAdd">＋ Add requirement</b> › <i>From another year</i> brings it in as a requirement of its own, linked to the one it came from. Rolling requirements forward, copying or moving one to another year, setting the base year and resetting a year are the portfolio team’s, and are off in a copy.</p>
 </section>
+<section data-part="office" data-id="o-save" data-t="Save your work, and come back to it">
+<p>Press <b class="bt" data-q="#pmoSaveBtn">💾 Save</b> at the foot of the left menu, above ✉ Submit input, or press Ctrl+S. The first time, it asks which office you work for if you have not set it, then where to keep <b>your office’s file</b>: it suggests a new name with your office in it, like <i>… — PMO COPY — AV — 2026-10-26.html</i>. Keep it where your office can reach it — a synced Teams folder or the shared drive. Every Save after that writes over that file, in place; the line under the button says <i>Saved</i> and the time, or <i>Unsaved changes</i>.</p>
+<p><b>One file per office.</b> The copy you were sent is every office’s, so Save never writes over it — nor over another office’s file, a file from another copy, or the portfolio team’s board. It says so, writes nothing, and asks you to pick your own office’s file or a new one. To carry on later, on any machine, open your office’s file: it opens on your office (🏢 in the bar at the top says which), and ✉ Submit input sends for that office alone. Two people in one office can take turns in the same file; if someone saved it after the copy you are working from, Save asks before it writes over their work.</p>
+<p><b>Save a copy</b>, under the <b>▾</b> beside Save, downloads your office’s file instead — to hand to a colleague, or where the browser cannot save in place (Firefox). A download does not count as saved: put it where your office’s file is kept, replacing the old one, or press 💾 Save.</p>
+<p>Saving keeps your work; it sends nothing. Only ✉ Submit input sends your office’s changes to the portfolio team.</p>
+</section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
-<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, where Save is on the portfolio board. If you have not set your office yet, it asks for it first.</p>
+<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, or at the foot of the left menu, under 💾 Save. If you have not set your office yet, it asks for it first.</p>
 <p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message at the top right confirms it (hidden, the <b>Message</b> button there brings it back). Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
@@ -2124,8 +2142,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <dt>“…belongs to another programme office, so it is NOT being sent”</dt><dd>You edited a requirement your office does not own. Everything else still goes.</dd>
 <dt>“…missing mandatory fields and is NOT being sent”</dt><dd>A requirement you added is not complete; fill in what the message lists and submit again.</dd>
 <dt>The DISC and MAND boxes are greyed out</dt><dd>Working as intended: the allocation is the portfolio team’s decision.</dd>
-<dt>💾 Save says it is turned off</dt><dd>Working as intended. A PMO copy cannot save over the team’s board. Your work is already kept in your browser; use ✉ Submit input to send it.</dd>
-<dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy. Reopen the same file in the same browser.</dd>
+<dt>💾 Save says “Not saved” — the file is not your office’s</dt><dd>Working as intended. Save writes only your office’s own file from this copy: the copy everyone was sent, another office’s file, a file from another copy and the team’s board are never written over. Press 💾 Save again and pick your office’s file, or make a new one.</dd>
+<dt>“This work was saved for …”, when submitting</dt><dd>The file you opened holds another office’s work. Set 🏢 back to that office to submit it, or, if the work is yours, press 💾 Save first: it goes to a file of your office’s own.</dd>
+<dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy, and in your office’s file once you have pressed 💾 Save. On another machine, or in another browser, open your office’s file.</dd>
 <dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
 <dt>Something went wrong and the portfolio team asks for details</dt><dd><span class="mp" data-m="setup">Setup › Save diagnostics…</span> shows exactly what the file will hold: the version, your browser, counts, and the last warnings with every figure, title and name taken out. <b>Save</b> puts it in your downloads; send that file, not your copy.</dd>
@@ -2147,7 +2166,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
 <p><span class="mp" data-m="offices">Program offices › Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
-<p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, so publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
+<p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, and <b>💾 Save</b> in the copy keeps it in a file of that office’s own — never the copy you published, which every office opens, and never this board. So publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
 <p>The copy covers the base year and the four years after it, each as the board holds it when you publish. A year this board has not started is offered too: it opens blank in the copy, for new requirements only. In the copy, offices cannot roll requirements forward, copy or move one to another year, move the base year or reset a year.</p>
 <p>The copy carries this guide, and opens it from <b>📖 How this copy works</b> in its top bar; it never opens by itself.</p>
 </section>
@@ -2155,6 +2174,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><span class="mp" data-m="offices">Program offices › Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review, or every office’s at once with <span class="mp" data-m="offices">Program offices › Load all submissions at once…</span>; load them all and review them together.</p>
 <p>Every proposed field arrives <b>unticked</b>, beside what the board says today. A field this board changed too since the copy was published is marked as a <b>conflict</b>. <b>📄 Export change report</b> gives the whole round as a workbook for the SFWG. Tick what you accept — a new requirement and an office’s ranking are each taken whole or not at all — then <b>✔ Apply ticked</b>. The allocation never travels in a submittal, and nothing is applied until you apply it.</p>
 <p>A submittal applies to the <b>fiscal years it was written for</b>. A copy sends one file for every year it covers; loading it holds each year’s changes for that year, and the review groups them under each year. A file from a copy published before this version carries one year: if that is not the year on screen, loading it says so, naming both years, and holds it for its own year; a second question lets you hold it for the year on screen instead. <b>✔ Apply ticked</b> puts every ticked year’s changes into their own years at once, and asks first, naming each year and how many changes go into it; a year this board has not started is started first, rolled forward or blank, as you choose, before anything goes into it. Award changes show each award’s date and its dollars by service. A submittal whose services are listed in a different order is matched up by name, awards included; one that does not say which services its figures are for, or carries a list for the wrong number of services, is refused and the figures are named.</p>
+<p><b>A PMO copy itself is never imported.</b> An office’s work comes in as its submittal, here and nowhere else: ⬅ Import, Import a full board, Import one appropriation and Import several boards at once each refuse a PMO copy file, name its office, and ask for its ✉ Submit input file. 💾 Save never writes over a PMO copy either.</p>
 </section>
 <section data-part="team" data-id="t-full" data-t="A new version: import the full board">
 <p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="imp">Imports &amp; exports › Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
@@ -2724,6 +2744,18 @@ const REQ_FIELD={
 function FL(k){ const f=Object.prototype.hasOwnProperty.call(REQ_FIELD, k)? REQ_FIELD[k] : null; return f? f.l : String(k); }
 function FLI(k){ const f=Object.prototype.hasOwnProperty.call(REQ_FIELD, k)? REQ_FIELD[k] : null; return f? (f.ic? f.ic+' ' : '')+f.l : String(k); }
 const SANDBOX = !!(PMODE && PMODE.sandbox);
+// v2.09 (item 127): A COPY'S SIDE LISTS ARE ITS OWN, as its plan, its cycles and its destination list already were. The
+// execution data, the cost estimates, the BAE list and the reprogramming log kept the board's own browser-storage keys in a
+// copy, so a copy opened in the portfolio team's browser read the board's lists (newer than the copy's, so taken over what
+// the copy carries) and wrote into them: a BAE list imported in the copy was then the board's, read as its own unsaved
+// change the next time the board opened. Sealed to the publish stamp, a first open reads what the copy file carries, and
+// nothing a copy does can reach the board's lists or another copy's.
+const SIDE_SFX=SANDBOX? '-pmo'+(PMODE.ts||0) : '';
+const EXDB_KEY='prio27execdb'+SIDE_SFX, ACEDB_KEY='prio27acedb'+SIDE_SFX, BUDDB_KEY='prio27buddb'+SIDE_SFX, RPDB_KEY='prio27reprog'+SIDE_SFX;
+// v2.09 (item 127): the office set in this page ({g, ok}: ok when browser storage took it too), so a browser whose storage
+// refuses still submits and saves for the office it was told -- myPmo() reads it before storage only then. Declared this
+// early: a copy adopts its file's office as it opens, before the board is drawn.
+let _pmoMem=null;
 // A copy cannot move money (allocLocked, v1.84), so it does not offer to. The controls are found by
 // the writer they call, which is the same in every panel that draws one.
 if(SANDBOX){ try{ const _st=document.createElement('style');
@@ -2778,13 +2810,13 @@ function sideEmpty(key, o){
   }catch(e){ return false; }
 }
 let EXDB = (function(){
-  let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27execdb')||'null'); }
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(EXDB_KEY)||'null'); }
   catch(e){ _bootLost.push('the imported CCaR execution data held in browser storage'); }
   const fb=(PUB&&PUB.execDb)||null;
   let pick=null;
   if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
   else pick=ls||fb;
-  sideBootNote('prio27execdb', fb);       // v1.99 (item 95): the file's copy, before anything changes it
+  sideBootNote(EXDB_KEY, fb);       // v1.99 (item 95): the file's copy, before anything changes it
   return (pick&&pick.all)? pick : {ts:0, all:{}};
 })();
 // Every browser-storage write that carries the user's work goes through here. Storage is only a
@@ -2811,7 +2843,7 @@ let _sideGen=0, _sideSaved=0, _lsRefused={};
 function fileKeyOf(key){
   try{
     if(key===_AP.key) return 'board';
-    if(key===DEST_KEY || ['prio27execdb','prio27acedb','prio27reprog','prio27buddb'].indexOf(key)>=0) return 'side';
+    if(key===DEST_KEY || [EXDB_KEY,ACEDB_KEY,RPDB_KEY,BUDDB_KEY].indexOf(key)>=0) return 'side';
     // every other appropriation's board, and every appropriation's locked cycles (this one's is CYC_KEY)
     for(const k in _SLUGMAP) if(key===_SLUGMAP[k].key || key===_SLUGMAP[k].key+'-cyc') return 'side';
   }catch(e){}
@@ -2839,7 +2871,7 @@ function sideWrote(at){
 // leaving. A var, because lsSet runs while the board opens, before any let further down has been declared.
 var _cycSwap=null;
 function lsSet(key, val, what){
-  if(_cycSwap && (key===DEST_KEY || key==='prio27buddb')){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
+  if(_cycSwap && (key===DEST_KEY || key===BUDDB_KEY)){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
   if(_lsCapture){
     const i=_lsCapture.findIndex(function(w){ return w[0]===key; }), w=[key, String(val), what, String(what||key)];
     if(i>=0) _lsCapture[i]=w; else _lsCapture.push(w);
@@ -2857,7 +2889,7 @@ function lsSet(key, val, what){
     try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
       +esc((e&&e.name)||'error')+'). It is still loaded and correct here. '
       +(fold? 'The shared folder\u2019s copy of the board does not carry it: \u2b07 <b>Save a copy</b> (the \u25be beside \ud83d\udcbe Save) keeps it in a file.'
-            : 'Use \ud83d\udcbe <b>Save</b> to write it into the file, which does not use browser storage.')); }catch(e2){}
+            : 'Use \ud83d\udcbe <b>Save</b> to '+(SANDBOX? 'keep it in your office\u2019s own file' : 'write it into the file')+', which does not use browser storage.')); }catch(e2){}
     return false;
   }
 }
@@ -2899,16 +2931,16 @@ function lsPutBack(W, held){
   return W.map(function(w, i){
     try{ const v=localStorage.getItem(w[0]); return v===held[i]? 'was' : (v===w[1]? 'new' : '?'); }catch(e){ return '?'; } });
 }
-function persistExdb(){ return lsSet('prio27execdb', JSON.stringify(EXDB), 'The imported execution data'); }
+function persistExdb(){ return lsSet(EXDB_KEY, JSON.stringify(EXDB), 'The imported execution data'); }
 // ---- Annual Cost Estimate: its own store, like EXDB, so no import can clobber another ----
 let ACEDB = (function(){
-  let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27acedb')||'null'); }
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(ACEDB_KEY)||'null'); }
   catch(e){ _bootLost.push('the stored cost estimates held in browser storage'); }
   const fb=(PUB&&PUB.aceDb)||null;
   let pick=null;
   if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
   else pick=ls||fb;
-  sideBootNote('prio27acedb', fb);       // v1.99 (item 95): the file's copy, before anything changes it
+  sideBootNote(ACEDB_KEY, fb);       // v1.99 (item 95): the file's copy, before anything changes it
   return (pick&&pick.sets)? pick : {ts:0, sets:{}};
 })();
 // ---- The BAE budget list: ONE list for the whole board, in its own store (v1.83) ------------
@@ -2919,16 +2951,16 @@ let ACEDB = (function(){
 // file beside the other stores. A board saved before this still holds its list inside one
 // appropriation's store; budSrc() reads it from there until the next import writes it here.
 let BUDDB = (function(){
-  let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27buddb')||'null'); }
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(BUDDB_KEY)||'null'); }
   catch(e){ _bootLost.push('the imported BAE budget list held in browser storage'); }
   const fb=(PUB&&PUB.budDb)||null;
   let pick=null;
   if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
   else pick=ls||fb;
-  sideBootNote('prio27buddb', fb);       // v1.99 (item 95): the file's copy, before anything changes it
+  sideBootNote(BUDDB_KEY, fb);       // v1.99 (item 95): the file's copy, before anything changes it
   return (pick&&Array.isArray(pick.rows))? pick : {ts:0, rows:[], files:[]};
 })();
-function persistBud(){ return lsSet('prio27buddb', JSON.stringify(BUDDB), 'The imported BAE budget list'); }
+function persistBud(){ return lsSet(BUDDB_KEY, JSON.stringify(BUDDB), 'The imported BAE budget list'); }
 // ---- Destinations: ONE list for the whole board, in its own store (v1.86) -----------------------
 // Each appropriation used to keep its own list inside its own plan, so a destination added on O&M
 // did not exist on Full Fund. The list lives here now, saved in the file beside the BAE list; each
@@ -2965,21 +2997,21 @@ function persistDest(){ DESTDB.ts=Date.now(); return lsSet(DEST_KEY, JSON.string
 // draws it, edits it, exports it or shares it through the folder; the service-list upkeep keeps a stored row's service
 // meaning right (svcRenameKeys, svcSaveList), so the log means the same thing when the tracker comes back.
 let RPDB = (function(){
-  let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27reprog')||'null'); }
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(RPDB_KEY)||'null'); }
   catch(e){ _bootLost.push('the reprogramming log held in browser storage'); }
   const fb=(PUB&&PUB.rpDb)||null;
   let pick=null;
   if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
   else pick=ls||fb;
-  sideBootNote('prio27reprog', fb);       // v1.99 (item 95): the file's copy, before anything changes it
+  sideBootNote(RPDB_KEY, fb);       // v1.99 (item 95): the file's copy, before anything changes it
   return (pick&&Array.isArray(pick.entries))? pick : {ts:0, entries:[]};
 })();
 // v1.95 (item 48): these two wrote past lsSet, so a refusal never reached Save diagnostics. They go through it like
 // every other list, and its message says what theirs said: loaded and correct here, and Save puts it in the file.
-function persistRp(){ return lsSet('prio27reprog', JSON.stringify(RPDB), 'The reprogramming log'); }
+function persistRp(){ return lsSet(RPDB_KEY, JSON.stringify(RPDB), 'The reprogramming log'); }
 // A cost estimate is large. If browser storage refuses it, lsSet says so — failing silently would lose the
 // estimate on the next reload unless the file happened to be saved first.
-function persistAce(){ return lsSet('prio27acedb', JSON.stringify(ACEDB), 'The cost estimates'); }
+function persistAce(){ return lsSet(ACEDB_KEY, JSON.stringify(ACEDB), 'The cost estimates'); }
 // ==============================================================================================================
 // §04  APPROPRIATION, CYCLE STORE AND DATA PACK AT START-UP
 //      which appropriation this board is, its PPBE cycles, the requirement list (DATA)
@@ -6589,6 +6621,10 @@ function applyStore(raw){
   // so there is nothing to pause either.
   try{ _jrnlOff++; }catch(e){}
   MS = normalizeStore(JSON.parse(JSON.stringify(raw||{})));
+  // v2.09 (item 127): THE BOARD HOLDS NO OFFICE'S MARK. pmoFor says which office a PMO copy's work was saved for; a board that
+  // kept one (a copy's state taken by a way no door watches) would bake it into every copy it published, and the copy every
+  // office opens would read as one office's own file -- adopted by everyone, and saved over by that office.
+  if(!SANDBOX && MS.pmoFor!==undefined) delete MS.pmoFor;
   bandsAdoptPending();     // a ladder pushed here from another appropriation, if it is newer
   syncSvc();
   _vpDone=false;
@@ -7143,6 +7179,9 @@ if(PUB && (PUB.years||Array.isArray(PUB.order))){
     LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
   } else if(LASTKNOWN && PUB_FILE_TS!==LASTKNOWN) _bootMoved=PUB_FILE_TS;   // saved by someone since
 }
+// v2.09 (item 127): A PMO COPY OPENS ON THE OFFICE ITS WORK WAS SAVED FOR -- the work just chosen above, the file's or this
+// browser's, so the office follows the work and not the file name (pmoAdopt).
+if(SANDBOX) pmoAdopt();
 
 let DIRTY=false;
 // ---- ONE SAVE AT A TIME, ACKNOWLEDGING WHAT IT WROTE (v1.95, item 47) ----------------------------
@@ -7193,9 +7232,11 @@ function persist(){
     return true;
   }catch(e){
     _persistFail=true;
+    // v2.09 (item 127): in a PMO copy too -- its Save keeps the office's work in a file of the office's own; it was refused
+    // there, and a private window or a full browser lost the office's work on the next refresh while this pointed at it
     try{ setStat('⚠ <b>This change is not in browser storage</b> — it was refused ('
       +esc((e&&e.name)||'error')+'). Your work is still on screen and still correct. Use '
-      +'💾 <b>Save</b> now to write it into the file, which does not use browser storage.'); }catch(e2){}
+      +'💾 <b>Save</b> now to '+(SANDBOX? 'keep it in your office’s own file' : 'write it into the file')+', which does not use browser storage.'); }catch(e2){}
     return false;
   }
 }
@@ -7797,7 +7838,8 @@ function keptDiscard(){
 function bootOwnMsg(){
   if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return '';
   return 'Opened with <b>this browser\u2019s copy</b> of the board \u2014 it has changes made after this file was last saved ('
-    +esc(fmtTs(PUB.ts))+(PUB.by? ' by '+esc(PUB.by) : '')+'). \ud83d\udcbe Save writes them into the file.';
+    +esc(fmtTs(PUB.ts))+(PUB.by? ' by '+esc(PUB.by) : '')+'). \ud83d\udcbe Save writes them into '
+    +(SANDBOX? 'your office\u2019s own file.' : 'the file.');     // v2.09 (item 127): a copy's Save writes the office's file
 }
 // Open the file's version after all (offered when this browser's work could not be kept aside).
 function bootTakeFile(){
@@ -8104,7 +8146,42 @@ function publishPmoCopy(){
 // A submittal carries ONE office's requirements. That office is chosen in the copy, kept in the
 // browser like the editor name, and shown in the banner the whole time somebody is working -- not
 // asked for once at the end, where a wrong answer is discovered after the work is done.
-function myPmo(){ try{ return localStorage.getItem('prio27pmo')||''; }catch(e){ return ''; } }
+// v2.09 (item 127): storage first, as it always was -- unless storage refused the office this page was last told, which then
+// stands for as long as the page is open (_pmoMem): a full browser kept submitting for the office before.
+function myPmo(){ let v=''; try{ v=localStorage.getItem('prio27pmo')||''; }catch(e){ v=''; }
+  return (_pmoMem && !_pmoMem.ok)? _pmoMem.g : v; }
+function pmoMineSet(g){ g=String(g||''); let ok=true; try{ localStorage.setItem('prio27pmo', g); }catch(e){ ok=false; } _pmoMem={g:g, ok:ok}; }
+// ── WHICH OFFICE A COPY'S WORK WAS SAVED FOR (v2.09, item 127) ────────────────────────────────────────────────────────
+// Brad, 26 Oct 2026: "They operate out of one PMO Copy. They can save and make edits, but submit one full five year plan" --
+// one file per office, and "the file remembers the office, not the person". The office rides in the saved state itself
+// (MS.pmoFor = {pmo}), never in the copy's mode (pubMode), which is baked in when the copy is published and never written:
+// the storage keys, the publish stamp and the Submit baseline all hang off it. In the plan, the mark travels with the WORK
+// -- into browser storage with every edit, into the office's file with every Save -- so when this browser's copy is newer
+// than the file opened, it is that work's office the copy opens on, not the file's. '' when the work was never saved for an
+// office: the copy as it was published, which every office opens. Read with no reference to anything declared later: a copy
+// asks it while it is still opening.
+function pmoForOf(ms){
+  const f=ms && ms.pmoFor, g=(f && typeof f==='object')? f.pmo : '';
+  if(typeof g!=='string' || !g || g.length>200 || /[\u0000-\u001f"<>`\\]/.test(g) || g==='__proto__' || g==='prototype'
+     || Object.prototype.hasOwnProperty.call(Object.prototype, g)) return '';
+  return g;
+}
+// Opening: the office the work on screen was saved for becomes the office this copy submits for and saves for. The editor
+// name stays the person's own (prio27who): the submittal records who sent it.
+function pmoAdopt(){
+  const g=pmoForOf(MS);
+  if(g && myPmo()!==g) pmoMineSet(g);
+}
+// Submit sends for the office the work was saved for, and no other: chosen another office since, this work is still that
+// office's, and the package would carry it under the wrong name. Nothing is sent, and both ways out are said.
+function pmoForBlock(){
+  const f=SANDBOX? pmoForOf(MS) : '', me=f? myPmo() : '';
+  if(!f || !me || f===me) return false;
+  alert('This work was saved for '+f+', and this copy is now set to submit for '+me+'.\n\nNothing was sent. A submittal '
+    +'carries one office\u2019s work under that office\u2019s name: set the office back to '+f+' (\ud83c\udfe2 in the bar at the top) '
+    +'to submit '+f+'\u2019s work, or, if this work is '+me+'\u2019s, press \ud83d\udcbe Save first, which keeps it in a file of '+me+'\u2019s own.');
+  return true;
+}
 // The offices this board actually carries: pmoKeys()'s rule, configured order first and anything
 // else appended, because a requirement whose office was dropped from GROUPS still has an owner and
 // that owner still has to be able to submit for it.
@@ -8133,7 +8210,7 @@ function pickMyPmo(then){
       || list.filter(function(g){ return g.toLowerCase().indexOf(v.toLowerCase())===0; })[0];
     if(!hit){ alert('No programme office matches \u201c'+v+'\u201d.\n\nThis board has: '
       +list.join(', ')); return; }
-    try{ localStorage.setItem('prio27pmo', hit); }catch(e){}
+    pmoMineSet(hit);      // v2.09 (item 127): kept in this page too, should browser storage refuse it
     try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
     setStat('\u{1F3E2} Submitting for <b>'+esc(hit)+'</b> \u2014 only '+esc(hit)
       +'\u2019s requirements travel in a submittal.');
@@ -8351,6 +8428,7 @@ function pmoAcceptProposal(r){
 }
 function pmoSubmit(){
   if(cycBlock('Submitting input')) return;
+  if(pmoForBlock()) return;     // v2.09 (item 127): the office this work was saved for, and no other
   // v2.06 (review fix): A COPY SUBMITS THE YEAR IT WAS PUBLISHED FOR. Switched to another year (the year menu, or Go to on a
   // linked requirement), Submit built a package of THAT year's state under the published year, and the office's real edits
   // were not sent.
@@ -9569,9 +9647,10 @@ function sandboxBlock(what){
   alert('\u26a0 This is a PMO copy of the board' + (PMODE && PMODE.by ? ', published by ' + PMODE.by : '')
     + (PMODE && PMODE.ts ? ' on ' + new Date(PMODE.ts).toLocaleDateString() : '') + '.\n\n'
     + what + ' is turned off here, so this copy can never be mistaken for the team\u2019s board.\n\n'
-    + 'Your changes stay on screen and survive a refresh \u2014 they are saved in this browser only. '
-    + 'To send your descriptions, impact statements and requirement values back, use '
-    + '\u2709 Submit input, which produces a small file for the portfolio team.');
+    // v2.09 (item 127): the copy's own Save keeps the office's work; it said the work was in this browser only
+    + 'Your changes are kept in this browser as you go, and \ud83d\udcbe Save (at the foot of the left menu) keeps them in your '
+    + 'office\u2019s own file, to come back to on any machine. To send your descriptions, impact statements and requirement '
+    + 'values back, use \u2709 Submit input, which produces a small file for the portfolio team.');
   return true;
 }
 async function saveInPlace(){
@@ -9640,6 +9719,17 @@ async function _saveInPlaceFileRun(){
         FH=null; try{ _fhPut(null); }catch(e){}      // the next Save asks which file, rather than failing here again
         setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is not a board ORBIT can read, so it was not written over. '
           +'Press 💾 Save again and pick the board file itself, or use <b>⬇ Save a copy</b>.');
+        return;
+      }
+      // v2.09 (item 127): A PMO COPY IS NOT THIS BOARD'S FILE, and is never written over, as a file that is not a board is not.
+      // Once offices save their copies, a copy is a board-shaped file next to the board -- one that carries the board's own
+      // writer record, so the writer check below waves it through on the board's machine, and the HOLD ON names a person,
+      // not the kind of file. One wrong pick in the first-save picker, one OK, and an office's work was gone.
+      const cp=pmoCopyOfText(txt);
+      if(cp){
+        FH=null; try{ _fhPut(null); }catch(e){}      // the next Save asks which file
+        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is a PMO copy'+(cp.pmo? ' holding <b>'+esc(cp.pmo)+'</b>’s work' : '')
+          +', not this board’s file, so it was not written over. Press 💾 Save again and pick the board file itself, or use <b>⬇ Save a copy</b>.');
         return;
       }
       // ONE WRITER PER BOARD FILE (v1.95, item 58), checked before anything is asked: a browser that is not
@@ -9723,6 +9813,185 @@ function publishJson(){
   a.download=expName(STATEFILE);
   a.click();
 }
+// ── SAVE IN A PMO COPY (v2.09, item 127) ──────────────────────────────────────────────────────────────────────────────
+// Brad, 26 Oct 2026: "For the PMO Copy, I need a save button at the bottom left of the menu bar above the Submit button. They
+// need the ability to be able to save and come back to it later to rework their file." Until now an office's work lived in
+// one browser's storage alone: on another machine, in another browser or with site data cleared, the copy opened as it was
+// published, and a private window or a full browser lost it on the next refresh.
+//
+// IT IS NOT THE BOARD'S SAVE, AND CANNOT BE (each reproduced on v2.08). The board keeps its file's handle in this browser's
+// handle store under the board's file name, and every board and copy opened from file:// shares that store: a copy in the
+// portfolio team's browser found the board's own file, and its first-save picker suggested the board's name. A copy carries
+// the board's writer record, which reads "me" on the board's machine -- one "overwrite anyway" turned the board file into a
+// copy -- and "BLL holds the pen" on every office's. And one published copy serves every office: saving over the file they
+// opened wrote one office's work into everyone's, and the next office's submittal carried it under their own name.
+//
+// SO, ONE FILE PER OFFICE. The first Save of an office's work goes to a new file, which the picker names for the office;
+// after that Save writes only onto a file of THIS copy (the same publish stamp) saved for THIS office. The copy as it was
+// published, the board, another office's file and another copy's file are refused, and the handle is forgotten. The handle
+// is kept under a key of this copy's and this office's, never the board's; the writer record is never consulted. The bytes
+// are buildSavedHtml()'s, the board's own assembly, so the copy's mode is the one it was published with, byte for byte: the
+// file reopens on the same storage keys and submits against the same baseline. Two people in one office take turns in one
+// file, and Save asks before it writes over a save that is not the one the work on screen came from -- the board's HOLD ON.
+let _pfh=null;     // {k, h}: the handle in this page, under the key it is kept by
+function pmoFhKey(off){ return 'pmo-copy|'+((PMODE&&PMODE.ts)||0)+'|'+off; }
+function _pfhPut(k, h){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}};
+  r.onsuccess=()=>{ try{ const o=r.result.transaction('h','readwrite').objectStore('h'); if(h) o.put(h, k); else o.delete(k); }catch(e){} }; }catch(e){} }
+function _pfhGet(k, cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}};
+  r.onsuccess=()=>{ try{ const g=r.result.transaction('h','readonly').objectStore('h').get(k); g.onsuccess=()=>cb(g.result||null); g.onerror=()=>cb(null); }catch(e){ cb(null); } };
+  r.onerror=()=>cb(null); }catch(e){ cb(null); } }
+function pmoFhForget(k){ if(_pfh && _pfh.k===k) _pfh=null; _pfhPut(k, null); }
+// The name the first Save suggests: the copy's own name with the office in it -- never the board's file name, and never the
+// name of the copy every office opened.
+function pmoSaveName(off){
+  const fy=(PMODE && PMODE.fy)? +PMODE.fy : +MS.cur;
+  return document.title.replace(/FY\d\d/, 'FY'+(fy%100))+' — PMO COPY — '
+    +(String(off).replace(/[^A-Za-z0-9 _-]/g,'').trim()||'office')+' — '+expStamp()+'.html';
+}
+// What a file says about itself as a PMO copy: null when it is not one; else {ts, ap, by, pmo, st} -- pmo the office its work
+// was saved for ('' when none), st its saved state (null when that cannot be read). The first mode and state tags in a board
+// file are its own: they come before the program, and a saved state carries no "<".
+function pmoModeTagOf(txt){ const m=/<script type="application\/json" id="pubMode">([\s\S]*?)<\/script>/.exec(String(txt||'')); return m? m[1] : null; }
+function pmoCopyOfText(txt){
+  let mode=null; try{ mode=JSON.parse(pmoModeTagOf(txt)); }catch(e){ mode=null; }
+  if(!mode || typeof mode!=='object' || !mode.sandbox) return null;
+  let st=null;
+  try{ const s=/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(String(txt)); st=s? JSON.parse(s[1]) : null; }catch(e){ st=null; }
+  if(!st || typeof st!=='object') st=null;
+  const sl=APPN_SLUGS.filter(function(k){ return APPN_LBL[k]===mode.ap; })[0]||'';
+  return {ts:+mode.ts||0, ap:String(mode.ap||''), by:String(mode.by||''), st:st,
+          pmo:pmoForOf((st && st.appns && typeof st.appns==='object')? st.appns[sl] : st)};
+}
+// Why Save may not write over this file for this office ('' when it may). An empty file is one the picker just made.
+function pmoSaveTargetWhy(txt, off){
+  if(!String(txt||'').length) return '';
+  const c=pmoCopyOfText(txt);
+  if(!c) return /id="pubState"/.test(String(txt))? 'is a board file, not this PMO copy — the portfolio board’s own, or another board' : 'is not a board ORBIT can read';
+  if(c.ts!==(+((PMODE&&PMODE.ts)||0)) || c.ap!==String((PMODE&&PMODE.ap)||'')) return 'is another PMO copy'+(c.ts? ', published '+fmtTs(c.ts) : '')+', not this one';
+  if(!c.st) return 'could not be read';
+  if(!c.pmo) return 'is this PMO copy as it was published, which every office opens';
+  if(c.pmo!==off) return 'holds '+c.pmo+'’s work';
+  return '';
+}
+// Work last saved for another office, now to be saved for this one: asked, and it goes to that office's own file.
+function pmoForAsk(off){
+  const f=pmoForOf(MS);
+  if(!f || f===off) return true;
+  if(confirm('This work was last saved for '+f+', and this copy is now set to submit for '+off+'.\n\nSave it for '+off+'? It goes to a '
+    +'file of '+off+'’s own; '+f+'’s file is left as it is.\n\nOK — save it for '+off+'.\nCancel — don’t save (set the office back to '
+    +f+' with 🏢 in the bar at the top).')) return true;
+  setStat('Save canceled — nothing written. This work was last saved for <b>'+esc(f)+'</b>.');
+  return false;
+}
+function pmoSaveCopy(){
+  if(!SANDBOX) return saveInPlace();
+  if(cycBlock('Saving your office’s file')||impMixedBlock('Saving your office’s file')) return;   // refused at once, never queued
+  const off=myPmo();
+  if(!off){ pickMyPmo(function(){ pmoSaveCopy(); }); return; }    // one file per office: which office first
+  if(!pmoForAsk(off)) return;
+  return saveSerial(function(){ return _pmoSaveCopyRun(off); });
+}
+async function _pmoSaveCopyRun(off){
+  if(cycBlock('Saving your office’s file')||impMixedBlock('Saving your office’s file')) return;
+  // the office it was asked for: a save that waited is still that office's, or it is nothing
+  if(myPmo()!==off){ setStat('⛔ <b>Not saved</b>: this copy was set to submit for <b>'+esc(myPmo()||'no office')+'</b> while the save for <b>'
+    +esc(off)+'</b> waited. Press 💾 Save again.'); return; }
+  if(!window.showSaveFilePicker){ pmoSaveCopyDl(off, 'nopicker'); return; }
+  const k=pmoFhKey(off);
+  try{
+    let h=(_pfh && _pfh.k===k)? _pfh.h : await new Promise(function(res){ _pfhGet(k, res); });
+    if(h){ try{ if(await h.requestPermission({mode:'readwrite'})!=='granted') h=null; }catch(e){ h=null; } }
+    if(!h){
+      setStat('💾 First save of <b>'+esc(off)+'</b>’s work: choose where to keep '+esc(off)+'’s own file — a new one, named for the '
+        +'office, where your office can reach it. After this once, Save writes straight to it.');
+      h=await window.showSaveFilePicker({suggestedName:pmoSaveName(off), types:[{description:'PMO copy', accept:{'text/html':['.html']}}]});
+    }
+    // A FILE THAT CANNOT BE READ CANNOT BE CHECKED, SO IT IS NEVER WRITTEN OVER (the board's rule)
+    let txt;
+    try{ txt=await (await h.getFile()).text(); }
+    catch(e){
+      setStat('⛔ <b>Not saved.</b> “'+esc(h.name||'that file')+'” could not be read to check that it is '+esc(off)+'’s file ('
+        +esc((e&&e.message)||String(e))+'), so it was not written over. If it is syncing, try again in a moment, or use <b>⬇ Save a copy</b>.');
+      return;
+    }
+    if(cycBlock('Saving your office’s file')||impMixedBlock('Saving your office’s file')) return;   // and again after the read
+    const why=pmoSaveTargetWhy(txt, off);
+    if(why){
+      pmoFhForget(k);      // the next Save asks which file, rather than failing here again
+      setStat('⛔ <b>Not saved.</b> “'+esc(h.name||'that file')+'” '+esc(why)+', so it was not written over. '+esc(off)
+        +'’s work goes in '+esc(off)+'’s own file: press 💾 Save again and pick that file, or make a new one.');
+      return;
+    }
+    _pfh={k:k, h:h}; _pfhPut(k, h);
+    // TWO PEOPLE IN ONE OFFICE TAKE TURNS: has the office's file been saved since the copy on screen was loaded from it or
+    // written to it (LASTKNOWN, an identity, never an order)?
+    if(txt.length){
+      const c=pmoCopyOfText(txt), fts=fileTsOf(c.st), moved=fts>0 && fts!==LASTKNOWN;
+      if(moved){
+        const by=fileByOf(c.st)||'someone';
+        const q=LASTKNOWN
+          ? '⚠ HOLD ON — '+by+' saved '+off+'’s file at '+fmtTs(fts)+'. That is not the save the copy you are working from came from, so their changes are not on your screen.'
+          : '⚠ HOLD ON — '+off+'’s file was last saved by '+by+' at '+fmtTs(fts)+', and this browser cannot tell whether that was before or after the copy you are working from.';
+        if(!confirm(q+'\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\n'
+          +'Cancel — don’t save (open '+off+'’s file to pick up their changes first).')){
+          setStat('Save canceled — '+esc(by)+'’s changes are untouched. Open '+esc(off)+'’s file to load their version, then redo your edits.');
+          return;
+        }
+      }
+    }
+    // THE BYTES, AND WHICH SAVE THEY ARE (v1.95, item 47): built once, before the write's first wait, carrying the office
+    MS.pmoFor={pmo:off};
+    const html=buildSavedHtml();
+    if(pmoModeTagOf(html)!==pmoModeTagOf(SRC0)){     // the assembly keeps the copy's mode as published; never write one that does not
+      setStat('⛔ <b>Not saved</b>: the file could not be built as this PMO copy. Nothing was written; use <b>⬇ Save a copy</b>.'); return; }
+    const gen=_saveGen, wrote=fileTsOf({appns:PUBS}), sideAt=_sideGen;
+    const w=await h.createWritable();
+    await w.write(html);
+    await w.close();
+    // MARKED SAVED EXACTLY AS THE BOARD'S SAVE MARKS IT: the copy it wrote is the one the work came from, and only what these
+    // bytes hold is saved
+    LASTKNOWN=wrote;   // the save these bytes are
+    const clean=(_saveGen===gen);
+    if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
+    else baseSet({file:LASTKNOWN});
+    sideWrote(sideAt);
+    syncBtns();
+    setStat('💾 Saved — “'+esc(h.name||pmoSaveName(off))+'” holds <b>'+esc(off)+'</b>’s work. '+esc(fmtTs(Date.now()))
+      +'. Open it to carry on, on any machine; ✉ Submit input sends it to the portfolio team.'
+      +((clean && sideAt===_sideGen)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
+  }catch(e){
+    if(e&&e.name==='AbortError'){ setStat('Save canceled — nothing written.'); return; }
+    if(e && ['NotAllowedError','NoModificationAllowedError','SecurityError'].indexOf(e.name)>=0){
+      setStat('⛔ <b>Not saved — that file is read-only for you</b>. Nothing was written, and your work is still here, unsaved. '
+        +'<button type="button" class="nb lnk" onclick="pmoSaveCopyDl()">⬇ Save a copy</button>');
+      return;
+    }
+    setStat('⚠ The save to '+esc(off)+'’s file failed ('+esc((e&&e.message)||e)+') — downloading it instead.');
+    pmoSaveCopyDl(off, 'failed');
+  }
+}
+// ⬇ SAVE A COPY, IN A PMO COPY: the office's file as a download -- to hand on, or where this browser cannot save in place
+// (Brad: "The ▾ beside it offers Save a copy as a download, which is also the fallback where the browser cannot write in
+// place"). A download is not the office's file, so nothing is marked saved (the board's rule, v1.89): the save state says it
+// was downloaded and is not in the office's file yet, until 💾 Save writes the file.
+function pmoSaveCopyDl(off, why){
+  if(!SANDBOX){ publishState(); return; }
+  if(cycBlock('Downloading your office’s file')) return;
+  off=off||myPmo();
+  if(!off){ pickMyPmo(function(){ pmoSaveCopyDl(); }); return; }
+  if(!why && !pmoForAsk(off)) return;
+  MS.pmoFor={pmo:off};
+  const html=buildSavedHtml();
+  _dlOnly=true;               // downloaded, and not in the office's file yet
+  try{ syncBtns(); }catch(e){}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download=pmoSaveName(off);
+  a.click();
+  setStat('⬇ '+(why==='nopicker'? 'This browser cannot save in place, so <b>'+esc(off)+'</b>’s file was downloaded instead' : '<b>'+esc(off)+'</b>’s file was downloaded')
+    +' to your Downloads folder, as “'+esc(pmoSaveName(off))+'”. It is not your office’s file until you put it where that file is kept, replacing the old one'
+    +(why==='nopicker'? '.' : ', or press 💾 Save to write it in place.'));
+}
 // v1.96 (item 69, review NR05): before the shared state file replaces the board, work no saved copy has is kept aside --
 // the rule the shared folder's copy has followed since v1.89. Other work already kept, or no room: nothing is loaded.
 function sharedKeepMine(st){
@@ -9788,6 +10057,9 @@ function importBoards(inp){
     if(unread.length) return none('“'+unread[0].name+'” could not be read ('+unread[0].unread+')'+of, true);
     const refused=results.filter(r=>r.bad);
     if(refused.length){ inRefuse(refused[0].name, refused[0].bad+of, refused[0].txt); return; }
+    // v2.09 (item 127): a PMO copy among them stops the batch, as a refused file does -- nothing is taken
+    const copies=results.filter(r=>r.copy);
+    if(copies.length){ pmoCopyRefuse(copies[0].name, copies[0].txt, of); return; }
     const take=results.filter(r=>r.slug&&r.st);
     // v1.97 (item 77, review R06): EVERYTHING IS DECIDED BEFORE ANYTHING IS WRITTEN. Storage and PUBS were written first and
     // the board asked afterwards: refused by a locked cycle on screen, or by the service question answered No, the board
@@ -9867,6 +10139,7 @@ function importBoards(inp){
       const rec={name:f.name, i:i, j:0, slug:null, st:null, why:''};
       rec.bad=inboundCheck(r.result);
       if(rec.bad){ rec.txt=r.result; results.push(rec); finish(); return; }   // v2.00 (U32, U33): who saved it, for the refusal
+      if(pmoCopyWhy(r.result)){ rec.copy=true; rec.txt=r.result; results.push(rec); finish(); return; }   // v2.09 (item 127)
       try{
         const txt=r.result;
         let slug=null;
@@ -10634,6 +10907,7 @@ function cycTake(inc, aps){
 }
 // Which appropriations to take from a consolidated file. Nothing is taken unless it is named.
 function consTakePick(fullSt, txt, fname){
+  if(pmoCopyRefuse(fname, txt)) return;          // v2.09 (item 127): only through the PMO import screen
   const avail=APPN_SLUGS.filter(function(k){ const s2=(fullSt.appns||{})[k];
     return _SLUGMAP[k] && s2 && (s2.years || Array.isArray(s2.order)); });
   if(!avail.length){ alert('That file carries no appropriation this board recognises.'); return; }
@@ -11270,6 +11544,31 @@ function inRefuse(fname, why, txt){
   setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
   return false;
 }
+// v2.09 (item 127): A PMO COPY COMES IN ONLY THROUGH THE PMO IMPORT SCREEN (Brad, 26 Oct 2026: "Import of a PMO Copy can only be
+// through the PMO import screen"). An office's work comes back as its ✉ Submit input file, which the review takes field by
+// field. A copy's .html was taken at every other door as a board: ⬅ Import replaced the appropriation's plan with the office's,
+// another office's requirements and all, with none of the review; and Import a full board took the reference a copy carries
+// as this board's locked cycles -- the locks' year states gone for good -- and rolled every other appropriation back to the
+// day the copy was published. Each door asks this once the file has passed the import check, before any of it is read: true
+// when it was refused, said, and nothing changed. In a copy the same doors refuse it too: a copy's work is opened, never
+// imported into another copy.
+function pmoCopyWhy(txt){
+  const c=pmoCopyOfText(txt); if(!c) return '';
+  return 'it is a PMO copy'+(c.ts? ' published '+new Date(c.ts).toLocaleDateString() : '')+(c.pmo? ', holding '+c.pmo+'’s work' : ', as published');
+}
+function pmoCopyRefuse(fname, txt, tail){
+  const why=pmoCopyWhy(txt); if(!why) return false;
+  const c=pmoCopyOfText(txt), who=c.pmo || 'the office';
+  alert('“'+fname+'” was not imported: '+why+(tail||'')+'.\n\n'
+    +(SANDBOX? 'A copy’s work is never imported into another copy. Open that file itself to carry on in it; ✉ Submit input sends its work to the portfolio team.'
+      : 'A PMO copy comes in only through the PMO import screen: ask '+who+' for its ✉ Submit input file and load it under '
+        +'Program offices \u203a Review submittals\u2026 \u2014 every field is reviewed there before anything is applied. Taken here, a copy would replace '
+        +'this board’s plans — and its locked cycles, which a copy carries only as a reference — with none of that review.')
+    +'\n\nNothing '+(SANDBOX? 'in this copy' : 'on this board')+' was changed.');
+  setStat('⚠ Nothing imported — “'+esc(fname)+'” '+esc(why)+'. '
+    +(SANDBOX? 'Open it itself to work in it.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices \u203a Review submittals\u2026.'));
+  return true;
+}
 // ==============================================================================================================
 // §20  FULL-BOARD IMPORT, ONE APPROPRIATION OUT, THE IMPORT ROUTER
 //      importState() decides what a picked file is
@@ -11307,6 +11606,7 @@ function fullImportText(txt, fname){
   _inRcnNext='board';   // v2.00 (U32, U33): the user's own board (inboundCheckOwn) -- its RCN / EEIC lists as it saved them, said below
   _inDestNext='board';   // v2.00 (U44): the user's own board -- its destination lists put right below (destOwnRight)
   const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
+  if(pmoCopyRefuse(fname, txt)) return false;     // v2.09 (item 127): its cycles are only a reference, and it is an office's work
   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
   const bv=fullBuildOf(txt);
@@ -11410,7 +11710,7 @@ function fullImportText(txt, fname){
     W.push([_SLUGMAP[k].key+'-cyc', JSON.stringify(next), 'The locked PPBE cycles for '+_SLUGMAP[k].t, 'the locked cycles for '+_SLUGMAP[k].t]);
     if(Object.keys(next.cycles).length) cyTook.push(_SLUGMAP[k].t+' '+Object.keys(next.cycles).sort().map(blLblTxt).join(', '));
   });
-  // the board-wide stores the file carries
+  // the board-wide stores the file carries -- under the board's own keys: a PMO copy never takes a full import (sandboxBlock)
   const bud=has.bud? JSON.parse(JSON.stringify(J.budDb)) : null, ex=has.ex? JSON.parse(JSON.stringify(J.execDb)) : null,
         ace=has.ace? JSON.parse(JSON.stringify(J.aceDb)) : null, rp=has.rp? JSON.parse(JSON.stringify(J.rpDb)) : null;
   if(bud){ bud.ts=now; W.push(['prio27buddb', JSON.stringify(bud), 'The imported BAE budget list', 'the BAE list']); }
@@ -11728,6 +12028,7 @@ function importState(inp){
     // THE DOOR (v1.88): a board, a consolidated file, a package, a submittal and a state file all come
     // in here, and all of them are checked whole before any route below reads a field of one.
     const bad=inboundCheck(r.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
+    if(pmoCopyRefuse(f.name, r.result)){ inp.value=''; return; }     // v2.09 (item 127): only through the PMO import screen
     try{
       let txt=r.result, st=null, fromBoard=false, fullSt=null;
       // An appropriation package is neither a board nor a plain state file, and it has its own
@@ -28024,16 +28325,19 @@ try{ window.addEventListener('resize', function(){ fitMenus(); });
 // shape) is nobody's change (v1.97, item 76): it is remembered against this file (SIDE_OPEN_KEY), so the next opening of
 // the same file reads it the same way, and an edit after it does not match it. The other appropriations' plans and
 // locked cycles are among the lists: a save packs them from browser storage too.
-const SIDE_OPEN_KEY='prio27sideOpen';
+// v2.09 (item 127): A PMO COPY READS ITS LISTS THE SAME WAY, now that 💾 Save writes its office's file. It was left out because
+// its Save was refused by design; its record is sealed to the copy, like its lists, so a copy and the board opened in one
+// browser never read each other's record of what opening wrote.
+const SIDE_OPEN_KEY='prio27sideOpen'+SIDE_SFX;
 function sideBootCheck(){
   sideBootNote.keys=[];
-  if(SANDBOX) return;                       // a PMO copy keeps its own lists, and its Save is refused by design
   const F=sideBootNote.file||{}, P=sideBootNote.pre||{};
   let M=null; try{ M=JSON.parse(localStorage.getItem(SIDE_OPEN_KEY)||'null'); }catch(e){ M=null; }
   if(!M || typeof M!=='object' || M.file!==PUB_FILE_TS || !M.h || typeof M.h!=='object') M={file:PUB_FILE_TS, h:{}};
   const M0=JSON.stringify(M);
-  const shape={'prio27execdb':function(o){ return !!o.all; }, 'prio27acedb':function(o){ return !!o.sets; },
-               'prio27buddb':function(o){ return Array.isArray(o.rows); }, 'prio27reprog':function(o){ return Array.isArray(o.entries); }};
+  const shape={};       // v2.09 (item 127): by the keys this board keeps them under -- a copy's are sealed to it
+  shape[EXDB_KEY]=function(o){ return !!o.all; }; shape[ACEDB_KEY]=function(o){ return !!o.sets; };
+  shape[BUDDB_KEY]=function(o){ return Array.isArray(o.rows); }; shape[RPDB_KEY]=function(o){ return Array.isArray(o.entries); };
   shape[DEST_KEY]=function(o){ return Array.isArray(o.ents); };
   const cyc=function(o){ return !!o.cycles && typeof o.cycles==='object'; };
   const board=function(o){ return !!(o.years || Array.isArray(o.order)); };
@@ -28074,12 +28378,12 @@ function sideUnsaved(){
 // v1.99 (item 95): which lists the file is behind on, said where the saved state is shown
 function sideBootSay(){
   try{
-    const ks=sideBootNote.keys||[]; if(!ks.length || driveStoreOn() || SANDBOX) return '';
+    const ks=sideBootNote.keys||[]; if(!ks.length || driveStoreOn()) return '';
     const names=ks.map(function(k){
-      if(k==='prio27execdb') return 'the imported execution data';
-      if(k==='prio27acedb') return 'the cost estimates';
-      if(k==='prio27buddb') return 'the BAE budget list';
-      if(k==='prio27reprog') return 'the reprogramming log';
+      if(k===EXDB_KEY) return 'the imported execution data';
+      if(k===ACEDB_KEY) return 'the cost estimates';
+      if(k===BUDDB_KEY) return 'the BAE budget list';
+      if(k===RPDB_KEY) return 'the reprogramming log';
       if(k===DEST_KEY) return 'the destination list';
       if(k===CYC_KEY) return 'this appropriation\u2019s locked PPBE cycles';
       for(const s in _SLUGMAP){ if(k===_SLUGMAP[s].key) return 'the '+_SLUGMAP[s].t+' plan';
@@ -28089,20 +28393,32 @@ function sideBootSay(){
   }catch(e){ return ''; }
 }
 function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
+// v2.09 (item 127): A PMO COPY'S FOOT -- 💾 Save and its ▾ (Save a copy), the save state under them, then ✉ Submit input, the
+// primary button, in Save's spot. Moved into place once, in the page's own order, so Tab meets them as they are seen.
+function pmoFootSet(un){
+  const row=document.getElementById('pmoSaveRow'), bt=document.getElementById('pmoSaveBtn'), more=document.getElementById('uiNav_save'),
+        ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
+  if(!row || !bt) return;
+  row.hidden=false;
+  if(more && more.parentNode!==row) row.appendChild(more);
+  if(ss && sb && ss.nextElementSibling!==sb.parentNode) row.parentNode.insertBefore(ss, row.nextSibling);
+  bt.classList.toggle('dirty', !!un);
+  bt.title=un? 'You have changes that are not in your office\u2019s file yet \u2014 click to save them there.'
+             : 'Save your office\u2019s work in its own file, to come back to it later, on any machine.';
+}
 function saveStateShow(){
   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
   // v2.02 (E7, ledger U19H, U15): AND THIS BROWSER'S RECORD. unsavedNow() is this session's (DIRTY), which a reopen starts
   // afresh, so work put back -- or simply typed -- and not saved read "Saved 9:35 AM" once the board was reopened, with the time
   // of that unsaved work itself, while no file held it. _baseDirty is the record kept beside the board (baseGet().dirty).
   const un=unsavedNow() || !!_baseDirty;
-  // A PMO COPY HAS ONE WAY OUT, AND IT IS NOT SAVE (v1.84). The header said "unsaved changes" and
-  // offered 💾 Save on the one board whose Save is refused by design, so an office was invited to
-  // press a button that could only say no. On a copy the work is already kept in this browser;
-  // the button beside it sends it back.
+  // A PMO COPY SENDS ITS WORK BACK WITH ✉ SUBMIT INPUT (v1.84), the foot's primary button, in Save's spot. Since v2.09 (item
+  // 127) 💾 Save above it keeps the office's work in a file of the office's own, and the save state reads as the board's:
+  // Saved, Unsaved changes, downloaded and not in the file yet -- and, until the work has been saved for an office, not
+  // saved to a file yet, never "Saved" for the copy every office was sent.
   const _sb=(typeof SANDBOX!=='undefined' && SANDBOX);
-  if(ss) ss.innerHTML = _sb ? (un ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
-        : un ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : '<b>Unsaved changes</b>')
-        : (MS.ts ? '<b>Saved</b> '+esc(shortTime(MS.ts)) : 'not saved to a file yet');
+  if(ss) ss.innerHTML = un ? (_dlOnly? (_sb? '<b>downloaded — not in your office’s file yet</b>' : '<b>downloaded — not on the shared file yet</b>') : '<b>Unsaved changes</b>')
+        : (MS.ts && !(_sb && !pmoForOf(MS))) ? '<b>Saved</b> '+esc(shortTime(MS.ts)) : 'not saved to a file yet';
   // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
   if(ss){ ss.classList.toggle('dirty', un);
     const _st=document.getElementById('shareStat');
@@ -28117,7 +28433,8 @@ function saveStateShow(){
   if(sb && _sb){
     // v2.00 (menu): the envelope is its own span, so the left menu folded to icons shows it alone
     sb.className='btn pri'; sb.innerHTML='<span class="uiSvIc" aria-hidden="true">\u2709</span><span class="uiSvT"> Submit input</span>'; sb.setAttribute('onclick','pmoSubmit()');
-    sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. Your work is already kept in this browser.';
+    sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. \ud83d\udcbe Save, above, keeps your work in your office\u2019s own file.';
+    pmoFootSet(un);
   } else if(sb){ sb.className='btn pri'+(un?' dirty':'');
           sb.title=un? 'You have changes that are not in the file yet — click to write them in place.'
                      : 'Write everything on this board back into this file, in place.'; }
@@ -28489,10 +28806,11 @@ function syncBtns(){
         + mi('⇊ Load all submissions at once…',"uiPmoLoad('all')",false,'one file per office, picked together — all or none, nothing applied');
   document.getElementById('dd_offices').innerHTML=
       (uiPlain(_SB? '' : offices+'<div class="msep"></div>'+lbl('Submittals from the offices')+loads));
-  // the ▾ beside Save. In a PMO copy Save and Save a copy stay here, off, saying where to go instead, as the File menu did.
+  // the ▾ beside Save: Save a copy. v2.09 (item 127): in a PMO copy it is beside the copy's own 💾 Save, and downloads the
+  // office's file (pmoSaveCopyDl) -- the board's Save and Save a copy, off there, are not offered.
   document.getElementById('dd_save').innerHTML=
-    uiPlain((_SB? mi('💾 Save',"mRun(saveInPlace)",false,_SB? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place') : '')+
-    mi('⬇ Save a copy…',"mRun(publishState)",false,_SB? 'turned off in a PMO copy' : 'downloads a duplicate'));
+    uiPlain(_SB? mi('⬇ Save a copy…',"mRun(pmoSaveCopyDl)",false,'downloads your office’s file, to hand on or keep')
+      : mi('⬇ Save a copy…',"mRun(publishState)",false,'downloads a duplicate'));
   // v1.89: work this browser kept aside when a newer saved copy replaced it -- under History & recovery, as long as it is kept
   document.getElementById('dd_kept').innerHTML=
     (uiPlain(_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 '
@@ -31093,7 +31411,7 @@ function arSetOffice(g){
   if(!g || arOfficeChoices().indexOf(g)<0) return;
   arOff=g;
   if(typeof SANDBOX!=='undefined' && SANDBOX){
-    try{ localStorage.setItem('prio27pmo', g); }catch(e){}
+    pmoMineSet(g);        // v2.09 (item 127): kept in this page too, should browser storage refuse it
     try{ const b=arEl('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
     arOffHow='the office this copy submits for';
   } else arOffHow='chosen here';
@@ -35317,7 +35635,10 @@ if(_bootRestoreErr){
 } else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
     ? '\u25e8 <b>PMO copy</b>'+(PMODE&&PMODE.by? ' published by <b>'+esc(PMODE.by)+'</b>':'')
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
-      +'. Your work is kept in this browser, against this copy. <b>\u2709 Submit input</b> sends your office\u2019s changes to the portfolio team.'
+      // v2.09 (item 127): which office's file this is, and that Save keeps it there
+      +(pmoForOf(MS)? '. This file holds <b>'+esc(pmoForOf(MS))+'</b>\u2019s work: <b>\ud83d\udcbe Save</b> keeps your changes in it'
+                    : '. <b>\ud83d\udcbe Save</b> keeps your office\u2019s work in a file of its own')
+      +', and <b>\u2709 Submit input</b> sends your office\u2019s changes to the portfolio team.'
     : '📦 Opened with the saved board state — last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>':'')+' '+fmtTs(PUB.ts)+'. Make changes and 💾 Save to pass it on.'); _statQuiet=false; }
 // v2.00 (U40): opening says what destNotice says -- after the line above, never in place of it (an import's report or a
 // warning about this browser's copy stays). The destinations panel keeps saying it after later messages.
@@ -35565,8 +35886,9 @@ function uiSync(){
     if(!ro && uiMode==='brief') ro='Presentation view';
     const sb=uiSandbox(), pen=(ro || sb)? '' : uiPenOther();
     ec.className='uiChip '+(ro? 'ro' : (pen? 'pen' : 'ed'));
-    ec.textContent= ro || (sb? '✎ Editable · PMO copy — no Save' : (pen? '✎ Editable · '+pen+' holds the pen' : '✎ Editable'));
-    ec.title= ro? '' : (sb? 'Changes here are yours to send back with ✉ Submit input; a PMO copy is never saved over the board.'
+    // v2.09 (item 127): a copy saves now -- its own office's file, never the board
+    ec.textContent= ro || (sb? '✎ Editable · PMO copy' : (pen? '✎ Editable · '+pen+' holds the pen' : '✎ Editable'));
+    ec.title= ro? '' : (sb? 'Changes here are yours: 💾 Save keeps them in your office’s own file, and ✉ Submit input sends them back. A PMO copy is never saved over the board.'
       : (pen? 'You can change the board here, but only '+pen+', who holds the pen for this file, saves it in place. Save says what you can do.' : '')); }
   // v2.00 (menu): Program offices is left out of a PMO copy, as the File menu left its group out; the foot says who holds the pen
   const po=document.getElementById('uiNav_pmo'); if(po) po.hidden=uiSandbox();
@@ -35753,12 +36075,13 @@ function uiGo(k, btn){
   if(k==='rep'){ uiRepOpen(btn); return; }
   if(k==='data'){ uiDataOpen(btn); return; }
 }
-// v2.00 (menu, 19 Oct): CTRL+S SAVES -- the same call as the 💾 Save button at the left menu's foot, saveInPlace(), so in a
-// PMO copy it is refused exactly as Save is there. The browser's own "save this page" is not what anyone means by it here.
+// v2.00 (menu, 19 Oct): CTRL+S SAVES -- the same call as the 💾 Save button at the left menu's foot: saveInPlace() on the board,
+// and, since v2.09 (item 127), the copy's own Save (pmoSaveCopy) in a PMO copy. The browser's own "save this page" is not what
+// anyone means by it here.
 function uiSaveKey(e){
   if(!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || String(e.key||'').toLowerCase()!=='s') return;
   e.preventDefault();
-  saveInPlace();
+  if(SANDBOX) pmoSaveCopy(); else saveInPlace();
 }
 // v2.00 (menu, 19 Oct): AN ITEM IN A LEFT-MENU BOX OR FLYOUT RUNS AS ITS MENU ITEM DID, AND THE BOX OR FLYOUT CLOSES FIRST.
 // Taken on the way down (capture), before the item's own call (mRun) redraws the list it sits in: the item is the call its

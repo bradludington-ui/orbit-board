@@ -2247,9 +2247,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const P = boot({ html: v184Publish(ev) });
   P.ev(`syncBtns(); 'ok'`);
   chk(name, 'copy', 'the header button submits', P.ev(`document.getElementById('saveBtn').textContent+'|'+document.getElementById('saveBtn').getAttribute('onclick')`), '✉ Submit input|pmoSubmit()');
-  chk(name, 'copy', 'the save indicator says where the work is', /kept in this browser/.test(P.ev(`document.getElementById('saveState').innerHTML`)), true);
+  // v2.09 W3: a copy's 💾 Save keeps the office's work in a file of its own (item 127), so its indicator reads as the board's --
+  // and, until the work is saved for an office, never "Saved" for the copy every office was sent. It said "kept in this browser".
+  chk(name, 'copy', 'the save indicator says the copy is not saved to a file yet', P.ev(`document.getElementById('saveState').textContent`), 'not saved to a file yet');
   // v2.00 (menu, 19 Oct): the File menu is gone; in a copy, Save's ▾ on the left menu says Save is off, and where to go instead
-  chk(name, 'copy', 'Save’s ▾ says Save is off here, and where to go instead', /Save<span class="sub">turned off in a PMO copy — use ✉ Submit input/.test(P.ev(`document.getElementById('dd_save').innerHTML`)), true);
+  // v2.09 W3: the ▾ offers the copy's own Save a copy, which downloads the office's file (item 127); the board's Save and Save a
+  // copy, off in a copy, are no longer listed there as off
+  chk(name, 'copy', 'Save’s ▾ offers the copy’s own Save a copy, and nothing of the board’s', P.ev(`JSON.stringify([...document.querySelectorAll('#dd_save [onclick]')].map(function(b){ return b.getAttribute('onclick'); }))`), JSON.stringify(['mRun(pmoSaveCopyDl)']));
   chk(name, 'copy', 'the opening line points to Submit input', /Submit input/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), true);
   chk(name, 'copy', 'and never to Save', /Save to pass it on/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), false);
   const box = P.ev(`(function(){ window.alert=function(){}; const s=document.getElementById('appnSel');
@@ -13531,6 +13535,398 @@ await (async () => {
 // ==== end v2.09 W2 ====
 
 // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// Brad, 26 Oct 2026: "For the PMO Copy, I need a save button at the bottom left of the menu bar above the Submit button. They
+// need the ability to be able to save and come back to it later to rework their file" -- one file per office, the file
+// remembering the office, not the person -- and "Import of a PMO Copy can only be through the PMO import screen." Each block
+// drives the copy and the board through their own code: the copy's Save against a stand-in file on disk and a stand-in
+// handle store (IndexedDB prio-fh, which every page opened from file:// shares), the board's doors with the files a copy now
+// writes. Every check fails on v2.08 (ebe702e) unless it says CONTROL: a function v2.08 lacks fails its own check through
+// i127ev, and where a later step opens a file only the new Save writes, the block stops there and says so.
+const I127SC = { services: ['USAF', 'ANG', 'AFRC'],
+  items: [it('A', 'PSM', [900, 200, 100]), it('B', 'PSM', [300, 80, 40]), it('C', 'AV', [500, 0, 0])],
+  disc: [1200, 250, 100], mand: [300, 50, 40], order: ['A', 'B', 'C'] };
+const i127J = JSON.stringify;
+const I127FNAME = 'FY27 Consolidated Prioritization Board.html';
+const i127ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+const i127pause = ms => new Promise(r => setTimeout(r, ms));
+// The portfolio board: its requirements its own data, the writer record a real board file carries, a locked PB cycle, and
+// the four side lists, each with something recognisable in it.
+const i127Board = () => {
+  const B = boot(); seed(B.ev, I127SC);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+    try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+    window.confirm=function(){ return true; }; window.alert=function(){};
+    WRITER={by:'BLL', fp:writerFp(), t:Date.now()};
+    BUDDB={ts:1700000000100, rows:[{ap:'om', svc:'USAF', name:'BOARD BAE ROW', amt:1}], files:['b.xlsx']}; persistBud();
+    EXDB={ts:1700000000100, all:{om:{fy:2026, rows:[['BOARDEX', 1]]}}}; persistExdb();
+    ACEDB={ts:1700000000100, sets:{'BOARDACE':{fp:'fp-b', locked:false, appn:{}, lines:[]}}}; persistAce();
+    RPDB={ts:1700000000100, entries:[{id:'rpb', ts:1700000000100, ap:'om', amt:1, what:'BOARD RP'}]}; persistRp();
+    blCyc='PB'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+  return B;
+};
+// published the way Program offices › Publish PMO copy… publishes one, the file it would download captured
+const i127Publish = ev => ev(`(function(){ let cap=null; const _B=window.Blob;
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+  window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+// every question and alert recorded, and answered as window.__yes says
+const i127wire = (ev, who) => ev(`window.__q=[]; window.__al=[]; window.__yes=true; window.confirm=function(m){ __q.push(String(m)); return __yes; };
+  window.alert=function(m){ __al.push(String(m)); }; window.prompt=function(){ return null; };
+  ${who ? `try{ localStorage.setItem('prio27who', ${i127J(who)}); }catch(e){}` : ''} 'ok'`);
+// a file on disk, as a save-file handle stands for it; `fail` makes reading it throw, as a file mid-sync does
+const i127disk = (name, content = '') => { const f = { name, content, writes: 0, fail: false };
+  f.h = { name, requestPermission: async () => 'granted',
+    getFile: async () => { if (f.fail) throw new Error('the file is being synced'); return { text: async () => f.content }; },
+    createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { f.content = buf; f.writes++; } }; } };
+  return f; };
+// this browser's handle store (IndexedDB prio-fh), every read and write logged; `store` outlives a page, as a browser's does
+const i127idb = (w, store, log) => { w.indexedDB = { open() { const r = {};
+  setTimeout(() => { r.result = { createObjectStore() {}, transaction() { return { objectStore() { return {
+    put(v, k) { log.push('put ' + k); store.set(k, v); }, delete(k) { log.push('delete ' + k); store.delete(k); },
+    get(k) { log.push('get ' + k); const g = {}; setTimeout(() => { g.result = store.get(k); if (g.onsuccess) g.onsuccess(); }, 0); return g; } }; } }; } };
+    if (r.onsuccess) r.onsuccess(); }, 0); return r; } }; };
+// the picker: the person picks `file`; the name it suggested is recorded
+const i127picker = (w, file, picks) => { w.showSaveFilePicker = async o => { picks.push(o && o.suggestedName); return file.h; }; };
+// a page of the copy, opened in a browser: its handle store, its own questions and its editor
+const i127open = async (html, who, ls, store) => { const X = boot({ html, ls: ls || null }); await i127pause(60);
+  X.log = []; X.store = store || new Map(); X.picks = []; i127idb(X.w, X.store, X.log); i127wire(X.ev, who); return X; };
+const i127save = async X => { const r = i127ev(X.ev, 'pmoSaveCopy()'); try { await r; } catch (e) {} await i127pause(40); };
+const i127state = ev => i127ev(ev, `(document.getElementById('saveState')||{}).textContent||''`);
+const i127status = ev => i127ev(ev, `(document.getElementById('shareStat')||{}).textContent||''`);
+const i127ls = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const i127mode = html => { const m = /<script type="application\/json" id="pubMode">([\s\S]*?)<\/script>/.exec(String(html)); return m ? m[1] : null; };
+const i127pub = html => { const m = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(String(html)); try { return JSON.parse(m[1]); } catch { return null; } };
+const i127desc = (html, id) => { const p = i127pub(html), s = p && p.appns && p.appns.om; return s ? ((s.years[s.cur] || {}).desc || {})[id] || null : null; };
+const i127mark = html => { const p = i127pub(html), s = p && p.appns && p.appns.om; return (s && s.pmoFor) || null; };
+// the package ✉ Submit input builds, captured off the Blob, with every alert
+const i127submit = ev => { const r = i127ev(ev, `(function(){ let cap=null; const _B=window.Blob; window.__al=[];
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+  try{ pmoSubmit(); }catch(e){ __al.push('THREW '+e.message); } window.Blob=_B;
+  return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: __al}); })()`); try { return JSON.parse(r); } catch { return { pkg: null, alerts: [r] }; } };
+const i127noTs = p => { if (!p) return p; const c = JSON.parse(i127J(p)); delete c.ts; return c; };
+// the office's work, typed in the copy: a description, an impact statement, a requirement value, the office's ranking, a new
+// requirement, and a cycle locked in the copy (it goes into the copy's own store, and must come back with the file)
+const i127work = ev => ev(`setDesc('A','PSM rewrote A'); setCons('B','B impact by PSM'); applyAskVec('B',[350,90,40]);
+  S.pmoOrder=S.pmoOrder||{}; S.pmoOrder.PSM=['B','A']; save();
+  reqCreate('PSM', {title:'', event:'PSM new one', ask:[120,0,0]}, null,
+    {event:'PSM new one', ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'New by PSM.', cons:'needed'});
+  save(); blCyc='POM'; blYr=MS.cur; cycLock(); save(); render(); 'ok'`);
+const I127MS = `JSON.stringify(Object.assign({}, MS, {ts:0, log:0, jrnl:0}))`;
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a PMO copy saves its office’s own file, and reopens from it as it was saved (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev), M0 = JSON.parse(i127mode(C0) || 'null');
+    chk(name, 'setup', 'a PMO copy was published (a CONTROL)', !!(M0 && M0.sandbox && M0.ts), true);
+    const P = await i127open(C0, 'PSM Lead');
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} 'ok'`);
+    // the portfolio team's browser: the board's own handle is in this browser's handle store, and the board's in-place
+    // handle in the page; the writer gate is watched
+    P.store.set(I127FNAME, 'THE BOARD HANDLE');
+    P.ev(`FH={name:'THE BOARD FILE'}; window.__fh=0; var __g0=_fhGet, __p0=_fhPut;
+      _fhGet=function(cb){ __fh++; return __g0(cb); }; _fhPut=function(h){ __fh++; return __p0(h); };
+      window.__wm=0; var __w0=writerMay; writerMay=function(){ __wm++; return __w0.apply(this, arguments); }; 'ok'`);
+    i127work(P.ev);
+    const pkg0 = i127submit(P.ev).pkg;
+    chk(name, 'copy', 'the office’s work builds a submittal before any save (a CONTROL)', !!(pkg0 && pkg0.items && pkg0.items.A && pkg0.added.length === 1 && pkg0.rank), true);
+    const f1 = i127disk('a new file.html'); i127picker(P.w, f1, P.picks);
+    await i127save(P);
+    const want = 'FY27 O&M Prioritization Board (Consolidated) — PMO COPY — PSM — ' + new Date(M0.ts).toISOString().slice(0, 10) + '.html';
+    chk(name, 'save', 'the first Save opens the picker once, on a new name with the office in it', i127J(P.picks), i127J([want]));
+    chk(name, 'save', 'never the board’s file name, never the copy’s own', i127J([P.picks.length, P.picks[0] === I127FNAME, /— PMO COPY — \d{4}-\d\d-\d\d\.html$/.test(P.picks[0] || '')]), i127J([1, false, false]));
+    chk(name, 'save', 'the file is written once', f1.writes, 1);
+    chk(name, 'save', 'its copy mode is the one the copy was published with, byte for byte', i127mode(f1.content) === i127mode(C0), true);
+    chk(name, 'save', 'it carries the office its work was saved for, in the saved state', i127J(i127mark(f1.content)), i127J({ pmo: 'PSM' }));
+    chk(name, 'save', 'and the office’s work', i127desc(f1.content, 'A'), 'PSM rewrote A');
+    chk(name, 'save', 'the work reads saved: the save state, the session and this browser’s record of it',
+      i127J([/^Saved/.test(i127state(P.ev)), i127ev(P.ev, 'DIRTY'), i127ev(P.ev, 'baseGet().dirty'), i127ev(P.ev, `LASTKNOWN===fileTsOf(${i127J(i127pub(f1.content))})`)]), i127J([true, false, false, true]));
+    chk(name, 'never the board’s', 'the save wrote, and the board’s entry in the handle store was neither read nor written, nor its handle in the page used',
+      i127J([f1.writes, P.log.filter(l => l.indexOf(I127FNAME) >= 0), i127ev(P.ev, '__fh'), P.store.get(I127FNAME), i127ev(P.ev, 'FH && FH.name')]), i127J([1, [], 0, 'THE BOARD HANDLE', 'THE BOARD FILE']));
+    const keys = [...P.store.keys()].filter(k => k !== I127FNAME);
+    chk(name, 'never the board’s', 'the copy’s handle is kept under one key of its own, naming this copy and this office',
+      i127J([keys.length, keys.length === 1 && keys[0].indexOf(String(M0.ts)) >= 0 && /PSM/.test(keys[0]) && P.store.get(keys[0]) === f1.h]), i127J([1, true]));
+    chk(name, 'never the board’s', 'the save wrote without consulting the writer record, which is still the board’s', i127J([f1.writes, i127ev(P.ev, '__wm'), i127ev(P.ev, 'WRITER && WRITER.by')]), i127J([1, 0, 'BLL']));
+    // the next Save writes the same file in place: the save it wrote is the one the work came from, so it asks nothing
+    P.ev(`setDesc('A','PSM again'); __q=[]; 'ok'`); await i127save(P);
+    chk(name, 'save', 'the next Save writes the same file again: no picker, nothing asked', i127J([P.picks.length, i127ev(P.ev, '__q.length'), f1.writes, i127desc(f1.content, 'A')]),
+      i127J([1, 0, 2, 'PSM again']));
+    // ANOTHER MACHINE: the file opened with empty storage
+    const R = await i127open(f1.content, '');
+    chk(name, 'reopened', 'the file opens as this PMO copy: the same mode, on the same storage keys',
+      i127ev(R.ev, `JSON.stringify([SANDBOX, PMODE, _AP.key, DEST_KEY, CYC_KEY])`), i127ev(P.ev, `JSON.stringify([SANDBOX, PMODE, _AP.key, DEST_KEY, CYC_KEY])`));
+    chk(name, 'reopened', 'with the office’s work whole (the store, less its clocks)', R.ev(I127MS) === P.ev(I127MS), true);
+    chk(name, 'reopened', 'the cycle locked in the copy came back with it', i127ev(R.ev, `JSON.stringify(Object.keys(CYCDB.cycles).sort().map(function(k){ return k+':'+Object.keys(CYCDB.cycles[k].years||{}).join(','); }))`),
+      i127ev(P.ev, `JSON.stringify(Object.keys(CYCDB.cycles).sort().map(function(k){ return k+':'+Object.keys(CYCDB.cycles[k].years||{}).join(','); }))`));
+    chk(name, 'reopened', 'it opens on the office the work was saved for, which that machine was never told', i127J([i127ev(R.ev, 'myPmo()'), i127ev(R.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', 'PSM']));
+    chk(name, 'reopened', 'the banner says so', /\u{1F3E2} PSM/u.test(i127ev(R.ev, `document.getElementById('subBanner').textContent`)), true);
+    chk(name, 'reopened', 'and that it is saved', /^Saved/.test(i127state(R.ev)), true);
+    i127wire(R.ev, 'PSM Lead');    // the editor name is the person's own, given on that machine
+    const pkgR = i127submit(R.ev).pkg, pkg1 = i127submit(P.ev).pkg;
+    chk(name, 'reopened', 'Submit sends the same package (less its clock): items, baseline, proposal, ranking, publish stamp', i127J(i127noTs(pkgR)), i127J(i127noTs(pkg1)));
+    chk(name, 'reopened', 'which is the package from before any save, with the description typed since', i127J(i127noTs(pkg1)),
+      i127J(i127noTs(Object.assign({}, pkg0, { items: Object.assign({}, pkg0.items, { A: Object.assign({}, pkg0.items.A, { desc: 'PSM again' }) }) }))));
+    chk(name, 'reopened', 'against the copy as it was published', i127J([pkgR && pkgR.fromTs, pkgR && pkgR.base && pkgR.base.B]), i127J([M0.ts, { cons: null, asks: [300, 80, 40] }]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — Save writes only this copy’s file for this office: every other file is refused, and its handle forgotten (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev), FB = B.ev('buildSavedHtml()');
+    // AV's file of this same copy, saved on AV's machine; and PSM's file of a copy published later
+    // built as any save builds them (the board's own assembly), the office's mark set by hand, so the fixture does not lean
+    // on the Save under test
+    const Q = await i127open(C0, 'AV Lead'); Q.ev(`setDesc('C','AV wrote C'); 'ok'`);
+    const fAV = i127disk('AV file.html', Q.ev(`MS.pmoFor={pmo:'AV'}; buildSavedHtml()`));
+    await i127pause(5); const C2 = i127Publish(B.ev);
+    const Q2 = await i127open(C2, 'PSM Lead'); Q2.ev(`setDesc('A','later copy'); 'ok'`);
+    const fOther = i127disk('later copy PSM.html', Q2.ev(`MS.pmoFor={pmo:'PSM'}; buildSavedHtml()`));
+    chk(name, 'setup', 'AV’s file and a later copy’s PSM file exist (a CONTROL on the fixture’s files)',
+      i127J([i127J(i127mark(fAV.content)), i127J(i127mark(fOther.content)), i127mode(fOther.content) !== i127mode(C0)]), i127J([i127J({ pmo: 'AV' }), i127J({ pmo: 'PSM' }), true]));
+    const P = await i127open(C0, 'PSM Lead'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); 'ok'`);
+    const tries = [['the PMO copy as it was published', C0, /as it was published/], ['the portfolio board’s file', FB, /board file/],
+      ['AV’s file of this copy', fAV.content, /AV’s work/], ['PSM’s file of another copy', fOther.content, /another PMO copy/],
+      ['a file that is not a board', 'not a board at all', /not a board/]];
+    for (const [what, content, why] of tries) {
+      const f = i127disk('picked.html', content); i127picker(P.w, f, P.picks);     // a neutral name: the reason must come from the check, not the file name
+      const n0 = P.picks.length; await i127save(P);
+      chk(name, what, 'Save asks which file, and refuses this one: nothing written', i127J([P.picks.length - n0, f.writes, f.content === content]), i127J([1, 0, true]));
+      chk(name, what, 'it says why', /Not saved/.test(i127status(P.ev)) && why.test(i127status(P.ev)), true);
+      chk(name, what, 'and keeps no handle to it, so the next Save asks again', i127J([[...P.store.keys()].length, i127ev(P.ev, '_pfh')]), i127J([0, null]));
+    }
+    // a file that cannot be read is never written over
+    const fr = i127disk('syncing.html', ''); fr.fail = true; i127picker(P.w, fr, P.picks); await i127save(P);
+    chk(name, 'unreadable', 'a file that cannot be read is not written over, and says so', i127J([fr.writes, /could not be read/.test(i127status(P.ev))]), i127J([0, true]));
+    // its own new file is taken, and kept; then the file is replaced on disk by AV's: refused, and the kept handle forgotten
+    const fP = i127disk('PSM file.html'); i127picker(P.w, fP, P.picks); await i127save(P);
+    chk(name, 'own file', 'a new file is written, and its handle kept', i127J([fP.writes, [...P.store.values()].indexOf(fP.h) >= 0]), i127J([1, true]));
+    fP.content = fAV.content; P.log.length = 0;
+    const n1 = P.picks.length; P.ev(`setDesc('A','PSM again'); 'ok'`); await i127save(P);
+    chk(name, 'own file', 'the kept handle is used, no picker; the file now holds AV’s work, so nothing is written', i127J([P.picks.length - n1, fP.writes, fP.content === fAV.content]), i127J([0, 1, true]));
+    chk(name, 'own file', 'and the handle is forgotten in the page and in the handle store', i127J([i127ev(P.ev, '_pfh'), P.log.some(l => /^delete pmo/.test(l)), [...P.store.keys()].length]), i127J([null, true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — one office’s file, two people on two machines: Save asks between them, and the newest save always opens (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const f = i127disk('PSM file.html');      // the office's one file, on the shared drive both machines reach
+    // MACHINE 1 makes it
+    let M1 = await i127open(C0, 'Pat'); M1.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','Pat 1'); 'ok'`);
+    i127picker(M1.w, f, M1.picks); await i127save(M1);
+    // MACHINE 2: another person in the office opens it, picks the same file the first time, and saves -- nothing to ask
+    let M2 = await i127open(f.content, 'Kim'); M2.ev(`setDesc('A','Kim 1'); 'ok'`); i127picker(M2.w, f, M2.picks);
+    await i127save(M2);
+    chk(name, 'take turns', 'Kim’s first Save picks the office’s file and writes it, asking nothing', i127J([M2.picks.length, i127ev(M2.ev, '__q.length'), f.writes, i127desc(f.content, 'A')]), i127J([1, 0, 2, 'Kim 1']));
+    // MACHINE 1 again, its handle kept: the file is Kim's save now, not the one Pat's work came from
+    M1.ev(`setDesc('A','Pat 2'); window.__yes=false; __q=[]; 'ok'`); await i127save(M1);
+    const q = i127ev(M1.ev, 'JSON.stringify(__q)');
+    chk(name, 'take turns', 'Pat’s Save asks first, naming Kim; answered No, nothing is written', i127J([/HOLD ON/.test(q) && /Kim/.test(q), f.writes, i127desc(f.content, 'A')]), i127J([true, 2, 'Kim 1']));
+    M1.ev(`window.__yes=true; __q=[]; 'ok'`); await i127save(M1);
+    chk(name, 'take turns', 'answered Yes, it is written', i127J([f.writes, i127desc(f.content, 'A')]), i127J([3, 'Pat 2']));
+    // ROUND TRIPS: each machine reopens the newest file in its own browser. Save marks the work saved, so the newest file opens
+    // every time and nothing is kept aside -- a download would leave the work unsaved, and the second trip would meet the kept slot
+    for (let round = 1; round <= 3; round++) {
+      const who = round % 2 ? 'Kim' : 'Pat', was = round % 2 ? M2 : M1, txt = 'round ' + round + ' by ' + who;
+      const back = await i127open(f.content, who, i127ls(was.ev), was.store);
+      const st = i127J([i127ev(back.ev, 'S.desc.A'), i127ev(back.ev, `localStorage.getItem(_AP.key+'.kept')`), i127ev(back.ev, 'JSON.stringify(_bootHeld)')]);
+      const shown = i127desc(f.content, 'A');
+      back.ev(`setDesc('A',${i127J(txt)}); 'ok'`); i127picker(back.w, f, back.picks); await i127save(back);
+      chk(name, 'round ' + round, who + ' reopens the newest save, nothing kept aside, and saves again with the kept handle, asking nothing',
+        i127J([st, back.picks.length, i127ev(back.ev, '__q.length'), i127desc(f.content, 'A')]), i127J([i127J([shown, null, 'null']), 0, 0, txt]));
+      if (round % 2) M2 = back; else M1 = back;
+    }
+    // ⬇ Save a copy downloads the office's file and marks nothing saved
+    M1.ev(`setDesc('A','typed, then downloaded'); window.__dl=''; HTMLAnchorElement.prototype.click=function(){ window.__dl=this.download; }; 'ok'`);
+    i127ev(M1.ev, 'pmoSaveCopyDl()');
+    chk(name, 'download', 'Save a copy downloads the office’s file, under its name, and the work stays unsaved',
+      i127J([/— PMO COPY — PSM — /.test(i127ev(M1.ev, '__dl')), i127ev(M1.ev, 'DIRTY'), i127ev(M1.ev, 'baseGet().dirty'), /downloaded/.test(i127state(M1.ev))]), i127J([true, true, true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — the file opens on the office its work was saved for, and Submit sends for that office alone (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const P = await i127open(C0, 'Pat'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); 'ok'`);
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    // a browser that last worked for AV opens PSM's file
+    const R = await i127open(f.content, 'Kim', { prio27pmo: 'AV', prio27who: 'Kim' });
+    chk(name, 'opens', 'it opens on PSM, the office the file was saved for, and this browser now says PSM', i127J([i127ev(R.ev, 'myPmo()'), i127ev(R.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', 'PSM']));
+    // set to AV in the bar: Submit refuses, naming both, and sends nothing
+    R.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); 'ok'`);
+    const s1 = i127submit(R.ev);
+    chk(name, 'submit', 'set to another office, Submit sends nothing, and says whose work it is', i127J([s1.pkg, s1.alerts.some(a => /saved for PSM/.test(a) && /AV/.test(a))]), i127J([null, true]));
+    R.ev(`window.prompt=function(){ return 'PSM'; }; pickMyPmo(); 'ok'`);
+    const s2 = i127submit(R.ev);
+    chk(name, 'submit', 'set back to PSM, it sends PSM’s work (a CONTROL on the fixture)', i127J([s2.pkg && s2.pkg.pmo, s2.pkg && s2.pkg.items && s2.pkg.items.A && s2.pkg.items.A.desc]), i127J(['PSM', 'PSM rewrote A']));
+    // the work saved for AV instead: asked first, and it goes to a file of AV's own; PSM's file is left as it is
+    R.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); __q=[]; 'ok'`);
+    const fAV = i127disk('AV file.html'); i127picker(R.w, fAV, R.picks); const psm0 = f.content; await i127save(R);
+    chk(name, 'save for another', 'Save for AV asks first, then writes a new file of AV’s, and leaves PSM’s alone',
+      i127J([/saved for PSM/.test(i127ev(R.ev, 'JSON.stringify(__q)')), i127J(i127mark(fAV.content)), f.content === psm0, i127J(i127mark(f.content))]), i127J([true, i127J({ pmo: 'AV' }), true, i127J({ pmo: 'PSM' })]));
+    // THE OFFICE FOLLOWS THE WORK: this browser holds AV's newer work under the copy's key, and opens PSM's (older) file:
+    // AV's work is what opens, and the copy is AV's
+    // this browser's own office setting says PSM, as the file does: only the work's own mark says AV
+    const lsAV = Object.assign(i127ls(R.ev), { prio27pmo: 'PSM' });
+    const R2 = await i127open(f.content, 'Kim', lsAV);
+    chk(name, 'follows the work', 'this browser’s newer work, saved for AV, opens over PSM’s older file, on AV', i127J([i127ev(R2.ev, 'myPmo()'), i127ev(R2.ev, 'S.desc.A')]), i127J(['AV', 'PSM rewrote A']));
+    // browser storage refuses the office: the copy still opens on PSM, and submits for PSM, from what the page holds
+    const R3 = boot({ html: f.content, ls: { prio27pmo: 'AV', prio27who: 'Kim' } });
+    // the opening stored PSM; this browser is set back to AV, and from now on refuses the office
+    R3.ev(`localStorage.setItem('prio27pmo','AV'); try{ _pmoMem=null; }catch(e){}
+      Storage.prototype.__si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27pmo') throw new DOMException('full','QuotaExceededError'); return this.__si(k,v); }; 'ok'`);
+    i127ev(R3.ev, `pmoAdopt(); 'ok'`);
+    chk(name, 'storage refuses', 'the office the file was saved for stands in the page when storage will not take it', i127J([i127ev(R3.ev, 'myPmo()'), i127ev(R3.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', 'AV']));
+    i127wire(R3.ev, '');
+    const s3 = i127submit(R3.ev);
+    chk(name, 'storage refuses', 'and Submit sends for PSM', s3.pkg && s3.pkg.pmo, 'PSM');
+    // THE BOARD HOLDS NO OFFICE'S MARK: a store carrying one, taken by the board, loses it, and no copy it publishes carries it
+    B.ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.pmoFor={pmo:'PSM'}; applyStore(st); save(); return 'ok'; })()`);
+    const C1 = i127Publish(B.ev);
+    chk(name, 'the board', 'the board keeps no office’s mark, and the copy it publishes carries none', i127J([i127ev(B.ev, 'JSON.stringify(MS.pmoFor===undefined)'), i127mark(C1)]), i127J(['true', null]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a PMO copy comes in only through the PMO import screen, and the board’s Save never writes over one (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the office's saved copy, built as its Save builds it (the board's own assembly, the office's mark set by hand), so the
+    // doors are tried on v2.08 with the same file
+    const P = await i127open(C0, 'Pat'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); setDesc('C','PSM wrote AV\\'s C'); 'ok'`);
+    const S1 = P.ev(`MS.pmoFor={pmo:'PSM'}; buildSavedHtml()`);
+    chk(name, 'setup', 'the saved copy passes the import check, as every file the board writes does (a CONTROL on the door)', i127ev(B.ev, `inboundCheck(${i127J(S1)})`), '');
+    const X = boot(); seed(X.ev, I127SC);
+    // the portfolio board in its own browser: the writer key is the one the board's file (and so the copy) records, so on this
+    // machine the copy's writer record reads "me"
+    X.ev(`localStorage.setItem('prio27writerKey', ${i127J(i127ls(B.ev).prio27writerKey)});
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.confirm=function(){ return true; }; blCyc='PB'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+    i127wire(X.ev, 'BLL'); X.ev(`window.prompt=function(){ window.__pr=(window.__pr||0)+1; return 'ALL'; }; 'ok'`);
+    const snap = () => i127J([i127ls(X.ev), X.ev(I127MS), X.ev(`JSON.stringify(CYCDB)`)]);
+    const S0 = snap();
+    const imp = (txt, nm) => X.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(txt)}], ${i127J(nm)})], value:'x'};
+      try{ importState(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    for (const [what, txt, re] of [['PSM’s saved copy', S1, /PSM/], ['the PMO copy as published', C0, /as published/]]) {
+      X.ev(`__al=[]; __q=[]; window.__pr=0; 'ok'`); await imp(txt, what + '.html'); await i127pause(20);
+      const al = X.ev('JSON.stringify(__al)');
+      chk(name, '⬅ Import · ' + what, 'refused at once, naming the office or that it is as published, and the PMO import screen',
+        i127J([/PMO copy/.test(al) && re.test(al) && /Review submittals/.test(al), X.ev('__q.length'), X.ev('__pr')]), i127J([true, 0, 0]));
+      chk(name, '⬅ Import · ' + what, 'nothing on the board changed: storage, the plan and the locked cycles', snap() === S0, true);
+    }
+    X.ev(`__al=[]; __q=[]; 'ok'`);
+    const full = i127ev(X.ev, `String(fullImportText(${i127J(S1)}, 'PSM file.html'))`);
+    chk(name, 'Import a full board', 'refused, asking nothing, the PB lock’s years kept', i127J([full, X.ev('__q.length'), /PMO copy/.test(X.ev('JSON.stringify(__al)')), X.ev(`Object.keys(CYCDB.cycles['PB|2027'].years||{}).length>0`), snap() === S0]),
+      i127J(['false', 0, true, true, true]));
+    X.ev(`__al=[]; __q=[]; window.__pr=0; 'ok'`);
+    const cp = i127ev(X.ev, `(function(){ consTakePick(${i127J(i127pub(S1))}, ${i127J(S1)}, 'PSM file.html'); return String(window.__pr); })()`);
+    chk(name, 'Import one appropriation', 'consTakePick refuses it before asking which to take', i127J([cp, /PMO copy/.test(X.ev('JSON.stringify(__al)')), snap() === S0]), i127J(['0', true, true]));
+    // several at once: one copy among them stops the batch, nothing taken
+    const other = B.ev('buildSavedHtml()');
+    X.ev(`__al=[]; __q=[]; window.confirm=function(m){ __q.push(String(m)); return true; }; 'ok'`);
+    await X.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(other)}], 'board.html'), new File([${i127J(S1)}], 'PSM file.html')], value:'x'};
+      try{ importBoards(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    await i127pause(20);
+    chk(name, 'Import several boards at once', 'a PMO copy among them refuses the batch, and nothing is taken', i127J([/PMO copy/.test(X.ev('JSON.stringify(__al)')) && /none of the 2/.test(X.ev('JSON.stringify(__al)')), snap() === S0]), i127J([true, true]));
+    // the PMO import screen still takes the office's submittal (a CONTROL)
+    i127wire(P.ev, 'Pat'); const sub = i127submit(P.ev).pkg;
+    X.ev(`PMOSUBS=[]; PMOPICK={}; window.alert=function(){}; window.confirm=function(){ return true; }; pmoTake(${i127J(sub)}, 'psm.json'); 'ok'`);
+    chk(name, 'the PMO import screen', 'the office’s ✉ Submit input file is taken for review, nothing applied (a CONTROL)', i127J([X.ev('PMOSUBS.length'), X.ev(`S.desc.A||null`)]), i127J([1, null]));
+    // THE BOARD'S SAVE: pointed at the office's saved copy, it refuses and forgets the handle; at its own file, it writes
+    i127wire(X.ev, 'BLL');
+    const d1 = i127disk('PSM file.html', S1); X.w.__d1 = d1.h; X.ev(`FH=window.__d1; window.showSaveFilePicker=function(){ throw new Error('the picker was opened'); }; 'ok'`);
+    await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(30);
+    chk(name, 'the board’s Save', 'pointed at a PMO copy it writes nothing, says it is a copy and whose, and forgets the handle',
+      i127J([d1.writes, d1.content === S1, /PMO copy/.test(i127status(X.ev)) && /PSM/.test(i127status(X.ev)), X.ev('FH===null')]), i127J([0, true, true, true]));
+    const d2 = i127disk('board.html', X.ev('buildSavedHtml()')); X.w.__d2 = d2.h; X.ev(`FH=window.__d2; LASTKNOWN=fileTsOf(JSON.parse(${i127J(i127J(i127pub(d2.content)))})); 'ok'`);
+    await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(30);
+    chk(name, 'the board’s Save', 'at the board’s own file it writes (a CONTROL)', d2.writes, 1);
+    // IN A COPY: another office's file is refused too -- a copy's work is opened, never imported into another copy
+    const Q = await i127open(C0, 'Kim'); Q.ev(`try{ localStorage.setItem('prio27pmo','AV'); }catch(e){} 'ok'`);
+    const Q0 = Q.ev(I127MS);
+    await (async () => { await Q.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(S1)}], 'PSM file.html')], value:'x'};
+      try{ importState(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`); })();
+    await i127pause(20);
+    chk(name, 'in a copy', 'another office’s file is refused, saying to open it itself, and nothing changes', i127J([/Open that file itself/.test(Q.ev('JSON.stringify(__al)')), Q.ev(I127MS) === Q0]), i127J([true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a copy’s side lists are its own, and it reads the ones its file carries (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the board moves on after publishing: its four lists are newer in this browser than the copy's
+    B.ev(`BUDDB={ts:Date.now(), rows:[{ap:'om', svc:'USAF', name:'BOARD NEWER', amt:2}], files:['b2.xlsx']}; persistBud();
+      EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[['BOARDNEWER', 2]]}}}; persistExdb();
+      ACEDB={ts:Date.now(), sets:{'BOARDNEWER':{fp:'fp-n', locked:false, appn:{}, lines:[]}}}; persistAce();
+      RPDB={ts:Date.now(), entries:[{id:'rpn', ts:Date.now(), ap:'om', amt:2, what:'BOARD NEWER'}]}; persistRp(); 'ok'`);
+    const lsB = i127ls(B.ev);
+    const lists = ev => i127ev(ev, `JSON.stringify([BUDDB.rows.map(function(r){ return r.name; }), (EXDB.all.om && EXDB.all.om.rows && EXDB.all.om.rows[0])? EXDB.all.om.rows[0][0] : '', Object.keys(ACEDB.sets), RPDB.entries.map(function(e){ return e.what; })])`);
+    // the copy opened in the portfolio team's browser
+    const P = await i127open(C0, 'Pat', lsB);
+    chk(name, 'reads', 'it reads the lists its file carries, not the board’s newer ones in this browser',
+      lists(P.ev), i127J([['BOARD BAE ROW'], 'BOARDEX', ['BOARDACE'], ['BOARD RP']]));
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+    const s0 = i127state(P.ev);
+    P.ev(`BUDDB={ts:Date.now(), rows:[{ap:'om', svc:'USAF', name:'COPY ROW', amt:3}], files:['c.xlsx']}; persistBud();
+      EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[['COPYEX', 3]]}}}; persistExdb();
+      ACEDB={ts:Date.now(), sets:{'COPYACE':{fp:'fp-c', locked:false, appn:{}, lines:[]}}}; persistAce();
+      RPDB={ts:Date.now(), entries:[{id:'rpc', ts:Date.now(), ap:'om', amt:3, what:'COPY RP'}]}; persistRp(); render(); 'ok'`);
+    const lsP = i127ls(P.ev);
+    chk(name, 'writes', 'what the copy writes never reaches the board’s four lists in this browser',
+      i127J(['prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog'].map(k => lsP[k] === lsB[k])), i127J([true, true, true, true]));
+    const ts = JSON.parse(i127mode(C0)).ts;
+    chk(name, 'writes', 'it keeps them under keys sealed to the copy', i127J(['prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog'].map(k => /COPY/.test(lsP[k + '-pmo' + ts] || ''))), i127J([true, true, true, true]));
+    chk(name, 'writes', 'and its save state counts them as unsaved changes', i127J([/^Saved|not saved/.test(s0), /Unsaved changes/.test(i127state(P.ev))]), i127J([true, true]));
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    const pf = i127pub(f.content);
+    chk(name, 'saves', 'the office’s file carries the copy’s lists, and the work reads saved',
+      i127J([pf && pf.budDb.rows[0].name, pf && pf.rpDb.entries[0].what, /^Saved/.test(i127state(P.ev))]), i127J(['COPY ROW', 'COPY RP', true]));
+    // reopened in that browser: the copy reads its own lists; the board reads its own, and nothing it did not do is unsaved
+    const P2 = await i127open(C0, 'Pat', i127ls(P.ev));
+    chk(name, 'reopened', 'the copy reads its own lists back (a CONTROL: so did v2.08, from the board’s own keys)', lists(P2.ev), i127J([['COPY ROW'], 'COPYEX', ['COPYACE'], ['COPY RP']]));
+    // opened from the copy as published, which does not carry them: the lists this browser holds read unsaved, as on the board
+    chk(name, 'reopened', 'the lists this browser holds that the file opened does not carry read unsaved, as on the board',
+      i127J([i127ev(P2.ev, 'JSON.stringify((sideBootNote.keys||[]).indexOf(BUDDB_KEY)>=0)'), /Unsaved changes/.test(i127state(P2.ev))]), i127J(['true', true]));
+    const BB = boot({ html: B.ev('buildSavedHtml()'), ls: i127ls(P.ev) }); await i127pause(60);
+    chk(name, 'reopened', 'the board reads its own, with nothing of the copy’s counted as its unsaved change',
+      i127J([JSON.parse(lists(BB.ev))[0], BB.ev('JSON.stringify(sideBootNote.keys||[])')]), i127J([['BOARD NEWER'], '[]']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.09 W3 ====
 
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====

@@ -2819,6 +2819,73 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== end v2.09 W2 ====
 
 // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// What a PMO copy's foot holds, and the words that said its Save was off, in jsdom (the browser half -- layout, target size,
+// the keyboard, the picker's name and the real handle store -- is tools/pmo-save.mjs). Every check fails on v2.08 (ebe702e)
+// unless it says CONTROL.
+{
+  const name = 'v2.09 W3 — a copy’s foot: 💾 Save above ✉ Submit input, its ▾ and Ctrl+S, and the words that said Save was off (item 127)';
+  try {
+    const J = JSON.stringify;
+    const e3 = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 120); } };
+    const it3 = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const SC = { services: ['USAF', 'ANG'], items: [it3('A', 'PSM', [900, 200]), it3('C', 'AV', [500, 0])], disc: [1200, 250], mand: [300, 50], order: ['A', 'C'] };
+    const B = boot(); seed(B.ev, SC);
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      try{ localStorage.setItem('prio27who','BLL'); }catch(e){} render(); syncBtns(); 'ok'`);
+    const C0 = B.ev(`(function(){ let cap=null; const _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+    const foot = ev => e3(ev, `JSON.stringify([...document.getElementById('uiSave').querySelectorAll('button, #saveState')].filter(function(e){ return !e.closest('[hidden]'); })
+      .map(function(e){ return e.id==='saveState'? 'state' : (e.id||e.className)+':'+(e.getAttribute('onclick')||''); }))`);
+    const ddSave = ev => e3(ev, `JSON.stringify([...document.querySelectorAll('#dd_save [onclick]')].map(function(b){ return b.getAttribute('onclick'); }))`);
+    // the board: its foot as it was (a CONTROL)
+    chk(name, 'board', 'the board’s foot is 💾 Save, its ▾ and the save state, as before (a CONTROL)', foot(B.ev),
+      J(['saveBtn:saveInPlace()', "uiNav_save:uiGo('save',this)", 'state']));
+    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)']));
+    // the copy
+    const P = boot({ html: C0 });
+    P.ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; window.prompt=function(){ return null; };
+      try{ localStorage.setItem('prio27who','Pat'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); syncBtns(); 'ok'`);
+    chk(name, 'copy', 'the foot, top to bottom: 💾 Save and its ▾, the save state, then ✉ Submit input', foot(P.ev),
+      J(['pmoSaveBtn:pmoSaveCopy()', "uiNav_save:uiGo('save',this)", 'state', 'saveBtn:pmoSubmit()']));
+    chk(name, 'copy', '✉ Submit input stays the primary button; Save is a plain one', e3(P.ev, `JSON.stringify([document.getElementById('saveBtn').className, document.getElementById('pmoSaveBtn').className])`),
+      J(['btn pri', '']));
+    chk(name, 'copy', 'the ▾ offers the copy’s own Save a copy, and nothing of the board’s', ddSave(P.ev), J(['mRun(pmoSaveCopyDl)']));
+    chk(name, 'copy', 'the save state of the copy as it was published: not saved to a file yet', e3(P.ev, `document.getElementById('saveState').textContent`), 'not saved to a file yet');
+    P.ev(`setDesc('A','PSM rewrote A'); syncBtns(); 'ok'`);
+    chk(name, 'copy', 'edited: Unsaved changes, and Save says so', e3(P.ev, `JSON.stringify([document.getElementById('saveState').textContent, document.getElementById('pmoSaveBtn').classList.contains('dirty')])`), J(['Unsaved changes', true]));
+    chk(name, 'copy', 'the bar no longer says a copy has no Save', /no Save/.test(e3(P.ev, `(document.getElementById('uiEdChip')||{}).textContent||''`)), false);
+    // Ctrl+S is the copy's Save; on the board it is the board's
+    const keyS = ev => e3(ev, `(function(){ window.__s=[]; var a=window.saveInPlace, b=window.pmoSaveCopy;
+      saveInPlace=function(){ __s.push('saveInPlace'); }; pmoSaveCopy=function(){ __s.push('pmoSaveCopy'); };
+      try{ uiSaveKey({ctrlKey:true, metaKey:false, altKey:false, shiftKey:false, key:'s', preventDefault:function(){}}); }finally{ saveInPlace=a; if(b) pmoSaveCopy=b; }
+      return JSON.stringify(__s); })()`);
+    chk(name, 'Ctrl+S', 'in a copy it is the copy’s Save', keyS(P.ev), J(['pmoSaveCopy']));
+    chk(name, 'Ctrl+S', 'on the board it is the board’s (a CONTROL)', keyS(B.ev), J(['saveInPlace']));
+    // the board's own ways out stay shut in a copy: each says so, and nothing is downloaded
+    const shut = e3(P.ev, `(function(){ var out=[], _B=window.Blob, made=0; window.Blob=function(pt,o){ if(o && o.type==='text/html') made++; return new _B(pt,o); };
+      ['saveInPlace','saveInPlaceFile','publishState'].forEach(function(f){ __al=[]; try{ window[f](); }catch(e){} out.push(__al.length===1 && /PMO copy/.test(__al[0])); });
+      window.Blob=_B; out.push(made); return JSON.stringify(out); })()`);
+    chk(name, 'the gate', 'the board’s Save, its file save and its Save a copy are each refused in a copy, and nothing is downloaded (a CONTROL on the gate)', shut, J([true, true, true, 0]));
+    const gate = e3(P.ev, `(function(){ __al=[]; sandboxBlock('Saving to the shared file'); return __al[0]||''; })()`);
+    chk(name, 'the words', 'the gate no longer says the work is in this browser only, and names Save', J([/in this browser only/.test(gate), /Save .*office.*own file/.test(gate)]), J([false, true]));
+    chk(name, 'the words', 'the opening line names Save, not “kept in this browser, against this copy”',
+      J([/Save/.test(e3(P.ev, `document.getElementById('shareStat').innerHTML`)), /against this copy/.test(e3(P.ev, `document.getElementById('shareStat').innerHTML`))]), J([true, false]));
+    chk(name, 'the words', '✉ Submit input’s title points to Save', /Save.*office.*own file/.test(e3(P.ev, `document.getElementById('saveBtn').title`)), true);
+    // storage refusing a change: the message points to the copy's own Save
+    const refusedMsg = e3(P.ev, `(function(){ var si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k===_AP.key || k===BUDDB_KEY) throw new DOMException('full','QuotaExceededError'); return si.call(this,k,v); };
+      try{ setDesc('A','refused'); var a=document.getElementById('shareStat').textContent; persistBud(); var b=document.getElementById('shareStat').textContent; return JSON.stringify([a,b]); }
+      finally{ Storage.prototype.setItem=si; } })()`);
+    chk(name, 'the words', 'storage refusing the work, or a list, points to Save and the office’s own file',
+      J((() => { try { return JSON.parse(refusedMsg).map(t => /Save now to keep it in your office’s own file|Save to keep it in your office’s own file/.test(t)); } catch { return refusedMsg; } })()), J([true, true]));
+    // the in-file guide's office part
+    const guide = e3(P.ev, `JSON.stringify(helpSections().filter(function(s){ return s.part==='office'; }).map(function(s){ return s.id+'|'+s.el.textContent; }))`);
+    chk(name, 'the guide', 'the office part has a section on Save, and no longer says Save is turned off or to reopen the same file in the same browser',
+      J((() => { try { const G = JSON.parse(guide); return [G.some(g => /^o-save\|/.test(g)), G.some(g => /Save says it is turned off/.test(g)), G.some(g => /Reopen the same file in the same browser/.test(g))]; } catch { return guide; } })()), J([true, false, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.09 W3 ====
 
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====

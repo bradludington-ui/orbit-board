@@ -14,7 +14,8 @@
 //   C. THE FIVE TOP-BAR CONTROLS ARE GONE -- Save, Reports & exports ▾, Data ▾, Setup ▾, 📁 File ▾ -- and what stays there
 //      stays: Appropriation, Fiscal year, the PMO filter, search, Filter, the message line and Help.
 //   D. A PMO COPY: the Save spot is ✉ Submit input (pmoSubmit), reached once; Program offices is not shown and holds
-//      nothing; Save and Save a copy are still there under ▾, saying they are off.
+//      nothing. v2.09 (item 127): the copy's own 💾 Save (pmoSaveCopy) sits above it, reached once, and its ▾ offers the
+//      copy's own Save a copy (pmoSaveCopyDl), nothing of the board's -- they were listed there, off, until v2.09.
 //   F. (Brad, 19 Oct) NO REPEAT ON THE TASK BAR: Bands is on no task-bar control in any mode, nor in its folded Tools menu --
 //      the left menu (A) is its one home. (Executive decision, the PowerPoint deck and the Exec synopsis were held here too, until
 //      v2.05 removed them, item 114.)
@@ -235,10 +236,14 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       const n = tally(await harvest(p));
       chk('D · ✉ Submit input is reached from the left menu once; Publish PMO copy, Review submittals and the submittal loading not at all',
         J([n.pmoSubmit || 0, n.publishPmoCopy || 0, n.subOpenReview || 0, n["uiPmoLoad('one')"] || 0, n["uiPmoLoad('all')"] || 0]) === J([1, 0, 0, 0, 0]), J(n));
+      // v2.09 (item 127): the copy's own Save, once, and its own Save a copy, once; the board's Save and Save a copy not at all
+      chk('D · the copy’s 💾 Save and its Save a copy are each reached once, the board’s Save and Save a copy not at all',
+        J([n.pmoSaveCopy || 0, n.pmoSaveCopyDl || 0, n.saveInPlace || 0, n.publishState || 0]) === J([1, 1, 0, 0]), J(n));
       await p.click('#uiNav_save'); await p.waitForTimeout(120);
       const off = await p.evaluate(() => [...document.querySelectorAll('#uiFly.open button.mi')].map(e => [e.getAttribute('onclick'), (e.querySelector('.sub') || {}).textContent]));
-      chk('D · under ▾, Save and Save a copy stay off, as in the File menu, and say where to go instead',
-        J(off) === J([['mRun(saveInPlace)', 'turned off in a PMO copy — use ✉ Submit input'], ['mRun(publishState)', 'turned off in a PMO copy']]), J(off));
+      // v2.09 (item 127): it listed the board's Save and Save a copy, off ("turned off in a PMO copy"); the copy saves now
+      chk('D · under ▾, the copy’s own Save a copy, which downloads the office’s file',
+        J(off) === J([['mRun(pmoSaveCopyDl)', 'downloads your office’s file, to hand on or keep']]), J(off));
       chk('D · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     } catch (e) { chk('D · the section ran on the copy', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
     await ctx.close();
