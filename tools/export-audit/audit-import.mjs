@@ -2167,8 +2167,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'apply', 'Mission Critical lands', got.mc, true);
   chk(name, 'apply', 'the record fields land', [got.ptype, got.obCat, got.rcnAsg, got.si, got.costElem, got.minInc].join('|'),
     'OGC|DESA Contract|r1|LA|Airframe PGSE|12345');
+  // v2.08 second review: an accepted Goes to is written in setDest's shape -- behind a prime (lm), no second hop at all
   chk(name, 'apply', 'the structured fields land whole', JSON.stringify([got.wbs, got.rcnSvc, got.dest, got.budgetAsg, got.awards, got.crHalf]),
-    JSON.stringify([[{w:'1.2.3'}], {USAF:'r1'}, {to:'lm', end:''}, {'USAF|disc':'USAF O&M - CAM Discretionary AV'},
+    JSON.stringify([[{w:'1.2.3'}], {USAF:'r1'}, {to:'lm'}, {'USAF|disc':'USAF O&M - CAM Discretionary AV'},
       {mode:'single', d:'2026-12', day:9}, {'2026-12':1}]));
   chk(name, 'apply', 'the hand-over lands, and moves its office rank with it', got.grpD + ' ' + (got.psm || []).includes('D') + ' ' + (got.av || []).includes('D'), 'PSM true false');
   chk(name, 'apply', 'the office ranking lands as the office’s own order', (got.av || []).join(','), 'B,A');
@@ -2246,9 +2247,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const P = boot({ html: v184Publish(ev) });
   P.ev(`syncBtns(); 'ok'`);
   chk(name, 'copy', 'the header button submits', P.ev(`document.getElementById('saveBtn').textContent+'|'+document.getElementById('saveBtn').getAttribute('onclick')`), '✉ Submit input|pmoSubmit()');
-  chk(name, 'copy', 'the save indicator says where the work is', /kept in this browser/.test(P.ev(`document.getElementById('saveState').innerHTML`)), true);
+  // v2.09 W3: a copy's 💾 Save keeps the office's work in a file of its own (item 127), so its indicator reads as the board's --
+  // and, until the work is saved for an office, never "Saved" for the copy every office was sent. It said "kept in this browser".
+  chk(name, 'copy', 'the save indicator says the copy is not saved to a file yet', P.ev(`document.getElementById('saveState').textContent`), 'not saved to a file yet');
   // v2.00 (menu, 19 Oct): the File menu is gone; in a copy, Save's ▾ on the left menu says Save is off, and where to go instead
-  chk(name, 'copy', 'Save’s ▾ says Save is off here, and where to go instead', /Save<span class="sub">turned off in a PMO copy — use ✉ Submit input/.test(P.ev(`document.getElementById('dd_save').innerHTML`)), true);
+  // v2.09 W3: the ▾ offers the copy's own Save a copy, which downloads the office's file (item 127); the board's Save and Save a
+  // copy, off in a copy, are no longer listed there as off
+  chk(name, 'copy', 'Save’s ▾ offers the copy’s own Save a copy, and nothing of the board’s', P.ev(`JSON.stringify([...document.querySelectorAll('#dd_save [onclick]')].map(function(b){ return b.getAttribute('onclick'); }))`), JSON.stringify(['mRun(pmoSaveCopyDl)']));
   chk(name, 'copy', 'the opening line points to Submit input', /Submit input/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), true);
   chk(name, 'copy', 'and never to Save', /Save to pass it on/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), false);
   const box = P.ev(`(function(){ window.alert=function(){}; const s=document.getElementById('appnSel');
@@ -2820,7 +2825,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const k = A.ev(`destByName('Aardvark Depot').k`);
   chk(name, 'add', 'a new destination gets a key of its own, not the next x', /^d[0-9a-z]{8,}$/.test(k), true);
   chk(name, 'add', 'and reads first, A to Z', v186AZ(A.ev)[0], 'Aardvark Depot');
-  chk(name, 'pickers', 'the Goes to bulk list reads A to Z', A.ev(`JSON.stringify(matBulk()['Goes to'].opts.map(function(o){ return o[1].replace(/ \\(gov\\)$/,''); }))`),
+  chk(name, 'pickers', 'the Goes to bulk list reads A to Z', A.ev(`JSON.stringify(matBulk()['dest'].opts.map(function(o){ return o[1].replace(/ \\(gov\\)$/,''); }))`),
     JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
   chk(name, 'pickers', 'the panel reads A to Z', JSON.stringify([...A.ev('flowEntEditor()').matchAll(/<input[^>]*value="([^"]*)" onchange="flowSetEnt\(\d+,&quot;n&quot;/g)].map(m => m[1].replace(/&amp;/g, '&'))),
     JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
@@ -5206,22 +5211,26 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const say = (ev) => w3said(ev).map(d => d[0] + ': ' + d[1]).join('\n');
 
   // (a) an FY28 package on a board that has no FY28, on FY27
+  // v2.09 W2 (item 126): on purpose -- a copy's submittal now names the years it covers, so each year is held for its own
+  // year without a question, and Apply puts it into that year whatever is on screen (Brad's decision 4), starting a year the
+  // board has not started first (decision 2). What item 52 protected still holds: nothing lands in FY27.
   const A = boot({ html: FY27 }); w3dlg(A.ev);
   const a0 = where(A.ev);
   A.ev(`pmoTake(${JSON.stringify(av28)}, 'av28.json'); 'ok'`);
   const aTake = say(A.ev);
-  chk(name, 'no FY28 on the board', 'taking it names both years, and that this board has no FY28 yet',
-    /written for FY28, and this board is on FY27/.test(aTake) && /has no FY28 yet/.test(aTake), true);
+  chk(name, 'no FY28 on the board', 'taking it asks nothing, and the status line says this board has not started FY28 and Apply asks how to start it',
+    aTake === '' && /has not started FY28: ✔ Apply asks how to start it/.test(A.ev(`document.getElementById('shareStat').textContent`)), true);
   chk(name, 'no FY28 on the board', 'it is held for FY28', A.ev('PMOSUBS[0].forFy'), 2028);
   A.ev(`subPickAll(true); pmoApply(); 'ok'`);
   const aApply = say(A.ev);
-  chk(name, 'no FY28 on the board', 'applying on FY27 is refused, naming the office’s year', /Nothing was applied/.test(aApply) && /AV — for FY28/.test(aApply), true);
-  chk(name, 'no FY28 on the board', 'and nothing is written to FY27', where(A.ev), a0);
-  // switching to FY28 (rolled forward) is what lets it apply -- and there its award date is in the year
-  A.ev(`switchYear(2028); subPickAll(true); pmoApply(); 'ok'`); say(A.ev);
-  chk(name, 'no FY28 on the board', 'on FY28 it applies to FY28 alone',
+  chk(name, 'no FY28 on the board', 'applying on FY27 asks once, naming FY28 and how many go into it, then how to start FY28',
+    /Apply 3 changes from AV to FY28\?/.test(aApply) && /FY28 — 3 changes — not started on this board/.test(aApply) && /FY28 has not been started on this board/.test(aApply), true);
+  chk(name, 'no FY28 on the board', 'and nothing is written to FY27', JSON.parse(where(A.ev))[0], JSON.parse(a0)[0]);
+  // FY28 started by rolling FY27 forward, the answer given -- and there its award date is in the year
+  chk(name, 'no FY28 on the board', 'it applies to FY28 alone',
     JSON.parse(where(A.ev)).join(' / '),
     'FY27 -|null|null|-|null / FY28 FY28 scope (AV)|[1500000,2000000]|{"mode":"single","d":"2027-10","day":5}|-|null');
+  A.ev(`switchYear(2028); 'ok'`); say(A.ev);
   const aCash = w3cash(A.ev);
   chk(name, 'no FY28 on the board', 'control (v1.94 reached it by the wrong road) — A’s cash lands in 1–15 OCT of FY28, by service',
     JSON.stringify([aCash['CR USAF']['1–15 OCT'], aCash['CR USN']['1–15 OCT']]), JSON.stringify([1500000, 2000000]));
@@ -5233,10 +5242,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const b0 = where(B.ev);
     B.ev(`subPickAll(true); pmoApply(); 'ok'`);
     const bApply = say(B.ev);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'applying on FY28 is refused, naming FY27', /Nothing was applied/.test(bApply) && /AV — for FY27/.test(bApply), true);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'and nothing is written to either year', where(B.ev), b0);
-    B.ev(`switchYear(2027); subPickAll(true); pmoApply(); 'ok'`); say(B.ev);
-    chk(name, 'switched to FY28 (' + lbl + ')', 'control (v1.94 applied it here as well) — back on FY27 it applies to FY27',
+    // v2.09 W2 (item 126): on purpose -- Apply on FY28 puts it into FY27, the year it is held for, and the question names it
+    chk(name, 'switched to FY28 (' + lbl + ')', 'applying on FY28 asks, naming FY27, the year it is held for', /Apply 3 changes from AV to FY27\?/.test(bApply), true);
+    chk(name, 'switched to FY28 (' + lbl + ')', 'and FY28, on screen, is not written', JSON.parse(where(B.ev))[1], JSON.parse(b0)[1]);
+    chk(name, 'switched to FY28 (' + lbl + ')', 'control (v1.94 applied it here as well) — it lands in FY27',
       JSON.parse(where(B.ev))[0], 'FY27 FY27 scope (AV)|[1200000,2000000]|{"mode":"single","d":"2026-11","day":20}|-|null');
   }
 
@@ -5245,19 +5254,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   C.ev(`pmoTake(${JSON.stringify(av27)}, 'av27.json'); pmoTake(${JSON.stringify(psm28)}, 'psm28.json'); 'ok'`); say(C.ev);
   chk(name, 'mixed years', 'each is held for its own year', C.ev(`JSON.stringify(PMOSUBS.map(function(p){ return p.pmo+':'+p.forFy; }))`), JSON.stringify(['AV:2027', 'PSM:2028']));
   C.ev(`switchYear(2028); subPickAll(true); 'ok'`);
-  const c0 = where(C.ev);
   C.ev(`pmoApply(); 'ok'`);
   const cApply = say(C.ev);
-  chk(name, 'mixed years', 'applying both on FY28 is refused, naming each office’s year',
-    /Nothing was applied/.test(cApply) && /AV — for FY27\n/.test(cApply) && /PSM — for FY28 \(the year on screen\)/.test(cApply), true);
-  chk(name, 'mixed years', 'and nothing is written to either year', where(C.ev), c0);
-  C.ev(`subPickAll(false, PMOSUBS.findIndex(function(p){ return p.pmo==='AV'; })); pmoApply(); 'ok'`); say(C.ev);
-  chk(name, 'mixed years', 'with AV’s unticked, PSM’s applies to FY28 and only there',
+  // v2.09 W2 (item 126): on purpose -- one Apply puts each office's into its own year, the question naming each year
+  chk(name, 'mixed years', 'applying both on FY28 asks once, naming each year and how many go into it',
+    /to FY27–FY28\?/.test(cApply) && /FY27 — 3 changes\n/.test(cApply) && /FY28 — 2 changes \(the year on screen\)/.test(cApply), true);
+  chk(name, 'mixed years', 'AV’s lands in FY27 and PSM’s in FY28, each there only',
     JSON.parse(where(C.ev)).join(' / '),
-    'FY27 -|null|null|-|null / FY28 -|null|null|FY28 scope (PSM)|{"mode":"single","d":"2027-12","day":5}');
+    'FY27 FY27 scope (AV)|[1200000,2000000]|{"mode":"single","d":"2026-11","day":20}|-|null / FY28 -|null|null|FY28 scope (PSM)|{"mode":"single","d":"2027-12","day":5}');
 
   // (d) a package that names no year: asked about, and held for the year on screen only if the reviewer says so
-  const noFy = JSON.parse(JSON.stringify(av27)); delete noFy.fy;
+  // v2.09 W2 (item 126): a copy's submittal now names the years it covers and always its year; the question is for a package
+  // from a copy published before v2.09, so the file is made one: no fys, no byYear
+  const noFy = JSON.parse(JSON.stringify(av27)); delete noFy.fy; delete noFy.fys; delete noFy.byYear;
   const D = boot({ html: FY28on27 }); w3dlg(D.ev, [false]);
   D.ev(`pmoTake(${JSON.stringify(noFy)}, 'nofy.json'); 'ok'`);
   chk(name, 'no year', 'a package with no year is asked about, and declining loads nothing',
@@ -5266,7 +5275,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'no year', 'saying yes holds it for the year on screen, FY27', D.ev('PMOSUBS[0].forFy'), 2027);
   // (e) applying to another year is an explicit choice that names it
   const E = boot({ html: FY27 }); w3dlg(E.ev, [false, true]);
-  E.ev(`pmoTake(${JSON.stringify(av28)}, 'av28.json'); 'ok'`);
+  // v2.09 W2 (item 126): asked only of a package from a copy published before v2.09 -- one that names its years is held for each
+  const av28old = JSON.parse(JSON.stringify(av28)); delete av28old.fys; delete av28old.byYear;
+  E.ev(`pmoTake(${JSON.stringify(av28old)}, 'av28.json'); 'ok'`);
   const eTake = w3said(E.ev);
   chk(name, 'another year', 'declining FY28 asks, naming FY27, whether to hold it for FY27 instead',
     eTake.length === 2 && /Hold it for FY27 instead/.test(eTake[1][1]) && /written for FY28/.test(eTake[1][1]), true);
@@ -5433,7 +5444,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // FY27 and kept FY28, and FY27's text then existed nowhere. Edits in two years that cancelled left no
 // line at all; an edit just after a put-back rewrote the put-back line; a clock set back still counted
 // as inside the minute; two loads inside a minute became one; and a new year's line read "undefined".
-// Driven through the real editors: the Description & note box (openFld → fldSave), switchYear, and the
+// Driven through the real editors: the Description & note box (the edit box: openEdit → erSave, v2.08), switchYear, and the
 // journal's own Put back (jrnlUndo). The clock is held still and moved by hand, so "inside a minute"
 // is a fact of the test rather than of how quickly the machine ran it.
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -5448,7 +5459,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save();
       globalThis.__T=Date.now(); Date.now=function(){ return globalThis.__T; }; 'ok'`);
     B.later = ms => B.ev(`globalThis.__T+=${ms}; 'ok'`);
-    B.note = (id, v) => B.ev(`openFld(${J(id)},'dn'); document.getElementById('fld-note').value=${J(v)}; fldSave(); 'ok'`);
+    B.note = (id, v) => B.ev(`openEdit(${J(id)},'notes'); document.getElementById('erNote').value=${J(v)}; erSave(); 'ok'`);   // v2.08: the edit box
     B.year = y => B.ev(`switchYear(${y}); 'ok'`);
     B.n = () => +B.ev('(MS.jrnl||[]).length');
     B.lines = from => JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).slice(${from}).map(function(e){ return [e.fy, (e.p||[]).join('.'), e.a, e.b, e.f? 1 : 0]; }))`));
@@ -9954,9 +9965,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       var it=[].slice.call(document.querySelectorAll('#uiFly button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
       if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
     await pause(15); await ev('_saveChain'); await pause(20); return r; };
-  // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
-  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('fld-note'); if(!t) return 'no editor';
-    t.value=${J(text)}; var bs=[].slice.call(document.querySelectorAll('#fldBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='fldSave()'; });
+  // The 📄 Description & note button opens the edit box (v2.08): type the note, press its Save.
+  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('erNote'); if(!t) return 'no editor';
+    t.value=${J(text)}; t.dispatchEvent(new Event('input')); var bs=[].slice.call(document.querySelectorAll('#erBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='erSave()'; });
     if(bs.length!==1) return 'save buttons: '+bs.length; bs[0].click(); return 'typed'; })()`);
   // The status line's "✍ Take the pen…" -- the refusal's own button --, answered OK; then the save it makes is waited for.
   const takePenBtn = async (ev, f) => { const w0 = f.writes;
@@ -11990,9 +12001,12 @@ await (async () => {
   chk(name, '10 · a year not held', 'a link to a year the board does not hold says so, not "no longer on the board"',
     ev(`priorTxt(S.custom[S.custom.length-1])`), 'FY25 A — FY25 is not on this board');
   ev(`S.custom.pop(); 'ok'`);
-  // ---- 12: the record-name pen on a brought-in requirement that carries a record name
-  ev(`switchYear(2028); S.recNames=S.recNames||{}; S.recNames['NEW-2']='carried from FY27'; uiPrompt=function(m,d,cb){ cb('Typed in FY28'); }; editRecName('NEW-2'); 'ok'`);
-  chk(name, '12 · record name', 'the pen renames a brought-in requirement that carried a record name', ev(`recName(itemById('NEW-2'))`), 'Typed in FY28');
+  // ---- 12: a brought-in requirement's carried record name. v2.08 (item 122, D9): the record name is read, never typed -- the
+  // row's rename is retired -- so the carried name stays, and the edit box shows it read only.
+  ev(`switchYear(2028); S.recNames=S.recNames||{}; S.recNames['NEW-2']='carried from FY27'; render(); 'ok'`);
+  chk(name, '12 · record name', 'the carried record name is shown, and nothing offers to rename it',
+    J([ev(`recName(itemById('NEW-2'))`), ev(`typeof editRecName`), ev(`(function(){ openEdit('NEW-2','rec'); var t=(document.getElementById('erRecT')||{}).textContent||''; erClose(); return t; })()`)]),
+    J(['carried from FY27', 'undefined', 'carried from FY27']));
   // ---- 11: Reset year keeps the numbers handed out, so a link never lands on a new requirement
   ev(`switchYear(2027); window.confirm=function(){ return true; }; resetYear(); window.confirm=function(m){ window.__cf.push(String(m)); return false; }; 'ok'`);
   const after = add('PSM', 'Unrelated after the reset', 5);
@@ -12020,10 +12034,14 @@ await (async () => {
   const submit = () => JSON.parse(P.ev(`(function(){ let cap=null; const _B=window.Blob; window.__al=[];
     window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
     try{ pmoSubmit(); }catch(e){ window.__al.push('THREW '+e.message); } window.Blob=_B; return JSON.stringify({pkg: cap? JSON.parse(cap) : null, al: window.__al}); })()`));
-  // ---- 14: a copy switched to another year does not submit
+  // ---- 14: a copy switched to another year submits each year from its own state
+  // v2.09 W2 (item 126): on purpose -- a copy submits every year of the FYDP it covers, whatever year is on screen. What this
+  // guarded (FY27's state sent under FY28) is held by each year being built from its own state: FY28's proposal travels as
+  // FY28's, and FY27, which nobody changed, sends nothing.
   P.ev(`switchYear(2027); 'ok'`);
   const s14 = submit();
-  chk(name, '14 · copy year', 'switched to FY27, the FY28 copy refuses to submit and says why', J([s14.pkg, /published for FY28 and is showing FY27/.test(s14.al.join('|'))]), J([null, true]));
+  chk(name, '14 · copy year', 'switched to FY27, the FY28 copy submits: FY28’s proposal at the top, as FY28’s, and nothing for FY27',
+    J([(s14.pkg || {}).fy, ((s14.pkg || {}).added || []).map(a => a.nid), Object.keys((s14.pkg || {}).byYear || {})]), J([2028, [pid], []]));
   P.ev(`switchYear(2028); 'ok'`);
   const s1 = submit();
   const a0 = ((s1.pkg || {}).added || [])[0] || {};
@@ -12127,7 +12145,8 @@ await (async () => {
   B.ev(`applyState(S); window.alert=function(){}; window.confirm=function(){ return true; };
     BUDDB={ts:1700000000041, files:[], rows:${J(Object.values(BUD))}.map(function(n){ return {n:n}; })}; _budRegCache=null;
     setDesc('D','Annual.'); setCons('D','Stops.'); setObCat('D', OB_CATS[0]); S.ptype.D='PRIME'; setDest('D','to','lm'); budUnfSet('D','USAF',${J(BUD.USAF)});
-    save(); yearCopy('C', 2028, 'c'); save(); 'ok'`);
+    save(); yearCopy('C', 2028, 'c'); save();
+    yearCopy('C', 2032, 'c'); save(); 'ok'`);   // v2.09 W2 (item 126): a year outside the FYDP window, which a copy does not submit for
   const P = boot({ html: v184Publish(B.ev) });
   P.ev(AR_FILL);
   P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); }catch(e){} 'ok'`);
@@ -12219,15 +12238,17 @@ await (async () => {
     J([{ 'USAF|disc': BUD.USAF, ANG: BUD.ANG }, ['chosen', 'chosen']]));
 
   // ── A COPY SHOWING ANOTHER YEAR ADDS NOTHING ──────────────────────────────────────────────────────────────────────────
-  // Switched to FY28 (the year menu, or Go to on a linked requirement), anything added here could never be sent: Submit
-  // refuses there, and FY27's submit never sees it.
-  P.ev(`switchYear(2028); 'ok'`);
+  // Switched to a year it does not submit for (the year menu, or Go to on a linked requirement), anything added there could
+  // never be sent.
+  // v2.09 W2 (item 126): on purpose -- a copy submits for every year of the FYDP window (FY27-FY31 here), so FY28 is one it adds
+  // to now; the year it does not submit for is FY32, outside the window, which the board held when the copy was published
+  P.ev(`switchYear(2032); 'ok'`);
   const n0 = P.ev('String(S.custom.length)');
-  chk(name, 'other year', 'control — from FY28, FY27’s D is PSM’s and ready, so Add from another year would bring it in at once',
+  chk(name, 'other year', 'control — from FY32, FY27’s D is PSM’s and ready, so Add from another year would bring it in at once',
     P.ev(`JSON.stringify(naFromRows(2027, 'PSM').filter(function(r){ return r.id==='D'; }).map(function(r){ return [r.here, r.need.length]; }))`), J([[false, 0]]));
   chk(name, 'other year', 'the box will not open, and says why',
     J([P.ev(`String(arShow())+'|'+String(arOn())+'|'+document.getElementById('addPanel').classList.contains('open')`),
-       /published for FY27 and is showing FY28/.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['false|false|false', true]));
+       /submits for FY27–FY31\. A requirement added in FY32 could never be sent/.test(P.ev(`document.getElementById('shareStat').textContent`))]), J(['false|false|false', true]));
   P.ev(`arOff='PSM'; naFromFor='PSM'; naFromFy=2027; naFromSel={D:1}; naFromAdd(); 'ok'`);
   chk(name, 'other year', 'and Add from another year adds nothing there and opens nothing to finish',
     J([P.ev('String(S.custom.length)'), P.ev('String(arQueue.length)'), P.ev('String(arOn())')]), J([n0, '0', 'false']));
@@ -12758,6 +12779,2406 @@ await (async () => {
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
 // ==== end v2.07 review (import) ====
+
+// ==== v2.08 item 122 (import): the edit box in a PMO copy (D7), and F5 ====
+// A copy edits through the same box. What it sends is pmoSubmit's own rule: the office's requirements (judged by the office
+// at publication, pmoHomeOf, so a hand-over is sent), and nothing of another office's -- which the box says up front. F5: a
+// requirement the portfolio board added, renamed in the copy, was shown renamed and never sent. Expected values are written
+// out here; every check fails on v2.07 (no box) unless it is marked CONTROL.
+await (async () => {
+  const name = 'v2.08 — the edit box in a PMO copy: what is sent, what is said, and an added requirement’s rename (item 122, F5)';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const items = [itx('A', 'PSM', [100, 0]), itx('A2', 'PSM', [90, 0]), itx('B', 'AV', [80, 0])];
+    const B0 = boot(); seed(B0.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'A2', 'B'] });
+    B0.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); render(); return n; })()`);
+    const html = B0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    const P = boot({ html }); const ev = P.ev;
+    ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; window.alert=function(){}; render(); 'ok'`);
+    const put = (id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const notice = () => ev(`(document.querySelector('#erBody .er-notsent')||{}).textContent||''`);
+    // the office's own requirement: nothing said, the edits sent
+    ev(`openEdit('A','rec'); 'ok'`);
+    chk(name, 'own office', 'CONTROL — the office’s own requirement: the box says nothing about sending', notice(), '');
+    put('erPid', 'PID-COPY'); put('erDesc', 'Typed in the copy.'); put('erCons', 'Stops in May.'); ev(`erSave(); 'ok'`);
+    // another office's: said at the top, and not sent
+    ev(`openEdit('B','rec'); 'ok'`);
+    chk(name, 'another office', 'another office’s requirement: the box says up front that edits are kept here and not sent',
+      J([notice().indexOf('AV’s requirement') >= 0, notice().indexOf('not sent') >= 0]), J([true, true]));
+    put('erPid', 'PID-B'); ev(`erSave(); 'ok'`);
+    // a hand-over: A2 moved to AV in the copy -- the office it had at publication sends it, so nothing is said, before or after
+    ev(`openEdit('A2','grp'); 'ok'`); put('erGrp', 'AV'); ev(`erSave(); 'ok'`);
+    ev(`openEdit('A2','rec'); 'ok'`);
+    chk(name, 'hand-over', 'a requirement handed to another office in the copy is still the office’s to send: nothing said', notice(), '');
+    ev(`erClose(); 'ok'`);
+    // F5: the requirement the board added, renamed in the copy
+    ev(`openEdit(${J(nid)},'titles'); 'ok'`); put('erEvent', 'EV-NEW renamed'); ev(`erSave(); 'ok'`);
+    chk(name, 'F5', 'the copy shows the rename', ev(`dispTitle(itemById(${J(nid)}))`), 'EV-NEW renamed');
+    // the package, as Submit builds it
+    const wire = JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const I = wire.items || {};
+    chk(name, 'package', 'the office’s own edits travel', J([I.A && I.A.pid, I.A && I.A.desc, I.A && I.A.cons]), J(['PID-COPY', 'Typed in the copy.', 'Stops in May.']));
+    chk(name, 'package', 'the hand-over travels', J(I.A2 && I.A2.grp), J('AV'));
+    chk(name, 'F5', 'the added requirement’s rename travels', J(I[nid] && I[nid].titles), J('EV-NEW renamed'));
+    chk(name, 'package', 'CONTROL — another office’s requirement does not', J(I.B || null), 'null');
+    // applied at the board, it is what typing it there gives
+    const X = boot(); seed(X.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'A2', 'B'] });
+    X.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    X.ev(`(function(){ reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); return 'ok'; })()`);
+    X.ev(`window.alert=function(){}; window.confirm=function(){return true;}; pmoTake(${J(wire)}, 's.json');
+      PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+    chk(name, 'applied', 'at the board: the edits, the hand-over and the rename land',
+      J([X.ev(`S.pid.A`), X.ev(`S.desc.A`), X.ev(`S.cons.A`), X.ev(`grpOf(itemById('A2'))`), X.ev(`dispTitle(itemById(${J(nid)}))`)]),
+      J(['PID-COPY', 'Typed in the copy.', 'Stops in May.', 'AV', 'EV-NEW renamed']));
+    // the copy's own proposal keeps the office it was added for
+    const pid2 = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+    ev(`openEdit(${J(pid2)},'rec'); 'ok'`);
+    chk(name, 'proposal', 'a requirement the copy proposes: its office cannot be changed in the box', ev(`document.getElementById('erGrp').disabled`), true);
+    ev(`erClose(); 'ok'`);
+    // a copy on a year it cannot submit says so
+    ev(`PMODE.fy=MS.cur-1; openEdit('A','rec'); 'ok'`);
+    chk(name, 'another year', 'on a year the copy was not published for, the box says nothing edited can be sent', notice().indexOf('nothing edited here can be sent') >= 0, true);
+    ev(`erClose(); PMODE.fy=MS.cur; 'ok'`);
+    chk(name, 'errors', 'no page error in the copy', P.errors.length, 0);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 (import) ====
+
+// ==== v2.08 item 122 -- the review, in a PMO copy (26 Oct 2026) ====
+// The reviewers' copy findings, each failing on the board they reviewed (65cc26a): a requirement restored in a copy, a
+// board-added requirement renamed on both sides, a copy's own proposal moved in Classify, a kept value. Expected values are
+// written out here.
+await (async () => {
+  const name = 'v2.08 — the review in a PMO copy: a restored requirement, a rename on both sides, a proposal’s office, a kept value';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); } };
+    const items = [itx('A', 'PSM', [100, 0]), itx('R', 'PSM', [70, 0]), itx('B', 'AV', [80, 0])];
+    const B0 = boot(); seed(B0.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: ['A', 'R', 'B'] });
+    B0.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.obCat=S.obCat||{}; S.obCat.A='Contract (old)'; save(); 'ok'`);
+    const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); save(); return n; })()`);
+    B0.ev(`window.confirm=function(){ return true; }; removeReq('R'); save(); render(); 'ok'`);   // R is removed when the copy goes out
+    const html = B0.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+      base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`);
+    // the board renames its own added requirement after the copy went out
+    B0.ev(`openEdit(${J(nid)},'titles'); document.getElementById('erEvent').value='BOARD NAME'; erSave(); 'ok'`);
+    const P = boot({ html }); const ev = P.ev;
+    ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; render(); 'ok'`);
+    const put = (id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const notice = () => ev(`(document.querySelector('#erBody .er-notsent')||{}).textContent||''`);
+    part('restored', () => {
+      ev(`restoreReq('R'); render(); openEdit('R','rec'); 'ok'`);
+      chk(name, 'restored', 'a requirement restored in the copy: the box says up front that edits to it are not sent', notice().indexOf('not on the board when this copy was published') >= 0, true);
+      put('erDesc', 'typed on R'); ev(`erSave(); 'ok'`);
+    });
+    part('kept value', () => {
+      ev(`openEdit('A','rec'); 'ok'`); put('erNote', 'note on A'); ev(`erSave(); 'ok'`);
+    });
+    part('rename', () => {
+      ev(`openEdit(${J(nid)},'titles'); 'ok'`); put('erEvent', 'COPY NAME'); ev(`erSave(); 'ok'`);
+    });
+    part('proposal office', () => {
+      const p2 = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+      ev(`setGrp(${J(p2)},'AV'); 'ok'`);
+      chk(name, 'proposal office', 'Classify (setGrp) cannot move a proposal of the copy to another office', ev(`grpOf(itemById(${J(p2)}))`), 'PSM');
+      ev(`removeReq(${J(p2)}); 'ok'`);
+    });
+    const wire = JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const I = wire.items || {};
+    part('restored', () => {
+      chk(name, 'restored', 'and Submit names it as not sent, rather than dropping it without a word',
+        ev(`__al.some(function(m){ return m.indexOf('not on the board when this copy was published')>=0 && m.indexOf('Rec R')>=0; })`), true);
+    });
+    part('kept value', () => {
+      chk(name, 'kept value', 'a note typed on A travels; A’s obligation category, off the list, is not proposed as cleared', J(I.A || null), J({ notes: 'note on A' }));
+    });
+    part('rename', () => {
+      chk(name, 'rename', 'the copy’s rename of the board-added requirement travels', J((I[nid] || {}).titles), J('COPY NAME'));
+      // a copy published before v2.08 had no baseline for an added requirement's plan event: nothing is proposed against nothing
+      chk(name, 'rename', 'from a copy published before v2.08 (no baseline for it), the added requirement’s plan event is not proposed',
+        ev(`(function(){ var t=PMODE.base[${J(nid)}].titles; delete PMODE.base[${J(nid)}].titles; var r=(pmoSubmitBuild()[${J(nid)}]||{}).titles; PMODE.base[${J(nid)}].titles=t; return r===undefined; })()`), true);
+      const X = B0;   // the board, with its own newer rename
+      X.ev(`window.alert=function(){}; pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      const row = JSON.parse(X.ev(`JSON.stringify(pmoRows().filter(function(r){ return r.id===${J(nid)} && r.key==='titles'; }).map(function(r){ return [r.now, r.prop, !!r.conflict]; }))`));
+      chk(name, 'rename', 'at the board the row reads the board’s own newer name and flags the conflict', J(row), J([['BOARD NAME', 'COPY NAME', true]]));
+    });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 -- the review, in a PMO copy ====
+
+// ==== v2.08 item 122 -- the second review, in a PMO copy (26 Oct 2026) ====
+// The second round's submittal findings on the first round's fixes (3898d95), each failing there: a Goes to or a WBS both sides
+// agree on offered as a conflict, an older copy's cleared rename that never settled, Classify's bulk office counting a copy's
+// own proposal as moved, and Put back of a rename landing on another added requirement. Expected values are written out here.
+await (async () => {
+  const name = 'v2.08 — the second review in a PMO copy: what both sides agree on, an older copy’s cleared rename, the bulk office, Put back by id';
+  try {
+    const J = JSON.stringify;
+    const itx = (id, grp, ask) => ({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask });
+    const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); } };
+    const mkBoard = (items) => { const B = boot(); seed(B.ev, { services: ['USAF', 'ANG'], items, disc: [400, 400], mand: [0, 0], order: items.map(i => i.id) });
+      B.ev(`BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; render(); 'ok'`);
+      return B; };
+    const mkCopy = (B) => { const P = boot({ html: B.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN,
+        base:pmoBaseline(), pv:PMO_PV, ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}; return pmoCopyHtml(mode); })()`) });
+      P.ev(`try{ localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.__asked=[]; window.confirm=function(m){ __asked.push(String(m)); return true; }; render(); 'ok'`);
+      return P; };
+    const putIn = (ev, id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const boxSet = (ev, id, at, pairs) => { ev(`openEdit(${J(id)},${J(at)}); 'ok'`); pairs.forEach(p => putIn(ev, p[0], p[1])); ev(`erSave(); 'ok'`); };
+    const submitted = ev => JSON.parse(ev(`(function(){ var cap=null; var _B=window.Blob;
+      window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+    const rowsOf = (ev, ids) => JSON.parse(ev(`JSON.stringify(pmoRows().filter(function(r){ return ${J(ids)}.indexOf(r.id)>=0; }).map(function(r){ return [r.id, r.key, !!r.conflict]; }))`));
+
+    // ---- a Goes to or a WBS both sides agree on is not offered; a real Goes to change applies in setDest's shape
+    part('agreed', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0]), itx('B', 'PSM', [100, 0]), itx('C', 'PSM', [100, 0]), itx('D', 'PSM', [100, 0]), itx('E', 'PSM', [100, 0])]);
+      B0.ev(`setDest('A','to','pw'); setDest('C','to','pw'); save(); 'ok'`);
+      const P = mkCopy(B0);
+      boxSet(P.ev, 'E', 'dest', [['erTo', 'pax']]);                      // the office: a government activity, in its box
+      B0.ev(`setDest('E','to','pax'); setDest('E','end',''); save(); 'ok'`);   // the board: the same, its second hop set to none
+      boxSet(P.ev, 'A', 'dest', [['erTo', 'lm']]);                       // the office, in its box
+      boxSet(P.ev, 'B', 'wbs', [['erWbs', '1.2']]);
+      P.ev(`setDest('C','to','lm'); save(); 'ok'`);                       // the office, in Classify
+      boxSet(P.ev, 'D', 'dest', [['erTo', 'lm']]);                       // a change the board did not make
+      boxSet(B0.ev, 'A', 'dest', [['erTo', 'lm']]);                      // the board agrees, in its box
+      boxSet(B0.ev, 'B', 'wbs', [['erWbs', '1.2']]);
+      boxSet(B0.ev, 'C', 'dest', [['erTo', 'lm']]);
+      chk(name, 'agreed', 'the fixture: the board stores setDest’s and the box’s shapes', J([B0.ev(`JSON.stringify(S.dest.A)`), B0.ev(`JSON.stringify(S.wbs.B)`)]),
+        J(['{"to":"lm"}', '[{"w":"1.2","v":[]}]']));
+      chk(name, 'agreed', 'the fixture: E is stored in two shapes that read alike (the second hop set to none, and never set)',
+        J([B0.ev(`JSON.stringify(S.dest.E)`), P.ev(`JSON.stringify(S.dest.E)`), B0.ev(`JSON.stringify(destOf(itemById('E')))`) === P.ev(`JSON.stringify(destOf(itemById('E')))`)]),
+        J(['{"to":"pax","end":""}', '{"to":"pax"}', true]));
+      const wire = submitted(P.ev);
+      B0.ev(`pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      chk(name, 'agreed', 'what both sides say is not offered; only D’s Goes to is, with no conflict', J(rowsOf(B0.ev, ['A', 'B', 'C', 'D', 'E'])), J([['D', 'dest', false]]));
+      B0.ev(`PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'agreed', 'applied, D’s Goes to is stored as setDest stores it, and nothing is left to review', J([B0.ev(`JSON.stringify(S.dest.D)`), rowsOf(B0.ev, ['A', 'B', 'C', 'D', 'E']).length]),
+        J(['{"to":"lm"}', 0]));
+    });
+
+    // ---- an older copy renamed an added requirement by clearing its override, and sent null: applied, the row settles
+    part('older copy', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0])]);
+      const nid = B0.ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-NEW', ask:[50,0]}, null, {event:'EV-NEW'}); S.titles[n]='X-override'; save(); render(); return n; })()`);
+      const P = mkCopy(B0);
+      boxSet(P.ev, 'A', 'notes', [['erNote', 'a note']]);
+      const wire = submitted(P.ev);
+      chk(name, 'older copy', 'the fixture: the copy’s baseline holds the override', P.ev(`PMODE.base[${J(nid)}].titles`), 'X-override');
+      // what a v2.07 copy's pen sent: the override cleared, against the baseline it was published with
+      wire.items[nid] = { titles: null }; wire.base = wire.base || {}; wire.base[nid] = { titles: 'X-override' };
+      B0.ev(`pmoTake(${J(wire)}, 's.json'); 'ok'`);
+      chk(name, 'older copy', 'offered once, against the override, with no conflict', J(rowsOf(B0.ev, [nid])), J([[nid, 'titles', false]]));
+      B0.ev(`PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'older copy', 'applied: the override goes, the added requirement reads its own event, and the row is gone',
+        J([B0.ev(`(S.titles||{})[${J(nid)}]===undefined`), B0.ev(`dispTitle(itemById(${J(nid)}))`), rowsOf(B0.ev, [nid]).length]), J([true, 'EV-NEW', 0]));
+      B0.ev(`__al.length=0; PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
+      chk(name, 'older copy', 'a second Apply finds nothing ticked, rather than "applied" again', B0.ev(`__al.some(function(m){ return m.indexOf('Nothing is ticked')===0; })`), true);
+    });
+
+    // ---- Classify's bulk office in a copy leaves the copy's own proposal where it is, and counts it so
+    part('bulk office', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0]), itx('B', 'PSM', [80, 0]), itx('E', 'AV', [60, 0])]);
+      const P = mkCopy(B0); const ev = P.ev;
+      const nid = ev(`(function(){ const n=reqCreate('PSM', {title:'', event:'EV-PROP', ask:[10,0]}, null, {event:'EV-PROP'}); save(); render(); return n; })()`);
+      ev(`matOpen=true; matPmo='PSM'; render(); matSet('bulkF','grp'); matSet('bulkV','AV'); __asked.length=0; matApplyBulk(); 'ok'`);
+      chk(name, 'bulk office', 'the question counts the two that move, and the proposal as left alone',
+        J([/ON 2 REQUIREMENTS/.test(ev(`String(__asked[0]||'')`)), /1 never offer this field and are left alone/.test(ev(`String(__asked[0]||'')`))]), J([true, true]));
+      chk(name, 'bulk office', 'the two moved, the proposal kept its office', J(['A', 'B', nid].map(x => ev(`grpOf(itemById(${J(x)}))`))), J(['AV', 'AV', 'PSM']));
+      chk(name, 'bulk office', 'and the status line says so', ev(`document.getElementById('shareStat').textContent`),
+        '✓ PMO set to AV on 2 requirements — 2 had a different answer and were overwritten; 1 never offer this field and were left alone.');
+    });
+
+    // ---- a rename in a copy is filed by id: Put back after a delete above it puts back that requirement's own name
+    part('put back by id', () => {
+      const B0 = mkBoard([itx('A', 'PSM', [100, 0])]);
+      ['NEW one', 'NEW two', 'NEW three'].forEach(e => B0.ev(`reqCreate('PSM', {title:'', event:${J(e)}, ask:[10,0]}, null, {event:${J(e)}}); save(); render(); 'ok'`));
+      const ids = JSON.parse(B0.ev(`JSON.stringify(S.custom.map(function(c){ return c.id; }))`));
+      const P = mkCopy(B0); const ev = P.ev;
+      boxSet(ev, ids[1], 'titles', [['erEvent', 'TWO renamed in the copy']]);
+      const ent = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).map(function(e,i){ return {i:i, p:e.p}; }).filter(function(e,i){ return JSON.stringify(MS.jrnl[e.i].b).indexOf('TWO renamed')>=0; }))`));
+      chk(name, 'put back by id', 'the rename is journalled by the requirement’s id', J(ent.map(e => e.p)), J([['titles', ids[1]]]));
+      ev(`removeReq(${J(ids[0])}); jrnlUndo(${ent[0].i}); render(); 'ok'`);
+      chk(name, 'put back by id', 'Put back after a delete above it: the second keeps its own name, the third is untouched',
+        J([ids[1], ids[2]].map(x => ev(`dispTitle(itemById(${J(x)}))`))), J(['NEW two', 'NEW three']));
+      const wire = submitted(ev), I = (wire && wire.items) || {};    // nothing left to send builds no package at all
+      chk(name, 'put back by id', 'and Submit proposes no plan event for either', J([ids[1], ids[2]].map(x => (I[x] || {}).titles === undefined)), J([true, true]));
+    });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v2.08 item 122 -- the second review, in a PMO copy ====
+
+// ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+// ==== end v2.09 W1 ====
+
+// ==== v2.09 W2 (item 126): a PMO copy's five years ====
+// A PMO COPY ADDS AND EDITS REQUIREMENTS IN EVERY YEAR OF THE FYDP (Brad, 26 Oct 2026: "I need them to be able to add
+// requirements for the base year plus four years"). The round trip end to end, through the board's own paths: a real board
+// file whose base year is FY28 and which holds plans for FY28-FY32, a real copy published from it, the office's work in the
+// copy through the Add box, From another year and the ordinary setters, the real pmoSubmit(), and the receiving board's
+// pmoTake(), review, change report and pmoApply(). The fixture makes every rule matter: FY30 holds a different value for A
+// than FY28 does (so a review that reads the year on screen shows the wrong figure), C is AV's in FY28 and PSM's in FY30
+// only (so a scope read in the wrong year drops PSM's edit), the board's own NEW-1 is PSM's in FY30 and AV's in FY28 (the
+// same id, two requirements), PSM's FY30 ranking differs from FY28's (so a ranking read against the wrong year is sent as
+// the office's), and FY29 and FY31 hold no added requirement (so per-year numbering gives both years' proposals one id).
+const w209it = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '',
+  fy26: ask.map(() => 0), ask, alloc: null });
+const W209_SC = { services: ['USAF', 'ANG', 'AFRC'],
+  items: [w209it('A', 'PSM', [900, 200, 100]), w209it('B', 'PSM', [300, 80, 40]), w209it('C', 'AV', [500, 0, 0]), w209it('D', 'AV', [200, 0, 0])],
+  disc: [3000, 600, 300], mand: [500, 100, 50], order: ['A', 'B', 'C', 'D'] };
+// a requirement the board (or the copy) adds, every required field filled
+const w209mk = (g, ev, a) => `reqCreate(${JSON.stringify(g)}, {title:'', event:${JSON.stringify(ev)}, ask:${JSON.stringify(a || [250, 0, 0])}}, null,
+  {event:${JSON.stringify(ev)}, ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'Described: '+${JSON.stringify(ev)}, cons:'Stops without it.'})`;
+// The board: base FY28, FY29-FY32 each started from FY28 by Roll forward (switchYear's own), then FY30 given its differences
+// and FY28 an AV requirement under FY30's NEW-1 id. `drop` leaves years not started.
+const w209board = (drop = [], more = '') => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+  MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+  applyState(MS.years[2028]); MS.years[2028]=S;
+  [2029,2030,2031,2032].forEach(function(y){ switchYear(2028); switchYear(y); });
+  switchYear(2030);
+  applyAskVec('A',[1500,300,150]); grpMove('C','PSM');
+  window.__n30=${w209mk('PSM', 'Board-added FY30')};
+  S.pmoOrder.PSM=['B','A'].concat(S.pmoOrder.PSM.filter(function(x){ return x!=='A' && x!=='B'; }));
+  save(); switchYear(2028);
+  window.__n28=${w209mk('AV', 'Board-added FY28 for AV')}; save();
+  ${more};
+  ${JSON.stringify(drop)}.forEach(function(y){ delete MS.years[y]; }); save()`);
+// the Add box in the copy, through its own controls: the plan event, a prime contract, a value, the classification and the narrative
+// (a box that will not open is said, not thrown: on a board where it does not, every check after it still runs and says so)
+const w209add = (P, ev, v) => JSON.parse(P.ev(`(function(){ var n0=S.custom.length; toggleAdd(); var open=arOn();
+  if(!open) return JSON.stringify({opened:false, btn:'', id:'', still:false});
+  var f=JSON.parse(__arFill({event:${JSON.stringify(ev)}, pt:'PRIME',
+  v:${JSON.stringify(v)}, ob:OB_CATS[0], to:'lm', desc:'Proposed: '+${JSON.stringify(ev)}, cons:'Stops without it.'}));
+  document.getElementById('arAddBtn').click(); var n=(S.custom.length>n0)? (S.custom[S.custom.length-1]||{}).id||'' : '';
+  return JSON.stringify({opened:open, btn:f.btn, id:n, still:arOn()}); })()`));
+const w209ev = (b, js) => { try { return b.ev(js); } catch (e) { return 'THREW ' + String((e && e.message) || e).slice(0, 120); } };
+const w209years = (ev) => JSON.parse(ev(`JSON.stringify(Object.keys(MS.years).map(Number).sort())`));
+
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a PMO copy submits every year of the FYDP, and the board takes each into its own year (item 126)';
+  try {
+  const J = JSON.stringify;
+  // and FY30 a second requirement the board added, for AV, under an id (NEW-2) FY28 does not hold -- so a copy that reads FY28's
+  // baseline in FY30 takes it for one the office added
+  const B = boot({ html: w209board([], `switchYear(2030); window.__n30b=${w209mk('AV', 'Board-added FY30 for AV')}; save(); switchYear(2028)`) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — base FY28, plans FY28-FY32, FY30 holds A at 1,500, C is AV’s in FY28 and PSM’s in FY30, NEW-1 is PSM’s in FY30 and AV’s in FY28, NEW-2 AV’s in FY30 alone',
+    J([B.ev('MS.base'), w209years(B.ev), B.ev(`JSON.stringify([yrItemOf(MS.years[2030],'A').ask[0], grpOf(yrItemOf(MS.years[2028],'C'),MS.years[2028]),
+      grpOf(yrItemOf(MS.years[2030],'C'),MS.years[2030]), grpOf(yrItemOf(MS.years[2030],'NEW-1'),MS.years[2030]), grpOf(yrItemOf(MS.years[2028],'NEW-1'),MS.years[2028]),
+      grpOf(yrItemOf(MS.years[2030],'NEW-2'),MS.years[2030]), !!yrItemOf(MS.years[2028],'NEW-2')])`)]),
+    J([2028, [2028, 2029, 2030, 2031, 2032], J([1500, 'AV', 'PSM', 'PSM', 'AV', 'AV', false])]));
+  const html = v184Publish(B.ev);
+  // after publishing, the board changes A's description in FY30 and in FY31
+  B.ev(`switchYear(2030); setDesc('A','The board, after publishing (FY30)'); switchYear(2031); setDesc('A','The board, after publishing (FY31)');
+    switchYear(2028); save(); 'ok'`);
+
+  // ── THE COPY: five years, each with its own baseline ─────────────────────────────────────────────────────────────────
+  const P = boot({ html });
+  P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'publish', 'the copy says the years it submits for, FY28 to FY32, and carries a baseline for each year but the published one',
+    w209ev(P, `JSON.stringify([pmoCopyYears(), Object.keys(PMODE.yb||{}).sort(), PMODE.yn, PMODE.fy, PMODE.pv])`), J([[2028, 2029, 2030, 2031, 2032], ['2029', '2030', '2031', '2032'], [], 2028, 2]));
+  chk(name, 'publish', 'each year’s baseline is that year’s own: A at 1,500 in FY30, at 900 in FY28; C under PSM in FY30; NEW-1 in FY30’s',
+    w209ev(P, `JSON.stringify([((PMODE.yb||{})[2030]||{}).A.asks[0], PMODE.base.A.asks[0], (((PMODE.yb||{})[2030]||{}).C||{}).grp, !!((PMODE.yb||{})[2030]||{})['NEW-1'], ((PMODE.yord||{})[2030]||{}).PSM])`),
+    J([1500, 900, 'PSM', true, ['B', 'A', 'C', 'NEW-1']]));
+  chk(name, 'publish', 'the banner names the years the copy submits for', w209ev(P, `(document.querySelector('#subBanner .subyrs')||{}).textContent||''`), 'FY28–FY32');
+  // FY28, the published year: a note
+  P.ev(`setNote('A','A note from PSM (FY28)'); 'ok'`);
+  // FY29: a new requirement through the Add box
+  w209ev(P, `switchYear(2029); 'ok'`);
+  const a29 = w209add(P, 'PSM new FY29', [400, 0, 0]);
+  chk(name, 'add', 'in FY29 the Add box opens, and a complete requirement is added', J([a29.opened, a29.btn, !!a29.id, a29.still]), J([true, 'Add requirement', true, false]));
+  // FY30: a new requirement, A's value, C's description (PSM's only in FY30) and the board's own NEW-1's description
+  w209ev(P, `switchYear(2030); 'ok'`);
+  const a30 = w209add(P, 'PSM new FY30', [300, 50, 0]);
+  chk(name, 'add', 'in FY30 too', J([a30.opened, !!a30.id]), J([true, true]));
+  chk(name, 'edit', 'in FY30 the edit box says nothing about it not being sent: an edit here is sent', w209ev(P, `erNotSent('C')`), '');
+  P.ev(`setAsk('A',0,'1600'); setDesc('C','C, written by PSM in FY30'); setDesc('NEW-1','NEW-1, written by PSM in FY30'); 'ok'`);
+  // FY31: B's and A's descriptions, PSM's own ranking, and FY29's proposal brought in From another year
+  w209ev(P, `switchYear(2031); 'ok'`);
+  P.ev(`setDesc('B','B, written by PSM in FY31'); setDesc('A','A, written by PSM in FY31');
+    S.pmoOrder.PSM=['B','A'].concat((S.pmoOrder.PSM||[]).filter(function(x){ return x!=='A' && x!=='B'; })); save(); 'ok'`);
+  const f31 = JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(2029); naFromTick(${J(a29.id)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null, open:o}); })()`) || '{}');
+  chk(name, 'add', 'in FY31 FY29’s proposal is brought in From another year, as a requirement of its own linked to it', J([!!f31.id && f31.id !== a29.id, f31.prior]), J([true, { fy: 2029, id: a29.id }]));
+  const ids = [a29.id, a30.id, f31.id];
+  chk(name, 'ids', 'the copy’s proposals carry three different ids, one count across the years (FY29 and FY31 both started from none)',
+    J([new Set(ids).size, ids.every(x => /^NEW-PSM-\d+$/.test(x))]), J([3, true]));
+  w209ev(P, `switchYear(2028); 'ok'`);
+
+  // ── SUBMIT: one file, every year ────────────────────────────────────────────────────────────────────────────────────
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'submit', 'from FY28 on screen, one package, nothing withheld, carrying the build and the years', J([!!sub.pkg, sub.alerts, pkg.fy, pkg.fys, pkg.build === P.ev('BUILD')]),
+    J([true, [], 2028, [2028, 2029, 2030, 2031, 2032], true]));
+  const BY = pkg.byYear || {}, sec = y => BY[y] || {};
+  chk(name, 'submit', 'control — the published year stays at the top of the package, where it always was: A’s note, nothing else', J([pkg.items, pkg.added, pkg.rank || null]), J([{ A: { notes: 'A note from PSM (FY28)' } }, [], null]));
+  chk(name, 'submit', 'the other years under byYear, each that has something to send', J(Object.keys(BY).sort()), J(['2029', '2030', '2031']));
+  chk(name, 'submit', 'FY29: its proposal, saying it is for FY29', J([Object.keys(sec(2029).items || {}), (sec(2029).added || []).map(a => [a.nid, a.fy, a.event])]),
+    J([[], [[a29.id, 2029, 'PSM new FY29']]]));
+  chk(name, 'submit', 'FY30: A’s value, C’s description (PSM’s in FY30) and NEW-1’s description -- and nothing of A it did not touch',
+    J(sec(2030).items), J({ A: { asks: [1600, 300, 150] }, C: { desc: 'C, written by PSM in FY30' }, 'NEW-1': { desc: 'NEW-1, written by PSM in FY30' } }));
+  chk(name, 'submit', 'FY30’s baseline is FY30’s own: A at 1,500, C and NEW-1 with no description', J(sec(2030).base),
+    J({ A: { asks: [1500, 300, 150] }, C: { desc: null }, 'NEW-1': { desc: 'Described: Board-added FY30' } }));
+  chk(name, 'submit', 'FY30 proposes its own new requirement, and neither NEW-1 nor NEW-2, which the board added there', J((sec(2030).added || []).map(a => a.nid)), J([a30.id]));
+  chk(name, 'submit', 'FY30 is sent, and with no ranking: the board’s own FY30 order is not the office’s', J([!!BY[2030], sec(2030).rank === undefined]), J([true, true]));
+  chk(name, 'submit', 'FY31: B’s and A’s descriptions, the proposal brought in with its link, and PSM’s own ranking against FY31’s as published',
+    J([sec(2031).items, (sec(2031).added || []).map(a => [a.nid, a.prior]), sec(2031).rank]),
+    J([{ A: { desc: 'A, written by PSM in FY31' }, B: { desc: 'B, written by PSM in FY31' } }, [[f31.id, { fy: 2029, id: a29.id }]], { order: ['B', 'A'], was: ['A', 'B'] }]));
+  chk(name, 'submit', 'control — the board’s door takes it', B.ev(`inboundCheck(${J(J(pkg))})`), '');
+
+  // ── TAKE: split by year, each held for its own year, in that year's scope ──────────────────────────────────────────
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`);
+  const said = w3said(B.ev);
+  chk(name, 'take', 'control — taken on FY28 with nothing asked, and nothing said but the status line', J(said.map(d => d[0])), J([]));
+  chk(name, 'take', 'one held package per year, each held for its own year', w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return [p.pmo, p.forFy, Object.keys(p.items||{}).sort(), (p.added||[]).map(function(a){ return a.nid; })]; }))`),
+    J([['PSM', 2028, ['A'], []], ['PSM', 2029, [], [a29.id]], ['PSM', 2030, ['A', 'C', 'NEW-1'], [a30.id]], ['PSM', 2031, ['A', 'B'], [f31.id]]]));
+  chk(name, 'scope', 'C and NEW-1 are PSM’s in FY30, the year they are held for -- neither is dropped as AV’s, the office FY28 on screen gives them',
+    w209ev(B, `JSON.stringify((PMOSUBS.filter(function(p){ return p.forFy===2030; })[0]||{items:{}}).items.C ? 'C kept' : 'C dropped')`), J('C kept'));
+  chk(name, 'take', 'control — no year is started or switched to by taking it', J([w209years(B.ev), B.ev('MS.cur')]), J([[2028, 2029, 2030, 2031, 2032], 2028]));
+
+  // ── THE REVIEW: each row in its own year ─────────────────────────────────────────────────────────────────────────────
+  const rows = JSON.parse(w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, r.key==='__new'? null : r.now, r.key==='__new'? r.prop.nid : r.prop, r.conflict]; }))`) || '[]');
+  const row = (fy, id, k) => rows.filter(r => r[0] === fy && r[1] === id && r[2] === k)[0] || null;
+  chk(name, 'review', 'rows in year order, every one carrying its year', J(rows.map(r => r[0])), J([2028, 2029, 2030, 2030, 2030, 2030, 2031, 2031, 2031, 2031]));
+  chk(name, 'review', 'A’s FY30 value: on the board now is FY30’s 1,500, not FY28’s 900, and no conflict', J(row(2030, 'A', 'asks')), J([2030, 'A', 'asks', [1500, 300, 150], [1600, 300, 150], false]));
+  chk(name, 'review', 'A’s FY31 description: the board changed it too, after publishing -- a conflict, and the only one', J([row(2031, 'A', 'desc'), rows.filter(r => r[5]).length]),
+    J([[2031, 'A', 'desc', 'The board, after publishing (FY31)', 'A, written by PSM in FY31', true], 1]));
+  chk(name, 'review', 'PSM’s FY31 ranking is offered as one row', !!row(2031, '__rank|PSM', '__rank'), true);
+  B.ev(`subOpen=true; render(); 'ok'`);
+  const heads = JSON.parse(w209ev(B, `JSON.stringify([].slice.call(document.querySelectorAll('#subBody tr.subyr')).map(function(t){ return t.textContent.split(' ')[0]; }))`) || '[]');
+  chk(name, 'review', 'the review groups its rows under each year', J(heads), J(['FY28', 'FY29', 'FY30', 'FY31']));
+  const rowText = w209ev(B, `(function(){ var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /C, written by PSM in FY30/.test(r.textContent); })[0]; return t? t.textContent : ''; })()`);
+  chk(name, 'review', 'C’s FY30 row names it as FY30 has it, under PSM', J([/Rec C/.test(rowText), /PSM/.test(rowText)]), J([true, true]));
+  const newText = w209ev(B, `(function(){ var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /NEW-1, written by PSM in FY30/.test(r.textContent); })[0]; return t? t.textContent : ''; })()`);
+  chk(name, 'review', 'NEW-1’s FY30 row names the requirement FY30 holds under that id, not the one FY28 holds', J([/Board-added FY30/.test(newText), /for AV/.test(newText)]), J([true, false]));
+  // the change report: the years in its title, each year's rows under its own heading, each value that year's
+  const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  const brows = book.rows || [];
+  chk(name, 'report', 'its title names the years it covers, not the year on screen', /^FY28–FY31 /.test(String((brows[0] || [])[0] || '')), true);
+  const hdrAt = brows.findIndex(r => r.map(String).indexOf('Proposed') >= 0), BH = (brows[hdrAt] || []).map(String);
+  const yrHeads = brows.slice(hdrAt + 1).filter(r => r.length === 1 && /^FY\d\d /.test(String(r[0]))).map(r => String(r[0]).slice(0, 4));
+  chk(name, 'report', 'each year’s rows under its own heading', J(yrHeads), J(['FY28', 'FY29', 'FY30', 'FY31']));
+  const aFy30 = brows.filter(r => String(r[BH.indexOf('Field')] || '') === 'Requirement value (by service)')[0] || [];
+  chk(name, 'report', 'A’s FY30 value: On the board now is FY30’s', String(aFy30[BH.indexOf('On the board now')] || ''), w209ev(B, `pmoFmtVal('asks',[1500,300,150])`));
+
+  // ── APPLY: every ticked year into its own year, at once ──────────────────────────────────────────────────────────────
+  const before28 = w209ev(B, `JSON.stringify([MS.years[2028].asks||{}, MS.years[2028].grp||{}, MS.years[2028].desc||{}, MS.years[2028].order])`);
+  const t0 = +B.ev('Date.now()');
+  w3dlg(B.ev);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const asked = w3said(B.ev);
+  const q = (asked.filter(d => d[0] === 'confirm')[0] || [])[1] || '';
+  chk(name, 'apply', 'one question, naming each year and how many changes go into it',
+    J([asked.length, /^Apply 10 changes from PSM to FY28–FY31\?/.test(q), ['FY28 — 1 change (the year on screen)', 'FY29 — 1 change', 'FY30 — 4 changes', 'FY31 — 4 changes'].map(t => q.indexOf(t) >= 0)]),
+    J([1, true, [true, true, true, true]]));
+  const yv = (y, js) => w209ev(B, `(function(){ var T=MS.years[${y}]; return JSON.stringify(${js}); })()`);
+  chk(name, 'apply', 'control — FY28: A’s note, and nothing else moved there', J([yv(2028, `(T.notes||{}).A`), yv(2028, `[T.asks||{}, T.grp||{}, T.desc||{}, T.order]`)]),
+    J([J('A note from PSM (FY28)'), J(JSON.parse(before28))]));
+  const new29 = JSON.parse(yv(2029, `T.custom.filter(function(c){ return c.from && c.from.nid===${J(a29.id)}; }).map(function(c){ return [c.id, c.event, c.from.fy]; })`) || '[]');
+  chk(name, 'apply', 'FY29: the proposal accepted there, its provenance carrying the year', J(new29.map(x => x.slice(1))), J([['PSM new FY29', 2029]]));
+  chk(name, 'apply', 'FY30: A’s value, C’s and NEW-1’s descriptions, and its own proposal; A’s description is still the board’s',
+    yv(2030, `[(T.asks||{}).A, T.desc.C, T.desc['NEW-1'], T.custom.filter(function(c){ return c.from && c.from.nid===${J(a30.id)}; }).length, T.desc.A, T.custom.length]`),
+    J([[1600, 300, 150], 'C, written by PSM in FY30', 'NEW-1, written by PSM in FY30', 1, 'The board, after publishing (FY30)', 3]));
+  chk(name, 'apply', 'FY31: B’s and A’s descriptions, PSM’s ranking (and not the master order), and the proposal brought in, linked to the FY29 requirement it became',
+    yv(2031, `[T.desc.B, T.desc.A, T.pmoOrder.PSM.slice(0,2), T.order.slice(0,4), (T.custom.filter(function(c){ return c.from && c.from.nid===${J(f31.id)}; })[0]||{}).prior]`),
+    J(['B, written by PSM in FY31', 'A, written by PSM in FY31', ['B', 'A'], ['A', 'B', 'C', 'D'], { fy: 2029, id: (new29[0] || [])[0] }]));
+  chk(name, 'apply', 'control — FY32 is untouched, and the year on screen is still FY28', J([yv(2032, `[T.desc||{}, (T.custom||[]).length]`), B.ev('MS.cur')]), J([J([{}, 0]), 2028]));
+  chk(name, 'apply', 'control — nothing is left that could be accepted, and the line says so',
+    J([w209ev(B, `pmoRows().filter(function(r){ return !r.taken && !r.gone; }).length`), /Nothing is left to review/.test(B.ev(`document.getElementById('shareStat').textContent`))]), J([0, true]));
+  // the journal names each change's year
+  chk(name, 'apply', 'each change is in the change journal under its own year',
+    w209ev(B, `JSON.stringify([['notes','A'],['asks','A'],['desc','C'],['desc','B']].map(function(p){ return (MS.jrnl||[]).filter(function(e){ return (e.t||0)>=${t0}
+      && e.p && e.p[0]===p[0] && e.p[1]===p[1]; }).map(function(e){ return e.fy; }); }))`),
+    J([[2028], [2030], [2030], [2031]]));
+  chk(name, 'errors', 'control — no page error on the copy or the board', J([P.errors.length, B.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A YEAR THE BOARD HAD NOT STARTED (Brad's decision 2): offered in the copy, opened there blank for new requirements only; at
+// review the team is asked to start it -- rolled forward or blank -- before anything goes into it, and stopping starts nothing.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a year the board had not started: blank in the copy, started at Apply (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board([2032]) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board holds FY28-FY31, and FY32 is not started', J(w209years(B.ev)), J([2028, 2029, 2030, 2031]));
+  const html = v184Publish(B.ev);
+  const P = boot({ html });
+  P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'copy', 'the copy submits for FY32 too, and knows the board had not started it', w209ev(P, `JSON.stringify([pmoCopyYears().indexOf(2032)>=0, PMODE.yn])`), J([true, [2032]]));
+  chk(name, 'copy', 'the Fiscal year menu says FY32 opens blank, for new requirements',
+    /FY32\s*not started — opens blank, for new requirements/.test(P.ev(`(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`)), true);
+  w3dlg(P.ev);
+  w209ev(P, `switchYear(2032); 'ok'`);
+  chk(name, 'copy', 'FY32 opens blank, without asking to roll the year on screen forward',
+    J([w3said(P.ev).filter(d => d[0] === 'confirm').length, P.ev('MS.cur'), P.ev('S.order.length')]), J([0, 2032, 0]));
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+  const a32 = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  chk(name, 'copy', 'in FY32 the Add box opens and a complete requirement is added', J([a32.opened, !!a32.id]), J([true, true]));
+  // one missing its fields: Pre-flight names it, under FY32, as Submit will hold it back
+  w209ev(P, `reqCreate('PSM', {title:'', event:'Half done FY32', ask:[50,0,0]}); save(); switchYear(2028); 'ok'`);
+  chk(name, 'copy', 'from FY28, Pre-flight names the FY32 proposal still missing fields, by its year',
+    w209ev(P, `JSON.stringify(preflight().find.filter(function(f){ return f.k==='newreq'; }).map(function(f){ return f.rows.map(function(r){ return r.label; }); }))`), J([['FY32 — Half done FY32']]));
+  w209ev(P, `switchYear(2032); 'ok'`);
+  // a requirement from the board's data, restored here, is not sent: the board had no FY32 to send it against
+  w209ev(P, `restoreReq('B'); setDesc('B','B restored in FY32'); 'ok'`);
+  chk(name, 'copy', 'a requirement restored in FY32 says it is not sent, because the board had not started FY32',
+    /FY32 had not been started on the portfolio board/.test(w209ev(P, `erNotSent('B')`)), true);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'submit', 'FY32 travels: its proposal alone', J([Object.keys(((pkg.byYear || {})[2032] || {}).items || {}), (((pkg.byYear || {})[2032] || {}).added || []).map(a => a.nid)]), J([[], [a32.id]]));
+  const told = sub.alerts.filter(a => /not on the board when this copy was published/.test(a))[0] || '';
+  chk(name, 'submit', 'the restored one is named under FY32, as a year the board had not started', /FY32 \(not started on the portfolio board when this copy was published\):\n  • Rec B/.test(told), true);
+  const held = sub.alerts.filter(a => /missing mandatory fields/.test(a))[0] || '';
+  chk(name, 'submit', 'the incomplete one is held back, named under FY32', /FY32 \(not started[^)]*\):\n  • Half done FY32\n      needs: /.test(held), true);
+
+  // ── AT THE BOARD ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`);
+  chk(name, 'take', 'held for FY32, nothing asked, and the line says this board has not started FY32',
+    J([w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return p.forFy; }))`), w3said(B.ev).length, /has not started FY32: ✔ Apply asks how to start it/.test(B.ev(`document.getElementById('shareStat').textContent`))]),
+    J([J([2032]), 0, true]));
+  B.ev(`subOpen=true; render(); 'ok'`);
+  chk(name, 'review', 'the review’s FY32 heading says the board has not started it',
+    /FY32.*not started on this board/.test(w209ev(B, `(document.querySelector('#subBody tr.subyr')||{}).textContent||''`)), true);
+  // stopped at the second question: nothing started, nothing applied
+  w3dlg(B.ev, [true, false, false]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const q1 = w3said(B.ev).filter(d => d[0] === 'confirm').map(d => d[1]);
+  chk(name, 'apply', 'Apply asks, naming FY32 as not started, then how to start it: rolled forward, or blank',
+    J([q1.length, /FY32 — 1 change — not started on this board/.test(q1[0] || ''), /FY32 has not been started on this board/.test(q1[1] || '') && /ROLL FORWARD/.test(q1[1] || ''), /Start FY32 BLANK/.test(q1[2] || '')]),
+    J([3, true, true, true]));
+  chk(name, 'apply', 'stopped, it starts no year and applies nothing, and says so',
+    J([w209years(B.ev), w209ev(B, `pmoRows().filter(function(r){ return !r.taken; }).length`), /Nothing was applied, and no year was started/.test(B.ev(`document.getElementById('shareStat').textContent`))]),
+    J([[2028, 2029, 2030, 2031], 1, true]));
+  // started blank: the proposal lands in FY32 alone
+  w3dlg(B.ev, [true, false, true]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'apply', 'started blank: FY32 holds the proposal alone, with no budget authority, and the other years are as they were',
+    J([w209years(B.ev), w209ev(B, `(function(){ var T=MS.years[2032]; return JSON.stringify([T.order.length, (T.custom[0]||{}).event, (T.custom[0]||{}).from? T.custom[0].from.fy : null,
+      (T.discSvc||[]).concat(T.mandSvc||[]).reduce(function(a,b){ return a+(+b||0); }, 0)]); })()`), B.ev('MS.cur'), w209ev(B, `MS.years[2031].custom.length`)]),
+    J([[2028, 2029, 2030, 2031, 2032], J([1, 'PSM new FY32', 2032, 0]), 2028, 0]));
+  // A FILE FROM AN OLDER COPY FOR A YEAR THIS BOARD LACKS (FY33): its changes can be ticked, and Apply starts the year first.
+  // Started blank, a change to a requirement the year was not started with is not written -- it would be a value filed under a
+  // requirement the year does not hold -- and is named; the proposal lands.
+  const old33 = { spmtPkg: 1, dir: 'submit', ap: '', fy: 2033, ts: 1760000009000, by: 'Lead', pmo: 'PSM', fromTs: 1, svc: ['USAF', 'ANG', 'AFRC'], pv: 2,
+    items: { B: { desc: 'B for FY33' } }, base: { B: { desc: null } },
+    added: [{ nid: 'NEW-PSM-77', grp: 'PSM', title: '', event: 'Proposed for FY33', ask: [90, 0, 0], ptype: 'PRIME', obCat: '', dest: { to: 'lm', end: '' }, desc: 'd', cons: 'c' }] };
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(old33)}, 'old33.json'); 'ok'`);
+  chk(name, 'a year this board lacks', 'its change can be ticked, said to be in a year not started',
+    w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, !!r.gone, !!r.unstarted]; }))`), J([[2033, 'NEW-PSM-77', '__new', false, false], [2033, 'B', 'desc', false, true]]));
+  w3dlg(B.ev, [true, false, true]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const s33 = w3said(B.ev);
+  chk(name, 'a year this board lacks', 'started blank: B’s change is not written there, and is named; the proposal lands',
+    J([s33.some(d => d[0] === 'alert' && /could not be applied/.test(d[1]) && /FY33 — B · Description/.test(d[1])),
+       w209ev(B, `JSON.stringify([((MS.years[2033]||{}).desc||{}).B===undefined, ((MS.years[2033]||{}).custom||[]).map(function(c){ return c.event; })])`)]),
+    J([true, J([true, ['Proposed for FY33']])]));
+  chk(name, 'errors', 'control — no page error on the copy or the board', J([P.errors.length, B.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// ONE OFFICE'S YEARS, HELD SIDE BY SIDE, AND WHAT IS LEFT AFTER APPLY. Before v2.09 a second package from an office replaced
+// the first whatever year each was for -- reachable with copies published from two years -- and the count after Apply counted
+// a proposal already accepted and a change to a requirement the board no longer has. A five-year file is the office's whole
+// submission and replaces every year that office has held, whole or not at all; the batch loader takes one file per office --
+// a five-year file is one -- and its dry run holds back what pmoTake does, the split included.
+const w209pkg = (o) => Object.assign({ spmtPkg: 1, dir: 'submit', ap: '', ts: 1760000000000, by: 'Lead', pmo: 'PSM', fromTs: 1, svc: ['USAF', 'ANG', 'AFRC'], pv: 2,
+  items: {}, base: {}, added: [] }, o);
+const w209prop = (nid, ev, fy) => Object.assign({ nid, grp: 'PSM', title: '', event: ev, ask: [120, 0, 0], ptype: 'PRIME', obCat: '', dest: { to: 'lm', end: '' },
+  desc: 'd', cons: 'c' }, fy ? { fy } : {});
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — one office’s years held side by side, a five-year file replacing them, the batch and its dry run (item 126)';
+  try {
+  const J = JSON.stringify;
+  const html = w209board();
+  const B = boot({ html });
+  const held = () => JSON.parse(w209ev(B, `JSON.stringify(PMOSUBS.map(function(p){ return [p.pmo, p.forFy, Object.keys(p.items||{}).join(',')+'|'+(p.added||[]).map(function(a){ return a.nid; }).join(',')]; }))`) || '[]');
+  // two files from copies published before v2.09, one each for FY29 and FY30, from PSM: both held
+  const old29 = w209pkg({ fy: 2029, items: { B: { desc: 'B for FY29 (first round)' } }, base: { B: { desc: null } } });
+  const old30 = w209pkg({ fy: 2030, items: { B: { desc: 'B for FY30' } }, base: { B: { desc: null } } });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(old29)}, 'a.json'); pmoTake(${J(old30)}, 'b.json'); 'ok'`);
+  chk(name, 'by year', 'one office’s files for two years are both held, each for its year', J(held()), J([['PSM', 2029, 'B|'], ['PSM', 2030, 'B|']]));
+  chk(name, 'by year', 'the line says Apply puts the FY30 file into FY30, whatever year is on screen -- not that it applies only while FY30 is',
+    /It is held for FY30: ✔ Apply puts it into FY30, whatever year is on screen\./.test(B.ev(`document.getElementById('shareStat').textContent`)), true);
+  const old29b = w209pkg({ fy: 2029, ts: 1760000001000, items: { B: { desc: 'B for FY29 (second round)' } }, base: { B: { desc: null } } });
+  w209ev(B, `pmoTake(${J(old29b)}, 'c.json'); 'ok'`);
+  chk(name, 'by year', 'and the same office’s file for the same year again replaces that year’s alone',
+    J([held(), w209ev(B, `(PMOSUBS.filter(function(p){ return p.forFy===2029; })[0]||{items:{B:{}}}).items.B.desc`)]), J([[['PSM', 2030, 'B|'], ['PSM', 2029, 'B|']], 'B for FY29 (second round)']));
+  // a five-year file replaces every year the office has held
+  const five = w209pkg({ fy: 2028, ts: 1760000002000, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'), items: { A: { notes: 'A five-year' } }, base: { A: { notes: null } },
+    byYear: { 2031: { items: { B: { desc: 'B for FY31' } }, base: { B: { desc: null } }, added: [w209prop('NEW-PSM-9', 'Five-year FY31', 2031)] } } });
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(five)}, 'five.json'); 'ok'`);
+  chk(name, 'five-year', 'a five-year file replaces every year PSM held, and is held one package per year', J(held()), J([['PSM', 2028, 'A|'], ['PSM', 2031, 'B|NEW-PSM-9']]));
+  chk(name, 'five-year', 'nothing asked, and the line says what it replaced', J([w3said(B.ev).length, /replacing 2 held earlier from the same office/.test(B.ev(`document.getElementById('shareStat').textContent`))]), J([0, true]));
+  // a proposal filed under another year than it says it is for is left out and named, never put into either
+  const wrongFy = w209pkg({ fy: 2028, ts: 1760000003000, fys: [2028, 2029], items: { A: { notes: 'x' } }, base: { A: { notes: null } },
+    byYear: { 2029: { items: {}, base: {}, added: [w209prop('NEW-PSM-8', 'Says FY30', 2030)] } } });
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(wrongFy)}, 'w.json'); 'ok'`);
+  const wSaid = w3said(B.ev).map(d => d[1]).join('\n');
+  chk(name, 'five-year', 'a proposal sent under FY29 that says it is for FY30 is left out, named', J([/NEW-PSM-8|Says FY30/.test(wSaid) && /it says it is for “2030”, and it was sent under FY29/.test(wSaid),
+    held().map(h => h[1])]), J([true, [2028]]));
+  // a five-year file whose year the board cannot read is refused whole, and the review is as it was
+  const badYear = JSON.parse(J(five)); badYear.byYear = { 'FY31': badYear.byYear[2031] };
+  const h0 = J(held());
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(badYear)}, 'bad.json'); 'ok'`);
+  chk(name, 'five-year', 'one carrying a year the board cannot read is refused whole, and nothing held changes',
+    J([/carries a year this board cannot read/.test(w3said(B.ev).map(d => d[1]).join('\n')), J(held()) === h0]), J([true, true]));
+
+  // a five-year file whose later year cannot be taken is not taken at all: its earlier year, already through, is not left held
+  const later = JSON.parse(J(five)); later.ts = 1760000003500; later.byYear[2031].items.B.asks = [1, 2];
+  const h1 = J(held());
+  w3dlg(B.ev);
+  w209ev(B, `pmoTake(${J(later)}, 'later.json'); 'ok'`);
+  chk(name, 'five-year', 'one whose FY31 is refused is refused whole, naming FY31, and the review is as it was',
+    J([/its FY31 part was refused/.test(w3said(B.ev).map(d => d[1]).join('\n')), J(held()) === h1]), J([true, true]));
+
+  // ── WHAT IS LEFT AFTER APPLY (reachable before v2.09, with a one-year file) ───────────────────────────────────────────
+  const one = w209pkg({ fy: 2028, ts: 1760000004000, pmo: 'AV', items: { D: { desc: 'D by AV' }, GONE: { desc: 'not here' } }, base: { D: { desc: null }, GONE: { desc: null } },
+    added: [Object.assign(w209prop('NEW-AV-1', 'AV proposal'), { grp: 'AV' })] });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(one)}, 'one.json'); subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'after apply', 'with the proposal taken and a requirement gone, the line says nothing is left to review',
+    J([/Nothing is left to review/.test(B.ev(`document.getElementById('shareStat').textContent`)), w209ev(B, `pmoRows().filter(function(r){ return r.taken || r.gone; }).length`)]), J([true, 2]));
+
+  // ── A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS, the two accepted in two Applies ────────────────────────────────────────
+  // FY31's proposal was brought in, in the copy, from the office's own FY29 proposal, so its link names the id the copy gave
+  // that one (NEW-PSM-21), which this board never holds. Accepted alone, the link says so; FY29's accepted later, it reads the
+  // requirement that proposal became.
+  const linked = w209pkg({ fy: 2028, ts: 1760000007000, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'),
+    byYear: { 2029: { items: {}, base: {}, added: [w209prop('NEW-PSM-21', 'Recurs, FY29', 2029)] },
+      2031: { items: {}, base: {}, added: [Object.assign(w209prop('NEW-PSM-22', 'Recurs, FY31', 2031), { prior: { fy: 2029, id: 'NEW-PSM-21' } })] } } });
+  w3dlg(B.ev);
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(linked)}, 'linked.json');
+    subPick(PMOSUBS.map(function(p){ return p.forFy; }).indexOf(2031), 'NEW-PSM-22', '__new', true); pmoApply(); 'ok'`);
+  const lk = () => w209ev(B, `(function(){ var c=((MS.years[2031]||{}).custom||[]).filter(function(x){ return x.from && x.from.nid==='NEW-PSM-22'; })[0];
+    return c? priorTxt(c) : 'not accepted'; })()`);
+  chk(name, 'link', 'FY31’s accepted alone: its link to the office’s FY29 proposal says PSM proposed that one and it has not been accepted',
+    lk(), 'FY29 NEW-PSM-21 — PSM proposed it, and it has not been accepted');
+  w3dlg(B.ev);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const id29 = w209ev(B, `(((MS.years[2029]||{}).custom||[]).filter(function(x){ return x.from && x.from.nid==='NEW-PSM-21'; })[0]||{}).id||''`);
+  const lk2 = lk();
+  chk(name, 'link', 'FY29’s accepted in a later Apply: the FY31 link reads the requirement it became', J([/^NEW-\d+$/.test(id29), lk2.indexOf('FY29 ' + id29 + ' — ') === 0,
+    /not been accepted|no longer/.test(lk2)]), J([true, true, false]));
+
+  // ── THE BATCH, AND ITS DRY RUN ─────────────────────────────────────────────────────────────────────────────────────────
+  const X = boot({ html });
+  X.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; PMOSUBS=[]; PMOPICK={}; switchYear(2029); 'ok'`);
+  const dry = JSON.parse(w209ev(X, `(function(){ var s0=PMOSUBS, y0=JSON.stringify(Object.keys(MS.years)), c0=MS.cur, r=uiTakeDry(${J(five)}, 'five.json');
+    return JSON.stringify({ok:r.ok, asks:r.asks.length, same:PMOSUBS===s0 && PMOSUBS.length===0, years:JSON.stringify(Object.keys(MS.years))===y0, cur:MS.cur===c0}); })()`) || '{}');
+  chk(name, 'dry run', 'the dry run of a five-year file, taken on FY29, would take it without a question, and holds back everything it did',
+    J(dry), J({ ok: true, asks: 0, same: true, years: true, cur: true }));
+  const files = (L) => { X.w.__f = L.map(([n, t]) => new X.w.File([t], n, { type: 'application/json' })); };
+  const oneAv = w209pkg({ fy: 2029, ts: 1760000005000, pmo: 'AV', items: { D: { desc: 'D by AV, FY29' } }, base: { D: { desc: null } } });
+  files([['five.json', J(five)], ['av.json', J(oneAv)]]);
+  const r1 = JSON.parse(J(await X.w.uiSubMany({ files: X.w.__f, value: '' })));
+  chk(name, 'batch', 'a five-year file and another office’s file load together, every year of the five-year file held',
+    J([r1.ok, r1.taken, w209ev(X, `JSON.stringify(PMOSUBS.map(function(p){ return p.pmo+':'+p.forFy; }))`)]), J([true, 2, J(['PSM:2028', 'PSM:2031', 'AV:2029'])]));
+  X.ev(`PMOSUBS=[]; PMOPICK={}; 'ok'`);
+  files([['five.json', J(five)], ['five2.json', J(Object.assign({}, five, { ts: 1760000006000 }))]]);
+  const r2 = JSON.parse(J(await X.w.uiSubMany({ files: X.w.__f, value: '' })));
+  chk(name, 'batch', 'control — two files from one office in one batch are refused, and nothing is held', J([r2.ok, /both from PSM/.test(r2.why), X.ev('PMOSUBS.length')]), J([false, true, 0]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, X.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// IN A COPY THE YEARS ARE THE PORTFOLIO TEAM'S (Brad, 26 Oct 2026: Roll forward and Copy and Move to year switched off in a copy;
+// Roll requirements forward, Set base year and Reset year with them). Each is refused with a reason, and changes nothing; the
+// guide's office part says which years a copy covers and what happens to a year the board has not started.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — the year tools are off in a PMO copy, and the guide says which years it covers (item 126)';
+  try {
+  const J = JSON.stringify;
+  // PP holds a requirement in FY31 alone
+  const B = boot({ html: w209board([], `switchYear(2031); ${w209mk('PP', 'PP in FY31 alone')}; save(); switchYear(2028)`) });
+  const P = boot({ html: v184Publish(B.ev) });
+  P.ev(`try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  chk(name, 'offices', 'from FY28, the office list a copy submits for offers PP, whose only requirement is FY31’s', w209ev(P, `String(pmoChoices().indexOf('PP')>=0)`), 'true');
+  const state = () => P.ev(`JSON.stringify([MS.base, MS.cur, Object.keys(MS.years), Object.keys(MS.years).map(function(y){ return MS.years[y].order; }), rollOpen])`);
+  const s0 = state();
+  const tryOne = (lbl, js) => { w3dlg(P.ev); w209ev(P, js + '; \'ok\''); const d = w3said(P.ev);
+    return [lbl, d.length === 1 && d[0][0] === 'alert' && /is turned off in a PMO copy/.test(d[0][1]) && /From another year/.test(d[0][1]), state() === s0]; };
+  const got = [tryOne('Copy to year', `xferYear('A','c2029')`), tryOne('Move to year', `xferYear('A','m2029')`),
+    tryOne('Roll requirements forward', `toggleRoll()`), tryOne('Roll forward (apply)', `rollPick={A:1}; rollYrs={2029:1}; rollApply()`),
+    tryOne('Set base year', `window.prompt=function(){ return '2030'; }; setBaseYear()`), tryOne('Reset year', `resetYear()`)];
+  chk(name, 'year tools', 'each is refused, saying so and pointing to From another year, and nothing changes',
+    J(got), J(got.map(g => [g[0], true, true])));
+  chk(name, 'year tools', 'the Fiscal year menu says they are off', (P.ev(`(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`).match(/off in a PMO copy/g) || []).length, 3);
+  const guide = w209ev(P, `(function(){ var s=helpSections().filter(function(x){ return x.id==='o-years'; })[0]; return s? s.part+'|'+s.t+'|'+s.el.textContent : ''; })()`);
+  chk(name, 'guide', 'the office part says which years a copy covers, that a year not started opens blank for new requirements, and how a requirement that recurs comes in',
+    J([/^office\|Which years you can work in\|/.test(guide), /base year and the four years after it/.test(guide), /opens blank, for new requirements only/.test(guide), /From another year/.test(guide)]), J([true, true, true, true]));
+  chk(name, 'errors', 'control — no page error', J([P.errors.length]), J([0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A BOARD OLDER THAN THE COPY REFUSES ITS SUBMITTAL WHOLE. Read by v2.08, the top of a five-year package is a one-year
+// submittal it would take, and every out-year in it would be dropped without a word. The package says which build wrote it,
+// and the import check's newer-build rule (v2.02) refuses it at the door, naming the version. Until the integration raises
+// BUILD this board is still v2.08's, so the check reads the package as the v2.09 copy writes it: one minor version on.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — a v2.08 board refuses a five-year submittal whole (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  const P = boot({ html: v184Publish(B.ev) });
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; switchYear(2030); setDesc('A','A, FY30, from the copy'); switchYear(2028); 'ok'`);
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  chk(name, 'package', 'the package says which build wrote it, and the years it covers', J([pkg.build === P.ev('BUILD'), Array.isArray(pkg.fys), !!(pkg.byYear || {})[2030]]), J([true, true, true]));
+  const sent = Object.assign({}, pkg, { build: /^v2\.0[0-8]\b/.test(String(pkg.build || '')) || !pkg.build ? 'v2.09 (26 Oct 2026)' : pkg.build });
+  const O = boot({ html: v14Old('ebe702e', 'prioritization-board-grid.html') });
+  chk(name, 'the v2.08 board', 'control — it is the v2.08 board', O.ev('BUILD'), 'v2.08 (26 Oct 2026)');
+  chk(name, 'the v2.08 board', 'control — its import check refuses the file whole, naming the version that wrote it',
+    /written by a newer version of ORBIT \(v2\.09; this board is v2\.08/.test(O.ev(`inboundCheck(${J(J(sent))})`)), true);
+  w3dlg(O.ev);
+  await w3drive(O.ev, 'importState', 'ORBIT SUBMITTAL - PSM.json', J(sent));
+  chk(name, 'the v2.08 board', 'control — through its own file door: refused, and no submittal held', J([/was not imported/.test(w3said(O.ev).map(d => d[1]).join('\n')), O.ev('PMOSUBS.length')]), J([true, 0]));
+  chk(name, 'this board', 'this board takes the same file, every year of it', w209ev(B, `(function(){ window.alert=function(){}; window.confirm=function(){ return true; }; PMOSUBS=[];
+    pmoTake(${J(pkg)}, 's.json'); return JSON.stringify(PMOSUBS.map(function(p){ return p.forFy; })); })()`), J([2030]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// THE DOOR AND THE DESTINATION LIST READ EVERY YEAR. A five-year submittal carries its out-years under byYear, and each is held
+// to the rules the top of the package is: an id the board would draw, an amount within range, an award of the package's own
+// service width, a key that is a fiscal year. And each names destinations by the copy's list, re-pointed onto this board's.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 W2 — the door and the destination list read every year of a five-year submittal (item 126)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  B.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; 'ok'`);
+  const good = w209pkg({ fy: 2028, fys: [2028, 2029, 2030, 2031, 2032], build: B.ev('BUILD'), dest: JSON.parse(B.ev('JSON.stringify(flowEnts())')),
+    items: { A: { notes: 'n' } }, base: { A: { notes: null } }, byYear: { 2030: { items: { A: { desc: 'ok' } }, base: { A: { desc: null } }, added: [] } } });
+  chk(name, 'door', 'control — a well-formed five-year submittal passes', B.ev(`inboundCheck(${J(J(good))})`), '');
+  const bad = (f) => { const p = JSON.parse(J(good)); f(p); return B.ev(`inboundCheck(${J(J(p))})`); };
+  const said = [
+    bad(p => { p.byYear[2030].items['A"x'] = { desc: 'quote' }; }),
+    bad(p => { p.byYear[2030].items.A.asks = [1e14, 0, 0]; }),
+    bad(p => { p.byYear[2030].items.A.awards = { mode: 'inc', inc: [{ d: '2029-10', day: 5, sv: [1, 2] }] }; }),
+    bad(p => { p.byYear[2030].added = [w209prop('NEW"1', 'Bad id', 2030)]; }),
+    bad(p => { p.byYear.FY31 = p.byYear[2030]; }),
+  ];
+  chk(name, 'door', 'an out-year’s bad id, figure, award and proposal, and a year that is not a year, are each refused, naming the year',
+    J(said.map(w => /byYear/.test(w))), J([true, true, true, true, true]));
+  chk(name, 'door', 'the year that is not a year is named as such', /the year “FY31” at the file\.byYear is not a fiscal year/.test(said[4]), true);
+  // the copy's destination list keys Lockheed Martin as zq1; its FY30 requirement goes to zq1: taken, it goes to this board's lm
+  const re = JSON.parse(J(good));
+  re.dest = re.dest.map(e => e.k === 'lm' ? Object.assign({}, e, { k: 'zq1' }) : e);
+  re.byYear[2030].items.A = { dest: { to: 'zq1' } }; re.byYear[2030].base.A = { dest: null };
+  w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(re)}, 'dest.json'); 'ok'`);
+  chk(name, 'destinations', 'an out-year’s destination is re-pointed onto this board’s list, as the published year’s is',
+    w209ev(B, `JSON.stringify(((PMOSUBS.filter(function(p){ return p.forFy===2030; })[0]||{items:{A:{}}}).items.A||{}).dest||null)`), J({ to: 'lm' }));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length]), J([0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ── v2.09 REVIEW (five years) ─────────────────────────────────────────────────────────────────────────────────────────────
+// The independent review of v2.09 found five ways the five-year round trip lost work or counted it twice; each block below
+// drives the copy and the board through their own code, and each fails on the reviewed board (9bc5496) unless it says CONTROL.
+// A copy, opened as PSM's office
+const w209rvCopy = (html) => { const P = boot({ html }); P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  return P; };
+// a held submittal's rows as the review reads them, and whether the review draws a checkbox for the row whose text matches re
+const w209rvRows = (B) => JSON.parse(w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, r.taken||null, r.takenElse||null]; }))`) || '[]');
+const w209rvDrawn = (B, re) => JSON.parse(w209ev(B, `(function(){ subOpen=true; subBody(); var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return ${re}.test(r.textContent); })[0];
+  return JSON.stringify(t? {cb:!!t.querySelector('input[type=checkbox]'), text:t.textContent} : null); })()`) || 'null');
+
+// A SECOND COPY NEVER MINTS AN ID THE BOARD HAS ALREADY FILED, AND TWO COPIES OUT AT ONCE KEEP THEIR PROPOSALS APART. The board
+// files an accepted proposal under its own NEW-n, numbered by that year alone, and keeps the copy's id only in its provenance; the
+// next copy numbered from the busiest year and minted the same id, so the office's new, DIFFERENT requirement read "ALREADY
+// ADDED AS NEW-1", had no checkbox, and could never be accepted. The fixture makes it bite: FY28 holds no added requirement and
+// FY29 three, so the copy numbers its first proposal 4 while the board files it as FY28's NEW-1. And two copies published one
+// after the other, before either proposal is taken, number from the same count: the second's proposal is its own -- tickable, and
+// named as another copy's under the same id so the reviewer can check it is not the same work (Brad, v2.06: duplicates are
+// caught and discussed in reviews).
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a second copy never reuses an id the board has filed, and two copies out at once keep their proposals apart (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+    MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+    applyState(MS.years[2028]); MS.years[2028]=S;
+    switchYear(2029); ${w209mk('AV', 'Board FY29 one')}; ${w209mk('AV', 'Board FY29 two')}; ${w209mk('AV', 'Board FY29 three')};
+    save(); switchYear(2028); save()`) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — FY28 holds no added requirement, FY29 three: a copy numbers past FY29, the board files under FY28’s own count',
+    w209ev(B, `JSON.stringify([MS.cur, (MS.years[2028].custom||[]).length, (MS.years[2029].custom||[]).map(function(c){ return c.id; })])`), J([2028, 0, ['NEW-1', 'NEW-2', 'NEW-3']]));
+  const takeApply = (pkg, fname) => { w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, ${J(fname)}); 'ok'`); };
+  const applyAll = () => { w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); return w3said(B.ev); };
+  const fy28 = () => JSON.parse(w209ev(B, `JSON.stringify(MS.years[2028].custom.map(function(c){ return [c.id, c.event, c.from? c.from.nid : null]; }))`) || '[]');
+
+  // copy 1: one proposal, accepted
+  const P1 = w209rvCopy(v184Publish(B.ev));
+  const a1 = w209add(P1, 'First FY28 proposal', [300, 0, 0]);
+  const s1 = v184Submit(P1, 'PSM');
+  takeApply(s1.pkg, 'psm-1.json'); applyAll();
+  chk(name, 'copy 1', 'control — its proposal is accepted into FY28 under the board’s own NEW-1, its provenance keeping the copy’s id',
+    J(fy28()), J([['NEW-1', 'First FY28 proposal', a1.id]]));
+  try { P1.w.close(); } catch {}
+
+  // copy 2, published after the first was accepted
+  const P2 = w209rvCopy(v184Publish(B.ev));
+  const a2 = w209add(P2, 'Second FY28 proposal, a different one', [900, 0, 0]);
+  chk(name, 'copy 2', 'its new requirement gets an id of its own, past the one the board filed from copy 1', J([!!a2.id, a2.id !== a1.id]), J([true, true]));
+  const s2 = v184Submit(P2, 'PSM');
+  takeApply(s2.pkg, 'psm-2.json');
+  chk(name, 'copy 2', 'the review offers it as not yet added', J(w209rvRows(B).map(r => [r[2], r[3]])), J([['__new', null]]));
+  chk(name, 'copy 2', 'with a checkbox, and no “already added”', J([(w209rvDrawn(B, '/Second FY28 proposal/') || {}).cb, /ALREADY ADDED/.test((w209rvDrawn(B, '/Second FY28 proposal/') || {}).text || '')]), J([true, false]));
+  applyAll();
+  chk(name, 'copy 2', 'accepted, it lands as a requirement of its own beside the first', J(fy28().map(r => r[1])), J(['First FY28 proposal', 'Second FY28 proposal, a different one']));
+  try { P2.w.close(); } catch {}
+
+  // copies 3 and 4, published one after the other before either is taken
+  const h3 = v184Publish(B.ev);
+  B.ev(`(function(){ var t=Date.now(); while(Date.now()===t){} return 'ok'; })()`);
+  const h4 = v184Publish(B.ev);
+  const P3 = w209rvCopy(h3), P4 = w209rvCopy(h4);
+  const a3 = w209add(P3, 'Third FY28, from copy 3', [111, 0, 0]);
+  const a4 = w209add(P4, 'Fourth FY28, from copy 4', [222, 0, 0]);
+  chk(name, 'two copies', 'control — published from one board, the two copies number their proposals alike, and carry different stamps',
+    J([a3.id === a4.id && !!a3.id, +P3.ev('PMODE.ts') !== +P4.ev('PMODE.ts')]), J([true, true]));
+  const s3 = v184Submit(P3, 'PSM'), s4 = v184Submit(P4, 'PSM');
+  takeApply(s3.pkg, 'psm-3.json'); applyAll();
+  const id3 = (fy28().filter(r => r[1] === 'Third FY28, from copy 3')[0] || [])[0] || '';
+  chk(name, 'two copies', 'control — copy 3’s is accepted', !!id3, true);
+  takeApply(s3.pkg, 'psm-3-again.json');
+  chk(name, 'two copies', 'control — copy 3’s submittal taken again reads as already added: the same submittal is never added twice',
+    J(w209rvRows(B).map(r => r[3])), J([id3]));
+  takeApply(s4.pkg, 'psm-4.json');
+  chk(name, 'two copies', 'copy 4’s proposal, under the same id, is its own: not already added, and named as another copy’s',
+    J(w209rvRows(B).map(r => [r[3], r[4]])), J([[null, id3]]));
+  const d4 = w209rvDrawn(B, '/Fourth FY28, from copy 4/') || {};
+  chk(name, 'two copies', 'the review draws it with a checkbox, saying another copy’s proposal under this id is on the board -- check it is not the same work',
+    J([d4.cb, new RegExp('ANOTHER COPY’S PROPOSAL UNDER THIS ID IS ON THIS BOARD AS ' + id3 + ' — check it is not the same work').test(d4.text || '')]), J([true, true]));
+  applyAll();
+  chk(name, 'two copies', 'ticked, it lands as a requirement of its own', J(fy28().map(r => r[1]).filter(e => /copy [34]/.test(e))), J(['Third FY28, from copy 3', 'Fourth FY28, from copy 4']));
+  // a provenance carrying a hand-made id with thirty digits does not push the count past where it can step (a guard on the fix's
+  // own bound: the reviewed board never read the provenance, so this one passes there)
+  w209ev(B, `MS.years[2028].custom[0].from.nid='NEW-PSM-'+'9'.repeat(30); save(); 'ok'`);
+  const P5 = w209rvCopy(v184Publish(B.ev));
+  const a5 = w209add(P5, 'Fifth, from copy 5', [10, 0, 0]), a6 = w209add(P5, 'Sixth, from copy 5', [20, 0, 0]);
+  chk(name, 'a huge id', 'a copy whose board holds one still mints ordinary ids, each its own', J([/^NEW-PSM-\d{1,9}$/.test(a5.id), /^NEW-PSM-\d{1,9}$/.test(a6.id), a5.id !== a6.id]), J([true, true, true]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P3.errors.length, P4.errors.length, P5.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A PROPOSAL INTO A YEAR APPLY STARTS BY ROLLING FORWARD, WHICH CONTINUES WHAT THE ROLL BRINGS IN. The office brings A into FY32 --
+// a year the board has not started -- by From another year, as the guide tells it to for a recurring requirement. The review's
+// "FY32 ALREADY HOLDS A" could not fire while FY32 did not exist, Apply rolled FY32 forward from the year on screen (bringing A)
+// and accepted the office's A as well: the same work twice, both funded, with nothing said. Now the review says what a roll
+// forward would bring, the roll-forward question names it, and the reviewer decides before anything is written; left out, it
+// stays in the review, and once FY32 exists it is offered with the ordinary warning, the reviewer's call.
+const w209rvFields = `['A','B','C','D'].forEach(function(id){ (S.ptype=S.ptype||{})[id]='PRIME'; (S.obCat=S.obCat||{})[id]=OB_CATS[0];
+    (S.dest=S.dest||{})[id]={to:'lm', end:''}; S.desc[id]='Described '+id; S.cons[id]='Stops without '+id; });`;
+const w209rvBoard32 = () => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+  MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+  applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+  [2029,2030,2031].forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2028); save()`);
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a proposal into a year Apply starts names what the roll forward would duplicate, and the reviewer decides (five years)';
+  try {
+  const J = JSON.stringify;
+  const html = w209rvBoard32();
+  const B = boot({ html });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board holds FY28-FY31, A in each, and FY32 is not started', J([w209years(B.ev), w209ev(B, `JSON.stringify([2028,2029,2030,2031].map(function(y){ return MS.years[y].order.indexOf('A')>=0; }))`)]),
+    J([[2028, 2029, 2030, 2031], J([true, true, true, true])]));
+  const P = w209rvCopy(v184Publish(B.ev));
+  w209ev(P, `switchYear(2032); 'ok'`);
+  const f = JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(2031); naFromTick('A', true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  chk(name, 'copy', 'in FY32 the office brings A in From another year, as a requirement of its own linked to FY31’s A', J(f.prior), J({ fy: 2031, id: 'A' }));
+  const plain = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  chk(name, 'copy', 'control — and adds one of its own there', !!plain.id, true);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'copy', 'control — both travel for FY32', J((((pkg.byYear || {})[2032] || {}).added || []).map(a => a.nid).sort()), J([f.id, plain.id].sort()));
+  const take = (b) => { w3dlg(b.ev); w209ev(b, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(b.ev); };
+  take(B);
+  // the review and the change report say what a roll forward would bring
+  const rollTxt = w209ev(B, `(function(){ subOpen=true; subBody(); var e=document.querySelector('#subBody .subroll'); return e? e.textContent : ''; })()`);
+  chk(name, 'review', 'the row says that rolled forward from FY28, FY32 would hold A -- accepting adds it again', rollTxt, 'ROLLED FORWARD FROM FY28, FY32 WOULD HOLD A — accepting adds it again');
+  chk(name, 'review', 'control — the other proposal says nothing of the kind', w209ev(B, `document.querySelectorAll('#subBody .subroll').length`), 1);
+  const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  chk(name, 'report', 'the change report says so on that proposal’s row', (book.rows || []).some(r => r.some(c => /rolled forward from FY28, FY32 would hold A/.test(String(c)))), true);
+
+  // Apply: rolled forward, and the duplicate left out when the reviewer says so
+  w3dlg(B.ev, [true, true, false]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const q = w3said(B.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'apply', 'the roll-forward question names what it would duplicate: the proposal, the requirement it continues, and A',
+    J([q.length, /Rolled forward, FY32 would already hold what 1 of the ticked proposals continues/.test(q[1] || ''), /continues FY31 A; FY32 would hold A/.test(q[1] || '')]), J([3, true, true]));
+  chk(name, 'apply', 'and once the year is chosen the reviewer is asked whether it goes in, before anything is written',
+    J([/1 ticked proposal continues a requirement the year rolled forward already holds/.test(q[2] || ''), /Cancel — leave it unapplied, still held for review/.test(q[2] || ''),
+      w209years(B.ev).indexOf(2032) >= 0]), J([true, true, true]));
+  const T32 = () => JSON.parse(w209ev(B, `(function(){ var T=MS.years[2032]; return JSON.stringify([T.order.filter(function(id){ return id==='A'; }).length,
+    (T.custom||[]).map(function(c){ return [c.event, c.prior||null]; })]); })()`) || '[]');
+  chk(name, 'apply', 'left out: FY32 holds A once, rolled forward, and the office’s other proposal -- not A a second time', J(T32()), J([1, [['PSM new FY32', null]]]));
+  chk(name, 'apply', 'the line says it was left unapplied, and it is still held for review',
+    J([/1 proposal continuing a requirement the rolled-forward year already holds left unapplied, as asked/.test(B.ev(`document.getElementById('shareStat').textContent`)),
+      w209rvRows(B).filter(r => r[2] === '__new' && !r[3]).map(r => r[1])]), J([true, [f.id]]));
+  // FY32 exists now: the ordinary warning, and accepting it is the reviewer's call
+  const here = w209ev(B, `(function(){ subOpen=true; subBody(); var e=document.querySelector('#subBody .subhere'); return e? e.textContent : ''; })()`);
+  chk(name, 'second apply', 'control — with FY32 started, the review gives the ordinary warning', here, 'FY32 ALREADY HOLDS A — accepting adds it again');
+  w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
+  chk(name, 'second apply', 'control — ticked anyway, it is accepted: the reviewer’s call', J(T32()[1].map(c => c[1])), J([null, { fy: 2031, id: 'A' }]));
+
+  // started blank there is nothing to duplicate, and nothing is asked about it
+  const B2 = boot({ html });
+  take(B2);
+  w3dlg(B2.ev, [true, false, true]);
+  w209ev(B2, `subPickAll(true); pmoApply(); 'ok'`);
+  const q2 = w3said(B2.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'blank', 'control — started blank: three questions (apply, roll or not, blank), none asking about a duplicate, and both proposals land',
+    J([q2.length, q2.some(m => /ticked proposals? continues? a requirement the year rolled forward already holds/.test(m)), w209ev(B2, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return c.prior||null; }))`)]),
+    J([3, false, J([{ fy: 2031, id: 'A' }, null])]));
+
+  // the office's own proposal, accepted into FY28 in an earlier Apply, and brought into FY32 by it: the roll forward carries the
+  // requirement FY28 filed it as -- the proposal itself, under the board's id -- and that is named too
+  const B3 = boot({ html });
+  B3.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P3 = w209rvCopy(v184Publish(B3.ev));
+  const R = w209add(P3, 'PSM recurring, FY28', [250, 0, 0]);
+  w209ev(P3, `switchYear(2032); 'ok'`);
+  const R2 = JSON.parse(w209ev(P3, `(function(){ toggleAdd(); naFromPick(2028); naFromTick(${J(R.id)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  w209ev(P3, `switchYear(2028); 'ok'`);
+  const pkg3 = v184Submit(P3, 'PSM').pkg || {};
+  w3dlg(B3.ev); w209ev(B3, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg3)}, 'psm3.json'); 'ok'`); w3said(B3.ev);
+  w3dlg(B3.ev); w209ev(B3, `PMOPICK={}; pmoRows().forEach(function(r){ if(r.id===${J(R.id)}) PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); w3said(B3.ev);
+  const r28 = w209ev(B3, `((MS.years[2028].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(R.id)}; })[0]||{}).id||''`);
+  chk(name, 'its own proposal', 'control — the FY28 proposal is accepted first, alone, and FY32 is still not started', J([!!r28, w209years(B3.ev).indexOf(2032)]), J([true, -1]));
+  w3dlg(B3.ev, [true, true, false]);
+  w209ev(B3, `subPickAll(true); pmoApply(); 'ok'`);
+  const q3 = w3said(B3.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'its own proposal', 'the roll-forward question names it: FY32, rolled forward, would hold the requirement FY28 filed the proposal as',
+    J([q3.length, (q3[1] || '').indexOf('continues FY28 ' + R2.prior.id + '; FY32 would hold ' + r28) >= 0]), J([3, true]));
+  chk(name, 'its own proposal', 'left out, FY32 holds it once, as rolled forward', w209ev(B3, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return [c.id, c.from? c.from.nid : null]; }))`),
+    J([[r28, R.id]]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, B2.errors.length, P.errors.length, B3.errors.length, P3.errors.length]), J([0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS ENDS UP NAMING THE BOARD'S OWN ID, so every same-work check reads it. In the copy the
+// office proposes O in FY29 and brings it into FY28 (L) and FY32 (L2) from another year, proposes P in FY30 and brings it into
+// FY31 (Q). Accepting re-pointed a link only to a proposal accepted BEFORE it: L, in an earlier year than O (Apply takes the
+// years oldest first), and Q, accepted an Apply before P, kept the copy's id -- so Roll requirements forward promised "1 copy will
+// be created" of work the year already held, and the review offered L2 for FY32 with no word that FY32 already held O.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a link to another of the office’s proposals names the board’s own id once that one is accepted (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P = w209rvCopy(v184Publish(B.ev));
+  const from = (y, src) => JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(${y}); naFromTick(${J(src)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  w209ev(P, `switchYear(2029); 'ok'`); const O = w209add(P, 'PSM original FY29', [400, 0, 0]);
+  w209ev(P, `switchYear(2028); 'ok'`); const L = from(2029, O.id);
+  w209ev(P, `switchYear(2030); 'ok'`); const Pp = w209add(P, 'PSM original FY30', [300, 0, 0]);
+  w209ev(P, `switchYear(2031); 'ok'`); const Q = from(2030, Pp.id);
+  w209ev(P, `switchYear(2032); 'ok'`); const L2 = from(2029, O.id);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  chk(name, 'copy', 'control — each link names the copy’s own id for the proposal it continues',
+    J([L.prior, Q.prior, L2.prior]), J([{ fy: 2029, id: O.id }, { fy: 2030, id: Pp.id }, { fy: 2029, id: O.id }]));
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(B.ev);
+  const tick = (ids) => { w3dlg(B.ev); w209ev(B, `PMOPICK={}; pmoRows().forEach(function(r){ if(r.key==='__new' && ${J(ids)}.indexOf(r.id)>=0) PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); return w3said(B.ev); };
+  const acc = (y, nid) => JSON.parse(w209ev(B, `JSON.stringify(((MS.years[${y}].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(nid)}; })[0])||null)`) || 'null');
+  // Apply 1: L, O and Q
+  tick([L.id, O.id, Q.id]);
+  const o29 = acc(2029, O.id), l28 = acc(2028, L.id), q31 = acc(2031, Q.id);
+  chk(name, 'one Apply', 'control — O is accepted into FY29, L into FY28 and Q into FY31', J([!!o29, !!l28, !!q31]), J([true, true, true]));
+  chk(name, 'one Apply', 'L, written before O (FY28 first), names the requirement O became in FY29, not the copy’s id', J((l28 || {}).prior), J({ fy: 2029, id: (o29 || {}).id }));
+  chk(name, 'one Apply', 'control — Q, whose original P is not accepted, still names the copy’s id', J((q31 || {}).prior), J({ fy: 2030, id: Pp.id }));
+  const plan = (src, id, y) => JSON.parse(w209ev(B, `(function(){ var keep=MS.cur; switchYear(${src}); rollPick={}; rollPick[${J(id)}]=1; rollYrs={}; rollYrs[${y}]=1;
+    var p=rollPlan().per.map(function(x){ return [x.y, x.create, x.exists]; }); rollPick={}; rollYrs={}; switchYear(keep); return JSON.stringify(p); })()`) || '[]');
+  chk(name, 'one Apply', 'Roll requirements forward sees FY29 already carries FY28’s L: nothing to create', J(plan(2028, (l28 || {}).id, 2029)), J([[2029, 0, 1]]));
+  // the team, meanwhile: copies O on into FY32, and rolls Q -- not yet re-pointed -- on into FY32 as well
+  w209ev(B, `switchYear(2029); yearCopy(${J((o29 || {}).id)}, 2032, 'c'); switchYear(2031); yearCopy(${J((q31 || {}).id)}, 2032, 'c'); switchYear(2028); save(); 'ok'`);
+  const t32 = JSON.parse(w209ev(B, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return [c.id, c.prior||null, !!c.from]; }))`) || '[]');
+  const oIn32 = (t32.filter(r => r[1] && r[1].fy === 2029)[0] || [])[0], qIn32 = (t32.filter(r => r[1] && r[1].fy === 2030)[0] || [])[0];
+  chk(name, 'the team', 'control — FY32 now holds a copy of O, linked to it, and a copy of Q with Q’s link and no provenance of its own',
+    J([!!oIn32, !!qIn32, (t32.filter(r => r[0] === qIn32)[0] || [])[2]]), J([true, true, false]));
+  // the review of L2: FY32 already holds O's copy
+  const here = w209ev(B, `(function(){ subOpen=true; subBody(); var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /PSM original FY29/.test(r.textContent)
+    && r.querySelector('.subprior') && /FY32/.test(r.textContent); })[0]; var e=t && t.querySelector('.subhere'); return e? e.textContent : ''; })()`);
+  chk(name, 'review', 'L2 is offered for FY32 with the warning that FY32 already holds the requirement it continues', here, 'FY32 ALREADY HOLDS ' + oIn32 + ' — accepting adds it again');
+  // Apply 2: P alone
+  tick([Pp.id]);
+  const p30 = acc(2030, Pp.id), q31b = acc(2031, Q.id);
+  chk(name, 'a later Apply', 'Q, accepted an Apply before P, now names the requirement P became in FY30', J((q31b || {}).prior), J({ fy: 2030, id: (p30 || {}).id }));
+  // v2.09 second review: the copy's link now also carries the copy that minted its id (pmo, pub: yearCopy, pmoLinkKeep), which the
+  // re-point keeps -- so it is read here by its year and its id, which is what the re-point writes
+  chk(name, 'a later Apply', 'and so does Q’s copy the team rolled into FY32, though it carries no provenance of its own',
+    w209ev(B, `(function(){ var p=((MS.years[2032].custom||[]).filter(function(c){ return c.id===${J(qIn32)}; })[0]||{}).prior;
+      return JSON.stringify(p? {fy:p.fy, id:p.id} : null); })()`), J({ fy: 2030, id: (p30 || {}).id }));
+  chk(name, 'a later Apply', 'Roll requirements forward sees FY31 already carries FY30’s P: nothing to create', J(plan(2030, (p30 || {}).id, 2031)), J([[2031, 0, 1]]));
+  // PUT BACK THE RE-POINT. The journal holds Q's link moving from the copy's id to the requirement P became, with Put back.
+  // Put back, Q names the copy's id again until the next Apply, and its record must still read what P became -- through P's
+  // provenance (priorLink) -- never "PSM proposed it, and it has not been accepted" of a proposal this board took.
+  const qk = w209ev(B, `String((MS.years[2031].custom||[]).map(function(c){ return c.from && c.from.nid; }).indexOf(${J(Q.id)}))`);
+  const qe = w209ev(B, `String((MS.jrnl||[]).map(function(e, i){ return [e, i]; }).filter(function(x){ var e=x[0];
+    return e.fy===2031 && JSON.stringify(e.p)===JSON.stringify(['custom', ${qk}, 'prior', 'id']) && jrnlUndoable(e); }).map(function(x){ return x[1]; }).pop())`);
+  chk(name, 'Put back', 'control — the re-point of Q in FY31 is in the change journal, with Put back', qe !== 'undefined' && qe !== '', true);
+  w3dlg(B.ev); w209ev(B, `jrnlUndo(${/^\d+$/.test(qe) ? qe : -1}); 'ok'`); w3said(B.ev);
+  const qPut = JSON.parse(w209ev(B, `(function(){ var c=(MS.years[2031].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(Q.id)}; })[0]||{};
+    return JSON.stringify([c.prior||null, priorTxt(c)]); })()`) || '[]');
+  chk(name, 'Put back', 'control — put back, Q names the copy’s id again', J(qPut[0]), J({ fy: 2030, id: Pp.id }));
+  chk(name, 'Put back', 'and its record still reads the requirement P became, not a proposal the board has not taken', qPut[1], 'FY30 ' + (p30 || {}).id + ' — PSM original FY30');
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// APPLY INTO A YEAR IT STARTS JOURNALS EVERY ACCEPTED CHANGE, EACH WITH PUT BACK. The question says "Each one is recorded in the
+// change journal, so it can be found and undone later" -- the recourse for a proposal accepted in error. Started and filled in
+// one save, the year was ONE "the FY32 plan -- created" line, a size and no Put back, for everything accepted into it.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — Apply into a year it starts records every accepted change in the journal, each with Put back (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board([2032]) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P = w209rvCopy(v184Publish(B.ev));
+  w209ev(P, `switchYear(2030); setDesc('A','A, written by PSM in FY30'); switchYear(2032); 'ok'`);
+  const a = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(B.ev);
+  const t0 = +B.ev('Date.now()');
+  w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
+  const nid = w209ev(B, `((MS.years[2032].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(a.id)}; })[0]||{}).id||''`);
+  chk(name, 'fixture', 'control — FY32 is started, rolled forward, and the proposal is accepted into it', J([w209years(B.ev).indexOf(2032) >= 0, !!nid]), J([true, true]));
+  const E = JSON.parse(w209ev(B, `JSON.stringify((MS.jrnl||[]).map(function(e, i){ return {i:i, t:e.t||0, fy:e.fy, p:e.p, u:jrnlUndoable(e), bid:(e.b&&e.b.id)||null}; }).filter(function(e){ return e.t>=${t0}; }))`) || '[]');
+  const in32 = E.filter(e => e.fy === 2032);
+  chk(name, 'journal', 'control — starting FY32 is its own line, not undoable', J(in32.filter(e => !e.p.length).map(e => e.u)), J([false]));
+  chk(name, 'journal', 'the accepted requirement is there under its own path, with Put back: added, described, its impact statement',
+    J([in32.some(e => e.p[0] === 'custom' && e.bid === nid && e.u), in32.some(e => e.p[0] === 'desc' && e.p[1] === nid && e.u), in32.some(e => e.p[0] === 'cons' && e.p[1] === nid && e.u)]),
+    J([true, true, true]));
+  chk(name, 'journal', 'control — the FY30 change in the same Apply is journalled as before', E.some(e => e.fy === 2030 && e.p[0] === 'desc' && e.p[1] === 'A' && e.u), true);
+  const ci = (in32.filter(e => e.p[0] === 'cons' && e.p[1] === nid)[0] || {}).i;
+  w3dlg(B.ev); w209ev(B, `jrnlUndo(${ci === undefined ? -1 : ci}); 'ok'`); w3said(B.ev);
+  chk(name, 'journal', 'Put back on the impact statement takes it off the accepted requirement in FY32', w209ev(B, `JSON.stringify((MS.years[2032].cons||{})[${J(nid)}]===undefined)`), 'true');
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A YEAR THE COPY HOLDS AND DOES NOT SUBMIT FOR IS SAID TO BE NOT SENT. The board's base moved on to FY28 and it still holds
+// FY27; a copy published from FY28 submits for FY28-FY32 and opens FY27 all the same. The office edited there and was told
+// nothing -- and Submit from FY27 answered "Nothing to send yet. Edit a description..." to an office that had just done that.
+// Now the year menu, the switch, the RECORD panel and Submit each say FY27 is not sent.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a year the copy holds and does not submit for is said to be not sent, at the edit and at Submit (five years)';
+  try {
+  const J = JSON.stringify;
+  const html = w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+    switchYear(2028); MS.base=2028; save(); switchYear(2029); switchYear(2028); save()`);
+  const B = boot({ html });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board’s base is FY28, and it still holds FY27', J([B.ev('MS.base'), w209years(B.ev)]), J([2028, [2027, 2028, 2029]]));
+  const copy = v184Publish(B.ev);
+  const P = w209rvCopy(copy);
+  chk(name, 'copy', 'control — the copy submits for FY28-FY32, and holds FY27', w209ev(P, `JSON.stringify([pmoCopyYears(), Object.keys(MS.years).map(Number).indexOf(2027)>=0])`), J([[2028, 2029, 2030, 2031, 2032], true]));
+  chk(name, 'year menu', 'the Fiscal year menu says FY27 is not sent from this copy',
+    /FY27 \(outside window\)\s*has data — not sent from this copy/.test(w209ev(P, `(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`)), true);
+  const say = 'This copy submits for FY28–FY32. FY27 is not one of them: nothing edited in FY27 is sent with ✉ Submit input. Go to one of those years to edit what you submit.';
+  w209ev(P, `switchYear(2027); 'ok'`);
+  chk(name, 'switch', 'switching there says so', P.ev(`document.getElementById('shareStat').textContent`).indexOf(say) >= 0, true);
+  chk(name, 'RECORD panel', 'the RECORD panel says so, where its value boxes edit', w209ev(P, `(function(){ curRow='B'; render(); var e=document.querySelector('#inspector .insp-notsent'); return e? e.textContent : ''; })()`), '⚠ ' + say);
+  chk(name, 'edit box', 'control — the edit box says it, as before', /nothing edited here can be sent/.test(w209ev(P, `erNotSent('B')`)), true);
+  w209ev(P, `setAsk('B',0,'777'); 'ok'`);
+  const s1 = v184Submit(P, 'PSM');
+  chk(name, 'Submit from FY27', 'it does not say “Nothing to send yet”: it says FY27 is not one of the years the copy submits for, and sends nothing',
+    J([s1.alerts, !!s1.pkg]), J([['Nothing to send.\n\n' + say + '\n\nNothing was sent.'], false]));
+  w209ev(P, `switchYear(2028); setNote('A','A note from PSM (FY28)'); 'ok'`);
+  const s2 = v184Submit(P, 'PSM');
+  chk(name, 'Submit from FY28', 'the package goes, and Submit says FY27’s edit is not in it', J([!!s2.pkg, s2.alerts]), J([true, ['⚠ ' + say + '\n\nEverything else you edited is still being sent.']]));
+  chk(name, 'Submit from FY28', 'control — FY27’s 777 is not in the package', /777/.test(J(s2.pkg)), false);
+  chk(name, 'Submit from FY28', 'and the line after it says so', /Nothing edited in FY27 is in it: this copy does not submit for that year\./.test(P.ev(`document.getElementById('shareStat').textContent`)), true);
+  // a copy with nothing edited in FY27 says nothing of it
+  const P2 = w209rvCopy(copy);
+  w209ev(P2, `setNote('A','Another note (FY28)'); 'ok'`);
+  const s3 = v184Submit(P2, 'PSM');
+  chk(name, 'Submit from FY28', 'control — with nothing edited in FY27, nothing is said of it', J([!!s3.pkg, s3.alerts]), J([true, []]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length, P2.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ── v2.09 second review (five years) ────────────────────────────────────────────────────────────────────────────────────────
+// The second independent review of v2.09 found four more, each confirmed by a skeptic on the reviewed board (ba3c294); every
+// block below drives the copy and the board through their own code and fails there unless a check says CONTROL.
+const w209rv2From = (P, y, src) => JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(${y}); naFromTick(${JSON.stringify(src)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+const w209rv2Cust = (B, y) => JSON.parse(w209ev(B, `JSON.stringify(((MS.years[${y}]||{}).custom||[]).map(function(c){ return {id:c.id, ev:c.event, prior:c.prior||null,
+    from:c.from? {nid:c.from.nid, pub:+c.from.pub||0} : null}; }))`) || '[]');
+const w209rv2Plan = (B, src, id, y) => JSON.parse(w209ev(B, `(function(){ var keep=MS.cur; switchYear(${src}); rollPick={}; rollPick[${JSON.stringify(id)}]=1; rollYrs={}; rollYrs[${y}]=1;
+    var p=rollPlan().per.map(function(x){ return [x.y, x.create, x.exists]; }); rollPick={}; rollYrs={}; switchYear(keep); return JSON.stringify(p); })()`) || '[]');
+const w209rv2Tick = (B, pred, ans = []) => { w3dlg(B.ev, ans); w209ev(B, `PMOPICK={}; pmoRows().forEach(function(r){ if((${pred})(r)) PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); return w3said(B.ev); };
+
+// A LINK THE TEAM COPIES OR ROLLS FORWARD IS RE-POINTED ONLY TO ITS OWN COPY'S PROPOSAL. Two copies out at once number alike:
+// copy A proposes Alpha in FY28 and copy B proposes Bravo there, both NEW-PSM-1, and copy B brings Bravo into FY29. The board
+// accepts B's FY29 proposal alone; the team rolls it on into FY30 (Roll requirements forward) and copies it into FY31 (Copy to
+// year) while its link still names NEW-PSM-1. Then copy A's Alpha is accepted. A copy carried its link with nothing to say which
+// copy minted the id, and the re-point at the end of that Apply took the one proposal it found under it: Alpha. FY30 read
+// "Continues FY28 NEW-1 -- Alpha", Roll forward said Alpha was already in FY30 and never put it there, and once B's Bravo was
+// accepted, rolling it into FY30 put Bravo there a second time.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 second review — a link the team copies or rolls forward is re-pointed only to its own copy’s proposal (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209rvBoard32() });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const hA = v184Publish(B.ev);
+  B.ev(`(function(){ var t=Date.now(); while(Date.now()<=t+1){} return 'ok'; })()`);
+  const hB = v184Publish(B.ev);
+  const PA = w209rvCopy(hA), PB = w209rvCopy(hB);
+  const pubB = +PB.ev('PMODE.ts');
+  const alpha = w209add(PA, 'Alpha, from copy A', [300, 0, 0]);
+  const bravo = w209add(PB, 'Bravo, from copy B', [500, 0, 0]);
+  w209ev(PB, `switchYear(2029); 'ok'`); const bravo29 = w209rv2From(PB, 2028, bravo.id); w209ev(PB, `switchYear(2028); 'ok'`);
+  chk(name, 'copies', 'control — the two copies mint one id for two different proposals, and carry different stamps',
+    J([alpha.id === bravo.id && !!alpha.id, +PA.ev('PMODE.ts') !== pubB, J(bravo29.prior)]), J([true, true, J({ fy: 2028, id: bravo.id })]));
+  const pkgA = v184Submit(PA, 'PSM').pkg || {}, pkgB = v184Submit(PB, 'PSM').pkg || {};
+  const take = (pkg, fn) => { w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, ${J(fn)}); 'ok'`); w3said(B.ev); };
+  // the board takes copy B's file and accepts its FY29 proposal alone
+  take(pkgB, 'psm-b.json');
+  w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2029; }`);
+  const y29 = ((w209rv2Cust(B, 2029).filter(c => c.from && c.from.nid === bravo29.id)[0]) || {}).id || '';
+  chk(name, 'copy B', 'control — FY29 holds B’s proposal, its link still on the copy’s id (FY28’s Bravo is not accepted)',
+    J([!!y29, J(((w209rv2Cust(B, 2029).filter(c => c.id === y29)[0]) || {}).prior)]), J([true, J({ fy: 2028, id: bravo.id })]));
+  // the team rolls it on into FY30 and copies it into FY31
+  w3dlg(B.ev); w209ev(B, `switchYear(2029); rollPick={}; rollPick[${J(y29)}]=1; rollYrs={}; rollYrs[2030]=1; rollApply();
+    xferYear(${J(y29)}, 'c2031'); switchYear(2028); save(); 'ok'`); w3said(B.ev);
+  const cp = (y) => (w209rv2Cust(B, y).filter(c => c.ev === 'Bravo, from copy B')[0]) || {};
+  chk(name, 'the team', 'rolled into FY30 and copied into FY31, the link carries the copy that minted its id',
+    J([cp(2030).prior, cp(2031).prior]), J([{ fy: 2028, id: bravo.id, pmo: 'PSM', pub: pubB }, { fy: 2028, id: bravo.id, pmo: 'PSM', pub: pubB }]));
+  chk(name, 'the team', 'control — the board file with those links passes the import check', w209ev(B, `inboundCheck(buildSavedHtml())`), '');
+  // a link as a copy made before this review left it -- the id and nothing else -- in FY31 beside the stamped one
+  w209ev(B, `(function(){ switchYear(2029); yearCopy(${J(y29)}, 2031, 'c'); switchYear(2028);
+    var c=MS.years[2031].custom[MS.years[2031].custom.length-1]; delete c.prior.pmo; delete c.prior.pub; c.event='Bravo, an older copy'; save(); return 'ok'; })()`);
+  const old31 = () => ((w209rv2Cust(B, 2031).filter(c => c.ev === 'Bravo, an older copy')[0]) || {}).prior || null;
+  chk(name, 'the team', 'control — the older copy’s link names the copy’s id with no stamp', J(old31()), J({ fy: 2028, id: bravo.id }));
+  // copy A's Alpha is accepted into FY28
+  take(pkgA, 'psm-a.json');
+  w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2028; }`);
+  const alpha28 = ((w209rv2Cust(B, 2028).filter(c => c.ev === 'Alpha, from copy A')[0]) || {}).id || '';
+  chk(name, 'copy A', 'control — Alpha is accepted into FY28', !!alpha28, true);
+  chk(name, 'copy A', 'the copies in FY30 and FY31 are not re-pointed onto Alpha: copy A’s proposal is other work',
+    J([(cp(2030).prior || {}).id, (cp(2031).prior || {}).id]), J([bravo.id, bravo.id]));
+  chk(name, 'copy A', 'nor is the older copy’s link with no stamp: it cannot say whose id it names, and the one proposal under it carries a stamp',
+    J((old31() || {}).id), J(bravo.id));
+  chk(name, 'copy A', 'FY30’s record reads the proposal as not yet accepted, never as Alpha',
+    w209ev(B, `priorTxt(yrItemOf(MS.years[2030], ${J(cp(2030).id)}))`), 'FY28 ' + bravo.id + ' — PSM proposed it, and it has not been accepted');
+  chk(name, 'copy A', 'Roll requirements forward offers Alpha for FY30: one copy to create, not “already there”', J(w209rv2Plan(B, 2028, alpha28, 2030)), J([[2030, 1, 0]]));
+  w3dlg(B.ev); w209ev(B, `switchYear(2028); rollPick={}; rollPick[${J(alpha28)}]=1; rollYrs={}; rollYrs[2030]=1; rollApply(); save(); 'ok'`); w3said(B.ev);
+  chk(name, 'copy A', 'rolled, FY30 holds Alpha', w209rv2Cust(B, 2030).filter(c => c.ev === 'Alpha, from copy A').length, 1);
+  // copy B's own Bravo is accepted later: everything copied from its continuation now names it
+  take(pkgB, 'psm-b-again.json');
+  w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2028; }`);
+  const bravo28 = ((w209rv2Cust(B, 2028).filter(c => c.ev === 'Bravo, from copy B')[0]) || {}).id || '';
+  chk(name, 'copy B again', 'control — B’s FY28 Bravo is accepted, an id of its own beside Alpha', J([!!bravo28, bravo28 !== alpha28]), J([true, true]));
+  chk(name, 'copy B again', 'FY29’s Bravo, and its copies in FY30 and FY31, all name it now',
+    J([(((w209rv2Cust(B, 2029).filter(c => c.id === y29)[0]) || {}).prior || {}).id, (cp(2030).prior || {}).id, (cp(2031).prior || {}).id]), J([bravo28, bravo28, bravo28]));
+  chk(name, 'copy B again', 'the older copy’s link with no stamp is left on the copy’s id: two copies’ proposals carry it, and it says neither',
+    J((old31() || {}).id), J(bravo.id));
+  chk(name, 'copy B again', 'Roll requirements forward sees FY30 already carries B’s Bravo: nothing to create', J(w209rv2Plan(B, 2028, bravo28, 2030)), J([[2030, 0, 1]]));
+  w3dlg(B.ev); w209ev(B, `switchYear(2028); rollPick={}; rollPick[${J(bravo28)}]=1; rollYrs={}; rollYrs[2030]=1; rollApply(); save(); 'ok'`); w3said(B.ev);
+  chk(name, 'copy B again', 'FY30 holds Bravo once and Alpha once', J(w209rv2Cust(B, 2030).map(c => c.ev).sort()), J(['Alpha, from copy A', 'Bravo, from copy B']));
+  // a link from before the stamp was kept, where the one proposal under its id was accepted before it too, is still re-pointed
+  const legacy = w209ev(B, `(function(){ var T9=MS.years[2029], T0=MS.years[2030];
+    T9.custom.push({id:'NEW-90', grp:'AV', sect:'new', custom:true, title:'', event:'AV legacy', ccar:'', fy26:[0,0,0], ask:[10,0,0], alloc:null,
+      from:{pmo:'AV', nid:'NEW-AV-7', by:'x', ts:1, fy:2029}}); T9.order.push('NEW-90');
+    T0.custom.push({id:'NEW-91', grp:'AV', sect:'new', custom:true, title:'', event:'AV legacy on', ccar:'', fy26:[0,0,0], ask:[10,0,0], alloc:null,
+      prior:{fy:2029, id:'NEW-AV-7'}}); T0.order.push('NEW-91');
+    pmoRepointLinks(); return String(T0.custom[T0.custom.length-1].prior.id); })()`);
+  chk(name, 'legacy', 'control — a link with no stamp is re-pointed where the one proposal under its id carries none either', legacy, 'NEW-90');
+  // ... and not where a second proposal, from a copy that says which it is, carries the same id: it can say neither
+  const legacy2 = w209ev(B, `(function(){ var T9=MS.years[2029], T0=MS.years[2030];
+    [['NEW-92',0],['NEW-93',5]].forEach(function(x){ T9.custom.push({id:x[0], grp:'AV', sect:'new', custom:true, title:'', event:'AV legacy '+x[0], ccar:'',
+      fy26:[0,0,0], ask:[10,0,0], alloc:null, from:Object.assign({pmo:'AV', nid:'NEW-AV-8', by:'x', ts:1, fy:2029}, x[1]? {pub:x[1]} : {})}); T9.order.push(x[0]); });
+    T0.custom.push({id:'NEW-94', grp:'AV', sect:'new', custom:true, title:'', event:'AV legacy two', ccar:'', fy26:[0,0,0], ask:[10,0,0], alloc:null,
+      prior:{fy:2029, id:'NEW-AV-8'}}); T0.order.push('NEW-94');
+    pmoRepointLinks(); return String(T0.custom[T0.custom.length-1].prior.id); })()`);
+  chk(name, 'legacy', 'control — a link with no stamp is left as it is where two proposals carry its id, one saying which copy it came from', legacy2, 'NEW-AV-8');
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, PA.errors.length, PB.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A CHAIN OF LINKS ACROSS YEARS APPLY STARTS NAMES EVERY DUPLICATE. A requirement that recurs is brought into each out-year from
+// the year before (decision 5): the office brings A into FY31 from FY30 (X), then into FY32 from its own FY31 proposal (Y, linked
+// to X's provisional id). FY31 and FY32 are not started; rolled forward, each takes A. The check was one link deep: X was named,
+// Y went in beside A with nothing said, and the duplicate question's Cancel said the duplicate had been left out. The same with X
+// accepted an Apply before Y.
+const w209rv2Board30 = () => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+  MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+  applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+  [2029,2030].forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2028); save()`);
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 second review — a chain of links across years Apply starts names every duplicate, and Cancel leaves exactly those out (five years)';
+  try {
+  const J = JSON.stringify;
+  const html = w209rv2Board30();
+  const B = boot({ html });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board holds FY28-FY30, A in each', J(w209years(B.ev)), J([2028, 2029, 2030]));
+  const P = w209rvCopy(v184Publish(B.ev));
+  w209ev(P, `switchYear(2031); 'ok'`); const X = w209rv2From(P, 2030, 'A');
+  w209ev(P, `switchYear(2032); 'ok'`); const Y = w209rv2From(P, 2031, X.id);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  chk(name, 'copy', 'control — X continues FY30’s A, and Y continues X by the copy’s id', J([X.prior, Y.prior]), J([{ fy: 2030, id: 'A' }, { fy: 2031, id: X.id }]));
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  const take = (b) => { w3dlg(b.ev); w209ev(b, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(b.ev); };
+  const rolls = (b) => JSON.parse(w209ev(b, `(function(){ subOpen=true; subBody(); return JSON.stringify([].slice.call(document.querySelectorAll('#subBody .subroll, #subBody .subhere')).map(function(e){ return e.textContent; })); })()`) || '[]');
+  take(B);
+  chk(name, 'review', 'both rows say what the roll forward would hold: FY31 A for X, and FY32 A for Y, through X',
+    J(rolls(B)), J(['ROLLED FORWARD FROM FY28, FY31 WOULD HOLD A — accepting adds it again', 'ROLLED FORWARD FROM FY28, FY32 WOULD HOLD A — accepting adds it again']));
+  const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  chk(name, 'report', 'the change report says it on Y’s row too', (book.rows || []).some(r => r.some(c => /rolled forward from FY28, FY32 would hold A/.test(String(c)))), true);
+  // Apply: OK, roll FY31 forward, roll FY32 forward, then Cancel at the duplicate question
+  w3dlg(B.ev, [true, true, true, false]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const q = w3said(B.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'apply', 'the FY32 roll-forward question names Y, continuing the copy’s id, and what FY32 would hold',
+    J([q.length, (q[2] || '').indexOf('continues FY31 ' + X.id + '; FY32 would hold A') >= 0]), J([4, true]));
+  chk(name, 'apply', 'the duplicate question names both, X and Y',
+    J([/2 ticked proposals continue a requirement the year rolled forward already holds/.test(q[3] || ''),
+      (q[3] || '').indexOf('continues FY30 A; FY31 would hold A') >= 0, (q[3] || '').indexOf('continues FY31 ' + X.id + '; FY32 would hold A') >= 0]), J([true, true, true]));
+  const held = (b, y) => JSON.parse(w209ev(b, `(function(){ var T=MS.years[${y}]||{}; return JSON.stringify([(T.order||[]).filter(function(id){ return id==='A'; }).length, (T.custom||[]).length]); })()`) || '[]');
+  chk(name, 'apply', 'Cancel: FY31 and FY32 each hold A once, as rolled forward, and neither proposal', J([held(B, 2031), held(B, 2032)]), J([[1, 0], [1, 0]]));
+  chk(name, 'apply', 'the line says two were left unapplied, and both are still held for review',
+    J([/2 proposals continuing a requirement the rolled-forward year already holds left unapplied, as asked/.test(B.ev(`document.getElementById('shareStat').textContent`)),
+      w209rvRows(B).filter(r => r[2] === '__new' && !r[3]).map(r => r[1]).sort()]), J([true, [X.id, Y.id].sort()]));
+  chk(name, 'apply', 'and once both years exist, the review says each already holds A -- FY32 through X', J(rolls(B)),
+    J(['FY31 ALREADY HOLDS A — accepting adds it again', 'FY32 ALREADY HOLDS A — accepting adds it again']));
+  // X accepted an Apply before Y, into FY31 started blank: Y's link is read through the requirement X became, and its own link
+  const B2 = boot({ html });
+  take(B2);
+  w209rv2Tick(B2, `function(r){ return r.key==='__new' && r.fy===2031; }`, [true, false, true]);
+  const x31 = (w209rv2Cust(B2, 2031)[0]) || {};
+  chk(name, 'two Applies', 'control — FY31 started blank holds X as the board’s own requirement, continuing A; FY32 is not started',
+    J([J(x31.prior), w209years(B2.ev).indexOf(2032)]), J([J({ fy: 2030, id: 'A' }), -1]));
+  chk(name, 'two Applies', 'the review says FY32, rolled forward, would hold A: Y continues X, which continues A', J(rolls(B2)),
+    J(['ROLLED FORWARD FROM FY28, FY32 WOULD HOLD A — accepting adds it again']));
+  const q2 = w209rv2Tick(B2, `function(r){ return r.key==='__new' && r.fy===2032; }`, [true, true, false]).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'two Applies', 'the roll-forward question and the duplicate question name Y',
+    J([q2.length, (q2[1] || '').indexOf('FY32 would hold A') >= 0, /1 ticked proposal continues a requirement the year rolled forward already holds/.test(q2[2] || '')]), J([3, true, true]));
+  chk(name, 'two Applies', 'Cancel: FY32 holds A once, and not Y', J(held(B2, 2032)), J([1, 0]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, B2.errors.length, P.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A RE-RANK IN A YEAR THE COPY DOES NOT SUBMIT FOR IS SAID AT SUBMIT. The office's own ranking is outside the change journal, so a
+// re-rank in FY27 (held, outside the window) was not counted as an edit there: Submit from FY28 said nothing of it, and with
+// nothing else edited it answered "Nothing to send yet ... Re-ranking PSM's own list is sent too" to an office that had just
+// done that.
+const w209rv2Out = () => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+    switchYear(2028); MS.base=2028; save(); switchYear(2029); switchYear(2028); save()`);
+const W209RV2_SAY = 'This copy submits for FY28–FY32. FY27 is not one of them: nothing edited in FY27 is sent with ✉ Submit input. Go to one of those years to edit what you submit.';
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 second review — a re-rank in a year the copy does not submit for is said at Submit (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209rv2Out() });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const copy = v184Publish(B.ev);
+  const P = w209rvCopy(copy);
+  chk(name, 'copy', 'the copy carries FY27’s office rankings as published, and no window year’s among them',
+    w209ev(P, `JSON.stringify([Object.keys(PMODE.oord||{}), ((PMODE.oord||{})[2027]||{}).PSM||null])`), J([['2027'], ['A', 'B']]));
+  const rerank = (b, y) => w209ev(b, `(function(){ switchYear(${y}); filter='PSM'; render(); var j=(MS.jrnl||[]).length; setRank('B', 1);
+    var r=JSON.stringify([MS.years[${y}].pmoOrder.PSM, (MS.jrnl||[]).slice(j).length]); switchYear(2028); filter='ALL'; render(); return r; })()`);
+  chk(name, 'copy', 'control — the office puts B first in FY27, and the change journal records nothing of it', rerank(P, 2027), J([['B', 'A'], 0]));
+  const s1 = v184Submit(P, 'PSM');
+  chk(name, 'Submit, the re-rank alone', 'it says FY27 is not one of the years the copy submits for, not “Nothing to send yet”, and sends nothing',
+    J([s1.alerts, !!s1.pkg]), J([['Nothing to send.\n\n' + W209RV2_SAY + '\n\nNothing was sent.'], false]));
+  w209ev(P, `setNote('A','A note from PSM (FY28)'); 'ok'`);
+  const s2 = v184Submit(P, 'PSM');
+  chk(name, 'Submit, with an edit in FY28', 'the package goes, and Submit says FY27 is not in it', J([!!s2.pkg, s2.alerts]), J([true, ['⚠ ' + W209RV2_SAY + '\n\nEverything else you edited is still being sent.']]));
+  chk(name, 'Submit, with an edit in FY28', 'and so does the line after it', /Nothing edited in FY27 is in it: this copy does not submit for that year\./.test(P.ev(`document.getElementById('shareStat').textContent`)), true);
+  chk(name, 'Submit, with an edit in FY28', 'control — the FY27 ranking is not in the package', J([(s2.pkg || {}).rank || null, Object.keys((s2.pkg || {}).byYear || {})]), J([null, []]));
+  // a re-rank in a year the copy submits for is sent, and is not said to be left out
+  const P3 = w209rvCopy(copy);
+  rerank(P3, 2029);
+  const s3 = v184Submit(P3, 'PSM');
+  chk(name, 'a year it submits for', 'control — a re-rank in FY29 is sent, and nothing is said of FY27',
+    J([J((((s3.pkg || {}).byYear || {})[2029] || {}).rank || null), s3.alerts]), J([J({ order: ['B', 'A'], was: ['A', 'B'] }), []]));
+  // a copy published before this review carries no rankings for FY27, and is read from the journal alone, as before
+  const P2 = w209rvCopy(copy);
+  w209ev(P2, `delete PMODE.oord; 'ok'`); rerank(P2, 2027); w209ev(P2, `setNote('A','Another note (FY28)'); 'ok'`);
+  const s4 = v184Submit(P2, 'PSM');
+  chk(name, 'an older copy', 'control — with no rankings as published, a re-rank there is not counted, as before', J([!!s4.pkg, s4.alerts]), J([true, []]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length, P2.errors.length, P3.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// SUBMIT ASKS FOR THE EDITOR NAME BEFORE IT SAYS ANYTHING IS STILL BEING SENT. Every alert that withholds something ends
+// "Everything else you edited is still being sent" -- and the name was asked after all of them, so an office with no name set
+// was told the rest was going, and then "Put your name in first", and nothing went. With nothing else to send, those alerts
+// were followed by "Nothing to send yet".
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 second review — Submit asks the editor name before it says anything is still being sent (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209rv2Out() });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const copy = v184Publish(B.ev);
+  const noName = (P) => JSON.parse(P.ev(`(function(){ try{ localStorage.removeItem('prio27who'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+    var cap=null, _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+    var al=[], _a=window.alert, _p=window.prompt; window.alert=function(m){ al.push(String(m)); }; window.prompt=function(){ return null; };
+    try{ pmoSubmit(); }catch(e){ al.push('THREW '+e.message); } window.Blob=_B; window.alert=_a; window.prompt=_p;
+    return JSON.stringify({pkg:!!cap, alerts:al}); })()`));
+  const NAME = 'Put your name in first — Audit › ✎ My editor name…\n\nIt travels with the submittal so the portfolio team knows whose input this is.';
+  const P = w209rvCopy(copy);
+  w209ev(P, `switchYear(2027); setDesc('A','typed in FY27'); switchYear(2028); setNote('A','note in FY28'); setDesc('C','AV’s, edited by PSM'); 'ok'`);
+  const r1 = noName(P);
+  chk(name, 'no name', 'the name is asked first: nothing is said to be still being sent, and nothing is sent', J(r1), J({ pkg: false, alerts: [NAME] }));
+  const r2 = v184Submit(P, 'PSM');
+  chk(name, 'with a name', 'control — named, the package goes, and each alert that withholds something says the rest is being sent',
+    J([!!r2.pkg, r2.alerts.length, r2.alerts.every(a => /\n\nEverything else you edited is still being sent\.$/.test(a))]), J([true, 2, true]));
+  // with nothing else to send, the withheld edit is named, and nothing is said to be still going
+  const P2 = w209rvCopy(copy);
+  w209ev(P2, `setDesc('C','AV’s, edited by PSM'); 'ok'`);
+  const r3 = noName(P2);
+  chk(name, 'nothing else to send', 'another office’s edit is named without “still being sent”, then nothing to send -- and no name is asked for',
+    J([r3.pkg, r3.alerts.length, /another programme office/.test(r3.alerts[0] || ''), /still being sent/.test(r3.alerts.join(' ')), /^Nothing to send yet\./.test(r3.alerts[1] || '')]),
+    J([false, 2, true, false, true]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length, P2.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.09 W2 ====
+
+// ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// Brad, 26 Oct 2026: "For the PMO Copy, I need a save button at the bottom left of the menu bar above the Submit button. They
+// need the ability to be able to save and come back to it later to rework their file" -- one file per office, the file
+// remembering the office, not the person -- and "Import of a PMO Copy can only be through the PMO import screen." Each block
+// drives the copy and the board through their own code: the copy's Save against a stand-in file on disk and a stand-in
+// handle store (IndexedDB prio-fh, which every page opened from file:// shares), the board's doors with the files a copy now
+// writes. Every check fails on v2.08 (ebe702e) unless it says CONTROL: a function v2.08 lacks fails its own check through
+// i127ev, and where a later step opens a file only the new Save writes, the block stops there and says so.
+const I127SC = { services: ['USAF', 'ANG', 'AFRC'],
+  items: [it('A', 'PSM', [900, 200, 100]), it('B', 'PSM', [300, 80, 40]), it('C', 'AV', [500, 0, 0])],
+  disc: [1200, 250, 100], mand: [300, 50, 40], order: ['A', 'B', 'C'] };
+const i127J = JSON.stringify;
+const I127FNAME = 'FY27 Consolidated Prioritization Board.html';
+const i127ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+const i127pause = ms => new Promise(r => setTimeout(r, ms));
+// The portfolio board: its requirements its own data, the writer record a real board file carries, a locked PB cycle, and
+// the four side lists, each with something recognisable in it.
+const i127Board = () => {
+  const B = boot(); seed(B.ev, I127SC);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+    try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+    window.confirm=function(){ return true; }; window.alert=function(){};
+    WRITER={by:'BLL', fp:writerFp(), t:Date.now()};
+    BUDDB={ts:1700000000100, rows:[{ap:'om', svc:'USAF', name:'BOARD BAE ROW', amt:1}], files:['b.xlsx']}; persistBud();
+    EXDB={ts:1700000000100, all:{om:{fy:2026, rows:[['BOARDEX', 1]]}}}; persistExdb();
+    ACEDB={ts:1700000000100, sets:{'BOARDACE':{fp:'fp-b', locked:false, appn:{}, lines:[]}}}; persistAce();
+    RPDB={ts:1700000000100, entries:[{id:'rpb', ts:1700000000100, ap:'om', amt:1, what:'BOARD RP'}]}; persistRp();
+    blCyc='PB'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+  return B;
+};
+// published the way Program offices › Publish PMO copy… publishes one, the file it would download captured
+const i127Publish = ev => ev(`(function(){ let cap=null; const _B=window.Blob;
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+  window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+// every question and alert recorded, and answered as window.__yes says
+const i127wire = (ev, who) => ev(`window.__q=[]; window.__al=[]; window.__yes=true; window.confirm=function(m){ __q.push(String(m)); return __yes; };
+  window.alert=function(m){ __al.push(String(m)); }; window.prompt=function(){ return null; };
+  ${who ? `try{ localStorage.setItem('prio27who', ${i127J(who)}); }catch(e){}` : ''} 'ok'`);
+// a file on disk, as a save-file handle stands for it; `fail` makes reading it throw, as a file mid-sync does
+const i127disk = (name, content = '') => { const f = { name, content, writes: 0, fail: false };
+  f.h = { name, requestPermission: async () => 'granted',
+    getFile: async () => { if (f.fail) throw new Error('the file is being synced'); return { text: async () => f.content }; },
+    createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { f.content = buf; f.writes++; } }; } };
+  return f; };
+// this browser's handle store (IndexedDB prio-fh), every read and write logged; `store` outlives a page, as a browser's does
+const i127idb = (w, store, log) => { w.indexedDB = { open() { const r = {};
+  setTimeout(() => { r.result = { createObjectStore() {}, transaction() { return { objectStore() { return {
+    put(v, k) { log.push('put ' + k); store.set(k, v); }, delete(k) { log.push('delete ' + k); store.delete(k); },
+    get(k) { log.push('get ' + k); const g = {}; setTimeout(() => { g.result = store.get(k); if (g.onsuccess) g.onsuccess(); }, 0); return g; } }; } }; } };
+    if (r.onsuccess) r.onsuccess(); }, 0); return r; } }; };
+// the picker: the person picks `file`; the name it suggested is recorded
+const i127picker = (w, file, picks) => { w.showSaveFilePicker = async o => { picks.push(o && o.suggestedName); return file.h; }; };
+// a page of the copy, opened in a browser: its handle store, its own questions and its editor
+const i127open = async (html, who, ls, store) => { const X = boot({ html, ls: ls || null }); await i127pause(60);
+  X.log = []; X.store = store || new Map(); X.picks = []; i127idb(X.w, X.store, X.log); i127wire(X.ev, who); return X; };
+const i127save = async X => { const r = i127ev(X.ev, 'pmoSaveCopy()'); try { await r; } catch (e) {} await i127pause(40); };
+const i127state = ev => i127ev(ev, `(document.getElementById('saveState')||{}).textContent||''`);
+const i127status = ev => i127ev(ev, `(document.getElementById('shareStat')||{}).textContent||''`);
+const i127ls = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const i127mode = html => { const m = /<script type="application\/json" id="pubMode">([\s\S]*?)<\/script>/.exec(String(html)); return m ? m[1] : null; };
+const i127pub = html => { const m = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(String(html)); try { return JSON.parse(m[1]); } catch { return null; } };
+const i127desc = (html, id) => { const p = i127pub(html), s = p && p.appns && p.appns.om; return s ? ((s.years[s.cur] || {}).desc || {})[id] || null : null; };
+const i127mark = html => { const p = i127pub(html), s = p && p.appns && p.appns.om; return (s && s.pmoFor) || null; };
+// the package ✉ Submit input builds, captured off the Blob, with every alert
+const i127submit = ev => { const r = i127ev(ev, `(function(){ let cap=null; const _B=window.Blob; window.__al=[];
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+  try{ pmoSubmit(); }catch(e){ __al.push('THREW '+e.message); } window.Blob=_B;
+  return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: __al}); })()`); try { return JSON.parse(r); } catch { return { pkg: null, alerts: [r] }; } };
+const i127noTs = p => { if (!p) return p; const c = JSON.parse(i127J(p)); delete c.ts; return c; };
+// the office's work, typed in the copy: a description, an impact statement, a requirement value, the office's ranking, a new
+// requirement, and a cycle locked in the copy (it goes into the copy's own store, and must come back with the file)
+const i127work = ev => ev(`setDesc('A','PSM rewrote A'); setCons('B','B impact by PSM'); applyAskVec('B',[350,90,40]);
+  S.pmoOrder=S.pmoOrder||{}; S.pmoOrder.PSM=['B','A']; save();
+  reqCreate('PSM', {title:'', event:'PSM new one', ask:[120,0,0]}, null,
+    {event:'PSM new one', ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'New by PSM.', cons:'needed'});
+  save(); blCyc='POM'; blYr=MS.cur; cycLock(); save(); render(); 'ok'`);
+const I127MS = `JSON.stringify(Object.assign({}, MS, {ts:0, log:0, jrnl:0}))`;
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a PMO copy saves its office’s own file, and reopens from it as it was saved (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev), M0 = JSON.parse(i127mode(C0) || 'null');
+    chk(name, 'setup', 'a PMO copy was published (a CONTROL)', !!(M0 && M0.sandbox && M0.ts), true);
+    const P = await i127open(C0, 'PSM Lead');
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} 'ok'`);
+    // the portfolio team's browser: the board's own handle is in this browser's handle store, and the board's in-place
+    // handle in the page; the writer gate is watched
+    P.store.set(I127FNAME, 'THE BOARD HANDLE');
+    P.ev(`FH={name:'THE BOARD FILE'}; window.__fh=0; var __g0=_fhGet, __p0=_fhPut;
+      _fhGet=function(cb){ __fh++; return __g0(cb); }; _fhPut=function(h){ __fh++; return __p0(h); };
+      window.__wm=0; var __w0=writerMay; writerMay=function(){ __wm++; return __w0.apply(this, arguments); }; 'ok'`);
+    i127work(P.ev);
+    const pkg0 = i127submit(P.ev).pkg;
+    chk(name, 'copy', 'the office’s work builds a submittal before any save (a CONTROL)', !!(pkg0 && pkg0.items && pkg0.items.A && pkg0.added.length === 1 && pkg0.rank), true);
+    const f1 = i127disk('a new file.html'); i127picker(P.w, f1, P.picks);
+    await i127save(P);
+    const want = 'FY27 O&M Prioritization Board (Consolidated) — PMO COPY — PSM — ' + new Date(M0.ts).toISOString().slice(0, 10) + '.html';
+    chk(name, 'save', 'the first Save opens the picker once, on a new name with the office in it', i127J(P.picks), i127J([want]));
+    chk(name, 'save', 'never the board’s file name, never the copy’s own', i127J([P.picks.length, P.picks[0] === I127FNAME, /— PMO COPY — \d{4}-\d\d-\d\d\.html$/.test(P.picks[0] || '')]), i127J([1, false, false]));
+    chk(name, 'save', 'the file is written once', f1.writes, 1);
+    chk(name, 'save', 'its copy mode is the one the copy was published with, byte for byte', i127mode(f1.content) === i127mode(C0), true);
+    chk(name, 'save', 'it carries the office its work was saved for, in the saved state', i127J(i127mark(f1.content)), i127J({ pmo: 'PSM' }));
+    chk(name, 'save', 'and the office’s work', i127desc(f1.content, 'A'), 'PSM rewrote A');
+    chk(name, 'save', 'the work reads saved: the save state, the session and this browser’s record of it',
+      i127J([/^Saved/.test(i127state(P.ev)), i127ev(P.ev, 'DIRTY'), i127ev(P.ev, 'baseGet().dirty'), i127ev(P.ev, `LASTKNOWN===fileTsOf(${i127J(i127pub(f1.content))})`)]), i127J([true, false, false, true]));
+    chk(name, 'never the board’s', 'the save wrote, and the board’s entry in the handle store was neither read nor written, nor its handle in the page used',
+      i127J([f1.writes, P.log.filter(l => l.indexOf(I127FNAME) >= 0), i127ev(P.ev, '__fh'), P.store.get(I127FNAME), i127ev(P.ev, 'FH && FH.name')]), i127J([1, [], 0, 'THE BOARD HANDLE', 'THE BOARD FILE']));
+    const keys = [...P.store.keys()].filter(k => k !== I127FNAME);
+    chk(name, 'never the board’s', 'the copy’s handle is kept under one key of its own, naming this copy and this office',
+      i127J([keys.length, keys.length === 1 && keys[0].indexOf(String(M0.ts)) >= 0 && /PSM/.test(keys[0]) && P.store.get(keys[0]) === f1.h]), i127J([1, true]));
+    chk(name, 'never the board’s', 'the save wrote without consulting the writer record, which is still the board’s', i127J([f1.writes, i127ev(P.ev, '__wm'), i127ev(P.ev, 'WRITER && WRITER.by')]), i127J([1, 0, 'BLL']));
+    // the next Save writes the same file in place: the save it wrote is the one the work came from, so it asks nothing
+    P.ev(`setDesc('A','PSM again'); __q=[]; 'ok'`); await i127save(P);
+    chk(name, 'save', 'the next Save writes the same file again: no picker, nothing asked', i127J([P.picks.length, i127ev(P.ev, '__q.length'), f1.writes, i127desc(f1.content, 'A')]),
+      i127J([1, 0, 2, 'PSM again']));
+    // ANOTHER MACHINE: the file opened with empty storage
+    const R = await i127open(f1.content, '');
+    chk(name, 'reopened', 'the file opens as this PMO copy: the same mode, on the same storage keys',
+      i127ev(R.ev, `JSON.stringify([SANDBOX, PMODE, _AP.key, DEST_KEY, CYC_KEY])`), i127ev(P.ev, `JSON.stringify([SANDBOX, PMODE, _AP.key, DEST_KEY, CYC_KEY])`));
+    chk(name, 'reopened', 'with the office’s work whole (the store, less its clocks)', R.ev(I127MS) === P.ev(I127MS), true);
+    chk(name, 'reopened', 'the cycle locked in the copy came back with it', i127ev(R.ev, `JSON.stringify(Object.keys(CYCDB.cycles).sort().map(function(k){ return k+':'+Object.keys(CYCDB.cycles[k].years||{}).join(','); }))`),
+      i127ev(P.ev, `JSON.stringify(Object.keys(CYCDB.cycles).sort().map(function(k){ return k+':'+Object.keys(CYCDB.cycles[k].years||{}).join(','); }))`));
+    // v2.09 review: the office is adopted into the page alone -- that machine's own setting, never chosen, stays unset
+    chk(name, 'reopened', 'it opens on the office the work was saved for, which that machine was never told, and leaves that machine’s own setting alone', i127J([i127ev(R.ev, 'myPmo()'), i127ev(R.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', null]));
+    chk(name, 'reopened', 'the banner says so', /\u{1F3E2} PSM/u.test(i127ev(R.ev, `document.getElementById('subBanner').textContent`)), true);
+    chk(name, 'reopened', 'and that it is saved', /^Saved/.test(i127state(R.ev)), true);
+    i127wire(R.ev, 'PSM Lead');    // the editor name is the person's own, given on that machine
+    const pkgR = i127submit(R.ev).pkg, pkg1 = i127submit(P.ev).pkg;
+    chk(name, 'reopened', 'Submit sends the same package (less its clock): items, baseline, proposal, ranking, publish stamp', i127J(i127noTs(pkgR)), i127J(i127noTs(pkg1)));
+    chk(name, 'reopened', 'which is the package from before any save, with the description typed since', i127J(i127noTs(pkg1)),
+      i127J(i127noTs(Object.assign({}, pkg0, { items: Object.assign({}, pkg0.items, { A: Object.assign({}, pkg0.items.A, { desc: 'PSM again' }) }) }))));
+    chk(name, 'reopened', 'against the copy as it was published', i127J([pkgR && pkgR.fromTs, pkgR && pkgR.base && pkgR.base.B]), i127J([M0.ts, { cons: null, asks: [300, 80, 40] }]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — Save writes only this copy’s file for this office: every other file is refused, and its handle forgotten (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev), FB = B.ev('buildSavedHtml()');
+    // AV's file of this same copy, saved on AV's machine; and PSM's file of a copy published later
+    // built as any save builds them (the board's own assembly), the office's mark set by hand, so the fixture does not lean
+    // on the Save under test
+    const Q = await i127open(C0, 'AV Lead'); Q.ev(`setDesc('C','AV wrote C'); 'ok'`);
+    const fAV = i127disk('AV file.html', Q.ev(`MS.pmoFor={pmo:'AV'}; buildSavedHtml()`));
+    await i127pause(5); const C2 = i127Publish(B.ev);
+    const Q2 = await i127open(C2, 'PSM Lead'); Q2.ev(`setDesc('A','later copy'); 'ok'`);
+    const fOther = i127disk('later copy PSM.html', Q2.ev(`MS.pmoFor={pmo:'PSM'}; buildSavedHtml()`));
+    chk(name, 'setup', 'AV’s file and a later copy’s PSM file exist (a CONTROL on the fixture’s files)',
+      i127J([i127J(i127mark(fAV.content)), i127J(i127mark(fOther.content)), i127mode(fOther.content) !== i127mode(C0)]), i127J([i127J({ pmo: 'AV' }), i127J({ pmo: 'PSM' }), true]));
+    const P = await i127open(C0, 'PSM Lead'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); 'ok'`);
+    const tries = [['the PMO copy as it was published', C0, /as it was published/], ['the portfolio board’s file', FB, /board file/],
+      ['AV’s file of this copy', fAV.content, /AV’s work/], ['PSM’s file of another copy', fOther.content, /another PMO copy/],
+      ['a file that is not a board', 'not a board at all', /not a board/]];
+    for (const [what, content, why] of tries) {
+      const f = i127disk('picked.html', content); i127picker(P.w, f, P.picks);     // a neutral name: the reason must come from the check, not the file name
+      const n0 = P.picks.length; await i127save(P);
+      chk(name, what, 'Save asks which file, and refuses this one: nothing written', i127J([P.picks.length - n0, f.writes, f.content === content]), i127J([1, 0, true]));
+      chk(name, what, 'it says why', /Not saved/.test(i127status(P.ev)) && why.test(i127status(P.ev)), true);
+      chk(name, what, 'and keeps no handle to it, so the next Save asks again', i127J([[...P.store.keys()].length, i127ev(P.ev, '_pfh')]), i127J([0, null]));
+    }
+    // a file that cannot be read is never written over
+    const fr = i127disk('syncing.html', ''); fr.fail = true; i127picker(P.w, fr, P.picks); await i127save(P);
+    chk(name, 'unreadable', 'a file that cannot be read is not written over, and says so', i127J([fr.writes, /could not be read/.test(i127status(P.ev))]), i127J([0, true]));
+    // its own new file is taken, and kept; then the file is replaced on disk by AV's: refused, and the kept handle forgotten
+    const fP = i127disk('PSM file.html'); i127picker(P.w, fP, P.picks); await i127save(P);
+    chk(name, 'own file', 'a new file is written, and its handle kept', i127J([fP.writes, [...P.store.values()].indexOf(fP.h) >= 0]), i127J([1, true]));
+    fP.content = fAV.content; P.log.length = 0;
+    const n1 = P.picks.length; P.ev(`setDesc('A','PSM again'); 'ok'`); await i127save(P);
+    chk(name, 'own file', 'the kept handle is used, no picker; the file now holds AV’s work, so nothing is written', i127J([P.picks.length - n1, fP.writes, fP.content === fAV.content]), i127J([0, 1, true]));
+    chk(name, 'own file', 'and the handle is forgotten in the page and in the handle store', i127J([i127ev(P.ev, '_pfh'), P.log.some(l => /^delete pmo/.test(l)), [...P.store.keys()].length]), i127J([null, true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — one office’s file, two people on two machines: Save asks between them, and the newest save always opens (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const f = i127disk('PSM file.html');      // the office's one file, on the shared drive both machines reach
+    // MACHINE 1 makes it
+    let M1 = await i127open(C0, 'Pat'); M1.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','Pat 1'); 'ok'`);
+    i127picker(M1.w, f, M1.picks); await i127save(M1);
+    // MACHINE 2: another person in the office opens it, picks the same file the first time, and saves -- nothing to ask
+    let M2 = await i127open(f.content, 'Kim'); M2.ev(`setDesc('A','Kim 1'); 'ok'`); i127picker(M2.w, f, M2.picks);
+    await i127save(M2);
+    chk(name, 'take turns', 'Kim’s first Save picks the office’s file and writes it, asking nothing', i127J([M2.picks.length, i127ev(M2.ev, '__q.length'), f.writes, i127desc(f.content, 'A')]), i127J([1, 0, 2, 'Kim 1']));
+    // MACHINE 1 again, its handle kept: the file is Kim's save now, not the one Pat's work came from
+    M1.ev(`setDesc('A','Pat 2'); window.__yes=false; __q=[]; 'ok'`); await i127save(M1);
+    const q = i127ev(M1.ev, 'JSON.stringify(__q)');
+    chk(name, 'take turns', 'Pat’s Save asks first, naming Kim; answered No, nothing is written', i127J([/HOLD ON/.test(q) && /Kim/.test(q), f.writes, i127desc(f.content, 'A')]), i127J([true, 2, 'Kim 1']));
+    M1.ev(`window.__yes=true; __q=[]; 'ok'`); await i127save(M1);
+    chk(name, 'take turns', 'answered Yes, it is written', i127J([f.writes, i127desc(f.content, 'A')]), i127J([3, 'Pat 2']));
+    // ROUND TRIPS: each machine reopens the newest file in its own browser. Save marks the work saved, so the newest file opens
+    // every time and nothing is kept aside -- a download would leave the work unsaved, and the second trip would meet the kept slot
+    for (let round = 1; round <= 3; round++) {
+      const who = round % 2 ? 'Kim' : 'Pat', was = round % 2 ? M2 : M1, txt = 'round ' + round + ' by ' + who;
+      const back = await i127open(f.content, who, i127ls(was.ev), was.store);
+      const st = i127J([i127ev(back.ev, 'S.desc.A'), i127ev(back.ev, `localStorage.getItem(_AP.key+'.kept')`), i127ev(back.ev, 'JSON.stringify(_bootHeld)')]);
+      const shown = i127desc(f.content, 'A');
+      back.ev(`setDesc('A',${i127J(txt)}); 'ok'`); i127picker(back.w, f, back.picks); await i127save(back);
+      chk(name, 'round ' + round, who + ' reopens the newest save, nothing kept aside, and saves again with the kept handle, asking nothing',
+        i127J([st, back.picks.length, i127ev(back.ev, '__q.length'), i127desc(f.content, 'A')]), i127J([i127J([shown, null, 'null']), 0, 0, txt]));
+      if (round % 2) M2 = back; else M1 = back;
+    }
+    // ⬇ Save a copy downloads the office's file and marks nothing saved
+    M1.ev(`setDesc('A','typed, then downloaded'); window.__dl=''; HTMLAnchorElement.prototype.click=function(){ window.__dl=this.download; }; 'ok'`);
+    i127ev(M1.ev, 'pmoSaveCopyDl()');
+    chk(name, 'download', 'Save a copy downloads the office’s file, under its name, and the work stays unsaved',
+      i127J([/— PMO COPY — PSM — /.test(i127ev(M1.ev, '__dl')), i127ev(M1.ev, 'DIRTY'), i127ev(M1.ev, 'baseGet().dirty'), /downloaded/.test(i127state(M1.ev))]), i127J([true, true, true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — the file opens on the office its work was saved for, and Submit sends for that office alone (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const P = await i127open(C0, 'Pat'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); 'ok'`);
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    // a browser that last worked for AV opens PSM's file
+    const R = await i127open(f.content, 'Kim', { prio27pmo: 'AV', prio27who: 'Kim' });
+    // v2.09 review: the file's office is the page's; this browser's own setting (AV) is left for the copies it opens next
+    chk(name, 'opens', 'it opens on PSM, the office the file was saved for, and leaves this browser’s own setting as it was', i127J([i127ev(R.ev, 'myPmo()'), i127ev(R.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', 'AV']));
+    // set to AV in the bar: Submit refuses, naming both, and sends nothing
+    R.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); 'ok'`);
+    const s1 = i127submit(R.ev);
+    chk(name, 'submit', 'set to another office, Submit sends nothing, and says whose work it is', i127J([s1.pkg, s1.alerts.some(a => /saved for PSM/.test(a) && /AV/.test(a))]), i127J([null, true]));
+    R.ev(`window.prompt=function(){ return 'PSM'; }; pickMyPmo(); 'ok'`);
+    const s2 = i127submit(R.ev);
+    chk(name, 'submit', 'set back to PSM, it sends PSM’s work (a CONTROL on the fixture)', i127J([s2.pkg && s2.pkg.pmo, s2.pkg && s2.pkg.items && s2.pkg.items.A && s2.pkg.items.A.desc]), i127J(['PSM', 'PSM rewrote A']));
+    // the work saved for AV instead: asked first, and it goes to a file of AV's own; PSM's file is left as it is
+    R.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); __q=[]; 'ok'`);
+    const fAV = i127disk('AV file.html'); i127picker(R.w, fAV, R.picks); const psm0 = f.content; await i127save(R);
+    chk(name, 'save for another', 'Save for AV asks first, then writes a new file of AV’s, and leaves PSM’s alone',
+      i127J([/saved for PSM/.test(i127ev(R.ev, 'JSON.stringify(__q)')), i127J(i127mark(fAV.content)), f.content === psm0, i127J(i127mark(f.content))]), i127J([true, i127J({ pmo: 'AV' }), true, i127J({ pmo: 'PSM' })]));
+    // THE OFFICE FOLLOWS THE WORK: this browser holds AV's newer work under the copy's key, and opens PSM's (older) file:
+    // AV's work is what opens, and the copy is AV's
+    // this browser's own office setting says PSM, as the file does: only the work's own mark says AV
+    const lsAV = Object.assign(i127ls(R.ev), { prio27pmo: 'PSM' });
+    const R2 = await i127open(f.content, 'Kim', lsAV);
+    chk(name, 'follows the work', 'this browser’s newer work, saved for AV, opens over PSM’s older file, on AV', i127J([i127ev(R2.ev, 'myPmo()'), i127ev(R2.ev, 'S.desc.A')]), i127J(['AV', 'PSM rewrote A']));
+    // browser storage refuses the office: the copy still opens on PSM, and submits for PSM, from what the page holds
+    const R3 = boot({ html: f.content, ls: { prio27pmo: 'AV', prio27who: 'Kim' } });
+    // the opening stored PSM; this browser is set back to AV, and from now on refuses the office
+    R3.ev(`localStorage.setItem('prio27pmo','AV'); try{ _pmoMem=null; }catch(e){}
+      Storage.prototype.__si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27pmo') throw new DOMException('full','QuotaExceededError'); return this.__si(k,v); }; 'ok'`);
+    i127ev(R3.ev, `pmoAdopt(); 'ok'`);
+    chk(name, 'storage refuses', 'the office the file was saved for stands in the page when storage will not take it', i127J([i127ev(R3.ev, 'myPmo()'), i127ev(R3.ev, `localStorage.getItem('prio27pmo')`)]), i127J(['PSM', 'AV']));
+    i127wire(R3.ev, '');
+    const s3 = i127submit(R3.ev);
+    chk(name, 'storage refuses', 'and Submit sends for PSM', s3.pkg && s3.pkg.pmo, 'PSM');
+    // THE BOARD HOLDS NO OFFICE'S MARK: a store carrying one, taken by the board, loses it, and no copy it publishes carries it
+    B.ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); st.pmoFor={pmo:'PSM'}; applyStore(st); save(); return 'ok'; })()`);
+    const C1 = i127Publish(B.ev);
+    chk(name, 'the board', 'the board keeps no office’s mark, and the copy it publishes carries none', i127J([i127ev(B.ev, 'JSON.stringify(MS.pmoFor===undefined)'), i127mark(C1)]), i127J(['true', null]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a PMO copy comes in only through the PMO import screen, and the board’s Save never writes over one (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the office's saved copy, built as its Save builds it (the board's own assembly, the office's mark set by hand), so the
+    // doors are tried on v2.08 with the same file
+    const P = await i127open(C0, 'Pat'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM rewrote A'); setDesc('C','PSM wrote AV\\'s C'); 'ok'`);
+    const S1 = P.ev(`MS.pmoFor={pmo:'PSM'}; buildSavedHtml()`);
+    chk(name, 'setup', 'the saved copy passes the import check, as every file the board writes does (a CONTROL on the door)', i127ev(B.ev, `inboundCheck(${i127J(S1)})`), '');
+    const X = boot(); seed(X.ev, I127SC);
+    // the portfolio board in its own browser: the writer key is the one the board's file (and so the copy) records, so on this
+    // machine the copy's writer record reads "me"
+    X.ev(`localStorage.setItem('prio27writerKey', ${i127J(i127ls(B.ev).prio27writerKey)});
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.confirm=function(){ return true; }; blCyc='PB'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+    i127wire(X.ev, 'BLL'); X.ev(`window.prompt=function(){ window.__pr=(window.__pr||0)+1; return 'ALL'; }; 'ok'`);
+    const snap = () => i127J([i127ls(X.ev), X.ev(I127MS), X.ev(`JSON.stringify(CYCDB)`)]);
+    const S0 = snap();
+    const imp = (txt, nm) => X.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(txt)}], ${i127J(nm)})], value:'x'};
+      try{ importState(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    for (const [what, txt, re] of [['PSM’s saved copy', S1, /PSM/], ['the PMO copy as published', C0, /as published/]]) {
+      X.ev(`__al=[]; __q=[]; window.__pr=0; 'ok'`); await imp(txt, what + '.html'); await i127pause(20);
+      const al = X.ev('JSON.stringify(__al)');
+      chk(name, '⬅ Import · ' + what, 'refused at once, naming the office or that it is as published, and the PMO import screen',
+        i127J([/PMO copy/.test(al) && re.test(al) && /Review submittals/.test(al), X.ev('__q.length'), X.ev('__pr')]), i127J([true, 0, 0]));
+      chk(name, '⬅ Import · ' + what, 'nothing on the board changed: storage, the plan and the locked cycles', snap() === S0, true);
+    }
+    X.ev(`__al=[]; __q=[]; 'ok'`);
+    const full = i127ev(X.ev, `String(fullImportText(${i127J(S1)}, 'PSM file.html'))`);
+    chk(name, 'Import a full board', 'refused, asking nothing, the PB lock’s years kept', i127J([full, X.ev('__q.length'), /PMO copy/.test(X.ev('JSON.stringify(__al)')), X.ev(`Object.keys(CYCDB.cycles['PB|2027'].years||{}).length>0`), snap() === S0]),
+      i127J(['false', 0, true, true, true]));
+    X.ev(`__al=[]; __q=[]; window.__pr=0; 'ok'`);
+    const cp = i127ev(X.ev, `(function(){ consTakePick(${i127J(i127pub(S1))}, ${i127J(S1)}, 'PSM file.html'); return String(window.__pr); })()`);
+    chk(name, 'Import one appropriation', 'consTakePick refuses it before asking which to take', i127J([cp, /PMO copy/.test(X.ev('JSON.stringify(__al)')), snap() === S0]), i127J(['0', true, true]));
+    // several at once: one copy among them stops the batch, nothing taken
+    const other = B.ev('buildSavedHtml()');
+    X.ev(`__al=[]; __q=[]; window.confirm=function(m){ __q.push(String(m)); return true; }; 'ok'`);
+    await X.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(other)}], 'board.html'), new File([${i127J(S1)}], 'PSM file.html')], value:'x'};
+      try{ importBoards(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    await i127pause(20);
+    chk(name, 'Import several boards at once', 'a PMO copy among them refuses the batch, and nothing is taken', i127J([/PMO copy/.test(X.ev('JSON.stringify(__al)')) && /none of the 2/.test(X.ev('JSON.stringify(__al)')), snap() === S0]), i127J([true, true]));
+    // the PMO import screen still takes the office's submittal (a CONTROL)
+    i127wire(P.ev, 'Pat'); const sub = i127submit(P.ev).pkg;
+    X.ev(`PMOSUBS=[]; PMOPICK={}; window.alert=function(){}; window.confirm=function(){ return true; }; pmoTake(${i127J(sub)}, 'psm.json'); 'ok'`);
+    chk(name, 'the PMO import screen', 'the office’s ✉ Submit input file is taken for review, nothing applied (a CONTROL)', i127J([X.ev('PMOSUBS.length'), X.ev(`S.desc.A||null`)]), i127J([1, null]));
+    // THE BOARD'S SAVE: pointed at the office's saved copy, it refuses and forgets the handle; at its own file, it writes
+    i127wire(X.ev, 'BLL');
+    const d1 = i127disk('PSM file.html', S1); X.w.__d1 = d1.h; X.ev(`FH=window.__d1; window.showSaveFilePicker=function(){ throw new Error('the picker was opened'); }; 'ok'`);
+    await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(30);
+    chk(name, 'the board’s Save', 'pointed at a PMO copy it writes nothing, says it is a copy and whose, and forgets the handle',
+      i127J([d1.writes, d1.content === S1, /PMO copy/.test(i127status(X.ev)) && /PSM/.test(i127status(X.ev)), X.ev('FH===null')]), i127J([0, true, true, true]));
+    const d2 = i127disk('board.html', X.ev('buildSavedHtml()')); X.w.__d2 = d2.h; X.ev(`FH=window.__d2; LASTKNOWN=fileTsOf(JSON.parse(${i127J(i127J(i127pub(d2.content)))})); 'ok'`);
+    await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(30);
+    chk(name, 'the board’s Save', 'at the board’s own file it writes (a CONTROL)', d2.writes, 1);
+    // IN A COPY: another office's file is refused too -- a copy's work is opened, never imported into another copy
+    const Q = await i127open(C0, 'Kim'); Q.ev(`try{ localStorage.setItem('prio27pmo','AV'); }catch(e){} 'ok'`);
+    const Q0 = Q.ev(I127MS);
+    await (async () => { await Q.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(S1)}], 'PSM file.html')], value:'x'};
+      try{ importState(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`); })();
+    await i127pause(20);
+    chk(name, 'in a copy', 'another office’s file is refused, saying to open it itself, and nothing changes', i127J([/Open that file itself/.test(Q.ev('JSON.stringify(__al)')), Q.ev(I127MS) === Q0]), i127J([true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 W3 — a copy’s side lists are its own, and it reads the ones its file carries (item 127)';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the board moves on after publishing: its four lists are newer in this browser than the copy's
+    B.ev(`BUDDB={ts:Date.now(), rows:[{ap:'om', svc:'USAF', name:'BOARD NEWER', amt:2}], files:['b2.xlsx']}; persistBud();
+      EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[['BOARDNEWER', 2]]}}}; persistExdb();
+      ACEDB={ts:Date.now(), sets:{'BOARDNEWER':{fp:'fp-n', locked:false, appn:{}, lines:[]}}}; persistAce();
+      RPDB={ts:Date.now(), entries:[{id:'rpn', ts:Date.now(), ap:'om', amt:2, what:'BOARD NEWER'}]}; persistRp(); 'ok'`);
+    const lsB = i127ls(B.ev);
+    const lists = ev => i127ev(ev, `JSON.stringify([BUDDB.rows.map(function(r){ return r.name; }), (EXDB.all.om && EXDB.all.om.rows && EXDB.all.om.rows[0])? EXDB.all.om.rows[0][0] : '', Object.keys(ACEDB.sets), RPDB.entries.map(function(e){ return e.what; })])`);
+    // the copy opened in the portfolio team's browser
+    const P = await i127open(C0, 'Pat', lsB);
+    chk(name, 'reads', 'it reads the lists its file carries, not the board’s newer ones in this browser',
+      lists(P.ev), i127J([['BOARD BAE ROW'], 'BOARDEX', ['BOARDACE'], ['BOARD RP']]));
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+    const s0 = i127state(P.ev);
+    P.ev(`BUDDB={ts:Date.now(), rows:[{ap:'om', svc:'USAF', name:'COPY ROW', amt:3}], files:['c.xlsx']}; persistBud();
+      EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[['COPYEX', 3]]}}}; persistExdb();
+      ACEDB={ts:Date.now(), sets:{'COPYACE':{fp:'fp-c', locked:false, appn:{}, lines:[]}}}; persistAce();
+      RPDB={ts:Date.now(), entries:[{id:'rpc', ts:Date.now(), ap:'om', amt:3, what:'COPY RP'}]}; persistRp(); render(); 'ok'`);
+    const lsP = i127ls(P.ev);
+    chk(name, 'writes', 'what the copy writes never reaches the board’s four lists in this browser',
+      i127J(['prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog'].map(k => lsP[k] === lsB[k])), i127J([true, true, true, true]));
+    const ts = JSON.parse(i127mode(C0)).ts;
+    chk(name, 'writes', 'it keeps them under keys sealed to the copy', i127J(['prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog'].map(k => /COPY/.test(lsP[k + '-pmo' + ts] || ''))), i127J([true, true, true, true]));
+    chk(name, 'writes', 'and its save state counts them as unsaved changes', i127J([/^Saved|not saved/.test(s0), /Unsaved changes/.test(i127state(P.ev))]), i127J([true, true]));
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    const pf = i127pub(f.content);
+    chk(name, 'saves', 'the office’s file carries the copy’s lists, and the work reads saved',
+      i127J([pf && pf.budDb.rows[0].name, pf && pf.rpDb.entries[0].what, /^Saved/.test(i127state(P.ev))]), i127J(['COPY ROW', 'COPY RP', true]));
+    // reopened in that browser: the copy reads its own lists; the board reads its own, and nothing it did not do is unsaved
+    const P2 = await i127open(C0, 'Pat', i127ls(P.ev));
+    chk(name, 'reopened', 'the copy reads its own lists back (a CONTROL: so did v2.08, from the board’s own keys)', lists(P2.ev), i127J([['COPY ROW'], 'COPYEX', ['COPYACE'], ['COPY RP']]));
+    // opened from the copy as published, which does not carry them: the lists this browser holds read unsaved, as on the board
+    chk(name, 'reopened', 'the lists this browser holds that the file opened does not carry read unsaved, as on the board',
+      i127J([i127ev(P2.ev, 'JSON.stringify((sideBootNote.keys||[]).indexOf(BUDDB_KEY)>=0)'), /Unsaved changes/.test(i127state(P2.ev))]), i127J(['true', true]));
+    const BB = boot({ html: B.ev('buildSavedHtml()'), ls: i127ls(P.ev) }); await i127pause(60);
+    chk(name, 'reopened', 'the board reads its own, with nothing of the copy’s counted as its unsaved change',
+      i127J([JSON.parse(lists(BB.ev))[0], BB.ev('JSON.stringify(sideBootNote.keys||[])')]), i127J([['BOARD NEWER'], '[]']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ---- v2.09 review (the copy's Save): five findings of the independent review of 9bc5496, each check failing there ----------
+// The office a page works under is that page's; Cancel on the HOLD ON has a way to the colleague's save; the board's
+// stopped-import hold is the board's; a copy sends no appropriation package and the board takes none written in one; and a file
+// moved after its first Save is asked for again. Every check fails on 9bc5496 unless it says CONTROL.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 review — opening one office’s file never changes the office another page works under';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // PSM's file and AV's file of this copy, each saved through the copy's own Save on its office's own machine
+    const Pp = await i127open(C0, 'Pat'); Pp.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','Pat wrote A'); 'ok'`);
+    const fP = i127disk('PSM file.html'); i127picker(Pp.w, fP, Pp.picks); await i127save(Pp);
+    const Pa = await i127open(C0, 'Val'); Pa.ev(`try{ localStorage.setItem('prio27pmo','AV'); }catch(e){} setDesc('C','Val wrote C'); 'ok'`);
+    const fA = i127disk('AV file.html'); i127picker(Pa.w, fA, Pa.picks); await i127save(Pa);
+    chk(name, 'setup', 'PSM’s file and AV’s file, each marked for its office (a CONTROL)', i127J([i127mark(fP.content), i127mark(fA.content)]), i127J([{ pmo: 'PSM' }, { pmo: 'AV' }]));
+    // ANN, in one browser: she works in the current round's copy, published since; she chose AV herself, typed, and has not saved
+    await i127pause(5); const C1 = i127Publish(B.ev);
+    const T1 = await i127open(C1, 'Ann');
+    T1.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); setDesc('C','Ann wrote C'); 'ok'`);
+    chk(name, 'Ann', 'she works for AV, chosen in the copy, her work saved for no office yet (a CONTROL)',
+      i127J([i127ev(T1.ev, 'myPmo()'), i127ev(T1.ev, `localStorage.getItem('prio27pmo')`), i127ev(T1.ev, 'pmoForOf(MS)')]), i127J(['AV', 'AV', '']));
+    // a colleague sends her PSM's file, of the earlier copy, and she opens it in another page of the same browser to look at it
+    const T2 = await i127open(fP.content, 'Ann', i127ls(T1.ev));
+    chk(name, 'PSM’s file', 'it opens on PSM, the office the file was saved for (a CONTROL: Brad’s rule)', i127ev(T2.ev, 'myPmo()'), 'PSM');
+    chk(name, 'PSM’s file', 'and leaves this browser’s office as Ann chose it', i127ev(T2.ev, `localStorage.getItem('prio27pmo')`), 'AV');
+    // THE PAGE ALREADY OPEN: the browser's setting is written by another page (as opening PSM's file wrote it on 9bc5496, or as
+    // a choice made in another page writes it); this page stays on the office it has, as its bar says
+    T1.ev(`localStorage.setItem('prio27pmo','PSM'); 'ok'`);
+    chk(name, 'the page already open', 'another page writing the browser’s setting leaves it on its own office, as its bar says, the Add box with it',
+      i127J([i127ev(T1.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(i127ev(T1.ev, `document.getElementById('subBanner').textContent`)), i127ev(T1.ev, 'arOfficeStart().g')]), i127J(['AV', true, 'AV']));
+    // she reopens her own copy in that browser, after PSM's file was opened there: her work is saved for no office, so its office
+    // is the browser's -- still hers
+    const T3 = await i127open(C1, 'Ann', i127ls(T2.ev));
+    chk(name, 'her copy again', 'her work reopens on AV: the banner and the Add box with it',
+      i127J([i127ev(T3.ev, 'S.desc.C'), i127ev(T3.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(i127ev(T3.ev, `document.getElementById('subBanner').textContent`)), i127ev(T3.ev, 'arOfficeStart().g')]),
+      i127J(['Ann wrote C', 'AV', true, 'AV']));
+    i127wire(T3.ev, 'Ann');
+    const s3 = i127submit(T3.ev);
+    chk(name, 'her copy again', 'Submit sends her edit, for AV, dropping nothing', i127J([s3.pkg && s3.pkg.pmo, s3.pkg && s3.pkg.items && Object.keys(s3.pkg.items), s3.alerts.length]), i127J(['AV', ['C'], 0]));
+    const f3 = i127disk('new.html'); i127picker(T3.w, f3, T3.picks); T3.ev(`__q=[]; 'ok'`); await i127save(T3);
+    chk(name, 'her copy again', 'its first Save asks nothing, suggests AV’s own name and marks the work AV’s',
+      i127J([i127ev(T3.ev, '__q.length'), /— PMO COPY — AV — /.test(T3.picks[0] || ''), i127J(i127mark(f3.content))]), i127J([0, true, i127J({ pmo: 'AV' })]));
+    // TWO TABS: a helper has PSM's file open in one tab and opens AV's file in another, which saves AV's file; the two share this
+    // browser's storage and its handle store
+    const K1 = await i127open(fP.content, 'Helper');
+    const K2 = await i127open(fA.content, 'Helper', i127ls(K1.ev), K1.store);
+    K2.ev(`setDesc('C','Helper wrote C'); 'ok'`); i127picker(K2.w, fA, K2.picks); const wA = fA.writes; await i127save(K2);
+    chk(name, 'two tabs', 'the second tab saves AV’s file, its handle in the store both share (a CONTROL)', i127J([fA.writes - wA, [...K1.store.keys()].some(k => /\|AV$/.test(k))]), i127J([1, true]));
+    const shared = i127ev(K2.ev, `localStorage.getItem('prio27pmo')`);
+    K1.ev(`(function(v){ if(v===null) localStorage.removeItem('prio27pmo'); else localStorage.setItem('prio27pmo', v); })(${i127J(shared)}); 'ok'`);
+    chk(name, 'two tabs', 'the first tab, holding PSM’s file, stays on PSM, its Add box with it', i127J([i127ev(K1.ev, 'myPmo()'), i127ev(K1.ev, 'arOfficeStart().g')]), i127J(['PSM', 'PSM']));
+    K1.ev(`setDesc('A','Helper wrote A for PSM'); __q=[]; 'ok'`); i127picker(K1.w, fP, K1.picks);
+    const wA2 = fA.writes, wP = fP.writes; await i127save(K1);
+    chk(name, 'two tabs', 'its Save asks nothing, writes PSM’s file and leaves AV’s alone',
+      i127J([i127ev(K1.ev, '__q.length'), fP.writes - wP, fA.writes - wA2, i127desc(fA.content, 'C'), i127J(i127mark(fP.content))]), i127J([0, 1, 0, 'Helper wrote C', i127J({ pmo: 'PSM' })]));
+    // THE OFFICE FOLLOWS THE WORK, through the file's version too: Val's browser holds AV's newer work and opens PSM's file. Her
+    // work opens, on AV (W3's rule); the file's version, taken, is PSM's, and the copy is then PSM's
+    Pa.ev(`setDesc('C','Val again'); 'ok'`);
+    const V = await i127open(fP.content, 'Val', i127ls(Pa.ev), Pa.store);
+    chk(name, 'the file’s version', 'Val’s newer AV work opens over PSM’s file, on AV (a CONTROL: the office follows the work)', i127J([i127ev(V.ev, 'myPmo()'), i127ev(V.ev, 'S.desc.C')]), i127J(['AV', 'Val again']));
+    i127ev(V.ev, `pmoTakeFile(); 'ok'`);
+    chk(name, 'the file’s version', 'taken, PSM’s work is on screen, and the copy is PSM’s, its banner with it',
+      i127J([i127ev(V.ev, 'String(S.desc.C)'), i127ev(V.ev, 'S.desc.A'), i127ev(V.ev, 'myPmo()'), /\u{1F3E2} PSM/u.test(i127ev(V.ev, `document.getElementById('subBanner').textContent`))]),
+      i127J(['undefined', 'Helper wrote A for PSM', 'PSM', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 review — two people in one office: after Cancel, the office’s file opens as saved, this browser’s work kept aside first';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const f = i127disk('PSM file.html');      // the office's one file
+    const M1 = await i127open(C0, 'Pat'); M1.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','Pat 1'); 'ok'`);
+    i127picker(M1.w, f, M1.picks); await i127save(M1);
+    // the copy as published, reopened in Pat's browser after his Save: it is older than his office's file, and nobody saved it since
+    const R0 = await i127open(C0, 'Pat', i127ls(M1.ev));
+    const said0 = i127status(R0.ev);
+    chk(name, 'the copy as published', 'reopened, it opens Pat’s work and says the file is the copy as published, not that someone saved it since',
+      i127J([i127ev(R0.ev, 'S.desc.A'), /as it was published/.test(said0), /saved since then/.test(said0), /^Saved/.test(i127state(R0.ev))]), i127J(['Pat 1', true, false, true]));
+    const M2 = await i127open(f.content, 'Kim'); M2.ev(`setDesc('B','Kim wrote B'); 'ok'`); i127picker(M2.w, f, M2.picks); await i127save(M2);
+    chk(name, 'setup', 'the office’s file holds Kim’s save (a CONTROL)', i127desc(f.content, 'B'), 'Kim wrote B');
+    // Pat's tab was open past Kim's save: he types, presses Save, and answers Cancel to the HOLD ON
+    M1.ev(`setDesc('A','Pat 2'); window.__yes=false; __q=[]; 'ok'`); await i127save(M1);
+    const cancel = i127status(M1.ev);
+    chk(name, 'Cancel', 'the HOLD ON asks and nothing is written (a CONTROL)', i127J([/HOLD ON/.test(i127ev(M1.ev, '__q[0]')), i127desc(f.content, 'B')]), i127J([true, 'Kim wrote B']));
+    chk(name, 'Cancel', 'Cancel names the way to Kim’s version: open the file again, then open the file’s version, his kept aside',
+      /open PSM’s file again/.test(cancel) && /open the file’s version/.test(cancel) && /aside/.test(cancel), true);
+    // with other work already kept aside in this browser, Cancel says that comes first, and how
+    M1.ev(`_keptMeta={t:1, why:'file', by:'x', ts:1}; __q=[]; 'ok'`); await i127save(M1);
+    const cancelK = i127ev(M1.ev, `document.getElementById('shareStat').innerHTML`);
+    chk(name, 'Cancel', 'with other work kept aside, Cancel says it is dealt with first, and offers each way', /already keeps other work aside/.test(cancelK) && /keptPutBack\(\)/.test(cancelK) && /keptSaveFile\(\)/.test(cancelK), true);
+    M1.ev(`_keptMeta=null; 'ok'`);
+    // he opens the office's file again in the same browser: this browser's work is newer, and opens
+    const R = await i127open(f.content, 'Pat', i127ls(M1.ev), M1.store);
+    const open1 = i127ev(R.ev, `document.getElementById('shareStat').innerHTML`);
+    chk(name, 'reopened', 'this browser’s newer work opens, without Kim’s B (a CONTROL: the boot rule)', i127J([i127ev(R.ev, 'S.desc.A'), i127ev(R.ev, 'String(S.desc.B)')]), i127J(['Pat 2', 'undefined']));
+    chk(name, 'reopened', 'its opening line offers the file’s version, and does not send a copy to ⬅ Import', i127J([/onclick="pmoTakeFile\(\)"/.test(open1), /Import the file/.test(open1)]), i127J([true, false]));
+    // a save under way: nothing replaced (one that lands afterwards would record the bytes it wrote as the save the work came from)
+    i127ev(R.ev, `_saveBusy=1; pmoTakeFile(); _saveBusy=0; 'ok'`);
+    chk(name, 'a save under way', 'while a save is under way the file’s version is not opened, nothing is kept aside, and it says so',
+      i127J([i127ev(R.ev, 'S.desc.A'), i127ev(R.ev, `localStorage.getItem(_AP.key+'.kept')`), /save was under way/.test(i127status(R.ev))]), i127J(['Pat 2', null, true]));
+    // other work already kept aside: never replaced, so nothing changes
+    const KEPT = `JSON.stringify({t:1, why:'file', by:'Earlier', ts:1, base:{}})+'\\n'+JSON.stringify({other:'work'})`;
+    R.ev(`localStorage.setItem(_AP.key+'.kept', ${KEPT}); _keptMeta=keptCopy().meta; 'ok'`);
+    i127ev(R.ev, `pmoTakeFile(); 'ok'`);
+    chk(name, 'kept work', 'other work already kept aside: the file’s version is not opened, and the kept work is untouched',
+      i127J([i127ev(R.ev, 'S.desc.A'), i127ev(R.ev, 'String(S.desc.B)'), i127ev(R.ev, `localStorage.getItem(_AP.key+'.kept')===${KEPT}`), /never replaced/.test(i127status(R.ev))]),
+      i127J(['Pat 2', 'undefined', true, true]));
+    R.ev(`localStorage.removeItem(_AP.key+'.kept'); _keptMeta=null; 'ok'`);
+    // no room to keep it: nothing changes
+    R.ev(`Storage.prototype.__si2=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(k)) throw new DOMException('full','QuotaExceededError'); return this.__si2(k,v); }; 'ok'`);
+    i127ev(R.ev, `pmoTakeFile(); 'ok'`);
+    R.ev(`Storage.prototype.setItem=Storage.prototype.__si2; 'ok'`);
+    chk(name, 'no room', 'no room to keep this browser’s work aside: the file’s version is not opened, and it says so',
+      i127J([i127ev(R.ev, 'S.desc.A'), i127ev(R.ev, 'String(S.desc.B)'), /no room/.test(i127status(R.ev))]), i127J(['Pat 2', 'undefined', true]));
+    // taken: Kim's save is on screen, Pat's work kept aside whole, the copy still PSM's and saved
+    i127ev(R.ev, `pmoTakeFile(); 'ok'`);
+    chk(name, 'taken', 'Kim’s save is on screen, and it reads saved', i127J([i127ev(R.ev, 'S.desc.B'), i127ev(R.ev, 'S.desc.A'), i127ev(R.ev, 'myPmo()'), /^Saved/.test(i127state(R.ev))]), i127J(['Kim wrote B', 'Pat 1', 'PSM', true]));
+    chk(name, 'taken', 'Pat’s work is kept aside whole, and the line offers to put it back',
+      i127J([/Pat 2/.test(i127ev(R.ev, `localStorage.getItem(_AP.key+'.kept')||''`)), /keptPutBack\(\)/.test(i127ev(R.ev, `document.getElementById('shareStat').innerHTML`))]), i127J([true, true]));
+    // his next Save writes the office's file with the handle kept, asking nothing: Kim's B stays
+    i127picker(R.w, f, R.picks);
+    R.ev(`setDesc('A','Pat 3, on Kim’s'); window.__yes=true; __q=[]; 'ok'`); const w0 = f.writes; await i127save(R);
+    chk(name, 'taken', 'the next Save writes the office’s file with the handle kept, asking nothing, and Kim’s B is in it',
+      i127J([i127ev(R.ev, '__q.length'), R.picks.length, f.writes - w0, i127desc(f.content, 'B'), i127desc(f.content, 'A')]), i127J([0, 0, 1, 'Kim wrote B', 'Pat 3, on Kim’s']));
+    // and his kept work comes back on asking; Save then asks again before writing over the file
+    i127ev(R.ev, `keptPutBack(); 'ok'`);
+    R.ev(`window.__yes=false; __q=[]; 'ok'`); const w1 = f.writes; await i127save(R);
+    chk(name, 'put back', 'Pat’s kept work comes back, and Save asks before it writes over the file', i127J([i127ev(R.ev, 'S.desc.A'), /HOLD ON/.test(i127ev(R.ev, '__q[0]')), f.writes - w1]), i127J(['Pat 2', true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 review — a PMO copy never reads, shows or lifts the board’s stopped-import hold';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the portfolio team's browser after an import stopped part-way and could not be put back: the mark the board leaves
+    B.ev(`localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:'board v2.new.html', keys:['prio27om']})); 'ok'`);
+    const lsB = i127ls(B.ev);
+    chk(name, 'setup', 'the board holds its hold, under its own key (a CONTROL)', i127J(['prio27impMixed' in lsB, i127ev(B.ev, 'impMixedOn()')]), i127J([true, true]));
+    // a PMO copy opened in that browser, to check it before sending
+    const P = await i127open(C0, 'Pat', lsB);
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} 'ok'`);
+    chk(name, 'the copy', 'it opens without the board’s hold, and holds none of its own', i127J([/stopped part-way/.test(i127status(P.ev)), i127ev(P.ev, 'impMixedOn()')]), i127J([false, false]));
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    chk(name, 'the copy', 'its Save writes the office’s file, refused for nothing of the board’s', i127J([f.writes, /stopped part-way/.test(i127status(P.ev))]), i127J([1, false]));
+    i127ev(P.ev, `window.__yes=true; impMixedClear(); 'ok'`);
+    chk(name, 'the copy', '“allow saving again” in the copy leaves the board’s hold in this browser', 'prio27impMixed' in i127ls(P.ev), true);
+    // the board reopened in that browser is still held: the one whole copy of the board as it was is still protected
+    const X = boot({ html: B.ev('buildSavedHtml()'), ls: i127ls(P.ev) }); await i127pause(60);
+    chk(name, 'the board', 'reopened in that browser, the board is still held', i127J([i127ev(X.ev, 'impMixedOn()'), /stopped part-way/.test(i127status(X.ev))]), i127J([true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 review — a PMO copy sends no appropriation package, and the board takes none written in one';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const P = await i127open(C0, 'Pat');
+    P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','PSM wrote A'); setDesc('C','PSM overwrote AV C'); save(); 'ok'`);
+    // the panel, as Imports & exports › Appropriation packages… opens it in the copy
+    P.ev(`togglePkg(); 'ok'`);
+    const body = i127ev(P.ev, `document.getElementById('pkgBody').innerHTML`);
+    chk(name, 'in the copy', 'the packages panel offers no Issue, Send back or Push, and points to ✉ Submit input', i127J([/pkgIssue|pkgSendBack|pkgPushAll|pkgReturn/.test(body), /Submit input/.test(body)]), i127J([false, true]));
+    P.ev(`togglePkg(); window.__nb=0; window.__B0=window.Blob; window.Blob=function(pt,o){ if(o && o.type==='application/json') __nb++; return new __B0(pt,o); }; 'ok'`);
+    // every package writer, called as its button calls it: refused, nothing downloaded
+    for (const [what, code] of [['⬆ Send back', `pkgSendBack('om')`], ['⬆ Issue', `pkgIssue('om')`], ['⬆ Push baselines to all managers', 'pkgPushAll()'],
+                                ['⬆ Send my work back', 'pkgReturn()'], ['the .json state file', 'publishJson()']]) {
+      P.ev(`__nb=0; __al=[]; __q=[]; window.__yes=true; 'ok'`); i127ev(P.ev, `${code}; 'ok'`); await i127pause(60);
+      chk(name, 'in the copy · ' + what, 'refused at once, saying it is turned off in a copy: nothing asked, nothing downloaded',
+        i127J([i127ev(P.ev, '__nb'), i127ev(P.ev, '__q.length'), /turned off/.test(i127ev(P.ev, 'JSON.stringify(__al)'))]), i127J([0, 0, true]));
+    }
+    P.ev(`window.Blob=window.__B0; 'ok'`);
+    // THE BOARD: a package as a copy published before this one still writes it with ⬆ Send back -- built here by hand, from the
+    // copy's own store, once with the office's mark (work saved for PSM) and once without it but named as a copy names every file
+    const mk = mark => P.ev(`(function(){ const st=JSON.parse(JSON.stringify(MS)); ${mark ? `st.pmoFor={pmo:'PSM'};` : 'delete st.pmoFor;'}
+      return JSON.stringify({spmtPkg:PKG_VER, dir:'return', ap:'om', apName:'O&M', seq:0, ts:Date.now(), by:'Pat', baseSig:'', via:'consolidated', ms:pkgStrip(st)}); })()`);
+    const withMark = mk(true), plain = mk(false);
+    const X = boot(); seed(X.ev, I127SC);
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); setDesc('C','board wrote C'); save(); 'ok'`);
+    i127wire(X.ev, 'BLL');
+    const snap = () => i127J([i127ls(X.ev), X.ev(I127MS)]);
+    const imp = (txt, nm) => X.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(txt)}], ${i127J(nm)})], value:'x'};
+      try{ importState(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    chk(name, 'setup', 'both packages pass the import check, as every file a copy writes does (a CONTROL on the door)', i127J([i127ev(X.ev, `inboundCheck(${i127J(withMark)})`), i127ev(X.ev, `inboundCheck(${i127J(plain)})`)]), i127J(['', '']));
+    for (const [what, txt, nm] of [['carrying PSM’s mark', withMark, 'ORBIT PACKAGE - O&M - sent back - 2026-10-27.json'],
+                                   ['named as a copy names every file', plain, 'ORBIT PACKAGE - O&M - sent back - 2026-10-27 [PMO COPY 2026-10-27].json']]) {
+      const S0 = snap(); X.ev(`__al=[]; __q=[]; window.__yes=true; 'ok'`); await imp(txt, nm); await i127pause(20);
+      const al = X.ev('JSON.stringify(__al)');
+      chk(name, 'the board · ' + what, 'refused before any question, naming the PMO copy and the PMO import screen', i127J([/PMO copy/.test(al) && /Review submittals/.test(al), X.ev('__q.length')]), i127J([true, 0]));
+      chk(name, 'the board · ' + what, 'nothing on the board changed', snap() === S0, true);
+    }
+    // a package from no copy, named as the board names one, still reaches the merge: the board's own door stays open
+    const S1 = snap(); X.ev(`__al=[]; __q=[]; window.__yes=true; 'ok'`); await imp(plain, 'ORBIT PACKAGE - O&M - sent back - 2026-10-27.json'); await i127pause(20);
+    chk(name, 'the board', 'a package from no copy is still taken, asking first (a CONTROL)', i127J([X.ev('__q.length') > 0, snap() !== S1]), i127J([true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 review — a file moved or renamed after its first Save: the next Save asks where it is';
+  try {
+    const gone = () => { const e = new Error('A requested file or directory could not be found at the time an operation was processed.'); e.name = 'NotFoundError'; throw e; };
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const P = await i127open(C0, 'Pat'); P.ev(`try{ localStorage.setItem('prio27pmo','PSM'); }catch(e){} setDesc('A','Pat 1'); 'ok'`);
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    // a file that could not be read for a moment (mid-sync) keeps its handle: the next Save writes it, no picker
+    f.fail = true; P.ev(`setDesc('A','Pat 2'); 'ok'`); await i127save(P);
+    f.fail = false; const n0 = P.picks.length; await i127save(P);
+    chk(name, 'syncing', 'a file that could not be read for a moment keeps its handle: the next Save writes it, no picker (a CONTROL)', i127J([P.picks.length - n0, i127desc(f.content, 'A')]), i127J([0, 'Pat 2']));
+    // MOVED to another folder: the handle names a place with nothing in it
+    f.h.getFile = async () => gone();
+    P.ev(`setDesc('A','Pat 3'); 'ok'`); const w0 = f.writes, n1 = P.picks.length; await i127save(P);
+    chk(name, 'the copy · moved', 'nothing is written, no picker yet, and it says the file is no longer where it was saved',
+      i127J([f.writes - w0, P.picks.length - n1, /no longer where it was saved/.test(i127status(P.ev))]), i127J([0, 0, true]));
+    chk(name, 'the copy · moved', 'the handle is forgotten, in the page and in the handle store', i127J([i127ev(P.ev, '_pfh'), [...P.store.keys()].length]), i127J([null, 0]));
+    const f2 = i127disk('PSM file (moved).html', f.content); i127picker(P.w, f2, P.picks); const n2 = P.picks.length; await i127save(P);
+    chk(name, 'the copy · moved', 'the next Save asks where it is, reads the file picked, and writes it', i127J([P.picks.length - n2, f2.writes, i127desc(f2.content, 'A')]), i127J([1, 1, 'Pat 3']));
+    // THE BOARD'S OWN SAVE, the same way
+    const X = boot(); seed(X.ev, I127SC);
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    X.store = new Map(); X.log = []; X.picks = []; i127idb(X.w, X.store, X.log); i127wire(X.ev, 'BLL');
+    const d = i127disk('board.html'); i127picker(X.w, d, X.picks);
+    await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
+    chk(name, 'the board', 'the board’s first Save writes its file and keeps the handle (a CONTROL)', i127J([d.writes, X.store.get(I127FNAME) === d.h]), i127J([1, true]));
+    d.h.getFile = async () => gone();
+    X.ev(`setDesc('A','board 2'); 'ok'`); const bw = d.writes, bp = X.picks.length; await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
+    chk(name, 'the board · moved', 'nothing is written, it says the file is no longer where it was saved, and the handle is forgotten',
+      i127J([d.writes - bw, X.picks.length - bp, /no longer where it was saved/.test(i127status(X.ev)), i127ev(X.ev, 'FH===null'), X.store.get(I127FNAME) || null]), i127J([0, 0, true, true, null]));
+    const d2 = i127disk('board (moved).html', d.content); i127picker(X.w, d2, X.picks); const bp2 = X.picks.length; await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
+    chk(name, 'the board · moved', 'the next Save asks where it is, and writes the file picked', i127J([X.picks.length - bp2, d2.writes]), i127J([1, 1]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ---- v2.09 second review (the copy's Save): five findings of the second independent review of ba3c294 --------------------
+// Opening a file writes what it opened into browser storage before the record calls it clean (the board and a copy alike); the
+// office follows the work on screen -- put back, the file's version taken, and once the work is saved for an office; the copy as
+// published says what is true of this browser's work; and a copy takes no board, package or state file at any door. Every check
+// fails on ba3c294 unless it says CONTROL.
+// What a page holds, what browser storage holds under its plan key, and what the kept slot holds -- read from the page itself
+const rv2look = ev => { const r = i127ev(ev, `JSON.stringify((function(){
+  var d=function(st,id){ try{ return String(((st.years[st.cur]||{}).desc||{})[id]); }catch(e){ return 'ERR'; } };
+  var ls=null; try{ ls=JSON.parse(localStorage.getItem(_AP.key)); }catch(e){ ls=null; }
+  var k=keptCopy(), ks=null; try{ ks=k? JSON.parse(k.raw) : null; }catch(e){ ks=null; }
+  return { A:String((S.desc||{}).A), C:String((S.desc||{}).C), base:baseGet(), lsA: ls? d(ls,'A') : null, lsC: ls? d(ls,'C') : null,
+    keptC: ks? d(ks,'C') : null, mark: pmoForOf(MS), off: myPmo() };
+})())`); try { return JSON.parse(r); } catch { return { threw: r }; } };
+const rv2html = ev => i127ev(ev, `(document.getElementById('shareStat')||{}).innerHTML||''`);
+const rv2banner = ev => i127ev(ev, `(document.getElementById('subBanner')||{}).textContent||''`);
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 second review — a newer file, the older one, the newer again: work no saved copy has is never replaced unkept (the board and a copy)';
+  try {
+    // THE BOARD: one file of one appropriation, Ann's unsaved work in her browser, and Kim's newer save of the same file
+    const X = boot(); seed(X.ev, I127SC);
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    const F1 = X.ev('buildSavedHtml()'); await i127pause(5);
+    const A1 = boot({ html: F1 }); i127wire(A1.ev, 'Ann'); A1.ev(`setDesc('C','Ann, unsaved'); 'ok'`); await i127pause(5);
+    const K = boot({ html: F1 }); i127wire(K.ev, 'Kim'); K.ev(`setDesc('A','Kim saved this'); 'ok'`); const F2 = K.ev('buildSavedHtml()');
+    const A2 = boot({ html: F2, ls: i127ls(A1.ev) }); i127wire(A2.ev, 'Ann'); await i127pause(20);
+    const a2 = rv2look(A2.ev);
+    chk(name, 'the board · the newer file', 'it opens, and this browser’s unsaved work is kept aside (a CONTROL: v1.89)', i127J([a2.A, a2.C, a2.keptC]), i127J(['Kim saved this', 'undefined', 'Ann, unsaved']));
+    chk(name, 'the board · the newer file', 'browser storage holds what is now on screen, so the record calling it clean is true',
+      i127J([a2.lsA, a2.lsC, a2.base && a2.base.dirty]), i127J(['Kim saved this', 'undefined', false]));
+    const A3 = boot({ html: F1, ls: i127ls(A2.ev) }); i127wire(A3.ev, 'Ann'); await i127pause(20);
+    const a3 = rv2look(A3.ev), s3 = rv2html(A3.ev);
+    chk(name, 'the board · the older file', 'the newer of the two opens -- the save this browser last opened -- and Ann’s work is only in the kept slot, never a spare of what is on screen',
+      i127J([a3.A, a3.C, a3.keptC]), i127J(['Kim saved this', 'undefined', 'Ann, unsaved']));
+    chk(name, 'the board · the older file', 'its line says what is on screen is another save with no changes since, and that the work kept aside is not what is on screen',
+      i127J([/changes made since/.test(s3), /a different save/.test(s3), /is not what is on screen/.test(s3) && /keptPutBack\(\)/.test(s3)]), i127J([false, true, true]));
+    const A4 = boot({ html: F2, ls: i127ls(A3.ev) }); i127wire(A4.ev, 'Ann'); await i127pause(20);
+    chk(name, 'the board · the newer file again', 'Ann’s work is still kept aside (a CONTROL)', rv2look(A4.ev).keptC, 'Ann, unsaved');
+    // STORAGE NEARLY FULL: the work is kept aside, but storage cannot take the newer file's plan. The record goes on saying this
+    // browser holds unsaved work, so the next opening keeps it aside again -- even after the kept copy is discarded
+    const R1 = boot({ html: F1 }); i127wire(R1.ev, 'Ann'); R1.ev(`setDesc('C','Ann, nearly full'); 'ok'`); await i127pause(5);
+    const K2 = boot({ html: F1 }); i127wire(K2.ev, 'Kim'); K2.ev(`setDesc('A','Kim '+'x'.repeat(60000)); 'ok'`); const F2b = K2.ev('buildSavedHtml()');
+    const lsR = i127ls(R1.ev), key = R1.ev('_AP.key');
+    const used = Object.keys(lsR).reduce((n, k) => n + k.length + lsR[k].length, 0);
+    lsR.zzfill = 'z'.repeat(5000000 - used - (key.length + 5 + lsR[key].length + 1500) - 6000 - 'zzfill'.length);
+    const R2 = boot({ html: F2b, ls: lsR }); i127wire(R2.ev, 'Ann'); await i127pause(20);
+    const r2 = rv2look(R2.ev);
+    chk(name, 'the board · storage nearly full', 'the newer file opens and Ann’s work is kept aside (a CONTROL: the fixture leaves room for that)',
+      i127J([/^Kim x/.test(r2.A), r2.keptC]), i127J([true, 'Ann, nearly full']));
+    chk(name, 'the board · storage nearly full', 'storage could not take the newer file’s plan, so the record still says this browser holds work no saved copy has',
+      i127J([r2.lsC, r2.base && r2.base.dirty]), i127J(['Ann, nearly full', true]));
+    i127ev(R2.ev, `keptDiscard(); 'ok'`);
+    const R3 = boot({ html: F2b, ls: i127ls(R2.ev) }); i127wire(R3.ev, 'Ann'); await i127pause(20);
+    chk(name, 'the board · storage nearly full', 'the kept copy discarded, the newer file opened again: Ann’s work, still in storage, is kept aside again, not replaced',
+      rv2look(R3.ev).keptC, 'Ann, nearly full');
+    // A FILE THIS BOARD CANNOT TAKE (this browser's copy carries other services, and the board takes them up from it): nothing the
+    // file holds is on screen, so nothing may record it as the save the work came from -- or 💾 Save writes over it unasked
+    const U1 = boot({ html: F1 }); i127wire(U1.ev, 'Ann'); U1.ev(`setDesc('C','Ann, another service list'); 'ok'`);
+    const lsU = i127ls(U1.ev), kU = U1.ev('_AP.key'), stU = JSON.parse(lsU[kU]);
+    stU.dataPack.services = ['ZZ1', 'ZZ2', 'ZZ3']; lsU[kU] = JSON.stringify(stU); await i127pause(5);
+    const K3 = boot({ html: F1 }); i127wire(K3.ev, 'Kim'); K3.ev(`setDesc('A','Kim saved this'); 'ok'`); const F3 = K3.ev('buildSavedHtml()');
+    const U2 = boot({ html: F3, ls: lsU }); i127wire(U2.ev, 'Ann'); await i127pause(20);
+    const u2 = rv2look(U2.ev);
+    chk(name, 'the board · a file it cannot take', 'the file is refused and this browser’s copy stays on screen, in storage as it was (a CONTROL)',
+      i127J([u2.C, u2.A, i127ev(U2.ev, 'localStorage.getItem(_AP.key)') === lsU[kU]]), i127J(['Ann, another service list', 'undefined', true]));
+    chk(name, 'the board · a file it cannot take', 'the record still says this browser holds unsaved work, nothing is kept aside as if replaced, and the file is not the save the work came from',
+      i127J([u2.base && u2.base.dirty, u2.keptC, i127ev(U2.ev, 'LASTKNOWN===PUB_FILE_TS')]), i127J([true, null, false]));
+    chk(name, 'the board · a file it cannot take', 'its line says the file was not opened, and that Save will ask before writing over it',
+      i127J([/was not opened/.test(i127status(U2.ev)), /Save will ask/.test(i127status(U2.ev))]), i127J([true, true]));
+    // A COPY IN STORAGE THE BOARD CANNOT TAKE UP (figures of another width, naming no services): the file opens, and the copy in
+    // storage -- not what was on screen, nor what was kept -- is never written over by it
+    const V1 = boot({ html: F1 }); i127wire(V1.ev, 'Ann'); V1.ev(`setDesc('C','Ann, of another width'); 'ok'`);
+    const lsV = i127ls(V1.ev), kV = V1.ev('_AP.key'), stV = JSON.parse(lsV[kV]);
+    delete stV.dataPack; Object.keys(stV.years).forEach(y => { const T = stV.years[y]; delete T.dataPack; T.discSvc = [1, 2]; T.mandSvc = [1, 2]; });
+    lsV[kV] = JSON.stringify(stV);
+    const V2 = boot({ html: F2, ls: lsV }); i127wire(V2.ev, 'Ann'); await i127pause(20);
+    chk(name, 'the board · a copy in storage it cannot take up', 'the newer file opens (a CONTROL)', String(i127ev(V2.ev, 'S.desc.A')), 'Kim saved this');
+    chk(name, 'the board · a copy in storage it cannot take up', 'storage keeps this browser’s copy exactly as it was, never written over by the file (a CONTROL on ba3c294, which wrote nothing)',
+      i127ev(V2.ev, 'localStorage.getItem(_AP.key)') === lsV[kV], true);
+    // A COPY: the copy as published and an office's file of it share the copy's one plan key in a browser -- two offices' files
+    // of one copy, and one office's file with the copy every office opens
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    for (const [label, off] of [['two offices', 'PSM'], ['one office', 'AV']]) {
+      const at = 'a copy · ' + label;
+      const C1 = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); C1.ev(`setDesc('C','Ann for AV, unsaved'); 'ok'`); await i127pause(5);
+      const P = await i127open(C0, 'Pat', { prio27pmo: off }); P.ev(`setDesc('A', ${i127J('Pat for ' + off)}); 'ok'`);
+      const f = i127disk(off + ' file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+      const C2 = await i127open(f.content, 'Ann', i127ls(C1.ev), C1.store);
+      const c2 = rv2look(C2.ev);
+      chk(name, at + ' · the office’s file', 'it opens, Ann’s work kept aside (a CONTROL)', i127J([c2.A, c2.keptC]), i127J(['Pat for ' + off, 'Ann for AV, unsaved']));
+      chk(name, at + ' · the office’s file', 'browser storage holds what is now on screen, so the record calling it clean is true',
+        i127J([c2.lsA, c2.lsC, c2.base && c2.base.dirty]), i127J(['Pat for ' + off, 'undefined', false]));
+      const C3 = await i127open(C0, 'Ann', i127ls(C2.ev), C1.store);
+      const c3 = rv2look(C3.ev), s = rv2html(C3.ev);
+      chk(name, at + ' · the copy as published', 'the newer save opens -- the office’s file’s work, under its mark -- and Ann’s is only in the kept slot',
+        i127J([c3.A, c3.C, c3.keptC, c3.mark]), i127J(['Pat for ' + off, 'undefined', 'Ann for AV, unsaved', off]));
+      chk(name, at + ' · the copy as published', 'its line names whose work is on screen, that Save asks where that file is if this browser has not saved it, and that the kept work is not on screen',
+        i127J([s.indexOf(off + '</b>’s work') >= 0, /asks where it is/.test(s), /is not what is on screen/.test(s)]), i127J([true, true, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 second review — the office follows the work on screen: work put back, the file’s version taken, and work saved for an office';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // A. Ann (AV, from an earlier copy: the browser's setting) types and does not save; then Pat saves PSM's file, newer
+    const A1 = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); A1.ev(`setDesc('C','Ann for AV'); 'ok'`); await i127pause(5);
+    const Pp = await i127open(C0, 'Pat', { prio27pmo: 'PSM' }); Pp.ev(`setDesc('A','Pat for PSM'); 'ok'`);
+    const fP = i127disk('PSM file.html'); i127picker(Pp.w, fP, Pp.picks); await i127save(Pp);
+    const A2 = await i127open(fP.content, 'Ann', i127ls(A1.ev), A1.store);
+    chk(name, 'put back · opened', 'PSM’s file opens on PSM, Ann’s work kept aside (a CONTROL: Brad’s rule)', i127J([i127ev(A2.ev, 'myPmo()'), rv2look(A2.ev).keptC]), i127J(['PSM', 'Ann for AV']));
+    i127ev(A2.ev, `keptPutBack(); 'ok'`);
+    chk(name, 'put back', 'her work, saved for no office, comes back on her own office: the banner and the Add box with it',
+      i127J([i127ev(A2.ev, 'S.desc.C'), i127ev(A2.ev, 'pmoForOf(MS)'), i127ev(A2.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(rv2banner(A2.ev)), i127ev(A2.ev, 'arOfficeStart().g')]),
+      i127J(['Ann for AV', '', 'AV', true, 'AV']));
+    const sA = i127submit(A2.ev);
+    chk(name, 'put back', 'Submit sends her edit for AV, dropping nothing', i127J([sA.pkg && sA.pkg.pmo, sA.pkg && sA.pkg.items && Object.keys(sA.pkg.items), sA.alerts.length]), i127J(['AV', ['C'], 0]));
+    const fa = i127disk('Ann.html'); i127picker(A2.w, fa, A2.picks); A2.ev(`__q=[]; 'ok'`); await i127save(A2);
+    chk(name, 'put back', 'her first Save asks nothing, suggests AV’s own name and marks the work AV’s',
+      i127J([i127ev(A2.ev, '__q.length'), /— PMO COPY — AV — /.test(A2.picks[0] || ''), i127J(i127mark(fa.content))]), i127J([0, true, i127J({ pmo: 'AV' })]));
+    // B. her work newer than PSM's file: it opens on AV; the file's version taken is PSM's; put back, it is AV's again
+    const B1 = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); B1.ev(`setDesc('C','Ann again'); 'ok'`);
+    const B2 = await i127open(fP.content, 'Ann', i127ls(B1.ev), B1.store);
+    chk(name, 'the file’s version', 'her newer work opens over PSM’s file, on AV (a CONTROL)', i127J([i127ev(B2.ev, 'S.desc.C'), i127ev(B2.ev, 'myPmo()')]), i127J(['Ann again', 'AV']));
+    i127ev(B2.ev, `pmoTakeFile(); 'ok'`);
+    chk(name, 'the file’s version', 'taken, PSM’s work is on screen on PSM (a CONTROL)', i127J([i127ev(B2.ev, 'S.desc.A'), i127ev(B2.ev, 'myPmo()')]), i127J(['Pat for PSM', 'PSM']));
+    i127ev(B2.ev, `keptPutBack(); 'ok'`);
+    chk(name, 'the file’s version, then put back', 'her work comes back on AV, the banner with it', i127J([i127ev(B2.ev, 'S.desc.C'), i127ev(B2.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(rv2banner(B2.ev))]), i127J(['Ann again', 'AV', true]));
+    // C. a choice made in the page outlives an adoption: chosen AV here, the browser's setting since written PSM by another tab
+    const D1 = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); D1.ev(`setDesc('C','Ann chose AV here'); 'ok'`);
+    const D2 = await i127open(fP.content, 'Ann', i127ls(D1.ev), D1.store);
+    D2.ev(`window.prompt=function(){ return 'AV'; }; pickMyPmo(); localStorage.setItem('prio27pmo','PSM'); 'ok'`);
+    i127ev(D2.ev, `pmoTakeFile(); 'ok'`);
+    chk(name, 'a choice made in the page', 'the file’s version taken is PSM’s (a CONTROL)', i127ev(D2.ev, 'myPmo()'), 'PSM');
+    i127ev(D2.ev, `keptPutBack(); 'ok'`);
+    chk(name, 'a choice made in the page', 'her work put back goes back to the office she chose in this page, not to what another tab wrote since',
+      i127J([i127ev(D2.ev, 'S.desc.C'), i127ev(D2.ev, 'myPmo()')]), i127J(['Ann chose AV here', 'AV']));
+    // D. work saved for AV and changed since, put back on a page that adopted PSM, the browser's setting saying PSM
+    const E1 = await i127open(C0, 'Dee', { prio27pmo: 'AV' }); E1.ev(`setDesc('C','Dee for AV'); 'ok'`);
+    const fA = i127disk('AV file.html'); i127picker(E1.w, fA, E1.picks); await i127save(E1);
+    E1.ev(`setDesc('C','Dee for AV, since her save'); 'ok'`); await i127pause(5);
+    Pp.ev(`setDesc('A','Pat later'); window.__yes=true; 'ok'`); await i127save(Pp);
+    const E2 = await i127open(fP.content, 'Dee', i127ls(E1.ev), E1.store);
+    chk(name, 'work saved for AV, put back', 'PSM’s newer file opens on PSM, Dee’s AV work kept aside (a CONTROL)', i127J([i127ev(E2.ev, 'myPmo()'), rv2look(E2.ev).keptC]), i127J(['PSM', 'Dee for AV, since her save']));
+    E2.ev(`localStorage.setItem('prio27pmo','PSM'); 'ok'`);
+    i127ev(E2.ev, `keptPutBack(); 'ok'`);
+    chk(name, 'work saved for AV, put back', 'it comes back on AV, the office it was saved for, whatever the browser’s setting says',
+      i127J([i127ev(E2.ev, 'pmoForOf(MS)'), i127ev(E2.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(rv2banner(E2.ev))]), i127J(['AV', 'AV', true]));
+    // E. the saved file's version, opened over this browser's work (bootTakeFile): PSM's work, on PSM
+    const G1 = await i127open(C0, 'Eve', { prio27pmo: 'AV' }); G1.ev(`setDesc('C','Eve for AV'); 'ok'`);
+    const G2 = await i127open(fP.content, 'Eve', i127ls(G1.ev), G1.store);
+    chk(name, 'the saved file’s version', 'her newer work opens, on AV (a CONTROL)', i127ev(G2.ev, 'myPmo()'), 'AV');
+    i127ev(G2.ev, `bootTakeFile(); 'ok'`);
+    chk(name, 'the saved file’s version', 'opened, PSM’s work is on screen on PSM, the banner with it',
+      i127J([i127ev(G2.ev, 'S.desc.A'), i127ev(G2.ev, 'myPmo()'), /\u{1F3E2} PSM/u.test(rv2banner(G2.ev))]), i127J(['Pat later', 'PSM', true]));
+    // F. A PAGE THAT SAVED FOR THE OFFICE IT READ FROM THE BROWSER'S SETTING KEEPS IT, and another tab's choice does not re-point it
+    const S1 = await i127open(C0, 'Sue', { prio27pmo: 'AV' }); S1.ev(`setDesc('C','Sue for AV'); 'ok'`);
+    chk(name, 'saved · setup', 'the copy as published, nobody having chosen in it: its office is the browser’s setting (a CONTROL)', i127ev(S1.ev, '_pmoMem===null && myPmo()'), 'AV');
+    const fs = i127disk('Sue AV.html'); i127picker(S1.w, fs, S1.picks); await i127save(S1);
+    S1.ev(`localStorage.setItem('prio27pmo','PSM'); 'ok'`);     // a choice of PSM in another tab
+    chk(name, 'saved · 💾 Save', 'after its Save the page stays on AV, its bar and its Add box with it', i127J([i127ev(S1.ev, 'myPmo()'), /\u{1F3E2} AV/u.test(rv2banner(S1.ev)), i127ev(S1.ev, 'arOfficeStart().g')]), i127J(['AV', true, 'AV']));
+    const sS = i127submit(S1.ev);
+    chk(name, 'saved · 💾 Save', 'Submit sends for AV, refused for nothing', i127J([sS.pkg && sS.pkg.pmo, sS.alerts.length]), i127J(['AV', 0]));
+    S1.ev(`setDesc('C','Sue for AV, again'); __q=[]; 'ok'`); const w0 = fs.writes, n0 = S1.picks.length; await i127save(S1);
+    chk(name, 'saved · 💾 Save', 'the next Save asks nothing and writes AV’s file again', i127J([i127ev(S1.ev, '__q.length'), S1.picks.length - n0, fs.writes - w0, i127desc(fs.content, 'C')]), i127J([0, 0, 1, 'Sue for AV, again']));
+    const S2 = await i127open(C0, 'Sam', { prio27pmo: 'AV' }); S2.ev(`setDesc('C','Sam for AV'); 'ok'`);
+    i127ev(S2.ev, `pmoSaveCopyDl(); 'ok'`);
+    S2.ev(`localStorage.setItem('prio27pmo','PSM'); 'ok'`);
+    chk(name, 'saved · ⬇ Save a copy', 'after the download the page stays on AV', i127J([i127ev(S2.ev, 'pmoForOf(MS)'), i127ev(S2.ev, 'myPmo()')]), i127J(['AV', 'AV']));
+    const S3 = await i127open(C0, 'Tim', { prio27pmo: 'AV' }); S3.ev(`setDesc('C','Tim, never saved'); localStorage.setItem('prio27pmo','PSM'); 'ok'`);
+    chk(name, 'never saved', 'the copy as published, never saved and nobody having chosen in it, still follows the browser’s setting (a CONTROL: as in v2.08)', i127ev(S3.ev, 'myPmo()'), 'PSM');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 second review — the copy as published says what is true of this browser’s work: saved for no office, or for which';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // Ann's work kept aside, saved as a file of its own (History & recovery › save it as a file): this copy, saved for no office
+    const A1 = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); A1.ev(`setDesc('C','Ann, kept'); 'ok'`); await i127pause(5);
+    const P = await i127open(C0, 'Pat', { prio27pmo: 'PSM' }); P.ev(`setDesc('A','Pat for PSM'); 'ok'`);
+    const f = i127disk('PSM file.html'); i127picker(P.w, f, P.picks); await i127save(P);
+    const A2 = await i127open(f.content, 'Ann', i127ls(A1.ev), A1.store);
+    const K = i127ev(A2.ev, `(function(){ let cap=null; const _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      try{ keptSaveFile(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+    chk(name, 'setup', 'the kept work as a file: this copy, saved for no office (a CONTROL)', i127J([i127mode(K) === i127mode(C0), i127mark(K), i127desc(K, 'C')]), i127J([true, null, 'Ann, kept']));
+    // on another machine she opens it, carries on, and next opens the copy as published
+    const M1 = await i127open(K, 'Ann', { prio27pmo: 'AV' }); M1.ev(`setDesc('C','Ann, carried on'); 'ok'`);
+    const M2 = await i127open(C0, 'Ann', i127ls(M1.ev), M1.store);
+    const s = i127status(M2.ev), m2 = rv2look(M2.ev);
+    chk(name, 'saved for no office', 'this browser’s work opens, saved for no office (a CONTROL)', i127J([m2.C, m2.mark]), i127J(['Ann, carried on', '']));
+    chk(name, 'saved for no office', 'its line says the work has not been saved to an office’s file, never that it was saved to a file Save writes',
+      i127J([/not been saved to an office/.test(s), /last saved to a file/.test(s), /writes it there/.test(s)]), i127J([true, false, false]));
+    const g = i127disk('AV file.html'); i127picker(M2.w, g, M2.picks); await i127save(M2);
+    chk(name, 'saved for no office', 'and 💾 Save asks where to keep it, marking it AV’s (a CONTROL)', i127J([M2.picks.length, i127J(i127mark(g.content))]), i127J([1, i127J({ pmo: 'AV' })]));
+    // Pat's own browser: PSM's work saved there, changed since, and the copy as published opened next
+    P.ev(`setDesc('A','Pat again, unsaved'); 'ok'`);
+    const P2 = await i127open(C0, 'Pat', i127ls(P.ev), P.store);
+    const sp = i127status(P2.ev);
+    chk(name, 'saved for PSM', 'its line names PSM’s file, and that the work has changes since it was saved there',
+      i127J([/copy of PSM’s work/.test(sp), /last saved to a file of PSM’s own, and has changes since/.test(sp), /writes it there/.test(sp)]), i127J([true, true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 second review — a PMO copy takes no board, package or state file at any import door, and reads no shared state file';
+  try {
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    // the board moves on after publishing, then issues its O&M package, as Appropriation packages… issues one
+    B.ev(`setDesc('C','board wrote C after publishing'); save(); 'ok'`);
+    const pk = JSON.parse(B.ev(`(function(){ let cap=null, nm=''; const _B=window.Blob, _c=HTMLAnchorElement.prototype.click;
+      window.Blob=function(pt,o){ if(!cap) cap=String(pt[0]); return new _B(pt,o); }; HTMLAnchorElement.prototype.click=function(){ nm=this.download; };
+      window.confirm=function(){ return true; }; try{ pkgIssue('om', true); }catch(e){} window.Blob=_B; HTMLAnchorElement.prototype.click=_c;
+      return JSON.stringify({txt:cap, name:nm}); })()`));
+    const boardFile = B.ev('buildSavedHtml()'), stateFile = B.ev('JSON.stringify(MS)');
+    chk(name, 'setup', 'the board’s package, its board file and its state file each carry the board’s later C (a CONTROL)',
+      i127J([/board wrote C after publishing/.test(pk.txt || ''), /board wrote C after publishing/.test(boardFile), /board wrote C after publishing/.test(stateFile)]), i127J([true, true, true]));
+    // Ann, in her copy, with an unsaved edit; her office's file saved too, to check the copy still says how one is opened
+    const A = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); A.ev(`setDesc('C','Ann for AV'); 'ok'`);
+    const own = i127disk('AV file.html'); i127picker(A.w, own, A.picks); await i127save(A);
+    A.ev(`setDesc('C','Ann for AV, unsaved'); 'ok'`);
+    const P0 = i127noTs(i127submit(A.ev).pkg);
+    const snap = () => i127J([A.ev(I127MS), i127ev(A.ev, 'localStorage.getItem(_AP.key)')]);
+    const S0 = snap();
+    const imp = (fn, txt, nm) => A.ev(`new Promise(function(res){ var inp={files:[new File([${i127J(txt)}], ${i127J(nm)})], value:'x'};
+      __q=[]; __al=[]; window.__yes=true; try{ ${fn}(inp); }catch(e){ __al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    for (const [what, fn, txt, nm] of [['⬅ Import one appropriation · the board’s issued package', 'importState', pk.txt, pk.name || 'ORBIT PACKAGE - O&M - issue 1.json'],
+                                        ['⬅ Import one appropriation · the board’s state file', 'importState', stateFile, 'prio-state-om.json'],
+                                        ['⬅ Import one appropriation · a board file', 'importState', boardFile, 'FY27 board.html'],
+                                        ['⬅ Import one appropriation · a submittal', 'importState', i127J(Object.assign({}, P0, { ts: Date.now() })), 'ORBIT SUBMITTAL - AV.json'],
+                                        ['⇊ Import several boards at once · a board file', 'importBoards', boardFile, 'FY27 board.html']]) {
+      await imp(fn, txt, nm); await i127pause(20);
+      const al = i127ev(A.ev, 'JSON.stringify(__al)');
+      chk(name, what, 'refused before any question, saying a copy takes no board, package or state file and that ✉ Submit input sends its work',
+        i127J([i127ev(A.ev, '__q.length'), /takes no board file, appropriation package or state file/.test(al) && /Submit input/.test(al)]), i127J([0, true]));
+      chk(name, what, 'nothing in the copy changed: its plan, and its plan in browser storage', snap() === S0, true);
+    }
+    // this copy's own office file is still told apart, and said how it is opened (a CONTROL: pmoCopyRefuse, before the refusal)
+    const S1 = snap(); await imp('importState', own.content, 'AV file.html'); await i127pause(20);
+    chk(name, 'the copy’s own office file', 'it is said to be this copy’s own file for AV, opened, never imported (a CONTROL)', /own file for AV/.test(i127ev(A.ev, 'JSON.stringify(__al)')) && snap() === S1, true);
+    chk(name, 'Submit', 'the copy’s ✉ Submit input still sends what the office typed, and nothing the board wrote', i127J(i127noTs(i127submit(A.ev).pkg)), i127J(P0));
+    chk(name, 'Submit', 'which is Ann’s C, not the board’s (a CONTROL on the fixture)', i127J(P0 && P0.items && P0.items.C && P0.items.C.desc), i127J('Ann for AV, unsaved'));
+    // THE SHARED STATE FILE BESIDE THE BOARD: a copy asks for none; the board still does (a CONTROL)
+    const side = ev => i127ev(ev, `new Promise(function(res){ window.__fetches=0; var f0=window.fetch;
+      window.fetch=function(){ __fetches++; return Promise.resolve({ ok:true, text:function(){ return Promise.resolve(${i127J(stateFile)}); } }); };
+      var got='none'; try{ loadShared(function(st){ got=st; }); }catch(e){ got='THREW '+e.message; }
+      setTimeout(function(){ window.fetch=f0; res(JSON.stringify({n:__fetches, got: got===undefined? 'undefined' : ((got && got.years)? 'a board state' : String(got))})); }, 60); })`);
+    chk(name, 'the shared state file', 'a copy asks for no shared state file, and is answered as an unconfigured machine is', await side(A.ev), i127J({ n: 0, got: 'undefined' }));
+    chk(name, 'the shared state file', 'the board still reads its own (a CONTROL)', await side(B.ev), i127J({ n: 1, got: 'a board state' }));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ---- v2.09 third review (the copy's Save): the second review's opening wrote the file into browser storage on every opening --
+// The fix for "a second opening replaces unsaved work" wrote what a newer file put on screen into browser storage even where
+// nothing was kept aside, so a newer file opened only to look replaced this browser's copy -- a save already in a file -- and the
+// person's own older file then opened that other save (finding open-to-look-now-rewrites-what-your-own-file-opens). Every check
+// fails on d3ce17d unless it says CONTROL; the second review's own block still holds the opening that keeps work aside.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 third review — a newer file opened only to look leaves browser storage as it was: this browser’s own file opens on its own work (the board and a copy)';
+  try {
+    // what a page holds, what browser storage holds under its plan key, what the kept slot holds, and the record beside them
+    const rv3look = ev => { const r = i127ev(ev, `JSON.stringify((function(){
+      var d=function(st,id){ try{ return String(((st.years[st.cur]||{}).desc||{})[id]); }catch(e){ return 'ERR'; } };
+      var ls=null; try{ ls=JSON.parse(localStorage.getItem(_AP.key)); }catch(e){ ls=null; }
+      var k=keptCopy(), ks=null; try{ ks=k? JSON.parse(k.raw) : null; }catch(e){ ks=null; }
+      var o={ base:baseGet(), plan:localStorage.getItem(_AP.key), off:myPmo(), mark:pmoForOf(MS) };
+      ['A','B','C'].forEach(function(id){ o[id]=String((S.desc||{})[id]); o['ls'+id]=ls? d(ls,id) : null; o['kept'+id]=ks? d(ks,id) : null; });
+      return o; })())`); try { return JSON.parse(r); } catch { return { threw: r }; } };
+    const asked = ev => i127ev(ev, 'JSON.stringify(__q)');
+    const saveIn = async (X, f) => { i127picker(X.w, f, X.picks); await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40); };
+    // THE BOARD: Brad's own file, saved; the lead's newer file of the same appropriation, from the same program, opened to look
+    const X = boot(); seed(X.ev, I127SC);
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    const P0 = X.ev('buildSavedHtml()');
+    const Bd = await i127open(P0, 'Brad'); Bd.ev(`setDesc('C','Brad, in his file'); 'ok'`);
+    const f1 = i127disk('board.html'); await saveIn(Bd, f1);
+    chk(name, 'the board · setup', 'Brad’s own file is saved, and this browser holds no work it does not have (a CONTROL)',
+      i127J([f1.writes, i127desc(f1.content, 'C'), rv3look(Bd.ev).base.dirty]), i127J([1, 'Brad, in his file', false]));
+    await i127pause(5);
+    const L = boot({ html: P0 }); i127wire(L.ev, 'Lead'); L.ev(`setDesc('A','the lead’s draft'); 'ok'`); const F2 = L.ev('buildSavedHtml()');
+    const ls0 = i127ls(Bd.ev), key = Bd.ev('_AP.key');
+    const Bd2 = await i127open(F2, 'Brad', ls0, Bd.store);
+    const b2 = rv3look(Bd2.ev);
+    chk(name, 'the board · the lead’s newer file, opened to look', 'it opens, and nothing is kept aside: this browser held no unsaved work (a CONTROL)',
+      i127J([b2.A, b2.C, b2.keptC, b2.base.dirty]), i127J(['the lead’s draft', 'undefined', null, false]));
+    chk(name, 'the board · the lead’s newer file, opened to look', 'browser storage still holds Brad’s save, byte for byte: an opening that kept nothing aside writes nothing there',
+      b2.plan === ls0[key], true);
+    const Bd3 = await i127open(f1.content, 'Brad', i127ls(Bd2.ev), Bd.store);
+    const b3 = rv3look(Bd3.ev);
+    chk(name, 'the board · his own file again', 'it opens on its own work, Brad’s, never the lead’s draft', i127J([b3.C, b3.A]), i127J(['Brad, in his file', 'undefined']));
+    chk(name, 'the board · his own file again', 'it is the save the work on screen came from: not said to be another save',
+      i127J([i127ev(Bd3.ev, 'LASTKNOWN===PUB_FILE_TS'), i127ev(Bd3.ev, '_bootMoved'), /a different save/.test(i127status(Bd3.ev))]), i127J([true, 0, false]));
+    Bd3.ev(`setDesc('B','Brad, later'); __q=[]; 'ok'`); const w3 = f1.writes; await saveIn(Bd3, f1);
+    chk(name, 'the board · his own file again', '💾 Save writes his file asking nothing, and the file keeps his work',
+      i127J([f1.writes - w3, /HOLD ON/.test(asked(Bd3.ev)), i127desc(f1.content, 'C'), i127desc(f1.content, 'B'), i127desc(f1.content, 'A')]),
+      i127J([1, false, 'Brad, in his file', 'Brad, later', null]));
+    // LOOKED AT, THEN TYPED ON: storage takes the lead's save with Brad's change once he types, and the record names the lead's
+    // save as the one the work came from, as v2.08's did -- so his own file, opened next, shows this browser's copy, and Save asks
+    // before writing it over his file. Left naming his own save, the record would let that Save write the lead's draft over it unasked.
+    await i127pause(5); L.ev(`setDesc('A','the lead’s draft, later'); 'ok'`); const F2b = L.ev('buildSavedHtml()');
+    const Bd4 = await i127open(F2b, 'Brad', i127ls(Bd3.ev), Bd.store); Bd4.ev(`setDesc('B','Brad typed on the lead’s draft'); 'ok'`);
+    const Bd5 = await i127open(f1.content, 'Brad', i127ls(Bd4.ev), Bd.store);
+    const b5 = rv3look(Bd5.ev);
+    chk(name, 'the board · looked at, then typed on', 'his file opens this browser’s copy: the lead’s draft with his change (a CONTROL: the newer opens)',
+      i127J([b5.A, b5.B]), i127J(['the lead’s draft, later', 'Brad typed on the lead’s draft']));
+    Bd5.ev(`window.__yes=false; __q=[]; 'ok'`); const w5 = f1.writes, c5 = f1.content; await saveIn(Bd5, f1);
+    chk(name, 'the board · looked at, then typed on', '💾 Save asks before writing it over his file, and, declined, writes nothing (a CONTROL on d3ce17d)',
+      i127J([/HOLD ON/.test(asked(Bd5.ev)), f1.writes - w5, f1.content === c5]), i127J([true, 0, true]));
+    // AND WHERE WORK IS KEPT ASIDE, storage still takes what the opening put on screen (a CONTROL: the second review's fix stands)
+    await i127pause(5); L.ev(`setDesc('A','the lead’s draft, latest'); 'ok'`); const F2c = L.ev('buildSavedHtml()');
+    const Bd6 = await i127open(F2c, 'Brad', i127ls(Bd5.ev), Bd.store);
+    const b6 = rv3look(Bd6.ev);
+    chk(name, 'the board · a newer file over unsaved work', 'his unsaved change is kept aside, and storage holds what is now on screen (a CONTROL)',
+      i127J([b6.keptB, b6.lsA, b6.lsB, b6.base.dirty]), i127J(['Brad typed on the lead’s draft', 'the lead’s draft, latest', 'undefined', false]));
+    // A COPY: Ann saves AV's file; Pat's newer PSM file of the same copy is opened in her browser to look, then her own file, then
+    // the copy as published -- one plan key for them all in a browser
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const A = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); A.ev(`setDesc('C','Ann for AV'); 'ok'`);
+    const fA = i127disk('AV file.html'); i127picker(A.w, fA, A.picks); await i127save(A);
+    const a0 = rv3look(A.ev);
+    chk(name, 'a copy · setup', 'Ann’s file is saved for AV, and this browser holds no work it does not have (a CONTROL)', i127J([fA.writes, a0.mark, a0.base.dirty]), i127J([1, 'AV', false]));
+    await i127pause(5);
+    const P = await i127open(C0, 'Pat', { prio27pmo: 'PSM' }); P.ev(`setDesc('A','Pat for PSM'); 'ok'`);
+    const fP = i127disk('PSM file.html'); i127picker(P.w, fP, P.picks); await i127save(P);
+    const lsA = i127ls(A.ev), kA = A.ev('_AP.key');
+    const A2 = await i127open(fP.content, 'Ann', lsA, A.store);
+    const a2 = rv3look(A2.ev);
+    chk(name, 'a copy · PSM’s newer file, opened to look', 'it opens on PSM, and nothing is kept aside (a CONTROL)', i127J([a2.A, a2.off, a2.keptC]), i127J(['Pat for PSM', 'PSM', null]));
+    chk(name, 'a copy · PSM’s newer file, opened to look', 'browser storage still holds Ann’s save for AV, byte for byte', a2.plan === lsA[kA], true);
+    for (const [at, html] of [['her own file again', fA.content], ['the copy as published', C0]]) {
+      const A3 = await i127open(html, 'Ann', i127ls(A2.ev), A.store);
+      const a3 = rv3look(A3.ev);
+      chk(name, 'a copy · ' + at, 'it opens on her own work, under AV -- never PSM’s work under PSM', i127J([a3.C, a3.A, a3.off, a3.mark]), i127J(['Ann for AV', 'undefined', 'AV', 'AV']));
+      const s3 = i127submit(A3.ev), p3 = s3.pkg || {};
+      chk(name, 'a copy · ' + at, '✉ Submit sends AV’s package, with her change and nothing of PSM’s',
+        i127J([p3.pmo, p3.items && p3.items.C && p3.items.C.desc, !!(p3.items && p3.items.A)]), i127J(['AV', 'Ann for AV', false]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.09 W3 ====
+
+// ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
+// ==== end v2.09 W4 ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

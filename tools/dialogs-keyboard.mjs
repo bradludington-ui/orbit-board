@@ -53,7 +53,7 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
   let pat = (/this\)\s*([A-Za-z0-9_]+)\(/.exec(oc) || [])[1] || null;
   // v2.00 (UI S4): the Import box closes with uiImpClose() and opens with uiImpOpen(). v2.00 (menu): the left menu's three boxes
   // open from their entries, uiGo('imp'|'rep'|'data', this)
-  const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(',
+  const KNOWN = { helpClose: 'openHelp(', erClose: 'toggleRec(', subClose: 'subOpenReview(', attClose: 'attShow(',
                   uiImpClose: "uiGo('imp'", uiRepClose: "uiGo('rep'", uiDataClose: "uiGo('data'",
                   msgClose: 'msgOpen(', aiClose: 'aiOpen(',   // v2.04 (item 109): the AI review list   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
@@ -61,7 +61,7 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
                   toggleAdd: 'uiAddReq(' };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
-    pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
+    pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', ndOpen: 'ndOpen=true' })[v] || null; }
   return { id: bg.id, pat };
 }));
 const viaFn = [];

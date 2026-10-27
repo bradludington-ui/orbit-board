@@ -1,0 +1,30 @@
+board years ["2028","2029","2030","2031"] cur 2028
+copies 2601538 2601538
+copy A pub 1793092757579 years ["2029","2030","2031","2032"]
+FY28 adds {"id":"NEW-PSM-1","still":false,"btn":""} {"id":"NEW-PSM-1","still":false,"btn":""}
+FY29 continuations {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"},"ev":"Alpha (copy A)"} {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"},"ev":"Bravo (copy B)"}
+pkg A added [["NEW-PSM-1",2028,null]] alerts []
+pkg B added [["NEW-PSM-1",2028,null]]
+take A rows [[2028,"NEW-PSM-1","__new",null],[2029,"NEW-PSM-2","__new",null]] 
+  priorHere THREW pmoRowFrom is not defined
+take B rows [[2028,"NEW-PSM-1","__new",null],[2029,"NEW-PSM-2","__new","NEW-1"]] 
+  priorHere THREW pmoRowFrom is not defined
+  B apply dialogs ["alert: Nothing is ticked. Tick the changes you want, then apply."]
+FY29 custom [{"id":"NEW-1","ev":"Alpha (copy A)","ask":[300,0,0],"prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"pmo":"PSM","nid":"NEW-PSM-2"},"inOrder":true}]
+roll {"plan":{"create":1,"exists":0},"st":"🗓 Rolled forward — 1 copy created across FY30. FY29 is unchanged — switch year from the 🗓 menu to see them."}
+  roll dialogs ["confirm: Roll 1 requirement forward into FY30?\n\n1 copy will be created.\n\nEach copy carries the requirement value, allocation, dec"]
+FY30 custom [{"id":"NEW-1","ev":"Alpha (copy A)","ask":[300,0,0],"prior":{"fy":2028,"id":"NEW-PSM-1"},"from":null,"inOrder":true}]
+FY30 order ["A","B","NEW-1"]
+roll again ✔ Every requirement you ticked is already in FY30 — nothing to do. Existing years are never overwritten by this.
+naFromRows(2029) at FY30 [["A","EV-A",true],["B","EV-B",true],["NEW-1","Alpha (copy A)",true]]
+file:///tmp/claude-0/-home-user/792dafeb-d944-5a2a-8cfa-66d1840065b4/scratchpad/v209/rev3/years/skeptic-twin-rule-ignores-copy-stamp/sk1.mjs:109
+const bravoId = cust(2029).find(c => /Bravo/.test(c.ev)).id;
+                                                        ^
+
+TypeError: Cannot read properties of undefined (reading 'id')
+    at file:///tmp/claude-0/-home-user/792dafeb-d944-5a2a-8cfa-66d1840065b4/scratchpad/v209/rev3/years/skeptic-twin-rule-ignores-copy-stamp/sk1.mjs:109:57
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.0

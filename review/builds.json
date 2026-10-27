@@ -1,0 +1,106 @@
+{
+  "about": "The reviewed releases of prioritization-board-grid.html. tools/review/which-build.mjs computes a board file's code fingerprint and looks it up here. Add an entry for each release (the squash or merge commit on main that shipped it), with the values tools/review/fingerprint.mjs --json prints for the release file at its commit. A new fingerprint scheme means every entry is recomputed.",
+  "scheme": "orbit-code-v1",
+  "builds": [
+    {
+      "release": "v1.99",
+      "build": "v1.99 (6 Oct 2026)",
+      "commit": "6de4432b83e7631022c5e04e2c325badba3d0bcc",
+      "blob": "b160bc031c7f70a4492f64394893d9b74bb0f327",
+      "fileSha256": "e3a8fe5f0a09fb30aa391b6570d834859ac0336a36430fa03dd87938922cd3bf",
+      "code": "e6a260ea42ed69376b1c248e7b69baf39f67891a9ddf6dcb8b7166b671ce6bff",
+      "script": "87bfb7d02901ab4c52c39ef8c8e47d518ac097d1f02f7a8eaca5f28c69700f5d",
+      "gate": "passed: npm run validate:math with the full mutation sweep (1,128/1,128 caught, 11 equivalent), 7 Oct 2026, on 5942e58, which holds this same board file"
+    },
+    {
+      "release": "v2.00",
+      "build": "v2.00 (11 Oct 2026)",
+      "commit": "b71b18e1784fe1e7af373105cd2af75937836361",
+      "blob": "7fef189a0d0a48c531cb7f7ac3360af2dab159ca",
+      "fileSha256": "b7a45f650de753da1d73f5b4dbc4718943c255f0f4e70491e4d6c057e41949bc",
+      "code": "9fffab847e4b37d6b1db862d4a5e9b3534339c5031c98c540be3e500ef02e5b8",
+      "script": "9e002d1faf7d9bf3a950cd932844f23d8d030b8bde452c786e184d418d794ca7",
+      "gate": "lean gate, text only: every suite and the text stages passed on e2d0bc6 (same board file); the mutation sweep was not run, and npm run standards found 9 findings that v2.01 fixed. See CLAUDE.md, v2.00."
+    },
+    {
+      "release": "v2.01",
+      "build": "v2.01 (20 Oct 2026)",
+      "commit": "c357911564570f7d43e6e3855bcddb748eedd32d",
+      "blob": "9969252427366a650283564dd6bcae5906ea1a80",
+      "fileSha256": "3ff23971e58d6caa0d37292e7668619ed53ca7154ab66c90b2525805c0f7540f",
+      "code": "fcc7f113aeaa532028fc2cc76f772f5a58c5886274f0eb5bda0dc871b52294e1",
+      "script": "f678b794462c95549f67c09528e461c9a444e9bc2d6c7ffdadb88b5909d8ce7b",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.01."
+    },
+    {
+      "release": "v2.02",
+      "build": "v2.02 (21 Oct 2026)",
+      "commit": "b68b31926a866026e79d9ee8188a9b7410792982",
+      "blob": "68575bf86e1cdb08e9c4f499114ef47ff6a521e8",
+      "fileSha256": "c4ddca98f196c3b4879a0c6147e4ba01bba52f8ae6f04cec8b52cb2c512b2168",
+      "code": "653ca92587b3aab02929f8739c7ea28441fc2615876f67c782cc39670d03f27e",
+      "script": "db4a3bb6af606087a775f356996e4ce1668b36733cf3843472f6aa1a447385ab",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.02."
+    },
+    {
+      "release": "v2.03",
+      "build": "v2.03 (21 Oct 2026)",
+      "commit": "065bc0df9d8faa38f4aef32e96e78afe10e9e98e",
+      "blob": "e9dc9460c0121d312ba9dc240021134ef7420cae",
+      "fileSha256": "8d2bf1c4c7c91e4c4f706c25fa4bd582d3ba77b06b037021a9c4419a70bc445b",
+      "code": "8adc413a8d193b0ccfd45fec70dec395c9e915094797211ade8e66d844d8d4a0",
+      "script": "a80f44fb188dc3d92e678baf5df0907f85037ea1282ce687a0de0b4d39b1e1e9",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.03."
+    },
+    {
+      "release": "v2.04",
+      "build": "v2.04 (22 Oct 2026)",
+      "commit": "28a79e5a9e6b76e8ab501d9957ff05390ccdcd87",
+      "blob": "b6a7482c2b768db4aabd0ce740af266d237d8afe",
+      "fileSha256": "37a807c58831c1ca176aca87f253afd86cf50d4cec24862b7e389af84fd1f9c2",
+      "code": "b4fcdfff870ec44c07c23e6979f0ff23d687b1a8db97a60e3f70e742fb47e31b",
+      "script": "8c5ebbc350a39349918e3ecc2783de308c4add4369d210bb373bbd97e43e0818",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.04."
+    },
+    {
+      "release": "v2.05",
+      "build": "v2.05 (23 Oct 2026)",
+      "commit": "db41c0a5cc5b1a0b4acdd0ea11af34242c6a36a6",
+      "blob": "52ae5f6474ef64b19a96a972ec927c1e33cd0b71",
+      "fileSha256": "2b988e13cf78d79314dea7efde8f5f4afe796306db7fb11c90c583b18d03e673",
+      "code": "dbba9207295bd961ba4ea74e1d78629f4b4c2a35c149eb0c609c19145ceaafe1",
+      "script": "0b6915e8e620517c4a84bac05d37e979cc9c4ed26a782f0b998a4ae82e2571a2",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.05."
+    },
+    {
+      "release": "v2.06",
+      "build": "v2.06 (25 Oct 2026)",
+      "commit": "9362931842b1812339b25259440e2c656e6fc4b1",
+      "blob": "3b16af3d3b8eff1fdcce271a8e876daac3d71b91",
+      "fileSha256": "7cf4368d76eb525fd42bda40109cd843f0aa44025fc80adcfdd122f2ab6989f1",
+      "code": "3858e18598468a4cc5e90565e835dc0d36764389f75ebd8ea59590c81b087174",
+      "script": "04a6b5f2ffc64c1edb5afeec9d7433383818cec5ae6bd935cf2830309e372e55",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.06."
+    },
+    {
+      "release": "v2.07",
+      "build": "v2.07 (25 Oct 2026)",
+      "commit": "f508fdb6512b4ecdd8d0265b418b7737c9740979",
+      "blob": "c758c586571ea117d010e9427024c1fd8a8760f2",
+      "fileSha256": "990e0e90289050ebbbf587c9a07d04483af0e84145ad25365d6c26fe58a6d22b",
+      "code": "302101da9b334cad932562e284c64f2dff7c76d93dd51e3691945d1672ffdc47",
+      "script": "79a9b7f897158301072a3eda9ab23583edec567f40dc5a4dccd7346af9c6e891",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.07."
+    },
+    {
+      "release": "v2.08",
+      "build": "v2.08 (26 Oct 2026)",
+      "commit": "f416366046eb827c0c07e63ea67680259166eb05",
+      "blob": "96b8b0e8ebf9159a80083d37fb966602f88a87d4",
+      "fileSha256": "e2f7c779bef4bb8ecd81688524664b227876c4a3b5b5b06b8f137a9f713f9886",
+      "code": "ab3b283ec555d419b7208bfa1344d1872e77953d5bdc9138e48cb04ac2bddbaf",
+      "script": "500c265d47c52039484cee82db550aaf54c4b08067f9b9a3ac7a43d5aae64f21",
+      "gate": "suites and text stages only; the mutation sweep was not run (Brad, 20 Oct 2026: a sweep runs only on his named go). See CLAUDE.md, v2.08."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+// Skeptic's own repro of the copy route: a published PMO copy; Pat (PSM, another browser) saves PSM's file; Ann (AV) works in
+// the copy as published in tab 1, opens PSM's file in tab 2 to look, goes back to tab 1 and types more; Pat saves again; Ann
+// opens PSM's file again. One browser storage handed between the two tabs at every switch.
+import { readFileSync } from 'node:fs';
+import { boot, seed } from '/home/user/orbit-board/tools/export-audit/boot.mjs';
+const W = '/tmp/claude-0/-home-user/792dafeb-d944-5a2a-8cfa-66d1840065b4/scratchpad/v209/';
+const BOARDS = { fix: W + 'rev/board-d3ce17d.html', pre: W + 'rev/board-ba3c294.html', v208: W + 'board-ebe702e.html' };
+const WHICH = process.env.WHICH || 'fix', HTML = readFileSync(BOARDS[WHICH], 'utf8');
+const J = JSON.stringify, sleep = ms => new Promise(r => setTimeout(r, ms));
+const dump = X => JSON.parse(X.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const load = (X, o) => X.ev(`(function(o){ localStorage.clear(); Object.keys(o).forEach(function(k){ localStorage.setItem(k,o[k]); }); return 1; })(${J(o)})`);
+const wire = (X, who) => X.ev(`window.__q=[]; window.confirm=function(m){ __q.push(String(m)); return true; }; window.alert=function(){}; try{ localStorage.setItem('prio27who', ${J(who)}); }catch(e){} 1`);
+const capHtml = (X, code) => X.ev(`(function(){ var cap=null, _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && /html/.test(o.type||'')) cap=String(pt[0]); return new _B(pt,o); };
+  try{ ${code}; } finally { window.Blob=_B; } return cap||''; })()`);
+const SVC = ['USAF', 'ANG'];
+const items = [['R1', 'AV'], ['R2', 'AV'], ['R3', 'PSM']].map(([id, g], i) => ({ id, grp: g, team: g, sect: '', custom: false, title: 'Req ' + id, event: 'E-' + id, ccar: '', fy26: [0, 0], ask: [400000 * (i + 1), 50000], alloc: null }));
+const b0 = boot({ html: HTML });
+seed(b0.ev, { services: SVC, items, disc: [1500000, 60000], mand: [500000, 0], order: items.map(x => x.id) });
+b0.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 1`);
+const F0 = b0.ev('buildSavedHtml()');
+const pb = boot({ html: F0 }); wire(pb, 'Lead');
+const COPY = capHtml(pb, 'publishPmoCopy()');
+console.log(WHICH, 'copy published:', COPY.length > 1000);
+const pat = boot({ html: COPY }); await sleep(30); wire(pat, 'Pat'); pat.ev(`pmoMineSet('PSM'); 1`);
+const T1 = boot({ html: COPY }); await sleep(30); wire(T1, 'Ann'); T1.ev(`pmoMineSet('AV'); setDesc('R1','ANN-1'); 1`);
+const key = T1.ev('_AP.key');
+await sleep(30); pat.ev(`setDesc('R3','PAT-1'); window.showSaveFilePicker=undefined; 1`);
+const PSM1 = capHtml(pat, "pmoSaveCopyDl('PSM')");
+console.log(WHICH, 'PSM file 1 made:', PSM1.length > 1000);
+const T2 = boot({ html: PSM1, ls: dump(T1) }); await sleep(30);
+const d2 = dump(T2);
+console.log(WHICH, 'tab 2 (PSM file): screen R1', J(T2.ev('(S.desc||{}).R1||null')), '| kept?', !!d2[key + '.kept'], '| record', d2[key + '.base']);
+load(T1, d2); T1.ev(`setDesc('R2','ANN-2'); 1`);
+const d3 = dump(T1);
+console.log(WHICH, 'tab 1 typed: storage has ANN-2', d3[key].includes('ANN-2'), '| record', d3[key + '.base']);
+await sleep(30); pat.ev(`setDesc('R3','PAT-2'); 1`);
+const PSM2 = capHtml(pat, "pmoSaveCopyDl('PSM')");
+const T3 = boot({ html: PSM2, ls: d3 }); await sleep(30);
+const d = dump(T3); const kr = d[key + '.kept'];
+console.log(WHICH, 'PSM file again: screen R2', J(T3.ev('(S.desc||{}).R2||null')), '| keys holding ANN-2', J(Object.keys(d).filter(k => (d[k] || '').includes('ANN-2'))), '| kept holds ANN-1', !!(kr && kr.includes('ANN-1')));
+console.log(WHICH, '  line', J(T3.ev(`(document.getElementById('shareStat')||{}).textContent||''`).slice(0, 180)));
+process.exit(0);

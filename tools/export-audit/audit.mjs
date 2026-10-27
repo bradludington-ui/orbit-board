@@ -1222,6 +1222,18 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+// ==== end v2.09 W1 ====
+
+// ==== v2.09 W2 (item 126): a PMO copy's five years ====
+// ==== end v2.09 W2 ====
+
+// ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// ==== end v2.09 W3 ====
+
+// ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
+// ==== end v2.09 W4 ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

@@ -1,0 +1,58 @@
+[
+ {
+  "id": "v209-rv-clin-taken-back-passed",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-taken-back-any-figure",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-taken-back-drawn-is-held",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-held-not-marked",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-drill-scroll-reset",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-drill-scroll-one",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-svc-tag-beside",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-svc-tag-catches-click",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-w1-held-left-silent",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-held-not-noted",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-held-enter-silent",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-gone",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-commits",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-not-after-render",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ }
+]

@@ -1,0 +1,114 @@
+[
+ {
+  "id": "v209-rv-years-seq-ignores-provenance",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-seq-unbounded",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-taken-any-copy",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-accept-no-stamp",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-else-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-else-never-read",
+  "caughtBy": "audit-import / v2.09 review — a second copy never reuses"
+ },
+ {
+  "id": "v209-rv-years-roll-dup-unasked",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-roll-dup-unnamed",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-roll-dup-left-anyway",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-roll-dup-blank-asked",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-review-roll-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-report-roll-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-prior-rolled-whole",
+  "caughtBy": "audit-import / v2.09 review — a proposal into a year Apply starts"
+ },
+ {
+  "id": "v209-rv-years-links-not-repointed",
+  "caughtBy": "audit-import / v2.09 review — a link to another of the office"
+ },
+ {
+  "id": "v209-rv-years-repoint-needs-provenance",
+  "caughtBy": "audit-import / v2.09 review — a link to another of the office"
+ },
+ {
+  "id": "v209-rv-years-prior-raw-id",
+  "caughtBy": "audit-import / v2.09 review — a link to another of the office"
+ },
+ {
+  "id": "v209-rv-years-start-not-journalled",
+  "caughtBy": "audit-import / v2.09 review — Apply into a year it starts"
+ },
+ {
+  "id": "v209-rv-years-out-nothing-yet",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-submit-silent",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-journal-blind",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-in-window",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-switch-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-menu-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-panel-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "v209-rv-years-out-status-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a year the copy holds and does not submit for"
+ },
+ {
+  "id": "proposal-double-add",
+  "caughtBy": "audit-import / a copy proposes a new requirement"
+ },
+ {
+  "id": "v206-fix-review-no-warning",
+  "caughtBy": "audit-import / the pre-merge review’s fixes: linked work"
+ },
+ {
+  "id": "v209-w2-link-not-repointed",
+  "caughtBy": "audit-import / v2.09 W2 — a PMO copy submits every year; v2.09 review — a link to another of the office"
+ }
+]

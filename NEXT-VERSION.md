@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.07**. Next: **v2.08**.
+Current version: **v2.09**. Next: **v2.10**.
 
 ## Open
 
@@ -136,48 +136,113 @@ Current version: **v2.07**. Next: **v2.08**.
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
 
-#### 122. Edit the whole record in one box (Brad, 24 Oct 2026, kept from item 121: "Edit the whole record later as its own item")
-- **Asked:** item 121's box builds a requirement's whole record when it is added; editing one afterwards still means the RECORD
-  panel, 📋 Requirement edit and the written-field pop-ups.
-- **What is there today (v2.07):** the Add box (`#addPanel`) reads its required list from `reqNeeds()` and writes through
-  `reqCreate()`; nothing edits an existing requirement through it.
-- **Proposed:** not yet -- to be worked out with Brad: which fields, whether the box replaces 📋 Requirement edit, and how it
-  sits beside the rule that the RECORD panel is the editor ("The row is triage").
+#### 124. Found while building v2.08, not built
+- **Put back of an added requirement's field after a delete above it can land on the next one** (the v2.08 second review;
+  older than v2.08). The journal files an added requirement's fields, such as its value by service, by its place in
+  `S.custom`, as `['custom', 1, 'ask', 0]`. Delete one above it, and Put back writes to the requirement that moved into that
+  place. v2.08 keeps the plan event out of this, because a rename is now an override filed by id; the other fields are as
+  before. Proposed: journal an added requirement by its id, so that `jrnlSet` finds it by id and refuses once it is gone.
+- **A "no SI code" chosen by hand in a PMO copy is not sent** (the v2.08 review, F13; older than v2.08). `S.si[id] = ''`
+  is how the board stores a hand-chosen *none*, and `pmoVal` reads `''` as absent, as it does for every field since v1.84.
+  The submittal therefore never carries it, and the portfolio board goes on deriving the code from the PMO and prime rules.
+  Proposed: compare the SI code with `''` and absent kept apart, the way the edit box now keeps them apart (*none* against
+  *follows the rules*), and test it through submit and accept.
 
-#### 123. Refresh the security review kit for the current board (Brad, 26 Oct 2026: "Yes, log it for v2.08")
-- **Logged:** 26 Oct 2026. Brad's decision: keep `claude/security-review-kit` (`b6f1ffc`, 7 Oct) as it is, not merged and not
-  deleted, and refresh it for the current board in v2.08. The branch stays the record of what his security team was given.
-- **What it is:** the kit built for v1.99 (on `6de4432`), no board change. `SECURITY-REVIEW.md` is a reviewer's guide with no
-  findings; those are in the owner's private annex, which cites the guide's line numbers. `tools/review/` has four tools, all
-  Node built-ins, run by four `review:*` npm scripts:
-  - `fingerprint.mjs`: the code fingerprint a saved board keeps.
-  - `which-build.mjs`: names the release behind any board file, from `review/builds.json`.
-  - `sinks.mjs`: every place text becomes page markup, written to `review/sinks.csv`, with no verdicts.
-  - `bundle.mjs`: the style, markup and script at their board line numbers, with a manifest of hashes.
-- **Why not merge it as it is** (measured 26 Oct on v2.07, `f508fdb`): the guide is wrong about today's board in ways a
-  security reader would act on.
-  - It says the file sets no Content-Security-Policy; v2.04 added one.
-  - It describes Confluence (15 mentions) and SharePoint (22), removed in v2.04, and the PowerPoint template, removed in v2.05.
-  - Its line numbers are v1.99's: 31,333 lines then, 35,029 in v2.07.
-- **The tools still run on v2.07:**
-  - `fingerprint.mjs` prints its three fingerprints.
-  - `which-build.mjs` answers "UNKNOWN BUILD: not a reviewed release" (exit 1). That is correct: only v1.99 is in
-    `builds.json`.
-  - `sinks.mjs` finds 572 rows in 261 functions (537 rows at v1.99).
-  - `bundle.mjs` writes its files and lays them back over all 35,029 board lines, then reports a PROBLEM: there is no
-    `TPL_PARTS` left to unpack.
-- **Proposed**, on a branch from `main`, merged on Brad's go:
-  - Rewrite `SECURITY-REVIEW.md` for the current board: the CSP and what it refuses; the shared folder as the only
-    transport; the AI review's hand-carried request and answer; v2.00's escape-where-drawn and the import door's key rules;
-    places named by the `// §NN` banners rather than line numbers alone; today's threat model.
-  - Add v2.07 and each later release to `review/builds.json`.
-  - Drop the template step from `bundle.mjs`.
-  - Regenerate `review/sinks.csv`.
-- **Why now:** `which-build.mjs` lets anyone prove which release a saved board file holds. That is evidence for the OCIO
-  package (6 Nov) and for the security team's open questions (`recovery/v208/HANDOFF.md` §6, E1 and E4).
-- **Brad's call:**
-  - whether the refreshed guide goes to the security team as a new version, and whether their annex is refreshed with it;
-  - whether `which-build.mjs` joins `npm run check` or the nightly, so a release is added to `builds.json` as it ships.
+#### 129. Found by the third review of v2.09, held for v2.10 (Brad, 27 Oct 2026: "Fix the regressions only")
+Brad, asked how to shorten the finish: *"I'm confident that we'll catch duplicative entries. We will be reviewing spend plans
+monthly for updates and edits, so the PMOs will be seeing a fresh PMO Copy to update on a monthly basis with the SFWG reviewing
+it as well."* So v2.09 fixed only what its own second-round fixes broke, and these wait. Each was reproduced, and confirmed by
+a skeptic, on `d3ce17d`. The repro scripts are in `recovery/v209/held/` with the findings and their verdicts. They read a board
+path; build one with `git show <commit>:prioritization-board-grid.html`.
+- **Two copies' continuations of one provisional id count as the same work** (`twin-rule-ignores-copy-stamp`). This happens
+  when one office has two copies out at once and both bring a proposal forward. `yearHas`, `yearLinkOf`, `naFromHere` and
+  `pmoPriorHere` call two requirements the same work when their links carry the same `{fy, id}`, and they never read the
+  link's copy stamp (`prior.pmo`, `prior.pub`). Roll requirements forward then skips the second one ("1 already there and
+  left alone"), so its value is missing from the next year. From another year shows it as already there.
+  Proposed: compare the stamp in the twin rule, as `pmoProvOne` does.
+- **The duplicate check's chain walk can take another copy's continuation** (`chain-walk-takes-other-copys-continuation`,
+  introduced by the second review's chain walk). The walk's link filter compares `{fy, id}` only. With two copies out at once
+  for one office, it can name a different requirement as a duplicate, and Cancel then leaves that one out of the year. The
+  reviewer is asked first and the question names it.
+  Proposed: the same stamp test in the walk's filter.
+- **A proposal that continues a requirement the board added is not flagged when Apply rolls the year forward**
+  (`rolled-added-requirement-unseen-by-same-work-walk`). A whole-year roll copies a board-added `NEW-n` under the same id with
+  no link, and the walk takes a direct hit only for a board-data id. The same work goes in twice, unnamed.
+  Proposed: count an id the rolled state holds as a direct hit, whatever its prefix.
+- **With two tabs open, work typed in one after the other tab opened a newer file stays recorded as saved**
+  (`two-tabs-unsaved-work-recorded-clean`; older than v2.09, and in v2.08). `save()` and `loadCounted()` write the shared
+  `<key>.base` record only when the page's cached `_baseDirty` is false. The next opening of a newer file then replaces that
+  work with nothing kept aside. v2.09's third fix leaves it exactly as on `ba3c294` and v2.08.
+  Proposed: read the record fresh before deciding, never the page's cache.
+- **Still Brad's:** the office files of one published copy share that copy's plan key in a browser (notes-RV2-save.md). The
+  newest save opened there is what the copy as published opens next; this browser's own work is kept aside, and the line
+  says so. Sealing the plan key per office file would change where every copy's work is kept.
+
+#### 130. FYDP Disconnects: the Spruill charts at appropriation level, on screen and in Excel (Brad, 27 Oct 2026)
+- **Asked** (from photos of his PB27 slides, *F-35 Sustainment Summary* and *PB27 Service Detail – USAF CTOL*; no figure from
+  them is recorded here): *"For the next update, I need to produce these Excel spreadsheets with this exact look, color
+  scheme, structure, etc. These are my Spruill charts at the Appropriation level. I need a roll up of all Services and then
+  individual slides for USAF, STOVL, USMC CV, and USN CV. ANG and AFRC totals are combined in to the USAF slide."* It is
+  produced on screen, exports to Excel, and lives in the FYDP section as **FYDP Disconnects**.
+- **What is there today:**
+  - the cost estimate (`ACEDB.sets[*].lines`, each `{ap, pmo, svc, v:{year: dollars}}`, JPO-managed lines only; `ap` is
+    O&M, Support (Full Fund) or Spares; `svc` is USAF, ANG, AFRC, STOVL, USMC-C or USN);
+  - the PPBE Budget Positions (`MS.ppbe[cycle key]`: per service, per line, per year, `{d, m}` -- discretionary and
+    mandatory), held in each appropriation's own store;
+  - the Spruills (FYDP › Spruills) and the five-year spend plan. Nothing prints the two side by side by appropriation.
+- **The mock-up** (invented figures): `recovery/v210/item130-mockup/` holds the two screens and the two sheets as rendered,
+  and the scripts that build them (`model.py`, `xlsx.py`, `html.py`).
+- **Brad's decisions (27 Oct 2026):**
+  1. **Where:** FYDP › FYDP Disconnects. A box with the tables, one tab per sheet, and one *Export to Excel* that writes all
+     five sheets.
+  2. **Five sheets:** *Summary* (every service), then *USAF* (USAF, ANG and AFRC together), *STOVL*, *USMC CV* and
+     *USN CV*. Each looks exactly like his slides: layout, colours, bold and italic lines, red parentheses.
+  3. **Years:** the cycle picked sets them. For BES28 the columns are FY27–FY32, with an FY28–32 total on the right; for
+     PB27, FY26–FY31 and FY27–31.
+  4. **Sections, in order:** O&M; Procurement (Full Fund); Initial Spares (Spares); then a total section summing them. OPN is
+     not included.
+  5. **Each appropriation on the Summary:**
+     - its title band;
+     - `<ACE> <appropriation> Required`, the ACE total plus International;
+     - `US Only`, the estimate as imported. Brad: keep this line;
+     - `International Req Total`, an input, $0 to start. GSS Reset is not broken out;
+     - `<cycle> <appropriation> Controls`, summary only;
+     - `Discretionary` and `Mandatory`, which add to the controls;
+     - `International Funding`, an input, $0 to start;
+     - the delta, then `% Funded`.
+     The total section follows the same shape.
+  6. **The service sheets carry no International lines.** Per appropriation: the ACE requirement for that service,
+     `<cycle> Controls`, Discretionary, Mandatory, the service's delta and % Funded; then a Total Sustainment section.
+  7. **The cost estimate and the PPBE cycle are both selectable.** The controls come from the PPBE input area: the
+     selected cycle's PPBE Budget Positions, discretionary and mandatory, for every column, the year before the cycle
+     included.
+  8. **The International inputs are not saved.** They last for the session and the export, and start at $0 each time the
+     board opens.
+  9. **Markings:** *CUI//REL TO US DoW* above the title and in the footer, on every sheet, as his slides carry it.
+- **Proposed with it** (shown in the mock-up; Brad's answers above kept them):
+  - **The delta** is funding less requirement: (controls + International Funding) − (ACE US + International Req). A
+    shortfall reads red in parentheses, as on his slides. % Funded is funding ÷ requirement, international on both sides.
+  - **A year an appropriation has no position logged for** prints "—", never $0, the rule the five-year plan keeps.
+  - **The workbook keeps whole dollars** and displays millions through its number format, so every total foots exactly.
+    The International inputs are typed in $M (a bare number is millions).
+  - **Read, never recomputed:** the estimate from `ACEDB`, and each appropriation's positions from its own store. No second
+    engine.
+  - **The labels:** the cost estimate's label as imported (*2025 ACE*) and the cycle's (*BES28*). The service sheets are
+    titled *USAF CTOL*, *USMC STOVL*, *USMC CV* and *USN CV*, with rows headed *USAF F-35A*, *USMC F-35B*, *USMC F-35C*
+    and *USN F-35C*.
+  - **The footer:** *<Month Year> / Sustainment Finance / PSM*.
+  - **The box says the inputs are not kept:** International figures typed in it are lost when the board reloads, which
+    includes switching appropriation.
+- **Checks to add:**
+  - every total foots: rows, sections and the total section, by year and across the FYDP total;
+  - the delta and % Funded from the fixture's own figures;
+  - the International inputs move the requirement, the funding, the delta and % Funded on the Summary only, and nothing
+    is stored;
+  - USAF holds ANG and AFRC;
+  - an appropriation with no position prints "—";
+  - the CUI marks are on every sheet;
+  - the Excel cells read back, styles included, from the bytes;
+  - the money map and money coverage register the new surface.
 
 ## Later
 
@@ -236,6 +301,649 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.09 — 27 Oct 2026: CLIN amounts typed with the mouse, a PMO copy's five years, Save in a PMO copy, the SI tab by code -- built on Brad's "Go on v2.09" of 26 Oct, merged on his "Merge when ready" of 27 Oct
+
+Items 125–128 were built as Brad decided them on 26 Oct (his answers are under each item below). They were built in four
+workstreams in parallel (W1 = 125, W2 = 126, W3 = 127, W4 = 128), each on its own branch from the slot commit `6405e01`, and
+merged at `9bc5496`. Where the build differs from the log, or had to decide something the log does not say, it says so here.
+Each workstream's notes are in `recovery/v209/notes-W1.md` … `notes-W4.md`.
+
+**Item 125 — CLIN amounts and the row controls, by pointer (W1).**
+- **Built as decided:** each CLIN has a request per service, typed into its own boxes (`clinSetAsk`, writing `c.ask[j]`). The
+  allocation grid beside it stays independent. The drill's foot shows the prime's requirement value by service and the
+  difference, as information only. A PMO copy's drill stays read only, and its WBS button is dimmed with the rest.
+- **The click that used a control** now selects the row quietly (`setCur(id, true)`): no drawer slides over, and the keyboard
+  stays where the click put it. A click on the row itself still opens the RECORD panel.
+- **The pressed control survives a redraw** (`PTR`, `ptrSig`, `ptrLoc`, `ptrFind`, `ptrAfterRender`). It is found again by
+  its handler, never by position alone. A button's press is delivered once, and the field just left never gets the keyboard
+  back.
+- **A half-typed figure survives a redraw in the rows too.** v2.08's RECORD-panel hold now covers `#list`: the CLIN boxes,
+  the rank box and Fund's allocation box. A figure put back by a redraw is applied when the field is left (`heldCommit`).
+- **Both routes into the drill** (the edit box's, and Classify's prime WBS button) go through `clinGo`. It closes what is
+  over the drill, opens it, never toggles it, scrolls it into view and puts the keyboard on its first box.
+- **Found on the way, fixed:** ↓ Fill from row and ↑ Apply grid to row now write whole dollars through `apportion`. A new
+  CLIN's grid starts as its first request. The row ⋯ menu's close handler no longer eats the first click into the drill.
+- **Decided in the build:**
+  - The total Request box is gone; the line's request is read from the per-service boxes (two editors for one figure is what
+    the row rule forbids). `clinSetReq` is removed.
+  - "A new CLIN's grid starts as its first request" is read per service, on an added CLIN only.
+  - A lost press is re-delivered for buttons only; a select or input gets the keyboard back.
+
+**Item 126 — a PMO copy adds and edits requirements in every year of the FYDP (W2).**
+- **Built as decided:** a copy carries every year of the window (`mode.yb`, `mode.yord`, `mode.yn`). In each year the office
+  can update its requirements and propose new ones (decision 1). A year the board had not started opens blank, for new
+  requirements only, and Apply asks the team to start it, by rolling forward or blank, before anything goes into it
+  (decision 2). One file carries every year (decision 3). Apply puts every ticked year's changes into its own year at once,
+  after one question naming each year and its count (decision 4, replacing v1.95 item 52's refusal). Roll forward and Copy
+  and Move to year are off in a copy (decision 5).
+- **Proposed with it, and built:** Roll requirements forward, Set base year and Reset year are off in a copy too. The banner
+  names the years. The office part of the guide has a new section, *Which years you can work in*.
+- **The package:** the published year stays at its top, exactly as before, and the other years go under `byYear`. It carries
+  `build`, so a v2.08 board refuses it whole, through the import check's existing newer-build rule. A five-year copy also
+  sends `fys`. Proposal ids are unique across the whole copy (`reqSeqNext`), and each proposal carries its `fy`.
+- **The board side:** `pmoTakeYears` takes each year through `pmoTake`'s own path, all or nothing; the file replaces every
+  package its office held. The review and the change report group rows by year.
+- **Decided in the build:**
+  - `PMO_PV` stays 2; a five-year copy is known by `mode.yb`.
+  - A row for a year the board has not started can be ticked; it is never *gone*.
+  - In a year Apply has just started, an edit to a requirement that year does not hold is not written, and is named.
+  - A legacy one-year file replaces only the same office's package for the same year.
+  - The batch loader's one-file-per-office rule is unchanged.
+
+**Item 127 — Save in a PMO copy, and the board refusing a copy at its other doors (W3).**
+- **Built as decided:** one file per office. 💾 Save sits at the foot of the left menu, above ✉ Submit input, which stays the
+  primary button; its ▾ offers Save a copy, and Ctrl+S is the copy's Save. The first Save asks where to keep the office's
+  file, suggesting a new name with the office in it (`pmoSaveName`). Every Save after it writes over that file, in place, and
+  only a file this copy saved for this office (`pmoSaveTargetWhy`): never the copy as published, another office's file,
+  another copy's file or the portfolio board. Reopening adopts the office the file was saved for (`MS.pmoFor`), shown in the
+  banner, and Submit refuses a different office. Two people in one office take turns in the file, and Save asks before it
+  writes over a newer save.
+- **Brad's rule, "Import of a PMO Copy can only be through the PMO import screen":** ⬅ Import, Import a full board, Import
+  one appropriation and Import several boards at once each refuse a PMO copy (`pmoCopyWhy`, `pmoCopyRefuse`), naming its
+  office and pointing to the PMO import screen. The board's own Save refuses to write over a PMO copy.
+- **The copy's side lists are sealed** to the copy as its plan already was: `prio27execdb`, `prio27acedb`, `prio27buddb`,
+  `prio27reprog` and `prio27sideOpen` carry `-pmo<publish stamp>` in a copy.
+- **Decided in the build:**
+  - "The first Save always goes to a new file" is built as a target rule: the picker always suggests a new office-named file,
+    and a file it is pointed at is taken only if it is this copy's file for this office. Otherwise a second person could
+    never take a turn in the office's one file.
+  - The suggested name carries the copy's publish date, so every machine is offered the same name.
+  - The office mark lives in the plan, so it travels with the work through browser storage.
+
+**Item 128 — the Excel SI tab lists the requirements under each SI code (W4).**
+- **Built as decided:** every code (LA, EN, OT, FL, AT, then the requirements carrying none). Funded per service (STOVL, USMC
+  CV, USN) is what the lanes drew, d + m, NO DATE included, so it follows the discretionary-only view. The requirement value
+  per service is shown in columns that enter no total. Every requirement asking on one of the three services is listed, an
+  unfunded one at $0. A prime has its row, then a line per CLIN, in whole dollars that add to the prime's row. A TOTAL per
+  code equals that code's row in the tab's service blocks above, and the last TOTAL equals the tab's roll-up. Rows are in
+  board priority order, with the master rank.
+- It is a pivot of `monSheet`'s own pass, never a second walk, behind an option only the SI call passes; the RCN-EEIC tab is
+  byte-identical to v2.08's. The stale "from a requirement's ⋯ menu" wording now names 📋 Requirement edit (the overview's
+  note, the 1A9A status line, Needs attention's Go to).
+- **Decided in the build:**
+  - The five codes always show; an empty one reads *(0 requirements)* and a $0 TOTAL.
+  - A CLIN line leaves blank a service its grid does not split, and that money goes on its own line, so the lines still add
+    to the prime.
+  - Reading a prime's CLINs for the section never writes CLIN containers into the board (`clinRead`).
+  - The tab's label column is 52 wide, as the RCN breakout's.
+
+**Integration** (`9bc5496`):
+- BUILD v2.09.
+- The three new browser checks are in `verify:grid`: `npm run pmosave` (`tools/pmo-save.mjs`), `npm run pmoyears`
+  (`tools/pmo-years-render.mjs`) and `npm run pointer` (`tools/pointer-edit.mjs`).
+- The guide's office part, which W2 and W3 both edited, was merged by hand: *Which years you can work in*, then *Save your
+  work, and come back to it*.
+- audit-ui's two legacy year questions, and audit-inject's K5 pin on item 52's office-keyed map, were updated to item 126.
+
+**Found by three independent reviews before merge, and fixed** (27 Oct). Each round had reviewers by area, and each finding
+was re-run by a skeptic trying to refute it. The fixers' records are `recovery/v209/notes-RV-*.md` (first round),
+`notes-RV2-*.md` (second) and `notes-RV3-*.md` (third). Every fix has a check that fails on the board before it and a mutation.
+- **The first review** (on `9bc5496`, five areas, `wf_1ced432a-7d0`): 15 findings, all confirmed, 13 distinct. The SI tab came
+  back clean. All were fixed (`v209-rv-*`):
+  - **Five years.** A second copy could mint a provisional id the board had already filed, so the new proposal could
+    never be ticked. Apply could roll a year it started forward and then add a proposal's work again, unnamed. A link to
+    another of the office's proposals stayed on the copy's id. Changes put into a year Apply had just started were not
+    journalled one by one. Submit from a held year outside the copy's years said "Nothing to send yet" to an office that
+    had just edited there.
+  - **The copy's Save.** With two people in one office, the way out the copy named after Cancel did not work. Opening one
+    office's file switched the office for every copy and tab in the browser. The board's stopped-import hold was not
+    sealed to a copy. A copy could still send its plan as an appropriation package (older than v2.09). A moved office
+    file left every later Save failing (older).
+  - **CLIN amounts.** A redraw turned typing that had been taken back into a write. The drill's sideways scroll reset
+    under the pointer (older). Fund's allocation box was squeezed by its SVC tag (older).
+- **The second review** (on `ba3c294`, of those fixes, `wf_043d393a-75b`): 11 findings, 10 distinct, all confirmed or
+  partly confirmed. All were fixed (`v209-rv2-*`):
+  - **Introduced by the first round:** a re-point with no provenance could land a link on another copy's proposal. The
+    copy's stamp now travels with a copied link, and one rule decides what a link names.
+  - The duplicate check followed one link only; it now follows the chain. An out-year re-rank was not counted. The
+    out-year alert came before the name check.
+  - The office now follows the work: on Put back, on the file's version and on a page saved for an office. The copy as
+    published had the wrong opening line.
+  - **Data loss, older than v2.09:** an opening recorded unsaved work as saved, so a second opening replaced it.
+  - A copy took a board package (older). After a commit, the keyboard could land on another requirement's control
+    (older).
+- **The third review** (on `d3ce17d`, `wf_7212561b-eca`). It was stopped once Brad chose "Fix the regressions only" (his
+  reason: the SFWG reviews every spend plan monthly, from a fresh PMO copy, and will catch duplicates). The two regressions
+  the second round had introduced were fixed (`v209-rv3-*`), and a skeptic re-ran each finding against its fix:
+  - **The keyboard:** after ✕ on an award, a re-dated award, *set to drawn* in the not-drawn list or ✕ on a WBS line, the
+    keyboard went to the next item, and a second Enter changed that item too. A control whose handler names a place is
+    now found again only where that item still stands; otherwise the keyboard goes nowhere. The last two cases are older
+    than v2.09.
+  - **The opening:** opening a newer file only to look at it rewrote this browser's copy. The boot now writes storage only
+    where it has just kept unsaved work aside.
+  The rest is item 129, held for v2.10: same-work matching with two copies out at once, a board-added requirement rolled
+  forward, and two tabs.
+- **Found by the combined proof** (every v2.09 mutation against its own check, on the merged board): one survived,
+  `v209-w2-link-proposal-unresolved`. The first round's end-of-Apply re-point had moved its check away from it. A person can
+  still reach the line, by Put back of a re-point, and that path is now checked.
+
+**Proved with** (27 Oct, on the final board, `8d9ede3`):
+- `npm run check`; every mutation target matches once (2,651 of 2,651).
+- **Every suite, whole:** on `9bc5496`, on `ba3c294`, on `d3ce17d`, and in the nightly on the final tree.
+- **`npm run validate:nightly` on `a4422f3`** (the final board), 12:10–13:18 UTC:
+  - the defect register (13 defects, guarded by 43 mutations), money coverage (24/24), the money map (301 cells: 108 proven,
+    192 n/a, 1 open, as v2.08) and the trace matrix (77 cells, every link holds);
+  - the suites, every one clean (8 banners and the legacy line, 58 minutes);
+  - the fuzz (seed 775343054) and the file verifier's self-test;
+  - the browser stage failed only on layout's 8 D checks, carried since v2.00.
+- **The run before it**, on `8d9ede3`, died out of heap in audit-board (exit 134). v2.09's blocks took that suite past node's
+  ~2 GB default heap on this container, so the chain never reached import or recon. The gate now gives the suites 8 GB
+  (`tools/validate-math.mjs`), as CLAUDE.md already said import and recon need.
+- **Every browser check, on its own, on the final board.** keys, dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer (309 ok)
+  and standards (nothing new) all pass. In the nightly's run, layout fails only its carried D ×8.
+- **The combined proof:** every v2.09 mutation against its own check on the merged board (`recovery/v209/proved-integrated.jsonl`).
+  291 were caught. `v209-rv2-clin-row-unbounded` is declared equivalent, backed by a check that every row control names its
+  requirement.
+
+**Mutations:** 261 new:
+- 153 from the build: W1 31, W2 52, W3 42, W4 28;
+- 57 from the first review (`v209-rv-*`), 42 from the second (`v209-rv2-*`) and 9 from the third (`v209-rv3-*`).
+
+Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
+`recovery/v209/proofs-*.json`, `proved-*.jsonl`). 4 older ones were retired as obsolete and 37 were retargeted. There are
+2,651 targets, each matching once. The mutation sweep was not run (Brad's rule of 20 Oct).
+
+#### The items as logged
+
+#### 125. CLIN amounts cannot be typed with the mouse (Brad, 26 Oct 2026: "Let's review our ability to edit CLIN level data and amounts. At the moment, if I click a requirement amount on a CLIN, it sends me to the panel pop up and I'm unable to edit CLIN requirement amounts.")
+- **What he sees (reproduced in Chromium on main, v2.07, and on the v2.08 branch; the same on both).** He opens a prime's 🧾
+  CLIN drill and clicks a CLIN's Request box, or one of its service boxes:
+  - the RECORD panel slides in, a scrim covers the grid, and the keyboard moves into the panel;
+  - what he types goes nowhere, and the figure does not change;
+  - his next click hits the scrim and closes the panel, and the click after that opens it again. A mouse cannot get into a
+    CLIN amount at all.
+  It happens at every width while the panel slides over (the default since v2.00), and below 1400 px when docked. Reaching
+  the box with the keyboard works, which is why no check saw it: every browser check reaches row fields by focusing them,
+  never by clicking.
+- **Why.** The drill sits inside the row, as the row rule says it should. Every click in a row selects it (the delegate
+  beside `setCur`), and selecting opens the drawer (`drawerOpen`), which takes the keyboard. Buttons that redraw the board
+  escape: their element is gone before the click reaches the delegate.
+- **The same defect elsewhere (not reported, same cause):** the row's rank box (Review and Rank), the Fund mode allocation box,
+  a CLIN's RCN / EEIC pickers, and a cancelled prompt or confirm from any drill button (the panel slides over).
+- **A second defect behind it (found by the review of the investigation).**
+  - Type a figure, then click the next box: the change redraws the board under the pointer, and the box clicked is gone. So
+    every second figure typed by click-to-move is lost, and a drill button pressed after typing does nothing. This happens on
+    every layout, docked at 1920 included.
+  - **Money:** a redraw while a box is half typed commits the half figure. On the Fund allocation box a test moved
+    $1,807,894 to $12 while the box still showed the old figure. A Live view tick redraws every 30 s by default. v2.08's F2
+    hold covers the RECORD panel only, not the rows.
+- **Two routes into the drill open it wrong.** The edit box's *Open the 🧾 CLIN drill…* (`erGo('clin')`) draws it under the
+  drawer and its scrim. The Classify grid's prime WBS button (`toggleClin`) toggles it behind the still-open Classify box, so
+  a second press closes it.
+- **Brad's decisions (26 Oct):**
+  - **The Request and the grid stay independent**, as today. A CLIN's requested amounts and its by-service allocation grid
+    are two sets of figures; *vs request* shows the gap.
+  - **A request per service, typed directly.** Each CLIN gets its requested amount by service, typed into its own boxes. The
+    allocation boxes stay beside them as a separate set. The board already stores a CLIN's request by service (`c.ask[j]`);
+    the drill only offers a total today, spread in the line's shape. A new CLIN's total was spread evenly over all six
+    services, so a USAF-only prime got STOVL, USMC CV and USN dollars (reproduced).
+  - **Show the prime's requirement value, never enforce it.** The drill's foot gains a *Requirement value* row and a
+    difference by service, for information only. On the test board the CLINs totalled $510,000 against a $4,109,485
+    requirement, and nothing said so. The CLIN grid still feeds no funding math.
+  - Taken as the portfolio board only, as I said when asking: the drill stays read only in a PMO copy (v2.08 F6, Brad's
+    decision of the same day).
+- **Proposed.**
+  1. **A click on a control is using the control, not choosing the row.** The delegate selects the row quietly (no drawer, the
+     keyboard left where the click put it) when the click lands on a control, or anywhere in the CLIN drill. A click on the
+     row itself (title, quiet line, empty space) still opens the RECORD panel, as the guide says. Keyed on what the mousedown
+     focused, plus `.clin-detail`, rather than a hand-kept list of tag names. This one change fixes the rank box, the
+     allocation box, the RCN / EEIC pickers and the cancelled prompts as well.
+  2. **The pressed control survives the redraw.** The redraw keeps the control a pointer pressed: after the whole redraw (the
+     RECORD panel included), the keyboard goes back to its new copy, and a press on a button is delivered once. v2.08's
+     office cell (`selNavBlur`, `_selPtrDown`) is the pattern; it is generalised rather than a third one added. The field
+     just left never gets the keyboard back (the v1.92 rule).
+  3. **A redraw while a row figure is half typed commits nothing** (F2's hold, extended from the RECORD panel to the rows).
+  4. **Both routes into the drill close what is over it,** open the drill (never toggle it), scroll it into view and put the
+     keyboard on its first box. A closed sliding drawer is only moved off screen, so focus must never be left in it.
+  5. **A request per service:** each CLIN line shows its requested amounts by service as their own boxes (writing
+     `c.ask[j]`), with the line's request total read from them, and the allocation boxes beside them. The layout is the
+     build's to settle, measured in Chromium at 1366 and 1920 (`npm run layout`).
+  6. **The foot:** *Requirement value* by service and *Requirement − CLIN requests* by service, informational.
+- **Found on the way, proposed to fix with it:**
+  - **Whole dollars.** ↓ Fill from row stores fractions in the grid (33.333333333333336), and ↑ Apply grid to row writes the
+    unrounded sum into the row allocation (6.999999999999999). The engine reads them through `D$`, so no figure moved, but
+    the store breaks the whole-dollar rule. Both go through `apportion`.
+  - **A new CLIN's grid** is captured at $0 the first time anything reads it (`clinVec` writes on read), so *vs request*
+    reads the whole request short until ↺ Reset. Proposed: a new CLIN's grid starts as its first request, then stays
+    independent (Brad's rule).
+  - **In a v2.08 PMO copy the drill's WBS button is not dimmed.** It opens a panel where every write is refused. It is dimmed
+    with the rest.
+  - **The ⋯ menu's close handler** redraws before the row delegate runs, so the first click into the drill while any row's ⋯
+    menu is open is eaten too.
+- **Checks to add:** a Chromium check that clicks every recorded row and drill control with a real pointer, types, and reads
+  back what was stored, in sliding and docked layouts at 1366 and 1920. It stands its own prime up in the page, as
+  `standards-check.mjs` does, without changing the shared fixture. Plus click-then-type-then-click, a redraw while half
+  typed, and both routes into the drill. A mutation on each part.
+
+#### 126. A PMO copy adds and edits requirements in every year of the FYDP (Brad, 26 Oct 2026: "For the PMO Copy, I need them to be able to add requirements for the base year plus four years. Right now, if the base year if FY28, I cannot add requirements to FY29-FY32. I need the PMOs to be able to add requirements in those years.")
+- **What he sees (reproduced in Chromium on main and the v2.08 branch).** In a copy published from FY28, the Fiscal year menu
+  offers FY28–FY32 and switches to any of them, but:
+  - **Add requirement does nothing.** The message line shows a cut-off *⚠ This copy was publis…*. Opened, it says a
+    requirement added here could never be sent. That is `arCopyOtherYear`, added in v2.07.
+  - **Submit input refuses** on any year but FY28 (v2.06's review fix).
+  - **Edits to existing FY29–FY32 requirements are lost without a word.** The copy keeps them, but no Submit sends them.
+    Only v2.08's edit box warns.
+- **Why.** A copy is built for one year. Its baseline (`mode.base`), its office rankings (`mode.ord`) and every reader of them
+  (`pmoProposalIds`, `pmoHomeOf`, `pmoRankBuild`, `pmoSubmitBuild`) describe the published year only. The copy does hold
+  every year's plan. Lifting the two gates alone, which the investigation forced, sends fields the office never touched,
+  drops requirements whose office differs by year, and duplicates requirements the board added in an out-year (counted
+  twice once accepted).
+- **Defects found that are reachable today** (no out-year submit needed: a copy published from another year does it):
+  - **`pmoTake` drops a valid submittal.** It judges an office's rows by the office in the year on screen, not the year the
+    package is for, and says it *proposes nothing on PSM's own requirements… Nothing was loaded*.
+  - **The review and the change report read the year on screen** (`pmoNow`, `pmoReport`). An FY30 package taken while FY28
+    is on screen shows FY28's figure as *On the board now*, under an FY28 title.
+  - **A second submittal from one office replaces the first**, whatever year each is for.
+  - **The count after Apply is wrong.** It includes rows already accepted and rows whose requirement is gone.
+- **Brad's decisions (26 Oct):**
+  1. **Add and edit in every year of the FYDP.** New requirements, and edits to the requirements already in those years (value,
+     narrative, impact, record fields, the office's own ranking), each sent against that year's own state at publication.
+  2. **All five years are offered.** A year the portfolio board had not started when the copy was published opens blank in
+     the copy, for new requirements only. At review, the team is asked to start that year (roll forward or blank) before
+     anything applies to it.
+  3. **One file per office, covering every year.** The board splits it by year when it is loaded, and the review groups the
+     changes under each year.
+  4. **Apply puts every ticked year's changes into their own years at once,** with a confirmation naming each year and how
+     many changes go into it. This replaces v1.95's rule (item 52) that Apply writes only into the year on screen; its
+     mutations are retired or retargeted with a note.
+  5. **A requirement that recurs is added one year at a time.** In each out-year, the Add box's *From another year* brings it in
+     as a separate requirement linked to the one it came from (the v2.06 rule). In a copy, Roll forward and Copy and Move to
+     year are switched off: they make duplicate ids, which counted a requirement twice once the board rolled it forward
+     (reproduced). *Proposed with it, not asked:* Roll requirements forward, Set base year and Reset year off in a copy too,
+     since each reshapes what a year's baseline describes.
+- **Proposed.**
+  - **Publish:** a baseline and the office rankings for every FYDP year (`mode.yb[fy]`, `mode.yord[fy]`), each built from that
+    year's own state; the published year keeps `mode.fy`, `mode.base` and `mode.ord`. `PMO_PV` stays 2: it is the field-set
+    version, and raising it would read today's copies as the old eight fields. A copy with `yb` is a five-year copy; one
+    without stays one year.
+  - **In the copy:** Add and the edit box allowed in every year with a baseline; the readers take a year and read that year's
+    baseline and state. Proposal ids are unique across the copy's years (one copy-wide count), so two years' proposals never
+    share an id. The banner names the years the copy submits for.
+  - **Submit:** one ✉ Submit walks every year. The required-field gate and the *not sent* messages run per year, naming the
+    year. The package carries a section per year (items, base, added, rank). Every proposal carries its year. The package
+    carries the build, so a v2.08 board refuses it whole through the import check's newer-build rule, rather than reading one
+    year of it.
+  - **At the board:**
+    - The import check and the services guard walk every year's figures.
+    - `pmoTake` holds each year's changes for that year and judges office scope in that year.
+    - The review and the change report read each year's own state, under that year's title.
+    - Proposal provenance carries the year.
+    - Apply asks to start any year the board lacks, then applies every ticked year (decision 4).
+- **Before v2.09 ships, tell the offices.** Out-year edits typed in copies already published cannot be sent, by today's board
+  or by v2.09: each copy's browser storage is sealed to its own publish stamp, and a new copy cannot read it. Offices should
+  hold out-year work until the v2.09 copy, or keep their own note of it to re-enter.
+- **Risks to measure:** the copy file grows by a baseline per year (measured on a 115-requirement board in the build). The
+  board must be on v2.09 before any v2.09 copy is published, since a v2.08 board refuses the new package.
+- **Checks to add:** the round trip end to end in jsdom, on a board with base FY28 and plans in FY28–FY32:
+  - an FY30 add and an FY31 edit, from one office, in one file;
+  - a year the board had not started;
+  - an office that differs by year;
+  - a requirement the board added in an out-year (never sent back as the office's);
+  - two years' proposals that would have shared an id;
+  - the scope at take;
+  - the review and report per year;
+  - Apply across years;
+  - a v2.08 board refusing the file.
+  The fuzz's PMO trip gains out-years. A mutation on each part.
+
+#### 127. Save in a PMO copy (Brad, 26 Oct 2026: "For the PMO Copy, I need a save button at the bottom left of the menu bar above the Submit button. They need the ability to be able to save and come back to it later to rework their file.")
+- **What is there today.** A copy's foot has one button, ✉ Submit input. Save, Save a copy and Ctrl+S are refused
+  (`sandboxBlock`). The office's work lives only in that browser's storage, under a key sealed to the copy's publish stamp.
+  On another machine, another browser, or after site data is cleared, the copy opens as published.
+  - If that storage refuses (a private window, a full quota), the work is lost on refresh, and the message points at the
+    Save that is refused (`persist`, `lsSet`).
+- **Brad's decisions (26 Oct):**
+  - **One file per office.** "They operate out of one PMO Copy. They can save and make edits, but submit one full five year
+    plan." Each office works in its own copy file. Its first Save makes a new file named for the office. Later Saves write
+    over that file, which holds the office's five-year plan until it submits.
+  - **Save in place, plus Save a copy.** Save writes over the office's own file and asks where the first time. The ▾ beside it
+    offers Save a copy as a download, which is also the fallback where the browser cannot write in place (Firefox).
+  - **The file remembers the office, not the person.** Reopening adopts the office the file was saved for, shown in the banner,
+    and Submit refuses a different office. The editor name stays per person, because the submittal records who sent it. Two
+    people in one office may take turns in one file; Save asks before writing over someone else's newer save.
+- **Settled by the code and the rules, not asked:**
+  - The button is **Save**, above **✉ Submit input**, which stays the primary button.
+  - Ctrl+S is Save, as on the board (`uiSaveKey`).
+  - **The board refuses a PMO copy file at every import door** (below).
+- **Why it cannot reuse the board's Save (each reproduced):**
+  - The save-file handle cache (IndexedDB `prio-fh`) is keyed by the board's own file name, and every `file://` page in
+    Chromium shares it. A copy opened in the portfolio team's browser would find the board's own file. The first-save
+    picker would suggest the board's name too.
+  - The copy carries the board's writer record. On the board's own machine it reads as *me*, and one "overwrite anyway"
+    turned the board file into a copy. On an office machine it refuses: *BLL holds the pen*.
+  - One published copy serves every office, so saving over *the file they opened* would write one office's work into
+    everyone's. The next office's submittal then carried it under their name (reproduced).
+- **Proposed.**
+  1. **`pmoSaveCopy()`, in a copy only.** It runs through `saveSerial` and builds the bytes with `buildSavedHtml`. It refuses on
+     a locked view and while a stopped import holds. The copy's publish mark (`pubMode`) is never touched. That keeps the
+     storage keys, the publish stamp and the Submit baseline exactly as published (proved: a saved copy reopened with empty
+     storage gives back the same work and the same Submit package).
+  2. **Its own handle,** kept under a key for this copy and office, never the board's file name.
+  3. **The target check.** The first Save always goes to a new file: the picker suggests *<title> — PMO COPY — <office> —
+     <date>.html*, never the board's name and never the file opened. After that it writes only onto a file this copy (same
+     publish stamp) saved for this same office. The published copy, the board, another office's file or another copy's file
+     is refused, and the handle is forgotten. The office mark sits in the saved state, not in `pubMode`.
+  4. **On the write,** the work is marked saved exactly as the board's Save does it (`LASTKNOWN`, the base, `DIRTY`, the side
+     lists). The writer record is never consulted. A download marks nothing saved, as on the board, and the build proves the
+     two-machine round trip does not hit the occupied kept-aside slot.
+  5. **The foot:** Save above ✉ Submit input, the save state under it (*Saved 3:14 PM* / *Unsaved changes*), and the ▾ offering
+     Save a copy. The left menu's one-home map (`npm run leftmenu`) and the 1366 × 657 layout are re-measured; the copy's
+     menu already scrolls there.
+  6. **The words that say Save is off change with it:** `sandboxBlock`, the copy's greeting, Submit's title, the storage-refused
+     messages, and the guide's *💾 Save says it is turned off* and *reopen the same file in the same browser*.
+- **The board side, built with it (data loss; on main today).** Brad, 26 Oct: *"Import of a PMO Copy can only be through the
+  PMO import screen."* The PMO import screen (Program offices › Review submittals and the loads beside it) takes only the
+  office's ✉ Submit input file (`.json`), and that stays the one door for an office's work. Today nothing stops a PMO copy's
+  `.html` going through the board's other doors instead, and the board enforces the rule:
+  - **⬅ Import a full board of a PMO copy destroys the board's locked cycles** and rolls every other appropriation back to
+    the copy's publish date (reproduced). The copy carries cycles as projections only, and the import takes them as the
+    locks. Once offices hold saved copies, one will be sent instead of a submittal. Every board import door other than the
+    PMO import screen refuses a file that is a PMO copy, names the office, and says to bring in its ✉ Submit input file on
+    the PMO import screen.
+  - **The board's own Save refuses to write over a PMO copy file,** as it already refuses a file that is not a board. A
+    saved copy is a board-shaped file next to the board, and one HOLD ON that does not say *PMO copy* is all that stands
+    between them.
+- **Found, proposed:** a copy shares four browser-storage keys with the board in one browser (`prio27execdb`, `prio27acedb`,
+  `prio27buddb`, `prio27reprog`; the plan, cycles and destinations are already sealed to the copy). A copy opened in the
+  portfolio team's browser reads and writes the board's lists. Proposed: seal them to the copy the same way.
+- **Checks to add:** in jsdom, save, then reopen with empty storage (the same work, the same Submit package), the target
+  refusals one by one, the office adopted and a mismatch refused, two people in one office, and the board's import doors and
+  Save refusing a copy. In Chromium, the foot, the picker's name, the handle kept apart from the board's, and keys and
+  layout. The checks that pin today's *Save is off in a copy* behaviour are rewritten on purpose (audit-import's v1.84 copy
+  block, `left-menu.mjs`'s copy menu, `menu-paths`), with their mutations retired or retargeted (`copy-save-state`,
+  `copy-save-button`, `copy-file-menu`, `copy-boot-line`, and `pmo-gate-open` kept).
+
+#### 128. The SI tab lists the requirements under each SI code (Brad, 26 Oct 2026: "For the Excel Workbook export, the SI tab needs a new area below what we already have that shows the requirements and amounts allocated by SI. I need an EN section that shows each requirement assigned to EN and then the amounts for STOVL, USMC CV, and USN.")
+- **What is there today (the same on main and the branch).** *SI Codes by Month* is one block per service (STOVL, USMC CV,
+  USN): a row per SI code with money on that service, spread by month, then NO DATE and TOTAL, a roll-up and a note. No
+  requirement appears on it. A prime sits inside its code's row, and an EN requirement that drew nothing appears nowhere.
+  The section has never been built: `monSheet`'s requirement breakout is switched on for the RCN-EEIC tab only, and it is
+  laid out service by service.
+- **Brad's decisions (26 Oct):**
+  - **Every code**, in the tab's order: LA, EN, OT, FL, AT, then the requirements with no SI code (or no recognised one, under
+    the tab's own label). Every STOVL / USMC CV / USN dollar on the tab then sits on exactly one requirement row.
+  - **The figure is funded:** discretionary + mandatory drawn, the dollars the tab's months already spread, NO DATE included.
+    It follows the ◨ discretionary-only view with the rest of the tab. The columns are headed by service with *funded* in
+    the heading, never *Allocated*: that word already means the allocation on the Unfunded Requirements sheet.
+  - **The requirement value beside it,** per service, in separate columns that never enter a total. **Every requirement asking
+    on STOVL, USMC CV or USN is listed,** an unfunded one at $0 funded.
+  - **A prime is its row, then a line per CLIN:** the whole-dollar `clinSplit` parts, adding to the prime. No tab shows a
+    prime's STOVL / USMC CV / USN money by CLIN today; the RCN tab's CLIN lines cover USAF, ANG and AFRC only.
+- **Proposed.**
+  - **Layout.** Below the roll-up and its note: a title row, then for each code a heading and one row per requirement in board
+    priority order, its master rank printed (the RCN breakout's precedent). Each row carries funded STOVL, USMC CV, USN and
+    total, then the requirement value for each. A prime's CLIN lines sit under it.
+  - **Totals.** A TOTAL per code, whose three figures equal that code's row in each service block above. A grand total equal
+    to the tab's roll-up, since every code is shown.
+  - **Built as a pivot of the pass that already fills the tab's rows** (`bag[g][k].its`), never a second walk, so it ties to
+    the rows above by construction. Listing requirements that drew nothing needs the breakout's `pend` path, and keeps the
+    tab when asks exist with nothing funded (as the RCN tab already does).
+  - **The rest of the tab is unchanged.** The section's labels avoid *<SVC> TOTAL* and *— TOTAL BY MONTH*, which existing
+    checks count, and it leaves the rollup's TOTAL column empty. The RCN-EEIC tab is byte-identical.
+  - **Scope.** An Air Force-only requirement carrying EN by the PP rule is out of scope, as the tab and the Special Interest
+    overview already treat USAF, ANG and AFRC money.
+- **Found on the way, proposed to fix with it.** The Special Interest overview's note and the 1A9A's status line tell the
+  reader to set an SI code from the row's ⋯ menu, which has had no SI entry since the record fields moved to a panel. On the
+  branch the code is set in the edit box. The Needs attention text for an unrecognised code says Go to opens the RECORD
+  panel; it opens the edit box. Two audit-recon U41 assertions quote the old words and change with them.
+- **Checks to add:** the section read back from the workbook's bytes:
+  - every requirement and code row adds across (the generic row-close rules cannot see a three-service section);
+  - each code TOTAL against the rows above, and the grand total against the roll-up;
+  - the requirement value in no total; an unfunded requirement listed at $0; a prime's CLIN lines adding to it;
+  - under ◨, which rows are present as well as their figures;
+  - the RCN tab unchanged;
+  - all on a Split fixture with a ▲ not drawn line, so the funded and allocation readings disagree.
+  `v200-u41-workbook-label` is retargeted, the money map registers the section, and a mutation guards each part.
+
+### v2.08 — 26 Oct 2026: a requirement's whole record edited in one box, the seven defects found mapping it, the security review kit refreshed -- built on Brad's "Go on v2.08" of 26 Oct
+
+Item 122 was built as Brad decided it (D1–D12, "Agree on all, D9 retire the rename"). The defects F1–F7 and the absorber were
+built with it ("build them with 122 in v2.08", F6: "lock the drill"), and item 123 too ("Go on 123"). Where the build differs from
+the log, or had to decide something the log does not say, it says so here.
+
+- **Built as decided:**
+  - One box, `#editPanel`, replaces 📋 Requirement edit and the ⚠ and 📄 pop-ups (D2). It holds the record fields, never the
+    money (D1, D4).
+  - It opens from the RECORD panel's buttons, Needs attention's Go to and the PMO hint (D3).
+  - The required list warns and never blocks (D5). The 📋 button counts the same list (D11).
+  - Each edit is a held draft with one Save, which writes only what changed through one writer, `reqApply` (D6).
+  - In a PMO copy, the box says up front when an edit will not be sent (D7).
+  - The office can be changed, after a question naming what follows (D8).
+  - The record title is read from the CCaR records list, and the row's ⋯ *Rename the CCaR record name* is retired (D9).
+  - When Goes to stops being a government activity, Which awards to and the MIPR type go with it (D10).
+  - The defects F1–F7 and the absorber are built as `recovery/v208/ITEM-122-BRIEF.md` §5 has them. Each was reproduced on v2.07
+    by `recovery/v208/repro/found-on-main.mjs`, which reads PRESENT on v2.07 and GONE now.
+- **Decided in the build, not asked:**
+  - **D12, Brief.** Needs attention's Go to, and every other way in, does not open the box in Brief. It says "Presentation
+    view — requirements can’t be edited here. Switch to Review to edit". Brief's own label says nothing is edited there, and
+    opening an editor would make the label untrue. In every other mode Go to opens the box at its field.
+  - **Cancel** discards what the box holds, as it says. **Esc** and **✕ Close** discard it too, but ask first when something
+    was typed. A box with nothing typed closes without a question.
+  - **A value the box's lists do not hold is kept as saved.** It is offered as itself, marked, and Save leaves it alone. This
+    covers an obligation category, a Goes to, an RCN / EEIC, and a service's own RCN / EEIC that came from a file, a submittal
+    or an older build. Read as *not set*, Save deleted it.
+  - **The Navy SI code can follow the rules.** With no code stored, the picker reads *follows the PMO and prime rules*. A code
+    chosen, and *none*, are stored as before. Choosing *follows the rules* again deletes the stored one.
+  - **The WBS for a prime, or one split by service,** is shown in the box with a way to its own editor (the CLIN drill, the
+    WBS panel), not edited there.
+  - **Ctrl+S with the box open** saves the board as it stands, without what the box holds: the box is a held draft until its
+    own Save (D6).
+- **Found by three independent reviews before the PR was marked ready, and fixed.** The reviewers covered the box, the defect
+  fixes, and data, money and submittals (26 Oct). Each finding was re-run by a skeptic trying to refute it
+  (`wf_cc204adf-d52`). Every one fails on 65cc26a:
+  - Save erased a stored value the box's lists did not hold (above).
+  - A WBS typed after Prime → OGC was not saved.
+  - Goes to was written in a different shape from `setDest`'s, which gave phantom review rows and conflicts (the root, a
+    review that compared fields as stored, was found by the second review: below). A Goes to edit made an empty MIPR
+    container; put back from the journal, that would have deleted every MIPR type set since.
+  - A second hop hidden behind a prime came back when its Goes to became a government activity through Classify (older than
+    v2.08). It was also counted as a destination in use.
+  - F5 at the board's end: the review read only `S.titles`, so a board-added requirement renamed on both sides showed no
+    conflict.
+  - A requirement restored in a copy was dropped at Submit without a word (older than v2.08).
+  - Classify: the new per-service RCN / EEIC bulk reached rows that do not offer it. The office cell moved a requirement on an
+    arrow key (older than v2.08). It also moved a copy's own proposal, which Submit then withheld.
+  - WBS from execution data in a copy counted CLIN lines it could not write.
+  - Clearing a CCaR record that came from the file said *saved* and changed nothing.
+  - ↑ prev / next ↓ left the box controller's snapshot on the first requirement.
+  - The SI picker went stale after an office change in the box.
+  - F2 in Chromium put typed text back over a value already committed.
+  - Each has a check and a mutation (`v208-rv-*`).
+  - Of the 16, F13 is older than v2.08 and is logged as item 124, not built.
+- **A second review, of those fixes** (26 Oct; three reviewers on the submittal path, the box, and money and Classify, each
+  finding re-run by a skeptic, `wf_f7756a59-8e9`: 11 confirmed, 2 partly, none refuted), all fixed. Each has a check that fails
+  on `3898d95` and a mutation (`v208-rv2-*`) or, where only a browser can see it, a Chromium check:
+  - **A Goes to or a WBS both sides agreed on was offered as a conflict.** The review compared them as stored, and `{to:'lm'}`
+    differs from `{to:'lm', end:''}`; the first round's fix moved the box to `setDest`'s shape and exposed it. The root is
+    older than v2.08: `setDest` and the WBS panel did the same. The review now compares each field as it is read
+    (`pmoBare`), and an accepted Goes to is written in `setDest`'s shape.
+  - **A rename sent by a copy older than v2.08 never settled.** Such a copy cleared an added requirement's override and sent
+    null. Compared with the event the board reads, the row came back after every Apply as a conflict nobody made. It is now
+    compared with the override alone.
+  - **Classify's bulk office in a copy counted the copy's own proposal as moved**, in the question and the status line, though
+    the first round had made it stay. The proposal is now left out and counted as left alone.
+  - **Put back of a rename in a copy could land on another added requirement.** The first round wrote an added requirement's
+    rename into the item, so the journal filed it by its place in the added list. After a delete above it, Put back renamed
+    the next one, and Submit sent that name. A rename is now an override filed by the requirement's id, for every requirement.
+  - **F2 no longer held the typing in Chromium.** The browser fires change on the focused field as the redraw removes it.
+    That committed the half-typed figure; the panel drew the old figure; the keyboard fell to the page; and the rest of the
+    typing was lost. The held field's handler is now taken off for the redraw (`npm run keys` P).
+  - **An arrow key in Classify's office cell swallowed the next click.** The office was chosen on the click's mousedown, and
+    the redraw took the clicked control away. The office is now chosen after the click, and a press on the cell lets a mouse
+    pick choose at once (`npm run keys` Q).
+  - **A CCaR record typed over the file's could not be cleared** back to the file's. The status line now says when it is,
+    and typing the file's own record back leaves no override.
+  - **The SI code:** a pick that the PMO and prime rules give anyway, made with no code stored, was counted as a change and
+    said to be saved. It is now no change.
+  - **The record name's source:** a prime named by its CLINs' record read "from the file". It now reads "from the CCaR
+    records list".
+  - **The RCN / EEIC note** under the field kept naming the stored combination. It now follows what the box holds, service by
+    service.
+  - **"The value and budgets, in the RECORD panel…" after ↑ prev / next ↓** opened the requirement the box had first opened
+    on. It now opens the box's own requirement.
+  - **A kept value's option** carried its explanation, which a closed select cannot wrap, so the value was cut. It now reads
+    "(kept)", with the explanation on hover; `npm run layout` N measures the box holding kept values.
+- **Found by the layout check written for the box, and fixed:** at 1366 × 657 the box ran about 160px past the window, so its
+  middle scrolled. The written fields are now 68px and 42px and can be dragged taller. The required list has two columns, as
+  the Add box's does. `npm run layout` N holds the box whole at 1366 × 657 and 1920 × 969, in Harbor and Midnight, in both
+  fonts, and one column below 1366.
+- **Not changed, on purpose:** a record name typed before v2.08 stays stored and shows (D9: nothing deleted). Classify is
+  still the many-requirements editor. A copy published before v2.08 still sends the plan event the old way (the review
+  excepts it).
+
+**Item 123** is as logged under it below; it needed no board change. Once the v2.08 board was final (`f416366`, after the second review), the guide
+was brought from v2.07 to v2.08:
+- every line citation was moved with the diff and checked against the function or banner it names;
+- the edit box was added to the map: where it draws stored text, through `esc()`, and that its handlers carry no board value;
+- `review/sinks.csv` was regenerated: 575 rows in 263 functions;
+- `review/builds.json` gained a v2.08 entry naming `f416366`, the branch commit that carries this board file. After the merge
+  the entry can name the merge commit instead; the fingerprint is the same if the file is byte-identical.
+
+`review:which` names v2.08 for the board, and for a saved board, a PMO copy and a one-appropriation board written by it.
+
+**Proved with** (26 Oct, on the final board, `f416366`):
+- `npm run check`; every mutation target matches once (2,394 of 2,394).
+- `npm run validate:nightly` on `8d81b2e`, 15:07–15:53 UTC:
+  - the defect register (13 defects, guarded by 43 mutations), money coverage (24/24 surfaces), the money map (301 cells:
+    108 proven, 192 n/a, 1 open, as v2.07) and the trace matrix (77 cells, every link holds);
+  - the fuzz (seed 875937630) and the file verifier's self-test;
+  - boot-same and the export, other and board suites passed. The import suite failed one check: the v1.84 block still
+    expected an accepted Goes to stored with `end:''`, the shape the second review's fix stopped writing. The expectation
+    was updated, and the chain's rest was run on its own: import whole, then recon, legacy, hostile, inject and ui. All
+    passed. The blocks `prove.py` ran clean had not included v1.84's; only a whole suite reaches every expectation;
+  - the browser stage failed only on layout's 8 D checks, carried since v2.00.
+- Every browser check, run on its own: controls, inspector, toolbar, editors, colours, menus, panels, frames, hostile,
+  csp, layout (A–N, only the carried D ×8 failing), keys (P and Q new), dropdowns, dialogs, leftmenu and standards
+  (nothing new).
+- The browser-only fixes, by hand mutant in Chromium, each failing the check aimed at it and nothing else: Classify's
+  office cell choosing at once (keys Q, the two clicks); without the cell's `onmousedown` (keys Q, the mouse pick); the
+  F2 handler left on, or the hold dropped once `__pend` is cleared (keys P); the kept option's long text (layout N).
+
+**Mutations:** 86 new: 41 from the build (`v208-f*`, `v208-absorb*`, `v208-122-*`; a 42nd was retired in the review), 29 from
+the review (`v208-rv-*`) and 16 from the second review (`v208-rv2-*`). Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
+`recovery/v208/v208-proofs.json`, `v208-proved.jsonl`). 9 older ones were retired as obsolete, each with a comment where it
+stood: the pop-up, `FLD_DEF`, `recBody`, the PID prompt and the record-name pen went with item 122. 17 were retargeted.
+2,394 targets, each matching once. The mutation sweep was not run (Brad's rule of 20 Oct).
+
+#### The items as logged
+
+#### 122. Edit the whole record in one box (Brad, 24 Oct 2026, kept from item 121: "Edit the whole record later as its own item")
+- **Asked:** item 121's box builds a requirement's whole record when it is added; editing one afterwards still means the RECORD
+  panel, 📋 Requirement edit and the written-field pop-ups.
+- **What is there today (v2.07):** the Add box (`#addPanel`) reads its required list from `reqNeeds()` and writes through
+  `reqCreate()`; nothing edits an existing requirement through it.
+- **Proposed:** the decisions D1–D12 of `recovery/v208/ITEM-122-BRIEF.md` §3, each with a recommendation.
+- **Brad's decisions (26 Oct 2026: "Agree on all, D9 retire the rename"):**
+  - **D1** the record fields: everything 📋 Requirement edit holds, plus plan event, CCaR, PID, description, note, impact
+    statement. Value by service, BAE budgets, band, ★, awards and Planning stay where they are.
+  - **D2** the box replaces 📋 Requirement edit and the ⚠ and 📄 pop-ups; the RECORD panel's three buttons stay and each
+    opens the box at its own section. Classify stays the many-requirements editor.
+  - **D3** it opens from the RECORD panel's buttons, Needs attention's Go to and the PMO hint (`pmoReassignHint`); not from
+    the row's ⋯, not by double-click.
+  - **D4** no money in the box: neither the value by service nor budgets.
+  - **D5** required fields warn (a rail from `reqNeeds`), never block; the value and budgets marked "set in the RECORD
+    panel" with a way there. A copy's proposal is still held at Submit.
+  - **D6** a held draft, one Save, only the changed fields, one `save()`; Esc asks first; Save refuses if the requirement
+    was removed or changed meanwhile.
+  - **D7** the same box in a PMO copy, saying up front when an edit will not be sent (another office's requirement by
+    `pmoHomeOf`; a year the copy cannot submit).
+  - **D8** the office is editable, applied on Save after a confirm naming: this fiscal year only; last in the new office's
+    ranking; N budget choices that name the old office become unusable (and a funded one stops the Spend Plan Source until
+    picked again). Refused for a requirement the copy itself added.
+  - **D9** the record title is read-only from the CCaR list, **and the row's ⋯ "Rename the CCaR record name" is retired.**
+    Record names already typed stay stored and keep showing; nothing is deleted.
+  - **D10** when Goes to stops being a government activity, Save (and `setDest`) clears Which awards to and the MIPR type.
+  - **D11** the 📋 button's "not set" count reads `reqNeeds`.
+  - **D12** Brief: test whatever Needs attention's Go to does there (it opens the box under D3).
+- **Built with it in v2.08 (Brad, 26 Oct: "build them with 122 in v2.08"):** the brief's §5 defects, reproduced on v2.07
+  by `recovery/v208/repro/found-on-main.mjs` (every one PRESENT, 26 Oct):
+  - **F1** clearing the band leaves the impact statement.
+  - **F2** the pop-ups go with D2 and the box is drawn once; the RECORD panel's own figure fields keep typing across a
+    redraw.
+  - **F3** `setGrp` does nothing when the office is unchanged; Classify's bulk office set skips rows already set.
+  - **F4** D10 from now on; for boards already saved, readers ignore Which awards to and the MIPR type unless Goes to is a
+    government activity (nothing deleted). An entry in `math-defects.json`.
+  - **F5** a PMO copy sends the plan event of a requirement the portfolio board added (the record-name rename is retired
+    under D9).
+  - **F6** (Brad: "lock the drill") the CLIN drill is locked in a PMO copy, saying why its edits are not sent.
+  - **F7** `matBulk` entries keyed by field key, not label.
+  - and `setAbsorber` / `setAbsorbFloor` refused in a PMO copy (`allocLocked`).
+  Each with its own check failing on v2.07 first, and mutations.
+
+#### 123. Refresh the security review kit for the current board (Brad, 26 Oct 2026: "Yes, log it for v2.08")
+- **Logged:** 26 Oct 2026. Brad's decision: keep `claude/security-review-kit` (`b6f1ffc`, 7 Oct) as it is, not merged and not
+  deleted, and refresh it for the current board in v2.08. The branch stays the record of what his security team was given.
+- **What it is:** the kit built for v1.99 (on `6de4432`), no board change. `SECURITY-REVIEW.md` is a reviewer's guide with no
+  findings; those are in the owner's private annex, which cites the guide's line numbers. `tools/review/` has four tools, all
+  Node built-ins, run by four `review:*` npm scripts:
+  - `fingerprint.mjs`: the code fingerprint a saved board keeps.
+  - `which-build.mjs`: names the release behind any board file, from `review/builds.json`.
+  - `sinks.mjs`: every place text becomes page markup, written to `review/sinks.csv`, with no verdicts.
+  - `bundle.mjs`: the style, markup and script at their board line numbers, with a manifest of hashes.
+- **Why not merge it as it is** (measured 26 Oct on v2.07, `f508fdb`): the guide is wrong about today's board in ways a
+  security reader would act on.
+  - It says the file sets no Content-Security-Policy; v2.04 added one.
+  - It describes Confluence (15 mentions) and SharePoint (22), removed in v2.04, and the PowerPoint template, removed in v2.05.
+  - Its line numbers are v1.99's: 31,333 lines then, 35,029 in v2.07.
+- **The tools still run on v2.07:**
+  - `fingerprint.mjs` prints its three fingerprints.
+  - `which-build.mjs` answers "UNKNOWN BUILD: not a reviewed release" (exit 1). That is correct: only v1.99 is in
+    `builds.json`.
+  - `sinks.mjs` finds 572 rows in 261 functions (537 rows at v1.99).
+  - `bundle.mjs` writes its files and lays them back over all 35,029 board lines, then reports a PROBLEM: there is no
+    `TPL_PARTS` left to unpack.
+- **Proposed**, on a branch from `main`, merged on Brad's go:
+  - Rewrite `SECURITY-REVIEW.md` for the current board: the CSP and what it refuses; the shared folder as the only
+    transport; the AI review's hand-carried request and answer; v2.00's escape-where-drawn and the import door's key rules;
+    places named by the `// §NN` banners rather than line numbers alone; today's threat model.
+  - Add v2.07 and each later release to `review/builds.json`.
+  - Drop the template step from `bundle.mjs`.
+  - Regenerate `review/sinks.csv`.
+- **Why now:** `which-build.mjs` lets anyone prove which release a saved board file holds. That is evidence for the OCIO
+  package (6 Nov) and for the security team's open questions (`recovery/v208/HANDOFF.md` §6, E1 and E4).
+- **Brad's call:**
+  - whether the refreshed guide goes to the security team as a new version, and whether their annex is refreshed with it;
+  - whether `which-build.mjs` joins `npm run check` or the nightly, so a release is added to `builds.json` as it ships.
+- **Built on branch `ccr-0b15d8d5-ypf61n`, 26 Oct 2026, awaiting Brad's go to merge** (Brad: "Go on 123"). No board change, no
+  BUILD bump. `claude/security-review-kit` (`b6f1ffc`) is left untouched as the record of what the security team was given.
+  - The kit's files brought across from `b6f1ffc`: `tools/review/` (four tools and `lib.mjs`), `review/builds.json`,
+    `review/sinks.csv`, the four `review:*` npm scripts and the two `.gitignore` lines.
+  - `SECURITY-REVIEW.md` rewritten for v2.07, every claim checked against the board at `f508fdb`: the Content-Security-Policy
+    directive by directive; the shared folder as the only transport and the one remaining request (the legacy state file);
+    the AI review's hand-carried request and answer; Clear this computer; escape-where-drawn, `jsa()`, the door's key rules
+    (`IN_KEY_BAD`, `IN_VAL_KEYS`) and the prototype-free maps; the newer-version refusal; places named by `§NN` banner and
+    function, with lines secondary; the threat model without the live-view credential. Dropped as no longer true: Confluence,
+    SharePoint, the JSON endpoint and its key, the desktop bridge, the PowerPoint template and its skipping instructions, the
+    reprogramming share, and the v1.99 list of uncalled functions (v2.03 removed them).
+  - `review/builds.json`: v2.00 to v2.07 added, each from the release commit on `main`, fingerprinted by the kit's own tool;
+    each entry's `gate` says how far that release was tested (v1.99's corrected from `pending` to the gate it passed).
+    `which-build.mjs` names v2.07 for the board at HEAD, and for a saved board, a PMO copy and a one-appropriation board
+    of it.
+  - `bundle.mjs`: the template step removed (it reported a PROBLEM on every board since v2.05).
+  - `review/sinks.csv` regenerated: 572 rows in 261 functions (537 at v1.99).
+  - Still Brad's: whether the refreshed guide goes to the security team as a new version and the annex is refreshed with
+    it (the annex cites v1.99's lines and sink rows); and whether `which-build.mjs` joins `npm run check` or the nightly.
 
 ### v2.07 — 25 Oct 2026: Add requirement is one box that builds the whole record -- built on Brad's "Go on 121" of 25 Oct
 

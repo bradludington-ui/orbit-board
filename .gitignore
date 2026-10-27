@@ -25,12 +25,18 @@
 # The register of math defects this board has shipped. Source, not run output: the nightly gate
 # reads it as its first stage, so a copy that never reaches main takes the guard with it.
 !math-defects.json
+# The reviewed releases: the code fingerprint of each, which tools/review/which-build.mjs looks a board up in.
+# Source, not run output.
+!review/builds.json
 # The test tools' exact versions (playwright-core, jsdom and what they pull in), so a fresh clone installs what the
 # recorded results used: npm ci. The board itself still has no dependencies (OCIO POA&M P-05, 19 Oct 2026).
 !package-lock.json
 # Each v2.07 mutation and the check that caught it, so recovery/v208/bin/prove.py can prove any of them again. Source,
 # not run output (the v2.08 handoff).
 !recovery/v208/v207-proofs.json
+!recovery/v208/v208-proofs.json
+# The same for v2.09, one list per workstream (W1-W4) and the integration's.
+!recovery/v209/proofs-*.json
 
 # tooling only — the board itself has no dependencies
 node_modules/
@@ -49,3 +55,7 @@ assets/logo/generated/
 # killed part-way leaves them. Never source (recovery/v208/bin/prove.py, tools/export-audit/sweep-shards.mjs).
 tools/export-audit/_slim-prove-*.mjs
 tools/export-audit/_shard-*.mjs
+
+# The security review bundle (tools/review/bundle.mjs): the board split into styles, markup and script.
+# Run output, regenerated from the board on demand.
+review/out/

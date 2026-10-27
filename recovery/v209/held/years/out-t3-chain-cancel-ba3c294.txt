@@ -1,0 +1,7 @@
+A NEW-PSM-1 {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}} B NEW-PSM-1 {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}} {"id":"NEW-PSM-3","prior":{"fy":2029,"id":"NEW-PSM-2"}}
+FY29 [["NEW-1","Alpha, from copy A",{"fy":2028,"id":"NEW-PSM-1"}]]
+review ["FY29 ALREADY HOLDS NEW-1 — accepting adds it again"]
+said [["confirm","Apply 1 change from PSM to FY30?\n\n  • FY30 — 1 change — not started on this board: you are asked how to start it first\n\nEach one is recorded in the change journal, so it can be found and undone later.",true],["confirm","FY30 has not been started on this board, and 1 ticked change go into it.\n\nOK — ROLL FORWARD: start FY30 from a copy of FY29 (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted +1 year(s)), then apply.\nCancel — start it blank instead, or apply nothing.",true]]
+FY30 [["NEW-1","Alpha, from copy A",{"fy":2028,"id":"NEW-PSM-1"}],["NEW-2","Bravo, from copy B",{"fy":2029,"id":"NEW-PSM-2"}]]
+stat ✔ Applied 1 change from PSM to FY30 (started FY30 from FY29). Every one is in the change journal. 2 proposed changes still held for review.
+errors 0 0 0

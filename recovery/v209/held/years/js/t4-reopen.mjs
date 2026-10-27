@@ -1,0 +1,30 @@
+import * as L from './lib.mjs';
+const { J, boot } = L;
+const B = boot({ html: L.w209rvBoard32() });
+B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+const hB = L.v184Publish(B.ev);
+const PB = L.w209rvCopy(hB);
+const pubB = +PB.ev('PMODE.ts');
+const bravo = L.w209add(PB, 'Bravo, from copy B', [500, 0, 0]);
+L.w209ev(PB, `switchYear(2029); 'ok'`); const b29 = L.w209rv2From(PB, 2028, bravo.id); L.w209ev(PB, `switchYear(2028); 'ok'`);
+const pkgB = L.v184Submit(PB, 'PSM').pkg || {};
+L.take(B, pkgB, 'b.json'); L.w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2029; }`);
+const y29 = (L.w209rv2Cust(B, 2029)[0] || {}).id;
+L.w3dlg(B.ev); L.w209ev(B, `switchYear(2029); rollPick={}; rollPick[${J(y29)}]=1; rollYrs={}; rollYrs[2030]=1; rollApply(); xferYear(${J(y29)}, 'c2031'); switchYear(2028); save(); 'ok'`); L.w3said(B.ev);
+console.log('FY30', J(L.w209rv2Cust(B, 2030)), 'FY31', J(L.w209rv2Cust(B, 2031)));
+const saved = B.ev('buildSavedHtml()');
+console.log('door', J(L.w209ev(B, `inboundCheck(buildSavedHtml())`)));
+const R = boot({ html: saved });
+console.log('reopened FY30', J(L.w209rv2Cust(R, 2030)), 'errors', R.errors.length);
+console.log('reopened prior text', L.w209ev(R, `priorTxt(yrItemOf(MS.years[2030], MS.years[2030].custom[0].id))`));
+// full import of the saved board into a fresh board
+const F = boot({ html: L.w209rvBoard32() });
+L.w3dlg(F.ev);
+console.log('fullImport', L.w209ev(F, `(function(){ try{ var r=fullImportText(${J(saved)}, 'saved.html'); return String(r); }catch(e){ return 'THREW '+e.message; } })()`));
+console.log('said', J(L.w3said(F.ev).map(x=>[x[0], x[1].slice(0,160)])));
+// publish a copy C from the board holding stamped links; in C, PSM adds Charlie in FY28: which id, and what FY30's link reads there
+B.ev(`(function(){ var t=Date.now(); while(Date.now()<=t+2){} return 'ok'; })()`);
+const hC = L.v184Publish(B.ev);
+const PC = L.w209rvCopy(hC);
+const ch = L.w209add(PC, 'Charlie, from copy C', [700, 0, 0]);
+console.log('copy C adds', ch.id, 'FY30 link reads in C:', L.w209ev(PC, `priorTxt(yrItemOf(MS.years[2030], MS.years[2030].custom[0].id))`), 'PC errors', PC.errors.length);

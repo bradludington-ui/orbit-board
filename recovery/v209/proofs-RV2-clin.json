@@ -1,0 +1,74 @@
+[
+ {
+  "id": "v209-rv2-clin-found-by-class",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-restore-before-panel",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-panel-other-requirement",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-into-closed-drawer",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-no-place-fallback",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-place-moved",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-row-unbounded",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-w1-press-keyboard-lost",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-not-delivered",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-delivered-twice",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-back-to-left",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-overrides-box",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-press-not-after-render",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-gone",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-row-hold-commits",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-w1-click-opens-panel",
+  "caughtBy": "audit-board / v2.09 — CLIN amounts"
+ },
+ {
+  "id": "v209-rv-clin-drill-scroll-reset",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ },
+ {
+  "id": "v209-rv-clin-drill-scroll-one",
+  "caughtBy": "audit-board / v2.09 review — clin-pointer"
+ }
+]

@@ -1,0 +1,60 @@
+// Is the same conflation reachable on v2.08? A copy there submits only its published year (FY27), but can switch to FY28,
+// add a requirement there (never sent) and bring it into FY27 from another year: the FY27 proposal then links to a
+// provisional id. Two copies of one office doing so -> two FY27 requirements with one link.
+import { boot, seed } from '/home/user/orbit-board/tools/export-audit/boot.mjs';
+import { readFileSync } from 'node:fs';
+const BOARD = process.env.BOARD; const HTML = readFileSync(BOARD, 'utf8');
+const J = JSON.stringify; const out = (...a) => console.log(...a);
+const tryEv = (b, js) => { try { return b.ev(js); } catch (e) { return 'THREW ' + String(e && e.message || e).slice(0, 200); } };
+const it = (id, ask) => ({ id, grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '',
+  fy26: ask.map(() => 0), ask, alloc: null });
+const SC = { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', [900, 200, 100]), it('B', [300, 80, 40])],
+  disc: [3000, 600, 300], mand: [500, 100, 50], order: ['A', 'B'] };
+const b0 = boot({ html: HTML }); seed(b0.ev, SC);
+b0.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+  BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+  ['A','B'].forEach(function(id){ (S.ptype=S.ptype||{})[id]='PRIME'; (S.obCat=S.obCat||{})[id]=OB_CATS[0];
+    (S.dest=S.dest||{})[id]={to:'lm', end:''}; S.desc[id]='D '+id; S.cons[id]='C '+id; });
+  save(); switchYear(2028); switchYear(2027); save(); 'ok'`);
+const B = boot({ html: b0.ev('buildSavedHtml()') });
+B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+out('board years', B.ev(`JSON.stringify(Object.keys(MS.years))`), 'cur', B.ev('MS.cur'));
+const publish = () => B.ev(`(function(){ var cap=null, _B=window.Blob;
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+  try{ localStorage.setItem('prio27who','Lead'); }catch(e){} try{ publishPmoCopy(); }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+const hA = publish(); B.ev(`(function(){ var t=Date.now(); while(Date.now()<=t+3){} return 'ok'; })()`); const hB = publish();
+const openCopy = (h) => { const P = boot({ html: h });
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; };
+    try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`); return P; };
+const PA = openCopy(hA), PB = openCopy(hB);
+const addNew = (P, ev, v) => JSON.parse(tryEv(P, `(function(){ var n0=S.custom.length; toggleAdd(); if(!arOn()) return JSON.stringify({err:'not open'});
+  var $=function(i){ return document.getElementById(i); };
+  var put=function(i,val,e){ var x=$(i); x.value=String(val); x.dispatchEvent(new Event(e||'input')); };
+  put('arEvent', ${J(ev)}); $('arPtP').click(); ${J(v)}.forEach(function(x,i){ put('arV'+i, x); });
+  put('arOb', OB_CATS[0], 'change'); put('arTo', 'lm', 'change'); put('arDesc', 'Desc '+${J(ev)}); put('arCons', 'Impact '+${J(ev)});
+  $('arAddBtn').click(); var c=S.custom.length>n0? S.custom[S.custom.length-1] : null;
+  return JSON.stringify({id:c&&c.id, still:arOn()}); })()`) || '{}');
+const fromYear = (P, y, src) => JSON.parse(tryEv(P, `(function(){ toggleAdd(); naFromPick(${y}); naFromTick(${J(src)}, true); naFromAdd();
+  var c=S.custom[S.custom.length-1]||{}; if(arOn()) arHide(); return JSON.stringify({id:c.id, prior:c.prior||null, ev:c.event}); })()`) || '{}');
+const mk = (P, nm) => { tryEv(P, `switchYear(2028); 'ok'`); const a = addNew(P, nm, [300, 0, 0]); tryEv(P, `switchYear(2027); 'ok'`);
+  const c = fromYear(P, 2028, a.id); return [a, c]; };
+out('copy A', J(mk(PA, 'Alpha (copy A)'))); out('copy B', J(mk(PB, 'Bravo (copy B)')));
+const submit = (P) => JSON.parse(tryEv(P, `(function(){ var cap=null, _B=window.Blob, al=[];
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+  var _a=window.alert; window.alert=function(m){ al.push(String(m)); };
+  try{ pmoSubmit(); }catch(e){ al.push('THREW '+e.message); } window.Blob=_B; window.alert=_a;
+  return JSON.stringify({pkg:cap? JSON.parse(cap):null, al:al}); })()`));
+const sA = submit(PA), sB = submit(PB);
+out('pkg A added', J((sA.pkg && sA.pkg.added || []).map(a => [a.nid, a.prior, a.event])), J(sA.al).slice(0, 300));
+out('pkg B added', J((sB.pkg && sB.pkg.added || []).map(a => [a.nid, a.prior, a.event])));
+const takeApply = (pkg, fn) => { tryEv(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, ${J(fn)}); 'ok'`);
+  const rows = tryEv(B, `JSON.stringify(pmoRows().map(function(r){ return [r.id, r.key, r.taken||null, r.prop && r.prop.prior ? pmoPriorHere(r.prop.prior) : null]; }))`);
+  tryEv(B, `PMOPICK={}; pmoRows().forEach(function(r){ if(r.key==='__new') PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); return rows; };
+out('take A', takeApply(sA.pkg, 'a.json')); out('take B', takeApply(sB.pkg, 'b.json'));
+const cust = (y) => tryEv(B, `JSON.stringify(((MS.years[${y}]||{}).custom||[]).map(function(c){ return [c.id, c.event, c.prior||null, c.from? c.from.nid : null]; }))`);
+out('FY27 custom', cust(2027));
+const ids = JSON.parse(cust(2027)).map(c => c[0]);
+out('roll', tryEv(B, `(function(){ rollPick={}; ${J(ids)}.forEach(function(i){ rollPick[i]=1; }); rollYrs={}; rollYrs[2028]=1;
+  var plan=rollPlan(); rollApply(); return JSON.stringify({create:plan.create, exists:plan.exists, st:document.getElementById('shareStat').textContent}); })()`));
+out('FY28 custom', cust(2028));
+out('errors', B.errors.length, J(B.errors.slice(0, 2)));

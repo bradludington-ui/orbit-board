@@ -3640,7 +3640,7 @@ await (async () => {
       return JSON.stringify({own:own, others:others.reduce(function(a,b){ return a+b; },0)}); })()`) || '{}');
     w5Chk(name, 'item 97 · the Classify grid', 'the prime’s RCN / EEIC cell says 1 of 2 CLINs carries its own', J(g.own), J(['1 of 2 CLINs carries its own']));
     w5Chk(name, 'item 97 · the Classify grid', 'CONTROL — a requirement with no CLINs says nothing of them', J(g.others), J(0));
-    const p = JSON.parse(ev(`(function(){ matBulkF='RCN / EEIC'; matBulkV='K2'; matBody(); const P=matBulkPreview();
+    const p = JSON.parse(ev(`(function(){ matBulkF='rcnAsg'; matBulkV='K2'; matBody(); const P=matBulkPreview();
       return JSON.stringify([P.clinOwn, (document.querySelector('#matBody .mat-prev .mat-clinown')||{}).textContent||'', (document.querySelector('#matBody .mat-rcnnote')||{}).textContent||'']); })()`) || '[]');
     w5Chk(name, 'item 97 · the bulk preview', 'it counts the prime whose CLINs keep their own, and says so', J([p[0], p[1]]), J([1, '1 prime has CLINs with their own, which keep it']));
     w5Chk(name, 'item 97 · the bulk preview', 'and says what the column sets: the requirement’s own, not a CLIN’s', /not changed here/.test(p[2]) && /default a CLIN with none/.test(p[2]), true);
@@ -4981,9 +4981,10 @@ await (async () => {
         stat:document.getElementById('shareStat').textContent}); })()`));
     const siTab = async B => { const b = await book(B, 'exportExcel');
       return (((b.book || {})['SI Codes by Month']) || []).filter(r => r && typeof cell(r[14]) === 'number').map(r => [cell(r[0]), cell(r[14])]); };
-    const field = B => B.w.document.querySelector('#recBody select[onchange^="setSi("]');
-    const choose = (B, id, v) => { B.ev(`recOpen=${J(id)}; render(); 'ok'`); const f = field(B);
-      if (f) { f.value = v; f.dispatchEvent(new B.w.Event('change', { bubbles: true })); } return !!f; };
+    const field = B => B.w.document.querySelector('#erSi');
+    // v2.08 (item 122): the code is chosen in the edit box and written on its Save
+    const choose = (B, id, v) => { B.ev(`openEdit(${J(id)},'si'); 'ok'`); const f = field(B);
+      if (f) { f.value = v; f.dispatchEvent(new B.w.Event('change', { bubbles: true })); B.ev(`erSave(); 'ok'`); } return !!f; };
     const X = boot();
     seed(X.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [
       it('R1', 'AV', [0, 200 * K, 900 * K]), it('R2', 'AV', [0, 100 * K, 300 * K]), it('R3', 'AV', [0, 0, 50 * K]),
@@ -5023,11 +5024,11 @@ await (async () => {
         J(['🏷 SI CODES TO REPAIR', [['1', 'Ev R1', 'AV', L1], ['9', 'Ev R9', 'AV', L9]]]));
       B.ev(`attGo('si','R1'); 'ok'`);
       w5Chk(name, where, 'Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard',
-        B.ev(`JSON.stringify([recOpen, (function(){ var s=document.querySelector('#recBody select[onchange^="setSi("]'); return s? [s.value, s.options[s.selectedIndex].text, Array.from(s.options).map(function(o){ return o.value; }), document.activeElement===s] : 'NO FIELD'; })()])`),
+        B.ev(`JSON.stringify([erOpen, (function(){ var s=document.querySelector('#erSi'); return s? [s.value, s.options[s.selectedIndex].text, Array.from(s.options).map(function(o){ return o.value; }), document.activeElement===s] : 'NO FIELD'; })()])`),
         J(['R1', ['at', '“at” — not one of the five, kept as saved', ['', 'at', 'LA', 'EN', 'OT', 'FL', 'AT'], true]]));
-      B.ev(`recOpen=null; render(); 'ok'`);
+      B.ev(`erClose(); render(); 'ok'`);
       w5Chk(name, where, 'a bulk write of AT on all nine counts R1 and R9 as answers it would overwrite: blank 1, same 1, differ 7',
-        B.ev(`(function(){ matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; var P=matBulkPreview(); return JSON.stringify([P.n, P.blank, P.same, P.differ]); })()`),
+        B.ev(`(function(){ matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; var P=matBulkPreview(); return JSON.stringify([P.n, P.blank, P.same, P.differ]); })()`),
         J([9, 1, 1, 7]));
       B.ev(`siShown=true; siOpen=true; siMatrix(); 'ok'`);
       w5Chk(name, where, 'the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%',
@@ -5036,8 +5037,9 @@ await (async () => {
           'OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%', 'FL Fuel | — | — | $70,000 | $70,000 | 3.7%',
           'AT Audit | — | — | $80,000 | $80,000 | 4.2%', '— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%',
           'TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | ']));
+      // v2.09 W4: the note sends the reader to the edit box (item 128): the row's ⋯ menu has had no SI entry since v2.08
       w5Chk(name, where, 'the overview’s note says how much of that row is under a code the board does not recognize, and how much has none',
-        J(['$1,210,000 carries no recognized code: $1,120,000 of it is on 2 requirements whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) and $90,000 carries no code yet — set one from a requirement’s ⋯ menu.',
+        J(['$1,210,000 carries no recognized code: $1,120,000 of it is on 2 requirements whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) and $90,000 carries no code yet — set one in a requirement’s 📋 Requirement edit, at its Navy SI code.',
            '1 of 6 coded requirements take a derived code'].map(s => B.ev(`(document.querySelector('#siBody .hint')||{}).textContent||''`).includes(s))),
         J([true, true]));
       w5Chk(name, where, 'the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows',
@@ -5051,7 +5053,8 @@ await (async () => {
         J([['Ev R1', ''], ['Ev R2', 'EN'], ['Ev R3', 'LA'], ['Ev R4', 'OT'], ['Ev R5', 'FL'], ['Ev R6', 'AT'], ['Ev R7', ''], ['Ev R8', 'EN'], ['Ev R9', '']]));
       w5Chk(name, where, 'its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five',
         String(cr.stat || cr.err).replace(/^.*Oct–Mar\./, ''),
-        ' 1 with no SI code — those cells are blank; set them from each row’s ⋯ menu. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.');
+        // v2.09 W4: the status line names the edit box (item 128), where the code has been set since v2.08
+        ' 1 with no SI code — those cells are blank; set them in each requirement’s 📋 Requirement edit, at its Navy SI code. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.');
       w5Chk(name, where, 'CONTROL — the CR cash return’s TOTAL row still adds to 1,910 ($K)',
         J(crRows.filter(r => cell((r || [])[0]) === 'TOTAL').map(r => r.slice(7).map(cell).reduce((a, v) => a + (typeof v === 'number' ? v : 0), 0))), J([1910]));
     }
@@ -5105,7 +5108,7 @@ await (async () => {
     N.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
       S.si={R1:'at'}; MS.years[MS.cur]=S; 'ok'`);
     const NR = boot({ html: N.ev('buildSavedHtml()') });
-    NR.ev(`recOpen='R1'; render(); 'ok'`);
+    NR.ev(`openEdit('R1','si'); 'ok'`);
     w5Chk(name, 'no Navy or Marine money', 'R1 (USAF/ANG only) has the Navy SI code field, showing "at"; CONTROL — blank R2 gains none',
       J([field(NR) ? field(NR).value : 'NO FIELD', NR.ev(`siEligible(itemById('R2'))`)]), J(['at', false]));
     const picked2 = choose(NR, 'R1', 'AT');
@@ -5126,10 +5129,12 @@ await (async () => {
       LR.ev(`JSON.stringify([CYCVIEW, S.si, siOf(itemById('R1')), (attLists().si||[]).map(function(r){ return r.id; })])`),
       J(['PB|2027', { R1: 'at', R2: 'EN' }, '', ['R1']]));
     const pickedL = choose(LR, 'R1', 'AT');
-    w5Chk(name, 'locked cycle view', 'AT chosen there is refused: the code stays as saved, and the status line says R1 keeps it',
+    // v2.08 (item 122): the record is edited in the edit box, which does not open on a locked view (cycBlock) -- the code
+    // stays as saved and the status line says why, where the RECORD panel's select once took the choice and save() refused it
+    w5Chk(name, 'locked cycle view', 'AT cannot be chosen there: the edit box does not open, the code stays as saved, and the status line says why',
       J([pickedL, JSON.parse(LR.ev('JSON.stringify(S.si)')),
-         LR.ev(`(document.getElementById('shareStat')||{}).textContent||''`).replace(/^🔒 Not kept — PB27 is a locked view\. /, '')]),
-      J([true, { R1: 'at', R2: 'EN' }, '🏷 Ev R1 keeps SI “at” as saved, not one of LA, EN, OT, FL or AT. The CR cash export leaves the cell blank.']));
+         /^🔒 Editing a requirement’s record is off while PB27 is on screen/.test(LR.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]),
+      J([false, { R1: 'at', R2: 'EN' }, true]));
     LR.ev(`cycLeave(true); 'ok'`);
     w5Chk(name, 'locked cycle view', 'left, the working plan still holds R1’s code as saved',
       LR.ev(`JSON.stringify([CYCVIEW, S.si])`), J(['', { R1: 'at', R2: 'EN' }]));
@@ -5178,14 +5183,14 @@ await (async () => {
         flowCfg().rules.lm='Req A'; S.ptype={A:'PRIME'}; applyState(S); save();
         S.si={A:${J(raw)},B:'',C:'EN'}; MS.years[MS.cur]=S; 'ok'`);
       const R = boot({ html: X.ev('buildSavedHtml()') });
-      R.ev(`matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; 'ok'`);
+      R.ev(`matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; 'ok'`);
       return R;
     };
     const preview = R => { try { return R.ev(`JSON.stringify((function(){ var p=matBulkPreview(); return [p.n,p.blank,p.same,p.differ]; })())`); }
       catch (e) { return 'threw: ' + e.message; } };
     const field = R => { try { R.ev(`attGo('si','A'); 'ok'`);
-        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]');
-        return J([R.ev('recOpen'), f ? f.options[f.selectedIndex].textContent : 'NO FIELD']);
+        const f = R.w.document.querySelector('#erSi');
+        return J([R.ev('erOpen'), f ? f.options[f.selectedIndex].textContent : 'NO FIELD']);
       } catch (e) { return 'threw: ' + e.message; } };
     for (const [where, raw, stored] of [['empty list', [], '{"A":[],"B":"","C":"EN"}'],
       ['code inside a list', ['AT'], '{"A":["AT"],"B":"","C":"EN"}'],
@@ -5208,7 +5213,7 @@ await (async () => {
     w5Chk(name, 'object with non-callable toString', 'Go to it opens A and the field shows its JSON as kept as saved', field(O),
       J(['A', '“{"toString":null}” — not one of the five, kept as saved']));
     // Closing the panel also lets the unfixed board build its saved file, so retention is an independent control.
-    O.ev(`recOpen=null; 'ok'`);
+    O.ev(`erClose(); 'ok'`);
     const OQ = boot({ html: O.ev('buildSavedHtml()') });
     w5Chk(name, 'object with non-callable toString', 'CONTROL — object survives save/reopen, its code stays blank and $611 stays funded',
       OQ.ev(`JSON.stringify([S.si,siOf(itemById('A')),tiers().A.dT])`), J([{A:{toString:null},B:'',C:'EN'},'',611]));
@@ -5217,8 +5222,8 @@ await (async () => {
     w5Chk(name, 'null alone', 'CONTROL — a saved null is an answer a bulk write overwrites, as before', preview(Nl), '[3,1,0,2]');
     // the kept choice, chosen again as drawn, is refused by setSi: the saved list stays exactly as it was
     const again = R => { try { R.ev(`attGo('si','A'); 'ok'`);
-        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]'); if (!f) return 'NO FIELD';
-        f.dispatchEvent(new R.w.Event('change', { bubbles: true })); return R.ev('JSON.stringify(S.si)');
+        const f = R.w.document.querySelector('#erSi'); if (!f) return 'NO FIELD';
+        f.dispatchEvent(new R.w.Event('change', { bubbles: true })); R.ev(`erSave(); 'ok'`); return R.ev('JSON.stringify(S.si)');
       } catch (e) { return 'threw: ' + e.message; } };
     w5Chk(name, 'the kept choice chosen again', 'CONTROL — choosing “[]” or “["AT"]” again in A’s field writes nothing over the saved list',
       J([again(make([])), again(make(['AT']))]), J(['{"A":[],"B":"","C":"EN"}', '{"A":["AT"],"B":"","C":"EN"}']));
@@ -5285,9 +5290,9 @@ await (async () => {
     };
     const tryEv = (R, s) => { try { return R.ev(s); } catch (e) { return 'threw: ' + e.message; } };
     // AT chosen in A's field as Go to it draws it, the record panel closed after
-    const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#recBody select[onchange^="setSi("]');
-      if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); recOpen=null; return 'chosen'; })()`);
-    const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
+    const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#erSi');
+      if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); erSave(); return 'chosen'; })()`);
+    const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='si'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
     // the change journal opened as a person opens it; one requirement's lines as drawn: What | Was | Became, newest first
     const journal = (R, id) => tryEv(R, `(function(){ jrnlOpen=false; toggleJrnl();
       return JSON.stringify(Array.from(document.querySelectorAll('#jrnlBody tr')).filter(function(t){ return t.cells.length>4 && t.cells[2].textContent==='sustainment indicator — Ev ${id}'; })
@@ -8223,8 +8228,9 @@ await (async () => {
         if(/\\.(xml|rels)$/.test(k) && new DOMParser().parseFromString(t,'application/xml').getElementsByTagName('parsererror').length) bad.push(k);
         at+=30+nl+xl+sz; }
       return {n:Object.keys(P).length, bad:bad, P:P}; }; 'ok'`;
-    const typed = (Y, id, v) => JSON.parse(Y.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
-      try{ editTitle(${J(id)}); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{})[${J(id)}]); })()`));
+    // v2.08 (item 122): through the edit box's one writer (reqApply) -- the box's text field would strip the line break before
+    // the writer saw it (an <input> holds one line), and the break is what this proves the workbooks keep
+    const typed = (Y, id, v) => JSON.parse(Y.ev(`(function(){ reqApply(${J(id)}, {titles:${J(v)}}, {}); save(); return JSON.stringify((S.titles||{})[${J(id)}]); })()`));
     const X = boot();
     seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
@@ -9330,7 +9336,7 @@ await (async () => {
           return (i && td.length>3 && /^(Alpha Depot|Bravo Yard)$/.test(i.value))? [i.value, td[3].textContent] : null; }).filter(Boolean);
         render(); var m=/(\\d+) places? money can go/.exec(document.body.textContent||'');
         return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : [],
-          matBulk()['Goes to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }), used, m? +m[1] : 0]); })()`));
+          matBulk()['dest'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }), used, m? +m[1] : 0]); })()`));
       const del = (X, i, ans) => JSON.parse(X.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return ${ans}; };
         window.alert=function(m){ al.push(String(m)); }; flowDelEnt(${i});
         return JSON.stringify([qs, al, flowEnts().slice(8).map(function(e){ return [e.k, e.n]; }), destOf(itemById('R1')).to, DESTDB.gone.indexOf('dA')>=0]); })()`));
@@ -9687,7 +9693,7 @@ await (async () => {
           var s=d.querySelector('select'); return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : []]); })()`),
         J(['Alpha Depot', ['Alpha Depot']]));
       w5Chk(name, 'T4 dA Alpha Depot then dA Bravo Yard · the bulk setter’s Which awards to', 'offers dA once, as Alpha Depot',
-        X.ev(`JSON.stringify(matBulk()['Which awards to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }))`), J(['Alpha Depot']));
+        X.ev(`JSON.stringify(matBulk()['destEnd'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }))`), J(['Alpha Depot']));
       bootRelease(mk, []); await settleBoards();
     }
     // T5: a full import that kept Full Fund holding "unassigned"; Put it right's question says what it puts right
@@ -11125,8 +11131,8 @@ await (async () => {
     X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
     // the Plan Event typed through the pen, as a person types it
-    const typed = v => JSON.parse(X.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
-      try{ editTitle('R1'); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{}).R1); })()`));
+    // v2.08 (item 122): through the edit box's one writer, reqApply (an <input> would strip the line break first)
+    const typed = v => JSON.parse(X.ev(`(function(){ reqApply('R1', {titles:${J(v)}}, {}); save(); return JSON.stringify((S.titles||{}).R1); })()`));
     // run one export; unzip the first Blob it made; every text run holding "carriage", as a standard XML reader reads it
     const read = call => JSON.parse(X.ev(`(function(){
       var cap=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click, err='';
@@ -11171,6 +11177,295 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.01 (D4-1) ====
+
+// ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+// ==== end v2.09 W1 ====
+
+// ==== v2.09 W2 (item 126): a PMO copy's five years ====
+// ==== end v2.09 W2 ====
+
+// ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// ==== end v2.09 W3 ====
+
+// ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
+// ITEM 128 (Brad, 26 Oct 2026): "For the Excel Workbook export, the SI tab needs a new area below what we already have that
+// shows the requirements and amounts allocated by SI. I need an EN section that shows each requirement assigned to EN and
+// then the amounts for STOVL, USMC CV, and USN." His decisions: every code (LA, EN, OT, FL, AT, then the tab's no-code
+// label); the figure is FUNDED -- discretionary + mandatory drawn, NO DATE included, following the ◨ view -- headed so,
+// never "Allocated"; the requirement value beside it in columns that enter no total; every requirement asking on STOVL,
+// USMC CV or USN listed, an unfunded one at $0; a prime's row, then a line per CLIN in whole dollars adding to the prime; a
+// TOTAL per code equal to that code's rows in the service blocks above and a grand total equal to the roll-up; priority
+// order with the master rank. Everything below is read back from the workbook's BYTES.
+// THE FIXTURE MAKES THE READINGS DISAGREE. Every requirement is on a Split (convertAllToSplit), so the allocation and the
+// draw coincide -- except on a not-drawn line, which this board has two of. O&M, six services; pots STOVL 1,000k disc +
+// 400k mand, USMC-C 600k disc, USN 1,500k disc + 300k mand, USAF 1,000k disc. In priority order (STOVL / USMC-C / USN):
+//   A  PP, EN by the PP rule        asks 300 / 100 / 200 k            funded the same, December
+//   B  AV, EN by hand               asks 200 / 150 / 0 k (+ USAF 500k) allocation trimmed to 150 k on STOVL: funded 150 / 150 / 0
+//   C  an LM prime, LA derived      asks 550 / 100 / 600 k            allocation trimmed to 500 k on USN: funded 550 / 100 / 500;
+//      CLIN 0001 asks STOVL 100 k, USN 360 k; CLIN 0002 STOVL 200 k, USN 240 k; neither USMC-C
+//   D  AV, EN by hand               asks 400 k STOVL, no award date   STOVL's discretionary is gone: all mandatory, NO DATE
+//   E  AV, OT by hand               asks 1,200 k USN                  directed 850 k disc + 300 k mand; the lane has 800 k left:
+//      FUNDED 1,100 k, ALLOCATION 1,150 k, REQUIREMENT VALUE 1,200 k -- three readings, three figures
+//   F  PP, EN by the PP rule        asks 250 k USN                    directed 250 k disc on a dry lane: FUNDED $0, allocation 250 k
+//   G  AV, no SI code               asks 200 k USMC-C                 funded, November
+//   H  PP, EN by the PP rule        asks USAF 400 k only              out of scope: no SI money, not listed
+// SO: LA = C; EN = A, B, D, F in priority order (by size it would be A, D, B, F); OT = E; FL and AT empty; no code = G.
+//   C's CLINs: STOVL 550 k split 1:2 = 183,333 / 366,667 (whole dollars, adding to it); USN 500 k funded = 300 / 200 k and its
+//   600 k value = 360 / 240 k; USMC-C's 100 k has no grid share and is on a line of its own.
+//   Service totals STOVL 1,400 k, USMC CV 550 k, USN 1,800 k; the roll-up 3,750 k. Under ◨: D draws nothing (listed at $0),
+//   E draws 800 k; STOVL 1,000 k, USN 1,500 k, the roll-up 3,050 k; the same requirements listed.
+// A SECOND BOARD, STOVL / USMC-C / USN only, with asks and nothing funded: the tab stays, listing them at $0 -- one under a
+// code from a file the board does not recognize, so its heading says so, and an LM prime whose CLIN lines read $0 funded
+// and split its value. Nothing else in that workbook reads the prime's CLINs, so reading them must leave its CLIN
+// containers as they were (CONTROL: v2.08 never read them).
+// THE RCN-EEIC TAB IS UNCHANGED: the same fixture on the v2.08 board (ebe702e, read from the repository with git show) builds
+// the same RCN tab, cell and style, and the same SI tab above the new section. CONTROL (it holds on v2.08 by construction).
+// Only those two are held to v2.08 here: a later version changing another sheet on purpose must not fail item 128's check.
+// A version that changes the RCN tab on purpose moves W4_BASE to the board it was built on.
+// The stale words fixed with it: the Special Interest overview's note and the CR cash return's status line name the edit box
+// (📋 Requirement edit, at the Navy SI code), and Needs attention's Go to it says it opens the edit box.
+// FAILS ON ebe702e (v2.08): there is no section, the second board has no SI tab, and the words still name the ⋯ menu and
+// the RECORD panel. Passing there too: the CONTROLs.
+await (async () => {
+  const name = 'v2.09 W4 (item 128) — the SI tab lists the requirements under each SI code';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify, K = 1000;
+    const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+    const lbl = r => String(cv((r || [])[0]) ?? '').trim();
+    const val = c => { const v = cv(c); return (v === undefined || v === null) ? '' : v; };   // a blank cell reads ''
+    const isNum = v => typeof v === 'number';
+    const SVN = ['STOVL', 'USMC CV', 'USN'];
+    const W4_BASE = 'ebe702e';            // the v2.08 board this version was built on
+    const build = (html, view) => {
+      const X = html ? boot({ html }) : boot();
+      seed(X.ev, { services: ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], items: [
+        it('A', 'PP', [0, 0, 0, 300 * K, 100 * K, 200 * K]), it('B', 'AV', [500 * K, 0, 0, 200 * K, 150 * K, 0]),
+        it('C', 'PRIMES', [0, 0, 0, 550 * K, 100 * K, 600 * K]), it('D', 'AV', [0, 0, 0, 400 * K, 0, 0]),
+        it('E', 'AV', [0, 0, 0, 0, 0, 1200 * K]), it('F', 'PP', [0, 0, 0, 0, 0, 250 * K]),
+        it('G', 'AV', [0, 0, 0, 0, 200 * K, 0]), it('H', 'PP', [400 * K, 0, 0, 0, 0, 0])],
+        disc: [1000 * K, 0, 0, 1000 * K, 600 * K, 1500 * K], mand: [0, 0, 0, 400 * K, 0, 300 * K],
+        order: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+        alloc: { B: { m: 's', v: [500 * K, 0, 0, 150 * K, 150 * K, 0] }, C: { m: 's', v: [0, 0, 0, 550 * K, 100 * K, 500 * K] } } });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        flowCfg().rules.lm='Req C'; S.ptype={C:'PRIME'};
+        CLINS['C']=[{clin:'0001', desc:'Air vehicle', ask:[0,0,0,100000,0,360000]},{clin:'0002', desc:'Support equipment', ask:[0,0,0,200000,0,240000]}];
+        DATA.clins=CLINS;
+        MS.rcn=[{k:'rW4', rcn:'12345', eeic:'ABC12', t:'W4 combo', svc:['USAF','ANG','AFRC']}]; S.rcnAsg={B:'rW4'};
+        S.si={B:'EN', D:'EN', E:'OT'};
+        S.awards={A:{mode:'single', d:FYMON[2][0], day:10},
+          B:{mode:'inc', inc:[{d:FYMON[1][0], day:5, sv:[300000,0,0,100000,100000,0]},{d:FYMON[4][0], day:20, sv:[200000,0,0,50000,50000,0]}]},
+          C:{mode:'single', d:FYMON[4][0], day:3}, E:{mode:'single', d:FYMON[6][0], day:12},
+          F:{mode:'single', d:FYMON[3][0], day:1}, G:{mode:'single', d:FYMON[1][0], day:9}, H:{mode:'single', d:FYMON[2][0], day:2}};
+        applyState(S); save(); window.confirm=function(){ return true; }; window.alert=function(){};
+        convertAllToSplit();
+        setFsrcSvc('E','d',SVC.indexOf('USN'),'850000'); setFsrcSvc('F','d',SVC.indexOf('USN'),'250000');
+        ${view ? "setScen('disc');" : "setScen('');"} render(); 'ok'`);
+      return X;
+    };
+    // the workbook as the program handed it to the writer (cells and styles), and as the file reads back
+    const sheetsOf = X => JSON.parse(X.ev(`(function(){ var got=null, ob=buildXlsx;
+      buildXlsx=function(sh,x,h){ got=JSON.parse(JSON.stringify(sh)); return ob(sh,x,h); };
+      try{ exportExcel(); } finally{ buildXlsx=ob; } return JSON.stringify(got); })()`));
+    const bytesOf = async X => JSON.parse(await w6Book(X.w, 'exportExcel'));
+
+    // ---- read the SI tab: the service blocks, the roll-up, and the section, by label and by heading
+    const readSi = rows => {
+      const out = { blocks: {}, svcTot: {}, roll: null, title: -1, codes: [], grand: null, col14: [], labels: [], hdrBad: [] };
+      const sec = rows.findIndex(r => /^REQUIREMENTS UNDER EACH SI CODE/.test(lbl(r)));
+      out.title = sec; out.titleText = sec >= 0 ? lbl(rows[sec]) : '';
+      const top = sec < 0 ? rows.length : sec;
+      let cur = null;
+      for (let j = 0; j < top; j++) {
+        const l = lbl(rows[j]);
+        if (SVN.includes(l)) { cur = l; out.blocks[cur] = {}; continue; }
+        if (cur && l === cur + ' TOTAL') { out.svcTot[cur] = cv(rows[j][14]); cur = null; continue; }
+        if (cur && l && isNum(cv(rows[j][14]))) out.blocks[cur][l] = cv(rows[j][14]);
+        if (/— TOTAL BY MONTH$/.test(l)) out.roll = cv(rows[j][14]);
+      }
+      if (sec < 0) return out;
+      let code = null, hdr = null;
+      for (let j = sec + 1; j < rows.length; j++) {
+        const r = rows[j] || [], l = lbl(r);
+        if (l) out.labels.push(l);
+        if (r.length > 14 && cv(r[14]) !== '' && cv(r[14]) != null) out.col14.push(l);
+        let m;
+        if ((m = /^(LA|EN|OT|FL|AT)  .+   \((\d+) requirements?\)$/.exec(l)) || (m = /^(— no (?:recognized )?SI code(?: set)? —)   \((\d+) requirements?, still to code\)$/.exec(l))) {
+          code = { code: m[1], n: +m[2], rows: [], clins: [], total: null, head: l }; out.codes.push(code); hdr = null; continue; }
+        if (code && l === 'Requirement / CLIN') {
+          const h = r.map(c => String(cv(c) ?? '').trim());
+          const at = n => { const k = h.indexOf(n); if (k < 0) out.hdrBad.push(n); return k; };
+          hdr = { f: SVN.map(s => at(s + ' funded')), t: at('Total funded'), a: SVN.map(s => at(s + ' requirement value')), all: h };
+          continue; }
+        if (/^TOTAL — every requirement above/.test(l)) { out.grand = { f: hdr ? hdr.f.map(k => val(r[k])) : [], t: hdr ? val(r[hdr.t]) : null,
+          a: hdr ? hdr.a.map(k => val(r[k])) : [] }; code = null; continue; }
+        if (!code || !hdr) continue;
+        const fig = { f: hdr.f.map(k => val(r[k])), t: val(r[hdr.t]), a: hdr.a.map(k => val(r[k])), label: l };
+        if (/^TOTAL — /.test(l)) { code.total = fig; continue; }
+        if ((m = /^#(\d+)  (.+)$/.exec(l))) { fig.rank = +m[1]; fig.title = m[2]; code.rows.push(fig); continue; }
+        if (/^(CLIN |not on a CLIN)/.test(l)) { fig.of = code.rows.length ? code.rows[code.rows.length - 1].rank : null; code.clins.push(fig); continue; }
+      }
+      return out;
+    };
+    const meta = X => JSON.parse(X.ev(`JSON.stringify((function(){ var o={}; S.order.forEach(function(id,i){ var it=itemById(id);
+      o[id]={rank:i+1, title:(recName(it)||dispTitle(it))}; }); return o; })())`));
+
+    // ---- the fixture does what it says
+    const X = build(null, '');
+    const M = meta(X);
+    const byRank = rk => Object.keys(M).find(id => M[id].rank === rk);
+    w5Chk(name, 'fixture', 'CONTROL — E and F are not drawn: the lanes could not pay what was typed (so the allocation and the draw disagree on them)',
+      X.ev(`JSON.stringify(ndData().list.map(function(l){ return [l.id, l.lane, l.typed, l.drew]; }))`),
+      J([['E', 'd', 850 * K, 800 * K], ['F', 'd', 250 * K, 0]]));
+    w5Chk(name, 'fixture', 'CONTROL — the three readings differ: on E the allocation is 1,150,000 against 1,100,000 funded and 1,200,000 asked; on F 250,000 against $0',
+      X.ev(`JSON.stringify(['E','F'].map(function(id){ var it=itemById(id), p=tiers()[id], u=SVC.indexOf('USN');
+        return [basisSvcOf(it)[u], p.d[u]+p.m[u], it.ask[u]]; }))`), J([[1150 * K, 1100 * K, 1200 * K], [250 * K, 0, 250 * K]]));
+    w5Chk(name, 'fixture', 'CONTROL — D is paid by mandatory alone and has no award date; C is a prime with two CLINs; H asks on USAF only',
+      X.ev(`JSON.stringify([tiers().D.d[SVC.indexOf('STOVL')], tiers().D.m[SVC.indexOf('STOVL')], !!(S.awards||{}).D, clinApplies('C'), clinList('C').length, itemById('H').ask.slice(3)])`),
+      J([0, 400 * K, false, true, 2, [0, 0, 0]]));
+
+    // ---- the section, from the bytes, in each view
+    const WANT = {
+      '': { f: { A: [300, 100, 200], B: [150, 150, 0], C: [550, 100, 500], D: [400, 0, 0], E: [0, 0, 1100], F: [0, 0, 0], G: [0, 200, 0] },
+        svc: [1400, 550, 1800], roll: 3750 },
+      disc: { f: { A: [300, 100, 200], B: [150, 150, 0], C: [550, 100, 500], D: [0, 0, 0], E: [0, 0, 800], F: [0, 0, 0], G: [0, 200, 0] },
+        svc: [1000, 550, 1500], roll: 3050 } };
+    const ASK = { A: [300, 100, 200], B: [200, 150, 0], C: [550, 100, 600], D: [400, 0, 0], E: [0, 0, 1200], F: [0, 0, 250], G: [0, 200, 0] };
+    const CODES = { LA: ['C'], EN: ['A', 'B', 'D', 'F'], OT: ['E'], FL: [], AT: [], none: ['G'] };
+    const k$ = v => v.map(x => x * K);
+    const LABEL = { LA: 'LA  Airframe', EN: 'EN  Engine', OT: 'OT  Other Government Costs', FL: 'FL  Fuel', AT: 'AT  Audit', none: '— no SI code set —' };
+    for (const view of ['', 'disc']) {
+      const B = view ? build(null, 'disc') : X, where = view ? '◨ discretionary only' : 'the funded plan', W = WANT[view];
+      const bk = await bytesOf(B);
+      w5Chk(name, where, 'CONTROL — the workbook builds and reads back, with its SI tab', J([bk.__err || 'ok', Array.isArray(bk['SI Codes by Month'])]), J(['ok', true]));
+      const rows = bk['SI Codes by Month'] || [], P = readSi(rows);
+      w5Chk(name, where, 'below the roll-up and its note, the section title, carrying the view’s mark exactly when the view is on',
+        J([P.title > 0 && rows.slice(0, P.title).some(r => /— TOTAL BY MONTH$/.test(lbl(r))), /◨ DISCRETIONARY ONLY/.test(P.titleText)]), J([true, !!view]));
+      w5Chk(name, where, 'every code in the tab’s order, then the requirements carrying none, each with its count',
+        J(P.codes.map(c => [c.code, c.n])), J([['LA', 1], ['EN', 4], ['OT', 1], ['FL', 0], ['AT', 0], ['— no SI code set —', 1]]));
+      w5Chk(name, where, 'each code’s heading is not the rollup’s code row, and the column headings say funded, never allocated',
+        J(P.title > 0 ? [P.codes.every(c => !Object.keys(LABEL).some(k => LABEL[k] === c.head)), P.hdrBad, rows.slice(P.title).some(r => (r || []).some(c => /allocat/i.test(String(val(c)))))] : 'NO SECTION'),
+        J([true, [], false]));
+      // which requirements, in what order, with what rank: priority order, never size; F at $0; H nowhere
+      w5Chk(name, where, 'under each code its requirements in priority order with the master rank: EN is A, B, D, F (by size it would be A, D, B, F); H (USAF only) is listed nowhere',
+        J(P.codes.map(c => c.rows.map(r => [byRank(r.rank), r.title === (M[byRank(r.rank)] || {}).title]))),
+        J(['LA', 'EN', 'OT', 'FL', 'AT', 'none'].map(k => CODES[k].map(id => [id, true]))));
+      const all = [].concat(...P.codes.map(c => c.rows));
+      all.forEach(r => {
+        const id = byRank(r.rank);
+        w5Chk(name, where + ' · ' + id, 'funded on STOVL / USMC CV / USN: the lanes’ draw, NO DATE included (never the allocation)', J(r.f), J(k$(W.f[id] || [])));
+        w5Chk(name, where + ' · ' + id, 'the row adds across: STOVL + USMC CV + USN = its Total funded', J(r.t), J(r.f.reduce((a, b) => a + (+b || 0), 0)));
+        w5Chk(name, where + ' · ' + id, 'the requirement value on each service, beside it: the fixture’s own asks', J(r.a), J(k$(ASK[id] || [])));
+      });
+      w5Chk(name, where, 'F, which drew nothing, is listed at $0 funded with its 250,000 value; under ◨ D, which only mandatory paid, is listed at $0 too',
+        J(['F', 'D'].map(id => { const r = all.find(x => byRank(x.rank) === id); return r ? [r.t, r.a.reduce((a, b) => a + b, 0)] : 'NOT LISTED'; })),
+        J([[0, 250 * K], [view ? 0 : 400 * K, 400 * K]]));
+      // each code's TOTAL: its rows, and that code's row in each service block above
+      P.codes.forEach(c => {
+        const key = c.code.startsWith('—') ? 'none' : c.code, rl = LABEL[key];
+        const sum = SVN.map((_, g) => c.rows.reduce((a, r) => a + (+r.f[g] || 0), 0));
+        w5Chk(name, where + ' · ' + key + ' TOTAL', 'the code’s TOTAL is the rows under it, on each service and in Total funded',
+          J(c.total ? [c.total.f, c.total.t] : 'NO TOTAL'), J([sum, sum.reduce((a, b) => a + b, 0)]));
+        w5Chk(name, where + ' · ' + key + ' TOTAL', 'and equals that code’s row in each service block above (no row there: 0)',
+          J(c.total ? c.total.f : 'NO TOTAL'), J(SVN.map(s => (P.blocks[s] || {})[rl] || 0)));
+        w5Chk(name, where + ' · ' + key + ' TOTAL', 'the requirement value is in no total: the TOTAL row leaves those columns empty',
+          J(c.total ? c.total.a.map(v => v === '' || v === null || v === undefined) : 'NO TOTAL'), J([true, true, true]));
+      });
+      w5Chk(name, where, 'the last TOTAL: each service’s block total, and the roll-up (every dollar on the tab sits on one requirement row)',
+        J(P.grand ? [P.grand.f, P.grand.t, P.grand.a.every(v => v === '' || v == null)] : 'NO GRAND TOTAL'),
+        J([SVN.map(s => P.svcTot[s]), P.roll, true]));
+      w5Chk(name, where, 'CONTROL — the blocks and the roll-up are the fixture’s own: STOVL / USMC CV / USN and the roll-up',
+        J([SVN.map(s => P.svcTot[s]), P.roll]), J([k$(W.svc), W.roll * K]));
+      // the prime's CLIN lines
+      const cl = (P.codes.find(c => c.code === 'LA') || { clins: [] }).clins;
+      w5Chk(name, where + ' · C', 'C’s CLIN lines: 183,333 / 366,667 on STOVL (550,000 split 1:2), 300,000 / 200,000 funded and 360,000 / 240,000 value on USN, USMC CV’s 100,000 on a line of its own',
+        J(cl.map(r => [r.label, r.f, r.t, r.a])),
+        J([['CLIN 0001   Air vehicle', [183333, '', 300 * K], 483333, [183333, '', 360 * K]],
+           ['CLIN 0002   Support equipment', [366667, '', 200 * K], 566667, [366667, '', 240 * K]],
+           ['not on a CLIN — the CLIN grid holds nothing for USMC CV', ['', 100 * K, ''], 100 * K, ['', 100 * K, '']]]));
+      const cRow = all.find(r => byRank(r.rank) === 'C');
+      w5Chk(name, where + ' · C', 'the CLIN lines add to the prime’s row, funded and value, on every service',
+        J(cRow ? [SVN.map((_, g) => cl.reduce((a, r) => a + (+r.f[g] || 0), 0)), SVN.map((_, g) => cl.reduce((a, r) => a + (+r.a[g] || 0), 0))] : 'NO ROW'),
+        J(cRow ? [cRow.f, cRow.a] : 'a row'));
+      const figs = [P.codes.map(c => [].concat(c.rows, c.clins, c.total ? [c.total] : []).map(r => [r.f, r.t, r.a])), P.grand ? [P.grand.f, P.grand.t] : []].flat(4).filter(isNum);
+      w5Chk(name, where, 'every figure in the section is a whole dollar (Number.isInteger, not a tolerance)', J([figs.length > 40, figs.filter(v => !Number.isInteger(v))]), J([true, []]));
+      w5Chk(name, where, 'the rollup’s TOTAL column is empty on every row of the section', J(P.title > 0 ? P.col14 : 'NO SECTION'), J([]));
+      w5Chk(name, where, 'no section label reads “<SVC> TOTAL” or ends “TOTAL BY MONTH”, which name the rollup’s rows',
+        J(P.labels.length > 20 ? P.labels.filter(l => SVN.some(s => l === s + ' TOTAL') || /TOTAL BY MONTH$/.test(l)) : 'NO SECTION'), J([]));
+    }
+
+    // ---- the tab is kept when asks exist and nothing is funded on these services. A STOVL / USMC-C / USN board, so there is
+    // no RCN tab, and nothing funded, so the Spend Plan Source splits no prime: this section is the only reader of R's CLINs.
+    {
+      const Y = boot();
+      seed(Y.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [
+        it('P', 'PP', [50 * K, 0, 0]), it('Q', 'AV', [0, 0, 70 * K]), it('R', 'PRIMES', [0, 0, 90 * K])],
+        disc: [0, 0, 0], mand: [0, 0, 0], order: ['P', 'Q', 'R'] });
+      Y.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        flowCfg().rules.lm='Req R'; S.ptype={R:'PRIME'};
+        CLINS['R']=[{clin:'0001', desc:'one', ask:[0,0,30000]},{clin:'0002', desc:'two', ask:[0,0,60000]}]; DATA.clins=CLINS;
+        applyState(S); S.si={Q:'zz'}; save(); render(); 'ok'`);
+      const clinBoxes = () => Y.ev(`JSON.stringify(['clinMeta','clinNew','clinRm','clinAlloc'].map(function(n){ return [n, Object.prototype.hasOwnProperty.call(S, n), S[n]]; }))`);
+      const before = clinBoxes();
+      const bk = await bytesOf(Y), rows = bk['SI Codes by Month'], P = readSi(rows || []);
+      w5Chk(name, 'nothing funded on STOVL, USMC CV or USN', 'the SI tab is still in the workbook, its roll-up 0', J([Array.isArray(rows), P.roll]), J([true, 0]));
+      w5Chk(name, 'nothing funded on STOVL, USMC CV or USN', 'and lists all three at $0 with their values; Q under the tab’s own “no recognized SI code” heading',
+        J(P.codes.filter(c => c.rows.length).map(c => [c.code, c.rows.map(r => [r.rank, r.t, r.a])])),
+        J([['LA', [[3, 0, [0, 0, 90 * K]]]], ['EN', [[1, 0, [50 * K, 0, 0]]]], ['— no recognized SI code —', [[2, 0, [0, 0, 70 * K]]]]]));
+      w5Chk(name, 'nothing funded on STOVL, USMC CV or USN', 'the unfunded prime R’s CLIN lines: $0 funded, its 90,000 value split 30,000 / 60,000 by its grid',
+        J((P.codes.find(c => c.code === 'LA') || { clins: [] }).clins.map(r => [r.label, r.f, r.t, r.a])),
+        J([['CLIN 0001   one', ['', '', 0], 0, ['', '', 30 * K]], ['CLIN 0002   two', ['', '', 0], 0, ['', '', 60 * K]]]));
+      w5Chk(name, 'nothing funded on STOVL, USMC CV or USN', 'CONTROL — reading R’s CLINs left the board as it was: no CLIN container made, no default share written',
+        clinBoxes(), before);
+      w5Chk(name, 'nothing funded on STOVL, USMC CV or USN', 'Needs attention’s Go to it says it opens the edit box at the Navy SI code, and it does',
+        J([/opens the requirement’s 📋 Requirement edit at its Navy SI code/.test(Y.ev('ATT_KIND.si.why')), /RECORD panel/.test(Y.ev('ATT_KIND.si.why')),
+          Y.ev(`(function(){ attGo('si','Q'); return String(erOpen); })()`)]), J([true, false, 'Q']));
+    }
+
+    // ---- the words fixed with it: the overview's note and the CR cash return's status line name the edit box
+    {
+      X.ev(`siShown=true; siOpen=true; siMatrix(); 'ok'`);
+      const note = X.ev(`(document.querySelector('#siBody .hint')||{}).textContent||''`);
+      w5Chk(name, 'the Special Interest overview', 'its note sends the reader to the edit box for G’s $200,000, not to the row’s ⋯ menu',
+        J([note.includes('$200,000 carries no code yet — set one in a requirement’s 📋 Requirement edit, at its Navy SI code.'), note.includes('⋯')]), J([true, false]));
+      const cr = JSON.parse(await X.w.eval(`(async function(){ var _B=window.Blob; window.Blob=function(p,o){ return new _B(p,o); };
+        try{ crExport(); }catch(e){ window.Blob=_B; return JSON.stringify('threw '+e.message); } window.Blob=_B;
+        return JSON.stringify(document.getElementById('shareStat').textContent); })()`));
+      w5Chk(name, 'the CR cash return', 'its status line names the edit box for the requirement with no SI code',
+        J([cr.includes('1 with no SI code — those cells are blank; set them in each requirement’s 📋 Requirement edit, at its Navy SI code.'), cr.includes('⋯')]), J([true, false]));
+    }
+
+    // ---- the RCN-EEIC tab, and the SI tab above the section, as the v2.08 board builds them
+    {
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', W4_BASE + ':prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      w5Chk(name, 'v2.08 (' + W4_BASE + ')', 'CONTROL — the v2.08 board is read from the repository (a shallow clone needs git fetch --unshallow)', J(old.length > 1e6), J(true));
+      if (old) {
+        for (const view of ['', 'disc']) {
+          // fresh boards on both sides: the blocks above ran the overview and the CR return on X
+          const mine = sheetsOf(build(null, view)), base = sheetsOf(build(old, view));
+          const of = (L, n) => L.find(s => s.name === n) || null;
+          const where = 'v2.08 against this board · ' + (view ? '◨ discretionary only' : 'the funded plan');
+          w5Chk(name, where, 'CONTROL — the RCN-EEIC tab is the same sheet: every cell, its style and the column widths',
+            J([!!of(base, 'RCN-EEIC by Month'), J(of(mine, 'RCN-EEIC by Month')) === J(of(base, 'RCN-EEIC by Month'))]), J([true, true]));
+          const sm = of(mine, 'SI Codes by Month'), sb = of(base, 'SI Codes by Month');
+          w5Chk(name, where, 'CONTROL — the SI tab above the section is v2.08’s whole tab, row for row, cell and style',
+            J(sm && sb ? J(sm.rows.slice(0, sb.rows.length)) === J(sb.rows) : 'missing'), J(true));
+          w5Chk(name, where, 'and only the label column is wider (34 to 52), for the requirement titles',
+            J(sm && sb ? sb.cols.map((c, i) => c === sm.cols[i] ? null : [i, c, sm.cols[i]]).filter(Boolean) : 'missing'), J([[0, 34, 52]]));
+        }
+      }
+    }
+    w5Chk(name, 'no page error', 'CONTROL — the boards reported no error', J(X.errors.length), J(0));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.09 W4 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

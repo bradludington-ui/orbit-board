@@ -75,7 +75,7 @@ await closeAll();
 // the surfaces a user spends time in
 await snap(String(n++).padStart(2, '0') + '-inspector', 'the right-hand inspector — where editing lives', { sel: '#inspector' });
 for (const [fn, id, what] of [
-  ['toggleRec', 'recPanel', 'the requirement RECORD panel'],
+  ['toggleRec', 'editPanel', 'the edit box: the whole record (v2.08)'],
   ['toggleMat', 'matPanel', 'the classification matrix'],
   ['togglePlans', 'planPanel', 'the two-plan comparison'],
 ]) {

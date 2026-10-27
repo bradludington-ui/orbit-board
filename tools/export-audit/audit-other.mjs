@@ -1289,9 +1289,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'go to it', 'no date: B selected, its award date has the keyboard',
     ev(`(function(){ var a=document.activeElement; return [curRow, !!(a && a.closest && a.closest('#inspector .awdblk')), a && a.type].join(' · '); })()`), 'B · true · date');
   ev(`attShow('imp'); attGo('imp','C'); 'ok'`);
-  chk(name, 'go to it', 'impact: C selected and its Impact statement editor open', ev(`J=JSON.stringify; J([curRow, fldOpen && fldOpen.id, fldOpen && fldOpen.kind])`), J(['C', 'C', 'cons']));
-  ev(`fldClose(); attShow('ccar'); window.__asked=''; attGo('ccar','B'); 'ok'`);
-  chk(name, 'go to it', 'CCaR: B selected and its CCaR record asked for', ev(`curRow+' · '+/CCaR record for "B event"/.test(window.__asked)`), 'B · true');
+  // v2.08 (item 122): the edit box, open at the field
+  chk(name, 'go to it', 'impact: C selected and its record open at the impact statement', ev(`J=JSON.stringify; J([curRow, erOpen, document.activeElement && document.activeElement.id])`), J(['C', 'C', 'erCons']));
+  ev(`erClose(); attShow('ccar'); attGo('ccar','B'); 'ok'`);
+  chk(name, 'go to it', 'CCaR: B selected and its record open at the CCaR record', ev(`[curRow, erOpen, document.activeElement && document.activeElement.id].join(' · ')`), 'B · B · erCcar');
+  ev(`erClose(); 'ok'`);
   // FIXED FROM THE LIST, IT LEAVES THE LIST AND THE COUNT AT ONCE
   ev(`S.ccar=S.ccar||{}; S.ccar.B='JSF2'; save(); render(); 'ok'`);
   chk(name, 'fixed', 'B given a CCaR record: the count and the list drop it', J([entries()[1], open('ccar').rows.length]), J(['BUTTON ○ 1 without a CCaR record', 2]));
@@ -1344,21 +1346,22 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   st = state();
   chk(name, 'Esc', 'Esc closes the box (crOpen false), nothing left inert, nothing asked', J([ev(`crOpen`), st.stack, st.inert, ev(`__asked.length`)]), J([false, [], [], 0]));
   // TYPING GUARDED: the Impact statement editor saves only with its own Save, so what is typed waits there
-  ev(`openFld('A','cons'); dlgSync(); __type(document.getElementById('fld-cons'), ' unless'); 'ok'`);
-  chk(name, 'typing', 'the editor is open with the typing in it', ev(`fldOpen && fldOpen.id+' · '+document.getElementById('fld-cons').value`), 'A · the line stops unless');
+  // v2.08 (item 122): the impact statement is written in the edit box, held until its Save
+  ev(`openEdit('A','cons'); dlgSync(); __type(document.getElementById('erCons'), ' unless'); 'ok'`);
+  chk(name, 'typing', 'the editor is open with the typing in it', ev(`erOpen && erOpen+' · '+document.getElementById('erCons').value`), 'A · the line stops unless');
   ev(`__asked=[]; __ans=false; __key('Escape'); 'ok'`);
   chk(name, 'typing', 'Esc asks first; Cancel keeps the box and the typing, and saves nothing',
-    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`), ev(`S.cons.A`)]),
+    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`), ev(`S.cons.A`)]),
     J([1, true, true, 'the line stops unless', 'the line stops']));
-  ev(`__asked=[]; document.querySelector('#fldPanel h3 button.x').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
-  chk(name, 'typing', '✕ Close asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
-  ev(`__asked=[]; document.getElementById('fldPanel').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
-  chk(name, 'typing', 'a click on the backdrop asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; document.querySelector('#editPanel h3 button.x').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', '✕ Close asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; document.getElementById('editPanel').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', 'a click on the backdrop asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!erOpen`), ev(`document.getElementById('erCons').value`)]), J([1, true, 'the line stops unless']));
   ev(`__asked=[]; __ans=true; __key('Escape'); 'ok'`);
-  chk(name, 'typing', 'Esc and OK: the box closes and the stored statement is untouched', J([ev(`__asked.length`), ev(`fldOpen`), ev(`S.cons.A`), state().stack]), J([1, null, 'the line stops', []]));
+  chk(name, 'typing', 'Esc and OK: the box closes and the stored statement is untouched', J([ev(`__asked.length`), ev(`erOpen`), ev(`S.cons.A`), state().stack]), J([1, null, 'the line stops', []]));
   // nothing typed: no question at all
-  ev(`__asked=[]; openFld('A','cons'); dlgSync(); __key('Escape'); 'ok'`);
-  chk(name, 'typing', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), ev(`fldOpen`)]), J([0, null]));
+  ev(`__asked=[]; openEdit('A','cons'); dlgSync(); __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), ev(`erOpen`)]), J([0, null]));
   // a field the box commits on change: typed and not yet committed is guarded; once committed, nothing to lose
   ev(`toggleEnt(); dlgSync(); window.__f=[].slice.call(document.querySelectorAll('#entPanel .modal input')).filter(function(e){ return !e.disabled && /^(text|)$/.test(e.getAttribute('type')||'') && !e.hasAttribute('oninput'); })[0];
     __type(__f, 'qz'); __asked=[]; __ans=false; __key('Escape'); 'ok'`);
@@ -1512,10 +1515,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     ev(`['A','B','C','D'].map(function(id){ return ccarDescOf(itemById(id)); }).join(' || ')`),
     'Overhaul of the F135 engines || Avionics spares || CLIN 0001 · JSF3 — Third CLIN work\nCLIN 0002 · JSF4 — Fourth CLIN work || ');
   // TYPING A NUMBER fills an EMPTY Description, and only an empty one
-  ev(`globalThis.__p=window.prompt; window.prompt=function(){ return 'JSF2'; }; editCcar('D'); window.prompt=globalThis.__p; 'ok'`);
+  // v2.08 (item 122): typed in the edit box, which fills its description box and writes both on Save
+  const ccBox = (id, v) => ev(`(function(){ openEdit(${J(id)},'ccar'); var e=document.getElementById('erCcar'); e.value=${J(v)}; e.dispatchEvent(new Event('input')); erSave(); return 'ok'; })()`);
+  ccBox('D', 'JSF2');
   chk(name, 'typed number', 'D typed JSF2: Record Name and Description follow it', ev(`recName(itemById('D'))+' | '+((S.desc||{}).D||'')`),
     'Avionics record | Avionics spares');
-  ev(`window.prompt=function(){ return 'JSF1'; }; editCcar('E'); window.prompt=globalThis.__p; 'ok'`);
+  ccBox('E', 'JSF1');
   chk(name, 'typed number', 'E typed JSF1: a written Description is kept', ev(`(S.desc||{}).E||''`), 'Written by the office');
 
   const pE = ev(`(function(){ curRow='E'; try{ inspectorBody(); }catch(e){ return 'threw '+e.message; } return (document.getElementById('inspector')||{}).innerHTML||''; })()`);
@@ -2433,6 +2438,458 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
   }
 }
+
+// ==== v2.08 item 122: edit the whole record in one box (Brad, 26 Oct 2026: D1-D12, D9 retire the rename) ====
+// The box is driven through its own controls: each value is typed into the field (an input event, as typing makes) or chosen
+// (a change event), and Save is its button. Every expected value is written out here, from the fixture. Every check fails on
+// v2.07 (the box does not exist there) unless it is marked CONTROL.
+{
+  const name = 'v2.08 — the edit box: the whole record, held until Save, written once (item 122)';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask, x) => Object.assign({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask }, x || {});
+  const { ev, errors } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [80, 0]), itx('C', 'AV', [60, 0]), itx('D', 'PSM', [40, 0])],
+             disc: [400, 400], mand: [0, 0], order: ['A', 'B', 'C', 'D'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+      S.ccar.A='JSF1'; S.pid.A='PID-A'; S.ptype.A='OGC'; S.obCat=S.obCat||{}; S.obCat.A=OB_CATS[0];
+      S.wbs=S.wbs||{}; S.wbs.A=[{w:'1.2.3', v:[]}]; S.wbs.B=[{w:'4.1', v:[1,0]},{w:'4.2', v:[0,1]}];
+      S.dest=S.dest||{}; S.dest.A={to:'pax', end:'lm'}; S.mipr=S.mipr||{}; S.mipr.A='direct';
+      S.desc.A='What A is.'; S.notes.A='A note.'; S.cons.A='A stops.';
+      S.pmoOrder.PSM=['A','B','D']; S.pmoOrder.AV=['C']; save();
+      window.__asked=[]; window.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; };
+      window.__saves=0; var _s=save; save=function(){ __saves++; return _s.apply(this, arguments); }; setCur('A'); render(); 'ok'`);
+  const g = id => `document.getElementById(${J(id)})`;
+  const put = (id, v) => ev(`(function(){ var e=${g(id)}; e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const val = id => ev(`(${g(id)}||{value:'(no field)'}).value`);
+  const open = () => ev(`/(^| )open( |$)/.test(${g('editPanel')}.className)`);
+  const btn = id => ev(`${g(id)}.click(); 'ok'`);
+
+  // ---- it opens holding the record
+  ev(`toggleRec('A'); 'ok'`);
+  chk(name, 'opens', 'Requirement edit opens the box at the plan event', J([open(), ev(`document.activeElement.id`)]), J([true, 'erEvent']));
+  chk(name, 'opens', 'every field holds what is stored',
+    J(['erEvent', 'erCcar', 'erPid', 'erPtype', 'erGrp', 'erOb', 'erWbs', 'erTo', 'erEnd', 'erMipr', 'erDesc', 'erNote', 'erCons'].map(val)),
+    J(['EV-A', 'JSF1', 'PID-A', 'OGC', 'PSM', ev('OB_CATS[0]'), '1.2.3', 'pax', 'lm', 'direct', 'What A is.', 'A note.', 'A stops.']));
+  chk(name, 'opens', 'the OGC fields are shown for a government activity', J([ev(`${g('erF_destEnd')}.hidden`), ev(`${g('erF_mipr')}.hidden`)]), J([false, false]));
+  chk(name, 'opens', 'the CCaR record name is shown, never a field to type in', J([ev(`${g('erRecT')}.tagName`), ev(`${g('erRecT')}.textContent`)]), J(['SPAN', 'Rec A']));
+  chk(name, 'opens', 'nothing in it edits money: no value, budget, allocation or band control',
+    ev(`document.querySelectorAll('#erBody [onchange*="setAsk"],#erBody [onchange*="setFsrc"],#erBody [onchange*="setBand"],#erBody [onchange*="budLine"],#erBody [onchange*="setAlloc"]').length`), 0);
+
+  // ---- a redraw while it holds typing keeps the typing (F2 cannot reach it)
+  put('erPid', 'PID-NEW'); ev(`render(); render(); 'ok'`);
+  chk(name, 'held', 'two redraws later the typing is still in the box, and nothing is written', J([val('erPid'), ev(`S.pid.A`)]), J(['PID-NEW', 'PID-A']));
+  chk(name, 'held', 'the Save button counts the changes', ev(`${g('erSaveBtn')}.textContent`), 'Save 1 change');
+  // ---- Cancel writes nothing
+  const s0 = ev(`JSON.stringify(S)`);
+  btn('erFt'); ev(`(function(){ [].filter.call(document.querySelectorAll('#erFt button'), function(b){ return b.textContent==='Cancel'; })[0].click(); return 'ok'; })()`);
+  chk(name, 'Cancel', 'Cancel closes the box and writes nothing', J([open(), ev(`JSON.stringify(S)`) === s0]), J([false, true]));
+
+  // ---- Save writes exactly what changed, in one save()
+  ev(`toggleRec('A'); __saves=0; 'ok'`);
+  const pmo0 = ev(`JSON.stringify(S.pmoOrder)`), j0 = Number(ev(`(MS.jrnl||[]).length`));
+  put('erPid', 'PID-NEW'); put('erNote', 'A note, revised.');
+  ev(`erPt('OGC'); 'ok'`);   // OGC again: set, never toggled
+  btn('erSaveBtn');
+  chk(name, 'Save', 'it wrote the two fields typed', J([ev(`S.pid.A`), ev(`S.notes.A`)]), J(['PID-NEW', 'A note, revised.']));
+  chk(name, 'Save', 'Prime contract / OGC chosen again is still OGC', ev(`S.ptype.A`), 'OGC');
+  chk(name, 'Save', 'in one save()', ev(`__saves`), 1);
+  chk(name, 'Save', 'the journal has an entry per changed field and no other', J(JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).slice(${j0}).map(function(e){ return (e.p||[])[0]; }).sort())`))), J(['notes', 'pid']));
+  chk(name, 'Save', 'an unchanged office leaves every ranking as it was', ev(`JSON.stringify(S.pmoOrder)`), pmo0);
+  chk(name, 'Save', 'it closes, and says what it saved', J([open(), ev(`document.getElementById('shareStat').textContent`)]), J([false, '✎ EV-A: saved PID, Note.']));
+
+  // ---- the plan event: a board-data requirement's rename is an override; typed back, it goes
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', 'A renamed'); btn('erSaveBtn');
+  chk(name, 'plan event', 'a rename of a board-data requirement is kept as an override', J([ev(`S.titles.A`), ev(`dispTitle(itemById('A'))`)]), J(['A renamed', 'A renamed']));
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', 'EV-A'); btn('erSaveBtn');
+  chk(name, 'plan event', 'typed back to the file’s own, the override is gone', ev(`S.titles.A===undefined`), true);
+  ev(`toggleRec('A'); 'ok'`); put('erEvent', '   '); btn('erSaveBtn');
+  chk(name, 'plan event', 'empty is refused: nothing written, the box stays open saying why', J([open(), ev(`S.titles.A===undefined`), ev(`${g('erMsg')}.textContent.indexOf('The plan event cannot be empty')>=0`)]), J([true, true, true]));
+  ev(`erClose(); 'ok'`);
+
+  // ---- a split WBS is shown, never retyped; Save of another field leaves it
+  ev(`toggleRec('B'); 'ok'`);
+  chk(name, 'WBS', 'a split WBS: no field to retype it, and its split named with a way to it',
+    J([ev(`${g('erWbs')}.hidden`), ev(`${g('erWbsNote')}.textContent.indexOf('split over 2 lines')>=0`), ev(`${g('erWbsGo')}.hidden`)]), J([true, true, false]));
+  const wbsB = ev(`JSON.stringify(S.wbs.B)`);
+  put('erDesc', 'What B is.'); btn('erSaveBtn');
+  chk(name, 'WBS', 'and Save of another field leaves the split exactly as it was', ev(`JSON.stringify(S.wbs.B)`), wbsB);
+
+  // ---- D10: a Goes to that is not a government activity takes Which awards to and the MIPR type with it
+  ev(`toggleRec('A'); 'ok'`); put('erTo', 'pw');
+  chk(name, 'D10', 'switched to a prime, the OGC fields are hidden', J([ev(`${g('erF_destEnd')}.hidden`), ev(`${g('erF_mipr')}.hidden`)]), J([true, true]));
+  btn('erSaveBtn');
+  // in setDest's own shape -- {to} for a destination that is not a government activity (v2.08 review: {to, end:''} beside
+  // setDest's {to} read as a change between two equal destinations)
+  chk(name, 'D10', 'saved: Goes to is the prime, Which awards to and the MIPR type are cleared', ev(`JSON.stringify([S.dest.A, (S.mipr||{}).A||null])`), J([{ to: 'pw' }, null]));
+
+  // ---- the CCaR record fills an EMPTY description, never a written one; re-entered, it changes nothing
+  // a CCaR records list, for this part only
+  ev(`MS.ccarIdx={n:1, rows:{}}; MS.ccarIdx.rows[ccarNorm('JSF9')]={t:'Nine record', s:'What nine is', d:1}; 'ok'`);
+  ev(`toggleRec('C'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'an empty description is filled from the CCaR list, and the record name read', J([val('erDesc'), ev(`${g('erRecT')}.textContent`)]), J(['What nine is', 'Nine record']));
+  btn('erSaveBtn');
+  chk(name, 'CCaR', 'saved, both are written', J([ev(`S.ccar.C`), ev(`S.desc.C`)]), J(['JSF9', 'What nine is']));
+  ev(`toggleRec('A'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'a written description is never replaced', val('erDesc'), 'What A is.');
+  ev(`erClose(); toggleRec('C'); 'ok'`); put('erCcar', 'JSF9');
+  chk(name, 'CCaR', 'the same number typed again: nothing to save', ev(`${g('erSaveBtn')}.textContent`), 'Save');
+  ev(`erClose(); delete MS.ccarIdx; 'ok'`);
+
+  // ---- the office (D8): asked first, naming what follows; Cancel moves nothing; OK puts it last in the new office
+  ev(`toggleRec('A'); __asked=[]; __ans=false; 'ok'`); put('erGrp', 'AV'); btn('erSaveBtn');
+  chk(name, 'office', 'Save asks, naming this fiscal year only and last in the new office’s ranking',
+    J([ev(`__asked.length`), ev(`__asked[0].indexOf('FY27 only')>=0`), ev(`__asked[0].indexOf('last in AV')>=0`)]), J([1, true, true]));
+  chk(name, 'office', 'answered Cancel, nothing moved and the box is still open with the choice', J([ev(`grpOf(itemById('A'))`), open(), val('erGrp')]), J(['PSM', true, 'AV']));
+  ev(`__ans=true; 'ok'`); btn('erSaveBtn');
+  chk(name, 'office', 'answered OK, it moved, last in AV, out of PSM', J([ev(`grpOf(itemById('A'))`), ev(`JSON.stringify(S.pmoOrder.AV)`), ev(`S.pmoOrder.PSM.indexOf('A')`)]), J(['AV', J(['C', 'A']), -1]));
+
+  // ---- changed while the box was open: nothing written
+  ev(`toggleRec('D'); 'ok'`); put('erPid', 'TYPED'); ev(`S.pid.D='FROM ELSEWHERE'; 'ok'`); btn('erSaveBtn');
+  chk(name, 'changed meanwhile', 'its record changed under the box: Save refuses and writes nothing', J([ev(`S.pid.D`), open(), ev(`${g('erMsg')}.textContent.indexOf('changed while this box was open')>=0`)]), J(['FROM ELSEWHERE', true, true]));
+  ev(`erClose(); 'ok'`);
+
+  // ---- prev / next: typing not saved is asked about first
+  ev(`toggleRec('B'); __asked=[]; __ans=false; 'ok'`); put('erNote', 'typed in B');
+  ev(`erStep(1); 'ok'`);
+  chk(name, 'next', 'next ↓ with typing asks first; Cancel stays on B with the typing', J([ev(`__asked.length`), ev(`erOpen`), val('erNote')]), J([1, 'B', 'typed in B']));
+  ev(`__ans=true; erStep(1); 'ok'`);
+  chk(name, 'next', 'OK opens the next requirement, and B kept nothing', J([ev(`erOpen`), ev(`(S.notes||{}).B||''`)]), J(['C', '']));
+  ev(`erClose(); 'ok'`);
+
+  // ---- the required list warns (D5); the RECORD panel's 📋 count reads it (D11)
+  ev(`toggleRec('D'); 'ok'`);
+  const rail = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#erChk li'), function(l){ return l.className+':'+l.textContent.split(' — ')[0]; }))`));
+  chk(name, 'D5', 'the list is reqNeeds’ own, in its order', J(rail.map(r => r.split(':')[1].replace(/[✓!–]/, '').split(' · ')[0])),
+    J(['Plan event', 'Prime contract / OGC', 'Requirement value', 'Budget', 'Obligation category', 'WBS', 'Goes to', 'Description', 'Impact statement']));
+  ev(`erClose(); setCur('D'); render(); 'ok'`);
+  chk(name, 'D11', 'the 📋 button counts what the list still needs', ev(`[].map.call(document.querySelectorAll('#inspector .insp-act .a2'), function(e){ return e.textContent; })[2]`), '6 of 8 still needed');
+
+  // ---- D9: the record name is read, never typed -- the row's rename is gone
+  ev(`toggleRowMenu('A', {stopPropagation:function(){}}); 'ok'`);
+  chk(name, 'D9', 'the row’s ⋯ menu offers no rename of the CCaR record name', ev(`document.body.innerHTML.indexOf('Rename the CCaR record name')`), -1);
+  ev(`rowMenuId=null; render(); 'ok'`);
+
+  // ---- D12: Brief is a presentation view, its own label says requirements can't be edited there -- so Needs attention's Go
+  // to selects the requirement and says how to edit it, and the box does not open (v2.08 review: it opened, editable)
+  ev(`uiSetMode('brief'); attShow('imp'); attGo('imp','D'); 'ok'`);
+  chk(name, 'D12', 'in Brief, Go to selects D and the box does not open; the status line says to switch to Review',
+    J([open(), ev(`curRow`), ev(`document.getElementById('shareStat').textContent.indexOf('Switch to Review to edit')>=0`)]), J([false, 'D', true]));
+  ev(`uiSetMode('review'); 'ok'`);
+
+  // ---- a locked cycle: the box does not open
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+  chk(name, 'locked', 'on a locked cycle the box does not open', J([ev(`openEdit('A','rec')`), open()]), J([false, false]));
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'errors', 'no page error', errors.length, 0);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 160);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.08 item 122 ====
+
+// ==== v2.08 item 122 -- the review of the edit box (26 Oct 2026) ====
+// Three reviewers by area, each finding re-run by a skeptic. Each part below fails on the board they reviewed (65cc26a) and
+// passes here; every expected value is written out from the fixture. Parts are run apart, so one that throws says so by name.
+{
+  const name = 'v2.08 — the review of the edit box: kept values, the WBS after OGC, Goes to’s shape, prev/next, the SI code, the words';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask, x) => Object.assign({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask }, x || {});
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).split('\n')[0].slice(0, 160), got: 'threw', want: 'ran' }); } };
+  const mk = (services, items, order) => { const b = boot(); seed(b.ev, { services, items, disc: services.map(() => 500), mand: services.map(() => 0), order });
+    b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.__asked=[]; window.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; }; render(); 'ok'`); return b; };
+  const putIn = (ev, id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const btn = (ev, id) => ev(`document.getElementById(${J(id)}).click(); 'ok'`);
+
+  // ---- a stored value the list does not hold is kept as saved, and Save of another field leaves it
+  part('kept as saved', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 50])], ['A']);
+    ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG']}];
+        S.obCat=S.obCat||{}; S.obCat.A='Contract (old)'; S.dest=S.dest||{}; S.dest.A={to:'zz'}; S.rcnAsg=S.rcnAsg||{}; S.rcnAsg.A='R9|E9';
+        S.rcnSvc=S.rcnSvc||{}; S.rcnSvc.A={USAF:'R8|E8'}; rcnSvcOpen.A=true; save(); setCur('A'); render(); toggleRec('A'); 'ok'`);
+    chk(name, 'kept as saved', 'opened with nothing typed, there is nothing to save', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    // v2.08 second review: the option is short -- "(kept)" -- because a closed select cannot wrap; its hover says why
+    chk(name, 'kept as saved', 'each picker shows the value as stored, kept as saved',
+      J(['erOb', 'erTo', 'erRcn', 'erRs_USAF'].map(i => ev(`(function(){ var s=document.getElementById(${J(i)}), o=s.options[s.selectedIndex];
+        return s.value+' | '+(/ \\(kept\\)$/.test(o.text) && (o.getAttribute('title')||'').indexOf('kept as saved')>=0); })()`))),
+      J(['Contract (old) | true', 'zz | true', 'R9|E9 | true', 'R8|E8 | true']));
+    putIn(ev, 'erNote', 'only a note'); btn(ev, 'erSaveBtn');
+    chk(name, 'kept as saved', 'Save of a note leaves all four as they were, and says only the note',
+      J([ev(`S.obCat.A`), ev(`JSON.stringify(S.dest.A)`), ev(`S.rcnAsg.A`), ev(`JSON.stringify(S.rcnSvc.A)`), ev(`S.notes.A`), ev(`document.getElementById('shareStat').textContent`)]),
+      J(['Contract (old)', '{"to":"zz"}', 'R9|E9', '{"USAF":"R8|E8"}', 'only a note', '✎ EV-A: saved Note.']));
+  });
+
+  // ---- the WBS typed after switching Prime contract to OGC in the box is saved
+  part('WBS after OGC', () => {
+    const { ev } = mk(['USAF'], [itx('A', 'PSM', [100])], ['A']);
+    ev(`S.ptype.A='PRIME'; save(); toggleRec('A'); erPt('OGC'); 'ok'`);
+    chk(name, 'WBS after OGC', 'switched to OGC, the WBS field is there', ev(`document.getElementById('erWbs').hidden`), false);
+    putIn(ev, 'erWbs', '3.1.4'); btn(ev, 'erSaveBtn');
+    chk(name, 'WBS after OGC', 'saved: the type and the WBS typed', J([ev(`S.ptype.A`), ev(`JSON.stringify(S.wbs.A)`)]), J(['OGC', '[{"w":"3.1.4","v":[]}]']));
+  });
+
+  // ---- where the money goes, written as setDest writes it
+  part('Goes to', () => {
+    const { ev } = mk(['USAF'], [itx('A', 'PSM', [100]), itx('B', 'PSM', [100]), itx('C', 'PSM', [100])], ['A', 'B', 'C']);
+    ev(`setDest('A','to','dla'); save(); 'ok'`);
+    const d0 = ev(`JSON.stringify(S.dest.A)`), j0 = Number(ev(`(MS.jrnl||[]).length`));
+    ev(`toggleRec('A'); 'ok'`); putIn(ev, 'erMipr', 'reimb'); btn(ev, 'erSaveBtn');
+    chk(name, 'Goes to', 'only the MIPR type changed: the destination record is untouched', ev(`JSON.stringify(S.dest.A)`), d0);
+    // the year's first MIPR type makes its container, which the journal records as one line
+    chk(name, 'Goes to', 'and the journal records the MIPR type alone', ev(`JSON.stringify((MS.jrnl||[]).slice(${j0}).map(function(e){ return (e.p||[]).join('.'); }))`), J(['mipr']));
+    ev(`delete S.mipr; save(); 'ok'`);
+    const j1 = Number(ev(`(MS.jrnl||[]).length`));
+    ev(`toggleRec('B'); 'ok'`); putIn(ev, 'erTo', 'pw'); btn(ev, 'erSaveBtn');
+    chk(name, 'Goes to', 'Goes to set to a prime on a year with no MIPR types: no MIPR container is made, none journalled',
+      J([ev(`S.mipr===undefined`), ev(`(MS.jrnl||[]).slice(${j1}).some(function(e){ return (e.p||[])[0]==='mipr'; })`), ev(`JSON.stringify(S.dest.B)`)]), J([true, false, '{"to":"pw"}']));
+    // a board saved before v2.08: C on a prime, with a hidden second hop and MIPR type
+    ev(`S.dest.C={to:'pw', end:'lm'}; S.mipr={C:'direct'}; save(); 'ok'`);
+    ev(`toggleRec('C'); 'ok'`); putIn(ev, 'erTo', 'chlk'); btn(ev, 'erSaveBtn');
+    chk(name, 'Goes to', 'a hidden second hop does not come back when Goes to becomes a government activity (the box)', J([ev(`JSON.stringify(S.dest.C)`), ev(`(S.mipr||{}).C||null`)]), J(['{"to":"chlk"}', null]));
+    ev(`S.dest.C={to:'pw', end:'lm'}; S.mipr={C:'direct'}; save(); setDest('C','to','chlk'); 'ok'`);
+    chk(name, 'Goes to', 'nor through setDest (Classify, a bulk set)', J([ev(`JSON.stringify(S.dest.C)`), ev(`(S.mipr||{}).C||null`), ev(`JSON.stringify(flowDestResolve(['C'],'end'))`)]), J(['{"to":"chlk"}', null, '["chlk"]']));
+  });
+
+  // ---- prev / next: the box controller compares against the record on screen
+  part('prev/next', () => {
+    const { ev } = mk(['USAF'], [itx('A', 'PSM', [100]), itx('B', 'PSM', [100])], ['A', 'B']);
+    ev(`S.obCat=S.obCat||{}; S.obCat.A=OB_CATS[1]; save(); toggleRec('A'); dlgSync(); erStep(1); dlgSync(); 'ok'`);
+    chk(name, 'prev/next', 'on B with nothing typed, the box holds no typing to ask about', J([ev(`erOpen`), ev(`dlgDirty(dlgTop())`)]), J(['B', false]));
+    putIn(ev, 'erOb', ev(`OB_CATS[1]`));
+    chk(name, 'prev/next', 'typing that makes B match A is still typing on B', ev(`dlgDirty(dlgTop())`), true);
+    ev(`erClose(); 'ok'`);
+  });
+
+  // ---- the SI code: "follows the PMO and prime rules" is a choice of its own
+  part('SI code', () => {
+    const b = boot(); seed(b.ev, { services: ['STOVL', 'USMC-C', 'USN'], items: [itx('A', 'AV', [0, 0, 100]), itx('B', 'AV', [0, 0, 100])], disc: [500, 500, 500], mand: [0, 0, 0], order: ['A', 'B'] });
+    const ev = b.ev;
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        window.confirm=function(){ return true; }; 'ok'`);
+    const d0 = ev(`siDefault(itemById('A'))`), dPP = ev(`(function(){ var g=S.grp.A; S.grp.A='PP'; var d=siDefault(itemById('A')); if(g===undefined) delete S.grp.A; else S.grp.A=g; return d; })()`);
+    chk(name, 'SI code', 'fixture: A’s derived code changes when it moves to PP', d0 !== dPP, true);
+    ev(`toggleRec('A'); 'ok'`);
+    chk(name, 'SI code', 'with no code stored, the picker says it follows the PMO and prime rules', ev(`(function(){ var s=document.getElementById('erSi'); return s.options[s.selectedIndex].text; })()`), '— follows the PMO and prime rules —');
+    putIn(ev, 'erGrp', 'PP'); btn(ev, 'erSaveBtn');
+    chk(name, 'SI code', 'moved to PP in the same Save, it still follows: nothing stored, the code is PP’s', J([ev(`S.si.A===undefined`), ev(`siOf(itemById('A'))`)]), J([true, dPP]));
+    ev(`S.grp.B='PP'; save(); 'ok'`);
+    chk(name, 'SI code', 'fixture: B, in PP, derives a code', ev(`siOf(itemById('B'))`), dPP);
+    ev(`toggleRec('B'); 'ok'`); putIn(ev, 'erSi', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'SI code', '"none" chosen over a derived code is stored as none', J([ev(`JSON.stringify(S.si.B)`), ev(`siOf(itemById('B'))`)]), J(['""', '']));
+  });
+
+  // ---- the words and the ways out
+  part('words', () => {
+    const { ev } = mk(['USAF'], [itx('A', 'PSM', [100]), itx('B', 'PSM', [100])], ['A', 'B']);
+    ev(`S.wbs.A=[{w:'1.1', v:[]}]; S.ptype.B='PRIME'; save(); setCur('A'); render(); toggleRec('A'); 'ok'`);
+    const btnCount = ev(`(function(){ erClose(); setCur('A'); render(); var t=[].map.call(document.querySelectorAll('#inspector .insp-act .a2'), function(e){ return e.textContent; })[2]; toggleRec('A'); return t; })()`);
+    chk(name, 'words', 'the box’s Required count and the 📋 button say the same thing', ev(`document.getElementById('erReadyN').textContent`), btnCount);
+    chk(name, 'words', 'the record name drawn from the file says so', ev(`document.getElementById('erRecTag').textContent`), 'from the file');
+    chk(name, 'words', 'a WBS of one line can be split from the box', J([ev(`document.getElementById('erWbsGo').hidden`), ev(`document.getElementById('erWbsSplit').hidden`), ev(`document.getElementById('erWbsSplit').textContent`)]), J([false, false, 'Split it by service…']));
+    ev(`erGo('record'); 'ok'`);
+    chk(name, 'words', 'the way to the value and budgets closes the box and puts the keyboard in the RECORD panel’s value', J([ev(`erOn()`), ev(`(document.activeElement.getAttribute('onchange')||'').indexOf('setAsk(')===0`)]), J([false, true]));
+    ev(`clinOpen.B=true; render(); openEdit('B','rec'); erGo('clin'); 'ok'`);
+    chk(name, 'words', 'Open the CLIN drill leaves an open drill open', ev(`!!clinOpen.B`), true);
+  });
+
+  // ---- a CCaR record the file carries cannot be cleared in the box, and the box says so
+  part('CCaR from the file', () => {
+    const { ev } = mk(['USAF'], [itx('A', 'PSM', [100], { ccar: 'JSF77' })], ['A']);
+    ev(`toggleRec('A'); 'ok'`); putIn(ev, 'erCcar', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR from the file', 'cleared: nothing saved, the box stays open saying why, the record stays',
+      J([ev(`erOn()`), ev(`document.getElementById('erMsg').textContent.indexOf('comes from the file and cannot be cleared here')>=0`), ev(`ccarOf(itemById('A'))`)]), J([true, true, 'JSF77']));
+    ev(`erClose(); 'ok'`);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).split('\n')[0].slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.08 item 122 -- the review ====
+
+// ==== v2.08 item 122 -- the second review of the edit box (26 Oct 2026) ====
+// A second round of reviewers on the first round's fixes (3898d95), each finding re-run by a skeptic. Each part fails there and
+// passes here; every expected value is written out from the fixture.
+{
+  const name = 'v2.08 — the second review of the edit box: a CCaR record typed over the file’s, the SI code’s rule, where a record name comes from, the RCN note, the way to the RECORD panel';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask, x) => Object.assign({ id, title: 'Rec ' + id, event: 'EV-' + id, grp, ask }, x || {});
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).split('\n')[0].slice(0, 160), got: 'threw', want: 'ran' }); } };
+  const mk = (services, items, order) => { const b = boot(); seed(b.ev, { services, items, disc: services.map(() => 500), mand: services.map(() => 0), order });
+    b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.__asked=[]; window.__ans=true; window.confirm=function(m){ __asked.push(String(m)); return __ans; }; render(); 'ok'`); return b; };
+  const putIn = (ev, id, v) => ev(`(function(){ var e=document.getElementById(${J(id)}); e.value=${J(v)}; e.dispatchEvent(new Event('input')); e.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const btn = (ev, id) => ev(`document.getElementById(${J(id)}).click(); 'ok'`);
+  const stat = ev => ev(`document.getElementById('shareStat').textContent`);
+
+  // ---- a CCaR record typed over the file's is cleared back to the file's; the file's own still cannot be
+  part('CCaR typed over the file’s', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 0], { ccar: 'JSF1234' }), itx('B', 'PSM', [100, 0], { ccar: 'JSF5555' })], ['A', 'B']);
+    ev(`S.ccar=S.ccar||{}; S.ccar.A='JSF9999'; save(); render(); openEdit('A','ccar'); 'ok'`);
+    chk(name, 'CCaR typed over the file’s', 'the box shows the record typed over the file’s', ev(`document.getElementById('erCcar').value`), 'JSF9999');
+    putIn(ev, 'erCcar', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'cleared, the typed record goes and the file’s is read again', J([ev(`erOn()`), ev(`(S.ccar||{}).A===undefined`), ev(`ccarOf(itemById('A'))`)]),
+      J([false, true, 'JSF1234']));
+    chk(name, 'CCaR typed over the file’s', 'and the status line says so', stat(ev), '✎ EV-A: saved CCaR record (back to the file’s JSF1234).');
+    ev(`openEdit('B','ccar'); 'ok'`); putIn(ev, 'erCcar', ''); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'the file’s own record, nothing typed over it, still cannot be cleared', J([ev(`erOn()`), ev(`ccarOf(itemById('B'))`)]), J([true, 'JSF5555']));
+    ev(`erClose(); S.ccar.A='JSF9999'; save(); openEdit('A','ccar'); 'ok'`); putIn(ev, 'erCcar', 'JSF1234'); btn(ev, 'erSaveBtn');
+    chk(name, 'CCaR typed over the file’s', 'the file’s own record typed back leaves no record typed over it', J([ev(`(S.ccar||{}).A===undefined`), ev(`ccarOf(itemById('A'))`)]),
+      J([true, 'JSF1234']));
+  });
+
+  // ---- the SI code: a pick the PMO and prime rules give anyway, with no code stored, is no change and is not said
+  part('SI rule', () => {
+    const { ev } = mk(['USN', 'STOVL'], [itx('A', 'PP', [100, 0]), itx('B', 'PSM', [100, 0]), itx('C', 'PSM', [100, 0])], ['A', 'B', 'C']);
+    chk(name, 'SI rule', 'the fixture: O&M, A on PP derives EN, B and C on PSM derive none', J([ev(`siApplies()`), ev(`siOf(itemById('A'))`), ev(`siOf(itemById('B'))`)]), J([true, 'EN', '']));
+    const j0 = +ev(`(MS.jrnl||[]).length`);
+    ev(`openEdit('A','si'); 'ok'`); putIn(ev, 'erSi', 'EN');
+    chk(name, 'SI rule', 'EN picked on PP, which the rules give anyway, is no change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'Save says nothing changed, stores nothing and journals nothing', J([stat(ev), ev(`(S.si||{}).A===undefined`), +ev(`(MS.jrnl||[]).length`) - j0]),
+      J(['Nothing changed on EV-A.', true, 0]));
+    ev(`openEdit('B','si'); 'ok'`); putIn(ev, 'erSi', '');
+    chk(name, 'SI rule', '— none — on PSM, where the rules give none, is no change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save');
+    ev(`erClose(); openEdit('C','si'); 'ok'`); putIn(ev, 'erSi', 'LA');
+    chk(name, 'SI rule', 'a code the rules do not give is a change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save 1 change');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'stored, and said', J([ev(`S.si.C`), stat(ev)]), J(['LA', '✎ EV-C: saved Navy SI code.']));
+    // moved to PP in the same Save with EN picked: EN is what the rules give the office the box holds -- no code is stored
+    ev(`openEdit('B','si'); 'ok'`); putIn(ev, 'erGrp', 'PP'); putIn(ev, 'erSi', 'EN');
+    chk(name, 'SI rule', 'moved to PP with EN picked: only the office is a change', ev(`document.getElementById('erSaveBtn').textContent`), 'Save 1 change');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'SI rule', 'saved: B is on PP, no code stored, and it reads EN by the rules', J([ev(`grpOf(itemById('B'))`), ev(`(S.si||{}).B===undefined`), ev(`siOf(itemById('B'))`)]),
+      J(['PP', true, 'EN']));
+  });
+
+  // ---- where the record name shown comes from: a prime named by its CLINs' record reads it from the list
+  part('record name source', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 0], { title: '' }), itx('B', 'PSM', [100, 0], { title: '' }), itx('D', 'PSM', [100, 0], { title: 'PACK TITLE' })], ['A', 'B', 'D']);
+    ev(`MS.ccarIdx={ts:1700000000001, file:'recs.xlsx', n:2, rows:{JSF1:{t:'DEPOT RECORD ONE', s:'one', d:1}, JSF2:{t:'FIELD RECORD TWO', s:'two', d:1}}};
+        S.ptype=S.ptype||{}; S.ptype.A='PRIME'; S.ptype.B='PRIME'; S.ptype.D='PRIME';
+        S.clinNew=S.clinNew||{}; S.clinNew.A=[{key:'n1', clin:'0001', desc:'one', ccar:'JSF1'}];
+        S.clinNew.B=[{key:'n1', clin:'0001', desc:'one', ccar:'JSF1'},{key:'n2', clin:'0002', desc:'two', ccar:'JSF2'}]; save(); render(); 'ok'`);
+    const line = id => { ev(`openEdit(${J(id)},'rec'); 'ok'`);
+      const r = ev(`document.getElementById('erRecT').textContent+' | '+document.getElementById('erRecTag').textContent`); ev(`erClose(); 'ok'`); return r; };
+    chk(name, 'record name source', 'a prime named by its CLINs’ one record: from the CCaR records list', line('A'), 'DEPOT RECORD ONE | from the CCaR records list');
+    chk(name, 'record name source', 'one named by several: from the CCaR records list', line('B'), 'Multiple records (2) | from the CCaR records list');
+    chk(name, 'record name source', 'one the list does not name shows its file title: from the file', line('D'), 'PACK TITLE | from the file');
+  });
+
+  // ---- the note under RCN / EEIC follows what the box holds, the requirement's own and each service's
+  part('RCN note', () => {
+    const { ev } = mk(['USAF', 'ANG', 'AFRC'], [itx('A', 'PSM', [100, 50, 0])], ['A']);
+    ev(`MS.rcn=[{k:'r1', rcn:'12345', eeic:'ABCDE', t:'Depot', svc:['USAF','ANG','AFRC']},{k:'r2', rcn:'54321', eeic:'EDCBA', t:'Field', svc:['USAF','ANG','AFRC']}];
+        S.rcnAsg=S.rcnAsg||{}; S.rcnAsg.A='r2'; rcnSvcOpen.A=true; save(); setCur('A'); render(); openEdit('A','rcnAsg'); 'ok'`);
+    const note = () => ev(`document.getElementById('erRcnNote').textContent`);
+    const L1 = ev(`rcnLabel('r1')`), L2 = ev(`rcnLabel('r2')`);
+    chk(name, 'RCN note', 'opened: the stored combination, for each service with money', note(), 'USAF ' + L2 + ' · ANG ' + L2);
+    putIn(ev, 'erRcn', 'r1');
+    chk(name, 'RCN note', 'another picked: the note names it for every service', note(), 'USAF ' + L1 + ' · ANG ' + L1);
+    putIn(ev, 'erRs_USAF', 'r2');
+    chk(name, 'RCN note', 'USAF given its own: the note names each, and that they differ', note(), 'USAF ' + L2 + ' · ANG ' + L1 + ' — the services differ: set them per service');
+    btn(ev, 'erSaveBtn');
+    chk(name, 'RCN note', 'saved, the board reads what the note said', J(['USAF', 'ANG'].map(sv => ev(`rcnAsgOf('A', ${J(sv)})`))), J(['r2', 'r1']));
+  });
+
+  // ---- the way to the RECORD panel opens the box's own requirement, after ↑ prev / next ↓ too
+  part('to the RECORD panel', () => {
+    const { ev } = mk(['USAF', 'ANG'], [itx('A', 'PSM', [100, 50]), itx('B', 'PSM', [80, 20])], ['A', 'B']);
+    ev(`setCur('A'); render(); document.querySelector('#inspector [onclick^="toggleRec("]').click(); dlgSync(); 'ok'`);
+    ev(`document.querySelector('#editPanel button[onclick="erStep(1)"]').click(); dlgSync(); 'ok'`);
+    chk(name, 'to the RECORD panel', 'after next ↓ the box is on B', ev(`erOpen`), 'B');
+    ev(`document.getElementById('erToPanel').click(); dlgSync(); 'ok'`);
+    chk(name, 'to the RECORD panel', 'the box closes and the RECORD panel shows B', J([ev(`erOn()`), ev(`curRow`)]), J([false, 'B']));
+    chk(name, 'to the RECORD panel', 'the keyboard is on B’s own value', ev(`(document.activeElement && document.activeElement.getAttribute('onchange')||'').indexOf('setAsk("B",')===0`), true);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.08 item 122 -- the second review ====
+
+
+// ==== v2.09 W1 (item 125): CLIN amounts and the row controls, by pointer ====
+// ==== end v2.09 W1 ====
+
+// ==== v2.09 W2 (item 126): a PMO copy's five years ====
+// ==== end v2.09 W2 ====
+
+// ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
+// What a PMO copy's foot holds, and the words that said its Save was off, in jsdom (the browser half -- layout, target size,
+// the keyboard, the picker's name and the real handle store -- is tools/pmo-save.mjs). Every check fails on v2.08 (ebe702e)
+// unless it says CONTROL.
+{
+  const name = 'v2.09 W3 — a copy’s foot: 💾 Save above ✉ Submit input, its ▾ and Ctrl+S, and the words that said Save was off (item 127)';
+  try {
+    const J = JSON.stringify;
+    const e3 = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 120); } };
+    const it3 = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const SC = { services: ['USAF', 'ANG'], items: [it3('A', 'PSM', [900, 200]), it3('C', 'AV', [500, 0])], disc: [1200, 250], mand: [300, 50], order: ['A', 'C'] };
+    const B = boot(); seed(B.ev, SC);
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      try{ localStorage.setItem('prio27who','BLL'); }catch(e){} render(); syncBtns(); 'ok'`);
+    const C0 = B.ev(`(function(){ let cap=null; const _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+    const foot = ev => e3(ev, `JSON.stringify([...document.getElementById('uiSave').querySelectorAll('button, #saveState')].filter(function(e){ return !e.closest('[hidden]'); })
+      .map(function(e){ return e.id==='saveState'? 'state' : (e.id||e.className)+':'+(e.getAttribute('onclick')||''); }))`);
+    const ddSave = ev => e3(ev, `JSON.stringify([...document.querySelectorAll('#dd_save [onclick]')].map(function(b){ return b.getAttribute('onclick'); }))`);
+    // the board: its foot as it was (a CONTROL)
+    chk(name, 'board', 'the board’s foot is 💾 Save, its ▾ and the save state, as before (a CONTROL)', foot(B.ev),
+      J(['saveBtn:saveInPlace()', "uiNav_save:uiGo('save',this)", 'state']));
+    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)']));
+    // the copy
+    const P = boot({ html: C0 });
+    P.ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; window.prompt=function(){ return null; };
+      try{ localStorage.setItem('prio27who','Pat'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); syncBtns(); 'ok'`);
+    chk(name, 'copy', 'the foot, top to bottom: 💾 Save and its ▾, the save state, then ✉ Submit input', foot(P.ev),
+      J(['pmoSaveBtn:pmoSaveCopy()', "uiNav_save:uiGo('save',this)", 'state', 'saveBtn:pmoSubmit()']));
+    chk(name, 'copy', '✉ Submit input stays the primary button; Save is a plain one', e3(P.ev, `JSON.stringify([document.getElementById('saveBtn').className, document.getElementById('pmoSaveBtn').className])`),
+      J(['btn pri', '']));
+    chk(name, 'copy', 'the ▾ offers the copy’s own Save a copy, and nothing of the board’s', ddSave(P.ev), J(['mRun(pmoSaveCopyDl)']));
+    chk(name, 'copy', 'the save state of the copy as it was published: not saved to a file yet', e3(P.ev, `document.getElementById('saveState').textContent`), 'not saved to a file yet');
+    P.ev(`setDesc('A','PSM rewrote A'); syncBtns(); 'ok'`);
+    chk(name, 'copy', 'edited: Unsaved changes, and Save says so', e3(P.ev, `JSON.stringify([document.getElementById('saveState').textContent, document.getElementById('pmoSaveBtn').classList.contains('dirty')])`), J(['Unsaved changes', true]));
+    chk(name, 'copy', 'the bar no longer says a copy has no Save', /no Save/.test(e3(P.ev, `(document.getElementById('uiEdChip')||{}).textContent||''`)), false);
+    // Ctrl+S is the copy's Save; on the board it is the board's
+    const keyS = ev => e3(ev, `(function(){ window.__s=[]; var a=window.saveInPlace, b=window.pmoSaveCopy;
+      saveInPlace=function(){ __s.push('saveInPlace'); }; pmoSaveCopy=function(){ __s.push('pmoSaveCopy'); };
+      try{ uiSaveKey({ctrlKey:true, metaKey:false, altKey:false, shiftKey:false, key:'s', preventDefault:function(){}}); }finally{ saveInPlace=a; if(b) pmoSaveCopy=b; }
+      return JSON.stringify(__s); })()`);
+    chk(name, 'Ctrl+S', 'in a copy it is the copy’s Save', keyS(P.ev), J(['pmoSaveCopy']));
+    chk(name, 'Ctrl+S', 'on the board it is the board’s (a CONTROL)', keyS(B.ev), J(['saveInPlace']));
+    // the board's own ways out stay shut in a copy: each says so, and nothing is downloaded
+    const shut = e3(P.ev, `(function(){ var out=[], _B=window.Blob, made=0; window.Blob=function(pt,o){ if(o && o.type==='text/html') made++; return new _B(pt,o); };
+      ['saveInPlace','saveInPlaceFile','publishState'].forEach(function(f){ __al=[]; try{ window[f](); }catch(e){} out.push(__al.length===1 && /PMO copy/.test(__al[0])); });
+      window.Blob=_B; out.push(made); return JSON.stringify(out); })()`);
+    chk(name, 'the gate', 'the board’s Save, its file save and its Save a copy are each refused in a copy, and nothing is downloaded (a CONTROL on the gate)', shut, J([true, true, true, 0]));
+    const gate = e3(P.ev, `(function(){ __al=[]; sandboxBlock('Saving to the shared file'); return __al[0]||''; })()`);
+    chk(name, 'the words', 'the gate no longer says the work is in this browser only, and names Save', J([/in this browser only/.test(gate), /Save .*office.*own file/.test(gate)]), J([false, true]));
+    chk(name, 'the words', 'the opening line names Save, not “kept in this browser, against this copy”',
+      J([/Save/.test(e3(P.ev, `document.getElementById('shareStat').innerHTML`)), /against this copy/.test(e3(P.ev, `document.getElementById('shareStat').innerHTML`))]), J([true, false]));
+    chk(name, 'the words', '✉ Submit input’s title points to Save', /Save.*office.*own file/.test(e3(P.ev, `document.getElementById('saveBtn').title`)), true);
+    // storage refusing a change: the message points to the copy's own Save
+    const refusedMsg = e3(P.ev, `(function(){ var si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k===_AP.key || k===BUDDB_KEY) throw new DOMException('full','QuotaExceededError'); return si.call(this,k,v); };
+      try{ setDesc('A','refused'); var a=document.getElementById('shareStat').textContent; persistBud(); var b=document.getElementById('shareStat').textContent; return JSON.stringify([a,b]); }
+      finally{ Storage.prototype.setItem=si; } })()`);
+    chk(name, 'the words', 'storage refusing the work, or a list, points to Save and the office’s own file',
+      J((() => { try { return JSON.parse(refusedMsg).map(t => /Save now to keep it in your office’s own file|Save to keep it in your office’s own file/.test(t)); } catch { return refusedMsg; } })()), J([true, true]));
+    // the in-file guide's office part
+    const guide = e3(P.ev, `JSON.stringify(helpSections().filter(function(s){ return s.part==='office'; }).map(function(s){ return s.id+'|'+s.el.textContent; }))`);
+    chk(name, 'the guide', 'the office part has a section on Save, and no longer says Save is turned off or to reopen the same file in the same browser',
+      J((() => { try { const G = JSON.parse(guide); return [G.some(g => /^o-save\|/.test(g)), G.some(g => /Save says it is turned off/.test(g)), G.some(g => /Reopen the same file in the same browser/.test(g))]; } catch { return guide; } })()), J([true, false, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v2.09 W3 ====
+
+// ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
+// ==== end v2.09 W4 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

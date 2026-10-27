@@ -1,0 +1,206 @@
+[
+ {
+  "id": "v209-w3-handle-board-key",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-handle-every-office",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-picker-board-name",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-target-unchecked",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-target-pristine",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-target-other-office",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-target-other-copy",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-target-keeps-handle",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-unreadable-written",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-writer-gate",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-leaves-dirty",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-lastknown-unmoved",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-hold-on-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-refonly",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-no-mark",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-adopt-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-adopt-from-file",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-submit-office-unchecked",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-mine-mem",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-for-ask-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-dl-marks-saved",
+  "caughtBy": "audit-import / v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-applystore-keeps-mark",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-w3-door-state",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-door-full",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-door-batch",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-door-cons",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-board-save-over-copy",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-board-save-keeps-handle",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-side-bud-unsealed",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-side-ex-unsealed",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-side-ace-unsealed",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-side-rp-unsealed",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-side-filekey-literal",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-sidecheck-copy-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — a copy’s side lists are its own"
+ },
+ {
+  "id": "v209-w3-ctrl-s-board-save",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-dd-save-board-call",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-foot-hidden",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-foot-order",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-state-pristine-saved",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-gate-words",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-greeting-words",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-w3-persist-words",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "ace-store-past-lsset",
+  "caughtBy": "audit-import / v1.95 — a refused write of the cost estimates or the reprogramming log is in Save diagnostics"
+ },
+ {
+  "id": "rp-store-past-lsset",
+  "caughtBy": "audit-import / v1.95 — a refused write of the cost estimates or the reprogramming log is in Save diagnostics"
+ },
+ {
+  "id": "v197w2-reprog-key-missed",
+  "caughtBy": "audit-import / v1.97 — every list the file carries marks the board unsaved; v1.97 — a folder save never acknowledges a list it does not write"
+ },
+ {
+  "id": "v197w2-dest-key-missed",
+  "caughtBy": "audit-import / v1.97 — every list the file carries marks the board unsaved; v1.97 — a folder save never acknowledges a list it does not write"
+ },
+ {
+  "id": "v202-89-lsset-writes-swapped",
+  "caughtBy": "audit-board / v2.02 (item 89) — a locked cycle keeps its own lists"
+ },
+ {
+  "id": "v207-121-copy-office-not-kept",
+  "caughtBy": "audit-import / v2.07 — the Add box in a PMO copy (item 121)"
+ },
+ {
+  "id": "pmo-gate-open",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "copy-save-button",
+  "caughtBy": "audit-import / v1.84 — a copy points to Submit input"
+ },
+ {
+  "id": "copy-boot-line",
+  "caughtBy": "audit-import / v1.84 — a copy points to Submit input"
+ }
+]

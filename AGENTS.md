@@ -71,6 +71,10 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   test fixtures all use it), or restate the list of what a requirement must have anywhere but `reqNeeds()`: the Add box,
   a PMO copy's proposal gate and Pre-flight read that one list (v2.07, item 121). The box writes nothing until Add, and
   then once; it adds for one office, never changeable inside it.
+- Edit an existing requirement's record anywhere but the edit box (`openEdit`, `#editPanel`), or write its fields anywhere but
+  `reqApply()`: the box holds a draft until Save, writes only what changed in one `save()`, refuses when the record changed
+  under it, and asks before an office change (v2.08, item 122). Its money stays on the RECORD panel. Never redraw the box's
+  fields from `render()` (`erSync` only toggles it), and keep a RECORD panel field's uncommitted typing across a redraw (F2).
 - Add a kind of per-requirement data without putting it on `REQ_MAPS` in the board: delete, move-to-year
   and copy-to-year all read that one list, and the round-trip fuzz fails by name on one that is missing.
 - Write over a saved copy -- the file, or the shared folder's -- that could not be read, or decide whether
