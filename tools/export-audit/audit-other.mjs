@@ -2897,6 +2897,305 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== end v2.09 W4 ====
 
 // ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+// FYDP › FYDP Disconnects (Brad, 27 Oct 2026): the cost estimate against a PPBE cycle's controls, by appropriation, a Summary
+// and four service sheets, on screen; Export to Excel prints the same model (the workbook itself is the B slot's). Every
+// expectation below is worked out HERE from the fixture's own literals -- the estimate's lines, each appropriation's position
+// cells -- by the rules as Brad stated them, never read back from fdcModel(). The fixture makes the alternatives disagree:
+// every appropriation, service, year and lane carries its own figure; the estimate's lines are fractional dollars; two lines
+// share a service; an OPN line and a line for a service in no group; Full Fund's positions are in this browser's storage and
+// Spares' only in the file (PUBS), Spares missing FY30 and carrying fractions; a second estimate that stops at FY31; a cycle
+// logged only in Spares that is newer than the working plan's; a zero requirement under live controls. Every check fails on
+// v2.09 (d3ce17d), which has no FYDP Disconnects, unless it says CONTROL.
+{
+  const name = 'v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    // a canonical form: keys sorted, and a number that is not finite named (JSON would print it as null)
+    const canon = v => J(v, function (k, x) {
+      if (typeof x === 'number' && !Number.isFinite(x)) return 'NF:' + x;
+      if (x && typeof x === 'object' && !Array.isArray(x)) { const o = {}; Object.keys(x).sort().forEach(q => { o[q] = x[q]; }); return o; }
+      return x; });
+    const pageModel = (ev, opts) => E(ev, `JSON.stringify(fdcModel(${opts ? J(opts) : ''}), function(k,x){ return (typeof x==='number' && !isFinite(x))? 'NF:'+x : x; })`);
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const SV6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], APS = ['om', 'ff', 'sp'];
+    const YRS = [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
+    // ---- the fixture's literals --------------------------------------------------------------------------------------------
+    const ace25 = [];
+    APS.forEach((ap, a) => SV6.forEach((sv, s) => {
+      if (ap === 'sp' && sv === 'USMC-C') return;            // USMC CV asks nothing of Spares: a zero requirement under live controls
+      const v = {}; YRS.forEach(y => { v[y] = (a + 1) * 1e9 + (s + 1) * 1e7 + (y - 2020) * 1e6 + (a * 7 + s * 3 + y % 5) * 1000 + (s % 2 ? 0.3 : 0.7); });
+      ace25.push({ ap, pmo: 'AV', svc: sv, v });
+      if (sv === 'USAF' || sv === 'STOVL') { const w = {}; YRS.forEach(y => { w[y] = 250000.7 + y * 3 + a; }); ace25.push({ ap, pmo: 'PP', svc: sv, v: w }); }
+    }));
+    { const v = {}; YRS.forEach(y => { v[y] = 9.9e8 + y; }); ace25.push({ ap: 'opn', pmo: 'AV', svc: 'USAF', v }); }          // OPN: never counted
+    { const v = {}; [2027, 2028, 2029, 2030, 2031, 2032].forEach(y => { v[y] = 5e6 + y; }); ace25.push({ ap: 'om', pmo: 'Non-PMO', svc: 'XSVC', v }); }  // in no group
+    const ace26 = [{ ap: 'om', pmo: 'AV', svc: 'USAF', v: { 2027: 7e6, 2028: 7.1e6, 2029: 7.2e6, 2030: 7.3e6, 2031: 7.4e6 } }];
+    const HOST = '2027<img src=x onerror=__pw()>ACE';
+    const SETS = {
+      '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines: ace25, appn: {}, skip: {} },
+      '2026ACE': { label: '2026ACE', ts: 3000, years: [2027, 2028, 2029, 2030, 2031], lines: ace26, appn: {}, skip: {} },
+      [HOST]: { label: HOST, ts: 1000, years: [2027, 2028], lines: [{ ap: 'om', pmo: 'AV', svc: 'USAF', v: { 2027: 1e6 } }], appn: {}, skip: {} },
+    };
+    // a position: one figure per service, line, year and lane (USAF on two lines); f marks a fraction of a dollar on every cell
+    const fac = [0.82, 1.05, 0.9, 1.12, 0.95, 0.88];
+    const D = (a, s, y, k) => Math.round(((a + 1) * 1e9 + (s + 1) * 1e7) * fac[(y - 2027 + 6) % 6] / 1000) * 1000 + k * 333333 + s * 7;
+    const Mx = (a, s, y, k) => (a === 2 && y !== 2028) ? 0 : (s + 1) * 1000000 + (y - 2027) * 10007 + a * 1009 + k * 11;
+    const posOf = (a, svcs, yrs, f) => { const lines = {}, val = {};
+      svcs.forEach((sv, s) => { const ks = sv === 'USAF' ? ['n1', 'n2'] : ['_all']; lines[sv] = ks.map(k => ({ k })); val[sv] = {};
+        ks.forEach((k, ki) => { val[sv][k] = {}; yrs.forEach(y => { val[sv][k][y] = { d: D(a, s, y, ki) / (sv === 'USAF' ? 2 : 1) + (f || 0), m: Mx(a, s, y, ki) }; }); }); });
+      return { v: 2, split: true, lines, val }; };
+    const POS = {
+      om: { 'BES|2028': posOf(0, SV6, [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033]),
+            'PB|2027': posOf(0, SV6, [2026, 2027, 2028, 2029, 2030, 2031], 0) },
+      ff: { 'BES|2028': posOf(1, ['USAF', 'STOVL', 'USMC-C', 'USN', 'NAVY-X'], [2027, 2028, 2029, 2030, 2031, 2032]) },
+      sp: { 'BES|2028': posOf(2, SV6, [2027, 2028, 2029, 2031, 2032], 0.6),       // no FY30; a fraction of a dollar on each cell
+            'POM|2029': posOf(2, ['USN'], [2028, 2029, 2030, 2031, 2032, 2033]) },
+    };
+    POS.om['PB|2027'].val.USAF.n1[2027].d += 123456789;   // PB27 is not BES28
+    // ---- the oracle: the rules, from those literals --------------------------------------------------------------------------
+    const GROUPS = [['USAF', 'USAF CTOL', 'USAF F-35A', ['USAF', 'ANG', 'AFRC']], ['STOVL', 'USMC STOVL', 'USMC F-35B', ['STOVL']],
+      ['USMC CV', 'USMC CV', 'USMC F-35C', ['USMC-C']], ['USN CV', 'USN CV', 'USN F-35C', ['USN']]];
+    const APN = { om: ['O&M', 'O&M'], ff: ['PROCUREMENT', 'Prod Support'], sp: ['INITIAL SPARES', 'Initial Spares'] };
+    const yy = y => String(y % 100).padStart(2, '0');
+    const oracle = (setKey, cycKey, intl) => {
+      const set = SETS[setKey], Y = +cycKey.split('|')[1], years = [], sum = [];
+      for (let y = Y - 1; y <= Y + 4; y++) years.push(y);
+      for (let y = Y; y <= Y + 4; y++) sum.push(y);
+      const ACE = /^\d{4}ACE$/.test(setKey) ? setKey.slice(0, 4) + ' ACE' : setKey, CYC = cycKey.split('|')[0] + (Y % 100);
+      const carried = new Set(set.years.map(Number)); set.lines.forEach(l => Object.keys(l.v).forEach(y => carried.add(+y)));
+      const req = (ap, svcs) => years.map(y => !carried.has(y) ? null
+        : set.lines.filter(l => l.ap === ap && (!svcs || svcs.includes(l.svc)) && l.v[y] !== undefined).reduce((t, l) => t + Math.round(l.v[y]), 0));
+      const pos = (ap, svcs, w) => years.map(y => { const P = POS[ap][cycKey]; if (!P) return null;
+        const held = Object.values(P.val).some(L => Object.values(L).some(F => F[y] !== undefined)); if (!held) return null;
+        return Object.keys(P.val).filter(sv => !svcs || svcs.includes(sv)).reduce((t, sv) => t + Math.round(Object.values(P.val[sv]).reduce((u, F) => u + ((F[y] || {})[w] || 0), 0)), 0); });
+      const iv = (k, ap) => years.map(y => ((intl[k] || {})[ap] || {})[y] || 0);
+      const T = v => sum.some(y => v[years.indexOf(y)] === null) ? null : sum.reduce((t, y) => t + v[years.indexOf(y)], 0);
+      const add = (p, q) => p.map((x, i) => x === null || q[i] === null ? null : x + q[i]);
+      const sub = (p, q) => p.map((x, i) => x === null || q[i] === null ? null : x - q[i]);
+      const fr = (f, r) => f === null || r === null || r === 0 ? null : f / r;
+      const L = (label, style, vals, x) => Object.assign({ t: 'line', label, style, vals, tot: T(vals) }, x || {});
+      const PC = (label, f, r, x) => Object.assign({ t: 'line', label, style: 'pct', vals: f.map((v, i) => fr(v, r[i])), tot: fr(T(f), T(r)) }, x || {});
+      const zero = years.map(() => 0), cols = years.map(y => 'FY' + yy(y)).concat(['FY' + yy(sum[0]) + '-' + yy(sum[4])]);
+      const rows = []; let tu = zero, ti = zero, td = zero, tm = zero, tf = zero;
+      APS.forEach(ap => { const [band, rq] = APN[ap];
+        const us = req(ap), ir = iv('ir', ap), d = pos(ap, null, 'd'), m = pos(ap, null, 'm'), fi = iv('if', ap);
+        const ctl = add(d, m), R = add(us, ir), F = add(ctl, fi);
+        rows.push({ t: 'band', label: band }, L(ACE + ' ' + rq + ' Required', 'bold', R, { ap }), L(ACE + ' - ' + rq + ' Req - US Only', 'sub', us, { ap }),
+          L(ACE + ' - International Req Total', 'sub', ir, { ap, input: 'ir' }), L(CYC + ' ' + rq + ' Controls', 'bold', ctl, { ap }),
+          L('Discretionary', 'ital', d, { ap }), L('Mandatory', 'ital', m, { ap }), L('International Funding', 'bold', fi, { ap, input: 'if' }),
+          L('Delta (' + ACE + ' vs ' + CYC + ')', 'delta', sub(F, R), { ap }), PC('% Funded', F, R, { ap }), { t: 'gap' });
+        tu = add(tu, us); ti = add(ti, ir); td = add(td, d); tm = add(tm, m); tf = add(tf, fi); });
+      const tc = add(td, tm), TR = add(tu, ti), TF = add(tc, tf);
+      rows.push({ t: 'navy', label: 'F-35 Sustainment - Total DoD' }, L(ACE + ' Required Funding', 'bold', TR), L('Requirement - US Only', 'sub', tu),
+        L('International Requirement Total', 'sub', ti), L(CYC + ' Approved Funding', 'bold', tc), L('Discretionary', 'ital', td), L('Mandatory', 'ital', tm),
+        L('International Approved Funding', 'bold', tf), L('DoD Delta (' + ACE + ' vs ' + CYC + ')', 'delta', sub(TF, TR)), PC('% Funded (' + CYC + ')', TF, TR));
+      const sheets = [{ name: 'Summary', kind: 'summary', title: 'F-35 Sustainment Summary', subtitle: ACE + ' / ' + CYC, corner: '(TY$M) Total Position',
+        over: 'Delta from ' + CYC, head: 'Appropriation', cols, rows }];
+      GROUPS.forEach(([gname, title, air, svcs]) => { const G = []; let gu = zero, gd = zero, gm = zero;
+        APS.forEach(ap => { const rq = APN[ap][1], us = req(ap, svcs), d = pos(ap, svcs, 'd'), m = pos(ap, svcs, 'm'), ctl = add(d, m);
+          G.push(L(ACE + ' - ' + rq + ' Req', 'bold', us, { ap }), L(CYC + ' Controls', 'bold', ctl, { ap }), L('Discretionary', 'ital', d, { ap }),
+            L('Mandatory', 'ital', m, { ap }), L(air + ' Delta', 'delta', sub(ctl, us), { ap }), PC('% Funded', ctl, us, { ap }), { t: 'sep' });
+          gu = add(gu, us); gd = add(gd, d); gm = add(gm, m); });
+        const gc = add(gd, gm);
+        G.push(L(ACE + ' - Total Sustainment', 'bold', gu), L(CYC + ' Controls', 'bold', gc), L('Discretionary', 'ital', gd), L('Mandatory', 'ital', gm),
+          L(air + ' Delta', 'delta', sub(gc, gu)), PC('% Funded', gc, gu));
+        sheets.push({ name: gname, kind: 'service', title: 'F-35 Sustainment', subtitle: CYC + ' Service Detail – ' + title, head: air + ' TY$M', cols, rows: G }); });
+      const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], now = new Date();
+      return { ace: { key: setKey, label: ACE }, cyc: { key: cycKey, label: CYC }, years, sum, marking: 'CUI//REL TO US DoW',
+        footer: MON[now.getMonth()] + ' ' + now.getFullYear() + ' / Sustainment Finance / PSM', sheets };
+    };
+    // how the box prints a figure: millions, a shortfall red in parentheses, nothing to state as an em dash
+    const money = v => v === null ? '—' : (v < 0 ? '($' + Math.round(-v / 1e6).toLocaleString('en-US') + ')' : '$' + Math.round(v / 1e6).toLocaleString('en-US'));
+    const shown = (r, v) => r.style === 'pct' ? (v === null ? '—' : Math.round(v * 100) + '%') : money(v);
+    // ---- the board: O&M on screen, Full Fund in this browser's storage, Spares in the file only ---------------------------------
+    const B = boot();
+    seed(B.ev, { services: SV6, items: [{ id: 'A', grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec A', event: 'EV-A', ccar: '', fy26: SV6.map(() => 0), ask: SV6.map((_, i) => (i + 1) * 1e6), alloc: null }],
+      disc: SV6.map(() => 9e6), mand: SV6.map(() => 1e6), order: ['A'] });
+    E(B.ev, `BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+      ACEDB.sets=${J(SETS)}; ACEDB.ts=4000;
+      MS.ppbe=${J(POS.om)}; MS.cycle='BES|2028';
+      localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify({years:{}, order:[], ts:10, ppbe:${J(POS.ff)}}));
+      PUBS.sp={years:{}, order:[], ts:Date.now()+60000, ppbe:${J(POS.sp)}};
+      window.__pw=function(){ window.__pwned=1; }; render(); 'ok'`);
+    // ---- where it lives, and the box ---------------------------------------------------------------------------------------
+    chk(name, 'the left menu', 'FYDP ▸ lists FYDP Disconnects… after the Spruills, opening toggleFdc',
+      E(B.ev, `(function(){ var d=document.createElement('div'); d.innerHTML=uiFlyItems('fydp'); return JSON.stringify([].map.call(d.querySelectorAll('button'), function(b){ return (b.getAttribute('onclick')||'').replace(/^uiFlyClose\\(\\);mRun\\((\\w+)\\)$/,'$1'); })); })()`),
+      J(['toggleFydp', 'toggleSp', 'toggleFdc', 'toggleP2', 'toggleFlow']));
+    E(B.ev, `toggleFdc(); 'ok'`);
+    chk(name, 'the box', 'it opens, named from its heading, with its own close control',
+      E(B.ev, `JSON.stringify([document.getElementById('fdcPanel').classList.contains('open'), /^FYDP DISCONNECTS/.test(document.querySelector('#fdcPanel h3').textContent), !!document.querySelector('#fdcPanel h3 button.x')])`), J([true, true, true]));
+    const opts = id => E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#${id} option'), function(o){ return [o.value, o.textContent, o.selected]; }))`);
+    const aceOpts = parse(opts('fdcAce')) || [];
+    chk(name, 'the pickers', 'the cost estimates, newest import first, each by its label as imported; the newest is picked to start',
+      J(aceOpts.map(o => [o[0], o[1].replace(/ \(imported .*\)$/, ''), o[2]])), J([['2026ACE', '2026 ACE', true], ['2025ACE', '2025 ACE', false], [HOST, HOST, false]]));
+    chk(name, 'the pickers', 'the PPBE cycles: every cycle a position is logged under in O&M, Full Fund or Spares, newest first, each naming who logged it; the working plan’s BES28 is picked to start although Spares’ POM29 is newer',
+      opts('fdcCyc'), J([['POM|2029', 'POM29 — positions logged for Initial Spares', false], ['BES|2028', 'BES28 — positions logged for O&M, Full Fund, Initial Spares', true],
+        ['PB|2027', 'PB27 — positions logged for O&M', false]]));
+    // the estimate that stops at FY31: its FY32 requirement is nothing to state, never $0
+    chk(name, '2026 ACE', 'every sheet, line by line, from the estimate that carries FY27–FY31 only (FY32 and the FYDP total print —)',
+      canon((parse(pageModel(B.ev)) || {}).sheets), canon(oracle('2026ACE', 'BES|2028', {}).sheets));
+    chk(name, '2026 ACE', 'the box says the estimate carries no FY32',
+      E(B.ev, `[].some.call(document.querySelectorAll('#fdcBody .fdcnote.warn'), function(n){ return /2026 ACE carries no figure for FY32/.test(n.textContent); })`), 'true');
+    // pick 2025 ACE as a person does
+    const pick = (ev, id, v) => E(ev, `(function(){ var s=document.getElementById(${J(id)}); s.value=${J(v)}; s.dispatchEvent(new Event('change',{bubbles:true})); return s.value; })()`);
+    pick(B.ev, 'fdcAce', '2025ACE');
+    const M0 = parse(pageModel(B.ev)) || {}, W0 = oracle('2025ACE', 'BES|2028', {});
+    chk(name, 'the model', 'the estimate and cycle it names, the years (the year before the cycle, then the FYDP), the marking and the footer of the month it is made',
+      canon([M0.ace, M0.cyc, M0.years, M0.sum, M0.marking, M0.footer]), canon([W0.ace, W0.cyc, W0.years, W0.sum, W0.marking, W0.footer]));
+    W0.sheets.forEach((sh, i) => {
+      const got = ((M0.sheets || [])[i]) || {};
+      chk(name, 'the model · ' + sh.name, 'title, subtitle, headings and columns', canon([got.name, got.kind, got.title, got.subtitle, got.corner, got.over, got.head, got.cols]),
+        canon([sh.name, sh.kind, sh.title, sh.subtitle, sh.corner, sh.over, sh.head, sh.cols]));
+      sh.rows.forEach((r, ri) => chk(name, 'the model · ' + sh.name, 'row ' + ri + ' ' + (r.label || r.t), canon((got.rows || [])[ri]), canon(r)));
+      chk(name, 'the model · ' + sh.name, 'no row more or fewer', ((got.rows || []).length), sh.rows.length);
+    });
+    {
+      const figs = (M0.sheets || []).flatMap(s => s.rows.filter(r => r.t === 'line' && r.style !== 'pct').flatMap(r => r.vals.concat([r.tot]))).filter(v => v !== null);
+      chk(name, 'the model', 'every money figure on every sheet is a whole dollar (an estimate line is $M times a million; Spares’ cells carry 60 cents)',
+        J([figs.length > 300, figs.filter(v => !Number.isInteger(v)).length]), J([true, 0]));
+    }
+    chk(name, 'the model', 'the fixture reaches what it tests (a CONTROL on the fixture): a null year (Spares FY30), a null FYDP total, a negative and a positive delta, a zero requirement under live controls',
+      J((() => { const s = W0.sheets[0].rows, u = W0.sheets[3].rows; const sp = s.filter(r => r.ap === 'sp' && r.style === 'bold')[1];
+        const dl = W0.sheets.flatMap(x => x.rows.filter(r => r.style === 'delta').flatMap(r => r.vals)).filter(v => v !== null);
+        return [sp.vals[3], sp.tot, dl.some(v => v < 0), dl.some(v => v > 0), u.filter(r => r.ap === 'sp')[0].vals[1], u.filter(r => r.ap === 'sp')[1].vals[1] > 0]; })()),
+      J([null, null, true, true, 0, true]));
+    // the box draws the model: every figure on the Summary, a shortfall red in parentheses, nothing to state as —
+    const cells = ev => parse(E(ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcPage tbody tr'), function(tr){
+      return [].map.call(tr.querySelectorAll('td'), function(td){ var i=td.querySelector('input'); return i? 'in:'+i.value : (td.querySelector('.neg')? 'neg:' : '')+td.textContent; }); }))`)) || [];
+    const want = sh => sh.rows.map(r => r.t === 'band' || r.t === 'navy' ? [] : r.t !== 'line' ? [''] : r.vals.map((v, i) => r.input ? 'in:$' + (v / 1e6).toLocaleString('en-US', { maximumFractionDigits: 6 }) : (v !== null && v < 0 && r.style !== 'pct' ? 'neg:' : '') + shown(r, v))
+      .concat([(r.tot !== null && r.tot < 0 && r.style !== 'pct' ? 'neg:' : '') + shown(r, r.tot)]));
+    chk(name, 'the box · Summary', 'every cell on screen is the figure the model holds, in $M: red parentheses for a shortfall, — for nothing to state, $0 in each International box',
+      canon(cells(B.ev)), canon(want(W0.sheets[0])));
+    chk(name, 'the box · Summary', 'the CUI marking above the title and in the footer, the title, the subtitle and the footer line',
+      E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcPage > div:not(.fdcwrap), #fdcPage .fdcfoot > span'), function(e){ return e.textContent; }))`),
+      J(['CUI//REL TO US DoW', 'F-35 Sustainment Summary', '2025 ACE / BES28', W0.footer + 'CUI//REL TO US DoW', W0.footer, 'CUI//REL TO US DoW']));
+    const notes = () => E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcBody .fdcnote'), function(n){ return n.textContent; }))`);
+    chk(name, 'the box', 'it says the International figures are not kept and are lost when the board reloads, switching appropriation included',
+      /kept for this session only: they are not saved with the board, and are lost when the board reloads — switching appropriation reloads it/.test(notes()), true);
+    chk(name, 'the box', 'it says Spares holds no BES28 position for FY30, and names the services counted on the Summary only',
+      J([/Initial Spares holds no BES28 position for FY30, so that year prints —/.test(notes()), /Counted on the Summary only, on no service sheet: XSVC \(2025 ACE\); NAVY-X \(Full Fund BES28\)/.test(notes())]), J([true, true]));
+    // ---- nothing typed is kept: the stores before -----------------------------------------------------------------------------
+    const stores = ev => E(ev, `JSON.stringify([JSON.stringify(MS), (function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })(),
+      JSON.stringify(PUBS), JSON.stringify(MS.jrnl||[]), _saveGen, typeof DIRTY==='undefined'? null : DIRTY])`);
+    const before = stores(B.ev);
+    // ---- the International figures, typed as a person types them ----------------------------------------------------------
+    const type = (ev, id, v) => E(ev, `(function(){ var e=document.getElementById(${J(id)}); if(!e) return 'no box '+${J(id)}; e.focus(); e.value=${J(v)};
+      e.dispatchEvent(new Event('input',{bubbles:true})); e.dispatchEvent(new Event('change',{bubbles:true})); return e.value+'|'+document.getElementById('fdcMsg').textContent; })()`);
+    const t1 = type(B.ev, 'fdcIn_ir_om_2028', '12.5');
+    const t2 = type(B.ev, 'fdcIn_if_ff_2029', '750K');
+    const t3 = type(B.ev, 'fdcIn_if_sp_2031', '1.2345678');
+    const t4 = type(B.ev, 'fdcIn_ir_sp_2027', 'abc');
+    const t5 = type(B.ev, 'fdcIn_if_ff_2029', 'abc');          // a refusal keeps the figure there, never clears it
+    const t6 = type(B.ev, 'fdcIn_if_om_2032', '-5');
+    const t7 = type(B.ev, 'fdcIn_ir_ff_2030', '3');
+    chk(name, 'International', 'typed in $M through the board’s $M reader: 12.5 is $12,500,000, 750K is $750,000, 3 is $3,000,000, and each box shows it back',
+      J([t1.split('|')[0], t2.split('|')[0], t7.split('|')[0]]), J(['$12.5', '$0.75', '$3']));
+    chk(name, 'International', 'a fraction of a dollar is kept as a whole dollar, and said', t3, '$1.234568|Entered as $1,234,568: the board keeps whole dollars.');
+    chk(name, 'International', 'words, and a figure below zero, are refused: the box keeps what it held ($0, $0.75 and $0) and says why',
+      J([t4.split('|')[0], /not changed/.test(t4), t5.split('|')[0], /not changed/.test(t5), t6.split('|')[0], /below zero/.test(t6)]), J(['$0', true, '$0.75', true, '$0', true]));
+    const INTL = { ir: { om: { 2028: 12500000 }, ff: { 2030: 3000000 } }, if: { ff: { 2029: 750000 }, sp: { 2031: 1234568 } } };
+    const M1 = parse(pageModel(B.ev)) || {}, W1 = oracle('2025ACE', 'BES|2028', INTL);
+    chk(name, 'International', 'the Summary moves by them: each appropriation’s requirement, funding, delta and % Funded, and the total section',
+      canon((M1.sheets || [])[0]), canon(W1.sheets[0]));
+    chk(name, 'International', 'the four service sheets do not move (they carry no International lines): they are the sheets without them', canon((M1.sheets || []).slice(1)), canon(W0.sheets.slice(1)));
+    chk(name, 'International', 'and the service sheets are still the fixture’s (a CONTROL on the line above, with the one before it)', canon(W1.sheets.slice(1)), canon(W0.sheets.slice(1)));
+    chk(name, 'International', 'the box redraws the figures they move, in place: every Summary cell is the new model’s',
+      canon(cells(B.ev)), canon(want(W1.sheets[0])));
+    // a render while a figure is being typed takes nothing: the field, its keyboard and its text stay
+    chk(name, 'International', 'a redraw never runs under a figure being typed (the field, the keyboard and the text stay)',
+      E(B.ev, `(function(){ var e=document.getElementById('fdcIn_ir_om_2029'); e.focus(); e.value='4.4'; e.dispatchEvent(new Event('input',{bubbles:true}));
+        render(); var f=document.getElementById('fdcIn_ir_om_2029'); var r=JSON.stringify([f===e, document.activeElement===e, f.value]);
+        e.value='$0'; e.dispatchEvent(new Event('change',{bubbles:true})); e.blur(); return r; })()`), J([true, true, '4.4']));
+    // a Tab leaving a figure: Chromium fires its change as the keyboard is nowhere, a Tab on its way (here, as there); the box puts
+    // the keyboard where the Tab was going, before the figures are drawn again -- or the box controller hands it back to the field.
+    // jsdom lays nothing out, so what is on screen (getClientRects) is stood in for while it runs; npm run keys (R) is the browser.
+    const tabOut = step => E(B.ev, `(function(){ var gr=Element.prototype.getClientRects; Element.prototype.getClientRects=function(){ return [{}]; };
+      try{ var e=document.getElementById('fdcIn_if_om_2027'); e.focus(); e.value='0'; e.dispatchEvent(new Event('input',{bubbles:true}));
+        e.blur(); _navStep=${step}; e.dispatchEvent(new Event('change',{bubbles:true})); return document.activeElement.id; }
+      finally { _navStep=null; Element.prototype.getClientRects=gr; } })()`);
+    chk(name, 'International', 'Tab out of a figure lands on the next year’s box, Shift+Tab on the box before it',
+      J([tabOut(1), tabOut(-1)]), J(['fdcIn_if_om_2028', 'fdcIn_ir_om_2032']));
+    // ---- the tabs ----------------------------------------------------------------------------------------------------------
+    const tab = i => E(B.ev, `(function(){ document.getElementById('fdcTab_${i}').click(); return JSON.stringify([[].map.call(document.querySelectorAll('#fdcBody .fdctabs button'), function(b){ return b.textContent+'='+b.getAttribute('aria-pressed'); }),
+      document.querySelector('#fdcPage .fdct1').textContent, document.querySelector('#fdcPage .fdct2').textContent, document.querySelector('#fdcPage thead tr:last-child th').textContent]); })()`);
+    chk(name, 'the tabs', 'USAF: pressed alone, its slide’s title and subtitle, its rows headed USAF F-35A', tab(1),
+      J([['Summary — all services=false', 'USAF=true', 'STOVL=false', 'USMC CV=false', 'USN CV=false'], 'F-35 Sustainment', 'BES28 Service Detail – USAF CTOL', 'USAF F-35A TY$M']));
+    chk(name, 'the tabs', 'USAF’s cells are the USAF sheet (USAF, ANG and AFRC), with a dark separator between the appropriations', canon(cells(B.ev)), canon(want(W1.sheets[1])));
+    {
+      const line3 = y => ace25.filter(l => l.ap === 'om' && ['USAF', 'ANG', 'AFRC'].includes(l.svc)).reduce((t, l) => t + Math.round(l.v[y]), 0);
+      const usaf1 = y => ace25.filter(l => l.ap === 'om' && l.svc === 'USAF').reduce((t, l) => t + Math.round(l.v[y]), 0);
+      const got = ((((parse(pageModel(B.ev)) || {}).sheets || [])[1] || {}).rows || [])[0] || {};
+      chk(name, 'the tabs', 'USAF holds ANG and AFRC: its O&M requirement each year is the three services’ lines, not USAF’s alone',
+        J([got.label, got.vals, W0.years.some(y => line3(y) === usaf1(y))]), J(['2025 ACE - O&M Req', W0.years.map(line3), false]));
+    }
+    chk(name, 'the tabs', 'USN CV', (tab(4), canon(cells(B.ev))), canon(want(W1.sheets[4])));
+    tab(0);
+    // ---- the cycle picker moves the years and the controls -------------------------------------------------------------------
+    pick(B.ev, 'fdcCyc', 'PB|2027');
+    chk(name, 'PB27', 'the columns are FY26–FY31 with an FY27–31 total, and every sheet is PB27’s (Full Fund and Spares log no PB27, so their controls print —)',
+      canon([E(B.ev, `JSON.stringify([].map.call(document.querySelectorAll('#fdcPage thead tr:last-child th'), function(t){ return t.textContent; }))`), (parse(pageModel(B.ev)) || {}).sheets]),
+      canon([J(['Appropriation', 'FY26', 'FY27', 'FY28', 'FY29', 'FY30', 'FY31', 'FY27-31']), oracle('2025ACE', 'PB|2027', INTL).sheets]));
+    chk(name, 'PB27', 'the box says Full Fund and Spares have no PB27 position', J([/Full Fund has no PB27 position logged/.test(notes()), /Initial Spares has no PB27 position logged/.test(notes())]), J([true, true]));
+    pick(B.ev, 'fdcCyc', 'BES|2028');
+    // ---- an estimate's label is drawn as text ------------------------------------------------------------------------------
+    pick(B.ev, 'fdcAce', HOST);
+    chk(name, 'hostile', 'an estimate named with markup is drawn as text: in the picker and the subtitle, nothing built from it, nothing run',
+      E(B.ev, `JSON.stringify([document.querySelector('#fdcAce option:checked').textContent.replace(/ \\(imported .*\\)$/,''), document.querySelector('#fdcPage .fdct2').textContent, document.querySelectorAll('#fdcBody img').length, !!window.__pwned])`),
+      J([HOST, HOST + ' / BES28', 0, false]));
+    pick(B.ev, 'fdcAce', '2025ACE');
+    // ---- nothing is kept: the same stores after typing, tabs and picks ------------------------------------------------------
+    const after = stores(B.ev), bP = parse(before) || [], aP = parse(after) || [];
+    // typed and in the box (the O&M International Req for FY28 is $12,500,000), and kept nowhere else
+    const inBox = E(B.ev, `fdcModel().sheets[0].rows[3].vals[1]`);
+    chk(name, 'nothing stored', 'the store (MS) is byte for byte as it was before the International figures were typed, which the box holds',
+      J([aP[0] === bP[0] && typeof aP[0] === 'string', inBox]), J([true, 12500000]));
+    chk(name, 'nothing stored', 'browser storage, the file’s appropriations (PUBS), the change journal, the save count and the unsaved flag: unchanged, with the figures in the box',
+      J([aP.slice(1), inBox]), J([bP.slice(1), 12500000]));
+    chk(name, 'nothing stored', 'yet the figures are in the box: the model still carries them (a CONTROL on the two above being a real test)',
+      canon(((parse(pageModel(B.ev)) || {}).sheets || [])[0]), canon(W1.sheets[0]));
+    const saved = E(B.ev, `buildSavedHtml()`);
+    const R0 = boot({ html: saved });
+    E(R0.ev, `toggleFdc(); (function(){ var s=document.getElementById('fdcAce'); s.value='2025ACE'; s.dispatchEvent(new Event('change',{bubbles:true})); })(); 'ok'`);
+    chk(name, 'nothing stored', 'the board saved and opened again: every International box is back at $0, the requirement as the estimate alone',
+      E(R0.ev, `JSON.stringify([document.getElementById('fdcIn_ir_om_2028').value, document.getElementById('fdcIn_if_sp_2031').value, fdcModel().sheets[0].rows[1].vals[1]])`),
+      J(['$0', '$0', W0.sheets[0].rows[1].vals[1]]));
+    // ---- Export to Excel: the model it hands the workbook, and the file's name ------------------------------------------------
+    const exp = ev => E(ev, `(function(){ var got=null, built=null, name=null, al=[]; var oS=window.fdcSheets, oB=window.buildXlsx, oC=HTMLAnchorElement.prototype.click, oA=window.alert;
+      window.fdcSheets=function(m){ got=m; return {sheets:[{name:'S', cols:[10], rows:[['x']]}], extra:{marker:1}}; };
+      window.buildXlsx=function(s, x){ built=[s.length, x && x.marker]; return new Uint8Array([1]); };
+      HTMLAnchorElement.prototype.click=function(){ name=this.download; }; window.alert=function(m){ al.push(String(m)); };
+      try{ exportFdc(); } finally { window.fdcSheets=oS; window.buildXlsx=oB; HTMLAnchorElement.prototype.click=oC; window.alert=oA; }
+      return JSON.stringify([got? JSON.stringify(got)===JSON.stringify(fdcModel()) : null, built, name, al.length]); })()`);
+    chk(name, 'Export to Excel', 'it hands fdcSheets the model on screen (International figures included) and buildXlsx what that returns, and names the file for the estimate, the cycle and the years',
+      exp(B.ev), J([true, [1, 1], 'ORBIT FYDP Disconnects — 2025 ACE vs BES28 — FY27–FY32.xlsx', 0]));
+    // ---- a locked cycle on screen: it only reads, so it works, and the file says which lock --------------------------------
+    E(B.ev, `blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+    chk(name, 'a locked view', 'on PB27 locked the model is the working plan’s, read from the same stores, International figures and all', canon(parse(pageModel(B.ev, { ace: '2025ACE', cyc: 'BES|2028' }))), canon(W1));
+    chk(name, 'a locked view', 'and the file is marked with the lock on screen', (parse(exp(B.ev)) || [])[2], 'ORBIT FYDP Disconnects — 2025 ACE vs BES28 — FY27–FY32 [O&M PB27 LOCKED].xlsx');
+    E(B.ev, `cycLeave(true); 'ok'`);
+    // ---- a PMO copy holds one appropriation: not offered ----------------------------------------------------------------------
+    const C0 = E(B.ev, `(function(){ fdcOpen=false; render(); let cap=null; const _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+      window.confirm=function(){ return true; }; try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+    const P = boot({ html: C0 });
+    E(P.ev, `try{ localStorage.setItem('prio27who','Pat'); }catch(e){} render(); 'ok'`);
+    const offered = ev => E(ev, `/toggleFdc/.test(uiFlyItems('fydp'))`);
+    chk(name, 'a PMO copy', 'the board offers FYDP Disconnects; a PMO copy does not', J([offered(B.ev), offered(P.ev)]), J([true, false]));
+    chk(name, 'a PMO copy', 'called anyway, it does not open, says why, and its export downloads nothing',
+      J([E(P.ev, `toggleFdc(); JSON.stringify([fdcOpen, document.getElementById('fdcPanel').classList.contains('open'), /not offered in a PMO copy/.test(document.getElementById('shareStat').textContent)])`),
+        (parse(exp(P.ev)) || []).slice(2)]), J([J([false, false, true]), [null, 1]]));
+    // ---- nothing to build -------------------------------------------------------------------------------------------------
+    const N = boot();
+    seed(N.ev, { services: SV6, items: [], disc: SV6.map(() => 0), mand: SV6.map(() => 0), order: [] });
+    chk(name, 'nothing to build', 'no cost estimate: no model, the box says where one comes from, and Export is off',
+      E(N.ev, `ACEDB.sets={}; MS.ppbe=${J(POS.om)}; toggleFdc(); JSON.stringify([fdcModel(), document.getElementById('fdcWhy').textContent, document.getElementById('fdcExport').disabled])`),
+      J([null, 'No cost estimate is loaded: Data › Import Annual Cost Estimate… brings one in.', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.10 A ====
 
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====

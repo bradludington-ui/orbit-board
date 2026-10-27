@@ -124,7 +124,16 @@ const openBox = async box => {
 // v2.07 (item 121): A BOX THAT ASKS FIRST. The Add box opened with every office showing asks only which office -- a select,
 // nothing to type in -- so the typing guard would go unchecked on it. One office is chosen at the top first, as a person adding
 // for their own office has it, and the box opens on its form; every office is put back after.
-const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilter('ALL')`] };
+const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilter('ALL')`],
+  // v2.10 (item 130): FYDP Disconnects with a cost estimate and a BES28 position to set side by side, so its tables and the
+  // International figures (text fields a person types into) are there to be checked; taken off the board after
+  fdcPanel: [`(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
+    ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
+    ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now(), years:Y, lines:L, appn:{}, skip:{}};
+    var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
+      [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
+    MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; })()`,
+    `delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']`] };
 for (const box of BOXES) {
   if (box.id === 'uipPanel') { skipped.push('uipPanel (the in-app prompt opens only where the browser has no prompt of its own)'); continue; }
   if (!box.pat) { bad.push(`${box.id}: no way to open it found`); continue; }

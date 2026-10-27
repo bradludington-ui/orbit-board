@@ -594,6 +594,13 @@
    "anchor": "B’s: ask 80, funded 20 (USAF disc 120 − A’s 100), unfunded 60",
    "basis": "arithmetic",
    "asserts": "The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes."
+  },
+  "ot.v210a": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)",
+   "anchor": "const name = 'v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)'",
+   "basis": "arithmetic",
+   "asserts": "FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook."
   }
  },
  "surfaces": {
@@ -2628,6 +2635,53 @@
     "lane": {
      "status": "n/a",
      "why": "@lanesCombined"
+    }
+   }
+  },
+  "exportFdc": {
+   "registry": "money-coverage",
+   "money": true,
+   "what": "FYDP Disconnects (v2.10, item 130): the cost estimate’s requirement against a PPBE cycle’s controls, Discretionary and Mandatory, by appropriation (O&M, Full Fund, Spares) and service group, year by year with the FYDP total, the delta and % Funded, and the International figures typed on the Summary -- on screen, and the workbook printed from the same model.",
+   "cells": {
+    "appropriation": {
+     "status": "proven",
+     "checks": [
+      "ot.v210a"
+     ],
+     "note": "each appropriation’s controls from its own store, as its own board opens it; OPN left out"
+    },
+    "fiscalYear": {
+     "status": "proven",
+     "checks": [
+      "ot.v210a"
+     ],
+     "note": "the cycle sets the years (BES28: FY27–FY32, PB27: FY26–FY31); a year with no position, or no estimate column, is —"
+    },
+    "service": {
+     "status": "proven",
+     "checks": [
+      "ot.v210a"
+     ],
+     "note": "USAF with ANG and AFRC, STOVL, USMC CV, USN CV, each by appropriation and in total; the Summary every service"
+    },
+    "requirement": {
+     "status": "n/a",
+     "why": "@noReq"
+    },
+    "month": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "crHalf": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "lane": {
+     "status": "proven",
+     "checks": [
+      "ot.v210a"
+     ],
+     "note": "Discretionary and Mandatory, each its own line, by appropriation, sheet and year"
     }
    }
   }
