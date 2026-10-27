@@ -27718,20 +27718,24 @@ function _stylesXml(extra){
   let nfill=5, fills='';
   // v2.04 (item 113): a HOUSE entry (e.house) shares a fill, a format, a font and a border with every house entry that
   // asks for the same one; every other entry gets its own fill, at the index it always had.
+  // v2.10 (item 130): an entry that says e.share shares them the same way without being the house's -- FYDP Disconnects
+  // asks one style per look, and its navy, its money format and its percent are then declared once, not once per style.
   const hFill=Object.create(null), hFmt=Object.create(null), hFont=Object.create(null), hBord=Object.create(null);
   const fillOf=extra.map(e=>{
     if(e.fill===false) return 0;
     const c=String(e.fill||'D9DDE5').replace('#','').toUpperCase();
-    if(e.house && hFill[c]) return hFill[c];
+    if((e.house||e.share) && hFill[c]) return hFill[c];
     fills+='<fill><patternFill patternType="solid"><fgColor rgb="FF'+c+'"/></patternFill></fill>';
-    if(e.house) hFill[c]=nfill;
+    if(e.house||e.share) hFill[c]=nfill;
     return nfill++;
   });
   let nfont=8, fonts='';
   const fontOf=extra.map(e=>{
     const f=e.fontSpec; if(!f) return null;
     const k=JSON.stringify(f); if(hFont[k]!==undefined) return hFont[k];
-    fonts+='<font>'+(f.b?'<b/>':'')+(f.i?'<i/>':'')+'<sz val="'+(+f.sz||10)+'"/><color rgb="FF'+String(f.color||'1A1A1A').toUpperCase()+'"/><name val="Calibri"/></font>';
+    // f.name (v2.10, item 130): FYDP Disconnects is Arial, as Brad's slides are; a font that names none is Calibri, as every
+    // font written before it was
+    fonts+='<font>'+(f.b?'<b/>':'')+(f.i?'<i/>':'')+'<sz val="'+(+f.sz||10)+'"/><color rgb="FF'+String(f.color||'1A1A1A').toUpperCase()+'"/><name val="'+_xesc(f.name||'Calibri')+'"/></font>';
     return (hFont[k]=nfont++);
   });
   let nbord=2, bords='';
@@ -27747,9 +27751,9 @@ function _stylesXml(extra){
   let nfmt=167, numfmts='';
   const fmtOf=extra.map(e=>{
     if(!e.fmt) return 0;
-    if(e.house && hFmt[e.fmt]) return hFmt[e.fmt];
+    if((e.house||e.share) && hFmt[e.fmt]) return hFmt[e.fmt];
     numfmts+='<numFmt numFmtId="'+nfmt+'" formatCode="'+_xesc(e.fmt)+'"/>';
-    if(e.house) hFmt[e.fmt]=nfmt;
+    if(e.house||e.share) hFmt[e.fmt]=nfmt;
     return nfmt++;
   });
   const xfs=extra.map((e,i)=>{
@@ -28157,7 +28161,8 @@ function buildXlsx(sheets, extra, opts){
         parts.sort((a,b)=>a[0]-b[0]);
         return '<row r="'+(ri+1)+'"'+(hp.ht[ri]? ' ht="'+hp.ht[ri]+'" customHeight="1"' : '')+'>'+parts.map(p=>p[1]).join('')+'</row>';
       }
-      return '<row r="'+(ri+1)+'">'+cells+'</row>';
+      // s.heights (v2.10, item 130): a row's own height in points, {row: points}; a sheet without it is as it was
+      return '<row r="'+(ri+1)+'"'+(s.heights && s.heights[ri]? ' ht="'+(+s.heights[ri])+'" customHeight="1"' : '')+'>'+cells+'</row>';
     }).join('');
     // A HEADING BANDED ACROSS A GROUP OF COLUMNS. sheet.merges is a list of {r, c, cs} -- the row,
     // the first column and how many columns wide, zero-based like the rows themselves. The label
@@ -28188,6 +28193,23 @@ function buildXlsx(sheets, extra, opts){
         +pre+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+post+'</worksheet>')]);
       return;
     }
+    // v2.10 (item 130): A SHEET WITH A PRINTED PAGE OF ITS OWN, AND NO HOUSE. FYDP Disconnects prints as Brad's slides do --
+    // no gridlines (s.grid===false), landscape, s.page.wide pages across and s.page.tall down (0: as many as it takes). The
+    // house would repaint the slides' colours, so this sheet says what it needs instead. sheetPr goes first and the page
+    // after mergeCells, where the schema puts them (Excel refuses a part that has them elsewhere). A sheet that asks for
+    // neither is written by the line after this one, as every workbook before it was.
+    if(!hp && (s.page || s.grid===false)){
+      const pg=s.page;
+      const vw= s.grid!==false? views
+        : (views? views.replace('<sheetView ', '<sheetView showGridLines="0" ') : '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>');
+      sheetFiles.push(['xl/worksheets/sheet'+(i+1)+'.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+(pg? '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>' : '')
+        +vw+cols+'<sheetData>'+rows+'</sheetData>'+merges
+        +(pg? '<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>'
+          +'<pageSetup orientation="landscape" fitToWidth="'+(+pg.wide||1)+'" fitToHeight="'+(+pg.tall||0)+'"/>' : '')
+        +'</worksheet>')]);
+      return;
+    }
     sheetFiles.push(['xl/worksheets/sheet'+(i+1)+'.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+'</worksheet>')]);
   });
@@ -28210,6 +28232,86 @@ function buildXlsx(sheets, extra, opts){
           +'<Override PartName="/xl/charts/chart'+(k+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>').join('')+'</Types>'))]; }
   }
   return _zipStore(files);
+}
+
+// v2.10 (item 130): FYDP DISCONNECTS, THE WORKBOOK. Brad, 27 Oct 2026, of his Spruill charts: "I need to produce these Excel
+// spreadsheets with this exact look, color scheme, structure, etc." fdcSheets(model) lays out the sheets fdcModel hands it
+// -- Summary, then USAF, STOVL, USMC CV and USN CV -- in the look of his PB27 slides, for buildXlsx(sheets, extra), and
+// COMPUTES NOTHING: every figure is the model's, printed in the column it belongs to. The shape it reads is
+// recovery/v210/item130-contract.md's.
+//   A money cell holds the whole dollars and its format shows millions, so a total the sheet prints foots to the dollar
+//   with the lines above it while the sheet reads as the slide does; a shortfall is red in parentheses by the same
+//   format. A figure the model has none for (null) is "—", never $0 -- the rule the five-year plan keeps.
+//   The marking (CUI) is above the title and again in the footer row, on every sheet, as his slides carry it.
+//   No house style: the slides have their own colours, and the house would paint its own over them.
+const FDC_XL={NAVY:'1F3864', BAND:'8DB4E2', SVCHDR:'9BC2E6', SEP:'404040', GRID:'808080', INK:'000000', WHITE:'FFFFFF',
+  FOOT:'595959', MONEY:'$#,##0,,;[Red]($#,##0,,)', PCT:'0%', FONT:'Arial', LBL:52, YR:13};
+// a line's look, by the model's style: bold totals; indented plain and italic parts; the delta under a heavy rule
+const FDC_LINE={bold:{b:1}, sub:{indent:2}, ital:{i:1, indent:2}, delta:{rule:1}, pct:{}};
+function fdcSheets(model){
+  const X=FDC_XL, extra=[], seen=Object.create(null);
+  // a text the model leaves out is an empty cell, never the word "undefined"
+  const tx=function(v){ return v==null? '' : String(v); };
+  // one style per look, shared by every cell that wears it (e.share: one fill, one format, one font each)
+  const look=function(o){
+    const k=JSON.stringify(o); if(seen[k]!==undefined) return seen[k];
+    const e={share:1, fill:o.fill||false, fontSpec:{b:o.b?1:0, i:o.i?1:0, sz:o.sz||11, color:o.color||X.INK, name:X.FONT},
+      align:{h:o.h, v:'center', indent:o.indent||0}};
+    if(o.fmt) e.fmt=o.fmt;
+    // the table's grid; the delta line's heavy black rule above it
+    if(o.grid) e.borderSpec={left:['thin',X.GRID], right:['thin',X.GRID], top: o.rule? ['medium',X.INK] : ['thin',X.GRID], bottom:['thin',X.GRID]};
+    extra.push(e);
+    return (seen[k]=XF_EXTRA0+extra.length-1);
+  };
+  const sheets=((model && model.sheets) || []).map(function(sh){
+    const heads=sh.cols||[], n=heads.length, W=1+n, rows=[], merges=[], heights=Object.create(null);
+    // a row of one text merged across the table: the marking and the two titles
+    const across=function(text, o, ht){ const r=rows.length; rows.push([{v:tx(text), s:look(o)}]); merges.push({r:r, c:0, cs:W}); if(ht) heights[r]=ht; };
+    across(model.marking, {b:1, h:'center'});
+    across(sh.title, {b:1, sz:26, h:'center'}, 36);
+    across(sh.subtitle, {b:1, sz:22, h:'center'}, 30);
+    rows.push([]);
+    const sum=sh.kind==='summary';
+    if(sum){
+      // the corner label, and the navy band over the years -- every cell it covers is written in the band's own style, or
+      // the fill would stop at its first column
+      const nv=look({b:1, color:X.WHITE, fill:X.NAVY, h:'center'});
+      merges.push({r:rows.length, c:1, cs:n});
+      rows.push([{v:tx(sh.corner), s:look({b:1, sz:9})}].concat(heads.map(function(c, j){ return {v: j? '' : tx(sh.over), s:nv}; })));
+    }
+    // the column headings: navy on the Summary, light blue on a service sheet
+    const hd= sum? {b:1, color:X.WHITE, fill:X.NAVY, grid:1} : {b:1, fill:X.SVCHDR, grid:1};
+    const hc=Object.assign({h:'center'}, hd);
+    rows.push([{v:tx(sh.head), s:look(hd)}].concat(heads.map(function(c){ return {v:tx(c), s:look(hc)}; })));
+    (sh.rows||[]).forEach(function(r){
+      if(r.t==='gap'){ rows.push([]); return; }
+      if(r.t==='band' || r.t==='navy' || r.t==='sep'){
+        // an appropriation's light-blue band, the total section's navy band, a service sheet's dark-grey separator:
+        // across the whole table, its label (a band's) in white
+        const o= r.t==='sep'? {fill:X.SEP, grid:1} : {b:1, color:X.WHITE, fill: r.t==='navy'? X.NAVY : X.BAND, grid:1}, s=look(o);
+        if(r.t==='sep') heights[rows.length]=9;
+        rows.push([{v: r.t==='sep'? '' : tx(r.label), s:s}].concat(heads.map(function(){ return {v:'', s:s}; })));
+        return;
+      }
+      if(r.t!=='line') return;
+      const L=Object.prototype.hasOwnProperty.call(FDC_LINE, r.style)? FDC_LINE[r.style] : {}, pct=r.style==='pct';
+      const lab=look({b:L.b, i:L.i, indent:L.indent, rule:L.rule, grid:1});
+      const num=look({b:L.b, i:L.i, rule:L.rule, grid:1, h:'right', fmt: pct? X.PCT : X.MONEY});
+      // the years, then the FYDP total in the last column; nothing to state is "—", never 0
+      const fig=function(v){ return {v: (typeof v==='number' && isFinite(v))? v : '—', s:num}; };
+      rows.push([{v:tx(r.label), s:lab}].concat(heads.map(function(c, j){ return fig(j<n-1? (r.vals||[])[j] : r.tot); })));
+    });
+    // the footer row, one blank row below the table: the month and the office on the left, the marking centred on the
+    // page as the one above the title is. Column A is four year-columns wide, so a span of n-4 columns from B (B:D for six
+    // years and the total) has the table's own centre at its centre.
+    if(rows[rows.length-1].length) rows.push([]);
+    const k=n-4;
+    if(k>1) merges.push({r:rows.length, c:1, cs:k});
+    rows.push([{v:tx(model.footer), s:look({sz:12, color:X.FOOT})}, {v:tx(model.marking), s:look({b:1, h:'center'})}]);
+    return {name:tx(sh.name), cols:[X.LBL].concat(heads.map(function(){ return X.YR; })), rows:rows, merges:merges, heights:heights,
+      grid:false, page:{wide:1, tall:1}};
+  });
+  return {sheets:sheets, extra:extra};
 }
 
 // ==============================================================================================================
