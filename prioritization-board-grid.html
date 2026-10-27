@@ -1455,6 +1455,57 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 .hx-dl dd{margin:2px 0 0 14px}
 .kb{border:1px solid var(--line2);border-radius:4px;padding:0 5px;font-size:11px;font-family:ui-monospace,Consolas,monospace}
 @media (max-width:720px){.hx-toc{grid-template-columns:1fr}}
+/* v2.10 (item 130): FYDP DISCONNECTS. The tables are what the workbook prints, so they sit on a white page in the slides'
+   own colours in every theme: set once here and never overridden per theme (the --onChip rule). One departure, on screen
+   only: an appropriation's band names itself in navy, not white -- white on that light blue is 2.2:1, under Section 508's
+   4.5:1 (WCAG 1.4.3); navy on it is 5.4:1. The workbook keeps the slide's white. */
+:root{--fdcNavy:#1F3864;--fdcBand:#8DB4E2;--fdcSvc:#9BC2E6;--fdcSep:#404040;--fdcGrid:#808080;--fdcRed:#C00000;--fdcIn:#FFFBE6;--fdcEdge:#5F6B7A;--fdcFoot:#595959}
+#fdcPanel .modal{width:1240px;max-width:97vw}
+.fdcbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin:0 0 8px}
+.fdcbar label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mut)}
+.fdcbar select{font-size:12px;min-height:28px;max-width:100%}
+.fdcbar .fdcyrs{font-size:11px;color:var(--mut);padding-bottom:6px}
+.fdcbar .fdcyrs b{color:var(--ink)}
+.fdcbar .sp{flex:1}
+.fdcbar button.btn{min-height:28px;font-size:12px;padding:4px 12px}
+.fdcnote{font-size:11px;color:var(--mut);margin:0 0 8px;line-height:1.45}
+.fdcnote.warn{color:var(--amber)}
+.fdcmsg:empty{display:none}
+.fdcmsg{font-size:11.5px;color:var(--ink);margin:0 0 8px}
+.fdcmsg.bad{color:var(--red)}
+.fdctabs{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.fdctabs button{font:inherit;font-size:12px;min-height:28px;padding:4px 12px;border:1px solid var(--edge);border-bottom:none;border-radius:6px 6px 0 0;background:var(--panel2);color:var(--ink);cursor:pointer}
+.fdctabs button[aria-pressed="true"]{background:#fff;color:#000;font-weight:700;box-shadow:inset 0 3px 0 var(--gold)}
+.fdcpage{background:#fff;color:#000;border:1px solid var(--edge);padding:10px 14px 12px;font-family:Arial,"Liberation Sans",Helvetica,sans-serif}
+.fdcmark{text-align:center;font-size:11px;font-weight:700;letter-spacing:.4px;color:#000}
+.fdct1{text-align:center;font-size:24px;font-weight:700;line-height:1.2;margin:2px 0 0}
+.fdct2{text-align:center;font-size:19px;font-weight:700;line-height:1.25;margin:2px 0 10px}
+.fdcwrap{overflow-x:auto}
+table.fdct{border-collapse:collapse;width:100%;min-width:900px;table-layout:fixed;font-size:12px;color:#000}
+table.fdct col.lbl{width:300px}
+table.fdct th,table.fdct td{border:1px solid var(--fdcGrid);padding:3px 7px;line-height:1.3}
+table.fdct td{text-align:right;white-space:nowrap}
+table.fdct tbody th{text-align:left;font-weight:400;overflow-wrap:anywhere}
+table.fdct tr.fdc-corner th,table.fdct tr.fdc-corner td{border:none;padding:2px 4px}
+table.fdct th.fdc-cn{font-size:10px;font-weight:700;text-align:left}
+table.fdct th.fdc-over,table.fdct tr.fdc-head th{background:var(--fdcNavy);color:#fff;font-weight:700;text-align:center}
+table.fdct tr.fdc-head th:first-child{text-align:left}
+table.fdct.svc tr.fdc-head th{background:var(--fdcSvc);color:#000}
+table.fdct tr.fdc-band th{background:var(--fdcBand);color:var(--fdcNavy);font-weight:700;text-align:left}
+table.fdct tr.fdc-navy th{background:var(--fdcNavy);color:#fff;font-weight:700;text-align:left}
+table.fdct tr.fdc-gap td{border:none;height:10px;padding:0}
+table.fdct tr.fdc-sep td{background:var(--fdcSep);height:7px;padding:0}
+table.fdct tr.l-bold th,table.fdct tr.l-bold td{font-weight:700}
+table.fdct tr.l-sub th{padding-left:22px}
+table.fdct tr.l-ital th,table.fdct tr.l-ital td{font-style:italic}
+table.fdct tr.l-ital th{padding-left:22px}
+table.fdct tr.l-delta th,table.fdct tr.l-delta td{border-top:2px solid #000}
+table.fdct .neg{color:var(--fdcRed)}
+table.fdct tr.fdc-in td{background:var(--fdcIn)}
+table.fdct input.fdcin{width:100%;box-sizing:border-box;min-height:24px;text-align:right;font:inherit;color:#000;background:#fff;border:1px solid var(--fdcEdge);border-radius:3px;padding:1px 4px}
+table.fdct input.fdcin:focus-visible{outline:2px solid var(--fdcNavy);outline-offset:1px}
+.fdcfoot{display:flex;justify-content:space-between;gap:12px;margin:10px 0 0;font-size:12px;color:var(--fdcFoot)}
+.fdcfoot .fdcmark{text-align:right}
 </style>
 <style id="uiV2css">
 /* ── v2.00 UI (chunk 1): THE NAVY SIDEBAR, THE CONTEXT BAR, THE KPI CARDS, THE TOOLBAR AND THE IMPORT BOX ──────
@@ -2242,6 +2293,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
+<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here; a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
@@ -2460,6 +2512,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modal" style="width:1320px;max-width:97vw">
     <h3>📐 SPRUILLS — TOTAL REQUIREMENTS vs AVAILABLE FUNDING <button class="x" onclick="toggleSp()">✕ Close</button></h3>
     <div id="spBody"></div>
+  </div>
+</div>
+<!-- v2.10 (item 130): FYDP Disconnects -- the cost estimate against the PPBE controls, by appropriation, as Brad's Spruill slides -->
+<div class="modal-bg" id="fdcPanel" onclick="if(event.target===this)toggleFdc()">
+  <div class="modal">
+    <h3>FYDP DISCONNECTS — THE COST ESTIMATE AGAINST THE PPBE CONTROLS, BY APPROPRIATION <button class="x" onclick="toggleFdc()">✕ Close</button></h3>
+    <div id="fdcBody"></div>
   </div>
 </div>
 
@@ -6468,6 +6527,12 @@ let arOpen=false, arTabOn='new', arOff='', arOffHow='', arQueue=[], arFin=null, 
 // v2.08 (item 122): the edit box -- the requirement it holds, where it opened, the record as it opened (what Save compares
 // against), and the description the CCaR list filled. render() reads erOpen (erSync), so these live here too.
 let erOpen=null, erAt='', erSnap=null, erDescAuto='';
+// v2.10 (item 130): FYDP Disconnects -- open, the cost estimate and PPBE cycle picked, the sheet on screen. render() reads
+// fdcOpen (fdcSync), so these live here too (the BANDS_STD rule). The International figures typed on its Summary are the
+// session's alone (Brad, 27 Oct 2026: "not saved"): kept in this object, never in MS, the journal, storage or the file, so
+// they start at $0 every time the board opens -- and switching appropriation reopens it. By kind (ir, if), appropriation and year.
+let fdcOpen=false, fdcAceK='', fdcCycK='', fdcTabOn=0;
+const FDC_INTL={ir:Object.create(null), if:Object.create(null)};
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -24411,6 +24476,361 @@ function spBodyDraw(el){
   h+='<div class="hint" style="margin-top:8px">Requirements = FY asks per year (the ACE will replace/augment these once imported — the Cost data selector is where 2025ACE/2026ACE plug in). Funding = '+(spFund==='board'?'effective Disc + Mand budgets from 💰 Budget Management':'the OFFICIAL '+ppLbl(spFund)+' position from 🏛 PPBE Budget Positions (per appropriation; FYs without logged values show \u2014)')+'. O&M shows one active year (FY26); Full Fund and Initial Spares show FY24–26; all show the FYDP window. "\u2014" = no data loaded for that year yet; monthly execution import (FY24–26) will fill the active years. Prime contracts roll to owning PMOs (DFC stays under PRIMES here).</div>';
   el.innerHTML=h;
 }
+// ============================ FYDP DISCONNECTS (v2.10, item 130) ===================================================
+// Brad, 27 Oct 2026: "These are my Spruill charts at the Appropriation level. I need a roll up of all Services and then
+// individual slides for USAF, STOVL, USMC CV, and USN CV. ANG and AFRC totals are combined in to the USAF slide." The cost
+// estimate's requirement against a PPBE cycle's controls, appropriation by appropriation, as his slides lay it out: a
+// Summary of every service, then a sheet per service group, on screen here and in Excel (exportFdc).
+//
+// READ, NEVER RECOMPUTED. The requirement is the chosen estimate's own lines (ACEDB); the controls are each appropriation's
+// own PPBE Budget Position under the chosen cycle, Discretionary and Mandatory -- the board on screen's from MS, every
+// other appropriation's from its own store as its own board opens it (fydpStoreLocal: browser storage, or the file's copy
+// when that is newer). Nothing here is a second engine: every figure is a sum of figures the board already holds, each
+// rounded at the door to a whole dollar (an estimate line is $M times a million, which a float does not always hold
+// whole), so the workbook's totals foot exactly. OPN is not included (Brad).
+//
+// A YEAR AN APPROPRIATION HOLDS NO POSITION FOR IS NULL, printed "—", never $0 -- the rule the five-year plan keeps. Held
+// means a figure is logged under that cycle for that year in that appropriation, on any service and any line (a cell
+// emptied is deleted, so a logged $0 is a figure); in a held year a service with nothing logged is $0. A year the estimate
+// carries no column for is null on the requirement side the same way. A delta or % Funded with either side null is null,
+// and a FYDP total with any of its years null is null: a sum with a hole in it is not the total.
+//
+// THE MODEL IS THE CONTRACT WITH THE WORKBOOK (recovery/v210/item130-contract.md): fdcSheets(model) prints it and adds
+// nothing, and the box draws the very same rows, so the screen cannot show a figure the file does not.
+const FDC_MARK='CUI//REL TO US DoW';      // above the title and in the footer of every sheet (Brad, 27 Oct)
+const FDC_APS=[{k:'om', band:'O&M', req:'O&M'}, {k:'ff', band:'PROCUREMENT', req:'Prod Support'},
+  {k:'sp', band:'INITIAL SPARES', req:'Initial Spares'}];
+// the service sheets: their slide titles and row headings (Brad's slides), and the board's services each one adds up --
+// matched by name; a service in none of them is counted on the Summary alone, and the box names it
+const FDC_GROUPS=[{name:'USAF', title:'USAF CTOL', air:'USAF F-35A', svcs:['USAF','ANG','AFRC']},
+  {name:'STOVL', title:'USMC STOVL', air:'USMC F-35B', svcs:['STOVL']},
+  {name:'USMC CV', title:'USMC CV', air:'USMC F-35C', svcs:['USMC-C']},
+  {name:'USN CV', title:'USN CV', air:'USN F-35C', svcs:['USN']}];
+const FDC_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const FDC_CYC_RE=/^(POM|BES|DoN|PB)\|\d{4}$/;
+function fdcYY(y){ return String(((y%100)+100)%100).padStart(2,'0'); }
+// the estimate as imported is filed '2025ACE'; its slides call it "2025 ACE"
+function fdcAceLbl(k){ const m=/^(\d{4})\s*ACE$/i.exec(String(k||'')); return m? m[1]+' ACE' : String(k||''); }
+function fdcAces(){
+  const S0=(typeof ACEDB!=='undefined' && ACEDB && ACEDB.sets && typeof ACEDB.sets==='object')? ACEDB.sets : {};
+  return Object.keys(S0).filter(function(k){ return S0[k] && typeof S0[k]==='object' && Array.isArray(S0[k].lines); })
+    .sort(function(a,b){ return ((+S0[b].ts||0)-(+S0[a].ts||0)) || (a<b? 1 : (a>b? -1 : 0)); });   // newest import first
+}
+// O&M, Full Fund and Initial Spares, each with the PPBE positions its own board holds (read, never written). In a PMO copy
+// only the copy's own: another appropriation's store in this browser is the portfolio board's, not the copy's to show.
+function fdcStores(){
+  const own=mySlug(), sb=(typeof SANDBOX!=='undefined' && SANDBOX);
+  return FDC_APS.map(function(a){
+    const out={k:a.k, name:appnName(a.k), ppbe:null, why:''};
+    if(a.k===own){ out.ppbe=(MS && MS.ppbe && typeof MS.ppbe==='object')? MS.ppbe : {}; return out; }
+    if(sb){ out.why='a PMO copy holds '+appnName(own)+' alone'; return out; }
+    let r; try{ r=fydpStoreLocal(a.k); }catch(e){ r={st:null, why:'its saved state could not be read'}; }
+    if(r.why){ out.why=r.why; return out; }
+    const p=r.st && r.st.ppbe;
+    out.ppbe=(p && typeof p==='object' && !Array.isArray(p))? p : {};
+    return out;
+  });
+}
+// every cycle a position is logged under in any of the three, newest first
+function fdcCycs(stores){
+  const seen=Object.create(null), out=[];
+  stores.forEach(function(s){ if(s.ppbe) Object.keys(s.ppbe).forEach(function(k){ if(FDC_CYC_RE.test(k) && !seen[k]){ seen[k]=1; out.push(k); } }); });
+  return out.sort(function(a,b){ return cycKeyRank(b)-cycKeyRank(a); });
+}
+function fdcHeld(s, k){ return !!(s.ppbe && Object.prototype.hasOwnProperty.call(s.ppbe, k)); }
+// a figure is logged for that year, on any service and line of the position
+function fdcPosHeld(Q, y){
+  const V=(Q && Q.val && typeof Q.val==='object')? Q.val : {};
+  return Object.keys(V).some(function(sv){ const L=V[sv];
+    return !!L && typeof L==='object' && Object.keys(L).some(function(k){ const F=L[k];
+      return !!F && typeof F==='object' && Object.prototype.hasOwnProperty.call(F, y); }); });
+}
+// What the box is showing, and what stops a model being built. opts.ace / opts.cyc name one; without them it is the box's
+// pick, which falls back to the newest estimate and to the working plan's cycle (else the newest one logged).
+function fdcState(opts){
+  opts=opts||{};
+  const stores=fdcStores(), aces=fdcAces(), cycs=fdcCycs(stores);
+  let ace=(opts.ace!==undefined)? String(opts.ace) : fdcAceK, cyc=(opts.cyc!==undefined)? String(opts.cyc) : fdcCycK;
+  if(opts.ace===undefined && aces.indexOf(ace)<0) ace=aces[0]||'';
+  if(opts.cyc===undefined && cycs.indexOf(cyc)<0) cyc=(MS && cycs.indexOf(String(MS.cycle||''))>=0)? String(MS.cycle) : (cycs[0]||'');
+  let why='';
+  if(!aces.length) why='No cost estimate is loaded: Data \u203a Import Annual Cost Estimate\u2026 brings one in.';
+  else if(aces.indexOf(ace)<0) why='The cost estimate '+inShow(ace)+' is not held on this board.';
+  else if(!cycs.length) why='No PPBE position is logged for O&M, Full Fund or Initial Spares: FYDP \u203a PPBE Budget Positions\u2026 logs one.';
+  else if(cycs.indexOf(cyc)<0) why='No PPBE position is logged under '+inShow(cyc)+' for O&M, Full Fund or Initial Spares.';
+  return {stores:stores, aces:aces, cycs:cycs, ace:ace, cyc:cyc, why:why};
+}
+// THE MODEL (the contract's shape). opts: {ace, cyc} to name them, {intl} for the International figures (the box's own,
+// FDC_INTL, otherwise). null when there is nothing to build (fdcState(opts).why says what).
+function fdcModel(opts){
+  opts=opts||{};
+  const st=fdcState(opts); if(st.why) return null;
+  const set=ACEDB.sets[st.ace], Y=parseInt(st.cyc.split('|')[1], 10), I=opts.intl||FDC_INTL;
+  const years=[], sum=[];
+  for(let y=Y-1; y<=Y+4; y++) years.push(y);
+  for(let y=Y; y<=Y+4; y++) sum.push(y);
+  const ACE=fdcAceLbl(st.ace), CYC=ppLblTxt(st.cyc);
+  const lines=(set.lines||[]).filter(function(l){ return l && typeof l==='object' && l.v && typeof l.v==='object'; });
+  // the years the estimate carries: its header's, and any a line holds
+  const carried=Object.create(null);
+  (Array.isArray(set.years)? set.years : []).forEach(function(y){ carried[+y]=1; });
+  lines.forEach(function(l){ Object.keys(l.v).forEach(function(y){ carried[+y]=1; }); });
+  const P=Object.create(null);
+  st.stores.forEach(function(s){ P[s.k]=fdcHeld(s, st.cyc)? ppNorm(s.ppbe[st.cyc]) : null; });
+  const inG=function(svcs, sv){ return !svcs || svcs.indexOf(sv)>=0; };
+  const req=function(ap, svcs){ return years.map(function(y){
+    if(!carried[y]) return null;
+    let t=0;
+    lines.forEach(function(l){ if(l.ap===ap && inG(svcs, l.svc) && Object.prototype.hasOwnProperty.call(l.v, y)) t+=D$(+l.v[y]||0); });
+    return t; }); };
+  const pos=function(ap, svcs){ const Q=P[ap]; return years.map(function(y){
+    if(!Q || !fdcPosHeld(Q, y)) return null;
+    let d=0, m=0;
+    ppSvcsOf(Q).forEach(function(sv){ if(!inG(svcs, sv)) return; const c=ppSvcFy(Q, sv, y); d+=D$(c.d); m+=D$(c.m); });
+    return {d:d, m:m}; }); };
+  const intl=function(kind, ap){ const M=(I && I[kind] && I[kind][ap]) || null;
+    return years.map(function(y){ const v=M? M[y] : 0; return Number.isInteger(v)? v : 0; }); };
+  const lane=function(p, w){ return p.map(function(x){ return x? x[w] : null; }); };
+  const at=function(y){ return years.indexOf(y); };
+  const tot=function(v){ let t=0; for(let i=0; i<sum.length; i++){ const x=v[at(sum[i])]; if(x===null) return null; t+=x; } return t; };
+  const plus=function(a, b){ return a.map(function(x, i){ return (x===null || b[i]===null)? null : x+b[i]; }); };
+  const less=function(a, b){ return a.map(function(x, i){ return (x===null || b[i]===null)? null : x-b[i]; }); };
+  const frac=function(f, r){ return (f===null || r===null || r===0)? null : f/r; };
+  const line=function(label, style, vals, x){ return Object.assign({t:'line', label:label, style:style, vals:vals, tot:tot(vals)}, x||{}); };
+  const pct=function(label, fund, rq, x){ return Object.assign({t:'line', label:label, style:'pct',
+    vals:fund.map(function(f, i){ return frac(f, rq[i]); }), tot:frac(tot(fund), tot(rq))}, x||{}); };
+  const zero=years.map(function(){ return 0; });
+  const cols=years.map(function(y){ return 'FY'+fdcYY(y); }).concat(['FY'+fdcYY(sum[0])+'-'+fdcYY(sum[sum.length-1])]);
+  // the Summary: every service, an appropriation at a time, then the total section adding the three line by line
+  const R=[], T={us:zero, ir:zero, d:zero, m:zero, fi:zero};
+  FDC_APS.forEach(function(a){
+    const us=req(a.k, null), ir=intl('ir', a.k), p=pos(a.k, null), fi=intl('if', a.k);
+    const d=lane(p, 'd'), m=lane(p, 'm'), ctl=plus(d, m), rq=plus(us, ir), fund=plus(ctl, fi), ap={ap:a.k};
+    R.push({t:'band', label:a.band});
+    R.push(line(ACE+' '+a.req+' Required', 'bold', rq, ap));
+    R.push(line(ACE+' - '+a.req+' Req - US Only', 'sub', us, ap));
+    R.push(line(ACE+' - International Req Total', 'sub', ir, {ap:a.k, input:'ir'}));
+    R.push(line(CYC+' '+a.req+' Controls', 'bold', ctl, ap));
+    R.push(line('Discretionary', 'ital', d, ap));
+    R.push(line('Mandatory', 'ital', m, ap));
+    R.push(line('International Funding', 'bold', fi, {ap:a.k, input:'if'}));
+    R.push(line('Delta ('+ACE+' vs '+CYC+')', 'delta', less(fund, rq), ap));
+    R.push(pct('% Funded', fund, rq, ap));
+    R.push({t:'gap'});
+    T.us=plus(T.us, us); T.ir=plus(T.ir, ir); T.d=plus(T.d, d); T.m=plus(T.m, m); T.fi=plus(T.fi, fi);
+  });
+  const Tctl=plus(T.d, T.m), Treq=plus(T.us, T.ir), Tfund=plus(Tctl, T.fi);
+  R.push({t:'navy', label:'F-35 Sustainment - Total DoD'});
+  R.push(line(ACE+' Required Funding', 'bold', Treq));
+  R.push(line('Requirement - US Only', 'sub', T.us));
+  R.push(line('International Requirement Total', 'sub', T.ir));
+  R.push(line(CYC+' Approved Funding', 'bold', Tctl));
+  R.push(line('Discretionary', 'ital', T.d));
+  R.push(line('Mandatory', 'ital', T.m));
+  R.push(line('International Approved Funding', 'bold', T.fi));
+  R.push(line('DoD Delta ('+ACE+' vs '+CYC+')', 'delta', less(Tfund, Treq)));
+  R.push(pct('% Funded ('+CYC+')', Tfund, Treq));
+  const sheets=[{name:'Summary', kind:'summary', title:'F-35 Sustainment Summary', subtitle:ACE+' / '+CYC,
+    corner:'(TY$M) Total Position', over:'Delta from '+CYC, head:'Appropriation', cols:cols, rows:R}];
+  // a sheet per service group: no International lines (Brad), the estimate and the controls for its services alone
+  FDC_GROUPS.forEach(function(g){
+    const G=[]; let tu=zero, td=zero, tm=zero;
+    FDC_APS.forEach(function(a){
+      const us=req(a.k, g.svcs), p=pos(a.k, g.svcs), d=lane(p, 'd'), m=lane(p, 'm'), ctl=plus(d, m), ap={ap:a.k};
+      G.push(line(ACE+' - '+a.req+' Req', 'bold', us, ap));
+      G.push(line(CYC+' Controls', 'bold', ctl, ap));
+      G.push(line('Discretionary', 'ital', d, ap));
+      G.push(line('Mandatory', 'ital', m, ap));
+      G.push(line(g.air+' Delta', 'delta', less(ctl, us), ap));
+      G.push(pct('% Funded', ctl, us, ap));
+      G.push({t:'sep'});
+      tu=plus(tu, us); td=plus(td, d); tm=plus(tm, m);
+    });
+    const tc=plus(td, tm);
+    G.push(line(ACE+' - Total Sustainment', 'bold', tu));
+    G.push(line(CYC+' Controls', 'bold', tc));
+    G.push(line('Discretionary', 'ital', td));
+    G.push(line('Mandatory', 'ital', tm));
+    G.push(line(g.air+' Delta', 'delta', less(tc, tu)));
+    G.push(pct('% Funded', tc, tu));
+    sheets.push({name:g.name, kind:'service', title:'F-35 Sustainment', subtitle:CYC+' Service Detail – '+g.title,
+      head:g.air+' TY$M', cols:cols, rows:G});
+  });
+  const now=new Date();
+  return {ace:{key:st.ace, label:ACE}, cyc:{key:st.cyc, label:CYC}, years:years, sum:sum, marking:FDC_MARK,
+    footer:FDC_MONTHS[now.getMonth()]+' '+now.getFullYear()+' / Sustainment Finance / PSM', sheets:sheets};
+}
+// What the box says beside the tables: an appropriation it cannot read, one with no position under the cycle or none for
+// some of the years, years the estimate does not carry, and services counted on the Summary alone. Text, escaped where drawn.
+function fdcNotes(st, M){
+  const out=[], fy=function(ys){ return ys.map(function(y){ return 'FY'+fdcYY(y); }).join(', '); };
+  st.stores.forEach(function(s){
+    if(s.why){ out.push(s.name+': its controls cannot be read here ('+s.why+'), so they print —.'); return; }
+    if(!fdcHeld(s, st.cyc)){ out.push(s.name+' has no '+M.cyc.label+' position logged, so its controls print —.'); return; }
+    const Q=ppNorm(s.ppbe[st.cyc]), miss=M.years.filter(function(y){ return !fdcPosHeld(Q, y); });
+    if(miss.length) out.push(s.name+' holds no '+M.cyc.label+' position for '+fy(miss)+', so '+(miss.length===1? 'that year prints' : 'those years print')+' —.');
+  });
+  const set=ACEDB.sets[st.ace], ok=Object.create(null);
+  (Array.isArray(set.years)? set.years : []).forEach(function(y){ ok[+y]=1; });
+  (set.lines||[]).forEach(function(l){ if(l && l.v && typeof l.v==='object') Object.keys(l.v).forEach(function(y){ ok[+y]=1; }); });
+  const gone=M.years.filter(function(y){ return !ok[y]; });
+  if(gone.length) out.push(M.ace.label+' carries no figure for '+fy(gone)+', so the requirement prints — there.');
+  const grouped=Object.create(null), lone=[];
+  FDC_GROUPS.forEach(function(g){ g.svcs.forEach(function(sv){ grouped[sv]=1; }); });
+  const loneOne=function(sv, where){ sv=String(sv); if(grouped[sv]) return; const f=lone.filter(function(x){ return x.sv===sv; })[0];
+    if(f){ if(f.at.indexOf(where)<0) f.at.push(where); } else lone.push({sv:sv, at:[where]}); };
+  (set.lines||[]).forEach(function(l){ if(l && FDC_APS.some(function(a){ return a.k===l.ap; })) loneOne(l.svc, M.ace.label); });
+  st.stores.forEach(function(s){ if(fdcHeld(s, st.cyc)) ppSvcsOf(s.ppbe[st.cyc]).forEach(function(sv){ loneOne(sv, s.name+' '+M.cyc.label); }); });
+  if(lone.length) out.push('Counted on the Summary only, on no service sheet: '+lone.map(function(x){ return x.sv+' ('+x.at.join(', ')+')'; }).join('; ')+'.');
+  return out;
+}
+// ---- the box ----
+function fdcMoney(v){
+  if(v===null || v===undefined) return '—';
+  const s='$'+Math.round(Math.abs(v)/1e6).toLocaleString('en-US');
+  return v<0? '<span class="neg">('+s+')</span>' : s;      // the workbook's $#,##0,,;[Red]($#,##0,,)
+}
+function fdcPct(v){ return (v===null || v===undefined)? '—' : Math.round(v*100)+'%'; }
+function fdcCell(r, v){ return r.style==='pct'? fdcPct(v) : fdcMoney(v); }
+// an International figure as its box shows it: in $M, as typed back exactly (a bare number is millions)
+function fdcInShow(v){ return '$'+((Number.isInteger(v)? v : 0)/1e6).toLocaleString('en-US', {maximumFractionDigits:6}); }
+function fdcTableHtml(M, sh){
+  const n=sh.cols.length+1;
+  let h='<table class="fdct'+(sh.kind==='service'? ' svc' : '')+'"><colgroup><col class="lbl">'+sh.cols.map(function(){ return '<col>'; }).join('')+'</colgroup><thead>';
+  if(sh.kind==='summary') h+='<tr class="fdc-corner"><th class="fdc-cn" scope="col">'+esc(sh.corner)+'</th><th class="fdc-over" colspan="'+(n-1)+'" scope="colgroup">'+esc(sh.over)+'</th></tr>';
+  h+='<tr class="fdc-head"><th scope="col">'+esc(sh.head)+'</th>'+sh.cols.map(function(c){ return '<th scope="col">'+esc(c)+'</th>'; }).join('')+'</tr></thead><tbody>';
+  sh.rows.forEach(function(r, ri){
+    if(r.t==='band' || r.t==='navy'){ h+='<tr class="fdc-'+r.t+'"><th colspan="'+n+'" scope="colgroup">'+esc(r.label)+'</th></tr>'; return; }
+    if(r.t==='gap' || r.t==='sep'){ h+='<tr class="fdc-'+r.t+'" aria-hidden="true"><td colspan="'+n+'"></td></tr>'; return; }
+    if(r.t!=='line') return;
+    h+='<tr class="l-'+esc(r.style)+(r.input? ' fdc-in' : '')+'"><th scope="row">'+esc(r.label)+'</th>';
+    r.vals.forEach(function(v, ci){
+      const y=M.years[ci];
+      if(r.input) h+='<td><input class="fdcin" id="fdcIn_'+esc(r.input)+'_'+esc(r.ap)+'_'+y+'" data-k="'+esc(r.input)+'" data-ap="'+esc(r.ap)+'" data-fy="'+y+'"'
+        +' inputmode="decimal" autocomplete="off" value="'+esc(fdcInShow(v))+'" aria-label="'+esc(appnName(r.ap)+' '+r.label+' FY'+fdcYY(y)+', in $M')+'"'
+        +' title="in $M: a bare number is millions (12.5 is $12,500,000); kept for this session only" onchange="fdcIntlSet(this)"></td>';
+      else h+='<td id="fdcC_'+ri+'_'+ci+'">'+fdcCell(r, v)+'</td>';
+    });
+    h+='<td id="fdcC_'+ri+'_'+r.vals.length+'">'+fdcCell(r, r.tot)+'</td></tr>';
+  });
+  return h+'</tbody></table>';
+}
+function fdcHtml(){
+  if(typeof SANDBOX!=='undefined' && SANDBOX) return '<div class="fdcnote warn">FYDP Disconnects is not offered in a PMO copy: it sets O&amp;M, Full Fund and Initial Spares side by side, and this copy holds '+esc(appnName(mySlug()))+' alone.</div>';
+  const st=fdcState();
+  fdcAceK=st.ace; fdcCycK=st.cyc;
+  const date=function(ts){ return ts? new Date(+ts).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : ''; };
+  let h='<div class="fdcbar"><label>Cost estimate<select id="fdcAce" onchange="fdcPick(\'ace\', this.value)"'+(st.aces.length? '' : ' disabled')+'>'
+    +(st.aces.length? st.aces.map(function(k){ const s=ACEDB.sets[k];
+      return '<option value="'+esc(k)+'"'+(k===st.ace? ' selected' : '')+'>'+esc(fdcAceLbl(k))+(s.ts? ' (imported '+esc(date(s.ts))+')' : '')+'</option>'; }).join('')
+      : '<option value="">none loaded</option>')+'</select></label>'
+    +'<label>PPBE controls<select id="fdcCyc" onchange="fdcPick(\'cyc\', this.value)"'+(st.cycs.length? '' : ' disabled')+'>'
+    +(st.cycs.length? st.cycs.map(function(k){ const by=st.stores.filter(function(s){ return fdcHeld(s, k); }).map(function(s){ return s.name; });
+      return '<option value="'+esc(k)+'"'+(k===st.cyc? ' selected' : '')+'>'+esc(ppLblTxt(k))+' — positions logged for '+esc(by.join(', '))+'</option>'; }).join('')
+      : '<option value="">none logged</option>')+'</select></label>';
+  const M=st.why? null : fdcModel();
+  if(M) h+='<span class="fdcyrs">Years <b>FY'+fdcYY(M.years[0])+'–FY'+fdcYY(M.years[M.years.length-1])+'</b> · FYDP FY'+fdcYY(M.sum[0])+'–FY'+fdcYY(M.sum[M.sum.length-1])+'</span>';
+  h+='<span class="sp"></span><button type="button" class="btn on" id="fdcExport" onclick="exportFdc()"'+(M? '' : ' disabled')+'>Export to Excel (5 sheets)</button></div>';
+  if(!M) return h+'<div class="fdcnote warn" id="fdcWhy">'+esc(st.why)+'</div>';
+  h+='<div class="fdcnote" id="fdcKeep">The International figures typed on the Summary are kept for this session only: they are not saved with the board, '
+    +'and are lost when the board reloads — switching appropriation reloads it. Each starts at $0. Type them in $M: a bare number is millions.</div>';
+  fdcNotes(st, M).forEach(function(t){ h+='<div class="fdcnote warn">⚠ '+esc(t)+'</div>'; });
+  h+='<div class="fdcmsg" id="fdcMsg" role="status"></div>';
+  if(!(fdcTabOn>=0 && fdcTabOn<M.sheets.length)) fdcTabOn=0;
+  const sh=M.sheets[fdcTabOn];
+  h+='<div class="fdctabs" role="group" aria-label="Sheet">'+M.sheets.map(function(s, i){
+    return '<button type="button" id="fdcTab_'+i+'" aria-pressed="'+(i===fdcTabOn? 'true' : 'false')+'" onclick="fdcTab('+i+')">'+esc(s.kind==='summary'? 'Summary — all services' : s.name)+'</button>'; }).join('')+'</div>';
+  h+='<div class="fdcpage" id="fdcPage"><div class="fdcmark">'+esc(M.marking)+'</div><div class="fdct1">'+esc(sh.title)+'</div><div class="fdct2">'+esc(sh.subtitle)+'</div>'
+    +'<div class="fdcwrap">'+fdcTableHtml(M, sh)+'</div>'
+    +'<div class="fdcfoot"><span>'+esc(M.footer)+'</span><span class="fdcmark">'+esc(M.marking)+'</span></div></div>'
+    +'<div class="fdcnote" style="margin-top:8px">Money in TY$M on screen; the workbook keeps whole dollars and only displays millions, so every total foots. '
+    +'Delta = funding − requirement: a shortfall shows red in parentheses. % Funded = funding ÷ requirement. ANG and AFRC count in USAF. OPN is not included. '
+    +'“—” means there is nothing to state: no position logged for that year, or a year the estimate does not carry.</div>';
+  return h;
+}
+// Drawn whole when it opens, on a pick, on a tab, and on a render -- never under a figure being typed (the v2.08 F2 lesson:
+// a redraw takes the field, and the browser fires its change as it goes). The keyboard and the table's sideways scroll stay.
+function fdcDraw(){
+  const el=document.getElementById('fdcBody'); if(!el) return;
+  const a=document.activeElement, was=(a && a.id && el.contains(a))? a.id : '';
+  const w0=el.querySelector('.fdcwrap'), sl=w0? w0.scrollLeft : 0;
+  el.innerHTML=fdcHtml();
+  const w1=el.querySelector('.fdcwrap'); if(w1 && sl) w1.scrollLeft=sl;
+  if(was){ const b=document.getElementById(was); if(b && b!==document.activeElement){ try{ b.focus({preventScroll:true}); }catch(e){} } }
+}
+function fdcSync(){
+  const bg=document.getElementById('fdcPanel'), el=document.getElementById('fdcBody');
+  if(!bg || !el) return;
+  bg.className='modal-bg'+(fdcOpen? ' open' : '');
+  if(!fdcOpen){ if(el.innerHTML) el.innerHTML=''; return; }
+  const a=document.activeElement;
+  if(a && a.tagName==='INPUT' && el.contains(a)) return;
+  fdcDraw();
+}
+function toggleFdc(){
+  if(!fdcOpen && typeof SANDBOX!=='undefined' && SANDBOX){
+    setStat('FYDP Disconnects is not offered in a PMO copy: it sets O&amp;M, Full Fund and Initial Spares side by side, and this copy holds '+esc(appnName(mySlug()))+' alone.');
+    return;
+  }
+  fdcOpen=!fdcOpen;
+  render();
+}
+function fdcPick(kind, v){
+  if(kind==='ace') fdcAceK=String(v||''); else if(kind==='cyc') fdcCycK=String(v||''); else return;
+  fdcDraw();
+}
+function fdcTab(i){ fdcTabOn=+i||0; fdcDraw(); }
+// An International figure, typed in $M through the board's $M reader (a bare number is millions; whole dollars; never
+// below zero). Kept in FDC_INTL alone -- no save(), no journal -- and only the figures it moves are drawn again, in place:
+// the field keeps the keyboard, so Tab goes on to the next year as it would anywhere.
+function fdcIntlSet(el){
+  if(!el || !el.getAttribute) return;
+  const kind=el.getAttribute('data-k'), ap=el.getAttribute('data-ap'), fy=parseInt(el.getAttribute('data-fy'), 10);
+  if(!(kind==='ir' || kind==='if') || !FDC_APS.some(function(a){ return a.k===ap; }) || !fy) return;
+  const M=FDC_INTL[kind][ap] || (FDC_INTL[kind][ap]=Object.create(null));
+  const was=Number.isInteger(M[fy])? M[fy] : 0, r=amtReadM(el.value), msg=document.getElementById('fdcMsg');
+  if(r.why){ el.value=fdcInShow(was); if(msg){ msg.className='fdcmsg bad'; msg.textContent='The International figure was not changed: '+r.why+'.'; } return; }
+  M[fy]=(r.v===null)? 0 : r.v;
+  el.value=fdcInShow(M[fy]);
+  if(msg){ msg.className='fdcmsg'; msg.textContent=r.rounded? 'Entered as '+fM(M[fy])+': the board keeps whole dollars.' : ''; }
+  // A Tab leaving the field is still on its way to the next one when the browser fires this change, the keyboard nowhere for
+  // that moment. The figures drawn again below would have the box controller give the box back its last control -- this
+  // field -- and the Tab would be lost (measured in Chromium: the keyboard stayed on the year just typed). So the keyboard is
+  // put where the Tab was going first, inside the box.
+  const a=document.activeElement, bg=document.getElementById('fdcPanel');
+  if((!a || a===document.body || a===document.documentElement) && (_navStep===1 || _navStep===-1) && bg){
+    const t=dlgTabbables(dlgModal(bg)), i=t.indexOf(el), nx=(i>=0)? t[(i+_navStep+t.length)%t.length] : null;
+    if(nx){ try{ nx.focus({preventScroll:true}); }catch(x){} }
+  }
+  const Mo=fdcModel(), sh=Mo && Mo.sheets[fdcTabOn];
+  if(!sh){ fdcDraw(); return; }
+  sh.rows.forEach(function(r0, ri){ if(r0.t!=='line') return;
+    r0.vals.concat([r0.tot]).forEach(function(v, ci){ const td=document.getElementById('fdcC_'+ri+'_'+ci); if(td) td.innerHTML=fdcCell(r0, v); }); });
+}
+function fdcFileName(M){
+  return 'ORBIT FYDP Disconnects — '+M.ace.label+' vs '+M.cyc.label+' — FY'+fdcYY(M.years[0])+'–FY'+fdcYY(M.years[M.years.length-1])+'.xlsx';
+}
+// Export to Excel: the model, printed by fdcSheets (the slides' own look; no house style), named through expName so a locked
+// view's mark reaches the file. It only reads, so a locked cycle on screen exports as the working plan does.
+function exportFdc(){
+  if(typeof SANDBOX!=='undefined' && SANDBOX){ alert('FYDP Disconnects is not offered in a PMO copy: it sets O&M, Full Fund and Initial Spares side by side, and this copy holds '+appnName(mySlug())+' alone.'); return; }
+  const M=fdcModel();
+  if(!M){ alert('FYDP Disconnects cannot be exported. '+fdcState().why); return; }
+  const out=fdcSheets(M);
+  const bytes=buildXlsx(out.sheets, out.extra);
+  if(!bytes) return;
+  const name=expName(fdcFileName(M));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=name;
+  a.click();
+  const typed=['ir','if'].some(function(k){ return Object.keys(FDC_INTL[k]).some(function(ap){ const Y=FDC_INTL[k][ap];
+    return Object.keys(Y).some(function(y){ return M.years.indexOf(+y)>=0 && Y[y]; }); }); });
+  const said='FYDP Disconnects exported — '+M.ace.label+' against '+M.cyc.label+', five sheets'
+    +(typed? ', with the International figures typed in the box this session (not kept)' : '')+'.';
+  setStat('📉 '+esc(said));
+  const msg=document.getElementById('fdcMsg'); if(msg){ msg.className='fdcmsg'; msg.textContent=said; }
+}
 /* ================= DATED SNAPSHOTS: A POSITION YOU CAN COME BACK TO ==========================
    The plan as it stood AND what had been obligated against it, on a date, frozen.
 
@@ -28406,7 +28826,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); fdcSync(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -29164,7 +29584,7 @@ function syncBtns(){
     +sec('ai','AI Review', I.aix+I.aii+I.aiv, 'advisory only')
     +'</div></div>'
     +'<p class="uiRfoot"><span class="uiRsV">On-screen views are in the left menu: Spend Plan Forecast and CR Cash Needs under <b>Execution ▸</b>; '
-      +'the five-year spend plan, PPBE Budget Positions and Spruills under <b>FYDP ▸</b>.</span>'
+      +'the five-year spend plan, PPBE Budget Positions, Spruills and FYDP Disconnects under <b>FYDP ▸</b>.</span>'
       +'<span>Companion tool: '+I.link+'</span></p>'
     +'<div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
   menuFindApply();
@@ -36658,6 +37078,9 @@ function uiFlyItems(k){
   if(k==='fydp') return '<div class="uiFh">FYDP</div>'
     + it('Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
     + it('Spruills — Reqs vs Funding…', 'ACE × PPBE cycle · all appns', 'toggleSp')
+    // v2.10 (item 130): beside the Spruills, whose appropriation-level slides it is; never in a PMO copy, which holds one
+    // appropriation of the three (toggleFdc says so to anything that calls it there)
+    + ((typeof SANDBOX!=='undefined' && SANDBOX)? '' : it('FYDP Disconnects…', 'the cost estimate against the PPBE controls · by appropriation and service', 'toggleFdc'))
     + it('PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2')
     + it('Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow');
   if(k==='exec') return '<div class="uiFh">Execution</div>'
