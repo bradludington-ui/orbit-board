@@ -15,6 +15,8 @@
 //   - a submittal from that copy, with edits in three years and a proposal in the year the board had not started.
 // Proved on v2.08 (ebe702e): the copy's bar names no years and the review has no headings, so every check but the controls
 // fails there (42 of 61). A review that does not scroll sideways is a control: v2.08's does not either.
+// v2.09 review: the fixture also holds the year before its base, which the copy holds and does not submit for; the year menu and
+// the RECORD panel must say so, readably. On the reviewed board (9bc5496) both say nothing, and both checks fail at every width.
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -41,6 +43,7 @@ B.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
   BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
   S.bm={disc:S.discSvc, mand:S.mandSvc, adds:[]}; save();
   var b=MS.cur; MS.base=b; [b+1,b+2,b+3].forEach(function(y){ switchYear(b); switchYear(y); }); switchYear(b);
+  MS.years[b-1]=JSON.parse(JSON.stringify(S)); delete MS.years[b-1].ts;   // v2.09 review: a year before the window, still held
   try{ localStorage.setItem('prio27who','Portfolio Lead'); }catch(e){} save(); 'ok'`);
 const Y0 = Number(B.ev('MS.cur'));
 const yl = (y) => 'FY' + (y % 100);
@@ -108,6 +111,33 @@ try {
         }, yl(Y0 + 4));
         chk(`${tag} · copy: the year menu says ${yl(Y0 + 4)} opens blank, for new requirements, and the hint is whole`,
           menu.found && /opens blank, for new requirements/.test(menu.text) && menu.on && !menu.cut, JSON.stringify(menu));
+        // v2.09 review: A YEAR THE COPY HOLDS AND DOES NOT SUBMIT FOR -- one before the window the board still held -- says so in the
+        // year menu, and in the RECORD panel where its value boxes edit: on screen, whole, and readable on its own ground
+        const outy = await p.evaluate(fy => {
+          openMenu = 'fy'; syncBtns();
+          const one = [].slice.call(document.querySelectorAll('#dd_fy .mi')).filter(i => i.textContent.indexOf(fy + ' (outside window)') >= 0)[0];
+          if (!one) return { found: false };
+          const sub = one.querySelector('.sub') || one, r = sub.getBoundingClientRect();
+          return { found: true, text: one.textContent.replace(/\s+/g, ' '), on: r.width > 0 && r.right <= innerWidth + 1, cut: sub.scrollWidth > sub.clientWidth + 1 };
+        }, yl(Y0 - 1));
+        chk(`${tag} · copy: the year menu says ${yl(Y0 - 1)}, held and not one of the years it submits for, is not sent, and the hint is whole`,
+          outy.found && /has data — not sent from this copy/.test(outy.text) && outy.on && !outy.cut, JSON.stringify(outy));
+        await p.evaluate(y => { openMenu = null; syncBtns(); switchYear(y); }, Y0 - 1);
+        await p.waitForTimeout(200);
+        await p.click('#row-A .t1'); await p.waitForTimeout(450);
+        const note = await p.evaluate(LUMs => {
+          const lum = eval('(' + LUMs + ')');
+          const e = document.querySelector('#inspector .insp-notsent'), ins = document.getElementById('inspector');
+          if (!e || !ins) return { found: false };
+          const r = e.getBoundingClientRect(), ir = ins.getBoundingClientRect();
+          let g = 1, el = e; while (el) { const L = lum(getComputedStyle(el).backgroundColor); if (L && L.a > 0.99) { g = L.l; break; } el = el.parentElement; }
+          const L = lum(getComputedStyle(e).color), hi = Math.max(L.l, g), lo = Math.min(L.l, g);
+          return { found: true, text: e.textContent, ratio: +((hi + 0.05) / (lo + 0.05)).toFixed(2),
+            on: r.width > 0 && r.left >= ir.left - 1 && r.right <= ir.right + 1 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1,
+            cut: e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1 };
+        }, LUM);
+        chk(`${tag} · copy: on ${yl(Y0 - 1)} the RECORD panel says nothing edited there is sent -- on screen, whole, and 4.5:1 on its ground (WCAG 1.4.3)`,
+          note.found && /is not one of them: nothing edited in/.test(note.text) && note.on && !note.cut && note.ratio >= 4.5, JSON.stringify(note));
         chk(`${tag} · copy: control — no script error`, errs.length === 0, errs.slice(0, 2).join(' | '));
         await ctx.close();
       }

@@ -13532,6 +13532,352 @@ await (async () => {
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// ── v2.09 REVIEW (five years) ─────────────────────────────────────────────────────────────────────────────────────────────
+// The independent review of v2.09 found five ways the five-year round trip lost work or counted it twice; each block below
+// drives the copy and the board through their own code, and each fails on the reviewed board (9bc5496) unless it says CONTROL.
+// A copy, opened as PSM's office
+const w209rvCopy = (html) => { const P = boot({ html }); P.ev(AR_FILL);
+  P.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','PSM Lead'); localStorage.setItem('prio27pmo','PSM'); }catch(e){} render(); 'ok'`);
+  return P; };
+// a held submittal's rows as the review reads them, and whether the review draws a checkbox for the row whose text matches re
+const w209rvRows = (B) => JSON.parse(w209ev(B, `JSON.stringify(pmoRows().map(function(r){ return [r.fy, r.id, r.key, r.taken||null, r.takenElse||null]; }))`) || '[]');
+const w209rvDrawn = (B, re) => JSON.parse(w209ev(B, `(function(){ subOpen=true; subBody(); var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return ${re}.test(r.textContent); })[0];
+  return JSON.stringify(t? {cb:!!t.querySelector('input[type=checkbox]'), text:t.textContent} : null); })()`) || 'null');
+
+// A SECOND COPY NEVER MINTS AN ID THE BOARD HAS ALREADY FILED, AND TWO COPIES OUT AT ONCE KEEP THEIR PROPOSALS APART. The board
+// files an accepted proposal under its own NEW-n, numbered by that year alone, and keeps the copy's id only in its provenance; the
+// next copy numbered from the busiest year and minted the same id, so the office's new, DIFFERENT requirement read "ALREADY
+// ADDED AS NEW-1", had no checkbox, and could never be accepted. The fixture makes it bite: FY28 holds no added requirement and
+// FY29 three, so the copy numbers its first proposal 4 while the board files it as FY28's NEW-1. And two copies published one
+// after the other, before either proposal is taken, number from the same count: the second's proposal is its own -- tickable, and
+// named as another copy's under the same id so the reviewer can check it is not the same work (Brad, v2.06: duplicates are
+// caught and discussed in reviews).
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a second copy never reuses an id the board has filed, and two copies out at once keep their proposals apart (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+    MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+    applyState(MS.years[2028]); MS.years[2028]=S;
+    switchYear(2029); ${w209mk('AV', 'Board FY29 one')}; ${w209mk('AV', 'Board FY29 two')}; ${w209mk('AV', 'Board FY29 three')};
+    save(); switchYear(2028); save()`) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — FY28 holds no added requirement, FY29 three: a copy numbers past FY29, the board files under FY28’s own count',
+    w209ev(B, `JSON.stringify([MS.cur, (MS.years[2028].custom||[]).length, (MS.years[2029].custom||[]).map(function(c){ return c.id; })])`), J([2028, 0, ['NEW-1', 'NEW-2', 'NEW-3']]));
+  const takeApply = (pkg, fname) => { w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, ${J(fname)}); 'ok'`); };
+  const applyAll = () => { w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); return w3said(B.ev); };
+  const fy28 = () => JSON.parse(w209ev(B, `JSON.stringify(MS.years[2028].custom.map(function(c){ return [c.id, c.event, c.from? c.from.nid : null]; }))`) || '[]');
+
+  // copy 1: one proposal, accepted
+  const P1 = w209rvCopy(v184Publish(B.ev));
+  const a1 = w209add(P1, 'First FY28 proposal', [300, 0, 0]);
+  const s1 = v184Submit(P1, 'PSM');
+  takeApply(s1.pkg, 'psm-1.json'); applyAll();
+  chk(name, 'copy 1', 'control — its proposal is accepted into FY28 under the board’s own NEW-1, its provenance keeping the copy’s id',
+    J(fy28()), J([['NEW-1', 'First FY28 proposal', a1.id]]));
+  try { P1.w.close(); } catch {}
+
+  // copy 2, published after the first was accepted
+  const P2 = w209rvCopy(v184Publish(B.ev));
+  const a2 = w209add(P2, 'Second FY28 proposal, a different one', [900, 0, 0]);
+  chk(name, 'copy 2', 'its new requirement gets an id of its own, past the one the board filed from copy 1', J([!!a2.id, a2.id !== a1.id]), J([true, true]));
+  const s2 = v184Submit(P2, 'PSM');
+  takeApply(s2.pkg, 'psm-2.json');
+  chk(name, 'copy 2', 'the review offers it as not yet added', J(w209rvRows(B).map(r => [r[2], r[3]])), J([['__new', null]]));
+  chk(name, 'copy 2', 'with a checkbox, and no “already added”', J([(w209rvDrawn(B, '/Second FY28 proposal/') || {}).cb, /ALREADY ADDED/.test((w209rvDrawn(B, '/Second FY28 proposal/') || {}).text || '')]), J([true, false]));
+  applyAll();
+  chk(name, 'copy 2', 'accepted, it lands as a requirement of its own beside the first', J(fy28().map(r => r[1])), J(['First FY28 proposal', 'Second FY28 proposal, a different one']));
+  try { P2.w.close(); } catch {}
+
+  // copies 3 and 4, published one after the other before either is taken
+  const h3 = v184Publish(B.ev);
+  B.ev(`(function(){ var t=Date.now(); while(Date.now()===t){} return 'ok'; })()`);
+  const h4 = v184Publish(B.ev);
+  const P3 = w209rvCopy(h3), P4 = w209rvCopy(h4);
+  const a3 = w209add(P3, 'Third FY28, from copy 3', [111, 0, 0]);
+  const a4 = w209add(P4, 'Fourth FY28, from copy 4', [222, 0, 0]);
+  chk(name, 'two copies', 'control — published from one board, the two copies number their proposals alike, and carry different stamps',
+    J([a3.id === a4.id && !!a3.id, +P3.ev('PMODE.ts') !== +P4.ev('PMODE.ts')]), J([true, true]));
+  const s3 = v184Submit(P3, 'PSM'), s4 = v184Submit(P4, 'PSM');
+  takeApply(s3.pkg, 'psm-3.json'); applyAll();
+  const id3 = (fy28().filter(r => r[1] === 'Third FY28, from copy 3')[0] || [])[0] || '';
+  chk(name, 'two copies', 'control — copy 3’s is accepted', !!id3, true);
+  takeApply(s3.pkg, 'psm-3-again.json');
+  chk(name, 'two copies', 'control — copy 3’s submittal taken again reads as already added: the same submittal is never added twice',
+    J(w209rvRows(B).map(r => r[3])), J([id3]));
+  takeApply(s4.pkg, 'psm-4.json');
+  chk(name, 'two copies', 'copy 4’s proposal, under the same id, is its own: not already added, and named as another copy’s',
+    J(w209rvRows(B).map(r => [r[3], r[4]])), J([[null, id3]]));
+  const d4 = w209rvDrawn(B, '/Fourth FY28, from copy 4/') || {};
+  chk(name, 'two copies', 'the review draws it with a checkbox, saying another copy’s proposal under this id is on the board -- check it is not the same work',
+    J([d4.cb, new RegExp('ANOTHER COPY’S PROPOSAL UNDER THIS ID IS ON THIS BOARD AS ' + id3 + ' — check it is not the same work').test(d4.text || '')]), J([true, true]));
+  applyAll();
+  chk(name, 'two copies', 'ticked, it lands as a requirement of its own', J(fy28().map(r => r[1]).filter(e => /copy [34]/.test(e))), J(['Third FY28, from copy 3', 'Fourth FY28, from copy 4']));
+  // a provenance carrying a hand-made id with thirty digits does not push the count past where it can step (a guard on the fix's
+  // own bound: the reviewed board never read the provenance, so this one passes there)
+  w209ev(B, `MS.years[2028].custom[0].from.nid='NEW-PSM-'+'9'.repeat(30); save(); 'ok'`);
+  const P5 = w209rvCopy(v184Publish(B.ev));
+  const a5 = w209add(P5, 'Fifth, from copy 5', [10, 0, 0]), a6 = w209add(P5, 'Sixth, from copy 5', [20, 0, 0]);
+  chk(name, 'a huge id', 'a copy whose board holds one still mints ordinary ids, each its own', J([/^NEW-PSM-\d{1,9}$/.test(a5.id), /^NEW-PSM-\d{1,9}$/.test(a6.id), a5.id !== a6.id]), J([true, true, true]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P3.errors.length, P4.errors.length, P5.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A PROPOSAL INTO A YEAR APPLY STARTS BY ROLLING FORWARD, WHICH CONTINUES WHAT THE ROLL BRINGS IN. The office brings A into FY32 --
+// a year the board has not started -- by From another year, as the guide tells it to for a recurring requirement. The review's
+// "FY32 ALREADY HOLDS A" could not fire while FY32 did not exist, Apply rolled FY32 forward from the year on screen (bringing A)
+// and accepted the office's A as well: the same work twice, both funded, with nothing said. Now the review says what a roll
+// forward would bring, the roll-forward question names it, and the reviewer decides before anything is written; left out, it
+// stays in the review, and once FY32 exists it is offered with the ordinary warning, the reviewer's call.
+const w209rvFields = `['A','B','C','D'].forEach(function(id){ (S.ptype=S.ptype||{})[id]='PRIME'; (S.obCat=S.obCat||{})[id]=OB_CATS[0];
+    (S.dest=S.dest||{})[id]={to:'lm', end:''}; S.desc[id]='Described '+id; S.cons[id]='Stops without '+id; });`;
+const w209rvBoard32 = () => w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+  MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+  applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+  [2029,2030,2031].forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2028); save()`);
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a proposal into a year Apply starts names what the roll forward would duplicate, and the reviewer decides (five years)';
+  try {
+  const J = JSON.stringify;
+  const html = w209rvBoard32();
+  const B = boot({ html });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board holds FY28-FY31, A in each, and FY32 is not started', J([w209years(B.ev), w209ev(B, `JSON.stringify([2028,2029,2030,2031].map(function(y){ return MS.years[y].order.indexOf('A')>=0; }))`)]),
+    J([[2028, 2029, 2030, 2031], J([true, true, true, true])]));
+  const P = w209rvCopy(v184Publish(B.ev));
+  w209ev(P, `switchYear(2032); 'ok'`);
+  const f = JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(2031); naFromTick('A', true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  chk(name, 'copy', 'in FY32 the office brings A in From another year, as a requirement of its own linked to FY31’s A', J(f.prior), J({ fy: 2031, id: 'A' }));
+  const plain = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  chk(name, 'copy', 'control — and adds one of its own there', !!plain.id, true);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const sub = v184Submit(P, 'PSM'), pkg = sub.pkg || {};
+  chk(name, 'copy', 'control — both travel for FY32', J((((pkg.byYear || {})[2032] || {}).added || []).map(a => a.nid).sort()), J([f.id, plain.id].sort()));
+  const take = (b) => { w3dlg(b.ev); w209ev(b, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(b.ev); };
+  take(B);
+  // the review and the change report say what a roll forward would bring
+  const rollTxt = w209ev(B, `(function(){ subOpen=true; subBody(); var e=document.querySelector('#subBody .subroll'); return e? e.textContent : ''; })()`);
+  chk(name, 'review', 'the row says that rolled forward from FY28, FY32 would hold A -- accepting adds it again', rollTxt, 'ROLLED FORWARD FROM FY28, FY32 WOULD HOLD A — accepting adds it again');
+  chk(name, 'review', 'control — the other proposal says nothing of the kind', w209ev(B, `document.querySelectorAll('#subBody .subroll').length`), 1);
+  const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+    var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+  chk(name, 'report', 'the change report says so on that proposal’s row', (book.rows || []).some(r => r.some(c => /rolled forward from FY28, FY32 would hold A/.test(String(c)))), true);
+
+  // Apply: rolled forward, and the duplicate left out when the reviewer says so
+  w3dlg(B.ev, [true, true, false]);
+  w209ev(B, `subPickAll(true); pmoApply(); 'ok'`);
+  const q = w3said(B.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'apply', 'the roll-forward question names what it would duplicate: the proposal, the requirement it continues, and A',
+    J([q.length, /Rolled forward, FY32 would already hold what 1 of the ticked proposals continues/.test(q[1] || ''), /continues FY31 A; FY32 would hold A/.test(q[1] || '')]), J([3, true, true]));
+  chk(name, 'apply', 'and once the year is chosen the reviewer is asked whether it goes in, before anything is written',
+    J([/1 ticked proposal continues a requirement the year rolled forward already holds/.test(q[2] || ''), /Cancel — leave it unapplied, still held for review/.test(q[2] || ''),
+      w209years(B.ev).indexOf(2032) >= 0]), J([true, true, true]));
+  const T32 = () => JSON.parse(w209ev(B, `(function(){ var T=MS.years[2032]; return JSON.stringify([T.order.filter(function(id){ return id==='A'; }).length,
+    (T.custom||[]).map(function(c){ return [c.event, c.prior||null]; })]); })()`) || '[]');
+  chk(name, 'apply', 'left out: FY32 holds A once, rolled forward, and the office’s other proposal -- not A a second time', J(T32()), J([1, [['PSM new FY32', null]]]));
+  chk(name, 'apply', 'the line says it was left unapplied, and it is still held for review',
+    J([/1 proposal continuing a requirement the rolled-forward year already holds left unapplied, as asked/.test(B.ev(`document.getElementById('shareStat').textContent`)),
+      w209rvRows(B).filter(r => r[2] === '__new' && !r[3]).map(r => r[1])]), J([true, [f.id]]));
+  // FY32 exists now: the ordinary warning, and accepting it is the reviewer's call
+  const here = w209ev(B, `(function(){ subOpen=true; subBody(); var e=document.querySelector('#subBody .subhere'); return e? e.textContent : ''; })()`);
+  chk(name, 'second apply', 'control — with FY32 started, the review gives the ordinary warning', here, 'FY32 ALREADY HOLDS A — accepting adds it again');
+  w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
+  chk(name, 'second apply', 'control — ticked anyway, it is accepted: the reviewer’s call', J(T32()[1].map(c => c[1])), J([null, { fy: 2031, id: 'A' }]));
+
+  // started blank there is nothing to duplicate, and nothing is asked about it
+  const B2 = boot({ html });
+  take(B2);
+  w3dlg(B2.ev, [true, false, true]);
+  w209ev(B2, `subPickAll(true); pmoApply(); 'ok'`);
+  const q2 = w3said(B2.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'blank', 'control — started blank: three questions (apply, roll or not, blank), none asking about a duplicate, and both proposals land',
+    J([q2.length, q2.some(m => /ticked proposals? continues? a requirement the year rolled forward already holds/.test(m)), w209ev(B2, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return c.prior||null; }))`)]),
+    J([3, false, J([{ fy: 2031, id: 'A' }, null])]));
+
+  // the office's own proposal, accepted into FY28 in an earlier Apply, and brought into FY32 by it: the roll forward carries the
+  // requirement FY28 filed it as -- the proposal itself, under the board's id -- and that is named too
+  const B3 = boot({ html });
+  B3.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P3 = w209rvCopy(v184Publish(B3.ev));
+  const R = w209add(P3, 'PSM recurring, FY28', [250, 0, 0]);
+  w209ev(P3, `switchYear(2032); 'ok'`);
+  const R2 = JSON.parse(w209ev(P3, `(function(){ toggleAdd(); naFromPick(2028); naFromTick(${J(R.id)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  w209ev(P3, `switchYear(2028); 'ok'`);
+  const pkg3 = v184Submit(P3, 'PSM').pkg || {};
+  w3dlg(B3.ev); w209ev(B3, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg3)}, 'psm3.json'); 'ok'`); w3said(B3.ev);
+  w3dlg(B3.ev); w209ev(B3, `PMOPICK={}; pmoRows().forEach(function(r){ if(r.id===${J(R.id)}) PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); w3said(B3.ev);
+  const r28 = w209ev(B3, `((MS.years[2028].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(R.id)}; })[0]||{}).id||''`);
+  chk(name, 'its own proposal', 'control — the FY28 proposal is accepted first, alone, and FY32 is still not started', J([!!r28, w209years(B3.ev).indexOf(2032)]), J([true, -1]));
+  w3dlg(B3.ev, [true, true, false]);
+  w209ev(B3, `subPickAll(true); pmoApply(); 'ok'`);
+  const q3 = w3said(B3.ev).filter(x => x[0] === 'confirm').map(x => x[1]);
+  chk(name, 'its own proposal', 'the roll-forward question names it: FY32, rolled forward, would hold the requirement FY28 filed the proposal as',
+    J([q3.length, (q3[1] || '').indexOf('continues FY28 ' + R2.prior.id + '; FY32 would hold ' + r28) >= 0]), J([3, true]));
+  chk(name, 'its own proposal', 'left out, FY32 holds it once, as rolled forward', w209ev(B3, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return [c.id, c.from? c.from.nid : null]; }))`),
+    J([[r28, R.id]]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, B2.errors.length, P.errors.length, B3.errors.length, P3.errors.length]), J([0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS ENDS UP NAMING THE BOARD'S OWN ID, so every same-work check reads it. In the copy the
+// office proposes O in FY29 and brings it into FY28 (L) and FY32 (L2) from another year, proposes P in FY30 and brings it into
+// FY31 (Q). Accepting re-pointed a link only to a proposal accepted BEFORE it: L, in an earlier year than O (Apply takes the
+// years oldest first), and Q, accepted an Apply before P, kept the copy's id -- so Roll requirements forward promised "1 copy will
+// be created" of work the year already held, and the review offered L2 for FY32 with no word that FY32 already held O.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a link to another of the office’s proposals names the board’s own id once that one is accepted (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board() });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P = w209rvCopy(v184Publish(B.ev));
+  const from = (y, src) => JSON.parse(w209ev(P, `(function(){ toggleAdd(); naFromPick(${y}); naFromTick(${J(src)}, true); naFromAdd();
+    var c=S.custom[S.custom.length-1]||{}, o=arOn(); if(o) arHide(); return JSON.stringify({id:c.id||'', prior:c.prior||null}); })()`) || '{}');
+  w209ev(P, `switchYear(2029); 'ok'`); const O = w209add(P, 'PSM original FY29', [400, 0, 0]);
+  w209ev(P, `switchYear(2028); 'ok'`); const L = from(2029, O.id);
+  w209ev(P, `switchYear(2030); 'ok'`); const Pp = w209add(P, 'PSM original FY30', [300, 0, 0]);
+  w209ev(P, `switchYear(2031); 'ok'`); const Q = from(2030, Pp.id);
+  w209ev(P, `switchYear(2032); 'ok'`); const L2 = from(2029, O.id);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  chk(name, 'copy', 'control — each link names the copy’s own id for the proposal it continues',
+    J([L.prior, Q.prior, L2.prior]), J([{ fy: 2029, id: O.id }, { fy: 2030, id: Pp.id }, { fy: 2029, id: O.id }]));
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(B.ev);
+  const tick = (ids) => { w3dlg(B.ev); w209ev(B, `PMOPICK={}; pmoRows().forEach(function(r){ if(r.key==='__new' && ${J(ids)}.indexOf(r.id)>=0) PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`); return w3said(B.ev); };
+  const acc = (y, nid) => JSON.parse(w209ev(B, `JSON.stringify(((MS.years[${y}].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(nid)}; })[0])||null)`) || 'null');
+  // Apply 1: L, O and Q
+  tick([L.id, O.id, Q.id]);
+  const o29 = acc(2029, O.id), l28 = acc(2028, L.id), q31 = acc(2031, Q.id);
+  chk(name, 'one Apply', 'control — O is accepted into FY29, L into FY28 and Q into FY31', J([!!o29, !!l28, !!q31]), J([true, true, true]));
+  chk(name, 'one Apply', 'L, written before O (FY28 first), names the requirement O became in FY29, not the copy’s id', J((l28 || {}).prior), J({ fy: 2029, id: (o29 || {}).id }));
+  chk(name, 'one Apply', 'control — Q, whose original P is not accepted, still names the copy’s id', J((q31 || {}).prior), J({ fy: 2030, id: Pp.id }));
+  const plan = (src, id, y) => JSON.parse(w209ev(B, `(function(){ var keep=MS.cur; switchYear(${src}); rollPick={}; rollPick[${J(id)}]=1; rollYrs={}; rollYrs[${y}]=1;
+    var p=rollPlan().per.map(function(x){ return [x.y, x.create, x.exists]; }); rollPick={}; rollYrs={}; switchYear(keep); return JSON.stringify(p); })()`) || '[]');
+  chk(name, 'one Apply', 'Roll requirements forward sees FY29 already carries FY28’s L: nothing to create', J(plan(2028, (l28 || {}).id, 2029)), J([[2029, 0, 1]]));
+  // the team, meanwhile: copies O on into FY32, and rolls Q -- not yet re-pointed -- on into FY32 as well
+  w209ev(B, `switchYear(2029); yearCopy(${J((o29 || {}).id)}, 2032, 'c'); switchYear(2031); yearCopy(${J((q31 || {}).id)}, 2032, 'c'); switchYear(2028); save(); 'ok'`);
+  const t32 = JSON.parse(w209ev(B, `JSON.stringify((MS.years[2032].custom||[]).map(function(c){ return [c.id, c.prior||null, !!c.from]; }))`) || '[]');
+  const oIn32 = (t32.filter(r => r[1] && r[1].fy === 2029)[0] || [])[0], qIn32 = (t32.filter(r => r[1] && r[1].fy === 2030)[0] || [])[0];
+  chk(name, 'the team', 'control — FY32 now holds a copy of O, linked to it, and a copy of Q with Q’s link and no provenance of its own',
+    J([!!oIn32, !!qIn32, (t32.filter(r => r[0] === qIn32)[0] || [])[2]]), J([true, true, false]));
+  // the review of L2: FY32 already holds O's copy
+  const here = w209ev(B, `(function(){ subOpen=true; subBody(); var t=[].slice.call(document.querySelectorAll('#subBody tr')).filter(function(r){ return /PSM original FY29/.test(r.textContent)
+    && r.querySelector('.subprior') && /FY32/.test(r.textContent); })[0]; var e=t && t.querySelector('.subhere'); return e? e.textContent : ''; })()`);
+  chk(name, 'review', 'L2 is offered for FY32 with the warning that FY32 already holds the requirement it continues', here, 'FY32 ALREADY HOLDS ' + oIn32 + ' — accepting adds it again');
+  // Apply 2: P alone
+  tick([Pp.id]);
+  const p30 = acc(2030, Pp.id), q31b = acc(2031, Q.id);
+  chk(name, 'a later Apply', 'Q, accepted an Apply before P, now names the requirement P became in FY30', J((q31b || {}).prior), J({ fy: 2030, id: (p30 || {}).id }));
+  chk(name, 'a later Apply', 'and so does Q’s copy the team rolled into FY32, though it carries no provenance of its own',
+    w209ev(B, `JSON.stringify(((MS.years[2032].custom||[]).filter(function(c){ return c.id===${J(qIn32)}; })[0]||{}).prior||null)`), J({ fy: 2030, id: (p30 || {}).id }));
+  chk(name, 'a later Apply', 'Roll requirements forward sees FY31 already carries FY30’s P: nothing to create', J(plan(2030, (p30 || {}).id, 2031)), J([[2031, 0, 1]]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// APPLY INTO A YEAR IT STARTS JOURNALS EVERY ACCEPTED CHANGE, EACH WITH PUT BACK. The question says "Each one is recorded in the
+// change journal, so it can be found and undone later" -- the recourse for a proposal accepted in error. Started and filled in
+// one save, the year was ONE "the FY32 plan -- created" line, a size and no Put back, for everything accepted into it.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — Apply into a year it starts records every accepted change in the journal, each with Put back (five years)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w209board([2032]) });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  const P = w209rvCopy(v184Publish(B.ev));
+  w209ev(P, `switchYear(2030); setDesc('A','A, written by PSM in FY30'); switchYear(2032); 'ok'`);
+  const a = w209add(P, 'PSM new FY32', [700, 0, 0]);
+  w209ev(P, `switchYear(2028); 'ok'`);
+  const pkg = v184Submit(P, 'PSM').pkg || {};
+  w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'psm.json'); 'ok'`); w3said(B.ev);
+  const t0 = +B.ev('Date.now()');
+  w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
+  const nid = w209ev(B, `((MS.years[2032].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(a.id)}; })[0]||{}).id||''`);
+  chk(name, 'fixture', 'control — FY32 is started, rolled forward, and the proposal is accepted into it', J([w209years(B.ev).indexOf(2032) >= 0, !!nid]), J([true, true]));
+  const E = JSON.parse(w209ev(B, `JSON.stringify((MS.jrnl||[]).map(function(e, i){ return {i:i, t:e.t||0, fy:e.fy, p:e.p, u:jrnlUndoable(e), bid:(e.b&&e.b.id)||null}; }).filter(function(e){ return e.t>=${t0}; }))`) || '[]');
+  const in32 = E.filter(e => e.fy === 2032);
+  chk(name, 'journal', 'control — starting FY32 is its own line, not undoable', J(in32.filter(e => !e.p.length).map(e => e.u)), J([false]));
+  chk(name, 'journal', 'the accepted requirement is there under its own path, with Put back: added, described, its impact statement',
+    J([in32.some(e => e.p[0] === 'custom' && e.bid === nid && e.u), in32.some(e => e.p[0] === 'desc' && e.p[1] === nid && e.u), in32.some(e => e.p[0] === 'cons' && e.p[1] === nid && e.u)]),
+    J([true, true, true]));
+  chk(name, 'journal', 'control — the FY30 change in the same Apply is journalled as before', E.some(e => e.fy === 2030 && e.p[0] === 'desc' && e.p[1] === 'A' && e.u), true);
+  const ci = (in32.filter(e => e.p[0] === 'cons' && e.p[1] === nid)[0] || {}).i;
+  w3dlg(B.ev); w209ev(B, `jrnlUndo(${ci === undefined ? -1 : ci}); 'ok'`); w3said(B.ev);
+  chk(name, 'journal', 'Put back on the impact statement takes it off the accepted requirement in FY32', w209ev(B, `JSON.stringify((MS.years[2032].cons||{})[${J(nid)}]===undefined)`), 'true');
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// A YEAR THE COPY HOLDS AND DOES NOT SUBMIT FOR IS SAID TO BE NOT SENT. The board's base moved on to FY28 and it still holds
+// FY27; a copy published from FY28 submits for FY28-FY32 and opens FY27 all the same. The office edited there and was told
+// nothing -- and Submit from FY27 answered "Nothing to send yet. Edit a description..." to an office that had just done that.
+// Now the year menu, the switch, the RECORD panel and Submit each say FY27 is not sent.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.09 review — a year the copy holds and does not submit for is said to be not sent, at the edit and at Submit (five years)';
+  try {
+  const J = JSON.stringify;
+  const html = w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+    switchYear(2028); MS.base=2028; save(); switchYear(2029); switchYear(2028); save()`);
+  const B = boot({ html });
+  B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'fixture', 'control — the board’s base is FY28, and it still holds FY27', J([B.ev('MS.base'), w209years(B.ev)]), J([2028, [2027, 2028, 2029]]));
+  const copy = v184Publish(B.ev);
+  const P = w209rvCopy(copy);
+  chk(name, 'copy', 'control — the copy submits for FY28-FY32, and holds FY27', w209ev(P, `JSON.stringify([pmoCopyYears(), Object.keys(MS.years).map(Number).indexOf(2027)>=0])`), J([[2028, 2029, 2030, 2031, 2032], true]));
+  chk(name, 'year menu', 'the Fiscal year menu says FY27 is not sent from this copy',
+    /FY27 \(outside window\)\s*has data — not sent from this copy/.test(w209ev(P, `(function(){ syncBtns(); return document.getElementById('dd_fy').textContent; })()`)), true);
+  const say = 'This copy submits for FY28–FY32. FY27 is not one of them: nothing edited in FY27 is sent with ✉ Submit input. Go to one of those years to edit what you submit.';
+  w209ev(P, `switchYear(2027); 'ok'`);
+  chk(name, 'switch', 'switching there says so', P.ev(`document.getElementById('shareStat').textContent`).indexOf(say) >= 0, true);
+  chk(name, 'RECORD panel', 'the RECORD panel says so, where its value boxes edit', w209ev(P, `(function(){ curRow='B'; render(); var e=document.querySelector('#inspector .insp-notsent'); return e? e.textContent : ''; })()`), '⚠ ' + say);
+  chk(name, 'edit box', 'control — the edit box says it, as before', /nothing edited here can be sent/.test(w209ev(P, `erNotSent('B')`)), true);
+  w209ev(P, `setAsk('B',0,'777'); 'ok'`);
+  const s1 = v184Submit(P, 'PSM');
+  chk(name, 'Submit from FY27', 'it does not say “Nothing to send yet”: it says FY27 is not one of the years the copy submits for, and sends nothing',
+    J([s1.alerts, !!s1.pkg]), J([['Nothing to send.\n\n' + say + '\n\nNothing was sent.'], false]));
+  w209ev(P, `switchYear(2028); setNote('A','A note from PSM (FY28)'); 'ok'`);
+  const s2 = v184Submit(P, 'PSM');
+  chk(name, 'Submit from FY28', 'the package goes, and Submit says FY27’s edit is not in it', J([!!s2.pkg, s2.alerts]), J([true, ['⚠ ' + say + '\n\nEverything else you edited is still being sent.']]));
+  chk(name, 'Submit from FY28', 'control — FY27’s 777 is not in the package', /777/.test(J(s2.pkg)), false);
+  chk(name, 'Submit from FY28', 'and the line after it says so', /Nothing edited in FY27 is in it: this copy does not submit for that year\./.test(P.ev(`document.getElementById('shareStat').textContent`)), true);
+  // a copy with nothing edited in FY27 says nothing of it
+  const P2 = w209rvCopy(copy);
+  w209ev(P2, `setNote('A','Another note (FY28)'); 'ok'`);
+  const s3 = v184Submit(P2, 'PSM');
+  chk(name, 'Submit from FY28', 'control — with nothing edited in FY27, nothing is said of it', J([!!s3.pkg, s3.alerts]), J([true, []]));
+  chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length, P2.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.09 W2 ====
 
 // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
