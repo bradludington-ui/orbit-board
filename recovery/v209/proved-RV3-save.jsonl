@@ -1,0 +1,9 @@
+{"id": "v209-rv3-save-look-writes-storage", "verdict": "CAUGHT", "fails": ["9"], "threw": 0, "suite": "_slim-prove-bc3b39cf.mjs", "detail": ""}
+{"id": "v209-rv3-save-look-record-left", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-bc3b39cf.mjs", "detail": ""}
+{"id": "v209-rv2-save-boot-no-write", "verdict": "CAUGHT", "fails": ["10"], "threw": 0, "suite": "_slim-prove-12f00268.mjs", "detail": ""}
+{"id": "v209-rv2-save-boot-writes-unread", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-12f00268.mjs", "detail": ""}
+{"id": "v209-rv2-save-boot-refused-clean", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-12f00268.mjs", "detail": ""}
+{"id": "v209-rv2-save-refused-file-recorded", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-12f00268.mjs", "detail": ""}
+{"id": "v209-rv2-save-refused-kept-left", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-12f00268.mjs", "detail": ""}
+{"id": "v209-w3-adopt-skipped", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-41d244e5.mjs", "detail": ""}
+{"id": "boot-no-keep-aside", "verdict": "CAUGHT", "fails": ["20"], "threw": 0, "suite": "_slim-prove-196fbf3d.mjs", "detail": ""}
