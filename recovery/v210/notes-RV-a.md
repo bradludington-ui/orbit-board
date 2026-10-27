@@ -92,3 +92,29 @@ BUILD is unchanged.
 - A service renamed in Setup to a name in no group and no alias pair stays a Summary-only service; the box names it, the workbook
   does not. Unchanged here (the skeptic raised it as a question, not a defect).
 - WB-1 (the indented lines print flush left in the workbook) is the workbook reviewer's, fixer b's.
+
+## After the skeptics (integration, 27 Oct)
+
+The A-3 skeptic confirmed the fix and found one route it did not cover, though these notes said it did: the folder reads, but
+Full Fund's copy in it does not at that moment -- `getFile()` throws NotReadableError (mid-sync), the JSON is cut short (the
+import check does not refuse it, so driveParse throws a plain SyntaxError), or it is not a board (no `store`).
+`fydpStoreFolder` swallowed all three and handed back this browser's reading: with no copy here the box said "Full Fund has no
+BES28 position logged" (A-3's own false claim), and with an older copy here it printed that copy with no note.
+
+- **Fixed:** `fydpStoreFolder(k, got, strict)`. With `strict` -- FYDP Disconnects passes it from `fdcFolderRead` -- only
+  NotFoundError means the folder has none, as `driveStoreRead` reads it; anything else names that appropriation ("the shared
+  folder's copy could not be read (...)" / "... is not a saved board"), its controls print —, and nothing is guessed.
+- **The five-year plan keeps its older reading** (strict unset): it shares `fydpStoreFolder`, and the same gap is there,
+  older than v2.10 (since v1.85). Not changed here, as item 130's scope; logged for the owner.
+- **Check:** the A-3 block's part 4 -- the three failures, each with and without a copy in this browser (six checks, all failing
+  on e29f128's board), Initial Spares with no folder copy read as "none there" (never unreadable), and a CONTROL that the
+  five-year plan's reading is unchanged.
+- **Mutations:** `v210-rv-a-copy-unreadable-falls-back`, `v210-rv-a-strict-not-a-board-taken`, `v210-rv-a-strict-none-unreadable`
+  (new); `v210-rv-a-folder-fail-falls-back` retargeted to the new call (`, true`). `proofs-RV-a2.json` /
+  `proved-RV-a2.jsonl`: those four and the six other A-3 mutations.
+- The guide's FYDP Disconnects paragraph: a copy in the folder that cannot be read is named and prints —.
+
+The A-1 skeptic's residual -- a service renamed in Setup to a name in no group and no alias pair (or keyed `usmc-b`, `USMC STOVL`)
+reaches the Summary only; the box names it, the workbook carries no note, so a service tab can print $0 controls with nothing to
+say why -- is the owner's call, put to him with the ship notes. The WB-1 skeptic's note (the house style's indents carry no
+horizontal alignment either, since v2.04) is older than v2.10 and is logged.

@@ -2293,7 +2293,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
-<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it; Full Fund’s USMC-B is the STOVL sheet’s); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
+<p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
@@ -22651,15 +22651,23 @@ function fydpStoreLocal(k){
 // The shared folder's copy, when the team works out of the folder and that copy is newer -- as the
 // appropriation's own board adopts it on opening. Reads only. The answer in hand when the folder is
 // not the store; a promise of it when it is.
-function fydpStoreFolder(k, got){
+// v2.10 review (A-3): strict -- FYDP Disconnects' reading -- takes only "no copy there" (NotFoundError) as the folder having
+// none, as driveStoreRead does; a copy mid-sync, cut short or not a board names that appropriation, and nothing is guessed.
+// Without it this browser's older copy stood in silently, or "has no position logged" was said while the folder held one.
+// The five-year plan keeps its older reading (strict unset) until the owner says otherwise.
+function fydpStoreFolder(k, got, strict){
   if(got.why || !driveStoreOn()) return got;
   return (async function(){
     let dir;
     try{ dir=await driveDir(false,'read'); }
     catch(e){ return {st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+'), so its newest copy is unknown'}; }
-    let j=null;
+    let j=null, none=false;
+    const bad=function(how){ return {st:null, why:'the shared folder’s copy '+how+', so its newest copy is unknown'}; };
     try{ j=driveParse(await driveRead(dir, driveName((got.st&&got.st.cur)||MS.cur, k))); }
-    catch(e){ if(e && e.refused) return {st:null, why:e.message}; j=null; }
+    catch(e){ if(e && e.refused) return {st:null, why:e.message};
+      if(strict && !(e && e.name==='NotFoundError')) return bad('could not be read ('+((e&&e.message)||String(e))+')');
+      j=null; none=true; }
+    if(strict && !none && !(j && j.store)) return bad('is not a saved board');
     if(!j || !j.store) return got;
     const theirs=+((j.store&&j.store.ts)||j.ts||0);
     if(theirs<=((got.st&&+got.st.ts)||0)) return got;
@@ -24572,7 +24580,7 @@ function fdcFolderRead(){
     left++;
     let over=false;
     const fin=function(r){ if(over) return; over=true; R.got[a.k]=r; one(); };
-    fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object')? r : loc); },
+    fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){ fin((r && typeof r==='object')? r : loc); },
       function(e){ fin({st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+')'}); });
   });
   one(); starting=false;

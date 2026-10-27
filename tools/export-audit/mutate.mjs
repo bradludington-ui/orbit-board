@@ -8465,8 +8465,8 @@ const MUTATIONS = [
     find: "if(!F){ out.wait=true; return out; }",
     repl: "if(!F){ return out; }" },
   { id: 'v210-rv-a-folder-fail-falls-back', area: "fdcFolderRead", what: "a shared folder that cannot be read falls back to this browser's older copy without a word",
-    find: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object')? r : loc); },",
-    repl: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){ fin((r && typeof r==='object' && !r.why)? r : loc); }," },
+    find: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){ fin((r && typeof r==='object')? r : loc); },",
+    repl: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){ fin((r && typeof r==='object' && !r.why)? r : loc); }," },
   { id: 'v210-rv-a-answer-not-drawn', area: "fdcFolderRead", what: "the box stays on Reading the shared folder after the folder has answered",
     find: "if(!starting && _fdcFold===R) fdcSync();",
     repl: "void starting;" },
@@ -8479,6 +8479,16 @@ const MUTATIONS = [
   { id: 'v210-rv-a-pick-lost-reading', area: "fdcHtml", what: "while the shared folder is read the cycle picked falls back, so a cycle only another appropriation logs is lost",
     find: "if(!st.reading){ fdcAceK=st.ace; fdcCycK=st.cyc; }",
     repl: "fdcAceK=st.ace; fdcCycK=st.cyc;" },
+  // the skeptic's route (v2.10 review, after e29f128): the folder reads, Full Fund's copy in it does not
+  { id: 'v210-rv-a-copy-unreadable-falls-back', area: "fdcFolderRead", what: "Full Fund's copy in the shared folder, mid-sync or cut short or not a board, is replaced by this browser's older copy without a word, or Full Fund is said to have no position",
+    find: "fydpWhen(fydpStoreFolder(a.k, loc, true), function(r){",
+    repl: "fydpWhen(fydpStoreFolder(a.k, loc), function(r){" },
+  { id: 'v210-rv-a-strict-not-a-board-taken', area: "fydpStoreFolder", what: "a copy in the shared folder that is not a saved board is passed over for this browser's copy, without a word",
+    find: "if(strict && !none && !(j && j.store)) return bad('is not a saved board');",
+    repl: "" },
+  { id: 'v210-rv-a-strict-none-unreadable', area: "fydpStoreFolder", what: "an appropriation with no copy in the shared folder is said to be unreadable there, rather than read from this browser",
+    find: "if(strict && !(e && e.name==='NotFoundError')) return bad(",
+    repl: "if(strict) return bad(" },
   // ==== end v2.10 A ====
 
   // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====

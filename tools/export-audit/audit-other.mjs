@@ -3372,7 +3372,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // figures; Export pressed meanwhile waits for that answer and downloads once; with no copy in this browser it reads the folder
 // the same way; a folder that cannot be read is named and nothing is said of a position not looked at; and each opening reads
 // it again. Every figure is the fixture's. On 4c531a0 the block fails 8 checks; the rest pass there (the CONTROLs, and what
-// the fix must keep: no claim of a missing position, the tables once it has answered).
+// the fix must keep: no claim of a missing position, the tables once it has answered). Part 4 (the skeptic's route, on e29f128's
+// board): the folder reads but Full Fund's copy in it does not -- mid-sync, cut short, not a board -- with and without a copy in
+// this browser; the six checks fail on e29f128, which took this browser's copy or said Full Fund had no position.
 {
   const name = 'v2.10 review — FYDP Disconnects: in the shared folder, another appropriation is read as its own board opens it (A-3)';
   try {
@@ -3399,7 +3401,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const folder = (granted) => `(function(){ var files=window.__fold={}; files[${J(FILE)}]=${J(folderTxt)}; return {
       name:'team', kind:'directory',
       queryPermission: async function(){ return ${granted ? "'granted'" : "'denied'"}; }, requestPermission: async function(){ return ${granted ? "'granted'" : "'denied'"}; },
-      getFileHandle: async function(n){ if(Object.prototype.hasOwnProperty.call(files, n)) return {name:n, getFile: async function(){ return {text: async function(){ return files[n]; }, lastModified:1}; }};
+      getFileHandle: async function(n){ if(Object.prototype.hasOwnProperty.call(files, n)) return {name:n, getFile: async function(){
+          if(window.__foldErr){ var x=new Error('the file could not be read'); x.name=window.__foldErr; throw x; }
+          return {text: async function(){ return files[n]; }, lastModified:1}; }};
         var e=new Error('not found: '+n); e.name='NotFoundError'; throw e; },
       getDirectoryHandle: async function(){ var e=new Error('nf'); e.name='NotFoundError'; throw e; },
       values: async function*(){ for(var k of Object.keys(files)) yield {kind:'file', name:k}; } }; })()`;
@@ -3467,6 +3471,37 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'folder unreadable', 'the box names the folder for Full Fund, and never says it has no position or prints this browser’s older copy',
       J([dn.length === 1 && /^⚠ Full Fund: its controls cannot be read here \(the shared folder could not be read \(.+\), so its newest copy is unknown\), so they print —\.$/.test(dn[0]), claims(D), (ffRows(D) || [])[0]]),
       J([true, [], YRS.map(() => null)]));
+    // ---- 4. the folder reads, but Full Fund's copy in it cannot be read at that moment (the skeptic's route) --------------------
+    // A copy mid-sync (getFile throws NotReadableError), one cut short (truncated JSON, which the import check does not refuse) and
+    // one that is not a board (no store): only NotFoundError means the folder has none (driveStoreRead's rule). Before the strict
+    // reading, this browser's older copy stood in with no note, and with no copy here the box said Full Fund "has no BES28 position
+    // logged" while the folder held one. Now each is named, its controls print —, and nothing is guessed -- with or without a
+    // copy in this browser.
+    const ROUTES = [
+      ['mid-sync', `window.__foldErr='NotReadableError'`, /could not be read \(.+\)/],
+      ['cut short', `window.__fold[${J(FILE)}]=${J(folderTxt.slice(0, Math.floor(folderTxt.length / 2)))}`, /could not be read \(.+\)/],
+      ['not a board', `window.__fold[${J(FILE)}]=${J(J({ v: 1, ts: 40000 }))}`, /is not a saved board/],
+    ];
+    for (const [route, plant, how] of ROUTES) for (const here of [true, false]) {
+      const B = board(here, true);
+      E(B.ev, `${plant}; toggleFdc(); 'ok'`);
+      await settle(B);
+      const bn = notes(B).filter(t => /^⚠ Full Fund/.test(t));
+      const re = new RegExp('^⚠ Full Fund: its controls cannot be read here \\(the shared folder’s copy ' + how.source + ', so its newest copy is unknown\\), so they print —\\.$');
+      chk(name, 'copy unreadable — ' + route + (here ? ', older copy here' : ', no copy here'),
+        'Full Fund’s copy is named as unreadable, its controls print —, and the box neither claims a missing position nor prints this browser’s copy',
+        J([bn.length === 1 && re.test(bn[0]), claims(B), (ffRows(B) || [])[0]]), J([true, [], YRS.map(() => null)]));
+      // Initial Spares has no copy in the folder (NotFoundError) and none here: that is "none there", never "cannot be read"
+      chk(name, 'copy unreadable — ' + route + (here ? ', older copy here' : ', no copy here'),
+        'Initial Spares, with no copy in the folder, is read as having none there: no position logged, never unreadable',
+        J([notes(B).some(t => /^⚠ Initial Spares has no BES28 position logged/.test(t)), notes(B).some(t => /^⚠ Initial Spares: its controls cannot be read here/.test(t))]), J([true, false]));
+      E(B.ev, `toggleFdc(); 'ok'`);
+    }
+    // the five-year plan keeps its older reading (strict unset): the same mid-sync copy hands back this browser's copy (a CONTROL)
+    const P = board(true, true);
+    chk(name, 'copy unreadable — the five-year plan', 'fydpStoreFolder without strict still falls back to this browser’s copy (a CONTROL: unchanged)',
+      await P.w.eval(`(async function(){ window.__foldErr='NotReadableError'; var r=await fydpStoreFolder('ff', fydpStoreLocal('ff')); return JSON.stringify([r.why||'', r.st && r.st.ts]); })()`),
+      J(['', 10]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
