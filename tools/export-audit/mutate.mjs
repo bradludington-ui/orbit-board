@@ -8278,6 +8278,12 @@ const MUTATIONS = [
     repl: "<b>Go to it</b> opens the requirement\\u2019s RECORD panel, where its Navy SI code shows the code as saved.'}," },
   // ==== end v2.09 W4 ====
 
+  // ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+  // ==== end v2.10 A ====
+
+  // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+  // ==== end v2.10 B ====
+
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

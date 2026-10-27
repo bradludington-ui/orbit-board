@@ -2891,6 +2891,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
 // ==== end v2.09 W4 ====
 
+// ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+// ==== end v2.10 A ====
+
+// ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+// ==== end v2.10 B ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

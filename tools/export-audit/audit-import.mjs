@@ -15088,6 +15088,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
 // ==== end v2.09 W4 ====
 
+// ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+// ==== end v2.10 A ====
+
+// ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+// ==== end v2.10 B ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
