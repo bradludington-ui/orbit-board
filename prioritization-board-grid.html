@@ -7206,8 +7206,13 @@ if(PUB && (PUB.years||Array.isArray(PUB.order))){
       // storage, as persist() writes it: persist() and save() read lets declared below and cannot run yet. Refused, the record is
       // left describing what storage still holds, unsaved work included, so the next opening keeps it aside again. A copy the
       // board could not take up (its services not this board's) is not what was kept aside, so it is never written over either.
-      let held=!_bootOwn;          // storage held nothing of this board's: nothing there for the record to disagree with
-      if(_bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
+      // v2.09 third review: ONLY WHERE THIS OPENING HAS JUST KEPT THAT WORK ASIDE. Written on every opening, a newer file opened
+      // only to look at it replaced this browser's copy -- a save, already in a file -- so the person's own older file opened that
+      // other save next (the newer of the two opens): Brad's file opened the lead's draft and Save offered to write it over his,
+      // and in a copy Ann's own file opened on PSM's work and ✉ Submit sent PSM's package under her name. With nothing kept aside,
+      // storage holds a save and no unsaved work, so "clean" is true of it, and storage is left alone, as v2.08 left it.
+      let held=!_bootOwn || (!own && _bootOwnRead);   // nothing in storage, or only work already saved: nothing to make true first
+      if(own && _bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
       LASTKNOWN=PUB_FILE_TS;
       if(held){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); }
     }

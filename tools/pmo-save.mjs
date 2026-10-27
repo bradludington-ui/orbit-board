@@ -25,6 +25,9 @@
 //   J. A NEWER OFFICE FILE, THEN THE COPY AS PUBLISHED (v2.09 second review), in one browser: opening the newer file leaves in
 //      browser storage what it put on screen, so the copy opened next shows that save and this browser's unsaved work only in
 //      the kept slot, said not to be on screen; put back, it is on its own office.
+//   K. A NEWER OFFICE FILE OPENED ONLY TO LOOK (v2.09 third review), in one browser holding no unsaved work: browser storage is
+//      left as it was, so her own office file and the copy as published then open on her own work, under her own office, and
+//      ✉ Submit sends that office's package.
 //
 //   node tools/pmo-save.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -354,6 +357,48 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     chk('J · put back, her work is on screen on her own office, ATL', J([j4.R1, j4.off]) === J(['Ann for ATL, unsaved', 'ATL']), J(j4));
     chk('J · nothing threw', [T2, T3].every(t => t.errs.length === 0), [...T2.errs, ...T3.errs].slice(0, 2).join(' | '));
   } catch (e) { chk('J · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+  await ctx.close();
+}
+
+// ── K: a newer office file opened only to look, then her own file, in one browser (v2.09 third review) ───────────────────
+// With nothing unsaved in this browser, nothing is kept aside and opening the newer file must write nothing into browser
+// storage: her own office file, opened next, then shows her own work under her own office, and ✉ Submit sends that office's.
+{
+  const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Ann'); } catch (e) {} });
+  try {
+    const look = p => p.evaluate(() => ({ R0: String((S.desc || {}).R0), R1: String((S.desc || {}).R1), plan: localStorage.getItem(_AP.key),
+      kept: !!keptCopy(), dirty: !!baseGet().dirty, off: myPmo(), mark: pmoForOf(MS) }));
+    const T1 = await openIn(ctx, copyFile);
+    await T1.p.evaluate(STANDIN);
+    await T1.p.evaluate(() => { localStorage.setItem('prio27pmo', 'ATL'); setDesc('R1', 'Ann for ATL, saved'); });
+    await T1.p.evaluate(() => pmoSaveCopy()); await T1.p.waitForTimeout(600);
+    const k1 = await look(T1.p), atlHtml = await T1.p.evaluate(() => window.__disk.content);
+    chk('K · Ann’s Save writes ATL’s file, and this browser holds no work that file lacks (the fixture)', J([k1.mark, k1.dirty, atlHtml.length > 100000]) === J(['ATL', false, true]), J([k1.mark, k1.dirty, atlHtml.length]));
+    await T1.p.close();
+    const atlFile = join(dir, 'office', 'ATL file.html'); writeFileSync(atlFile, atlHtml);
+    await new Promise(r => setTimeout(r, 20));
+    const X = boot({ html: copyHtml }); X.ev(`setDesc('R0','PSM wrote R0, newest'); MS.pmoFor={pmo:'PSM'}; 'ok'`);
+    const psmNewest = join(dir, 'office', 'PSM file, newest.html'); writeFileSync(psmNewest, X.ev('buildSavedHtml()'));
+    const T2 = await openIn(ctx, psmNewest);
+    const k2 = await look(T2.p);
+    chk('K · PSM’s newer file opens on PSM, nothing kept aside (a CONTROL)', J([k2.R0, k2.off, k2.kept]) === J(['PSM wrote R0, newest', 'PSM', false]), J([k2.R0, k2.off, k2.kept]));
+    chk('K · browser storage still holds Ann’s save, byte for byte: opening a file only to look writes nothing there', k2.plan === k1.plan, k2.plan === k1.plan ? '' : 'storage changed');
+    await T2.p.close();
+    for (const [at, file] of [['her own ATL file', atlFile], ['the copy as published', copyFile]]) {
+      const T3 = await openIn(ctx, file);
+      const k3 = await look(T3.p);
+      chk(`K · ${at} opens on her own work, under ATL, never PSM’s`, J([k3.R1, k3.R0 === 'PSM wrote R0, newest', k3.off, k3.mark]) === J(['Ann for ATL, saved', false, 'ATL', 'ATL']), J([k3.R1, k3.R0, k3.off, k3.mark]));
+      const sub = await T3.p.evaluate(() => { let cap = null; const _B = window.Blob;
+        window.Blob = function (pt, o) { if (!cap && o && o.type === 'application/json') cap = String(pt[0]); return new _B(pt, o); };
+        try { pmoSubmit(); } catch (e) {} window.Blob = _B; const pk = cap ? JSON.parse(cap) : {}; const it = pk.items || {};
+        return { pmo: pk.pmo || null, R1: (it.R1 || {}).desc || null, R0: !!it.R0 }; });
+      chk(`K · ${at}: ✉ Submit sends ATL’s package, with her change and nothing of PSM’s`, J(sub) === J({ pmo: 'ATL', R1: 'Ann for ATL, saved', R0: false }), J(sub));
+      chk(`K · ${at}: nothing threw`, T3.errs.length === 0, T3.errs.slice(0, 2).join(' | '));
+      await T3.p.close();
+    }
+    chk('K · nothing threw', T2.errs.length === 0, T2.errs.slice(0, 2).join(' | '));
+  } catch (e) { chk('K · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
 }
 

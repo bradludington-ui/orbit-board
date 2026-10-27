@@ -8121,11 +8121,13 @@ const MUTATIONS = [
   // board and a copy alike); the office follows the work on screen; the copy as published says what is true; and a copy takes
   // no board, package or state file at any door -- each undoing one fix
   { id: 'v209-rv2-save-boot-no-write', area: '(boot)', what: 'opening a newer file records the board clean while storage still holds the work it kept aside, so a later opening replaces it unkept',
-    find: '      if(_bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }',
-    repl: '      if(_bootOwnRead){ held=true; }' },
+    // v2.09 third review: retargeted in place -- the write is now made only where the opening kept work aside (`own &&`); the same defect
+    find: '      if(own && _bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }',
+    repl: '      if(own && _bootOwnRead){ held=true; }' },
   { id: 'v209-rv2-save-boot-writes-unread', area: '(boot)', what: 'a copy in browser storage the board could not take up is written over by the file opened, and is gone',
-    find: '      if(_bootOwnRead){ try{',
-    repl: '      if(_bootOwn){ try{' },
+    // v2.09 third review: retargeted in place, as the one above
+    find: '      if(own && _bootOwnRead){ try{',
+    repl: '      if(own && _bootOwn){ try{' },
   { id: 'v209-rv2-save-refused-file-recorded', area: '(boot)', what: 'a newer file this board refuses is recorded as the save the work came from, so 💾 Save writes this browser\'s copy over it unasked',
     find: '    else if(applyStore(PUB)===false){',
     repl: '    else if(applyStore(PUB)===false && false){' },
@@ -8189,6 +8191,14 @@ const MUTATIONS = [
   { id: 'v209-rv2-save-copy-reads-sidecar', area: 'loadShared', what: 'a PMO copy reads the board\'s shared state file beside it, over the office\'s work',
     find: '  if(SANDBOX){ cb(undefined); return; }\n',
     repl: '' },
+  // v2.09 third review (the copy's Save): the boot writes browser storage at an opening only where it has just kept this browser's
+  // unsaved work aside -- each undoing the one fix (audit-import "v2.09 third review — a newer file opened only to look …")
+  { id: 'v209-rv3-save-look-writes-storage', area: '(boot)', what: 'a newer file opened only to look replaces this browser\'s copy in storage, so the person\'s own older file opens that other save (and, in a copy, its office and its Submit)',
+    find: '      if(own && _bootOwnRead){ try{',
+    repl: '      if(_bootOwnRead){ try{' },
+  { id: 'v209-rv3-save-look-record-left', area: '(boot)', what: 'a newer file opened only to look leaves the record naming the older save, so once the page types, Save writes the newer save over the older file unasked',
+    find: '      let held=!_bootOwn || (!own && _bootOwnRead);',
+    repl: '      let held=!_bootOwn;' },
   // ==== end v2.09 W3 ====
 
   // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====

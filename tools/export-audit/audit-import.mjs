@@ -15083,6 +15083,98 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// ---- v2.09 third review (the copy's Save): the second review's opening wrote the file into browser storage on every opening --
+// The fix for "a second opening replaces unsaved work" wrote what a newer file put on screen into browser storage even where
+// nothing was kept aside, so a newer file opened only to look replaced this browser's copy -- a save already in a file -- and the
+// person's own older file then opened that other save (finding open-to-look-now-rewrites-what-your-own-file-opens). Every check
+// fails on d3ce17d unless it says CONTROL; the second review's own block still holds the opening that keeps work aside.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.09 third review — a newer file opened only to look leaves browser storage as it was: this browser’s own file opens on its own work (the board and a copy)';
+  try {
+    // what a page holds, what browser storage holds under its plan key, what the kept slot holds, and the record beside them
+    const rv3look = ev => { const r = i127ev(ev, `JSON.stringify((function(){
+      var d=function(st,id){ try{ return String(((st.years[st.cur]||{}).desc||{})[id]); }catch(e){ return 'ERR'; } };
+      var ls=null; try{ ls=JSON.parse(localStorage.getItem(_AP.key)); }catch(e){ ls=null; }
+      var k=keptCopy(), ks=null; try{ ks=k? JSON.parse(k.raw) : null; }catch(e){ ks=null; }
+      var o={ base:baseGet(), plan:localStorage.getItem(_AP.key), off:myPmo(), mark:pmoForOf(MS) };
+      ['A','B','C'].forEach(function(id){ o[id]=String((S.desc||{})[id]); o['ls'+id]=ls? d(ls,id) : null; o['kept'+id]=ks? d(ks,id) : null; });
+      return o; })())`); try { return JSON.parse(r); } catch { return { threw: r }; } };
+    const asked = ev => i127ev(ev, 'JSON.stringify(__q)');
+    const saveIn = async (X, f) => { i127picker(X.w, f, X.picks); await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40); };
+    // THE BOARD: Brad's own file, saved; the lead's newer file of the same appropriation, from the same program, opened to look
+    const X = boot(); seed(X.ev, I127SC);
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+    const P0 = X.ev('buildSavedHtml()');
+    const Bd = await i127open(P0, 'Brad'); Bd.ev(`setDesc('C','Brad, in his file'); 'ok'`);
+    const f1 = i127disk('board.html'); await saveIn(Bd, f1);
+    chk(name, 'the board · setup', 'Brad’s own file is saved, and this browser holds no work it does not have (a CONTROL)',
+      i127J([f1.writes, i127desc(f1.content, 'C'), rv3look(Bd.ev).base.dirty]), i127J([1, 'Brad, in his file', false]));
+    await i127pause(5);
+    const L = boot({ html: P0 }); i127wire(L.ev, 'Lead'); L.ev(`setDesc('A','the lead’s draft'); 'ok'`); const F2 = L.ev('buildSavedHtml()');
+    const ls0 = i127ls(Bd.ev), key = Bd.ev('_AP.key');
+    const Bd2 = await i127open(F2, 'Brad', ls0, Bd.store);
+    const b2 = rv3look(Bd2.ev);
+    chk(name, 'the board · the lead’s newer file, opened to look', 'it opens, and nothing is kept aside: this browser held no unsaved work (a CONTROL)',
+      i127J([b2.A, b2.C, b2.keptC, b2.base.dirty]), i127J(['the lead’s draft', 'undefined', null, false]));
+    chk(name, 'the board · the lead’s newer file, opened to look', 'browser storage still holds Brad’s save, byte for byte: an opening that kept nothing aside writes nothing there',
+      b2.plan === ls0[key], true);
+    const Bd3 = await i127open(f1.content, 'Brad', i127ls(Bd2.ev), Bd.store);
+    const b3 = rv3look(Bd3.ev);
+    chk(name, 'the board · his own file again', 'it opens on its own work, Brad’s, never the lead’s draft', i127J([b3.C, b3.A]), i127J(['Brad, in his file', 'undefined']));
+    chk(name, 'the board · his own file again', 'it is the save the work on screen came from: not said to be another save',
+      i127J([i127ev(Bd3.ev, 'LASTKNOWN===PUB_FILE_TS'), i127ev(Bd3.ev, '_bootMoved'), /a different save/.test(i127status(Bd3.ev))]), i127J([true, 0, false]));
+    Bd3.ev(`setDesc('B','Brad, later'); __q=[]; 'ok'`); const w3 = f1.writes; await saveIn(Bd3, f1);
+    chk(name, 'the board · his own file again', '💾 Save writes his file asking nothing, and the file keeps his work',
+      i127J([f1.writes - w3, /HOLD ON/.test(asked(Bd3.ev)), i127desc(f1.content, 'C'), i127desc(f1.content, 'B'), i127desc(f1.content, 'A')]),
+      i127J([1, false, 'Brad, in his file', 'Brad, later', null]));
+    // LOOKED AT, THEN TYPED ON: storage takes the lead's save with Brad's change once he types, and the record names the lead's
+    // save as the one the work came from, as v2.08's did -- so his own file, opened next, shows this browser's copy, and Save asks
+    // before writing it over his file. Left naming his own save, the record would let that Save write the lead's draft over it unasked.
+    await i127pause(5); L.ev(`setDesc('A','the lead’s draft, later'); 'ok'`); const F2b = L.ev('buildSavedHtml()');
+    const Bd4 = await i127open(F2b, 'Brad', i127ls(Bd3.ev), Bd.store); Bd4.ev(`setDesc('B','Brad typed on the lead’s draft'); 'ok'`);
+    const Bd5 = await i127open(f1.content, 'Brad', i127ls(Bd4.ev), Bd.store);
+    const b5 = rv3look(Bd5.ev);
+    chk(name, 'the board · looked at, then typed on', 'his file opens this browser’s copy: the lead’s draft with his change (a CONTROL: the newer opens)',
+      i127J([b5.A, b5.B]), i127J(['the lead’s draft, later', 'Brad typed on the lead’s draft']));
+    Bd5.ev(`window.__yes=false; __q=[]; 'ok'`); const w5 = f1.writes, c5 = f1.content; await saveIn(Bd5, f1);
+    chk(name, 'the board · looked at, then typed on', '💾 Save asks before writing it over his file, and, declined, writes nothing (a CONTROL on d3ce17d)',
+      i127J([/HOLD ON/.test(asked(Bd5.ev)), f1.writes - w5, f1.content === c5]), i127J([true, 0, true]));
+    // AND WHERE WORK IS KEPT ASIDE, storage still takes what the opening put on screen (a CONTROL: the second review's fix stands)
+    await i127pause(5); L.ev(`setDesc('A','the lead’s draft, latest'); 'ok'`); const F2c = L.ev('buildSavedHtml()');
+    const Bd6 = await i127open(F2c, 'Brad', i127ls(Bd5.ev), Bd.store);
+    const b6 = rv3look(Bd6.ev);
+    chk(name, 'the board · a newer file over unsaved work', 'his unsaved change is kept aside, and storage holds what is now on screen (a CONTROL)',
+      i127J([b6.keptB, b6.lsA, b6.lsB, b6.base.dirty]), i127J(['Brad typed on the lead’s draft', 'the lead’s draft, latest', 'undefined', false]));
+    // A COPY: Ann saves AV's file; Pat's newer PSM file of the same copy is opened in her browser to look, then her own file, then
+    // the copy as published -- one plan key for them all in a browser
+    const B = i127Board(), C0 = i127Publish(B.ev);
+    const A = await i127open(C0, 'Ann', { prio27pmo: 'AV' }); A.ev(`setDesc('C','Ann for AV'); 'ok'`);
+    const fA = i127disk('AV file.html'); i127picker(A.w, fA, A.picks); await i127save(A);
+    const a0 = rv3look(A.ev);
+    chk(name, 'a copy · setup', 'Ann’s file is saved for AV, and this browser holds no work it does not have (a CONTROL)', i127J([fA.writes, a0.mark, a0.base.dirty]), i127J([1, 'AV', false]));
+    await i127pause(5);
+    const P = await i127open(C0, 'Pat', { prio27pmo: 'PSM' }); P.ev(`setDesc('A','Pat for PSM'); 'ok'`);
+    const fP = i127disk('PSM file.html'); i127picker(P.w, fP, P.picks); await i127save(P);
+    const lsA = i127ls(A.ev), kA = A.ev('_AP.key');
+    const A2 = await i127open(fP.content, 'Ann', lsA, A.store);
+    const a2 = rv3look(A2.ev);
+    chk(name, 'a copy · PSM’s newer file, opened to look', 'it opens on PSM, and nothing is kept aside (a CONTROL)', i127J([a2.A, a2.off, a2.keptC]), i127J(['Pat for PSM', 'PSM', null]));
+    chk(name, 'a copy · PSM’s newer file, opened to look', 'browser storage still holds Ann’s save for AV, byte for byte', a2.plan === lsA[kA], true);
+    for (const [at, html] of [['her own file again', fA.content], ['the copy as published', C0]]) {
+      const A3 = await i127open(html, 'Ann', i127ls(A2.ev), A.store);
+      const a3 = rv3look(A3.ev);
+      chk(name, 'a copy · ' + at, 'it opens on her own work, under AV -- never PSM’s work under PSM', i127J([a3.C, a3.A, a3.off, a3.mark]), i127J(['Ann for AV', 'undefined', 'AV', 'AV']));
+      const s3 = i127submit(A3.ev), p3 = s3.pkg || {};
+      chk(name, 'a copy · ' + at, '✉ Submit sends AV’s package, with her change and nothing of PSM’s',
+        i127J([p3.pmo, p3.items && p3.items.C && p3.items.C.desc, !!(p3.items && p3.items.A)]), i127J(['AV', 'Ann for AV', false]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.09 W3 ====
 
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
