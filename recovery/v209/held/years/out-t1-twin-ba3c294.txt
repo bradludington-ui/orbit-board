@@ -1,0 +1,9 @@
+ids NEW-PSM-1 NEW-PSM-1 {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}} {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}}
+FY29 custom [{"id":"NEW-1","ev":"Alpha, from copy A","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"nid":"NEW-PSM-2","pub":1793091519755}},{"id":"NEW-2","ev":"Bravo, from copy B","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"nid":"NEW-PSM-2","pub":1793091519799}}]
+plan a [[2030,1,0]] plan b [[2030,1,0]]
+roll stat 🗓 Rolled forward — 1 copy created across FY30 · 1 already there and left alone. FY29 is unchanged — switch year from the 🗓 menu to see them.
+said [["confirm","Roll 2 requirements forward into FY30?\n\n2 copies will be created.\n\nEach copy carries the requirement value, allocation, decision band and every classification, with award dates shifted by the year difference. FY29 is not changed.",true]]
+FY30 custom [{"id":"NEW-1","ev":"Alpha, from copy A","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":null}]
+stat 🗓 Working FY28 — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.
+naFromHere [["A","EV-A",true],["B","EV-B",true],["NEW-1","Alpha, from copy A",true],["NEW-2","Bravo, from copy B",true]]
+errors 0 0 0

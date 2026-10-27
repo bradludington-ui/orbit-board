@@ -1,0 +1,11 @@
+board years ["2027","2028"] cur 2027
+copy A [{"err":"not open"},{"prior":null}]
+copy B [{"err":"not open"},{"prior":null}]
+pkg A added [] ["Nothing to send yet.\n\nEdit a description, an impact statement, a requirement value or any other field on one of PSM’s requirements, then submit. Re-ranking PSM’s own list (with only PSM showing) is sent too; moving rows in the whole portfolio is yours to explore and is not — that order stays the
+pkg B added []
+take A []
+take B []
+FY27 custom []
+roll {"create":0,"exists":0,"st":"⚠ Nothing is ticked — choose the requirements to roll forward."}
+FY28 custom []
+errors 0 []

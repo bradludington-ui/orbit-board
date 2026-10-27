@@ -1,0 +1,7 @@
+A NEW-PSM-1 {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}} B NEW-PSM-1 {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"}} {"id":"NEW-PSM-3","prior":{"fy":2029,"id":"NEW-PSM-2"}}
+FY30 custom [{"id":"NEW-1","ev":"Alpha, from copy A","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":null}]
+review rows [["PSMNEW Bravo, from copy B PSMNew requirement (proposed)—Brav",""],["PSMNEW Bravo, from copy B PSMfrom FY28 NEW-PSM-1FY29 ALREADY","FY29 ALREADY HOLDS NEW-1 — accepting adds it again"],["PSMNEW Bravo, from copy B PSMfrom FY29 NEW-PSM-2New requirem",""]]
+said [["confirm","Apply 2 changes from PSM to FY29–FY30?\n\n  • FY29 — 1 change\n  • FY30 — 1 change\n\nEach one is recorded in the change journal, so it can be found and undone later.",true]]
+FY30 custom after [["NEW-1","Alpha, from copy A"],["NEW-2","Bravo, from copy B"]]
+stat ✔ Applied 2 changes from PSM to FY29–FY30. Every one is in the change journal. 1 proposed change still held for review.
+errors 0 0 0

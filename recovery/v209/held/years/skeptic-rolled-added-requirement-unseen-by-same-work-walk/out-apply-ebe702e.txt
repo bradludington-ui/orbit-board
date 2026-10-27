@@ -1,0 +1,7 @@
+years ["2027","2028","2029"] base 2027 cur 2027
+FY29 custom [["NEW-1","Gamma board-added",null]]
+FY27 custom []
+copy SANDBOX true yn null
+switch FY30 2030
+copy brought in {"rows":[["A",true,0],["NEW-1",false,0]],"prior":null}
+submitted false alerts ["Nothing to send yet.\n\nEdit a description, an impact statement, a requirement value or any other field on one of PSM’s requirements, then submit. Re-ranking PSM’s own list (with only PSM showing) is sent too; moving rows in the whole portfolio is yours to explore and is not — that order stays the

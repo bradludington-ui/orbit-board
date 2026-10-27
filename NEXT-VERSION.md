@@ -148,6 +148,36 @@ Current version: **v2.08**. Next: **v2.09**.
   Proposed: compare the SI code with `''` and absent kept apart, the way the edit box now keeps them apart (*none* against
   *follows the rules*), and test it through submit and accept.
 
+#### 129. Found by the third review of v2.09, held for v2.10 (Brad, 27 Oct 2026: "Fix the regressions only")
+Brad, asked how to shorten the finish: *"I'm confident that we'll catch duplicative entries. We will be reviewing spend plans
+monthly for updates and edits, so the PMOs will be seeing a fresh PMO Copy to update on a monthly basis with the SFWG reviewing
+it as well."* So v2.09 fixed only what its own second-round fixes broke, and these wait. Each was reproduced, and confirmed by
+a skeptic, on `d3ce17d`. The repro scripts are in `recovery/v209/held/` with the findings and their verdicts. They read a board
+path; build one with `git show <commit>:prioritization-board-grid.html`.
+- **Two copies' continuations of one provisional id count as the same work** (`twin-rule-ignores-copy-stamp`). This happens
+  when one office has two copies out at once and both bring a proposal forward. `yearHas`, `yearLinkOf`, `naFromHere` and
+  `pmoPriorHere` call two requirements the same work when their links carry the same `{fy, id}`, and they never read the
+  link's copy stamp (`prior.pmo`, `prior.pub`). Roll requirements forward then skips the second one ("1 already there and
+  left alone"), so its value is missing from the next year. From another year shows it as already there.
+  Proposed: compare the stamp in the twin rule, as `pmoProvOne` does.
+- **The duplicate check's chain walk can take another copy's continuation** (`chain-walk-takes-other-copys-continuation`,
+  introduced by the second review's chain walk). The walk's link filter compares `{fy, id}` only. With two copies out at once
+  for one office, it can name a different requirement as a duplicate, and Cancel then leaves that one out of the year. The
+  reviewer is asked first and the question names it.
+  Proposed: the same stamp test in the walk's filter.
+- **A proposal that continues a requirement the board added is not flagged when Apply rolls the year forward**
+  (`rolled-added-requirement-unseen-by-same-work-walk`). A whole-year roll copies a board-added `NEW-n` under the same id with
+  no link, and the walk takes a direct hit only for a board-data id. The same work goes in twice, unnamed.
+  Proposed: count an id the rolled state holds as a direct hit, whatever its prefix.
+- **With two tabs open, work typed in one after the other tab opened a newer file stays recorded as saved**
+  (`two-tabs-unsaved-work-recorded-clean`; older than v2.09, and in v2.08). `save()` and `loadCounted()` write the shared
+  `<key>.base` record only when the page's cached `_baseDirty` is false. The next opening of a newer file then replaces that
+  work with nothing kept aside. v2.09's third fix leaves it exactly as on `ba3c294` and v2.08.
+  Proposed: read the record fresh before deciding, never the page's cache.
+- **Still Brad's:** the office files of one published copy share that copy's plan key in a browser (notes-RV2-save.md). The
+  newest save opened there is what the copy as published opens next; this browser's own work is kept aside, and the line
+  says so. Sealing the plan key per office file would change where every copy's work is kept.
+
 #### 125. CLIN amounts cannot be typed with the mouse (Brad, 26 Oct 2026: "Let's review our ability to edit CLIN level data and amounts. At the moment, if I click a requirement amount on a CLIN, it sends me to the panel pop up and I'm unable to edit CLIN requirement amounts.")
 - **What he sees (reproduced in Chromium on main, v2.07, and on the v2.08 branch; the same on both).** He opens a prime's 🧾
   CLIN drill and clicks a CLIN's Request box, or one of its service boxes:

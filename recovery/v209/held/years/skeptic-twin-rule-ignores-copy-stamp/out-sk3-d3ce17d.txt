@@ -1,0 +1,17 @@
+board years ["2028","2029","2030","2031"] cur 2028
+copies 2654638 2654638
+copy A pub 1793092796146 years ["2029","2030","2031","2032"]
+FY28 adds {"id":"NEW-PSM-1","still":false,"btn":""} {"id":"NEW-PSM-1","still":false,"btn":""}
+FY29 continuations {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"},"ev":"Alpha (copy A)"} {"id":"NEW-PSM-2","prior":{"fy":2028,"id":"NEW-PSM-1"},"ev":"Bravo (copy B)"}
+pkg A added [["NEW-PSM-1",2028,null]] alerts []
+pkg B added [["NEW-PSM-1",2028,null]]
+FY29 after B [{"id":"NEW-1","ev":"Bravo (copy B)","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"nid":"NEW-PSM-2","pub":1793092796199}}]
+roll Bravo {"create":1,"exists":0,"st":"🗓 Rolled forward — 1 copy created across FY30. FY29 is unchanged — switch year from the 🗓 menu to see them."}
+FY30 [{"id":"NEW-1","ev":"Bravo (copy B)","prior":{"fy":2028,"id":"NEW-PSM-1","pmo":"PSM","pub":1793092796199},"from":null}]
+review of A shows FY29 ALREADY HOLDS NEW-1 — accepting adds it again
+FY29 after A [{"id":"NEW-1","ev":"Bravo (copy B)","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"nid":"NEW-PSM-2","pub":1793092796199}},{"id":"NEW-2","ev":"Alpha (copy A)","prior":{"fy":2028,"id":"NEW-PSM-1"},"from":{"nid":"NEW-PSM-2","pub":1793092796146}}]
+yearHas(Alpha,2030) true link NEW-1
+roll Alpha {"create":0,"exists":1,"st":"✔ Every requirement you ticked is already in FY30 — nothing to do. Existing years are never overwritten by this."}
+FY30 final [{"id":"NEW-1","ev":"Bravo (copy B)","prior":{"fy":2028,"id":"NEW-PSM-1","pmo":"PSM","pub":1793092796199},"from":null}]
+priorTxt FY30 NEW-1: FY28 NEW-PSM-1 — PSM proposed it, and it has not been accepted
+errors 0 []

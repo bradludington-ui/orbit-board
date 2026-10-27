@@ -1,0 +1,19 @@
+years ["2027","2028","2029"] base 2027 cur 2027
+FY29 custom [["NEW-1","Gamma board-added",null]]
+FY27 custom []
+copy SANDBOX true yn [2030,2031]
+switch FY30 2030
+copy brought in {"rows":[["A",false,0],["NEW-1",false,0]],"id":"NEW-PSM-2","prior":{"fy":2029,"id":"NEW-1"},"ev":"Gamma board-added"}
+submitted true alerts []
+take said []
+rows [[2030,"NEW-PSM-2","__new"]]
+review warnings []
+pmoPriorHere {"onScreen":"","started":""}
+  ASKED confirm "Apply 1 change from PSM to FY30?\n\n  • FY30 — 1 change — not started on this board: you are asked how to start it first\n\nEach one is recorded in the change journal, so it can be found and undone later." -> true
+  ASKED confirm "FY30 has not been started on this board, and 1 ticked change go into it.\n\nOK — ROLL FORWARD: start FY30 from a copy of FY29 (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted +1 year(s)), then apply.\nCancel — start it blank instead, or apply nothing." -> true
+FY30 custom [["NEW-1","Gamma board-added",null,null,[400,0]],["NEW-2","Gamma board-added",{"fy":2029,"id":"NEW-1"},"NEW-PSM-2",[400,0]]]
+FY30 order ["A","B","NEW-1","NEW-2"]
+board rule (on FY29): yearHas NEW-1 in FY30 = true ; yearLinkOf = NEW-2
+FY30 asks of the two [["A","Event A",[700,50]],["B","Event B",[300,0]],["NEW-1","Gamma board-added",[400,0]],["NEW-2","Gamma board-added",[400,0]]]
+FY30 total requirement 1850
+errors 0 0 []

@@ -1,0 +1,7 @@
+FY30 added [["NEW-1","Delta, board-added FY30"]]
+X {"id":"NEW-PSM-2","prior":{"fy":2030,"id":"NEW-1"}} Y {"id":"NEW-PSM-3","prior":{"fy":2031,"id":"NEW-PSM-2"}}
+review []
+said [["confirm","Apply 1 change from PSM to FY31?\n\n  • FY31 — 1 change — not started on this board: you are asked how to start it first\n\nEach one is recorded in the change journal, so it can be found and undone later.",true],["confirm","FY31 has not been started on this board, and 1 ticked change go into it.\n\nOK — ROLL FORWARD: start FY31 from a copy of FY30 (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted +1 year(s)), then apply.\nCancel — start it blank instead, or apply nothing.",true]]
+FY31 [["NEW-1","Delta, board-added FY30",null,null],["NEW-2","Delta, board-added FY30",{"fy":2030,"id":"NEW-1"},{"nid":"NEW-PSM-2","pub":1793091384336}]]
+yearHas-like: yearLinkOf in FY31 of NEW-1 NEW-2 | has true
+errors 0 0
