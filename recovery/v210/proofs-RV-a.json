@@ -1,0 +1,126 @@
+[
+ {
+  "id": "v210-rv-a-alias-dropped",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: Full Fund"
+ },
+ {
+  "id": "v210-rv-a-click-not-waited",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: an International figure left by a click"
+ },
+ {
+  "id": "v210-rv-a-folder-not-read",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-reading-unsaid",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-folder-fail-falls-back",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-answer-not-drawn",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-export-not-waiting",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-read-once",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-rv-a-pick-lost-reading",
+  "caughtBy": "audit-other / v2.10 review — FYDP Disconnects: in the shared folder"
+ },
+ {
+  "id": "v210-a-usaf-no-ang",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-own-from-storage",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-file-copy-ignored",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-cycle-default-newest",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-no-ace-why",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-cyc-picker-who",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-tab-pressed-stuck",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-subtitle-raw",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-option-raw",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-mark-not-on-page",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-keep-note-gone",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-intl-read-as-dollars",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-negative-taken",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-refusal-clears",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-intl-saved",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-tab-lost",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-cells-stale",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-copy-opens",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-export-unmarked",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-export-without-intl",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-int-export-drops-sheets",
+  "caughtBy": "audit-other / =v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)"
+ },
+ {
+  "id": "v210-int-export-house-style",
+  "caughtBy": "audit-other / =v2.04 (item 113) — the house style: every report dressed, no figure moved"
+ }
+]
