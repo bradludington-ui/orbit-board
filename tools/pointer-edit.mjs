@@ -18,6 +18,15 @@
 //      what is over it, open the drill (never shut it), and leave the keyboard on its first box, with nothing on top of it.
 //      And a row's ⋯ menu left open does not eat the first click into the drill.
 //   E. The drill's boxes, holding a billion-dollar figure, show it whole, at 1366 and 1920, sliding and docked.
+//   F. What the review of v2.09 found here (v2.09 review, clin-pointer), with real keys, wheel and mouse:
+//      F1. Typing taken back to the board's own figure writes nothing, whichever side of a redraw it is taken back on --
+//          Fund's box on a per-service allocation, the RECORD panel's Disc box on the lane walk, a CLIN's request from the
+//          board's data -- and a figure typed whole, redrawn, then left is still applied (CONTROL).
+//      F2. Where the drill scrolls sideways (1366 sliding, 1920 docked), a figure typed, the drill wheeled to its end, then
+//          ✕ or a CLIN's WBS pressed: the drill stays where it was, and the press does its work on the first press.
+//      F3. Fund's allocation box on a per-service allocation (↑ Apply grid to row with the mouse, and a nine-digit one an
+//          older board may carry) shows its figure whole, inside its cell, and a click at its centre goes into it -- not
+//          onto ★ -- at 1366 and 1920, sliding and docked, and at the narrow Fund columns (1600 docked, 1000).
 //
 // It stands its own prime up in the page, as standards-check.mjs does, and never changes the shared fixture
 // (tools/ia-fixture.mjs), which every other browser check and the accessibility baseline read.
@@ -440,6 +449,133 @@ if (want('E')) for (const [layout, w, h] of LAYOUTS) {
     chk(`${tag} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   } catch (e) { chk(`${tag} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+}
+
+// ── F. THE REVIEW OF v2.09 (clin-pointer) ───────────────────────────────────────────────────────────────────────────────
+// F1. A REDRAW NEVER TURNS TYPING THAT WAS TAKEN BACK INTO A WRITE. Keys as a person presses them; 'R' is render() from
+// outside, as a Live view tick does. On 9bc5496 a per-service allocation of $1,000,000 on USAF became six services' shares.
+const keyRun = async (p, steps) => {
+  for (const s of steps) {
+    if (s === 'R') { await p.evaluate(() => render()); await p.waitForTimeout(80); }
+    else if (s.startsWith('type:')) await p.keyboard.type(s.slice(5));
+    else await p.keyboard.press(s);
+  }
+  await p.waitForTimeout(250);
+};
+if (want('F')) {
+  const tag = 'F1 · sliding 1920 (Fund) and docked 1920 (the RECORD panel)';
+  try {
+    {
+      const { p, ctx, errs, id } = await open('sliding', 1920, 1000, 'fund');
+      const rid = await p.evaluate(pid => S.order.find((x, i) => i > 2 && x !== pid && !S.fsrc[x] && !CLINS[x]), id);
+      const reset = () => p.evaluate(r => { S.alloc[r] = { m: 's', v: SVC.map((s, i) => i === 0 ? 1000000 : 0) }; try { document.activeElement.blur(); } catch (e) {} save(); render(); }, rid);
+      const snap = () => p.evaluate(r => JSON.stringify([S.alloc[r], svcAlloc(itemById(r))]), rid);
+      const sel = `#row-${rid} input[onchange^="setAlloc("]`;
+      for (const [what, steps, applied] of [
+        ['a digit typed and taken back, a redraw, then Tab', ['End', 'type:7', 'Backspace', 'R', 'Tab'], false],
+        ['a digit typed and taken back, a redraw, then Enter', ['End', 'type:7', 'Backspace', 'R', 'Enter'], false],
+        ['a digit typed, a redraw, then taken back and Tab', ['End', 'type:7', 'R', 'Backspace', 'Tab'], false],
+        ['CONTROL: a figure typed whole (1,200,000), a redraw, then Tab', ['Control+A', 'type:1,200,000', 'R', 'Tab'], true],
+      ]) {
+        await reset(); const s0 = await snap();
+        // the keyboard is put in the box by focus, not a click: a click there is F3's to judge (on 9bc5496 it landed on ★)
+        const h = await p.$(sel); await h.evaluate(e => { e.scrollIntoView({ block: 'center' }); e.focus(); });
+        await keyRun(p, steps); const s1 = await snap();
+        const ok = applied ? JSON.parse(s1)[0].m === 't' && JSON.parse(s1)[0].v === 1200000 : s1 === s0;
+        chk(`${tag} · Fund’s box on a per-service allocation, ${what}: ${applied ? 'the figure is applied' : 'nothing is written'}`, ok, JSON.stringify({ before: s0, after: s1 }));
+      }
+      // a CLIN from the board's data: its request taken back around a redraw records no override over the data
+      await p.evaluate(() => { uiMode = 'review'; uiApply(); render(); });
+      for (const steps of [['End', 'type:7', 'Backspace', 'R', 'Tab'], ['End', 'type:7', 'R', 'Backspace', 'Tab']]) {
+        await press(p, box(id, 'clinSetAsk', 'b0', 0)); await keyRun(p, steps); const r = await read(p, id);
+        chk(`${tag} · a CLIN’s request from the board’s data, ${steps.join(' ')}: no override recorded over the data`, r.meta === '{}' && r.ask.b0[0] === 100000, JSON.stringify({ meta: r.meta, ask: r.ask.b0 }));
+      }
+      chk(`${tag} · Fund: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+      await ctx.close();
+    }
+    {
+      const { p, ctx, errs, id } = await open('docked', 1920, 1000);
+      const rid = await p.evaluate(pid => S.order.find((x, i) => i > 2 && x !== pid && !S.fsrc[x] && !S.alloc[x] && !CLINS[x]), id);
+      for (const steps of [['End', 'type:7', 'Backspace', 'R', 'Tab'], ['End', 'type:7', 'R', 'Backspace', 'Tab']]) {
+        await p.evaluate(r => { delete S.fsrc[r]; try { document.activeElement.blur(); } catch (e) {} setCur(r); save(); render(); }, rid); await p.waitForTimeout(150);
+        const sel = `#inspector input[onchange^=${q('setFsrcSvc(' + q(rid) + ',"d",0,')}]`;
+        const top = await press(p, sel); await keyRun(p, steps);
+        const f = await p.evaluate(r => JSON.stringify(S.fsrc[r] || null), rid);
+        chk(`${tag} · the RECORD panel’s Disc box on the lane walk, ${steps.join(' ')}: the requirement is not converted to a Split`, top.on && f === 'null', JSON.stringify({ top, fsrc: f }));
+      }
+      chk(`${tag} · the panel: nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+      await ctx.close();
+    }
+  } catch (e) { chk(`${tag} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+
+  // F2. THE DRILL KEEPS ITS SIDEWAYS SCROLL, SO A BUTTON PRESSED AFTER TYPING IS STILL UNDER THE POINTER WHEN IT COMES UP
+  for (const [layout, w, h] of [['sliding', 1366, 768], ['docked', 1920, 1000]]) {
+    const t2 = `F2 · ${layout} ${w}`;
+    try {
+      const { p, ctx, errs, dlg, id } = await open(layout, w, h);
+      const sc = `#row-${id} .cscroll`;
+      const geo = await p.evaluate(sc => { const c = document.querySelector(sc); return { box: c.clientWidth, table: c.scrollWidth }; }, sc);
+      chk(`${t2} · CONTROL: the drill here is wider than its row (${geo.table} in ${geo.box}), so ✕ and WBS are reached by scrolling it`, geo.table > geo.box + 20, JSON.stringify(geo));
+      // a figure typed, the drill wheeled to its end with the pointer over it, then the button pressed where it now is
+      const typeWheelPress = async (j, fig, target, answers) => {
+        await press(p, box(id, 'clinSetAsk', 'b0', j)); await typeIn(p, fig, null);
+        const cb = await (await p.$(sc)).boundingBox();
+        await p.mouse.move(cb.x + cb.width / 2, cb.y + Math.min(cb.height / 2, 40)); await p.mouse.wheel(4000, 0); await p.waitForTimeout(250);
+        const s0 = await p.evaluate(sc => document.querySelector(sc).scrollLeft, sc);
+        const bb = await (await p.$(target)).boundingBox(); const x = bb.x + bb.width / 2, y = bb.y + bb.height / 2;
+        const on = await p.evaluate(([x, y, t]) => { const e = document.elementFromPoint(x, y), n = document.querySelector(t); return !!(e && n && (e === n || n.contains(e))); }, [x, y, target]);
+        dlg.answers = answers.slice(); const n0 = dlg.seen.length;
+        await p.mouse.click(x, y); await p.waitForTimeout(350);
+        const s1 = await p.evaluate(sc => document.querySelector(sc).scrollLeft, sc);
+        return { s0, s1, on, asked: dlg.seen.slice(n0), r: await read(p, id) };
+      };
+      const x1 = await typeWheelPress(0, '12345', btn(id, 'clinRemove', 'b1'), [false]);
+      chk(`${t2} · a request typed, the drill wheeled to its end (${x1.s0}px), then ✕ on CLIN 0002 pressed: the drill stays at ${x1.s0}px and the button asks its question on that press`,
+        x1.on && x1.s0 > 0 && x1.s1 === x1.s0 && x1.asked.length === 1 && /Remove CLIN/.test(x1.asked[0]) && x1.r.ask.b0[0] === 12345 && x1.r.keys.length === 3,
+        JSON.stringify({ on: x1.on, s0: x1.s0, s1: x1.s1, asked: x1.asked, ask: x1.r.ask.b0, keys: x1.r.keys }));
+      const wsel = `#row-${id} button[onclick=${q('toggleWbs("clin",' + q(id) + ',"b1")')}]`;
+      const x2 = await typeWheelPress(1, '23456', wsel, []);
+      chk(`${t2} · a request typed, the drill wheeled to its end, then CLIN 0002’s WBS pressed: the drill stays put and the WBS panel opens on that press`,
+        x2.on && x2.s0 > 0 && x2.s1 === x2.s0 && x2.r.wbsOpen && x2.r.ask.b0[1] === 23456, JSON.stringify({ on: x2.on, s0: x2.s0, s1: x2.s1, wbs: x2.r.wbsOpen, ask: x2.r.ask.b0 }));
+      chk(`${t2} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+      await ctx.close();
+    } catch (e) { chk(`${t2} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+  }
+
+  // F3. FUND'S ALLOCATION BOX ON A PER-SERVICE ALLOCATION SHOWS ITS FIGURE AND TAKES A CLICK. Its SVC tag took the whole cell:
+  // the box was 14px under ★, and a click on it set Mission Critical (9bc5496, and v2.08).
+  for (const [layout, w, h] of [['sliding', 1366, 768], ['sliding', 1920, 1000], ['docked', 1920, 1000], ['docked', 1600, 900], ['sliding', 1000, 768]]) {
+    const t3 = `F3 · ${layout} ${w}`;
+    try {
+      const { p, ctx, errs, dlg, id } = await open(layout, w, h);
+      dlg.answers = [true]; await press(p, btn(id, 'clinToRow'), { wait: 300 });
+      const big = await p.evaluate(pid => { const r = S.order.find((x, i) => i > 2 && x !== pid && !S.fsrc[x] && !CLINS[x]);
+        S.alloc[r] = { m: 's', v: SVC.map((s, i) => i === 0 ? 704562659 : 0) }; try { drawerClose(); } catch (e) {} uiMode = 'fund'; uiApply(); save(); render(); return r; }, id);
+      for (const [what, rid, fig] of [['the prime, after ↑ Apply grid to row with the mouse', id, null], ['a nine-digit per-service allocation', big, '704,562,659']]) {
+        const sel = `#row-${rid} .acts.alloc input`;
+        // the box itself to the middle of the window: the prime's row holds its open drill, and centring the whole row put
+        // the box under the sticky top
+        await p.evaluate(sel => document.querySelector(sel).scrollIntoView({ block: 'center' }), sel); await p.waitForTimeout(100);
+        const g = await p.evaluate(([r, sel]) => { const row = document.getElementById('row-' + r), c = row.querySelector('.acts.alloc'), i = document.querySelector(sel),
+            tg = c.querySelector('.mode-tag'), mc = row.querySelector('.mcb');
+          const R = e => e.getBoundingClientRect(), ir = R(i), cr = R(c), tr = tg ? R(tg) : null, mr = R(mc);
+          const at = document.elementFromPoint(ir.left + ir.width / 2, ir.top + ir.height / 2);
+          return { alloc: JSON.stringify(S.alloc[r]), value: i.value, client: i.clientWidth, scroll: i.scrollWidth, width: Math.round(ir.width),
+            inCell: ir.left >= cr.left - 0.5 && ir.right <= cr.right + 0.5, besideStar: ir.right <= mr.left + 0.5,
+            tag: !!tr && tr.width > 0 && tr.left >= cr.left - 0.5 && tr.right <= cr.right + 0.5, onTop: at === i, mc: !!S.mc[r] }; }, [rid, sel]);
+        chk(`${t3} · ${what} (${g.alloc}): its box shows ${g.value} whole (${g.scroll} in ${g.client}), inside its cell beside ★, the SVC tag on it, and nothing over its centre`,
+          /"m":"s"/.test(g.alloc) && (!fig || g.value === fig) && g.scroll <= g.client + 1 && g.inCell && g.besideStar && g.tag && g.onTop, JSON.stringify(g));
+        const top = await press(p, sel); const s = await st(p);
+        const after = await p.evaluate(r => !!S.mc[r], rid);
+        await typeIn(p, '2,500,000');
+        const a2 = await p.evaluate(r => JSON.stringify(S.alloc[r]), rid);
+        chk(`${t3} · ${what}: a click at its centre goes into the box (★ left as it was, the RECORD panel off the table), and the figure typed is stored`,
+          top.on && /setAlloc/.test(s.focus) && quiet(s, layout) && after === g.mc && a2 === q({ m: 't', v: 2500000 }), JSON.stringify({ top, s, mc: [g.mc, after], alloc: a2 }));
+      }
+      chk(`${t3} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+      await ctx.close();
+    } catch (e) { chk(`${t3} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+  }
 }
 
 await b.close();

@@ -6041,6 +6041,149 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 })();
+// v2.09 review (clin-pointer): three defects the independent review of v2.09 found in item 125's area, each reproduced in
+// Chromium on 9bc5496. (1) A redraw turned typing that was taken back into a write: heldCommit fired a change for a box that
+// held the board's own figure again, and a per-service allocation was re-spread by the ask; the other way round (redraw, then
+// the digit taken back) the browser's own change did it. (2) The CLIN drill's sideways scroll went back to the left on every
+// redraw, so a button pressed after typing came back 200px from the pointer and the press went nowhere. (3) Fund's
+// allocation box on a per-service allocation was crushed to 14px under ★ by its SVC tag. What jsdom can see of each is here
+// (the change Chromium fires as a redraw removes a focused field, and the one it fires on leaving a box the hold gave the
+// keyboard, are fired here where Chromium fires them); the pointer, the wheel and the layout are npm run pointer F. Each part
+// fails on 9bc5496 unless it says CONTROL; expected values are worked out here from the fixture.
+await (async () => {
+  const name = 'v2.09 review — clin-pointer: a figure taken back writes nothing, the drill keeps its sideways scroll, Fund’s SVC box is whole';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  // P a prime with a CLIN from the board's data; Q allocated per service, $100 all on USAF, though it asks USAF 60 and ANG 40
+  // (so a total re-spread by the ask, [60, 40, 0], is a different allocation from the one held); R on the lane walk, no split
+  const mk = () => {
+    const B = boot(); const items = [itx('P', 'AV', [4000, 500, 0]), itx('Q', 'AV', [60, 40, 0]), itx('R', 'AV', [300, 0, 0]), itx('P2', 'AV', [700, 0, 0])];
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items, disc: [9000, 9000, 9000], mand: [0, 0, 0], order: ['P', 'Q', 'R', 'P2'] });
+    B.ev(`(function(){ BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P:'PRIME', P2:'PRIME'}; CLINS.P=[{clin:'0001', desc:'Depot', ccar:'', ask:[1000,200,0]}, {clin:'0002', desc:'Spares', ccar:'', ask:[500,0,0]}];
+      CLINS.P2=[{clin:'0101', desc:'Line', ccar:'', ask:[700,0,0]}];
+      S.alloc.Q={m:'s', v:[100,0,0]};
+      window.__cf=0; window.confirm=function(){ __cf++; return false; }; window.alert=function(){};
+      UI2.on=true; UI2.dock=false; clinOpen={P:true}; save(); render();
+      window.__by=function(sc, pre){ return [].filter.call(document.querySelectorAll(sc+' input'), function(i){ return (i.getAttribute('onchange')||'').indexOf(pre)===0; })[0]; };
+      window.__btn=function(sc, h){ return [].filter.call(document.querySelectorAll(sc+' button'), function(b){ return b.getAttribute('onclick')===h; })[0]; };
+      return 'ok'; })()`);
+    return B;
+  };
+  const tick = ms => new Promise(r => setTimeout(r, ms));
+  // Chromium fires change on the focused field as innerHTML removes it (#list's rows, or the RECORD panel): fired here, once
+  const redraw = (sel, box) => `(function(){ var A=${sel}, L=document.getElementById(${J(box)}), D=Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML'), once=false;
+    Object.defineProperty(L, 'innerHTML', {configurable:true, get:function(){ return D.get.call(this); }, set:function(v){ if(!once && A.isConnected){ once=true; A.dispatchEvent(new Event('change', {bubbles:true})); } D.set.call(this, v); }});
+    try{ render(); } finally { delete L.innerHTML; } return 'ok'; })()`;
+  // typing, as the input events a person's keys make: each string in turn is what the box holds after a key
+  const keys = (sel, ...vals) => `(function(){ var A=${sel}; if(document.activeElement!==A) A.focus(); ${J(vals)}.forEach(function(v){ A.value=v; A.dispatchEvent(new Event('input', {bubbles:true})); }); return A.value; })()`;
+  const leave = sel => `(function(){ var A=${sel}; A.blur(); return 'ok'; })()`;
+  const enter = sel => `(function(){ var A=${sel}; A.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); return 'ok'; })()`;
+  // what Chromium fires on leaving a box whose starting point the hold moved to the put-back figure
+  const chromeChange = sel => `(function(){ var A=${sel}; A.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`;
+  const fund = `document.querySelector('#row-Q input[onchange^="setAlloc("]')`;
+  const disc = `__by('#inspector', 'setFsrcSvc("R","d",0,')`;
+  const req = `__by('#row-P', 'clinSetAsk("P","b0",0,')`;
+  const QA = `JSON.stringify([S.alloc.Q, svcAlloc(itemById('Q'))])`, QA0 = J([{ m: 's', v: [100, 0, 0] }, [100, 0, 0]]);
+
+  // ---- 1. typing taken back, THEN a redraw, then left: nothing is written (heldCommit fired a change for the board's own figure)
+  part('taken back, then redrawn', () => {
+    for (const how of ['Tab', 'Enter']) {
+      const { ev } = mk();
+      ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+      chk(name, 'taken back, then redrawn', `CONTROL: Fund’s box on Q’s per-service allocation draws its total, $100`, ev(`${fund}.defaultValue`), '100');
+      ev(keys(fund, '1007', '100')); ev(redraw(fund, 'list'));
+      ev(how === 'Tab' ? leave(fund) : enter(fund));
+      chk(name, 'taken back, then redrawn', `Fund’s box: a digit typed and taken back, a redraw, then ${how}: Q keeps its per-service allocation [100, 0, 0], not a $100 total re-spread by the ask to [60, 40, 0]`,
+        ev(QA), QA0);
+    }
+    {
+      const { ev } = mk();
+      ev(`setCur('R'); render(); 'ok'`);
+      chk(name, 'taken back, then redrawn', 'CONTROL: R is on the lane walk, and its USAF Disc box draws the lane’s $300', ev(`JSON.stringify([S.fsrc.R||null, ${disc}.defaultValue])`), J([null, '300']));
+      ev(keys(disc, '3007', '300')); ev(redraw(disc, 'inspector')); ev(leave(disc));
+      chk(name, 'taken back, then redrawn', 'the RECORD panel’s Disc box, the same: R is not converted to a Split', ev(`JSON.stringify(S.fsrc.R||null)`), 'null');
+    }
+    {
+      const { ev } = mk();
+      ev(keys(req, '1,0007', '1,000')); ev(redraw(req, 'list')); ev(leave(req));
+      chk(name, 'taken back, then redrawn', 'a CLIN from the board’s data, its USAF request the same: no override is recorded over the data, and it is not marked changed',
+        ev(`JSON.stringify([((S.clinMeta||{}).P||{}).b0||null, !!clinList('P')[0].edited])`), J([null, false]));
+    }
+    {
+      const { ev } = mk();
+      ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+      ev(keys(fund, '250')); ev(redraw(fund, 'list'));
+      chk(name, 'taken back, then redrawn', 'CONTROL: a figure typed whole is held by the redraw, not applied', ev(QA), QA0);
+      ev(leave(fund));
+      chk(name, 'taken back, then redrawn', 'CONTROL: and left, with nothing typed since, it is applied (W1’s heldCommit still does its job)', ev(`JSON.stringify(S.alloc.Q)`), J({ m: 't', v: 250 }));
+    }
+  });
+
+  // ---- 2. the other way round: a redraw while the digit is there, then it is taken back: the browser's own change passes nothing
+  part('redrawn, then taken back', () => {
+    {
+      const { ev } = mk();
+      ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+      ev(keys(fund, '1007')); ev(redraw(fund, 'list'));
+      chk(name, 'redrawn, then taken back', 'CONTROL: the half-typed 1007 is held by the redraw, nothing applied', ev(`JSON.stringify([${fund}.value, S.alloc.Q])`), J(['1007', { m: 's', v: [100, 0, 0] }]));
+      ev(keys(fund, '100')); ev(chromeChange(fund)); ev(leave(fund));
+      chk(name, 'redrawn, then taken back', 'then taken back to $100 and left (Chromium fires change, its starting point being the 1007 put back): Q keeps [100, 0, 0]',
+        ev(QA), QA0);
+    }
+    {
+      const { ev } = mk();
+      ev(`setCur('R'); render(); 'ok'`);
+      ev(keys(disc, '3007')); ev(redraw(disc, 'inspector')); ev(keys(disc, '300')); ev(chromeChange(disc)); ev(leave(disc));
+      chk(name, 'redrawn, then taken back', 'the RECORD panel’s Disc box the same way: R is not converted to a Split (it was, in v2.08 too)', ev(`JSON.stringify(S.fsrc.R||null)`), 'null');
+    }
+    {
+      const { ev } = mk();
+      ev(`uiMode='fund'; uiApply(); render(); 'ok'`);
+      ev(keys(fund, '1007')); ev(redraw(fund, 'list')); ev(keys(fund, '1500')); ev(chromeChange(fund)); ev(leave(fund));
+      chk(name, 'redrawn, then taken back', 'CONTROL: typed on to another figure after the redraw, its change goes through: $1,500', ev(`JSON.stringify(S.alloc.Q)`), J({ m: 't', v: 1500 }));
+    }
+  });
+
+  // ---- 3. the drill keeps its sideways scroll across a redraw, each drill its own
+  try {
+    const { ev } = mk();
+    ev(`clinOpen={P:true, P2:true}; render(); document.querySelector('#row-P .cscroll').scrollLeft=201; document.querySelector('#row-P2 .cscroll').scrollLeft=77; 'ok'`);
+    const sl = `JSON.stringify([document.querySelector('#row-P .cscroll').scrollLeft, document.querySelector('#row-P2 .cscroll').scrollLeft])`;
+    chk(name, 'drill scroll', 'CONTROL: the two drills are scrolled to 201 and 77', ev(sl), J([201, 77]));
+    ev(`render(); 'ok'`);
+    chk(name, 'drill scroll', 'after a redraw each drill is where it was, P’s at 201 and P2’s at 77 -- keyed by its row, never one drill’s scroll on another',
+      ev(sl), J([201, 77]));
+    // a figure typed in P's drill, then its ✕ pressed: the redraw the change makes leaves the drill (and so the ✕) where it was
+    ev(`(function(){ var A=__by('#row-P', 'setClinSvc("P","b0",1,'), B=__btn('#row-P', 'clinRemove("P","b1")');
+      A.focus(); A.value='4444'; A.dispatchEvent(new Event('input', {bubbles:true})); B.dispatchEvent(new Event('pointerdown', {bubbles:true}));
+      A.blur(); A.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+    chk(name, 'drill scroll', 'a figure typed in P’s drill, then its ✕ pressed: the figure is stored, the drill still at 201, and the keyboard on the ✕ standing where the one pressed was',
+      ev(`JSON.stringify([clinVec('P', clinList('P')[0])[1], document.querySelector('#row-P .cscroll').scrollLeft, document.activeElement.getAttribute('onclick')])`),
+      J([4444, 201, 'clinRemove("P","b1")']));
+    ev(`document.activeElement.dispatchEvent(new Event('pointerup', {bubbles:true})); 'ok'`); await tick(30);
+    chk(name, 'drill scroll', 'CONTROL: and the press is delivered once, as the pointer comes up on it (its question declined here)', ev(`__cf`), 1);
+    ev(`clinOpen.P2=false; render(); clinOpen.P2=true; render(); 'ok'`);
+    chk(name, 'drill scroll', 'CONTROL: a drill shut and opened again starts at the left', ev(`document.querySelector('#row-P2 .cscroll').scrollLeft`), 0);
+  } catch (e) { failures.push({ scenario: name, where: 'drill scroll', what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); }
+
+  // ---- 4. Fund's box on a per-service allocation: the SVC tag sits on the box's edge and takes none of its width or clicks
+  part('SVC tag', () => {
+    const { ev } = mk();
+    ev(`uiMode='fund'; uiApply(); S.alloc.R={m:'t', v:250}; render(); 'ok'`);
+    const tag = `document.querySelector('#row-Q .acts.alloc .mode-tag')`;
+    chk(name, 'SVC tag', 'CONTROL: Q (per service) carries the SVC tag; R (a total) does not',
+      ev(`JSON.stringify([!!${tag}, !!document.querySelector('#row-R .acts.alloc .mode-tag')])`), J([true, false]));
+    // jsdom has no layout: what it can read is the rule that applies to the tag (the widths and the click are npm run pointer F)
+    chk(name, 'SVC tag', 'the tag is taken out of the cell’s flow onto the box’s edge (position absolute), sized to its word (width auto, never the cell’s 100%), and lets a click through to the box (pointer-events none)',
+      ev(`(function(){ var s=getComputedStyle(${tag}); return [s.position, s.width, s.pointerEvents].join(','); })()`), 'absolute,auto,none');
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.09 W1 ====
 
 // ==== v2.09 W2 (item 126): a PMO copy's five years ====
