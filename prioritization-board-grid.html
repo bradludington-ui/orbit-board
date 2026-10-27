@@ -6861,6 +6861,11 @@ function yearCopy(id, y, mode, opts){
                    event:it.event, ccar:'', fy26:SVC.map(_=>0), ask:it.ask.slice(), alloc:null},
                    it.prior? {prior:{fy:+it.prior.fy, id:String(it.prior.id)}}     // v2.06 (item 117): the link goes with it
                    : (mode==='c'? {prior:{fy:+MS.cur, id:String(id)}} : {})));     // a copy continues its source (second review)
+    // v2.09 second review: A LINK TO AN OFFICE'S PROPOSAL GOES WITH THE COPY THAT MINTED ITS ID. Copied, rolled or moved on before
+    // that proposal was accepted, the link names only the copy's id -- one id two copies out at once both minted -- and the copy
+    // here has no provenance of its own to say which: the re-point at the end of a later Apply took the one proposal it found
+    // under that id, another copy's included.
+    { const nw=T.custom[T.custom.length-1]; if(nw && nw.prior) Object.assign(nw.prior, pmoLinkKeep(it)); }
   } else {
     T.removed=T.removed.filter(x=>x!==id);               // restore/ensure present
     T.asks[id]=it.ask.slice();                           // carry the current requirement value
@@ -8104,7 +8109,21 @@ function pmoOutYears(){
 function pmoOutChanged(){
   const t0=+((PMODE||{}).ts)||0;
   return pmoOutYears().filter(function(y){ return y===+MS.cur || (MS.jrnl||[]).some(function(e){ return e && +e.fy===y
-    && (+e.t||0)>=t0 && Array.isArray(e.p) && e.p.length>1 && !/^\(/.test(String(e.p[0])); }); });
+    && (+e.t||0)>=t0 && Array.isArray(e.p) && e.p.length>1 && !/^\(/.test(String(e.p[0])); }) || pmoOutReranked(y); });
+}
+// v2.09 second review: THE OFFICE'S OWN RANKING RE-RANKED IN SUCH A YEAR. It is outside the change journal (JRNL_SKIP; the rank box,
+// ▲▼ and the handle write no line), so an office that re-ranked its list in FY27 and submitted from FY28 was told nothing --
+// and with nothing else edited, "Nothing to send yet ... Re-ranking your own list is sent too". It is read against that year's
+// office rankings as published (PMODE.oord), on the requirements both lists hold, as pmoRankBuild reads a year it sends. A copy
+// published before this review carries none, and is read from the journal alone, as before.
+function pmoOutReranked(y){
+  const oo=PMODE && PMODE.oord, g=myPmo();
+  if(!g || !oo || typeof oo!=='object' || !Object.prototype.hasOwnProperty.call(oo, y) || !oo[y] || typeof oo[y]!=='object') return false;
+  const T=(+y===+MS.cur)? S : (MS.years||{})[y]; if(!T) return false;
+  const now=((T.pmoOrder||{})[g]), was=oo[y][g];
+  const a=Array.isArray(now)? now : [], b=Array.isArray(was)? was : [], inA=Object.create(null), inB=Object.create(null);
+  a.forEach(function(x){ inA[x]=1; }); b.forEach(function(x){ inB[x]=1; });
+  return !pmoSeqSame(a.filter(function(x){ return inB[x]; }), b.filter(function(x){ return inA[x]; }));
 }
 // What is said of them, as text (esc() where it is drawn)
 function pmoOutSay(L){
@@ -8192,6 +8211,13 @@ function publishPmoCopy(){
     aceWithYear(y, function(){ yb[y]=pmoBaseline(); yord[y]=JSON.parse(JSON.stringify(S.pmoOrder||{})); });
   });
   mode.yb=yb; mode.yord=yord; mode.yn=yn;
+  // v2.09 second review: AND THE OFFICE RANKINGS OF EVERY YEAR THE COPY HOLDS AND DOES NOT SUBMIT FOR (one before the window the
+  // board still holds), as published -- what pmoOutChanged() reads a re-rank there against. The office's own ranking is not in
+  // the change journal, so a re-rank in FY27 went unsaid at Submit, which tells offices re-ranking their list is sent.
+  const oord={};
+  Object.keys(MS.years||{}).map(Number).forEach(function(y){ if(!y || y===+MS.cur || yb[y]) return;
+    aceWithYear(y, function(){ oord[y]=JSON.parse(JSON.stringify(S.pmoOrder||{})); }); });
+  mode.oord=oord;
   const html=pmoCopyHtml(mode);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
@@ -8439,20 +8465,49 @@ function pmoProposalOf(id){
 function pmoPriorHere(p, fy, from, T0){
   if(!p || !p.id) return '';
   const T=T0 || ((fy===undefined || +fy===+MS.cur)? S : ((MS.years||{})[fy]||{}));
-  let id=String(p.id); const on=T.order||[];
-  // v2.09 review: A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS names the copy's provisional id (NEW-PSM-2), which this board never
-  // holds, so nothing matched it: the office's FY31 proposal continuing its own FY29 one -- accepted, and rolled into FY31 by the
-  // team -- was offered for FY31 with no word that FY31 already held it, and accepted it was there twice. It is read through the
-  // provenance: the proposal itself, filed in this year (a year rolled forward whole carries `from`), or the requirement it
-  // became in the year the link names, and then whatever this year holds linked to that.
-  if(from && from.pmo && pmoProvId(id)){
-    const here=pmoProvIn(T, from.pmo, id, from.pub); if(here && on.indexOf(here.id)>=0) return here.id;
-    const got=pmoProvIn((+p.fy===+MS.cur)? S : (MS.years||{})[p.fy], from.pmo, id, from.pub); if(got) id=String(got.id);
+  const on=T.order||[], items=(T===S)? (DATA.items||[]) : itemsOf(BASE_ITEMS, T), seen=Object.create(null);
+  // v2.09 second review: THE CHAIN, AS FAR AS IT GOES. A requirement that recurs is brought into each out-year from the year before
+  // (decision 5), so the office's FY32 proposal continues its own FY31 one, which continues FY30's A -- and the check was one
+  // link deep: FY32, rolled forward, held A, and the FY32 proposal went in beside it with nothing said, while the duplicate
+  // question named FY31's alone and its Cancel said the duplicate was left out. Each link is followed to what it names, and
+  // that one's own link after it: a requirement this board holds, or a proposal of the same office and copy held for review
+  // that it has not filed yet -- until something this year holds is the same work, or the chain ends (bounded, and no link
+  // twice).
+  for(let k=0; k<12 && p && typeof p==='object' && p.id && !seen[+p.fy+'|'+p.id]; k++){
+    seen[+p.fy+'|'+p.id]=1;
+    let id=String(p.id), src=null;
+    // v2.09 review: A LINK TO ANOTHER OF THE OFFICE'S PROPOSALS names the copy's provisional id (NEW-PSM-2), which this board never
+    // holds, so nothing matched it: the office's FY31 proposal continuing its own FY29 one -- accepted, and rolled into FY31 by the
+    // team -- was offered for FY31 with no word that FY31 already held it, and accepted it was there twice. It is read through the
+    // provenance: the proposal itself, filed in this year (a year rolled forward whole carries `from`), or the requirement it
+    // became in the year the link names, and then whatever this year holds linked to that.
+    if(from && from.pmo && pmoProvId(id)){
+      const here=pmoProvIn(T, from.pmo, id, from.pub); if(here && on.indexOf(here.id)>=0) return here.id;
+      const got=pmoProvIn((+p.fy===+MS.cur)? S : (MS.years||{})[p.fy], from.pmo, id, from.pub); if(got) id=String(got.id);
+      src=got;
+    }
+    if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
+    const x=items.filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && (String(i.prior.id)===id || String(i.prior.id)===String(p.id))
+      && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];     // a board-data id is that activity whatever year it names (second review)
+    if(x) return x.id;
+    // v2.09 second review: the next link -- what the requirement this one names continues, under that requirement's own copy; or,
+    // for the office's proposal this board has not filed, what that proposal continues, under the same copy
+    if(!src && !pmoProvId(id)) src=yrItemOf((+p.fy===+MS.cur)? S : (MS.years||{})[p.fy], id);
+    if(src){ from=pmoLinkStamp(src); p=src.prior; continue; }
+    const q=(from && from.pmo && pmoProvId(id))? pmoHeldProp(from.pmo, id, from.pub, p.fy) : null;
+    if(!q) break;
+    p=q.prior;
   }
-  if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
-  const x=((T===S)? (DATA.items||[]) : itemsOf(BASE_ITEMS, T)).filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && (String(i.prior.id)===id || String(i.prior.id)===String(p.id))
-    && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];     // a board-data id is that activity whatever year it names (second review)
-  return x? x.id : '';
+  return '';
+}
+// v2.09 second review: THE OFFICE'S PROPOSAL HELD FOR REVIEW under its copy's id nid, in a package held for year fy, by
+// pmoProvIn's rule (the same copy's, where both say which copy) -- the proposal, or null. Ticked or not: what it continues is the
+// same work whether or not this Apply takes it.
+function pmoHeldProp(pmo, nid, pub, fy){
+  const L=[];
+  PMOSUBS.forEach(function(pk){ if(!pk || pmoHeldFy(pk)!==+fy) return;
+    (pk.added||[]).forEach(function(a){ if(a && a.nid===nid) L.push({from:{pmo:subFrom(pk), nid:a.nid, pub:+pk.fromTs||0}, a:a}); }); });
+  const c=pmoProvIn({custom:L}, pmo, nid, pub); return c? c.a : null;
 }
 // v2.09 review: an office's provisional id -- NEW-<office>-n, as a copy mints it (reqNewId) -- never one of this board's NEW-n
 function pmoProvId(id){ id=String(id||''); return /^NEW-/.test(id) && !/^NEW-\d+$/.test(id); }
@@ -8463,10 +8518,54 @@ function pmoProvId(id){ id=String(id||''); return /^NEW-/.test(id) && !/^NEW-\d+
 // is the same proposal; one accepted before the stamp was kept is read as before. With `other`, the one filed under the same
 // id from a DIFFERENT copy -- named in the review, never taken for this one.
 function pmoProvIn(T, pmo, nid, pub, other){
-  const L=((T && T.custom)||[]).filter(function(c){ return c && c.from && c.from.pmo===pmo && c.from.nid===nid; });
+  const L=pmoProvL(T, pmo, nid);
   pub=+pub||0;
   if(other) return L.filter(function(c){ return pub && +c.from.pub && +c.from.pub!==pub; })[0]||null;
   return L.filter(function(c){ return pub && +c.from.pub===pub; })[0] || L.filter(function(c){ return !pub || !+c.from.pub; })[0] || null;
+}
+// the requirements in year state T filed for an office's proposal under one provisional id -- every office's where pmo is null
+// (a link that does not say whose it is) -- the one list pmoProvIn and pmoProvOne choose from (v2.09 second review)
+function pmoProvL(T, pmo, nid){
+  return ((T && T.custom)||[]).filter(function(c){ return c && c.from && (pmo===null || c.from.pmo===pmo) && c.from.nid===nid; });
+}
+// v2.09 second review: THE ONE PROPOSAL A LINK NAMES, FOR A LINK THAT IS WRITTEN (pmoRepointLinks) OR READ AS THE WORK IT
+// CONTINUES (priorLink). pmoProvIn answers "has this board taken it?", where yes is the safe answer, so it takes the first it
+// finds; written onto a requirement, a first guess is not safe. A link with no copy of its own -- a requirement the team rolled
+// forward before its original was accepted -- was re-pointed onto whichever single proposal carried that id, whatever copy sent
+// it: two copies out at once number alike, so FY30's copy of copy B's Bravo was pointed at copy A's Alpha, read "Continues FY28
+// NEW-1 -- Alpha", Roll forward then said Alpha was already in FY30 and never put it there, and Bravo, accepted later, went into
+// FY30 a second time. So: the same copy's proposal where the link says which copy minted its id (pmoLinkStamp); failing that, the
+// one proposal accepted before the stamp was kept (pmoProvIn's own exception); and a link that says nothing of its copy only
+// where the one proposal under that id says nothing either. Anything else names two possibilities, and the link is left as it
+// is -- "PSM proposed it, and it has not been accepted" is true; a guess names other work.
+function pmoProvOne(T, pmo, nid, pub){
+  const L=pmoProvL(T, pmo, nid);
+  pub=+pub||0;
+  const same=L.filter(function(c){ return pub && +c.from.pub===pub; }), old=L.filter(function(c){ return !+c.from.pub; });
+  if(same.length) return same.length===1? same[0] : null;
+  return (old.length===1 && (pub || L.length===1))? old[0] : null;
+}
+// v2.09 second review: WHICH COPY MINTED THE ID A LINK TO AN OFFICE'S PROPOSAL NAMES -- {pmo, pub}, or null where nothing says.
+// The link's own stamp, which a copy of it to another year carries (yearCopy, pmoLinkKeep); else the requirement's provenance:
+// an office's proposal links only to that office's own proposals, minted by the copy that sent it.
+function pmoLinkStamp(c){
+  const p=c && c.prior;
+  if(p && typeof p==='object' && typeof p.pmo==='string' && p.pmo) return {pmo:p.pmo, pub:+p.pub||0};
+  if(c && c.from && c.from.pmo) return {pmo:String(c.from.pmo), pub:+c.from.pub||0};
+  return null;
+}
+// the requirement the board filed for the office's proposal that requirement c's link names, in the year the link names, or null
+function pmoLinkTo(c){
+  const p=c && c.prior; if(!p || typeof p!=='object' || !pmoProvId(p.id)) return null;
+  const PT=(MS.years||{})[p.fy]; if(!PT) return null;
+  const st=pmoLinkStamp(c);
+  return pmoProvOne(PT, st? st.pmo : null, String(p.id), st? st.pub : 0);
+}
+// what a copy of requirement c's link carries beside the year and the id: the stamp, while the link names a copy's id -- without
+// it the copy's link could be read only by its id, and the re-point above could take it for any copy's proposal
+function pmoLinkKeep(c){
+  const p=c && c.prior, st=(p && pmoProvId(p.id))? pmoLinkStamp(c) : null;
+  return st? (st.pub? {pmo:st.pmo, pub:st.pub} : {pmo:st.pmo}) : {};
 }
 // the office and the copy a review row came from, as an accepted proposal's provenance names them (v2.09 review)
 function pmoRowFrom(r){ const pk=PMOSUBS[r.src]||{}; return {pmo:r.from, pub:+pk.fromTs||0}; }
@@ -8559,6 +8658,19 @@ function pmoSubmit(){
     || {fy:+PMODE.fy, items:{}, base:{}, added:[], rank:null, gaps:[], foreign:[], unpub:[]};
   const all=function(k){ return [].concat.apply([], secs.map(function(s){ return s[k]; })); };
   const gaps=all('gaps'), foreign=all('foreign'), unpub=all('unpub');
+  const n=secs.reduce(function(a, s){ return a+Object.keys(s.items).length+s.added.length; }, 0);
+  const anyRank=secs.some(function(s){ return !!s.rank; });
+  // v2.09 second review: THE NAME FIRST, WHERE A PACKAGE WILL BE BUILT. Every alert below that withholds something ends
+  // "Everything else you edited is still being sent" -- and the name was asked after them all, so dismissing its prompt sent
+  // nothing at all after the office had been told the rest was going. A Submit with nothing to send is not asked for a name.
+  const who=(n || anyRank)? whoAmI() : '';
+  // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
+  // which has no such entry -- so an office following it opened the one menu that could not help,
+  // on the first step of the workflow. Checked against the rendered menu, not from memory.
+  if((n || anyRank) && (!who || who==='unknown')){ alert('Put your name in first — Audit › ✎ My editor '
+    + 'name…\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
+  // and "the rest is being sent" only where something is: with nothing else to send, the next word is "Nothing to send"
+  const rest=(n || anyRank)? '\n\nEverything else you edited is still being sent.' : '';
   // WITHHELD BY NAME, and the rest still goes. An incomplete proposal is not sent; the office is told
   // which one, and which fields it needs, while they are still sitting there. Everything else they
   // edited travels as usual -- holding forty field edits hostage to one half-filled proposal would be
@@ -8568,8 +8680,7 @@ function pmoSubmit(){
       +(gaps.length===1?'is':'are')+' missing mandatory fields and '+(gaps.length===1?'is':'are')+' NOT being sent:\n\n'
       +pmoYrLines(gaps, function(g){ return '  • '+g.name+'\n      needs: '+g.miss.join(', '); })
       +'\n\nA proposed requirement travels whole, for the portfolio team to accept, and every mandatory '
-      +'field has to be filled before it can. Select its row to open its record and fill them, then submit again.\n\n'
-      +'Everything else you edited is still being sent.');
+      +'field has to be filled before it can. Select its row to open its record and fill them, then submit again.'+rest);
   }
   // IT IS CAUGHT HERE, in the copy, where the person who made the edit is still sitting. Dropping
   // it quietly at the far end would leave an office believing it had submitted something it had not.
@@ -8579,17 +8690,15 @@ function pmoSubmit(){
       +(foreign.length===1?'it is':'they are')+' NOT being sent:\n\n'+pmoYrLines(foreign, function(f){ return '  • '+f.name; })
       +'\n\nA submittal proposes changes to '+pmo+'’s own requirements. If one of these looks '
       +'wrong, raise it with the office that owns it or at the SFWG — the portfolio team cannot '
-      +'take it from '+pmo+'.\n\nEverything else you edited is still being sent.');
+      +'take it from '+pmo+'.'+rest);
   }
   if(unpub.length){
     alert('⚠ '+unpub.length+' requirement'+(unpub.length===1?'':'s')+' you edited '+(unpub.length===1?'was':'were')
       +' not on the board when this copy was published (removed there, and restored in this copy, or in a year the board had '
       +'not started), so '+(unpub.length===1?'it is':'they are')+' NOT being sent:\n\n'
       +pmoYrLines(unpub, function(u){ return '  • '+u.name; })
-      +'\n\nIf one of these should come back, raise it with the portfolio team.\n\nEverything else you edited is still being sent.');
+      +'\n\nIf one of these should come back, raise it with the portfolio team.'+rest);
   }
-  const n=secs.reduce(function(a, s){ return a+Object.keys(s.items).length+s.added.length; }, 0);
-  const anyRank=secs.some(function(s){ return !!s.rank; });
   // v2.09 review: A YEAR THIS COPY HOLDS AND DOES NOT SUBMIT FOR -- one before the FYDP window that the board still held. Its
   // edits are kept on the copy and never sent, and Submit said so nowhere: from that year it answered "Nothing to send yet.
   // Edit a description..." to an office that had just done exactly that, and from any other year it built the package
@@ -8602,13 +8711,7 @@ function pmoSubmit(){
         ? ' Re-ranking '+pmo+'’s own list (with only '+pmo+' showing) is sent too; moving rows in the '
           + 'whole portfolio is yours to explore and is not — that order stays the portfolio team’s.'
         : ' Moving rows around is yours to explore and is not sent — the priority order stays the portfolio team’s.')); return; }
-  if(outYs.length) alert('⚠ '+pmoOutSay(outYs)+'\n\nEverything else you edited is still being sent.');
-  const who=whoAmI();
-  // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
-  // which has no such entry -- so an office following it opened the one menu that could not help,
-  // on the first step of the workflow. Checked against the rendered menu, not from memory.
-  if(!who || who==='unknown'){ alert('Put your name in first — Audit › ✎ My editor '
-    + 'name…\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
+  if(outYs.length) alert('⚠ '+pmoOutSay(outYs)+rest);
   const items=pub.items, base=pub.base, added=pub.added, rank=pub.rank;
   // THE SERVICE LIST TRAVELS TOO. A requirement value is an array indexed by service POSITION, so a
   // submittal read on a board whose services have changed since would land each figure against the
@@ -9152,17 +9255,18 @@ function pmoEachYear(rows, fn){
 // once this board has accepted it. Accepting re-points a link only to a proposal accepted before it, so one brought in from a
 // proposal in a LATER year (Apply takes the years oldest first), or accepted in a later Apply, kept the copy's id -- which no
 // same-work check reads: Roll requirements forward promised "1 copy will be created" of work the year already held, and the
-// year counted it twice. Run at the end of every Apply, over every year. A link on a requirement with no provenance of its own
-// (rolled forward by the team before its original was accepted) is re-pointed only where one proposal alone carries that id.
+// year counted it twice. Run at the end of every Apply, over every year.
+// v2.09 second review: by pmoLinkTo, the one rule for what a link names -- the copy that minted the id, from the link's own stamp
+// (a requirement the team rolled forward before its original was accepted carries it) or the requirement's provenance, and
+// never a guess. A link with no provenance of its own was re-pointed onto whichever one proposal carried its id, another copy's
+// included. The stamp stays on the link it re-points: Put back of the re-point is then one change, and puts back a link the
+// next Apply can still read.
 function pmoRepointLinks(){
   let n=0;
   Object.keys(MS.years||{}).forEach(function(y){ ((MS.years[y]||{}).custom||[]).forEach(function(c){
     const p=c && c.prior; if(!p || typeof p!=='object' || !pmoProvId(p.id)) return;
-    const PT=(MS.years||{})[p.fy]; if(!PT) return;
-    let got=null;
-    if(c.from && c.from.pmo) got=pmoProvIn(PT, c.from.pmo, String(p.id), c.from.pub);
-    else { const L=(PT.custom||[]).filter(function(x){ return x && x.from && x.from.nid===String(p.id); }); if(L.length===1) got=L[0]; }
-    if(got && String(got.id)!==String(p.id)){ c.prior={fy:+p.fy, id:String(got.id)}; n++; } }); });
+    const got=pmoLinkTo(c);
+    if(got && String(got.id)!==String(p.id)){ c.prior=Object.assign({}, p, {fy:+p.fy, id:String(got.id)}); n++; } }); });
   return n;
 }
 // A year this board has not started, as Apply starts it: switchYear()'s roll forward from the year on screen, or blank
@@ -32285,13 +32389,17 @@ function priorLink(it){
   // v2.09 W2 (item 126): A LINK TO ANOTHER OF AN OFFICE'S PROPOSALS names the id the copy gave it (NEW-PSM-1), which this board
   // never holds: brought into FY29 from the office's own FY28 proposal, and that one accepted in a later Apply than this one,
   // it read "no longer on the board". It is read through the accepted requirement's provenance -- the office and the id.
-  if(T && !src && /^NEW-/.test(id) && it.from && it.from.pmo){
-    const c=pmoProvIn(T, it.from.pmo, id, it.from.pub);     // v2.09 review: the same copy's, where both say which copy
+  // v2.09 second review: by pmoLinkTo, the rule the re-point writes by -- the copy that minted the id, from the link's own stamp
+  // (a copy the team rolled forward carries it) or the requirement's provenance -- so a link reads as the work the next Apply
+  // would point it at, and never as another copy's proposal under the same id
+  const st=pmoLinkStamp(it);
+  if(T && !src && /^NEW-/.test(id) && st){
+    const c=pmoLinkTo(it);
     if(c){ id=String(c.id); src=yrItemOf(T, id); } }
   const on=!!(T && src && (T.order||[]).indexOf(id)>=0);
   // an office's proposal this board has not taken (the board numbers its own NEW-n): not a requirement it once held
-  const prop=!src && !!(it.from && it.from.pmo) && /^NEW-/.test(id) && !/^NEW-\d+$/.test(id);
-  return {fy:y, id:id, on:on, held:!!T, title:on? dispTitle(src, T) : '', prop:prop? String(it.from.pmo) : ''};
+  const prop=!src && !!st && /^NEW-/.test(id) && !/^NEW-\d+$/.test(id);
+  return {fy:y, id:id, on:on, held:!!T, title:on? dispTitle(src, T) : '', prop:prop? st.pmo : ''};
 }
 function priorTxt(it){ const L=priorLink(it); if(!L) return '';
   // a year not held at all is not a requirement removed: a locked cycle's view holds only its own years (review fix)

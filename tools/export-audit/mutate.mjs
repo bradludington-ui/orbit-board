@@ -7770,7 +7770,8 @@ const MUTATIONS = [
     find: "ts:Date.now(), fy:+MS.cur}};", repl: "ts:Date.now()}};" },
   { id: 'v209-w2-link-not-repointed', area: "pmoRepointLinks", what: "a proposal brought in from another of the office's proposals keeps a link to a provisional id nothing holds",
     // v2.09 review: retargeted -- the link is re-pointed by pmoRepointLinks at the end of every Apply, and no longer in pmoAcceptProposal
-    find: "    if(got && String(got.id)!==String(p.id)){ c.prior={fy:+p.fy, id:String(got.id)}; n++; } }); });", repl: "    void got; }); });" },
+    // v2.09 second review: retargeted -- the re-point keeps the link's stamp (Object.assign), so Put back of it is one change
+    find: "    if(got && String(got.id)!==String(p.id)){ c.prior=Object.assign({}, p, {fy:+p.fy, id:String(got.id)}); n++; } }); });", repl: "    void got; }); });" },
   { id: 'v209-w2-apply-no-start-asked', area: "pmoApply", what: "Apply never asks to start a year the board has not started, and nothing goes into it",
     find: "  const need=ys.filter(function(y){ return !(MS.years||{})[y]; });", repl: "  const need=[];" },
   { id: 'v209-w2-apply-stop-starts-blank', area: "pmoApply", what: "stopping at the start question starts the year blank anyway and applies",
@@ -7784,7 +7785,8 @@ const MUTATIONS = [
   { id: 'v209-w2-link-proposal-unresolved', area: "priorLink", what: "a link to an office's proposal accepted in a later Apply still reads as a requirement no longer on the board",
     find: "    if(c){ id=String(c.id); src=yrItemOf(T, id); } }", repl: "    if(false){ id=String(c.id); src=yrItemOf(T, id); } }" },
   { id: 'v209-w2-link-proposal-said-gone', area: "priorLink", what: "a link to an office's proposal the board has not accepted says the requirement is no longer on the board",
-    find: "title:on? dispTitle(src, T) : '', prop:prop? String(it.from.pmo) : ''};", repl: "title:on? dispTitle(src, T) : '', prop:''};" },
+    // v2.09 second review: retargeted -- the office is read from the link's stamp or the provenance (pmoLinkStamp)
+    find: "title:on? dispTitle(src, T) : '', prop:prop? st.pmo : ''};", repl: "title:on? dispTitle(src, T) : '', prop:''};" },
   { id: 'v209-w2-take-line-screen-only', area: "pmoTake", what: "the line after a take still says a file for another year applies only while that year is on screen",
     find: "'</b>: ✔ Apply puts it into FY'+(forFy%100)+', whatever year is on screen'", repl: "'</b> and applies only while FY'+(forFy%100)+' is on screen'" },
   // v2.09 review (five years): the RV-years fixes -- each mutation undoes one, proved caught by its own block in audit-import
@@ -7815,7 +7817,9 @@ const MUTATIONS = [
   { id: 'v209-rv-years-links-not-repointed', area: "pmoApply", what: "a link to an office's proposal accepted later stays on the copy's id, and Roll forward copies work the year already holds",
     find: "  pmoRepointLinks();", repl: "" },
   { id: 'v209-rv-years-repoint-needs-provenance', area: "pmoRepointLinks", what: "a link on a requirement rolled forward before its original was accepted stays on the copy's id",
-    find: "    else { const L=(PT.custom||[]).filter(function(x){ return x && x.from && x.from.nid===String(p.id); }); if(L.length===1) got=L[0]; }", repl: "" },
+    // v2.09 second review: retargeted -- the branch that re-pointed a link with no provenance onto any one proposal under its id is
+    // gone (it took another copy's); such a link is read by the stamp it carries from the copy that minted its id (pmoLinkStamp)
+    find: "  if(p && typeof p==='object' && typeof p.pmo==='string' && p.pmo) return {pmo:p.pmo, pub:+p.pub||0};", repl: "" },
   { id: 'v209-rv-years-prior-raw-id', area: "pmoPriorHere", what: "the review does not say a year already holds what a proposal continuing another of the office's proposals continues",
     find: "  if(from && from.pmo && pmoProvId(id)){", repl: "  if(false){" },
   { id: 'v209-rv-years-prior-rolled-whole', area: "pmoPriorHere", what: "a year rolled forward whole is not seen to hold the office's own proposal, accepted, that a proposal continues",
@@ -7838,6 +7842,31 @@ const MUTATIONS = [
     find: "!pmoBaseOf(MS.cur))\n        ? '<div class=\"insp-notsent\"", repl: "!pmoBaseOf(MS.cur) && false)\n        ? '<div class=\"insp-notsent\"" },
   { id: 'v209-rv-years-out-status-unsaid', area: "pmoSubmit", what: "the line after Submit does not say the edits in a year the copy does not submit for are not in the package",
     find: "    + (outYs.length? ' ⚠ Nothing edited in '", repl: "    + (false? ' ⚠ Nothing edited in '" },
+  // v2.09 second review (five years): each mutation undoes one RV2-years fix, proved caught by its own block in audit-import
+  { id: 'v209-rv2-years-copy-drops-stamp', area: "yearCopy", what: "a link the team copies or rolls forward before its original is accepted loses the copy that minted its id, and is re-pointed onto another copy's proposal or never",
+    find: "    { const nw=T.custom[T.custom.length-1]; if(nw && nw.prior) Object.assign(nw.prior, pmoLinkKeep(it)); }", repl: "" },
+  { id: 'v209-rv2-years-link-any-copy', area: "pmoProvOne", what: "a link stamped with its copy is re-pointed onto the one proposal under its id from another copy",
+    find: "  if(same.length) return same.length===1? same[0] : null;", repl: "  if(L.length===1) return L[0];" },
+  { id: 'v209-rv2-years-unstamped-guessed', area: "pmoProvOne", what: "a link that says nothing of its copy is re-pointed onto the proposal accepted before stamps, though another copy's carries the same id",
+    find: "  return (old.length===1 && (pub || L.length===1))? old[0] : null;", repl: "  return (old.length===1)? old[0] : null;" },
+  { id: 'v209-rv2-years-repoint-loose', area: "pmoLinkTo", what: "a link is re-pointed by the first proposal found under its id, as 'already taken' reads, and an older copy's lands on another copy's proposal",
+    find: "  return pmoProvOne(PT, st? st.pmo : null, String(p.id), st? st.pub : 0);", repl: "  return pmoProvIn(PT, st? st.pmo : null, String(p.id), st? st.pub : 0);" },
+  { id: 'v209-rv2-years-prior-from-only', area: "priorLink", what: "a copy the team rolled forward reads its link as a requirement no longer on the board, not as the office's proposal",
+    find: "  const st=pmoLinkStamp(it);\n  if(T && !src && /^NEW-/.test(id) && st){", repl: "  const st=(it.from && it.from.pmo)? {pmo:String(it.from.pmo), pub:+it.from.pub||0} : null;\n  if(T && !src && /^NEW-/.test(id) && st){" },
+  { id: 'v209-rv2-years-chain-one-link', area: "pmoPriorHere", what: "a proposal continuing another of the office's proposals is checked one link deep, and goes in beside the work the year already holds",
+    find: "  for(let k=0; k<12 && p && typeof p==='object' && p.id && !seen[+p.fy+'|'+p.id]; k++){", repl: "  for(let k=0; k<1 && p && typeof p==='object' && p.id && !seen[+p.fy+'|'+p.id]; k++){" },
+  { id: 'v209-rv2-years-chain-filed-stops', area: "pmoPriorHere", what: "a link to a requirement the board filed is not followed past it, so what that one continues is not seen in the year",
+    find: "    if(src){ from=pmoLinkStamp(src); p=src.prior; continue; }", repl: "    if(src) break;" },
+  { id: 'v209-rv2-years-chain-held-unread', area: "pmoPriorHere", what: "a link to the office's proposal held for review is not followed, so a chain across two years Apply starts is not named",
+    find: "    const q=(from && from.pmo && pmoProvId(id))? pmoHeldProp(from.pmo, id, from.pub, p.fy) : null;", repl: "    const q=null;" },
+  { id: 'v209-rv2-years-publish-no-oord', area: "publishPmoCopy", what: "a copy is published without the office rankings of a year it does not submit for, so a re-rank there is not said at Submit",
+    find: "  mode.oord=oord;", repl: "" },
+  { id: 'v209-rv2-years-out-rank-uncounted', area: "pmoOutChanged", what: "a re-rank in a year the copy does not submit for is not counted as an edit there, and Submit says nothing of it",
+    find: "!/^\\(/.test(String(e.p[0])); }) || pmoOutReranked(y); });", repl: "!/^\\(/.test(String(e.p[0])); }); });" },
+  { id: 'v209-rv2-years-name-after-alerts', area: "pmoSubmit", what: "Submit says everything else is still being sent before it finds there is no editor name, and sends nothing",
+    find: "  if((n || anyRank) && (!who || who==='unknown')){ alert('Put your name in first", repl: "  if(false){ alert('Put your name in first" },
+  { id: 'v209-rv2-years-rest-always', area: "pmoSubmit", what: "an alert says everything else is still being sent when nothing else is, and the next says nothing to send",
+    find: "  const rest=(n || anyRank)? '\\n\\nEverything else you edited is still being sent.' : '';", repl: "  const rest='\\n\\nEverything else you edited is still being sent.';" },
   // ==== end v2.09 W2 ====
 
   // ==== v2.09 W3 (item 127): Save in a PMO copy; the board refuses a copy at its other doors ====
