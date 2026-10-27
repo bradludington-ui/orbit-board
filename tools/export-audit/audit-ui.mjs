@@ -66,10 +66,13 @@ const F = {
 };
 F.AVcopy = ['AV-copy.json', F.AV[1]];
 // the questions as pmoTake asks them, word for word
+// v2.09 (item 126): reworded with Brad's decision 4 -- Apply puts each package into its own year whatever year is on
+// screen, and asks how to start a year the board has not started -- so "applied only while FY27 is on screen" and
+// "Switching to FY28 starts it" stopped being true.
 const Q_NOFY = '⚠ That submittal does not say which fiscal year it was written for.\n\nOK — hold it for FY27, the year on screen. '
-  + 'It can be applied only while FY27 is on screen.\nCancel — load nothing.';
-const Q_FY28 = 'That submittal was written for FY28, and this board is on FY27.\n\nThis board has no FY28 yet. Switching to FY28 starts it.'
-  + '\n\nOK — hold it for FY28. It can be applied only while FY28 is on screen.\nCancel — apply it to another year, or load nothing.';
+  + 'It applies to FY27 alone.\nCancel — load nothing.';
+const Q_FY28 = 'That submittal was written for FY28, and this board is on FY27.\n\nThis board has no FY28 yet: ✔ Apply asks how to start it before anything goes into it.'
+  + '\n\nOK — hold it for FY28. It applies to FY28 alone.\nCancel — apply it to another year, or load nothing.';
 const Q_FY28b = 'Hold it for FY27 instead — the year on screen?\n\nIt was written for FY28: its values, its text and its award dates would be '
   + 'applied to FY27.\n\nOK — hold it for FY27.\nCancel — load nothing.';
 const Q_NOPMO = 'ℹ That submittal does not say which programme office it is from.\n\nIt was written before submittals carried a scope, so it '

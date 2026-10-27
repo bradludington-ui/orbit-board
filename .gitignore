@@ -35,6 +35,8 @@
 # not run output (the v2.08 handoff).
 !recovery/v208/v207-proofs.json
 !recovery/v208/v208-proofs.json
+# The same for v2.09, one list per workstream (W1-W4) and the integration's.
+!recovery/v209/proofs-*.json
 
 # tooling only — the board itself has no dependencies
 node_modules/

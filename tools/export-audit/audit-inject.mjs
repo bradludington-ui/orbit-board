@@ -553,7 +553,8 @@ bootRelease(bm, []);
     ['K5 safe maps and refusals (source)', `const ctl=Object.create(null), ctlSvcLevel=`],
     // (v2.05, item 114: the deck's PMO roll-up map, `const byG=Object.create(null), seenIds={};`, went with the deck)
     ['K5 safe maps and refusals (source)', `ce:Object.create(null)};`],
-    ['K5 safe maps and refusals (source)', `const forOf=Object.create(null);`],
+    // (v2.09, item 126: pmoApply's office-keyed `forOf` map went with item 52's one-year refusal; its replacements,
+    // pmoEachYear's `by` and pmoApply's `how`, are keyed by fiscal year, never by an imported name)
     ['K5 safe maps and refusals (source)', `function flowEntUseMap(){\n  const out=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function flowDestResolve(ids, axis){\n  const seen=Object.create(null);`],
     ['K5 safe maps and refusals (source)', `function pmoChoices(){\n  const seen=Object.create(null);`],
