@@ -2152,6 +2152,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <dt>The DISC and MAND boxes are greyed out</dt><dd>Working as intended: the allocation is the portfolio team’s decision.</dd>
 <dt>💾 Save says “Not saved” — the file is not your office’s</dt><dd>Working as intended. Save writes only your office’s own file from this copy: the copy everyone was sent, another office’s file, a file from another copy and the team’s board are never written over. Press 💾 Save again and pick your office’s file, or make a new one.</dd>
 <dt>“This work was saved for …”, when submitting</dt><dd>The file you opened holds another office’s work. Set 🏢 back to that office to submit it, or, if the work is yours, press 💾 Save first: it goes to a file of your office’s own.</dd>
+<dt>After opening another office’s file, my own work is not on screen</dt><dd>It is kept aside, not lost: <b>↶ work kept aside</b>, at the foot of the left menu, puts it back on your own office.</dd>
 <dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy, and in your office’s file once you have pressed 💾 Save. On another machine, or in another browser, open your office’s file.</dd>
 <dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
@@ -7150,9 +7151,10 @@ let _bootRestoreErr='';        // set when the browser-storage restore threw; su
 let FYMON = fyMonths(BASE_FY_DEFAULT);
 applyStore({base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:0, years:{[BASE_FY_DEFAULT]:firstYearState()}});
 let _bootOwn=false;            // this browser held its own copy of this board when it opened
+let _bootOwnRead=false;        // v2.09 second review: and that copy is what the board took up (applyStore did not refuse it)
 try{
   const st = JSON.parse(localStorage.getItem(_AP.key)||'null');
-  if(st){ applyStore(st); _bootOwn=true; }
+  if(st){ _bootOwnRead=applyStore(st)!==false; _bootOwn=true; }
 }catch(e){
   // NOT a silent catch. Reaching here means the board could not read its own saved state, and the
   // fallback is the empty default — which on screen is indistinguishable from every requirement
@@ -7174,7 +7176,7 @@ try{
 //   Save wrote over it. No clock difference was needed.
 // Which saved copy that was is this browser's own knowledge (baseGet), like the save file's handle,
 // and never part of the board.
-let _keptMeta=null, _bootKept=null, _bootHeld=null, _bootMoved=0, _bootSaid=false;
+let _keptMeta=null, _bootKept=null, _bootHeld=null, _bootMoved=0, _bootSaid=false, _bootRefused=null;
 const _bootBase=baseGet();
 // The save of the file the state on screen came from: its time AS AN IDENTITY. Save asks whenever the
 // file on disk is any other save -- later or earlier -- never only when its time is later.
@@ -7184,13 +7186,30 @@ try{ _keptMeta=keptCopy(); _keptMeta=_keptMeta? _keptMeta.meta : null; }catch(e)
 if(PUB && (PUB.years||Array.isArray(PUB.order))){
   const fileTs=+(PUB.ts||0), ours=+(MS.ts||0);
   if(fileTs > ours){
-    const own=_bootOwn && ownUnsaved(MS, PUB, _bootBase);
+    const own=_bootOwn && ownUnsaved(MS, PUB, _bootBase), kept0=_keptMeta;
     const ka=own? keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase) : true;
     if(ka!==true) _bootHeld={by:PUB.by||'', ts:fileTs, occupied:ka==='occupied'};
-    else {
+    else if(applyStore(PUB)===false){
+      // v2.09 second review: THE FILE WAS REFUSED (built for services this board does not have): nothing it holds is on screen, so
+      // nothing records it as the save the work came from. It recorded "clean, from this file" over this browser's own copy, and the
+      // next 💾 Save wrote that copy over the file without a question. Storage, the record and the kept slot stay as they were (a
+      // copy kept aside by this opening, the very work still on screen, is taken back), and the opening says the file was not opened.
+      if(own && !kept0){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} _keptMeta=null; }
+      _bootRefused={by:PUB.by||'', ts:fileTs};
+    } else {
       if(own) _bootKept={by:PUB.by||'', ts:fileTs};
-      applyStore(PUB);
-      LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+      // v2.09 second review: BROWSER STORAGE TAKES WHAT IS NOW ON SCREEN BEFORE THE RECORD SAYS IT IS CLEAN. The record said "clean,
+      // from this file" while storage went on holding the work just kept aside, so the next opening read that work as saved: a file
+      // opened after it replaced it with nothing kept aside, once the kept copy -- the same work, seemingly a spare -- had been
+      // discarded. Opening a newer board file, then the older one, then the newer one again lost it on every build since v1.89; a
+      // copy's office files and the copy as published (one plan key for them all) reach it in a day's work. Written straight to
+      // storage, as persist() writes it: persist() and save() read lets declared below and cannot run yet. Refused, the record is
+      // left describing what storage still holds, unsaved work included, so the next opening keeps it aside again. A copy the
+      // board could not take up (its services not this board's) is not what was kept aside, so it is never written over either.
+      let held=!_bootOwn;          // storage held nothing of this board's: nothing there for the record to disagree with
+      if(_bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
+      LASTKNOWN=PUB_FILE_TS;
+      if(held){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); }
     }
   } else if(fileTs===ours){
     // the file's own state is what is on screen
@@ -7802,6 +7821,7 @@ function keptPutBack(){
     if(swapped){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\n'+k.raw); }catch(e){} }
     return;
   }
+  pmoFollowWork();      // v2.09 second review: in a copy, the office of the work put back, never the one that displaced it
   // Its checkpoint comes back with it: Save compares against the copy THIS work came from, so writing
   // it over the newer copy that displaced it is always asked first.
   const b=k.meta.base||{};
@@ -7859,6 +7879,13 @@ function bootOwnMsg(){
     +esc(fmtTs(PUB.ts))+(PUB.by? ' by '+esc(PUB.by) : '')+'). \ud83d\udcbe Save writes them into '
     +(SANDBOX? 'your office\u2019s own file.' : 'the file.');     // v2.09 (item 127): a copy's Save writes the office's file
 }
+// v2.09 second review: an opening that shows another save than the one this browser's work was kept from says that work is
+// still kept, and where: on its own, the save state's "↶ work kept aside" read as a spare copy of what was on screen.
+function bootKeptNote(){
+  if(!_keptMeta) return '';
+  return ' Work this browser kept aside'+(_keptMeta.t? ' on '+esc(fmtTs(_keptMeta.t)) : '')+' is still kept, and is not what is on screen: '
+    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).';
+}
 // Open the file's version after all (offered when this browser's work could not be kept aside).
 function bootTakeFile(){
   if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
@@ -7869,6 +7896,7 @@ function bootTakeFile(){
   if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save has landed.'); return; }
   if(applyStore(PUB)===false) return;
   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+  pmoFollowWork();      // v2.09 second review: in a copy, the office the file's work was saved for (Brad: reopening adopts it)
   persist(); DIRTY=false; if(driveStoreOn()) loadCounted(); render();   // v2.02 (E7, U29): in the folder, it is not the folder's copy
   setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
 }
@@ -7896,9 +7924,8 @@ function pmoTakeFile(){
   }
   if(applyStore(PUB)===false) return;
   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
-  pmoAdopt();      // the office of the work now on screen
+  pmoFollowWork();      // the office of the work now on screen (v2.09 second review: a file saved for none brings none), the banner with it
   persist(); DIRTY=false; _bootMoved=0; render();
-  try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
   setStat('\ud83d\udce6 Opened '+(off? '<b>'+esc(off)+'</b>\u2019s file' : 'the file')+' as it was saved'+(by? ' by <b>'+esc(by)+'</b>' : '')+' '+esc(fmtTs(ts))
     +'. What was on screen is <b>kept aside</b>, not lost: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> '
     +'(or from History &amp; recovery, any time).');
@@ -8246,7 +8273,7 @@ function publishPmoCopy(){
 // copy they open, as it always has.
 function myPmo(){ if(_pmoMem) return _pmoMem.g;
   let v=''; try{ v=localStorage.getItem('prio27pmo')||''; }catch(e){ v=''; } return v; }
-function pmoMineSet(g){ g=String(g||''); let ok=true; try{ localStorage.setItem('prio27pmo', g); }catch(e){ ok=false; } _pmoMem={g:g, ok:ok}; }
+function pmoMineSet(g){ g=String(g||''); let ok=true; try{ localStorage.setItem('prio27pmo', g); }catch(e){ ok=false; } _pmoMem={g:g, ok:ok, how:'chosen'}; }
 // ── WHICH OFFICE A COPY'S WORK WAS SAVED FOR (v2.09, item 127) ────────────────────────────────────────────────────────
 // Brad, 26 Oct 2026: "They operate out of one PMO Copy. They can save and make edits, but submit one full five year plan" --
 // one file per office, and "the file remembers the office, not the person". The office rides in the saved state itself
@@ -8269,9 +8296,24 @@ function pmoForOf(ms){
 // office, then added for, saved for and was marked as the other office's, asking nothing, and its Submit dropped its own
 // office's edits as another's. The file's office is the file's (Brad, 26 Oct 2026: reopening adopts the office the file was
 // saved for); only the person's own choice (pickMyPmo, the Add box) writes the browser's setting, as in v2.08.
+// v2.09 second review: and WHY the page has it -- 'chosen' (pmoMineSet: the person, in this page) or 'adopted' (from the work's
+// mark), the choice kept under an adoption ('was'), so work with no mark put on screen later drops the adoption back to it.
 function pmoAdopt(){
   const g=pmoForOf(MS);
-  if(g) _pmoMem={g:g, ok:true};
+  if(g) _pmoMem={g:g, ok:true, how:'adopted', was:(_pmoMem && _pmoMem.how==='chosen')? _pmoMem : ((_pmoMem && _pmoMem.was) || null)};
+}
+// v2.09 second review: THE OFFICE FOLLOWS THE WORK ON SCREEN, every time different work is put there in a copy -- not only as it
+// opens. Work put back from the kept slot kept the office the page had adopted from the file that displaced it: Ann's AV work,
+// never saved for any office, came back under PSM's banner, the Add box added for PSM, ✉ Submit dropped her own AV edits as
+// "another office's", and 💾 Save asked nothing and marked her work PSM's, into PSM's file where this browser had a handle to it.
+// Work saved for an office brings that office (Brad, 26 Oct 2026: reopening adopts the office the file was saved for). Work
+// saved for none brings none: the page goes back to the office the person chose in it, or, where they chose none here, to their
+// own choice in this browser, as the copy as published reads it. A choice made in this page is never dropped by this.
+function pmoFollowWork(){
+  if(!SANDBOX) return;
+  if(pmoForOf(MS)) pmoAdopt();
+  else if(_pmoMem && _pmoMem.how==='adopted') _pmoMem=_pmoMem.was || null;
+  try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
 }
 // Submit sends for the office the work was saved for, and no other: chosen another office since, this work is still that
 // office's, and the package would carry it under the wrong name. Nothing is sent, and both ways out are said.
@@ -10269,6 +10311,11 @@ async function _pmoSaveCopyRun(off){
     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
     else baseSet({file:LASTKNOWN});
     sideWrote(sideAt);
+    // v2.09 second review: THE OFFICE THE WORK IS NOW SAVED FOR IS THIS PAGE'S, as it is once the file is reopened. A page whose
+    // office came from this browser's setting (the copy as published, nobody having chosen in it) went on reading that setting
+    // after its Save, so a choice of another office in another tab re-pointed it, its bar still naming the office it saved for:
+    // its Add box added for the other office into this one's work, and its Submit and next Save were refused or asked about it.
+    pmoFollowWork();
     syncBtns();
     setStat('💾 Saved — “'+esc(h.name||pmoSaveName(off))+'” holds <b>'+esc(off)+'</b>’s work. '+esc(fmtTs(Date.now()))
       +'. Open it to carry on, on any machine; ✉ Submit input sends it to the portfolio team.'
@@ -10296,6 +10343,7 @@ function pmoSaveCopyDl(off, why){
   if(!why && !pmoForAsk(off)) return;
   MS.pmoFor={pmo:off};
   const html=buildSavedHtml();
+  pmoFollowWork();            // v2.09 second review: the office the work is marked for is this page's (as after 💾 Save)
   _dlOnly=true;               // downloaded, and not in the office's file yet
   try{ syncBtns(); }catch(e){}
   const a=document.createElement('a');
@@ -10346,6 +10394,8 @@ function importBoards(inp){
   if(CYCVIEW){ cycRefuse('Importing several boards'); if(inp) inp.value=''; return; }
   const files=[...(inp.files||[])];
   if(!files.length) return;
+  // v2.09 second review: a PMO copy takes no board file (copyImportRefuse) -- refused before anything is asked or read
+  if(copyImportRefuse(files.length===1? files[0].name : files.length+' board files')){ inp.value=''; return; }
   if(!confirm('Import '+files.length+' board file(s) into this consolidated board?\n\nEach file is matched to its appropriation automatically (O&M / Full Fund / Initial Spares) and REPLACES that appropriation\u2019s current data here — all fiscal years included.')){ inp.value=''; return; }
   // THE DOOR (v1.88): one refused file stops the whole batch, before anything is written. Taking the
   // others and skipping it would be the partial import the check exists to prevent.
@@ -11906,6 +11956,25 @@ function pmoCopyRefuse(fname, txt, tail){
     +(SANDBOX? 'Open it itself to work in it.' : 'An office’s work comes in as its ✉ Submit input file, under Program offices \u203a Review submittals\u2026.'));
   return true;
 }
+// v2.09 second review: A PMO COPY TAKES NO BOARD, PACKAGE OR STATE FILE AT ALL. Its work comes and goes only as ✉ Submit input,
+// reviewed on the board field by field; what the board changes reaches an office in the next copy it publishes. ⬅ Import one
+// appropriation in a copy took the board's own issued package, a board file or a state file, and ⇊ Import several boards a board
+// file, each replacing the office's plan -- its unsaved work with nothing kept aside -- after one question that never said so;
+// and the next ✉ Submit then offered the board's own later edits, typed by nobody in the office, as the office's proposals.
+// Refused once the file has passed the import check and pmoCopyRefuse (which says how a copy's own office file is opened),
+// before any of it is read: nothing asked, nothing changed.
+function copyImportRefuse(fname){
+  if(SANDBOX){
+    alert('“'+fname+'” was not imported: a PMO copy takes no board file, appropriation package or state file.\n\n'
+      +'A copy’s work comes and goes only as ✉ Submit input: the portfolio team reviews what you send on the board, and what the '
+      +'board changes reaches you in the next copy it publishes. To carry on in your office’s own file, open that file itself.\n\n'
+      +'Nothing in this copy was changed.');
+    setStat('⚠ Nothing imported — “'+esc(fname)+'”: a PMO copy takes no board, package or state file. '
+      +'✉ Submit input sends your office’s work to the portfolio team.');
+    return true;
+  }
+  return false;
+}
 // v2.09 review: AN APPROPRIATION PACKAGE WRITTEN IN A PMO COPY is the same door by another name. A copy no longer writes one
 // (pkgIssue and the rest refuse in a copy), but a copy published before this one still offers ⬆ Send back and ⬆ Issue, and its
 // package replaced the appropriation here -- the copy's whole plan, another office's requirements as edited there and the
@@ -12395,6 +12464,7 @@ function importState(inp){
     // in here, and all of them are checked whole before any route below reads a field of one.
     const bad=inboundCheck(r.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
     if(pmoCopyRefuse(f.name, r.result)){ inp.value=''; return; }     // v2.09 (item 127): only through the PMO import screen
+    if(copyImportRefuse(f.name)){ inp.value=''; return; }           // v2.09 second review: in a copy, nothing else either
     try{
       let txt=r.result, st=null, fromBoard=false, fullSt=null;
       // An appropriation package is neither a board nor a plain state file, and it has its own
@@ -36036,6 +36106,12 @@ if(_bootRestoreErr){
     +'showing <b>this browser\u2019s copy</b>, not the file\u2019s, and \ud83d\udcbe Save will ask before it writes over the file. '
     +'To see the file\u2019s version, \u2b07 Save a copy of yours first, then '
     +'<button type="button" class="nb lnk" onclick="bootTakeFile()">open the file\u2019s version</button>.');
+} else if(_bootRefused){
+  // v2.09 second review: the file is newer and this board could not take it (the message before this one says why): this
+  // browser's own copy is on screen, as it was, and the file is not recorded as the save it came from
+  _bootSaid=true;
+  setStat('\u26a0 <b>The saved file was not opened</b> \u2014 '+esc(_bootRefused.by||'someone')+' saved it '+esc(fmtTs(_bootRefused.ts))
+    +', and this board could not take it, so <b>this browser\u2019s own copy</b> is on screen, as it was. \ud83d\udcbe Save will ask before it writes over the file.');
 } else if(_bootKept){
   _bootSaid=true;
   setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
@@ -36045,19 +36121,39 @@ if(_bootRestoreErr){
   // v2.09 review: THE COPY AS IT WAS PUBLISHED, opened in a browser whose work was last saved to the office's own file. It said the
   // file "has been saved since then as well -- by BLL" at the publish time, beside a save state reading Saved: the copy as
   // published is older than the office's file, and nobody saved it since. What is true is said instead.
+  // v2.09 second review: WHAT IS TRUE OF THE WORK ON SCREEN, READ FROM THE WORK ITSELF -- its office mark, which only a copy's Save
+  // and ⬇ Save a copy write -- never from a record that differs from the publish stamp. Opening another office's file of this copy
+  // rewrote that record too, so work never saved anywhere was said to be "last saved to a file of its own" that "💾 Save writes
+  // there", beside a save state reading "not saved to a file yet", and the kept copy of that same work then looked a spare. And
+  // Save writes to the office's file without asking only where this browser has saved it before; elsewhere it asks where it is.
   _bootSaid=true;
-  setStat('\u25e8 Opened <b>this browser\u2019s copy</b> of '+(pmoForOf(MS)? '<b>'+esc(pmoForOf(MS))+'</b>\u2019s' : 'your office\u2019s')+' work. '
+  const g=pmoForOf(MS);
+  setStat('◨ Opened <b>this browser’s copy</b> of '+(g? '<b>'+esc(g)+'</b>’s' : 'your office’s')+' work. '
     +'This file is the PMO copy as it was published'+(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()) : '')
-    +', which every office opens; the work was last saved to a file of its own, and \ud83d\udcbe Save writes it there.');
+    +', which every office opens. '
+    +(g? 'That work was last saved to a file of '+esc(g)+'’s own'+(ownUnsaved(MS, PUB, _bootBase)? ', and has changes since' : '')
+         +': 💾 Save writes to that file, and asks where it is if this browser has not saved it before.'
+       : 'It has <b>not been saved to an office’s file yet</b>: 💾 Save asks where to keep it, in a file of your office’s own.')
+    +bootKeptNote());
 } else if(_bootMoved){
   _bootSaid=true;
-  setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '
-    +'since then as well \u2014 by <b>'+esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))+' \u2014 and what is on screen '
-    +'does not have those changes. \ud83d\udcbe Save will ask before it writes over them; to take theirs instead, '
+  // v2.09 second review: THIS BROWSER'S COPY WITH NO CHANGES SINCE IT WAS SAVED IS ANOTHER SAVE, NOT UNSAVED WORK. Since opening a
+  // newer file writes it into browser storage (so the record and storage agree), opening an older file next shows that newer
+  // save -- the newer of the two opens (v1.89) -- and this line said it had changes made since it was saved and that the file had
+  // "been saved since then as well": neither was true. Said by identity, as Save asks, never by clock order.
+  const mine=ownUnsaved(MS, PUB, _bootBase);
+  setStat('⚠ Opened <b>this browser’s copy</b>'+(mine
+      ? ', which has changes made since it was last saved. The file has been saved since then as well — by <b>'
+        +esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))+' — and what is on screen does not have those changes. '
+        +'💾 Save will ask before it writes over them; to take theirs instead, '
+      : ' — the save this browser last opened or wrote'+(MS.by? ', by <b>'+esc(MS.by)+'</b>' : '')+(MS.ts? ' '+esc(fmtTs(MS.ts)) : '')
+        +', with no changes since. This file is a different save — by <b>'+esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))
+        +' — and what is on screen is not what it holds. 💾 Save will ask before it writes over it; to take this file’s version instead, ')
     // v2.09 review: a copy refuses ⬅ Import of a copy's file (its work is opened, never imported), so it offers the file's own
     // version, keeping this browser's work aside first (pmoTakeFile)
-    +(SANDBOX? '<button type="button" class="nb lnk" onclick="pmoTakeFile()">open the file\u2019s version</button> \u2014 what is on screen is kept aside first, not lost.'
-             : '\u2b05 Import the file.'));
+    +(SANDBOX? '<button type="button" class="nb lnk" onclick="pmoTakeFile()">open the file’s version</button> — what is on screen is kept aside first, not lost.'
+             : '⬅ Import the file.')
+    +bootKeptNote());
 } else if(_impRep){                         // what a full import brought, now that it is open
   statKeep(_impRep); _impRep=null; _impSaid=true;   // v2.03 (item 19): the import's report stays until it is read
 } else if((function(){ try{ return attLists().awfix.length; }catch(e){ return 0; } })()){
@@ -36105,6 +36201,10 @@ try{ const O=cycOverview(), me=O.rows.filter(function(r){ return r.own; })[0];
       +(me.tag? 'tagged '+blLbl(me.tag) : 'not tagged')+', and the other appropriations are on <b>'+blLbl(O.lead)+'</b>. '
       +'<button type="button" class="nb lnk" onclick="cycRetagLead()">Retag '+esc(appnName(mySlug()))+' as '+blLbl(O.lead)+'</button>'); } }catch(e){}
 function loadShared(cb){
+  // v2.09 second review: A PMO COPY READS NO SHARED STATE FILE. The file beside the board is the board's own state, and a copy on
+  // the same share, in a browser where somebody once opted in, loaded it over the office's work (copyImportRefuse's rule: a
+  // copy's work comes and goes only by ✉ Submit input). Answered as an unconfigured machine is: nothing asked for.
+  if(SANDBOX){ cb(undefined); return; }
   // file:// (shared drive / synced folder): fetch is blocked, but XHR works when
   // the board is opened via the provided launcher (--allow-file-access-from-files)
   if(location.protocol==='file:'){

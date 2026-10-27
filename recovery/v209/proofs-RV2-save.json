@@ -1,0 +1,214 @@
+[
+ {
+  "id": "v209-rv2-save-boot-no-write",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-boot-refused-clean",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-boot-writes-unread",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-refused-file-recorded",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-refused-kept-left",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-refused-unsaid",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-putback-office-stays",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-take-file-office-stays",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-save-office-unkept",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-dl-office-unkept",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-follow-drops-choice",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-follow-skips-mark",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-adopt-forgets-choice",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-mine-not-chosen",
+  "caughtBy": "audit-import / v2.09 second review — the office follows the work"
+ },
+ {
+  "id": "v209-rv2-save-published-unmarked-saved",
+  "caughtBy": "audit-import / v2.09 second review — the copy as published says"
+ },
+ {
+  "id": "v209-rv2-save-published-changes-unsaid",
+  "caughtBy": "audit-import / v2.09 second review — the copy as published says"
+ },
+ {
+  "id": "v209-rv2-save-published-save-writes",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one; v2.09 second review — the copy as published says"
+ },
+ {
+  "id": "v209-rv2-save-moved-clean-says-changes",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-kept-note-dropped",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v209-rv2-save-copy-takes-import",
+  "caughtBy": "audit-import / v2.09 second review — a PMO copy takes no board"
+ },
+ {
+  "id": "v209-rv2-save-copy-takes-batch",
+  "caughtBy": "audit-import / v2.09 second review — a PMO copy takes no board"
+ },
+ {
+  "id": "v209-rv2-save-copy-refuse-open",
+  "caughtBy": "audit-import / v2.09 second review — a PMO copy takes no board"
+ },
+ {
+  "id": "v209-rv2-save-copy-reads-sidecar",
+  "caughtBy": "audit-import / v2.09 second review — a PMO copy takes no board"
+ },
+ {
+  "id": "v209-w3-greeting-words",
+  "caughtBy": "audit-other / v2.09 W3 — a copy’s foot"
+ },
+ {
+  "id": "v209-rv-save-take-not-offered",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-published-says-saved-since",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-w3-picker-board-name",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-target-unchecked",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-target-keeps-handle",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-unreadable-written",
+  "caughtBy": "audit-import / v2.09 W3 — Save writes only this copy’s file"
+ },
+ {
+  "id": "v209-w3-writer-gate",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-leaves-dirty",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-lastknown-unmoved",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-hold-on-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-w3-refonly",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-w3-no-mark",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file"
+ },
+ {
+  "id": "v209-rv-save-cancel-no-way",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-cancel-kept-silent",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-moved-handle-kept",
+  "caughtBy": "audit-import / v2.09 review — a file moved or renamed"
+ },
+ {
+  "id": "v209-rv-save-moved-unsaid",
+  "caughtBy": "audit-import / v2.09 review — a file moved or renamed"
+ },
+ {
+  "id": "v209-w3-door-batch",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-door-state",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen"
+ },
+ {
+  "id": "v209-w3-adopt-from-file",
+  "caughtBy": "audit-import / v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "v209-rv-save-adopt-browser-wide",
+  "caughtBy": "audit-import / v2.09 review — opening one office’s file never changes"
+ },
+ {
+  "id": "v209-w3-dl-marks-saved",
+  "caughtBy": "audit-import / v2.09 W3 — one office’s file, two people"
+ },
+ {
+  "id": "v209-rv-save-take-during-save",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-take-no-keep",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-take-occupied-replaced",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-rv-save-take-office-stays",
+  "caughtBy": "audit-import / v2.09 review — opening one office’s file never changes"
+ },
+ {
+  "id": "v209-rv-save-take-unsaved",
+  "caughtBy": "audit-import / v2.09 review — two people in one office"
+ },
+ {
+  "id": "v209-w3-adopt-skipped",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy saves its office’s own file; v2.09 W3 — the file opens on the office"
+ },
+ {
+  "id": "boot-no-keep-aside",
+  "caughtBy": "audit-import / v1.89 — saving never silently overwrites; v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "copy-boot-line",
+  "caughtBy": "audit-import / v1.84 — a copy points to Submit input"
+ }
+]
