@@ -4756,7 +4756,9 @@ pinned to v2.09). Run every suite whole once on the integrated board before the 
 Brad, 27 Oct 2026: *"Keep the band text navy; add the workbook note line."* `fdcLoneSay(st, M)` (moved out of `fdcNotes`) is
 the one statement of the services no sheet takes; `fdcModel` carries it as `M.note` **only when there is one**, `fdcNotes`
 prints `M.note`, and `fdcSheets` writes it under the table on every sheet (merged across, italic Arial 10, left and wrapped,
-`14 pt` a line at about 120 characters, a blank row each side, the footer last). **A model with no note is the v2.10 model and
+14 pt for each line it wraps to -- `fdcWrapLines`, words packed at about 120 characters, a longer word taking the lines it needs,
+held at Excel's 409-point row limit -- a blank row each side, the footer last). **Size a wrapped row by the lines its words wrap
+to, never by its length**: the first cut divided the length, and the review's long unbroken names were cut top and bottom. **A model with no note is the v2.10 model and
 its workbook the v2.10 workbook**: audit-other "v2.11 — …" reads v2.10's `fdcSheets` out of git (`b2cb041`) and compares, so a
 shallow clone needs `git fetch --unshallow` first, as recon and import already do. A note the box shows and the workbook
 writes come from one string; never word the workbook's from the notes list.

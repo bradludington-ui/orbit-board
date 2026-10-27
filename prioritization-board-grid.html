@@ -24733,8 +24733,9 @@ function fdcModel(opts){
   const M={ace:{key:st.ace, label:ACE}, cyc:{key:st.cyc, label:CYC}, years:years, sum:sum, marking:FDC_MARK,
     footer:FDC_MONTHS[now.getMonth()]+' '+now.getFullYear()+' / Sustainment Finance / PSM', sheets:sheets};
   // v2.11 (Brad, 27 Oct 2026: "add the workbook note line"): the services no sheet takes, said once, here -- the box prints
-  // this sentence and the workbook writes it under every sheet's table, so the two cannot word it differently. Only when there
-  // is one: a model without it is the v2.10 model, and its workbook the v2.10 workbook.
+  // this sentence and the workbook writes it under every sheet's table, so from one reading the two cannot word it
+  // differently. (A box left open while another tab saves an appropriation is a reading behind Export: item 131.) Only when
+  // there is one: a model without it is the v2.10 model, and its workbook the v2.10 workbook.
   const note=fdcLoneSay(st, M);
   if(note) M.note=note;
   return M;
@@ -28778,6 +28779,20 @@ const FDC_XL={NAVY:'1F3864', BAND:'8DB4E2', SVCHDR:'9BC2E6', SEP:'404040', GRID:
   FOOT:'595959', MONEY:'$#,##0,,;[Red]($#,##0,,)', PCT:'0%', FONT:'Arial', LBL:52, YR:13};
 // a line's look, by the model's style: bold totals; indented plain and italic parts; the delta under a heavy rule
 const FDC_LINE={bold:{b:1}, sub:{indent:2}, ital:{i:1, indent:2}, delta:{rule:1}, pct:{}};
+// The lines a text wraps to at about `w` characters a line: words packed greedily, as a spreadsheet wraps them, and a word
+// longer than a line taking the lines it needs. v2.11 review (page-1): the note's row was sized by its length alone, and a
+// note of long unbroken service names wrapped to more lines than that, cut at the top and bottom on the printed page.
+// Excel holds a row to 409 points, which is where the caller stops.
+function fdcWrapLines(text, w){
+  let lines=0, cur=0;
+  String(text).split(/\s+/).forEach(function(word){
+    const n=word.length; if(!n) return;
+    if(cur && cur+1+n>w){ lines++; cur=0; }
+    if(n>w){ if(cur){ lines++; cur=0; } lines+=Math.floor(n/w); cur=n%w; return; }
+    cur+= (cur? 1 : 0)+n;
+  });
+  return lines+(cur? 1 : 0) || 1;
+}
 function fdcSheets(model){
   const X=FDC_XL, extra=[], seen=Object.create(null);
   // a text the model leaves out is an empty cell, never the word "undefined"
@@ -28841,13 +28856,13 @@ function fdcSheets(model){
     // v2.11 (Brad, 27 Oct 2026): the services counted on the Summary and on no service sheet, said under the table on every
     // sheet, as the box says it. A service sheet otherwise printed $0 controls for a service renamed out of its group with
     // nothing to say why, and the four sheets did not add up to the Summary. Only when the model carries one: the slides'
-    // look is unchanged otherwise. Merged across the table and wrapped, the row as tall as its lines (about 120 characters
-    // a line at this width), with a blank row before the footer.
+    // look is unchanged otherwise. Merged across the table and wrapped, the row as tall as the lines it wraps to, with a
+    // blank row before the footer.
     if(model.note){
       const nr=rows.length, nt=tx(model.note);
       rows.push([{v:nt, s:look({i:1, sz:10, h:'left', wrap:1})}]);
       merges.push({r:nr, c:0, cs:W});
-      heights[nr]=Math.max(15, 14*Math.ceil(nt.length/120));
+      heights[nr]=Math.min(409, Math.max(15, 14*fdcWrapLines(nt, 120)));
       rows.push([]);
     }
     const k=n-4;

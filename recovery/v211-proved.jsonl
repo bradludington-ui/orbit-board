@@ -78,7 +78,11 @@
 {"id": "v211-note-unmerged", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
 {"id": "v211-note-not-wrapped", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
 {"id": "v211-wrap-dropped", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
-{"id": "v211-note-one-line", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
 {"id": "v211-note-cut", "verdict": "CAUGHT", "fails": ["20"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
-{"id": "v211-note-against-footer", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
 {"id": "v211-lone-estimate-unseen", "verdict": "CAUGHT", "fails": ["22"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-note-one-line", "verdict": "CAUGHT", "fails": ["7"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-note-against-footer", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-note-height-by-length", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-note-height-uncapped", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-wrap-packs-past-width", "verdict": "CAUGHT", "fails": ["7"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}
+{"id": "v211-wrap-ignores-long-word", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b32843bb.mjs", "detail": ""}

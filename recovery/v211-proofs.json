@@ -334,5 +334,21 @@
  {
   "id": "v211-lone-estimate-unseen",
   "caughtBy": "audit-other / v2.11 — the FYDP Disconnects workbook"
+ },
+ {
+  "id": "v211-note-height-by-length",
+  "caughtBy": "audit-other / v2.11 — the FYDP Disconnects workbook"
+ },
+ {
+  "id": "v211-note-height-uncapped",
+  "caughtBy": "audit-other / v2.11 — the FYDP Disconnects workbook"
+ },
+ {
+  "id": "v211-wrap-ignores-long-word",
+  "caughtBy": "audit-other / v2.11 — the FYDP Disconnects workbook"
+ },
+ {
+  "id": "v211-wrap-packs-past-width",
+  "caughtBy": "audit-other / v2.11 — the FYDP Disconnects workbook"
  }
 ]

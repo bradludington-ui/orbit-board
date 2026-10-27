@@ -3848,7 +3848,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // service in a position under the cycle, whose name no group holds (renamed in Setup, say) -- is counted on the Summary alone.
 // The box always said so; the workbook carried none of the box's notes, so a service tab could print $0 controls with nothing to
 // say why. fdcModel now carries the box's sentence (M.note, from fdcLoneSay) and fdcSheets writes it under the table on every
-// sheet: merged across the table, italic, 10 pt, left and wrapped, the row as tall as its lines, a blank row on each side, the
+// sheet: merged across the table, italic, 10 pt, left and wrapped, the row as tall as the lines it wraps to (long unbroken
+// names included, up to Excel's 409-point limit -- the review's page-1), a blank row on each side, the
 // footer last. With no such service there is no note and nothing moves: the model has no note key, and fdcSheets writes what
 // v2.10's wrote for the same model, read from git (b2cb041). Every expectation is typed from the fixture's literals.
 // FAILS ON b2cb041 (v2.10) on every note check; the no-note checks pass there by construction (CONTROLs).
@@ -3881,7 +3882,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     };
     // the sentence, from the fixture: the estimate's line first, then each appropriation's position in the box's order
     const NOTE = 'Counted on the Summary only, on no service sheet: XSVC (2025 ACE); F-35B (O&M BES28); NAVY-X (Full Fund BES28); USMC STOVL (Initial Spares BES28).';
-    const HT = Math.max(15, 14 * Math.ceil(NOTE.length / 120));
+    const HT = 28;   // it wraps to two lines at about 120 characters, 14 pt a line
     // the workbook Export writes, read the way another program reads it: unzipped from the bytes, every part parsed, every row's
     // cells, merges and height, and the look of the cell that holds the note
     const book = B => parse(E(B.ev, `(function(){ var u=null, oB=window.buildXlsx, oC=HTMLAnchorElement.prototype.click;
@@ -3933,6 +3934,40 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         J([at(nr.r - 1).cells.length, at(nr.r + 1).cells.length, last.r, last.cells.map(c => c.text)]),
         J([0, 0, nr.r + 2, [(M.footer || ''), 'CUI//REL TO US DoW']]));
     });
+    // ---- long unbroken names (v2.11 review, page-1): the row is as tall as the lines the note WRAPS to ----------------------
+    // Each name is one 61-character word, so a line holds one name and its place: seven names wrap to seven lines (98 pt),
+    // where the note's length alone said five (70 pt) and LibreOffice cut its first and last lines. Forty wrap to forty, which
+    // Excel's 409-point row limit holds (the length alone said 364).
+    const longName = i => 'LONG' + String(i).padStart(2, '0') + 'X'.repeat(55);
+    [[7, 98], [40, 409]].forEach(([k, ht]) => {
+      const LB = boot();
+      seed(LB.ev, { services: SV, items: [], disc: SV.map(() => 0), mand: SV.map(() => 0), order: [] });
+      const names = Array.from({ length: k }, (_, i) => longName(i));
+      E(LB.ev, `ACEDB.sets=${J({ '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines: linesOf(false), appn: {}, skip: {} } })}; ACEDB.ts=4000;
+        MS.ppbe={'BES|2028':${J(posOf(SV.concat(names), 0))}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(posOf(SV, 1)))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(posOf(SV, 2)))}); render(); 'ok'`);
+      const want = 'Counted on the Summary only, on no service sheet: ' + names.map(n => n + ' (O&M BES28)').join('; ') + '.';
+      const LW = book(LB) || { sheets: [] };
+      const got = SHEETS.map(sn => { const sh = LW.sheets.filter(x => x.name === sn)[0] || { rows: [] };
+        const r = sh.rows.filter(x => x.cells.some(c => c.text === want))[0]; return r ? +r.ht : null; });
+      chk(name, 'long names · ' + k, 'every sheet carries the note whole, its row ' + ht + ' pt: the lines it wraps to' + (ht === 409 ? ', held at Excel’s 409-point limit' : ''),
+        J(got), J(SHEETS.map(() => ht)));
+    });
+    // a word longer than a line takes the lines it needs: an estimate line's service is read from a workbook cell, and a
+    // 250-character one is two full lines and part of a third -- four with the words around it (56 pt), never three (42)
+    {
+      const LB = boot(), big = 'LONG' + 'X'.repeat(246);
+      seed(LB.ev, { services: SV, items: [], disc: SV.map(() => 0), mand: SV.map(() => 0), order: [] });
+      const lines = linesOf(false); { const v = {}; YRS.forEach(y => { v[y] = 4e6 + y; }); lines.push({ ap: 'om', pmo: 'AV', svc: big, v }); }
+      E(LB.ev, `ACEDB.sets=${J({ '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines, appn: {}, skip: {} } })}; ACEDB.ts=4000;
+        MS.ppbe={'BES|2028':${J(posOf(SV, 0))}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(posOf(SV, 1)))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(posOf(SV, 2)))}); render(); 'ok'`);
+      const want = 'Counted on the Summary only, on no service sheet: ' + big + ' (2025 ACE).';
+      const LW = book(LB) || { sheets: [] };
+      chk(name, 'a word longer than a line', 'a 250-character service name: the note’s row is 56 pt on every sheet (four lines)',
+        J(SHEETS.map(sn => { const sh = LW.sheets.filter(x => x.name === sn)[0] || { rows: [] }; const r = sh.rows.filter(x => x.cells.some(c => c.text === want))[0]; return r ? +r.ht : null; })),
+        J(SHEETS.map(() => 56)));
+    }
     // ---- no service outside the groups: no note, and the workbook is v2.10's -----------------------------------------------
     const N = board(false);
     const MN = E(N.ev, `JSON.stringify(fdcModel({ace:'2025ACE', cyc:'BES|2028'}))`);

@@ -183,6 +183,12 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
 Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none is a regression of v2.10's.
 - ~~A service in no group reaches the Summary only, and the workbook does not say so~~ -- **built in v2.11** (Brad, 27 Oct:
   "add the workbook note line"): every sheet says so under its table. Services are still grouped by exact name.
+- **A box left open while another tab saves an appropriation is a reading behind Export** (older than v2.11, since v2.10; found
+  by the v2.11 review, `sentence-1`, confirmed by a skeptic). `fdcStores` reads this browser's storage afresh on every draw, but
+  nothing redraws the open box when another tab writes it (the board has no `storage` listener), and Export reads it again: the
+  workbook can carry figures, and since v2.11 the note, that the box on screen does not. Any pick or tab click redraws the box;
+  the shared folder is read once per opening, so it is not affected. Proposed: a `storage` listener that redraws the open box
+  (never under a figure being typed), and Export refusing a model that differs from the one last drawn, saying the figures moved.
 - **The workbook does not say why an appropriation's lines print —** (not built; Brad chose the note line for the ungrouped
   service alone). When an appropriation's copy could not be read, or it logs no position under the cycle, its lines print —
   in the workbook and only the box says why.
@@ -270,6 +276,15 @@ Brad's two answers to the questions v2.10 left (27 Oct): *"Keep the band text na
   **Only when there is one**: with every service in a group the workbook is exactly v2.10's.
 - **One sentence, one source.** `fdcLoneSay` (moved out of `fdcNotes`) works the sentence out once; `fdcModel` carries it as
   `note` only when there is one; the box prints it and the workbook writes it, so the two cannot word it differently.
+
+**Found by review before merge** (three reviewers by lens -- the sentence, the page, regression -- each finding re-run by a
+skeptic): the regression lens found nothing (with nothing ungrouped, six fixtures' workbooks byte-identical to v2.10's, every
+part; the box's notes identical on ten); the sentence lens found the workbook saying exactly what the box says in every case
+tried (escaping, picks, Full Fund on screen, a locked view, the shared folder, a PMO copy, 22 names) but one older gap, logged as
+item 131 (a box left open while another tab saves); and the page lens found one defect v2.11 had brought in, **fixed**: the
+note's row was sized by its length, so a note of long unbroken service names (about 45 characters or more each) wrapped to more
+lines than that and LibreOffice cut its first and last lines. The row now takes the lines the note wraps to, words packed at
+about 120 characters a line and a longer word taking the lines it needs (`fdcWrapLines`), held at Excel's 409-point limit.
 
 GATE-PLACEHOLDER
 
