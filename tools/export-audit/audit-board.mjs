@@ -3845,8 +3845,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const callsIn = sel => JSON.parse(ev(`(function(){ syncBtns(); return JSON.stringify([].slice.call(document.querySelectorAll(${J(sel)})).map(${callOf})); })()`));
   const flyCalls = k => JSON.parse(ev(`(function(){ const d=document.createElement('div'); d.innerHTML=uiFlyItems(${J(k)});
       return JSON.stringify([].slice.call(d.querySelectorAll('button[onclick]')).map(${callOf})); })()`));
+  // v2.10 A: the foot names FYDP Disconnects among the FYDP views (item 130)
   chk(name, 'contents', 'Spend plan & cash: Two Spend Plans and the CR Cash Return (1A9A); the forecast and CR Cash Needs are views, and the box’s foot says where each view lives',
-    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /CR Cash Needs under Execution ▸; the five-year spend plan, PPBE Budget Positions and Spruills under FYDP ▸/.test(ev(`document.querySelector('#dd_reports .uiRfoot').textContent`))]),
+    J([callsIn('#dd_reports .uiRs[data-g="spend"] .mi'), /CR Cash Needs under Execution ▸; the five-year spend plan, PPBE Budget Positions, Spruills and FYDP Disconnects under FYDP ▸/.test(ev(`document.querySelector('#dd_reports .uiRfoot').textContent`))]),
     J([['togglePlans', 'crExport'], true]));
   // v2.05 (item 114; Brad, 23 Oct 2026): Briefing is Working Documents, without the deck, the synopsis and Executive decision; the
   // companion tool is a link at the foot, and changing it is a setting, under Setup › Who and where
@@ -3877,9 +3878,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       return t+' ['+((b.querySelector('.fmt')||{}).textContent||'')+']'; }).join(' | '); })()`),
     'Excel Workbook [XLSX] | Priority Drill By Band… [XLSX] | Two Spend Plans… [VIEW] | CR Cash Return (1A9A) [XLSX] | FYDP Spend Plan… [XLSX] | Cycle Comparison [XLSX] | '
     + 'Spend Plan Source [XLSX] | IDS Batch Import… [XLSX] | Chart Of Accounts [XLSX] | ACE Tie-Out [XLSX] | Export For GenAI.mil… [TXT] | Import The Answer… [READ] | Review List [VIEW]');
+  // v2.10 A: FYDP Disconnects is a FYDP view, beside the Spruills (item 130)
   chk(name, 'contents', 'the views, one home each on the left menu: FYDP ▸ and Execution ▸',
     J([flyCalls('fydp'), flyCalls('exec')]),
-    J([['toggleFydp', 'toggleSp', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
+    J([['toggleFydp', 'toggleSp', 'toggleFdc', 'toggleP2', 'toggleFlow'], ['toggleEx', 'toggleFc', 'toggleCr', 'toggleQpe', 'toggleDiv']]));
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
@@ -6472,6 +6474,12 @@ await (async () => {
 
 // ==== v2.09 W4 (item 128): the SI tab's requirements by code ====
 // ==== end v2.09 W4 ====
+
+// ==== v2.10 A (item 130): FYDP Disconnects -- the figures and the box ====
+// ==== end v2.10 A ====
+
+// ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
+// ==== end v2.10 B ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

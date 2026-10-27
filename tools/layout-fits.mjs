@@ -711,6 +711,64 @@ const ER_STATE = () => {
     r.cols.length === 3 && new Set(r.cols).size === 1 && r.scrolls && r.foot && !r.side.length, JSON.stringify(r).slice(0, 300));
 }
 
+// ── O. FYDP DISCONNECTS: THE TABLE FITS AT 1366, AND SCROLLS INSIDE ITS BOX BELOW (v2.10, item 130) ───────────────────
+// The Summary and the USAF sheet, with figures as wide as the slides carry (a requirement in the tens of billions, a shortfall in
+// red parentheses) and an International figure typed. At 1920, 1440 and 1366 the table is whole in its box: no cell cuts a
+// label or a figure, no box cuts its value, the pickers and the tabs sit inside the box, nothing scrolls sideways. Narrower
+// than the table's own 900px (800 wide) it scrolls sideways INSIDE its own frame and nothing else does -- not the box, not the
+// page; at 1024 it does whichever it needs, and still cuts nothing. Harbor and Midnight, this font and the Segoe stand-in. The
+// box scrolls down, as every tall box does; that is not measured here.
+{
+  ev(`(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=['USAF','ANG','AFRC','STOVL','USMC-C','USN'], L=[];
+      ['om','ff','sp'].forEach(function(ap,a){ S6.forEach(function(sv,s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*4.4e9+(s+1)*6.1e8+(y-2020)*3.3e7+0.4; }); L.push({ap:ap,pmo:'AV',svc:sv,v:v}); }); });
+      ACEDB.sets['2025ACE']={label:'2025ACE', ts:1700000000061, years:Y, lines:L, appn:{}, skip:{}};
+      var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
+        [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*3.1e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
+      MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; MS.cycle='BES|2028'; save(); })(); 'ok'`);
+  const fileO = join(dir, 'board-o.html'), fileOS = join(dir, 'board-o-segoe.html');
+  writeFileSync(fileO, ev('buildSavedHtml()'));
+  writeFileSync(fileOS, withStandin(readFileSync(fileO, 'utf8')));
+  const LOOK = () => {
+    const m = document.querySelector('#fdcPanel .modal'), w = m && m.querySelector('.fdcwrap'), out = [];
+    if (!m || !w || !document.getElementById('fdcPanel').classList.contains('open')) return { out: ['the box or its table is not on screen'], wrap: false, rows: 0 };
+    const mr = m.getBoundingClientRect(), say = e => '"' + String(e.value || e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"';
+    if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
+    if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
+    const de = document.documentElement; if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
+    for (const c of m.querySelectorAll('#fdcPage td, #fdcPage th')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
+    for (const i of m.querySelectorAll('input')) if (i.scrollWidth > i.clientWidth + 1) out.push('the box cuts its value: ' + say(i));
+    const cv = document.createElement('canvas').getContext('2d');
+    for (const s of m.querySelectorAll('select')) { const o = s.options[s.selectedIndex]; if (!o) continue; const cs = getComputedStyle(s); cv.font = cs.font;
+      if (cv.measureText(o.text).width > s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20 + 1) out.push('the picker cuts its name: ' + say(o)); }
+    for (const e of m.querySelectorAll('.fdcbar > *, .fdctabs button, h3 .x')) { const r = e.getBoundingClientRect();
+      if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
+    return { out, wrap: w.scrollWidth > w.clientWidth + 1, rows: m.querySelectorAll('#fdcPage tbody tr').length };
+  };
+  const OPEN = (tab) => { if (!fdcOpen) toggleFdc(); fdcTab(tab);
+    if (tab === 0) { const e = document.getElementById('fdcIn_ir_om_2028'); if (e) { e.value = '12,345.6'; e.dispatchEvent(new Event('change', { bubbles: true })); } } };
+  const fails = [], scroll = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileO], ['the Segoe stand-in', fileOS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1920, 969], [1440, 900], [1366, 657], [1024, 700], [800, 700]]) {
+        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
+        if (at === fileOS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        for (const tab of [0, 1]) {
+          const r = await p.evaluate(([o, look, tb]) => { (0, eval)('(' + o + ')')(tb); return (0, eval)('(' + look + ')')(); }, [OPEN.toString(), LOOK.toString(), tab]);
+          read++;
+          const tag = `${w}x${h} ${theme || 'midnight'} ${font} ${tab ? 'USAF' : 'Summary'}`;
+          if (r.rows < 20) fails.push(`${tag}: only ${r.rows} rows on screen`);
+          r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
+          if (w >= 1366 && r.wrap) scroll.push(`${tag}: the table scrolls sideways at a width it fits`);
+          if (w === 800 && !r.wrap) scroll.push(`${tag}: the table does not scroll inside its frame, narrower than it`);
+        }
+        await ctx.close();
+      }
+  chk('O · FYDP Disconnects: nothing cut, nothing past the box, neither the box nor the page scrolls sideways (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in, Summary and USAF)',
+    fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
+  chk('O · the table fits whole at 1920, 1440 and 1366, and scrolls sideways inside its own frame at 800, narrower than it',
+    scroll.length === 0 && read === 40, scroll.slice(0, 4).join('; '));
+}
+
 await b.close();
 console.log(bad ? `\n${bad} layout check(s) failed\n` : '\nThe layout holds: the posture is the scorecards, no menu item was lost, nothing is clipped, the requirements are on screen, Brief is read-only, and the modes change no data'
   + ' -- with the RECORD panel sliding over and docked\n');

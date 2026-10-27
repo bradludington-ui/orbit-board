@@ -8,8 +8,8 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 43 | 301 | 108 | 51 / 43 / 14 | 192 | **1** |
-| money-coverage registry | 28 | 196 | 70 | 42 / 20 / 8 | 125 | **1** |
+| **every registered surface** | 44 | 308 | 112 | 55 / 43 / 14 | 195 | **1** |
+| money-coverage registry | 29 | 203 | 74 | 46 / 20 / 8 | 128 | **1** |
 | trace-matrix surfaces | 15 | 105 | 38 | 9 / 23 / 6 | 67 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
@@ -62,6 +62,7 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `cycProjOf` | money-coverage | n/a | proven·G | proven·G | proven·G | n/a | n/a | proven·G |
 | `spGather` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | n/a |
 | `pmoDetail` | money-coverage | proven·A | proven·AG | proven·A | n/a | n/a | n/a | n/a |
+| `exportFdc` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | proven·A |
 | `exportProposedOrder` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `exportIdsReq` | money-coverage | n/a | n/a | proven·A | proven·A | n/a | n/a | proven·A |
 | `exportRlgPlan` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -410,6 +411,18 @@ Money-coverage surface. The Spruills PMO drill (Spruills › By PMO › one PMO 
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
 - **Funding lane** — n/a: States the requirement and the Controls (the allocation, or a cycle’s position); no lane draw.
 
+### `exportFdc`
+
+Money-coverage surface. FYDP Disconnects (v2.10, item 130): the cost estimate’s requirement against a PPBE cycle’s controls, Discretionary and Mandatory, by appropriation (O&M, Full Fund, Spares) and service group, year by year with the FYDP total, the delta and % Funded, and the International figures typed on the Summary -- on screen, and the workbook printed from the same model.
+
+- **Appropriation** — proven·A: `export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* [arithmetic] — each appropriation’s controls from its own store, as its own board opens it; OPN left out
+- **Fiscal year** — proven·A: `export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* [arithmetic] — the cycle sets the years (BES28: FY27–FY32, PB27: FY26–FY31); a year with no position, or no estimate column, is —
+- **Service** — proven·A: `export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* [arithmetic] — USAF with ANG and AFRC, STOVL, USMC CV, USN CV, each by appropriation and in total; the Summary every service
+- **Requirement** — n/a: States no figure for a single requirement.
+- **Month** — n/a: Places no money in time: no month, no date, no window.
+- **CR half** — n/a: Places no money in time: no month, no date, no window.
+- **Funding lane** — proven·A: `export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* [arithmetic] — Discretionary and Mandatory, each its own line, by appropriation, sheet and year
+
 ### `exportProposedOrder`
 
 Money-coverage surface. Carries no money (money-coverage REGISTRY).
@@ -742,3 +755,4 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `v199.flow` | `tools/export-audit/audit-recon.mjs` › *v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year* | arithmetic | The panel set to FY25 + FY26, O&M only: the export states that scope, US $3,000 (O&M’s two years), partner $300 once and labelled portfolio-wide, $3,300, and no Full Fund line; FY27 across every appropriation: O&M planned $5,000 and Full Fund executed $800, $5,800, with the mix named. Every figure is the fixture’s own arithmetic. |
 | `v199.ace` | `tools/export-audit/audit-recon.mjs` › *v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for* | arithmetic | Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same. |
 | `ot.aiReview` | `tools/export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* | arithmetic | The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes. |
+| `ot.v210a` | `tools/export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* | arithmetic | FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook. |

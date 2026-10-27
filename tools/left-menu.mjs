@@ -79,6 +79,7 @@ const WANT = {
   aiExport: 1, '#aiFile': 1, aiOpen: 1,   // v2.04 (item 109): Reports & exports › AI review (GenAI.mil)
   // FYDP ▸ (views only)
   toggleFydp: 1, toggleSp: 1, toggleP2: 1, toggleFlow: 1,
+  toggleFdc: 1,           // v2.10 (item 130): FYDP › FYDP Disconnects…, beside the Spruills
   // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
   toggleEx: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
 };
@@ -155,7 +156,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.03: 67 since v2.02 removed the ATR/BTR tracker's two calls; this read 69, failing, from v2.02 (outside verify:grid's run)
       // v2.04: 71 -- the three AI review entries (item 109) and Clear this computer (item 106)
       // v2.05: 68 -- the PowerPoint deck, the Exec synopsis and Executive decision removed (item 114)
-      off.length === 0 && Object.keys(WANT).length === 68, off.slice(0, 12).join(' | '));
+      // v2.10: 69 -- FYDP › FYDP Disconnects… (item 130)
+      off.length === 0 && Object.keys(WANT).length === 69, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
@@ -239,6 +241,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.09 (item 127): the copy's own Save, once, and its own Save a copy, once; the board's Save and Save a copy not at all
       chk('D · the copy’s 💾 Save and its Save a copy are each reached once, the board’s Save and Save a copy not at all',
         J([n.pmoSaveCopy || 0, n.pmoSaveCopyDl || 0, n.saveInPlace || 0, n.publishState || 0]) === J([1, 1, 0, 0]), J(n));
+      // v2.10 (item 130): FYDP Disconnects sets three appropriations side by side; a copy holds one, and does not offer it
+      chk('D · FYDP › FYDP Disconnects… is not offered in a copy', (n.toggleFdc || 0) === 0, J(n));
       await p.click('#uiNav_save'); await p.waitForTimeout(120);
       const off = await p.evaluate(() => [...document.querySelectorAll('#uiFly.open button.mi')].map(e => [e.getAttribute('onclick'), (e.querySelector('.sub') || {}).textContent]));
       // v2.09 (item 127): it listed the board's Save and Save a copy, off ("turned off in a PMO copy"); the copy saves now

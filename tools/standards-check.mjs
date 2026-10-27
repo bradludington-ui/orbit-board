@@ -422,6 +422,30 @@ for (const build of BUILDS) {
     if (!edShown.n) record(build, theme, { sc: 'coverage', key: 'the edit box was not on screen whole to measure',
       detail: 'the box with the OGC fields, the written fields and the required list was NOT shown' + (edShown.err ? ' (' + edShown.err + ')' : ''), n: 1 });
 
+    // v2.10 (item 130): FYDP DISCONNECTS, measured with its tables on screen, as the Add and edit boxes are: a cost estimate across
+    // O&M, Full Fund and Spares and O&M's BES28 position put on the board, an International figure typed, the Summary, then the
+    // USAF sheet. Its page is white in every theme, in the slides' own colours; it must be on screen, or the run fails.
+    const fdcShown = await page.evaluate(() => { try {
+      if (typeof toggleFdc !== 'function') return { n: false };
+      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
+      const Y = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033], S6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], L = [];
+      ['om', 'ff', 'sp'].forEach((ap, a) => S6.forEach((sv, s) => { const v = {}; Y.forEach(y => { v[y] = (a + 1) * 9e8 + (s + 1) * 4e7 + (y - 2020) * 3e6; }); L.push({ ap, pmo: 'AV', svc: sv, v }); }));
+      ACEDB.sets['2025ACE'] = { label: '2025ACE', ts: Date.now(), years: Y, lines: L, appn: {}, skip: {} };
+      const val = {}, lines = {}; S6.forEach((sv, s) => { lines[sv] = [{ k: '_all', all: true }]; val[sv] = { _all: {} };
+        [2027, 2028, 2029, 2030, 2031, 2032].forEach(y => { val[sv]._all[y] = { d: (s + 1) * 1.3e8 + (y - 2027) * 2e6, m: y === 2027 ? 5e6 : 0 }; }); });
+      MS.ppbe = MS.ppbe || {}; MS.ppbe['BES|2028'] = { v: 2, split: true, lines, val };
+      if (!fdcOpen) toggleFdc(); fdcTab(0);
+      const e = document.getElementById('fdcIn_ir_om_2028'); e.value = '1,234.5'; e.dispatchEvent(new Event('change', { bubbles: true }));
+      return { n: document.querySelectorAll('#fdcPage tbody tr').length > 40 && e.value === '$1,234.5' && !!document.querySelector('#fdcPage .neg') };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const fdcSvc = await page.evaluate(() => { try { fdcTab(1); return /USAF CTOL/.test(document.querySelector('#fdcPage .fdct2').textContent); } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { if (fdcOpen) toggleFdc(); delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']; } catch (e) {} });
+    if (!fdcShown.n || !fdcSvc) record(build, theme, { sc: 'coverage', key: 'FYDP Disconnects was not on screen whole to measure',
+      detail: `the Summary with its figures, a shortfall and an International figure ${fdcShown.n ? 'was' : 'was NOT'} shown; the USAF sheet ${fdcSvc ? 'was' : 'was NOT'}`
+        + (fdcShown.err ? ' (' + fdcShown.err + ')' : ''), n: 1 });
+
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.
     if (theme === THEMES[0]) {
