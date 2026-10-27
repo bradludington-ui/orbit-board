@@ -14,6 +14,12 @@
 //   E. THE HANDLE STORE: the board's own entry (under its file name) is as the board left it; the copy's is under a key of
 //      its own, naming this copy and this office.
 //   F. THE BOARD (a CONTROL): its foot is as it was -- no copy Save, Tab goes from Setup to 💾 Save.
+//   G. TWO TABS, ONE BROWSER (v2.09 review): PSM's file in one tab, AV's in another, one storage between them -- the second
+//      leaves the first on PSM and writes nothing into the browser's office setting; the person's own choice still does,
+//      and the copy as published opened next follows it (a CONTROL).
+//   H. A FILE MOVED AFTER ITS FIRST SAVE (v2.09 review), with a real file handle (the origin-private file system, so the page
+//      is served from 127.0.0.1): the browser reads the moved file's handle as NotFoundError; Save says so and forgets the
+//      handle, and after a reopen it asks where the file is -- the copy's Save and the board's.
 //
 //   node tools/pmo-save.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -182,6 +188,99 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('F · the section ran on the board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
+}
+
+// ── G: two tabs, one browser (v2.09 review) ──────────────────────────────────────────────────────────────────────────────
+// PSM's file and AV's file of the copy, each built as the copy's Save builds it (the board's own assembly, the office's mark set
+// as Save sets it), and opened in two tabs of one browser, which share one storage as every file:// page does
+{
+  const officeFile = (off, desc) => { const X = boot({ html: copyHtml }); X.ev(`setDesc('R0', ${J(desc)}); MS.pmoFor={pmo:${J(off)}}; 'ok'`); return X.ev('buildSavedHtml()'); };
+  const psmFile = join(dir, 'office', 'PSM file.html'), avFile = join(dir, 'office', 'AV file.html');
+  writeFileSync(psmFile, officeFile('PSM', 'PSM wrote R0')); writeFileSync(avFile, officeFile('ATL', 'ATL wrote R0'));
+  const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Helper'); } catch (e) {} });
+  try {
+    const T1 = await openIn(ctx, psmFile);
+    const at = p => p.evaluate(() => ({ off: myPmo(), banner: (document.getElementById('subBanner') || {}).textContent || '', add: arOfficeStart().g,
+      setting: localStorage.getItem('prio27pmo') }));
+    const a1 = await at(T1.p);
+    chk('G · the first tab opens PSM’s file on PSM (a CONTROL: the file’s office, Brad’s rule)', a1.off === 'PSM' && /\u{1F3E2} PSM/u.test(a1.banner), J(a1));
+    const T2 = await openIn(ctx, avFile);
+    const a2 = await at(T2.p);
+    chk('G · the second tab opens ATL’s file on ATL (a CONTROL)', a2.off === 'ATL', J(a2));
+    const b1 = await at(T1.p);
+    chk('G · the first tab stays on PSM, its bar and its Add box with it, and the browser’s office setting is untouched',
+      J([b1.off, /\u{1F3E2} PSM/u.test(b1.banner), b1.add, b1.setting]) === J(['PSM', true, 'PSM', null]), J(b1));
+    // the person's own choice, in the second tab: written for the browser, as it always was -- the first tab keeps its office
+    await T2.p.evaluate(() => { window.prompt = () => 'ATL'; pickMyPmo(); });
+    const c1 = await at(T1.p);
+    chk('G · a choice made in the second tab is the browser’s setting (a CONTROL), and the first tab keeps PSM', J([c1.setting, c1.off, c1.add]) === J(['ATL', 'PSM', 'PSM']), J(c1));
+    const T3 = await openIn(ctx, copyFile);
+    const a3 = await at(T3.p);
+    chk('G · the copy as published, opened next, follows that choice (a CONTROL: as in v2.08)', a3.off === 'ATL', J(a3));
+    chk('G · nothing threw', [T1, T2, T3].every(t => t.errs.length === 0), [...T1.errs, ...T2.errs, ...T3.errs].slice(0, 2).join(' | '));
+  } catch (e) { chk('G · the section ran', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+  await ctx.close();
+}
+
+// ── H: a file moved after its first Save, with a real file handle (v2.09 review) ──────────────────────────────────────────
+// The origin-private file system gives the page real file handles it can move a file from, and a page served from 127.0.0.1
+// has one; a file:// page has none. The handle the board keeps in its store is then a real one, kept across a reopen.
+{
+  const { createServer } = await import('node:http');
+  const pages = { '/copy.html': copyHtml, '/board.html': boardHtml };
+  const srv = createServer((q, s) => { const t = pages[String(q.url).split('?')[0]];
+    if (!t) { s.statusCode = 404; s.end(''); return; } s.setHeader('content-type', 'text/html; charset=utf-8'); s.end(t); }).listen(0, '127.0.0.1');
+  await new Promise(r => srv.on('listening', r));
+  const base = 'http://127.0.0.1:' + srv.address().port;
+  // the picker hands back the file named, made in the page's own file system if it is not there
+  const PICKER = name => { window.__picked = window.__picked || [];
+    window.showSaveFilePicker = async o => { window.__picked.push(o && o.suggestedName);
+      const root = await navigator.storage.getDirectory(); return root.getFileHandle(name, { create: true }); }; };
+  const readF = (p, name) => p.evaluate(async n => { try { const root = await navigator.storage.getDirectory();
+    return await (await (await root.getFileHandle(n)).getFile()).text(); } catch (e) { return 'ERR ' + e.name; } }, name);
+  const move = (p, from, to) => p.evaluate(async ([a, z]) => { const root = await navigator.storage.getDirectory();
+    const t = await (await (await root.getFileHandle(a)).getFile()).text();
+    const h = await root.getFileHandle(z, { create: true }), w = await h.createWritable(); await w.write(t); await w.close();
+    await root.removeEntry(a); }, [from, to]);
+  const stat = p => p.evaluate(() => (document.getElementById('shareStat') || {}).textContent || '');
+  const open = async (ctx, path) => { const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('dialog', d => d.accept());
+    await p.goto(base + path);
+    await p.waitForFunction(() => typeof render === 'function' && document.documentElement.classList.contains('ui-on') && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.waitForTimeout(300); return { p, errs }; };
+  for (const [who, path, saveFn, file, moved, key] of [
+    ['the copy', '/copy.html', 'pmoSaveCopy()', 'PSM file.html', 'PSM file (moved).html', 'pmo-copy|'],
+    ['the board', '/board.html', 'saveInPlace()', 'board.html', 'board (moved).html', FNAME]]) {
+    // a browser of its own each: this Chromium dies outright when a page uses a kept handle whose file has gone (measured on the
+    // board before the fix, which kept it), and a death must fail this section, not every one after it
+    const hb = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
+    let died = false; hb.on('disconnected', () => { died = true; });
+    try {
+      const ctx = await hb.newContext({ viewport: { width: 1366, height: 768 } });
+      await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Pat'); localStorage.setItem('prio27pmo', 'PSM'); } catch (e) {} });
+      let P = await open(ctx, path);
+      await P.p.evaluate(PICKER, file);
+      await P.p.evaluate(fn => { setDesc('R0', 'MARK-ONE'); return eval(fn); }, saveFn); await P.p.waitForTimeout(700);
+      const s1 = await P.p.evaluate(() => window.__picked.length);
+      chk(`H · ${who}: the first Save writes a real file, picked once (the fixture)`, s1 === 1 && /MARK-ONE/.test(await readF(P.p, file)), J([s1, (await stat(P.p)).slice(0, 120)]));
+      await move(P.p, file, moved);
+      await P.p.evaluate(fn => { setDesc('R0', 'MARK-TWO'); return eval(fn); }, saveFn); await P.p.waitForTimeout(700);
+      const st = await stat(P.p), all = await idbAll(P.p), kept = Object.keys(all).filter(k => k.indexOf(key) === 0 && all[k]);
+      chk(`H · ${who}: moved, the browser cannot read the handle; Save writes nothing, says the file is no longer where it was saved, and forgets the handle`,
+        /no longer where it was saved/.test(st) && !/MARK-TWO/.test(await readF(P.p, moved)) && kept.length === 0, J([st.slice(0, 160), kept]));
+      await P.p.close();
+      // reopened in the same browser: the next Save asks where the file is, and writes the one picked
+      P = await open(ctx, path);
+      await P.p.evaluate(PICKER, moved);
+      await P.p.evaluate(fn => { setDesc('R0', 'MARK-THREE'); return eval(fn); }, saveFn); await P.p.waitForTimeout(700);
+      const s3 = await P.p.evaluate(() => window.__picked.length);
+      chk(`H · ${who}: reopened, the next Save asks where the file is, and writes the file picked`, s3 === 1 && /MARK-THREE/.test(await readF(P.p, moved)), J([s3, (await stat(P.p)).slice(0, 160)]));
+      chk(`H · ${who}: nothing threw`, P.errs.length === 0, P.errs.slice(0, 2).join(' | '));
+    } catch (e) { chk(`H · ${who}: the section ran`, false, (died? 'the browser died on a handle it kept to the moved file: ' : '')
+      + String(e.message || e).split('\n')[0].slice(0, 160)); }
+    await hb.close().catch(() => {});
+  }
+  srv.close();
 }
 
 await b.close();
