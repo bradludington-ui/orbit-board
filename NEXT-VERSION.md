@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.10**. Next: **v2.11**.
+Current version: **v2.11**. Next: **v2.12**.
 
 ## Open
 
@@ -181,13 +181,11 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
 
 #### 131. Found while building v2.10, not built
 Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none is a regression of v2.10's.
-- **A service in no group reaches the Summary only, and the workbook does not say so** (Brad's call). The same holds for an
-  appropriation whose copy could not be read: its lines print —, and only the box says why. FYDP Disconnects groups
-  services by exact name (USAF with ANG and AFRC; STOVL with Full Fund's USMC-B; USMC-C; USN). A service renamed in Setup to
-  a name outside those, or a position keyed `usmc-b` or `USMC STOVL`, counts on the Summary only. The box names it ("Counted on the
-  Summary only"), but the workbook carries none of the box's notes, so a service tab can print $0 controls with nothing to say
-  why. Options: a note line under the table in the workbook only when a service is ungrouped (it changes the slides' look in
-  that case alone), or matching services case- and space-insensitively.
+- ~~A service in no group reaches the Summary only, and the workbook does not say so~~ -- **built in v2.11** (Brad, 27 Oct:
+  "add the workbook note line"): every sheet says so under its table. Services are still grouped by exact name.
+- **The workbook does not say why an appropriation's lines print —** (not built; Brad chose the note line for the ungrouped
+  service alone). When an appropriation's copy could not be read, or it logs no position under the cycle, its lines print —
+  in the workbook and only the box says why.
 - **The five-year plan reads a copy in the shared folder that cannot be read as "none there"** (older than v2.10, since v1.85).
   `fydpStoreFolder` without `strict` takes a copy mid-sync, cut short or not a board as no copy, and uses this browser's.
   v2.10 gave FYDP Disconnects the strict reading (only NotFoundError means none, as `driveStoreRead` reads it); the five-year
@@ -259,6 +257,22 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
+### v2.11 — 27 Oct 2026: the FYDP Disconnects workbook says which services are counted on the Summary only -- built on Brad's "add the workbook note line" of 27 Oct
+
+Brad's two answers to the questions v2.10 left (27 Oct): *"Keep the band text navy; add the workbook note line."*
+- **The band text stays navy on screen** (white on the band's light blue fails Section 508's contrast floor); the workbook
+  keeps the slides' white. Nothing changes.
+- **The note line.** A service no sheet takes -- an estimate line, or a service in a position under the cycle, whose name no
+  group holds (renamed in Setup, say) -- is counted on the Summary alone. The box always said so; the workbook said nothing,
+  so a service tab could print $0 controls with no reason given. Now every sheet of the workbook says it under its table, in
+  the box's own words: *"Counted on the Summary only, on no service sheet: XSVC (2025 ACE); F-35B (O&M BES28)."* -- merged across
+  the table, italic Arial 10 pt, wrapped, the row as tall as its lines, a blank row on each side, the footer still last.
+  **Only when there is one**: with every service in a group the workbook is exactly v2.10's.
+- **One sentence, one source.** `fdcLoneSay` (moved out of `fdcNotes`) works the sentence out once; `fdcModel` carries it as
+  `note` only when there is one; the box prints it and the workbook writes it, so the two cannot word it differently.
+
+GATE-PLACEHOLDER
+
 ### v2.10 — 27 Oct 2026: FYDP Disconnects, the Spruill charts by appropriation, on screen and in Excel -- built on Brad's "Go" of 27 Oct
 
 Item 130 was built as Brad decided it on 27 Oct (his decisions are under the item below). It was built by two builders in
@@ -290,8 +304,8 @@ after v2.09 merged. Where the build differs from the log, or had to decide somet
 - **Not offered in a PMO copy**, which holds one appropriation; it refuses with the reason.
 - **A locked cycle view works** (it only reads); the file name carries the lock's mark.
 - **On screen the appropriation band's text is navy, not white**: white on the band's `#8DB4E2` is 2.15:1, under Section 508's
-  4.5:1 (WCAG 1.4.3), and `npm run standards` reports it. The workbook keeps the slides' white. Brad may want the screen white
-  anyway; it would be a standards finding.
+  4.5:1 (WCAG 1.4.3), and `npm run standards` reports it. The workbook keeps the slides' white. Brad kept the screen navy
+  (27 Oct: "Keep the band text navy").
 - **Services match by name**, in the groups above; Full Fund's `USMC-B` is the STOVL sheet's (the board's own alias table).
   A service in no group counts on the Summary only, and the box names it (item 131 for the workbook).
 - **One page tall as well as wide**, printed centred; the marking in row 1 and in the footer row.
