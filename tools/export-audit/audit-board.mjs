@@ -6341,6 +6341,127 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 })();
+// v2.09 third review (clin): A HANDLER THAT NAMES A PLACE IN A LIST NAMES WHATEVER STANDS THERE NOW. The second review found a
+// control again by its handler; an award's ✕ is rmAwd(id, 0), its date setAwdIncDate(id, 1, …), a WBS line's ✕ wbsDel(…, 0), a
+// line of the not-drawn list ndSetDrawn(0), a band's ▲ bandMove(2, -1): each names its item by its place. After a commit that
+// took the item out or re-sorted the list, the handler named the item moved into the place, and the keyboard went there -- a
+// second Enter removed the next award, re-dated another, cut the next requirement's directed figure, deleted the next WBS line
+// with its dollars, or moved the band back (Chromium and jsdom, d3ce17d; the boxes also on ba3c294 and v2.08, by the box's own
+// search for "the same onclick and text"). The rule: after a redraw the keyboard is back on the same control standing for the
+// SAME item, or nowhere -- in a box, on the box itself. jsdom has no layout, so for the boxes the board's test of what is on
+// screen is answered "yes" for every element while it runs (the browser's answer; npm run pointer H is the same in Chromium).
+// Each part fails on d3ce17d unless it says CONTROL.
+await (async () => {
+  const name = 'v2.09 third review — clin: a control that names its item by its place is found again only where that item still stands';
+  try {
+  const J = JSON.stringify;
+  const itx = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const part = (tag, fn) => { try { fn(); } catch (e) { failures.push({ scenario: name, where: tag, what: 'the part threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' }); } };
+  // T carries three awards (Dec $100, Mar $200, Jun $50 on USAF); X and Y are directed $600 of USAF discretionary each against a
+  // USAF lane of $500, so X draws $500 and Y nothing -- two lines of the not-drawn list, X's first
+  const mk = () => {
+    const B = boot(); const items = [itx('X', 'AV', [600, 0, 0]), itx('Y', 'AV', [600, 0, 0]), itx('T', 'AV', [400, 0, 0]), itx('U', 'AV', [100, 0, 0])];
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items, disc: [500, 9000, 9000], mand: [0, 0, 0], order: ['X', 'Y', 'T', 'U'],
+      fsrc: { X: { m: 'split', dv: [600, 0, 0], mv: [0, 0, 0] }, Y: { m: 'split', dv: [600, 0, 0], mv: [0, 0, 0] } } });
+    B.ev(`(function(){ BASE_ITEMS.length=0; ${J(items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards.T={mode:'inc', inc:[{d:FYMON[2][0], day:5, sv:[100,0,0]}, {d:FYMON[5][0], day:9, sv:[200,0,0]}, {d:FYMON[8][0], day:12, sv:[50,0,0]}]};
+      S.wbs.T=[{w:'1.1', v:[100,0,0]}, {w:'1.2', v:[100,0,0]}, {w:'1.3', v:[100,0,0]}];
+      window.confirm=function(){ return true; }; window.alert=function(){};
+      UI2.on=true; UI2.dock=true; uiMode='review'; uiApply(); setCur('T'); save(); render();
+      window.__kb=function(){ var a=document.activeElement; if(!a || a===document.body) return 'nowhere';
+        if(a.classList && a.classList.contains('modal')) return 'the box '+(a.parentElement? a.parentElement.id : '');
+        return (a.getAttribute('onchange')||a.getAttribute('onclick')||'').replace(/,this\\.value\\)$/, ')').slice(0, 40); };
+      // a button pressed from the keyboard: the key, then the click it makes; and again on whatever has the keyboard now
+      window.__enter=function(b){ b.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); b.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window})); };
+      window.__again=function(){ var a=document.activeElement; if(a && a.tagName==='BUTTON') __enter(a); return 'ok'; };
+      window.__btn=function(sc, h){ return [].filter.call(document.querySelectorAll(sc+' button'), function(b){ return b.getAttribute('onclick')===h; })[0]; };
+      window.__inp=function(sc, h){ return [].filter.call(document.querySelectorAll(sc+' input'), function(b){ return b.getAttribute('onchange')===h; })[0]; };
+      window.__aw=function(){ return S.awards.T.inc.map(function(x){ return FYMON.findIndex(function(m){ return m[0]===x.d; })+'/'+x.day+':'+x.sv[0]; }).join(' | '); };
+      return 'ok'; })()`);
+    return B;
+  };
+  // the board's "is it on screen" answered yes while fn runs: jsdom draws nothing, and a box looks for its control only among those
+  const shown = (ev, fn) => { ev(`window.__gcr=Element.prototype.getClientRects; Element.prototype.getClientRects=function(){ return [{}]; }; 'ok'`);
+    try { return fn(); } finally { ev(`Element.prototype.getClientRects=window.__gcr; 'ok'`); } };
+
+  // ---- 1. the finding: an award's ✕ in the RECORD panel, from the keyboard
+  part('an award’s ✕', () => {
+    const { ev } = mk();
+    ev(`(function(){ var b=__btn('#inspector', 'rmAwd("T",0)'); b.focus(); __enter(b); return 'ok'; })()`);
+    chk(name, 'an award’s ✕', 'the first award’s ✕ pressed from the keyboard: the Dec award is removed, and the keyboard goes nowhere -- not to the Mar award’s ✕, moved into its place as rmAwd("T",0)',
+      ev(`JSON.stringify([__aw(), __kb()])`), J(['5/9:200 | 8/12:50', 'nowhere']));
+    ev(`__again()`);
+    chk(name, 'an award’s ✕', 'and a second Enter removes nothing: the Mar $200 and Jun $50 awards are both still there', ev(`__aw()`), '5/9:200 | 8/12:50');
+  });
+  // ---- 2. an award's date walked past another: the award re-sorts, and the date box at its old place is another award's
+  part('an award’s date', () => {
+    const { ev } = mk();
+    const date = (i, m, d) => `(function(){ var A=__inp('#inspector', 'setAwdIncDate("T",${i},this.value)'); A.focus(); A.value=FYMON[${m}][0]+'-${d}';
+      A.dispatchEvent(new Event('input', {bubbles:true})); A.dispatchEvent(new Event('change', {bubbles:true})); return __kb()+' '+(document.activeElement.value||''); })()`;
+    // Chromium commits a date box on every step of ArrowUp, the box keeping the keyboard: a step that stays between its
+    // neighbours keeps it there
+    chk(name, 'an award’s date', 'CONTROL: the Mar award re-dated to Apr, still before Jun: the keyboard stays on its date box, holding the new date',
+      ev(date(1, 6, '09')), 'setAwdIncDate("T",1) ' + ev(`FYMON[6][0]`) + '-09');
+    const B2 = mk();
+    chk(name, 'an award’s date', 'the Mar award re-dated to Jul, past the Jun award: the awards re-sort and the keyboard goes nowhere -- not to the date box now at its place, the Jun award’s',
+      B2.ev(date(1, 9, '09')).split(' ')[0], 'nowhere');
+    B2.ev(`(function(){ var A=document.activeElement; if(A && A.tagName==='INPUT'){ A.value=FYMON[10][0]+'-12'; A.dispatchEvent(new Event('change', {bubbles:true})); } return 'ok'; })()`);
+    chk(name, 'an award’s date', 'and the next step re-dates nothing: the Jun $50 award keeps its date, and the Jul award is the $200', B2.ev(`__aw()`), '2/5:100 | 8/12:50 | 9/9:200');
+  });
+  // ---- 3. "set to drawn" in the not-drawn list, a box: the next line is another requirement's
+  part('set to drawn', () => {
+    const { ev } = mk();
+    ev(`ndOpen=true; render(); dlgSync(); 'ok'`);
+    chk(name, 'set to drawn', 'CONTROL: the list holds X’s line, then Y’s', ev(`JSON.stringify(ndData().list.map(function(g){ return g.id; }))`), J(['X', 'Y']));
+    shown(ev, () => {
+      ev(`(function(){ var b=__btn('#ndBody', 'ndSetDrawn(0)'); b.focus(); __enter(b); dlgSync(); return 'ok'; })()`);
+      chk(name, 'set to drawn', 'X’s line set to drawn from the keyboard: X is directed what it drew, and the keyboard is on the box itself -- not on the button now at its place, Y’s',
+        ev(`JSON.stringify([S.fsrc.X.dv, __kb()])`), J([[500, 0, 0], 'the box ndPanel']));
+      ev(`__again(); dlgSync(); 'ok'`);
+    });
+    chk(name, 'set to drawn', 'and a second Enter leaves Y’s directed figure as it was', ev(`JSON.stringify(S.fsrc.Y.dv)`), J([600, 0, 0]));
+  });
+  // ---- 4. a WBS line's ✕, in its box
+  part('a WBS line’s ✕', () => {
+    const { ev } = mk();
+    ev(`toggleWbs('req', 'T'); dlgSync(); 'ok'`);
+    shown(ev, () => {
+      ev(`(function(){ var b=__btn('#wbsBody', 'wbsDel("req","T","",0)'); b.focus(); __enter(b); dlgSync(); return 'ok'; })()`);
+      chk(name, 'a WBS line’s ✕', 'line 1.1’s ✕ pressed from the keyboard: 1.1 is removed, and the keyboard is on the box itself -- not on 1.2’s ✕, moved into its place',
+        ev(`JSON.stringify([S.wbs.T.map(function(x){ return x.w; }), __kb()])`), J([['1.2', '1.3'], 'the box wbsPanel']));
+      ev(`__again(); dlgSync(); 'ok'`);
+    });
+    chk(name, 'a WBS line’s ✕', 'and a second Enter removes nothing: 1.2 and 1.3 are there with their dollars', ev(`JSON.stringify(S.wbs.T)`), J([{ w: '1.2', v: [100, 0, 0] }, { w: '1.3', v: [100, 0, 0] }]));
+  });
+  // ---- 5. a band's ▲, in the Bands box: the band moved down into its place has a ▲ that names that place too
+  part('a band’s ▲', () => {
+    const { ev } = mk();
+    ev(`bandPanelOpen=true; render(); dlgSync(); 'ok'`);
+    const L = () => ev(`JSON.stringify(BANDS_LIST().map(function(b){ return b.id; }))`);
+    const l0 = JSON.parse(L());
+    shown(ev, () => {
+      ev(`(function(){ var b=__btn('#bandList', 'bandMove(2,-1)'); b.focus(); __enter(b); dlgSync(); return 'ok'; })()`);
+      chk(name, 'a band’s ▲', 'the third band’s ▲ pressed from the keyboard: it moves up one, and the keyboard is on the box itself -- not on the ▲ of the band moved down into its place, which a second Enter would move back',
+        ev(`JSON.stringify([BANDS_LIST().map(function(b){ return b.id; }), __kb()])`), J([[l0[0], l0[2], l0[1]].concat(l0.slice(3)), 'the box bandPanel']));
+      ev(`__again(); dlgSync(); 'ok'`);
+    });
+    chk(name, 'a band’s ▲', 'and a second Enter moves nothing back', L(), J([l0[0], l0[2], l0[1]].concat(l0.slice(3))));
+  });
+  // ---- 6. CONTROLs: a place that cannot move keeps the keyboard -- a service, and a row's own ▲
+  part('places that do not move', () => {
+    const { ev } = mk();
+    chk(name, 'places that do not move', 'CONTROL: the Mar award’s USAF dollars, 2500 Entered: stored (drawn again as 2,500), and the keyboard stays on that box (a service is one of a fixed few, though the award is one of a list)',
+      ev(`(function(){ var A=__inp('#inspector', 'setAwdIncSvc("T",1,0,this.value)'); A.focus(); A.value='2500'; A.dispatchEvent(new Event('input', {bubbles:true}));
+        A.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true})); A.dispatchEvent(new Event('change', {bubbles:true})); return __kb()+' '+__aw(); })()`),
+      'setAwdIncSvc("T",1,0) 2/5:100 | 5/9:2500 | 8/12:50');
+    ev(`uiMode='rank'; uiApply(); render(); 'ok'`);
+    chk(name, 'places that do not move', 'CONTROL: Rank, T’s ▲ pressed from the keyboard: T moves up one, and the keyboard is on T’s ▲ (its handler names T)',
+      ev(`(function(){ var b=__btn('#row-T', 'bump("T",-1)'); b.focus(); __enter(b); return S.order.indexOf('T')+' '+__kb(); })()`), '1 bump("T",-1)');
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.09 W1 ====
 
 // ==== v2.09 W2 (item 126): a PMO copy's five years ====

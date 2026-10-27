@@ -35601,6 +35601,35 @@ function tabbables(){
    and a control with no handler, is found by its place among the controls of its kind -- and only where its box is drawn
    again with exactly as many of them, so a control removed (a CLIN's ✕) never hands the keyboard to the one moved into its
    place, which the next Enter would remove too. */
+/* v2.09 third review: A HANDLER THAT NAMES A PLACE IN A LIST NAMES WHATEVER STANDS THERE NOW. An award's ✕ is rmAwd(id, 0),
+   its date setAwdIncDate(id, 0, …), a WBS line's ✕ wbsDel(…, 0), a line of the not-drawn list ndSetDrawn(5): each names its
+   item by its place. Found again by that handler after a commit that took the item out or re-sorted the list, the control
+   was the one moved into the place. ✕ on the first award from the keyboard left the keyboard on the second award's ✕, and the
+   next Enter removed that one too with nothing asked (Enter held removed three); an award's date walked past another with
+   ArrowUp left it on the other award's date, which the next key re-dated; "set to drawn" left it on the next line, often
+   another requirement's, whose directed figure the next Enter cut. So a control whose handler names a number (outside a
+   string) is found again only where nothing went, came or moved round it: the controls of its box that run the same writer
+   at other places are drawn again with the same handlers in the same order, and each of the others stands in what it stood
+   in -- the most of the page around it that holds no other of them, its text and its fields -- exactly as before. A service's
+   box is one of a fixed few and keeps its place; an item that went or moved sends the keyboard nowhere, as a browser leaves
+   it when the focused control is removed, and a box keeps it on the box itself (dlgBack), never on the control now there. */
+function ctlShape(h){ return String(h).replace(/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|(^|[^\w$.])\d+(?:\.\d+)?/g, function(s, pre){ return pre===undefined? s : pre+'#'; }); }
+// the controls of a box that run what h runs at another place, in order, each with what it stands in; null if h names no place
+function ctlPlaces(box, t, h){
+  const sh=ctlShape(h); if(sh===h) return null;
+  const L=[].filter.call(box.querySelectorAll(t), function(x){ const y=ctlH(x); return !!y && ctlShape(y)===sh; }), n=new Map();
+  L.forEach(function(s){ for(let p=s.parentElement; p && p!==box; p=p.parentElement) n.set(p, (n.get(p)||0)+1); });
+  return L.map(function(s){ let a=s; while(a.parentElement && a.parentElement!==box && n.get(a.parentElement)===1) a=a.parentElement;
+    const f=a.matches('input,select,textarea')? [a] : [].slice.call(a.querySelectorAll('input,select,textarea'));
+    return { el:s, h:ctlH(s), v:a.textContent+'\u0001'+f.map(function(x){ return (x.type==='checkbox' || x.type==='radio')? String(x.checked) : x.value; }).join('\u0001') }; });
+}
+// the control found again stands for what it stood for: the places as marked (c.pl; c.pk its own, which a commit may change)
+function ctlSame(c, t, h, el){
+  if(!c.pl) return true;
+  const box=document.getElementById(c.id), now=box? ctlPlaces(box, t, h) : null;
+  if(!now || now.length!==c.pl.length || now.map(function(x){ return x.el; }).indexOf(el)!==c.pk) return false;
+  return now.every(function(x, i){ return x.h===c.pl[i].h && (i===c.pk || x.v===c.pl[i].v); });
+}
 function focusScope(a){ return (a.closest && (a.closest('#list .row[id]') || a.closest('#inspector'))) || null; }
 function focusMark(){
   let a=document.activeElement, step=0;
@@ -35612,8 +35641,9 @@ function focusMark(){
   const chain=[];
   for(let p=a.parentElement; p && chain.length<4 && (!sc || sc.contains(p)); p=p.parentElement){
     if(!p.id) continue;
-    const K=[].slice.call(p.querySelectorAll(kind));
-    chain.push({ id:p.id, n:h? [].filter.call(p.querySelectorAll(tag), function(x){ return ctlH(x)===h; }).indexOf(a) : -1, k:K.indexOf(a), kn:K.length });
+    const K=[].slice.call(p.querySelectorAll(kind)), pl=h? ctlPlaces(p, tag, h) : null, pe=pl? pl.map(function(x){ return x.el; }) : [];
+    chain.push({ id:p.id, n:h? [].filter.call(p.querySelectorAll(tag), function(x){ return ctlH(x)===h; }).indexOf(a) : -1, k:K.indexOf(a), kn:K.length,
+      pl:pl && pl.map(function(x){ return {h:x.h, v:x.v}; }), pk:pe.indexOf(a) });
   }
   return { el:a, id:a.id||'', tag:tag, h:h, kind:kind, chain:chain, step:step,
     scope:sc? sc.id : '', cur:(sc && sc.id==='inspector')? curRow : null };
@@ -35631,6 +35661,8 @@ function focusRestore(m){
   for(const c of m.chain){
     const box=document.getElementById(c.id); if(!box) continue;
     const byH=m.h? ptrFind({box:c.id, t:m.tag, h:m.h, n:c.n}) : null, K=byH? null : box.querySelectorAll(m.kind);
+    // v2.09 third review: the control now at that place stands for another item -- nowhere, and no box hands it back there
+    if(byH && !ctlSame(c, m.tag, m.h, byH)){ m.el.__focusGone=true; return; }
     if(put(byH || ((K && c.k>=0 && K.length===c.kn)? K[c.k] : null))) return;
   }
 }
@@ -35727,7 +35759,9 @@ function dlgFirst(rec){
   return t[0] || m;
 }
 function dlgFocus(e){ try{ e.focus({preventScroll:true}); }catch(x){} }
-function dlgBack(rec){ const l=dlgAgain(rec.last); return (l && dlgVisible(l) && rec.bg.contains(l))? l : dlgFirst(rec); }
+// v2.09 third review: never by what it ran when what it stood for went or moved (focusRestore): the keyboard stays on the box
+function dlgBack(rec){ if(rec.last && rec.last.el && rec.last.el.__focusGone) return dlgModal(rec.bg);
+  const l=dlgAgain(rec.last); return (l && dlgVisible(l) && rec.bg.contains(l))? l : dlgFirst(rec); }
 function dlgAway(a){ return !a || a===document.body || a===document.documentElement || !a.isConnected; }
 // reconcile the stack with the page: called after every render, and by the observer for boxes that open themselves
 function dlgSync(){

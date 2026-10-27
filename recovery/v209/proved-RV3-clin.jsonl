@@ -1,0 +1,13 @@
+{"id": "v209-rv3-clin-any-place", "verdict": "CAUGHT", "fails": ["10"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-not-marked", "verdict": "CAUGHT", "fails": ["10"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-count-only", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-own-place-compared", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-sign-dropped", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-place-is-the-control", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv3-clin-box-takes-it-back", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-311251fc.mjs", "detail": ""}
+{"id": "v209-rv2-clin-found-by-class", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}
+{"id": "v209-rv2-clin-no-place-fallback", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}
+{"id": "v209-rv2-clin-place-moved", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}
+{"id": "v209-rv2-clin-panel-other-requirement", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}
+{"id": "v209-rv2-clin-into-closed-drawer", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}
+{"id": "v209-rv2-clin-row-unbounded", "verdict": "SURVIVED", "fails": [], "threw": 0, "suite": "_slim-prove-69aaaf74.mjs", "detail": ""}

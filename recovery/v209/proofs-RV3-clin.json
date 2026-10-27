@@ -1,0 +1,54 @@
+[
+ {
+  "id": "v209-rv3-clin-any-place",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-not-marked",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-count-only",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-own-place-compared",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-sign-dropped",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-place-is-the-control",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv3-clin-box-takes-it-back",
+  "caughtBy": "audit-board / v2.09 third review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-found-by-class",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-no-place-fallback",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-place-moved",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-panel-other-requirement",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-into-closed-drawer",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ },
+ {
+  "id": "v209-rv2-clin-row-unbounded",
+  "caughtBy": "audit-board / v2.09 second review — clin"
+ }
+]

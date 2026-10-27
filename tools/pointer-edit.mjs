@@ -35,6 +35,15 @@
 //      their place: the rank box, a CLIN's boxes and the RECORD panel's -- Enter stays, Tab goes to the control after it, in
 //      the same requirement (the RECORD panel's lost the keyboard on every commit). And ✕ on a CLIN from the keyboard leaves
 //      the keyboard nowhere, not on the next CLIN's ✕ moved into its place. 1366 and 1920, sliding and docked.
+//   H. What the third review of v2.09 found here (clin), with real keys: a control that names its item by its PLACE (an
+//      award's ✕ and date in the RECORD panel, a line of the not-drawn list, a WBS line's ✕, a band's ▲) is not found again
+//      at that place once the commit has taken the item out or re-sorted the list -- the item there now is another. An
+//      award's ✕ Entered, then Entered again, then Enter held: one award goes (d3ce17d: the second Enter removed the next,
+//      the held one three); an award's date walked forward with ArrowUp keeps the keyboard while it stays between its
+//      neighbours and loses it once it passes one, the other award's date untouched (it was re-dated by the next step);
+//      "set to drawn", a WBS line's ✕ and a band's ▲, each in its box, leave the keyboard on the box itself, and a second
+//      Enter changes nothing (it cut the next requirement's directed figure, deleted the next line with its dollars, moved
+//      the band back). 1366 and 1920, sliding and docked.
 //
 // It stands its own prime up in the page, as standards-check.mjs does, and never changes the shared fixture
 // (tools/ia-fixture.mjs), which every other browser check and the accessibility baseline read.
@@ -662,6 +671,81 @@ if (want('G')) for (const [layout, w, h] of LAYOUTS) {
     chk(`${tag} · the RECORD panel: the value by service Entered keeps the keyboard on that box; the next one Tabbed goes on to the box after it in the same requirement’s panel; both stored`,
       s8.focus === `input setAsk(${q(rid)},0)` && s8.inPanel && s9.inPanel && s9.cur === rid && s9.h.indexOf(q(rid)) >= 0 && s9.h.indexOf('setAsk(' + q(rid) + ',1,') < 0 && av[0] === 123456 && av[1] === 23456,
       JSON.stringify({ s8, s9, av }));
+    chk(`${tag} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`${tag} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
+}
+
+// ── H. THE THIRD REVIEW OF v2.09 (clin): A HANDLER THAT NAMES A PLACE NAMES WHATEVER STANDS THERE NOW ──────────────────────
+// rmAwd(id, 0), setAwdIncDate(id, 1, …), ndSetDrawn(k), wbsDel(…, 0), bandMove(2, -1): found again by that handler after the
+// commit, the control was the next item's, and the next key acted on it.
+if (want('H')) for (const [layout, w, h] of LAYOUTS) {
+  const tag = `H · ${layout} ${w}`;
+  try {
+    const { p, ctx, errs } = await open(layout, w, h);
+    const rid = await p.evaluate(() => S.order[1]);
+    // four awards on USAF: Dec $100,000, Mar $200,000, Jun $50,000, Aug $75,000
+    const seedA = () => p.evaluate(r => { S.awards[r] = { mode: 'inc', inc: [[2, 5, 100000], [5, 9, 200000], [8, 12, 50000], [10, 3, 75000]]
+      .map(([m, d, v]) => ({ d: FYMON[m][0], day: d, sv: SVC.map((s, i) => i === 0 ? v : 0) })) }; save(); render(); }, rid);
+    const aw = () => p.evaluate(r => S.awards[r].inc.map(x => FYMON.findIndex(m => m[0] === x.d) + '/' + x.day + ':' + x.sv[0]).join(' | '), rid);
+    const kb = () => p.evaluate(() => { const a = document.activeElement; if (!a || a === document.body) return 'nowhere';
+      if (a.classList.contains('modal')) return 'the box ' + (a.parentElement ? a.parentElement.id : '');
+      return (a.getAttribute('onchange') || a.getAttribute('onclick') || a.tagName).replace(/,this\.value\)$/, ')').slice(0, 40); });
+    const focusOn = (sel) => p.evaluate(sel => { const b = document.querySelector(sel); b.scrollIntoView({ block: 'center' }); b.focus(); return !!b; }, sel);
+    await seedA(); await press(p, `#row-${rid} .t1`); await p.waitForTimeout(250);
+    const x0 = `#inspector button[onclick=${q('rmAwd(' + q(rid) + ',0)')}]`, d1 = `#inspector input[onchange=${q('setAwdIncDate(' + q(rid) + ',1,this.value)')}]`;
+    // H1. an award's ✕: Enter, Enter again
+    await focusOn(x0); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const k1 = await kb(), a1 = await aw();
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const a2 = await aw();
+    chk(`${tag} · the first award’s ✕ Entered: the Dec award goes and the keyboard is nowhere -- not on the Mar award’s ✕ moved into its place; Entered again, nothing more goes`,
+      a1 === '5/9:200000 | 8/12:50000 | 10/3:75000' && k1 === 'nowhere' && a2 === a1, JSON.stringify({ a1, k1, a2 }));
+    // and Enter held on it: one keydown and two repeats
+    await seedA(); await p.waitForTimeout(150); await focusOn(x0);
+    await p.keyboard.down('Enter'); await p.waitForTimeout(120); await p.keyboard.down('Enter'); await p.waitForTimeout(120); await p.keyboard.down('Enter');
+    await p.keyboard.up('Enter'); await p.waitForTimeout(250);
+    const a3 = await aw();
+    chk(`${tag} · Enter held on the first award’s ✕ removes the first award only`, a3 === '5/9:200000 | 8/12:50000 | 10/3:75000', a3);
+    // H2. the Mar award's date walked forward with ArrowUp on its month: Apr, May keep the keyboard; Jul passes Jun
+    await seedA(); await p.waitForTimeout(150); await focusOn(d1);
+    const steps = [];
+    for (let i = 0; i < 6; i++) { await p.keyboard.press('ArrowUp'); await p.waitForTimeout(220); steps.push((await aw()) + ' @' + (await kb())); }
+    const keep = `setAwdIncDate(${q(rid)},1)`;
+    chk(`${tag} · CONTROL: the Mar award’s month stepped to Apr, May and Jun-09 with ArrowUp, still before the Jun-12 award: the keyboard stays on its date box`,
+      steps.slice(0, 3).every(s => s.endsWith('@' + keep)) && /^2\/5:100000 \| 8\/9:200000 \| 8\/12:50000/.test(steps[2]), JSON.stringify(steps.slice(0, 3)));
+    chk(`${tag} · the next step, to Jul, passes the Jun award: the keyboard goes nowhere, and the steps after it re-date nothing -- the Jun $50,000 award keeps its date`,
+      steps.slice(3).every(s => s === '2/5:100000 | 8/12:50000 | 9/9:200000 | 10/3:75000 @nowhere'), JSON.stringify(steps.slice(3)));
+    // H3. "set to drawn" in the not-drawn list: the last line of one requirement, the next line another's
+    await p.evaluate(() => { drawerClose(); S.order.slice(-6).forEach(r => { const it = itemById(r); S.fsrc[r] = { m: 'split', dv: it.ask.slice(), mv: it.ask.map(() => 0) }; });
+      save(); ndOpen = true; render(); });
+    await p.waitForTimeout(300);
+    const nd = await p.evaluate(() => { const L = ndData().list.map(g => g.id), k = L.findIndex((x, i) => L[i + 1] && L[i + 1] !== x); return { k, a: L[k], b: L[k + 1] }; });
+    const dvB = () => p.evaluate(r => JSON.stringify(S.fsrc[r].dv), nd.b), b0 = await dvB();
+    await focusOn(`#ndBody button[onclick=${q('ndSetDrawn(' + nd.k + ')')}]`); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const k3 = await kb(); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const b1 = await dvB();
+    chk(`${tag} · “set to drawn” on ${nd.a}’s last line Entered: the keyboard is on the box itself, not on ${nd.b}’s line moved into its place; Entered again, ${nd.b}’s directed figure is as it was`,
+      nd.k >= 0 && k3 === 'the box ndPanel' && b1 === b0, JSON.stringify({ nd, k3, b0, b1 }));
+    // H4. a WBS line's ✕ in its box
+    await p.evaluate(r => { ndOpen = false; const al = svcAlloc(itemById(r)); S.wbs[r] = ['1.1', '1.2', '1.3'].map(x => ({ w: x, v: al.map(v => Math.round(v / 3)) }));
+      save(); toggleWbs('req', r); }, rid);
+    await p.waitForTimeout(250);
+    const wl = () => p.evaluate(r => S.wbs[r].map(x => x.w + (x.v.length ? '$' : '')).join(','), rid);
+    await focusOn(`#wbsBody button[onclick=${q('wbsDel("req",' + q(rid) + ',"",0)')}]`); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const k4 = await kb(), w1 = await wl(); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const w2 = await wl();
+    chk(`${tag} · line 1.1’s ✕ Entered: 1.1 goes and the keyboard is on the box itself, not on 1.2’s ✕; Entered again, 1.2 and 1.3 are there with their dollars`,
+      w1 === '1.2$,1.3$' && k4 === 'the box wbsPanel' && w2 === w1, JSON.stringify({ w1, k4, w2 }));
+    // H5. a band's ▲ in the Bands box
+    await p.evaluate(() => { wbsOpen = null; bandPanelOpen = true; render(); });
+    await p.waitForTimeout(250);
+    const bl = () => p.evaluate(() => BANDS_LIST().map(x => x.id).join(',')), l0 = (await bl()).split(',');
+    await focusOn(`#bandList button[onclick=${q('bandMove(2,-1)')}]`); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const k5 = await kb(), l1 = await bl(); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const l2 = await bl(), want5 = [l0[0], l0[2], l0[1]].concat(l0.slice(3)).join(',');
+    chk(`${tag} · the third band’s ▲ Entered: it moves up one and the keyboard is on the box itself, not on the ▲ of the band moved down; Entered again, nothing moves back`,
+      l1 === want5 && k5 === 'the box bandPanel' && l2 === want5, JSON.stringify({ l1, k5, l2 }));
     chk(`${tag} · nothing threw`, errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   } catch (e) { chk(`${tag} · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 200)); }
