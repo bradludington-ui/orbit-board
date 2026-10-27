@@ -122,7 +122,13 @@ for (const [lbl, env] of [['trace matrix', { BOARD: GRID }]]) {
 // chain that stopped printing; a floor set above what a healthy run prints fails every night on a board
 // that is perfectly fine, and a nightly job that cries wolf is one nobody reads. The legacy marker is
 // asserted separately so that suite cannot go quiet unnoticed. (v1.88 added audit:hostile.)
-for (const [lbl, env] of [['suites', { BOARD: GRID }]]) {
+// THE SUITES' HEAP (v2.09). Node's default heap here is about 2 GB, and v2.09's blocks took audit-board past it: the nightly
+// of 27 Oct 2026 died in it (exit 134, out of heap) after two clean suites, so it never reached import or recon -- which
+// CLAUDE.md already says need 8 GB on this container. The heap is ADDED to NODE_OPTIONS (which carries the proxy's
+// --use-openssl-ca), never put in its place, and a heap already set by whoever runs the gate is left as it is.
+const SUITE_HEAP = /max-old-space-size/.test(process.env.NODE_OPTIONS || '')
+  ? (process.env.NODE_OPTIONS || '') : ((process.env.NODE_OPTIONS || '') + ' --max-old-space-size=8192').trim();
+for (const [lbl, env] of [['suites', { BOARD: GRID, NODE_OPTIONS: SUITE_HEAP }]]) {
   const r = await run(lbl, 'npm', ['run', 'audit:suites', '--silent'], env);
   const passed = (r.out.match(/ALL CHECKS PASSED/g) || []).length;
   const legacy = /every legacy Force setting computes exactly as before/.test(r.out);
