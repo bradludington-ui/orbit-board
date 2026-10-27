@@ -1,0 +1,146 @@
+[
+ {
+  "id": "v210-rv-b-indent-flush",
+  "caughtBy": "audit-other / v2.10 review — the FYDP Disconnects workbook draws its indented lines indented"
+ },
+ {
+  "id": "v210-rv-b-left-everywhere",
+  "caughtBy": "audit-other / v2.10 review — the FYDP Disconnects workbook draws its indented lines indented"
+ },
+ {
+  "id": "v210-b-rule-thin",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-null-zero",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-negative-abs",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-total-is-last-year",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-years-shifted",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-pct-as-money",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-figures-left",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-label-blank",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-marking-top-gone",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-marking-foot-gone",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-footer-text-gone",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-footer-colour",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-footer-no-blank",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-footer-off-centre",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-title-size",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-subtitle-size",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-titles-unmerged",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-titles-short",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-over-unmerged",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-over-fill-stops",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-corner-size",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-summary-head-blue",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-head-left",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-gap-dropped",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-band-black-text",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-total-band-light",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-band-fill-stops",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-sep-full-height",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-gridlines-on",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-pages-tall",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-no-page",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-styles-unshared",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-style-off-by-one",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ },
+ {
+  "id": "v210-b-sheets-reversed",
+  "caughtBy": "audit-other / v2.10 B (item 130)"
+ }
+]

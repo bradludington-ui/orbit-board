@@ -8638,6 +8638,14 @@ const MUTATIONS = [
 `,
     repl: `+vw+cols+merges+'<sheetData>'+rows+'</sheetData>'
 ` },
+  // v2.10 review (WB-1): the indented lines are drawn indented (audit-other "v2.10 review — the FYDP Disconnects workbook draws
+  // its indented lines indented")
+  { id: 'v210-rv-b-indent-flush', area: 'fdcSheets', what: 'an indented line names no horizontal alignment, so Excel does not draw the indent and prints it flush with the bold totals',
+    find: `align:{h:o.h || (o.indent? 'left' : undefined), v:'center', indent:o.indent||0}`,
+    repl: `align:{h:o.h, v:'center', indent:o.indent||0}` },
+  { id: 'v210-rv-b-left-everywhere', area: 'fdcSheets', what: 'every look with no alignment of its own is made left, not only an indented one: the bold, delta and % labels change too',
+    find: `h:o.h || (o.indent? 'left' : undefined)`,
+    repl: `h:o.h || 'left'` },
   // ==== end v2.10 B ====
 
 ];
