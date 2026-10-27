@@ -321,8 +321,20 @@ a mutation; a second skeptic re-checked each fix.
 - **Logged, not built (item 131):** the A-1 skeptic's ungrouped-service residual (Brad's call), the five-year plan's folder
   reading, the Spruills' and the locks table's storage-only reading, and the house style's indents.
 
-**Proved with:** the nightly gate and the browser checks it does not reach are running on `72b56db`; their results are
-added here when they end.
+**Proved with** (on the final board, `c319bb3`; the commits after it change only audit-import and these notes):
+- `npm run check` passes, and every mutation target matches once (2,784 of 2,784).
+- **`npm run validate:nightly`** (27 Oct): the defect register (13 known defects, guarded by 43 mutations), money coverage (25 of
+  25 surfaces), the money map (308 cells: 112 proven, 195 n/a, 1 open -- the AI review request by fiscal year, open since v2.04),
+  the trace matrix (77 cells), the fuzz (seed 125755453) and the file verifier's self-test all hold. The browser stage fails only
+  on layout's 8 D checks, carried since v2.00 (layout O, FYDP Disconnects, holds at every width).
+- **The suites:** boot-same, export, other and board passed inside the nightly. Its chain stopped in audit-import on two
+  expectations v2.10 had moved: the guide's 60 KB budget (the FYDP Disconnects paragraph took it to 61,040 characters; the
+  budget is now 64 KB, said in the check) and the v2.08 board's refusal, which named a pinned "v2.09" where the package now
+  says v2.10. With those updated, import, recon, legacy, hostile, inject and ui each passed whole on the same board.
+- **The browser checks the gate does not reach**, run on their own on the final board: keys, dropdowns, dialogs, leftmenu,
+  pmosave, pmoyears, pointer and standards (nothing new; the baseline is empty) all pass.
+- **Mutations:** 133 new (`v210-*`), none older retired or retargeted, each proved CAUGHT against its own check
+  (`recovery/v210/proved-*.jsonl`). The sweep was not run (Brad's rule of 20 Oct).
 
 #### The item as logged
 

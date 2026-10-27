@@ -4746,7 +4746,10 @@ controls; nothing stored), "v2.10 B" (the workbook read back from the bytes, eve
 the review's four blocks (A-1 adding the sheets up, both ways round; A-2; A-3 with a stand-in folder, part 4 a copy that
 cannot be read; WB-1). Browser: layout-fits O, keys R, panels, dialogs, left-menu, menu-paths, standards. Money coverage and
 the money map register `exportFdc`. **Mutations:** 133 new (`v210-*`: A 54, B 61, integration 2, review 16), none older retired
-or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`). 2,784 targets.
+or retargeted; each proved against its own check (`recovery/v210/proved-*.jsonl`). 2,784 targets. **A fix round that runs
+only the suites its checks live in leaves the others' expectations unrun**: the review's fixers ran other and board whole, and
+the nightly then stopped in import on two expectations v2.10 had moved (the guide's size budget, now 64 KB; a version string
+pinned to v2.09). Run every suite whole once on the integrated board before the gate.
 
 ## Colour: one token, one job
 
