@@ -7721,6 +7721,23 @@ const MUTATIONS = [
     find: "m.cur!==curRow || (drawerNarrow() && !sc.classList.contains('open'))", repl: "m.cur!==curRow" },
   { id: 'v209-rv2-clin-row-unbounded', area: "focusScope", equivalent: 'every control drawn in a row is named by a handler that names its requirement -- audit-board "v2.09 second review — clin" (every row control names its requirement) asserts it in Fund, Review and Rank with the CLIN drill and a ⋯ menu open -- so a control found again by its handler can only be its own row\'s, bounded or not. A control with no handler, or one whose handler names no requirement, added to a row fails that part first, and this stops being equivalent', what: "a row's control is looked for across the whole list, not in its own row, so one with no handler of its own could be found again in another requirement's row",
     find: "(a.closest('#list .row[id]') || a.closest('#inspector'))", repl: "a.closest('#inspector')" },
+  // v2.09 third review (clin): a control that names its item by its place is found again only where that item still stands.
+  // Each proved against audit-board's "v2.09 third review — clin" block (recovery/v209/proofs-RV3-clin.json); real keys in
+  // Chromium are npm run pointer H.
+  { id: 'v209-rv3-clin-any-place', area: "focusRestore", what: "a control that names its item by its place is found again by that handler whatever moved: an award's ✕ pressed from the keyboard leaves the keyboard on the next award's ✕, and the next Enter removes that award too (and a line of the not-drawn list, a WBS line's ✕, a band's ▲ the same)",
+    find: "    if(byH && !ctlSame(c, m.tag, m.h, byH)){ m.el.__focusGone=true; return; }\n", repl: "" },
+  { id: 'v209-rv3-clin-not-marked', area: "focusMark", what: "the places beside the control are never noted before the redraw, so nothing is compared after it and the control is found again at its old place whatever stands there now",
+    find: "pl=h? ctlPlaces(p, tag, h) : null,", repl: "pl=null," },
+  { id: 'v209-rv3-clin-count-only', area: "ctlSame", what: "only the number and the handlers of the places are compared, not what each stands in: an award re-dated past another keeps the keyboard at its old place, now the other award's date, which the next step re-dates; a band's ▲ leaves it on the band moved down",
+    find: "(i===c.pk || x.v===c.pl[i].v)", repl: "true" },
+  { id: 'v209-rv3-clin-own-place-compared', area: "ctlSame", what: "the control's own place is compared too, though the commit just changed it: a figure typed into an award's dollars by service and Entered loses the keyboard",
+    find: "i===c.pk || x.v===", repl: "x.v===" },
+  { id: 'v209-rv3-clin-sign-dropped', area: "ctlShape", what: "a minus sign is read as part of the place, so a band's ▲ (bandMove(2,-1)) and ▼ (bandMove(2,1)) are one writer: each stands in only itself, a move changes neither, and the keyboard is left on the ▲ of the band moved down, which the next Enter moves back",
+    find: String.raw`(^|[^\w$.])\d+(?:\.\d+)?/g`, repl: String.raw`(^|[^\w$.])-?\d+(?:\.\d+)?/g` },
+  { id: 'v209-rv3-clin-place-is-the-control', area: "ctlPlaces", what: "what a place stands in is the control alone, never the row around it: a band's ▲ reads '▲' wherever it is, so a move is not seen and the keyboard is left on the band moved down",
+    find: "while(a.parentElement && a.parentElement!==box && n.get(a.parentElement)===1) a=a.parentElement;", repl: "" },
+  { id: 'v209-rv3-clin-box-takes-it-back', area: "dlgBack", what: "a box looks for the control again by what it runs and what it says after the keyboard was sent nowhere because its item went: \"set to drawn\" Entered leaves the keyboard on the next line's, another requirement's, and the next Enter cuts that requirement's directed figure (a WBS line's ✕ and a band's ▲ the same)",
+    find: "if(rec.last && rec.last.el && rec.last.el.__focusGone) return dlgModal(rec.bg);\n  ", repl: "" },
   // ==== end v2.09 W1 ====
 
   // ==== v2.09 W2 (item 126): a PMO copy's five years ====
