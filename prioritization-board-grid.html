@@ -26473,18 +26473,21 @@ function recSec(t){ return {sec:t}; }
 // field just left never gets the keyboard back (the v1.92 rule), and a redraw that put the keyboard somewhere on purpose (a
 // box that opened) keeps it there. One record of the press for both cases: PTR.down is what the office cell waits on.
 var PTR={down:false, at:null, clicked:false, lost:null, t:0};
+// what names a control: the handler it calls. One reading, for a press (ptrSig, ptrFind) and for the keyboard (focusMark,
+// focusRestore), so the two can never find a control again by different rules.
+function ctlH(el){ return (el && el.getAttribute && (el.getAttribute('onchange') || el.getAttribute('onclick') || el.getAttribute('oninput'))) || null; }
 function ptrSig(el){
-  const h=el && el.getAttribute && (el.getAttribute('onchange') || el.getAttribute('onclick') || el.getAttribute('oninput'));
+  const h=ctlH(el);
   if(!h) return null;
   let box=el.parentElement; while(box && !box.id) box=box.parentElement;
-  const t=el.tagName.toLowerCase(), same=function(x){ return (x.getAttribute('onchange') || x.getAttribute('onclick') || x.getAttribute('oninput'))===h; };
+  const t=el.tagName.toLowerCase(), same=function(x){ return ctlH(x)===h; };
   const all=box? [].filter.call(box.querySelectorAll(t), same) : [];
   return {el:el, t:t, h:h, box:box? box.id : '', n:all.indexOf(el)};
 }
 function ptrLoc(t){ const a=t && t.closest && t.closest('input,select,textarea,button'); return a? ptrSig(a) : null; }
 function ptrFind(m){
   const box=m.box? document.getElementById(m.box) : null; if(!box) return null;
-  const all=[].filter.call(box.querySelectorAll(m.t), function(x){ return (x.getAttribute('onchange') || x.getAttribute('onclick') || x.getAttribute('oninput'))===m.h; });
+  const all=[].filter.call(box.querySelectorAll(m.t), function(x){ return ctlH(x)===m.h; });
   return (m.n>=0 && all[m.n])? all[m.n] : (all.length===1? all[0] : null);
 }
 function ptrAfterRender(){
@@ -35402,31 +35405,55 @@ function tabbables(){
     return el.tabIndex>=0 && !el.disabled && el.type!=='hidden' && el.getClientRects().length>0
       && getComputedStyle(el).visibility!=='hidden'; });
 }
+/* v2.09 second review: A CONTROL IS FOUND AGAIN BY WHAT NAMES IT, AND NEVER IN ANOTHER REQUIREMENT'S PLACE. The control was
+   found again by its tag and first class, counted in each enclosing element with an id, the row first and then the whole
+   list. Fund's allocation box on a per-service allocation is class "svcmode", and a total typed into it is stored as a total,
+   so the box drawn again has no class: nothing in its row matched, and the count across the list took the next per-service
+   requirement's box. Enter left the keyboard there, off screen, and the next figure typed replaced THAT requirement's
+   allocation; Tab left it on that requirement's ★, and Space turned its Mission Critical off (measured on v2.08 too). Now:
+   - a control with a handler is found again by that handler, which names the requirement (and the CLIN and the service),
+     as a press is (ptrSig, ptrFind) -- never by a class its own state can change;
+   - a control belongs to its requirement's row, or to the RECORD panel while the panel shows that requirement, and is looked
+     for there and nowhere else: the row gone, or the panel drawn for another requirement, and the keyboard goes nowhere.
+     The control after it (Tab, Shift+Tab) may be in the next row; the control found again never is;
+   - the panel is drawn after the rows (gridAfterRender), so this runs once both are drawn: a figure committed in the RECORD
+     panel kept its place in nothing, the keyboard falling to the page after every Enter and Tab;
+   - never into a closed sliding drawer, which is only moved off screen (the rule W1 keeps for the ways into the drill).
+   A control whose handler says its own state (a fit chip: svcFilter=2, then svcFilter=-1) is not found by it once pressed. It,
+   and a control with no handler, is found by its place among the controls of its kind -- and only where its box is drawn
+   again with exactly as many of them, so a control removed (a CLIN's ✕) never hands the keyboard to the one moved into its
+   place, which the next Enter would remove too. */
+function focusScope(a){ return (a.closest && (a.closest('#list .row[id]') || a.closest('#inspector'))) || null; }
 function focusMark(){
   let a=document.activeElement, step=0;
   const lost=!a || a===document.body || a===document.documentElement;
   if(lost && _chgFrom && _chgFrom.isConnected && _navStep!==null){ a=_chgFrom; step=_navStep; }
   else if(lost || !a.tagName) return null;
-  const kind=a.tagName.toLowerCase()+(a.classList && a.classList[0]? '.'+CSS.escape(a.classList[0]) : '');
+  const tag=a.tagName.toLowerCase(), h=ctlH(a), sc=focusScope(a), c0=a.classList && a.classList[0];
+  const kind=tag+(c0? '.'+((typeof CSS!=='undefined' && CSS.escape)? CSS.escape(c0) : c0.replace(/[^\w-]/g, '\\$&')) : '');
   const chain=[];
-  for(let p=a.parentElement; p && chain.length<4; p=p.parentElement){
+  for(let p=a.parentElement; p && chain.length<4 && (!sc || sc.contains(p)); p=p.parentElement){
     if(!p.id) continue;
-    chain.push({ id:p.id, n:[].indexOf.call(p.querySelectorAll(kind), a) });
+    const K=[].slice.call(p.querySelectorAll(kind));
+    chain.push({ id:p.id, n:h? [].filter.call(p.querySelectorAll(tag), function(x){ return ctlH(x)===h; }).indexOf(a) : -1, k:K.indexOf(a), kn:K.length });
   }
-  return { el:a, id:a.id||'', kind:kind, chain:chain, step:step };
+  return { el:a, id:a.id||'', tag:tag, h:h, kind:kind, chain:chain, step:step,
+    scope:sc? sc.id : '', cur:(sc && sc.id==='inspector')? curRow : null };
 }
 function focusRestore(m){
   if(!m || m.el.isConnected) return;
   const now=document.activeElement;
   if(now && now!==document.body && now!==document.documentElement) return;
-  const put=el=>{ if(!el) return false;
+  const sc=m.scope? document.getElementById(m.scope) : null;
+  if(m.scope && (!sc || (m.scope==='inspector' && (m.cur!==curRow || (drawerNarrow() && !sc.classList.contains('open')))))) return;
+  const put=el=>{ if(!el || (sc && !sc.contains(el))) return false;
     if(m.step){ const t=tabbables(), i=t.indexOf(el); if(i>=0 && t[i+m.step]) el=t[i+m.step]; }
     try{ el.focus({preventScroll:true}); }catch(e){ return false; } return document.activeElement===el; };
   if(m.id && put(document.getElementById(m.id))) return;
   for(const c of m.chain){
     const box=document.getElementById(c.id); if(!box) continue;
-    const list=box.querySelectorAll(m.kind);
-    if(c.n>=0 && put(list[c.n])) return;
+    const byH=m.h? ptrFind({box:c.id, t:m.tag, h:m.h, n:c.n}) : null, K=byH? null : box.querySelectorAll(m.kind);
+    if(put(byH || ((K && c.k>=0 && K.length===c.kn)? K[c.k] : null))) return;
   }
 }
 /* ONE CONTROLLER FOR EVERY BOX (v1.93, item 39). Measured on v1.92, 34 of the 43 boxes opened from their own button:
@@ -35645,7 +35672,6 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   finally{ lh.forEach(function(x){ try{ if(x.el.isConnected) x.el.setAttribute('onchange', x.h); }catch(e){} });
     dsl.forEach(function(s){ try{ const r=document.getElementById(s[0]), c=r && r.querySelector('.cscroll'); if(c) c.scrollLeft=s[1]; }catch(e){} });
     if(lh.length) inspHeldBack(lst, lh); }
-  try{ focusRestore(fm); }catch(e){}
   try{ gridAfterRender(); }
   catch(e){
     const why=(e&&e.message)||String(e);
@@ -35655,6 +35681,9 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>Setup \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // v2.09 second review: the keyboard's place once the rows AND the RECORD panel are drawn (it ran between them, so a box the
+  // panel redrew kept nothing)
+  try{ focusRestore(fm); }catch(e){}
   // v2.09 (item 125): a control pressed as this redraw took it away gets the keyboard back, the RECORD panel's included
   try{ ptrAfterRender(); }catch(e){}
   // last, once the RECORD panel is drawn too: the menus are fitted to what is on screen, and a box that closed
