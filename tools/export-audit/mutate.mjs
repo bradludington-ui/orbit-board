@@ -8464,6 +8464,11 @@ const MUTATIONS = [
   { id: 'v210-b-uncentred', area: 'buildXlsx', what: 'the printed table is not centred on the page',
     find: `'<printOptions horizontalCentered="1"/><pageMargins left="0.4" right="0.4" top="0.5"`,
     repl: `'<printOptions/><pageMargins left="0.4" right="0.4" top="0.5"` },
+  { id: 'v210-b-merges-before-data', area: 'buildXlsx', what: 'a page-setting sheet writes mergeCells before sheetData, which makes Excel refuse the sheet',
+    find: `+vw+cols+'<sheetData>'+rows+'</sheetData>'+merges
+`,
+    repl: `+vw+cols+merges+'<sheetData>'+rows+'</sheetData>'
+` },
   // ==== end v2.10 B ====
 
 ];

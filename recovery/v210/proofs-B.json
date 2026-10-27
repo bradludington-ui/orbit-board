@@ -58,5 +58,6 @@
  {"id": "v210-b-sheetpr-late", "caughtBy": "audit-other / v2.10 B (item 130)"},
  {"id": "v210-b-wide-ignored", "caughtBy": "audit-other / v2.10 B (item 130)"},
  {"id": "v210-b-tall-ignored", "caughtBy": "audit-other / v2.10 B (item 130)"},
- {"id": "v210-b-uncentred", "caughtBy": "audit-other / v2.10 B (item 130)"}
+ {"id": "v210-b-uncentred", "caughtBy": "audit-other / v2.10 B (item 130)"},
+ {"id": "v210-b-merges-before-data", "caughtBy": "audit-other / v2.10 B (item 130)"}
 ]
