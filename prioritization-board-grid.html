@@ -1185,6 +1185,13 @@ html[data-mode="brief"] .posture{min-height:74px}
   font-weight:650;font-size:12px;text-align:right;padding:0 6px;font-variant-numeric:tabular-nums}
 .row .acts.alloc input:disabled{border-style:dashed;color:var(--mut);background:transparent;opacity:1}
 .row .acts.alloc .mode-tag{flex:none}
+/* v2.09 review: THE SVC TAG SITS ON THE BOX'S TOP EDGE, never beside it. Beside it, `.acts > *{width:100%}` gave the tag the
+   whole 112px cell and flex:none kept it there: a per-service allocation (what ↑ Apply grid to row writes) showed only "SVC",
+   its box was crushed to 14px under ★, and a click on the box turned Mission Critical on (older than v2.09). Sized to its own
+   word and lifted onto the edge, it takes no width from the box, which is then exactly the box every other Fund row has --
+   the same figure shown whole, at every width the Fund columns take, 88px included -- and a click on it goes to the box. */
+.row .acts.alloc{position:relative}
+.row .acts.alloc .mode-tag{position:absolute;left:6px;top:-6px;width:auto;line-height:9px;padding:0 3px;background:var(--panel);pointer-events:none}
 /* ★ is a 24px toggle that says whether it is on (aria-pressed) */
 .row .mcb{width:24px;height:24px;min-width:24px;border-radius:4px;border:1px solid var(--edge);background:var(--panel);color:var(--dim);
   cursor:pointer;font-size:13px;line-height:1;padding:0;font-weight:400}
@@ -34779,6 +34786,19 @@ function heldCommit(t){
 // a blur with the field still the page's focus is the window losing it (another tab), not the field being left
 document.addEventListener('blur', function(e){ if(e.target!==document.activeElement) heldCommit(e.target); }, true);
 document.addEventListener('keydown', function(e){ if(e.key==='Enter') heldCommit(e.target); }, true);
+// v2.09 review: BUT A BOX THE HOLD PUT BACK, LEFT HOLDING THE FIGURE THE BOARD DREW INTO IT, CHANGES NOTHING. Typing taken back
+// (a digit, then Backspace or Ctrl+Z) leaves the board's own figure, and without a redraw a browser fires nothing for it. With
+// one, a change came either way round: typing taken back and then redrawn, heldCommit fired it, the box holding exactly what
+// was put back; redrawn while the digit was there and taken back after, the browser fired it, because giving the put-back box
+// the keyboard makes the put-back figure its starting point (older than v2.09: the RECORD panel's Disc box did it in v2.08).
+// Either way the same figure was written again -- a per-service allocation became one total re-spread by the ask (USAF
+// $1,000,000 became six services' shares, the lane draws with it), a Disc box on the lane walk converted the requirement to a
+// Split, and a CLIN from the board's data took an override equal to its data. The box's defaultValue is the figure the redraw
+// drew (the hold sets .value, never the attribute), so one rule here answers both: such a change is not passed on, as it
+// would never have been fired without the redraw. Typed on to any other figure, its change goes through as ever, and a figure
+// typed whole and redrawn is still applied when it is left (heldCommit).
+document.addEventListener('change', function(e){ const t=e.target;
+  if(t && t.__wasHeld && t.tagName==='INPUT' && t.value===t.defaultValue){ t.__held=undefined; e.stopPropagation(); } }, true);
 function inspHeld(el){
   // ONLY THE FIELD THAT HAS THE KEYBOARD: a browser commits a field when it loses it, so that is the one place typing can wait
   // uncommitted. Held by its mark alone, a field put back once was held again on every later redraw -- over the stored
@@ -34790,7 +34810,7 @@ function inspHeldBack(el, held){
   held.forEach(function(x){
     const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
     if(!i) return;
-    i.value=x.v; i.__pend=true; i.__held=x.v;      // v2.09: left with nothing typed since, it is applied (heldCommit)
+    i.value=x.v; i.__pend=true; i.__held=x.v; i.__wasHeld=true;   // v2.09: left with nothing typed since, it is applied (heldCommit)
     if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}
   });
 }
@@ -35342,10 +35362,19 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
   // field with the keyboard, typed into and not yet committed, is read before the rows are drawn and put back after, the
   // keyboard and the caret with it; its handler is off while the rows are drawn, because Chromium fires change on a focused
   // field as innerHTML removes it, which committed the half-typed figure. Matched by its handler, which names the requirement.
+  // v2.09 review: AND A CLIN DRILL KEEPS ITS SIDEWAYS SCROLL. On a six-service board the drill is wider than its row at 1366
+  // (the RECORD panel sliding over, the default) and at 1920 docked, so ✕, WBS and RCN / EEIC are reached by scrolling it.
+  // A figure typed and left for one of them with the mouse redrew the rows on the mousedown, the new drill started at the
+  // left, the button pressed came back 200px to the right of the pointer, and the press went nowhere (older than v2.09).
+  // Read by the row the drill is in, before the rows are drawn; put back before the keyboard is, so the control pressed is
+  // under the pointer again when it comes up (ptrAfterRender).
+  const dsl=[]; try{ const l0=document.getElementById('list');
+    if(l0) [].forEach.call(l0.querySelectorAll('.row[id] .cscroll'), function(c){ const r=c.closest('.row[id]'); if(r && c.scrollLeft) dsl.push([r.id, c.scrollLeft]); }); }catch(e){}
   const lst=document.getElementById('list'), lh=lst? inspHeld(lst) : [];
   lh.forEach(function(x){ try{ x.el.removeAttribute('onchange'); }catch(e){} });
   try{ renderBoard.apply(this, arguments); }
   finally{ lh.forEach(function(x){ try{ if(x.el.isConnected) x.el.setAttribute('onchange', x.h); }catch(e){} });
+    dsl.forEach(function(s){ try{ const r=document.getElementById(s[0]), c=r && r.querySelector('.cscroll'); if(c) c.scrollLeft=s[1]; }catch(e){} });
     if(lh.length) inspHeldBack(lst, lh); }
   try{ focusRestore(fm); }catch(e){}
   try{ gridAfterRender(); }

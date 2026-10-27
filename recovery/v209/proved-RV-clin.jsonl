@@ -1,0 +1,14 @@
+{"id": "v209-rv-clin-taken-back-passed", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-taken-back-any-figure", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-taken-back-drawn-is-held", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-held-not-marked", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-drill-scroll-reset", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-drill-scroll-one", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-w1-held-left-silent", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-w1-held-not-noted", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-w1-held-enter-silent", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-w1-row-hold-gone", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-w1-row-hold-commits", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-w1-press-not-after-render", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-f831493d.mjs", "detail": ""}
+{"id": "v209-rv-clin-svc-tag-beside", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}
+{"id": "v209-rv-clin-svc-tag-catches-click", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-62f7bbb3.mjs", "detail": ""}

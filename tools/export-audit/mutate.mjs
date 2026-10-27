@@ -7658,6 +7658,25 @@ const MUTATIONS = [
     find: "    +'[onclick^=\\'toggleWbs(\"clin\"\\'],'\n", repl: "" },
   { id: 'v209-w1-copy-ask-live', area: "SANDBOX style", what: "in a PMO copy the CLIN request boxes look live",
     find: "input[onchange^=\"clinSetAsk(\"],input[onchange^=\"setClinSvc(\"],'", repl: "input[onchange^=\"clinSetReq(\"],input[onchange^=\"setClinSvc(\"],'" },
+  // v2.09 review (clin-pointer): the three defects the review of v2.09 found in item 125's area. Each proved against
+  // audit-board's "v2.09 review — clin-pointer" block (recovery/v209/proofs-RV-clin.json); the pointer, the wheel and the
+  // layout are npm run pointer F.
+  { id: 'v209-rv-clin-taken-back-passed', area: "change listener", what: "typing taken back to the board's own figure around a redraw writes it again: a per-service allocation is re-spread by the ask, a Disc box converts to a Split",
+    find: "  if(t && t.__wasHeld && t.tagName==='INPUT' && t.value===t.defaultValue){", repl: "  if(false){" },
+  { id: 'v209-rv-clin-taken-back-any-figure', area: "change listener", what: "a box the hold put back passes no change at all, so a figure typed on after the redraw is never applied",
+    find: "t.__wasHeld && t.tagName==='INPUT' && t.value===t.defaultValue)", repl: "t.__wasHeld && t.tagName==='INPUT')" },
+  { id: 'v209-rv-clin-taken-back-drawn-is-held', area: "change listener", what: "the change is judged against the figure put back instead of the one the board drew, so typing taken back after a redraw writes again and a figure typed whole is dropped",
+    find: "t.tagName==='INPUT' && t.value===t.defaultValue){ t.__held=undefined;", repl: "t.tagName==='INPUT' && t.value===t.__held){ t.__held=undefined;" },
+  { id: 'v209-rv-clin-held-not-marked', area: "inspHeldBack", what: "a box the hold put back is not marked as such, so the change for the board's own figure is passed on",
+    find: " i.__wasHeld=true;", repl: "" },
+  { id: 'v209-rv-clin-drill-scroll-reset', area: "render", what: "every redraw puts the CLIN drill back at its left edge, so a button pressed after typing comes back 200px from the pointer",
+    find: "    dsl.forEach(function(s){ try{ const r=document.getElementById(s[0]), c=r && r.querySelector('.cscroll'); if(c) c.scrollLeft=s[1]; }catch(e){} });\n", repl: "" },
+  { id: 'v209-rv-clin-drill-scroll-one', area: "render", what: "a redraw puts one drill's sideways scroll on the first drill in the list, whichever row it was read from",
+    find: "const r=document.getElementById(s[0]), c=r && r.querySelector('.cscroll');", repl: "const c=document.querySelector('#list .cscroll');" },
+  { id: 'v209-rv-clin-svc-tag-beside', area: "CSS", what: "Fund's SVC tag takes the whole allocation cell again, and the box is crushed to 14px under ★",
+    find: ".row .acts.alloc .mode-tag{position:absolute;left:6px;top:-6px;width:auto;line-height:9px;padding:0 3px;background:var(--panel);pointer-events:none}", repl: "" },
+  { id: 'v209-rv-clin-svc-tag-catches-click', area: "CSS", what: "Fund's SVC tag, on the box's edge, takes a click meant for the box and opens the RECORD panel",
+    find: "background:var(--panel);pointer-events:none}", repl: "background:var(--panel)}" },
   // ==== end v2.09 W1 ====
 
   // ==== v2.09 W2 (item 126): a PMO copy's five years ====
