@@ -178,6 +178,72 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
   newest save opened there is what the copy as published opens next; this browser's own work is kept aside, and the line
   says so. Sealing the plan key per office file would change where every copy's work is kept.
 
+#### 130. FYDP Disconnects: the Spruill charts at appropriation level, on screen and in Excel (Brad, 27 Oct 2026)
+- **Asked** (from photos of his PB27 slides, *F-35 Sustainment Summary* and *PB27 Service Detail – USAF CTOL*; no figure from
+  them is recorded here): *"For the next update, I need to produce these Excel spreadsheets with this exact look, color
+  scheme, structure, etc. These are my Spruill charts at the Appropriation level. I need a roll up of all Services and then
+  individual slides for USAF, STOVL, USMC CV, and USN CV. ANG and AFRC totals are combined in to the USAF slide."* It is
+  produced on screen, exports to Excel, and lives in the FYDP section as **FYDP Disconnects**.
+- **What is there today:**
+  - the cost estimate (`ACEDB.sets[*].lines`, each `{ap, pmo, svc, v:{year: dollars}}`, JPO-managed lines only; `ap` is
+    O&M, Support (Full Fund) or Spares; `svc` is USAF, ANG, AFRC, STOVL, USMC-C or USN);
+  - the PPBE Budget Positions (`MS.ppbe[cycle key]`: per service, per line, per year, `{d, m}` -- discretionary and
+    mandatory), held in each appropriation's own store;
+  - the Spruills (FYDP › Spruills) and the five-year spend plan. Nothing prints the two side by side by appropriation.
+- **The mock-up** (invented figures): `recovery/v210/item130-mockup/` holds the two screens and the two sheets as rendered,
+  and the scripts that build them (`model.py`, `xlsx.py`, `html.py`).
+- **Brad's decisions (27 Oct 2026):**
+  1. **Where:** FYDP › FYDP Disconnects. A box with the tables, one tab per sheet, and one *Export to Excel* that writes all
+     five sheets.
+  2. **Five sheets:** *Summary* (every service), then *USAF* (USAF, ANG and AFRC together), *STOVL*, *USMC CV* and
+     *USN CV*. Each looks exactly like his slides: layout, colours, bold and italic lines, red parentheses.
+  3. **Years:** the cycle picked sets them. For BES28 the columns are FY27–FY32, with an FY28–32 total on the right; for
+     PB27, FY26–FY31 and FY27–31.
+  4. **Sections, in order:** O&M; Procurement (Full Fund); Initial Spares (Spares); then a total section summing them. OPN is
+     not included.
+  5. **Each appropriation on the Summary:**
+     - its title band;
+     - `<ACE> <appropriation> Required`, the ACE total plus International;
+     - `US Only`, the estimate as imported. Brad: keep this line;
+     - `International Req Total`, an input, $0 to start. GSS Reset is not broken out;
+     - `<cycle> <appropriation> Controls`, summary only;
+     - `Discretionary` and `Mandatory`, which add to the controls;
+     - `International Funding`, an input, $0 to start;
+     - the delta, then `% Funded`.
+     The total section follows the same shape.
+  6. **The service sheets carry no International lines.** Per appropriation: the ACE requirement for that service,
+     `<cycle> Controls`, Discretionary, Mandatory, the service's delta and % Funded; then a Total Sustainment section.
+  7. **The cost estimate and the PPBE cycle are both selectable.** The controls come from the PPBE input area: the
+     selected cycle's PPBE Budget Positions, discretionary and mandatory, for every column, the year before the cycle
+     included.
+  8. **The International inputs are not saved.** They last for the session and the export, and start at $0 each time the
+     board opens.
+  9. **Markings:** *CUI//REL TO US DoW* above the title and in the footer, on every sheet, as his slides carry it.
+- **Proposed with it** (shown in the mock-up; Brad's answers above kept them):
+  - **The delta** is funding less requirement: (controls + International Funding) − (ACE US + International Req). A
+    shortfall reads red in parentheses, as on his slides. % Funded is funding ÷ requirement, international on both sides.
+  - **A year an appropriation has no position logged for** prints "—", never $0, the rule the five-year plan keeps.
+  - **The workbook keeps whole dollars** and displays millions through its number format, so every total foots exactly.
+    The International inputs are typed in $M (a bare number is millions).
+  - **Read, never recomputed:** the estimate from `ACEDB`, and each appropriation's positions from its own store. No second
+    engine.
+  - **The labels:** the cost estimate's label as imported (*2025 ACE*) and the cycle's (*BES28*). The service sheets are
+    titled *USAF CTOL*, *USMC STOVL*, *USMC CV* and *USN CV*, with rows headed *USAF F-35A*, *USMC F-35B*, *USMC F-35C*
+    and *USN F-35C*.
+  - **The footer:** *<Month Year> / Sustainment Finance / PSM*.
+  - **The box says the inputs are not kept:** International figures typed in it are lost when the board reloads, which
+    includes switching appropriation.
+- **Checks to add:**
+  - every total foots: rows, sections and the total section, by year and across the FYDP total;
+  - the delta and % Funded from the fixture's own figures;
+  - the International inputs move the requirement, the funding, the delta and % Funded on the Summary only, and nothing
+    is stored;
+  - USAF holds ANG and AFRC;
+  - an appropriation with no position prints "—";
+  - the CUI marks are on every sheet;
+  - the Excel cells read back, styles included, from the bytes;
+  - the money map and money coverage register the new surface.
+
 #### 125. CLIN amounts cannot be typed with the mouse (Brad, 26 Oct 2026: "Let's review our ability to edit CLIN level data and amounts. At the moment, if I click a requirement amount on a CLIN, it sends me to the panel pop up and I'm unable to edit CLIN requirement amounts.")
 - **What he sees (reproduced in Chromium on main, v2.07, and on the v2.08 branch; the same on both).** He opens a prime's 🧾
   CLIN drill and clicks a CLIN's Request box, or one of its service boxes:
