@@ -4763,7 +4763,9 @@ its workbook the v2.10 workbook**: audit-other "v2.11 — …" reads v2.10's `fd
 shallow clone needs `git fetch --unshallow` first, as recon and import already do. A note the box shows and the workbook
 writes come from one string; never word the workbook's from the notes list.
 
-CHECKS-PLACEHOLDER
+**Checks.** audit-other "v2.11 — …" (the model, the box and five sheets from the bytes; long names; a 250-character estimate
+service; the no-note workbook against v2.10's from git) and the A block's oracle. 15 new mutations (`v211-*`), 1 retargeted;
+88 proved (`recovery/v211-proved.jsonl`). 2,799 targets.
 
 ## Colour: one token, one job
 

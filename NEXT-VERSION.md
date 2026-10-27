@@ -286,7 +286,24 @@ note's row was sized by its length, so a note of long unbroken service names (ab
 lines than that and LibreOffice cut its first and last lines. The row now takes the lines the note wraps to, words packed at
 about 120 characters a line and a longer word taking the lines it needs (`fdcWrapLines`), held at Excel's 409-point limit.
 
-GATE-PLACEHOLDER
+**Checks.** audit-other "v2.11 — the FYDP Disconnects workbook says, under every sheet's table, which services are counted on
+the Summary only": the model, the box and all five sheets read back from the bytes; long unbroken names (98 pt, the 409-point
+limit) and a 250-character estimate service (56 pt); with nothing ungrouped, no note, and `fdcSheets` writing what v2.10's
+(git `b2cb041`) wrote. It fails 21 checks on v2.10, and its long-name checks fail on the first cut (`16f65f2`). The v2.10 A
+block's oracle restates the note. **Mutations:** 15 new (`v211-*`) and 1 retargeted (`v210-a-note-lone-service`), each proved
+against its own check with the 72 older v2.10 ones in the functions this changed (`recovery/v211-proved.jsonl`: 88 of 88
+CAUGHT). 2,799 targets, each once.
+
+**Proved with** (on the final board, `d91c9a4`):
+- `npm run check` passes.
+- **`npm run validate:nightly`**: every stage holds but the browser stage, which fails only on layout's 8 D checks (carried
+  since v2.00). Every suite ran whole and passed (8 banners and the legacy line); the defect register, money coverage (25 of
+  25), the money map (308 cells, 112 proven, 195 n/a, 1 open since v2.04), the trace matrix, the fuzz (seed 118879821) and the
+  file verifier's self-test hold.
+- **The browser checks the gate does not reach**, run on their own: keys, dropdowns, dialogs, leftmenu, pmosave, pmoyears,
+  pointer and standards (nothing new) all pass.
+- **Rendered** in LibreOffice: the note under each sheet's table, whole, the footer last; a nine-line note of long names whole.
+- The sweep was not run (Brad's rule of 20 Oct).
 
 ### v2.10 — 27 Oct 2026: FYDP Disconnects, the Spruill charts by appropriation, on screen and in Excel -- built on Brad's "Go" of 27 Oct
 
