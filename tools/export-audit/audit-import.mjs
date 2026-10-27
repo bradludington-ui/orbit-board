@@ -13787,6 +13787,18 @@ await (async () => {
   chk(name, 'a later Apply', 'and so does Q’s copy the team rolled into FY32, though it carries no provenance of its own',
     w209ev(B, `JSON.stringify(((MS.years[2032].custom||[]).filter(function(c){ return c.id===${J(qIn32)}; })[0]||{}).prior||null)`), J({ fy: 2030, id: (p30 || {}).id }));
   chk(name, 'a later Apply', 'Roll requirements forward sees FY31 already carries FY30’s P: nothing to create', J(plan(2030, (p30 || {}).id, 2031)), J([[2031, 0, 1]]));
+  // PUT BACK THE RE-POINT. The journal holds Q's link moving from the copy's id to the requirement P became, with Put back.
+  // Put back, Q names the copy's id again until the next Apply, and its record must still read what P became -- through P's
+  // provenance (priorLink) -- never "PSM proposed it, and it has not been accepted" of a proposal this board took.
+  const qk = w209ev(B, `String((MS.years[2031].custom||[]).map(function(c){ return c.from && c.from.nid; }).indexOf(${J(Q.id)}))`);
+  const qe = w209ev(B, `String((MS.jrnl||[]).map(function(e, i){ return [e, i]; }).filter(function(x){ var e=x[0];
+    return e.fy===2031 && JSON.stringify(e.p)===JSON.stringify(['custom', ${qk}, 'prior', 'id']) && jrnlUndoable(e); }).map(function(x){ return x[1]; }).pop())`);
+  chk(name, 'Put back', 'control — the re-point of Q in FY31 is in the change journal, with Put back', qe !== 'undefined' && qe !== '', true);
+  w3dlg(B.ev); w209ev(B, `jrnlUndo(${/^\d+$/.test(qe) ? qe : -1}); 'ok'`); w3said(B.ev);
+  const qPut = JSON.parse(w209ev(B, `(function(){ var c=(MS.years[2031].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(Q.id)}; })[0]||{};
+    return JSON.stringify([c.prior||null, priorTxt(c)]); })()`) || '[]');
+  chk(name, 'Put back', 'control — put back, Q names the copy’s id again', J(qPut[0]), J({ fy: 2030, id: Pp.id }));
+  chk(name, 'Put back', 'and its record still reads the requirement P became, not a proposal the board has not taken', qPut[1], 'FY30 ' + (p30 || {}).id + ' — PSM original FY30');
   chk(name, 'errors', 'control — no page error', J([B.errors.length, P.errors.length]), J([0, 0]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
