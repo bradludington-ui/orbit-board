@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.08**. Next: **v2.09**.
+Current version: **v2.09**. Next: **v2.10**.
 
 ## Open
 
@@ -243,6 +243,227 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
   - the CUI marks are on every sheet;
   - the Excel cells read back, styles included, from the bytes;
   - the money map and money coverage register the new surface.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v2.09 — 27 Oct 2026: CLIN amounts typed with the mouse, a PMO copy's five years, Save in a PMO copy, the SI tab by code -- built on Brad's "Go on v2.09" of 26 Oct, merged on his "Merge when ready" of 27 Oct
+
+Items 125–128 were built as Brad decided them on 26 Oct (his answers are under each item below). They were built in four
+workstreams in parallel (W1 = 125, W2 = 126, W3 = 127, W4 = 128), each on its own branch from the slot commit `6405e01`, and
+merged at `9bc5496`. Where the build differs from the log, or had to decide something the log does not say, it says so here.
+Each workstream's notes are in `recovery/v209/notes-W1.md` … `notes-W4.md`.
+
+**Item 125 — CLIN amounts and the row controls, by pointer (W1).**
+- **Built as decided:** each CLIN has a request per service, typed into its own boxes (`clinSetAsk`, writing `c.ask[j]`). The
+  allocation grid beside it stays independent. The drill's foot shows the prime's requirement value by service and the
+  difference, as information only. A PMO copy's drill stays read only, and its WBS button is dimmed with the rest.
+- **The click that used a control** now selects the row quietly (`setCur(id, true)`): no drawer slides over, and the keyboard
+  stays where the click put it. A click on the row itself still opens the RECORD panel.
+- **The pressed control survives a redraw** (`PTR`, `ptrSig`, `ptrLoc`, `ptrFind`, `ptrAfterRender`). It is found again by
+  its handler, never by position alone. A button's press is delivered once, and the field just left never gets the keyboard
+  back.
+- **A half-typed figure survives a redraw in the rows too.** v2.08's RECORD-panel hold now covers `#list`: the CLIN boxes,
+  the rank box and Fund's allocation box. A figure put back by a redraw is applied when the field is left (`heldCommit`).
+- **Both routes into the drill** (the edit box's, and Classify's prime WBS button) go through `clinGo`. It closes what is
+  over the drill, opens it, never toggles it, scrolls it into view and puts the keyboard on its first box.
+- **Found on the way, fixed:** ↓ Fill from row and ↑ Apply grid to row now write whole dollars through `apportion`. A new
+  CLIN's grid starts as its first request. The row ⋯ menu's close handler no longer eats the first click into the drill.
+- **Decided in the build:**
+  - The total Request box is gone; the line's request is read from the per-service boxes (two editors for one figure is what
+    the row rule forbids). `clinSetReq` is removed.
+  - "A new CLIN's grid starts as its first request" is read per service, on an added CLIN only.
+  - A lost press is re-delivered for buttons only; a select or input gets the keyboard back.
+
+**Item 126 — a PMO copy adds and edits requirements in every year of the FYDP (W2).**
+- **Built as decided:** a copy carries every year of the window (`mode.yb`, `mode.yord`, `mode.yn`). In each year the office
+  can update its requirements and propose new ones (decision 1). A year the board had not started opens blank, for new
+  requirements only, and Apply asks the team to start it, by rolling forward or blank, before anything goes into it
+  (decision 2). One file carries every year (decision 3). Apply puts every ticked year's changes into its own year at once,
+  after one question naming each year and its count (decision 4, replacing v1.95 item 52's refusal). Roll forward and Copy
+  and Move to year are off in a copy (decision 5).
+- **Proposed with it, and built:** Roll requirements forward, Set base year and Reset year are off in a copy too. The banner
+  names the years. The office part of the guide has a new section, *Which years you can work in*.
+- **The package:** the published year stays at its top, exactly as before, and the other years go under `byYear`. It carries
+  `build`, so a v2.08 board refuses it whole, through the import check's existing newer-build rule. A five-year copy also
+  sends `fys`. Proposal ids are unique across the whole copy (`reqSeqNext`), and each proposal carries its `fy`.
+- **The board side:** `pmoTakeYears` takes each year through `pmoTake`'s own path, all or nothing; the file replaces every
+  package its office held. The review and the change report group rows by year.
+- **Decided in the build:**
+  - `PMO_PV` stays 2; a five-year copy is known by `mode.yb`.
+  - A row for a year the board has not started can be ticked; it is never *gone*.
+  - In a year Apply has just started, an edit to a requirement that year does not hold is not written, and is named.
+  - A legacy one-year file replaces only the same office's package for the same year.
+  - The batch loader's one-file-per-office rule is unchanged.
+
+**Item 127 — Save in a PMO copy, and the board refusing a copy at its other doors (W3).**
+- **Built as decided:** one file per office. 💾 Save sits at the foot of the left menu, above ✉ Submit input, which stays the
+  primary button; its ▾ offers Save a copy, and Ctrl+S is the copy's Save. The first Save asks where to keep the office's
+  file, suggesting a new name with the office in it (`pmoSaveName`). Every Save after it writes over that file, in place, and
+  only a file this copy saved for this office (`pmoSaveTargetWhy`): never the copy as published, another office's file,
+  another copy's file or the portfolio board. Reopening adopts the office the file was saved for (`MS.pmoFor`), shown in the
+  banner, and Submit refuses a different office. Two people in one office take turns in the file, and Save asks before it
+  writes over a newer save.
+- **Brad's rule, "Import of a PMO Copy can only be through the PMO import screen":** ⬅ Import, Import a full board, Import
+  one appropriation and Import several boards at once each refuse a PMO copy (`pmoCopyWhy`, `pmoCopyRefuse`), naming its
+  office and pointing to the PMO import screen. The board's own Save refuses to write over a PMO copy.
+- **The copy's side lists are sealed** to the copy as its plan already was: `prio27execdb`, `prio27acedb`, `prio27buddb`,
+  `prio27reprog` and `prio27sideOpen` carry `-pmo<publish stamp>` in a copy.
+- **Decided in the build:**
+  - "The first Save always goes to a new file" is built as a target rule: the picker always suggests a new office-named file,
+    and a file it is pointed at is taken only if it is this copy's file for this office. Otherwise a second person could
+    never take a turn in the office's one file.
+  - The suggested name carries the copy's publish date, so every machine is offered the same name.
+  - The office mark lives in the plan, so it travels with the work through browser storage.
+
+**Item 128 — the Excel SI tab lists the requirements under each SI code (W4).**
+- **Built as decided:** every code (LA, EN, OT, FL, AT, then the requirements carrying none). Funded per service (STOVL, USMC
+  CV, USN) is what the lanes drew, d + m, NO DATE included, so it follows the discretionary-only view. The requirement value
+  per service is shown in columns that enter no total. Every requirement asking on one of the three services is listed, an
+  unfunded one at $0. A prime has its row, then a line per CLIN, in whole dollars that add to the prime's row. A TOTAL per
+  code equals that code's row in the tab's service blocks above, and the last TOTAL equals the tab's roll-up. Rows are in
+  board priority order, with the master rank.
+- It is a pivot of `monSheet`'s own pass, never a second walk, behind an option only the SI call passes; the RCN-EEIC tab is
+  byte-identical to v2.08's. The stale "from a requirement's ⋯ menu" wording now names 📋 Requirement edit (the overview's
+  note, the 1A9A status line, Needs attention's Go to).
+- **Decided in the build:**
+  - The five codes always show; an empty one reads *(0 requirements)* and a $0 TOTAL.
+  - A CLIN line leaves blank a service its grid does not split, and that money goes on its own line, so the lines still add
+    to the prime.
+  - Reading a prime's CLINs for the section never writes CLIN containers into the board (`clinRead`).
+  - The tab's label column is 52 wide, as the RCN breakout's.
+
+**Integration** (`9bc5496`):
+- BUILD v2.09.
+- The three new browser checks are in `verify:grid`: `npm run pmosave` (`tools/pmo-save.mjs`), `npm run pmoyears`
+  (`tools/pmo-years-render.mjs`) and `npm run pointer` (`tools/pointer-edit.mjs`).
+- The guide's office part, which W2 and W3 both edited, was merged by hand: *Which years you can work in*, then *Save your
+  work, and come back to it*.
+- audit-ui's two legacy year questions, and audit-inject's K5 pin on item 52's office-keyed map, were updated to item 126.
+
+**Found by three independent reviews before merge, and fixed** (27 Oct). Each round had reviewers by area, and each finding
+was re-run by a skeptic trying to refute it. The fixers' records are `recovery/v209/notes-RV-*.md` (first round),
+`notes-RV2-*.md` (second) and `notes-RV3-*.md` (third). Every fix has a check that fails on the board before it and a mutation.
+- **The first review** (on `9bc5496`, five areas, `wf_1ced432a-7d0`): 15 findings, all confirmed, 13 distinct. The SI tab came
+  back clean. All were fixed (`v209-rv-*`):
+  - **Five years.** A second copy could mint a provisional id the board had already filed, so the new proposal could
+    never be ticked. Apply could roll a year it started forward and then add a proposal's work again, unnamed. A link to
+    another of the office's proposals stayed on the copy's id. Changes put into a year Apply had just started were not
+    journalled one by one. Submit from a held year outside the copy's years said "Nothing to send yet" to an office that
+    had just edited there.
+  - **The copy's Save.** With two people in one office, the way out the copy named after Cancel did not work. Opening one
+    office's file switched the office for every copy and tab in the browser. The board's stopped-import hold was not
+    sealed to a copy. A copy could still send its plan as an appropriation package (older than v2.09). A moved office
+    file left every later Save failing (older).
+  - **CLIN amounts.** A redraw turned typing that had been taken back into a write. The drill's sideways scroll reset
+    under the pointer (older). Fund's allocation box was squeezed by its SVC tag (older).
+- **The second review** (on `ba3c294`, of those fixes, `wf_043d393a-75b`): 11 findings, 10 distinct, all confirmed or
+  partly confirmed. All were fixed (`v209-rv2-*`):
+  - **Introduced by the first round:** a re-point with no provenance could land a link on another copy's proposal. The
+    copy's stamp now travels with a copied link, and one rule decides what a link names.
+  - The duplicate check followed one link only; it now follows the chain. An out-year re-rank was not counted. The
+    out-year alert came before the name check.
+  - The office now follows the work: on Put back, on the file's version and on a page saved for an office. The copy as
+    published had the wrong opening line.
+  - **Data loss, older than v2.09:** an opening recorded unsaved work as saved, so a second opening replaced it.
+  - A copy took a board package (older). After a commit, the keyboard could land on another requirement's control
+    (older).
+- **The third review** (on `d3ce17d`, `wf_7212561b-eca`). It was stopped once Brad chose "Fix the regressions only" (his
+  reason: the SFWG reviews every spend plan monthly, from a fresh PMO copy, and will catch duplicates). The two regressions
+  the second round had introduced were fixed (`v209-rv3-*`), and a skeptic re-ran each finding against its fix:
+  - **The keyboard:** after ✕ on an award, a re-dated award, *set to drawn* in the not-drawn list or ✕ on a WBS line, the
+    keyboard went to the next item, and a second Enter changed that item too. A control whose handler names a place is
+    now found again only where that item still stands; otherwise the keyboard goes nowhere. The last two cases are older
+    than v2.09.
+  - **The opening:** opening a newer file only to look at it rewrote this browser's copy. The boot now writes storage only
+    where it has just kept unsaved work aside.
+  The rest is item 129, held for v2.10: same-work matching with two copies out at once, a board-added requirement rolled
+  forward, and two tabs.
+- **Found by the combined proof** (every v2.09 mutation against its own check, on the merged board): one survived,
+  `v209-w2-link-proposal-unresolved`. The first round's end-of-Apply re-point had moved its check away from it. A person can
+  still reach the line, by Put back of a re-point, and that path is now checked.
+
+**Proved with** (27 Oct, on the final board, `8d9ede3`):
+- `npm run check`; every mutation target matches once (2,651 of 2,651).
+- **Every suite, whole:** on `9bc5496`, on `ba3c294`, on `d3ce17d`, and in the nightly on the final tree.
+- **`npm run validate:nightly` on `a4422f3`** (the final board), 12:10–13:18 UTC:
+  - the defect register (13 defects, guarded by 43 mutations), money coverage (24/24), the money map (301 cells: 108 proven,
+    192 n/a, 1 open, as v2.08) and the trace matrix (77 cells, every link holds);
+  - the suites, every one clean (8 banners and the legacy line, 58 minutes);
+  - the fuzz (seed 775343054) and the file verifier's self-test;
+  - the browser stage failed only on layout's 8 D checks, carried since v2.00.
+- **The run before it**, on `8d9ede3`, died out of heap in audit-board (exit 134). v2.09's blocks took that suite past node's
+  ~2 GB default heap on this container, so the chain never reached import or recon. The gate now gives the suites 8 GB
+  (`tools/validate-math.mjs`), as CLAUDE.md already said import and recon need.
+- **Every browser check, on its own:** running as this was written; its result is added here before the merge.
+- **The combined proof:** every v2.09 mutation against its own check on the merged board (`recovery/v209/proved-integrated.jsonl`).
+  291 were caught. `v209-rv2-clin-row-unbounded` is declared equivalent, backed by a check that every row control names its
+  requirement.
+
+**Mutations:** 261 new:
+- 153 from the build: W1 31, W2 52, W3 42, W4 28;
+- 57 from the first review (`v209-rv-*`), 42 from the second (`v209-rv2-*`) and 9 from the third (`v209-rv3-*`).
+
+Each was run against its own block on a mutant of the board and caught (`recovery/v208/bin/prove.py`;
+`recovery/v209/proofs-*.json`, `proved-*.jsonl`). 4 older ones were retired as obsolete and 37 were retargeted. There are
+2,651 targets, each matching once. The mutation sweep was not run (Brad's rule of 20 Oct).
+
+#### The items as logged
 
 #### 125. CLIN amounts cannot be typed with the mouse (Brad, 26 Oct 2026: "Let's review our ability to edit CLIN level data and amounts. At the moment, if I click a requirement amount on a CLIN, it sends me to the panel pop up and I'm unable to edit CLIN requirement amounts.")
 - **What he sees (reproduced in Chromium on main, v2.07, and on the v2.08 branch; the same on both).** He opens a prime's 🧾
@@ -493,64 +714,6 @@ path; build one with `git show <commit>:prioritization-board-grid.html`.
   - the RCN tab unchanged;
   - all on a Split fixture with a ▲ not drawn line, so the funded and allocation readings disagree.
   `v200-u41-workbook-label` is retargeted, the money map registers the section, and a mutation guards each part.
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
-- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
-  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
-- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
-  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
-  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
-  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
-  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
-  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
-  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
-  finding fixed or written down, plus `npm audit` for the test tooling.
-- **Proof:** each change ships with a check that fails without it, as every version does.
-- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
-  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v2.08 — 26 Oct 2026: a requirement's whole record edited in one box, the seven defects found mapping it, the security review kit refreshed -- built on Brad's "Go on v2.08" of 26 Oct
 

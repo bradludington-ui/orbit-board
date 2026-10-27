@@ -1,7 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
-about 34,000 lines, 2.4 MB (4.0 MB until v2.05 removed the PowerPoint deck and its 1.6 MB template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
+about 37,000 lines, 2.7 MB (4.0 MB until v2.05 removed the PowerPoint deck and its 1.6 MB template), no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
 ## One build: `prioritization-board-grid.html` (since v1.88)
@@ -2181,7 +2181,11 @@ aside when a newer saved copy replaced it). Neither is ever part of the board. S
 (a full import stopped part-way and could not be put back: nothing writes over the board file until it is
 cleared). Since v1.90: `spmtMode`
 (the workspace mode), `spmtDensity` and `spmtDetail` (Funding detail open) -- this browser's view of the
-board, like `spmtTheme`, never written into the file (`tools/layout-fits.mjs` G checks that).
+board, like `spmtTheme`, never written into the file (`tools/layout-fits.mjs` G checks that). Since v2.09, in a PMO copy:
+every side list and the stopped-import hold are sealed with the copy's publish stamp (`prio27execdb-pmo<ts>`, `prio27acedb-`,
+`prio27buddb-`, `prio27reprog-`, `prio27sideOpen-`, `prio27impMixed-pmo<ts>`), as its plan, cycles and destinations already
+were; the copy's own file handle is kept in `prio-fh` under `pmo-copy|<publish stamp>|<office>`, never the board's `FNAME`
+entry; and the copy's plan carries `MS.pmoFor`, the office its file was saved for (the board drops it on every load).
 
 ## Hand-edit points
 
@@ -4600,6 +4604,105 @@ citation checked against the symbol it names), `tools/review/` (four `review:*` 
 v2.00–v2.08 (v2.08 by its branch commit until it merges), from `claude/security-review-kit` (`b6f1ffc`, kept as the record of what the
 security team was given). Whether the guide goes to the security team, and whether `which-build.mjs` joins the checks, are
 Brad's.
+
+### v2.09 (items 125–128): CLIN amounts by pointer, a PMO copy's five years, Save in a PMO copy, the SI tab by code
+
+Brad, 26 Oct 2026: his four requests and his answers to the questions they raised; built on his "Go on v2.09" in four
+workstreams in parallel (W1 = 125, W2 = 126, W3 = 127, W4 = 128), one branch each from the slot commit `6405e01`, merged at
+`9bc5496`. `NEXT-VERSION.md` › Shipped › v2.09 has every decision; `recovery/v209/notes-W*.md` each workstream's own record.
+
+**A click on a control uses the control (item 125).** The row-selection delegate selects quietly (`setCur(id, true)`: the
+docked RECORD panel follows, no drawer slides over, the keyboard stays) when the press left focus on a control in the row or
+the click landed in `.clin-detail`; a click on the row itself still opens the panel. **A pressed control survives a redraw**:
+`PTR` notes it at pointerdown by its handler, the nearest element with an id and its place among same-handler controls --
+never by position alone -- and `ptrAfterRender()` (after `gridAfterRender()`, in the render wrapper) gives its new copy the
+keyboard, delivering a button's press once. `selNavBlur` reads `PTR.down` (v2.08's `_selPtrDown` generalised). **v2.08's F2
+hold covers the rows** (`#inspector, #list`): a figure half typed in a CLIN box, the rank box or Fund's allocation box is put
+back after a redraw with its keyboard and caret, and `heldCommit` applies a put-back figure when the field is left, as a
+browser applies any typed field (a script-set value moves the browser's change baseline). **A CLIN's request is per service**
+(`clinSetAsk(pid, key, j, val)`, `c.ask[j]`; `clinSetReq` is gone): two lines per CLIN in the drill, Request and Allocation, the
+grid still independent and still feeding no funding math (the foot shows the prime's requirement value and the difference, as
+information only). `clinGo(id)` is the one route into the drill from elsewhere (the edit box, Classify): it closes what is over
+it, opens it (never toggles), scrolls it into view and puts the keyboard on its first box. `tools/pointer-edit.mjs` (`npm run
+pointer`) clicks with `page.mouse` at each control's centre, sliding and docked, 1366 and 1920. **A check of a pointer path
+clicks with a real pointer**: a `click()` in jsdom never moves focus and never redraws between the press and the click, which
+is exactly where item 125's defect lived.
+
+**A PMO copy carries every year of the FYDP (item 126).** `publishPmoCopy()` keeps the published year as it was (`mode.fy`,
+`mode.base`, `mode.ord`, `pv:2`) and adds `mode.yb[fy]` and `mode.yord[fy]` for every other year of the window
+(`pmoPubYears()`: base…base+4, and the year on screen outside it), and `mode.yn`, the years the board had not started. A
+five-year copy is one with `mode.yb`; **`PMO_PV` stays 2** (it is the field-set version: raising it would read every copy out
+as the pre-v1.84 eight fields). Every copy-side reader of the baseline reads the year on screen's (`pmoBaseOf`, `pmoOrdOf`).
+The package keeps the published year at its top, exactly as before, and every other year under `byYear`; it carries `build`,
+so a v2.08 board refuses it whole by the import check's newer-build rule, and `fys` marks it as five-year. Proposal ids are
+unique across the copy (`reqSeqNext`). `pmoTakeYears` takes each year through `pmoTake`'s own path, all or nothing; `pmoApply`
+asks once, naming each year and its count, starts a year the board has not started (`pmoYearStart`: rolled forward or blank,
+as the team chooses) and writes each year inside `aceWithYear(y)` (`pmoEachYear`), oldest first. This replaces v1.95 item 52's
+"applies nothing while a ticked package is held for another year". The year tools are off in a copy (`copyYearBlock`).
+`tools/pmo-years-render.mjs` (`npm run pmoyears`).
+
+**Save in a PMO copy (item 127).** `pmoSaveCopy()` -- in a copy only, through `saveSerial` -- writes the office's own file:
+its handle under `pmo-copy|<publish stamp>|<office>` in `prio-fh` (never the board's `FNAME` entry), the first Save offering
+a new file named for the office (`pmoSaveName`), every Save refusing a target that is not this copy's file for this office
+(`pmoSaveTargetWhy`: the copy as published, another office's file, another copy's, the board). The office rides in the plan
+(`MS.pmoFor`), never in `pubMode`, so the storage keys, the publish stamp and Submit's baseline are as published; opening adopts
+it and Submit refuses another office (`pmoForBlock`, one line at the top of `pmoSubmit`); the board drops it on every load. A
+copy is marked saved exactly as the board's Save marks it (`LASTKNOWN`, the base, `_saveGen`, `sideWrote`); `WRITER` is never
+consulted. **A PMO copy comes in only through the PMO import screen** (Brad): `pmoCopyWhy`/`pmoCopyRefuse` refuse it at
+`importState`, `fullImportText`, `importBoards` and `consTakePick`, naming its office; the board's Save refuses to write over
+one. The copy's side lists are sealed (`SIDE_SFX`; `EXDB_KEY`, `ACEDB_KEY`, `BUDDB_KEY`, `RPDB_KEY`, `SIDE_OPEN_KEY`). **A new
+storage key a copy writes is sealed with `SIDE_SFX`**, or the portfolio team's own browser shares it with every copy it opens.
+`tools/pmo-save.mjs` (`npm run pmosave`).
+
+**The SI tab lists the requirements under each SI code (item 128).** `monSheet({byReq:true})` (the SI call only) pivots its
+own pass -- each requirement's entries in `bag[g][k].its`, and `pend[g][k]` for asks that drew nothing -- so a code's TOTAL
+is that code's row in each service block by construction, never a second walk. Funded is d + m from `Tv`, NO DATE included,
+so it follows ◨; the requirement value is printed and enters no total. A prime's CLIN lines split by `clinSplit`, whole dollars
+that add to its row; `clinRead` puts back the very objects `clinList`/`clinVec` would have created, so the export changes no
+state v2.08's did not. The RCN-EEIC tab is byte-identical to v2.08's, proved against `git show ebe702e` in the suite.
+
+**Three reviews before merge** (`NEXT-VERSION.md` › Shipped › v2.09 has every finding; `recovery/v209/notes-RV*-*.md`
+each fixer's record). What they leave for the next change:
+
+- **A link to an office's proposal names the copy that minted it.** A provisional id (`NEW-PSM-2`) means something only
+  beside the copy that gave it out. Two copies out at once both mint `NEW-PSM-1`, and a team copy of a link carries no
+  provenance of its own. So the copy's stamp travels on the link (`prior.pmo`, `prior.pub`; `pmoLinkStamp`, carried by
+  `yearCopy` through `pmoLinkKeep`). One rule decides what a link names (`pmoLinkTo` → `pmoProvOne`); `pmoRepointLinks`, at
+  the end of every Apply, and `priorLink` both read it. The second review found the first round's fallback, "the one
+  proposal under that id", matching more widely than the rule beside it. **A fallback looser than its rule is a defect
+  waiting for the case it was not written for.** The same-work twin rule and the duplicate walk still compare `{fy, id}`
+  only: item 129.
+- **A control is found again by what names it, and only where that item still stands.** `focusMark`/`focusRestore` key a
+  control by its handler and its row, never by class and index: a class that changes with the value (`svcmode`) put the
+  keyboard on another requirement's box. A handler that names a place (`rmAwd(id,0)`, `wbsDel(…,i)`, `ndSetDrawn(i)`)
+  stands, after a redraw, for whatever moved into that place. It is found again only where its box's controls come back
+  the same (`ctlShape`, `ctlPlaces`, `ctlSame`); otherwise the keyboard goes nowhere, and a box keeps it on the box
+  (`dlgBack`). The press record (`PTR`, item 125) still matches by handler alone (a known gap).
+- **The boot writes browser storage only where it has just kept unsaved work aside.** Opening a newer file over unsaved
+  work keeps that work aside, then writes the file's state into storage so the record and storage agree (the second
+  review's data-loss fix). Writing on every newer opening (the first cut) meant that opening a file just to look at it
+  replaced what this browser would open next. Two tabs can still leave the record clean over unsaved work (`_baseDirty`
+  is cached per page): item 129.
+- **The office belongs to the page, and follows the work.** Reopening adopts the office the file was saved for
+  (`pmoAdopt`, recording how and what it replaced); only the person's own choice writes `prio27pmo`. Work put on screen
+  takes its own office (`pmoFollowWork`).
+- **Prove every mutation together on the merged board, not only each round's own.** Each fixer proved its mutations on its
+  own branch. The combined run (`recovery/v209/proved-integrated.jsonl`) found one that a later fix had made unreachable
+  from its check: `v209-w2-link-proposal-unresolved`. The re-point at the end of Apply meant the W2 block never met a
+  link still on a copy's id. A person can still reach it, by Put back of the re-point, and that path is now checked.
+- **A copy takes nothing through a board door, and gives nothing out except Submit.** Every import door refuses a file in a
+  copy. Appropriation packages are refused in a copy, and a package a copy wrote is refused at the board (by its office
+  mark or the `[PMO COPY …]` name stamp). The shared-state sidecar is not read in a copy. The copy's stopped-import hold
+  is sealed (`IMP_MIXED_KEY` carries `SIDE_SFX`).
+
+**Checks.**
+- **Mutations:** 261 new (`v209-*`): 153 from the build, then 57, 42 and 9 from the three reviews. Each was proved against
+  its own block, and then all together on the merged board (`recovery/v209/proved-integrated.jsonl`). 4 were retired and 37
+  retargeted. There are 2,651 targets.
+- **New browser checks in `verify:grid`:** `npm run pmosave`, `pmoyears` and `pointer`. `verify:grid` still stops at
+  layout's carried D ×8, so run `keys`, `dropdowns`, `dialogs`, `leftmenu`, the three new ones and `standards` yourself.
+- **`validate:nightly` gives the suites 8 GB** (`tools/validate-math.mjs`, `SUITE_HEAP`). v2.09 took audit-board past node's
+  ~2 GB default here, and the first nightly died in it before import and recon.
 
 ## Colour: one token, one job
 
