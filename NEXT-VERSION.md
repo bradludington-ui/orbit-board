@@ -377,21 +377,33 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     position leaves the lowest-ranked requirements short first. A requirement on a Split whose typed Disc or Mand is more
     than its lane can pay is listed under *▲ not drawn*, and *Set all to drawn* (`ndSetAll`) brings the typed figures down
     to what was drawn.
+- **Brad's decisions (28 Oct 2026):** *"When I build a PPBE Budget like BES28, I plug into the controls across the FYDP.
+  When I'm working requirements within the PPBE cycle, I want the controls to pull from those year's totals I've posted in
+  the PPBE Budget."*
+  1. **Which position:** *"It takes the BES28 Budget assigned for each year and each appropriation."* The position logged
+     under the plan's cycle (the working plan's tag, as `fydpPosKey` reads it), each appropriation from its own PPBE Budget
+     Positions, each year from that year's totals.
+  2. **Live:** *"If we update the PPBE position, the budget should instantly reflect the updates and reflect overages or
+     shortages, as applicable."*
+  3. **No automatic cut:** *"It should flag the overage and let the user know that a reduction to a requirement somewhere
+     needs to take place."*
 - **Proposed:**
-  - **Every year in the FYDP window takes its budget authority from the PPBE position assigned**, by service and lane, all
-    years at once rather than one at a time, and stays linked: a change to the logged position changes the years' budget
-    authority, shown before it lands.
-  - **A "fit to the position" review:** per year, every requirement whose funded figure changes, before and after, by
-    service and lane, in priority order, with each year's total against its position; applied as one change, journaled,
-    across the years.
-  - **Kept as today:** added funding sources stay on top of the position; a service the position says nothing about keeps
-    the board's figure, and says so.
-- **Questions for Brad:**
-  1. **Which position does each year take?** The plan's own cycle (all of BES28 for every year, say), or chosen per year?
-  2. **Live or on request?** When the logged position changes, should the years' budget authority change straight away,
-     or should the board show the gap and wait for someone to take the new position?
-  3. **How do requirements fit?** In priority order, as the lane walk does now (the lowest-ranked lose first)? Or another
-     rule -- a proportional cut, or by hand, with the board showing what is over?
+  - **Every year's budget authority is read from the position, not copied.** While the plan is tagged (BES28, say), each
+    year's discretionary and mandatory budget authority, by service, is that year's total in this appropriation's BES28
+    position, read every time the board works it out. Typing a new figure into the position changes the budget at once;
+    retagging the plan (BES28 to PB28) moves every year to the new position. *Take from a PPBE position* (one year, a copy)
+    gives way to this. An untagged plan, or a year or service the position does not log, keeps the board's own figure and
+    says so -- never a silent zero.
+  - **Over and under, flagged per year, appropriation, service and lane:** what the requirements hold (their directed Disc
+    and Mand) against the position. **Over:** *"FY29 O&M, USAF discretionary: requirements hold $X more than BES28 -- reduce
+    a requirement"*, with every requirement in that service and lane listed, and the ones the lane cannot pay marked; ORBIT
+    reduces nothing itself, and the person chooses which requirement gives. **Under:** the position holds $X nobody has
+    allocated.
+  - **What prints in the meantime:** funded is what the lane draws within the position, as everywhere else, so no report
+    states more than the position; the overage stands as a flag until a requirement is reduced.
+  - **Locked cycles** keep the position as it was locked; only the working plan reads live.
+- **Still to decide:** added funding sources (`S.bm.adds`, a UPL say) -- on top of the position, shown as such, or not
+  counted while the plan is tagged?
 
 ## Later
 
