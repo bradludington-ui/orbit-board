@@ -14883,8 +14883,12 @@ function aceParse(rows, label, H){
   const years=Object.keys(ycol).map(Number).sort(function(a,b){ return a-b; });
   const appn={}, lines=[], skip={}, kept=[];
   const sum=function(o, vec){ years.forEach(function(y){ if(vec[y]) o[y]=(o[y]||0)+vec[y]; }); };
+  // rep.types and each reason's `by` count rows by the text a cell holds (a dollar type, a PMO, a category): kept as lists of
+  // [text, rows], never as objects keyed by that text -- a cell reading "__proto__" or "constructor" is a value like any other,
+  // and the saved estimate still passes the import check, which refuses those names as keys
   const rep={v:1, sheet:H.sheet, row:0, sheets:H.sheets||[], years:years, map:{}, absent:[], reasons:{}, named:[],
-             kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:{}, tree:{}, conflicts:[]};
+             kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:[], tree:{}, conflicts:[]};
+  const count=function(list, t){ for(let i=0;i<list.length;i++) if(list[i][0]===t){ list[i][1]++; return; } list.push([t, 1]); };
   const rowNo=function(r){ return (H.rowNo && H.rowNo[r])? H.rowNo[r] : r+1; };
   rep.row=rowNo(H.row);
   ACE_FIELDS.forEach(function(F){
@@ -14893,9 +14897,9 @@ function aceParse(rows, label, H){
   });
   const named=function(k, r, wbs, what, vec){ rep.named.push({k:k, row:rowNo(r), wbs:wbs, what:what, v:vec}); };
   const out=function(k, r, wbs, what, vec, by){
-    const R=rep.reasons[k]||(rep.reasons[k]={rows:0, v:{}, by:{}});
+    const R=rep.reasons[k]||(rep.reasons[k]={rows:0, v:{}, by:[]});
     R.rows++; sum(R.v, vec);
-    if(by!==undefined){ const b=String(by)||'(blank)'; R.by[b]=(R.by[b]||0)+1; }
+    if(by!==undefined) count(R.by, String(by)||'(blank)');
     skip[k]=(skip[k]||0)+1;
     let isNamed=false; ACE_WHY.forEach(function(W0){ if(W0.k===k && W0.named) isNamed=true; });
     if(isNamed) named(k, r, wbs, what, vec);
@@ -14911,7 +14915,7 @@ function aceParse(rows, label, H){
     rep.total.rows++; sum(rep.total.v, vec);
     // 2. then-year dollars only: they are what sits beside the PPBE positions (Brad, 28 Oct 2026). The other types are counted.
     const dtT=aceCellT(row, H, 'dtype'), dt=aceTitleN(dtT);
-    if(!(dt.indexOf('ty')===0 || dt.indexOf('thenyear')===0)){ rep.types[dtT||'(blank)']=(rep.types[dtT||'(blank)']||0)+1; out('dtype', r, wbsT, dtT, vec, dtT); continue; }
+    if(!(dt.indexOf('ty')===0 || dt.indexOf('thenyear')===0)){ count(rep.types, dtT||'(blank)'); out('dtype', r, wbsT, dtT, vec, dtT); continue; }
     thenYear++;
     // 3. a rollup is a subtotal of rows the import already reads: counting it would count every dollar under it twice
     if(aceTitleN(aceCellT(row, H, 'roll')).indexOf('y')===0){ out('rollup', r, wbsT, '', vec); continue; }
@@ -17622,7 +17626,7 @@ function aceImportGo(ctx){
     // A FILE WITH NO THEN-YEAR ROW IS REFUSED, naming the types it holds: an estimate in another dollar would sit beside the PPBE
     // positions as if it were the same money
     if(R.total.rows && !R.thenYear) throw new Error('the estimate holds no then-year rows — its $ Type column reads '
-      +Object.keys(R.types).map(function(t){ return inShow(t)+' ('+R.types[t]+' row'+(R.types[t]===1?'':'s')+')'; }).join(', ')
+      +R.types.map(function(t){ return inShow(t[0])+' ('+t[1]+' row'+(t[1]===1?'':'s')+')'; }).join(', ')
       +'. ORBIT reads then-year dollars, to sit beside the PPBE positions');
     const nAp=Object.keys(set.appn).length;
     if(!nAp) throw new Error(R.total.rows
@@ -17774,10 +17778,10 @@ function aceRepBody(){
       +(R.kept.zero? ' (and '+esc(R.kept.zero)+' paragraph'+(R.kept.zero===1?'':'s')+' with no dollar, in the tree)' : '')+'</td>'
       +'<td>'+esc(R.kept.rows)+'</td><td>'+fD(vOf(R.kept.v))+'</td><td>'+fD(allOf(R.kept.v))+'</td></tr>';
   ACE_WHY.forEach(function(W0){ const x=R.reasons[W0.k]; if(!x) return;
-    const by=Object.keys(x.by||{});
+    const by=Array.isArray(x.by)? x.by : [];
     h+='<tr data-why="'+esc(W0.k)+'"><td style="text-align:left">Left out: '+esc(W0.t)
       +(by.length && (W0.k==='dtype' || W0.k==='pmo' || W0.k==='slc' || W0.k==='svc' || W0.k==='partner')
-        ? '<span style="color:var(--dim)"> · '+by.slice(0,6).map(function(b){ return esc(b)+' '+esc(x.by[b]); }).join(', ')+(by.length>6? ' …' : '')+'</span>' : '')
+        ? '<span style="color:var(--dim)"> · '+by.slice(0,6).map(function(b){ return esc((b||[])[0])+' '+esc((b||[])[1]); }).join(', ')+(by.length>6? ' …' : '')+'</span>' : '')
       +'</td><td>'+esc(x.rows)+'</td><td>'+fD(vOf(x.v))+'</td><td>'+fD(allOf(x.v))+'</td></tr>'; });
   h+='<tr class="tot"><td style="text-align:left">The sheet: every row under the titles</td><td>'+esc(R.total.rows)+'</td><td>'+fD(vOf(R.total.v))+'</td><td>'+fD(allOf(R.total.v))+'</td></tr></table>'
     +'<div class="hint acerep-ties" style="margin-bottom:8px">'+(R.ties? '✓ Every dollar of the sheet is kept or in one reason above, every year, to the dollar.'

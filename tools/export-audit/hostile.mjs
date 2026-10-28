@@ -115,7 +115,7 @@ export function buildHostile(html) {
     // remembered column mapping -- with hostile text wherever a file can put text. The report box draws the file, the sheet, the
     // column titles, a reason's values, the named rows and the conflicting names; the tie-out's lines nothing claims draw a line's
     // cost element. (The tree's names and a line's category and CCaR fields are planted for the pickers that read them.)
-    (function(){ var v={}; v[MS.cur]=1000; var by={}; by[P('acebyval')]=1;
+    (function(){ var v={}; v[MS.cur]=1000; var by=[[P('acebyval'), 1]];
       ACEDB.sets['2026ACE']={label:'2026ACE', ts:Date.now(), years:[MS.cur], locked:true, by:P('aceby'), file:P('acefile'),
         appn:{om:{tot:v, pmo:{AV:v}, svc:{USAF:v}}},
         lines:[{ap:mySlug(), pmo:'AV', svc:'USAF', wbs:'9.1', lv:2, ce:P('acece'), slc:P('aceslc'), ccar:P('aceccar'), cdesc:P('acecdesc'), sub:'', v:v}],

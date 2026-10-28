@@ -4017,7 +4017,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const J = JSON.stringify;
     const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
     const parse = s => { try { return JSON.parse(s); } catch { return null; } };
-    const HDR = ['Index', 'Sub Index', 'PALS/O&S', '$ Type', 'US/PTN/FMS', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Shared/Unique',
+    // Three titles spelled as a person might type them -- 'PALS / O&S', 'Rollup Value' (no question mark), 'JPO-managed': a title is
+    // matched with case, spaces and punctuation taken out, so each is the field it names
+    const HDR = ['Index', 'Sub Index', 'PALS / O&S', '$ Type', 'US/PTN/FMS', 'Service', 'T/M/S', 'Rollup Value', 'JPO-managed', 'Shared/Unique',
       'Share Type', 'Cost Allocation Rule', 'Primary Requirement Driver', 'Govt/LM/PW', 'Labor/Material', 'Contract Requirement', 'Bi/Multilat',
       'Budget Element (US Only)', 'Appropriation (US Only)', 'Support Line Category', 'CCAR Element', 'CCAR Budget', 'CCAR Description', 'PMO',
       'Owning IPT', 'Work Breakdown Structure', 'Level', 'CES1', 'CES2', 'CES3', 'CES4', 'CES5', 'CES6', 'CES7', 'CES8',
@@ -4048,9 +4050,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       // Initial Spares, a PALS paragraph that does not start with P: kept, named
       { wbs: '7.1', pals: 'PALS', slc: 'Initial Spares', appus: 'Procurement', ces: ['Spares', 'Initial'], d: { 2027: 900008 }, note: ['p'], x: { ap: 'sp', pmo: 'AV', svc: 'USAF', ce: '' } },
       // Full Fund: Depot Activation of every kind, and the E breakouts
-      { wbs: 'P6.2.2.1', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: DS.concat(['Propulsion', 'Engine shop']), d: { 2027: 1100009, 2028: 1200010 },
-        x: { ap: 'ff', pmo: 'PP', svc: 'USAF', ce: 'Depot Standup Propulsion' } },
+      // the E breakout comes first in the file: its heading is judged against the name its UNSUFFIXED twin gives P6.2.2, read first
       { wbs: 'P6.2.2.1E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: DS.concat(['ECU Propulsion', 'Engine shop ECU']), d: { 2027: 450011 },
+        x: { ap: 'ff', pmo: 'PP', svc: 'USAF', ce: 'Depot Standup Propulsion' } },
+      { wbs: 'P6.2.2.1', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: DS.concat(['Propulsion', 'Engine shop']), d: { 2027: 1100009, 2028: 1200010 },
         x: { ap: 'ff', pmo: 'PP', svc: 'USAF', ce: 'Depot Standup Propulsion' } },
       { wbs: 'P6.3.2', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Air Vehicle', ces: ['Depot Standup', 'Software Depot Standup', 'Propulsion'], d: { 2027: 220012 },
         x: { ap: 'ff', pmo: 'AV', svc: 'USAF', ce: 'Depot Standup Software' } },
@@ -4090,7 +4093,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     ];
     const MUL = 1e6;
     const rowOf = (o, i, hdr) => { const r = hdr.map(() => '');
-      const put = (t, v) => { const j = hdr.indexOf(t); if (j >= 0) r[j] = v; };
+      const AKA = { 'PALS/O&S': 'PALS / O&S', 'Rollup Value?': 'Rollup Value', 'JPO Managed': 'JPO-managed' };
+      const put = (t, v) => { let j = hdr.indexOf(t); if (j < 0 && AKA[t]) j = hdr.indexOf(AKA[t]); if (j >= 0) r[j] = v; };
       put('Index', o.idx !== undefined ? o.idx : i + 1); put('PALS/O&S', o.pals || 'O&S'); put('$ Type', o.dt || 'TY$'); put('US/PTN/FMS', o.us || 'US');
       put('Service', o.svc || 'USAF'); put('T/M/S', o.tms || 'F-35A'); put('Rollup Value?', o.roll || 'No'); put('JPO Managed', o.jpo || 'Yes');
       put('Appropriation (US Only)', o.appus || 'O&M'); put('Support Line Category', o.slc === undefined ? 'O&S' : o.slc);
@@ -4157,9 +4161,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'header', 'filed as 2026ACE: the year, then ACE anywhere after it in the file name', E(B.ev, `JSON.stringify(Object.keys(ACEDB.sets))`), J(['2026ACE']));
     chk(name, 'header', 'it says which sheet and row it read its titles from: PMO Database Output, row 3 (not the Cover, not the Notes sheet)',
       J([rep.sheet, rep.row, rep.sheets]), J(['PMO Database Output', 3, ['Cover', 'PMO Database Output', 'Notes']]));
-    chk(name, 'header', 'every column is found by its title wherever it sits: the WBS in Z, Level AA, CES1 AB, PMO X, Support Line Category T',
-      J(['wbs', 'lv', 'ces1', 'pmo', 'slc', 'roll', 'dtype'].map(f => [(rep.map || {})[f] && rep.map[f].c, (rep.map || {})[f] && rep.map[f].how])),
-      J([['Z', 'title'], ['AA', 'title'], ['AB', 'title'], ['X', 'title'], ['T', 'title'], ['H', 'title'], ['D', 'title']]));
+    chk(name, 'header', 'every column is found by its title wherever it sits: the WBS in Z, Level AA, CES1 AB, PMO X, Support Line Category T -- and PALS / O&S, Rollup Value and JPO-managed by their titles as spelled',
+      J(['wbs', 'lv', 'ces1', 'pmo', 'slc', 'roll', 'dtype', 'pals', 'jpo'].map(f => [(rep.map || {})[f] && rep.map[f].c, (rep.map || {})[f] && rep.map[f].how, (rep.map || {})[f] && rep.map[f].t])),
+      J([['Z', 'title', 'Work Breakdown Structure'], ['AA', 'title', 'Level'], ['AB', 'title', 'CES1'], ['X', 'title', 'PMO'], ['T', 'title', 'Support Line Category'],
+        ['H', 'title', 'Rollup Value'], ['D', 'title', '$ Type'], ['C', 'title', 'PALS / O&S'], ['I', 'title', 'JPO-managed']]));
     chk(name, 'header', 'every fiscal year column is read (a header that is a year)', J(set.years), J(YRS));
     const gotLines = (set.lines || []).map(l => [l.ap, l.pmo, l.svc, l.wbs, l.lv, l.ce, l.slc, l.ccar, l.cdesc, l.v]);
     chk(name, 'lines', 'every kept row with a dollar is a line, in file order: its appropriation and cost element by the Support Line Category (Depot Activation by CES2, then PMO), its office, service, paragraph, level, CCaR fields and whole dollars',
@@ -4175,7 +4180,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       J((rep.conflicts || []).map(c => [c.ap, c.code, c.n, (c.also || []).map(a => [a.n, a.rows])])), J([['om', '1.2', OM[1], [['Unit Level Maint.', [rowNoOf(R[3])]]]]]));
     const gotReasons = {}; Object.keys(rep.reasons || {}).forEach(k => { gotReasons[k] = { rows: rep.reasons[k].rows, v: rep.reasons[k].v }; });
     chk(name, 'reasons', 'each reason in the contract’s order: its rows and its dollars by year, every reason the fixture plants', J(gotReasons), J(wantReasons));
-    chk(name, 'reasons', 'the dollar types left out are named in the record', J(rep.types), J({ 'CY$': 1, 'BY$': 1 }));
+    chk(name, 'reasons', 'the dollar types left out are named in the record, and each reason’s values as the file writes them', J([rep.types, ((rep.reasons || {}).pmo || {}).by, ((rep.reasons || {}).slc || {}).by]),
+      J([[['CY$', 1], ['BY$', 1]], [['Owning IPT X', 1]], [['Modifications', 1]]]));
     chk(name, 'named', 'every named row, left out or kept: a blank category, an unknown PMO, category or service, PALS/O&S disagreeing, the P check, the Level check, an unsettled Depot Activation, no WBS',
       J((rep.named || []).map(n => [n.k, n.row]).sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1))), J(wantNamed));
     chk(name, 'kept', 'kept: the rows the fixture keeps, the lines with a dollar, the paragraph with none, and their dollars by year',
@@ -4207,9 +4213,13 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'report', 'the Data card offers it, says what the newest estimate kept and left out, and opens it',
       subNow + ' | ' + E(B.ev, `aceRepOpen+' '+aceRepK`), '2026ACE: ' + wantLines.length + ' lines kept · ' + outR.length + ' rows left out, with reasons | true 2026ACE');
     E(B.ev, `aceRepClose(); 'ok'`);
+    // the Spruills' own Import Annual Cost Estimate… button is the real import (it only said the import was "staged here")
+    chk(name, 'report', 'the Spruills’ Import Annual Cost Estimate… button opens the file picker the import reads',
+      E(B.ev, `(function(){ spOpen=true; render(); var b=[].slice.call(document.querySelectorAll('#spBody button')).find(function(x){ return /Import Annual Cost Estimate/.test(x.textContent); });
+        var oc=b? b.getAttribute('onclick') : 'no button'; spOpen=false; render(); return oc; })()`), "document.getElementById('aceFile').click()");
 
     // ---- 2. a title that has changed: asked once, in the mapping box; Cancel and an unanswered field import nothing
-    const HDR2 = HDR.map(t => t === 'Rollup Value?' ? 'Roll-up Flag' : (t === 'PALS/O&S' ? 'Account Family' : t));
+    const HDR2 = HDR.map(t => t === 'Rollup Value' ? 'Roll-up Flag' : (t === 'PALS / O&S' ? 'Account Family' : t));
     const B2 = mkBoard();
     const before = E(B2.ev, `JSON.stringify(ACEDB)`);
     await imp(B2, book(HDR, R, HDR2), '2026 ACE renamed.xlsx');
@@ -4258,6 +4268,39 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     await imp(B3, [{ name: 'Sheet1', rows: [['a', 'b'], [1, 2]] }], '2026 ACE.xlsx');
     chk(name, 'refused', 'a workbook with no sheet carrying the titles is refused, naming them', E(B3.ev, `/no sheet carries the estimate.*Work Breakdown Structure/.test(document.getElementById('shareStat').textContent)+' '+(JSON.stringify(ACEDB)===${J(b3)})`), 'true true');
 
+    // ---- 3b. Excel leaves empty rows out of the file: the rows said are the sheet's own numbers. A workbook written by hand, its
+    // titles on row 3 (rows 1 and 2 not in the file), a data row on 5 (row 4 not in the file) and one on 6.
+    const B6 = mkBoard();
+    await B6.ev(`(function(){ var x=function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); },
+      H=${J(['PALS/O&S', '$ Type', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Appropriation (US Only)', 'Support Line Category', 'PMO', 'Work Breakdown Structure', 'Level', 'CES1', 'CES2', '2027'])},
+      R5=['O&S','TY$','USAF','F-35A','No','Yes','O&M','O&S','Air Vehicle','1.1','2','Manpower','Officer'], R6=['O&S','TY$','USAF','F-35A','No','Yes','O&M','O&S','Nobody Office','1.2','2','Manpower','Enlisted'];
+      var col=function(i){ return String.fromCharCode(65+i); }, cells=function(r, a, num){ return a.map(function(v,i){ return '<c r="'+col(i)+r+'" t="inlineStr"><is><t>'+x(v)+'</t></is></c>'; }).join('')
+        +(num!==undefined? '<c r="'+col(a.length)+r+'"><v>'+num+'</v></c>' : ''); };
+      var sheet='<worksheet><sheetData><row r="3">'+cells(3, H)+'</row><row r="5">'+cells(5, R5, 1.5)+'</row><row r="6">'+cells(6, R6, 2.25)+'</row></sheetData></worksheet>';
+      var z=_zipStore([['xl/workbook.xml', _utf8('<workbook><sheets><sheet name="PMO Database Output" sheetId="1" r:id="rId1"/></sheets></workbook>')],
+        ['xl/_rels/workbook.xml.rels', _utf8('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>')],
+        ['xl/worksheets/sheet1.xml', _utf8(sheet)]]);
+      return importAce({files:[{name:'2026 ACE by hand.xlsx', arrayBuffer: async function(){ return z.buffer.slice(z.byteOffset, z.byteOffset+z.byteLength); }}], value:''}); })()`);
+    await new Promise(r => setTimeout(r, 30));
+    chk(name, 'row numbers', 'a sheet Excel wrote with its empty rows left out: the titles are said to be on row 3, and the row left out is named as row 6, the numbers a person sees',
+      E(B6.ev, `JSON.stringify((function(){ var R=(ACEDB.sets['2026ACE']||{}).rep||{}; return [R.row, (R.named||[]).map(function(n){ return [n.k, n.row]; }), (ACEDB.sets['2026ACE']||{lines:[]}).lines.length]; })())`),
+      J([3, [['pmo', 6]], 1]));
+    // a cell out of the file is a value, never a key: a PMO reading "constructor", a dollar type "__proto__" -- counted as text, and
+    // the board saved with that estimate still passes the import check, which refuses those names as keys
+    const B7 = mkBoard();
+    await imp(B7, book(HDR, [{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 100001 }, x: {} }, { wbs: '1.2', pmo: 'constructor', ces: ['A', 'C'], d: { 2027: 200002 } },
+      { wbs: '1.3', pmo: '__proto__', ces: ['A', 'D'], d: { 2027: 300003 } }, { wbs: '1.4', dt: '__proto__', ces: ['A', 'E'], d: { 2027: 400004 } },
+      { wbs: '1.5', dt: 'toString', ces: ['A', 'F'], d: { 2027: 500005 } }]), '2026 ACE built-in names.xlsx');
+    chk(name, 'values, not keys', 'a PMO or a dollar type spelled like a name every object answers to is counted as the text it is, rows and dollars',
+      E(B7.ev, `JSON.stringify((function(){ var R=ACEDB.sets['2026ACE'].rep; return [R.reasons.pmo.by, R.reasons.pmo.v, R.types, R.reasons.dtype.v, Object.getPrototypeOf(R.reasons)===Object.prototype]; })())`),
+      J([[['constructor', 1], ['__proto__', 1]], { 2027: 500005 }, [['__proto__', 1], ['toString', 1]], { 2027: 900009 }, true]));
+    chk(name, 'values, not keys', 'and the board saved with that estimate passes the import check', E(B7.ev, `inboundCheck(buildSavedHtml())||'passes'`), 'passes');
+    try { B7.w.close(); } catch {}
+    // the answers a colleague gave in the mapping box come across with an ordinary import; a layout this board answers for keeps its own
+    E(B6.ev, `ACEDB.cols={MINE:{map:{roll:'Mine'}}}; importStores({aceDb:{sets:{}, cols:{MINE:{map:{roll:'Theirs'}}, THEIRS:{map:{pals:'Account Family'}}}}}); 'ok'`);
+    chk(name, 'remembered layouts', 'an ordinary import takes the layouts this board has not answered for, and keeps its own answer for one it has',
+      E(B6.ev, `JSON.stringify([ACEDB.cols.MINE.map.roll, (ACEDB.cols.THEIRS||{map:{}}).map.pals])`), J(['Mine', 'Account Family']));
+
     // ---- 4. PSM inside Air Vehicle: every estimate's default; a stored {} on a 2026 estimate replaced on opening and said once
     const B4 = mkBoard();
     E(B4.ev, `MS.aceAlign={'2026ACE':{}, '2027ACE':{AV:'CDS'}, '2025ACE':{}}; save(); 'ok'`);
@@ -4268,7 +4311,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'PSM inside AV', 'and it is said once', E(B5.ev, `(STAT_LOG||[]).filter(function(e){ return /PSM is inside Air Vehicle/.test(e.html) && /2026ACE/.test(e.html); }).length`), 1);
     chk(name, 'PSM inside AV', 'an estimate of any year, read for the first time, puts PSM under AV', E(B5.ev, `JSON.stringify([aceAlign('2031ACE'), aceAlign('2024ACE'), acePmoFor('2031ACE','PSM')])`),
       J([{ PSM: 'AV' }, { PSM: 'AV' }, 'AV']));
-    [B, B2, B3, B4, B5].forEach(x => { try { x.w.close(); } catch {} });
+    [B, B2, B3, B4, B5, B6].forEach(x => { try { x.w.close(); } catch {} });
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

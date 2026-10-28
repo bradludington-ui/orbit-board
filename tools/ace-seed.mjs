@@ -17,9 +17,9 @@ export const ACE_REP_SEED = `(function(){
   var R={}, total={}, kept=vy(812345671);
   [['dtype',3,90000001],['rollup',412,3400000001],['blank',38,170000001],['milpers',22,61000001],['partner',57,250000001],
    ['jpo',130,93000001],['svcmgd',211,1250000001],['pmo',2,4000001],['slc',4,7000001],['pals',3,1000001],['svc',1,500001]].forEach(function(x){
-     R[x[0]]={rows:x[1], v:vy(x[2]), by:{}}; add(total, R[x[0]].v); });
-  R.dtype.by={'CY$':2, 'BY$ FY24':1}; R.pmo.by={'Owning IPT Sustainment Engineering':2}; R.slc.by={'Modifications':3, 'RDT&E Support':1};
-  R.svc.by={'USMC':1}; add(total, kept);
+     R[x[0]]={rows:x[1], v:vy(x[2]), by:[]}; add(total, R[x[0]].v); });
+  R.dtype.by=[['CY$',2], ['BY$ FY24',1]]; R.pmo.by=[['Owning IPT Sustainment Engineering',2]]; R.slc.by=[['Modifications',3], ['RDT&E Support',1]];
+  R.svc.by=[['USMC',1]]; add(total, kept);
   var named=[];
   for(var i=0;i<38;i++) named.push({k:'blank', row:400+i, wbs:'1.'+(i%7+1)+'.'+(i%3+1), what:'Rollup Value? “No”', v:vy(1000000+i)});
   named.push({k:'pmo', row:1205, wbs:'2.4.1.1', what:'Owning IPT Sustainment Engineering', v:vy(2000001)});
@@ -40,7 +40,7 @@ export const ACE_REP_SEED = `(function(){
       '1.2.1.1':{n:'Officer', lv:4, up:'1.2.1'}}},
     rep:{v:1, file:'2026 SUST ACE COMPLETE Detail File.xlsx', sheet:'PMO Database Output', row:3, sheets:['Cover','Notes','PMO Database Output'], years:Y,
       map:map, absent:['ces6','ces7','ces8','usptn'], reasons:R, named:named, kept:{rows:4021, lines:3988, zero:33, v:kept}, total:{rows:4901, v:total},
-      notData:12, types:{'CY$':2, 'BY$ FY24':1}, tree:{om:1412, ff:388, sp:61, opn:24},
+      notData:12, types:[['CY$',2], ['BY$ FY24',1]], tree:{om:1412, ff:388, sp:61, opn:24},
       conflicts:[{ap:'om', code:'1.2', n:'Unit-Level Maintenance', also:[{n:'Unit Level Maint.', rows:[1412, 1499]}]},
         {ap:'ff', code:'P6.2.2', n:'Propulsion', also:[{n:'Propulsion Depot Standup (CONUS, organic and contract performed)', rows:[2211]}]}], ties:true}};
   ACEDB.ts=Date.now(); spAce='2026ACE'; })(); `;
