@@ -623,6 +623,34 @@
    "basis": "arithmetic",
    "asserts": "A lock keeps the position it read (item 134): an untagged plan tagged before the projection, so the lock’s FY27 and FY28 budget authority are the position’s, by service and lane, and its FY27 UPL; the lock’s copy of the position and its projection unchanged when the position moves after it; its view reading the copy every year; a lock taken before v2.12 reading its years’ own bases in its view."
   },
+  "rv3.read": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 RV3 — opening reads another year’s budget as opening that year does, and a board saved twice is the same (R18)",
+   "anchor": "const name = 'v2.12 RV3 — opening reads another year’s budget as opening that year does, and a board saved twice is the same (R18)'",
+   "basis": "arithmetic",
+   "asserts": "A year nobody opened, read live as opening that year reads it (v2.12 RV3, R18): FY28’s base and its add written as text and FY29’s saved with fractions, worked out by hand -- $1,175 / 410 / 310 and $334 / 333 / 333 by service, never \"1,100\" + 75 = $0 or a dollar lost to rounding; a stale cache over text parts made live at that figure; tagged, FY28 USAF 5,000 + the text add of 75; and a board opened and saved, twice, writing the state it opened."
+  },
+  "rv3.newyear": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 RV3 — a year started by Copy to year or Roll forward has its live budget at once (R13, R27)",
+   "anchor": "const name = 'v2.12 RV3 — a year started by Copy to year or Roll forward has its live budget at once (R13, R27)'",
+   "basis": "arithmetic",
+   "asserts": "A year Copy to year or Roll forward starts (v2.12 RV3, R13, R27): its budget authority by service and lane is the tagged position’s at once -- FY30 USAF 777 / 70, FY31 555 / 50, the others $0 -- its own base the blank year’s $0, in the file the next Save writes, and the board’s own again untagged."
+  },
+  "rv3.held": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 RV3 — what a requirement draws it holds, and a Split is held as far as its basis allows (R17, R32)",
+   "anchor": "const name = 'v2.12 RV3 — what a requirement draws it holds, and a Split is held as far as its basis allows (R17, R32)'",
+   "basis": "arithmetic",
+   "asserts": "What a requirement holds in the fit (v2.12 RV3, R17, R32), by service and lane, worked out by hand: never less than it draws -- a Split typed past its value on a short discretionary lane holds the mandatory it draws, so no UPL or unallocated money where the lane is spent, and a second Split into that lane is over by 30 with both requirements listed -- and a Split held only as far as its basis allows: a value lowered under it clears the over."
+  },
+  "rv3.outyear": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 RV3 — an over in a year not on screen is counted, and Go to it puts that year on screen (R34)",
+   "anchor": "const name = 'v2.12 RV3 — an over in a year not on screen is counted, and Go to it puts that year on screen (R34)'",
+   "basis": "arithmetic",
+   "asserts": "An over in a year not on screen (v2.12 RV3, R34): FY28 ANG discretionary over by 100 with FY27 on screen, counted in the model and in Needs attention beside FY27’s, said in the box, and Go to it putting FY28 on screen with the requirement selected."
+  },
   "ot.v212w2src": {
    "file": "tools/export-audit/audit-other.mjs",
    "scenario": "v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)",
@@ -2737,14 +2765,18 @@
      "status": "proven",
      "checks": [
       "w3.live",
-      "w3.lock"
+      "w3.lock",
+      "rv3.read",
+      "rv3.newyear"
      ],
      "note": "each year from its own state and that year of the position; a year it does not log the board’s own; a lock as it was locked"
     },
     "service": {
      "status": "proven",
      "checks": [
-      "w3.live"
+      "w3.live",
+      "rv3.read",
+      "rv3.newyear"
      ],
      "note": "each service the position names from it, the others the board’s own"
     },
@@ -2763,7 +2795,8 @@
     "lane": {
      "status": "proven",
      "checks": [
-      "w3.live"
+      "w3.live",
+      "rv3.newyear"
      ],
      "note": "discretionary and mandatory, each from its own figure and its own added sources"
     }
@@ -2781,21 +2814,24 @@
     "fiscalYear": {
      "status": "proven",
      "checks": [
-      "w3.fit"
+      "w3.fit",
+      "rv3.outyear"
      ],
      "note": "every held year of the window, each read on a copy of its own state"
     },
     "service": {
      "status": "proven",
      "checks": [
-      "w3.fit"
+      "w3.fit",
+      "rv3.held"
      ],
      "note": "per service, never netted"
     },
     "requirement": {
      "status": "proven",
      "checks": [
-      "w3.fit"
+      "w3.fit",
+      "rv3.held"
      ],
      "note": "each over’s requirements with what each holds and drew"
     },
@@ -2810,7 +2846,8 @@
     "lane": {
      "status": "proven",
      "checks": [
-      "w3.fit"
+      "w3.fit",
+      "rv3.held"
      ],
      "note": "discretionary and mandatory apart"
     }

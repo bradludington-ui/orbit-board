@@ -6664,10 +6664,12 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
       ev(`(function(){ scenView='disc'; _fitCache=null; render(); var h=fitModel().years[2027].L.m.held; scenView=''; _fitCache=null; render(); return JSON.stringify(h); })()`), J([300, 0, 150]));
     // ---- the box
     ev(`fitShow(); 'ok'`);
+    // v2.12 RV3 (R15): each over is said against what it is measured against -- USAF's $50 is past BES28's $900 PLUS the lane's
+    // $150 Cong add (the requirements hold $200 more than BES28 alone), and AFRC's base is the board's own
     chk(name, 'the box', 'it says each over the way it reads in the room, and nothing else is over',
       ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fitover'), function(e){ return e.textContent; }))`),
-      J(['▲ FY27 O&M, USAF discretionary: requirements hold $50 more than BES28 — reduce a requirement',
-         '▲ FY27 O&M, AFRC mandatory: requirements hold $100 more than its budget authority — reduce a requirement']));
+      J(['▲ FY27 O&M, USAF discretionary: requirements hold $50 more than BES28 plus added funding ($900 + $150) — reduce a requirement',
+         '▲ FY27 O&M, AFRC mandatory: requirements hold $100 more than the board’s own budget — reduce a requirement']));
     chk(name, 'the box', 'each year says where its base came from',
       ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fityr span'), function(e){ return e.textContent; }))`),
       J(['Base from BES28 for USAF, ANG · the board’s own for AFRC (BES28 says nothing about it).',
@@ -6679,8 +6681,9 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#fitBody .fitgo'), function(x){ return /"B"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
     chk(name, 'the box', 'Go to it closes the box and selects the requirement', ev(`JSON.stringify([fitOpen, curRow])`), J([false, 'B']));
     // ---- Needs attention: one entry while any year is over
-    chk(name, 'Needs attention', 'one entry, naming the overs and the position, and it opens the box',
-      ev(`(function(){ var e=document.querySelector('#posture .fitatt'); if(!e) return 'none'; e.click(); return e.textContent+' | '+fitOpen; })()`), '🏛 2 over BES28 | true');
+    // v2.12 RV3 (R20, K10): one of the two overs is against BES28 and the other against AFRC's own base, so the entry names the mix
+    chk(name, 'Needs attention', 'one entry, naming the overs and what they are against, and it opens the box',
+      ev(`(function(){ var e=document.querySelector('#posture .fitatt'); if(!e) return 'none'; e.click(); return e.textContent+' | '+fitOpen; })()`), '🏛 2 over budget authority (1 against BES28) | true');
     ev(`fitOpen=false; S.fsrc.A.dv[0]=550; S.fsrc.A.mv[2]=0; save(); render(); 'ok'`);
     chk(name, 'Needs attention', 'reduced until nothing is over: the entry is gone', ev(`String(!!document.querySelector('#posture .fitatt'))`), 'false');
     ev(`S.fsrc.A.dv[0]=600; S.fsrc.A.mv[2]=100; save(); render(); 'ok'`);
@@ -6715,9 +6718,12 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     const $ = v => (String(v) === '—' ? '—' : Math.round(Number(v) * 1e6));
     const fyCol = y => fh.indexOf('FY' + (y % 100)) + 1;    // the Allocated column under each year
     const iFT = at.findIndex(r => String(r[0]) === 'TOTAL'), fu = at.filter(r => /^UPL — added funding no requirement holds/.test(String(r[0])));
-    chk(name, 'FYDP Spend Plan', 'a UPL line per lane after the tab’s TOTAL, each held year’s UPL in its Allocated column, — for a year not held, the FYDP at the right',
+    // v2.12 RV3 (R22): a line per service and lane, as every other surface states it -- the services were added together
+    chk(name, 'FYDP Spend Plan', 'a UPL line per service and lane after the tab’s TOTAL, each held year’s UPL in its Allocated column, — for a year not held, the FYDP at the right',
       J([at.indexOf(fu[0]) > iFT, fu.map(r => [String(r[0])].concat([2027, 2028, 2029, 2030, 2031].map(y => $(r[fyCol(y)]))).concat([$(r[fh.indexOf('TOTAL FY27–FY31') + 1])]))]),
-      J([true, [['UPL — added funding no requirement holds (discretionary)', 30, 75, 0, '—', '—', 105], ['UPL — added funding no requirement holds (mandatory)', 40, 0, 0, '—', '—', 40]]]));
+      J([true, [['UPL — added funding no requirement holds · USAF (discretionary)', 0, 75, 0, '—', '—', 75],
+                ['UPL — added funding no requirement holds · AFRC (discretionary)', 30, 0, 0, '—', '—', 30],
+                ['UPL — added funding no requirement holds · ANG (mandatory)', 40, 0, 0, '—', '—', 40]]]));
     const fLines = at.slice(at.findIndex(r => String(r[0]) === 'CCaR Record') + 2, iFT);
     chk(name, 'FYDP Spend Plan', 'and the TOTAL is still the sum of the requirement lines, each held year’s Allocated',
       J([2027, 2028, 2029].map(y => $(at[iFT][fyCol(y)]) - fLines.reduce((a, r) => a + ($(r[fyCol(y)]) || 0), 0))), J([0, 0, 0]));
@@ -6770,6 +6776,342 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     ev(`cycLeave(); 'ok'`);
     chk(name, 'before v2.12', 'and the working plan is unchanged by having shown it', ev(`JSON.stringify(S.discSvc)`), J([850, 452000, 330]));
     if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.12 RV3: the review's fixes to item 134 (recovery/v212/notes-RV3.md). Each block fails on c23e8a0 unless it says CONTROL.
+// the saved state a board file carries, and the same file with it changed by `fn(store)` -- a hand edit or a damaged transfer
+const rv3Pub = h => JSON.parse((/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(h) || [, 'null'])[1]);
+const rv3Edit = (h, fn) => h.replace(/(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/, (m, a, b, c) => {
+  const o = JSON.parse(b); fn(o.appns[Object.keys(o.appns)[0]], o); return a + JSON.stringify(o).replace(/</g, '\\u003c') + c; });
+// the saved state with the clocks the save stamps set to zero (ts, the journal's t, the writer's t): what opening may not change
+const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) => (k === 'ts' ? 0 : v)); (function walk(x) { if (!x || typeof x !== 'object') return;
+  if (Array.isArray(x.jrnl)) x.jrnl.forEach(e => { if (e) e.t = 0; }); if (x.writer && typeof x.writer === 'object') x.writer.t = 0; Object.values(x).forEach(walk); })(o); return JSON.stringify(o); };
+{
+  const name = 'v2.12 RV3 — a PPBE position that cannot be read never stops the board opening, and the door refuses it (R12, R23, R24)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    ev(`cycSetWorking('BES', 2028); 'ok'`);
+    const h1 = ev('buildSavedHtml()');
+    const P = st => st.ppbe['BES|2028'], AP = Object.keys(rv3Pub(h1).appns)[0];
+    const rows = X => X.ev(`document.querySelectorAll('#list .row').length`);
+    // ---- a line list that is not a list, and one holding a null: the board opens, USAF keeps its own base, and says why
+    const hStr = rv3Edit(h1, st => { P(st).lines.USAF = 'x'; });
+    const hNul = rv3Edit(h1, st => { P(st).lines.USAF = [null]; });
+    const S1 = boot({ html: hStr }), S2 = boot({ html: hNul });
+    chk(name, 'opens', 'a board tagged to a position whose USAF line list is the text "x" opens: its three requirements are drawn, nothing threw',
+      J([rows(S1), S1.errors.length]), J([3, 0]));
+    chk(name, 'opens', 'and a list holding a null opens the same way', J([rows(S2), S2.errors.length]), J([3, 0]));
+    chk(name, 'opens', 'FY27 USAF reads the board’s own base (1,000 + the 150 add; mandatory 200), ANG still BES28’s, AFRC its own',
+      w3Cache(S1, 2027), J([[1150, 452000, 330], [200, 90040, 50]]));
+    chk(name, 'opens', 'and where it came from is recorded with why: the board’s own, its line list not a list',
+      S1.ev(`JSON.stringify([BA_SRC[2027].from[0], BA_SRC[2027].bad[0]])`), J(['board', 'its line list is not a list']));
+    S1.ev(`fitShow(); 'ok'`);
+    chk(name, 'said', 'the fit box says USAF’s base is the board’s own because BES28 cannot be read for it',
+      S1.ev(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`),
+      'Base from BES28 for ANG · the board’s own for AFRC (BES28 says nothing about it) · the board’s own for USAF (its line list is not a list), where BES28 cannot be read.');
+    chk(name, 'opens', 'the PPBE Budget Positions box opens on each, USAF first, without a throw',
+      J([S1, S2].map(X => X.ev(`(function(){ try{ fitOpen=false; ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); return String(!!document.querySelector('#ppBody .pptab')); }catch(e){ return 'threw: '+e.message; } })()`))),
+      J(['true', 'true']));
+    // ---- the door refuses both, naming the place; a load that does reach applyStore lands whole and does not throw
+    chk(name, 'the door', 'the import check refuses the text line list, naming it',
+      B.ev(`inboundCheck(${J(hStr)})`), 'the line list at the saved state.appns.' + AP + '.ppbe.BES|2028.lines.USAF is not a list (“"x"”)');
+    chk(name, 'the door', 'and the null line, naming it', B.ev(`inboundCheck(${J(hNul)})`),
+      'the line at the saved state.appns.' + AP + '.ppbe.BES|2028.lines.USAF[0] is not a line (“null”)');
+    chk(name, 'a load', 'a store carrying the null line, loaded straight through applyStore, does not throw and lands whole (the tag, the position, every year)',
+      ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.ppbe['BES|2028'].lines.USAF=[null]; st.years['2027'].order=['C','B','A'];
+        try{ applyStore(st); }catch(e){ return 'threw: '+e.message; } return JSON.stringify([MS.cycle, S.order, S.discSvc[0], MS.ppbe['BES|2028'].lines.USAF]); })()`),
+      J(['BES|2028', ['C', 'B', 'A'], 1150, [null]]));
+    ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.ppbe['BES|2028'].lines.USAF=[{k:'_all', all:true}]; st.years['2027'].order=['A','B','C']; applyStore(st); return 'ok'; })()`);
+    // ---- a figure written as text is read as the figure; a figure written as words cannot be read, and the door refuses it
+    // (and AFRC given BES28's one figure, written as text: a service whose only figure is text is still one the position names)
+    const hTxt = rv3Edit(h1, st => { P(st).val.USAF._all['2027'].d = '1,000'; P(st).lines.AFRC = [{ k: '_all', all: true }]; P(st).val.AFRC = { _all: { 2027: { d: '1,400', m: 0 } } }; });
+    chk(name, 'text', 'CONTROL: the import check takes a figure written as text, as it takes every other amount', B.ev(`inboundCheck(${J(hTxt)})`), '');
+    const S3 = boot({ html: hTxt });
+    chk(name, 'text', 'BES28 USAF FY27 written as "1,000" is $1,000 of budget authority (+ the 150 add), read from BES28 -- not $0; AFRC’s "1,400" is $1,400 (+ its 30 add)',
+      S3.ev(`JSON.stringify([S.discSvc[0], S.discSvc[2], BA_SRC[2027].from])`), J([1150, 1430, ['pos', 'pos', 'pos']]));
+    const hWrd = rv3Edit(h1, st => { P(st).val.USAF._all['2027'].d = 'abc'; });
+    chk(name, 'words', 'the import check refuses a figure written as words, naming it', B.ev(`inboundCheck(${J(hWrd)})`),
+      'the amount at the saved state.appns.' + AP + '.ppbe.BES|2028.val.USAF._all.2027.d is not a figure (“abc”)');
+    const S4 = boot({ html: hWrd });
+    chk(name, 'words', 'the board’s own file carrying it opens: FY27 USAF is the board’s own base, said; FY28 USAF still BES28’s',
+      S4.ev(`JSON.stringify([S.discSvc[0], BA_SRC[2027].bad[0], MS.years[2028].discSvc[0], document.querySelectorAll('#list .row').length])`),
+      J([1150, 'one of its FY27 figures is not a figure', 5075, 3]));
+    // ---- the copy a lock keeps is a position too
+    ev(`blCyc='BES'; blYr=2028; cycLock(); 'ok'`);
+    const hLock = ev('buildSavedHtml()').replace(/(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/, (m, a, b, c) => {
+      const o = JSON.parse(b); const by = o.cycDb.byAp; const k = Object.keys(by)[0]; by[k].cycles['BES|2028'].pos.P.lines.USAF = 7;
+      return a + JSON.stringify(o).replace(/</g, '\\u003c') + c; });
+    chk(name, 'the door', 'a lock whose copy of the position has a line list that is a number is refused, naming the lock',
+      /^the line list at the saved state\.cycDb\.byAp\.[^.]+\.cycles\.BES\|2028\.pos\.P\.lines\.USAF is not a list/.test(B.ev(`inboundCheck(${J(hLock)})`)), true);
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — opening reads another year’s budget as opening that year does, and a board saved twice is the same (R18)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    const h1 = ev('buildSavedHtml()');
+    // FY28's base and its add written as text (a hand edit, or a file another tool wrote), its cache the figure the year opens to;
+    // FY29's base saved with fractions (a typed total split before v1.97), its cache the whole dollars opening apportions it to
+    const odd = rv3Edit(h1, st => { const y = st.years;
+      y['2028'].bm.disc = ['1,100', '410', '310']; y['2028'].bm.adds[0].vec = ['75', '0', '0']; y['2028'].discSvc = [1175, 410, 310];
+      y['2029'].bm.disc = [333.4, 333.4, 333.2]; y['2029'].discSvc = [334, 333, 333]; });
+    chk(name, 'the fixture', 'CONTROL: the import check takes those figures (text amounts are amounts)', B.ev(`inboundCheck(${J(odd)})`), '');
+    const B2 = boot({ html: odd });
+    chk(name, 'opened', 'opening leaves FY28 and FY29 as they were saved: $1,175 / 410 / 310 (not "1,100"+75 = $0, "410"+"0" = $4,100) and $334 / 333 / 333',
+      J([w3Cache(B2, 2028), w3Cache(B2, 2029)]), J([J([[1175, 410, 310], [210, 110, 60]]), J([[334, 333, 333], [220, 120, 70]])]));
+    const h2 = B2.ev('buildSavedHtml()');
+    chk(name, 'saved', 'opened and saved without an edit, the board writes the state it opened, the clocks aside', rv3Zero(h2) === rv3Zero(odd), true);
+    const B3 = boot({ html: h2 }), h3 = B3.ev('buildSavedHtml()');
+    chk(name, 'saved', 'and saved a second time, the same again', rv3Zero(h3) === rv3Zero(h2), true);
+    // the oracle: the year opened reads those figures itself
+    B2.ev(`switchYear(2028); 'ok'`);
+    chk(name, 'opened', 'CONTROL: FY28 opened reads $1,175 / 410 / 310 -- the figure its cache was left at', B2.ev(`JSON.stringify(S.discSvc)`), J([1175, 410, 310]));
+    B2.ev(`switchYear(2029); 'ok'`);
+    chk(name, 'opened', 'CONTROL: FY29 opened reads $334 / 333 / 333', B2.ev(`JSON.stringify(S.discSvc)`), J([334, 333, 333]));
+    // a stale cache over text parts is made live as opening the year reads it, never from the raw parts
+    const stale = rv3Edit(odd, st => { st.years['2028'].discSvc = [1, 2, 3]; });
+    const B4 = boot({ html: stale });
+    chk(name, 'stale', 'a stale FY28 cache over text parts opens as $1,175 / 410 / 310, never $0 / 4,100 / 3,100', w3Cache(B4, 2028), J([[1175, 410, 310], [210, 110, 60]]));
+    // and the live budget reads them so on a tagged plan too: FY28 AFRC (BES28 says nothing about it) is its own $310
+    B4.ev(`cycSetWorking('BES', 2028); 'ok'`);
+    chk(name, 'tagged', 'tagged BES28: FY28 USAF 5,000 + the text add of 75, ANG $0 (named, logs nothing), AFRC its own 310 read from the text "310"',
+      w3Cache(B4, 2028), J([[5075, 0, 310], [700, 0, 60]]));
+    if (B.errors.length || B2.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.concat(B2.errors).slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — a year started by Copy to year or Roll forward has its live budget at once (R13, R27)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    ev(`cycSetWorking('BES', 2028); ppCyc='BES'; ppYr=2028;
+      ppSetV('USAF','_all',2030,'d','777'); ppSetV('USAF','_all',2030,'m','70'); ppSetV('USAF','_all',2031,'d','555'); ppSetV('USAF','_all',2031,'m','50'); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: FY30 and FY31 hold no plan yet', ev(`JSON.stringify([!!MS.years[2030], !!MS.years[2031]])`), J([false, false]));
+    // Copy to year, as the row's ⋯ menu offers it ("FY30 (new)")
+    ev(`xferYear('A','c2030'); 'ok'`);
+    chk(name, 'Copy to year', 'FY30 is created with BES28’s budget at once: USAF 777 / 70, ANG named and logging nothing ($0), AFRC the blank year’s own $0',
+      w3Cache(B, 2030), J([[777, 0, 0], [70, 0, 0]]));
+    chk(name, 'Copy to year', 'and its own base is the blank year’s $0, never the position’s', ev(`(function(){ var b=MS.years[2030].bm; return JSON.stringify(b? [b.disc, b.mand] : 'no own base'); })()`), J([[0, 0, 0], [0, 0, 0]]));
+    { const pb = rv3Pub(ev('buildSavedHtml()')).appns; chk(name, 'Copy to year', 'the file the next Save writes carries it', J(pb[Object.keys(pb)[0]].years['2030'].discSvc), J([777, 0, 0])); }
+    // Roll forward, B into FY31
+    ev(`rollPick={B:1}; rollYrs={2031:1}; rollApply(); 'ok'`);
+    chk(name, 'Roll forward', 'FY31 is created with BES28’s budget at once: USAF 555 / 50', w3Cache(B, 2031), J([[555, 0, 0], [50, 0, 0]]));
+    ev(`cycSetWorking('', null); 'ok'`);
+    chk(name, 'untag', 'untagged, both years are the blank year’s own $0 again', J([w3Cache(B, 2030), w3Cache(B, 2031)]), J([J([[0, 0, 0], [0, 0, 0]]), J([[0, 0, 0], [0, 0, 0]])]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — what a requirement draws it holds, and a Split is held as far as its basis allows (R17, R32)';
+  try {
+    const J = JSON.stringify;
+    // USAF discretionary 60, mandatory $0 plus a 40 mandatory add; A asks USAF 100, B asks USAF 30; both on the lane walk first
+    const B = boot(), { ev } = B;
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [100, 0]), it('B', 'AV', [30, 0])], disc: [60, 0], mand: [0, 0], order: ['A', 'B'] });
+    ev(`window.confirm=function(){ return true; }; window.alert=function(){}; MS.svc=SVC.slice();
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.bm={disc:[60,0], mand:[0,0], adds:[{name:'Supplemental', pool:'mand', vec:[40,0]}]}; S.fsrc={}; applyState(S); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    const lane = k => JSON.parse(ev(`(function(){ var X=fitModel().years[MS.cur].L.${k}; return JSON.stringify([X.ba[0], X.held[0], X.drawn[0], X.over[0], X.un[0], X.upl[0]]); })()`));
+    chk(name, 'the fixture', 'CONTROL: on the lane walk A draws 60 / 40 and the fit holds what it draws: nothing over, nothing unallocated',
+      J([lane('d'), lane('m')]), J([[60, 60, 60, 0, 0, 0], [40, 40, 40, 0, 0, 0]]));
+    // 100 typed into A's USAF Disc in the RECORD panel: its Split is seeded from the walk, so it holds Disc 100 / Mand 40 typed
+    ev(`setFsrcSvc('A','d',0,'100'); 'ok'`);
+    chk(name, 'R17', 'A’s Split is Disc 100 / Mand 40 and still draws 60 / 40', ev(`JSON.stringify([S.fsrc.A.dv, S.fsrc.A.mv, tiers().A.d, tiers().A.m])`), J([[100, 0], [40, 0], [60, 0], [40, 0]]));
+    chk(name, 'R17', 'USAF mandatory holds the 40 A draws: no unallocated money and no UPL where the lane is spent', J(lane('m')), J([40, 40, 40, 0, 0, 0]));
+    chk(name, 'R17', 'and the board shows no UPL line', ev(`String(!!document.querySelector('#list .uplline'))`), 'false');
+    const X = await w3Book(B, 'exportExcel()');
+    chk(name, 'R17', 'Funding Streams carries no UPL line beside a USAF row with nothing left in mandatory',
+      (X['Funding Streams'] || []).some(r => /^UPL/.test(String(r[0]))), false);
+    // a second Split directs Mand 30 into that same spent lane: the lane is over by 30, and both requirements holding it are listed
+    ev(`setFsrcSvc('B','m',0,'30'); render(); 'ok'`);
+    chk(name, 'R17', 'B’s 30 makes USAF mandatory hold 70 against 40: over 30, nothing unallocated', J(lane('m')), J([40, 70, 40, 30, 0, 0]));
+    chk(name, 'R17', 'and the over lists A (holding the 40 it draws) and B (holding 30 it cannot draw), B marked',
+      ev(`JSON.stringify(fitModel().years[MS.cur].L.m.rows[0].map(function(r){ return [r.id, r.held, r.drawn, r.short]; }))`), J([['A', 40, 40, false], ['B', 30, 0, true]]));
+    // ---- R32: a Split is held as far as its basis allows. A's value lowered under its typed Split: the over clears
+    const C = boot(), cv = C.ev;
+    seed(cv, { services: ['USAF'], items: [it('A', 'AV', [600])], disc: [550], mand: [0], order: ['A'] });
+    cv(`window.confirm=function(){ return true; }; window.alert=function(){}; MS.svc=SVC.slice();
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.bm={disc:[550], mand:[0], adds:[]}; S.fsrc={A:{m:'split', dv:[600], mv:[0]}}; applyState(S); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    const one = () => JSON.parse(cv(`(function(){ var X=fitModel().years[MS.cur].L.d; return JSON.stringify([X.held[0], X.drawn[0], X.over[0], X.un[0]]); })()`));
+    chk(name, 'R32', 'CONTROL: A’s Split of 600 on a 600 value against 550: held 600, drawn 550, over 50', J(one()), J([600, 550, 50, 0]));
+    cv(`setAsk('A',0,'500'); render(); 'ok'`);
+    chk(name, 'R32', 'A’s value lowered to 500 under its typed 600 (the Split untouched): held 500, drawn 500, nothing over, 50 unallocated',
+      J([one(), cv(`JSON.stringify(S.fsrc.A.dv)`)]), J([[500, 500, 0, 50], J([600])]));
+    chk(name, 'R32', 'and Needs attention carries no over', cv(`String(!!document.querySelector('#posture .fitatt'))`), 'false');
+    if (B.errors.length || C.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.concat(C.errors).slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — an over in a year not on screen is counted, and Go to it puts that year on screen (R34)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    ev(`cycSetWorking('BES', 2028); render(); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: FY28 has nothing over to begin with', ev(`JSON.stringify(fitModel().years[2028].L.d.over)`), J([0, 0, 0]));
+    // FY28: ANG 100 typed into C's Split, through the RECORD panel's writer; ANG's FY28 budget authority is BES28's $0
+    ev(`switchYear(2028); setFsrcSvc('C','d',1,'100'); switchYear(2027); render(); 'ok'`);
+    chk(name, 'counted', 'with FY27 on screen, FY28 ANG discretionary is over by 100, and the model counts it beside FY27’s two',
+      ev(`JSON.stringify([+MS.cur, fitModel().years[2028].L.d.over, fitModel().years[2027].over, fitModel().over])`), J([2027, [0, 100, 0], 2, 3]));
+    chk(name, 'counted', 'Needs attention counts all three, two against BES28',
+      ev(`((document.querySelector('#posture .fitatt')||{}).textContent)||'none'`), '🏛 3 over budget authority (2 against BES28)');
+    ev(`fitShow(); 'ok'`);
+    chk(name, 'the box', 'the box says FY28’s over',
+      ev(`JSON.stringify([].map.call(document.querySelectorAll('#fitBody .fitover[data-fy="2028"]'), function(e){ return e.textContent; }))`),
+      J(['▲ FY28 O&M, ANG discretionary: requirements hold $100 more than BES28 — reduce a requirement']));
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#fitBody .fitover[data-fy="2028"] + .fitwrap .fitgo'), function(x){ return /"C"/.test(x.getAttribute('onclick')); })[0]; b.click(); return 'ok'; })()`);
+    chk(name, 'Go to it', 'Go to it on FY28’s row closes the box, puts FY28 on screen and selects C', ev(`JSON.stringify([fitOpen, +MS.cur, curRow])`), J([false, 2028, 'C']));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — an over names what it is measured against, and so does Needs attention (R15, R20, K10)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    const said = () => ev(`(function(){ fitOpen=true; render(); var s=[].map.call(document.querySelectorAll('#fitBody .fitover[data-fy="2027"]'), function(e){ return e.textContent; });
+      fitOpen=false; render(); return JSON.stringify([((document.querySelector('#posture .fitatt')||{}).textContent)||'none', s]); })()`);
+    // untagged: every over is against the board's own budget
+    chk(name, 'untagged', 'untagged, the two FY27 overs (ANG discretionary, AFRC mandatory) are against the board’s own budget, neither lane carrying added funding',
+      said(), J(['🏛 2 over the board’s own budget', ['▲ FY27 O&M, ANG discretionary: requirements hold $100 more than the board’s own budget — reduce a requirement',
+        '▲ FY27 O&M, AFRC mandatory: requirements hold $100 more than the board’s own budget — reduce a requirement']]));
+    ev(`cycSetWorking('BES', 2028); S.fsrc.A.mv[2]=0; save(); render(); 'ok'`);
+    // tagged, AFRC's mandatory over taken away: the one over left is against BES28, whose lane carries $150 of added funding
+    chk(name, 'tagged', 'the one over is against BES28 plus the lane’s added funding, and Needs attention says so',
+      said(), J(['🏛 1 over BES28 plus added funding', ['▲ FY27 O&M, USAF discretionary: requirements hold $50 more than BES28 plus added funding ($900 + $150) — reduce a requirement']]));
+    // the position deleted, the plan still tagged BES28: an over now is against the board's own budget, never "over BES28"
+    // (USAF's own base cut to 900 so it is over; ANG's Splits brought to its own 400 so it is not)
+    ev(`ppCyc='BES'; ppYr=2028; ppDel(); S.bm.disc[0]=900; S.fsrc.B.dv[1]=200; applyBudget(); save(); render(); 'ok'`);
+    chk(name, 'no position', 'BES28 deleted (still tagged): USAF holds 1,100 against its own 900 + 150 -- over the board’s own budget, not BES28',
+      said(), J(['🏛 1 over the board’s own budget plus added funding', ['▲ FY27 O&M, USAF discretionary: requirements hold $50 more than the board’s own budget plus added funding ($900 + $150) — reduce a requirement']]));
+    // a withheld (negative) source: the sentence says the budget authority is less than the base
+    ev(`S.bm.adds[0].vec[0]=-150; applyBudget(); save(); render(); 'ok'`);
+    chk(name, 'withheld', 'with $150 withheld, USAF holds 1,100 against 750: the sentence says the base less the withheld funding',
+      J(JSON.parse(said())[1]), J(['▲ FY27 O&M, USAF discretionary: requirements hold $350 more than the board’s own budget less withheld funding ($900 − $150) — reduce a requirement']));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — a lock that read no position says so in its view, and a lock before v2.12 still reads as one (R14, R21, R28)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    // an untagged plan locked as PB27: the lock tags it PB27, which this appropriation logs no position under
+    ev(`blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+    chk(name, 'the lock', 'the lock keeps the tag it read, with no position', ev(`JSON.stringify([MS.cycle, blGet('PB|2027').pos])`), J(['PB|2027', { key: 'PB|2027', P: null }]));
+    const view = () => ev(`(function(){ cycView('PB|2027'); fitShow(); var h=(document.querySelector('#fitBody .fithint')||{}).textContent||'', y=(document.querySelector('#fitBody .fityr span')||{}).textContent||'';
+      fitOpen=false; cycLeave(); return JSON.stringify([h.split('. ')[0], y]); })()`);
+    chk(name, 'the view', 'its view says it was locked when PB27 logged no position here, and each year that the lock kept none -- not "before v2.12", not "untagged"',
+      view(), J(['Viewing O&M PB27 (locked): when it was locked, the plan’s tag (PB27) logged no position for O&M, so its years’ bases are the board’s own, as locked',
+        'This lock kept no PB27 position for O&M: every base is the board’s own, as locked.']));
+    // the same lock as an earlier v2.12 build stored it (pos:null), reads the same
+    ev(`blGet('PB|2027').pos=null; 'ok'`);
+    chk(name, 'pos:null', 'a lock stored with pos:null reads the same: the tag it read is the plan’s, else its own', JSON.parse(view())[1],
+      'This lock kept no PB27 position for O&M: every base is the board’s own, as locked.');
+    // CONTROL: a lock from before v2.12 has no pos at all
+    ev(`delete blGet('PB|2027').pos; 'ok'`);
+    chk(name, 'before v2.12', 'CONTROL: a lock with no pos is said to be from before v2.12', JSON.parse(view())[0],
+      'Viewing O&M PB27 (locked): it was locked before v2.12 and kept no position, so its budget is as locked');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — a lock that tags the plan says which figures move, and never that the board is not changed (R16, R19, R29, K11)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    ev(`blCyc='BES'; blYr=2028; toggleBl(); 'ok'`);
+    chk(name, 'the hint', 'the PPBE cycles box says the lock will tag the plan and move its budget, not that nothing changes',
+      J([/The working plan is untagged: the lock tags it BES28, and every year that position logs reads its budget authority from it/.test(ev(`document.getElementById('blBody').textContent`)),
+        /not changed by a lock/.test(ev(`document.getElementById('blBody').textContent`))]), J([true, false]));
+    const q = JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(x){ qs.push(String(x)); return true; }; cycLock(); return JSON.stringify(qs); })()`));
+    const tail = (q[0] || '').split('\n\n').slice(-2);
+    chk(name, 'the question', 'it names every figure that moves, year by year, and ends that nothing ELSE changes',
+      J(tail), J(['The working plan’s budget authority moves to BES28’s now: FY27 USAF discretionary $1,150 → $1,050; FY27 USAF mandatory $200 → $300; '
+        + 'FY27 ANG discretionary $400 → $452,000; FY27 ANG mandatory $140 → $90,040; FY28 USAF discretionary $1,175 → $5,075; FY28 USAF mandatory $210 → $700; '
+        + 'FY28 ANG discretionary $410 → $0; FY28 ANG mandatory $110 → $0. What the lanes fund moves with it.', 'Nothing else on the working board changes.']));
+    chk(name, 'the question', 'and it moved exactly those: FY27 and FY28 read BES28', J([w3Cache(B, 2027), w3Cache(B, 2028)]),
+      J([J([[1050, 452000, 330], [300, 90040, 50]]), J([[5075, 0, 310], [700, 0, 60]])]));
+    chk(name, 'the status', 'the status line says the plan is now tagged, not "still"',
+      J([/The working plan is now tagged BES28 \(8 budget figures now read from its position\)/.test(ev(`document.getElementById('shareStat').textContent`)),
+        /still tagged/.test(ev(`document.getElementById('shareStat').textContent`))]), J([true, false]));
+    // CONTROL: a tagged plan's next lock moves nothing, and is asked what it always was
+    const q2 = JSON.parse(ev(`(function(){ var qs=[]; window.confirm=function(x){ qs.push(String(x)); return true; }; blCyc='PB'; blYr=2028; cycLock(); return JSON.stringify(qs); })()`));
+    chk(name, 'tagged', 'CONTROL: a lock on a tagged plan ends as it always did', (q2[0] || '').split('\n\n').slice(-1)[0], 'The working board is not changed.');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — Budget Management says what the year reads; a one-figure position is read as discretionary, and said (R36, R37)';
+  try {
+    const J = JSON.stringify;
+    const B = w3Board(), { ev } = B;
+    const bm = () => ev(`(function(){ bmOpen=true; render(); var b=document.getElementById('bmBody'), h=b.querySelector('.bmlive'); var r=JSON.stringify([h? h.firstElementChild.textContent : 'none',
+      b.querySelectorAll('td.bmpos').length, [].filter.call(b.querySelectorAll('input'), function(i){ return /bmSetBase/.test(i.getAttribute('onchange')||''); }).length,
+      /Take the base from a PPBE position/i.test(b.textContent), /Untag the plan to type every base here again/.test(b.textContent)]); bmOpen=false; render(); return r; })()`);
+    ev(`cycSetWorking('BES', 2028); switchYear(2029); 'ok'`);
+    chk(name, 'R36', 'FY29, which BES28 logs nothing for: the heading says so, every base is a box, nothing is read from the position, Take is not offered',
+      bm(), J(['The plan is tagged BES28 — it logs nothing for FY29: the base is the board’s own', 0, 6, false, false]));
+    ev(`switchYear(2027); 'ok'`);
+    chk(name, 'R36', 'CONTROL: FY27, which BES28 logs: the base is read from BES28, live', JSON.parse(bm())[0], 'The base is read from BES28, live');
+    ev(`ppCyc='BES'; ppYr=2028; ppDel(); 'ok'`);
+    chk(name, 'R36', 'BES28 deleted, the plan still tagged: the heading says O&M logs no BES28 position',
+      bm(), J(['The plan is tagged BES28 — O&M logs no BES28 position: the base is the board’s own', 0, 6, false, false]));
+    // ---- R37: a position typed as one figure per line, through the box's one field, over a board whose own mandatory is not $0
+    const C = boot(), cv = C.ev;
+    seed(cv, { services: ['USAF', 'ANG'], items: [it('M', 'AV', [200, 0])], disc: [1000, 100], mand: [200, 20], order: ['M'] });
+    cv(`window.confirm=function(){ return true; }; window.alert=function(){}; MS.svc=SVC.slice();
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.bm={disc:[1000,100], mand:[200,20], adds:[]}; applyState(S); MS.years[MS.cur]=S; save();
+      ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); ppLineAdd('USAF'); render(); 'ok'`);
+    // the box's one field for FY27, as a person types into it (its own onchange: the discretionary slot)
+    cv(`(function(){ var i=[].filter.call(document.querySelectorAll('#ppBody input'), function(x){ return /ppSetV\\("USAF",.*,2027,"d"/.test(x.getAttribute('onchange')||''); })[0];
+      i.value='1200'; i.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    chk(name, 'R37', 'the box is in one-figure mode and stored USAF FY27 as discretionary 1,200, mandatory nothing',
+      cv(`JSON.stringify([!!MS.ppbe['BES|2028'].split, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).d, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).m])`), J([false, 1200, 0]));
+    cv(`toggleP2(); cycSetWorking('BES', 2028); 'ok'`);
+    chk(name, 'R37', 'tagged: USAF reads 1,200 discretionary and $0 mandatory (its own 200 gives way); ANG keeps its own', w3Cache(C, 2027), J([[1200, 100], [0, 20]]));
+    cv(`fitShow(); 'ok'`);
+    chk(name, 'R37', 'the fit box says the one figure is read as discretionary, mandatory $0',
+      cv(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`),
+      'Base from BES28 for USAF · the board’s own for ANG (BES28 says nothing about it). BES28 gives one figure per line: USAF read as discretionary, mandatory $0.');
+    cv(`fitOpen=false; bmOpen=true; render(); 'ok'`);
+    chk(name, 'R37', 'and Budget Management says it too', /BES28 gives one figure per line: USAF read as discretionary, mandatory \$0\./.test(cv(`document.getElementById('bmBody').textContent`)), true);
+    if (B.errors.length || C.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.concat(C.errors).slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.12 RV3 — the guide names the 🏛 entry and states the budget authority as the position plus added funding (K13, R31)';
+  try {
+    const B = boot(), { ev } = B;
+    const sec = id => ev(`(function(){ var t=document.getElementById('helpDoc'), s=t && t.content.querySelector('section[data-id=${JSON.stringify(id)}]'); return s? s.textContent : ''; })()`);
+    chk(name, 'K13', 'the Needs attention part of the guide names the 🏛 entry and what it opens', /The first entry, 🏛 N over BES28, opens the fit to the PPBE position instead/.test(sec('t-alloc')), true);
+    chk(name, 'R31', 't-ppbe says no report states more than the budget authority, the position plus added funding',
+      /no report states more than the budget authority \(the position plus added funding\)/.test(sec('t-ppbe')), true);
+    chk(name, 'R31', 'and no longer claims no report states more than the position', /no report states more than the position\./.test(sec('t-ppbe')), false);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

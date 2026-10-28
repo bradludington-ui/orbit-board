@@ -968,7 +968,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const a = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')),
       entry: (document.querySelector('#posture .fitatt') || {}).textContent || '' }));
-    chk('U · Needs attention’s 🏛 entry is reached with Tab, and Enter opens the fit box with the keyboard inside', steps >= 0 && a.open && a.inBox && /🏛 \d+ over POM99/.test(a.entry), JSON.stringify({ steps, ...a }));
+    // v2.12 RV3 (R20, K10): the entry names what the overs are against -- here one is against POM99 and the rest against the
+    // services' own bases, so it says how many are against POM99
+    chk('U · Needs attention’s 🏛 entry is reached with Tab, and Enter opens the fit box with the keyboard inside', steps >= 0 && a.open && a.inBox && /🏛 \d+ over (POM99|budget authority \(\d+ against POM99\))/.test(a.entry), JSON.stringify({ steps, ...a }));
     await p.keyboard.press('Escape'); await p.waitForTimeout(200);
     const e1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), cls: (document.activeElement || {}).className || '' }));
     chk('U · Esc closes it, the keyboard back on the entry', !e1.open && /fitatt/.test(e1.cls), JSON.stringify(e1));
