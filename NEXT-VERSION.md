@@ -287,16 +287,31 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     ROWS it skipped (a row whose *JPO Managed* is not Yes is skipped before that). Proposed: the import report states the
     DOLLARS it left out under Service Mgd, by year, so the estimate's own total can still be tied out. *"Non-PMO is
     kind of like an all other category or catch all"* -- kept as its own group, as today.
-  - **No PSM in the 2026 PMO list.** `ACE_PMO_ALIGN_DEFAULT` assumes PSM sits under Air Vehicle before 2026 and is its own
-    ACE PMO from 2026; the 2026 list has no PSM, so with that default the board's PSM office would find no estimate.
-  - **Not yet matched:** the appropriation (ORBIT keeps O&M, Support/Full Fund, Spares and OPN -- *Appropriation (US
-    Only)*?) and the cost element (*CCAR Element*, or *Support Line Category*?).
+  - **PSM is inside Air Vehicle, in every estimate** (Brad, 28 Oct: *"Cost has not broken out PSM and AV unfortunately.
+    The ORBIT assignment is the driver between those splits."*). This corrects the rule the board carries:
+    `ACE_PMO_ALIGN_DEFAULT` says PSM sat under AV through 2025 and is its own ACE PMO from 2026 (`later: {}`). Only the ACE
+    tie-out reads it (`acePmoGroups`, in `aceBody` and `exportAceTieout`), and on a 2026 estimate it would print AV's
+    estimate (PSM's money in it) against AV's requirements alone, and PSM at $0 estimate against its own -- two deltas,
+    both wrong. Proposed: PSM -> AV for every estimate, so the tie-out prints *AV + PSM* as one estimate against both
+    offices' requirements, as it does for 2025. Nothing in ORBIT edits the alignment, so one stored as `{}` on a 2026 set
+    can only be the old default: replaced on opening, and said once.
+  - **Proposed, for Brad to confirm: the ORBIT assignment splits it.** Under the *AV + PSM* line, each office's part is
+    the estimate of the WBS paragraphs only that office's requirements picked (item 132's picks). A paragraph both
+    offices picked, or neither, stays on the shared line -- no split rule is invented.
+  - **The appropriation, in part** (Brad, 28 Oct): *PALS/O&S* -- *"O&S is O&M for the cost estimators. PALS is all
+    procurement accounts so my non-O&M requirements."* So O&S -> O&M, and PALS -> Full Fund (Support), Initial Spares or
+    OPN. The old reader took these four from one column (`ACE_APPN`: O&M, SUPPORT, SPARES, OPN); which 2026 column tells
+    a PALS row's three apart is still open. And *Appropriation (US Only)* shows MILPERS on some rows: ORBIT has no MILPERS
+    board, so proposed: those rows are left out and their dollars reported, as Service Mgd's.
+  - **Not yet matched:** the column that tells Full Fund, Initial Spares and OPN apart on a PALS row (*Budget Element (US
+    Only)*? *Appropriation (US Only)*?), and the cost element (*CCAR Element*, or *Support Line Category*?).
   - **Columns ORBIT never read that decide which rows count:** *$ Type* (CY$ in the screenshot), *Rollup Value?*,
     *US/PTN/FMS* and *PALS/O&S*. If the file carries the same line in two dollar types, or rollup rows beside their parts,
     a reader that does not filter on them counts the money twice.
-- **Open (Brad):** which column and values give the appropriation; which column is the cost element; which *$ Type* ORBIT
-  takes (then-year, to sit beside the PPBE positions?); whether *Rollup Value? = Yes* rows are subtotals to leave out;
-  whether *PALS* rows count or only *O&S*; and where PSM's estimate sits in the 2026 ACE (still under Air Vehicle?).
+- **Open (Brad):** which column (and its values) tells Full Fund, Initial Spares and OPN apart on a PALS row; whether
+  MILPERS rows are left out; which column is the cost element; which *$ Type* ORBIT takes (then-year, to sit beside the
+  PPBE positions?); whether *Rollup Value? = Yes* rows are subtotals to leave out; and whether the AV / PSM split by WBS
+  picks above is what *"the ORBIT assignment is the driver"* means.
 - **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
