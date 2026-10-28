@@ -425,8 +425,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - A read-only export under Reports & exports, laid out as the mock-up. Plan years from `tiers()` (funded = d + m per
     service), each appropriation read as its own board opens it; the active year from the CCaR pull, each row placed by its
     plan event's WBS paragraph, its Service read from its budget name. Nothing recomputed, nothing written to the board.
-    Services join by name through `SVC_ALIAS` (Full Fund's USMC-B is Marine Corps); WBS paragraphs sort naturally (a letter
-    suffix is a sibling; a P prefix is tolerated).
+    Services join by name through `SVC_ALIAS` (Full Fund's USMC-B is Marine Corps); WBS paragraphs sort naturally; which header a
+    line rolls up to is item 132's tree (one rule for both, so an *E* line rolls up as item 132 decides).
   - **The contract number** as a new requirement field (the record, the Add and edit boxes, PMO copies, year copies, the
     import door), printed in this workbook, and written to the Spend Plan Source once CCaR has a column for it.
   - **Formulas in ORBIT's Excel writer**, opt in: a cell may carry `{f, v}`, written as `<f>` with `<v>` = ORBIT's own
@@ -447,7 +447,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **The ACE column is a filtered subset of the ACE file** (first sheet, JPO-managed, the seven ACE PMOs, US services;
     stored x1e6 without `D$`): print the estimate's name and its skip counts on each tab and round at the door. The names
     tab Brad finds needs a read of its own; CCaR's column 23 descriptions are a second source of names.
-  - **WBS codes are normalised once, from all three sources** (case, spaces, a P prefix) before they become keys; the level
+  - **WBS codes are normalised once, from all three sources** (case and spaces; the letters are kept -- `P6` is not
+    `6`, and `….1E` is not `….1`) before they become keys; the level
     count comes from the data, not a constant. CCaR amounts keep cents and read *(1,234)* as positive today: round at the
     door and read parentheses as negative. The *pull through* date comes from `repYmOf`, not `asOf` or today.
   - **A requirement line's label repeats on real data** (108 of 155 O&M requirements share a record name; OPN shares one plan
