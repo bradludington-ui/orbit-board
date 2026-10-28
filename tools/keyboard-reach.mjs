@@ -950,5 +950,5 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
 }
 
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects and the cost estimate import's mapping box and report, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects and the cost estimate import’s mapping box and report, and each one works\n');
 process.exit(bad ? 1 : 0);

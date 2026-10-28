@@ -4295,6 +4295,14 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       E(B7.ev, `JSON.stringify((function(){ var R=ACEDB.sets['2026ACE'].rep; return [R.reasons.pmo.by, R.reasons.pmo.v, R.types, R.reasons.dtype.v, Object.getPrototypeOf(R.reasons)===Object.prototype]; })())`),
       J([[['constructor', 1], ['__proto__', 1]], { 2027: 500005 }, [['__proto__', 1], ['toString', 1]], { 2027: 900009 }, true]));
     chk(name, 'values, not keys', 'and the board saved with that estimate passes the import check', E(B7.ev, `inboundCheck(buildSavedHtml())||'passes'`), 'passes');
+    // a renamed title answered in the mapping box that reads "constructor" is read by, and not remembered: the board saved after it
+    // still passes the import check (a field named pmo holding that name is refused there)
+    await imp(B7, book(HDR, R.slice(0, 2), HDR.map(t => t === 'PMO' ? 'constructor' : t)), '2027 ACE odd title.xlsx');
+    E(B7.ev, `document.getElementById('aceCol_pmo').value=String(${HDR.indexOf('PMO')}); document.querySelector('#aceColBody button.btn.pri').click(); 'ok'`);
+    await new Promise(r => setTimeout(r, 30));
+    chk(name, 'values, not keys', 'a PMO column titled "constructor", answered in the box: the file is read by it, the title is not remembered, and the saved board passes the import check',
+      E(B7.ev, `JSON.stringify([(ACEDB.sets['2027ACE']||{lines:[]}).lines.length, ((ACEDB.sets['2027ACE']||{}).cols||{map:{}}).map.pmo===undefined, inboundCheck(buildSavedHtml())||'passes'])`),
+      J([2, true, 'passes']));
     try { B7.w.close(); } catch {}
     // the answers a colleague gave in the mapping box come across with an ordinary import; a layout this board answers for keeps its own
     E(B6.ev, `ACEDB.cols={MINE:{map:{roll:'Mine'}}}; importStores({aceDb:{sets:{}, cols:{MINE:{map:{roll:'Theirs'}}, THEIRS:{map:{pals:'Account Family'}}}}}); 'ok'`);

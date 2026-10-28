@@ -108,6 +108,14 @@
   "caughtBy": "audit-other / v2.12 W1 —"
  },
  {
+  "id": "v212-w1-builtin-title-remembered",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-report-year-ignored",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
   "id": "v212-w1-conflict-silent",
   "caughtBy": "audit-other / v2.12 W1 —"
  },

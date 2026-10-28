@@ -17649,7 +17649,11 @@ function aceImportGo(ctx){
     }
     set.locked=true; set.by=whoAmI(); set.file=ctx.file;
     R.file=ctx.file;
-    const map={}; ACE_FIELDS.forEach(function(F){ if(H.col[F.f]>=0) map[F.f]=String(H.hdr[H.col[F.f]]==null? '' : H.hdr[H.col[F.f]]).trim(); });
+    // A title spelled like a name every object answers to ("constructor") is not recorded as a field's title: the import check
+    // refuses such a value under a field named pmo or svc, and the board would then refuse its own saved file. The file is still
+    // read by it; it is only not remembered.
+    const map={}; ACE_FIELDS.forEach(function(F){ if(!(H.col[F.f]>=0)) return; const t=String(H.hdr[H.col[F.f]]==null? '' : H.hdr[H.col[F.f]]).trim();
+      if(!IN_KEY_BAD.has(t)) map[F.f]=t; });
     set.cols={sheet:H.sheet, row:R.row-1, sig:H.sig, map:map};
     set.fp=aceFingerprint(set);
     // THE ANSWERS GIVEN IN THE MAPPING BOX ARE REMEMBERED, for files laid out the same way (ACEDB.cols, by the header row's
