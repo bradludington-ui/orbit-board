@@ -295,23 +295,43 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     both wrong. Proposed: PSM -> AV for every estimate, so the tie-out prints *AV + PSM* as one estimate against both
     offices' requirements, as it does for 2025. Nothing in ORBIT edits the alignment, so one stored as `{}` on a 2026 set
     can only be the old default: replaced on opening, and said once.
-  - **Proposed, for Brad to confirm: the ORBIT assignment splits it.** Under the *AV + PSM* line, each office's part is
+  - **The ORBIT assignment splits AV + PSM** (Brad, 28 Oct: "Yes"). Under the *AV + PSM* line, each office's part is
     the estimate of the WBS paragraphs only that office's requirements picked (item 132's picks). A paragraph both
     offices picked, or neither, stays on the shared line -- no split rule is invented.
-  - **The appropriation, in part** (Brad, 28 Oct): *PALS/O&S* -- *"O&S is O&M for the cost estimators. PALS is all
-    procurement accounts so my non-O&M requirements."* So O&S -> O&M, and PALS -> Full Fund (Support), Initial Spares or
-    OPN. The old reader took these four from one column (`ACE_APPN`: O&M, SUPPORT, SPARES, OPN); which 2026 column tells
-    a PALS row's three apart is still open. And *Appropriation (US Only)* shows MILPERS on some rows: ORBIT has no MILPERS
-    board, so proposed: those rows are left out and their dollars reported, as Service Mgd's.
-  - **Not yet matched:** the column that tells Full Fund, Initial Spares and OPN apart on a PALS row (*Budget Element (US
-    Only)*? *Appropriation (US Only)*?), and the cost element (*CCAR Element*, or *Support Line Category*?).
-  - **Columns ORBIT never read that decide which rows count:** *$ Type* (CY$ in the screenshot), *Rollup Value?*,
-    *US/PTN/FMS* and *PALS/O&S*. If the file carries the same line in two dollar types, or rollup rows beside their parts,
-    a reader that does not filter on them counts the money twice.
-- **Open (Brad):** which column (and its values) tells Full Fund, Initial Spares and OPN apart on a PALS row; whether
-  MILPERS rows are left out; which column is the cost element; which *$ Type* ORBIT takes (then-year, to sit beside the
-  PPBE positions?); whether *Rollup Value? = Yes* rows are subtotals to leave out; and whether the AV / PSM split by WBS
-  picks above is what *"the ORBIT assignment is the driver"* means.
+  - **The appropriation and the cost element -> *Support Line Category*** (Brad, 28 Oct, from a fourth screenshot of its
+    filter list). It names the cost element on a Full Fund row, *Initial Spares* on a Spares row, *Other Proc (OPN)* on an
+    OPN row and *O&S* on an O&M row; *PALS/O&S* agrees with it (*"O&S is O&M for the cost estimators. PALS is all
+    procurement accounts so my non-O&M requirements"*). The 2026 values, against ORBIT's `COST_ELEMS`:
+
+    | Support Line Category | ORBIT |
+    |---|---|
+    | O&S | O&M |
+    | Initial Spares | Initial Spares |
+    | Other Proc (OPN) | OPN |
+    | Airframe PGSE, Avionics PGSE, Engine PGSE, Fixed JPO Support, JRE | Full Fund, the same name |
+    | Other ILS | Full Fund, Other ILS Production |
+    | PEC TRNG EQ | Full Fund, Peculiar Training Equip |
+    | PEC TRNG EQ (Full Mission Sims) | Full Fund, Full Mission Simulators |
+    | Production Eng Support | Full Fund, Production Engineering Support |
+    | Pubs / Tech Data | Full Fund, Pubs/Tech Data |
+    | Depot Activation | Full Fund -- proposed: ORBIT's three Depot Standup elements (Software, Air Vehicle, Propulsion) |
+    | (Blanks) | open |
+
+    Proposed: the table is the import's one map (it replaces `ACE_APPN`, and the old `ce` column), names matched without
+    regard to case, spaces or punctuation. A value not in it, or a row where *PALS/O&S* and *Support Line Category* disagree
+    (an O&S row with a cost element, a PALS row saying O&S), is left out and named with its dollars by year.
+  - **MILPERS rows are left out** (Brad, 28 Oct: *"Exclude MILPERS"*): *Appropriation (US Only)* = MILPERS; their dollars
+    reported, as Service Mgd's.
+  - **Then-year dollars** (Brad, 28 Oct: "Yes"): only rows whose *$ Type* is then-year are read, to sit beside the PPBE
+    positions; the other types are counted and said. A file with no then-year row is refused, naming the types it holds.
+  - **Rollup rows are subtotals, left out** (Brad, 28 Oct: "Yes"): a row with *Rollup Value? = Yes* is not read, so no
+    dollar is counted twice; counted and said.
+  - ***CCAR Element* carries the CCaR record number** (the JSF number ORBIT holds per requirement) and *CCAR Description*
+    the record's name -- populated in 2026, where the 2025 estimate's CCaR column joined 0.0% of funded money. Proposed:
+    a requirement whose CCaR record matches a line's *CCAR Element* sees that line's WBS paragraphs first in its picker --
+    a suggestion, never a pick (the tie-out's standing rule).
+- **Open (Brad):** what a row with a blank *Support Line Category* is (MILPERS, partner and FMS rows?) -- proposed: left out
+  and its dollars reported; and whether *Depot Activation* is ORBIT's three Depot Standup cost elements.
 - **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
