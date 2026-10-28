@@ -19,7 +19,10 @@ os.makedirs(TMP, exist_ok=True)
 fails = []
 def chk(ok, what):
   if not ok: fails.append(what)
-GRP = {'Air Force': {'USAF', 'ANG', 'AFRC'}, 'Marine Corps': {'STOVL', 'USMC-B', 'USMC-C'}, 'Navy': {'USN'}}
+GRP = {'Air Force': {'USAF', 'ANG', 'AFRC'}, 'Marine Corps': {'STOVL', 'USMC-B', 'USMC-C'}, 'Navy': {'USN'},
+       'Service not identified': {'Other'}}
+PGRP = ['Air Force', 'Marine Corps', 'Navy']          # ORBIT's plan always knows the Service
+def un(k): return k[2:] if isinstance(k, str) and k.startswith('W|') else k     # the keys carry a W| prefix
 def fyl(fy): return 'FY%02d' % (fy % 100)
 
 def recalc(path, tag):
@@ -46,9 +49,9 @@ def matches(k, ap, w, key=None):
   if t == 'all': return True
   if ap != k['kAP']: return False
   if t == 'section': return True
-  if t == 'line': return w == k['kPARA'] and key == k['kLINE']
+  if t == 'line': return w == un(k['kPARA']) and key == k['kLINE']
   lv = max(i for i in range(1, 6) if k.get('kL%d' % i))
-  code = k['kL%d' % lv]
+  code = un(k['kL%d' % lv])
   if code == NONE: return w == NONE
   return w != NONE and len(chain(w)) >= lv and chain(w)[lv - 1] == code
 
@@ -56,9 +59,9 @@ def expect_plan(k, fy):
   e = {'req': 0, 'ace': 0, 'Air Force': 0, 'Marine Corps': 0, 'Navy': 0}
   for ap in APPNS:
     for x in PLAN[ap][fy]:
-      if matches(k, ap, x['wbs'], x['ccar'] + '|' + x['contract']):
+      if matches(k, ap, x['wbs'], x['id']):                 # a plan line is the ORBIT requirement, never its CCaR record
         e['req'] += sum(x['ask'].values())
-        for g, names in GRP.items(): e[g] += sum(v for s, v in x['fund'].items() if s in names)
+        for g in PGRP: e[g] += sum(v for s, v in x['fund'].items() if s in GRP[g])
     if k['kTYPE'] != 'line':
       for w, d in ACE[ap][fy].items():
         if matches(k, ap, w): e['ace'] += sum(d.values())
@@ -69,8 +72,8 @@ def expect_active(k, month=None):
   for g in GRP: e[g + ' ob'] = e[g + ' pl'] = 0
   for ap in APPNS:
     for x in EVENTS[ap]:
-      if month is not None and x['month'] != month: continue
-      if matches(k, ap, x['wbs'], x['ccar'] + '|' + x['contract']):
+      if month is not None and not (x['month'] == month or (month == -1 and x['month'] < 0) or (month == 12 and x['month'] > 11)): continue
+      if matches(k, ap, x['wbs'], x['ccar'] + '|' + x['title'] + '|' + x['contract']):
         g = [g for g, n in GRP.items() if x['line'] in n][0]
         e[g + (' ob' if x['ob'] else ' pl')] += x['amount']; e['tot'] += x['amount']; e['ob' if x['ob'] else 'pl'] += x['amount']
     if k['kTYPE'] != 'line' and month is None:
@@ -118,7 +121,7 @@ def check_active(ws, partner=None):
     chk(abs(v(ws, r, c6['Partners'] + 1) - p) < .5, 'active row %d partner total' % r)
     tot = e['tot'] + p
     if tot:
-      sh = [v(ws, r, c6['Share of obligated + planned'] + i) for i in range(4)]
+      sh = [v(ws, r, c6['Share of obligated + planned'] + i) for i in range(5)]
       want = [(e[g + ' ob'] + e[g + ' pl']) / tot for g in GRP] + [p / tot]
       chk(all(abs(a - b) < 1e-9 for a, b in zip(sh, want)), 'active row %d shares %s, want %s' % (r, sh, want))
   return n
@@ -127,14 +130,20 @@ def check_month(ws):
   c6, c7 = cols_of(ws); n = 0
   mcol = [j for j in range(1, ws.max_column + 1) if hasattr(ws.cell(7, j).value, 'year')]
   chk(len(mcol) == 12, 'by month: %d month columns' % len(mcol))
+  bef = [j for j in range(1, ws.max_column + 1) if str(ws.cell(7, j).value).startswith('Before')]
+  aft = [j for j in range(1, ws.max_column + 1) if str(ws.cell(7, j).value).startswith('After')]
+  chk(len(bef) == 1 and len(aft) == 1, 'by month: a column before and after the fiscal year')
+  months = [(i, j) for i, j in enumerate(mcol)] + [(-1, bef[0]), (12, aft[0])]
+  tcol = c7['Total']
   for r, k in rows_of(ws, c7):
     n += 1
-    for i, j in enumerate(mcol):
+    chk(abs(v(ws, r, tcol) - expect_active(k)['tot']) < .5, 'by month row %d total %s, want %s (the active tab\'s)' % (r, v(ws, r, tcol), expect_active(k)['tot']))
+    for i, j in months:
       want = expect_active(k, i)['tot']
       chk(abs(v(ws, r, j) - want) < .5, 'by month row %d %s month %d: got %s, want %s' % (r, k['kTYPE'], i, v(ws, r, j), want))
   for lbl, key in (('of which obligated', 'ob'), ('of which planned to obligate', 'pl')):
     r = [rr for rr in range(8, 12) if ws.cell(rr, 1).value == lbl][0]
-    for i, j in enumerate(mcol):
+    for i, j in months:
       want = expect_active({'kTYPE': 'all'}, i)[key]
       chk(abs(v(ws, r, j) - want) < .5, 'by month "%s" month %d: got %s, want %s' % (lbl, i, v(ws, r, j), want))
   return n
@@ -173,18 +182,43 @@ n += check_active(wb[fyl(ACTIVE) + ' (active)']); n += check_month(wb[fyl(ACTIVE
 all_req = sum(sum(x['ask'].values()) for ap in APPNS for x in PLAN[ap][YEARS[0]])
 ws = wb[fyl(YEARS[0])]; c6, c7 = cols_of(ws)
 chk(abs(v(ws, 8, c7['US requirement']) - all_req) < .5, 'ALL US requirement %s, want every requirement %s' % (v(ws, 8, c7['US requirement']), all_req))
-none_rows = [r for r, k in rows_of(ws, c7) if k['kTYPE'] == 'head' and k['kL1'] == NONE]
+none_rows = [r for r, k in rows_of(ws, c7) if k['kTYPE'] == 'head' and un(k['kL1']) == NONE]
 chk(len(none_rows) == 1, 'one "No WBS paragraph yet" block on %s (found %d)' % (ws.title, len(none_rows)))
 chk(any(str(ws.cell(r, 1).value).startswith('1.4') and 'not in the ACE' in str(ws.cell(r, 1).value) for r in range(8, ws.max_row + 1)), '1.4 is flagged as not in the ACE')
+lbl = [str(ws.cell(r, 1).value) for r in range(8, ws.max_row + 1)]
+chk(any(a.startswith('1.3.1  (name not linked yet)') for a in lbl) and not any(a.startswith('1.3.1') and 'not in the ACE' in a for a in lbl),
+    '1.3.1 is in the ACE with no name linked: it shows its number, not the red flag')
+chk(any(a.startswith('1.10  ') for a in lbl), '1.10 has its own row beside 1.1')
+chk(ws.cell(8, 1).value == ' + '.join(a.upper() for a in APPNS), 'the top line names the appropriations it covers: %s' % ws.cell(8, 1).value)
+two = [r for r, k in rows_of(ws, c7) if k['kTYPE'] == 'line' and str(ws.cell(r, 1).value).startswith('Engine depot MIPR')]
+chk(len(two) == 2 and v(ws, two[0], c7['US requirement']) != v(ws, two[1], c7['US requirement']),
+    'two requirements sharing a CCaR record with no contract number keep their own money')
+for w_ in raw.worksheets:
+  chk(w_.oddHeader.center.text == MARK and w_.oddFooter.center.text == MARK, '%s: the marking in its page header and footer' % w_.title)
+# every WBS key carries its prefix: Excel reads a criterion such as "1.1" as the number 1.1 and would then match "1.10";
+# LibreOffice matches text exactly, so no recalculation here can see that -- the prefix is checked directly
+bare = 0
+for w_ in raw.worksheets:
+  if w_.title == 'How to read': continue
+  hr = 2 if w_.title == 'Data' else 7
+  kc = [j for j in range(1, w_.max_column + 1) if str(w_.cell(hr, j).value) in (['kPARA'] + ['kL%d' % i for i in range(1, 6)] + ['PK'] + ['K%d' % i for i in range(1, 6)])]
+  for j in kc:
+    for r in range(hr + 1, w_.max_row + 1):
+      x = w_.cell(r, j).value
+      if x is not None and not str(x).startswith('W|'): bare += 1
+chk(bare == 0, '%d WBS keys without their W| prefix' % bare)
 chk(any(str(ws.cell(r, 1).value).startswith('1.1.1.3') for r in range(8, ws.max_row + 1)), 'the ACE line nothing claims (1.1.1.3) has a row')
 # ---- 4: the Data tab
-dws = wb['Data']; H = {dws.cell(1, j).value: j for j in range(1, dws.max_column + 1)}
+dws = wb['Data']; H = {dws.cell(2, j).value: j for j in range(1, dws.max_column + 1)}
+chk(dws['A1'].value == MARK, 'the Data tab carries the marking above its table')
 fund_by_fy = {}
-for r in range(2, dws.max_row + 1):
+for r in range(3, dws.max_row + 1):
   rec, fy = dws.cell(r, H['Record']).value, dws.cell(r, H['FY']).value
-  f, o, p = [v(dws, r, H[c]) for c in ('Funded ($)', 'Obligated ($)', 'Planned to obligate ($)')]
-  if rec == 'CCaR plan event': chk(abs(f - (o + p)) < .5 and (o == 0 or p == 0), 'Data row %d: Funded is not Obligated + Planned' % r)
-  fund_by_fy[fy] = fund_by_fy.get(fy, 0) + f
+  f, cp, o, p = [v(dws, r, H[c]) for c in ('Funded ($)', 'CCaR plan ($)', 'Obligated ($)', 'Planned to obligate ($)')]
+  if rec == 'CCaR plan event':
+    chk(abs(cp - (o + p)) < .5 and (o == 0 or p == 0) and f == 0, 'Data row %d: CCaR plan is not Obligated + Planned' % r)
+  elif cp or o or p: fails.append('Data row %d: a CCaR measure on a %s row' % (r, rec))
+  fund_by_fy[fy] = fund_by_fy.get(fy, 0) + f + cp
 for fy in YEARS:
   w = wb[fyl(fy)]; c6x, c7x = cols_of(w)
   chk(abs(fund_by_fy[fyl(fy)] - v(w, 8, c7x['US funded'])) < .5, 'Data Funded for %s = the tab\'s ALL US funded' % fyl(fy))
@@ -198,20 +232,24 @@ def find_row(ws, pred):
   c6, c7 = cols_of(ws)
   for r, k in rows_of(ws, c7):
     if pred(k, str(ws.cell(r, 1).value)): return r
-  raise SystemExit('row not found')
+  fails.append('%s: a row to type a partner figure on was not found' % ws.title); return None
 ws = wf[fyl(YEARS[0])]; c6, c7 = cols_of(ws); PT = c7['Partner, type $M']
-typed = [(lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'O&M' and k['kPARA'] == '1.2.2.1', 2.5),
+typed = [(lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'O&M' and k['kPARA'] == 'W|1.2.2.1', 2.5),
          (lambda k, a: k['kTYPE'] == 'head' and k['kAP'] == 'O&M' and a.startswith('1.2  '), 1.0),
          (lambda k, a: k['kTYPE'] == 'section' and k['kAP'] == 'O&M', 0.5),
-         (lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'Full Fund' and k['kPARA'] == '1.2.2.1', 0.25)]
+         (lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'Full Fund' and k['kPARA'] == 'W|1.2.2.1', 0.25)]
 TY = []
-for pred, m in typed:
-  r = find_row(ws, pred); ws.cell(r, PT, m)
+for pred, m in typed:  # (kPARA carries the W| prefix)
+  r = find_row(ws, pred)
+  if r is None: continue
+  ws.cell(r, PT, m)
   TY.append(({kk: ws.cell(r, c7[kk]).value for kk in c7 if kk and str(kk).startswith('k')}, m * 1e6))
 wsa = wf[fyl(ACTIVE) + ' (active)']; c6a, c7a = cols_of(wsa)
-ra = find_row(wsa, lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'O&M' and k['kPARA'] == '1.1.1.2')
-wsa.cell(ra, c6a['Partners'], 1.5)
-TA = [({kk: wsa.cell(ra, c7a[kk]).value for kk in c7a if kk and str(kk).startswith('k')}, 1.5e6)]
+ra = find_row(wsa, lambda k, a: k['kTYPE'] == 'line' and k['kAP'] == 'O&M' and k['kPARA'] == 'W|1.1.1.2')
+TA = []
+if ra:
+  wsa.cell(ra, c6a['Partners'], 1.5)
+  TA = [({kk: wsa.cell(ra, c7a[kk]).value for kk in c7a if kk and str(kk).startswith('k')}, 1.5e6)]
 wf.save(cp)
 def partner_of(T):
   def f(k):

@@ -267,29 +267,44 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   make.sh` builds it (`model.py`, `xlsx.py`), saves it once through LibreOffice so the file carries computed values (a phone
   or mail preview shows figures, not blanks; the formulas stay live), and runs `check.py`. Tabs: *How to read*, *FY27
   (active)*, *FY27 by month*, *FY28* (budget year), *FY29*, *Data*; renders in `xlsx-*.png`.
-  - **The Data tab is the one source.** One row per figure, a column per measure (Requirement, Funded, Obligated, Planned to
-    obligate, ACE estimate), never two measures in one column. Funded on an active-year row is obligated + planned, so
-    Funded by FY compares across years in a pivot. Months are dates; the WBS levels are columns, named.
+  - **The Data tab is the one source.** One row per figure, a column per measure -- Requirement and Funded (ORBIT), CCaR
+    plan, Obligated and Planned to obligate (CCaR), ACE estimate -- never two measures in one column. The active year's
+    CCaR figures and ORBIT's figures are named apart: they come from two systems and do not line up row by row (the
+    workbook says so). Months are dates; the WBS levels are columns, named.
   - **Every other figure is a SUMIFS over Data**, keyed by the row's own hidden keys (year, appropriation, WBS level,
     paragraph, line) -- never a range of rows -- so sorting, filtering, collapsing or inserting rows cannot move a total.
+    A plan line is keyed by the ORBIT requirement's id, never its CCaR record or contract (a CCaR record is shared and a
+    contract number starts blank); a CCaR line by record, title and contract. Every WBS key carries a `W|` prefix, so Excel
+    never reads a key such as 1.1 as a number and matches 1.10 with it.
     The partner box (yellow, on every row) takes **$M** and has data validation; a header adds every partner figure on its
     own row and beneath it, keyed the same way.
   - **What the fixture carries, because real data will:** Full Fund's USMC-B (counted as Marine Corps), a letter-suffixed
     paragraph (1.1.1.1E, beside 1.1.1.1), an ACE line no requirement claims (1.1.1.3: its own row, in every ACE total), a
     requirement on a parent that has children (1.2.2), a requirement with no WBS paragraph ("No WBS paragraph yet", inside
-    its appropriation's totals), one on a paragraph the ACE lacks (1.4, flagged red), one CCaR record carrying two contracts
-    (a row each), a plan event that slipped and one obligated early, and Initial Spares.
-  - **`check.py`** recalculates the saved file in LibreOffice and holds all 199 rows of the four tree tabs to figures worked
+    its appropriation's totals), one on a paragraph the ACE lacks (1.4, flagged red -- decided by the estimate's own lines
+    for that appropriation and year, not by the names list), one in the ACE with no name linked (1.3.1), 1.10 beside 1.1,
+    two requirements sharing a CCaR record with no contract number (MIPRs), one CCaR record carrying two contracts, a plan
+    event that slipped and one obligated early, a procurement plan event dated past September (an *After* column on the
+    month tab), a CCaR row whose budget name names no Service (*Service not identified*, in every total), and Initial
+    Spares. The top line names the appropriations it covers. Every sheet carries the marking in its page header and
+    footer, and the Data tab above its table.
+  - **`check.py`** recalculates the saved file in LibreOffice and holds all 215 rows of the four tree tabs to figures worked
     out from `model.py` with the Service groups written out by hand (never the builder's own list), every line's shares to
-    100%, the Data tab's measures, no formula pointing at another row, and partner figures typed in $M on a line, a WBS
-    header, an appropriation and the active tab. Five planted mistakes each fail it: the USMC-B alias dropped (241), the
-    partner box not converted from $M (12), the unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1),
-    requirement and funded in one Data column (1,003).
+    100%, the month tab's totals to the active tab's, the Data tab's measures, no formula pointing at another row, every
+    key's prefix, the marking, and partner figures typed in $M on a line, a WBS header, an appropriation and the active
+    tab. Ten planted mistakes each fail it: the USMC-B alias dropped (240), the partner box not converted from $M (12), the
+    unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1), requirement and funded in one Data column
+    (1,048), plan lines keyed by CCaR record and contract (321), the unidentified Service left out of the US total (29),
+    plan events after September dropped (13), the ACE flag taken from the names list (1), the key prefix dropped (5).
   - **Rebuilt after an independent review (28 Oct):** three reviewers (Brad's decisions, the Excel under real use, what
     ORBIT can deliver), each finding reproduced in LibreOffice. The first cut summed requirement and funded in one Data
     column (a pivot doubled the plan years), took the partner box in dollars under a $M label (2.5 did nothing), lost a row
     inserted at a block's edge and scrambled totals on a sort (positional ranges), dropped money with no paragraph and ACE
-    lines with no requirement, carried no unit on a copied cell, and stored no computed values. Each is fixed above.
+    lines with no requirement, carried no unit on a copied cell, and stored no computed values. The third review (what
+    ORBIT can deliver) found the rebuild keying a plan line by CCaR record and contract, so two MIPRs sharing a record each
+    printed the other's money; the ACE flag decided by the names list; keys Excel could read as numbers; an unidentified
+    Service and procurement dated past September falling out of the totals; the active year's CCaR figures filed as
+    "Funded" beside ORBIT's; and no marking on the Data tab. Each is fixed above.
 - **Proposed build (after item 132):**
   - A read-only export under Reports & exports, laid out as the mock-up. Plan years from `tiers()` (funded = d + m per
     service), each appropriation read as its own board opens it; the active year from the CCaR pull, each row placed by its
@@ -304,8 +319,23 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **Ask CCaR to carry ORBIT's requirement id** beside the contract number, so CCaR rows match requirements exactly (Brad's
     "yes", 28 Oct, read as covering this).
   - **Obligated** is CCaR's allocation status (`isAlloc`). The Spend Plan Source writes *Forecast allocated to a Plan Event*
-    for an active year, and `isAlloc` would read that text, coming back unchanged, as obligated: the build reads it as not
-    yet obligated and names any other Alloc text it does not know.
+    for an active year, and `isAlloc` would read that text, coming back unchanged, as obligated: the build counts obligated
+    only on a positive allocated value, and states blank, forecast and unknown Alloc text apart, with their dollars.
+  - **The CCaR pull is read by position** (`SRC_NCOL` = 32, `QPE_READS` by index): a contract-number column CCaR *inserts*
+    re-points every read after it, and one it *appends* is dropped. Agree the slot with CCaR (an existing column such as
+    30, *Contract Mod*, or a re-measure of `SRC_HDR` and the Spend Plan Source together). The contract field joins the full
+    field plumbing (`REQ_FIELD`, `recFields`, `REQ_MAPS`, `PMO_FIELDS`, `NA_FROM_CARRY`, the import door, `codeTake`).
+  - **Primes:** the WBS and the CCaR number are per CLIN (`S.clinWbs`; the Spend Plan Source sends each CLIN's own CCaR
+    number), funded spread over CLIN x WBS by the CLIN grid (`aceAlignRows`). The build's fixture needs a prime with two
+    CLINs on different paragraphs; which contract number its line prints is to decide (one per requirement, Brad, 28 Oct).
+  - **The ACE column is a filtered subset of the ACE file** (first sheet, JPO-managed, the seven ACE PMOs, US services;
+    stored x1e6 without `D$`): print the estimate's name and its skip counts on each tab and round at the door. The names
+    tab Brad finds needs a read of its own; CCaR's column 23 descriptions are a second source of names.
+  - **WBS codes are normalised once, from all three sources** (case, spaces, a P prefix) before they become keys; the level
+    count comes from the data, not a constant. CCaR amounts keep cents and read *(1,234)* as positive today: round at the
+    door and read parentheses as negative. The *pull through* date comes from `repYmOf`, not `asOf` or today.
+  - **A requirement line's label repeats on real data** (108 of 155 O&M requirements share a record name; OPN shares one plan
+    event): print the plan event, the record name and the PID beside each other, as Decision Bands does.
 - **Questions for Brad (raised by the review):**
   1. A requirement on two paragraphs: is what the office types per paragraph the **requirement value** or the
      **allocation**? ORBIT's WBS lines split the allocation today (`wbsResolve`). The mock-up splits the requirement and
@@ -313,6 +343,15 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   2. **OPN**: in or out? (The mock-up carries O&M, Full Fund and Initial Spares, as FYDP Disconnects does.)
   3. **Procurement money from earlier years obligating this year** (Full Fund and Initial Spares obligate across about
      three years): on the active-year tab, or only money filed under the active year?
+  4. **What CCaR puts in its Alloc column** for a plan event ORBIT sent that is not yet obligated -- one look at a real pull
+     settles whether "obligated" can be read from it as it stands.
+  5. **Should ORBIT write the WBS paragraph into the Spend Plan Source** (CCaR's column 23, which already exists), one line
+     per paragraph, so CCaR inherits ORBIT's WBS instead of your team typing it into each plan event? Typed twice, the two
+     can disagree and put the same work under different paragraphs on the active and budget-year tabs.
+  6. **The out-years' basis:** ORBIT's lane draw for FY29 onward is against whatever budget authority that year's board holds
+     (seeded at 85%/15% of the data pack's budget until someone types it). Show that, or the PPBE position, as FYDP
+     Disconnects does?
+  7. **The marking:** confirm *CUI//REL TO US DoW* with security before it goes to a joint audience.
 - **Open:** which CCaR columns will carry the WBS paragraph and the contract number; the WBS names (item 132).
 
 ## Later

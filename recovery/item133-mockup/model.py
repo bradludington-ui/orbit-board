@@ -20,16 +20,20 @@ BOARD_LINES = {'O&M': ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'],
                'Full Fund': ['USAF', 'ANG', 'AFRC', 'USMC-B', 'USMC-C', 'USN'],
                'Initial Spares': ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN']}
 GROUPS = [('Air Force', ['USAF', 'ANG', 'AFRC']), ('Marine Corps', ['STOVL', 'USMC-C']), ('Navy', ['USN'])]
-LINE_NAME = {'USAF': 'USAF', 'ANG': 'ANG', 'AFRC': 'AFRC', 'STOVL': 'USMC STOVL', 'USMC-C': 'USMC CV', 'USN': 'USN CV'}
+LINE_NAME = {'USAF': 'USAF', 'ANG': 'ANG', 'AFRC': 'AFRC', 'STOVL': 'USMC STOVL', 'USMC-C': 'USMC CV', 'USN': 'USN CV',
+             'Other': 'Not identified'}
 def canon(s): return SVC_ALIAS.get(s, s)
-def group_of(s): return [g for g, names in GROUPS if canon(s) in names][0]
+def group_of(s): return ([g for g, names in GROUPS if canon(s) in names] or ['Service not identified'])[0]
 
-WBS = {   # paragraph -> name (placeholders); 1.4 is deliberately absent: a requirement sits on a paragraph the ACE lacks
+WBS = {   # paragraph -> name, from the names tab once linked (placeholders). 1.3.1 is in the ACE with no name linked yet;
+         # 1.4 is in neither. 1.10 sits beside 1.1 (a key Excel could read as the number 1.1 without a prefix)
   '1': 'Product Support', '1.1': 'Air Vehicle', '1.1.1': 'Depot Repair', '1.1.1.1': 'Airframe Depot Repair',
   '1.1.1.1E': 'Airframe Depot Repair (surge)', '1.1.1.2': 'Component Repair', '1.1.1.3': 'Depot Activation',
   '1.1.2': 'Air Vehicle Spares', '1.2': 'Propulsion', '1.2.1': 'Engine Depot', '1.2.2': 'Engine Spares',
-  '1.2.2.1': 'Module Spares', '1.2.2.3': 'Consumables', '1.3': 'Training Systems', '1.3.1': 'Simulator Sustainment',
+  '1.2.2.1': 'Module Spares', '1.2.2.3': 'Consumables', '1.3': 'Training Systems', '1.10': 'Sustaining Engineering',
 }
+NOT_IN_ACE = {'1.4'}                          # paragraphs a requirement carries that the estimate holds no line for
+ACE_SET = '2026ACE'                           # the estimate shown (invented)
 def parent(w): return w.rsplit('.', 1)[0] if '.' in w else None     # 1.1.1.1E -> 1.1.1: a suffix is a sibling, not a child
 def chain(w):                                                       # [1, 1.2, 1.2.2, 1.2.2.1]
   out = []
@@ -39,6 +43,7 @@ def level(w): return w.count('.') + 1
 def natkey(w):                                                       # 1.1.1.1 < 1.1.1.1E < 1.1.1.2; tolerates a P prefix
   return [(m.group(1), int(m.group(2)), m.group(3)) for m in (re.match(r'([A-Za-z]*)(\d+)([A-Za-z]*)$', s) for s in w.split('.'))]
 def name_of(w): return WBS.get(w)
+def month_date(i): return datetime.date(2026 + (i + 9) // 12, (i + 9) % 12 + 1, 1)    # 0 = Oct 26; may run past Sep 27
 
 # Requirements on the ORBIT plan (FY28 onward): (title, CCaR, contract, [(paragraph or None, fraction)], {board line: $M})
 # A requirement on two paragraphs carries the dollars the office typed for each; the fraction stands in for that typing.
@@ -50,6 +55,9 @@ REQS = {
     ('Avionics component repair',  'MOCK0103', 'MOCK-26-C-0103', [('1.1.1.2', 1)], {'USAF': 5.5, 'ANG': .6, 'AFRC': .4, 'STOVL': 1.9, 'USMC-C': .7, 'USN': 1.4}),
     ('Avionics software support',  'MOCK0103', 'MOCK-26-C-0108', [('1.1.1.2', 1)], {'USAF': 1.6, 'STOVL': .7, 'USN': .5}),
     ('Engine depot overhaul',      'MOCK0104', 'MOCK-26-C-0104', [('1.2.1', 1)],   {'USAF': 12, 'ANG': 1.5, 'AFRC': 1, 'STOVL': 6, 'USMC-C': 2, 'USN': 3.5}),
+    ('Engine depot MIPR, FRC East', 'MOCK0120', '',              [('1.2.1', 1)],   {'STOVL': 2.4, 'USMC-C': .8, 'USN': 1.2}),
+    ('Engine depot MIPR, OC-ALC',  'MOCK0120', '',               [('1.2.1', 1)],   {'USAF': 1.3, 'ANG': .3, 'AFRC': .2}),
+    ('Sustaining engineering',     'MOCK0113', 'MOCK-26-C-0113', [('1.10', 1)],    {'USAF': 2.0, 'STOVL': .9, 'USMC-C': .3, 'USN': .6}),
     ('Engine spares management',   'MOCK0110', 'MOCK-26-C-0110', [('1.2.2', 1)],   {'USAF': 1.4, 'STOVL': .6, 'USN': .4}),
     ('Engine module repair',       'MOCK0105', 'MOCK-26-C-0105', [('1.2.2.1', .6), ('1.2.2.3', .4)], {'USAF': 6, 'STOVL': 3, 'USMC-C': 1, 'USN': 2}),
     ('Engine consumables',         'MOCK0106', 'MOCK-26-C-0106', [('1.2.2.3', 1)], {'USAF': 2.4, 'ANG': .3, 'AFRC': .2, 'STOVL': 1.1, 'USMC-C': .4, 'USN': .8}),
@@ -81,20 +89,21 @@ for ap in APPNS:
   PLAN[ap], ACE[ap] = {}, {}
   for fy in YEARS:
     rows, grow = [], 1 + 0.03 * (fy - YEARS[0])
-    for (t, ccar, con, split, base) in REQS[ap]:
+    for n, (t, ccar, con, split, base) in enumerate(REQS[ap]):
+      rid = '%s-%02d' % (ap.split()[0].upper(), n + 1)
       ask = {s: whole(base.get(s, 0) * 1e6 * grow * rng.uniform(.97, 1.03)) for s in BOARD_LINES[ap]}
       fund = {s: whole(ask[s] * rng.choice([1, 1, 1, .9, .8, .75])) for s in BOARD_LINES[ap]}
       fr = [f for _, f in split]
       ap_, fp_ = {s: parts(ask[s], fr) for s in ask}, {s: parts(fund[s], fr) for s in fund}
       for i, (w, f) in enumerate(split):
-        rows.append({'title': t, 'ccar': ccar, 'contract': con, 'wbs': w or NONE,
+        rows.append({'id': rid, 'title': t, 'ccar': ccar, 'contract': con, 'wbs': w or NONE,
                      'split': [x or NONE for x, _ in split] if len(split) > 1 else None,
                      'ask': {s: ap_[s][i] for s in ask}, 'fund': {s: fp_[s][i] for s in fund}})
     PLAN[ap][fy] = rows
     # the estimate: per paragraph per service line; none for a paragraph the ACE lacks (1.4) or for no paragraph
     est = {}
     for r in rows:
-      if r['wbs'] in WBS:
+      if r['wbs'] != NONE and r['wbs'] not in NOT_IN_ACE:
         for s, v in r['ask'].items(): est.setdefault(r['wbs'], {})[canon(s)] = est.get(r['wbs'], {}).get(canon(s), 0) + v
     for (a, w), b in ACE_ONLY.items():
       if a == ap: est[w] = {s: v * 1e6 * grow for s, v in b.items()}
@@ -113,14 +122,16 @@ for ap in APPNS:
           mo = q * 3 + rng.randint(0, 2)
           ev.append({'title': t, 'ccar': ccar, 'contract': con, 'wbs': w or NONE,
                      'split': [x or NONE for x, _ in split] if len(split) > 1 else None, 'line': s, 'month': mo,
-                     'amount': whole(tot / 4 * rng.uniform(.85, 1.15)), 'ob': MONTHS[mo] <= THROUGH})
+                     'amount': whole(tot / 4 * rng.uniform(.85, 1.15)), 'ob': month_date(mo) <= THROUGH})
   EVENTS[ap] = ev
 EVENTS['O&M'][0]['month'], EVENTS['O&M'][0]['ob'] = 0, False      # slipped: dated October, not yet obligated
 late = [e for e in EVENTS['O&M'] if e['month'] == 8][0]; late['ob'] = True    # obligated early: dated June, obligated
+EVENTS['Full Fund'].append(dict(EVENTS['Full Fund'][0], month=16, ob=False, amount=1250000))   # procurement dated Feb 28
+EVENTS['O&M'].append(dict(EVENTS['O&M'][1], line='Other', amount=420000))     # a budget name that names no Service
 for ap in APPNS:
   est = {}
   for e in EVENTS[ap]:
-    if e['wbs'] in WBS: d = est.setdefault(e['wbs'], {}); d[canon(e['line'])] = d.get(canon(e['line']), 0) + e['amount']
+    if e['wbs'] != NONE and e['wbs'] not in NOT_IN_ACE: d = est.setdefault(e['wbs'], {}); d[canon(e['line'])] = d.get(canon(e['line']), 0) + e['amount']
   for (a, w), b in ACE_ONLY.items():
     if a == ap: est[w] = {s: v * 1e6 for s, v in b.items()}
   ACE_ACTIVE[ap] = {w: {s: whole(v * rng.uniform(.95, 1.1)) for s, v in d.items() if v} for w, d in est.items()}
