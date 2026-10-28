@@ -656,7 +656,14 @@
    "scenario": "v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)",
    "anchor": "const name = 'v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)'",
    "basis": "arithmetic",
-   "asserts": "Spend Plan Source column 23 (item 132): each line's WBS paragraph as CODE - name; a requirement split across paragraphs goes out a line per paragraph per service and lane, its dollars apportioned (largest remainder, worked in the suite) over the per-service WBS figures, the remainder on a blank-WBS line; the lines add to the line they replace, every other column unmoved; blank lines named by the export."
+   "asserts": "Spend Plan Source column 23 (item 132): each line's WBS paragraph as CODE - name; a requirement split across paragraphs goes out a line per paragraph per service and lane, its dollars apportioned (largest remainder, worked in the suite) over the per-service WBS figures, the remainder on a blank-WBS line; the lines add to the line they replace, every other column unmoved; blank lines named by the export, and listed under Needs attention with the dollars the file sends blank."
+  },
+  "ot.v212rv2src": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.12 RV2 — the Spend Plan Source sends each paragraph what the office typed for it, measured against the allocation (K06, K15)",
+   "anchor": "const name = 'v2.12 RV2 — the Spend Plan Source sends each paragraph what the office typed for it, measured against the allocation (K06, K15)'",
+   "basis": "arithmetic",
+   "asserts": "Spend Plan Source column 23 (v2.12 RV2, K06 and K15): a service's money split over its paragraphs once and each piece taken from what each paragraph still has to take, so twelve increments, and two lanes, add up per paragraph to what the office typed to the dollar, every line to its piece (worked in the suite by largest remainder); the split measured against the allocation (ask, allocation and draw made to disagree) and a CLIN's against its own CLIN allocation; Without a WBS read on the funded plan under the view toggle."
   },
   "ot.v212w2stovl": {
    "file": "tools/export-audit/audit-other.mjs",
@@ -1017,7 +1024,8 @@
      "checks": [
       "ot.bud",
       "ot.src",
-      "ot.v212w2src"
+      "ot.v212w2src",
+      "ot.v212rv2src"
      ],
      "see": [
       "tr.matrix"
@@ -1028,7 +1036,8 @@
      "checks": [
       "ot.src",
       "ot.bud",
-      "ot.v212w2src"
+      "ot.v212w2src",
+      "ot.v212rv2src"
      ]
     },
     "month": {
