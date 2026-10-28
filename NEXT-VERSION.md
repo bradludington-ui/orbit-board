@@ -205,6 +205,82 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   (WB-1's finding, in every dressed workbook). Proposed: `horizontal="left"` beside the indent; every dressed workbook's
   styles change, so its byte checks move with it.
 
+#### 132. A WBS paragraph on every requirement, picked from the ACE (Brad, 28 Oct 2026)
+- **Asked:** Brad's boss, after the sustainment summit, where the USMC raised it again: the Services need better
+  transparency into where their money goes -- *"a clear product that shows the requirement, the cost share, the contract,
+  the execution, etc.... tied to the product/outcome vs a budget line"* -- to be tried at the joint PRR with the Services.
+  That product is item 133; this item is what it stands on. Brad: *"We don't have a WBS allocated to each requirement but we
+  need it. It is a high priority for me."*
+- **What is there today** (a mapped and verified read of the board, 28 Oct):
+  - A requirement holds WBS lines, `S.wbs[id] = [{w, v:[$ per service]}]`, and a prime holds them per CLIN in `S.clinWbs`;
+    one line takes the parent whole (`wbsResolve`). Typed freehand in the WBS box (placeholder "1.2.3", at most 40
+    characters); nothing checks a paragraph against the ACE, so a typo silently leaves a requirement out of any rollup.
+  - The Add box requires a WBS (`reqNeeds`; waived for a prime, which logs it per CLIN). A PMO copy sends `wbs`, not
+    `clinWbs`. The ACE tie-out suggests and confirms requirement-to-ACE ties (`aceSuggestFull`, `S.aceMap`). *WBS from
+    execution data* proposes paragraphs from the CCaR pull's Spares WBS column, keeping the number only (`srcWbsPara`).
+  - Nothing lists a requirement with no WBS; Classify has no WBS column or bulk set; no WBS name is read anywhere (the
+    ACE's title column `ACE_COL.ctitle` is mapped and never read).
+- **Brad's decisions (28 Oct 2026):**
+  1. **The product or outcome is the ACE's WBS tree.** A requirement on 1.2.2.1 and 1.2.2.3 rolls up to 1.2.2, then 1.2,
+     then 1.
+  2. **A requirement on two paragraphs:** the office types the dollars for each; on one paragraph it takes it all.
+  3. **WBS names** are in the ACE workbook, perhaps on another tab; Brad will find the tab and column. *"Build it into our
+     format and then we'll figure out how to link it later so that it pulls the right roll ups."*
+- **Proposed:**
+  - **A WBS list built from the ACE:** every paragraph an imported ACE line carries, with every parent (1.2.2.1 gives 1.2.2,
+    1.2 and 1), and a name for each, blank until the names are linked. Where the names are read from is a setting, set once
+    Brad has found the tab and column.
+  - **Picked, not typed:** the WBS box, the Add box and the edit box pick a paragraph from that list, its name beside it. A
+    paragraph already on a requirement that the list does not hold is kept and flagged, never dropped.
+  - **Needs attention: "Without a WBS"**, with the dollars on each, and a coverage count (requirements and dollars).
+  - **Classify:** a WBS column with a bulk set, offered where the field is (`applies(it)`: not a prime, whose WBS is per CLIN).
+  - **The offices fill their own** through the PMO copy, which already sends `wbs`; whether a prime's CLIN WBS travels too
+    is to decide.
+  - **Fixed with it:** the FYDP Spend Plan workbook's STOVL tab leaves out Full Fund's F-35B money, which lands on a
+    separate USMC-B tab (`fydpBookModel` joins services by exact name; FYDP Disconnects uses `SVC_ALIAS`). A USMC reader
+    of that workbook today sees STOVL understated.
+- **Open:** the tab and column that hold the WBS names (Brad).
+
+#### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
+- **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
+  One product for everyone -- *"It's no secret"* -- in Excel, so it can be manipulated; it ends up on slides.
+- **What is there today** (the same mapped read): no report puts the five on one line. The Excel workbook's Decision Bands
+  detail has the requirement, each Service's funded dollars, CCaR and PID; the Funds Flow follows CCaR rows by title; the
+  ACE Tie-Out ties requirements to the ACE by WBS, for the open appropriation only. There is no contract number anywhere.
+  The CCaR pull's rows carry no requirement id: they match by record title (97.3% of O&M dollars by the code's own
+  measurement), and 108 of 155 O&M requirements share a title. ORBIT's "obligated" is a CCaR row whose Alloc column does
+  not say *Not Allocated*; there is no expenditure figure. No cost-share rule exists: each Service's dollars are typed per
+  requirement. The ACE import keeps US services only.
+- **Brad's decisions (28 Oct 2026):**
+  1. **By the ACE's WBS tree** (item 132).
+  2. **Execution:** obligations now; expenditures later, as they become more prioritized.
+  3. **Contract** means the contract number, one per requirement. It is a new addition in both CCaR and ORBIT. A MIPR
+     number does not go in it.
+  4. **Cost share** is each Service's percentage of what is funded. *"In the Excel format it should include a box that we
+     can type in a partner total which would adjust percentages for that line"* -- a box on every line, and a header adds
+     the boxes beneath it. ORBIT does not keep the partner figures; they live in the workbook.
+  5. **Years:** the budget year onward is planned, from ORBIT's funded figures. The active year is actuals and planned,
+     and its data lives only in CCaR; Brad's team is adding the WBS paragraph number to every CCaR plan event.
+  6. **Services:** three -- Air Force (USAF, ANG, AFRC), Marine Corps (USMC STOVL, USMC CV) and Navy (USN CV) -- with the
+     six lines kept on the data tab (proposed 28 Oct; Brad did not object).
+- **The mock-up** (invented figures, contract and CCaR numbers; placeholder WBS names): `recovery/item133-mockup/` --
+  `model.py`, `xlsx.py` (the workbook, with live formulas), `check.py` (LibreOffice recalculates it; every header,
+  appropriation and total is held to figures worked out from `model.py`, every line's shares to 100%, and partner figures
+  typed on a requirement line, a WBS header and an appropriation row must land on their own line and every header above it;
+  two planted mistakes fail it, 196 and 4 checks), and the renders `xlsx-*.png`. Tabs: *How to read*, *FY27 (active)*,
+  *FY27 by month*, *FY28* (budget year), *FY29*, and *Data* (one flat table for pivots).
+- **Proposed build (after item 132):**
+  - A read-only export under Reports & exports. Plan years from `tiers()` (funded = d + m per service), each appropriation
+    read as its own board opens it; the active year from the CCaR pull, each row placed by its plan event's WBS paragraph,
+    its Service read from its budget name. Nothing recomputed, nothing written to the board.
+  - **The contract number** as a new requirement field (the record, the Add and edit boxes, PMO copies, year copies, the
+    import door), printed in this workbook, and written to the Spend Plan Source once CCaR has a column for it.
+  - **Formulas in ORBIT's Excel writer**, opt in: `buildXlsx` writes values only today. Every workbook that does not ask
+    stays byte-for-byte as it is.
+  - **Ask CCaR to carry ORBIT's requirement id** beside the contract number, so CCaR rows match requirements exactly (Brad's
+    "yes", 28 Oct, read as covering this).
+- **Open:** which CCaR columns will carry the WBS paragraph and the contract number; the WBS names (item 132).
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
