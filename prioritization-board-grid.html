@@ -24970,7 +24970,9 @@ function ppBody(){
     +'<b>Split</b> \u2014 log Discretionary and Mandatory separately</label>'
     +'<div style="color:var(--dim);margin-top:5px">Set per cycle, because not every year carries both. With the split on, a line that is '
     +'discretionary-only simply has nothing in its Mandatory row \u2014 and the other way round. Turning it off does not erase anything: '
-    +'the two are added together and shown as one figure.</div></div>';
+    +'the two are added together and shown as one figure. Read as a working plan\u2019s budget, one figure per line is the service\u2019s '
+    // v2.12 (item 134, Brad's R37 decision of 28 Oct): what a one-figure cycle means to the live budget (baOf), said where it is chosen
+    +'total for the year: the board\u2019s own base for that service and year divides it between Discretionary and Mandatory.</div></div>';
 
   if(!SVC.length){
     el.innerHTML=h+'<div class="hint">No services on this board yet \u2014 set them in \ud83c\udff7 Services first.</div>';
@@ -27308,11 +27310,19 @@ function baOf(st, fy, pos){
       const why=(i<d.length)? ppSvcBad(Q, sv, fy) : ''; if(why){ bad[i]=why; return; }
       if(named.indexOf(sv)<0 || i>=d.length) return;    // says nothing about this service -- NOT the same as zero
       const c=ppSvcFy(Q, sv, fy);
-      d[i]=D$(c.d); m[i]=D$(c.m); from[i]='pos';
-      // v2.12 RV3 (R37, a question for Brad): A POSITION GIVEN AS ONE FIGURE PER LINE (not split) is read as discretionary, its
-      // mandatory $0 -- its one field is the discretionary slot, as Take from a PPBE position always read it -- and that is said
-      // wherever the base is shown (fitSrcSay; Budget Management reads it). Read another way, the line above is the one to change.
-      if(!Q.split && d[i] && !m[i]) one.push(sv);
+      // A POSITION GIVEN AS ONE FIGURE PER LINE (not split) SETS THE SERVICE'S TOTAL for the year, and the board's own base for
+      // that service and year decides how it divides between the lanes (Brad, 28 Oct 2026, asked in the v2.12 review, R37:
+      // "Keep my lane split"): apportion, so the two are whole dollars that add to the figure, and mandatory money stays
+      // mandatory. With no own base to divide by ($0 in both lanes) the figure is discretionary. Either way it is said wherever
+      // the base is shown (fitSrcSay, which Budget Management reads). It was read as discretionary with mandatory $0, as Take
+      // from a PPBE position read it: a requirement the mandatory lane paid then moved lanes or showed as over.
+      if(Q.split){ d[i]=D$(c.d); m[i]=D$(c.m); }
+      else {
+        const t=D$(c.d+c.m), od=Math.max(0, D$(d[i])), om=Math.max(0, D$(m[i]));
+        if(t>0 && od+om>0){ const a=apportion(t, [od, om]); d[i]=a[0]; m[i]=a[1]; one.push({sv:sv, how:'own'}); }
+        else { d[i]=t; m[i]=0; if(t>0) one.push({sv:sv, how:'disc'}); }
+      }
+      from[i]='pos';
     });
   }
   const baseD=d.slice(), baseM=m.slice(), addD=d.map(function(){ return 0; }), addM=m.map(function(){ return 0; });
@@ -27466,8 +27476,16 @@ function fitSrcSay(r){
   return 'Base from '+key+' for '+(pos.length? pos.join(', ') : 'no service')
     +(own.length? ' · the board’s own for '+own.join(', ')+' ('+key+' says nothing about '+(own.length===1? 'it' : 'them')+')' : '')
     +(bad.length? ' · the board’s own for '+bad.join(', ')+', where '+key+' cannot be read' : '')+'.'
-    // v2.12 RV3 (R37, a question for Brad): said wherever a one-figure position is the base (baOf)
-    +((r.one && r.one.length)? ' '+key+' gives one figure per line: '+r.one.join(', ')+' read as discretionary, mandatory $0.' : '');
+    // said wherever a one-figure position is the base (baOf): divided as the board's own base divides, or discretionary
+    +fitOneSay(key, r.one);
+}
+function fitOneSay(key, one){
+  one=Array.isArray(one)? one : [];
+  const own=one.filter(function(o){ return o.how==='own'; }).map(function(o){ return o.sv; }),
+        disc=one.filter(function(o){ return o.how==='disc'; }).map(function(o){ return o.sv; }), parts=[];
+  if(own.length) parts.push(own.join(', ')+' divided between the lanes as the board’s own base divides '+(own.length===1? 'it' : 'them'));
+  if(disc.length) parts.push(disc.join(', ')+' read as discretionary (the board’s own base is $0 in both lanes)');
+  return parts.length? ' '+key+' gives one figure per line: '+parts.join('; ')+'.' : '';
 }
 // v2.12 RV3 (R15, R20, K10): WHAT AN OVER IS AGAINST, in words -- the position where that service's base is read from it, the
 // board's own budget where it is not -- and the lane's added funding with it, which the budget authority includes. "$50 more

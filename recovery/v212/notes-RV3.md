@@ -248,3 +248,14 @@ service, lane) and `fitModel` (fiscal year, service, requirement, lane); `tools/
   one line in `baOf` named above.
 - **R15**: the over sentence now names the budget authority's parts when the lane carries added funding ("$50 more than BES28 plus
   added funding ($900 + $150)"); Brad's own example sentence ("$X more than BES28") reads exactly so wherever the lane has none.
+
+## R37 after the fix round (the lead, 28 Oct 2026)
+
+Brad answered the question on 28 Oct: **"Keep my lane split."** Applied in `baOf` at integration (after RV3's commit): a
+position in one-figure mode sets each service's TOTAL for the year, and the board's own base for that service and year
+divides it between the lanes (`apportion`); with no own base ($0 in both lanes) it is discretionary. `fitOneSay` says which,
+in the fit box and Budget Management; the PPBE box's one-figure hint says it where the mode is chosen. The R37 check in the
+RV3 block moved with it (USAF 1,800 over an own 1,000 / 200 reads 1,500 / 300; AFRC with no own base reads 50 / 0); the W3
+fixture's position, which gives Disc and Mand figures, is now entered split, as those figures say it is. Mutations: the two
+R37 ids retargeted, `v212-r37-one-figure-all-disc` and `v212-r37-one-figure-no-own-split` new, `v212-w3-ba-k-divided`
+retargeted to the split line; all five CAUGHT (`proved-R37.jsonl`).

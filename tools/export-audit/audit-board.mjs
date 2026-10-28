@@ -6513,6 +6513,9 @@ const w3Board = () => {
     switchYear(2029); S.bm={disc:[1200,420,320], mand:[220,120,70], adds:[]}; S.fsrc={}; applyState(S); MS.years[2029]=S; save();
     switchYear(2027);
     ppCyc='BES'; ppYr=2028;
+    // v2.12 (item 134, Brad's R37 decision): the position is entered split, as its Disc and Mand figures say it is -- a position
+    // left in one-figure mode now gives each service's TOTAL, which the board's own base divides between the lanes
+    ppSplitSet(true);
     ppSetV('USAF','_all',2027,'d','900'); ppSetV('USAF','_all',2027,'m','300'); ppSetV('USAF','_all',2028,'d','5000'); ppSetV('USAF','_all',2028,'m','700');
     ppUnitSet('ANG','k'); ppSetV('ANG','_all',2027,'d','452'); ppSetV('ANG','_all',2027,'m','90');
     render(); 'ok'`);
@@ -6595,7 +6598,8 @@ const w3Book = async (B, call) => JSON.parse(await B.w.eval(`(async function(){
     ev(`ppDel(); 'ok'`);
     chk(name, 'writers', 'BES28 deleted: the plan is still tagged BES28, and every year is the board’s own', J([ev('MS.cycle'), w3Cache(B, 2027), w3Cache(B, 2028)]),
       J(['BES|2028', J([[1150, 400, 330], [200, 140, 50]]), J([[1175, 410, 310], [210, 110, 60]])]));
-    ev(`ppSetV('USAF','_all',2027,'d','800'); ppSetV('USAF','_all',2027,'m','300'); ppSetV('USAF','_all',2028,'d','6000'); ppSetV('USAF','_all',2028,'m','700'); 'ok'`);
+    // v2.12 (R37): BES28 entered again, split as before (a new position starts in one-figure mode)
+    ev(`ppSplitSet(true); ppSetV('USAF','_all',2027,'d','800'); ppSetV('USAF','_all',2027,'m','300'); ppSetV('USAF','_all',2028,'d','6000'); ppSetV('USAF','_all',2028,'m','700'); 'ok'`);
     // ---- Budget Management: a tagged plan's base is the position's, read-only, named
     ev(`bmOpen=true; render(); 'ok'`);
     chk(name, 'Budget Management', 'tagged: USAF’s two base cells are the position’s, read-only and named; ANG and AFRC keep their boxes; the row names BES28',
@@ -7063,7 +7067,7 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
   }
 }
 {
-  const name = 'v2.12 RV3 — Budget Management says what the year reads; a one-figure position is read as discretionary, and said (R36, R37)';
+  const name = 'v2.12 RV3 — Budget Management says what the year reads; a one-figure position sets the total and keeps the board’s lane split, and is said (R36, R37)';
   try {
     const J = JSON.stringify;
     const B = w3Board(), { ev } = B;
@@ -7078,26 +7082,32 @@ const rv3Zero = h => { const o = JSON.parse(JSON.stringify(rv3Pub(h)), (k, v) =>
     ev(`ppCyc='BES'; ppYr=2028; ppDel(); 'ok'`);
     chk(name, 'R36', 'BES28 deleted, the plan still tagged: the heading says O&M logs no BES28 position',
       bm(), J(['The plan is tagged BES28 — O&M logs no BES28 position: the base is the board’s own', 0, 6, false, false]));
-    // ---- R37: a position typed as one figure per line, through the box's one field, over a board whose own mandatory is not $0
+    // ---- R37 (Brad, 28 Oct 2026: "Keep my lane split"): a position typed as one figure per line, through the box's one field,
+    // sets the service's total and the board's own base divides it between the lanes; a service with no own base takes it as
+    // discretionary. USAF's own base 1,000 / 200 divides 1,800 as 1,500 / 300 -- unlike the old reading (1,800 / 0) and unlike
+    // ignoring the position (1,000 / 200); AFRC has no own base, so its 50 is discretionary; ANG is not in the position.
+    // v2.12: the check moved with Brad's decision (it pinned the all-discretionary reading the review asked him about).
     const C = boot(), cv = C.ev;
-    seed(cv, { services: ['USAF', 'ANG'], items: [it('M', 'AV', [200, 0])], disc: [1000, 100], mand: [200, 20], order: ['M'] });
+    seed(cv, { services: ['USAF', 'ANG', 'AFRC'], items: [it('M', 'AV', [200, 0, 0])], disc: [1000, 100, 0], mand: [200, 20, 0], order: ['M'] });
     cv(`window.confirm=function(){ return true; }; window.alert=function(){}; MS.svc=SVC.slice();
       BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
-      S.bm={disc:[1000,100], mand:[200,20], adds:[]}; applyState(S); MS.years[MS.cur]=S; save();
-      ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); ppLineAdd('USAF'); render(); 'ok'`);
+      S.bm={disc:[1000,100,0], mand:[200,20,0], adds:[]}; applyState(S); MS.years[MS.cur]=S; save();
+      ppCyc='BES'; ppYr=2028; ppSvcIdx=0; toggleP2(); ppLineAdd('USAF'); ppLineAdd('AFRC'); render(); 'ok'`);
     // the box's one field for FY27, as a person types into it (its own onchange: the discretionary slot)
     cv(`(function(){ var i=[].filter.call(document.querySelectorAll('#ppBody input'), function(x){ return /ppSetV\\("USAF",.*,2027,"d"/.test(x.getAttribute('onchange')||''); })[0];
-      i.value='1200'; i.dispatchEvent(new Event('change')); return 'ok'; })()`);
-    chk(name, 'R37', 'the box is in one-figure mode and stored USAF FY27 as discretionary 1,200, mandatory nothing',
-      cv(`JSON.stringify([!!MS.ppbe['BES|2028'].split, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).d, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).m])`), J([false, 1200, 0]));
+      i.value='1800'; i.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    cv(`(function(){ var k=MS.ppbe['BES|2028'].lines.AFRC[0].k; ppSetV('AFRC', k, 2027, 'd', '50'); return 'ok'; })()`);
+    chk(name, 'R37', 'the box is in one-figure mode and stored USAF FY27 as 1,800 and AFRC as 50, in the discretionary slot',
+      cv(`JSON.stringify([!!MS.ppbe['BES|2028'].split, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).d, ppSvcFy(MS.ppbe['BES|2028'],'USAF',2027).m, ppSvcFy(MS.ppbe['BES|2028'],'AFRC',2027).d])`), J([false, 1800, 0, 50]));
     cv(`toggleP2(); cycSetWorking('BES', 2028); 'ok'`);
-    chk(name, 'R37', 'tagged: USAF reads 1,200 discretionary and $0 mandatory (its own 200 gives way); ANG keeps its own', w3Cache(C, 2027), J([[1200, 100], [0, 20]]));
+    chk(name, 'R37', 'tagged: USAF reads 1,500 / 300 (1,800 divided as its own 1,000 / 200), AFRC 50 / 0 (no own base), ANG keeps its own',
+      w3Cache(C, 2027), J([[1500, 100, 50], [300, 20, 0]]));
     cv(`fitShow(); 'ok'`);
-    chk(name, 'R37', 'the fit box says the one figure is read as discretionary, mandatory $0',
+    chk(name, 'R37', 'the fit box says how each one-figure service was read',
       cv(`(document.querySelector('#fitBody .fityr span')||{}).textContent||''`),
-      'Base from BES28 for USAF · the board’s own for ANG (BES28 says nothing about it). BES28 gives one figure per line: USAF read as discretionary, mandatory $0.');
+      'Base from BES28 for USAF, AFRC · the board’s own for ANG (BES28 says nothing about it). BES28 gives one figure per line: USAF divided between the lanes as the board’s own base divides it; AFRC read as discretionary (the board’s own base is $0 in both lanes).');
     cv(`fitOpen=false; bmOpen=true; render(); 'ok'`);
-    chk(name, 'R37', 'and Budget Management says it too', /BES28 gives one figure per line: USAF read as discretionary, mandatory \$0\./.test(cv(`document.getElementById('bmBody').textContent`)), true);
+    chk(name, 'R37', 'and Budget Management says it too', /BES28 gives one figure per line: USAF divided between the lanes as the board’s own base divides it; AFRC read as discretionary/.test(cv(`document.getElementById('bmBody').textContent`)), true);
     if (B.errors.length || C.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.concat(C.errors).slice(0, 2).join(' | '), '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
