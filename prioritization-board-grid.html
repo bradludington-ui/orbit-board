@@ -2297,6 +2297,11 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
+<section data-part="team" data-id="t-ace" data-t="Importing the cost estimate">
+<p class="v212-ace-h1"><span class="mp" data-m="data">Data › Import Annual Cost Estimate…</span> reads the estimate saved as an Excel Workbook (.xlsx); an .xlsb is refused with a note to save it as .xlsx first. It reads <b>by column title</b>, not by position: every sheet is searched for the row carrying the titles (<i>Work Breakdown Structure</i>, <i>Level</i>, CES1–CES8, <i>Service</i>, <i>T/M/S</i>, <i>JPO Managed</i>, <i>$ Type</i>, <i>Rollup Value?</i>, <i>Support Line Category</i>, <i>PALS/O&amp;S</i>, <i>Appropriation (US Only)</i>, <i>PMO</i>, and a column per fiscal year), and a new column anywhere moves nothing. If a title has changed, a box lists the file’s own headers and asks which holds that field — once: the answer is remembered for files laid out the same way, and travels with the board. A field still unanswered refuses the file and names it.</p>
+<p class="v212-ace-h2">Each row is read or left out for one reason, counted in rows and in dollars by year, so every dollar of the sheet is either kept or in a reason: another dollar type (only then-year is read), a subtotal (<i>Rollup Value?</i> Yes), a summary row (a blank <i>Support Line Category</i>, each one named), MILPERS, partner or FMS lines, not JPO managed, <b>Service Mgd</b> (in the estimate, not executed by the JPO), and — named row by row — a PMO, category or service ORBIT does not know, or <i>PALS/O&amp;S</i> disagreeing with the category. The category gives the appropriation and, on Full Fund, the cost element (Depot Activation by CES2, then the PMO). Kept, but named: a WBS whose P disagrees with <i>PALS/O&amp;S</i>, a <i>Level</i> that is not the paragraph’s depth, and a paragraph two rows name differently (the first name is kept). Figures in parentheses are negative, and every figure is a whole dollar.</p>
+<p class="v212-ace-h3">The import builds the estimate’s <b>WBS tree</b>: each paragraph with every heading above it, named from the CES columns. A line ending in a letter (P6.2.2.1E) is a breakout of a similar effort: it starts its own heading only where its CES name for that level differs (P6.2.2E <i>ECU Propulsion</i>). The report opens after the import and stays under <span class="mp" data-m="data">Data › Import report…</span>: the sheet and row read, the columns, every reason with its dollars, every named row, the tree’s size and any conflicting names. <b>PSM is inside Air Vehicle</b> in every estimate: the ACE tie-out shows AV + PSM as one estimate and, beneath it, each office’s part — the lines only its requirements claim by their WBS — with the lines both or neither claim on a shared line.</p>
+</section>
 <section data-part="team" data-id="t-flow" data-t="The funds flow and the ACE tie-out">
 <p class="v199-h92"><span class="mp" data-m="fydp">FYDP › Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
 <p class="v199-h93">Whether a year’s money is executed or planned is decided for each appropriation. A year can be executed for Full Fund (its imported execution) and planned for O&amp;M (this board’s allocation): the total then holds both, and the scope line says which is which — for example <i>FY27: O&amp;M planned, Full Fund executed</i>.</p>
@@ -2312,6 +2317,19 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modal" style="width:1120px;max-width:97vw">
     <h3>📈 ACE TIE-OUT <button class="x" onclick="toggleAce()">✕ Close</button></h3>
     <div id="aceBody"></div>
+  </div>
+</div>
+<!-- v2.12 (item 132): what the cost estimate import read, left out and named; and the box that asks for a column a file does not title -->
+<div class="modal-bg" id="aceRepPanel" onclick="if(event.target===this)aceRepClose()">
+  <div class="modal" style="width:960px;max-width:96vw;max-height:88vh">
+    <h3>📈 COST ESTIMATE IMPORT REPORT <button class="x" onclick="aceRepClose()">✕ Close</button></h3>
+    <div id="aceRepBody"></div>
+  </div>
+</div>
+<div class="modal-bg" id="aceColPanel" onclick="if(event.target===this)aceColCancel()">
+  <div class="modal" style="width:720px;max-width:96vw;max-height:88vh">
+    <h3>📈 WHICH COLUMN IS IT? — THE COST ESTIMATE <button class="x" onclick="aceColCancel()">✕ Cancel</button></h3>
+    <div id="aceColBody"></div>
   </div>
 </div>
 
@@ -4073,6 +4091,10 @@ function toggleSvcPanel(){ svcPanelOpen=!svcPanelOpen; render(); }
 //      cost estimate tie-out panel, WBS paragraphs from execution rows, themes and densities
 // ==============================================================================================================
 let aceOpen=false, aceYr=null, aceOnly='';
+// v2.12 (item 132): the cost estimate import's two boxes -- its report (which estimate, which year's dollars) and the mapping box,
+// asked when a file does not title a column ORBIT reads (ACECOL holds the file read so far until Import or Cancel). Declared here,
+// above the first draw at boot, because render() reads them.
+let aceRepOpen=false, aceRepK='', aceRepYr=null, aceColOpen=false, ACECOL=null;
 function toggleAce(){ aceOpen=!aceOpen; render(); }
 function aceSetYr(v){ aceYr=(v==='all')? 'all' : (parseInt(v)||null); render(); }
 // A row in the all-years view belongs to ITS year, not to whichever year the board is displaying.
@@ -4223,6 +4245,19 @@ function aceBody(){
       +'<td style="color:'+(Math.abs(d)<0.5?'var(--dim)':(d>0?'var(--amber)':'var(--green)'))+'">'
       +(Math.abs(d)<0.5?'\u2014':(d>0?'+':'\u2212')+fM0(Math.abs(d)))+'</td>'
       +'<td>'+nOk+' of '+mine.length+'</td></tr>';
+    // v2.12 (item 132): the estimate several offices share, split by the lines each office's requirements claim (aceGroupSplit)
+    if(bs.length>1){
+      const sp=aceGroupSplit(k, ap, bs, scans);
+      const dc=function(x){ return '<td style="color:'+(Math.abs(x)<0.5?'var(--dim)':(x>0?'var(--amber)':'var(--green)'))+'">'
+        +(Math.abs(x)<0.5?'\u2014':(x>0?'+':'\u2212')+fM0(Math.abs(x)))+'</td>'; };
+      present.forEach(function(g){
+        const e=sp.by[g]||0, b=mine.filter(function(r){ return r.pmo===g; }).reduce(function(a,r){ return a+r.f; },0);
+        h+='<tr class="acesplit" data-g="'+esc(g)+'"><td style="text-align:left;padding-left:18px;color:var(--dim)">\u21b3 '+esc(g)
+          +' \u2014 the lines only its requirements claim</td><td>'+fM0(e)+'</td><td>'+fM0(b)+'</td>'+dc(b-e)+'<td></td></tr>';
+      });
+      h+='<tr class="acesplit acesplit-shared"><td style="text-align:left;padding-left:18px;color:var(--dim)">\u21b3 shared \u2014 the lines '
+        +'more than one office claims, or none</td><td>'+fM0(sp.shared)+'</td><td>\u2014</td><td>\u2014</td><td></td></tr>';
+    }
   });
   h+='<tr class="tot"><td style="text-align:left">TOTAL</td><td>'+fM0(eTot)+'</td><td>'+fM0(bTot)+'</td>'
     +'<td>'+((bTot-eTot)>0?'+':'\u2212')+fM0(Math.abs(bTot-eTot))+'</td><td></td></tr></table></div>';
@@ -4329,8 +4364,9 @@ function aceBody(){
     +'A number that is not itself a line but sits <b>above</b> some is offered as a rollup and named '
     +'as such \u2014 the estimate states five or six levels for most of its money, so a requirement '
     +'logged one level up would otherwise match nothing with no reason given. '
-    +'Where one PMO row names two offices, the estimate carries a single line covering both and it is '
-    +'shown combined rather than split \u2014 a split would be a figure nobody produced.</div>';
+    +'Where one PMO row names two offices, the estimate carries a single line covering both (PSM is inside Air Vehicle in every '
+    +'estimate): it is shown combined, and beneath it each office\u2019s part is the estimate of the lines only its requirements '
+    +'claim by their WBS, with what more than one office claims, or none, on the shared line \u2014 no other split rule is invented.</div>';
   el.innerHTML=h;
 }
 let exwOpen=false;
@@ -6711,6 +6747,8 @@ function applyStore(raw){
   if(typeof MS.cycle!=='string') MS.cycle='';        // the PPBE cycle the working plan is tagged as ('BES|2028')
   if(typeof MS.cycleRef!=='string') MS.cycleRef='';  // the locked cycle its deltas are read against
   cycMigrateLegacy();      // one-year baselines from before cycles held the window
+  aceAlignHeal();          // v2.12 (item 132): PSM inside Air Vehicle, where a 2026 estimate's alignment still holds the old {}
+  if(ACE_BOOTED){ try{ aceHealSay(); }catch(e){} }
   FYMON = fyMonths(MS.cur);
   applyState(MS.years[MS.cur]);
   MS.years[MS.cur]=S;
@@ -11313,6 +11351,18 @@ function importStores(inc){
       +(clash.length===1?'':'s')+' here and '+(clash.length===1?'was':'were')+' left alone ('
       +esc(clash.join(', '))+'). Replacing an approved estimate has to be a deliberate act.');
   }
+  // v2.12 (item 132): the answers a colleague gave in the mapping box for a layout this board has not seen come across with
+  // the estimates, so the same file is read the same way here. A layout this board already answers for keeps its own answer.
+  if(ac && ac.cols && typeof ac.cols==='object' && !Array.isArray(ac.cols)){
+    if(typeof ACEDB==='undefined' || !ACEDB) ACEDB={ts:0, sets:{}};
+    if(!ACEDB.cols || typeof ACEDB.cols!=='object') ACEDB.cols={};
+    let n=0;
+    Object.keys(ac.cols).forEach(function(sig){
+      if(Object.prototype.hasOwnProperty.call(ACEDB.cols, sig) || !ac.cols[sig] || typeof ac.cols[sig]!=='object') return;
+      ACEDB.cols[sig]=ac.cols[sig]; n++; });
+    if(n){ ACEDB.ts=Date.now(); persistAce();
+      said.push(n+' cost estimate layout'+(n===1?'':'s')+' answered in the mapping box came across with it.'); }
+  }
 
   // ---- the reprogramming ledger
   const rp=inc.rpDb;
@@ -14322,6 +14372,9 @@ async function xlsxRead(buf){
   const rels=await get('xl/_rels/workbook.xml.rels');
   // A zip without these is a zip, not a workbook. Reading on would throw on null.matchAll and
   // report a TypeError, which says nothing about the file the user picked.
+  // v2.12 (item 132): an Excel Binary Workbook is a zip too, with its workbook in xl/workbook.bin: say what it is and what to do
+  if(!wbx && Object.prototype.hasOwnProperty.call(entries, 'xl/workbook.bin'))
+    throw new Error('That file is an Excel Binary Workbook (.xlsb), which ORBIT does not read \u2014 open it in Excel and save it as an Excel Workbook (.xlsx), then import that.');
   if(!wbx)  throw BAD('it contains no workbook part (xl/workbook.xml)');
   if(!rels) throw BAD('its workbook has no relationships part (xl/_rels/workbook.xml.rels)');
   // Attribute order is not guaranteed by the format, and a Target may be relative to xl/ with
@@ -14340,8 +14393,11 @@ async function xlsxRead(buf){
     const tg=(at.match(/\bTarget="([^"]*)"/)||[])[1];
     if(id&&tg) rmap[id]=relPath(tg);
   }
-  const sheets={};
-  XLSX_LAST={names:[], missing:[], unreadable:[], esc:esc};
+  // v2.12 (item 132): keyed by the sheet's own name, out of the file -- an object with no prototype, so a sheet named __proto__
+  // is a sheet. rowNo[sheet][i] is the sheet's own row number for rows[i] (Excel leaves empty rows out of the file, so the i-th row
+  // read is not row i+1): the cost estimate import says which row it read its titles from, and names rows by the number a person sees.
+  const sheets=Object.create(null);
+  XLSX_LAST={names:[], missing:[], unreadable:[], esc:esc, rowNo:Object.create(null)};
   // <sheet\b keeps this off <sheets> and <sheetPr>. Attributes are read individually so their
   // order does not matter, a closing tag is tolerated, and the relationship id is accepted under
   // any namespace prefix — none of which the old single regex allowed.
@@ -14357,13 +14413,14 @@ async function xlsxRead(buf){
     const xml=await get(part);
     // a part named in the rels but absent from the zip is a broken workbook, not a quiet skip
     if(!xml){ XLSX_LAST.unreadable.push(nm+' ('+part+')'); continue; }
-    const rows=[];
+    const rows=[], rowNo=[];
     for(const rm of xml.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)){
       const cells={};
-      let maxc=0;
+      let maxc=0, rno=0;
       for(const cm of rm[1].matchAll(/<c ([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){
         const attrs=cm[1], body=cm[2]||'';
         const ref=(attrs.match(/r="([A-Z]+)\d+"/)||[])[1]; if(!ref) continue;
+        if(!rno){ const rd=attrs.match(/r="[A-Z]+(\d+)"/); if(rd) rno=+rd[1]; }
         let ci=0; for(const ch of ref) ci=ci*26+(ch.charCodeAt(0)-64); ci--;
         const t=(attrs.match(/t="(\w+)"/)||[])[1];
         let v=null;
@@ -14383,8 +14440,10 @@ async function xlsxRead(buf){
       }
       const arr=[]; for(let i=0;i<maxc;i++) arr.push(cells[i]!==undefined? cells[i]:'');
       rows.push(arr);
+      rowNo.push(rno || (rowNo.length? rowNo[rowNo.length-1]+1 : 1));
     }
     sheets[nm]=rows;
+    XLSX_LAST.rowNo[nm]=rowNo;
   }
   return sheets;
 }
@@ -14611,10 +14670,22 @@ async function importSrc(inp){
   inp.value='';
 }
 // ---------- Annual Cost Estimate import ----------
-const ACE_APPN={'O&M':'om','SPARES':'sp','OPN':'opn','SUPPORT':'ff'};
+// v2.12 (item 132; Brad, 28 Oct 2026): THE ESTIMATE IS READ BY ITS HEADER TITLES, ON WHATEVER SHEET CARRIES THEM. It read
+// fixed column positions off the first sheet's fifth row (ACE_COL), and the 2026 file is laid out differently: its first sheet
+// is a Cover, its titles are on row 3 of PMO Database Output, the WBS is in Z and Level in AA -- read by position, every row
+// would have been skipped, the Level column read as the PMO. Brad: "the ACE files sometimes change and add new columns so
+// it's not always consistent year over year." So every sheet is searched for the row carrying the most of the titles below,
+// every column is found by its title wherever it sits, a column ORBIT does not use moves nothing, and nothing is read by
+// position. A title is compared lower-cased with everything that is not a letter or a digit taken out ("Rollup Value?" is
+// "rollupvalue"), the way a person reads two spellings of one heading as the same heading.
+function aceTitleN(v){ return String(v==null? '' : v).toLowerCase().replace(/[^a-z0-9]/g,''); }
 const ACE_PMO={'PROPULSION':'PP','AIR VEHICLE':'AV','COMBAT DATA SYSTEMS':'CDS',
   'TRAINING SYSTEMS & SIMULATION':'TSS','MAINTENANCE SYSTEMS':'MxS','PO&A':'BOP',
   'NON-PMO':'Non-PMO'};   // no board PMO of its own — kept as its own line so totals tie out
+// The same names, matched as titles are: "Non PMO" and "NON-PMO" are one office. Built once; read by own key only, because
+// the text it is looked up by comes out of the file.
+const ACE_PMO_N=(function(){ const m=Object.create(null);
+  Object.keys(ACE_PMO).forEach(function(k){ m[aceTitleN(k)]=ACE_PMO[k]; }); return m; })();
 function aceSvcOf(svc,variant){
   const a=''+(svc||''), v=''+(variant||'');
   if(/\bANG\b/i.test(a)) return 'ANG';                    // ANG and AFRC win when named
@@ -14624,52 +14695,282 @@ function aceSvcOf(svc,variant){
   if(/\bUSAF\b/i.test(a)) return 'USAF';                  // covers plain USAF and USAF ACC
   return null;
 }
-const ACE_COL={appn:1, svc:8, variant:9, managed:11, ce:22, ccar:23, ctitle:25,
-               pmo:26, sub:27, wbs:28, y0:39, y1:122};       // B,I,J,L,W,X,Z,AA,AB,AC,AN..DS
-function aceParse(rows, label){
-  // header row 5 (1-based) carries the fiscal years across AN..DS
-  const hdr=rows[4]||[];
-  const ycol={};
-  for(let c=ACE_COL.y0;c<=ACE_COL.y1 && c<hdr.length;c++){
-    const y=parseInt((''+(hdr[c]||'')).trim(),10);
-    if(y>1990&&y<2100) ycol[y]=c;
+// What ORBIT reads, by title. `req` fields must be found (or answered in the mapping box) or the file is refused, naming the
+// field; the rest name nothing when they are absent (CES2-CES8 on a shallow estimate, US/PTN/FMS on one with no partner
+// lines, the CCaR columns on an older layout). Every fiscal year column is found separately: any header that is a year.
+const ACE_FIELDS=[
+  {f:'wbs',   t:'Work Breakdown Structure', req:true},
+  {f:'lv',    t:'Level', req:true},
+  {f:'ces1',  t:'CES1', req:true}, {f:'ces2', t:'CES2'}, {f:'ces3', t:'CES3'}, {f:'ces4', t:'CES4'},
+  {f:'ces5',  t:'CES5'}, {f:'ces6', t:'CES6'}, {f:'ces7', t:'CES7'}, {f:'ces8', t:'CES8'},
+  {f:'svc',   t:'Service', req:true},
+  {f:'tms',   t:'T/M/S', req:true},
+  {f:'jpo',   t:'JPO Managed', req:true},
+  {f:'dtype', t:'$ Type', req:true},
+  {f:'roll',  t:'Rollup Value?', req:true},
+  {f:'slc',   t:'Support Line Category', req:true},
+  {f:'pals',  t:'PALS/O&S', req:true},
+  {f:'appus', t:'Appropriation (US Only)', req:true},
+  {f:'pmo',   t:'PMO', req:true},
+  {f:'usptn', t:'US/PTN/FMS'},
+  {f:'ccar',  t:'CCAR Element'},
+  {f:'cdesc', t:'CCAR Description'}
+];
+function aceField(f){ for(let i=0;i<ACE_FIELDS.length;i++) if(ACE_FIELDS[i].f===f) return ACE_FIELDS[i]; return null; }
+// THE ONE MAP FROM SUPPORT LINE CATEGORY TO ORBIT (Brad, 28 Oct 2026, from the 2026 file's filter list): which appropriation a
+// line is, and on Full Fund which cost element. It replaces ACE_APPN, which read the appropriation off a funding-type column the
+// 2026 layout no longer has, and the old cost element column, which was the file's raw text and matched nothing ORBIT names.
+// `ce` is a COST_ELEMS name, so a line reads as the board's own vocabulary. Depot Activation is settled by rule (aceDepotCe).
+const ACE_SLC=(function(){
+  const m=Object.create(null), put=function(t, ap, ce){ m[aceTitleN(t)]={ap:ap, ce:ce, t:t}; };
+  put('O&S', 'om', ''); put('Initial Spares', 'sp', ''); put('Other Proc (OPN)', 'opn', '');
+  ['Airframe PGSE','Avionics PGSE','Engine PGSE','Fixed JPO Support','JRE'].forEach(function(t){ put(t, 'ff', t); });
+  put('Other ILS', 'ff', 'Other ILS Production');
+  put('PEC TRNG EQ', 'ff', 'Peculiar Training Equip');
+  put('PEC TRNG EQ (Full Mission Sims)', 'ff', 'Full Mission Simulators');
+  put('Production Eng Support', 'ff', 'Production Engineering Support');
+  put('Pubs / Tech Data', 'ff', 'Pubs/Tech Data');
+  put('Depot Activation', 'ff', null);
+  return m; })();
+// Depot Activation (Brad, 28 Oct 2026: "CES2 will say Software Depot Standup for software. PMO will identify anything related
+// to Propulsion Depot."): software first, then Propulsion, then Air Vehicle. A row none of them settles keeps its dollars on
+// Full Fund with no cost element -- a line's cost element is descriptive, nothing keys on it -- and is named in the report.
+function aceDepotCe(ces2, pmo){
+  if(aceTitleN(ces2)==='softwaredepotstandup') return 'Depot Standup Software';
+  if(pmo==='PP') return 'Depot Standup Propulsion';
+  if(pmo==='AV') return 'Depot Standup Air Vehicle';
+  return '';
+}
+// Why a row is left out, in the order the import asks: the first that applies is the row's reason, so every dollar of the sheet
+// is in exactly one place -- a reason, or the lines kept -- and the report can say so to the dollar. `named` reasons list each
+// row: they are the ones a person has to look at, because the file said something ORBIT could not place.
+const ACE_WHY=[
+  {k:'dtype',   t:'Another dollar type (not then-year)'},
+  {k:'rollup',  t:'Rollup Value? is Yes: a subtotal of rows already read'},
+  {k:'blank',   t:'Support Line Category blank: a summary row for Cost', named:true},
+  {k:'milpers', t:'MILPERS'},
+  {k:'partner', t:'Partner or FMS (US/PTN/FMS is not US)'},
+  {k:'jpo',     t:'Not JPO managed'},
+  {k:'svcmgd',  t:'PMO is Service Mgd: in the estimate, not executed by the JPO'},
+  {k:'pmo',     t:'A PMO ORBIT does not know', named:true},
+  {k:'slc',     t:'A Support Line Category ORBIT does not map', named:true},
+  {k:'pals',    t:'PALS/O&S disagrees with the Support Line Category', named:true},
+  {k:'svc',     t:'A service ORBIT cannot read', named:true}
+];
+// Kept, and named: the dollars are read, and the row says something worth a look.
+const ACE_NOTE=[
+  {k:'p',      t:'The WBS letter disagrees with PALS/O&S (a PALS paragraph starts with P, an O&S one does not)'},
+  {k:'level',  t:'Level is not the paragraph’s depth (its count of segments)'},
+  {k:'depot',  t:'Depot Activation the rules do not settle: kept on Full Fund with no cost element'},
+  {k:'nowbs',  t:'No WBS: kept, but no requirement can claim it'}
+];
+function aceWhyLbl(k){ const all=ACE_WHY.concat(ACE_NOTE); for(let i=0;i<all.length;i++) if(all[i].k===k) return all[i].t; return k; }
+function aceColL(i){ let s=''; i=+i; if(!(i>=0)) return ''; do{ s=String.fromCharCode(65+i%26)+s; i=Math.floor(i/26)-1; }while(i>=0); return s; }
+// A cell of the year columns, in $M, as a whole dollar at the door. Accounting parentheses are negative (v2.12: "(1.5)" lost its
+// parentheses and read +1.5, a credit counted as a cost); a dash or a word reads as nothing, never as a figure.
+function aceMoney(raw){
+  let x;
+  if(typeof raw==='number') x=raw;
+  else {
+    let s=String(raw==null? '' : raw).trim(); if(!s) return 0;
+    let neg=false;
+    const p=/^\((.*)\)$/.exec(s); if(p){ neg=true; s=p[1].trim(); }
+    s=s.replace(/[$,\s]/g,'');
+    x=Number(s);
+    if(!isFinite(x)) x=parseFloat(s.replace(/[^0-9.\-]/g,''));
+    if(neg) x=-x;
   }
-  // Keep every fiscal year the estimate carries. The Spruills still shows the active FY plus
-  // five (with the two prior on a toggle), but storing the whole range means the estimate keeps
-  // working when the fiscal year rolls, and the out-years are there when we want them.
-  const years=Object.keys(ycol).map(Number).sort((a,b)=>a-b);
-  const appn={}, lines=[], skip={};
-  const bump=k=>{ skip[k]=(skip[k]||0)+1; };
-  for(let r=5;r<rows.length;r++){
+  if(!isFinite(x)) return 0;
+  return D$(x*1e6);
+}
+// The header row's signature: its titles as matched, in order. A file laid out the same way has the same signature, so the
+// answers given in the mapping box for one are read for the next without asking (ACEDB.cols).
+function aceHdrSig(hdr){
+  const t=(hdr||[]).map(aceTitleN); while(t.length && !t[t.length-1]) t.pop();
+  return t.join('|');
+}
+function aceYearOfHdr(c){ const n=aceTitleN(c); if(!/^\d{4}$/.test(n)) return 0; const y=+n; return (y>1990 && y<2100)? y : 0; }
+// How many of ORBIT's titles a row carries (and one more when it carries a fiscal year): the header is the row that carries
+// the most. A row with fewer than ACE_HDR_MIN is not a header at all, however it compares with the rest.
+const ACE_HDR_MIN=4, ACE_HDR_SCAN=500;
+function aceHdrScore(hdr){
+  const have=Object.create(null);
+  (hdr||[]).forEach(function(c){ have[aceTitleN(c)]=1; });
+  let n=0; ACE_FIELDS.forEach(function(F){ if(have[aceTitleN(F.t)]) n++; });
+  if((hdr||[]).some(function(c){ return aceYearOfHdr(c)>0; })) n++;
+  return n;
+}
+// Every sheet, in the workbook's own order (XLSX_LAST.names: an object puts a sheet named "2026" first), every row up to
+// ACE_HDR_SCAN; the most titles wins, ties to the first sheet and then the first row. Then each field's column: its own title,
+// else the title a person gave for this layout before (ACEDB.cols, by signature), else it is asked (`need`).
+function aceFindHeader(sheets){
+  const names=((XLSX_LAST && XLSX_LAST.names)||[]).filter(function(n){ return Object.prototype.hasOwnProperty.call(sheets, n); });
+  Object.keys(sheets).forEach(function(n){ if(names.indexOf(n)<0) names.push(n); });
+  let best=null;
+  names.forEach(function(nm){
+    const rows=sheets[nm]||[], lim=Math.min(rows.length, ACE_HDR_SCAN);
+    for(let r=0;r<lim;r++){ const n=aceHdrScore(rows[r]); if(n>=ACE_HDR_MIN && (!best || n>best.n)) best={sheet:nm, row:r, n:n}; }
+  });
+  if(!best) throw new Error('no sheet carries the estimate’s column titles ('+ACE_FIELDS.filter(function(F){ return F.req; })
+    .map(function(F){ return F.t; }).join(', ')+', and a column per fiscal year) — searched '+names.length+' sheet'
+    +(names.length===1?'':'s')+(names.length? ': '+names.map(inShow).join(', ') : ''));
+  const hdr=sheets[best.sheet][best.row]||[], at=Object.create(null);
+  hdr.forEach(function(c, i){ const n=aceTitleN(c); if(n && !(n in at)) at[n]=i; });
+  const sig=aceHdrSig(hdr);
+  const mem=(ACEDB && ACEDB.cols && Object.prototype.hasOwnProperty.call(ACEDB.cols, sig) && ACEDB.cols[sig] && ACEDB.cols[sig].map) || null;
+  const col=Object.create(null), how=Object.create(null), need=[];
+  ACE_FIELDS.forEach(function(F){
+    const n=aceTitleN(F.t);
+    if(n in at){ col[F.f]=at[n]; how[F.f]='title'; return; }
+    const m=mem && Object.prototype.hasOwnProperty.call(mem, F.f)? aceTitleN(mem[F.f]) : '';
+    if(m && (m in at)){ col[F.f]=at[m]; how[F.f]='remembered'; return; }
+    col[F.f]=-1; if(F.req) need.push(F.f);
+  });
+  const years=Object.create(null);
+  hdr.forEach(function(c, i){ const y=aceYearOfHdr(c); if(y && !(y in years)) years[y]=i; });
+  const rn=(XLSX_LAST && XLSX_LAST.rowNo && Object.prototype.hasOwnProperty.call(XLSX_LAST.rowNo, best.sheet))? XLSX_LAST.rowNo[best.sheet] : null;
+  return {sheet:best.sheet, row:best.row, rowNo:rn, hdr:hdr, sig:sig, col:col, how:how, need:need, years:years, sheets:names};
+}
+// One requirement field's cell, as text.
+function aceCellT(row, H, f){ const i=H.col[f]; if(!(i>=0)) return ''; const v=row[i]; return String(v==null? '' : v).trim(); }
+// THE WBS TREE (contract: set.wbs[ap][CODE] = {n, lv, up}), from the kept rows. A row names every level of its own paragraph:
+// CESk names the level-k heading, CES<Level> the paragraph itself. A heading is the first k segments of the paragraph -- except
+// that a line whose last segment carries a letter suffix (P6.2.2.1E) puts the suffix on a heading wherever its own name for that
+// level differs from the name an UNSUFFIXED line gives it: P6.2.2.1E -> P6.2.2E "ECU Propulsion" -> P6.2 -> P6, while
+// P6.5.1.2E stays under P6.5.1 "Government". Done the plain way, the ECU lines fold under "Propulsion" and one paragraph gets two
+// names. So the unsuffixed lines are read first, and the suffixed lines compare against what they named. A heading's parent is
+// the line's own heading one level up -- which is the unsuffixed heading's parent wherever only one level of the breakout
+// differs, as in every case Brad's file shows. A paragraph two rows name differently keeps the first name, and is named.
+function aceNameSame(a, b){ const f=function(s){ return String(s||'').replace(/\s+/g,' ').trim().toLowerCase(); }; return f(a)===f(b); }
+function aceSuffixOf(code){ const segs=String(code||'').split('.'), last=segs[segs.length-1]||''; const m=/^(.*\d)([A-Z]+)$/.exec(last); return m? m[2] : ''; }
+function aceTree(kept){
+  const W=Object.create(null), conf=Object.create(null), fromPlain=Object.create(null);
+  const put=function(ap, c, lv, n, up, row, plain){
+    const T=W[ap]||(W[ap]=Object.create(null));
+    n=String(n||'').trim();
+    if(!Object.prototype.hasOwnProperty.call(T, c)){ T[c]={n:n, lv:lv, up:up}; if(plain && n) fromPlain[ap+'|'+c]=n; return; }
+    const o=T[c];
+    if(!o.n && n){ o.n=n; if(plain) fromPlain[ap+'|'+c]=n; return; }
+    if(n && !aceNameSame(n, o.n)){
+      const key=ap+'|'+c, cf=conf[key]||(conf[key]={ap:ap, code:c, n:o.n, also:[]});
+      let a=null; cf.also.forEach(function(x){ if(aceNameSame(x.n, n)) a=x; });
+      if(!a) cf.also.push(a={n:n, rows:[]});
+      if(a.rows.length<50) a.rows.push(row);
+    }
+  };
+  const walk=function(K, plain){
+    const segs=K.code.split('.'), n=segs.length, suf=plain? '' : aceSuffixOf(K.code);
+    let up='';
+    for(let k=1;k<n;k++){
+      const base=segs.slice(0,k).join('.'), own=K.ces[k-1]||'', bn=fromPlain[K.ap+'|'+base]||'';
+      const h=(suf && bn && own && !aceNameSame(own, bn))? base+suf : base;
+      put(K.ap, h, k, own, up, K.row, plain);
+      up=h;
+    }
+    put(K.ap, K.code, n, K.ces[n-1]||'', up, K.row, plain);
+  };
+  kept.forEach(function(K){ if(K.code && !aceSuffixOf(K.code)) walk(K, true); });
+  kept.forEach(function(K){ if(K.code && aceSuffixOf(K.code)) walk(K, false); });
+  return {wbs:W, conflicts:Object.keys(conf).map(function(k){ return conf[k]; })};
+}
+function aceParse(rows, label, H){
+  const C=H.col, ycol=H.years;
+  // Keep every fiscal year the estimate carries. The Spruills still shows the active FY plus five (with the two prior on a
+  // toggle), but storing the whole range means the estimate keeps working when the fiscal year rolls.
+  const years=Object.keys(ycol).map(Number).sort(function(a,b){ return a-b; });
+  const appn={}, lines=[], skip={}, kept=[];
+  const sum=function(o, vec){ years.forEach(function(y){ if(vec[y]) o[y]=(o[y]||0)+vec[y]; }); };
+  const rep={v:1, sheet:H.sheet, row:0, sheets:H.sheets||[], years:years, map:{}, absent:[], reasons:{}, named:[],
+             kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:{}, tree:{}, conflicts:[]};
+  const rowNo=function(r){ return (H.rowNo && H.rowNo[r])? H.rowNo[r] : r+1; };
+  rep.row=rowNo(H.row);
+  ACE_FIELDS.forEach(function(F){
+    if(C[F.f]>=0) rep.map[F.f]={t:String(H.hdr[C[F.f]]==null? '' : H.hdr[C[F.f]]).trim(), c:aceColL(C[F.f]), how:H.how[F.f]||'title'};
+    else rep.absent.push(F.f);
+  });
+  const named=function(k, r, wbs, what, vec){ rep.named.push({k:k, row:rowNo(r), wbs:wbs, what:what, v:vec}); };
+  const out=function(k, r, wbs, what, vec, by){
+    const R=rep.reasons[k]||(rep.reasons[k]={rows:0, v:{}, by:{}});
+    R.rows++; sum(R.v, vec);
+    if(by!==undefined){ const b=String(by)||'(blank)'; R.by[b]=(R.by[b]||0)+1; }
+    skip[k]=(skip[k]||0)+1;
+    let isNamed=false; ACE_WHY.forEach(function(W0){ if(W0.k===k && W0.named) isNamed=true; });
+    if(isNamed) named(k, r, wbs, what, vec);
+  };
+  let thenYear=0;
+  for(let r=H.row+1;r<rows.length;r++){
     const row=rows[r]||[];
-    if(!row[ACE_COL.appn]) continue;
-    if(!/^y/i.test((''+(row[ACE_COL.managed]||'')).trim())){ bump('not JPO managed'); continue; }
-    const ap=ACE_APPN[(''+row[ACE_COL.appn]).trim().toUpperCase()];
-    if(!ap){ bump('funding type '+(''+row[ACE_COL.appn]).trim()); continue; }
-    const rawPmo=(''+(row[ACE_COL.pmo]||'')).trim();
-    const pmo=ACE_PMO[rawPmo.toUpperCase()];
-    if(!pmo){ bump('PMO '+(rawPmo||'(blank)')); continue; }
-    const svc=aceSvcOf(row[ACE_COL.svc], row[ACE_COL.variant]);
-    if(!svc){ bump('service '+(''+(row[ACE_COL.svc]||''))); continue; }
-    const vec={};
-    years.forEach(y=>{
-      const raw=row[ycol[y]];
-      const v=(typeof raw==='number')? raw : parseFloat((''+(raw||'')).replace(/[^0-9.\-]/g,''));
-      if(v && Math.abs(v)>1e-9) vec[y]=v*1e6;                // the sheet is $M
-    });
-    if(!Object.keys(vec).length) continue;
-    const A=appn[ap]||(appn[ap]={tot:{},pmo:{},svc:{}});
-    Object.keys(vec).forEach(y=>{
+    const wbsT=aceCellT(row, H, 'wbs'), code=aceNormWbs(wbsT);
+    const vec={}; let any=false;
+    years.forEach(function(y){ const d=aceMoney(row[ycol[y]]); if(d){ vec[y]=d; any=true; } });
+    // 1. no WBS and no dollar: formatting between the rows, not data, and not counted anywhere
+    if(!code && !any){ rep.notData++; continue; }
+    rep.total.rows++; sum(rep.total.v, vec);
+    // 2. then-year dollars only: they are what sits beside the PPBE positions (Brad, 28 Oct 2026). The other types are counted.
+    const dtT=aceCellT(row, H, 'dtype'), dt=aceTitleN(dtT);
+    if(!(dt.indexOf('ty')===0 || dt.indexOf('thenyear')===0)){ rep.types[dtT||'(blank)']=(rep.types[dtT||'(blank)']||0)+1; out('dtype', r, wbsT, dtT, vec, dtT); continue; }
+    thenYear++;
+    // 3. a rollup is a subtotal of rows the import already reads: counting it would count every dollar under it twice
+    if(aceTitleN(aceCellT(row, H, 'roll')).indexOf('y')===0){ out('rollup', r, wbsT, '', vec); continue; }
+    // 4. a blank category is a summary row for Cost (Brad: "I believe those are summary rows for Cost"). It is never counted
+    // beside its parts -- and it is NAMED, so a real line that lost its category is seen rather than silently dropped.
+    const slcT=aceCellT(row, H, 'slc'), slcN=aceTitleN(slcT);
+    if(!slcN){ out('blank', r, wbsT, 'Rollup Value? '+inShow(aceCellT(row, H, 'roll')), vec); continue; }
+    // 5. MILPERS (Brad: "Exclude MILPERS")
+    if(aceTitleN(aceCellT(row, H, 'appus'))==='milpers'){ out('milpers', r, wbsT, '', vec); continue; }
+    // 6. partner and FMS lines, where the file says which (a blank cell reads as US: the column is not filled in)
+    if(C.usptn>=0){ const uT=aceCellT(row, H, 'usptn'), u=aceTitleN(uT); if(u && u!=='us'){ out('partner', r, wbsT, uT, vec, uT); continue; } }
+    // 7. the JPO executes what it manages
+    if(aceTitleN(aceCellT(row, H, 'jpo')).indexOf('y')!==0){ out('jpo', r, wbsT, '', vec); continue; }
+    // 8. Service Mgd is the Services' own (Brad: "Service Mgd is not us. We include it in the estimate but it does not get
+    // executed by us."), its own reason so the estimate's total can still be tied out; any other office ORBIT does not know is named
+    const pmoT=aceCellT(row, H, 'pmo'), pmoN=aceTitleN(pmoT);
+    if(pmoN==='servicemgd'){ out('svcmgd', r, wbsT, '', vec); continue; }
+    const pmo=Object.prototype.hasOwnProperty.call(ACE_PMO_N, pmoN)? ACE_PMO_N[pmoN] : '';
+    if(!pmo){ out('pmo', r, wbsT, pmoT||'(blank)', vec, pmoT); continue; }
+    // 9. the category decides the appropriation and the cost element
+    const cat=Object.prototype.hasOwnProperty.call(ACE_SLC, slcN)? ACE_SLC[slcN] : null;
+    if(!cat){ out('slc', r, wbsT, slcT, vec, slcT); continue; }
+    // 10. PALS/O&S agrees with it (Brad: "O&S is O&M for the cost estimators. PALS is all procurement accounts")
+    const palsT=aceCellT(row, H, 'pals'), pals=aceTitleN(palsT);
+    if((pals==='os' && cat.ap!=='om') || (pals==='pals' && cat.ap==='om')){ out('pals', r, wbsT, palsT+' with '+slcT, vec); continue; }
+    // 11. the service, by name and variant
+    const svc=aceSvcOf(aceCellT(row, H, 'svc'), aceCellT(row, H, 'tms'));
+    if(!svc){ const sT=aceCellT(row, H, 'svc'), tT=aceCellT(row, H, 'tms'); out('svc', r, wbsT, sT+(tT? ' / '+tT : ''), vec, sT); continue; }
+    // 12. kept. Named, and kept: the P check, the Level check, a Depot Activation row the rules do not settle, no WBS.
+    const segs=code? code.split('.') : [], lv=segs.length;
+    if(code){
+      const isP=/^P/.test(code);
+      if((pals==='pals' && !isP) || (pals==='os' && isP)) named('p', r, wbsT, palsT, vec);
+      const lvT=aceCellT(row, H, 'lv');
+      if(!(lvT!=='' && +lvT===lv)) named('level', r, wbsT, 'Level '+(lvT===''? '(blank)' : lvT)+', the paragraph has '+lv+' segment'+(lv===1?'':'s'), vec);
+    } else named('nowbs', r, wbsT, slcT, vec);
+    const ces=[]; for(let k=1;k<=8;k++) ces.push(aceCellT(row, H, 'ces'+k));
+    let ce=cat.ce;
+    if(ce===null){ ce=aceDepotCe(ces[1], pmo); if(!ce) named('depot', r, wbsT, pmoT+(ces[1]? ' · CES2 '+ces[1] : ''), vec); }
+    rep.kept.rows++; sum(rep.kept.v, vec);
+    if(code) kept.push({ap:cat.ap, code:code, ces:ces, row:rowNo(r)});
+    if(!any){ rep.kept.zero++; continue; }       // a paragraph with no dollar is in the tree, but no line carries nothing
+    const A=appn[cat.ap]||(appn[cat.ap]={tot:{},pmo:{},svc:{}});
+    Object.keys(vec).forEach(function(y){
       const v=vec[y];
       A.tot[y]=(A.tot[y]||0)+v;
       (A.pmo[pmo]||(A.pmo[pmo]={}))[y]=((A.pmo[pmo]||{})[y]||0)+v;
       (A.svc[svc]||(A.svc[svc]={}))[y]=((A.svc[svc]||{})[y]||0)+v;
     });
-    lines.push({ap, pmo, svc, sub:(''+(row[ACE_COL.sub]||'')).trim(),
-                ce:(''+(row[ACE_COL.ce]||'')).trim(), ccar:(''+(row[ACE_COL.ccar]||'')).trim(),
-                wbs:(''+(row[ACE_COL.wbs]||'')).trim(), v:vec});
+    lines.push({ap:cat.ap, pmo:pmo, svc:svc, wbs:code, lv:lv, ce:ce, slc:slcT, ccar:aceCellT(row, H, 'ccar'),
+                cdesc:aceCellT(row, H, 'cdesc'), sub:'', v:vec});
   }
-  return {label, ts:Date.now(), years, appn, lines, skip};
+  rep.kept.lines=lines.length;
+  rep.thenYear=thenYear;
+  const T=aceTree(kept);
+  Object.keys(T.wbs).forEach(function(ap){ rep.tree[ap]=Object.keys(T.wbs[ap]).length; });
+  rep.conflicts=T.conflicts;
+  // EVERY DOLLAR OF THE SHEET IS KEPT OR IN A REASON, to the dollar, every year: stated, so a report that does not close says so
+  rep.ties=years.every(function(y){
+    let s=rep.kept.v[y]||0; Object.keys(rep.reasons).forEach(function(k){ s+=rep.reasons[k].v[y]||0; });
+    return s===(rep.total.v[y]||0); });
+  return {label:label, ts:Date.now(), years:years, appn:appn, lines:lines, skip:skip, rep:rep, wbs:T.wbs};
 }
 /* ============ REFERENCE REGISTRIES FOR THE SPEND PLAN SOURCE EXPORT ========================
    Two imported lists the board does not generate itself.
@@ -16569,12 +16870,37 @@ function execWbsApply(fys){
    reaches 0.0% of funded money and on cost element 0.0%. A WBS match is a SUGGESTION only -- a
    confirmed mapping is the sole thing that counts, because a suggestion that became a fact would
    put an estimate against a requirement nobody agreed to. */
-const ACE_PMO_ALIGN_DEFAULT = {
-  // Owner's rule: PSM sat under AV in the 2025 estimate and earlier; from 2026 it is its own PMO.
-  // Keyed by the board PMO -> the ACE PMO its estimate comes from.
-  early: {PSM:'AV'},
-  later: {}
-};
+// Keyed by the board PMO -> the ACE PMO its estimate comes from.
+// v2.12 (item 132; Brad, 28 Oct 2026): PSM IS INSIDE AIR VEHICLE IN EVERY ESTIMATE -- "Cost has not broken out PSM and AV
+// unfortunately. The ORBIT assignment is the driver between those splits." The rule this replaced said PSM was its own ACE PMO
+// from 2026 (`later: {}`), so a 2026 estimate printed AV's estimate, PSM's money in it, against AV's requirements alone, and PSM at
+// $0 estimate against its own: two deltas, both wrong. The tie-out prints AV + PSM as one estimate and splits it by the WBS each
+// office's requirements claim (aceGroupSplit). A function, not a const: applyStore heals stored alignments while this script is
+// still being read, above any const declared here.
+function aceAlignDefault(){ return {PSM:'AV'}; }
+// An alignment stored as exactly {} for a 2026 or later estimate is the old default -- nothing in ORBIT edits the alignment, so it
+// cannot be anyone's choice. It is replaced when a board opens (applyStore), and said once (aceHealSay); anything else is kept.
+var ACE_HEAL = ACE_HEAL || [];
+var ACE_BOOTED = ACE_BOOTED || false;
+function aceAlignHeal(){
+  if(!ACE_HEAL) ACE_HEAL=[];   // the first pass at boot runs above the var's own line, where it is still undefined
+  const A=MS && MS.aceAlign; if(!A || typeof A!=='object') return;
+  Object.keys(A).forEach(function(k){
+    const v=A[k];
+    if(aceYearOf(k)>=2026 && v && typeof v==='object' && !Array.isArray(v) && !Object.keys(v).length){
+      A[k]=aceAlignDefault(); if(ACE_HEAL.indexOf(k)<0) ACE_HEAL.push(k); }
+  });
+}
+function aceHealSay(after){
+  if(!ACE_HEAL.length) return;
+  const ks=ACE_HEAL.splice(0);
+  // on opening, after the line opening said (never in place of it), as the other opening notes are
+  const de=after? document.getElementById('shareStat') : null;
+  if(after) _statQuiet=false;
+  statKeep((de && de.innerHTML? de.innerHTML+' ' : '')+'\ud83d\udcc8 <b>PSM is inside Air Vehicle in every cost estimate</b> \u2014 the tie-out for <b>'+ks.map(esc).join(', ')+'</b> was set '
+    +'to read PSM as its own estimate office, which no estimate has been. It now reads PSM under Air Vehicle, and splits Air Vehicle\u2019s '
+    +'estimate by the WBS each office\u2019s requirements claim. No figure on the board moved; \ud83d\udcbe Save keeps the change in the file.');
+}
 function aceSetKeys(){ return Object.keys((ACEDB&&ACEDB.sets)||{}); }
 function aceSet(k){ return ((ACEDB&&ACEDB.sets)||{})[k]||null; }
 function aceYearOf(k){ const m=/^(20\d\d)/.exec(String(k||'')); return m? parseInt(m[1]) : 0; }
@@ -16583,11 +16909,7 @@ function aceYearOf(k){ const m=/^(20\d\d)/.exec(String(k||'')); return m? parseI
 // rather than a code change.
 function aceAlign(k){
   if(!MS.aceAlign) MS.aceAlign={};
-  if(!MS.aceAlign[k]){
-    const y=aceYearOf(k);
-    MS.aceAlign[k]=JSON.parse(JSON.stringify(y && y>=2026? ACE_PMO_ALIGN_DEFAULT.later
-                                                          : ACE_PMO_ALIGN_DEFAULT.early));
-  }
+  if(!MS.aceAlign[k]) MS.aceAlign[k]=aceAlignDefault();
   return MS.aceAlign[k];
 }
 // Which ACE PMO a board PMO draws its estimate from (itself unless realigned).
@@ -16830,7 +17152,9 @@ function aceScan(k, fy){
       rows.push({id:id, fy:+fy, f:f, pmo:grpOf(it),
                  title:dispTitle(it), rec:recName(it)||'', ccar:ccarOf(it)||'',
                  w:(ok&&m? m.w : (sug.length? sug : sf.roll)),
-                 ok:ok, hasSug:sug.length>0, roll:sf.roll, parents:sf.parents});
+                 ok:ok, hasSug:sug.length>0, roll:sf.roll, parents:sf.parents,
+                 // v2.12 (item 132): every WBS paragraph the requirement carries, that year -- what splits a shared estimate
+                 claims:aceWbsOf(id)});
     });
     const claimed={};
     rows.forEach(function(r){ if(r.ok) r.w.forEach(function(w){ claimed[w]=1; }); });
@@ -16839,6 +17163,34 @@ function aceScan(k, fy){
             mapped:mapped, mappedMoney:mappedMoney, suggested:suggested,
             unmappedMoney:unmappedMoney, boardTot:boardTot};
   });
+}
+// v2.12 (item 132; Brad, 28 Oct 2026: "The ORBIT assignment is the driver between those splits"): THE WBS EACH OFFICE'S
+// REQUIREMENTS CLAIM SPLITS AN ESTIMATE SEVERAL OFFICES SHARE. Cost files PSM's money inside Air Vehicle; under the AV + PSM line,
+// each office's part is the estimate of the lines only its requirements claim. A requirement claims a line when one of its WBS
+// paragraphs (aceWbsOf) is the line's paragraph or a heading above it -- read up the estimate's own tree (aceWbsUp), so 1.2.2
+// claims 1.2.2.1, and P6.2.2E is not P6.2.2. A line two offices claim, or none, stays on the SHARED line: no split rule is
+// invented, so the parts and the shared line add to the group's estimate exactly, line by line, year by year. An estimate
+// imported before v2.12 carries no tree, so there a requirement claims only the paragraph it names.
+function aceLineUp(k, ap, w){ const up=aceWbsUp(k, ap, w); if(up.length) return up; const c=aceNormWbs(w); return c? [c] : []; }
+function aceGroupSplit(k, acePmo, offices, scans){
+  const ap=mySlug(), set=aceSet(k), out={by:Object.create(null), shared:0, est:0};
+  offices.forEach(function(g){ out.by[g]=0; });
+  if(!set) return out;
+  scans.forEach(function(sc){
+    const who=Object.create(null);       // paragraph -> the offices whose requirements claim it, this year
+    sc.rows.forEach(function(r){ if(offices.indexOf(r.pmo)<0) return;
+      (r.claims||[]).forEach(function(c){ (who[c]||(who[c]=Object.create(null)))[r.pmo]=1; }); });
+    (set.lines||[]).forEach(function(l){
+      if(l.ap!==ap || l.pmo!==acePmo) return;
+      const v=+((l.v&&l.v[sc.fy])||0); if(!v) return;
+      out.est+=v;
+      const g=Object.create(null);
+      aceLineUp(k, ap, l.wbs).forEach(function(c){ if(who[c]) Object.keys(who[c]).forEach(function(o){ g[o]=1; }); });
+      const gs=Object.keys(g);
+      if(gs.length===1) out.by[gs[0]]+=v; else out.shared+=v;
+    });
+  });
+  return out;
 }
 // The estimate for one ACE PMO across a set of fiscal years.
 function aceEstPmo(k, acePmo, years){
@@ -17220,48 +17572,245 @@ async function importAce(inp){
   // part of the view's copy: one imported in a view was stored -- an approved one replaced -- and every tie-out changed, while the
   // board said "Not kept".
   if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }
+  // v2.12 (item 132): the 2026 estimate comes as an Excel Binary Workbook. The reader reads .xlsx alone, and said only "it contains
+  // no workbook part", which is true and tells nobody what to do (Brad: "I save the ACE as an xlsx file and import it").
+  if(/\.xlsb$/i.test(f.name)){ setStat('⚠ Cost estimate import failed: '+esc(aceXlsbSay(f.name))); inp.value=''; return; }
   try{
     setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
     const sheets=await xlsxRead(await f.arrayBuffer());
     if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }   // v2.00 (U10): as importBud
     const first=Object.keys(sheets)[0];
     if(!first) throw new Error('no sheets in that workbook');
-    const label=(f.name.match(/(20\d\d)\s*ACE/i)||[null,''])[1];
+    // v2.12 (item 132): the year, then the word ACE anywhere after it -- the 2026 file is "2026 SUST ACE COMPLETE Detail File",
+    // which the old pattern (the year right before ACE) filed under its whole name
+    const label=(f.name.match(/(20\d\d)\b.*?\bACE\b/i)||[null,''])[1];
     const key=label? label+'ACE' : f.name.replace(/\.xlsx$/i,'');
     // v2.00 (item 99): the estimate is filed under this name, so it cannot be one every object already answers to
     if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '+inShow(key)+', a name every object already answers to \u2014 rename the file and import it again');
-    const set=aceParse(sheets[first], key);
+    const H=aceFindHeader(sheets);
+    const ctx={file:f.name, key:key, sheets:sheets, H:H, esc:xlsxEscSaid()};
+    inp.value='';
+    // v2.12 (item 132): A TITLE THAT HAS CHANGED IS ASKED ABOUT ONCE, in a box listing the file's own headers; nothing is guessed
+    if(H.need.length){ aceColAsk(ctx); return; }
+    aceImportGo(ctx);
+  }catch(e){
+    setStat('⚠ Cost estimate import failed: '+esc((e&&e.message)||e));
+  }
+  inp.value='';
+}
+function aceXlsbSay(name){
+  return '“'+name+'” is an Excel Binary Workbook (.xlsb), which ORBIT does not read. Open it in Excel and save it as an '
+    +'Excel Workbook (.xlsx) — File › Save As › Excel Workbook — then import the .xlsx. Nothing was imported.';
+}
+// The rest of the import, once every column ORBIT reads is known: read straight on, or after the mapping box.
+function aceImportGo(ctx){
+  try{
+    // a locked view put on screen while the mapping box was open: refused like any other import in a view
+    if(cycBlock('Importing a cost estimate')) return;
+    const H=ctx.H;
+    const miss=ACE_FIELDS.filter(function(F){ return F.req && !(H.col[F.f]>=0); });
+    if(miss.length) throw new Error('the estimate has no column for '+miss.map(function(F){ return inShow(F.t); }).join(', ')
+      +' — the file was read on sheet '+inShow(H.sheet)+', row '+((H.rowNo&&H.rowNo[H.row])||(H.row+1))+', and nothing is read by position');
+    if(!Object.keys(H.years).length) throw new Error('the estimate’s header has no fiscal year column (a column headed by a year, such as 2027) — sheet '
+      +inShow(H.sheet)+', row '+((H.rowNo&&H.rowNo[H.row])||(H.row+1)));
+    const key=ctx.key;
+    const set=aceParse(ctx.sheets[H.sheet], key, H);
+    const R=set.rep;
+    // A FILE WITH NO THEN-YEAR ROW IS REFUSED, naming the types it holds: an estimate in another dollar would sit beside the PPBE
+    // positions as if it were the same money
+    if(R.total.rows && !R.thenYear) throw new Error('the estimate holds no then-year rows — its $ Type column reads '
+      +Object.keys(R.types).map(function(t){ return inShow(t)+' ('+R.types[t]+' row'+(R.types[t]===1?'':'s')+')'; }).join(', ')
+      +'. ORBIT reads then-year dollars, to sit beside the PPBE positions');
     const nAp=Object.keys(set.appn).length;
-    if(!nAp) throw new Error('nothing matched the expected columns \u2014 check this is the ACE layout');
+    if(!nAp) throw new Error(R.total.rows
+      ? 'every row was left out — '+ACE_WHY.filter(function(W0){ return R.reasons[W0.k]; })
+          .map(function(W0){ return W0.t+' '+R.reasons[W0.k].rows; }).join(' · ')
+      : 'no row under the header on sheet '+inShow(H.sheet)+' carries a WBS or a dollar');
     if(!ACEDB.sets) ACEDB.sets={};
     const prior=ACEDB.sets[key];
     if(prior && prior.locked){
       // an approved estimate is fixed for life; replacing one has to be a deliberate act
-      if(!confirm('\u26a0 '+key+' is already loaded and LOCKED.\n\n'
+      if(!confirm('⚠ '+key+' is already loaded and LOCKED.\n\n'
         +'Imported '+fmtTs(prior.ts)+(prior.by? ' by '+prior.by:'')+'\n'
         +(prior.file? 'From: '+prior.file+'\n':'')
         +(prior.lines?prior.lines.length:0)+' cost lines\n\n'
-        +'An approved cost estimate should not change. Replace it with "'+f.name+'"?\n\n'
-        +'OK \u2014 replace the locked estimate.\nCancel \u2014 keep the approved copy.')){
-        setStat('Import canceled \u2014 the locked <b>'+esc(key)+'</b> estimate is untouched.');
-        inp.value=''; return;
+        +'An approved cost estimate should not change. Replace it with "'+ctx.file+'"?\n\n'
+        +'OK — replace the locked estimate.\nCancel — keep the approved copy.')){
+        setStat('Import canceled — the locked <b>'+esc(key)+'</b> estimate is untouched.');
+        return;
       }
     }
-    set.locked=true; set.by=whoAmI(); set.file=f.name;
+    set.locked=true; set.by=whoAmI(); set.file=ctx.file;
+    R.file=ctx.file;
+    const map={}; ACE_FIELDS.forEach(function(F){ if(H.col[F.f]>=0) map[F.f]=String(H.hdr[H.col[F.f]]==null? '' : H.hdr[H.col[F.f]]).trim(); });
+    set.cols={sheet:H.sheet, row:R.row-1, sig:H.sig, map:map};
     set.fp=aceFingerprint(set);
+    // THE ANSWERS GIVEN IN THE MAPPING BOX ARE REMEMBERED, for files laid out the same way (ACEDB.cols, by the header row's
+    // signature). They travel with the board, in ACEDB, so a colleague's import of the same layout reads it the same way.
+    const asked=ACE_FIELDS.filter(function(F){ return H.how[F.f]==='asked' || H.how[F.f]==='remembered'; });
+    if(asked.length){
+      if(!ACEDB.cols || typeof ACEDB.cols!=='object') ACEDB.cols={};
+      const m={}; asked.forEach(function(F){ m[F.f]=map[F.f]; });
+      ACEDB.cols[H.sig]={map:m, ts:Date.now(), by:set.by, file:ctx.file};
+    }
     ACEDB.sets[key]=set; ACEDB.ts=Date.now();
     persistAce();
     spAce=key; if(typeof MS!=='undefined'&&MS){ MS.spAce=key; try{ persist(); }catch(e){} }
-    spOpen=true; render();
-    const sk=Object.keys(set.skip).sort((a,b)=>set.skip[b]-set.skip[a])
-      .map(k=>k+' '+set.skip[k]).join(' \u00b7 ');
-    statKeep('\ud83d\udcc8 <b>'+esc(key)+'</b> loaded and \ud83d\udd12 locked \u2014 '+set.lines.length+' cost lines across '
-      +nAp+' appropriation'+(nAp===1?'':'s')+', FY'+set.years[0]+'\u2013FY'+set.years[set.years.length-1]
-      +'. Not imported: '+esc(sk)+'. \ud83d\udcbe Save to bake it into this file.'+esc(xlsxEscSaid()));
+    // v2.12 (item 132): the import's report opens, not the Spruills: what was read, and what was left out and why
+    aceRepK=key; aceRepOpen=true; render();
+    const out=ACE_WHY.reduce(function(a, W0){ return a+((R.reasons[W0.k]||{}).rows||0); }, 0);
+    const nNamed=R.named.length+R.conflicts.length;
+    statKeep('📈 <b>'+esc(key)+'</b> loaded and 🔒 locked — '+set.lines.length+' cost lines across '
+      +nAp+' appropriation'+(nAp===1?'':'s')+', FY'+set.years[0]+'–FY'+set.years[set.years.length-1]
+      +', read from sheet “'+esc(H.sheet)+'”, row '+R.row+'. '
+      +(out? out+' row'+(out===1?'':'s')+' left out, each with its reason and dollars by year' : 'No row left out')
+      +(nNamed? '; '+nNamed+' named for a look' : '')+(R.ties? '. Every dollar of the sheet is kept or in a reason.' : '. ⚠ The report does not close.')
+      +' The report is open, and stays under Data › Import report… 💾 Save to bake it into this file.'+esc(ctx.esc||''));
   }catch(e){
-    setStat('\u26a0 Cost estimate import failed: '+esc((e&&e.message)||e));
+    setStat('⚠ Cost estimate import failed: '+esc((e&&e.message)||e));
   }
-  inp.value='';
+}
+// ---- the mapping box: a required title this file does not carry, asked about once ----
+function aceColAsk(ctx){ ACECOL=ctx; aceColOpen=true; aceColDraw(); render(); }
+function aceColDraw(){
+  const el=document.getElementById('aceColBody'); if(!el) return;
+  const C=ACECOL; if(!C){ el.innerHTML=''; return; }
+  const H=C.H, rn=(H.rowNo&&H.rowNo[H.row])||(H.row+1);
+  const opts=[]; (H.hdr||[]).forEach(function(c, i){ const t=String(c==null? '' : c).trim(); if(t) opts.push({i:i, t:t}); });
+  let h='<div class="hint" style="margin-bottom:8px">“'+esc(C.file)+'” — its titles are on sheet <b>'+esc(H.sheet)
+    +'</b>, row <b>'+rn+'</b>. This file does not title every column ORBIT reads, so pick the column that holds each field below. '
+    +'The answer is remembered for files laid out the same way. Nothing is read by position, and nothing is imported until you press Import.</div>'
+    +'<table class="fctab acecol"><colgroup><col style="width:42%"><col style="width:58%"></colgroup>'
+    +'<tr><th style="text-align:left">Field ORBIT reads</th><th style="text-align:left">Column in this file</th></tr>';
+  H.need.forEach(function(f){
+    const F=aceField(f)||{t:f};
+    h+='<tr><td style="text-align:left"><label for="aceCol_'+esc(f)+'">'+esc(F.t)+'</label></td><td style="text-align:left">'
+      +'<select id="aceCol_'+esc(f)+'" data-held="1" data-f="'+esc(f)+'" style="width:100%">'
+      +'<option value="">— not in this file —</option>'
+      +opts.map(function(o){ return '<option value="'+o.i+'">'+esc(aceColL(o.i)+' · '+o.t)+'</option>'; }).join('')
+      +'</select></td></tr>';
+  });
+  h+='</table><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">'
+    +'<button type="button" class="btn" onclick="aceColCancel()">Cancel</button>'
+    +'<button type="button" class="btn pri" onclick="aceColApply()">Import</button></div>';
+  el.innerHTML=h;
+}
+function aceColSync(){
+  const bg=document.getElementById('aceColPanel'); if(!bg) return;
+  bg.className='modal-bg'+(aceColOpen?' open':'');
+  if(!aceColOpen){ const el=document.getElementById('aceColBody'); if(el && el.innerHTML) el.innerHTML=''; }
+}
+function aceColCancel(){
+  const had=!!ACECOL; ACECOL=null; aceColOpen=false; render();
+  if(had) setStat('Cost estimate import canceled — nothing was imported.');
+}
+function aceColApply(){
+  const C=ACECOL; if(!C) return;
+  C.H.need.forEach(function(f){
+    const s=document.getElementById('aceCol_'+f), v=s? s.value : '';
+    if(v!=='' && +v>=0){ C.H.col[f]=+v; C.H.how[f]='asked'; } else C.H.col[f]=-1;
+  });
+  ACECOL=null; aceColOpen=false; render();
+  aceImportGo(C);
+}
+// ---- the import report ----
+function aceRepNewest(){
+  let k='', t=-1; aceSetKeys().forEach(function(x){ const s=aceSet(x), ts=+((s||{}).ts)||0; if(s && ts>t){ t=ts; k=x; } });
+  return k;
+}
+function aceRepShow(k){ aceRepK=(k && aceSet(k))? k : aceRepNewest(); aceRepYr=null; aceRepOpen=true; render(); }
+function aceRepClose(){ aceRepOpen=false; render(); }
+function aceRepPick(k){ aceRepK=k; aceRepYr=null; render(); }
+function aceRepYrSet(v){ aceRepYr=(v==='all')? 'all' : (parseInt(v)||null); render(); }
+const ACE_REP_CAP=40;
+function aceRepBody(){
+  const bg=document.getElementById('aceRepPanel'), el=document.getElementById('aceRepBody');
+  if(!bg||!el) return;
+  bg.className='modal-bg'+(aceRepOpen?' open':'');
+  if(!aceRepOpen){ el.innerHTML=''; return; }
+  const keys=aceSetKeys().sort();
+  if(!keys.length){ el.innerHTML='<div class="hint">No Annual Cost Estimate has been imported yet. Data › Import Annual Cost Estimate… loads one.</div>'; return; }
+  const k=(aceRepK && aceSet(aceRepK))? aceRepK : aceRepNewest(), set=aceSet(k), R=set && set.rep;
+  const fD=function(v){ return '$'+Math.round(+v||0).toLocaleString(); };
+  let h='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'
+    +'<label for="aceRepSel" style="font-size:10px;color:var(--dim)">Estimate</label>'
+    +'<select id="aceRepSel" class="btn" style="font-size:10px;padding:3px 8px" onchange="aceRepPick(this.value)">'
+    +keys.map(function(x){ return '<option value="'+esc(x)+'"'+(x===k?' selected':'')+'>'+esc(x)+'</option>'; }).join('')+'</select>'
+    +'<span style="font-size:10px;color:var(--dim)">'+aceStamp(set)+(set.file? ' · from '+esc(set.file) : '')+'</span></div>';
+  if(!R || typeof R!=='object' || !R.reasons){
+    const sk=set.skip||{};
+    h+='<div class="hint acerep-old">'+esc(k)+' was imported before v2.12, which kept only how many rows each reason left out, not their '
+      +'dollars: '+(Object.keys(sk).length? Object.keys(sk).map(function(x){ return esc(x)+' '+esc(sk[x]); }).join(' · ') : 'none recorded')
+      +'. Import the workbook again to see every reason with its dollars by year, and the WBS tree.</div>';
+    el.innerHTML=h; return;
+  }
+  const yrs=(Array.isArray(R.years)? R.years : []).filter(function(y){ return (R.total.v||{})[y]; });
+  if(aceRepYr!=='all' && yrs.indexOf(aceRepYr)<0) aceRepYr=(yrs.indexOf(MS.cur)>=0? MS.cur : (yrs[0]||'all'));
+  const vOf=function(o){ o=o||{}; if(aceRepYr==='all') return Object.keys(o).reduce(function(a, y){ return a+(+o[y]||0); }, 0); return +o[aceRepYr]||0; };
+  const allOf=function(o){ o=o||{}; return Object.keys(o).reduce(function(a, y){ return a+(+o[y]||0); }, 0); };
+  const ylbl=aceRepYr==='all'? 'all years' : 'FY'+aceRepYr;
+  h+='<div class="acerep-read" style="font-size:11px;margin-bottom:6px">Read from sheet <b>'+esc(R.sheet)+'</b>, row <b>'+esc(R.row)+'</b> (its titles)'
+    +(Array.isArray(R.sheets) && R.sheets.length>1? ', of '+R.sheets.length+' sheets searched' : '')
+    +' · '+(yrs.length? 'dollars in FY'+yrs[0]+'–FY'+yrs[yrs.length-1] : 'no dollars')+', then-year, $M in the file and whole dollars here.</div>';
+  // the columns, by title
+  h+='<details class="acerep-map"><summary style="font-size:10.5px;cursor:pointer">Columns read, by title ('+Object.keys(R.map||{}).length+')</summary>'
+    +'<table class="fctab" style="margin:4px 0"><tr><th style="text-align:left">Field</th><th style="text-align:left">Title in the file</th><th>Column</th><th style="text-align:left">Found</th></tr>'
+    +ACE_FIELDS.filter(function(F){ return (R.map||{})[F.f]; }).map(function(F){ const m=R.map[F.f];
+      return '<tr><td style="text-align:left">'+esc(F.t)+'</td><td style="text-align:left">'+esc(m.t)+'</td><td>'+esc(m.c)+'</td><td style="text-align:left">'
+        +(m.how==='asked'? 'answered in the mapping box' : (m.how==='remembered'? 'remembered for this layout' : 'by its title'))+'</td></tr>'; }).join('')
+    +'</table>'+((R.absent||[]).length? '<div class="hint">Not in this file (they name nothing): '+R.absent.map(function(f){ return esc((aceField(f)||{t:f}).t); }).join(', ')+'.</div>' : '')
+    +'</details>';
+  // every reason, rows and dollars
+  h+='<div style="display:flex;gap:8px;align-items:center;margin:8px 0 4px"><label for="aceRepYrSel" style="font-size:10px;color:var(--dim)">Dollars for</label>'
+    +'<select id="aceRepYrSel" class="btn" style="font-size:10px;padding:3px 8px" onchange="aceRepYrSet(this.value)">'
+    +yrs.map(function(y){ return '<option value="'+y+'"'+(y===aceRepYr?' selected':'')+'>FY'+y+'</option>'; }).join('')
+    +'<option value="all"'+(aceRepYr==='all'?' selected':'')+'>All years</option></select></div>';
+  h+='<table class="fctab acerep-why" style="margin-bottom:4px"><colgroup><col style="width:56%"><col style="width:10%"><col style="width:17%"><col style="width:17%"></colgroup>'
+    +'<tr><th style="text-align:left">What the row is</th><th>Rows</th><th>'+esc(ylbl)+'</th><th>All years</th></tr>'
+    +'<tr class="acerep-kept"><td style="text-align:left"><b>Kept</b> — '+esc(R.kept.lines)+' cost line'+(R.kept.lines===1?'':'s')
+      +(R.kept.zero? ' (and '+esc(R.kept.zero)+' paragraph'+(R.kept.zero===1?'':'s')+' with no dollar, in the tree)' : '')+'</td>'
+      +'<td>'+esc(R.kept.rows)+'</td><td>'+fD(vOf(R.kept.v))+'</td><td>'+fD(allOf(R.kept.v))+'</td></tr>';
+  ACE_WHY.forEach(function(W0){ const x=R.reasons[W0.k]; if(!x) return;
+    const by=Object.keys(x.by||{});
+    h+='<tr data-why="'+esc(W0.k)+'"><td style="text-align:left">Left out: '+esc(W0.t)
+      +(by.length && (W0.k==='dtype' || W0.k==='pmo' || W0.k==='slc' || W0.k==='svc' || W0.k==='partner')
+        ? '<span style="color:var(--dim)"> · '+by.slice(0,6).map(function(b){ return esc(b)+' '+esc(x.by[b]); }).join(', ')+(by.length>6? ' …' : '')+'</span>' : '')
+      +'</td><td>'+esc(x.rows)+'</td><td>'+fD(vOf(x.v))+'</td><td>'+fD(allOf(x.v))+'</td></tr>'; });
+  h+='<tr class="tot"><td style="text-align:left">The sheet: every row under the titles</td><td>'+esc(R.total.rows)+'</td><td>'+fD(vOf(R.total.v))+'</td><td>'+fD(allOf(R.total.v))+'</td></tr></table>'
+    +'<div class="hint acerep-ties" style="margin-bottom:8px">'+(R.ties? '✓ Every dollar of the sheet is kept or in one reason above, every year, to the dollar.'
+      : '<b style="color:var(--red)">✗ Kept and left out do not add to the sheet.</b>')
+    +(R.notData? ' '+esc(R.notData)+' row'+(R.notData===1?'':'s')+' with no WBS and no dollar '+(R.notData===1?'was':'were')+' formatting, not data.' : '')+'</div>';
+  // the tree
+  const tr=Object.keys(R.tree||{});
+  h+='<div class="acerep-tree" style="font-size:11px;margin-bottom:6px"><b>WBS paragraphs</b>, each with every heading above it and named from the CES columns: '
+    +(tr.length? tr.map(function(ap){ return esc(appnName(ap))+' <b>'+esc(R.tree[ap])+'</b>'; }).join(' · ') : 'none')+'.</div>';
+  // what is named
+  const groups=ACE_WHY.filter(function(W0){ return W0.named; }).concat(ACE_NOTE);
+  groups.forEach(function(G){
+    const L=(R.named||[]).filter(function(n){ return n.k===G.k; }); if(!L.length) return;
+    const kept=ACE_NOTE.indexOf(G)>=0;
+    h+='<div class="acerep-named" data-why="'+esc(G.k)+'" style="margin-top:8px"><div style="font-size:10.5px;font-weight:700">'
+      +(kept? 'Kept, and named: ' : 'Left out, and named: ')+esc(G.t)+' — '+L.length+' row'+(L.length===1?'':'s')+'</div>'
+      +'<table class="fctab"><colgroup><col style="width:9%"><col style="width:22%"><col style="width:49%"><col style="width:20%"></colgroup>'
+      +'<tr><th>Row</th><th style="text-align:left">WBS</th><th style="text-align:left">What the file says</th><th>'+esc(ylbl)+'</th></tr>'
+      +L.slice(0, ACE_REP_CAP).map(function(n){ return '<tr><td>'+esc(n.row)+'</td><td style="text-align:left">'+esc(n.wbs||'—')+'</td>'
+        +'<td style="text-align:left">'+esc(n.what||'')+'</td><td>'+fD(vOf(n.v))+'</td></tr>'; }).join('')
+      +'</table>'+(L.length>ACE_REP_CAP? '<div class="hint">The first '+ACE_REP_CAP+' of '+L.length+' are shown; the import keeps every one with the estimate.</div>' : '')
+      +'</div>';
+  });
+  if((R.conflicts||[]).length){
+    h+='<div class="acerep-conf" style="margin-top:8px"><div style="font-size:10.5px;font-weight:700">A paragraph two rows name differently — '
+      +R.conflicts.length+': the first name in the file is kept</div><table class="fctab"><colgroup><col style="width:22%"><col style="width:34%"><col style="width:44%"></colgroup>'
+      +'<tr><th style="text-align:left">Paragraph</th><th style="text-align:left">Name kept</th><th style="text-align:left">Also named, by row</th></tr>'
+      +R.conflicts.slice(0, ACE_REP_CAP).map(function(c){ return '<tr><td style="text-align:left">'+esc(c.code)+' <span style="color:var(--dim)">'+esc(appnName(c.ap))+'</span></td>'
+        +'<td style="text-align:left">'+esc(c.n)+'</td><td style="text-align:left">'+(c.also||[]).map(function(a){ return esc(a.n)+' <span style="color:var(--dim)">(row'
+        +((a.rows||[]).length===1?' ':'s ')+esc((a.rows||[]).join(', '))+')</span>'; }).join('; ')+'</td></tr>'; }).join('')
+      +'</table>'+(R.conflicts.length>ACE_REP_CAP? '<div class="hint">The first '+ACE_REP_CAP+' of '+R.conflicts.length+' are shown.</div>' : '')+'</div>';
+  }
+  h+='<div class="hint" style="margin-top:10px">Only then-year rows the JPO manages, under an office ORBIT knows, are read. Subtotals (Rollup Value? Yes) and '
+    +'Cost’s summary rows (a blank Support Line Category) are left out so no dollar is counted twice; Service Mgd, MILPERS and partner or FMS lines are '
+    +'not the JPO’s to execute. PSM’s money is inside Air Vehicle in every estimate: the tie-out splits it by the WBS each office’s requirements claim.</div>';
+  el.innerHTML=h;
 }
 // ---------- OSD obligation goals (computed): O&M linear yr1; procurement 0–80/80–90/90–100 ----------
 function osdGoal(fy, asOfYm, isOM){
@@ -24486,7 +25035,8 @@ function spBodyDraw(el){
     +Object.keys(ACEDB.sets||{}).sort().map(k=>'<option value="'+esc(k)+'" '+(spAce===k?'selected':'')+'>'+esc(k)+((ACEDB.sets[k]||{}).locked?' \ud83d\udd12':'')+'</option>').join('')
     +(Object.keys(ACEDB.sets||{}).length? '' : '<option value="ace25" disabled>no cost estimate imported yet</option>')
     +'</select></label>'
-    +'&nbsp;&nbsp;<button class="btn" style="font-size:10px;padding:4px 10px" onclick="alert(\'ACE import is staged here — once the standardized cost estimate spreadsheet is settled, it will load and filter by PMO, appropriation, and cost element into these columns.\')">📥 Import Annual Cost Estimate…</button></div>';
+    // v2.12 (item 132): the real import. This button only said the import was "staged here", long after it shipped.
+    +'&nbsp;&nbsp;<button class="btn" style="font-size:10px;padding:4px 10px" onclick="document.getElementById(\'aceFile\').click()">📥 Import Annual Cost Estimate…</button></div>';
   const hd='<tr><th style="text-align:left">&nbsp;</th>'+G.years.map(y=>'<th>FY'+(y%100)+'</th>').join('')+'<th style="border-left:1px solid var(--gold)">TOTAL</th></tr>';
   const gReq={}, gBud={};
   G.blocks.forEach(b=>{
@@ -29104,7 +29654,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); fdcSync(); exBody(); flowBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); aceRepBody(); aceColSync(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); fdcSync(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -29778,6 +30328,13 @@ function syncBtns(){
        Object.keys(ACEDB.sets||{}).length
          ? 'held: '+Object.keys(ACEDB.sets).sort().map(k=>esc(k)+((ACEDB.sets[k]||{}).locked?' 🔒':'')).join(' · ')
          : 'ACE workbook (.xlsx)'),
+    // v2.12 (item 132): the newest estimate's import report -- what was read, and every dollar left out and why
+    acer: mi('📋 Import report…',"mRun(aceRepShow)",aceRepOpen,
+       (function(){ const k=aceRepNewest(), s=k? aceSet(k) : null, R=s && s.rep;
+         if(!k) return 'no estimate imported yet';
+         if(!R || !R.reasons) return esc(k)+': imported before v2.12, row counts only';
+         const out=Object.keys(R.reasons).reduce(function(a, x){ return a+((R.reasons[x]||{}).rows||0); }, 0);
+         return esc(k)+': '+esc((R.kept||{}).lines||0)+' lines kept · '+out+' row'+(out===1?'':'s')+' left out, with reasons'; })()),
     bae: mi('💰 Import Budget Extract (BAE)…',"mRun(()=>document.getElementById('budFile').click())",false,
         budReg().length? 'reconciles the departments the file covers' : 'USAF and DON — import both'),
     budl: mi('📋 Budget list…',"mRun(toggleBudReg)",false,
@@ -29882,7 +30439,7 @@ function syncBtns(){
       when(function(){ const x=MS.ccarIdx; return x && x.ts? esc(fmtTs(x.ts))+(x.file? ' · '+esc(x.file) : '') : ''; }), I.ccar)+
     card('ace', 'Annual Cost Estimate', 'The cost estimate workbook, one for each year and PPBE cycle, read beside the five-year plan.',
       when(function(){ const S2=(ACEDB&&ACEDB.sets)||{}, t=Object.keys(S2).reduce(function(a, k){ return Math.max(a, +((S2[k]||{}).ts)||0); }, 0);
-        return t? esc(fmtTs(t)) : ''; }), lbl('Cost estimates')+I.acei+I.acet)+
+        return t? esc(fmtTs(t)) : ''; }), lbl('Cost estimates')+I.acei+I.acer+I.acet)+
     card('bae', 'Budget extract (BAE)', 'The USAF and DON budget extracts: the budget names the Spend Plan Source export files money under.',
       when(function(){ const b=budSrc(); return b && b.ts && budReg().length? esc(fmtTs(b.ts)) : ''; }),
       lbl('Budget extract — for the Spend Plan Source export')+I.bae+I.budl)+'</div>'); }
@@ -34305,6 +34862,16 @@ function exportAceTieout(){
         rows.push(['FY'+(sc.fy%100),
                    present.join(' + ')+(present.length>1? '   (one line in '+k+')':''),
                    {v:est,s:N},{v:bd,s:N},{v:bd-est,s:N},{v:nOk,s:0},{v:mine.length,s:0}]);
+        // v2.12 (item 132): beneath it, each office's part -- the lines only its requirements claim -- and the shared line. A
+        // breakdown of the row above, not more rows of the year: the TOTAL below adds the offices' rows, never these.
+        if(bs.length>1){
+          const sp=aceGroupSplit(k, ap, bs, [sc]);
+          present.forEach(function(g){
+            const e=sp.by[g]||0, b=mine.filter(function(r){ return r.pmo===g; }).reduce(function(a,r){ return a+r.f; },0);
+            rows.push(['FY'+(sc.fy%100), '\u21b3 '+g+': the lines only its requirements claim', {v:e,s:N},{v:b,s:N},{v:b-e,s:N}, '', '']);
+          });
+          rows.push(['FY'+(sc.fy%100), '\u21b3 shared: the lines more than one office claims, or none', {v:sp.shared,s:N}, '', '', '', '']);
+        }
       });
       // AN ESTIMATE LINE UNDER A PMO NO OFFICE REPORTS UNDER used to vanish from this sheet, while
       // the Mapping sheet still counted it if a requirement confirmed it -- two sheets of one export
@@ -36932,6 +37499,9 @@ try{ const O=cycOverview(), me=O.rows.filter(function(r){ return r.own; })[0];
     _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+'🏷 <b>'+esc(appnName(mySlug()))+'</b> is '
       +(me.tag? 'tagged '+blLbl(me.tag) : 'not tagged')+', and the other appropriations are on <b>'+blLbl(O.lead)+'</b>. '
       +'<button type="button" class="nb lnk" onclick="cycRetagLead()">Retag '+esc(appnName(mySlug()))+' as '+blLbl(O.lead)+'</button>'); } }catch(e){}
+// v2.12 (item 132): a 2026 estimate's alignment healed on opening is said once, after everything opening had to say
+ACE_BOOTED=true;
+try{ aceHealSay(true); }catch(e){}
 function loadShared(cb){
   // v2.09 second review: A PMO COPY READS NO SHARED STATE FILE. The file beside the board is the board's own state, and a copy on
   // the same share, in a browser where somebody once opted in, loaded it over the office's work (copyImportRefuse's rule: a

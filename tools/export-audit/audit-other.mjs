@@ -3999,6 +3999,280 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== end v2.11 ====
 
 // ==== v2.12 W1 (item 132): the ACE import by its header titles, the WBS tree, PSM inside Air Vehicle ====
+// v2.12 W1 (item 132; Brad, 28 Oct 2026): THE COST ESTIMATE IS READ BY ITS HEADER TITLES, ON ANY SHEET. A workbook shaped like the
+// 2026 file is built by the board's own writer: a Cover sheet first, then PMO Database Output with a title line, a blank row and
+// the titles on row 3, in the 2026 order (the WBS in Z, Level in AA, CES1 from AB), columns ORBIT does not read among them and one
+// inserted, a Notes sheet whose few titles must lose to the real header, and a row of every kind the import leaves out, each with
+// dollars that differ by row and year. Every expectation is typed here from the fixture -- the reason each row should land in, the
+// lines, the tree, the dollars by reason by year -- never read back out of the board; and the conservation the report states is
+// checked against the sheet's own dollars, added up here. Then the mapping box: two titles renamed, asked once, Cancel and an
+// unanswered field importing nothing, the answers used and remembered for the same layout, and asked again for another. Then the
+// refusals (an .xlsb by name and by its contents, a file with no then-year row, a sheet with no titles), the report box as drawn,
+// the Data card's item, and PSM inside Air Vehicle: every estimate's default, and a stored {} on a 2026 estimate replaced on
+// opening and said once. FAILS ON d732259 (the slot commit), which reads fixed positions off the first sheet: every import is
+// "nothing matched the expected columns", and its alignment for a 2026 estimate is {}.
+{
+  const name = 'v2.12 W1 — the cost estimate is read by its header titles on any sheet: every row kept or left out with its reason and dollars, the WBS tree, the mapping box, the report';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const parse = s => { try { return JSON.parse(s); } catch { return null; } };
+    const HDR = ['Index', 'Sub Index', 'PALS/O&S', '$ Type', 'US/PTN/FMS', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Shared/Unique',
+      'Share Type', 'Cost Allocation Rule', 'Primary Requirement Driver', 'Govt/LM/PW', 'Labor/Material', 'Contract Requirement', 'Bi/Multilat',
+      'Budget Element (US Only)', 'Appropriation (US Only)', 'Support Line Category', 'CCAR Element', 'CCAR Budget', 'CCAR Description', 'PMO',
+      'Owning IPT', 'Work Breakdown Structure', 'Level', 'CES1', 'CES2', 'CES3', 'CES4', 'CES5', 'CES6', 'CES7', 'CES8',
+      2024, 2025, 2026, 2027, 2028, 'Comments'];
+    const YRS = [2024, 2025, 2026, 2027, 2028];
+    const OM = ['Unit-Level Manpower', 'Unit-Level Maintenance', 'Organizational Maintenance'];
+    const DS = ['Depot Standup', 'CONUS Depot Standup'];
+    // Each row: what the file says (defaults: O&S, TY$, US, USAF F-35A, not a rollup, JPO managed, O&M, Air Vehicle), its dollars
+    // (d: whole dollars, written into the sheet in $M; raw: a cell written as text), and what the import must do with it: `why`
+    // the reason it is left out, or `x` the line it is kept as; `note` the reasons it is kept and named.
+    const R = [
+      { wbs: '1.2.1.1', ces: OM.concat(['Officer']), d: { 2027: 1234567, 2028: -250000 }, raw: { 2028: '(0.25)' }, ccar: 'JSF5594', cdesc: 'Sustainment ops',
+        x: { ap: 'om', pmo: 'AV', svc: 'USAF', ce: '' } },
+      { wbs: '1.2.1.2', ces: OM.concat(['Enlisted']), svc: 'ANG', pmo: 'Propulsion', d: { 2027: 2500000, 2028: 100001 }, x: { ap: 'om', pmo: 'PP', svc: 'ANG', ce: '' } },
+      { wbs: '1.2.2', ces: [OM[0], OM[1], 'Intermediate Maintenance'], svc: 'USMC', tms: 'F-35B', pmo: 'Training Systems & Simulation', d: { 2027: 750003 },
+        x: { ap: 'om', pmo: 'TSS', svc: 'STOVL', ce: '' } },
+      // a name conflict: 1.2 named "Unit Level Maint." here, "Unit-Level Maintenance" first
+      { wbs: '1.2.1.3', ces: [OM[0], 'Unit Level Maint.', OM[2], 'Civilian'], svc: 'USN', tms: 'F-35C', d: { 2027: 333004 }, x: { ap: 'om', pmo: 'AV', svc: 'USN', ce: '' } },
+      // the Level is not the paragraph's depth: kept, named
+      { wbs: '1.3.1', lv: 4, ces: [OM[0], 'Contractor Support', 'Field Service'], svc: 'AFRC', d: { 2027: 400005, 2026: 12345 }, note: ['level'],
+        x: { ap: 'om', pmo: 'AV', svc: 'AFRC', ce: '' } },
+      // an O&S paragraph starting with P: kept, named
+      { wbs: 'P1.4', ces: ['Pseudo PALS', 'Mislettered'], d: { 2027: 600006 }, note: ['p'], x: { ap: 'om', pmo: 'AV', svc: 'USAF', ce: '' } },
+      // a paragraph with no dollar: in the tree, no line
+      { wbs: '1.2.1.4', ces: OM.concat(['Reserve']), d: {}, zero: true, x: { ap: 'om' } },
+      // kept with no WBS: named
+      { wbs: '', lv: '', ces: [], d: { 2027: 50007 }, note: ['nowbs'], x: { ap: 'om', pmo: 'AV', svc: 'USAF', ce: '' } },
+      // Initial Spares, a PALS paragraph that does not start with P: kept, named
+      { wbs: '7.1', pals: 'PALS', slc: 'Initial Spares', appus: 'Procurement', ces: ['Spares', 'Initial'], d: { 2027: 900008 }, note: ['p'], x: { ap: 'sp', pmo: 'AV', svc: 'USAF', ce: '' } },
+      // Full Fund: Depot Activation of every kind, and the E breakouts
+      { wbs: 'P6.2.2.1', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: DS.concat(['Propulsion', 'Engine shop']), d: { 2027: 1100009, 2028: 1200010 },
+        x: { ap: 'ff', pmo: 'PP', svc: 'USAF', ce: 'Depot Standup Propulsion' } },
+      { wbs: 'P6.2.2.1E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: DS.concat(['ECU Propulsion', 'Engine shop ECU']), d: { 2027: 450011 },
+        x: { ap: 'ff', pmo: 'PP', svc: 'USAF', ce: 'Depot Standup Propulsion' } },
+      { wbs: 'P6.3.2', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Air Vehicle', ces: ['Depot Standup', 'Software Depot Standup', 'Propulsion'], d: { 2027: 220012 },
+        x: { ap: 'ff', pmo: 'AV', svc: 'USAF', ce: 'Depot Standup Software' } },
+      { wbs: 'P6.3.2E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Combat Data Systems', ces: ['Depot Standup', 'Software Depot Standup', 'ECU Propulsion'], d: { 2027: 230013 },
+        x: { ap: 'ff', pmo: 'CDS', svc: 'USAF', ce: 'Depot Standup Software' } },
+      { wbs: 'P6.5.1.2E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Air Vehicle', ces: ['Depot Standup', 'Government Depot', 'Government', 'Gov line E'], d: { 2027: 300014 },
+        x: { ap: 'ff', pmo: 'AV', svc: 'USAF', ce: 'Depot Standup Air Vehicle' } },
+      { wbs: 'P6.5.1.2', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Air Vehicle', ces: ['Depot Standup', 'Government Depot', 'Government', 'Gov line'], d: { 2027: 200015 },
+        x: { ap: 'ff', pmo: 'AV', svc: 'USAF', ce: 'Depot Standup Air Vehicle' } },
+      { wbs: 'P6.6.1', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Maintenance Systems', ces: ['Depot Standup', 'Other Depot', 'Unsettled'], d: { 2027: 170016 }, note: ['depot'],
+        x: { ap: 'ff', pmo: 'MxS', svc: 'USAF', ce: '' } },
+      { wbs: 'P2.1.1', pals: 'PALS', slc: 'PEC TRNG EQ (Full Mission Sims)', appus: 'Procurement', pmo: 'Training Systems & Simulation', ces: ['Training', 'Simulators', 'FMS sims'],
+        d: { 2027: 810017 }, x: { ap: 'ff', pmo: 'TSS', svc: 'USAF', ce: 'Full Mission Simulators' } },
+      { wbs: 'P3.1', pals: 'PALS', slc: 'Pubs / Tech Data', appus: 'Procurement', pmo: 'PO&A', ces: ['Data', 'Tech data'], d: { 2027: 64018 },
+        x: { ap: 'ff', pmo: 'BOP', svc: 'USAF', ce: 'Pubs/Tech Data' } },
+      { wbs: 'P3.2', pals: 'PALS', slc: 'Other ILS', appus: 'Procurement', pmo: 'Non-PMO', ces: ['Data', 'Other ILS'], d: { 2027: 77019 },
+        x: { ap: 'ff', pmo: 'Non-PMO', svc: 'USAF', ce: 'Other ILS Production' } },
+      { wbs: 'P9.1', pals: 'PALS', slc: 'Other Proc (OPN)', appus: 'Procurement', ces: ['Other Proc', 'Support equipment'], d: { 2027: 91020 },
+        x: { ap: 'opn', pmo: 'AV', svc: 'USAF', ce: '' } },
+      // left out, one of every kind, each with its own dollars
+      { wbs: '1.5.1', dt: 'CY$', ces: [OM[0], 'x', 'y'], d: { 2027: 5000021 }, why: 'dtype' },
+      { wbs: '1.5.2', dt: 'BY$', ces: [OM[0], 'x', 'z'], d: { 2028: 1000022 }, why: 'dtype' },
+      { wbs: '1.2', roll: 'Yes', ces: OM.slice(0, 2), d: { 2027: 3734567 }, why: 'rollup' },
+      { wbs: '1.9', slc: '', ces: [OM[0], 'Summary'], d: { 2027: 9000023 }, why: 'blank' },
+      { wbs: '1.6.1', appus: 'MILPERS', ces: [OM[0], 'm', 'n'], d: { 2027: 2200024 }, why: 'milpers' },
+      { wbs: '1.6.2', us: 'PTN', ces: [OM[0], 'm', 'p'], d: { 2027: 1700025 }, why: 'partner' },
+      { wbs: '1.6.3', us: 'FMS', ces: [OM[0], 'm', 'q'], d: { 2028: 800026 }, why: 'partner' },
+      { wbs: '1.6.4', jpo: 'No', ces: [OM[0], 'm', 'r'], d: { 2027: 600027 }, why: 'jpo' },
+      { wbs: '1.7.1', pmo: 'Service Mgd', ces: [OM[0], 's', 't'], d: { 2027: 4400028, 2028: 4500029 }, why: 'svcmgd' },
+      { wbs: '1.7.2', pmo: 'Owning IPT X', ces: [OM[0], 's', 'u'], d: { 2027: 110030 }, why: 'pmo' },
+      { wbs: 'P8.1', pals: 'PALS', slc: 'Modifications', appus: 'Procurement', ces: ['Mods', 'm'], d: { 2027: 220031 }, why: 'slc' },
+      { wbs: 'P8.2', slc: 'Airframe PGSE', ces: ['PGSE', 'm'], d: { 2027: 330032 }, why: 'pals' },
+      { wbs: '1.8.1', pals: 'PALS', ces: [OM[0], 'v', 'w'], d: { 2028: 440033 }, why: 'pals' },
+      { wbs: '1.8.2', svc: 'USMC', tms: 'F-35A', ces: [OM[0], 'v', 'x'], d: { 2027: 550034 }, why: 'svc' },
+      // not data: no WBS and no dollar (formatting between the rows)
+      { wbs: '', lv: '', ces: [], d: {}, notData: true, idx: '' }
+    ];
+    const MUL = 1e6;
+    const rowOf = (o, i, hdr) => { const r = hdr.map(() => '');
+      const put = (t, v) => { const j = hdr.indexOf(t); if (j >= 0) r[j] = v; };
+      put('Index', o.idx !== undefined ? o.idx : i + 1); put('PALS/O&S', o.pals || 'O&S'); put('$ Type', o.dt || 'TY$'); put('US/PTN/FMS', o.us || 'US');
+      put('Service', o.svc || 'USAF'); put('T/M/S', o.tms || 'F-35A'); put('Rollup Value?', o.roll || 'No'); put('JPO Managed', o.jpo || 'Yes');
+      put('Appropriation (US Only)', o.appus || 'O&M'); put('Support Line Category', o.slc === undefined ? 'O&S' : o.slc);
+      put('CCAR Element', o.ccar || ''); put('CCAR Description', o.cdesc || ''); put('PMO', o.pmo || 'Air Vehicle'); put('Owning IPT', 'IPT ' + i);
+      put('Cost Allocation Rule', 'rule ' + i); put('Work Breakdown Structure', o.wbs);
+      put('Level', o.lv !== undefined ? o.lv : (o.wbs ? o.wbs.split('.').length : ''));
+      (o.ces || []).forEach((n, k) => put('CES' + (k + 1), n));
+      YRS.forEach(y => { if (o.raw && o.raw[y] !== undefined) put(y, o.raw[y]); else if (o.d[y] !== undefined) put(y, o.d[y] / MUL); });
+      put('Comments', 'note ' + i);
+      if (o.notData) { r.fill(''); r[hdr.indexOf('Comments')] = 'section break'; }
+      return r; };
+    // `shown` is the header as the file titles it: the rows are laid out by HDR's columns, so a renamed title moves nothing else
+    const book = (hdr, rows, shown) => [
+      { name: 'Cover', rows: [['2026 SUST ACE COMPLETE'], ['Detail file'], ['Service', 'PMO', 'Level']] },
+      { name: 'PMO Database Output', rows: [['PMO Database Output — FY26 estimate, then-year $M'], []].concat([shown || hdr], rows.map((o, i) => rowOf(o, i, hdr))) },
+      { name: 'Notes', rows: [['Service', 'PMO', 'Level', 'CES1', 'Work Breakdown Structure'], ['USAF', 'Air Vehicle', 3, 'x', '1.1']] }];
+    const imp = async (B, sheets, file) => { await B.ev(`importAce({files:[__wb(${J(sheets)}, ${J(file)})], value:''})`); await new Promise(r => setTimeout(r, 30)); };
+    const mkBoard = () => { const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], items: [], disc: [0, 0, 0, 0, 0, 0], mand: [0, 0, 0, 0, 0, 0], order: [] });
+      E(B.ev, `globalThis.__wb=function(sheets, name){ const b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; }; 'ok'`);
+      return B; };
+
+    // ---- the expectations, from the fixture alone
+    const sumV = (rs) => { const o = {}; rs.forEach(x => YRS.forEach(y => { if (x.d[y]) o[y] = (o[y] || 0) + x.d[y]; })); return o; };
+    const data = R.filter(o => !o.notData), keptR = data.filter(o => !o.why), outR = data.filter(o => o.why);
+    const WHY = ['dtype', 'rollup', 'blank', 'milpers', 'partner', 'jpo', 'svcmgd', 'pmo', 'slc', 'pals', 'svc'];
+    const NAMED_OUT = ['blank', 'pmo', 'slc', 'pals', 'svc'];
+    const rowNoOf = o => R.indexOf(o) + 4;           // the titles on row 3, the first data row is row 4
+    const wantLines = keptR.filter(o => !o.zero).map(o => [o.x.ap, o.x.pmo, o.x.svc, o.wbs.toUpperCase(), o.wbs ? o.wbs.split('.').length : 0, o.x.ce,
+      o.slc === undefined ? 'O&S' : o.slc, o.ccar || '', o.cdesc || '', o.d]);
+    const wantReasons = {}; WHY.forEach(k => { const rs = outR.filter(o => o.why === k); if (rs.length) wantReasons[k] = { rows: rs.length, v: sumV(rs) }; });
+    const wantNamed = [];
+    data.forEach(o => { if (o.why && NAMED_OUT.indexOf(o.why) >= 0) wantNamed.push([o.why, rowNoOf(o)]);
+      (o.note || []).forEach(k => wantNamed.push([k, rowNoOf(o)])); });
+    wantNamed.sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1));
+    const node = (n, lv, up) => ({ n, lv, up });
+    const wantTree = {
+      om: { '1': node(OM[0], 1, ''), '1.2': node(OM[1], 2, '1'), '1.2.1': node(OM[2], 3, '1.2'), '1.2.1.1': node('Officer', 4, '1.2.1'),
+        '1.2.1.2': node('Enlisted', 4, '1.2.1'), '1.2.2': node('Intermediate Maintenance', 3, '1.2'), '1.2.1.3': node('Civilian', 4, '1.2.1'),
+        '1.3': node('Contractor Support', 2, '1'), '1.3.1': node('Field Service', 3, '1.3'), 'P1': node('Pseudo PALS', 1, ''), 'P1.4': node('Mislettered', 2, 'P1'),
+        '1.2.1.4': node('Reserve', 4, '1.2.1') },
+      sp: { '7': node('Spares', 1, ''), '7.1': node('Initial', 2, '7') },
+      ff: { 'P6': node('Depot Standup', 1, ''), 'P6.2': node('CONUS Depot Standup', 2, 'P6'), 'P6.2.2': node('Propulsion', 3, 'P6.2'), 'P6.2.2.1': node('Engine shop', 4, 'P6.2.2'),
+        'P6.3': node('Software Depot Standup', 2, 'P6'), 'P6.3.2': node('Propulsion', 3, 'P6.3'), 'P6.5': node('Government Depot', 2, 'P6'),
+        'P6.5.1': node('Government', 3, 'P6.5'), 'P6.5.1.2': node('Gov line', 4, 'P6.5.1'), 'P6.6': node('Other Depot', 2, 'P6'), 'P6.6.1': node('Unsettled', 3, 'P6.6'),
+        'P2': node('Training', 1, ''), 'P2.1': node('Simulators', 2, 'P2'), 'P2.1.1': node('FMS sims', 3, 'P2.1'), 'P3': node('Data', 1, ''), 'P3.1': node('Tech data', 2, 'P3'),
+        'P3.2': node('Other ILS', 2, 'P3'),
+        // the breakouts: a heading takes the suffix only where its CES name differs from the unsuffixed heading's
+        'P6.2.2E': node('ECU Propulsion', 3, 'P6.2'), 'P6.2.2.1E': node('Engine shop ECU', 4, 'P6.2.2E'),
+        'P6.3.2E': node('ECU Propulsion', 3, 'P6.3'), 'P6.5.1.2E': node('Gov line E', 4, 'P6.5.1') },
+      opn: { 'P9': node('Other Proc', 1, ''), 'P9.1': node('Support equipment', 2, 'P9') } };
+    const sortTree = T => { const o = {}; Object.keys(T || {}).sort().forEach(ap => { o[ap] = {}; Object.keys(T[ap]).sort().forEach(c => { o[ap][c] = T[ap][c]; }); }); return o; };
+
+    chk(name, 'fixture', 'CONTROL — the dollars differ by row and by year, so a row counted under the wrong reason, or twice, moves a total',
+      (() => { const v = []; data.forEach(o => YRS.forEach(y => { if (o.d[y]) v.push(Math.abs(o.d[y])); })); return new Set(v).size === v.length && v.length > 30; })(), true);
+    chk(name, 'fixture', 'CONTROL — the header is on row 3 of the second sheet, with the WBS in Z, Level in AA and CES1 in AB, as the 2026 file',
+      [HDR.indexOf('Work Breakdown Structure'), HDR.indexOf('Level'), HDR.indexOf('CES1')].join(','), '25,26,27');
+
+    // ---- 1. the import, straight through
+    const B = mkBoard();
+    await imp(B, book(HDR, R), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    const set = parse(E(B.ev, `JSON.stringify(ACEDB.sets['2026ACE']||null)`)) || {};
+    const rep = set.rep || {};
+    chk(name, 'header', 'filed as 2026ACE: the year, then ACE anywhere after it in the file name', E(B.ev, `JSON.stringify(Object.keys(ACEDB.sets))`), J(['2026ACE']));
+    chk(name, 'header', 'it says which sheet and row it read its titles from: PMO Database Output, row 3 (not the Cover, not the Notes sheet)',
+      J([rep.sheet, rep.row, rep.sheets]), J(['PMO Database Output', 3, ['Cover', 'PMO Database Output', 'Notes']]));
+    chk(name, 'header', 'every column is found by its title wherever it sits: the WBS in Z, Level AA, CES1 AB, PMO X, Support Line Category T',
+      J(['wbs', 'lv', 'ces1', 'pmo', 'slc', 'roll', 'dtype'].map(f => [(rep.map || {})[f] && rep.map[f].c, (rep.map || {})[f] && rep.map[f].how])),
+      J([['Z', 'title'], ['AA', 'title'], ['AB', 'title'], ['X', 'title'], ['T', 'title'], ['H', 'title'], ['D', 'title']]));
+    chk(name, 'header', 'every fiscal year column is read (a header that is a year)', J(set.years), J(YRS));
+    const gotLines = (set.lines || []).map(l => [l.ap, l.pmo, l.svc, l.wbs, l.lv, l.ce, l.slc, l.ccar, l.cdesc, l.v]);
+    chk(name, 'lines', 'every kept row with a dollar is a line, in file order: its appropriation and cost element by the Support Line Category (Depot Activation by CES2, then PMO), its office, service, paragraph, level, CCaR fields and whole dollars',
+      J(gotLines), J(wantLines));
+    chk(name, 'lines', 'every figure is a whole dollar, and (0.25) read as -$250,000', (set.lines || []).every(l => Object.keys(l.v).every(y => Number.isInteger(l.v[y])))
+      + ' ' + ((set.lines || [])[0] || { v: {} }).v[2028], 'true -250000');
+    chk(name, 'tree', 'the WBS tree: every paragraph with every heading above it, named by its CES columns, the E breakouts under their own heading only where the name differs',
+      J(sortTree(set.wbs)), J(sortTree(wantTree)));
+    chk(name, 'tree', 'the readers walk it: P6.2.2.1E is under ECU Propulsion, P6.5.1.2E under Government',
+      E(B.ev, `JSON.stringify([aceWbsUp('2026ACE','ff','P6.2.2.1e'), aceWbsPath('2026ACE','ff','P6.2.2.1E'), aceWbsUp('2026ACE','ff','P6.5.1.2E')])`),
+      J([['P6.2.2.1E', 'P6.2.2E', 'P6.2', 'P6'], 'Depot Standup › CONUS Depot Standup › ECU Propulsion › Engine shop ECU', ['P6.5.1.2E', 'P6.5.1', 'P6.5', 'P6']]));
+    chk(name, 'conflicts', 'a paragraph two rows name differently keeps the first name and is named, with the row of the other',
+      J((rep.conflicts || []).map(c => [c.ap, c.code, c.n, (c.also || []).map(a => [a.n, a.rows])])), J([['om', '1.2', OM[1], [['Unit Level Maint.', [rowNoOf(R[3])]]]]]));
+    const gotReasons = {}; Object.keys(rep.reasons || {}).forEach(k => { gotReasons[k] = { rows: rep.reasons[k].rows, v: rep.reasons[k].v }; });
+    chk(name, 'reasons', 'each reason in the contract’s order: its rows and its dollars by year, every reason the fixture plants', J(gotReasons), J(wantReasons));
+    chk(name, 'reasons', 'the dollar types left out are named in the record', J(rep.types), J({ 'CY$': 1, 'BY$': 1 }));
+    chk(name, 'named', 'every named row, left out or kept: a blank category, an unknown PMO, category or service, PALS/O&S disagreeing, the P check, the Level check, an unsettled Depot Activation, no WBS',
+      J((rep.named || []).map(n => [n.k, n.row]).sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1))), J(wantNamed));
+    chk(name, 'kept', 'kept: the rows the fixture keeps, the lines with a dollar, the paragraph with none, and their dollars by year',
+      J([rep.kept && rep.kept.rows, rep.kept && rep.kept.lines, rep.kept && rep.kept.zero, rep.kept && rep.kept.v]), J([keptR.length, wantLines.length, 1, sumV(keptR)]));
+    // CONSERVATION, TO THE DOLLAR: every dollar of the sheet (added up here, from the fixture) is kept or in exactly one reason
+    const sheetV = sumV(data);
+    chk(name, 'conservation', 'the sheet’s dollars, every year: the record’s total is the fixture’s, and the formatting row is not data', J([rep.total && rep.total.v, rep.total && rep.total.rows, rep.notData]), J([sheetV, data.length, 1]));
+    chk(name, 'conservation', 'kept + every reason = the sheet, every year, to the dollar, and the report says it ties',
+      J(YRS.filter(y => sheetV[y]).map(y => (rep.kept.v[y] || 0) + Object.keys(rep.reasons || {}).reduce((a, k) => a + (rep.reasons[k].v[y] || 0), 0))) + ' ' + rep.ties,
+      J(YRS.filter(y => sheetV[y]).map(y => sheetV[y])) + ' true');
+    chk(name, 'aggregates', 'the appropriation totals the Spruills read are the kept lines’ dollars', J(Object.keys(set.appn || {}).sort().map(ap => [ap, set.appn[ap].tot])),
+      J(['ff', 'om', 'opn', 'sp'].map(ap => [ap, sumV(keptR.filter(o => o.x.ap === ap))])));
+    // the report opens after the import, and its message says where it lives
+    chk(name, 'report', 'the import report opens after the import (the Spruills does not), and the message points to it',
+      E(B.ev, `[aceRepOpen, spOpen, document.getElementById('aceRepPanel').classList.contains('open'), /Data \\u203a Import report/.test(document.getElementById('shareStat').textContent)].join(',')`), 'true,false,true,true');
+    const wantRowCells = k => { const x = wantReasons[k]; return [String(x.rows), '$' + (x.v[2027] || 0).toLocaleString('en-US'), '$' + Object.values(x.v).reduce((a, b) => a + b, 0).toLocaleString('en-US')]; };
+    chk(name, 'report', 'the box draws each reason: its rows, the year on screen’s dollars and all years’',
+      E(B.ev, `JSON.stringify(['svcmgd','dtype','blank'].map(function(k){ var tr=document.querySelector('#aceRepBody tr[data-why="'+k+'"]'); return tr? [].slice.call(tr.children,1).map(function(td){ return td.textContent; }) : null; }))`),
+      J(['svcmgd', 'dtype', 'blank'].map(wantRowCells)));
+    chk(name, 'report', 'and the named rows by row number, and the tree’s size by appropriation, and that it ties',
+      E(B.ev, `JSON.stringify([[].slice.call(document.querySelectorAll('#aceRepBody .acerep-named[data-why="pmo"] tr td:first-child')).map(function(td){ return td.textContent; }),
+        document.querySelector('#aceRepBody .acerep-tree').textContent.replace(/\\s+/g,' '), /\\u2713 Every dollar/.test(document.querySelector('#aceRepBody .acerep-ties').textContent)])`),
+      J([[String(rowNoOf(R.find(o => o.why === 'pmo')))], 'WBS paragraphs, each with every heading above it and named from the CES columns: O&M 12 · Initial Spares 2 · Full Fund 21 · OPN 2.', true]));
+    // the Data card's item reopens it, for the newest estimate
+    E(B.ev, `aceRepClose(); 'ok'`);
+    const subNow = E(B.ev, `(function(){ syncBtns(); var b=[].slice.call(document.querySelectorAll('#dd_data .mi')).find(function(x){ return /Import report/.test(x.textContent); });
+        if(!b) return 'no item'; var sub=(b.querySelector('.sub')||{}).textContent||''; b.click(); return sub; })()`);
+    await new Promise(r => setTimeout(r, 20));
+    chk(name, 'report', 'the Data card offers it, says what the newest estimate kept and left out, and opens it',
+      subNow + ' | ' + E(B.ev, `aceRepOpen+' '+aceRepK`), '2026ACE: ' + wantLines.length + ' lines kept · ' + outR.length + ' rows left out, with reasons | true 2026ACE');
+    E(B.ev, `aceRepClose(); 'ok'`);
+
+    // ---- 2. a title that has changed: asked once, in the mapping box; Cancel and an unanswered field import nothing
+    const HDR2 = HDR.map(t => t === 'Rollup Value?' ? 'Roll-up Flag' : (t === 'PALS/O&S' ? 'Account Family' : t));
+    const B2 = mkBoard();
+    const before = E(B2.ev, `JSON.stringify(ACEDB)`);
+    await imp(B2, book(HDR, R, HDR2), '2026 ACE renamed.xlsx');
+    chk(name, 'mapping box', 'a required title the file does not carry is asked about, in the box, listing the file’s own headers; nothing is stored yet',
+      E(B2.ev, `JSON.stringify([aceColOpen, document.getElementById('aceColPanel').classList.contains('open'), [].slice.call(document.querySelectorAll('#aceColBody select')).map(function(s){ return s.id; }),
+        [].slice.call((document.getElementById('aceCol_roll')||{options:[]}).options).map(function(o){ return o.textContent; }).filter(function(t){ return /Roll-up|Comments|— not/.test(t); }), JSON.stringify(ACEDB)===${J(before)}])`),
+      J([true, true, ['aceCol_roll', 'aceCol_pals'], ['— not in this file —', 'H · Roll-up Flag', 'AO · Comments'], true]));
+    E(B2.ev, `aceColCancel(); 'ok'`);
+    chk(name, 'mapping box', 'Cancel imports nothing', E(B2.ev, `JSON.stringify([aceColOpen, JSON.stringify(ACEDB)===${J(before)}, /canceled/.test(document.getElementById('shareStat').textContent)])`), J([false, true, true]));
+    await imp(B2, book(HDR, R, HDR2), '2026 ACE renamed.xlsx');
+    E(B2.ev, `document.getElementById('aceCol_roll').value=String(${HDR2.indexOf('Roll-up Flag')}); document.querySelector('#aceColBody button.btn.pri').click(); 'ok'`);
+    await new Promise(r => setTimeout(r, 30));
+    chk(name, 'mapping box', 'a field still unanswered refuses the file, naming the field, and nothing is stored',
+      E(B2.ev, `JSON.stringify([/PALS\\/O&S/.test(document.getElementById('shareStat').textContent), /failed/.test(document.getElementById('shareStat').textContent), JSON.stringify(ACEDB)===${J(before)}])`), J([true, true, true]));
+    await imp(B2, book(HDR, R, HDR2), '2026 ACE renamed.xlsx');
+    E(B2.ev, `document.getElementById('aceCol_roll').value=String(${HDR2.indexOf('Roll-up Flag')}); document.getElementById('aceCol_pals').value=String(${HDR2.indexOf('Account Family')});
+      document.querySelector('#aceColBody button.btn.pri').click(); 'ok'`);
+    await new Promise(r => setTimeout(r, 30));
+    const set2 = parse(E(B2.ev, `JSON.stringify(ACEDB.sets['2026ACE']||null)`)) || {};
+    chk(name, 'mapping box', 'answered, the file is read exactly as the titled one: the same lines, tree and reasons',
+      J([(set2.lines || []).map(l => [l.ap, l.pmo, l.svc, l.wbs, l.lv, l.ce, l.slc, l.ccar, l.cdesc, l.v]), sortTree(set2.wbs), Object.keys((set2.rep || {}).reasons || {}).map(k => [k, set2.rep.reasons[k].rows])]),
+      J([wantLines, sortTree(wantTree), Object.keys(wantReasons).map(k => [k, wantReasons[k].rows])]));
+    chk(name, 'mapping box', 'the answers are said in the report and remembered for this layout, in ACEDB (so they travel with the board)',
+      J([(set2.rep.map.roll || {}).how, (set2.rep.map.pals || {}).how, (set2.rep.map.roll || {}).t, parse(E(B2.ev, `JSON.stringify(Object.keys(ACEDB.cols||{}).map(function(k){ return ACEDB.cols[k].map; }))`))]),
+      J(['asked', 'asked', 'Roll-up Flag', [{ roll: 'Roll-up Flag', pals: 'Account Family' }]]));
+    await imp(B2, book(HDR, R, HDR2), '2026 ACE renamed.xlsx');
+    chk(name, 'mapping box', 'the same layout again is read without asking, by the remembered answers',
+      E(B2.ev, `JSON.stringify([aceColOpen, (ACEDB.sets['2026ACE'].rep.map.roll||{}).how, (ACEDB.sets['2026ACE'].rep.map.pals||{}).how, ACEDB.sets['2026ACE'].lines.length])`), J([false, 'remembered', 'remembered', wantLines.length]));
+    const HDR3 = HDR2.concat(['Another new column']);
+    await imp(B2, book(HDR, R, HDR3), '2026 ACE renamed.xlsx');
+    chk(name, 'mapping box', 'a different layout (one more column) is a different signature, and is asked about again',
+      E(B2.ev, `JSON.stringify([aceColOpen, [].slice.call(document.querySelectorAll('#aceColBody select')).map(function(s){ return s.id; })])`), J([true, ['aceCol_roll', 'aceCol_pals']]));
+    E(B2.ev, `aceColCancel(); 'ok'`);
+
+    // ---- 3. refusals: nothing is stored
+    const B3 = mkBoard();
+    const b3 = E(B3.ev, `JSON.stringify(ACEDB)`);
+    await B3.ev(`importAce({files:[{name:'2026 SUST ACE COMPLETE.xlsb', arrayBuffer: async function(){ return new ArrayBuffer(8); }}], value:''})`);
+    chk(name, 'refused', 'an .xlsb is refused before it is read, saying to save it as .xlsx', E(B3.ev, `/save it as an Excel Workbook \\(\\.xlsx\\)/.test(document.getElementById('shareStat').textContent)+' '+(JSON.stringify(ACEDB)===${J(b3)})`), 'true true');
+    await B3.ev(`(function(){ var z=_zipStore([['xl/workbook.bin', new Uint8Array([1,2,3])], ['[Content_Types].xml', _utf8('<Types/>')]]);
+      return importAce({files:[{name:'2026 ACE.xlsx', arrayBuffer: async function(){ return z.buffer.slice(z.byteOffset, z.byteOffset+z.byteLength); }}], value:''}); })()`);
+    await new Promise(r => setTimeout(r, 30));
+    chk(name, 'refused', 'a binary workbook renamed .xlsx is named for what it is', E(B3.ev, `/Excel Binary Workbook/.test(document.getElementById('shareStat').textContent)+' '+(JSON.stringify(ACEDB)===${J(b3)})`), 'true true');
+    await imp(B3, book(HDR, R.filter(o => !o.notData).map(o => Object.assign({}, o, { dt: 'CY$' }))), '2026 ACE.xlsx');
+    chk(name, 'refused', 'a file with no then-year row is refused, naming the types it holds', E(B3.ev, `/no then-year rows.*CY\\$/.test(document.getElementById('shareStat').textContent)+' '+(JSON.stringify(ACEDB)===${J(b3)})`), 'true true');
+    await imp(B3, [{ name: 'Sheet1', rows: [['a', 'b'], [1, 2]] }], '2026 ACE.xlsx');
+    chk(name, 'refused', 'a workbook with no sheet carrying the titles is refused, naming them', E(B3.ev, `/no sheet carries the estimate.*Work Breakdown Structure/.test(document.getElementById('shareStat').textContent)+' '+(JSON.stringify(ACEDB)===${J(b3)})`), 'true true');
+
+    // ---- 4. PSM inside Air Vehicle: every estimate's default; a stored {} on a 2026 estimate replaced on opening and said once
+    const B4 = mkBoard();
+    E(B4.ev, `MS.aceAlign={'2026ACE':{}, '2027ACE':{AV:'CDS'}, '2025ACE':{}}; save(); 'ok'`);
+    const html = E(B4.ev, `buildSavedHtml()`);
+    const B5 = boot({ html });
+    chk(name, 'PSM inside AV', 'a 2026 estimate’s stored {} is the old default: replaced on opening; a real choice and an older estimate’s are kept',
+      E(B5.ev, `JSON.stringify(MS.aceAlign)`), J({ '2026ACE': { PSM: 'AV' }, '2027ACE': { AV: 'CDS' }, '2025ACE': {} }));
+    chk(name, 'PSM inside AV', 'and it is said once', E(B5.ev, `(STAT_LOG||[]).filter(function(e){ return /PSM is inside Air Vehicle/.test(e.html) && /2026ACE/.test(e.html); }).length`), 1);
+    chk(name, 'PSM inside AV', 'an estimate of any year, read for the first time, puts PSM under AV', E(B5.ev, `JSON.stringify([aceAlign('2031ACE'), aceAlign('2024ACE'), acePmoFor('2031ACE','PSM')])`),
+      J([{ PSM: 'AV' }, { PSM: 'AV' }, 'AV']));
+    [B, B2, B3, B4, B5].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.12 W1 ====
 
 // ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
