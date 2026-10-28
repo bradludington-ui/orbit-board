@@ -131,8 +131,11 @@ export function buildHostile(html) {
     // paragraph, and the CCaR record its suggestions are offered for. NEW-9 is on 1.2, so its path is drawn beside it in the WBS
     // panel and the edit box, and its CCaR's suggestion is named; every other requirement's planted paragraph is not in the tree,
     // so it is flagged as stored, there and in Needs attention's list.
-    ACEDB.sets[P('aceset')].wbs={}; ACEDB.sets[P('aceset')].wbs[mySlug()]={'1':{n:P('wbstop'), lv:1, up:''}, '1.2':{n:P('wbsname'), lv:2, up:'1'}};
-    ACEDB.sets[P('aceset')].lines=[{ap:mySlug(), pmo:'AV', svc:SVC[0], wbs:'1.2', ccar:P('wbsccar'), v:{}}]; persistAce();
+    // v2.12 (integration): planted in the 2026 estimate beside W1's own plants -- the newest estimate is the one the pickers offer
+    // (wbsPickKey), so a tree planted in an older set would never be drawn.
+    (function(){ var K=ACEDB.sets['2026ACE'], m=K.wbs[mySlug()]=K.wbs[mySlug()]||{};
+      m['1']={n:P('wbstop'), lv:1, up:''}; m['1.2']={n:P('wbsname'), lv:2, up:'1'};
+      K.lines.push({ap:mySlug(), pmo:'AV', svc:SVC[0], wbs:'1.2', ccar:P('wbsccar'), v:{}}); persistAce(); })();
     S.wbs['NEW-9']=[{w:'1.2', v:[]}]; S.ccar['NEW-9']=P('wbsccar');
     RPDB={ts:Date.now(), entries:[{id:P('rpid'), ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:P('rpappn'), pec:P('rppec'), bpac:P('rpbpac'),
       title:P('rptitle'), amtM:2, dir:'deduct', pool:'disc', status:'Pending', hac:'', sac:''}]}; persistRp();
