@@ -241,9 +241,17 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   headers are on row 3, the WBS is in Z, *Level* in AA and CES1 in AB: read by position, every row would be skipped (the
   *Level* column read as the PMO). The file itself is `.xlsb`, and its first sheet is *Cover*.
 - **Proposed:**
-  - **The ACE import finds every column by its header**, not by position: *Work Breakdown Structure*, *Level*, CES1-CES8,
-    and the funding type, service, variant, JPO-managed flag, cost element, CCaR, PMO and fiscal-year columns, on the row
-    that carries them. A file missing one is refused, naming the headers it lacks; nothing is guessed.
+  - **The ACE import finds its header row and every column by title** (Brad, 28 Oct: *"I save the ACE as an xlsx file and
+    import it. I do need the file to look up the header title and not a fixed row because the ACE files sometimes change
+    and add new columns so it's not always consistent year over year."*):
+    - It looks through **every sheet**, not only the first, for the row carrying the titles (*Work Breakdown Structure*,
+      CES1-CES8 and the rest), and says which sheet and row it read.
+    - Each field ORBIT needs -- *Work Breakdown Structure*, *Level*, CES1-CES8, funding type, service, variant, the
+      JPO-managed flag, cost element, CCaR, PMO, and the fiscal-year columns -- is matched by its title, ignoring case and
+      spacing; columns ORBIT does not use are ignored wherever they sit, so a new column moves nothing.
+    - **A title that has changed:** the import shows the file's own headers and asks which column holds that field, once,
+      and remembers the answer for files laid out the same way. A required field left unmatched refuses the file, naming
+      it; nothing is guessed and nothing is read by position.
   - **A WBS list built from the ACE:** every paragraph an imported ACE line carries, with every parent (1.2.2.1 gives 1.2.2,
     1.2 and 1), each named from that row's CES columns -- CES*k* names the level-*k* paragraph. The *Level* column is checked
     against the paragraph's depth, and a paragraph two rows name differently is flagged, never silently picked. In the tree
@@ -262,8 +270,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **Fixed with it:** the FYDP Spend Plan workbook's STOVL tab leaves out Full Fund's F-35B money, which lands on a
     separate USMC-B tab (`fydpBookModel` joins services by exact name; FYDP Disconnects uses `SVC_ALIAS`). A USMC reader
     of that workbook today sees STOVL understated.
-- **Open (Brad):** how the ACE reaches ORBIT today (the tab saved on its own as `.xlsx`?), and the header row of the
-  whole *PMO Database Output* tab, so every column the import reads is found by name.
+- **Open (Brad), not blocking:** the titles on the *PMO Database Output* header row (a screenshot of that row alone), so
+  every field is matched by default instead of asked for the first time.
 
 #### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
 - **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
