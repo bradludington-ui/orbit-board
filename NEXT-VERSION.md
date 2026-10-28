@@ -225,15 +225,30 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
      then 1.
   2. **A requirement on two paragraphs:** the office types the dollars for each; on one paragraph it takes it all.
   3. **WBS names** are in the ACE workbook, perhaps on another tab; Brad will find the tab and column. *"Build it into our
-     format and then we'll figure out how to link it later so that it pulls the right roll ups."*
+     format and then we'll figure out how to link it later so that it pulls the right roll ups."* **Found (28 Oct, from a
+     screenshot of *2026 SUST ACE COMPLETE Detail File*, tab *PMO Database Output*):** *"In the ACE import file, there will
+     be headers called CES1 through CES8. CES1 is the top level of the WBS paragraph, while CES2 is the next step down,
+     etc."* Each row names every level of its own paragraph: on 1.2.1.1.1 (Level 5), CES1 names 1 (*Unit-Level Manpower*),
+     CES2 names 1.2 (*Unit-Level Maintenance*), CES3 1.2.1 (*Organizational Maintenance*), CES4 1.2.1.1, CES5 the paragraph.
+     The same tab has *Work Breakdown Structure* (column Z) and *Level* (AA) beside CES1-CES8 (AB onward), headers on row 3.
   4. **The Spend Plan Source carries each line's WBS** (28 Oct): *"Yes, the WBS in ORBIT should populate in the WBS column
      of that file for that line item."* That is the file's existing column 23 (*Spares WBS*), so no column moves; ORBIT
      reads the same column back (*WBS from execution data*), so CCaR's plan events inherit ORBIT's WBS instead of Brad's team
      typing it into each one.
+- **Found while logging (28 Oct): the ACE import reads fixed column positions, and the 2026 file is laid out differently.**
+  `aceParse` takes the header from row 5, the PMO from column AA, the WBS from AC and the fiscal years from AN-DS
+  (`ACE_COL`), and it reads only the workbook's first sheet, as `.xlsx`. In the 2026 file's *PMO Database Output* tab the
+  headers are on row 3, the WBS is in Z, *Level* in AA and CES1 in AB: read by position, every row would be skipped (the
+  *Level* column read as the PMO). The file itself is `.xlsb`, and its first sheet is *Cover*.
 - **Proposed:**
+  - **The ACE import finds every column by its header**, not by position: *Work Breakdown Structure*, *Level*, CES1-CES8,
+    and the funding type, service, variant, JPO-managed flag, cost element, CCaR, PMO and fiscal-year columns, on the row
+    that carries them. A file missing one is refused, naming the headers it lacks; nothing is guessed.
   - **A WBS list built from the ACE:** every paragraph an imported ACE line carries, with every parent (1.2.2.1 gives 1.2.2,
-    1.2 and 1), and a name for each, blank until the names are linked. Where the names are read from is a setting, set once
-    Brad has found the tab and column.
+    1.2 and 1), each named from that row's CES columns -- CES*k* names the level-*k* paragraph. The *Level* column is checked
+    against the paragraph's depth, and a paragraph two rows name differently is flagged, never silently picked. In the tree
+    a header shows its own level's name; a flat list shows the path (*Organizational Maintenance › Officer › Active*),
+    because a level's name alone repeats across the file.
   - **Picked, not typed:** the WBS box, the Add box and the edit box pick a paragraph from that list, its name beside it. A
     paragraph already on a requirement that the list does not hold is kept and flagged, never dropped.
   - **Needs attention: "Without a WBS"**, with the dollars on each, and a coverage count (requirements and dollars).
@@ -247,7 +262,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **Fixed with it:** the FYDP Spend Plan workbook's STOVL tab leaves out Full Fund's F-35B money, which lands on a
     separate USMC-B tab (`fydpBookModel` joins services by exact name; FYDP Disconnects uses `SVC_ALIAS`). A USMC reader
     of that workbook today sees STOVL understated.
-- **Open:** the tab and column that hold the WBS names (Brad).
+- **Open (Brad):** how the ACE reaches ORBIT today (the tab saved on its own as `.xlsx`?), and the header row of the
+  whole *PMO Database Output* tab, so every column the import reads is found by name.
 
 #### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
 - **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
@@ -365,7 +381,7 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
      need to be able to adjust funded positions on each requirement to fit within our new PPBE position."* Item 134. Built
      on it, this workbook's plan years are funded within the PPBE position.
   7. **The marking** *CUI//REL TO US DoW*: *"Yes."*
-- **Open:** which CCaR column will carry the contract number; the WBS names (item 132).
+- **Open:** which CCaR column will carry the contract number.
 
 #### 134. Every year's budget is the PPBE position assigned, and requirements fit within it (Brad, 28 Oct 2026)
 - **Asked** (raised by item 133, whose out-year funded figures were drawn against whatever budget a year held): *"All years
