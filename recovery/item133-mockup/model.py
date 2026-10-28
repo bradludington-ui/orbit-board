@@ -14,11 +14,12 @@ MONTHS = [datetime.date(2026 + (m > 2), (m + 9) % 12 + 1, 1) for m in range(12)]
 MARK = 'CUI//REL TO US DoW'                  # the marking FYDP Disconnects carries (FDC_MARK)
 NONE = '(none)'                              # the paragraph of a line with no WBS paragraph yet
 
-APPNS = ['O&M', 'Full Fund', 'Initial Spares']
+APPNS = ['O&M', 'Full Fund', 'Initial Spares', 'OPN']             # OPN in (Brad, 28 Oct: "we still need to be in balance")
 SVC_ALIAS = {'USMC-B': 'STOVL'}              # the board's own alias (SVC_ALIAS); Full Fund calls STOVL "USMC-B"
 BOARD_LINES = {'O&M': ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'],
                'Full Fund': ['USAF', 'ANG', 'AFRC', 'USMC-B', 'USMC-C', 'USN'],
-               'Initial Spares': ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN']}
+               'Initial Spares': ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'],
+               'OPN': ['STOVL', 'USMC-C', 'USN']}
 GROUPS = [('Air Force', ['USAF', 'ANG', 'AFRC']), ('Marine Corps', ['STOVL', 'USMC-C']), ('Navy', ['USN'])]
 LINE_NAME = {'USAF': 'USAF', 'ANG': 'ANG', 'AFRC': 'AFRC', 'STOVL': 'USMC STOVL', 'USMC-C': 'USMC CV', 'USN': 'USN CV',
              'Other': 'Not identified'}
@@ -74,6 +75,10 @@ REQS = {
     ('Initial spares, air vehicle', 'MOCK0301', 'MOCK-26-C-0301', [('1.1.2', 1)],  {'USAF': 4, 'STOVL': 1.5, 'USN': 1}),
     ('Initial spares, engine',     'MOCK0302', 'MOCK-26-C-0302', [('1.2.2.1', 1)], {'USAF': 2.5, 'STOVL': 1, 'USMC-C': .4, 'USN': .7}),
   ],
+  'OPN': [
+    ('Support equipment, OPN',     'MOCK0401', 'MOCK-26-C-0401', [('1.1.2', 1)],   {'STOVL': 1.2, 'USMC-C': .4, 'USN': .9}),
+    ('Engine support equipment, OPN', 'MOCK0402', 'MOCK-26-C-0402', [('1.2.2.1', 1)], {'STOVL': .6, 'USN': .5}),
+  ],
 }
 ACE_ONLY = {('O&M', '1.1.1.3'): {'USAF': 2.0, 'STOVL': .8, 'USN': .5}}   # an estimate line no requirement claims ($M)
 
@@ -121,13 +126,23 @@ for ap in APPNS:
         for q in range(4):                                   # four plan events a year per service line
           mo = q * 3 + rng.randint(0, 2)
           ev.append({'title': t, 'ccar': ccar, 'contract': con, 'wbs': w or NONE,
-                     'split': [x or NONE for x, _ in split] if len(split) > 1 else None, 'line': s, 'month': mo,
+                     'split': [x or NONE for x, _ in split] if len(split) > 1 else None, 'line': s, 'month': mo, 'fy': ACTIVE,
                      'amount': whole(tot / 4 * rng.uniform(.85, 1.15)), 'ob': month_date(mo) <= THROUGH})
   EVENTS[ap] = ev
 EVENTS['O&M'][0]['month'], EVENTS['O&M'][0]['ob'] = 0, False      # slipped: dated October, not yet obligated
 late = [e for e in EVENTS['O&M'] if e['month'] == 8][0]; late['ob'] = True    # obligated early: dated June, obligated
 EVENTS['Full Fund'].append(dict(EVENTS['Full Fund'][0], month=16, ob=False, amount=1250000))   # procurement dated Feb 28
 EVENTS['O&M'].append(dict(EVENTS['O&M'][1], line='Other', amount=420000))     # a budget name that names no Service
+# Earlier years' procurement money obligating in the active year (Brad, 28 Oct: "Yes, but let's revisit if it doesn't view as
+# planned"): FY26 Full Fund and Initial Spares plan events dated inside FY27. They are filed under FY26 in CCaR and shown on
+# the active-year tab, marked as FY26 money.
+r26 = random.Random(26)
+for ap in ('Full Fund', 'Initial Spares'):
+  for (t, ccar, con, split, base) in REQS[ap][:2]:
+    for s, m in list(base.items())[:2]:
+      for mo in (1, 3, 5):
+        EVENTS[ap].append({'title': t, 'ccar': ccar, 'contract': con, 'wbs': split[0][0], 'split': None, 'line': s, 'month': mo,
+                           'fy': ACTIVE - 1, 'amount': whole(m * 1e6 * .08 * r26.uniform(.8, 1.2)), 'ob': month_date(mo) <= THROUGH})
 for ap in APPNS:
   est = {}
   for e in EVENTS[ap]:

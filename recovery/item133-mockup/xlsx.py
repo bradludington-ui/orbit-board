@@ -35,7 +35,7 @@ def head(ws):                        # the marking on every printed page, beside
   ws.oddHeader.center.text = MARK; ws.oddFooter.center.text = MARK
 
 # ---------------------------------------------------------------- the Data tab: every figure once, one measure per column
-DCOLS = ['FY', 'Year', 'Record', 'Appropriation', 'WBS paragraph', 'WBS name', 'In the ACE'] + ['WBS L%d' % i for i in range(1, NL + 1)] + \
+DCOLS = ['FY', 'Year', 'Shown on', 'Record', 'Appropriation', 'WBS paragraph', 'WBS name', 'In the ACE'] + ['WBS L%d' % i for i in range(1, NL + 1)] + \
   ['Requirement / CCaR record', 'Split across', 'CCaR record', 'Contract No.', 'Req id', 'Service', 'Service line', 'Board name',
    'Month', 'Requirement ($)', 'Funded ($)', 'CCaR plan ($)', 'Obligated ($)', 'Planned to obligate ($)', 'ACE estimate, US ($)',
    'Line key', 'PK'] + \
@@ -43,13 +43,13 @@ DCOLS = ['FY', 'Year', 'Record', 'Appropriation', 'WBS paragraph', 'WBS name', '
 D = {n: CL(i + 1) for i, n in enumerate(DCOLS)}
 def DR(n): return 'Data!$%s:$%s' % (D[n], D[n])
 
-def akey(e): return e['ccar'] + '|' + e['title'] + '|' + e['contract']   # a CCaR row carries no ORBIT id (yet)
+def akey(e): return e['ccar'] + '|' + e['title'] + '|' + e['contract'] + '|' + fyl(e.get('fy', ACTIVE))   # no ORBIT id (yet)
 
 def data_rows():
   out = []
   def base(fy, yr, rec, ap, w, est):
     ch = chain(w) if w != NONE else [NONE]
-    r = {'FY': fyl(fy), 'Year': yr, 'Record': rec, 'Appropriation': ap, 'WBS paragraph': w,
+    r = {'FY': fyl(fy), 'Year': yr, 'Shown on': fyl(fy), 'Record': rec, 'Appropriation': ap, 'WBS paragraph': w,
          'WBS name': WBS.get(w, '') if w != NONE else '', 'In the ACE': 'Yes' if in_ace(w, est) else 'No', 'PK': key(w)}
     for i in range(NL):
       r['WBS L%d' % (i + 1)] = wbs_label(ch[i]) if i < len(ch) else None
@@ -58,6 +58,7 @@ def data_rows():
   for ap in APPNS:
     for e in EVENTS[ap]:
       r = base(ACTIVE, 'Active', 'CCaR plan event', ap, e['wbs'], ACE_ACTIVE[ap])
+      if e.get('fy', ACTIVE) != ACTIVE: r['FY'], r['Year'] = fyl(e['fy']), 'Active, %s money' % fyl(e['fy'])
       r.update({'Requirement / CCaR record': e['title'], 'Split across': ', '.join(e['split']) if e['split'] else None,
                 'CCaR record': e['ccar'], 'Contract No.': e['contract'], 'Service': group_of(e['line']),
                 'Service line': LINE_NAME[canon(e['line'])], 'Board name': e['line'], 'Month': month_date(e['month']),
@@ -184,7 +185,7 @@ def tree_sheet(wb, name, fy, kind, title, sub, cols, groups, widths, first=8):
     for k, v in kv.items(): ws['%s%d' % (K[k], r)] = v
     lv = len(ch)
     # the SUMIFS criteria this row stands for
-    crit = [(D['FY'], '$%s%d' % (K['kFY'], r))]
+    crit = [(D['Shown on'], '$%s%d' % (K['kFY'], r))]
     if typ != 'all': crit.append((D['Appropriation'], '$%s%d' % (K['kAP'], r)))
     if typ == 'head': crit.append((D['K%d' % lv], '$%s%d' % (K['kL%d' % lv], r)))
     if typ == 'line': crit += [(D['PK'], '$%s%d' % (K['kPARA'], r)), (D['Line key'], '$%s%d' % (K['kLINE'], r))]
@@ -198,7 +199,8 @@ def tree_sheet(wb, name, fy, kind, title, sub, cols, groups, widths, first=8):
                    'head': (wbs_label(code) + ('  (not in the ACE)' if code != NONE and not d.get('inace', True) else ''))
                    if code else ''}.get(typ)
         if typ == 'line':
-          x = d['x']; c.value = x['title'] + ((' (part: ' + ' and '.join(x['split']) + ')') if x.get('split') else '')
+          x = d['x']; c.value = x['title'] + ((' (part: ' + ' and '.join(x['split']) + ')') if x.get('split') else '') \
+            + ((' (%s money)' % fyl(x['fy'])) if x.get('fy', fy) != fy else '')
         c.alignment = Alignment(indent=(lv if typ == 'line' else max(lv - 1, 0)))
       elif spec[0] == 'wbs': c.value = (code if typ == 'head' else d['para'] if typ == 'line' else None)
       elif spec[0] == 'con' and typ == 'line': c.value = d['x']['contract']
@@ -235,7 +237,7 @@ def tree_sheet(wb, name, fy, kind, title, sub, cols, groups, widths, first=8):
         ws.cell(r, 1, lbl).alignment = Alignment(indent=1)
         for j, (h, spec) in enumerate(cols, start=1):
           if spec[0] == 'm':
-            ws.cell(r, j, '=SUMIFS(%s,Data!$%s:$%s,%s,Data!$%s:$%s,%s)' % (DR(meas), D['FY'], D['FY'], '"%s"' % fyl(fy), D['Month'], D['Month'], mcrit(spec[3], CL(j))))
+            ws.cell(r, j, '=SUMIFS(%s,Data!$%s:$%s,%s,Data!$%s:$%s,%s)' % (DR(meas), D['Shown on'], D['Shown on'], '"%s"' % fyl(fy), D['Month'], D['Month'], mcrit(spec[3], CL(j))))
           elif spec[0] == 'f': ws.cell(r, j, spec[1](r, L))
           ws.cell(r, j).border = BOX; ws.cell(r, j).font = F(italic=True)
         r += 1
@@ -357,11 +359,13 @@ def read_sheet(wb):
      'sits under "No WBS paragraph yet" in its appropriation, and is in every total above it.', ''),
     ('ACE estimate (US): the %s cost estimate, US services only, for the paragraph and everything beneath it, including lines '
      'no requirement claims (1.1.1.3 here). A requirement line has none of its own.' % ACE_SET, ''),
-    ('The top line names the appropriations it covers: OPN is not in this mock-up until it is decided.', ''),
+    ('The top line names the appropriations it covers: O&M, Full Fund, Initial Spares and OPN.', ''),
+    ('Earlier years\' procurement money obligating this year is on the active-year tab, marked with its own year ("FY26 '
+     'money"), and in every total there; the Data tab keeps its own FY beside "Shown on". The ACE estimate beside the active '
+     'year is that year\'s estimate, which earlier years\' money is outside.', ''),
     ('', ''), ('Still to decide', 'h'),
     ('The WBS names\' tab and column in the ACE. The CCaR columns for the contract number and the WBS paragraph on each plan '
-     'event. ORBIT\'s requirement id coming back from CCaR. OPN. Whether earlier years\' procurement money obligating this '
-     'year belongs on the active-year tab. The dissemination marking, to confirm with security.', ''),
+     'event. ORBIT\'s requirement id coming back from CCaR.', ''),
     ('', ''), (MARK, 'mark'),
   ]
   for i, (t, k) in enumerate(lines, start=1):

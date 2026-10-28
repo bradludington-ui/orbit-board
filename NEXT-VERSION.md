@@ -293,17 +293,19 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     for that appropriation and year, not by the names list), one in the ACE with no name linked (1.3.1), 1.10 beside 1.1,
     two requirements sharing a CCaR record with no contract number (MIPRs), one CCaR record carrying two contracts, a plan
     event that slipped and one obligated early, a procurement plan event dated past September (an *After* column on the
-    month tab), a CCaR row whose budget name names no Service (*Service not identified*, in every total), and Initial
-    Spares. The top line names the appropriations it covers. Every sheet carries the marking in its page header and
+    month tab), a CCaR row whose budget name names no Service (*Service not identified*, in every total), Initial Spares
+    and OPN, and FY26 procurement money obligating in FY27 (on the active-year tab, marked *FY26 money*; the Data tab keeps
+    its own FY beside *Shown on*). The top line names the appropriations it covers. Every sheet carries the marking in its page header and
     footer, and the Data tab above its table.
-  - **`check.py`** recalculates the saved file in LibreOffice and holds all 215 rows of the four tree tabs to figures worked
+  - **`check.py`** recalculates the saved file in LibreOffice and holds all 259 rows of the four tree tabs to figures worked
     out from `model.py` with the Service groups written out by hand (never the builder's own list), every line's shares to
     100%, the month tab's totals to the active tab's, the Data tab's measures, no formula pointing at another row, every
     key's prefix, the marking, and partner figures typed in $M on a line, a WBS header, an appropriation and the active
-    tab. Ten planted mistakes each fail it: the USMC-B alias dropped (240), the partner box not converted from $M (12), the
-    unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1), requirement and funded in one Data column
-    (1,048), plan lines keyed by CCaR record and contract (321), the unidentified Service left out of the US total (29),
-    plan events after September dropped (13), the ACE flag taken from the names list (1), the key prefix dropped (5).
+    tab. Eleven planted mistakes each fail it: the USMC-B alias dropped (246), the partner box not converted from $M (12),
+    the unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1), requirement and funded in one Data
+    column (1,183), plan lines keyed by CCaR record and contract (345), the unidentified Service left out of the US total
+    (29), plan events after September dropped (13), the ACE flag taken from the names list (1), the key prefix dropped (5),
+    earlier years' money dropped from the active tab (194).
   - **Rebuilt after an independent review (28 Oct):** three reviewers (Brad's decisions, the Excel under real use, what
     ORBIT can deliver), each finding reproduced in LibreOffice. The first cut summed requirement and funded in one Data
     column (a pivot doubled the plan years), took the partner box in dollars under a $M label (2.5 did nothing), lost a row
@@ -344,14 +346,17 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     door and read parentheses as negative. The *pull through* date comes from `repYmOf`, not `asOf` or today.
   - **A requirement line's label repeats on real data** (108 of 155 O&M requirements share a record name; OPN shares one plan
     event): print the plan event, the record name and the PID beside each other, as Decision Bands does.
-- **Questions for Brad (raised by the review):**
-  1. A requirement on two paragraphs: is what the office types per paragraph the **requirement value** or the
-     **allocation**? ORBIT's WBS lines split the allocation today (`wbsResolve`). The mock-up splits the requirement and
-     spreads funded in the same proportion.
-  2. **OPN**: in or out? (The mock-up carries O&M, Full Fund and Initial Spares, as FYDP Disconnects does.)
-  3. **Procurement money from earlier years obligating this year** (Full Fund and Initial Spares obligate across about
-     three years): on the active-year tab, or only money filed under the active year?
 - **Answered (Brad, 28 Oct 2026):**
+  1. **A requirement on two paragraphs:** what the office types per paragraph is **the allocation** -- as ORBIT's WBS lines
+     already split it (`wbsResolve`). So per paragraph: the allocation as typed; funded spread over the paragraphs by
+     allocation (as `aceAlignRows` spreads it); the requirement value apportioned by the same weights (`apportion`); and any
+     allocation the typed lines do not cover on a line of its own, "not assigned to a paragraph". (The mock-up, splitting
+     requirement and funded by one fraction, shows the same result where the allocation follows that fraction.)
+  2. **OPN is in:** *"It's a smaller appropriation but we still need to be in balance."*
+  3. **Earlier years' procurement money obligating this year goes on the active-year tab:** *"Yes, but let's revisit if it
+     doesn't view as planned."* CCaR files those rows under their own FY; the tab shows the ones dated inside the active
+     year, marked with their year, in every total. The ACE beside the active year is that year's estimate, which earlier
+     years' money is outside, and the tab says so.
   4. **What CCaR's Alloc column says for a plan event not yet obligated:** *"Not allocated. Everything in ORBIT is planned
      for the future. CCaR is for active year obligations when we have the authority to obligate."* So obligated is read from
      CCaR's own allocation status, as `isAlloc` reads it, and ORBIT's figures are never obligations.
@@ -387,6 +392,10 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
      shortages, as applicable."*
   3. **No automatic cut:** *"It should flag the overage and let the user know that a reduction to a requirement somewhere
      needs to take place."*
+  4. **Added funding sources** (Brad, 28 Oct): *"Should be shown as UPL, if the funds are not fully allocated to a
+     requirement. It should be shown as a last line item."* Added funding sources count beside the position; whatever of
+     them no requirement has been allocated is shown as **UPL**, the last line of that year's list, by service and lane --
+     on the board and in every report that lists requirements, the Service share workbook (item 133) included.
 - **Proposed:**
   - **Every year's budget authority is read from the position, not copied.** While the plan is tagged (BES28, say), each
     year's discretionary and mandatory budget authority, by service, is that year's total in this appropriation's BES28
@@ -402,8 +411,6 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **What prints in the meantime:** funded is what the lane draws within the position, as everywhere else, so no report
     states more than the position; the overage stands as a flag until a requirement is reduced.
   - **Locked cycles** keep the position as it was locked; only the working plan reads live.
-- **Still to decide:** added funding sources (`S.bm.adds`, a UPL say) -- on top of the position, shown as such, or not
-  counted while the plan is tagged?
 
 ## Later
 

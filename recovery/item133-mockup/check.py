@@ -73,7 +73,7 @@ def expect_active(k, month=None):
   for ap in APPNS:
     for x in EVENTS[ap]:
       if month is not None and not (x['month'] == month or (month == -1 and x['month'] < 0) or (month == 12 and x['month'] > 11)): continue
-      if matches(k, ap, x['wbs'], x['ccar'] + '|' + x['title'] + '|' + x['contract']):
+      if matches(k, ap, x['wbs'], x['ccar'] + '|' + x['title'] + '|' + x['contract'] + '|' + fyl(x.get('fy', ACTIVE))):
         g = [g for g, n in GRP.items() if x['line'] in n][0]
         e[g + (' ob' if x['ob'] else ' pl')] += x['amount']; e['tot'] += x['amount']; e['ob' if x['ob'] else 'pl'] += x['amount']
     if k['kTYPE'] != 'line' and month is None:
@@ -213,7 +213,7 @@ dws = wb['Data']; H = {dws.cell(2, j).value: j for j in range(1, dws.max_column 
 chk(dws['A1'].value == MARK, 'the Data tab carries the marking above its table')
 fund_by_fy = {}
 for r in range(3, dws.max_row + 1):
-  rec, fy = dws.cell(r, H['Record']).value, dws.cell(r, H['FY']).value
+  rec, fy = dws.cell(r, H['Record']).value, dws.cell(r, H['Shown on']).value     # the tab a row is counted on
   f, cp, o, p = [v(dws, r, H[c]) for c in ('Funded ($)', 'CCaR plan ($)', 'Obligated ($)', 'Planned to obligate ($)')]
   if rec == 'CCaR plan event':
     chk(abs(cp - (o + p)) < .5 and (o == 0 or p == 0) and f == 0, 'Data row %d: CCaR plan is not Obligated + Planned' % r)
@@ -224,6 +224,12 @@ for fy in YEARS:
   chk(abs(fund_by_fy[fyl(fy)] - v(w, 8, c7x['US funded'])) < .5, 'Data Funded for %s = the tab\'s ALL US funded' % fyl(fy))
 wa = wb[fyl(ACTIVE) + ' (active)']; c6a, c7a = cols_of(wa)
 chk(abs(fund_by_fy[fyl(ACTIVE)] - v(wa, 8, c6a['US'] + 2)) < .5, 'Data Funded for the active year = obligated + planned on its tab')
+# earlier years' money obligating this year: on the active tab, marked, and in its totals (expect_active counts it)
+early = [str(wa.cell(r, 1).value) for r, k in rows_of(wa, c7a) if k['kTYPE'] == 'line' and '(%s money)' % fyl(ACTIVE - 1) in str(wa.cell(r, 1).value)]
+chk(len(early) >= 4, 'earlier years\' money on the active tab, marked: %d lines' % len(early))
+chk(sum(1 for r in range(3, dws.max_row + 1) if dws.cell(r, H['FY']).value == fyl(ACTIVE - 1) and dws.cell(r, H['Shown on']).value == fyl(ACTIVE)) > 0,
+    'the Data tab keeps earlier money\'s own FY beside the tab it is shown on')
+chk('OPN' in APPNS and any(str(ws.cell(r, 1).value) == 'OPN' for r in range(8, ws.max_row + 1)), 'OPN has its section')
 
 # ---- 3: partner figures typed in $M into a copy
 cp = os.path.join(TMP, 'partner.xlsx'); shutil.copy(SRC, cp)
