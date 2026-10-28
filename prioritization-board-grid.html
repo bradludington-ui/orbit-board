@@ -16601,6 +16601,42 @@ function acePmoGroups(k){
 }
 
 function aceNormWbs(v){ return String(v||'').trim().toUpperCase().replace(/\s+/g,''); }
+// ---- v2.12 (item 132): the WBS paragraphs an estimate names (the builders' contract: recovery/v212/contract.md) ----
+// set.wbs[ap][CODE] = {n: name, lv: level, up: parent CODE or ''}, built by the import from the CES columns, CODE as
+// aceNormWbs gives it. The pickers read it only through these, so the import and the pickers meet on one shape.
+function aceWbsMap(k, ap){
+  const s=aceSet(k), w=s && s.wbs;
+  const m=(w && typeof w==='object' && Object.prototype.hasOwnProperty.call(w, ap))? w[ap] : null;
+  return (m && typeof m==='object')? m : null;
+}
+function aceWbsNode(k, ap, code){
+  const m=aceWbsMap(k, ap), c=aceNormWbs(code);
+  return (m && c && Object.prototype.hasOwnProperty.call(m, c))? m[c] : null;
+}
+// The paragraph and every heading above it, the paragraph first. A file that loops stops at the first repeat.
+function aceWbsUp(k, ap, code){
+  const out=[], seen=Object.create(null); let c=aceNormWbs(code);
+  while(c && !seen[c]){ const n=aceWbsNode(k, ap, c); if(!n) break; seen[c]=1; out.push(c); c=aceNormWbs(n.up); }
+  return out;
+}
+// The names from the top heading down to the paragraph ("Depot Standup › CONUS Depot Standup › ECU Propulsion"): a
+// level's name alone repeats across the file.
+function aceWbsPath(k, ap, code){
+  return aceWbsUp(k, ap, code).reverse().map(function(c){ return (aceWbsNode(k, ap, c)||{}).n||''; })
+    .filter(Boolean).join(' › ');
+}
+// The estimate the WBS pickers offer for an appropriation: the one chosen for the board (spAce) when it names this
+// appropriation's paragraphs, else the newest that does; '' when none does. spAce is a let further down the file, so the
+// first draw at boot reads it as not chosen yet.
+function wbsPickKey(ap){
+  ap=ap||mySlug(); let pick='';
+  try{ pick=spAce; }catch(e){ pick=''; }
+  const named=function(k){ const m=aceWbsMap(k, ap); return !!m && Object.keys(m).length>0; };
+  if(pick && pick!=='board' && named(pick)) return pick;
+  const ks=aceSetKeys().filter(named);
+  ks.sort(function(a,b){ return (aceYearOf(b)-aceYearOf(a)) || ((+(aceSet(b)||{}).ts||0)-(+(aceSet(a)||{}).ts||0)); });
+  return ks[0]||'';
+}
 // Every WBS a requirement claims, from the WBS feature -- requirement level for non-primes, CLIN
 // level for primes, which is where a prime's work is actually broken down.
 function aceWbsOf(id){

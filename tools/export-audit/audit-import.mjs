@@ -3420,7 +3420,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'offline', 'it loads nothing from outside the file', /https?:\/\/|<img|<link|<script|<iframe|url\(/i.test(doc), false);
   // v2.10: the FYDP Disconnects paragraph took the guide to 61,040 characters (59,662 in v2.09); the budget is raised to 64 KB on
   // purpose -- the guide grows with the board -- and still says when it grows a lot
-  chk(name, 'size', 'it adds under 64 KB to the file', doc.length < 64000, true);
+  // v2.12: 70 KB -- items 132 and 134 each add a section to the guide (the budget was 64 KB since v2.10).
+  chk(name, 'size', 'it adds under 70 KB to the file', doc.length < 70000, true);
   const money = () => ev(`JSON.stringify({ms:MS.years, ls:(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })()})`);
   const before = money();
   ev(`openHelp(''); 'ok'`);
@@ -15189,6 +15190,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
 // ==== end v2.10 B ====
+
+// ==== v2.12 W1 (item 132): the ACE import by its header titles, the WBS tree, PSM inside Air Vehicle ====
+// ==== end v2.12 W1 ====
+
+// ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
+// ==== end v2.12 W2 ====
+
+// ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====
+// ==== end v2.12 W3 ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

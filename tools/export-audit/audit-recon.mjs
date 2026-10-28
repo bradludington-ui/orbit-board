@@ -11473,6 +11473,15 @@ await (async () => {
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
 // ==== end v2.10 B ====
 
+// ==== v2.12 W1 (item 132): the ACE import by its header titles, the WBS tree, PSM inside Air Vehicle ====
+// ==== end v2.12 W1 ====
+
+// ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
+// ==== end v2.12 W2 ====
+
+// ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====
+// ==== end v2.12 W3 ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

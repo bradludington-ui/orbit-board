@@ -15,22 +15,23 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 
 ## Current implementation assignment
 
-- Task and approved scope: v2.08 -- item 122 (edit the whole record in one box, Brad's decisions D1-D12 of 26 Oct, D9:
-  retire the rename), the defects F1-F7 of `recovery/v208/ITEM-122-BRIEF.md` §5 (F6: lock the drill) and the shortfall
-  absorber refused in a PMO copy (Brad, 26 Oct: "build them with 122 in v2.08", "Go on v2.08"); item 123 (the security
-  review kit, "Go on 123").
-- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on ccr-0b15d8d5-ypf61n), named by Brad's go
-  of 26 Oct. The v2.07 lead stopped at the handoff commit (PR #25, d920ea0).
-- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, review/**, SECURITY-REVIEW.md, package.json,
-  .gitignore, NEXT-VERSION.md, CLAUDE.md, AGENTS.md (the rules item 122 changes), recovery/v208/** and this entry.
-  Excluded: the sweep (no named go), U63/U64 and the rest of the handoff's §6 lists, items 100 and 107.
-- Isolated branch and base commit SHA: ccr-0b15d8d5-ypf61n, based on main ddf6b4b (v2.07 f508fdb plus records).
+- Task and approved scope: v2.12 -- items 132 (a WBS paragraph on every requirement, picked from the ACE; the ACE import
+  by its header titles; PSM inside Air Vehicle; the Spend Plan Source carries the WBS; the FYDP Spend Plan's STOVL tab) and
+  134 (every year's budget authority read live from the PPBE position assigned; over and under flagged, no automatic cut;
+  unallocated added funding shown as UPL, the last line), as logged in NEXT-VERSION.md with Brad's answers of 28 Oct
+  (Brad, 28 Oct: "Go on v2.12"). Item 133 (the Service share workbook) is v2.13 and not in scope.
+- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on ccr-0b15d8d5-ypf61n), with three
+  builders (W1, W2, W3) on branches v212-w1/-w2/-w3 per recovery/v212/contract.md. v2.11 is merged (PR #29, bbb7ee9).
+- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, package.json, NEXT-VERSION.md, CLAUDE.md,
+  AGENTS.md, math-defects.json, recovery/v212/** and this entry. Excluded: the sweep (no named go), item 133, items 100
+  and 107.
+- Isolated branch and base commit SHA: ccr-0b15d8d5-ypf61n, based on main bbb7ee9 (v2.11) plus the item 132-134 logging.
 - Status: editing.
 - Required bounded checks and designated gate owner: npm run check; every suite; the browser checks (verify:grid, keys,
-  dropdowns, dialogs, leftmenu, standards); each new mutation proved with recovery/v208/bin/prove.py; mcount; review with
-  skeptics; validate:nightly on the final tree. Gate owner Claude. No sweep.
-- Handoff commit SHA and changed files: given at the PR (#27).
-- Known risks, blocked checks and reviewer findings: listed in NEXT-VERSION.md under v2.08 at the PR.
+  dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer, standards); each new mutation proved with
+  recovery/v208/bin/prove.py; mcount; review with skeptics; validate:nightly on the final tree. Gate owner Claude. No sweep.
+- Handoff commit SHA and changed files: given at the PR (#30).
+- Known risks, blocked checks and reviewer findings: listed in NEXT-VERSION.md under v2.12 at the PR.
 - Brad's integration/merge/publication authorization, if given: not given. Nothing merges without Brad's go.
 
 The four recurring monitors retain read-only scope.
