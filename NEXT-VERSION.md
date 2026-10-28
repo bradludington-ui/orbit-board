@@ -226,6 +226,10 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   2. **A requirement on two paragraphs:** the office types the dollars for each; on one paragraph it takes it all.
   3. **WBS names** are in the ACE workbook, perhaps on another tab; Brad will find the tab and column. *"Build it into our
      format and then we'll figure out how to link it later so that it pulls the right roll ups."*
+  4. **The Spend Plan Source carries each line's WBS** (28 Oct): *"Yes, the WBS in ORBIT should populate in the WBS column
+     of that file for that line item."* That is the file's existing column 23 (*Spares WBS*), so no column moves; ORBIT
+     reads the same column back (*WBS from execution data*), so CCaR's plan events inherit ORBIT's WBS instead of Brad's team
+     typing it into each one.
 - **Proposed:**
   - **A WBS list built from the ACE:** every paragraph an imported ACE line carries, with every parent (1.2.2.1 gives 1.2.2,
     1.2 and 1), and a name for each, blank until the names are linked. Where the names are read from is a setting, set once
@@ -236,6 +240,10 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **Classify:** a WBS column with a bulk set, offered where the field is (`applies(it)`: not a prime, whose WBS is per CLIN).
   - **The offices fill their own** through the PMO copy, which already sends `wbs`; whether a prime's CLIN WBS travels too
     is to decide.
+  - **The Spend Plan Source's column 23** carries each line's paragraph, in the shape the column already holds (the number,
+    and once names are linked, " - " and the name), which `srcWbsPara` reads back. A requirement on two paragraphs goes out
+    as a line per paragraph, its dollars split as the office typed them, so every CCaR plan event carries exactly one; a
+    prime's lines take their CLIN's paragraph. A line with no paragraph yet goes out blank, and the export names it.
   - **Fixed with it:** the FYDP Spend Plan workbook's STOVL tab leaves out Full Fund's F-35B money, which lands on a
     separate USMC-B tab (`fydpBookModel` joins services by exact name; FYDP Disconnects uses `SVC_ALIAS`). A USMC reader
     of that workbook today sees STOVL understated.
@@ -343,16 +351,47 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   2. **OPN**: in or out? (The mock-up carries O&M, Full Fund and Initial Spares, as FYDP Disconnects does.)
   3. **Procurement money from earlier years obligating this year** (Full Fund and Initial Spares obligate across about
      three years): on the active-year tab, or only money filed under the active year?
-  4. **What CCaR puts in its Alloc column** for a plan event ORBIT sent that is not yet obligated -- one look at a real pull
-     settles whether "obligated" can be read from it as it stands.
-  5. **Should ORBIT write the WBS paragraph into the Spend Plan Source** (CCaR's column 23, which already exists), one line
-     per paragraph, so CCaR inherits ORBIT's WBS instead of your team typing it into each plan event? Typed twice, the two
-     can disagree and put the same work under different paragraphs on the active and budget-year tabs.
-  6. **The out-years' basis:** ORBIT's lane draw for FY29 onward is against whatever budget authority that year's board holds
-     (seeded at 85%/15% of the data pack's budget until someone types it). Show that, or the PPBE position, as FYDP
-     Disconnects does?
-  7. **The marking:** confirm *CUI//REL TO US DoW* with security before it goes to a joint audience.
-- **Open:** which CCaR columns will carry the WBS paragraph and the contract number; the WBS names (item 132).
+- **Answered (Brad, 28 Oct 2026):**
+  4. **What CCaR's Alloc column says for a plan event not yet obligated:** *"Not allocated. Everything in ORBIT is planned
+     for the future. CCaR is for active year obligations when we have the authority to obligate."* So obligated is read from
+     CCaR's own allocation status, as `isAlloc` reads it, and ORBIT's figures are never obligations.
+  5. **ORBIT's WBS goes into the Spend Plan Source's WBS column**, line by line: item 132, decision 4.
+  6. **The out-years' basis:** *"All years should reference the PPBE Budget assigned. As we go through the PPBE process we
+     need to be able to adjust funded positions on each requirement to fit within our new PPBE position."* Item 134. Built
+     on it, this workbook's plan years are funded within the PPBE position.
+  7. **The marking** *CUI//REL TO US DoW*: *"Yes."*
+- **Open:** which CCaR column will carry the contract number; the WBS names (item 132).
+
+#### 134. Every year's budget is the PPBE position assigned, and requirements fit within it (Brad, 28 Oct 2026)
+- **Asked** (raised by item 133, whose out-year funded figures were drawn against whatever budget a year held): *"All years
+  should reference the PPBE Budget assigned. As we go through the PPBE process we need to be able to adjust funded
+  positions on each requirement to fit within our new PPBE position."*
+- **What is there today:**
+  - A year's budget authority is Budget Management's base (`S.bm.disc`, `S.bm.mand`, by service) plus any added funding
+    sources (`S.bm.adds`). A year with nothing typed is seeded at 85% / 15% of the data pack's budget (`applyState`).
+  - **Take from a PPBE position** (`bmSeedFromPp`) copies a logged position into that base -- for the year on screen only,
+    one year at a time, after a confirm. The link is remembered (`S.bm.pp`), and the panel reports when the board's figures
+    or the position have moved since (`bmPpRow`). It is a copy, not a live link. A service the position says nothing about
+    is left as it was.
+  - **Fitting:** the lane walk (`tiers()`) funds in priority order within each service's budget authority, so a smaller
+    position leaves the lowest-ranked requirements short first. A requirement on a Split whose typed Disc or Mand is more
+    than its lane can pay is listed under *▲ not drawn*, and *Set all to drawn* (`ndSetAll`) brings the typed figures down
+    to what was drawn.
+- **Proposed:**
+  - **Every year in the FYDP window takes its budget authority from the PPBE position assigned**, by service and lane, all
+    years at once rather than one at a time, and stays linked: a change to the logged position changes the years' budget
+    authority, shown before it lands.
+  - **A "fit to the position" review:** per year, every requirement whose funded figure changes, before and after, by
+    service and lane, in priority order, with each year's total against its position; applied as one change, journaled,
+    across the years.
+  - **Kept as today:** added funding sources stay on top of the position; a service the position says nothing about keeps
+    the board's figure, and says so.
+- **Questions for Brad:**
+  1. **Which position does each year take?** The plan's own cycle (all of BES28 for every year, say), or chosen per year?
+  2. **Live or on request?** When the logged position changes, should the years' budget authority change straight away,
+     or should the board show the gap and wait for someone to take the new position?
+  3. **How do requirements fit?** In priority order, as the lane walk does now (the lowest-ranked lose first)? Or another
+     rule -- a proportional cut, or by hand, with the board showing what is over?
 
 ## Later
 
