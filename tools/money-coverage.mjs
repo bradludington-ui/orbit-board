@@ -82,6 +82,14 @@ const REGISTRY = {
   exportFdc:    { money: true,  what: 'FYDP Disconnects — the cost estimate against a PPBE cycle’s controls, by appropriation and service group, with the delta and % Funded, on screen and in Excel',
                   via: ['fdcModel', 'fdcState', 'fdcStores', 'fdcCycs', 'fdcAces', 'fdcPosHeld', 'fdcIntlSet', 'fdcMoney', 'fdcHtml', 'fdcSync', 'FDC_APS', 'FDC_GROUPS', 'fdcSheets'] },
 
+  // v2.12 (item 134): each year's budget authority, read live from the PPBE position under the working plan's tag (or the board's
+  // own base where it says nothing), and the fit of the requirements to it -- over, unallocated and UPL -- on screen, with the UPL
+  // line under the last requirement on the board and in the workbooks
+  applyBudget:  { money: true,  what: 'each year’s budget authority — the PPBE position under the working plan’s tag, read live per year and service, or the board’s own base, with added sources on top; a locked view reads the lock’s own copy',
+                  via: ['baOf', 'baPos', 'baNamed', 'baApplyTo', 'baLiveAll', 'bmBody', 'bmLiveRow'] },
+  fitModel:     { money: true,  what: 'the fit to the PPBE position — per held year, service and lane: base, added, budget authority, held, drawn, over, unallocated and UPL, and each over’s requirements',
+                  via: ['fitYearNow', 'fitReadYear', 'fitBody', 'uplParts', 'fitGo'] },
+
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:
     'writes the ORDER — rank and identity only. It moves no dollars and prints none.' },

@@ -601,6 +601,27 @@
    "anchor": "const name = 'v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)'",
    "basis": "arithmetic",
    "asserts": "FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook."
+  },
+  "w3.live": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)",
+   "anchor": "const name = 'v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)'",
+   "basis": "arithmetic",
+   "asserts": "Budget authority read live from the PPBE position (item 134): three years and three services, every figure a literal -- each year’s discretionary and mandatory budget authority by service, worked out by hand: USAF and ANG from BES28 (ANG entered in $K), AFRC (named nowhere) and FY29 (logged by nobody) the board’s own, added sources on top in each lane; FY28’s stored cache live without the year being opened; the board’s own base never overwritten; the Spruills’ Available Funding each year; a figure typed into the position, the $K conversion and its undo, a retag, an untag, a line removed, a placeholder line, the position deleted and a load each moving every year at once; a fractional figure read as whole dollars and a negative one floored at 0; Budget Management read-only for the position’s services; a save, a reopen and a stale file read live, and opening writing nothing."
+  },
+  "w3.fit": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)",
+   "anchor": "const name = 'v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)'",
+   "basis": "arithmetic",
+   "asserts": "The fit to the PPBE position (item 134): for each held year, service and lane, worked out by hand from the fixture -- budget authority, held (Splits’ typed figures clamped to the basis, the lane walk’s draw otherwise), drawn, over, unallocated and UPL (added funding nobody holds, capped at what is unallocated); the over lists in priority order with the requirements the lane cannot pay marked; the ◨ switch moving nothing held; the box’s sentences; Needs attention; and the UPL line by service and lane, after the requirements and their TOTAL, on the board, Funding Streams, the Priority Drill’s 1-N tab and the FYDP Spend Plan’s appropriation tab, read from the workbook bytes, with every TOTAL still the sum of its rows."
+  },
+  "w3.lock": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134)",
+   "anchor": "const name = 'v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134)'",
+   "basis": "arithmetic",
+   "asserts": "A lock keeps the position it read (item 134): an untagged plan tagged before the projection, so the lock’s FY27 and FY28 budget authority are the position’s, by service and lane, and its FY27 UPL; the lock’s copy of the position and its projection unchanged when the position moves after it; its view reading the copy every year; a lock taken before v2.12 reading its years’ own bases in its view."
   }
  },
  "surfaces": {
@@ -2682,6 +2703,98 @@
       "ot.v210a"
      ],
      "note": "Discretionary and Mandatory, each its own line, by appropriation, sheet and year"
+    }
+   }
+  },
+  "applyBudget": {
+   "registry": "money-coverage",
+   "money": true,
+   "what": "Each year’s budget authority (v2.12, item 134): the PPBE position logged under the working plan’s tag, read live per year and service, discretionary and mandatory, or the board’s own base where the position says nothing, with added sources on top and the sum floored at 0 -- the figure every lane walk, panel and export of the year reads; a locked view reads the lock’s own copy.",
+   "cells": {
+    "appropriation": {
+     "status": "n/a",
+     "why": "@oneAppn"
+    },
+    "fiscalYear": {
+     "status": "proven",
+     "checks": [
+      "w3.live",
+      "w3.lock"
+     ],
+     "note": "each year from its own state and that year of the position; a year it does not log the board’s own; a lock as it was locked"
+    },
+    "service": {
+     "status": "proven",
+     "checks": [
+      "w3.live"
+     ],
+     "note": "each service the position names from it, the others the board’s own"
+    },
+    "requirement": {
+     "status": "n/a",
+     "why": "@noReq"
+    },
+    "month": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "crHalf": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "lane": {
+     "status": "proven",
+     "checks": [
+      "w3.live"
+     ],
+     "note": "discretionary and mandatory, each from its own figure and its own added sources"
+    }
+   }
+  },
+  "fitModel": {
+   "registry": "money-coverage",
+   "money": true,
+   "what": "The fit to the PPBE position (v2.12, item 134): per held year of the window, service and lane -- the base, added sources, budget authority, what the requirements hold and what they drew, over, unallocated and UPL, and each over’s requirements in priority order; the box, Needs attention, and the UPL line under the last requirement on the board and in the Excel workbook, the Priority Drill and the FYDP Spend Plan.",
+   "cells": {
+    "appropriation": {
+     "status": "n/a",
+     "why": "@oneAppn"
+    },
+    "fiscalYear": {
+     "status": "proven",
+     "checks": [
+      "w3.fit"
+     ],
+     "note": "every held year of the window, each read on a copy of its own state"
+    },
+    "service": {
+     "status": "proven",
+     "checks": [
+      "w3.fit"
+     ],
+     "note": "per service, never netted"
+    },
+    "requirement": {
+     "status": "proven",
+     "checks": [
+      "w3.fit"
+     ],
+     "note": "each over’s requirements with what each holds and drew"
+    },
+    "month": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "crHalf": {
+     "status": "n/a",
+     "why": "@noTime"
+    },
+    "lane": {
+     "status": "proven",
+     "checks": [
+      "w3.fit"
+     ],
+     "note": "discretionary and mandatory apart"
     }
    }
   }

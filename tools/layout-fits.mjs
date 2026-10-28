@@ -35,6 +35,8 @@
 //      1920 x 969, with six services, a budget picker on each, the OGC fields and what is still needed showing, on both tabs and
 //      with one brought in being finished, in Harbor and Midnight and in the Segoe stand-in; below 1366 it is one column that
 //      scrolls.
+//   R. (v2.12, item 134) Fit to the PPBE position and the UPL line under the last row are read whole, with an over and a
+//      nine-figure UPL, from 1920 to 800, in Harbor and Midnight and in the Segoe stand-in.
 //
 //   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
 //   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
@@ -767,6 +769,59 @@ const ER_STATE = () => {
     fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
   chk('O · the table fits whole at 1920, 1440 and 1366, and scrolls sideways inside its own frame at 800, narrower than it',
     scroll.length === 0 && read === 40, scroll.slice(0, 4).join('; '));
+}
+
+// ── R. FIT TO THE PPBE POSITION: THE BOX AND THE UPL LINE ARE READ WHOLE (v2.12, item 134) ─────────────────────────────
+// O left the plan tagged BES28 with O&M's position. Here the first service gets $1 of discretionary in the year on screen and the
+// first requirement directs its whole value there on a Split -- an over, with its requirement list -- and a mandatory add of
+// $987,654,321 on the second service nobody holds -- a nine-figure UPL, on the board's last line and in the box. At 1920, 1366,
+// 1024 and 800, Harbor and Midnight, this font and the Segoe stand-in: no cell of the box cuts a figure or a label, nothing sits
+// past the box, the page never scrolls sideways (a table narrower than its box scrolls inside its own frame), and the UPL line
+// under the last row sits inside the list.
+{
+  ev(`(function(){ MS.ppbe['BES|2028'].val[SVC[0]]._all[MS.cur]={d:1, m:0}; var id=S.order[0];
+      S.fsrc[id]={m:'split', dv:itemById(id).ask.slice(), mv:SVC.map(function(){ return 0; })};
+      S.bm.adds=(S.bm.adds||[]).concat([{name:'Congressional add', pool:'mand', vec:SVC.map(function(_,i){ return i===1? 987654321 : 0; })}]);
+      applyBudget(); baLiveAll(); save(); })(); 'ok'`);
+  const fileR = join(dir, 'board-r.html'), fileRS = join(dir, 'board-r-segoe.html');
+  writeFileSync(fileR, ev('buildSavedHtml()'));
+  writeFileSync(fileRS, withStandin(readFileSync(fileR, 'utf8')));
+  const LOOK = () => {
+    const out = [], say = e => '"' + String(e.value || e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"';
+    const de = document.documentElement; if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
+    // the UPL line, with the box closed
+    const u = document.querySelector('#list .uplline'), L = document.getElementById('list');
+    if (!u) out.push('no UPL line under the last row');
+    else { const ur = u.getBoundingClientRect(), lr = L.getBoundingClientRect();
+      if (ur.right > lr.right + 1 || ur.left < lr.left - 1) out.push(`the UPL line runs past the list: ${Math.round(ur.left)}-${Math.round(ur.right)} in ${Math.round(lr.left)}-${Math.round(lr.right)}`);
+      for (const x of u.querySelectorAll('.u')) { const r = x.getBoundingClientRect(); if (r.right > lr.right + 1) out.push('a UPL figure past the list: ' + say(x)); } }
+    fitShow();
+    const m = document.querySelector('#fitPanel .modal');
+    if (!m || !document.getElementById('fitPanel').classList.contains('open')) return { out: out.concat(['the box is not on screen']), overs: 0, rows: 0 };
+    const mr = m.getBoundingClientRect();
+    if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
+    if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
+    if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways with the box open: ${de.scrollWidth}>${de.clientWidth}`);
+    for (const c of m.querySelectorAll('#fitBody td, #fitBody th')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
+    for (const e of m.querySelectorAll('.fityr, .fitover, .fithint, h3 .x')) { const r = e.getBoundingClientRect();
+      if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
+    return { out, overs: m.querySelectorAll('#fitBody .fitover').length, rows: m.querySelectorAll('#fitBody table.fitrows tr').length };
+  };
+  const fails = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileR], ['the Segoe stand-in', fileRS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1920, 969], [1366, 657], [1024, 700], [800, 700]]) {
+        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
+        if (at === fileRS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        const r = await p.evaluate(look => (0, eval)('(' + look + ')')(), LOOK.toString());
+        read++;
+        const tag = `${w}x${h} ${theme || 'midnight'} ${font}`;
+        if (!r.overs || r.rows < 2) fails.push(`${tag}: the over and its requirement list are not on screen (${r.overs} over, ${r.rows} rows)`);
+        r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
+        await ctx.close();
+      }
+  chk('R · Fit to the PPBE position: nothing cut, nothing past the box, the page never scrolls sideways, and the UPL line sits inside the list (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in)',
+    fails.length === 0 && read === 16, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
 }
 
 await b.close();

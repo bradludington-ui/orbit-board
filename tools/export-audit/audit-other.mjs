@@ -3028,9 +3028,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       PUBS.sp={years:{}, order:[], ts:Date.now()+60000, ppbe:${J(POS.sp)}};
       window.__pw=function(){ window.__pwned=1; }; render(); 'ok'`);
     // ---- where it lives, and the box ---------------------------------------------------------------------------------------
+    // v2.12 W3: Fit to the PPBE position (item 134) sits after PPBE Budget Positions, the positions it reads
     chk(name, 'the left menu', 'FYDP ▸ lists FYDP Disconnects… after the Spruills, opening toggleFdc',
       E(B.ev, `(function(){ var d=document.createElement('div'); d.innerHTML=uiFlyItems('fydp'); return JSON.stringify([].map.call(d.querySelectorAll('button'), function(b){ return (b.getAttribute('onclick')||'').replace(/^uiFlyClose\\(\\);mRun\\((\\w+)\\)$/,'$1'); })); })()`),
-      J(['toggleFydp', 'toggleSp', 'toggleFdc', 'toggleP2', 'toggleFlow']));
+      J(['toggleFydp', 'toggleSp', 'toggleFdc', 'toggleP2', 'toggleFit', 'toggleFlow']));
     E(B.ev, `toggleFdc(); 'ok'`);
     chk(name, 'the box', 'it opens, named from its heading, with its own close control',
       E(B.ev, `JSON.stringify([document.getElementById('fdcPanel').classList.contains('open'), /^FYDP DISCONNECTS/.test(document.querySelector('#fdcPanel h3').textContent), !!document.querySelector('#fdcPanel h3 button.x')])`), J([true, true, true]));

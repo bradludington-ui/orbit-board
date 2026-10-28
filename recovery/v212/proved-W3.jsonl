@@ -1,0 +1,49 @@
+{"id": "v212-w3-ba-not-live", "verdict": "CAUGHT", "fails": ["17"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-unlogged-year", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-unnamed-zero", "verdict": "CAUGHT", "fails": ["13"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-placeholder-names", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-aliases-own", "verdict": "CAUGHT", "fails": ["14"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-not-floored", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-adds-dropped", "verdict": "CAUGHT", "fails": ["18"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-ba-k-divided", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-cur-only", "verdict": "CAUGHT", "fails": ["7"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-ppsetv", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-retag", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-del", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-load", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-lock-tag-dropped", "verdict": "CAUGHT", "fails": ["5"], "threw": 1, "suite": "_slim-prove-131196bf.mjs", "detail": "--- v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134) | tag first\n        got    want BES|2028\n        got [[1150,400,330],[200,140,50],[1175,410,310]]   want [[1050,452000,330],[300,90040,50],[5075,0,310]]\n--- v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134) | the copy\n        got [null,null]   want [\"BES|2028\",{\"d\":900,\"m\":300}]\n--- v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134) | after the lock"}
+{"id": "v212-w3-lock-tag-not-live", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-lock-from-tag", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-lock-no-pos", "verdict": "CAUGHT", "fails": ["2"], "threw": 1, "suite": "_slim-prove-131196bf.mjs", "detail": "--- v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134) | the copy\n        got [null,null]   want [\"BES|2028\",{\"d\":900,\"m\":300}]\n--- v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134) | harness\n        got threw   want ran"}
+{"id": "v212-w3-lock-pos-shared", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-view-reads-live", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-view-old-lock-reads-live", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-proj-no-upl", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-131196bf.mjs", "detail": ""}
+{"id": "v212-w3-held-is-drawn", "verdict": "CAUGHT", "fails": ["8"], "threw": 1, "suite": "_slim-prove-bb3c03b2.mjs", "detail": "--- v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134) | FY27 discretionary\n        got [[1050,452000,330],[1050,600,250],[1050,600,250],[0,0,0],[0,451400,80],[0,0,30]]   want [[1050,452000,330],[1100,600,250],[1050,600,250],[50,0,0],[0,451400,80],[0,0,30]]\n--- v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134) | FY27 mandatory\n        got [[300,90040,50],[300,0,50],[300,0,50],[0,0,0],[0,90040,0],[0,40,0]]   want [[300,90040,50],[300,0,150],[300,0,50],[0,0,100],[0,90040,0],[0,40,0]]\n--- v2.12 W3 —"}
+{"id": "v212-w3-over-unfloored", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-un-unfloored", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-upl-uncapped", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-upl-other-lane", "verdict": "CAUGHT", "fails": ["9"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-rows-unmarked", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-rows-reversed", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-fit-follows-view", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-fit-cache-kept", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-fit-writes-stored", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-box-blames-position", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-fitgo-no-select", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-att-missing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-bm-editable", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-bm-take-offered", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-upl-board-missing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-upl-fs-missing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-upl-1n-missing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-upl-fydp-missing", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "v212-w3-fydp-upl-lanes", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
+{"id": "cycle-lock-no-reference", "verdict": "CAUGHT", "fails": ["3"], "threw": 1, "suite": "_slim-prove-5d5efe03.mjs", "detail": "--- PPBE cycles — the lock is the window, frozen | lock\n        got    want PB|2027\n--- PPBE cycles — the deltas against the reference | lock\n        got :PB|2027   want PB|2027:PB|2027\n--- PPBE cycles — the deltas against the reference | harness\n        got threw   want ran"}
+{"id": "v199-cyc-no-list", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-d1bfefff.mjs", "detail": ""}
+{"id": "v202-89-lock-keeps-nothing", "verdict": "CAUGHT", "fails": ["13"], "threw": 0, "suite": "_slim-prove-69238d07.mjs", "detail": ""}
+{"id": "v210-a-not-in-render", "verdict": "CAUGHT", "fails": ["99"], "threw": 0, "suite": "_slim-prove-57f2b27e.mjs", "detail": ""}
+{"id": "v212-w3-refresh-linedel", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-unit", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-refresh-unit-undo", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}
+{"id": "v212-w3-fit-screen-year-only", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-bb3c03b2.mjs", "detail": ""}
