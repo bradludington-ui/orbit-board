@@ -526,6 +526,12 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **What prints in the meantime:** funded is what the lane draws within the position, as everywhere else, so no report
     states more than the position; the overage stands as a flag until a requirement is reduced.
   - **Locked cycles** keep the position as it was locked; only the working plan reads live.
+- **A position entered as one figure per line** (Brad, 28 Oct 2026, asked during the v2.12 review: "Keep my lane split"):
+  the position sets each service's TOTAL for the year, and ORBIT splits it Disc/Mand in the same proportion as the board's
+  own base for that service and year (whole dollars, `apportion`), and says so; mandatory money stays mandatory. Where the
+  board's own base for that service and year is $0 in both lanes there is no proportion to keep: the figure is read as
+  discretionary, and the board says that too. (The v2.12 build first read it as all discretionary, mandatory $0, as the
+  old *Take from a PPBE position* did.)
 
 ## Later
 
