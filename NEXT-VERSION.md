@@ -283,7 +283,9 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     *Owning IPT*, then *Work Breakdown Structure*). Its values: Air Vehicle, Combat Data Systems, Maintenance Systems,
     Non-PMO, PO&A, Propulsion, Service Mgd, Training Systems & Simulation -- the names `ACE_PMO` already maps (AV, CDS, MxS,
     Non-PMO, BOP, PP, TSS). Brad: *"Service Mgd is not us. We include it in the estimate but it does not get executed by
-    us."* -- so it stays out of ORBIT's figures, as it does today, and the import says how much it left out. *"Non-PMO is
+    us."* -- so it stays out of ORBIT's figures. It already does: `aceParse` skips a PMO `ACE_PMO` does not map and counts the
+    ROWS it skipped (a row whose *JPO Managed* is not Yes is skipped before that). Proposed: the import report states the
+    DOLLARS it left out under Service Mgd, by year, so the estimate's own total can still be tied out. *"Non-PMO is
     kind of like an all other category or catch all"* -- kept as its own group, as today.
   - **No PSM in the 2026 PMO list.** `ACE_PMO_ALIGN_DEFAULT` assumes PSM sits under Air Vehicle before 2026 and is its own
     ACE PMO from 2026; the 2026 list has no PSM, so with that default the board's PSM office would find no estimate.
