@@ -2341,8 +2341,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="team" data-id="t-wbs" data-t="A requirement’s WBS paragraph">
 <p class="v212-h132">Every requirement carries the <b><span data-fl="wbs"></span></b> paragraph its money rolls up under: the product or outcome a Service reads it against, in the cost estimate’s own WBS tree. A requirement on 1.2.2.1 rolls up to 1.2.2, then 1.2, then 1. A prime contract’s is logged per CLIN, in its 🧾 CLIN drill.</p>
 <p>A paragraph is <b>picked, not typed</b>, from the paragraphs the cost estimate names for this appropriation — the one chosen for the board, else the newest that names any. In the edit box, the Add box and a requirement’s WBS lines, type a code or a name and pick it from the list. Its name, its path in the estimate with the top heading first, shows beside it. A code the estimate does not hold is refused, and what was typed is kept so it can be corrected. Paragraphs on estimate lines whose CCAR Element is the requirement’s CCaR record come first in the list, marked <i>suggested</i>; a suggestion is never set. With no estimate naming this appropriation, a paragraph is taken as typed, and the field says so.</p>
-<p>A paragraph stored before the estimate came in, or one it no longer holds, is <b>kept as stored and flagged</b>, never dropped or rewritten. Two lists under <b>Needs attention</b> find what is left to do: <b>▦ without a WBS</b> (a prime is listed while any CLIN carrying money has none), whose heading counts the requirements and the funded dollars that have one, of all; and <b>≠ WBS not in the estimate</b>. <b>Go to it</b> opens the record at its WBS (a prime: its CLIN drill). <b>Classify requirements</b>, in Review, sets one paragraph on many requirements at once, from the same list; it leaves a prime, and a requirement already split across paragraphs, alone.</p>
-<p>The <b>Spend Plan Source</b> carries each line’s paragraph in its WBS column — the code and, where the estimate names it, “ - ” and its name — so CCaR’s plan events take ORBIT’s WBS. A requirement split across paragraphs goes out a line per paragraph, its dollars split as the office typed them, with any part not yet assigned on a line of its own; the lines add up to the line they replace, to the dollar. A line with no paragraph goes out with the column blank, and the export names those requirements.</p>
+<p>A paragraph stored before the estimate came in, or one it no longer holds, is <b>kept as stored and flagged</b>, never dropped or rewritten. Two lists under <b>Needs attention</b> find what is left to do: <b>▦ without a WBS</b> (funded money sent with no paragraph, and why), whose heading counts the requirements and funded dollars that have one; and <b>≠ WBS not in the estimate</b>. <b>Go to it</b> opens the record at its WBS (a prime: its CLIN drill). <b>Classify requirements</b>, in Review, sets one paragraph on many requirements at once, from the same list; it leaves a prime, and a requirement already split across paragraphs, alone.</p>
+<p>The <b>Spend Plan Source</b> carries each line’s paragraph in its WBS column — the code and, where the estimate names it, “ - ” and its name — so CCaR’s plan events take ORBIT’s WBS. A requirement split across paragraphs goes out a line per paragraph, its dollars split as the office typed them, with any part not yet assigned on a line of its own; the lines add up to the line they replace, to the dollar. A line with no paragraph goes out with the column blank; the export names them, as ▦ without a WBS lists them.</p>
 </section>
 </template>
 
@@ -2484,7 +2484,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <div class="modal-bg" id="uipPanel">
   <div class="modal" style="width:560px;max-width:94vw">
     <h3 id="uipMsg" style="font-size:13px;line-height:1.5"></h3>
-    <input id="uipVal" style="width:100%;box-sizing:border-box;margin-top:6px" autocomplete="off" oninput="uipSay()" onkeydown="if(event.key==='Enter'){event.preventDefault();uipDone(true);} if(event.key==='Escape'){event.preventDefault();uipDone(false);}">
+    <input id="uipVal" data-held="1" style="width:100%;box-sizing:border-box;margin-top:6px" autocomplete="off" oninput="uipSay()" onkeydown="if(event.key==='Enter'){event.preventDefault();uipDone(true);} if(event.key==='Escape'){event.preventDefault();uipDone(false);}">
     <datalist id="uipList"></datalist><div id="uipNote" class="hint" style="margin-top:6px;overflow-wrap:anywhere" hidden></div>
     <div style="margin-top:12px;text-align:right"><button class="btn" onclick="uipDone(true)">OK</button> <button class="btn" onclick="uipDone(false)">Cancel</button></div>
   </div>
@@ -3604,16 +3604,21 @@ function attLists(T){
   const MR=masterRanks();
   const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[], wbs:[], wbsx:[]};
   // v2.12 (item 132): the coverage the Without a WBS heading states -- requirements and funded dollars with a WBS, of all
-  const WP=wbsPick(), cov={n:0, of:0, f:0, fof:0};
+  // v2.12 RV2 (K01, K05, K09, K14): read off the Spend Plan Source's own lines (wbsBlankOf), on the funded plan
+  const WP=wbsPick(), cov={n:0, of:0, f:0, fof:0}, WB=wbsBlankOf(), TF=WB.T;
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const p=T[id]||{dT:0, mT:0, d:[], m:[]}, funded=(p.dT||0)+(p.mT||0);
     const row={id:id, rank:MR[id], funded:funded};
     // v2.12 (item 132): WITHOUT A WBS -- no paragraph; a prime, while any CLIN carrying money has none (or no CLIN has one).
     // And A PARAGRAPH THE ESTIMATE DOES NOT HOLD -- one the pickers' estimate does not name, kept as stored (wbsUnlistedOf).
-    const ws=wbsStateOf(id);
-    cov.of++; cov.fof+=funded; if(ws.has){ cov.n++; cov.f+=funded; } else out.wbs.push(row);
-    const wx=wbsUnlistedOf(id, WP); if(wx.length) out.wbsx.push(Object.assign({n:wx}, row));
+    // v2.12 RV2: and any funded money the Spend Plan Source sends with the WBS column blank, with those dollars and why; the
+    // heading's funded dollars with a WBS are the ones that go out on a paragraph
+    const ws=wbsStateOf(id), wb=WB.by[id], pf=TF[id]||{dT:0, mT:0}, wf=(pf.dT||0)+(pf.mT||0), wbl=wb? wb.amt : 0;
+    cov.of++; cov.fof+=wf; cov.f+=wf-wbl;
+    if(ws.has && !(wbl>0.5)) cov.n++;
+    else out.wbs.push(Object.assign({}, row, {funded:wf, blank:wbl, why:wbsWhyOf(ws, wb)}));
+    const wx=wbsUnlistedOf(id, WP); if(wx.length) out.wbsx.push(Object.assign({n:wx}, row, {funded:wf}));
     if(BAND_OF(id)!==null && BAND_DEF(id).consReq && !(((S.cons||{})[id]||'').trim())) out.imp.push(row);
     if(!ccarOf(it)) out.ccar.push(row);
     const aw=(S.awards||{})[id];
@@ -3663,7 +3668,7 @@ const ATT_KIND={
     why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('si')+', which shows the code as saved.'},
   // v2.12 (item 132): a WBS paragraph on every requirement -- what rolls a requirement's money up to the product a Service reads
   wbs:{t:'▦ WITHOUT A WBS', go:'Go to it',
-    why:'No WBS paragraph, so its money rolls up to no product of the cost estimate, and every line of it goes out on the Spend Plan Source with the WBS column blank. A prime is broken down per CLIN, so it is listed while any CLIN carrying money has none. The heading counts the requirements, and the funded dollars, that have one. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('wbs')+', where a paragraph is picked from the estimate (a prime: its 🧾 CLIN drill).'},
+    why:'Funded money that goes out on the Spend Plan Source with the WBS column blank, so it rolls up to no product of the cost estimate: a requirement with no paragraph, the part of a WBS split not yet assigned, a prime\u2019s CLIN with no paragraph, or a prime\u2019s money on a service none of its CLINs carries. Each row says which, with its dollars; the export names the same lines. A requirement with no paragraph is listed funded or not, and a prime while any CLIN carrying money has none. The heading counts the requirements with nothing to fix, and the funded dollars that go out on a paragraph. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('wbs')+' (a split: its WBS lines; a prime: its 🧾 CLIN drill, where a CLIN takes a paragraph or a service\u2019s money).'},
   wbsx:{t:'≠ WBS NOT IN THE ESTIMATE', go:'Go to it',
     why:'Each paragraph shown is kept exactly as stored, and is not one of the paragraphs the cost estimate the WBS pickers read names for this appropriation \u2014 so it rolls up to nothing in it. It was typed before that estimate was imported, or the estimate has changed. Nothing is dropped or rewritten: <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('wbs')+' (a split: its WBS lines; a prime: its 🧾 CLIN drill), where one can be picked.'},
   awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
@@ -3686,7 +3691,8 @@ function attBody(){
   const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>'
     : (attOpen==='awfix'? '<th style="text-align:left">What was done, and the split used</th>'
     : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>'
-    : (attOpen==='wbsx'? '<th style="text-align:left">Not in the estimate, kept as stored</th><th>Funded</th>' : '<th>Funded</th>'))));
+    : (attOpen==='wbsx'? '<th style="text-align:left">Not in the estimate, kept as stored</th><th>Funded</th>'
+    : (attOpen==='wbs'? '<th style="text-align:left">What goes out with no WBS</th><th>No WBS</th><th>Funded</th>' : '<th>Funded</th>')))));
   h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
     +'<th style="text-align:left">PMO</th>'+money+'<th></th></tr>';
   let t1=0, t2=0;
@@ -3696,14 +3702,15 @@ function attBody(){
           +esc((Array.isArray(r.n)? r.n : []).join(' \u00b7 '))+'</td>'
       : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
       : (attOpen==='wbsx'? '<td class="attwbsx" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td><td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'
-      : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>')));
-    t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : 0;
+      : (attOpen==='wbs'? '<td class="attwbs" style="text-align:left;white-space:normal">'+esc((r.why||[]).join(' \u00b7 '))+'</td><td>'+(r.blank>0.5? fM(r.blank) : '—')+'</td><td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'
+      : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'))));
+    t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : (attOpen==='wbs'? (r.blank||0) : 0);
     h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left">'+esc(dispTitle(it))+'</td>'
       +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
       +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
   h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
     +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>'
-      : (attOpen==='wbsx'? '<td></td>' : '')+'<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
+      : (attOpen==='wbsx'? '<td></td>' : (attOpen==='wbs'? '<td></td><td>'+(t2>0.5? fM(t2) : '—')+'</td>' : ''))+'<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
   el.innerHTML=h;
 }
 // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
@@ -9200,7 +9207,8 @@ function pmoFmtVal(k, v){
     return sv+' '+(rcnLabel(v[sv])||v[sv]); }).join(' · ');
   if(k==='budgetAsg' && typeof v==='object') return Object.keys(v).sort().map(function(x){
     const p=x.split('|'); return p[0]+(p[1]? ' '+(p[1]==='mand'? 'mandatory' : 'discretionary') : '')+': '+v[x]; }).join(' · ');
-  if(k==='wbs' && Array.isArray(v)) return v.map(function(e){ return (e&&e.w)||'(unnamed WBS)'; }).join(' · ');
+  // v2.12 RV2 (K03): each named, or flagged where the board's estimate does not hold it
+  if(k==='wbs' && Array.isArray(v)) return v.map(function(e){ return wbsReviewTxt(e && e.w); }).join(' · ');
   if(k==='awards' && typeof v==='object') return awdFmt(v);
   // v1.94: kept and applied as before, but nothing reads it -- the award dates decide the CR half-month
   if(k==='crHalf' && typeof v==='object') return 'second half of '+Object.keys(v).sort().map(ymLbl).join(', ')
@@ -17049,11 +17057,13 @@ function wbsPickKey(ap){
 }
 // Every WBS a requirement claims, from the WBS feature -- requirement level for non-primes, CLIN
 // level for primes, which is where a prime's work is actually broken down.
+// v2.12 RV2 (K00, K07): each read by the one reader of a stored paragraph's code (wbsCodeIn), so a paragraph stored as CCaR
+// writes it ("1.2.1 - Organizational") claims 1.2.1's lines, as the pickers and the Spend Plan Source read it
 function aceWbsOf(id){
   const out=[];
-  (wbsReq(id)||[]).forEach(function(e){ if(e.w) out.push(aceNormWbs(e.w)); });
+  (wbsReq(id)||[]).forEach(function(e){ if(e.w) out.push(wbsCodeIn(e.w)); });
   const cw=((S.clinWbs||{})[id])||{};
-  Object.keys(cw).forEach(function(kk){ (cw[kk]||[]).forEach(function(e){ if(e.w) out.push(aceNormWbs(e.w)); }); });
+  Object.keys(cw).forEach(function(kk){ (cw[kk]||[]).forEach(function(e){ if(e.w) out.push(wbsCodeIn(e.w)); }); });
   return out.filter(function(v,i,a){ return v && a.indexOf(v)===i; });
 }
 // ACE lines for one appropriation, indexed by WBS.
@@ -20946,21 +20956,58 @@ function exportExView(){
 // so the lines add up to the line they replace, to the dollar, and every other cell is that line's own. No other column moves:
 // QPE_READS reads the file by position. A line with no paragraph goes out blank, and the export names those requirements.
 function srcWbsCell(c, P){ if(!c) return ''; const nm=(P && P.has[c])? P.name[c] : ''; return c+(nm? ' - '+nm : ''); }
+// v2.12 RV2 (K01, K05, K09, K14): each part says, when its column goes out blank, WHY (a third element): 'none' no paragraph,
+// 'clin' a CLIN with no paragraph, 'rest' the part of a WBS split not yet assigned, 'line' a split's line with no paragraph,
+// 'noclin' a prime's money none of its CLINs carries -- what Needs attention lists, with what to fix (wbsBlankWhy).
+// A PRIME'S WBS IS ITS CLINs': the edit box hides a requirement-level paragraph on a prime and reqApply refuses one, so money a
+// prime's CLINs carry nothing for goes out blank -- the reading wbsStateOf has always given it. A paragraph left on a
+// requirement since switched to a prime is kept as stored, and sent nowhere (it went out on that money, where no box shows it).
 function srcWbsParts(St, id, it, i, amt, clin){
+  if(!clin && clinApplies(id)) return [[amt, '', 'noclin']];
   const L=clin? ((((St.clinWbs||{})[id])||{})[clin.key]) : ((St.wbs||{})[id]);
   const list=(Array.isArray(L)? L : []).filter(function(e){ return e && typeof e==='object'; });
-  if(!list.length) return [[amt, '']];
+  if(!list.length) return [[amt, '', clin? 'clin' : 'none']];
   if(list.length===1) return [[amt, wbsCodeIn(list[0].w)]];
   const R=wbsResolve(list, clin? clinVec(id, clin) : svcAlloc(it));
   const ws=R.rows.map(function(r){ return Math.max(0, +r.v[i]||0); }).concat([Math.max(0, +R.rem[i]||0)]);
   const tot=ws.reduce(function(a,b){ return a+b; }, 0);
-  if(!(tot>0)) return [[amt, '']];
+  if(!(tot>0)) return [[amt, '', 'rest']];
   let parts;
   if(Number.isInteger(amt)) parts=apportion(amt, ws);
   else { let acc=0; parts=ws.map(function(x, k){ const v=(k===ws.length-1)? amt-acc : amt*x/tot; acc+=v; return v; }); }
-  return parts.map(function(v, k){ return [v, k<R.rows.length? wbsCodeIn(R.rows[k].w) : '']; });
+  return parts.map(function(v, k){ const c=k<R.rows.length? wbsCodeIn(R.rows[k].w) : '';
+    return [v, c, c? '' : (k<R.rows.length? 'line' : 'rest')]; });
 }
-function srcRowsOf(fy, St, T, rec){
+// v2.12 RV2 (K06): A PARAGRAPH CARRIES WHAT THE OFFICE TYPED FOR IT, TO THE DOLLAR, over every line it goes out on. A service's
+// money goes out in pieces -- a lane each, an increment each, a CLIN each -- and each piece split over the paragraphs on its own
+// rounded the same way every time, ties to the first paragraph: twelve increments of $25 over $100 / $100 / $100 went out as
+// $108 / $96 / $96, and both lanes paying $151 and $149 as $101 / $100 / $99, while the ACE breakout (aceAlignRows) splits
+// the same money once and prints $100 / $100 / $100. So a requirement's money for a service -- a prime's, each CLIN's -- is split
+// over its paragraphs ONCE (srcWbsParts: what the office typed, when the lanes pay it in full), and each piece in turn takes, by
+// largest remainder, from what each paragraph still has to take. Every line still adds up to its piece, and every paragraph to
+// its share: both margins exact (a share never runs below zero: a piece is never more than what is left to place). Pieces that
+// are not whole dollars (a modelled plan, never the board's own) are split one by one, as before.
+// `pcs` are the pieces in the order their lines go out ({amt, clin, lane, dt}); the lines come back in that order.
+function srcWbsSpread(St, id, it, i, pcs){
+  const by=Object.create(null), gk=function(p){ return p.clin? 'c|'+p.clin.key : 'r'; };
+  pcs.forEach(function(p){ const g=by[gk(p)]||(by[gk(p)]={clin:p.clin, tot:0, whole:true});
+    g.tot+=p.amt; if(!Number.isInteger(p.amt)) g.whole=false; });
+  Object.keys(by).forEach(function(k){ const g=by[k];
+    g.parts=g.whole? srcWbsParts(St, id, it, i, g.tot, g.clin) : null;   // the group's money over its paragraphs, once
+    g.left=g.parts? g.parts.map(function(q){ return q[0]; }) : null; });
+  const out=[];
+  pcs.forEach(function(p){
+    const g=by[gk(p)];
+    const parts=!g.parts? srcWbsParts(St, id, it, i, p.amt, p.clin)
+      : (g.parts.length===1? [[p.amt, g.parts[0][1], g.parts[0][2]]]
+      : apportion(p.amt, g.left.map(function(x){ return Math.max(0, x); })).map(function(v, k){ g.left[k]-=v; return [v, g.parts[k][1], g.parts[k][2]]; }));
+    parts.forEach(function(q){ out.push({amt:q[0], clin:p.clin, lane:p.lane, dt:p.dt, wc:q[1], nw:q[2]||''}); });
+  });
+  return out;
+}
+// v2.12 RV2 (K01): `only` records the lines in `rec` and builds no row -- what Needs attention reads, as the board draws, so the
+// list of what goes out with no WBS is the export's own lines (wbsBlankOf), never a second reading of them
+function srcRowsOf(fy, St, T, rec, only){
   const out=[];
   const order=(St.order||[]).slice();
   const WP=wbsPick();      // v2.12 (item 132): the names the WBS column prints beside each code
@@ -20999,11 +21046,12 @@ function srcRowsOf(fy, St, T, rec){
     };
     // A record Title only when the join is unambiguous; the requirement's own name otherwise, so
     // the column is never blank and never a coin toss between two records sharing a number.
-    const recT=ccarTitleOf(it);
-    const emit=(svc, amt, clin, lane, dt, wc)=>{
+    const recT=only? '' : ccarTitleOf(it);
+    const emit=(svc, amt, clin, lane, dt, wc, nw)=>{
       // v2.02 (E5): every line, as sent, for the reconciliation of the offices' planning shares (officeClinRecon)
-      // v2.12 (item 132): and its WBS paragraph, so the export can name the lines that go out without one
-      if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt, wbs:wc||''});
+      // v2.12 (item 132): and its WBS paragraph, so the export can name the lines that go out without one -- and (RV2) why
+      if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt, wbs:wc||'', nw:wc? '' : (nw||'none')});
+      if(only) return;
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
       // v2.04 (item 108): a CLIN line carries the CLIN's OWN record, number and name, when it has one (Brad, 22 Oct 2026)
@@ -21048,9 +21096,10 @@ function srcRowsOf(fy, St, T, rec){
       r[23]=srcWbsCell(wc||'', WP);           // v2.12 (item 132): the line's WBS paragraph, or blank
       out.push(r);
     };
-    // v2.12 (item 132): one line becomes a line per WBS paragraph, adding up to it exactly (srcWbsParts)
-    const emitW=(svc, i, amt, clin, lane, dt)=>{
-      srcWbsParts(St, id, it, i, amt, clin).forEach(function(q){ if(Math.abs(q[0])>0.005) emit(svc, q[0], clin, lane, dt, q[1]); }); };
+    // v2.12 (item 132): one line becomes a line per WBS paragraph, adding up to it exactly -- and (RV2, K06) each paragraph's
+    // lines to its share of the service's money, split once (srcWbsSpread)
+    const emitW=(svc, i, pcs)=>{
+      srcWbsSpread(St, id, it, i, pcs).forEach(function(q){ if(Math.abs(q.amt)>0.005) emit(svc, q.amt, q.clin, q.lane, q.dt, q.wc, q.nw); }); };
     if(SRC_GRAIN==='req'){
       const tot=vals.reduce((a,b)=>a+(+b||0),0);
       if(tot) emit('', tot, null, '', dt);
@@ -21067,14 +21116,16 @@ function srcRowsOf(fy, St, T, rec){
       // out on their own line with their own budget, discretionary first. Together they are exactly
       // what the lanes paid -- never the allocation.
       SVC.forEach((sv,i)=>{
+        const pcs=[];      // v2.12 RV2 (K06): every piece of this service, in the order its lines go out, split over the WBS together
         (SRC_BASIS==='ask'? [['',vals]] : [['disc',lanes.disc],['mand',lanes.mand]]).forEach(function(L){
           const lane=L[0], v=+L[1][i]||0; if(!v) return;
           datedOf(i, lane, v).forEach(function(q){
             const parts=clinSplit(id, i, q[1]);
-            if(!parts.length){ emitW(sv, i, q[1], null, lane, q[0]); return; }
-            parts.forEach(p=>{ if(Math.abs(p.part)>0.005) emitW(sv, i, p.part, p.c, lane, q[0]); });
+            if(!parts.length){ pcs.push({amt:q[1], clin:null, lane:lane, dt:q[0]}); return; }
+            parts.forEach(p=>{ if(Math.abs(p.part)>0.005) pcs.push({amt:p.part, clin:p.c, lane:lane, dt:q[0]}); });
           });
         });
+        if(pcs.length) emitW(sv, i, pcs);
       });
     }
   });
@@ -21129,14 +21180,16 @@ function sheetNamer(taken, max){
 }
 // v2.12 (item 132): THE LINES THAT GO OUT WITH NO WBS PARAGRAPH, named -- the file is still written (a line CCaR takes without
 // a WBS is a plan event the team completes there), but nobody should find the blank column by opening the file
+// v2.12 RV2 (K01, K05, K09, K14): read by the one reading Needs attention's Without a WBS reads (wbsBlankSum), so the list it
+// points to holds every requirement it names, with what to fix -- it told the person to pick a paragraph in each record, of a
+// split's unassigned part and of a prime (whose record has no WBS field), and pointed to a list that did not hold them
 function srcNoWbsSay(rec){
-  const L=(rec||[]).filter(function(r){ return r && !r.wbs && Math.abs(+r.amt||0)>0.005; });
-  if(!L.length) return '';
-  const who=[], n=Object.create(null);
-  L.forEach(function(r){ if(!n[r.id]){ n[r.id]=0; who.push(r.id); } n[r.id]++; });
-  return ' ⚠ '+L.length+' line'+(L.length===1?' goes':'s go')+' out with no WBS paragraph, on '+who.length+' requirement'+(who.length===1?'':'s')+': '
-    +who.slice(0, 12).map(function(id){ const it=itemById(id); return '<b>'+esc(it? dispTitle(it) : id)+'</b>'+(n[id]>1? ' ('+n[id]+' lines)' : ''); }).join(', ')
-    +(who.length>12? ' and '+(who.length-12)+' more' : '')+' \u2014 pick one in each requirement\u2019s record (Needs attention lists them).';
+  const B=wbsBlankSum(rec), who=Object.keys(B);
+  if(!who.length) return '';
+  const nl=who.reduce(function(a, id){ return a+B[id].lines; }, 0);
+  return ' ⚠ '+nl+' line'+(nl===1?' goes':'s go')+' out with no WBS paragraph, on '+who.length+' requirement'+(who.length===1?'':'s')+': '
+    +who.slice(0, 12).map(function(id){ const it=itemById(id); return '<b>'+esc(it? dispTitle(it) : id)+'</b>'+(B[id].lines>1? ' ('+B[id].lines+' lines)' : ''); }).join(', ')
+    +(who.length>12? ' and '+(who.length-12)+' more' : '')+' \u2014 Needs attention \u203a \u25a6 without a WBS lists '+(who.length===1? 'it' : 'each')+', with what to fix.';
 }
 // Mirror of the Spend Plan Source workbook: same tabs, same 32 columns, same widths, same number
 // formats, header row frozen. One tab per appropriation this board holds, exactly as imported.
@@ -27915,6 +27968,29 @@ function clinListRO(pid){
     .filter(function(c){ return gone.indexOf(c.key)<0; });
   return base.concat(added.map(function(c){ return {key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar}; }));
 }
+// v2.12 RV2 (K01): A READ THAT CHANGES NOTHING, around code that splits a prime's money by its CLINs. clinList and clinVec make
+// the CLIN containers they read and write each CLIN's default share into S.clinAlloc (clinListRO says why that matters), so
+// whatever such a read added or replaced for these primes is put back: the very objects that were there, never a copy (a copy
+// through JSON would turn a NaN into null). Written for the SI tab (v2.09 W4, its clinRead, which now calls this); Needs
+// attention reads the Spend Plan Source's own lines through it, as the board draws -- and a draw must write nothing.
+function clinReadOnly(pids, fn){
+  const own=function(o, k){ return !!(o && typeof o==='object' && Object.prototype.hasOwnProperty.call(o, k)); };
+  const was=[];
+  (pids||[]).forEach(function(pid){ ['clinMeta','clinNew','clinRm','clinAlloc'].forEach(function(n){
+    const box=S[n], val=own(box, pid)? box[pid] : undefined;
+    was.push({pid:pid, n:n, top:own(S, n), box:box, has:own(box, pid), val:val,
+      keys:(val && typeof val==='object' && !Array.isArray(val))? Object.keys(val).map(function(k){ return [k, val[k]]; }) : null}); }); });
+  try{ return fn(); }
+  finally{ was.forEach(function(w){ const pid=w.pid;
+    if(!w.top){ delete S[w.n]; return; }
+    if(S[w.n]!==w.box){ S[w.n]=w.box; return; }
+    if(!w.has){ if(own(w.box, pid)) delete w.box[pid]; return; }
+    if(w.box[pid]!==w.val){ w.box[pid]=w.val; return; }
+    if(!w.keys) return;
+    const cur=w.val, had=Object.create(null);
+    w.keys.forEach(function(kv){ had[kv[0]]=1; if(cur[kv[0]]!==kv[1]) cur[kv[0]]=kv[1]; });
+    Object.keys(cur).forEach(function(k){ if(!had[k]) delete cur[k]; }); }); }
+}
 function clinRemovedList(pid){
   const meta=clinMeta(pid), gone=clinRm(pid);
   return gone.map(k=>{
@@ -28218,13 +28294,35 @@ function wbsQuick(id, typed){
     const t=r.v;
     wbsStore('req',id,'', t? [{w:t, v:[]}] : []);
     render();
-  }, P.k? {list:wbsListOpts(cc, P), say:function(x){ return wbsFieldSay(x, P, cc, was); }, pick:function(el){ wbsPickedIn(el, P); }} : null);
+  // v2.12 RV2 (K00): the paragraph the record holds, left as it is, is never shortened (it is kept as stored on OK)
+  }, P.k? {list:wbsListOpts(cc, P), say:function(x){ return wbsFieldSay(x, P, cc, was); },
+    pick:function(el){ if(el && String(el.value).trim()!==was.trim()) wbsPickedIn(el, P); }} : null);
 }
 function wbsLabel(kind,a,b){
   const L=wbsListOf(kind,a,b);
   if(!L.length) return '';
   if(L.length===1) return L[0].w||'(blank)';
   return L.length+' WBS';
+}
+// v2.12 RV2 (K03): UNDER THE CLIN DRILL'S WBS BUTTON, a paragraph's name, or the ones the estimate does not hold -- the name
+// shows beside every paragraph shown, and a stored one the list does not hold is flagged (Needs attention listed "4.4 (CLIN
+// 0002)" while the drill showed a bare 4.4). Reads only (wbsClin creates nothing).
+function wbsClinSay(pid, key){
+  const P=wbsPick(); if(!P.k) return '';
+  const L=wbsClin(pid, key).filter(function(e){ return e && String(e.w==null? '' : e.w).trim(); });
+  if(!L.length) return '';
+  const off=L.filter(function(e){ return wbsUnlisted(e.w, P); }).map(function(e){ return String(e.w).trim(); });
+  if(off.length) return '<div class="wbsnm off">⚠ not in the '+esc(wbsSrcLbl(P))+': '+esc(off.join(', '))+'</div>';
+  return L.length===1? '<div class="wbsnm">'+esc(wbsPathOf(L[0].w, P))+'</div>' : '';
+}
+// v2.12 RV2 (K03): A PARAGRAPH IN THE PMO REVIEW AND ITS CHANGE REPORT, as text: its name, or that the board's estimate does not
+// hold it -- accepted, it would be listed under Needs attention, and nothing on the review said so (a copy published before
+// v2.12, or before the board had an estimate, takes a paragraph as typed)
+function wbsReviewTxt(w){
+  const t=String(w==null? '' : w).trim(); if(!t) return '(unnamed WBS)';
+  const P=wbsPick(); if(!P.k) return t;
+  if(wbsUnlisted(t, P)) return t+' (not in the '+wbsSrcLbl(P)+')';
+  const nm=wbsPathOf(t, P); return t+(nm? ' \u2014 '+nm : '');
 }
 // ---- v2.12 (item 132): A WBS PARAGRAPH ON EVERY REQUIREMENT, PICKED FROM THE COST ESTIMATE -----------------------------------
 // Brad, 28 Oct 2026: "We don't have a WBS allocated to each requirement but we need it. It is a high priority for me." The
@@ -28299,7 +28397,12 @@ function wbsTake(val, P){
   return {why:'The WBS '+inShow(t)+' is not a paragraph of the '+wbsSrcLbl(P)+'; pick one from its list. Nothing was changed'};
 }
 // a stored paragraph the list does not hold: kept as stored, flagged
-function wbsUnlisted(w, P){ P=P||wbsPick(); const c=aceNormWbs(w); return !!(P.k && c && !P.has[c]); }
+// v2.12 RV2 (K00, K07): READ BY THE ONE READER OF A STORED PARAGRAPH'S CODE (wbsCodeIn), the one wbsTake, the names and the
+// Spend Plan Source read it with. A paragraph stored as CCaR writes its WBS column ("1.2.1 - Organizational": typed before the
+// estimate came in, when a paragraph was taken as typed) was read whole here, as "1.2.1-ORGANIZATIONAL" -- flagged as not in
+// the estimate by Needs attention, the WBS lines and Classify, and claimed by nothing in the tie-out, while the edit box
+// named it 1.2.1 and the Spend Plan Source sent it as 1.2.1.
+function wbsUnlisted(w, P){ P=P||wbsPick(); const c=wbsCodeIn(w); return !!(P.k && c && !P.has[c]); }
 // a paragraph's name beside it: its path in the estimate ('' when the estimate names none, or does not hold it)
 function wbsPathOf(w, P){ P=P||wbsPick(); const c=wbsCodeIn(w); return (P.k && c && P.has[c])? (P.path[c]||'') : ''; }
 // THE SUGGESTIONS for a CCaR record: the paragraphs of the estimate's lines whose CCAR Element is that record, in the estimate's
@@ -28363,6 +28466,47 @@ function wbsStateOf(id){
   }
   const L=Array.isArray((S.wbs||{})[id])? S.wbs[id] : [];
   return {prime:false, has:wbsLinesHas(L), clins:[], lines:L};
+}
+// v2.12 RV2 (K01, K05, K09, K14): WHAT GOES OUT WITH NO WBS, STATED ONCE. The Spend Plan Source sends a requirement's funded
+// money with the WBS column blank where it has no paragraph, where its WBS split leaves a part not yet assigned, where a
+// prime's CLIN carrying money has none, and where a prime is funded on a service none of its CLINs carries. Needs attention's
+// Without a WBS read only whether ANY line had a paragraph, so a split's unassigned part and a prime's money on no CLIN went
+// out blank while the list stood empty, its heading said every funded dollar had a WBS, and the export's message sent the
+// person to that list. Both now read the export's own lines (srcRowsOf, recording only, as the board draws -- the CLIN
+// containers it reads are put back by clinReadOnly), on the funded plan (bare tiers(), as the export: never the ◨ view):
+// wbsBlankSum is the one reading of them, for the list, its heading and the export's message.
+function wbsBlankOf(TB){
+  TB=TB||tiers();
+  const rec=[], pr=(S.order||[]).filter(function(id){ return clinApplies(id); });
+  clinReadOnly(pr, function(){ srcRowsOf(MS.cur, S, TB, rec, true); });
+  return {by:wbsBlankSum(rec), T:TB};
+}
+// per requirement: the dollars that go out blank, the lines, and why, each reason with its dollars, in the order met
+function wbsBlankSum(rec){
+  const by=Object.create(null);
+  (rec||[]).forEach(function(r){
+    if(!r || r.wbs || !(Math.abs(+r.amt||0)>0.005)) return;
+    const b=by[r.id]||(by[r.id]={amt:0, lines:0, why:[]}), w=wbsBlankWhy(r);
+    b.amt+=+r.amt||0; b.lines++;
+    const x=b.why.filter(function(q){ return q[0]===w; })[0]; if(x) x[1]+=+r.amt||0; else b.why.push([w, +r.amt||0]); });
+  return by;
+}
+// why a line goes out blank, and so what to fix -- the record's WBS, its WBS split, or the prime's CLIN drill
+function wbsBlankWhy(r){
+  const cn='CLIN '+String((r.clin && r.clin.clin) || '(unnumbered)').slice(0, 20);
+  return r.nw==='rest'? (r.clin? cn+': ' : '')+'part of its WBS split not yet assigned'
+    : r.nw==='line'? (r.clin? cn+': ' : '')+'a WBS line with no paragraph'
+    : r.nw==='noclin'? String(r.svc||'')+' money on no CLIN'
+    : r.nw==='clin'? cn+' has no paragraph'
+    : 'no paragraph';
+}
+// the reasons a requirement is listed: the blank lines' (each with its dollars where there are several), or, with none funded,
+// what wbsStateOf found
+function wbsWhyOf(ws, wb){
+  if(wb && wb.why.length) return wb.why.map(function(q){ return q[0]+(wb.why.length>1 && q[1]>0.5? ' ('+fM(q[1])+')' : ''); });
+  if(!ws.prime) return ['no paragraph'];
+  const miss=ws.clins.filter(function(x){ return x.money && !x.has; }).map(function(x){ return 'CLIN '+String(x.c.clin||'(unnumbered)').slice(0, 20)+' has no paragraph'; });
+  return miss.length? miss : [ws.clins.length? 'no CLIN has a paragraph' : 'no CLIN'];
 }
 // the stored paragraphs, as stored, that the list does not hold (each once; a prime's say which CLIN)
 function wbsUnlistedOf(id, P){
@@ -28728,8 +28872,14 @@ function matBulk(){
   { const WP=wbsPick();
     if(WP.k) out['wbs']={opts:WP.codes.map(function(c){ return [c, wbsOptLbl(c, WP)]; }),
               applies:function(it){ const L=wbsReq(it.id); return ptypeOf(it.id)!=='PRIME' && L.length<=1 && !((L[0]||{}).v||[]).length; },
+              // v2.12 RV2 (K04): WHY A ROW IS LEFT ALONE, said: "never offer it" was false of both -- a prime's WBS is per CLIN, and a
+              // requirement with a WBS split (or dollars typed by paragraph) does offer the field: one paragraph written over it
+              // would erase the split
+              skip:function(it){ return ptypeOf(it.id)==='PRIME'? ['prime, whose WBS is per CLIN, left alone', 'primes, whose WBS is per CLIN, left alone']
+                : ['with a WBS split, left alone so the split is kept', 'with a WBS split, left alone so the split is kept']; },
               // a stored paragraph read as the estimate writes it, so "p6.2" already says P6.2 and is left alone
-              get:function(it){ const w=String((wbsReq(it.id)[0]||{}).w||'').trim(), c=aceNormWbs(w); return WP.has[c]? c : w; },
+              // v2.12 RV2 (K00): read by wbsCodeIn, as every reader of a stored paragraph is ("1.2.1 - Organizational" is 1.2.1)
+              get:function(it){ const w=String((wbsReq(it.id)[0]||{}).w||'').trim(), c=wbsCodeIn(w); return WP.has[c]? c : w; },
               set:function(id,v){ if(!S.wbs) S.wbs={}; if(v) S.wbs[id]=[{w:v, v:[]}]; else delete S.wbs[id]; }}; }
   if(DATA.costElems) out['costElem']={opts:COST_ELEMS.map(function(c){ return [c,c]; }),
               get:function(it){ return (S.costElem||{})[it.id]||''; },
@@ -28794,8 +28944,18 @@ function matBulkPreview(){
     if(!cur) blank++; else if(cur===matBulkV) same++; else differ++;
     if(matBulkF==='rcnAsg' && matClinOwn(it.id).k) clinOwn++;
   });
+  // v2.12 RV2 (K04): the rows left alone, counted by why -- an entry that says why (skip) is counted by its own words
+  const why=[]; if(B.skip){ const reach=new Set(rows);
+    all.forEach(function(it){ if(reach.has(it)) return; const w=B.skip(it), x=why.filter(function(q){ return q.w[1]===w[1]; })[0];
+      if(x) x.n++; else why.push({w:w, n:1}); }); }
   return {n:rows.length, blank:blank, same:same, differ:differ, skip:all.length-rows.length,
-          field:matColLbl(matBulkF), val:matBulkV, clinOwn:clinOwn};
+          field:matColLbl(matBulkF), val:matBulkV, clinOwn:clinOwn, why:why};
+}
+// v2.12 RV2 (K04): the rows a bulk set leaves alone, in words -- by why, where the entry says (one phrase each, joined by
+// `sep`), else the count and `dflt`, as it always read
+function matSkipSay(P, dflt, sep){
+  if(!P.skip) return '';
+  return (P.why && P.why.length)? P.why.map(function(q){ return q.n+' '+(q.n===1? q.w[0] : q.w[1]); }).join(sep) : P.skip+' '+dflt;
 }
 function matApplyBulk(){
   const B=matBulk()[matBulkF], P=matBulkPreview();
@@ -28807,7 +28967,7 @@ function matApplyBulk(){
     +'  '+P.blank+' have no answer yet\n'
     +(P.same? '  '+P.same+' already say exactly this and are left alone\n' : '')
     +'  '+P.differ+' say something ELSE and would be OVERWRITTEN\n'
-    +(P.skip? '  '+P.skip+' never offer this field and are left alone\n' : '')+'\n'
+    +(P.skip? '  '+matSkipSay(P, 'never offer this field and are left alone', '\n  ')+'\n' : '')+'\n'
     +'This cannot be undone. Save first if you are unsure.')) return;
   // v2.08 (F3): a row that already says this is left alone -- set again, an office re-ranked every row already in it
   const rows=matBulkRows(B).filter(function(it){ return String(B.get(it)||'')!==matBulkV; });
@@ -28815,7 +28975,7 @@ function matApplyBulk(){
   save(); render();
   setStat('\u2713 '+esc(FN)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
     +' requirement'+(rows.length===1?'':'s')+(P.same? ' ('+P.same+' already said it and were left alone)' : '')+(P.differ? ' \u2014 '+P.differ+' had a different answer and were overwritten' : '')
-    +(P.skip? (P.differ?'; ':' \u2014 ')+P.skip+' never offer this field and were left alone' : '')+'.');
+    +(P.skip? (P.differ?'; ':' \u2014 ')+matSkipSay(P, 'never offer this field and were left alone', '; ') : '')+'.');
 }
 function matBody(){
   const bg=document.getElementById('matPanel'), el=document.getElementById('matBody');
@@ -28881,7 +29041,7 @@ function matBody(){
       +' onclick="matApplyBulk()">Apply</button>';
     if(P) h+='<span class="mat-prev">'+P.blank+' blank \u00b7 '+P.same+' already this \u00b7 '
       +'<b style="color:'+(P.differ?'var(--amber)':'var(--dim)')+'">'+P.differ+' overwritten</b>'
-      +(P.skip? ' \u00b7 '+P.skip+' never offer it, left alone' : '')
+      +(P.skip? ' \u00b7 '+esc(matSkipSay(P, 'never offer it, left alone', ' \u00b7 ')) : '')
       +(P.clinOwn? ' \u00b7 <span class="mat-clinown">'+P.clinOwn+' prime'+(P.clinOwn===1?' has':'s have')+' CLINs with their own, which keep it</span>' : '')+'</span>';
     h+='</div>';
     // v1.99 (item 97): what this column sets, said where it is set
@@ -29129,7 +29289,7 @@ function clinTable(it){
       +'<td class="ct">'+fM(at)+'</td><td></td>'
       +'<td class="cw" rowspan="2"><button type="button" class="nb cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
         +'title="log the WBS for this CLIN — several are allowed, split by service">'
-        +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</button></td>'
+        +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</button>'+wbsClinSay(pid, c.key)+'</td>'
       +(rcnApplies()? clinRcnCell(pid, c) : '')
       +'<td class="cx" rowspan="2"><button class="qb" onclick="clinRemove('+jsa(pid)+','+jsa(c.key)+')" '
         +'title="'+(c.added?'delete this added CLIN':'remove this CLIN (restorable)')+'">✕</button></td>'
@@ -33901,7 +34061,9 @@ function arRead(){
 // needed and the button's count. Fields are shown and hidden here, never redrawn.
 function arUpdate(){
   if(!arEl('arNew')) return;
-  wbsPickedIn(arEl('arWbs'));      // v2.12 (item 132): a paragraph picked from the list shows as its code
+  // v2.12 (item 132): a paragraph picked from the list shows as its code -- v2.12 RV2 (K00): never the paragraph a requirement
+  // brought in from another year carries, left as it is (it is kept as stored: arWbsTake)
+  { const w0=arEl('arWbs'); if(w0 && !(arFin && arFin.wbsFrom && String(w0.value).trim()===String(arFin.wbsFrom).trim())) wbsPickedIn(w0); }
   const R=arRead(), d=R.d, list=budReg();
   const tot=d.ask.reduce(function(a,b){ return a+b; }, 0);
   const te=arEl('arTot'); if(te) te.textContent=fM(tot);
@@ -34771,7 +34933,10 @@ function erDraft(D){
 }
 function erUpdate(){
   if(!erOn() || !erEl('erMain')) return;
-  wbsPickedIn(erEl('erWbs'));      // v2.12 (item 132): a paragraph picked from the list shows as its code
+  // v2.12 (item 132): a paragraph picked from the list shows as its code -- v2.12 RV2 (K00): never the text the record holds,
+  // left as it is: shortened on opening, "1.2.1 - Organizational" became 1.2.1, the box asked to discard typing nobody did, and
+  // a Save of any other field rewrote the paragraph
+  { const w0=erEl('erWbs'); if(w0 && String(w0.value).trim()!==String((erSnap||{}).wbs||'').trim()) wbsPickedIn(w0); }
   const D=erRead(), og=destKeyIsOgc(D.to);
   const fe=erEl('erF_destEnd'), fm=erEl('erF_mipr'); if(fe) fe.hidden=!og; if(fm) fm.hidden=!og;
   const pp=erEl('erPtP'), po=erEl('erPtO');
@@ -36556,23 +36721,8 @@ function exportExcel(){
       // splits the prime -- no RCN tab, no funded line in the Spend Plan Source -- this section would be the first to, and
       // a default frozen there stops following the CLIN's own ask. So whatever the read added or replaced for this prime
       // is put back: the very objects that were there, never a copy (a copy through JSON would turn a NaN into null).
-      const clinRead=function(pid, fn){
-        const own=function(o, k){ return !!(o && typeof o==='object' && Object.prototype.hasOwnProperty.call(o, k)); };
-        const was=['clinMeta','clinNew','clinRm','clinAlloc'].map(function(n){
-          const box=S[n], val=own(box, pid)? box[pid] : undefined;
-          return {n:n, top:own(S, n), box:box, has:own(box, pid), val:val,
-            keys:(val && typeof val==='object' && !Array.isArray(val))? Object.keys(val).map(function(k){ return [k, val[k]]; }) : null}; });
-        try{ return fn(); }
-        finally{ was.forEach(function(w){
-          if(!w.top){ delete S[w.n]; return; }
-          if(S[w.n]!==w.box){ S[w.n]=w.box; return; }
-          if(!w.has){ if(own(w.box, pid)) delete w.box[pid]; return; }
-          if(w.box[pid]!==w.val){ w.box[pid]=w.val; return; }
-          if(!w.keys) return;
-          const cur=w.val, had=Object.create(null);
-          w.keys.forEach(function(kv){ had[kv[0]]=1; if(cur[kv[0]]!==kv[1]) cur[kv[0]]=kv[1]; });
-          Object.keys(cur).forEach(function(k){ if(!had[k]) delete cur[k]; }); }); }
-      };
+      // v2.12 RV2: one implementation, beside clinListRO, which Needs attention reads the Spend Plan Source's lines through too
+      const clinRead=function(pid, fn){ return clinReadOnly([pid], fn); };
       const clinLines=function(q){
         if(!(typeof clinApplies==='function' && clinApplies(q.id))) return [];
         // asked without creating anything first: clinList makes empty CLIN containers for a prime that has none

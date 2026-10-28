@@ -83,6 +83,11 @@ export function buildHostile(html) {
     ['clinAlloc','clinMeta','clinNew','clinRm','clinWbs','clinRcn','clinRcnSvc'].forEach(function(k){ if(!S[k]||typeof S[k]!=='object') S[k]={}; });
     S.clinNew[pr]=[{key:P('clinnewkey'), clin:P('clinno'), desc:P('clinnewdesc'), ccar:P('clinccar'), ask:SVC.map(function(){ return 500; })}];
     S.clinWbs[pr]={}; S.clinWbs[pr][P('clinkey')]=[{w:P('clinwbs'), v:[]}];
+    // v2.12 RV2 (K03): and a hostile paragraph on its base CLIN -- the drill names or flags a CLIN's paragraph under its WBS button
+    S.clinWbs[pr].b0=[{w:P('clinwbs0'), v:[]}];
+    // v2.12 RV2 (K09): and its CLINs allocated nothing on the hostile service, so the prime's money there goes out on no CLIN --
+    // Without a WBS names that service as why (a CLIN's number is cut to 20 characters there, so it cannot carry a whole value)
+    S.clinAlloc[pr]={b0:SVC.map(function(s, j){ return j===1? 0 : 2000; })}; S.clinAlloc[pr][P('clinnewkey')]=SVC.map(function(s, j){ return j===1? 0 : 500; });
     // v1.98 (item 83): a hostile CLIN key, service name and combination key in the CLIN's per-service choice
     S.clinRcnSvc[pr]={}; S.clinRcnSvc[pr][P('clinnewkey')]={}; S.clinRcnSvc[pr][P('clinnewkey')][SVC[1]]=P('clinrcnsvc');
     S.ptype[pr]='PRIME';
@@ -243,7 +248,9 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   'acefile', 'aceby', 'acesheet', 'acecoltitle', 'acebyval', 'acenamedwbs', 'acenamedwhat', 'aceconfcode', 'aceconfname', 'aceconfalso',
   'acece', 'acecolfile', 'acecolsheet', 'acecolhdr',
   // v2.12 W2 (item 132): the estimate's WBS names, drawn beside the paragraph they name, and the CCaR its suggestion is for
-  'wbstop', 'wbsname', 'wbsccar'];
+  'wbstop', 'wbsname', 'wbsccar',
+  // v2.12 RV2 (K03): a CLIN's paragraph, flagged under its WBS button in the drill
+  'clinwbs0'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).
@@ -282,6 +289,9 @@ export async function hostileSweep(run, settle = async () => {}) {
     const setup = SPECIAL[id] || (fn ? `${fn}();` : null); if (!setup) continue;
     await run(tryIt(setup)); await look(`panel ${id}`); await run(CLOSE); opened++;
   }
+  // v2.12 RV2 (K01, K09): Needs attention's Without a WBS says why each requirement is listed -- a CLIN's number, a service's
+  // name -- so it is drawn too (the attPanel special above opens the other WBS list)
+  await run(tryIt(`attShow('wbs');`)); await look('Needs attention: without a WBS'); await run(tryIt(`attClose();`)); await run(CLOSE);
   // v2.07 (item 121): THE ADD BOX, the whole way through. Opened bare it asks only for the office -- the strip's old opener,
   // 'toggleAdd();', reached nothing else -- so it is opened for an office chosen at the top (PSM) and for the hostile office
   // chosen in the box, with values typed so each service's budget names are offered, a CCaR number from the records list

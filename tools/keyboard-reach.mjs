@@ -1064,7 +1064,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const errs1 = errs.slice(); await ctx.close();
     // the Add box: Enter on Add requirement, Tab to its WBS field -- the same list, and the paragraph typed named under it
     ({ p, ctx, errs } = await open('review'));
-    p.on('dialog', d => d.accept());
+    // v2.12 RV2 (K02): every question is accepted, but one -- the quick box's, on Esc -- is answered Cancel, and each is kept
+    let dlgDismiss = false; const dlgSeen = [];
+    p.on('dialog', d => { dlgSeen.push(d.message()); return dlgDismiss ? d.dismiss() : d.accept(); });
     await p.evaluate(SEED);
     await p.evaluate(id => setPmoFilter(grpOf(itemById(id))), id);
     await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
@@ -1084,6 +1086,15 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const q0 = await fld('uipVal');
     await p.keyboard.type('1.2.2'); await p.waitForTimeout(120);
     const q1 = await fld('uipVal');
+    // v2.12 RV2 (K02): Esc with the typing there asks first (the box is saved only by its own OK); Cancel keeps the box, the typing
+    // and the keyboard -- a stray key loses nothing
+    dlgDismiss = true; dlgSeen.length = 0;
+    await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+    const qe = await p.evaluate(() => ({ open: /\bopen\b/.test(document.getElementById('uipPanel').className), v: document.getElementById('uipVal').value,
+      kb: document.activeElement && document.activeElement.id }));
+    dlgDismiss = false;
+    chk('T · the quick box: Esc with a paragraph typed asks first, and Cancel keeps the box, the typing and the keyboard',
+      dlgSeen.some(m => /Discard what you typed\?/.test(m)) && qe.open && qe.v === '1.2.2' && qe.kb === 'uipVal', JSON.stringify({ asked: dlgSeen.slice(0, 1), ...qe }));
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const qs = await p.evaluate(id2 => ((S.wbs || {})[id2] || []).map(x => x.w), id2);
     chk('T · Classify’s WBS cell opens the quick box by Enter: the keyboard on its field, the same list, the paragraph typed named, and Enter takes it',

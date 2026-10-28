@@ -142,7 +142,11 @@ const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilt
   aceRepPanel: [ACE_REP_SEED, `delete ACEDB.sets['2026ACE']`],
   aceColPanel: [`window.__aceColCtx=${ACE_COL_CTX}`, `delete window.__aceColCtx; ACECOL=null; aceColOpen=false; render()`] };
 for (const box of BOXES) {
-  if (box.id === 'uipPanel') { skipped.push('uipPanel (the in-app prompt opens only where the browser has no prompt of its own)'); continue; }
+  // v2.12 RV2 (K02): since v2.12 the in-app prompt is the WBS quick box wherever an estimate names the paragraphs, not only where
+  // the browser has no prompt of its own; it is still skipped here (its Cancel discards as it says, and its backdrop closes
+  // nothing, which this sweep's three ways of closing would each read as typing lost), and its Esc is held by keyboard-reach T
+  // in Chromium and by audit-other's "v2.12 RV2 — the WBS quick box asks" block
+  if (box.id === 'uipPanel') { skipped.push('uipPanel (the WBS quick box: its Esc is checked by keyboard-reach T and audit-other)'); continue; }
   if (!box.pat) { bad.push(`${box.id}: no way to open it found`); continue; }
   if (PRE[box.id]) await p.evaluate(c => { try { (0, eval)(c); } catch (e) {} }, PRE[box.id][0]);
   await p.evaluate(() => { window.scrollTo(0, 0); document.body.focus(); });
