@@ -263,22 +263,56 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
      and its data lives only in CCaR; Brad's team is adding the WBS paragraph number to every CCaR plan event.
   6. **Services:** three -- Air Force (USAF, ANG, AFRC), Marine Corps (USMC STOVL, USMC CV) and Navy (USN CV) -- with the
      six lines kept on the data tab (proposed 28 Oct; Brad did not object).
-- **The mock-up** (invented figures, contract and CCaR numbers; placeholder WBS names): `recovery/item133-mockup/` --
-  `model.py`, `xlsx.py` (the workbook, with live formulas), `check.py` (LibreOffice recalculates it; every header,
-  appropriation and total is held to figures worked out from `model.py`, every line's shares to 100%, and partner figures
-  typed on a requirement line, a WBS header and an appropriation row must land on their own line and every header above it;
-  two planted mistakes fail it, 196 and 4 checks), and the renders `xlsx-*.png`. Tabs: *How to read*, *FY27 (active)*,
-  *FY27 by month*, *FY28* (budget year), *FY29*, and *Data* (one flat table for pivots).
+- **The mock-up** (invented figures, contract and CCaR numbers; placeholder WBS names): `recovery/item133-mockup/`. `sh
+  make.sh` builds it (`model.py`, `xlsx.py`), saves it once through LibreOffice so the file carries computed values (a phone
+  or mail preview shows figures, not blanks; the formulas stay live), and runs `check.py`. Tabs: *How to read*, *FY27
+  (active)*, *FY27 by month*, *FY28* (budget year), *FY29*, *Data*; renders in `xlsx-*.png`.
+  - **The Data tab is the one source.** One row per figure, a column per measure (Requirement, Funded, Obligated, Planned to
+    obligate, ACE estimate), never two measures in one column. Funded on an active-year row is obligated + planned, so
+    Funded by FY compares across years in a pivot. Months are dates; the WBS levels are columns, named.
+  - **Every other figure is a SUMIFS over Data**, keyed by the row's own hidden keys (year, appropriation, WBS level,
+    paragraph, line) -- never a range of rows -- so sorting, filtering, collapsing or inserting rows cannot move a total.
+    The partner box (yellow, on every row) takes **$M** and has data validation; a header adds every partner figure on its
+    own row and beneath it, keyed the same way.
+  - **What the fixture carries, because real data will:** Full Fund's USMC-B (counted as Marine Corps), a letter-suffixed
+    paragraph (1.1.1.1E, beside 1.1.1.1), an ACE line no requirement claims (1.1.1.3: its own row, in every ACE total), a
+    requirement on a parent that has children (1.2.2), a requirement with no WBS paragraph ("No WBS paragraph yet", inside
+    its appropriation's totals), one on a paragraph the ACE lacks (1.4, flagged red), one CCaR record carrying two contracts
+    (a row each), a plan event that slipped and one obligated early, and Initial Spares.
+  - **`check.py`** recalculates the saved file in LibreOffice and holds all 199 rows of the four tree tabs to figures worked
+    out from `model.py` with the Service groups written out by hand (never the builder's own list), every line's shares to
+    100%, the Data tab's measures, no formula pointing at another row, and partner figures typed in $M on a line, a WBS
+    header, an appropriation and the active tab. Five planted mistakes each fail it: the USMC-B alias dropped (241), the
+    partner box not converted from $M (12), the unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1),
+    requirement and funded in one Data column (1,003).
+  - **Rebuilt after an independent review (28 Oct):** three reviewers (Brad's decisions, the Excel under real use, what
+    ORBIT can deliver), each finding reproduced in LibreOffice. The first cut summed requirement and funded in one Data
+    column (a pivot doubled the plan years), took the partner box in dollars under a $M label (2.5 did nothing), lost a row
+    inserted at a block's edge and scrambled totals on a sort (positional ranges), dropped money with no paragraph and ACE
+    lines with no requirement, carried no unit on a copied cell, and stored no computed values. Each is fixed above.
 - **Proposed build (after item 132):**
-  - A read-only export under Reports & exports. Plan years from `tiers()` (funded = d + m per service), each appropriation
-    read as its own board opens it; the active year from the CCaR pull, each row placed by its plan event's WBS paragraph,
-    its Service read from its budget name. Nothing recomputed, nothing written to the board.
+  - A read-only export under Reports & exports, laid out as the mock-up. Plan years from `tiers()` (funded = d + m per
+    service), each appropriation read as its own board opens it; the active year from the CCaR pull, each row placed by its
+    plan event's WBS paragraph, its Service read from its budget name. Nothing recomputed, nothing written to the board.
+    Services join by name through `SVC_ALIAS` (Full Fund's USMC-B is Marine Corps); WBS paragraphs sort naturally (a letter
+    suffix is a sibling; a P prefix is tolerated).
   - **The contract number** as a new requirement field (the record, the Add and edit boxes, PMO copies, year copies, the
     import door), printed in this workbook, and written to the Spend Plan Source once CCaR has a column for it.
-  - **Formulas in ORBIT's Excel writer**, opt in: `buildXlsx` writes values only today. Every workbook that does not ask
-    stays byte-for-byte as it is.
+  - **Formulas in ORBIT's Excel writer**, opt in: a cell may carry `{f, v}`, written as `<f>` with `<v>` = ORBIT's own
+    figure, so the file shows figures before it is recalculated and the board's read-back checks can compare them. Every
+    workbook that does not ask stays byte-for-byte as it is.
   - **Ask CCaR to carry ORBIT's requirement id** beside the contract number, so CCaR rows match requirements exactly (Brad's
     "yes", 28 Oct, read as covering this).
+  - **Obligated** is CCaR's allocation status (`isAlloc`). The Spend Plan Source writes *Forecast allocated to a Plan Event*
+    for an active year, and `isAlloc` would read that text, coming back unchanged, as obligated: the build reads it as not
+    yet obligated and names any other Alloc text it does not know.
+- **Questions for Brad (raised by the review):**
+  1. A requirement on two paragraphs: is what the office types per paragraph the **requirement value** or the
+     **allocation**? ORBIT's WBS lines split the allocation today (`wbsResolve`). The mock-up splits the requirement and
+     spreads funded in the same proportion.
+  2. **OPN**: in or out? (The mock-up carries O&M, Full Fund and Initial Spares, as FYDP Disconnects does.)
+  3. **Procurement money from earlier years obligating this year** (Full Fund and Initial Spares obligate across about
+     three years): on the active-year tab, or only money filed under the active year?
 - **Open:** which CCaR columns will carry the WBS paragraph and the contract number; the WBS names (item 132).
 
 ## Later
