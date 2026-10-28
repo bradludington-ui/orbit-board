@@ -30,6 +30,7 @@ import { chromium } from 'playwright-core';
 import { readFileSync, existsSync } from 'node:fs';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
+import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132)
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BASELINE = new URL('./a11y-baseline.json', import.meta.url).pathname;
@@ -445,6 +446,26 @@ for (const build of BUILDS) {
     if (!fdcShown.n || !fdcSvc) record(build, theme, { sc: 'coverage', key: 'FYDP Disconnects was not on screen whole to measure',
       detail: `the Summary with its figures, a shortfall and an International figure ${fdcShown.n ? 'was' : 'was NOT'} shown; the USAF sheet ${fdcSvc ? 'was' : 'was NOT'}`
         + (fdcShown.err ? ' (' + fdcShown.err + ')' : ''), n: 1 });
+
+    // v2.12 (item 132): THE COST ESTIMATE IMPORT'S REPORT AND MAPPING BOX, measured with what the 2026 file puts in them: every
+    // reason with rows and dollars, the named rows and the conflicting names, the columns read open; then the mapping box asking for
+    // two renamed titles from the file's own 44 headers. Each must be on screen, or the run fails.
+    const aceShown = await page.evaluate(([seed, ask]) => { try {
+      if (typeof aceRepShow !== 'function') return { r: false, c: false };
+      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
+      (0, eval)(seed); aceRepShow('2026ACE');
+      const d = document.querySelector('#aceRepBody details'); if (d) d.open = true;
+      const r = document.querySelectorAll('#aceRepBody .acerep-why tr').length >= 12 && document.querySelectorAll('#aceRepBody .acerep-named').length >= 5;
+      return { r };
+    } catch (e) { return { r: false, err: String(e.message) }; } }, [ACE_REP_SEED, ACE_COL_ASK]);
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { aceRepClose(); } catch (e) {} });
+    const aceCol = await page.evaluate(ask => { try { (0, eval)(ask); return document.querySelectorAll('#aceColBody select').length === 2; } catch (e) { return false; } }, ACE_COL_ASK);
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { aceColCancel(); delete ACEDB.sets['2026ACE']; render(); } catch (e) {} });
+    if (!aceShown.r || !aceCol) record(build, theme, { sc: 'coverage', key: 'the cost estimate import’s report or mapping box was not on screen to measure',
+      detail: `the report with its reasons and named rows ${aceShown.r ? 'was' : 'was NOT'} shown; the mapping box with its two pickers ${aceCol ? 'was' : 'was NOT'}`
+        + (aceShown.err ? ' (' + aceShown.err + ')' : ''), n: 1 });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.

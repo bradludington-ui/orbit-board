@@ -1,0 +1,238 @@
+[
+ {
+  "id": "v212-w1-header-first-sheet",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-header-last-wins",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-title-punctuation",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-remembered-ignored",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-remembered-not-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-unanswered-taken",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-cols-not-merged",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-dtype-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-rollup-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-blank-unnamed",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-milpers-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-partner-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-jpo-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-svcmgd-unnamed",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-pals-unchecked",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-svc-unread-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-slc-ils",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-depot-pmo-first",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-depot-silent",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-paren-positive",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-cents-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-p-unchecked",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-level-unchecked",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-zero-row-lined",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-formatting-counted",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-total-short",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-values-as-keys",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-builtin-title-remembered",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-report-year-ignored",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-conflict-silent",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-suffix-plain",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-suffix-always",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-suffix-file-order",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-tree-parent-plain",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-xlsb-read",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-xlsb-unnamed",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-other-dollars-taken",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-report-not-opened",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-data-item-gone",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-xlsx-row-numbers",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-spruills-alert",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-heal-off",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-heal-any-year",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-heal-choice",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-heal-silent",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-default-own",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-prefix",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-exact-only",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-first-claimant",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-year-figures",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-claims-screen-year",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-panel-gone",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-workbook-gone",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-split-in-total",
+  "caughtBy": "audit-recon / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-draw-rep-named",
+  "caughtBy": "audit-hostile / "
+ },
+ {
+  "id": "v212-w1-draw-rep-conflict",
+  "caughtBy": "audit-hostile / "
+ },
+ {
+  "id": "v212-w1-draw-rep-sheet",
+  "caughtBy": "audit-hostile / "
+ },
+ {
+  "id": "v212-w1-draw-col-file",
+  "caughtBy": "audit-hostile / "
+ },
+ {
+  "id": "v212-w1-draw-col-header",
+  "caughtBy": "audit-hostile / "
+ }
+]

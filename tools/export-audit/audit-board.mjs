@@ -3819,9 +3819,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 7, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
     // v2.05 (item 114): 15 -- the deck, the synopsis and Executive decision removed, and the companion tool a link at the box's foot
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '7', '4', '4', '1', '5']));
+    // v2.12 W1: Data 8 -- the Annual Cost Estimate card gains the import report (item 132)
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '1', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));

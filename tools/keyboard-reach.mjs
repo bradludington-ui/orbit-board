@@ -33,6 +33,7 @@ import { chromium } from 'playwright-core';
 import { resolve, join } from 'node:path';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
+import { ACE_REP_SEED, ACE_HDR_2026 } from './ace-seed.mjs';   // v2.12 (item 132): S
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -875,6 +876,79 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`R · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── S. THE COST ESTIMATE IMPORT: ITS MAPPING BOX AND ITS REPORT, FROM THE KEYBOARD (v2.12, item 132) ─────────────────────
+// A 2026 file whose two titles were renamed, picked (the file dialog is the browser's own): the mapping box opens with the keyboard
+// inside, on the first field. Each column is chosen with the keyboard (a letter picks the file's own heading by its column), Tab
+// reaches Import, and Enter imports it: the report opens with the keyboard inside, and says the two were answered in the box. Esc
+// closes it. Then Data on the left menu by Enter, its Import report… by Enter: the report opens again with the keyboard inside, and
+// the year picker, moved with an arrow key, redraws the figures and keeps the keyboard. Esc on the mapping box of a second file
+// imports nothing.
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    const mkBook = hdr => p.evaluate(hdr => {
+      const row = (o) => hdr.map(t => (Object.prototype.hasOwnProperty.call(o, t) ? o[t] : ''));
+      const base = { 'PALS/O&S': '', 'Account Family (PALS or O&S)': 'O&S', '$ Type': 'TY$', 'US/PTN/FMS': 'US', Service: 'USAF', 'T/M/S': 'F-35A', 'Roll-up Flag': 'No',
+        'JPO Managed': 'Yes', 'Appropriation (US Only)': 'O&M', 'Support Line Category': 'O&S', PMO: 'Air Vehicle' };
+      const rows = [['PMO Database Output'], [], hdr.slice(),
+        row(Object.assign({}, base, { 'Work Breakdown Structure': '1.2.1.1', Level: 4, CES1: 'Manpower', CES2: 'Maintenance', CES3: 'Organizational', CES4: 'Officer', 2027: 1.25 })),
+        row(Object.assign({}, base, { 'Work Breakdown Structure': '1.2', Level: 2, CES1: 'Manpower', CES2: 'Maintenance', 'Roll-up Flag': 'Yes', 2027: 1.25 }))];
+      const bytes = buildXlsx([{ name: 'Cover', rows: [['2026 SUST ACE COMPLETE']] }, { name: 'PMO Database Output', rows }]);
+      return Array.from(bytes); }, hdr);
+    const HDR = ACE_HDR_2026.map(t => t === 'PALS/O&S' ? 'Index 2' : t);
+    const book = await mkBook(HDR), book2 = await mkBook(HDR.concat(['A column added this year']));   // the second: another layout
+    const pick = async (name, bk = book) => { await p.setInputFiles('#aceFile', { name, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: Buffer.from(bk) });
+      await p.waitForTimeout(500); };
+    await pick('2026 SUST ACE COMPLETE Detail File.xlsx');
+    const a = await p.evaluate(() => ({ open: document.getElementById('aceColPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id,
+      asked: [...document.querySelectorAll('#aceColBody select')].map(s => s.id) }));
+    chk('S · a file with two renamed titles: the mapping box opens with the keyboard inside, on the first field asked',
+      a.open && a.focus === 'aceCol_roll' && JSON.stringify(a.asked) === JSON.stringify(['aceCol_roll', 'aceCol_pals']), JSON.stringify(a));
+    await p.keyboard.type('h'); await p.keyboard.press('Tab'); await p.keyboard.type('ar', { delay: 40 });
+    const ch = await p.evaluate(() => [document.getElementById('aceCol_roll'), document.getElementById('aceCol_pals')].map(s => s.options[s.selectedIndex].textContent));
+    chk('S · each column is chosen with the keyboard, by the letter of its column: H for Roll-up Flag, AR for the account family',
+      JSON.stringify(ch) === JSON.stringify(['H · Roll-up Flag', 'AR · Account Family (PALS or O&S)']), JSON.stringify(ch));
+    let k = -1; for (let i = 0; i < 4; i++) { await p.keyboard.press('Tab'); if (await p.evaluate(() => /aceColApply/.test((document.activeElement && document.activeElement.getAttribute('onclick')) || ''))) { k = i; break; } }
+    await p.keyboard.press('Enter'); await p.waitForTimeout(400);
+    const r = await p.evaluate(() => { const s = ACEDB.sets['2026ACE'] || {}; return { box: document.getElementById('aceColPanel').classList.contains('open'),
+      rep: document.getElementById('aceRepPanel').classList.contains('open'), inRep: !!(document.activeElement && document.activeElement.closest('#aceRepPanel')),
+      lines: (s.lines || []).length, how: ((s.rep || {}).map || {}).roll && s.rep.map.roll.how, said: /answered in the mapping box/.test(document.getElementById('aceRepBody').textContent) }; });
+    chk('S · Tab reaches Import, and Enter imports it: the report opens with the keyboard inside, the rollup left out, the two titles answered in the box',
+      k >= 0 && !r.box && r.rep && r.inRep && r.lines === 1 && r.how === 'asked' && r.said, JSON.stringify({ k, ...r }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const c = await p.evaluate(() => document.getElementById('aceRepPanel').classList.contains('open'));
+    chk('S · Esc closes the report', !c, String(c));
+    // from the Data box: Import report… by Enter
+    await p.evaluate(ACE_SEED => { (0, eval)(ACE_SEED); render(); }, ACE_REP_SEED);
+    await p.focus('#uiNav_data'); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+    let f = -1; for (let i = 0; i < 30; i++) { if (await p.evaluate(() => /aceRepShow/.test((document.activeElement && document.activeElement.getAttribute('onclick')) || ''))) { f = i; break; } await p.keyboard.press('Tab'); }
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const o = await p.evaluate(() => ({ open: document.getElementById('aceRepPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#aceRepPanel')), k: aceRepK }));
+    chk('S · Data, then Import report… by Enter: the newest estimate’s report opens with the keyboard inside', f >= 0 && o.open && o.inBox && o.k === '2026ACE', JSON.stringify({ f, ...o }));
+    await p.focus('#aceRepYrSel');
+    const y0 = await p.evaluate(() => document.querySelector('#aceRepBody .acerep-why tr th:nth-child(3)').textContent);
+    await p.keyboard.press('ArrowDown'); await p.waitForTimeout(250);
+    const y1 = await p.evaluate(() => ({ th: document.querySelector('#aceRepBody .acerep-why tr th:nth-child(3)').textContent, focus: document.activeElement && document.activeElement.id }));
+    chk('S · the year picker, moved with an arrow key, redraws the year’s figures and keeps the keyboard', y1.th !== y0 && y1.focus === 'aceRepYrSel', JSON.stringify({ y0, ...y1 }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    // the same layout again is read without asking (the answers are remembered); a file laid out differently is asked about,
+    // and Esc on its mapping box imports nothing
+    await pick('2027 ACE same layout.xlsx');
+    const same = await p.evaluate(() => ({ open: document.getElementById('aceColPanel').classList.contains('open'), how: ((((ACEDB.sets['2027ACE'] || {}).rep || {}).map || {}).roll || {}).how }));
+    chk('S · the same layout again is read without asking, by the answers remembered', !same.open && same.how === 'remembered', JSON.stringify(same));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const before = await p.evaluate(() => JSON.stringify(ACEDB));
+    await pick('2028 ACE another layout.xlsx', book2);
+    const askd = await p.evaluate(() => document.getElementById('aceColPanel').classList.contains('open'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+    const z = await p.evaluate(b0 => ({ open: document.getElementById('aceColPanel').classList.contains('open'), same: JSON.stringify(ACEDB) === b0,
+      said: /canceled/.test(document.getElementById('shareStat').textContent) }), before);
+    chk('S · Esc on the mapping box imports nothing, and says so', askd && !z.open && z.same && z.said, JSON.stringify({ askd, ...z }));
+    chk('S · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`S · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box and FYDP Disconnects, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects and the cost estimate import’s mapping box and report, and each one works\n');
 process.exit(bad ? 1 : 0);

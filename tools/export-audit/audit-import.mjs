@@ -5698,9 +5698,11 @@ const V197W2 = (() => {
   // reprogramming row and Full Fund's board the edits start from; the two packages.
   const prelude = `(function(){
     globalThis.__wb=function(sheets, name){ const b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
-    globalThis.__aceRows=function(t){ const rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; const r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='ANG';
-      r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=1.5; r[ACE_COL.ce]=t; rows.push(r);
-      rows.forEach(function(x){ for(let i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+    // v2.12 W1: the import reads by header title (item 132), so the estimate is a titled sheet in the 2026 layout -- its titles on
+    // row 3 -- holding the one line it always held: O&M, ANG, JPO managed, Air Vehicle, $1.5M in 2027, and the text each edit
+    // changes in CCAR Description (it rode in the old cost element column, which the 2026 layout no longer has).
+    globalThis.__aceRows=function(t){ const H=['Index','PALS/O&S','$ Type','US/PTN/FMS','Service','T/M/S','Rollup Value?','JPO Managed','Appropriation (US Only)','Support Line Category','CCAR Element','CCAR Description','PMO','Work Breakdown Structure','Level','CES1','CES2',2026,2027,2028];
+      return [['ACE'], [], H, [1,'O&S','TY$','US','ANG','F-35A','No','Yes','O&M','O&S','',t,'Air Vehicle','1.1',2,'Manpower','Officer','',1.5,'']]; };
     globalThis.__ffStore=function(t){ return {base:2027, cur:2027, ts:2, dataPack:{services:SVC.slice(), items:[{id:'X', grp:'AV', ask:[1,2,3]}]},
       years:{2027:{order:['X'], alloc:{}, mc:{}, fsrc:{}, custom:[], removed:[], discSvc:[100,200,300], mandSvc:[0,0,0], asks:{X:[100,200,300]}, notes:{X:t}}}}; };
     globalThis.__ffPkg=function(t){ return {spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:Date.now(), ms:__ffStore(t)}; };

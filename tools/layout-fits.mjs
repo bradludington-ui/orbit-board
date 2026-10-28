@@ -43,6 +43,11 @@
 //   that ran with the panel sliding over says so and fails. A, B and G read figures, calls and data, not where anything is
 //   drawn; H reads two rows' styles; J's widths (761-1023) have the panel as a drawer, docked or not: each runs once.
 //
+//   P. (v2.12, item 132) The cost estimate import's report and its mapping box fit: at 1920, 1440, 1366, 1024 and 800, Harbor and
+//      Midnight, this font and the Segoe stand-in, neither box nor the page scrolls sideways, nothing runs past the box's edge, no
+//      cell cuts its text, and no picker cuts the name it shows -- the report with every reason, 38 named rows, long names and
+//      dollars in the billions; the mapping box with a 2026 file's whole header in each picker.
+//
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
@@ -51,6 +56,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
 import { withStandin, standinProblem } from './font-standin.mjs';
+import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132): P
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -767,6 +773,51 @@ const ER_STATE = () => {
     fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
   chk('O · the table fits whole at 1920, 1440 and 1366, and scrolls sideways inside its own frame at 800, narrower than it',
     scroll.length === 0 && read === 40, scroll.slice(0, 4).join('; '));
+}
+
+// ── P. THE COST ESTIMATE IMPORT'S REPORT AND MAPPING BOX (v2.12, item 132) ─────────────────────────────────────────────
+// The report as the 2026 file makes it: every reason, its rows and its dollars in the billions, 38 named rows and the rest, two
+// conflicting names (one long), the columns read; then the mapping box asking for two renamed titles, each picker listing the
+// file's own 44 headers. Each must be whole in the window: no sideways scroll (box or page), nothing past the box's edge, no cell
+// cutting its text, no picker cutting the name it shows. The box scrolls down, as every tall box does; that is not measured.
+{
+  ev(ACE_REP_SEED + `save(); 'ok'`);
+  const fileP = join(dir, 'board-p.html'), filePS = join(dir, 'board-p-segoe.html');
+  writeFileSync(fileP, ev('buildSavedHtml()'));
+  writeFileSync(filePS, withStandin(readFileSync(fileP, 'utf8')));
+  const LOOK = (id) => {
+    const bg = document.getElementById(id), m = bg && bg.querySelector('.modal'), out = [];
+    if (!m || !bg.classList.contains('open')) return { out: ['the box is not on screen'], rows: 0 };
+    const mr = m.getBoundingClientRect(), say = e => '"' + String(e.value || e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"';
+    if (mr.left < -1 || mr.right > innerWidth + 1) out.push(`the box runs off the window sideways: ${Math.round(mr.left)}-${Math.round(mr.right)} in ${innerWidth}`);
+    if (m.scrollWidth > m.clientWidth + 1) out.push(`the box scrolls sideways: ${m.scrollWidth}>${m.clientWidth}`);
+    const de = document.documentElement; if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
+    for (const c of m.querySelectorAll('td, th, summary, .hint')) if (c.scrollWidth > c.clientWidth + 1) out.push('cut in its cell: ' + say(c));
+    const cv = document.createElement('canvas').getContext('2d');
+    for (const sl of m.querySelectorAll('select')) { const o = sl.options[sl.selectedIndex]; if (!o) continue; const cs = getComputedStyle(sl); cv.font = cs.font;
+      if (cv.measureText(o.text).width > sl.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20 + 1) out.push('the picker cuts its name: ' + say(o)); }
+    for (const e of m.querySelectorAll('table, select, button, h3 .x')) { const r = e.getBoundingClientRect();
+      if (r.width && (r.right > mr.right + 1 || r.left < mr.left - 1)) out.push('past the box’s edge: ' + say(e)); }
+    return { out, rows: m.querySelectorAll('tr').length };
+  };
+  const fails = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileP], ['the Segoe stand-in', filePS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1920, 969], [1440, 900], [1366, 657], [1024, 700], [800, 700]]) {
+        const { p, ctx } = await open(w, h, 'review', '', false, at, theme);
+        if (at === filePS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        for (const [box, how, want] of [['aceRepPanel', `aceRepShow('2026ACE')`, 60], ['aceColPanel', ACE_COL_ASK, 3]]) {
+          const r = await p.evaluate(([how, look, box]) => { (0, eval)(how); render(); return (0, eval)('(' + look + ')')(box); }, [how, LOOK.toString(), box]);
+          read++;
+          const tag = `${w}x${h} ${theme || 'midnight'} ${font} ${box}`;
+          if (r.rows < want) fails.push(`${tag}: only ${r.rows} rows on screen`);
+          r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
+          await p.evaluate(() => { aceRepOpen = false; ACECOL = null; aceColOpen = false; render(); });
+        }
+        await ctx.close();
+      }
+  chk('P · the cost estimate import’s report and mapping box: nothing cut, nothing past the box, neither the box nor the page scrolls sideways (1920 to 800, Harbor and Midnight, this font and the Segoe stand-in)',
+    fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
 }
 
 await b.close();

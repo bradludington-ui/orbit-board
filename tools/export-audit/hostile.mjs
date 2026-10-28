@@ -111,6 +111,20 @@ export function buildHostile(html) {
       files:[{dept:P('baedept'), file:P('baefile'), ts:Date.now(), n:2}]}; persistBud();
     EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[[P('execccar'), 812345]]}}}; persistExdb();
     ACEDB={ts:Date.now(), sets:{}}; ACEDB.sets[P('aceset')]={fp:'fp-1', locked:true, appn:{om:{tot:{2027:900}, pmo:{AV:{2027:900}}, svc:{}}}, lines:[]}; persistAce();
+    // v2.12 (item 132): a 2026 estimate as the import builds it -- its lines' new fields, its WBS tree, its import report and a
+    // remembered column mapping -- with hostile text wherever a file can put text. The report box draws the file, the sheet, the
+    // column titles, a reason's values, the named rows and the conflicting names; the tie-out's lines nothing claims draw a line's
+    // cost element. (The tree's names and a line's category and CCaR fields are planted for the pickers that read them.)
+    (function(){ var v={}; v[MS.cur]=1000; var by=[[P('acebyval'), 1]];
+      ACEDB.sets['2026ACE']={label:'2026ACE', ts:Date.now(), years:[MS.cur], locked:true, by:P('aceby'), file:P('acefile'),
+        appn:{om:{tot:v, pmo:{AV:v}, svc:{USAF:v}}},
+        lines:[{ap:mySlug(), pmo:'AV', svc:'USAF', wbs:'9.1', lv:2, ce:P('acece'), slc:P('aceslc'), ccar:P('aceccar'), cdesc:P('acecdesc'), sub:'', v:v}],
+        wbs:{om:{'9':{n:P('acetree1'), lv:1, up:''}, '9.1':{n:P('acetree2'), lv:2, up:'9'}}},
+        rep:{v:1, file:P('acefile'), sheet:P('acesheet'), row:3, sheets:[P('acesheet')], years:[MS.cur], map:{wbs:{t:P('acecoltitle'), c:'Z', how:'asked'}},
+          absent:[], reasons:{pmo:{rows:1, v:v, by:by}}, named:[{k:'pmo', row:4, wbs:P('acenamedwbs'), what:P('acenamedwhat'), v:v}],
+          kept:{rows:1, lines:1, zero:0, v:v}, total:{rows:2, v:{}}, notData:0, types:{}, tree:{om:2},
+          conflicts:[{ap:'om', code:P('aceconfcode'), n:P('aceconfname'), also:[{n:P('aceconfalso'), rows:[5]}]}], ties:true}};
+      ACEDB.cols={}; ACEDB.cols[P('acesig')]={map:{wbs:P('acecolmem')}, ts:1, by:P('acecolby')}; persistAce(); })();
     // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
     // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
     RPDB={ts:Date.now(), entries:[{id:P('rpid'), ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:P('rpappn'), pec:P('rppec'), bpac:P('rpbpac'),
@@ -187,6 +201,11 @@ const SPECIAL = {
   ndPanel: `ndOpen=true; render();`, helpPanel: `openHelp('');`,
   // v2.00 (menu, 19 Oct): the left menu's three boxes close by uiImpClose / uiRepClose / uiDataClose; each opens as its entry opens it
   uiImpPanel: `uiImpOpen();`, uiRepPanel: `uiRepOpen();`, uiDataPanel: `uiDataOpen();`,
+  // v2.12 (item 132): the cost estimate import's report, for the planted estimate; and the mapping box, asking about a file whose
+  // name, sheet and headers are hostile (the box lists the file's own headers)
+  aceRepPanel: `aceRepShow('2026ACE');`,
+  aceColPanel: `aceColAsk(${JSON.stringify({ file: P('acecolfile'), key: '2026ACE', sheets: {}, H: { sheet: P('acecolsheet'), row: 2, rowNo: null,
+    hdr: ['Level', P('acecolhdr')], sig: 'x', need: ['wbs', 'roll'], col: {}, how: {}, years: {} } })});`,
 };
 const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
 // v2.07 (item 121): the Add box is open while arOpen says so -- render() puts its class back -- so it is closed by its own code
@@ -206,7 +225,10 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   // them), the CCaR list's record title and description read in when a number is typed, and another year's rows: a here
   // row's renamed title, an added one's plan event, CCaR and PID, the hostile office's, and one filled in to finish
   'baepsm', 'baegrp', 'ccarlisttitle', 'ccarlistdesc', 'yrrename0', 'yrevent1', 'yrccar1', 'yrpid1', 'yrevent2', 'yrevent3',
-  'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile'];
+  'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile',
+  // v2.12 (item 132): the cost estimate import's report and mapping box, and the tie-out's lines nothing claims
+  'acefile', 'aceby', 'acesheet', 'acecoltitle', 'acebyval', 'acenamedwbs', 'acenamedwhat', 'aceconfcode', 'aceconfname', 'aceconfalso',
+  'acece', 'acecolfile', 'acecolsheet', 'acecolhdr'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).
@@ -271,7 +293,11 @@ export async function hostileSweep(run, settle = async () => {}) {
   ];
   for (const [w, s] of BOX) { await run(tryIt(s)); await look(w); }
   await run(tryIt(`arHide(); setPmoFilter('ALL');`)); opened++;
+  // v2.12 (item 132): the tie-out's list of the estimate lines nothing claims, for the planted 2026 estimate
   for (const s of ['rmOpen=true; render();']) { await run(tryIt(s)); await look(s); }
+  // v2.12 (item 132): the tie-out's list of the estimate lines nothing claims, for the planted 2026 estimate
+  await run(tryIt(`spAce='2026ACE'; aceOnly='orph'; aceOpen=true; render();`)); await look('the ACE tie-out: lines nothing claims');
+  await run(tryIt(`aceOpen=false; aceOnly=''; render();`)); await run(CLOSE);
   const menus = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('.menu[id^="m_"]')).map(function(e){ return e.id.slice(2); }))`));
   for (const k of menus) { await run(tryIt(`toggleMenu(${JSON.stringify(k)});`)); await look(`menu ${k}`); await run(CLOSE); }
   // v2.00 (menu, 19 Oct): what the toolbar's Reports & exports, Data, Setup and File menus held is on the LEFT MENU: its boxes
