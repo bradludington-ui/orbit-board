@@ -125,6 +125,15 @@ export function buildHostile(html) {
           kept:{rows:1, lines:1, zero:0, v:v}, total:{rows:2, v:{}}, notData:0, types:{}, tree:{om:2},
           conflicts:[{ap:'om', code:P('aceconfcode'), n:P('aceconfname'), also:[{n:P('aceconfalso'), rows:[5]}]}], ties:true}};
       ACEDB.cols={}; ACEDB.cols[P('acesig')]={map:{wbs:P('acecolmem')}, ts:1, by:P('acecolby')}; persistAce(); })();
+    // v2.12 RV1 (review R01, R02, R08): an estimate whose report carries hostile text where the board writes NUMBERS -- a reason's
+    // rows, the kept lines, a year -- and the newest, so the Data card draws its line on every redraw. The import check does not know
+    // a report's shape, and the card once summed those counts straight into its markup. Its row counts (skip) carry hostile text as
+    // well: the report box names them when it says the report cannot be read.
+    (function(){ var v={}; v[MS.cur]=1000;
+      ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now()+60000, years:[MS.cur], locked:true, appn:{om:{tot:v, pmo:{}, svc:{}}}, lines:[],
+        skip:{pmo:P('aceskipv')}, rep:{v:1, sheet:'S', row:3, years:[P('aceyear')], reasons:{dtype:{rows:P('acerows'), v:{}}},
+          kept:{rows:1, lines:P('acekeptlines'), v:{}}, total:{rows:1, v:{}}, named:[], conflicts:[]}};
+      persistAce(); })();
     // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
     // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
     // v2.12 W2 (item 132): the estimate's WBS tree, in the builders' contract's shape -- the names a picker shows beside a
@@ -242,6 +251,9 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   // v2.12 (item 132): the cost estimate import's report and mapping box, and the tie-out's lines nothing claims
   'acefile', 'aceby', 'acesheet', 'acecoltitle', 'acebyval', 'acenamedwbs', 'acenamedwhat', 'aceconfcode', 'aceconfname', 'aceconfalso',
   'acece', 'acecolfile', 'acecolsheet', 'acecolhdr',
+  // v2.12 RV1: the row counts named when an estimate's report cannot be read (its rows, lines and years are never drawn: they are
+  // not numbers, so the report is said to be unreadable -- and the sweep fails if any of them becomes an element)
+  'aceskipv',
   // v2.12 W2 (item 132): the estimate's WBS names, drawn beside the paragraph they name, and the CCaR its suggestion is for
   'wbstop', 'wbsname', 'wbsccar'];
 
@@ -313,6 +325,8 @@ export async function hostileSweep(run, settle = async () => {}) {
   // v2.12 (item 132): the tie-out's list of the estimate lines nothing claims, for the planted 2026 estimate
   await run(tryIt(`spAce='2026ACE'; aceOnly='orph'; aceOpen=true; render();`)); await look('the ACE tie-out: lines nothing claims');
   await run(tryIt(`aceOpen=false; aceOnly=''; render();`)); await run(CLOSE);
+  // v2.12 RV1: the import report of the estimate whose report is not ORBIT's shape (the Data card draws its line on every look)
+  await run(tryIt(`aceRepShow('2025ACE');`)); await look('the import report that cannot be read'); await run(tryIt(`aceRepClose();`)); await run(CLOSE);
   const menus = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('.menu[id^="m_"]')).map(function(e){ return e.id.slice(2); }))`));
   for (const k of menus) { await run(tryIt(`toggleMenu(${JSON.stringify(k)});`)); await look(`menu ${k}`); await run(CLOSE); }
   // v2.00 (menu, 19 Oct): what the toolbar's Reports & exports, Data, Setup and File menus held is on the LEFT MENU: its boxes

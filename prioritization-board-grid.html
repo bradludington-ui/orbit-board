@@ -2325,9 +2325,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>A <b>lock</b> tags an untagged plan with its own cycle first, so it is taken under the position it gives the plan, and keeps a copy of that position: its view and its reports read the copy, and a position changed afterwards moves only the working plan. A lock taken before v2.12 kept none, and its years read as they were locked.</p>
 </section>
 <section data-part="team" data-id="t-ace" data-t="Importing the cost estimate">
-<p class="v212-ace-h1"><span class="mp" data-m="data">Data › Import Annual Cost Estimate…</span> reads the estimate saved as an Excel Workbook (.xlsx); an .xlsb is refused with a note to save it as .xlsx first. It reads <b>by column title</b>, not by position: every sheet is searched for the row carrying the titles (<i>Work Breakdown Structure</i>, <i>Level</i>, CES1–CES8, <i>Service</i>, <i>T/M/S</i>, <i>JPO Managed</i>, <i>$ Type</i>, <i>Rollup Value?</i>, <i>Support Line Category</i>, <i>PALS/O&amp;S</i>, <i>Appropriation (US Only)</i>, <i>PMO</i>, and a column per fiscal year), and a new column anywhere moves nothing. If a title has changed, a box lists the file’s own headers and asks which holds that field — once: the answer is remembered for files laid out the same way, and travels with the board. A field still unanswered refuses the file and names it.</p>
-<p class="v212-ace-h2">Each row is read or left out for one reason, counted in rows and in dollars by year, so every dollar of the sheet is either kept or in a reason: another dollar type (only then-year is read), a subtotal (<i>Rollup Value?</i> Yes), a summary row (a blank <i>Support Line Category</i>, each one named), MILPERS, partner or FMS lines, not JPO managed, <b>Service Mgd</b> (in the estimate, not executed by the JPO), and — named row by row — a PMO, category or service ORBIT does not know, or <i>PALS/O&amp;S</i> disagreeing with the category. The category gives the appropriation and, on Full Fund, the cost element (Depot Activation by CES2, then the PMO). Kept, but named: a WBS whose P disagrees with <i>PALS/O&amp;S</i>, a <i>Level</i> that is not the paragraph’s depth, and a paragraph two rows name differently (the first name is kept). Figures in parentheses are negative, and every figure is a whole dollar.</p>
-<p class="v212-ace-h3">The import builds the estimate’s <b>WBS tree</b>: each paragraph with every heading above it, named from the CES columns. A line ending in a letter (P6.2.2.1E) is a breakout of a similar effort: it starts its own heading only where its CES name for that level differs (P6.2.2E <i>ECU Propulsion</i>). The report opens after the import and stays under <span class="mp" data-m="data">Data › Import report…</span>: the sheet and row read, the columns, every reason with its dollars, every named row, the tree’s size and any conflicting names. <b>PSM is inside Air Vehicle</b> in every estimate: the ACE tie-out shows AV + PSM as one estimate and, beneath it, each office’s part — the lines only its requirements claim by their WBS — with the lines both or neither claim on a shared line.</p>
+<p class="v212-ace-h1"><span class="mp" data-m="data">Data › Import Annual Cost Estimate…</span> reads the estimate saved as an Excel Workbook (.xlsx); an .xlsb is refused with a note to save it as .xlsx first. It reads <b>by column title</b>, not by position: every sheet is searched for the row carrying the titles (<i>Work Breakdown Structure</i>, <i>Level</i>, CES1–CES8, <i>Service</i>, <i>T/M/S</i>, <i>JPO Managed</i>, <i>$ Type</i>, <i>Rollup Value?</i>, <i>Support Line Category</i>, <i>PALS/O&amp;S</i>, <i>Appropriation (US Only)</i>, <i>PMO</i>, and a column per fiscal year), and a new column anywhere moves nothing. A box lists the file’s own headers and asks which holds a field, once (remembered for files laid out the same way, and travelling with the board), when its title is missing or heads two columns; also a missing <i>US/PTN/FMS</i> or <i>CCAR Element</i>, and CES<i>k</i> where paragraphs reach level <i>k</i>, which may be answered <b>no such column</b> (no <i>US/PTN/FMS</i>: every row is US). An unanswered field, or a year heading two columns, refuses the file.</p>
+<p class="v212-ace-h2">Each row is read or left out for one reason, counted in rows and in dollars by year, so every dollar of the sheet is either kept or in a reason: another dollar type (only then-year is read), a subtotal (<i>Rollup Value?</i> Yes), a summary row (a blank <i>Support Line Category</i>, each one named), MILPERS, partner or FMS lines, not JPO managed, <b>Service Mgd</b> (in the estimate, not executed by the JPO), and — named row by row — a PMO, category or service ORBIT does not know, or <i>PALS/O&amp;S</i> disagreeing with the category. The category gives the appropriation and, on Full Fund, the cost element (Depot Activation by CES2, then the PMO). Kept, but named: a WBS whose P disagrees with <i>PALS/O&amp;S</i>, a <i>Level</i> that is not the paragraph’s depth, and a paragraph two rows name differently (the first name is kept). Figures in parentheses are negative, and every figure is a whole dollar; a year cell of text (<i>TBD</i>, a date) reads as nothing, and a kept row holding one is named.</p>
+<p class="v212-ace-h3">The import builds the estimate’s <b>WBS tree</b>: each paragraph with every heading above it, named from the CES columns. A line ending in a letter (P6.2.2.1E) is a breakout of a similar effort: it starts its own heading where its CES name for a level first differs (P6.2.2E <i>ECU Propulsion</i>), and every heading below carries the letter too. The report opens after the import and stays under <span class="mp" data-m="data">Data › Import report…</span>: the sheet and row read, the columns, every reason with its dollars, the named rows (40 of each kind on screen), the tree’s size and any conflicting names; one not in ORBIT’s shape is said to be unreadable. <b>PSM is inside Air Vehicle</b> in every estimate: the ACE tie-out shows AV + PSM as one estimate and, beneath it, each office’s part — the lines only its requirements claim by their WBS — with the lines both or neither claim on a shared line.</p>
 </section>
 <section data-part="team" data-id="t-flow" data-t="The funds flow and the ACE tie-out">
 <p class="v199-h92"><span class="mp" data-m="fydp">FYDP › Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
@@ -14780,13 +14780,21 @@ function aceSvcOf(svc,variant){
   return null;
 }
 // What ORBIT reads, by title. `req` fields must be found (or answered in the mapping box) or the file is refused, naming the
-// field; the rest name nothing when they are absent (CES2-CES8 on a shallow estimate, US/PTN/FMS on one with no partner
-// lines, the CCaR columns on an older layout). Every fiscal year column is found separately: any header that is a year.
+// field. Every fiscal year column is found separately: any header that is a year.
+// v2.12 RV1 (review R25): AN OPTIONAL COLUMN WHOSE TITLE HAS CHANGED IS ASKED ABOUT TOO, where its absence changes what is read. It
+// was read as absent, silently: a US/PTN/FMS column retitled "US / Partner / FMS" read every row as US, and kept the partner and
+// FMS lines -- $5M in the review's probe -- as the JPO's estimate, while the import said no row was left out. Item 132 asks for
+// CES1-CES8 and CCaR to be matched by title and asked about too. So: US/PTN/FMS is asked about whenever no column carries its
+// title (`ask:'always'`: it decides which lines are left out); CCAR Element too (each line's CCaR record, which puts a paragraph
+// first in a requirement's WBS picker); CESk only when the file has a paragraph at least k levels deep (`ask:'depth'`: a shallow
+// estimate has no CES8, and a CES column beyond its deepest paragraph names nothing); CCAR Description never (nothing reads it).
+// The box offers "this file has no such column" for an optional field, an answer remembered like any other. `no` says what
+// reading the file without that column means, in the report.
 const ACE_FIELDS=[
   {f:'wbs',   t:'Work Breakdown Structure', req:true},
   {f:'lv',    t:'Level', req:true},
-  {f:'ces1',  t:'CES1', req:true}, {f:'ces2', t:'CES2'}, {f:'ces3', t:'CES3'}, {f:'ces4', t:'CES4'},
-  {f:'ces5',  t:'CES5'}, {f:'ces6', t:'CES6'}, {f:'ces7', t:'CES7'}, {f:'ces8', t:'CES8'},
+  {f:'ces1',  t:'CES1', req:true}].concat([2,3,4,5,6,7,8].map(function(k){
+    return {f:'ces'+k, t:'CES'+k, ask:'depth', lv:k, no:'the level-'+k+' headings carry no name'}; }), [
   {f:'svc',   t:'Service', req:true},
   {f:'tms',   t:'T/M/S', req:true},
   {f:'jpo',   t:'JPO Managed', req:true},
@@ -14796,10 +14804,10 @@ const ACE_FIELDS=[
   {f:'pals',  t:'PALS/O&S', req:true},
   {f:'appus', t:'Appropriation (US Only)', req:true},
   {f:'pmo',   t:'PMO', req:true},
-  {f:'usptn', t:'US/PTN/FMS'},
-  {f:'ccar',  t:'CCAR Element'},
-  {f:'cdesc', t:'CCAR Description'}
-];
+  {f:'usptn', t:'US/PTN/FMS', ask:'always', no:'every row is read as US: no partner or FMS line is left out by it'},
+  {f:'ccar',  t:'CCAR Element', ask:'always', no:'no line names a CCaR record, so none puts a paragraph first in a WBS picker'},
+  {f:'cdesc', t:'CCAR Description', no:'nothing ORBIT shows reads it'}
+]);
 function aceField(f){ for(let i=0;i<ACE_FIELDS.length;i++) if(ACE_FIELDS[i].f===f) return ACE_FIELDS[i]; return null; }
 // THE ONE MAP FROM SUPPORT LINE CATEGORY TO ORBIT (Brad, 28 Oct 2026, from the 2026 file's filter list): which appropriation a
 // line is, and on Full Fund which cost element. It replaces ACE_APPN, which read the appropriation off a funding-type column the
@@ -14846,26 +14854,45 @@ const ACE_NOTE=[
   {k:'p',      t:'The WBS letter disagrees with PALS/O&S (a PALS paragraph starts with P, an O&S one does not)'},
   {k:'level',  t:'Level is not the paragraph’s depth (its count of segments)'},
   {k:'depot',  t:'Depot Activation the rules do not settle: kept on Full Fund with no cost element'},
-  {k:'nowbs',  t:'No WBS: kept, but no requirement can claim it'}
+  {k:'nowbs',  t:'No WBS: kept, but no requirement can claim it'},
+  {k:'text',   t:'A year cell holds text that is not a figure: read as nothing'}
 ];
 function aceWhyLbl(k){ const all=ACE_WHY.concat(ACE_NOTE); for(let i=0;i<all.length;i++) if(all[i].k===k) return all[i].t; return k; }
 function aceColL(i){ let s=''; i=+i; if(!(i>=0)) return ''; do{ s=String.fromCharCode(65+i%26)+s; i=Math.floor(i/26)-1; }while(i>=0); return s; }
 // A cell of the year columns, in $M, as a whole dollar at the door. Accounting parentheses are negative (v2.12: "(1.5)" lost its
 // parentheses and read +1.5, a credit counted as a cost); a dash or a word reads as nothing, never as a figure.
+// v2.12 RV1 (review R04): AND NOW IT DOES WHAT IT SAYS. A cell written as text was stripped to its digits, so "FY27 TBD" read
+// $27,000,000, "see note 3" and "Q3" $3,000,000, a date typed as text $12 trillion, and "−1.5" (the minus sign a PDF or Word
+// exhibit pastes) +$1,500,000, as did "$(1.5)" -- with the report naming none of them. A cell is a figure when the whole of it is
+// one, after its dollar sign and spaces: digits, commas only between groups of three, one point, an exponent, a sign or
+// accounting parentheses. Anything else reads as nothing, and the row is named (aceMoneyOdd), so the cell is seen.
+function aceIsFig(s){ return /^[-+]?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?$/i.test(s); }
+function aceMoneyCell(raw){
+  let s=String(raw==null? '' : raw).trim().replace(/\u2212/g,'-').replace(/[$\s]/g,'');
+  let neg=false;
+  const p=/^\((.*)\)$/.exec(s); if(p){ neg=true; s=p[1]; }
+  return {neg:neg, s:s, fig:aceIsFig(s)};
+}
 function aceMoney(raw){
   let x;
   if(typeof raw==='number') x=raw;
   else {
-    let s=String(raw==null? '' : raw).trim(); if(!s) return 0;
-    let neg=false;
-    const p=/^\((.*)\)$/.exec(s); if(p){ neg=true; s=p[1].trim(); }
-    s=s.replace(/[$,\s]/g,'');
-    x=Number(s);
-    if(!isFinite(x)) x=parseFloat(s.replace(/[^0-9.\-]/g,''));
+    if(!String(raw==null? '' : raw).trim()) return 0;
+    const c=aceMoneyCell(raw); if(!c.fig) return 0;
+    const neg=c.neg;
+    x=Number(c.s.replace(/,/g,''));
     if(neg) x=-x;
   }
   if(!isFinite(x)) return 0;
   return D$(x*1e6);
+}
+// A year cell that holds text which is not a figure: read as nothing above, and named in the report. A blank cell or a bare
+// dash is the file saying nothing, and is not named.
+function aceMoneyOdd(raw){
+  if(typeof raw==='number' || raw==null) return false;
+  const t=String(raw).trim();
+  if(!t || /^[-\u2012\u2013\u2014\u2212]+$/.test(t)) return false;
+  return !aceMoneyCell(t).fig;
 }
 // The header row's signature: its titles as matched, in order. A file laid out the same way has the same signature, so the
 // answers given in the mapping box for one are read for the next without asking (ACEDB.cols).
@@ -14899,21 +14926,62 @@ function aceFindHeader(sheets){
     .map(function(F){ return F.t; }).join(', ')+', and a column per fiscal year) — searched '+names.length+' sheet'
     +(names.length===1?'':'s')+(names.length? ': '+names.map(inShow).join(', ') : ''));
   const hdr=sheets[best.sheet][best.row]||[], at=Object.create(null);
-  hdr.forEach(function(c, i){ const n=aceTitleN(c); if(n && !(n in at)) at[n]=i; });
-  const sig=aceHdrSig(hdr);
-  const mem=(ACEDB && ACEDB.cols && Object.prototype.hasOwnProperty.call(ACEDB.cols, sig) && ACEDB.cols[sig] && ACEDB.cols[sig].map) || null;
-  const col=Object.create(null), how=Object.create(null), need=[];
-  ACE_FIELDS.forEach(function(F){
-    const n=aceTitleN(F.t);
-    if(n in at){ col[F.f]=at[n]; how[F.f]='title'; return; }
-    const m=mem && Object.prototype.hasOwnProperty.call(mem, F.f)? aceTitleN(mem[F.f]) : '';
-    if(m && (m in at)){ col[F.f]=at[m]; how[F.f]='remembered'; return; }
-    col[F.f]=-1; if(F.req) need.push(F.f);
-  });
-  const years=Object.create(null);
-  hdr.forEach(function(c, i){ const y=aceYearOfHdr(c); if(y && !(y in years)) years[y]=i; });
   const rn=(XLSX_LAST && XLSX_LAST.rowNo && Object.prototype.hasOwnProperty.call(XLSX_LAST.rowNo, best.sheet))? XLSX_LAST.rowNo[best.sheet] : null;
-  return {sheet:best.sheet, row:best.row, rowNo:rn, hdr:hdr, sig:sig, col:col, how:how, need:need, years:years, sheets:names};
+  const where='sheet '+inShow(best.sheet)+', row '+((rn && rn[best.row])||(best.row+1));
+  // v2.12 RV1 (review R00): EVERY COLUMN A TITLE HEADS, not the first. A title the header carries twice was read from its first
+  // column, silently -- a column A also titled "Rollup Value?" left every subtotal in, beside its parts, with the report saying
+  // every dollar tied. Now a field whose title, or remembered title, heads more than one column is asked about.
+  hdr.forEach(function(c, i){ const n=aceTitleN(c); if(n) (at[n]||(at[n]=[])).push(i); });
+  // v2.12 RV1 (review R06): A FISCAL YEAR HEADS ONE COLUMN. A second column headed 2027 was never read -- in no total and no
+  // reason, while the report said every dollar of the sheet tied -- and placed first, it was the one read. Neither copy is the
+  // estimate by position, so the file is refused, naming the year and its columns.
+  const years=Object.create(null), ycols=Object.create(null);
+  hdr.forEach(function(c, i){ const y=aceYearOfHdr(c); if(y) (ycols[y]||(ycols[y]=[])).push(i); });
+  const twice=Object.keys(ycols).filter(function(y){ return ycols[y].length>1; });
+  if(twice.length) throw new Error('the titles on '+where+' head more than one column with the same fiscal year \u2014 '
+    +twice.map(function(y){ return 'FY'+y+' in columns '+ycols[y].map(aceColL).join(' and '); }).join('; ')
+    +'. ORBIT cannot tell which holds the estimate and reads neither by position: remove or retitle the one that is not, and import again');
+  Object.keys(ycols).forEach(function(y){ years[y]=ycols[y][0]; });
+  const sig=aceHdrSig(hdr);
+  const memE=(ACEDB && ACEDB.cols && Object.prototype.hasOwnProperty.call(ACEDB.cols, sig) && ACEDB.cols[sig]) || null;
+  const mem=(memE && memE.map && typeof memE.map==='object')? memE.map : null;
+  const memAt=(memE && memE.at && typeof memE.at==='object')? memE.at : null;
+  const memNone=(memE && Array.isArray(memE.none))? memE.none : [];
+  const col=Object.create(null), how=Object.create(null), need=[], dup=Object.create(null);
+  // A REMEMBERED ANSWER names a column by its TITLE (the layout's signature is its titles, so they are the same file's), and the
+  // column it was given for is kept beside it only to tell apart two columns that title shares: a column is never read by its
+  // place alone, and an answer whose title no longer heads that column is asked about again.
+  const memCol=function(F, n){ const cs=at[n]||[]; if(cs.length===1) return cs[0];
+    const i=(memAt && Object.prototype.hasOwnProperty.call(memAt, F.f))? +memAt[F.f] : -1;
+    return (cs.length>1 && cs.indexOf(i)>=0)? i : -1; };
+  // How deep the file's paragraphs go: a CES column beyond the deepest names nothing, and is not asked about (ACE_FIELDS). Read
+  // off the WBS column when it is known, else the Level column; when neither is, every CES column is asked about.
+  let depth=null;
+  const deep=function(){ if(depth!==null) return depth;
+    const rows=sheets[best.sheet]||[], c=col.wbs, l=col.lv;
+    if(!(c>=0) && !(l>=0)) return (depth=8);
+    depth=0;
+    for(let r=best.row+1;r<rows.length;r++){ const row=rows[r]||[];
+      const d=(c>=0)? (aceNormWbs(row[c])? aceNormWbs(row[c]).split('.').length : 0) : (parseInt(row[l])||0);
+      if(d>depth) depth=d; }
+    return depth; };
+  ACE_FIELDS.forEach(function(F){
+    const n=aceTitleN(F.t), cs=at[n]||[];
+    if(cs.length===1){ col[F.f]=cs[0]; how[F.f]='title'; return; }
+    const m=(mem && Object.prototype.hasOwnProperty.call(mem, F.f))? aceTitleN(mem[F.f]) : '';
+    col[F.f]=-1;
+    if(cs.length>1){
+      // titled twice: settled only by an answer given for this layout, naming one of those columns
+      const i=(m===n)? memCol(F, n) : -1;
+      if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }
+      dup[F.f]=cs.slice(); need.push(F.f); return;
+    }
+    if(m){ const i=memCol(F, m); if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }
+      if((at[m]||[]).length>1){ dup[F.f]=at[m].slice(); need.push(F.f); return; } }
+    if(!F.req && memNone.indexOf(F.f)>=0){ how[F.f]='none'; return; }
+    if(F.req || F.ask==='always' || (F.ask==='depth' && deep()>=F.lv)) need.push(F.f);
+  });
+  return {sheet:best.sheet, row:best.row, rowNo:rn, hdr:hdr, sig:sig, col:col, how:how, need:need, dup:dup, years:years, sheets:names};
 }
 // One requirement field's cell, as text.
 function aceCellT(row, H, f){ const i=H.col[f]; if(!(i>=0)) return ''; const v=row[i]; return String(v==null? '' : v).trim(); }
@@ -14925,6 +14993,13 @@ function aceCellT(row, H, f){ const i=H.col[f]; if(!(i>=0)) return ''; const v=r
 // names. So the unsuffixed lines are read first, and the suffixed lines compare against what they named. A heading's parent is
 // the line's own heading one level up -- which is the unsuffixed heading's parent wherever only one level of the breakout
 // differs, as in every case Brad's file shows. A paragraph two rows name differently keeps the first name, and is named.
+// v2.12 RV1 (review R03, R09, R26, K08): A BREAKOUT IS A WHOLE BRANCH. Once a heading on a suffixed line has taken the suffix, every
+// heading below it on that line takes it too. Decided level by level, a breakout below a level whose name differs but whose next
+// level's name matches its twin's went back to the plain heading -- P6.2.2.1.3E (CES3 "ECU Propulsion", CES4 the plain "Engine
+// shop") climbed P6.2.2.1 -> P6.2.2 "Propulsion", the ECU heading P6.2.2E held nothing, the path printed the wrong location and
+// no conflict was named; and the AV + PSM split, which reads this tree, gave the ECU line to the office on Propulsion. Now that
+// line is P6.2.2.1.3E -> P6.2.2.1E -> P6.2.2E -> P6.2 -> P6, and a breakout from level 2 (CES2 differs) is P6.2E's whole branch.
+// Where the suffixed heading is itself a line named otherwise (P6.2.2.1E "Engine shop ECU"), the two names are a conflict, named.
 function aceNameSame(a, b){ const f=function(s){ return String(s||'').replace(/\s+/g,' ').trim().toLowerCase(); }; return f(a)===f(b); }
 function aceSuffixOf(code){ const segs=String(code||'').split('.'), last=segs[segs.length-1]||''; const m=/^(.*\d)([A-Z]+)$/.exec(last); return m? m[2] : ''; }
 function aceTree(kept){
@@ -14944,10 +15019,11 @@ function aceTree(kept){
   };
   const walk=function(K, plain){
     const segs=K.code.split('.'), n=segs.length, suf=plain? '' : aceSuffixOf(K.code);
-    let up='';
+    let up='', on=false;
     for(let k=1;k<n;k++){
       const base=segs.slice(0,k).join('.'), own=K.ces[k-1]||'', bn=fromPlain[K.ap+'|'+base]||'';
-      const h=(suf && bn && own && !aceNameSame(own, bn))? base+suf : base;
+      if(suf && bn && own && !aceNameSame(own, bn)) on=true;
+      const h=(suf && on)? base+suf : base;
       put(K.ap, h, k, own, up, K.row, plain);
       up=h;
     }
@@ -14967,14 +15043,14 @@ function aceParse(rows, label, H){
   // rep.types and each reason's `by` count rows by the text a cell holds (a dollar type, a PMO, a category): kept as lists of
   // [text, rows], never as objects keyed by that text -- a cell reading "__proto__" or "constructor" is a value like any other,
   // and the saved estimate still passes the import check, which refuses those names as keys
-  const rep={v:1, sheet:H.sheet, row:0, sheets:H.sheets||[], years:years, map:{}, absent:[], reasons:{}, named:[],
+  const rep={v:1, sheet:H.sheet, row:0, sheets:H.sheets||[], years:years, map:{}, absent:[], none:[], reasons:{}, named:[],
              kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:[], tree:{}, conflicts:[]};
   const count=function(list, t){ for(let i=0;i<list.length;i++) if(list[i][0]===t){ list[i][1]++; return; } list.push([t, 1]); };
   const rowNo=function(r){ return (H.rowNo && H.rowNo[r])? H.rowNo[r] : r+1; };
   rep.row=rowNo(H.row);
   ACE_FIELDS.forEach(function(F){
     if(C[F.f]>=0) rep.map[F.f]={t:String(H.hdr[C[F.f]]==null? '' : H.hdr[C[F.f]]).trim(), c:aceColL(C[F.f]), how:H.how[F.f]||'title'};
-    else rep.absent.push(F.f);
+    else { rep.absent.push(F.f); if(H.how[F.f]==='none') rep.none.push(F.f); }
   });
   const named=function(k, r, wbs, what, vec){ rep.named.push({k:k, row:rowNo(r), wbs:wbs, what:what, v:vec}); };
   const out=function(k, r, wbs, what, vec, by){
@@ -14991,6 +15067,8 @@ function aceParse(rows, label, H){
     const wbsT=aceCellT(row, H, 'wbs'), code=aceNormWbs(wbsT);
     const vec={}; let any=false;
     years.forEach(function(y){ const d=aceMoney(row[ycol[y]]); if(d){ vec[y]=d; any=true; } });
+    // v2.12 RV1 (review R04): a year cell of text that is not a figure was read as one; now it is nothing, and the row says so
+    const odd=years.filter(function(y){ return aceMoneyOdd(row[ycol[y]]); }).map(function(y){ return 'FY'+y+' '+inShow(String(row[ycol[y]]).trim()); });
     // 1. no WBS and no dollar: formatting between the rows, not data, and not counted anywhere
     if(!code && !any){ rep.notData++; continue; }
     rep.total.rows++; sum(rep.total.v, vec);
@@ -15033,6 +15111,7 @@ function aceParse(rows, label, H){
       const lvT=aceCellT(row, H, 'lv');
       if(!(lvT!=='' && +lvT===lv)) named('level', r, wbsT, 'Level '+(lvT===''? '(blank)' : lvT)+', the paragraph has '+lv+' segment'+(lv===1?'':'s'), vec);
     } else named('nowbs', r, wbsT, slcT, vec);
+    if(odd.length) named('text', r, wbsT, odd.join(' · '), vec);
     const ces=[]; for(let k=1;k<=8;k++) ces.push(aceCellT(row, H, 'ces'+k));
     let ce=cat.ce;
     if(ce===null){ ce=aceDepotCe(ces[1], pmo); if(!ce) named('depot', r, wbsT, pmoT+(ces[1]? ' · CES2 '+ces[1] : ''), vec); }
@@ -15055,9 +15134,8 @@ function aceParse(rows, label, H){
   Object.keys(T.wbs).forEach(function(ap){ rep.tree[ap]=Object.keys(T.wbs[ap]).length; });
   rep.conflicts=T.conflicts;
   // EVERY DOLLAR OF THE SHEET IS KEPT OR IN A REASON, to the dollar, every year: stated, so a report that does not close says so
-  rep.ties=years.every(function(y){
-    let s=rep.kept.v[y]||0; Object.keys(rep.reasons).forEach(function(k){ s+=rep.reasons[k].v[y]||0; });
-    return s===(rep.total.v[y]||0); });
+  // (v2.12 RV1: one statement of it, aceRepTies, which the report box reads too)
+  rep.ties=aceRepTies(rep);
   return {label:label, ts:Date.now(), years:years, appn:appn, lines:lines, skip:skip, rep:rep, wbs:T.wbs};
 }
 /* ============ REFERENCE REGISTRIES FOR THE SPEND PLAN SOURCE EXPORT ========================
@@ -17671,7 +17749,12 @@ async function importAce(inp){
     if(!first) throw new Error('no sheets in that workbook');
     // v2.12 (item 132): the year, then the word ACE anywhere after it -- the 2026 file is "2026 SUST ACE COMPLETE Detail File",
     // which the old pattern (the year right before ACE) filed under its whole name
-    const label=(f.name.match(/(20\d\d)\b.*?\bACE\b/i)||[null,''])[1];
+    // v2.12 RV1 (review R05, R11): and still the year RIGHT before ACE. The word boundaries that widened it also narrowed it:
+    // "2026ACE_final", "2026ACE (1)", "2027 ACE_rev" and "FY2027ACE" were filed under their whole names, so importing one beside a
+    // locked 2026ACE asked nothing, made a second estimate of one year and moved the board to it (and "FY2027ACE" read as year 0).
+    // The year is four digits not inside a longer number; ACE follows it directly or after anything ending in a non-letter, and
+    // no letter follows ACE -- so "2026 Workspace", "2026 TRACE" and "2026 ACEs" are not estimates of 2026.
+    const label=(f.name.match(/(?:^|\D)(20\d\d)(?!\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i)||[null,''])[1];
     const key=label? label+'ACE' : f.name.replace(/\.xlsx$/i,'');
     // v2.00 (item 99): the estimate is filed under this name, so it cannot be one every object already answers to
     if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '+inShow(key)+', a name every object already answers to \u2014 rename the file and import it again');
@@ -17699,6 +17782,11 @@ function aceImportGo(ctx){
     const miss=ACE_FIELDS.filter(function(F){ return F.req && !(H.col[F.f]>=0); });
     if(miss.length) throw new Error('the estimate has no column for '+miss.map(function(F){ return inShow(F.t); }).join(', ')
       +' — the file was read on sheet '+inShow(H.sheet)+', row '+((H.rowNo&&H.rowNo[H.row])||(H.row+1))+', and nothing is read by position');
+    // v2.12 RV1 (review R25): an optional field the box asked about is answered -- a column, or "this file has no such column" --
+    // or the file is refused, as a required one is; nothing is taken as absent that nobody said was
+    const unans=(H.need||[]).filter(function(f){ const F=aceField(f); return F && !F.req && !(H.col[f]>=0) && H.how[f]!=='none'; });
+    if(unans.length) throw new Error('no answer was given for '+unans.map(function(f){ return inShow(aceField(f).t); }).join(', ')
+      +' — say which column holds it, or that this file has no such column (sheet '+inShow(H.sheet)+', row '+((H.rowNo&&H.rowNo[H.row])||(H.row+1))+')');
     if(!Object.keys(H.years).length) throw new Error('the estimate’s header has no fiscal year column (a column headed by a year, such as 2027) — sheet '
       +inShow(H.sheet)+', row '+((H.rowNo&&H.rowNo[H.row])||(H.row+1)));
     const key=ctx.key;
@@ -17739,11 +17827,15 @@ function aceImportGo(ctx){
     set.fp=aceFingerprint(set);
     // THE ANSWERS GIVEN IN THE MAPPING BOX ARE REMEMBERED, for files laid out the same way (ACEDB.cols, by the header row's
     // signature). They travel with the board, in ACEDB, so a colleague's import of the same layout reads it the same way.
-    const asked=ACE_FIELDS.filter(function(F){ return H.how[F.f]==='asked' || H.how[F.f]==='remembered'; });
+    // v2.12 RV1 (review R00, R25): each answer by its column's title, with the column it was given for beside it (`at`: only ever a
+    // tiebreak between two columns that title shares -- aceFindHeader), and the optional fields answered "no such column" (`none`)
+    const asked=ACE_FIELDS.filter(function(F){ return H.how[F.f]==='asked' || H.how[F.f]==='remembered' || H.how[F.f]==='none'; });
     if(asked.length){
       if(!ACEDB.cols || typeof ACEDB.cols!=='object') ACEDB.cols={};
-      const m={}; asked.forEach(function(F){ m[F.f]=map[F.f]; });
-      ACEDB.cols[H.sig]={map:m, ts:Date.now(), by:set.by, file:ctx.file};
+      const m={}, at={}, none=[];
+      asked.forEach(function(F){ if(H.how[F.f]==='none'){ none.push(F.f); return; }
+        if(Object.prototype.hasOwnProperty.call(map, F.f)){ m[F.f]=map[F.f]; at[F.f]=H.col[F.f]; } });
+      ACEDB.cols[H.sig]={map:m, at:at, none:none, ts:Date.now(), by:set.by, file:ctx.file};
     }
     ACEDB.sets[key]=set; ACEDB.ts=Date.now();
     persistAce();
@@ -17757,12 +17849,14 @@ function aceImportGo(ctx){
       +', read from sheet “'+esc(H.sheet)+'”, row '+R.row+'. '
       +(out? out+' row'+(out===1?'':'s')+' left out, each with its reason and dollars by year' : 'No row left out')
       +(nNamed? '; '+nNamed+' named for a look' : '')+(R.ties? '. Every dollar of the sheet is kept or in a reason.' : '. ⚠ The report does not close.')
+      // v2.12 RV1 (review R25): what reading without a US/PTN/FMS column means is said where the person reads the result
+      +(H.col.usptn>=0? '' : ' This file has no US/PTN/FMS column, so every row was read as US.')
       +' The report is open, and stays under Data › Import report… 💾 Save to bake it into this file.'+esc(ctx.esc||''));
   }catch(e){
     setStat('⚠ Cost estimate import failed: '+esc((e&&e.message)||e));
   }
 }
-// ---- the mapping box: a required title this file does not carry, asked about once ----
+// ---- the mapping box: a title this file does not carry, or carries twice, asked about once ----
 function aceColAsk(ctx){ ACECOL=ctx; aceColOpen=true; aceColDraw(); render(); }
 function aceColDraw(){
   const el=document.getElementById('aceColBody'); if(!el) return;
@@ -17770,15 +17864,20 @@ function aceColDraw(){
   const H=C.H, rn=(H.rowNo&&H.rowNo[H.row])||(H.row+1);
   const opts=[]; (H.hdr||[]).forEach(function(c, i){ const t=String(c==null? '' : c).trim(); if(t) opts.push({i:i, t:t}); });
   let h='<div class="hint" style="margin-bottom:8px">“'+esc(C.file)+'” — its titles are on sheet <b>'+esc(H.sheet)
-    +'</b>, row <b>'+rn+'</b>. This file does not title every column ORBIT reads, so pick the column that holds each field below. '
-    +'The answer is remembered for files laid out the same way. Nothing is read by position, and nothing is imported until you press Import.</div>'
+    +'</b>, row <b>'+esc(rn)+'</b>. This file does not title every column ORBIT reads, or titles one twice, so pick the column that holds each field below '
+    +'(an optional field may have none: say so). The answer is remembered for files laid out the same way. Nothing is read by position, and nothing is imported until you press Import.</div>'
     +'<table class="fctab acecol"><colgroup><col style="width:42%"><col style="width:58%"></colgroup>'
     +'<tr><th style="text-align:left">Field ORBIT reads</th><th style="text-align:left">Column in this file</th></tr>';
   H.need.forEach(function(f){
-    const F=aceField(f)||{t:f};
-    h+='<tr><td style="text-align:left"><label for="aceCol_'+esc(f)+'">'+esc(F.t)+'</label></td><td style="text-align:left">'
+    const F=aceField(f)||{t:f, req:true}, d=(H.dup && Object.prototype.hasOwnProperty.call(H.dup, f))? H.dup[f] : null;
+    // v2.12 RV1 (review R00, R25): why it is asked -- a title the file carries twice, or an optional field and what it decides
+    const why=d? 'This file titles '+d.length+' columns alike: '+d.map(function(i){ return aceColL(i); }).join(', ')+'. Pick the one that holds it.'
+      : (F.req? '' : 'Optional — without it, '+F.no+'.');
+    h+='<tr><td style="text-align:left"><label for="aceCol_'+esc(f)+'">'+esc(F.t)+'</label>'
+      +(why? '<div class="hint acecol-why" data-f="'+esc(f)+'">'+esc(why)+'</div>' : '')+'</td><td style="text-align:left">'
       +'<select id="aceCol_'+esc(f)+'" data-held="1" data-f="'+esc(f)+'" style="width:100%">'
-      +'<option value="">— not in this file —</option>'
+      +(F.req? '<option value="">— not in this file —</option>'
+        : '<option value="">— choose —</option><option value="none">— this file has no such column —</option>')
       +opts.map(function(o){ return '<option value="'+o.i+'">'+esc(aceColL(o.i)+' · '+o.t)+'</option>'; }).join('')
       +'</select></td></tr>';
   });
@@ -17800,12 +17899,68 @@ function aceColApply(){
   const C=ACECOL; if(!C) return;
   C.H.need.forEach(function(f){
     const s=document.getElementById('aceCol_'+f), v=s? s.value : '';
-    if(v!=='' && +v>=0){ C.H.col[f]=+v; C.H.how[f]='asked'; } else C.H.col[f]=-1;
+    // v2.12 RV1 (review R25): an optional field answered "no such column" is read without it, and that answer is remembered
+    if(v==='none' && !(aceField(f)||{req:true}).req){ C.H.col[f]=-1; C.H.how[f]='none'; }
+    else if(v!=='' && +v>=0){ C.H.col[f]=+v; C.H.how[f]='asked'; } else { C.H.col[f]=-1; delete C.H.how[f]; }
   });
   ACECOL=null; aceColOpen=false; render();
   aceImportGo(C);
 }
 // ---- the import report ----
+// v2.12 RV1 (review R01, R02, R07, R08, R10, R30, K12): A STORED IMPORT REPORT IS READ, NEVER TRUSTED. It arrives in a board file,
+// an ordinary import or the shared folder's estimate, and the import check does not know its shape. A report whose counts were
+// text drew that text as markup into the Data card on every redraw, with no click (the card summed the counts, and 0 + text is
+// text); its years were drawn into the report box the same way; and one missing its totals made aceRepBody throw inside render(),
+// so nothing after it redrew while the box was open. So the Data card and the box read a report only through here: every count a
+// whole number, every figure a finite number, every list a list, every year a year -- or it is not a report ORBIT wrote, and both
+// say it cannot be read. Never zeros in its place: a report of zeros is a plausible default, and it would hide the damage. Text is
+// copied as text and escaped where it is drawn. `ties` is worked out again from the figures (aceRepTies), never read back.
+function aceRepOf(set){
+  const R=(set && typeof set==='object')? set.rep : undefined;
+  if(R===undefined || R===null) return {state:'none'};
+  const isObj=function(x){ return !!x && typeof x==='object' && !Array.isArray(x); };
+  const isCnt=function(x){ return typeof x==='number' && Number.isInteger(x) && x>=0; };
+  const isYr=function(y){ return /^\d{4}$/.test(String(y)) && +y>1990 && +y<2100; };
+  if(!isObj(R)) return {state:'bad', why:'it is not a report'};
+  let why='';
+  const no=function(w){ if(!why) why=w; return null; };
+  const txt=function(x){ return x==null? '' : String(x); };
+  const cnt=function(x, w, dflt){ if(x===undefined && dflt!==undefined) return dflt; return isCnt(x)? x : no(w); };
+  const list=function(x, w){ if(x===undefined) return []; return Array.isArray(x)? x : no(w)||[]; };
+  const vmap=function(x, w){ const o=Object.create(null); if(x===undefined) return o; if(!isObj(x)){ no(w); return o; }
+    Object.keys(x).forEach(function(y){ if(isYr(y) && typeof x[y]==='number' && isFinite(x[y])) o[y]=x[y]; else no(w); }); return o; };
+  const obj=function(x, w){ if(x===undefined) return {}; return isObj(x)? x : (no(w)||{}); };
+  ['reasons','kept','total'].forEach(function(k){ if(!isObj(R[k])) no('its '+k+' are missing'); });
+  if(why) return {state:'bad', why:why};
+  const N={sheet:txt(R.sheet), row:cnt(R.row, 'the row it read'), file:txt(R.file),
+    sheets:list(R.sheets, 'its sheets').map(txt), absent:list(R.absent, 'its absent columns').map(txt), none:list(R.none, 'its answers').map(txt),
+    years:list(R.years, 'its years').map(function(y){ return isYr(y)? +y : no('a year that is not a year'); }),
+    kept:{rows:cnt(R.kept.rows, 'its kept rows'), lines:cnt(R.kept.lines, 'its kept lines'), zero:cnt(R.kept.zero, 'its kept rows', 0), v:vmap(R.kept.v, 'its kept dollars')},
+    total:{rows:cnt(R.total.rows, 'its sheet total'), v:vmap(R.total.v, 'its sheet total')},
+    notData:cnt(R.notData, 'its formatting rows', 0), reasons:Object.create(null), map:Object.create(null), tree:Object.create(null), named:[], conflicts:[]};
+  Object.keys(R.reasons).forEach(function(k){ const x=R.reasons[k];
+    if(!isObj(x)){ no('a reason'); return; }
+    N.reasons[k]={rows:cnt(x.rows, 'a reason’s rows'), v:vmap(x.v, 'a reason’s dollars'),
+      by:list(x.by, 'a reason’s values').map(function(b){ return (Array.isArray(b) && isCnt(b[1]))? [txt(b[0]), b[1]] : (no('a reason’s values')||[]); })}; });
+  const M=obj(R.map, 'its columns'); Object.keys(M).forEach(function(f){ const m=M[f];
+    if(!isObj(m)){ no('its columns'); return; } N.map[f]={t:txt(m.t), c:txt(m.c), how:txt(m.how)}; });
+  const T=obj(R.tree, 'its tree'); Object.keys(T).forEach(function(ap){ N.tree[ap]=cnt(T[ap], 'its tree'); });
+  N.named=list(R.named, 'its named rows').map(function(n){ if(!isObj(n)) return no('a named row');
+    return {k:txt(n.k), row:cnt(n.row, 'a named row'), wbs:txt(n.wbs), what:txt(n.what), v:vmap(n.v, 'a named row’s dollars')}; });
+  N.conflicts=list(R.conflicts, 'its conflicts').map(function(c){ if(!isObj(c)) return no('a conflict');
+    return {ap:txt(c.ap), code:txt(c.code), n:txt(c.n), also:list(c.also, 'a conflict').map(function(a){ if(!isObj(a)) return no('a conflict');
+      return {n:txt(a.n), rows:list(a.rows, 'a conflict').map(function(r){ return cnt(r, 'a conflict’s rows'); })}; })}; });
+  return why? {state:'bad', why:why} : {state:'ok', R:N};
+}
+// EVERY DOLLAR OF THE SHEET IS KEPT OR IN A REASON, to the dollar, every year. One statement of it: the import says it as it
+// builds the report, and the box says it again from the figures it prints, so a stored flag cannot claim what they do not show.
+function aceRepTies(R){
+  const ys=Object.create(null), rs=Object.keys(R.reasons||{});
+  [R.total.v, R.kept.v].concat(rs.map(function(k){ return R.reasons[k].v; })).forEach(function(o){ Object.keys(o||{}).forEach(function(y){ ys[y]=1; }); });
+  return Object.keys(ys).every(function(y){
+    let s=R.kept.v[y]||0; rs.forEach(function(k){ s+=R.reasons[k].v[y]||0; });
+    return s===(R.total.v[y]||0); });
+}
 function aceRepNewest(){
   let k='', t=-1; aceSetKeys().forEach(function(x){ const s=aceSet(x), ts=+((s||{}).ts)||0; if(s && ts>t){ t=ts; k=x; } });
   return k;
@@ -17822,40 +17977,48 @@ function aceRepBody(){
   if(!aceRepOpen){ el.innerHTML=''; return; }
   const keys=aceSetKeys().sort();
   if(!keys.length){ el.innerHTML='<div class="hint">No Annual Cost Estimate has been imported yet. Data › Import Annual Cost Estimate… loads one.</div>'; return; }
-  const k=(aceRepK && aceSet(aceRepK))? aceRepK : aceRepNewest(), set=aceSet(k), R=set && set.rep;
+  // v2.12 RV1: the report is read through aceRepOf -- counts that are numbers, lists that are lists -- or said to be unreadable
+  const k=(aceRepK && aceSet(aceRepK))? aceRepK : aceRepNewest(), set=aceSet(k), Q=aceRepOf(set), R=Q.R;
   const fD=function(v){ return '$'+Math.round(+v||0).toLocaleString(); };
   let h='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px">'
     +'<label for="aceRepSel" style="font-size:10px;color:var(--dim)">Estimate</label>'
     +'<select id="aceRepSel" class="btn" style="font-size:10px;padding:3px 8px" onchange="aceRepPick(this.value)">'
     +keys.map(function(x){ return '<option value="'+esc(x)+'"'+(x===k?' selected':'')+'>'+esc(x)+'</option>'; }).join('')+'</select>'
-    +'<span style="font-size:10px;color:var(--dim)">'+aceStamp(set)+(set.file? ' · from '+esc(set.file) : '')+'</span></div>';
-  if(!R || typeof R!=='object' || !R.reasons){
-    const sk=set.skip||{};
+    +'<span style="font-size:10px;color:var(--dim)">'+aceStamp(set)+(set && set.file? ' · from '+esc(set.file) : '')+'</span></div>';
+  const skipSaid=function(){ const sk=(set && set.skip && typeof set.skip==='object')? set.skip : {};
+    return Object.keys(sk).length? Object.keys(sk).map(function(x){ return esc(x)+' '+esc(sk[x]); }).join(' · ') : 'none recorded'; };
+  if(Q.state==='none'){
     h+='<div class="hint acerep-old">'+esc(k)+' was imported before v2.12, which kept only how many rows each reason left out, not their '
-      +'dollars: '+(Object.keys(sk).length? Object.keys(sk).map(function(x){ return esc(x)+' '+esc(sk[x]); }).join(' · ') : 'none recorded')
-      +'. Import the workbook again to see every reason with its dollars by year, and the WBS tree.</div>';
+      +'dollars: '+skipSaid()+'. Import the workbook again to see every reason with its dollars by year, and the WBS tree.</div>';
     el.innerHTML=h; return;
   }
-  const yrs=(Array.isArray(R.years)? R.years : []).filter(function(y){ return (R.total.v||{})[y]; });
+  if(Q.state==='bad'){
+    h+='<div class="hint acerep-bad"><b>'+esc(k)+'’s import report cannot be read</b> — it is not the shape ORBIT writes ('+esc(Q.why)
+      +'), so nothing of it is shown rather than a figure it may not hold. The estimate’s own lines are as they were imported. Rows left out, as '
+      +'recorded: '+skipSaid()+'. Import the workbook again to see its report.</div>';
+    el.innerHTML=h; return;
+  }
+  const yrs=R.years.filter(function(y){ return R.total.v[y]; });
   if(aceRepYr!=='all' && yrs.indexOf(aceRepYr)<0) aceRepYr=(yrs.indexOf(MS.cur)>=0? MS.cur : (yrs[0]||'all'));
   const vOf=function(o){ o=o||{}; if(aceRepYr==='all') return Object.keys(o).reduce(function(a, y){ return a+(+o[y]||0); }, 0); return +o[aceRepYr]||0; };
   const allOf=function(o){ o=o||{}; return Object.keys(o).reduce(function(a, y){ return a+(+o[y]||0); }, 0); };
   const ylbl=aceRepYr==='all'? 'all years' : 'FY'+aceRepYr;
   h+='<div class="acerep-read" style="font-size:11px;margin-bottom:6px">Read from sheet <b>'+esc(R.sheet)+'</b>, row <b>'+esc(R.row)+'</b> (its titles)'
-    +(Array.isArray(R.sheets) && R.sheets.length>1? ', of '+R.sheets.length+' sheets searched' : '')
-    +' · '+(yrs.length? 'dollars in FY'+yrs[0]+'–FY'+yrs[yrs.length-1] : 'no dollars')+', then-year, $M in the file and whole dollars here.</div>';
-  // the columns, by title
-  h+='<details class="acerep-map"><summary style="font-size:10.5px;cursor:pointer">Columns read, by title ('+Object.keys(R.map||{}).length+')</summary>'
+    +(R.sheets.length>1? ', of '+esc(R.sheets.length)+' sheets searched' : '')
+    +' · '+(yrs.length? 'dollars in FY'+esc(yrs[0])+'–FY'+esc(yrs[yrs.length-1]) : 'no dollars')+', then-year, $M in the file and whole dollars here.</div>';
+  // the columns, by title; and those it has none for, with what that means for what was read (v2.12 RV1)
+  h+='<details class="acerep-map"><summary style="font-size:10.5px;cursor:pointer">Columns read, by title ('+Object.keys(R.map).length+')</summary>'
     +'<table class="fctab" style="margin:4px 0"><tr><th style="text-align:left">Field</th><th style="text-align:left">Title in the file</th><th>Column</th><th style="text-align:left">Found</th></tr>'
-    +ACE_FIELDS.filter(function(F){ return (R.map||{})[F.f]; }).map(function(F){ const m=R.map[F.f];
+    +ACE_FIELDS.filter(function(F){ return R.map[F.f]; }).map(function(F){ const m=R.map[F.f];
       return '<tr><td style="text-align:left">'+esc(F.t)+'</td><td style="text-align:left">'+esc(m.t)+'</td><td>'+esc(m.c)+'</td><td style="text-align:left">'
         +(m.how==='asked'? 'answered in the mapping box' : (m.how==='remembered'? 'remembered for this layout' : 'by its title'))+'</td></tr>'; }).join('')
-    +'</table>'+((R.absent||[]).length? '<div class="hint">Not in this file (they name nothing): '+R.absent.map(function(f){ return esc((aceField(f)||{t:f}).t); }).join(', ')+'.</div>' : '')
+    +'</table>'+(R.absent.length? '<div class="hint acerep-absent">Not in this file: '+R.absent.map(function(f){ const F=aceField(f)||{t:f};
+        return esc(F.t)+(R.none.indexOf(f)>=0? ' (answered: this file has no such column)' : '')+(F.no? ' — '+esc(F.no) : ''); }).join('; ')+'.</div>' : '')
     +'</details>';
   // every reason, rows and dollars
   h+='<div style="display:flex;gap:8px;align-items:center;margin:8px 0 4px"><label for="aceRepYrSel" style="font-size:10px;color:var(--dim)">Dollars for</label>'
     +'<select id="aceRepYrSel" class="btn" style="font-size:10px;padding:3px 8px" onchange="aceRepYrSet(this.value)">'
-    +yrs.map(function(y){ return '<option value="'+y+'"'+(y===aceRepYr?' selected':'')+'>FY'+y+'</option>'; }).join('')
+    +yrs.map(function(y){ return '<option value="'+esc(y)+'"'+(y===aceRepYr?' selected':'')+'>FY'+esc(y)+'</option>'; }).join('')
     +'<option value="all"'+(aceRepYr==='all'?' selected':'')+'>All years</option></select></div>';
   h+='<table class="fctab acerep-why" style="margin-bottom:4px"><colgroup><col style="width:56%"><col style="width:10%"><col style="width:17%"><col style="width:17%"></colgroup>'
     +'<tr><th style="text-align:left">What the row is</th><th>Rows</th><th>'+esc(ylbl)+'</th><th>All years</th></tr>'
@@ -17863,26 +18026,26 @@ function aceRepBody(){
       +(R.kept.zero? ' (and '+esc(R.kept.zero)+' paragraph'+(R.kept.zero===1?'':'s')+' with no dollar, in the tree)' : '')+'</td>'
       +'<td>'+esc(R.kept.rows)+'</td><td>'+fD(vOf(R.kept.v))+'</td><td>'+fD(allOf(R.kept.v))+'</td></tr>';
   ACE_WHY.forEach(function(W0){ const x=R.reasons[W0.k]; if(!x) return;
-    const by=Array.isArray(x.by)? x.by : [];
+    const by=x.by;
     h+='<tr data-why="'+esc(W0.k)+'"><td style="text-align:left">Left out: '+esc(W0.t)
       +(by.length && (W0.k==='dtype' || W0.k==='pmo' || W0.k==='slc' || W0.k==='svc' || W0.k==='partner')
         ? '<span style="color:var(--dim)"> · '+by.slice(0,6).map(function(b){ return esc((b||[])[0])+' '+esc((b||[])[1]); }).join(', ')+(by.length>6? ' …' : '')+'</span>' : '')
       +'</td><td>'+esc(x.rows)+'</td><td>'+fD(vOf(x.v))+'</td><td>'+fD(allOf(x.v))+'</td></tr>'; });
   h+='<tr class="tot"><td style="text-align:left">The sheet: every row under the titles</td><td>'+esc(R.total.rows)+'</td><td>'+fD(vOf(R.total.v))+'</td><td>'+fD(allOf(R.total.v))+'</td></tr></table>'
-    +'<div class="hint acerep-ties" style="margin-bottom:8px">'+(R.ties? '✓ Every dollar of the sheet is kept or in one reason above, every year, to the dollar.'
+    +'<div class="hint acerep-ties" style="margin-bottom:8px">'+(aceRepTies(R)? '✓ Every dollar of the sheet is kept or in one reason above, every year, to the dollar.'
       : '<b style="color:var(--red)">✗ Kept and left out do not add to the sheet.</b>')
     +(R.notData? ' '+esc(R.notData)+' row'+(R.notData===1?'':'s')+' with no WBS and no dollar '+(R.notData===1?'was':'were')+' formatting, not data.' : '')+'</div>';
   // the tree
-  const tr=Object.keys(R.tree||{});
+  const tr=Object.keys(R.tree);
   h+='<div class="acerep-tree" style="font-size:11px;margin-bottom:6px"><b>WBS paragraphs</b>, each with every heading above it and named from the CES columns: '
     +(tr.length? tr.map(function(ap){ return esc(appnName(ap))+' <b>'+esc(R.tree[ap])+'</b>'; }).join(' · ') : 'none')+'.</div>';
   // what is named
   const groups=ACE_WHY.filter(function(W0){ return W0.named; }).concat(ACE_NOTE);
   groups.forEach(function(G){
-    const L=(R.named||[]).filter(function(n){ return n.k===G.k; }); if(!L.length) return;
+    const L=R.named.filter(function(n){ return n.k===G.k; }); if(!L.length) return;
     const kept=ACE_NOTE.indexOf(G)>=0;
     h+='<div class="acerep-named" data-why="'+esc(G.k)+'" style="margin-top:8px"><div style="font-size:10.5px;font-weight:700">'
-      +(kept? 'Kept, and named: ' : 'Left out, and named: ')+esc(G.t)+' — '+L.length+' row'+(L.length===1?'':'s')+'</div>'
+      +(kept? 'Kept, and named: ' : 'Left out, and named: ')+esc(G.t)+' — '+esc(L.length)+' row'+(L.length===1?'':'s')+'</div>'
       +'<table class="fctab"><colgroup><col style="width:9%"><col style="width:22%"><col style="width:49%"><col style="width:20%"></colgroup>'
       +'<tr><th>Row</th><th style="text-align:left">WBS</th><th style="text-align:left">What the file says</th><th>'+esc(ylbl)+'</th></tr>'
       +L.slice(0, ACE_REP_CAP).map(function(n){ return '<tr><td>'+esc(n.row)+'</td><td style="text-align:left">'+esc(n.wbs||'—')+'</td>'
@@ -17890,9 +18053,9 @@ function aceRepBody(){
       +'</table>'+(L.length>ACE_REP_CAP? '<div class="hint">The first '+ACE_REP_CAP+' of '+L.length+' are shown; the import keeps every one with the estimate.</div>' : '')
       +'</div>';
   });
-  if((R.conflicts||[]).length){
+  if(R.conflicts.length){
     h+='<div class="acerep-conf" style="margin-top:8px"><div style="font-size:10.5px;font-weight:700">A paragraph two rows name differently — '
-      +R.conflicts.length+': the first name in the file is kept</div><table class="fctab"><colgroup><col style="width:22%"><col style="width:34%"><col style="width:44%"></colgroup>'
+      +esc(R.conflicts.length)+': the first name in the file is kept</div><table class="fctab"><colgroup><col style="width:22%"><col style="width:34%"><col style="width:44%"></colgroup>'
       +'<tr><th style="text-align:left">Paragraph</th><th style="text-align:left">Name kept</th><th style="text-align:left">Also named, by row</th></tr>'
       +R.conflicts.slice(0, ACE_REP_CAP).map(function(c){ return '<tr><td style="text-align:left">'+esc(c.code)+' <span style="color:var(--dim)">'+esc(appnName(c.ap))+'</span></td>'
         +'<td style="text-align:left">'+esc(c.n)+'</td><td style="text-align:left">'+(c.also||[]).map(function(a){ return esc(a.n)+' <span style="color:var(--dim)">(row'
@@ -31014,11 +31177,14 @@ function syncBtns(){
          : 'ACE workbook (.xlsx)'),
     // v2.12 (item 132): the newest estimate's import report -- what was read, and every dollar left out and why
     acer: mi('📋 Import report…',"mRun(aceRepShow)",aceRepOpen,
-       (function(){ const k=aceRepNewest(), s=k? aceSet(k) : null, R=s && s.rep;
+       // v2.12 RV1 (review R01, R08): drawn on every redraw, so the report is read through aceRepOf (counts that are numbers) and
+       // every figure is escaped where it is drawn -- a count that arrived as text was summed into the markup, with no click
+       (function(){ const k=aceRepNewest(), s=k? aceSet(k) : null, Q=aceRepOf(s), R=Q.R;
          if(!k) return 'no estimate imported yet';
-         if(!R || !R.reasons) return esc(k)+': imported before v2.12, row counts only';
-         const out=Object.keys(R.reasons).reduce(function(a, x){ return a+((R.reasons[x]||{}).rows||0); }, 0);
-         return esc(k)+': '+esc((R.kept||{}).lines||0)+' lines kept · '+out+' row'+(out===1?'':'s')+' left out, with reasons'; })()),
+         if(Q.state==='none') return esc(k)+': imported before v2.12, row counts only';
+         if(Q.state==='bad') return esc(k)+': its import report cannot be read — import the workbook again';
+         const out=Object.keys(R.reasons).reduce(function(a, x){ return a+R.reasons[x].rows; }, 0);
+         return esc(k)+': '+esc(R.kept.lines)+' lines kept · '+esc(out)+' row'+(out===1?'':'s')+' left out, with reasons'; })()),
     bae: mi('💰 Import Budget Extract (BAE)…',"mRun(()=>document.getElementById('budFile').click())",false,
         budReg().length? 'reconciles the departments the file covers' : 'USAF and DON — import both'),
     budl: mi('📋 Budget list…',"mRun(toggleBudReg)",false,
