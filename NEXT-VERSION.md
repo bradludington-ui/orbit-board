@@ -279,14 +279,22 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   as well."* Matched to what ORBIT reads:
   - service -> *Service*; variant -> *T/M/S*; JPO-managed -> *JPO Managed*; WBS -> *Work Breakdown Structure*; depth ->
     *Level*; names -> CES1-CES8; fiscal years -> every header that is a year.
+  - **PMO -> *PMO*** (Brad, 28 Oct, from a third screenshot: *CCAR Element*, *CCAR Budget*, *CCAR Description*, *PMO*,
+    *Owning IPT*, then *Work Breakdown Structure*). Its values: Air Vehicle, Combat Data Systems, Maintenance Systems,
+    Non-PMO, PO&A, Propulsion, Service Mgd, Training Systems & Simulation -- the names `ACE_PMO` already maps (AV, CDS, MxS,
+    Non-PMO, BOP, PP, TSS). Brad: *"Service Mgd is not us. We include it in the estimate but it does not get executed by
+    us."* -- so it stays out of ORBIT's figures, as it does today, and the import says how much it left out. *"Non-PMO is
+    kind of like an all other category or catch all"* -- kept as its own group, as today.
+  - **No PSM in the 2026 PMO list.** `ACE_PMO_ALIGN_DEFAULT` assumes PSM sits under Air Vehicle before 2026 and is its own
+    ACE PMO from 2026; the 2026 list has no PSM, so with that default the board's PSM office would find no estimate.
   - **Not yet matched:** the appropriation (ORBIT keeps O&M, Support/Full Fund, Spares and OPN -- *Appropriation (US
-    Only)*?), the PMO, and the cost element (columns V-Y and after CES8 were not in the screenshots).
+    Only)*?) and the cost element (*CCAR Element*, or *Support Line Category*?).
   - **Columns ORBIT never read that decide which rows count:** *$ Type* (CY$ in the screenshot), *Rollup Value?*,
     *US/PTN/FMS* and *PALS/O&S*. If the file carries the same line in two dollar types, or rollup rows beside their parts,
     a reader that does not filter on them counts the money twice.
-- **Open (Brad):** which column and values give the appropriation; where the PMO and cost element are; which *$ Type* ORBIT
+- **Open (Brad):** which column and values give the appropriation; which column is the cost element; which *$ Type* ORBIT
   takes (then-year, to sit beside the PPBE positions?); whether *Rollup Value? = Yes* rows are subtotals to leave out;
-  and whether *PALS* rows count or only *O&S*.
+  whether *PALS* rows count or only *O&S*; and where PSM's estimate sits in the 2026 ACE (still under Air Vehicle?).
 - **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
