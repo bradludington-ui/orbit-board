@@ -314,8 +314,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     | PEC TRNG EQ (Full Mission Sims) | Full Fund, Full Mission Simulators |
     | Production Eng Support | Full Fund, Production Engineering Support |
     | Pubs / Tech Data | Full Fund, Pubs/Tech Data |
-    | Depot Activation | Full Fund -- proposed: ORBIT's three Depot Standup elements (Software, Air Vehicle, Propulsion) |
-    | (Blanks) | open |
+    | Depot Activation | Full Fund: *CES2 = Software Depot Standup* -> Depot Standup Software; else *PMO = Propulsion* -> Depot Standup Propulsion; else Depot Standup Air Vehicle |
+    | (Blanks) | a summary row for Cost: left out |
 
     Proposed: the table is the import's one map (it replaces `ACE_APPN`, and the old `ce` column), names matched without
     regard to case, spaces or punctuation. A value not in it, or a row where *PALS/O&S* and *Support Line Category* disagree
@@ -330,8 +330,27 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     the record's name -- populated in 2026, where the 2025 estimate's CCaR column joined 0.0% of funded money. Proposed:
     a requirement whose CCaR record matches a line's *CCAR Element* sees that line's WBS paragraphs first in its picker --
     a suggestion, never a pick (the tie-out's standing rule).
-- **Open (Brad):** what a row with a blank *Support Line Category* is (MILPERS, partner and FMS rows?) -- proposed: left out
-  and its dollars reported; and whether *Depot Activation* is ORBIT's three Depot Standup cost elements.
+  - **Depot Activation** (Brad, 28 Oct, with a fifth screenshot: *"CES2 will say Software Depot Standup for software.
+    PMO will identify anything related to Propulsion Depot."*): software first, then Propulsion, then Air Vehicle, as the
+    table says. In the screenshot the software branch also holds Maintenance, Training Systems and Combat Data rows; they
+    are Depot Standup Software by the first rule. A line's cost element is descriptive (the tie-out keys on WBS, FYDP
+    Disconnects on appropriation and service), so a Depot Activation row the rules cannot settle -- not software, PMO
+    neither Air Vehicle nor Propulsion -- keeps its dollars on Full Fund with no cost element, and is named.
+  - **A blank *Support Line Category* is a summary row** (Brad, 28 Oct: *"I believe those are summary rows for Cost."*):
+    left out, so it is never counted beside its parts. The import counts them and their dollars, and names any blank row
+    whose *Rollup Value?* is not Yes -- a real line that lost its category is then seen, not silently dropped.
+  - **The WBS paragraphs carry letters, and a suffix starts its own branch** (seen in the fifth screenshot, the Depot
+    Standup branch). Numbers have a letter prefix (`P6.…`) and some a letter suffix (`….1E`); *Level* is the count of
+    segments (`P6.1.1.4.1` is 5, `P6.3.2` is 3). A suffixed line's CES names can differ from its unsuffixed twin's:
+    `P6.2.2.1` has CES3 *Propulsion*, `P6.2.2.1E` has CES3 *ECU Propulsion* -- and `P6.3.2` and `P6.3.2E` are both level-3
+    lines, one *Propulsion*, one *ECU Propulsion*. So the parent is NOT the number with its last segment dropped: done that
+    way, the ECU lines fold under *Propulsion* and one paragraph gets two names. Elsewhere the suffix changes no name
+    (`P6.5.1.2E` sits under *Government*, as `P6.5.1.2` does). Proposed: a suffixed line's ancestor at a level carries the
+    suffix only where the line's own CES name for that level differs from the unsuffixed ancestor's (`P6.2.2.1E` ->
+    `P6.2.2E` *ECU Propulsion* -> `P6.2` *CONUS Depot Standup* -> `P6` *Depot Standup*); every paragraph then has exactly one
+    name, and a paragraph two lines name differently is named in the import report.
+- **Open (Brad):** does an *E* line roll up under its own header (`P6.2.2E` *ECU Propulsion*, beside `P6.2.2` *Propulsion*),
+  as proposed, or under the unsuffixed one?
 - **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
