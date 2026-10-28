@@ -349,8 +349,16 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
     suffix only where the line's own CES name for that level differs from the unsuffixed ancestor's (`P6.2.2.1E` ->
     `P6.2.2E` *ECU Propulsion* -> `P6.2` *CONUS Depot Standup* -> `P6` *Depot Standup*); every paragraph then has exactly one
     name, and a paragraph two lines name differently is named in the import report.
-- **Open (Brad):** does an *E* line roll up under its own header (`P6.2.2E` *ECU Propulsion*, beside `P6.2.2` *Propulsion*),
-  as proposed, or under the unsuffixed one?
+  - **What the letters mean** (Brad, 28 Oct: *"PALS all start with P for the WBS. The E at the end is just to identify
+    similar efforts but break them out as government or contractor performed while also providing a breakout for each
+    location."*). So *E* marks a breakout of a similar effort, never the same line as its twin, and the breakout is what
+    the CES names say -- *Government* / *Contractor*, or a location (*ECU Propulsion*). The proposed rule above follows the
+    CES names, so it keeps each *E* line its own and puts it under the heading its breakout names: the location breakout
+    under its own heading (`P6.2.2E`), a performer breakout with its twin under *Government* or *Contractor*. (Read as
+    agreeing with the proposal; Brad can still say the *E* lines should fold into their twin's heading.)
+  - **The P is a check.** A PALS row's WBS starts with P and an O&S row's does not: a third reading of the appropriation
+    beside *PALS/O&S* and *Support Line Category*. A row where the WBS letter disagrees is named in the import report; its
+    appropriation still comes from *Support Line Category*, which *PALS/O&S* has agreed with.
 - **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
