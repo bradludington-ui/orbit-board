@@ -36,6 +36,10 @@
 //      with one brought in being finished, in Harbor and Midnight and in the Segoe stand-in; below 1366 it is one column that
 //      scrolls.
 //
+//   Q. (v2.12, item 132) A WBS paragraph picked in the Add box, the edit box and the WBS panel: the field reads the estimate's
+//      list, the pick leaves the code in the field, and its name -- the paragraph's path, ~160 characters -- is under it whole,
+//      each box still whole, at 1366 x 657 and 1920 x 969, Harbor and Midnight, this font and the Segoe stand-in.
+//
 //   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
 //   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
 //   1400px is the layout these checks were written against (v1.89 clipped the row menus there), and beside the sidebar it
@@ -767,6 +771,96 @@ const ER_STATE = () => {
     fails.length === 0 && read === 40, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
   chk('O · the table fits whole at 1920, 1440 and 1366, and scrolls sideways inside its own frame at 800, narrower than it',
     scroll.length === 0 && read === 40, scroll.slice(0, 4).join('; '));
+}
+
+// ── Q. A WBS PARAGRAPH IS PICKED, AND ITS NAME IS READ WHOLE (v2.12, item 132) ───────────────────────────────────────────
+// A paragraph is picked from the estimate's WBS tree: a text field with a list of "code — path", the field then showing the code
+// alone and its name -- its path in the estimate, top heading first -- under it. On the M board with an estimate whose deepest
+// paragraph's path runs to about 160 characters (four headings, each named at length -- the names are invented: no estimate
+// with names had been seen when this was written): the Add box and the edit box with that paragraph picked, and the WBS panel
+// with it on one line of a split and a paragraph the estimate does not hold on the other. At 1366 x 657 and 1920 x 969, Harbor
+// and Midnight, this font and the Segoe stand-in: the field reads the list, the CCaR record's paragraph first; the pick leaves
+// the code in the field; the name is beside it whole (under the field; in the edit box, on its label's line) -- never cut,
+// never past its box -- and each box still fits whole by M's and N's measure. The edit box shows the WBS first of its
+// Accounting lines, in its widest column: under the field in the first column a long path ran that column past the box at
+// 1366 x 657, and so did a section of its own in the middle column, until the Navy SI code moved to Classification and the
+// name moved up to the label's line. The edit box is measured as N fills it with its per-service RCN / EEIC rows folded, as
+// the box opens them. The limit, measured: in N's fullest state (those rows open too) at 1366 x 657 the name has the label's
+// line and no more in the Segoe stand-in (about 85 characters), two lines in this font; a longer one makes the middle column
+// scroll there.
+{
+  ev(`(function(){
+    ACEDB.sets['2026ACE']={label:'2026ACE', ts:1700000000071, years:[MS.cur], appn:{}, skip:{},
+      lines:[{ap:'om', pmo:'PSM', svc:'USAF', wbs:'P6.2.2.1E', ccar:'JSF3087', v:{}}],
+      wbs:{om:{'P6':{n:'Depot Standup and Activation', lv:1, up:''},
+        'P6.2':{n:'CONUS Depot Standup for the F135 Propulsion System', lv:2, up:'P6'},
+        'P6.2.2E':{n:'ECU Repair Line, Tooling and Test Stands', lv:3, up:'P6.2'},
+        'P6.2.2.1E':{n:'Government Depot Labor at OC-ALC', lv:4, up:'P6.2.2E'}}}};
+    var id=S.order.filter(function(x){ return ptypeOf(x)!=='PRIME'; })[1];
+    S.wbs=S.wbs||{}; S.wbs[id]=[{w:'P6.2.2.1E', v:SVC.map(function(){ return 1000; })}, {w:'9.9.9', v:SVC.map(function(){ return 500; })}];
+    MS.wbsQ=id; save(); })(); 'ok'`);
+  const fileQ = join(dir, 'board-q.html'), fileQS = join(dir, 'board-q-segoe.html');
+  writeFileSync(fileQ, ev('buildSavedHtml()'));
+  writeFileSync(fileQS, withStandin(readFileSync(fileQ, 'utf8')));
+  const PATH = 'Depot Standup and Activation › CONUS Depot Standup for the F135 Propulsion System'
+    + ' › ECU Repair Line, Tooling and Test Stands › Government Depot Labor at OC-ALC';
+  const WANT = 'P6.2.2.1E — ' + PATH;
+  // a field's note, read whole: its text, whether it is cut, and whether it sits inside the box
+  const NOTE = (box, fid) => { const f = document.getElementById(fid), n = document.getElementById(fid + 'Note'), m = document.querySelector(box + ' .modal');
+    const nr = n.getBoundingClientRect(), mr = m.getBoundingClientRect(), dl = document.getElementById(f.getAttribute('list') || '-');
+    return { value: f.value, list: !!dl, first: dl && dl.options[0] ? [dl.options[0].value.split(' — ')[0], dl.options[0].getAttribute('label') || ''] : null,
+      note: n.textContent, cut: n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1,
+      inside: nr.left >= mr.left - 1 && nr.right <= mr.right + 1 && nr.top >= mr.top - 1 && nr.bottom <= mr.bottom + 1 && nr.bottom <= innerHeight + 1 };
+  };
+  const PICK = (fid) => { const e = document.getElementById(fid); e.value = 'P6.2.2.1E — ' + wbsPick().path['P6.2.2.1E'];
+    e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
+  const fails = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileQ], ['the Segoe stand-in', fileQS]])
+    for (const theme of ['harbor', ''])
+      for (const [w, h] of [[1366, 657], [1920, 969]]) {
+        const { p, ctx, errs } = await open(w, h, 'review', '', false, at, theme);
+        if (at === fileQS) { const why = await standinProblem(p); if (why) { fails.push(`${w}x${h} ${font}: ${why}`); await ctx.close(); continue; } }
+        const tag = `${w}x${h} ${theme || 'midnight'} ${font}`;
+        // a board without the pickers throws in here: said as a finding of this state, so the run goes on and Q fails by name
+        try {
+        // the Add box, filled as M fills it, the paragraph then picked
+        const a = await p.evaluate(([st, pick, note, look]) => { (0, eval)('(' + st + ')')(); (0, eval)('(' + pick + ')')('arWbs');
+          return { n: (0, eval)('(' + note + ')')('#addPanel', 'arWbs'), bad: (0, eval)('(' + look + ')')('#addPanel .modal') }; },
+          [BOX_STATES[0][1].toString(), PICK.toString(), NOTE.toString(), boxUnreadable.toString()]);
+        // the edit box, filled as N fills it with its per-service RCN / EEIC rows folded as the box opens them, the paragraph then
+        // picked (in N's fullest state the name has one line to itself; see above)
+        const e = await p.evaluate(([st, pick, note, look]) => { if (arOn()) arHide(); (0, eval)('(' + st + ')')();
+          if (rcnSvcOpen[erOpen]) erRcnSvcToggle(); (0, eval)('(' + pick + ')')('erWbs');
+          return { n: (0, eval)('(' + note + ')')('#editPanel', 'erWbs'), bad: (0, eval)('(' + look + ')')('#editPanel .modal') }; },
+          [ER_STATE.toString(), PICK.toString(), NOTE.toString(), boxUnreadable.toString()]);
+        // the WBS panel on the split: each line's field reads the list, and its name is under it whole
+        const wp = await p.evaluate(() => { if (erOn()) erClose(); toggleWbs('req', MS.wbsQ, '');
+          const m = document.querySelector('#wbsPanel .modal'), mr = m.getBoundingClientRect(), tw = m.querySelector('#wbsBody > div[style*="overflow"]');
+          const ins = [...m.querySelectorAll('#wbsBody table input.btn')];
+          return { lists: ins.map(i => i.getAttribute('list')), cutField: ins.filter(i => i.scrollWidth > i.clientWidth + 1).map(i => i.value),
+            names: [...m.querySelectorAll('.wbsnm')].map(n => { const r = n.getBoundingClientRect();
+              return { t: n.textContent, cut: n.scrollWidth > n.clientWidth + 1, inside: r.left >= mr.left - 1 && r.right <= mr.right + 1 }; }),
+            sideways: tw ? tw.scrollWidth > tw.clientWidth + 1 : true, off: mr.left < -1 || mr.right > innerWidth + 1 }; });
+        read++;
+        for (const [box, r] of [['Add box', a], ['edit box', e]]) {
+          if (!(r.n.list && r.n.first && r.n.first[0] === 'P6.2.2.1E' && /suggested/.test(r.n.first[1]))) fails.push(`${tag}, ${box}: the field does not read the list with JSF3087’s paragraph first (${JSON.stringify(r.n.first)})`);
+          if (r.n.value !== 'P6.2.2.1E') fails.push(`${tag}, ${box}: the pick left "${r.n.value.slice(0, 40)}…" in the field, not the code`);
+          if (r.n.note !== WANT) fails.push(`${tag}, ${box}: the name under the field is not the whole path ("${r.n.note.slice(0, 60)}…")`);
+          if (r.n.cut || !r.n.inside) fails.push(`${tag}, ${box}: the name is ${r.n.cut ? 'cut' : 'past the box'}`);
+          r.bad.slice(0, 3).forEach(x => fails.push(`${tag}, ${box}: ${x}`));
+        }
+        if (JSON.stringify(wp.lists) !== JSON.stringify(['wbsDl', 'wbsDl'])) fails.push(`${tag}, WBS panel: the lines do not read the list (${JSON.stringify(wp.lists)})`);
+        if (wp.cutField.length) fails.push(`${tag}, WBS panel: a line cuts its paragraph (${wp.cutField.join(', ')})`);
+        if (!wp.names[0] || wp.names[0].t !== PATH) fails.push(`${tag}, WBS panel: the first line’s name is not the whole path`);
+        if (!wp.names[1] || !/not a paragraph of the 2026ACE estimate for O&M — kept as stored/.test(wp.names[1].t)) fails.push(`${tag}, WBS panel: the line the estimate does not hold is not flagged`);
+        wp.names.forEach((n, i) => { if (n.cut || !n.inside) fails.push(`${tag}, WBS panel: line ${i + 1}’s name is ${n.cut ? 'cut' : 'past the box'}`); });
+        if (wp.sideways || wp.off) fails.push(`${tag}, WBS panel: ${wp.off ? 'the box runs off the window' : 'the table scrolls sideways'}`);
+        } catch (e) { fails.push(`${tag}: the state could not be read -- ${String(e.message || e).split('\n')[0].slice(0, 120)}`); }
+        if (errs.length) fails.push(`${tag}: ${errs[0]}`);
+        await ctx.close();
+      }
+  chk('Q · a WBS paragraph picked in the Add box, the edit box and the WBS panel: the list (the CCaR record’s paragraph first), the code alone in the field, its ~160-character name beside it whole, each box still whole -- 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in',
+    fails.length === 0 && read === 8, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
 }
 
 await b.close();

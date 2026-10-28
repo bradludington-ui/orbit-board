@@ -8,8 +8,8 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 44 | 308 | 112 | 55 / 43 / 14 | 195 | **1** |
-| money-coverage registry | 29 | 203 | 74 | 46 / 20 / 8 | 128 | **1** |
+| **every registered surface** | 44 | 308 | 112 | 55 / 42 / 15 | 195 | **1** |
+| money-coverage registry | 29 | 203 | 74 | 46 / 19 / 9 | 128 | **1** |
 | trace-matrix surfaces | 15 | 105 | 38 | 9 / 23 / 6 | 67 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
@@ -57,7 +57,7 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `exportCoa` | money-coverage | proven·A | n/a | n/a | proven·A | n/a | n/a | n/a |
 | `exportAceTieout` | money-coverage | n/a | proven·A | n/a | proven·G | n/a | n/a | n/a |
 | `exportCycCompare` | money-coverage | n/a | proven·G | n/a | proven·G | n/a | n/a | proven·G |
-| `exportFydpPlan` | money-coverage | proven·G | proven·G | proven·G | proven·G | n/a | n/a | n/a |
+| `exportFydpPlan` | money-coverage | proven·G | proven·G | proven·AG | proven·G | n/a | n/a | n/a |
 | `cycDelta` | money-coverage | n/a | proven·AG | n/a | proven·AG | n/a | n/a | proven·A |
 | `cycProjOf` | money-coverage | n/a | proven·G | proven·G | proven·G | n/a | n/a | proven·G |
 | `spGather` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | n/a |
@@ -237,8 +237,8 @@ Money-coverage surface. The Spend Plan Source workbook (a tab per appropriation)
 
 - **Appropriation** — n/a: Writes only the page's own appropriation's lines; exportSrc gives every other appropriation a tab with headings only.
 - **Fiscal year** — n/a: Every line is the year on screen (srcRowsOf(MS.cur)); exportSrc skips any other year rather than reading it.
-- **Service** — proven·A: `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]; `export-audit/audit-other.mjs` › *spend plan source* [arithmetic] *Also bearing on it (totals or identities, not proof of the breakdown):* `trace-matrix.mjs` › *the trace matrix (one surface, up to 12 quantities)* [arithmetic]
-- **Requirement** — proven·A: `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]
+- **Service** — proven·A: `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]; `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)* [arithmetic] *Also bearing on it (totals or identities, not proof of the breakdown):* `trace-matrix.mjs` › *the trace matrix (one surface, up to 12 quantities)* [arithmetic]
+- **Requirement** — proven·A: `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]; `export-audit/audit-other.mjs` › *v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)* [arithmetic]
 - **Month** — proven·A: `export-audit/audit-recon.mjs` › *W7 — F2: the Spend Plan Source dates an incremental award a line per increment* [arithmetic] — every line's Month and Date: an incremental award a line per increment on its own day (v1.95 F2, option (a)), held against the forecast and the CR windows as well
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
 - **Funding lane** — proven·A: `export-audit/audit-other.mjs` › *spend plan source* [arithmetic]; `export-audit/audit-other.mjs` › *budget names — the owner’s rule* [arithmetic]
@@ -357,7 +357,7 @@ Money-coverage surface. The five-year spend plan (v2.04): a Summary, a tab per a
 
 - **Appropriation** — proven·G: `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — a locked cycle is read as locked, and a missing lock is said* [agreement]
 - **Fiscal year** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]; `export-audit/audit-recon.mjs` › *v1.95 — the five-year plan files each year under that year’s PMO* [agreement] — each year filed under the PMO that year assigns (Brad’s Q2)
-- **Service** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]
+- **Service** — proven·AG: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-other.mjs` › *v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)* [arithmetic] — Full Fund’s USMC-B is the STOVL tab’s (v2.12, item 132)
 - **Requirement** — proven·G: `export-audit/audit-recon.mjs` › *the five-year spend plan* [agreement]; `export-audit/audit-import.mjs` › *v1.85 — every appropriation, read by its own board, ties to the dollar* [agreement]
 - **Month** — n/a: Places no money in time: no month, no date, no window.
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
@@ -756,3 +756,5 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `v199.ace` | `tools/export-audit/audit-recon.mjs` › *v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for* | arithmetic | Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same. |
 | `ot.aiReview` | `tools/export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* | arithmetic | The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes. |
 | `ot.v210a` | `tools/export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* | arithmetic | FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook. |
+| `ot.v212w2src` | `tools/export-audit/audit-other.mjs` › *v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)* | arithmetic | Spend Plan Source column 23 (item 132): each line's WBS paragraph as CODE - name; a requirement split across paragraphs goes out a line per paragraph per service and lane, its dollars apportioned (largest remainder, worked in the suite) over the per-service WBS figures, the remainder on a blank-WBS line; the lines add to the line they replace, every other column unmoved; blank lines named by the export. |
+| `ot.v212w2stovl` | `tools/export-audit/audit-other.mjs` › *v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)* | arithmetic | FYDP Spend Plan (item 132): Full Fund's USMC-B is on the one STOVL tab whichever board is open (O&M, Full Fund, a Spares board carrying both), per appropriation and year written out from the fixture's literals; the service tabs add up to each appropriation tab; the Summary's By service; the panel's views. |

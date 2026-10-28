@@ -1262,8 +1262,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'fixture', 'the draws: A 70 + 30, B 50, D 20, C nothing',
     ev(`(function(){ var T=tiers(); return JSON.stringify(['A','B','C','D'].map(function(id){ return [T[id].dT, T[id].mT]; })); })()`), J([[70, 30], [50, 0], [0, 0], [20, 0]]));
   const entries = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#posture .ppatt .e')).map(function(e){ return e.tagName+' '+e.textContent.replace(/\\\\s+/g,' ').trim(); }))`));
+  // v2.12 W2: the four requirements carry no WBS paragraph, so item 132's ▦ Without a WBS is the last entry (its list is
+  // checked in the v2.12 W2 slot)
   chk(name, 'posture', 'every entry is a button, and says what it counts', J(entries()),
-    J(['BUTTON ⚠ 2 impact statements missing', 'BUTTON ○ 2 without a CCaR record', 'BUTTON 📅 2 without an obligation date', 'BUTTON ◔ 1 award short of its funding']));
+    J(['BUTTON ⚠ 2 impact statements missing', 'BUTTON ○ 2 without a CCaR record', 'BUTTON 📅 2 without an obligation date', 'BUTTON ◔ 1 award short of its funding',
+       'BUTTON ▦ 4 without a WBS']));
   const open = (k) => JSON.parse(ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#posture .ppatt button.e')).filter(function(e){ return (e.getAttribute('onclick')||'').indexOf(${J(J(k))})>=0; })[0];
     if(!b) return JSON.stringify({none:true}); b.click();
     var bg=document.getElementById('attPanel'), rows=[].slice.call(document.querySelectorAll('#attBody .atttab tr')).slice(1);
@@ -4002,6 +4005,442 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // ==== end v2.12 W1 ====
 
 // ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
+// ---- v2.12 W2 (item 132): the shared fixture -------------------------------------------------------------------------------
+// One estimate, hand-built in the contract's shape (set.wbs[ap][CODE] = {n, lv, up}): the import that writes it is W1's, and
+// these blocks never need it. O&M's tree has six paragraphs -- 1, 1.2, 1.2.1, 1.2.2, 1.3 and 1.10, so a sort by text (1.10
+// before 1.2) and the estimate's own order (1.10 last) disagree -- and Full Fund's has one, 7.7, which O&M must never offer.
+// Two O&M lines carry CCaR JSF1 (one spelled jsf1), so its suggestions are 1.2.1 and 1.2.2; a Full Fund line also on JSF1,
+// at 1.10 -- a code O&M's tree holds too -- must not be suggested on O&M. Every expectation below is written from these
+// literals, never read back.
+const W2_TREE = { '1': { n: 'Manpower', lv: 1, up: '' }, '1.2': { n: 'Maintenance', lv: 2, up: '1' },
+  '1.2.1': { n: 'Organizational', lv: 3, up: '1.2' }, '1.2.2': { n: 'Depot', lv: 3, up: '1.2' },
+  '1.3': { n: 'Training', lv: 2, up: '1' }, '1.10': { n: 'Supply', lv: 2, up: '1' } };
+const W2_SET = { label: '2026ACE', ts: 5, years: [2027], appn: {}, skip: {}, fp: 'fp-w2', locked: true,
+  lines: [{ ap: 'om', pmo: 'AV', svc: 'USAF', wbs: '1.2.1', ccar: 'JSF1', v: { 2027: 1e6 } },
+          { ap: 'om', pmo: 'AV', svc: 'USAF', wbs: '1.2.2', ccar: 'jsf1', v: { 2027: 1e6 } },
+          { ap: 'om', pmo: 'AV', svc: 'USAF', wbs: '1.3', ccar: 'JSF9', v: { 2027: 1e6 } },
+          { ap: 'ff', pmo: 'AV', svc: 'USAF', wbs: '1.10', ccar: 'JSF1', v: { 2027: 1e6 } }],
+  wbs: { om: W2_TREE, ff: { '7.7': { n: 'Full Fund only', lv: 1, up: '' } } } };
+const W2_PATH = { '1': 'Manpower', '1.2': 'Manpower › Maintenance', '1.2.1': 'Manpower › Maintenance › Organizational',
+  '1.2.2': 'Manpower › Maintenance › Depot', '1.3': 'Manpower › Training', '1.10': 'Manpower › Supply' };
+const W2_OPT = c => c + ' — ' + W2_PATH[c];
+const w2it = (id, grp, ask, x) => Object.assign({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event',
+  ccar: '', fy26: ask.map(() => 0), ask, alloc: null }, x || {});
+// the in-page helpers: type into a field the way a person does (the event its typing fires), open the Add box for AV
+const W2_DRIVE = `(function(){
+  globalThis.__w2put=function(id, v){ var e=document.getElementById(id); if(!e) throw new Error('no #'+id);
+    e.value=String(v); e.dispatchEvent(new Event(e.tagName==='SELECT'? 'change' : 'input', {bubbles:true})); };
+  globalThis.__w2add=function(){ if(arOn()) arHide(); toggleAdd(); if(typeof dlgSync==='function') dlgSync();
+    if(!document.getElementById('arOffStep').hidden) __w2put('arOffice', 'AV'); };
+  globalThis.__w2fill=function(o){ __w2put('arEvent', 'Added in the box'); document.getElementById('arPtO').click();
+    __w2put('arV0', '1000'); __w2put('arOb', OB_CATS[0]);
+    var e=flowEntsAZ().filter(function(x){ return !destKeyIsOgc(x.k); })[0]; __w2put('arTo', e.k);
+    if(o.ccar!==undefined) __w2put('arCcar', o.ccar);
+    if(o.wbs!==undefined) __w2put('arWbs', o.wbs);
+    __w2put('arDesc', 'What it buys'); __w2put('arCons', 'What is lost'); };
+  globalThis.__w2opts=function(sel){ return [].map.call(document.querySelectorAll(sel+' option'), function(o){ return [o.value, o.getAttribute('label')||'']; }); };
+  return 'ok'; })()`;
+const w2Board = (est) => {
+  const B = boot();
+  seed(B.ev, { services: ['USAF', 'ANG'],
+    items: [w2it('A', 'AV', [100, 50], { ccar: 'JSF1' }), w2it('B', 'AV', [80, 0]), w2it('C', 'AV', [60, 0], { ccar: 'JSF9' }),
+            w2it('S', 'AV', [400, 0]), w2it('P', 'AV', [300, 0]), w2it('Q', 'AV', [150, 0]), w2it('R', 'AV', [500, 0])],
+    disc: [1290, 50], mand: [0, 0], order: ['A', 'B', 'C', 'S', 'P', 'Q', 'R'] });
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.ptype={A:'OGC', B:'OGC', C:'OGC', S:'OGC', P:'PRIME', Q:'PRIME', R:'PRIME'};
+    DATA.clins=DATA.clins||{}; DATA.clins.P=[{clin:'0001', desc:'P one', ccar:'', ask:[200,0]}, {clin:'0002', desc:'P two', ccar:'', ask:[100,0]}];
+    DATA.clins.Q=[{clin:'0001', desc:'Q one', ccar:'', ask:[150,0]}, {clin:'0002', desc:'Q two', ccar:'', ask:[0,0]}];
+    CLINS.P=DATA.clins.P; CLINS.Q=DATA.clins.Q;
+    S.wbs={B:[{w:'9.9.9', v:[]}], C:[{w:'1.3', v:[]}], S:[{w:'1.2.1', v:[300,0]}, {w:'8.8', v:[100,0]}]};
+    S.clinWbs={P:{b0:[{w:'1.2', v:[]}]}, Q:{b0:[{w:'4.4', v:[]}]}};
+    ACEDB={ts:9, sets:${JSON.stringify({ '2026ACE': est })}};
+    window.prompt=function(m, d){ (globalThis.__w2pr=globalThis.__w2pr||[]).push(String(m)); return null; };
+    applyState(S); save(); render(); 'ok'`);
+  B.ev(W2_DRIVE);
+  return B;
+};
+
+// ---- v2.12 W2 (item 132): the pickers ----------------------------------------------------------------------------------------
+// A WBS paragraph is PICKED from the estimate's tree in every place one is entered -- the Add box (#arWbs), the edit box
+// (#erWbs), a requirement's WBS lines (the WBS panel) and the quick box Classify's column opens (wbsQuick) -- each a text field
+// with a datalist of "code — path", the CCaR record's paragraphs first and marked suggested; a code the list holds is taken as
+// the estimate writes it; any other is refused with the text kept; a paragraph already stored that the list does not hold is
+// kept and flagged; with no estimate naming this appropriation a paragraph is taken as typed, and the field says so. Driven
+// through the rendered fields with the events typing fires. On d732259 every check fails but the CONTROLs (no datalist, no name,
+// no refusal: '7.7' is added, and a picked "code — path" is stored as typed or refused for its length).
+{
+  const name = 'v2.12 W2 — a WBS paragraph is picked from the estimate: the Add box, the edit box, the WBS lines and the quick box (item 132)';
+  try {
+    const J = JSON.stringify;
+    const B = w2Board(W2_SET), ev = B.ev;
+    const ORDER = ['1', '1.2', '1.3', '1.10'];          // the estimate's order, after JSF1's two suggestions
+    // ---- the Add box
+    ev(`__w2add(); 'ok'`);
+    chk(name, 'the Add box', 'the WBS field is a text field reading the list "arWbsList"',
+      ev(`(function(){ var e=document.getElementById('arWbs'); return e.tagName+' '+(e.getAttribute('list')||'')+' '+!!document.getElementById('arWbsList'); })()`), 'INPUT arWbsList true');
+    ev(`__w2fill({ccar:'JSF1', wbs:''}); 'ok'`);
+    chk(name, 'the Add box', 'the list is every O&M paragraph as "code — path": JSF1’s two first, marked suggested, then the estimate’s order (never Full Fund’s 7.7)',
+      ev(`JSON.stringify(__w2opts('#arWbsList'))`),
+      J([[W2_OPT('1.2.1'), 'suggested — on CCaR JSF1'], [W2_OPT('1.2.2'), 'suggested — on CCaR JSF1']].concat(ORDER.map(c => [W2_OPT(c), '']))));
+    chk(name, 'the Add box', 'with nothing picked the field says where to pick from and names the suggestions, which are never set',
+      ev(`document.getElementById('arWbsNote').textContent`),
+      'Pick a paragraph of the 2026ACE estimate for O&M — type its code or its name. Suggested for CCaR JSF1 (never set): 1.2.1, 1.2.2.');
+    ev(`document.getElementById('arAddBtn').click(); 'ok'`);
+    chk(name, 'the Add box', 'CONTROL — a suggestion is not a pick: Add with no WBS is refused for its WBS, nothing added',
+      ev(`JSON.stringify([S.custom.length, arOn(), /WBS/.test(document.getElementById('arMsg').textContent)])`), J([0, true, true]));
+    ev(`__w2put('arWbs', '1.2.2'); 'ok'`);
+    chk(name, 'the Add box', 'the name of the paragraph typed shows under it', ev(`document.getElementById('arWbsNote').textContent`), W2_OPT('1.2.2'));
+    ev(`__w2put('arWbs', '7.7'); 'ok'`);
+    chk(name, 'the Add box', 'a code the list does not hold is flagged under it as it is typed',
+      ev(`JSON.stringify([document.getElementById('arWbsNote').textContent, document.getElementById('arWbsNote').className])`),
+      J(['⚠ Not a paragraph of the 2026ACE estimate for O&M — pick one from the list. Suggested for CCaR JSF1 (never set): 1.2.1, 1.2.2.', 'ar-n wbsn off']));
+    ev(`document.getElementById('arAddBtn').click(); 'ok'`);
+    chk(name, 'the Add box', 'Add with 7.7 is refused, saying why; nothing is added and the box keeps what was typed, marked',
+      // (read without throwing: a box that took 7.7 has closed, and its fields are gone -- the check fails on its figures)
+      ev(`JSON.stringify([S.custom.length, arOn(), (document.getElementById('arWbs')||{}).value, document.getElementById('arWbs') && document.getElementById('arWbs').getAttribute('aria-invalid'),
+        /7\\.7.{0,4} is not a paragraph of the 2026ACE estimate for O&M/.test((document.getElementById('arMsg')||{}).textContent||'')])`), J([0, true, '7.7', 'true', true]));
+    ev(`__w2put('arWbs', ${J(W2_OPT('1.2.1'))}); 'ok'`);
+    chk(name, 'the Add box', 'picked from the list as "code — path", the field shows the code alone and its name under it',
+      ev(`JSON.stringify([document.getElementById('arWbs').value, document.getElementById('arWbsNote').textContent])`), J(['1.2.1', W2_OPT('1.2.1')]));
+    ev(`document.getElementById('arAddBtn').click(); 'ok'`);
+    const nid = ev(`S.custom.length? S.custom[S.custom.length-1].id : ''`);
+    chk(name, 'the Add box', 'a paragraph picked as "code — path" is added, stored as its code alone',
+      ev(`JSON.stringify([arOn(), S.custom.length, (S.wbs||{})[${J(nid)}]||null])`), J([false, 1, [{ w: '1.2.1', v: [] }]]));
+    // ---- the quick box keeps a stored paragraph the list does not hold, when it is left as it is (OK pressed, nothing typed)
+    ev(`wbsQuick('B'); document.getElementById('uipVal').value='9.9.9'; uipDone(true); 'ok'`);
+    chk(name, 'the quick box', 'a stored paragraph the estimate does not hold, left as it is, is kept as stored and the box closes',
+      ev(`JSON.stringify([/\\bopen\\b/.test(document.getElementById('uipPanel').className), S.wbs.B])`), J([false, [{ w: '9.9.9', v: [] }]]));
+    // ---- the edit box
+    const box = (id, at) => ev(`(function(){ if(erOn()) erClose(); openEdit(${J(id)}, ${J(at || 'wbs')}); var n=document.getElementById('erWbsNote');
+      return JSON.stringify([erOn(), document.activeElement && document.activeElement.id, document.getElementById('erWbs').value, document.getElementById('erWbs').hidden,
+        n.textContent, n.className, document.getElementById('erWbs').getAttribute('list'), document.querySelectorAll('#erWbsList option').length]); })()`);
+    chk(name, 'the edit box', 'a stored paragraph the estimate does not hold is shown as stored, and flagged',
+      box('B'), J([true, 'erWbs', '9.9.9', false, '⚠ 9.9.9 is not a paragraph of the 2026ACE estimate for O&M — kept as stored; pick one to replace it.', 'ar-n wbsn off', 'erWbsList', 6]));
+    ev(`__w2put('erDesc', 'Edited'); document.getElementById('erSaveBtn').click(); 'ok'`);
+    chk(name, 'the edit box', 'CONTROL — saving another field keeps it, exactly as stored',
+      ev(`JSON.stringify([erOn(), S.wbs.B, S.desc.B])`), J([false, [{ w: '9.9.9', v: [] }], 'Edited']));
+    box('B'); ev(`__w2put('erWbs', '7.7'); document.getElementById('erSaveBtn').click(); 'ok'`);
+    chk(name, 'the edit box', 'a code the list does not hold, typed, is refused on Save: nothing written, the box open, the text kept and marked',
+      ev(`JSON.stringify([erOn(), S.wbs.B, (document.getElementById('erWbs')||{}).value, document.getElementById('erWbs') && document.getElementById('erWbs').getAttribute('aria-invalid'),
+        /7\\.7.{0,4} is not a paragraph of the 2026ACE estimate for O&M/.test((document.getElementById('erMsg')||{}).textContent||'')])`),
+      J([true, [{ w: '9.9.9', v: [] }], '7.7', 'true', true]));
+    ev(`__w2put('erWbs', ${J(W2_OPT('1.2.2'))}); 'ok'`);
+    chk(name, 'the edit box', 'picked as "code — path", the field shows the code alone and its name under it',
+      ev(`JSON.stringify([document.getElementById('erWbs').value, document.getElementById('erWbsNote').textContent])`), J(['1.2.2', W2_OPT('1.2.2')]));
+    ev(`document.getElementById('erSaveBtn').click(); 'ok'`);
+    chk(name, 'the edit box', 'and Save stores the code alone', ev(`JSON.stringify([erOn(), S.wbs.B])`), J([false, [{ w: '1.2.2', v: [] }]]));
+    // a code typed as the estimate does not write it -- lower case, spaced -- is saved as the estimate writes it (capitals, no
+    // spaces: aceNormWbs). A paragraph with a letter is put in the tree for this check and taken out after it, so every list
+    // below is the fixture's own.
+    ev(`ACEDB.sets['2026ACE'].wbs.om['1.2.2E']={n:'Depot breakout', lv:4, up:'1.2.2'}; 'ok'`);
+    box('B'); ev(`__w2put('erWbs', ' 1.2.2 e '); document.getElementById('erSaveBtn').click(); 'ok'`);
+    chk(name, 'the edit box', 'a code typed in lower case, with spaces, is saved as the estimate writes it',
+      ev(`JSON.stringify([erOn(), S.wbs.B])`), J([false, [{ w: '1.2.2E', v: [] }]]));
+    ev(`if(erOn()) erClose(); delete ACEDB.sets['2026ACE'].wbs.om['1.2.2E']; 'ok'`);
+    chk(name, 'the edit box', 'a split shows its lines’ count and flags the line the estimate does not hold; the keyboard goes to its split',
+      box('S'), J([true, 'erWbsSplit', '', true, '2 WBS — split over 2 lines · ⚠ not paragraphs of the 2026ACE estimate for O&M, kept as stored: 8.8', 'ar-n wbsn off', 'erWbsList', 6]));
+    ev(`erClose(); 'ok'`);
+    // ---- the WBS lines (the WBS panel)
+    const panel = () => JSON.parse(ev(`(function(){ var b=document.getElementById('wbsBody');
+      return JSON.stringify({lists:[].map.call(b.querySelectorAll('table input.btn'), function(i){ return i.getAttribute('list'); }),
+        opts:b.querySelectorAll('#wbsDl option').length, names:[].map.call(b.querySelectorAll('.wbsnm'), function(d){ return d.className+' | '+d.textContent; }),
+        src:(b.querySelector('.wbssrc')||{}).textContent||''}); })()`));
+    ev(`toggleWbs('req','S',''); 'ok'`);
+    chk(name, 'the WBS lines', 'each line is picked from the list, its name under it, the one the estimate does not hold flagged',
+      J(panel()), J({ lists: ['wbsDl', 'wbsDl'], opts: 6, names: ['wbsnm | ' + W2_PATH['1.2.1'], 'wbsnm off | ⚠ not a paragraph of the 2026ACE estimate for O&M — kept as stored'],
+        src: 'Each paragraph is picked from the 2026ACE estimate for O&M: type its code or its name.' }));
+    ev(`(function(){ var i=document.querySelectorAll('#wbsBody table input.btn')[1]; i.value='6.6'; i.dispatchEvent(new Event('change')); })(); 'ok'`);
+    chk(name, 'the WBS lines', 'a code the list does not hold is refused: the line keeps 8.8, the field keeps 6.6, marked',
+      ev(`JSON.stringify([S.wbs.S[1].w, document.querySelectorAll('#wbsBody table input.btn')[1].value, document.querySelectorAll('#wbsBody table input.btn')[1].getAttribute('aria-invalid')])`),
+      J(['8.8', '6.6', 'true']));
+    ev(`(function(){ var i=document.querySelectorAll('#wbsBody table input.btn')[1]; i.value=${J(W2_OPT('1.3'))}; i.dispatchEvent(new Event('change')); })(); 'ok'`);
+    chk(name, 'the WBS lines', 'one picked as "code — path" is stored as its code, the split’s dollars untouched',
+      ev(`JSON.stringify(S.wbs.S)`), J([{ w: '1.2.1', v: [300, 0] }, { w: '1.3', v: [100, 0] }]));
+    ev(`wbsOpen=null; render(); 'ok'`);
+    // ---- the quick box (Classify's WBS column)
+    const uip = () => JSON.parse(ev(`JSON.stringify([/\\bopen\\b/.test(document.getElementById('uipPanel').className), document.getElementById('uipVal').value,
+      document.getElementById('uipVal').getAttribute('list'), __w2opts('#uipList').slice(0, 2), document.getElementById('uipNote').textContent, (globalThis.__w2pr||[]).filter(function(m){ return /WBS/.test(m); }).length])`));
+    ev(`wbsQuick('C'); 'ok'`);
+    chk(name, 'the quick box', 'it is the in-app box, never the browser’s prompt: the list, JSF9’s 1.3 first and suggested, and the name of the one held',
+      J(uip()), J([true, '1.3', 'uipList', [[W2_OPT('1.3'), 'suggested — on CCaR JSF9'], [W2_OPT('1'), '']], W2_OPT('1.3'), 0]));
+    ev(`document.getElementById('uipVal').value='5.5'; uipDone(true); 'ok'`);
+    chk(name, 'the quick box', 'a code the list does not hold is refused and the box opens again holding it; the WBS stays 1.3',
+      ev(`JSON.stringify([/\\bopen\\b/.test(document.getElementById('uipPanel').className), document.getElementById('uipVal').value, S.wbs.C,
+        /5\\.5.{0,4} is not a paragraph/.test(document.getElementById('shareStat').textContent)])`), J([true, '5.5', [{ w: '1.3', v: [] }], true]));
+    ev(`(function(){ var u=document.getElementById('uipVal'); u.value=${J(W2_OPT('1.10'))}; u.dispatchEvent(new Event('input')); })(); 'ok'`);
+    chk(name, 'the quick box', 'picked as "code — path", the field shows the code alone and its name under it',
+      ev(`JSON.stringify([document.getElementById('uipVal').value, document.getElementById('uipNote').textContent])`), J(['1.10', W2_OPT('1.10')]));
+    ev(`uipDone(true); 'ok'`);
+    chk(name, 'the quick box', 'one the list holds is taken, and the box closes', ev(`JSON.stringify([/\\bopen\\b/.test(document.getElementById('uipPanel').className), S.wbs.C])`),
+      J([false, [{ w: '1.10', v: [] }]]));
+    // ---- with no estimate naming this appropriation (Full Fund's tree only): typed as before, and said
+    const N = w2Board(Object.assign({}, W2_SET, { wbs: { ff: W2_SET.wbs.ff } })), nv = N.ev;
+    nv(`__w2add(); __w2fill({wbs:'7.7'}); 'ok'`);
+    chk(name, 'no estimate', 'the field says there is nothing to pick from, and offers no list',
+      nv(`JSON.stringify([document.getElementById('arWbsNote').textContent, document.querySelectorAll('#arWbsList option').length])`),
+      J(['No cost estimate names O&M’s WBS paragraphs: the paragraph is taken as typed.', 0]));
+    nv(`document.getElementById('arAddBtn').click(); 'ok'`);
+    chk(name, 'no estimate', 'CONTROL — a paragraph is taken as typed', nv(`JSON.stringify((S.wbs||{})[(S.custom[S.custom.length-1]||{}).id]||null)`), J([{ w: '7.7', v: [] }]));
+    nv(`wbsQuick('C'); 'ok'`);
+    chk(name, 'no estimate', 'the quick box says so, in the browser’s own prompt',
+      nv(`(globalThis.__w2pr||[]).filter(function(m){ return /WBS/.test(m); }).slice(-1)[0]||''`), 'WBS paragraph number for this requirement — no cost estimate names O&M’s paragraphs, so it is taken as typed');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// ---- v2.12 W2 (item 132): Needs attention ------------------------------------------------------------------------------------
+// Seven requirements, each case stated: A (OGC) has no WBS; B's 9.9.9 and S's second line 8.8 are not in the estimate; C is on
+// 1.3; P is a prime whose CLIN 0002 carries $100 and no WBS; Q is a prime whose CLIN 0002 carries nothing (its 0001 is on 4.4,
+// not in the estimate); R is a prime with no CLIN at all. The lanes pay everyone but R in full, R $200 of $500. So Without a WBS
+// is A, P and R ($150, $300, $200), the heading 4 of 7 requirements and $690 of $1,340 funded; WBS not in the estimate is B, S
+// and Q. Each opens the edit box at the WBS (a split at its split, a prime its CLIN drill). On d732259 every check fails.
+{
+  const name = 'v2.12 W2 — Needs attention lists every requirement without a WBS, and every WBS the estimate does not hold (item 132)';
+  try {
+    const J = JSON.stringify;
+    const B = w2Board(W2_SET), ev = B.ev;
+    chk(name, 'fixture', 'the draws: A 100+50, B 80, C 60, S 400, P 300, Q 150, R 200 of 500 (a CONTROL on the fixture)',
+      ev(`(function(){ var T=tiers(); return JSON.stringify(S.order.map(function(id){ return T[id].dT+T[id].mT; })); })()`), J([150, 80, 60, 400, 300, 150, 200]));
+    chk(name, 'the lists', 'Without a WBS: A, P and R, each with its funded dollars; the coverage: 4 of 7 requirements, $690 of $1,340',
+      ev(`(function(){ var A=attLists(); return JSON.stringify([A.wbs.map(function(r){ return [r.id, r.funded]; }), A.wbs.cov]); })()`),
+      J([[['A', 150], ['P', 300], ['R', 200]], { n: 4, of: 7, f: 690, fof: 1340 }]));
+    chk(name, 'the lists', 'WBS not in the estimate: B, S and Q, each paragraph as stored (a prime’s naming its CLIN)',
+      ev(`JSON.stringify(attLists().wbsx.map(function(r){ return [r.id, r.n]; }))`), J([['B', ['9.9.9']], ['S', ['8.8']], ['Q', ['4.4 (CLIN 0001)']]]));
+    const entries = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#posture .ppatt .e'), function(e){ return [e.getAttribute('onclick'), e.textContent.replace(/\\s+/g,' ').trim()]; }).slice(-2))`));
+    chk(name, 'the posture', 'the two entries come last, saying what they count', J(entries),
+      J([['attShow("wbs")', '▦ 3 without a WBS'], ['attShow("wbsx")', '≠ 3 WBS not in the estimate']]));
+    const open = k => JSON.parse(ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#posture .ppatt button.e'), function(e){ return e.getAttribute('onclick')==='attShow(${J(k)})'; })[0];
+      if(!b) return JSON.stringify({none:true}); b.click();
+      return JSON.stringify({title:document.getElementById('attTitle').textContent, rows:[].slice.call(document.querySelectorAll('#attBody .atttab tr')).slice(1).map(function(r){
+        return [].slice.call(r.children).slice(0,-1).map(function(c){ return c.textContent.trim(); }).join(' · '); })}); })()`));
+    let L = open('wbs');
+    chk(name, 'Without a WBS', 'its heading states the coverage; its rows are A, P and R with their funded dollars, and the total',
+      J(L), J({ title: '▦ WITHOUT A WBS — 4 of 7 requirements have one · $690 of $1,340 funded',
+        rows: ['1 · A event · AV · $150', '5 · P event · AV · $300', '7 · R event · AV · $200', ' · 3 requirements ·  · $650'] }));
+    ev(`attClose(); 'ok'`);
+    L = open('wbsx');
+    chk(name, 'WBS not in the estimate', 'its heading names the estimate; its rows are each paragraph as stored, with the funded dollars',
+      J(L), J({ title: '≠ WBS NOT IN THE ESTIMATE — 2026ACE estimate for O&M',
+        rows: ['2 · B event · AV · 9.9.9 · $80', '4 · S event · AV · 8.8 · $400', '6 · Q event · AV · 4.4 (CLIN 0001) · $150', ' · 3 requirements ·  ·  · $630'] }));
+    // Go to it
+    const go = (k, id) => JSON.parse(ev(`(function(){ attClose(); attShow(${J(k)});
+      var b=[].filter.call(document.querySelectorAll('#attBody .attgo'), function(x){ return (x.getAttribute('onclick')||'').indexOf(${J(J(id))})>=0; })[0];
+      if(!b) return JSON.stringify({none:true}); b.click();
+      var r={open:attOpen, edit:erOn()? erOpen : '', at:document.activeElement? document.activeElement.id : '', clin:!!clinOpen[${J(id)}], cur:curRow};
+      if(erOn()) erClose(); clinOpen={}; render(); return JSON.stringify(r); })()`));
+    chk(name, 'Go to it', 'A: the edit box opens on A at its WBS', J(go('wbs', 'A')), J({ open: null, edit: 'A', at: 'erWbs', clin: false, cur: 'A' }));
+    chk(name, 'Go to it', 'S (a split): the edit box opens on S, the keyboard on its split', J(go('wbsx', 'S')), J({ open: null, edit: 'S', at: 'erWbsSplit', clin: false, cur: 'S' }));
+    chk(name, 'Go to it', 'P (a prime): its CLIN drill opens, never the edit box', J(go('wbs', 'P')), J({ open: null, edit: '', at: '', clin: true, cur: 'P' }));
+    // fixed, it leaves the list at once
+    ev(`S.wbs.A=[{w:'1.3', v:[]}]; S.clinWbs.P.b1=[{w:'1.2.2', v:[]}]; save(); render(); 'ok'`);
+    chk(name, 'fixed', 'a paragraph given leaves the list and the coverage counts it',
+      ev(`(function(){ var A=attLists(); return JSON.stringify([A.wbs.map(function(r){ return r.id; }), A.wbs.cov.n, A.wbs.cov.f]); })()`), J([['R'], 6, 1140]));
+    // with no estimate naming this appropriation nothing is "not in it": that list is empty and its entry is not drawn
+    const N = w2Board(Object.assign({}, W2_SET, { wbs: { ff: W2_SET.wbs.ff } }));
+    chk(name, 'no estimate', 'WBS not in the estimate is empty, and the posture has no entry for it; Without a WBS still counts A, P and R',
+      N.ev(`JSON.stringify([attLists().wbsx.length, [].some.call(document.querySelectorAll('#posture .ppatt button'), function(b){ return b.getAttribute('onclick')==='attShow("wbsx")'; }), attLists().wbs.map(function(r){ return r.id; })])`),
+      J([0, false, ['A', 'P', 'R']]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// ---- v2.12 W2 (item 132): Classify in bulk -----------------------------------------------------------------------------------
+// With the estimate naming O&M's paragraphs, Classify's bulk set offers the WBS, its values the pickers' own list; it reaches A,
+// B and C and leaves S (split across paragraphs: one paragraph written over it would erase the split) and the three primes
+// (their WBS is per CLIN) alone. Driven through the grid's rendered controls. On d732259 the WBS is never offered in bulk; the
+// CONTROLs pass there (no gap reported, and with no estimate no bulk WBS).
+{
+  const name = 'v2.12 W2 — Classify sets one WBS paragraph on many requirements, from the estimate (item 132)';
+  try {
+    const J = JSON.stringify;
+    const B = w2Board(W2_SET), ev = B.ev;
+    ev(`matOpen=true; matPmo='ALL'; matMissing=''; render(); 'ok'`);
+    const pick = (i, v) => ev(`(function(){ var s=document.querySelectorAll('#matBody .mat-bulk select')[${i}]; if(!s) return 'no select';
+      s.value=${J(v)}; s.dispatchEvent(new Event('change')); return s.value; })()`);
+    chk(name, 'offered', 'the bulk set offers the WBS', ev(`[].map.call((document.querySelectorAll('#matBody .mat-bulk select')[0]||{options:[]}).options, function(o){ return o.value; }).indexOf('wbs')>=0`), true);
+    pick(0, 'wbs');
+    chk(name, 'offered', 'its values are the estimate’s paragraphs, as the pickers show them, in the estimate’s order',
+      ev(`JSON.stringify([].map.call((document.querySelectorAll('#matBody .mat-bulk select')[1]||{options:[]}).options, function(o){ return [o.value, o.textContent]; }).slice(1))`),
+      J(['1', '1.2', '1.2.1', '1.2.2', '1.3', '1.10'].map(c => [c, W2_OPT(c)])));
+    pick(1, '1.2.2');
+    chk(name, 'preview', 'A blank, B and C overwritten, S and the three primes never offer it',
+      ev(`(document.querySelector('#matBody .mat-prev')||{}).textContent||''`), '1 blank · 0 already this · 2 overwritten · 4 never offer it, left alone');
+    ev(`(function(){ var b=[].filter.call(document.querySelectorAll('#matBody .mat-bulk button'), function(x){ return /^Apply$/.test(x.textContent.trim()); })[0]; b.click(); })(); 'ok'`);
+    chk(name, 'applied', 'A, B and C are on 1.2.2; S keeps its split; no prime gains a requirement-level WBS, and their CLINs are untouched',
+      ev(`JSON.stringify([S.wbs.A, S.wbs.B, S.wbs.C, S.wbs.S, ['P','Q','R'].map(function(id){ return (S.wbs||{})[id]||null; }), S.clinWbs])`),
+      J([[{ w: '1.2.2', v: [] }], [{ w: '1.2.2', v: [] }], [{ w: '1.2.2', v: [] }], [{ w: '1.2.1', v: [300, 0] }, { w: '8.8', v: [100, 0] }], [null, null, null],
+        { P: { b0: [{ w: '1.2', v: [] }] }, Q: { b0: [{ w: '4.4', v: [] }] } }]));
+    chk(name, 'applied', 'the grid’s WBS cell names the paragraph under its button',
+      ev(`(function(){ var r=[].filter.call(document.querySelectorAll('#matBody .mat-tab tr'), function(tr){ return /A event|A title/.test(tr.children[0].textContent); })[0];
+        var d=r? r.querySelector('.wbsnm') : null; return d? d.textContent : 'none'; })()`), W2_PATH['1.2.2']);
+    chk(name, 'offered', 'CONTROL — with a list, the WBS is no gap in the bulk set', ev(`JSON.stringify(matBulkOk())`), '[]');
+    const N = w2Board(Object.assign({}, W2_SET, { wbs: { ff: W2_SET.wbs.ff } }));
+    chk(name, 'no estimate', 'CONTROL — with no estimate naming O&M there is no bulk WBS, and none is asked for',
+      N.ev(`JSON.stringify([!!matBulk().wbs, matBulkOk()])`), J([false, []]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// What one board's export wrote, read back from its bytes with the board's own reader (as recon's w6Book)
+const w2Book = (W, fn) => W.eval(`(async function(){
+  var cap=null,_B=window.Blob,msg='';
+  window.alert=function(m){ msg+=String(m); }; window.confirm=function(){ return true; };
+  window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+  try{ ${fn}(); }catch(e){ window.Blob=_B; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
+  window.Blob=_B;
+  if(!cap) return JSON.stringify({__err:'no file: '+msg.slice(0,80)});
+  var ab=cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength);
+  return JSON.stringify(await xlsxRead(ab)); })()`);
+// largest remainder, worked out here -- never the board's apportion(): floor each share, then the dollars left over one at a
+// time to the largest fractions, ties to the earlier
+const w2LR = (tot, w) => { const s = w.reduce((a, b) => a + b, 0); const q = w.map(x => Math.floor(tot * x / s));
+  let left = tot - q.reduce((a, b) => a + b, 0);
+  w.map((x, i) => ({ i, r: tot * x - q[i] * s })).sort((a, b) => (b.r - a.r) || (a.i - b.i)).forEach(o => { if (left > 0) { q[o.i]++; left--; } });
+  return q; };
+
+// ---- v2.12 W2 (item 132): the Spend Plan Source's column 23 -------------------------------------------------------------------
+// Brad, 28 Oct 2026: "Yes, the WBS in ORBIT should populate in the WBS column of that file for that line item." Four requirements,
+// every case stated: A on one paragraph (1.2.1), whole; B split as the office typed it -- USAF $300 on 1.2.1 and $200 on 1.3 of
+// a $700 ask, ANG $100 on 1.2.1 of $200 -- with the rest not yet assigned; C on none; P a prime whose CLIN 0001 is on 1.2.2 and
+// 0002 on 1.10. The lanes pay B's USAF $351 discretionary and $349 mandatory, so the split is apportioned and cannot come out
+// even by luck (351 over 300 / 200 / 200 is 151 / 100 / 100; 349 is 149 / 100 / 100). Every expected line is worked out here
+// from those literals; the workbook is read from its bytes. On d732259 the column is blank on every line, B goes out as one
+// line per service and lane, and the status line names nothing: every check fails but the CONTROLs.
+await (async () => {
+  const name = 'v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG'], items: [w2it('A', 'AV', [500, 100]), w2it('B', 'AV', [700, 200]), w2it('C', 'AV', [90, 0]), w2it('P', 'AV', [300, 0])],
+      disc: [851, 300], mand: [739, 0], order: ['A', 'B', 'C', 'P'] });
+    const BUD = { 'USAF|disc': 'USAF O&M- CAM Discretionary AV', 'USAF|mand': 'USAF O&M - CAM OBBBA Mandatory AV',
+      'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV', 'ANG|mand': 'USAF O&M - ANG CAM OBBBA Mandatory AV' };
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'OGC', B:'OGC', C:'OGC', P:'PRIME'};
+      DATA.clins=DATA.clins||{}; DATA.clins.P=[{clin:'0001', desc:'P one', ccar:'', ask:[100,0]}, {clin:'0002', desc:'P two', ccar:'', ask:[200,0]}]; CLINS.P=DATA.clins.P;
+      S.wbs={A:[{w:'1.2.1', v:[]}], B:[{w:'1.2.1', v:[300,100]}, {w:'1.3', v:[200,0]}]};
+      S.clinWbs={P:{b0:[{w:'1.2.2', v:[]}], b1:[{w:'1.10', v:[]}]}};
+      ACEDB={ts:9, sets:${J({ '2026ACE': W2_SET })}};
+      BUDDB={ts:1700000000060, files:[], rows:${J(Object.values(BUD))}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+      applyState(S); save(); 'ok'`);
+    chk(name, 'fixture', 'the lanes (a CONTROL on the fixture): A 500/100 disc; B 351/200 disc + 349 mand; C 90 mand; P 300 mand',
+      X.ev(`(function(){ var T=tiers(); return ['A','B','C','P'].map(function(id){ return T[id].d.join('/')+'+'+T[id].m.join('/'); }).join(' '); })()`),
+      '500/100+0/0 351/200+349/0 0/0+90/0 0/0+300/0');
+    const NM = { '1.2.1': 'Organizational', '1.3': 'Training', '1.2.2': 'Depot', '1.10': 'Supply' };
+    const cell = c => c ? c + ' - ' + NM[c] : '';
+    const W = [];
+    const add = (id, key, amt, c) => { if (amt) W.push([id, key, amt, cell(c)]); };
+    add('A', 'USAF|disc', 500, '1.2.1'); add('A', 'ANG|disc', 100, '1.2.1');
+    { const p = w2LR(351, [300, 200, 200]); add('B', 'USAF|disc', p[0], '1.2.1'); add('B', 'USAF|disc', p[1], '1.3'); add('B', 'USAF|disc', p[2], ''); }
+    { const p = w2LR(349, [300, 200, 200]); add('B', 'USAF|mand', p[0], '1.2.1'); add('B', 'USAF|mand', p[1], '1.3'); add('B', 'USAF|mand', p[2], ''); }
+    { const p = w2LR(200, [100, 0, 100]); add('B', 'ANG|disc', p[0], '1.2.1'); add('B', 'ANG|disc', p[1], '1.3'); add('B', 'ANG|disc', p[2], ''); }
+    add('C', 'USAF|mand', 90, '');
+    { const p = w2LR(300, [100, 200]); add('P', 'USAF|mand', p[0], '1.2.2'); add('P', 'USAF|mand', p[1], '1.10'); }
+    chk(name, 'fixture', 'the split cannot come out even by luck (a CONTROL on the oracle): 351 is 151 / 100 / 100, 349 is 149 / 100 / 100',
+      J([w2LR(351, [300, 200, 200]), w2LR(349, [300, 200, 200])]), J([[151, 100, 100], [149, 100, 100]]));
+    const bk = JSON.parse(await w2Book(X.w, 'exportSrc'));
+    chk(name, 'workbook', 'the Spend Plan Source builds and reads back', bk.__err || 'ok', 'ok');
+    const src = Object.values(bk).find(rs => (rs || []).length > 1) || [];
+    const HDR = JSON.parse(X.ev('JSON.stringify(SRC_HDR)'));
+    chk(name, 'layout', 'CONTROL — the same 32 columns in the same order, column 23 still Spares WBS',
+      J([(src[0] || []).map(c => String(c ?? '')), HDR[23]]), J([HDR, 'Spares WBS']));
+    const svcOf = b => Object.keys(BUD).find(k => BUD[k] === b) || ('no budget ' + b);
+    const got = src.slice(1).map(r => ({ id: String(r[7] ?? '').replace(/ event$/, ''), key: svcOf(String(r[4] ?? '')), amt: typeof r[9] === 'number' ? r[9] : NaN,
+      w: String(r[23] ?? ''), row: r }));
+    const fmt = l => [l.id, l.key, l.amt, l.w].join(' · ');
+    chk(name, 'lines', 'every line: requirement, service and lane, amount and WBS -- a line per paragraph, the unassigned part on a line with the column blank',
+      J(got.map(fmt).sort()), J(W.map(w => w.join(' · ')).sort()));
+    chk(name, 'lines', 'each line’s WBS reads back to its code (srcWbsPara, as WBS from execution data reads the column)',
+      X.ev(`JSON.stringify(${J(got.map(l => l.w))}.map(srcWbsPara))`), J(got.map(l => l.w.split(' - ')[0])));
+    // THE LINES ADD UP TO THE LINE THEY REPLACE: per requirement, service and lane, what the lane paid
+    const T = JSON.parse(X.ev(`JSON.stringify(tiers())`));
+    ['A', 'B', 'C', 'P'].forEach(id => ['USAF', 'ANG'].forEach((sv, i) => ['disc', 'mand'].forEach(ln => {
+      const draw = (ln === 'disc' ? T[id].d : T[id].m)[i] || 0; if (!draw) return;
+      chk(name, 'adds up · ' + id + ' · ' + sv + ' ' + ln, 'its lines add up to what the lane paid, to the dollar',
+        got.filter(l => l.id === id && l.key === sv + '|' + ln).reduce((a, l) => a + l.amt, 0), draw); })));
+    // AND EVERY OTHER CELL IS THE LINE'S OWN: B's USAF discretionary lines differ only in Amount and WBS
+    // (read over the header's 32 columns: the reader drops a row's empty cells at its end, and a blank WBS can be one of them)
+    const bud = got.filter(l => l.id === 'B' && l.key === 'USAF|disc').map(l => J(HDR.map((h, j) => String(l.row[j] ?? '')).filter((c, j) => j !== 9 && j !== 23)));
+    chk(name, 'layout', 'a requirement’s paragraph lines differ only in Amount and WBS', bud.length + ':' + new Set(bud).size, '3:1');
+    chk(name, 'layout', 'a prime’s CLIN lines carry their CLIN, each with the CLIN’s own paragraph',
+      J(got.filter(l => l.id === 'P').map(l => [String(l.row[25] ?? ''), l.w])), J([['0001', cell('1.2.2')], ['0002', cell('1.10')]]));
+    // THE EXPORT NAMES THE REQUIREMENTS WITH A LINE AND NO PARAGRAPH: B (three unassigned lines) and C (one), never A or P
+    chk(name, 'said', 'the status line names B and C, how many lines each, and that the file was still written',
+      X.ev(`document.getElementById('shareStat').textContent.replace(/^.*?(⚠ \\d+ lines? go(es)? out with no WBS paragraph[^—]*).*$/, '$1').trim()`),
+      '⚠ 4 lines go out with no WBS paragraph, on 2 requirements: B event (3 lines), C event');
+    // the reconciliation of the offices' planning shares reads the same lines: they still add to the draw (a CONTROL that the
+    // split leaves officeClinRecon whole)
+    chk(name, 'agreement', 'CONTROL — the offices’ CLIN reconciliation still adds to P’s draw',
+      X.ev(`(function(){ var R=officeClinRecon(); var p=R.reqs.filter(function(r){ return r.id==='P'; })[0]; return p? p.offices.reduce(function(a,o){ return a+o.cd+o.cm; }, 0) : -1; })()`), 300);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+
+// ---- v2.12 W2 (item 132): the FYDP Spend Plan's STOVL tab carries Full Fund's USMC-B --------------------------------------------
+// Full Fund names the F-35B service USMC-B where O&M names it STOVL. The workbook's service tabs joined by exact name, so with O&M
+// on screen the F-35B money sat on a STOVL tab (O&M's) and a USMC-B tab (Full Fund's), and the STOVL tab read short to every
+// USMC reader (modelled on the v2.10 review's A-1 check for FYDP Disconnects). Two boards, chained through the saved file the way
+// a consolidated board travels: Full Fund (USAF $100M and USMC-B $40M on F1, USMC-B $25M and USN $10M on F2) and O&M (USAF $200M
+// and STOVL $30M on A1, ANG $5M and USMC-C $7M on A2); each on screen in turn. Every figure below is the fixture's literals, read
+// back from the workbook's bytes; the service tabs must still partition each appropriation's tab. Initial Spares carries BOTH
+// names in one list (STOVL $3M and USMC-B $4M on S1, beside USAF $10M), so the STOVL tab must add every index whose name folds
+// to it: the first alone would read $3M. On d732259 both boards print a USMC-B tab, and STOVL never carries Full Fund's money
+// with O&M on screen (nor O&M's with Full Fund on screen); every check fails but the CONTROLs.
+await (async () => {
+  const name = 'v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)';
+  try {
+    const J = JSON.stringify;
+    const ACE6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], FF6 = ['USAF', 'ANG', 'AFRC', 'USMC-B', 'USMC-C', 'USN'];
+    const M = 1e6;
+    const mk = (html, appn, svcs, items) => { const B = boot({ html, appn });
+      seed(B.ev, { services: svcs, items, disc: svcs.map(() => 1e9), mand: svcs.map(() => 0), order: items.map(i => i.id) });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+      return B; };
+    const F = mk(null, 'FULL FUND', FF6, [w2it('F1', 'AV', [100 * M, 0, 0, 40 * M, 0, 0]), w2it('F2', 'AV', [0, 0, 0, 25 * M, 0, 10 * M])]);
+    const SP = mk(F.ev('buildSavedHtml()'), 'INITIAL SPARES', ['USAF', 'STOVL', 'USMC-B'], [w2it('S1', 'AV', [10 * M, 3 * M, 4 * M])]);
+    const O = mk(SP.ev('buildSavedHtml()'), null, ACE6, [w2it('A1', 'AV', [200 * M, 0, 0, 30 * M, 0, 0]), w2it('A2', 'AV', [0, 5 * M, 0, 0, 7 * M, 0])]);
+    const F2 = boot({ html: O.ev('buildSavedHtml()'), appn: 'FULL FUND' });
+    // what each appropriation asks, by the tab its service belongs on: USMC-B is STOVL's
+    const WANT = { 'O&M': { USAF: 200, ANG: 5, STOVL: 30, 'USMC-C': 7 }, 'Full Fund': { USAF: 100, STOVL: 65, USN: 10 }, 'Initial Spares': { USAF: 10, STOVL: 7 } };
+    const TABS = ['USAF', 'ANG', 'STOVL', 'USMC-C', 'USN'];
+    for (const [B, label, slug] of [[O, 'O&M on screen', 'om'], [F2, 'Full Fund on screen', 'ff']]) {
+      chk(name, label, 'the board on screen (a CONTROL)', B.ev('mySlug()'), slug);
+      const bk = JSON.parse(await w2Book(B.w, 'exportFydpPlan'));
+      chk(name, label, 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+      const names = Object.keys(bk).filter(k => k !== '__err');
+      chk(name, label, 'one tab per service, STOVL among them and no USMC-B tab', J(names.filter(n => TABS.concat(['USMC-B', 'AFRC']).includes(n))), J(TABS));
+      // a tab's "summary by appropriation" row for an appropriation, FY27's Requirement and Allocated ($M, read as dollars)
+      const row = (tab, app) => { const r = (bk[tab] || []).find(x => x && String(x[0] ?? '') === app); return r ? [Math.round((+r[2] || 0) * M), Math.round((+r[3] || 0) * M)] : [0, 0]; };
+      chk(name, label + ' · STOVL', 'the STOVL tab: O&M’s STOVL $30M, Full Fund’s USMC-B $65M and Spares’ two names $7M, requirement and allocated',
+        J([row('STOVL', 'O&M'), row('STOVL', 'Full Fund'), row('STOVL', 'Initial Spares')]), J([[30 * M, 30 * M], [65 * M, 65 * M], [7 * M, 7 * M]]));
+      chk(name, label + ' · STOVL', 'and its own block for each appropriation',
+        J((bk.STOVL || []).map(r => String((r || [])[0] ?? '')).filter(t => /^STOVL — /.test(t))),
+        J(['STOVL — summary by appropriation', 'STOVL — O&M', 'STOVL — Full Fund', 'STOVL — Initial Spares']));
+      Object.keys(WANT).forEach(app => {
+        const tot = (bk[app] || []).filter(r => r && String(r[0] ?? '') === 'TOTAL').map(r => [Math.round((+r[2] || 0) * M), Math.round((+r[3] || 0) * M)])[0] || [-1, -1];
+        const sum = TABS.reduce((a, t) => { const v = row(t, app); return [a[0] + v[0], a[1] + v[1]]; }, [0, 0]);
+        chk(name, label + ' · partition · ' + app, 'the service tabs add up to the appropriation’s tab, requirement and allocated', J(sum), J(tot));
+        chk(name, label + ' · partition · ' + app, 'which is what it asks (a CONTROL: the identity is not two copies of one mistake)',
+          J(tot), J([1, 1].map(() => Object.values(WANT[app]).reduce((a, b) => a + b, 0) * M)));
+        TABS.forEach(t => chk(name, label + ' · ' + t + ' · ' + app, 'each service tab carries that service’s own dollars', row(t, app)[0], (WANT[app][t] || 0) * M));
+      });
+      const sumBy = (() => { const S0 = bk.Summary || []; const i = S0.findIndex(r => r && String(r[0] ?? '') === 'By service'); const j = S0.findIndex((r, k) => k > i && r && String(r[0] ?? '') === 'By PMO');
+        return S0.slice(i, j).filter(r => r && TABS.concat(['USMC-B', 'AFRC']).includes(String(r[0] ?? ''))).map(r => [String(r[0]), Math.round((+r[2] || 0) * M)]); })();
+      chk(name, label + ' · Summary', 'By service: one STOVL row, $102M, and no USMC-B row', J(sumBy),
+        J([['USAF', 310 * M], ['ANG', 5 * M], ['STOVL', 102 * M], ['USMC-C', 7 * M], ['USN', 10 * M]]));
+    }
+    // the panel reads the board on screen: with Full Fund open its service view is STOVL, never USMC-B
+    chk(name, 'Full Fund on screen · the panel', 'the panel’s views name STOVL and never USMC-B',
+      F2.ev(`(function(){ fydpOpen=true; render(); var o=[].map.call(document.querySelectorAll('#fydpBody option'), function(x){ return x.value; }); fydpOpen=false; render();
+        return JSON.stringify([o.indexOf('s:STOVL')>=0, o.indexOf('s:USMC-B')>=0]); })()`), J([true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.12 W2 ====
 
 // ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====

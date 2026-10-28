@@ -1343,6 +1343,14 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 :is(#addPanel,#editPanel) .ar-l em{font-style:normal;font-weight:600;color:var(--dim);margin-left:6px}
 :is(#addPanel,#editPanel) .ar-n{font-size:11px;color:var(--dim)}
 :is(#addPanel,#editPanel) .ar-n:empty{display:none}
+/* v2.12 (item 132): a WBS paragraph's name under its field, and the flag on one the estimate does not hold -- wrapped, never cut */
+:is(#addPanel,#editPanel) .ar-n.wbsn{overflow-wrap:anywhere;line-height:1.25;font-size:10.5px}
+:is(#addPanel,#editPanel) .ar-n.wbsn.off{color:var(--amber);font-weight:600}
+#editPanel .er-wbsl{display:flex;align-items:baseline;gap:8px;min-width:0}
+#editPanel .er-wbsl .ar-l{flex:none}
+#editPanel .er-wbsl .ar-n.wbsn{flex:1;min-width:0;text-align:left}
+.wbsnm{font-size:10px;color:var(--dim);margin-top:2px;white-space:normal;overflow-wrap:anywhere;line-height:1.3;text-align:left}
+.wbsnm.off{color:var(--amber);font-weight:600}
 :is(#addPanel,#editPanel) .ar-f input,:is(#addPanel,#editPanel) .ar-f select,:is(#addPanel,#editPanel) .ar-f textarea,:is(#addPanel,#editPanel) .ar-ro,:is(#addPanel,#editPanel) .ar-off select{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink);min-height:28px;width:100%;box-sizing:border-box}
 :is(#addPanel,#editPanel) .ar-ro{display:flex;align-items:center;background:var(--panel2);border-style:dashed;font-weight:600}
 :is(#addPanel,#editPanel) .ar-ro.dim{font-weight:500;color:var(--dim)}
@@ -2055,7 +2063,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   </div>
 </div>
 <div class="modal-bg" id="wbsPanel" onclick="if(event.target===this)wbsOpen=null,render()">
-  <div class="modal">
+  <div class="modal" style="width:1000px;max-width:97vw">
     <h3>🧱 WORK BREAKDOWN STRUCTURE <button class="x" onclick="wbsOpen=null;render()">✕ Close</button></h3>
     <div id="wbsBody"></div>
   </div>
@@ -2252,7 +2260,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p class="v209-h125">A prime contract’s <b>🧾 CLIN drill</b> opens inside its row. Each CLIN is two lines: its <b>Request</b>, typed service by service, and its <b>Allocation</b>, a separate set of boxes; <b>vs request</b> shows the gap, and a new CLIN’s allocation starts as its first request in each service. The foot sets the CLINs’ requests beside the prime’s own requirement value, with the difference, for information: nothing in the drill changes the requirement value or what the board funds. A click into any box or button in a row, or anywhere in the drill, works that control and leaves the RECORD panel where it is; a click on the row itself opens its record.</p>
 <p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › Funding › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
 <p>The <b>fix list</b> (also <b>🔧 fix list</b> in the fit strip) lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
-<p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b>, <b>🔧 awards repaired on opening</b>, <b>➖ negative allocations to repair</b>, <b>✈ buy quantities to repair</b> and <b>✂ codes longer than their limit</b>. <b>Go to it</b> selects the requirement and opens what to fill: the <span data-fl="cons"></span> editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
+<p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b>, <b>🔧 awards repaired on opening</b>, <b>➖ negative allocations to repair</b>, <b>✈ buy quantities to repair</b>, <b>✂ codes longer than their limit</b>, <b>🏷 SI codes to repair</b>, <b>▦ without a WBS</b> and <b>≠ WBS not in the estimate</b>. <b>Go to it</b> selects the requirement and opens what to fill: the <span data-fl="cons"></span> editor, the CCaR record, the WBS, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
 <p>An allocation is never below zero. One typed is refused; one an older file carries is kept exactly as it was saved, counts as $0 in every figure, and is listed under <b>➖ negative allocations to repair</b> until its allocation is typed again or put back to the requirement value.</p>
 <p class="v199-h90">A buy quantity is a whole number from 0: a sign, a decimal point, a letter or a minus sign of any kind is refused and the line keeps what it had. A quantity times its unit cost may not pass $10 trillion, whichever of the two is typed. A quantity an older file carries that is not one is kept exactly as saved, counts as $0, and is listed under <b>✈ buy quantities to repair</b> until it is typed again.</p>
 <p class="v199-h91">A code longer than its limit is refused when typed — CCaR record 12, PID 35, CLIN number 20, CLIN description 140, WBS 40, RCN and EEIC 10, PPBE line codes 12. Nothing changes and the text typed is kept where you typed it (a box opens again holding it, a field keeps it, marked) so it can be corrected. One that arrives in a file or a submittal is kept whole, never cut, and listed under <b>✂ codes longer than their limit</b> and in Pre-flight: CCaR may not match it as it stands.</p>
@@ -2294,6 +2302,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
 <p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s; a service no sheet takes is counted on the Summary only, and every sheet of the workbook says so under its table); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
+<p class="v212-h132s">On the workbook’s service tabs Full Fund’s USMC-B is the STOVL tab’s, whichever board is open, so STOVL carries every appropriation’s F-35B money and the service tabs still add up to each appropriation’s tab.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
 <p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
 </section>
@@ -2305,6 +2314,12 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
 <p>In the RECORD panel the three written fields sit straight under the title: <b><span data-fl="cons" data-fi="1"></span></b>, <b><span data-fl="dn" data-fi="1"></span></b> and <b><span data-fl="rec" data-fi="1"></span></b>, which says how many of the required fields are still to fill. All three open one box — the whole record, at that field — held until <b>Save</b>, which writes only what changed, in one save; it refuses if the record changed underneath it while it was open. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
+</section>
+<section data-part="team" data-id="t-wbs" data-t="A requirement’s WBS paragraph">
+<p class="v212-h132">Every requirement carries the <b><span data-fl="wbs"></span></b> paragraph its money rolls up under: the product or outcome a Service reads it against, in the cost estimate’s own WBS tree. A requirement on 1.2.2.1 rolls up to 1.2.2, then 1.2, then 1. A prime contract’s is logged per CLIN, in its 🧾 CLIN drill.</p>
+<p>A paragraph is <b>picked, not typed</b>, from the paragraphs the cost estimate names for this appropriation — the one chosen for the board, else the newest that names any. In the edit box, the Add box and a requirement’s WBS lines, type a code or a name and pick it from the list. Its name, its path in the estimate with the top heading first, shows beside it. A code the estimate does not hold is refused, and what was typed is kept so it can be corrected. Paragraphs on estimate lines whose CCAR Element is the requirement’s CCaR record come first in the list, marked <i>suggested</i>; a suggestion is never set. With no estimate naming this appropriation, a paragraph is taken as typed, and the field says so.</p>
+<p>A paragraph stored before the estimate came in, or one it no longer holds, is <b>kept as stored and flagged</b>, never dropped or rewritten. Two lists under <b>Needs attention</b> find what is left to do: <b>▦ without a WBS</b> (a prime is listed while any CLIN carrying money has none), whose heading counts the requirements and the funded dollars that have one, of all; and <b>≠ WBS not in the estimate</b>. <b>Go to it</b> opens the record at its WBS (a prime: its CLIN drill). <b>Classify requirements</b>, in Review, sets one paragraph on many requirements at once, from the same list; it leaves a prime, and a requirement already split across paragraphs, alone.</p>
+<p>The <b>Spend Plan Source</b> carries each line’s paragraph in its WBS column — the code and, where the estimate names it, “ - ” and its name — so CCaR’s plan events take ORBIT’s WBS. A requirement split across paragraphs goes out a line per paragraph, its dollars split as the office typed them, with any part not yet assigned on a line of its own; the lines add up to the line they replace, to the dollar. A line with no paragraph goes out with the column blank, and the export names those requirements.</p>
 </section>
 </template>
 
@@ -2433,7 +2448,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <div class="modal-bg" id="uipPanel">
   <div class="modal" style="width:560px;max-width:94vw">
     <h3 id="uipMsg" style="font-size:13px;line-height:1.5"></h3>
-    <input id="uipVal" style="width:100%;box-sizing:border-box;margin-top:6px" onkeydown="if(event.key==='Enter'){event.preventDefault();uipDone(true);} if(event.key==='Escape'){event.preventDefault();uipDone(false);}">
+    <input id="uipVal" style="width:100%;box-sizing:border-box;margin-top:6px" autocomplete="off" oninput="uipSay()" onkeydown="if(event.key==='Enter'){event.preventDefault();uipDone(true);} if(event.key==='Escape'){event.preventDefault();uipDone(false);}">
+    <datalist id="uipList"></datalist><div id="uipNote" class="hint" style="margin-top:6px;overflow-wrap:anywhere" hidden></div>
     <div style="margin-top:12px;text-align:right"><button class="btn" onclick="uipDone(true)">OK</button> <button class="btn" onclick="uipDone(false)">Cancel</button></div>
   </div>
 </div>
@@ -3520,7 +3536,8 @@ function ndRowChip(id){
 // NEEDS ATTENTION, EVERY ENTRY A LIST (v1.93, item 42: "each error message to have a pop up to show me where the
 // errors are, like it does with the Not Drawn statement"). One pass over the board, so each count on the posture
 // line IS the length of the list it opens -- they cannot drift. Not drawn keeps its own fix list.
-let attOpen=null;     // which list is open: imp, ccar, oblig, awshort, awfix, neg, buy, code
+let attOpen=null;     // which list is open: imp, ccar, oblig, awshort, awfix, neg, buy, code, si, wbs (without a WBS), wbsx (a WBS
+                      // the estimate does not hold) -- v2.12 (item 132) added the last two
 // v1.97 W1 (item 74): what a requirement's saved allocation holds below zero, each as it was saved -- the total, a
 // service's allocation, or a split's Disc or Mand. Kept exactly as found and counted as $0 (svcAlloc) until set again.
 function allocNegOf(id){
@@ -3542,11 +3559,18 @@ function allocNegOf(id){
 function attLists(T){
   T=T||tiers();
   const MR=masterRanks();
-  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[]};
+  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[], wbs:[], wbsx:[]};
+  // v2.12 (item 132): the coverage the Without a WBS heading states -- requirements and funded dollars with a WBS, of all
+  const WP=wbsPick(), cov={n:0, of:0, f:0, fof:0};
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const p=T[id]||{dT:0, mT:0, d:[], m:[]}, funded=(p.dT||0)+(p.mT||0);
     const row={id:id, rank:MR[id], funded:funded};
+    // v2.12 (item 132): WITHOUT A WBS -- no paragraph; a prime, while any CLIN carrying money has none (or no CLIN has one).
+    // And A PARAGRAPH THE ESTIMATE DOES NOT HOLD -- one the pickers' estimate does not name, kept as stored (wbsUnlistedOf).
+    const ws=wbsStateOf(id);
+    cov.of++; cov.fof+=funded; if(ws.has){ cov.n++; cov.f+=funded; } else out.wbs.push(row);
+    const wx=wbsUnlistedOf(id, WP); if(wx.length) out.wbsx.push(Object.assign({n:wx}, row));
     if(BAND_OF(id)!==null && BAND_DEF(id).consReq && !(((S.cons||{})[id]||'').trim())) out.imp.push(row);
     if(!ccarOf(it)) out.ccar.push(row);
     const aw=(S.awards||{})[id];
@@ -3574,6 +3598,7 @@ function attLists(T){
   // the funded ones first -- their dollars are UNSCHEDULED in every spend plan -- then by rank
   out.awfix.sort(function(a,b){ return ((b.how==='repair')-(a.how==='repair')) || ((a.rank||9e9)-(b.rank||9e9)); });
   out.oblig.sort(function(a,b){ return ((b.funded>0.5)-(a.funded>0.5)) || ((a.rank||9e9)-(b.rank||9e9)); });
+  out.wbs.cov=cov; out.wbsx.src=wbsSrcLbl(WP);
   return out;
 }
 const ATT_KIND={
@@ -3593,6 +3618,11 @@ const ATT_KIND={
     why:'A CCaR record is at most 12 characters, a PID 35, a CLIN number 20, a CLIN description 140 and a WBS 40. These arrived longer, in a file or from another board, and are kept whole \u2014 never cut, because a cut code can be another record. CCaR may not match them: correct each where it is set. <b>Go to it</b> selects the requirement.'},
   si:{t:'🏷 SI CODES TO REPAIR', go:'Go to it',
     why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('si')+', which shows the code as saved.'},
+  // v2.12 (item 132): a WBS paragraph on every requirement -- what rolls a requirement's money up to the product a Service reads
+  wbs:{t:'▦ WITHOUT A WBS', go:'Go to it',
+    why:'No WBS paragraph, so its money rolls up to no product of the cost estimate, and every line of it goes out on the Spend Plan Source with the WBS column blank. A prime is broken down per CLIN, so it is listed while any CLIN carrying money has none. The heading counts the requirements, and the funded dollars, that have one. <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('wbs')+', where a paragraph is picked from the estimate (a prime: its 🧾 CLIN drill).'},
+  wbsx:{t:'≠ WBS NOT IN THE ESTIMATE', go:'Go to it',
+    why:'Each paragraph shown is kept exactly as stored, and is not one of the paragraphs the cost estimate the WBS pickers read names for this appropriation \u2014 so it rolls up to nothing in it. It was typed before that estimate was imported, or the estimate has changed. Nothing is dropped or rewritten: <b>Go to it</b> opens the requirement\u2019s '+FLI('rec')+' at its '+FL('wbs')+' (a split: its WBS lines; a prime: its 🧾 CLIN drill), where one can be picked.'},
   awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
     why:'The awards do not yet cover the funded amount, discretionary + mandatory, so the rest is UNSCHEDULED in every spend plan. Discretionary fills the awards forward from the first and mandatory backward from the last, so what is short is usually mandatory. <b>Go to it</b> opens the award block, where <b>↵ put on last</b> covers it.'}
 };
@@ -3603,12 +3633,17 @@ function attBody(){
   bg.className='modal-bg'+(attOpen? ' open' : '');
   if(!attOpen){ el.innerHTML=''; return; }
   const K=ATT_KIND[attOpen], L=attLists()[attOpen];
-  const ttl=document.getElementById('attTitle'); if(ttl) ttl.textContent=K.t;
+  // v2.12 (item 132): Without a WBS states the coverage in its heading -- requirements and funded dollars with a WBS, of all;
+  // WBS not in the estimate names the estimate
+  const cv=L.cov, ttl=document.getElementById('attTitle');
+  if(ttl) ttl.textContent=K.t+(cv? ' \u2014 '+cv.n+' of '+cv.of+' requirement'+(cv.of===1?'':'s')+' have one \u00b7 '+fM(cv.f)+' of '+fM(cv.fof)+' funded'
+    : (attOpen==='wbsx' && L.src? ' \u2014 '+L.src : ''));
   let h='<div class="hint" style="margin-bottom:8px">'+K.why+'</div>';
   if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing left on this list.</div>'; return; }
   const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>'
     : (attOpen==='awfix'? '<th style="text-align:left">What was done, and the split used</th>'
-    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
+    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>'
+    : (attOpen==='wbsx'? '<th style="text-align:left">Not in the estimate, kept as stored</th><th>Funded</th>' : '<th>Funded</th>'))));
   h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
     +'<th style="text-align:left">PMO</th>'+money+'<th></th></tr>';
   let t1=0, t2=0;
@@ -3617,13 +3652,15 @@ function attBody(){
       : (attOpen==='awfix'? '<td class="awfixwhat" style="text-align:left;white-space:normal"><b>'+(r.how==='repair'? 'NEEDS REPAIR' : (r.how==='split'? 'Inferred split' : 'Converted'))+'</b> \u2014 '
           +esc((Array.isArray(r.n)? r.n : []).join(' \u00b7 '))+'</td>'
       : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
-      : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'));
+      : (attOpen==='wbsx'? '<td class="attwbsx" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td><td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'
+      : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>')));
     t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : 0;
     h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left">'+esc(dispTitle(it))+'</td>'
       +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
       +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
   h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
-    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
+    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>'
+      : (attOpen==='wbsx'? '<td></td>' : '')+'<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
   el.innerHTML=h;
 }
 // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
@@ -3638,6 +3675,9 @@ function attGo(k, id){
   // v2.00 (U41): at the Navy SI code that shows the code as saved -- in the edit box since v2.08 (item 122)
   if(k==='si'){ openEdit(id, 'si'); return; }
   if(k==='buy'){ buysOpen=true; render(); try{ const w=document.getElementById('buysWrap'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){} return; }
+  // v2.12 (item 132): at the WBS in the edit box, where a paragraph is picked -- a prime's is logged per CLIN, in its drill; a
+  // split's in its own WBS lines (the box opens at their editor)
+  if(k==='wbs' || k==='wbsx'){ if(clinApplies(id)) clinGo(id); else openEdit(id, 'wbs'); return; }
   try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
     if(blk){ if(blk.scrollIntoView) blk.scrollIntoView({block:'center'});
       const f=blk.querySelector('input[type="date"]:not([disabled])') || blk.querySelector('button, input');
@@ -7627,23 +7667,34 @@ function showLog(){
   setStat('🕘 <b>Save history</b> (this file): '+(lg.length? lg.map(e=>esc(e.by||'?')+' — '+fmtTs(e.ts)).join('  ·  ') : 'no stamped saves yet')+
     '  <span style="color:var(--dim)">(Teams: file → ⋯ → Version history shows every saved version by author)</span>');
 }
-let _uipCb=null;
-function uiPrompt(msg, def, cb){
+let _uipCb=null, _uipO=null;
+// v2.12 (item 132): a prompt that offers a list -- `o.list`, the options of a datalist, and `o.say(text)`, the line under the
+// field -- is always the in-app box: the browser's own prompt cannot offer one, and a WBS paragraph is picked, not typed.
+function uiPrompt(msg, def, cb, o){
   let ok=false, v=null;
-  try{ v=window.prompt(msg, def==null?'':def); ok=true; }catch(e){ /* Electron throws on window.prompt; the in-app modal below is the intended path */ }
+  if(!(o && o.list)) try{ v=window.prompt(msg, def==null?'':def); ok=true; }catch(e){ /* Electron throws on window.prompt; the in-app modal below is the intended path */ }
   if(ok){ cb(v); return; }
-  _uipCb=cb;
-  const m=document.getElementById('uipMsg'), inp=document.getElementById('uipVal');
-  if(!m||!inp){ cb(null); return; }
+  _uipCb=cb; _uipO=(o && o.list)? o : null;
+  const m=document.getElementById('uipMsg'), inp=document.getElementById('uipVal'), dl=document.getElementById('uipList');
+  if(!m||!inp){ _uipO=null; cb(null); return; }
   m.textContent=msg; inp.value=(def==null?'':def);
+  if(dl) dl.innerHTML=_uipO? _uipO.list : '';
+  if(_uipO && dl) inp.setAttribute('list', 'uipList'); else inp.removeAttribute('list');
+  uipSay();
   document.getElementById('uipPanel').className='modal-bg open';
   setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(e){} }, 60);
+}
+function uipSay(){
+  const nt=document.getElementById('uipNote'), inp=document.getElementById('uipVal'); if(!nt) return;
+  let t=''; try{ if(_uipO && _uipO.pick && inp) _uipO.pick(inp); t=(_uipO && _uipO.say && inp)? String(_uipO.say(inp.value)||'') : ''; }catch(e){ t=''; }
+  nt.textContent=t; nt.hidden=!t;
 }
 function uipDone(ok){
   const inp=document.getElementById('uipVal');
   const v=ok? inp.value : null;
   document.getElementById('uipPanel').className='modal-bg';
-  const cb=_uipCb; _uipCb=null;
+  const cb=_uipCb; _uipCb=null; _uipO=null;
+  try{ const dl=document.getElementById('uipList'); if(dl) dl.innerHTML=''; inp.removeAttribute('list'); uipSay(); }catch(e){}
   if(cb) cb(v);
 }
 // v1.97 (item 79): every message counts, so the autosave can tell whether its save said anything (liveTick).
@@ -20296,9 +20347,33 @@ function exportExView(){
 // board has no equivalent for stays EMPTY - RCN, EEIC, Navy SI and Cost Element exist here only as
 // service-level PPBE lines, and prorating one of those down to a requirement would put a number in
 // a cell that nobody entered.
+// v2.12 (item 132): THE WBS COLUMN (23, Spares WBS) CARRIES EACH LINE'S PARAGRAPH (Brad, 28 Oct 2026: "Yes, the WBS in ORBIT
+// should populate in the WBS column of that file for that line item"), so CCaR's plan events inherit it instead of Brad's team
+// typing it into each one. The cell is the paragraph's code and, when the estimate names it, " - " and its own name -- the
+// shape the column already holds, which srcWbsPara reads back to the code. A requirement, or a prime's CLIN, on several
+// paragraphs goes out a line per paragraph: each line's amount is split by apportion() over the paragraphs' own dollars for that
+// service (wbsResolve: the split as the office typed it), and what they leave unassigned goes on a line with the column blank,
+// so the lines add up to the line they replace, to the dollar, and every other cell is that line's own. No other column moves:
+// QPE_READS reads the file by position. A line with no paragraph goes out blank, and the export names those requirements.
+function srcWbsCell(c, P){ if(!c) return ''; const nm=(P && P.has[c])? P.name[c] : ''; return c+(nm? ' - '+nm : ''); }
+function srcWbsParts(St, id, it, i, amt, clin){
+  const L=clin? ((((St.clinWbs||{})[id])||{})[clin.key]) : ((St.wbs||{})[id]);
+  const list=(Array.isArray(L)? L : []).filter(function(e){ return e && typeof e==='object'; });
+  if(!list.length) return [[amt, '']];
+  if(list.length===1) return [[amt, wbsCodeIn(list[0].w)]];
+  const R=wbsResolve(list, clin? clinVec(id, clin) : svcAlloc(it));
+  const ws=R.rows.map(function(r){ return Math.max(0, +r.v[i]||0); }).concat([Math.max(0, +R.rem[i]||0)]);
+  const tot=ws.reduce(function(a,b){ return a+b; }, 0);
+  if(!(tot>0)) return [[amt, '']];
+  let parts;
+  if(Number.isInteger(amt)) parts=apportion(amt, ws);
+  else { let acc=0; parts=ws.map(function(x, k){ const v=(k===ws.length-1)? amt-acc : amt*x/tot; acc+=v; return v; }); }
+  return parts.map(function(v, k){ return [v, k<R.rows.length? wbsCodeIn(R.rows[k].w) : '']; });
+}
 function srcRowsOf(fy, St, T, rec){
   const out=[];
   const order=(St.order||[]).slice();
+  const WP=wbsPick();      // v2.12 (item 132): the names the WBS column prints beside each code
   order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const ask=it.ask||[], alc=(St.fsrc&&St.fsrc[id])? null : null;
@@ -20335,9 +20410,10 @@ function srcRowsOf(fy, St, T, rec){
     // A record Title only when the join is unambiguous; the requirement's own name otherwise, so
     // the column is never blank and never a coin toss between two records sharing a number.
     const recT=ccarTitleOf(it);
-    const emit=(svc, amt, clin, lane, dt)=>{
+    const emit=(svc, amt, clin, lane, dt, wc)=>{
       // v2.02 (E5): every line, as sent, for the reconciliation of the offices' planning shares (officeClinRecon)
-      if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt});
+      // v2.12 (item 132): and its WBS paragraph, so the export can name the lines that go out without one
+      if(rec) rec.push({id:id, svc:svc, lane:lane, clin:clin, amt:amt, wbs:wc||''});
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
       // v2.04 (item 108): a CLIN line carries the CLIN's OWN record, number and name, when it has one (Brad, 22 Oct 2026)
@@ -20379,8 +20455,12 @@ function srcRowsOf(fy, St, T, rec){
         if(e){ r[26]=e.eeic||''; r[27]=e.rcn||''; }
       }
       r[18]=grpOf(it)||'';
+      r[23]=srcWbsCell(wc||'', WP);           // v2.12 (item 132): the line's WBS paragraph, or blank
       out.push(r);
     };
+    // v2.12 (item 132): one line becomes a line per WBS paragraph, adding up to it exactly (srcWbsParts)
+    const emitW=(svc, i, amt, clin, lane, dt)=>{
+      srcWbsParts(St, id, it, i, amt, clin).forEach(function(q){ if(Math.abs(q[0])>0.005) emit(svc, q[0], clin, lane, dt, q[1]); }); };
     if(SRC_GRAIN==='req'){
       const tot=vals.reduce((a,b)=>a+(+b||0),0);
       if(tot) emit('', tot, null, '', dt);
@@ -20401,8 +20481,8 @@ function srcRowsOf(fy, St, T, rec){
           const lane=L[0], v=+L[1][i]||0; if(!v) return;
           datedOf(i, lane, v).forEach(function(q){
             const parts=clinSplit(id, i, q[1]);
-            if(!parts.length){ emit(sv, q[1], null, lane, q[0]); return; }
-            parts.forEach(p=>{ if(Math.abs(p.part)>0.005) emit(sv, p.part, p.c, lane, q[0]); });
+            if(!parts.length){ emitW(sv, i, q[1], null, lane, q[0]); return; }
+            parts.forEach(p=>{ if(Math.abs(p.part)>0.005) emitW(sv, i, p.part, p.c, lane, q[0]); });
           });
         });
       });
@@ -20457,6 +20537,17 @@ function sheetNamer(taken, max){
     used[t.toLowerCase()]=1; return t;
   };
 }
+// v2.12 (item 132): THE LINES THAT GO OUT WITH NO WBS PARAGRAPH, named -- the file is still written (a line CCaR takes without
+// a WBS is a plan event the team completes there), but nobody should find the blank column by opening the file
+function srcNoWbsSay(rec){
+  const L=(rec||[]).filter(function(r){ return r && !r.wbs && Math.abs(+r.amt||0)>0.005; });
+  if(!L.length) return '';
+  const who=[], n=Object.create(null);
+  L.forEach(function(r){ if(!n[r.id]){ n[r.id]=0; who.push(r.id); } n[r.id]++; });
+  return ' ⚠ '+L.length+' line'+(L.length===1?' goes':'s go')+' out with no WBS paragraph, on '+who.length+' requirement'+(who.length===1?'':'s')+': '
+    +who.slice(0, 12).map(function(id){ const it=itemById(id); return '<b>'+esc(it? dispTitle(it) : id)+'</b>'+(n[id]>1? ' ('+n[id]+' lines)' : ''); }).join(', ')
+    +(who.length>12? ' and '+(who.length-12)+' more' : '')+' \u2014 pick one in each requirement\u2019s record (Needs attention lists them).';
+}
 // Mirror of the Spend Plan Source workbook: same tabs, same 32 columns, same widths, same number
 // formats, header row frozen. One tab per appropriation this board holds, exactly as imported.
 function exportSrc(){
@@ -20468,7 +20559,7 @@ function exportSrc(){
   // is exactly what svcAlloc() did here before, since it reads S.alloc whatever year it is handed.
   // A year this walk cannot speak for is SKIPPED and named, never guessed at. SRC_YEARS='cur' makes
   // that unreachable today; this is the honest shape if it is ever flipped.
-  const DT=tiers(), skipped=[];
+  const DT=tiers(), skipped=[], noWbs=[];     // v2.12 (item 132): every line as sent, to name the ones with no WBS paragraph
   // v1.92: A CHOSEN BUDGET THAT CANNOT BE USED STOPS THIS FILE. Printing it would send a retired or another
   // office's name to CCaR; printing the rule's answer instead would replace a person's choice without saying
   // so; leaving it blank would drop it. So the export refuses, names every line, and writes nothing.
@@ -20495,7 +20586,7 @@ function exportSrc(){
         const St=(fy===MS.cur)? S : (MS.years||{})[fy];
         if(!St) return;
         if(St!==S){ if(skipped.indexOf(fy)<0) skipped.push(fy); return; }
-        srcRowsOf(fy, St, DT).forEach(r=>rows.push(r));
+        srcRowsOf(fy, St, DT, noWbs).forEach(r=>rows.push(r));
       });
     }
     sheets.push({name:SRC_TABS[sl].slice(0,31), cols:SRC_COLW.slice(), freeze:1, rows});
@@ -20532,6 +20623,7 @@ function exportSrc(){
     +(SRC_YEARS==='all'?' (all years)':String(MS.cur).slice(-2))
     +'. Columns the board does not hold are blank.'
     +(srcGapNote()? ' ⚠ '+srcGapNote()+'.' : '')
+    +srcNoWbsSay(noWbs)
     +(skipped.length? ' ⚠ FY'+skipped.join(', FY')+' skipped \u2014 the lane walk only runs on '
       +'the active year, and pricing a past year off this year\u2019s lanes would be a guess.' : ''));
 }
@@ -22421,7 +22513,7 @@ function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); 
 // fydpData, the figures a lock takes -- into requirements by year; the tabs and the panel only arrange it, so the panel
 // cannot print a figure the workbook does not. Allocated is the lane draw, discretionary + mandatory (the projection's
 // fund). A requirement's year on a SERVICE tab is that service's own dollars (found by the service's NAME in that year's
-// list); on a PMO tab it is the requirement's dollars in the years that PMO held it (v1.95: PMOs are assigned by year),
+// list, folded so Full Fund's USMC-B is STOVL's -- v2.12, fydpSvcFold); on a PMO tab it is the requirement's dollars in the years that PMO held it (v1.95: PMOs are assigned by year),
 // 0 in the years another office did. A year the plan does not hold prints —, never 0, and is outside every total.
 // The service tabs add up to the appropriation tabs, and so do the PMO tabs: each partitions the same money.
 // THE YEARS: the plan's base year and the next four. A locked cycle's base is the lock's.
@@ -22446,12 +22538,21 @@ function fydpBookApp(X, Y){
   });
   return {held:held, reqs:reqs, order:order};
 }
+// v2.12 (item 132): ONE SERVICE, WHATEVER AN APPROPRIATION CALLS IT. Full Fund names the F-35B service USMC-B where O&M names it
+// STOVL (SVC_ALIAS), and the service tabs joined services by exact name -- so Full Fund's F-35B money sat on a USMC-B tab of
+// its own and the STOVL tab read short to every USMC reader of the workbook. A name is folded to the one tab it belongs on,
+// named STOVL whichever board is open, as FYDP Disconnects names its sheet. A function rather than a table read at the top:
+// the board draws at boot before SVC_ALIAS is declared.
+function fydpSvcFold(s){ s=String(s==null? '' : s); return s==='USMC-B'? 'STOVL' : s; }
 // one requirement's year under a filter: null when the plan does not hold the year
 function fydpBookVal(M, id, y, f){
   if(M.held.indexOf(y)<0) return null;
   const e=M.reqs[id].fy[y]; if(!e) return {a:0, l:0};
   if(f && f.pmo!==undefined) return e.grp===f.pmo? {a:fydpSum(e.ask), l:fydpSum(e.alloc)} : {a:0, l:0};
-  if(f && f.svc!==undefined){ const i=e.svc.indexOf(f.svc); return i<0? {a:0, l:0} : {a:e.ask[i]||0, l:e.alloc[i]||0}; }
+  // v2.12 (item 132): every index whose folded name is the tab's, summed -- the first match alone would drop the second name's
+  // dollars on a list that carries both, and the service tabs would stop partitioning the appropriation tab
+  if(f && f.svc!==undefined){ let a=0, l=0, hit=false; e.svc.forEach(function(sv, i){ if(fydpSvcFold(sv)!==f.svc) return; hit=true; a+=e.ask[i]||0; l+=e.alloc[i]||0; });
+    return hit? {a:a, l:l} : {a:0, l:0}; }
   return {a:fydpSum(e.ask), l:fydpSum(e.alloc)};
 }
 function fydpBookHas(M, id, Y, f){
@@ -22498,8 +22599,9 @@ function fydpBookModel(D, A){
   const got=apps.filter(function(p){ return !!p.M; });
   got.forEach(function(p){ p.all=fydpBookLines(p.M, Y, null); });
   // the services, in this board's order then any other appropriation's; the offices, configured first
-  const svcs=[]; SVC.forEach(function(s){ if(svcs.indexOf(s)<0) svcs.push(s); });
-  got.forEach(function(p){ p.M.held.forEach(function(y){ ((p.D.proj[y]||{}).svc||p.D.svc||[]).forEach(function(s){ if(svcs.indexOf(s)<0) svcs.push(s); }); }); });
+  // v2.12 (item 132): each name folded to its one tab (fydpSvcFold): Full Fund's USMC-B is the STOVL tab's
+  const svcs=[]; SVC.forEach(function(s){ s=fydpSvcFold(s); if(svcs.indexOf(s)<0) svcs.push(s); });
+  got.forEach(function(p){ p.M.held.forEach(function(y){ ((p.D.proj[y]||{}).svc||p.D.svc||[]).forEach(function(s){ s=fydpSvcFold(s); if(svcs.indexOf(s)<0) svcs.push(s); }); }); });
   const pm=Object.create(null);
   got.forEach(function(p){ p.M.order.forEach(function(id){ Y.forEach(function(y){ const e=p.M.reqs[id].fy[y]; if(e) pm[e.grp||'(no PMO)']=1; }); }); });
   const by=function(f){ return got.map(function(p){ return {app:p, b:fydpBookLines(p.M, Y, f)}; }).filter(function(x){ return x.b.lines.length; }); };
@@ -25949,7 +26051,10 @@ function scoreboard(){
         +(A.neg.length? ae('neg', '\u2796', pl(A.neg.length,'negative allocation to repair','negative allocations to repair')) : '')
         +(A.buy.length? ae('buy', '\u2708', pl(A.buy.length,'buy line to repair','buy lines to repair')) : '')
         +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '')
-        +(A.si.length? ae('si', '🏷', pl(A.si.length,'SI code to repair','SI codes to repair')) : '');
+        +(A.si.length? ae('si', '🏷', pl(A.si.length,'SI code to repair','SI codes to repair')) : '')
+        // v2.12 (item 132): last, so the entries above keep their places for the keyboard
+        +(A.wbs.length? ae('wbs', '▦', A.wbs.length+' without a WBS') : '')
+        +(A.wbsx.length? ae('wbsx', '≠', pl(A.wbsx.length,'WBS not in the estimate','WBS not in the estimate')) : '');
       pe.innerHTML = !SVC.length? '' :
         '<div class="pp"><div class="pplanes">'
           +'<span class="k">Discretionary</span><span class="n" data-v="'+Math.round(dBA)+'">'+fM(dBA)+' BA</span><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'
@@ -27147,7 +27252,9 @@ function wbsDel(kind,a,b,i){
 function wbsSetNum(kind,a,b,i,val,el){
   const list=wbsListOf(kind,a,b).map(function(e){ return {w:e.w, v:(e.v||[]).slice()}; });
   if(!list[i]) return;
-  const r=codeTake(val, 'wbs');      // v1.99 (item 91): refused, never cut; the field keeps what was typed, marked
+  // v1.99 (item 91): refused, never cut; the field keeps what was typed, marked. v2.12 (item 132): and picked from the estimate's
+  // paragraphs (wbsTake) -- the paragraph the line holds, typed again, is kept as stored even where the list does not hold it.
+  const r=(String(val==null? '' : val).trim()===String(list[i].w==null? '' : list[i].w).trim())? codeTake(val, 'wbs') : wbsTake(val);
   if(r.why){ codeRefusedIn(el, 'WBS not changed', r.why); return; }
   list[i].w=r.v;
   wbsStore(kind,a,b,list);
@@ -27167,20 +27274,172 @@ function wbsSetVal(kind,a,b,i,j,val){
 function wbsQuick(id, typed){
   const cur=wbsReq(id);
   if(cur.length>1){ toggleWbs('req',id,''); return; }
-  uiPrompt('WBS paragraph number for this requirement', typed!=null? typed : ((cur[0]&&cur[0].w)||''), function(v){
+  // v2.12 (item 132): picked from the estimate's paragraphs -- the box offers them as a list, says the name of the one typed
+  // and refuses one the list does not hold (the paragraph the record holds, unchanged, is kept as stored)
+  const P=wbsPick(), it=itemById(id), cc=it? ccarOf(it) : '', was=String((cur[0]&&cur[0].w)||'');
+  uiPrompt('WBS paragraph number for this requirement'+(P.k? ' \u2014 a paragraph of the '+wbsSrcLbl(P)
+      : ' \u2014 no cost estimate names '+appnName(P.ap)+'\u2019s paragraphs, so it is taken as typed'), typed!=null? typed : was, function(v){
     if(v===null) return;
-    const r=codeTake(v, 'wbs');      // v1.99 (item 91): refused, never cut; the box opens again holding the text
+    // v1.99 (item 91): refused, never cut; the box opens again holding the text
+    const r=(String(v).trim()===was.trim())? codeTake(v, 'wbs') : wbsTake(v, P);
     if(r.why){ setStat('\u26a0 <b>WBS not changed.</b> '+esc(r.why)+'.'); wbsQuick(id, v); return; }
     const t=r.v;
     wbsStore('req',id,'', t? [{w:t, v:[]}] : []);
     render();
-  });
+  }, P.k? {list:wbsListOpts(cc, P), say:function(x){ return wbsFieldSay(x, P, cc, was); }, pick:function(el){ wbsPickedIn(el, P); }} : null);
 }
 function wbsLabel(kind,a,b){
   const L=wbsListOf(kind,a,b);
   if(!L.length) return '';
   if(L.length===1) return L[0].w||'(blank)';
   return L.length+' WBS';
+}
+// ---- v2.12 (item 132): A WBS PARAGRAPH ON EVERY REQUIREMENT, PICKED FROM THE COST ESTIMATE -----------------------------------
+// Brad, 28 Oct 2026: "We don't have a WBS allocated to each requirement but we need it. It is a high priority for me." The
+// product a Service reads its money against is the estimate's WBS tree -- a requirement on 1.2.2.1 rolls up to 1.2.2, 1.2 and
+// 1 -- so a paragraph is PICKED from that tree, never typed freehand: a typo silently left a requirement out of every rollup.
+//  - THE LIST is the paragraphs of the estimate wbsPickKey() names for this appropriation (the one chosen for the board, else
+//    the newest that names any), read only through the slot commit's readers (aceWbsMap, aceWbsNode, aceWbsPath), so the
+//    import and the pickers meet on one shape. With no estimate naming this appropriation a paragraph is typed as it always
+//    was, and the field says there is nothing to pick from.
+//  - ONE RULE for a paragraph typed or picked, wherever (wbsTake): a code the list holds is taken as the estimate writes it;
+//    any other is refused, the text kept where it was typed and the reason said, as a code over its limit is (codeTake).
+//  - A PARAGRAPH ALREADY STORED that the list does not hold is KEPT, shown and flagged (wbsUnlisted) -- never dropped or
+//    rewritten. It was the board's answer before this estimate was, and only a person can say which paragraph it meant.
+//  - THE NAME shows beside every paragraph shown: its path in the estimate, top heading first (a level's name alone repeats
+//    across the file: "Officer" sits under every manpower heading).
+//  - SUGGESTIONS: the paragraphs of the estimate lines whose CCAR Element is the requirement's CCaR record come first in the
+//    list, marked as suggested -- and are never set (the tie-out's standing rule: a suggestion that became a fact would put a
+//    paragraph against a requirement nobody agreed to).
+var _wbsPickC;     // the list, per tree object (a WeakMap made on first use) -- a var: the board draws at boot before this line
+// THE ESTIMATE'S OWN ORDER: P6.2 before P6.10, P6.2.2 before P6.2.2.1 before P6.2.2E -- numbers as numbers, letters as letters
+function wbsCmp(a, b){
+  const ta=String(a).match(/\d+|\D+/g)||[], tb=String(b).match(/\d+|\D+/g)||[];
+  for(let i=0; i<Math.max(ta.length, tb.length); i++){
+    const x=ta[i], y=tb[i];
+    if(x===undefined) return -1; if(y===undefined) return 1;
+    if(/^\d/.test(x) && /^\d/.test(y)){ const d=parseInt(x, 10)-parseInt(y, 10); if(d) return d; if(x.length!==y.length) return x.length-y.length; continue; }
+    if(x!==y) return x<y? -1 : 1;
+  }
+  return 0;
+}
+// {k: the estimate's key or '', ap, codes: [CODE…] in the estimate's order, has / path / name: maps by CODE (no prototype, so a
+// code a file spells "constructor" is a code like any other)}. Built once per tree object: an import replaces the object.
+function wbsPick(ap){
+  ap=ap||mySlug();
+  const k=wbsPickKey(ap), m=k? aceWbsMap(k, ap) : null;
+  if(!m) return {k:'', ap:ap, codes:[], has:Object.create(null), path:Object.create(null), name:Object.create(null)};
+  if(typeof WeakMap!=='undefined' && !_wbsPickC) _wbsPickC=new WeakMap();
+  const raw=Object.keys(m), hit=_wbsPickC? _wbsPickC.get(m) : null;
+  if(hit && hit.k===k && hit.n===raw.length) return hit;
+  const has=Object.create(null), path=Object.create(null), name=Object.create(null), codes=[];
+  // a code as the estimate writes it (aceNormWbs): a key in any other spelling is one aceWbsNode cannot find, so none is offered
+  raw.forEach(function(c){ if(!c || c!==aceNormWbs(c) || has[c]) return; const nd=m[c]; if(!nd || typeof nd!=='object') return;
+    has[c]=1; codes.push(c); });
+  codes.sort(wbsCmp);
+  codes.forEach(function(c){ path[c]=aceWbsPath(k, ap, c); name[c]=String((aceWbsNode(k, ap, c)||{}).n||''); });
+  const P={k:k, ap:ap, n:raw.length, codes:codes, has:has, path:path, name:name};
+  if(_wbsPickC) _wbsPickC.set(m, P);
+  return P;
+}
+// What an entry names: the text before a spaced dash -- the picker's own "P6.2 — Depot Standup › …", or the Spend Plan
+// Source's "P6.2 - Depot Standup" -- written as the estimate writes a code (capitals, no spaces), as srcWbsPara reads it
+function wbsCodeIn(t){ return aceNormWbs(String(t==null? '' : t).split(/\s+[-–—]\s+/)[0]); }
+function wbsSrcLbl(P){ return P.k? P.k+' estimate for '+appnName(P.ap) : ''; }
+// A PICK FROM THE LIST puts "code — path" in the field; the field then shows the code alone and its name under it -- the path
+// is as long as the estimate makes it, and a field showing it cut its own value at every width. Only an entry in the picker's
+// own form is shortened: a code being typed is never touched under the caret.
+function wbsPickedIn(el, P){
+  if(!el) return; P=P||wbsPick();
+  const t=String(el.value==null? '' : el.value);
+  if(!P.k || !/\s[-–—]\s/.test(t)) return;
+  const c=wbsCodeIn(t); if(P.has[c] && t.trim()!==c) el.value=c;
+}
+// THE ONE RULE (above): {v} to store, or {why}. A blank clears.
+function wbsTake(val, P){
+  P=P||wbsPick();
+  const t=String(val==null? '' : val).trim();
+  if(!t) return {v:''};
+  if(!P.k) return codeTake(t, 'wbs');                 // nothing to pick from: taken as typed, as before v2.12
+  const c=wbsCodeIn(t);
+  if(c && P.has[c]) return codeTake(c, 'wbs');
+  const len=codeTake(t, 'wbs'); if(len.why) return len;
+  return {why:'The WBS '+inShow(t)+' is not a paragraph of the '+wbsSrcLbl(P)+'; pick one from its list. Nothing was changed'};
+}
+// a stored paragraph the list does not hold: kept as stored, flagged
+function wbsUnlisted(w, P){ P=P||wbsPick(); const c=aceNormWbs(w); return !!(P.k && c && !P.has[c]); }
+// a paragraph's name beside it: its path in the estimate ('' when the estimate names none, or does not hold it)
+function wbsPathOf(w, P){ P=P||wbsPick(); const c=wbsCodeIn(w); return (P.k && c && P.has[c])? (P.path[c]||'') : ''; }
+// THE SUGGESTIONS for a CCaR record: the paragraphs of the estimate's lines whose CCAR Element is that record, in the estimate's
+// order -- only ones the list holds, so a suggestion can always be picked
+function wbsSuggest(ccar, P){
+  P=P||wbsPick();
+  const cc=String(ccar==null? '' : ccar).trim().toUpperCase();
+  if(!P.k || !cc) return [];
+  const s=aceSet(P.k), seen=Object.create(null), out=[];
+  ((s && Array.isArray(s.lines))? s.lines : []).forEach(function(l){
+    if(!l || l.ap!==P.ap || String(l.ccar==null? '' : l.ccar).trim().toUpperCase()!==cc) return;
+    const c=aceNormWbs(l.wbs); if(c && P.has[c] && !seen[c]){ seen[c]=1; out.push(c); } });
+  return out.sort(wbsCmp);
+}
+// THE PICKER'S LIST: a datalist of "code — path" -- the field stays a text input, so the box controller, the F2 hold and the
+// keyboard work as they did, and a name can be typed to find its code. Suggested paragraphs first, marked.
+function wbsOptLbl(c, P){ return c+(P.path[c]? ' — '+P.path[c] : ''); }
+function wbsListOpts(ccar, P){
+  P=P||wbsPick();
+  const sg=wbsSuggest(ccar, P), tag='suggested — on CCaR '+String(ccar||'').trim();
+  return sg.map(function(c){ return '<option value="'+esc(wbsOptLbl(c, P))+'" label="'+esc(tag)+'"></option>'; }).join('')
+    +P.codes.filter(function(c){ return sg.indexOf(c)<0; }).map(function(c){ return '<option value="'+esc(wbsOptLbl(c, P))+'"></option>'; }).join('');
+}
+function wbsListHtml(lid, ccar, P){ return '<datalist id="'+esc(lid)+'">'+wbsListOpts(ccar, P)+'</datalist>'; }
+// WHAT A FIELD SAYS UNDER ITSELF, as text: the name of the paragraph it holds; that it is not in the estimate (kept as stored,
+// or refused when saved); that there is nothing to pick from; and the suggestions. `kept` is the text the record holds now.
+function wbsFieldSay(text, P, ccar, kept){
+  P=P||wbsPick();
+  const t=String(text==null? '' : text).trim(), sg=wbsSuggest(ccar, P);
+  const sgs=sg.length? ' Suggested for CCaR '+String(ccar).trim()+' (never set): '+sg.slice(0, 6).join(', ')+(sg.length>6? ' and '+(sg.length-6)+' more' : '')+'.' : '';
+  if(!P.k) return 'No cost estimate names '+appnName(P.ap)+'’s WBS paragraphs: the paragraph is taken as typed.';
+  if(!t) return 'Pick a paragraph of the '+wbsSrcLbl(P)+' — type its code or its name.'+sgs;
+  const c=wbsCodeIn(t);
+  if(P.has[c]) return c+(P.path[c]? ' — '+P.path[c] : '');
+  if(kept!==undefined && t===String(kept==null? '' : kept).trim())
+    return '⚠ '+t+' is not a paragraph of the '+wbsSrcLbl(P)+' — kept as stored; pick one to replace it.'+sgs;
+  return '⚠ Not a paragraph of the '+wbsSrcLbl(P)+' — pick one from the list.'+sgs;
+}
+// A REQUIREMENT'S WBS, read without creating anything (attLists, the Classify grid and the Spend Plan Source run as the board
+// draws or exports): its lines -- a prime's per CLIN -- and whether each CLIN carries money. A prime is broken down per CLIN,
+// so its WBS is the CLINs': WITHOUT one while any CLIN carrying money has none, or while no CLIN has one at all.
+function wbsClinMoneyRO(pid, c){
+  const A=(S.clinAlloc && typeof S.clinAlloc==='object')? S.clinAlloc[pid] : null;
+  let v=null;
+  if(Array.isArray(A)){ const i=parseInt(String(c.key).slice(1), 10); if(String(c.key).charAt(0)==='b' && Array.isArray(A[i]) && A[i].length===SVC.length) v=A[i]; }
+  else if(A && typeof A==='object' && Array.isArray(A[c.key]) && A[c.key].length===SVC.length) v=A[c.key];
+  if(!v){ const M=(S.clinMeta && typeof S.clinMeta==='object' && S.clinMeta[pid] && typeof S.clinMeta[pid]==='object')? S.clinMeta[pid][c.key] : null;
+    const i=parseInt(String(c.key).slice(1), 10), N=(S.clinNew && typeof S.clinNew==='object' && Array.isArray(S.clinNew[pid]))? S.clinNew[pid] : [];
+    v=(M && Array.isArray(M.ask))? M.ask : (String(c.key).charAt(0)==='b'? ((CLINS[pid]||[])[i]||{}).ask
+      : (N.filter(function(x){ return x && x.key===c.key; })[0]||{}).ask) || []; }
+  return (v||[]).some(function(x){ return (+x||0)>0.5; });
+}
+function wbsLinesHas(L){ return (Array.isArray(L)? L : []).some(function(e){ return e && String(e.w==null? '' : e.w).trim(); }); }
+function wbsStateOf(id){
+  if(clinApplies(id)){
+    const cw=(S.clinWbs && typeof S.clinWbs==='object' && S.clinWbs[id] && typeof S.clinWbs[id]==='object')? S.clinWbs[id] : {};
+    const cl=clinListRO(id).map(function(c){ const L=Array.isArray(cw[c.key])? cw[c.key] : [];
+      return {c:c, lines:L, has:wbsLinesHas(L), money:wbsClinMoneyRO(id, c)}; });
+    const has=cl.some(function(x){ return x.has; }) && cl.every(function(x){ return x.has || !x.money; });
+    return {prime:true, has:has, clins:cl, lines:[].concat.apply([], cl.map(function(x){ return x.lines; }))};
+  }
+  const L=Array.isArray((S.wbs||{})[id])? S.wbs[id] : [];
+  return {prime:false, has:wbsLinesHas(L), clins:[], lines:L};
+}
+// the stored paragraphs, as stored, that the list does not hold (each once; a prime's say which CLIN)
+function wbsUnlistedOf(id, P){
+  P=P||wbsPick(); if(!P.k) return [];
+  const st=wbsStateOf(id), out=[];
+  const add=function(w, where){ const t=String(w==null? '' : w).trim(); if(t && wbsUnlisted(t, P) && out.indexOf(t+where)<0) out.push(t+where); };
+  if(st.prime) st.clins.forEach(function(x){ x.lines.forEach(function(e){ if(e) add(e.w, ' (CLIN '+String(x.c.clin||'').slice(0, 20)+')'); }); });
+  else st.lines.forEach(function(e){ if(e) add(e.w, ''); });
+  return out;
 }
 // ---- THE REQUIREMENT RECORD ----------------------------------------------------------------
 // What a requirement IS, as opposed to what you do to it. Everything here used to hang off the
@@ -27531,6 +27790,15 @@ function matBulk(){
               get:function(it){ return ((S.rcnSvc||{})[it.id]||{})[sv]||''; },
               set:function(id,v){ setRcnSvc(id, sv, v); }};
   });
+  // v2.12 (item 132): THE WBS IN BULK, once the estimate names this appropriation's paragraphs -- its options are the pickers' own
+  // list (wbsPick), so a bulk set can only write a paragraph the record panel would take. Not on a prime (its WBS is per CLIN),
+  // and not on a requirement already split across paragraphs: one paragraph written over a split would erase the split.
+  { const WP=wbsPick();
+    if(WP.k) out['wbs']={opts:WP.codes.map(function(c){ return [c, wbsOptLbl(c, WP)]; }),
+              applies:function(it){ const L=wbsReq(it.id); return ptypeOf(it.id)!=='PRIME' && L.length<=1 && !((L[0]||{}).v||[]).length; },
+              // a stored paragraph read as the estimate writes it, so "p6.2" already says P6.2 and is left alone
+              get:function(it){ const w=String((wbsReq(it.id)[0]||{}).w||'').trim(), c=aceNormWbs(w); return WP.has[c]? c : w; },
+              set:function(id,v){ if(!S.wbs) S.wbs={}; if(v) S.wbs[id]=[{w:v, v:[]}]; else delete S.wbs[id]; }}; }
   if(DATA.costElems) out['costElem']={opts:COST_ELEMS.map(function(c){ return [c,c]; }),
               get:function(it){ return (S.costElem||{})[it.id]||''; },
               set:function(id,v){ if(!S.costElem) S.costElem={}; S.costElem[id]=v; }};
@@ -27561,7 +27829,9 @@ function matBulk(){
 function matBulkOk(){
   const bulk=matBulk(), missing=[];
   matCols().forEach(function(c){
-    if(c==='wbs' || c==='wbsSplit') return;      // free-form: no list to offer
+    // v2.12 (item 132): the WBS has a list to offer once the estimate names this appropriation's paragraphs (wbsPick) -- the
+    // split by service stays free-form, its dollars typed per line
+    if(c==='wbsSplit' || (c==='wbs' && !wbsPick().k)) return;      // free-form: no list to offer
     if(!bulk[c]) missing.push(matColLbl(c));
   });
   return missing;
@@ -27620,7 +27890,7 @@ function matBody(){
   if(!bg||!el) return;
   bg.className='modal-bg'+(matOpen?' open':'');
   if(!matOpen){ el.innerHTML=''; return; }
-  const cols=matCols(), rows=matRows();
+  const cols=matCols(), rows=matRows(), WPm=wbsPick();
   const all=(S.order||[]).map(function(id){ return itemById(id); }).filter(Boolean);
 
   // ---- coverage, per field, over the WHOLE board — the answer to "what is still missing"
@@ -27715,6 +27985,10 @@ function matBody(){
       if(c==='rcnAsg'){ const o=matClinOwn(it.id);
         if(o.k) own='<div class="mat-clinown" style="font-size:9px;color:var(--dim)">'+o.k+' of '+o.n+' CLIN'+(o.n===1?'':'s')
           +' carr'+(o.k===1?'ies its':'y their')+' own</div>'; }
+      // v2.12 (item 132): a paragraph's name under it, or the paragraphs the estimate does not hold (kept as stored)
+      if(c==='wbs' && !clinApplies(it.id)){ const L=wbsReq(it.id), x=wbsUnlistedOf(it.id, WPm), nm=L.length===1? wbsPathOf(L[0].w, WPm) : '';
+        if(x.length) own='<div class="wbsnm off">⚠ not in the estimate: '+esc(x.join(', '))+'</div>';
+        else if(nm) own='<div class="wbsnm">'+esc(nm)+'</div>'; }
       h+='<td class="mat-c'+(f.set?'':' un')+'">'+f.c+own+'</td>';
     });
     h+='</tr>';
@@ -27751,21 +28025,35 @@ function wbsBody(){
   const it=itemById(A);
   if(!it){ wbsOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
   const list=wbsListOf(K,A,B), parent=wbsParent(K,A,B), R=wbsResolve(list,parent);
-  let who;
+  let who, cc=ccarOf(it);
   if(K==='clin'){
     const c=clinList(A).filter(function(x){ return x.key===B; })[0];
     who='CLIN <b>'+esc((c&&c.clin)||'(unnumbered)')+'</b> on '+esc(dispTitle(it)||A);
+    if(c && String(c.ccar||'').trim()) cc=String(c.ccar).trim();
   } else who=esc(dispTitle(it)||A);
-
-  let h='<div style="font-size:10px;color:var(--dim);margin-bottom:8px">'+who+'</div>';
-  h+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">WBS</th>'
+  // v2.12 (item 132): the paragraphs are picked from the estimate's WBS tree, each line's name under it; a paragraph the list does
+  // not hold is kept and flagged; with no estimate naming this appropriation the panel says a paragraph is taken as typed
+  const P=wbsPick(), sg=wbsSuggest(cc, P);
+  let h='<div style="font-size:10px;color:var(--dim);margin-bottom:8px">'+who+'</div>'
+    +'<div class="hint wbssrc" style="margin-bottom:8px">'+(P.k? 'Each paragraph is picked from the <b>'+esc(wbsSrcLbl(P))+'</b>: type its code or its name.'
+        +(sg.length? ' Suggested for CCaR '+esc(cc)+', first in the list (never set): '+esc(sg.slice(0, 6).join(', '))+(sg.length>6? ' and '+(sg.length-6)+' more' : '')+'.' : '')
+      : 'No cost estimate names '+esc(appnName(P.ap))+'’s WBS paragraphs, so a paragraph is taken as typed. Once one does, each is picked from it.')+'</div>'
+    +(P.k? wbsListHtml('wbsDl', cc, P) : '');
+  // v2.12 (item 132): the paragraph's column has the room its code and its name need (fixed layout shared it out equally with
+  // the money, so a code was cut in its own field and its name ran a word to a line); the box is wider to hold it
+  h+='<div style="overflow-x:auto"><table class="fctab wbstab" style="min-width:'+(260+SVC.length*86+140)+'px"><colgroup><col style="width:260px">'
+    +SVC.map(function(){ return '<col>'; }).join('')+'<col style="width:100px"><col style="width:40px"></colgroup><tr><th style="text-align:left">WBS</th>'
     +SVC.map(function(sv){ return '<th>'+esc(sv)+'</th>'; }).join('')
     +'<th style="border-left:1px solid var(--gold)">Total</th><th></th></tr>';
   R.rows.forEach(function(r,i){
     const t=r.v.reduce(function(a,b2){ return a+b2; },0);
+    const nm=wbsPathOf(r.w, P), off=wbsUnlisted(r.w, P);
     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:10px;padding:3px 6px;width:96%"'
-      +' value="'+esc(r.w)+'" placeholder="1.2.3"'
-      +' onchange="wbsSetNum('+jsa(K)+','+jsa(A)+','+jsa(B)+','+i+',this.value,this)"></td>'
+      +' value="'+esc(r.w)+'" placeholder="'+(P.k? 'a paragraph code or name' : '1.2.3')+'"'+(P.k? ' list="wbsDl"' : '')+' autocomplete="off"'
+      +' aria-label="'+esc('WBS paragraph, line '+(i+1))+'"'
+      +' onchange="wbsSetNum('+jsa(K)+','+jsa(A)+','+jsa(B)+','+i+',this.value,this)">'
+      +((nm || off)? '<div class="wbsnm'+(off? ' off' : '')+'">'+(off? '⚠ not a paragraph of the '+esc(wbsSrcLbl(P))+' — kept as stored' : esc(nm))+'</div>' : '')
+      +'</td>'
       +SVC.map(function(sv,j){
           return '<td>'+(R.whole
             ? '<span style="color:var(--dim)">'+fM(r.v[j])+'</span>'
@@ -32464,6 +32752,7 @@ function arInp(id, o){
   o=o||{};
   return '<input id="'+id+'" data-held="1" autocomplete="off"'+(o.req? ' aria-required="true"' : '')
     +(o.ph? ' placeholder="'+esc(o.ph)+'"' : '')+(o.inp? ' inputmode="'+o.inp+'"' : '')+(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')
+    +(o.list? ' list="'+esc(o.list)+'"' : '')
     +' oninput="'+(o.on||'arUpdate()')+'">';
 }
 function arSel(id, opts, o){
@@ -32477,6 +32766,7 @@ function arDestOpts(first){
 }
 function arDraw(){
   const el=arEl('arBody'); if(!el) return;
+  arWbsCc=null;          // v2.12 (item 132): a new form, an empty WBS list -- filled on the first update
   const fy=arEl('arFy'); if(fy) fy.textContent='— '+FYL();
   const T=(typeof SANDBOX!=='undefined' && SANDBOX);
   const ce=!!(DATA && DATA.costElems);
@@ -32508,7 +32798,9 @@ function arDraw(){
     +'<section class="ar-sec" aria-labelledby="arS2"><h4 id="arS2">Classification</h4><div class="ar-grid">'
     +arField('arOb', 'obCat', arSel('arOb', '<option value="">— choose —</option>'+OB_CATS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join(''), {req:1}), {req:1, span:!ce})
     +(ce? arField('arCe', 'costElem', arSel('arCe', '<option value="">— optional —</option>'+COST_ELEMS.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join(''))) : '')
-    +arField('arWbs', 'wbs', arInp('arWbs', {req:1, ph:'e.g. 1.2.3'}), {req:1, span:1, note:''})
+    // v2.12 (item 132): picked from the estimate's paragraphs -- a text field with a list, so it is typed and found by code or name
+    +arField('arWbs', 'wbs', arInp('arWbs', {req:1, ph:wbsPick().k? 'a paragraph code or name' : 'e.g. 1.2.3', list:'arWbsList'})
+      +'<datalist id="arWbsList"></datalist>', {req:1, span:1, note:''})
     +'</div></section></div>';
   // the value, one box per service, and beside each the office's budgets for that service
   h+='<div class="ar-col"><section class="ar-sec" aria-labelledby="arS3"><h4 id="arS3">'+esc(FL('asks'))+'<span>what is asked for, never funding</span></h4>'
@@ -32656,6 +32948,7 @@ function arRead(){
 // needed and the button's count. Fields are shown and hidden here, never redrawn.
 function arUpdate(){
   if(!arEl('arNew')) return;
+  wbsPickedIn(arEl('arWbs'));      // v2.12 (item 132): a paragraph picked from the list shows as its code
   const R=arRead(), d=R.d, list=budReg();
   const tot=d.ask.reduce(function(a,b){ return a+b; }, 0);
   const te=arEl('arTot'); if(te) te.textContent=fM(tot);
@@ -32673,8 +32966,14 @@ function arUpdate(){
   // a prime contract's WBS is logged per CLIN, in its CLIN drill once added -- the RECORD panel's rule (recFields)
   const w=arEl('arWbs'), wn=arEl('arWbsNote'), keep=!!(arFin && arFin.wbsKeep);
   if(w) w.hidden=(d.ptype==='PRIME') || keep;
-  if(wn) wn.textContent= d.ptype==='PRIME'? 'logged per CLIN, in its CLIN drill once it is added'
-    : keep? 'carried from FY'+(arFin.y%100)+': '+arFin.wbsTxt+' — edit it in the record once added' : '';
+  // v2.12 (item 132): the estimate's paragraphs to pick from, those on the CCaR record typed first (redrawn only when the
+  // record changes), and under the field the name of the one typed -- or why it would be refused
+  const WP=wbsPick(), wcc=arVal('arCcar').trim(), wtx=arVal('arWbs');
+  if(arWbsCc!==WP.k+'|'+wcc){ const dl=arEl('arWbsList'); if(dl) dl.innerHTML=WP.k? wbsListOpts(wcc, WP) : ''; arWbsCc=WP.k+'|'+wcc; }
+  if(wn){ wn.textContent= d.ptype==='PRIME'? 'logged per CLIN, in its CLIN drill once it is added'
+    : keep? 'carried from FY'+(arFin.y%100)+': '+arFin.wbsTxt+' — edit it in the record once added'
+    : wbsFieldSay(wtx, WP, wcc, (arFin && arFin.wbsFrom)? arFin.wbsFrom : undefined);
+    wn.className='ar-n wbsn'+((d.ptype!=='PRIME' && !keep && WP.k && wtx.trim() && !WP.has[wbsCodeIn(wtx)])? ' off' : ''); }
   const cc=arVal('arCcar').trim(), rt=arEl('arRecT');
   if(rt){ const nm=(arFin && arFin.recName) || (cc? ccarNameOfNum(cc) : '') || (arFin? arFin.title : '');
     const rec=cc? ccarRec(cc) : null;
@@ -32703,8 +33002,9 @@ function arUpdate(){
   const unmark=function(e){ if(!e) return; e.classList.remove('miss'); e.removeAttribute('aria-invalid');
     const f=e.closest? e.closest('.ar-f') : null; if(f) f.classList.remove('miss'); };
   need.forEach(function(x){ if(!x.ok) return;
-    // a WBS Add would refuse for its length is answered on the rail but still wrong: its mark stays (second review)
-    if(x.k==='wbs' && d.ptype!=='PRIME' && !(arFin && arFin.wbsKeep) && codeTake(arVal('arWbs'), 'wbs').why) return;
+    // a WBS Add would refuse for its length is answered on the rail but still wrong: its mark stays (second review); v2.12 (item
+    // 132): and one that is not a paragraph of the estimate (arWbsTake)
+    if(x.k==='wbs' && d.ptype!=='PRIME' && !(arFin && arFin.wbsKeep) && arWbsTake().why) return;
     const f=arEl('arF_'+x.k); if(f) f.classList.remove('miss');
     (x.k==='ptype'? ['arPtP','arPtO'] : (x.k==='asks' || x.k==='budgetAsg')? [] : [AR_CTL[x.k]]).forEach(function(id){ unmark(arEl(id)); }); });
   SVC.forEach(function(s,i){ const sel=arEl('arB'+i); if(sel && (sel.hidden || sel.value)) unmark(sel);
@@ -32712,6 +33012,13 @@ function arUpdate(){
   [['arCcar','ccar'],['arPid','pid']].forEach(function(c){ const e=arEl(c[0]); if(e && !codeTake(e.value, c[1]).why) unmark(e); });
 }
 function arShort(l){ return String(l).replace(/\s*\([^)]*\)\s*$/,''); }
+// v2.12 (item 132): the Add box's WBS by the one rule (wbsTake) -- except the paragraph a requirement brought in from another
+// year stored, left as it is, which is kept as stored even where the estimate does not hold it (flagged under the field)
+var arWbsCc=null;      // the estimate and CCaR record the WBS list was last drawn for
+function arWbsTake(){
+  const raw=arVal('arWbs');
+  return (arFin && arFin.wbsFrom && raw.trim()===String(arFin.wbsFrom).trim())? codeTake(raw, 'wbs') : wbsTake(raw);
+}
 // the reference a requirement added now would get, worked out without spending the number (newReqSeq() keeps it)
 function newReqSeqPeek(T){
   T=T||S;
@@ -32770,7 +33077,10 @@ function arAdd(open){
   // v1.97 W1 (item 75): a box that cannot be read stops the add -- it is never taken for an empty one. v1.99 (item 91): a
   // code over its limit is refused, never cut. Either way the box keeps everything typed.
   const codes=[['arCcar','ccar'],['arPid','pid']].concat((d.ptype==='PRIME' || (arFin && arFin.wbsKeep))? [] : [['arWbs','wbs']]);
-  codes.forEach(function(c){ const t=codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });
+  // v2.12 (item 132): the WBS by its own rule (arWbsTake): a paragraph of the estimate, taken as its code -- the limit read on
+  // the code, so a pick shown as "code — path" is never refused for the path's length -- or refused with the box keeping the
+  // text; one carried from another year as it was stored is kept as stored
+  codes.forEach(function(c){ const t=c[1]==='wbs'? arWbsTake() : codeTake(arVal(c[0]), c[1]); if(t.why) R.bad.push({id:c[0], m:t.why}); else code[c[1]]=t.v; });
   if(R.bad.length){ arMark(R.bad.map(function(b){ return b.id; }));
     arSay('This requirement was not added. '+esc(R.bad.map(function(b){ return String(b.m).replace(/[.\s]*Nothing was changed\.?$/, ''); }).join('. '))
       +'. Nothing on the board was changed; the box keeps what you typed.');
@@ -32846,7 +33156,9 @@ function arFinNext(){
     const carried=AR_CARRIED.filter(function(k){ const v=pick(k); return v!==undefined && v!==null && v!=='' && !(typeof v==='object' && !Object.keys(v).length); })
       .map(function(k){ return FL(k); });
     if((T.awards||{})[q.id]) carried.push('the award dates, moved forward');
-    arFin={y:q.y, id:q.id, title:src.title||'', recName:pick('recNames')||'', wbsKeep:wl.length>0 && !one,
+    // v2.12 (item 132): wbsFrom, the one paragraph that year stored -- kept as stored if it is left as it is, as the edit box keeps
+    // a stored paragraph the estimate does not hold
+    arFin={y:q.y, id:q.id, title:src.title||'', recName:pick('recNames')||'', wbsFrom:one? String(wl[0].w||'') : '', wbsKeep:wl.length>0 && !one,
       wbsTxt:wl.map(function(x){ return x && x.w; }).filter(Boolean).join(', '), carried:carried, name:dispTitle(src, T)};
     arReset();
     const dst=pick('dest')||{}, A=pick('budgetAsg')||{};
@@ -33297,7 +33609,11 @@ function openEdit(id, at){
   if(was) try{ DLG.stack.forEach(function(r){ if(r.bg===bg) r.snap=dlgSnap(bg); }); }catch(e){}
   // the field asked for has the keyboard; a code or name asked for by its own button is selected, ready to be typed over --
   // the whole record (📋) is not, so a first keystroke never replaces the plan event
-  const f=erEl(ER_AT[erAt]||'erEvent'); if(f && !f.disabled) try{ f.focus(); if(erAt!=='rec' && f.select && f.tagName==='INPUT') f.select(); }catch(e){}
+  let f=erEl(ER_AT[erAt]||'erEvent');
+  // v2.12 (item 132): opened at the WBS of a requirement split across paragraphs (Needs attention's Go to), the field is hidden:
+  // the keyboard goes to the split's own editor, "Open the WBS split…"
+  if(f && f.hidden && erAt==='wbs'){ const sb=erEl('erWbsSplit'); if(sb && !sb.hidden) f=sb; }
+  if(f && !f.disabled) try{ f.focus(); if(erAt!=='rec' && f.select && f.tagName==='INPUT') f.select(); }catch(e){}
   return true;
 }
 // the box holds typing it would lose: a field differs from what it opened with
@@ -33319,7 +33635,7 @@ function erField(id, k, ctl, o){
 function erInp(id, v, o){
   o=o||{};
   return '<input id="'+id+'" data-held="1" autocomplete="off" value="'+esc(v||'')+'"'+(o.ph? ' placeholder="'+esc(o.ph)+'"' : '')
-    +(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')+' oninput="'+(o.on||'erUpdate()')+'">';
+    +(o.lbl? ' aria-label="'+esc(o.lbl)+'"' : '')+(o.list? ' list="'+esc(o.list)+'"' : '')+' oninput="'+(o.on||'erUpdate()')+'">';
 }
 function erSel(id, opts, o){
   o=o||{};
@@ -33336,8 +33652,10 @@ function erKeep(cur, held, show){
   return (cur && !held)? '<option value="'+esc(cur)+'" selected title="not on the list — kept as saved; Save leaves it as it is">'
     +esc(show||cur)+' (kept)</option>' : '';
 }
+var erWbsCc=null;      // v2.12 (item 132): the estimate and CCaR record the box's WBS list was last drawn for
 function erDraw(){
   const el=erEl('erBody'); if(!el) return;
+  erWbsCc=null;
   const id=erOpen, it=itemById(id); if(!it){ el.innerHTML=''; return; }
   const V=erSnap, ce=!!(DATA && DATA.costElems);
   const hd=erEl('erTtl'); if(hd) hd.textContent='✎ '+FL('rec')+' — '+FYL();
@@ -33349,6 +33667,16 @@ function erDraw(){
     +'<span class="er-nav"><button type="button" class="qb" onclick="erStep(-1)" title="'+esc(at>0? dispTitle(itemById(ord[at-1]))||'' : (ord.length? dispTitle(itemById(ord[ord.length-1]))||'' : ''))+'">↑ prev</button>'
     +'<button type="button" class="qb" onclick="erStep(1)" title="'+esc(ord.length? dispTitle(itemById(ord[(at+1)%ord.length]))||'' : '')+'">next ↓</button></span></div>'
     +(ns? '<div class="ar-fin er-notsent" role="note">'+esc(ns)+'</div>' : '')+'</div>';
+  // v2.12 (item 132): the Navy SI code is a classification, and sits in Classification in the first column; the WBS took its
+  // place in Accounting lines (below)
+  let siF='';
+  if(siEligible(it)){
+    const raw=siRawOf(id), cur=V.si;
+    siF=erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
+      +(raw===undefined && cur==='\u0004'? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
+      +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
+      +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1});
+  }
   // ---- three columns: Identity and Classification; accounting and where the money goes; the narrative and what is needed
   h+='<div class="ar-body" id="erMain"><div class="ar-col">'
     +'<section class="ar-sec" aria-labelledby="erS1"><h4 id="erS1">Identity</h4><div class="ar-grid">'
@@ -33371,15 +33699,23 @@ function erDraw(){
         +OB_CATS.map(function(c){ return erOpt(c, c, V.obCat); }).join('')), {req:1, span:1})
     +(ce? erField('erCe', 'costElem', erSel('erCe', erOpt('', '— not set —', V.costElem)+COST_ELEMS.concat(V.costElem && COST_ELEMS.indexOf(V.costElem)<0? [V.costElem] : [])
         .map(function(c){ return erOpt(c, c, V.costElem); }).join(''))) : '')
-    +'<div class="ar-f span2" id="erF_wbs"><label class="ar-l" for="erWbs">'+esc(FL('wbs'))+'<i aria-hidden="true">*</i></label>'
-    +erInp('erWbs', V.wbs.charAt(0)==='\u0001'? '' : V.wbs, {ph:'e.g. 1.2.3'})
-    +'<span class="ar-n" id="erWbsNote"></span>'
-    +'<span class="er-wbsgo" id="erWbsGo"><button type="button" class="qb" id="erWbsSplit" onclick="erGo(\'wbs\')">Open the WBS split…</button>'
-    +'<button type="button" class="qb" onclick="erGo(\'clin\')">Open the \u{1F9FE} CLIN drill…</button></span></div>'
+    +siF
     +'</div></section></div>';
-  // accounting lines (O&M), then where the money goes
+  // v2.12 (item 132): THE WBS, FIRST OF THE ACCOUNTING LINES in the middle column -- picked from the estimate's paragraphs (a
+  // text field with a list), the name of the one it holds under it. A paragraph's name is its path in the estimate, as long as
+  // the estimate makes it: under the field in the first column a long one ran that column past the box at 1366 x 657, and a
+  // section of its own in the middle column ran that one past it; the middle column is the widest, and the Navy SI code it
+  // held moved to Classification to make the room. The name sits on the label's line, after it, and wraps there: the line
+  // the label takes anyway carries the name's first line (layout-fits Q measures it).
+  const erWbsF='<div class="ar-f span2" id="erF_wbs"><div class="er-wbsl"><label class="ar-l" for="erWbs">'+esc(FL('wbs'))+'<i aria-hidden="true">*</i></label>'
+    +'<span class="ar-n wbsn" id="erWbsNote"></span></div>'
+    +erInp('erWbs', V.wbs.charAt(0)==='\u0001'? '' : V.wbs, {ph:wbsPick().k? 'a paragraph code or name' : 'e.g. 1.2.3', list:'erWbsList'})
+    +'<datalist id="erWbsList"></datalist>'
+    +'<span class="er-wbsgo" id="erWbsGo"><button type="button" class="qb" id="erWbsSplit" onclick="erGo(\'wbs\')">Open the WBS split…</button>'
+    +'<button type="button" class="qb" onclick="erGo(\'clin\')">Open the \u{1F9FE} CLIN drill…</button></span></div>';
+  // accounting lines (the WBS, then O&M's RCN / EEIC), then where the money goes
   h+='<div class="ar-col">';
-  const acct=[];
+  const acct=[erWbsF];
   if(rcnApplies() && rcnEligible(it)){
     acct.push(erField('erRcn', 'rcnAsg', erSel('erRcn', erOpt('', '— not assigned —', V.rcnAsg)
       +erKeep(V.rcnAsg, rcnReg().some(function(e){ return e.k===V.rcnAsg; }))+rcnReg().map(function(e){
@@ -33398,14 +33734,7 @@ function erDraw(){
         +'</table></div>');
     }
   }
-  if(siEligible(it)){
-    const raw=siRawOf(id), cur=V.si;
-    acct.push(erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
-      +(raw===undefined && cur==='\u0004'? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
-      +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
-      +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1}));
-  }
-  if(acct.length) h+='<section class="ar-sec" aria-labelledby="erS3"><h4 id="erS3">Accounting lines</h4><div class="ar-grid">'+acct.join('')+'</div></section>';
+  h+='<section class="ar-sec" aria-labelledby="erS3"><h4 id="erS3">Accounting lines</h4><div class="ar-grid">'+acct.join('')+'</div></section>';
   h+='<section class="ar-sec" aria-labelledby="erS4"><h4 id="erS4">Where the money goes</h4><div class="ar-grid">'
     +erField('erTo', 'dest', erSel('erTo', erOpt('', '— not logged —', V.to)+erKeep(V.to, !!flowEnt(V.to))+flowEntsAZ().map(function(e){
         return erOpt(e.k, e.n+(e.kind==='gov'? ' (gov)' : ''), V.to); }).join('')), {req:1, span:1})
@@ -33457,6 +33786,9 @@ function erRead(){
     rcnAsg:erEl('erRcn')? erVal('erRcn') : V.rcnAsg, rcnSvc:V.rcnSvc, si:V.si,
     to:erVal('erTo'), end:'', mipr:'', desc:erVal('erDesc'), notes:erVal('erNote'), cons:erVal('erCons')};
   if(destKeyIsOgc(D.to)){ D.end=erVal('erEnd'); D.mipr=erVal('erMipr'); }
+  // v2.12 (item 132): a paragraph picked as "code — path" is its code, as the estimate writes it; the one the record holds,
+  // left as it is, stays exactly as stored (a paragraph typed before the estimate was is never rewritten)
+  if(String(D.wbs||'').trim()!==String(V.wbs||'').trim()){ const P=wbsPick(), c=wbsCodeIn(D.wbs); if(P.k && P.has[c]) D.wbs=c; }
   // per-service RCN / EEIC: the rows drawn, the rest as stored
   if(erEl('erRcnSvcRows')){ const rs=Object.assign({}, ((S.rcnSvc||{})[erOpen])||{});
     [].forEach.call(document.querySelectorAll('#erRcnSvcRows select'), function(s){ const sv=s.id.slice(5); if(s.value) rs[sv]=s.value; else delete rs[sv]; });
@@ -33486,6 +33818,7 @@ function erDraft(D){
 }
 function erUpdate(){
   if(!erOn() || !erEl('erMain')) return;
+  wbsPickedIn(erEl('erWbs'));      // v2.12 (item 132): a paragraph picked from the list shows as its code
   const D=erRead(), og=destKeyIsOgc(D.to);
   const fe=erEl('erF_destEnd'), fm=erEl('erF_mipr'); if(fe) fe.hidden=!og; if(fm) fm.hidden=!og;
   const pp=erEl('erPtP'), po=erEl('erPtO');
@@ -33494,8 +33827,17 @@ function erUpdate(){
   const V=erSnap||{}, split=(V.wbs||'').charAt(0)==='\u0001', prime=D.ptype==='PRIME';
   const w=erEl('erWbs'), wn=erEl('erWbsNote'), wg=erEl('erWbsGo');
   if(w) w.hidden=prime || split;
-  if(wn) wn.textContent= prime? 'a prime contract’s WBS is logged per CLIN, in its CLIN drill'
-    : split? wbsLabel('req', erOpen, '')+' — split over '+wbsReq(erOpen).length+' lines' : '';
+  // v2.12 (item 132): the estimate's paragraphs to pick from, those on the CCaR record the box holds first (redrawn only when
+  // the record changes); under the field the name of the one it holds, or that it is not in the estimate -- kept as stored, or
+  // refused on Save -- and, on a split, the lines the estimate does not hold
+  const WP=wbsPick(), wcc=String(D.ccar||'').trim() || ccarOf(itemById(erOpen)||{id:erOpen}), wtx=erVal('erWbs');
+  if(erWbsCc!==WP.k+'|'+wcc){ const dl=erEl('erWbsList'); if(dl) dl.innerHTML=WP.k? wbsListOpts(wcc, WP) : ''; erWbsCc=WP.k+'|'+wcc; }
+  const wx=split? wbsUnlistedOf(erOpen, WP) : [];
+  if(wn){ wn.textContent= prime? 'a prime contract’s WBS is logged per CLIN, in its CLIN drill'
+    : split? wbsLabel('req', erOpen, '')+' — split over '+wbsReq(erOpen).length+' lines'
+      +(wx.length? ' · ⚠ not paragraphs of the '+wbsSrcLbl(WP)+', kept as stored: '+wx.join(', ') : '')
+    : wbsFieldSay(wtx, WP, wcc, V.wbs);
+    wn.className='ar-n wbsn'+((!prime && (wx.length || (!split && WP.k && wtx.trim() && !WP.has[wbsCodeIn(wtx)])))? ' off' : ''); }
   // one line can be split from here too (Requirement edit's "one line — split it…"), in the WBS panel
   const lines=wbsReq(erOpen).length;
   if(wg){ wg.hidden=!(prime || lines);
@@ -33574,6 +33916,8 @@ function erSave(){
   if(ch.titles!==undefined && !String(D.titles).trim()) bad.push(['erEvent', 'The plan event cannot be empty']);
   [['ccar','erCcar'],['pid','erPid'],['wbs','erWbs']].forEach(function(c){
     if(ch[c[0]]===undefined) return; const r=codeTake(D[c[0]], c[0]); if(r.why) bad.push([c[1], r.why]); });
+  // v2.12 (item 132): a WBS changed here is a paragraph of the estimate, or it is refused with the box keeping the text
+  if(ch.wbs!==undefined && !bad.some(function(b){ return b[0]==='erWbs'; })){ const r=wbsTake(D.wbs); if(r.why) bad.push(['erWbs', r.why]); }
   // the record the file carries is read whenever none is typed, so clearing the box cannot clear it (it never could). One
   // typed over it can be: clearing it puts the file's back (v2.08 second review: refused, the override could not be removed)
   if(ch.ccar!==undefined && !String(D.ccar).trim() && it.ccar && !((S.ccar||{})[id]))

@@ -27,6 +27,9 @@
 //      its sheet tabs, Enter presses a tab, an International figure typed and left with Tab is taken and the keyboard goes on to
 //      the next year, one left by clicking the next box (or a sheet tab) with the mouse leaves the keyboard where the click put
 //      it (v2.10 review, A-2), and Esc closes it with the keyboard back on FYDP ▸.
+//   T. A WBS paragraph picked from the keyboard (v2.12, item 132): Needs attention's ▦ entry, its Go to it and the edit box's
+//      WBS field by the keys, the estimate's list (the CCaR record's paragraph first), the name under a code typed, a code the
+//      estimate does not hold refused on Save with the text kept, one it holds saved; the Add box's field and Classify's quick box.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -875,6 +878,112 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`R · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── T. A WBS PARAGRAPH PICKED FROM THE KEYBOARD (v2.12, item 132) ───────────────────────────────────────────────────
+// A paragraph is picked from the cost estimate's WBS tree: a text field with a list of "code — path". On this board with an
+// estimate holding four paragraphs, and the requirement's CCaR record on one of its lines: Needs attention's ▦ entry, its
+// list's Go to it and the edit box's WBS field are reached with the keys, the field reads the list with the CCaR record's
+// paragraph first, a code typed shows its name under the field, a code the estimate does not hold is refused on Save with
+// the text kept and the keyboard back on the field, and one it holds is saved by Enter on Save. The Add box's field and the
+// quick box Classify's WBS cell opens read the same list and name the paragraph typed. Chromium draws a datalist's
+// suggestions outside the page and automated Chromium does not open them from the keys (measured: ArrowDown and Enter
+// leave the field as typed), so a pick is stood in for by what a pick does: the option's whole text put in the field as
+// one input -- the field then holds the code alone.
+{
+  try {
+    // the funding posture strip, and with it Needs attention, shows in Funding and Brief only (L): the edit box is reached from
+    // there; the Add box and Classify are Review's
+    const SEED = () => {
+      const free = S.order.filter(x => !clinApplies(x) && itemById(x));
+      const id = free[0], id2 = free[1];
+      S.ccar = S.ccar || {}; S.ccar[id] = 'JSF7001'; S.wbs = S.wbs || {}; delete S.wbs[id]; delete S.wbs[id2];
+      ACEDB.sets['T26'] = { label: 'T26', ts: 1700000000099, years: [MS.cur], appn: {}, skip: {},
+        lines: [{ ap: mySlug(), pmo: grpOf(itemById(id)), svc: SVC[0], wbs: '1.2.2', ccar: 'JSF7001', v: {} }],
+        wbs: { [mySlug()]: { '1': { n: 'Sustainment', lv: 1, up: '' }, '1.2': { n: 'Depot Maintenance', lv: 2, up: '1' },
+          '1.2.1': { n: 'Engine Repair', lv: 3, up: '1.2' }, '1.2.2': { n: 'Support Equipment', lv: 3, up: '1.2' } } } };
+      save(); render(); return [id, id2];
+    };
+    let { p, ctx, errs } = await open('fund');
+    p.on('dialog', d => d.accept());
+    const [id, id2] = await p.evaluate(SEED);
+    const PATH = { '1.2': 'Sustainment › Depot Maintenance', '1.2.1': 'Sustainment › Depot Maintenance › Engine Repair',
+      '1.2.2': 'Sustainment › Depot Maintenance › Support Equipment' };
+    const fld = (fid) => p.evaluate(fid => { const f = document.getElementById(fid), n = document.getElementById(fid + 'Note') || document.getElementById('uipNote');
+      const dl = f && document.getElementById(f.getAttribute('list') || '-');
+      return { value: f ? f.value : null, note: n ? n.textContent : null, kb: document.activeElement === f,
+        first: dl && dl.options[0] ? [dl.options[0].value.split(' — ')[0], dl.options[0].getAttribute('label') || ''] : null, n: dl ? dl.options.length : 0 }; }, fid);
+    const pickIn = async (fid, code) => { await p.focus('#' + fid); await p.keyboard.press('Control+a'); await p.keyboard.press('Delete');
+      await p.keyboard.insertText(code + ' — ' + PATH[code]); await p.waitForTimeout(120); };
+    // Needs attention's ▦ entry, by Enter: its list opens; Tab reaches this requirement's Go to it; Enter opens the edit box
+    // at the WBS with the keyboard on it
+    const entry = await tabTo(p, '#helpBtn', 'button.e[onclick=\'attShow("wbs")\']', 60);
+    if (entry >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    let steps = -1;
+    for (let i = 0; i < 300 && entry >= 0; i++) {
+      if (await p.evaluate(id => { const a = document.activeElement; return !!(a && /attGo\("wbs",/.test(a.getAttribute('onclick') || '') && (a.getAttribute('onclick') || '').indexOf(JSON.stringify(id)) > 0); }, id)) { steps = i; break; }
+      await p.keyboard.press('Tab');
+    }
+    if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(300); }
+    let r = await fld('erWbs');
+    const box = await p.evaluate(() => document.getElementById('editPanel').classList.contains('open'));
+    chk('T · Needs attention’s ▦ without a WBS, its list and Go to it, by Enter: the edit box opens at the WBS with the keyboard on it',
+      entry >= 0 && steps >= 0 && box && r.kb, JSON.stringify({ entry, steps, box, kb: r.kb }));
+    chk('T · the field reads the estimate’s paragraphs, the CCaR record’s first and marked suggested',
+      r.n === 4 && r.first && r.first[0] === '1.2.2' && /suggested/.test(r.first[1]), JSON.stringify({ n: r.n, first: r.first }));
+    // a code typed: its name under the field
+    await p.keyboard.type('1.2.1'); await p.waitForTimeout(120);
+    r = await fld('erWbs');
+    chk('T · a code typed shows its name under the field', r.value === '1.2.1' && r.note === '1.2.1 — ' + PATH['1.2.1'], JSON.stringify(r));
+    // a pick (the option's whole text, as one input): the field holds the code alone, its name under it
+    await pickIn('erWbs', '1.2.2'); r = await fld('erWbs');
+    chk('T · a pick leaves the code alone in the field and its name under it', r.value === '1.2.2' && r.note === '1.2.2 — ' + PATH['1.2.2'], JSON.stringify(r));
+    // a code the estimate does not hold: Enter on Save refuses it, keeps the text, and the keyboard goes back to the field
+    await p.focus('#erWbs'); await p.keyboard.press('Control+a'); await p.keyboard.type('9.9');
+    let s = await tabTo(p, '#erWbs', '#erSaveBtn', 80);
+    if (s >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    r = await fld('erWbs');
+    const kept = await p.evaluate(id => ({ open: document.getElementById('editPanel').classList.contains('open'), stored: JSON.stringify((S.wbs || {})[id] || null),
+      say: (document.getElementById('erMsg') || { textContent: '' }).textContent }), id);
+    chk('T · a code the estimate does not hold is refused on Save: nothing stored, the text kept, the keyboard back on the field',
+      s >= 0 && kept.open && kept.stored === 'null' && r.value === '9.9' && r.kb && /Nothing was saved.*9\.9.*not a paragraph of the T26 estimate/.test(kept.say), JSON.stringify({ s, ...kept, value: r.value, kb: r.kb }));
+    // one it holds: Enter on Save stores it
+    await p.keyboard.press('Control+a'); await p.keyboard.type('1.2.1');
+    s = await tabTo(p, '#erWbs', '#erSaveBtn', 80);
+    if (s >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    const saved = await p.evaluate(id => ({ open: document.getElementById('editPanel').classList.contains('open'), w: ((S.wbs || {})[id] || []).map(x => x.w) }), id);
+    chk('T · a paragraph the estimate holds is saved by Enter on Save', s >= 0 && !saved.open && JSON.stringify(saved.w) === '["1.2.1"]', JSON.stringify({ s, ...saved }));
+    const errs1 = errs.slice(); await ctx.close();
+    // the Add box: Enter on Add requirement, Tab to its WBS field -- the same list, and the paragraph typed named under it
+    ({ p, ctx, errs } = await open('review'));
+    p.on('dialog', d => d.accept());
+    await p.evaluate(SEED);
+    await p.evaluate(id => setPmoFilter(grpOf(itemById(id))), id);
+    await p.focus('#uiAddBtn'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    s = await tabTo(p, '#arEvent', '#arWbs', 60);
+    await p.keyboard.type('1.2'); await p.waitForTimeout(120);
+    const a1 = await fld('arWbs');
+    await pickIn('arWbs', '1.2.1'); const a2 = await fld('arWbs');
+    chk('T · the Add box’s WBS field is reached with Tab, reads the same list, and names the paragraph typed or picked',
+      s >= 0 && a1.n === 4 && a1.note === '1.2 — ' + PATH['1.2'] && a2.value === '1.2.1' && a2.note === '1.2.1 — ' + PATH['1.2.1'], JSON.stringify({ s, a1, a2 }));
+    await p.evaluate(() => { if (arOn()) arHide(); });
+    // Classify's WBS cell, by Enter: the quick box opens with the keyboard on its field, reads the list, names what is typed,
+    // and Enter takes it
+    await p.evaluate(() => { setPmoFilter('ALL'); matOpen = true; render(); });
+    const cell = await p.evaluate(id2 => { const b = [...document.querySelectorAll('#matPanel button')].find(x => (x.getAttribute('onclick') || '') === 'wbsQuick(' + JSON.stringify(id2) + ')');
+      if (b) b.id = b.id || 'tWbsCell'; return b ? b.id : ''; }, id2);
+    if (cell) { await p.focus('#' + cell); await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    const q0 = await fld('uipVal');
+    await p.keyboard.type('1.2.2'); await p.waitForTimeout(120);
+    const q1 = await fld('uipVal');
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const qs = await p.evaluate(id2 => ((S.wbs || {})[id2] || []).map(x => x.w), id2);
+    chk('T · Classify’s WBS cell opens the quick box by Enter: the keyboard on its field, the same list, the paragraph typed named, and Enter takes it',
+      !!cell && q0.kb && q0.n === 4 && q1.note === '1.2.2 — ' + PATH['1.2.2'] && JSON.stringify(qs) === '["1.2.2"]', JSON.stringify({ cell, kb: q0.kb, n: q0.n, note: q1.note, stored: qs }));
+    errs.unshift(...errs1);
+    chk('T · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`T · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box and FYDP Disconnects, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects and a WBS paragraph picked, and each one works\n');
 process.exit(bad ? 1 : 0);

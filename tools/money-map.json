@@ -601,6 +601,20 @@
    "anchor": "const name = 'v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)'",
    "basis": "arithmetic",
    "asserts": "FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook."
+  },
+  "ot.v212w2src": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)",
+   "anchor": "const name = 'v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)'",
+   "basis": "arithmetic",
+   "asserts": "Spend Plan Source column 23 (item 132): each line's WBS paragraph as CODE - name; a requirement split across paragraphs goes out a line per paragraph per service and lane, its dollars apportioned (largest remainder, worked in the suite) over the per-service WBS figures, the remainder on a blank-WBS line; the lines add to the line they replace, every other column unmoved; blank lines named by the export."
+  },
+  "ot.v212w2stovl": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)",
+   "anchor": "const name = 'v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)'",
+   "basis": "arithmetic",
+   "asserts": "FYDP Spend Plan (item 132): Full Fund's USMC-B is on the one STOVL tab whichever board is open (O&M, Full Fund, a Spares board carrying both), per appropriation and year written out from the fixture's literals; the service tabs add up to each appropriation tab; the Summary's By service; the panel's views."
   }
  },
  "surfaces": {
@@ -953,7 +967,8 @@
      "status": "proven",
      "checks": [
       "ot.bud",
-      "ot.src"
+      "ot.src",
+      "ot.v212w2src"
      ],
      "see": [
       "tr.matrix"
@@ -963,7 +978,8 @@
      "status": "proven",
      "checks": [
       "ot.src",
-      "ot.bud"
+      "ot.bud",
+      "ot.v212w2src"
      ]
     },
     "month": {
@@ -1488,8 +1504,10 @@
     "service": {
      "status": "proven",
      "checks": [
-      "re.fydp"
-     ]
+      "re.fydp",
+      "ot.v212w2stovl"
+     ],
+     "note": "Full Fund’s USMC-B is the STOVL tab’s (v2.12, item 132)"
     },
     "requirement": {
      "status": "proven",
