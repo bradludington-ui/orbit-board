@@ -127,6 +127,13 @@ export function buildHostile(html) {
       ACEDB.cols={}; ACEDB.cols[P('acesig')]={map:{wbs:P('acecolmem')}, ts:1, by:P('acecolby')}; persistAce(); })();
     // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
     // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
+    // v2.12 W2 (item 132): the estimate's WBS tree, in the builders' contract's shape -- the names a picker shows beside a
+    // paragraph, and the CCaR record its suggestions are offered for. NEW-9 is on 1.2, so its path is drawn beside it in the WBS
+    // panel and the edit box, and its CCaR's suggestion is named; every other requirement's planted paragraph is not in the tree,
+    // so it is flagged as stored, there and in Needs attention's list.
+    ACEDB.sets[P('aceset')].wbs={}; ACEDB.sets[P('aceset')].wbs[mySlug()]={'1':{n:P('wbstop'), lv:1, up:''}, '1.2':{n:P('wbsname'), lv:2, up:'1'}};
+    ACEDB.sets[P('aceset')].lines=[{ap:mySlug(), pmo:'AV', svc:SVC[0], wbs:'1.2', ccar:P('wbsccar'), v:{}}]; persistAce();
+    S.wbs['NEW-9']=[{w:'1.2', v:[]}]; S.ccar['NEW-9']=P('wbsccar');
     RPDB={ts:Date.now(), entries:[{id:P('rpid'), ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:P('rpappn'), pec:P('rppec'), bpac:P('rpbpac'),
       title:P('rptitle'), amtM:2, dir:'deduct', pool:'disc', status:'Pending', hac:'', sac:''}]}; persistRp();
     try{ flowAddEnt(); flowSetEnt(flowEnts().length-1,'n',P('destname')); flowSetEnt(flowEnts().length-1,'t',P('destterms')); }catch(e){}
@@ -206,6 +213,9 @@ const SPECIAL = {
   aceRepPanel: `aceRepShow('2026ACE');`,
   aceColPanel: `aceColAsk(${JSON.stringify({ file: P('acecolfile'), key: '2026ACE', sheets: {}, H: { sheet: P('acecolsheet'), row: 2, rowNo: null,
     hdr: ['Level', P('acecolhdr')], sig: 'x', need: ['wbs', 'roll'], col: {}, how: {}, years: {} } })});`,
+  // v2.12 W2 (item 132): Needs attention's list of WBS paragraphs the estimate does not hold -- every planted paragraph, as stored
+  // (its backdrop's own function only closes it, so the list was never drawn in the sweep)
+  attPanel: `attShow('wbsx');`,
 };
 const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
 // v2.07 (item 121): the Add box is open while arOpen says so -- render() puts its class back -- so it is closed by its own code
@@ -228,7 +238,9 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile',
   // v2.12 (item 132): the cost estimate import's report and mapping box, and the tie-out's lines nothing claims
   'acefile', 'aceby', 'acesheet', 'acecoltitle', 'acebyval', 'acenamedwbs', 'acenamedwhat', 'aceconfcode', 'aceconfname', 'aceconfalso',
-  'acece', 'acecolfile', 'acecolsheet', 'acecolhdr'];
+  'acece', 'acecolfile', 'acecolsheet', 'acecolhdr',
+  // v2.12 W2 (item 132): the estimate's WBS names, drawn beside the paragraph they name, and the CCaR its suggestion is for
+  'wbstop', 'wbsname', 'wbsccar'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).

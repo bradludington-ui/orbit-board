@@ -622,6 +622,20 @@
    "anchor": "const name = 'v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134)'",
    "basis": "arithmetic",
    "asserts": "A lock keeps the position it read (item 134): an untagged plan tagged before the projection, so the lock’s FY27 and FY28 budget authority are the position’s, by service and lane, and its FY27 UPL; the lock’s copy of the position and its projection unchanged when the position moves after it; its view reading the copy every year; a lock taken before v2.12 reading its years’ own bases in its view."
+  },
+  "ot.v212w2src": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)",
+   "anchor": "const name = 'v2.12 W2 — the Spend Plan Source carries each line’s WBS paragraph, split as the office typed it (item 132)'",
+   "basis": "arithmetic",
+   "asserts": "Spend Plan Source column 23 (item 132): each line's WBS paragraph as CODE - name; a requirement split across paragraphs goes out a line per paragraph per service and lane, its dollars apportioned (largest remainder, worked in the suite) over the per-service WBS figures, the remainder on a blank-WBS line; the lines add to the line they replace, every other column unmoved; blank lines named by the export."
+  },
+  "ot.v212w2stovl": {
+   "file": "tools/export-audit/audit-other.mjs",
+   "scenario": "v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)",
+   "anchor": "const name = 'v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)'",
+   "basis": "arithmetic",
+   "asserts": "FYDP Spend Plan (item 132): Full Fund's USMC-B is on the one STOVL tab whichever board is open (O&M, Full Fund, a Spares board carrying both), per appropriation and year written out from the fixture's literals; the service tabs add up to each appropriation tab; the Summary's By service; the panel's views."
   }
  },
  "surfaces": {
@@ -974,7 +988,8 @@
      "status": "proven",
      "checks": [
       "ot.bud",
-      "ot.src"
+      "ot.src",
+      "ot.v212w2src"
      ],
      "see": [
       "tr.matrix"
@@ -984,7 +999,8 @@
      "status": "proven",
      "checks": [
       "ot.src",
-      "ot.bud"
+      "ot.bud",
+      "ot.v212w2src"
      ]
     },
     "month": {
@@ -1509,8 +1525,10 @@
     "service": {
      "status": "proven",
      "checks": [
-      "re.fydp"
-     ]
+      "re.fydp",
+      "ot.v212w2stovl"
+     ],
+     "note": "Full Fund’s USMC-B is the STOVL tab’s (v2.12, item 132)"
     },
     "requirement": {
      "status": "proven",
