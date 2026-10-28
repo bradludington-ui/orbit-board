@@ -949,6 +949,42 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`S · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── U. FIT TO THE PPBE POSITION, FROM THE KEYBOARD (v2.12, item 134) ──────────────────────────────────────────────
+// The plan tagged with a position that gives its first service $1 of discretionary this year, and the first requirement
+// directing its whole value there on a Split: an over. In Fund, Needs attention's 🏛 entry is reached with Tab and Enter opens the
+// box with the keyboard inside; Esc closes it back on the entry. FYDP ▸, then Fit to the PPBE position… by Enter, opens it too;
+// Tab reaches the over's Go to it, and Enter on it closes the box and selects that requirement.
+{
+  try {
+    const { p, ctx, errs } = await open('fund');
+    const id = await p.evaluate(() => { const id = S.order[0], it = itemById(id);
+      MS.ppbe = MS.ppbe || {}; MS.ppbe['POM|2099'] = { v: 2, split: true, lines: {}, val: { [SVC[0]]: { _all: { [MS.cur]: { d: 1, m: 0 } } } } };
+      MS.cycle = 'POM|2099'; S.fsrc[id] = { m: 'split', dv: it.ask.slice(), mv: SVC.map(() => 0) };
+      baLiveAll(); save(); render(); return id; });
+    const steps = await tabTo(p, '#uiCycBtn', '#posture .fitatt', 120);
+    await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+    const a = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')),
+      entry: (document.querySelector('#posture .fitatt') || {}).textContent || '' }));
+    chk('U · Needs attention’s 🏛 entry is reached with Tab, and Enter opens the fit box with the keyboard inside', steps >= 0 && a.open && a.inBox && /🏛 \d+ over POM99/.test(a.entry), JSON.stringify({ steps, ...a }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const e1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), cls: (document.activeElement || {}).className || '' }));
+    chk('U · Esc closes it, the keyboard back on the entry', !e1.open && /fitatt/.test(e1.cls), JSON.stringify(e1));
+    await p.focus('#uiNav_fydp'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    let found = -1;
+    for (let i = 0; i < 10; i++) { if (await p.evaluate(() => /toggleFit/.test((document.activeElement || {}).getAttribute ? document.activeElement.getAttribute('onclick') || '' : ''))) { found = i; break; } await p.keyboard.press('Tab'); }
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const o = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')) }));
+    chk('U · FYDP ▸, then Fit to the PPBE position… by Enter: the box opens with the keyboard inside', found >= 0 && o.open && o.inBox, JSON.stringify({ found, ...o }));
+    let go = -1;
+    for (let i = 0; i < 60; i++) { if (await p.evaluate(() => (document.activeElement || {}).classList && document.activeElement.classList.contains('fitgo'))) { go = i; break; } await p.keyboard.press('Tab'); }
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const g = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), cur: curRow }));
+    chk('U · Tab reaches the over’s Go to it, and Enter closes the box and selects the requirement', go >= 0 && !g.open && g.cur === id, JSON.stringify({ go, ...g, want: id }));
+    chk('U · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`U · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
 console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects and the cost estimate import’s mapping box and report, and each one works\n');
 process.exit(bad ? 1 : 0);

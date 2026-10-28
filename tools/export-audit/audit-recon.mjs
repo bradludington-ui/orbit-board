@@ -6009,10 +6009,13 @@ await (async () => {
     const pos = async () => { const fb = JSON.parse(await w6Book(X.w, 'exportFydpPlan'));
       return [fb.__err || 'ok', JSON.parse(ev(`JSON.stringify(['USAF','ANG','AFRC'].map(function(sv){ return [sv, ppSvcFy(MS.ppbe['PB|'+MS.cur]||{}, sv, MS.cur).t]; }))`))]; };
     const stored = () => ev(`(JSON.parse(localStorage.getItem(_AP.key)||'{}')||{}).spAce||''`);
-    // BY HAND. 2027ACE: A's $1,100 funded against $900 on 1.1 (delta 200); AV $900 against $1,730 funded (A 1,100 + R 630; delta 830).
-    // 2026ACE: $333 against the same (767; 1,397). USAF's FY27 position $1,000; no other service logs one.
-    const T900 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)', [['Req A', 1100, 900, 200], ['Req R', 630, '', '']], [['FY27', 'AV', 900, 1730, 830]]];
-    const T333 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2026ACE, FY27)', [['Req A', 1100, 333, 767], ['Req R', 630, '', '']], [['FY27', 'AV', 333, 1730, 1397]]];
+    // BY HAND. 2027ACE: A's $1,100 funded against $900 on 1.1 (delta 200); AV $900 against $1,327 funded (A 1,100 + R 227; delta 427).
+    // 2026ACE: $333 against the same (767; 994). USAF's FY27 position $1,000; no other service logs one.
+    // v2.12 W3: the plan is tagged PB27 and its PB27 position logs USAF FY27 at $1,000, so USAF's budget authority is that figure,
+    // read live (item 134), not the $5,000 seeded: A takes $900 of it and R the $100 left (R funded $100 + ANG $127 = $227, it was
+    // $630). The view and the working plan agree on it, which is what this block holds; nothing here is about the budget.
+    const T900 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)', [['Req A', 1100, 900, 200], ['Req R', 227, '', '']], [['FY27', 'AV', 900, 1327, 427]]];
+    const T333 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2026ACE, FY27)', [['Req A', 1100, 333, 767], ['Req R', 227, '', '']], [['FY27', 'AV', 333, 1327, 994]]];
     const POS = ['ok', [['USAF', 1000], ['ANG', 0], ['AFRC', 0]]];
     const SCREEN = [['2027ACE'], ['By PMO']];
     const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`cycLeave(); 'ok'`);

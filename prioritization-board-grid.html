@@ -888,6 +888,11 @@ select.cesel{border-color:var(--edge)}
 .fctab.ndtab{table-layout:auto}
 .fctab.ndtab td:first-child{text-align:left;width:1%;white-space:nowrap;overflow-wrap:normal}
 .fctab.ndtab td:nth-child(2){white-space:normal;min-width:190px}
+/* v2.12 (item 134): the fit to the PPBE position -- sized to its figures (a fixed layout cut nine-figure dollars at 1024), the
+   requirement's title wrapping; each table scrolls inside its own frame where the box is narrower than it */
+.fctab.fittab,.fctab.fitrows{table-layout:auto}
+.fctab.fitrows td:nth-child(2){white-space:normal;min-width:160px}
+.fitwrap{overflow-x:auto}
 input[type=date]{background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10.5px;padding:3px 5px;font-family:inherit;color-scheme:dark}
 input[type=date]:focus{outline:none;border-color:var(--gold)}
 .mlbl{font-size:9px;color:var(--dim);padding:8px 12px 3px;letter-spacing:.5px;font-weight:800}
@@ -1222,6 +1227,10 @@ html[data-mode="brief"] .posture{min-height:74px}
 .cutline{font-size:10.5px;letter-spacing:.03em;padding:4px 12px;margin:0;font-weight:700;background:var(--panel2);
   border-top:2px solid currentColor}
 .cutline.cut-mc{border-top-style:dashed}
+/* v2.12 (item 134): the UPL, the line after the last requirement -- not a row: no grid, no handle, no selection */
+.uplline{font-size:10.5px;padding:6px 12px;margin:0;background:var(--panel2);border-top:2px dashed var(--edge);color:var(--ink)}
+.uplline .k{font-weight:800;color:var(--gold);margin-right:6px}
+.uplline .u b{font-weight:800}
 
 /* ---- the RECORD panel: the same content, a legible scale, editable fields that look editable ------- */
 .inspector{border-radius:6px}
@@ -2298,7 +2307,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
 <p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s; a service no sheet takes is counted on the Summary only, and every sheet of the workbook says so under its table); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
-<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept.</p>
+<p class="cyc-keeps">What a <b>locked PPBE cycle</b> keeps: every year’s plan in its window, its projection, from v1.99 its RCN / EEIC list, and from v2.02 every other list it is read through — the <b>destination list</b>, the <b>decision bands</b>, the <b>BAE budget list</b>, the <b>PMO list</b>, the <b>requirement data</b> its plan never changed and the <b>funds-flow settings</b>, with the partner and FMS money and the year selection. Its view and every report taken from it read them as they were locked: rename a destination, re-colour a band, retire a BAE name or delete an office afterwards, and the cycle still shows them as they were. A cycle locked before v2.02 kept none of these and reads them as they are now; its line under PPBE cycles and its view say so. For every cycle, execution data, the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now, and the services it holds keep their names and places on the board while it is kept. From v2.12 a lock also keeps a copy of the PPBE position its budget authority was read from, and its view reads that copy.</p>
+</section>
+<section data-part="team" data-id="t-ppbe" data-t="Budget authority from the PPBE position">
+<p class="v212-h134">Tag the working plan with its cycle under PPBE cycles (BES28, say) and every year of it reads its budget authority from this appropriation’s BES28 position in <span class="mp" data-m="fydp">FYDP › PPBE Budget Positions…</span>, live: each service the position names takes that year’s discretionary and mandatory figure as its base, and typing into the position moves the budget at once. Retag the plan and every year moves to the new position. A service the position does not name, a year it logs nothing for, or an untagged plan keeps the board’s own base from Budget Management, and says so. <b>Budget Management</b> shows a tagged plan’s base read-only, naming the position; added funding sources still add on top.</p>
+<p><span class="mp" data-m="fydp">FYDP › Fit to the PPBE position…</span> sets what the requirements hold against each year’s budget, service by service and lane by lane: the base, added funding, budget authority, what is <b>held</b> (a Split’s typed Disc or Mand, or what the lane walk drew) and what is drawn. <b>Over</b> is held past the budget authority — <i>requirements hold $X more than BES28 — reduce a requirement</i> — with every requirement holding money there listed in priority order and the ones the lane cannot pay marked. ORBIT reduces nothing; you choose which gives, and <b>Go to it</b> selects it. Funded is still what the lane draws, so no report states more than the position. <b>Needs attention</b> shows <b>🏛 N over BES28</b> while any year is over. <b>Unallocated</b> is budget authority nobody holds.</p>
+<p><b>UPL</b> is added funding no requirement holds. It is the last line, after the requirements and after their TOTAL, never inside it: on the board under the last row, on the Excel workbook’s Funding Streams sheet, on the Priority Drill’s 1-N tab and on each year of the FYDP Spend Plan’s appropriation tabs. It is not on the Spend Plan Source: CCaR keeps its own UPL.</p>
+<p>A <b>lock</b> tags an untagged plan with its own cycle first, so it is taken under the position it gives the plan, and keeps a copy of that position: its view and its reports read the copy, and a position changed afterwards moves only the working plan. A lock taken before v2.12 kept none, and its years read as they were locked.</p>
 </section>
 <section data-part="team" data-id="t-ace" data-t="Importing the cost estimate">
 <p class="v212-ace-h1"><span class="mp" data-m="data">Data › Import Annual Cost Estimate…</span> reads the estimate saved as an Excel Workbook (.xlsx); an .xlsb is refused with a note to save it as .xlsx first. It reads <b>by column title</b>, not by position: every sheet is searched for the row carrying the titles (<i>Work Breakdown Structure</i>, <i>Level</i>, CES1–CES8, <i>Service</i>, <i>T/M/S</i>, <i>JPO Managed</i>, <i>$ Type</i>, <i>Rollup Value?</i>, <i>Support Line Category</i>, <i>PALS/O&amp;S</i>, <i>Appropriation (US Only)</i>, <i>PMO</i>, and a column per fiscal year), and a new column anywhere moves nothing. If a title has changed, a box lists the file’s own headers and asks which holds that field — once: the answer is remembered for files laid out the same way, and travels with the board. A field still unanswered refuses the file and names it.</p>
@@ -2526,6 +2541,13 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="modal" style="width:1300px;max-width:97vw">
     <h3>🏛 PPBE BUDGET POSITIONS — POM · BES · PB · DoN (official positions by FY) <button class="x" onclick="toggleP2()">✕ Close</button></h3>
     <div id="ppBody"></div>
+  </div>
+</div>
+<!-- v2.12 (item 134): what the requirements hold against each year's budget authority, read live from the PPBE position -->
+<div class="modal-bg" id="fitPanel" onclick="if(event.target===this)toggleFit()">
+  <div class="modal" style="width:1240px;max-width:97vw">
+    <h3>🏛 FIT TO THE PPBE POSITION — WHAT THE REQUIREMENTS HOLD AGAINST EACH YEAR’S BUDGET <button class="x" onclick="toggleFit()">✕ Close</button></h3>
+    <div id="fitBody"></div>
   </div>
 </div>
 
@@ -6572,6 +6594,11 @@ let erOpen=null, erAt='', erSnap=null, erDescAuto='';
 // they start at $0 every time the board opens -- and switching appropriation reopens it. By kind (ir, if), appropriation and year.
 let fdcOpen=false, fdcAceK='', fdcCycK='', fdcTabOn=0;
 const FDC_INTL={ir:Object.create(null), if:Object.create(null)};
+// v2.12 (item 134): WHERE EACH YEAR'S BUDGET BASE CAME FROM -- the position or the board's own, service by service, as
+// applyBudget() last worked it out (BA_SRC, by fiscal year) -- and the fit of the requirements to it (_fitCache), with the
+// box that shows it (fitOpen). All three are derived, for the panels, and never saved. Declared here because applyBudget()
+// runs inside applyStore() at top level and render() reads fitOpen on the first draw (the BANDS_STD rule).
+let BA_SRC=Object.create(null), _fitCache=null, fitOpen=false;
 // v2.10 review (A-3): with the team on the shared folder, the other appropriations as the folder answers for them
 // (fdcFolderRead) -- read when the box opens, held while it is open; null until then
 let _fdcFold=null;
@@ -6755,6 +6782,8 @@ function applyStore(raw){
   FYMON = fyMonths(MS.cur);
   applyState(MS.years[MS.cur]);
   MS.years[MS.cur]=S;
+  // v2.12 (item 134): a load can bring positions and a tag: every year's budget cache is made the live figure at once
+  try{ baLiveAll(); }catch(e){}
   try{ _jrnlOff=Math.max(0,_jrnlOff-1); jrnlSync(); }catch(e){}
   const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
   const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
@@ -7647,6 +7676,7 @@ function jrnlBody(){
 function loadCounted(){ _saveGen++; DIRTY=true; try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){} }
 function save(){
   _diagSec=null;                            // v1.92 (item 18): what the board holds has changed; clean against the new
+  _fitCache=null;                           // v2.12 (item 134): and so has the fit of its requirements to each year's budget
   if(CYCVIEW) return cycRefuse('Saving');
   _saveGen++;                               // v1.95 (item 47): a write that finishes asks whether this moved
   DIRTY=true; _dlOnly=false;
@@ -22686,9 +22716,12 @@ function cycProjOf(){
     pmo[g].n++;
     SVC.forEach((sv,i)=>{ pmo[g].ask[i]+=ask[i]||0; pmo[g].alloc[i]+=alloc[i]||0; pmo[g].fund[i]+=fund[i]; });
   });
+  // v2.12 (item 134): and the year's UPL -- added funding no requirement holds -- by lane and service, from the same walk
+  // (fitYearNow), so a lock freezes it and another appropriation's board supplies its own for the five-year workbook
+  const F=fitYearNow(T);
   return {fy:MS.cur, ap:mySlug(), ts:Date.now(), by:whoAmI(),
           svc:SVC.slice(), disc:(S.discSvc||[]).slice(), mand:(S.mandSvc||[]).slice(),
-          bands:JSON.parse(JSON.stringify(BANDS_LIST())), reqs, pmo};
+          bands:JSON.parse(JSON.stringify(BANDS_LIST())), reqs, pmo, upl:{d:F.upl.d.slice(), m:F.upl.m.slice()}};
 }
 // LOCK. Every window year that holds a plan is copied whole and projected, under one key.
 function cycLock(){
@@ -22723,7 +22756,16 @@ function cycLock(){
     +(odd? '\n\nThe RCN / EEIC list it keeps '+(odd.entry? 'holds rcn['+odd.i+'], which '+odd.what : odd.what)+'; '+odd.why+'. A locked '
       +'cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards will refuse every file that '
       +'carries this cycle, on every board of this version.' : '')
+    // v2.12 (item 134): an untagged plan takes the lock's tag, and with it that position's budget authority, live
+    +(!MS.cycle && baPosHas(key)? '\n\nThe working plan is untagged: this lock tags it '+blLblTxt(key)+', and from then on every year '
+      +blLblTxt(key)+' logs reads its budget authority from the '+blLblTxt(key)+' position in PPBE Budget Positions.' : '')
     +'\n\nThe working board is not changed.')) return;
+  // v2.12 (item 134): THE TAG FIRST, THEN THE PROJECTION. An untagged working plan IS the plan being locked, so it takes the
+  // lock's tag before a year is projected: the lock is then taken under the tag it gives the plan, its budget authority read
+  // from that position as the working plan will read it from now on. Tagged after (as it was), the lock froze the board's
+  // own base while the plan beside it read the position -- two figures for one moment.
+  const fromTag=MS.cycle||'';      // the tag the plan carried when it was locked, as `from` has always recorded
+  if(!MS.cycle){ MS.cycle=key; baLiveAll(); }
   const years={}, proj={};
   // the projection first: aceWithYear leaves the year normalised, and the copy taken after it is
   // the same object applyState will hand back later
@@ -22734,9 +22776,14 @@ function cycLock(){
   // v2.02 (item 89; Brad, 20 and 21 Oct 2026): AND EVERY OTHER LIST IT IS READ THROUGH (cycKeepNow): the destinations, the decision
   // bands, the BAE budget list, the PMO list, the requirement data and the funds-flow settings. A replacement is a new lock, and
   // takes today's.
+  // v2.12 (item 134): AND THE POSITION IT READ, as it stood. The lock's years were worked out against it, and its view reads
+  // this copy (baPos) -- never today's -- so a position edited after the lock moves the working plan and leaves the lock as
+  // it was locked. null where the plan's tag logs no position for this appropriation.
+  const posNow=baPos();
   blStore()[key]={cyc:blCyc, cycYr:yr, base:b, window:ys.slice(), ap:mySlug(), ts:Date.now(), by:whoAmI(),
-                  note:(blNote||'').trim(), from:MS.cycle||'', locked:true, partial:false, years:years, proj:proj,
-                  rcn:JSON.parse(JSON.stringify(rcnReg())), keep:cycKeepNow(), keepV:1};
+                  note:(blNote||'').trim(), from:fromTag, locked:true, partial:false, years:years, proj:proj,
+                  rcn:JSON.parse(JSON.stringify(rcnReg())), keep:cycKeepNow(), keepV:1,
+                  pos:(posNow && posNow.P)? {key:posNow.key, P:JSON.parse(JSON.stringify(ppNorm(posNow.P)))} : null};
   // v2.02 (U51): a cycle locked again under its own name keeps its record: when it was first taken, every reopen and lock,
   // and this replacement, so a cycle whose figures changed after it was locked says so
   if(had){ const nb=blStore()[key];
@@ -22744,7 +22791,7 @@ function cycLock(){
     nb.first={ts:(had.first&&had.first.ts)||had.ts||0, by:(had.first&&had.first.by)||had.by||''}; }
   persistCyc();
   MS.cycleRef=key;
-  if(!MS.cycle) MS.cycle=key;      // an untagged working plan IS the plan just locked, until it is retagged
+  // (an untagged working plan IS the plan just locked, until it is retagged: it took the tag above, before the projection)
   blNote='';
   save(); render();
   // v2.05 (item 116): and which appropriations have not locked it yet -- each is locked on its own board, on the same calendar
@@ -22915,6 +22962,7 @@ function cycSetWorking(cyc, yr){
   const c=(cyc===null)? cur[0] : String(cyc||'');
   const y=(yr===null)? (parseInt(cur[1],10)||MS.cur) : (parseInt(yr,10)||MS.cur);
   MS.cycle= c? blKey(c, y) : '';
+  baLiveAll();      // v2.12 (item 134): every year moves to the new tag's position (or back to the board's own) at once
   save(); render();
   setStat(MS.cycle? '🏷 Working plan tagged <b>'+blLbl(MS.cycle)+'</b>'
     +(MS.cycleRef? ' — deltas read against '+blLbl(MS.cycleRef) : '') : '🏷 Working plan untagged.');
@@ -22993,9 +23041,13 @@ function fydpBookYears(D){
 }
 function fydpBookApp(X, Y){
   const reqs=Object.create(null), order=[];
+  const upl=Object.create(null);     // v2.12 (item 134): each held year's UPL by lane, from that year's projection
   const held=Y.filter(function(y){ return !!(X && X.proj && X.proj[y] && Array.isArray(X.proj[y].reqs)); });
   held.forEach(function(y){
     const P=X.proj[y], sv=(P.svc||X.svc||[]).slice();
+    // v2.12 (item 134): the year's UPL as its projection carries it (a lock as locked; a projection before v2.12 carries none)
+    const U=(P.upl && typeof P.upl==='object')? P.upl : null, lane=function(k){ return sv.map(function(_,i){ return +((U && Array.isArray(U[k]))? U[k][i] : 0)||0; }); };
+    upl[y]={d:fydpSum(lane('d')), m:fydpSum(lane('m'))};
     P.reqs.forEach(function(r){
       if(!reqs[r.id]){ reqs[r.id]={id:r.id, title:'', ccar:'', fy:Object.create(null)}; order.push(r.id); }
       const q=reqs[r.id];
@@ -23004,7 +23056,7 @@ function fydpBookApp(X, Y){
                alloc:(r.fund||r.alloc||[]).map(function(v){ return +v||0; })};
     });
   });
-  return {held:held, reqs:reqs, order:order};
+  return {held:held, reqs:reqs, order:order, upl:upl};
 }
 // one requirement's year under a filter: null when the plan does not hold the year
 function fydpBookVal(M, id, y, f){
@@ -23113,6 +23165,19 @@ function fydpBookSheets(B){
     items.forEach(function(x, i){ const r=figs([{v:x.name,s:1},''], x.b.fy, x.b.tot, NUM); r.band=i%2? 0 : 1; r.total=false; rows.push(r); });
     total(rows, 'TOTAL', fydpBookAdd(Y, items.map(function(x){ return x.b; })));
   };
+  // v2.12 (item 134): THE UPL, the last lines of an appropriation's tab -- after its TOTAL and outside it, a line per lane that
+  // holds any in some year: each held year's UPL in its Allocated column (Requirement blank), — for a year the plan does not
+  // hold, and the FYDP's at the right. Read from each year's projection, so a lock prints it as locked and another
+  // appropriation's figure is its own board's.
+  const fydpUplRows=function(rows, M){
+    ['d','m'].forEach(function(k){
+      if(!M.held.some(function(y){ return ((M.upl||{})[y]||{})[k]>0.5; })) return;
+      const r=[{v:UPL_LBL+' ('+FIT_LANE[k]+')',s:1},'']; let t=0;
+      Y.forEach(function(y){ if(M.held.indexOf(y)<0){ r.push({v:'—',s:DASH},{v:'—',s:DASH}); return; }
+        const v=+(((M.upl||{})[y]||{})[k]||0); t+=v; r.push('', {v:M$(v),s:NUM}); });
+      r.push('', {v:M$(t),s:NUMB}); r.total=false; r.upl=true; rows.push(r);
+    });
+  };
   const sheets=[];
   // another appropriation's working plan tagged under a different cycle than this one is said where its figures are (v1.85)
   const tagOf=function(p){ const mine=MS.cycle||'';
@@ -23156,7 +23221,7 @@ function fydpBookSheets(B){
     const rows=[[{v:cpy('FYDP SPEND PLAN — '+p.name.toUpperCase()),s:7}],[{v:sub('all services', srcOf(p)),s:0}],[]], merges=[];
     let fz=0;
     if(!p.M) rows.push([{v:say(p),s:p.none? 0 : 1}]);
-    else { fz=rows.length+2; block(rows, merges, p.all); }
+    else { fz=rows.length+2; block(rows, merges, p.all); fydpUplRows(rows, p.M); }
     sheets.push({name:tab(p.name), cols:cols, rows:rows, merges:merges, tab:HOUSE.NAVY, freeze: fz? 'C'+(fz+1) : 0});
   });
   // ---- a tab per service, then per PMO: the roll-up by appropriation, then each appropriation's block
@@ -23879,6 +23944,7 @@ function cycView(key){
   MS=cycCopy(c);                                        // v2.00 (U10): made in one place, and made again by a refusal
   const y= MS.years[_cycStash.MS.cur]? +_cycStash.MS.cur : held[0];
   MS.cur=y; FYMON=fyMonths(y); applyState(MS.years[y]); MS.years[y]=S;
+  baLiveAll();          // v2.12 (item 134): the lock's own position (c.pos), on the view's throwaway copy only
   document.title=_cycStash.title+' — '+cycApTxt(key)+' LOCKED VIEW';
   cycSyncTags();
   render();
@@ -24010,6 +24076,7 @@ function cycLeave(quiet){
   cycSwapOut();                                         // v2.02 (item 89): the board's own lists, the very objects, back first
   MS=st.MS;
   FYMON=fyMonths(MS.cur); applyState(MS.years[MS.cur]); MS.years[MS.cur]=S;
+  baLiveAll();          // v2.12 (item 134): the working plan reads its tag's position live again
   DIRTY=st.dirty; document.title=st.title;
   cycSyncTags();
   if(quiet) return;
@@ -24031,6 +24098,7 @@ function cycReapply(){
   cycSwapIn(c);                                         // v2.02 (item 89): the cycle's board-wide lists, made again too
   MS=cycCopy(c); MS.cur=y;
   applyState(MS.years[y]); MS.years[y]=S;
+  baLiveAll();          // v2.12 (item 134): the copy made again reads the lock's own position again
 }
 function cycRefuse(what){
   cycReapply();
@@ -24146,6 +24214,9 @@ function blBody(){
     +'locked before v2.02 kept none of them, and still reads them as they are now; its line says so. Execution data (a CCaR '
     +'pull), the cost estimates, the PPBE positions and the other appropriations’ plans are read as they are now for every cycle, and the services it holds keep their names and '
     +'places on this board while it is kept. '
+    // v2.12 (item 134): the position its budget was read from is kept with it
+    +'From v2.12 a lock also keeps a copy of the PPBE position its budget authority was read from, and its view reads that copy: a position '
+    +'changed after the lock moves the working plan and leaves the lock as it was locked. '
     +'Locked cycles cannot be overwritten or deleted, and while one is on screen it is report and view only: nothing can be '
     +'reopened, locked or deleted from there. A cycle is reopened (🔓) and locked again from the working plan, and each time is '
     +'stamped with the date and who did it, under its lock. Each one is a '
@@ -24345,7 +24416,7 @@ function ppUnitSet(sv, u){
       P.kx[sv]={t:Date.now(), by:whoAmI()||'', n:figs.length, from:before, to:ppSvcSum(P, sv),
                 cells:figs.map(function(f){ return [f[0], String(f[1]), f[2], D$(f[3]*1000)]; })};
     }
-    save(); render();
+    baLiveAll(); save(); render();
     setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are now entered in $K'
       +(conv? ' \u2014 the '+figs.length+' already logged were multiplied by 1,000: '+fM2(before)+' \u2192 '+fM2(ppSvcSum(P, sv))+'.' : '.'));
     return;
@@ -24353,7 +24424,7 @@ function ppUnitSet(sv, u){
   if(!ppUnitK(P, sv)) return;
   delete P.unit[sv];
   const hadKx=!!(P.kx && P.kx[sv]); if(P.kx) delete P.kx[sv];   // review fix: figures typed in dollars from here are never divided
-  save(); render();
+  baLiveAll(); save(); render();
   setStat('\u{1F3DB} '+esc(sv)+' figures in '+ppLbl(ppKey())+' are entered in dollars again. No figure changed.'
     +(hadKx? ' The \u00d71,000 made when $K was turned on can no longer be undone from here.' : ''));
 }
@@ -24379,7 +24450,7 @@ function ppUnitUndo(sv){
     +(since? '\n\n'+since+' other figure'+(since===1?'':'s')+' on '+sv+', typed or changed since, '+(since===1?'is':'are')+' left as '+(since===1?'it is':'they are')+'.' : ''))) return;
   figs.forEach(f=>{ P.val[sv][f[0]][f[1]][f[2]]=f[3]/1000; });
   delete P.kx[sv]; if(P.unit) delete P.unit[sv];
-  save(); render();
+  baLiveAll(); save(); render();
   setStat('\u{1F3DB} The \u00d71,000 on '+esc(sv)+' was undone \u2014 '+esc(sv)+' totals '+fM2(ppSvcSum(P, sv))+' again.');
 }
 function ppSetV(sv, k, fy, which, val){
@@ -24391,13 +24462,14 @@ function ppSetV(sv, k, fy, which, val){
   const cur=P.val[sv][k][fy]||{d:0,m:0};
   cur[which]= (v===null? 0 : v);
   if(!cur.d && !cur.m) delete P.val[sv][k][fy]; else P.val[sv][k][fy]=cur;
+  baLiveAll();      // v2.12 (item 134): every year the position speaks for, live at once
   save(); render();
 }
-function ppSplitSet(on){ const P=ppPos(); P.split=!!on; save(); render(); }
+function ppSplitSet(on){ const P=ppPos(); P.split=!!on; baLiveAll(); save(); render(); }
 function ppLineAdd(sv){
   const P=ppPos(), L=ppLines(P,sv);
   L.push({k:'n'+Date.now().toString(36)+'_'+L.length, rcn:'', eeic:''});
-  save(); render();
+  baLiveAll(); save(); render();
 }
 function ppLineSet(sv, k, field, val, el){
   const P=ppPos(), L=ppLines(P,sv), l=L.filter(x=>x.k===k)[0];
@@ -24405,7 +24477,7 @@ function ppLineSet(sv, k, field, val, el){
   const r=codeTake(val, 'ppbe');     // v1.99 (item 91): refused, never cut; the field keeps what was typed, marked
   if(r.why){ codeRefusedIn(el, 'PPBE line not changed', r.why); return; }
   l[field]=r.v;
-  save(); render();
+  baLiveAll(); save(); render();
 }
 function ppLineDel(sv, k){
   const P=ppPos();
@@ -24413,13 +24485,13 @@ function ppLineDel(sv, k){
   if(has && !confirm('Remove this line? The '+has+' logged figure'+(has===1?'':'s')+' on it go too.')) return;
   P.lines[sv]=ppLines(P,sv).filter(x=>x.k!==k);
   if(P.val && P.val[sv]) delete P.val[sv][k];
-  save(); render();
+  baLiveAll(); save(); render();
 }
 function ppDel(){
   if(!MS.ppbe[ppKey()]) return;
   if(!confirm('Delete the entire '+ppLblTxt(ppKey())+' position for this appropriation?')) return;
   delete MS.ppbe[ppKey()];
-  save(); render();
+  baLiveAll(); save(); render();
 }
 // THE BOTTOM-RIGHT CELL OF A TOTAL ROW (v2.06, item 119). Both TOTAL rows of the box closed on a bare <td></td>:
 // every year carried its total and the Total column stopped one row short, on the line a reader looks at first. It
@@ -24474,6 +24546,13 @@ function ppBody(){
       +'</div>';
   }
 
+  // v2.12 (item 134): the position the working plan is tagged as IS its budget, every year it logs, read live
+  h+='<div class="pplive" style="font-size:10px;margin-bottom:8px">'
+    +(MS.cycle===ppKey()? '<b style="color:var(--gold)">'+ppLbl(ppKey())+' is the position the working plan is tagged as</b>: every year it logs is the plan’s '
+        +'budget authority, service by service, read live — a figure typed here moves the budget at once. A service or year it does not log keeps the board’s own.'
+      : (MS.cycle? 'The working plan is tagged <b>'+blLbl(MS.cycle)+'</b>: that position, not this one, is its budget authority.'
+        : 'The working plan is untagged: no position is its budget authority until it is tagged under PPBE cycles.'))
+    +' <button type="button" class="btn ppfit" style="font-size:10px;padding:3px 9px" onclick="toggleP2();fitShow()">Fit to the PPBE position…</button></div>';
   // ---- the split is a property of the cycle: not every year carries both pots
   h+='<div style="border:1px solid var(--line);border-radius:8px;padding:8px 11px;margin-bottom:9px;background:var(--panel2);font-size:10px">'
     +'<b style="color:var(--ink)">'+ppLbl(ppKey())+' \u2014 Discretionary / Mandatory</b> '
@@ -25869,16 +25948,26 @@ function bmBody(){
   const el=document.getElementById('bmBody');
   if(!bmOpen){ if(el) el.innerHTML=''; return; }
   const inp=(v,oc,w)=>'<input style="width:'+(w||96)+'px" value="'+(v?Math.round(v).toLocaleString():'')+'" placeholder="0" onfocus="this.select()" onchange="'+oc+'">';
-  // The seed sits ABOVE the rows it writes into, so what it changes is the next thing read.
-  let h=bmPpRow();
+  // v2.12 (item 134): A TAGGED PLAN'S BASE IS THE POSITION'S, READ-ONLY HERE. Each service the position speaks for shows the
+  // position's figure, named, with no box to type into -- a box here would write the board's own base, which is not the
+  // control while the position speaks, so it would be a control that does nothing. A service the position says nothing
+  // about keeps its box: the board's own base is its control. Take from a PPBE position stays for an untagged plan only.
+  const R=baOf(S, MS.cur), live=!!R.key, posAt=i=>R.from[i]==='pos', pk=esc(blLblTxt(R.key||''));
+  const baseCell=(kind,i)=>posAt(i)
+    ? '<td class="bmpos" title="read from '+pk+' for '+FYL()+' in PPBE Budget Positions — change it there. The board’s own base, '
+      +fM((kind==='disc'? S.bm.disc : S.bm.mand)[i])+', stays underneath and is the control again if the plan is untagged.">'
+      +fM((kind==='disc'? R.baseD : R.baseM)[i])+' <span style="font-size:8.5px;color:var(--dim)">'+pk+'</span></td>'
+    : '<td>'+inp((kind==='disc'? S.bm.disc : S.bm.mand)[i],'bmSetBase('+jsa(kind)+','+i+',this.value)')+'</td>';
+  // The seed sits ABOVE the rows it writes into, so what it changes is the next thing read; a tagged plan's source, the same.
+  let h=live? bmLiveRow(R) : bmPpRow();
   h+='<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">FUNDING SOURCES — '+FYL()+' (per service; effective budget = base + sources)</div>';
   h+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">Source</th><th>Pool</th>'+SVC.map(s=>'<th>'+esc(s)+'</th>').join('')+'<th style="border-left:1px solid var(--gold)">Total</th><th></th></tr>';
   h+='<tr><td style="text-align:left;font-weight:800;color:var(--green)">Discretionary (base)</td><td style="color:var(--dim)">disc</td>'
-    +SVC.map((s,i)=>'<td>'+inp(S.bm.disc[i],"bmSetBase('disc',"+i+",this.value)")+'</td>').join('')
-    +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--green)">'+fM(S.bm.disc.reduce((a,b)=>a+b,0))+'</td><td></td></tr>';
+    +SVC.map((s,i)=>baseCell('disc',i)).join('')
+    +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--green)">'+fM(R.baseD.reduce((a,b)=>a+(+b||0),0))+'</td><td></td></tr>';
   h+='<tr><td style="text-align:left;font-weight:800;color:var(--purp)">Mandatory (base)</td><td style="color:var(--dim)">mand</td>'
-    +SVC.map((s,i)=>'<td>'+inp(S.bm.mand[i],"bmSetBase('mand',"+i+",this.value)")+'</td>').join('')
-    +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--purp)">'+fM(S.bm.mand.reduce((a,b)=>a+b,0))+'</td><td></td></tr>';
+    +SVC.map((s,i)=>baseCell('mand',i)).join('')
+    +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--purp)">'+fM(R.baseM.reduce((a,b)=>a+(+b||0),0))+'</td><td></td></tr>';
   (S.bm.adds||[]).forEach((a,k)=>{
     h+='<tr><td style="text-align:left"><input style="width:170px;font-weight:700" value="'+esc(a.name)+'" onchange="bmSrcSet('+k+',\'name\',0,this.value)"></td>'
       +'<td><select onchange="bmSrcSet('+k+',\'pool\',0,this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10px"><option value="disc" '+(a.pool!=='mand'?'selected':'')+'>→ Disc</option><option value="mand" '+(a.pool==='mand'?'selected':'')+'>→ Mand</option></select></td>'
@@ -25890,6 +25979,9 @@ function bmBody(){
   h+='<tr class="tot"><td style="text-align:left">EFFECTIVE — Mandatory</td><td></td>'+SVC.map((s,i)=>'<td>'+fM(S.mandSvc[i])+'</td>').join('')+'<td style="border-left:1px solid var(--gold)">'+fM(mandTot())+'</td><td></td></tr>';
   h+='</table></div>';
   h+='<div style="margin:4px 0 10px"><button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="bmAddSrc()">＋ Add funding source</button> <span style="font-size:9px;color:var(--dim)">e.g. a Congressional add or supplemental — routed into the Disc or Mand lanes</span></div>';
+  // v2.12 (item 134): what the requirements hold against this budget, every year -- over, unallocated and UPL
+  h+='<div style="margin:0 0 6px"><button type="button" class="btn bmfit" style="font-size:10.5px;padding:4px 10px" onclick="toggleBm();fitShow()">Fit to the PPBE position…</button> '
+    +'<span style="font-size:9px;color:var(--dim)">what the requirements hold against each year’s budget authority: over, unallocated and UPL (added funding no requirement holds)</span></div>';
   el.innerHTML=h;
 }
 function toggleCr(){
@@ -26497,7 +26589,14 @@ function scoreboard(){
       const pl=function(n,one,many){ return n+' '+(n===1? one : many); };
       const ae=function(k, g, txt){ return '<button type="button" class="e" onclick="attShow('+jsa(k)+')" title="List them, with Go to it beside each">'
         +'<span class="g">'+g+'</span> '+txt+'</button>'; };
-      const att=(N.n? '<button type="button" class="e" onclick="ndOpen=true;render()" title="Open the fix list">'
+      // v2.12 (item 134): a year whose requirements hold more than its budget authority -- in any held year of the window, by
+      // service and lane -- is one entry, and it opens the fit box. "Over BES28" where the plan's tag is the position it reads.
+      let fitE='';
+      try{ const FM=fitModel();
+        if(FM && FM.over) fitE='<button type="button" class="e fitatt" onclick="fitShow()" title="'+FM.over+' service and lane'+(FM.over===1?'':'s')
+          +' across the years where the requirements hold more than the budget authority: a requirement has to be reduced. Open the fit to the PPBE position">'
+          +'<span class="g">🏛</span> '+FM.over+' over '+(FM.key? esc(blLblTxt(FM.key)) : 'budget authority')+'</button>'; }catch(e){ fitE=''; }
+      const att=fitE+(N.n? '<button type="button" class="e" onclick="ndOpen=true;render()" title="Open the fix list">'
                      +'<span class="g">▲</span> '+N.n+' not drawn · '+fMc(N.tot)+'</button>' : '')
         +(A.imp.length? ae('imp', '⚠', pl(A.imp.length,'impact statement missing','impact statements missing')) : '')
         +(A.ccar.length? ae('ccar', '○', A.ccar.length+' without a CCaR record') : '')
@@ -26571,7 +26670,12 @@ function absorbLine(AB){
    service is not a position that says zero, and zeroing a service's budget authority because its
    line was never logged would be the most expensive silent mistake in this tool. `ppSvcsOf` is the
    test - it lists the services with lines or values, so an explicit zero IS applied and an absent
-   service is left alone and named. */
+   service is left alone and named.
+   v2.12 (item 134): THE SEED IS FOR AN UNTAGGED PLAN ONLY. A plan tagged with a cycle (MS.cycle) reads that cycle's
+   position LIVE, every year it logs (baOf, below) -- Brad's decision, reversing "a seed, not a link" for the plan that
+   names its cycle. Still one source behind each number: while the position speaks for a service, the board's own base is
+   kept underneath and is not the control; untagged, it is again. Budget Management offers this seed only to an untagged
+   plan, and shows a tagged plan's base read-only, naming the position it comes from. */
 
 // ==============================================================================================================
 // §34  BUDGET AUTHORITY, FIT CHART, TRIM
@@ -26665,6 +26769,17 @@ function bmPpClear(){
   save(); render();
 }
 
+/* v2.12 (item 134): THE ROW FOR A TAGGED PLAN. Its base is read from the position, live, so there is nothing to take: the row
+   says which position, which services it speaks for and which keep the board's own base, and opens the fit. */
+function bmLiveRow(R){
+  const lbl=esc(blLblTxt(R.key));
+  return '<div class="bmlive" style="margin:2px 0 8px;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--panelA)">'
+    +'<div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--gold);text-transform:uppercase">The base is read from '+lbl+', live</div>'
+    +'<div class="hint" style="margin-top:4px">'+esc(fitSrcSay(R))+' The working plan is tagged '+lbl+' (PPBE cycles), so '
+    +FYL()+'’s base for each service '+lbl+' speaks for is its '+FYL()+' figure in FYDP › <b>PPBE Budget Positions</b>, read every time the budget '
+    +'is worked out: change it there and the budget moves at once. A service it says nothing about keeps its box below. Untag the plan to type every base here again.'
+    +(R.outside.length? ' '+lbl+' also holds '+esc(R.outside.join(', '))+', which this board does not carry.' : '')+'</div></div>';
+}
 /* The panel row. Rendered inside bmBody, above the table it seeds. */
 function bmPpRow(){
   const opts=bmPpOptions();
@@ -26721,13 +26836,269 @@ function bmPpRow(){
   return h+'</div>';
 }
 
+/* ========== v2.12 (item 134): EVERY YEAR'S BUDGET IS THE PPBE POSITION ASSIGNED ============================
+   Brad, 28 Oct 2026: "When I build a PPBE Budget like BES28, I plug into the controls across the FYDP. When I'm working
+   requirements within the PPBE cycle, I want the controls to pull from those year's totals I've posted in the PPBE
+   Budget" -- and "If we update the PPBE position, the budget should instantly reflect the updates".
+   ONE SOURCE, READ LIVE, IN ONE PLACE. While the working plan is tagged (MS.cycle, 'BES|2028') and this appropriation's
+   position under that tag logs the year being worked out (any cell in that year, the test FYDP Disconnects makes:
+   fdcPosHeld), each service the position names takes that year's discretionary and mandatory figure as its base, in whole
+   dollars. A service the position does not name, a year it logs nothing for, or an untagged plan keeps the board's own
+   base -- S.bm.disc / S.bm.mand, which this NEVER overwrites, so untagging gives it back to the dollar. A position that
+   does not mention a service is not a position that says zero (the seed's rule, kept). Added funding sources add on top,
+   by pool, as before, and the sum is floored at 0 per service.
+   A LOCKED VIEW reads the lock's own copy of the position (c.pos, taken when it was locked) and nothing else: a lock taken
+   before v2.12 kept none, so its years read as locked. Only the working plan reads live.
+   baOf is PURE: it reads a year's state and says what its budget authority is and where each base came from; the caller
+   writes the cache (applyBudget for the year on screen, baApplyTo for the others). */
+// The position the plan works in: the working plan's tag and this appropriation's position under it, or in a locked view
+// the lock's own copy. {key, P} -- P null when the plan is tagged and nothing is logged under the tag -- or null when untagged.
+function baPos(){
+  if(CYCVIEW){
+    const c=blGet(CYCVIEW), p=c && c.pos;
+    return (p && typeof p==='object' && typeof p.key==='string' && p.key && p.P && typeof p.P==='object' && !Array.isArray(p.P))
+      ? {key:p.key, P:p.P, lock:CYCVIEW} : null;
+  }
+  const k=(MS && typeof MS.cycle==='string')? MS.cycle : '';
+  if(!k) return null;
+  const P=(MS.ppbe && typeof MS.ppbe==='object' && Object.prototype.hasOwnProperty.call(MS.ppbe, k))? MS.ppbe[k] : null;
+  return {key:k, P:(P && typeof P==='object' && !Array.isArray(P))? P : null, lock:''};
+}
+// THE SERVICES A POSITION NAMES are the ones it holds a figure for, in any year. A line added and never filled, or one whose
+// figures were all taken out, says nothing about its service: read as naming it, the service's budget would be a silent $0
+// because a placeholder line was typed. A service named in the position but logging nothing in a year the position does
+// log is that position's $0 for that year (a zero is not kept as a cell, so it cannot be told from a blank).
+function baNamed(Q){ return ppSvcsOf(Q).filter(function(sv){ return ppSvcFigs(Q, sv).length>0; }); }
+function baOf(st, fy, pos){
+  if(pos===undefined) pos=baPos();
+  const bm=(st && st.bm) || {};
+  const d=(Array.isArray(bm.disc)? bm.disc : []).slice(), m=(Array.isArray(bm.mand)? bm.mand : []).slice();
+  const from=d.map(function(){ return 'board'; });
+  const Q=(pos && pos.P)? ppNorm(pos.P) : null, logged=!!(Q && fdcPosHeld(Q, String(fy)));
+  if(logged){
+    const named=baNamed(Q);
+    SVC.forEach(function(sv, i){
+      if(named.indexOf(sv)<0 || i>=d.length) return;    // says nothing about this service -- NOT the same as zero
+      const c=ppSvcFy(Q, sv, fy);
+      d[i]=D$(c.d); m[i]=D$(c.m); from[i]='pos';
+    });
+  }
+  const baseD=d.slice(), baseM=m.slice(), addD=d.map(function(){ return 0; }), addM=m.map(function(){ return 0; });
+  (Array.isArray(bm.adds)? bm.adds : []).forEach(function(a){ if(!a) return;
+    const t=(a.pool==='mand')? m : d, ta=(a.pool==='mand')? addM : addD;
+    (a.vec||[]).forEach(function(v,i){ if(i<t.length){ t[i]+=(v||0); ta[i]+=(v||0); } }); });
+  // Reprogramming actions (ATR / BTR) are active-year execution and are never applied here — CCaR accounts for the money.
+  return {fy:+fy, key:pos? pos.key : '', lock:pos? pos.lock : '', has:!!(pos && pos.P), logged:logged, from:from,
+          baseD:baseD, baseM:baseM, addD:addD, addM:addM,
+          disc:d.map(function(v){ return Math.max(0, D$(v)); }), mand:m.map(function(v){ return Math.max(0, D$(v)); }),
+          outside:Q? baNamed(Q).filter(function(sv){ return SVC.indexOf(sv)<0; }) : []};
+}
+// Whether this appropriation logs a position under a cycle key at all (the lock's question names it)
+function baPosHas(key){
+  const P=(MS.ppbe && typeof MS.ppbe==='object' && Object.prototype.hasOwnProperty.call(MS.ppbe, key))? MS.ppbe[key] : null;
+  return !!(P && typeof P==='object' && baNamed(ppNorm(P)).length);
+}
 function applyBudget(){
   if(!S.bm) return;
-  const d=S.bm.disc.slice(), m=S.bm.mand.slice();
-  (S.bm.adds||[]).forEach(a=>{ const t=(a.pool==='mand')? m:d; (a.vec||[]).forEach((v,i)=>{ if(i<t.length) t[i]+=(v||0); }); });
-  // Reprogramming actions (ATR / BTR) are active-year execution and are never applied here — CCaR accounts for the money.
-  S.discSvc=d.map(v=>Math.max(0,D$(v)));
-  S.mandSvc=m.map(v=>Math.max(0,D$(v)));
+  const r=baOf(S, MS.cur);
+  S.discSvc=r.disc;
+  S.mandSvc=r.mand;
+  BA_SRC[+MS.cur]=r;
+}
+// ANOTHER YEAR'S CACHE MADE LIVE without putting the year on screen. Only the cache (discSvc / mandSvc) is written, and
+// only where it moved: the rest of the year is not normalised here (applyState does that when the year is opened), so a
+// refresh changes nothing a reopen could see but the derived figure. A year whose budget does not have this board's width
+// is left for applyState; one with no components yet takes them as applyState would (base = the cache it holds) when a
+// position speaks for it, or the board's own base would be lost under the position's figure.
+function baApplyTo(st, fy){
+  if(!st || typeof st!=='object') return;
+  const n=SVC.length, w=function(v){ return Array.isArray(v) && v.length===n; };
+  if(!n) return;
+  if(!st.bm){
+    if(!w(st.discSvc) || !w(st.mandSvc)) return;
+    const r0=baOf({bm:{disc:st.discSvc, mand:st.mandSvc, adds:[]}}, fy);
+    if(r0.from.indexOf('pos')<0){ BA_SRC[+fy]=r0; return; }
+    st.bm={disc:st.discSvc.slice(), mand:st.mandSvc.slice(), adds:[]};
+  }
+  if(!w(st.bm.disc) || !w(st.bm.mand)) return;
+  const r=baOf(st, fy), same=function(a,b){ return w(a) && a.every(function(v,i){ return v===b[i]; }); };
+  if(!same(st.discSvc, r.disc)) st.discSvc=r.disc;
+  if(!same(st.mandSvc, r.mand)) st.mandSvc=r.mand;
+  BA_SRC[+fy]=r;
+}
+// EVERY YEAR, NOT JUST THE ONE ON SCREEN. The Spruills, the live view and other appropriations read a year's stored cache
+// straight from MS.years without working it out again, so every writer of a position or of the plan's tag -- a cell, the
+// split, a line, a deletion, the $K conversion and its undo, a retag, a lock's tag, an import, a service rename -- calls
+// this, and so does the end of opening. It saves nothing and marks nothing unsaved: the caches are derived, and the
+// writer that called it saves its own change.
+function baLiveAll(){
+  _fitCache=null;
+  try{
+    Object.keys((MS && MS.years) || {}).forEach(function(k){
+      const st=MS.years[k];
+      if(+k===+MS.cur && st===S){ applyBudget(); return; }
+      baApplyTo(st, +k);
+    });
+  }catch(e){}
+}
+// THE FIT, one year: what the requirements hold in each service and lane against that year's budget authority.
+//   held    = what each requirement directs to the lane -- fsDirVec(it), its typed Split clamped to its basis, a forced
+//             lane or a legacy split -- or, with no override, what the lane walk drew for it
+//   BA      = the year's budget authority (S.discSvc / S.mandSvc: the base above plus added sources, floored at 0)
+//   over    = max(0, held - BA)      requirements hold more than the lane has: a requirement has to be reduced
+//   unalloc = max(0, BA - held)      nobody has allocated it
+//   UPL     = min(max(0, added sources in that lane), unalloc)   added funding no requirement holds
+// On the FUNDED plan, bare tiers(), never the ◨ view: the ◨ switch changes what is shown, not what is held. ORBIT
+// reduces nothing: an over lists every requirement holding money in that service and lane, in priority order, with what
+// it holds and what it drew, and marks those the lane cannot pay; the person chooses which gives.
+function fitYearNow(T){
+  T=T||tiers();
+  const r=baOf(S, MS.cur), MR=masterRanks(), z=function(){ return SVC.map(function(){ return 0; }); };
+  const lane=function(k){ return {ba:(k==='d'? S.discSvc : S.mandSvc).map(function(v){ return +v||0; }),
+    base:(k==='d'? r.baseD : r.baseM).slice(), add:(k==='d'? r.addD : r.addM).slice(),
+    held:z(), drawn:z(), over:z(), un:z(), upl:z(), rows:SVC.map(function(){ return []; })}; };
+  const L={d:lane('d'), m:lane('m')};
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id), p=T[id]; if(!it || !p) return;
+    const v=fsDirVec(it) || {d:p.d, m:p.m};
+    ['d','m'].forEach(function(k){ SVC.forEach(function(sv,i){
+      const h=Math.max(0, +(v[k]||[])[i]||0), dr=Math.max(0, +(p[k]||[])[i]||0);
+      L[k].held[i]+=h; L[k].drawn[i]+=dr;
+      if(h>0.005) L[k].rows[i].push({id:id, rank:MR[id], title:dispTitle(it), held:h, drawn:dr, short:drewGap(h, dr)});
+    }); });
+  });
+  ['d','m'].forEach(function(k){ const X=L[k];
+    SVC.forEach(function(sv,i){
+      X.over[i]=Math.max(0, D$(X.held[i]-X.ba[i]));
+      X.un[i]=Math.max(0, D$(X.ba[i]-X.held[i]));
+      X.upl[i]=Math.min(Math.max(0, D$(X.add[i]||0)), X.un[i]);
+    }); });
+  return {fy:+MS.cur, src:r, L:L,
+          over:SVC.reduce(function(n,sv,i){ return n+(L.d.over[i]>0.5? 1:0)+(L.m.over[i]>0.5? 1:0); }, 0),
+          upl:{d:L.d.upl.slice(), m:L.m.upl.slice()}};
+}
+// ANOTHER YEAR, READ ON A COPY. aceWithYear puts the stored year itself through applyState, which normalises it; the fit
+// is worked out while the board draws, so reading it must write nothing into a year nobody opened (opening a board and
+// saving it straight back must give the bytes it opened with). The year's copy is applied instead, and the stored object
+// is put back untouched; the year on screen is applied again exactly as aceWithYear does.
+function fitReadYear(fy, fn){
+  const keep=MS.cur, orig=MS.years[fy];
+  if(+fy===+keep || !orig) return fn();
+  const cp=JSON.parse(JSON.stringify(orig));
+  try{
+    MS.years[fy]=cp; MS.cur=+fy; FYMON=fyMonths(MS.cur); applyState(cp); MS.years[fy]=S;
+    return fn();
+  } finally {
+    MS.years[fy]=orig; MS.cur=keep; FYMON=fyMonths(keep); applyState(MS.years[keep]); MS.years[keep]=S;
+  }
+}
+// THE FIT, every held year of the FYDP window. Cached until the next save(), a position or tag change, a load, or the
+// view going in or out (each other year costs a whole applyState), and computed at the top of render(), before anything
+// draws, so a panel never sees DATA rebuilt under it.
+function fitModel(){
+  if(_fitCache && _fitCache.view===CYCVIEW && _fitCache.cur===+MS.cur) return _fitCache.M;
+  const ys=fydpWindow().filter(function(y){ return !!MS.years[y]; });
+  const years=Object.create(null);
+  ys.forEach(function(y){ years[y]=fitReadYear(y, function(){ return fitYearNow(); }); });
+  const pos=baPos();
+  const M={years:years, held:ys, key:pos? pos.key : '', lock:pos? pos.lock : '',
+           over:ys.reduce(function(n,y){ return n+years[y].over; }, 0)};
+  _fitCache={view:CYCVIEW, cur:+MS.cur, M:M};
+  return M;
+}
+// The position a year's base is read from, in words: "BES28", "the board's own", and which services each covers.
+function fitPosLbl(key){ return key? blLblTxt(key) : ''; }
+function fitSrcSay(r){
+  const key=fitPosLbl(r.key), pos=[], own=[];
+  SVC.forEach(function(sv,i){ (r.from[i]==='pos'? pos : own).push(sv); });
+  if(!r.key) return 'The plan is untagged: every base is the board’s own, from Budget Management.';
+  if(!r.has) return (r.lock? 'This lock kept no '+key+' position for '+appnName(mySlug()) : appnName(mySlug())+' logs no '+key+' position')
+    +': every base is the board’s own, from Budget Management.';
+  if(!r.logged) return key+' logs nothing for FY'+(r.fy%100)+': every base is the board’s own, from Budget Management.';
+  return 'Base from '+key+' for '+(pos.length? pos.join(', ') : 'no service')
+    +(own.length? ' · the board’s own for '+own.join(', ')+' ('+key+' says nothing about '+(own.length===1? 'it' : 'them')+')' : '')+'.';
+}
+function toggleFit(){ fitOpen=!fitOpen; render(); }
+function fitShow(){ fitOpen=true; render(); }
+// GO TO IT: the box closes, the year is put on screen if it is another, and the requirement is selected
+function fitGo(fy, id){
+  fitOpen=false;
+  if(+fy!==+MS.cur){ switchYear(+fy); if(+MS.cur!==+fy) return; }
+  setCur(id);
+  goRow(id);
+}
+const FIT_LANE={d:'discretionary', m:'mandatory'};
+function fitBody(){
+  const bg=document.getElementById('fitPanel'), el=document.getElementById('fitBody');
+  if(!bg || !el) return;
+  bg.className='modal-bg'+(fitOpen? ' open' : '');
+  if(!fitOpen){ if(el.innerHTML) el.innerHTML=''; return; }
+  const M=fitModel(), ap=appnName(mySlug()), key=fitPosLbl(M.key);
+  let h='<div class="hint fithint" style="margin-bottom:8px">'
+    +(M.lock? 'Viewing <b>'+cycAp(M.lock)+'</b> (locked): its years read the '+esc(key)+' position as it was when it was locked, never today’s. '
+      : (CYCVIEW? 'Viewing <b>'+cycAp(CYCVIEW)+'</b> (locked): it was locked before v2.12 and kept no position, so its budget is as locked. '
+      : (M.key? 'The working plan is tagged <b>'+esc(key)+'</b>: every year '+esc(ap)+'’s '+esc(key)+' position logs is read from it live, '
+          +'service by service, and typing into the position moves the budget at once. '
+        : 'The working plan is untagged, so every year’s base is the board’s own. Tag it under PPBE cycles to read a position. ')))
+    +'<b>Held</b> is what the requirements direct to a lane (a Split’s typed figure, or what the lane walk drew); <b>over</b> is held past the budget '
+    +'authority, and a requirement has to give — ORBIT reduces nothing; <b>unallocated</b> is budget authority nobody holds, and of that, '
+    +'<b>UPL</b> is the added funding no requirement holds. Funded is still what the lane draws, so no report states more than the budget.</div>';
+  if(!M.held.length){ el.innerHTML=h+'<div class="hint">No year of the FYDP window holds a plan.</div>'; return; }
+  M.held.forEach(function(y){
+    const F=M.years[y], r=F.src;
+    h+='<div class="fityr" data-fy="'+y+'" style="margin:12px 0 4px"><b style="color:var(--gold)">FY'+(y%100)+' '+esc(ap)+'</b> '
+      +'<span style="font-size:10px;color:var(--mut)">'+esc(fitSrcSay(r))+'</span></div>';
+    h+='<div class="fitwrap"><table class="fctab fittab" style="width:100%"><tr><th style="text-align:left">Service</th><th style="text-align:left">Lane</th>'
+      +'<th>'+(r.logged? 'Base ('+esc(key)+' / own)' : 'Base (own)')+'</th><th>Added</th><th>Budget authority</th><th>Held</th><th>Drawn</th>'
+      +'<th>Over</th><th>Unallocated</th><th>UPL</th></tr>';
+    const tot={base:0, add:0, ba:0, held:0, drawn:0, over:0, un:0, upl:0};
+    let rows=0;
+    SVC.forEach(function(sv,i){ ['d','m'].forEach(function(k){ const X=F.L[k];
+      const any=[X.base[i], X.add[i], X.ba[i], X.held[i], X.drawn[i]].some(function(v){ return Math.abs(+v||0)>0.5; });
+      if(!any) return; rows++;
+      ['base','add','ba','held','drawn','over','un','upl'].forEach(function(f){ tot[f]+=(+X[f][i]||0); });
+      const src=r.from[i]==='pos'? esc(key) : 'own';
+      h+='<tr class="fit-'+k+(X.over[i]>0.5? ' over' : '')+'" data-svc="'+esc(sv)+'" data-lane="'+k+'"><td style="text-align:left;font-weight:700">'+esc(sv)+'</td>'
+        +'<td style="text-align:left">'+FIT_LANE[k]+'</td>'
+        +'<td title="'+(r.from[i]==='pos'? 'read from '+esc(key) : 'the board’s own base, from Budget Management')+'">'+fM(X.base[i])+' <span style="font-size:8.5px;color:var(--dim)">'+src+'</span></td>'
+        +'<td>'+(Math.abs(X.add[i])>0.5? fM(X.add[i]) : '—')+'</td><td><b>'+fM(X.ba[i])+'</b></td>'
+        +'<td>'+fM(X.held[i])+'</td><td>'+fM(X.drawn[i])+'</td>'
+        +'<td'+(X.over[i]>0.5? ' style="color:var(--red);font-weight:800"' : '')+'>'+(X.over[i]>0.5? fM(X.over[i]) : '—')+'</td>'
+        +'<td>'+(X.un[i]>0.5? fM(X.un[i]) : '—')+'</td>'
+        +'<td'+(X.upl[i]>0.5? ' style="color:var(--gold);font-weight:700"' : '')+'>'+(X.upl[i]>0.5? fM(X.upl[i]) : '—')+'</td></tr>';
+    }); });
+    if(!rows) h+='<tr><td colspan="10" style="text-align:left;color:var(--dim)">No budget authority and nothing held in FY'+(y%100)+'.</td></tr>';
+    else h+='<tr class="tot"><td style="text-align:left">TOTAL</td><td></td><td>'+fM(tot.base)+'</td><td>'+(Math.abs(tot.add)>0.5? fM(tot.add) : '—')+'</td>'
+      +'<td>'+fM(tot.ba)+'</td><td>'+fM(tot.held)+'</td><td>'+fM(tot.drawn)+'</td><td>'+(tot.over>0.5? fM(tot.over) : '—')+'</td>'
+      +'<td>'+(tot.un>0.5? fM(tot.un) : '—')+'</td><td>'+(tot.upl>0.5? fM(tot.upl) : '—')+'</td></tr>';
+    h+='</table></div>';
+    // each over, said the way it reads in the room, with every requirement holding money there and the ones not paid marked
+    SVC.forEach(function(sv,i){ ['d','m'].forEach(function(k){ const X=F.L[k]; if(!(X.over[i]>0.5)) return;
+      const vs=r.from[i]==='pos'? key : 'its budget authority';
+      h+='<div class="fitover" data-fy="'+y+'" data-svc="'+esc(sv)+'" data-lane="'+k+'" style="margin:8px 0 3px;font-size:11px;color:var(--red)">▲ <b>FY'+(y%100)+' '+esc(ap)+', '+esc(sv)+' '+FIT_LANE[k]+'</b>: '
+        +'requirements hold <b>'+fM(X.over[i])+'</b> more than '+esc(vs)+' — reduce a requirement</div>'
+        +'<div class="fitwrap"><table class="fctab fitrows" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th><th>Holds</th><th>Drew</th><th style="text-align:left"></th><th></th></tr>';
+      X.rows[i].forEach(function(q){
+        h+='<tr'+(q.short? ' class="short"' : '')+' data-id="'+esc(q.id)+'"><td>'+(q.rank||'—')+'</td><td style="text-align:left">'+esc(q.title)+'</td><td>'+fM(q.held)+'</td><td>'+fM(q.drawn)+'</td>'
+          +'<td style="text-align:left;color:var(--red)">'+(q.short? '▲ the lane cannot pay '+fM(q.held-q.drawn) : '')+'</td>'
+          +'<td><button type="button" class="qb fitgo" onclick="fitGo('+(+y)+','+jsa(q.id)+')">Go to it</button></td></tr>';
+      });
+      h+='</table></div>';
+    }); });
+  });
+  h+='<div class="hint" style="margin-top:10px">Budget authority by service and lane is the base \u2014 from the position where the plan’s tag logs that year and service, the board’s own '
+    +'everywhere else \u2014 plus added funding sources (Budget Management). Positions are typed under FYDP › PPBE Budget Positions; a lock keeps the position it read.</div>';
+  el.innerHTML=h;
+}
+// v2.12 (item 134): THE LINE AFTER THE LAST REQUIREMENT, on the board and in every report that lists requirements -- the UPL,
+// added funding no requirement holds, by service and lane, wherever it is not zero. After the requirements and after their
+// TOTAL, never inside it, so every total still adds up to its rows. (Brad, 28 Oct 2026: "Should be shown as UPL, if the funds
+// are not fully allocated to a requirement. It should be shown as a last line item.")
+const UPL_LBL='UPL — added funding no requirement holds';
+function uplParts(U){
+  const out=[];
+  SVC.forEach(function(sv,i){ ['d','m'].forEach(function(k){ const v=+((U && U[k])||[])[i]||0; if(v>0.5) out.push({svc:sv, i:i, lane:k, v:v}); }); });
+  return out;
 }
 function bmSetBase(kind,i,val){
   const v=parseAmt(val);
@@ -29657,6 +30028,9 @@ function hardList(){
 function render(){
   _cycDeltaCache=null;                      // the deltas are read fresh on every render
   _ndCache=null;                            // and so is what is set higher than it draws
+  // v2.12 (item 134): the fit of every held year to its budget, worked out FIRST when it is not cached: reading another year
+  // applies it and puts this one back, which rebuilds DATA.items -- done before anything draws, never in the middle of a draw
+  try{ fitModel(); }catch(e){ _fitCache=null; }
   if(_bootLost.length){                     // first render: there is a status bar now
     const lost=_bootLost.slice(); _bootLost.length=0;
     try{ DIAG.boot=DIAG.boot.concat(lost); }catch(e){}   // the board's own descriptions: kept for Save diagnostics
@@ -29665,7 +30039,7 @@ function render(){
       +'checked it, or the unread part will be lost.';
       _bootLostHold=''; setStat(said); _bootLostHold=said; _bootSaid=true; }catch(e){}
   }
-  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); aceRepBody(); aceColSync(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); fdcSync(); exBody(); flowBody(); pkgBody(); syncBtns();
+  arSync(); scoreboard(); chips(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); aceRepBody(); aceColSync(); wbsBody(); erSync(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); fitBody(); fdcSync(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -29813,6 +30187,17 @@ function render(){
       ${clinApplies(id)&&clinOpen[id]&&!brief? clinTable(it):''}
     </div>`;
   });
+  // v2.12 (item 134): THE UPL, THE LAST LINE -- after the last requirement and not one of them: no rank, no handle, nothing to
+  // select, so it can be neither dragged into the order nor mistaken for a row. The year's added funding no requirement
+  // holds, by service and lane, from the fit already worked out for this render (the funded plan, whatever ◨ shows).
+  if(h.indexOf('class="row ')>=0 && !hardOpen){
+    try{ const FY=(fitModel().years||{})[+MS.cur], U=FY? uplParts(FY.upl) : [];
+      if(U.length) h+='<div class="uplline" role="note" title="Added funding sources (Budget Management) that no requirement holds: allocate them to a requirement, or they stay unallocated">'
+        +'<span class="k">'+esc(UPL_LBL)+'</span> '
+        +U.map(function(u){ return '<span class="u" data-svc="'+esc(u.svc)+'" data-lane="'+u.lane+'" data-v="'+Math.round(u.v)+'">'+esc(u.svc)+' '+FIT_LANE[u.lane]+' <b>'+fM(u.v)+'</b></span>'; }).join(' · ')
+        +'</div>';
+    }catch(e){}
+  }
   if(!h) h=(!(S.order||[]).length && !CYCVIEW)
     ? '<div style="color:var(--dim);padding:30px;text-align:center">'+FYL()+' holds no requirements yet. '
       +'<button type="button" class="btn" onclick="toggleAdd()">＋ Add requirement</button></div>'
@@ -34474,6 +34859,14 @@ function exportCSV(){
     if(rollAt[n]){ wholeRows.push(ROLL(rollAt[n])); wholeRows.push([]); }
   });
   wholeRows.push(SUB('ALL BANDS — '+grand.n+' requirements', grand, SEC));
+  // v2.12 (item 134): THE UPL, the last line -- after ALL BANDS and outside it, so every total still adds up to its rows. A
+  // line per lane that holds any: the lane's figure under Discretionary or Mandatory, and each service's under its column.
+  { const UP=fitYearNow(T).upl;
+    ['d','m'].forEach(function(k){ const v=SVC.map(function(_,i){ return +(UP[k][i]||0); }), tot=v.reduce(function(a,b){ return a+b; },0);
+      if(!(tot>0.5)) return;
+      wholeRows.push([{v:UPL_LBL+' ('+FIT_LANE[k]+')', s:SEC},'','','','','','','','','','','','',
+        k==='d'? {v:tot,s:MB} : '', k==='m'? {v:tot,s:MB} : '','','','','','',
+        ...v.map(function(x){ return x>0.5? {v:x,s:MB} : ''; }), '']); }); }
   const whole={name:'1-N by Band', cols:COLS, rows:wholeRows};
 
   // ---- a tab per PMO ---------------------------------------------------------------------------
@@ -35313,6 +35706,15 @@ function exportExcel(){
     {v:mandTot(),s:NB},{v:sum(allM),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
     {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(beyondSvc),s:sum(beyondSvc)>0.5?NR:NB},
     {v:sum(discUnfSvc),s:sum(discUnfSvc)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
+  // v2.12 (item 134): THE UPL, after the TOTAL and outside it -- added funding no requirement holds, by service and lane,
+  // under the lane's Remaining column (it is part of what remains). A line per service that carries any; none at all
+  // where there is none, so a board with no added funding prints the sheet it always printed.
+  { const UP=fitYearNow(T).upl;
+    if(uplParts(UP).length){
+      fs.rows.push([{v:UPL_LBL,s:SEC}]);
+      SVC.forEach((s,i)=>{ const ud=UP.d[i]||0, um=UP.m[i]||0; if(ud<=0.5 && um<=0.5) return;
+        fs.rows.push([{v:'UPL · '+s,s:B},'','','',{v:ud,s:N},'','',{v:um,s:N}]); });
+    } }
   fs.rows.push([]);
   fs.rows.push(['LANE MODEL: each service draws its own discretionary lane first, then spills into its mandatory lane. Deltas (Ask − Allocation) are trims made on the board — they are unfunded requirements too and are included in TOTAL UNFUNDED.']);
   fs.rows.push([]);
@@ -37553,6 +37955,9 @@ try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'
 // THE JOURNAL COMPARES AGAINST WHAT THE BOARD HELD WHEN IT OPENED. Taken lazily on the first save,
 // the first change of every session was never recorded. Taken here rather than on a timer because
 // this is the end of the script: every binding is live, and nothing can edit in between.
+// v2.12 (item 134): every year's budget cache, live, once the board has opened -- whichever copy opened. Writes no save and
+// marks nothing unsaved: the caches are derived, so a board saved by this build reopens to the very bytes it was saved with.
+try{ baLiveAll(); }catch(e){}
 try{ jrnlSync(); }catch(e){}
 // v1.97 (item 76): what opening the board wrote into its lists -- one folded into today's shape -- is nobody's change
 // v1.99 (item 95): but a list storage REFUSED while opening is held nowhere but on screen, so it stays unsaved: the file
@@ -37978,6 +38383,8 @@ function uiFlyItems(k){
     // appropriation of the three (toggleFdc says so to anything that calls it there)
     + ((typeof SANDBOX!=='undefined' && SANDBOX)? '' : it('FYDP Disconnects…', 'the cost estimate against the PPBE controls · by appropriation and service', 'toggleFdc'))
     + it('PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2')
+    // v2.12 (item 134): beside the positions it reads -- what the requirements hold against each year's budget
+    + it('Fit to the PPBE position…', 'over · unallocated · UPL, every year of the window', 'toggleFit')
     + it('Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow');
   if(k==='exec') return '<div class="uiFh">Execution</div>'
     + it('Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')

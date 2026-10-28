@@ -466,6 +466,25 @@ for (const build of BUILDS) {
     if (!aceShown.r || !aceCol) record(build, theme, { sc: 'coverage', key: 'the cost estimate import’s report or mapping box was not on screen to measure',
       detail: `the report with its reasons and named rows ${aceShown.r ? 'was' : 'was NOT'} shown; the mapping box with its two pickers ${aceCol ? 'was' : 'was NOT'}`
         + (aceShown.err ? ' (' + aceShown.err + ')' : ''), n: 1 });
+    // v2.12 (item 134): FIT TO THE PPBE POSITION, measured with an over on screen: the plan tagged with a position that gives the
+    // first service $1 of discretionary in the year on screen, and the first requirement directing its whole value there on a
+    // Split, so the year's tables, the over line and its requirement list with Go to are drawn. Then the plan is put back.
+    const fitShown = await page.evaluate(() => { try {
+      if (typeof fitShow !== 'function') return { n: false };
+      openMenu = null; rowMenuId = null; clinOpen = {}; syncBtns(); render();
+      const id = S.order[0], it = itemById(id);
+      window.__fitKeep = { cyc: MS.cycle, id, fsrc: S.fsrc[id] ? JSON.stringify(S.fsrc[id]) : null };
+      MS.ppbe = MS.ppbe || {}; MS.ppbe['POM|2099'] = { v: 2, split: true, lines: {}, val: { [SVC[0]]: { _all: { [MS.cur]: { d: 1, m: 0 } } } } };
+      MS.cycle = 'POM|2099'; S.fsrc[id] = { m: 'split', dv: it.ask.slice(), mv: SVC.map(() => 0) };
+      baLiveAll(); save(); render(); fitShow();
+      return { n: !!document.querySelector('#fitBody .fitover') && document.querySelectorAll('#fitBody .fitgo').length > 0 && !!document.querySelector('#fitBody table.fittab') };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { fitOpen = false; const k = window.__fitKeep; MS.cycle = k.cyc;
+      if (k.fsrc) S.fsrc[k.id] = JSON.parse(k.fsrc); else delete S.fsrc[k.id];
+      delete MS.ppbe['POM|2099']; baLiveAll(); save(); render(); } catch (e) {} });
+    if (!fitShown.n) record(build, theme, { sc: 'coverage', key: 'Fit to the PPBE position was not on screen whole to measure',
+      detail: 'the year’s table, an over line and its requirement list with Go to was NOT shown' + (fitShown.err ? ' (' + fitShown.err + ')' : ''), n: 1 });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.

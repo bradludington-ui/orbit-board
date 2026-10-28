@@ -8,8 +8,8 @@ Codex's acceptance condition for launch (NEXT-VERSION item 59): integer-dollar r
 
 | | surfaces | cells | proven | of which arithmetic / agreement / both | n/a | **open** |
 |---|---:|---:|---:|---|---:|---:|
-| **every registered surface** | 44 | 308 | 112 | 55 / 43 / 14 | 195 | **1** |
-| money-coverage registry | 29 | 203 | 74 | 46 / 20 / 8 | 128 | **1** |
+| **every registered surface** | 46 | 322 | 119 | 62 / 43 / 14 | 202 | **1** |
+| money-coverage registry | 31 | 217 | 81 | 53 / 20 / 8 | 135 | **1** |
 | trace-matrix surfaces | 15 | 105 | 38 | 9 / 23 / 6 | 67 | **0** |
 
 The two registries overlap (a trace surface is a sheet, slide or view of a money-coverage surface), so a figure can be counted under both; each row is mapped on its own evidence.
@@ -63,6 +63,8 @@ The two registries overlap (a trace surface is a sheet, slide or view of a money
 | `spGather` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | n/a |
 | `pmoDetail` | money-coverage | proven·A | proven·AG | proven·A | n/a | n/a | n/a | n/a |
 | `exportFdc` | money-coverage | proven·A | proven·A | proven·A | n/a | n/a | n/a | proven·A |
+| `applyBudget` | money-coverage | n/a | proven·A | proven·A | n/a | n/a | n/a | proven·A |
+| `fitModel` | money-coverage | n/a | proven·A | proven·A | proven·A | n/a | n/a | proven·A |
 | `exportProposedOrder` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | `exportIdsReq` | money-coverage | n/a | n/a | proven·A | proven·A | n/a | n/a | proven·A |
 | `exportRlgPlan` | money-coverage | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -423,6 +425,30 @@ Money-coverage surface. FYDP Disconnects (v2.10, item 130): the cost estimate’
 - **CR half** — n/a: Places no money in time: no month, no date, no window.
 - **Funding lane** — proven·A: `export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* [arithmetic] — Discretionary and Mandatory, each its own line, by appropriation, sheet and year
 
+### `applyBudget`
+
+Money-coverage surface. Each year’s budget authority (v2.12, item 134): the PPBE position logged under the working plan’s tag, read live per year and service, discretionary and mandatory, or the board’s own base where the position says nothing, with added sources on top and the sum floored at 0 -- the figure every lane walk, panel and export of the year reads; a locked view reads the lock’s own copy.
+
+- **Appropriation** — n/a: Built on one appropriation's page from that page's own state — the engine holds one appropriation per page (DATA, SVC and S are its constants) — so it prints no other appropriation's money.
+- **Fiscal year** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)* [arithmetic]; `export-audit/audit-board.mjs` › *v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134)* [arithmetic] — each year from its own state and that year of the position; a year it does not log the board’s own; a lock as it was locked
+- **Service** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)* [arithmetic] — each service the position names from it, the others the board’s own
+- **Requirement** — n/a: States no figure for a single requirement.
+- **Month** — n/a: Places no money in time: no month, no date, no window.
+- **CR half** — n/a: Places no money in time: no month, no date, no window.
+- **Funding lane** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)* [arithmetic] — discretionary and mandatory, each from its own figure and its own added sources
+
+### `fitModel`
+
+Money-coverage surface. The fit to the PPBE position (v2.12, item 134): per held year of the window, service and lane -- the base, added sources, budget authority, what the requirements hold and what they drew, over, unallocated and UPL, and each over’s requirements in priority order; the box, Needs attention, and the UPL line under the last requirement on the board and in the Excel workbook, the Priority Drill and the FYDP Spend Plan.
+
+- **Appropriation** — n/a: Built on one appropriation's page from that page's own state — the engine holds one appropriation per page (DATA, SVC and S are its constants) — so it prints no other appropriation's money.
+- **Fiscal year** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)* [arithmetic] — every held year of the window, each read on a copy of its own state
+- **Service** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)* [arithmetic] — per service, never netted
+- **Requirement** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)* [arithmetic] — each over’s requirements with what each holds and drew
+- **Month** — n/a: Places no money in time: no month, no date, no window.
+- **CR half** — n/a: Places no money in time: no month, no date, no window.
+- **Funding lane** — proven·A: `export-audit/audit-board.mjs` › *v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)* [arithmetic] — discretionary and mandatory apart
+
 ### `exportProposedOrder`
 
 Money-coverage surface. Carries no money (money-coverage REGISTRY).
@@ -756,3 +782,6 @@ The map is as complete as the two registries. money-coverage discovers only func
 | `v199.ace` | `tools/export-audit/audit-recon.mjs` › *v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for* | arithmetic | Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same. |
 | `ot.aiReview` | `tools/export-audit/audit-other.mjs` › *v2.04 (item 109) — the AI review: a request out, an answer in, nothing applied* | arithmetic | The AI review request: each requirement's ask, allocated, funded and unfunded for the year on screen, worked from the fixture's lanes. |
 | `ot.v210a` | `tools/export-audit/audit-other.mjs` › *v2.10 A — FYDP Disconnects: the figures, read never recomputed, and the box (item 130)* | arithmetic | FYDP Disconnects (item 130): every line of the Summary and the four service sheets, written out from the fixture’s own literals -- an estimate across O&M, Full Fund and Spares and six services in fractional dollars (two lines on one service, an OPN line left out, a service in no group), each appropriation’s BES28 position read from its own store (O&M’s on screen, Full Fund’s in browser storage, Spares’ in the file only, Spares missing FY30) -- per appropriation, service group, year and lane (Discretionary, Mandatory), with the FYDP totals, the total section, the delta and % Funded, — for nothing to state, every money figure a whole dollar; the International figures moving the Summary alone; a second estimate that stops at FY31; PB27’s years and controls; every figure the box prints on the Summary and two service sheets; the same model on a locked view and handed to the workbook. |
+| `w3.live` | `tools/export-audit/audit-board.mjs` › *v2.12 W3 — every year’s budget authority is read from the PPBE position, live (item 134)* | arithmetic | Budget authority read live from the PPBE position (item 134): three years and three services, every figure a literal -- each year’s discretionary and mandatory budget authority by service, worked out by hand: USAF and ANG from BES28 (ANG entered in $K), AFRC (named nowhere) and FY29 (logged by nobody) the board’s own, added sources on top in each lane; FY28’s stored cache live without the year being opened; the board’s own base never overwritten; the Spruills’ Available Funding each year; a figure typed into the position, the $K conversion and its undo, a retag, an untag, a line removed, a placeholder line, the position deleted and a load each moving every year at once; a fractional figure read as whole dollars and a negative one floored at 0; Budget Management read-only for the position’s services; a save, a reopen and a stale file read live, and opening writing nothing. |
+| `w3.fit` | `tools/export-audit/audit-board.mjs` › *v2.12 W3 — the fit to the position: over, unallocated and UPL per year, service and lane (item 134)* | arithmetic | The fit to the PPBE position (item 134): for each held year, service and lane, worked out by hand from the fixture -- budget authority, held (Splits’ typed figures clamped to the basis, the lane walk’s draw otherwise), drawn, over, unallocated and UPL (added funding nobody holds, capped at what is unallocated); the over lists in priority order with the requirements the lane cannot pay marked; the ◨ switch moving nothing held; the box’s sentences; Needs attention; and the UPL line by service and lane, after the requirements and their TOTAL, on the board, Funding Streams, the Priority Drill’s 1-N tab and the FYDP Spend Plan’s appropriation tab, read from the workbook bytes, with every TOTAL still the sum of its rows. |
+| `w3.lock` | `tools/export-audit/audit-board.mjs` › *v2.12 W3 — a lock keeps the position it read; only the working plan reads live (item 134)* | arithmetic | A lock keeps the position it read (item 134): an untagged plan tagged before the projection, so the lock’s FY27 and FY28 budget authority are the position’s, by service and lane, and its FY27 UPL; the lock’s copy of the position and its projection unchanged when the position moves after it; its view reading the copy every year; a lock taken before v2.12 reading its years’ own bases in its view. |
