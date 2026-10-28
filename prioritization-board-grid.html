@@ -880,6 +880,9 @@ select.cesel{border-color:var(--edge)}
 .fctab th{background:var(--panel2);color:var(--dim);font-size:8.5px;letter-spacing:.4px;padding:4px 6px;text-align:right;border-bottom:1px solid var(--line)}
 .fctab td{padding:3px 6px;text-align:right;border-bottom:1px solid var(--lineSoft);font-variant-numeric:tabular-nums}
 .fctab tr.tot td{background:var(--sink);font-weight:800;color:var(--gold)}
+/* v2.12 (item 132): the cost estimate import's report and mapping box read a file's own words -- a sheet's titles, a PMO, a
+   category, a paragraph's name -- which run long: they wrap in their cells, so neither box is cut or scrolls sideways */
+#aceRepBody .fctab td,#aceRepBody .fctab th,#aceColBody .fctab td,#aceColBody .fctab th{white-space:normal;overflow-wrap:anywhere}
 /* v1.86: the not-drawn fix list sizes its columns to what they hold -- a long requirement name wraps in
    its own column instead of running into the service beside it */
 .fctab.ndtab{table-layout:auto}
@@ -4236,8 +4239,8 @@ function aceBody(){
     const nOk=mine.filter(function(r){ return r.ok; }).length;
     eTot+=est; bTot+=bd;
     const d=bd-est;
-    // A combined row is stated as combined. Splitting one estimate across two board PMOs would be
-    // a number nobody produced.
+    // A combined row is stated as combined. Splitting one estimate across two board PMOs by a rule would be a number nobody
+    // produced; v2.12 (item 132) splits it beneath, by the lines each office's requirements claim, and only that.
     const lbl=present.map(esc).join(' + ')+(present.length>1
       ? '<span style="color:var(--dim);font-size:8.5px"> \u00b7 one line in '+esc(k)+'</span>' : '');
     h+='<tr><td style="text-align:left;font-weight:700">'+lbl+'</td>'
@@ -35046,9 +35049,12 @@ function exportAceTieout(){
       L('would put a figure on a slide that nobody produced.'),
       [],
       L('COMBINED PMO ROWS.',SEC),
-      L('Where a row names two offices, the estimate carries a single line covering both and it is'),
-      L('shown combined. Splitting it would be a number nobody produced. Which offices share a line'),
-      L('changes between estimates and is a setting on the tie-out panel.'),
+      L('Where a row names two offices, the estimate carries a single line covering both, and it is'),
+      L('shown combined: PSM is inside Air Vehicle in every estimate. Beneath it each office\u2019s part is'),
+      L('the estimate of the lines only its requirements claim by their WBS (a paragraph, or a heading'),
+      L('above it in the estimate\u2019s own tree), and the lines more than one office claims, or none,'),
+      L('are on a shared line. The parts and the shared line add up to the combined row; no other'),
+      L('split rule is invented, and the TOTAL adds the combined rows, never the parts.'),
       [],
       L('CLASSIFICATION CODES.',SEC),
       L('RCN/EEIC belongs to the CLIN, not the WBS: one line of accounting funds a CLIN, so it'),
