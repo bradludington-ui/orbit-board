@@ -270,8 +270,26 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   - **Fixed with it:** the FYDP Spend Plan workbook's STOVL tab leaves out Full Fund's F-35B money, which lands on a
     separate USMC-B tab (`fydpBookModel` joins services by exact name; FYDP Disconnects uses `SVC_ALIAS`). A USMC reader
     of that workbook today sees STOVL understated.
-- **Open (Brad), not blocking:** the titles on the *PMO Database Output* header row (a screenshot of that row alone), so
-  every field is matched by default instead of asked for the first time.
+- **The 2026 header row** (Brad's screenshots, 28 Oct; titles only, row 3 of *PMO Database Output*): *Index*, *Sub Index*,
+  *PALS/O&S*, *$ Type*, *US/PTN/FMS*, *Service*, *T/M/S*, *Rollup Value?*, *JPO Managed*, *Shared/Unique*, *Share Type*,
+  *Cost Allocation Rule*, *Primary Requirement Driver*, *Govt/LM/PW*, *Labor/Material*, *Contract Requirement*,
+  *Bi/Multilat*, *Budget Element (US Only)*, *Appropriation (US Only)*, *Support Line Category*, *CCAR Element*, *CCAR
+  Budget*, ... *Work Breakdown Structure*, *Level*, CES1-CES8, ... then one column per fiscal year, headed by the year
+  (2024 onward), in $M. Brad: *"it allows us to track by Service and variant. Dollar amounts are reported by fiscal year
+  as well."* Matched to what ORBIT reads:
+  - service -> *Service*; variant -> *T/M/S*; JPO-managed -> *JPO Managed*; WBS -> *Work Breakdown Structure*; depth ->
+    *Level*; names -> CES1-CES8; fiscal years -> every header that is a year.
+  - **Not yet matched:** the appropriation (ORBIT keeps O&M, Support/Full Fund, Spares and OPN -- *Appropriation (US
+    Only)*?), the PMO, and the cost element (columns V-Y and after CES8 were not in the screenshots).
+  - **Columns ORBIT never read that decide which rows count:** *$ Type* (CY$ in the screenshot), *Rollup Value?*,
+    *US/PTN/FMS* and *PALS/O&S*. If the file carries the same line in two dollar types, or rollup rows beside their parts,
+    a reader that does not filter on them counts the money twice.
+- **Open (Brad):** which column and values give the appropriation; where the PMO and cost element are; which *$ Type* ORBIT
+  takes (then-year, to sit beside the PPBE positions?); whether *Rollup Value? = Yes* rows are subtotals to leave out;
+  and whether *PALS* rows count or only *O&S*.
+- **Noticed for item 133:** the ACE carries *US/PTN/FMS* (partner and FMS lines ORBIT skips today), *Govt/LM/PW* (who
+  performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
+  the partner lines could later fill it from the estimate itself.
 
 #### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
 - **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
