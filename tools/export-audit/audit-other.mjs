@@ -4275,8 +4275,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // ---- 3b. Excel leaves empty rows out of the file: the rows said are the sheet's own numbers. A workbook written by hand, its
     // titles on row 3 (rows 1 and 2 not in the file), a data row on 5 (row 4 not in the file) and one on 6.
     const B6 = mkBoard();
+    // v2.12 RV1: the titles carry US/PTN/FMS and CCAR Element (their cells blank), so this check of the row numbers is not stopped
+    // by the mapping box, which now asks about either when a file has no column titled so (review R25)
     await B6.ev(`(function(){ var x=function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); },
-      H=${J(['PALS/O&S', '$ Type', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Appropriation (US Only)', 'Support Line Category', 'PMO', 'Work Breakdown Structure', 'Level', 'CES1', 'CES2', '2027'])},
+      H=${J(['PALS/O&S', '$ Type', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Appropriation (US Only)', 'Support Line Category', 'PMO', 'Work Breakdown Structure', 'Level', 'CES1', 'CES2', '2027', 'US/PTN/FMS', 'CCAR Element'])},
       R5=['O&S','TY$','USAF','F-35A','No','Yes','O&M','O&S','Air Vehicle','1.1','2','Manpower','Officer'], R6=['O&S','TY$','USAF','F-35A','No','Yes','O&M','O&S','Nobody Office','1.2','2','Manpower','Enlisted'];
       var col=function(i){ return String.fromCharCode(65+i); }, cells=function(r, a, num){ return a.map(function(v,i){ return '<c r="'+col(i)+r+'" t="inlineStr"><is><t>'+x(v)+'</t></is></c>'; }).join('')
         +(num!==undefined? '<c r="'+col(a.length)+r+'"><v>'+num+'</v></c>' : ''); };
@@ -4324,6 +4326,379 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'PSM inside AV', 'an estimate of any year, read for the first time, puts PSM under AV', E(B5.ev, `JSON.stringify([aceAlign('2031ACE'), aceAlign('2024ACE'), acePmoFor('2031ACE','PSM')])`),
       J([{ PSM: 'AV' }, { PSM: 'AV' }, 'AV']));
     [B, B2, B3, B4, B5, B6].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.12 RV1 (the review of W1's import; recovery/v212/notes-RV1.md): a shared fixture for the blocks below ----------------
+// The 2026 header as W1's block lays it out, a row writer that puts each field under its own title wherever the header carries
+// it (a header renamed or reordered moves nothing else), and a board to import into. `us` and `ces` write what they are given,
+// blank included, so a blank US/PTN/FMS cell can be written.
+const RV1 = (() => {
+  const J = JSON.stringify;
+  const HDR = ['Index', 'Sub Index', 'PALS/O&S', '$ Type', 'US/PTN/FMS', 'Service', 'T/M/S', 'Rollup Value?', 'JPO Managed', 'Shared/Unique',
+    'Appropriation (US Only)', 'Support Line Category', 'CCAR Element', 'CCAR Description', 'PMO', 'Work Breakdown Structure', 'Level',
+    'CES1', 'CES2', 'CES3', 'CES4', 'CES5', 'CES6', 'CES7', 'CES8', 2026, 2027, 2028];
+  // o: {wbs, ces[], d:{year: whole $}, raw:{year: cell as written}, pals, dt, us, svc, tms, roll, jpo, appus, slc, pmo, lv, ccar, cdesc, at:{title: cell}}
+  // `put` writes under every column a title heads, unless `at` names that column's own value (a duplicated title)
+  const rowOf = (o, i, hdr) => { const r = hdr.map(() => '');
+    const put = (t, v) => { const j = hdr.indexOf(t); if (j >= 0) r[j] = v; };
+    put('Index', i + 1); put('PALS/O&S', o.pals || 'O&S'); put('$ Type', o.dt || 'TY$'); put('US/PTN/FMS', o.us !== undefined ? o.us : 'US');
+    put('Service', o.svc || 'USAF'); put('T/M/S', o.tms || 'F-35A'); put('Rollup Value?', o.roll || 'No'); put('JPO Managed', o.jpo || 'Yes');
+    put('Appropriation (US Only)', o.appus || 'O&M'); put('Support Line Category', o.slc === undefined ? 'O&S' : o.slc);
+    put('CCAR Element', o.ccar || ''); put('CCAR Description', o.cdesc || ''); put('PMO', o.pmo || 'Air Vehicle');
+    put('Work Breakdown Structure', o.wbs); put('Level', o.lv !== undefined ? o.lv : (o.wbs ? String(o.wbs).split('.').length : ''));
+    (o.ces || []).forEach((n, k) => put('CES' + (k + 1), n));
+    hdr.forEach((h, j) => { if (typeof h === 'number') { if (o.raw && o.raw[h] !== undefined) r[j] = o.raw[h]; else if (o.d && o.d[h] !== undefined) r[j] = o.d[h] / 1e6; } });
+    Object.keys(o.at || {}).forEach(j => { r[+j] = o.at[j]; });
+    return r; };
+  // the rows are written by HDR's columns (`hdr`), the header row as the file titles it (`shown`)
+  const book = (rows, hdr, shown, extra) => [{ name: 'Cover', rows: [['2026 SUST ACE COMPLETE']] },
+    { name: 'PMO Database Output', rows: [['PMO Database Output — then-year $M'], []].concat([shown || hdr || HDR], rows.map((o, i) => rowOf(o, i, hdr || HDR))) }]
+    .concat(extra || []);
+  const mkBoard = () => { const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], items: [], disc: [0, 0, 0, 0, 0, 0], mand: [0, 0, 0, 0, 0, 0], order: [] });
+    B.ev(`globalThis.__wb=function(sheets, name){ const b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; }; 'ok'`);
+    return B; };
+  const E = (B, code) => { try { return B.ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+  const imp = async (B, sheets, file) => { await B.ev(`importAce({files:[__wb(${J(sheets)}, ${J(file)})], value:''})`); await new Promise(r => setTimeout(r, 30)); };
+  const set = (B, k) => { try { return JSON.parse(B.ev(`JSON.stringify(ACEDB.sets[${J(k)}]||null)`)) || {}; } catch { return {}; } };
+  const stat = B => E(B, `document.getElementById('shareStat').textContent`);
+  const answer = async (B, picks) => { E(B, `(function(){ var p=${J(picks)}; Object.keys(p).forEach(function(f){ var s=document.getElementById('aceCol_'+f); if(s) s.value=String(p[f]); });
+    document.querySelector('#aceColBody button.btn.pri').click(); return 'ok'; })()`); await new Promise(r => setTimeout(r, 30)); };
+  const asked = B => { try { return JSON.parse(E(B, `JSON.stringify(aceColOpen? [].slice.call(document.querySelectorAll('#aceColBody select')).map(function(s){ return s.getAttribute('data-f'); }) : null)`)); } catch { return 'unreadable'; } };
+  return { J, HDR, rowOf, book, mkBoard, E, imp, set, stat, answer, asked };
+})();
+
+// v2.12 RV1 (review R01, R02, R07, R08, R10, R30, K12): A STORED IMPORT REPORT IS READ, NEVER TRUSTED. A board file whose estimate
+// carries a report in a shape ORBIT does not write -- counts as text, a year as text, totals missing, a list given as text -- is
+// opened the way a teammate's file is (its saved bytes booted), and taken through an ordinary import: the Data card is drawn on
+// every redraw, the report box is opened, and the board must keep drawing, draw no markup out of the file, and say the report
+// cannot be read. A whole report with figures that do not add up, but stored as tying, is shown as not tying: the box works it out
+// again. FAILS ON c23e8a0: the Data card draws the text count as an <img> on opening, the report box draws the years as markup,
+// a report missing its totals throws inside render() so the board stops redrawing, and a stored ties:true is printed as ✓.
+{
+  const name = 'v2.12 RV1 — a stored import report is read, never trusted: counts that are text, years that are text and a report missing its totals are said to be unreadable, drawn as nothing, and never stop the board drawing';
+  try {
+    const { J, mkBoard, E } = RV1;
+    const B = mkBoard();
+    const v = { 2027: 1000 };
+    // a whole report, the shape the import writes, except that its stored `ties` claims what its figures do not show
+    const whole = { v: 1, file: 'w.xlsx', sheet: 'PMO Database Output', row: 3, sheets: ['PMO Database Output'], years: [2027], map: {}, absent: [], none: [],
+      reasons: { pmo: { rows: 2, v: { 2027: 300 }, by: [['Owning IPT', 2]] } }, named: [], kept: { rows: 1, lines: 1, zero: 0, v: { 2027: 1000 } },
+      total: { rows: 3, v: { 2027: 1500 } }, notData: 0, types: [], tree: {}, conflicts: [], ties: true };
+    const hostile = '<img src=x id=rv1pw onerror="__rv1pw=1">';
+    const sets = {
+      '2019ACE': { label: '2019ACE', ts: 999, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [],
+        rep: Object.assign({}, whole, { years: ['x'] }) },                                       // a year that is not a year, its figures fine
+      '2020ACE': { label: '2020ACE', ts: 1000, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [],
+        rep: Object.assign({}, whole, { kept: { rows: 1, lines: 1, zero: 0, v: { 2027: '<img src=x id=rv1pw onerror="__rv1pw=1">' } } }) },   // a figure that is text
+      '2021ACE': { label: '2021ACE', ts: 1001, years: [2027], appn: { om: { tot: v, pmo: { AV: v }, svc: { USAF: v } } }, lines: [], rep: whole },
+      '2022ACE': { label: '2022ACE', ts: 1002, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [], skip: { pmo: 2 },
+        rep: { v: 1, reasons: {}, named: [], conflicts: [] } },                                   // no kept, no total (R07, R10, R30, K12)
+      '2023ACE': { label: '2023ACE', ts: 1003, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [],
+        rep: Object.assign({}, whole, { named: 'x', ties: true }) },                              // a list given as text (R10)
+      '2024ACE': { label: '2024ACE', ts: 1004, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [],
+        rep: Object.assign({}, whole, { years: ['2027"><img src=x id=rv1yr onerror="__rv1pw=1">'],
+          total: { rows: 3, v: { '2027"><img src=x id=rv1yr onerror="__rv1pw=1">': 1500 } } }) },   // a year that is text (R02)
+      '2025ACE': { label: '2025ACE', ts: 1005, years: [2027], appn: { om: { tot: v, pmo: {}, svc: {} } }, lines: [],
+        rep: Object.assign({}, whole, { reasons: { dtype: { rows: hostile, v: {} } } }) } };    // a count that is text, the newest (R01, R08)
+    E(B, `ACEDB={ts:Date.now(), sets:${J(sets)}}; persistAce(); save(); 'ok'`);
+    const html = E(B, `buildSavedHtml()`);
+    chk(name, 'the door', 'CONTROL — the board file carrying these reports passes the import check: the report is not the door’s to judge', E(B, `inboundCheck(buildSavedHtml())||'passes'`), 'passes');
+    // ---- opened as a teammate's file is: nothing clicked
+    const O = boot({ html });
+    const ev = c => RV1.E(O, c);
+    ev(`globalThis.__rv1pw=0; 'ok'`);
+    chk(name, 'the Data card', 'opened, with no click: the Data card draws the newest estimate’s report as unreadable, and draws no markup from it',
+      ev(`(function(){ render(); syncBtns(); var b=[].slice.call(document.querySelectorAll('#dd_data .mi')).find(function(x){ return /Import report/.test(x.textContent); });
+        return JSON.stringify([document.querySelectorAll('img#rv1pw, img#rv1yr').length, b? (b.querySelector('.sub')||{}).textContent : 'no item']); })()`),
+      J([0, '2025ACE: its import report cannot be read — import the workbook again']));
+    // ---- each report opened in the box: render() never throws, nothing from the file is markup, and the box says what it is
+    const open = k => ev(`(function(){ var t=''; try{ aceRepShow(${J(k)}); render(); render(); }catch(e){ t='threw: '+e.message; }
+      var el=document.getElementById('aceRepBody'); return JSON.stringify([t, document.getElementById('aceRepPanel').classList.contains('open'),
+        el.querySelectorAll('img').length, !!el.querySelector('.acerep-bad'), /cannot be read/.test(el.textContent), el.textContent.length>0]); })()`);
+    ['2019ACE', '2020ACE', '2022ACE', '2023ACE', '2024ACE', '2025ACE'].forEach(k => {
+      chk(name, 'the report box', k + ': opened and redrawn twice, nothing throws; the box says its report cannot be read, and draws nothing of it as markup',
+        open(k), J(['', true, 0, true, true, true]));
+      ev(`aceRepClose(); 'ok'`);
+    });
+    chk(name, 'the report box', 'and the report missing its totals still names the rows the estimate recorded as left out (its own row counts), so it is not blank',
+      ev(`(function(){ aceRepShow('2022ACE'); render(); var t=document.getElementById('aceRepBody').textContent; aceRepClose(); return /pmo 2/.test(t)+' '+/Import the workbook again/.test(t); })()`), 'true true');
+    // the board keeps drawing while the box is open: the redraw reaches the panels after it and the left menu
+    chk(name, 'the board draws', 'with an unreadable report open, a redraw reaches what comes after the box: the Data card’s item is ticked as open',
+      ev(`(function(){ aceRepShow('2022ACE'); var t=''; try{ render(); }catch(e){ t='threw'; } var b=[].slice.call(document.querySelectorAll('#dd_data .mi')).find(function(x){ return /Import report/.test(x.textContent); });
+        var on=b? /\\u2713/.test((b.querySelector('.chk')||{}).textContent||'') : 'no item'; aceRepClose(); return t+'|'+on; })()`), '|true');
+    // a whole report that does not tie, though it says it does: the box works it out from the figures it prints
+    chk(name, 'the report box', 'a whole report whose kept and left-out dollars do not add to the sheet is shown as not adding up, whatever it stored',
+      ev(`(function(){ aceRepShow('2021ACE'); render(); var t=(document.querySelector('#aceRepBody .acerep-ties')||{}).textContent||''; aceRepClose(); return /\\u2717 Kept and left out do not add/.test(t)+' '+/\\u2713 Every dollar/.test(t); })()`),
+      'true false');
+    chk(name, 'the report box', 'CONTROL — that whole report is drawn as a report (its kept row and its reason), not as unreadable',
+      ev(`(function(){ aceRepShow('2021ACE'); render(); var el=document.getElementById('aceRepBody'), k=el.querySelector('tr.acerep-kept'), p=el.querySelector('tr[data-why="pmo"]');
+        var r=[!!el.querySelector('.acerep-bad'), k? [].slice.call(k.children,1).map(function(td){ return td.textContent; }) : null, p? p.children[1].textContent : null]; aceRepClose(); return JSON.stringify(r); })()`),
+      J([false, ['1', '$1,000', '$1,000'], '2']));
+    chk(name, 'nothing ran', 'no planted handler ran, and no element from the file is on the page', ev(`globalThis.__rv1pw+' '+document.querySelectorAll('#rv1pw, #rv1yr').length`), '0 0');
+    // ---- the same reports through an ordinary import of the board file: taken whole (the import check passes them), drawn as nothing
+    const C = mkBoard();
+    E(C, `globalThis.__rv1pw=0; importStores({aceDb:{ts:Date.now(), sets:${J(sets)}}}); render(); syncBtns(); 'ok'`);
+    chk(name, 'an ordinary import', 'taken by an ordinary import, the same reports draw no markup on the Data card, and opening each throws nothing',
+      E(C, `(function(){ var t=''; ['2019ACE','2020ACE','2022ACE','2023ACE','2024ACE','2025ACE'].forEach(function(k){ try{ aceRepShow(k); render(); aceRepClose(); }catch(e){ t+=k+' threw; '; } });
+        return JSON.stringify([Object.keys(ACEDB.sets).sort(), t, document.querySelectorAll('#rv1pw, #rv1yr').length, globalThis.__rv1pw]); })()`),
+      J([['2019ACE', '2020ACE', '2021ACE', '2022ACE', '2023ACE', '2024ACE', '2025ACE'], '', 0, 0]));
+    [B, O, C].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV1 (review R00, R06, R25): THE HEADER, READ BY TITLE AND NEVER BY POSITION. A title the header carries twice is asked about,
+// never taken from its first column; an answer is remembered by its title, with the column it was given for kept only to tell apart
+// two columns that title shares; a fiscal year heading two columns refuses the file; and an optional column whose absence changes
+// what is read -- US/PTN/FMS, which decides which lines are partner or FMS; CCAR Element; CESk where the file's paragraphs reach
+// level k -- is asked about too, with "this file has no such column" an answer the box remembers. The fixture makes the
+// alternatives disagree: a $3M subtotal (Rollup Value? Yes) over its $1M and $2M parts, so reading the wrong rollup column keeps
+// $6M; partner and FMS rows with a US service, so reading every row as US keeps their $5M; a second 2027 column holding $5M.
+// FAILS ON c23e8a0: a title heading two columns is read from the first (FY27 kept $6M), an answer for a title that heads two columns
+// is re-read from the first next time, a second 2027 column is dropped with the report saying every dollar ties, and a renamed
+// US/PTN/FMS (or CES3, or CCAR Element) is read as absent with no question.
+{
+  const name = 'v2.12 RV1 — the header: a title or a year that heads two columns, a remembered answer resolved by its title, and an optional column renamed, are asked about or refused, never read by position';
+  try {
+    const { J, HDR, book, mkBoard, E, imp, set, stat, answer, asked } = RV1;
+    const R3 = [{ wbs: '1.2', roll: 'Yes', ces: ['A', 'B'], d: { 2027: 3000000 } }, { wbs: '1.2.1', ces: ['A', 'B', 'C'], d: { 2027: 1000000 } },
+      { wbs: '1.2.2', ces: ['A', 'B', 'D'], d: { 2027: 2000000 } }];
+    const kept27 = B => (set(B, '2026ACE').rep || { kept: { v: {} } }).kept.v[2027];
+    const H = t => HDR.indexOf(t);
+    // (a) the real Rollup Value? is H; column A is titled the same
+    const HA = HDR.map((t, i) => (i === 0 ? 'Rollup Value?' : t));
+    const A1 = mkBoard();
+    await imp(A1, book(R3, HDR, HA), '2026 ACE dup.xlsx');
+    chk(name, 'a title twice', 'a title the header carries on two columns is asked about, the box naming both columns, and nothing is read yet',
+      J([asked(A1), E(A1, `(document.querySelector('#aceColBody .acecol-why[data-f="roll"]')||{}).textContent||''`), JSON.stringify(set(A1, '2026ACE')) === '{}']),
+      J([['roll'], 'This file titles 2 columns alike: A, ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[H('Rollup Value?')] + '. Pick the one that holds it.', true]));
+    await answer(A1, { roll: H('Rollup Value?') });
+    chk(name, 'a title twice', 'answered, the subtotal is left out: FY27 keeps $3,000,000, not its parts and itself', J([kept27(A1), ((set(A1, '2026ACE').rep || {}).reasons || {}).rollup]),
+      J([3000000, { rows: 1, v: { 2027: 3000000 }, by: [] }]));
+    E(A1, `confirm=function(){ return true; }; 'ok'`);
+    await imp(A1, book(R3, HDR, HA), '2026 ACE dup.xlsx');
+    chk(name, 'a title twice', 'the same layout again is read by the answer -- the column it was given for, which that title still heads -- without asking',
+      J([asked(A1), kept27(A1), (((set(A1, '2026ACE').rep || {}).map || {}).roll || {}).how]), J([null, 3000000, 'remembered']));
+    // (b) a renamed title answered in the box, which a second column also carries
+    const HB = HDR.map((t, i) => (i === 0 || t === 'Rollup Value?' ? 'Flag' : t));
+    const B2 = mkBoard();
+    E(B2, `confirm=function(){ return true; }; 'ok'`);
+    await imp(B2, book(R3, HDR, HB), '2026 ACE flag.xlsx');
+    chk(name, 'remembered by title', 'Rollup Value? renamed "Flag", and column A also titled "Flag": asked', J(asked(B2)), J(['roll']));
+    await answer(B2, { roll: H('Rollup Value?') });
+    const memB = (() => { try { return JSON.parse(E(B2, `JSON.stringify(ACEDB.cols[Object.keys(ACEDB.cols)[0]])`)); } catch { return {}; } })();
+    chk(name, 'remembered by title', 'the answer is remembered by its title, with the column it was given for beside it', J([memB.map, memB.at]), J([{ roll: 'Flag' }, { roll: H('Rollup Value?') }]));
+    await imp(B2, book(R3, HDR, HB), '2026 ACE flag.xlsx');
+    chk(name, 'remembered by title', 'the next import of that layout reads the column the person picked, not the first column titled "Flag": FY27 keeps $3,000,000',
+      J([asked(B2), kept27(B2)]), J([null, 3000000]));
+    // an answer remembered by its title alone (a board before this, or another board's) cannot say which of the two: asked again
+    E(B2, `(function(){ var k=Object.keys(ACEDB.cols)[0]; ACEDB.cols[k]={map:{roll:'Flag'}}; return 'ok'; })()`);
+    await imp(B2, book(R3, HDR, HB), '2026 ACE flag.xlsx');
+    chk(name, 'remembered by title', 'remembered by its title alone, with two columns carrying it, the field is asked about again, never taken from the first', J(asked(B2)), J(['roll']));
+    E(B2, `aceColCancel(); 'ok'`);
+    // (c) a fiscal year heading two columns: refused, either order, nothing stored
+    const HC = HDR.concat([2027]);
+    const RC = [{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 1000000 }, at: { [HC.length - 1]: 5 } }];
+    const C3 = mkBoard();
+    await imp(C3, book(RC, HC), '2026 ACE two 2027.xlsx');
+    chk(name, 'a year twice', 'a header with 2027 on two columns is refused, naming the year and both columns, and nothing is stored',
+      J([/same fiscal year/.test(stat(C3)), /FY2027 in columns AA and AC/.test(stat(C3)), E(C3, `JSON.stringify(Object.keys(ACEDB.sets||{}))`)]), J([true, true, '[]']));
+    const HC2 = [2027].concat(HDR);
+    await imp(C3, book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 1000000 }, at: { 0: 5 } }], HC2), '2026 ACE two 2027.xlsx');
+    chk(name, 'a year twice', 'and with the extra 2027 first: refused the same way, never read as the estimate', J([/FY2027 in columns A and AB/.test(stat(C3)), E(C3, `Object.keys(ACEDB.sets||{}).length`)]), J([true, 0]));
+    // (d) US/PTN/FMS renamed: partner and FMS rows that carry a US service
+    const RD = [{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 1000000 } }, { wbs: '1.2', us: 'PTN', ces: ['A', 'C'], d: { 2027: 2000000 } },
+      { wbs: '1.3', us: 'FMS', ces: ['A', 'D'], d: { 2027: 3000000 } }];
+    const HD = HDR.map(t => (t === 'US/PTN/FMS' ? 'US / Partner / FMS' : t));
+    const D4 = mkBoard();
+    E(D4, `confirm=function(){ return true; }; 'ok'`);
+    await imp(D4, book(RD, HDR, HD), '2026 ACE partner.xlsx');
+    chk(name, 'an optional column renamed', 'US/PTN/FMS retitled: asked about, as optional, with "this file has no such column" offered and nothing chosen',
+      J([asked(D4), E(D4, `(function(){ var s=document.getElementById('aceCol_usptn'); return JSON.stringify([s.value, [].slice.call(s.options).slice(0,2).map(function(o){ return o.value+'='+o.textContent; })]); })()`)]),
+      J([['usptn'], J(['', ['=— choose —', 'none=— this file has no such column —']])]));
+    await answer(D4, {});
+    chk(name, 'an optional column renamed', 'left unanswered, the file is refused naming it, and nothing is stored', J([/no answer was given for “US\/PTN\/FMS”/.test(stat(D4)), E(D4, `Object.keys(ACEDB.sets||{}).length`)]), J([true, 0]));
+    await imp(D4, book(RD, HDR, HD), '2026 ACE partner.xlsx');
+    await answer(D4, { usptn: H('US/PTN/FMS') });
+    chk(name, 'an optional column renamed', 'answered with its column, the partner and FMS rows are left out: FY27 keeps $1,000,000, not $6,000,000',
+      J([kept27(D4), (((set(D4, '2026ACE').rep || {}).reasons || {}).partner || {}).rows]), J([1000000, 2]));
+    await imp(D4, book(RD, HDR, HD), '2026 ACE partner.xlsx');
+    chk(name, 'an optional column renamed', 'the same layout again: read by the answer, not asked', J([asked(D4), kept27(D4)]), J([null, 1000000]));
+    // no such column at all: answered "none", every row read as US -- said in the status line and the report, and remembered
+    const HD2 = HDR.filter(t => t !== 'US/PTN/FMS');
+    const D5 = mkBoard();
+    await imp(D5, book(RD.slice(0, 1), HD2), '2026 ACE no partner column.xlsx');
+    chk(name, 'no such column', 'a file with no US/PTN/FMS column is asked about it', J(asked(D5)), J(['usptn']));
+    await answer(D5, { usptn: 'none' });
+    chk(name, 'no such column', 'answered "this file has no such column": imported, said in the status line, recorded in the report, remembered as none',
+      J([kept27(D5), /no US\/PTN\/FMS column, so every row was read as US/.test(stat(D5)), (set(D5, '2026ACE').rep || {}).none,
+        E(D5, `JSON.stringify(ACEDB.cols[Object.keys(ACEDB.cols)[0]].none)`)]), J([1000000, true, ['usptn'], J(['usptn'])]));
+    E(D5, `confirm=function(){ return true; }; 'ok'`);
+    await imp(D5, book(RD.slice(0, 1), HD2), '2026 ACE no partner column.xlsx');
+    chk(name, 'no such column', 'and the same layout again is read without asking', J(asked(D5)), 'null');
+    // CES3 renamed on a file whose paragraphs reach level 3: asked; CES4-CES8 absent and nothing that deep: not asked
+    const LE = HDR.filter(t => !/^CES[4-8]$/.test(t)), HE = LE.map(t => (t === 'CES3' ? 'Level 3 name' : t));
+    const RE = [{ wbs: '1.2.1', ces: ['Manpower', 'Maintenance', 'Organizational'], d: { 2027: 1000000 } }];
+    const E6 = mkBoard();
+    await imp(E6, book(RE, LE, HE), '2026 ACE ces3.xlsx');
+    chk(name, 'CES by depth', 'CES3 retitled on a file whose paragraphs reach level 3 is asked about; CES4-CES8, deeper than any paragraph, are not', J(asked(E6)), J(['ces3']));
+    await answer(E6, { ces3: HE.indexOf('Level 3 name') });
+    chk(name, 'CES by depth', 'answered, the level-3 paragraph is named by it', E(E6, `aceWbsPath('2026ACE','om','1.2.1')`), 'Manpower › Maintenance › Organizational');
+    const E7 = mkBoard();
+    await imp(E7, book([{ wbs: '1.2', ces: ['Manpower', 'Maintenance'], d: { 2027: 1000000 } }], HDR.filter(t => !/^CES[3-8]$/.test(t))), '2026 ACE shallow.xlsx');
+    chk(name, 'CES by depth', 'CONTROL — a file two levels deep with no CES3-CES8 is not asked about them: imported straight on', J([asked(E7), Object.keys(set(E7, '2026ACE').lines || {}).length]), J([null, 1]));
+    // CCAR Element renamed: asked about (each line's CCaR record puts its paragraphs first in a requirement's WBS picker)
+    const E8 = mkBoard();
+    await imp(E8, book([{ wbs: '1.2', ces: ['A', 'B'], ccar: 'JSF5594', d: { 2027: 1000000 } }], HDR, HDR.map(t => (t === 'CCAR Element' ? 'CCaR Record No' : t))), '2026 ACE ccar.xlsx');
+    chk(name, 'CCAR Element', 'CCAR Element retitled is asked about', J(asked(E8)), J(['ccar']));
+    await answer(E8, { ccar: H('CCAR Element') });
+    chk(name, 'CCAR Element', 'answered, each line carries its CCaR record', ((set(E8, '2026ACE').lines || [])[0] || {}).ccar, 'JSF5594');
+    [A1, B2, C3, D4, D5, E6, E7, E8].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV1 (review R05, R11, R04): THE FILE'S KEY KEEPS THE YEAR RIGHT BEFORE ACE, AND A YEAR CELL IS A FIGURE ONLY WHEN IT IS ONE.
+// A locked 2026ACE is held; the same estimate under names a person gives a file -- "2026ACE_final", "2026ACE (1)", "FY2026ACE",
+// "2026 ACE_final", "2026_ACE" -- must meet the locked-replace question (answered Cancel: nothing changes), while "2026 Workspace",
+// "2026 TRACE" and "2026 ACEs" are not estimates of 2026 and are filed under their own names. Then year cells written as text: a
+// word or a date reads as nothing and the row is named; a U+2212 minus and "$(1.5)" are negative; "1,234.5" is a figure.
+// FAILS ON c23e8a0: the names glued to ACE are filed under their whole names with no question, "FY27 TBD" reads $27,000,000,
+// "−1.5" and "$(1.5)" read positive, and no cell is named.
+{
+  const name = 'v2.12 RV1 — the file key keeps the year right before ACE, so a re-import meets the locked-replace question; and a year cell is a figure only when the whole of it is one';
+  try {
+    const { J, book, mkBoard, E, imp, set } = RV1;
+    const B = mkBoard();
+    const R1 = [{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 1000000 } }];
+    await imp(B, book(R1), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    chk(name, 'the key', 'CONTROL — the 2026 file’s own name is 2026ACE, locked', E(B, `JSON.stringify([Object.keys(ACEDB.sets), ACEDB.sets['2026ACE'].locked])`), J([['2026ACE'], true]));
+    E(B, `globalThis.__asked=[]; confirm=function(m){ __asked.push(String(m).split('\\n')[0]); return false; }; 'ok'`);
+    const same = ['2026ACE_final.xlsx', '2026ACE (1).xlsx', 'FY2026ACE.xlsx', '2026 ACE_final.xlsx', '2026_ACE.xlsx', '2026ACE Detail File.xlsx'];
+    for (const f of same) await imp(B, book(R1), f);
+    chk(name, 'the key', 'each name with 2026 right before ACE is the same estimate: the locked-replace question is asked, and Cancel leaves one estimate',
+      E(B, `JSON.stringify([__asked.length, __asked.every(function(m){ return /2026ACE is already loaded and LOCKED/.test(m); }), Object.keys(ACEDB.sets)])`), J([same.length, true, ['2026ACE']]));
+    E(B, `confirm=function(){ return true; }; 'ok'`);
+    for (const f of ['2026 Workspace.xlsx', '2026 TRACE.xlsx', '2026 ACEs.xlsx']) await imp(B, book(R1), f);
+    chk(name, 'the key', 'a word ending in ace after the year, or ACE run into a word, is not an estimate of 2026: each is filed under its own name',
+      E(B, `JSON.stringify(Object.keys(ACEDB.sets).sort())`), J(['2026 ACEs', '2026 TRACE', '2026 Workspace', '2026ACE']));
+    // ---- year cells written as text
+    const C = mkBoard();
+    const RT = [{ wbs: '1.1', ces: ['A', 'B'], raw: { 2027: 'FY27 TBD', 2028: '12/31/2026' } }, { wbs: '1.2', ces: ['A', 'C'], raw: { 2027: '−1.5' } },
+      { wbs: '1.3', ces: ['A', 'D'], raw: { 2027: '$(1.5)', 2028: '1,234.5' } }, { wbs: '1.4', ces: ['A', 'E'], raw: { 2027: 'see note 3', 2028: '-' }, d: { 2026: 2000000 } },
+      { wbs: '1.5', ces: ['A', 'F'], raw: { 2027: '1,5' }, d: { 2026: 1000000 } }];
+    await imp(C, book(RT), '2026 ACE text cells.xlsx');
+    const s = set(C, '2026ACE');
+    chk(name, 'figures', 'a minus sign pasted from an exhibit and "$(1.5)" are negative; "1,234.5" is a figure; a word, a date and "1,5" read as nothing',
+      J((s.lines || []).map(l => [l.wbs, l.v])), J([['1.2', { 2027: -1500000 }], ['1.3', { 2027: -1500000, 2028: 1234500000 }], ['1.4', { 2026: 2000000 }], ['1.5', { 2026: 1000000 }]]));
+    chk(name, 'figures', 'every row with a cell of text that is not a figure is named, with the cell as the file wrote it; a bare dash is not',
+      J(((s.rep || {}).named || []).filter(n => n.k === 'text').map(n => [n.wbs, n.what])),
+      J([['1.1', 'FY2027 “FY27 TBD” · FY2028 “12/31/2026”'], ['1.4', 'FY2027 “see note 3”'], ['1.5', 'FY2027 “1,5”']]));
+    chk(name, 'figures', 'and the paragraph whose only cells were text is in the tree with no dollar, its row counted kept', J([(s.rep || {}).kept && s.rep.kept.zero, !!((s.wbs || {}).om || {})['1.1']]), J([1, true]));
+    chk(name, 'figures', 'aceMoney itself: a figure only when the whole cell is one', E(C, `JSON.stringify(['FY27 TBD','Q3','see note 3','\\u22121.5','$(1.5)','($1.5)','(1.5)','1,234.5','1,5','1.5-','',' 2 ',3].map(aceMoney))`),
+      J([0, 0, 0, -1500000, -1500000, -1500000, -1500000, 1234500000, 0, 0, 0, 2000000, 3000000]));
+    [B, C].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV1 (review R03, R09, R26, K08): A BREAKOUT IS A WHOLE BRANCH. Once a heading on a suffixed line takes the suffix, every heading
+// below it on that line does too, so an E line never folds back under its twin's heading where a lower level's name repeats the
+// twin's. Three shapes, each on an O&S board where the AV + PSM split can read them: a level-5 E line whose level-3 name differs and
+// level-4 name matches (R09); a breakout from level 2, whose level-3 name matches (K08); and, as controls, Brad's own shapes -- a
+// level-4 E line whose level-3 name differs (P6.2.2.1E) and one whose names all match (P6.5.1.2E, under Government). Then a Full
+// Fund 5-level E line (R03, R26) beside a level-4 E line of the same code named otherwise, a conflict that is named. AV claims the
+// plain headings 1.2.2 and 1.3, PSM the breakouts 1.2.2E and 1.3E: each breakout's dollars are PSM's part. Every expectation is typed
+// here from the fixture. FAILS ON c23e8a0: both breakouts fold under the plain headings, the ECU headings hold nothing, PSM's part is
+// $0 and AV's carries the ECU lines' $800,000.
+{
+  const name = 'v2.12 RV1 — an E breakout is a whole branch: every heading below the first one that takes the suffix carries it, and the AV + PSM split follows the tree';
+  try {
+    const { J, book, mkBoard, E, imp, set } = RV1;
+    const B = mkBoard();
+    const RW = [
+      { wbs: '1.2.2.1.1', ces: ['Manpower', 'Maintenance', 'Propulsion', 'F135', 'Engine repair'], d: { 2027: 1000000 } },
+      { wbs: '1.2.2.1.1E', ces: ['Manpower', 'Maintenance', 'ECU Propulsion', 'F135', 'Engine repair ECU'], d: { 2027: 500000 } },
+      { wbs: '1.3.2.1', ces: ['Manpower', 'CONUS Depot', 'Propulsion', 'Engine shop'], d: { 2027: 400000 } },
+      { wbs: '1.3.2.1E', ces: ['Manpower', 'ECU Depot', 'Propulsion', 'Engine shop ECU'], d: { 2027: 300000 } },
+      { wbs: '1.4.2.1', ces: ['Manpower', 'Depot', 'Propulsion', 'Line'], d: { 2027: 20000 } },
+      { wbs: '1.4.2.1E', ces: ['Manpower', 'Depot', 'ECU Propulsion', 'Line ECU'], d: { 2027: 10000 } },
+      { wbs: '1.5.1.2', ces: ['Manpower', 'Government Depot', 'Government', 'Gov line'], d: { 2027: 7000 } },
+      { wbs: '1.5.1.2E', ces: ['Manpower', 'Government Depot', 'Government', 'Gov line E'], d: { 2027: 3000 } },
+      // Full Fund: a 5-level E line, and a level-4 E line of the code the deeper line's level-4 heading takes, named otherwise
+      { wbs: 'P6.2.2.1', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: ['Depot Standup', 'CONUS Depot Standup', 'Propulsion', 'Engine shop'], d: { 2027: 110000 } },
+      { wbs: 'P6.2.2.1.3', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: ['Depot Standup', 'CONUS Depot Standup', 'Propulsion', 'Engine shop', 'Tooling'], d: { 2027: 120000 } },
+      { wbs: 'P6.2.2.1E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: ['Depot Standup', 'CONUS Depot Standup', 'ECU Propulsion', 'Engine shop ECU'], d: { 2027: 130000 } },
+      { wbs: 'P6.2.2.1.3E', pals: 'PALS', slc: 'Depot Activation', appus: 'Procurement', pmo: 'Propulsion', ces: ['Depot Standup', 'CONUS Depot Standup', 'ECU Propulsion', 'Engine shop', 'Tooling ECU'], d: { 2027: 140000 } }];
+    await imp(B, book(RW), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    const up = (ap, c) => E(B, `JSON.stringify(aceWbsUp('2026ACE',${J(ap)},${J(c)}))`);
+    chk(name, 'the tree', 'a level-5 E line whose level-3 name differs stays in its breakout below it: 1.2.2.1.1E -> 1.2.2.1E -> 1.2.2E -> 1.2 -> 1',
+      up('om', '1.2.2.1.1E'), J(['1.2.2.1.1E', '1.2.2.1E', '1.2.2E', '1.2', '1']));
+    chk(name, 'the tree', 'and its path names its own breakout, ECU Propulsion', E(B, `aceWbsPath('2026ACE','om','1.2.2.1.1E')`), 'Manpower › Maintenance › ECU Propulsion › F135 › Engine repair ECU');
+    chk(name, 'the tree', 'a breakout from level 2 is that heading’s whole branch: 1.3.2.1E -> 1.3.2E -> 1.3E "ECU Depot" -> 1',
+      up('om', '1.3.2.1E') + ' ' + E(B, `(aceWbsNode('2026ACE','om','1.3E')||{}).n`), J(['1.3.2.1E', '1.3.2E', '1.3E', '1']) + ' ECU Depot');
+    chk(name, 'the tree', 'CONTROL — Brad’s shapes are as before: a level-4 E line under its own level-3 heading, and one whose names all match under Government',
+      up('om', '1.4.2.1E') + ' ' + up('om', '1.5.1.2E'), J(['1.4.2.1E', '1.4.2E', '1.4', '1']) + ' ' + J(['1.5.1.2E', '1.5.1', '1.5', '1']));
+    chk(name, 'the tree', 'Full Fund: P6.2.2.1.3E -> P6.2.2.1E -> P6.2.2E -> P6.2 -> P6, and the plain P6.2.2.1 keeps none of it',
+      up('ff', 'P6.2.2.1.3E') + ' ' + E(B, `JSON.stringify(Object.keys(ACEDB.sets['2026ACE'].wbs.ff).filter(function(c){ return ACEDB.sets['2026ACE'].wbs.ff[c].up==='P6.2.2.1'; }))`),
+      J(['P6.2.2.1.3E', 'P6.2.2.1E', 'P6.2.2E', 'P6.2', 'P6']) + ' ' + J(['P6.2.2.1.3']));
+    chk(name, 'the tree', 'the heading P6.2.2.1E that line passes through is a line named otherwise: two names for one paragraph, named as a conflict',
+      J(((set(B, '2026ACE').rep || {}).conflicts || []).map(c => [c.ap, c.code, c.n, (c.also || []).map(a => a.n)])), J([['ff', 'P6.2.2.1E', 'Engine shop ECU', ['Engine shop']]]));
+    // the AV + PSM split reads the tree: AV on the plain headings, PSM on the breakouts
+    const split = E(B, `JSON.stringify((function(){ var sp=aceGroupSplit('2026ACE','AV',['AV','PSM'],[{fy:2027, rows:[{pmo:'AV', claims:['1.2.2','1.3','1.4.2','1.5.1']}, {pmo:'PSM', claims:['1.2.2E','1.3E','1.4.2E']}]}]);
+      return [sp.by.AV, sp.by.PSM, sp.shared, sp.est]; })())`);
+    chk(name, 'the split', 'each breakout’s dollars are the office’s that claims the breakout: PSM $810,000 (500,000 + 300,000 + 10,000), AV $1,430,000, nothing shared',
+      split, J([1000000 + 400000 + 20000 + 7000 + 3000, 500000 + 300000 + 10000, 0, 2240000]));
+    try { B.w.close(); } catch {}
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV1 (review R33, R35): COVERAGE -- the code was right and nothing pinned it. Every entry of the Support Line Category map is a
+// kept row with dollars no other row uses, so a category dropped from the map or filed under another appropriation or cost element
+// moves a figure; a later sheet carrying the very same titles (a copied tab) with other dollars, so the tie goes to the first sheet
+// as the contract says; and a kept row whose US/PTN/FMS cell is blank, read as US (W1's decision). These pass on c23e8a0: they are
+// here for the mutations that change each rule (v212-rv1-slc-*, v212-rv1-header-tie-last, v212-rv1-blank-us-partner).
+{
+  const name = 'v2.12 RV1 — every Support Line Category the map holds lands on its appropriation and cost element; a header tie goes to the first sheet; a blank US/PTN/FMS cell is US';
+  try {
+    const { J, HDR, book, mkBoard, E, imp, set } = RV1;
+    const F = (slc, ce, ces2, pmo) => ({ slc, pals: 'PALS', appus: 'Procurement', pmo: pmo || 'Air Vehicle', ces: ['Full Fund', ces2 || slc], x: { ap: 'ff', ce } });
+    const R = [
+      { slc: 'O&S', ces: ['O&M', 'Ops'], x: { ap: 'om', ce: '' } },
+      { slc: 'Initial Spares', pals: 'PALS', appus: 'Procurement', ces: ['Spares', 'Initial'], x: { ap: 'sp', ce: '' } },
+      { slc: 'Other Proc (OPN)', pals: 'PALS', appus: 'Procurement', ces: ['OPN', 'Support'], x: { ap: 'opn', ce: '' } },
+      F('Airframe PGSE', 'Airframe PGSE'), F('Avionics PGSE', 'Avionics PGSE'), F('Engine PGSE', 'Engine PGSE'), F('Fixed JPO Support', 'Fixed JPO Support'),
+      F('JRE', 'JRE'), F('Other ILS', 'Other ILS Production'), F('PEC TRNG EQ', 'Peculiar Training Equip'),
+      F('PEC TRNG EQ (Full Mission Sims)', 'Full Mission Simulators'), F('Production Eng Support', 'Production Engineering Support'),
+      F('Pubs / Tech Data', 'Pubs/Tech Data'), F('Depot Activation', 'Depot Standup Software', 'Software Depot Standup'),
+      F('Depot Activation', 'Depot Standup Propulsion', 'Organic Depot', 'Propulsion'), F('Depot Activation', 'Depot Standup Air Vehicle', 'Organic Depot', 'Air Vehicle'),
+      // a blank US/PTN/FMS cell, the column present: US (W1's decision), kept
+      { slc: 'O&S', us: '', ces: ['O&M', 'Blank flag'], x: { ap: 'om', ce: '' } }];
+    R.forEach((o, i) => { o.wbs = (o.pals === 'PALS' ? 'P' : '') + (i + 1) + '.1'; o.d = { 2027: (i + 1) * 1000003 }; });
+    chk(name, 'fixture', 'CONTROL — one kept row for every entry of the map, and every dollar figure distinct',
+      J([new Set(R.map(o => o.slc)).size, new Set(R.map(o => o.d[2027])).size === R.length]), J([14, true]));
+    // the copied tab: the same titles, every figure ten times over, after the real one
+    const copy = { name: 'PMO Database Output (copy)', rows: [['copy'], [], HDR].concat(R.map((o, i) => RV1.rowOf(Object.assign({}, o, { d: { 2027: o.d[2027] * 10 } }), i, HDR))) };
+    const B = mkBoard();
+    await imp(B, book(R, HDR, null, [copy]), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    const s = set(B, '2026ACE');
+    chk(name, 'a tie', 'two sheets carry the same titles: the first in the file is read, and its dollars', J([(s.rep || {}).sheet, ((s.lines || [])[0] || { v: {} }).v[2027]]), J(['PMO Database Output', 1000003]));
+    chk(name, 'the map', 'every category lands on its appropriation and cost element, with its own dollars',
+      J((s.lines || []).map(l => [l.slc, l.ap, l.ce, l.v[2027]])), J(R.map(o => [o.slc, o.x.ap, o.x.ce, o.d[2027]])));
+    const tot = ap => R.filter(o => o.x.ap === ap).reduce((a, o) => a + o.d[2027], 0);
+    chk(name, 'the map', 'and each appropriation’s total is its categories’ dollars', J(['ff', 'om', 'opn', 'sp'].map(ap => [ap, ((s.appn || {})[ap] || { tot: {} }).tot[2027]])),
+      J(['ff', 'om', 'opn', 'sp'].map(ap => [ap, tot(ap)])));
+    chk(name, 'blank US/PTN/FMS', 'the row with a blank US/PTN/FMS cell is kept, and nothing is left out as partner or FMS',
+      J([(s.lines || []).some(l => l.wbs === R[R.length - 1].wbs), !!(((s.rep || {}).reasons || {}).partner)]), J([true, false]));
+    try { B.w.close(); } catch {}
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

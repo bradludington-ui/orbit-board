@@ -1,0 +1,206 @@
+[
+ {
+  "id": "v212-rv1-card-trusts-report",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-box-trusts-report",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-repof-counts-any",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-repof-figures-any",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-repof-years-any",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-repof-lists-quiet",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-repof-core-unchecked",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-box-trusts-ties",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-box-bad-unsaid",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-box-bad-no-counts",
+  "caughtBy": "audit-other / v2.12 RV1 — a stored import report"
+ },
+ {
+  "id": "v212-rv1-dup-title-first",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-remembered-first-of-two",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-remembered-at-not-kept",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-year-twice-read",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-optional-not-asked",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-ces-depth-ignored",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-none-not-remembered",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-none-not-read",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-unanswered-optional-taken",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-no-usptn-unsaid",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-dup-unexplained",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-optional-no-none",
+  "caughtBy": "audit-other / v2.12 RV1 — the header:"
+ },
+ {
+  "id": "v212-rv1-key-word-boundary",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-key-ace-in-word",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-money-scrape",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-money-unicode-minus",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-money-dollar-paren",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-money-commas-loose",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-text-cell-unnamed",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-dash-named",
+  "caughtBy": "audit-other / v2.12 RV1 — the file key"
+ },
+ {
+  "id": "v212-rv1-suffix-no-carry",
+  "caughtBy": "audit-other / v2.12 RV1 — an E breakout"
+ },
+ {
+  "id": "v212-rv1-slc-airframe-dropped",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-avionics-dropped",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-engine-dropped",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-fixedjpo-dropped",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-jre-dropped",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-same-ce",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-pecte-opn",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-pecte-ce",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-fms-sims-ce",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-pes-sp",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-pubs-ce",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-spares-ap",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-slc-opn-ap",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-header-tie-last",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-blank-us-partner",
+  "caughtBy": "audit-other / v2.12 RV1 — every Support Line Category"
+ },
+ {
+  "id": "v212-rv1-card-unescaped-sum",
+  "caughtBy": "audit-hostile"
+ },
+ {
+  "id": "v212-w1-remembered-ignored",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-remembered-not-kept",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-suffix-plain",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ },
+ {
+  "id": "v212-w1-suffix-always",
+  "caughtBy": "audit-other / v2.12 W1 —"
+ }
+]
