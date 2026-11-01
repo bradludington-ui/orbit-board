@@ -4953,12 +4953,14 @@ const W2_DRIVE = `(function(){
     __w2put('arDesc', 'What it buys'); __w2put('arCons', 'What is lost'); };
   globalThis.__w2opts=function(sel){ return [].map.call(document.querySelectorAll(sel+' option'), function(o){ return [o.value, o.getAttribute('label')||'']; }); };
   return 'ok'; })()`;
-const w2Board = (est) => {
+// v2.12 (integration): `opt` may give the lanes and the order (the Needs attention block's unfunded primes); the default is the board
+// every W2 block uses
+const w2Board = (est, opt) => {
   const B = boot();
   seed(B.ev, { services: ['USAF', 'ANG'],
     items: [w2it('A', 'AV', [100, 50], { ccar: 'JSF1' }), w2it('B', 'AV', [80, 0]), w2it('C', 'AV', [60, 0], { ccar: 'JSF9' }),
             w2it('S', 'AV', [400, 0]), w2it('P', 'AV', [300, 0]), w2it('Q', 'AV', [150, 0]), w2it('R', 'AV', [500, 0])],
-    disc: [1290, 50], mand: [0, 0], order: ['A', 'B', 'C', 'S', 'P', 'Q', 'R'] });
+    disc: (opt && opt.disc) || [1290, 50], mand: [0, 0], order: (opt && opt.order) || ['A', 'B', 'C', 'S', 'P', 'Q', 'R'] });
   B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
     S.ptype={A:'OGC', B:'OGC', C:'OGC', S:'OGC', P:'PRIME', Q:'PRIME', R:'PRIME'};
     DATA.clins=DATA.clins||{}; DATA.clins.P=[{clin:'0001', desc:'P one', ccar:'', ask:[200,0]}, {clin:'0002', desc:'P two', ccar:'', ask:[100,0]}];
@@ -5159,6 +5161,17 @@ const w2Board = (est) => {
     chk(name, 'no estimate', 'WBS not in the estimate is empty, and the posture has no entry for it; Without a WBS still counts A, P and R',
       N.ev(`JSON.stringify([attLists().wbsx.length, [].some.call(document.querySelectorAll('#posture .ppatt button'), function(b){ return b.getAttribute('onclick')==='attShow("wbsx")'; }), attLists().wbs.map(function(r){ return r.id; })])`),
       J([0, false, ['A', 'P', 'R']]));
+    // v2.12 (integration): A PRIME IS WITHOUT A WBS BY ITS CLINS, FUNDED OR NOT. Above, P's CLIN 0002 and R's money on no CLIN go
+    // out blank on the Spend Plan Source, so RV2's rule (list what goes out blank) lists them whatever wbsStateOf says -- and on the
+    // merged board v212-w2-att-prime-any-clin and -no-clins SURVIVED. Here the lanes run dry before P and R: nothing of theirs goes
+    // out, and only the rule that a prime is without a WBS while a CLIN asking money has none, or while it has no CLIN, lists them.
+    const U = w2Board(W2_SET, { disc: [790, 50], order: ['A', 'B', 'C', 'S', 'Q', 'P', 'R'] });
+    chk(name, 'unfunded primes', 'the lanes pay P and R nothing, and nothing of theirs goes out on the Spend Plan Source (a CONTROL on the fixture)',
+      U.ev(`(function(){ var T=tiers(), W=wbsBlankOf(); return JSON.stringify(['P', 'R'].map(function(id){ return [T[id].dT+T[id].mT, W.by[id]? W.by[id].amt : 0]; })); })()`),
+      J([[0, 0], [0, 0]]));
+    chk(name, 'unfunded primes', 'Without a WBS lists A, P and R: P because CLIN 0002 asks $100 and has no paragraph (though CLIN 0001 has one), R because it has no CLIN',
+      U.ev(`JSON.stringify(attLists().wbs.map(function(r){ return r.id==='A'? [r.id] : [r.id, r.funded, r.why]; }))`),
+      J([['A'], ['P', 0, ['CLIN 0002 has no paragraph']], ['R', 0, ['no CLIN']]]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
