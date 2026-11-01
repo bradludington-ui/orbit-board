@@ -1,0 +1,162 @@
+[
+ {
+  "id": "v202-d5c-unrounded",
+  "caughtBy": "board / v2.02 (D5c, D6a, D7b, D7c)"
+ },
+ {
+  "id": "v210-a-intl-req-not-added",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-pos-unrounded",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v210-a-own-from-storage",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects"
+ },
+ {
+  "id": "v212-w3-ba-k-divided",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-rv3-withheld-said-added",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-att-names-tag",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-att-all-pos",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-one-figure-keeps-own-mand",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-r37-one-figure-all-disc",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-r37-one-figure-no-own-split",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-rv6-split-read-as-total",
+  "caughtBy": "other / v2.12 RV6 — FYDP Disconnects reads a split position exactly"
+ },
+ {
+  "id": "v212-rv6-one-figure-rounded",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-one-figure-floored",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-one-figure-unrounded",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-nobase-guessed",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-take-all-disc",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-take-unsaid",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-take-status-unsaid",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-state-moved-by-edit",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-all-disc",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-board-base",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-svc-by-position",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-year-guessed",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-own-base-reads-cache",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-own-base-no-cache",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-ctl-from-lanes",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-unsaid",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-nobase-unsaid",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-fdc-note-not-written",
+  "caughtBy": "board / v2.12 RV6 — a one-figure position is read by one rule"
+ },
+ {
+  "id": "v212-rv6-old-lock-untagged",
+  "caughtBy": "board / v2.12 RV6 — a lock taken before v2.12"
+ },
+ {
+  "id": "v212-rv6-old-lock-tag-ignored",
+  "caughtBy": "board / v2.12 RV6 — a lock taken before v2.12"
+ },
+ {
+  "id": "v212-rv6-withheld-counted-added",
+  "caughtBy": "board / v2.12 RV6 — withheld funding"
+ },
+ {
+  "id": "v212-rv6-att-mix-said-added",
+  "caughtBy": "board / v2.12 RV6 — withheld funding"
+ },
+ {
+  "id": "v212-rv6-att-less-unsaid",
+  "caughtBy": "board / v2.12 RV6 — withheld funding"
+ },
+ {
+  "id": "v212-rv6-floor-unsaid",
+  "caughtBy": "board / v2.12 RV6 — withheld funding"
+ },
+ {
+  "id": "v212-rv6-v1-words-zero",
+  "caughtBy": "board / v2.12 RV6 — a position in the older (v1) shape"
+ },
+ {
+  "id": "v212-rv6-v1-ce-words-zero",
+  "caughtBy": "board / v2.12 RV6 — a position in the older (v1) shape"
+ },
+ {
+  "id": "v212-rv6-lock-moves-more-dropped",
+  "caughtBy": "board / v2.12 RV6 — a lock that moves more figures"
+ },
+ {
+  "id": "v212-rv6-guide-one-figure-gone",
+  "caughtBy": "board / v2.12 RV6 — the guide states"
+ }
+]

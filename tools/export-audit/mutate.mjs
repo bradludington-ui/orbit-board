@@ -6548,7 +6548,9 @@ const MUTATIONS = [
     find: "    catch(e){ if(!(e && e.name==='NotFoundError')){\n      setStat('⚠ The execution data was <b>not shared</b>", repl: "    catch(e){ if(false){\n      setStat('⚠ The execution data was <b>not shared</b>" },
   // v2.02 (D5c, D6a, D7b, D7c; Brad, 21 Oct): audit-board "v2.02 (D5c, D6a, D7b, D7c)".
   { id: "v202-d5c-unrounded", area: "bmSeedFromPp", what: "a position a file carries with a fraction is taken into the base budget authority with the fraction",
-    find: "S.bm.disc[i]=D$(v.d[i]); S.bm.mand[i]=D$(v.m[i]); });", repl: "S.bm.disc[i]=v.d[i]; S.bm.mand[i]=v.m[i]; });" },
+    // v2.12 RV6: retargeted -- Take reads a position through ppLanesOf (S04), which rounds at the door for every reader; the same
+    // defect is its split line's mandatory left unrounded (D5c's fixture carries 250.4)
+    find: "sm=D$(c.m); return {d:sd, m:sm, t:sd+sm, how:'split'}; }", repl: "sm=c.m; return {d:sd, m:sm, t:sd+sm, how:'split'}; }" },
   { id: "v202-d6a-board-file-unchecked", area: "inboundCheck", what: "a board file written by a newer ORBIT is read as this version's shape",
     find: "    const nb=inNewerWhy(fullBuildOf(t)); if(nb) return nb;\n", repl: "" },
   { id: "v202-d6a-folder-copy-unchecked", area: "inboundCheck", what: "a shared-folder copy written by a newer ORBIT is read as this version's shape",
@@ -8364,8 +8366,10 @@ const MUTATIONS = [
     find: "tot:frac(tot(fund), tot(rq))}, x||{}); };",
     repl: "tot:frac(fund[1], rq[1])}, x||{}); };" },
   { id: 'v210-a-intl-req-not-added', area: "fdcModel", what: "International Req is not added to the appropriation's requirement",
-    find: "ctl=plus(d, m), rq=plus(us, ir), fund=plus(ctl, fi)",
-    repl: "ctl=plus(d, m), rq=us, fund=plus(ctl, fi)" },
+    // v2.12 RV6: retargeted -- the Controls are each year's total (lane(p, 't')), which a one-figure position whose lanes cannot be
+    // divided still states (S05); the requirement's line beside it is unchanged
+    find: "ctl=lane(p, 't'), rq=plus(us, ir), fund=plus(ctl, fi)",
+    repl: "ctl=lane(p, 't'), rq=us, fund=plus(ctl, fi)" },
   { id: 'v210-a-intl-on-service-sheets', area: "fdcModel", what: "International Req is added to the service sheets too",
     find: "const us=req(a.k, g.svcs), p=pos(a.k, g.svcs)",
     repl: "const us=plus(req(a.k, g.svcs), intl('ir', a.k)), p=pos(a.k, g.svcs)" },
@@ -8379,8 +8383,10 @@ const MUTATIONS = [
     find: "if(!carried[y]) return null;",
     repl: "if(!carried[y]) return 0;" },
   { id: 'v210-a-pos-unrounded', area: "fdcModel", what: "a position's figures are added as stored, cents and all",
-    find: "d+=D$(c.d); m+=D$(c.m);",
-    repl: "d+=c.d; m+=c.m;" },
+    // v2.12 RV6: retargeted -- FYDP Disconnects reads each service's lanes through ppLanesOf (S05), which rounds a split position's
+    // figures at the door; the v2.10 A fixture's cents are on the discretionary figures
+    find: "  if(Q && Q.split){ const sd=D$(c.d), sm=",
+    repl: "  if(Q && Q.split){ const sd=c.d, sm=" },
   { id: 'v210-a-lanes-swapped', area: "fdcModel", what: "the Summary's Discretionary line prints the mandatory figures",
     find: "R.push(line('Discretionary', 'ital', d, ap));",
     repl: "R.push(line('Discretionary', 'ital', m, ap));" },
@@ -8397,7 +8403,8 @@ const MUTATIONS = [
     find: "footer:FDC_MONTHS[now.getMonth()]+' '",
     repl: "footer:FDC_MONTHS[(now.getMonth()+1)%12]+' '" },
   { id: 'v210-a-own-from-storage', area: "fdcStores", what: "the board on screen's positions are read from browser storage, not the store it holds (MS)",
-    find: "if(a.k===own){ out.ppbe=(MS && MS.ppbe && typeof MS.ppbe==='object')? MS.ppbe : {}; return out; }",
+    // v2.12 RV6: retargeted -- the own branch carries the store and its services too (S05: the own base is read from it)
+    find: "if(a.k===own){ out.ppbe=(MS && MS.ppbe && typeof MS.ppbe==='object')? MS.ppbe : {}; out.st=MS; out.own=true; out.svc=SVC.slice(); return out; }",
     repl: "if(false){ }" },
   { id: 'v210-a-file-copy-ignored', area: "fdcStores", what: "another appropriation is read from browser storage alone, never from the file's copy",
     find: "let r; try{ r=fydpStoreLocal(a.k); }catch(e){",
@@ -9312,8 +9319,9 @@ const MUTATIONS = [
     repl: "    (a.vec||[]).forEach(function(v,i){ if(i<t.length){ ta[i]+=(v||0); } }); });" },
   { id: 'v212-w3-ba-k-divided', area: "baOf", what: "a service entered in $K is read in thousands: BES28 ANG $452,000 becomes $452",
     // v2.12 (item 134, Brad's R37 decision): retargeted to the split reading's line -- the same defect, where it now lives
-    find: "      if(Q.split){ d[i]=D$(c.d); m[i]=D$(c.m); }",
-    repl: "      if(Q.split){ d[i]=D$(ppUnitK(Q, sv)? c.d/1000 : c.d); m[i]=D$(ppUnitK(Q, sv)? c.m/1000 : c.m); }" },
+    // v2.12 RV6: retargeted again -- the split reading is ppLanesOf's (S04, S05: one rule for every reader of a position)
+    find: "  if(Q && Q.split){ const sd=D$(c.d), sm=D$(c.m);",
+    repl: "  if(Q && Q.split){ const sd=D$(ppUnitK(Q, sv)? c.d/1000 : c.d), sm=D$(ppUnitK(Q, sv)? c.m/1000 : c.m);" },
   // ---- every year live, at once (baLiveAll and its callers)
   { id: 'v212-w3-refresh-cur-only', area: "baLiveAll", what: "only the year on screen is made live: FY28's stored budget stays the old figure the Spruills and other boards read",
     find: "      baApplyTo(st, +k);\n    });",
@@ -9496,14 +9504,17 @@ const MUTATIONS = [
     find: "  if(Math.abs(a)<=0.5) return what;",
     repl: "  return what;" },
   { id: 'v212-rv3-withheld-said-added', area: "fitVs", what: "a withheld (negative) source is said to be added funding",
-    find: "  return what+(a>0? ' plus added funding' : ' less withheld funding')+' ('+fM(b)+(a>0? ' + ' : ' − ')+fM(Math.abs(a))+')';",
+    // v2.12 RV6: retargeted -- the sentence carries the floor too (S07)
+    find: "  return what+(a>0? ' plus added funding' : ' less withheld funding')+' ('+fM(b)+(a>0? ' + ' : ' − ')+fM(Math.abs(a))+fl+')';",
     repl: "  return what+' plus added funding ('+fM(b)+' + '+fM(a)+')';" },
   { id: 'v212-rv3-att-names-tag', area: "fitOverLbl", what: "Needs attention names the tag whatever the overs are against",
-    find: "  if(key && p===n) return key+(FM.overPosAdd? ' plus added funding' : '');",
-    repl: "  if(key) return key+(FM.overPosAdd? ' plus added funding' : '');" },
+    // v2.12 RV6: retargeted -- the entry words withheld funding apart from added (S07)
+    find: "  if(key && p===n) return key+adj(FM.overPosAdd, FM.overPosLess);",
+    repl: "  if(key) return key+adj(FM.overPosAdd, FM.overPosLess);" },
   { id: 'v212-rv3-att-all-pos', area: "fitYearNow", what: "every over is counted as against the position, so a mix reads as all over BES28",
-    find: "    if(r.from[i]==='pos'){ ov.pos++; if(add) ov.posAdd++; } else if(add) ov.ownAdd++; }); });",
-    repl: "    ov.pos++; if(add) ov.posAdd++; }); });" },
+    // v2.12 RV6: retargeted -- withheld funding is counted apart from added (S07)
+    find: "    if(r.from[i]==='pos'){ ov.pos++; if(add) ov.posAdd++; if(less) ov.posLess++; } else { if(add) ov.ownAdd++; if(less) ov.ownLess++; } }); });",
+    repl: "    ov.pos++; if(add) ov.posAdd++; if(less) ov.posLess++; }); });" },
   { id: 'v212-rv3-lock-drops-tag', area: "cycLock", what: "a lock whose tag logged no position keeps nothing, and its view says it was locked before v2.12",
     find: "                  pos:posNow? {key:posNow.key, P:posNow.P? JSON.parse(JSON.stringify(ppNorm(posNow.P))) : null} : null};",
     repl: "                  pos:(posNow && posNow.P)? {key:posNow.key, P:JSON.parse(JSON.stringify(ppNorm(posNow.P)))} : null};" },
@@ -9540,17 +9551,20 @@ const MUTATIONS = [
   // v2.12 (item 134, Brad's R37 decision of 28 Oct): the two one-figure mutations retargeted to the reading Brad chose -- a
   // one-figure position sets the total and the board's own base divides it -- the same two defects where they now live.
   { id: 'v212-rv3-one-figure-keeps-own-mand', area: "baOf", what: "a one-figure position leaves the board's own mandatory standing beside its figure",
-    find: "        if(t>0 && od+om>0){ const a=apportion(t, [od, om]); d[i]=a[0]; m[i]=a[1]; one.push({sv:sv, how:'own'}); }",
-    repl: "        if(t>0 && od+om>0){ d[i]=t; one.push({sv:sv, how:'own'}); }" },
+    // v2.12 RV6: retargeted -- the one-figure rule is ppLanesOf's, which every reader of a position asks (S04, S05, S14, S17)
+    find: "  if(t>0 && a+b>0){ const x=apportion(t, [a, b]); return {d:x[0], m:x[1], t:t, how:'own'}; }",
+    repl: "  if(t>0 && a+b>0){ return {d:t, m:b, t:t, how:'own'}; }" },
   { id: 'v212-rv3-one-figure-unsaid', area: "fitOneSay", what: "a one-figure position is divided by the board's own lanes and nothing says so",
     find: "  if(own.length) parts.push(own.join(', ')+' divided between the lanes as the board’s own base divides '+(own.length===1? 'it' : 'them'));",
     repl: "" },
   { id: 'v212-r37-one-figure-all-disc', area: "baOf", what: "a one-figure position is read as all discretionary, its mandatory $0, though the board's own base splits the service between the lanes",
-    find: "        if(t>0 && od+om>0){ const a=apportion(t, [od, om]); d[i]=a[0]; m[i]=a[1]; one.push({sv:sv, how:'own'}); }",
-    repl: "        if(false){ }" },
+    // v2.12 RV6: retargeted -- the one-figure rule is ppLanesOf's (S04, S05, S14, S17)
+    find: "  if(t>0 && a+b>0){ const x=apportion(t, [a, b]); return {d:x[0], m:x[1], t:t, how:'own'}; }",
+    repl: "  if(false){ }" },
   { id: 'v212-r37-one-figure-no-own-split', area: "baOf", what: "a one-figure position on a service with no own base is split evenly between the lanes instead of read as discretionary",
-    find: "        else { d[i]=t; m[i]=0; if(t>0) one.push({sv:sv, how:'disc'}); }",
-    repl: "        else { const a=apportion(t, [1, 1]); d[i]=a[0]; m[i]=a[1]; if(t>0) one.push({sv:sv, how:'disc'}); }" },
+    // v2.12 RV6: retargeted -- the one-figure rule is ppLanesOf's (S04, S05, S14, S17)
+    find: "  return {d:t, m:0, t:t, how:'disc'};",
+    repl: "  { const x=apportion(t, [1, 1]); return {d:x[0], m:x[1], t:t, how:'disc'}; }" },
   { id: 'v212-rv3-fydp-upl-summed', area: "fydpBookApp", what: "the five-year workbook adds the services' UPL together: one line per lane",
     find: "    sv.forEach(function(s, i){ const f=fydpSvcFold(s); if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);",
     repl: "    sv.forEach(function(s, i){ const f='all services'; if(upl[y].svc.indexOf(f)<0) upl[y].svc.push(f);" },
@@ -9560,6 +9574,79 @@ const MUTATIONS = [
   { id: 'v212-rv3-guide-position-only', area: "helpDoc", what: "the guide says no report states more than the position, though added funding is drawn on top",
     find: "no report states more than the budget authority (the position plus added funding).",
     repl: "no report states more than the position." },
+  // ---- v2.12 RV6: the second review of item 134 (S04-S09, S14, S17-S19)
+  // S04, S05, S14, S17, S18: one rule for a one-figure position (ppLanesOf), read by the live budget, Take and FYDP Disconnects
+  { id: 'v212-rv6-split-read-as-total', area: "ppLanesOf", what: "a split position is read as one figure per line: its Discretionary and Mandatory are added and divided again by the own base",
+    find: "  if(Q && Q.split){ const sd=", repl: "  if(false){ const sd=" },
+  { id: 'v212-rv6-one-figure-rounded', area: "ppLanesOf", what: "a one-figure total is divided by rounding each lane on its own: a half-dollar tie invents a dollar (21 over 10 / 10 is 11 / 11)",
+    find: "  if(t>0 && a+b>0){ const x=apportion(t, [a, b]); return {d:x[0], m:x[1], t:t, how:'own'}; }",
+    repl: "  if(t>0 && a+b>0){ return {d:D$(t*a/(a+b)), m:D$(t*b/(a+b)), t:t, how:'own'}; }" },
+  { id: 'v212-rv6-one-figure-floored', area: "ppLanesOf", what: "a one-figure total is divided by flooring each lane: a dollar is dropped (1,801 over 500 / 500 is 900 / 900)",
+    find: "  if(t>0 && a+b>0){ const x=apportion(t, [a, b]); return {d:x[0], m:x[1], t:t, how:'own'}; }",
+    repl: "  if(t>0 && a+b>0){ return {d:Math.floor(t*a/(a+b)), m:Math.floor(t*b/(a+b)), t:t, how:'own'}; }" },
+  { id: 'v212-rv6-one-figure-unrounded', area: "ppLanesOf", what: "a one-figure position's figure is read with its cents",
+    find: "  const t=D$(c.d+c.m);\n  if(t>0 && (od==null", repl: "  const t=c.d+c.m;\n  if(t>0 && (od==null" },
+  { id: 'v212-rv6-nobase-guessed', area: "ppLanesOf", what: "an own base that cannot be read is read as $0: the figure is printed all Discretionary, as if divided",
+    find: "  if(t>0 && (od==null || om==null)) return {d:null, m:null, t:t, how:'nobase'};\n", repl: "" },
+  { id: 'v212-rv6-take-all-disc', area: "bmPpVec", what: "Take from a PPBE position reads a one-figure position as all discretionary, and writes the board's own mandatory to $0",
+    find: "    const L=ppLanesOf(Q, sv, fy, BD[i]||0, BM[i]||0);\n    d[i]=L.d; m[i]=L.m;",
+    repl: "    const L=ppLanesOf(Q, sv, fy, BD[i]||0, BM[i]||0), c0=ppSvcFy(Q, sv, fy);\n    d[i]=D$(c0.d); m[i]=D$(c0.m);" },
+  { id: 'v212-rv6-take-unsaid', area: "bmSeedFromPp", what: "Take's question does not say how a one-figure position was divided",
+    find: "    +(oneSaid? '\\n\\n'+oneSaid.trim() : '')\n", repl: "" },
+  { id: 'v212-rv6-take-status-unsaid', area: "bmSeedFromPp", what: "the status line after Take does not say how a one-figure position was divided",
+    find: "    +'.'+esc(oneSaid)+' These are the board", repl: "    +'.'+' These are the board" },
+  { id: 'v212-rv6-state-moved-by-edit', area: "bmPpState", what: "a base edited after the take reads as a position that has changed since it was taken",
+    find: "  const now=bmPpVec(pp.key, pp.fy, {disc:pp.disc||[], mand:pp.mand||[]});", repl: "  const now=bmPpVec(pp.key, pp.fy);" },
+  { id: 'v212-rv6-fdc-all-disc', area: "fdcModel", what: "FYDP Disconnects prints a one-figure position as all Discretionary and $0 Mandatory",
+    find: "ppSvcsOf(Q).forEach(function(sv){ if(!inG(svcs, sv)) return; const L=lanesOf(SBY[ap], Q, sv, y);",
+    repl: "ppSvcsOf(Q).forEach(function(sv){ if(!inG(svcs, sv)) return; const c0=ppSvcFy(Q, sv, y), L={d:D$(c0.d), m:D$(c0.m), t:D$(c0.d)+D$(c0.m)};" },
+  { id: 'v212-rv6-fdc-board-base', area: "fdcModel", what: "another appropriation's one-figure position is divided by THIS board's own base",
+    find: "    const B=Q.split? null : baseOf(s, y), i=", repl: "    const B=Q.split? null : baseOf(SBY[mySlug()], y), i=" },
+  { id: 'v212-rv6-fdc-svc-by-position', area: "fdcOwnBase", what: "another appropriation's own base is read by this board's service positions, not its own list",
+    find: "  return B? {svc:s.svc, disc:B.disc, mand:B.mand} : {why:'bad'};", repl: "  return B? {svc:SVC.slice(0, n), disc:B.disc, mand:B.mand} : {why:'bad'};" },
+  { id: 'v212-rv6-fdc-year-guessed', area: "fdcOwnBase", what: "a year an appropriation holds no plan for is read as an own base of $0, not said",
+    find: "  if(!Y || typeof Y!=='object') return {why:'year'};",
+    repl: "  if(!Y || typeof Y!=='object') return {svc:s.svc, disc:s.svc.map(function(){ return 0; }), mand:s.svc.map(function(){ return 0; })};" },
+  { id: 'v212-rv6-own-base-reads-cache', area: "bmOwnOf", what: "a year's own base is read from its budget cache (the live figure), not its Budget Management base",
+    find: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {disc:Y.discSvc, mand:Y.mandSvc};",
+    repl: "  const bm={disc:Y.discSvc, mand:Y.mandSvc};" },
+  { id: 'v212-rv6-own-base-no-cache', area: "bmOwnOf", what: "a year with no Budget Management components yet is a base that cannot be read, though its board opens it on the budget it holds",
+    find: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {disc:Y.discSvc, mand:Y.mandSvc};",
+    repl: "  const bm=(Y.bm && typeof Y.bm==='object' && !Array.isArray(Y.bm))? Y.bm : {};" },
+  { id: 'v212-rv6-fdc-ctl-from-lanes', area: "fdcModel", what: "a year whose one figure cannot be divided prints no Controls, though the figure is known",
+    find: "    const d=lane(p, 'd'), m=lane(p, 'm'), ctl=lane(p, 't'), rq", repl: "    const d=lane(p, 'd'), m=lane(p, 'm'), ctl=plus(d, m), rq" },
+  { id: 'v212-rv6-fdc-unsaid', area: "fdcOneSay", what: "FYDP Disconnects divides a one-figure position and the box and workbook say nothing of it",
+    find: "    if(parts.length) out.push(M.cyc.label+' gives '+s.name+' one figure per line: '+parts.join('; ')+'.');\n", repl: "" },
+  { id: 'v212-rv6-fdc-nobase-unsaid', area: "fdcOneSay", what: "a year whose own base cannot be read prints — and nothing says why",
+    find: "    by(o.none).forEach(function(e){ const many=e.ys.length>1;", repl: "    [].forEach(function(e){ const many=e.ys.length>1;" },
+  { id: 'v212-rv6-fdc-note-not-written', area: "fdcModel", what: "the workbook and box carry the v2.11 note alone: the one-figure sentences are not in the model",
+    find: "  const note=[fdcLoneSay(st, M)].concat(fdcOneSay(st, M, ONE)).filter(Boolean).join(' ');", repl: "  const note=fdcLoneSay(st, M);" },
+  // S06: a lock taken before v2.12 is said as a lock of a tagged plan
+  { id: 'v212-rv6-old-lock-untagged', area: "fitSrcSay", what: "each year of a lock taken before v2.12 says the plan is untagged",
+    find: "  if(!r.key && CYCVIEW){ const c=blGet(CYCVIEW),", repl: "  if(false){ const c=blGet(CYCVIEW)," },
+  { id: 'v212-rv6-old-lock-tag-ignored', area: "fitSrcSay", what: "a lock before v2.12 names its own key, not the tag the plan carried when it was locked",
+    find: "tag=(c && typeof c.from==='string' && c.from)? c.from : CYCVIEW;", repl: "tag=CYCVIEW;" },
+  // S07: withheld funding said apart, the floor said
+  { id: 'v212-rv6-withheld-counted-added', area: "fitYearNow", what: "a withheld (negative) source is counted as added funding: Needs attention says 'plus added funding'",
+    find: "    const a=+X.add[i]||0, add=a>0.5, less=a<-0.5; ov.n++;", repl: "    const a=+X.add[i]||0, add=Math.abs(a)>0.5, less=false; ov.n++;" },
+  { id: 'v212-rv6-att-mix-said-added', area: "fitOverLbl", what: "overs in lanes with added and with withheld funding are all said to be 'plus added funding'",
+    find: "(add && less)? ' with funding added and withheld' : add?", repl: "(add && less)? ' plus added funding' : add?" },
+  { id: 'v212-rv6-att-less-unsaid', area: "fitOverLbl", what: "overs in lanes with withheld funding are said with nothing of it",
+    find: "add? ' plus added funding' : less? ' less withheld funding' : '';", repl: "add? ' plus added funding' : '';" },
+  { id: 'v212-rv6-floor-unsaid', area: "fitVs", what: "an over whose budget authority is floored at $0 states it as the base less what was withheld",
+    find: "  const fl=(b+a<-0.5)? ', floored at $0' : '';", repl: "  const fl='';" },
+  // S08: the v1 shape keeps its figure as written, so words are said
+  { id: 'v212-rv6-v1-words-zero', area: "ppNorm", what: "a v1 position's figure written as words is $0 budget authority, in silence",
+    find: "      flat.forEach(y=>{ out.val[sv]._legacy[y]={d:node[y], m:0}; });", repl: "      flat.forEach(y=>{ out.val[sv]._legacy[y]={d:ppNum(node[y])||0, m:0}; });" },
+  { id: 'v212-rv6-v1-ce-words-zero', area: "ppNorm", what: "a v1 position's figure by cost element written as words is $0 budget authority, in silence",
+    find: "out.val[sv][kk][y]={d:node[ce][y], m:0}; });", repl: "out.val[sv][kk][y]={d:ppNum(node[ce][y])||0, m:0}; });" },
+  // S19: the lock question says how many more figures move than it lists
+  { id: 'v212-rv6-lock-moves-more-dropped', area: "cycLock", what: "a lock that moves more figures than the eight it lists says nothing of the rest",
+    find: "+(moves.length>8? '; and '+(moves.length-8)+' more' : '')+'. What the lanes fund moves with it.'", repl: "+'. What the lanes fund moves with it.'" },
+  // S09: the guide
+  { id: 'v212-rv6-guide-one-figure-gone', area: "helpDoc", what: "the guide never states the one-figure rule",
+    find: " A position logged one figure per line sets each service’s total for the year, split between discretionary and mandatory as the board’s own base for that service and year splits it (all discretionary where that base is $0); Take from a PPBE position and FYDP Disconnects read it so too.",
+    repl: "" },
   // ==== end v2.12 W3 ====
 
 ];
