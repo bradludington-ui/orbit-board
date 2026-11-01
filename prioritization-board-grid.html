@@ -2327,7 +2327,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="team" data-id="t-ace" data-t="Importing the cost estimate">
 <p class="v212-ace-h1"><span class="mp" data-m="data">Data › Import Annual Cost Estimate…</span> reads the estimate saved as an Excel Workbook (.xlsx); an .xlsb is refused with a note to save it as .xlsx first. It reads <b>by column title</b>, not by position: every sheet is searched for the row carrying the titles (<i>Work Breakdown Structure</i>, <i>Level</i>, CES1–CES8, <i>Service</i>, <i>T/M/S</i>, <i>JPO Managed</i>, <i>$ Type</i>, <i>Rollup Value?</i>, <i>Support Line Category</i>, <i>PALS/O&amp;S</i>, <i>Appropriation (US Only)</i>, <i>PMO</i>, and a column per fiscal year), and a new column anywhere moves nothing. A box lists the file’s own headers and asks which holds a field, once (remembered for files laid out the same way, and travelling with the board), when its title is missing or heads two columns; also a missing <i>US/PTN/FMS</i> or <i>CCAR Element</i>, and CES<i>k</i> where paragraphs reach level <i>k</i>, which may be answered <b>no such column</b> (no <i>US/PTN/FMS</i>: every row is US). An unanswered field, or a year heading two columns, refuses the file.</p>
 <p class="v212-ace-h2">Each row is read or left out for one reason, counted in rows and in dollars by year, so every dollar of the sheet is either kept or in a reason: another dollar type (only then-year is read), a subtotal (<i>Rollup Value?</i> Yes), a summary row (a blank <i>Support Line Category</i>, each one named), MILPERS, partner or FMS lines, not JPO managed, <b>Service Mgd</b> (in the estimate, not executed by the JPO), and — named row by row — a PMO, category or service ORBIT does not know, or <i>PALS/O&amp;S</i> disagreeing with the category. The category gives the appropriation and, on Full Fund, the cost element (Depot Activation by CES2, then the PMO). Kept, but named: a WBS whose P disagrees with <i>PALS/O&amp;S</i>, a <i>Level</i> that is not the paragraph’s depth, and a paragraph two rows name differently (the first name is kept). Figures in parentheses are negative, and every figure is a whole dollar; a year cell of text (<i>TBD</i>, a date) reads as nothing, and a kept row holding one is named.</p>
-<p class="v212-ace-h3">The import builds the estimate’s <b>WBS tree</b>: each paragraph with every heading above it, named from the CES columns. A line ending in a letter (P6.2.2.1E) is a breakout of a similar effort: it starts its own heading where its CES name for a level first differs (P6.2.2E <i>ECU Propulsion</i>), and every heading below carries the letter too. The report opens after the import and stays under <span class="mp" data-m="data">Data › Import report…</span>: the sheet and row read, the columns, every reason with its dollars, the named rows (40 of each kind on screen), the tree’s size and any conflicting names; one not in ORBIT’s shape is said to be unreadable. <b>PSM is inside Air Vehicle</b> in every estimate: the ACE tie-out shows AV + PSM as one estimate and, beneath it, each office’s part — the lines only its requirements claim by their WBS — with the lines both or neither claim on a shared line.</p>
+<p class="v212-ace-h3">The import builds the estimate’s <b>WBS tree</b>: each paragraph with every heading above it, named from the CES columns. A line ending in a letter (P6.2.2.1E) is a breakout of a similar effort: it starts its own heading where its CES name for a level first differs (P6.2.2E <i>ECU Propulsion</i>), and every heading below carries the letter too; a heading two rows place under different parents goes under the breakout one, and is named. The report opens after the import and stays under <span class="mp" data-m="data">Data › Import report…</span>: the sheet and row read, the columns, every reason with its dollars, the named rows (40 of each kind on screen), the tree’s size and any conflicting names; one not in ORBIT’s shape is said to be unreadable. <b>PSM is inside Air Vehicle</b> in every estimate: the ACE tie-out shows AV + PSM as one estimate and, beneath it, each office’s part — the lines only its requirements claim by their WBS — with the lines both or neither claim on a shared line.</p>
 </section>
 <section data-part="team" data-id="t-flow" data-t="The funds flow and the ACE tie-out">
 <p class="v199-h92"><span class="mp" data-m="fydp">FYDP › Funds Flow (Sewer Chart)…</span> shows the fiscal years and appropriations chosen on its panel, and its export writes exactly that choice: a switched-off appropriation is not in the by-appropriation table. International partner and FMS money is typed per fiscal year for the whole portfolio: it is counted once, for the years chosen, marked <b>portfolio-wide</b>, and switching an appropriation off does not change it.</p>
@@ -15037,9 +15037,15 @@ function aceFindHeader(sheets){
     const m=(mem && Object.prototype.hasOwnProperty.call(mem, F.f))? aceTitleN(mem[F.f]) : '';
     col[F.f]=-1;
     if(cs.length>1){
-      // titled twice: settled only by an answer given for this layout, naming one of those columns
-      const i=(m===n)? memCol(F, n) : -1;
+      // titled twice: settled only by an answer given for this layout
+      // v2.12 RV4 (second review S03): ANY ANSWER GIVEN FOR THIS LAYOUT, as the box promises ("The answer is remembered for files
+      // laid out the same way"). Only an answer naming one of the two same-titled columns was read: one naming a column of another
+      // title (the flags in H, "Rollup Flag", beside two "Rollup Value?" columns) or "no such column" for an optional field was
+      // stored and the box asked again on every import. The layout's signature is its titles in order, so a remembered title
+      // heads the same column every time; memCol still refuses one that now heads several columns the answer cannot tell apart.
+      const i=(m===n)? memCol(F, n) : (m? memCol(F, m) : -1);
       if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }
+      if(!F.req && memNone.indexOf(F.f)>=0){ how[F.f]='none'; return; }
       dup[F.f]=cs.slice(); need.push(F.f); return;
     }
     if(m){ const i=memCol(F, m); if(i>=0){ col[F.f]=i; how[F.f]='remembered'; return; }
@@ -15068,10 +15074,21 @@ function aceCellT(row, H, f){ const i=H.col[f]; if(!(i>=0)) return ''; const v=r
 // Where the suffixed heading is itself a line named otherwise (P6.2.2.1E "Engine shop ECU"), the two names are a conflict, named.
 function aceNameSame(a, b){ const f=function(s){ return String(s||'').replace(/\s+/g,' ').trim().toLowerCase(); }; return f(a)===f(b); }
 function aceSuffixOf(code){ const segs=String(code||'').split('.'), last=segs[segs.length-1]||''; const m=/^(.*\d)([A-Z]+)$/.exec(last); return m? m[2] : ''; }
+// v2.12 RV4 (second review S02): A HEADING TWO ROWS PLACE UNDER DIFFERENT PARENTS IS NAMED, AND SETTLED BY ONE RULE, NEVER BY ROW
+// ORDER. Whether a suffixed line breaks out at a level is decided by that line's own CES names, so two rows can disagree about where a
+// heading sits: P6.2.2.1E's own row (CES3 "Propulsion") puts it under P6.2.2, and P6.2.2.1.3E's (CES3 "ECU Propulsion") under the
+// breakout P6.2.2E. The node kept the first row's parent and said nothing, so the same file gave the ECU lines to AV ($0 to PSM) or
+// to PSM ($450,000) depending on which row came first. Every parent each row gives is now kept (`upBy`), and the rule is applied
+// once all are in: THE BREAKOUT WINS -- a parent other than the heading's own plain one (its code's first segments) is taken
+// whenever any row gives it, because a breakout is a whole branch (above) and its heading is there because a row named it; among
+// two such (only oddly lettered codes give two), the first in code order. A parent can only be the level above, so it cannot loop.
+// Each disagreement is named in the report (rep.ups), with the parent taken and the rows that gave each.
 function aceTree(kept){
-  const W=Object.create(null), conf=Object.create(null), fromPlain=Object.create(null);
+  const W=Object.create(null), conf=Object.create(null), fromPlain=Object.create(null), upBy=Object.create(null);
   const put=function(ap, c, lv, n, up, row, plain){
     const T=W[ap]||(W[ap]=Object.create(null));
+    const U=upBy[ap+'|'+c]||(upBy[ap+'|'+c]=Object.create(null)), ur=U[up]||(U[up]=[]);
+    if(ur.length<50 && ur.indexOf(row)<0) ur.push(row);
     n=String(n||'').trim();
     if(!Object.prototype.hasOwnProperty.call(T, c)){ T[c]={n:n, lv:lv, up:up}; if(plain && n) fromPlain[ap+'|'+c]=n; return; }
     const o=T[c];
@@ -15097,7 +15114,18 @@ function aceTree(kept){
   };
   kept.forEach(function(K){ if(K.code && !aceSuffixOf(K.code)) walk(K, true); });
   kept.forEach(function(K){ if(K.code && aceSuffixOf(K.code)) walk(K, false); });
-  return {wbs:W, conflicts:Object.keys(conf).map(function(k){ return conf[k]; })};
+  const ups=[];
+  Object.keys(upBy).forEach(function(key){
+    const U=upBy[key], cand=Object.keys(U).sort(); if(cand.length<2) return;
+    const i=key.indexOf('|'), ap=key.slice(0, i), c=key.slice(i+1), plain=c.split('.').slice(0, -1).join('.');
+    const take=cand.filter(function(u){ return u!==plain; })[0];
+    if(take===undefined) return;
+    W[ap][c].up=take;
+    ups.push({ap:ap, code:c, up:take, by:cand.map(function(u){ return {up:u, rows:U[u].slice().sort(function(a, b){ return a-b; })}; })});
+  });
+  // listed in code order, so the report reads the same whatever order the rows came in
+  ups.sort(function(a, b){ return a.ap<b.ap? -1 : (a.ap>b.ap? 1 : (a.code<b.code? -1 : (a.code>b.code? 1 : 0))); });
+  return {wbs:W, conflicts:Object.keys(conf).map(function(k){ return conf[k]; }), ups:ups};
 }
 function aceParse(rows, label, H){
   const C=H.col, ycol=H.years;
@@ -15110,7 +15138,7 @@ function aceParse(rows, label, H){
   // [text, rows], never as objects keyed by that text -- a cell reading "__proto__" or "constructor" is a value like any other,
   // and the saved estimate still passes the import check, which refuses those names as keys
   const rep={v:1, sheet:H.sheet, row:0, sheets:H.sheets||[], years:years, map:{}, absent:[], none:[], reasons:{}, named:[],
-             kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:[], tree:{}, conflicts:[]};
+             kept:{rows:0, lines:0, zero:0, v:{}}, total:{rows:0, v:{}}, notData:0, types:[], tree:{}, conflicts:[], ups:[]};
   const count=function(list, t){ for(let i=0;i<list.length;i++) if(list[i][0]===t){ list[i][1]++; return; } list.push([t, 1]); };
   const rowNo=function(r){ return (H.rowNo && H.rowNo[r])? H.rowNo[r] : r+1; };
   rep.row=rowNo(H.row);
@@ -15136,7 +15164,11 @@ function aceParse(rows, label, H){
     // v2.12 RV1 (review R04): a year cell of text that is not a figure was read as one; now it is nothing, and the row says so
     const odd=years.filter(function(y){ return aceMoneyOdd(row[ycol[y]]); }).map(function(y){ return 'FY'+y+' '+inShow(String(row[ycol[y]]).trim()); });
     // 1. no WBS and no dollar: formatting between the rows, not data, and not counted anywhere
-    if(!code && !any){ rep.notData++; continue; }
+    // v2.12 RV4 (second review S01): A YEAR CELL OF TEXT IS THE ROW SAYING SOMETHING. Since RV1 a cell like "1.5*" reads as nothing,
+    // so a real line that lost its WBS and wrote its figures with a footnote mark ("1.5*", "2.0 (a)") had no dollar either and was
+    // filed here as formatting: in no total, named nowhere, while the import said "No row left out". Before RV1 it was kept and
+    // named. Such a row is data: it is counted and goes through the reasons, and kept it is named for its missing WBS and its text.
+    if(!code && !any && !odd.length){ rep.notData++; continue; }
     rep.total.rows++; sum(rep.total.v, vec);
     // 2. then-year dollars only: they are what sits beside the PPBE positions (Brad, 28 Oct 2026). The other types are counted.
     const dtT=aceCellT(row, H, 'dtype'), dt=aceTitleN(dtT);
@@ -15183,7 +15215,9 @@ function aceParse(rows, label, H){
     if(ce===null){ ce=aceDepotCe(ces[1], pmo); if(!ce) named('depot', r, wbsT, pmoT+(ces[1]? ' · CES2 '+ces[1] : ''), vec); }
     rep.kept.rows++; sum(rep.kept.v, vec);
     if(code) kept.push({ap:cat.ap, code:code, ces:ces, row:rowNo(r)});
-    if(!any){ rep.kept.zero++; continue; }       // a paragraph with no dollar is in the tree, but no line carries nothing
+    // a paragraph with no dollar is in the tree, but no line carries nothing (v2.12 RV4: a row with no WBS whose year cells are only
+    // text is no paragraph, and the box calls each one counted here "in the tree"; it is in the named rows instead, twice)
+    if(!any){ if(code) rep.kept.zero++; continue; }
     const A=appn[cat.ap]||(appn[cat.ap]={tot:{},pmo:{},svc:{}});
     Object.keys(vec).forEach(function(y){
       const v=vec[y];
@@ -15199,6 +15233,7 @@ function aceParse(rows, label, H){
   const T=aceTree(kept);
   Object.keys(T.wbs).forEach(function(ap){ rep.tree[ap]=Object.keys(T.wbs[ap]).length; });
   rep.conflicts=T.conflicts;
+  rep.ups=T.ups;      // v2.12 RV4 (S02): the headings two rows place under different parents, and the parent the rule took
   // EVERY DOLLAR OF THE SHEET IS KEPT OR IN A REASON, to the dollar, every year: stated, so a report that does not close says so
   // (v2.12 RV1: one statement of it, aceRepTies, which the report box reads too)
   rep.ties=aceRepTies(rep);
@@ -17822,7 +17857,11 @@ async function importAce(inp){
     // locked 2026ACE asked nothing, made a second estimate of one year and moved the board to it (and "FY2027ACE" read as year 0).
     // The year is four digits not inside a longer number; ACE follows it directly or after anything ending in a non-letter, and
     // no letter follows ACE -- so "2026 Workspace", "2026 TRACE" and "2026 ACEs" are not estimates of 2026.
-    const label=(f.name.match(/(?:^|\D)(20\d\d)(?!\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i)||[null,''])[1];
+    // v2.12 RV4 (second review S00): THE YEAR NEAREST ACE, NOT THE FIRST YEAR IN THE NAME. A match starts as far left as it can,
+    // so a date or a cycle tag ahead of the estimate's year won: "2025-11-03 2026 SUST ACE" was filed as 2025ACE, "BES2028 from
+    // 2026 ACE" (2026ACE in v2.11) as a new 2028ACE, and "PB2027 2026 SUST ACE" met the LOCKED 2027ACE's replace question, an OK
+    // putting 2026's figures in place of the approved 2027 estimate. The greedy start takes the last year that ACE still follows.
+    const label=(f.name.match(/^.*(?:^|\D)(20\d\d)(?!\d)(?:.*?[^A-Za-z])?ACE(?![A-Za-z])/i)||[null,''])[1];
     const key=label? label+'ACE' : f.name.replace(/\.xlsx$/i,'');
     // v2.00 (item 99): the estimate is filed under this name, so it cannot be one every object already answers to
     if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '+inShow(key)+', a name every object already answers to \u2014 rename the file and import it again');
@@ -17866,10 +17905,16 @@ function aceImportGo(ctx){
       +R.types.map(function(t){ return inShow(t[0])+' ('+t[1]+' row'+(t[1]===1?'':'s')+')'; }).join(', ')
       +'. ORBIT reads then-year dollars, to sit beside the PPBE positions');
     const nAp=Object.keys(set.appn).length;
-    if(!nAp) throw new Error(R.total.rows
-      ? 'every row was left out — '+ACE_WHY.filter(function(W0){ return R.reasons[W0.k]; })
-          .map(function(W0){ return W0.t+' '+R.reasons[W0.k].rows; }).join(' · ')
-      : 'no row under the header on sheet '+inShow(H.sheet)+' carries a WBS or a dollar');
+    // v2.12 RV4 (second review S01): a sheet whose rows were KEPT with no dollar -- a paragraph whose year cells are only text, and
+    // since RV4 a line with no WBS whose figures are written as text -- did not have every row left out, and was said to ("every
+    // row was left out —", no reason after it). It says how many were kept with nothing, and which rows hold text.
+    const txtRows=R.named.filter(function(n){ return n.k==='text'; }).map(function(n){ return n.row; });
+    const leftOut=ACE_WHY.filter(function(W0){ return R.reasons[W0.k]; }).map(function(W0){ return W0.t+' '+R.reasons[W0.k].rows; }).join(' · ');
+    if(!nAp) throw new Error(!R.total.rows? 'no row under the header on sheet '+inShow(H.sheet)+' carries a WBS or a dollar'
+      : (R.kept.rows? 'no row carries a dollar ORBIT can read: '+R.kept.rows+' row'+(R.kept.rows===1?' was':'s were')+' kept with none'
+          +(txtRows.length? ', and row'+(txtRows.length===1?' ':'s ')+txtRows.join(', ')+(txtRows.length===1?' holds':' hold')+' a year cell of text that is not a figure' : '')
+          +(leftOut? ' — left out: '+leftOut : '')
+        : 'every row was left out — '+leftOut));
     if(!ACEDB.sets) ACEDB.sets={};
     const prior=ACEDB.sets[key];
     if(prior && prior.locked){
@@ -17911,12 +17956,16 @@ function aceImportGo(ctx){
     // v2.12 (item 132): the import's report opens, not the Spruills: what was read, and what was left out and why
     aceRepK=key; aceRepOpen=true; render();
     const out=ACE_WHY.reduce(function(a, W0){ return a+((R.reasons[W0.k]||{}).rows||0); }, 0);
-    const nNamed=R.named.length+R.conflicts.length;
+    const nNamed=R.named.length+R.conflicts.length+R.ups.length;
+    // v2.12 RV4 (second review S01): the year cells read as nothing are said here too -- "No row left out" and "every dollar is kept"
+    // are true of the dollars read, and a figure written as text was not one of them
+    const nText=R.named.filter(function(n){ return n.k==='text'; }).length;
     statKeep('📈 <b>'+esc(key)+'</b> loaded and 🔒 locked — '+set.lines.length+' cost lines across '
       +nAp+' appropriation'+(nAp===1?'':'s')+', FY'+set.years[0]+'–FY'+set.years[set.years.length-1]
       +', read from sheet “'+esc(H.sheet)+'”, row '+R.row+'. '
       +(out? out+' row'+(out===1?'':'s')+' left out, each with its reason and dollars by year' : 'No row left out')
       +(nNamed? '; '+nNamed+' named for a look' : '')+(R.ties? '. Every dollar of the sheet is kept or in a reason.' : '. ⚠ The report does not close.')
+      +(nText? ' ⚠ '+nText+' kept row'+(nText===1?' holds':'s hold')+' a year cell of text that is not a figure, read as nothing: named in the report.' : '')
       // v2.12 RV1 (review R25): what reading without a US/PTN/FMS column means is said where the person reads the result
       +(H.col.usptn>=0? '' : ' This file has no US/PTN/FMS column, so every row was read as US.')
       +' The report is open, and stays under Data › Import report… 💾 Save to bake it into this file.'+esc(ctx.esc||''));
@@ -18005,7 +18054,7 @@ function aceRepOf(set){
     years:list(R.years, 'its years').map(function(y){ return isYr(y)? +y : no('a year that is not a year'); }),
     kept:{rows:cnt(R.kept.rows, 'its kept rows'), lines:cnt(R.kept.lines, 'its kept lines'), zero:cnt(R.kept.zero, 'its kept rows', 0), v:vmap(R.kept.v, 'its kept dollars')},
     total:{rows:cnt(R.total.rows, 'its sheet total'), v:vmap(R.total.v, 'its sheet total')},
-    notData:cnt(R.notData, 'its formatting rows', 0), reasons:Object.create(null), map:Object.create(null), tree:Object.create(null), named:[], conflicts:[]};
+    notData:cnt(R.notData, 'its formatting rows', 0), reasons:Object.create(null), map:Object.create(null), tree:Object.create(null), named:[], conflicts:[], ups:[]};
   Object.keys(R.reasons).forEach(function(k){ const x=R.reasons[k];
     if(!isObj(x)){ no('a reason'); return; }
     N.reasons[k]={rows:cnt(x.rows, 'a reason’s rows'), v:vmap(x.v, 'a reason’s dollars'),
@@ -18018,6 +18067,10 @@ function aceRepOf(set){
   N.conflicts=list(R.conflicts, 'its conflicts').map(function(c){ if(!isObj(c)) return no('a conflict');
     return {ap:txt(c.ap), code:txt(c.code), n:txt(c.n), also:list(c.also, 'a conflict').map(function(a){ if(!isObj(a)) return no('a conflict');
       return {n:txt(a.n), rows:list(a.rows, 'a conflict').map(function(r){ return cnt(r, 'a conflict’s rows'); })}; })}; });
+  // v2.12 RV4 (S02): the headings two rows place under different parents (a report before RV4 has none)
+  N.ups=list(R.ups, 'its parents').map(function(c){ if(!isObj(c)) return no('a heading’s parents');
+    return {ap:txt(c.ap), code:txt(c.code), up:txt(c.up), by:list(c.by, 'a heading’s parents').map(function(b){ if(!isObj(b)) return no('a heading’s parents');
+      return {up:txt(b.up), rows:list(b.rows, 'a heading’s parents').map(function(r){ return cnt(r, 'a heading’s rows'); })}; })}; });
   return why? {state:'bad', why:why} : {state:'ok', R:N};
 }
 // EVERY DOLLAR OF THE SHEET IS KEPT OR IN A REASON, to the dollar, every year. One statement of it: the import says it as it
@@ -18129,6 +18182,18 @@ function aceRepBody(){
         +'<td style="text-align:left">'+esc(c.n)+'</td><td style="text-align:left">'+(c.also||[]).map(function(a){ return esc(a.n)+' <span style="color:var(--dim)">(row'
         +((a.rows||[]).length===1?' ':'s ')+esc((a.rows||[]).join(', '))+')</span>'; }).join('; ')+'</td></tr>'; }).join('')
       +'</table>'+(R.conflicts.length>ACE_REP_CAP? '<div class="hint">The first '+ACE_REP_CAP+' of '+R.conflicts.length+' are shown.</div>' : '')+'</div>';
+  }
+  // v2.12 RV4 (second review S02): a heading two rows place under different parents, the parent the rule took, and the rule
+  if(R.ups.length){
+    const nm=function(ap, c){ const x=c? aceWbsNode(k, ap, c) : null; return (x && typeof x.n==='string' && x.n)? ' '+esc(x.n) : ''; };
+    h+='<div class="acerep-ups" style="margin-top:8px"><div style="font-size:10.5px;font-weight:700">A heading two rows place under different parents — '
+      +esc(R.ups.length)+': it goes under the breakout heading (the one carrying the letter), whatever order the rows are in</div>'
+      +'<table class="fctab"><colgroup><col style="width:22%"><col style="width:34%"><col style="width:44%"></colgroup>'
+      +'<tr><th style="text-align:left">Heading</th><th style="text-align:left">Placed under</th><th style="text-align:left">Each parent given, by row</th></tr>'
+      +R.ups.slice(0, ACE_REP_CAP).map(function(c){ return '<tr><td style="text-align:left">'+esc(c.code)+' <span style="color:var(--dim)">'+esc(appnName(c.ap))+'</span></td>'
+        +'<td style="text-align:left">'+esc(c.up)+nm(c.ap, c.up)+'</td><td style="text-align:left">'+c.by.map(function(b){ return esc(b.up)+nm(c.ap, b.up)
+        +' <span style="color:var(--dim)">(row'+(b.rows.length===1?' ':'s ')+esc(b.rows.join(', '))+')</span>'; }).join('; ')+'</td></tr>'; }).join('')
+      +'</table>'+(R.ups.length>ACE_REP_CAP? '<div class="hint">The first '+ACE_REP_CAP+' of '+R.ups.length+' are shown.</div>' : '')+'</div>';
   }
   h+='<div class="hint" style="margin-top:10px">Only then-year rows the JPO manages, under an office ORBIT knows, are read. Subtotals (Rollup Value? Yes) and '
     +'Cost’s summary rows (a blank Support Line Category) are left out so no dollar is counted twice; Service Mgd, MILPERS and partner or FMS lines are '

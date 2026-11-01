@@ -139,6 +139,10 @@ export function buildHostile(html) {
         skip:{pmo:P('aceskipv')}, rep:{v:1, sheet:'S', row:3, years:[P('aceyear')], reasons:{dtype:{rows:P('acerows'), v:{}}},
           kept:{rows:1, lines:P('acekeptlines'), v:{}}, total:{rows:1, v:{}}, named:[], conflicts:[]}};
       persistAce(); })();
+    // v2.12 RV4 (second review S02): a heading two rows place under different parents, named in the 2026 estimate's report box --
+    // the heading, the parent taken and each parent given are the file's own codes, drawn as text
+    (function(){ ACEDB.sets['2026ACE'].rep.ups=[{ap:'om', code:P('aceupcode'), up:P('aceuptake'), by:[{up:P('aceupgiven'), rows:[6]}]}];
+      persistAce(); })();
     // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
     // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
     // v2.12 W2 (item 132): the estimate's WBS tree, in the builders' contract's shape -- the names a picker shows beside a
@@ -259,6 +263,8 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   // v2.12 RV1: the row counts named when an estimate's report cannot be read (its rows, lines and years are never drawn: they are
   // not numbers, so the report is said to be unreadable -- and the sweep fails if any of them becomes an element)
   'aceskipv',
+  // v2.12 RV4 (S02): a heading two rows place under different parents, named in the report box
+  'aceupcode', 'aceuptake', 'aceupgiven',
   // v2.12 W2 (item 132): the estimate's WBS names, drawn beside the paragraph they name, and the CCaR its suggestion is for
   'wbstop', 'wbsname', 'wbsccar',
   // v2.12 RV2 (K03): a CLIN's paragraph, flagged under its WBS button in the drill

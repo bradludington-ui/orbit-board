@@ -4703,6 +4703,215 @@ const RV1 = (() => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 }
+// ---- v2.12 RV4 (the second review of the cost estimate import, S00-S03 and S21; recovery/v212/notes-RV4.md) ------------------
+// Each block below uses RV1's fixture (above) and FAILS ON c81e995 unless a part is labelled CONTROL.
+
+// v2.12 RV4 (second review S00): THE FILE KEY TAKES THE YEAR NEAREST ACE. A regex match starts as far left as it can, and RV1's
+// lazy gap let another year sit between the year it took and ACE, so a date or a cycle tag ahead of the estimate's year won. Two
+// locked estimates are held, 2026ACE and the approved 2027ACE; three names of the 2026 estimate with an earlier four-digit year in
+// front -- a cycle tag, a "BES2028 from" (2026ACE in v2.11), a date -- must each meet 2026ACE's locked-replace question, never
+// 2027ACE's and never a new key; Cancel leaves both estimates as they were. FAILS ON c81e995: "PB2027 2026 SUST ACE" meets the
+// locked 2027ACE's question (an OK there replaces the approved estimate), "BES2028 from 2026 ACE" is filed silently as 2028ACE and
+// the date-prefixed name as 2025ACE.
+{
+  const name = 'v2.12 RV4 — the file key takes the year nearest ACE, not the first year the name carries (S00)';
+  try {
+    const { J, book, mkBoard, E, imp } = RV1;
+    const B = mkBoard();
+    await imp(B, book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2026: 1000000 } }]), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    await imp(B, book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 7000000 } }]), '2027 SUST ACE COMPLETE Detail File.xlsx');
+    chk(name, 'the key', 'CONTROL — 2026ACE and the approved 2027ACE are held, both locked', E(B, `JSON.stringify(Object.keys(ACEDB.sets).sort().map(function(k){ return [k, ACEDB.sets[k].locked]; }))`),
+      J([['2026ACE', true], ['2027ACE', true]]));
+    E(B, `globalThis.__asked=[]; confirm=function(m){ __asked.push(String(m).split('\\n')[0]); return false; }; 'ok'`);
+    const ahead = ['PB2027 2026 SUST ACE COMPLETE Detail File.xlsx', 'BES2028 from 2026 ACE.xlsx', '2025-11-03 2026 SUST ACE COMPLETE Detail File.xlsx'];
+    for (const f of ahead) await imp(B, book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2026: 3000000 } }]), f);
+    chk(name, 'the key', 'each name with an earlier year ahead of the estimate’s own meets 2026ACE’s locked-replace question, and no other',
+      E(B, `JSON.stringify(__asked)`), J(ahead.map(() => '⚠ 2026ACE is already loaded and LOCKED.')));
+    chk(name, 'the key', 'answered Cancel, nothing is filed under another year: the two estimates, each with its own figures',
+      E(B, `JSON.stringify(Object.keys(ACEDB.sets).sort().map(function(k){ return [k, ACEDB.sets[k].lines[0].v]; }))`), J([['2026ACE', { 2026: 1000000 }], ['2027ACE', { 2027: 7000000 }]]));
+    // CONTROL — what RV1's check holds still holds, and so do a year range and a later year after ACE
+    E(B, `__asked=[]; 'ok'`);
+    const same = ['2026ACE_final.xlsx', 'FY2026ACE.xlsx', '2026_ACE.xlsx', '2026-27 ACE.xlsx', '2026 SUST ACE 2027 update.xlsx', '2026 ACE for BES2028.xlsx'];
+    for (const f of same) await imp(B, book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2026: 3000000 } }]), f);
+    chk(name, 'the key', 'CONTROL — a name with 2026 right before ACE, or a later year only after ACE, is 2026ACE', E(B, `JSON.stringify(__asked)`),
+      J(same.map(() => '⚠ 2026ACE is already loaded and LOCKED.')));
+    try { B.w.close(); } catch {}
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV4 (second review S01): A ROW WITH NO WBS WHOSE YEAR CELLS ARE FIGURES WRITTEN AS TEXT IS DATA. Since RV1 a cell such as
+// "1.5*" reads as nothing, so a real line that lost its WBS and footnoted its figures had no WBS and no dollar, and was filed as
+// formatting: out of the sheet's rows, named nowhere, the import saying "No row left out". Before RV1 it was kept and named. Here: a
+// line with every field filled, no WBS, FY27 "1.5*" and FY28 "2.0 (a)"; a line WITH a WBS whose only cell is "0.7*" (RV1's case,
+// unchanged); a line with a real figure; and a truly blank row, which is still formatting (CONTROL). FAILS ON c81e995: the
+// footnoted line is counted as formatting (notData 2), is in no total and is named nowhere, and the status line says nothing of it.
+{
+  const name = 'v2.12 RV4 — a row with no WBS whose year cells are figures written as text is counted, kept and named, never filed as formatting (S01)';
+  try {
+    const { J, HDR, book, mkBoard, E, imp, set, stat } = RV1;
+    const B = mkBoard();
+    const S = book([{ wbs: '1.1', ces: ['A', 'B'], d: { 2027: 1000000 } }, { wbs: '', ces: ['A', 'B'], raw: { 2027: '1.5*', 2028: '2.0 (a)' } },
+      { wbs: '1.3', ces: ['A', 'C'], raw: { 2027: '0.7*' } }]);
+    S[1].rows.push(HDR.map(() => ''));         // a blank row under the lines: formatting
+    await imp(B, S, '2026 SUST ACE COMPLETE Detail File.xlsx');
+    const R = set(B, '2026ACE').rep || {};
+    chk(name, 'counted', 'the footnoted line is one of the sheet’s rows and is kept; only the blank row is formatting',
+      J([(R.total || {}).rows, R.notData, (R.kept || {}).rows, (R.kept || {}).lines]), J([3, 1, 3, 1]));
+    chk(name, 'counted', 'only the paragraph 1.3 is a paragraph with no dollar in the tree; the line with no WBS is in no tree', J([(R.kept || {}).zero, Object.keys((set(B, '2026ACE').wbs || {}).om || {}).sort()]),
+      J([1, ['1', '1.1', '1.3']]));
+    chk(name, 'named', 'the footnoted line is named for its missing WBS and for its text, each cell as the file wrote it; 1.3 for its text',
+      J((R.named || []).map(n => [n.k, n.row, n.wbs, n.what])),
+      J([['nowbs', 5, '', 'O&S'], ['text', 5, '', 'FY2027 “1.5*” · FY2028 “2.0 (a)”'], ['text', 6, '1.3', 'FY2027 “0.7*”']]));
+    chk(name, 'said', 'the status line says the kept rows whose year cells are text, read as nothing', /⚠ 2 kept rows hold a year cell of text that is not a figure, read as nothing: named in the report\./.test(stat(B)), true);
+    chk(name, 'said', 'and the report box lists the line under “No WBS” by its row', E(B, `(function(){ var d=document.querySelector('#aceRepBody .acerep-named[data-why="nowbs"]'); return d? [].slice.call(d.querySelectorAll('td')).slice(0,1).map(function(t){ return t.textContent; }).join('') : 'none'; })()`), '5');
+    chk(name, 'said', 'every dollar the sheet reads is still kept or in a reason', R.ties, true);
+    // a sheet whose only rows are kept with nothing read -- the footnoted line and a paragraph of text -- is refused, and the refusal
+    // says they were kept with no dollar and which hold text (it said "every row was left out —" and named no reason)
+    const B2 = mkBoard();
+    await imp(B2, book([{ wbs: '', ces: ['A', 'B'], raw: { 2027: '1.5*' } }, { wbs: '1.3', ces: ['A', 'C'], raw: { 2027: '0.7*' } }]), '2026 SUST ACE COMPLETE Detail File.xlsx');
+    chk(name, 'said', 'a sheet of rows kept with nothing read is refused for that, naming the rows of text; nothing is stored',
+      J([stat(B2).replace(/^.*import failed: /, ''), E(B2, `Object.keys(ACEDB.sets||{}).length`)]),
+      J(['no row carries a dollar ORBIT can read: 2 rows were kept with none, and rows 4, 5 hold a year cell of text that is not a figure', 0]));
+    [B, B2].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV4 (second review S02): A HEADING TWO ROWS PLACE UNDER DIFFERENT PARENTS IS NAMED AND SETTLED BY ONE RULE. 1.2.2.1E's own
+// row says CES3 "Propulsion" (under 1.2.2); its child 1.2.2.1.3E says CES3 "ECU Propulsion" (under the breakout 1.2.2E). The same
+// disagreement on a second heading, 1.3.2.1E, so the list's order can be seen. The rows are imported in one order and then in the
+// reverse: the rule (the breakout parent wins) puts both E headings under their breakouts either way, the AV + PSM split is the same
+// either way, and both headings are named, in code order. AV claims the plain 1.2.2 and 1.3.2, PSM the breakouts 1.2.2E and
+// 1.3.2E. CONTROL: a file whose rows agree names nothing. FAILS ON c81e995: no disagreement is named, and with the parent rows first
+// the E headings sit under the plain ones -- PSM $0, AV $1,870,000 -- while the reverse order gives PSM $670,000.
+{
+  const name = 'v2.12 RV4 — a heading two rows place under different parents is named and settled by one rule, whatever the order of the rows (S02)';
+  try {
+    const { J, book, mkBoard, E, imp, set, stat } = RV1;
+    const rows = [
+      { wbs: '1.2.2.1', ces: ['Manpower', 'Maintenance', 'Propulsion', 'Engine shop'], d: { 2027: 1000000 } },
+      { wbs: '1.2.2.1E', ces: ['Manpower', 'Maintenance', 'Propulsion', 'Engine shop ECU'], d: { 2027: 150000 } },
+      { wbs: '1.2.2.1.3E', ces: ['Manpower', 'Maintenance', 'ECU Propulsion', 'Engine shop ECU', 'Tooling ECU'], d: { 2027: 300000 } },
+      { wbs: '1.3.2.1', ces: ['Manpower', 'Depot', 'Airframe', 'Wing shop'], d: { 2027: 200000 } },
+      { wbs: '1.3.2.1E', ces: ['Manpower', 'Depot', 'Airframe', 'Wing shop ECU'], d: { 2027: 120000 } },
+      { wbs: '1.3.2.1.4E', ces: ['Manpower', 'Depot', 'ECU Airframe', 'Wing shop ECU', 'Jigs ECU'], d: { 2027: 100000 } }];
+    const look = async order => {
+      const B = mkBoard();
+      await imp(B, book(order), '2026 SUST ACE COMPLETE Detail File.xlsx');
+      const s = set(B, '2026ACE'), R = s.rep || {};
+      const up = c => E(B, `JSON.stringify(aceWbsUp('2026ACE','om',${J(c)}))`);
+      const split = E(B, `JSON.stringify((function(){ var sp=aceGroupSplit('2026ACE','AV',['AV','PSM'],[{fy:2027, rows:[{pmo:'AV', claims:['1.2.2','1.3.2']}, {pmo:'PSM', claims:['1.2.2E','1.3.2E']}]}]);
+        return [sp.by.AV, sp.by.PSM, sp.shared, sp.est]; })())`);
+      const box = E(B, `(function(){ var d=document.querySelector('#aceRepBody .acerep-ups'); return d? d.textContent : 'none'; })()`);
+      const out = { up: [up('1.2.2.1E'), up('1.3.2.1E')], split, ups: (R.ups || []).map(u => [u.ap, u.code, u.up, (u.by || []).map(b => b.up)]),
+        rows: (R.ups || []).map(u => (u.by || []).map(b => [b.up, b.rows])), conf: (R.conflicts || []).length, box, stat: stat(B),
+        path: E(B, `aceWbsPath('2026ACE','om','1.2.2.1.3E')`) };
+      try { B.w.close(); } catch {}
+      return out;
+    };
+    const A = await look(rows), Z = await look(rows.slice().reverse());
+    const wantUp = J([J(['1.2.2.1E', '1.2.2E', '1.2', '1']), J(['1.3.2.1E', '1.3.2E', '1.3', '1'])]);
+    chk(name, 'the rule', 'the parent rows first: each E heading goes under its breakout, the parent another row gives it', J(A.up), wantUp);
+    chk(name, 'the rule', 'the child rows first: the same tree', J(Z.up), wantUp);
+    chk(name, 'the rule', 'and the deeper line’s path names its own breakout', A.path + ' | ' + Z.path, 'Manpower › Maintenance › ECU Propulsion › Engine shop ECU › Tooling ECU | Manpower › Maintenance › ECU Propulsion › Engine shop ECU › Tooling ECU');
+    const wantSplit = J([1000000 + 200000, 150000 + 300000 + 120000 + 100000, 0, 1870000]);
+    chk(name, 'the split', 'the AV + PSM split is the same whatever the order: every E line is PSM’s, $670,000; AV $1,200,000; nothing shared', A.split + ' ' + Z.split, wantSplit + ' ' + wantSplit);
+    const wantUps = J([['om', '1.2.2.1E', '1.2.2E', ['1.2.2', '1.2.2E']], ['om', '1.3.2.1E', '1.3.2E', ['1.3.2', '1.3.2E']]]);
+    chk(name, 'named', 'both headings are named, in code order, with the parent taken and every parent given -- in either order of the rows', J(A.ups) + ' ' + J(Z.ups), wantUps + ' ' + wantUps);
+    chk(name, 'named', 'each parent with the row that gave it (the rows are 4-9 in the file; reversed, they are counted the other way)', J([A.rows, Z.rows]),
+      J([[[['1.2.2', [5]], ['1.2.2E', [6]]], [['1.3.2', [8]], ['1.3.2E', [9]]]], [[['1.2.2', [8]], ['1.2.2E', [7]]], [['1.3.2', [5]], ['1.3.2E', [4]]]]]));
+    chk(name, 'named', 'no name conflict is invented: the rows agree on every name', A.conf + ' ' + Z.conf, '0 0');
+    chk(name, 'said', 'the report box names them and says the rule', [/A heading two rows place under different parents — 2: it goes under the breakout heading \(the one carrying the letter\), whatever order the rows are in/.test(A.box),
+      /1\.2\.2\.1E O&M1\.2\.2E ECU Propulsion1\.2\.2 Propulsion \(row 5\); 1\.2\.2E ECU Propulsion \(row 6\)/.test(A.box)].join(','), 'true,true');
+    chk(name, 'said', 'and the status line counts them among the rows named for a look', /No row left out; 2 named for a look/.test(A.stat), true);
+    // CONTROL — the same lines with the rows agreeing (each E heading's own row names the breakout too): nothing to name
+    const agree = rows.map(o => (o.wbs === '1.2.2.1E' ? Object.assign({}, o, { ces: ['Manpower', 'Maintenance', 'ECU Propulsion', 'Engine shop ECU'] })
+      : o.wbs === '1.3.2.1E' ? Object.assign({}, o, { ces: ['Manpower', 'Depot', 'ECU Airframe', 'Wing shop ECU'] }) : o));
+    const C = await look(agree);
+    chk(name, 'the rule', 'CONTROL — rows that agree name nothing and give the same tree and split', J([C.ups, C.box, J(C.up), C.split]), J([[], 'none', wantUp, wantSplit]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV4 (second review S03): ANY ANSWER GIVEN FOR A LAYOUT IS REMEMBERED, AS THE BOX SAYS. A field whose own title heads two
+// columns was settled only by an answer naming one of them: an answer naming a column of another title, or "this file has no such
+// column" for an optional field, was stored and asked again on every import. (a) Columns A and J are titled "Rollup Value?" and the
+// flags are in H, "Rollup Flag": answered H, the next two imports read H without asking ($3M subtotal over its $1M and $2M parts:
+// reading A or J keeps $6M). (b) CCAR Description titled twice, answered "no such column": not asked again. CONTROL: an answer
+// naming one of the two same-titled columns (RV1's case) is still read. FAILS ON c81e995: (a) and (b) are asked on every import.
+{
+  const name = 'v2.12 RV4 — a title the file carries twice, answered with another title’s column or “no such column”, is remembered and not asked again (S03)';
+  try {
+    const { J, HDR, book, mkBoard, E, imp, set, answer, asked } = RV1;
+    const R3 = [{ wbs: '1.2', roll: 'Yes', ces: ['A', 'B'], d: { 2027: 3000000 } }, { wbs: '1.2.1', ces: ['A', 'B', 'C'], d: { 2027: 1000000 } },
+      { wbs: '1.2.2', ces: ['A', 'B', 'D'], d: { 2027: 2000000 } }];
+    const H = t => HDR.indexOf(t);
+    const kept27 = B => (set(B, '2026ACE').rep || { kept: { v: {} } }).kept.v[2027];
+    const how = (B, f) => ((((set(B, '2026ACE').rep || {}).map || {})[f]) || {}).how;
+    // (a) A and J titled "Rollup Value?", the flags in H titled "Rollup Flag"
+    const HA = HDR.map((t, i) => (i === 0 || t === 'Shared/Unique' ? 'Rollup Value?' : t === 'Rollup Value?' ? 'Rollup Flag' : t));
+    const A = mkBoard();
+    E(A, `confirm=function(){ return true; }; 'ok'`);
+    await imp(A, book(R3, HDR, HA), '2026 ACE flag.xlsx');
+    chk(name, 'another title', 'CONTROL — asked, the box naming the two same-titled columns', J([asked(A), E(A, `(document.querySelector('#aceColBody .acecol-why[data-f="roll"]')||{}).textContent||''`)]),
+      J([['roll'], 'This file titles 2 columns alike: A, J. Pick the one that holds it.']));
+    await answer(A, { roll: H('Rollup Value?') });
+    chk(name, 'another title', 'answered H, “Rollup Flag”: the subtotal is left out, FY27 keeps $3,000,000', kept27(A), 3000000);
+    const again = [];
+    for (let n = 0; n < 2; n++) { await imp(A, book(R3, HDR, HA), '2026 ACE flag.xlsx'); again.push([asked(A), kept27(A), how(A, 'roll')]); if (asked(A)) E(A, `aceColCancel(); 'ok'`); }
+    chk(name, 'another title', 'the same layout twice more is read by the answer, as the box promised: not asked, $3,000,000, remembered', J(again), J([[null, 3000000, 'remembered'], [null, 3000000, 'remembered']]));
+    // (b) CCAR Description titled twice, answered "no such column"
+    const HB = HDR.map(t => (t === 'Shared/Unique' ? 'CCAR Description' : t));
+    const Bb = mkBoard();
+    E(Bb, `confirm=function(){ return true; }; 'ok'`);
+    await imp(Bb, book(R3, HDR, HB), '2026 ACE cdesc.xlsx');
+    chk(name, 'no such column', 'CONTROL — CCAR Description on two columns is asked about', J(asked(Bb)), J(['cdesc']));
+    await answer(Bb, { cdesc: 'none' });
+    chk(name, 'no such column', 'answered “no such column”: imported, recorded as answered so', J([kept27(Bb), (set(Bb, '2026ACE').rep || {}).none]), J([3000000, ['cdesc']]));
+    const againB = [];
+    for (let n = 0; n < 2; n++) { await imp(Bb, book(R3, HDR, HB), '2026 ACE cdesc.xlsx'); againB.push([asked(Bb), (set(Bb, '2026ACE').rep || {}).none]); if (asked(Bb)) E(Bb, `aceColCancel(); 'ok'`); }
+    chk(name, 'no such column', 'the same layout twice more reads the answer: not asked, still answered “no such column”', J(againB), J([[null, ['cdesc']], [null, ['cdesc']]]));
+    // CONTROL — the answer naming one of the two same-titled columns (A and H both "Rollup Value?", H picked) is still read
+    const HC = HDR.map((t, i) => (i === 0 ? 'Rollup Value?' : t));
+    const Cc = mkBoard();
+    E(Cc, `confirm=function(){ return true; }; 'ok'`);
+    await imp(Cc, book(R3, HDR, HC), '2026 ACE dup.xlsx');
+    await answer(Cc, { roll: H('Rollup Value?') });
+    await imp(Cc, book(R3, HDR, HC), '2026 ACE dup.xlsx');
+    chk(name, 'another title', 'CONTROL — an answer naming one of the two same-titled columns is read again without asking', J([asked(Cc), kept27(Cc)]), J([null, 3000000]));
+    [A, Bb, Cc].forEach(x => { try { x.w.close(); } catch {} });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+
+// v2.12 RV4 (second review S21): THE GUIDE SAYS WHAT THE IMPORT DOES, AND NOTHING PINNED IT. RV1 rewrote t-ace (review R31): a box asks
+// when a title is missing or heads two columns, and about a missing US/PTN/FMS, CCAR Element or CESk, which may be answered "no such
+// column"; the report shows 40 named rows of each kind (the board's own ACE_REP_CAP) and says a report not in ORBIT's shape is
+// unreadable. RV4 adds the rule for a heading two rows place under different parents (S02). Read from the board's own guide, as RV3
+// reads t-ppbe. FAILS ON c81e995: the S02 rule is not in the guide (the other parts pass there: they are here for their mutations).
+{
+  const name = 'v2.12 RV4 — the guide’s cost estimate section says what the import asks, shows and settles (S21)';
+  try {
+    const B = boot(), { ev } = B;
+    const sec = ev(`(function(){ var t=document.getElementById('helpDoc'), s=t && t.content.querySelector('section[data-id="t-ace"]'); return s? s.textContent : ''; })()`);
+    const cap = ev(`String(ACE_REP_CAP)`);
+    chk(name, 'asked', 'a box asks when a title is missing or heads two columns', /asks which holds a field, once \(remembered for files laid out the same way, and travelling with the board\), when its title is missing or heads two columns/.test(sec), true);
+    chk(name, 'asked', 'and about the optional columns that change what is read, which may be answered no such column',
+      /also a missing US\/PTN\/FMS or CCAR Element, and CESk where paragraphs reach level k, which may be answered no such column \(no US\/PTN\/FMS: every row is US\)/.test(sec), true);
+    chk(name, 'shown', 'the report’s named rows are capped on screen at the board’s own figure', sec.indexOf('the named rows (' + cap + ' of each kind on screen)') >= 0, true);
+    chk(name, 'shown', 'and a report not in ORBIT’s shape is said to be unreadable', /one not in ORBIT’s shape is said to be unreadable/.test(sec), true);
+    chk(name, 'shown', 'and the old claims are gone: every named row, a changed title asked once', [/every named row/.test(sec), /If a title has changed/.test(sec)].join(','), 'false,false');
+    chk(name, 'settled', 'the rule for a heading two rows place under different parents (S02)', /a heading two rows place under different parents goes under the breakout one, and is named/.test(sec), true);
+    try { B.w.close(); } catch {}
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.12 W1 ====
 
 // ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
