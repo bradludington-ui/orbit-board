@@ -3399,7 +3399,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const seedIt = ev => { seed(ev, { services: SV, items: [{ id: 'A', grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec A', event: 'EV-A', ccar: '', fy26: SV.map(() => 0), ask: [100, 0, 0, 0, 0, 200], alloc: null }],
       disc: [1e9, 0, 0, 0, 0, 1e9], mand: SV.map(() => 0), order: ['A'] });
       E(ev, `BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); 'ok'`); };
-    const posOf = f => { const v = {}; YRS.forEach(y => { v[y] = f(y); }); return { v: 2, split: false, lines: { USN: [{ k: '_all', all: true }] }, val: { USN: { _all: v } } }; };
+    // v2.12 RV6: the positions are entered split, as their Discretionary and Mandatory figures say they are. This block is about
+    // which copy is read; a position left in one-figure mode is now each service's total, divided by that appropriation's own base
+    // (ppLanesOf, Brad's R37 rule) -- which the v2.12 W3 slot's RV6 block holds -- and its d and m were never a split to divide.
+    const posOf = f => { const v = {}; YRS.forEach(y => { v[y] = f(y); }); return { v: 2, split: true, lines: { USN: [{ k: '_all', all: true }] }, val: { USN: { _all: v } } }; };
     const OLD = y => ({ d: 1e6, m: 0 }), NEW = y => ({ d: 50e6 + y, m: 2e6 + y }), NEWER = y => ({ d: 70e6 + y, m: 3e6 + y });
     // Full Fund's own board writes both copies, as it saves them (the folder save puts the data pack in first: _driveStorePushRun)
     const F = boot({ appn: 'FULL FUND' });
@@ -5513,6 +5516,60 @@ await (async () => {
 // ==== end v2.12 W2 ====
 
 // ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====
+// v2.12 RV6 (S05, S14, S17): FYDP Disconnects reads each appropriation's position through the board's one rule (ppLanesOf). A
+// SPLIT POSITION IS READ AS IT ALWAYS WAS, to the byte: this block builds the v2.10 / v2.11 shapes -- three appropriations, split
+// positions with cents in both lanes (rounded at the door), a year a position does not log, a service no group takes (the v2.11
+// note), the other appropriations' stores holding their own bases (so a split read as one figure would divide differently) -- and
+// holds the model, the workbook's sheets and the box's text to what the board before the change (c81e995, read from git) gives for
+// the same fixture. The one-figure readings are the v2.12 W3 slot's RV6 block in audit-board.
+// PASSES ON c81e995 BY CONSTRUCTION (it is the board compared against): a CONTROL of the rewrite, proved by its mutations.
+{
+  const name = 'v2.12 RV6 — FYDP Disconnects reads a split position exactly as before: the model, the sheets and the box, against the board before the one rule (S05, S14)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'], YRS = [2027, 2028, 2029, 2030, 2031, 2032];
+    const lines = []; ['om', 'ff', 'sp'].forEach((ap, a) => SV.forEach((sv, s) => { const v = {}; YRS.forEach(y => { v[y] = (a + 1) * 1e9 + (s + 1) * 1e7 + (y - 2020) * 1e5; }); lines.push({ ap, pmo: 'AV', svc: sv, v }); }));
+    // split, cents in both lanes, FY31 not logged; `extra` adds a service no sheet takes
+    const posOf = (a, extra) => { const P = { v: 2, split: true, lines: {}, val: {} };
+      SV.concat(extra ? [extra] : []).forEach((sv, s) => { P.lines[sv] = [{ k: '_all', all: true }]; P.val[sv] = { _all: {} };
+        YRS.filter(y => y !== 2031).forEach(y => { P.val[sv]._all[y] = { d: (a + 1) * 2e8 + (s + 1) * 3e6 + (y - 2020) * 1e4 + 0.4, m: (s + 1) * 1e5 + a * 1e3 + 0.6 }; }); });
+      return P; };
+    const yearsOf = k => { const o = {}; [2027, 2028, 2029].forEach(y => { o[y] = { bm: { disc: SV.map((s, i) => (i + 1) * 7e6 * k), mand: SV.map((s, i) => (i + 2) * 3e6 * k), adds: [] } }; }); return o; };
+    const store = (a, extra) => J({ base: 2027, cur: 2027, ts: 5, order: [], ppbe: { 'BES|2028': posOf(a, extra) }, dataPack: { services: SV, items: [], budget: [] }, years: yearsOf(a + 1) });
+    const SETS = { '2025ACE': { label: '2025ACE', ts: 2000, years: YRS.slice(), lines, appn: {}, skip: {} } };
+    const setUp = B => { seed(B.ev, { services: SV, items: [], disc: SV.map((s, i) => (i + 1) * 5e6), mand: SV.map((s, i) => (i + 1) * 2e6), order: [] });
+      E(B.ev, `ACEDB.sets=${J(SETS)}; ACEDB.ts=4000; MS.ppbe={'BES|2028':${J(posOf(0, 'F-35B'))}}; MS.cycle='BES|2028';
+        localStorage.setItem(_SLUGMAP.ff.key, ${J(store(1, 'NAVY-X'))}); localStorage.setItem(_SLUGMAP.sp.key, ${J(store(2))}); render(); 'ok'`); };
+    const read = B => E(B.ev, `(function(){ var M=fdcModel({ace:'2025ACE', cyc:'BES|2028'}); if(!fdcOpen) toggleFdc();
+      var box=(document.getElementById('fdcBody')||{}).textContent||''; toggleFdc(); return JSON.stringify({M:M, sheets:fdcSheets(M), box:box}); })()`);
+    const N = boot(); setUp(N);
+    const mine = read(N), M = (JSON.parse(mine.startsWith('threw') ? 'null' : mine) || {}).M || { sheets: [] };
+    const lane = (ap, lbl) => ((M.sheets[0] || { rows: [] }).rows.filter(r => r.t === 'line' && r.ap === ap && r.label === lbl)[0] || {}).vals;
+    chk(name, 'the fixture', 'CONTROL: the positions are split and carry mandatory money, rounded at the door (O&M FY27 USAF 203,070,000.4 + 100,000.6 read as 203,070,000 / 100,001 -- the Summary adds six services)',
+      J([lane('om', 'Discretionary')[0], lane('om', 'Mandatory')[0]]),
+      J([SV.reduce((t, s, i) => t + Math.round(2e8 + (i + 1) * 3e6 + 7e4 + 0.4), 0) + Math.round(2e8 + 7 * 3e6 + 7e4 + 0.4), SV.reduce((t, s, i) => t + Math.round((i + 1) * 1e5 + 0.6), 0) + Math.round(7e5 + 0.6)]));
+    chk(name, 'the fixture', 'CONTROL: and the note names the services no sheet takes, as v2.11 wrote it', M.note,
+      'Counted on the Summary only, on no service sheet: F-35B (O&M BES28); NAVY-X (Full Fund BES28).');
+    const { execFileSync } = await import('node:child_process');
+    const root = _selfPath(new URL('../..', import.meta.url));
+    let before = null;
+    try { before = execFileSync('git', ['-C', root, 'show', 'c81e995:prioritization-board-grid.html'], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { failures.push({ scenario: name, where: 'the board before', what: 'c81e995’s board could not be read from git (a shallow clone? git fetch --unshallow): ' + String((e && e.message) || e).slice(0, 120), got: 'unread', want: 'read' }); }
+    if (before) {
+      const O = boot({ html: before }); setUp(O);
+      chk(name, 'the board before', 'CONTROL: the board read from git has no one rule for a position (it is the board before RV6)', E(O.ev, `typeof ppLanesOf`), 'undefined');
+      const theirs = read(O), P = s => { try { return JSON.parse(s); } catch { return {}; } }, a = P(mine), b = P(theirs);
+      chk(name, 'the model', 'fdcModel gives exactly what the board before gave: every sheet, row, figure, total and the note', J(a.M), J(b.M));
+      chk(name, 'the sheets', 'fdcSheets writes exactly what it wrote: every row, merge, height and style', J(a.sheets) === J(b.sheets) && J(a.sheets).length > 1000, true);
+      chk(name, 'the box', 'and the box says exactly what it said', a.box === b.box && a.box.length > 200, true);
+      if (O.errors.length) chk(name, 'jsdom', 'no script errors (the board before)', O.errors.slice(0, 2).join(' | '), '');
+    }
+    if (N.errors.length) chk(name, 'jsdom', 'no script errors', N.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.12 W3 ====
 
 {

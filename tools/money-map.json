@@ -671,6 +671,13 @@
    "anchor": "const name = 'v2.12 W2 — the FYDP Spend Plan’s STOVL tab carries Full Fund’s USMC-B, whichever board is open (item 132)'",
    "basis": "arithmetic",
    "asserts": "FYDP Spend Plan (item 132): Full Fund's USMC-B is on the one STOVL tab whichever board is open (O&M, Full Fund, a Spares board carrying both), per appropriation and year written out from the fixture's literals; the service tabs add up to each appropriation tab; the Summary's By service; the panel's views."
+  },
+  "rv6.lanes": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.12 RV6 — a one-figure position is read by one rule: the live budget, Take from a PPBE position and FYDP Disconnects divide it alike (S04, S05, S14, S17, S18)",
+   "anchor": "const name = 'v2.12 RV6 — a one-figure position is read by one rule: the live budget, Take from a PPBE position and FYDP Disconnects divide it alike (S04, S05, S14, S17, S18)'",
+   "basis": "arithmetic",
+   "asserts": "A position logged one figure per line, read by the board’s one rule (ppLanesOf, Brad’s R37 decision) through every reader, against lanes worked out by hand from the fixture: the live budget, Take from a PPBE position (its question, the base it writes, a later tag) and FYDP Disconnects (the Summary, the service sheets, the box and the workbook read from its bytes) each divide a service’s total as that appropriation’s own base for the year divides it -- two bases tie at a half dollar, so apportion is told from rounding or flooring each lane; every lane a whole dollar adding to the figure typed; no own base is discretionary; Full Fund by its own base and its own service list, never this board’s; a year whose base cannot be read prints — with the figure as its Controls, and is said."
   }
  },
  "surfaces": {
@@ -2722,7 +2729,8 @@
     "appropriation": {
      "status": "proven",
      "checks": [
-      "ot.v210a"
+      "ot.v210a",
+      "rv6.lanes"
      ],
      "note": "each appropriation’s controls from its own store, as its own board opens it; OPN left out"
     },
@@ -2755,9 +2763,10 @@
     "lane": {
      "status": "proven",
      "checks": [
-      "ot.v210a"
+      "ot.v210a",
+      "rv6.lanes"
      ],
-     "note": "Discretionary and Mandatory, each its own line, by appropriation, sheet and year"
+     "note": "Discretionary and Mandatory, each its own line, by appropriation, sheet and year; a one-figure position divided as that appropriation’s own base divides it, — where that base cannot be read"
     }
    }
   },
@@ -2785,7 +2794,8 @@
      "checks": [
       "w3.live",
       "rv3.read",
-      "rv3.newyear"
+      "rv3.newyear",
+      "rv6.lanes"
      ],
      "note": "each service the position names from it, the others the board’s own"
     },
@@ -2805,9 +2815,10 @@
      "status": "proven",
      "checks": [
       "w3.live",
-      "rv3.newyear"
+      "rv3.newyear",
+      "rv6.lanes"
      ],
-     "note": "discretionary and mandatory, each from its own figure and its own added sources"
+     "note": "discretionary and mandatory, each from its own figure and its own added sources; a position logged one figure per line divided as the board’s own base divides it (one rule, which Take reads too)"
     }
    }
   },
