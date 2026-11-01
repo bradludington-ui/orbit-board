@@ -5318,6 +5318,28 @@ await (async () => {
     // split leaves officeClinRecon whole)
     chk(name, 'agreement', 'CONTROL — the offices’ CLIN reconciliation still adds to P’s draw',
       X.ev(`(function(){ var R=officeClinRecon(); var p=R.reqs.filter(function(r){ return r.id==='P'; })[0]; return p? p.offices.reduce(function(a,o){ return a+o.cd+o.cm; }, 0) : -1; })()`), 300);
+    // v2.12 (integration): THE SPLIT ONCE IS IN WHOLE DOLLARS. Above, B's USAF $700 over 300 / 200 / 200 divides exactly, so a split
+    // in fractions of a dollar gives the same lines, and on the merged board v212-w2-src-fraction SURVIVED: since RV2 (K06) each lane
+    // takes its share from what each paragraph has left, by largest remainder, so the lines are whole dollars either way, and only
+    // WHICH lane carries the odd dollar shows the difference. E asks $300 on USAF, typed $200 on 1.2.1 and $100 on 1.3; the lanes pay
+    // $50 discretionary and $50 mandatory. Split once in whole dollars: $67 / $33, so discretionary $34 / $16, mandatory $33 / $17.
+    // In fractions ($66.67 / $33.33) the odd dollar lands on the other lane: $33 / $17 and $34 / $16.
+    const Y = boot();
+    seed(Y.ev, { services: ['USAF'], items: [w2it('E', 'AV', [300])], disc: [50], mand: [50], order: ['E'] });
+    Y.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={E:'OGC'}; S.wbs={E:[{w:'1.2.1', v:[200]}, {w:'1.3', v:[100]}]};
+      ACEDB={ts:9, sets:${J({ '2026ACE': W2_SET })}};
+      BUDDB={ts:1700000000060, files:[], rows:${J([BUD['USAF|disc'], BUD['USAF|mand']])}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+      applyState(S); save(); 'ok'`);
+    chk(name, 'odd dollar', 'the lanes pay E $50 discretionary and $50 mandatory (a CONTROL on the fixture)',
+      Y.ev(`(function(){ var T=tiers(); return T.E.d.join('/')+'+'+T.E.m.join('/'); })()`), '50+50');
+    { const [p, q] = w2Spread([50, 50], [200, 100]);
+      chk(name, 'odd dollar', 'CONTROL on the oracle: split once, $67 / $33; discretionary $34 / $16, mandatory $33 / $17', J([p, q]), J([[34, 16], [33, 17]]));
+      const yb = JSON.parse(await w2Book(Y.w, 'exportSrc'));
+      const ys = Object.values(yb).find(rs => (rs || []).length > 1) || [];
+      const yl = ys.slice(1).map(r => [svcOf(String(r[4] ?? '')), typeof r[9] === 'number' ? r[9] : NaN, String(r[23] ?? '')].join(' · '));
+      chk(name, 'odd dollar', 'E’s lines: the odd dollar on discretionary’s 1.2.1, as the money split once in whole dollars gives it',
+        J(yl.sort()), J([['USAF|disc', p[0], cell('1.2.1')], ['USAF|disc', p[1], cell('1.3')], ['USAF|mand', q[0], cell('1.2.1')], ['USAF|mand', q[1], cell('1.3')]].map(w => w.join(' · ')).sort())); }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
