@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.11**. Next: **v2.12**.
+Current version: **v2.12**. Next: **v2.13**.
 
 ## Open
 
@@ -205,6 +205,508 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   (WB-1's finding, in every dressed workbook). Proposed: `horizontal="left"` beside the indent; every dressed workbook's
   styles change, so its byte checks move with it.
 
+#### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
+- **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
+  One product for everyone -- *"It's no secret"* -- in Excel, so it can be manipulated; it ends up on slides.
+- **What is there today** (the same mapped read): no report puts the five on one line. The Excel workbook's Decision Bands
+  detail has the requirement, each Service's funded dollars, CCaR and PID; the Funds Flow follows CCaR rows by title; the
+  ACE Tie-Out ties requirements to the ACE by WBS, for the open appropriation only. There is no contract number anywhere.
+  The CCaR pull's rows carry no requirement id: they match by record title (97.3% of O&M dollars by the code's own
+  measurement), and 108 of 155 O&M requirements share a title. ORBIT's "obligated" is a CCaR row whose Alloc column does
+  not say *Not Allocated*; there is no expenditure figure. No cost-share rule exists: each Service's dollars are typed per
+  requirement. The ACE import keeps US services only.
+- **Brad's decisions (28 Oct 2026):**
+  1. **By the ACE's WBS tree** (item 132).
+  2. **Execution:** obligations now; expenditures later, as they become more prioritized.
+  3. **Contract** means the contract number, one per requirement. It is a new addition in both CCaR and ORBIT. A MIPR
+     number does not go in it.
+  4. **Cost share** is each Service's percentage of what is funded. *"In the Excel format it should include a box that we
+     can type in a partner total which would adjust percentages for that line"* -- a box on every line, and a header adds
+     the boxes beneath it. ORBIT does not keep the partner figures; they live in the workbook.
+  5. **Years:** the budget year onward is planned, from ORBIT's funded figures. The active year is actuals and planned,
+     and its data lives only in CCaR; Brad's team is adding the WBS paragraph number to every CCaR plan event.
+  6. **Services:** three -- Air Force (USAF, ANG, AFRC), Marine Corps (USMC STOVL, USMC CV) and Navy (USN CV) -- with the
+     six lines kept on the data tab (proposed 28 Oct; Brad did not object).
+- **The mock-up** (invented figures, contract and CCaR numbers; placeholder WBS names): `recovery/item133-mockup/`. `sh
+  make.sh` builds it (`model.py`, `xlsx.py`), saves it once through LibreOffice so the file carries computed values (a phone
+  or mail preview shows figures, not blanks; the formulas stay live), and runs `check.py`. Tabs: *How to read*, *FY27
+  (active)*, *FY27 by month*, *FY28* (budget year), *FY29*, *Data*; renders in `xlsx-*.png`.
+  - **The Data tab is the one source.** One row per figure, a column per measure -- Requirement and Funded (ORBIT), CCaR
+    plan, Obligated and Planned to obligate (CCaR), ACE estimate -- never two measures in one column. The active year's
+    CCaR figures and ORBIT's figures are named apart: they come from two systems and do not line up row by row (the
+    workbook says so). Months are dates; the WBS levels are columns, named.
+  - **Every other figure is a SUMIFS over Data**, keyed by the row's own hidden keys (year, appropriation, WBS level,
+    paragraph, line) -- never a range of rows -- so sorting, filtering, collapsing or inserting rows cannot move a total.
+    A plan line is keyed by the ORBIT requirement's id, never its CCaR record or contract (a CCaR record is shared and a
+    contract number starts blank); a CCaR line by record, title and contract. Every WBS key carries a `W|` prefix, so Excel
+    never reads a key such as 1.1 as a number and matches 1.10 with it.
+    The partner box (yellow, on every row) takes **$M** and has data validation; a header adds every partner figure on its
+    own row and beneath it, keyed the same way.
+  - **What the fixture carries, because real data will:** Full Fund's USMC-B (counted as Marine Corps), a letter-suffixed
+    paragraph (1.1.1.1E, beside 1.1.1.1), an ACE line no requirement claims (1.1.1.3: its own row, in every ACE total), a
+    requirement on a parent that has children (1.2.2), a requirement with no WBS paragraph ("No WBS paragraph yet", inside
+    its appropriation's totals), one on a paragraph the ACE lacks (1.4, flagged red -- decided by the estimate's own lines
+    for that appropriation and year, not by the names list), one in the ACE with no name linked (1.3.1), 1.10 beside 1.1,
+    two requirements sharing a CCaR record with no contract number (MIPRs), one CCaR record carrying two contracts, a plan
+    event that slipped and one obligated early, a procurement plan event dated past September (an *After* column on the
+    month tab), a CCaR row whose budget name names no Service (*Service not identified*, in every total), Initial Spares
+    and OPN, and FY26 procurement money obligating in FY27 (on the active-year tab, marked *FY26 money*; the Data tab keeps
+    its own FY beside *Shown on*). The top line names the appropriations it covers. Every sheet carries the marking in its page header and
+    footer, and the Data tab above its table.
+  - **`check.py`** recalculates the saved file in LibreOffice and holds all 259 rows of the four tree tabs to figures worked
+    out from `model.py` with the Service groups written out by hand (never the builder's own list), every line's shares to
+    100%, the month tab's totals to the active tab's, the Data tab's measures, no formula pointing at another row, every
+    key's prefix, the marking, and partner figures typed in $M on a line, a WBS header, an appropriation and the active
+    tab. Eleven planted mistakes each fail it: the USMC-B alias dropped (246), the partner box not converted from $M (12),
+    the unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1), requirement and funded in one Data
+    column (1,183), plan lines keyed by CCaR record and contract (345), the unidentified Service left out of the US total
+    (29), plan events after September dropped (13), the ACE flag taken from the names list (1), the key prefix dropped (5),
+    earlier years' money dropped from the active tab (194).
+  - **Rebuilt after an independent review (28 Oct):** three reviewers (Brad's decisions, the Excel under real use, what
+    ORBIT can deliver), each finding reproduced in LibreOffice. The first cut summed requirement and funded in one Data
+    column (a pivot doubled the plan years), took the partner box in dollars under a $M label (2.5 did nothing), lost a row
+    inserted at a block's edge and scrambled totals on a sort (positional ranges), dropped money with no paragraph and ACE
+    lines with no requirement, carried no unit on a copied cell, and stored no computed values. The third review (what
+    ORBIT can deliver) found the rebuild keying a plan line by CCaR record and contract, so two MIPRs sharing a record each
+    printed the other's money; the ACE flag decided by the names list; keys Excel could read as numbers; an unidentified
+    Service and procurement dated past September falling out of the totals; the active year's CCaR figures filed as
+    "Funded" beside ORBIT's; and no marking on the Data tab. Each is fixed above.
+- **Proposed build (after item 132):**
+  - A read-only export under Reports & exports, laid out as the mock-up. Plan years from `tiers()` (funded = d + m per
+    service), each appropriation read as its own board opens it; the active year from the CCaR pull, each row placed by its
+    plan event's WBS paragraph, its Service read from its budget name. Nothing recomputed, nothing written to the board.
+    Services join by name through `SVC_ALIAS` (Full Fund's USMC-B is Marine Corps); WBS paragraphs sort naturally; which header a
+    line rolls up to is item 132's tree (one rule for both, so an *E* line rolls up as item 132 decides).
+  - **The contract number** as a new requirement field (the record, the Add and edit boxes, PMO copies, year copies, the
+    import door), printed in this workbook, and written to the Spend Plan Source once CCaR has a column for it.
+  - **Formulas in ORBIT's Excel writer**, opt in: a cell may carry `{f, v}`, written as `<f>` with `<v>` = ORBIT's own
+    figure, so the file shows figures before it is recalculated and the board's read-back checks can compare them. Every
+    workbook that does not ask stays byte-for-byte as it is.
+  - **Ask CCaR to carry ORBIT's requirement id** beside the contract number, so CCaR rows match requirements exactly (Brad's
+    "yes", 28 Oct, read as covering this).
+  - **Obligated** is CCaR's allocation status (`isAlloc`). The Spend Plan Source writes *Forecast allocated to a Plan Event*
+    for an active year, and `isAlloc` would read that text, coming back unchanged, as obligated: the build counts obligated
+    only on a positive allocated value, and states blank, forecast and unknown Alloc text apart, with their dollars.
+  - **The CCaR pull is read by position** (`SRC_NCOL` = 32, `QPE_READS` by index): a contract-number column CCaR *inserts*
+    re-points every read after it, and one it *appends* is dropped. Agree the slot with CCaR (an existing column such as
+    30, *Contract Mod*, or a re-measure of `SRC_HDR` and the Spend Plan Source together). The contract field joins the full
+    field plumbing (`REQ_FIELD`, `recFields`, `REQ_MAPS`, `PMO_FIELDS`, `NA_FROM_CARRY`, the import door, `codeTake`).
+  - **Primes:** the WBS and the CCaR number are per CLIN (`S.clinWbs`; the Spend Plan Source sends each CLIN's own CCaR
+    number), funded spread over CLIN x WBS by the CLIN grid (`aceAlignRows`). The build's fixture needs a prime with two
+    CLINs on different paragraphs; which contract number its line prints is to decide (one per requirement, Brad, 28 Oct).
+  - **The ACE column is a filtered subset of the ACE file** (first sheet, JPO-managed, the seven ACE PMOs, US services;
+    stored x1e6 without `D$`): print the estimate's name and its skip counts on each tab and round at the door. The names
+    tab Brad finds needs a read of its own; CCaR's column 23 descriptions are a second source of names.
+  - **WBS codes are normalised once, from all three sources** (case and spaces; the letters are kept -- `P6` is not
+    `6`, and `….1E` is not `….1`) before they become keys; the level
+    count comes from the data, not a constant. CCaR amounts keep cents and read *(1,234)* as positive today: round at the
+    door and read parentheses as negative. The *pull through* date comes from `repYmOf`, not `asOf` or today.
+  - **A requirement line's label repeats on real data** (108 of 155 O&M requirements share a record name; OPN shares one plan
+    event): print the plan event, the record name and the PID beside each other, as Decision Bands does.
+- **Answered (Brad, 28 Oct 2026):**
+  1. **A requirement on two paragraphs:** what the office types per paragraph is **the allocation** -- as ORBIT's WBS lines
+     already split it (`wbsResolve`). So per paragraph: the allocation as typed; funded spread over the paragraphs by
+     allocation (as `aceAlignRows` spreads it); the requirement value apportioned by the same weights (`apportion`); and any
+     allocation the typed lines do not cover on a line of its own, "not assigned to a paragraph". (The mock-up, splitting
+     requirement and funded by one fraction, shows the same result where the allocation follows that fraction.)
+  2. **OPN is in:** *"It's a smaller appropriation but we still need to be in balance."*
+  3. **Earlier years' procurement money obligating this year goes on the active-year tab:** *"Yes, but let's revisit if it
+     doesn't view as planned."* CCaR files those rows under their own FY; the tab shows the ones dated inside the active
+     year, marked with their year, in every total. The ACE beside the active year is that year's estimate, which earlier
+     years' money is outside, and the tab says so.
+  4. **What CCaR's Alloc column says for a plan event not yet obligated:** *"Not allocated. Everything in ORBIT is planned
+     for the future. CCaR is for active year obligations when we have the authority to obligate."* So obligated is read from
+     CCaR's own allocation status, as `isAlloc` reads it, and ORBIT's figures are never obligations.
+  5. **ORBIT's WBS goes into the Spend Plan Source's WBS column**, line by line: item 132, decision 4.
+  6. **The out-years' basis:** *"All years should reference the PPBE Budget assigned. As we go through the PPBE process we
+     need to be able to adjust funded positions on each requirement to fit within our new PPBE position."* Item 134. Built
+     on it, this workbook's plan years are funded within the PPBE position.
+  7. **The marking** *CUI//REL TO US DoW*: *"Yes."*
+- **Open:** which CCaR column will carry the contract number.
+
+#### 135. Found while building v2.12, not built
+Each was found by a builder or a reviewer of v2.12 and left as found. Brad's eight questions on what v2.12 built wait for his
+answers under Shipped › v2.12 › *Questions for Brad*.
+- **WBS from execution data proposes a prime's requirement-level paragraph** (RV5). A pull row for a prime that names no CLIN
+  the prime holds is proposed for the prime's requirement-level paragraph (`S.wbs`), which the one rule reads nowhere
+  (`wbsStateOf`: a prime's WBS is its CLINs'). ORBIT's own Spend Plan Source never writes such a row (a prime's money on no CLIN
+  goes out blank); one typed in CCaR could.
+- **A CLIN request that is a list of text figures** (`['5']`) is summed as text by `clinAskTot` in the drill, as in v2.11 (RV5).
+  `clinVec` and `clinSplit` read it as the figure, and the import check takes text figures, as it does every amount.
+- **A re-import can change an estimate's fingerprint** (W1). `aceFingerprint` covers only the aggregates and the line count, and
+  the new import reads whole dollars at the door and leaves out rows the old one kept, so an older copy of that estimate
+  elsewhere (the shared folder, another board) reads as "disagrees".
+- **Another appropriation's stored budget is as its own board last saved it** (W3). This board's Spruills and the live view read
+  those years' stored caches, and a position sent there in an appropriation package is live only once that board opens.
+- **Brad's call** (each raised in the second review and refuted as a defect, its skeptic calling it a change for Brad to
+  decide): a way to forget a remembered answer in the mapping box (a mistaken "this file has no such column" for US/PTN/FMS is
+  remembered for the layout, and only a change to the file's header row reads it again); in one-figure mode, the PPBE box's field
+  showing the total, where it shows the discretionary slot and, under it, any mandatory left from an earlier split; an own lane
+  split that can be set while the plan is tagged; and a prime's CLIN lines on the Spend Plan Source carrying what each CLIN
+  asks (older than v2.12: twelve $25 increments over three $100 CLINs go out $108 / $96 / $96, while each paragraph's total
+  across the prime is what was typed), which would change the CLIN amounts of v2.02's E5 (Brad, 13 Oct 2026: label both,
+  reconcile them, move no dollar).
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
+- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
+  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
+- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
+  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
+  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
+  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
+  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
+  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
+  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
+  finding fixed or written down, plus `npm audit` for the test tooling.
+- **Proof:** each change ships with a check that fails without it, as every version does.
+- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
+  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v2.12 — 1 Nov 2026: the cost estimate read by its header titles, a WBS paragraph on every requirement picked from it, and every year's budget read live from the PPBE position -- built on Brad's "Go on v2.12" of 28 Oct
+
+Items 132 and 134 were built as Brad decided them on 28 Oct (his decisions are under each item below). Item 133, the Service
+share workbook, is v2.13: it is not in this version and stays under Open. Three builders worked in parallel from the slot commit
+`d732259`, to one contract (`recovery/v212/contract.md`) and one map of the code (`recovery/v212/map.md`): **W1**, item 132's
+import (`notes-W1.md`); **W2**, item 132's paragraph on every requirement (`notes-W2.md`); **W3**, item 134 (`notes-W3.md`). W1
+and W3 were joined at `2bafb12`, W2 beside them at `e2f6813`, and the board was then reviewed twice and fixed twice. Where the
+build differs from the log, or had to decide something the log does not say, it says so here.
+
+**Item 132 — the cost estimate read by its header titles (W1).**
+- **By title, on any sheet:** `importAce` searches every sheet, in the workbook's own order, for the row carrying the most of
+  ORBIT's titles, one more for a fiscal-year column (`aceFindHeader`, `aceHdrScore`, `ACE_FIELDS`), compared lower-cased with
+  everything but letters and digits taken out, and `aceImportGo` reads the rows under it. A new column moves nothing; nothing is
+  read by position; the import says which sheet and row it read.
+- **A title that has changed** is asked about once, in a box listing the file's own headers (`#aceColPanel`), and the answer is
+  remembered for files laid out the same way (`ACEDB.cols`). Cancel imports nothing; a field left unanswered refuses the file.
+- **Every row is kept or left out with its reason**, counted by rows and by dollars per year (`set.rep`): other dollar types,
+  rollups, blank Support Line Category (Cost's summary rows), MILPERS, partner and FMS, not JPO-managed, Service Mgd, an unknown
+  office, a category not in the map, PALS/O&S disagreeing, an unreadable service. The P check, a *Level* that is not the
+  paragraph's depth and an unsettled Depot Activation row are named but kept. Kept plus every reason ties to the sheet, every
+  year, to the dollar. The category map is one table (`ACE_SLC`, with `aceDepotCe`), replacing `ACE_APPN`; year cells are $M,
+  whole dollars at the door (`aceMoney`).
+- **The WBS tree** (`set.wbs[ap]`, `aceTree`): each paragraph a kept row carries (a kept row with no dollar is in the tree and
+  carries no line) and each heading above it, named from the CES columns by the letter rule (`P6.2.2.1E` → `P6.2.2E` *ECU
+  Propulsion* → `P6.2` → `P6`); one named two ways is listed.
+- **The import report** (`#aceRepPanel`) opens after an import, not the Spruills, and stays under Data › Import report…. A
+  `.xlsb` is refused by name, and by its contents when named `.xlsx`; the Spruills' button that only alerted opens the import.
+- **PSM is inside Air Vehicle in every estimate** (`aceAlignDefault()`); an alignment stored as `{}` on a 2026 or later estimate
+  is the old default, replaced when the board opens and said then (`aceAlignHeal`, `aceHealSay`). Opening writes nothing, so the
+  file keeps `{}` and the board says it again on each opening until it is saved. **The AV + PSM split** (`aceGroupSplit`): in the
+  tie-out panel and the workbook's Reconciliation by PMO, each office's part is the estimate of the lines only its requirements
+  claim, up the tree, and the rest is the shared line; the parts and the shared line add to the group's estimate.
+- **Decided by the builder:** a row scoring fewer than four (ORBIT's titles it carries, plus one for a fiscal-year column) is
+  never a header; a blank US/PTN/FMS cell reads as US; a kept row with no WBS is a line, and named; a kept row with no dollar is
+  a paragraph in the tree, not a line; a line's level is its code's depth, and the file's *Level* column is checked against it;
+  names are compared case- and space-insensitively; the split is shown under any group with more than one board office; a
+  column titled like a name every object answers to (`constructor`, `toString`) is read but never remembered, so that layout is
+  asked about on each import.
+
+**Item 132 — a WBS paragraph on every requirement, picked from the estimate (W2).**
+- **Picked, not typed:** the WBS panel, the Add box (`#arWbs`), the edit box (`#erWbs`) and Classify's quick box (`wbsQuick`)
+  offer the paragraphs of the estimate `wbsPickKey` names, as "code — path" (`wbsPick`). One rule takes or refuses what is typed
+  (`wbsTake`): a code the list holds is stored as the estimate writes it, anything else is refused with the text kept, and with
+  no estimate naming the appropriation it is taken as typed, as before. A stored paragraph the list lacks is kept and flagged.
+- **Suggestions:** a line whose *CCAR Element* is the requirement's CCaR record puts its paragraphs first, marked suggested;
+  nothing is set (`wbsSuggest`).
+- **Needs attention:** *▦ N without a WBS* (funded dollars on each, the coverage in its heading) and *≠ N WBS not in the
+  estimate*, each opening the edit box at the WBS (a prime: its CLIN drill). **Classify** sets one paragraph on many
+  requirements, never on a prime (its WBS is per CLIN) or a requirement split over paragraphs (the bulk set would erase it).
+- **The Spend Plan Source's column 23** carries each line's paragraph, "CODE - name" (`srcWbsCell`; `srcWbsPara` reads it back):
+  a line per paragraph, split by `apportion` as the office typed it, any unassigned part on a blank line, the lines adding to the
+  line they replace (decision 4). A blank line's requirement is named in the status line. No other column moves.
+- **The FYDP Spend Plan's STOVL tab** carries Full Fund's USMC-B, whichever board is open (`fydpSvcFold`).
+- **Decided by the builder:** a paragraph is refused when it would be stored and warned about while it is typed; `p6.2` is stored
+  `P6.2`; a paragraph's name typed alone is not taken (names repeat, *Officer* among them; the pick puts the code in); with an
+  estimate the quick box is ORBIT's own box, never the browser's prompt; coverage counts the year on screen. **In the edit box
+  the WBS is first of the Accounting lines and the Navy SI code moved to Classification**, to give a long path room at
+  1366 × 657.
+
+**Item 134 — every year's budget is the PPBE position, read live (W3).**
+- **Read, not copied:** while the plan is tagged, each year's discretionary and mandatory budget authority, by service, is that
+  year's figure in this appropriation's position under the tag (`baPos`, `baOf`, `applyBudget`), with added funding sources on
+  top. A service, year or plan the position does not speak for keeps the board's own base, which is never overwritten (untagging
+  gives it back), and says so.
+- **Every year at once:** every writer of a position or of the tag, every load, a locked view and the end of opening make every
+  year this board holds live (`baLiveAll`, `baApplyTo`), so the Spruills and every reader of one of this appropriation's stored
+  years see the live figure; another appropriation's years are as its own board last saved them. Opening and refreshing write
+  nothing and mark nothing unsaved.
+- **Over and under** per year, service and lane (`fitYearNow`, `fitModel`), said as the item words it (*"FY27 O&M, USAF
+  discretionary: requirements hold $50 more than BES28 — reduce a requirement"*), with every requirement holding money there,
+  those the lane cannot pay marked, and Go to it. ORBIT reduces nothing (decision 3).
+- **Where it shows:** a box, *Fit to the PPBE position* (`#fitPanel`), from FYDP › Fit to the PPBE position…, Budget
+  Management, the PPBE Budget Positions box and Needs attention, whose first entry counts the overs (*N over BES28*). For a
+  tagged plan, Budget Management shows each base the position speaks for read-only, naming it (`bmLiveRow`).
+- **UPL, the last line** (decision 4, `UPL_LBL`): added funding no requirement holds, by service and lane, after the requirements
+  and their TOTAL -- on the board's list (`div.uplline`, not a row), Funding Streams, the Priority Drill's 1-N tab and each
+  appropriation tab of the FYDP Spend Plan (`fydpUplRows`; `cycProjOf` carries `upl`, so a lock freezes it).
+- **Locks keep the position:** `cycLock` tags an untagged plan before it projects and keeps a copy of the position it read
+  (`pos`), which its view reads. **Differs from the log:** *Take from a PPBE position* stays, for an untagged plan only.
+- **Decided by the builder:** a service the position "names" is one it holds a figure for in some year (`baNamed`), so a line
+  added and never filled cannot zero a service, and such a service reads the position's $0 in a year another service logs (a
+  zero is not stored as a cell, so a blank and a typed 0 cannot be told apart; raised in both reviews and refuted as the rule
+  asked for); the over applies to an untagged plan too, against the board's own base; another year's fit is read on a copy of
+  the year (`fitReadYear`), so opening and saving write the file that was opened.
+
+**Integration.** The merges kept both sides of every conflict; the left menu holds 71 calls. The hostile board plants W2's WBS
+names in the estimate the pickers offer (`6daac7d`). The guide gains *Importing the cost estimate* (`t-ace`), *A requirement’s
+WBS paragraph* (`t-wbs`) and *Budget authority from the PPBE position* (`t-ppbe`).
+
+**The first review** (on `2bafb12` for W1 and W3, on `6daac7d` for W2 and where the three meet): finders by area, then two
+skeptics per finding, a finding kept when a finder reproduced it and a skeptic held it. **56 kept** (R00–R37,
+`review-W1W3.json`; K00–K17, `review-W2int.json`), many of them one defect seen from several areas; 5 refuted as the behaviour
+asked for. Three fixers, each from `c23e8a0`; every check fails there unless it is a coverage check or a CONTROL.
+- **RV1, W1's import** (`notes-RV1.md`):
+  - A board file could put markup on the page through its estimate's stored import report, on the Data card at every redraw and
+    in the report box (R08, blocking; R01, R02, the same defect); a report missing its totals stopped the board redrawing while
+    its box was open (R07, R10, R30, K12). `aceRepOf` is the one reader of a stored report; one not in ORBIT's shape is said to
+    be unreadable. The box works out again whether the figures tie (`aceRepTies`), never trusting a stored `ties`.
+  - A title the file carries twice was read from its first column, and a remembered answer re-read by title, so a subtotal
+    column could be counted twice (R00): asked about, naming the columns. A year heading two columns had one never read while
+    the report said every dollar tied (R06). A renamed optional column was never asked about, so with *US/PTN/FMS* renamed,
+    partner and FMS money was kept as the JPO's estimate (R25).
+  - A re-import of *2026ACE_final.xlsx* made a second estimate beside the locked one instead of asking to replace it (R05, R11).
+  - Figures were read out of words in a year cell, and signs lost (R04): a figure only when the whole cell is one (`aceIsFig`).
+  - An E breakout below its first lettered heading folded back under the plain heading, and the AV + PSM split gave its money to
+    the wrong office (R03, R09, R26, K08): once a heading on a line takes the letter, every heading below it does.
+  - Coverage, the code right: every category in the map, a header tie, a blank US/PTN/FMS cell (R33, R35). The guide claimed
+    more than the code did (R31).
+- **RV2, W2's WBS** (`notes-RV2.md`):
+  - A paragraph stored as CCaR writes it (*1.2.1 - Organizational*) was flagged as not in the estimate in some places and read as
+    1.2.1 in others, and the edit box opened marked changed, so a Save of any other field rewrote it (K00, K07). `wbsCodeIn` is
+    the one reader everywhere, and a stored paragraph stays as stored unless the person changes it.
+  - Needs attention said every funded dollar had a WBS while the Spend Plan Source sent some of it blank, and the export's
+    status line pointed to a list that did not hold them (K01, K05, K09, K14). The list, its heading and the message read the
+    export's own lines (`wbsBlankOf`, `wbsBlankSum`), inside `clinReadOnly`, so a draw writes nothing.
+  - A split's paragraph totals on the Spend Plan Source drifted from what the office typed (K06): each requirement or CLIN is
+    split once, then each line by largest remainder (`srcWbsSpread`).
+  - The quick box dropped typing on Esc (K02); the CLIN drill and the PMO review showed a bare code (K03); Classify said a split
+    requirement "never offers" the field (K04). Checks that could not see what they claimed: K15, K16, K17.
+- **RV3, W3's budget** (`notes-RV3.md`):
+  - A tagged board whose position held a line list that was not a list no longer opened, and an import of one half-landed while
+    saying it failed (R12, R24): a service's lines are read as a list (`ppLineList`), and where its lines or figures cannot be
+    read, that service and year keep the board's own base and say why (`ppSvcBad`). A figure written as text ("1,000") became
+    $0 budget authority (R23): it is read as the figure now (`ppNum`), as every amount is; words keep the board's own base,
+    said. The import check refuses such a shape, and words in a figure, and takes text figures (`inPosWhy`).
+  - Opening rewrote another year's stored budget from its raw parts, text figures run together and fractions a dollar off, and
+    the next Save wrote it (R18): `bmNormOf` reads a year as opening that year does (`stMoney`, `stFit`, `stBmTot`).
+  - Copy to year and Roll forward started a year at $0 budget, and Save wrote it (R13, R27): `yearCopy` makes it live at once.
+  - The fit said money a requirement draws was held by nobody when a Split ran past its value (R17): held is never below drawn.
+  - "$X more than BES28" for an over measured against BES28 plus added funding, and "over BES28" in Needs attention for overs
+    against the board's own base (R15, R20, K10): `fitVs` and `fitOverLbl` name what it is against.
+  - A v2.12 lock whose tag logged no position read as "locked before v2.12" and "untagged" (R14, R21, R28): the lock keeps the
+    tag it read. The lock that tags an untagged plan ended its question "The working board is not changed." (R16, R19, R29,
+    K11): `cycTagMoves` names each figure the tag moves.
+  - Budget Management said "read from BES28, live" over a year BES28 does not log (R36); the FYDP Spend Plan's UPL added the
+    services together (R22); the guide stated the budget as the position alone and left out the over entry (R31, K13).
+    Coverage, the code right: a Split's typed figure against the clamped one (R32), an over outside the year on screen (R34).
+
+**R37, put to Brad.** No check had entered a position the way the PPBE box writes one by default, one figure per line, and the
+board read that figure as all discretionary, mandatory $0. Brad's answer (28 Oct): *"Keep my lane split (Recommended)"*. Built at
+integration (`56df08b`): a one-figure position sets each service's total for the year, and the board's own base for that service
+and year divides it between the lanes (`apportion`, whole dollars); where that base is $0 in both lanes the figure is
+discretionary. The fit box and Budget Management say which rule applied (`fitOneSay`), and the PPBE box says it where the mode is
+chosen. Item 134's last paragraph records it (`proofs-R37.json`: 5 of 5 caught).
+
+**The second review** (on `41a581d`, the board after RV1–RV3 and R37; each fixer's work, a walk through the board as it is used,
+and the checks; two skeptics per finding): **22 kept** (S00–S21, `review-round2.json`; 18 distinct defects), 5 refuted. Three
+fixers, each from `c81e995`; every check fails there unless it is a coverage check or a CONTROL.
+- **RV4, the cost estimate import** (`notes-RV4.md`):
+  - *PB2027 2026 SUST ACE COMPLETE Detail File* was keyed by its first year and met the locked 2027 estimate's replace question
+    (S00): the key takes the year nearest ACE.
+  - A row with no WBS whose year cells held figures written as text (*1.5\**) counted nowhere and was named nowhere, while the
+    status line said no row was left out (S01): it is kept, named twice, and said. A sheet whose rows are all kept with no
+    dollar it can read is refused, saying so, where the refusal read "every row was left out —" and named no reason.
+  - A heading two rows place under different parents was settled by row order, so the same file gave the ECU lines to AV or to
+    PSM (S02): the breakout heading wins whatever the order, and the report names each one (`rep.ups`).
+  - A title carried twice, answered with another title's column, was asked again on every import while the box said the answer
+    was remembered (S03): it is remembered now. RV1's guide text had no check (S21): it is pinned.
+- **RV5, the WBS** (`notes-RV5.md`):
+  - **A board file whose CLIN request is not a list opened blank** -- no row, an empty posture, nothing said -- where v2.11 opened
+    it, and the import check took it (S10, major; only a hand edit or a damaged transfer makes one). The readers take such a
+    request as none (`clinAskIn`), and a null CLIN, or CLINs that are not a list, as none too (`clinsOf`; v2.11 could not open
+    those either). The door refuses each by name (`inClinsWhy`). The finding's catch in `wbsBlankOf` was not built: it would
+    have drawn Needs attention as having nothing without a WBS, a wrong reading on screen.
+  - The AV + PSM split claimed paragraphs no other surface reads: a removed CLIN's, and a prime's after a switch to an OGC or back
+    (S11): `aceWbsOf` reads the one rule (`wbsStateOf`).
+  - The PMO review and its change report showed no WBS for a proposed new requirement, so a paragraph the board's estimate does
+    not hold was accepted unseen (S12, S15, major; one defect, older than v2.12). Without a WBS did not name the CLIN whose one
+    WBS line is blank (S13).
+  - WBS from execution data wrote paragraphs the estimate does not hold, and read ORBIT's own split back as a conflict (S16): such
+    rows are "already set, as sent", and a paragraph the estimate lacks is listed apart and not written. RV2's "the draw writes
+    nothing" check could not fail (S20): it now takes its snapshot before anything is written.
+- **RV6, the budget** (`notes-RV6.md`):
+  - **R37 lived in `baOf` alone** (S04, S05, S14, S17, major, one defect): Take from a PPBE position wrote the board's own
+    mandatory base to $0, and FYDP Disconnects printed the whole figure as Discretionary. `ppLanesOf` is the one rule, read by
+    `baOf`, Take (`bmPpVec`) and `fdcModel`, which divides by each appropriation's own base (`fdcOwnBase`) and says so in the box
+    and the workbook's note (`fdcOneSay`). After a Take of a one-figure position, a base edited since reads as edited here,
+    never as a position that has changed (`bmPpState`). A split position reads exactly as before, checked against `c81e995`
+    from git.
+  - A lock taken before v2.12 said "The plan is untagged" on every year (S06). Withheld funding was "plus added funding" in Needs
+    attention, and a budget authority floored at $0 went unsaid (S07). A figure written as words in an older (v1) position was $0
+    budget authority, in silence (S08). The guide never stated the one-figure rule (S09).
+  - Coverage, the code right: half-dollar ties tell `apportion` from rounding each lane (S18); a lock moving more than eight
+    figures reaches "; and N more" (S19).
+
+**Decided in the build** (the lead's; each one Brad can reverse).
+- The import says which sheet and row it read; the mapping answers travel with the board in `ACEDB` (Save, a PMO copy, a full
+  import, and an ordinary import for a layout this board has not answered for).
+- Accounting parentheses in a year cell are negative: `(1.5)` is −1.5 (v2.11 read it as +1.5).
+- Optional columns a file does not title (R25): *US/PTN/FMS* and *CCAR Element* are always asked about, CES*k* only where the
+  file's paragraphs reach level *k*, *CCAR Description* never (nothing reads it); each can be answered "this file has no such
+  column", remembered for the layout.
+- A fiscal year heading two columns refuses the file, naming the year and the columns (R06).
+- A year cell of text (TBD, a date, "see note 3") reads as nothing and its row is named; a bare dash is silent (R04).
+- A stored import report not in ORBIT's shape is said to be unreadable as a whole, never partly shown (R07, R10).
+- One STOVL tab on the FYDP Spend Plan, named STOVL whichever board is open, as FYDP Disconnects names it.
+- A PMO copy sends `wbs`, not `clinWbs`: the CLIN drill is read only in a copy (v2.08 F6).
+- The coverage heading counts the dollars that go out on a paragraph, and a requirement with a paragraph is listed while part of
+  its funded money still goes out blank; a paragraph left on a requirement switched to a prime is kept as stored and not sent on
+  money no CLIN carries (RV2).
+- The fit is worked out per held year of the window and cached until the next save, position or tag change.
+- UPL is never inside a TOTAL, and is not on the Spend Plan Source (a UPL line there would become a CCaR plan event; CCaR flags
+  its own), the Two Spend Plans or the unfunded sheets.
+- An over names its parts where the lane carries added funding: "$50 more than BES28 plus added funding ($900 + $150)"; Brad's
+  own sentence reads exactly so where it carries none (R15).
+- The import check refuses a position it cannot read (a line list that is not a list, a line that is not a line, figures not
+  held by line, a figure that is not an amount) at every door, a full import of one's own board included; RV5 holds a CLIN to
+  the same (CLINs not held by requirement or not a list, a CLIN that is not one, a request that is not a list of figures).
+- **Opening a board whose plan is tagged reads every year from its position at once, marks nothing unsaved and says nothing on
+  opening;** Budget Management and the fit box name where each base comes from. A board saved by v2.11 under a tag with a
+  logged position opens with its budget authority, and so its funded figures, moved to the position. Raised in the first
+  review and refuted as the rule asked for.
+- While the plan is tagged, Budget Management has no box for a base the position speaks for (untag, type it, retag), as the
+  contract set it. The second review raised it, with a year started blank (own base $0) reading a one-figure position as
+  discretionary, which is Brad's R37 rule; it was refuted as the rules asked for.
+
+**Questions for Brad.**
+1. A board file whose CLIN request is not a list now reads that request as nothing, and nothing on the board says so. Should the
+   board report it on opening, as repaired awards are reported? (S10)
+2. In WBS from execution data, rows naming a paragraph the requirement carries plus one it does not are still a conflict to set
+   by hand. Is that the reading you want? (S16)
+3. A prime switched to an OGC, or the reverse, claims no estimate line in the AV + PSM split until its WBS is set again for its
+   new type. Confirm. (S11)
+4. A heading two rows place under different parents goes under the breakout heading (the one carrying the letter), and the
+   report names it. Confirm the rule. (S02)
+5. A row under the titles with no WBS, no figure and text in a year cell (a *($M)* units row) is now data, left out as *Another
+   dollar type* ($0), where it used to count as formatting. Confirm. (S01)
+6. A file name with two "year … ACE" pairs (*2026 ACE vs 2027 ACE*) is keyed by the later year. Confirm. (S00)
+7. "Keep my lane split" now also governs Take from a PPBE position and FYDP Disconnects, whose Discretionary and Mandatory lines
+   divide a one-figure position by each appropriation's own base, and the box and the workbook say so. Confirm that scope.
+8. For a one-figure position in a year an appropriation holds no plan for, FYDP Disconnects prints — under Discretionary and
+   Mandatory and the figure under Controls, with a note, never a guessed split. Is that what you want on your Spruill slides?
+
+**Known limits the builders recorded.** The import is not refused in a PMO copy, and positions edited in one do not travel back
+(both as before). The edit box's WBS name has room for about 85 characters with the OGC fields and every RCN / EEIC row open,
+and about 160 with those rows folded, as the box opens them. Needs attention now reads the export's lines: `attLists()` takes
+about 10 ms on a 115-requirement board in jsdom (it was about 1 ms), and a whole draw went from about 680 to 750 ms.
+
+**Logged, not built (item 135):** two gaps RV5 left as found (WBS from execution data proposing a prime's
+requirement-level paragraph; a CLIN request of text figures summed as text in the drill), an estimate's fingerprint after a
+re-import, another appropriation's stored budget read as its own board last saved it, and four findings the second review
+refuted as defects and its skeptics called Brad's call.
+
+**Checks.**
+- **Blocks (jsdom), 49 new:** audit-other 29 (W1 1, RV1 5, RV4 5, W2 5, RV2 7, RV5 5, RV6 1), audit-board 19 (W3 3, RV3 10, RV6
+  6), audit-recon 1 (W1: PSM inside AV and each office's part). Each fails on the board before its round (the builders' on
+  `d732259`, RV1–RV3's on `c23e8a0`, RV4–RV6's on `c81e995`) but for its CONTROL parts and its coverage checks, which pass there
+  by design and are there for their mutations: three whole blocks (RV1's *every Support Line Category*, for R33 and R35; S19's;
+  RV6's split-position proof) and, inside blocks that fail there, R32's three checks, R34's Go to it and S18's live-budget part.
+- **Moved on purpose**, each with a `// v2.12 …` comment: the four positional ACE fixtures, rebuilt as titled sheets; the
+  tie-out's PSM lines, now under AV, and `verify-file`'s self-test's 2026 line with them; the U10 recon figures (its plan is
+  tagged); the FYDP flyout's calls; the Data box's count; the v1.93 posture; D5c and the v2.10 A-3 fixture, entered split; the
+  guide's size budget in audit-import, 64 KB to 70 KB (items 132 and 134 each add a section); dialogs-keyboard's reason for
+  skipping the WBS quick box. Within the version: keyboard-reach U's pattern for the mixed wording (RV3), and W3's fixture
+  position, entered split (R37).
+- **Hostile:** text planted in the import report, the mapping box, the tree's names, a CLIN's paragraph and the parent
+  disagreements; each value drawn must be seen, escaped.
+- **Browser:** layout P (the import's boxes), Q (a long WBS path in the Add box, the edit box and the WBS panel), R (the fit box,
+  the UPL line); keys S (a real file picked, the mapping box), T (Needs attention's WBS entry, the pickers, the quick box's Esc),
+  U (the over entry, Go to it); panels, dialogs and standards open `#aceRepPanel`, `#aceColPanel` and `#fitPanel`; leftmenu
+  holds 71 calls; menus resolves the guide's new paths.
+- **Mutations:** 350 new (`v212-*`: W1 59, W2 52, W3 45, RV1 47, RV2 29, RV3 39, R37 2, RV4 24, RV5 24, RV6 29) and 14 older ones
+  retargeted (`fydp-service-shifted`, `cycle-lock-no-reference`, `v199-cyc-no-list`, `v199-newreq-ccar-cut`,
+  `v200-u41-strip-silent`, `v202-d5c-unrounded`, `v202-89-lock-keeps-nothing`, `v207-rv2-wbs-mark-off-early`,
+  `v207-rv2-wbs-mark-never-off`, `v209-w4-clin-read-leaves-state`, `v210-a-intl-req-not-added`, `v210-a-pos-unrounded`,
+  `v210-a-own-from-storage`, `v210-a-not-in-render`); none retired. 3,149 targets, each matching once (`mcount`).
+- **Proofs:** every one of the 364 has a proof record against its own block (`recovery/v212/proofs-*.json`, combined as
+  `proofs-INT.json`), and every round's were caught (W1 59, W2 52, W3 49, RV1 51, RV2 31, RV3 45, R37 5, RV4 29, RV5 27, RV6
+  40). Five of the older retargets (`fydp-service-shifted`, `v199-newreq-ccar-cut`, `v200-u41-strip-silent`,
+  `v207-rv2-wbs-mark-off-early`, `v207-rv2-wbs-mark-never-off`) were retargeted by W2 with no proof; the lead proved them at
+  integration, all caught (`proofs-retarget.json`). **A retarget is a new mutation, with a new find, and needs its own proof.**
+  The combined run on the final board (`recovery/v212/proved-INT.jsonl`): 364 of 364 CAUGHT. The first run caught 361; three SURVIVED (the two W2 Without a WBS mutations and `v212-w2-src-fraction`) and were caught once their checks reached them (`e665914`, `b8420fc`); each line says so.
+- **Survivors that taught something**, each a check that could not reach its target until it was strengthened: three of W3's
+  read only the year on screen, which every draw applies again (a writer's refresh is checked on a year not on screen); W2's
+  `v212-w2-er-raw-stored` (a pick already shortens the field, so the check now types a code the estimate writes differently);
+  RV2's `v212-rv2-draw-why` (the planted CLIN number was cut to 20 characters before it reached the column, so the hostile board
+  now plants money on no CLIN); RV5's fixture planted a bad request before `applyState` fitted it away. **On the merged board**
+  the first combined run caught 361 and three SURVIVED, each caught on its own round's board: `v212-w2-att-prime-any-clin` and
+  `v212-w2-att-prime-no-clins` (the W2 block's primes were funded, so RV2's rule, list what goes out blank, listed them whatever
+  `wbsStateOf` said; a board where nothing reaches the primes added, `e665914`), and `v212-w2-src-fraction` (after K06 only the
+  lane that carries the odd dollar shows a split in fractions; an odd-dollar part added, `b8420fc`). **A later round's fix can
+  put an earlier round's mutation out of its own check's reach: prove every mutation together on the merged board** (the v2.09
+  rule).
+- **Registries:** money coverage 27 of 27 surfaces (`applyBudget` and `fitModel` added); the money map 322 cells, 119 proven,
+  202 n/a, 1 open (the AI review request by fiscal year, open since v2.04).
+
+**Proved with** (1 Nov 2026, on the final tree, `d630240`: the integrated run's two check fixes, `e665914` and `b8420fc`,
+`BUILD` `'v2.12 (1 Nov 2026)'` at `85c1017`, and the guide's trim; `3e29863` after it changes only `tools/pmo-save.mjs` and
+adds its record, so the board and every stage below are as on `d630240`):
+- `npm run check` passes; every mutation target matches once (3,149 of 3,149).
+- **The guide** (`helpDoc`, as audit-import reads it in a booted board) is 69,950 characters of the 70,000 it holds. The first
+  nightly on the final tree (`85c1017`) failed that one check: merged, RV4's and RV6's guide sentences took it to 70,035 as the
+  browser draws it (69,980 in the source). Three phrases in *A requirement's WBS paragraph* that no check or mutation reads came
+  out (`d630240`); the budget is not raised. The next addition to the guide trims it, or raises the budget on purpose.
+- **Every suite whole on the final tree** (audit-board, audit-recon and audit-import at `--max-old-space-size=8192`):
+  all clean on `d630240` -- the eight suites' banners and the legacy line, 41.5 min inside the nightly. On `85c1017` audit-import failed one check, the guide's size (above); nothing else failed.
+- **The browser checks:** on `d630240`: `keys`, `dropdowns` (536 opened, both font lanes), `dialogs`, `leftmenu`, `pmoyears`, `pointer` and `standards` (0 findings against an empty baseline) pass; `verify:grid` stops at layout's carried D ×8. **`pmosave` failed 6 of 7 runs, and that was the check, not the board.** It set browser storage from an init script, and in Chromium 153 a storage access that early sometimes gives a tab a storage area of its own, so its two-tab sections (G, I, J, K) read another storage: the unchanged check failed v2.11 as often (4 of 6), the two boards make the same 16 kinds of storage write, and with no init script no tab was cut off in 120 board tabs. Diagnosed and then reproduced by a second agent trying to refute it; fixed in the check alone (`3e29863`: a seed page, a wait for another tab's write, the harness named when a tab cannot see the seed, and a guard against the init script coming back). Fixed, it passes 12 of 12 on v2.12 and 4 of 4 on v2.11, and still fails on six v2.09 save mutants (two runs each) and on `9bc5496`, `ba3c294` and `d3ce17d` as their notes record (`recovery/v212/notes-pmosave.md`).
+- **`npm run validate:nightly`:** on `d630240` (13:11-14:02 UTC, 51 min) every stage holds but the browser stage, which fails only on layout's 8 D checks (the first requirement 323 / 420 px down; carried since v2.00): the defect register (13 known, guarded by 43 mutations), money coverage (27 of 27), the money map (322 cells: 119 proven, 202 n/a, 1 open, since v2.04), the trace matrix (77 cells), every suite whole, the fuzz (seed 374193428) and the file verifier's self-test. The first run, on `85c1017`, failed the suites stage on the guide's size alone.
+- The sweep was not run (Brad's rule of 20 Oct).
+
+#### The items as logged
+
 #### 132. A WBS paragraph on every requirement, picked from the ACE (Brad, 28 Oct 2026)
 - **Asked:** Brad's boss, after the sustainment summit, where the USMC raised it again: the Services need better
   transparency into where their money goes -- *"a clear product that shows the requirement, the cost share, the contract,
@@ -363,125 +865,6 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   performs the work) and cost-sharing columns (*Shared/Unique*, *Cost Allocation Rule*). Brad chose a typed partner box;
   the partner lines could later fill it from the estimate itself.
 
-#### 133. The Service share workbook: requirement, cost share, contract and execution, by WBS (Brad, 28 Oct 2026)
-- **Asked:** the product in item 132's ask, for the joint PRR with the Services in about two months (late December 2026).
-  One product for everyone -- *"It's no secret"* -- in Excel, so it can be manipulated; it ends up on slides.
-- **What is there today** (the same mapped read): no report puts the five on one line. The Excel workbook's Decision Bands
-  detail has the requirement, each Service's funded dollars, CCaR and PID; the Funds Flow follows CCaR rows by title; the
-  ACE Tie-Out ties requirements to the ACE by WBS, for the open appropriation only. There is no contract number anywhere.
-  The CCaR pull's rows carry no requirement id: they match by record title (97.3% of O&M dollars by the code's own
-  measurement), and 108 of 155 O&M requirements share a title. ORBIT's "obligated" is a CCaR row whose Alloc column does
-  not say *Not Allocated*; there is no expenditure figure. No cost-share rule exists: each Service's dollars are typed per
-  requirement. The ACE import keeps US services only.
-- **Brad's decisions (28 Oct 2026):**
-  1. **By the ACE's WBS tree** (item 132).
-  2. **Execution:** obligations now; expenditures later, as they become more prioritized.
-  3. **Contract** means the contract number, one per requirement. It is a new addition in both CCaR and ORBIT. A MIPR
-     number does not go in it.
-  4. **Cost share** is each Service's percentage of what is funded. *"In the Excel format it should include a box that we
-     can type in a partner total which would adjust percentages for that line"* -- a box on every line, and a header adds
-     the boxes beneath it. ORBIT does not keep the partner figures; they live in the workbook.
-  5. **Years:** the budget year onward is planned, from ORBIT's funded figures. The active year is actuals and planned,
-     and its data lives only in CCaR; Brad's team is adding the WBS paragraph number to every CCaR plan event.
-  6. **Services:** three -- Air Force (USAF, ANG, AFRC), Marine Corps (USMC STOVL, USMC CV) and Navy (USN CV) -- with the
-     six lines kept on the data tab (proposed 28 Oct; Brad did not object).
-- **The mock-up** (invented figures, contract and CCaR numbers; placeholder WBS names): `recovery/item133-mockup/`. `sh
-  make.sh` builds it (`model.py`, `xlsx.py`), saves it once through LibreOffice so the file carries computed values (a phone
-  or mail preview shows figures, not blanks; the formulas stay live), and runs `check.py`. Tabs: *How to read*, *FY27
-  (active)*, *FY27 by month*, *FY28* (budget year), *FY29*, *Data*; renders in `xlsx-*.png`.
-  - **The Data tab is the one source.** One row per figure, a column per measure -- Requirement and Funded (ORBIT), CCaR
-    plan, Obligated and Planned to obligate (CCaR), ACE estimate -- never two measures in one column. The active year's
-    CCaR figures and ORBIT's figures are named apart: they come from two systems and do not line up row by row (the
-    workbook says so). Months are dates; the WBS levels are columns, named.
-  - **Every other figure is a SUMIFS over Data**, keyed by the row's own hidden keys (year, appropriation, WBS level,
-    paragraph, line) -- never a range of rows -- so sorting, filtering, collapsing or inserting rows cannot move a total.
-    A plan line is keyed by the ORBIT requirement's id, never its CCaR record or contract (a CCaR record is shared and a
-    contract number starts blank); a CCaR line by record, title and contract. Every WBS key carries a `W|` prefix, so Excel
-    never reads a key such as 1.1 as a number and matches 1.10 with it.
-    The partner box (yellow, on every row) takes **$M** and has data validation; a header adds every partner figure on its
-    own row and beneath it, keyed the same way.
-  - **What the fixture carries, because real data will:** Full Fund's USMC-B (counted as Marine Corps), a letter-suffixed
-    paragraph (1.1.1.1E, beside 1.1.1.1), an ACE line no requirement claims (1.1.1.3: its own row, in every ACE total), a
-    requirement on a parent that has children (1.2.2), a requirement with no WBS paragraph ("No WBS paragraph yet", inside
-    its appropriation's totals), one on a paragraph the ACE lacks (1.4, flagged red -- decided by the estimate's own lines
-    for that appropriation and year, not by the names list), one in the ACE with no name linked (1.3.1), 1.10 beside 1.1,
-    two requirements sharing a CCaR record with no contract number (MIPRs), one CCaR record carrying two contracts, a plan
-    event that slipped and one obligated early, a procurement plan event dated past September (an *After* column on the
-    month tab), a CCaR row whose budget name names no Service (*Service not identified*, in every total), Initial Spares
-    and OPN, and FY26 procurement money obligating in FY27 (on the active-year tab, marked *FY26 money*; the Data tab keeps
-    its own FY beside *Shown on*). The top line names the appropriations it covers. Every sheet carries the marking in its page header and
-    footer, and the Data tab above its table.
-  - **`check.py`** recalculates the saved file in LibreOffice and holds all 259 rows of the four tree tabs to figures worked
-    out from `model.py` with the Service groups written out by hand (never the builder's own list), every line's shares to
-    100%, the month tab's totals to the active tab's, the Data tab's measures, no formula pointing at another row, every
-    key's prefix, the marking, and partner figures typed in $M on a line, a WBS header, an appropriation and the active
-    tab. Eleven planted mistakes each fail it: the USMC-B alias dropped (246), the partner box not converted from $M (12),
-    the unclaimed ACE line pruned (1), the "No WBS paragraph yet" block dropped (1), requirement and funded in one Data
-    column (1,183), plan lines keyed by CCaR record and contract (345), the unidentified Service left out of the US total
-    (29), plan events after September dropped (13), the ACE flag taken from the names list (1), the key prefix dropped (5),
-    earlier years' money dropped from the active tab (194).
-  - **Rebuilt after an independent review (28 Oct):** three reviewers (Brad's decisions, the Excel under real use, what
-    ORBIT can deliver), each finding reproduced in LibreOffice. The first cut summed requirement and funded in one Data
-    column (a pivot doubled the plan years), took the partner box in dollars under a $M label (2.5 did nothing), lost a row
-    inserted at a block's edge and scrambled totals on a sort (positional ranges), dropped money with no paragraph and ACE
-    lines with no requirement, carried no unit on a copied cell, and stored no computed values. The third review (what
-    ORBIT can deliver) found the rebuild keying a plan line by CCaR record and contract, so two MIPRs sharing a record each
-    printed the other's money; the ACE flag decided by the names list; keys Excel could read as numbers; an unidentified
-    Service and procurement dated past September falling out of the totals; the active year's CCaR figures filed as
-    "Funded" beside ORBIT's; and no marking on the Data tab. Each is fixed above.
-- **Proposed build (after item 132):**
-  - A read-only export under Reports & exports, laid out as the mock-up. Plan years from `tiers()` (funded = d + m per
-    service), each appropriation read as its own board opens it; the active year from the CCaR pull, each row placed by its
-    plan event's WBS paragraph, its Service read from its budget name. Nothing recomputed, nothing written to the board.
-    Services join by name through `SVC_ALIAS` (Full Fund's USMC-B is Marine Corps); WBS paragraphs sort naturally; which header a
-    line rolls up to is item 132's tree (one rule for both, so an *E* line rolls up as item 132 decides).
-  - **The contract number** as a new requirement field (the record, the Add and edit boxes, PMO copies, year copies, the
-    import door), printed in this workbook, and written to the Spend Plan Source once CCaR has a column for it.
-  - **Formulas in ORBIT's Excel writer**, opt in: a cell may carry `{f, v}`, written as `<f>` with `<v>` = ORBIT's own
-    figure, so the file shows figures before it is recalculated and the board's read-back checks can compare them. Every
-    workbook that does not ask stays byte-for-byte as it is.
-  - **Ask CCaR to carry ORBIT's requirement id** beside the contract number, so CCaR rows match requirements exactly (Brad's
-    "yes", 28 Oct, read as covering this).
-  - **Obligated** is CCaR's allocation status (`isAlloc`). The Spend Plan Source writes *Forecast allocated to a Plan Event*
-    for an active year, and `isAlloc` would read that text, coming back unchanged, as obligated: the build counts obligated
-    only on a positive allocated value, and states blank, forecast and unknown Alloc text apart, with their dollars.
-  - **The CCaR pull is read by position** (`SRC_NCOL` = 32, `QPE_READS` by index): a contract-number column CCaR *inserts*
-    re-points every read after it, and one it *appends* is dropped. Agree the slot with CCaR (an existing column such as
-    30, *Contract Mod*, or a re-measure of `SRC_HDR` and the Spend Plan Source together). The contract field joins the full
-    field plumbing (`REQ_FIELD`, `recFields`, `REQ_MAPS`, `PMO_FIELDS`, `NA_FROM_CARRY`, the import door, `codeTake`).
-  - **Primes:** the WBS and the CCaR number are per CLIN (`S.clinWbs`; the Spend Plan Source sends each CLIN's own CCaR
-    number), funded spread over CLIN x WBS by the CLIN grid (`aceAlignRows`). The build's fixture needs a prime with two
-    CLINs on different paragraphs; which contract number its line prints is to decide (one per requirement, Brad, 28 Oct).
-  - **The ACE column is a filtered subset of the ACE file** (first sheet, JPO-managed, the seven ACE PMOs, US services;
-    stored x1e6 without `D$`): print the estimate's name and its skip counts on each tab and round at the door. The names
-    tab Brad finds needs a read of its own; CCaR's column 23 descriptions are a second source of names.
-  - **WBS codes are normalised once, from all three sources** (case and spaces; the letters are kept -- `P6` is not
-    `6`, and `….1E` is not `….1`) before they become keys; the level
-    count comes from the data, not a constant. CCaR amounts keep cents and read *(1,234)* as positive today: round at the
-    door and read parentheses as negative. The *pull through* date comes from `repYmOf`, not `asOf` or today.
-  - **A requirement line's label repeats on real data** (108 of 155 O&M requirements share a record name; OPN shares one plan
-    event): print the plan event, the record name and the PID beside each other, as Decision Bands does.
-- **Answered (Brad, 28 Oct 2026):**
-  1. **A requirement on two paragraphs:** what the office types per paragraph is **the allocation** -- as ORBIT's WBS lines
-     already split it (`wbsResolve`). So per paragraph: the allocation as typed; funded spread over the paragraphs by
-     allocation (as `aceAlignRows` spreads it); the requirement value apportioned by the same weights (`apportion`); and any
-     allocation the typed lines do not cover on a line of its own, "not assigned to a paragraph". (The mock-up, splitting
-     requirement and funded by one fraction, shows the same result where the allocation follows that fraction.)
-  2. **OPN is in:** *"It's a smaller appropriation but we still need to be in balance."*
-  3. **Earlier years' procurement money obligating this year goes on the active-year tab:** *"Yes, but let's revisit if it
-     doesn't view as planned."* CCaR files those rows under their own FY; the tab shows the ones dated inside the active
-     year, marked with their year, in every total. The ACE beside the active year is that year's estimate, which earlier
-     years' money is outside, and the tab says so.
-  4. **What CCaR's Alloc column says for a plan event not yet obligated:** *"Not allocated. Everything in ORBIT is planned
-     for the future. CCaR is for active year obligations when we have the authority to obligate."* So obligated is read from
-     CCaR's own allocation status, as `isAlloc` reads it, and ORBIT's figures are never obligations.
-  5. **ORBIT's WBS goes into the Spend Plan Source's WBS column**, line by line: item 132, decision 4.
-  6. **The out-years' basis:** *"All years should reference the PPBE Budget assigned. As we go through the PPBE process we
-     need to be able to adjust funded positions on each requirement to fit within our new PPBE position."* Item 134. Built
-     on it, this workbook's plan years are funded within the PPBE position.
-  7. **The marking** *CUI//REL TO US DoW*: *"Yes."*
-- **Open:** which CCaR column will carry the contract number.
-
 #### 134. Every year's budget is the PPBE position assigned, and requirements fit within it (Brad, 28 Oct 2026)
 - **Asked** (raised by item 133, whose out-year funded figures were drawn against whatever budget a year held): *"All years
   should reference the PPBE Budget assigned. As we go through the PPBE process we need to be able to adjust funded
@@ -532,64 +915,6 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
   board's own base for that service and year is $0 in both lanes there is no proportion to keep: the figure is read as
   discretionary, and the board says that too. (The v2.12 build first read it as all discretionary, mandatory $0, as the
   old *Take from a PPBE position* did.)
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 106. Harden the file while the pilot runs on it (Brad, 21 Oct 2026: "Provide a plan to get us to compliance")
-- **Why:** the pilot keeps running the single file on a shared drive until the Azure build (item 107) replaces it, and
-  the security requirements apply to it in the meantime. Each change closes or narrows a gap found in the code itself.
-- **What:** a Content-Security-Policy in the page, allowing no outside connection; SHA-256 (the browser's own crypto) in
-  place of the non-cryptographic package and writer fingerprints -- it catches damage, not deliberate tampering, which
-  needs keys only the platform can hold; a change journal in which each entry carries the hash of the one before, so a
-  change inside the file shows; **Clear this computer**, one action removing everything ORBIT keeps in the browser
-  (storage, the save-file handle, work kept aside), with a written list of what ORBIT leaves on a machine; CUI markings on
-  screen, on every export and on the PMO copy, in the wording the security team gives (the export-name and title
-  choke points make that one change); and an independent static-analysis scan of the board and the tools, every
-  finding fixed or written down, plus `npm audit` for the test tooling.
-- **Proof:** each change ships with a check that fails without it, as every version does.
-- **Moved to Later (Brad, 21 Oct 2026):** the desktop file does not have to meet these requirements; they are for the
-  Azure web build (item 107). Kept here as optional hardening for the pilot, if ever wanted; it needs Brad's go again.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v2.11 — 27 Oct 2026: the FYDP Disconnects workbook says which services are counted on the Summary only -- built on Brad's "add the workbook note line" of 27 Oct
 

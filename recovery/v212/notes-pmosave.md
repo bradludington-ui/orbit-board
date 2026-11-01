@@ -72,3 +72,20 @@ each section was written to fail on: `9bc5496` G fails 2, `ba3c294` I and J fail
 v2.09 notes. The fix as committed: see `## Runs` below.
 
 ## Runs
+The fix as committed (`3e29863`), 1 Nov 2026, one browser at a time, Chromium 153.0.8010.12:
+
+| board | runs | result |
+|---|---|---|
+| v2.12, the release tree (`d630240`'s board, unchanged) | 12 | 12 pass, 0 failing checks |
+| v2.11 (`bbb7ee9`) | 4 | 4 pass |
+| `v209-rv-save-adopt-browser-wide` (mkmut, on v2.12) | 2 | both fail: G ×1, J ×1 |
+| `v209-rv-save-office-follows-storage` | 2 | both fail: G ×4, I ×2, K ×1 |
+| `v209-rv-save-moved-handle-kept` | 2 | both fail: H (the copy's browser dies on the kept handle) |
+| `v209-rv2-save-save-office-unkept` | 2 | both fail: I ×2 |
+| `v209-rv2-save-boot-no-write` | 2 | both fail: J ×2 |
+| `v209-rv3-save-look-writes-storage` | 2 | both fail: K ×5 |
+| `9bc5496` (v2.09 before its reviews) | 1 | fails G ×2, H ×2, I ×2, J ×3 -- every rule the first two reviews added (K passes: its defect came in with the second review's fix) |
+| `ba3c294` (after the first review) | 1 | fails I ×2, J ×2, as RV2's notes record |
+| `d3ce17d` (after the second review) | 1 | fails K ×5, as RV3's notes record |
+
+Each run takes 42-45 s. The guard: an init script touching storage planted in a copy of the file stops it before a browser opens.
