@@ -5374,8 +5374,18 @@ await (async () => {
       '⚠ 5 lines go out with no WBS paragraph, on 4 requirements: A event (2 lines), C event, P event, Q event — Needs attention › ▦ without a WBS lists each, with what to fix.');
     chk(name, 'one reading', 'every requirement it names is on the list',
       J(Object.keys(blank).every(id => A.rows.some(r => r[0] === id))), 'true');
+    // v2.12 RV5 (S20): MEASURED FROM A STATE NO DRAW HAS TOUCHED. This took its snapshot after the fixture had drawn the board many
+    // times, so whatever a draw writes had landed already and before and after matched whatever the code did: under
+    // v212-rv2-draw-writes it passed, and only R2's array-form CONTROL went red. P's CLIN containers are taken away first (a
+    // prime with base CLINs and none of them: what a board opened from a file before its drill was first opened holds), then
+    // only what every draw runs for Needs attention -- attLists, and the posture that reads it -- is run: the RECORD panel
+    // (gridAfterRender) makes a selected prime's containers on purpose, so render() is not what is measured here.
+    chk(name, 'the draw writes nothing', 'P’s CLIN containers taken away (a CONTROL on the fixture: none is left)',
+      X.ev(`(function(){ ['clinAlloc','clinMeta','clinNew','clinRm'].forEach(function(n){ if(S[n] && typeof S[n]==='object') delete S[n].P; });
+        return JSON.stringify(['clinAlloc','clinMeta','clinNew','clinRm'].map(function(n){ return !!(S[n] && Object.prototype.hasOwnProperty.call(S[n], 'P')); })); })()`),
+      J([false, false, false, false]));
     chk(name, 'the draw writes nothing', 'reading the list (as every draw does) leaves the CLIN containers exactly as they were',
-      X.ev(`(function(){ var a=JSON.stringify([S.clinAlloc, S.clinMeta||null, S.clinNew||null, S.clinRm||null]); attLists(); render(); return a===JSON.stringify([S.clinAlloc, S.clinMeta||null, S.clinNew||null, S.clinRm||null]); })()`), true);
+      X.ev(`(function(){ var a=JSON.stringify([S.clinAlloc||null, S.clinMeta||null, S.clinNew||null, S.clinRm||null]); attLists(); scoreboard(); return a===JSON.stringify([S.clinAlloc||null, S.clinMeta||null, S.clinNew||null, S.clinRm||null]); })()`), true);
     // a prime's paragraph left on the requirement (it was an OGC) is sent nowhere: no box shows it
     X.ev(`S.wbs.P=[{w:'1.3', v:[]}]; save(); render(); 'ok'`);
     chk(name, 'a prime', 'a requirement-level paragraph left on a prime does not cover its money on no CLIN',
@@ -5513,6 +5523,310 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
 }
+
+// ---- v2.12 RV5 (S10): a board file whose CLIN request is not a list opens and draws, as v2.11 drew it; the door refuses it -------
+// A hand edit or a damaged transfer. FILE ONE: P's first CLIN in the data pack requests 5 (a number) and an edit to its second
+// requests {}; Q's first added CLIN requests the text "abc". v2.11 (read from git, bbb7ee9) opens it and draws every row (only a
+// drill that was opened failed); on c81e995 the top-level applyStore threw -- "(c.ask || []).slice is not a function", for the
+// text "(v || []).some is not a function" -- and no row was drawn, with nothing to say why. FILE TWO adds a CLIN that is null in
+// the data pack and in the added CLINs, and a prime whose CLINs are {a:1}, not a list: v2.11 could not open that either (a
+// CONTROL). Now both open with no script error and draw the four rows; file one with the money v2.11 drew (the rows' figures,
+// every requirement's lanes and the totals: the CLIN grid feeds nothing); each drill opens, a request that is not a list asking
+// nothing and a CLIN that is not a CLIN being no CLIN; and the import check refuses each shape, naming the CLIN and the place,
+// while the same file with them put right (a request in text figures too) is taken. On c81e995 every check fails but the CONTROLs.
+await (async () => {
+  const name = 'v2.12 RV5 — a board file whose CLIN request is not a list opens and draws as v2.11 drew it, and the import check refuses it by name (S10)';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG'],
+      items: [w2it('A', 'AV', [100, 20]), w2it('P', 'AV', [300, 40]), w2it('Q', 'AV', [500, 0]), w2it('R', 'AV', [80, 0])],
+      disc: [700, 30], mand: [150, 0], order: ['A', 'P', 'Q', 'R'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'OGC', P:'PRIME', Q:'PRIME', R:'PRIME'}; DATA.clins=DATA.clins||{};
+      DATA.clins.P=[{clin:'0001', desc:'one', ccar:'', ask:5}, {clin:'0002', desc:'two', ccar:'', ask:[100,40]}];
+      DATA.clins.R=[{clin:'0001', desc:'r one', ccar:'', ask:[80,0]}]; CLINS.P=DATA.clins.P; CLINS.R=DATA.clins.R;
+      S.clinNew={Q:[{key:'n1', clin:'0009', desc:'added', ccar:'', ask:'abc'}, {key:'n2', clin:'0010', desc:'two', ccar:'', ask:[300,0]}]};
+      S.clinMeta={P:{b1:{ask:{}}}};
+      applyState(S); save(); 'ok'`);
+    // the data pack's request is planted in the saved file itself: the board fits its own CLINs to the services as it applies a
+    // year, so a number put there before saving would be saved as the zeros it was fitted to
+    const pub = h => { const o = JSON.parse(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(h)[1]);
+      o.appns.om.dataPack.clins.P[0].ask = 5; return J(o).replace(/</g, '\\u003c'); };
+    const ST1 = pub(X.ev(`buildSavedHtml()`));
+    X.ev(`DATA.clins.P.splice(1, 0, null); DATA.clins.R={a:1}; CLINS.R=DATA.clins.R; S.clinNew.Q.splice(1, 0, null); S.clinMeta={P:{b2:{ask:{}}}}; save(); 'ok'`);
+    const ST2 = pub(X.ev(`buildSavedHtml()`));
+    const into = (h, st) => h.replace(/<script type="application\/json" id="pubState">[\s\S]*?<\/script>/, () => '<script type="application/json" id="pubState">' + st + '</script>');
+    const me = _selfRead(BOARD, 'utf8');
+    const R1 = boot({ html: into(me, ST1) }), R2 = boot({ html: into(me, ST2) });
+    const rowsOf = B => { try { return B.ev(`JSON.stringify([].map.call(document.querySelectorAll('[id^="row-"]'), function(r){ return [r.id, r.textContent.match(/\\$[\\d,.]+[MK]?/g)||[]]; }))`); } catch (e) { return '[]'; } };
+    const moneyOf = B => { try { return B.ev(`(function(){ var T=tiers(), t=tierTotals(T);
+      return JSON.stringify([S.order.map(function(id){ return [id, T[id].d, T[id].m, T[id].u, T[id].cum]; }), [t.dUsed, t.mUsed, t.uAmt, t.u1Amt, t.u2Amt]]); })()`); } catch (e) { return 'threw'; } };
+    const opens = B => J([B.errors.length, JSON.parse(rowsOf(B)).length, (() => { try { return B.ev(`document.getElementById('posture').textContent.trim().length>0`); } catch (e) { return false; } })()]);
+    chk(name, 'opens', 'file one opens with no script error and draws its four rows, and the posture', opens(R1), J([0, 4, true]));
+    chk(name, 'opens', 'and so does file two, with its null CLINs and a prime whose CLINs are not a list', opens(R2), J([0, 4, true]));
+    // the same files on v2.11, read from git
+    const { execFileSync } = await import('node:child_process');
+    const root = _selfPath(new URL('../..', import.meta.url));
+    let v211 = null;
+    try { v211 = execFileSync('git', ['-C', root, 'show', 'bbb7ee9:prioritization-board-grid.html'], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { failures.push({ scenario: name, where: 'as v2.11', what: 'v2.11’s board could not be read from git (a shallow clone? git fetch --unshallow): ' + String((e && e.message) || e).slice(0, 120), got: 'unread', want: 'read' }); }
+    if (v211) {
+      const O1 = boot({ html: into(v211, ST1) }), O2 = boot({ html: into(v211, ST2) });
+      chk(name, 'as v2.11', 'the board read from git is v2.11 (no Needs attention WBS reading), and it opens file one and draws it (a CONTROL)',
+        J([O1.ev(`typeof wbsBlankOf`), JSON.parse(opens(O1))]), J(['undefined', [0, 4, true]]));
+      chk(name, 'as v2.11', 'v2.11 could not open file two either (a CONTROL: its null CLINs were never a regression)', J(JSON.parse(opens(O2)).slice(0, 2)), J([1, 0]));
+      chk(name, 'as v2.11', 'file one: every row shows the figures v2.11 shows', rowsOf(R1), rowsOf(O1));
+      chk(name, 'as v2.11', 'file one: every requirement’s discretionary, mandatory, unfunded and cumulative, and the totals, are v2.11’s', moneyOf(R1), moneyOf(O1));
+    }
+    const MONEY = J([[['A', [100, 20], [0, 0], [0, 0], 120], ['P', [300, 10], [0, 0], [0, 30], 460], ['Q', [300, 0], [150, 0], [50, 0], 960], ['R', [0, 0], [0, 0], [80, 0], 1040]], [730, 150, 160, 310, 160]]);
+    chk(name, 'the money (a CONTROL on the fixture)', 'the lanes walk the four requirements the same way whatever the CLINs hold, in both files',
+      J([moneyOf(R1), moneyOf(R2)]), J([MONEY, MONEY]));
+    // each drill opens; a request that is not a list asks nothing (opening fits a data-pack CLIN's to the services), and a CLIN
+    // that is not a CLIN is no CLIN
+    const drill = B => { try { return B.ev(`(function(){ var o=[]; ['P','Q','R'].forEach(function(id){ clinOpen={}; clinOpen[id]=true; render();
+        o.push([id, clinList(id).map(function(c){ return [c.key, c.clin, clinAskTot(c)]; }), !!document.querySelector('#row-'+id+' .clin-detail')]); });
+      clinOpen={}; render(); return JSON.stringify(o); })()`); } catch (e) { return 'threw ' + String(e.message).slice(0, 80); } };
+    chk(name, 'the drill', 'file one: each prime’s drill opens, and a request that is not a list asks nothing', drill(R1),
+      J([['P', [['b0', '0001', 0], ['b1', '0002', 140]], true], ['Q', [['n1', '0009', 0], ['n2', '0010', 300]], true], ['R', [['b0', '0001', 80]], true]]));
+    chk(name, 'the drill', 'file two: a CLIN that is null, and a prime’s CLINs that are not a list, are no CLIN', drill(R2),
+      J([['P', [['b0', '0001', 0], ['b2', '0002', 140]], true], ['Q', [['n1', '0009', 0], ['n2', '0010', 300]], true], ['R', [], true]]));
+    // the import check: every door reads a file through it
+    const door = st => { try { return R1.ev(`inboundCheck(${J(J(st))})`); } catch (e) { return 'threw ' + String(e.message).slice(0, 80); } };
+    const ok = JSON.parse(ST2), fy = Object.keys(ok.appns.om.years)[0], yr = s => s.appns.om.years[fy];
+    ok.appns.om.dataPack.clins.P = [{ clin: '0001', desc: 'one', ccar: '', ask: [5, 0] }, { clin: '0009', desc: 'gone', ccar: '', ask: [0, 0] }, { clin: '0002', desc: 'two', ccar: '', ask: [100, 40] }];
+    ok.appns.om.dataPack.clins.R = [];
+    yr(ok).clinNew.Q = [{ key: 'n1', clin: '0009', desc: 'added', ccar: '', ask: ['1,000', 0] }, { key: 'n3', clin: '0011', desc: 'three', ccar: '', ask: [0, 0] }, { key: 'n2', clin: '0010', desc: 'two', ccar: '', ask: [300, 0] }];
+    yr(ok).clinMeta.P.b2.ask = [100, 40];
+    chk(name, 'the door', 'CONTROL: the same file with every shape put right is taken (a request written as text figures too)', door(ok), '');
+    const at = 'the file.appns.om', Y = at + '.years.' + fy;
+    const one = fn => { const s = JSON.parse(J(ok)); fn(s); return door(s); };
+    chk(name, 'the door', 'file one as saved is refused, naming a CLIN whose request is not a list', door(JSON.parse(ST1)),
+      'the request of CLIN “0009” at ' + Y + '.clinNew.Q[0].ask is not a list of figures (“"abc"”)');
+    chk(name, 'the door', 'a CLIN in the data pack whose request is a number', one(s => { s.appns.om.dataPack.clins.P[0].ask = 5; }),
+      'the request of CLIN “0001” at ' + at + '.dataPack.clins.P[0].ask is not a list of figures (“5”)');
+    chk(name, 'the door', 'a CLIN in the data pack that is null', one(s => { s.appns.om.dataPack.clins.P[1] = null; }),
+      'the CLIN at ' + at + '.dataPack.clins.P[1] is not a CLIN (“null”)');
+    chk(name, 'the door', 'a prime’s CLINs in the data pack that are not a list', one(s => { s.appns.om.dataPack.clins.R = { a: 1 }; }),
+      'the CLINs at ' + at + '.dataPack.clins.R are not a list (“{"a":1}”)');
+    chk(name, 'the door', 'an added CLIN whose request holds a word', one(s => { yr(s).clinNew.Q[2].ask = [300, 'lots']; }),
+      'the request of CLIN “0010”: the amount at ' + Y + '.clinNew.Q[2].ask[1] is not a figure (“lots”)');
+    chk(name, 'the door', 'an added CLIN that is null', one(s => { yr(s).clinNew.Q[1] = null; }),
+      'the CLIN at ' + Y + '.clinNew.Q[1] is not a CLIN (“null”)');
+    chk(name, 'the door', 'a prime’s added CLINs that are not a list', one(s => { yr(s).clinNew.Q = 'x'; }),
+      'the CLINs at ' + Y + '.clinNew.Q are not a list (“"x"”)');
+    chk(name, 'the door', 'an edit to a CLIN whose request is not a list', one(s => { yr(s).clinMeta.P.b2.ask = {}; }),
+      'the request of CLIN “b2” at ' + Y + '.clinMeta.P.b2.ask is not a list of figures (“{}”)');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ---- v2.12 RV5 (S11): the tie-out's AV + PSM split claims the paragraphs the one rule reads, and no others ----------------------
+// O&M, the estimate's three lines $1M each, all under the estimate's AV (PSM sits inside it): A (AV, an OGC) on 1.3; P (PSM, a
+// prime) with CLIN 0001 on 1.2.2 and CLIN 0002 on 1.2.1; O (PSM, an OGC) on 1.2.1. CLIN 0002 removed in the drill keeps its
+// paragraph so it can be put back, and the Spend Plan Source sends nothing on it: PSM claims 1.2.2 alone and 1.2.1 goes to the
+// shared line (both offices or neither) -- until O claims it. Then P switched to an OGC (its CLINs' paragraphs left stored) and
+// O to a prime (its own paragraph left stored, no CLIN): every surface but the tie-out read neither as having a WBS, and neither
+// claims a line -- PSM $0, the two lines shared. Put back, each claim returns with it. Read from aceWbsOf, aceGroupSplit, the
+// panel as drawn and the tie-out's suggestions, every figure from the literals above. On c81e995 PSM keeps both lines throughout:
+// the removed-CLIN and type-switch checks fail; the before, put-back and switched-back checks are CONTROLs.
+{
+  const name = 'v2.12 RV5 — the tie-out’s AV + PSM split claims only the paragraphs the one rule reads: a removed CLIN, a prime switched to an OGC and back (S11)';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF'], items: [w2it('A', 'AV', [100]), w2it('P', 'PSM', [300]), w2it('O', 'PSM', [200])],
+      disc: [600], mand: [0], order: ['A', 'P', 'O'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'OGC', P:'PRIME', O:'OGC'}; DATA.clins=DATA.clins||{};
+      DATA.clins.P=[{clin:'0001', desc:'one', ccar:'', ask:[200]}, {clin:'0002', desc:'two', ccar:'', ask:[100]}]; CLINS.P=DATA.clins.P;
+      S.wbs={A:[{w:'1.3', v:[]}]}; S.clinWbs={P:{b0:[{w:'1.2.2', v:[]}], b1:[{w:'1.2.1', v:[]}]}};
+      ACEDB={ts:9, sets:${J({ '2026ACE': W2_SET })}}; window.confirm=function(){ return true; }; window.alert=function(){};
+      applyState(S); save(); render(); 'ok'`);
+    const M = 1e6;
+    const read = () => JSON.parse(X.ev(`(function(){ var sp=aceGroupSplit('2026ACE', 'AV', ['AV','PSM'], [aceScan('2026ACE', MS.cur)]);
+      aceOpen=true; render();
+      var pan=[].slice.call(document.querySelectorAll('#aceBody tr.acesplit')).map(function(tr){ return [tr.getAttribute('data-g')||'shared', tr.children[1].textContent]; })
+        .sort(function(x, y){ return ['AV','PSM','shared'].indexOf(x[0])-['AV','PSM','shared'].indexOf(y[0]); });
+      aceOpen=false; render();
+      return JSON.stringify({claims:[aceWbsOf('P'), aceWbsOf('O')], split:[sp.by.AV||0, sp.by.PSM||0, sp.shared], pan:pan,
+        sug:aceSuggestFull('2026ACE','P').exact}); })()`));
+    const pan = (av, psm, sh) => [['AV', '$' + av.toLocaleString('en-US')], ['PSM', '$' + psm.toLocaleString('en-US')], ['shared', '$' + sh.toLocaleString('en-US')]];
+    chk(name, 'before', 'CONTROL: P claims both its CLINs’ paragraphs and O has none; PSM’s part is the two lines, nothing shared',
+      J(read()), J({ claims: [['1.2.2', '1.2.1'], []], split: [M, 2 * M, 0], pan: pan(M, 2 * M, 0), sug: ['1.2.2', '1.2.1'] }));
+    X.ev(`clinRemove('P','b1'); 'ok'`);
+    chk(name, 'a removed CLIN', 'its paragraph (kept so it can be put back) claims nothing: PSM 1.2.2 alone, 1.2.1 on the shared line, on the panel and in the suggestions',
+      J([X.ev(`JSON.stringify(S.clinWbs.P.b1)`), read()]), J([J([{ w: '1.2.1', v: [] }]), { claims: [['1.2.2'], []], split: [M, M, M], pan: pan(M, M, M), sug: ['1.2.2'] }]));
+    X.ev(`clinRestore('P','b1'); 'ok'`);
+    chk(name, 'a removed CLIN', 'CONTROL: put back, its claim comes back with it', J(read().split), J([M, 2 * M, 0]));
+    X.ev(`S.wbs.O=[{w:'1.2.1', v:[]}]; save(); render(); reqApply('P', {ptype:'OGC'}); reqApply('O', {ptype:'PRIME'}); 'ok'`);
+    chk(name, 'switched', 'P now an OGC and O a prime, their old paragraphs left stored (a CONTROL on the fixture), and neither has a WBS on the one rule',
+      X.ev(`JSON.stringify([ptypeOf('P'), ptypeOf('O'), Object.keys(S.clinWbs.P), S.wbs.O, wbsStateOf('P').has, wbsStateOf('O').has])`),
+      J(['OGC', 'PRIME', ['b0', 'b1'], [{ w: '1.2.1', v: [] }], false, false]));
+    chk(name, 'switched', 'so neither claims a line: PSM $0, 1.2.1 and 1.2.2 on the shared line, on the panel too',
+      J((r => [r.claims, r.split, r.pan])(read())), J([[[], []], [M, 0, 2 * M], pan(M, 0, 2 * M)]));
+    X.ev(`reqApply('P', {ptype:'PRIME'}); reqApply('O', {ptype:'OGC'}); 'ok'`);
+    chk(name, 'switched', 'CONTROL: switched back, the stored paragraphs claim again (O and P both PSM: still PSM’s two lines)',
+      J((r => [r.claims, r.split])(read())), J([[['1.2.2', '1.2.1'], ['1.2.1']], [M, 2 * M, 0]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.12 RV5 (S12, S15): the PMO review and its change report show a proposed requirement's WBS, named or flagged --------------
+// An office proposes four new requirements: N1 on 1.2.2, N2 on 9.9 (a paragraph the board's estimate does not hold -- typed in a
+// copy published before the estimate, or before a newer one came in), N3 split across 1.2.1 and 9.9, N4 a prime with none. The
+// review table as drawn and the change report read from its bytes each name every paragraph with its path, and flag 9.9, the way
+// an edit's WBS reads (K03); N4 shows none. Ticked and applied, each lands on what was shown (a CONTROL: the landing was right) and
+// the flagged ones are exactly those Needs attention then lists as ≠ WBS not in the estimate. On c81e995 the review and the report
+// print no WBS at all for a proposal: those checks fail.
+await (async () => {
+  const name = 'v2.12 RV5 — the PMO review and its change report show a proposed new requirement’s WBS, named, or flagged where the estimate does not hold it (S12, S15)';
+  try {
+    const J = JSON.stringify;
+    const B = w2Board(W2_SET), ev = B.ev;
+    ev(`window.alert=function(){}; window.confirm=function(){ return true; };
+      (function(){ var P=function(nid, e, pt, w){ return {nid:nid, grp:'AV', title:'', event:e, ask:[50,0], ccar:'', desc:'what it buys', cons:'what is lost',
+        notes:'', pid:'', recNames:'', mipr:'', obCat:'', ptype:pt, wbs:w, dest:{to:'', end:''}, awards:null, minInc:null, band:'', mc:false,
+        costElem:'', si:'', rcnAsg:'', budgetAsg:null, rcnSvc:null, crHalf:null, prior:null, titles:''}; };
+      PMOSUBS=[]; PMOPICK={};
+      pmoTake({spmtPkg:1, dir:'submit', ap:'', fy:MS.cur, ts:Date.now(), by:'PMO', fromTs:1, pmo:'AV', svc:SVC.slice(), items:{}, base:{},
+        added:[P('NEW-AV-1','N1 event','OGC',[{w:'1.2.2', v:[]}]), P('NEW-AV-2','N2 event','OGC',[{w:'9.9', v:[]}]),
+               P('NEW-AV-3','N3 event','OGC',[{w:'1.2.1', v:[30,0]}, {w:'9.9', v:[20,0]}]), P('NEW-AV-4','N4 event','PRIME',[])]}, 'sub.json'); })();
+      subOpenReview(); 'ok'`);
+    const W = {
+      N1: 'WBS 1.2.2 — ' + W2_PATH['1.2.2'],
+      N2: 'WBS 9.9 (not in the 2026ACE estimate for O&M)',
+      N3: 'WBS 1.2.1 — ' + W2_PATH['1.2.1'] + ' · 9.9 (not in the 2026ACE estimate for O&M)' };
+    const seen = rows => ['N1', 'N2', 'N3', 'N4'].map(n => { const t = rows.filter(x => x.includes(n + ' event'))[0] || '';
+      return [n, W[n] ? t.includes(W[n]) : !/\bWBS\b/.test(t)]; });
+    const drawn = JSON.parse(ev(`JSON.stringify([].map.call(document.querySelectorAll('#subPanel tr'), function(tr){ return tr.textContent.replace(/\\s+/g,' ').trim(); }))`));
+    chk(name, 'the review', 'each proposal’s row names its paragraphs, flags 9.9, and N4 (no WBS) shows none',
+      J(seen(drawn)), J([['N1', true], ['N2', true], ['N3', true], ['N4', true]]));
+    const bk = JSON.parse(await w2Book(B.w, 'pmoReport'));
+    chk(name, 'the change report', 'the report builds and reads back', bk.__err || 'ok', 'ok');
+    const rep = (bk['Proposed changes'] || []).filter(r => String(r[5] ?? '') === 'New requirement (proposed)').map(r => String(r[7] ?? ''));
+    chk(name, 'the change report', 'its Proposed cell for each proposal reads the same: named, flagged, and nothing for N4',
+      J([rep.length, seen(rep)]), J([4, [['N1', true], ['N2', true], ['N3', true], ['N4', true]]]));
+    ev(`subPickAll(true); pmoApply(); 'ok'`);
+    const land = JSON.parse(ev(`JSON.stringify((S.custom||[]).filter(function(c){ return c.from; }).map(function(c){
+      return [c.event.replace(/ event$/,''), ((S.wbs||{})[c.id]||[]).map(function(e){ return e.w; })]; }))`));
+    chk(name, 'applied', 'CONTROL: each lands on what the review showed', J(land), J([['N1', ['1.2.2']], ['N2', ['9.9']], ['N3', ['1.2.1', '9.9']], ['N4', []]]));
+    chk(name, 'applied', 'and the ones the review flagged are the ones Needs attention lists as not in the estimate',
+      ev(`JSON.stringify(attLists().wbsx.map(function(r){ var it=itemById(r.id); return it.event.replace(/ event$/,''); }).filter(function(n){ return /^N\\d$/.test(n); }).sort())`),
+      J(['N2', 'N3']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
+// ---- v2.12 RV5 (S13): Without a WBS names the CLIN whose one WBS line has no paragraph ------------------------------------------
+// P is a prime: CLIN 0001 requests $200 and CLIN 0002 $100, on 1.3. In the WBS panel the person adds a line to CLIN 0001 (＋ Add WBS,
+// clicked as drawn) and leaves it blank: the Spend Plan Source sends its $200 blank, and Needs attention must say which CLIN to
+// fix -- as it reads when the CLIN has no line at all (a CONTROL, first). The same once a paragraph typed into that line is
+// cleared. A requirement that is not a prime with one blank line still reads "no paragraph" (a CONTROL). On c81e995 both blank
+// cases read "no paragraph", naming no CLIN, though a prime's record has no WBS field to fix it in.
+{
+  const name = 'v2.12 RV5 — Without a WBS names the CLIN whose one WBS line has no paragraph (S13)';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF'], items: [w2it('P', 'AV', [300]), w2it('C', 'AV', [90])], disc: [390], mand: [0], order: ['P', 'C'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P:'PRIME', C:'OGC'}; DATA.clins=DATA.clins||{};
+      DATA.clins.P=[{clin:'0001', desc:'one', ccar:'', ask:[200]}, {clin:'0002', desc:'two', ccar:'', ask:[100]}]; CLINS.P=DATA.clins.P;
+      S.clinWbs={P:{b1:[{w:'1.3', v:[]}]}}; S.wbs={C:[{w:'', v:[]}]};
+      ACEDB={ts:9, sets:${J({ '2026ACE': W2_SET })}}; applyState(S); save(); render(); 'ok'`);
+    const why = () => X.ev(`JSON.stringify(attLists().wbs.map(function(r){ return [r.id, r.blank, r.why]; }))`);
+    chk(name, 'no line', 'CONTROL: CLIN 0001 with no line at all is named; C’s one blank line reads no paragraph',
+      why(), J([['P', 200, ['CLIN 0001 has no paragraph']], ['C', 90, ['no paragraph']]]));
+    X.ev(`toggleWbs('clin','P','b0'); [].filter.call(document.querySelectorAll('button'), function(b){ return /Add WBS/.test(b.textContent); })[0].click(); 'ok'`);
+    chk(name, 'one blank line', 'a line added to CLIN 0001 and left blank: stored as one line with no paragraph (a CONTROL on the fixture)',
+      X.ev(`JSON.stringify(S.clinWbs.P.b0.map(function(e){ return e.w; }))`), J(['']));
+    chk(name, 'one blank line', 'Needs attention names CLIN 0001, as with no line', why(), J([['P', 200, ['CLIN 0001 has no paragraph']], ['C', 90, ['no paragraph']]]));
+    X.ev(`attShow('wbs'); 'ok'`);
+    chk(name, 'one blank line', 'and the list as drawn says it', X.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#attBody td.attwbs')).map(function(td){ return td.textContent; }))`),
+      J(['CLIN 0001 has no paragraph', 'no paragraph']));
+    X.ev(`attClose(); wbsSetNum('clin','P','b0',0,'1.2.1'); wbsSetNum('clin','P','b0',0,''); 'ok'`);
+    chk(name, 'a paragraph cleared', 'a paragraph typed into that line and cleared reads the same', why(), J([['P', 200, ['CLIN 0001 has no paragraph']], ['C', 90, ['no paragraph']]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
+// ---- v2.12 RV5 (S16): WBS from execution data reads the Spend Plan Source's own WBS back, and picks from the estimate -------------
+// Item 132 (Brad's decision 4): ORBIT sends each line's paragraph in column 23 and "reads the same column back". B is split by the
+// office across 1.3.1 and 1.3.2, C is on 1.2.1, E across 1.3.1 and 1.2.1; A and D have none. The board's own Spend Plan Source,
+// exported and imported back as the CCaR pull (the real exportSrc bytes through the real importSrc), sends B and E a line per
+// paragraph; then E's WBS is cut to 1.3.1 alone, and the pull's lines for A and D are given "9.9.9 - Not in the estimate" (a
+// paragraph the estimate the pickers offer does not hold) and "1.2.2 - Depot". B and C already carry exactly what their rows name:
+// said as already set, as sent -- never a conflict "to set by hand", never "ready to write". E's rows name a paragraph it no
+// longer carries: a real conflict, still skipped (a CONTROL). A's 9.9.9 is listed apart and never written; D's 1.2.2 is ready to
+// write, named, and written, as before. With no estimate naming O&M, 9.9.9 is taken as before v2.12 (a CONTROL). On c81e995 B is
+// a conflict, C ready to write, and A's 9.9.9 written and only then flagged: those checks fail.
+await (async () => {
+  const name = 'v2.12 RV5 — WBS from execution data reads the Spend Plan Source’s own WBS back as already set, and picks a paragraph from the estimate (S16)';
+  try {
+    const J = JSON.stringify;
+    const TREE = Object.assign({}, W2_TREE, { '1.3.1': { n: 'Field Service', lv: 3, up: '1.3' }, '1.3.2': { n: 'Depot Field', lv: 3, up: '1.3' } });
+    const SET = Object.assign({}, W2_SET, { wbs: { om: TREE } });
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG'],
+      items: [w2it('A', 'AV', [100, 0], { ccar: 'JSF1', title: 'Alpha rec' }), w2it('B', 'AV', [900, 100], { ccar: 'JSF2', title: 'Bravo rec' }),
+              w2it('C', 'AV', [500, 0], { ccar: 'JSF3', title: 'Charlie rec' }), w2it('D', 'AV', [70, 0], { ccar: 'JSF4', title: 'Delta rec' }),
+              w2it('E', 'AV', [400, 0], { ccar: 'JSF5', title: 'Echo rec' })],
+      disc: [5000, 500], mand: [0, 0], order: ['A', 'B', 'C', 'D', 'E'] });
+    X.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'OGC', B:'OGC', C:'OGC', D:'OGC', E:'OGC'}; ACEDB={ts:9, sets:${J({ '2026ACE': SET })}};
+      applyState(S); save(); render(); 'ok'`);
+    // B and E split by the office through the WBS panel's own setters; C on one paragraph
+    X.ev(`wbsStore('req','B','',[{w:'1.3.1', v:[]}]); wbsAdd('req','B',''); wbsSetNum('req','B','',1,'1.3.2',null);
+      wbsSetVal('req','B','',0,0,'600'); wbsSetVal('req','B','',1,0,'300'); wbsSetVal('req','B','',0,1,'100');
+      wbsStore('req','E','',[{w:'1.3.1', v:[]}]); wbsAdd('req','E',''); wbsSetNum('req','E','',1,'1.2.1',null);
+      wbsSetVal('req','E','',0,0,'250'); wbsSetVal('req','E','',1,0,'150');
+      wbsStore('req','C','',[{w:'1.2.1', v:[]}]); render(); 'ok'`);
+    await X.w.eval(`(async function(){ var cap=null, _B=window.Blob, oC=HTMLAnchorElement.prototype.click;
+      window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); }; HTMLAnchorElement.prototype.click=function(){};
+      try{ exportSrc(); } finally { window.Blob=_B; HTMLAnchorElement.prototype.click=oC; }
+      globalThis.__rv5sps=cap; return 'ok'; })()`);
+    chk(name, 'the round trip', 'the board’s own Spend Plan Source sends B and E a line per paragraph (a CONTROL on the fixture)',
+      J(JSON.parse(await X.w.eval(`(async function(){ var b=globalThis.__rv5sps; var r=await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength));
+        var k=Object.keys(r)[0], o={}; r[k].slice(1).forEach(function(x){ var t=String(x[7]&&typeof x[7]==='object'? x[7].v : x[7]).replace(/ event$/,''), w=String(x[23]&&typeof x[23]==='object'? x[23].v : (x[23]==null? '' : x[23])).split(' - ')[0];
+          if(w) (o[t]=o[t]||[]).indexOf(w)<0 && o[t].push(w); }); return JSON.stringify(o); })()`))),
+      J({ B: ['1.3.1', '1.3.2'], C: ['1.2.1'], E: ['1.3.1', '1.2.1'] }));
+    await X.w.eval(`importSrc({files:[{name:'Spend Plan Source.xlsx', arrayBuffer: async function(){ var b=globalThis.__rv5sps; return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}], value:''})`);
+    await new Promise(r => setTimeout(r, 200));
+    // what CCaR adds on its side: a paragraph on A and on D; and E's split cut to one paragraph on the board
+    X.ev(`(function(){ var box=EXDB.all[mySlug()]; Object.keys(box.rows).forEach(function(fy){ box.rows[fy].forEach(function(r){
+        var c=String(r[2]||''); if(c==='JSF1') r[23]='9.9.9 - Not in the estimate'; if(c==='JSF4') r[23]='1.2.2 - Depot'; }); }); })();
+      S.wbs.E=[{w:'1.3.1', v:[]}]; save(); render(); 'ok'`);
+    const scan = () => JSON.parse(X.ev(`(function(){ var s=execWbsScan(null), m=function(L, f){ return (L||[]).map(function(r){ return [r.id, f(r)]; }); };
+      return JSON.stringify({props:m(s.props, function(r){ return r.para; }), conflicts:m(s.conflicts, function(r){ return r.paras.slice().sort(); }),
+        asSent:m(s.asSent, function(r){ return r.paras.slice().sort(); }), unlisted:m(s.unlisted, function(r){ return r.off; })}); })()`));
+    const S0 = scan();
+    chk(name, 'the round trip', 'B’s split and C’s paragraph come back as already set, as sent -- not a conflict, not ready to write',
+      J([S0.asSent, S0.conflicts.filter(r => r[0] !== 'E'), S0.props.filter(r => r[0] === 'C')]), J([[['B', ['1.3.1', '1.3.2']], ['C', ['1.2.1']]], [], []]));
+    chk(name, 'the round trip', 'CONTROL: E’s rows name a paragraph it no longer carries -- still a conflict, skipped', J(S0.conflicts.filter(r => r[0] === 'E')), J([['E', ['1.2.1', '1.3.1']]]));
+    chk(name, 'the pick rule', 'A’s 9.9.9, a paragraph the estimate does not hold, is listed apart, not offered to write; D’s 1.2.2 still is',
+      J([S0.unlisted, S0.props]), J([[['A', ['9.9.9']]], [['D', '1.2.2']]]));
+    X.ev(`toggleExw(); 'ok'`);
+    const pan = X.ev(`(document.getElementById('exwBody')||{}).textContent.replace(/\\s+/g,' ')`);
+    const conf = X.ev(`([].map.call(document.querySelectorAll('#exwBody .hint'), function(d){ return d.textContent; }).filter(function(t){ return /DIFFERENT paragraphs/.test(t); })[0]||'')`);
+    chk(name, 'the panel', 'it says each: 9.9.9 not written, B and C already set as sent, D named, and B is no conflict to set by hand',
+      J([/1 requirement had rows naming a paragraph the 2026ACE estimate for O&M does not hold\. Not written/.test(pan) && /· A event — 9\.9\.9/.test(pan),
+        /2 requirements already carry exactly the paragraphs their rows name/.test(pan) && /· B event — 1\.3\.1, 1\.3\.2/.test(pan) && /· C event — 1\.2\.1/.test(pan),
+        pan.includes('1.2.2 — ' + W2_PATH['1.2.2']), [conf.includes('E event'), conf.includes('B event'), conf.includes('C event')]]),
+      J([true, true, true, [true, false, false]]));
+    X.ev(`exwApply(); toggleExw(); 'ok'`);
+    chk(name, 'written', 'Write puts D on 1.2.2, as before, and nothing on A; B, C and E are as they were, and the status line says why',
+      X.ev(`JSON.stringify([(S.wbs.A||[]).map(function(e){ return e.w; }), S.wbs.D.map(function(e){ return e.w; }), S.wbs.B.map(function(e){ return e.w; }),
+        S.wbs.C.map(function(e){ return e.w; }), S.wbs.E.map(function(e){ return e.w; }),
+        /1 written, 1 in conflict and skipped, 1 naming a paragraph the estimate does not hold, not written\\./.test(document.getElementById('shareStat').textContent)])`),
+      J([[], ['1.2.2'], ['1.3.1', '1.3.2'], ['1.2.1'], ['1.3.1'], true]));
+    X.ev(`ACEDB={ts:10, sets:{}}; delete S.wbs.D; save(); render(); 'ok'`);
+    chk(name, 'no estimate', 'CONTROL: with no estimate naming O&M, A’s 9.9.9 is taken as before v2.12', J(scan().props.filter(r => r[0] === 'A')), J([['A', '9.9.9']]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.12 W2 ====
 
 // ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====

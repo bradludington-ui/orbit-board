@@ -4448,7 +4448,8 @@ function exwApply(){
   setStat('🧱 WBS from execution data — <b>'+r.wrote+'</b> written'
     +(r.skipped? ', '+r.skipped+' left alone (already had one)':'')
     +(r.locked? ', '+r.locked+' on a CLIN left alone (a PMO copy\u2019s CLINs are the portfolio team\u2019s)':'')
-    +(r.scan.conflicts.length? ', '+r.scan.conflicts.length+' in conflict and skipped':'')+'.');
+    +(r.scan.conflicts.length? ', '+r.scan.conflicts.length+' in conflict and skipped':'')
+    +((r.scan.unlisted||[]).length? ', '+r.scan.unlisted.length+' naming a paragraph the estimate does not hold, not written':'')+'.');
   render();
 }
 function exwBody(){
@@ -4471,6 +4472,8 @@ function exwBody(){
       +sc.matchedRows+'</b></span>'
     +'<span>ready to write <b style="color:var(--green)">'+sc.props.length+'</b></span>'
     +(sc.conflicts.length? '<span>in conflict <b style="color:var(--amber)">'+sc.conflicts.length+'</b></span>':'')
+    +(sc.asSent.length? '<span>already set, as sent <b>'+sc.asSent.length+'</b></span>':'')
+    +(sc.unlisted.length? '<span>not in the estimate <b style="color:var(--amber)">'+sc.unlisted.length+'</b></span>':'')
     +'</div>';
   if(!sc.withWbs){
     h+='<div class="hint">The imported rows carry no WBS in the paragraph column. That column is '
@@ -4487,7 +4490,7 @@ function exwBody(){
     sc.props.slice(0,150).forEach(function(pr){
       h+='<tr><td style="text-align:left">'+esc(pr.label)+'</td>'
         +'<td>'+(pr.clin? esc(pr.clin):'—')+'</td>'
-        +'<td style="text-align:left">'+esc(pr.para)+'</td>'
+        +'<td style="text-align:left">'+esc(pr.para)+(wbsPathOf(pr.para)? ' — '+esc(wbsPathOf(pr.para)) : '')+'</td>'
         +'<td>'+pr.rows+'</td></tr>';
     });
     h+='</table></div>';
@@ -4516,6 +4519,22 @@ function exwBody(){
       +sc.conflicts.slice(0,12).map(function(c){
           return '· '+esc(c.label)+(c.clin? ' (CLIN '+esc(c.clin)+')':'')
             +' — '+esc(c.paras.join(', ')); }).join('<br>')
+      +'</div>';
+  }
+  // v2.12 RV5 (S16): what the rows name that is already set, and what the estimate does not hold
+  const exwLine=function(c, ps){ return '· '+esc(c.label)+(c.clin? ' (CLIN '+esc(c.clin)+')':'')+' — '+esc(ps.join(', ')); };
+  if(sc.unlisted.length){
+    h+='<div class="hint exw-off" style="margin-top:8px"><b>'+sc.unlisted.length+'</b> requirement'
+      +(sc.unlisted.length===1?'':'s')+' had rows naming a paragraph the '+esc(wbsSrcLbl(wbsPick()))+' does not hold. '
+      +'Not written: a WBS is picked from the estimate here as in every box. Pick one in the requirement’s record:<br>'
+      +sc.unlisted.slice(0,12).map(function(c){ return exwLine(c, c.off); }).join('<br>')
+      +'</div>';
+  }
+  if(sc.asSent.length){
+    h+='<div class="hint exw-sent" style="margin-top:8px"><b>'+sc.asSent.length+'</b> requirement'
+      +(sc.asSent.length===1?' already carries':'s already carry')+' exactly the paragraphs '+(sc.asSent.length===1?'its':'their')
+      +' rows name, as the Spend Plan Source sent them (a WBS split goes out a line per paragraph). Already set, as sent — nothing to write:<br>'
+      +sc.asSent.slice(0,12).map(function(c){ return exwLine(c, c.paras); }).join('<br>')
       +'</div>';
   }
   if(sc.unmatched.length){
@@ -9262,6 +9281,11 @@ function pmoFmtVal(k, v){
     if(v.band) parts.push(pmoFmtVal('band', v.band));
     if(v.mc) parts.push('\u2605 MC');
     if(v.costElem) parts.push(v.costElem);
+    // v2.12 RV5 (S12, S15): its WBS, each paragraph named or flagged as an edit's is (K03). The Add box requires one, the copy
+    // sends it and accepting the proposal stores it -- so a paragraph the board's estimate does not hold was accepted unseen,
+    // and turned up under ≠ WBS not in the estimate only afterwards. The change report reads this line too.
+    const wb=(Array.isArray(v.wbs)? v.wbs : []).filter(function(e){ return e && String(e.w==null? '' : e.w).trim(); });
+    if(wb.length) parts.push(FL('wbs')+' '+pmoFmtVal('wbs', wb));
     // v2.07 (item 121): what the box requires is what the reviewer sees -- the budgets (each marked where this board's BAE
     // list does not offer it for that office: accepted, it would read "chosen, and cannot be used"), the PID and the narrative
     if(v.pid) parts.push(FL('pid')+' '+v.pid);
@@ -11750,6 +11774,30 @@ function inAmtsWhy(a, where){
   for(let i=0;i<a.length;i++){ const w=inAmtWhy(a[i], where+'['+i+']'); if(w) return w; }
   return '';
 }
+// v2.12 RV5 (S10): A PRIME'S CLINs AT THE DOOR, held to the shapes the board writes and reads (clinList): a prime's CLINs a list
+// of CLINs -- the data pack's `clins` and a plan's added CLINs (`clinNew`) -- each a CLIN, and its request, there and in a plan's
+// edits to a CLIN (`clinMeta`), a list of figures (inAmtsWhy: a number, or text the board reads as one). A request that was a
+// number, a CLIN that was null: each passed, and since v2.12 the board reads every prime's CLINs as it draws. The CLIN is named.
+function inClinsWhy(m, at, edits){
+  if(m===undefined || m===null) return '';
+  if(typeof m!=='object' || Array.isArray(m)) return 'the CLINs at '+at+' are not held by requirement';
+  const nm=function(c, k){ const n=(c && typeof c==='object')? c.clin : null; return 'CLIN '+inShow((typeof n==='string' && n.trim())? n : k); };
+  const ask=function(c, k, where){ if(c.ask===undefined || c.ask===null) return '';
+    if(!Array.isArray(c.ask)) return 'the request of '+nm(c, k)+' at '+where+'.ask is not a list of figures ('+inShow(JSON.stringify(c.ask))+')';
+    const w=inAmtsWhy(c.ask, where+'.ask'); return w? 'the request of '+nm(c, k)+': '+w : ''; };
+  for(const pid of Object.keys(m)){ const L=m[pid], p=at+'.'+pid; if(L===undefined || L===null) continue;
+    if(edits){
+      if(typeof L!=='object' || Array.isArray(L)) return 'the CLIN edits at '+p+' are not held by CLIN';
+      for(const k of Object.keys(L)){ const e=L[k]; if(e===undefined || e===null) continue;
+        if(typeof e!=='object' || Array.isArray(e)) return 'the edit of CLIN '+inShow(k)+' at '+p+'.'+k+' is not a CLIN';
+        const w=ask(e, k, p+'.'+k); if(w) return w; }
+      continue; }
+    if(!Array.isArray(L)) return 'the CLINs at '+p+' are not a list ('+inShow(JSON.stringify(L))+')';
+    for(let i=0;i<L.length;i++){ const c=L[i];
+      if(!c || typeof c!=='object' || Array.isArray(c)) return 'the CLIN at '+p+'['+i+'] is not a CLIN ('+inShow(JSON.stringify(c))+')';
+      const w=ask(c, (typeof c.key==='string' && c.key)? c.key : String(i+1), p+'['+i+']'); if(w) return w; } }
+  return '';
+}
 // v2.12 RV3 (R12, R23, R24): A PPBE POSITION AT THE DOOR. Since v2.12 a position is every year's budget authority while the
 // plan is tagged to it, read when the board opens, so it is held to the shapes the board reads (ppNorm): v2 {lines, val} --
 // each service's lines a list of lines, its figures held by line and year, each figure an amount (inAmtWhy: a number or text
@@ -11840,6 +11888,7 @@ function inShapeWhy(o, path, asPlan){
     if(Array.isArray(o.services)) for(let i=0;i<o.services.length;i++) if((w=inNameWhy(o.services[i], 'the service name at '+path+'.services['+i+']'))) return w;
     for(let i=0;i<o.items.length;i++) if((w=itemWhy(o.items[i], path+'.items['+i+']'))) return w;
     if((w=inAmtsWhy(o.budget, path+'.budget'))) return w;
+    if((w=inClinsWhy(o.clins, path+'.clins'))) return w;     // v2.12 RV5 (S10)
   }
   // v2.00 (item 99): A YEAR'S PLAN IS A PLAN WHETHER OR NOT IT CARRIES ITS PRIORITY ORDER. The checks below used to
   // start only on an order list, and the board rebuilds a missing order when it loads the year - so a plan that
@@ -11872,6 +11921,8 @@ function inShapeWhy(o, path, asPlan){
     const awN=(Array.isArray(o.discSvc) && o.discSvc.length)? o.discSvc.length : 0;
     const awS=(o.dataPack && Array.isArray(o.dataPack.services) && o.dataPack.services.length===awN)? o.dataPack.services : [];
     if((w=eachKey(o.awards, function(id, aw){ return inAwdWhy(aw, awN, awS, path+'.awards.'+id); }))) return w;
+    // v2.12 RV5 (S10): a plan's added CLINs and its edits to a CLIN, each request a list of figures
+    if((w=inClinsWhy(o.clinNew, path+'.clinNew') || inClinsWhy(o.clinMeta, path+'.clinMeta', true))) return w;
   }
   // v2.12 RV3 (R12, R23, R24): a store's positions, and the copy a lock keeps of the one it read
   if(o.ppbe && typeof o.ppbe==='object' && !Array.isArray(o.ppbe) && (w=eachKey(o.ppbe, function(k, P){ return inPosWhy(P, path+'.ppbe.'+k); }))) return w;
@@ -16999,7 +17050,8 @@ function srcWbsPara(v){
   if(!raw) return '';
   // "P1.1.1 - Air Vehicle - Spares (GSP/BSP)" -> "P1.1.1". Split on a spaced dash so a hyphen
   // inside a paragraph (there are none today, but the estimate is not ours) cannot cut one short.
-  const head=raw.split(/\s+[-–—]\s+/)[0].trim().toUpperCase().replace(/\s+/g,'');
+  // v2.12 RV5 (S16): read by the one reader of a paragraph's code (wbsCodeIn), as the pickers and the export read it
+  const head=wbsCodeIn(raw);
   return EXWBS_OK.test(head)? head : '';
 }
 // Every row of imported execution for this appropriation, across the years asked for.
@@ -17015,7 +17067,7 @@ function execRowsFor(fys){
 // What the execution data proposes, and what it could not place. Nothing is written here.
 function execWbsScan(fys){
   const rows=execRowsFor(fys);
-  const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[],
+  const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[], asSent:[], unlisted:[],
               matchedRows:0, sharedRows:0, sharedNames:Object.create(null), byKey:{}};
   if(!rows.length) return scan;
 
@@ -17075,12 +17127,26 @@ function execWbsScan(fys){
     });
   });
 
+  // v2.12 RV5 (S16): THE PICK RULE, AND ORBIT'S OWN SPLIT COMING BACK. Since v2.12 the Spend Plan Source sends a requirement split
+  // across paragraphs as a line per paragraph (item 132, Brad's decision 4: "ORBIT reads the same column back"), so the pull
+  // brought every such split back as rows naming DIFFERENT paragraphs -- "set them by hand", on a requirement that already held
+  // exactly that split -- and a requirement already on the one paragraph its rows name was offered as "ready to write". Rows that
+  // name what the requirement (or the CLIN) already holds, as a set, are said as already set, as sent. And a paragraph is picked
+  // from the estimate, here as in every box (wbsTake, the one rule): one the estimate the pickers offer does not hold is listed
+  // apart and never written -- written, it was flagged under ≠ WBS not in the estimate only once it was stored, while the edit
+  // box refused the same code. With no estimate naming this appropriation a paragraph is taken as before.
+  const WP=wbsPick(), held=function(b){ const L=(b.kind==='clin')? wbsClin(b.id, b.clinKey) : wbsReq(b.id);
+    return (Array.isArray(L)? L : []).map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; }).filter(function(c, i, a){ return c && a.indexOf(c)===i; }); };
   Object.keys(bucket).forEach(function(k){
     const b=bucket[k];
     const ps=Object.keys(b.paras);
     const it=itemById(b.id);
     const rec={kind:b.kind, id:b.id, clinKey:b.clinKey, clin:b.clin, rows:b.rows,
                label:dispTitle(it), paras:ps};
+    const has=held(b);
+    if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }
+    const off=ps.filter(function(p){ return !!wbsTake(p, WP).why; });
+    if(off.length){ rec.off=off; scan.unlisted.push(rec); return; }
     // Rows that disagree are reported and skipped. Picking one would write a paragraph nobody
     // assigned, and it would reconcile perfectly against itself afterwards.
     if(ps.length===1){ rec.para=ps[0]; scan.props.push(rec); }
@@ -17206,12 +17272,15 @@ function wbsPickKey(ap){
 // level for primes, which is where a prime's work is actually broken down.
 // v2.12 RV2 (K00, K07): each read by the one reader of a stored paragraph's code (wbsCodeIn), so a paragraph stored as CCaR
 // writes it ("1.2.1 - Organizational") claims 1.2.1's lines, as the pickers and the Spend Plan Source read it
+// v2.12 RV5 (S11): AND THE PARAGRAPHS ARE THE ONES THE ONE RULE READS (wbsStateOf): a prime's its listed CLINs' only, anything
+// else its own lines. This read both, whatever the type, and every CLIN ever given one -- so a prime switched to an OGC still
+// claimed its CLINs' paragraphs, an OGC switched to a prime its own hidden one, and a CLIN removed in the drill (its paragraph
+// kept so it can be put back) the paragraph the Spend Plan Source no longer sends: the tie-out's AV + PSM split credited an
+// office with estimate lines through paragraphs no screen showed, while its own breakout (aceAlignRows) did not. The stored
+// paragraphs are left as they are, so switching back or putting the CLIN back brings the claim back with them.
 function aceWbsOf(id){
-  const out=[];
-  (wbsReq(id)||[]).forEach(function(e){ if(e.w) out.push(wbsCodeIn(e.w)); });
-  const cw=((S.clinWbs||{})[id])||{};
-  Object.keys(cw).forEach(function(kk){ (cw[kk]||[]).forEach(function(e){ if(e.w) out.push(wbsCodeIn(e.w)); }); });
-  return out.filter(function(v,i,a){ return v && a.indexOf(v)===i; });
+  return wbsStateOf(id).lines.map(function(e){ return (e && e.w)? wbsCodeIn(e.w) : ''; })
+    .filter(function(v,i,a){ return v && a.indexOf(v)===i; });
 }
 // ACE lines for one appropriation, indexed by WBS.
 function aceLinesBy(k, ap){
@@ -21199,7 +21268,9 @@ function srcWbsParts(St, id, it, i, amt, clin){
   const L=clin? ((((St.clinWbs||{})[id])||{})[clin.key]) : ((St.wbs||{})[id]);
   const list=(Array.isArray(L)? L : []).filter(function(e){ return e && typeof e==='object'; });
   if(!list.length) return [[amt, '', clin? 'clin' : 'none']];
-  if(list.length===1) return [[amt, wbsCodeIn(list[0].w)]];
+  // v2.12 RV5 (S13): one line with no paragraph (a line added in the WBS panel and left blank, or a paragraph typed and cleared)
+  // is the same as no line: a CLIN's is that CLIN's to fix, named -- it read "no paragraph", worded for a record a prime has none of
+  if(list.length===1){ const c1=wbsCodeIn(list[0].w); return [[amt, c1, c1? '' : (clin? 'clin' : 'none')]]; }
   const R=wbsResolve(list, clin? clinVec(id, clin) : svcAlloc(it));
   const ws=R.rows.map(function(r){ return Math.max(0, +r.v[i]||0); }).concat([Math.max(0, +R.rem[i]||0)]);
   const tot=ws.reduce(function(a,b){ return a+b; }, 0);
@@ -28456,17 +28527,28 @@ function clinAskTot(c){ return (c.ask||[]).reduce((a,b)=>a+b,0); }
 function clinMeta(pid){ if(!S.clinMeta) S.clinMeta={}; if(!S.clinMeta[pid]) S.clinMeta[pid]={}; return S.clinMeta[pid]; }
 function clinNew(pid){ if(!S.clinNew) S.clinNew={}; if(!Array.isArray(S.clinNew[pid])) S.clinNew[pid]=[]; return S.clinNew[pid]; }
 function clinRm(pid){ if(!S.clinRm) S.clinRm={}; if(!Array.isArray(S.clinRm[pid])) S.clinRm[pid]=[]; return S.clinRm[pid]; }
+// v2.12 RV5 (S10): A CLIN IS READ AS THE BOARD WRITES ONE, OR AS NOTHING. Every writer stores a CLIN as an object in a list and
+// its request as a list of figures, one per service; a hand edit or a damaged transfer is all it takes for a file to hold a
+// request that is a number, text, true or an object, a CLIN that is null, or a prime's CLINs as something other than a list.
+// Until v2.12 this was read only when that prime's drill was opened; since v2.12 Needs attention reads every prime's CLINs on
+// every draw (wbsBlankOf, wbsStateOf), so `(c.ask||[]).slice` threw at the top-level applyStore and the board opened with no
+// row and nothing to say why. So a request that is not a list is read as no request, and a CLIN that is not a CLIN as no CLIN
+// -- as the drill's own lines (clinVec, clinAskTot) already treated an empty one -- and the import check refuses all three
+// by name (inClinsWhy), so a file it takes is a file the board draws.
+function clinAskIn(v){ return Array.isArray(v)? v.slice() : []; }
+function clinsOf(L){ return (Array.isArray(L)? L : []).map(function(c){ return (c && typeof c==='object' && !Array.isArray(c))? c : null; }); }
 function clinList(pid){
   const meta=clinMeta(pid), gone=clinRm(pid);
-  const base=(CLINS[pid]||[]).map((c,i)=>{
+  const base=clinsOf(CLINS[pid]).map((c,i)=>{
+    if(!c) return null;
     const key='b'+i, m=meta[key]||{};
     return {key, clin:(m.clin!==undefined? m.clin : c.clin), desc:(m.desc!==undefined? m.desc : c.desc),
             ccar:(m.ccar!==undefined? m.ccar : c.ccar),
-            ask:(Array.isArray(m.ask)? m.ask.slice() : (c.ask||[]).slice()),
+            ask:(Array.isArray(m.ask)? m.ask.slice() : clinAskIn(c.ask)),
             added:false, edited:!!(m.clin!==undefined||m.desc!==undefined||m.ccar!==undefined||m.ask)};
-  }).filter(c=>gone.indexOf(c.key)<0);
-  const extra=clinNew(pid).map(c=>({key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar,
-    ask:(c.ask||[]).slice(), added:true, edited:false}));
+  }).filter(c=>c && gone.indexOf(c.key)<0);
+  const extra=clinsOf(clinNew(pid)).filter(Boolean).map(c=>({key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar,
+    ask:clinAskIn(c.ask), added:true, edited:false}));
   return base.concat(extra);
 }
 // v1.99: the same list, read without creating anything. clinList makes an empty entry for a prime that has none
@@ -28477,10 +28559,10 @@ function clinListRO(pid){
   const M=(S.clinMeta && typeof S.clinMeta==='object')? S.clinMeta[pid] : null, meta=(M && typeof M==='object')? M : {};
   const R=(S.clinRm && typeof S.clinRm==='object')? S.clinRm[pid] : null, gone=Array.isArray(R)? R : [];
   const N=(S.clinNew && typeof S.clinNew==='object')? S.clinNew[pid] : null, added=Array.isArray(N)? N : [];
-  const base=(CLINS[pid]||[]).map(function(c,i){ const key='b'+i, m=meta[key]||{};
+  const base=clinsOf(CLINS[pid]).map(function(c,i){ if(!c) return null; const key='b'+i, m=meta[key]||{};
     return {key:key, clin:(m.clin!==undefined? m.clin : c.clin), desc:(m.desc!==undefined? m.desc : c.desc), ccar:(m.ccar!==undefined? m.ccar : c.ccar)}; })
-    .filter(function(c){ return gone.indexOf(c.key)<0; });
-  return base.concat(added.map(function(c){ return {key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar}; }));
+    .filter(function(c){ return c && gone.indexOf(c.key)<0; });
+  return base.concat(clinsOf(added).filter(Boolean).map(function(c){ return {key:c.key, clin:c.clin, desc:c.desc, ccar:c.ccar}; }));
 }
 // v2.12 RV2 (K01): A READ THAT CHANGES NOTHING, around code that splits a prime's money by its CLINs. clinList and clinVec make
 // the CLIN containers they read and write each CLIN's default share into S.clinAlloc (clinListRO says why that matters), so
@@ -28967,7 +29049,7 @@ function wbsClinMoneyRO(pid, c){
     const i=parseInt(String(c.key).slice(1), 10), N=(S.clinNew && typeof S.clinNew==='object' && Array.isArray(S.clinNew[pid]))? S.clinNew[pid] : [];
     v=(M && Array.isArray(M.ask))? M.ask : (String(c.key).charAt(0)==='b'? ((CLINS[pid]||[])[i]||{}).ask
       : (N.filter(function(x){ return x && x.key===c.key; })[0]||{}).ask) || []; }
-  return (v||[]).some(function(x){ return (+x||0)>0.5; });
+  return clinAskIn(v).some(function(x){ return (+x||0)>0.5; });   // v2.12 RV5 (S10): a request that is not a list asks nothing
 }
 function wbsLinesHas(L){ return (Array.isArray(L)? L : []).some(function(e){ return e && String(e.w==null? '' : e.w).trim(); }); }
 function wbsStateOf(id){

@@ -1,0 +1,27 @@
+{"id": "v212-rv5-clin-base-ask-unread", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-clin-new-ask-unread", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-clin-money-ask-unread", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-clin-null-read", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-clinro-null-read", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-clins-not-list", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-pack-clins", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-plan-clins", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-meta", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-words", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-null-clin", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-door-not-list", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-f2a5249b.mjs", "detail": ""}
+{"id": "v212-rv5-acewbsof-every-clin", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-35c76409.mjs", "detail": ""}
+{"id": "v212-rv5-acewbsof-type-switch", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-35c76409.mjs", "detail": ""}
+{"id": "v212-rv5-acewbsof-removed-clin", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-35c76409.mjs", "detail": ""}
+{"id": "v212-rv2-acewbsof-whole-text", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-6390572c.mjs", "detail": ""}
+{"id": "v212-rv5-review-new-no-wbs", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-0787b8f5.mjs", "detail": ""}
+{"id": "v212-rv5-review-new-bare", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-0787b8f5.mjs", "detail": ""}
+{"id": "v212-rv5-blank-line-unnamed", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-9cc1c227.mjs", "detail": ""}
+{"id": "v212-w2-src-split-ignored", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-494d8282.mjs", "detail": ""}
+{"id": "v212-rv5-exw-split-conflict", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-99008291.mjs", "detail": ""}
+{"id": "v212-rv5-exw-overlap-as-sent", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-99008291.mjs", "detail": ""}
+{"id": "v212-rv5-exw-unlisted-written", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-99008291.mjs", "detail": ""}
+{"id": "v212-rv5-exw-unnamed", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-99008291.mjs", "detail": ""}
+{"id": "v212-rv5-exw-para-whole", "verdict": "CAUGHT", "fails": ["5"], "threw": 1, "suite": "_slim-prove-99008291.mjs", "detail": "--- v2.12 RV5 — WBS from execution data reads the Spend Plan Source’s own WBS back as already set, and picks a paragraph from the estimate (S16) | the round trip\n        got [[],[],[]]   want [[[\"B\",[\"1.3.1\",\"1.3.2\"]],[\"C\",[\"1.2.1\"]]],[],[]]\n        got []   want [[\"E\",[\"1.2.1\",\"1.3.1\"]]]\n--- v2.12 RV5 — WBS from execution data reads the Spend Plan Source’s own WBS back as already set, and picks a paragraph from the estimate (S16) | the pick rule\n        got [[],[]]   want [[[\"A\",[\"9.9.9\"]]],[[\"D\",\"1.2.2\"]]]\n--- v2.12 RV5 — WBS from execution data reads the Spend Plan Source’s own WBS back as "}
+{"id": "v212-rv5-draw-leaves-new-containers", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-b601a33a.mjs", "detail": ""}
+{"id": "v212-rv2-draw-writes", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-b601a33a.mjs", "detail": ""}
