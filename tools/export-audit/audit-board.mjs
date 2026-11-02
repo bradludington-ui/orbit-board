@@ -7397,7 +7397,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       ev(`fitOpen=false; render(); document.getElementById('cycFit').click(); String(fitOpen)`), 'true');
     chk(name, 'the figure', 'and the panel says the same over FY27, to the dollar, naming what it does not count',
       ev(`(document.querySelector('#fitBody .fitctl[data-fy="2027"]')||{}).textContent||'none'`),
-      'Against BES28’s controls (USAF, ANG): $541,440 unallocated · $50 over, each service and lane on its own; not counted: AFRC.');
+      'Against the budget authority BES28 gives (USAF, ANG, its controls with any funding added or withheld): $541,440 unallocated · $50 over, each service and lane on its own; not counted: AFRC.');
     chk(name, 'the figure', 'a save with no redraw after it leaves the figure as it was, never blanks it',
       ev(`fitOpen=false; render(); save(); syncBtns(); JSON.stringify([document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
       J([false, 'FY27 · $541K unallocated · ⚠ $50 over']));
@@ -7422,6 +7422,19 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
         J([[null, 'BES|2028']]));
     }
     chk(name, 'journal', 'a requirement’s last recorded edit is still its own after a change of cycle', ev(`JSON.stringify((uiLastEdit('A')||{}).p)`), J(['notes', 'A']));
+    // ---- the review (F6, F7, F15, F23): a locked view whose lock read another cycle's position; a lock that kept none; a service
+    // the position cannot be read for
+    ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=2027; cycLock(); uiCycGo('PB|2027'); 'ok'`);
+    chk(name, 'locked view', 'PB27 locked while the plan was on BES28: the bar names PB27, the figure names BES28, the cycle it is against',
+      ev(`JSON.stringify([document.getElementById('b_cyc').textContent, document.getElementById('cycFit').textContent])`), J(['PB27 (locked) ▾', 'BES28 · FY27 · $541K unallocated · ⚠ $50 over']));
+    ev(`uiCycGo(''); cycSetWorking('PB', 2026); blCyc='PB'; blYr=2026; cycLock(); uiCycGo('PB|2026'); 'ok'`);
+    chk(name, 'locked view', 'a lock that kept no position says it kept none -- not that the position is missing now',
+      ev(`JSON.stringify([document.getElementById('cycFit').textContent, /This lock kept no PB26 position/.test(document.getElementById('cycFit').title)])`), J(['kept no PB26 controls', true]));
+    ev(`uiCycGo(''); cycSetWorking('BES', 2028); MS.ppbe['BES|2028'].lines=Object.assign({}, MS.ppbe['BES|2028'].lines||{}, {USAF:'x'}); baLiveAll(); render(); fitOpen=true; render(); 'ok'`);
+    chk(name, 'the figure', 'a service the position cannot be read for is named as that, in the tooltip and on the panel’s line',
+      J([/Not counted, BES28 cannot be read for: USAF/.test(ev(`document.getElementById('cycFit').title`)),
+        /not counted, BES28 cannot be read for: USAF/.test(ev(`(document.querySelector('#fitBody .fitctl[data-fy="2027"]')||{}).textContent||''`))]), J([true, true]));
+    ev(`fitOpen=false; delete MS.ppbe['BES|2028'].lines.USAF; baLiveAll(); render(); 'ok'`);
     // ---------------------------------------------------------------- PART 2: four appropriations
     const T1 = 1790100000000, T0 = 1790000000000;
     const year = (bm) => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], bm });
@@ -7523,13 +7536,22 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       chk(name, 'unsaved work', 'Initial Spares is named and left alone: its store in this browser byte for byte; the others are moved',
         J([/• Initial Spares — NOT changed: this browser holds Initial Spares work the saved file does not have/.test(N.ev('window.__cm')),
           N.ev(`localStorage.getItem('prio27sp')`) === b0, tagOf(N, 'prio27opn'), N.ev('MS.cycle')]), J([true, true, 'BES|2028', 'BES|2028']));
-      chk(name, 'unsaved work', 'and the message names it', /not changed<\/b>: Initial Spares \(this browser holds Initial Spares work/.test(N.ev(`document.getElementById('shareStat').innerHTML`)), true);
+      chk(name, 'unsaved work', 'and the message names it, and does not say every appropriation moved',
+        J([/not changed<\/b>: Initial Spares \(this browser holds Initial Spares work/.test(N.ev(`document.getElementById('shareStat').innerHTML`)),
+          /Every appropriation/.test(N.ev(`document.getElementById('shareStat').textContent`))]), J([true, false]));
       // the same, with nothing unsaved: the file's copy is the one its board would open, so that is what is written, newer than both
       const C = four({ 'prio27sp.base': J({ dirty: false }) });
       C.ev(`PUBS.sp=JSON.parse(${J(J(Object.assign({}, spStore, { ts: T1 + 5000, by: 'Colleague', years: { 2027: Object.assign(year({ disc: [100, 40], mand: [10, 0], adds: [] }), { notes: { Q: 'the colleague’s note' } }) } })))}); _cycAllMemo=null; cycApplyAll('BES|2028'); 'ok'`);
       const sp2 = JSON.parse(C.ev(`localStorage.getItem('prio27sp')`));
       chk(name, 'unsaved work', 'CONTROL: nothing unsaved -- the file’s newer copy is what is written, tagged, and newer than it',
         J([sp2.cycle, sp2.years[2027].notes.Q, sp2.ts > T1 + 5000, C.ev('PUBS.sp.cycle')]), J(['BES|2028', 'the colleague’s note', true, 'BES|2028']));
+      chk(name, 'unsaved work', 'and its record names the file that copy came from, the one open', C.ev(`JSON.stringify([JSON.parse(localStorage.getItem('prio27sp.base')), PUB_FILE_TS])`),
+        J([{ dirty: true, file: JSON.parse(C.ev('PUB_FILE_TS')) }, JSON.parse(C.ev('PUB_FILE_TS'))]));
+      // F21: a colleague's clock an hour ahead -- the copy written is still newer than the file's
+      const A1 = four({ 'prio27sp.base': J({ dirty: false }) });
+      A1.ev(`PUBS.sp=Object.assign(JSON.parse(${J(J(spStore))}), {ts:Date.now()+3600000}); _cycAllMemo=null; cycApplyAll('BES|2028'); 'ok'`);
+      chk(name, 'unsaved work', 'a file stamped by a clock an hour ahead: the copy written is newer still, so Initial Spares opens it',
+        A1.ev(`String(JSON.parse(localStorage.getItem('prio27sp')).ts > PUBS.sp.ts - 1 && JSON.parse(localStorage.getItem('prio27sp')).ts > Date.now()+3500000)`), 'true');
     }
     // ---- working out of the shared folder: the board on screen alone
     {
@@ -7563,7 +7585,11 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       chk(name, 'PMO copy', 'and PPBE cycles’ own tag is refused there too', J([P.ev(`cycSetWorking('PB', 2028); MS.cycle`)]), J(['BES|2028']));
       const html0 = B.ev(`(function(){ var w=MS.cycle; MS.cycle=''; var h=pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()}); MS.cycle=w; return h; })()`);
       const P0 = boot({ html: html0 });
-      chk(name, 'PMO copy', 'a lock taken in an untagged copy leaves it untagged', P0.ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=2027; cycLock(); String(MS.cycle)`), '');
+      chk(name, 'PMO copy', 'a lock taken in an untagged copy leaves it untagged, and its question never says it will tag it',
+        P0.ev(`window.__q=''; window.confirm=function(m){ window.__q+=m; return true; }; blCyc='BES'; blYr=2028; cycLock(); JSON.stringify([String(MS.cycle), /this lock tags it/.test(window.__q), /budget authority moves/.test(window.__q)])`),
+        J(['', false, false]));
+      chk(name, 'PMO copy', 'its PPBE cycles tag box is read only', P.ev(`blOpen=true; render(); JSON.stringify([].map.call(document.querySelectorAll('#blBody select[onchange^="cycSetWorking"], #blBody input[onchange^="cycSetWorking"]'), function(e){ return e.disabled; }))`),
+        J([true, true]));
     }
     // ---- opening a board whose appropriations disagree: named and offered, nothing changed by opening
     {
@@ -7649,6 +7675,91 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       const html = FL.ev('buildSavedHtml()');
       const opened = ['FULL FUND', 'INITIAL SPARES'].map(a => { const X = boot({ html, appn: a }); return [X.ev('mySlug()'), X.ev('MS.cycle'), X.ev(`document.getElementById('b_cyc').textContent`)]; });
       chk(name, 'file only', 'the saved file opens every appropriation on BES28, and every board reads one cycle', J(opened), J([['ff', 'BES|2028', 'BES28 ▾'], ['sp', 'BES|2028', 'BES28 ▾']]));
+    }
+    // ---- the review (F0): another tab of this browser saves Initial Spares while the question is open: it is left as it now is
+    {
+      const Q = four();
+      Q.ev(`window.confirm=function(m){ window.__cm=m; var s=JSON.parse(localStorage.getItem('prio27sp')); s.years[2027].notes={Q:'typed in the other tab while the question was open'}; s.ts=Date.now();
+        localStorage.setItem('prio27sp', JSON.stringify(s)); return true; }; cycApplyAll('BES|2028'); 'ok'`);
+      const spq = JSON.parse(Q.ev(`localStorage.getItem('prio27sp')`));
+      chk(name, 'question open', 'Initial Spares, saved in another tab while the question was open, keeps that work and its cycle; the others move; it is named',
+        J([spq.years[2027].notes.Q, spq.cycle, tagOf(Q, 'prio27opn'), Q.ev('MS.cycle'), /Initial Spares \(Initial Spares was saved in another tab while the question was open\)/.test(Q.ev(`document.getElementById('shareStat').textContent`))]),
+        J(['typed in the other tab while the question was open', 'PB|2027', 'BES|2028', 'BES|2028', true]));
+    }
+    // ---- F1: a tab viewing a lock keeps the cycle another tab chose for the plan set aside; a tab that merely saved an old copy is not followed
+    {
+      const VT = four();
+      VT.ev(`blCyc='PB'; blYr=2027; cycLock(); cycView('PB|2027'); 'ok'`);
+      const chose = J(Object.assign(JSON.parse(VT.ev(`localStorage.getItem(_AP.key)`)), { cycle: 'BES|2028', jrnl: [{ t: Date.now ? 1795000000000 : 0, by: 'Other tab', fy: 2027, p: ['(cycle)'], a: 'PB|2027', b: 'BES|2028', f: 1 }] }));
+      VT.ev(`window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(chose)}})); cycLeave(true); 'ok'`);
+      chk(name, 'another tab', 'viewing a lock, the plan set aside takes the cycle another tab chose, and has it on leaving the view', VT.ev('MS.cycle'), 'BES|2028');
+      const stale = J(Object.assign(JSON.parse(VT.ev(`localStorage.getItem(_AP.key)`)), { cycle: 'PB|2027', jrnl: [] }));
+      VT.ev(`window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(stale)}})); 'ok'`);
+      chk(name, 'another tab', 'a tab that wrote its old copy back, with no change of cycle in its journal, is not taken as somebody choosing PB27', VT.ev('MS.cycle'), 'BES|2028');
+    }
+    // ---- F18: the tab that takes the cycle reads its budget from that cycle's position at once
+    {
+      const BT = four();
+      BT.ev(`MS.ppbe['BES|2028']={v:2, split:true, lines:{}, val:{USAF:{_all:{2027:{d:999, m:77}}}}}; save(); render(); 'ok'`);
+      const ch = J(Object.assign(JSON.parse(BT.ev(`localStorage.getItem(_AP.key)`)), { cycle: 'BES|2028', jrnl: [{ t: 1795000000000, by: 'Other tab', fy: 2027, p: ['(cycle)'], a: 'PB|2027', b: 'BES|2028', f: 1 }] }));
+      BT.ev(`window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(ch)}})); 'ok'`);
+      chk(name, 'another tab', 'and its USAF budget is BES28’s $999 / $77 at once', BT.ev(`JSON.stringify([S.discSvc[0], S.mandSvc[0]])`), J([999, 77]));
+    }
+    // ---- F19: another tab moves another appropriation: the bar reads it again
+    {
+      const ST = four();
+      ST.ev(`cycAll(); ['prio27ff','prio27opn'].forEach(function(k){ var s=JSON.parse(localStorage.getItem(k)); if(!s.years) s={years:{2027:{order:['Z']}}, base:2027, cur:2027}; s.cycle='PB|2027'; localStorage.setItem(k, JSON.stringify(s)); });
+        window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff'})); render(); 'ok'`);
+      chk(name, 'another tab', 'another appropriation moved in another tab: the bar reads every one on PB27', ST.ev(`document.getElementById('b_cyc').textContent`), 'PB27 ▾');
+    }
+    // ---- F20: refused on a counted key, on a board read as saved: put back whole, and it still reads saved
+    {
+      const R2 = four();
+      R2.ev(`_sideSaved=_sideGen; sideBootNote.keys=[]; Object.keys(_lsRefused).forEach(function(k){ delete _lsRefused[k]; });
+        window.__setI=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27opn') throw new DOMException('full','QuotaExceededError'); return window.__setI.call(this,k,v); };
+        cycApplyAll('BES|2028'); Storage.prototype.setItem=window.__setI; 'ok'`);
+      chk(name, 'refused', 'refused on Initial Spares’ neighbour OPN after Initial Spares was written: put back, nothing held as refused, the lists still read saved',
+        R2.ev(`JSON.stringify([MS.cycle, JSON.parse(localStorage.getItem('prio27sp')).cycle, Object.keys(_lsRefused), sideUnsaved()])`), J(['PB|2027', 'PB|2027', [], false]));
+    }
+    // ---- F22: a position with no figures is no controls entered
+    {
+      const PE = four({ prio27ff: J(Object.assign({}, ffStore, { ppbe: Object.assign({}, ffStore.ppbe, { 'PB|2028': { v: 2, split: true, lines: {}, val: {} } }) })) });
+      chk(name, 'the menu', 'a position entered and left without figures is not controls entered, and offers no later cycle',
+        PE.ev(`JSON.stringify(cycAllChoices(cycAll()).map(function(k){ return [k, cycAll().rows.filter(function(r){ return (r.pos||[]).indexOf(k)>=0; }).length]; }))`),
+        J([['PB|2028', 0], ['BES|2028', 2], ['PB|2027', 0]]));
+    }
+    // ---- F9, F10: a store this browser cannot read is said, never "no plan"; the headline then names who moved
+    {
+      const U = four({ prio27sp: '{not a board', prio27opn: 'null' });
+      U.ev(`MS.cycle='BES|2028'; save(); _cycAllMemo=null; render(); toggleMenu('cyc'); 'ok'`);
+      chk(name, 'cannot be read', 'Initial Spares cannot be read: the bar does not say every appropriation is on BES28, and the list says why',
+        J([U.ev(`document.getElementById('b_cyc').textContent`), U.ev(`(document.querySelector('#dd_cyc .cycall-row[data-ap="sp"]')||{}).textContent`)]),
+        J(['⚠ BES28 ▾', 'Initial Spares ⚠ cannot be read']));
+      U.ev(`toggleMenu('cyc'); cycApplyAll('PB|2028'); 'ok'`);
+      chk(name, 'cannot be read', 'the question names it NOT changed with its reason, and the message names who moved',
+        J([/• Initial Spares — NOT changed: its saved state in this browser could not be read/.test(U.ev('window.__cm')),
+          /🏷 O&M, Full Fund are on PB28/.test(U.ev(`document.getElementById('shareStat').textContent`))]), J([true, true]));
+    }
+    // ---- F11: a tag that is not a cycle is shown as written
+    {
+      const N2 = four({ prio27ff: J(Object.assign({}, ffStore, { cycle: 'BES|28' })) });
+      N2.ev(`toggleMenu('cyc'); 'ok'`);
+      chk(name, 'not a cycle', 'Full Fund tagged BES|28 reads as written, so the disagreement can be seen',
+        N2.ev(`document.querySelector('#dd_cyc .cycall-row[data-ap="ff"]').textContent`), 'Full Fund BES|28 (not a cycle) ⚠');
+    }
+    // ---- F13: opening says "the others are on X" only where they are
+    {
+      const O3 = boot({ appn: 'INITIAL SPARES', ls: { prio27ff: LS.prio27ff, prio27sp: LS.prio27sp,
+        prio27opn: J({ svc: ['USAF'], ts: T1, base: 2027, cur: 2027, cycle: 'POM|2027', years: { 2027: { order: ['Z'] } } }) } });
+      const st3 = O3.ev(`document.getElementById('shareStat').textContent`);
+      chk(name, 'opening', 'the others disagree among themselves: the opening says the latest in use, never that they are all on it',
+        J([/Initial Spares is tagged PB27, and the latest cycle in use is BES28/.test(st3), /other appropriations are on/.test(st3)]), J([true, false]));
+    }
+    // ---- F16: Locks by appropriation counts an empty, untagged plan as the bar does
+    {
+      const L3 = four({ prio27opn: J({ svc: ['USAF'], ts: T1, base: 2027, cur: 2027, cycle: '', years: { 2027: { order: [] } } }) });
+      chk(name, 'empty board', 'an empty, untagged OPN plan is not behind in Locks by appropriation either',
+        L3.ev(`String(cycOverview().rows.filter(function(r){ return r.k==='opn'; })[0].behind)`), 'false');
     }
     // ---- a file's tag that is not a cycle is drawn as text, never offered, never run
     {

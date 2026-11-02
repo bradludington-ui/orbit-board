@@ -204,7 +204,91 @@
 "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
 },
 {
+"id": "v213-rv-question-window",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-record-names-old-file",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-unreadable-no-plan",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-unreadable-unsaid",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-headline-every",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-not-a-cycle-read-as-one",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-others-all-on-lead",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-copy-box-live",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-copy-lock-promises",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-overview-empty-behind",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-view-ignores-tab",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-stale-write-taken",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-tab-old-budget",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-storage-memo",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-panel-unreadable-unsaid",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-tip-unreadable-as-none",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-lock-said-missing",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-view-cycle-unnamed",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-empty-position-counts",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-rv-refused-reads-unsaved",
+"caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+},
+{
 "id": "v205-116-offer-on-every-board",
+"caughtBy": "board / v2.05 — each appropriation is locked on its own board"
+},
+{
+"id": "v205-116-tag-from-this-board",
 "caughtBy": "board / v2.05 — each appropriation is locked on its own board"
 },
 {
