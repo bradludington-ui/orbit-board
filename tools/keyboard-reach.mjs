@@ -1138,8 +1138,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     await p.waitForTimeout(300);
     const st0 = await p.evaluate(() => { const f = document.getElementById('cycFit');
       return { seeded: !!localStorage.getItem('prio27ff'), own: MS.cycle, btn: document.getElementById('b_cyc').textContent, fit: f.hidden ? null : f.textContent }; });
+    // beside a Mixed bar the figure names the cycle it is against (cycFitTxt)
     chk('V · the board opens with its appropriations on different cycles: the PPBE cycle reads ⚠ Mixed, and the figure beside it states what BES28’s controls leave, unallocated and over',
-      st0.seeded && st0.own === 'BES|2028' && st0.btn === '⚠ Mixed ▾' && /^FY\d\d · \$[\d.]+[KMB] unallocated · ⚠ \$[\d.]+[KMB] over$/.test(st0.fit || ''), JSON.stringify(st0));
+      st0.seeded && st0.own === 'BES|2028' && st0.btn === '⚠ Mixed ▾' && /^BES28 · FY\d\d · \$[\d.]+[KMB] unallocated · ⚠ \$[\d.]+[KMB] over$/.test(st0.fit || ''), JSON.stringify(st0));
     const s1 = await tabTo(p, '#appnSel', '#b_cyc', 10);
     chk('V · Tab from the context bar’s first control reaches the PPBE cycle', s1 > 0, s1 > 0 ? `${s1} Tab(s)` : 'never reached');
     // the figure: Tab reaches it, Enter opens Fit to the PPBE position with the keyboard inside, Esc closes it back on the figure

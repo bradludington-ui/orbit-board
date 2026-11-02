@@ -1060,7 +1060,7 @@ const ER_STATE = () => {
         // the state this section is for, or it proves nothing: a seed the tab could not see, a figure that is not both, not long
         if (!r.seen) fails.push(`${tag}: harness -- this tab cannot see what the seed page wrote, so the board is not Mixed (proves nothing about the board)`);
         if (r.btn !== '⚠ Mixed ▾' || r.rows < 3) fails.push(`${tag}: the PPBE cycle is not Mixed across three appropriations ("${r.btn}", ${r.rows} lines)`);
-        if (!/^FY\d\d · \$[\d.]+B unallocated · ⚠ \$[\d.]+B over$/.test(r.fit)) fails.push(`${tag}: the figure is not the long one, unallocated and over ("${r.fit}")`);
+        if (!/^[A-Za-z]+\d\d · FY\d\d · \$[\d.]+B unallocated · ⚠ \$[\d.]+B over$/.test(r.fit)) fails.push(`${tag}: the figure is not the long one, unallocated and over ("${r.fit}")`);
         r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
         if (w > 1100 && r.hdrH > 60) wraps.push(`${w} ${font === 'the Segoe stand-in' ? 'Segoe' : 'this font'} (${r.hdrH}px)`);
       } catch (e) { fails.push(`${tag}: the state could not be read -- ${String(e.message || e).split('\n')[0].slice(0, 120)}`); }
