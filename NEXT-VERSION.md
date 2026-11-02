@@ -347,6 +347,38 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   across the prime is what was typed), which would change the CLIN amounts of v2.02's E5 (Brad, 13 Oct 2026: label both,
   reconcile them, move no dollar).
 
+#### 136. One PPBE cycle for the whole board, chosen on the main screen (Brad, 2 Nov 2026)
+- **Asked:** "Can the tag apply to all appropriations at once? It should and I should have a selection on the main screen so I
+  know exactly which PPBE Cycle I'm operating in."
+- **What the board does today (v2.12):** the working-plan tag (`MS.cycle`) is kept per appropriation. It is set only in
+  Cycles & compare › PPBE cycles › *Working plan is tagged* (`cycSetWorking`), and it changes only the appropriation on screen.
+  Each of O&M, Full Fund, Initial Spares and OPN is tagged on its own board. **Locks by appropriation** (`cycOverview`, v2.05
+  item 116) shows every appropriation's tag side by side and flags one behind the others, but it cannot set them. The only
+  sign of the tag on the main screen is the "working …" hint on the PPBE cycles menu item. Since v2.12 (item 134) the tag
+  decides every year's budget, so an appropriation left on the old cycle reads the old controls, and nothing on the main
+  screen shows it.
+- **Proposed:**
+  - **A cycle selector in the context bar** (`.hdr`), beside Appropriation and Fiscal year: *Cycle: BES28 ▾*, a cycle
+    (POM, BES, PB, DoN) and its year. It is always visible, so the cycle in force is never in doubt.
+  - **Choosing a cycle there tags every appropriation that holds a plan**: the one on screen at once, and each other
+    appropriation's stored plan (its `cycle` field, written the way an appropriation package writes another appropriation's
+    store, all or nothing through `lsAll`, and journalled). The confirm names each appropriation and says, for each, whether
+    it logs a BES28 position (a "no position" appropriation keeps its own budget and says so, as today).
+  - **One tag, always.** On opening, an appropriation whose tag differs from the board's is named and offered the board's
+    tag; the selector reads *Mixed* until they agree. Retag as … after a lock (`cycRetagNext`, `cycRetagLead`) retags all four.
+  - **Unchanged:** positions are still entered per appropriation (FYDP › PPBE Budget Positions); **locks stay per
+    appropriation** (item 116); each appropriation's budget figures are still worked out on its own board, never on this page
+    (the v1.85 rule). Another appropriation's stored budget follows the new tag when that board next opens (item 135's known
+    limit), and the selector says so.
+  - **A PMO copy** shows the cycle read-only.
+- **Questions for Brad before go:**
+  1. One tag the whole board must share (recommended), or an "apply to all" that leaves each appropriation settable on its own?
+  2. On opening a board whose appropriations disagree: offer the board's tag (recommended), or take the latest automatically?
+  3. Should choosing a cycle there also set *deltas read against* to the cycle before it (BES28 against PB27), or leave it?
+- **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
+  refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
+  and the guide's PPBE section reworded.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
