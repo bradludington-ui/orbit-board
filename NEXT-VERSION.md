@@ -132,6 +132,9 @@ Current version: **v2.13**. Next: **v2.14**.
   move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
+- **Brad, 2 Nov 2026 (v2.13's question 4):** nobody works out of the shared folder today; on Azure everyone works in one hosted
+  environment. A PPBE cycle chosen there moves every appropriation for everyone at once, which the shared folder cannot do
+  (each folder copy is saved only by its own board).
 - **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
@@ -347,6 +350,134 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   across the prime is what was typed), which would change the CLIN amounts of v2.02's E5 (Brad, 13 Oct 2026: label both,
   reconcile them, move no dollar).
 
+#### 137. The context bar never wraps (Brad, 2 Nov 2026, v2.13's question 3: "No wrapping.")
+- **What happens today (v2.13):** on a tagged board the figure beside the PPBE cycle (about 250 px, e.g. *FY27 · $12.33B
+  unallocated · ⚠ $6.9M over*) pushes the context bar onto two lines below about 1,138 px wide, and below about 1,231 px while
+  a warning is unread (its *⚠ 1 unread* button takes 77 px more). Nothing is cut off and nothing scrolls (layout S), but the bar
+  takes two lines and the first requirement sits lower. `fitTop()` drops the labels first (`tight1`), then lets the bar wrap
+  (`tight2`).
+- **Proposed:** the bar stays one line at every width above the phone layout, by giving the figure less room in steps, measured
+  the way `fitTop()` already measures (never a guessed breakpoint):
+  1. the labels go (today's `tight1`);
+  2. the figure shortens: no "FY27 ·", "unallocated" and "over" as signs (*$12.3B free · ⚠ $6.9M over* → *$12.3B · ⚠ $6.9M*), the
+     whole sentence still in its tooltip;
+  3. the figure leaves the bar for the top of the PPBE cycle list, and the button carries a ⚠ when anything is over, so an over
+     is never out of sight.
+  The message line keeps its own room and shortens as it does today.
+- **Checks it would need:** layout S held to one line at every width it measures, Mixed and with a warning unread, in both fonts;
+  toolbar-fits held on a tagged board, not only the bare template; keys V reaching the figure in the list when it has moved there.
+- **Questions for Brad before go:** none on the rule; the three steps above are the proposal to approve or change.
+
+#### 138. A package keeps the receiving board's PPBE cycle (Brad, 2 Nov 2026, v2.13's question 1: "1a. Only import the cycle being identified.")
+- **What happens today (v2.13):** taking one appropriation's plan into a board replaces that appropriation's whole store. That is
+  an appropriation package or a return (`pkgApply`), Import one appropriation from a consolidated file (`consTakeApply`) and
+  Import several boards at once (`importBoards`). The store carries its cycle (`MS.cycle`), the cycle its deltas are read against
+  (`MS.cycleRef`) and every PPBE position it logs, for every cycle (`MS.ppbe`); `pkgStrip` keeps all three. A package made while
+  the board was on PB27, taken after the board moved to BES28, puts that appropriation back on PB27: its budget reads PB27's
+  controls and the bar reads Mixed. v2.13's preview names the change (`pkgDiff`: *PPBE cycle BES28 → PB27*); accepting still
+  makes it.
+- **Proposed:** an incoming plan comes in under the cycle this board has identified for that appropriation, and nothing of any
+  other cycle comes with it:
+  1. the appropriation keeps its own tag on this board, and its deltas reference. Where it has no tag it takes the cycle the bar
+     shows (one cycle, not Mixed); with neither it stays untagged. Never the package's tag;
+  2. of the PPBE positions, only the identified cycle's is taken, where the package carries one. This board's positions for
+     every other cycle stay as they are, and a position the package carries for another cycle is not taken;
+  3. the requirements, the figures and everything else in the plan come in as today;
+  4. the preview and the result say it: *Made under PB27, taken under BES28. Its PB27 and POM28 positions were not taken.*
+  A package made under another cycle is still taken (point 2 decides what of it comes in), never refused for its cycle.
+- **Not changed:** a full import (⬅ Import a full board, new version) still replaces everything, cycles included; a board holding
+  nothing still takes everything; a PMO submittal carries no cycle and no position, as today.
+- **Checks it would need:** a package made under PB27 taken on a BES28 board through each of the three doors: the tag, the
+  reference and every other cycle's position unchanged, BES28's position the package's, the preview's and the result's
+  sentences; an untagged appropriation on a board whose bar shows BES28; a Mixed board; save and reopen.
+- **Question before go:** the locked cycles a consolidated file carries (`cycTake`: a lock this board does not hold is taken, one
+  it holds is left alone). A lock is a record that names its own cycle and moves nothing on screen, so the proposal keeps taking
+  them as today. Say if they should follow the same rule.
+
+#### 139. Retag moves every appropriation that has locked the cycle (Brad, 2 Nov 2026, v2.13's question 2: "2a")
+- **What happens today (v2.13):** three buttons move only the appropriation on screen to the next cycle. They are *Retag as
+  BES28* in PPBE cycles (`cycRetagNext`), *🏷 Retag it as BES28* in the message after a lock, and *Retag … as …* under Locks by
+  appropriation (`cycRetagLead`). Locking is per appropriation, each on its own board, so after the first lock the bar reads
+  Mixed until each board is retagged on its own, or the bar moves them all.
+- **Proposed:** each of the three moves, at once, every appropriation whose working plan is on the cycle being left (PB27) and
+  has locked it (locked, not reopened) to the next cycle (BES28). It writes as the bar writes (`cycApplyAll`: read again after
+  the question, one `lsAll`, a `(cycle)` journal line each, the same skips, each named). An appropriation still on PB27 that has
+  not locked it is named and left on PB27: *Full Fund and Spares have not locked PB27: lock each on its own board, then retag.*
+  The button says how many it moves (*Retag 2 of 4 as BES28*). An appropriation on another cycle, or holding no plan, is left
+  alone. A PMO copy and a locked view refuse, as today.
+- **Found while writing this up (it happens today, through the bar):** a lock records the PPBE position of the cycle the plan is
+  tagged with, not of the cycle being locked (`cycLock`: `pos` is `baPos()`), and its figures are worked out against that
+  position. So once the bar has moved every appropriation to BES28, locking an appropriation's PB27 records BES28's controls
+  under the name PB27, and nothing says so. Proposed: Lock refuses when the plan is tagged with another cycle, naming both and the
+  way out: *O&M's plan is on BES28. Tag this board PB27 under PPBE cycles (Working plan is tagged), lock, then retag.* An untagged
+  plan is still tagged by its lock, as today.
+- **Checks it would need:** four appropriations, two that have locked PB27 and two that have not: each of the three buttons moves
+  the two, names the other two, journals each, and Cancel changes nothing; the refused lock on a plan tagged BES28, with its
+  message; a lock on a plan tagged PB27, unchanged; a PMO copy; a locked view.
+
+#### 140. Save in one ORBIT file can write over another without asking (found 2 Nov 2026 while diagnosing item 141)
+- **What happens today (measured, v2.13 with a v2.12 board, Chromium 153):** every ORBIT file a browser opens shares one
+  remembered save file (IndexedDB `prio-fh`, key `FNAME`, the same in every version), one record of which save the work came
+  from (`<key>.base`) and one writer key. So 💾 Save in one ORBIT file writes to whichever file this browser last saved, and
+  its collision guard (`LASTKNOWN`) and writer check pass, because both read the other file's record.
+- **The case that matters now:** the old board is saved in place in this browser (the usual way); v2.13 is opened and its full
+  import is refused (item 141). The v2.13 tab then reads *Unsaved changes* (a refused import marks it unsaved), and its Save wrote
+  a v2.13 file holding only O&M over the old board file, with no question: 8,781,026 → 3,878,540 characters, and Full Fund,
+  Initial Spares, OPN, their locked cycles, the cost estimate, the execution data and the BAE list gone. Measured with the
+  remembered handle stood in from page code (a test handle cannot be put in IndexedDB); everything else was the board's own code.
+- **Two more of the same kind (measured):** one change in that blank tab (picking a fiscal year is enough) puts a near-empty O&M
+  plan in browser storage, and the old board, reopened in the same browser, opens it as *this browser's copy* (FY27 only, no
+  notes, descriptions, impact statements or journal; the requirement list still reads 115) and offers to Save it into the file.
+  And after a migration, the old file opened in the same browser writes the old program over the new file (the item 141 review).
+- **Proposed:** (a) the remembered save file is kept per file -- keyed by the page's own address, not `FNAME` -- so a file only
+  ever saves to its own target; (b) before writing, Save asks, naming them, when the file on disk holds an appropriation, a locked
+  cycle or a list the board on screen does not carry; (c) a refused import leaves the board as saved as it was. Old versions still
+  read the `FNAME` entry, so they keep their own remembered file; nothing a person saved is moved.
+- **Checks it would need:** the measured case above in Chromium (old board saved in place, v2.13 refused import, Save) refuses
+  or asks on v2.13's fix and writes nothing unasked; the blank-tab change, then the old board; an ordinary Save, unchanged.
+
+#### 141. A full import of a board larger than browser storage (Brad, 2 Nov 2026: "I'm unable to import my full board to the newest Orbit version")
+- **What Brad saw:** *Nothing was imported from "ORBIT Live.html" -- browser storage refused the cost estimates
+  (QuotaExceededError). This board is exactly as it was.* Nothing was lost: the import puts every key back (v1.95 item 48).
+- **The cause (measured, and re-measured by two independent checks; Chromium 153 on Linux, the same engine as Chrome and Edge):**
+  - Since v1.95 the full import writes the WHOLE board into browser storage at once (`lsAll`: every plan, every locked cycle,
+    every list) and then reloads, so the board must fit in browser storage. Browser storage holds 5,242,880 characters, keys and
+    values, for EVERY file a browser opens from a drive (one area, all ORBIT files, versions and PMO copies together).
+  - The old version never needed that: it works from its file, and a list storage refuses is warned about and kept in the file.
+    So a board that works today can be too big to import.
+  - The message names the write at which the running total crossed the limit, not the biggest store. It cannot tell a board that
+    is too big on its own from one that met storage already filled (PMO copies, another board, other web pages).
+  - What grows a board: the plans' years and the locked cycles (Roll forward and each lock copy every year whole, texts
+    included), the CCaR pull (~430 characters a row) and the cost estimate (~300 a line; one 2026 estimate, 4,900 rows, is 1.2M).
+  - Rule of thumb: into empty storage, a board file over about its version's program size + 5,241,880 bytes cannot be imported
+    (v2.11 7,954,639; v2.12 8,155,410; v2.13 8,191,908 bytes; Explorer shows 7.59, 7.78 and 7.81 MB). Every release's limit is in
+    the investigation's notes. A board that only just fits imports, but then most edits are refused by storage (measured: with
+    370 characters free, the second edit was refused).
+- **Today, without a code change:** keep working in the old version, which works from its file. The import can work today only
+  when the board fits and something else fills storage, and then only after Clear this computer, which deletes everything
+  browser-only (unsaved work in any ORBIT file, work kept aside, PMO copy work not sent). The first steps written for it were
+  found by the checks to lose work in two ways (a second ORBIT tab writing back over the import; checking the result in the old
+  file, which shows the new board and saves over it), so no steps are given until Brad's numbers say the board fits.
+- **Proposed fix (the investigation's choice, with the checks' corrections):**
+  - The storage route stays as shipped when the board fits. When storage refuses, the import offers **Write the imported board
+    into a new file…**: the board as the import would have it, in the v2.13 program (measured: a v2.12 board put into the v2.13
+    program opens with every requirement, year, lock and total identical, using about 70 characters of storage). The file is read
+    back and must match before anything in storage is touched; then only the import's own keys are cleared and the new file opens.
+  - Chromium empties an existing file the moment it is chosen in the save window (measured: 8,793,759 bytes to 0), so the button
+    suggests a new name and says not to pick the file being imported, and any failure after the choice keeps the import in memory
+    and offers both the new board and the imported file as downloads.
+  - Where a browser policy blocks writing files (some hardened builds do), the board is downloaded instead, and the stale copies
+    in storage must not override it when it opens: the requirement list follows the copy that opens (measured today: a newer file
+    over another board's older storage copy shows 60 of 115 requirements and wrong totals).
+  - With it, the measured ways a large board loses work once storage is full: switching appropriation drops an unsaved change
+    silently; the writer key is remade on each Save so the second Save is refused; Import one appropriation on an empty board
+    drops appropriations while saying it took them all; Save into the empty v2.13 file downloads instead of writing in place.
+  - Each part is checked in Chromium with storage seeded from page code, as the investigation was.
+- **Questions for Brad:** the version in ORBIT Live.html's header and its size in bytes (Explorer › Properties); in the tab where
+  the import was refused, Setup › Save diagnostics › the *Browser storage* line (counts only); whether 💾 Save writes in place
+  today or downloads a copy; whether he has seen *This change is not in browser storage* in the old version.
+
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -465,6 +596,10 @@ independent review (four reviewers by area, every finding re-run by two skeptics
    cut off or scrolls (layout S). Acceptable, or should the figure move to the posture strip?
 4. Working out of the shared folder the bar moves only the board on screen. Enough, or should it leave each other board a mark to
    take the cycle when it opens?
+
+**Answered (Brad, 2 Nov 2026).** 1: *"1a. Only import the cycle being identified."* → item 138. 2: *"2a"* → item 139.
+3: *"No wrapping."* → item 137. 4: *"nobody works out of a shared folder, when we eventually host on Azure, we'll operate in the
+same environment but not yet"* → no change; recorded under item 107.
 
 **Known limits.** Another appropriation's stored budget follows the cycle when its board opens (item 135). The bar reads other
 appropriations as this browser holds them; in the shared folder, as this browser last held them (said in its tooltip).
