@@ -7655,7 +7655,9 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       chk(name, 'another tab', 'the tab takes BES28 with the other tab’s journal line, and says so', J([T.ev('MS.cycle'),
         T.ev(`JSON.stringify(MS.jrnl.slice(-1).map(function(e){ return [e.by, e.a, e.b]; }))`), /was put on BES28 in another tab/.test(T.ev(`document.getElementById('shareStat').textContent`))]),
         J(['BES|2028', J([['Other tab', 'PB|2027', 'BES|2028']]), true]));
-      T.ev(`window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', newValue:'{}'})); window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(J({ cycle: 'BES|28x', years: {} }))}})); 'ok'`);
+      // a tag that is not a cycle, though the other tab's journal carries a newer line for it: still not taken
+      T.ev(`window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', newValue:'{}'})); window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(J({ cycle: 'BES|28x', years: {},
+        jrnl: [{ t: 1799000000000, by: 'Other tab', fy: 2027, p: ['(cycle)'], a: 'BES|2028', b: 'BES|28x', f: 1 }] }))}})); 'ok'`);
       chk(name, 'another tab', 'CONTROL: another key, or a tag that is not a cycle, changes nothing here', T.ev('MS.cycle'), 'BES|2028');
     }
     // ---- this board's own storage refuses: the others are on the new cycle, and the message says to save before reloading
