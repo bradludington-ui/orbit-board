@@ -4937,6 +4937,40 @@ retargeted, none retired; 3,149 targets, each once; all 364 have proof records (
 364 of 364 CAUGHT (`recovery/v212/proved-INT.jsonl`; three after their checks were strengthened, above). Every suite whole, and `npm run validate:nightly` on `d630240`: every stage holds but layout's carried D x8 (fuzz seed 374193428). Browser: keys, dropdowns, dialogs, leftmenu, pmoyears, pointer and standards (nothing new) pass on `d630240`; pmosave failed now and then, on v2.11 as often as on v2.12, from how the check set browser storage, never the board (above); fixed in the check (`3e29863`) it passes 12 of 12 on v2.12 and 4 of 4 on v2.11, and still fails on six v2.09 save mutants and on the three boards its sections were written to fail on. No sweep (Brad's
 rule of 20 Oct). audit-board, audit-recon and audit-import need `--max-old-space-size=8192`.
 
+### v2.13 (item 136): one PPBE cycle for the whole board, chosen in the context bar
+
+Brad, 2 Nov 2026: *"I should have a selection on the main screen so I know exactly which PPBE Cycle I'm operating in"*, and his
+answers: apply to all (each appropriation keeps its own tag; the bar puts one on every one), offer on opening and never do it
+unasked, deltas are the cycle's controls against what the requirements hold, and the lock comparison stays separate.
+`NEXT-VERSION.md` › Shipped › v2.13 has every decision and the questions still open.
+
+- **The bar is `#m_cyc`**, beside Fiscal year, written by `syncBtns` (`cycMenuHtml`, `cycBarSync`). It replaced the Cycle control
+  `uiBoot` injected (`#uiCycBtn`/`#uiCycPop` are gone); the plan on screen (working plan or a locked cycle, `uiCycGo`) is in its list.
+- **`cycApplyAll(key)` writes other appropriations' plans**: the store its own board would open (`fydpStoreLocal`), `normalizeStore`d,
+  only `cycle` changed, a `(cycle)` journal line, a time newer than both copies it came from, and its `<key>.base` marked dirty
+  (naming `PUB_FILE_TS` when the file's copy was written) -- one `lsAll`. **Read again after the question** (the `driveRestore`
+  rule): a store saved in another tab while it was open is left alone and named. Skipped by name: unsaved work behind a newer file,
+  a plan that cannot be read. In the shared folder only the board on screen moves. **Never key a write to another appropriation off a
+  copy read before a wait.**
+- **What counts toward Mixed** is an appropriation that holds a requirement or is tagged (`cycHasReqs`); `cycOtherOf` reads the
+  others once and is forgotten in `fileMark('side')`, `applyStore`, `uiBatchPut` and the `storage` event. Locks by appropriation
+  counts by the same rule. **A key is a cycle only by `cycKeyOk`** (a cycle and a four-digit year); `cycKeyRank` requires it, and a
+  tag that is not one is shown as written (`cycTagTxt`).
+- **A change of cycle is one journal line** (`(cycle)`, forced, never put back): `cycApplyAll`, `cycSetWorking`, a lock that tags
+  the plan, and a tab following another (`cycFromTab`, only on a newer line the other tab wrote -- never a tab that merely saved its
+  old copy; in a locked view, into the plan set aside). `uiLastEdit` does not read it as board-wide.
+- **The figure (`#cycFit`) is read, never worked out**: `cycFitOf` reads `_fitCache` only when `fitModelReady()`, and the bar leaves
+  the figure as it was otherwise (a draw path that worked the fit out would rebuild DATA mid-draw). `cycFitSums` is the one reading
+  for the bar and the Fit panel's line (`.fitctl`): unallocated and over per service and lane, never netted, only services whose base
+  the position gives. Per lane over and unallocated are exclusive, so a mutation that nets per lane is the identity: net across.
+- **A PMO copy shows its cycle read only** (the selector, `cycApplyAll`, `cycSetWorking` and its box refuse; a lock never tags a copy).
+  `pkgDiff` names a change of cycle and of deltas' reference.
+- The opening offer is kept unread (`statKeep`): the opening line can be replaced later by `sharedArrived`.
+- **Checks:** audit-board "v2.13 — one PPBE cycle for every appropriation, chosen at the top (item 136)" (84 checks); keyboard-reach V,
+  layout-fits S, panels and standards open `#m_cyc`; `tools/cyc-seed.mjs`. 71 `v213-*` mutations, 6 older ones retargeted (v200-ui3-lastedit ×2, v205-116 ×2, v212-w3-lock-tag ×2).
+- **A test fixture's time must be able to lose.** Every fixture stamp was in the past, so `st.ts=now` passed for "newer than both
+  copies, whatever their clocks said"; the check that bites stamps the file an hour ahead.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

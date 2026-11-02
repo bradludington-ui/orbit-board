@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v2.12**. Next: **v2.13**.
+Current version: **v2.13**. Next: **v2.14**.
 
 ## Open
 
@@ -347,50 +347,6 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   across the prime is what was typed), which would change the CLIN amounts of v2.02's E5 (Brad, 13 Oct 2026: label both,
   reconcile them, move no dollar).
 
-#### 136. One PPBE cycle for the whole board, chosen on the main screen (Brad, 2 Nov 2026)
-- **Asked:** "Can the tag apply to all appropriations at once? It should and I should have a selection on the main screen so I
-  know exactly which PPBE Cycle I'm operating in."
-- **What the board does today (v2.12):** the working-plan tag (`MS.cycle`) is kept per appropriation. It is set only in
-  Cycles & compare › PPBE cycles › *Working plan is tagged* (`cycSetWorking`), and it changes only the appropriation on screen.
-  Each of O&M, Full Fund, Initial Spares and OPN is tagged on its own board. **Locks by appropriation** (`cycOverview`, v2.05
-  item 116) shows every appropriation's tag side by side and flags one behind the others, but it cannot set them. The only
-  sign of the tag on the main screen is the "working …" hint on the PPBE cycles menu item. Since v2.12 (item 134) the tag
-  decides every year's budget, so an appropriation left on the old cycle reads the old controls, and nothing on the main
-  screen shows it.
-- **Proposed:**
-  - **A cycle selector in the context bar** (`.hdr`), beside Appropriation and Fiscal year: *Cycle: BES28 ▾*, a cycle
-    (POM, BES, PB, DoN) and its year. It is always visible, so the cycle in force is never in doubt.
-  - **Choosing a cycle there tags every appropriation that holds a plan**: the one on screen at once, and each other
-    appropriation's stored plan (its `cycle` field, written the way an appropriation package writes another appropriation's
-    store, all or nothing through `lsAll`, and journalled). The confirm names each appropriation and says, for each, whether
-    it logs a BES28 position (a "no position" appropriation keeps its own budget and says so, as today).
-  - **One tag, always.** On opening, an appropriation whose tag differs from the board's is named and offered the board's
-    tag; the selector reads *Mixed* until they agree. Retag as … after a lock (`cycRetagNext`, `cycRetagLead`) retags all four.
-  - **Unchanged:** positions are still entered per appropriation (FYDP › PPBE Budget Positions); **locks stay per
-    appropriation** (item 116); each appropriation's budget figures are still worked out on its own board, never on this page
-    (the v1.85 rule). Another appropriation's stored budget follows the new tag when that board next opens (item 135's known
-    limit), and the selector says so.
-  - **A PMO copy** shows the cycle read-only.
-- **Brad's answers (2 Nov 2026):**
-  1. "Apply to all. When I'm working in a PPBE Cycle, I do not routinely jump around to different cycles. I work in just the
-     one." -- choosing a cycle in the selector applies it to every appropriation at once; the board works in one cycle at a time.
-  2. "Yes" -- on opening a board whose appropriations disagree, name them and offer the board's cycle; nothing is changed
-     unasked.
-  3. "Deltas should be based on the cycle I'm in." and, asked what they read against before that cycle is locked: "Deltas should
-     bump against the controls I've entered for that cycle versus what's been allocated to each requirement." -- **the delta is
-     the cycle's controls less what the requirements are allocated**: per appropriation, service, lane and fiscal year, the
-     PPBE position entered for the cycle in force, against the sum of what each requirement holds. It needs no lock. This is the
-     reading v2.12's **Fit to the PPBE position** already makes (`fitModel`: held against budget authority, *over* and
-     *unallocated*), so the build puts that figure on the main screen beside the cycle selector (e.g. *BES28 · FY28 $4.2M
-     unallocated · 2 over*), opening the Fit panel, and does not compute it a second way.
-     The lock-based deltas (each row's change chip, the Changes panel, *deltas read against* under PPBE cycles) **stay, as a
-     separate comparison** (Brad, 2 Nov 2026: "Separate comparison"): what changed since a locked cycle, chosen by hand as
-     today, and named apart from the controls-versus-allocated figure so the two are never read as one. The selector does not
-     move *deltas read against*.
-- **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
-  refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
-  and the guide's PPBE section reworded.
-
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -448,6 +404,130 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.13 — 2 Nov 2026: one PPBE cycle for the whole board, chosen in the context bar -- built on Brad's "Go on item 136" of 2 Nov
+
+Item 136 was built as Brad decided it on 2 Nov (his answers are under the item below). Item 133, the Service share workbook, is
+not in this version and stays under Open, now for the version after this one. The code was mapped first by five readers and a
+completeness critic (eight gaps, all built in); the browser checks were written in a worktree beside the build; then an
+independent review (four reviewers by area, every finding re-run by two skeptics: 24 reported, 20 kept) and its fixes.
+
+**What ships.**
+- **The PPBE cycle in the context bar** (`#m_cyc`, `#b_cyc`; `cycMenuHtml`, `cycBarSync`), beside Fiscal year: the cycle every
+  appropriation is on (*BES28 ▾*), *⚠ Mixed ▾* while those that hold requirements or are tagged disagree (`cycAll`, `cycHasReqs`),
+  *⚠ BES28 ▾* when an appropriation's plan cannot be read. It **replaces** the Cycle control `uiBoot` used to inject (*Working
+  plan ▾*); its list carries what that held -- the plan on screen, the working plan or a locked cycle viewed read only (`uiCycGo`).
+- **Choosing a cycle there puts every appropriation on it** (`cycApplyAll`; Brad, Q1 "Apply to all"). One question names each
+  appropriation and what happens to it. The board on screen through `save()`; every other appropriation by writing the store its
+  own board would open (`fydpStoreLocal`), put in that board's shape (`normalizeStore`), only its `cycle` changed, a `(cycle)`
+  journal line added, its time made newer than the copies it came from, and its `<key>.base` recorded as work no saved copy has
+  (naming the file when the file's copy was the one written) -- all of it in one `lsAll`, all or nothing. Skipped, and named:
+  an appropriation whose file copy is newer while this browser holds unsaved work for it; one whose plan cannot be read; one saved
+  in another tab while the question was open (read again at the last synchronous boundary, the `driveRestore` rule). **Working out
+  of the shared folder, only the board on screen moves**: each folder copy is saved by its own board, which offers the cycle when
+  it opens. 💾 Save carries the others into the file (`pubsFor`). Their budget figures follow when each board next opens (the v1.85
+  rule; item 135's limit).
+- **Cycles & compare › PPBE cycles still tags one appropriation** (`cycSetWorking`, relabelled *O&M working plan is tagged*), now
+  journalled, and refusing a key that is not a cycle and a four-digit year (`cycKeyOk`; `cycKeyRank` requires it too).
+- **Opening offers, never does** (Brad, Q2 "Yes"): where the appropriations disagree, the opening names each one's cycle and offers
+  *Put every appropriation on* the latest, and on this board's own (`cycOfferHtml`), kept unread (`statKeep`). The v2.05 *behind*
+  sentence stays, saying "the others are on X" only where they are.
+- **Beside the selector, what the cycle's budget authority leaves in the year on screen** (`#cycFit`; `cycFitOf`, `cycFitSums`):
+  unallocated and over, each service and lane on its own and never netted, only the services whose base the position gives
+  (Brad, Q3: "Deltas should bump against the controls I've entered for that cycle versus what's been allocated to each
+  requirement"). Read off the fit model render() works out (`fitModelReady`), never a second time; compact in the bar, every figure
+  to the dollar in its tooltip; it names its cycle whenever that is not the one the bar names (Mixed, or a lock that read another
+  cycle's position). It opens Fit to the PPBE position, which prints the same line over each year (`.fitctl`).
+- **The comparison against a locked cycle does not move** (Brad: "Separate comparison"): `MS.cycleRef`, the row chip and the
+  Changes panel are as before.
+- **A PMO copy shows its cycle, read only**: the selector, `cycApplyAll`, `cycSetWorking` and its tag box refuse; a lock never tags
+  a copy and its question says so. A locked view refuses too and names the lock.
+- **Two tabs**: a tab open on an appropriation another tab moved takes the cycle (`cycFromTab`; with that tab's journal line, and
+  into the plan set aside when it is viewing a lock), so its next save cannot put the old one back; a tab merely writing its old
+  copy back is not followed.
+- **A package or file taken whole** names a change of cycle and of *deltas read against* in its preview (`pkgDiff`); it said
+  "nothing changed" before.
+- The guide's *Budget authority from the PPBE position* section gains a paragraph (`p.v213-h136`); its budget is 72 KB (was 70).
+
+**Built differently from the log, and why.**
+- The log proposed one tag every appropriation must share; Brad chose "Apply to all", so each appropriation keeps its own tag and
+  the bar applies one to all. No new board-wide store.
+- The figure is measured against **budget authority** -- the position's controls with any funding added or withheld -- because
+  that is what the Fit panel, Needs attention and the lane walk measure; it says so in its words.
+- The control merged with the existing Cycle control rather than adding a second "Cycle" label to the bar.
+
+**Questions for Brad.**
+1. A package or a consolidated file taken whole replaces an appropriation's cycle with the package's (the preview now says so).
+   Should a package keep the receiving board's cycle instead?
+2. The two per-appropriation retags remain: *Retag as …* in PPBE cycles and in a lock's message. Should they put every
+   appropriation on the cycle, as the bar does?
+3. On a tagged board the context bar runs to two lines below about 1,138 px wide (1,231 px while a warning is unread). Nothing is
+   cut off or scrolls (layout S). Acceptable, or should the figure move to the posture strip?
+4. Working out of the shared folder the bar moves only the board on screen. Enough, or should it leave each other board a mark to
+   take the cycle when it opens?
+
+**Known limits.** Another appropriation's stored budget follows the cycle when its board opens (item 135). The bar reads other
+appropriations as this browser holds them; in the shared folder, as this browser last held them (said in its tooltip).
+
+**Checks.**
+- audit-board **"v2.13 — one PPBE cycle for every appropriation, chosen at the top (item 136)"**: 84 checks -- the figure (by hand on
+  the W3 fixture), the journal, four appropriations (Mixed, the menu, Cancel, the rendered item, what each store holds after, Save,
+  the other boards opened from storage and from the file alone), a storage refusal put back whole, unsaved work and work saved
+  while the question was open, the shared folder, a locked view, a PMO copy, a stopped import, two tabs, the opening offer, empty
+  and unreadable plans, a tag that is not a cycle, the package preview, a hostile tag, the guide. Each check that guards a fix fails
+  on the commit before it; five added for gaps where the code was right are coverage, held by their mutations.
+- Moved on purpose: audit-recon U10 (the lock now journals the tag it gives); the guide budget in audit-import (72 KB).
+- Browser: keyboard-reach V (the menu and the figure by keyboard), A/U/G re-pointed (`#uiCycBtn` is gone); layout-fits S (the
+  bar Mixed with a figure in the billions, 1920–761, both fonts); panels-render and standards open `#m_cyc`; left-menu C keeps
+  `#b_cyc`; `tools/cyc-seed.mjs` (shared seed). Each new section fails on v2.12.
+- **Mutations:** PROOF_LINE
+
+#### The item as logged
+
+#### 136. One PPBE cycle for the whole board, chosen on the main screen (Brad, 2 Nov 2026)
+- **Asked:** "Can the tag apply to all appropriations at once? It should and I should have a selection on the main screen so I
+  know exactly which PPBE Cycle I'm operating in."
+- **What the board does today (v2.12):** the working-plan tag (`MS.cycle`) is kept per appropriation. It is set only in
+  Cycles & compare › PPBE cycles › *Working plan is tagged* (`cycSetWorking`), and it changes only the appropriation on screen.
+  Each of O&M, Full Fund, Initial Spares and OPN is tagged on its own board. **Locks by appropriation** (`cycOverview`, v2.05
+  item 116) shows every appropriation's tag side by side and flags one behind the others, but it cannot set them. The only
+  sign of the tag on the main screen is the "working …" hint on the PPBE cycles menu item. Since v2.12 (item 134) the tag
+  decides every year's budget, so an appropriation left on the old cycle reads the old controls, and nothing on the main
+  screen shows it.
+- **Proposed:**
+  - **A cycle selector in the context bar** (`.hdr`), beside Appropriation and Fiscal year: *Cycle: BES28 ▾*, a cycle
+    (POM, BES, PB, DoN) and its year. It is always visible, so the cycle in force is never in doubt.
+  - **Choosing a cycle there tags every appropriation that holds a plan**: the one on screen at once, and each other
+    appropriation's stored plan (its `cycle` field, written the way an appropriation package writes another appropriation's
+    store, all or nothing through `lsAll`, and journalled). The confirm names each appropriation and says, for each, whether
+    it logs a BES28 position (a "no position" appropriation keeps its own budget and says so, as today).
+  - **One tag, always.** On opening, an appropriation whose tag differs from the board's is named and offered the board's
+    tag; the selector reads *Mixed* until they agree. Retag as … after a lock (`cycRetagNext`, `cycRetagLead`) retags all four.
+  - **Unchanged:** positions are still entered per appropriation (FYDP › PPBE Budget Positions); **locks stay per
+    appropriation** (item 116); each appropriation's budget figures are still worked out on its own board, never on this page
+    (the v1.85 rule). Another appropriation's stored budget follows the new tag when that board next opens (item 135's known
+    limit), and the selector says so.
+  - **A PMO copy** shows the cycle read-only.
+- **Brad's answers (2 Nov 2026):**
+  1. "Apply to all. When I'm working in a PPBE Cycle, I do not routinely jump around to different cycles. I work in just the
+     one." -- choosing a cycle in the selector applies it to every appropriation at once; the board works in one cycle at a time.
+  2. "Yes" -- on opening a board whose appropriations disagree, name them and offer the board's cycle; nothing is changed
+     unasked.
+  3. "Deltas should be based on the cycle I'm in." and, asked what they read against before that cycle is locked: "Deltas should
+     bump against the controls I've entered for that cycle versus what's been allocated to each requirement." -- **the delta is
+     the cycle's controls less what the requirements are allocated**: per appropriation, service, lane and fiscal year, the
+     PPBE position entered for the cycle in force, against the sum of what each requirement holds. It needs no lock. This is the
+     reading v2.12's **Fit to the PPBE position** already makes (`fitModel`: held against budget authority, *over* and
+     *unallocated*), so the build puts that figure on the main screen beside the cycle selector (e.g. *BES28 · FY28 $4.2M
+     unallocated · 2 over*), opening the Fit panel, and does not compute it a second way.
+     The lock-based deltas (each row's change chip, the Changes panel, *deltas read against* under PPBE cycles) **stay, as a
+     separate comparison** (Brad, 2 Nov 2026: "Separate comparison"): what changed since a locked cycle, chosen by hand as
+     today, and named apart from the controls-versus-allocated figure so the two are never read as one. The selector does not
+     move *deltas read against*.
+- **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
+  refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
+  and the guide's PPBE section reworded.
+
 
 ### v2.12 — 1 Nov 2026: the cost estimate read by its header titles, a WBS paragraph on every requirement picked from it, and every year's budget read live from the PPBE position -- built on Brad's "Go on v2.12" of 28 Oct
 
