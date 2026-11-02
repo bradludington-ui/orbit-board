@@ -38,7 +38,7 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 - Commands, seeds, durations, exit statuses and results: every suite whole (8 banners and the legacy line). npm run validate:nightly
   (15:41-16:39 UTC, 58 min): every stage holds but the browser stage, which fails only on layout D x8, carried since v2.00; fuzz seed
   64422288; money map 322 cells (119 proven, 202 n/a, 1 open); coverage 27/27; trace matrix 77 cells. Browser checks after layout:
-  BROWSER_LINE. Mutations: 71 new, 6 retargeted, 3,220 targets each matching once; 75 of 75 proved CAUGHT
+  keys, dropdowns (560 menus), dialogs, leftmenu, pmosave, pmoyears, pointer and standards (0 findings, nothing new) all pass. Mutations: 71 new, 6 retargeted, 3,220 targets each matching once; 75 of 75 proved CAUGHT
   (recovery/v213/proved-136.jsonl, proved-retarget-ui.jsonl).
 - Known risks, blocked checks and reviewer findings: the completeness critic's eight gaps and the review's 20 kept findings (24
   reported; 4 refuted by both skeptics) are all fixed, with checks; none is recorded as not fixed. Four questions for Brad are in

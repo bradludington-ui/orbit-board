@@ -492,7 +492,7 @@ appropriations as this browser holds them; in the shared folder, as this browser
 - **The gate:** every suite whole on the final tree (audit-board, audit-recon and audit-import at 8 GB); `npm run validate:nightly`
   on 8ecdfe9 + docs (15:41–16:39 UTC): every stage holds but the browser stage, which fails only on layout D ×8, carried since v2.00
   with the same numbers as v2.12; fuzz seed 64422288; money map 322 cells (119 proven, 202 n/a, 1 open, v2.04's); coverage 27/27.
-  The browser checks the chain stops before: BROWSER_LINE
+  The browser checks the chain stops before: keys, dropdowns (560 menus), dialogs, leftmenu, pmosave, pmoyears, pointer and standards (0 findings, nothing new) all pass
 
 #### The item as logged
 
