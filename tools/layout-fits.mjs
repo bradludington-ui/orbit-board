@@ -54,6 +54,10 @@
 //      cell cuts its text, and no picker cuts the name it shows -- the report with every reason, 38 named rows, long names and
 //      dollars in the billions; the mapping box with a 2026 file's whole header in each picker.
 //
+//   S. (v2.13, item 136) The PPBE cycle at the top and the figure beside it, at their widest -- ⚠ Mixed across three
+//      appropriations, the figure in the billions both ways -- from 1920 to 761, this font and the Segoe stand-in: no sideways
+//      scroll, nothing in the top stack past the window, both whole on screen, and the list opened inside the window.
+//
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
@@ -63,6 +67,7 @@ import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
 import { withStandin, standinProblem } from './font-standin.mjs';
 import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132): P
+import { CYC_KEY, cycOtherStore, seedLs } from './cyc-seed.mjs';   // v2.13 (item 136): S
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -967,6 +972,104 @@ const ER_STATE = () => {
       }
   chk('Q · a WBS paragraph picked in the Add box, the edit box and the WBS panel: the list (the CCaR record’s paragraph first), the code alone in the field, its ~160-character name beside it whole, each box still whole -- 1366x657 and 1920x969, Harbor and Midnight, this font and the Segoe stand-in',
     fails.length === 0 && read === 8, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
+}
+
+// ── S. THE PPBE CYCLE AT THE TOP: A LONG FIGURE AND THE MIXED STATE (v2.13, item 136) ─────────────────────────────────────
+// The context bar's PPBE cycle and the figure beside it at their widest. Three appropriations' plans on three cycles -- O&M (this
+// board) on BES28, Full Fund's and Initial Spares' in this browser on PB27 and POM29, put there by a seed page before the board
+// opens, never by an init script (tools/pmo-save.mjs says why) -- so the button reads ⚠ Mixed and opening offers one cycle; and
+// BES28's controls for the year on screen leave one service's discretionary $98.8 billion that nobody holds while a requirement
+// directing $9.9 billion past a $1 lane leaves others over, so the figure reads "FY27 · $…B unallocated · ⚠ $…B over". At 1920,
+// 1440, 1366, 1152, 1024, 901 and 761, this font and the Segoe stand-in: the page never scrolls sideways, nothing in the top stack
+// runs past the window, the PPBE cycle and the figure are whole on screen -- inside the window, not cutting their own text, not
+// cut by anything around them, not covered -- and the list, opened, sits inside the window with every line inside it.
+// Above 1100px the context bar may wrap here: the one-line rule is toolbar-fits', held on the template board. Where it wraps on
+// this board is printed beside the check as a fact, not held.
+{
+  // its own position, whatever the sections above left: the first service $1 of discretionary, the second $98,765,432,101; R020
+  // (K's, asking billions) directs its whole value on a Split
+  ev(`(function(){ var cur=+MS.cur, val={}; val[SVC[0]]={_all:{}}; val[SVC[0]]._all[cur]={d:1, m:0};
+      val[SVC[1]]={_all:{}}; val[SVC[1]]._all[cur]={d:98765432101, m:5000000};
+      MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:{}, val:val}; MS.cycle='BES|2028';
+      var r=itemById('R020'); S.fsrc.R020={m:'split', dv:r.ask.slice(), mv:SVC.map(function(){ return 0; })};
+      baLiveAll(); save(); })(); 'ok'`);
+  const fileS = join(dir, 'board-s.html'), fileSS = join(dir, 'board-s-segoe.html');
+  writeFileSync(fileS, ev('buildSavedHtml()'));
+  writeFileSync(fileSS, withStandin(readFileSync(fileS, 'utf8')));
+  const LOOK = () => {
+    const out = [], W = innerWidth, H = innerHeight, de = document.documentElement;
+    const say = e => (e.id ? '#' + e.id : String(e.className || e.tagName).split(' ')[0]);
+    if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways: ${de.scrollWidth}>${de.clientWidth}`);
+    // what is DRAWN past the window: an element's box cut to every ancestor that clips it. The message line is cut off on its one
+    // line by design (the Message button opens it whole), so the opening's long offer runs on inside it, clipped, and is not past
+    for (const e of document.querySelectorAll('#topStack *')) { const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
+      let L = r.left, R = r.right;
+      for (let a = e.parentElement; a && a !== de && L < R; a = a.parentElement) { const cs = getComputedStyle(a);
+        if (cs.overflowX === 'visible') continue; const q = a.getBoundingClientRect(); L = Math.max(L, q.left); R = Math.min(R, q.right); }
+      if (L < R && (R > W + 1 || L < -1)) { let q = e; while (q && !q.id) q = q.parentElement;
+        out.push(`in the top stack, ${(q && q.id) || say(e)} runs past the window: ${Math.round(L)}-${Math.round(R)} in ${W}`); break; } }
+    // whole: inside the window, its own text not cut, not cut by an ancestor that clips, the thing under its centre
+    const whole = id => { const e = document.getElementById(id); if (!e || e.hidden || !e.getClientRects().length) return [`#${id} is not on screen`];
+      const r = e.getBoundingClientRect(), why = [];
+      if (r.left < -0.5 || r.top < -0.5 || r.right > W + 0.5 || r.bottom > H + 0.5) why.push(`#${id} is past the window: ${Math.round(r.left)}-${Math.round(r.right)} in ${W}`);
+      if (e.scrollWidth > e.clientWidth + 1) why.push(`#${id} cuts its own text: ${e.scrollWidth}>${e.clientWidth} ("${e.textContent}")`);
+      for (let a = e.parentElement; a && a !== de; a = a.parentElement) { const cs = getComputedStyle(a);
+        if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+        const q = a.getBoundingClientRect(); if (r.left < q.left - 0.5 || r.right > q.right + 0.5 || r.top < q.top - 0.5 || r.bottom > q.bottom + 0.5) { why.push(`#${id} is cut by ${say(a)}`); break; } }
+      const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (!t || !(t === e || e.contains(t))) why.push(`#${id} is covered by ${t ? say(t) : 'nothing'}`);
+      return why; };
+    out.push(...whole('b_cyc'), ...whole('cycFit'));
+    const st = { btn: (document.getElementById('b_cyc') || {}).textContent || '', fit: (document.getElementById('cycFit') || {}).textContent || '',
+      hdrH: Math.round(document.querySelector('.hdr').getBoundingClientRect().height), seen: !!localStorage.getItem('prio27sp') };
+    // the list, opened as a click opens it
+    toggleMenu('cyc');
+    const d = document.getElementById('dd_cyc'), dr = d && d.getBoundingClientRect();
+    if (!d || !dr || !dr.width) out.push('the PPBE cycle’s list did not open');
+    else {
+      if (dr.left < -0.5 || dr.top < -0.5 || dr.right > W + 0.5 || dr.bottom > H + 0.5)
+        out.push(`the list is past the window: ${Math.round(dr.left)},${Math.round(dr.top)}-${Math.round(dr.right)},${Math.round(dr.bottom)} in ${W}x${H}`);
+      if (d.scrollWidth > d.clientWidth + 1) out.push(`the list scrolls sideways: ${d.scrollWidth}>${d.clientWidth}`);
+      for (const x of d.querySelectorAll('.cycall-row, .mi, .cycall-note, .mlbl')) { const r = x.getBoundingClientRect();
+        if (r.width && (r.right > dr.right + 1 || r.left < dr.left - 1)) { out.push('a line past the list: "' + x.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) + '"'); break; } }
+      if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways with the list open: ${de.scrollWidth}>${de.clientWidth}`);
+    }
+    st.rows = d ? d.querySelectorAll('.cycall-row').length : 0;
+    openMenu = null; syncBtns();
+    return { out, ...st };
+  };
+  const openS = async (w, h, at) => {
+    const ctx = await b.newContext({ viewport: { width: w, height: h } });
+    await seedLs(ctx, { spmtTheme: 'harbor', spmtMode: 'review', prio27who: 'Pat', [CYC_KEY.ff]: cycOtherStore('PB|2027'), [CYC_KEY.sp]: cycOtherStore('POM|2029') },
+      [CYC_KEY.om, CYC_KEY.opn, 'prio27uiDock']);
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    await p.goto('file://' + at);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.waitForTimeout(250);
+    return { p, ctx, errs };
+  };
+  const fails = [], wraps = []; let read = 0;
+  for (const [font, at] of [['this machine’s font', fileS], ['the Segoe stand-in', fileSS]])
+    for (const [w, h] of [[1920, 1080], [1440, 900], [1366, 768], [1152, 864], [1024, 768], [901, 700], [761, 700]]) {
+      const { p, ctx, errs } = await openS(w, h, at);
+      const tag = `${w}x${h} ${font}`;
+      try {
+        if (at === fileSS) { const why = await standinProblem(p); if (why) { fails.push(`${tag}: ${why}`); await ctx.close(); continue; } }
+        const r = await p.evaluate(look => (0, eval)('(' + look + ')')(), LOOK.toString());
+        read++;
+        // the state this section is for, or it proves nothing: a seed the tab could not see, a figure that is not both, not long
+        if (!r.seen) fails.push(`${tag}: harness -- this tab cannot see what the seed page wrote, so the board is not Mixed (proves nothing about the board)`);
+        if (r.btn !== '⚠ Mixed ▾' || r.rows < 3) fails.push(`${tag}: the PPBE cycle is not Mixed across three appropriations ("${r.btn}", ${r.rows} lines)`);
+        if (!/^FY\d\d · \$[\d.]+B unallocated · ⚠ \$[\d.]+B over$/.test(r.fit)) fails.push(`${tag}: the figure is not the long one, unallocated and over ("${r.fit}")`);
+        r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
+        if (w > 1100 && r.hdrH > 60) wraps.push(`${w} ${font === 'the Segoe stand-in' ? 'Segoe' : 'this font'} (${r.hdrH}px)`);
+      } catch (e) { fails.push(`${tag}: the state could not be read -- ${String(e.message || e).split('\n')[0].slice(0, 120)}`); }
+      if (errs.length) fails.push(`${tag}: ${errs[0]}`);
+      await ctx.close();
+    }
+  chk('S · the PPBE cycle at the top, ⚠ Mixed across three appropriations and its figure in the billions both ways: the page never scrolls sideways, nothing in the top stack runs past the window, the PPBE cycle and the figure are whole on screen, and its list opens inside the window (1920 to 761, this font and the Segoe stand-in)',
+    fails.length === 0 && read === 14, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
+  console.log(`       (a fact, not a check) the context bar on this board, above 1100px: ${wraps.length ? 'wraps at ' + wraps.join(', ') : 'one line at every width'}`);
 }
 
 await b.close();

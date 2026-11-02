@@ -128,10 +128,14 @@ const INLINE = {
 // v2.00 (menu, 19 Oct): Reports & exports, Data, Setup and File left the toolbar for the left menu. Reports & exports and
 // Data are boxes there (swept with the boxes above); Setup, Program offices, Audit, History & recovery, FYDP, Execution and
 // the ▾ beside Save are flyouts, each opened from its entry and held to what a menu is held to here (LEFT, below).
-const MENUS = { view: 'Filter', fy: 'FY', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
+// v2.13 (item 136): the PPBE cycle in the context bar (#m_cyc), opened with the plan tagged BES28 and O&M's BES28 position logged
+// (FDC_SEED), so its list draws every appropriation's line, the cycles to put them on -- one with "controls entered" -- and the
+// plan on screen.
+const MENUS = { view: 'Filter', fy: 'FY', cyc: 'PPBE cycle', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
 const LEFT = { fydp: 'FYDP', exec: 'Execution', pmo: 'Program offices', aud: 'Audit', hist: 'History & recovery', setup: 'Setup', save: 'Save ▾' };
 const PREP = { basis: `uiMode='fund'; uiApply(); render();`,
-               modetools: `uiMode='fund'; uiApply(); render();` };   // and a 1000px window: see below
+               modetools: `uiMode='fund'; uiApply(); render();`,     // and a 1000px window: see below
+               cyc: FDC_SEED + `baLiveAll(); save(); render();` };
 // Visible text that should never contain an escape sequence. "&amp;" on screen means something
 // escaped text that was escaped already; "\\u{1F553}" means a JS escape was written straight into
 // markup, where nothing interprets it -- the Change Journal heading read exactly that for a while.
