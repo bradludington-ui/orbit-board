@@ -12,7 +12,8 @@
 //      Work kept aside is set, so its three items are drawn.
 //   B. CTRL+S SAVES: the same call as the pinned 💾 Save (saveInPlace), and the browser's own "save this page" is held back.
 //   C. THE FIVE TOP-BAR CONTROLS ARE GONE -- Save, Reports & exports ▾, Data ▾, Setup ▾, 📁 File ▾ -- and what stays there
-//      stays: Appropriation, Fiscal year, the PMO filter, search, Filter, the message line and Help.
+//      stays: Appropriation, Fiscal year, the PMO filter, search, Filter, the message line and Help -- and, since v2.13 (item 136),
+//      the PPBE cycle beside the fiscal year.
 //   D. A PMO COPY: the Save spot is ✉ Submit input (pmoSubmit), reached once; Program offices is not shown and holds
 //      nothing. v2.09 (item 127): the copy's own 💾 Save (pmoSaveCopy) sits above it, reached once, and its ▾ offers the
 //      copy's own Save a copy (pmoSaveCopyDl), nothing of the board's -- they were listed there, off, until v2.09.
@@ -198,12 +199,13 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
         .filter(t => /^(💾 ?)?Save\b|File ▾|Reports|^Data|^Setup/.test(t));
       const shown = id => { const e = document.getElementById(id); return !!(e && e.getClientRects().length); };
       return { gone, saveInTop: !!(sb && top.contains(sb)), saveAtFoot: !!(sb && sb.closest('#uiSide .uiSave')), stateAtFoot: !!document.querySelector('#uiSide .uiSave #saveState'), words,
-        kept: ['appnSel', 'b_fy', 'b_pmo', 'q', 'b_view', 'helpBtn'].filter(shown), status: !!document.querySelector('#topStack #shareStat') && !!document.querySelector('#topStack #statBtn') };
+        kept: ['appnSel', 'b_fy', 'b_cyc', 'b_pmo', 'q', 'b_view', 'helpBtn'].filter(shown), status: !!document.querySelector('#topStack #shareStat') && !!document.querySelector('#topStack #statBtn') };
     });
     chk('C · Save, Reports & exports ▾, Data ▾, Setup ▾ and 📁 File ▾ are not in the page, and no button at the top says them',
       J([r.gone, r.saveInTop, r.words]) === J([[], false, []]), J(r));
     chk('C · Save and the save state are at the left menu’s foot', r.saveAtFoot && r.stateAtFoot, J(r));
-    chk('C · Appropriation, Fiscal year, the PMO filter, search, Filter, Help and the message line stay', J([r.kept, r.status]) === J([['appnSel', 'b_fy', 'b_pmo', 'q', 'b_view', 'helpBtn'], true]), J(r));
+    // v2.13 (item 136): and the PPBE cycle (#b_cyc), which replaced the Cycle control the left menu's boot put at the bar's start
+    chk('C · Appropriation, Fiscal year, the PPBE cycle, the PMO filter, search, Filter, Help and the message line stay', J([r.kept, r.status]) === J([['appnSel', 'b_fy', 'b_cyc', 'b_pmo', 'q', 'b_view', 'helpBtn'], true]), J(r));
     chk('C · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('C · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
