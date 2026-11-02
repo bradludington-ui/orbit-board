@@ -386,7 +386,7 @@ answers under Shipped › v2.12 › *Questions for Brad*.
      The lock-based deltas (each row's change chip, the Changes panel, *deltas read against* under PPBE cycles) **stay, as a
      separate comparison** (Brad, 2 Nov 2026: "Separate comparison"): what changed since a locked cycle, chosen by hand as
      today, and named apart from the controls-versus-allocated figure so the two are never read as one. The selector does not
-     move *deltas read against*; that supersedes the first reading of answer 3 above.
+     move *deltas read against*.
 - **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
   refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
   and the guide's PPBE section reworded.
