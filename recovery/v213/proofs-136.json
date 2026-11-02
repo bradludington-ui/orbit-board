@@ -1,0 +1,154 @@
+[
+{
+"id": "v213-136-others-never-written",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-folder-writes-others",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-unsaved-work-written-over",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-old-shape-not-normalised",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-not-newer",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-not-recorded-unsaved",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-record-replaced",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-refusal-reads-unsaved",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-file-slot-stale",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-other-unjournalled",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-own-unjournalled",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-setworking-unjournalled",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-cancel-ignored",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-view-not-refused",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-copy-not-refused",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-key-unchecked",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-into-stopped-import",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-file-tag-offered",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-row-unescaped",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-mixed-blind",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-other-tag-unread",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-memo-stale",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-no-next-cycle",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-oldest-first",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-copy-menu-acts",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-view-unnamed",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-fit-netted",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-fit-counts-own",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-fit-year-unlogged",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-fit-no-position",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-opening-silent",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-offer-latest-only",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-last-edit-blanked",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-journal-unlabelled",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-guide-silent",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-copy-retags",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-offer-not-kept",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v205-116-offer-on-every-board",
+"caughtBy": "board / v2.05 \u2014 each appropriation is locked on its own board"
+}
+]
