@@ -480,7 +480,19 @@ appropriations as this browser holds them; in the shared folder, as this browser
 - Browser: keyboard-reach V (the menu and the figure by keyboard), A/U/G re-pointed (`#uiCycBtn` is gone); layout-fits S (the
   bar Mixed with a figure in the billions, 1920–761, both fonts); panels-render and standards open `#m_cyc`; left-menu C keeps
   `#b_cyc`; `tools/cyc-seed.mjs` (shared seed). Each new section fails on v2.12.
-- **Mutations:** PROOF_LINE
+- **Mutations:** 71 new (`v213-136-*` 51, `v213-rv-*` 20), 6 older ones retargeted to the lines this change rewrote
+  (`v200-ui3-lastedit-services-only`, `v200-ui3-lastedit-writer-wide`, `v205-116-offer-on-every-board`,
+  `v205-116-tag-from-this-board`, `v212-w3-lock-tag-dropped`, `v212-w3-lock-tag-not-live`); 3,220 targets, each matching once.
+  Every new and retargeted one proved CAUGHT against its own check (`recovery/v213/proved-136.jsonl`, 75 of 75; the two v200-ui3
+  ones by audit-ui run whole on each mutant, `proved-retarget-ui.jsonl`). Three survived on the way and each showed a weak check,
+  strengthened before the final run: netting per lane is the identity (a lane is never both over and unallocated), so the mutation
+  nets across; the silent-opening mutation needed a board on the latest cycle; the other-tab control needed a journal line to reach
+  the key test. A fourth survivor showed code that changed nothing (an extra fit at the end of opening), and the code went. No sweep
+  (Brad's rule of 20 Oct).
+- **The gate:** every suite whole on the final tree (audit-board, audit-recon and audit-import at 8 GB); `npm run validate:nightly`
+  on 8ecdfe9 + docs (15:41–16:39 UTC): every stage holds but the browser stage, which fails only on layout D ×8, carried since v2.00
+  with the same numbers as v2.12; fuzz seed 64422288; money map 322 cells (119 proven, 202 n/a, 1 open, v2.04's); coverage 27/27.
+  The browser checks the chain stops before: BROWSER_LINE
 
 #### The item as logged
 
