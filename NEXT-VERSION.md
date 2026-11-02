@@ -371,10 +371,15 @@ answers under Shipped › v2.12 › *Questions for Brad*.
     (the v1.85 rule). Another appropriation's stored budget follows the new tag when that board next opens (item 135's known
     limit), and the selector says so.
   - **A PMO copy** shows the cycle read-only.
-- **Questions for Brad before go:**
-  1. One tag the whole board must share (recommended), or an "apply to all" that leaves each appropriation settable on its own?
-  2. On opening a board whose appropriations disagree: offer the board's tag (recommended), or take the latest automatically?
-  3. Should choosing a cycle there also set *deltas read against* to the cycle before it (BES28 against PB27), or leave it?
+- **Brad's answers (2 Nov 2026):**
+  1. "Apply to all. When I'm working in a PPBE Cycle, I do not routinely jump around to different cycles. I work in just the
+     one." -- choosing a cycle in the selector applies it to every appropriation at once; the board works in one cycle at a time.
+  2. "Yes" -- on opening a board whose appropriations disagree, name them and offer the board's cycle; nothing is changed
+     unasked.
+  3. "Deltas should be based on the cycle I'm in." -- *deltas read against* follows the cycle chosen (`MS.cycleRef` = that
+     cycle's lock, in every appropriation), and is no longer set by hand. Still open: what the deltas read against while the
+     cycle in force has no lock yet (proposed: nothing, and the row's delta chip and the Changes panel say "BES28 not locked
+     yet" rather than reading against an older cycle).
 - **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
   refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
   and the guide's PPBE section reworded.
