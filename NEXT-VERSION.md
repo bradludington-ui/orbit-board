@@ -347,6 +347,24 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   across the prime is what was typed), which would change the CLIN amounts of v2.02's E5 (Brad, 13 Oct 2026: label both,
   reconcile them, move no dollar).
 
+#### 137. The context bar never wraps (Brad, 2 Nov 2026, v2.13's question 3: "No wrapping.")
+- **What happens today (v2.13):** on a tagged board the figure beside the PPBE cycle (about 250 px, e.g. *FY27 · $12.33B
+  unallocated · ⚠ $6.9M over*) pushes the context bar onto two lines below about 1,138 px wide, and below about 1,231 px while
+  a warning is unread (its *⚠ 1 unread* button takes 77 px more). Nothing is cut off and nothing scrolls (layout S), but the bar
+  takes two lines and the first requirement sits lower. `fitTop()` drops the labels first (`tight1`), then lets the bar wrap
+  (`tight2`).
+- **Proposed:** the bar stays one line at every width above the phone layout, by giving the figure less room in steps, measured
+  the way `fitTop()` already measures (never a guessed breakpoint):
+  1. the labels go (today's `tight1`);
+  2. the figure shortens: no "FY27 ·", "unallocated" and "over" as signs (*$12.3B free · ⚠ $6.9M over* → *$12.3B · ⚠ $6.9M*), the
+     whole sentence still in its tooltip;
+  3. the figure leaves the bar for the top of the PPBE cycle list, and the button carries a ⚠ when anything is over, so an over
+     is never out of sight.
+  The message line keeps its own room and shortens as it does today.
+- **Checks it would need:** layout S held to one line at every width it measures, Mixed and with a warning unread, in both fonts;
+  toolbar-fits held on a tagged board, not only the bare template; keys V reaching the figure in the list when it has moved there.
+- **Questions for Brad before go:** none on the rule; the three steps above are the proposal to approve or change.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
