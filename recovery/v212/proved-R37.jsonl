@@ -1,0 +1,5 @@
+{"id": "v212-rv3-one-figure-keeps-own-mand", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-2c019010.mjs", "detail": ""}
+{"id": "v212-rv3-one-figure-unsaid", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-2c019010.mjs", "detail": ""}
+{"id": "v212-r37-one-figure-all-disc", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-2c019010.mjs", "detail": ""}
+{"id": "v212-r37-one-figure-no-own-split", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-2c019010.mjs", "detail": ""}
+{"id": "v212-w3-ba-k-divided", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-3312ff24.mjs", "detail": ""}

@@ -387,7 +387,8 @@ if (flag('--selftest')) {
       S.alloc['B']={m:'t', v:3900001}; seedSplit('C'); S.minInc['E']=250000; S.band['A']='pdm';
       S.awards['A']={mode:'single', d:FYMON[2][0], day:7}; S.notes['D']='a note with a literal </script> in it';
       var E=rpAll(); E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'BTR add USAF', amtM:1.5, dir:'add', pool:'disc', status:'Pending', remarks:''}); persistRp();
-      ACEDB.sets['2026ACE']={lines:[{ap:mySlug(), pmo:'PSM', wbs:'1.1', v:{}}]}; ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=9500000; persistAce();
+      // v2.12 W1 (item 132): the line is filed under AV, as Cost files PSM's money -- PSM is inside Air Vehicle in every estimate
+      ACEDB.sets['2026ACE']={lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}]}; ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=9500000; persistAce();
       applyState(S); save(); blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
   const html = ev('buildSavedHtml()');
   const dir = mkdtempSync(join(tmpdir(), 'spmt-verify-'));

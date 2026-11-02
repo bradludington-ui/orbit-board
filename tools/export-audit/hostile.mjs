@@ -83,6 +83,11 @@ export function buildHostile(html) {
     ['clinAlloc','clinMeta','clinNew','clinRm','clinWbs','clinRcn','clinRcnSvc'].forEach(function(k){ if(!S[k]||typeof S[k]!=='object') S[k]={}; });
     S.clinNew[pr]=[{key:P('clinnewkey'), clin:P('clinno'), desc:P('clinnewdesc'), ccar:P('clinccar'), ask:SVC.map(function(){ return 500; })}];
     S.clinWbs[pr]={}; S.clinWbs[pr][P('clinkey')]=[{w:P('clinwbs'), v:[]}];
+    // v2.12 RV2 (K03): and a hostile paragraph on its base CLIN -- the drill names or flags a CLIN's paragraph under its WBS button
+    S.clinWbs[pr].b0=[{w:P('clinwbs0'), v:[]}];
+    // v2.12 RV2 (K09): and its CLINs allocated nothing on the hostile service, so the prime's money there goes out on no CLIN --
+    // Without a WBS names that service as why (a CLIN's number is cut to 20 characters there, so it cannot carry a whole value)
+    S.clinAlloc[pr]={b0:SVC.map(function(s, j){ return j===1? 0 : 2000; })}; S.clinAlloc[pr][P('clinnewkey')]=SVC.map(function(s, j){ return j===1? 0 : 500; });
     // v1.98 (item 83): a hostile CLIN key, service name and combination key in the CLIN's per-service choice
     S.clinRcnSvc[pr]={}; S.clinRcnSvc[pr][P('clinnewkey')]={}; S.clinRcnSvc[pr][P('clinnewkey')][SVC[1]]=P('clinrcnsvc');
     S.ptype[pr]='PRIME';
@@ -111,8 +116,45 @@ export function buildHostile(html) {
       files:[{dept:P('baedept'), file:P('baefile'), ts:Date.now(), n:2}]}; persistBud();
     EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[[P('execccar'), 812345]]}}}; persistExdb();
     ACEDB={ts:Date.now(), sets:{}}; ACEDB.sets[P('aceset')]={fp:'fp-1', locked:true, appn:{om:{tot:{2027:900}, pmo:{AV:{2027:900}}, svc:{}}}, lines:[]}; persistAce();
+    // v2.12 (item 132): a 2026 estimate as the import builds it -- its lines' new fields, its WBS tree, its import report and a
+    // remembered column mapping -- with hostile text wherever a file can put text. The report box draws the file, the sheet, the
+    // column titles, a reason's values, the named rows and the conflicting names; the tie-out's lines nothing claims draw a line's
+    // cost element. (The tree's names and a line's category and CCaR fields are planted for the pickers that read them.)
+    (function(){ var v={}; v[MS.cur]=1000; var by=[[P('acebyval'), 1]];
+      ACEDB.sets['2026ACE']={label:'2026ACE', ts:Date.now(), years:[MS.cur], locked:true, by:P('aceby'), file:P('acefile'),
+        appn:{om:{tot:v, pmo:{AV:v}, svc:{USAF:v}}},
+        lines:[{ap:mySlug(), pmo:'AV', svc:'USAF', wbs:'9.1', lv:2, ce:P('acece'), slc:P('aceslc'), ccar:P('aceccar'), cdesc:P('acecdesc'), sub:'', v:v}],
+        wbs:{om:{'9':{n:P('acetree1'), lv:1, up:''}, '9.1':{n:P('acetree2'), lv:2, up:'9'}}},
+        rep:{v:1, file:P('acefile'), sheet:P('acesheet'), row:3, sheets:[P('acesheet')], years:[MS.cur], map:{wbs:{t:P('acecoltitle'), c:'Z', how:'asked'}},
+          absent:[], reasons:{pmo:{rows:1, v:v, by:by}}, named:[{k:'pmo', row:4, wbs:P('acenamedwbs'), what:P('acenamedwhat'), v:v}],
+          kept:{rows:1, lines:1, zero:0, v:v}, total:{rows:2, v:{}}, notData:0, types:{}, tree:{om:2},
+          conflicts:[{ap:'om', code:P('aceconfcode'), n:P('aceconfname'), also:[{n:P('aceconfalso'), rows:[5]}]}], ties:true}};
+      ACEDB.cols={}; ACEDB.cols[P('acesig')]={map:{wbs:P('acecolmem')}, ts:1, by:P('acecolby')}; persistAce(); })();
+    // v2.12 RV1 (review R01, R02, R08): an estimate whose report carries hostile text where the board writes NUMBERS -- a reason's
+    // rows, the kept lines, a year -- and the newest, so the Data card draws its line on every redraw. The import check does not know
+    // a report's shape, and the card once summed those counts straight into its markup. Its row counts (skip) carry hostile text as
+    // well: the report box names them when it says the report cannot be read.
+    (function(){ var v={}; v[MS.cur]=1000;
+      ACEDB.sets['2025ACE']={label:'2025ACE', ts:Date.now()+60000, years:[MS.cur], locked:true, appn:{om:{tot:v, pmo:{}, svc:{}}}, lines:[],
+        skip:{pmo:P('aceskipv')}, rep:{v:1, sheet:'S', row:3, years:[P('aceyear')], reasons:{dtype:{rows:P('acerows'), v:{}}},
+          kept:{rows:1, lines:P('acekeptlines'), v:{}}, total:{rows:1, v:{}}, named:[], conflicts:[]}};
+      persistAce(); })();
+    // v2.12 RV4 (second review S02): a heading two rows place under different parents, named in the 2026 estimate's report box --
+    // the heading, the parent taken and each parent given are the file's own codes, drawn as text
+    (function(){ ACEDB.sets['2026ACE'].rep.ups=[{ap:'om', code:P('aceupcode'), up:P('aceuptake'), by:[{up:P('aceupgiven'), rows:[6]}]}];
+      persistAce(); })();
     // (an appropriation is {tot, pmo, svc}, as the estimate import builds it: one with no 'tot' threw inside render() from the
     // Spruills panel on, so the sweep after that panel looked at a board that had stopped drawing -- v2.07, as BUDDB.files)
+    // v2.12 W2 (item 132): the estimate's WBS tree, in the builders' contract's shape -- the names a picker shows beside a
+    // paragraph, and the CCaR record its suggestions are offered for. NEW-9 is on 1.2, so its path is drawn beside it in the WBS
+    // panel and the edit box, and its CCaR's suggestion is named; every other requirement's planted paragraph is not in the tree,
+    // so it is flagged as stored, there and in Needs attention's list.
+    // v2.12 (integration): planted in the 2026 estimate beside W1's own plants -- the newest estimate is the one the pickers offer
+    // (wbsPickKey), so a tree planted in an older set would never be drawn.
+    (function(){ var K=ACEDB.sets['2026ACE'], m=K.wbs[mySlug()]=K.wbs[mySlug()]||{};
+      m['1']={n:P('wbstop'), lv:1, up:''}; m['1.2']={n:P('wbsname'), lv:2, up:'1'};
+      K.lines.push({ap:mySlug(), pmo:'AV', svc:SVC[0], wbs:'1.2', ccar:P('wbsccar'), v:{}}); persistAce(); })();
+    S.wbs['NEW-9']=[{w:'1.2', v:[]}]; S.ccar['NEW-9']=P('wbsccar');
     RPDB={ts:Date.now(), entries:[{id:P('rpid'), ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:P('rpappn'), pec:P('rppec'), bpac:P('rpbpac'),
       title:P('rptitle'), amtM:2, dir:'deduct', pool:'disc', status:'Pending', hac:'', sac:''}]}; persistRp();
     try{ flowAddEnt(); flowSetEnt(flowEnts().length-1,'n',P('destname')); flowSetEnt(flowEnts().length-1,'t',P('destterms')); }catch(e){}
@@ -187,6 +229,14 @@ const SPECIAL = {
   ndPanel: `ndOpen=true; render();`, helpPanel: `openHelp('');`,
   // v2.00 (menu, 19 Oct): the left menu's three boxes close by uiImpClose / uiRepClose / uiDataClose; each opens as its entry opens it
   uiImpPanel: `uiImpOpen();`, uiRepPanel: `uiRepOpen();`, uiDataPanel: `uiDataOpen();`,
+  // v2.12 (item 132): the cost estimate import's report, for the planted estimate; and the mapping box, asking about a file whose
+  // name, sheet and headers are hostile (the box lists the file's own headers)
+  aceRepPanel: `aceRepShow('2026ACE');`,
+  aceColPanel: `aceColAsk(${JSON.stringify({ file: P('acecolfile'), key: '2026ACE', sheets: {}, H: { sheet: P('acecolsheet'), row: 2, rowNo: null,
+    hdr: ['Level', P('acecolhdr')], sig: 'x', need: ['wbs', 'roll'], col: {}, how: {}, years: {} } })});`,
+  // v2.12 W2 (item 132): Needs attention's list of WBS paragraphs the estimate does not hold -- every planted paragraph, as stored
+  // (its backdrop's own function only closes it, so the list was never drawn in the sweep)
+  attPanel: `attShow('wbsx');`,
 };
 const tryIt = code => `(function(){ try{ ${code} }catch(e){} return 'ok'; })()`;
 // v2.07 (item 121): the Add box is open while arOpen says so -- render() puts its class back -- so it is closed by its own code
@@ -206,7 +256,19 @@ export const MUST_SHOW = ['id', 'svc', 'grp', 'title0', 'event0', 'rename1', 'no
   // them), the CCaR list's record title and description read in when a number is typed, and another year's rows: a here
   // row's renamed title, an added one's plan event, CCaR and PID, the hostile office's, and one filled in to finish
   'baepsm', 'baegrp', 'ccarlisttitle', 'ccarlistdesc', 'yrrename0', 'yrevent1', 'yrccar1', 'yrpid1', 'yrevent2', 'yrevent3',
-  'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile'];
+  'yrccar3', 'yrdesc1', 'yrcons1', 'yrrecname1', 'baefile',
+  // v2.12 (item 132): the cost estimate import's report and mapping box, and the tie-out's lines nothing claims
+  'acefile', 'aceby', 'acesheet', 'acecoltitle', 'acebyval', 'acenamedwbs', 'acenamedwhat', 'aceconfcode', 'aceconfname', 'aceconfalso',
+  'acece', 'acecolfile', 'acecolsheet', 'acecolhdr',
+  // v2.12 RV1: the row counts named when an estimate's report cannot be read (its rows, lines and years are never drawn: they are
+  // not numbers, so the report is said to be unreadable -- and the sweep fails if any of them becomes an element)
+  'aceskipv',
+  // v2.12 RV4 (S02): a heading two rows place under different parents, named in the report box
+  'aceupcode', 'aceuptake', 'aceupgiven',
+  // v2.12 W2 (item 132): the estimate's WBS names, drawn beside the paragraph they name, and the CCaR its suggestion is for
+  'wbstop', 'wbsname', 'wbsccar',
+  // v2.12 RV2 (K03): a CLIN's paragraph, flagged under its WBS button in the drill
+  'clinwbs0'];
 
 // Open everything, reading the page after each step. `run(code)` evaluates a JavaScript expression in
 // the page and returns its value; `settle()` lets the page's next turn run (an <img onerror> fires then).
@@ -245,6 +307,9 @@ export async function hostileSweep(run, settle = async () => {}) {
     const setup = SPECIAL[id] || (fn ? `${fn}();` : null); if (!setup) continue;
     await run(tryIt(setup)); await look(`panel ${id}`); await run(CLOSE); opened++;
   }
+  // v2.12 RV2 (K01, K09): Needs attention's Without a WBS says why each requirement is listed -- a CLIN's number, a service's
+  // name -- so it is drawn too (the attPanel special above opens the other WBS list)
+  await run(tryIt(`attShow('wbs');`)); await look('Needs attention: without a WBS'); await run(tryIt(`attClose();`)); await run(CLOSE);
   // v2.07 (item 121): THE ADD BOX, the whole way through. Opened bare it asks only for the office -- the strip's old opener,
   // 'toggleAdd();', reached nothing else -- so it is opened for an office chosen at the top (PSM) and for the hostile office
   // chosen in the box, with values typed so each service's budget names are offered, a CCaR number from the records list
@@ -271,7 +336,13 @@ export async function hostileSweep(run, settle = async () => {}) {
   ];
   for (const [w, s] of BOX) { await run(tryIt(s)); await look(w); }
   await run(tryIt(`arHide(); setPmoFilter('ALL');`)); opened++;
+  // v2.12 (item 132): the tie-out's list of the estimate lines nothing claims, for the planted 2026 estimate
   for (const s of ['rmOpen=true; render();']) { await run(tryIt(s)); await look(s); }
+  // v2.12 (item 132): the tie-out's list of the estimate lines nothing claims, for the planted 2026 estimate
+  await run(tryIt(`spAce='2026ACE'; aceOnly='orph'; aceOpen=true; render();`)); await look('the ACE tie-out: lines nothing claims');
+  await run(tryIt(`aceOpen=false; aceOnly=''; render();`)); await run(CLOSE);
+  // v2.12 RV1: the import report of the estimate whose report is not ORBIT's shape (the Data card draws its line on every look)
+  await run(tryIt(`aceRepShow('2025ACE');`)); await look('the import report that cannot be read'); await run(tryIt(`aceRepClose();`)); await run(CLOSE);
   const menus = JSON.parse(await run(`JSON.stringify([].slice.call(document.querySelectorAll('.menu[id^="m_"]')).map(function(e){ return e.id.slice(2); }))`));
   for (const k of menus) { await run(tryIt(`toggleMenu(${JSON.stringify(k)});`)); await look(`menu ${k}`); await run(CLOSE); }
   // v2.00 (menu, 19 Oct): what the toolbar's Reports & exports, Data, Setup and File menus held is on the LEFT MENU: its boxes

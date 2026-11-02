@@ -1,0 +1,198 @@
+[
+ {
+  "id": "v212-w3-ba-not-live",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-unlogged-year",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-unnamed-zero",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-placeholder-names",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-aliases-own",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-not-floored",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-adds-dropped",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-ba-k-divided",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-cur-only",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-ppsetv",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-retag",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-linedel",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-del",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-unit",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-unit-undo",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-refresh-load",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-lock-tag-dropped",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-lock-tag-not-live",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-lock-from-tag",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-lock-no-pos",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-lock-pos-shared",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-view-reads-live",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-view-old-lock-reads-live",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-proj-no-upl",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read"
+ },
+ {
+  "id": "v212-w3-held-is-drawn",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-over-unfloored",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-un-unfloored",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-upl-uncapped",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-upl-other-lane",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-rows-unmarked",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-rows-reversed",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fit-follows-view",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fit-cache-kept",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fit-screen-year-only",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fit-writes-stored",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-box-blames-position",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fitgo-no-select",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-att-missing",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-bm-editable",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-bm-take-offered",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live"
+ },
+ {
+  "id": "v212-w3-upl-board-missing",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-upl-fs-missing",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-upl-1n-missing",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-upl-fydp-missing",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-w3-fydp-upl-lanes",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "cycle-lock-no-reference",
+  "caughtBy": "board / PPBE cycles — the deltas against the reference; PPBE cycles — the lock is the window, frozen"
+ },
+ {
+  "id": "v199-cyc-no-list",
+  "caughtBy": "recon / v1.99 item 88"
+ },
+ {
+  "id": "v202-89-lock-keeps-nothing",
+  "caughtBy": "board / v2.02 (item 89) — a locked cycle keeps its own lists"
+ },
+ {
+  "id": "v210-a-not-in-render",
+  "caughtBy": "other / v2.10 A — FYDP Disconnects"
+ }
+]

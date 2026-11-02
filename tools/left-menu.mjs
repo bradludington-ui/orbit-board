@@ -71,6 +71,7 @@ const WANT = {
   clearComputer: 1,       // v2.04 (item 106): Setup › Clear this computer…
   // Data
   '#srcFile': 1, '#ccarFile': 1, toggleExw: 1, '#aceFile': 1, toggleAce: 1, '#budFile': 1, toggleBudReg: 1,
+  aceRepShow: 1,          // v2.12 (item 132): Data › Annual Cost Estimate › Import report… (the newest estimate's)
   // Reports & exports
   togglePf: 1, togglePlans: 1, crExport: 1, exportExcel: 1, exportCSV: 1,   // v2.05 (item 114): the deck, the synopsis and Executive Decision are gone
   fydpPickExport: 1, exportCycCompare: 1,   // v2.04 (item 112): 📊 FYDP Spend Plan (Excel) opens the plan picker first
@@ -80,6 +81,7 @@ const WANT = {
   // FYDP ▸ (views only)
   toggleFydp: 1, toggleSp: 1, toggleP2: 1, toggleFlow: 1,
   toggleFdc: 1,           // v2.10 (item 130): FYDP › FYDP Disconnects…, beside the Spruills
+  toggleFit: 1,           // v2.12 (item 134): FYDP › Fit to the PPBE position…, beside PPBE Budget Positions
   // Execution ▸ (views only; ⚖ Reprogramming Actions, and the ATR/BTR log export above, went with the tracker in v2.02)
   toggleEx: 1, toggleFc: 1, toggleCr: 1, toggleQpe: 1, toggleDiv: 1,
 };
@@ -157,7 +159,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.04: 71 -- the three AI review entries (item 109) and Clear this computer (item 106)
       // v2.05: 68 -- the PowerPoint deck, the Exec synopsis and Executive decision removed (item 114)
       // v2.10: 69 -- FYDP › FYDP Disconnects… (item 130)
-      off.length === 0 && Object.keys(WANT).length === 69, off.slice(0, 12).join(' | '));
+      // v2.12: 71 -- the cost estimate import's report (item 132) and FYDP › Fit to the PPBE position… (item 134)
+      off.length === 0 && Object.keys(WANT).length === 71, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();

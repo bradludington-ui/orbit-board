@@ -1,0 +1,210 @@
+[
+ {
+  "id": "v212-w2-take-unlisted",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-take-whole-text",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-no-list-refused",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-codein-dash",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-picked-shown-whole",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-sort-as-text",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-suggest-any-appn",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-suggest-case",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-suggest-unmarked",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-kept-not-said",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-field-no-name",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-ar-unchecked",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-ar-list-stale",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-ar-no-list",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-er-raw-stored",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-er-save-unchecked",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-er-no-name",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-er-split-unflagged",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-panel-no-list",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-panel-no-name",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-setnum-unchecked",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-quick-browser-prompt",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-quick-unchecked",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-quick-kept-refused",
+  "caughtBy": "other / v2.12 W2 — a WBS paragraph is picked"
+ },
+ {
+  "id": "v212-w2-att-prime-any-clin",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-prime-money-blind",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-prime-no-clins",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-cov-of-dropped",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-title-bare",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-wbsx-missing",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-att-wbsx-no-clins",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-posture-silent",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-go-nowhere",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-go-prime-edit",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-go-split-hidden",
+  "caughtBy": "other / v2.12 W2 — Needs attention lists"
+ },
+ {
+  "id": "v212-w2-bulk-none",
+  "caughtBy": "other / v2.12 W2 — Classify sets"
+ },
+ {
+  "id": "v212-w2-bulk-erases-split",
+  "caughtBy": "other / v2.12 W2 — Classify sets"
+ },
+ {
+  "id": "v212-w2-bulk-on-primes",
+  "caughtBy": "other / v2.12 W2 — Classify sets"
+ },
+ {
+  "id": "v212-w2-mat-no-name",
+  "caughtBy": "other / v2.12 W2 — Classify sets"
+ },
+ {
+  "id": "v212-w2-src-blank",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-no-name",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-split-ignored",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-rest-on-paragraphs",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-fraction",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-clin-reads-req",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-src-unnamed",
+  "caughtBy": "other / v2.12 W2 — the Spend Plan Source carries"
+ },
+ {
+  "id": "v212-w2-fydp-unfolded",
+  "caughtBy": "other / v2.12 W2 — the FYDP Spend Plan’s STOVL tab"
+ },
+ {
+  "id": "v212-w2-fydp-first-only",
+  "caughtBy": "other / v2.12 W2 — the FYDP Spend Plan’s STOVL tab"
+ },
+ {
+  "id": "v212-w2-fydp-tab-order",
+  "caughtBy": "other / v2.12 W2 — the FYDP Spend Plan’s STOVL tab"
+ },
+ {
+  "id": "v212-w2-draw-wbsname",
+  "caughtBy": "hostile / hostile"
+ },
+ {
+  "id": "v212-w2-draw-datalist",
+  "caughtBy": "hostile / hostile"
+ },
+ {
+  "id": "v212-w2-draw-wbsx",
+  "caughtBy": "hostile / hostile"
+ }
+]

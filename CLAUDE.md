@@ -4767,6 +4767,176 @@ writes come from one string; never word the workbook's from the notes list.
 service; the no-note workbook against v2.10's from git) and the A block's oracle. 15 new mutations (`v211-*`), 1 retargeted;
 88 proved (`recovery/v211-proved.jsonl`). 2,799 targets.
 
+### v2.12 (items 132, 134): every requirement's WBS picked from the ACE; every year's budget read live from the PPBE position
+
+Brad, 28 Oct 2026: *"We don't have a WBS allocated to each requirement but we need it"* (132) and *"All years should
+reference the PPBE Budget assigned"* (134), with his answers of that day; built on his "Go on v2.12" by three builders to one
+contract (`recovery/v212/contract.md`, map `map.md`: W1 the ACE import, W2 the WBS on requirements, W3 item 134), then reviewed
+twice, each finding re-run by two skeptics (56 kept and 5 dropped: 55 fixed by RV1–RV3, and R37, a one-figure position, put to
+Brad and built at integration as he answered, `proofs-R37.json`; then 22 kept and 5 refuted, fixed by RV4–RV6). Item 133, the
+Service share workbook, is v2.13: it is not in this version and stays open. `NEXT-VERSION.md` › Shipped › v2.12 has every
+decision; `recovery/v212/notes-*.md` each builder's and fixer's record.
+
+**The cost estimate is read by its header titles (132, W1).** `aceFindHeader` searches every sheet, in the workbook's order, for
+the row carrying most of `ACE_FIELDS`' titles (`aceHdrScore`, at least `ACE_HDR_MIN`; titles compared by `aceTitleN`), and says
+which sheet and row it read. The mapping box (`#aceColPanel`, `aceColAsk`) asks for a required field no column titles, a title
+heading two columns, and an optional field as `ACE_FIELDS` says (US/PTN/FMS and CCAR Element always, CESk where paragraphs reach
+level k, CCAR Description never; "no such column" an answer). Answers are kept, only when the import lands, in
+`ACEDB.cols[<signature>] = {map, at, none, …}`, resolved by title (`memCol`: the index only tells apart two columns sharing
+one). An unanswered field or a year heading two columns refuses the file by name; `.xlsb` is refused by name and by contents.
+- Every row with a WBS, a dollar or text in a year cell is kept or left out by `ACE_WHY`'s reasons (a formatting row is counted
+  apart, `rep.notData`), each reason in `set.rep` by rows and dollars by year, so kept plus every reason is the sheet to the
+  dollar (`aceRepTies`). `ACE_SLC` (with `aceDepotCe`) replaces `ACE_APPN` and the old cost element column; `ACE_COL`'s fixed
+  positions went with them, every column now found by its title. `aceMoney` takes a cell only when the whole of it is a figure
+  (`aceIsFig`), `(1.5)` is −1.5 (v2.11 read +1.5), a whole dollar at the door; a year cell of text reads as nothing, named. The
+  file key is the last year that ACE still follows in the name.
+- The tree, `set.wbs[ap][CODE] = {n, lv, up}` (`aceTree`), is read only through `aceWbsMap`, `aceWbsNode`, `aceWbsUp`,
+  `aceWbsPath` and `wbsPickKey`. CESk names level k. A lettered breakout (`P6.2.2.1E`) is a whole branch: once a heading takes
+  the letter, every heading below it on that line does. A heading two rows place under different parents goes under the
+  breakout one, named in `rep.ups`, so the tree does not depend on row order.
+- The report (`#aceRepPanel`, Data › Import report…, on the Annual Cost Estimate card) opens after every import. `aceRepOf(set)`
+  is the one reader of a stored report: anything not in ORBIT's shape makes it unreadable as a whole, said, never zeros or
+  markup.
+- **PSM is inside Air Vehicle** in every estimate (`aceAlignDefault()`; `aceAlignHeal` replaces a 2026-or-later `{}` on
+  opening, and `aceHealSay` says so once per opening, until the board is saved). `aceGroupSplit` gives each office of a group
+  the lines only its requirements claim (a paragraph, `aceWbsOf`, that is the line's or a heading above it, `aceLineUp`) and a
+  shared line; the TOTAL adds the group.
+
+**A paragraph is picked, and goes where it is owed (132, W2).** `wbsPick(ap)` is the list and `wbsTake(val, P)` the one rule
+for anything typed or picked: blank clears; no estimate naming the appropriation, `codeTake` as before; a listed code stored as
+the estimate writes it; anything else refused with the text kept. `wbsCodeIn` is the one reader of an entry's code (the text
+before a spaced dash). The four pickers (WBS panel, `#arWbs`, `#erWbs`, `wbsQuick`'s box) stay text inputs with a
+`<datalist>`, the CCaR record's paragraphs first (`wbsSuggest`), never set; a stored one the list lacks is kept and flagged.
+- `wbsStateOf(id)` is what a requirement's WBS is: a prime's, its listed CLINs'; anything else's, its own lines. Needs attention
+  and the tie-out (`aceWbsOf`) read it, and `srcWbsParts` gives the same answer (a prime's money on no CLIN goes out blank).
+- ▦ *Without a WBS* lists what that rule finds no paragraph for and what the export's own lines send blank (`wbsBlankOf`:
+  `srcRowsOf(…, only)` on bare `tiers()` inside `clinReadOnly`, so a draw writes nothing), so the list, its coverage heading and
+  `srcNoWbsSay` are one reading; it names a CLIN whose one WBS line is blank. ≠ *WBS not in the estimate* lists stored
+  paragraphs the estimate does not hold. Classify's `matBulk().wbs` never touches a prime or a split, and says so
+  (`matSkipSay`).
+- The Spend Plan Source's column 23 is `CODE - name` (`srcWbsCell`); several paragraphs go out a line each, split once by the
+  group's whole draw and each piece by largest remainder (`srcWbsSpread`), so a paragraph gets what the office typed, to the
+  dollar. WBS from execution data (`execWbsScan`) reads that export back as *already set, as sent*, and writes no unlisted code.
+- The CLIN drill (`wbsClinSay`) and the PMO review (`wbsReviewTxt`, a proposed new requirement's WBS included,
+  `pmoFmtVal('__new')`) name or flag a paragraph. The FYDP Spend Plan's STOVL tab takes Full Fund's USMC-B (`fydpSvcFold`).
+- The import check refuses by name, at every door (a full import of one's own board included), CLINs not held by requirement
+  or not a list, a CLIN that is not one, and a request that is not a list of figures (`inClinsWhy`); the board reads such a
+  request in a file as none, and such a CLIN as no CLIN (`clinAskIn`, `clinsOf`).
+
+Decided in the build, Brad's to reverse: which untitled optional columns are asked about; remembered answers travel with the
+board in `ACEDB`; a blank US/PTN/FMS cell reads as US; a year heading two columns refuses; text in a year cell reads as nothing
+and its row is named (a bare dash is silent); an unreadable report is unreadable whole; a WBS not in the list is warned while
+typed and refused when committed (Save, Add, OK, a WBS line's change); the edit box's Navy SI code moved to Classification to
+make room for the WBS; coverage counts the year on screen, and dollars that go out on a paragraph; no prime paragraph on money
+no CLIN carries; a PMO copy sends `wbs` and, as before, not `clinWbs` (the CLIN drill is read-only in a copy). Put to him: a
+heading two rows place under different parents goes under the breakout heading, named; a "($M)" units row is now left out as
+Another dollar type ($0), where it counted as formatting; "2026 ACE vs 2027 ACE" keyed by the later year; saying on opening that
+a CLIN request was not a list; rows naming a carried paragraph plus another staying a conflict; a prime switched to an OGC, or
+back, claiming no estimate line until its WBS is set again.
+
+**Every year's budget authority is read live from the PPBE position (134, W3).** Brad: *"the budget should instantly reflect
+the updates"*, and *"flag the overage"*, never cut it. `baOf(st, fy, pos)` is pure and the only reading. The position is
+`baPos()`: the working plan's tag and this appropriation's `MS.ppbe[tag]`, or in a locked view the lock's `c.pos`. Where it logs
+the year, each service it names (`baNamed`: holds a figure in some year) takes its figures; everything else keeps the board's
+own `S.bm`, never written. Added sources go on top, and base plus sources is floored at $0 per service and lane. Parts are read
+through `bmNormOf` (`stMoney`, `stFit`, `stBmTot`, `applyState`'s own rules); a service the position cannot be read for
+(`ppSvcBad`) keeps its own base, said.
+- `applyBudget()` writes the year on screen's cache and `BA_SRC`; `baApplyTo` another year's, only where it moved; `baLiveAll()`
+  runs from every writer of a position or the tag, `applyStore`, a view in or out and the end of opening, with no `save()` and
+  nothing marked unsaved: opened and saved back without an edit, the board writes the state it opened, clocks aside (a cache an
+  older save left stale goes out live). `yearCopy` makes a year it starts live at once.
+- **One figure per line is one rule, `ppLanesOf`** (Brad, R37: *"Keep my lane split"*): split as logged; a one-figure total
+  divided by the board's own base for that service and year (`apportion`); all discretionary where that base is $0; `nobase`
+  (null, never guessed) where it cannot be read. `baOf`, Take from a PPBE position (`bmPpVec`, `bmSeedFromPp`) and FYDP
+  Disconnects (`fdcOwnBase`: each appropriation's own base) read it; `fitOneSay`, `fdcOneSay` say which rule applied.
+- `cycLock` tags an untagged plan before it projects and keeps `pos: {key, P}`; `cycTagMoves` names what the tag moves. A lock
+  with no `pos` predates v2.12. `cycProjOf` carries `upl`.
+- The fit (`fitModel`), per held year, service and lane on bare `tiers()`: held (`fsDirVec`, never less than drawn), drawn,
+  over, unallocated, UPL = min(added, unallocated); cached (`_fitCache`), worked out at the top of `render()`, another year on a
+  copy (`fitReadYear`). `#fitPanel` says what each over is measured against (`fitVs`), and Needs attention's first entry (*🏛 N
+  over BES28*) what the overs are against together (`fitOverLbl`). Budget Management shows read-only each base the position
+  supplies that year (`td.bmpos`); a service or year it does not log keeps its box, and `bmLiveRow` says above the table what
+  the year reads. Take from a PPBE position is offered to an untagged plan only.
+- **UPL is the last line** (`UPL_LBL`), by service and lane, after the TOTAL and never in it: the board (`div.uplline`, not a
+  row), Funding Streams, the 1–N tab, the FYDP plan's appropriation tabs (`fydpUplRows`); never the Spend Plan Source (a line
+  there would become a CCaR plan event; CCaR flags its own UPL), the Two Spend Plans or the unfunded sheets.
+- The import check now holds every position to the shapes the board reads (`inPosWhy`: every `ppbe`, every lock's `pos.P`, at
+  every door, a full import of one's own board included): words refused, text figures taken (`inAmtWhy`), and the board reads a
+  taken figure the same way (`ppNum`).
+
+Decided in the build: an over names its parts (*"$50 more than BES28 plus added funding ($900 + $150)"*); the fit and the 🏛
+entry judge an untagged plan against its own base, N counting year × service × lane cells; the import check refuses a malformed
+position. Put to Brad: whether R37 is meant to reach Take and FYDP Disconnects, as built; and whether FYDP Disconnects (his
+Spruill slides) should print — under Discretionary and Mandatory, with the figure as its Controls and a note, for a one-figure
+position in a year that appropriation holds no plan for, as built.
+
+What it leaves for the next change:
+- **A stored value has one reader, and a box never rewrites it on opening.** "1.2.1 - Organizational" was 1.2.1 to the edit box
+  and the export and "1.2.1-ORGANIZATIONAL" to Needs attention, Classify and the tie-out; three boxes shortened the text they
+  opened with, so the edit box opened dirty and a Save of another field rewrote it.
+- **A rule written in two places is two rules.** R37 went into `baOf` alone, and Take and FYDP Disconnects kept the reading Brad
+  had rejected -- three answers for one figure -- until RV6 made `ppLanesOf`. Twice more: Without a WBS against the export's
+  message, and the tie-out's claims (`aceWbsOf` read every CLIN of every type).
+- **Code moved onto the draw path meets every shape a file can carry.** A CLIN request that was not a list was harmless while
+  only an opened drill read it; once every draw reached `clinList`, the board opened blank (S10). A PPBE position whose line list
+  was not a list did the same once `applyState` read the tagged position, and an import of one half-landed (R12, R24). Make the
+  reader unable to throw and let the door refuse the shape by name (`inClinsWhy`, `inPosWhy`) -- never a catch that draws a
+  plausible wrong list.
+- **A header is read by title, never by position**, and a remembered answer is a title too: ACE files add columns year to year.
+- **The year on screen hides a missing refresh.** Every draw re-applies it; three W3 mutations survived until their checks
+  read a year not on screen.
+- **Measure before anything has run.** "The draw writes nothing" took its snapshot after many draws, and a CLIN request planted
+  before `applyState` ran was fitted away before the save: neither check could fail.
+- **A retarget is a new mutation and needs its own proof.** Five of W2's (`fydp-service-shifted`, `v199-newreq-ccar-cut`,
+  `v200-u41-strip-silent`, `v207-rv2-wbs-mark-off-early`, `v207-rv2-wbs-mark-never-off`) had none until integration proved
+  them (`recovery/v212/proofs-retarget.json`, all caught).
+- **A later round's fix can put an earlier round's mutation out of its own check's reach.** Each round proved its mutations on
+  its own board; on the merged board three of W2's SURVIVED. RV2 had made Without a WBS also list whatever the export sends
+  blank, so a prime the check had funded was listed whatever `wbsStateOf` said (`v212-w2-att-prime-any-clin`, `-no-clins`), and
+  after K06 a split in fractions differs only in which lane carries the odd dollar (`v212-w2-src-fraction`). The checks now
+  reach them (`e665914`, `b8420fc`): a board where nothing reaches the primes, and a split that does not divide evenly. The
+  v2.09 rule stands: prove every mutation together on the merged board, and plan a round for what that run finds.
+- **Run `mcount` and audit-inject after every merge.** An editor that turned a `\u` escape into its character unmatched two
+  mutations (`v200-fname-ace-raw`, `v200-ace-key-open`), and a rewritten line broke a K5 source pin. Needs attention now reads
+  the Spend Plan Source's own lines on every draw (`attLists` ~1 → ~10 ms, a render ~680 → ~750 ms in jsdom).
+- **The guide's size is what the browser draws, not what the source says.** Merged, RV4's and RV6's guide sentences took it to
+  70,035 characters as audit-import reads it (`helpDoc.innerHTML`; the source read 69,980, the DOM writes entities out), and the
+  first nightly failed there; three phrases nothing reads came out of `t-wbs` (`d630240`). It is 69,950 of 70,000: the next
+  addition trims it or raises the budget on purpose, measured in a booted board.
+- **Two proof runs never share a tree.** `prove.py` names its suite copies by a hash of the suite and the blocks
+  (`_slim-prove-<hash>.mjs`) and removes them when it stops, so a second run beside a first deletes the first's copies, and
+  every check the first has not yet started reads NOT CLEAN.
+- **A browser check never sets storage from an init script.** `npm run pmosave` failed 6 of 7 runs on v2.12 in its two-tab
+  sections, and that was the check: an init script runs while a `file://` document is being created, and in Chromium 153 a
+  storage access that early sometimes gives the tab a storage area of its own, so a second tab never sees the first one's save.
+  The unchanged check failed v2.11 as often (4 of 6), the two boards make the same writes, and with no init script no tab was
+  cut off in 120 board tabs. `tools/pmo-save.mjs` now seeds storage from a page of its own once it has loaded (`seedLs`), waits
+  for another tab's write before reading it, names the harness when a tab cannot see the seed, and will not run with such an
+  init script in it (`3e29863`; `recovery/v212/notes-pmosave.md`, with `pmosave-repro-islands.mjs`, which shows it with no
+  board). **A browser check that opens two tabs in one context seeds its storage the way pmo-save does.**
+- **Left as found.** WBS from execution data still proposes a pull row for a prime that names none of its CLINs for the prime's
+  requirement-level paragraph, which nothing reads (ORBIT's own export never writes one; a CCaR-typed row could); a CLIN request
+  that is a list of text figures (`['5']`) is still summed as text by `clinAskTot` in the drill, as in v2.11. Known gaps: the ACE
+  import is not refused in a PMO copy (as before); a re-import can change `aceFingerprint`, so the folder's or another board's
+  copy of that estimate reads as "disagrees"; another appropriation's budget caches are as its board last saved them until that
+  board opens; positions edited in a PMO copy do not travel back (as before); the edit box shows about 85 characters of a
+  paragraph's name with every RCN / EEIC row open.
+
+**Checks.** audit-other: "v2.12 W1 —" (1), "v2.12 W2 —" (5), "RV1 —" (5), "RV2 —" (7), "RV4 —" (5), "RV5 —" (5) and "RV6 — FYDP
+Disconnects reads a split position exactly as before" (it reads `c81e995`, and RV5's S10 block `bbb7ee9`, from git: unshallow
+first; `c81e995` is on the release branch, not yet on main, and a squash merge of PR #30 would leave the block nothing to read);
+audit-board: "v2.12 W3 —" (3), "RV3 —" (10), "RV6 —" (6); audit-recon: "v2.12 W1 — PSM is inside Air Vehicle …". Each fails on
+the commit before it, except CONTROLs and the blocks that pin code already right (each notes file names them). Moved on purpose,
+each with a `// v2.12` comment: audit-import's guide budget (64 KB → 70 KB), audit-recon's U10 (its plan now reads its tagged
+position: R funded $227, was $630) and the ACE tie-out's PSM line under AV, the v1.93 Needs attention posture, the v1.96 Data
+count, the FYDP flyout lists, and D5c and v2.10 A-3 (positions entered split). The positional ACE fixtures (audit-import,
+audit-recon) are titled sheets; `hostile.mjs` plants the new fields. Browser: layout P, Q, R; keys S, T, U; `tools/ace-seed.mjs`
+holds one state for panels, dialogs, standards, layout P and keys S; leftmenu 71 calls. Money map 322 cells (119 proven, 202
+n/a, 1 open, v2.04's); coverage 27/27. **Mutations:** 350 new (`v212-*`, some retargeted again within v2.12), 14 older ones
+retargeted, none retired; 3,149 targets, each once; all 364 have proof records (`proofs-INT.json`), and the integrated run is
+364 of 364 CAUGHT (`recovery/v212/proved-INT.jsonl`; three after their checks were strengthened, above). Every suite whole, and `npm run validate:nightly` on `d630240`: every stage holds but layout's carried D x8 (fuzz seed 374193428). Browser: keys, dropdowns, dialogs, leftmenu, pmoyears, pointer and standards (nothing new) pass on `d630240`; pmosave failed now and then, on v2.11 as often as on v2.12, from how the check set browser storage, never the board (above); fixed in the check (`3e29863`) it passes 12 of 12 on v2.12 and 4 of 4 on v2.11, and still fails on six v2.09 save mutants and on the three boards its sections were written to fail on. No sweep (Brad's
+rule of 20 Oct). audit-board, audit-recon and audit-import need `--max-old-space-size=8192`.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

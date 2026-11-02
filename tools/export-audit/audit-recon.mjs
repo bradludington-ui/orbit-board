@@ -111,9 +111,12 @@ dress(ev);
 // no office reports under), a year override on one ask, the other funding sources typed in, and
 // prime tokens that route two requirements to Lockheed and Pratt. Seeded BEFORE the figures and the
 // workbook are read, so everything below sees the same board.
+// v2.12 W1 (item 132): PSM is inside Air Vehicle in every estimate -- Cost files PSM's money under Air Vehicle, and no estimate has a
+// PSM office of its own -- so the line A confirms is filed under AV, as the 2026 estimate files it. Under the old rule (PSM its own
+// estimate office from 2026) it sat under PSM; read the new way, a line under PSM is under no office, and A's estimate is AV's.
 const dress2 = (ev) => ev(`
   ACEDB.sets={}; ACEDB.sets['2026ACE']={lines:[
-    {ap:mySlug(), pmo:'PSM',    wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'TSS', wbs:'2.2', v:{}},
+    {ap:mySlug(), pmo:'AV',     wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'TSS', wbs:'2.2', v:{}},
     {ap:mySlug(), pmo:'ATL',    wbs:'9.9', v:{}}, {ap:mySlug(), pmo:'NOBODY', wbs:'7.7', v:{}} ]};
   var L=ACEDB.sets['2026ACE'].lines;
   L[0].v[MS.cur]=9500000; L[1].v[MS.cur]=1700000; L[2].v[MS.cur]=4000000; L[3].v[MS.cur]=333000;
@@ -3040,7 +3043,9 @@ await (async () => {
     2028: { ask: { A1: [190000, 43000, 21000, 12000], A2: [99000, 28000, 16000, 35000], A3: [72000, 13000, 48000, 5000], A4: [57000, 18000, 6000, 29000] },
             alloc: { A2: [91000, 28000, 16000, 32000] }, disc: [280000, 90000, 62000, 44000], mand: [100000, 4000, 24000, 25000],
             wbs: { A1: '1.1', A2: '2.2', A3: '3.3', A4: '4.4' }, ok: { A1: true, A3: true, A4: true } } };
-  const LINES = [['PSM', '1.1', 205000, 233000], ['TSS', '2.2', 151000, 98000], ['ATL', '3.3', 73000, 77000], ['AV', '4.4', 15000, 101000], ['NOBODY', '9.9', 3000, 34000]];
+  // v2.12 W1 (item 132): PSM's line is filed under AV, as Cost files it: PSM is inside Air Vehicle in every estimate (it sat under PSM,
+  // its own estimate office from 2026 under the old rule)
+  const LINES = [['AV', '1.1', 205000, 233000], ['TSS', '2.2', 151000, 98000], ['ATL', '3.3', 73000, 77000], ['AV', '4.4', 15000, 101000], ['NOBODY', '9.9', 3000, 34000]];
   const est = (w, fy) => { const l = LINES.find(x => x[1] === w); return l ? l[fy === 2027 ? 2 : 3] : 0; };
   // each year's lane walk, here: per service, discretionary until dry, then mandatory, then beyond
   const funded = fy => { const y = Y[fy], dR = y.disc.slice(), mR = y.mand.slice(), o = {};
@@ -3095,10 +3100,21 @@ await (async () => {
     chk(name, 'Reconciliation by PMO · fiscal year', 'v1.99 (item 94): each year’s estimate, accounted for: the office rows plus the stray line, and it ties',
       J(pmo.slice(h + 1).filter(idn).map(r => [w6Lbl(r), num(r[2]), /DOES NOT TIE/.test(String(r[1]))])),
       J(YRS.map(fy => [FYL2(fy), S_(LINES.map(l => l[fy === 2027 ? 2 : 3])), false])));
+    // v2.12 W1 (item 132): PSM and AV are one row, "PSM + AV" (the offices in their configured order), carrying every AV line of the
+    // estimate against both offices' requirements; beneath it each office's part -- the lines only its requirements claim by their
+    // WBS (A1 claims 1.1 in both years, A4 claims 4.4 in 2028 only) -- and the shared line, 4.4 in 2027, which nobody claims then.
+    // The parts are a breakdown of the row, not rows of the year: the TOTAL is the office rows', as before.
     const want = [].concat(...YRS.map(fy => {
-      const L = ['ATL', 'AV', 'PSM', 'TSS'].map(p => { const mine = ids.filter(id => PMO[id] === p), e = S_(LINES.filter(l => l[0] === p).map(l => l[fy === 2027 ? 2 : 3])), b = S_(mine.map(id => F[fy][id]));
-        return [FYL2(fy), p, e, b, b - e, mine.filter(id => Y[fy].ok[id]).length, mine.length]; });
-      const eY = S_(L.map(r => r[2])), bY = S_(L.map(r => r[3]));
+      const yv = l => l[fy === 2027 ? 2 : 3];
+      const row = (lbl, offs, acePmo) => { const mine = ids.filter(id => offs.indexOf(PMO[id]) >= 0), e = S_(LINES.filter(l => l[0] === acePmo).map(yv)), b = S_(mine.map(id => F[fy][id]));
+        return [FYL2(fy), lbl, e, b, b - e, mine.filter(id => Y[fy].ok[id]).length, mine.length]; };
+      const claimedBy = l => ids.filter(id => (PMO[id] === 'PSM' || PMO[id] === 'AV') && Y[fy].wbs[id] === l[1]).map(id => PMO[id]).filter((v, i, a) => a.indexOf(v) === i);
+      const part = p => { const e = S_(LINES.filter(l => l[0] === 'AV' && J(claimedBy(l)) === J([p])).map(yv)), b = S_(ids.filter(id => PMO[id] === p).map(id => F[fy][id]));
+        return [FYL2(fy), '↳ ' + p + ': the lines only its requirements claim', e, b, b - e, null, null]; };
+      const shared = S_(LINES.filter(l => l[0] === 'AV' && claimedBy(l).length !== 1).map(yv));
+      const tops = [row('ATL', ['ATL'], 'ATL'), row('PSM + AV', ['PSM', 'AV'], 'AV'), row('TSS', ['TSS'], 'TSS')];
+      const L = [tops[0], tops[1], part('PSM'), part('AV'), [FYL2(fy), '↳ shared: the lines more than one office claims, or none', shared, null, null, null, null], tops[2]];
+      const eY = S_(tops.map(r => r[2])), bY = S_(tops.map(r => r[3]));
       return L.concat([[FYL2(fy), 'NOBODY', est('9.9', fy), null, null, null, null], [FYL2(fy) + ' TOTAL', '', eY, bY, bY - eY, ids.filter(id => Y[fy].ok[id]).length, ids.length]]); }));
     chk(name, 'Reconciliation by PMO · fiscal year', 'each year’s block: every office’s estimate and board funded, the stray line, the year’s total', J(got), J(want));
   }
@@ -3589,7 +3605,9 @@ await (async () => {
     const X = boot();
     seed(X.ev, { services: ['USAF', 'ANG'], items: [it('R1', 'PSM', [600, 400]), it('R2', 'TSS', [300, 0])], disc: [10000, 10000], mand: [0, 0], order: ['R1', 'R2'] });
     const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
-    const LINES = [['PSM', '1.1', 900], ['TSS', '2.2', 400], ['ATL', '3.3', 250], ['NOBODY', '9.9', 100]];
+    // v2.12 W1 (item 132): PSM's $900 is filed under AV, as Cost files it -- PSM is inside Air Vehicle in every estimate, so PSM's row
+    // reads AV's estimate (under the old rule PSM was its own estimate office from 2026, and the line sat under PSM)
+    const LINES = [['AV', '1.1', 900], ['TSS', '2.2', 400], ['ATL', '3.3', 250], ['NOBODY', '9.9', 100]];
     ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.wbs={R1:[{w:'1.1', v:[]}], R2:[{w:'2.2', v:[]}]}; S.aceMap={R1:{w:['1.1'], ok:true}, R2:{w:['2.2'], ok:true}}; MS.years[MS.cur]=S;
       ACEDB.sets={'2027ACE':{lines:${J(LINES)}.map(function(l){ var v={}; v[MS.cur]=l[2]; return {ap:mySlug(), pmo:l[0], wbs:l[1], v:v}; })}};
@@ -5819,9 +5837,11 @@ await (async () => {
       ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:1, file:'2027 ACE approved.xlsx'}};
       ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; aceYr='all'; persistAce(); applyState(S); save(); flowSetAxis('dest');
       globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
-      globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
-        r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
-        rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+      // v2.12 W1: the import reads by header title (item 132), so the estimate is a titled sheet in the 2026 layout -- its titles on
+      // row 3 -- holding the one line it always held: O&M, USAF, JPO managed, Air Vehicle, no WBS, $4.321M in 2027 ('CE1', the old
+      // cost element column's text, rides in CCAR Description).
+      globalThis.__aceRows=function(){ var H=['Index','PALS/O&S','$ Type','US/PTN/FMS','Service','T/M/S','Rollup Value?','JPO Managed','Appropriation (US Only)','Support Line Category','CCAR Element','CCAR Description','PMO','Work Breakdown Structure','Level','CES1','CES2',2026,2027,2028];
+        return [['ACE'], [], H, [1,'O&S','TY$','US','USAF','F-35A','No','Yes','O&M','O&S','','CE1','Air Vehicle','','','','','',4.321,'']]; };
       'ok'`);
     const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
     // after the lock: the working plan adds Depot X, a government activity, and sends R's money there (PB27 still sends it to Lockheed Martin)
@@ -5989,10 +6009,13 @@ await (async () => {
     const pos = async () => { const fb = JSON.parse(await w6Book(X.w, 'exportFydpPlan'));
       return [fb.__err || 'ok', JSON.parse(ev(`JSON.stringify(['USAF','ANG','AFRC'].map(function(sv){ return [sv, ppSvcFy(MS.ppbe['PB|'+MS.cur]||{}, sv, MS.cur).t]; }))`))]; };
     const stored = () => ev(`(JSON.parse(localStorage.getItem(_AP.key)||'{}')||{}).spAce||''`);
-    // BY HAND. 2027ACE: A's $1,100 funded against $900 on 1.1 (delta 200); AV $900 against $1,730 funded (A 1,100 + R 630; delta 830).
-    // 2026ACE: $333 against the same (767; 1,397). USAF's FY27 position $1,000; no other service logs one.
-    const T900 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)', [['Req A', 1100, 900, 200], ['Req R', 630, '', '']], [['FY27', 'AV', 900, 1730, 830]]];
-    const T333 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2026ACE, FY27)', [['Req A', 1100, 333, 767], ['Req R', 630, '', '']], [['FY27', 'AV', 333, 1730, 1397]]];
+    // BY HAND. 2027ACE: A's $1,100 funded against $900 on 1.1 (delta 200); AV $900 against $1,327 funded (A 1,100 + R 227; delta 427).
+    // 2026ACE: $333 against the same (767; 994). USAF's FY27 position $1,000; no other service logs one.
+    // v2.12 W3: the plan is tagged PB27 and its PB27 position logs USAF FY27 at $1,000, so USAF's budget authority is that figure,
+    // read live (item 134), not the $5,000 seeded: A takes $900 of it and R the $100 left (R funded $100 + ANG $127 = $227, it was
+    // $630). The view and the working plan agree on it, which is what this block holds; nothing here is about the budget.
+    const T900 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)', [['Req A', 1100, 900, 200], ['Req R', 227, '', '']], [['FY27', 'AV', 900, 1327, 427]]];
+    const T333 = ['ok', 'ACE TIE-OUT - MAPPING BY REQUIREMENT  (2026ACE, FY27)', [['Req A', 1100, 333, 767], ['Req R', 227, '', '']], [['FY27', 'AV', 333, 1327, 994]]];
     const POS = ['ok', [['USAF', 1000], ['ANG', 0], ['AFRC', 0]]];
     const SCREEN = [['2027ACE'], ['By PMO']];
     const view = () => ev(`cycView(${J(key)}); 'ok'`), leave = () => ev(`cycLeave(); 'ok'`);
@@ -6073,9 +6096,11 @@ await (async () => {
       const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
       ev(`globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ __reads++; return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
         globalThis.__reads=0;
-        globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
-          r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
-          rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+        // v2.12 W1: the import reads by header title (item 132), so the estimate is a titled sheet in the 2026 layout -- its titles on
+        // row 3 -- holding the one line it always held: O&M, USAF, JPO managed, Air Vehicle, no WBS, $4.321M in 2027 ('CE1', the old
+        // cost element column's text, rides in CCAR Description).
+        globalThis.__aceRows=function(){ var H=['Index','PALS/O&S','$ Type','US/PTN/FMS','Service','T/M/S','Rollup Value?','JPO Managed','Appropriation (US Only)','Support Line Category','CCAR Element','CCAR Description','PMO','Work Breakdown Structure','Level','CES1','CES2',2026,2027,2028];
+          return [['ACE'], [], H, [1,'O&S','TY$','US','USAF','F-35A','No','Yes','O&M','O&S','','CE1','Air Vehicle','','','','','',4.321,'']]; };
         // what a download hands out: the text of every Blob made while the code runs
         globalThis.__handed=function(code){ var got=[], _B=window.Blob;
           window.Blob=function(p,o){ try{ (p||[]).forEach(function(x){ if(typeof x==='string' && x.indexOf('spmtPkg')>=0) got.push(x); }); }catch(e){} return new _B(p,o); };
@@ -6476,9 +6501,11 @@ await (async () => {
       const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
       ev(`globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ __reads++; return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
         globalThis.__reads=0;
-        globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
-          r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
-          rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+        // v2.12 W1: the import reads by header title (item 132), so the estimate is a titled sheet in the 2026 layout -- its titles on
+        // row 3 -- holding the one line it always held: O&M, USAF, JPO managed, Air Vehicle, no WBS, $4.321M in 2027 ('CE1', the old
+        // cost element column's text, rides in CCAR Description).
+        globalThis.__aceRows=function(){ var H=['Index','PALS/O&S','$ Type','US/PTN/FMS','Service','T/M/S','Rollup Value?','JPO Managed','Appropriation (US Only)','Support Line Category','CCAR Element','CCAR Description','PMO','Work Breakdown Structure','Level','CES1','CES2',2026,2027,2028];
+          return [['ACE'], [], H, [1,'O&S','TY$','US','USAF','F-35A','No','Yes','O&M','O&S','','CE1','Air Vehicle','','','','','',4.321,'']]; };
         // what a download hands out: the text of every Blob made while the code runs
         globalThis.__handed=function(code){ var got=[], _B=window.Blob;
           window.Blob=function(p,o){ try{ (p||[]).forEach(function(x){ if(typeof x==='string' && x.indexOf('spmtPkg')>=0) got.push(x); }); }catch(e){} return new _B(p,o); };
@@ -11472,6 +11499,105 @@ await (async () => {
 
 // ==== v2.10 B (item 130): FYDP Disconnects -- the workbook ====
 // ==== end v2.10 B ====
+
+// ==== v2.12 W1 (item 132): the ACE import by its header titles, the WBS tree, PSM inside Air Vehicle ====
+// v2.12 W1 (item 132; Brad, 28 Oct 2026: "The ORBIT assignment is the driver between those splits"): PSM IS INSIDE AIR VEHICLE IN
+// EVERY ESTIMATE, AND THE WBS EACH OFFICE'S REQUIREMENTS CLAIM SPLITS IT. A 2027 estimate files everything under AV (and TSS's line
+// under TSS); its WBS tree is the import's (set.wbs), with an E breakout whose heading is P6.2.2E. The board: two AV requirements --
+// one on the heading 1.2, one on P6.2.2 -- two PSM requirements -- one on 1.2.1.2 (which AV's 1.2 also covers) and 1.3, one on the
+// breakout heading P6.2.2E -- and a TSS requirement. Each office's part is the estimate of the lines only its requirements claim, up
+// the tree: AV takes 1.2.1.1 and P6.2.2.1 (P6.2.2 does not reach P6.2.2.1E, whose heading is P6.2.2E), PSM takes 1.3.1 and P6.2.2.1E,
+// and 1.2.1.2 (both claim it) and 1.4.1 (nobody does) are the shared line. In the second year PSM drops 1.2.1.2, so it is AV's alone
+// there: the claims are each year's own. Every figure is typed from the fixture; the workbook is read back from its bytes, the panel
+// from the rendered rows. FAILS ON d732259 (the slot commit): PSM is its own estimate office for a 2027 estimate there, PSM's row
+// reads $0 and nothing splits.
+await (async () => {
+  const name = 'v2.12 W1 — PSM is inside Air Vehicle, and each office’s part of the estimate is the lines only its requirements claim, up the WBS tree';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify, S_ = a => a.reduce((x, y) => x + y, 0);
+    const SV = ['USAF', 'ANG'], ids = ['V1', 'V2', 'P1', 'P2', 'T1'];
+    const PMO = { V1: 'AV', V2: 'AV', P1: 'PSM', P2: 'PSM', T1: 'TSS' };
+    const ASK = { V1: [610001, 20003], V2: [430007, 9011], P1: [270013, 33017], P2: [190019, 4023], T1: [88029, 1031] };
+    const WBS = { 2027: { V1: ['1.2'], V2: ['P6.2.2'], P1: ['1.2.1.2', '1.3'], P2: ['P6.2.2E'], T1: ['2.1'] },
+                  2028: { V1: ['1.2'], V2: ['P6.2.2'], P1: ['1.3'], P2: ['P6.2.2E'], T1: ['2.1'] } };
+    // [ACE office, paragraph, 2027, 2028]
+    const LINES = [['AV', '1.2.1.1', 1000001, 1100101], ['AV', '1.2.1.2', 2000002, 2200202], ['AV', '1.3.1', 300003, 330303],
+      ['AV', 'P6.2.2.1', 400004, 440404], ['AV', 'P6.2.2.1E', 50005, 55505], ['AV', '1.4.1', 60006, 66606], ['TSS', '2.1.1', 70007, 77707]];
+    const node = (n, lv, up) => ({ n, lv, up });
+    const TREE = { '1': node('Manpower', 1, ''), '1.2': node('Maintenance', 2, '1'), '1.2.1': node('Organizational', 3, '1.2'),
+      '1.2.1.1': node('Officer', 4, '1.2.1'), '1.2.1.2': node('Enlisted', 4, '1.2.1'), '1.3': node('Contractor', 2, '1'), '1.3.1': node('Field', 3, '1.3'),
+      '1.4': node('Other', 2, '1'), '1.4.1': node('Misc', 3, '1.4'), 'P6': node('Depot Standup', 1, ''), 'P6.2': node('CONUS', 2, 'P6'),
+      'P6.2.2': node('Propulsion', 3, 'P6.2'), 'P6.2.2.1': node('Engine', 4, 'P6.2.2'), 'P6.2.2E': node('ECU Propulsion', 3, 'P6.2'),
+      'P6.2.2.1E': node('Engine ECU', 4, 'P6.2.2E'), '2': node('Training', 1, ''), '2.1': node('Sims', 2, '2'), '2.1.1': node('FMS', 3, '2.1') };
+    const YRS = [2027, 2028], yi = fy => (fy === 2027 ? 2 : 3);
+    // the expectation, from the fixture: up the tree as the fixture writes it, each line's claimants that year
+    const upOf = c => { const o = []; let x = c; while (x && TREE[x]) { o.push(x); x = TREE[x].up; } return o; };
+    const claimants = (l, fy) => ['AV', 'PSM'].filter(p => ids.some(id => PMO[id] === p && WBS[fy][id].some(w => upOf(l[1]).indexOf(w) >= 0)));
+    const part = (p, fy) => S_(LINES.filter(l => l[0] === 'AV' && J(claimants(l, fy)) === J([p])).map(l => l[yi(fy)]));
+    const shared = fy => S_(LINES.filter(l => l[0] === 'AV' && claimants(l, fy).length !== 1).map(l => l[yi(fy)]));
+    const grpEst = fy => S_(LINES.filter(l => l[0] === 'AV').map(l => l[yi(fy)]));
+    const funded = p => S_(ids.filter(id => PMO[id] === p).map(id => S_(ASK[id])));      // budget authority covers every ask
+    chk(name, 'fixture', 'CONTROL — the alternatives disagree: by plain prefix P6.2.2 would reach P6.2.2.1E; 1.2.1.2 is both offices’ in 2027 and AV’s alone in 2028; 1.4.1 is nobody’s',
+      J([upOf('P6.2.2.1E').indexOf('P6.2.2'), claimants(LINES[1], 2027), claimants(LINES[1], 2028), claimants(LINES[5], 2027)]), J([-1, ['AV', 'PSM'], ['AV'], []]));
+    const X = boot();
+    seed(X.ev, { services: SV, items: ids.map(id => it(id, PMO[id], ASK[id])), disc: [5000000, 5000000], mand: [0, 0], order: ids });
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      var W=${J(WBS)}, wb=function(fy){ var o={}; Object.keys(W[fy]).forEach(function(id){ o[id]=W[fy][id].map(function(w){ return {w:w, v:[]}; }); }); return o; };
+      S.wbs=wb(2027); MS.years[MS.cur]=S; var y1=JSON.parse(JSON.stringify(S)); y1.wbs=wb(2028); MS.years[MS.cur+1]=y1;
+      ACEDB.sets={'2027ACE':{label:'2027ACE', ts:5, years:[2027,2028], wbs:{om:${J(TREE)}}, lines:${J(LINES)}.map(function(l){ return {ap:'om', pmo:l[0], svc:'USAF', wbs:l[1], v:{2027:l[2], 2028:l[3]}}; })}};
+      MS.aceAlign={}; spAce='2027ACE'; aceYr='all'; save(); 'ok'`);
+    chk(name, 'fixture', 'CONTROL — the board is O&M, two years held, and every requirement funded whole',
+      ev(`mySlug()+' '+JSON.stringify(aceScopeYears())+' '+(function(){ var T=tiers(); return S.order.every(function(id){ return T[id].dT+T[id].mT===itemById(id).ask.reduce(function(a,b){ return a+b; },0); }); })()`),
+      'om [2027,2028] true');
+    chk(name, 'alignment', 'PSM draws its estimate from AV, for a 2027 estimate as for any other', ev(`acePmoFor('2027ACE','PSM')+' '+acePmoFor('2027ACE','AV')`), 'AV AV');
+    // ---- the workbook, from its bytes
+    const bk = JSON.parse(await w6Book(X.w, 'exportAceTieout'));
+    chk(name, 'workbook', 'CONTROL — the tie-out builds and reads back', bk.__err || 'ok', 'ok');
+    const rc = bk['Reconciliation by PMO'] || [];
+    const want = [].concat(...YRS.map(fy => {
+      const F = 'FY' + (fy % 100), eG = grpEst(fy), bG = funded('AV') + funded('PSM');
+      return [[F, 'GROUP', eG, bG, bG - eG],
+        [F, '↳ AV: the lines only its requirements claim', part('AV', fy), funded('AV'), funded('AV') - part('AV', fy)],
+        [F, '↳ PSM: the lines only its requirements claim', part('PSM', fy), funded('PSM'), funded('PSM') - part('PSM', fy)],
+        [F, '↳ shared: the lines more than one office claims, or none', shared(fy), null, null]]; }));
+    const got = rc.filter(r => /^FY\d\d$/.test(w6Lbl(r)) && /^(AV \+ PSM|PSM \+ AV)\b|^↳/.test(String((r || [])[1] ?? '')))
+      .map(r => [w6Lbl(r), /^↳/.test(String(r[1])) ? String(r[1]) : 'GROUP', num(r[2]), r[3] === '' || r[3] == null ? null : num(r[3]), r[4] === '' || r[4] == null ? null : num(r[4])]);
+    const ord = r => r[0] + '|' + (r[1] === 'GROUP' ? 0 : /AV:/.test(r[1]) ? 1 : /PSM:/.test(r[1]) ? 2 : 3);
+    chk(name, 'workbook', 'Reconciliation by PMO: AV and PSM one row, the estimate of every AV line against both offices’ requirements; beneath it each office’s part and the shared line, each year',
+      J(got.slice().sort((a, b) => (ord(a) < ord(b) ? -1 : 1))), J(want));
+    chk(name, 'workbook', 'the parts and the shared line add up to the group’s estimate, each year, to the dollar',
+      J(YRS.map(fy => { const F = 'FY' + (fy % 100), g = got.filter(r => r[0] === F); return S_(g.filter(r => r[1] !== 'GROUP').map(r => r[2])) === (g.find(r => r[1] === 'GROUP') || [])[2]; })), J([true, true]));
+    const tot = rc.filter(r => /^FY\d\d TOTAL$/.test(w6Lbl(r))).map(r => [w6Lbl(r), num(r[2]), num(r[3])]);
+    chk(name, 'workbook', 'CONTROL (on d732259 there are no parts to add) — the parts are a breakdown, not more rows: each year’s TOTAL is the AV group and TSS, once',
+      J(tot), J(YRS.map(fy => ['FY' + (fy % 100) + ' TOTAL', grpEst(fy) + S_(LINES.filter(l => l[0] === 'TSS').map(l => l[yi(fy)])), S_(ids.map(id => S_(ASK[id])))])));
+    chk(name, 'workbook', 'nothing is filed under a PSM estimate office: no PSM row stands alone, and nothing is under no office',
+      rc.filter(r => /^FY\d\d$/.test(w6Lbl(r)) && /^PSM\b(?! \+)/.test(String((r || [])[1] ?? ''))).length + ' ' + rc.filter(r => /no office on this board reports under it/.test(String((r || [])[1] ?? ''))).length, '0 0');
+    // ---- the panel, as drawn, across both years
+    const pan = JSON.parse(ev(`aceOpen=true; render(); JSON.stringify([].slice.call(document.querySelectorAll('#aceBody tr.acesplit')).map(function(tr){
+      return [tr.getAttribute('data-g')||'shared', [].slice.call(tr.children,1,3).map(function(td){ return td.textContent; })]; }))`) || '[]');
+    const fM0 = v => '$' + Math.round(v).toLocaleString('en-US');
+    const panObj = {}; pan.forEach(x => { panObj[x[0]] = x[1]; });
+    chk(name, 'the panel', 'the tie-out panel prints the same split, both years together: each office’s part with its requirements’ funded, and the shared line',
+      J(['AV', 'PSM', 'shared'].map(k => [k, panObj[k] || null])),
+      J([['AV', [fM0(part('AV', 2027) + part('AV', 2028)), fM0(2 * funded('AV'))]], ['PSM', [fM0(part('PSM', 2027) + part('PSM', 2028)), fM0(2 * funded('PSM'))]],
+        ['shared', [fM0(shared(2027) + shared(2028)), '—']]]));
+    chk(name, 'the panel', 'and only those three lines', pan.length, 3);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.12 W1 ====
+
+// ==== v2.12 W2 (item 132): a WBS paragraph on every requirement, picked; the Spend Plan Source carries it; the FYDP plan joins STOVL ====
+// ==== end v2.12 W2 ====
+
+// ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====
+// ==== end v2.12 W3 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

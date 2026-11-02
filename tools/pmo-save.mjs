@@ -29,6 +29,17 @@
 //      left as it was, so her own office file and the copy as published then open on her own work, under her own office, and
 //      ✉ Submit sends that office's package.
 //
+//   BROWSER STORAGE IS SET BY A SEED PAGE, AFTER IT HAS LOADED -- NEVER BY AN INIT SCRIPT (v2.12). Every context here used to
+//   set its storage from an init script, which runs while a file:// document is still being created. In Chromium 153 a storage
+//   access that early sometimes binds the tab to a storage area of its own: it reads its own writes back, and nothing it writes
+//   reaches the other tabs, nor theirs it (measured: about one context in five, six small tabs each, no board in them; v2.11's
+//   board as often as v2.12's). G, I, J and K need two tabs to share one storage, so they failed now and then on what the board
+//   never did -- a save that "never reached storage", a copy that "opened without her work". A page the board's own code opens
+//   touches storage only later, from its <head>, and showed no cut-off tab in 120 board tabs. So: seedLs() writes the keys from
+//   a page of its own once it has loaded and closes it; G and I wait for the other tab's write to arrive before reading it
+//   (it takes 3-37 ms); openIn() fails, naming the harness, a tab that cannot see what the seed page wrote; and the run refuses
+//   to start if an init script in this file touches storage again.
+//
 //   node tools/pmo-save.mjs [--board FILE]
 import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
@@ -44,6 +55,10 @@ const FNAME = 'FY27 Consolidated Prioritization Board.html';
 let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail && !ok ? '   ' + detail : ''}`); };
 const J = JSON.stringify;
+// the rule above, held: an init script in this file that touches storage stops the run before it opens a browser
+{ const self = readFileSync(new URL(import.meta.url), 'utf8'), at = new RegExp('\\.addInit' + 'Script\\(', 'g'); let m, hit = 0;
+  while ((m = at.exec(self))) if (/localStorage|sessionStorage/.test(self.slice(m.index, m.index + 600))) hit++;
+  if (hit) { console.log(`\n${hit} init script(s) in tools/pmo-save.mjs touch browser storage: set it with seedLs() instead (see the header)\n`); process.exit(1); } }
 
 // the board and a copy published from it, the way Program offices › Publish PMO copy… publishes one
 const dir = mkdtempSync(join(tmpdir(), 'orbit-pmosave-'));
@@ -65,11 +80,18 @@ const boardFile = join(dir, 'team', FNAME), copyFile = join(dir, 'office', 'FY27
 writeFileSync(boardFile, boardHtml); writeFileSync(copyFile, copyHtml);
 chk('a PMO copy was published from a board with requirements on it (the fixture)', !!(MODE && MODE.sandbox && MODE.ts) && copyHtml.length > 100000, 'length ' + copyHtml.length);
 
+// storage for a context, set once by a page of its own after it has loaded (see the header); `at` is a page of the same origin
+// (a file:// one by default, H's server page for H). Once is enough: nothing here changes these keys but the sections' own
+// choices, which they then read.
+const SEEDF = join(dir, 'seed.html'); writeFileSync(SEEDF, '<!doctype html><meta charset="utf-8"><title>seed</title>');
+const SEEDED = new WeakMap();
+const seedLs = async (ctx, set, rm = [], at = 'file://' + SEEDF) => { const p = await ctx.newPage(); await p.goto(at);
+  await p.evaluate(([set, rm]) => { rm.forEach(k => localStorage.removeItem(k)); Object.keys(set).forEach(k => localStorage.setItem(k, set[k])); }, [set, rm]);
+  await p.close(); SEEDED.set(ctx, set.prio27who); };
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const ctxOf = async (w, h, theme) => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
-  await ctx.addInitScript(t => { try { localStorage.setItem('spmtTheme', t); localStorage.removeItem('prio27uiRail');
-    localStorage.setItem('prio27who', 'Pat'); localStorage.setItem('prio27pmo', 'PSM'); } catch (e) {} }, theme);
+  await seedLs(ctx, { spmtTheme: theme, prio27who: 'Pat', prio27pmo: 'PSM' }, ['prio27uiRail']);
   return ctx;
 };
 const openIn = async (ctx, file) => {
@@ -77,6 +99,10 @@ const openIn = async (ctx, file) => {
   await p.goto('file://' + file);
   await p.waitForFunction(() => typeof render === 'function' && document.documentElement.classList.contains('ui-on') && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
   await p.waitForTimeout(300);
+  // a tab the browser gave a storage area of its own cannot see the seed page's name: say so, rather than blame the board
+  const who = SEEDED.get(ctx);
+  if (who != null) { const got = await p.evaluate(() => localStorage.getItem('prio27who'));
+    if (got !== who) chk('harness · this tab shares its browser’s storage (Chromium gave it an area of its own: what follows in this section proves nothing about the board)', false, J({ seeded: who, read: got, file: file.split('/').pop() })); }
   return { p, errs };
 };
 // a save-file handle the browser can keep in its handle store: its methods live on its class, so a structured clone (what the
@@ -206,7 +232,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
   const psmFile = join(dir, 'office', 'PSM file.html'), avFile = join(dir, 'office', 'AV file.html');
   writeFileSync(psmFile, officeFile('PSM', 'PSM wrote R0')); writeFileSync(avFile, officeFile('ATL', 'ATL wrote R0'));
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Helper'); } catch (e) {} });
+  await seedLs(ctx, { prio27who: 'Helper' });
   try {
     const T1 = await openIn(ctx, psmFile);
     const at = p => p.evaluate(() => ({ off: myPmo(), banner: (document.getElementById('subBanner') || {}).textContent || '', add: arOfficeStart().g,
@@ -221,6 +247,8 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
       J([b1.off, /\u{1F3E2} PSM/u.test(b1.banner), b1.add, b1.setting]) === J(['PSM', true, 'PSM', null]), J(b1));
     // the person's own choice, in the second tab: written for the browser, as it always was -- the first tab keeps its office
     await T2.p.evaluate(() => { window.prompt = () => 'ATL'; pickMyPmo(); });
+    // a write reaches another tab a few milliseconds later: wait for it, so "the first tab keeps PSM" is read after it has arrived
+    await T1.p.waitForFunction(v => localStorage.getItem('prio27pmo') === v, 'ATL', { timeout: 2000 }).catch(() => {});
     const c1 = await at(T1.p);
     chk('G · a choice made in the second tab is the browser’s setting (a CONTROL), and the first tab keeps PSM', J([c1.setting, c1.off, c1.add]) === J(['ATL', 'PSM', 'PSM']), J(c1));
     const T3 = await openIn(ctx, copyFile);
@@ -236,7 +264,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
 // has one; a file:// page has none. The handle the board keeps in its store is then a real one, kept across a reopen.
 {
   const { createServer } = await import('node:http');
-  const pages = { '/copy.html': copyHtml, '/board.html': boardHtml };
+  const pages = { '/copy.html': copyHtml, '/board.html': boardHtml, '/seed.html': '<!doctype html><meta charset="utf-8"><title>seed</title>' };
   const srv = createServer((q, s) => { const t = pages[String(q.url).split('?')[0]];
     if (!t) { s.statusCode = 404; s.end(''); return; } s.setHeader('content-type', 'text/html; charset=utf-8'); s.end(t); }).listen(0, '127.0.0.1');
   await new Promise(r => srv.on('listening', r));
@@ -265,7 +293,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     let died = false; hb.on('disconnected', () => { died = true; });
     try {
       const ctx = await hb.newContext({ viewport: { width: 1366, height: 768 } });
-      await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Pat'); localStorage.setItem('prio27pmo', 'PSM'); } catch (e) {} });
+      await seedLs(ctx, { prio27who: 'Pat', prio27pmo: 'PSM' }, [], base + '/seed.html');
       let P = await open(ctx, path);
       await P.p.evaluate(PICKER, file);
       await P.p.evaluate(fn => { setDesc('R0', 'MARK-ONE'); return eval(fn); }, saveFn); await P.p.waitForTimeout(700);
@@ -296,7 +324,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
 // Once it has saved for ATL, a choice of PSM in a second tab of the same browser must not re-point it.
 {
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Sue'); } catch (e) {} });
+  await seedLs(ctx, { prio27who: 'Sue' });
   try {
     const T1 = await openIn(ctx, copyFile);
     await T1.p.evaluate(STANDIN);
@@ -310,6 +338,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     chk('I · its Save writes ATL’s file and marks the work ATL’s (the fixture)', J(s1) === J({ writes: 1, mark: 'ATL' }), J(s1));
     const T2 = await openIn(ctx, copyFile);
     await T2.p.evaluate(() => { window.prompt = () => 'PSM'; pickMyPmo(); });
+    await T1.p.waitForFunction(v => localStorage.getItem('prio27pmo') === v, 'PSM', { timeout: 2000 }).catch(() => {});
     const a1 = await at(T1.p);
     chk('I · a choice of PSM in a second tab is the browser’s setting (a CONTROL), and the page that saved stays on ATL, its bar and its Add box with it',
       J([a1.setting, a1.off, /\u{1F3E2} ATL/u.test(a1.banner), a1.add]) === J(['PSM', 'ATL', true, 'ATL']), J(a1));
@@ -330,7 +359,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
 // unsaved work as kept aside, never as saved; it is put back on the office it belongs to.
 {
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Ann'); } catch (e) {} });
+  await seedLs(ctx, { prio27who: 'Ann' });
   try {
     const look = p => p.evaluate(() => { const d = (st, id) => { try { return String(((st.years[st.cur] || {}).desc || {})[id]); } catch (e) { return 'ERR'; } };
       let ls = null; try { ls = JSON.parse(localStorage.getItem(_AP.key)); } catch (e) { ls = null; }
@@ -365,7 +394,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
 // storage: her own office file, opened next, then shows her own work under her own office, and ✉ Submit sends that office's.
 {
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
-  await ctx.addInitScript(() => { try { localStorage.setItem('prio27who', 'Ann'); } catch (e) {} });
+  await seedLs(ctx, { prio27who: 'Ann' });
   try {
     const look = p => p.evaluate(() => ({ R0: String((S.desc || {}).R0), R1: String((S.desc || {}).R1), plan: localStorage.getItem(_AP.key),
       kept: !!keptCopy(), dirty: !!baseGet().dirty, off: myPmo(), mark: pmoForOf(MS) }));

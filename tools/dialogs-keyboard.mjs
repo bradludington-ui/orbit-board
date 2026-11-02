@@ -20,6 +20,7 @@ import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
 import { buildPopulated } from './ia-fixture.mjs';
+import { ACE_REP_SEED, ACE_COL_CTX } from './ace-seed.mjs';   // v2.12 (item 132)
 
 const BOARD = process.env.BOARD || resolve(new URL('..', import.meta.url).pathname, 'prioritization-board-grid.html');
 const LIVE = buildPopulated(BOARD);
@@ -58,7 +59,10 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
                   msgClose: 'msgOpen(', aiClose: 'aiOpen(',   // v2.04 (item 109): the AI review list   // v2.03 (item 19): the session's messages, opened by ⚠ N unread
                   // v2.07 (item 121): the Add box closes with toggleAdd() and is opened by Add requirement on the Requirements
                   // page (#uiAddBtn, uiAddReq) -- the Review tools' own button and the folded menu item call toggleAdd too
-                  toggleAdd: 'uiAddReq(' };
+                  toggleAdd: 'uiAddReq(',
+                  // v2.12 (item 132): the cost estimate import's report opens from the Data box (aceRepShow); the mapping box opens
+                  // only from an import that finds a title missing, so it is opened by its switch, for the file PRE puts in the page
+                  aceRepClose: 'aceRepShow(', aceColCancel: 'aceColAsk(window.__aceColCtx)' };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', ndOpen: 'ndOpen=true' })[v] || null; }
@@ -133,9 +137,16 @@ const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilt
     var val={}, lines={}; S6.forEach(function(sv,s){ lines[sv]=[{k:'_all',all:true}]; val[sv]={_all:{}};
       [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:(s+1)*1.3e8+(y-2027)*2e6, m:y===2027? 5e6 : 0}; }); });
     MS.ppbe=MS.ppbe||{}; MS.ppbe['BES|2028']={v:2, split:true, lines:lines, val:val}; })()`,
-    `delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']`] };
+    `delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']`],
+  // v2.12 (item 132): an estimate as the import builds it, its report to read; a 2026 file with two renamed titles to ask about
+  aceRepPanel: [ACE_REP_SEED, `delete ACEDB.sets['2026ACE']`],
+  aceColPanel: [`window.__aceColCtx=${ACE_COL_CTX}`, `delete window.__aceColCtx; ACECOL=null; aceColOpen=false; render()`] };
 for (const box of BOXES) {
-  if (box.id === 'uipPanel') { skipped.push('uipPanel (the in-app prompt opens only where the browser has no prompt of its own)'); continue; }
+  // v2.12 RV2 (K02): since v2.12 the in-app prompt is the WBS quick box wherever an estimate names the paragraphs, not only where
+  // the browser has no prompt of its own; it is still skipped here (its Cancel discards as it says, and its backdrop closes
+  // nothing, which this sweep's three ways of closing would each read as typing lost), and its Esc is held by keyboard-reach T
+  // in Chromium and by audit-other's "v2.12 RV2 — the WBS quick box asks" block
+  if (box.id === 'uipPanel') { skipped.push('uipPanel (the WBS quick box: its Esc is checked by keyboard-reach T and audit-other)'); continue; }
   if (!box.pat) { bad.push(`${box.id}: no way to open it found`); continue; }
   if (PRE[box.id]) await p.evaluate(c => { try { (0, eval)(c); } catch (e) {} }, PRE[box.id][0]);
   await p.evaluate(() => { window.scrollTo(0, 0); document.body.focus(); });

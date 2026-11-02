@@ -1,0 +1,188 @@
+[
+ {
+  "id": "v212-rv3-lines-not-a-list",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-lines-null-kept",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-bad-read-anyway",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-bad-line-list-passes",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-door-pos-unchecked",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-door-lock-pos-unchecked",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-door-line-null",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-door-cell-words",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-cell-text-zero",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-cell-words-zero",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-figs-text-unnamed",
+  "caughtBy": "board / v2.12 RV3 — a PPBE position that cannot be read"
+ },
+ {
+  "id": "v212-rv3-ba-raw-parts",
+  "caughtBy": "board / v2.12 RV3 — opening reads another year’s budget"
+ },
+ {
+  "id": "v212-rv3-ba-fractions-rounded",
+  "caughtBy": "board / v2.12 RV3 — opening reads another year’s budget"
+ },
+ {
+  "id": "v212-rv3-ba-adds-raw",
+  "caughtBy": "board / v2.12 RV3 — opening reads another year’s budget"
+ },
+ {
+  "id": "v212-rv3-new-year-not-live",
+  "caughtBy": "board / v2.12 RV3 — a year started by Copy to year or Roll forward"
+ },
+ {
+  "id": "v212-rv3-held-below-drawn",
+  "caughtBy": "board / v2.12 RV3 — what a requirement draws it holds"
+ },
+ {
+  "id": "v212-rv3-held-unclamped",
+  "caughtBy": "board / v2.12 RV3 — what a requirement draws it holds"
+ },
+ {
+  "id": "v212-rv3-over-screen-year",
+  "caughtBy": "board / v2.12 RV3 — an over in a year not on screen"
+ },
+ {
+  "id": "v212-rv3-fitgo-no-switch",
+  "caughtBy": "board / v2.12 RV3 — an over in a year not on screen"
+ },
+ {
+  "id": "v212-rv3-over-vs-position-alone",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-withheld-said-added",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-att-names-tag",
+  "caughtBy": "board / v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-att-all-pos",
+  "caughtBy": "board / v2.12 W3 — the fit to the position; v2.12 RV3 — an over names what it is measured against"
+ },
+ {
+  "id": "v212-rv3-lock-drops-tag",
+  "caughtBy": "board / v2.12 RV3 — a lock that read no position says so"
+ },
+ {
+  "id": "v212-rv3-view-pnull-old",
+  "caughtBy": "board / v2.12 RV3 — a lock that read no position says so"
+ },
+ {
+  "id": "v212-rv3-view-null-pos-old",
+  "caughtBy": "board / v2.12 RV3 — a lock that read no position says so"
+ },
+ {
+  "id": "v212-rv3-view-hint-reads-pos",
+  "caughtBy": "board / v2.12 RV3 — a lock that read no position says so"
+ },
+ {
+  "id": "v212-rv3-lock-year-untagged",
+  "caughtBy": "board / v2.12 RV3 — a lock that read no position says so"
+ },
+ {
+  "id": "v212-rv3-lock-says-unchanged",
+  "caughtBy": "board / v2.12 RV3 — a lock that tags the plan says which figures move"
+ },
+ {
+  "id": "v212-rv3-lock-moves-unsaid",
+  "caughtBy": "board / v2.12 RV3 — a lock that tags the plan says which figures move"
+ },
+ {
+  "id": "v212-rv3-moves-screen-year",
+  "caughtBy": "board / v2.12 RV3 — a lock that tags the plan says which figures move"
+ },
+ {
+  "id": "v212-rv3-lock-hint-unchanged",
+  "caughtBy": "board / v2.12 RV3 — a lock that tags the plan says which figures move"
+ },
+ {
+  "id": "v212-rv3-lock-status-still",
+  "caughtBy": "board / v2.12 RV3 — a lock that tags the plan says which figures move"
+ },
+ {
+  "id": "v212-rv3-bm-heading-fixed",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-rv3-one-figure-keeps-own-mand",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-rv3-one-figure-unsaid",
+  "caughtBy": "board / v2.12 RV3 — Budget Management says what the year reads"
+ },
+ {
+  "id": "v212-rv3-fydp-upl-summed",
+  "caughtBy": "board / v2.12 W3 — the fit to the position"
+ },
+ {
+  "id": "v212-rv3-guide-no-fit-entry",
+  "caughtBy": "board / v2.12 RV3 — the guide names the 🏛 entry"
+ },
+ {
+  "id": "v212-rv3-guide-position-only",
+  "caughtBy": "board / v2.12 RV3 — the guide names the 🏛 entry"
+ },
+ {
+  "id": "v212-w3-ba-aliases-own",
+  "caughtBy": "board / v2.12 W3 — every year’s budget authority is read from the PPBE position, live",
+  "retargeted": true
+ },
+ {
+  "id": "v212-w3-lock-no-pos",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read",
+  "retargeted": true
+ },
+ {
+  "id": "v212-w3-lock-pos-shared",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read",
+  "retargeted": true
+ },
+ {
+  "id": "v212-w3-view-old-lock-reads-live",
+  "caughtBy": "board / v2.12 W3 — a lock keeps the position it read",
+  "retargeted": true
+ },
+ {
+  "id": "v212-w3-box-blames-position",
+  "caughtBy": "board / v2.12 W3 — the fit to the position",
+  "retargeted": true
+ },
+ {
+  "id": "v212-w3-fydp-upl-lanes",
+  "caughtBy": "board / v2.12 W3 — the fit to the position",
+  "retargeted": true
+ }
+]

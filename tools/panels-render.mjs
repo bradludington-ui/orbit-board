@@ -19,6 +19,7 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
+import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132)
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SVCN = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
@@ -92,12 +93,28 @@ const SPECIAL = {
   // v2.10 (item 130): FYDP Disconnects. Opened bare it has no cost estimate and no position to set side by side, and says so --
   // a box measured short of its tables. So a cost estimate and a BES28 position are put on the board first (O&M's own; Full Fund
   // and Spares say they log none), an International figure typed on the Summary, then the USAF sheet.
+  // v2.12 (item 132): the cost estimate import's report, for an estimate as the import builds it (its backdrop closes it), and
+  // the mapping box, asking about two renamed titles in a 2026 file's own header row (its backdrop is Cancel)
+  aceRepPanel: [['aceRepPanel', ACE_REP_SEED + `aceRepShow('2026ACE');`,
+    `(function(){ var n=document.querySelectorAll('#aceRepBody .acerep-why tr').length, m=document.querySelectorAll('#aceRepBody .acerep-named').length;
+      return [n<12 && 'the reasons ('+n+')', m<5 && 'the named rows ('+m+')'].filter(Boolean).join(', '); })()`]],
+  aceColPanel: [['aceColPanel', ACE_COL_ASK,
+    `(function(){ var s=document.querySelectorAll('#aceColBody select'); return s.length===2? '' : 'the two fields asked ('+s.length+')'; })()`]],
   fdcPanel: [
     ['fdcPanel (Summary)', FDC_SEED + `toggleFdc(); var e=document.getElementById('fdcIn_ir_om_2028'); if(e){ e.value='1,234.5'; e.dispatchEvent(new Event('change',{bubbles:true})); }`,
       `(function(){ var n=document.querySelectorAll('#fdcPage tbody tr').length, e=document.getElementById('fdcIn_ir_om_2028');
         return [n<40 && 'the Summary’s rows ('+n+')', !(e && e.value==='$1,234.5') && 'the International figure typed'].filter(Boolean).join(', '); })()`],
     ['fdcPanel (USAF)', FDC_SEED + `toggleFdc(); fdcTab(1);`,
       `(function(){ var t=(document.querySelector('#fdcPage .fdct2')||{}).textContent||''; return /USAF CTOL/.test(t)? '' : 'the USAF sheet ('+t+')'; })()`],
+  ],
+  // v2.12 (item 134): FIT TO THE PPBE POSITION, with an over to show. FDC_SEED tags the plan BES28 with O&M's position; its first
+  // service gets $1 of discretionary in the year on screen, and the first requirement directs its whole value there on a Split,
+  // so the over line and its requirement list (Go to it) are drawn beside the year's table
+  fitPanel: [
+    ['fitPanel (an over)', FDC_SEED + `MS.ppbe['BES|2028'].val[SVC[0]]._all[MS.cur]={d:1, m:0}; var id=S.order[0];
+      S.fsrc[id]={m:'split', dv:itemById(id).ask.slice(), mv:SVC.map(function(){ return 0; })}; baLiveAll(); save(); fitShow();`,
+      `(function(){ return [!document.querySelector('#fitBody table.fittab') && 'a year’s table', !document.querySelector('#fitBody .fitover') && 'an over line',
+        !document.querySelector('#fitBody .fitgo') && 'Go to it'].filter(Boolean).join(', '); })()`],
   ],
 };
 // Inline panels: class "addp", shown with style.display, not a modal backdrop. (v2.07, item 121: the Add strip became a box,
@@ -192,7 +209,9 @@ for (const f of ['prioritization-board-grid.html']) {
     'entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rmOpen','spOpen','subOpen',
-    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen','fdcOpen'];
+    'svcPanelOpen','addOpen','budRegOpen','diagOpen','msgIsOpen','fdcOpen',
+    'aceRepOpen','aceColOpen',   // v2.12 (item 132): the cost estimate import's report and mapping box
+    'fitOpen'];                  // v2.12 W3: the fit box (item 134)
   const NUL = ['wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };
