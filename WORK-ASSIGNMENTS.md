@@ -41,8 +41,8 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 - Isolated branch and base commit SHA: ccr-0b15d8d5-ypf61n, based on main bbb7ee9 (v2.11) plus the item 132-134 logging.
   The builders branched from the slot commit d732259, RV1-RV3 from c23e8a0 and RV4-RV6 from c81e995; all were integrated
   on v212-int.
-- Status: ready for review. Handed off at draft PR #30 for Brad's review; not merged. A push after the handoff commit is
-  new review work.
+- Status: closed. Merged as PR #30 at fe0c83d (a merge commit), 1 Nov 2026 7:14 PM EST, on Brad's "Merge". No v2.13
+  owner or scope is named yet: see recovery/v213/HANDOFF.md.
 - Required bounded checks and designated gate owner: npm run check; every suite; the browser checks (verify:grid, keys,
   dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer, standards); each new mutation proved with
   recovery/v208/bin/prove.py; mcount; review with skeptics; validate:nightly on the final tree. Gate owner Claude. No
@@ -79,7 +79,7 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
   one; a few lines are left unmutated as equivalent, each named in its notes; pmosave's one failure during the build (G, notes-RV2.md) fits
   the same storage race in the check, fixed at 3e29863. Another appropriation's stored budget caches are live only once its board opens
   (notes-W3.md). Layout D ×8 is carried; the sweep was not run (Brad's rule of 20 Oct).
-- Brad's integration/merge/publication authorization, if given: not given. Nothing merges without Brad's go.
+- Brad's integration/merge/publication authorization, if given: "Merge" (Brad, 2 Nov 2026 00:14 UTC, in the lead session); the lead merged PR #30 on it.
 
 The four recurring monitors retain read-only scope.
 
