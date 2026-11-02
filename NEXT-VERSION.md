@@ -376,10 +376,15 @@ answers under Shipped › v2.12 › *Questions for Brad*.
      one." -- choosing a cycle in the selector applies it to every appropriation at once; the board works in one cycle at a time.
   2. "Yes" -- on opening a board whose appropriations disagree, name them and offer the board's cycle; nothing is changed
      unasked.
-  3. "Deltas should be based on the cycle I'm in." -- *deltas read against* follows the cycle chosen (`MS.cycleRef` = that
-     cycle's lock, in every appropriation), and is no longer set by hand. Still open: what the deltas read against while the
-     cycle in force has no lock yet (proposed: nothing, and the row's delta chip and the Changes panel say "BES28 not locked
-     yet" rather than reading against an older cycle).
+  3. "Deltas should be based on the cycle I'm in." and, asked what they read against before that cycle is locked: "Deltas should
+     bump against the controls I've entered for that cycle versus what's been allocated to each requirement." -- **the delta is
+     the cycle's controls less what the requirements are allocated**: per appropriation, service, lane and fiscal year, the
+     PPBE position entered for the cycle in force, against the sum of what each requirement holds. It needs no lock. This is the
+     reading v2.12's **Fit to the PPBE position** already makes (`fitModel`: held against budget authority, *over* and
+     *unallocated*), so the build puts that figure on the main screen beside the cycle selector (e.g. *BES28 · FY28 $4.2M
+     unallocated · 2 over*), opening the Fit panel, and does not compute it a second way.
+     Still to confirm at go: whether the lock-based deltas (each row's change chip, the Changes panel, *deltas read against*)
+     stay as they are for comparing against a locked cycle, or are retired in favour of this one.
 - **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
   refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
   and the guide's PPBE section reworded.
