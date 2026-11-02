@@ -17,7 +17,9 @@ const NAMES = ['Sustainment Fuel (Ferry Flights)', 'Depot Field Team Travel',
   'Low Observable Restoration Kits', 'Flight Test Instrumentation',
   'Training GDOS Eglin IT Support', 'Supply Chain Data Analytics'];
 
-export function buildPopulated(boardFile) {
+// `extra` (page code) is run on the board after it is filled and before it is saved: one check's own state on this board (v2.13,
+// item 136: tools/cyc-seed.mjs tags the plan with a PPBE cycle). Without it the board is exactly as it was.
+export function buildPopulated(boardFile, extra = '') {
   const items = [];
   PMOS.forEach((g, gi) => {
     for (let k = 0; k < 6; k++) {
@@ -55,6 +57,7 @@ export function buildPopulated(boardFile) {
       S.awards[S.order[1]]={mode:'inc', inc:[{d:FYMON[2][0], day:5, sv:[400000, 100000]}]};
       S.awards[S.order[2]]={mode:'single', d:'2027-13', day:9};
       applyState(S); save(); 'ok'`);
+  if (extra) ev(extra + ` save(); 'ok'`);
 
   const dir = mkdtempSync(join(tmpdir(), 'spmt-ia-'));
   const out = join(dir, boardFile.split('/').pop());

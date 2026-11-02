@@ -6679,7 +6679,8 @@ await (async () => {
       var b=[].slice.call(document.querySelectorAll('#jrnlBody button')).filter(function(e){ return (e.getAttribute('onclick')||'')==='jrnlUndo('+i+')'; })[0];
       if(!b) return 'no control'; b.click(); return 'fired'; })()`);
     const shut = () => ev(`if(jrnlOpen) toggleJrnl(); 'ok'`);
-    const C2 = [['Colleague C', 'asks.F1', null, [1200000000]], ['Colleague C', 'notes.F1', null, 'after the lock']];
+    // v2.13 (item 136): the lock tags the untagged plan PB27, and every change of cycle is a journal line now (cycJrnlLine)
+    const C2 = [['Colleague C', '(cycle)', null, 'PB|2027'], ['Colleague C', 'asks.F1', null, [1200000000]], ['Colleague C', 'notes.F1', null, 'after the lock']];
     w5Chk(name, 'fixture', 'CONTROL — PB27 is locked; Colleague C’s two changes are the journal, and F1 asks $1,200,000,000',
       J([key, jr(), ask()]), J(['PB|2027', C2, '1200000000']));
     // ---- PB27 viewed; Me M presses ↶ Put back on Colleague C's note (answered OK) -- refused

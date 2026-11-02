@@ -1,0 +1,2 @@
+{"id": "v200-ui3-lastedit-services-only", "verdict": "CAUGHT", "suite": "audit-ui.mjs (whole, on the mutant)", "fails": 6}
+{"id": "v200-ui3-lastedit-writer-wide", "verdict": "CAUGHT", "suite": "audit-ui.mjs (whole, on the mutant)", "fails": 2}

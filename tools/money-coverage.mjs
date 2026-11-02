@@ -90,9 +90,12 @@ const REGISTRY = {
   applyBudget:  { money: true,  what: 'each year’s budget authority — the PPBE position under the working plan’s tag, read live per year and service, or the board’s own base, with added sources on top; a locked view reads the lock’s own copy',
                   via: ['baOf', 'baPos', 'baNamed', 'baApplyTo', 'baLiveAll', 'bmBody', 'bmLiveRow',
                         // v2.12 RV6 (S04): the one rule for a one-figure position, and Take from a PPBE position, which writes the base it reads
-                        'ppLanesOf', 'bmPpVec', 'bmPpState', 'bmSeedFromPp'] },
+                        'ppLanesOf', 'bmPpVec', 'bmPpState', 'bmSeedFromPp',
+                        // v2.13 (item 136): the cycle every appropriation reads its budget authority from, put on all of them at once
+                        'cycApplyAll', 'cycSetWorking', 'cycFromTab'] },
   fitModel:     { money: true,  what: 'the fit to the PPBE position — per held year, service and lane: base, added, budget authority, held, drawn, over, unallocated and UPL, and each over’s requirements',
-                  via: ['fitYearNow', 'fitReadYear', 'fitBody', 'uplParts', 'fitGo'] },
+                  // v2.13 (item 136): the figure beside the PPBE cycle in the context bar reads it, and the panel's line over each year
+                  via: ['fitYearNow', 'fitReadYear', 'fitBody', 'uplParts', 'fitGo', 'cycFitSums', 'cycFitOf', 'cycFitTxt'] },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:

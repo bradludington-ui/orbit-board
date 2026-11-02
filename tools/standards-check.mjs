@@ -31,6 +31,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
 import { ACE_REP_SEED, ACE_COL_ASK } from './ace-seed.mjs';   // v2.12 (item 132)
+import { CYC_TAG_SEED, CYC_KEY, cycOtherStore } from './cyc-seed.mjs';   // v2.13 (item 136)
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BASELINE = new URL('./a11y-baseline.json', import.meta.url).pathname;
@@ -249,11 +250,16 @@ const record = (build, theme, f) => {
 };
 
 for (const build of BUILDS) {
-  const file = buildPopulated(build);
+  // v2.13 (item 136): THE PPBE CYCLE AT THE TOP, on screen to be measured. The board is tagged BES28 with BES28 controls logged
+  // that leave the year on screen both unallocated and over (tools/cyc-seed.mjs), and OPN's plan in this browser is on PB27, so
+  // the PPBE cycle reads ⚠ Mixed and the figure beside it is drawn -- measured with everything else, and its list measured open
+  // with the menus below. Bare, the board is untagged: the figure is hidden and the list holds one appropriation's line.
+  const file = buildPopulated(build, CYC_TAG_SEED);
   for (const theme of THEMES) {
     const page = await browser.newPage({ viewport: { width: 1700, height: 1000 } });
     await page.goto('file://' + file);
-    await page.evaluate(t => { try { localStorage.setItem('spmtTheme', t); } catch (e) {} }, theme);
+    await page.evaluate(([t, k, st]) => { try { localStorage.setItem('spmtTheme', t); localStorage.setItem(k, st); } catch (e) {} },
+      [theme, CYC_KEY.opn, cycOtherStore('PB|2027')]);
     await page.reload();
     await page.waitForTimeout(700);
     await page.evaluate(() => { try { if (typeof render === 'function') render(); } catch (e) {} });
@@ -281,6 +287,13 @@ for (const build of BUILDS) {
       .forEach(function(n){ try { (0, eval)(n + '=true'); } catch (e) {} }); render(); } catch (e) {} });
     await page.waitForTimeout(300);
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    // v2.13 (item 136): the PPBE cycle and the figure beside it must have been on screen for that, or the run fails: a control
+    // measured by nothing would pass by being absent
+    const cycShown = await page.evaluate(() => { try { const f = document.getElementById('cycFit'), bc = document.getElementById('b_cyc');
+      return { fit: !!f && !f.hidden && f.getClientRects().length > 0 && /unallocated/.test(f.textContent) && /over/.test(f.textContent),
+        mixed: !!bc && bc.getClientRects().length > 0 && /Mixed/.test(bc.textContent) }; } catch (e) { return { fit: false, mixed: false }; } });
+    if (!cycShown.fit || !cycShown.mixed) record(build, theme, { sc: 'coverage', key: 'the PPBE cycle and the figure beside it were not on screen to measure',
+      detail: `the PPBE cycle ${cycShown.mixed ? 'read' : 'did NOT read'} Mixed; the figure ${cycShown.fit ? 'was' : 'was NOT'} drawn with an unallocated and an over figure`, n: 1 });
     // v1.92 (item 36): AND WITH EACH MENU OPEN. v1.91 measured with every menu closed, so it never saw that no
     // menu item could be reached from the keyboard. Each toolbar menu in turn (the Fund tools' in Fund), then
     // a row's ⋯ menu.
@@ -288,7 +301,8 @@ for (const build of BUILDS) {
     // went is measured open instead, the same way: its three boxes (left:rep, left:imp, left:data), each flyout (Setup with
     // each folded group open, as the menu's were), the menu folded to icons, and Save showing unsaved work. Work kept aside
     // is set, so History & recovery and the save state show their controls.
-    for (const m of ['view', 'fy', 'pmo', 'basis', 'modetools', '(row)', 'left:rep', 'left:imp', 'left:data', 'left:fydp', 'left:exec',
+    // v2.13 (item 136): and the PPBE cycle's (cyc), its list naming every appropriation's cycle
+    for (const m of ['view', 'fy', 'cyc', 'pmo', 'basis', 'modetools', '(row)', 'left:rep', 'left:imp', 'left:data', 'left:fydp', 'left:exec',
                      'left:pmo', 'left:aud', 'left:hist', 'left:setup', 'left:save', 'left:rail', 'left:dirty']) {
       await page.evaluate(m => { try {
         if (m === 'basis' || m === 'modetools') { uiMode = 'fund'; uiApply(); render(); }
@@ -302,6 +316,10 @@ for (const build of BUILDS) {
         else { rowMenuId = null; openMenu = m; syncBtns(); } } catch (e) {} }, m);
       await page.waitForTimeout(150);
       for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      if (m === 'cyc') { const cl = await page.evaluate(() => { const d = document.getElementById('dd_cyc');
+          return !!d && d.getClientRects().length > 0 && d.querySelectorAll('.cycall-row').length >= 2 && d.querySelectorAll('button.mi').length >= 3; });
+        if (!cl) record(build, theme, { sc: 'coverage', key: 'the PPBE cycle’s list was not on screen to measure',
+          detail: 'the list with every appropriation’s line and the cycles to put them on was NOT open', n: 1 }); }
       // v1.96 (item 65): A LONG MENU FOLDS, so each of its groups is measured open, one at a time, as a person sees it
       const host = m === 'left:setup' ? '#uiFly' : '#dd_' + m, gk = m === 'left:setup' ? 'setup' : m;
       const gs = m === '(row)' || (m.indexOf('left:') === 0 && m !== 'left:setup') ? [] : await page.evaluate(h => [...document.querySelectorAll(h + ' .gh')].map(x => x.getAttribute('data-g')), host);

@@ -30,6 +30,10 @@
 //   T. A WBS paragraph picked from the keyboard (v2.12, item 132): Needs attention's ▦ entry, its Go to it and the edit box's
 //      WBS field by the keys, the estimate's list (the CCaR record's paragraph first), the name under a code typed, a code the
 //      estimate does not hold refused on Save with the text kept, one it holds saved; the Add box's field and Classify's quick box.
+//   V. The PPBE cycle at the top (v2.13, item 136): on a board whose appropriations are on different cycles, Tab reaches it and
+//      the figure beside it (Enter opens Fit to the PPBE position); Enter opens its list, Esc closes it back on the button; and
+//      Enter on a "Put every appropriation on …" item, OK to its question, puts every appropriation's stored plan on that cycle
+//      with the keyboard left on the button.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -37,6 +41,7 @@ import { resolve, join } from 'node:path';
 import { buildPopulated } from './ia-fixture.mjs';
 import { CHROME } from './chrome.mjs';
 import { ACE_REP_SEED, ACE_HDR_2026 } from './ace-seed.mjs';   // v2.12 (item 132): S
+import { CYC_TAG_SEED, CYC_KEY, cycOtherStore, seedLs } from './cyc-seed.mjs';   // v2.13 (item 136): V
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -87,11 +92,12 @@ console.log('\n' + FILE.split('/').pop());
     const cut = await p.evaluate(() => { const s = document.getElementById('shareStat'); return s.scrollWidth > s.clientWidth + 1; });
     chk('A · a long warning is cut off on its one line', cut);
     // v2.00 (UI S4): the search box moved to the page's toolbar, below the context bar and after the message in the order
-    // Tab takes. v2.00 (UI S4, fix round): the Tab starts from the context bar's first control, the cycle button, named
-    // here -- not found on the page as the control just before the message, which made the check pass by construction
-    // (one Tab) -- so it crosses the appropriation, the fiscal year and the PMO menu on its way, as it crossed Filter from
-    // the search box before.
-    const from = '#uiCycBtn';
+    // Tab takes. v2.00 (UI S4, fix round): the Tab starts from the context bar's first control, named here -- not found on
+    // the page as the control just before the message, which made the check pass by construction (one Tab) -- so it crosses
+    // the appropriation, the fiscal year and the PMO menu on its way, as it crossed Filter from the search box before.
+    // v2.13 (item 136): the injected Cycle button (#uiCycBtn) that stood first is gone; the context bar's first control is the
+    // appropriation picker, and the walk now crosses the fiscal year, the PPBE cycle (#b_cyc) and the PMO menu.
+    const from = '#appnSel';
     const steps = await tabTo(p, from, '#statBtn');
     chk('A · the Message button is reached with Tab from the context bar’s first control', steps > 0, (steps > 0 ? `${steps} Tab(s)` : 'never reached') + ' from ' + from);
     const st = () => p.evaluate(() => { const w = document.getElementById('statWrap'), s = document.getElementById('shareStat'), bt = document.getElementById('statBtn');
@@ -259,9 +265,10 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const { p, ctx, errs } = await open('review');
     // v2.00 (menu, 19 Oct): File, Reports & exports, Data and Setup left the toolbar for the left menu (G3 below); the menus that
     // stay are the context bar's and the table toolbar's -- Fiscal year, PMO and Filter -- named here, so one gone fails
+    // v2.13 (item 136): and the PPBE cycle (#m_cyc), beside the fiscal year; V drives it on a board where it has more to say
     const MENUS = await p.evaluate(() => [...document.querySelectorAll('.tbar .menu[id^="m_"], .ctxbar .menu[id^="m_"], #topStack .menu[id^="m_"], #uiPage .menu[id^="m_"]')]
       .filter(m => m.getClientRects().length && m.id !== 'm_modetools' && m.id !== 'm_basis').map(m => m.id.slice(2)));
-    chk('G · the toolbar has its menus to check: Fiscal year, PMO and Filter', MENUS.slice().sort().join() === 'fy,pmo,view', MENUS.join(', '));
+    chk('G · the toolbar has its menus to check: PPBE cycle, Fiscal year, PMO and Filter', MENUS.slice().sort().join() === 'cyc,fy,pmo,view', MENUS.join(', '));
     for (const k of MENUS) {
       await p.evaluate(() => { openMenu = null; syncBtns(); });
       await p.focus('#b_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
@@ -964,7 +971,8 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
       MS.ppbe = MS.ppbe || {}; MS.ppbe['POM|2099'] = { v: 2, split: true, lines: {}, val: { [SVC[0]]: { _all: { [MS.cur]: { d: 1, m: 0 } } } } };
       MS.cycle = 'POM|2099'; S.fsrc[id] = { m: 'split', dv: it.ask.slice(), mv: SVC.map(() => 0) };
       baLiveAll(); save(); render(); return id; });
-    const steps = await tabTo(p, '#uiCycBtn', '#posture .fitatt', 120);
+    // v2.13 (item 136): from the PPBE cycle in the context bar (the injected #uiCycBtn it replaced is gone)
+    const steps = await tabTo(p, '#b_cyc', '#posture .fitatt', 120);
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
     const a = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')),
       entry: (document.querySelector('#posture .fitatt') || {}).textContent || '' }));
@@ -1107,6 +1115,80 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`T · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── V. THE PPBE CYCLE AT THE TOP, FROM THE KEYBOARD (v2.13, item 136) ──────────────────────────────────────────────────
+// O&M (this board) is on BES28, its BES28 controls leaving the year on screen both unallocated and over (tools/cyc-seed.mjs), and
+// Full Fund's plan in this browser is on PB27 -- put in browser storage by a seed page before the board opens, never by an init
+// script (tools/pmo-save.mjs says why). So the PPBE cycle reads ⚠ Mixed, and the figure beside it is on screen as the board
+// opens. Tab from the context bar's first control reaches the PPBE cycle; Tab from it reaches the figure, and Enter opens Fit to
+// the PPBE position with the keyboard inside, Esc closing it back on the figure. Enter on the PPBE cycle opens its list, naming
+// each appropriation's cycle (⚠ on the one off the latest); Esc from inside it closes it with the keyboard back on the button.
+// Opened again, Tab reaches the first "Put every appropriation on …" item -- the cycle after the latest any is on, so BOTH
+// appropriations move -- and Enter on it, its one question answered OK, puts each one's stored plan on that cycle (this board's
+// and Full Fund's, in browser storage), with a journal line in each, and leaves the keyboard on the PPBE cycle, which then names
+// that cycle. (The figure is read as the board opens: v2.13's first cut opened it hidden until the first redraw.)
+{
+  try {
+    const LIVEC = buildPopulated(FILE, CYC_TAG_SEED);
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+    await seedLs(ctx, { spmtTheme: 'harbor', spmtMode: 'review', prio27who: 'Pat', [CYC_KEY.ff]: cycOtherStore('PB|2027') }, [CYC_KEY.om, CYC_KEY.sp, CYC_KEY.opn]);
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    const asked = []; p.on('dialog', d => { asked.push(d.type() + ': ' + d.message()); d.accept(); });
+    await p.goto('file://' + LIVEC);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.waitForTimeout(300);
+    const st0 = await p.evaluate(() => { const f = document.getElementById('cycFit');
+      return { seeded: !!localStorage.getItem('prio27ff'), own: MS.cycle, btn: document.getElementById('b_cyc').textContent, fit: f.hidden ? null : f.textContent }; });
+    // beside a Mixed bar the figure names the cycle it is against (cycFitTxt)
+    chk('V · the board opens with its appropriations on different cycles: the PPBE cycle reads ⚠ Mixed, and the figure beside it states what BES28’s controls leave, unallocated and over',
+      st0.seeded && st0.own === 'BES|2028' && st0.btn === '⚠ Mixed ▾' && /^BES28 · FY\d\d · \$[\d.]+[KMB] unallocated · ⚠ \$[\d.]+[KMB] over$/.test(st0.fit || ''), JSON.stringify(st0));
+    const s1 = await tabTo(p, '#appnSel', '#b_cyc', 10);
+    chk('V · Tab from the context bar’s first control reaches the PPBE cycle', s1 > 0, s1 > 0 ? `${s1} Tab(s)` : 'never reached');
+    // the figure: Tab reaches it, Enter opens Fit to the PPBE position with the keyboard inside, Esc closes it back on the figure
+    const s2 = await tabTo(p, '#b_cyc', '#cycFit', 10);
+    if (s2 > 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    const f1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')) }));
+    chk('V · Tab reaches the figure beside it, and Enter opens Fit to the PPBE position with the keyboard inside', s2 > 0 && f1.open && f1.inBox, JSON.stringify({ steps: s2, ...f1 }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const f2 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    chk('V · Esc closes it, the keyboard back on the figure', !f2.open && f2.focus === 'cycFit', JSON.stringify(f2));
+    // Enter opens the list; Esc from inside it closes it, the keyboard back on the button
+    await p.focus('#b_cyc'); await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    const m1 = await p.evaluate(() => ({ open: openMenu, exp: document.getElementById('b_cyc').getAttribute('aria-expanded'),
+      rows: [...document.querySelectorAll('#dd_cyc .cycall-row')].map(r => r.getAttribute('data-ap') + ':' + r.querySelector('span').textContent.replace(/\s+/g, ' ').trim()) }));
+    chk('V · Enter opens the PPBE cycle’s list and says so, naming each appropriation’s cycle and marking ⚠ the one off the latest',
+      m1.open === 'cyc' && m1.exp === 'true' && m1.rows.some(r => /^om:BES28 \(this board\)$/.test(r)) && m1.rows.some(r => /^ff:PB27 ⚠$/.test(r)), JSON.stringify(m1));
+    await p.keyboard.press('Tab');
+    const inList = await p.evaluate(() => !!(document.activeElement && document.activeElement.closest('#dd_cyc')));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(120);
+    const m2 = await p.evaluate(() => ({ open: openMenu, focus: document.activeElement && document.activeElement.id, exp: document.getElementById('b_cyc').getAttribute('aria-expanded') }));
+    chk('V · Esc from inside the list closes it, the keyboard back on the PPBE cycle', inList && m2.open === null && m2.focus === 'b_cyc' && m2.exp === 'false', JSON.stringify({ inList, ...m2 }));
+    // opened again: Tab to the first "Put every appropriation on …" item, Enter on it, OK to its one question
+    await p.keyboard.press('Enter'); await p.waitForTimeout(120);
+    let key = '', s3 = -1;
+    for (let i = 0; i < 12; i++) {
+      await p.keyboard.press('Tab');
+      key = await p.evaluate(() => { const a = document.activeElement, h = (a && a.closest('#dd_cyc') && a.getAttribute('onclick')) || '';
+        const m = /cycApplyAll\("([^"]+)"\)/.exec(h); return m ? m[1] : ''; });
+      if (key) { s3 = i + 1; break; }
+    }
+    if (s3 > 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(600); }
+    const a = await p.evaluate(() => { const rd = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+      const om = rd('prio27om'), ff = rd('prio27ff'), jl = st => ((st && st.jrnl) || []).filter(e => e && e.p && e.p[0] === '(cycle)').map(e => (e.a || '') + '>' + (e.b || ''));
+      return { MS: MS.cycle, om: om && om.cycle, ff: ff && ff.cycle, jom: jl(om), jff: jl(ff), mixed: cycAll().mixed,
+        btn: document.getElementById('b_cyc').textContent, focus: document.activeElement && document.activeElement.id, open: openMenu }; });
+    const want = key ? key.split('|')[0] + key.split('|')[1].slice(-2) : '';
+    chk('V · Tab reaches the first “Put every appropriation on …” item -- a cycle neither appropriation is on, so both must move',
+      s3 > 0 && /^(POM|BES|DoN|PB)\|\d{4}$/.test(key) && key !== 'BES|2028' && key !== 'PB|2027', JSON.stringify({ steps: s3, key }));
+    chk('V · Enter on it asks once, naming both appropriations, and OK puts every appropriation’s stored plan on that cycle, each with its journal line',
+      asked.length === 1 && /^confirm: Put every appropriation on /.test(asked[0]) && asked[0].indexOf(want + '?') > 0 && /O&M \(this board\) — BES28 → /.test(asked[0]) && /Full Fund — PB27 → /.test(asked[0])
+      && a.MS === key && a.om === key && a.ff === key && !a.mixed && a.jom.indexOf('BES|2028>' + key) >= 0 && a.jff.indexOf('PB|2027>' + key) >= 0,
+      JSON.stringify({ asked: asked.map(x => x.slice(0, 90)), ...a }));
+    chk('V · and the keyboard is back on the PPBE cycle, which names that cycle', a.open === null && a.focus === 'b_cyc' && a.btn === want + ' ▾', JSON.stringify({ focus: a.focus, btn: a.btn, want }));
+    chk('V · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`V · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position and a WBS paragraph picked, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked and the PPBE cycle at the top, and each one works\n');
 process.exit(bad ? 1 : 0);
