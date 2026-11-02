@@ -415,6 +415,69 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   the two, names the other two, journals each, and Cancel changes nothing; the refused lock on a plan tagged BES28, with its
   message; a lock on a plan tagged PB27, unchanged; a PMO copy; a locked view.
 
+#### 140. Save in one ORBIT file can write over another without asking (found 2 Nov 2026 while diagnosing item 141)
+- **What happens today (measured, v2.13 with a v2.12 board, Chromium 153):** every ORBIT file a browser opens shares one
+  remembered save file (IndexedDB `prio-fh`, key `FNAME`, the same in every version), one record of which save the work came
+  from (`<key>.base`) and one writer key. So 💾 Save in one ORBIT file writes to whichever file this browser last saved, and
+  its collision guard (`LASTKNOWN`) and writer check pass, because both read the other file's record.
+- **The case that matters now:** the old board is saved in place in this browser (the usual way); v2.13 is opened and its full
+  import is refused (item 141). The v2.13 tab then reads *Unsaved changes* (a refused import marks it unsaved), and its Save wrote
+  a v2.13 file holding only O&M over the old board file, with no question: 8,781,026 → 3,878,540 characters, and Full Fund,
+  Initial Spares, OPN, their locked cycles, the cost estimate, the execution data and the BAE list gone. Measured with the
+  remembered handle stood in from page code (a test handle cannot be put in IndexedDB); everything else was the board's own code.
+- **Two more of the same kind (measured):** one change in that blank tab (picking a fiscal year is enough) puts a near-empty O&M
+  plan in browser storage, and the old board, reopened in the same browser, opens it as *this browser's copy* (FY27 only, no
+  notes, descriptions, impact statements or journal; the requirement list still reads 115) and offers to Save it into the file.
+  And after a migration, the old file opened in the same browser writes the old program over the new file (the item 141 review).
+- **Proposed:** (a) the remembered save file is kept per file -- keyed by the page's own address, not `FNAME` -- so a file only
+  ever saves to its own target; (b) before writing, Save asks, naming them, when the file on disk holds an appropriation, a locked
+  cycle or a list the board on screen does not carry; (c) a refused import leaves the board as saved as it was. Old versions still
+  read the `FNAME` entry, so they keep their own remembered file; nothing a person saved is moved.
+- **Checks it would need:** the measured case above in Chromium (old board saved in place, v2.13 refused import, Save) refuses
+  or asks on v2.13's fix and writes nothing unasked; the blank-tab change, then the old board; an ordinary Save, unchanged.
+
+#### 141. A full import of a board larger than browser storage (Brad, 2 Nov 2026: "I'm unable to import my full board to the newest Orbit version")
+- **What Brad saw:** *Nothing was imported from "ORBIT Live.html" -- browser storage refused the cost estimates
+  (QuotaExceededError). This board is exactly as it was.* Nothing was lost: the import puts every key back (v1.95 item 48).
+- **The cause (measured, and re-measured by two independent checks; Chromium 153 on Linux, the same engine as Chrome and Edge):**
+  - Since v1.95 the full import writes the WHOLE board into browser storage at once (`lsAll`: every plan, every locked cycle,
+    every list) and then reloads, so the board must fit in browser storage. Browser storage holds 5,242,880 characters, keys and
+    values, for EVERY file a browser opens from a drive (one area, all ORBIT files, versions and PMO copies together).
+  - The old version never needed that: it works from its file, and a list storage refuses is warned about and kept in the file.
+    So a board that works today can be too big to import.
+  - The message names the write at which the running total crossed the limit, not the biggest store. It cannot tell a board that
+    is too big on its own from one that met storage already filled (PMO copies, another board, other web pages).
+  - What grows a board: the plans' years and the locked cycles (Roll forward and each lock copy every year whole, texts
+    included), the CCaR pull (~430 characters a row) and the cost estimate (~300 a line; one 2026 estimate, 4,900 rows, is 1.2M).
+  - Rule of thumb: into empty storage, a board file over about its version's program size + 5,241,880 bytes cannot be imported
+    (v2.11 7,954,639; v2.12 8,155,410; v2.13 8,191,908 bytes; Explorer shows 7.59, 7.78 and 7.81 MB). Every release's limit is in
+    the investigation's notes. A board that only just fits imports, but then most edits are refused by storage (measured: with
+    370 characters free, the second edit was refused).
+- **Today, without a code change:** keep working in the old version, which works from its file. The import can work today only
+  when the board fits and something else fills storage, and then only after Clear this computer, which deletes everything
+  browser-only (unsaved work in any ORBIT file, work kept aside, PMO copy work not sent). The first steps written for it were
+  found by the checks to lose work in two ways (a second ORBIT tab writing back over the import; checking the result in the old
+  file, which shows the new board and saves over it), so no steps are given until Brad's numbers say the board fits.
+- **Proposed fix (the investigation's choice, with the checks' corrections):**
+  - The storage route stays as shipped when the board fits. When storage refuses, the import offers **Write the imported board
+    into a new file…**: the board as the import would have it, in the v2.13 program (measured: a v2.12 board put into the v2.13
+    program opens with every requirement, year, lock and total identical, using about 70 characters of storage). The file is read
+    back and must match before anything in storage is touched; then only the import's own keys are cleared and the new file opens.
+  - Chromium empties an existing file the moment it is chosen in the save window (measured: 8,793,759 bytes to 0), so the button
+    suggests a new name and says not to pick the file being imported, and any failure after the choice keeps the import in memory
+    and offers both the new board and the imported file as downloads.
+  - Where a browser policy blocks writing files (some hardened builds do), the board is downloaded instead, and the stale copies
+    in storage must not override it when it opens: the requirement list follows the copy that opens (measured today: a newer file
+    over another board's older storage copy shows 60 of 115 requirements and wrong totals).
+  - With it, the measured ways a large board loses work once storage is full: switching appropriation drops an unsaved change
+    silently; the writer key is remade on each Save so the second Save is refused; Import one appropriation on an empty board
+    drops appropriations while saying it took them all; Save into the empty v2.13 file downloads instead of writing in place.
+  - Each part is checked in Chromium with storage seeded from page code, as the investigation was.
+- **Questions for Brad:** the version in ORBIT Live.html's header and its size in bytes (Explorer › Properties); in the tab where
+  the import was refused, Setup › Save diagnostics › the *Browser storage* line (counts only); whether 💾 Save writes in place
+  today or downloads a copy; whether he has seen *This change is not in browser storage* in the old version.
+
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
