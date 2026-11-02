@@ -132,6 +132,9 @@ Current version: **v2.13**. Next: **v2.14**.
   move the money engine and the import checks to the server; Zero Trust by pillar; planned 800-53 traceability (every
   line planned or inherited until there is code to point to); phases relative to the day hosting is available (D to
   D+180, then cutover after authorization); eight questions for the security team.
+- **Brad, 2 Nov 2026 (v2.13's question 4):** nobody works out of the shared folder today; on Azure everyone works in one hosted
+  environment. A PPBE cycle chosen there moves every appropriation for everyone at once, which the shared folder cannot do
+  (each folder copy is saved only by its own board).
 - **Brad, 22 Oct 2026 (with items 110-111):** the file's outside connections were removed "for now"; "once we build the azure
   update we'll want to be able to connect". The Azure build carries the connections (the shared state, GenAI.mil for item 109)
   server-side under the user's sign-in, with a policy that allows exactly those services.
@@ -365,6 +368,53 @@ answers under Shipped › v2.12 › *Questions for Brad*.
   toolbar-fits held on a tagged board, not only the bare template; keys V reaching the figure in the list when it has moved there.
 - **Questions for Brad before go:** none on the rule; the three steps above are the proposal to approve or change.
 
+#### 138. A package keeps the receiving board's PPBE cycle (Brad, 2 Nov 2026, v2.13's question 1: "1a. Only import the cycle being identified.")
+- **What happens today (v2.13):** taking one appropriation's plan into a board replaces that appropriation's whole store. That is
+  an appropriation package or a return (`pkgApply`), Import one appropriation from a consolidated file (`consTakeApply`) and
+  Import several boards at once (`importBoards`). The store carries its cycle (`MS.cycle`), the cycle its deltas are read against
+  (`MS.cycleRef`) and every PPBE position it logs, for every cycle (`MS.ppbe`); `pkgStrip` keeps all three. A package made while
+  the board was on PB27, taken after the board moved to BES28, puts that appropriation back on PB27: its budget reads PB27's
+  controls and the bar reads Mixed. v2.13's preview names the change (`pkgDiff`: *PPBE cycle BES28 → PB27*); accepting still
+  makes it.
+- **Proposed:** an incoming plan comes in under the cycle this board has identified for that appropriation, and nothing of any
+  other cycle comes with it:
+  1. the appropriation keeps its own tag on this board, and its deltas reference. Where it has no tag it takes the cycle the bar
+     shows (one cycle, not Mixed); with neither it stays untagged. Never the package's tag;
+  2. of the PPBE positions, only the identified cycle's is taken, where the package carries one. This board's positions for
+     every other cycle stay as they are, and a position the package carries for another cycle is not taken;
+  3. the requirements, the figures and everything else in the plan come in as today;
+  4. the preview and the result say it: *Made under PB27, taken under BES28. Its PB27 and POM28 positions were not taken.*
+  A package made under another cycle is still taken (point 2 decides what of it comes in), never refused for its cycle.
+- **Not changed:** a full import (⬅ Import a full board, new version) still replaces everything, cycles included; a board holding
+  nothing still takes everything; a PMO submittal carries no cycle and no position, as today.
+- **Checks it would need:** a package made under PB27 taken on a BES28 board through each of the three doors: the tag, the
+  reference and every other cycle's position unchanged, BES28's position the package's, the preview's and the result's
+  sentences; an untagged appropriation on a board whose bar shows BES28; a Mixed board; save and reopen.
+- **Question before go:** the locked cycles a consolidated file carries (`cycTake`: a lock this board does not hold is taken, one
+  it holds is left alone). A lock is a record that names its own cycle and moves nothing on screen, so the proposal keeps taking
+  them as today. Say if they should follow the same rule.
+
+#### 139. Retag moves every appropriation that has locked the cycle (Brad, 2 Nov 2026, v2.13's question 2: "2a")
+- **What happens today (v2.13):** three buttons move only the appropriation on screen to the next cycle. They are *Retag as
+  BES28* in PPBE cycles (`cycRetagNext`), *🏷 Retag it as BES28* in the message after a lock, and *Retag … as …* under Locks by
+  appropriation (`cycRetagLead`). Locking is per appropriation, each on its own board, so after the first lock the bar reads
+  Mixed until each board is retagged on its own, or the bar moves them all.
+- **Proposed:** each of the three moves, at once, every appropriation whose working plan is on the cycle being left (PB27) and
+  has locked it (locked, not reopened) to the next cycle (BES28). It writes as the bar writes (`cycApplyAll`: read again after
+  the question, one `lsAll`, a `(cycle)` journal line each, the same skips, each named). An appropriation still on PB27 that has
+  not locked it is named and left on PB27: *Full Fund and Spares have not locked PB27: lock each on its own board, then retag.*
+  The button says how many it moves (*Retag 2 of 4 as BES28*). An appropriation on another cycle, or holding no plan, is left
+  alone. A PMO copy and a locked view refuse, as today.
+- **Found while writing this up (it happens today, through the bar):** a lock records the PPBE position of the cycle the plan is
+  tagged with, not of the cycle being locked (`cycLock`: `pos` is `baPos()`), and its figures are worked out against that
+  position. So once the bar has moved every appropriation to BES28, locking an appropriation's PB27 records BES28's controls
+  under the name PB27, and nothing says so. Proposed: Lock refuses when the plan is tagged with another cycle, naming both and the
+  way out: *O&M's plan is on BES28. Tag this board PB27 under PPBE cycles (Working plan is tagged), lock, then retag.* An untagged
+  plan is still tagged by its lock, as today.
+- **Checks it would need:** four appropriations, two that have locked PB27 and two that have not: each of the three buttons moves
+  the two, names the other two, journals each, and Cancel changes nothing; the refused lock on a plan tagged BES28, with its
+  message; a lock on a plan tagged PB27, unchanged; a PMO copy; a locked view.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -483,6 +533,10 @@ independent review (four reviewers by area, every finding re-run by two skeptics
    cut off or scrolls (layout S). Acceptable, or should the figure move to the posture strip?
 4. Working out of the shared folder the bar moves only the board on screen. Enough, or should it leave each other board a mark to
    take the cycle when it opens?
+
+**Answered (Brad, 2 Nov 2026).** 1: *"1a. Only import the cycle being identified."* → item 138. 2: *"2a"* → item 139.
+3: *"No wrapping."* → item 137. 4: *"nobody works out of a shared folder, when we eventually host on Azure, we'll operate in the
+same environment but not yet"* → no change; recorded under item 107.
 
 **Known limits.** Another appropriation's stored budget follows the cycle when its board opens (item 135). The bar reads other
 appropriations as this browser holds them; in the shared folder, as this browser last held them (said in its tooltip).
