@@ -11136,6 +11136,11 @@ function pkgDiff(cur, inc){
   ['pmos','rcn','coaDef','snaps'].forEach(function(k){
     if(pkgCanon(pkgDiffVal((cur||{})[k]))!==pkgCanon(pkgDiffVal((inc||{})[k]))) rows.push([PKG_DIFF_NAMES[k], 'differs']);
   });
+  // v2.13 (item 136): THE PPBE CYCLE THE PLAN IS ON, and the locked cycle its deltas are read against. A package or a file taken
+  // whole replaces both, and with them every year's budget authority (item 134) -- previewed as "nothing changed" before v2.13.
+  [['cycle','PPBE cycle'], ['cycleRef','Deltas read against']].forEach(function(f){
+    const a=String(((cur||{})[f[0]])||''), b=String(((inc||{})[f[0]])||'');
+    if(a!==b) rows.push([f[1], (a? blLblTxt(a) : 'none')+' → '+(b? blLblTxt(b) : 'none')]); });
   if(!rows.length) rows.push(['—','nothing changed']);
   return rows;
 }
@@ -23312,7 +23317,8 @@ function cycLock(){
   // from that position as the working plan will read it from now on. Tagged after (as it was), the lock froze the board's
   // own base while the plan beside it read the position -- two figures for one moment.
   const fromTag=MS.cycle||'';      // the tag the plan carried when it was locked, as `from` has always recorded
-  if(!MS.cycle){ MS.cycle=key; baLiveAll(); }
+  // v2.13 (item 136): a PMO copy keeps the cycle it was published with; a tag given here is journalled, as every change of cycle is
+  if(!MS.cycle && cycKeyOk(key) && !(typeof SANDBOX!=='undefined' && SANDBOX)){ MS.cycle=key; jrnlAdd(cycJrnlLine('', key, MS.cur)); baLiveAll(); }
   const years={}, proj={};
   // the projection first: aceWithYear leaves the year normalised, and the copy taken after it is
   // the same object applyState will hand back later
@@ -23362,6 +23368,9 @@ function cycLock(){
 // would be a second engine). A PMO copy carries one appropriation and lists that one alone.
 // The cycles run POM, BES, (DoN,) PB through a year: cycNextOf's chain. A tag ranks by year, then that order.
 function cycKeyRank(key){
+  // v2.13 (item 136): only a key that is a cycle ranks (cycKeyOk): 'BES|2028x' ranked as BES28, so the calendar's lead and the
+  // offer to put every appropriation on it could name two different cycles, and Mixed never cleared
+  if(!cycKeyOk(key)) return null;
   const p=String(key||'').split('|'), y=parseInt(p[1],10), o={POM:0, BES:1, DoN:2, PB:3}[p[0]];
   return (isNaN(y) || o===undefined)? null : y*4+o;
 }
@@ -23369,7 +23378,9 @@ function cycOverview(){
   const own=mySlug(), sb=(typeof SANDBOX!=='undefined' && SANDBOX);
   const rows=(sb? [own] : APPN_SLUGS.slice()).map(function(k){
     let store=null, tag='', held=false;
-    if(k===own){ store=CYCDB; tag=String(MS.cycle||''); held=true; }
+    // v2.13 (item 136): the board on screen holds a plan when it is tagged or holds a requirement -- the rule the PPBE cycle bar
+    // counts by (cycHasReqs) -- so an empty board opened untagged is not "behind" the others, and is not offered a retag
+    if(k===own){ store=CYCDB; tag=String(MS.cycle||''); held=!!tag || cycHasReqs(MS); }
     else {
       try{ store=cycStoreOf(k).c; }catch(e){ store=null; }
       let st=null; try{ st=fydpStoreLocal(k).st; }catch(e){ st=null; }
@@ -23459,9 +23470,31 @@ function cycGoAppn(k){
 // Beside the selector, what the cycle's controls leave unallocated or are exceeded by in the year on screen (cycFitOf): the
 // fit model's own figures (fitModel), never worked out a second way, and never netted across services or lanes.
 var _cycAllMemo=null;     // var: lsSet clears it, and lsSet runs while the board opens, before any let down here exists
-try{ window.addEventListener('storage', function(){ _cycAllMemo=null; }); }catch(e){}
-const CYC_KEY_RE=/^(POM|BES|PB|DoN)\|(\d{4})$/;
-function cycKeyOk(k){ return typeof k==='string' && CYC_KEY_RE.test(k); }
+// ANOTHER TAB OF THIS BROWSER PUT THIS APPROPRIATION ON A CYCLE (cycApplyAll, from a board open there): this tab, open on it, takes
+// the cycle -- the cycle alone, with that tab's journal line -- or its next save (persist) would write the old one back over it. Not
+// saved here: storage already holds it, and saving now would write this tab's other work over that tab's sooner than it otherwise
+// would (the two-tab gap, item 129). Never in a locked view (the working plan is set aside) or a PMO copy.
+function cycFromTab(raw){
+  try{
+    if(CYCVIEW || (typeof SANDBOX!=='undefined' && SANDBOX) || !raw) return false;
+    const st=JSON.parse(raw); if(!st || typeof st!=='object' || typeof st.cycle!=='string') return false;
+    const was=(typeof MS.cycle==='string')? MS.cycle : '', now=st.cycle;
+    if(now===was || (now && !cycKeyOk(now))) return false;
+    const line=(Array.isArray(st.jrnl)? st.jrnl : []).filter(function(e){ return e && Array.isArray(e.p) && e.p[0]==='(cycle)' && e.b===(now||null); }).pop();
+    MS.cycle=now;
+    jrnlAdd(line? {t:+line.t||Date.now(), by:String(line.by||'unknown'), fy:+line.fy||MS.cur, p:['(cycle)'], a:line.a==null? null : String(line.a), b:now||null, f:1}
+                : cycJrnlLine(was, now, MS.cur));
+    baLiveAll(); render();
+    statKeep('🏷 <b>'+esc(appnName(mySlug()))+' was put on '+(now? blLbl(now) : 'no cycle')+' in another tab</b>, and this tab follows it ('
+      +(was? blLbl(was) : 'not tagged')+' before).');
+    return true;
+  }catch(e){ return false; }
+}
+try{ window.addEventListener('storage', function(e){ _cycAllMemo=null;
+  try{ if(e && e.key===_AP.key) cycFromTab(e.newValue); }catch(x){} }); }catch(e){}
+// A cycle key: a cycle and a four-digit year. A function with its own literal: the board draws while this script is read, before
+// a const down here would exist.
+function cycKeyOk(k){ return typeof k==='string' && /^(POM|BES|PB|DoN)\|\d{4}$/.test(k); }
 // the cycles a store's PPBE positions give controls for: a key that is a cycle, whose position names a service with a figure
 function cycPosKeysOf(ppbe){
   const out=[];
@@ -23477,7 +23510,7 @@ function cycPosKeysOf(ppbe){
 function cycOtherOf(k){
   if(!_cycAllMemo) _cycAllMemo=Object.create(null);
   if(_cycAllMemo[k]) return _cycAllMemo[k];
-  const r={held:false, tag:'', pos:[], why:''};
+  const r={held:false, counts:false, tag:'', pos:[], why:''};
   try{
     const g=fydpStoreLocal(k), st=g.st;
     r.why=g.why||'';
@@ -23485,23 +23518,37 @@ function cycOtherOf(k){
       r.held=!!((st.years && typeof st.years==='object' && Object.keys(st.years).length) || Array.isArray(st.order));
       r.tag=(typeof st.cycle==='string')? st.cycle : '';
       r.pos=cycPosKeysOf(st.ppbe);
+      r.counts=r.held && (!!r.tag || cycHasReqs(st));
     }
   }catch(e){ r.why='its saved plan could not be read'; }
   _cycAllMemo[k]=r;
   return r;
 }
-// Every appropriation's tag. `tag` is the one they share, or null where those holding a plan disagree (mixed). A PMO copy
-// holds one appropriation and sees only its own.
+// WHETHER A PLAN HOLDS ANY REQUIREMENT, in any year (an old single-year store counts its own order). What counts toward Mixed is
+// an appropriation that holds requirements or is tagged: an empty board, untagged -- OPN opened with nothing in it, or a slot a Save
+// wrote while it was on screen -- is no disagreement, and it read as one on its own board and on no other.
+function cycHasReqs(st){
+  try{
+    if(!st || typeof st!=='object') return false;
+    if(Array.isArray(st.order) && st.order.length) return true;
+    const Y=(st.years && typeof st.years==='object')? st.years : {};
+    return Object.keys(Y).some(function(y){ const T=Y[y]; return !!(T && typeof T==='object'
+      && ((Array.isArray(T.order) && T.order.length) || (Array.isArray(T.custom) && T.custom.length))); });
+  }catch(e){ return false; }
+}
+// Every appropriation's tag. `tag` is the one they share, or null where those that count disagree (mixed). A PMO copy holds one
+// appropriation and sees only its own.
 function cycAll(){
   const own=mySlug(), sb=(typeof SANDBOX!=='undefined' && SANDBOX);
   const slugs=(sb? [own] : APPN_SLUGS.slice()).filter(function(k){ return k===own || (typeof _SLUGMAP!=='undefined' && _SLUGMAP[k]); });
   const rows=slugs.map(function(k){
-    if(k===own) return {k:k, name:appnName(k), own:true, held:true, tag:(typeof MS.cycle==='string')? MS.cycle : '', pos:cycPosKeysOf(MS.ppbe), why:''};
+    if(k===own){ const tag=(typeof MS.cycle==='string')? MS.cycle : '';
+      return {k:k, name:appnName(k), own:true, held:true, counts:!!tag || cycHasReqs(MS), tag:tag, pos:cycPosKeysOf(MS.ppbe), why:''}; }
     const o=cycOtherOf(k);
-    return {k:k, name:appnName(k), own:false, held:o.held, tag:o.tag, pos:o.pos, why:o.why};
+    return {k:k, name:appnName(k), own:false, held:o.held, counts:o.counts, tag:o.tag, pos:o.pos, why:o.why};
   });
   const tags=[];
-  rows.forEach(function(r){ if(r.held && tags.indexOf(r.tag)<0) tags.push(r.tag); });
+  rows.forEach(function(r){ if(r.counts && tags.indexOf(r.tag)<0) tags.push(r.tag); });
   return {rows:rows, tags:tags, mixed:tags.length>1, tag:(tags.length===1)? tags[0] : null};
 }
 // The latest of a set of tags (cycKeyRank), '' when none is a cycle
@@ -23539,9 +23586,9 @@ function cycMenuHtml(mi){
     h+='<div class="mlbl">PPBE cycle — every appropriation</div><div class="cycall-rows">'
       +A.rows.map(function(r){
         return '<div class="cycall-row" data-ap="'+esc(r.k)+'"><b>'+esc(r.name)+'</b> <span>'
-          +(!r.held? '<span class="z">no plan</span>' : esc(cycTagTxt(r.tag)))
+          +(!r.held? '<span class="z">no plan</span>' : (!r.counts? '<span class="z">no requirements</span>' : esc(cycTagTxt(r.tag))))
           +(r.own? ' <span class="z">(this board)</span>' : '')
-          +((r.held && A.mixed && r.tag!==lead)? ' <span class="cycall-off" title="not on '+(lead? blLbl(lead) : 'one cycle')+'">⚠</span>' : '')+'</span></div>'; }).join('')
+          +((r.counts && A.mixed && r.tag!==lead)? ' <span class="cycall-off" title="not on '+(lead? blLbl(lead) : 'one cycle')+'">⚠</span>' : '')+'</span></div>'; }).join('')
       +'</div><div class="msep"></div><div class="mlbl">Put every appropriation on</div>';
     h+=cycAllChoices(A).map(function(k){
       const has=A.rows.filter(function(r){ return r.held && (r.pos||[]).indexOf(k)>=0; }).map(function(r){ return r.name; });
@@ -23562,15 +23609,18 @@ function cycMenuHtml(mi){
 // THE BUTTON SAYS WHICH CYCLE IS IN FORCE, or Mixed. Its tooltip names every appropriation's.
 function cycBarSync(){
   const b=document.getElementById('b_cyc'); if(!b) return;
+  if(window.__fydpFrame) return;        // a board opened in a frame only to be read for the five-year plan (fydpFrame)
   const sb=(typeof SANDBOX!=='undefined' && SANDBOX);
   let txt, tip, mixed=false;
-  if(CYCVIEW){ const p=baPos(); txt=(p && p.key? blLblTxt(p.key) : blLblTxt(CYCVIEW))+' (locked)'; tip='A locked cycle is on screen: '+cycApTxt(CYCVIEW); }
+  if(CYCVIEW){ txt=blLblTxt(CYCVIEW)+' (locked)'; tip='A locked cycle is on screen: '+cycApTxt(CYCVIEW); }
   else if(sb){ txt=cycTagTxt(MS.cycle); tip='The PPBE cycle this copy reads, as the portfolio team published it'; }
   else {
     const A=cycAll(); mixed=A.mixed;
     txt=mixed? '⚠ Mixed' : cycTagTxt(A.tag);
-    tip='The PPBE cycle every appropriation reads its budget from — '+A.rows.filter(function(r){ return r.held; })
-      .map(function(r){ return r.name+': '+cycTagTxt(r.tag); }).join('; ')+'. Choose one to put every appropriation on it.';
+    tip='The PPBE cycle every appropriation reads its budget from — '+A.rows.filter(function(r){ return r.counts; })
+      .map(function(r){ return r.name+': '+cycTagTxt(r.tag); }).join('; ')+'. Choose one to put every appropriation on it.'
+      // B8: working out of the shared folder, another appropriation is read as this browser last held it
+      +((function(){ try{ return driveStoreOn(); }catch(e){ return false; } })()? ' Working out of the shared folder, the other appropriations read as this browser last held them.' : '');
   }
   const want=txt+' ▾';
   if(b.textContent!==want) b.textContent=want;
@@ -23739,12 +23789,13 @@ function cycApplyAll(key){
     others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });
   }
   _cycAllMemo=null;
+  let ownKept=true;
   if(sets.some(function(p){ return p.r.own; })){
     const was=(typeof MS.cycle==='string')? MS.cycle : '';
     MS.cycle=key;
     jrnlAdd(cycJrnlLine(was, key, MS.cur));
     baLiveAll();
-    save();
+    ownKept=(save()!==false);
   }
   render();
   statKeep('🏷 <b>'+(key? (later.length? '' : 'Every appropriation is on ')+(later.length? esc(sets.map(function(p){ return p.r.name; }).join(', '))+' '+(sets.length===1? 'is' : 'are')+' on ' : '')+blLbl(key)
@@ -23752,6 +23803,9 @@ function cycApplyAll(key){
     +' — '+sets.map(function(p){ return esc(p.r.name); }).join(', ')+' changed'
     +(later.length? '; working out of the shared folder, <b>'+esc(later.map(function(p){ return p.r.name; }).join(', '))+'</b> '+(later.length===1? 'offers' : 'offer')+' it when '+(later.length===1? 'its board opens' : 'each board opens') : '')
     +(skips.length? '; <b>not changed</b>: '+skips.map(function(p){ return esc(p.r.name)+' ('+esc(p.why)+')'; }).join(', ') : '')
+    // the board on screen is kept in browser storage by save() (persist), past the set above: refused, it is still on screen and
+    // Save still writes it, but a reload before that would open it on its old cycle while the others are on the new one
+    +(ownKept? '' : '. ⚠ <b>Browser storage refused this board’s own change</b>: it is on screen, and 💾 Save writes it into the file — save before reloading')
     +'. 💾 <b>Save</b> writes it into the file.');
   return true;
 }
@@ -23765,7 +23819,7 @@ function cycOfferHtml(A){
   return offer.map(function(t){ return '<button type="button" class="nb lnk" onclick="cycApplyAll('+jsa(t)+')">Put every appropriation on '+blLbl(t)+'</button>'; }).join(' · ');
 }
 function cycMixedSay(A){
-  return A.rows.filter(function(r){ return r.held; }).map(function(r){ return '<b>'+esc(r.name)+'</b> '+esc(cycTagTxt(r.tag)); }).join(', ');
+  return A.rows.filter(function(r){ return r.counts; }).map(function(r){ return '<b>'+esc(r.name)+'</b> '+esc(cycTagTxt(r.tag)); }).join(', ');
 }
 // v2.02 (ledger U51; Brad, 21 Oct): A LOCKED CYCLE IS REPORT AND VIEW ONLY, AND IT CAN BE REOPENED, STAMPED. "When I lock
 // PB27 I want it to be report and view only. No changes." -- and "it will need to be re-openable ... and it needs to be date
@@ -23847,6 +23901,8 @@ function cycSetWorking(cyc, yr){
   const c=(cyc===null)? cur[0] : String(cyc||'');
   const y=(yr===null)? (parseInt(cur[1],10)||MS.cur) : (parseInt(yr,10)||MS.cur);
   const was=(typeof MS.cycle==='string')? MS.cycle : '';
+  // v2.13 (item 136): only a cycle and a four-digit year ('BES|28' from a two-digit year typed in the box ranked nowhere)
+  if(c && !cycKeyOk(blKey(c, y))){ setStat('⚠ <b>'+esc(blKey(c, y))+'</b> is not a PPBE cycle: a cycle and a four-digit year. Nothing was changed.'); render(); return; }
   MS.cycle= c? blKey(c, y) : '';
   // v2.13 (item 136): a change of cycle is one journal line, as putting every appropriation on one is (cycJrnlLine)
   if(MS.cycle!==was) jrnlAdd(cycJrnlLine(was, MS.cycle, MS.cur));
@@ -32062,7 +32118,7 @@ function syncBtns(){
     mi('⚙ Set base year…',"mRun(setBaseYear)",false,SANDBOX? 'off in a PMO copy' : 'rolls the 5-year window')+
     mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,SANDBOX? 'off in a PMO copy' : 'empties this year only',' warn');
   // v2.13 (item 136): the PPBE cycle in force, and its list
-  { const dc=document.getElementById('dd_cyc'); if(dc) dc.innerHTML=cycMenuHtml(mi); }
+  { const dc=document.getElementById('dd_cyc'); if(dc && !window.__fydpFrame) dc.innerHTML=cycMenuHtml(mi); }
   try{ cycBarSync(); }catch(e){}
   const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
   const bv=document.getElementById('b_view_t');
@@ -39432,7 +39488,7 @@ try{ if(localStorage.getItem(CYC_GO_KEY)){ const g=localStorage.getItem(CYC_GO_K
 // where that is another) -- nothing is changed unasked. A board behind the others still says so first, and still offers its own
 // retag beside it.
 try{ const O=cycOverview(), me=O.rows.filter(function(r){ return r.own; })[0], A=cycAll();
-  if(!(typeof SANDBOX!=='undefined' && SANDBOX) && !CYCVIEW && (A.mixed || (me && me.behind))){
+  if(!(typeof SANDBOX!=='undefined' && SANDBOX) && !CYCVIEW && !window.__fydpFrame && (A.mixed || (me && me.behind))){
     const de=document.getElementById('shareStat');
     // kept unread (statKeep): the opening line can be replaced later by what this browser's copy has to say (sharedArrived), and
     // an offer appended to a quiet line was not a warning the message list keeps
@@ -39484,9 +39540,6 @@ try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'
 // v2.12 (item 134): every year's budget cache, live, once the board has opened -- whichever copy opened. Writes no save and
 // marks nothing unsaved: the caches are derived, so a board saved by this build reopens to the very bytes it was saved with.
 try{ baLiveAll(); }catch(e){}
-// v2.13 (item 136): and the fit worked out again, here at the end of the script where nothing is drawing, so the figure beside the
-// PPBE cycle shows on a board just opened (baLiveAll cleared it after the last render, and the bar never works it out itself)
-try{ fitModel(); }catch(e){ _fitCache=null; }
 try{ jrnlSync(); }catch(e){}
 // v1.97 (item 76): what opening the board wrote into its lists -- one folded into today's shape -- is nobody's change
 // v1.99 (item 95): but a list storage REFUSED while opening is held nowhere but on screen, so it stays unsaved: the file
@@ -40145,6 +40198,7 @@ function uiBatchSnap(){
 // a key the batch wrote gets back what it held, a key it added is removed, and a key it did not change is not written.
 function uiBatchPut(was){
   const bad={};
+  _cycAllMemo=null;      // v2.13 (item 136): storage is put back by hand below, past lsSet
   const step=function(k, fn){ try{ fn(); }catch(e){ bad[k]=String((e && (e.name || e.message)) || e); } };
   step('review', function(){
     was.subs.length=0; was.subsAt.forEach(function(p){ was.subs.push(p); }); PMOSUBS=was.subs;

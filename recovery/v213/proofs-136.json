@@ -152,10 +152,6 @@
 "caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
 },
 {
-"id": "v213-136-fit-hidden-on-open",
-"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
-},
-{
 "id": "v213-136-fit-blanked-stale",
 "caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
 },
@@ -164,7 +160,59 @@
 "caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
 },
 {
+"id": "v213-136-package-cycle-unsaid",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-rank-loose",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-setworking-any-key",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-empty-board-mixed",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-empty-other-mixed",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-empty-board-behind",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-lock-tags-copy",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-lock-unjournalled",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-tab-ignored",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-tab-any-tag",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
+"id": "v213-136-own-refusal-unsaid",
+"caughtBy": "board / v2.13 \u2014 one PPBE cycle for every appropriation"
+},
+{
 "id": "v205-116-offer-on-every-board",
 "caughtBy": "board / v2.05 \u2014 each appropriation is locked on its own board"
+},
+{
+"id": "v212-w3-lock-tag-dropped",
+"caughtBy": "board / v2.12 W3 \u2014 a lock keeps the position as it was"
+},
+{
+"id": "v212-w3-lock-tag-not-live",
+"caughtBy": "board / v2.12 W3 \u2014 a lock keeps the position as it was"
 }
 ]

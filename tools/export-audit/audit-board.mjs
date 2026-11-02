@@ -7415,6 +7415,12 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     chk(name, 'journal', 'putting it on BES28 and tagging this board BES29 are a line each: forced, never put back, labelled',
       J(last), J([[['(cycle)'], null, 'BES|2028', 1, false, 'the PPBE cycle — not tagged → BES28'], [['(cycle)'], 'BES|2028', 'BES|2029', 1, false, 'the PPBE cycle — BES28 → BES29']]));
     ev(`MS.jrnl.push({t:Date.now()-5000, by:'X', fy:MS.cur, p:['notes','A'], a:'', b:'a note'}); cycSetWorking('BES', 2028); 'ok'`);
+    {
+      const K = w3Board();
+      K.ev(`blCyc='BES'; blYr=2028; cycLock(); 'ok'`);
+      chk(name, 'journal', 'a lock that tags an untagged plan writes the line too', K.ev(`JSON.stringify(MS.jrnl.filter(function(e){ return e.p && e.p[0]==='(cycle)'; }).map(function(e){ return [e.a, e.b]; }))`),
+        J([[null, 'BES|2028']]));
+    }
     chk(name, 'journal', 'a requirement’s last recorded edit is still its own after a change of cycle', ev(`JSON.stringify((uiLastEdit('A')||{}).p)`), J(['notes', 'A']));
     // ---------------------------------------------------------------- PART 2: four appropriations
     const T1 = 1790100000000, T0 = 1790000000000;
@@ -7489,6 +7495,7 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
       J(['BES28 ▾', '✓']));
     chk(name, 'applied', 'the message says what changed', /Every appropriation is on BES28 — O&M, Initial Spares, OPN changed/.test(F.ev(`document.getElementById('shareStat').textContent`)), true);
     chk(name, 'applied', 'O&M’s journal has the line', F.ev(`JSON.stringify(MS.jrnl.slice(-1).map(function(e){ return [e.p, e.a, e.b]; }))`), J([[['(cycle)'], 'PB|2027', 'BES|2028']]));
+    chk(name, 'applied', 'the board on screen’s deltas are still read against what they were (the separate comparison)', F.ev(`String(MS.cycleRef)`), '');
     const saved = JSON.parse(F.ev(`(function(){ var h=buildSavedHtml(); var m=/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/.exec(h); return JSON.stringify(JSON.parse(m[1]).appns); })()`));
     chk(name, 'saved', '💾 Save carries every appropriation’s cycle into the file', J(['om', 'ff', 'sp', 'opn'].map(k => saved[k] && saved[k].cycle)), J(['BES|2028', 'BES|2028', 'BES|2028', 'BES|2028']));
     // ---- the Initial Spares board, opened in the same browser: on BES28, and its budget read from its own BES28 position at once
@@ -7534,7 +7541,8 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     // ---- a locked view: refused, nothing written; the menu says why
     {
       const V = four();
-      V.ev(`blCyc='PB'; blYr=2027; cycLock(); cycView('PB|2027'); 'ok'`);
+      // the plan is on BES28 when PB27 is locked, so the lock's position is BES28's: the bar must name the lock, PB27
+      V.ev(`cycSetWorking('BES', 2028); blCyc='PB'; blYr=2027; cycLock(); cycView('PB|2027'); 'ok'`);
       const b0 = V.store();
       chk(name, 'locked view', 'refused, nothing written, and the bar names the lock', J([V.ev(`String(cycApplyAll('BES|2028'))`), V.store() === b0, V.ev(`document.getElementById('b_cyc').textContent`)]),
         J(['false', true, 'PB27 (locked) ▾']));
@@ -7553,6 +7561,9 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
           P.ev(`(function(){ toggleMenu('cyc'); return [].filter.call(document.querySelectorAll('#dd_cyc button.mi'), function(b){ return /cycApplyAll/.test(b.getAttribute('onclick')); }).length; })()`)]),
         J(['BES28 ▾', 'false', 'BES|2028', 0]));
       chk(name, 'PMO copy', 'and PPBE cycles’ own tag is refused there too', J([P.ev(`cycSetWorking('PB', 2028); MS.cycle`)]), J(['BES|2028']));
+      const html0 = B.ev(`(function(){ var w=MS.cycle; MS.cycle=''; var h=pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()}); MS.cycle=w; return h; })()`);
+      const P0 = boot({ html: html0 });
+      chk(name, 'PMO copy', 'a lock taken in an untagged copy leaves it untagged', P0.ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=2027; cycLock(); String(MS.cycle)`), '');
     }
     // ---- opening a board whose appropriations disagree: named and offered, nothing changed by opening
     {
@@ -7587,6 +7598,58 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     chk(name, 'the guide', 'the guide says the box at the top puts every appropriation on one cycle, reads Mixed, and shows the figure',
       /The <b>PPBE cycle<\/b> box at the top of the board.*every appropriation that holds a plan is put on it at once.*<i>Mixed<\/i>.*<b>unallocated<\/b>.*<b>over<\/b>/s
         .test(F.ev(`document.getElementById('helpDoc').innerHTML`)), true);
+    // ---- a board on the latest cycle, the others behind it: its opening says so too (not only a board behind)
+    {
+      const L2 = boot({ appn: 'FULL FUND', ls: Object.assign({}, LS) });
+      chk(name, 'opening', 'Full Fund, on BES28 with the others behind, is told they disagree and offered BES28 -- and is not told it is behind',
+        J([/The appropriations are on different PPBE cycles/.test(L2.ev(`document.getElementById('shareStat').textContent`)),
+          /Full Fund is tagged/.test(L2.ev(`document.getElementById('shareStat').textContent`))]), J([true, false]));
+    }
+    // ---- an empty board, untagged, is no disagreement: OPN opened with nothing in it, the others on BES28
+    {
+      // Initial Spares' store exists, empty and untagged: no disagreement either
+      const E = boot({ appn: 'OPN', ls: { prio27ff: LS.prio27ff, prio27sp: J({ svc: ['USAF', 'ANG'], ts: T1, base: 2027, cur: 2027, cycle: '', years: { 2027: year({ disc: [0, 0], mand: [0, 0], adds: [] }) } }) } });
+      chk(name, 'empty board', 'an empty OPN board on screen reads BES28, as every other board does, and its opening offers nothing',
+        J([E.ev(`document.getElementById('b_cyc').textContent`), /different PPBE cycles|OPN is not tagged/.test(E.ev(`document.getElementById('shareStat').textContent`))]),
+        J(['BES28 ▾', false]));
+    }
+    // ---- a package or a file taken whole says it changes the cycle (and the deltas' reference) -- its preview said nothing before
+    chk(name, 'package preview', 'the preview of a package names a change of PPBE cycle and of what deltas are read against',
+      F.ev(`JSON.stringify(pkgDiff({cycle:'PB|2027', cycleRef:'', years:{}}, {cycle:'BES|2028', cycleRef:'PB|2027', years:{}}))`),
+      J([['PPBE cycle', 'PB27 → BES28'], ['Deltas read against', 'none → PB27']]));
+    // ---- only a cycle and a four-digit year is a cycle: it ranks, it can be tagged
+    chk(name, 'keys', 'a key that is not a cycle never ranks as one', F.ev(`JSON.stringify([cycKeyRank('BES|2028x'), cycKeyRank('BES|28'), cycKeyRank('BES|2028')!==null])`), J([null, null, true]));
+    chk(name, 'keys', 'and PPBE cycles will not tag the plan with one', F.ev(`(function(){ var w=MS.cycle; cycSetWorking('BES', 28); return String(MS.cycle===w); })()`), 'true');
+    // ---- another tab put this appropriation on a cycle: this tab, open on it, follows -- or its next save would put the old one back
+    {
+      const T = four();
+      const other = J(Object.assign(JSON.parse(T.ev(`localStorage.getItem(_AP.key)`)), { cycle: 'BES|2028',
+        jrnl: [{ t: T1, by: 'Other tab', fy: 2027, p: ['(cycle)'], a: 'PB|2027', b: 'BES|2028', f: 1 }] }));
+      T.ev(`window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(other)}})); 'ok'`);
+      chk(name, 'another tab', 'the tab takes BES28 with the other tab’s journal line, and says so', J([T.ev('MS.cycle'),
+        T.ev(`JSON.stringify(MS.jrnl.slice(-1).map(function(e){ return [e.by, e.a, e.b]; }))`), /was put on BES28 in another tab/.test(T.ev(`document.getElementById('shareStat').textContent`))]),
+        J(['BES|2028', J([['Other tab', 'PB|2027', 'BES|2028']]), true]));
+      T.ev(`window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', newValue:'{}'})); window.dispatchEvent(new StorageEvent('storage', {key:_AP.key, newValue:${J(J({ cycle: 'BES|28x', years: {} }))}})); 'ok'`);
+      chk(name, 'another tab', 'CONTROL: another key, or a tag that is not a cycle, changes nothing here', T.ev('MS.cycle'), 'BES|2028');
+    }
+    // ---- this board's own storage refuses: the others are on the new cycle, and the message says to save before reloading
+    {
+      const O2 = four();
+      O2.ev(`window.__setI=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k===_AP.key) throw new DOMException('full','QuotaExceededError'); return window.__setI.call(this,k,v); }; cycApplyAll('BES|2028'); Storage.prototype.setItem=window.__setI; 'ok'`);
+      chk(name, 'own refused', 'the others are moved, this board is on BES28 on screen, and it is told to save before reloading',
+        J([tagOf(O2, 'prio27sp'), O2.ev('MS.cycle'), /Browser storage refused this board’s own change/.test(O2.ev(`document.getElementById('shareStat').textContent`))]), J(['BES|2028', 'BES|2028', true]));
+    }
+    // ---- every appropriation held only in the file: put on BES28, saved, and each opened from that file alone
+    {
+      const FL = four({ prio27ff: null, prio27sp: null, prio27opn: null });
+      FL.ev(`localStorage.removeItem('prio27ff'); localStorage.removeItem('prio27sp'); localStorage.removeItem('prio27opn');
+        PUBS.ff=JSON.parse(${J(J(ffStore))}); PUBS.sp=JSON.parse(${J(J(spStore))}); _cycAllMemo=null; render(); 'ok'`);
+      chk(name, 'file only', 'CONTROL: the others are read from the file alone, and disagree', FL.ev(`document.getElementById('b_cyc').textContent`), '⚠ Mixed ▾');
+      FL.ev(`cycApplyAll('BES|2028'); 'ok'`);
+      const html = FL.ev('buildSavedHtml()');
+      const opened = ['FULL FUND', 'INITIAL SPARES'].map(a => { const X = boot({ html, appn: a }); return [X.ev('mySlug()'), X.ev('MS.cycle'), X.ev(`document.getElementById('b_cyc').textContent`)]; });
+      chk(name, 'file only', 'the saved file opens every appropriation on BES28, and every board reads one cycle', J(opened), J([['ff', 'BES|2028', 'BES28 ▾'], ['sp', 'BES|2028', 'BES28 ▾']]));
+    }
     // ---- a file's tag that is not a cycle is drawn as text, never offered, never run
     {
       const bad = '<img src=x onerror="window.__pw=1">|2028';
