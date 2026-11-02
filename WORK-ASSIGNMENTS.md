@@ -27,7 +27,7 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
   entry. Excluded: the sweep (no named go), item 133, items 100 and 107.
 - Isolated branch and base commit SHA: ccr-26126337-csqb5v, based on main fe0c83d (v2.12 merged), plus the item 136 logging
   (67e758d .. efd6435). Draft PR #32.
-- Status: ready for review. Not merged.
+- Status: accepted; merged on Brad's "Merge when ready" (2 Nov 2026).
 - Required bounded checks and designated gate owner: npm run check; every suite; the browser checks (verify:grid, keys, dropdowns,
   dialogs, leftmenu, pmosave, pmoyears, pointer, standards); each new and retargeted mutation proved against its own check; mcount;
   review with skeptics; validate:nightly on the final tree. Gate owner Claude. No sweep.
@@ -45,7 +45,8 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
   NEXT-VERSION.md > Shipped > v2.13 (packages replacing the cycle; the per-appropriation retags; the context bar wrapping to two lines
   below about 1,138 px on a tagged board; the shared folder moving only the board on screen). Another appropriation's stored budget
   follows the cycle when its board next opens (item 135). Layout D x8 is carried; the sweep was not run (Brad's rule of 20 Oct).
-- Brad's integration/merge/publication authorization, if given: not given. Nothing merges without Brad's go.
+- Brad's integration/merge/publication authorization, if given: given, 2 Nov 2026: "Merge when ready". Merged into main as
+  PR #32 with a merge commit, so the commits the suites read from history stay reachable.
 
 The four recurring monitors retain read-only scope.
 
