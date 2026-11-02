@@ -23576,57 +23576,66 @@ function cycBarSync(){
   if(b.textContent!==want) b.textContent=want;
   b.title=tip;
   b.classList.toggle('mixed', mixed);
-  const f=document.getElementById('cycFit');
-  if(f){
-    const F=cycFitOf(), t=F? cycFitTxt(F) : '';
+  const f=document.getElementById('cycFit'), F=f? cycFitOf() : undefined;
+  if(f && F!==undefined){
+    const t=F? cycFitTxt(F, mixed) : '';
     f.hidden=!t;
     if(f.textContent!==t) f.textContent=t;
     f.title=F? cycFitTip(F) : '';
     f.classList.toggle('over', !!(F && F.over>0.5));
   }
 }
-// WHAT THE CYCLE'S CONTROLS LEAVE, in the year on screen: the services whose base the position gives (from === 'pos'), both
-// lanes, each service and lane on its own -- unallocated where the requirements hold less than the lane's budget authority,
-// over where they hold more -- added up, never netted. Read off the fit model as render() left it; nothing is worked out here.
+// WHAT THE CYCLE'S CONTROLS LEAVE, in a year: the services whose base the position gives (from === 'pos'), both lanes, each service
+// and lane on its own -- unallocated where the requirements hold less than the lane's budget authority, over where they hold more
+// -- added up, never netted (per lane un - over is the lane's own BA - held, so the two totals differ by exactly Σ BA - Σ held). One
+// reading, for the bar and for the line the Fit panel prints over each year, so a click on the figure opens a panel saying it.
+function cycFitSums(Y){
+  const r=Y.src, o={over:0, un:0, ba:0, held:0, nOver:0, pos:[], own:[], bad:[]};
+  SVC.forEach(function(sv, i){
+    if(r.from[i]!=='pos'){ if(r.bad && r.bad[i]) o.bad.push(sv+' ('+r.bad[i]+')'); else o.own.push(sv); return; }
+    o.pos.push(sv);
+    ['d','m'].forEach(function(k){ const X=Y.L[k];
+      o.over+=+X.over[i]||0; o.un+=+X.un[i]||0; o.ba+=+X.ba[i]||0; o.held+=+X.held[i]||0; if((+X.over[i]||0)>0.5) o.nOver++; });
+  });
+  return o;
+}
+// The year on screen, read off the fit model as render() left it; null where it is not worked out for what is on screen (the bar is
+// then left as it was) or the plan is untagged (nothing to say).
 function cycFitOf(){
-  if(!_fitCache || _fitCache.view!==CYCVIEW || _fitCache.cur!==+MS.cur) return null;
+  if(!fitModelReady()) return undefined;
   const M=_fitCache.M; if(!M || !M.key) return null;
-  const fy=+MS.cur, Y=M.years[fy], out={key:M.key, fy:fy, state:'', over:0, un:0, ba:0, held:0, nOver:0, pos:[], own:[],
-    winOver:M.over||0, years:(M.held||[]).slice()};
+  const fy=+MS.cur, Y=M.years[fy], out={key:M.key, fy:fy, state:'', over:0, un:0, ba:0, held:0, nOver:0, pos:[], own:[], bad:[],
+    winOver:M.overPos||0};
   if(!M.has){ out.state='nopos'; return out; }
   if(!Y){ out.state='noyear'; return out; }
-  const r=Y.src;
-  if(!r.logged){ out.state='noyear'; return out; }
-  SVC.forEach(function(sv, i){
-    if(r.from[i]!=='pos'){ out.own.push(sv); return; }
-    out.pos.push(sv);
-    ['d','m'].forEach(function(k){ const X=Y.L[k];
-      out.over+=+X.over[i]||0; out.un+=+X.un[i]||0; out.ba+=+X.ba[i]||0; out.held+=+X.held[i]||0; if((+X.over[i]||0)>0.5) out.nOver++; });
-  });
+  if(!Y.src.logged){ out.state='noyear'; return out; }
+  Object.assign(out, cycFitSums(Y));
   out.state=out.pos.length? 'ok' : 'nosvc';
   return out;
 }
-function cycFitTxt(F){
-  const key=blLblTxt(F.key), fy='FY'+(F.fy%100);
+function cycFitTxt(F, mixed){
+  const key=blLblTxt(F.key), fy='FY'+(F.fy%100), pre=mixed? key+' · ' : '';
   if(F.state==='nopos') return 'no '+key+' controls entered';
-  if(F.state==='noyear') return fy+' · no '+key+' controls';
-  if(F.state==='nosvc') return fy+' · no '+key+' controls for these services';
+  if(F.state==='noyear') return pre+fy+' · no '+key+' controls';
+  if(F.state==='nosvc') return pre+fy+' · no '+key+' controls for these services';
   const parts=[];
   // compact in the bar ($4.2M); the tooltip gives every figure to the dollar
   if(F.un>0.5) parts.push(fMc(F.un)+' unallocated');
   if(F.over>0.5) parts.push('⚠ '+fMc(F.over)+' over');
-  return fy+' · '+(parts.length? parts.join(' · ') : 'fully allocated');
+  return pre+fy+' · '+(parts.length? parts.join(' · ') : 'fully allocated');
 }
 function cycFitTip(F){
   const key=blLblTxt(F.key), fy='FY'+(F.fy%100), app=appnName(mySlug());
   if(F.state==='nopos') return app+' logs no '+key+' position: every year keeps the board’s own budget. Enter it under FYDP › PPBE Budget Positions.';
   if(F.state==='noyear') return key+' logs nothing for '+fy+' on '+app+': the year keeps the board’s own budget. Fit to the PPBE position shows every year.';
-  if(F.state==='nosvc') return key+' gives '+fy+' controls for none of '+app+'’s services. Fit to the PPBE position shows every year.';
-  return app+' '+fy+', against '+key+': budget authority '+fM(F.ba)+' (the controls, with any added funding), requirements hold '+fM(F.held)+'. '
+  if(F.state==='nosvc') return key+' gives '+fy+' controls for none of '+app+'’s services'
+    +(F.bad.length? ' it can read ('+F.bad.join(', ')+' cannot be read)' : '')+'. Fit to the PPBE position shows every year.';
+  return app+' '+fy+', against '+key+' ('+F.pos.join(', ')+'): budget authority '+fM(F.ba)+' (the controls, with any added funding), requirements hold '+fM(F.held)+'. '
     +fM(F.un)+' unallocated and '+fM(F.over)+' over'+(F.nOver? ' in '+F.nOver+' service lane'+(F.nOver===1? '' : 's') : '')
     +', each service and lane on its own, never netted.'
     +(F.own.length? ' Not counted: '+F.own.join(', ')+' ('+key+' gives no controls for '+(F.own.length===1? 'it' : 'them')+').' : '')
-    +(F.winOver? ' '+F.winOver+' service lane'+(F.winOver===1? '' : 's')+' over budget authority across the held years.' : '')
+    +(F.bad.length? ' Not counted, '+key+' cannot be read for: '+F.bad.join(', ')+'.' : '')
+    +(F.winOver? ' '+F.winOver+' service lane'+(F.winOver===1? '' : 's')+' over '+key+' across the held years.' : '')
     +' Opens Fit to the PPBE position.';
 }
 // The journal line a cycle change writes, in the store it changed: forced, never joined to another, never put back
@@ -27841,9 +27850,9 @@ function bmLiveRow(R){
     +'<div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--gold);text-transform:uppercase">'
     +(reads? 'The base is read from '+lbl+', live'
       : 'The plan is tagged '+lbl+' — '+(R.has? 'it logs nothing for '+FYL()+'' : esc(appnName(mySlug()))+' logs no '+lbl+' position')+': the base is the board’s own')+'</div>'
-    +'<div class="hint" style="margin-top:4px">'+esc(fitSrcSay(R))+' The working plan is tagged '+lbl+' (PPBE cycles), so '
+    +'<div class="hint" style="margin-top:4px">'+esc(fitSrcSay(R))+' The working plan is tagged '+lbl+' (the PPBE cycle at the top of the board), so '
     +(reads? FYL()+'’s base for each service '+lbl+' speaks for is its '+FYL()+' figure in FYDP › <b>PPBE Budget Positions</b>, read every time the budget '
-      +'is worked out: change it there and the budget moves at once. A service it says nothing about keeps its box below. Untag the plan to type every base here again.'
+      +'is worked out: change it there and the budget moves at once. A service it says nothing about keeps its box below. Untag the plan (PPBE cycles) to type every base here again.'
       : 'a year and service it logs read their base from FYDP › <b>PPBE Budget Positions</b>, live; '+FYL()+' reads none, so each base below is the board’s own, and its box is the control.')
     +(R.outside.length? ' '+lbl+' also holds '+esc(R.outside.join(', '))+', which this board does not carry.' : '')+'</div></div>';
 }
@@ -28093,8 +28102,12 @@ function fitReadYear(fy, fn){
 // THE FIT, every held year of the FYDP window. Cached until the next save(), a position or tag change, a load, or the
 // view going in or out (each other year costs a whole applyState), and computed at the top of render(), before anything
 // draws, so a panel never sees DATA rebuilt under it.
+// v2.13 (item 136): whether the fit is worked out for what is on screen -- one test, read by fitModel and by the figure beside the
+// PPBE cycle (cycBarSync), which never works it out itself (a draw path that rebuilt DATA under the bar would be the very thing
+// render() works the fit out first to avoid)
+function fitModelReady(){ return !!(_fitCache && _fitCache.view===CYCVIEW && _fitCache.cur===+MS.cur); }
 function fitModel(){
-  if(_fitCache && _fitCache.view===CYCVIEW && _fitCache.cur===+MS.cur) return _fitCache.M;
+  if(fitModelReady()) return _fitCache.M;
   const ys=fydpWindow().filter(function(y){ return !!MS.years[y]; });
   const years=Object.create(null);
   ys.forEach(function(y){ years[y]=fitReadYear(y, function(){ return fitYearNow(); }); });
@@ -28186,7 +28199,7 @@ function fitBody(){
       : (CYCVIEW? 'Viewing <b>'+cycAp(CYCVIEW)+'</b> (locked): it was locked before v2.12 and kept no position, so its budget is as locked. '
       : (M.key? 'The working plan is tagged <b>'+esc(key)+'</b>: every year '+esc(ap)+'’s '+esc(key)+' position logs is read from it live, '
           +'service by service, and typing into the position moves the budget at once. '
-        : 'The working plan is untagged, so every year’s base is the board’s own. Tag it under PPBE cycles to read a position. ')))
+        : 'The working plan is untagged, so every year’s base is the board’s own. Choose a PPBE cycle at the top of the board to read a position. ')))
     +'<b>Held</b> is what the requirements direct to a lane (a Split’s typed figure, or what the lane walk drew), never less than what they drew; <b>over</b> is held past the budget '
     +'authority, and a requirement has to give — ORBIT reduces nothing; <b>unallocated</b> is budget authority nobody holds, and of that, '
     +'<b>UPL</b> is the added funding no requirement holds. Funded is still what the lane draws, so no report states more than the budget authority.</div>';
@@ -28195,6 +28208,11 @@ function fitBody(){
     const F=M.years[y], r=F.src;
     h+='<div class="fityr" data-fy="'+y+'" style="margin:12px 0 4px"><b style="color:var(--gold)">FY'+(y%100)+' '+esc(ap)+'</b> '
       +'<span style="font-size:10px;color:var(--mut)">'+esc(fitSrcSay(r))+'</span></div>';
+    // v2.13 (item 136): what the cycle's controls leave this year -- the figure the PPBE cycle bar shows for the year on screen,
+    // the same sums (cycFitSums), so the panel it opens says it
+    if(M.key && r.logged){ const Q=cycFitSums(F);
+      if(Q.pos.length) h+='<div class="fitctl" data-fy="'+y+'" style="font-size:11px;margin:0 0 4px">Against <b>'+esc(key)+'</b>’s controls ('+esc(Q.pos.join(', '))+'): '
+        +'<b>'+fM(Q.un)+'</b> unallocated · <b>'+fM(Q.over)+'</b> over, each service and lane on its own'+(Q.own.length? '; not counted: '+esc(Q.own.join(', ')) : '')+'.</div>'; }
     h+='<div class="fitwrap"><table class="fctab fittab" style="width:100%"><tr><th style="text-align:left">Service</th><th style="text-align:left">Lane</th>'
       +'<th>'+(r.logged? 'Base ('+esc(key)+' / own)' : 'Base (own)')+'</th><th>Added</th><th>Budget authority</th><th>Held</th><th>Drawn</th>'
       +'<th>Over</th><th>Unallocated</th><th>UPL</th></tr>';
@@ -39466,6 +39484,9 @@ try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'
 // v2.12 (item 134): every year's budget cache, live, once the board has opened -- whichever copy opened. Writes no save and
 // marks nothing unsaved: the caches are derived, so a board saved by this build reopens to the very bytes it was saved with.
 try{ baLiveAll(); }catch(e){}
+// v2.13 (item 136): and the fit worked out again, here at the end of the script where nothing is drawing, so the figure beside the
+// PPBE cycle shows on a board just opened (baLiveAll cleared it after the last render, and the bar never works it out itself)
+try{ fitModel(); }catch(e){ _fitCache=null; }
 try{ jrnlSync(); }catch(e){}
 // v1.97 (item 76): what opening the board wrote into its lists -- one folded into today's shape -- is nobody's change
 // v1.99 (item 95): but a list storage REFUSED while opening is held nowhere but on screen, so it stays unsaved: the file

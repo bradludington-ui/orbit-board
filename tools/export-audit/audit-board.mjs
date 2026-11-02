@@ -7391,10 +7391,21 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     const tip = ev(`document.getElementById('cycFit').title`);
     chk(name, 'the figure', 'its tooltip gives every figure to the dollar, names what is not counted, and counts the window’s overs',
       J([/budget authority \$543,390/.test(tip), /requirements hold \$2,000\./.test(tip), /\$541,440 unallocated and \$50 over in 1 service lane/.test(tip),
-        /Not counted: AFRC \(BES28 gives no controls for it\)/.test(tip), /2 service lanes over budget authority across the held years/.test(tip)]),
+        /Not counted: AFRC \(BES28 gives no controls for it\)/.test(tip), /1 service lane over BES28 across the held years/.test(tip)]),
       J([true, true, true, true, true]));
     chk(name, 'the figure', 'it is the fit model’s own reading: the Fit panel opens from it',
       ev(`fitOpen=false; render(); document.getElementById('cycFit').click(); String(fitOpen)`), 'true');
+    chk(name, 'the figure', 'and the panel says the same over FY27, to the dollar, naming what it does not count',
+      ev(`(document.querySelector('#fitBody .fitctl[data-fy="2027"]')||{}).textContent||'none'`),
+      'Against BES28’s controls (USAF, ANG): $541,440 unallocated · $50 over, each service and lane on its own; not counted: AFRC.');
+    chk(name, 'the figure', 'a save with no redraw after it leaves the figure as it was, never blanks it',
+      ev(`fitOpen=false; render(); save(); syncBtns(); JSON.stringify([document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
+      J([false, 'FY27 · $541K unallocated · ⚠ $50 over']));
+    {
+      const R = boot({ html: ev('buildSavedHtml()') });
+      chk(name, 'the figure', 'the board saved and opened again shows it at once', R.ev(`JSON.stringify([document.getElementById('b_cyc').textContent, document.getElementById('cycFit').hidden, document.getElementById('cycFit').textContent])`),
+        J(['BES28 ▾', false, 'FY27 · $541K unallocated · ⚠ $50 over']));
+    }
     ev(`fitOpen=false; switchYear(2029); render(); 'ok'`);
     chk(name, 'the figure', 'FY29, a year BES28 logs nothing for, says so', ev(`document.getElementById('cycFit').textContent`), 'FY29 · no BES28 controls');
     ev(`switchYear(2027); cycSetWorking('BES', 2029); 'ok'`);
@@ -7445,6 +7456,10 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
     F.ev(`window.__yes=false; 'ok'`);
     chk(name, 'cancel', 'Cancel: nothing written, nothing journalled, the board still on PB27',
       J([F.ev(`String(cycApplyAll('BES|2028'))`), F.store() === before, F.ev('MS.cycle'), F.ev(`String(MS.jrnl.filter(function(e){ return e.p && e.p[0]==='(cycle)'; }).length)`)]), J(['false', true, 'PB|2027', '0']));
+    // ---- while they disagree, the figure names the cycle it is against: this board's own, PB27, given controls for USAF only.
+    // USAF discretionary BA 1,000 against A and B's 100 + 80 on the lane walk: $820 unallocated; ANG is the board's own, not counted
+    F.ev(`MS.ppbe['PB|2027']={v:2, split:true, lines:{}, val:{USAF:{_all:{2027:{d:1000, m:0}}}}}; baLiveAll(); render(); 'ok'`);
+    chk(name, 'mixed', 'the figure beside a Mixed bar names this board’s cycle', F.ev(`document.getElementById('cycFit').textContent`), 'PB27 · FY27 · $820 unallocated');
     // ---- the rendered item, as a person picks it
     // the item is found by what it says (its label, after the tick column), and clicked as a person clicks it
     F.ev(`window.__mi=function(re){ return [].filter.call(document.querySelectorAll('#dd_cyc button.mi'), function(b){ return re.test(b.textContent.slice(b.querySelector('.chk').textContent.length)); })[0]; }; 'ok'`);
