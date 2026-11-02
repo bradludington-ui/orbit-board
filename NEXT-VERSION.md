@@ -383,8 +383,10 @@ answers under Shipped › v2.12 › *Questions for Brad*.
      reading v2.12's **Fit to the PPBE position** already makes (`fitModel`: held against budget authority, *over* and
      *unallocated*), so the build puts that figure on the main screen beside the cycle selector (e.g. *BES28 · FY28 $4.2M
      unallocated · 2 over*), opening the Fit panel, and does not compute it a second way.
-     Still to confirm at go: whether the lock-based deltas (each row's change chip, the Changes panel, *deltas read against*)
-     stay as they are for comparing against a locked cycle, or are retired in favour of this one.
+     The lock-based deltas (each row's change chip, the Changes panel, *deltas read against* under PPBE cycles) **stay, as a
+     separate comparison** (Brad, 2 Nov 2026: "Separate comparison"): what changed since a locked cycle, chosen by hand as
+     today, and named apart from the controls-versus-allocated figure so the two are never read as one. The selector does not
+     move *deltas read against*; that supersedes the first reading of answer 3 above.
 - **Checks it would need:** audit-board/audit-import blocks (the selector tags all four, each reads its own position, a
   refusal leaves every store unchanged, mixed tags on open, a PMO copy); layout and keys for the context bar; `npm run menus`
   and the guide's PPBE section reworded.
