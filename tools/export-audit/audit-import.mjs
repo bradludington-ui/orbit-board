@@ -3421,7 +3421,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // v2.10: the FYDP Disconnects paragraph took the guide to 61,040 characters (59,662 in v2.09); the budget is raised to 64 KB on
   // purpose -- the guide grows with the board -- and still says when it grows a lot
   // v2.12: 70 KB -- items 132 and 134 each add a section to the guide (the budget was 64 KB since v2.10).
-  chk(name, 'size', 'it adds under 70 KB to the file', doc.length < 70000, true);
+  // v2.13: 72 KB -- item 136 adds the PPBE cycle box's paragraph (it was 69,950 of 70,000 in v2.12).
+  chk(name, 'size', 'it adds under 72 KB to the file', doc.length < 72000, true);
   const money = () => ev(`JSON.stringify({ms:MS.years, ls:(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })()})`);
   const before = money();
   ev(`openHelp(''); 'ok'`);
