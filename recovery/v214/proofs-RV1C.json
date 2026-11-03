@@ -122,5 +122,69 @@
  {
   "id": "frame-store-older-wins",
   "caughtBy": "import / v1.85 — every appropriation, read by its own board, ties to the dollar; v1.85 — a block that cannot be trusted is refused"
+ },
+ {
+  "id": "v214-rv1-c-strayheld-off",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-ladder-copies-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-ladder-peer-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-issue-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-pack-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-push-lists-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-push-stray-unnamed",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-sendback-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-spdefs-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-byband-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-export-list-drops",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-destuse-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-persists-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-record-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-mine-newer",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v200-u40-backuse-panel-reset-uncounted",
+  "caughtBy": "import / v2.00 (U40) — two destinations of one list whose names match stay two"
  }
 ]

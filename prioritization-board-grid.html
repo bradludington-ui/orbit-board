@@ -8524,6 +8524,27 @@ function strayOther(k, ls, fb){
     return !!(b && typeof b==='object' && b.dirty===true && !(+b.file) && b.blank===true && !_hasData(ls.dataPack));
   }catch(e){ return false; }
 }
+// v2.14 RV1-C (stray-rule-only-own-opening, finish): THE SAME TEST, FOR THE READERS THAT TAKE BROWSER STORAGE FIRST. pkgStoreOf (and
+// through it issuing, pushing and sending back a package, and the list Export one appropriation offers), the band ladder (bandPeers,
+// bandCopyAll), the Spruills (spDefs) and the workbook's requirements by band read another appropriation's plan from browser storage
+// before the file's, whatever their times. Over blank work they read the blank work -- and two of them WROTE it: ⚖ copying the ladder
+// to every appropriation and issuing a package put it in PUBS, where strayOther then compared it with itself and went quiet, and the
+// next 💾 Save's HOLD ON wrote the blank work over the file's (measured, both). strayHeld(k): does this browser hold, for appropriation
+// k (never the one on screen), blank work its own board keeps aside for the file's copy? A reader then reads PUBS[k] (strayOr), and
+// a writer leaves k alone and says why. Never throws.
+function strayHeld(k){
+  try{
+    if(!PUBS || !_SLUGMAP[k] || k===_AP.slug) return false;
+    return strayOther(k, JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'), PUBS[k]);
+  }catch(e){ return false; }
+}
+function strayOr(k, st){ return strayHeld(k)? PUBS[k] : st; }
+// What a writer refused for that reason says (text, not HTML: the callers escape it or hand it to confirm()).
+function strayHeldWhy(k){
+  const t=(_SLUGMAP[k]&&_SLUGMAP[k].t)||k;
+  return 'this browser holds '+t+' work typed on a page with no board file, which '+t+'’s own board keeps aside when it opens this '
+    +'file’s '+t+'. Open '+t+' once (Appropriation, at the top: the work is kept aside, not lost), then do this again';
+}
 // THE APPROPRIATIONS A BOARD FILE CARRIES: this one's as given, every other one the newer of what this board
 // holds and what this browser stores -- never blank work its own board would keep aside for this file's (strayOther).
 function pubsFor(own){
@@ -10679,17 +10700,27 @@ function saveStopMark(){
   try{ return {m:lsMarks(), bd:_baseDirty, base:localStorage.getItem(_AP.key+'.base'), after:undefined,
     ms:MS, ts:MS.ts, by:MS.by, log:JSON.stringify(MS.log||[])}; }catch(e){ return null; }
 }
+// v2.14 RV1-C (finish; the check's new defect): BROWSER STORAGE IS WRITTEN BACK ONLY WHILE THIS PAGE WROTE IT LAST. The browser's own
+// write-access question has no time limit, and another tab of this browser can save this plan meanwhile: an edit there writes the
+// plan (its own save stamp) and the record (unsaved -- the very text this save's save() wrote, so the record test alone cannot tell
+// them apart). The put-back then wrote this page's plan over that tab's work under the OLD stamp and the record back to "saved":
+// the other tab's edit was gone from storage and nothing said it was unsaved (measured; v2.14 before this fix left that tab's copy
+// standing). `mine`: the stored plan carries this page's own save stamp -- every save() here writes it with MS.ts -- so nothing
+// else has written it since. Read before the stamp goes back. Otherwise storage and the record are left as the other tab left
+// them; this page's memory still goes back. Unreadable is not mine.
 function saveStopBack(k, penLine){
   if(!k) return;
+  let mine=false;
+  try{ const st=JSON.parse(localStorage.getItem(_AP.key)||'null'); mine=!!(st && typeof st==='object' && +st.ts===+k.ms.ts); }catch(e){ mine=false; }
   if(penLine) writerJournalUndo(penLine, k.ms);       // the working plan's, also when a locked view is on screen now
   if(k.m && _saveGen===k.m.gen+1){
     k.ms.ts=k.ts; k.ms.by=k.by; try{ k.ms.log=JSON.parse(k.log); }catch(e){}
     lsMarksBack(k.m); _baseDirty=k.bd;
     // the record goes back only while it is still what this save's own save() wrote: another tab may have written it since
-    try{ if(k.after!==undefined && localStorage.getItem(_AP.key+'.base')===k.after){
+    try{ if(mine && k.after!==undefined && localStorage.getItem(_AP.key+'.base')===k.after){
       if(k.base===null) localStorage.removeItem(_AP.key+'.base'); else localStorage.setItem(_AP.key+'.base', k.base); } }catch(e){}
   }
-  if(MS===k.ms) persist();
+  if(mine && MS===k.ms) persist();
 }
 async function _saveInPlaceFileRun(o){
   if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;
@@ -11448,7 +11479,7 @@ function pkgIsCons(){ return typeof APPNS!=='undefined'; }
 // The board itself always has the data, so fall back to that: a package with no requirements
 // cannot seed a manager, which is the whole reason for issuing one.
 function pkgPackOf(ap){
-  const st=pkgStoreOf(ap);
+  const st=strayOr(ap, pkgStoreOf(ap));      // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
   if(st && _hasPack(st)) return st.dataPack;
   const ak=PKG_APPNS_KEY[ap];
   if(typeof APPNS!=='undefined' && APPNS && ak && _hasData(APPNS[ak])) return APPNS[ak];
@@ -11479,6 +11510,11 @@ function pkgIssue(ap, quiet){
   // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
   if(cycBlock('Issuing a package')) return;
   if(destOwnBlock('Issuing the '+(PKG_NAMES[ap]||ap)+' package')) return;   // v2.00 (U44): before the ledger moves
+  // v2.14 RV1-C (stray-rule-only-own-opening, finish): never over blank work its own board keeps aside. It asked "Full Fund has no
+  // requirement payload in this copy" of a file holding Full Fund's, handed out the blank work as Full Fund's package, and wrote it
+  // into PUBS, so the next 💾 Save wrote it over the file's Full Fund (measured). Issuing the file's copy instead would write it
+  // over that work in browser storage with nothing kept aside, which only Full Fund's own opening does. So: refused, and said.
+  if(strayHeld(ap)){ setStat('⚠ The '+esc(PKG_NAMES[ap]||ap)+' package was <b>not issued</b>: '+esc(strayHeldWhy(ap))+'.'); return; }
   const pack=pkgPackOf(ap);
   let st=pkgStoreOf(ap), fresh=false;
   if(!st && pack){
@@ -11540,9 +11576,15 @@ function pkgIssue(ap, quiet){
 function pkgPushAll(){
   if(sandboxBlock('Pushing baselines to the managers')) return;   // v2.09 review: as pkgIssue, before a package is staggered out
   if(cycBlock('Pushing baselines to the managers')) return;   // v2.00 (U10): as pkgIssue
-  const all=APPN_SLUGS;
+  // v2.14 RV1-C (stray-rule-only-own-opening, finish): an appropriation whose stored work is blank work its own board keeps aside is
+  // named apart -- pkgIssue refuses it -- and never listed as holding "no data on this board" when the file holds its plan
+  const all=APPN_SLUGS.filter(function(ap){ return !strayHeld(ap); }), strays=APPN_SLUGS.filter(strayHeld);
   const have=all.filter(function(ap){ return !!pkgPackOf(ap); });
   const none=all.filter(function(ap){ return !pkgPackOf(ap); });
+  if(!have.length && strays.length){
+    setStat('⚠ Nothing pushed: '+strays.map(function(ap){ return esc(strayHeldWhy(ap)); }).join('; ')+'.');
+    return;
+  }
   if(!have.length){
     alert('Nothing to push.\n\nThis board holds no requirement data for any appropriation, so '
       +'there is no baseline to hand over. Import the appropriation boards first.');
@@ -11562,6 +11604,7 @@ function pkgPushAll(){
       +'budget authority, decision bands, PPBE positions and locked baselines:\n\n'
       +have.map(line).join('\n')+'\n'
       +(none.length? '\nNot included (no data on this board): '+none.map(function(a){return PKG_NAMES[a]||a;}).join(', ')+'\n' : '')
+      +(strays.length? '\nNot included: '+strays.map(function(a){ return (PKG_NAMES[a]||a)+' — '+strayHeldWhy(a); }).join('\n')+'.\n' : '')
       +(outs.length? '\nWARNING: '+outs.length+' of these '+(outs.length===1?'is':'are')+' already out with '
           +'a manager. Pushing again advances the cycle and their outstanding return will be refused '
           +'as stale.\n' : '')
@@ -11597,6 +11640,8 @@ function pkgSendBack(ap){
   if(sandboxBlock('Sending a package back')) return;   // v2.09 review: as pkgIssue -- a copy's work goes back as its ✉ Submit input
   if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
   const nm=PKG_NAMES[ap]||ap;
+  // v2.14 RV1-C (stray-rule-only-own-opening, finish): it sent blank work its own board keeps aside back as that appropriation
+  if(strayHeld(ap)){ setStat('\u26a0 '+esc(nm)+' was <b>not sent back</b>: '+esc(strayHeldWhy(ap))+'.'); return; }
   const st=pkgStoreOf(ap);
   if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
   if(destOwnBlock('Sending '+nm+' back')) return;   // v2.00 (U44): the board it goes back to refuses it
@@ -11793,7 +11838,7 @@ function pkgBody(){
     h+='<table class="fctab"><tr><th style="text-align:left">Appropriation</th><th style="text-align:left">Status</th>'
       +'<th style="text-align:left">Issued</th><th style="text-align:left">Returned</th><th></th></tr>';
     APPN_SLUGS.forEach(function(ap){
-      const st=pkgStoreOf(ap), led=(st&&st.sync)||{};
+      const st=strayOr(ap, pkgStoreOf(ap)), led=(st&&st.sync)||{};     // v2.14 RV1-C: as its own board reads it
       const nm=PKG_NAMES[ap];
       const out=led.state==='out';
       h+='<tr><td style="text-align:left;font-weight:700">'+esc(nm)+'</td>'
@@ -13823,7 +13868,9 @@ function exportOneAppn(){
   if(CYCVIEW){ cycRefuse('Exporting an appropriation'); return; }
   const avail=APPN_SLUGS.filter(function(k){ if(!_SLUGMAP[k]) return false;
     if(k===mySlug()) return !!(DATA.items && DATA.items.length);
-    const st=pkgStoreOf(k); return !!(st && (st.years || Array.isArray(st.order)) && _hasPack(st)); });
+    // v2.14 RV1-C (stray-rule-only-own-opening, finish): the file's copy over blank work its own board keeps aside -- which is what
+    // oneAppnHtml exports (buildSavedHtml, pubsFor); the blank work, with no data pack, took the appropriation off this list
+    const st=strayOr(k, pkgStoreOf(k)); return !!(st && (st.years || Array.isArray(st.order)) && _hasPack(st)); });
   if(!avail.length){ alert('No appropriation on this board holds requirements yet, so there is nothing to export.'); return; }
   uiPrompt('Export one appropriation as a working board file — which one?\n\n'
     +avail.map(function(k,i){ return '  '+(i+1)+'. '+_SLUGMAP[k].t; }).join('\n')
@@ -20149,7 +20196,7 @@ function flowEntUseMap(){
   });
   APPN_SLUGS.forEach(function(ap){
     if(ap===mySlug()) return;
-    let st=null; try{ st=pkgStoreOf(ap); }catch(x){ st=null; }
+    let st=null; try{ st=strayOr(ap, pkgStoreOf(ap)); }catch(x){ st=null; }    // v2.14 RV1-C: the file's copy over stray blank work
     if(st && st.years){
       const L=destListOf(st);
       add(appnName(ap), destStoreStates(st), L.v186? same : viaOld(DESTDB.lmap[destSig(L.list)]||{}));
@@ -23092,13 +23139,17 @@ function bandPeers(){
   return Object.keys(_SLUGMAP).filter(k=>k!==me).map(k=>{
     let st=null;
     try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){}
+    // v2.14 RV1-C (stray-rule-only-own-opening, finish): the file's copy over blank work its own board keeps aside; bandCopyAll
+    // leaves such an appropriation out, and says so, rather than writing either copy
+    const stray=strayHeld(k);
+    if(stray) st=PUBS[k];
     if(!st && typeof PUBS!=='undefined' && PUBS) st=PUBS[k]||null;
     const bands=(st&&Array.isArray(st.bands)&&st.bands.length)? st.bands : null;
     let held=null;
     try{ const hp=JSON.parse(localStorage.getItem(BAND_PEND_KEY(k))||'null');
          if(hp&&Array.isArray(hp.bands)&&hp.bands.length) held=hp.bands; }catch(e){}
     const eff = bands || held;
-    return {slug:k, t:_SLUGMAP[k].t, seen:!!st, bands, held:!!held && !bands,
+    return {slug:k, t:_SLUGMAP[k].t, seen:!!st, stray:stray, bands, held:!!held && !bands,
             same: eff? JSON.stringify(eff.map(b=>[b.id,b.n,b.rule,!!b.crit,!!b.consReq]))===sig : null};
   });
 }
@@ -23106,18 +23157,27 @@ function bandCopyAll(){
   if(cycBlock('Copying the band ladder')) return;   // v2.00 (U10): it wrote the other appropriations' boards, then said "Not kept"
   const peers=bandPeers();
   if(!peers.length){ setStat('\u26a0 No other appropriation is available in this file to copy to.'); return; }
-  const now=peers.filter(p=>p.seen), later=peers.filter(p=>!p.seen);
-  if(!confirm('Copy '+apLabel()+'\u2019s ladder to '+peers.map(p=>p.t).join(', ')+'?\n\n'
+  // v2.14 RV1-C (stray-rule-only-own-opening, finish): AN APPROPRIATION WHOSE STORED WORK IS BLANK WORK ITS OWN BOARD KEEPS ASIDE IS
+  // LEFT OUT, AND SAID. Its stored copy was taken, given the ladder and put in PUBS -- where the stray test then compared the blank
+  // work with itself and went quiet, and the next 💾 Save's HOLD ON wrote it over the file's (measured). Writing the file's copy into
+  // browser storage instead would replace that work with nothing kept aside, and holding the ladder for it reaches nothing: its own
+  // opening takes a held ladder into the empty board it starts from (applyStore's first call), before the work and the file's copy
+  // are put on screen (measured: the file's Full Fund opened on its own ladder). As issuing a package: open it once, then copy again.
+  const strays=peers.filter(p=>p.stray), to=peers.filter(p=>!p.stray), later=to.filter(p=>!p.seen);
+  const strayTxt=strays.map(p=>p.t+' — '+strayHeldWhy(p.slug)).join('; ');
+  if(!to.length){ setStat('\u26a0 The ladder was <b>not copied</b>: '+esc(strayTxt)+'.'); return; }
+  if(!confirm('Copy '+apLabel()+'\u2019s ladder to '+to.map(p=>p.t).join(', ')+'?\n\n'
     +'Each of those appropriations gets this exact ladder. Requirements already banded there keep '
     +'their band wherever that band exists in the new ladder, and become unbanded where it does not.\n\n'
     +(later.length? later.map(p=>p.t).join(', ')+' '+(later.length===1?'has':'have')+' not been opened in '
       +'this file yet, so the ladder is held for '+(later.length===1?'it':'them')+' and applied the first '
       +'time you switch to '+(later.length===1?'it':'them')+'.\n\n' : '')
+    +(strays.length? 'NOT copied to '+strayTxt+'.\n\n' : '')
     +'This appropriation is not changed.')) return;
   const L=JSON.parse(JSON.stringify(BANDS_LIST()));
   const stamp=Date.now();
   let done=0, held=0, failed=0;
-  peers.forEach(p=>{
+  to.forEach(p=>{
     // held for every peer regardless — harmless where the store was also written directly,
     // because the adopt is guarded by that appropriation's own bandsTs
     if(!lsSet(BAND_PEND_KEY(p.slug), JSON.stringify({bands:L, ts:stamp, from:apLabel(), stdVer:(MS.stdVer||STD_VER)}),
@@ -23138,7 +23198,8 @@ function bandCopyAll(){
   if(failed) return;      // lsSet has already said what went wrong; do not claim success over it
   setStat('\u2696 Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
     +(held? ' and held for <b>'+held+'</b> not yet opened in this file (applied on first switch)':'')
-    +'. \ud83d\udcbe Save to write it into the file.');
+    +'. \ud83d\udcbe Save to write it into the file.'
+    +(strays.length? ' \u26a0 <b>Not copied</b> to '+esc(strayTxt)+'.' : ''));
 }
 // ---- carrying a ladder between files --------------------------------------------------------
 function bandExport(){
@@ -27003,6 +27064,7 @@ function spDefs(){
                                ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
       let st=null;
       try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}
+      st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
       defs.push({name:a, data:APPNS[a], ms: st&&st.years? st : null, ppbe:(st&&st.ppbe)||{},
                  slug:APPN_SLUG[a]});
@@ -37661,6 +37723,7 @@ function exportCSV(){
     Object.keys(_SLUGMAP).forEach(k=>{
       let st=null;
       try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ /* absent is normal */ }
+      st=strayOr(k, st);                // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st && typeof PUBS!=='undefined' && PUBS) st=PUBS[k]||null;
       const yr=st&&st.years? st.years[st.cur||MS.cur] : null;
       if(!yr||!Array.isArray(yr.order)) return;

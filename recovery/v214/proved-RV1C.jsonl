@@ -29,3 +29,19 @@
 {"id": "v214-w1-later-unremembered", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-4d1a0ad1.mjs", "detail": ""}
 {"id": "v214-w1-later-writes", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-4d1a0ad1.mjs", "detail": ""}
 {"id": "frame-store-older-wins", "verdict": "CAUGHT", "fails": ["13"], "threw": 1, "suite": "_slim-prove-5b42bf40.mjs", "detail": "--- v1.85 — every appropriation, read by its own board, ties to the dollar | sheets\n        got Summary,O&M,Full Fund,Initial Spares,USAF,ANG,AFRC,PSM,AV,TSS   want Summary,O&M,Full Fund,Initial Spares,USAF,ANG,AFRC,PSM,AV,CDS,TSS\n--- v1.85 — every appropriation, read by its own board, ties to the dollar | Full Fund\n          got  …[]…\n--- v1.85 — every appropriation, read by its own board, ties to the dollar | Initial Spares\n          got  …[]…"}
+{"id": "v214-rv1-c-strayheld-off", "verdict": "CAUGHT", "fails": ["11"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-ladder-copies-stray", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-ladder-peer-reads-blank", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-issue-stray", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-pack-reads-blank", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-push-lists-stray", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-push-stray-unnamed", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-sendback-stray", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-spdefs-reads-blank", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-byband-reads-blank", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-export-list-drops", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-destuse-reads-blank", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-07ea9a4d.mjs", "detail": ""}
+{"id": "v214-rv1-c-stop-persists-over-tab", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-5244019c.mjs", "detail": ""}
+{"id": "v214-rv1-c-stop-record-over-tab", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-5244019c.mjs", "detail": ""}
+{"id": "v214-rv1-c-stop-mine-newer", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-5244019c.mjs", "detail": ""}
+{"id": "v200-u40-backuse-panel-reset-uncounted", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-72bcbb40.mjs", "detail": ""}

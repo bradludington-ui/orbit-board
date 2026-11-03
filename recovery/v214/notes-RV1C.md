@@ -167,3 +167,133 @@ All on `da163e9` (the v1.99 fixture move is in it), this container shared with t
 - audit-inject and audit-other whole: ALL CHECKS PASSED.
 - Browser: `npm run savetarget`, `fileimport`, `storagefull`, `panels`, `dialogs`: all passed.
 - Not run: the sweep, `validate:math`, `validate:nightly` (the rules).
+
+## Finishing round: what the independent check found, and what was done
+
+The check (`scratchpad/v214rev/rv1-C-check/`) confirmed findings 1, 2 and 4 held (their probes clean, their checks failing before
+and passing after, a mutant of each caught). It found two problems with this round's fixes. Both are fixed here, checked, and
+their mutations proved. The probes were copied into `scratchpad/v214rev/rv1-C/fin/` and pointed at this worktree's board.
+
+### A. stray-rule-only-own-opening: the readers that take browser storage FIRST (the fix did not hold)
+
+**Reproduced** on da163e9 (`fin/b6-ladder.mjs`, `fin/b2-storage-first.mjs`). The readers that take another appropriation's plan
+from browser storage first, whatever the times, still read Full Fund's blank work. Two of them wrote it into `PUBS.ff`:
+- ⚖ copy the ladder to every appropriation (`bandCopyAll`), from O&M;
+- issuing a Full Fund package (`pkgIssue`), which also asked "Full Fund has no requirement payload in this copy", untrue.
+
+Once the blank work was in `PUBS.ff`, `pubsFor`'s `strayOther(k, s2, P[k])` compared it with itself and said nothing. The next
+💾 Save then asked a HOLD ON ("• Full Fund — 2 requirements, 1 year"), and OK wrote the blank Full Fund over the file's.
+The Spruills read the blank work too (no BES28 position, budget 0), and Export one appropriation did not offer Full Fund.
+
+**Fixed.** `strayHeld(k)` (beside `strayOther`) asks the same question for any appropriation but the one on screen, reading
+browser storage and `PUBS[k]`. `strayOr(k, st)` gives a reader `PUBS[k]` (the file's copy) where `strayHeld(k)` says so.
+`strayHeldWhy(k)` is the one sentence a refusal says.
+
+Readers now read the file's copy:
+- `bandPeers` (it also marks the peer `stray`);
+- `spDefs` (the Spruills);
+- `pkgPackOf`;
+- the packages panel's status;
+- the Priority Drill's "requirements by band, across every appropriation" (in `exportCSV`);
+- Export one appropriation's list (`oneAppnHtml` already exports through `pubsFor`);
+- the destination use map `flowEntUseMap`, so ✕ is refused for a destination the file's Full Fund uses.
+
+Writers leave such an appropriation alone and say why:
+- `pkgIssue` refuses ("⚠ The Full Fund package was not issued: …").
+- `pkgSendBack` refuses: it sent the blank work back as Full Fund.
+- `pkgPushAll` names it apart ("Not included: Full Fund — …"), never among those holding no data or among those pushed.
+- `bandCopyAll` leaves it out: the question says "NOT copied to Full Fund — …", and so does the line.
+
+Neither copy of a left-out appropriation is written. Writing the file's copy into storage would replace the blank work with
+nothing kept aside, which only that board's own opening does.
+
+**Decided in the fix: the ladder is not held for Full Fund.** I tried holding it as for an appropriation not yet opened. It did
+not work: Full Fund's opening takes a held ladder into the empty board it starts from (`applyStore`'s first call, line ~7610).
+The work and the file's copy are put on screen after that, so the ladder is gone. Measured with `fin/p-ladder-adopt.mjs`: the
+file's Full Fund opened on its own ladder. "Applied on first switch" would have been untrue, so the ladder copy says what to do:
+open Full Fund once, then copy again. Issuing a package says the same.
+
+**Left, and why.** `pkgStoreOf` itself still reads storage first. Its import callers (`pkgApply`, `consTakeApply`) compare an
+incoming package against the copy they read, then write over it. Reading the file's copy there would replace the blank work in
+storage without the question `pkgMineSince` asks of it today. The boot-time destination fold (`_destOthers`) is also unchanged:
+changing it would change what opening a board writes.
+
+**Check:** audit-import `v2.14 RV1-C — the readers that take browser storage first read another appropriation’s blank work as its
+own board reads it: … (stray-rule-only-own-opening, finish)`. The fixture is the critic's: the file holds Full Fund F and G on its
+own ladder, F routed to Lockheed Martin, and a BES28 position. Parts:
+- (1) From O&M, each reader reads the file's Full Fund, and Export one appropriation offers it.
+- (2) The ladder copy leaves Full Fund out and says so. `PUBS.ff`, the stored blank work and the held-ladder key are untouched,
+  and the next Save asks only the writer question and keeps the file's Full Fund on its own ladder.
+- (3) Issuing is refused, nothing is downloaded, and the next Save keeps the file's Full Fund.
+- (4) Pushing every baseline names Full Fund apart.
+- (5) Sending back is refused.
+- A CONTROL: the same work under an import's record (no blank mark) is read from storage, as before.
+
+**Fails with 11 checks on 44aa984 and on da163e9**; passes here.
+
+**Mutations (12):** `v214-rv1-c-strayheld-off`, `-ladder-copies-stray`, `-ladder-peer-reads-blank`, `-issue-stray`,
+`-pack-reads-blank`, `-push-lists-stray`, `-push-stray-unnamed`, `-sendback-stray`, `-spdefs-reads-blank`, `-byband-reads-blank`,
+`-export-list-drops`, `-destuse-reads-blank`.
+
+**Retargeted:** `v200-u40-backuse-panel-reset-uncounted`. Its find spans the line in `flowEntUseMap` that now reads
+`strayOr(ap, pkgStoreOf(ap))`. The line was changed in both its find and its repl; the defect it puts back is the same.
+
+### B. A new defect from the cancel fix: the put-back wrote over another tab's save
+
+**Reproduced** on da163e9 with `fin/b4-othertab.mjs`. The browser's write-access question has no time limit. While it was open,
+another tab saved this plan: a note, a newer stamp, and the record marked unsaved. The Save was then denied, and `saveStopBack`'s
+`persist()` wrote this page's plan over that tab's, under the OLD stamp.
+
+The record check did not protect the other tab's save. That tab's `baseMarkDirty` writes the same text this save's `save()` had
+written (`stop.after`), so the record was also put back to "saved". The note was gone from storage. On 44aa984, which wrote
+nothing back at that exit, the other tab's copy stood.
+
+**Fixed.** `saveStopBack` writes storage back only while this page wrote it last. `mine` is true when the stored plan carries this
+page's own save stamp: every `save()` here writes it with `MS.ts`. It is read before the stamp goes back, and unreadable counts as
+not mine. When it is not mine, browser storage and the record are left as the other tab left them, and this page's memory still
+goes back.
+
+A change typed here while the save waited still persists, because this page wrote last.
+
+**Left, and why.**
+- If this page's own write was refused while it waited (storage full), `mine` is false and the pen line can stay in storage.
+  Storage refuses that write anyway.
+- If another tab was reloaded during the wait, it read this page's pen line from storage and keeps it in its own work. Taking the
+  line out there would mean writing over that tab's save, which is the defect fixed here.
+
+**Check:** audit-import `v2.14 RV1-C — a Save stopped while another tab saved this board leaves that tab’s work in browser storage
+(cancel-leaves-pen-line-in-storage, finish)`. It runs for 'denied' and for 'later'. After each:
+- browser storage holds the other tab's note under its own stamp, with no pen line, and the record still says unsaved;
+- this page is back to its stamp and its saved state, with no pen line;
+- reopened, the note is there.
+
+**Fails with 4 checks on da163e9** (storage written over). It also fails with 2 on 44aa984, which never put this page's memory
+back (the round-1 finding). Passes here.
+
+**Mutations (3):** `v214-rv1-c-stop-persists-over-tab`, `-stop-record-over-tab`, `-stop-mine-newer`. The last puts back a
+"newer counts as mine" reading.
+
+**Retargeted:** `v214-rv1-c-stop-no-persist`, onto `if(mine && MS===k.ms) persist();`.
+
+### Finishing runs
+
+**Proofs.** `recovery/v214/proofs-RV1C.json` now lists 47 entries: the 31 from the first round, the 15 new mutations, and the
+retargeted `v200-u40-backuse-panel-reset-uncounted`. `saveStopBack` changed, so the first round's record was set aside and every
+entry was proved again on this board with `prove.py` (`JOBS=1 HEAP=8192`).
+
+Result: **47 of 47 CAUGHT**, each by failed checks (`recovery/v214/proved-RV1C.jsonl`). `frame-store-older-wins` is caught with 13
+failed checks and its block also throws, as in the first round.
+
+`mcount`: 3,426 entries, each matching once. Every new and retargeted mutant was built with `mkmut.py` and parses under
+`tools/check.mjs`.
+
+Changed after the proofs: one comment in `bandPeers` was reworded to match what the ladder copy now does. No find string reads it,
+and `mcount` was run again after it.
+
+**Runs, on the final tree:**
+- `npm run check`: all checks passed.
+- `node tools/export-audit/boot-same.mjs`: identical.
+- 8 GB, each ALL CHECKS PASSED: audit-inject, audit-other (2.5 min), audit-board (6.0 min), audit-recon (14.2 min),
+  audit-import whole (22.9 min) and audit-hostile.
+- Browser checks, all passed: `npm run savetarget`, `storagefull`, `fileimport`, `panels` and `dialogs`.
+- Not run, by the rules: the sweep, `validate:math` and `validate:nightly`.
