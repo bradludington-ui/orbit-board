@@ -3,9 +3,10 @@
 Builder W2, worktree `/home/user/orbit-wt/v214-w2`, branch `v214-w2`, from the slot commit `ea412ca`. The contract (§6) decides;
 the map's `file-route` area is the design. **Stage 1 (build) status:** the board, all eight audit-import blocks and the audit-inject
 block written and passing on this branch; every block fails on the slot commit; 51 mutations and 9 retargets written, each find
-matching once (mcount 3271/3271), every mutant parses; `tools/import-file.mjs` and `tools/xkeys.py` written. **Left for stage 2:**
-prove.py over `proofs-W2.json`; audit-import whole (a run was going when stage 1 ended -- see Checks); `import-file.mjs` run in
-Chromium; `--gtk` by hand; the browser checks named under Checks.
+matching once (mcount 3271/3271), every mutant parses; audit-import whole passes; audit-inject whole passes; `boot-same` passes;
+`tools/import-file.mjs` passes A–F in Chromium (D's leave prompt said as INT until W3) and fails on the slot board; `--gtk` run by
+hand under Xvfb and passes. **Left for stage 2:** prove.py over `proofs-W2.json` (none proved yet); audit-recon, audit-board,
+audit-other whole (recon was running at the end of stage 1, see Checks); the browser checks named under Checks.
 
 ## Reproduced on the slot commit (v2.13 behaviour), before building
 
@@ -142,9 +143,20 @@ reason (`goWrite`).
 - **E1's expectations (C15):** none moved yet -- every existing `importState` caller found boots a populated board or a held
   browser (audit-recon's run through `importState` is on boards with data). The whole-suite runs say for certain (below).
 
-**Whole suites:** audit-import whole was running at the end of stage 1 (`scratchpad/w2/import-whole.log`); audit-inject whole
-passes (45 findings, W2-1 among them). Still to run whole: audit-import (if the run above did not finish), audit-recon (E1's
-callers), audit-board, audit-other, `boot-same` (passes, see below).
+**Whole suites (stage 1):** audit-import whole, 8 GB: **ALL CHECKS PASSED** (the moved v1.95 W2 blocks and every E1 caller
+included). audit-inject whole: all clear across 45 findings (W2-1 among them). `node tools/export-audit/boot-same.mjs`: every page,
+source, save and error list identical either way. `npm run check`: all checks passed (52 boxes, `#impFilePanel` among them). Still to
+run whole: audit-recon (E1's `importState` callers; a run was going when stage 1 ended), audit-board, audit-other.
+
+**`tools/import-file.mjs`, stage 1:** A–F all pass on this branch (`ALL CHECKS PASSED`; D's "closing the tab asks" said as `INT`:
+this board has no `memOnlyLeave` until W3); on the slot board A fails ("Brad's alert no longer appears" -- the alert is there; no
+Write offered) and B then times out. **`--gtk`, by hand, 3 Nov 2026:** headed Chromium under `/usr/bin/Xvfb :97` (1280×900),
+the real GTK save dialog; the moves measured on 2 Nov (proto `q141-verify-fix-0`): `Control_L+a`, the source's full path typed,
+`Escape` (the completion list), a click on the dialog's Save at 1074,798 (screenshots kept with `--shots DIR`); `createWritable`
+wrapped from page code to reject after the real pick. All six pass: the window was asked for with user activation; the source on
+disk is 0 bytes after the pick (8,533,805 → 0: Chromium emptied it, the CONTROL); storage byte-identical, no note; no reopening;
+"💾 the file you imported" downloads the source sha256 for sha256; "💾 the imported board (new version)" passes the import check
+and carries its stamp. No "replace?" question appeared (the Return fallback did not run).
 
 **Browser checks for stage 2:** `node tools/import-file.mjs` (A–F); `--gtk` by hand under Xvfb (`/usr/bin/Xvfb`); `npm run panels`
 (impFilePanel added to SPECIAL), `npm run standards` (the box measured with step 1 and with both rescues; a `coverage` finding if
