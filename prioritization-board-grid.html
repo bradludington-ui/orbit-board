@@ -12821,13 +12821,27 @@ function impUnsavedList(W){
       return;
     }
     const o=pj(v); if(!o || typeof o!=='object' || sideEmpty(key, o)) return;
-    let file=null;
-    const cm=/^(.*)-cyc$/.exec(key), ck=cm? slugOf(cm[1]) : null;
-    if(cm && ck!==_AP.slug) file=(ck && CYC_FILE[ck])? sideText(CYC_FILE[ck]) : null;
-    else { const f0=sideBootNote.file && sideBootNote.file[key]; file=f0? f0.text : null; }
-    if(file===null || sideText(o)!==file) out.push(w[3]);
+    const cm=/^(.*)-cyc$/.exec(key), ck=cm? slugOf(cm[1]) : null, t=sideText(o);
+    if(cm && ck!==_AP.slug){ if(!(ck && CYC_FILE[ck]) || t!==sideText(CYC_FILE[ck])) out.push(w[3]); return; }
+    // this page's own lists: what storage holds that this page does not show is another tab's (named); what it shows is unsaved
+    // only while the page says its lists are unsaved and storage's copy is not the board file's own
+    const mem=impFileMem(key), F0=impSrc0();
+    const file=(key===DEST_KEY)? F0.destDb : (key===EXDB_KEY)? F0.execDb : (key===ACEDB_KEY)? F0.aceDb : (key===RPDB_KEY)? F0.rpDb
+      : (key===BUDDB_KEY)? F0.budDb : (cm && F0.cycDb && F0.cycDb.byAp)? F0.cycDb.byAp[_AP.slug] : null;
+    let side=true; try{ side=!!sideUnsaved(); }catch(e){ side=true; }
+    if(!mem || t!==sideText(mem) || (side && !(file && typeof file==='object' && t===sideText(file)))) out.push(w[3]);
   });
   return out;
+}
+// This page's own copy of a list the import writes, and the board file it was opened from, read once (sideBootNote's copies of the
+// file are let go once the opening has read them).
+function impFileMem(key){ return (key===DEST_KEY)? DESTDB : (key===EXDB_KEY)? EXDB : (key===ACEDB_KEY)? ACEDB : (key===RPDB_KEY)? RPDB
+  : (key===BUDDB_KEY)? BUDDB : (key===CYC_KEY)? CYCDB : null; }
+var _impSrc0=null;
+function impSrc0(){
+  if(_impSrc0===null){ try{ const m=SRC0.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); _impSrc0=(m && JSON.parse(m[1])) || {}; }catch(e){ _impSrc0={}; }
+    if(!_impSrc0 || typeof _impSrc0!=='object') _impSrc0={}; }
+  return _impSrc0;
 }
 // Must step 1 be done before Write? While it shows, until the board as it was has been saved (for what this page holds now) or
 // the person has said to carry on without it.
@@ -12849,7 +12863,7 @@ function impFileOffer(done, W, txt, fname){
   return false;
 }
 function impFileOpen(){ impFileDraw(); const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg open'; }
-function impFileShut(){ if(_impFile && _impFile.rescue) _impFileLast=_impFile; _impFile=null; const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg'; impFileDraw(); }
+function impFileShut(){ if(_impFile && _impFile.rescue) _impFileLast=_impFile; _impFile=null; try{ const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg'; }catch(e){} impFileDraw(); }
 function impFileRescued(R){ return !!(R.rescue && (!R.rescue.html || R.rescue.html.got) && (!R.rescue.inc || R.rescue.inc.got)); }
 // The two downloads offered after a failure, in the box and in the message line: one place, so neither can lose them.
 function impFileRescueBtns(R){
@@ -12858,7 +12872,9 @@ function impFileRescueBtns(R){
                        : '(the imported board could not be built)')
     +' and <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>';
 }
-function impFileDraw(){
+// Drawn whole on every change of state; never throws (it runs after the save window answers, whenever that is).
+function impFileDraw(){ try{ impFileDrawIn(); }catch(e){} }
+function impFileDrawIn(){
   const el=document.getElementById('impFileBody'); if(!el) return;
   const R=_impFile; if(!R){ el.innerHTML=''; return; }
   const why=R.why? ' ('+R.why+')' : '';
@@ -13026,7 +13042,12 @@ async function impFileWriteTo(R, h){
 }
 // The chosen file has the imported file's name: it may be that file, emptied by the choice and now holding the new board. Nothing is
 // cleared until the person has saved the file imported as it was, and says to carry on.
-function impFileNameStep(R, h){ R.pause={name:String((h&&h.name)||''), h:h}; impFileDraw(); return false; }
+function impFileNameStep(R, h){
+  R.pause={name:String((h&&h.name)||''), h:h};
+  // the file imported may now exist only here: it is offered, and leaving the page asks until it is downloaded (impFileHolds)
+  R.rescue={at:R.pause.name, html:null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}};
+  impFileDraw(); return false;
+}
 function impFileCarryOn(){
   const R=_impFile; if(!R || !R.pause) return false;
   const h=R.pause.h;
