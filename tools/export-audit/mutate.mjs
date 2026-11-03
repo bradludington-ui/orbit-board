@@ -10006,6 +10006,21 @@ const MUTATIONS = [
     find: " else if(_bootOwnRead && !_bootFile && _bootBase.blank===true) _pageBlank=true;", repl: "" },
   { id: 'v214-w1-blank-after-save', area: "pageBlankNow", what: "work stays marked blank after the page has written a file",
     find: "if(_pageBlank!==true || (+LASTKNOWN||0)) return false;", repl: "if(_pageBlank!==true) return false;" },
+  // Stage 2 (contract §5: "W1 may add v214-w1-* ids for lines of its own the list does not reach (fhRepick), saying so"): six
+  // lines of W1's own Save path no id above reached -- fhRepick, the two halves of the asked-later branch, the Open window's own
+  // cancel and refusal lines, and C26's not-an-object test. Each is caught by a part of check 2 or 3.
+  { id: 'v214-w1-repick-keeps', area: "fhRepick", what: "“choose another file…” keeps this page’s file, so Save reads the same file again and the window never opens",
+    find: "function fhRepick(){ FH=null; try{ _fhPut(null); }catch(e){} return saveInPlace(); }", repl: "function fhRepick(){ return saveInPlace(); }" },
+  { id: 'v214-w1-later-writes', area: "_saveInPlaceFileRun", what: "write access that could not be asked for is taken as granted, and the file is written on that press",
+    find: "catch(e){ ok='later'; }", repl: "catch(e){ ok='granted'; }" },
+  { id: 'v214-w1-later-unremembered', area: "_saveInPlaceFileRun", what: "a checked file whose write access must wait for the next press is not remembered, so that press opens the window again",
+    find: "if(ok==='later'){ FH=h; _fhPut(h); if(penLine)", repl: "if(ok==='later'){ if(penLine)" },
+  { id: 'v214-w1-pick-blocked-misread', area: "_saveInPlaceFileRun", what: "the browser refusing the Open window is reported as a file this person may not write",
+    find: "    if(inWin && e && (e.name==='SecurityError'||e.name==='NotAllowedError')){", repl: "    if(false){" },
+  { id: 'v214-w1-open-cancel-unoffered', area: "_saveInPlaceFileRun", what: "the Open window cancelled says only that nothing was written, and no longer offers Save as a new file",
+    find: "if(inWin && e && e.name==='AbortError'){ setStat(", repl: "if(false){ setStat(" },
+  { id: 'v214-w1-state-not-object', area: "_saveInPlaceFileRun", what: "a file whose saved state is a number or a string is taken for a board, and written over once the writer is claimed",
+    find: "      if(p!==undefined && p!==null && typeof p!=='object') p=undefined;", repl: "" },
   // ==== end v2.14 W1 ====
 
   // ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====

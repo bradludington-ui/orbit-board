@@ -130,5 +130,29 @@
  {
   "id": "v214-w1-blank-after-save",
   "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-repick-keeps",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-later-writes",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-later-unremembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-pick-blocked-misread",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-open-cancel-unoffered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-state-not-object",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
  }
 ]

@@ -15383,6 +15383,14 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     await w14save(P7.ev);
     chk(name, 'blocked', 'the browser refusing the Open window: nothing written, and the line says so, naming the refusal',
       W14J([/Not saved — this browser did not let ORBIT open a file to check it \(SecurityError\)\. Nothing was written/.test(w14stat(P7.ev)), s7.size]), W14J([true, 0]));
+    // (h) a file whose saved state is not an object (a number) picked in the Open window is no board (contract C26): refused by name,
+    // nothing written or remembered, write access never asked. Every question is answered OK here, so a board that read it as one
+    // (the writer claim, then the write) would write over it.
+    const s8 = new Map(), P8 = await page(s8); w14wire(P8.ev, 'true');
+    const d8 = w14disk('board.html', w14setPub(FILE, 42)); const PP8 = w14pickers(P8, { open: d8, save: null });
+    await w14save(P8.ev);
+    chk(name, 'not a board', 'a file whose saved state is a number is no board: refused by name, nothing written or remembered, write access never asked',
+      W14J([/is not a board ORBIT can read, so it was not written over/.test(w14stat(P8.ev)), d8.ops, d8.writes, s8.size, PP8.open.length]), W14J([true, ['read'], 0, 0, 1]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }
@@ -15490,6 +15498,17 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const fy9 = fy(w14pub(N9).appns.om.cur);
     chk(name, '(9) R1', 'Save names, under the appropriation and year, the requirements the file holds and the board on screen does not; Cancel writes nothing',
       W14J([(w14q(P9.ev)[0] || '').split('\n').includes('  • O&M ' + fy9 + ' — 2 requirements the board on screen does not carry: B, C'), d9.writes]), W14J([true, 0]));
+    // (10) "choose another file…" after Cancel, clicked on the line as a person clicks it: this page's remembered file is forgotten
+    // and the window opens again; the file chosen there is written, and the one cancelled is neither read again nor written
+    const K10 = 'page|' + W14U('program10.html'), d10 = w14disk('NEW.html', NEWw), s10 = new Map([[K10, d10.h]]);
+    const P10 = await w14open({ ls: omOnly(), url: W14U('program10.html'), idb: { store: s10, log: [] } }); w14wire(P10.ev, 'false');
+    const dO = w14disk('OTHER.html'); const PP10 = w14pickers(P10, { open: dO, save: null });
+    await w14save(P10.ev);
+    const r10 = d10.ops.length, q10 = w14q(P10.ev).length;
+    const clicked = w14ev(P10.ev, `(function(){ var b=document.querySelector('#shareStat button[onclick="fhRepick()"]'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+    for (let i = 0; i < 200 && !dO.writes; i++) await w14pause(25);   // the click's Save runs on its own; up to 5 s for it to land
+    chk(name, '(10) another file', 'after Cancel, “choose another file…” opens the window again: the file chosen there is written, the cancelled one is not read again or written, and this page now remembers the new one',
+      W14J([q10, clicked, w14q(P10.ev).length, PP10.open.length, d10.ops.length - r10, d10.writes, dO.writes, s10.get(K10) === dO.h]), W14J([1, 'clicked', 1, 1, 0, 0, 1, true]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
   }

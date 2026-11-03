@@ -86,6 +86,18 @@ the map's Design, verbatim, with C24's requirement line and C25's success senten
 - **pmo-save.mjs H** (the board's moved-file section) now stands in the Open window too (C14): this Chromium has one, and the
   board's first Save now opens it; its `key` for the board is `'page|'`.
 
+Stage 2 (3 Nov 2026):
+- **Six more mutation ids** (`repick-keeps`, `later-writes`, `later-unremembered`, `pick-blocked-misread`, `open-cancel-unoffered`,
+  `state-not-object`), under §5's "W1 may add `v214-w1-*` ids for lines of its own the list does not reach (`fhRepick`), saying
+  so". Stage 1 read §10's count of 33 as a cap; §5 allows them, and each line is on the save path this version exists to make
+  safe. The counts the lead plans with move by six (For the integration).
+- **Two check parts to reach them**: check 2 (h) and check 3 (10). (h) answers every question OK, so a board that took the
+  number for a board state would claim the writer and write (the alternatives disagree: refused, read only, versus written);
+  (10) clicks the rendered "choose another file…" button rather than calling `fhRepick()`, and starts from a file this browser
+  remembers for the page (with nothing remembered, `repick-keeps` would change nothing and the part could not tell).
+- **(10) waits for the click's own Save up to 5 s** (polling every 25 ms, stopping at the write): the click's promise is not the
+  test's to await. The first cut waited 1 s; it passed, but the box runs two builders at once.
+
 ## Checks
 
 audit-import, W1 slot (helpers prefixed `w14`/`W14`: `w1`/`W1` were taken by v1.88's helpers). Each block fails on the slot commit
@@ -100,13 +112,17 @@ audit-import, W1 slot (helpers prefixed `w14`/`W14`: `w1`/`W1` were taken by v1.
    query → request → write, remembered under the page key; (b) `requestPermission` throws: nothing written, remembered, "Press 💾
    Save once more", the next Save writes with no window; (c) `'denied'`: not remembered, DENIED_SAY; (d) the window cancelled; (e)
    Save as a new file: dated name, nothing under the page key, the second Save writes it with no window, a reboot holds nothing
-   (C25); (f) no Open window (C30a): `board.html` suggested, the fallback's words while the window is up; (g) PICK_BLOCKED_SAY.
+   (C25); (f) no Open window (C30a): `board.html` suggested, the fallback's words while the window is up; (g) PICK_BLOCKED_SAY;
+   (h) *(stage 2)* a file whose saved state is a number, picked in the Open window, every question answered OK: refused as not a
+   board, read only (`['read']`), nothing written or remembered (C26's own line, `state-not-object`).
 3. `v2.14 W1 — Save asks, naming them, before it writes over what the file holds and the board on screen does not carry (item 140 b)`
    — w2Fx's NEW.html, every expected line worked out in the block from NEW's pubState: (1) the exact question, nothing written, the
    pen as it was, CANCEL_SAY; (2) OK writes; (3) a blank page names O&M whole first; (4) years; (5) ordinary Save asks nothing
    (CONTROL); (6) a cycle deleted asked once, then nothing; (7) no writer: claim OK then Cancel, WRITER back to null, no `(writer)`
    line; (8) the Open window's pick cancelled at (b) is not remembered and the window opens again; (9) R1's shape names `O&M FY27 — 2
-   requirements the board on screen does not carry: B, C`.
+   requirements the board on screen does not carry: B, C`; (10) *(stage 2)* a page whose browser remembers NEW.html for it, Cancel
+   at (b), then the line's “choose another file…” button clicked as a person clicks it: the Open window opens, the file chosen there
+   is written and remembered under the page's key, NEW.html is neither read again nor written, one question in all (`repick-keeps`).
 4. `v2.14 W1 — Save into an ORBIT program with no board writes it in place (item 141 D)` — the program's own text (CONTROL: pubState
    null, `extractPacks` null): written once, no question, no download, claimed; a baked program (an O&M pack in `APPNS`): the baked
    question, exactly; Cancel writes nothing, the pen goes back.
@@ -120,8 +136,7 @@ Existing checks changed on purpose, each with its `// v2.14 W1:` comment:
   `X.store.get('page|https://example.invalid/board.html')` (they read `I127FNAME`; the second would have passed vacuously). The
   first is labelled "(a CONTROL)" by v2.09; it now fails on the slot commit, as the board kept its handle under FNAME there.
 - `tools/pmo-save.mjs` E: the board's handle is read under `'page|'+` the board page's own address (taken from `location.href`, not
-  from `fhPageKey`), and must not be under FNAME; H: both windows stood in, the board's key `'page|'`. **Not yet run** (stage 2:
-  `node tools/pmo-save.mjs`).
+  from `fhPageKey`), and must not be under FNAME; H: both windows stood in, the board's key `'page|'`.
 
 The browser checks: `node tools/save-target.mjs` — all A–D, F pass here, 14 fail on the slot (with `--int`), E skipped here (INT).
 
@@ -143,21 +158,41 @@ typed — a leading `/` opens GTK's location bar — then the chooser's Open but
 
 ## Mutations
 
-33 new, in `mutate.mjs`'s W1 slot, ids single-quoted (`v214-w1-*`): `fname-get`, `fname-put`, `key-shared`, `own-name-lost`,
-`save-window-first`, `picked-remembered-early`, `picked-denied-kept`, `drops-unasked`, `drops-cancel-writes`, `drops-appns-blind`,
-`drops-empty-carried`, `drops-years-blind`, `drops-cycles-blind`, `drops-ace-blind`, `drops-exec-blind`, `drops-bae-blind`,
-`drops-rp-blind`, `cancel-pen-moved`, `null-writer-throws`, `program-not-fresh`, `baked-unasked`, `release-skipped`,
-`release-any-file`, `boot-lastknown-inherited`, `stray-opens`, `stray-any-record`, `stray-over-pack`, `drops-reqs-blind`,
-`fresh-remembered`, `known-unread`, `blank-never`, `blank-not-carried`, `blank-after-save`. None retargeted, none retired; no extra
-ids (so W1 adds exactly 33). `boot-lastknown-inherited` removes `LASTKNOWN=0; _baseDirty=false;` from case 3 and keeps the blank
-flag, so it reaches (i) alone.
+**39 new**, in `mutate.mjs`'s W1 slot, ids single-quoted (`v214-w1-*`). None retargeted, none retired.
 
-- mcount: `{"entries": 3253, "once": 3253}` (3220 + 33). `guard-fails-open`, `guard-not-a-board-writes`, `guard-later-only`,
-  `v209-w3-board-save-over-copy`, `v209-w3-board-save-keeps-handle`, `v209-rv-save-board-moved-handle-kept`, `v209-w3-hold-on-skipped`,
-  `impmixed-file-unguarded`, `v200-r4-*` all still match once.
-- Every mutant parses (`node tools/check.mjs <mutant>`: "main script parses").
-- Proved: `JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W1.json recovery/v214/proved-W1.jsonl`
-  — each of the five blocks clean on the board first, then **33 of 33 CAUGHT**, each by its own block (`recovery/v214/proved-W1.jsonl`).
+- **The contract's 33** (stage 1): `fname-get`, `fname-put`, `key-shared`, `own-name-lost`, `save-window-first`,
+  `picked-remembered-early`, `picked-denied-kept`, `drops-unasked`, `drops-cancel-writes`, `drops-appns-blind`, `drops-empty-carried`,
+  `drops-years-blind`, `drops-cycles-blind`, `drops-ace-blind`, `drops-exec-blind`, `drops-bae-blind`, `drops-rp-blind`,
+  `cancel-pen-moved`, `null-writer-throws`, `program-not-fresh`, `baked-unasked`, `release-skipped`, `release-any-file`,
+  `boot-lastknown-inherited`, `stray-opens`, `stray-any-record`, `stray-over-pack`, `drops-reqs-blind`, `fresh-remembered`,
+  `known-unread`, `blank-never`, `blank-not-carried`, `blank-after-save`. `boot-lastknown-inherited` removes `LASTKNOWN=0;
+  _baseDirty=false;` from case 3 and keeps the blank flag, so it reaches (i) alone.
+- **Six more, stage 2** — contract §5: *"W1 may add `v214-w1-*` ids for lines of its own the list does not reach (`fhRepick`),
+  saying so."* Stage 1 left these lines with a part of a check and no id proving the part bites (its Known gaps):
+  - `repick-keeps` — `fhRepick` keeps this page's file, so "choose another file…" reads the same file again and the window never
+    opens → check 3 (10).
+  - `later-writes` — write access that could not be asked for (`requestPermission` threw) is taken as granted and the file written
+    on that press → check 2 (b).
+  - `later-unremembered` — the checked file is not remembered on LATER_SAY, so the next press opens the window again → check 2 (b).
+  - `pick-blocked-misread` — PICK_BLOCKED_SAY's branch gone: the browser refusing the Open window reads as a read-only file →
+    check 2 (g).
+  - `open-cancel-unoffered` — the Open window's own cancel line gone: it no longer offers Save as a new file → check 2 (d).
+  - `state-not-object` — C26's line removed: a file whose saved state is a number is taken for a board and written over once the
+    writer is claimed → check 2 (h).
+  **W1 therefore adds 39, not 33**: mcount is 3259 on this branch (3220 + 39), and 3384 after the four merge (3385 with the lead's
+  one), not 3378/3379.
+
+Proof, stage 2 (3 Nov 2026), on this branch's final board and suite:
+- Every mutant built with `recovery/v200/bin/mkmut.py` (each find matches once) and run through `node tools/check.mjs <mutant>`:
+  all 39 print `ok    main script parses`.
+- `JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W1.json recovery/v214/proved-W1.jsonl`, from a
+  fresh `proved-W1.jsonl` (stage 1's 33 lines were replaced, because checks 2 and 3 gained parts): each of the five blocks clean
+  on the board first, then **39 of 39 CAUGHT**, each by its own block, none by a throw (`threw: 0` on every line). Wall time about
+  6 minutes for the run (the clean runs, then 39 slimmed block runs).
+- mcount: `{"entries": 3259, "once": 3259, "missing": [], "multiple": [], "unparsed": []}`. The older finds the contract names
+  (`guard-fails-open`, `guard-not-a-board-writes`, `guard-later-only`, `v209-w3-board-save-over-copy`,
+  `v209-w3-board-save-keeps-handle`, `v209-rv-save-board-moved-handle-kept`, `v209-w3-hold-on-skipped`, `impmixed-file-unguarded`,
+  `v200-r4-*`) still match once (the board is unchanged since stage 1).
 
 ## For the integration
 
@@ -170,6 +205,13 @@ flag, so it reaches (i) alone.
 - Every new jsdom block that drives a Save installs `showSaveFilePicker`; checks 2 and 3 also stand in `showOpenFilePicker` (C14);
   check 1 and part (f) of check 2 deliberately do not (C30a).
 - The guide: +307 characters in the source; measure in a booted board after integration (C11).
+- **The counts move by six** (stage 2, contract §5's allowance): W1 adds 39 mutations, so after the four merge mcount is 3384 (3385
+  with the lead's `v214-int-*`), the new total 165 and §11.5's integrated proof list carries 39 W1 ids
+  (`recovery/v214/proofs-W1.json`). §11.8's first sweep batch names W1's write-and-ask ids; the six are of that family
+  (`later-writes`, `state-not-object` and `repick-keeps` first, if the batch has room).
+- **Check 3 (10) clicks the status line's rendered button** and polls up to 5 s for the click's own Save to land (it is not
+  returned to the test). A later workstream that changes CANCEL_SAY's button (`onclick="fhRepick()"`) or the status line's id
+  (`#shareStat`) moves this part's selector with it.
 
 ## npm script to add
 
@@ -179,8 +221,13 @@ flag, so it reaches (i) alone.
 
 ## Known gaps
 
-- No mutation reaches LATER_SAY's branch (`'later'`), PICK_BLOCKED_SAY, the Open window's cancel line or `fhRepick`: each has a part
-  of check 2 or CANCEL_SAY's link, but no id aims at them (the contract fixes W1 at 33).
+- *(Closed in stage 2.)* Stage 1 left LATER_SAY's branch, PICK_BLOCKED_SAY, the Open window's cancel line, `fhRepick` and C26's
+  not-an-object line with no id; each now has one (above), and `fhRepick` and C26 a part of a check of their own.
+- **Neither new action is in the left menu**, as the contract places them: "choose another file…" (`fhRepick`) is offered only on
+  CANCEL_SAY (Cancel at (b)), and "Save as a new file…" (`fhSaveNew`) only on the Save lines (FIRST_SAY, the Open window cancelled,
+  PICK_BLOCKED_SAY). Once a page remembers a file, the only way to save that board elsewhere is ⬇ Save a copy (a download), or to
+  cancel at (b). Nothing is lost by it; a `dd_save` entry for each would be a left-menu change (`syncBtns`, `npm run leftmenu`'s
+  map), outside W1's functions -- for the lead or Brad.
 - `saveDrops` reads a destination list only when the outgoing bytes carry no `ents` array; every board since v1.86 carries one, so
   that line can only fire for a file whose board is older than the bytes'.
 - A Save-window pick (no Open window, or Save as a new file) still writes over whatever file is chosen: the browser empties it on
@@ -198,6 +245,49 @@ flag, so it reaches (i) alone.
 - Browser: `node tools/save-target.mjs` passes (E skipped: INT); on the slot board with `--int` 14 checks fail (every section).
   `node tools/pmo-save.mjs` passes here; on the slot it fails only E's three re-pointed checks (the handle under FNAME there).
   `npm run menus`, `panels`, `dialogs`, `leftmenu`, `keys`: pass.
-- **Not run (stage 2):** audit-board, audit-other, audit-recon, audit, audit-hostile, legacy-fsrc whole (none was edited; the board
+- **Left for stage 2** (all run there, below): audit-board, audit-other, audit-recon, audit, audit-hostile, legacy-fsrc whole (none was edited; the board
   change is the save path, the opening's record rules and one guide sentence); `npm run standards`, `layout`, `controls`, `editors`,
   `dropdowns`, `pmoyears`, `pointer`; `node tools/save-target.mjs --int` after integration (E, with W4's writer).
+
+## Run on this branch (stage 2, 3 Nov 2026)
+
+Stage 2 changed no line of the board: two check parts in audit-import's W1 slot (check 2 (h), check 3 (10)), six ids in
+`mutate.mjs`'s W1 slot, the proof files and these notes. W2 was building in its own worktree on the same box throughout (load about
+4 on 4 cores); every jsdom run here was one at a time.
+
+| Command | Time | Exit | Result |
+|---|---|---|---|
+| `npm run check` | 3 s | 0 | all checks passed, "the save-file handle store" among them |
+| `node tools/export-audit/boot-same.mjs` | 9 s | 0 | every page, source, save and error list identical either way |
+| `python3 -I -B recovery/v200/bin/mcount.py tools/export-audit/mutate.mjs prioritization-board-grid.html` | <1 s | 0 | `{"entries": 3259, "once": 3259, "missing": [], "multiple": [], "unparsed": []}` |
+| `mkmut.py` + `node tools/check.mjs <mutant>`, all 39 | not timed | 0 | every mutant `ok    main script parses` |
+| `JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W1.json recovery/v214/proved-W1.jsonl` | ~6 min | 0 | the five blocks clean, then **39 / 39 CAUGHT**, none by a throw |
+| the five W1 blocks (slim.py, `v2.14 W1 —`), `BOARD=` the slot board (`git show ea412ca:…`) | 26 s | 1 | **44 FAILING CHECK(S)**, every block, the two new parts (`not a board`, `(10) another file`) among them; no CONTROL fails |
+| the same five blocks on this board | 21 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-import.mjs` whole, 8 GB | 1314 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-inject.mjs` whole, 4 GB | 13 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-other.mjs` whole, 4 GB | 156 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-board.mjs` whole, 8 GB | 339 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-recon.mjs` whole, 8 GB | 916 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit.mjs` whole, 4 GB | 8 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-hostile.mjs` whole, 4 GB | 65 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/legacy-fsrc.mjs` whole, 4 GB | 2 s | 0 | every legacy Force setting computes exactly as before |
+| `node tools/export-audit/audit-ui.mjs` whole, 4 GB | 72 s | 0 | ALL CHECKS PASSED |
+| `node tools/save-target.mjs` (W1's own tool) | 31 s | 0 | all save-target checks passed: A, B, C, D, F; E printed `skip` (INT: no `baseMarkDirty` on W1 alone) |
+| `node tools/pmo-save.mjs` (`npm run pmosave`) | 46 s | 0 | 76 `ok`, none failing |
+| `npm run panels` | 14 s | 0 | every panel and menu opens, no escaped entity, no clipped field, the keyboard reaches every control |
+| `npm run dialogs` | 240 s | 0 | every box takes the keyboard, keeps it, gives it back, and asks before typing is lost |
+| `npm run standards` | 88 s | 0 | conformance holds against the baseline: 0 known findings, nothing new |
+| `npm run menus` | 9 s | 0 | every menu path a message names is really in that menu |
+| `npm run leftmenu` | 54 s | 0 | every action has one home on the left menu |
+| `npm run keys` | 109 s | 0 | the keyboard reaches everything the check names |
+| `npm run dropdowns` | 209 s | 0 | every item of every drop-down is in the window and on top |
+| `npm run pointer` | 257 s | 0 | the mouse reaches and edits every row and CLIN drill control, in every layout |
+| `npm run pmoyears` | 24 s | 0 | a copy names the years it submits for, and the review reads each year under its own heading |
+| `npm run controls` | 4 s | 0 | every recorded control is present, nothing unrecorded appeared |
+| `npm run editors` | 61 s | 0 | every editor reachable at every width, in this machine's font and the Segoe stand-in |
+| `npm run layout` | 471 s | 1 | **only the carried D ×8** (the first requirement's top at 323/420 px, sliding over and docked, four widths each); nothing else |
+
+Not run, and why: `node tools/save-target.mjs --int` (E needs W4's `baseMarkDirty`: after integration it runs by itself, INT-3);
+`tools/save-target-headed.mjs` (by hand, stage 1's run above stands: the board is unchanged since). No sweep, `npm run mutate` or
+`validate:math` (contract §10). The guide's size was not measured again: no line of the board changed since stage 1's 71,123.
