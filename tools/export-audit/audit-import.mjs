@@ -15242,6 +15242,18 @@ const W214 = (() => {
     return { NEW, OLD, ls };
   };
   const dex = (name) => { const e = new Error(name); e.name = name; return e; };
+  // EVERY BOARD GIVEN A SAVE WINDOW, so a block lets a write it began finish before the board is closed. A board that writes where
+  // it must not fails its check; its write, left to finish after the board was closed, would throw outside every block and end the
+  // suite instead -- no banner, which prove.py reads as CRASHED, no verdict (found proving v214-w2-click-unchecked and
+  // -as-it-was-skipped). rel() is bootRelease() after quiet(); a board already closed is passed over. Never throws.
+  const WROTE = new Set();
+  const quiet = async () => {
+    for (const T of [...WROTE]) {
+      const idle = () => { try { return !T.w.document || T.ev('!(_impFile && (_impFile.busy || _impFile.wasBusy))') === true; } catch (e) { return true; } };
+      try { await W1H.until(idle, 2000); if (!T.w.document) WROTE.delete(T); } catch (e) { WROTE.delete(T); }
+    }
+  };
+  const rel = async (mk, keep) => { await quiet(); bootRelease(mk, keep); };
   // A SAVE WINDOW AS CHROMIUM'S BEHAVES. `files` by name; knobs: cancel, reject (a name), throwSync (a name), pickAs, failOpen,
   // failWrite, failClose (names), readBack ('throw' | 'differ' | 'oneChar'), gate (held at close). Every call records whether it came
   // inside the click (inClick is set around button.click()). The Open window is stood in too (C14).
@@ -15257,6 +15269,7 @@ const W214 = (() => {
       createWritable: async () => { if (P.failOpen) throw dex(P.failOpen); let buf = '';
         return { write: async x => { if (P.failWrite) throw dex(P.failWrite); buf += String(x); },
           close: async () => { if (P.gate) { const g = P.gate; P.gate = null; await g.p; } if (P.failClose) throw dex(P.failClose); P.files[n] = buf; P.writes++; } }; } });
+    WROTE.add(T);
     T.w.showSaveFilePicker = function (opt) {
       P.picks.push(opt && opt.suggestedName); P.inClickAt.push(P.inClick);
       if (P.throwSync) throw dex(P.throwSync);
@@ -15306,7 +15319,7 @@ const W214 = (() => {
   };
   // ROUTE A: the same import with nothing refused, the importing page reopened on what it wrote
   const routeA = (OLD, NEW, ls) => { const T = boot({ html: OLD.html, ls }); w2Import(T, NEW.html, 'none', 0); return boot({ html: OLD.html, ls: w2LsOf(T.ev) }); };
-  return { J, CLEARED, KEPT, WK, fx, refuse, picker, downloads, press, box, marker, navs, settle, pubOf, routeA, dex };
+  return { J, CLEARED, KEPT, WK, fx, refuse, picker, downloads, press, box, marker, navs, settle, pubOf, routeA, dex, quiet, rel };
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
@@ -15421,7 +15434,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, at, 'the file imported downloads byte for byte', !!inc && inc.text === NEW.html, true);
     if (!knob.build) chk(name, at, 'the imported board downloads as built: a board carrying the stamp, passing the import check',
       J([!!nb && nb.text === U.ev('_impFile.rescue.html.text'), !!nb && !!(pubOf(nb.text) || {}).impFile, nb ? U.ev(`inboundCheck(${J(nb.text)})`) : 'none']), J([true, true, '']));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   // (i) NOT OFFERED: an ordinary import, ⇊ several boards, or an import that could not be put back
   {
@@ -15447,7 +15460,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const S4 = boot({ html: OLD.html, ls: w2LsOf(S3.ev) });
     w2Import(S4, NEW.html, 'none', 0);
     chk(name, '(i) not offered', 'an import that lands lifts the mark', S4.ev(`localStorage.getItem(IMP_MIXED_KEY)`), null);
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   // (k) THE CHOSEN FILE HAS THE IMPORTED FILE'S NAME: written and read back, the note in at once, nothing cleared until Carry on
   {
@@ -15475,12 +15488,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     press(K, null, /^Carry on/);
     await settle(K, () => navs(K, e1) > 0);
     chk(name, '(k) carried on', 'then the import’s keys are cleared and the page reopens', J([CLEARED.filter(k => k in w2LsOf(K.ev)), navs(K, e1) > 0]), J([[], true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15525,7 +15538,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, '(g) changed since', 'a list another tab changed since the refusal: nothing written, the box closed, and it names the list',
       J([P.picks.length, box(T).open, T.ev('_impFile'), status(T.ev).startsWith('⛔ Nothing was written: the O&M plan changed in this browser after the import was refused')]),
       J([1, false, null, true]));
-    bootRelease(mk, keepBoards());
+    // a board that writes anyway must fail the check above, not kill the suite: its write finishes while this board is still open
+    await settle(T, () => T.ev('!(_impFile && (_impFile.busy || _impFile.wasBusy))'));
+    await W214.rel(mk, keepBoards());
   }
   { // the as-it-was file could not be written after its pick: offered as a download
     const mk = bootMark();
@@ -15539,7 +15554,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     T.ev(`[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return /this board as it was/.test(b.textContent); }).forEach(function(b){ b.click(); }); 'ok'`);
     chk(name, '(g) as it was, failed', 'a failure after its pick offers it as a download, and step 1 stays open',
       J([D.length === 1 && D[0].text === T.ev('_impFile.was.html') && !!pubOf(D[0].text), box(T).go.disabled]), J([true, true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   // THE RACE, IN TWO PARTS (C29): what storage holds, and what this page holds, are read again after the last wait
   {
@@ -15565,7 +15580,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       J([B.ev('JSON.stringify(_impOpen.left)'), B.ev('JSON.stringify(DATA.items.map(function(i){ return i.id; }))') === RA.ev('JSON.stringify(DATA.items.map(function(i){ return i.id; }))'), lsB.prio27ff === lsR.prio27ff,
          /⚠ This browser’s copy of the Full Fund plan changed after the import was written, so it was left as it is/.test(status(B.ev))]),
       J([J(['the Full Fund plan']), true, true, true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   {
     const mk = bootMark();
@@ -15583,7 +15598,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, '(race 2) this page', 'storage unchanged but this page changed: nothing cleared, and the edit is said to be on screen, kept by 💾 Save',
       J([w2Diff(r.held, w2LsOf(T.ev)).split(',').filter(k => !/\.base$/.test(k)).join(','), /What you changed here since is still on screen: 💾 Save keeps it in this page’s own file\./.test(status(T.ev)), T.ev('S.notes.A')]),
       J(['prio27impFile', true, 'TYPED WHILE IT WROTE']));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   // (h) THE HAND-OVER HOLD: the importing page, reopened, writes none of the import's keys -- for its life (C21)
   const T = boot({ html: OLD.html, ls });
@@ -15611,7 +15626,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, '(h) after the file opened, ' + who, 'the written file, reopened on this browser, shows the imported board', J([J(w2View(Bw.ev)), J(w2View(Bw2.ev)), w2Saved(Bw2.ev)]), J([VIEW_A, VIEW_A, SAVE_A]));
     if (prog) chk(name, '(h) the record', 'the held page’s own opening rewrote its plan’s record; the file names nothing as changed, and the note holds no record',
       J([J(M.keys.filter(k => /\.base$/.test(k))), /changed after the import was written/.test(status(Bw.ev))]), J(['[]', false]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   { // a page open BEFORE the note was written latches when the browser says another tab wrote it (C21)
     const mk = bootMark();
@@ -15621,7 +15636,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     E.ev(`S.notes.A='EDIT IN AN OLDER TAB'; save(); 'ok'`);
     chk(name, '(h) an older tab', 'a page open before the note latches on the storage event and stays held after the file opens',
       J([E.ev(`localStorage.getItem('prio27om')`), !!E.ev('impHandOf()')]), J([null, true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   { // a full import while held: the hold's own alert, and no box; a newer board file over unsaved work while held: kept aside, storage untouched
     const mk = bootMark();
@@ -15637,7 +15652,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const N2 = boot({ html: OLD.html, ls: lsU });
     chk(name, '(h) a newer file while held', 'the unsaved work is kept aside, and the file is not written into browser storage (the opening’s guard)',
       J([/UNSAVED HERE/.test(N2.ev(`localStorage.getItem('prio27om.kept')||''`)), N2.ev(`localStorage.getItem('prio27om')`) === lsU.prio27om]), J([true, true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   { // lifting the hold by hand: asked; Cancel keeps it; OK lifts it, and the next edit is kept in storage
     const mk = bootMark();
@@ -15648,7 +15663,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     H.ev(`window.confirm=function(){ return true; }; impHandClear(); setNote('A','AFTER THE LIFT'); 'ok'`);
     chk(name, '(h) lifting', 'OK lifts it: the note is gone, and the next edit is kept in browser storage',
       J([H.ev(`localStorage.getItem(IMP_FILE_KEY)`), /AFTER THE LIFT/.test(H.ev(`localStorage.getItem('prio27om')||''`))]), J([null, true]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   { // the note itself refused: no reopening, and this page holds in memory
     const mk = bootMark();
@@ -15661,12 +15676,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     T2.ev(`S.notes.A='TYPED AFTER'; save(); 'ok'`);
     chk(name, '(h) the note refused', 'the import’s keys are cleared, nothing reopens, and this page holds them back in memory',
       J([CLEARED.filter(k => !/\.base$/.test(k) && k in w2LsOf(T2.ev)), navs(T2, e2), !!T2.ev('_impHand'), T2.ev(`localStorage.getItem('prio27om')`)]), J([[], 0, true, null]));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 // the import's own file, or a board saved from it, read as canonical state: every `ts` and a journal entry's `t` zeroed by name
@@ -15727,7 +15742,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       J([ids(B.ev), v14Figures(B.ev), JSON.stringify(((pubOf(B.ev('buildSavedHtml()')).appns.om.dataPack || {}).items || []).map(i => i.id).sort())]),
       J([fileIds, v14Figures(X.ev), fileIds]));
     chk(name, how, 'the old copies are gone from this browser, and the note with them', J([B.ev(`localStorage.getItem('prio27impFile')`), B.ev('JSON.stringify(_impOpen.left)')]), J([null, '[]']));
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   { // LIFTED BY HAND before the file is opened (C22): the unchanged copies go, one changed meanwhile is left and named
     const mk = bootMark();
@@ -15746,12 +15761,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       J([null, null, true, true, null]));
     const B = boot({ html: D[0].text, ls: w2LsOf(T.ev) });
     chk(name, 'lifted by hand', 'the downloaded file, opened after, shows its own requirements', ids(B.ev), fileIds);
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
   }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15796,7 +15811,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       chk(name, at, 'the BAE list, execution data, cost estimates and reprogramming log', v14Stores(RB.ev), v14Stores(RA.ev));
       chk(name, at, 'the state its next Save writes (clocks, the writer and the stamp aside)', w214Canon(RB.ev('buildSavedHtml()')), w214Canon(RA.ev('buildSavedHtml()')));
     }
-    bootRelease(mk, keepBoards());
+    await W214.rel(mk, keepBoards());
     await settleBoards();
   };
   const O = v14Rich();
@@ -15818,7 +15833,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15901,7 +15916,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15919,7 +15934,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15940,7 +15955,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
@@ -15970,7 +15985,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
-  bootRelease(__bm, keepBoards());
+  await W214.rel(__bm, keepBoards());
   await settleBoards();
 })();
 // ==== end v2.14 W2 ====

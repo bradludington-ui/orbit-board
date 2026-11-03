@@ -5,8 +5,11 @@ the map's `file-route` area is the design. **Stage 1 (build) status:** the board
 block written and passing on this branch; every block fails on the slot commit; 51 mutations and 9 retargets written, each find
 matching once (mcount 3271/3271), every mutant parses; audit-import whole passes; audit-inject whole passes; `boot-same` passes;
 `tools/import-file.mjs` passes A–F in Chromium (D's leave prompt said as INT until W3) and fails on the slot board; `--gtk` run by
-hand under Xvfb and passes; audit-recon, audit-board and audit-other whole pass. **Left for stage 2:** prove.py over
-`proofs-W2.json` (none proved yet); the browser checks named under Checks.
+hand under Xvfb and passes; audit-recon, audit-board and audit-other whole pass. **Stage 2 (prove and finish) status, 3 Nov
+2026:** every one of the 60 mutations and retargets PROVED, CAUGHT against its own check on the final board and suites
+(`proved-W2.jsonl`, 60 lines, 60 CAUGHT); two suite fixes the proofs called for (a write a mutant starts is let finish before its
+board is closed); one retarget re-aimed at the blocks that state its defect directly; the browser checks run, with one fix each to
+`dialogs` (the box had no way in) and to the board's CSS (1.4.11 on the box's rescue buttons); everything under **Stage 2 runs**.
 
 ## Reproduced on the slot commit (v2.13 behaviour), before building
 
@@ -72,6 +75,11 @@ C18–C23, C27–C30:
   no `prio27impRep`; after `destOwnSay`'s line, a held page says `impHandMsg('')` (kept unread); the own file reads `import|n` from
   `prio-fh`, adopts it as `FH` and `_fhPut(h)` only when `m.href===impHref()`, and deletes `import|n` in every case.
 - **The guide:** `t-full`'s third paragraph replaced by design 18's text (+37 characters net; C11 allows +200).
+- **Stage 2, one CSS rule** (after the v1.77 1.4.11 rule): `#impFileBody button.nb{border-color:var(--edge)}`. The box offers its two
+  rescues through `impFileRescueBtns()`, the same `.nb.lnk` buttons the message line draws, and `.nb` dresses them with a `--line`
+  edge (1.32–1.58:1 against 3:1): `npm run standards` reported five NEW 1.4.11 findings, one per theme, "seen 2x" (the two rescue
+  buttons), and none once the rule was in. Scoped to the box, as `table.clingrid button.nb` is to the CLIN grid; no mutation find
+  is on that line.
 
 ## Decided in the build
 
@@ -88,6 +96,12 @@ C18–C23, C27–C30:
 - **`impFileDraw` and `impFileShut` never throw** (they run whenever the save window answers, a closed page included).
 - **One more retarget than C27 counted:** `impmixed-lift-partial` -- C19 rewrote `impMixedLift`'s line to leave a `.base` out; the
   same defect, retargeted in place.
+- **Stage 2: the rescue buttons keep the message line's markup** (one `impFileRescueBtns()` for the box and the message, so
+  neither can lose a copy) **and take the controls' edge in the box only** (the CSS rule above) -- rather than a second markup for
+  the box, which would have moved `v214-w2-rescue-missing`'s find.
+- **Stage 2: `tools/dialogs-keyboard.mjs` opens the box by its switch** (`window.__impFileGo()`, stood up by `PRE`), because the
+  box has no backdrop click to name its switch and no menu item opens it -- only a refused full import does. It is not on §6's
+  "may touch" list; see For the integration.
 - **hostile.mjs is not changed:** the box's names are covered by audit-inject's W2-1 (every rendered state of the box, the hold's
   message and the own-file report, with planted markup), and nothing W2 adds is a field of the saved board but `impFile`, which
   `inboundCheck` leaves alone as an unknown field.
@@ -159,10 +173,46 @@ disk is 0 bytes after the pick (8,533,805 → 0: Chromium emptied it, the CONTRO
 "💾 the file you imported" downloads the source sha256 for sha256; "💾 the imported board (new version)" passes the import check
 and carries its stamp. No "replace?" question appeared (the Return fallback did not run).
 
-**Browser checks for stage 2:** `node tools/import-file.mjs` (A–F); `--gtk` by hand under Xvfb (`/usr/bin/Xvfb`); `npm run panels`
-(impFilePanel added to SPECIAL), `npm run standards` (the box measured with step 1 and with both rescues; a `coverage` finding if
-absent), `dialogs` (the box under the controller: named, inert behind, Esc to ✕), `leftmenu`, `menus`, `keys`. D's "leaving asks"
-part is said as `INT` on a board without W3's `memOnlyLeave` and is a check once it is there.
+**Changed in stage 2** (all on this branch, none an expectation moved):
+- audit-import, W2 slot: `W214.quiet()` and `W214.rel()`, every W2 block's `bootRelease` through `rel`, and a wait at the end of
+  check 2's (g) "changed since" part (see Mutations: two proofs CRASHED without them). Clean board: every W2 block still passes
+  alone and the suite passes whole.
+- `tools/dialogs-keyboard.mjs` (`// v2.14 W2 (item 141)`, two places): the box is opened by its switch, a refused full import stood up
+  by `PRE` with something unsaved so step 1 shows. Fails without it on this board: "impFilePanel: no way to open it found" (both
+  passes); with it, the box is named, inert behind, keeps Tab, and Esc closes it to ✕ like every other box.
+- The board: the 1.4.11 CSS rule (What was built). `npm run standards` without it: 5 NEW findings (exit 1); with it: none (exit 0).
+
+**Stage 2 runs** (3 Nov 2026, UTC, on `/home/user/orbit-wt/v214-w2`; W1's and W3's builders ran their own suites beside these):
+
+| Command | Started (about) | Took | Exit | Result |
+|---|---|---|---|---|
+| mkmut + `node tools/check.mjs <mutant>`, all 60 | 08:05 | 2 min 57 s | 0 | every mutant "main script parses" |
+| `JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W2.json recovery/v214/proved-W2.jsonl` (run 1) | 08:08 | 14 min | 0 | 57 CAUGHT, 2 CRASHED, 1 NOT CLEAN (Mutations) |
+| `node tools/panels-render.mjs` | 08:10 | 17 s | 0 | every panel opens; impFilePanel opens, no escaped entity, clips nothing, every control reached |
+| `node tools/dialogs-keyboard.mjs` (before the fix) | 08:11 | 244 s | 1 | 2 problems: "impFilePanel: no way to open it found" (sliding over and docked) |
+| `node tools/dialogs-keyboard.mjs` (after) | 08:17 | 245 s | 0 | every box takes the keyboard, keeps it, gives it back… -- 51 boxes, impFilePanel by its switch |
+| prove.py run 2 (same command) | 08:24 | 15 min | 0 | 60 of 60 CAUGHT |
+| `node tools/left-menu.mjs` | 08:25 | 48 s | 0 | Every action has one home on the left menu… |
+| `node tools/menu-paths.mjs` | 08:26 | 5 s | 0 | Every menu path a message names is really in that menu |
+| `node tools/keyboard-reach.mjs` | 08:26 | 92 s | 0 | The keyboard reaches … every one works |
+| `node tools/pmo-save.mjs` | 08:28 | 45 s | 0 | A PMO copy saves its office’s own file… |
+| `node tools/import-file.mjs` | 08:29 | 45 s | 0 | ALL CHECKS PASSED (D's leave prompt INT) |
+| `node tools/standards-check.mjs` (before the CSS rule) | 08:30 | 70 s | 1 | 5 NEW 1.4.11 findings, `button.nb` in the box, one per theme |
+| `node tools/standards-check.mjs` (after) | 08:38 | 62 s | 0 | CONFORMANCE HOLDS AGAINST THE BASELINE -- 0 findings, nothing new; "the run measured what it must" |
+| `npm run check` | 08:39 | 3 s | 0 | all checks passed |
+| prove.py run 3 (same command) | 08:39 | 17 min | 0 | 60 of 60 CAUGHT |
+| `node tools/export-audit/boot-same.mjs` (4 GB) | 08:41 | 15 s | 0 | every page, source, save and error list is identical either way |
+| `python3 -I -B recovery/v200/bin/mcount.py tools/export-audit/mutate.mjs prioritization-board-grid.html` | 08:40 | 5 s | 0 | `{"entries": 3271, "once": 3271, "missing": [], "multiple": [], "unparsed": []}` |
+| prove.py, `cycle-file-drops-store` alone, re-aimed at audit-board | 08:57 | under 1 min | 0 | CAUGHT, 12 failing checks, no throw |
+| `node tools/export-audit/audit-import.mjs` whole (8 GB) | 08:58 | 21 min | 0 | ALL CHECKS PASSED |
+| `node tools/panels-render.mjs` (final board) | 09:05 | 19 s | 0 | as above |
+| `node tools/import-file.mjs` (final board) | 09:05 | 50 s | 0 | ALL CHECKS PASSED, A–F (D's leave prompt INT) |
+| `node tools/dialogs-keyboard.mjs` (final board) | 09:06 | 251 s | 0 | as above, 51 boxes |
+| `node tools/export-audit/audit-inject.mjs` whole (4 GB) | 09:19 | 12 s | 0 | ALL CHECKS PASSED; all clear across 45 findings and 4 text-fidelity guards (W2-1 among them) |
+
+Not re-run in stage 2: audit-recon, audit-board and audit-other whole (untouched since stage 1's whole passes; the board changed by
+one CSS rule since, which no jsdom check reads), and `--gtk` (stage 1, by hand). D's "closing the tab asks" stays INT until W3's
+`memOnlyLeave` is merged.
 
 ## Mutations
 
@@ -181,11 +231,39 @@ base-in-marker, mixed-marks-base, e1-takes-lists, e1-takes-one, e2-base-unrecord
 `handoff-copy-drops-exec`, `handoff-copy-drops-ace`, `save-no-lt-escape` (the `impFile…}).replace(…)` tail), `cycle-file-drops-store`,
 `bud-not-saved`, `dest-file-no-list`, `writer-not-in-file`; and `impmixed-lift-partial` (C19's `impMixedLift` line).
 
-`recovery/v214/proofs-W2.json` (60 entries) names the block each should be caught by. **None proved yet** (stage 2). The nine
-retargets' blocks are named from the suite (no earlier proof record names them): `handoff — out` (×3), `save → reopen`, `v1.85 — a
-save keeps the other appropriations’ locked cycles`, `the BAE list — one list, every appropriation`, `v1.86 — the four lists become
-one`, `v1.95 — one writer per board file`, `v1.95 — an import that lands whole lifts the hold`; a guess that SURVIVES there is
-re-aimed at the block that does catch it (search the suites for the field), not dropped.
+`recovery/v214/proofs-W2.json` (60 entries) names the block each is caught by; `recovery/v214/proved-W2.jsonl` holds the verdicts.
+**All 60 PROVED: CAUGHT, each against its own block, on the final board and suites** (stage 2, 3 Nov 2026). How:
+
+- **Every mutant built and parsed first** (`mkmut.py`, then `node tools/check.mjs <mutant>`): all 60 "main script parses" (2 min 57 s).
+- **Run 1** (`JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W2.json recovery/v214/proved-W2.jsonl`,
+  08:08–08:22 UTC): 57 CAUGHT, 2 CRASHED, 1 no verdict.
+  - `cycle-file-drops-store` NOT CLEAN: its named block (`v1.85 — a save keeps the other appropriations’ locked cycles`) reads
+    `V185W`, which another block writes. Re-aimed (below).
+  - `v214-w2-click-unchecked` and `v214-w2-as-it-was-skipped` CRASHED, no banner. Reproduced by hand: each mutant starts a write the
+    clean board refuses, the block's checks fail as they should, and the write's continuation (`impFileRaced` → `statKeep` →
+    `document`) then ran after `bootRelease` had closed its board -- an unhandled rejection outside every block, which ends the suite
+    before its banner. **Not a weak check: a check whose failure the suite could not report.** Fixed in the W2 slot (no expectation
+    changed): `W214.picker()` records every board it gives a save window (`WROTE`); `W214.quiet()` waits until each open one is idle
+    (`!_impFile.busy && !_impFile.wasBusy`, at most 2,000 turns) and `W214.rel(mk, keep)` is `bootRelease` after it; all 23
+    `bootRelease` calls in the W2 slot are `await W214.rel(...)`; and (g)'s "changed since" part waits for a write before its board
+    goes. With the fix, `click-unchecked` fails 1 check ("(g) changed since": picks 2, the box open, `_impFile` kept) and
+    `as-it-was-skipped` 2 ("(g) step 1": nothing named, Write enabled, a save window opened) and then its block throws.
+- **Run 2** (08:24–08:39 UTC), every id again on the fixed suite, the retarget re-aimed at its writer block too: **60 of 60 CAUGHT**.
+- **The board then changed** (the 1.4.11 CSS rule, stage 2), so **run 3** (08:39–08:56 UTC), every id again: **60 of 60 CAUGHT**.
+  Its `cycle-file-drops-store` was caught only by its writer block's `frames` check, with the named block throwing on the null
+  `V185W`; so it was **re-aimed at audit-board**, at the blocks that state the defect directly, and proved again alone (08:57 UTC):
+  CAUGHT, 12 failing checks, no throw -- `PPBE cycles — the lock is the window, frozen` ("the locked cycles come back from a saved
+  file, byte for byte") and `PPBE cycles — a PMO copy carries the reference projection only` ("the copy packs one appropriation’s
+  cycle store"). Both pass on the clean board.
+- **Catches that also threw** (prove.py marks them): `not-offered` (3 checks of (a) fail, then the block throws pressing a button the
+  mutant never drew), `as-it-was-skipped` (2, then no checkbox to tick), `as-it-was-not-blocking` (3 of (g) step 1), `download-unmarked`
+  (2 of "no save window"), `rescue-close-unasked` (2 of (e)). Each was caught by a check before its block threw.
+- `proved-W2.jsonl` is run 3 with `cycle-file-drops-store`'s re-aimed proof in place of its first; runs 1 and 2 are kept in the
+  session's scratchpad only (`proved-W2.run1.jsonl`, `proved-W2.run2.jsonl`).
+
+The retargets' blocks as proved: `=handoff — out` (×3), `=save → reopen`, `the BAE list — one list, every appropriation`, `v1.86 — the
+four lists become one`, `v1.95 — one writer per board file`, `v1.95 — an import that lands whole lifts the hold` (audit-import), and
+`cycle-file-drops-store` on audit-board as above.
 
 mcount after the last edit: `{"entries": 3271, "once": 3271}` (3220 + 51).
 
@@ -199,6 +277,20 @@ mcount after the last edit: `{"entries": 3271, "once": 3271}` (3220 + 51).
   own record write is not held (D17) -- check 2(h) asserts the note never names a record.
 - **E1 and other suites:** run audit-recon whole after merging W2 (its `importState` callers); none needed moving here.
 - **The guide:** +37 characters net in `t-full` (C11 allows +200).
+- **`tools/dialogs-keyboard.mjs` was changed (stage 2), outside §6's "may touch" list:** two lines and a `PRE` entry so it can open
+  `#impFilePanel` by its switch (`window.__impFileGo()`); without them it fails "impFilePanel: no way to open it found" (measured,
+  both passes). Any other workstream adding a box with no backdrop click needs the same; merge the `PRE` objects by hand.
+- **`#impFileBody button.nb{border-color:var(--edge)}`** (stage 2, beside the v1.77 1.4.11 rule). **Not fixed, and not W2's:** every
+  other `.nb.lnk` button in the message line (`lift the hold…`, `put it back`, `⬇ Save a copy`, `✍ Take the pen…`, the v1.95 full
+  import rescues) is dressed by the same `.nb` rule with a `--line` edge; `npm run standards` reports none of them, so its drive does
+  not appear to measure a message carrying one (not verified further). Either give `:where(button.nb.lnk)` the edge (or no edge) for the whole board, or have the standards drive draw such a message.
+- **`cycle-file-drops-store` is proved on audit-board**, not on the v1.85 import block C27's list implies: that block reads `V185W`,
+  which its writer block builds through the very saved file the mutation strips, so on the mutant the writer throws and the named
+  block only throws after it. §11.5's merged proof should use `board / PPBE cycles — the lock is the window, frozen; PPBE cycles —
+  a PMO copy carries the reference projection only`.
+- **`W214.quiet()` / `W214.rel()` in the W2 slot**: every W2 block lets a write it began finish before closing its boards. A later
+  slot that installs `W214.picker()` on a board and closes it with a plain `bootRelease` loses that, and a mutant that writes where the
+  board refuses can end the suite before its banner (CRASHED). INT-5, INT-6 and INT-10 should close their boards with `W214.rel`.
 
 ## npm script to add
 
@@ -207,6 +299,8 @@ mcount after the last edit: `{"entries": 3271, "once": 3271}` (3220 + 51).
 
 ## Known gaps
 
+- The five catches that also threw (above): each is a check failing first; a reviewer who wants every W2 block to fail without
+  throwing on every mutant would guard the presses that assume a button the clean board draws.
 - `import-file.mjs` C gives the adopted handle its stand-in methods back after the reload (a structured clone keeps only `name`);
   the real handle's methods are not in question there, only that the page took it.
 - A page latched by the `storage` event says nothing until it next writes (the message is said on the first held write, and on
