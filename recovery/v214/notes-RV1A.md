@@ -168,7 +168,7 @@ renamed (`prev`) so it matches once, as before.
     function and runs in both), **ALL CHECKS PASSED** both.
   - audit-recon: thirds, the last cut in two again so its 6.5 GB block ran with room: 25 + 25 + 12 + 13 = 75 scenarios,
     **ALL CHECKS PASSED** all four.
-  A whole run of each on a quiet box is left to the lead's integration pass.
+  Then, in a quieter window, each ran WHOLE at 8 GB: **audit-import, audit-board and audit-recon — ALL CHECKS PASSED** each.
 - Whole: audit-other, audit (Excel), legacy-fsrc, audit-hostile, audit-inject, audit-ui — ALL CHECKS PASSED each.
 - Browser: `npm run fileimport`, `storagefull`, `savetarget`, `keys`, `dialogs`, `panels`, `standards` (0 findings, nothing new)
   — all pass.
