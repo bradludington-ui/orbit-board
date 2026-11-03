@@ -18739,6 +18739,14 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ---- end RV2-LEAD ----
+// ---- RV2-A (the file route and Save) ----
+// ---- end RV2-A ----
+// ---- RV2-B (other appropriations, cycles and packages) ----
+// ---- end RV2-B ----
+// ---- RV2-C (round 2, second half: C) ----
+// ---- end RV2-C ----
+// ---- RV2-D (round 2, second half: D) ----
+// ---- end RV2-D ----
 // ==== end v2.14 review round 2 fixes ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
