@@ -8192,6 +8192,66 @@ await (async () => {
 // ---- end INT-A ----
 
 // ---- INT-B (INT-11) ----
+// v2.14 INT (W3's stage 2 finding; recovery/v214/w3-cyc-erase-probe.mjs, made a check): A CHANGE ON SCREEN ONLY KEEPS ITS MARK
+// THROUGH A REFUSED CYCLE CHOICE. A package for Full Fund that browser storage refused is in PUBS alone, so leaving the page asks
+// (memOnlyNow, memOnlyLeave). "Put every appropriation on PB28", refused at OPN and put back whole, used to delete the refusal of
+// every key it had tried to write after lsMarksBack had put the page's marks back -- Full Fund's among them -- so leaving stopped
+// asking and the package was lost when the tab closed. Fails on the slot commit (v2.13 had no leave question to keep); fails with
+// v214-int-cyc-erases-refusal, which puts the delete back. The package is applied through pkgApply, its own writer, and the cycle is
+// chosen from the context bar's rendered list, as a person picks it.
+await (async () => {
+  const name = 'v2.14 INT — a change refused before “put every appropriation on a cycle” stays on screen only, and leaving still asks (item 141 F)';
+  try {
+    const J = JSON.stringify;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const T1 = 1790100000000, T0 = 1790000000000;
+    const year = (bm) => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], bm });
+    // Full Fund on BES28 (positions entered), Initial Spares on PB27, OPN an old single-year plan; this board, O&M, on PB27
+    const ffStore = { svc: ['USAF', 'ANG'], ts: T1, base: 2027, cur: 2027, cycle: 'BES|2028', by: 'F Lead',
+      ppbe: { 'BES|2028': { v: 2, split: true, lines: {}, val: { USAF: { _all: { 2027: { d: 800, m: 80 } } } } } },
+      years: { 2027: year({ disc: [100, 40], mand: [10, 0], adds: [] }) } };
+    const spStore = { svc: ['USAF', 'ANG'], ts: T1, base: 2027, cur: 2027, cycle: 'PB|2027', by: 'S Lead', cycleRef: 'PB|2027',
+      ppbe: {}, years: { 2027: year({ disc: [100, 40], mand: [10, 0], adds: [] }) } };
+    const opnLegacy = { order: ['Z'], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], ts: T0 };
+    const X = boot({ ls: { prio27ff: J(ffStore), prio27sp: J(spStore), prio27opn: J(opnLegacy) } });
+    seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice(); MS.cycle='PB|2027'; save(); render();
+      window.__cq=[]; window.confirm=function(m){ window.__cq.push(String(m)); return true; }; window.alert=function(){}; 'ok'`);
+    await sleep(5);
+    X.ev(`DIRTY=false; _persistFail=false; render(); 'ok'`);   // the opening's own timers run; the board reads as clean
+    const mem = () => X.ev(`typeof memOnlyNow==='function'? String(memOnlyNow()) : 'none'`);
+    const refused = () => JSON.parse(X.ev(`JSON.stringify(typeof _lsRefused==='object' && _lsRefused? Object.keys(_lsRefused).sort() : null)`));
+    const leave = () => X.ev(`(function(){ var e=new Event('beforeunload', {cancelable:true}); window.dispatchEvent(e); return String(e.defaultPrevented); })()`);
+    const ffOf = (code) => { try { const st = JSON.parse(X.ev(code)) || {}; return [st.by || '', (((st.years || {})[2027] || {}).notes || {}).P || '']; } catch (e) { return ['unreadable', '']; } };
+    const NOTE = 'from the package -- only on screen';
+    // 1. A Full Fund package arrives and browser storage refuses it: pkgApply's own write, then its in-memory slot
+    const pkgMs = Object.assign({}, ffStore, { ts: Date.now(), by: 'Pkg', years: { 2027: Object.assign(year({ disc: [100, 40], mand: [10, 0], adds: [] }), { notes: { P: NOTE } }) } });
+    X.ev(`window.__setI=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27ff') throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return window.__setI.call(this,k,v); };
+      try{ window.__pk=pkgApply({spmtPkg:PKG_VER, ap:'ff', seq:1, by:'Pkg', ts:${Date.now()}, ms:${J(pkgMs)}}, 'Full Fund package.json'); }finally{ Storage.prototype.setItem=window.__setI; } 'ok'`);
+    chk(name, '1. the package', 'it is loaded, browser storage still holds the Full Fund it held, and the package is in the board’s copy of Full Fund (a CONTROL)',
+      J([X.ev('String(window.__pk)'), ffOf(`localStorage.getItem('prio27ff')`), ffOf('JSON.stringify(PUBS.ff)')]), J(['true', ['F Lead', ''], ['Pkg', NOTE]]));
+    chk(name, '1. the package', 'it is on screen only: the refusal is counted against Full Fund, and leaving the page asks',
+      J([mem(), refused(), leave()]), J(['true', ['prio27ff'], 'true']));
+    // 2. "Put every appropriation on PB28", from the context bar; browser storage refuses OPN, and every key is put back
+    const ls0 = X.ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`);
+    X.ev(`Storage.prototype.setItem=function(k,v){ if(k==='prio27opn') throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return window.__setI.call(this,k,v); };
+      toggleMenu('cyc'); var b=[].filter.call(document.querySelectorAll('#dd_cyc button.mi'), function(x){ return /^PB28/.test(x.textContent.slice(x.querySelector('.chk').textContent.length)); })[0];
+      window.__clicked=!!b; if(b) b.click(); 'ok'`);
+    await sleep(30);
+    X.ev(`Storage.prototype.setItem=window.__setI; 'ok'`);
+    const ls1 = X.ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`);
+    chk(name, '2. the cycle', 'PB28 was picked from the list, asked once, and refused at OPN: nothing was changed, and the message says so (a CONTROL)',
+      J([X.ev('String(window.__clicked)'), JSON.parse(X.ev('JSON.stringify(window.__cq)')).filter(q => /^Put every appropriation on PB28\?/.test(q)).length, X.ev('MS.cycle'),
+        /The PPBE cycle was not changed — browser storage refused OPN board data \(QuotaExceededError\)\. Nothing was changed\./.test(X.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]),
+      J(['true', 1, 'PB|2027', true]));
+    chk(name, '2. the cycle', 'browser storage is byte for byte what it held before the choice (a CONTROL)', ls1 === ls0, true);
+    chk(name, '2. the cycle', 'the package is still on screen only, its refusal still counted against Full Fund, and still in the board’s copy',
+      J([mem(), refused(), ffOf('JSON.stringify(PUBS.ff)')]), J(['true', ['prio27ff'], ['Pkg', NOTE]]));
+    chk(name, '2. the cycle', 'and leaving the page still asks first', leave(), 'true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ---- end INT-B ----
 // ==== end v2.14 integration ====
 

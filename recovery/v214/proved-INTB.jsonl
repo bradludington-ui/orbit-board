@@ -1,0 +1,2 @@
+{"id": "v214-int-stray-unguarded", "verdict": "CAUGHT", "fails": ["11"], "threw": 0, "suite": "_slim-prove-6c3801d7.mjs", "detail": ""}
+{"id": "v214-int-cyc-erases-refusal", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-5eecf91e.mjs", "detail": ""}

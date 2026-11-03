@@ -16947,6 +16947,210 @@ await (async () => {
 // ---- end INT-A ----
 
 // ---- INT-B (INT-7, INT-8, INT-9, INT-10) ----
+// v2.14 INT (contract §11.3, C17, C23): THE STRAY RULE'S TWO GUARDS, AND THE LEAVE QUESTION, ACROSS THE WORKSTREAMS. W1's stray rule
+// keeps aside work a blank page typed when an older board file opens over it; W2's full import writes each plan's record naming no
+// file (C6); W4's record writer marks blank work (C17). INT-7, INT-8 and INT-9 are CONTROLS on the slot commit (v2.13 had no stray
+// rule) and fail with the rule's two guards removed (v214-int-stray-unguarded; INT-9 with the data-pack guard alone removed too,
+// v214-w1-stray-over-pack): a landed import, Brad's main path and storage's requirement list must each open whole, never as the
+// older file's plan. INT-10 fails on the slot commit: W2's impFileHolds() read by W3's leave question. Expectations are the
+// fixtures' own literals (w2Ap, w2Gen, the boards built here), never read back from the code under test.
+// What one plan holds for requirement `id` in the year on screen, and which plans are kept aside, read the way the board holds them.
+const intPlanOf = (st, id) => { const y = (st && st.years && st.years[st.cur]) || {}, a = (y.alloc || {})[id];
+  return { title: (y.titles || {})[id] || '', alloc: (a && typeof a === 'object') ? a.v : null, note: String((y.notes || {})[id] || '').length }; };
+const intKept = (ev) => JSON.parse(ev(`JSON.stringify((function(){ var o=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/\\.kept$/.test(k)) o.push(k); } return o.sort(); })())`));
+// a cancelable beforeunload, fired where the browser fires it when the tab is closed or reloaded: did the page ask first?
+const intLeave = (ev) => ev(`(function(){ var e=new Event('beforeunload', {cancelable:true}); window.dispatchEvent(e); return String(e.defaultPrevented); })()`);
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — a full import that lands through browser storage, run from a populated board file, opens as the import when that file is reopened, and its next Save writes the import in every appropriation (items 140, 141)';
+  try {
+    const J = JSON.stringify;
+    const { NEW, OLD } = w2Fx();
+    // the two generations, from w2Ap's and w2Gen's literals: requirement A (O&M) and F (Full Fund) titled '<GEN> <APPN>', allocated
+    // 777 (NEW) or 333 (OLD), with a note of 15,000 characters on OLD's O&M and 20,000 on NEW's Full Fund, empty otherwise
+    const WANT = { om: { title: 'NEW O&M', alloc: 777, note: 0 }, ff: { title: 'NEW FULL FUND', alloc: 777, note: 20000 } };
+    const PN = W1H.pubOf(NEW.html), PO = W1H.pubOf(OLD.html);
+    chk(name, 'the fixture', 'OLD’s board file holds the other generation in both appropriations (a CONTROL)',
+      J([intPlanOf(PO.appns.om, 'A'), intPlanOf(PO.appns.ff, 'F')]), J([{ title: 'OLD O&M', alloc: 333, note: 15000 }, { title: 'OLD FULL FUND', alloc: 333, note: 0 }]));
+    const T = boot({ html: OLD.html, ls: OLD.ls });
+    const r = w2Import(T, NEW.html, 'none', 0);
+    chk(name, 'the import', 'it lands through browser storage, nothing refused, and the page goes to reopen (a CONTROL)', J([r.ret, r.nav, r.threw, r.writes.filter(w => w[2]).length]), J([true, true, '', 0]));
+    const after = w2LsOf(T.ev);
+    // the same browser reopens the board file it imported from (OLD.html): the import is newer than that file's state
+    const R = boot({ html: OLD.html, ls: after });
+    const scr = JSON.parse(R.ev(`JSON.stringify({om:{title:(S.titles||{}).A||'', alloc:((S.alloc||{}).A||{}).v, note:String((S.notes||{}).A||'').length},
+      ffStore:pkgStoreOf('ff'), data:DATA.items.map(function(i){ return i.id; }), order:S.order, cycle:MS.cycle||''})`));
+    chk(name, 'reopened', 'O&M on screen is the import: its title, its allocation and its note (CONTROL on the slot commit)', J(scr.om), J(WANT.om));
+    chk(name, 'reopened', 'Full Fund, as this board reads it, is the import too (CONTROL on the slot commit)', J(intPlanOf(scr.ffStore, 'F')), J(WANT.ff));
+    chk(name, 'reopened', 'the requirement list and the order are the import’s O&M ones, and the plan is on the import’s cycle (CONTROL on the slot commit)',
+      J([scr.data, scr.order, scr.cycle]), J([PN.appns.om.dataPack.items.map(i => i.id), PN.appns.om.years[PN.appns.om.cur].order, PN.appns.om.cycle]));
+    chk(name, 'reopened', 'nothing is kept aside: the import is the work on screen, not stray work (CONTROL on the slot commit)', J(intKept(R.ev)), J([]));
+    const SV = W1H.pubOf(R.ev('buildSavedHtml()'));
+    chk(name, 'the next Save', 'it writes the import in every appropriation: O&M and Full Fund (CONTROL on the slot commit)',
+      J([intPlanOf(SV.appns.om, 'A'), intPlanOf(SV.appns.ff, 'F')]), J([WANT.om, WANT.ff]));
+    chk(name, 'the next Save', 'and nothing of the older file is mixed in: its plans and locked cycles are the import’s (CONTROL on the slot commit)',
+      J([JSON.parse(w2Saved(R.ev)).om, JSON.parse(w2Saved(R.ev)).ff, JSON.parse(w2Saved(R.ev)).omCyc, JSON.parse(w2Saved(R.ev)).ffCyc]), J(['NEW', 'NEW', 'PB|2027', 'PB|2027']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — import into the program, save it, choose the cycle for every appropriation, open Full Fund: Full Fund shows the tag and nothing is kept aside (items 136, 141)';
+  try {
+    const J = JSON.stringify;
+    const { NEW } = w2Fx();
+    const PROG = readFileSync(BOARD, 'utf8');     // the program as shipped: no board in it
+    const lsOf = w2LsOf;
+    // every question answered OK and recorded; nothing else of the page touched
+    const wire = (ev) => ev(`window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(){}; 'ok'`);
+    // 1. the program opened in a browser that holds nothing: ⬅ Import a full board, through browser storage
+    const P = boot({ ls: {} });
+    const r = w2Import(P, NEW.html, 'none', 0);
+    chk(name, '1. the import', 'it lands through browser storage and the page goes to reopen (a CONTROL)', J([r.ret, r.nav, r.threw]), J([true, true, '']));
+    // 2. the program reopens on the import, and 💾 Save writes the program file in place (item 141 D)
+    const P2 = boot({ ls: lsOf(P.ev) }); wire(P2.ev);
+    const f = W1H.disk(P2.w, PROG);
+    try { await P2.ev('saveInPlaceFile()'); } catch (e) {}
+    await W1H.until(() => f.writes > 0, 2000);
+    // a board before v2.14 (the slot commit) downloads the board instead of writing the program it ran in (item 141 D, which INT-1
+    // and W1 hold): there the copy a person puts in place of the program stands in, recorded as a Save in place records it
+    const prog = f.writes > 0 ? f.content
+      : P2.ev(`(function(){ const h=buildSavedHtml(); LASTKNOWN=fileTsOf({appns:PUBS}); baseSet({file:LASTKNOWN, dirty:false}); DIRTY=false; return h; })()`);
+    const PP = W1H.pubOf(prog) || { appns: {} };
+    chk(name, '2. saved', 'the program file now holds the import, both appropriations (a CONTROL)',
+      J([intPlanOf(PP.appns.om, 'A').title, intPlanOf(PP.appns.ff, 'F').title]), J(['NEW O&M', 'NEW FULL FUND']));
+    // 3. that file reopened; the PPBE cycle chosen for every appropriation from the context bar, as a person picks it
+    const B = boot({ html: prog, ls: lsOf(P2.ev) }); wire(B.ev);
+    B.ev(`(function(){ toggleMenu('cyc'); var b=[].filter.call(document.querySelectorAll('#dd_cyc button.mi'), function(x){ return /^BES28/.test(x.textContent.slice(x.querySelector('.chk').textContent.length)); })[0]; if(b) b.click(); return 'ok'; })()`);
+    await W1H.pause(30);
+    const tagOf = (ev, k) => { try { return (JSON.parse(ev(`localStorage.getItem(${J(k)})`)) || {}).cycle || ''; } catch (e) { return 'unreadable'; } };
+    chk(name, '3. the cycle', 'the question was asked once, and both appropriations are on BES28: O&M on screen, Full Fund in its store (a CONTROL)',
+      J([JSON.parse(B.ev('JSON.stringify(__q)')).filter(q => /^Put every appropriation on BES28\?/.test(q)).length, B.ev('MS.cycle'), tagOf(B.ev, 'prio27ff')]), J([1, 'BES|2028', 'BES|2028']));
+    // 4. Full Fund opened from that file, in the same browser
+    const F = boot({ html: prog, ls: lsOf(B.ev), appn: 'FULL FUND' });
+    const ff = JSON.parse(F.ev(`JSON.stringify({ap:mySlug(), cycle:MS.cycle||'', bar:(document.getElementById('b_cyc')||{}).textContent||'', title:(S.titles||{}).F||'', alloc:((S.alloc||{}).F||{}).v})`));
+    chk(name, '4. Full Fund', 'Full Fund is on screen, on BES28, and the context bar says so (CONTROL on the slot commit)', J([ff.ap, ff.cycle, ff.bar]), J(['ff', 'BES|2028', 'BES28 ▾']));
+    chk(name, '4. Full Fund', 'it is the import’s Full Fund: its title and its allocation (CONTROL on the slot commit)', J([ff.title, ff.alloc]), J(['NEW FULL FUND', 777]));
+    chk(name, '4. Full Fund', 'nothing is kept aside, and the opening says nothing of it (CONTROL on the slot commit)',
+      J([intKept(F.ev), /kept aside/i.test(F.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]), J([[], false]));
+    const SV = W1H.pubOf(F.ev('buildSavedHtml()')) || { appns: {} };
+    chk(name, '4. Full Fund', 'its next Save writes both appropriations on BES28, the import’s plans (CONTROL on the slot commit)',
+      J([(SV.appns.om || {}).cycle, (SV.appns.ff || {}).cycle, intPlanOf(SV.appns.om, 'A').title, intPlanOf(SV.appns.ff, 'F').title]), J(['BES|2028', 'BES|2028', 'NEW O&M', 'NEW FULL FUND']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — blank work over a requirement list from another board never mixes the two when an older board file opens (items 140, 141)';
+  try {
+    const J = JSON.stringify;
+    // THE OLDER BOARD FILE: requirements A, B, C (W14SC), A allocated 500 with a note
+    const Z = w14board({ appn: 'O&M' });
+    Z.ev(`S.notes=S.notes||{}; S.notes.A='FILE note'; S.alloc.A={m:'t', v:500}; MS.years[MS.cur]=S; save(); 'ok'`);
+    const FILE = Z.ev('buildSavedHtml()');
+    await w14pause(15);
+    // THIS BROWSER: another board's requirement list (X1, X2) in its plan's data pack, X1 allocated 42 with a note, typed after the
+    // file was saved; its record marks it blank work, naming no file
+    const YSC = { services: ['USAF', 'ANG', 'AFRC'], items: [it('X1', 'AV', [70, 7, 0]), it('X2', 'PSM', [30, 3, 1])], disc: [90, 9, 1], mand: [5, 0, 0], order: ['X1', 'X2'] };
+    const Y = w14board({ appn: 'O&M' }, YSC);
+    Y.ev(`S.notes=S.notes||{}; S.notes.X1='STORAGE note'; S.alloc.X1={m:'t', v:42}; MS.years[MS.cur]=S; save(); 'ok'`);
+    const ls = Object.assign(w14ls(Y.ev), { 'prio27om.base': J({ file: 0, dirty: true, blank: true }) });
+    const st = JSON.parse(ls.prio27om);
+    chk(name, 'the fixture', 'storage’s plan carries the other board’s list in its data pack, is newer than the file, and its record marks it blank (a CONTROL)',
+      J([((st.dataPack || {}).items || []).map(i => i.id), +st.ts > w14fileTs(w14pub(FILE)), JSON.parse(ls['prio27om.base']).blank]), J([['X1', 'X2'], true, true]));
+    const R = boot({ html: FILE, ls });
+    const v = JSON.parse(R.ev(`JSON.stringify({data:DATA.items.map(function(i){ return i.id; }), order:S.order, alloc:S.alloc, notes:S.notes})`));
+    chk(name, 'opened', 'the requirement list on screen is storage’s board’s (CONTROL on the slot commit)', J(v.data), J(['X1', 'X2']));
+    chk(name, 'opened', 'and so is the plan: storage’s order, allocation and note, none of the file’s (CONTROL on the slot commit)',
+      J([v.order, v.alloc, v.notes]), J([['X1', 'X2'], { X1: { m: 't', v: 42 } }, { X1: 'STORAGE note' }]));
+    chk(name, 'opened', 'one board on screen: every requirement in the order is on the list (CONTROL on the slot commit)', J(v.order.filter(id => v.data.indexOf(id) < 0)), J([]));
+    chk(name, 'opened', 'nothing is kept aside: storage’s board is on screen whole (CONTROL on the slot commit)', J(intKept(R.ev)), J([]));
+    const sv = w14pub(R.ev('buildSavedHtml()')) || {}, om = (sv.appns || {}).om || {}, y = (om.years || {})[om.cur] || {};
+    chk(name, 'the next Save', 'the saved file is one board, storage’s: its data pack, its order, its allocation (CONTROL on the slot commit)',
+      J([((om.dataPack || {}).items || []).map(i => i.id), y.order, y.alloc]), J([['X1', 'X2'], ['X1', 'X2'], { X1: { m: 't', v: 42 } }]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — while the file route holds the only copy of a file it chose, leaving the page asks (item 141)';
+  try {
+    const { J, fx, refuse, picker, downloads, press, box, settle } = W214;
+    const { NEW, OLD, ls } = fx();
+    const status = W1H.status, gate = W1H.gate;
+    const mem = (ev) => ev(`typeof memOnlyNow==='function'? String(memOnlyNow()) : 'none'`);
+    // (a) a gate-held write of the imported board: the picker has emptied the file chosen, and nothing is in it yet
+    {
+      const mk = bootMark();
+      const T = boot({ html: OLD.html, ls });
+      const g = gate(), P = picker(T, { gate: g }), e1 = T.errors.length;
+      await refuse(T, NEW.html);
+      chk(name, '(a) refused', 'before anything is chosen, leaving does not ask (a CONTROL)', intLeave(T.ev), 'false');
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => P.picks.length > 0);
+      await W1H.pause(5);
+      chk(name, '(a) writing', 'while the new file is being written, nothing is on screen only, and leaving asks', J([mem(T.ev), intLeave(T.ev)]), J(['false', 'true']));
+      g.open();
+      await settle(T, () => T.errors.slice(e1).some(e => /navigation/i.test(e)));
+      chk(name, '(a) written', 'once it is written and read back, the page reopens and leaving no longer asks (a CONTROL)', intLeave(T.ev), 'false');
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) the board as it was, being written into a file of its own (step 1: this browser holds O&M work no saved file has)
+    {
+      const mk = bootMark();
+      const T = boot({ html: OLD.html, ls });
+      T.ev(`localStorage.setItem('prio27om.base', ${J(J({ file: W1H.fileTs(OLD.html), folder: {}, dirty: true }))}); 'ok'`);
+      const g = gate(), P = picker(T, { gate: g });
+      await refuse(T, NEW.html);
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => P.picks.length > 0);
+      await W1H.pause(5);
+      chk(name, '(b) as it was', 'while the board as it was is being written into its own file, leaving asks', J([mem(T.ev), intLeave(T.ev)]), J(['false', 'true']));
+      g.open();
+      await settle(T, () => /✓ Saved as/.test(box(T).text));
+      chk(name, '(b) as it was', 'once it is saved and read back, leaving no longer asks', J([/✓ Saved as/.test(box(T).text), intLeave(T.ev)]), J([true, 'false']));
+      await W214.rel(mk, keepBoards());
+    }
+    // (c) the write failed after its pick: both copies are offered, and leaving asks until both are downloaded, and not after;
+    // (d) the imported board could not be built: only the file imported is offered, and leaving asks until it is downloaded
+    for (const [at, knob, n] of [['(c) failed', { failClose: 'InvalidStateError' }, 2], ['(d) not built', { build: true }, 1]]) {
+      const mk = bootMark();
+      const U = boot({ html: OLD.html, ls });
+      const Q = picker(U, knob);
+      await refuse(U, NEW.html);
+      if (knob.build) U.ev(`boardPubOf=function(){ throw new Error('the build failed'); }; 'ok'`);
+      const D = downloads(U);
+      press(U, Q, /^Write the imported board/);
+      await settle(U, () => /could not be written into/.test(status(U.ev)));
+      const btns = () => JSON.parse(U.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#shareStat button')).map(function(b){ return b.textContent; }).filter(function(t){ return /^💾 the/.test(t); }))`));
+      chk(name, at, 'nothing imported, ' + (n === 2 ? 'both copies' : 'the file imported alone') + ' offered for download, nothing on screen only, and leaving asks',
+        J([/^⛔ Nothing was imported/.test(status(U.ev)), btns().length, mem(U.ev), intLeave(U.ev)]), J([true, n, 'false', 'true']));
+      const click = (i) => U.ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return /^💾 the/.test(b.textContent); })[${i}]; if(b) b.click(); return 'ok'; })()`);
+      if (n === 2) {
+        click(0);
+        chk(name, at, 'one of the two downloaded: leaving still asks', J([D.length, intLeave(U.ev)]), J([1, 'true']));
+        click(1);
+      } else click(0);
+      chk(name, at, 'every copy downloaded: leaving no longer asks', J([D.length, intLeave(U.ev)]), J([n, 'false']));
+      chk(name, at, 'what was downloaded is the file imported, byte for byte' + (n === 2 ? ', and the imported board, as a board' : ''),
+        J([D.some(d => d.text === NEW.html), n === 2 ? D.some(d => d.text !== NEW.html && !!(W1H.pubOf(d.text || '') || {}).impFile) : true]), J([true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end INT-B ----
 // ==== end v2.14 integration ====
 
