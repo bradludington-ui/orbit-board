@@ -10349,6 +10349,11 @@ const MUTATIONS = [
   // ---- end INT-A ----
 
   // ---- INT-B (v214-int-stray-unguarded, v214-int-cyc-erases-refusal) ----
+  { id: 'v214-int-stray-unguarded', area: "opening", what: "a full import that landed through browser storage, reopened in the older board file, opens the old plan over it and keeps the import aside, and the next Save writes old O&M with the imported Full Fund",
+    find: "const _bootStray=_bootOwnRead && _bootBase.dirty===true && !(+_bootBase.file) && _bootBase.blank===true && !_bootOwnPack;",
+    repl: "const _bootStray=_bootOwnRead && _bootBase.dirty===true && !(+_bootBase.file);" },
+  { id: 'v214-int-cyc-erases-refusal', area: "cycApplyAll", what: "a change browser storage refused, then “put every appropriation on a cycle” refused and put back, no longer reads as on screen only: leaving the page asks nothing and the change is lost",
+    find: "      if(res.back) _sideGen=g0;", repl: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }" },
   // ---- end INT-B ----
   // ==== end v2.14 integration ====
 
