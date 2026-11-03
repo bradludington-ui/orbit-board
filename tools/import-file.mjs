@@ -83,7 +83,15 @@ const STALE = { prio27om: X.ev('localStorage.getItem(_AP.key)'), 'prio27om.base'
 console.log(`\nthe board: ${SRC.length.toLocaleString()} characters, ${statSync(join(dir, SRCN)).size.toLocaleString()} bytes`);
 chk('the fixture is past what browser storage holds (a CONTROL)', SRC.length > 5242880, SRC.length);
 
-const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'], headless: !GTK, env: GTK ? Object.assign({}, process.env, { DISPLAY: process.env.DISPLAY || ':97' }) : undefined });
+// --gtk: a headed browser needs a display -- Xvfb on :97 when none is set, started before the browser is
+let XV = null;
+if (GTK && !process.env.DISPLAY) {
+  if (!existsSync('/usr/bin/Xvfb')) { console.log('  FAIL the harness: Xvfb is not installed (/usr/bin/Xvfb)'); process.exit(1); }
+  XV = spawn('/usr/bin/Xvfb', [':97', '-screen', '0', '1280x900x24'], { stdio: 'ignore' }); await new Promise(r => setTimeout(r, 1000));
+  process.env.DISPLAY = ':97';
+  process.on('exit', () => { try { XV.kill(); } catch {} });
+}
+const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'], headless: !GTK, env: GTK ? Object.assign({}, process.env) : undefined });
 const newCtx = async (ls) => { const ctx = await b.newContext({ acceptDownloads: true, viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage(); await p.goto('file://' + join(dir, 'seed.html'));
   await p.evaluate((ls) => { localStorage.clear(); localStorage.setItem('prio27who', 'Brad'); Object.keys(ls).forEach(k => localStorage.setItem(k, ls[k])); }, ls || {});
@@ -122,7 +130,8 @@ const open = async (ctx, name, o = {}) => {
   return { p, dialogs, errs };
 };
 const lsOf = p => p.evaluate(() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); } return o; });
-const lens = o => J(Object.keys(o).sort().map(k => [k, o[k].length]));
+// what storage holds, by key and length; this browser's writer key aside (the write makes one where storage had none)
+const lens = o => J(Object.keys(o).filter(k => k !== 'prio27writerKey').sort().map(k => [k, o[k].length]));
 const doImport = async (p, name) => { await p.setInputFiles('#fullFile', join(dir, name || SRCN)); await p.waitForFunction(() => /Nothing was imported|Full board imported/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 60000 }); await p.waitForTimeout(300); };
 const writeBtn = p => p.$('#impFileGo');
 // Write, pressed as a person presses it. Until W3's lsMarksBack is merged (contract C2, C9) the refusal itself marks this page
@@ -168,7 +177,7 @@ console.log('\nB. written with the name suggested, opened, saved twice');
   const ls = await lsOf(p);
   chk('B · the import’s keys are cleared', !('prio27om' in ls) && !('prio27ff' in ls) && !('prio27acedb' in ls), J(Object.keys(ls)));
   chk('B · the page reopened and says it is held', /ORBIT wrote the imported board into “/.test(await p.textContent('#shareStat')));
-  const { p: q } = await open(ctx, name);
+  const { p: q } = await open(ctx, name, { pickAs: name });       // its first Save chooses the file itself
   chk('B · the written file says it is the import', /Full board imported into this file/.test(await q.textContent('#shareStat')));
   chk('B · O&M: its figures are the source file’s', await figures(q) === truth.om);
   await q.evaluate(() => { S.notes.A = 'EDITED IN THE WRITTEN FILE'; save(); render(); });
@@ -259,14 +268,9 @@ console.log('\nF. no save window: downloaded, and opened over another board’s 
 
 async function gtk() {
   console.log('\n--gtk: the real save dialog');
-  let xv = null;
-  if (!process.env.DISPLAY) {
-    if (!existsSync('/usr/bin/Xvfb')) { console.log('  FAIL the harness: Xvfb is not installed (/usr/bin/Xvfb)'); process.exit(1); }
-    xv = spawn('/usr/bin/Xvfb', [':97', '-screen', '0', '1280x900x24'], { stdio: 'ignore' }); await new Promise(r => setTimeout(r, 800));
-    process.env.DISPLAY = ':97';
-  }
+  const xv = null;     // started above, before the browser
   const XK = join(ROOT, 'tools', 'xkeys.py');
-  const xkeys = (...a) => { const r = spawnSync('python3', ['-I', XK, ...a], { encoding: 'utf8', env: process.env }); if (r.status !== 0) throw new Error('xkeys: ' + (r.stderr || r.stdout)); };
+  const xkeys = (...a) => { const r = spawnSync('python3', ['-I', XK, ...a], { encoding: 'utf8', env: process.env }); if (r.status !== 0) throw new Error('xkeys: ' + (r.stderr || r.stdout)); return r.stdout; };
   try { xkeys('--check'); } catch (e) { console.log('  FAIL the harness: ' + e.message + ' (libXtst missing?)'); if (xv) xv.kill(); process.exit(1); }
   writeFileSync(join(dir, PROGN), PROG);
   const sha0 = createHash('sha256').update(readFileSync(join(dir, SRCN))).digest('hex');
@@ -282,9 +286,17 @@ async function gtk() {
   await doImport(p);
   const nav0 = p.url();
   await goWrite(p); await new Promise(r => setTimeout(r, 1500));
-  xkeys('key', 'Control+a'); xkeys('type', join(dir, SRCN)); xkeys('key', 'Return'); await new Promise(r => setTimeout(r, 1200));
-  xkeys('key', 'Return');      // "replace it?"
-  await p.waitForFunction(() => /could not be written into/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 60000 }).catch(() => {});
+  // the moves measured on 2 Nov (proto q141-verify-fix-0): select the name, type the source's full path, Escape closes the
+  // completion list, then the dialog's Save button (on a 1280×900 screen); Return as well, should a "replace?" question follow
+  const shot = (n) => { const si = process.argv.indexOf('--shots'); if (si >= 0) spawnSync('import', ['-window', 'root', join(process.argv[si + 1], n + '.png')], { env: process.env }); };
+  shot('1-dialog');
+  xkeys('key', 'Control_L+a', 'type', join(dir, SRCN), 'key', 'Escape'); await new Promise(r => setTimeout(r, 800));
+  shot('2-typed');
+  xkeys('click', '1074,798'); await new Promise(r => setTimeout(r, 2500));
+  shot('3-saved');
+  if (!/could not be written into/.test(await p.textContent('#shareStat'))) { xkeys('key', 'Return'); await new Promise(r => setTimeout(r, 2000)); }
+  await p.waitForFunction(() => /could not be written into/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 20000 }).catch(() => {});
+  console.log('  …  the message line: ' + String(await p.textContent('#shareStat')).slice(0, 160));
   chk('gtk · the save window was asked for with user activation', J(await p.evaluate(() => window.__ua)) === '[true]');
   chk('gtk · the source on disk is 0 bytes now (a CONTROL: Chromium emptied it)', statSync(join(dir, SRCN)).size === 0, statSync(join(dir, SRCN)).size);
   chk('gtk · storage byte-identical, no note', lens(await lsOf(p)) === lens(ls0) && !(await p.evaluate(() => localStorage.getItem('prio27impFile'))));
@@ -304,3 +316,4 @@ await b.close();
 console.log('\n' + '='.repeat(96));
 if (bad) { console.log(`${bad} FAILING CHECK(S)`); process.exit(1); }
 console.log('ALL CHECKS PASSED');
+process.exit(0);      // --gtk's Xvfb is a child of this process: exit rather than wait on it
