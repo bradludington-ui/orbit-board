@@ -14806,11 +14806,12 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     X.store = new Map(); X.log = []; X.picks = []; i127idb(X.w, X.store, X.log); i127wire(X.ev, 'BLL');
     const d = i127disk('board.html'); i127picker(X.w, d, X.picks);
     await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
-    chk(name, 'the board', 'the board’s first Save writes its file and keeps the handle (a CONTROL)', i127J([d.writes, X.store.get(I127FNAME) === d.h]), i127J([1, true]));
+    // v2.14 W1: the board's own save file is kept under this page's address, never the shared file name (item 140 a)
+    chk(name, 'the board', 'the board’s first Save writes its file and keeps the handle (a CONTROL)', i127J([d.writes, X.store.get('page|https://example.invalid/board.html') === d.h]), i127J([1, true]));
     d.h.getFile = async () => gone();
     X.ev(`setDesc('A','board 2'); 'ok'`); const bw = d.writes, bp = X.picks.length; await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
     chk(name, 'the board · moved', 'nothing is written, it says the file is no longer where it was saved, and the handle is forgotten',
-      i127J([d.writes - bw, X.picks.length - bp, /no longer where it was saved/.test(i127status(X.ev)), i127ev(X.ev, 'FH===null'), X.store.get(I127FNAME) || null]), i127J([0, 0, true, true, null]));
+      i127J([d.writes - bw, X.picks.length - bp, /no longer where it was saved/.test(i127status(X.ev)), i127ev(X.ev, 'FH===null'), X.store.get('page|https://example.invalid/board.html') || null]), i127J([0, 0, true, true, null]));   // v2.14 W1: the page's own key
     const d2 = i127disk('board (moved).html', d.content); i127picker(X.w, d2, X.picks); const bp2 = X.picks.length; await i127ev(X.ev, 'saveInPlaceFile()'); await i127pause(40);
     chk(name, 'the board · moved', 'the next Save asks where it is, and writes the file picked', i127J([X.picks.length - bp2, d2.writes]), i127J([1, 1]));
   } catch (e) {
@@ -15204,6 +15205,379 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== end v2.12 W3 ====
 
 // ==== v2.14 W1 (item 140; item 141 D): Save writes only to its own file, and asks before writing over what it does not carry ====
+// Every check below fails on the slot commit (ea412ca, v2.13's behaviour) unless it says CONTROL. Each Save is driven the way a
+// person drives it -- saveInPlaceFile(), the board's own path, with stand-in pickers and file handles -- and this browser's handle
+// store is S7's `idb` stand-in, installed before the board opens, shared between pages as one browser shares it.
+const W14J = JSON.stringify;
+const W14FNAME = 'FY27 Consolidated Prioritization Board.html';
+const W14U = n => 'https://example.invalid/' + n;
+const W14K = 'ab'.repeat(16);   // this browser's writer key, given to every page that stands for "the same browser"
+const w14pause = ms => new Promise(r => setTimeout(r, ms));
+const w14ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+const W14SC = { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'PSM', [900, 200, 100]), it('B', 'PSM', [400, 100, 50]), it('C', 'AV', [300, 10, 5])],
+  disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A', 'B', 'C'] };
+// a board with its requirements its own data (a fixture that could not happen tests nothing: BASE_ITEMS filled, as a real board has)
+const w14board = (opts = {}, sc = W14SC) => { const B = boot(opts); seed(B.ev, sc);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`); return B; };
+// a page opened in a browser: the board reads the handle store while it opens, so the callbacks are let run
+const w14open = async (opts) => { const B = boot(opts); await w14pause(40); return B; };
+// a file on disk, as a handle stands for it; every call recorded in `ops` (read, query, request, write)
+const w14disk = (name, content = '') => { const f = { name, content, writes: 0, ops: [], query: 'granted', request: 'granted' };
+  f.h = { name, kind: 'file', isSameEntry: async o => o === f.h,
+    queryPermission: async () => { f.ops.push('query'); return f.query; },
+    requestPermission: async () => { f.ops.push('request'); return typeof f.request === 'function' ? f.request() : f.request; },
+    getFile: async () => { f.ops.push('read'); return { text: async () => f.content }; },
+    createWritable: async () => { f.ops.push('write'); let b = ''; return { write: async x => { b += String(x); }, close: async () => { f.content = b; f.writes++; } }; } };
+  return f; };
+const w14err = n => { const e = new Error(n); e.name = n; return e; };
+// the pickers: `open` (absent: no Open window, as in a browser without one) and `save`; each call recorded with what the
+// message line said while its window was up
+const w14pickers = (B, { open, save } = {}) => { const P = { open: [], save: [], saidOpen: [], saidSave: [] };
+  const said = () => w14ev(B.ev, `(document.getElementById('shareStat')||{}).textContent||''`);
+  if (open !== undefined) B.w.showOpenFilePicker = async o => { P.open.push(o || {}); P.saidOpen.push(said());
+    if (typeof open === 'function') return open(); if (!open) throw w14err('AbortError'); return [open.h]; };
+  else { try { delete B.w.showOpenFilePicker; } catch {} B.w.showOpenFilePicker = undefined; }
+  B.w.showSaveFilePicker = async o => { P.save.push(o && o.suggestedName); P.saidSave.push(said());
+    if (typeof save === 'function') return save(); if (!save) throw w14err('AbortError'); return save.h; };
+  return P; };
+// every question recorded and answered by `ans` (a JS expression over m), every download counted, nothing else touched
+const w14wire = (ev, ans) => ev(`window.__q=[]; window.__ans=function(m){ return !!(${ans}); };
+  window.confirm=function(m){ m=String(m); __q.push(m); return __ans(m); }; window.alert=function(){}; window.prompt=function(){ return null; };
+  window.__dl=0; publishState=function(){ __dl++; }; try{ localStorage.setItem('prio27who','BLL'); }catch(e){} 'ok'`);
+const w14save = async (ev, call = 'saveInPlaceFile()') => { const r = w14ev(ev, call); try { await r; } catch (e) {} await w14pause(60); };
+const w14stat = ev => w14ev(ev, `(document.getElementById('shareStat')||{}).textContent||''`);
+const w14statHtml = ev => w14ev(ev, `(document.getElementById('shareStat')||{}).innerHTML||''`);
+const w14q = ev => JSON.parse(w14ev(ev, 'JSON.stringify(__q)') || '[]');
+const w14ls = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const w14pub = html => { const m = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(String(html)); try { return JSON.parse(m[1]); } catch { return null; } };
+const w14setPub = (html, st) => String(html).replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
+  (m, a, b) => a + JSON.stringify(st).replace(/</g, '\\u003c') + b);
+const w14fileTs = st => (st && st.appns) ? Math.max(0, ...Object.values(st.appns).map(s => (s && s.ts) || 0)) : ((st && st.ts) || 0);
+// The question (b) asks, as the contract words it; its lines are always worked out in the block from the fixture, never by saveDrops
+const w14ask = (name, lines) => '⚠ HOLD ON — “' + name + '” holds what the board on screen does not carry:\n\n' + lines.map(l => '  • ' + l).join('\n')
+  + '\n\nSaving now writes the board on screen over the file, and these are gone from it.\n\nOK — save anyway (only if you removed them on purpose).\nCancel — don’t save. Nothing is written.';
+const W14AP = { om: 'O&M', ff: 'Full Fund', sp: 'Initial Spares', opn: 'OPN' };
+const w14plural = (n, a, b) => n + ' ' + (n === 1 ? a : b);
+const w14cycLbl = (k, key) => W14AP[k] + ' ' + key.split('|')[0] + String(key.split('|')[1]).slice(2);   // 'PB|2027' on O&M: "O&M PB27"
+// the ids an appropriation's plan holds: every year's priority order and added requirements
+const w14ids = pl => { const s = new Set(); Object.values((pl && pl.years) || {}).forEach(y => { (y.order || []).forEach(x => s.add(x));
+  (y.custom || []).forEach(c => s.add(c && c.id)); }); return s; };
+// a writer record this browser's key fingerprints as its own, worked out by a board holding that key
+let W14FP = null;
+const w14fp = () => { if (!W14FP) { const B = boot({ ls: { prio27writerKey: W14K } }); W14FP = B.ev('writerFp()'); } return W14FP; };
+const w14mine = () => ({ by: 'BLL', fp: w14fp(), t: 1700000000000 });
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W1 — Save writes only to the file this page was saved to; another file is never reached through the shared entry (item 140 a)';
+  try {
+    const store = new Map(), log = [];
+    // X: a board at …/old.html, saved in place once. Only the Save window is installed (contract C14's named exception, C30a):
+    // jsdom has no Open window, so this is the no-Open-window fallback, and what it suggests is what matters here.
+    const X = w14board({ url: W14U('old.html'), idb: { store, log }, ls: { prio27writerKey: W14K } }); await w14pause(40);
+    w14wire(X.ev, 'true');
+    const dA = w14disk('old.html'); const PX = w14pickers(X, { save: dA });
+    await w14save(X.ev);
+    chk(name, 'X · first Save', 'the Save window suggests the file this page was opened from, and writes it once', W14J([PX.save, dA.writes]), W14J([['old.html'], 1]));
+    chk(name, 'X · first Save', 'the handle store holds X’s file under X’s own address only; nothing is ever put under the shared entry',
+      W14J([[...store.keys()], log.filter(l => l === 'put ' + W14FNAME).length]), W14J([['page|' + W14U('old.html')], 0]));
+    // An older version left its remembered file under the shared entry, naming X's file (as v2.13 did on every Save).
+    store.set(W14FNAME, dA.h);
+    const aBytes = dA.content, n0 = log.length;
+    // Y: the program at …/new.html, in the same browser -- the same handle store, and the same browser storage, which holds X's
+    // plan and its record (the measured case: the program tab's Save found the old board's handle and wrote over it, unasked).
+    const Y = await w14open({ url: W14U('new.html'), idb: { store, log }, ls: w14ls(X.ev) });
+    w14wire(Y.ev, 'true');
+    const dY = w14disk('new.html'); const PY = w14pickers(Y, { save: dY });
+    await w14save(Y.ev);
+    const yl = log.slice(n0), cut = yl.indexOf('get ' + W14FNAME), before = cut < 0 ? yl : yl.slice(0, cut);
+    chk(name, 'Y · its Save', 'the program page looks its file up under its own address only, never the shared entry, before anything is written',
+      W14J([before.filter(l => /^get /.test(l)).every(l => l === 'get page|' + W14U('new.html')), before.some(l => l === 'get page|' + W14U('new.html'))]), W14J([true, true]));
+    chk(name, 'Y · its Save', 'the old board file is not written, and the window opens once, suggesting the program’s own file name',
+      W14J([dA.writes, dA.content === aBytes, PY.save, dY.writes]), W14J([1, true, ['new.html'], 1]));
+    chk(name, 'Y · its Save', 'the shared entry an older version left is still there, naming the old file (it is that version’s, and names another file)',
+      W14J([store.get(W14FNAME) === dA.h, log.filter(l => l === 'put ' + W14FNAME).length]), W14J([true, 0]));
+    // X's second Save: its own file, with no window (a CONTROL) -- and the shared entry, naming the file just written, is released
+    const xw = dA.writes; await w14save(X.ev); await w14pause(40);
+    chk(name, 'X · second Save', 'X writes its own file again with no window (a CONTROL)', W14J([PX.save.length, dA.writes - xw]), W14J([1, 1]));
+    chk(name, 'release', 'the shared entry naming the file X has just written is released, so an older version asks instead of writing over it', W14J(store.has(W14FNAME)), W14J(false));
+    const dB = w14disk('elsewhere.html'); store.set(W14FNAME, dB.h);
+    await w14save(X.ev); await w14pause(40);
+    chk(name, 'release', 'a shared entry naming any other file is that version’s own, and is left alone', W14J([store.get(W14FNAME) === dB.h, dA.writes - xw]), W14J([true, 2]));
+    // Save diagnostics says whether this browser remembers a file for this page -- read while the board opens -- never its name
+    const Z = await w14open({ url: W14U('old.html'), idb: { store, log } }); w14pickers(Z, { save: null });
+    const Z2 = await w14open({ url: W14U('other.html'), idb: { store, log } }); w14pickers(Z2, { save: null });
+    const sw = ev => ((w14ev(ev, 'diagReport()').match(/Save writes to:\s+([^\n]*)/) || [])[1] || '').trim();
+    chk(name, 'Save diagnostics', 'a page whose file this browser remembers says so; one it does not says it asks which file',
+      W14J([sw(Z.ev), sw(Z2.ev)]), W14J(['a file this browser remembers for this page', 'asks which file, the first time']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W1 — the first Save of a file opens it to check it before anything is written (item 140 a)';
+  try {
+    // The board file, its writer this browser's own, and pages opened from it (each a browser of its own: its own handle store)
+    const F0 = w14board({ ls: { prio27writerKey: W14K } }); F0.ev(`WRITER=${W14J(w14mine())}; save(); 'ok'`);
+    const FILE = F0.ev('buildSavedHtml()');
+    const page = async (store) => { const P = await w14open({ html: FILE, url: W14U('board.html'), idb: { store, log: [] }, ls: { prio27writerKey: W14K } }); w14wire(P.ev, 'false'); return P; };
+    const KEY = 'page|' + W14U('board.html');
+    // (a) the page's own file picked in the Open window: read, checked (no question), then write access asked, then written, remembered
+    const s1 = new Map(), P1 = await page(s1);
+    const d1 = w14disk('board.html', FILE); d1.query = 'prompt';
+    const dW = w14disk('SAVE WINDOW.html'); const PP1 = w14pickers(P1, { open: d1, save: dW });
+    await w14save(P1.ev);
+    chk(name, 'the Open window', 'the first Save opens the Open window, never the Save window', W14J([PP1.open.length, PP1.save.length, dW.writes]), W14J([1, 0, 0]));
+    chk(name, 'the Open window', 'while it is up, the line says to pick the file this page was opened from, and that picking it changes nothing',
+      W14J([/First save of this file in this browser\./.test(PP1.saidOpen[0] || ''), /pick the board file you opened — board\.html/.test(PP1.saidOpen[0] || ''), /Picking it changes nothing/.test(PP1.saidOpen[0] || '')]), W14J([true, true, true]));
+    chk(name, 'the Open window', 'the file is read and checked before write access is asked for, and written once; nothing asked',
+      W14J([d1.ops, d1.writes, w14q(P1.ev)]), W14J([['read', 'query', 'request', 'write'], 1, []]));
+    chk(name, 'the Open window', 'once written, it is remembered under this page’s own address', W14J([[...s1.keys()], s1.get(KEY) === d1.h]), W14J([[KEY], true]));
+    // (b) write access cannot be asked for without a fresh click: nothing written, the file remembered, press Save once more
+    const s2 = new Map(), P2 = await page(s2);
+    const d2 = w14disk('board.html', FILE); d2.query = 'prompt'; d2.request = () => { throw w14err('SecurityError'); };
+    const PP2 = w14pickers(P2, { open: d2, save: null });
+    await w14save(P2.ev);
+    chk(name, 'asked later', 'nothing is written, the checked file is remembered, and the line says to press 💾 Save once more',
+      W14J([d2.writes, s2.get(KEY) === d2.h, /is now this board’s file/.test(w14stat(P2.ev)), /Press 💾 Save once more/.test(w14stat(P2.ev))]), W14J([0, true, true, true]));
+    d2.request = 'granted'; await w14save(P2.ev);
+    chk(name, 'asked later', 'the next Save writes it with no window', W14J([PP2.open.length, d2.writes]), W14J([1, 1]));
+    // (c) write access refused: nothing written, nothing remembered
+    const s3 = new Map(), P3 = await page(s3);
+    const d3 = w14disk('board.html', FILE); d3.query = 'prompt'; d3.request = 'denied';
+    w14pickers(P3, { open: d3, save: null });
+    await w14save(P3.ev);
+    chk(name, 'refused', 'nothing is written, the file is not remembered, and the line says the browser did not let ORBIT write it',
+      W14J([d3.writes, s3.has(KEY), /did not let ORBIT write “board\.html”/.test(w14stat(P3.ev)), w14ev(P3.ev, 'FH===null')]), W14J([0, false, true, true]));
+    // (d) the Open window cancelled
+    const s4 = new Map(), P4 = await page(s4);
+    w14pickers(P4, { open: () => { throw w14err('AbortError'); }, save: null });
+    await w14save(P4.ev);
+    chk(name, 'cancelled', 'the Open window cancelled: nothing written or remembered, and the line offers Save as a new file',
+      W14J([/^Save canceled — nothing written\./.test(w14stat(P4.ev)), /onclick="fhSaveNew\(\)"/.test(w14statHtml(P4.ev)), s4.size]), W14J([true, true, 0]));
+    // (e) Save as a new file: the Save window, a new dated name; held for this page only while it is open (contract C25)
+    const s5 = new Map(), P5 = await page(s5);
+    const d5o = w14disk('board.html', FILE), d5 = w14disk('board — new.html'); const PP5 = w14pickers(P5, { open: d5o, save: d5 });
+    await w14save(P5.ev, 'fhSaveNew()');
+    chk(name, 'Save as a new file', 'the Save window suggests a new dated name beside this file’s, and the new file is written; the Open window is not used',
+      W14J([/^board — \d{4}-\d\d-\d\d\.html$/.test(PP5.save[0] || ''), PP5.open.length, d5.writes, d5o.writes]), W14J([true, 0, 1, 0]));
+    chk(name, 'Save as a new file', 'nothing is remembered under this page’s address, and the line says where later Saves in this page go',
+      W14J([s5.has(KEY), /From now on 💾 Save in this page writes “board — new\.html”\. Opened again, “board\.html” asks which file to save to\./.test(w14stat(P5.ev))]), W14J([false, true]));
+    await w14save(P5.ev);
+    chk(name, 'Save as a new file', 'a second Save in the same page writes the new file, with no window', W14J([PP5.open.length, PP5.save.length, d5.writes]), W14J([0, 1, 2]));
+    const P5b = await page(s5);
+    chk(name, 'Save as a new file', 'this file opened again in that browser remembers no file for itself', W14J([w14ev(P5b.ev, 'FH===null && !_fhKnown'), s5.has(KEY)]), W14J([true, false]));
+    // (f) a browser with no Open window (contract C30a): the Save window, suggesting this file's own name, with the fallback's words
+    const s6 = new Map(), P6 = await page(s6);
+    const PP6 = w14pickers(P6, { save: null });
+    await w14save(P6.ev);
+    chk(name, 'no Open window', 'the Save window suggests this file’s own name (never the shared file name), with the line that warns a chosen file is replaced',
+      W14J([PP6.save, /^💾 First save of this file in this browser: pick board\.html — the file you opened — or give a new name\. A file you choose there is replaced the moment you choose it/.test(PP6.saidSave[0] || '')]), W14J([['board.html'], true]));
+    // (g) the Open window refused by the browser itself
+    const s7 = new Map(), P7 = await page(s7);
+    w14pickers(P7, { open: () => { throw w14err('SecurityError'); }, save: null });
+    await w14save(P7.ev);
+    chk(name, 'blocked', 'the browser refusing the Open window: nothing written, and the line says so, naming the refusal',
+      W14J([/Not saved — this browser did not let ORBIT open a file to check it \(SecurityError\)\. Nothing was written/.test(w14stat(P7.ev)), s7.size]), W14J([true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W1 — Save asks, naming them, before it writes over what the file holds and the board on screen does not carry (item 140 b)';
+  try {
+    const { NEW } = w2Fx();
+    const N0 = w14pub(NEW.html);
+    chk(name, 'setup', 'the fixture: NEW.html holds O&M and Full Fund, their locked cycles, a cost estimate, execution data, the BAE list and the reprogramming log (a CONTROL)',
+      W14J([Object.keys(N0.appns).sort(), Object.keys(N0.cycDb.byAp).sort(), Object.keys(N0.aceDb.sets).length > 0, Object.keys(N0.execDb.all).length > 0, N0.budDb.rows.length > 0, N0.rpDb.entries.length > 0]),
+      W14J([['ff', 'om'], ['ff', 'om'], true, true, true, true]));
+    const Nw = Object.assign({}, N0, { writer: w14mine() });             // its writer this browser
+    const NEWw = w14setPub(NEW.html, Nw);
+    const TS = w14fileTs(N0);
+    // What a program page carrying only NEW's O&M plan does not carry -- worked out here from NEW's own state
+    const ffIds = w14ids(N0.appns.ff), ffYears = Object.keys(N0.appns.ff.years || {}).length;
+    const cycs = ['om', 'ff'].flatMap(k => Object.keys(N0.cycDb.byAp[k].cycles || {}).map(key => w14cycLbl(k, key)));
+    const aces = Object.keys(N0.aceDb.sets), exs = Object.keys(N0.execDb.all).map(k => W14AP[k]);
+    const restLines = ['Locked PPBE cycle' + (cycs.length === 1 ? '' : 's') + ': ' + cycs.join(', '),
+      'Cost estimate' + (aces.length === 1 ? '' : 's') + ': ' + aces.join(', '), 'Execution data for ' + exs.join(', '),
+      'The BAE list (' + w14plural(N0.budDb.rows.length, 'row', 'rows') + ')', 'The reprogramming log (' + w14plural(N0.rpDb.entries.length, 'entry', 'entries') + ')'];
+    const want1 = ['Full Fund — ' + w14plural(ffIds.size, 'requirement', 'requirements') + ', ' + w14plural(ffYears, 'year', 'years')].concat(restLines);
+    // a program page whose browser holds only NEW's O&M plan, recorded as from NEW's save
+    const omOnly = extra => Object.assign({ prio27appn: 'O&M', prio27om: W14J(N0.appns.om), 'prio27om.base': W14J({ file: TS, dirty: false }), prio27writerKey: W14K }, extra || {});
+    const prog = async (ls, ans) => { const P = await w14open({ ls }); w14wire(P.ev, ans); return P; };
+    const withFile = (P, d) => { P.w.__w1d = d.h; P.ev(`FH=window.__w1d; 'ok'`); };
+    // (1) Cancel: one question naming exactly what is missing, and not O&M; nothing written; the pen as it was
+    const P1 = await prog(omOnly(), 'false'); const d1 = w14disk('NEW.html', NEWw); withFile(P1, d1); w14pickers(P1, { open: null, save: null });
+    P1.ev(`WRITER=${W14J(w14mine())}; 'ok'`); const wr1 = w14ev(P1.ev, 'JSON.stringify(WRITER)');
+    await w14save(P1.ev);
+    chk(name, '(1) Cancel', 'one question, naming exactly Full Fund, the locked cycles, the cost estimate, the execution data, the BAE list and the reprogramming log',
+      W14J(w14q(P1.ev)), W14J([w14ask('NEW.html', want1)]));
+    chk(name, '(1) Cancel', 'nothing is written, the pen is as it was, and no writer line is journalled',
+      W14J([d1.writes, d1.content === NEWw, w14ev(P1.ev, 'JSON.stringify(WRITER)') === wr1, w14ev(P1.ev, `(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(writer)'; }).length`)]), W14J([0, true, true, 0]));
+    chk(name, '(1) Cancel', 'the line says nothing was written and how many things the file still holds, offering another file or a copy',
+      W14J([new RegExp('^Save canceled — nothing written\\. “NEW\\.html” still holds ' + want1.length + ' things the board on screen does not carry\\.').test(w14stat(P1.ev)), /onclick="fhRepick\(\)"/.test(w14statHtml(P1.ev))]), W14J([true, true]));
+    // (2) the same, OK: written once
+    const P2 = await prog(omOnly(), 'true'); const d2 = w14disk('NEW.html', NEWw); withFile(P2, d2); w14pickers(P2, { open: null, save: null });
+    await w14save(P2.ev);
+    chk(name, '(2) OK', 'answered OK, the board on screen is written, once', W14J([w14q(P2.ev).length, d2.writes]), W14J([1, 1]));
+    // (3) a blank program page: O&M is named too, with its count (an empty outgoing plan carries nothing)
+    const P3 = await prog({ prio27appn: 'O&M', prio27writerKey: W14K }, `/^⚠ HOLD ON — this file was last saved/.test(m)`);
+    const d3 = w14disk('NEW.html', NEWw); withFile(P3, d3); w14pickers(P3, { open: null, save: null });
+    await w14save(P3.ev);
+    const omIds = w14ids(N0.appns.om), omYears = Object.keys(N0.appns.om.years || {}).length;
+    const q3 = w14q(P3.ev).filter(m => /holds what the board on screen does not carry/.test(m));
+    chk(name, '(3) blank page', 'the question names O&M first, whole, with its requirements and years, then Full Fund; nothing is written',
+      W14J([q3.length, (q3[0] || '').split('\n').filter(l => /^  • /.test(l)).slice(0, 2), d3.writes]),
+      W14J([1, ['  • O&M — ' + w14plural(omIds.size, 'requirement', 'requirements') + ', ' + w14plural(omYears, 'year', 'years'), '  • ' + want1[0]], 0]));
+    // (4) a file whose O&M holds three years, against a board holding one: the years are named
+    const cur = String(N0.appns.om.cur), y1 = String(+cur + 1), y2 = String(+cur + 2);
+    const N4 = JSON.parse(W14J(N0)); N4.appns.om.years[y1] = JSON.parse(W14J(N4.appns.om.years[cur])); N4.appns.om.years[y2] = JSON.parse(W14J(N4.appns.om.years[cur]));
+    N4.writer = w14mine();
+    const P4 = await prog(omOnly({ 'prio27om.base': W14J({ file: w14fileTs(N4), dirty: false }) }), 'false');
+    const d4 = w14disk('NEW3.html', w14setPub(NEW.html, N4)); withFile(P4, d4); w14pickers(P4, { open: null, save: null });
+    await w14save(P4.ev);
+    const fy = y => 'FY' + String(y).slice(2);
+    chk(name, '(4) years', 'the years the file holds and the board on screen does not are named under their appropriation; nothing is written',
+      W14J([(w14q(P4.ev)[0] || '').split('\n').includes('  • O&M ' + fy(y1) + ', ' + fy(y2)), d4.writes]), W14J([true, 0]));
+    // (5) an ordinary Save of a board opened from that same file asks nothing (a CONTROL)
+    const P5 = await w14open({ html: NEWw, url: W14U('NEW.html'), ls: { prio27writerKey: W14K, prio27appn: 'O&M' } }); w14wire(P5.ev, 'true');
+    const d5 = w14disk('NEW.html', NEWw); withFile(P5, d5); w14pickers(P5, { open: null, save: null });
+    await w14save(P5.ev);
+    chk(name, '(5) ordinary', 'a board opened from the file saves over it with no question (a CONTROL)', W14J([w14q(P5.ev), d5.writes]), W14J([[], 1]));
+    // (6) a cycle deleted on purpose: asked once, by name; OK writes; the next Save asks nothing
+    const omKey = Object.keys(N0.cycDb.byAp.om.cycles)[0];
+    P5.ev(`(function(){ delete blStore()[${W14J(omKey)}]; persistCyc(); return 'ok'; })()`);
+    await w14save(P5.ev);
+    chk(name, '(6) a cycle deleted', 'the next Save names the one cycle it would remove, and writes when answered OK',
+      W14J([w14q(P5.ev), d5.writes]), W14J([[w14ask('NEW.html', ['Locked PPBE cycle: ' + w14cycLbl('om', omKey)])], 2]));
+    await w14save(P5.ev);
+    chk(name, '(6) a cycle deleted', 'the Save after that asks nothing', W14J([w14q(P5.ev).length, d5.writes]), W14J([1, 3]));
+    // (7) a file with no writer recorded (pre-v1.95): the pen is claimed, then (b) is cancelled -- the pen goes back
+    const P7 = await prog(omOnly(), `/^No writer is recorded/.test(m)`);
+    const d7 = w14disk('NEW.html', NEW.html); withFile(P7, d7); w14pickers(P7, { open: null, save: null });
+    await w14save(P7.ev);
+    chk(name, '(7) no writer', 'the claim is asked and answered OK, then (b) is cancelled: nothing written, WRITER back to none, no writer line',
+      W14J([w14q(P7.ev).map(m => m.slice(0, 20)), d7.writes, w14ev(P7.ev, 'JSON.stringify(WRITER)'), w14ev(P7.ev, `(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(writer)'; }).length`)]),
+      W14J([['No writer is recorde', '⚠ HOLD ON — “NEW.htm'], 0, 'null', 0]));
+    // (8) the Open window's pick of NEW from a program page, cancelled at (b): nothing remembered, so the next Save opens it again
+    const s8 = new Map();
+    const P8 = await w14open({ ls: omOnly(), url: W14U('program.html'), idb: { store: s8, log: [] } }); w14wire(P8.ev, 'false');
+    const d8 = w14disk('NEW.html', NEWw); const PP8 = w14pickers(P8, { open: d8, save: null });
+    await w14save(P8.ev);
+    chk(name, '(8) the Open window', 'the pick is read and asked about, never asked for write access, and not remembered when cancelled',
+      W14J([d8.ops, d8.writes, s8.has('page|' + W14U('program.html')), w14ev(P8.ev, 'FH===null')]), W14J([['read'], 0, false, true]));
+    await w14save(P8.ev);
+    chk(name, '(8) the Open window', 'the next Save opens the Open window again', W14J(PP8.open.length), W14J(2));
+    // (9) R1's shape: this browser holds an older one-requirement plan of another board; the newer file holds A, B and C
+    const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
+    const obLs = w14ls(OB.ev); await w14pause(5);
+    const F9 = w14board({ ls: { prio27writerKey: W14K } }); F9.ev(`WRITER=${W14J(w14mine())}; save(); 'ok'`);
+    const N9 = F9.ev('buildSavedHtml()');
+    const P9 = await w14open({ html: N9, url: W14U('board9.html'),
+      ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: +JSON.parse(obLs.prio27om).ts, dirty: false }), prio27writerKey: W14K } });
+    w14wire(P9.ev, 'false');
+    const d9 = w14disk('board9.html', N9); withFile(P9, d9); w14pickers(P9, { open: null, save: null });
+    chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list (R1), not the file’s (a CONTROL)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
+    await w14save(P9.ev);
+    const fy9 = fy(w14pub(N9).appns.om.cur);
+    chk(name, '(9) R1', 'Save names, under the appropriation and year, the requirements the file holds and the board on screen does not; Cancel writes nothing',
+      W14J([(w14q(P9.ev)[0] || '').split('\n').includes('  • O&M ' + fy9 + ' — 2 requirements the board on screen does not carry: B, C'), d9.writes]), W14J([true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W1 — Save into an ORBIT program with no board writes it in place (item 141 D)';
+  try {
+    const PROGRAM = readFileSync(BOARD, 'utf8');
+    const P = w14board({ ls: { prio27writerKey: W14K } }); w14wire(P.ev, 'false');
+    P.w.__w1prog = PROGRAM;
+    chk(name, 'setup', 'the program carries no board: its saved state is null and nothing is built into it (a CONTROL)',
+      W14J([w14pub(PROGRAM), w14ev(P.ev, 'extractPacks(window.__w1prog)')]), W14J([null, null]));
+    const d = w14disk('ORBIT v2.14.html', PROGRAM); P.w.__w1d = d.h; P.ev(`FH=window.__w1d; 'ok'`); w14pickers(P, { open: null, save: null });
+    await w14save(P.ev);
+    chk(name, 'a program', 'written in place once, with no question and no download', W14J([d.writes, w14q(P.ev), w14ev(P.ev, '__dl')]), W14J([1, [], 0]));
+    chk(name, 'a program', 'the writer is claimed as for a new file, and the line says it was saved in place',
+      W14J([/^💾 Saved in place/.test(w14stat(P.ev)), /You are now this board’s writer/.test(w14stat(P.ev)), (w14pub(d.content) || {}).writer && w14pub(d.content).writer.fp === w14fp()]), W14J([true, true, true]));
+    // a program with a board built into it (pubState null, an O&M pack in APPNS) is a board: asked about, Cancel writes nothing
+    const pack = { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'PSM', [1, 2, 3]), it('B', 'PSM', [4, 5, 6])], budget: [] };
+    const BAKED = PROGRAM.replace('"O&M": {"services":[],"items":[],"budget":[]}', '"O&M": ' + W14J(pack));
+    P.w.__w1baked = BAKED;
+    chk(name, 'setup', 'the baked program carries an O&M board in its program (a CONTROL)', W14J([BAKED !== PROGRAM, w14ev(P.ev, 'Object.keys(extractPacks(window.__w1baked)||{}).join()')]), W14J([true, 'om']));
+    const Q = w14board({ ls: { prio27writerKey: W14K } }); w14wire(Q.ev, `/^No writer is recorded/.test(m)`);
+    const db = w14disk('Baked.html', BAKED); Q.w.__w1d = db.h; Q.ev(`FH=window.__w1d; 'ok'`); w14pickers(Q, { open: null, save: null });
+    await w14save(Q.ev);
+    chk(name, 'a baked program', 'it is asked about, naming the board built into it, and Cancel writes nothing; the pen goes back',
+      W14J([w14q(Q.ev).slice(1), db.writes, w14ev(Q.ev, 'JSON.stringify(WRITER)')]),
+      W14J([['⚠ HOLD ON — “Baked.html” holds a board built into its program — O&M (2 requirements) — and no saved board state, so ORBIT cannot tell what of it the board on screen carries.\n\nSaving now writes the board on screen over the file, and that board is gone from it.\n\nOK — save anyway.\nCancel — don’t save. Nothing is written.'], 0, 'null']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W1 — a page whose board came from no saved copy takes no other file’s save as its own, and a board file keeps such work aside (item 140)';
+  try {
+    // (i) a program page whose browser holds another page's record and no plan
+    const P0 = boot({ ls: { prio27appn: 'O&M', 'prio27om.base': W14J({ file: 1700000000123, dirty: false }) } });
+    chk(name, '(i) case 3', 'the board on screen came from no saved copy: LASTKNOWN is 0 and the page is not marked unsaved-against-a-file',
+      W14J([w14ev(P0.ev, 'LASTKNOWN'), w14ev(P0.ev, '_baseDirty')]), W14J([0, false]));
+    // the board file, then (later) a blank page's change in the same browser
+    const B0 = w14board({ appn: 'O&M' }); B0.ev(`S.notes=S.notes||{}; S.notes.A='FILE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const FILE = B0.ev('buildSavedHtml()'); await w14pause(10);
+    const Pb = boot({ ls: { prio27appn: 'O&M' } }); Pb.ev(`S.notes=S.notes||{}; S.notes.Z='BLANK note'; save(); 'ok'`);
+    const blank = w14ls(Pb.ev);
+    chk(name, 'setup', 'the blank page’s plan is newer than the file and carries no data pack (a CONTROL)',
+      W14J([+JSON.parse(blank.prio27om).ts > +w14fileTs(w14pub(FILE)), !!JSON.parse(blank.prio27om).dataPack]), W14J([true, false]));
+    const view = ev => JSON.parse(w14ev(ev, `JSON.stringify({ids:(DATA.items||[]).map(function(i){ return i.id; }), order:S.order, notes:S.notes,
+      kept:localStorage.getItem(_AP.key+'.kept')!==null, fileOn:LASTKNOWN===PUB_FILE_TS, base:baseGet()})`));
+    // (ii) the record a blank page writes: the file opens, and that work is kept aside
+    const R2 = boot({ html: FILE, ls: Object.assign({}, blank, { 'prio27om.base': W14J({ file: 0, dirty: true, blank: true }) }) });
+    const v2 = view(R2.ev);
+    chk(name, '(ii) the stray rule', 'the file’s requirements and notes are on screen, not the blank page’s', W14J([v2.ids, v2.notes]), W14J([['A', 'B', 'C'], { A: 'FILE note' }]));
+    chk(name, '(ii) the stray rule', 'the blank work is kept aside, whole', W14J([v2.kept, w14ev(R2.ev, `(JSON.parse(keptCopy().raw).years[MS.cur].notes||{}).Z`)]), W14J([true, 'BLANK note']));
+    chk(name, '(ii) the stray rule', 'the save it came from is the file’s, and the record says so, clean', W14J([v2.fileOn, v2.base.file === w14ev(R2.ev, 'PUB_FILE_TS'), v2.base.dirty]), W14J([true, true, false]));
+    // (iii) the record an import writes (no blank mark): storage's plan opens, nothing kept aside (a CONTROL)
+    const R3 = boot({ html: FILE, ls: Object.assign({}, blank, { 'prio27om.base': W14J({ file: 0, folder: {}, dirty: true }) }) });
+    const v3 = view(R3.ev);
+    chk(name, '(iii) an import’s record', 'storage’s plan opens and nothing is kept aside (a CONTROL)', W14J([v3.notes, v3.kept]), W14J([{ Z: 'BLANK note' }, false]));
+    // (iv) a blank mark over a plan carrying another board's data pack: storage's plan opens whole -- no mix (a CONTROL)
+    const st = JSON.parse(blank.prio27om); st.dataPack = { services: ['USAF', 'ANG', 'AFRC'], items: [it('X', 'AV', [5, 5, 5])], budget: [] };
+    st.years[st.cur].order = ['X']; st.ts = Date.now() + 5000;
+    const R4 = boot({ html: FILE, ls: Object.assign({}, blank, { prio27om: W14J(st), 'prio27om.base': W14J({ file: 0, dirty: true, blank: true }) }) });
+    const v4 = view(R4.ev), sv4 = w14pub(w14ev(R4.ev, 'buildSavedHtml()')) || {}, om4 = (sv4.appns || {}).om || {};
+    chk(name, '(iv) over a data pack', 'one board, storage’s: its requirement list, its order, its notes, nothing kept aside (a CONTROL)',
+      W14J([v4.ids, v4.order, v4.notes, v4.kept]), W14J([['X'], ['X'], { Z: 'BLANK note' }, false]));
+    chk(name, '(iv) over a data pack', 'the next saved file carries that one board: its data pack and its order (a CONTROL)',
+      W14J([((om4.dataPack || {}).items || []).map(i => i.id), ((om4.years || {})[om4.cur] || {}).order]), W14J([['X'], ['X']]));
+    // (v) is the work on screen blank work?
+    const Q1 = boot({ ls: { prio27appn: 'O&M' } });
+    const Q2 = boot({ ls: Object.assign({}, blank, { 'prio27om.base': W14J({ file: 0, dirty: true, blank: true }) }) });
+    const Q3 = boot({ html: FILE });
+    chk(name, '(v) pageBlankNow', 'a blank page: yes; a page reopened over a blank page’s copy: yes; a board file: no',
+      W14J([w14ev(Q1.ev, 'pageBlankNow()'), w14ev(Q2.ev, 'pageBlankNow()'), w14ev(Q3.ev, 'pageBlankNow()')]), W14J([true, true, false]));
+    chk(name, '(v) pageBlankNow', 'once the page has written a file, its work is no longer blank', W14J(w14ev(Q1.ev, 'LASTKNOWN=12345; pageBlankNow()')), W14J(false));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.14 W1 ====
 
 // ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====

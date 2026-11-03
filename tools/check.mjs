@@ -678,6 +678,29 @@ console.log('\nreopen');
   else fail('a page reopen bypasses reopenPage() (it would not set _leaving): lines ' + hits.filter(n => !own.includes(n)).join(', '));
 }
 
+// ---- the save-file handle store (v2.14 W1, item 140 a) --------------------------------------------
+// The board keeps its own save file in this browser's handle store (IndexedDB prio-fh) under its page's address. FNAME -- the
+// same key in every version -- is the entry every ORBIT file a browser opens used to share, so 💾 Save in one ORBIT file wrote
+// into whichever file this browser last saved (measured: 8,781,027 characters of board written over with 3,878,541 of O&M).
+// v2.14 never writes that key, and reads it in one place only: fhLegacyRelease(), which deletes it when it names the file just
+// written. Any other store call that names FNAME -- a put, a get, a delete -- fails here, before anything is drawn.
+console.log('\nthe save-file handle store');
+{
+  const callRe = /(?:_pfhGet|_pfhPut|\.put|\.get|\.delete)\(\s*(?:[^()]*?,\s*)?FNAME\b/g;
+  const relAt = src.indexOf('function fhLegacyRelease(');
+  const relEnd = relAt < 0 ? -1 : src.indexOf('\nfunction ', relAt + 1);
+  const at = i => src.slice(0, i).split('\n').length;
+  const bad = [], inRel = [];
+  for (const m of src.matchAll(callRe)) {
+    if (relAt >= 0 && m.index > relAt && m.index < relEnd) inRel.push(m[0]);
+    else bad.push(at(m.index) + ': ' + m[0].slice(0, 60));
+  }
+  if (relAt < 0) fail('fhLegacyRelease() is gone: nothing releases the shared entry an older version saves through');
+  else if (bad.length) fail('the board names the shared save-file key FNAME in its handle store outside fhLegacyRelease(): ' + bad.slice(0, 4).join('; '));
+  else if (!inRel.every(c => /^_pfhGet\(\s*FNAME$|^_pfhPut\(\s*FNAME$/.test(c))) fail('fhLegacyRelease() does something other than read FNAME and delete it: ' + inRel.join('; '));
+  else pass('the board never writes the shared save-file key FNAME, and reads it only in fhLegacyRelease() (' + inRel.length + ' calls)');
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);
