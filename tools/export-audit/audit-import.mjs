@@ -3642,6 +3642,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, 'folder', 'Brad’s first save to the folder goes in', String(await push(P.ev)), 'true');
     await pause(20);
     const Q = boot({ html: F1 }); wire(Q.ev, 'Colleague'); connect(Q.ev, Q.w);
+    // v2.14 (ledger U63): the colleague's screen starts as the folder's own copy, so the load replaces nothing saved only in the
+    // board file -- U63's keep would otherwise fill the one kept slot, and "Load theirs" below would find it occupied
+    Q.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`);
     await Q.ev('driveStorePull(true)');
     Q.ev(`S.notes.B='COLLEAGUE PUSHED'; save(); 'ok'`);
     chk(name, 'folder', 'the colleague loads it, and saves after it', String(await push(Q.ev)) + '|' + copyNote('B'), 'true|COLLEAGUE PUSHED');
@@ -7869,6 +7872,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // BRAD opens the board with REMOTE in the folder, and his opening loads it. He types WORKING, $700, and closes it unsaved.
   const brad = async txt => {
     const fold = withCopy(txt), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
+    // v2.14 (ledger U63): Brad's screen starts as the folder's own copy, so the opening load replaces nothing saved only in the
+    // board file -- U63's keep would otherwise fill the one kept slot before the race this block tests
+    A.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`);
     await A.ev('driveAutoConnect()'); await pause(5);
     const v = [...scr(A.ev), saved(A.ev), onHead(A.ev, fold)];
     A.ev(`setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
@@ -11609,7 +11615,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'N, saved by Alice’s other machine, newer than what is on screen; nothing unsaved, nothing recorded (a CONTROL)',
       J([fold.note(2027, 'A'), headTs(fold) > +B.ev('MS.ts'), B.ev('DIRTY'), based(B.ev)]), J(['N', true, false, 0]));
     const r = await B.ev('driveStorePull(true)'); await pause(5);
-    chk(name, sc, 'the refresh loads N and records it; nothing kept aside', J([r, scr(B.ev), based(B.ev) === headTs(fold), B.ev(`localStorage.getItem(_AP.key+'.kept')`)]), J([true, 'N', true, null]));
+    // v2.14 W4 (ledger U63): what was on screen was not the folder's copy and 💾 Save would have written it to the board file, so it
+    // is kept aside, marked saved -- exactly the newly kept case (U19's rule), so this expectation changes rather than the fixture
+    chk(name, sc, 'the refresh loads N and records it; what was on screen, which the folder never held, is kept aside as saved work (ledger U63)',
+      J([r, scr(B.ev), based(B.ev) === headTs(fold), B.ev(`(function(){ var k=keptCopy(); return JSON.stringify(k? [k.meta.why, k.meta.saved===true] : null); })()`)]), J([true, 'N', true, J(['folder', true])]));
     B.ev(`setNote('A','N-EDIT'); 'ok'`); await pause(5); const q0 = qs(B.ev).length; await B.ev('saveInPlace()'); await pause(5);
     chk(name, sc, 'N-EDIT typed; 💾 Save writes it with no question; N in the folder’s history', J([qs(B.ev).length - q0, fold.note(2027, 'A'), unsaved(B.ev), anywhere(fold, 'N')]), J([0, 'N-EDIT', [false, false, false], true]));
   }
@@ -13801,9 +13810,10 @@ await (async () => {
   // PUT BACK THE RE-POINT. The journal holds Q's link moving from the copy's id to the requirement P became, with Put back.
   // Put back, Q names the copy's id again until the next Apply, and its record must still read what P became -- through P's
   // provenance (priorLink) -- never "PSM proposed it, and it has not been accepted" of a proposal this board took.
-  const qk = w209ev(B, `String((MS.years[2031].custom||[]).map(function(c){ return c.from && c.from.nid; }).indexOf(${J(Q.id)}))`);
+  // v2.14 W4 (item 124): an added requirement's field is journalled under its id, no longer its place in the list
+  const qk = w209ev(B, `((MS.years[2031].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(Q.id)}; })[0]||{}).id||''`);
   const qe = w209ev(B, `String((MS.jrnl||[]).map(function(e, i){ return [e, i]; }).filter(function(x){ var e=x[0];
-    return e.fy===2031 && JSON.stringify(e.p)===JSON.stringify(['custom', ${qk}, 'prior', 'id']) && jrnlUndoable(e); }).map(function(x){ return x[1]; }).pop())`);
+    return e.fy===2031 && JSON.stringify(e.p)===JSON.stringify(['custom', ${J(qk)}, 'prior', 'id']) && jrnlUndoable(e); }).map(function(x){ return x[1]; }).pop())`);
   chk(name, 'Put back', 'control — the re-point of Q in FY31 is in the change journal, with Put back', qe !== 'undefined' && qe !== '', true);
   w3dlg(B.ev); w209ev(B, `jrnlUndo(${/^\d+$/.test(qe) ? qe : -1}); 'ok'`); w3said(B.ev);
   const qPut = JSON.parse(w209ev(B, `(function(){ var c=(MS.years[2031].custom||[]).filter(function(c){ return c.from && c.from.nid===${J(Q.id)}; })[0]||{};
@@ -13841,8 +13851,10 @@ await (async () => {
   const E = JSON.parse(w209ev(B, `JSON.stringify((MS.jrnl||[]).map(function(e, i){ return {i:i, t:e.t||0, fy:e.fy, p:e.p, u:jrnlUndoable(e), bid:(e.b&&e.b.id)||null}; }).filter(function(e){ return e.t>=${t0}; }))`) || '[]');
   const in32 = E.filter(e => e.fy === 2032);
   chk(name, 'journal', 'control — starting FY32 is its own line, not undoable', J(in32.filter(e => !e.p.length).map(e => e.u)), J([false]));
-  chk(name, 'journal', 'the accepted requirement is there under its own path, with Put back: added, described, its impact statement',
-    J([in32.some(e => e.p[0] === 'custom' && e.bid === nid && e.u), in32.some(e => e.p[0] === 'desc' && e.p[1] === nid && e.u), in32.some(e => e.p[0] === 'cons' && e.p[1] === nid && e.u)]),
+  // v2.14 W4 (item 124): an added requirement as a whole is one line at ['custom', its id], and is not offered for Put back (Remove
+  // on its row, or an earlier saved copy, is the way); its description and impact statement still are
+  chk(name, 'journal', 'the accepted requirement is there under its own path -- added at [custom, its id], not offered; described and its impact statement, with Put back',
+    J([in32.some(e => e.p[0] === 'custom' && e.p.length === 2 && e.p[1] === nid && e.bid === nid && !e.u), in32.some(e => e.p[0] === 'desc' && e.p[1] === nid && e.u), in32.some(e => e.p[0] === 'cons' && e.p[1] === nid && e.u)]),
     J([true, true, true]));
   chk(name, 'journal', 'control — the FY30 change in the same Apply is journalled as before', E.some(e => e.fy === 2030 && e.p[0] === 'desc' && e.p[1] === 'A' && e.u), true);
   const ci = (in32.filter(e => e.p[0] === 'cons' && e.p[1] === nid)[0] || {}).i;
@@ -15213,6 +15225,405 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== end v2.14 W3 ====
 
 // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====
+// v2.14 W4 (item 129, finding 4): TWO TABS SHARE ONE RECORD (<key>.base), and save() and loadCounted() read the page's cached
+// _baseDirty: once tab 2 opened a newer file it wrote {file:<that file>, dirty:false}, and work typed in tab 1 afterwards stayed
+// recorded as saved -- the next newer file replaced it with nothing kept aside, and reopening tab 2's file let 💾 Save write it over
+// the colleague's save asking nothing. baseMarkDirty reads the record fresh and names the save this page's work came from.
+// FAILS ON THE SLOT COMMIT (v2.13): (a) {file:F1, dirty:false}; (b) ANN-2 only in storage's key; (c) no HOLD ON; (c2) the record
+// names F1; (d) the same in a PMO copy; (e) the folder Save writes over Kim's; (g) no blank mark written.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 W4 — two tabs: work typed in one after the other opened a newer file stays unsaved, and Save asks (item 129)';
+  try {
+    const { J, wire, KEY, qs, status, lsOf, baseFile, disk, folder, connect, fileNote, fileTs, pause } = W1H;
+    const lsLoad = (ev, o) => ev(`(function(o){ localStorage.clear(); Object.keys(o).forEach(function(k){ localStorage.setItem(k,o[k]); }); return 'ok'; })(${J(o)})`);
+    const rec = ev => JSON.parse(ev(`JSON.stringify(baseGet())`));
+    const desc = (ev, id) => ev(`String((S.desc||{})[${J(id)}]||'')`);
+    const F0 = baseFile('Kim', KEY.bob, false), t0 = fileTs(F0);
+    const kim = boot({ html: F0 }); wire(kim.ev, 'Kim', KEY.bob);
+    const T1 = boot({ html: F0 }); await pause(30); wire(T1.ev, 'Ann', KEY.alice); T1.ev(`setNote('A','ANN-1'); 'ok'`);
+    await pause(30); kim.ev(`setNote('B','KIM-1'); 'ok'`); const F1 = kim.ev('buildSavedHtml()'), t1 = fileTs(F1);
+    const T2 = boot({ html: F1, ls: lsOf(T1.ev) }); await pause(30);
+    chk(name, 'fixture', 'tab 2 opened Kim’s newer F1 over ANN-1, which it kept aside, and recorded F1 saved (a CONTROL)',
+      J([/ANN-1/.test(T2.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), rec(T2.ev).file === t1, rec(T2.ev).dirty]), J([true, true, false]));
+    lsLoad(T1.ev, lsOf(T2.ev));                         // tab 1 sees the storage tab 2 left
+    T1.ev(`setDesc('A','ANN-2'); 'ok'`);
+    // (a) the record says unsaved, against the save tab 1's work came from (F0), not tab 2's file
+    chk(name, '(a) the record', 'after tab 1 types, the record reads unsaved and names F0, the save tab 1’s work came from',
+      J([rec(T1.ev).dirty, rec(T1.ev).file === t0, +T1.ev('LASTKNOWN') === t0]), J([true, true, true]));
+    const LS1 = lsOf(T1.ev);
+    // (b) Kim saves again; opening F2 on that storage leaves ANN-2 on screen or kept aside, never only in storage's key
+    await pause(30); kim.ev(`setNote('B','KIM-2'); 'ok'`); const F2 = kim.ev('buildSavedHtml()');
+    const T3 = boot({ html: F2, ls: { ...LS1 } }); await pause(30);
+    const kept3 = T3.ev(`localStorage.getItem(_AP.key+'.kept')||''`);
+    chk(name, '(b) a newer file', 'opening Kim’s F2: ANN-2 stays on screen (other work is already kept, so the file is not opened) and the board says why',
+      J([desc(T3.ev, 'A') === 'ANN-2' || /ANN-2/.test(kept3), /already keeps earlier work aside/.test(status(T3.ev))]), J([true, true]));
+    // (c) variant B: tab 1's storage, F1 reopened, 💾 Save asks one HOLD ON naming Kim, and Cancel leaves F1 as Kim saved it
+    const T4 = boot({ html: F1, ls: { ...LS1 } }); await pause(30); wire(T4.ev, 'Ann', KEY.alice);
+    const f4 = disk(T4.w, F1); T4.ev(`globalThis.__yes=false; 'ok'`);
+    await T4.ev('saveInPlaceFile()'); await pause(20);
+    const q4 = qs(T4.ev).filter(q => /HOLD ON/.test(q));
+    chk(name, '(c) the same file again', 'reopening F1 and pressing 💾 Save asks one HOLD ON, naming Kim; Cancel writes nothing and KIM-1 stays',
+      J([q4.length, q4.length ? /Kim/.test(q4[0]) : false, f4.writes, fileNote(f4.content, 'B')]), J([1, true, 0, 'KIM-1']));
+    // (c2) as (a), but tab 2 also typed after opening F1, so the record read {file:F1, dirty:true}
+    {
+      const U1 = boot({ html: F0 }); await pause(30); wire(U1.ev, 'Ann', KEY.alice); U1.ev(`setNote('A','ANN-1'); 'ok'`);
+      await pause(30); kim.ev(`setNote('B','KIM-1B'); 'ok'`); const G1 = kim.ev('buildSavedHtml()'), g1 = fileTs(G1);
+      const U2 = boot({ html: G1, ls: lsOf(U1.ev) }); await pause(30); wire(U2.ev, 'Ann', KEY.alice); U2.ev(`setNote('B','TAB2'); 'ok'`);
+      chk(name, '(c2) both tabs typed', 'tab 2 typed after opening Kim’s newer file: the record reads that file, unsaved (a CONTROL)', J([rec(U2.ev).file === g1, rec(U2.ev).dirty]), J([true, true]));
+      lsLoad(U1.ev, lsOf(U2.ev)); U1.ev(`setDesc('A','ANN-2'); 'ok'`);
+      chk(name, '(c2) both tabs typed', 'tab 1 types: the record names F0 again', J([rec(U1.ev).file === t0, rec(U1.ev).dirty]), J([true, true]));
+      const U3 = boot({ html: G1, ls: lsOf(U1.ev) }); await pause(30); wire(U3.ev, 'Ann', KEY.alice);
+      const f = disk(U3.w, G1); U3.ev(`globalThis.__yes=false; 'ok'`); await U3.ev('saveInPlaceFile()'); await pause(20);
+      chk(name, '(c2) both tabs typed', 'and 💾 Save over Kim’s file asks HOLD ON, writing nothing on Cancel', J([qs(U3.ev).some(q => /HOLD ON/.test(q)), f.writes]), J([true, 0]));
+    }
+    // (d) a PMO copy: the same, under the copy's own storage key
+    {
+      const capHtml = (X, code) => X.ev(`(function(){ var cap=null, _B=window.Blob; window.Blob=function(pt,o){ if(!cap && o && /html/.test(o.type||'')) cap=String(pt[0]); return new _B(pt,o); };
+        try{ ${code}; } finally { window.Blob=_B; } return cap||''; })()`);
+      const pb = boot({ html: F0 }); wire(pb.ev, 'Lead', KEY.brad);
+      const COPY = capHtml(pb, 'publishPmoCopy()');
+      const pat = boot({ html: COPY }); await pause(30); wire(pat.ev, 'Pat', KEY.carol); pat.ev(`pmoMineSet('AV'); 'ok'`);
+      const C1 = boot({ html: COPY }); await pause(30); wire(C1.ev, 'Ann', KEY.alice); C1.ev(`pmoMineSet('AV'); setNote('A','ANN-1'); 'ok'`);
+      await pause(30); pat.ev(`setNote('B','PAT-1'); window.showSaveFilePicker=undefined; 'ok'`);
+      const P1 = capHtml(pat, "pmoSaveCopyDl('AV')");
+      const C2 = boot({ html: P1, ls: lsOf(C1.ev) }); await pause(30);
+      lsLoad(C1.ev, lsOf(C2.ev)); C1.ev(`setDesc('A','ANN-2'); 'ok'`);
+      const key = C1.ev('_AP.key');
+      chk(name, '(d) a PMO copy', 'in a copy, under its own key (' + key.replace(/\d+$/, '<ts>') + '): tab 1’s typing leaves the record unsaved, against the copy it came from',
+        J([/-pmo\d+$/.test(key), rec(C1.ev).dirty, rec(C1.ev).file === +C1.ev('LASTKNOWN')]), J([true, true, true]));
+      await pause(30); pat.ev(`setNote('B','PAT-2'); 'ok'`); const P2 = capHtml(pat, "pmoSaveCopyDl('AV')");
+      const C3 = boot({ html: P2, ls: lsOf(C1.ev) }); await pause(30);
+      chk(name, '(d) a PMO copy', 'opening the office’s newer file leaves ANN-2 on screen or kept aside',
+        desc(C3.ev, 'A') === 'ANN-2' || /ANN-2/.test(C3.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), true);
+    }
+    // (e) the shared folder: T1 works out of it, tab 2 loads Kim's newer folder copy, tab 1 types; a tab opened on that storage
+    // is refused by 💾 Save with the choice, and Kim's change is still the folder's copy
+    {
+      const fold = folder();
+      // Kim saves from a browser holding the same writer key, so 💾 Save is not refused as another writer's before the base is read
+      const K = boot({ html: F0 }); await pause(30); wire(K.ev, 'Kim', KEY.alice); connect(K.ev, K.w, fold);
+      K.ev(`setNote('B','KIM-0'); 'ok'`); await K.ev('driveStorePush(false)'); await pause(10);
+      const V1 = boot({ html: F0 }); await pause(30); wire(V1.ev, 'Ann', KEY.alice); connect(V1.ev, V1.w, fold);
+      V1.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`);   // the screen starts as the folder's own copy (see the U63 fixtures)
+      await V1.ev('driveStorePull(true)'); await pause(10); V1.ev(`setNote('A','ANN-1'); 'ok'`);
+      await pause(30); K.ev(`setNote('B','KIM-1'); 'ok'`); await K.ev('driveStorePush(false)'); await pause(10);
+      const V2 = boot({ html: F0, ls: lsOf(V1.ev) }); await pause(30); wire(V2.ev, 'Ann', KEY.alice); connect(V2.ev, V2.w, fold);
+      await V2.ev('driveStorePull(true)'); await pause(10);
+      chk(name, '(e) the folder', 'tab 2 loaded Kim’s KIM-1, kept ANN-1 aside, and recorded the folder’s copy (a CONTROL)',
+        J([V2.ev(`String(S.notes.B||'')`), /ANN-1/.test(V2.ev(`localStorage.getItem(_AP.key+'.kept')||''`))]), J(['KIM-1', true]));
+      lsLoad(V1.ev, lsOf(V2.ev)); V1.ev(`setDesc('A','ANN-2'); 'ok'`);
+      const V3 = boot({ html: F0, ls: lsOf(V1.ev) }); await pause(30); wire(V3.ev, 'Ann', KEY.alice); connect(V3.ev, V3.w, fold);
+      const r = await V3.ev('driveStorePush(false)'); await pause(10);
+      chk(name, '(e) the folder', '💾 Save from a tab opened on that storage is refused, naming Kim’s later save and offering the choice; KIM-1 is still the folder’s copy',
+        J([r, /Kim.*after the copy you are working from/.test(status(V3.ev)) && /Save yours over theirs/.test(status(V3.ev)), fold.note(2027, 'B')]), J([false, true, 'KIM-1']));
+    }
+    // (f) CONTROL: in one tab, save() and loadCounted() leave the record's file and folder as they were, with dirty:true
+    {
+      const R = boot({ html: F0 }); await pause(30); wire(R.ev, 'Ann', KEY.alice);
+      const r0 = rec(R.ev); R.ev(`setNote('A','ONE TAB'); 'ok'`); const r1 = rec(R.ev); R.ev(`loadCounted(); 'ok'`); const r2 = rec(R.ev);
+      chk(name, '(f) CONTROL', 'one tab: an edit and a load leave the record’s file and folder as they were, and mark it unsaved',
+        J([r1.file, J(r1.folder || {}), r1.dirty, r2.file, J(r2.folder || {}), r2.dirty]), J([r0.file, J(r0.folder || {}), true, r0.file, J(r0.folder || {}), true]));
+    }
+    // (g) the blank mark (C17): written from pageBlankNow() on every record this page writes, true or false
+    {
+      const R = boot({ html: F0 }); await pause(30); wire(R.ev, 'Ann', KEY.alice);
+      R.ev(`pageBlankNow=function(){ return true; }; setNote('A','BLANK WORK'); 'ok'`);
+      chk(name, '(g) the blank mark', 'with pageBlankNow() true, an edit records blank:true', J(rec(R.ev).blank), 'true');
+      const Q = boot({ html: F0 }); await pause(30); wire(Q.ev, 'Ann', KEY.alice);
+      Q.ev(`localStorage.setItem(_AP.key+'.base', JSON.stringify({file:0, dirty:true, blank:true})); pageBlankNow=function(){ return false; }; setNote('A','NOT BLANK'); 'ok'`);
+      chk(name, '(g) the blank mark', 'with it false, an edit over a record marked blank records blank:false', J(rec(Q.ev).blank), 'false');
+    }
+    chk(name, 'errors', 'no page error', J([T1.errors.length, T2.errors.length, T3.errors.length, T4.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 W4 (item 129, findings 1-3): TWO COPIES OUT AT ONCE NUMBER THEIR PROPOSALS ALIKE, so copy A's NEW-PSM-1 and copy B's are two
+// proposals and each one's continuation is its own work (the copy stamp, pmoLinkApart / pmoChainApart); and a requirement the board
+// added, rolled forward whole, is the same work in the next year (yrCopySame). FAILS ON THE SLOT COMMIT (v2.13): (a) "1 copy created
+// … 1 already there"; (b) Bravo reads as here; (c) Copy to year names NEW-1; (d) Bravo's rows say ALREADY HOLDS NEW-1 and Cancel
+// leaves it out of FY30; (e) nothing flagged, and FY31 holds Delta twice.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 W4 — two copies out at once: each copy’s continuation is its own work, and a rolled added requirement is the same work (item 129)';
+  try {
+    const J = JSON.stringify;
+    const tk = (B, pkg, fn) => { w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, ${J(fn)}); 'ok'`); return w3said(B.ev); };
+    const flags = B => JSON.parse(w209ev(B, `(function(){ subOpen=true; subBody(); var r=[].slice.call(document.querySelectorAll('#subBody .subroll, #subBody .subhere')).map(function(e){ return e.textContent; }); subOpen=false; return JSON.stringify(r); })()`) || '[]');
+    const board = years => boot({ html: w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+      applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+      ${J(years)}.forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2028); save()`) });
+    const twoCopies = B => { B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+      const hA = v184Publish(B.ev); B.ev(`(function(){ var t=Date.now(); while(Date.now()<=t+2){} return 'ok'; })()`); const hB = v184Publish(B.ev);
+      return [w209rvCopy(hA), w209rvCopy(hB)]; };
+    // ---- (a)-(c): Alpha (copy A) and Bravo (copy B), both NEW-PSM-1 in FY28, each brought into FY29 and accepted there
+    const B = board([2029, 2030]);
+    const [PA, PB] = twoCopies(B);
+    const al = w209add(PA, 'Alpha, from copy A', [300, 0, 0]), br = w209add(PB, 'Bravo, from copy B', [500, 0, 0]);
+    w209ev(PA, `switchYear(2029); 'ok'`); w209rv2From(PA, 2028, al.id); w209ev(PA, `switchYear(2028); 'ok'`);
+    w209ev(PB, `switchYear(2029); 'ok'`); w209rv2From(PB, 2028, br.id); w209ev(PB, `switchYear(2028); 'ok'`);
+    const pA = v184Submit(PA, 'PSM').pkg || {}, pB = v184Submit(PB, 'PSM').pkg || {};
+    tk(B, pA, 'a.json'); w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2029; }`);
+    tk(B, pB, 'b.json'); w209rv2Tick(B, `function(r){ return r.key==='__new' && r.fy===2029; }`);
+    const c29 = w209rv2Cust(B, 2029);
+    chk(name, 'fixture', 'both copies minted NEW-PSM-1, and FY29 holds Alpha and Bravo, each linked to {2028, NEW-PSM-1} (a CONTROL)',
+      J([al.id, br.id, c29.map(c => [c.ev, c.prior && c.prior.id])]), J(['NEW-PSM-1', 'NEW-PSM-1', [['Alpha, from copy A', 'NEW-PSM-1'], ['Bravo, from copy B', 'NEW-PSM-1']]]));
+    const [a29, b29] = c29.map(c => c.id);
+    // (b) with only Alpha rolled into FY30, From another year at FY30 reads Bravo as not here
+    const B2 = boot({ html: B.ev('buildSavedHtml()') });
+    w3dlg(B2.ev); w209ev(B2, `switchYear(2029); rollPick={}; rollPick[${J(a29)}]=1; rollYrs={}; rollYrs[2030]=1; rollApply(); switchYear(2030); 'ok'`); w3said(B2.ev);
+    const here = JSON.parse(w209ev(B2, `JSON.stringify(naFromRows(2029, 'PSM').map(function(x){ return [x.it.event, !!x.here]; }))`) || '[]');
+    chk(name, '(b) From another year', 'FY30 holds only Alpha’s: Alpha reads as here, Bravo (copy B’s own work) does not',
+      J(here.filter(x => /from copy/.test(x[0]))), J([['Alpha, from copy A', true], ['Bravo, from copy B', false]]));
+    // (c) Copy to year of FY29 Bravo with only Alpha in FY30: no question about Alpha
+    w3dlg(B2.ev); w209ev(B2, `switchYear(2029); xferYear(${J(b29)}, 'c2030'); 'ok'`);
+    const s2 = w3said(B2.ev);
+    chk(name, '(c) Copy to year', 'FY30 holds only Alpha’s: copying Bravo asks no “already carries” question',
+      J(s2.filter(x => /already carries/.test(x[1])).length), '0');
+    // (a) both rolled forward into FY30: two copies created
+    w3dlg(B.ev); w209ev(B, `switchYear(2029); rollPick={}; ${J([a29, b29])}.forEach(function(i){ rollPick[i]=1; }); rollYrs={}; rollYrs[2030]=1; rollApply();
+      window.__rs=document.getElementById('shareStat').textContent; switchYear(2028); save(); 'ok'`); w3said(B.ev);
+    chk(name, '(a) Roll forward', 'both continuations roll into FY30: 2 copies created, FY30 holds both',
+      J([/2 copies created across FY30/.test(B.ev('window.__rs')), /already there/.test(B.ev('window.__rs')), w209rv2Cust(B, 2030).map(c => c.ev).sort()]),
+      J([true, false, ['Alpha, from copy A', 'Bravo, from copy B']]));
+    // (c) Copy to year of FY29 Bravo with both in FY30 (Bravo is NEW-2 there, the number of its FY29 source): one question, about Bravo
+    const bv30 = (w209rv2Cust(B, 2030).filter(c => /Bravo/.test(c.ev))[0] || {}).id;
+    w3dlg(B.ev, [true, false]); w209ev(B, `switchYear(2029); xferYear(${J(b29)}, 'c2030'); switchYear(2028); 'ok'`);
+    const s3 = w3said(B.ev).filter(x => /already carries/.test(x[1]));
+    chk(name, '(c) Copy to year', 'FY30 holds Bravo’s own copy as ' + bv30 + ': copying it asks one “already carries” question, naming Bravo as ' + bv30,
+      J([s3.length, s3.length ? /Bravo/.test(s3[0][1]) && new RegExp('as ' + bv30).test(s3[0][1]) : false, bv30 === b29]), J([1, true, true]));
+    // ---- (d) the chain walk: Bravo also brought into FY30 in copy B; the review does not name Alpha's NEW-1, and Cancel to the
+    // duplicate question leaves nothing of Bravo's out
+    const D = board([2029]);
+    const [DA, DB] = twoCopies(D);
+    const dal = w209add(DA, 'Alpha, from copy A', [300, 0, 0]);
+    w209ev(DA, `switchYear(2029); 'ok'`); w209rv2From(DA, 2028, dal.id); w209ev(DA, `switchYear(2028); 'ok'`);
+    const dbr = w209add(DB, 'Bravo, from copy B', [500, 0, 0]);
+    w209ev(DB, `switchYear(2029); 'ok'`); const db29 = w209rv2From(DB, 2028, dbr.id);
+    w209ev(DB, `switchYear(2030); 'ok'`); w209rv2From(DB, 2029, db29.id); w209ev(DB, `switchYear(2028); 'ok'`);
+    const dA = v184Submit(DA, 'PSM').pkg || {}, dB = v184Submit(DB, 'PSM').pkg || {};
+    tk(D, dA, 'a.json'); w209rv2Tick(D, `function(r){ return r.key==='__new' && r.fy===2029; }`);
+    tk(D, dB, 'b.json'); w209ev(D, `switchYear(2029); 'ok'`);
+    chk(name, '(d) the chain walk', 'Bravo’s FY29 and FY30 rows name no other copy’s requirement as the same work',
+      J(flags(D).filter(t => /ALREADY HOLDS NEW-1|WOULD HOLD NEW-1/.test(t))), '[]');
+    w209rv2Tick(D, `function(r){ return r.key==='__new' && r.fy===2030; }`, [true, true, false]);
+    chk(name, '(d) the chain walk', 'Apply into FY30, answering Cancel to any duplicate question: Bravo is in FY30 beside Alpha',
+      J(w209rv2Cust(D, 2030).map(c => c.ev).sort()), J(['Alpha, from copy A', 'Bravo, from copy B']));
+    // ---- (e) a requirement the board added in FY30, continued by a proposal for an unstarted FY31: the roll would hold it
+    const mkD = `reqCreate('PSM', {title:'', event:'Delta, board-added FY30', ask:[400,0,0]}, null, {event:'Delta, board-added FY30', ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'Described', cons:'Stops without it.'})`;
+    const E = boot({ html: w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+      applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+      [2029,2030].forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2030); ${mkD}; save(); switchYear(2028); save()`) });
+    E.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const did = (w209rv2Cust(E, 2030)[0] || {}).id;
+    const PE = w209rvCopy(v184Publish(E.ev));
+    w209ev(PE, `switchYear(2031); 'ok'`); w209rv2From(PE, 2030, did); w209ev(PE, `switchYear(2028); 'ok'`);
+    const pE = v184Submit(PE, 'PSM').pkg || {};
+    const Ehtml = E.ev('buildSavedHtml()');
+    tk(E, pE, 'psm.json'); w209ev(E, `switchYear(2030); 'ok'`);
+    chk(name, '(e) rolled', 'the FY31 row says the roll would hold the board’s own NEW-1', flags(E).some(t => t === 'ROLLED FORWARD FROM FY30, FY31 WOULD HOLD ' + did + ' — accepting adds it again'), true);
+    const sE = w209rv2Tick(E, `function(r){ return r.key==='__new' && r.fy===2031; }`, [true, true, false]);
+    chk(name, '(e) rolled', 'Apply asks the duplicate question, and Cancel leaves FY31 holding Delta once',
+      J([sE.some(x => /continues a requirement the year rolled forward already holds/.test(x[1])), w209rv2Cust(E, 2031).filter(c => /Delta/.test(c.ev)).length]), J([true, 1]));
+    // (e) the same with FY31 rolled forward by hand first
+    const H = boot({ html: Ehtml }); H.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    w3dlg(H.ev); w209ev(H, `switchYear(2030); rollPick={}; rollPick[${J(did)}]=1; rollYrs={}; rollYrs[2031]=1; rollApply(); switchYear(2028); 'ok'`); w3said(H.ev);
+    tk(H, pE, 'psm.json'); w209ev(H, `switchYear(2030); 'ok'`);
+    chk(name, '(e) rolled by hand', 'FY31 rolled by hand first: the row says FY31 already holds it', flags(H).some(t => t === 'FY31 ALREADY HOLDS ' + did + ' — accepting adds it again'), true);
+    // ---- (f) CONTROL: a continuation from the SAME copy as the one FY30 holds is still the same work; and a link from before the stamp
+    // (from.pub 0) is read as before
+    chk(name, '(f) CONTROL', 'one copy’s stamp against itself is not apart; an unknown stamp is never apart',
+      B.ev(`JSON.stringify([pmoStampApart({pmo:'PSM', pub:5}, {pmo:'PSM', pub:5}), pmoStampApart({pmo:'PSM', pub:0}, {pmo:'PSM', pub:7}), pmoStampApart({pmo:'PSM', pub:5}, {pmo:'PSM', pub:7})])`),
+      J([false, false, true]));
+    w3dlg(B.ev); const sameA = w209ev(B, `(function(){ switchYear(2029); var x=(S.custom||[]).filter(function(c){ return /Alpha/.test(c.event); })[0];
+      var r=yearHas(x.id, 2030); switchYear(2028); return String(r); })()`); w3said(B.ev);
+    chk(name, '(f) CONTROL', 'Alpha’s FY30 copy is still Alpha’s own work: FY30 has it', sameA, 'true');
+    // ---- (g) CONTROL: FY30 holds an unrelated NEW-1 under another plan event; a proposal continuing FY29's NEW-1 into an FY31 rolled
+    // from FY30 is not flagged as that NEW-1
+    const mkG = (ev) => `reqCreate('PSM', {title:'', event:${J(ev)}, ask:[400,0,0]}, null, {event:${J(ev)}, ptype:'PRIME', obCat:OB_CATS[0], to:'lm', end:'', desc:'Described', cons:'Stops without it.'})`;
+    const G = boot({ html: w3file(W209_SC, `window.confirm=function(){ return true; }; window.alert=function(){};
+      MS.years[2028]=JSON.parse(JSON.stringify(S)); delete MS.years[2027]; MS.base=2028; MS.cur=2028; FYMON=fyMonths(2028);
+      applyState(MS.years[2028]); MS.years[2028]=S; ${w209rvFields} save();
+      [2029,2030].forEach(function(y){ switchYear(2028); switchYear(y); }); switchYear(2029); ${mkG('Gamma, board-added FY29')}; save();
+      switchYear(2030); ${mkG('Other FY30 thing')}; save(); switchYear(2028); save()`) });
+    G.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const gid = (w209rv2Cust(G, 2029)[0] || {}).id, oid = (w209rv2Cust(G, 2030).filter(c => /Other/.test(c.ev))[0] || {}).id;
+    const PG = w209rvCopy(v184Publish(G.ev));
+    w209ev(PG, `switchYear(2031); 'ok'`); w209rv2From(PG, 2029, gid); w209ev(PG, `switchYear(2028); 'ok'`);
+    tk(G, v184Submit(PG, 'PSM').pkg || {}, 'psm.json'); w209ev(G, `switchYear(2030); 'ok'`);
+    chk(name, '(g) CONTROL', 'FY29’s ' + gid + ' and FY30’s unrelated ' + oid + ' share a number; the proposal continuing FY29’s is not flagged as FY30’s',
+      J([gid === oid, flags(G).filter(t => /NEW-1/.test(t))]), J([true, []]));
+    chk(name, 'errors', 'no page error', J([B.errors.length, B2.errors.length, D.errors.length, E.errors.length, H.errors.length, G.errors.length]), J([0, 0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 W4 (item 124): A "NO SI CODE" CHOSEN BY HAND IN A PMO COPY IS SENT, reviewed and accepted, apart from "follows the PMO and
+// prime rules". S.si[id]='' is the board's own none-by-hand; pmoVal read '' as absent, so the copy's none was never sent and the
+// portfolio board went on deriving a code. FAILS ON THE SLOT COMMIT (v2.13): Submit says "Nothing to send yet." (A and C are not
+// sent), the proposal carries no siNone, and nothing is applied.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 W4 — a hand-chosen “no SI code” in a PMO copy is sent, reviewed and accepted, apart from “follows the rules” (item 124)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'PP', team: 'PP', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const F = w3file({ services: ['USAF', 'USN'], items: [mk('A', [100, 200]), mk('B', [50, 60]), mk('C', [70, 80]), mk('D', [30, 40])], disc: [1000, 1000], mand: [100, 100], order: ['A', 'B', 'C', 'D'] },
+      `S.si.B=''; S.si.C='OT'; S.si.D='LA'; window.confirm=function(){ return true; }; window.alert=function(){}`);
+    const B = boot({ html: F }); B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; try{ localStorage.setItem('prio27who','Lead'); }catch(e){} 'ok'`);
+    chk(name, 'fixture', 'on the board A follows the rules (EN), B is none by hand, C is OT, D is LA (a CONTROL)',
+      B.ev(`JSON.stringify([siOf(itemById('A')), S.si.A===undefined, S.si.B, S.si.C, S.si.D])`), J(['EN', true, '', 'OT', 'LA']));
+    const P = w209rvCopy(v184Publish(B.ev));
+    P.ev(`try{ localStorage.setItem('prio27pmo','PP'); }catch(e){} render(); 'ok'`);
+    // in the copy: A none by hand; B back to the rules (the edit box offers "follows the rules" only where no code is stored, so the
+    // stored none is taken away); C none by hand; D changed LA -> AT (a CONTROL: a code travels as before); and a proposal, added through the Add box, set to none
+    // through the edit box
+    P.ev(`setSi('A',''); delete S.si.B; save(); setSi('C',''); setSi('D','AT'); 'ok'`);
+    const pr = w209add(P, 'Echo, proposed by PP', [300, 0]);
+    P.ev(`openEdit(${J(pr.id)}); (function(){ var e=document.getElementById('erSi'); if(e){ e.value=''; e.dispatchEvent(new Event('change', {bubbles:true})); } })(); erSave(); 'ok'`);
+    chk(name, 'fixture', 'in the copy: A, C and the proposal none by hand, B follows the rules, D is AT (a CONTROL)',
+      P.ev(`JSON.stringify([S.si.A, S.si.B===undefined, S.si.C, S.si.D, (S.si||{})[${J(pr.id)}]])`), J(['', true, '', 'AT', '']));
+    const sub = v184Submit(P, 'PP'), pkg = sub.pkg || {};
+    const it = pkg.items || {}, add = (pkg.added || [])[0] || {};
+    // (a) the package
+    chk(name, '(a) the package', 'A and C are sent as none (an empty code), B as following the rules (null), D as AT; the proposal carries siNone',
+      J([(it.A || {}).si, (it.B || {}).si, (it.C || {}).si, (it.D || {}).si, add.siNone, add.si]), J(['', null, '', 'AT', true, '']));
+    // (b) the door takes all of it
+    w3dlg(B.ev); w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'pp.json'); 'ok'`); w3said(B.ev);
+    const rows = JSON.parse(w209ev(B, `JSON.stringify(pmoRows().filter(function(r){ return r.key==='si' || r.key==='__new'; }).map(function(r){ return [r.id, r.key, pmoFmtVal(r.key==='__new'? '__new' : 'si', r.now), pmoFmtVal(r.key==='__new'? '__new' : 'si', r.prop)]; }))`) || '[]');
+    const byId = Object.fromEntries(rows.filter(r => r[1] === 'si').map(r => [r[0], [r[2], r[3]]]));
+    chk(name, '(b) the door', 'the door takes every SI change and the proposal', J(rows.map(r => r[0] + ':' + r[1]).sort()), J(['A:si', 'B:si', 'C:si', 'D:si', pr.id + ':__new'].sort()));
+    // (c) the review and the change report read the two answers apart
+    chk(name, '(c) the review', 'A follows the rules → none (chosen by hand); B none → follows the rules; C OT → none', J([byId.A, byId.B, byId.C]),
+      J([['follows the PMO and prime rules', 'none (chosen by hand)'], ['none (chosen by hand)', 'follows the PMO and prime rules'], ['OT — Other Government Costs', 'none (chosen by hand)']]));
+    chk(name, '(c) the review', 'the proposal’s line names its Navy SI code as none (chosen by hand)', /Navy SI code none \(chosen by hand\)/.test((rows.filter(r => r[1] === '__new')[0] || [])[3] || ''), true);
+    const sb = w209ev(B, `(function(){ subOpen=true; subBody(); var t=(document.getElementById('subBody')||{}).textContent||''; subOpen=false; return t; })()`);
+    chk(name, '(c) the review', 'and the review box on screen says the same words', J([/follows the PMO and prime rules/.test(sb), /none \(chosen by hand\)/.test(sb)]), J([true, true]));
+    // (d) Apply all
+    w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
+    const nid = w209ev(B, `((S.custom||[]).filter(function(c){ return c.from && c.from.nid===${J(pr.id)}; })[0]||{}).id||''`);
+    chk(name, '(d) applied', 'A and C are none by hand, B follows the rules again (EN), D is AT, and the accepted proposal is none by hand',
+      B.ev(`JSON.stringify([S.si.A, S.si.C, S.si.B===undefined, siOf(itemById('B')), S.si.D, (S.si||{})[${J(nid)}]])`), J(['', '', true, 'EN', 'AT', '']));
+    const sj = JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).filter(function(e){ return e.p[0]==='si'; }).map(function(e){ return [e.p[1], jrnlUndoable(e)]; }))`));
+    chk(name, '(d) applied', 'each SI line of the Apply is in the journal, with Put back', J(['A', 'B', 'C', 'D'].map(id => sj.some(x => x[0] === id && x[1]))), J([true, true, true, true]));
+    // (f) CONTROL: a proposal from a copy before v2.14 (si '' and no siNone) is accepted as following the rules
+    const old = JSON.parse(J(pkg)); old.items = {}; (old.added || []).forEach(a => { delete a.siNone; a.si = ''; });
+    const B2 = boot({ html: F }); B2.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    w3dlg(B2.ev); w209ev(B2, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(old)}, 'old.json'); subPickAll(true); pmoApply(); 'ok'`); w3said(B2.ev);
+    const n2 = w209ev(B2, `((S.custom||[]).filter(function(c){ return c.from && c.from.nid===${J(pr.id)}; })[0]||{}).id||''`);
+    chk(name, '(f) CONTROL', 'a proposal written before v2.14 (si "" and no siNone) is accepted following the rules', J([!!n2, B2.ev(`String((S.si||{})[${J(n2)}]===undefined)`)]), J([true, 'true']));
+    chk(name, 'errors', 'no page error', J([B.errors.length, P.errors.length, B2.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 W4 (ledger U63, U64): A SHARED-FOLDER COPY THAT REPLACES WORK SAVED ONLY IN THE BOARD FILE KEEPS IT ASIDE (U19's rule), and
+// Put this back says where 💾 Save writes. With S1 saved into the board file, the folder's newer copy loaded over it (or an earlier one
+// put back) kept nothing -- S1 was "saved" -- and 💾 Save then wrote over the file asking nothing: S1 was in no copy at all.
+// FAILS ON THE SLOT COMMIT (v2.13): nothing kept, the words absent, Put this back says Save writes to the folder.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 W4 — a shared-folder copy that replaces work saved only in the board file keeps it aside, and Put this back says where Save writes (ledger U63, U64)';
+  try {
+    const { J, wire, KEY, qs, status, baseFile, disk, folder, connect, fileNote, pause } = W1H;
+    const F1 = baseFile('Alice', KEY.alice);
+    const keptOf = ev => JSON.parse(ev(`(function(){ var k=keptCopy(); if(!k) return 'null'; var s=JSON.parse(k.raw); return JSON.stringify([((s.years[s.cur]||{}).notes||{}).A||'', k.meta.why, k.meta.saved===true]); })()`));
+    const watch = ev => ev(`_liveCfg=Object.assign(liveCfg(), {store:false}); 'ok'`);
+    // Bob seeds the folder with F0 (and, for a pull, F after Alice's save); Alice saves S1 into her board file
+    const setup = async (tag, bobAfter) => {
+      const fold = folder();
+      const B = boot({ html: F1 }); await pause(60); wire(B.ev, 'Bob', KEY.alice); connect(B.ev, B.w, fold);
+      B.ev(`setNote('A','${tag}-F0'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+      if (!bobAfter) { B.ev(`setNote('A','${tag}-F1'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5); }
+      const A = boot({ html: F1 }); await pause(60); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, F1);
+      A.ev(`setNote('A','${tag}-S1'); 'ok'`); await pause(5); await A.ev('saveInPlaceFile()'); await pause(10);
+      if (bobAfter) { await pause(5); B.ev(`setNote('A','${tag}-F'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5); }
+      return { fold, A, B, f };
+    };
+    // ---- U63 (a) working out of the folder, a quiet refresh loads Bob's F; S1 is kept aside, as saved work, and the board says so
+    {
+      const { fold, A, f } = await setup('U63', true);
+      connect(A.ev, A.w, fold); await A.ev('driveStorePull(true)'); await pause(10);
+      chk(name, 'U63 (a)', 'the refresh loads Bob’s F and keeps S1 aside, marked saved, why “folder”', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['U63-F', ['U63-S1', 'folder', true]]));
+      chk(name, 'U63 (a)', 'the status says so, even on a quiet refresh',
+        /What was on screen is saved only in the board file, which the shared folder does not keep, so it is kept aside/.test(status(A.ev)), true);
+      chk(name, 'U63 (a)', 'and the kept button’s title says where the work was saved',
+        /^Work saved only in the board file, which the shared folder’s copy replaced on screen, kept aside /.test(A.ev(`(document.querySelector('#saveState .keptbtn')||{}).title||''`)), true);
+      // (b) Live view back to just watching: 💾 Save writes F into the file; S1 still kept; put back, the next Save asks once; OK writes S1
+      watch(A.ev); await A.ev('saveInPlace()'); await pause(20);
+      chk(name, 'U63 (b)', 'just watching, 💾 Save writes F into the file; S1 still kept aside', J([fileNote(f.content, 'A'), keptOf(A.ev)[0]]), J(['U63-F', 'U63-S1']));
+      A.ev(`keptPutBack(); 'ok'`); await pause(5);
+      const q0 = qs(A.ev).length; await A.ev('saveInPlace()'); await pause(20);
+      chk(name, 'U63 (b)', 'S1 put back; 💾 Save asks one HOLD ON, and OK writes S1', J([qs(A.ev).slice(q0).filter(q => /HOLD ON/.test(q)).length, fileNote(f.content, 'A')]), J([1, 'U63-S1']));
+    }
+    // (c) other work already kept: nothing loaded, S1 stays on screen, keptOccupiedMsg's in-file words
+    {
+      const { fold, A } = await setup('U63C', true);
+      A.ev(`localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:1, why:'file', by:'x', ts:1, base:{}})+'\\n'+JSON.stringify({years:{2027:{notes:{A:'OTHER'}}}, cur:2027})); 'ok'`);
+      connect(A.ev, A.w, fold); await A.ev('driveStorePull(true)'); await pause(10);
+      chk(name, 'U63 (c)', 'other work already kept: not loaded, S1 still on screen, and the board says the screen is saved only in the board file',
+        J([A.ev('String(S.notes.A)'), /already keeps earlier work aside( \(kept [^)]*\))?, and what is on screen is saved only in the board file, which the shared folder does not keep/.test(status(A.ev))]), J(['U63C-S1', true]));
+    }
+    // (d) no room to keep it: not loaded, the no-room sentence for saved work
+    {
+      const { fold, A } = await setup('U63D', true);
+      A.ev(`window.__si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(k)) throw new DOMException('full','QuotaExceededError'); return window.__si.call(this,k,v); }; 'ok'`);
+      connect(A.ev, A.w, fold); await A.ev('driveStorePull(true)'); await pause(10);
+      A.ev(`Storage.prototype.setItem=window.__si; 'ok'`);
+      chk(name, 'U63 (d)', 'no room: not loaded, and the board says the screen is saved only in the board file and there is no room',
+        J([A.ev('String(S.notes.A)'), /what is on screen is saved only in the board file, which the shared folder does not keep, and there is no room to keep it aside/.test(status(A.ev))]), J(['U63D-S1', true]));
+    }
+    // (e) CONTROL: the screen is the folder's own copy: it loads with nothing kept
+    {
+      const { fold, A } = await setup('U63E', true);
+      connect(A.ev, A.w, fold); A.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`); await A.ev('driveStorePull(true)'); await pause(10);
+      chk(name, 'U63 (e) CONTROL', 'the screen is the folder’s own copy: Bob’s F loads and nothing is kept', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['U63E-F', null]));
+    }
+    // ---- U64 (a) Live view watching: Put this back keeps S1 aside, saved, and says 💾 Save writes into the board file
+    {
+      const { fold, A, f } = await setup('U64', false);
+      connect(A.ev, A.w, fold); watch(A.ev);
+      await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, 'U64 (a)', 'Put this back puts F0 on screen and keeps S1 aside, marked saved', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['U64-F0', ['U64-S1', 'folder', true]]));
+      chk(name, 'U64 (a)', 'and says 💾 Save writes it into the board file, not the folder, because Live view is just watching',
+        /💾 Save writes it into the board file, not the shared folder, because 📡 Live view is just watching/.test(status(A.ev)), true);
+      // (b) 💾 Save writes the earlier copy into the file; S1 is still in the kept slot after a reopen
+      await A.ev('saveInPlace()'); await pause(20);
+      const R = boot({ html: f.content, ls: W1H.lsOf(A.ev) }); await pause(30);
+      chk(name, 'U64 (b)', '💾 Save writes F0 into the file, and reopened, S1 is still kept aside', J([fileNote(f.content, 'A'), keptOf(R.ev)[0]]), J(['U64-F0', 'U64-S1']));
+    }
+    // (c) CONTROL: working out of the folder with its own copy on screen: nothing kept, today's status
+    {
+      const { fold, A } = await setup('U64C', false);
+      connect(A.ev, A.w, fold); A.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`);
+      await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, 'U64 (c) CONTROL', 'working out of the folder with its own copy on screen: nothing kept, and Save writes to the folder for everyone',
+        J([keptOf(A.ev), /press 💾 Save to write it back to the folder for everyone/.test(status(A.ev))]), J([null, true]));
+    }
+    // (e) no room, saved work: nothing put back, with the saved-work sentence
+    {
+      const { fold, A } = await setup('U64E', false);
+      connect(A.ev, A.w, fold); watch(A.ev); await A.ev('driveHistShow()'); await pause(5);
+      A.ev(`window.__si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(k)) throw new DOMException('full','QuotaExceededError'); return window.__si.call(this,k,v); }; 'ok'`);
+      await A.ev('driveRestore(0)'); await pause(10); A.ev(`Storage.prototype.setItem=window.__si; 'ok'`);
+      chk(name, 'U64 (e)', 'no room: nothing put back, and the board says the screen is saved only in the board file',
+        J([A.ev('String(S.notes.A)'), /Nothing was put back\. What is on screen is saved only in the board file, which the shared folder does not keep, and there is no room to keep it aside/.test(status(A.ev))]), J(['U64E-S1', true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.14 W4 ====
 
 // ==== v2.14 integration (the lead) ====
