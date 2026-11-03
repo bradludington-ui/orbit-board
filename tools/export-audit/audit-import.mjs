@@ -15210,6 +15210,99 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== end v2.14 W2 ====
 
 // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
+// Item 140 (c): A REFUSED IMPORT LEAVES THE BOARD AS SAVED AS IT WAS. Measured on v2.13 (recovery/v214/notes-W3.md): every key was
+// put back ("This board is exactly as it was"), yet each write and each put-back had counted -- the board read "Unsaved changes"
+// (DIRTY false -> true), and STAT_LOG kept, unread beside "Nothing was imported", lsSet's "… could not be kept in browser storage
+// … Use 💾 Save to write it into the file": the Save that, in the measured case, wrote the board over another file. Here every
+// import door that commits through lsAll is refused, on boards read as saved, as unsaved, and as downloaded only, and what the
+// board says about its own saving must not move. The status line and STAT_LOG are read, never the alert (the file route replaces
+// it with a box, which is closed if one opens).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W3 — a refused import leaves the board as saved as it was, and never says to Save (item 140 c)';
+  try {
+    const J = JSON.stringify;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const { NEW, OLD } = w2Fx();
+    // what the board says about its own saving: the marks, this browser's record's flag, the save state on screen
+    const marks = ev => JSON.parse(ev(`JSON.stringify({dirty:DIRTY, base:_baseDirty, unsaved:unsavedNow(), dl:_dlOnly,
+      refused:Object.keys(_lsRefused).sort(), state:(document.getElementById('saveState')||{}).textContent||''})`));
+    const saysSave = ev => +ev(`(STAT_LOG||[]).filter(function(e){ return /could not be kept in browser storage/.test(e.html); }).length`);
+    const nothingKept = ev => ev(`String((STAT_LOG||[]).some(function(e){ return e.keep && !e.read && /^⛔ (<b>)?Nothing was imported/.test(e.html); }))`);
+    const closeBox = ev => ev(`(function(){ [].forEach.call(document.querySelectorAll('body > .modal-bg.open'), function(b){ var x=b.querySelector('h3 button.x'); if(x) x.click(); }); return 'ok'; })()`);
+    // OLD's board, opened, its own timers run, and saved in place into a stand-in file (both windows stood in, C14): it reads
+    // Saved. `how` then puts it in the state named -- an edit not saved yet, or one only in a downloaded copy.
+    const board = async how => {
+      const T = boot({ html: OLD.html, ls: OLD.ls });
+      await sleep(5);
+      W1H.disk(T.w, '');
+      T.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+        window.showOpenFilePicker=function(){ return Promise.reject(new DOMException('no window here', 'AbortError')); }; 'ok'`);
+      await T.ev('saveInPlaceFile()');
+      if (how === 'unsaved') T.ev(`S.notes.B='an edit not saved yet'; save(); render(); 'ok'`);
+      if (how === 'downloaded') T.ev(`S.notes.B='an edit downloaded'; save(); publishState(); render(); 'ok'`);
+      return T;
+    };
+    const WANT_STATE = { saved: /^Saved/, unsaved: /^Unsaved changes$/, downloaded: /^downloaded — not on the shared file yet$/ };
+    for (const how of ['saved', 'unsaved', 'downloaded']) {
+      { const T = await board(how), m0 = marks(T.ev);
+        chk(name, how + ' (the fixture)', 'the board reads ' + how + ' before the import', J([m0.unsaved, WANT_STATE[how].test(m0.state)]), J([how !== 'saved', true])); }
+      for (let n = 1; n <= 10; n++) {
+        const mk = bootMark();
+        const T = await board(how), m0 = marks(T.ev), s0 = saysSave(T.ev);
+        const at = how + ': a full import, write ' + n + ' (' + W2_KEYS[n - 1] + ') refused once';
+        const r = w2Import(T, NEW.html, 'once', n);
+        closeBox(T.ev);
+        chk(name, at, 'nothing imported, nothing reopened', J([r.ret, r.nav]), J([false, false]));
+        chk(name, at, 'the board reads exactly as saved as it did: the marks, the record and the save state', J(marks(T.ev)), J(m0));
+        chk(name, at, 'nothing tells the person to Save what was never loaded', saysSave(T.ev) - s0, 0);
+        chk(name, at, '“Nothing was imported” is on the status line, and kept unread', J([/^⛔ Nothing was imported/.test(w2Status(T.ev)), nothingKept(T.ev)]), J([true, 'true']));
+        bootRelease(mk, keepBoards());
+      }
+    }
+    // Import one appropriation from a board file (consTakeApply), refused at its first write
+    { const T = await board('saved'), m0 = marks(T.ev), s0 = saysSave(T.ev);
+      T.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; var si=Storage.prototype.setItem, c=0;
+        Storage.prototype.setItem=function(k, v){ if(++c===1) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return si.call(this, k, v); };
+        try{ consTakeApply(${J(W1H.pubOf(NEW.html))}, ${J(NEW.html)}, 'new-board.html', ['om'], false); }finally{ Storage.prototype.setItem=si; } })(); 'ok'`);
+      closeBox(T.ev);
+      chk(name, 'Import one appropriation, refused', 'the board reads exactly as saved as it did, and nothing says to Save',
+        J([marks(T.ev), saysSave(T.ev) - s0, /^⛔ Nothing was imported/.test(w2Status(T.ev))]), J([m0, 0, true])); }
+    // Import several boards at once: written whole, then refused by the board on screen (the late refusal), every key put back
+    { const T = await board('saved'), m0 = marks(T.ev), s0 = saysSave(T.ev);
+      T.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+        globalThis.__as0=applyStore; applyStore=function(raw){ if(raw && raw.years && raw!==MS && globalThis.__asNo){ globalThis.__asNo=false; return false; } return globalThis.__as0(raw); }; globalThis.__asNo=true;
+        document.getElementById('shareStat').textContent=''; importBoards({ files:[new File([${J(NEW.html)}], 'new-board.html')], value:'x' }); 'ok'`);
+      for (let i = 0; i < 4000 && !/Imported:|Nothing was imported/.test(w2Status(T.ev)); i++) await sleep(5);
+      closeBox(T.ev);
+      chk(name, 'Import several boards, refused after the write', 'the fixture: it was written, refused and put back (a CONTROL)',
+        J([T.ev('String(globalThis.__asNo)'), /^⛔ Nothing was imported — this board did not take/.test(w2Status(T.ev))]), J(['false', true]));
+      chk(name, 'Import several boards, refused after the write', 'the board reads exactly as saved as it did, and nothing says to Save',
+        J([marks(T.ev), saysSave(T.ev) - s0]), J([m0, 0])); }
+    // storage-full's A(h): an all-or-nothing write refused and put back leaves nothing on screen only
+    { const H = boot(); seed(H.ev, { services: ['USAF', 'ANG'], items: [w2it('A', 'AV', [100, 20]), w2it('B', 'PSM', [50, 10])], disc: [120, 20], mand: [30, 10], order: ['A', 'B'] });
+      H.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+      await sleep(5);
+      H.ev(`DIRTY=false; _sideSaved=_sideGen; sideBootNote.keys=[]; 'ok'`);
+      const r = JSON.parse(H.ev(`(function(){ var size=function(){ var t=0; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); t+=k.length+localStorage.getItem(k).length; } return t; };
+        var LIM=size()+200, si=Storage.prototype.setItem;
+        Storage.prototype.setItem=function(k, v){ v=String(v); var was=localStorage.getItem(k);
+          if(size()-(was===null? 0 : k.length+was.length)+k.length+v.length>LIM) throw new DOMException('q', 'QuotaExceededError'); return si.call(this, k, v); };
+        var d; try{ d=lsAll([[DEST_KEY, JSON.stringify({ts:1, ents:[]}), 'The destination list'], [ACEDB_KEY, 'x'.repeat(5000), 'The cost estimates']]); }finally{ Storage.prototype.setItem=si; }
+        return JSON.stringify([d.ok, d.back, typeof memOnlyNow==='function'? memOnlyNow() : 'none', unsavedNow(), Object.keys(_lsRefused)]); })()`));
+      chk(name, 'an all-or-nothing write refused at room 200', 'refused, every key back, and nothing on screen only or unsaved', J(r), J([false, true, false, false, []])); }
+    // CONTROL: a run that cannot be put back keeps the mixed hold (it refuses Save) and what it counted
+    { const T = await board('saved');
+      w2Import(T, NEW.html, 'stuck', 8);
+      closeBox(T.ev);
+      chk(name, 'a run that cannot be put back (a CONTROL)', 'the mixed hold stands, and the board does not read as saved',
+        J([T.ev('String(impMixedOn())'), T.ev('String(unsavedNow())')]), J(['true', 'true'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.14 W3 ====
 
 // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====

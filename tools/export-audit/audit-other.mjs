@@ -6137,6 +6137,55 @@ await (async () => {
 // ==== end v2.14 W2 ====
 
 // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
+// Item 141 G: SAVE DIAGNOSTICS SAYS WHAT FILLS BROWSER STORAGE, BY KIND. Brad's refused import named the write at which storage
+// ran out, not what filled it; "Browser storage: N entries, X MB" could not tell a board too big on its own from one that met
+// storage already full of PMO copies, another board or another web page. Each kind's entries and characters here are the
+// harness's own sums over the keys it reads itself, sorted by the contract's rule restated here (never read back from
+// diagLsKinds). The report names no key and reads no value: another tool's key may name a person.
+{
+  const name = 'v2.14 W3 — Save diagnostics counts browser storage by kind and names no key that is not ORBIT’s (item 141 G)';
+  try {
+    const J = JSON.stringify;
+    const mkI = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const B = boot(); seed(B.ev, { services: ['USAF', 'ANG'], items: [mkI('A', [100, 20])], disc: [120, 20], mand: [30, 10], order: ['A'] });
+    B.ev(`save(); render(); 'ok'`);
+    const PLANT = {
+      'prio27om-cyc': 'c'.repeat(100), 'prio27acedb': 'a'.repeat(50), 'prio27om.kept': 'k'.repeat(30),
+      'prio27om-pmo1790000000000': 'p'.repeat(70), 'prio27om-pmo1790000000000.base': '{"file":0,"dirty":true}', 'prio27execdb-pmo1791111111111': 'e'.repeat(10),
+      'prio27appn': 'O&M', 'spmtTheme': 'harbor',
+      'vellichor-<img src=x>': 's'.repeat(400), 'zanzibar-secret-token': 'Brunhilde Okonkwo',
+    };
+    B.ev(`(function(){ var P=${J(PLANT)}; for(var k in P) localStorage.setItem(k, P[k]); })(); 'ok'`);
+    const ls = JSON.parse(B.ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`));
+    // the rule, first match wins (contract §7; map.md storage-full, Functions 18)
+    const kindOf = k => !/^(prio27|spmt)/.test(k) ? 'Not ORBIT' : /-pmo\d+/.test(k) ? 'PMO copies' : /\.kept$/.test(k) ? 'Work kept aside'
+      : /\.base$/.test(k) ? 'Save records' : /^prio27(om|ff|sp|opn)-cyc$/.test(k) ? 'Locked cycles' : /^prio27(om|ff|sp|opn)$/.test(k) ? 'Boards'
+      : /^prio27(execdb|acedb|buddb|reprog|destdb)$/.test(k) ? 'Lists' : 'Settings';
+    const ORDER = ['Boards', 'Locked cycles', 'Lists', 'Work kept aside', 'Save records', 'PMO copies', 'Settings', 'Not ORBIT'];
+    const want = Object.fromEntries(ORDER.map(l => [l, { n: 0, c: 0 }]));
+    for (const [k, v] of Object.entries(ls)) { const w = want[kindOf(k)]; w.n++; w.c += k.length + v.length; }
+    const wantLines = ORDER.map(l => '    ' + (l + ':').padEnd(18) + (want[l].n ? want[l].n + ' entr' + (want[l].n === 1 ? 'y' : 'ies') + ', ' + want[l].c + ' characters' : 'none')
+      + (l === 'PMO copies' && want[l].n ? ' (2 publish dates)' : ''));
+    chk(name, 'the fixture', 'the planted keys sort as the rule says: a copy’s .base is a PMO copy, two keys are not ORBIT’s, every kind is there (a CONTROL)',
+      J([want['PMO copies'].n, want['Not ORBIT'].n, ORDER.filter(l => !want[l].n)]), J([3, 2, []]));
+    const rep = B.ev('diagReport()'), L = rep.split(/\r?\n/);
+    const at = L.indexOf('  Storage by kind:    characters, keys and values together, as browser storage counts them');
+    chk(name, 'by kind', 'Save diagnostics has the “Storage by kind” heading, right after “Browser storage”', J([at > 0, /^  Browser storage:    /.test(L[at - 1] || '')]), J([true, true]));
+    chk(name, 'by kind', 'each kind, in order: its entries and characters are the harness’s own sums of the keys it read', J(L.slice(at + 1, at + 1 + ORDER.length)), J(wantLines));
+    const tot = +((rep.match(/Browser storage: {4}(\d+) entries/) || [])[1]);
+    const kinds = L.slice(at + 1, at + 1 + ORDER.length).reduce((s, l) => s + (+((l.match(/: +(\d+) entr/) || [])[1] || 0)), 0);
+    chk(name, 'by kind', 'the kinds add up to the entries on the “Browser storage” line', J([kinds, tot]), J([Object.keys(ls).length, Object.keys(ls).length]));
+    chk(name, 'names nothing', 'no key that is not ORBIT’s, no value and no markup reaches the report',
+      ['vellichor', 'zanzibar', 'secret-token', 'Brunhilde', 'Okonkwo', '<img', 'sssssssss'].filter(s => rep.indexOf(s) >= 0).join(', ') || 'none', 'none');
+    chk(name, 'names nothing', 'nor any ORBIT key: the report counts, it does not list', ['prio27om-cyc', 'prio27om.kept', 'pmo1790000000000', 'spmtTheme'].filter(s => rep.indexOf(s) >= 0).join(', ') || 'none', 'none');
+    // the box shows the same report
+    B.ev(`toggleDiag(); 'ok'`);
+    chk(name, 'the box', 'Save diagnostics’ box shows the same lines', J(B.ev(`document.getElementById('diagPre').textContent`).split(/\r?\n/).slice(at, at + 1 + ORDER.length)), J(L.slice(at, at + 1 + ORDER.length)));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.14 W3 ====
 
 // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====
