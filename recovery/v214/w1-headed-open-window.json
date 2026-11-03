@@ -1,0 +1,47 @@
+{
+ "board": "prioritization-board-grid.html",
+ "before": {
+  "size": 8806594,
+  "sha": "c8914775d86b7cfc"
+ },
+ "chromium": "153.0.8010.12",
+ "openWindowExists": true,
+ "sayWhileOpen": "💾 First save of this file in this browser. In the window that opened, pick the board file you opened — ORBIT Live.html. Picking it changes nothing: ORBIT reads it first, and asks before writing over anything the board on screen does not carry. To keep this board in a new file instead: Save as a new file…",
+ "keys": "sent sent",
+ "afterPick": {
+  "size": 8806594,
+  "sha": "c8914775d86b7cfc"
+ },
+ "perm": [
+  "queryPermission {\"mode\":\"readwrite\"} -> prompt"
+ ],
+ "say": "⚠ This change is not in browser storage — it was refused (QuotaExceededError). Your work is still on screen and still correct. Use 💾 Save now to write it into the file, which does not use browser storage.",
+ "afterSettle": {
+  "size": 8806594,
+  "sha": "c8914775d86b7cfc"
+ },
+ "permAfterAnswer": [
+  "queryPermission {\"mode\":\"readwrite\"} -> prompt",
+  "requestPermission {\"mode\":\"readwrite\"} -> granted"
+ ],
+ "sayAfterAnswer": "💾 Saved in place by unknown — \"ORBIT Live.html\" now carries this state. 11/3/2026, 6:27:24 AM You are now this board’s writer: only you save it in place.",
+ "afterAnswer": {
+  "size": 8806754,
+  "sha": "68a17923bdb1b8d0"
+ },
+ "writtenOnTheFirstPress": true,
+ "permSecond": [
+  "requestPermission {\"mode\":\"readwrite\"} -> granted"
+ ],
+ "saySecond": "💾 Saved in place by unknown — \"ORBIT Live.html\" now carries this state. 11/3/2026, 6:27:29 AM",
+ "afterSecond": {
+  "size": 8806754,
+  "sha": "501fd8fa7574fa1c"
+ },
+ "dialogs": [
+  "confirm: No writer is recorded for this board file yet (it was last saved by a version before v1.95).\n\nBecome its writer? From now on only you save it in place. Anyone else is told you hold the pen, and can sa",
+  "prompt: Your name or initials (stamped on every save so the team can see who saved last):"
+ ],
+ "unchangedByThePick": true,
+ "ran": "3 Nov 2026, tools/save-target-headed.mjs on the v214-w1 board, Xvfb 1600x1000, headed Chromium, the real GTK Open window"
+}

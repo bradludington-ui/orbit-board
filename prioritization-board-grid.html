@@ -2242,7 +2242,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
 <p><b>A long menu opens folded.</b> Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. <b>Reports &amp; exports</b> lays its groups out in two lists, each report with the kind of file it gives on a tag at the right (XLSX, TXT; VIEW when it opens on screen first), and its <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports › Working Documents › Excel Workbook</i>.</p>
-<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state at the foot of the left menu says <i>↶ work kept aside</i>, and one click puts it back.</p>
+<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. The first 💾 Save of a file in a browser asks which file: pick the board file you opened, which ORBIT reads and checks before writing anything, or save it as a new file. Save asks, naming them, before writing over an appropriation, a requirement, a locked cycle or a list the board on screen does not carry. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the save state at the foot of the left menu says <i>↶ work kept aside</i>, and one click puts it back.</p>
 <p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="aud">Audit › Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
 <p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. That holds for everything the file carries, not only the board: a cycle locked or unlocked, a destination, an imported cost estimate, execution data or BAE list, or a package taken for another appropriation marks the board unsaved until Save writes the file. Working out of the shared folder, Save writes the board alone, so those lists are not in the folder’s copy; and every Save there — the automatic one too — first keeps the copy it replaces in the folder’s history: if that copy cannot be kept, nothing is written, your changes stay on screen, unsaved, and the board says why. A list browser storage refuses is on this screen only: the save state at the foot of the left menu says unsaved until it is in the file or storage takes it again. <span class="v199-h95">Reopening keeps the count: a list browser storage holds that the file does not — this board’s lists, and another appropriation’s plan or locked cycles — reads unsaved when the board opens, and the saved-state tooltip names it, until 💾 Save writes it. What opening an older file writes into its lists (today’s shape) is not counted. An execution import or a check of the folder for cost estimates takes nothing unless it reads to the end.</span> If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
 </section>
@@ -7533,9 +7533,20 @@ const _bootBase=baseGet();
 let LASTKNOWN=+_bootBase.file||0;
 let _baseDirty=!!_bootBase.dirty;    // mirrors baseGet().dirty, so save() writes it only when it changes
 try{ _keptMeta=keptCopy(); _keptMeta=_keptMeta? _keptMeta.meta : null; }catch(e){ _keptMeta=null; }
+// v2.14 W1 (item 140): DID THE BOARD ON SCREEN COME FROM THIS FILE? Set wherever the opening records the file's save as the one
+// the work came from. When neither this file nor this browser's copy is on screen, nothing is (case 3, after the block below).
+let _bootFile=false;
+// v2.14 W1 (item 140; contract C17): STRAY WORK. This browser holds work never saved to any file, typed on a page whose board came
+// from no saved copy (its record says blank:true), newer than this file: the file opens and that work is kept aside, through the
+// branch below (ownUnsaved, keepAside, _bootKept; 'occupied' or no room holds the file back, unchanged). Two guards, each measured:
+// only a record marked blank -- an import's records name no file either, and a landed import reopened in its board file must open
+// as the import (the attackers' stray-import) -- and never over a plan carrying a data pack DATA would take: DATA has already
+// taken storage's pack by now, so the file's plan over it would show one board's requirement list under another's plan.
+const _bootOwnPack=(function(){ try{ const ms=JSON.parse(localStorage.getItem(_AP.key)||'null'); return _hasData(ms&&ms.dataPack); }catch(e){ return true; } })();
+const _bootStray=_bootOwnRead && _bootBase.dirty===true && !(+_bootBase.file) && _bootBase.blank===true && !_bootOwnPack;
 if(PUB && (PUB.years||Array.isArray(PUB.order))){
   const fileTs=+(PUB.ts||0), ours=+(MS.ts||0);
-  if(fileTs > ours){
+  if(fileTs > ours || (_bootStray && fileTs < ours)){
     const own=_bootOwn && ownUnsaved(MS, PUB, _bootBase), kept0=_keptMeta;
     const ka=own? keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase) : true;
     if(ka!==true) _bootHeld={by:PUB.by||'', ts:fileTs, occupied:ka==='occupied'};
@@ -7563,14 +7574,20 @@ if(PUB && (PUB.years||Array.isArray(PUB.order))){
       // storage holds a save and no unsaved work, so "clean" is true of it, and storage is left alone, as v2.08 left it.
       let held=!_bootOwn || (!own && _bootOwnRead);   // nothing in storage, or only work already saved: nothing to make true first
       if(own && _bootOwnRead){ try{ if(impHandKey(_AP.key)) throw new Error('held'); MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
-      LASTKNOWN=PUB_FILE_TS;
+      LASTKNOWN=PUB_FILE_TS; _bootFile=true;
       if(held){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); }
     }
   } else if(fileTs===ours){
     // the file's own state is what is on screen
-    LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+    LASTKNOWN=PUB_FILE_TS; _bootFile=true; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
   } else if(LASTKNOWN && PUB_FILE_TS!==LASTKNOWN) _bootMoved=PUB_FILE_TS;   // saved by someone since
 }
+// v2.14 W1 (item 140): CASE 3 -- THE BOARD ON SCREEN CAME FROM NO SAVED COPY (a program with no board and nothing of this
+// appropriation's in storage, or a file this board refused). The record another page wrote named THAT page's save, and Save took it
+// as this one's: a HOLD ON that should have asked did not. Nothing is written here; the first change rewrites the record
+// (baseMarkDirty), marked blank. The second clause: storage's copy is on screen, the file did not open, and that copy is a blank
+// page's work -- still blank here (pageBlankNow).
+if(!_bootOwnRead && !_bootFile){ LASTKNOWN=0; _baseDirty=false; _pageBlank=true; } else if(_bootOwnRead && !_bootFile && _bootBase.blank===true) _pageBlank=true;
 // v2.09 (item 127): A PMO COPY OPENS ON THE OFFICE ITS WORK WAS SAVED FOR -- the work just chosen above, the file's or this
 // browser's, so the office follows the work and not the file name (pmoAdopt).
 if(SANDBOX) pmoAdopt();
@@ -8387,15 +8404,46 @@ function savedHtmlOf(appns, cycDb){
                       (m,a,b)=>a+json+b);
 }
 let FH=null;   // in-place file handle (File System Access API)
+// v2.14 W1 (item 140 a): does this browser remember a save file for this page? Read once while the board opens (Save diagnostics
+// says so, by kind and never by name); _fhPut keeps it in step.
+var _fhKnown=false;
+try{ _fhGet(function(h){ _fhKnown=!!h; }); }catch(e){}
+// v2.14 W1 (contract C25): the file "Save as a new file…" wrote, held in this page alone -- never put under this page's address
+var _fhMem=null;
 // v2.14 (slot): this page's own address without its #… or ?…, for a file:, http: or https: page; '' for anything else (the FYDP
 // frames' about:srcdoc, a blob:). W1 keys the remembered save file by it; W2 matches an import's file to the page that wrote it.
 function pageAddr(){ try{ const u=String(location.href).replace(/[#?].*$/, ''); return /^(file|https?):/i.test(u)? u : ''; }catch(e){ return ''; } }
 // v2.14 (slot; W1 owns the body; W4's baseMarkDirty reads it): is the work on screen work never saved to any file, typed on a page
 // whose board came from no saved copy? The record then says blank:true, and only such a record is "stray work" that a board file
 // opened later keeps aside instead of opening (the stray rule). Never throws; false until W1 fills it.
-function pageBlankNow(){ return false; }
-function _fhPut(h){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}}; r.onsuccess=()=>{ try{ r.result.transaction('h','readwrite').objectStore('h').put(h, FNAME); }catch(e){} }; }catch(e){} }
-function _fhGet(cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}}; r.onsuccess=()=>{ try{ const g=r.result.transaction('h','readonly').objectStore('h').get(FNAME); g.onsuccess=()=>cb(g.result||null); g.onerror=()=>cb(null); }catch(e){ cb(null); } }; r.onerror=()=>cb(null); }catch(e){ cb(null); } }
+function pageBlankNow(){ try{ if(_pageBlank!==true || (+LASTKNOWN||0)) return false;
+  let fo=null; try{ fo=_driveBase; }catch(e){ fo=null; }     // a let declared below: before it exists, no folder copy can have been taken
+  if(fo && typeof fo==='object') for(const k in fo){ if(Object.prototype.hasOwnProperty.call(fo, k) && +fo[k]) return false; }
+  return true; }catch(e){ return false; } }
+// v2.14 W1 (item 140 a): THE REMEMBERED SAVE FILE IS THIS PAGE'S OWN. Every ORBIT file a browser opens -- every version, every PMO
+// copy -- shares one handle store (IndexedDB prio-fh), and until v2.14 the board's own save file was kept there under FNAME, the
+// same key in every version. So 💾 Save in one ORBIT file wrote to whichever file this browser last saved: measured, a v2.13 program
+// tab whose import was refused wrote 3,878,541 characters of O&M-only board over an 8,781,027-character board file, with no window
+// and no question. It is kept now under this page's own address (pageAddr, S6), and v2.14 never reads or writes FNAME except to
+// release it (fhLegacyRelease). A page with no address it can be kept by (the FYDP frames' about:srcdoc, a blob:) remembers nothing
+// and always asks. npm run check "the save-file handle store" holds both halves.
+function fhPageKey(){ const a=pageAddr(); return a? 'page|'+a : ''; }
+function _fhPut(h){ const k=fhPageKey(); _fhKnown=!!(k && h); if(k) _pfhPut(k, h); }
+function _fhGet(cb){ const k=fhPageKey(); if(!k){ cb(null); return; } _pfhGet(k, cb); }
+// THE SHARED ENTRY OLDER VERSIONS SAVE THROUGH, released only when it names the file this page has just written: an older ORBIT
+// opened afterwards then asks which file to write instead of writing its program over this one. One naming any other file is
+// that version's own remembered file and is left alone; nothing a person saved is moved.
+function fhLegacyRelease(h){ try{ _pfhGet(FNAME, function(old){ try{ if(old && h && typeof old.isSameEntry==='function')
+  Promise.resolve(old.isSameEntry(h)).then(function(same){ if(same) _pfhPut(FNAME, null); }, function(){}); }catch(e){} }); }catch(e){} }
+// The file this page was opened from, by name (what the first Save suggests), and a new name beside it, dated.
+function fhOwnName(){ try{ const n=decodeURIComponent(String(location.pathname||'').split('/').pop()||''); return /\.html?$/i.test(n)? n : FNAME; }catch(e){ return FNAME; } }
+function fhNewName(){ return fhOwnName().replace(/\.html?$/i, '')+' — '+new Date().toISOString().slice(0,10)+'.html'; }
+// SAVE AS A NEW FILE (the Save window, a new name): written as a Save is, and not remembered under this page (contract C25): later
+// Saves in this page write the new file, as a Save As does; this file, opened again, asks which file to save to.
+function fhSaveNew(){ if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')||impMixedBlock('Saving to the board file')) return;
+  return saveSerial(function(){ return _saveInPlaceFileRun({fresh:true}); }); }
+// "Choose another file…": forget this page's file and save again (the click is a fresh gesture, so the window may open).
+function fhRepick(){ FH=null; try{ _fhPut(null); }catch(e){} return saveInPlace(); }
 // ==============================================================================================================
 // §16  PMO COPIES
 //      publishing a copy, its submission, and the portfolio team's review and apply
@@ -10478,7 +10526,7 @@ function saveInPlaceFile(){
   if(impMixedBlock('Saving to the board file')) return;                         // v2.00 (U3): and under the mixed-import hold
   return saveSerial(_saveInPlaceFileRun);
 }
-async function _saveInPlaceFileRun(){
+async function _saveInPlaceFileRun(o){
   if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;
   if(impMixedBlock('Saving to the board file')) return;
   if(!window.showSaveFilePicker){
@@ -10486,17 +10534,36 @@ async function _saveInPlaceFileRun(){
     setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
     return;
   }
-  let prevWriter=WRITER, penLine=null, may=null;
+  // v2.14 W1 (item 140 a): `fresh` is "Save as a new file…" (fhSaveNew): the Save window, a new name, never this page's remembered file.
+  // `picked` says how the file came: '' remembered, 'open' the Open window, 'save' the Save window. A picked file is remembered only
+  // once it has passed every check below and may be written (it was remembered first, so a wrong pick stayed this page's file).
+  const fresh=!!(o&&o.fresh);
+  let prevWriter=WRITER, penLine=null, may=null, picked='', inWin=false;
   try{
-    let h=FH || await new Promise(res=>_fhGet(res));
+    let h=fresh? null : (FH || await new Promise(res=>_fhGet(res)));
     if(h){
       try{ if(await h.requestPermission({mode:'readwrite'})!=='granted') h=null; }catch(e){ h=null; }
     }
     if(!h){
-      setStat('💾 First save: pick THIS board file (where you opened it — shared drive / synced Teams folder). After this once, Save writes straight to it.');
-      h=await window.showSaveFilePicker({suggestedName:FNAME, types:[{description:'Prioritization Board', accept:{'text/html':['.html']}}]});
+      // THE FIRST SAVE OF THIS FILE IN THIS BROWSER GOES THROUGH AN OPEN WINDOW where the browser has one. Choosing a file in the Save
+      // window empties it the moment it is chosen (Chromium, measured: 8,793,759 characters to 0), so nothing could be checked, and
+      // one wrong pick lost a board. Choosing it in an Open window changes nothing: it is read and goes through every check a
+      // remembered file gets -- not a board, a PMO copy, the writer, the HOLD ON, what it holds that the board on screen does not
+      // carry, a program with no board -- and only then is write access asked for.
+      if(!fresh && window.showOpenFilePicker){
+        setStat('💾 <b>First save of this file in this browser.</b> In the window that opened, pick the board file you opened — <b>'+esc(fhOwnName())+'</b>. Picking it changes nothing: ORBIT reads it first, and asks before writing over anything the board on screen does not carry. To keep this board in a new file instead: <button type="button" class="nb lnk" onclick="fhSaveNew()">Save as a new file…</button>');
+        inWin=true; picked='open';
+        const hs=await window.showOpenFilePicker({multiple:false, types:[{description:'ORBIT board', accept:{'text/html':['.html','.htm']}}]});
+        inWin=false; h=hs&&hs[0];
+        if(!h){ const e=new Error('nothing was picked'); e.name='AbortError'; inWin=true; throw e; }
+      } else {
+        setStat(fresh? '💾 In the window that opened, give this board a <b>new</b> file name. A file you choose there is replaced the moment you choose it, so never choose another board’s file.'
+          : '💾 First save of this file in this browser: pick <b>'+esc(fhOwnName())+'</b> — the file you opened — or give a new name. A file you choose there is replaced the moment you choose it, so never choose another board’s file. After this once, Save writes straight to it.');
+        h=await window.showSaveFilePicker({suggestedName:fresh? fhNewName() : fhOwnName(), types:[{description:'ORBIT board', accept:{'text/html':['.html','.htm']}}]});
+        picked='save';
+      }
     }
-    FH=h; _fhPut(h);
+    if(!picked){ FH=h; if(h!==_fhMem) _fhPut(h); }
     // COLLISION GUARD: has anyone saved this file since the copy on screen was loaded from it or
     // written to it (LASTKNOWN, v1.89)? A FILE THAT CANNOT BE READ CANNOT BE CHECKED, SO IT IS NEVER
     // WRITTEN OVER. This used to sit in a try with an empty catch: a file mid-sync in Teams or
@@ -10519,10 +10586,12 @@ async function _saveInPlaceFileRun(){
       return;
     }
     let p;                             // the file's saved state; none in a file the picker just made
+    let bare=false, baked=null;        // v2.14 W1 (item 141 D): an ORBIT program with no board; one with a board built into it
     if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4): checked again after the read: an import that stopped part-way while it waited sets the hold, and the bytes built below would carry its mix
     if(txt.length){                    // an empty file is one the picker just made: nothing in it to lose
       const mm=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
       try{ p=mm? JSON.parse(mm[1]) : undefined; }catch(e){ p=undefined; }
+      if(p!==undefined && p!==null && typeof p!=='object') p=undefined;   // v2.14 W1: a state that is not an object is no board either
       if(p===undefined){
         FH=null; try{ _fhPut(null); }catch(e){}      // the next Save asks which file, rather than failing here again
         setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is not a board ORBIT can read, so it was not written over. '
@@ -10543,7 +10612,11 @@ async function _saveInPlaceFileRun(){
       // ONE WRITER PER BOARD FILE (v1.95, item 58), checked before anything is asked: a browser that is not
       // the writer is refused outright, never offered to write over the writer's save. (A file with no
       // writer yet asks to claim it below, once, after the check that somebody saved since.)
-      const fw0=writerShape(p.writer);
+      // v2.14 W1 (item 141 D): A PROGRAM WITH NO BOARD (pubState null) is written in place, claimed like a new file: Save into the
+      // empty v2.13 program threw on null.writer and downloaded instead. A null state with requirements built into the program
+      // (extractPacks) is a board, and is asked about below.
+      if(p===null){ baked=extractPacks(txt); bare=!baked; }
+      const fw0=p? writerShape(p.writer) : null;
       if(fw0){ may=writerMay(fw0, false, false, 'this board file'); if(!may) return; }
       const fts=fileTsOf(p);
       if(fts>0 && fts!==LASTKNOWN){
@@ -10562,7 +10635,7 @@ async function _saveInPlaceFileRun(){
       }
     }
     const fw=p? writerShape(p.writer) : null;
-    if(!may) may=writerMay(fw, !txt.length, false, 'this board file');     // no writer recorded yet: claim it
+    if(!may) may=writerMay(fw, !txt.length || bare, false, 'this board file');     // no writer recorded yet: claim it
     if(!may) return;
     if(may==='me') WRITER=fw;
     else { WRITER={by:whoAmI()||'unknown', fp:writerFp(), t:Date.now()}; penLine=writerJournal(fw); }
@@ -10571,9 +10644,33 @@ async function _saveInPlaceFileRun(){
     const html=buildSavedHtml();
     const gen=_saveGen, wrote=fileTsOf({appns:PUBS});
     const sideAt=_sideGen;          // v1.97 (item 76): every other list the file carries, as these bytes hold it
+    // v2.14 W1 (item 140 b): SAVE ASKS, NAMING THEM, BEFORE IT WRITES OVER WHAT THE FILE HOLDS AND THE BOARD ON SCREEN DOES NOT CARRY
+    // -- an appropriation, a year, a requirement, a locked cycle, a list. The bytes about to be written are what is compared. A file
+    // the Save window just emptied holds nothing to compare, and a program with no board holds no board.
+    if(txt.length && !bare){
+      let q=null; try{ const mq=html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); q=mq? JSON.parse(mq[1]) : null; }catch(e){ q=null; }
+      const lost=saveDrops(txt, p, q, baked);
+      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){
+        if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length+' thing'+(lost.length===1?'':'s')+' the board on screen does not carry. If it is not this board’s file: <button type="button" class="nb lnk" onclick="fhRepick()">choose another file…</button> · <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>');
+        return;
+      }
+    }
+    // v2.14 W1 (item 140 a): WRITE ACCESS FOR A FILE PICKED IN THE OPEN WINDOW, asked only now, after every check. Remembered only once
+    // granted. Asking can need a fresh click (the checks above waited on the disk): then the file is remembered, checked, nothing is
+    // written, and the next press re-reads it and runs every check again before it writes.
+    if(picked==='open'){
+      let ok=''; try{ ok=await h.queryPermission({mode:'readwrite'}); if(ok!=='granted') ok=await h.requestPermission({mode:'readwrite'}); }catch(e){ ok='later'; }
+      if(ok==='later'){ FH=h; _fhPut(h); if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        setStat('💾 <b>“'+esc(h.name||FNAME)+'” is now this board’s file</b> — nothing is written yet. Press 💾 Save once more to write it; the browser asks first whether ORBIT may edit it.'); return; }
+      if(ok!=='granted'){ if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write “'+esc(h.name||FNAME)+'”. Nothing was written, and your work is still here, unsaved. <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>'); return; }
+      FH=h; _fhPut(h);
+    } else if(picked==='save'){ FH=h; if(fresh) _fhMem=h; else _fhPut(h); }   // the window gave write access; a new file is this page's alone (C25)
     const w=await h.createWritable();
     await w.write(html);
     await w.close();
+    fhLegacyRelease(h);
     _takePen=null;
     LASTKNOWN=wrote;
     const clean=(_saveGen===gen);   // nothing changed while it was writing
@@ -10582,10 +10679,15 @@ async function _saveInPlaceFileRun(){
     sideWrote(sideAt);              // what changed after the bytes were built is still unsaved
     syncBtns();
     setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+esc(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
+      +(fresh? ' From now on 💾 Save in this page writes “'+esc(h.name||'')+'”. Opened again, “'+esc(fhOwnName())+'” asks which file to save to.' : '')
       +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')+wkMemSay(may)
       +((clean && _sideGen===sideAt)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
   }catch(e){
     if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }     // nothing was written: the pen did not move
+    // v2.14 W1 (item 140 a): the Open window cancelled, or refused by the browser itself
+    if(inWin && e && e.name==='AbortError'){ setStat('Save canceled — nothing written. <button type="button" class="nb lnk" onclick="fhSaveNew()">Save as a new file…</button>'); return; }
+    if(inWin && e && (e.name==='SecurityError'||e.name==='NotAllowedError')){
+      setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT open a file to check it ('+esc(e.name)+'). Nothing was written, and your work is still here, unsaved. <button type="button" class="nb lnk" onclick="fhSaveNew()">Save as a new file…</button> · <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>'); return; }
     if(e&&e.name==='AbortError'){ setStat('Save canceled — nothing written.'); return; }
     // A FILE THIS PERSON MAY NOT WRITE (v1.95, item 58): said plainly, nothing downloaded unasked.
     if(e&&(e.name==='NotAllowedError'||e.name==='NoModificationAllowedError'||e.name==='SecurityError')){
@@ -10597,6 +10699,84 @@ async function _saveInPlaceFileRun(){
     setStat('⚠ In-place save failed ('+esc((e&&e.message)||e)+') — downloading a copy instead.');
     publishState();
   }
+}
+// v2.14 W1 (item 140 b; contract C24): WHAT THE FILE ON DISK HOLDS THAT THE BYTES ABOUT TO BE WRITTEN DO NOT -- plain lines, in this
+// order: appropriations (a whole one, years of one, requirements of a year), locked cycles, cost estimates, execution data, the BAE
+// list, the reprogramming log, the destination list. `txt` is the file's text, `p` its parsed state, `q` the outgoing bytes' state,
+// `baked` extractPacks(txt) when p is null. Pure, and never escapes: these lines go into confirm(), which is not HTML. Every read is
+// guarded: anything not an object reads as empty. An ordinary Save asks nothing: the board on screen carries every appropriation
+// (pubsFor), every cycle (cycByAp), every list and every requirement it opened with. A deletion on purpose asks once (D3).
+function saveDrops(txt, p, q, baked){
+  const obj=function(o){ return (o && typeof o==='object' && !Array.isArray(o))? o : null; };
+  const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
+  const nm=function(k){ return (_SLUGMAP[k] && _SLUGMAP[k].t) || String(k); };
+  const out=[];
+  if(!obj(p)){
+    if(baked && obj(baked)) Object.keys(baked).forEach(function(k){ const pk=baked[k]; const n=(obj(pk) && Array.isArray(pk.items))? pk.items.length : 0;
+      out.push(nm(k==='only'? (_slugOfTitle(txt)||mySlug()) : k)+' ('+pl(n, 'requirement', 'requirements')+')'); });
+    return out;
+  }
+  if(!obj(q)) return ['the board on screen could not be read back to compare'];
+  // an appropriation's plan, by slug: a consolidated file's appns, or a file saved for one appropriation (years or order at the top)
+  const apOf=function(st, t){ st=obj(st); if(!st) return {};
+    if(obj(st.appns)) return st.appns;
+    if(obj(st.years) || Array.isArray(st.order)){ const m={}; m[_slugOfTitle(t||'')||mySlug()]=st; return m; }
+    return {}; };
+  const yearsOf=function(pl0){ pl0=obj(pl0); if(!pl0) return {}; if(obj(pl0.years)) return pl0.years; const m={}; m[pl0.cur||'?']=pl0; return m; };
+  const add=function(set, a){ (Array.isArray(a)? a : []).forEach(function(x){ if(typeof x==='string') set.add(x); else if(obj(x) && typeof x.id==='string') set.add(x.id); }); };
+  // every year's priority order and added requirements: what the appropriation line counts
+  const ids=function(pl0){ const set=new Set(); const ys=yearsOf(pl0); Object.keys(ys).forEach(function(y){ const yy=obj(ys[y]); if(yy){ add(set, yy.order); add(set, yy.custom); } }); return set; };
+  // one year's requirements, the data pack's included: what the requirement lines compare
+  const packIds=function(pl0){ const set=new Set(); pl0=obj(pl0); if(!pl0) return set; const ys=yearsOf(pl0);
+    [pl0.dataPack].concat(Object.keys(ys).map(function(y){ return obj(ys[y])? ys[y].dataPack : null; })).forEach(function(pk){ if(obj(pk)) add(set, pk.items); });
+    return set; };
+  const yearIds=function(pl0, y, pk){ const set=new Set(pk); const yy=obj(yearsOf(pl0)[y]); if(yy){ add(set, yy.order); add(set, yy.removed); add(set, yy.custom); } return set; };
+  const fyLbl=function(y){ return /^\d{4}$/.test(String(y))? 'FY'+String(y).slice(2) : String(y); };
+  const A=apOf(p, txt), B=apOf(q, '');
+  const slugs=Object.keys(_SLUGMAP).filter(function(k){ return Object.prototype.hasOwnProperty.call(A, k); })
+    .concat(Object.keys(A).filter(function(k){ return !Object.prototype.hasOwnProperty.call(_SLUGMAP, k); }));
+  slugs.forEach(function(k){
+    const fp=obj(A[k]); if(!fp) return;
+    const fi=ids(fp); if(!fi.size) return;
+    const qp=Object.prototype.hasOwnProperty.call(B, k)? obj(B[k]) : null;
+    const fys=Object.keys(yearsOf(fp));
+    if(!qp || !ids(qp).size){ out.push(nm(k)+' — '+pl(fi.size, 'requirement', 'requirements')+', '+pl(fys.length, 'year', 'years')); return; }
+    const qys=yearsOf(qp);
+    const gone=fys.filter(function(y){ return !Object.prototype.hasOwnProperty.call(qys, y); });
+    if(gone.length) out.push(nm(k)+' '+gone.map(fyLbl).join(', '));
+    const fpk=packIds(fp), qpk=packIds(qp);
+    fys.forEach(function(y){ if(!Object.prototype.hasOwnProperty.call(qys, y)) return;
+      const have=yearIds(qp, y, qpk), lack=[]; yearIds(fp, y, fpk).forEach(function(id){ if(!have.has(id)) lack.push(id); });
+      if(lack.length) out.push(nm(k)+' '+fyLbl(y)+' — '+pl(lack.length, 'requirement', 'requirements')+' the board on screen does not carry: '
+        +lack.slice(0, 6).join(', ')+(lack.length>6? ' and '+(lack.length-6)+' more' : '')); });
+  });
+  // locked cycles, by appropriation
+  const cyOf=function(st, k){ const b=obj(obj(obj(st) && st.cycDb) && st.cycDb.byAp); const c=obj(b && b[k]); return obj(c && c.cycles) || {}; };
+  const cyc=[]; const pb=obj(obj(p.cycDb) && p.cycDb.byAp) || {};
+  Object.keys(pb).forEach(function(k){ const have=cyOf(q, k); Object.keys(cyOf(p, k)).forEach(function(key){
+    if(!Object.prototype.hasOwnProperty.call(have, key)){ let t=''; try{ t=cycApTxt(key, k); }catch(e){ t=nm(k)+' '+key; } cyc.push(t); } }); });
+  if(cyc.length) out.push('Locked PPBE cycle'+(cyc.length===1?'':'s')+': '+cyc.join(', '));
+  // cost estimates, execution data
+  const keysOf=function(st, f, g){ const a=obj(obj(st) && st[f]); return Object.keys(obj(a && a[g]) || {}); };
+  const qa=keysOf(q, 'aceDb', 'sets'), ace=keysOf(p, 'aceDb', 'sets').filter(function(k){ return qa.indexOf(k)<0; });
+  if(ace.length) out.push('Cost estimate'+(ace.length===1?'':'s')+': '+ace.slice(0, 3).join(', ')+(ace.length>3? ' and '+(ace.length-3)+' more' : ''));
+  const qe=keysOf(q, 'execDb', 'all'), ex=keysOf(p, 'execDb', 'all').filter(function(k){ return qe.indexOf(k)<0; });
+  if(ex.length) out.push('Execution data for '+ex.map(nm).join(', '));
+  // the BAE list, the reprogramming log, the destination list
+  const lenOf=function(st, f, g){ const a=obj(obj(st) && st[f]); return (a && Array.isArray(a[g]))? a[g].length : 0; };
+  const nb=lenOf(p, 'budDb', 'rows'); if(nb && !lenOf(q, 'budDb', 'rows')) out.push('The BAE list ('+pl(nb, 'row', 'rows')+')');
+  const nr=lenOf(p, 'rpDb', 'entries'); if(nr && !lenOf(q, 'rpDb', 'entries')) out.push('The reprogramming log ('+pl(nr, 'entry', 'entries')+')');
+  if(lenOf(p, 'destDb', 'ents') && !(obj(q.destDb) && Array.isArray(q.destDb.ents))) out.push('The destination list');
+  return out;
+}
+// The question saveDrops' lines go into: plain text, for confirm(), at most twelve lines.
+function saveDropsAsk(name, lost, baked){
+  if(baked) return '⚠ HOLD ON — “'+name+'” holds a board built into its program — '+lost.join(', ')+' — and no saved board state, so ORBIT cannot tell what of it the board on screen carries.\n\n'
+    +'Saving now writes the board on screen over the file, and that board is gone from it.\n\nOK — save anyway.\nCancel — don’t save. Nothing is written.';
+  const ln=lost.slice(0, 12).map(function(l){ return '  • '+l; });
+  if(lost.length>12) ln.push('  • … and '+(lost.length-12)+' more');
+  return '⚠ HOLD ON — “'+name+'” holds what the board on screen does not carry:\n\n'+ln.join('\n')
+    +'\n\nSaving now writes the board on screen over the file, and these are gone from it.\n\nOK — save anyway (only if you removed them on purpose).\nCancel — don’t save. Nothing is written.';
 }
 function publishState(){
   if(sandboxBlock('Downloading a copy of the board')||cycBlock('Downloading a copy of the board')) return;
@@ -34784,8 +34964,8 @@ function diagReport(){
         : (pr==='http:' || pr==='https:')? 'a web address' : pr.replace(/[^a-z]/g, ''); }catch(e){}
   add('  Opened from:        '+how);
   let sv='';
-  try{ sv = SANDBOX? 'turned off (PMO copy)' : driveStoreOn()? 'the shared folder store' : FH? 'this file, in place'
-          : (window.showSaveFilePicker? 'asks where, the first time' : 'downloads a copy (this browser cannot write in place)'); }catch(e){}
+  try{ sv = SANDBOX? 'turned off (PMO copy)' : driveStoreOn()? 'the shared folder store' : (FH || _fhKnown)? 'a file this browser remembers for this page'
+          : (window.showSaveFilePicker? 'asks which file, the first time' : 'downloads a copy (this browser cannot write in place)'); }catch(e){}
   add('  Save writes to:     '+sv);
   let lv='';
   try{ const c=liveCfg(), set=(c.mode==='drive')? !!c.folder : !!c.url,
