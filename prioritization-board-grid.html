@@ -24855,7 +24855,10 @@ function cycApplyAll(key){
     const g0=_sideGen, res=lsAll(W);
     if(!res.ok){
       // put back whole: nothing was changed, so nothing reads unsaved for it
-      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }
+      // v2.14 (INT-11): lsAll's put-back has already given the page back every mark it had before the call (lsMarksBack); deleting
+      // the keys' refusals here too erased one the page held BEFORE -- a package storage had refused stayed on screen only, and
+      // leaving the page stopped asking (measured: recovery/v214/w3-cyc-erase-probe.mjs)
+      if(res.back) _sideGen=g0;
       setStat('⚠ <b>The PPBE cycle was not changed</b> — browser storage refused '+esc(W[Math.max(0, res.at)][2])+' ('+esc(res.why)+'). '
         +(res.back? 'Nothing was changed.' : 'Not every appropriation could be put back as it was: '
           +W.filter(function(w, i){ return res.now[i]!=='was'; }).map(function(w){ return esc(w[2]); }).join(', ')+' — open each to check its cycle.'));

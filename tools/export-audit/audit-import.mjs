@@ -16943,6 +16943,11 @@ await (async () => {
 // ==== end v2.14 W4 ====
 
 // ==== v2.14 integration (the lead) ====
+// ---- INT-A (INT-1, INT-2, INT-3, INT-5, INT-6) ----
+// ---- end INT-A ----
+
+// ---- INT-B (INT-7, INT-8, INT-9, INT-10) ----
+// ---- end INT-B ----
 // ==== end v2.14 integration ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs

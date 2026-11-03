@@ -9938,8 +9938,9 @@ const MUTATIONS = [
     find: "pre=(F.key!==named)? key+' · ' : '';", repl: "pre=(named===null)? key+' · ' : '';" },
   { id: 'v213-rv-empty-position-counts', area: "cycPosKeysOf", what: "a position entered and left without figures reads as controls entered",
     find: "if(cycKeyOk(k) && P && typeof P==='object' && !Array.isArray(P) && baNamed(ppNorm(P)).length) out.push(k);", repl: "if(cycKeyOk(k) && P && typeof P==='object' && !Array.isArray(P)) out.push(k);" },
-  { id: 'v213-rv-refused-reads-unsaved', area: "cycApplyAll", what: "a change refused and put back whole leaves the refused list held as unsaved",
-    find: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }", repl: "      if(res.back){ _sideGen=g0; }" },
+  // v213-rv-refused-reads-unsaved retired as obsolete in v2.14 (INT-11): the line it removed is gone, because it erased a refusal the
+  // page held before the call. The defect it guarded (a refused put-back read as unsaved) is held by v214-w3-marks-side-kept
+  // through W3's check 5; v214-int-cyc-erases-refusal puts the delete back.
   // ==== end v2.13 item 136 ====
 
   // ==== v2.14 W1 (item 140; item 141 D): Save writes only to its own file, and asks before writing over what it does not carry ====
@@ -10344,6 +10345,11 @@ const MUTATIONS = [
   // ==== end v2.14 W4 ====
 
   // ==== v2.14 integration (the lead) ====
+  // ---- INT-A (mutations for INT-1..INT-6, if any) ----
+  // ---- end INT-A ----
+
+  // ---- INT-B (v214-int-stray-unguarded, v214-int-cyc-erases-refusal) ----
+  // ---- end INT-B ----
   // ==== end v2.14 integration ====
 
 ];

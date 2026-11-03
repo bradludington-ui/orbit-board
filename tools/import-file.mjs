@@ -13,7 +13,7 @@
 //   C. WRITTEN OVER THE PAGE THAT RAN IT: the program's own file chosen; the reload opens straight into the board, its report says
 //      "into this file", and it takes the handle it was written through, so 💾 Save writes with no window.
 //   D. A FAILURE AFTER THE PICK (the close rejects): nothing cleared, and both copies download with their exact bytes; and while a
-//      write is held, closing the tab asks first (C23: W3's leave prompt reads impFileHolds -- said as INT on a board without it).
+//      write is held, closing the tab asks first (C23: W3's leave prompt reads impFileHolds).
 //   E. TWO TABS: the importing page reopened is held -- its edit is not in browser storage -- and the written file opens as the
 //      imported board.
 //   F. NO SAVE WINDOW (showSaveFilePicker deleted): the board downloads; opened over ANOTHER board's older copy in this browser, it
@@ -134,10 +134,12 @@ const lsOf = p => p.evaluate(() => { const o = {}; for (let i = 0; i < localStor
 const lens = o => J(Object.keys(o).filter(k => k !== 'prio27writerKey').sort().map(k => [k, o[k].length]));
 const doImport = async (p, name) => { await p.setInputFiles('#fullFile', join(dir, name || SRCN)); await p.waitForFunction(() => /Nothing was imported|Full board imported/.test((document.getElementById('shareStat') || {}).textContent || ''), null, { timeout: 60000 }); await p.waitForTimeout(300); };
 const writeBtn = p => p.$('#impFileGo');
-// Write, pressed as a person presses it. Until W3's lsMarksBack is merged (contract C2, C9) the refusal itself marks this page
-// unsaved, so step 1 shows for nothing; Carry on without a copy of it is ticked then, as a person would.
+// Write, pressed as a person presses it. Since W3's lsMarksBack is in (contract C2, C9), a refused import leaves the page as saved as
+// it was, so step 1 (work this browser holds that no saved copy has) must not show for nothing; INT-2 holds the same in jsdom.
 const goWrite = async (p) => {
-  if (await p.evaluate(() => /1\. This browser holds work/.test((document.getElementById('impFileBody') || {}).textContent || '')))
+  const step1 = await p.evaluate(() => /1\. This browser holds work/.test((document.getElementById('impFileBody') || {}).textContent || ''));
+  chk('the refused import left the page as saved as it was: no step 1 for nothing', !step1);
+  if (step1)
     await p.evaluate(() => { const c = document.getElementById('impFileSkip'); c.checked = true; c.dispatchEvent(new Event('change', { bubbles: true })); });
   await p.click('#impFileGo');
 };
@@ -231,8 +233,8 @@ console.log('\nD. a failure after the pick; leaving while a write is held');
   const hasLeave = await p.evaluate(() => typeof memOnlyLeave === 'function');
   let asked = false; p.once('dialog', async d => { asked = d.type() === 'beforeunload'; try { await d.dismiss(); } catch {} });
   await p.close({ runBeforeUnload: true }); await new Promise(r => setTimeout(r, 800));
-  if (hasLeave) chk('D · closing the tab while it writes asks first (beforeunload)', asked);
-  else say('D · closing the tab while it writes asks first: this board has no leave prompt yet (W3’s memOnlyLeave); after integration this is a check');
+  chk('D · this board has the leave prompt (memOnlyLeave)', hasLeave);
+  chk('D · closing the tab while it writes asks first (beforeunload)', asked);
   await ctx.close(); }
 // ── E ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 console.log('\nE. two tabs: the importing page is held, the written file opens as the import');
