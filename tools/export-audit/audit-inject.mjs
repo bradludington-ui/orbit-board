@@ -682,6 +682,42 @@ const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== Stri
 const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding here first, so a block that never runs fails
 
 // ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====
+{
+  // v2.14 W2 (item 141) — the file route's box, the hold's message and the import's own report draw every name as text: the
+  // imported file's name, the name chosen in the save window, the lists the import names, and a note planted in browser storage
+  // (every page opened from a drive shares it, so its text is never trusted as markup). A RUNTIME DRAW, through the board's own
+  // renderers.
+  const W2F = 'W2-1 the file route’s box and note draw file names as text (impFileDraw, impHandMsg, impOwnRep)';
+  INJ_EXPECT.push(W2F);
+  const B = fresh();
+  let out = null;
+  try {
+    out = JSON.parse(B.ev(`(function(){
+      var W=[[_AP.key, '{}', 'x', ${JSON.stringify(P('w2-says0'))}], ['prio27acedb', '{}', 'y', ${JSON.stringify(P('w2-says1'))}]];
+      W.full={rep:${JSON.stringify(P('w2-rep'))}};
+      impFileOffer({ok:false, at:1, why:${JSON.stringify(P('w2-why'))}, back:true, now:['was','was'], held:[null,null]}, W, 'the text', ${JSON.stringify(P('w2-fname'))});
+      var r={box:__show('impFileBody'), stat:__show('shareStat')};
+      var m={n:'x', at:Date.now(), name:${JSON.stringify(P('w2-name'))}, from:${JSON.stringify(P('w2-from'))}, href:'', keys:['prio27zz'],
+        says:[${JSON.stringify(P('w2-says'))}], h:{}, rep:${JSON.stringify(P('w2-mrep'))}, how:'file'};
+      localStorage.setItem(IMP_FILE_KEY, JSON.stringify(m));
+      r.held=__draw(impHandMsg(${JSON.stringify(P('w2-what'))}));
+      r.own=__draw(impOwnRep({m:m, left:[${JSON.stringify(P('w2-left'))}]}));
+      localStorage.removeItem(IMP_FILE_KEY); _impHand=null;
+      _impFile.rescue={at:${JSON.stringify(P('w2-picked'))}, html:{text:'x', name:'n', got:false}, inc:{text:'y', name:'m', got:false}};
+      impFileDraw(); r.resc=__show('impFileBody');
+      _impFile.rescue=null; _impFile.pause={name:${JSON.stringify(P('w2-pause'))}, h:null}; impFileDraw(); r.pause=__show('impFileBody');
+      _impFile.pause=null; _impFile.busy=true; _impFile.busyName=${JSON.stringify(P('w2-busy'))}; impFileDraw(); r.busy=__show('impFileBody');
+      r.pw=window.__PWNED||0;
+      return JSON.stringify(r); })()`));
+  } catch (e) { chk(W2F, 'the file route’s renderers exist', 'absent: ' + String((e && e.message) || e).slice(0, 80), 'present'); }
+  if (out) {
+    for (const k of ['box', 'stat', 'held', 'own', 'resc', 'pause', 'busy']) {
+      chk(W2F, k + ': the planted names are drawn', !!out[k].drawn, true);
+      chk(W2F, k + ': and drawn as text, never as an element or a handler', !!out[k].live, false);
+    }
+    chk(W2F, 'no planted handler ran', out.pw, 0);
+  }
+}
 // ==== end v2.14 W2 ====
 
 // ==== v2.14 integration (the lead) ====

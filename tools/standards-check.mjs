@@ -465,6 +465,25 @@ for (const build of BUILDS) {
       detail: `the Summary with its figures, a shortfall and an International figure ${fdcShown.n ? 'was' : 'was NOT'} shown; the USAF sheet ${fdcSvc ? 'was' : 'was NOT'}`
         + (fdcShown.err ? ' (' + fdcShown.err + ')' : ''), n: 1 });
 
+    // v2.14 W2 (item 141): THE FILE ROUTE'S BOX, measured with step 1 showing (this page holds unsaved work), its buttons and its
+    // checkbox; then after a failure, with both rescues offered. It must be on screen, or the run fails.
+    const ifShown = await page.evaluate(() => { try {
+      if (typeof impFileOffer !== 'function') return { n: false };
+      openMenu = null; rowMenuId = null; syncBtns(); render();
+      const W = [[_AP.key, '{}', 'x', 'the O&M plan']]; W.full = { rep: 'r' };
+      DIRTY = true;
+      fullImportUndone({ ok: false, at: 0, why: 'QuotaExceededError', back: true, now: ['was'], held: [localStorage.getItem(_AP.key)] }, W, 'the text', 'ORBIT Live.html');
+      return { n: !!document.querySelector('#impFilePanel.open #impFileSkip') && !!document.getElementById('impFileGo') };
+    } catch (e) { return { n: false, err: String(e.message) }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const ifResc = await page.evaluate(() => { try {
+      _impFile.rescue = { at: 'ORBIT Live (ORBIT v2.14).html', html: { text: 'x', name: 'n', got: false }, inc: { text: 'y', name: 'm', got: false } }; impFileDraw();
+      return document.querySelectorAll('#impFileBody button').length >= 4; } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    await page.evaluate(() => { try { impFileShut(); _impFileLast = null; DIRTY = false; syncBtns(); } catch (e) {} });
+    if (!ifShown.n || !ifResc) record(build, theme, { sc: 'coverage', key: 'the file route’s box was not on screen whole to measure',
+      detail: `the box with step 1 ${ifShown.n ? 'was' : 'was NOT'} shown; with both rescues ${ifResc ? 'was' : 'was NOT'}` + (ifShown.err ? ' (' + ifShown.err + ')' : ''), n: 1 });
+
     // v2.12 (item 132): THE COST ESTIMATE IMPORT'S REPORT AND MAPPING BOX, measured with what the 2026 file puts in them: every
     // reason with rows and dollars, the named rows and the conflicting names, the columns read open; then the mapping box asking for
     // two renamed titles from the file's own 44 headers. Each must be on screen, or the run fails.

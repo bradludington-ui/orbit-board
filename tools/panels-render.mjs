@@ -60,6 +60,10 @@ const SPECIAL = {
   // v2.03 (item 19): the session's message list, with an unread warning in it (as ⚠ N unread opens it)
   msgPanel:  `setStat('⚠ A warning nobody has read yet.'); setStat('Order saved.'); msgOpen();`,
   aiPanel:   `aiOpen();`,   // v2.04 (item 109): the AI review list, empty until an answer is read
+  // v2.14 W2 (item 141): the box a full import too big for browser storage opens -- fullImportUndone, every key put back, given a
+  // one-entry W carrying .full as fullImportText's own does; something unsaved on the page, so step 1 shows too
+  impFilePanel: `DIRTY=true; (function(){ var W=[[_AP.key, '{}', 'x', 'the O&M plan']]; W.full={rep:'r'};
+              fullImportUndone({ok:false, at:0, why:'QuotaExceededError', back:true, now:['was'], held:[localStorage.getItem(_AP.key)]}, W, 'the text', 'ORBIT Live.html'); })();`,
   // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Imports & exports does
   uiImpPanel: `uiImpOpen();`,
   // v2.00 (menu, 19 Oct): the left menu's other two boxes, opened as Reports & exports and Data open them

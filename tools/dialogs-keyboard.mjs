@@ -64,6 +64,9 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
                   // only from an import that finds a title missing, so it is opened by its switch, for the file PRE puts in the page
                   aceRepClose: 'aceRepShow(', aceColCancel: 'aceColAsk(window.__aceColCtx)' };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
+  // v2.14 W2 (item 141): the file route's box has no backdrop click (closing must not be a stray click while a file is being
+  // written), and opens only from a full import browser storage refused -- so it is opened by its switch, the refusal PRE stands up
+  if (!pat && bg.id === 'impFilePanel') pat = 'window.__impFileGo()';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', ndOpen: 'ndOpen=true' })[v] || null; }
   return { id: bg.id, pat };
@@ -140,7 +143,12 @@ const PRE = { addPanel: [`setPmoFilter('PSM')`, `if(arOn()) arHide(); setPmoFilt
     `delete ACEDB.sets['2025ACE']; delete MS.ppbe['BES|2028']`],
   // v2.12 (item 132): an estimate as the import builds it, its report to read; a 2026 file with two renamed titles to ask about
   aceRepPanel: [ACE_REP_SEED, `delete ACEDB.sets['2026ACE']`],
-  aceColPanel: [`window.__aceColCtx=${ACE_COL_CTX}`, `delete window.__aceColCtx; ACECOL=null; aceColOpen=false; render()`] };
+  aceColPanel: [`window.__aceColCtx=${ACE_COL_CTX}`, `delete window.__aceColCtx; ACECOL=null; aceColOpen=false; render()`],
+  // v2.14 W2 (item 141): a full import refused for room, every key put back, as fullImportText's own refusal reaches the box (a
+  // one-entry W carrying .full); something unsaved on the page, so step 1 shows with its button and its checkbox. Taken off after
+  impFilePanel: [`window.__impFileGo=function(){ DIRTY=true; var W=[[_AP.key, '{}', 'x', 'the O&M plan']]; W.full={rep:'r'};
+    fullImportUndone({ok:false, at:0, why:'QuotaExceededError', back:true, now:['was'], held:[localStorage.getItem(_AP.key)]}, W, 'the text', 'ORBIT Live.html'); }`,
+    `delete window.__impFileGo; try{ impFileShut(); }catch(e){} _impFileLast=null; DIRTY=false; syncBtns()`] };
 for (const box of BOXES) {
   // v2.12 RV2 (K02): since v2.12 the in-app prompt is the WBS quick box wherever an estimate names the paragraphs, not only where
   // the browser has no prompt of its own; it is still skipped here (its Cancel discards as it says, and its backdrop closes
