@@ -15709,7 +15709,10 @@ const W214 = (() => {
       go:b? {disabled:!!b.disabled, title:b.title||'', text:b.textContent} : null}; })())`));
   const marker = (T) => { const v = T.ev(`localStorage.getItem('prio27impFile')`); return v ? JSON.parse(v) : null; };
   const navs = (T, e0) => T.errors.slice(e0).filter(e => /navigation/i.test(e)).length;
-  const settle = async (T, cond, max = 400) => W1H.until(cond || (() => false), max);
+  // v2.14 integration: by the clock, not by turns of the loop. The IndexedDB stand-in answers through timer hops; 400 setImmediate
+  // turns can pass inside one millisecond, so under load a wait for the handle store could give up before it answered (INT-A saw it).
+  const settle = async (T, cond, ms = 8000) => { const c = cond || (() => false), end = Date.now() + ms;
+    while (Date.now() < end) { if (c()) return true; await new Promise(r => setTimeout(r, 1)); } return !!c(); };
   const pubOf = (html) => W1H.pubOf(html);
   // ONE REFUSED FULL IMPORT of NEW over the board in T, storage refusing the cost estimates once (write 7). The opening's own marks
   // are let settle first. A refused all-or-nothing write puts the save marks back (item 140 c) -- W3's lsMarksBack, not merged here:
