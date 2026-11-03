@@ -10346,6 +10346,12 @@ const MUTATIONS = [
 
   // ==== v2.14 integration (the lead) ====
   // ---- INT-A (mutations for INT-1..INT-6, if any) ----
+  // INT-1: a page reopened over browser storage's copy reads its work as blank only when that copy's record says it is blank work.
+  // Without the mark, a full import that landed and reopened in the program is "blank work" -- its first edit is recorded blank:true,
+  // and a board file opened later in that browser keeps the import aside as stray work instead of opening under it (C17's other
+  // side). blank-not-carried removes the clause; this keeps it and drops its condition.
+  { id: 'v214-int-blank-any-copy', area: "opening", what: "a board reopened over any copy in browser storage -- an import that landed among them -- reads as blank work, so its edits are recorded blank and a board file opened later keeps it aside as stray work",
+    find: "_bootOwnRead && !_bootFile && _bootBase.blank===true) _pageBlank=true;", repl: "_bootOwnRead && !_bootFile) _pageBlank=true;" },
   // ---- end INT-A ----
 
   // ---- INT-B (v214-int-stray-unguarded, v214-int-cyc-erases-refusal) ----

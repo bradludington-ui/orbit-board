@@ -16946,6 +16946,334 @@ await (async () => {
 
 // ==== v2.14 integration (the lead) ====
 // ---- INT-A (INT-1, INT-2, INT-3, INT-5, INT-6) ----
+// v2.14 INT-A (the lead's integration checks, contract §11.3: INT-1, INT-2, INT-3, INT-5, INT-6). Each holds two or three
+// workstreams' changes TOGETHER, on the path a person takes, where each workstream's own block could hold only its own half. Every
+// expectation is a literal from the fixture or worked out here from it, never read back from the code under test. Each fails on the
+// slot commit (ea412ca, v2.13's behaviour with inert seams) unless a part says CONTROL. Helpers reused: w2Fx / w2Import / w2LsOf /
+// w2View / w2Diff (v1.95), W1H (v1.95), the W1 slot's w14* (pickers, stand-in files, questions) and the W2 slot's W214 (the file
+// route's fixture, its save window, its box).
+const INTA = (() => {
+  const J = JSON.stringify;
+  // what the board says about its own saving (W3's check 5 reads the same five): the marks, this browser's record's flag, the
+  // save state on screen
+  const marks = ev => JSON.parse(ev(`JSON.stringify({dirty:DIRTY, base:_baseDirty, unsaved:unsavedNow(), dl:_dlOnly,
+    refused:Object.keys(_lsRefused).sort(), state:(document.getElementById('saveState')||{}).textContent||''})`));
+  // memOnlyNow() as text, 'none' on a board that has no such function (the slot commit), so each part fails on its own
+  const mem = ev => ev(`typeof memOnlyNow==='function'? String(memOnlyNow()) : 'none'`);
+  // does closing the page ask? (beforeunload cancelled)
+  const leave = ev => ev(`(function(){ var e=new Event('beforeunload', {cancelable:true}); window.dispatchEvent(e); return String(e.defaultPrevented); })()`);
+  const rec = ev => JSON.parse(ev(`JSON.stringify((function(){ try{ return JSON.parse(localStorage.getItem(_AP.key+'.base')||'{}'); }catch(e){ return {}; } })())`));
+  // how many messages this session kept that tell the person browser storage could not keep something (lsSet's warning)
+  const lsWarn = ev => +ev(`(typeof STAT_LOG!=='undefined'? STAT_LOG : []).filter(function(e){ return /could not be kept in browser storage/.test(e.html||''); }).length`);
+  // OLD or NEW, read off a container of a saved state (w2Fx's two generations write their names into every container)
+  const gen = o => { const s = J(o || {}); return /NEW/.test(s) && /OLD/.test(s) ? 'BOTH' : /NEW/.test(s) ? 'NEW' : /OLD/.test(s) ? 'OLD' : 'none'; };
+  // wait, by the clock, for something a page does over several timer turns (the handle store's stand-in answers by setTimeout, so a
+  // count of loop turns can run out before it has: measured, the reopen after the handle was kept landed late on a loaded machine)
+  const until = async (cond, ms = 8000) => { const t0 = Date.now();
+    while (Date.now() - t0 < ms) { try { if (cond()) return true; } catch (e) {} await new Promise(r => setTimeout(r, 10)); } return false; };
+  return { J, marks, mem, leave, rec, lsWarn, gen, until };
+})();
+
+// INT-1 (items 140, 141): THE PROGRAM, A FULL IMPORT THAT LANDS, AND ITS FIRST SAVE -- W1's case 3 and D, W2's records, W4's
+// record writer, in that order on one person's path. The browser's records name another board file's save and it holds no plan of
+// its own (what opening a board file leaves behind); the program is opened there, a full board is imported through browser storage,
+// the page reopens on it, an edit is made, and 💾 Save is pressed into the program's own file. Measured on the slot commit: the
+// opening took the other file's save as its own; the import left those records, so the reopened board read "Saved" -- in a file it
+// was never in -- and its next edit was recorded against that file; and the Save never offered the program's own file.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — after a full import that lands, the board reads unsaved, takes no other file’s save as its own, and its first Save writes the program it ran in without a question (items 140, 141)';
+  try {
+    const { J, rec, gen } = INTA;
+    const { NEW } = w2Fx();
+    const NP = W1H.pubOf(NEW.html);
+    const PROGRAM = readFileSync(BOARD, 'utf8');
+    const OTHER = 1700000000123;                       // another board file's save, as this browser recorded it
+    const REC0 = J({ file: OTHER, dirty: false });
+    const ls0 = { prio27appn: 'O&M', prio27writerKey: W14K, 'prio27om.base': REC0, 'prio27ff.base': REC0, 'prio27sp.base': REC0 };
+    const T = boot({ ls: ls0 });
+    chk(name, 'the program, opened', 'the setup: the program carries no board, this browser holds no plan, and the file imported holds O&M and Full Fund (a CONTROL)',
+      J([W1H.pubOf(PROGRAM), T.ev(`localStorage.getItem(_AP.key)`), Object.keys(NP.appns).sort()]), J([null, null, ['ff', 'om']]));
+    chk(name, 'the program, opened', 'its board came from no saved copy, so it takes no other file’s save as its own (W1, case 3)',
+      J([T.ev('LASTKNOWN'), T.ev('_baseDirty')]), J([0, false]));
+    const r = w2Import(T, NEW.html, 'none', 0);
+    chk(name, 'the import', 'it lands -- nothing refused, thrown or alerted -- and the page goes to reopen', J([r.ret, r.threw, r.alerts.length, r.nav]), J([true, '', 0, true]));
+    const lsA = w2LsOf(T.ev);
+    const IMPREC = J({ file: 0, folder: {}, dirty: true });
+    chk(name, 'the import', 'each plan it wrote is recorded in no saved file, unsaved, with no blank mark (W2); a plan it did not write keeps its record (a CONTROL)',
+      J([lsA['prio27om.base'] || null, lsA['prio27ff.base'] || null, lsA['prio27sp.base'] || null]), J([IMPREC, IMPREC, REC0]));
+    // reopened as reopenPage() leaves it: the program, on what the import wrote, in the same browser and its handle store
+    const store = new Map(), log = [];
+    const R = boot({ ls: lsA, idb: { store, log } });
+    await w14pause(40);
+    const v = w2View(R.ev);
+    chk(name, 'reopened', 'the import is on screen: O&M’s and Full Fund’s plans are the imported board’s', J([v.omTitle, v.ff]), J(['NEW O&M', 'NEW']));
+    chk(name, 'reopened', 'it reads unsaved, and takes no other file’s save as its own', J([W1H.header(R.ev), R.ev('LASTKNOWN'), R.ev('_baseDirty')]), J(['Unsaved changes', 0, true]));
+    // an edit, through W4's record writer: still no saved file, and not blank work -- the board came from a file (C17)
+    R.ev(`setNote('A','AFTER THE IMPORT'); 'ok'`);
+    const rE = rec(R.ev);
+    chk(name, 'an edit', 'the record still names no saved file, reads unsaved, and does not mark the work blank (it came from a file, not a blank page)',
+      J([rE.file, rE.dirty, rE.blank === true, w14ev(R.ev, 'pageBlankNow()')]), J([0, true, false, false]));
+    // THE FIRST 💾 SAVE: the Open window, the program's own file picked there, read and checked before write access is asked, written
+    // once -- and no question: every question is answered Cancel here, so one asked would also have stopped the write (C14: both
+    // windows stood in; the Save window must not be used)
+    w14wire(R.ev, 'false');
+    const dP = w14disk('board.html', PROGRAM); dP.query = 'prompt';
+    const dS = w14disk('SAVE WINDOW.html');
+    const PP = w14pickers(R, { open: dP, save: dS });
+    await w14save(R.ev);
+    chk(name, 'the first Save', 'the Open window, not the Save window: the program read and checked, then write access asked, then written once',
+      J([PP.open.length, PP.save.length, dP.ops, dP.writes, dS.writes]), J([1, 0, ['read', 'query', 'request', 'write'], 1, 0]));
+    chk(name, 'the first Save', 'no question asked and no copy downloaded', J([w14q(R.ev), w14ev(R.ev, '__dl')]), J([[], 0]));
+    const out = w14pub(dP.content) || {}, oa = out.appns || {};
+    chk(name, 'the first Save', 'the program now holds the import in every appropriation the file carried, and the edit, with this browser as its writer',
+      J([Object.keys(oa).sort(), gen((oa.om || {}).years), gen((oa.ff || {}).years), J(oa.om || {}).includes('AFTER THE IMPORT'), (out.writer || {}).fp === w14ev(R.ev, 'writerFp()')]),
+      J([Object.keys(NP.appns).sort(), 'NEW', 'NEW', true, true]));
+    chk(name, 'the first Save', 'it says it was saved in place and that this browser is now the writer',
+      J([/^💾 Saved in place/.test(w14stat(R.ev)), /You are now this board’s writer/.test(w14stat(R.ev))]), J([true, true]));
+    await INTA.until(() => store.get('page|https://example.invalid/board.html') === dP.h, 3000);   // the handle store answers by timer
+    const wrote = w14fileTs(out), rS = rec(R.ev);
+    chk(name, 'the first Save', 'it reads Saved, from the file it wrote; the record names that file, clean; and this page remembers the program as its file',
+      J([/^Saved/.test(W1H.header(R.ev)), +R.ev('LASTKNOWN') === wrote, rS.file === wrote, rS.dirty, store.get('page|https://example.invalid/board.html') === dP.h]),
+      J([true, true, true, false, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// INT-2 (items 140 c, 141): A REFUSED FULL IMPORT LEAVES THE BOARD AS SAVED AS IT WAS AND OFFERS THE NEW FILE -- W3's restore of the
+// save marks with W2's box. Each half was checked alone with the other stood in (W2's refuse() puts the marks back by hand, W3's
+// check 5 closes the box unread); together, the box must open on a board that reads exactly as it did, so step 1 ("this browser holds
+// work no saved board file has") is not shown for nothing and Write is offered at once, and lsSet's "could not be kept in browser
+// storage … Save" is never said of what was never loaded. Measured on the slot commit: an alert and no box, the board read
+// "Unsaved changes", and lsSet's warning sat unread beside "Nothing was imported".
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — a refused full import leaves the board as saved as it was and offers the new file (items 140 c, 141)';
+  try {
+    const { J, marks, mem, leave, lsWarn, until } = INTA;
+    const { NEW, OLD, ls } = W214.fx();
+    // OLD's board in its own browser, its opening's timers run, then saved in place into a file (a stand-in, FH set): it reads Saved
+    const T = boot({ html: OLD.html, ls });
+    await w14pause(5);
+    W1H.disk(T.w, '');
+    T.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      window.showOpenFilePicker=function(){ return Promise.reject(new DOMException('no window here', 'AbortError')); }; 'ok'`);
+    await T.ev('saveInPlaceFile()');
+    const P = W214.picker(T, { cancel: true });         // both windows stood in from here (C14); the Save window cancels
+    const m0 = marks(T.ev), w0 = lsWarn(T.ev);
+    chk(name, 'the fixture', 'the board reads Saved, with nothing unsaved or on screen only (a CONTROL)', J([/^Saved/.test(m0.state), m0.unsaved, m0.base, mem(T.ev) !== 'true']), J([true, false, false, true]));
+    const r = w2Import(T, NEW.html, 'once', 7);          // the cost estimates refused once: every key put back
+    chk(name, 'refused', 'nothing imported, nothing reopened, no alert, and every key byte for byte as it was', J([r.ret, r.nav, r.alerts.length, w2Diff(r.held, w2LsOf(T.ev))]), J([false, false, 0, '']));
+    chk(name, 'refused', 'the message line says what a refused import has always said', W1H.status(T.ev),
+      '⛔ Nothing was imported — browser storage refused the cost estimates (QuotaExceededError); this board is exactly as it was.');
+    chk(name, 'as saved as it was (W3)', 'the marks, the record and the save state are exactly what they were', J(marks(T.ev)), J(m0));
+    chk(name, 'as saved as it was (W3)', 'nothing is on screen only, and closing the page asks nothing', J([mem(T.ev), leave(T.ev)]), J(['false', 'false']));
+    chk(name, 'as saved as it was (W3)', 'nothing says the cost estimates could not be kept in browser storage, or to Save them', lsWarn(T.ev) - w0, 0);
+    const b = W214.box(T);
+    chk(name, 'the new file (W2)', 'the box is open and offers the write at once: nothing named as unsaved, no step 1, Write enabled',
+      J([b.open, T.ev('JSON.stringify(impUnsavedList(_impFile.W))'), /holds work no saved board file has/.test(b.text), b.go && b.go.text, b.go && b.go.disabled]),
+      J([true, '[]', false, 'Write the imported board into a new file…', false]));
+    W214.press(T, P, /^Write the imported board/);
+    await until(() => /No file was chosen/.test(W1H.status(T.ev)));
+    chk(name, 'the new file (W2)', 'Write opens the save window at once, inside the click (here cancelled: nothing changes, the box stays)',
+      J([P.inClickAt, W214.box(T).open, w2Diff(r.held, w2LsOf(T.ev)), J(marks(T.ev)) === J(m0)]), J([[true], true, '', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// INT-3 (item 140): A PAGE WITH NO SAVED BOARD RECORDS ITS WORK AS BLANK -- W1's case 3 and blank flag with W4's record writer. The
+// browser opened a v2.13 board file (opening records its save and stores no plan: v2.09's third review), then a v2.14 page with no
+// board was opened there and a year started in it. That work must be recorded as no saved file's, unsaved and blank: then an older
+// board (v2.13, which knows nothing of the mark) asks HOLD ON before its Save writes that work over its own file -- because the
+// record names no file -- and a v2.14 board file keeps it aside rather than opening under it (the stray rule). Measured on the slot
+// commit: the blank page took the v2.13 file's save as its own, its record went on naming that file, the v2.13 board then wrote the
+// blank page's near-empty plan over its file asking nothing, and a v2.14 board file opened under the blank work.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — a page with no saved board records its work as blank, so an older board asks before writing it over its file and a v2.14 board file keeps it aside (item 140)';
+  try {
+    const { J, rec } = INTA;
+    const V213 = v14Old('c863dc2', 'prioritization-board-grid.html');   // v2.13 (git fetch --unshallow first in a shallow clone)
+    const PROGRAM = readFileSync(BOARD, 'utf8');
+    // the v2.13 board file, its writer this browser; and a v2.14 board file -- both saved before any blank work below
+    const F13b = w14board({ html: V213, ls: { prio27writerKey: W14K } });
+    F13b.ev(`WRITER=${J(w14mine())}; S.notes=S.notes||{}; S.notes.A='V2.13 FILE note'; save(); 'ok'`);
+    const F13 = F13b.ev('buildSavedHtml()'), F13ts = w14fileTs(w14pub(F13));
+    const B14b = w14board({ ls: { prio27writerKey: W14K } });
+    B14b.ev(`S.notes=S.notes||{}; S.notes.A='V2.14 FILE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const B14 = B14b.ev('buildSavedHtml()');
+    await w14pause(10);
+    // this browser opens the v2.13 board file: its opening records the file's save and stores no plan of its own
+    const O = boot({ html: F13, ls: { prio27appn: 'O&M', prio27writerKey: W14K } });
+    const lsO = w14ls(O.ev);
+    chk(name, 'setup', 'opening the v2.13 board file recorded its save, clean, and stored no plan (a CONTROL)',
+      J([JSON.parse(lsO['prio27om.base'] || '{}').file === F13ts, JSON.parse(lsO['prio27om.base'] || '{}').dirty, 'prio27om' in lsO]), J([true, false, false]));
+    // (a) a v2.14 page with no board, opened in that browser: no file's save is its own; a year started there is recorded blank
+    const A = boot({ ls: lsO, url: W14U('program.html') });
+    A.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    chk(name, '(a) a page with no saved board', 'it takes the v2.13 file’s save as nothing of its own, and its work is blank', J([A.ev('LASTKNOWN'), w14ev(A.ev, 'pageBlankNow()')]), J([0, true]));
+    const cur0 = +A.ev('MS.cur'), cur1 = cur0 + 1;
+    A.ev(`switchYear(${cur1}); 'ok'`);
+    const rA = rec(A.ev), lsA = w14ls(A.ev), stA = JSON.parse(lsA.prio27om || '{}');
+    chk(name, '(a) a year started', 'switchYear records the work as no saved file’s, unsaved and blank: {file:0, dirty:true, blank:true}',
+      J([rA.file, rA.dirty, rA.blank]), J([0, true, true]));
+    chk(name, '(a) a year started', 'the blank work is in browser storage, newer than both board files, with no data pack (a CONTROL)',
+      J([+stA.ts > F13ts, +stA.ts > w14fileTs(w14pub(B14)), !!stA.dataPack, +stA.cur]), J([true, true, false, cur1]));
+    // (b) that page reopened: storage's copy is on screen, and the work is still blank work
+    const Bp = boot({ ls: lsA, url: W14U('program.html') });
+    chk(name, '(b) reopened', 'storage’s blank work is on screen, no file’s save is its own, and it is still blank work',
+      J([Bp.ev('MS.cur'), Bp.ev('LASTKNOWN'), w14ev(Bp.ev, 'pageBlankNow()')]), J([cur1, 0, true]));
+    Bp.ev(`S.notes=S.notes||{}; S.notes.Z='BLANK note'; save(); 'ok'`);
+    const rB = rec(Bp.ev);
+    chk(name, '(b) an edit', 'the record keeps the blank mark: {file:0, dirty:true, blank:true}', J([rB.file, rB.dirty, rB.blank]), J([0, true, true]));
+    // (c) it saves in place into its own program file (W1 D): written, asking nothing; afterwards an edit records that file, not blank
+    w14wire(Bp.ev, 'false');
+    const dP = w14disk('program.html', PROGRAM); dP.query = 'prompt';
+    const PPc = w14pickers(Bp, { open: dP, save: null });
+    await w14save(Bp.ev);
+    chk(name, '(c) saved in place', 'its first Save writes the program it ran in, through the Open window, asking nothing',
+      J([PPc.open.length, dP.writes, w14q(Bp.ev), w14ev(Bp.ev, '__dl')]), J([1, 1, [], 0]));
+    const cts = w14fileTs(w14pub(dP.content));
+    Bp.ev(`S.notes.Z='AFTER THE SAVE'; save(); 'ok'`);
+    const rC = rec(Bp.ev);
+    chk(name, '(c) an edit after it', 'the record names the file it wrote, unsaved, and the work is no longer blank',
+      J([rC.file === cts && cts > 0, rC.dirty, rC.blank, w14ev(Bp.ev, 'pageBlankNow()')]), J([true, true, false, false]));
+    // (d) the v2.13 board, its own file opened on (a)'s storage: it shows storage's newer blank work (as v2.13 does), and its Save into
+    // its own file asks HOLD ON -- the record names no file -- and, cancelled, writes nothing
+    const D = boot({ html: F13, ls: lsA });
+    w14wire(D.ev, 'false');
+    const dF = w14disk('board13.html', F13); D.w.__intd = dF.h; D.ev(`FH=window.__intd; 'ok'`); w14pickers(D, { open: null, save: null });
+    chk(name, '(d) the v2.13 board', 'it opened storage’s newer blank work (its year, not the file’s note), not its file’s plan (a CONTROL: v2.13 opens the newer copy)',
+      J([D.ev('MS.cur'), D.ev(`(S.notes||{}).A||''`)]), J([cur1, '']));
+    await w14save(D.ev);
+    const qD = w14q(D.ev);
+    chk(name, '(d) the v2.13 board', 'its 💾 Save asks HOLD ON before writing over its own file, and Cancel writes nothing',
+      J([qD.filter(m => /^⚠ HOLD ON/.test(m)).length, dF.writes, dF.content === F13]), J([1, 0, true]));
+    // (e) a v2.14 board file, older than the blank work, opened on (a)'s storage: the file opens, the blank work is kept aside whole
+    const E = boot({ html: B14, ls: lsA });
+    const vE = JSON.parse(w14ev(E.ev, `JSON.stringify({ids:(DATA.items||[]).map(function(i){ return i.id; }), notes:S.notes, cur:MS.cur,
+      kept:(function(){ try{ return JSON.parse(keptCopy().raw).cur; }catch(e){ return null; } })(), fileOn:LASTKNOWN===PUB_FILE_TS, base:baseGet()})`));
+    chk(name, '(e) a v2.14 board file', 'it opens its own requirements and notes, not the blank work', J([vE.ids, vE.notes, vE.cur]), J([W14SC.order, { A: 'V2.14 FILE note' }, +w14pub(B14).appns.om.cur]));
+    chk(name, '(e) a v2.14 board file', 'the blank work is kept aside whole (the year it started), and the file’s save is the one on screen, recorded clean',
+      J([vE.kept, vE.fileOn, vE.base.file === w14ev(E.ev, 'PUB_FILE_TS'), vE.base.dirty]), J([cur1, true, true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// INT-5 (item 141): A FULL IMPORT IS REFUSED WHILE A CHANGE IS ON SCREEN ONLY, BEFORE THE FILE ROUTE IS OFFERED -- W3's guard ahead
+// of W2's route. The file route ends by reopening the page on the new file; a change browser storage refused lives on this page
+// alone, so the import must stop first, saying why and naming Save, before it writes, asks or offers anything. Then (a CONTROL that
+// it was the guard) 💾 Save into the file ends it and the same refused import is offered the new file. Measured on the slot commit:
+// nothing was on screen only, the import ran, was refused by browser storage, and alerted.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — a full import is refused while a change is on screen only, before the file route is offered (item 141)';
+  try {
+    const { J, mem, leave } = INTA;
+    const { NEW, OLD, ls } = W214.fx();
+    const T = boot({ html: OLD.html, ls });
+    await w14pause(5);
+    // a change browser storage refuses (this appropriation's plan only): it is on screen only
+    T.ev(`(function(){ window.__si0=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k===_AP.key) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return window.__si0.call(this,k,v); };
+      try{ setNote('A','ON SCREEN ONLY'); }finally{ Storage.prototype.setItem=window.__si0; } return 'ok'; })()`);
+    chk(name, 'the change', 'browser storage refused it: on screen, not in storage, on screen only, and closing the page asks',
+      J([T.ev('S.notes.A'), /ON SCREEN ONLY/.test(T.ev(`localStorage.getItem(_AP.key)||''`)), mem(T.ev), leave(T.ev)]), J(['ON SCREEN ONLY', false, 'true', 'true']));
+    const P = W214.picker(T);
+    const ls1 = w2LsOf(T.ev);
+    const r = w2Import(T, NEW.html, 'once', 7);
+    chk(name, 'the import', 'refused before anything: nothing written to storage (not even tried), nothing alerted, nothing reopened, storage byte for byte',
+      J([r.ret, r.writes.length, r.alerts.length, r.nav, w2Diff(ls1, w2LsOf(T.ev))]), J([false, 0, 0, false, '']));
+    chk(name, 'the import', 'it says why, naming Save', /^⛔ Not imported\. Your latest changes are on screen only: browser storage refused them, so no saved copy holds them, and a full import reopens the page, which would lose them\. 💾 Save writes them into the board file, then try again\.$/.test(W1H.status(T.ev)), true);
+    chk(name, 'the import', 'the file route is not offered: no box, no save window; the change is still on screen and still on screen only',
+      J([W214.box(T).open, P.picks.length, T.ev('S.notes.A'), mem(T.ev)]), J([false, 0, 'ON SCREEN ONLY', 'true']));
+    // what stopped it was the guard: 💾 Save into the file ends "on screen only", and the same refused import then offers the new file
+    W1H.disk(T.w, '');
+    T.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    await T.ev('saveInPlaceFile()');
+    chk(name, 'after 💾 Save', 'the change is in the file: nothing is on screen only, and closing the page asks nothing', J([mem(T.ev), leave(T.ev)]), J(['false', 'false']));
+    const P2 = W214.picker(T, { cancel: true });
+    const r2 = w2Import(T, NEW.html, 'once', 7);
+    chk(name, 'after 💾 Save', 'the same import, refused by browser storage, is offered the new file (so it was the guard that stopped it before)', J([r2.ret, r2.alerts.length, W214.box(T).open, P2.picks.length]), J([false, 0, true, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// INT-6 (items 140, 141): THE IMPORT'S NEW FILE SAVES IN PLACE TWICE, ASKING NOTHING -- W2's new file with W1's first Save and its
+// question (b). The file route writes the imported board into a new file, records this browser as its writer and keeps the handle for
+// the page it reopens; W1 keeps a page's file under the page's own address, opens the Open window for a file it does not know, and
+// asks before writing over anything the file holds that the board on screen does not carry. Together: (1) opened where the import ran,
+// the page takes the handle, and 💾 Save writes it twice with no window and no question; (2) a copy of it opened at another address
+// takes no handle, and its first Save goes through the Open window -- read, checked, written -- then its second writes with no window;
+// neither asks anything. Measured on the slot commit: no file route at all (an alert).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 INT — the import’s new file saves in place twice, asking nothing (items 140, 141)';
+  try {
+    const { J, gen, rec, until } = INTA;
+    const { NEW, OLD, ls } = W214.fx();
+    const store = new Map(), log = [];
+    const T = boot({ html: OLD.html, ls, idb: { store, log } });
+    await w14pause(5);
+    const P = W214.picker(T), e0 = T.errors.length;
+    const r = w2Import(T, NEW.html, 'once', 7);         // the cost estimates refused once: the box offers the new file
+    W214.press(T, P, /^Write the imported board/);
+    await until(() => W214.navs(T, e0) > 0);
+    const nm = P.picks[P.picks.length - 1], html = P.files[nm] || '', m = W214.marker(T) || {}, lsAfter = w2LsOf(T.ev);
+    chk(name, 'written', 'the import was refused by browser storage, then written into a new file stamped as the import’s, and the page went to reopen on it',
+      J([r.ret, typeof nm === 'string', ((W1H.pubOf(html) || {}).impFile || {}).n === m.n && !!m.n, W214.navs(T, e0) > 0]), J([false, true, true, true]));
+    chk(name, 'written', 'the new file records this browser as its writer, and the handle is kept for the page that ran the import',
+      J([((W1H.pubOf(html) || {}).writer || {}).fp === T.ev('writerFp()'), store.has('import|' + m.n)]), J([true, true]));
+    // (1) OPENED WHERE THE IMPORT RAN (reopenPage leaves the page at the same address, in the same browser)
+    const B = boot({ html, ls: lsAfter, idb: { store, log } });
+    await until(() => !store.has('import|' + m.n));
+    chk(name, '(1) where it ran', 'it shows the import, takes the file it was written through as this page’s own, and lets the import’s entry go',
+      J([w2View(B.ev).omTitle, B.ev('FH? FH.name : null'), store.has('page|https://example.invalid/board.html'), store.has('import|' + m.n)]), J(['NEW O&M', nm, true, false]));
+    w14wire(B.ev, 'false');                          // every question is answered Cancel: one asked would also stop the write
+    const Q = w14pickers(B, { open: () => { throw w14err('AbortError'); }, save: null });
+    const w0 = P.writes;
+    await w14save(B.ev);
+    chk(name, '(1) the first Save', 'writes the import’s file once, with no window and no question', J([P.writes - w0, Q.open.length, Q.save.length, w14q(B.ev), w14ev(B.ev, '__dl')]), J([1, 0, 0, [], 0]));
+    B.ev(`setNote('A','SECOND SAVE'); 'ok'`);
+    await w14save(B.ev);
+    chk(name, '(1) the second Save', 'writes it again, with no window and no question', J([P.writes - w0, Q.open.length, Q.save.length, w14q(B.ev)]), J([2, 0, 0, []]));
+    const f1 = W1H.pubOf(P.files[nm]) || {}, rB = rec(B.ev);
+    chk(name, '(1) the file', 'it holds the import in O&M and Full Fund and the edit, no import stamp; the board reads Saved from it, recorded clean',
+      J([gen(((f1.appns || {}).om || {}).years), gen(((f1.appns || {}).ff || {}).years), J(f1).includes('SECOND SAVE'), 'impFile' in f1, /^Saved/.test(W1H.header(B.ev)), rB.file === w14fileTs(f1), rB.dirty]),
+      J(['NEW', 'NEW', true, false, true, true, false]));
+    // (2) A COPY OF IT OPENED AT ANOTHER ADDRESS: no handle; the first Save goes through the Open window, the second straight to the file
+    const store2 = new Map([['import|' + m.n, P.handle(nm)]]);
+    const C = boot({ html, ls: lsAfter, idb: { store: store2, log: [] }, url: W14U('elsewhere/board.html') });
+    await until(() => !store2.has('import|' + m.n));
+    chk(name, '(2) elsewhere', 'it takes no handle, and keeps none for its page', J([C.ev('FH===null'), [...store2.keys()]]), J([true, []]));
+    w14wire(C.ev, 'false');
+    const d2 = w14disk('board.html', html); d2.query = 'prompt';
+    const Q2 = w14pickers(C, { open: d2, save: null });
+    await w14save(C.ev);
+    chk(name, '(2) the first Save', 'the Open window: the file read and checked, write access asked, then written once; no question',
+      J([Q2.open.length, Q2.save.length, d2.ops, d2.writes, w14q(C.ev)]), J([1, 0, ['read', 'query', 'request', 'write'], 1, []]));
+    C.ev(`setNote('A','ELSEWHERE'); 'ok'`);
+    await w14save(C.ev);
+    chk(name, '(2) the second Save', 'written with no window and no question, and this page now remembers that file as its own',
+      J([Q2.open.length, Q2.save.length, d2.writes, w14q(C.ev), store2.get('page|' + W14U('elsewhere/board.html')) === d2.h, J(w14pub(d2.content) || {}).includes('ELSEWHERE')]),
+      J([1, 0, 2, [], true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end INT-A ----
 
 // ---- INT-B (INT-7, INT-8, INT-9, INT-10) ----
