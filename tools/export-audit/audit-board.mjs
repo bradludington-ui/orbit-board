@@ -4867,7 +4867,8 @@ await (async () => {
   const B = w4Template(['A', 'B', 'C'], ['R']), ev = B.ev;
   ev(`S.custom[0].ask[0]=150; save(); S.notes[S.custom[0].id]='kept'; save(); 'ok'`);
   const at = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).map(function(e){ return e.p.join('.'); }))`));
-  const iAsk = at.lastIndexOf('custom.0.ask.0'), iNote = at.lastIndexOf('notes.' + ev(`S.custom[0].id`));
+  // v2.14 W4: an added requirement's fields are journalled by its id (item 124), no longer by its place in the list
+  const iAsk = at.lastIndexOf('custom.' + ev(`S.custom[0].id`) + '.ask.0'), iNote = at.lastIndexOf('notes.' + ev(`S.custom[0].id`));
   ev(`svcMove(0,1); window.__cf=[]; jrnlUndo(${iAsk}); 'ok'`);
   chk(name, 'by place', 'R’s value for A, typed before A moved down, is not put back onto B, now first: nothing changes and nothing is asked',
     ev(`JSON.stringify([SVC, S.custom[0].ask, window.__cf.length])`) + ' ' + (iAsk >= 0), J([['B', 'A', 'C'], [200, 150, 300], 0]) + ' true');
@@ -8009,6 +8010,181 @@ const W3S_FH = `window.__fw={content:'', writes:0};
 // ==== end v2.14 W3 ====
 
 // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====
+// v2.14 W4 (item 124): PUT BACK FINDS AN ADDED REQUIREMENT BY ITS ID. The journal filed a year's added requirements by their place
+// in S.custom (['custom', 1, 'ask', 0]): delete one above and Put back wrote the value onto the requirement that moved into that
+// place; Put back of a requirement that was gone threw inside applyState and left an element with no id, which the next save stored.
+// FAILS ON THE SLOT COMMIT (v2.13): (a) the line is ['custom',1,'ask',0]; (b) NEW-3 becomes 200; (c) it throws and leaves {ask,fy26};
+// (d) the add is offered at ['custom',0]; (e) the planted line is offered; (g) the label names no plan event; (h) is offered.
+await (async () => {
+  const name = 'v2.14 W4 — Put back finds an added requirement by its id, and refuses once it is gone (item 124)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const board = () => {
+      const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        localStorage.setItem('prio27who','Pat'); window.__cf=0; window.confirm=function(){ window.__cf++; return true; }; window.alert=function(){};
+        window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+      return B;
+    };
+    // a minute later, so each edit is its own line (JRNL_JOIN), as the U19 parts do
+    const later = B => B.ev(`window.__tk+=61000; 'ok'`);
+    const lines = B => JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).map(function(e,i){ return {i:i, p:e.p, a:e.a, b:e.b}; }))`));
+    const asks = B => B.ev(`JSON.stringify(S.custom.map(function(c){ return [c && c.id || null, ((c && c.ask)||[])[0]]; }))`);
+    const B = board();
+    const ids = JSON.parse(B.ev(`(function(){ var a=reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); var b=reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]});
+      var c=reqCreate('AV', {title:'Z', event:'EZ', ask:[300,0,0]}); save(); render(); return JSON.stringify([a,b,c]); })()`));
+    const [X, Y, Z] = ids;
+    chk(name, 'fixture', 'three added requirements, X above Y above Z', J(ids), J(['NEW-1', 'NEW-2', 'NEW-3']));
+    // (a) a field edit is journalled by the requirement's id
+    later(B); B.ev(`setAsk(${J(Y)}, 0, '250'); 'ok'`);
+    const ya = lines(B).filter(e => e.p[0] === 'custom' && e.b === 250).pop() || { i: -1, p: [] };
+    chk(name, '(a) by id', 'Y’s value, 200 → 250, is journalled at [custom, Y, ask, 0]', J(ya.p) + ' ' + J([ya.a, ya.b]), J(['custom', Y, 'ask', 0]) + ' ' + J([200, 250]));
+    // (g) its label names the requirement by its plan event
+    chk(name, '(g) label', 'its journal label names Y (its plan event)', /EY/.test(B.ev(`diagPlain(jrnlLabel(MS.jrnl[${ya.i}]))`)), true);
+    // (b) X, above Y, is removed; Put back of Y's line lands on Y
+    later(B); B.ev(`removeReq(${J(X)}); 'ok'`);
+    later(B); try { B.ev(`jrnlUndo(${ya.i}); 'ok'`); } catch (e) {}
+    chk(name, '(b) after a delete above', 'Put back writes Y’s 200 back on Y, and Z keeps its 300', asks(B), J([[Y, 200], [Z, 300]]));
+    // (d) the add and the remove of X are one line each, at [custom, X], neither offered
+    const xl = lines(B).filter(e => e.p[0] === 'custom' && e.p[1] === X);
+    chk(name, '(d) whole lines', 'X’s add and its removal are one line each at [custom, X], neither put back',
+      J(xl.map(e => [e.p.length, e.a === null || e.a === undefined, e.b === null || e.b === undefined, B.ev(`String(jrnlUndoable(MS.jrnl[${e.i}]))`)])),
+      J([[2, true, false, 'false'], [2, false, true, 'false']]));
+    chk(name, '(d) whole lines', 'no line is filed by a place in the added list',
+      J(lines(B).filter(e => e.p[0] === 'custom' && typeof e.p[1] === 'number').length), '0');
+    // (c) Z's value changed, then Z removed: Put back asks nothing, changes nothing, and says so
+    later(B); B.ev(`setAsk(${J(Z)}, 0, '333'); 'ok'`);
+    const zl = lines(B).filter(e => e.p[0] === 'custom' && e.b === 333).pop() || { i: -1 };
+    later(B); B.ev(`removeReq(${J(Z)}); 'ok'`);
+    const cf0 = +B.ev('window.__cf'), before = B.ev(`JSON.stringify(MS.years[MS.cur].custom)`);
+    let threw = '';
+    later(B); try { B.ev(`jrnlUndo(${zl.i}); 'ok'`); } catch (e) { threw = String(e.message || e).slice(0, 80); }
+    chk(name, '(c) gone', 'Put back of the removed Z’s value throws nothing, asks nothing and changes nothing',
+      J([threw, +B.ev('window.__cf') - cf0, B.ev(`JSON.stringify(MS.years[MS.cur].custom)`) === before]), J(['', 0, true]));
+    chk(name, '(c) gone', 'and says so',
+      /Not put back.*that added requirement is no longer in FY27\. Nothing was changed\./.test(B.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+    chk(name, '(c) gone', 'every added requirement still has a text id', B.ev(`String(S.custom.every(function(c){ return c && typeof c.id==='string' && c.id; }))`), 'true');
+    // jrnlSet itself refuses: a direct call makes no element with no id
+    chk(name, '(c) gone', 'jrnlSet refuses a path naming an added requirement that is gone, writing nothing',
+      B.ev(`(function(){ var b=JSON.stringify(MS.years[MS.cur].custom); var r=jrnlSet(MS.cur, ['custom',${J(Z)},'ask',0], 5); return JSON.stringify([r, JSON.stringify(MS.years[MS.cur].custom)===b]); })()`), J([false, true]));
+    B.ev(`setNote('A','after'); 'ok'`);
+    const R = boot({ ls: JSON.parse(B.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`)) });
+    chk(name, '(c) gone', 'reopened from storage: every id in the order is a requirement, and no page error',
+      J([R.ev(`String(S.order.every(function(id){ return !!itemById(id); }))`), R.errors.length]), J(['true', 0]));
+    // (e) a line filed by place before v2.14 is not offered
+    later(B); B.ev(`MS.jrnl.push({t:Date.now(), by:'Old', fy:MS.cur, p:['custom',0,'ask',0], a:1, b:2}); 'ok'`);
+    const pl = lines(B).length - 1;
+    chk(name, '(e) by place', 'a line filed by place (v2.13’s shape) is not offered for Put back', B.ev(`String(jrnlUndoable(MS.jrnl[${pl}]))`), 'false');
+    // the journal panel's last cell says why, each kind with its own title
+    B.ev(`jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    const cells = JSON.parse(B.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here'; }).map(function(s){ return s.getAttribute('title'); }))`));
+    const whole = lines(B).filter(e => e.p[0] === 'custom' && e.p.length === 2 && typeof e.p[1] === 'string').length;
+    chk(name, '(d) the panel', 'each whole added-requirement line reads “not put back here”, with why on hover',
+      J(cells.filter(t => /^An added requirement as a whole — added or removed — is not put back from the change journal\. To take one out, use Remove on its row’s ⋯ menu; to bring one back, put back an earlier saved copy from History & recovery\.$/.test(t)).length), J(whole));
+    chk(name, '(e) the panel', 'and the line filed by place reads it too, with its own reason',
+      J(cells.filter(t => /^Recorded before v2\.14 by its place in the list of added requirements\. Put back now, it could land on another requirement, so it is not offered\.$/.test(t)).length), '1');
+    B.ev(`jrnlOpen=false; render(); 'ok'`);
+    // (f) CONTROL: a description and a renamed plan event are put back as before
+    later(B); B.ev(`setDesc('A','D1'); 'ok'`); later(B); B.ev(`setDesc('A','D2'); 'ok'`);
+    const dl = lines(B).filter(e => J(e.p) === J(['desc', 'A']) && e.b === 'D2').pop() || { i: -1 };
+    later(B); B.ev(`jrnlUndo(${dl.i}); 'ok'`);
+    later(B); B.ev(`reqApply(${J(Y)}, {titles:'Renamed Y'}); 'ok'`);
+    const tl = lines(B).filter(e => J(e.p) === J(['titles', Y]) && e.b === 'Renamed Y').pop() || { i: -1 };
+    later(B); B.ev(`jrnlUndo(${tl.i}); 'ok'`);
+    chk(name, '(f) CONTROL', 'a description and a renamed plan event are put back as before',
+      B.ev(`JSON.stringify([S.desc.A, (S.titles||{})[${J(Y)}]||null])`), J(['D1', null]));
+    // (h) a year whose added requirements repeat an id is journalled by place, and those lines are not offered
+    const D = board();
+    D.ev(`reqCreate('AV', {title:'P', event:'EP', ask:[10,0,0]}); save(); var c=JSON.parse(JSON.stringify(S.custom[0])); c.title='Q'; S.custom.push(c); save(); 'ok'`);
+    later(D); D.ev(`S.custom[1].ask[0]=11; save(); 'ok'`);
+    const dup = lines(D).filter(e => e.p[0] === 'custom' && e.b === 11).pop() || { i: -1, p: [] };
+    chk(name, '(h) ids repeat', 'a year whose added requirements repeat an id is journalled by place, and the line is not offered',
+      J(dup.p) + ' ' + D.ev(`String(jrnlUndoable(MS.jrnl[${dup.i}]))`), J(['custom', 1, 'ask', 0]) + ' false');
+    chk(name, 'errors', 'no page error', J([B.errors.length, D.errors.length]), J([0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.14 W4 (ledger U35): THE RCN / EEIC LIST KEEPS WHAT IS TYPED ACROSS A REDRAW, BY ITS ROW. Every redraw (a Live tick, a status
+// line, a load) rebuilt the rows from the stored list: 88888 typed and not yet left read 11111 again, Esc no longer asked, and after
+// a load that added a row above the typing was gone. FAILS ON THE SLOT COMMIT (v2.13): (1) the field reads 11111; (2) there is no
+// rcnDraw to wrap; (3) dlgDirty is false; (4) nothing is put back; (6) the same for EEIC and the title; (7) nothing is said.
+await (async () => {
+  const name = 'v2.14 W4 — the RCN / EEIC list keeps what is typed across a redraw, by its row (ledger U35)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const RCN0 = [{ k: 'rA', rcn: '11111', eeic: 'AAAAA', t: 'ORIGINAL TITLE', svc: ['USAF', 'ANG', 'AFRC'] }, { k: 'rB', rcn: '22222', eeic: 'BBBBB', t: 'SECOND', svc: ['USAF'] }];
+    const board = () => {
+      const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [100, 20, 10])], disc: [1000, 100, 100], mand: [100, 10, 10], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        MS.rcn=${J(RCN0)}; save(); window.confirm=function(){ return true; }; window.alert=function(){}; rcnOpen=true; render(); dlgSync(); 'ok'`);
+      return B;
+    };
+    const F = ['rcn', 'eeic', 't'];
+    const typeIn = (B, row, f, v) => B.ev(`(function(){ var r=document.querySelectorAll('#rcnBody tr')[${row}+1]; var i=r.querySelectorAll('input.btn')[${f}];
+      i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`);
+    const fieldOf = (B, row, f) => JSON.parse(B.ev(`(function(){ var r=document.querySelectorAll('#rcnBody tr')[${row}+1]; if(!r) return 'null'; var i=r.querySelectorAll('input.btn')[${f}];
+      return JSON.stringify([i.value, document.activeElement===i, !!i.__pend]); })()`));
+    const dirty = B => B.ev(`(function(){ dlgSync(); var t=DLG.stack[DLG.stack.length-1]; return String(!!t && dlgDirty(t)); })()`);
+    const stored = B => B.ev(`JSON.stringify(MS.rcn.map(function(e){ return [e.k, e.rcn, e.eeic, e.t]; }))`);
+    const leave = B => B.ev(`(function(){ var a=document.activeElement; if(a && a.blur) a.blur(); return 'ok'; })()`);
+    // (1)-(5), and (6) the same for the EEIC and the title
+    [['RCN', 0, '88888'], ['EEIC', 1, 'QQQQQ'], ['title', 2, 'HELD NEW TITLE']].forEach(function ([lbl, f, v]) {
+      const B = board();
+      typeIn(B, 0, f, v);
+      B.ev(`render(); render(); 'ok'`);
+      chk(name, '(1) ' + lbl, 'typed and not left, then two redraws: the field still reads it, has the keyboard and is still pending; the list is unchanged',
+        J(fieldOf(B, 0, f)) + ' ' + J(JSON.parse(stored(B))[0][f + 1]), J([v, true, true]) + ' ' + J(RCN0[0][F[f]]));
+      chk(name, '(3) ' + lbl, 'and Esc still asks (the box reads it as typing not yet committed)', dirty(B), 'true');
+      // (4) a load that adds a row above: the typing follows its row, now second
+      B.ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.rcn.unshift({k:'rZ', rcn:'99999', eeic:'ZZZZZ', t:'ADDED ABOVE', svc:['USAF']}); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+      chk(name, '(4) ' + lbl, 'a load adds a row above: the typing is on its own row, now second, and the new row reads its own',
+        J([fieldOf(B, 1, f), fieldOf(B, 0, f)[0]]), J([[v, true, true], ['99999', 'ZZZZZ', 'ADDED ABOVE'][f]]));
+      // (5) leaving the field commits it to its row, and to no other
+      leave(B);
+      const want = [['rZ', '99999', 'ZZZZZ', 'ADDED ABOVE'], ['rA', '11111', 'AAAAA', 'ORIGINAL TITLE'], ['rB', '22222', 'BBBBB', 'SECOND']];
+      want[1][f + 1] = v;
+      chk(name, '(5) ' + lbl, 'leaving the field commits it to rA; rZ and rB are unchanged', stored(B), J(want));
+      chk(name, 'errors · ' + lbl, 'no page error', String(B.errors.length), '0');
+    });
+    // (2) a draw that fires change on the old field first, as Chromium does when innerHTML removes a focused field: nothing committed
+    {
+      const B = board();
+      typeIn(B, 0, 0, '88888');
+      const has = B.ev(`String(typeof rcnDraw==='function')`);
+      chk(name, '(2) change in the draw', 'the list is drawn by rcnDraw, under the hold', has, 'true');
+      if (has === 'true') {
+        B.ev(`window.__rd=rcnDraw; rcnDraw=function(el){ var a=document.activeElement; if(a && el && el.contains(a)) a.dispatchEvent(new Event('change', {bubbles:true})); return window.__rd.apply(this, arguments); }; render(); rcnDraw=window.__rd; 'ok'`);
+        chk(name, '(2) change in the draw', 'a change fired on the old field during the draw commits nothing, and the typing is held',
+          J(JSON.parse(stored(B))[0][1]) + ' ' + J(fieldOf(B, 0, 0)), J('11111') + ' ' + J(['88888', true, true]));
+      }
+    }
+    // (7) a load that removes the row: the typing is put on no other row, nothing changes, and the board says so
+    {
+      const B = board();
+      typeIn(B, 0, 0, '88888');
+      B.ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.rcn.shift(); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+      chk(name, '(7) row gone', 'no row holds the typing, and the list is the copy loaded',
+        J([B.ev(`String([].some.call(document.querySelectorAll('#rcnBody input'), function(i){ return i.value==='88888'; }))`), stored(B)]),
+        J(['false', J([['rB', '22222', 'BBBBB', 'SECOND']])]));
+      chk(name, '(7) row gone', 'and the board says what was not kept, and why',
+        B.ev(`(document.getElementById('shareStat')||{}).textContent`).indexOf('⚠ What you were typing in the RCN / EEIC list (“88888”) was not kept: the row it was in is no longer on the list. Nothing was changed.') >= 0, true);
+    }
+    // (8) CONTROL: a value committed shows the stored text after a redraw, and nothing is held
+    {
+      const B = board();
+      typeIn(B, 0, 0, '77777');
+      B.ev(`(function(){ var i=document.activeElement; i.dispatchEvent(new Event('change', {bubbles:true})); i.blur(); render(); return 'ok'; })()`);
+      chk(name, '(8) CONTROL', 'committed: the list holds it and the redraw shows it, not pending', J(JSON.parse(stored(B))[0][1]) + ' ' + J([fieldOf(B, 0, 0)[0], fieldOf(B, 0, 0)[2]]), J('77777') + ' ' + J(['77777', false]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.14 W4 ====
 
 // ==== v2.14 integration (the lead) ====
