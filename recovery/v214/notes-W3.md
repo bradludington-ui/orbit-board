@@ -2,7 +2,8 @@
 
 Builder W3, worktree `/home/user/orbit-wt/v214-w3`, branch `v214-w3`, from the slot commit
 `ea412ca296e2d66b1bbbbc0780f336e8dd8d1691`. Contract §7 decides; map.md › storage-full and save-target (c).
-Commits: `60915c5` (board, checks, mutations, proofs list), `b9f8bd1` (`tools/storage-full.mjs`), and the notes commit after.
+Commits: `60915c5` (board, checks, mutations, proofs list), `b9f8bd1` (`tools/storage-full.mjs`), `5e742e8` (notes),
+`837f1ae` (S3's string split for `npm run menus`), and the notes and proofs commit after.
 
 ## Reproduced on the slot commit (v2.13 behaviour), before any build
 
@@ -106,6 +107,10 @@ All in `prioritization-board-grid.html`, each with a `// v2.14 W3` comment sayin
    (lsAllWrite's lsMarksBack line), `marks-dirty-kept` (lsMarksBack's `_saveGen`/`DIRTY` lines), `marks-side-kept`
    (lsMarksBack's `_sideGen`/`_lsRefused` lines), `import-says-save` (`if(!_lsAllRun)` removed), `batch-marks`
    (importBoards' `lsMarksBack(mk)` removed).
+10. **S3 names each menu path at the end of its own string piece** (`'… Setup \u203a Save diagnostics\u2026'+' shows what fills
+   it; Setup \u203a Clear this computer\u2026'+' frees …'`): `npm run menus` reads a path in the source up to the next quote,
+   and took the two paths in one sentence as one path with a group ("the menu has no group …"). The words on screen are as the
+   map gives them, character for character.
 
 ## Checks
 
@@ -166,7 +171,9 @@ Each fails on the slot commit unless labelled CONTROL (run with `BOARD=<slot boa
 | import check 5 | `marks-not-restored`, `marks-dirty-kept`, `marks-side-kept`, `import-says-save`, `batch-marks` |
 | board v2.05 "go to" | `v205-116-go-no-mark` (retarget) |
 
-Proofs: see "Proof run" below (`recovery/v214/proved-W3.jsonl`).
+**Proof run** (`recovery/v214/proved-W3.jsonl`, `JOBS=1 HEAP=8192 prove.py`, each against its own block, every block run
+clean first): **35 of 35 CAUGHT**, none by a throw. All on the committed board `837f1ae`: the first run's first 12 were built
+before S3's split (`837f1ae`, display-identical), so those 12 and `quiet-uncounted` were dropped and proved again on it.
 
 ## For the integration
 
@@ -196,6 +203,10 @@ Proofs: see "Proof run" below (`recovery/v214/proved-W3.jsonl`).
 - `liveLeaving` still runs on `beforeunload` when the person chooses to stay (pre-existing; the folder lock's 3-minute expiry
   re-arms it).
 - In a locked view, `DIRTY` is the working plan's, so work on screen only there is the working plan's (by design).
-- Not run in this stage (stage 2's): every suite whole, the browser checks other than `storage-full.mjs`
-  (`menus` should be run: S3 and S6–S8 name "Setup › Save diagnostics…", "Setup › Clear this computer…", "Audit › Take the
-  pen…"), audit-inject whole.
+- **Run in this stage, on `837f1ae`, one at a time:** audit-other whole (ALL CHECKS PASSED, 2 min 26 s), audit-board whole at
+  8 GB (ALL CHECKS PASSED, 5 min 23 s), audit-import whole at 8 GB (ALL CHECKS PASSED), audit-recon whole at 8 GB (ALL CHECKS
+  PASSED), audit-inject whole (ALL CHECKS PASSED); `npm run menus` (every path there; it caught S3, fixed), `npm run panels`
+  (every panel and menu opens), `node tools/storage-full.mjs` (all pass), `npm run check`, `boot-same`; mcount 3254, all once.
+- **Not run in this stage (stage 2's):** audit, legacy and hostile whole; the browser checks but `menus`, `panels` and
+  `storage-full.mjs` (keys, dialogs, leftmenu, standards, layout and the rest: W3 adds no control and no box, only messages and
+  diagnostics lines, so none is expected to move).
