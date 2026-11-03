@@ -143,7 +143,27 @@ new line in `fydpStoreLocal`). `prove.py` (`JOBS=1 HEAP=8192`): **31 of 31 CAUGH
 (`recovery/v214/proved-RV1C.jsonl`). Note on `v214-w1-cancel-pen-moved`: saveStopBack now also takes the pen line out of the
 working plan, so that mutant no longer leaves the line in memory; it is still caught, by WRITER not put back (W1 check 3(7)).
 `frame-store-older-wins` needs the v1.85 block that writes `V185W` beside the one that reads it (13 checks fail, and the block throws).
-`mcount`: 3,411 entries, every one once; every new mutant parses (`mkmut.py` + `tools/check.mjs`). No existing check was changed and no
-existing mutation retargeted.
+`mcount`: 3,411 entries, every one once; every new mutant parses (`mkmut.py` + `tools/check.mjs`). No existing mutation was
+retargeted, and no existing check's expectation changed; one existing fixture was moved (below, under Runs).
 
 ## Runs
+
+**An existing check moved, on purpose** (`// v2.14 RV1-C:` comment beside it): audit-import "v1.99 — side lists: imports staged, a
+failed share kept and said, unsaved survives a reload (item 95)", part (e). Its fixture built a Full Fund file with
+`buildSavedHtml()` and never let the Full Fund page record it, so that page's later edit was, by the record, blank work (no file,
+`blank:true`) -- which Full Fund's own opening of that file keeps aside (C17). Its CONTROL "saved from O&M, reopened — the save
+packed Full Fund’s plan from browser storage" asserted the O&M-side reading this finding removes, and was the one failure of the
+first whole run after the fix. The fixture now records the file the page saved to (`LASTKNOWN` and the record, as 💾 Save records
+them), so the edit is ordinary unsaved work and the CONTROL holds as written, on this board and on 44aa984 alike.
+
+All on `da163e9` (the v1.99 fixture move is in it), this container shared with three other fixers (16 GB, no swap):
+- `npm run check`: all checks passed. `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical.
+  `mcount`: 3,411 entries, all once.
+- audit-import whole, 8 GB: **ALL CHECKS PASSED** (1,336 s). The first whole run (before the fixture move) failed only the
+  v1.99 (e) CONTROL above.
+- audit-board whole, 8 GB: **ALL CHECKS PASSED** (445 s). Four earlier attempts were killed by the kernel's OOM killer (exit 137)
+  while other fixers' suites held 9-10 GB; before the whole run landed, all 106 named blocks also passed in four slim.py pieces.
+- audit-recon whole, 8 GB: **ALL CHECKS PASSED** (1,084 s); before that, all 75 named blocks in four pieces.
+- audit-inject and audit-other whole: ALL CHECKS PASSED.
+- Browser: `npm run savetarget`, `fileimport`, `storagefull`, `panels`, `dialogs`: all passed.
+- Not run: the sweep, `validate:math`, `validate:nightly` (the rules).
