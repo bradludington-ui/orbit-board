@@ -16176,7 +16176,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
-  const name = 'v2.14 W2 — the file route gives what the storage route gives, on files from v1.80, v1.83, v1.85, v1.87, v2.11 and a partial file (item 141)';
+  const name = 'v2.14 W2 — the file route gives what the storage route gives, on files from v1.80, v1.83, v1.85, v1.87, v2.11, v2.12, v2.13 and a partial file (item 141)';
   try {
   const { J, picker, press, navs, settle } = W214;
   // ROUTE A: the import lands in browser storage and the page reopens on it. ROUTE B: the same import refused at its last write (the
@@ -16223,7 +16223,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const L86 = O.ev('buildSavedHtml()');
   const rich = v14Pub(L86);
   for (const [ver, rev, file] of [['v1.80', '68b02e9'], ['v1.83', '84dcaf9'], ['v1.85', '77882d9'], ['v1.87', '1589749'],
-                                   ['v2.11', 'f76e327', 'prioritization-board-grid.html']]) {
+                                   ['v2.11', 'f76e327', 'prioritization-board-grid.html'],
+                                   // v2.14 integration: v2.12 (Brad's live board, 3 Nov 2026) and v2.13 (the program he imports into today)
+                                   ['v2.12', 'fe0c83d', 'prioritization-board-grid.html'], ['v2.13', 'c863dc2', 'prioritization-board-grid.html']]) {
     const old = boot({ html: v14With(v14Old(rev, file), rich) });
     const Lold = old.ev('buildSavedHtml()');
     await both(ver + ' file into the program', null, Lold, ['O&M', 'FULL FUND', 'INITIAL SPARES']);
