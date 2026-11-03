@@ -491,6 +491,10 @@ answers under Shipped › v2.12 › *Questions for Brad*.
     silently; the writer key is remade on each Save so the second Save is refused; Import one appropriation on an empty board
     drops appropriations while saying it took them all; Save into the empty v2.13 file downloads instead of writing in place.
   - Each part is checked in Chromium with storage seeded from page code, as the investigation was.
+- **Brad, 3 Nov 2026** (after the same refusal again, on v2.13): *"I'm also ok with having to import cost estimate data again into
+  the newest version. Takes only a few seconds to import."* v2.14's file route carries the cost estimates into the new file with
+  everything else, so it is not needed there; it is the fallback if a board ever has to go through browser storage and does not
+  fit -- leave the estimates out and re-import the ACE workbook. Not built: no step is given for v2.13 (the reasons above stand).
 - **Questions for Brad:** the version in ORBIT Live.html's header and its size in bytes (Explorer › Properties); in the tab where
   the import was refused, Setup › Save diagnostics › the *Browser storage* line (counts only); whether 💾 Save writes in place
   today or downloads a copy; whether he has seen *This change is not in browser storage* in the old version.
