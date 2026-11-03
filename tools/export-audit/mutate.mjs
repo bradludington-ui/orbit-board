@@ -1768,8 +1768,8 @@ const MUTATIONS = [
     find: "for(const k of IN_ID_MAPS) if(",
     repl: "for(const k of []) if(" },
   { id: "door-custom", area: "inShapeWhy", what: "an added requirement’s id is not checked",
-    find: "if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if((w=itemWhy",
-    repl: "if(false) for(let i=0;i<o.custom.length;i++) if((w=itemWhy" },
+    find: "if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy",   // v2.14 RV1-D: retargeted (the own board's mendable entries pass)
+    repl: "if(false) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy" },
   { id: "door-order", area: "inShapeWhy", what: "a plan’s priority order is not checked",
     find: "for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i]",
     repl: "for(let i=0;i<0;i++) if((w=inIdWhy(o.order[i]" },
@@ -2875,7 +2875,7 @@ const MUTATIONS = [
     find: "  if(!done.ok){ impMemRestore(mem); return fullImportUndone(done, W, txt, fname); }",
     repl: "  if(!done.ok){ return fullImportUndone(done, W, txt, fname); }" },
   { id: 'restore-no-keep-aside', area: 'driveRestore', what: 'Put this back replaces unsaved work without keeping it aside',
-    find: "    const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own}, baseGet()) : true;",   // v2.14 W4: retargeted (ledger U64)
+    find: "    const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own, put:true}, baseGet()) : true;",   // v2.14 W4: retargeted (ledger U64); v2.14 RV1-D: again, the keep carries its put mark
     repl: "    const ka=true;" },
   { id: 'impmixed-never-lifted', area: 'fullImportText', what: 'an import that lands whole leaves the hold a stopped one set',
     find: "  if(!done.ok) return fullImportUndone(done, W, txt, fname);\n  impMixedLift(W.map(function(w){ return w[0]; }));",
@@ -10327,7 +10327,7 @@ const MUTATIONS = [
   { id: 'v214-w4-kept-saved-unmarked', area: "keepAside", what: "a copy kept as saved work is not marked so, and its button calls it work no saved copy had",
     find: "    if(meta.saved) m.saved=true;", repl: "    " },
   { id: 'v214-w4-restore-keeps-nothing-saved', area: "driveRestore", what: "Put this back replaces work saved only in the board file, keeping nothing",
-    find: "    const keep=own || !driveStoreOn() || (+MS.ts||0)!==driveBaseOf(pinAp);", repl: "    const keep=own;" },
+    find: "    const keep=own || (+MS.ts||0)!==driveBaseOf(pinAp);", repl: "    const keep=own;" },   // v2.14 RV1-D: retargeted -- the watching term is gone (the folder's own copy is not kept)
   { id: 'v214-w4-restore-says-folder', area: "driveRestore", what: "Put this back says 💾 Save writes to the folder while Live view is just watching",
     find: "      +(driveStoreOn()? 'browser; press", repl: "      +(true? 'browser; press" },
   { id: 'v214-w4-rcn-not-marked', area: "input listener", what: "typing in the RCN / EEIC list is not marked pending, so a redraw takes it",

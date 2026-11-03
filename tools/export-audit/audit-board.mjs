@@ -8327,6 +8327,122 @@ await (async () => {
 // ---- end RV1-C ----
 
 // ---- RV1-D (held findings and older files) ----
+// v2.14 RV1-D (u35-place-key-misplaces-typing): THE RCN / EEIC LIST HOLDS TYPING IN A ROW WITH NO KEY OF ITS OWN BY WHAT THE ROW HOLDS,
+// NEVER BY ITS PLACE. Such a row (no text key, or the key of an earlier row: the user's own board and the team's folder copy may carry
+// them) was held as '#'+its place; a load that put a row above it put the typing on the row that moved into that place, and leaving the
+// field overwrote that row's code. FAILS ON 44aa984: (a) NOKEY-ONE becomes 99999 and NOKEY-TWO keeps 33333; (b) K1-REPEAT-B is
+// overwritten; (c) a row that only moved loses the typing and is said to be gone; (d) a changed row takes the typing; (e) the second
+// of two identical rows is held as the first's place too -- (e) passes there (a CONTROL for the count of identical rows).
+await (async () => {
+  const name = 'v2.14 RV1-D — the RCN / EEIC list holds typing in a row with no key of its own by what the row holds, never by its place (u35-place-key-misplaces-typing)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const board = (rcn) => {
+      const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [100, 20, 10])], disc: [1000, 100, 100], mand: [100, 10, 10], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        MS.rcn=${J(rcn)}; save(); window.confirm=function(){ return true; }; window.alert=function(){}; rcnOpen=true; render(); 'ok'`);
+      return B;
+    };
+    const row = (t, rcn, k) => Object.assign(k === undefined ? {} : { k }, { rcn, eeic: 'E' + rcn.slice(0, 4), t, svc: ['USAF'] });
+    const typeIn = (B, title, v) => B.ev(`(function(){ var r=[].filter.call(document.querySelectorAll('#rcnBody tr'), function(r){ var i=r.querySelectorAll('input.btn'); return i[2] && i[2].value===${J(title)}; })[${title === 'TWIN' ? 1 : 0}];
+      var i=r.querySelectorAll('input.btn')[0]; i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`);
+    const load = (B, js) => B.ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); (function(L){ ${js} })(st.rcn); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+    const focused = B => B.ev(`(function(){ var a=document.activeElement; var r=a && a.closest && a.closest('#rcnBody tr'); return r? JSON.stringify([r.querySelectorAll('input.btn')[2].value, a.value]) : 'none'; })()`);
+    const leave = B => B.ev(`(function(){ var a=document.activeElement; if(a && a.blur) a.blur(); return 'ok'; })()`);
+    const stored = B => B.ev(`JSON.stringify(MS.rcn.map(function(e){ return [e.t, e.rcn]; }))`);
+    const said = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+    // (a) two rows with no key; a load adds a keyless row above them: the typing stays with NOKEY-TWO
+    {
+      const B = board([row('KEYED', '11111', 'rA'), row('NOKEY-ONE', '22222'), row('NOKEY-TWO', '33333')]);
+      typeIn(B, 'NOKEY-TWO', '99999');
+      load(B, `L.splice(1, 0, {rcn:'44444', eeic:'DDDDD', t:'NOKEY-NEW', svc:['USAF']});`);
+      chk(name, '(a) no key', 'after the load the typing is still in NOKEY-TWO’s field, with the keyboard', focused(B), J(['NOKEY-TWO', '99999']));
+      leave(B);
+      chk(name, '(a) no key', 'leaving it commits it to NOKEY-TWO; NOKEY-ONE keeps 22222', stored(B), J([['KEYED', '11111'], ['NOKEY-NEW', '44444'], ['NOKEY-ONE', '22222'], ['NOKEY-TWO', '99999']]));
+      chk(name, 'errors · (a)', 'no page error', String(B.errors.length), '0');
+    }
+    // (b) rows repeating an earlier row's key; a colleague's ✕ on the keyed row above, loaded: the typing stays with K1-REPEAT-A
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('K1-FIRST', '22222', 'K1'), row('K1-REPEAT-A', '33333', 'K1'), row('K1-REPEAT-B', '55555', 'K1')]);
+      typeIn(B, 'K1-REPEAT-A', '99999');
+      load(B, `L.shift();`);
+      leave(B);
+      chk(name, '(b) a repeated key', 'leaving it commits it to K1-REPEAT-A; K1-FIRST and K1-REPEAT-B keep theirs', stored(B), J([['K1-FIRST', '22222'], ['K1-REPEAT-A', '99999'], ['K1-REPEAT-B', '55555']]));
+    }
+    // (c) a row with no key that only moved: the typing follows it, and nothing says it is gone
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('NOKEY-TWO', '33333')]);
+      typeIn(B, 'NOKEY-TWO', '99999');
+      load(B, `L.shift();`);
+      chk(name, '(c) moved', 'the row moved up: the typing is in its field, and nothing says the row is gone', J([focused(B), /no longer on the list/.test(said(B))]), J([J(['NOKEY-TWO', '99999']), false]));
+      leave(B);
+      chk(name, '(c) moved', 'leaving it commits it to NOKEY-TWO', stored(B), J([['NOKEY-TWO', '99999']]));
+    }
+    // (d) a row with no key that the load changed (its title): the typing is put on no row, nothing changes, and the board says why
+    {
+      const B = board([row('KEYED', '11111', 'rA'), row('NOKEY-ONE', '22222'), row('NOKEY-TWO', '33333')]);
+      typeIn(B, 'NOKEY-TWO', '99999');
+      load(B, `L[2].t='NOKEY-TWO RENAMED';`);
+      chk(name, '(d) changed', 'no field holds the typing, and the list is the copy loaded',
+        J([B.ev(`String([].some.call(document.querySelectorAll('#rcnBody input'), function(i){ return i.value==='99999'; }))`), stored(B)]),
+        J(['false', J([['KEYED', '11111'], ['NOKEY-ONE', '22222'], ['NOKEY-TWO RENAMED', '33333']])]));
+      chk(name, '(d) changed', 'and the board says the row has no key of its own and is not on the list as it was',
+        said(B).indexOf('⚠ What you were typing in the RCN / EEIC list (“99999”) was not kept: the row it was in has no key of its own, and the list as loaded no longer holds that row as it was. Nothing was changed.') >= 0, true);
+    }
+    // (e) two identical rows with no key: typing in the second stays in the second across a redraw
+    {
+      const B = board([row('TWIN', '44444'), row('TWIN', '44444')]);
+      typeIn(B, 'TWIN', '99999');
+      B.ev(`render(); 'ok'`); leave(B);
+      chk(name, '(e) two alike', 'leaving it commits it to the second of the two', stored(B), J([['TWIN', '44444'], ['TWIN', '99999']]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.14 RV1-D (held, also noticed): PUT BACK OF A FIELD OF AN ADDED REQUIREMENT THAT HAS LEFT ITS YEAR IS REFUSED. Deleting one purges
+// everything the year keeps under its id, each container a journal line (['desc','NEW-1'] ...), and Put back of one wrote the value under
+// an id no requirement carries and said "put back". FAILS ON 44aa984: (a) S.desc holds NEW-1 again and the status says it was put back.
+await (async () => {
+  const name = 'v2.14 RV1-D — Put back of a field of an added requirement that has left its year is refused, never written under an id nothing carries (held, also noticed)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.__cf=0; window.confirm=function(){ window.__cf++; return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+    const later = () => B.ev(`window.__tk+=61000; 'ok'`);
+    const X = B.ev(`(function(){ var a=reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); save(); render(); return a; })()`);
+    later(); B.ev(`setDesc(${J(X)}, 'the description'); setNote(${J(X)}, 'a note'); setDesc('A', 'A1'); 'ok'`);
+    later(); B.ev(`setDesc('A', 'A2'); 'ok'`);
+    later(); B.ev(`removeReq(${J(X)}); removeReq('A'); 'ok'`);
+    const L = JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).map(function(e,i){ return [i, e.p, e.a, e.b]; }))`));
+    const purge = L.filter(x => J(x[1]) === J(['desc', X]) && x[3] === null).pop() || [-1];
+    const typed = L.filter(x => J(x[1]) === J(['notes', X]) && x[2] === null).pop() || [-1];
+    chk(name, 'fixture', 'X is gone from the year, and its delete wrote a line clearing its description', J([B.ev(`String(S.custom.some(function(c){ return c.id===${J(X)}; }))`), purge[0] >= 0, typed[0] >= 0]), J(['false', true, true]));
+    // (a) Put back of the purge line
+    const cf0 = +B.ev('window.__cf'), j0 = +B.ev('MS.jrnl.length');
+    later(); B.ev(`jrnlUndo(${purge[0]}); 'ok'`);
+    chk(name, '(a) the purge line', 'Put back asks nothing, writes nothing under X’s id, adds no journal line',
+      J([+B.ev('window.__cf') - cf0, B.ev(`String(Object.prototype.hasOwnProperty.call(S.desc, ${J(X)}))`), +B.ev('MS.jrnl.length') - j0]), J([0, 'false', 0]));
+    chk(name, '(a) the purge line', 'and says the added requirement is no longer in the year',
+      /Not put back.*that added requirement is no longer in FY27\. Nothing was changed\./.test(B.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+    // (b) the line that set its note, the same
+    later(); B.ev(`jrnlUndo(${typed[0]}); 'ok'`);
+    chk(name, '(b) an earlier line', 'Put back of the line that wrote X’s note is refused the same way', J([B.ev(`String(Object.prototype.hasOwnProperty.call(S.notes, ${J(X)}))`), +B.ev('MS.jrnl.length') - j0]), J(['false', 0]));
+    // (c) CONTROL: a requirement from the board's data, removed, keeps its fields -- its description is put back as before
+    const al = L.filter(x => J(x[1]) === J(['desc', 'A']) && x[3] === 'A2').pop() || [-1];
+    later(); B.ev(`jrnlUndo(${al[0]}); 'ok'`);
+    chk(name, '(c) CONTROL', 'A, from the board’s data and removed, has its description put back (A2 → A1)', B.ev(`String(S.desc.A)`), 'A1');
+    chk(name, 'errors', 'no page error', String(B.errors.length), '0');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ---- end RV1-D ----
 // ==== end v2.14 review round 1 fixes ====
 

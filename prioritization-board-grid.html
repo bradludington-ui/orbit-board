@@ -6124,8 +6124,26 @@ function rcnBody(){
   const el=document.getElementById('rcnBody');
   if(!el) return rcnDraw(el);
   const lost=heldRedraw(el, rcnDraw);
+  // v2.14 RV1-D (u35-place-key-misplaces-typing): a row with no key of its own is found by what it holds, so one changed by the load
+  // is lost to the hold as surely as one removed -- said as such, never as "no longer on the list" while it is still there
   if(lost.length && rcnOpen) setStat('\u26a0 What you were typing in the RCN / EEIC list ('+lost.map(function(x){ return '\u201c'+esc(x.v)+'\u201d'; }).join(', ')
-    +') was not kept: the row it was in is no longer on the list. Nothing was changed.');
+    +') was not kept: '+(lost.some(function(x){ return /^#/.test(String(x.rk||'')); })
+      ? 'the row it was in has no key of its own, and the list as loaded no longer holds that row as it was' : 'the row it was in is no longer on the list')
+    +'. Nothing was changed.');
+}
+// v2.14 RV1-D (u35-place-key-misplaces-typing): A ROW WITH NO KEY OF ITS OWN IS HELD BY WHAT IT HOLDS, NEVER BY ITS PLACE. A row whose
+// key is not text, or repeats an earlier row's (a board before v2.00 holds them, and the user's own board and the team's folder copy
+// may carry them: rcnListOdd), was held as '#'+its place -- the place the handler names. A load that put a row above it then put the
+// typing on the row that moved into that place, and leaving the field saved it there: that row's own code (22222) was overwritten
+// with the typing (99999) and the row meant kept its old one, without a word. Held by its stored key, code, EEIC, title and services,
+// and how many rows before it hold exactly the same, the typing follows its row wherever it moves, and a row changed or gone takes
+// it with it: it is then put on no other row, and the board says so (rcnBody).
+function rcnRowSig(L, i){
+  const sig=function(e){ e=e||{}; return JSON.stringify([e.k===undefined? null : e.k, e.rcn===undefined? null : e.rcn, e.eeic===undefined? null : e.eeic,
+    e.t===undefined? null : e.t, Array.isArray(e.svc)? e.svc : null]); };
+  const me=sig(L[i]); let n=0;
+  for(let j=0;j<i;j++) if(sig(L[j])===me) n++;
+  return '#'+me+'#'+n;
 }
 function rcnDraw(el){
   const bg=document.getElementById('rcnPanel');
@@ -6151,8 +6169,9 @@ function rcnDraw(el){
     // and the RCN-EEIC sheet counts the key once, so "Used by" on this row counted the earlier row's assignments.
     const rep=(typeof e.k==='string')? L.findIndex(function(x){ return x && x.k===e.k; }) : i;
     const svc=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
-    // v2.14 (ledger U35): the row's key for the typing hold -- its own key, or its place where the key repeats an earlier row's
-    const rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;
+    // v2.14 (ledger U35): the row's key for the typing hold -- its own key, or, where it has none or repeats an earlier row's, what
+    // the row holds (rcnRowSig)
+    const rk=(typeof e.k==='string' && rep===i)? e.k : rcnRowSig(L, i);
     h+='<tr data-rk="'+esc(rk)+'"><td style="text-align:left"><input class="btn" data-rf="rcn" style="font-size:9.5px;padding:3px 6px;width:74px'
       +bad(rcnOkNum,e.rcn)+'" value="'+esc(e.rcn||'')+'" placeholder="12345" '
       +'title="Requirement Control Number \u2014 five digits" '
@@ -6630,6 +6649,45 @@ function bmOwnOf(Y, n){
   if(!ok(bm.disc) || !ok(bm.mand)) return null;
   return {disc:stBmTot(bm.disc).map(stMoney), mand:stBmTot(bm.mand).map(stMoney)};
 }
+// v2.14 RV1-D (oldfiles, also noticed): A LIST OF ADDED REQUIREMENTS HOLDING SOMETHING THAT IS NOT ONE IS MENDED ON OPENING, never
+// refused and never zeroed. v2.13's ↶ Put back of a line about an added requirement left one of two things in it: null (the add put
+// back) or an element with no id (a value put back onto a requirement that was gone: {ask, fy26}). Saved, that board would not open in
+// any later build -- the boot threw ("Cannot read properties of null (reading 'ask')"), the page stopped -- and a full import refused it
+// at the door. A board that will not open is not recoverable, so on opening: an empty entry (null) holds nothing and is taken out; any
+// other entry with no requirement id of its own holds something, and is set aside, as it was found, in the year's customAside, where
+// nothing counts it -- given an id, its figures would join the portfolio as a requirement nobody added. What was mended is said
+// once the board is open (customMendSay). Every load comes through applyStore(), which mends every year before anything reads one;
+// no ORBIT could lock a cycle holding such a list (its lock threw on it). The import doors still refuse such a file (v1.95 R09:
+// refuse at the doors, mend on opening).
+function customMendable(x){ return !(x && typeof x==='object' && !Array.isArray(x) && typeof x.id==='string' && x.id); }
+function customMend(T, fy, quiet){
+  if(!T || typeof T!=='object' || !Array.isArray(T.custom)) return null;
+  let dropped=0; const aside=[];
+  const ok=T.custom.filter(function(x, i){
+    if(!customMendable(x)) return true;
+    if(x===null || x===undefined) dropped++; else aside.push({i:i, v:x});
+    return false; });
+  if(!dropped && !aside.length) return null;
+  T.custom=ok;
+  if(aside.length){ if(!Array.isArray(T.customAside)) T.customAside=[]; aside.forEach(function(a){ T.customAside.push(a); }); }
+  const r={fy:+fy||0, dropped:dropped, aside:aside.length};
+  if(!quiet) try{ _customMended.push(r); }catch(e){}
+  return r;
+}
+// what was mended, by year, in words (opening's line below; a full import's question and report)
+function customMendWords(L){
+  const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
+  return L.map(function(r){
+      return (r.fy? 'FY'+(r.fy%100)+': ' : '')+[r.dropped? pl(r.dropped, 'empty entry', 'empty entries')+' taken out' : '',
+        r.aside? pl(r.aside, 'entry with no requirement id', 'entries with no requirement id')+' set aside in the file, where nothing counts it' : '']
+        .filter(Boolean).join(', '); }).join('; ');
+}
+function customMendSay(){
+  const L=_customMended; if(!L.length) return '';
+  return '\ud83d\udd27 <b>The list of added requirements was mended on opening</b> \u2014 '+customMendWords(L)
+    +'. An ORBIT older than v2.14 left them there when it put back a change to an added requirement that was gone. Every requirement '
+    +'on the board is as it was saved; \ud83d\udcbe Save keeps the mended list.';
+}
 function applyState(st){
   S = st;
   // A CONTAINER OF THE WRONG TYPE IS NOT A CONTAINER. Every `if(!S.x) S.x={}` below catches a
@@ -6880,6 +6938,9 @@ function setGrp(id, g){
 
 // ============ FYDP: one board, many fiscal years ============
 let MS;                                   // {base, cur, ts, years:{'2027':state, ...}}
+// v2.14 RV1-D (oldfiles, also noticed): what opening mended in a year's list of added requirements (customMend), said once it is
+// open. Declared here because applyStore() runs at top level while the script is still being read (the BANDS_STD rule).
+let _customMended=[];
 // v2.04 (item 109): the AI review list -- declared here, not with its code, because syncBtns reads them on the first render (the
 // BANDS_STD rule: a `let` further down is still in its dead zone while the board draws during boot)
 let aiIsOpen=false, AIREV=null, aiShow='';
@@ -7072,6 +7133,8 @@ function applyStore(raw){
   // so there is nothing to pause either.
   try{ _jrnlOff++; }catch(e){}
   MS = normalizeStore(JSON.parse(JSON.stringify(raw||{})));
+  // v2.14 RV1-D (oldfiles, also noticed): every year's list of added requirements is mended before anything reads it (customMend)
+  try{ Object.keys(MS.years||{}).forEach(function(y){ customMend(MS.years[y], y); }); }catch(e){}
   // v2.09 (item 127): THE BOARD HOLDS NO OFFICE'S MARK. pmoFor says which office a PMO copy's work was saved for; a board that
   // kept one (a copy's state taken by a way no door watches) would bake it into every copy it published, and the copy every
   // office opens would read as one office's own file -- adopted by everyone, and saved over by that office.
@@ -7850,6 +7913,29 @@ function jrnlById(L){ const seen=Object.create(null);
 // Two kinds of line about added requirements are not put back: a whole requirement (added or removed: Remove on the row, or an
 // earlier saved copy, is the way), and a line filed by place (before v2.14, or in a year whose ids repeat).
 function jrnlCustomPlace(e){ return e.p[0]==='custom' && (e.p.length<3 || typeof e.p[1]!=='string'); }
+// v2.14 RV1-D (d28-writes-false-journal-line): A LINE AN ORBIT OLDER THAN v2.14 WROTE WHEN IT PUT BACK A LINE THIS ONE JOURNALLED BY
+// ID. Its Put back walks ['custom','NEW-2','ask',1] as a place: the id lands on the list as a property no save keeps, so no figure
+// moves -- but it reports the change put back and writes its reversal line all the same, forced, by id. Back here that line read as
+// a real change ("Colleague — EV-2 (ask › 1) $55 → $50", offered for Put back, named by cycWho as the last to change it) while the
+// board held $55; a whole requirement's read as removed while it was still on the board. Only this board's own Put back writes a
+// forced line by id in the list of added requirements, and it marks it (jrnlUndo: byId); one without the mark is the older ORBIT's,
+// which changed nothing. It is shown as such and never put back.
+function jrnlOlderLine(e){ return !!(e && e.f && !e.byId && Array.isArray(e.p) && e.p[0]==='custom' && e.p.length>=2 && typeof e.p[1]==='string'); }
+// v2.14 RV1-D (held, also noticed): A FIELD OF AN ADDED REQUIREMENT THAT HAS LEFT ITS YEAR. Deleting one (or moving it to another
+// year) purges everything the year keeps under its id (reqPurge), and each container's purge is a journal line, ['desc','NEW-2'] and
+// so on, offered for Put back like any other. Put back wrote the value under an id no requirement carries -- an orphan entry nothing
+// reads -- and reported it "put back". A line in a per-requirement container (REQ_MAPS; the UPL mark keyed 'r|<id>'; the what-if
+// levels) naming an added requirement's id (NEW-…) that the year no longer holds -- in its added list, its order or its removed list --
+// is refused, as a field of the list of added requirements is (jrnlCustomHere). A requirement from the board's data is never purged.
+function jrnlFieldGone(e){
+  if(!e || !Array.isArray(e.p) || e.p.length<2) return false;
+  const k=e.p[0];
+  const id=(k==='whatif')? e.p[2] : ((k==='upl')? String(e.p[1]).replace(/^r\|/, '') : e.p[1]);
+  if((REQ_MAPS.indexOf(k)<0 && k!=='whatif') || typeof id!=='string' || !/^NEW-/.test(id)) return false;
+  const T=(MS.years||{})[e.fy||MS.cur]; if(!T) return false;
+  const has=function(L){ return Array.isArray(L) && L.indexOf(id)>=0; };
+  return !((T.custom||[]).some(function(x){ return x && x.id===id; }) || has(T.order) || has(T.removed));
+}
 // The added requirement a line names is still in its year, once (Put back refuses before asking anything when it is not).
 function jrnlCustomHere(e){ const T=(MS.years||{})[e.fy||MS.cur]; return !!T && (T.custom||[]).filter(function(x){ return x && x.id===e.p[1]; }).length===1; }
 function jrnlCapture(){
@@ -7902,6 +7988,7 @@ function jrnlPathSafe(p){ return p.every(function(k){ k=String(k); return k!=='_
 function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^\(/.test(String(e.p[0])) && jrnlPathSafe(e.p)
   && !jrnlBySvcPlace(e)
   && !jrnlCustomPlace(e)
+  && !jrnlOlderLine(e)                                   // v2.14 RV1-D (d28-writes-false-journal-line)
   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
 // v1.97 (item 80): AN ENTRY RECORDED BEFORE THE SERVICE LIST CHANGED holds its figures by the places they had then, and
 // put back it would land on whichever service holds that place now. One whose path or value carries a place or a list
@@ -7920,6 +8007,11 @@ function jrnlUndo(i){
   // still refuses first, below). Here, ahead of the lines below, which older checks read as they stand.
   { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && g && Array.isArray(g.p) && g.p[0]==='custom' && jrnlUndoable(g) && !jrnlCustomHere(g)){
     setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — that added requirement is no longer in FY'+((g.fy||MS.cur)%100)+'. Nothing was changed.'); return; } }
+  // v2.14 RV1-D (d28-writes-false-journal-line): a line an older ORBIT recorded and never did is not put back either, and says why
+  { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && jrnlOlderLine(g)){ setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — '+esc(JRNL_OLDER)+' Nothing was changed.'); return; } }
+  // v2.14 RV1-D (held, also noticed): nor a field of an added requirement that has left the year -- deleted, or moved to another year
+  { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && g && jrnlUndoable(g) && jrnlFieldGone(g)){
+    setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — that added requirement is no longer in FY'+((g.fy||MS.cur)%100)+'. Nothing was changed.'); return; } }
   if(cycBlock('Putting a change back')) return;
   const e=(MS.jrnl||[])[i];
   if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its service’s place before the service list changed, or the value is too large to have been recorded in full.'); return; }
@@ -7933,6 +8025,9 @@ function jrnlUndo(i){
   // added as its own line.
   jrnlSync();
   jrnlAdd({t:Date.now(), by:whoAmI()||'unknown', fy:fy, p:e.p.slice(), a:e.b, b:e.a, f:1});
+  // v2.14 RV1-D (d28-writes-false-journal-line): a reversal by id is marked as this board's own, which really wrote it (jrnlOlderLine):
+  // a forced line is never joined to another, so the line just added is the last one
+  if(e.p[0]==='custom' && typeof e.p[1]==='string'){ const JL=MS.jrnl||[], rv=JL[JL.length-1]; if(rv && rv.f && rv.p[0]==='custom') rv.byId=1; }
   save();
   setStat('↶ Put back: <b>'+jrnlLabel(e)+'</b> — recorded in the journal.');
   render(); jrnlBody();
@@ -7969,6 +8064,8 @@ function jrnlLabel(e){
 // v2.14 (item 124): why a line about added requirements is not put back from the journal (jrnlBody's hover titles)
 const JRNL_NOT_WHOLE='An added requirement as a whole — added or removed — is not put back from the change journal. To take one out, use Remove on its row’s ⋯ menu; to bring one back, put back an earlier saved copy from History & recovery.';
 const JRNL_NOT_PLACE='Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
+// v2.14 RV1-D (d28-writes-false-journal-line): what the journal says of a line an ORBIT older than v2.14 wrote (jrnlOlderLine)
+const JRNL_OLDER='recorded by an ORBIT older than v2.14, which tried to put this change back and could not: nothing changed on the board.';
 function jrnlShow(v, p){
   if(v===null||v===undefined) return '<span style="color:var(--dim)">not set</span>';
   // v2.00 (U58): an SI code that is not text reads as saved, by its JSON -- .join() read ["AT"] as AT and threw on [{"toString":null}].
@@ -8027,7 +8124,8 @@ function jrnlBody(){
       h+='<tr'+(fresh?' style="background:var(--panel2)"':'')+'>'
         +'<td style="white-space:nowrap;color:var(--mut)">'+esc(shortTs(e.t))+'</td>'
         +'<td style="white-space:nowrap">'+esc(e.by||'?')+'</td>'
-        +'<td>'+jrnlLabel(e)+(e.fy&&e.fy!==MS.cur? ' <span style="color:var(--dim)">FY'+(e.fy%100)+'</span>':'')+'</td>'
+        +'<td>'+jrnlLabel(e)+(e.fy&&e.fy!==MS.cur? ' <span style="color:var(--dim)">FY'+(e.fy%100)+'</span>':'')
+          +(jrnlOlderLine(e)? ' <span class="hint jrnl-older" style="margin:0">\u2014 '+esc(JRNL_OLDER)+'</span>' : '')+'</td>'   // v2.14 RV1-D (d28)
         +'<td style="color:var(--mut)">'+jrnlShow(e.a, e.p)+'</td>'
         +'<td>'+jrnlShow(e.b, e.p)+'</td>'
         +'<td style="text-align:right">'+(jrnlUndoable(e)
@@ -8304,6 +8402,7 @@ function keepAside(store, meta, base){
     }
     const m={t:Date.now(), why:meta.why||'', by:meta.by||'', ts:+meta.ts||0, base:base||baseGet()};
     if(meta.saved) m.saved=true;   // v2.14 (ledger U63, U64): kept though it holds no unsaved work -- saved only in the board file
+    if(meta.put) m.put=true;       // v2.14 RV1-D: kept at ↶ Put this back of an earlier copy, which nobody saved after it (keptPutBack)
     localStorage.setItem(_AP.key+'.kept', JSON.stringify(m)+'\n'+raw);
     _keptMeta=m; return true;
   }catch(e){ return false; }
@@ -8316,6 +8415,17 @@ function keptOccupiedMsg(by, ts, from, unknown, inFile){
   return '⚠ <b>'+esc(by||'someone')+'</b> saved '+(unknown? 'a copy' : 'a newer copy')+' to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
     +', but this browser already keeps earlier work aside'+(m.t? ' (kept '+esc(fmtTs(m.t))+')' : '')
     +(inFile? ', and what is on screen is saved only in the board file, which the shared folder does not keep' : ' and holds new work besides')+'. Kept work is never replaced, so '+(unknown? 'their' : 'the newer')+' copy was <b>not loaded</b> and nothing was lost. '
+    +'Deal with the kept work first: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> · '
+    +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> · '
+    +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.';
+}
+// v2.14 RV1-D (held, also noticed): THE SAME REFUSAL AT ↶ PUT THIS BACK. keptOccupiedMsg speaks of a newer copy somebody saved, which was
+// not loaded; here an earlier copy from the folder's history was asked for by this person, and it is that copy that was not put back.
+function keptOccupiedRestoreMsg(own){
+  const k=keptCopy(), m=(k&&k.meta)||_keptMeta||{};
+  return '⚠ <b>Nothing was put back.</b> This browser already keeps earlier work aside'+(m.t? ' (kept '+esc(fmtTs(m.t))+')' : '')
+    +', and what is on screen '+(own? 'holds work no saved copy has' : 'is saved only in the board file, which the shared folder does not keep')
+    +'. Kept work is never replaced, so the earlier copy was <b>not put back</b> and nothing was lost. '
     +'Deal with the kept work first: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> · '
     +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> · '
     +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.';
@@ -8398,8 +8508,13 @@ function keptPutBack(){
   const after=(k.meta.why!=='folder') || !!driveBaseOf(mySlug());
   // v2.00 (U19): work kept aside at a put-back ('swap') was not replaced by a newer save, and nobody need have saved since: the
   // rule Save follows is said instead, which holds either way.
+  // v2.14 RV1-D (held, also noticed): work kept at ↶ Put this back (put) was replaced by an EARLIER copy this person asked for, which
+  // nobody saved after it, and 💾 Save may write the board file rather than the folder (Live view just watching): "will ask before
+  // it writes over the shared folder, which <whoever saved the earlier copy> saved after it" was untrue twice over. The rule Save
+  // follows is said instead, as for a copy kept at a put-back (swap), which holds wherever Save writes.
   setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. '
     +(k.meta.why==='swap'? '💾 Save will ask before it writes over a copy saved after the one this work came from.'
+      : k.meta.put===true? '💾 Save will ask before it writes over a copy saved after the one this work came from.'
       : '💾 Save will ask before it writes over '+esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+(after? ' saved after it.' : ' saved; this browser has no record of which copy there, if any, this work came from.'))
     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));
 }
@@ -9387,6 +9502,9 @@ function pmoSubmit(){
              pv:(pmoKeysOf(PMODE)===PMO_KEYS? PMO_PV : 1),
              items:items, base:base, added:added, dest:flowEnts()};
   if(rank) pkg.rank=rank;
+  // v2.14 RV1-D (si-false-conflict-v213-copy): this copy's baselines record a "no SI code" chosen by hand as '', apart from one that
+  // follows the rules (null); a package without the mark came from a copy that could not tell them apart (pmoRows)
+  pkg.siHand=1;
   // v2.09 W2 (item 126): THE OTHER YEARS, AND THE BUILD. build is what makes a board older than this one refuse the file whole
   // (the import check's newer-build rule): read by a v2.08 board, the top of the package is a one-year submittal it would
   // take, and every out-year in it would be dropped without a word. fys is the years a five-year copy submits for, which says
@@ -9537,7 +9655,14 @@ function pmoRows(){
         if(k==='titles' && (prop===null || prop==='') && it0 && it0.custom) now=pmoVal({titles:(T||{}).titles||{}}, 'titles', id);
         const bare=function(v){ return pmoBare(k, v); };
         if(pmoSame(bare(now), bare(prop))) return;          // already says what they propose
-        const was=(base[id]||{})[k];
+        let was=(base[id]||{})[k];
+        // v2.14 RV1-D (si-false-conflict-v213-copy, si-false-conflict-old-copy): A COPY PUBLISHED BEFORE v2.14 COULD NOT RECORD A
+        // "NO SI CODE" CHOSEN BY HAND. Its pmoVal read the board's '' as absent, so its baseline says null where the board held ''
+        // -- and read against today's '' that was a CONFLICT nobody made: "changed here too", "YES — this board changed too" and
+        // "⚠ 1 of them overwrite a field THIS BOARD changed" for a field nobody on the board had touched. Such a baseline cannot
+        // tell "none by hand" from "follows the rules", so it is read the way the copy read it (v2.13's reading, no worse): a
+        // package from a v2.14 copy says it records '' (siHand, pmoSubmit) and is compared as it stands -- its null is a change.
+        if(k==='si' && was===null && now==='' && !pkg.siHand) was='';
         rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo, fy:fy,
                    id:id, key:k, it:it, now:now, prop:prop,
                    gone:!it && !!T,                          // a requirement this board no longer has
@@ -12414,7 +12539,10 @@ function inShapeWhy(o, path, asPlan){
   if(asPlan || (Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o))){
     if(Array.isArray(o.order)) for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i], 'the requirement id at '+path+'.order['+i+']'))) return w;
     if(Array.isArray(o.removed)) for(let i=0;i<o.removed.length;i++) if((w=inIdWhy(o.removed[i], 'the requirement id at '+path+'.removed['+i+']'))) return w;
-    if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if((w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
+    // v2.14 RV1-D (oldfiles, also noticed): in the user's own board (a full import, 'board'), an entry an older ORBIT's Put back left
+    // in the list of added requirements -- null, or one with no requirement id -- is no reason to refuse it: the import mends it as it
+    // comes across and says so (customMend, fullImportText). Every entry that is a requirement is checked as ever.
+    if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
     for(const k of IN_ID_MAPS) if((w=eachKey(o[k], function(id){ return IN_ID_BAD.test(id)? inIdWhy(id, 'the requirement id keying '+path+'.'+k) : ''; }))) return w;
     if((w=inAmtsWhy(o.discSvc, path+'.discSvc') || inAmtsWhy(o.mandSvc, path+'.mandSvc')
         || inAmtWhy(o.discBA, path+'.discBA') || inAmtWhy(o.mandBA, path+'.mandBA') || inAmtWhy(o.absorbFloor, path+'.absorbFloor'))) return w;
@@ -12936,6 +13064,12 @@ function fullImportText(txt, fname){
   // v2.00 (U44): WHAT PUTTING ITS DESTINATION LISTS RIGHT CHANGED (destOwnRight) is said -- in the question before anything is
   // replaced, and in the report the reopened board gives
   if(destSaid) lines.push('  • '+destSaid);
+  // v2.14 RV1-D (oldfiles, also noticed): a list of added requirements an older ORBIT's Put back damaged is mended as it comes across,
+  // as opening mends it (customMend), so no reader here meets it; said in the question and the report
+  ks.forEach(function(k){ const st=inc[k], L=[];
+    if(st.years && typeof st.years==='object') Object.keys(st.years).forEach(function(y){ const r=customMend(st.years[y], y, true); if(r) L.push(r); });
+    else { const r=customMend(st, 0, true); if(r) L.push(r); }
+    if(L.length) lines.push('  • '+_SLUGMAP[k].t+'’s list of added requirements, which an ORBIT older than v2.14 left damaged, mended \u2014 '+customMendWords(L)); });
   // v2.00 (U32, U33): A LIST A FILE HANDED OVER IS REFUSED FOR (rcnListOdd) comes across as the board saved it, and is said -- in
   // the question before anything is replaced, and in the report the reopened board gives. A locked cycle's list is read through
   // cycRcnOf, which leaves out an entry whose key is not text: when one holds such an entry, that is said as well -- kept, not
@@ -25887,7 +26021,8 @@ function cycDeltaInsp(id){
 // WHO, AND WHEN, from the journal: the last entry since the lock that names this requirement.
 // Order edits are not journaled (JRNL_SKIP), so a rank change carries no name and says so.
 function cycWho(id, sinceTs, fy){
-  const es=(MS.jrnl||[]).filter(e=> e && (e.t||0)>sinceTs && (+e.fy===+fy) && Array.isArray(e.p) && e.p.indexOf(id)>=0);
+  // v2.14 RV1-D (d28-writes-false-journal-line): a line an older ORBIT wrote changing nothing names nobody who changed it
+  const es=(MS.jrnl||[]).filter(e=> e && (e.t||0)>sinceTs && (+e.fy===+fy) && Array.isArray(e.p) && e.p.indexOf(id)>=0 && !jrnlOlderLine(e));
   if(!es.length) return '';
   const last=es[es.length-1];
   return esc(last.by||'unknown')+' · '+esc(shortTs(last.t))+(es.length>1? ' <span style="color:var(--dim)">(+'+(es.length-1)+' earlier)</span>' : '');
@@ -34516,11 +34651,18 @@ async function driveRestore(i){
     // v2.14 (ledger U64): AND WORK SAVED ONLY IN THE BOARD FILE (U19's rule, as the folder's load keeps it, U63): unless what is on
     // screen is the folder's own copy and 💾 Save writes to the folder, it is kept aside before an earlier copy replaces it. Kept
     // nothing, the next 💾 Save wrote the earlier copy over that file asking nothing, and the work was in no copy at all.
+    // v2.14 RV1-D (held, also noticed): BUT NOT THE FOLDER'S OWN COPY, wherever 💾 Save writes. The rule kept what was on screen
+    // whenever Live view was just watching: the folder's own copy (the one last loaded from or written to it, nothing saved since --
+    // a save into the board file moves its time) was then kept aside as "saved only in the board file", which it is not, and it took
+    // the one kept slot; with that slot already holding work, the earlier copy was refused in those words. That copy is in the folder
+    // -- the copy standing there now was kept in the history just above, and one a colleague replaced their save kept there -- so
+    // what is on screen is kept aside when it is work no saved copy has, or when it is not the folder's own copy, and only then.
     const own=ownUnsaved(MS, j.store, baseGet());
-    const keep=own || !driveStoreOn() || (+MS.ts||0)!==driveBaseOf(pinAp);
-    const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own}, baseGet()) : true;
-    if(ka==='occupied' && !own){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history', false, true)); render(); return; }
-    if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
+    const keep=own || (+MS.ts||0)!==driveBaseOf(pinAp);
+    const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own, put:true}, baseGet()) : true;
+    // v2.14 RV1-D (held, also noticed): the refusal says the earlier copy asked for was not put back -- not that somebody saved a newer one
+    if(ka==='occupied' && !own){ setStat(keptOccupiedRestoreMsg(false)); render(); return; }
+    if(ka==='occupied'){ setStat(keptOccupiedRestoreMsg(true)); render(); return; }
     if(ka!==true && !own){
       setStat('\u26a0 <b>Nothing was put back.</b> What is on screen is saved only in the board file, which the shared folder does not '
         +'keep, and there is no room to keep it aside. Save a copy of yours first (\u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
@@ -40721,6 +40863,8 @@ function loadShared(cb){
 // v2.00 (U44): opening says what destOwnSay says, after the line the opening chose (an import's report, a warning about this
 // browser's copy) -- never in its place. The destinations panel keeps saying it after later messages.
 try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'); _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+ow); } }catch(e){}
+// v2.14 RV1-D (oldfiles, also noticed): what opening mended in a list of added requirements, after the line the opening chose -- kept unread
+try{ const cm=customMendSay(); if(cm){ const de=document.getElementById('shareStat'); _statQuiet=false; statKeep((de && de.innerHTML? de.innerHTML+' ' : '')+cm); } }catch(e){}
 // v2.14 (item 141): A PAGE HELD BY AN IMPORT'S NOTE SAYS SO, after whatever the opening said -- kept unread.
 try{ if(impHandOf()){ const de=document.getElementById('shareStat'); _statQuiet=false; statKeep((de && de.innerHTML? de.innerHTML+' ' : '')+impHandMsg('')); } }catch(e){}
 // v2.14 (item 141): THE IMPORT'S OWN FILE TAKES THE HANDLE IT WAS WRITTEN THROUGH, only where it was written over the page that ran the

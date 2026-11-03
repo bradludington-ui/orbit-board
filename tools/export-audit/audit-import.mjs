@@ -17497,6 +17497,307 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ---- end RV1-C ----
 
 // ---- RV1-D (held findings and older files) ----
+// v2.14 RV1-D (si-false-conflict-v213-copy, si-false-conflict-old-copy): A COPY PUBLISHED BEFORE v2.14 IS NOT READ AS A CONFLICT OVER A
+// "NO SI CODE" THE BOARD HELD WHEN IT WENT OUT. v2.13's pmoVal read the board's '' as absent, so a copy it published records that
+// baseline as null; v2.14 reads the board's '' as '', and the review called the office's change a CONFLICT nobody made -- "changed here
+// too" on screen, "YES — this board changed too" in the change report, "⚠ 1 of them overwrite a field THIS BOARD changed" at Apply.
+// The copy is v2.13's own (git show c863dc2), published and submitted by its own code. A copy published by this build marks its
+// package (siHand), and its null baseline is a change: (b) is the real conflict, which must still be flagged.
+// FAILS ON 44aa984: (a) conflict true, the review and the report say so, Apply carries the ⚠ line.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV1-D — a copy published before v2.14 is not read as a conflict over a “no SI code” the board held when it went out (si-false-conflict-v213-copy, si-false-conflict-old-copy)';
+  try {
+    const J = JSON.stringify;
+    const V213 = v14Old('c863dc2', 'prioritization-board-grid.html');   // v2.13 (git fetch --unshallow first in a shallow clone)
+    const mk = (id, ask) => ({ id, grp: 'PP', team: 'PP', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const SC = { services: ['USAF', 'USN'], items: [mk('A', [100, 200]), mk('B', [50, 60])], disc: [1000, 1000], mand: [100, 100], order: ['A', 'B'] };
+    // a board file written by `html` (this build when omitted), with `js` run through the real setters first
+    const fileBy = (html, js) => { const b = boot(html ? { html } : {}); seed(b.ev, SC);
+      b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        window.confirm=function(){ return true; }; window.alert=function(){}; ${js}; save(); 'ok'`);
+      return b.ev('buildSavedHtml()'); };
+    // the review of one package on a board file: the SI rows, the review box, the change report's Conflict cells, and Apply's question
+    const review = async (html, pkg, js) => {
+      const B = boot({ html });
+      B.ev(`window.__dlg=[]; window.alert=function(m){ window.__dlg.push(['alert',String(m)]); }; window.confirm=function(m){ window.__dlg.push(['confirm',String(m)]); return false; };
+        try{ localStorage.setItem('prio27who','Lead'); }catch(e){} ${js || ''}; 'ok'`);
+      w209ev(B, `PMOSUBS=[]; PMOPICK={}; pmoTake(${J(pkg)}, 'pp.json'); 'ok'`);
+      const rows = JSON.parse(w209ev(B, `JSON.stringify(pmoRows().filter(function(r){ return r.key==='si'; }).map(function(r){ return [r.id, r.now, r.prop, r.conflict]; }))`) || '[]');
+      const sb = w209ev(B, `(function(){ subOpen=true; subBody(); var t=(document.getElementById('subBody')||{}).textContent||''; subOpen=false; return t; })()`);
+      const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+        try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+        window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+        var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+      const brows = book.rows || [], BH = (brows.find(r => r.map(String).indexOf('Conflict') >= 0) || []).map(String);
+      const conflictCells = brows.filter(r => String(r[BH.indexOf('Field')]) === B.ev(`PMO_LBL.si`)).map(r => String(r[BH.indexOf('Conflict')] == null ? '' : r[BH.indexOf('Conflict')]));
+      B.ev(`window.__dlg=[]; subPickAll(true); pmoApply(); 'ok'`);
+      const asked = JSON.parse(B.ev(`JSON.stringify(window.__dlg)`)).filter(x => x[0] === 'confirm').map(x => x[1]).join('\n');
+      return { rows, box: sb, cells: conflictCells, asked, err: book.err || '', errors: B.errors.length };
+    };
+    // (a) a copy published by v2.13 off a board holding A as none by hand (office PP: the rules give EN); the office sets A to OT
+    const F13 = fileBy(V213, `setSi('A','')`);
+    const P13 = boot({ html: v184Publish(boot({ html: F13 }).ev) });
+    P13.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27pmo','PP'); }catch(e){} render(); setSi('A','OT'); 'ok'`);
+    const pkg13 = (v184Submit(P13, 'PP').pkg) || {};
+    chk(name, 'fixture', 'the v2.13 copy’s package proposes OT for A against a baseline of null (it read the board’s none as absent), and carries no siHand',
+      J([(pkg13.items || {}).A, (pkg13.base || {}).A, pkg13.siHand === undefined, String(pkg13.build || '').slice(0, 5)]), J([{ si: 'OT' }, { si: null }, true, 'v2.13']));
+    const F14 = fileBy(null, `setSi('A','')`);
+    const r13 = await review(F14, pkg13);
+    chk(name, '(a) a v2.13 copy', 'the board still holds A as none by hand, and the row is not a conflict', J(r13.rows), J([['A', '', 'OT', false]]));
+    chk(name, '(a) a v2.13 copy', 'the review box does not say CONFLICT', /CONFLICT/.test(r13.box), false);
+    chk(name, '(a) a v2.13 copy', 'the change report’s Conflict cell for the row is blank (read from its bytes)', J([r13.err, r13.cells]), J(['', ['']]));
+    chk(name, '(a) a v2.13 copy', 'and Apply does not say it overwrites a field this board changed', /THIS BOARD changed/.test(r13.asked), false);
+    // (b) CONTROL: a copy published by this build while B followed the rules; the board then set B to none by hand and the office
+    // set it to OT: that conflict is real, and still flagged
+    const F14b = fileBy(null, ``);
+    const P14 = boot({ html: v184Publish(boot({ html: F14b }).ev) });
+    P14.ev(`window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27pmo','PP'); }catch(e){} render(); setSi('B','OT'); 'ok'`);
+    const pkg14 = (v184Submit(P14, 'PP').pkg) || {};
+    chk(name, '(b) CONTROL', 'a copy published by this build marks its package (siHand) and sends B against a baseline of null',
+      J([pkg14.siHand, (pkg14.items || {}).B, (pkg14.base || {}).B]), J([1, { si: 'OT' }, { si: null }]));
+    const r14 = await review(F14b, pkg14, `setSi('B','')`);
+    chk(name, '(b) CONTROL', 'the board set B to none by hand after the copy went out: the row is a conflict', J(r14.rows), J([['B', '', 'OT', true]]));
+    chk(name, '(b) CONTROL', 'and the review box, the change report and Apply say so',
+      J([/CONFLICT/.test(r14.box), r14.cells, /⚠ 1 of them overwrite a field THIS BOARD changed since the copy went out\./.test(r14.asked)]), J([true, ['YES — this board changed too'], true]));
+    chk(name, 'errors', 'no page error', J([r13.errors, r14.errors, P13.errors.length, P14.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 RV1-D (d28-writes-false-journal-line): A LINE AN ORBIT OLDER THAN v2.14 WROTE WHEN IT PUT BACK A LINE THIS BUILD JOURNALLED BY
+// ID READS AS RECORDED AND NEVER DONE. v2.13 open on the same browser (D28's own route) walks ['custom','NEW-2','ask',0] as a place,
+// changes nothing, says "recorded in the journal" and writes its reversal line. Back here that line read as a real change, offered for
+// Put back, while the board held the value it claims was undone; cycWho named the person who pressed it. The program is v2.13's own
+// (git show c863dc2). FAILS ON 44aa984: the line is offered for Put back, the panel names no older ORBIT, cycWho names Colleague.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV1-D — a line an ORBIT older than v2.14 wrote putting back a line journalled by id reads as recorded and never done (d28-writes-false-journal-line)';
+  try {
+    const J = JSON.stringify;
+    const V213 = v14Old('c863dc2', 'prioritization-board-grid.html');
+    const { lsOf } = W1H;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    // Pat's board, this build: two added requirements, NEW-2's value 200 -> 250 (a line by id), each a minute apart
+    const W = boot(); seed(W.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    W.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=-600000; Date.now=function(){ return window.__rn.call(Date)+window.__tk; };
+      reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render();
+      window.__tk+=61000; setAsk('NEW-2', 0, '250'); 'ok'`);
+    const F = W.ev('buildSavedHtml()');
+    const A = boot({ html: F }); A.ev(`localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){}; setNote('A','in this build'); 'ok'`);
+    // the same browser, v2.13's program: it takes storage, and Put back of Pat's line by id
+    const O = boot({ html: V213, ls: lsOf(A.ev) });
+    O.ev(`localStorage.setItem('prio27who','Colleague'); window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const li = +O.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--){ var p=L[i].p; if(p[0]==='custom' && p[1]==='NEW-2' && p[2]==='ask' && p[3]===0 && L[i].b===250) return i; } return -1; })()`);
+    const wl = +O.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--){ var p=L[i].p; if(p[0]==='custom' && p[1]==='NEW-1' && p.length===2) return i; } return -1; })()`);
+    O.ev(`jrnlUndo(${li}); jrnlUndo(${wl}); 'ok'`);
+    chk(name, 'fixture', 'v2.13 took the board from storage, put back Pat’s line by id and the add of NEW-1, changed nothing, and wrote both reversal lines',
+      O.ev(`JSON.stringify([(S.notes||{}).A, S.custom.map(function(x){ return [x.id, x.ask[0]]; }), MS.jrnl.slice(-2).map(function(e){ return [e.by, e.p, e.f]; })])`),
+      J(['in this build', [['NEW-1', 100], ['NEW-2', 250]], [['Colleague', ['custom', 'NEW-2', 'ask', 0], 1], ['Colleague', ['custom', 'NEW-1'], 1]]]));
+    // back in this build, in the same browser
+    const V = boot({ html: F, ls: lsOf(O.ev) });
+    V.ev(`window.__cf=0; window.confirm=function(){ window.__cf++; return true; }; window.alert=function(){}; localStorage.setItem('prio27who','Pat'); 'ok'`);
+    const vi = +V.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--){ if(L[i].by==='Colleague' && L[i].p.length===4) return i; } return -1; })()`);
+    const vw = +V.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--){ if(L[i].by==='Colleague' && L[i].p.length===2) return i; } return -1; })()`);
+    chk(name, 'fixture', 'reopened here, NEW-2 still holds 250 and NEW-1 is still on the board', V.ev(`JSON.stringify([S.custom.map(function(x){ return [x.id, x.ask[0]]; }), S.order.indexOf('NEW-1')>=0])`), J([[['NEW-1', 100], ['NEW-2', 250]], true]));
+    // (a) neither line is offered for Put back
+    chk(name, '(a) not offered', 'neither of v2.13’s lines is offered for Put back', V.ev(`JSON.stringify([jrnlUndoable(MS.jrnl[${vi}]), jrnlUndoable(MS.jrnl[${vw}])])`), J([false, false]));
+    // (b) the panel says what they are
+    V.ev(`jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    const rows = JSON.parse(V.ev(`JSON.stringify([].map.call(document.querySelectorAll('#jrnlBody tr'), function(tr){ return [tr.textContent.replace(/\\s+/g,' '), !!tr.querySelector('button[onclick^="jrnlUndo"]')]; }).filter(function(r){ return /Colleague/.test(r[0]); }))`));
+    chk(name, '(b) the panel', 'each of Colleague’s rows says an ORBIT older than v2.14 recorded it and nothing changed, with no Put back button',
+      J(rows.map(r => [/recorded by an ORBIT older than v2\.14, which tried to put this change back and could not: nothing changed on the board\./.test(r[0]), r[1]])), J([[true, false], [true, false]]));
+    // (c) who changed NEW-2 is Pat, not Colleague
+    chk(name, '(c) who', 'the cycle deltas’ “who” names Pat as the last to change NEW-2, not Colleague', /^Pat ·/.test(V.ev(`cycWho('NEW-2', 0, MS.cur)`)), true);
+    // (d) pressed anyway: nothing asked, nothing changed, and said
+    const j0 = +V.ev('MS.jrnl.length'), cf0 = +V.ev('window.__cf');
+    V.ev(`jrnlUndo(${vi}); 'ok'`);
+    chk(name, '(d) pressed', 'Put back of it asks nothing, changes nothing, writes no line, and says why',
+      J([+V.ev('window.__cf') - cf0, V.ev(`JSON.stringify(S.custom.map(function(x){ return x.ask[0]; }))`), +V.ev('MS.jrnl.length') - j0,
+        /Not put back.*recorded by an ORBIT older than v2\.14.*Nothing was changed\./.test(V.ev(`(document.getElementById('shareStat')||{}).textContent`))]), J([0, '[100,250]', 0, true]));
+    // (e) CONTROL: this build's own Put back of Pat's line by id is real, and its reversal line is offered and works in turn
+    const pi = +V.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--){ if(L[i].by==='Pat' && L[i].p[1]==='NEW-2' && L[i].b===250) return i; } return -1; })()`);
+    V.ev(`window.__tk=(window.__tk||0); jrnlUndo(${pi}); 'ok'`);
+    const ri = +V.ev('MS.jrnl.length') - 1;
+    chk(name, '(e) CONTROL', 'this build puts Pat’s line back (NEW-2 200), and its own reversal line is offered for Put back',
+      V.ev(`JSON.stringify([S.custom.map(function(x){ return x.ask[0]; }), MS.jrnl[${ri}].p, jrnlUndoable(MS.jrnl[${ri}])])`), J([[100, 200], ['custom', 'NEW-2', 'ask', 0], true]));
+    V.ev(`jrnlUndo(${ri}); 'ok'`);
+    chk(name, '(e) CONTROL', 'and putting that back writes 250 again', V.ev(`JSON.stringify(S.custom.map(function(x){ return x.ask[0]; }))`), '[100,250]');
+    chk(name, 'errors', 'no page error', J([W.errors.length, A.errors.length, O.errors.length, V.errors.length]), J([0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 RV1-D (oldfiles, also noticed): A BOARD WHOSE LIST OF ADDED REQUIREMENTS AN OLDER ORBIT DAMAGED OPENS HERE, MENDED AND SAID.
+// v2.13's own ↶ Put back left null in the list (the add of NEW-1 put back by its place) and an element with no id (NEW-3's value put
+// back after NEW-3 was deleted). Opened in this build from browser storage, the boot threw and the page stopped; its board file, full
+// imported, was refused at the door. The damage here is v2.13's own (git show c863dc2), made through its own Put back. FAILS ON
+// 44aa984: the boot throws, and the full import refuses the file.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV1-D — a board whose list of added requirements an older ORBIT damaged opens, mended and said, and counts nothing it set aside (oldfiles)';
+  try {
+    const J = JSON.stringify;
+    const { lsOf } = W1H;
+    const V213 = v14Old('c863dc2', 'prioritization-board-grid.html');
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const O = boot({ html: V213 });
+    seed(O.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    O.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Colleague'); window.confirm=function(){ return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=-900000; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+    const step = (js) => { O.ev(`window.__tk+=61000; 'ok'`); try { return O.ev(js); } catch (e) { return 'THREW'; } };
+    step(`reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); save(); render(); 'ok'`);
+    step(`reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); 'ok'`);
+    step(`reqCreate('AV', {title:'Z', event:'EZ', ask:[300,0,0]}); save(); render(); 'ok'`);
+    step(`setAsk('NEW-3', 0, '350'); 'ok'`);
+    step(`removeReq('NEW-3'); 'ok'`);
+    const li = (p, b) => +O.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--) if(JSON.stringify(L[i].p)===${J(J(p))} && JSON.stringify(L[i].b)===${J(J(b))}) return i; return -1; })()`);
+    step(`jrnlUndo(${li(['custom', 2, 'ask', 0], 350)}); 'ok'`);   // NEW-3's value put back after NEW-3 was deleted: an element with no id
+    step(`setNote('A','one'); 'ok'`);
+    const addX = +O.ev(`(function(){ var L=MS.jrnl||[]; for(var i=0;i<L.length;i++) if(L[i].p.length===2 && L[i].p[0]==='custom' && L[i].p[1]===0 && L[i].a===null) return i; return -1; })()`);
+    step(`jrnlUndo(${addX}); 'ok'`);                                 // the add of NEW-1 put back by its place: null
+    step(`setNote('A','two'); 'ok'`);
+    const F = O.ev('buildSavedHtml()');
+    const pubOf = html => JSON.parse(html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+    const shape = L => (L || []).map(x => x === null ? null : [x.id === undefined ? 'no id' : x.id, x.ask[0]]);
+    const P = pubOf(F);
+    chk(name, 'fixture', 'v2.13’s own board -- its file and this browser’s storage -- holds null where NEW-1 was, NEW-2, and an element with no id carrying NEW-3’s 300',
+      J([shape(P.appns.om.years[P.appns.om.cur].custom), shape((st => st.years[st.cur].custom)(JSON.parse(lsOf(O.ev).prio27om)))]),
+      J([[null, ['NEW-2', 200], ['no id', 300]], [null, ['NEW-2', 200], ['no id', 300]]]));
+    const opened = (B, how) => {
+      chk(name, how + ' opens', 'the board opens with no page error', J(B.errors.map(e => String(e).slice(0, 80))), '[]');
+      chk(name, how + ' opens', 'and every added requirement on it has a text id: NEW-2 alone', w209ev(B, `JSON.stringify(S.custom.map(function(x){ return x.id; }))`), '["NEW-2"]');
+      chk(name, how + ' set aside', 'the element with no id is kept as it was found (its place, its ask), and counted nowhere: the board holds A and NEW-2, $1,400 requested in all',
+        w209ev(B, `JSON.stringify([(S.customAside||[]).map(function(a){ return [a.i, a.v.ask, a.v.id===undefined]; }), DATA.items.map(function(i){ return i.id; }).sort(),
+          DATA.items.reduce(function(t,i){ return t+i.ask.reduce(function(a,b){ return a+b; },0); },0)])`),
+        J([[[2, [300, 0, 0], true]], ['A', 'NEW-2'], 900 + 200 + 100 + 200]));
+    };
+    // (a) the same browser: this build's program opens the board v2.13 left in storage
+    const B = boot({ ls: lsOf(O.ev) });
+    opened(B, '(a) from browser storage:');
+    // kept unread in the session's messages (⚠ N unread): the shell's own opening line can take the status line after it
+    chk(name, '(a) from browser storage: said', 'the opening says what was mended, kept unread',
+      w209ev(B, `String(STAT_LOG.some(function(m){ return !m.read && /The list of added requirements was mended on opening<\\/b> — FY27: 1 empty entry taken out, 1 entry with no requirement id set aside in the file, where nothing counts it\\./.test(m.html); }))`), 'true');
+    // (b) v2.13's board file, full imported into this build's program: taken, mended as it comes across, and said
+    const N = boot();
+    let imp = [null, []];
+    try { imp = JSON.parse(w209ev(N, `(function(){ var q=[]; window.confirm=function(m){ q.push(String(m)); return true; }; window.alert=function(m){ q.push(String(m)); };
+      var r=fullImportText(${J(F)}, 'damaged.html'); return JSON.stringify([r, q]); })()`)); } catch (e) { imp = ['threw', []]; }
+    chk(name, '(b) the full import', 'the file is taken, and its question names what is mended',
+      J([imp[0], imp[1].some(q => /O&M’s list of added requirements, which an ORBIT older than v2\.14 left damaged, mended — FY27: 1 empty entry taken out, 1 entry with no requirement id set aside in the file, where nothing counts it/.test(q))]), J([true, true]));
+    const N2 = boot({ ls: lsOf(N.ev) });
+    opened(N2, '(b) the full import, reopened:');
+    chk(name, '(b) the full import, reopened: said', 'and the import’s report says it',
+      /list of added requirements, which an ORBIT older than v2\.14 left damaged, mended/.test(w209ev(N2, `(document.getElementById('shareStat')||{}).textContent`)), true);
+    // (c) saved, the file carries the mended list and the element set aside
+    const F2 = w209ev(B, `(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return buildSavedHtml(); })()`);
+    let Y2 = null; try { Y2 = (st => st.years[st.cur])(pubOf(F2).appns.om); } catch (e) { Y2 = null; }
+    chk(name, '(c) saved', 'the saved file holds NEW-2 alone in the list, and the element set aside',
+      Y2 ? J([(Y2.custom || []).map(x => x && x.id), (Y2.customAside || []).map(a => a.v.ask[0])]) : 'no file', J([['NEW-2'], [300]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 RV1-D (u64-working-out-of-folder-unchecked; held, also noticed): PUT THIS BACK KEEPS WORK SAVED ONLY IN THE BOARD FILE ASIDE,
+// NEVER THE FOLDER'S OWN COPY, AND EVERY SENTENCE SAYS WHAT HAPPENED. (a) is the ledger's other U64 case -- working out of the folder,
+// what is on screen saved only in the board file -- which no check reached (it passes on 44aa984; v214-w4-restore-keeps-nothing-saved
+// proves it bites). (b)-(e) FAIL ON 44aa984: just watching, the folder's own copy was kept aside as "saved only in the board file" and,
+// with the slot holding work, the earlier copy was refused in those words and "Bob saved a newer copy"; and work kept at a Put this
+// back, put back in its turn, said "💾 Save will ask before it writes over the shared folder, which <the earlier copy's saver> saved".
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV1-D — Put this back keeps work saved only in the board file aside while working out of the folder, never the folder’s own copy, and says what happened (u64-working-out-of-folder-unchecked)';
+  try {
+    const { J, wire, KEY, status, baseFile, disk, folder, connect, fileNote, pause, lsOf, qs } = W1H;
+    const F1 = baseFile('Alice', KEY.alice);
+    const keptOf = ev => JSON.parse(ev(`(function(){ var k=keptCopy(); if(!k) return 'null'; var s=JSON.parse(k.raw); return JSON.stringify([((s.years[s.cur]||{}).notes||{}).A||'', k.meta.why, k.meta.saved===true]); })()`));
+    const watch = ev => ev(`_liveCfg=Object.assign(liveCfg(), {store:false}); 'ok'`);
+    const other = ev => ev(`localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:1, why:'file', by:'x', ts:1, base:{}})+'\\n'+JSON.stringify({years:{2027:{notes:{A:'OTHER'}}}, cur:2027})); _keptMeta=keptCopy().meta; 'ok'`);
+    // Bob seeds the folder with F0 then F1; Alice opens the board file, and (saved) saves S1 into it
+    const setup = async (tag, saved) => {
+      const fold = folder();
+      const B = boot({ html: F1 }); await pause(60); wire(B.ev, 'Bob', KEY.alice); connect(B.ev, B.w, fold);
+      B.ev(`setNote('A','${tag}-F0'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+      B.ev(`setNote('A','${tag}-F1'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+      const A = boot({ html: F1 }); await pause(60); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, F1);
+      if (saved) { A.ev(`setNote('A','${tag}-S1'); 'ok'`); await pause(5); await A.ev('saveInPlaceFile()'); await pause(10); }
+      return { fold, A, f };
+    };
+    // (a) working out of the folder, S1 saved only in the board file and never written to the folder: Put this back keeps S1 aside, as
+    // saved work; switched to just watching, 💾 Save writes the earlier copy into the file, and S1 is still kept after a reopen
+    {
+      const { fold, A, f } = await setup('RVA', true);
+      connect(A.ev, A.w, fold);
+      chk(name, '(a) fixture', 'working out of the folder, S1 on screen and not the folder’s copy',
+        A.ev(`JSON.stringify([driveStoreOn(), String(S.notes.A), (+MS.ts||0)!==driveBaseOf(mySlug())])`), J([true, 'RVA-S1', true]));
+      await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, '(a) working out of the folder', 'Put this back puts F0 on screen and keeps S1 aside, marked saved', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['RVA-F0', ['RVA-S1', 'folder', true]]));
+      chk(name, '(a) working out of the folder', 'and says so, and that 💾 Save writes to the folder',
+        J([/What was on screen is saved only in the board file, which the shared folder does not keep, so it is kept aside/.test(status(A.ev)), /press 💾 Save to write it back to the folder for everyone/.test(status(A.ev))]), J([true, true]));
+      watch(A.ev); await A.ev('saveInPlace()'); await pause(20);
+      const R = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(30);
+      chk(name, '(a) working out of the folder', 'just watching, 💾 Save writes F0 into the file; reopened, S1 is still kept aside', J([fileNote(f.content, 'A'), (keptOf(R.ev) || [])[0]]), J(['RVA-F0', 'RVA-S1']));
+    }
+    // (b) just watching, what is on screen IS the folder's own copy (loaded from it, nothing saved since): Put this back keeps nothing
+    // -- the folder holds that copy -- and says nothing about the board file
+    {
+      const { fold, A } = await setup('RVB', false);
+      connect(A.ev, A.w, fold); await A.ev('driveStorePull(false)'); await pause(10);
+      A.ev(`localStorage.removeItem(_AP.key+'.kept'); _keptMeta=null; 'ok'`);   // what the load kept of the file's own work is not this part's
+      chk(name, '(b) fixture', 'the folder’s own copy F1 is on screen, and nothing is kept', A.ev(`JSON.stringify([String(S.notes.A), (+MS.ts||0)===driveBaseOf(mySlug()), !!keptCopy()])`), J(['RVB-F1', true, false]));
+      watch(A.ev); await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, '(b) the folder’s own copy', 'Put this back puts F0 on screen and keeps nothing aside', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['RVB-F0', null]));
+      chk(name, '(b) the folder’s own copy', 'and does not say the screen was saved only in the board file, nor kept aside', J([/saved only in the board file/.test(status(A.ev)), /kept aside/.test(status(A.ev))]), J([false, false]));
+    }
+    // (c) the same with other work already kept: the earlier copy is put back all the same, and the kept work is untouched
+    {
+      const { fold, A } = await setup('RVC', false);
+      connect(A.ev, A.w, fold); await A.ev('driveStorePull(false)'); await pause(10);
+      A.ev(`localStorage.removeItem(_AP.key+'.kept'); _keptMeta=null; 'ok'`); other(A.ev);
+      watch(A.ev); await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, '(c) the folder’s own copy, slot taken', 'Put this back puts F0 on screen; the kept work is still the other work', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['RVC-F0', ['OTHER', 'file', false]]));
+    }
+    // (d) just watching, S1 saved only in the board file, other work already kept: nothing put back, in words that say so
+    {
+      const { fold, A } = await setup('RVD', true);
+      connect(A.ev, A.w, fold); watch(A.ev); other(A.ev);
+      await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      const s = status(A.ev);
+      chk(name, '(d) slot taken', 'nothing put back: S1 is still on screen, the kept work untouched', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['RVD-S1', ['OTHER', 'file', false]]));
+      chk(name, '(d) slot taken', 'and the board says the earlier copy was not put back, why, and never that somebody saved a newer copy',
+        J([/Nothing was put back\. This browser already keeps earlier work aside .*, and what is on screen is saved only in the board file, which the shared folder does not keep\. Kept work is never replaced, so the earlier copy was not put back and nothing was lost\./.test(s),
+          /saved a newer copy/.test(s), /newer copy was not loaded/.test(s)]), J([true, false, false]));
+    }
+    // (e) just watching, Put this back keeps S1 aside; putting S1 back says the rule Save follows -- never that Save writes over the
+    // shared folder, which whoever saved the earlier copy saved after it
+    {
+      const { fold, A, f } = await setup('RVE', true);
+      connect(A.ev, A.w, fold); watch(A.ev);
+      await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
+      chk(name, '(e) fixture', 'Put this back kept S1 aside, marked as kept at a Put this back', A.ev(`JSON.stringify([String(S.notes.A), keptCopy().meta.put===true])`), J(['RVE-F0', true]));
+      A.ev(`keptPutBack(); 'ok'`); await pause(5);
+      const s = status(A.ev);
+      chk(name, '(e) put back in turn', 'S1 is back on screen, and the board says 💾 Save will ask before it writes over a copy saved after the one this work came from',
+        J([A.ev('String(S.notes.A)'), /💾 Save will ask before it writes over a copy saved after the one this work came from\./.test(s), /writes over the shared folder, which/.test(s)]), J(['RVE-S1', true, false]));
+      const q0 = qs(A.ev).length; await A.ev('saveInPlace()'); await pause(20);
+      chk(name, '(e) put back in turn', 'and 💾 Save (just watching) writes S1 into the file, asking nothing: the file held S1', J([qs(A.ev).slice(q0).length, fileNote(f.content, 'A')]), J([0, 'RVE-S1']));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV1-D ----
 // ==== end v2.14 review round 1 fixes ====
 
