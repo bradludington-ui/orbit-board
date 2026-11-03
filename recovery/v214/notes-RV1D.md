@@ -72,7 +72,8 @@ to the review worktree's (`cmp`). Every check below was run on `44aa984`'s board
     without the mark (`jrnlOlderLine`) can therefore only be an older ORBIT's reversal of a v2.14 line, and that older ORBIT
     changed nothing.
   - Such a line is not undoable. Its journal row says "recorded by an ORBIT older than v2.14, which tried to put this change
-    back and could not: nothing changed on the board." `cycWho` does not count it.
+    back and could not: nothing changed on the board." `cycWho` does not count it. `cycWho` is outside the code I own:
+    one condition was added to its filter, named here.
   - Pressed anyway, `jrnlUndo` says so before anything is asked. That refusal is ahead of the `cycBlock` line, as W4's
     gone-requirement refusal is, so the two v2.00 finds spanning that line still match.
 - **Not covered:** an ORBIT older than v1.95 wrote its reversal unforced (no `f`), so such a line would read as a genuine
