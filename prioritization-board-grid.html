@@ -2265,7 +2265,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <section data-part="team" data-id="t-full" data-t="A new version: import the full board">
 <p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="imp">Imports &amp; exports › Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
 <p>One confirmation lists what comes across and says it <b>replaces</b> what the new board holds. If the new board already has work of its own on an appropriation, it names each change that would be lost and asks first. Anything the file does not carry — an appropriation it has no plan for, a list an older version did not save — is kept as the board has it, and the report says so. The board reopens with a report of what arrived. Files saved by v1.80 onward are accepted.</p>
-<p>It is all or nothing. If this browser’s storage refuses any part of it (it is full), nothing is imported: the board says which list was refused and stays exactly as it was. In the rare case that storage also refuses putting the old board back, the board says which lists hold the import and which are as they were, does not reopen, and offers two files to save — this board as it was, and the file you imported. Save both before doing anything else.</p>
+<p>It is all or nothing. If this browser’s storage refuses any part of it (it is full), nothing is imported and the board stays as it was; it then offers to <b>write the imported board into a new board file</b> instead. Save any work it names, choose a <b>new</b> name (the browser empties the file you choose), and open that file. If storage also refuses putting the old board back, it says which lists hold what and offers this board as it was and the file you imported: save both first.</p>
 <p>Then press <b>💾 Save</b>, so the new file holds your work.</p>
 </section>
 <section data-part="team" data-id="t-one" data-t="One appropriation in or out">
@@ -2630,6 +2630,9 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
      and each item is the call its menu item made (mRun(...)); a click on one closes the box first (uiPanelRun). -->
 <!-- Imports & exports: every way a whole board or an appropriation comes in or goes out (the File menu's Boards and
      appropriations until 19 Oct). The programme offices' submittals are under Program offices. -->
+<!-- v2.14 (item 141): a full import browser storage cannot hold, written into a new board file instead (impFileDraw). No backdrop
+     click: closing must not be a stray click while a file is being written. -->
+<div class="modal-bg" id="impFilePanel"><div class="modal" style="width:640px;max-width:98vw"><h3>The imported board is too big for browser storage <button type="button" class="x" onclick="impFileClose()">✕ Close</button></h3><div id="impFileBody"></div></div></div>
 <div class="modal-bg" id="uiImpPanel" onclick="if(event.target===this)uiImpClose()">
   <div class="modal uiImp uiPanel">
     <h3>Imports &amp; exports <button type="button" class="x" onclick="uiImpClose()">✕ Close</button></h3>
@@ -2891,6 +2894,12 @@ const SANDBOX = !!(PMODE && PMODE.sandbox);
 // nothing a copy does can reach the board's lists or another copy's.
 const SIDE_SFX=SANDBOX? '-pmo'+(PMODE.ts||0) : '';
 const EXDB_KEY='prio27execdb'+SIDE_SFX, ACEDB_KEY='prio27acedb'+SIDE_SFX, BUDDB_KEY='prio27buddb'+SIDE_SFX, RPDB_KEY='prio27reprog'+SIDE_SFX;
+// v2.14 (item 141): THE NOTE THAT SAYS WHICH FILE HOLDS AN IMPORTED BOARD. A full import too big for browser storage is written
+// into a new board file instead, and this note -- that file's id and name, the keys the import clears and what each held -- is
+// what the next page reads: the import's own file clears this browser's old copies before anything reads them (_impOpen), and
+// every other page is held from writing them back (impHandKey). Sealed like the stopped-import mark, so a PMO copy never reads the
+// board's. A var: it is read while the board opens, and impHandKey answers false until this line has run.
+var IMP_FILE_KEY='prio27impFile'+SIDE_SFX;
 // v2.09 (item 127): the office set in this page ({g, ok}: ok when browser storage took it too), so a browser whose storage
 // refuses still submits and saves for the office it was told. v2.09 review: and whatever storage holds -- once this page has
 // an office of its own, chosen here or adopted from the work it opened, myPmo() reads it and not the browser's setting, which
@@ -2950,6 +2959,35 @@ function sideEmpty(key, o){
       return k==='ts' || v==null || v==='' || v===0 || (typeof v==='object' && !Object.keys(v).length); });
   }catch(e){ return false; }
 }
+// v2.14 (item 141, C21): THE HAND-OVER HOLD, LATCHED FOR THE PAGE'S LIFE (impHandLatch). Declared here, above _impOpen, which
+// sets it: a var's initializer runs where it stands, and one declared below would put back null after the opening set it.
+var _impHand=null, _impHandSaid=false;
+// v2.14 (item 141): OPENING A PAGE WHILE THE NOTE STANDS. Run before the first read of any key a full import writes -- EXDB, ACEDB,
+// BUDDB, DESTDB, RPDB, CYCDB, DATA and the plan restore below -- so an old copy this browser still holds cannot stand in front of
+// the import's file (DATA takes storage's data pack first). The import's OWN file (its pubState carries the note's id) removes each
+// key that still holds exactly what it held when the import was written, with its plan's record; names any that changed (another
+// tab's work is never removed); and removes the note, so pages opened after it are not held. Any other page is held for its life
+// (C21). Never throws, and reads nothing declared with let or const below this line.
+var _impOpen=(function(){
+  try{
+    let m=null; try{ m=JSON.parse(localStorage.getItem(IMP_FILE_KEY)||'null'); }catch(e){ m=null; }
+    if(!m || typeof m!=='object' || !Array.isArray(m.keys)) return null;
+    const f=(PUB && typeof PUB==='object' && PUB.impFile && typeof PUB.impFile==='object')? PUB.impFile : null;
+    if(!(f && typeof m.n==='string' && f.n===m.n)){ impHandLatch(m); return {own:false, m:m}; }
+    const h=(m.h && typeof m.h==='object')? m.h : {}, says=Array.isArray(m.says)? m.says : [], left=[];
+    m.keys.forEach(function(k, i){
+      if(typeof k!=='string') return;
+      let v=null; try{ v=localStorage.getItem(k); }catch(e){ v=null; }
+      if(v!==null){
+        if(!(Object.prototype.hasOwnProperty.call(h, k) && sideHash(v)===h[k])){ left.push(String(says[i]||k)); return; }
+        try{ localStorage.removeItem(k); }catch(e){ left.push(String(says[i]||k)); return; }
+      }
+      try{ localStorage.removeItem(k+'.base'); }catch(e){}      // C19: a plan's record goes with the plan
+    });
+    try{ localStorage.removeItem(IMP_FILE_KEY); }catch(e){}
+    return {own:true, m:m, left:left};
+  }catch(e){ return null; }
+})();
 let EXDB = (function(){
   let ls=null; try{ ls=JSON.parse(localStorage.getItem(EXDB_KEY)||'null'); }
   catch(e){ _bootLost.push('the imported CCaR execution data held in browser storage'); }
@@ -3018,12 +3056,70 @@ var _cycSwap=null;
 // v2.14 (slot; W2 owns both bodies): THE HAND-OVER HOLD. While an import's new file has not been opened in this browser, no write may
 // put back a list the import cleared (item 141). Inert until W2 fills them. Neither may throw, and both may run while the board
 // opens, before any let or const below them exists.
-function impHandKey(key){ return false; }
-function impHandRefuse(key, what){ return false; }
+function impHandKey(key){ try{ const m=impHandOf(); return !!(m && m.keys.indexOf(key)>=0); }catch(e){ return false; } }
+function impHandRefuse(key, what){
+  // counted as not kept, exactly as a refusal is -- this appropriation's plan has been counted already, by save()
+  try{ const fk=fileKeyOf(key); if(fk){ if(key!==_AP.key) fileMark(fk); fileStored(key, fk, false); } }catch(e){}
+  try{ DIAG.refused.push({t:Date.now(), what:diagClean(what, false), why:'HandOverHold'}); }catch(e){}
+  try{ if(!_impHandSaid && !_lsAllRun){ setStat(impHandMsg(what)); _impHandSaid=true; } }catch(e){}
+  return false;
+}
+// The note as it stands: in browser storage (another tab may have written it since this page opened), else the one this page
+// latched. Reading it from storage latches it (C21), so a page that has seen the note stays held after the file opens elsewhere.
+function impHandOf(){
+  try{
+    if(!IMP_FILE_KEY) return _impHand||null;
+    let m=null; try{ m=JSON.parse(localStorage.getItem(IMP_FILE_KEY)||'null'); }catch(e){ m=null; }
+    if(m && typeof m==='object' && Array.isArray(m.keys)) return impHandLatch(m);
+    return _impHand||null;
+  }catch(e){ return null; }
+}
+function impHandLatch(m){ _impHand=m; return m; }
+// What a held page says, once, when it first holds a write back (impHandRefuse), and on opening. Every field of the note is drawn
+// through esc(): the note sits in storage every page opened from a drive shares, so its text is never trusted as markup.
+function impHandMsg(what){
+  const m=impHandOf(); if(!m) return '';
+  const says=(Array.isArray(m.says)? m.says : []).map(String);
+  return '⏸ '+(what? '<b>'+esc(what)+' is held.</b> ' : '')+'ORBIT wrote the imported board into <b>“'+esc(m.name)+'”</b> '
+    +esc(fmtTs(m.at))+', and that file has not been opened in this browser since. Until it is, nothing here writes '
+    +esc(says.join(', '))+' to browser storage, so an older copy cannot stand in front of it. What is on screen is unchanged; '
+    +'💾 Save still writes it into this page’s own file. Open “'+esc(m.name)+'” to carry on — or, if it has been opened on another '
+    +'computer or in another browser, <button type="button" class="nb lnk" onclick="impHandClear()">lift the hold…</button>'
+    +' This page stays held until it is closed: carry on in “'+esc(m.name)+'”.';
+}
+// LIFTING THE HOLD BY HAND (C22). Asked first; then this browser's copies that still hold what they held when the import was written
+// -- the copies that would stand in front of the import's file here -- are removed with their plans' records, any that changed is
+// named and left, and the note goes. Step 1 of the file route has already saved or explicitly declined the work they held.
+function impHandClear(){
+  const m=impHandOf(); if(!m) return false;
+  const nm=String(m.name||''), lists=(Array.isArray(m.says)? m.says : []).map(String).join(', ');
+  if(!confirm('Lift the hold?\n\nORBIT wrote the imported board into “'+nm+'” '+fmtTs(m.at)+', and it has not been opened in this browser since. '
+      +'While the hold stands, nothing here writes '+lists+' to browser storage, so an older copy cannot stand in front of that file.\n\n'
+      +'Lift it only if “'+nm+'” has been opened on another computer or in another browser, or you no longer need it.\n\n'
+      +'Lifting it also removes this browser’s copies of '+lists+' that are unchanged since the import was written — the copies that would '
+      +'stand in front of “'+nm+'” when it is opened here. Your board files are not touched.\n\n'
+      +'OK — lift the hold.\nCancel — keep it.')) return false;
+  const h=(m.h && typeof m.h==='object')? m.h : {}, says=Array.isArray(m.says)? m.says : [], left=[];
+  m.keys.forEach(function(k, i){
+    if(typeof k!=='string') return;
+    let v=null; try{ v=localStorage.getItem(k); }catch(e){ v=null; }
+    if(v===null) return;
+    if(!(Object.prototype.hasOwnProperty.call(h, k) && sideHash(v)===h[k])){ left.push(String(says[i]||k)); return; }
+    try{ localStorage.removeItem(k); localStorage.removeItem(k+'.base'); }catch(e){ left.push(String(says[i]||k)); }
+  });
+  try{ localStorage.removeItem(IMP_FILE_KEY); }catch(e){}
+  _impHand=null; _impHandSaid=false;
+  setStat('The hold is lifted: changes here go into browser storage again.'
+    +(left.length? ' This browser’s copy of '+esc(left.join(', '))+' changed after the import was written, so it was left as it is.' : ''));
+  return true;
+}
 // v2.14 (slot; W2 owns the body; W3's leave prompt reads it): does the file route hold the only copy of something right now -- a
 // file being written (the browser emptied it when it was chosen), a rescue offered and not yet saved, the as-it-was file being
 // written? Leaving the page then asks first. Never throws; false until W2 fills it.
-function impFileHolds(){ return false; }
+function impFileHolds(){ try{ const R=_impFile; return !!(R && (R.busy || R.wasBusy || (R.rescue && !impFileRescued(R)))); }catch(e){ return false; } }
+// v2.14 (item 141, C21): ANOTHER TAB WROTE THE NOTE: this page is held from now on, for its life -- the browser fires this in every
+// other page that shares the storage, never in the one that wrote it.
+try{ window.addEventListener('storage', function(ev){ try{ if(ev && ev.key===IMP_FILE_KEY && ev.newValue!==null){ const m=JSON.parse(ev.newValue); if(m && typeof m==='object' && Array.isArray(m.keys)) impHandLatch(m); } }catch(e){} }); }catch(e){}
 function lsSet(key, val, what){
   if(_cycSwap && (key===DEST_KEY || key===BUDDB_KEY)){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
   if(_lsCapture){
@@ -3143,7 +3239,16 @@ var _destKept=[];     // v2.00 (U40): keys read where an earlier reading put it,
 var _destLeft=[];     // v2.00 (U40): keys read apart from where an earlier reading put them (destLeft)
 // WHAT A FULL IMPORT BROUGHT (v1.86). The import reloads the board to open what it wrote, so the
 // report it owes is kept across the reload and said on the first render after it.
-var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r) localStorage.removeItem('prio27impRep'); return r; }catch(e){ return null; } })(), _impSaid=false;
+var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r){ localStorage.removeItem('prio27impRep'); return r; } }catch(e){}
+  try{ if(_impOpen && _impOpen.own) return impOwnRep(_impOpen); }catch(e){} return null; })(), _impSaid=false;
+// v2.14 (item 141): what the import's own file says when it opens, from the note's plain text, every field drawn through esc().
+function impOwnRep(o){
+  const m=o.m, left=o.left||[];
+  return '⬅ <b>Full board imported</b> into this file, “'+esc(m.name)+'” — written '+esc(fmtTs(m.at))+' from “'+esc(m.from)
+    +'” and read back whole. '+esc(m.rep)
+    +(left.length? ' ⚠ This browser’s copy of '+esc(left.join(', '))+' changed after the import was written, so it was left as it is — '
+      +'it may be another ORBIT tab’s work. If what opened is not the imported board, close every other ORBIT tab and open this file again.' : '');
+}
 function persistDest(){ DESTDB.ts=Date.now(); return lsSet(DEST_KEY, JSON.stringify(DESTDB), 'The destination list'); }
 // ---- THE REPROGRAMMING LOG, CARRIED, NOT SHOWN (v2.02) -----------------------------------------------------------
 // The ATR/BTR tracker was removed (Brad, 21 Oct 2026: ATRs and BTRs are active-year execution, CCaR's, not ORBIT's). A
@@ -8235,8 +8340,12 @@ function pubsFor(own){
 // ONE ASSEMBLY FOR EVERY BOARD FILE THIS PAGE WRITES (v1.95): 💾 Save, the PMO copy, the work kept aside, and
 // the board as it stood before a full import that could not be put back. Each carries every board-wide list and
 // the writer, so a field added to the saved file is added once, here, and reaches all four.
-function savedHtmlOf(appns, cycDb){
-  const json = JSON.stringify({appns:appns, destDb:DESTDB, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb, budDb:BUDDB, writer:WRITER||undefined}).replace(/</g,'\\u003c');
+// v2.14 (item 141): `lists`, when given, names any of destDb, execDb, aceDb, rpDb, budDb and writer the file is to carry in place of
+// this page's own -- the file route writes the board the import would have left -- and an impFile stamp, written last and only
+// when asked (JSON.stringify drops undefined, so every ordinary save is byte for byte what it was).
+function savedHtmlOf(appns, cycDb, lists){
+  const L=function(k, v){ return (lists && Object.prototype.hasOwnProperty.call(lists, k))? lists[k] : v; };
+  const json = JSON.stringify({appns:appns, destDb:L('destDb', DESTDB), execDb:L('execDb', EXDB), aceDb:L('aceDb', ACEDB), rpDb:L('rpDb', RPDB), cycDb:cycDb, budDb:L('budDb', BUDDB), writer:L('writer', WRITER)||undefined, impFile:(lists&&lists.impFile)||undefined}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
                       (m,a,b)=>a+json+b);
 }
@@ -12512,6 +12621,9 @@ function fullImportText(txt, fname){
     if(cur && cur.sync) next.sync=cur.sync;
     next.ts=now;
     W.push([_SLUGMAP[k].key, JSON.stringify(next), _SLUGMAP[k].t+' board data', 'the '+_SLUGMAP[k].t+' plan']);
+    // v2.14 (item 140, C6): what this browser records of the plan the import writes: no saved file's, unsaved -- the reopened board
+    // takes no other file's save as its own. Written whole: a blank mark is never part of it (C17)
+    W.push([_SLUGMAP[k].key+'.base', JSON.stringify({file:0, folder:{}, dirty:true}), 'This browser’s record of the '+_SLUGMAP[k].t+' plan', 'the record of the '+_SLUGMAP[k].t+' plan']);
     nexts[k]=next;
   });
   // every locked cycle of every appropriation the file carries cycles for
@@ -12545,6 +12657,7 @@ function fullImportText(txt, fname){
     +((keptAp.length || keptSt.length)? ' Kept as this board had it: '+esc(keptAp.map(function(k){ return _SLUGMAP[k].t; }).concat(keptSt).join(', '))+'.' : '');
   // the report the reopened board says, kept across the reload -- part of the import, so refused with it
   W.push(['prio27impRep', rep, 'The report of a full import', 'the import’s report']);
+  W.full={rep:rep};      // v2.14 (item 141): only this import offers the file route when browser storage refuses it (an own property lsAll ignores)
   const done=lsAll(W);
   if(!done.ok) return fullImportUndone(done, W, txt, fname);
   impMixedLift(W.map(function(w){ return w[0]; }));
@@ -12569,12 +12682,24 @@ function fullImportUndone(done, W, txt, fname){
   const say=function(i){ return W[i][3]; };
   const why=done.why? ' ('+done.why+')' : '';
   if(done.back){
+    // v2.14 (item 141): refused by the hand-over hold, not by room: the earlier import's file comes first, and no file route
+    if(done.why==='HandOverHold'){
+      const hm=impHandOf(), hn=String((hm&&hm.name)||'');
+      alert('Nothing was imported from “'+fname+'” — this browser is holding the lists an earlier import wrote into “'+hn+'” until that file is opened here.\n\n'
+        +'Open “'+hn+'” first, or lift the hold from the message line. This board is exactly as it was.');
+      setStat(impHandMsg('Importing “'+fname+'”'));
+      return false;
+    }
+    // v2.14 (item 141): a full import refused for room, with every key put back, is offered as a new board file instead
+    if(W.full && done.at>=0) return impFileOffer(done, W, txt, fname);
     const what=(done.at<0)? 'browser storage could not be read'+why : 'browser storage refused '+say(done.at)+why;
     alert('Nothing was imported from “'+fname+'” — '+what+'.\n\nThis board is exactly as it was.');
     setStat('⛔ <b>Nothing was imported</b> — '+esc(what)+'; this board is exactly as it was.');
     return false;
   }
-  const by=function(st){ return W.map(function(w, i){ return done.now[i]===st? say(i) : ''; }).filter(Boolean); };
+  // v2.14 (item 141, C19): a plan's record is not a list the import carries -- never named here, never in the mixed mark
+  const isRec=function(i){ return /\.base$/.test(W[i][0]); };
+  const by=function(st){ return W.map(function(w, i){ return (done.now[i]===st && !isRec(i))? say(i) : ''; }).filter(Boolean); };
   const held={}; W.forEach(function(w, i){ held[w[0]]=done.held[i]; });
   let pre='';
   try{ pre=fullImportPreHtml(held); }catch(e){ pre=''; }
@@ -12582,7 +12707,7 @@ function fullImportUndone(done, W, txt, fname){
               inc:{text:String(txt), name:String(fname||'imported board.html')}};
   _impRescue.mixed=true;
   // which lists hold neither what they held nor all of the file -- with any a stopped import before this left mixed
-  const mixedKeys=W.filter(function(w, i){ return done.now[i]!=='was'; }).map(function(w){ return w[0]; });
+  const mixedKeys=W.filter(function(w, i){ return done.now[i]!=='was' && !isRec(i); }).map(function(w){ return w[0]; });
   try{ const o=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null');
     (o && Array.isArray(o.keys)? o.keys : []).forEach(function(k){ if(mixedKeys.indexOf(k)<0) mixedKeys.push(k); }); }catch(e){}
   try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(fname||''), keys:mixedKeys})); }catch(e){}
@@ -12607,12 +12732,15 @@ function fullImportUndone(done, W, txt, fname){
 // The board as it stood before the import, built without browser storage: this appropriation and every list from
 // memory (an import that fails changes none of it), each other appropriation and its locked cycles from what
 // storage held before the import -- chosen against the file's copies the way buildSavedHtml chooses.
-function fullImportPreHtml(held){
+// v2.14 (item 141): with o.newest, this appropriation's plan is browser storage's when that copy is newer than the one on screen --
+// another tab saved it -- so the file route's as-it-was file holds the newest work this browser has.
+function fullImportPreHtml(held, o){
   const rd=function(k){ if(Object.prototype.hasOwnProperty.call(held, k)) return held[k]; try{ return localStorage.getItem(k); }catch(e){ return null; } };
   const pj=function(t){ try{ return JSON.parse(t||'null'); }catch(e){ return null; } };
   const ms=Object.assign({}, MS); ms.years=Object.assign({}, MS.years); ms.years[MS.cur]=S;
   if(DATA.items&&DATA.items.length) ms.dataPack=dataPackOf();
   const appns=Object.assign({}, PUBS); appns[_AP.slug]=ms;
+  if(o && o.newest){ const s0=pj(rd(_AP.key)); if(s0 && (s0.years||Array.isArray(s0.order)) && +(s0.ts||0)>+(MS.ts||0)) appns[_AP.slug]=s0; }
   const byAp={}; byAp[_AP.slug]=CYCDB;
   Object.keys(_SLUGMAP).forEach(function(k){ if(k===_AP.slug) return;
     const s2=pj(rd(_SLUGMAP[k].key));
@@ -12632,6 +12760,441 @@ function fullImportRescue(which){
   a.download=r.name;
   a.click();
 }
+// ==== v2.14 (item 141): THE FILE ROUTE =========================================================================================
+// A full import that browser storage cannot hold -- every key put back, the board exactly as it was -- is offered as a NEW BOARD
+// FILE instead: the board as the import would have left it (boardPubOf), every appropriation, year, locked cycle and list, written
+// where the person chooses, read back and compared before anything in storage is touched. Then the note goes in at once (C20), only
+// the import's own keys are cleared, and the page reopens on the new file. Chromium empties an existing file the moment it is
+// chosen in the save window (measured: 8,793,759 bytes to 0), so nothing the page holds is let go until the bytes are back: any
+// failure after the choice keeps the import in memory and offers both the new board and the file imported as downloads, and
+// leaving the page asks while that is so (impFileHolds). The write is not a board save: it writes a new file and never marks this
+// page saved, so it does not queue behind saveSerial() -- a promise there would cost the click the save window needs -- and it is
+// refused while a save is under way.
+var _impFile=null, _impFileLast=null;
+function impHref(){ return pageAddr(); }
+function impFileName(fname){
+  const s=String(fname||'').trim();
+  let stem=/\.html?$/i.test(s)? s.replace(/\.html?$/i, '') : String(FNAME).replace(/\.html?$/i, '');
+  stem=stem.replace(/\s*\(ORBIT v[0-9.]+\)\s*$/i, '');
+  return stem+' (ORBIT '+String(BUILD).split(' ')[0]+').html';
+}
+function impFileId(){
+  let hx='';
+  try{ const b=new Uint8Array(8); crypto.getRandomValues(b); hx=Array.from(b, function(x){ return (x<16?'0':'')+x.toString(16); }).join(''); }
+  catch(e){ hx=''; for(let i=0;i<16;i++) hx+=Math.floor(Math.random()*16).toString(16); }
+  return 'i'+Date.now().toString(36)+'-'+hx;
+}
+// The keys of W the file route is about: never the import's report (the reopened file says its own) nor a plan's record (C19).
+function impFileOwnKey(k){ return k!=='prio27impRep' && !/\.base$/.test(String(k)); }
+// What changed in browser storage since the import was refused -- another tab's save, or this one's -- by what the import calls it.
+function impFileMoved(R){
+  const out=[];
+  R.W.forEach(function(w, i){
+    if(!impFileOwnKey(w[0])) return;
+    let v; try{ v=localStorage.getItem(w[0]); }catch(e){ v=undefined; }
+    if(v!==R.held[i]) out.push(w[3]);
+  });
+  return out;
+}
+// WORK NO SAVED BOARD FILE HAS, among what the file route clears (step 1): what is on screen when unsaved; this appropriation's plan
+// when this browser records it unsaved; another appropriation's plan by its own record (or, recording nothing, by its journal
+// against this board's copy); a locked-cycle store or list that holds something and differs from the board file's own copy.
+function impUnsavedList(W){
+  const out=[];
+  let scr=false; try{ scr=!!unsavedNow(); }catch(e){ scr=true; }
+  if(scr) out.push('what is on screen');
+  const pj=function(t){ try{ return JSON.parse(t); }catch(e){ return null; } };
+  const slugOf=function(key){ let r=null; Object.keys(_SLUGMAP).forEach(function(k){ if(_SLUGMAP[k].key===key) r=k; }); return r; };
+  W.forEach(function(w){
+    const key=w[0]; if(!impFileOwnKey(key)) return;
+    let v=null; try{ v=localStorage.getItem(key); }catch(e){ v=null; }
+    if(v===null) return;
+    const k=slugOf(key);
+    if(k){
+      if(k===_AP.slug){ let d=false; try{ d=!!baseGet().dirty; }catch(e){ d=true; } if(scr || d) out.push(w[3]); return; }
+      const b=pj(localStorage.getItem(key+'.base')||'null');
+      if(b && typeof b==='object' && ('dirty' in b)){ if(b.dirty) out.push(w[3]); return; }
+      const fp=(PUBS && Object.prototype.hasOwnProperty.call(PUBS, k))? PUBS[k] : null;
+      if(!fp){ out.push(w[3]); return; }
+      let mine=[1]; try{ mine=pkgMineSince(pj(v), fp); }catch(e){ mine=[1]; }
+      if(mine.length) out.push(w[3]);
+      return;
+    }
+    const o=pj(v); if(!o || typeof o!=='object' || sideEmpty(key, o)) return;
+    let file=null;
+    const cm=/^(.*)-cyc$/.exec(key), ck=cm? slugOf(cm[1]) : null;
+    if(cm && ck!==_AP.slug) file=(ck && CYC_FILE[ck])? sideText(CYC_FILE[ck]) : null;
+    else { const f0=sideBootNote.file && sideBootNote.file[key]; file=f0? f0.text : null; }
+    if(file===null || sideText(o)!==file) out.push(w[3]);
+  });
+  return out;
+}
+// Must step 1 be done before Write? While it shows, until the board as it was has been saved (for what this page holds now) or
+// the person has said to carry on without it.
+function impFileNeed(R){
+  if(R.skip) return false;
+  if(R.step1 && R.step1.gens[0]===_saveGen && R.step1.gens[1]===_sideGen) return false;
+  return impUnsavedList(R.W).length>0;
+}
+// THE REFUSAL (fullImportUndone, every key put back, gated there). The status line is exactly what a refused import has always said;
+// the box says the rest. Nothing is built here -- no file text, no copy: those are taken at the click.
+function impFileOffer(done, W, txt, fname){
+  const why=done.why? ' ('+done.why+')' : '';
+  setStat('⛔ <b>Nothing was imported</b> — '+esc('browser storage refused '+W[done.at][3]+why)+'; this board is exactly as it was.');
+  let need=0; W.forEach(function(w){ need+=String(w[0]).length+String(w[1]).length; });
+  _impFile={W:W, held:(done.held||[]).slice(), at:done.at, why:String(done.why||''), txt:String(txt), fname:String(fname||''),
+    rep:String((W.full&&W.full.rep)||''), name:impFileName(fname), need:need, step1:null, skip:false, busy:false, wasBusy:false,
+    busyName:'', html:null, n:'', wk:'', m:null, marked:false, rescue:null, pause:null, gens:null, was:null};
+  impFileOpen();
+  return false;
+}
+function impFileOpen(){ impFileDraw(); const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg open'; }
+function impFileShut(){ if(_impFile && _impFile.rescue) _impFileLast=_impFile; _impFile=null; const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg'; impFileDraw(); }
+function impFileRescued(R){ return !!(R.rescue && (!R.rescue.html || R.rescue.html.got) && (!R.rescue.inc || R.rescue.inc.got)); }
+// The two downloads offered after a failure, in the box and in the message line: one place, so neither can lose them.
+function impFileRescueBtns(R){
+  if(!R || !R.rescue) return '';
+  return (R.rescue.html? '<button type="button" class="nb lnk" onclick="impFileRescue('+jsa('html')+')">💾 the imported board (new version)</button>'
+                       : '(the imported board could not be built)')
+    +' and <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>';
+}
+function impFileDraw(){
+  const el=document.getElementById('impFileBody'); if(!el) return;
+  const R=_impFile; if(!R){ el.innerHTML=''; return; }
+  const why=R.why? ' ('+R.why+')' : '';
+  let h='<p>Nothing was imported from “'+esc(R.fname)+'”: browser storage refused '+esc(R.W[R.at][3]+why)+'. This board is exactly as it was.</p>'
+    +'<p>A full import puts the whole board into this browser’s storage before the board reopens on it. This board needs about '
+    +esc((R.need/1e6).toFixed(1))+' million characters there at once; a browser keeps about 5.2 million, for every ORBIT file and web page '
+    +'opened from a drive together. A board file has no such limit, so ORBIT can write the imported board into a new board file instead: '
+    +'every appropriation, year, locked cycle and list, as the import would have brought them. You then open that file and carry on in it.</p>';
+  if(R.busy || R.wasBusy){
+    h+='<p class="ifw-busy">Writing “'+esc(R.busyName)+'”… Keep this page open until it says it is done.</p>';
+  }
+  if(R.pause){
+    h+='<p class="ifw-pause">“'+esc(R.pause.name)+'” has the name of the file you imported, so it may be that file: the browser emptied it when you '
+      +'chose it, and ORBIT has written the imported board into it, read back whole. Before this browser’s older copies are cleared, save the '
+      +'file you imported as it was:</p><p><button type="button" class="btn" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button> '
+      +'<button type="button" class="btn" onclick="impFileCarryOn()">Carry on</button></p>';
+    el.innerHTML=h; return;
+  }
+  if(R.rescue){
+    h+='<p class="ifw-rescue">⛔ The imported board could not be written into “'+esc(R.rescue.at)+'”. Nothing was imported, and this browser and this '
+      +'board are exactly as they were. If “'+esc(R.rescue.at)+'” was a file that already existed, the browser emptied it when you chose it: '
+      +'save both copies now — '+impFileRescueBtns(R)+' — then try again with a new name.</p>';
+  }
+  const L=impUnsavedList(R.W), need=impFileNeed(R), off=(R.busy || R.wasBusy);
+  if(L.length){
+    h+='<p class="ifw-step1"><b>1. This browser holds work no saved board file has</b>: '+esc(L.join(', '))+'. Writing the new file clears this '
+      +'browser’s copies of what the import replaces, so save that work first.</p><p>'
+      +(R.step1 && !need? '✓ Saved as “'+esc(R.step1.name)+'” and read back whole. '
+        : '<button type="button" class="btn" onclick="impFileSaveWas()"'+(off? ' disabled' : '')+'>💾 Save this board as it was…</button> ')
+      +'<label><input type="checkbox" id="impFileSkip" onchange="impFileSkip(this.checked)"'+(R.skip? ' checked' : '')+(off? ' disabled' : '')
+      +'> Carry on without a copy of it</label></p>';
+  }
+  h+='<p class="ifw-step2">'+(L.length? '2. ' : '')+'<b>Write the imported board into a new file.</b> The browser empties the file you choose the moment '
+    +'you choose it, so choose a <b>new</b> name — never “'+esc(R.fname)+'”, the file you are importing, nor any other board file. ORBIT suggests “'
+    +esc(R.name)+'”. Close every other ORBIT tab first: an older one can write over what this one clears.</p>'
+    +'<p><button type="button" class="btn" id="impFileGo" onclick="impFileWrite()"'
+    +((need || off)? ' disabled'+(need? ' title="Save this board as it was first, or tick Carry on without a copy of it."' : '') : '')+'>'
+    +(R.rescue? 'Try again with a new name…' : 'Write the imported board into a new file…')+'</button> '
+    +'<button type="button" class="btn" onclick="impFileClose()"'+(off? ' disabled' : '')+'>Cancel</button></p>';
+  el.innerHTML=h;
+}
+function impFileSkip(on){ const R=_impFile; if(!R || R.busy || R.wasBusy) return; R.skip=!!on; impFileDraw(); }
+// The box's ✕ and Cancel. Never while a file is being written; asked first while a rescue is not yet downloaded (C23); at the
+// name-match pause it keeps the note (already written, C20) and says where the board is.
+function impFileClose(){
+  const R=_impFile; if(!R){ impFileShut(); return; }
+  if(R.busy || R.wasBusy){ setStat('⏳ A file is being written — wait for it to finish.'); return; }
+  if(R.rescue && !impFileRescued(R)
+     && !confirm('The two copies are not saved yet. If “'+R.rescue.at+'” already existed, the browser emptied it when you chose it, and these copies are all there is of it. Close anyway?')) return;
+  if(R.pause){
+    if(!R.marked) impFileMarkWrite(R, R.m);
+    if(!R.marked) impHandLatch(R.m);
+    setStat('The imported board is in “'+esc(R.pause.name)+'”; nothing in this browser was cleared. Open it to carry on.');
+  }
+  impFileShut();
+}
+// THE BOARD THE STORAGE ROUTE WOULD HAVE LEFT, as parts for savedHtmlOf: every appropriation the import writes as its own text,
+// parsed; this one's own plan, when the import does not write it, as persist() keeps it; every other appropriation by pubsFor()'s
+// newer-of rule (read, never assigned into PUBS). The locked cycles are this board's with the import's over them; each list is the
+// import's where it writes one, else this page's. Calls neither save() nor buildSavedHtml(), and writes nothing.
+function boardPubOf(W){
+  const by=Object.create(null);
+  W.forEach(function(w){ if(impFileOwnKey(w[0])) by[w[0]]=w[1]; });
+  const has=function(k){ return Object.prototype.hasOwnProperty.call(by, k); };
+  const pj=function(t){ try{ return JSON.parse(t); }catch(e){ return null; } };
+  const appns=pubsFor(MS);
+  Object.keys(_SLUGMAP).forEach(function(k){
+    const key=_SLUGMAP[k].key;
+    if(has(key)){ const v=pj(by[key]); if(v){ appns[k]=v; return; } }
+    if(k!==_AP.slug) return;
+    const ms=Object.assign({}, MS); ms.years=Object.assign({}, MS.years); ms.years[MS.cur]=S;
+    if(+(MS.ts||0)>0) appns[k]=ms; else delete appns[k];
+  });
+  const byAp=Object.assign({}, cycByAp());
+  Object.keys(_SLUGMAP).forEach(function(k){ const ck=_SLUGMAP[k].key+'-cyc'; if(has(ck)){ const v=pj(by[ck]); if(v) byAp[k]=v; } });
+  const L=function(key, mem){ if(has(key)){ const v=pj(by[key]); if(v) return v; } return mem; };
+  return {appns:appns, cycDb:{ts:CYCDB.ts||0, byAp:byAp},
+    lists:{destDb:L(DEST_KEY, DESTDB), execDb:L('prio27execdb', EXDB), aceDb:L('prio27acedb', ACEDB), rpDb:L('prio27reprog', RPDB), budDb:L('prio27buddb', BUDDB)}};
+}
+// The new file's bytes: the board above, its writer this browser (the file is this browser's to save), and the stamp its opening
+// matches against the note. whoIs() never asks: a question here would spend the click the save window needs.
+function impFileBuild(R){
+  R.html=null; R.n=impFileId(); R.wk=writerKey();
+  const P=boardPubOf(R.W);
+  R.html=savedHtmlOf(P.appns, P.cycDb, Object.assign({}, P.lists, {writer:{by:whoIs()||'unknown', fp:pkgSig('orbit-writer|'+R.wk), t:Date.now()}, impFile:{n:R.n, at:Date.now(), from:String(R.fname||'')}}));
+  return R.html;
+}
+// THE NOTE: plain text only, the keys the import writes (never a record or the report, C19), what each is called, and a hash of
+// what each held when the import was refused -- so an opening clears only a copy nobody has changed since.
+function impFileMarkOf(R, h, how){
+  const keys=[], says=[], hh={};
+  R.W.forEach(function(w, i){
+    if(!impFileOwnKey(w[0])) return;
+    keys.push(w[0]); says.push(String(w[3]));
+    if(R.held[i]!==null && R.held[i]!==undefined) hh[w[0]]=sideHash(R.held[i]);
+  });
+  return {n:R.n, at:Date.now(), name:String((h&&h.name)||R.name), from:String(R.fname||''), href:impHref(), keys:keys, says:says, h:hh, rep:diagPlain(R.rep), how:how};
+}
+// The note, and this browser's writer key where storage does not hold the one the file was stamped with, all or nothing (C13).
+function impFileMarkWrite(R, m){
+  const W2=[[IMP_FILE_KEY, JSON.stringify(m), 'The note of where the imported board was written', 'the note of where the imported board was written']];
+  let wk=null; try{ wk=localStorage.getItem('prio27writerKey'); }catch(e){ wk=null; }
+  if(R.wk && wk!==R.wk) W2.push(['prio27writerKey', R.wk, 'This browser’s writer key', 'this browser’s writer key']);
+  const d=lsAll(W2);
+  R.m=m; R.marked=!!d.ok;
+  return R.marked;
+}
+// Clears the import's keys, its plans' records with them, never its report. Removing needs no room; one that throws is named.
+function impFileClear(R){
+  const bad=[];
+  R.W.forEach(function(w){ if(w[0]==='prio27impRep') return; try{ localStorage.removeItem(w[0]); }catch(e){ bad.push(w[3]); } });
+  return bad;
+}
+// The handle, kept for the import's own page to adopt (prio-fh, 'import|'+n), resolved when the browser says it is stored or in 3 s.
+function impFhPut(k, h){
+  return new Promise(function(res){
+    let done=false; const fin=function(v){ if(!done){ done=true; res(v); } };
+    try{ setTimeout(function(){ fin(false); }, 3000); }catch(e){}
+    try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=function(){ try{ r.result.createObjectStore('h'); }catch(e){} };
+      r.onsuccess=function(){ try{ const tx=r.result.transaction('h','readwrite'); tx.oncomplete=function(){ fin(true); }; tx.onerror=function(){ fin(false); };
+        tx.objectStore('h').put(h, k); }catch(e){ fin(false); } };
+      r.onerror=function(){ fin(false); }; }catch(e){ fin(false); }
+  });
+}
+// THE CLICK. Synchronous up to the save window, which is opened before anything waits: the click is what lets the browser open it.
+function impFileWrite(){
+  const R=_impFile; if(!R || R.busy || R.wasBusy || R.pause) return false;
+  if(SANDBOX || CYCVIEW) return false;
+  if(_saveBusy){ setStat('⏳ <b>Nothing was written yet</b>: a save is under way. Press <b>Write the imported board into a new file…</b> again once it has finished.'); return false; }
+  const movedAtClick=impFileMoved(R);
+  if(movedAtClick.length){
+    setStat('⛔ <b>Nothing was written</b>: '+esc(movedAtClick.join(', '))+' changed in this browser after the import was refused — in another ORBIT tab, or this one. Import “'+esc(R.fname)+'” again, so ORBIT can ask about that work first.');
+    impFileShut(); return false;
+  }
+  if(impFileNeed(R)) return false;
+  R.gens=[_saveGen, _sideGen];
+  if(typeof window.showSaveFilePicker!=='function') return impFileDownload(R, null);
+  let pick;
+  try{ pick=window.showSaveFilePicker({suggestedName:R.name, types:[{description:'ORBIT board', accept:{'text/html':['.html']}}]}); }
+  catch(e){ return impFileDownload(R, e); }
+  R.busy=true; R.busyName=R.name; impFileDraw();
+  return Promise.resolve(pick).then(function(h){ R.busyName=String((h&&h.name)||R.name); impFileDraw(); return impFileWriteTo(R, h); }, function(e){
+    R.busy=false;
+    const nm=String((e&&e.name)||'');
+    if(nm==='AbortError'){ setStat('No file was chosen — nothing was imported, and this board is exactly as it was.'); impFileDraw(); return false; }
+    if(nm==='SecurityError' || nm==='NotAllowedError') return impFileDownload(R, e);
+    setStat('⛔ The save window could not be opened ('+esc(nm||'error')+'). Nothing was imported, and this board is exactly as it was.'); impFileDraw(); return false;
+  });
+}
+// AFTER THE PICK. The chosen file may already have been emptied, so from here every failure keeps everything and offers both copies.
+async function impFileWriteTo(R, h){
+  try{
+    const html=impFileBuild(R);
+    const w=await h.createWritable(); await w.write(html); await w.close();
+    let back=null; try{ back=await (await h.getFile()).text(); }catch(e){ back=null; }
+    if(back!==html) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};
+  }catch(e){ return impFileFailed(R, h, e); }
+  // nothing waits after this line: storage and this page are read once more, and the note goes in before anything is cleared (C20, C29)
+  R.busy=false;
+  const moved2=impFileMoved(R), raced=!(R.gens[0]===_saveGen && R.gens[1]===_sideGen);
+  if(moved2.length || raced) return impFileRaced(R, h, moved2, raced);
+  impFileMarkWrite(R, impFileMarkOf(R, h, 'file'));
+  if(String((h&&h.name)||'').trim().toLowerCase()===String(R.fname||'').trim().toLowerCase()) return impFileNameStep(R, h);
+  return impFileFinish(R, h);
+}
+// The chosen file has the imported file's name: it may be that file, emptied by the choice and now holding the new board. Nothing is
+// cleared until the person has saved the file imported as it was, and says to carry on.
+function impFileNameStep(R, h){ R.pause={name:String((h&&h.name)||''), h:h}; impFileDraw(); return false; }
+function impFileCarryOn(){
+  const R=_impFile; if(!R || !R.pause) return false;
+  const h=R.pause.h;
+  const moved3=impFileMoved(R), raced=!(R.gens[0]===_saveGen && R.gens[1]===_sideGen);
+  R.pause=null;
+  if(moved3.length || raced) return impFileRaced(R, h, moved3, raced);
+  return impFileFinish(R, h);
+}
+// FINISH: the import's keys cleared, the note in (again, if it was refused before the clear made room), the page reopened on the file.
+function impFileFinish(R, h){
+  const bad=impFileClear(R);
+  if(!R.marked) impFileMarkWrite(R, R.m || impFileMarkOf(R, h, 'file'));
+  impFileShut();
+  const nm=String((h&&h.name)||R.name);
+  const badSay=bad.length? ' ⚠ '+esc(bad.join(', '))+' could not be cleared; opening “'+esc(nm)+'” clears it.' : '';
+  if(R.marked){
+    setStat('⬅ <b>Full board imported into “'+esc(nm)+'”</b> — written and read back whole. This browser’s older copies of what it replaces were cleared. Reopening…'+badSay);
+    impFhPut('import|'+R.n, h).then(function(){ reopenPage(); });
+    return true;
+  }
+  impHandLatch(R.m);
+  statKeep('⚠ <b>The imported board is in “'+esc(nm)+'”</b>, written and read back whole, and this browser’s older copies of it were cleared — but browser '
+    +'storage refused the note that tells the next page which file holds the board, so this page stays open instead of reopening. Open “'+esc(nm)
+    +'” to carry on. Until you close this page, it writes none of '+esc(R.m.says.join(', '))+' to browser storage.'+badSay);
+  return false;
+}
+// A LIST CHANGED WHILE THE FILE WAS WRITTEN: nothing is cleared; the note's hashes are of what storage held at the click, so opening
+// the file clears only what has not changed since, and names the rest.
+function impFileRaced(R, h, moved, raced){
+  R.busy=false;
+  const m=impFileMarkOf(R, h, 'file-raced');
+  impFileMarkWrite(R, m);
+  if(!R.marked) impHandLatch(m);
+  impFileShut();
+  const nm=String((h&&h.name)||R.name), list=moved.length? moved.join(', ') : 'what is on screen';
+  statKeep('⚠ <b>The imported board is in “'+esc(nm)+'”</b>, written and read back whole, but '+esc(list)+' changed in this browser while it was being '
+    +'written — in another ORBIT tab, or this one — so nothing was cleared from browser storage. Open “'+esc(nm)+'” to carry on: when it opens, ORBIT '
+    +'clears this browser’s copies that have not changed since, and names any that have.'
+    +(raced? ' What you changed here since is still on screen: 💾 Save keeps it in this page’s own file.' : ''));
+  return false;
+}
+// ANY FAILURE AFTER A PICK: nothing cleared, no note, no reopening; both copies offered, and the box stays with Write again.
+function impFileFailed(R, h, e){
+  R.busy=false;
+  const nm=String((h&&h.name)||R.name), reason=String((e && (e.message||e.name)) || 'error');
+  R.rescue={at:nm, html:R.html? {text:R.html, name:nm, got:false} : null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}};
+  impFileDraw();
+  statKeep('⛔ <b>Nothing was imported</b> — the imported board could not be written into “'+esc(nm)+'” ('+esc(reason)+'). This browser and this board '
+    +'are exactly as they were. If “'+esc(nm)+'” was a file that already existed, the browser emptied it when you chose it: save both copies now — '
+    +impFileRescueBtns(R)+' — then try again with a new name.');
+  return false;
+}
+function impFileRescue(which){
+  const R=_impFile || _impFileLast;
+  const r=R && R.rescue && R.rescue[which]; if(!r) return false;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([r.text], {type:'text/html'}));
+  a.download=r.name;
+  a.click();
+  r.got=true;
+  if(R===_impFile) impFileDraw();
+  return true;
+}
+// NO SAVE WINDOW, OR A POLICY THAT BLOCKS IT: the same file, downloaded. Nothing is cleared now; the note's hashes let the downloaded
+// file's opening remove this browser's unchanged old copies before anything reads them, and until then this page holds them back.
+function impFileDownload(R, e){
+  if(SANDBOX || CYCVIEW) return false;
+  R.busy=false;
+  let html;
+  try{ html=impFileBuild(R); }
+  catch(x){ setStat('⛔ <b>Nothing was imported</b> — the imported board could not be built ('+esc(String((x&&x.message)||x))+'). This board is exactly as it was.'); impFileDraw(); return false; }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html], {type:'text/html'}));
+  a.download=R.name;
+  a.click();
+  const m=impFileMarkOf(R, {name:R.name}, 'download');
+  impFileMarkWrite(R, m);
+  if(!R.marked) impHandLatch(m);
+  impFileShut();
+  statKeep('⬇ <b>The imported board was downloaded</b> as “'+esc(R.name)+'” — this browser does not let ORBIT write a file where you choose'+(e? ' ('+esc(e.name)+')' : '')
+    +'. Open it from your Downloads folder (move it to where you keep the board first, if you like). When it opens in this browser, ORBIT clears this '
+    +'browser’s older copies of what it replaces, so they cannot stand in front of it; until then this page writes none of '+esc(m.says.join(', '))
+    +' to browser storage. Nothing else on this board changed.');
+  return true;
+}
+// STEP 1: THIS BOARD AS IT WAS, saved into a file of its own and read back, before anything is cleared. Its own click; the save window
+// before anything waits. A later change on this page needs it again.
+function impFileSaveWas(){
+  const R=_impFile; if(!R || R.busy || R.wasBusy || R.pause) return false;
+  if(SANDBOX || CYCVIEW) return false;
+  const nm=expName(String(FNAME).replace(/\.html?$/i,'')+' — as it was before the import.html');
+  if(typeof window.showSaveFilePicker!=='function'){
+    let html=''; try{ html=fullImportPreHtml({}, {newest:true}); }catch(e){ html=''; }
+    if(!html){ setStat('⛔ This board as it was could not be built. Nothing was written.'); return false; }
+    R.was={name:nm, html:html}; impFileWasDl();
+    setStat('⬇ This board as it was was downloaded as “'+esc(nm)+'”. Once you have it, tick <b>Carry on without a copy of it</b>.');
+    return true;
+  }
+  let pick;
+  try{ pick=window.showSaveFilePicker({suggestedName:nm, types:[{description:'ORBIT board', accept:{'text/html':['.html']}}]}); }
+  catch(e){ setStat('⛔ The save window could not be opened ('+esc((e&&e.name)||'error')+'). Nothing was written.'); return false; }
+  R.wasBusy=true; R.busyName=nm; impFileDraw();
+  return Promise.resolve(pick).then(async function(h){
+    const hn=String((h&&h.name)||nm);
+    R.busyName=hn; impFileDraw();
+    let html='';
+    try{
+      html=fullImportPreHtml({}, {newest:true});
+      R.was={name:hn, html:html};
+      const w=await h.createWritable(); await w.write(html); await w.close();
+      let back=null; try{ back=await (await h.getFile()).text(); }catch(e){ back=null; }
+      if(back!==html) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};
+    }catch(e){
+      R.wasBusy=false; impFileDraw();
+      statKeep('⛔ This board as it was could not be written into “'+esc(hn)+'” ('+esc(String((e&&(e.message||e.name))||'error'))+'). If it already existed, '
+        +'the browser emptied it when you chose it: <button type="button" class="nb lnk" onclick="impFileWasDl()">💾 this board as it was</button> downloads it instead.');
+      return false;
+    }
+    R.wasBusy=false; R.step1={name:hn, gens:[_saveGen, _sideGen]}; impFileDraw();
+    return true;
+  }, function(e){
+    R.wasBusy=false; impFileDraw();
+    if(String((e&&e.name)||'')==='AbortError') setStat('No file was chosen — nothing was written.');
+    else setStat('⛔ The save window could not be opened ('+esc((e&&e.name)||'error')+'). Nothing was written.');
+    return false;
+  });
+}
+function impFileWasDl(){
+  const R=_impFile; const w=R && R.was; if(!w || !w.html) return false;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([w.html], {type:'text/html'}));
+  a.download=w.name;
+  a.click();
+  return true;
+}
+// v2.14 (item 141): ROOM AFTER A STORAGE-ROUTE LANDING. One probe of 65,536 characters, removed at once -- a probe, not work, so not
+// counted (D18). Fits: nothing to say. Refused: most changes from here cannot be kept in browser storage, and the board says so.
+function impRoomSay(){
+  try{ localStorage.setItem('prio27roomProbe', 'x'.repeat(65536)); }
+  catch(e){ return ' ⚠ <b>Browser storage is almost full now</b>: less than 64,000 characters are free after this import, so most changes from here cannot be kept in browser storage. 💾 Save writes the board into its file, which has no such limit — save now, and after the changes you mean to keep.'; }
+  try{ localStorage.removeItem('prio27roomProbe'); }catch(e){}
+  return '';
+}
+// v2.14 (item 141 E, C18): IS THIS AN EMPTY BOARD IN AN EMPTY BROWSER? No appropriation's plan in storage holds a requirement (any
+// year's order or added list), and every board-wide list a full import writes is absent or holds nothing. Only then does Import one
+// appropriation take a whole board file as a full import (E1); anything this browser holds is merged instead (E2), as v2.13 merged it.
+function impPlanHasReqs(s){
+  if(!s || typeof s!=='object') return false;
+  const ys=(s.years && typeof s.years==='object')? Object.keys(s.years).map(function(y){ return s.years[y]; }) : [s];
+  return ys.some(function(y){ return !!(y && ((Array.isArray(y.order) && y.order.length) || (Array.isArray(y.custom) && y.custom.length))); });
+}
+function impShellEmpty(){
+  try{
+    for(const k of Object.keys(_SLUGMAP)){
+      let s=null; try{ s=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ return false; }
+      if(impPlanHasReqs(s)) return false;
+    }
+    const lists=[EXDB_KEY, ACEDB_KEY, BUDDB_KEY, RPDB_KEY, DEST_KEY].concat(Object.keys(_SLUGMAP).map(function(k){ return _SLUGMAP[k].key+'-cyc'; }));
+    for(const key of lists){
+      let v=null; try{ v=localStorage.getItem(key); }catch(e){ return false; }
+      if(v===null) continue;
+      let o=null; try{ o=JSON.parse(v); }catch(e){ return false; }
+      if(!sideEmpty(key, o)) return false;
+    }
+    return true;
+  }catch(e){ return false; }
+}
+// ==== end v2.14 (item 141) the file route ======================================================================================
 // WHILE THAT MIX STANDS, NOTHING WRITES OVER THE BOARD FILE (v1.95, item 48). Browser storage holds some lists from
 // the imported file and some as they were, and 💾 Save builds the file from it: the board file would take the mix,
 // and once the page is reloaded and the two files offered are gone, the board file is the one whole copy of the
@@ -12651,7 +13214,7 @@ const IMP_MIXED_KEY='prio27impMixed'+SIDE_SFX;
 function impMixedLift(keys){
   let m=null; try{ m=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null'); }catch(e){ m=null; }
   if(!m) return false;
-  if(Array.isArray(m.keys) && m.keys.some(function(k){ return keys.indexOf(k)<0; })) return false;
+  if(Array.isArray(m.keys) && m.keys.some(function(k){ return !/\.base$/.test(String(k)) && keys.indexOf(k)<0; })) return false;   // v2.14 (C19): a record is never a list
   try{ localStorage.removeItem(IMP_MIXED_KEY); }catch(e){}
   if(_impRescue) _impRescue.mixed=false;
   return true;
@@ -12848,6 +13411,7 @@ function importState(inp){
     const bad=inboundCheck(r.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
     if(pmoCopyRefuse(f.name, r.result)){ inp.value=''; return; }     // v2.09 (item 127): only through the PMO import screen
     if(copyImportRefuse(f.name)){ inp.value=''; return; }           // v2.09 second review: in a copy, nothing else either
+    let _e2=null;      // v2.14 (item 141 E2): set when the empty board captures what this import writes
     try{
       let txt=r.result, st=null, fromBoard=false, fullSt=null;
       // An appropriation package is neither a board nor a plain state file, and it has its own
@@ -12874,6 +13438,14 @@ function importState(inp){
         // what lets a single board accept the same file.
         if(st && st.appns) st = st.appns[mySlug()] || null;
         fromBoard=true;
+        // v2.14 (item 141 E, C18): ON AN EMPTY BOARD IN AN EMPTY BROWSER, A WHOLE BOARD FILE IS A FULL IMPORT -- every appropriation,
+        // every list and every locked cycle, all or nothing, with the file route when browser storage cannot hold it. v2.13 seeded each
+        // appropriation a write at a time here: a browser that refused one landed the rest, said "Loaded" of them all and reopened.
+        // A one-appropriation file, or anything this browser already holds, goes the merging way below instead (E2).
+        if((typeof IS_SHELL!=='undefined') && IS_SHELL && !(fullSt && fullSt.only) && impShellEmpty()){
+          const bvE=fullBuildOf(txt);
+          if(bvE && (bvE[0]>FULL_MIN[0] || (bvE[0]===FULL_MIN[0] && bvE[1]>=FULL_MIN[1]))){ inp.value=''; fullImportText(txt, f.name); return; }
+        }
         const _multiFile = !!(fullSt && fullSt.appns);
         const _mySlots = (typeof _SLUGMAP!=='undefined');
         if(!(_multiFile && _mySlots) && (!st || !(st.years || Array.isArray(st.order)))){
@@ -12911,6 +13483,25 @@ function importState(inp){
       // including the three that reload: each store persists to browser storage as it is taken, so
       // the reboot finds it. Running it after the reload branches would have carried the stores on
       // a single-board import and silently dropped them on the consolidated and the shell.
+      // v2.14 (item 141 E2, C18): ON THE EMPTY BOARD, EVERYTHING THIS IMPORT WRITES IS CAPTURED AND COMMITTED THROUGH ONE lsAll -- all
+      // or nothing, as a full import is. v2.13 wrote each piece as it went, so a browser that refused one appropriation landed the
+      // others, said "Loaded" of them all, and reopened. Refused, memory and the board on screen are put back and nothing reopens. Each
+      // plan it writes is recorded as no saved file's, unsaved (C6). The populated board's paths are not captured.
+      _e2=_isShell? {snap:impMemSnap(), ms:MS} : null;
+      if(_e2) _lsCapture=[];
+      const e2Back=function(){ if(!_e2) return; _lsCapture=null; impMemRestore(_e2.snap); MS=_e2.ms; try{ syncSvc(); render(); }catch(e){} };
+      const e2Commit=function(){
+        if(!_e2) return true;
+        const cap=_lsCapture||[]; _lsCapture=null;
+        const W=[];
+        cap.forEach(function(w){ W.push(w);
+          const k=Object.keys(_SLUGMAP).filter(function(s2){ return _SLUGMAP[s2].key===w[0]; })[0];
+          if(k) W.push([w[0]+'.base', JSON.stringify({file:0, folder:{}, dirty:true}), 'This browser’s record of the '+_SLUGMAP[k].t+' plan', 'the record of the '+_SLUGMAP[k].t+' plan']); });
+        const done=lsAll(W);
+        if(!done.ok){ impMemRestore(_e2.snap); MS=_e2.ms; try{ syncSvc(); render(); }catch(e){} fullImportUndone(done, W, txt, f.name); inp.value=''; return false; }
+        impMixedLift(W.map(function(w){ return w[0]; }));
+        return true;
+      };
       const carried=importStores(fullSt || st);
       const carriedTxt=carried.length? ' '+carried.join(' ') : '';
 
@@ -12927,8 +13518,9 @@ function importState(inp){
         });
         // Only the SHELL needs requirement data to arrive with the file; the consolidated already
         // carries all four payloads, so a settings-only file is perfectly usable there.
-        if(!any && _isShell){ alert('That file carries saved settings but no requirement data. Import a board file that was built WITH data (any of the three boards, or a consolidated board).'); inp.value=''; return; }
-        if(!seeded.length){ alert('That file carries no appropriation this board recognises.'); inp.value=''; return; }
+        if(!any && _isShell){ e2Back(); alert('That file carries saved settings but no requirement data. Import a board file that was built WITH data (any of the three boards, or a consolidated board).'); inp.value=''; return; }
+        if(!seeded.length){ e2Back(); alert('That file carries no appropriation this board recognises.'); inp.value=''; return; }
+        if(!e2Commit()) return;
         setStat('🧩 Loaded '+seeded.join(', ')+carriedTxt+' — reopening…');
         reopenPage();
         return;
@@ -12937,7 +13529,7 @@ function importState(inp){
       // ---- the shell has no requirements of its own, so a file without them is refused
       if(_isShell){
         if(!_hasPack(st)&&pks.only) st.dataPack=pks.only;
-        if(!_hasPack(st)){ alert('No requirement data found in "'+f.name+'". Import a saved board .html (it carries both your settings and the requirement list).'); inp.value=''; return; }
+        if(!_hasPack(st)){ e2Back(); alert('No requirement data found in "'+f.name+'". Import a saved board .html (it carries both your settings and the requirement list).'); inp.value=''; return; }
       }
 
       // ---- a single-appropriation file goes to ITS OWN slot, whichever one is on screen now
@@ -12959,6 +13551,7 @@ function importState(inp){
         try{ const rs=normalizeStore(st); rs.ts=Date.now();
               lsSet(_SLUGMAP[target].key, JSON.stringify(rs), _SLUGMAP[target].t+' board data'); }
         catch(e){ setStat('\u26a0 That file could not be read into '+_SLUGMAP[target].t+'.'); }
+        if(!e2Commit()) return;
         try{ localStorage.setItem('prio27appn', NAME_OF[target]); }catch(e){}
         setStat('🧩 '+_SLUGMAP[target].t+' loaded'+carriedTxt+' — switching to it…');
         reopenPage();
@@ -12969,7 +13562,8 @@ function importState(inp){
         syncSvc();
         _vpDone=false;
         MS.ts=Date.now();
-        try{ localStorage.setItem(_AP.key, JSON.stringify(MS)); }catch(e){}
+        lsSet(_AP.key, JSON.stringify(MS), 'the '+_AP.t+' plan');
+        if(!e2Commit()) return;
         setStat('🧩 Data loaded'+carriedTxt+' — rebooting the template with your board\u2026');
         reopenPage();
         return;
@@ -12980,7 +13574,7 @@ function importState(inp){
         + carriedTxt
         + importReportHtml(st)
         + ' Review, then \ud83d\udcbe Save to make it this board\u2019s shared picture.');
-    }catch(e){ alert('Could not read that file.'); }
+    }catch(e){ if(_e2 && _lsCapture){ _lsCapture=null; try{ impMemRestore(_e2.snap); MS=_e2.ms; syncSvc(); render(); }catch(e2){} } alert('Could not read that file.'); }
     inp.value='';
   };
   r.readAsText(f);
@@ -39519,7 +40113,7 @@ if(_bootRestoreErr){
              : '⬅ Import the file.')
     +bootKeptNote());
 } else if(_impRep){                         // what a full import brought, now that it is open
-  statKeep(_impRep); _impRep=null; _impSaid=true;   // v2.03 (item 19): the import's report stays until it is read
+  statKeep(_impRep+impRoomSay()); _impRep=null; _impSaid=true;   // v2.03 (item 19): the import's report stays until it is read; v2.14 (item 141): and the room left
 } else if((function(){ try{ return attLists().awfix.length; }catch(e){ return 0; } })()){
   // v1.95 (item 53): awards the saved file held in a shape the board could not use, repaired on opening and kept
   // with the record as it was found -- said on every opening until each is marked checked, like the bands below
@@ -39612,6 +40206,13 @@ function loadShared(cb){
 // v2.00 (U44): opening says what destOwnSay says, after the line the opening chose (an import's report, a warning about this
 // browser's copy) -- never in its place. The destinations panel keeps saying it after later messages.
 try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'); _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+ow); } }catch(e){}
+// v2.14 (item 141): A PAGE HELD BY AN IMPORT'S NOTE SAYS SO, after whatever the opening said -- kept unread.
+try{ if(impHandOf()){ const de=document.getElementById('shareStat'); _statQuiet=false; statKeep((de && de.innerHTML? de.innerHTML+' ' : '')+impHandMsg('')); } }catch(e){}
+// v2.14 (item 141): THE IMPORT'S OWN FILE TAKES THE HANDLE IT WAS WRITTEN THROUGH, only where it was written over the page that ran the
+// import (that page then reopened straight into it): a copy of the file opened from anywhere else must not save, unasked, to the
+// original. The handle is let go in every case.
+try{ if(_impOpen && _impOpen.own && typeof _impOpen.m.n==='string'){ const im=_impOpen.m, ik='import|'+im.n;
+  _pfhGet(ik, function(h){ try{ if(h && im.href && im.href===impHref()){ FH=h; _fhPut(h); } }catch(e){} _pfhPut(ik, null); }); } }catch(e){}
 // THE JOURNAL COMPARES AGAINST WHAT THE BOARD HELD WHEN IT OPENED. Taken lazily on the first save,
 // the first change of every session was never recorded. Taken here rather than on a timer because
 // this is the end of the script: every binding is live, and nothing can edit in between.
