@@ -8417,8 +8417,9 @@ await (async () => {
       window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
     const later = () => B.ev(`window.__tk+=61000; 'ok'`);
     const X = B.ev(`(function(){ var a=reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); save(); render(); return a; })()`);
-    later(); B.ev(`setDesc(${J(X)}, 'the description'); setNote(${J(X)}, 'a note'); setDesc('A', 'A1'); 'ok'`);
-    later(); B.ev(`setDesc('A', 'A2'); 'ok'`);
+    const Y = B.ev(`(function(){ var a=reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); return a; })()`);
+    later(); B.ev(`setDesc(${J(X)}, 'the description'); setNote(${J(X)}, 'a note'); setDesc('A', 'A1'); setDesc(${J(Y)}, 'Y1'); 'ok'`);
+    later(); B.ev(`setDesc('A', 'A2'); setDesc(${J(Y)}, 'Y2'); 'ok'`);
     later(); B.ev(`removeReq(${J(X)}); removeReq('A'); 'ok'`);
     const L = JSON.parse(B.ev(`JSON.stringify((MS.jrnl||[]).map(function(e,i){ return [i, e.p, e.a, e.b]; }))`));
     const purge = L.filter(x => J(x[1]) === J(['desc', X]) && x[3] === null).pop() || [-1];
@@ -8438,6 +8439,10 @@ await (async () => {
     const al = L.filter(x => J(x[1]) === J(['desc', 'A']) && x[3] === 'A2').pop() || [-1];
     later(); B.ev(`jrnlUndo(${al[0]}); 'ok'`);
     chk(name, '(c) CONTROL', 'A, from the board’s data and removed, has its description put back (A2 → A1)', B.ev(`String(S.desc.A)`), 'A1');
+    // (d) CONTROL: an added requirement still in the year has its description put back as before
+    const yl = L.filter(x => J(x[1]) === J(['desc', Y]) && x[3] === 'Y2').pop() || [-1];
+    later(); B.ev(`jrnlUndo(${yl[0]}); 'ok'`);
+    chk(name, '(d) CONTROL', 'Y, an added requirement still in the year, has its description put back (Y2 → Y1)', B.ev(`String(S.desc[${J(Y)}])`), 'Y1');
     chk(name, 'errors', 'no page error', String(B.errors.length), '0');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });

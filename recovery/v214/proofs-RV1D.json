@@ -1,0 +1,102 @@
+[
+ {
+  "id": "v214-rv1-d-rcn-place-again",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
+  "id": "v214-rv1-d-rcn-sig-no-count",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
+  "id": "v214-rv1-d-rcn-lost-words",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
+  "id": "v214-rv1-d-si-old-conflict",
+  "caughtBy": "import / v2.14 RV1-D — a copy published before v2.14"
+ },
+ {
+  "id": "v214-rv1-d-si-mark-unsent",
+  "caughtBy": "import / v2.14 RV1-D — a copy published before v2.14"
+ },
+ {
+  "id": "v214-rv1-d-si-mark-ignored",
+  "caughtBy": "import / v2.14 RV1-D — a copy published before v2.14"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-older-offered",
+  "caughtBy": "import / v2.14 RV1-D — a line an ORBIT older than v2.14"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-own-unmarked",
+  "caughtBy": "import / v2.14 RV1-D — a line an ORBIT older than v2.14"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-older-unsaid",
+  "caughtBy": "import / v2.14 RV1-D — a line an ORBIT older than v2.14"
+ },
+ {
+  "id": "v214-rv1-d-cycwho-older",
+  "caughtBy": "import / v2.14 RV1-D — a line an ORBIT older than v2.14"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-older-undo-generic",
+  "caughtBy": "import / v2.14 RV1-D — a line an ORBIT older than v2.14"
+ },
+ {
+  "id": "v214-rv1-d-custom-unmended",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-custom-aside-dropped",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-custom-unsaid",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-door-refuses-mendable",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-import-unmended",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-restore-keeps-folder-copy",
+  "caughtBy": "import / v2.14 RV1-D — Put this back keeps work saved only"
+ },
+ {
+  "id": "v214-rv1-d-restore-occupied-newer",
+  "caughtBy": "import / v2.14 RV1-D — Put this back keeps work saved only"
+ },
+ {
+  "id": "v214-rv1-d-kept-put-unmarked",
+  "caughtBy": "import / v2.14 RV1-D — Put this back keeps work saved only"
+ },
+ {
+  "id": "v214-rv1-d-kept-put-words",
+  "caughtBy": "import / v2.14 RV1-D — Put this back keeps work saved only"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-field-gone-silent",
+  "caughtBy": "board / v2.14 RV1-D — Put back of a field of an added requirement"
+ },
+ {
+  "id": "v214-rv1-d-jrnl-field-gone-any",
+  "caughtBy": "board / v2.14 RV1-D — Put back of a field of an added requirement"
+ },
+ {
+  "id": "v214-w4-restore-keeps-nothing-saved",
+  "caughtBy": "import / v2.14 RV1-D — Put this back keeps work saved only"
+ },
+ {
+  "id": "restore-no-keep-aside",
+  "caughtBy": "import / v1.95 — ↶ Put this back keeps unsaved work aside first"
+ },
+ {
+  "id": "door-custom",
+  "caughtBy": "hostile / v1.88 — a file that could run code or change a figure is refused"
+ }
+]

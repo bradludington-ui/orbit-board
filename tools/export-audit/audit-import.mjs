@@ -17784,7 +17784,7 @@ await (async () => {
       const { fold, A, f } = await setup('RVE', true);
       connect(A.ev, A.w, fold); watch(A.ev);
       await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
-      chk(name, '(e) fixture', 'Put this back kept S1 aside, marked as kept at a Put this back', A.ev(`JSON.stringify([String(S.notes.A), keptCopy().meta.put===true])`), J(['RVE-F0', true]));
+      chk(name, '(e) fixture', 'Put this back kept S1 aside, marked as kept at a Put this back', A.ev(`JSON.stringify([String(S.notes.A), (keptCopy()||{meta:{}}).meta.put===true])`), J(['RVE-F0', true]));
       A.ev(`keptPutBack(); 'ok'`); await pause(5);
       const s = status(A.ev);
       chk(name, '(e) put back in turn', 'S1 is back on screen, and the board says 💾 Save will ask before it writes over a copy saved after the one this work came from',
