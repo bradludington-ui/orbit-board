@@ -271,3 +271,14 @@ the same comment, the block passed whole, and its four ids (`v213-136-not-record
   older copy aside, or without room holds the file back with its message and Open the file anyway. Nothing is lost.
 - **`cycCarrySaved`'s gen guard** (a carry made while a Save is writing is not marked saved by that Save) has no mutation: no fixture
   can carry a cycle between the bytes being built and written without a stand-in for the browser's write.
+
+## The runs at the end of the finishing round (on the final tree, 67ce9fa's board)
+
+- `npm run check`: all checks passed. `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical.
+- mcount: 3,410 targets, each once. prove.py: 31 of 31 CAUGHT by a failed check, none by a throw. `npm run defects`: register holds
+  (15 defects, 47 mutations). Money coverage: 27/27.
+- Whole suites at 8 GB, one at a time, each ALL CHECKS PASSED: audit-board, audit-import, audit-recon (its first two tries were killed by
+  the memory-cgroup OOM killer while two other fixers' import suites ran; it was rerun once memory was free), audit-other (the same).
+- Browser checks: `npm run storagefull` (all passed), `savetarget` (all passed), `fileimport` (ALL CHECKS PASSED), `keys` (passed, section V
+  drives the PPBE cycle at the top), `menus` (every menu path a message names is in that menu). Not run: dialogs, panels, standards --
+  no box, control or focus path changed (the new words are status lines).
