@@ -5,8 +5,8 @@ the map's `file-route` area is the design. **Stage 1 (build) status:** the board
 block written and passing on this branch; every block fails on the slot commit; 51 mutations and 9 retargets written, each find
 matching once (mcount 3271/3271), every mutant parses; audit-import whole passes; audit-inject whole passes; `boot-same` passes;
 `tools/import-file.mjs` passes A–F in Chromium (D's leave prompt said as INT until W3) and fails on the slot board; `--gtk` run by
-hand under Xvfb and passes. **Left for stage 2:** prove.py over `proofs-W2.json` (none proved yet); audit-recon, audit-board,
-audit-other whole (recon was running at the end of stage 1, see Checks); the browser checks named under Checks.
+hand under Xvfb and passes; audit-recon, audit-board and audit-other whole pass. **Left for stage 2:** prove.py over
+`proofs-W2.json` (none proved yet); the browser checks named under Checks.
 
 ## Reproduced on the slot commit (v2.13 behaviour), before building
 
@@ -140,13 +140,14 @@ reason (`goWrite`).
   `'stuckRecs'` (records refused with the lists).
 - `v1.95 — a full import is all or nothing…`: the ten writes "each plan followed by its record"; the storage-full part finds the BAE
   list by key (`iB`).
-- **E1's expectations (C15):** none moved yet -- every existing `importState` caller found boots a populated board or a held
-  browser (audit-recon's run through `importState` is on boards with data). The whole-suite runs say for certain (below).
+- **E1's expectations (C15):** none needed moving -- audit-import and audit-recon pass whole with E1 in place (every existing
+  `importState` caller boots a populated board, imports something other than a whole board file, or into a browser that holds one).
 
 **Whole suites (stage 1):** audit-import whole, 8 GB: **ALL CHECKS PASSED** (the moved v1.95 W2 blocks and every E1 caller
-included). audit-inject whole: all clear across 45 findings (W2-1 among them). `node tools/export-audit/boot-same.mjs`: every page,
-source, save and error list identical either way. `npm run check`: all checks passed (52 boxes, `#impFilePanel` among them). Still to
-run whole: audit-recon (E1's `importState` callers; a run was going when stage 1 ended), audit-board, audit-other.
+included). audit-recon whole, 8 GB: **ALL CHECKS PASSED** (E1's `importState` callers among them: none needed moving).
+audit-board whole, 8 GB, and audit-other whole, 4 GB: **ALL CHECKS PASSED**. audit-inject whole: all clear across 45 findings
+(W2-1 among them). `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical either way.
+`npm run check`: all checks passed (52 boxes, `#impFilePanel` among them).
 
 **`tools/import-file.mjs`, stage 1:** A–F all pass on this branch (`ALL CHECKS PASSED`; D's "closing the tab asks" said as `INT`:
 this board has no `memOnlyLeave` until W3); on the slot board A fails ("Brad's alert no longer appears" -- the alert is there; no
