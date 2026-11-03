@@ -108,7 +108,8 @@ scratch proof file, not committed): clean, then **CAUGHT** (3).
 ## For the lead
 
 - No board defect found. Every check passes on `5d5383c` as merged.
-- Whole suites on this branch (8 GB, one at a time): **audit-board** ALL CHECKS PASSED, 6 min 24 s; **audit-import**: see the
-  commit (run after these notes were written). `npm run check`: all checks passed. `boot-same`: identical either way.
+- Whole suites on this branch (8 GB, one at a time, another agent working beside them, load 4–6 on 4 cores): **audit-board**
+  ALL CHECKS PASSED, 6 min 24 s; **audit-import** ALL CHECKS PASSED, 22 min 17 s. `npm run check`: all checks passed.
+  `boot-same`: identical either way. `coverage:money` 27/27; `defects` 15 guarded by 47.
 - §11.5's integrated proof list should carry the two ids with the caughtBy lines in `proofs-INTB.json`.
 - INT-8 reads the bar's text (`BES28 ▾`); a change to `cycBarSync`'s wording moves it.
