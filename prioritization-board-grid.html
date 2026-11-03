@@ -10792,6 +10792,7 @@ async function _saveInPlaceFileRun(o){
     _takePen=null;
     LASTKNOWN=wrote;
     _pubsFileTs=wrote;              // v2.14 RV1-B (cyc-record-stale-file-ts): PUBS is what these bytes hold for every other appropriation
+    cycCarrySaved(wrote, sideAt);   // v2.14 RV1-B: a plan a cycle choice carried from browser storage is in the file now: recorded saved
     const clean=(_saveGen===gen);   // nothing changed while it was writing
     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
     else baseSet({file:LASTKNOWN});
@@ -11387,13 +11388,31 @@ function apStoreOf(k){
     if(s && typeof s==='object' && (s.years||Array.isArray(s.order))) ls=s; } }
   catch(e){ ls=null; /* absent or unreadable is normal — the publish slot answers */ }
   const pb=(typeof PUBS!=='undefined' && PUBS && PUBS[k] && typeof PUBS[k]==='object')? PUBS[k] : null;
-  if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false};
+  if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false, ls:ls};
   let held=false;
   if(ls){
     let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null'); }catch(e){ b=null; }
-    try{ held=ownUnsaved(ls, pb, (b && typeof b==='object' && !Array.isArray(b))? b : null); }catch(e){ held=true; }
+    // v2.14 RV1-B (the check of RV1-B's fixes): this page's copy carried from storage's very copy by a cycle choice storage had no
+    // room for (cycCarryHas) holds that work and the cycle beside it -- nothing of it is passed over, so it is not held
+    try{ held=!cycCarryHas(k) && ownUnsaved(ls, pb, (b && typeof b==='object' && !Array.isArray(b))? b : null); }catch(e){ held=true; }
   }
-  return {st:pb, held:held};
+  return {st:pb, held:held, ls:ls};
+}
+// v2.14 RV1-B (the check of RV1-B's fixes: the import doors' CONFLICT question in the held state): WHAT AN IMPORT THAT REPLACES
+// AN APPROPRIATION WOULD DISCARD -- the changes of the copy Save would write (pkgStoreOf) that the file does not hold, and, where that
+// copy passed over this browser's unsaved work (apStoreOf's `held`), that work's own changes first: the import replaces both. Once
+// pkgStoreOf read the newer copy, the full import and the ordinary ⬅ Import asked only about the newer one -- naming somebody's
+// saved change, never this browser's -- and then replaced the only copy of that work unasked (before RV1-B they named it).
+function apMineSince(k, inc){
+  const cur=pkgStoreOf(k); if(!cur) return [];
+  const mine=pkgMineSince(cur, inc);
+  if(k===mySlug()) return mine;
+  let g=null; try{ g=apStoreOf(k); }catch(e){ g=null; }
+  if(!(g && g.held && g.ls)) return mine;
+  const seen=Object.create(null), out=[];
+  pkgMineSince(g.ls, inc).concat(mine).forEach(function(e){ const id=(e.t||0)+'|'+(e.by||'')+'|'+JSON.stringify(e.p||[]);
+    if(!seen[id]){ seen[id]=1; out.push(e); } });
+  return out;
 }
 // what a writer of another appropriation says when apStoreOf found its stored work passed over
 function apHeldWhy(k){ return 'this browser holds '+((_SLUGMAP[k]&&_SLUGMAP[k].t)||k)+' work the saved file does not have, and the file’s copy is newer'; }
@@ -11547,16 +11566,25 @@ function pkgPushAll(){
     setStat('Nothing pushed.');
     return;
   }
-  const done=[];
+  const done=[], heldNot=[];
   have.forEach(function(ap, i){
     // staggered: browsers treat a burst of downloads from one gesture as a popup and can drop the
     // later ones without saying so
     setTimeout(function(){
+      // v2.14 RV1-B (the check of RV1-B's fixes): an appropriation pkgIssue leaves alone -- this browser holds work there the saved
+      // file does not have, behind the file's newer copy (apStoreOf's `held`) -- is named for that. The closing line said only that
+      // the browser must have blocked the missing download, and sent the person to allow downloads and push again.
+      let hd=false; if(ap!==mySlug()){ try{ hd=!!apStoreOf(ap).held; }catch(e){ hd=false; } }
       const pkg=pkgIssue(ap, true);
       if(pkg) done.push(PKG_NAMES[ap]||ap);
+      else if(hd) heldNot.push(PKG_NAMES[ap]||ap);
       if(i===have.length-1){
         setStat('\u2b06 Pushed '+done.length+' of '+have.length+' baseline'+(have.length===1?'':'s')
-          +' \u2014 '+done.join(', ')+'. If fewer files were saved than that, your browser blocked the '
+          +' \u2014 '+done.join(', ')+'.'
+          +(heldNot.length? ' <b>'+esc(heldNot.join(', '))+' '+(heldNot.length===1? 'was' : 'were')+' not issued</b>: this browser holds work there '
+            +'the saved file does not have, and the file\u2019s copy is newer. Open '+(heldNot.length===1? 'it' : 'each')+' to settle which one '
+            +'stands (its opening keeps this browser\u2019s work aside), then issue it.' : '')
+          +' If fewer files were saved than were pushed, your browser blocked the '
           +'extra downloads: allow them and push again, or issue the missing ones one at a time. '
           +'<b>Use \ud83d\udcbe Save now</b> so the record of these issues is in the file.');
       }
@@ -11572,6 +11600,11 @@ function pkgSendBack(ap){
   if(sandboxBlock('Sending a package back')) return;   // v2.09 review: as pkgIssue -- a copy's work goes back as its ✉ Submit input
   if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
   const nm=PKG_NAMES[ap]||ap;
+  // v2.14 RV1-B (the check of RV1-B's fixes): as pkgIssue -- pkgStoreOf reads the newer of storage's copy and this page's, so where
+  // the one passed over is this browser's unsaved work, the return would carry the other copy and leave that work out of it unsaid
+  if(ap!==mySlug()){ let hd=false; try{ hd=!!apStoreOf(ap).held; }catch(e){ hd=false; }
+    if(hd){ setStat('\u26a0 <b>'+esc(nm)+' was not sent back</b> \u2014 '+esc(apHeldWhy(ap))+'. Open '+esc(nm)
+      +' to settle which one stands (its opening keeps this browser\u2019s work aside), then send it back. Nothing was changed.'); return; } }
   const st=pkgStoreOf(ap);
   if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
   if(destOwnBlock('Sending '+nm+' back')) return;   // v2.00 (U44): the board it goes back to refuses it
@@ -12177,7 +12210,7 @@ function consTakeApply(fullSt, txt, fname, pick, all){
       if(!svcGuardImport(inc, _in, fname+' \u2014 '+nm, _to)){ skipped.push(nm); return; }
       svcRelabelPacks(inc, _to);         // figures and all, not only the names (v1.97, integration)
     }
-    const mine=cur? pkgMineSince(cur, inc) : [];
+    const mine=cur? apMineSince(k, inc) : [];   // v2.14 RV1-B: this browser's unsaved work too, where the newer copy passed it over
     if(mine.length && !confirm('CONFLICT \u2014 '+nm+'\n\nYou changed '+nm+' on THIS board after that file was saved. '
         +'Taking its '+nm+' will DISCARD these changes of yours:\n\n'+pkgMineLines(mine)
         +'\n\nTake it anyway and lose the above?')){ skipped.push(nm); return; }
@@ -12963,7 +12996,7 @@ function fullImportText(txt, fname){
   // WORK OF THIS BOARD'S OWN, appropriation by appropriation, before anything is replaced
   for(const k of ks){
     const cur=pkgStoreOf(k); if(!cur) continue;
-    const mine=pkgMineSince(cur, inc[k]);
+    const mine=apMineSince(k, inc[k]);          // v2.14 RV1-B: this browser's unsaved work too, where the newer copy passed it over
     if(mine.length && !confirm('CONFLICT — '+_SLUGMAP[k].t+'\n\nYou changed '+_SLUGMAP[k].t+' on THIS board after that file was saved. '
         +'A full import replaces it and DISCARDS these changes of yours:\n\n'+pkgMineLines(mine)+'\n\nReplace it anyway and lose the above?')){
       setStat('Nothing imported — '+esc(_SLUGMAP[k].t)+' has work of this board’s own that you kept.');
@@ -24813,6 +24846,42 @@ function cycFitTip(F){
 function cycJrnlLine(was, key, fy){
   return {t:Date.now(), by:whoAmI()||'unknown', fy:fy, p:['(cycle)'], a:was||null, b:key||null, f:1};
 }
+// v2.14 RV1-B (the check of RV1-B's fixes): THE PLANS A CYCLE CHOICE CARRIED ON THIS PAGE because browser storage had no room for them
+// (cycApplyAll): {<slug>: {ts: the carried copy's time, raw: storage's copy it was tagged from, as it stood (null when it was read from
+// the file), gen: _sideGen when it was carried}}. In memory alone, like the marks that keep the page from being left. A var: apStoreOf
+// can run while the board opens, before a let down here would exist.
+var _cycCarry=null;
+// Is this page's copy of `k` still the one carried from browser storage's copy, and storage's copy still that one? It then holds that
+// copy's work and the cycle beside it: the copy passed over holds nothing this page lacks, so it is not "held" (apStoreOf, cycApplyAll).
+function cycCarryHas(k){
+  try{
+    const c=_cycCarry && _cycCarry[k]; if(!c || c.raw===null) return false;
+    const pb=(typeof PUBS!=='undefined' && PUBS)? PUBS[k] : null;
+    if(!pb || typeof pb!=='object' || (+pb.ts||0)!==c.ts) return false;
+    return localStorage.getItem(_SLUGMAP[k].key)===c.raw;
+  }catch(e){ return false; }
+}
+// THE FILE NOW HOLDS IT (from _saveInPlaceFileRun, after a write). A plan carried from browser storage's copy, in the bytes just written
+// (carried before they were built, `at`; this page's copy and storage's unchanged since), is saved: storage's copy holds nothing the
+// file lacks, and its record says so -- {file: this save, dirty:false}. Left dirty, that board's opening read storage's copy as unsaved
+// work behind the file's newer one and kept it aside -- and on a browser too full to keep it, did not open the file at all, so the
+// appropriation opened off the cycle it had just been saved on. Written straight to storage, as baseSet writes this board's record;
+// refused, the record is left as it was and that opening keeps the copy aside, which loses nothing.
+function cycCarrySaved(wrote, at){
+  try{
+    if(!_cycCarry) return;
+    Object.keys(_cycCarry).forEach(function(k){
+      const c=_cycCarry[k]; if(!c || c.gen>at) return;          // carried after the bytes were built: not in this file yet
+      if(cycCarryHas(k) && !impHandKey(_SLUGMAP[k].key)){
+        const key=_SLUGMAP[k].key+'.base';
+        let b=null; try{ b=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ b=null; }
+        if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+        try{ localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false}))); }catch(e){}
+      }
+      delete _cycCarry[k];
+    });
+  }catch(e){}
+}
 // PUT EVERY APPROPRIATION ON ONE CYCLE. key: 'BES|2028', or '' to untag every one. Returns true when anything changed.
 // WORKING OUT OF THE SHARED FOLDER, only the board on screen is moved: each appropriation's folder copy is written by its own board
 // (driveStorePush fixes the appropriation and checks its own clash base), and a copy in this browser stamped newer than the folder's
@@ -24845,7 +24914,8 @@ function cycApplyAll(key){
     if(typeof PUBS!=='undefined' && PUBS && g.st===PUBS[r.k]){
       let ls=null;
       try{ ls=JSON.parse(localStorage.getItem(_SLUGMAP[r.k].key)||'null'); }catch(e){ ls=null; }
-      if(ls && typeof ls==='object' && (ls.years || Array.isArray(ls.order)) && ownUnsaved(ls, g.st, base)){
+      // v2.14 RV1-B: not where this page's copy is one a cycle choice carried from storage's very copy (cycCarryHas) -- it holds that work
+      if(ls && typeof ls==='object' && (ls.years || Array.isArray(ls.order)) && !cycCarryHas(r.k) && ownUnsaved(ls, g.st, base)){
         plan.push({r:r, act:'skip', why:'this browser holds '+r.name+' work the saved file does not have'}); return; }
     }
     // a copy, put in the shape its board opens (a store from before the years were kept is wrapped, and a cycle on the old shape
@@ -24856,7 +24926,9 @@ function cycApplyAll(key){
     // what was read, kept to compare after the question: another tab of this browser can save to it while the question is open
     let raw0=null, base0=null;
     try{ raw0=localStorage.getItem(_SLUGMAP[r.k].key); base0=localStorage.getItem(_SLUGMAP[r.k].key+'.base'); }catch(e){}
-    plan.push({r:r, act:'set', st:st, base:base, fromFile:(typeof PUBS!=='undefined' && PUBS && g.st===PUBS[r.k]), raw0:raw0, base0:base0});
+    const fromFile=(typeof PUBS!=='undefined' && PUBS && g.st===PUBS[r.k]);
+    // v2.14 RV1-B: whether the copy read holds browser storage's copy -- read from it, or this page's carried from it (cycCarryHas)
+    plan.push({r:r, act:'set', st:st, base:base, fromFile:fromFile, fromLs:raw0!==null && (!fromFile || cycCarryHas(r.k)), raw0:raw0, base0:base0});
   });
   const sets=plan.filter(function(p){ return p.act==='set'; }), skips=plan.filter(function(p){ return p.act==='skip'; }),
         later=plan.filter(function(p){ return p.act==='later'; });
@@ -24930,8 +25002,13 @@ function cycApplyAll(key){
       // made with another appropriation open went through. Refused for room, put back whole, and each plan read from the file: they
       // are tagged on this page instead -- counted as on screen only (a refused list, as lsSet counts one), so closing or reloading
       // asks first and switching appropriation waits, and 💾 Save writes them into the file (pubsFor takes the newer). Storage is
-      // left exactly as it was: nothing half-lands. A plan read from storage, or any other refusal, is refused as before.
-      carried=!!res.back && /quota/i.test(String(res.why||'')) && others.every(function(p){ return p.fromFile; });
+      // left exactly as it was: nothing half-lands. Any other refusal (the hand-over hold, a put-back that was not whole) is refused
+      // as before.
+      // v2.14 RV1-B (the check of RV1-B's fixes): A PLAN READ FROM BROWSER STORAGE IS CARRIED TOO. Carried only when every plan came from
+      // the file, the choice was refused again once Brad had opened Full Fund and saved it there (its plan then in storage, clean), and
+      // on the storage route whose last few hundred characters edits had filled -- with no way forward named. Storage's copy is left as it
+      // was; this page's is tagged from it, so it holds that copy's work too, and cycCarrySaved records it as saved once 💾 Save writes it.
+      carried=!!res.back && /quota/i.test(String(res.why||''));
       if(!carried){
         setStat('⚠ <b>The PPBE cycle was not changed</b> — browser storage refused '+esc(W[Math.max(0, res.at)][2])+' ('+esc(res.why)+'). '
           +(res.back? 'Nothing was changed.' : 'Not every appropriation could be put back as it was: '
@@ -24939,7 +25016,10 @@ function cycApplyAll(key){
         _cycAllMemo=null; render();
         return false;
       }
-      others.forEach(function(p){ const k=_SLUGMAP[p.r.k].key; fileMark('side'); fileStored(k, 'side', false); });
+      others.forEach(function(p){ const k=_SLUGMAP[p.r.k].key; fileMark('side'); fileStored(k, 'side', false);
+        // what this page now holds for it came from storage's copy, as it stands: remembered until 💾 Save writes it (cycCarrySaved)
+        if(!_cycCarry) _cycCarry=Object.create(null);
+        _cycCarry[p.r.k]={ts:+p.st.ts||0, raw:p.fromLs? p.raw0 : null, gen:_sideGen}; });
     }
     others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });
   }

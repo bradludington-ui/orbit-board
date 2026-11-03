@@ -159,3 +159,115 @@ the scratchpad as `proved-RV1B.first.jsonl`).
 - Browser checks: `npm run storagefull` (all storage-full checks passed), `savetarget` (passed), `fileimport` (ALL CHECKS PASSED),
   `keys` (passed, section V drives the PPBE cycle at the top), `menus` (every menu path a message names is in that menu). Not run:
   dialogs, panels, standards -- no box, control or focus path changed (the new words are status lines and one native alert).
+
+# Finishing round — the independent check of RV1-B's fixes
+
+The check (`scratchpad/v214rev/rv1-B-check/`) found the first three findings' fixes holding and four new problems: the cycle carry
+limited to plans read from the file (two cases), a regression in the import doors' CONFLICT question, and a misleading closing line in
+⬆ Push baselines. Each was reproduced on this worktree with the check's own probes (copied to `scratchpad/v214rev/rv1-B/fin/`).
+
+## 1. The cycle for every appropriation, refused again where a plan lives in browser storage (data kept; main path refused)
+
+**Reproduced.** `pA2-tour.mjs` (file route; open the new file on O&M, edit and Save; Full Fund, edit and Save; back to O&M, edit and
+Save; then `cycApplyAll('BES|2028')`): "⚠ The PPBE cycle was not changed — browser storage refused OPN board data (QuotaExceededError).
+Nothing was changed.", every tag ''. Full Fund was read from storage (clean, tying with the file) so `others.every(p.fromFile)` was
+false. `x5-storage-route.mjs` (every plan in storage, a file save first, N characters free): refused at rooms 20, 80 and 150.
+
+**Fixed.** The carry is no longer limited to plans read from the file: refused for room and put back whole, every other plan is carried
+on this page (`carried=!!res.back && /quota/i.test(res.why)`). A plan read from storage is safe to carry the same way: storage is left as
+lsAll put it back, this page's copy is storage's tagged, and Save writes it (pubsFor takes the newer). Two things a storage-read carry
+needed that a file-read one did not, both found by following the plan to its own board's opening:
+- **What this page carries is remembered** (`_cycCarry`, a var: `{ts, raw: storage's copy it was tagged from, gen}`), and
+  `cycCarryHas(k)` says whether this page's copy is still that carried copy and storage still holds the copy it came from. Then
+  nothing of storage's is passed over, so it is not "held": `apStoreOf` (⬆ Issue, ladders, packages) and `cycApplyAll`'s own skip
+  (a second choice) read it. Without it a carried plan whose record was dirty read as this browser's unsaved work behind a newer copy.
+- **After 💾 Save writes it, its record says saved** (`cycCarrySaved(wrote, sideAt)`, one line in `_saveInPlaceFileRun` beside
+  `_pubsFileTs=wrote` — the one line outside my functions, named here): for each carried plan in the bytes just written (carried before
+  they were built), this page's and storage's copies unchanged, `<key>.base` = `{…, file: this save, dirty:false}`. Left dirty (the
+  storage route keeps other appropriations' records dirty even after O&M's Save writes their plans), that board's opening read
+  storage's older copy as unsaved work behind the file's newer one and kept it aside — and on a browser too full to keep it, did not
+  open the file at all, so the appropriation opened off the cycle just saved. Written straight to storage, as baseSet writes; refused,
+  the record is left and the opening keeps the copy aside, which loses nothing.
+Re-run: pA2-tour → true, every appropriation BES28 on the page, Save, Full Fund opens on BES28 with nothing kept aside. x5 → true at
+rooms 20, 80, 150 (at 20 and 80 the board's own change is refused too and said). `x5b-save-open.mjs` (x5 then Save then Full Fund
+opens): records `{file: <the save>, dirty:false}`, Full Fund opens on PB28 with its work, nothing kept aside. At room 20 the second
+record write (Initial Spares') is itself refused for room, so that board's opening keeps the copy aside — the degrade described above.
+
+**Existing checks moved, each with a `// v2.14 RV1-B:` comment:** INT-B ("a change refused before “put every appropriation on a
+cycle”") and two parts of the v2.13 block ("storage refuses part-way" and F20, "refused on a counted key") each refused the choice for
+ROOM at a key whose plans came from storage, and asserted "Nothing was changed" or that nothing read unsaved. A room refusal is carried now, so all three refuse with `SecurityError` instead (a refusal that is not for room is
+refused as it was), which keeps each check's point — INT-B's, that the mark the page held before survives the put-back
+(`v214-int-cyc-erases-refusal` re-proved against it); v2.13's, that a refused write is put back whole and nothing reads unsaved.
+
+**Check** audit-board `v2.14 RV1-B — plans this browser stores are carried too when storage has no room for the cycle, and Save
+records them saved`: the storage route (Full Fund and Initial Spares in storage, records dirty, O&M's Save first), Initial Spares'
+plan refused for room; carried, on screen only, storage byte-identical; a second choice moves both; ⬆ Issue Full Fund issues this
+browser's work on BES28; Save writes all three, Initial Spares' record is `{file: the save, dirty:false}`; Initial Spares opens on
+BES28 with its work and nothing kept aside. Fails on 44aa984 (7 checks) and on 0e7d290 (7), passes on the fix.
+
+## 2. The import doors' CONFLICT question in the held state (a regression of my first round: data loss, unasked)
+
+**Reproduced.** `x3-import-conflict.mjs '' full` and `'' take`: this browser's unsaved Full Fund (a journalled note, record dirty) behind
+this page's newer Full Fund (the file's, "Other"'s title). Both doors asked about "titles › A (Other)" only, and replaced the only copy
+of the note. On 44aa984 they named the note (pkgStoreOf read storage first) and not the file's change.
+
+**Fixed.** `apMineSince(k, inc)` (beside apStoreOf): the changes the copy Save would write has that the file lacks, and — where that copy
+passed over this browser's unsaved work (`apStoreOf(k).held`; apStoreOf now also returns storage's copy as `ls`) — that work's own
+changes first, deduplicated. The import replaces both, so both are named. `fullImportText`'s own-work loop and `consTakeApply` read it.
+Everything else those doors read from `cur` (services, preview, locked baselines, the ledger) is unchanged. Re-run: both doors name
+"notes › A (BL)" and "titles › A (Other)"; answered no, nothing is replaced.
+
+**Check** audit-board `v2.14 RV1-B — importing over an appropriation names this browser’s unsaved work as well as the newer copy’s,
+before replacing both` (both doors, CONFLICT answered no). Fails on 44aa984 (2: the newer copy's change unnamed) and on 0e7d290 (2: this
+browser's unnamed), passes on the fix.
+
+## 3. ⬆ Push baselines blamed the browser for a held appropriation (wrong message)
+
+**Reproduced.** `x4-pushall.mjs`: one file made; the closing line "⬆ Pushed 1 of 2 baselines — O&M. If fewer files were saved than
+that, your browser blocked the extra downloads…".
+
+**Fixed.** `pkgPushAll` reads `apStoreOf(ap).held` beside each issue and names the ones pkgIssue left alone for it: "Full Fund was not
+issued: this browser holds work there the saved file does not have, and the file’s copy is newer. Open it to settle which one stands…";
+the download sentence now says "fewer files … than were pushed".
+
+**Found beside it, same reading:** `pkgSendBack` reads pkgStoreOf too, so in the held state it sent the file's newer copy without this
+browser's unsaved work, unsaid (before RV1-B it sent this browser's and left the newer one out). It now refuses as pkgIssue does, naming
+why. **Check** audit-board `v2.14 RV1-B — pushing baselines and sending back name an appropriation whose unsaved work is behind a newer
+copy, and send none of it`. Fails on 44aa984 (3) and 0e7d290 (2), passes on the fix.
+
+## Critic gaps named "6"
+
+- **r1b critic gap 6** (the storage-route landing that only just fits, then the cycle for every appropriation): the check's x5; fixed
+  by item 1 above.
+- **r1a critic gap 6** (cycApplyAll tagging a copy another tab left in front of the file): unchanged and still RV1-A's — reported in the
+  first round above. The carry reaches it the same way the stored path did: a left copy read from storage is tagged and, carried, Save
+  writes it into the file, exactly as pubsFor would have.
+
+## Mutations (finishing round)
+
+New, each against its own check: `v214-rv1-b-cyc-carry-file-only`, `-carry-held-blind`, `-recarry-skipped`, `-carry-save-unrecorded`,
+`-carry-not-remembered`, `-carry-record-dirty`, `-minesince-ls-dropped`, `-door-full-newer-only`, `-door-take-newer-only`,
+`-pushall-held-blamed`, `-sendback-held-unguarded`. Retired as obsolete: `v214-rv1-b-cyc-carry-from-storage` (it pinned the limit that
+was the defect; a comment stands where it was). Retargeted in place: `v214-rv1-b-cyc-carry-refused` (the carry line),
+`v214-rv1-b-apstore-storage-first` and `v214-rv1-b-held-ignored` (apStoreOf's lines), `v214-rv1-b-cyc-carry-unmarked` (the carry loop),
+and `v213-136-unsaved-work-written-over` (cycApplyAll's held skip, which now asks cycCarryHas first). Re-proved because its check moved:
+`v214-int-cyc-erases-refusal`. mcount: 3,410 targets, each once; every mutant parses (`node tools/check.mjs`).
+
+**Proved together on the final board** (`recovery/v214/proved-RV1B.jsonl`, fresh; the first round's record is kept in the scratchpad as
+`proved-RV1B.second.jsonl`): 31 of 31 CAUGHT, each by a failed check, none by a throw. The first run of it found the v2.13 block NOT
+CLEAN: a second part of it (F20) also refused the cycle for room at a storage-read plan. It moved to `SecurityError` like the first, with
+the same comment, the block passed whole, and its four ids (`v213-136-not-recorded-unsaved`, `v213-136-record-replaced`,
+`v213-rv-record-names-old-file`, `v213-136-unsaved-work-written-over`) were proved on their own afterwards: CAUGHT.
+
+## What I left, and why (finishing round)
+
+- **Two tabs and a plan on this page only** (the check's x1/x1c probes, not in its list of defects): a package storage refused is held in
+  PUBS alone; another tab of this browser then saves that appropriation to storage, later. pubsFor (Save's assembly), and so apStoreOf,
+  take storage's newer copy: the package is left out of the file and the on-screen-only mark is cleared. Measured the same on 44aa984
+  (x1b on pre.html: the package lost on a ladder; x1c: lost on a plain Save), so it is not from RV1-B; a carried cycle meets it the same
+  way (the other tab's newer copy wins, untagged — the bar then reads Mixed). Two pieces of work on one appropriation in two tabs of one
+  browser cannot both stand without a question; the place to ask is pubsFor, which is Save's and outside what I own. Left for the lead.
+- **A carried plan whose record write is refused for room after Save** (x5b at 20 characters free): that board's opening keeps the
+  older copy aside, or without room holds the file back with its message and Open the file anyway. Nothing is lost.
+- **`cycCarrySaved`'s gen guard** (a carry made while a Save is writing is not marked saved by that Save) has no mutation: no fixture
+  can carry a cycle between the bytes being built and written without a stand-in for the browser's write.

@@ -13,9 +13,21 @@
 {"id": "v214-rv1-b-pubs-ts-not-moved", "caughtBy": "board / v2.14 RV1-B — after this page saves the file"},
 {"id": "v214-rv1-b-cyc-carry-refused", "caughtBy": "board / v2.14 RV1-B — on a board whose plans live in its file"},
 {"id": "v214-rv1-b-cyc-carry-unmarked", "caughtBy": "board / v2.14 RV1-B — on a board whose plans live in its file"},
-{"id": "v214-rv1-b-cyc-carry-from-storage", "caughtBy": "board / v2.14 INT — a change refused before “put every appropriation on a cycle”"},
 {"id": "v213-136-not-recorded-unsaved", "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"},
 {"id": "v213-136-record-replaced", "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"},
 {"id": "v213-rv-record-names-old-file", "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"},
-{"id": "v200-u44-say-no-packages", "caughtBy": "board / v2.14 RV1-B — a copy this browser holds of another appropriation"}
+{"id": "v200-u44-say-no-packages", "caughtBy": "board / v2.14 RV1-B — a copy this browser holds of another appropriation"},
+{"id": "v214-rv1-b-cyc-carry-file-only", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-carry-held-blind", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-recarry-skipped", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-carry-save-unrecorded", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-carry-not-remembered", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-carry-record-dirty", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
+{"id": "v214-rv1-b-minesince-ls-dropped", "caughtBy": "board / v2.14 RV1-B — importing over an appropriation names"},
+{"id": "v214-rv1-b-door-full-newer-only", "caughtBy": "board / v2.14 RV1-B — importing over an appropriation names"},
+{"id": "v214-rv1-b-door-take-newer-only", "caughtBy": "board / v2.14 RV1-B — importing over an appropriation names"},
+{"id": "v214-rv1-b-pushall-held-blamed", "caughtBy": "board / v2.14 RV1-B — pushing baselines and sending back"},
+{"id": "v214-rv1-b-sendback-held-unguarded", "caughtBy": "board / v2.14 RV1-B — pushing baselines and sending back"},
+{"id": "v213-136-unsaved-work-written-over", "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"},
+{"id": "v214-int-cyc-erases-refusal", "caughtBy": "board / v2.14 INT — a change refused before “put every appropriation on a cycle”"}
 ]
