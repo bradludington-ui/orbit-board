@@ -8728,6 +8728,12 @@ function strayOr(k, st){ return strayHeld(k)? PUBS[k] : st; }
 // What a writer refused for that reason says (text, not HTML: the callers escape it or hand it to confirm()).
 function strayHeldWhy(k){
   const t=(_SLUGMAP[k]&&_SLUGMAP[k].t)||k;
+  // v2.14 round 2 (the lead; stray-advice-untrue-when-kept-slot-held): with its one kept slot already in use, that board's opening keeps
+  // nothing aside -- it holds the file back and keeps the blank work on screen -- so "open it once" repeated the same refusal for ever
+  let full=false; try{ full=!!(_SLUGMAP[k] && localStorage.getItem(_SLUGMAP[k].key+'.kept')); }catch(e){ full=false; }
+  if(full) return 'this browser holds '+t+' work typed on a page with no board file, and '+t+' already keeps other work aside, so its opening '
+    +'cannot keep this aside too. Open '+t+' (Appropriation, at the top) and deal with the work it keeps aside first — put it back, save it as a '
+    +'file, or discard it — then open '+t+' again, and do this again';
   return 'this browser holds '+t+' work typed on a page with no board file, which '+t+'’s own board keeps aside when it opens this '
     +'file’s '+t+'. Open '+t+' once (Appropriation, at the top: the work is kept aside, not lost), then do this again';
 }

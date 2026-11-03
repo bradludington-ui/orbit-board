@@ -18738,6 +18738,45 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 round 2 — a refusal over another appropriation’s blank work says how to settle it when that board already keeps other work aside (stray-advice-untrue-when-kept-slot-held)';
+  try {
+    const J = W14J;
+    const MINE = ['USAF', 'ANG', 'AFRC'];
+    const SCO = { services: MINE, items: [it('A', 'AV', [900, 200, 100])], disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A'] };
+    const SCF = { services: MINE, items: [it('F', 'AV', [700, 100, 60])], disc: [900, 150, 60], mand: [200, 40, 20], order: ['F'] };
+    const asBuilt = (ev, sc) => ev(`(function(){ BASE_ITEMS.length=0; ${J(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); return 'ok'; })()`);
+    const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SCF); asBuilt(F.ev, SCF);
+    F.ev(`S.notes=S.notes||{}; S.notes.F='FILE FF note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const O = boot({ html: F.ev('buildSavedHtml()'), appn: 'O&M' }); seed(O.ev, SCO); asBuilt(O.ev, SCO);
+    O.ev(`save(); 'ok'`);
+    const FILE = O.ev('buildSavedHtml()');
+    await w14pause(15);
+    // later, in this browser: Full Fund blank work typed on a page with no board file
+    const Bk = boot({ ls: { prio27appn: 'FULL FUND', prio27who: 'BLL' } }); w14wire(Bk.ev, 'true');
+    Bk.ev(`S.notes=S.notes||{}; S.notes.Z='BLANK page note'; save(); 'ok'`);
+    const blank = w14ls(Bk.ev);
+    const LS = Object.assign({}, blank); delete LS.prio27om; delete LS['prio27om.base']; LS.prio27appn = 'O&M';
+    const issue = (ls) => { const P = boot({ html: FILE, ls }); w14wire(P.ev, 'true');
+      P.ev(`URL.createObjectURL=function(){ return 'blob:x'; }; URL.revokeObjectURL=function(){}; HTMLAnchorElement.prototype.click=function(){}; 'ok'`);
+      const held = P.ev(`strayHeld('ff')`); P.ev(`pkgIssue('ff'); 'ok'`); return { held, stat: w14stat(P.ev) }; };
+    // (a) a free kept slot: "open Full Fund once" is what settles it (a CONTROL: RV1-C's wording)
+    const a = issue(LS);
+    chk(name, '(a) the kept slot free', 'the issue is refused over the blank work, and says opening Full Fund once keeps it aside (a CONTROL)',
+      J([a.held, /not issued/.test(a.stat), /Open Full Fund once/.test(a.stat), /already keeps other work aside/.test(a.stat)]), J([true, true, true, false]));
+    // (b) Full Fund already keeps other work aside: its opening would keep nothing aside, so the advice names what to do first
+    const LSk = Object.assign({}, LS, { 'prio27ff.kept': J({ st: JSON.parse(blank.prio27ff), meta: { why: 'file', ts: 1 } }) });
+    const b = issue(LSk);
+    chk(name, '(b) the kept slot in use', 'the refusal says Full Fund already keeps other work aside, to deal with that first, and does not promise that opening it once keeps this aside',
+      J([b.held, /not issued/.test(b.stat), /already keeps other work aside/.test(b.stat), /deal with the work it keeps aside first/.test(b.stat), /Open Full Fund once/.test(b.stat)]),
+      J([true, true, true, true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-LEAD ----
 // ---- RV2-A (the file route and Save) ----
 // ---- end RV2-A ----

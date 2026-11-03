@@ -10668,6 +10668,8 @@ const MUTATIONS = [
     find: "  const R=(_impFile && _impFile.was)? _impFile : _impFileLast; const w=R && R.was;", repl: "  const R=_impFile; const w=R && R.was;" },
   { id: 'v214-rv2-holds-closed-ignored', area: "impFileHolds", what: "after the box closes, leaving the page no longer asks while the as-it-was copy is undownloaded",
     find: "|| impFileWasHeld(R))) || impFileWasHeld(_impFileLast)); }", repl: "|| impFileWasHeld(R))) || false); }" },
+  { id: 'v214-rv2-stray-advice-slot-blind', area: "strayHeldWhy", what: "with Full Fund's kept slot in use, refusing its package from O&M still says to open Full Fund once, which keeps nothing aside and repeats the refusal",
+    find: "  let full=false; try{ full=!!(_SLUGMAP[k] && localStorage.getItem(_SLUGMAP[k].key+'.kept')); }catch(e){ full=false; }", repl: "  let full=false;" },
   // ---- end RV2-LEAD ----
   // ---- RV2-A (the file route and Save) ----
   // ---- end RV2-A ----
