@@ -3160,7 +3160,9 @@ function impHandClear(){
 // v2.14 (slot; W2 owns the body; W3's leave prompt reads it): does the file route hold the only copy of something right now -- a
 // file being written (the browser emptied it when it was chosen), a rescue offered and not yet saved, the as-it-was file being
 // written? Leaving the page then asks first. Never throws; false until W2 fills it.
-function impFileHolds(){ try{ const R=_impFile; return !!(R && (R.busy || R.wasBusy || (R.rescue && !impFileRescued(R)) || impFileWasHeld(R))); }catch(e){ return false; } }
+// v2.14 round 2 (the lead): an as-it-was copy whose write failed is held after the box closes too (impFileShut keeps it in _impFileLast):
+// closing asked "Close anyway? (… in the message line downloads it.)", and then the button downloaded nothing and leaving stopped asking
+function impFileHolds(){ try{ const R=_impFile; return !!((R && (R.busy || R.wasBusy || (R.rescue && !impFileRescued(R)) || impFileWasHeld(R))) || impFileWasHeld(_impFileLast)); }catch(e){ return false; } }
 // v2.14 RV1-A (also noticed): the as-it-was file failed after its pick and has not been downloaded -- the file chosen may be empty
 function impFileWasHeld(R){ return !!(R && R.was && R.was.fail && !R.was.got); }
 // v2.14 (item 141, C21): ANOTHER TAB WROTE THE NOTE: this page is held from now on, for its life -- the browser fires this in every
@@ -13721,7 +13723,7 @@ function impFileOffer(done, W, txt, fname){
   return false;
 }
 function impFileOpen(){ impFileDraw(); const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg open'; }
-function impFileShut(){ if(_impFile && _impFile.rescue) _impFileLast=_impFile; _impFile=null; try{ const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg'; }catch(e){} impFileDraw(); }
+function impFileShut(){ if(_impFile && (_impFile.rescue || impFileWasHeld(_impFile))) _impFileLast=_impFile; _impFile=null; try{ const bg=document.getElementById('impFilePanel'); if(bg) bg.className='modal-bg'; }catch(e){} impFileDraw(); }
 function impFileRescued(R){ return !!(R.rescue && (!R.rescue.html || R.rescue.html.got) && (!R.rescue.inc || R.rescue.inc.got)); }
 // The two downloads offered after a failure, in the box and in the message line: one place, so neither can lose them.
 function impFileRescueBtns(R){
@@ -14066,7 +14068,7 @@ function impFileSaveWas(){
   });
 }
 function impFileWasDl(){
-  const R=_impFile; const w=R && R.was; if(!w || !w.html) return false;
+  const R=(_impFile && _impFile.was)? _impFile : _impFileLast; const w=R && R.was; if(!w || !w.html) return false;   // v2.14 round 2: the box may be closed
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([w.html], {type:'text/html'}));
   a.download=w.name;

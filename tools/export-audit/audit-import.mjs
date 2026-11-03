@@ -18705,6 +18705,41 @@ await (async () => {
 })();
 // ---- end RV1-D ----
 // ==== end v2.14 review round 1 fixes ====
+// ==== v2.14 review round 2 fixes ====
+// ---- RV2-LEAD (the lead) ----
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 round 2 — an as-it-was copy whose write failed stays downloadable, and leaving still asks, after the import box is closed (RV1-A check: the close question promised a dead button)';
+  try {
+    const { J, fx, refuse, picker, press, box, settle, downloads } = W214;
+    const { NEW, OLD, ls } = fx();
+    const T = boot({ html: OLD.html, ls });
+    T.ev(`localStorage.setItem('prio27om.base', ${J(J({ file: W1H.fileTs(OLD.html), folder: {}, dirty: true }))}); 'ok'`);
+    const P = picker(T, { failClose: 'InvalidStateError' });
+    await refuse(T, NEW.html);
+    const D = downloads(T);
+    press(T, P, /^💾 Save this board as it was/);
+    await settle(T, () => /could not be written into/.test(W1H.status(T.ev)));
+    chk(name, 'the failed write', 'the copy is held and leaving asks (a CONTROL: RV1-A holds this while the box is open)', T.ev('impFileHolds()'), true);
+    // ✕, and OK to "Close anyway?"
+    T.ev(`globalThis.__cq=[]; window.confirm=function(q){ globalThis.__cq.push(String(q)); return true; }; impFileClose(); 'ok'`);
+    const cq = JSON.parse(T.ev('JSON.stringify(globalThis.__cq)'));
+    chk(name, 'closed', 'closing asked, naming the copy and the message line’s button; the box is closed',
+      J([cq.length, /^This board as it was is not saved yet/.test(cq[0] || ''), /in the message line downloads it/.test(cq[0] || ''), box(T).open]), J([1, true, true, false]));
+    chk(name, 'closed', 'leaving the page still asks while the copy is not downloaded', T.ev('impFileHolds()'), true);
+    // the button the question names, pressed where it is: the message line
+    const pressed = T.ev(`(function(){ let n=0; [].slice.call(document.querySelectorAll('#shareStat button')).forEach(function(b){ if(/this board as it was/.test(b.textContent)){ n++; b.click(); } }); return n; })()`);
+    chk(name, 'the message line’s button', 'it is there, and pressing it downloads the board as it was, under the name it was chosen with',
+      J([pressed >= 1, D.length, D.length ? /id="pubState"/.test(D[D.length - 1].text || '') : false, D.length ? !!D[D.length - 1].name : false]), J([true, 1, true, true]));
+    chk(name, 'downloaded', 'leaving no longer asks', T.ev('impFileHolds()'), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ---- end RV2-LEAD ----
+// ==== end v2.14 review round 2 fixes ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

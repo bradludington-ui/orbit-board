@@ -10424,8 +10424,9 @@ const MUTATIONS = [
     find: "'x'.repeat(64000-'prio27roomProbe'.length)",
     repl: "'x'.repeat(65536)" },
   { id: 'v214-rv1-a-was-fail-unheld', area: "impFileHolds", what: "the page closes without asking after the as-it-was file failed in a file the choice emptied",
-    find: "|| impFileWasHeld(R))); }catch(e){ return false; } }",
-    repl: ")); }catch(e){ return false; } }" },
+    // v2.14 round 2 (the lead): retargeted in place -- impFileHolds now also holds a closed box's copy (_impFileLast)
+    find: "|| impFileWasHeld(R))) || impFileWasHeld(_impFileLast)); }catch(e){ return false; } }",
+    repl: ")) || impFileWasHeld(_impFileLast)); }catch(e){ return false; } }" },
   { id: 'v214-rv1-a-was-close-unasked', area: "impFileClose", what: "the box closes without asking, and the as-it-was copy that failed is gone",
     find: "  if(impFileWasHeld(R) && !confirm(",
     repl: "  if(false && !confirm(" },
@@ -10659,6 +10660,16 @@ const MUTATIONS = [
     find: "  return !((T.custom||[]).some(function(x){ return x && x.id===id; }) || has(T.order) || has(T.removed));", repl: "  return true;" },
   // ---- end RV1-D ----
   // ==== end v2.14 review round 1 fixes ====
+  // ==== v2.14 review round 2 fixes ====
+  // ---- RV2-LEAD (the lead) ----
+  { id: 'v214-rv2-was-shut-dropped', area: "impFileShut", what: "closing the import box after the as-it-was write failed lets the copy go: the message line's button downloads nothing and leaving stops asking",
+    find: "function impFileShut(){ if(_impFile && (_impFile.rescue || impFileWasHeld(_impFile))) _impFileLast=_impFile;", repl: "function impFileShut(){ if(_impFile && _impFile.rescue) _impFileLast=_impFile;" },
+  { id: 'v214-rv2-was-dl-open-only', area: "impFileWasDl", what: "the message line's 💾 this board as it was reads only the open box, so after closing it downloads nothing",
+    find: "  const R=(_impFile && _impFile.was)? _impFile : _impFileLast; const w=R && R.was;", repl: "  const R=_impFile; const w=R && R.was;" },
+  { id: 'v214-rv2-holds-closed-ignored', area: "impFileHolds", what: "after the box closes, leaving the page no longer asks while the as-it-was copy is undownloaded",
+    find: "|| impFileWasHeld(R))) || impFileWasHeld(_impFileLast)); }", repl: "|| impFileWasHeld(R))) || false); }" },
+  // ---- end RV2-LEAD ----
+  // ==== end v2.14 review round 2 fixes ====
 
 ];
 
