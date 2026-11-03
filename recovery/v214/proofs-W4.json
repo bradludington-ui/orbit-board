@@ -185,6 +185,6 @@
  },
  {
   "id": "restore-own-stale",
-  "caughtBy": "audit-import / v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01)"
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
  }
 ]

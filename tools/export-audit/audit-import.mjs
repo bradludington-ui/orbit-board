@@ -15506,6 +15506,22 @@ await (async () => {
     chk(name, '(c) the review', 'the proposal’s line names its Navy SI code as none (chosen by hand)', /Navy SI code none \(chosen by hand\)/.test((rows.filter(r => r[1] === '__new')[0] || [])[3] || ''), true);
     const sb = w209ev(B, `(function(){ subOpen=true; subBody(); var t=(document.getElementById('subBody')||{}).textContent||''; subOpen=false; return t; })()`);
     chk(name, '(c) the review', 'and the review box on screen says the same words', J([/follows the PMO and prime rules/.test(sb), /none \(chosen by hand\)/.test(sb)]), J([true, true]));
+    // (c) the change report, read back from the workbook's own bytes: each SI row's "On the board now" and "Proposed" cells, by its
+    // requirement, and the proposal's Proposed cell -- the copy of record a reviewer signs off from
+    const book = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+      window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+      try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:String((e&&e.message)||e)}); }
+      window.Blob=_B; if(!cap) return JSON.stringify({err:'no workbook'});
+      var sh=await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength)); return JSON.stringify({rows:sh[Object.keys(sh)[0]]}); })()`));
+    const brows = book.rows || [], BH = (brows.find(r => r.map(String).indexOf('Proposed') >= 0) || []).map(String);
+    const cell = (r, h) => String((r || [])[BH.indexOf(h)] == null ? '' : r[BH.indexOf(h)]);
+    const siLbl = B.ev(`PMO_LBL.si`);
+    const bySi = Object.fromEntries(brows.filter(r => cell(r, 'Field') === siLbl).map(r => [cell(r, 'Requirement'), [cell(r, 'On the board now'), cell(r, 'Proposed')]]));
+    chk(name, '(c) the change report', 'the workbook’s cells read the two answers apart: A rules → none, B none → rules, C OT → none (read from its bytes)',
+      J([book.err || '', bySi['Rec A'], bySi['Rec B'], bySi['Rec C']]),
+      J(['', ['follows the PMO and prime rules', 'none (chosen by hand)'], ['none (chosen by hand)', 'follows the PMO and prime rules'], ['OT — Other Government Costs', 'none (chosen by hand)']]));
+    chk(name, '(c) the change report', 'and the proposal’s Proposed cell names its Navy SI code as none (chosen by hand)',
+      /Navy SI code none \(chosen by hand\)/.test(cell(brows.find(r => /^NEW — /.test(cell(r, 'Requirement'))), 'Proposed')), true);
     // (d) Apply all
     w3dlg(B.ev); w209ev(B, `subPickAll(true); pmoApply(); 'ok'`); w3said(B.ev);
     const nid = w209ev(B, `((S.custom||[]).filter(function(c){ return c.from && c.from.nid===${J(pr.id)}; })[0]||{}).id||''`);
@@ -15534,7 +15550,7 @@ await (async () => {
   const __bm = bootMark();
   const name = 'v2.14 W4 — a shared-folder copy that replaces work saved only in the board file keeps it aside, and Put this back says where Save writes (ledger U63, U64)';
   try {
-    const { J, wire, KEY, qs, status, baseFile, disk, folder, connect, fileNote, pause } = W1H;
+    const { J, wire, KEY, qs, status, baseFile, disk, folder, connect, fileNote, pause, gate, until, lsOf } = W1H;
     const F1 = baseFile('Alice', KEY.alice);
     const keptOf = ev => JSON.parse(ev(`(function(){ var k=keptCopy(); if(!k) return 'null'; var s=JSON.parse(k.raw); return JSON.stringify([((s.years[s.cur]||{}).notes||{}).A||'', k.meta.why, k.meta.saved===true]); })()`));
     const watch = ev => ev(`_liveCfg=Object.assign(liveCfg(), {store:false}); 'ok'`);
@@ -15560,7 +15576,7 @@ await (async () => {
         /^Work saved only in the board file, which the shared folder’s copy replaced on screen, kept aside /.test(A.ev(`(document.querySelector('#saveState .keptbtn')||{}).title||''`)), true);
       // (b) Live view back to just watching: 💾 Save writes F into the file; S1 still kept; put back, the next Save asks once; OK writes S1
       watch(A.ev); await A.ev('saveInPlace()'); await pause(20);
-      chk(name, 'U63 (b)', 'just watching, 💾 Save writes F into the file; S1 still kept aside', J([fileNote(f.content, 'A'), keptOf(A.ev)[0]]), J(['U63-F', 'U63-S1']));
+      chk(name, 'U63 (b)', 'just watching, 💾 Save writes F into the file; S1 still kept aside', J([fileNote(f.content, 'A'), (keptOf(A.ev) || [])[0]]), J(['U63-F', 'U63-S1']));
       A.ev(`keptPutBack(); 'ok'`); await pause(5);
       const q0 = qs(A.ev).length; await A.ev('saveInPlace()'); await pause(20);
       chk(name, 'U63 (b)', 'S1 put back; 💾 Save asks one HOLD ON, and OK writes S1', J([qs(A.ev).slice(q0).filter(q => /HOLD ON/.test(q)).length, fileNote(f.content, 'A')]), J([1, 'U63-S1']));
@@ -15588,6 +15604,23 @@ await (async () => {
       connect(A.ev, A.w, fold); A.ev(`driveBaseSet(mySlug(), +MS.ts||0); 'ok'`); await A.ev('driveStorePull(true)'); await pause(10);
       chk(name, 'U63 (e) CONTROL', 'the screen is the folder’s own copy: Bob’s F loads and nothing is kept', J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['U63E-F', null]));
     }
+    // (f) CONTROL: work no saved copy has -- S2 typed after S1 was saved, the page reopened from this browser (so it is not this
+    // session's DIRTY), then Bob saves F -- is kept aside as unsaved work, in today's words (passes on the slot commit too)
+    {
+      const fold = folder();
+      const B = boot({ html: F1 }); await pause(60); wire(B.ev, 'Bob', KEY.alice); connect(B.ev, B.w, fold);
+      B.ev(`setNote('A','U63F-F0'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+      const A = boot({ html: F1 }); await pause(60); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, F1);
+      A.ev(`setNote('A','U63F-S1'); 'ok'`); await pause(5); await A.ev('saveInPlaceFile()'); await pause(10);
+      A.ev(`setNote('A','U63F-S2'); 'ok'`); await pause(5);
+      B.ev(`setNote('A','U63F-F'); 'ok'`); await pause(5); await B.ev('driveStorePush(false)'); await pause(5);
+      const R = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(60); wire(R.ev, 'Alice', KEY.alice);
+      chk(name, 'U63 (f) CONTROL', 'fixture: reopened, the page shows S2, which no saved copy has', R.ev('String(S.notes.A)'), 'U63F-S2');
+      connect(R.ev, R.w, fold); await R.ev('driveStorePull(true)'); await pause(10);
+      chk(name, 'U63 (f) CONTROL', 'the refresh loads Bob’s F and keeps S2 aside as unsaved work (not marked saved)',
+        J([R.ev('String(S.notes.A)'), keptOf(R.ev)]), J(['U63F-F', ['U63F-S2', 'folder', false]]));
+      chk(name, 'U63 (f) CONTROL', 'and says so in today’s words', /This browser held work no saved copy had; it is kept aside/.test(status(R.ev)), true);
+    }
     // ---- U64 (a) Live view watching: Put this back keeps S1 aside, saved, and says 💾 Save writes into the board file
     {
       const { fold, A, f } = await setup('U64', false);
@@ -15599,7 +15632,7 @@ await (async () => {
       // (b) 💾 Save writes the earlier copy into the file; S1 is still in the kept slot after a reopen
       await A.ev('saveInPlace()'); await pause(20);
       const R = boot({ html: f.content, ls: W1H.lsOf(A.ev) }); await pause(30);
-      chk(name, 'U64 (b)', '💾 Save writes F0 into the file, and reopened, S1 is still kept aside', J([fileNote(f.content, 'A'), keptOf(R.ev)[0]]), J(['U64-F0', 'U64-S1']));
+      chk(name, 'U64 (b)', '💾 Save writes F0 into the file, and reopened, S1 is still kept aside', J([fileNote(f.content, 'A'), (keptOf(R.ev) || [])[0]]), J(['U64-F0', 'U64-S1']));
     }
     // (c) CONTROL: working out of the folder with its own copy on screen: nothing kept, today's status
     {
@@ -15608,6 +15641,22 @@ await (async () => {
       await A.ev('driveHistShow()'); await pause(5); await A.ev('driveRestore(0)'); await pause(10);
       chk(name, 'U64 (c) CONTROL', 'working out of the folder with its own copy on screen: nothing kept, and Save writes to the folder for everyone',
         J([keptOf(A.ev), /press 💾 Save to write it back to the folder for everyone/.test(status(A.ev))]), J([null, true]));
+    }
+    // (d) CONTROL: an edit typed while the folder's copy is kept in the history (NR01's route) is work in no saved copy: kept aside, not
+    // marked saved, in today's words -- never the new "saved only in the board file" sentence (passes on the slot commit too)
+    {
+      const fold = folder(); const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+      A.ev(`setNote('A','U64D-HISTORY'); 'ok'`); await A.ev('driveStorePush(false)');
+      fold.root.dirs.history = undefined;
+      A.ev(`setNote('A','U64D-CURRENT'); 'ok'`); await A.ev('driveStorePush(false)');
+      await A.ev('driveHistShow()');
+      const h0 = fold.hits.hist || 0; fold.hold.hist = gate(); const g = fold.hold.hist;
+      const p = A.ev('driveRestore(0)'); await until(() => (fold.hits.hist || 0) > h0);
+      A.ev(`setNote('A','U64D-LATE'); 'ok'`); g.open(); await p;
+      chk(name, 'U64 (d) CONTROL', 'the earlier copy is put back, and the note typed meanwhile is kept aside as work in no saved copy',
+        J([A.ev('String(S.notes.A)'), keptOf(A.ev)]), J(['U64D-HISTORY', ['U64D-LATE', 'folder', false]]));
+      chk(name, 'U64 (d) CONTROL', 'and the board says so in today’s words, not as work saved only in the board file',
+        J([/What was on screen, in no saved copy, is kept aside/.test(status(A.ev)), /saved only in the board file/.test(status(A.ev))]), J([true, false]));
     }
     // (e) no room, saved work: nothing put back, with the saved-work sentence
     {
