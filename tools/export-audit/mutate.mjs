@@ -10718,7 +10718,7 @@ const MUTATIONS = [
     find: " && (!R.rescue.aw || R.rescue.aw.got)); }",
     repl: "); }" },
   { id: 'v214-rv2-a-close-copies-of-it', area: "impFileCloseAsk", what: "closing after a failed Write says the two copies are all there is of the file chosen, though one is the file imported and the other a new board",
-    find: "  if(h && i) return 'The two copies are not saved yet: the imported board (new version), held only here, and the file you imported.'+of+' Close anyway?';",
+    find: "  if(h && i) return 'The two copies are not saved yet. The imported board (new version) is held only here.'+of+' Close anyway?';",
     repl: "  if(h && i) return 'The two copies are not saved yet. If “'+r.at+'” already existed, the browser emptied it when you chose it, and these copies are all there is of it. Close anyway?';" },
   { id: 'v214-rv2-a-program-pick-written', area: "_saveInPlaceFileRun", what: "a board page’s first Save, given the bare ORBIT program in the Open window, writes the board into the program and remembers it: the board file never gets an edit",
     find: "      if(bare && picked==='open' && (PUB_FILE_TS>0 || LASTKNOWN>0) && String(h.name||'')!==fhOwnName()){",

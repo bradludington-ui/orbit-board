@@ -13863,7 +13863,7 @@ function impFileCloseAsk(R){
   const of=' If “'+r.at+'” was the file you imported, the browser emptied it when you chose it, and the copy offered here is all there is of it now.';
   if(a) return 'This board as it was is not saved yet'+(i? ', nor is the file you imported' : '')+'. If “'+r.at+'” was the file step 1 saved it into, '
     +'the browser emptied it when you chose it, and the copy offered here is all there is of it now. Close anyway?';
-  if(h && i) return 'The two copies are not saved yet: the imported board (new version), held only here, and the file you imported.'+of+' Close anyway?';
+  if(h && i) return 'The two copies are not saved yet. The imported board (new version) is held only here.'+of+' Close anyway?';
   return (h? 'The imported board (new version) is not saved yet, and is held only here. If “'+r.at+'” already existed, the browser emptied it when you chose it.'
            : 'The file you imported is not saved yet.'+of)+' Close anyway?';
 }

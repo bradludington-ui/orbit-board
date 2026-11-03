@@ -16309,8 +16309,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const T2 = boot({ ls: held }); await new Promise(r2 => setTimeout(r2, 5));
     const ls0 = w2LsOf(T2.ev), ms0 = T2.ev('JSON.stringify([MS, impMemSnap()])');
     const r2 = await viaDoor(T2, NEW.html, 'new-board.html', ['prio27ff']);
+    // v2.14 RV2-A (take-all-big-board-dead-end): refused for room, the alert now ends by naming the full import as the way on
     chk(name, '(c) refused', 'all or nothing: storage byte-identical, memory put back, nothing reopened, and the refusal said',
-      J([w2Diff(ls0, w2LsOf(T2.ev)), T2.ev('JSON.stringify([MS, impMemSnap()])') === ms0, r2.nav, r2.al.length === 1 && /^Nothing was imported from “new-board\.html” — browser storage refused Full Fund board data \(QuotaExceededError\)\.\n\nThis board is exactly as it was\.$/.test(r2.al[0])]),
+      J([w2Diff(ls0, w2LsOf(T2.ev)), T2.ev('JSON.stringify([MS, impMemSnap()])') === ms0, r2.nav, r2.al.length === 1 && /^Nothing was imported from “new-board\.html” — browser storage refused Full Fund board data \(QuotaExceededError\)\.\n\nThis board is exactly as it was\.\n\nBrowser storage has no room for it\. To bring a whole board in anyway, use Imports & exports › Import a full board \(new version\)…: it writes a board browser storage cannot hold into a new board file\.$/.test(r2.al[0])]),
       J(['', true, 0, true]));
   }
   // (d) A ONE-APPROPRIATION FILE into an empty board whose own file carries Full Fund's execution data and BAE rows: the merging door,
@@ -18916,7 +18917,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       T.ev(`impFileClose(); 'ok'`);
       const q = rv2aAsked(T);
       chk(name, '(d) the close question', 'it names both copies, says the new board is held only here, and says the file imported is all there is of it only if “elsewhere.html” was it',
-        J([q.length, /^The two copies are not saved yet: /.test(q[0] || ''), /held only here/.test(q[0] || ''),
+        J([q.length, /^The two copies are not saved yet\. The imported board \(new version\) is held only here\./.test(q[0] || ''), /held only here/.test(q[0] || ''),
            /If “elsewhere\.html” was the file you imported, the browser emptied it when you chose it, and the copy offered here is all there is of it now\./.test(q[0] || ''),
            /these copies are all there is of it/.test(q[0] || '')]), J([1, true, true, true, false]));
       await W214.rel(mk, keepBoards());
