@@ -307,3 +307,200 @@ The first pass of the whole suites lost **audit-import** (after 1,605 s) and **a
 killer. Both exited 137 with nothing written, and `dmesg` reads "Memory cgroup out of memory: Killed process … (node)". The cgroup
 is shared with the other three fixers, whose own audit-import and audit-board runs held about 7 GB at the time. Neither was a
 check failing. Each was run again alone, and passed as above. The board did not change between the runs.
+
+## After the independent check (finishing round)
+
+An independent check re-ran every probe on `1c4509d`. It found the original findings fixed (the SI pair, d28, u64) or fixed
+on their own route (u35). It also found three new defects and one inaccurate comment:
+- one defect the first cut introduced (the full import's door);
+- two older ones the first cut left, which `44aa984` has as well (u35 by another route, and the reach of the mend).
+
+Each is handled below. Every check was run on `44aa984` (`pre.html`), on the first cut `d3848ae` (`fix1.html`) and on
+the board as it now stands.
+
+### u35, the same defect by another route: the first row of a repeated key (data loss, on 44aa984 too)
+
+- **Reproduced** with the check's `x1-first-of-repeat.mjs` on `1c4509d`, in both its forms (X1 and X1b with a keyed row above):
+  1. type 99999 into K1-FIRST (22222);
+  2. a colleague's ordinary ✕ removes that row, loaded through `applyStore` as a Live tick loads it;
+  3. the repeat below becomes the first row with K1, drawn with the held key, and takes the typing;
+  4. leaving the field writes 99999 over K1-REPEAT's 33333, with nothing said.
+
+  `44aa984` does the same.
+- **Writing the check found a third route, also on `44aa984`.** A key one row carries (K2-ONLY, 22222) is held by that key. A
+  load adds a row with the same key above it, and the new row becomes the first with the key and takes the typing. Leaving the
+  field overwrites the new row's 44444.
+- **Fixed** in `rcnDraw` and `inspHeldSame`:
+  - A row is held by its key only where no other row on the list carries that key. Every other row, the first of a repeated key
+    included, is held by `rcnRowSig`.
+  - Every row now also carries what it holds (`data-rs`). `inspHeld` records it, and `inspHeldSame` finds the field again by
+    the row's key or by `data-rs`. A row whose key a load makes shared, or makes one row's alone, keeps the typing so long as the
+    row itself is as it was.
+  - At most one row can answer: a key one row carries is in no other row's `data-rs`, and the count in `rcnRowSig` makes
+    `data-rs` one row's own.
+- **The words** (`rcnBody`): typing lost from a row held by a key the loaded list still carries (now on several rows) is said
+  in the "has no key of its own, and the list as loaded no longer holds that row as it was" sentence. It is never said to be
+  "no longer on the list" while the key is there.
+- **Check:** the audit-board block `v2.14 RV1-D — the RCN / EEIC list holds typing …` gains four parts:
+  - (f) the first of a repeated key, with a colleague's ✕ on it: kept on no row, K1-REPEAT keeps 33333, and said;
+  - (g) the second of a repeated key, whose key becomes its own: kept;
+  - (h) a key one row carries, with a load adding the same key above: kept on K2-ONLY, and the new row keeps 44444;
+  - (i) the same, with the load also renaming K2-ONLY: kept on no row, and never said to be off the list.
+
+  It fails 16 checks on `44aa984` and 9 on `d3848ae`, and passes now.
+- **Mutations:**
+  - `v214-rv1-d-rcn-first-of-repeat` drops the uniqueness term;
+  - `v214-rv1-d-rcn-held-no-sig` drops the `data-rs` match;
+  - `v214-rv1-d-rcn-lost-key-shared` drops the shared-key words;
+  - retargeted in place to the lines that now carry them: `v214-rv1-d-rcn-place-again` and `v214-rv1-d-rcn-lost-words`.
+
+### The full import's door let the damage through in a locked cycle (introduced by the first cut)
+
+- **Reproduced** with the check's `p-cyc-door.mjs`. On `1c4509d`, `door('board')` passed a board file whose O&M locked cycle's
+  FY27 list held null and an element with no id. The full import took it, and `cycView('PB|2027')` on the reopened board threw.
+  `44aa984` refused the file.
+- **Fixed** in `inShapeWhy`. The own-board leave applies only where the full import mends:
+  - a working plan's years under the file's `appns` (`the saved state.appns.<k>`, `….years.<y>`);
+  - or at the file's top (a one-appropriation board: `the saved state`, `….years.<y>`).
+
+  A locked cycle's year, or any other plan in the file, is refused as before. No ORBIT could lock such a list. The probe now
+  refuses at every door, and the full import changes nothing.
+- **Check:** part (e) of the audit-import block `v2.14 RV1-D — a board whose list of added requirements an older ORBIT damaged …`.
+  This build's own board file, with one locked cycle on O&M, is given the damage in the cycle's year: the door names where and
+  refuses, and the full import takes nothing (browser storage as it was). The same damage in the working plan's year passes the
+  door.
+  - It fails on `d3848ae`: the cycle's file is taken.
+  - It also fails on `44aa984`, whose door refused the working plan's damage as well, so the "passes" half fails there.
+- **Mutations:** `v214-rv1-d-door-mends-any-plan` puts the first cut back. `v214-rv1-d-door-refuses-mendable` and `door-custom`
+  are retargeted in place to the door's line as it now reads.
+
+### The mend covered only the appropriation on screen (not a regression; 44aa984 the same)
+
+- **Reproduced** with the check's `p-other-sp.mjs`, in both its modes:
+  - **file:** O&M's list damaged in the file;
+  - **storage:** O&M's list damaged in this browser's copy, as v2.13's Put back persists it.
+
+  The board was opened on Full Fund. Spruills threw "Cannot read properties of null (reading 'id')", and so did every later
+  redraw while it was open. A broader probe (`rv1-D/check2/p-other.mjs`) found the PMO drill (`pmoDetail`), the chart of accounts
+  (`coaRows`, `exportCoa`) and `spGather` throwing the same way. Every other reader of another appropriation it tried ran:
+  - `diagReport`, `flowEntUseMap`, `destOwnLists`, `bandPeers`, `cycOverviewHtml`, `impShellEmpty`;
+  - the FYDP panel (each appropriation in a frame opens its own board, through `applyStore`, and is mended there);
+  - `flowCalc`, `exportFlow`, `exportExcel`, `oneAppnHtml`, `buildSavedHtml`, `cycApplyAll`.
+- **Fixed** in `itemsOf`, the one reading of a year's requirement list that those throwing readers share. `itemsOf` is outside
+  the code I own, as is the door's line above (`inShapeWhy`). Each is a one-line change, named here. An entry in the list of
+  added requirements that is not one (`customMendable`) is left out and counts nowhere, as the mend sets it aside.
+  - The year on screen is already mended before `applyState` reads it, so there the filter changes nothing.
+  - That appropriation's own board mends the list, and says so, when it opens.
+  - Nothing is written to the other appropriation's storage. The boot writes storage only where it keeps unsaved work aside.
+- **Check:** part (d) of the same audit-import block, on v2.13's own damaged board opened on Full Fund, from the file and from
+  this browser's storage. Spruills reads O&M's FY27 as $200, opens and closes; the PMO drill and the chart of accounts run; and
+  there is no page error. The expectation is the same file with the two entries taken out by hand: NEW-2 alone, $200. A board
+  with no consolidated payload reads only another appropriation's added requirements there.
+  - It fails on `44aa984` and on `d3848ae`: every read throws.
+  - It passes now.
+- **Mutations:**
+  - `v214-rv1-d-other-appn-unread` takes the filter out;
+  - `v214-rv1-d-other-appn-counts-aside` filters only null, so the element with no id is counted as $300.
+
+### The driveRestore comment
+
+- The check's note was that the comment said the folder's own copy "is in the folder", which is not always so after the history
+  thins itself. The comment now says the copy was written to the folder. The history thins its copies, but a copy can go only
+  once a save built on it stands after it. No code changed.
+
+### Not changed
+
+- `cycMenuHtml()` threw "mi is not a function" in the check's `p-other-appn.mjs`. That is the probe calling a helper outside
+  `syncBtns`, where `mi` is defined. It is not about the damaged list, and it throws the same way on a clean board.
+- The check's own probe read `cycHasReqs(cycOtherOf('om'))` as false. It passes `cycOtherOf`'s summary rather than a store, so that
+  reading is the probe's, not the board's.
+
+### Mutations and proofs (finishing round)
+
+There are 6 new mutations, in the RV1-D slot:
+- `v214-rv1-d-rcn-first-of-repeat`
+- `v214-rv1-d-rcn-held-no-sig`
+- `v214-rv1-d-rcn-lost-key-shared`
+- `v214-rv1-d-door-mends-any-plan`
+- `v214-rv1-d-other-appn-unread`
+- `v214-rv1-d-other-appn-counts-aside`
+
+Four existing mutations were retargeted in place, each with a `// v2.14 RV1-D (check)` comment:
+- `v214-rv1-d-rcn-place-again`
+- `v214-rv1-d-rcn-lost-words`
+- `v214-rv1-d-door-refuses-mendable`
+- `door-custom`
+
+`mcount` reports 3413 entries, each matching once. Every new or retargeted mutant was built with `mkmut.py` and parses.
+
+The first cut's proof record is kept as `proved-RV1D-first.jsonl`. Every RV1-D mutation was then proved again on this board into
+a fresh `proved-RV1D.jsonl`, with `JOBS=1 HEAP=8192`. Each check ran clean on the board first. The result: **31 of 31 CAUGHT**,
+every one by a failed check and none by a throw.
+
+| Mutation | Check (suite / block) | Failing checks |
+|---|---|---|
+| `v214-rv1-d-rcn-place-again` | board / the RCN / EEIC list holds typing | 11 |
+| `v214-rv1-d-rcn-sig-no-count` | board / the RCN / EEIC list holds typing | 1 |
+| `v214-rv1-d-rcn-lost-words` | board / the RCN / EEIC list holds typing | 3 |
+| `v214-rv1-d-rcn-first-of-repeat` | board / the RCN / EEIC list holds typing | 7 |
+| `v214-rv1-d-rcn-held-no-sig` | board / the RCN / EEIC list holds typing | 4 |
+| `v214-rv1-d-rcn-lost-key-shared` | board / the RCN / EEIC list holds typing | 1 |
+| `v214-rv1-d-si-old-conflict` | import / a copy published before v2.14 | 4 |
+| `v214-rv1-d-si-mark-unsent` | import / a copy published before v2.14 | 3 |
+| `v214-rv1-d-si-mark-ignored` | import / a copy published before v2.14 | 2 |
+| `v214-rv1-d-jrnl-older-offered` | import / a line an ORBIT older than v2.14 | 2 |
+| `v214-rv1-d-jrnl-own-unmarked` | import / a line an ORBIT older than v2.14 | 2 |
+| `v214-rv1-d-jrnl-older-unsaid` | import / a line an ORBIT older than v2.14 | 1 |
+| `v214-rv1-d-cycwho-older` | import / a line an ORBIT older than v2.14 | 1 |
+| `v214-rv1-d-jrnl-older-undo-generic` | import / a line an ORBIT older than v2.14 | 1 |
+| `v214-rv1-d-custom-unmended` | import / a board whose list of added requirements | 5 |
+| `v214-rv1-d-custom-aside-dropped` | import / a board whose list of added requirements | 5 |
+| `v214-rv1-d-custom-unsaid` | import / a board whose list of added requirements | 1 |
+| `v214-rv1-d-door-refuses-mendable` | import / a board whose list of added requirements | 5 |
+| `v214-rv1-d-import-unmended` | import / a board whose list of added requirements | 2 |
+| `v214-rv1-d-door-mends-any-plan` | import / a board whose list of added requirements | 2 |
+| `v214-rv1-d-other-appn-unread` | import / a board whose list of added requirements | 2 |
+| `v214-rv1-d-other-appn-counts-aside` | import / a board whose list of added requirements | 2 |
+| `v214-rv1-d-restore-keeps-folder-copy` | import / Put this back keeps work saved only | 3 |
+| `v214-rv1-d-restore-occupied-newer` | import / Put this back keeps work saved only | 1 |
+| `v214-rv1-d-kept-put-unmarked` | import / Put this back keeps work saved only | 2 |
+| `v214-rv1-d-kept-put-words` | import / Put this back keeps work saved only | 1 |
+| `v214-rv1-d-jrnl-field-gone-silent` | board / Put back of a field of an added requirement | 3 |
+| `v214-rv1-d-jrnl-field-gone-any` | board / Put back of a field of an added requirement | 1 |
+| `v214-w4-restore-keeps-nothing-saved` | import / Put this back keeps work saved only | 8 |
+| `restore-no-keep-aside` | import / v1.95 — ↶ Put this back keeps unsaved work aside first | 2 |
+| `door-custom` | hostile / (whole suite) | 29 |
+
+### Runs (finishing round)
+
+All runs were on the board committed in `646aeac`, which has not changed since, with an 8 GB heap for the jsdom suites. The
+cgroup is shared with the other three fixers:
+- The first whole runs of **audit-board** (after 305 s) and **audit-import** (after 1,515 s) were killed by the kernel's OOM
+  killer: exit 137, and `dmesg` reads "Memory cgroup out of memory".
+- Neither was a check failing. Each was run again, alone, and passed as below.
+
+| Command | Duration | Exit | Result |
+|---|---|---|---|
+| `npm run check` | 3 s | 0 | all checks passed |
+| `node tools/export-audit/boot-same.mjs` | 10 s | 0 | every page, source, save and error list is identical either way |
+| `mcount.py` | 5 s | 0 | 3413 entries, 3413 once |
+| `npm run defects` | <1 s | 0 | REGISTER HOLDS: 15 known, 15 guarded by 47 mutations |
+| `npm run coverage:money` | 1 s | 0 | 27/27 surfaces, 0 gaps |
+| `node tools/export-audit/audit-board.mjs` | 388 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-import.mjs` | 1,366 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-recon.mjs` | 997 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-other.mjs` | 136 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-hostile.mjs` | 54 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-ui.mjs` | — | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-inject.mjs` | — | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit.mjs` | — | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/legacy-fsrc.mjs` | — | 0 | every legacy Force setting computes exactly as before |
+| `npm run fuzz` | — | 0 | seed 281662743: nothing was lost, 3 randomized boards |
+| `npm run keys` | — | 0 | 0 FAIL, section W (the RCN / EEIC hold) included |
+| `npm run hostile` | — | 0 | nothing a file can carry runs when the board draws it |
+| `npm run panels` | — | 0 | every panel and menu opens, no escaped entity, no field clips its value |
+| `npm run fileimport` | — | 0 | ALL CHECKS PASSED |
+| `npm run dialogs` | — | 0 | every box takes, keeps and gives back the keyboard, and asks before typing is lost |
+| `npm run standards` | — | 0 | conformance holds: 0 known findings, nothing new |
+| `npm run savetarget` | — | 0 | all save-target checks passed |
+| `npm run storagefull` | — | 0 | all storage-full checks passed |
