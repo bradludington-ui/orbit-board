@@ -9809,8 +9809,8 @@ const MUTATIONS = [
     find: "    W.push([k+'.base', JSON.stringify(Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})), p.r.name+' record of its saved copy']);\n", repl: "" },
   { id: 'v213-136-record-replaced', area: "cycApplyAll", what: "another appropriation's record of its saved copy is replaced, losing which file and folder copy its work came from",
     find: "Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})", repl: "Object.assign({dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})" },
-  { id: 'v213-136-refusal-reads-unsaved', area: "cycApplyAll", what: "a change storage refused and put back whole still reads as unsaved",
-    find: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }", repl: "" },
+  // v213-136-refusal-reads-unsaved retired as obsolete in v2.14 (INT-11): its line now only resets _sideGen, which lsAll's put-back
+  // (lsMarksBack) has already restored, so removing it changes nothing; the defect is held by v214-w3-marks-side-kept.
   { id: 'v213-136-file-slot-stale', area: "cycApplyAll", what: "the file's own slot for another appropriation keeps its old cycle",
     find: "    others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });", repl: "" },
   { id: 'v213-136-other-unjournalled', area: "cycApplyAll", what: "another appropriation's change of cycle is not in its change journal",
