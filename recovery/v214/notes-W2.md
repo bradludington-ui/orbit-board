@@ -209,6 +209,7 @@ and carries its stamp. No "replace?" question appeared (the Return fallback did 
 | `node tools/import-file.mjs` (final board) | 09:05 | 50 s | 0 | ALL CHECKS PASSED, A–F (D's leave prompt INT) |
 | `node tools/dialogs-keyboard.mjs` (final board) | 09:06 | 251 s | 0 | as above, 51 boxes |
 | `node tools/export-audit/audit-inject.mjs` whole (4 GB) | 09:19 | 12 s | 0 | ALL CHECKS PASSED; all clear across 45 findings and 4 text-fidelity guards (W2-1 among them) |
+| the eight W2 audit-import blocks (slimmed) with `BOARD=` the slot commit's board, after the stage 2 suite changes | 09:22 | about 1 min | 1 | 15 FAILING CHECK(S), every one of the eight blocks among them -- as in stage 1 |
 
 Not re-run in stage 2: audit-recon, audit-board and audit-other whole (untouched since stage 1's whole passes; the board changed by
 one CSS rule since, which no jsdom check reads), and `--gtk` (stage 1, by hand). D's "closing the tab asks" stays INT until W3's
