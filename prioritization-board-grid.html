@@ -3276,7 +3276,8 @@ function switchAppn(a, asked){
   if(!lsSet('prio27appn', a, 'Which appropriation this browser opens', {quiet:true})){
     back();
     setStat('\u26d4 <b>Not switched.</b> Browser storage is full, so this browser cannot note which appropriation to open, and the page would reopen on '
-      +esc(_AP.t)+' again. Nothing changed. Setup \u203a Save diagnostics\u2026 shows what fills it; Setup \u203a Clear this computer\u2026 frees what ORBIT keeps there, after asking (the board file is not touched).');
+      +esc(_AP.t)+' again. Nothing changed. Setup \u203a Save diagnostics\u2026'+' shows what fills it; Setup \u203a Clear this computer\u2026'
+      +' frees what ORBIT keeps there, after asking (the board file is not touched).');   // each path ends its string: npm run menus reads it
     return false;
   }
   try{ liveLeaving(); }catch(e){}
