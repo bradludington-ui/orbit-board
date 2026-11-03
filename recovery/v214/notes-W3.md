@@ -3,7 +3,8 @@
 Builder W3, worktree `/home/user/orbit-wt/v214-w3`, branch `v214-w3`, from the slot commit
 `ea412ca296e2d66b1bbbbc0780f336e8dd8d1691`. Contract §7 decides; map.md › storage-full and save-target (c).
 Commits: `60915c5` (board, checks, mutations, proofs list), `b9f8bd1` (`tools/storage-full.mjs`), `5e742e8` (notes),
-`837f1ae` (S3's string split for `npm run menus`), and the notes and proofs commit after.
+`837f1ae` (S3's string split for `npm run menus`), `aac7d3f` (stage 1's proofs and notes), and stage 2's commit
+(the proofs proved again on `aac7d3f`, every suite and the browser checks run, the cycApplyAll probe, these notes).
 
 ## Reproduced on the slot commit (v2.13 behaviour), before any build
 
@@ -111,6 +112,12 @@ All in `prioritization-board-grid.html`, each with a `// v2.14 W3` comment sayin
    it; Setup \u203a Clear this computer\u2026'+' frees …'`): `npm run menus` reads a path in the source up to the next quote,
    and took the two paths in one sentence as one path with a group ("the menu has no group …"). The words on screen are as the
    map gives them, character for character.
+11. **Stage 2 proved every mutation again rather than relying on stage 1's record**: prove.py skips an id already in its
+   output, so stage 1's `proved-W3.jsonl` was set aside and the run wrote a fresh one on the committed tree. Its verdicts match
+   stage 1's, id for id (35 CAUGHT).
+12. **The cycApplyAll finding is reported, not fixed**: contract §7 lists `cycApplyAll`'s own restore under "must not change",
+   and the v2.13 block that guards it is outside W3's slots. The probe that shows it is kept as
+   `recovery/v214/w3-cyc-erase-probe.mjs` (no suite runs it) so the lead can turn it into an INT check.
 
 ## Checks
 
@@ -155,6 +162,50 @@ Each fails on the slot commit unless labelled CONTROL (run with `BOARD=<slot boa
 - `npm run check` passes; `node tools/export-audit/boot-same.mjs` passes ("every page, source, save and error list is identical
   either way").
 
+### Runs (stage 1, on `837f1ae`, one at a time)
+
+audit-other whole (ALL CHECKS PASSED, 2 min 26 s), audit-board whole at 8 GB (ALL CHECKS PASSED, 5 min 23 s), audit-import whole
+at 8 GB (ALL CHECKS PASSED), audit-recon whole at 8 GB (ALL CHECKS PASSED), audit-inject whole (ALL CHECKS PASSED); `npm run
+menus` (it caught S3, fixed), `npm run panels`, `node tools/storage-full.mjs`, `npm run check`, `boot-same`; mcount 3254, all once.
+
+### Runs (stage 2, before stopping)
+
+On the committed tree `aac7d3f` (the board and every suite and tool byte-identical to the commit stage 2 adds, which changes only
+these notes, `proved-W3.jsonl` and the probe), 3 Nov 2026, one at a time, nothing else of this builder's running beside them.
+jsdom suites at `--max-old-space-size=8192` for board, import and recon, 4096 otherwise. No run died; none needed a rerun.
+
+| command | time | exit | result |
+|---|---|---|---|
+| `npm run check` | 3 s | 0 | all checks passed (`reopen` included) |
+| `python3 -I -B recovery/v200/bin/mcount.py tools/export-audit/mutate.mjs prioritization-board-grid.html` | <1 s | 0 | `{"entries": 3254, "once": 3254}`, nothing missing, multiple or unparsed |
+| `mkmut.py` + `node tools/check.mjs <mutant>`, each of the 35 | 108 s | 0 | "main script parses" on all 35 |
+| `prove.py recovery/v214/proofs-W3.json recovery/v214/proved-W3.jsonl` (`JOBS=1 HEAP=8192`) | 8 min 12 s | 0 | six blocks clean; 35 of 35 CAUGHT, `threw` 0 |
+| `prove.py` on `v213-rv-refused-reads-unsaved` alone (a scratch list naming its own v2.13 block) | 62 s | 0 | block clean; **SURVIVED** (see For the integration) |
+| `node recovery/v214/w3-cyc-erase-probe.mjs <board>` (this board / that mutant) | ~10 s each | 0 | this board: the refusal erased, leaving asks `false`; the mutant: kept, `true` |
+| `node tools/export-audit/boot-same.mjs` | 8 s | 0 | every page, source, save and error list identical either way |
+| `node tools/export-audit/audit-other.mjs` | 2 min 27 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-board.mjs` (8 GB) | 5 min 25 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-import.mjs` (8 GB) | 18 min 17 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-recon.mjs` (8 GB) | 13 min 22 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-inject.mjs` | 9 s | 0 | ALL CHECKS PASSED (44 findings, 4 text-fidelity guards) |
+| `node tools/export-audit/audit-hostile.mjs` | 60 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/legacy-fsrc.mjs` | 2 s | 0 | every legacy Force setting computes exactly as before |
+| `node tools/export-audit/audit.mjs` | 7 s | 0 | ALL CHECKS PASSED |
+| `node tools/export-audit/audit-ui.mjs` | 73 s | 0 | ALL CHECKS PASSED |
+| `node tools/storage-full.mjs` | 22 s | 0 | all storage-full checks passed (A, B, B2, W) |
+| `node tools/storage-full.mjs --board <the slot commit's board>` | 13 s | 1 | 16 FAILING CHECK(S): fails on the slot commit, as it must |
+| `node tools/left-menu.mjs` (`leftmenu`) | 48 s | 0 | every action has one home on the left menu … |
+| `node tools/dialogs-keyboard.mjs` (`dialogs`) | 3 min 49 s | 0 | every box takes the keyboard, keeps it, gives it back … |
+| `node tools/panels-render.mjs` (`panels`) | 10 s | 0 | every panel and menu opens … |
+| `node tools/keyboard-reach.mjs` (`keys`) | 89 s | 0 | the keyboard reaches the message, the record fields … |
+| `node tools/menu-paths.mjs` (`menus`) | 4 s | 0 | every menu path a message names is really in that menu |
+| `npm run check`, again, last | 2 s | 0 | all checks passed |
+
+Every jsdom suite in `audit:suites` ran whole and passed. Chromium 153.0.8010.12. Not run, and why: `standards`, `layout`,
+`controls`, `editors`, `dropdowns`, `pmosave`, `pmoyears`, `pointer` — W3 adds no control, box, field or layout, only messages,
+one confirm's wording, a `beforeunload` listener and Save diagnostics lines (the panels run reads the diagnostics box); the lead
+runs them all in §11.4.
+
 ## Mutations
 
 34 new, in `mutate.mjs`'s W3 slot, ids single-quoted, plus the retarget `v205-116-go-no-mark` in place (find
@@ -171,17 +222,35 @@ Each fails on the slot commit unless labelled CONTROL (run with `BOARD=<slot boa
 | import check 5 | `marks-not-restored`, `marks-dirty-kept`, `marks-side-kept`, `import-says-save`, `batch-marks` |
 | board v2.05 "go to" | `v205-116-go-no-mark` (retarget) |
 
-**Proof run** (`recovery/v214/proved-W3.jsonl`, `JOBS=1 HEAP=8192 prove.py`, each against its own block, every block run
-clean first): **35 of 35 CAUGHT**, none by a throw. All on the committed board `837f1ae`: the first run's first 12 were built
-before S3's split (`837f1ae`, display-identical), so those 12 and `quiet-uncounted` were dropped and proved again on it.
+**Proof run, stage 1** (`JOBS=1 HEAP=8192 prove.py`, each against its own block, every block run clean first): 35 of 35
+CAUGHT, none by a throw, on `837f1ae` (the first 12 were built before S3's split, display-identical, so those 12 and
+`quiet-uncounted` were dropped and proved again on it).
+
+**Proof run, stage 2 — the record now in `recovery/v214/proved-W3.jsonl`** (the stage-1 file set aside, so prove.py skipped
+nothing): on the committed tree `aac7d3f` (board and suites byte-identical to `837f1ae`), 3 Nov 2026 09:28–09:36 UTC,
+`JOBS=1 HEAP=8192 python3 -I -B recovery/v208/bin/prove.py recovery/v214/proofs-W3.json recovery/v214/proved-W3.jsonl`, 8 min
+12 s, exit 0. All six blocks ran clean first; then **35 of 35 CAUGHT, `threw` 0 on every one** — each by its named block failing
+a check, none by a boot that failed. Before it, every one of the 35 mutants was built with `mkmut.py` and run through `node
+tools/check.mjs <mutant>`: "main script parses" on all 35. mcount `{"entries": 3254, "once": 3254}` (3220 + 34).
 
 ## For the integration
 
-- **`v213-rv-refused-reads-unsaved` is now redundant with `lsMarksBack`** and may come back SURVIVED from a sweep or the
-  integrated proof run: cycApplyAll's own `_sideGen=g0; delete _lsRefused[…]` (left in place, contract §7) runs after lsAll
-  has already put both back. The mutation differs only when a list in W was already refused before the call. The defect it
-  guards is now held by `v214-w3-marks-side-kept` (check 5). The lead decides: mark it `equivalent:` with that receipt, or
-  give F20 in the v2.13 block a list refused before the call.
+- **Measured in stage 2: `v213-rv-refused-reads-unsaved` SURVIVES on this board, and the line it removes is now harmful, not
+  only redundant.** prove.py against its own block (`board / v2.13 — one PPBE cycle for every appropriation`): clean, then
+  SURVIVED (62 s, `JOBS=1 HEAP=8192`). F20 clears `_lsRefused` before the call, so lsMarksBack's restore and cycApplyAll's own
+  `delete _lsRefused[w[0]]` agree there. Where a key in `W` was already refused before the call they do not, and the delete is
+  the wrong one: `recovery/v214/w3-cyc-erase-probe.mjs` (jsdom; `node recovery/v214/w3-cyc-erase-probe.mjs <board.html>`)
+  takes an appropriation package for Full Fund that browser storage refused (pkgApply writes through lsSet and then sets
+  `PUBS[ap]=next` whatever the answer, so the package is in `PUBS` alone: `memOnlyNow()` true, leaving asks), then "put every
+  appropriation on PB28", refused at OPN and put back whole. On this board, after it: `memOnlyNow()` **false**, `_lsRefused`
+  `[]`, a cancelable `beforeunload` **not** prevented — the package is lost when the tab closes, with nothing asked. On the
+  `v213-rv-refused-reads-unsaved` mutant (that delete removed): `memOnlyNow()` true, `_lsRefused` `["prio27ff"]`, leaving asks.
+  (On v2.13 the put-back write itself, `fileStored(key,'side',true)`, cleared the mark too; v2.13 had no leave question to lose.)
+  Contract §7 forbids W3 to change cycApplyAll's restore. **Recommended for the integration:** apply the mutation's own
+  replacement in cycApplyAll (`      if(res.back){ _sideGen=g0; }` — `_sideGen=g0` is redundant with lsMarksBack too, and
+  harmless); retire `v213-rv-refused-reads-unsaved` as obsolete with a comment where it stands (its line gone; the defect it
+  guarded, a refused put-back read as unsaved, is held by `v214-w3-marks-side-kept` through check 5, and F20 still passes); and
+  turn the probe into an INT check (`v2.14 INT — …`) with a mutation that puts the delete back.
 - **W1:** check 1 (f), check 2 and `storage-full.mjs` W set `FH` to a stand-in handle directly and stand in both windows; if
   W1's first Save of a file goes through the Open window even when `FH` is set in memory, those parts must take W1's route
   (C16's sweep of stand-in Save blocks). The file save's S8 tail is the slot's line (`wkMemSay(may)`); check 2 reads it.
@@ -190,8 +259,14 @@ before S3's split (`837f1ae`, display-identical), so those 12 and `quiet-uncount
   W3's restore with W2's box; INT-4 holds W2's hold with W3's prompt (a held `persist` sets `_persistFail`, so `memOnlyNow()`
   reads it).
 - **W4:** nothing shared; `persist` and `save()` are untouched by W3 but for persist's catch branch.
-- **npm script to add:** `"storagefull": "node tools/storage-full.mjs"`, and `storagefull` appended to `verify:grid`.
+- **Check 5 drives the v2.13 full import's ten writes** (`W2_KEYS`, `w2Import(T, NEW.html, 'once', n)` for n = 1…10): if W2's
+  storage route makes a different number of writes, or writes them in another order, the loop must still reach each one, or
+  part of the "as saved as it was" claim goes unexercised.
 - **The guide:** W3 added no sentence (C11's +150 unused).
+
+## npm script to add
+
+- `"storagefull": "node tools/storage-full.mjs"`, and `storagefull` appended to `verify:grid` (contract §11.2).
 
 ## Known gaps
 
@@ -203,10 +278,6 @@ before S3's split (`837f1ae`, display-identical), so those 12 and `quiet-uncount
 - `liveLeaving` still runs on `beforeunload` when the person chooses to stay (pre-existing; the folder lock's 3-minute expiry
   re-arms it).
 - In a locked view, `DIRTY` is the working plan's, so work on screen only there is the working plan's (by design).
-- **Run in this stage, on `837f1ae`, one at a time:** audit-other whole (ALL CHECKS PASSED, 2 min 26 s), audit-board whole at
-  8 GB (ALL CHECKS PASSED, 5 min 23 s), audit-import whole at 8 GB (ALL CHECKS PASSED), audit-recon whole at 8 GB (ALL CHECKS
-  PASSED), audit-inject whole (ALL CHECKS PASSED); `npm run menus` (every path there; it caught S3, fixed), `npm run panels`
-  (every panel and menu opens), `node tools/storage-full.mjs` (all pass), `npm run check`, `boot-same`; mcount 3254, all once.
-- **Not run in this stage (stage 2's):** audit, legacy and hostile whole; the browser checks but `menus`, `panels` and
-  `storage-full.mjs` (keys, dialogs, leftmenu, standards, layout and the rest: W3 adds no control and no box, only messages and
-  diagnostics lines, so none is expected to move).
+- **"On screen only" can be erased by cycApplyAll** (measured in stage 2; see For the integration): a list refused before
+  "put every appropriation on …" is refused and put back whole loses its mark to cycApplyAll's own v2.13 `delete`, which runs
+  after lsMarksBack has put it back, so leaving the page stops asking. Contract §7 keeps that line; the fix is the lead's.
