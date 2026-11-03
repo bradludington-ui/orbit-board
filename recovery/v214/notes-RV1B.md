@@ -105,6 +105,57 @@ fydpStoreLocal, cycOtherOf/cycApplyAll, and now apStoreOf (pkgStoreOf, bandPeers
 
 ## Mutations
 
-15 new (`v214-rv1-b-*`) and 3 retargeted in place (`v213-136-not-recorded-unsaved`, `v213-136-record-replaced`,
-`v213-rv-record-names-old-file`: their finds named `{file:PUB_FILE_TS}` in cycApplyAll's record line, now `{file:_pubsFileTs}`;
-the same defects). `recovery/v214/proofs-RV1B.json`, proved into `proved-RV1B.jsonl`. mcount: 3,400 targets, each once.
+15 new (`v214-rv1-b-*`) and 4 retargeted in place: `v213-136-not-recorded-unsaved`, `v213-136-record-replaced` and
+`v213-rv-record-names-old-file` (their finds named `{file:PUB_FILE_TS}` in cycApplyAll's record line, now `{file:_pubsFileTs}`;
+the same defects), and `v200-u44-say-no-packages` (below). `recovery/v214/proofs-RV1B.json`, proved into `proved-RV1B.jsonl`. mcount: 3,400 targets, each once.
+
+## A change outside the functions I own (named, as the task asks)
+
+- `destOwnLists` (v2.00 U44): it read each other appropriation through `pkgStoreOf`, which used to be storage's copy first. With
+  pkgStoreOf now the newer copy (apStoreOf), audit-recon's T9 ("this browser's Full Fund holds “unassigned”, the board file's newer
+  Full Fund does not") lost its warning. One added read, `ls` (this browser's own copy), so the list it checks is the same union as
+  before: P[k] (pubsFor's newer), the newer, and storage's own. Mutation `v200-u44-say-no-packages` retargeted in place to
+  `[P[k], st, ls]` -> `[P[k]]`, the same defect.
+- Other readers of `pkgStoreOf` change with it, by design, to the copy Save writes: the import doors' conflict reads
+  (consTakeApply, fullImportText's "work of this board's own" and its ledger carry), destMigrate's fold of other appropriations'
+  lists, and the destination-in-use map. Before, each read storage's copy whatever its age; now each reads the copy 💾 Save would
+  write. No check of theirs moved (the whole suites below).
+
+## What I left, and why
+
+- **The held ladder's refusal wording** (r1a storagefull, also-noticed, pre-existing): when browser storage refuses the ladder held
+  for an appropriation not yet opened (BAND_PEND_KEY), lsSet says "Use 💾 Save to write it into the file", but a held ladder is not
+  in the file. A wording fix with nothing lost (the ladder can be copied again); left for the lead to schedule.
+- **Critic gap 6**: reported above; RV1-A owns that opening.
+- **The tie rule** (storage wins a tie of `ts`, as pubsFor and fydpStoreLocal): no fixture makes the two equal and different, so no
+  mutation aims at it.
+- **cycApplyAll under the hand-over hold** (`why` HandOverHold, not room) is refused as before, and a plan read from storage is
+  refused as before (INT-B's check holds that; `v214-rv1-b-cyc-carry-from-storage` is caught there).
+
+## Proof runs, honestly
+
+The first prove.py run (18 ids, JOBS=1, HEAP=8192): all CAUGHT by a failed check, none by a throw alone. The retarget
+`v200-u44-say-no-packages` (audit-recon's U44 block, ~6.3 GB RSS, ~10 min) came back CRASHED and then NOT CLEAN: both were
+the kernel's memory-cgroup OOM killer (dmesg: "Killed process … (node)"), with three other fixers' suites on the same 16 GB. Run
+directly on its mutant, the block fails its T9 check (1 FAILING CHECK, exit 1); on the fixed board it passes. Two more tries
+(clean passed each time, the mutant run killed each time: at ~6 GB it is the largest process, so the OOM killer takes it first).
+
+So the reach destOwnLists keeps has a check of its own, light enough to prove here: audit-board `v2.14 RV1-B — a copy this
+browser holds of another appropriation is still read by the destination list rule` (one board: this browser's older Full Fund
+holds "unassigned", this page's newer Full Fund is clean; the rule names Full Fund's plan and ⬆ Issue is refused). Its two rule
+checks pass on 44aa984 too (a guard for the reach kept, not a finding's check); its first line is the other-appn finding's and
+fails there. `v200-u44-say-no-packages` is proved against it (CAUGHT, 2 failing checks), and recon's T9 still catches it (above).
+All 19 were then proved again together on the final board, into a fresh `proved-RV1B.jsonl` (the first run's record is kept in
+the scratchpad as `proved-RV1B.first.jsonl`).
+
+## The runs at the end (on the final tree)
+
+- `npm run check`: all checks passed. `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical.
+- `mcount`: 3,400 targets, each matching once. prove.py on the final board: 19 of 19 CAUGHT, each by a failed check, none by a throw. `npm run defects`: register holds (15 defects, 47 mutations). Money coverage: 27/27.
+- Whole suites, each ALL CHECKS PASSED, one heavy run at a time: audit-other; audit-board (run again after the guard block was
+  added: its first try was OOM-killed, the second passed); audit-import (its first three attempts
+  were killed by the OOM killer while three other fixers' suites ran, exit 137; the fourth ran whole and passed); audit-recon (T9
+  included, so the destOwnLists read holds).
+- Browser checks: `npm run storagefull` (all storage-full checks passed), `savetarget` (passed), `fileimport` (ALL CHECKS PASSED),
+  `keys` (passed, section V drives the PPBE cycle at the top), `menus` (every menu path a message names is in that menu). Not run:
+  dialogs, panels, standards -- no box, control or focus path changed (the new words are status lines and one native alert).

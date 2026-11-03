@@ -8583,6 +8583,34 @@ await (async () => {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
 })();
+// v2.14 RV1-B: THE DESTINATION LIST RULE STILL READS THIS BROWSER'S OWN COPY. pkgStoreOf reads the newer of storage's copy and this
+// page's (apStoreOf) now; destOwnLists read other appropriations through it, so this browser's older Full Fund -- whose destination
+// list holds "unassigned", a key the funds flow keeps for its own row -- went unread once the page's Full Fund was newer, and the
+// warning and the block it drives (v2.00 U44, audit-recon T9) said nothing. destOwnLists reads storage's copy beside the newer one.
+// A GUARD for the reach kept: its two rule checks pass on 44aa984 too (pkgStoreOf read storage's copy then), and fail when the read
+// is dropped (v200-u44-say-no-packages); its first line, which copy pkgStoreOf reads, is the other-appn finding's and fails there.
+await (async () => {
+  const name = 'v2.14 RV1-B — a copy this browser holds of another appropriation is still read by the destination list rule';
+  try {
+    const J = JSON.stringify;
+    const B = await w3sFreshAsk();
+    const base = JSON.parse(B.ev('JSON.stringify(MS)'));
+    const ents = ((base.flow || {}).ents || []).filter(e => e && e.k !== 'unassigned');
+    const clean = JSON.parse(J(base)); clean.flow = Object.assign({}, clean.flow || {}, { ents }); clean.ts = Date.now() - 1000;
+    const old = JSON.parse(J(clean)); old.ts = Date.now() - 60000; old.flow.ents = ents.concat([{ k: 'unassigned', n: 'Depot U' }]);
+    B.ev(`localStorage.setItem('prio27ff', ${J(J(old))}); PUBS.ff=${J(clean)}; localStorage.setItem('prio27who','BL');
+      window.confirm=function(){ return true; }; window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; 'ok'`);
+    chk(name, 'the fixture', 'Full Fund is read from the newer copy, this page’s, which is clean; this browser’s older copy holds “unassigned”',
+      J([B.ev(`String(pkgStoreOf('ff').ts)`), B.ev(`String(JSON.stringify(PUBS.ff.flow.ents).indexOf('"unassigned"')>=0)`), B.ev(`String((localStorage.getItem('prio27ff')||'').indexOf('"unassigned"')>=0)`)]),
+      J([String(clean.ts), 'false', 'true']));
+    const lists = JSON.parse(B.ev(`JSON.stringify(destOwnLists().map(function(l){ return [l.at, l.odd.map(function(x){ return x.what; })]; }))`));
+    chk(name, 'the rule', 'it names Full Fund’s plan, holding the key “unassigned”', J(lists.filter(l => /Full Fund/.test(l[0])).map(l => [l[0], l[1].some(w => /“unassigned”/.test(w))])), J([['Full Fund’s plan', true]]));
+    B.ev(`window.__blob=null; window.__B0=window.Blob; window.Blob=function(p,o){ window.__blob=String(p&&p[0]); return new window.__B0(p,o); }; pkgIssue('ff', true); window.Blob=window.__B0; 'ok'`);
+    chk(name, 'the rule', 'and ⬆ Issue Full Fund is refused by it: no package is written', J([B.ev('String(!!window.__blob)'), /is refused/.test(B.ev('window.__al.join(" ")'))]), J(['false', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ---- end RV1-B ----
 
 // ---- RV1-C (Save and the import doors) ----
