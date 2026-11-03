@@ -3457,6 +3457,12 @@ function pmoCopyHtml(mode){
 }
 document.title="FY27 "+_AP.t+" Prioritization Board (Consolidated)";
 let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
+// v2.14 RV1-B (cyc-record-stale-file-ts): THE SAVE OF THE BOARD FILE THE OTHER APPROPRIATIONS ON THIS PAGE (PUBS) WERE READ FROM OR
+// LAST WRITTEN AS -- the file's save at opening, then each save this page writes into the file (_saveInPlaceFileRun). cycApplyAll
+// records it for a plan it took from PUBS. It recorded PUB_FILE_TS, the opening's save, so after this page's own Saves Full Fund's
+// record named a save the file no longer was: Full Fund opened saying somebody had saved the file since ("⬅ Import the file", which
+// would throw the cycle away), and its first Save asked HOLD ON about Brad's own O&M save. A var: read by functions only.
+var _pubsFileTs=PUB_FILE_TS;
 const PUB_ONLY=(PUB&&PUB.only)? String(PUB.only) : '';   // v1.92 (item 18): a one-appropriation file, remembered past the narrowing below
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
 const DATA = (function(){
@@ -10785,6 +10791,7 @@ async function _saveInPlaceFileRun(o){
     fhLegacyRelease(h);
     _takePen=null;
     LASTKNOWN=wrote;
+    _pubsFileTs=wrote;              // v2.14 RV1-B (cyc-record-stale-file-ts): PUBS is what these bytes hold for every other appropriation
     const clean=(_saveGen===gen);   // nothing changed while it was writing
     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
     else baseSet({file:LASTKNOWN});
@@ -11366,16 +11373,35 @@ function pkgStrip(store){
   delete out.sync;
   return out;
 }
+// v2.14 RV1-B (other-appn-package-erased-by-older-copy): ANOTHER APPROPRIATION'S PLAN AS THIS PAGE'S 💾 SAVE WOULD WRITE IT -- the
+// newer of browser storage's copy and this page's own (PUBS), by its time, storage on a tie: pubsFor's rule, and fydpStoreLocal's.
+// pkgStoreOf and the ladder copy took storage's copy whatever its age, so a Full Fund package storage had refused -- held in PUBS
+// alone, counted as on screen only -- was replaced by storage's OLDER Full Fund the next time a ladder was copied or Full Fund issued:
+// written back (it fitted), the refusal mark cleared, leaving stopped asking, and 💾 Save wrote Full Fund without the package.
+// `held`: the copy passed over is storage's, and it is work this browser holds that no saved copy has (ownUnsaved, cycApplyAll's
+// test) -- a writer then leaves that appropriation as it is and says why: writing over it would replace work only that board's own
+// opening keeps aside. {st:null} when neither holds a plan.
+function apStoreOf(k){
+  let ls=null;
+  try{ if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[k]){ const s=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null');
+    if(s && typeof s==='object' && (s.years||Array.isArray(s.order))) ls=s; } }
+  catch(e){ ls=null; /* absent or unreadable is normal — the publish slot answers */ }
+  const pb=(typeof PUBS!=='undefined' && PUBS && PUBS[k] && typeof PUBS[k]==='object')? PUBS[k] : null;
+  if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false};
+  let held=false;
+  if(ls){
+    let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null'); }catch(e){ b=null; }
+    try{ held=ownUnsaved(ls, pb, (b && typeof b==='object' && !Array.isArray(b))? b : null); }catch(e){ held=true; }
+  }
+  return {st:pb, held:held};
+}
+// what a writer of another appropriation says when apStoreOf found its stored work passed over
+function apHeldWhy(k){ return 'this browser holds '+((_SLUGMAP[k]&&_SLUGMAP[k].t)||k)+' work the saved file does not have, and the file’s copy is newer'; }
 // The live store for one appropriation, wherever it lives on this build.
 function pkgStoreOf(ap){
   if(ap===mySlug()) return MS;
-  if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[ap]){
-    try{ const st=JSON.parse(localStorage.getItem(_SLUGMAP[ap].key)||'null');
-         if(st&&(st.years||Array.isArray(st.order))) return pkgNums(st); }
-    catch(e){ /* absent is normal — fall through to the publish slot */ }
-  }
-  if(typeof PUBS!=='undefined' && PUBS && PUBS[ap]) return pkgNums(PUBS[ap]);
-  return null;
+  const st=apStoreOf(ap).st;                // v2.14 RV1-B: the newer of storage's copy and this page's, not storage's whatever its age
+  return st? pkgNums(st) : null;
 }
 // v2.00 (item 99): A PACKAGE LEDGER'S SEQUENCE NUMBERS ARE WHOLE NUMBERS. Kept as text they reached the Packages panel
 // as markup, and ("3x" < 5) is false, which let an older return past the stale-package check in pkgApply.
@@ -11422,6 +11448,12 @@ function pkgIssue(ap, quiet){
   // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
   if(cycBlock('Issuing a package')) return;
   if(destOwnBlock('Issuing the '+(PKG_NAMES[ap]||ap)+' package')) return;   // v2.00 (U44): before the ledger moves
+  // v2.14 RV1-B (other-appn-package-erased-by-older-copy): issued from the newer of storage's copy and this page's (pkgStoreOf), and
+  // written back over both (pkgPut). Where the one passed over is this browser's own unsaved work, either choice loses something:
+  // nothing is issued, and that board's own opening settles it (it keeps that work aside).
+  if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
+    if(hd){ setStat('\u26a0 <b>'+esc(PKG_NAMES[ap]||ap)+' was not issued</b> \u2014 '+esc(apHeldWhy(ap))+'. Open '+esc(PKG_NAMES[ap]||ap)
+      +' to settle which one stands (its opening keeps this browser\u2019s work aside), then issue it again. Nothing was changed.'); return; } }
   const pack=pkgPackOf(ap);
   let st=pkgStoreOf(ap), fresh=false;
   if(!st && pack){
@@ -11817,6 +11849,13 @@ function pkgApply(pkg, fname){
       +(PKG_NAMES[mySlug()]||mySlug())+' package instead.');
     return false;
   }
+  // v2.14 RV1-B (other-appn-package-erased-by-older-copy): `cur` is the newer of storage's copy and this page's (pkgStoreOf). Where the
+  // one passed over is this browser's own unsaved work, the questions below would be asked about the other one, and the write would
+  // replace that work unseen: nothing is taken until that board's own opening has settled it (it keeps that work aside).
+  if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
+    if(hd){ alert('NOT IMPORTED \u2014 '+apHeldWhy(ap)+', so taking the package now could lose either one.\n\n'
+      +'Open '+nm+' to settle which one stands (its opening keeps this browser\u2019s work aside), then import the package again. Nothing was changed.');
+      return false; } }
   const cur=pkgStoreOf(ap);
   const led=cur? pkgLedger(ap) : null;
 
@@ -11934,6 +11973,16 @@ function pkgApply(pkg, fname){
   if(ap===mySlug()){
     applyStore(next);
     if(!wroteKnown){ wrote=save()!==false; wroteKnown=true; }
+    else {
+      // v2.14 RV1-B (own-package-refused-not-on-screen-only): THE BOARD ON SCREEN, MERGED HERE, IS COUNTED AS persist() COUNTS IT.
+      // Written by lsSet, not save(), so nothing set _persistFail when storage refused it, and the hand-over hold (impHandRefuse
+      // skips the open board's key, "counted already, by save()") did not even mark it unsaved: the package was on screen only,
+      // closing the tab asked nothing, the appropriation box reopened the page from storage's older copy, and under the hold the
+      // save state read "Saved". A load is a change, in this session and in this browser's record (loadCounted); refused, it is
+      // on screen only (memOnlyNow), and stored, it is not.
+      try{ loadCounted(); }catch(e){}
+      _persistFail=!wrote;
+    }
   }
   const note=(lockKept.length? ' '+lockKept.length+' locked baseline'+(lockKept.length===1?'':'s')+' kept as they were.' : '')
     +(clash? ' Your local changes were discarded, as confirmed.' : '');
@@ -20250,7 +20299,10 @@ function destOwnLists(){
   let P={}, C={}; try{ P=pubsFor(MS); }catch(e){} try{ C=cycByAp(); }catch(e){}
   APPN_SLUGS.forEach(function(k){ const nm=((typeof APPN_NAME!=='undefined' && APPN_NAME[k]) || k);
     let st=null; try{ st=pkgStoreOf(k); }catch(e){}
-    [P[k], st].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });
+    // v2.14 RV1-B: pkgStoreOf reads the newer of browser storage's copy and this page's (apStoreOf) now, as P[k] does; this
+    // browser's own copy is read here as pkgStoreOf read it before, so a copy this browser holds is never passed over unread
+    let ls=null; try{ if(k!==mySlug() && _SLUGMAP[k]) ls=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ ls=null; }
+    [P[k], st, ls].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });
     if(C[k]) one(C[k].ents, nm+'’s store of locked cycles'); });
   return out;
 }
@@ -23009,9 +23061,9 @@ function bandPeers(){
   if(typeof _SLUGMAP==='undefined') return [];
   const me=mySlug(), sig=JSON.stringify(BANDS_LIST().map(b=>[b.id,b.n,b.rule,!!b.crit,!!b.consReq]));
   return Object.keys(_SLUGMAP).filter(k=>k!==me).map(k=>{
+    // v2.14 RV1-B (other-appn-package-erased-by-older-copy): the newer of storage's copy and this page's (apStoreOf), as Save writes it
     let st=null;
-    try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){}
-    if(!st && typeof PUBS!=='undefined' && PUBS) st=PUBS[k]||null;
+    try{ st=apStoreOf(k).st; }catch(e){ st=null; }
     const bands=(st&&Array.isArray(st.bands)&&st.bands.length)? st.bands : null;
     let held=null;
     try{ const hp=JSON.parse(localStorage.getItem(BAND_PEND_KEY(k))||'null');
@@ -23036,14 +23088,20 @@ function bandCopyAll(){
   const L=JSON.parse(JSON.stringify(BANDS_LIST()));
   const stamp=Date.now();
   let done=0, held=0, failed=0;
+  const kept=[];
   peers.forEach(p=>{
     // held for every peer regardless — harmless where the store was also written directly,
     // because the adopt is guarded by that appropriation's own bandsTs
     if(!lsSet(BAND_PEND_KEY(p.slug), JSON.stringify({bands:L, ts:stamp, from:apLabel(), stdVer:(MS.stdVer||STD_VER)}),
               'The ladder held for '+p.t)) failed++;
-    let st=null;
-    try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[p.slug].key)||'null'); }catch(e){}
-    if(!st && typeof PUBS!=='undefined' && PUBS) st=PUBS[p.slug]? JSON.parse(JSON.stringify(PUBS[p.slug])) : null;
+    // v2.14 RV1-B (other-appn-package-erased-by-older-copy): written onto the copy Save would write -- the newer of storage's and this
+    // page's (apStoreOf). Storage's first, whatever its age, put an older Full Fund over a package held on this page alone, and
+    // cleared the mark that kept the page from being left without asking. Where the copy passed over is this browser's unsaved
+    // work, neither is written: the ladder held above goes on when that board opens, after its own opening keeps that work aside.
+    let g={st:null, held:false};
+    try{ g=apStoreOf(p.slug); }catch(e){ g={st:null, held:false}; }
+    if(g.held){ kept.push(p.t); return; }
+    let st=g.st? JSON.parse(JSON.stringify(g.st)) : null;
     if(!st){ held++; return; }
     st.bands=JSON.parse(JSON.stringify(L));
     st.bandsTs=stamp;
@@ -23057,6 +23115,9 @@ function bandCopyAll(){
   if(failed) return;      // lsSet has already said what went wrong; do not claim success over it
   setStat('\u2696 Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
     +(held? ' and held for <b>'+held+'</b> not yet opened in this file (applied on first switch)':'')
+    +(kept.length? '; held for <b>'+esc(kept.join(', '))+'</b> too, which '+(kept.length===1? 'is' : 'are')+' not written now: '
+        +'this browser holds work there the saved file does not have, and the file’s copy is newer — the ladder goes on when '
+        +(kept.length===1? 'that board opens' : 'each board opens')+', after its opening keeps that work aside' : '')
     +'. \ud83d\udcbe Save to write it into the file.');
 }
 // ---- carrying a ladder between files --------------------------------------------------------
@@ -24849,8 +24910,11 @@ function cycApplyAll(key){
     W.push([k, JSON.stringify(st), p.r.name+' board data']);
     // the file's copy written: the record names that file (the one open), as the save the work came from, or that board's opening
     // says the file has changes it lacks when it holds them, and its Save asks over its own
-    W.push([k+'.base', JSON.stringify(Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})), p.r.name+' record of its saved copy']);
+    // v2.14 RV1-B (cyc-record-stale-file-ts): the save PUBS holds -- the file's at opening, or the last this page wrote -- never the
+    // opening's when this page has saved the file since
+    W.push([k+'.base', JSON.stringify(Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:_pubsFileTs} : {})), p.r.name+' record of its saved copy']);
   });
+  let carried=false;
   if(W.length){
     const g0=_sideGen, res=lsAll(W);
     if(!res.ok){
@@ -24859,11 +24923,23 @@ function cycApplyAll(key){
       // the keys' refusals here too erased one the page held BEFORE -- a package storage had refused stayed on screen only, and
       // leaving the page stopped asking (measured: recovery/v214/w3-cyc-erase-probe.mjs)
       if(res.back) _sideGen=g0;
-      setStat('⚠ <b>The PPBE cycle was not changed</b> — browser storage refused '+esc(W[Math.max(0, res.at)][2])+' ('+esc(res.why)+'). '
-        +(res.back? 'Nothing was changed.' : 'Not every appropriation could be put back as it was: '
-          +W.filter(function(w, i){ return res.now[i]!=='was'; }).map(function(w){ return esc(w[2]); }).join(', ')+' — open each to check its cycle.'));
-      _cycAllMemo=null; render();
-      return false;
+      // v2.14 RV1-B (critic/cyc-all-refused-on-file-route-board, cycle-for-all-refused-on-big-board): A BOARD THAT LIVES IN ITS FILE.
+      // On the file route (item 141) the other appropriations' plans are on this page (PUBS), read from the board file, because
+      // browser storage cannot hold them all -- and this wrote every one of them into storage at once, so choosing the cycle for every
+      // appropriation, a step of Brad's main path, was refused there ("Nothing was changed.", no way forward), while the same choice
+      // made with another appropriation open went through. Refused for room, put back whole, and each plan read from the file: they
+      // are tagged on this page instead -- counted as on screen only (a refused list, as lsSet counts one), so closing or reloading
+      // asks first and switching appropriation waits, and 💾 Save writes them into the file (pubsFor takes the newer). Storage is
+      // left exactly as it was: nothing half-lands. A plan read from storage, or any other refusal, is refused as before.
+      carried=!!res.back && /quota/i.test(String(res.why||'')) && others.every(function(p){ return p.fromFile; });
+      if(!carried){
+        setStat('⚠ <b>The PPBE cycle was not changed</b> — browser storage refused '+esc(W[Math.max(0, res.at)][2])+' ('+esc(res.why)+'). '
+          +(res.back? 'Nothing was changed.' : 'Not every appropriation could be put back as it was: '
+            +W.filter(function(w, i){ return res.now[i]!=='was'; }).map(function(w){ return esc(w[2]); }).join(', ')+' — open each to check its cycle.'));
+        _cycAllMemo=null; render();
+        return false;
+      }
+      others.forEach(function(p){ const k=_SLUGMAP[p.r.k].key; fileMark('side'); fileStored(k, 'side', false); });
     }
     others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });
   }
@@ -24886,6 +24962,10 @@ function cycApplyAll(key){
     // the board on screen is kept in browser storage by save() (persist), past the set above: refused, it is still on screen and
     // Save still writes it, but a reload before that would open it on its old cycle while the others are on the new one
     +(ownKept? '' : '. ⚠ <b>Browser storage refused this board’s own change</b>: it is on screen, and 💾 Save writes it into the file — save before reloading')
+    // v2.14 RV1-B: the other appropriations carried on this page, said
+    +(carried? '. ⚠ <b>Browser storage cannot hold the other appropriations’ plans</b>: '+esc(others.map(function(p){ return p.r.name; }).join(', '))
+        +' '+(others.length===1? 'is' : 'are')+' '+(key? 'on '+blLbl(key) : 'untagged')+' on this page only, and 💾 Save writes '
+        +(others.length===1? 'it' : 'them')+' into the file. Until it is saved, closing or reloading this page asks first, and switching appropriation waits' : '')
     +'. 💾 <b>Save</b> writes it into the file.');
   return true;
 }

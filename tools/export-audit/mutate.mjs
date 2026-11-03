@@ -5783,7 +5783,8 @@ const MUTATIONS = [
     find: "  if(CYCVIEW){ cycRefuse('Putting the destination list right'); return; }\n",
     repl: "" },
   { id: "v200-u44-say-no-packages", area: "destOwnLists", what: "the warning and the block read each appropriation's plan only as the saved file carries it: with this browser's older Full Fund holding \"unassigned\", ⬆ Issue writes the Full Fund package its manager refuses",
-    find: "[P[k], st].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });",
+    // v2.14 RV1-B: retargeted -- destOwnLists reads this browser's own copy (ls) beside the newer one (pkgStoreOf, apStoreOf)
+    find: "[P[k], st, ls].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });",
     repl: "[P[k]].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });" },
   { id: "v200-u44-copy-number-only", area: "inShapeWhy", what: "the team's copy is refused only for a key that is a number: a copy holding the value true beside the text \"true\" is read, and R1, on \"true\" (Depot Text), comes across on Depot T",
     find: "return !x.entry && typeof o[bag][x.i].k!=='string'; })[0];",
@@ -9806,9 +9807,11 @@ const MUTATIONS = [
   { id: 'v213-136-not-newer', area: "cycApplyAll", what: "another appropriation's tagged store keeps its old time, so a file as new opens over it",
     find: "    st.ts=Math.max(now, (+st.ts||0)+1, (+((PUBS||{})[p.r.k]||{}).ts||0)+1);", repl: "    st.ts=+st.ts||0;" },
   { id: 'v213-136-not-recorded-unsaved', area: "cycApplyAll", what: "another appropriation's tag is not recorded as work no saved copy has, so a newer file replaces it without keeping it aside",
-    find: "    W.push([k+'.base', JSON.stringify(Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})), p.r.name+' record of its saved copy']);\n", repl: "" },
+    // v2.14 RV1-B: retargeted -- the record names the save PUBS holds (_pubsFileTs), not the opening's (cyc-record-stale-file-ts)
+    find: "    W.push([k+'.base', JSON.stringify(Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:_pubsFileTs} : {})), p.r.name+' record of its saved copy']);\n", repl: "" },
   { id: 'v213-136-record-replaced', area: "cycApplyAll", what: "another appropriation's record of its saved copy is replaced, losing which file and folder copy its work came from",
-    find: "Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})", repl: "Object.assign({dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})" },
+    // v2.14 RV1-B: retargeted to _pubsFileTs (cyc-record-stale-file-ts), the same defect
+    find: "Object.assign({}, p.base, {dirty:true}, p.fromFile? {file:_pubsFileTs} : {})", repl: "Object.assign({dirty:true}, p.fromFile? {file:_pubsFileTs} : {})" },
   // v213-136-refusal-reads-unsaved retired as obsolete in v2.14 (INT-11): its line now only resets _sideGen, which lsAll's put-back
   // (lsMarksBack) has already restored, so removing it changes nothing; the defect is held by v214-w3-marks-side-kept.
   { id: 'v213-136-file-slot-stale', area: "cycApplyAll", what: "the file's own slot for another appropriation keeps its old cycle",
@@ -9903,7 +9906,8 @@ const MUTATIONS = [
   { id: 'v213-rv-question-window', area: "cycApplyAll", what: "another appropriation saved in another tab while the question was open is written over with what was read before it",
     find: "    if(raw1!==p.raw0 || base1!==p.base0){", repl: "    if(false){" },
   { id: 'v213-rv-record-names-old-file', area: "cycApplyAll", what: "the file's copy is written with the record of an older save, so that board says the file has changes it lacks",
-    find: "{dirty:true}, p.fromFile? {file:PUB_FILE_TS} : {})", repl: "{dirty:true})" },
+    // v2.14 RV1-B: retargeted to _pubsFileTs (cyc-record-stale-file-ts), the same defect
+    find: "{dirty:true}, p.fromFile? {file:_pubsFileTs} : {})", repl: "{dirty:true})" },
   { id: 'v213-rv-unreadable-no-plan', area: "cycApplyAll", what: "an appropriation this browser cannot read is passed over as holding no plan",
     find: "    if(r.why){ plan.push({r:r, act:'skip', why:r.why}); return; }       // never read as \"holds no plan\"", repl: "" },
   { id: 'v213-rv-unreadable-unsaid', area: "cycBarSync", what: "the bar reads one cycle while an appropriation's plan cannot be read",
@@ -10367,6 +10371,36 @@ const MUTATIONS = [
   // ---- end RV1-A ----
 
   // ---- RV1-B (cycles, packages, storage) ----
+  { id: 'v214-rv1-b-own-package-uncounted', area: "pkgApply", what: "a return package for the board on screen that browser storage refused is on screen only, yet closing the tab asks nothing and the appropriation box reopens the page over it",
+    find: "      try{ loadCounted(); }catch(e){}\n      _persistFail=!wrote;\n", repl: "      try{ loadCounted(); }catch(e){}\n" },
+  { id: 'v214-rv1-b-own-package-not-a-load', area: "pkgApply", what: "a return package for the board on screen, held by the hand-over hold, leaves the board reading Saved, and leaving asks nothing; stored, this browser's record still calls it saved",
+    find: "      try{ loadCounted(); }catch(e){}\n      _persistFail=!wrote;\n", repl: "      _persistFail=!wrote;\n" },
+  { id: 'v214-rv1-b-own-package-always-held', area: "pkgApply", what: "a return package storage took is still treated as on screen only: leaving the page asks and switching appropriation is refused",
+    find: "      _persistFail=!wrote;\n", repl: "      _persistFail=true;\n" },
+  { id: 'v214-rv1-b-apstore-storage-first', area: "apStoreOf", what: "another appropriation is read from browser storage whatever its age: a Full Fund package held on this page alone, or the file's newer Full Fund, is replaced by storage's older copy when a ladder is copied or Full Fund issued",
+    find: "  if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false};", repl: "  if(!pb || ls) return {st:ls, held:false};" },
+  { id: 'v214-rv1-b-held-ignored', area: "apStoreOf", what: "this browser's unsaved Full Fund work, older than the file's copy, is written over by copying a ladder, issuing Full Fund or taking its package",
+    find: "    try{ held=ownUnsaved(ls, pb, (b && typeof b==='object' && !Array.isArray(b))? b : null); }catch(e){ held=true; }", repl: "    held=false;" },
+  { id: 'v214-rv1-b-ladder-writes-held', area: "bandCopyAll", what: "copying a ladder writes the file's newer Full Fund over this browser's unsaved Full Fund work",
+    find: "    if(g.held){ kept.push(p.t); return; }\n", repl: "" },
+  { id: 'v214-rv1-b-ladder-storage-first', area: "bandCopyAll", what: "copying a ladder puts storage's older Full Fund over a package held on this page alone, or over the file's newer Full Fund",
+    find: "    let st=g.st? JSON.parse(JSON.stringify(g.st)) : null;", repl: "    let st=null; try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[p.slug].key)||'null'); }catch(e){} if(!st && g.st) st=JSON.parse(JSON.stringify(g.st));" },
+  { id: 'v214-rv1-b-pkgstore-storage-first', area: "pkgStoreOf", what: "issuing Full Fund issues browser storage's older copy and puts it over a package held on this page alone",
+    find: "  const st=apStoreOf(ap).st;                // v2.14 RV1-B", repl: "  const st=(function(){ try{ const s=JSON.parse(localStorage.getItem(_SLUGMAP[ap].key)||'null'); if(s&&(s.years||Array.isArray(s.order))) return s; }catch(e){} return apStoreOf(ap).st; })();                // v2.14 RV1-B" },
+  { id: 'v214-rv1-b-issue-held-unguarded', area: "pkgIssue", what: "issuing Full Fund writes the file's newer copy over this browser's unsaved Full Fund work",
+    find: "  if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }\n    if(hd){ setStat(", repl: "  if(ap!==mySlug()){ let hd=false;\n    if(hd){ setStat(" },
+  { id: 'v214-rv1-b-package-held-unguarded', area: "pkgApply", what: "a Full Fund package is taken over this browser's unsaved Full Fund work, after questions asked about the file's copy",
+    find: "try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }\n    if(hd){ alert(", repl: "\n    if(hd){ alert(" },
+  { id: 'v214-rv1-b-cyc-record-opening-ts', area: "cycApplyAll", what: "after Saves on O&M, putting every appropriation on a cycle makes Full Fund open saying somebody saved the file since, and its first Save asks HOLD ON about Brad's own save",
+    find: "p.fromFile? {file:_pubsFileTs} : {}", repl: "p.fromFile? {file:PUB_FILE_TS} : {}" },
+  { id: 'v214-rv1-b-pubs-ts-not-moved', area: "_saveInPlaceFileRun", what: "after Saves on O&M, putting every appropriation on a cycle records the save the page opened, and Full Fund opens saying somebody saved the file since",
+    find: "    _pubsFileTs=wrote;              // v2.14 RV1-B", repl: "    // v2.14 RV1-B" },
+  { id: 'v214-rv1-b-cyc-carry-refused', area: "cycApplyAll", what: "on a board too big for browser storage, choosing the cycle for every appropriation is refused outright, \"Nothing was changed\", with no way forward",
+    find: "      carried=!!res.back && /quota/i.test(String(res.why||'')) && others.every(function(p){ return p.fromFile; });", repl: "      carried=false;" },
+  { id: 'v214-rv1-b-cyc-carry-unmarked', area: "cycApplyAll", what: "the other appropriations put on a cycle on this page only, when browser storage cannot hold them, are not counted: closing the tab asks nothing and the cycle is lost",
+    find: "      others.forEach(function(p){ const k=_SLUGMAP[p.r.k].key; fileMark('side'); fileStored(k, 'side', false); });\n", repl: "" },
+  { id: 'v214-rv1-b-cyc-carry-from-storage', area: "cycApplyAll", what: "a cycle choice refused at an appropriation browser storage already holds is carried on screen anyway, half-changing the board",
+    find: "others.every(function(p){ return p.fromFile; });", repl: "others.some(function(p){ return p.fromFile; });" },
   // ---- end RV1-B ----
 
   // ---- RV1-C (Save and the import doors) ----
