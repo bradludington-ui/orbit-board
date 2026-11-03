@@ -1,0 +1,114 @@
+[
+ {
+  "id": "v214-rv1-a-aswas-plan-by-clock",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-aswas-cyc-by-clock",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-aswas-lists-from-memory",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-aswas-screen-traded",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-aswas-unchecked",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-step1-dirty-record",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-step1-no-record",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-step1-other-cycles",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-step1-other-tab-list",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-writer-unlatched",
+  "caughtBy": "import / v2.14 RV1-A — the page that writes the note is held"
+ },
+ {
+  "id": "v214-rv1-a-left-not-kept",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-note-names-no-plans",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-kept-without-record",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-own-report-swallowed",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-advice-false",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-held-seed-counted",
+  "caughtBy": "import / v2.14 RV1-A — the program reopened held"
+ },
+ {
+  "id": "v214-rv1-a-held-record-written",
+  "caughtBy": "import / v2.14 RV1-A — the program reopened held"
+ },
+ {
+  "id": "v214-rv1-a-room-65536",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv1-a-was-fail-unheld",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv1-a-was-close-unasked",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv1-a-was-dl-not-counted",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv1-a-close-two-copies",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-w2-opens-clears-changed",
+  "caughtBy": "import / v2.14 W2 — the file route keeps what browser storage held"
+ },
+ {
+  "id": "v214-rv1-a-wasmiss-file-own",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-left-unasked",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-decline-writes",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-any-file",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-report-says-writes",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ }
+]
