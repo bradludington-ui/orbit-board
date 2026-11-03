@@ -8189,6 +8189,68 @@ await (async () => {
 
 // ==== v2.14 integration (the lead) ====
 // ---- INT-A (INT-4) ----
+// v2.14 INT-4 (item 141 C, F): A TAB HELD BY THE HAND-OVER HAS ITS CHANGE ON SCREEN ONLY, AND LEAVING IT ASKS -- W2's hold with W3's
+// prompt. While an import's new file has not been opened in this browser, W2's hold keeps a held page from writing the plan or a list
+// the import cleared back into browser storage (persist sets _persistFail; lsSet counts the list refused), so an older copy cannot
+// stand in front of the new file. The change is then on screen only: W3's memOnlyNow must read it so, so the browser asks before the
+// tab is closed and nothing in ORBIT reopens it unasked -- or a held tab closed in the ordinary way loses its edit. 💾 Save into the
+// tab's own file ends it, and lifting the hold by hand lets storage take the next change. The note is the one another tab's file
+// route wrote, stated here from the fixture's literals (W2_KEYS' nine lists, W2_SAY's names): a note in storage is data this page
+// reads. Measured on the slot commit (v2.13, the stubs inert): the edit went into browser storage and leaving asked nothing.
+const INT4_NOTE = { n: 'int4-0001', how: 'file', name: 'big-board (ORBIT v2.14).html', from: 'big-board.html', at: 1790000000000,
+  href: 'https://example.invalid/elsewhere/board.html', h: {},
+  keys: ['prio27om', 'prio27ff', 'prio27om-cyc', 'prio27ff-cyc', 'prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog', 'prio27destdb'],
+  says: ['the O&M plan', 'the Full Fund plan', 'the locked cycles for O&M', 'the locked cycles for Full Fund', 'the BAE list',
+    'the execution data', 'the cost estimates', 'the reprogramming log', 'the destination list'] };
+await (async () => {
+  const name = 'v2.14 INT — a tab held by the hand-over has its change on screen only, and leaving it asks (item 141 C, F)';
+  try {
+    const J = JSON.stringify;
+    const NOTE = J(INT4_NOTE);
+    const stored = (B, k) => B.ev(`localStorage.getItem(${J(k)})||''`);
+    const held = B => B.ev(`JSON.stringify(DIAG.refused.filter(function(r){ return r.why==='HandOverHold'; }).map(function(r){ return r.what; }))`);
+    // CONTROL: no note in this browser. A change is kept in browser storage, nothing is on screen only, leaving asks nothing.
+    { const C = await w3sFresh();
+      C.ev(`S.notes.A='KEPT IN STORAGE'; save(); 'ok'`);
+      chk(name, 'no note (a CONTROL)', 'a change is kept in browser storage: nothing on screen only, and leaving asks nothing',
+        J([/KEPT IN STORAGE/.test(stored(C, 'prio27om')), w3sMem(C) === 'true', w3sLeave(C)]), J([true, false, 'false'])); }
+    // (a) a tab opened while the note stands: held from its opening
+    const H = await w3sFresh({ ls: { prio27impFile: NOTE } });
+    const s0 = stored(H, 'prio27om');
+    H.ev(`S.notes.A='HELD EDIT'; save(); 'ok'`);
+    chk(name, '(a) held', 'the change is on screen and is not written to browser storage; the hold counts it as kept nowhere',
+      J([H.ev('S.notes.A'), stored(H, 'prio27om') === s0, /HELD EDIT/.test(stored(H, 'prio27om')), JSON.parse(held(H)).length > 0]), J(['HELD EDIT', true, false, true]));
+    chk(name, '(a) held', 'and it is on screen only, so closing the tab asks first', J([w3sMem(H), w3sLeave(H)]), J(['true', 'true']));
+    chk(name, '(a) held', 'the message line says the tab is held, and where the board is', /ORBIT wrote the imported board into “big-board \(ORBIT v2\.14\)\.html”[\s\S]*This page stays held until it is closed/.test(w3sStat(H)), true);
+    { const n0 = w3sNav(H), v = w3sPick(H, 'FULL FUND');
+      chk(name, '(a) held', 'switching appropriation reopens nothing over it: the box reads O&M again, and it says why, naming Save',
+        J([w3sNav(H) - n0, v, /^⛔ Not switched\. Your latest changes are on screen only/.test(w3sStat(H)), H.ev('S.notes.A')]), J([0, 'O&M', true, 'HELD EDIT'])); }
+    // (b) 💾 Save into the tab's own file ends it: the change is in the file, and leaving asks nothing
+    H.ev(`window.confirm=function(){ return true; }; ${W3S_FH} 'ok'`);
+    await H.ev('saveInPlaceFile()');
+    chk(name, '(b) 💾 Save', 'the file is written; nothing is on screen only, and leaving asks nothing', J([H.ev('window.__fw.writes'), /HELD EDIT/.test(H.ev('window.__fw.content')), w3sMem(H), w3sLeave(H)]), J([1, true, 'false', 'false']));
+    // (c) a list the import cleared, written after that (the execution data): held too, and on screen only again
+    H.ev(`EXDB=Object.assign({}, EXDB, {ts:Date.now(), all:Object.assign({}, EXDB.all||{}, {om:{fy:2027, rows:[['INT4', 5]]}})}); persistExdb(); 'ok'`);
+    chk(name, '(c) a list', 'the execution data is held out of browser storage, and leaving asks again', J([/INT4/.test(stored(H, 'prio27execdb')), w3sMem(H), w3sLeave(H)]), J([false, 'true', 'true']));
+    // (d) the import's file opened in another tab (the note gone from storage): this tab stays held for its life
+    H.ev(`localStorage.removeItem('prio27impFile'); S.notes.A='AFTER THE FILE OPENED'; save(); 'ok'`);
+    chk(name, '(d) after the file opened elsewhere', 'this tab stays held: its next change is not in browser storage, and leaving asks',
+      J([/AFTER THE FILE OPENED/.test(stored(H, 'prio27om')), w3sMem(H), w3sLeave(H)]), J([false, 'true', 'true']));
+    // (e) lifting the hold by hand (asked, OK): browser storage takes the next writes, the list and the change, and leaving asks nothing
+    H.ev(`window.confirm=function(){ return true; }; impHandClear(); persistExdb(); S.notes.A='AFTER THE LIFT'; save(); 'ok'`);
+    chk(name, '(e) the hold lifted', 'the list and the next change are kept in browser storage: nothing is on screen only, and leaving asks nothing',
+      J([/INT4/.test(stored(H, 'prio27execdb')), /AFTER THE LIFT/.test(stored(H, 'prio27om')), w3sMem(H), w3sLeave(H)]), J([true, true, 'false', 'false']));
+    // (f) a tab open BEFORE the note was written: held from the moment the browser says another tab wrote it
+    const E = await w3sFresh();
+    E.ev(`localStorage.setItem('prio27impFile', ${J(NOTE)}); window.dispatchEvent(new StorageEvent('storage', {key:'prio27impFile', newValue:${J(NOTE)}}));
+      localStorage.removeItem('prio27impFile'); S.notes.A='IN AN OLDER TAB'; save(); 'ok'`);
+    chk(name, '(f) an older tab', 'it is held once the browser says another tab wrote the note: its change is on screen only, and leaving asks',
+      J([/IN AN OLDER TAB/.test(stored(E, 'prio27om')), w3sMem(E), w3sLeave(E)]), J([false, 'true', 'true']));
+    chk(name, 'errors', 'no page error but the reloads jsdom does not carry out', J([...H.errors, ...E.errors].filter(e => !/navigation/i.test(e)).slice(0, 2)), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ---- end INT-A ----
 
 // ---- INT-B (INT-11) ----
