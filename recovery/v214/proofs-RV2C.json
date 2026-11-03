@@ -1,0 +1,18 @@
+[
+ {
+  "id": "v214-rv2-c-refused-record-marked",
+  "caughtBy": "import / v2.14 RV2-C — a write browser storage refuses"
+ },
+ {
+  "id": "v214-rv2-c-stored-record-put-back",
+  "caughtBy": "import / v2.14 RV2-C — a write browser storage refuses"
+ },
+ {
+  "id": "v214-rv2-c-stop-state-stale",
+  "caughtBy": "import / v2.14 RV2-C — a write browser storage refuses"
+ },
+ {
+  "id": "v214-rv1-c-stop-no-persist",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ }
+]

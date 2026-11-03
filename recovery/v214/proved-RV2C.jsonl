@@ -1,0 +1,4 @@
+{"id": "v214-rv2-c-refused-record-marked", "verdict": "CAUGHT", "fails": ["20"], "threw": 0, "suite": "_slim-prove-afdcc3d9.mjs", "detail": ""}
+{"id": "v214-rv2-c-stored-record-put-back", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-afdcc3d9.mjs", "detail": ""}
+{"id": "v214-rv2-c-stop-state-stale", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-afdcc3d9.mjs", "detail": ""}
+{"id": "v214-rv1-c-stop-no-persist", "verdict": "CAUGHT", "fails": ["7"], "threw": 0, "suite": "_slim-prove-02533660.mjs", "detail": ""}

@@ -10513,7 +10513,8 @@ const MUTATIONS = [
 
   // ---- RV1-C (Save and the import doors) ----
   { id: 'v214-rv1-c-stop-no-persist', area: "saveStopBack", what: "a Save cancelled after the pen was claimed leaves the pen line in browser storage: reopened, the journal says the pen moved though nothing was written",
-    find: "  if(mine && MS===k.ms) persist();\n}\nasync function _saveInPlaceFileRun(o){", repl: "}\nasync function _saveInPlaceFileRun(o){" },
+    // v2.14 RV2-C: retargeted in place -- the save state is now drawn again after this line (stop-on-refused-storage-reads-saved-then-file-overwritten)
+    find: "  if(mine && MS===k.ms) persist();\n  // v2.14 RV2-C (stop-on-refused", repl: "  // v2.14 RV2-C (stop-on-refused" },
   { id: 'v214-rv1-c-stop-marks-kept', area: "saveStopBack", what: "a cancelled Save leaves a board that was saved reading “Unsaved changes”",
     find: "    lsMarksBack(k.m); _baseDirty=k.bd;\n", repl: "    _baseDirty=k.bd;\n" },
   { id: 'v214-rv1-c-stop-record-kept', area: "saveStopBack", what: "a cancelled Save leaves this browser recording the board as work no saved copy has",
@@ -10674,6 +10675,12 @@ const MUTATIONS = [
   // ---- RV2-B (other appropriations, cycles and packages) ----
   // ---- end RV2-B ----
   // ---- RV2-C (round 2, second half: C) ----
+  { id: 'v214-rv2-c-refused-record-marked', area: "save", what: "an edit browser storage refused, or a Save that stopped before it wrote, leaves this browser recording an older stored copy as unsaved work: reopened, that copy is kept aside as work no saved copy had, or (the slot in use) put on screen, and the next Save writes it over the file asking nothing",
+    find: "  if(ok===false && rec0!==undefined && rec1!==undefined && rec1!==rec0){", repl: "  if(false){" },
+  { id: 'v214-rv2-c-stored-record-put-back', area: "save", what: "an edit browser storage took is recorded as saved: reopened over a newer file, that work is replaced with nothing kept aside",
+    find: "if(ok===false && rec0!==undefined", repl: "if(rec0!==undefined" },
+  { id: 'v214-rv2-c-stop-state-stale', area: "saveStopBack", what: "a Save that stopped before it wrote leaves a board nothing changed reading “Unsaved changes”",
+    find: "asked nothing.\n  try{ saveStateShow(); }catch(e){}\n}", repl: "asked nothing.\n}" },
   // ---- end RV2-C ----
   // ---- RV2-D (round 2, second half: D) ----
   // ---- end RV2-D ----

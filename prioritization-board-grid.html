@@ -8243,7 +8243,11 @@ function save(){
   if(CYCVIEW) return cycRefuse('Saving');
   _saveGen++;                               // v1.95 (item 47): a write that finishes asks whether this moved
   DIRTY=true; _dlOnly=false;
+  // v2.14 RV2-C (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten): the
+  // record as it stood before this save marks it, and as the mark left it -- see the end of this function
+  let rec0, rec1; try{ rec0=localStorage.getItem(_AP.key+'.base'); }catch(e){ rec0=undefined; }
   baseMarkDirty();
+  try{ rec1=localStorage.getItem(_AP.key+'.base'); }catch(e){ rec1=undefined; }
   jrnlCapture();
   MS.ts=Date.now();
   MS.by=whoAmI();
@@ -8254,7 +8258,22 @@ function save(){
     MS.log.push({by:MS.by, ts:MS.ts});
     if(MS.log.length>60) MS.log=MS.log.slice(-60);
   } else last.ts=MS.ts;
-  return persist();
+  const ok=persist();
+  // v2.14 RV2-C (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten): A WRITE
+  // BROWSER STORAGE REFUSED LEAVES THIS BROWSER'S RECORD AS IT FOUND IT. The record (<key>.base) says whether the plan browser storage
+  // holds is work no saved copy has -- and a refused write changed nothing there. Marked unsaved anyway, it named an OLDER stored copy
+  // as unsaved work, against the very file this page came from: on a board storage no longer takes (it grew past the quota), the next
+  // opening kept that copy aside as "work no saved copy had" (filling the one slot), or with the slot in use did not open the file and
+  // put the older copy on screen -- and its first 💾 Save wrote it over the file asking nothing (no HOLD ON: the record names this very
+  // file), the file's later work gone. Reached by an edit storage refused and the page then left (its own question named only that
+  // edit), and by every 💾 Save that stopped before it wrote (the bytes are built by a save(), and saveStopBack puts the record back
+  // only while storage holds this page's plan, which it cannot here). Put back only while it is still what the mark wrote; the page's
+  // own memory (DIRTY, _baseDirty) keeps the unsaved work, and leaving still asks first (memOnlyNow).
+  if(ok===false && rec0!==undefined && rec1!==undefined && rec1!==rec0){
+    try{ if(localStorage.getItem(_AP.key+'.base')===rec1){
+      if(rec0===null) localStorage.removeItem(_AP.key+'.base'); else localStorage.setItem(_AP.key+'.base', rec0); } }catch(e){}
+  }
+  return ok;
 }
 function showLog(){
   const lg=(MS.log||[]).slice(-12).reverse();
@@ -10904,6 +10923,10 @@ function saveStopMark(){
 // standing). `mine`: the stored plan carries this page's own save stamp -- every save() here writes it with MS.ts -- so nothing
 // else has written it since. Read before the stamp goes back. Otherwise storage and the record are left as the other tab left
 // them; this page's memory still goes back. Unreadable is not mine.
+// v2.14 RV2-C (stop-on-refused-storage-reads-saved-then-file-overwritten): `mine` cannot hold where browser storage refused this
+// page's plan, and there is then nothing for this function to put back in the record: save() leaves it as it found it whenever
+// storage refuses the write it marked the record for (the bytes are built by a save()), so the record still describes the copy
+// storage holds, and the next opening does not read that older copy as unsaved work.
 function saveStopBack(k, penLine){
   if(!k) return;
   let mine=false;
@@ -10917,6 +10940,10 @@ function saveStopBack(k, penLine){
       if(k.base===null) localStorage.removeItem(_AP.key+'.base'); else localStorage.setItem(_AP.key+'.base', k.base); } }catch(e){}
   }
   if(mine && MS===k.ms) persist();
+  // v2.14 RV2-C (stop-on-refused-storage-reads-saved-then-file-overwritten): the save state is drawn again from what was put back.
+  // lsMarksBack drew it before _baseDirty went back, so a Save that stopped on a board nothing had changed read "Unsaved changes"
+  // until the next redraw, while leaving the page (rightly) asked nothing.
+  try{ saveStateShow(); }catch(e){}
 }
 async function _saveInPlaceFileRun(o){
   if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;

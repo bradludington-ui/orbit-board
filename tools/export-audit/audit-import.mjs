@@ -18744,6 +18744,93 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ---- RV2-B (other appropriations, cycles and packages) ----
 // ---- end RV2-B ----
 // ---- RV2-C (round 2, second half: C) ----
+// v2.14 RV2-C: a board whose plan browser storage no longer takes (it grew past the quota), with an older copy still in storage. A
+// write storage refused -- an edit, or the save() that builds a Save's bytes -- marked this browser's record "unsaved work" over that
+// older copy, and the next opening read it as work no saved copy had. Fails on 74a6aec (recovery/v214/notes-RV2C.md).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-C — a write browser storage refuses leaves this browser’s record as it was: the older stored copy is not read as unsaved work, and the file is not written over with it (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten)';
+  try {
+    const J = W14J;
+    const notesOf = st => { const y = ((st && st.years) || {})[st && st.cur] || {}; return y.notes || {}; };
+    const fileNotes = html => { const p = w14pub(html) || {}; return notesOf(p.appns ? p.appns.om : p); };
+    const rec = ev => w14ev(ev, `localStorage.getItem('prio27om.base')`);
+    const storedNotes = ev => notesOf(JSON.parse(w14ev(ev, `localStorage.getItem('prio27om')`) || 'null'));
+    // browser storage refuses this board's plan (too big for what is left); everything small is still taken
+    const refusePlan = ev => ev(`(function(){ var s=Storage.prototype.setItem; Storage.prototype.__rv2cSet=s; Storage.prototype.setItem=function(k,v){
+      if(k==='prio27om') throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return s.call(this,k,v); }; })(); 'ok'`);
+    const takePlan = ev => ev(`Storage.prototype.setItem=Storage.prototype.__rv2cSet; 'ok'`);
+    // The board as it was saved: storage took an EARLIER copy of note A; the LATER one went into the board file only
+    const F0 = w14board({ ls: { prio27writerKey: W14K, prio27who: 'BLL' } });
+    F0.ev(`S.notes=S.notes||{}; S.notes.A='EARLIER (the last copy storage took)'; WRITER={by:'BLL', fp:writerFp(), t:Date.now()}; save(); 'ok'`);
+    const LS_OLD = w14ls(F0.ev);
+    await w14pause(5);
+    F0.ev(`S.notes.A='LATER (saved in the file only)'; save(); 'ok'`);
+    const FILE = F0.ev('buildSavedHtml()'), P0 = w14pub(FILE), fts = w14fileTs(P0);
+    // this browser after the Save that wrote FILE: the earlier copy, recorded as that file's save, clean
+    const ls0 = Object.assign({}, LS_OLD, { 'prio27om.base': J({ file: fts, dirty: false }) }); delete ls0['prio27om.kept'];
+    // the one kept slot, already holding somebody's work
+    const KEPT = J({ t: Date.now() - 86400000, why: 'file', by: 'Ann', ts: 1, base: {} }) + '\n' + J(Object.assign(JSON.parse(LS_OLD.prio27om), { ts: 5, by: 'Ann' }));
+    chk(name, 'setup', 'the file holds the LATER note; storage holds the EARLIER copy, older than the file, recorded clean against it (a CONTROL)',
+      J([fileNotes(FILE).A, notesOf(JSON.parse(ls0.prio27om)).A, +JSON.parse(ls0.prio27om).ts < fts]),
+      J(['LATER (saved in the file only)', 'EARLIER (the last copy storage took)', true]));
+    const own = (P, d) => { P.w.__rv2c = d.h; P.ev(`FH=window.__rv2c; 'ok'`); w14pickers(P, { open: null, save: null }); };
+    // reopened in that browser after leaving: the file's copy is what opens, nothing new is kept aside -- and its next Save keeps the
+    // file's later work
+    const reopen = async (where, ls, kept) => {
+      const R = await w14open({ html: FILE, ls, url: W14U('board.html') }); w14wire(R.ev, 'true');
+      chk(name, where + ', reopened', 'the file’s LATER note is on screen, and the kept slot holds what it held before (nothing kept aside as “work no saved copy had”)',
+        J([notesOf(JSON.parse(w14ev(R.ev, 'JSON.stringify(MS)'))).A, w14ev(R.ev, `localStorage.getItem('prio27om.kept')`)]),
+        J(['LATER (saved in the file only)', kept]));
+      R.ev(`S.notes=S.notes||{}; S.notes.B='typed after reopening'; save(); render(); 'ok'`);
+      const d = w14disk('board.html', FILE); own(R, d); await w14save(R.ev);
+      const n = fileNotes(d.content);
+      chk(name, where + ', reopened, then saved', 'written once, and the file still holds the LATER note beside the new one',
+        J([d.writes, n.A, n.B]), J([1, 'LATER (saved in the file only)', 'typed after reopening']));
+    };
+    for (const slot of ['empty', 'in use']) {
+      const kept = slot === 'in use' ? KEPT : null;
+      const ls = Object.assign({}, ls0); if (kept) ls['prio27om.kept'] = kept;
+      // (i) an edit storage refuses, and the page left anyway (the browser asked)
+      const A = await w14open({ html: FILE, ls, url: W14U('board.html') }); w14wire(A.ev, 'true'); refusePlan(A.ev);
+      const r0 = rec(A.ev);
+      A.ev(`S.notes=S.notes||{}; S.notes.C='typed; storage refused it'; save(); render(); 'ok'`);
+      const w1 = '(i) an edit refused, slot ' + slot;
+      chk(name, w1, 'the edit is on screen only: unsaved, and closing the page asks first; storage still holds the EARLIER copy (a CONTROL)',
+        J([w14ev(A.ev, 'unsavedNow()'), w14ev(A.ev, 'memOnlyNow()'), intLeave(A.ev), storedNotes(A.ev).A, storedNotes(A.ev).C || null]),
+        J([true, true, 'true', 'EARLIER (the last copy storage took)', null]));
+      chk(name, w1, 'this browser’s record is byte for byte what it was: storage’s copy did not change, so it is not marked unsaved work', rec(A.ev), r0);
+      const lsA = w14ls(A.ev);
+      // CONTROL: storage taking writes again, the next edit is marked unsaved against this file, as every stored edit is
+      takePlan(A.ev); A.ev(`S.notes.D='typed once storage took it'; save(); render(); 'ok'`);
+      const rD = JSON.parse(rec(A.ev) || 'null') || {};
+      chk(name, w1 + ', then storage takes it', 'the edit is in storage and the record says it is unsaved work from this file (a CONTROL)',
+        J([storedNotes(A.ev).D || null, rD.dirty, rD.file]), J(['typed once storage took it', true, fts]));
+      await reopen(w1, lsA, kept);
+      // (ii) a 💾 Save that stops before it writes, storage refusing the plan the Save's bytes are built with
+      for (const [lbl, set, said] of [
+        ['denied', (B, d) => { d.query = 'prompt'; d.request = 'denied'; w14pickers(B, { open: d, save: null }); }, /did not let ORBIT write/],
+        ['later', (B, d) => { d.query = 'prompt'; d.request = () => { throw w14err('SecurityError'); }; w14pickers(B, { open: d, save: null }); }, /is now this board’s file — nothing is written yet/],
+        ['read-only', (B, d) => { d.h.createWritable = async () => { d.ops.push('write'); throw w14err('NoModificationAllowedError'); }; own(B, d); }, /read-only for you/]]) {
+        const w2 = '(ii) Save stopped (' + lbl + '), slot ' + slot;
+        const B = await w14open({ html: FILE, ls, url: W14U('board.html') }); w14wire(B.ev, 'true'); refusePlan(B.ev);
+        const d = w14disk('board.html', FILE); set(B, d);
+        const b0 = rec(B.ev);
+        await w14save(B.ev);
+        chk(name, w2, 'nothing was written and the line says why (a CONTROL)', J([d.writes, said.test(w14stat(B.ev))]), J([0, true]));
+        chk(name, w2, 'this browser’s record is byte for byte what it was before the Save', rec(B.ev), b0);
+        chk(name, w2, 'nothing was typed: the board reads as saved, not “Unsaved changes”, and closing the page asks nothing',
+          J([w14ev(B.ev, 'unsavedNow()'), /Unsaved changes/.test(w14ev(B.ev, `(document.getElementById('saveState')||{}).textContent||''`)), intLeave(B.ev)]),
+          J([false, false, 'false']));
+        await reopen(w2, w14ls(B.ev), kept);
+      }
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-C ----
 // ---- RV2-D (round 2, second half: D) ----
 // ---- end RV2-D ----
