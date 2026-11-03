@@ -10362,6 +10362,19 @@ const MUTATIONS = [
     find: "      if(res.back) _sideGen=g0;", repl: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }" },
   // ---- end INT-B ----
   // ==== end v2.14 integration ====
+  // ==== v2.14 review round 1 fixes ====
+  // ---- RV1-A (the file route) ----
+  // ---- end RV1-A ----
+
+  // ---- RV1-B (cycles, packages, storage) ----
+  // ---- end RV1-B ----
+
+  // ---- RV1-C (Save and the import doors) ----
+  // ---- end RV1-C ----
+
+  // ---- RV1-D (held findings and older files) ----
+  // ---- end RV1-D ----
+  // ==== end v2.14 review round 1 fixes ====
 
 ];
 
