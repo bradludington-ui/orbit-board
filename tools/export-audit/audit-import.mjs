@@ -15203,6 +15203,21 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ==== v2.12 W3 (item 134): every year's budget is the PPBE position; over and under flagged; unallocated added funds as UPL ====
 // ==== end v2.12 W3 ====
 
+// ==== v2.14 W1 (item 140; item 141 D): Save writes only to its own file, and asks before writing over what it does not carry ====
+// ==== end v2.14 W1 ====
+
+// ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====
+// ==== end v2.14 W2 ====
+
+// ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
+// ==== end v2.14 W3 ====
+
+// ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====
+// ==== end v2.14 W4 ====
+
+// ==== v2.14 integration (the lead) ====
+// ==== end v2.14 integration ====
+
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

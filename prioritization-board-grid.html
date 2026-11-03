@@ -2803,6 +2803,11 @@ let _takePen=null;        // {from: the fingerprint being replaced}, between Tak
 function writerShape(w){ return (w && typeof w==='object' && typeof w.fp==='string' && w.fp.length>0 && w.fp.length<=64)
   ? {by:String(w.by||'').slice(0,60), fp:w.fp, t:+w.t||0} : null; }
 try{ WRITER=writerShape(PUB && PUB.writer); }catch(e){ WRITER=null; }
+// v2.14 (slot; W3 sets it): the writer key this page made when browser storage would not keep it ('' while storage holds this
+// browser's key). A var: writerKey can run while the board opens.
+var _wkMem='';
+// What a save that claims or takes the pen says when that key lives in this page alone (item 141 F). One sentence, two saves.
+function wkMemSay(may){ return (_wkMem && (may==='claim'||may==='take'))? ' Browser storage would not keep this browser’s writer key: once this page is closed, 💾 Save here will refuse and name you as the writer — Audit › Take the pen… then takes it back.' : ''; }
 function writerKey(){
   let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){}
   if(!/^[0-9a-f]{32}$/.test(k)){
@@ -2962,6 +2967,9 @@ let EXDB = (function(){
 // board file writes through code shared with other doors (cycTake, importStores); _lsCapture collects what it would
 // write, as [key, text, what, what], so the import can commit it through lsAll() -- all or nothing -- like a full import.
 let _lsCapture=null;
+// v2.14 (slot): how many all-or-nothing writes (lsAll, lsPutBack) are running. A var, because lsSet runs while the board
+// opens. Inert while 0: W3 counts it; lsSet's warning and the hand-over hold read it.
+var _lsAllRun=0;
 // v1.97 (item 76): EVERY LIST THE SAVED FILE CARRIES MARKS THE BOARD UNSAVED WHEN IT CHANGES. savedHtmlOf() writes the
 // open board and beside it the other appropriations' boards, the destination list, the execution data, the cost
 // estimates, the reprogramming log, every appropriation's locked cycles and the BAE list. Only the open board went
@@ -3007,6 +3015,15 @@ function sideWrote(at){
 // board's (cycSwapIn), so nothing may write them to browser storage: the board's own lists are set aside untouched and come back on
 // leaving. A var, because lsSet runs while the board opens, before any let further down has been declared.
 var _cycSwap=null;
+// v2.14 (slot; W2 owns both bodies): THE HAND-OVER HOLD. While an import's new file has not been opened in this browser, no write may
+// put back a list the import cleared (item 141). Inert until W2 fills them. Neither may throw, and both may run while the board
+// opens, before any let or const below them exists.
+function impHandKey(key){ return false; }
+function impHandRefuse(key, what){ return false; }
+// v2.14 (slot; W2 owns the body; W3's leave prompt reads it): does the file route hold the only copy of something right now -- a
+// file being written (the browser emptied it when it was chosen), a rescue offered and not yet saved, the as-it-was file being
+// written? Leaving the page then asks first. Never throws; false until W2 fills it.
+function impFileHolds(){ return false; }
 function lsSet(key, val, what){
   if(_cycSwap && (key===DEST_KEY || key===BUDDB_KEY)){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
   if(_lsCapture){
@@ -3014,6 +3031,7 @@ function lsSet(key, val, what){
     if(i>=0) _lsCapture[i]=w; else _lsCapture.push(w);
     return true;
   }
+  if(impHandKey(key)) return impHandRefuse(key, what);
   const fk=fileKeyOf(key);                 // v1.97 (item 76): counted before it is written, so a refusal counts too
   if(fk) fileMark(fk);
   try{ localStorage.setItem(key, val); if(fk) fileStored(key, fk, true); return true; }
@@ -3201,7 +3219,7 @@ function switchAppn(a){
     try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){}
     try{ render(); }catch(e){}
     return; }
-  if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} location.reload(); } }
+  if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} reopenPage(); } }
 // ── PPBE CYCLES: THE LOCKED FIVE-YEAR PLANS ──────────────────────────────────────────────────
 // A cycle is the FYDP window frozen under a PPBE cycle key ('PB|2027' reads PB27): every year in
 // the window that held a plan, copied whole, plus a per-year projection (the shape the one-year
@@ -7393,6 +7411,10 @@ function setBaseYear(){
 // §13  START-UP RESTORE AND SAVING TO BROWSER STORAGE
 //      top-level code: the board restored from browser storage
 // ==============================================================================================================
+// v2.14 (slot; W1 sets it while the board opens): the board on screen came from no saved copy -- no board in this file and nothing of
+// this appropriation's in browser storage, or storage's copy written by such a page. Declared here, above the opening: a var's
+// initializer runs where it stands, and one declared below would put back false after the opening set it.
+var _pageBlank=false;
 let _bootRestoreErr='';        // set when the browser-storage restore threw; surfaced after boot
 let FYMON = fyMonths(BASE_FY_DEFAULT);
 applyStore({base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:0, years:{[BASE_FY_DEFAULT]:firstYearState()}});
@@ -7458,7 +7480,7 @@ if(PUB && (PUB.years||Array.isArray(PUB.order))){
       // and in a copy Ann's own file opened on PSM's work and ✉ Submit sent PSM's package under her name. With nothing kept aside,
       // storage holds a save and no unsaved work, so "clean" is true of it, and storage is left alone, as v2.08 left it.
       let held=!_bootOwn || (!own && _bootOwnRead);   // nothing in storage, or only work already saved: nothing to make true first
-      if(own && _bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
+      if(own && _bootOwnRead){ try{ if(impHandKey(_AP.key)) throw new Error('held'); MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
       LASTKNOWN=PUB_FILE_TS;
       if(held){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); }
     }
@@ -7514,6 +7536,7 @@ let _persistFail=false;
 function persist(){
   if(CYCVIEW) return cycRefuse('Writing to browser storage');
   MS.years[MS.cur]=S;
+  if(impHandKey(_AP.key)){ _persistFail=true; return impHandRefuse(_AP.key, 'Keeping changes in browser storage'); }
   try{
     localStorage.setItem(_AP.key, JSON.stringify(MS));
     if(_persistFail){ _persistFail=false; try{ setStat('✓ Browser storage is accepting changes again.'); }catch(e){} }
@@ -8218,6 +8241,13 @@ function savedHtmlOf(appns, cycDb){
                       (m,a,b)=>a+json+b);
 }
 let FH=null;   // in-place file handle (File System Access API)
+// v2.14 (slot): this page's own address without its #… or ?…, for a file:, http: or https: page; '' for anything else (the FYDP
+// frames' about:srcdoc, a blob:). W1 keys the remembered save file by it; W2 matches an import's file to the page that wrote it.
+function pageAddr(){ try{ const u=String(location.href).replace(/[#?].*$/, ''); return /^(file|https?):/i.test(u)? u : ''; }catch(e){ return ''; } }
+// v2.14 (slot; W1 owns the body; W4's baseMarkDirty reads it): is the work on screen work never saved to any file, typed on a page
+// whose board came from no saved copy? The record then says blank:true, and only such a record is "stray work" that a board file
+// opened later keeps aside instead of opening (the stray rule). Never throws; false until W1 fills it.
+function pageBlankNow(){ return false; }
 function _fhPut(h){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}}; r.onsuccess=()=>{ try{ r.result.transaction('h','readwrite').objectStore('h').put(h, FNAME); }catch(e){} }; }catch(e){} }
 function _fhGet(cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded=()=>{try{r.result.createObjectStore('h');}catch(e){}}; r.onsuccess=()=>{ try{ const g=r.result.transaction('h','readonly').objectStore('h').get(FNAME); g.onsuccess=()=>cb(g.result||null); g.onerror=()=>cb(null); }catch(e){ cb(null); } }; r.onerror=()=>cb(null); }catch(e){ cb(null); } }
 // ==============================================================================================================
@@ -10381,7 +10411,7 @@ async function _saveInPlaceFileRun(){
     sideWrote(sideAt);              // what changed after the bytes were built is still unsaved
     syncBtns();
     setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+esc(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
-      +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')
+      +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')+wkMemSay(may)
       +((clean && _sideGen===sideAt)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
   }catch(e){
     if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }     // nothing was written: the pen did not move
@@ -11578,6 +11608,7 @@ function cycTake(inc, aps){
 // Which appropriations to take from a consolidated file. Nothing is taken unless it is named.
 function consTakePick(fullSt, txt, fname){
   if(pmoCopyRefuse(fname, txt)) return;          // v2.09 (item 127): only through the PMO import screen
+  if(memOnlyBlock('Not imported', 'taking an appropriation from a file reopens the page')) return;
   const avail=APPN_SLUGS.filter(function(k){ const s2=(fullSt.appns||{})[k];
     return _SLUGMAP[k] && s2 && (s2.years || Array.isArray(s2.order)); });
   if(!avail.length){ alert('That file carries no appropriation this board recognises.'); return; }
@@ -11662,7 +11693,7 @@ function consTakeApply(fullSt, txt, fname, pick, all){
   impMixedLift(W.map(function(w){ return w[0]; }));
   statKeep('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail+' Reopening\u2026');
-  location.reload();
+  reopenPage();
 }
 // ==============================================================================================================
 // §19  THE IMPORT CHECK
@@ -12388,6 +12419,7 @@ function fullImportText(txt, fname){
   _inDestNext='board';   // v2.00 (U44): the user's own board -- its destination lists put right below (destOwnRight)
   const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
   if(pmoCopyRefuse(fname, txt)) return false;     // v2.09 (item 127): its cycles are only a reference, and it is an office's work
+  if(memOnlyBlock('Not imported', 'a full import reopens the page')) return false;
   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
   const bv=fullBuildOf(txt);
@@ -12525,7 +12557,7 @@ function fullImportText(txt, fname){
   if(rp) RPDB=rp;
   if(dest) DESTDB=dest;
   setStat(rep+' Reopening…');
-  location.reload();
+  reopenPage();
   return true;
 }
 // A FULL IMPORT A BROWSER REFUSED (v1.95, item 48). Two outcomes, kept apart. Every key put back: the board says
@@ -12863,6 +12895,7 @@ function importState(inp){
          && !((typeof IS_SHELL!=='undefined') && IS_SHELL)){
         consTakePick(fullSt, txt, f.name); inp.value=''; return;
       }
+      if(memOnlyBlock('Not imported', 'loading this file reopens the page')){ inp.value=''; return; }
       if(!confirm('Import '+(fromBoard?'the published state from "'+f.name+'"':'state file "'+f.name+'"')
           +(st.ts? '\n(published '+fmtTs(st.ts)+')':'')
           +'\n\nThis REPLACES everything on this board: priorities, PMO rankings, BA, allocations, MC flags, notes, renames, adds/removals.')) { inp.value=''; return; }
@@ -12897,7 +12930,7 @@ function importState(inp){
         if(!any && _isShell){ alert('That file carries saved settings but no requirement data. Import a board file that was built WITH data (any of the three boards, or a consolidated board).'); inp.value=''; return; }
         if(!seeded.length){ alert('That file carries no appropriation this board recognises.'); inp.value=''; return; }
         setStat('🧩 Loaded '+seeded.join(', ')+carriedTxt+' — reopening…');
-        location.reload();
+        reopenPage();
         return;
       }
 
@@ -12928,7 +12961,7 @@ function importState(inp){
         catch(e){ setStat('\u26a0 That file could not be read into '+_SLUGMAP[target].t+'.'); }
         try{ localStorage.setItem('prio27appn', NAME_OF[target]); }catch(e){}
         setStat('🧩 '+_SLUGMAP[target].t+' loaded'+carriedTxt+' — switching to it…');
-        location.reload();
+        reopenPage();
         return;
       }
       if(_isShell){
@@ -12938,7 +12971,7 @@ function importState(inp){
         MS.ts=Date.now();
         try{ localStorage.setItem(_AP.key, JSON.stringify(MS)); }catch(e){}
         setStat('🧩 Data loaded'+carriedTxt+' — rebooting the template with your board\u2026');
-        location.reload();
+        reopenPage();
         return;
       }
       if(applyStore(st)===false){ inp.value=''; return; }
@@ -15893,6 +15926,13 @@ function liveLeaving(){
   }catch(e){ /* never let letting go stop somebody leaving */ }
 }
 try{ window.addEventListener('beforeunload', liveLeaving); }catch(e){}
+// v2.14 (slot): EVERY DELIBERATE REOPENING GOES THROUGH HERE, so a reopen the board has already asked about never meets the
+// browser's own "Leave site?" question too (item 141 F). npm run check holds that it is the only one.
+var _leaving=false;
+function reopenPage(){ _leaving=true; try{ location.reload(); }catch(e){} }
+// v2.14 (slot; W3 owns the body): may the page be reopened, or a whole board loaded over it, now? True when it stopped, having said
+// why: while a change is on screen only (browser storage refused it), nothing reopens the page unasked (item 141 F).
+function memOnlyBlock(head, act){ return false; }
 // The folder check: every step, in order, printed as it happens. Run from the page in question
 // with the button's own click as the gesture, so it sees exactly what the person's browser sees.
 // WHERE THIS PROGRAM WAS OPENED FROM, as a Windows path. The picker cannot be pointed at a path,
@@ -33027,7 +33067,7 @@ async function driveStorePull(quiet){
     driveBaseSet(mySlug(), theirs, true);
     persist();
     setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' from the shared folder \u2014 reopening\u2026');
-    try{ location.reload(); }catch(e){}
+    reopenPage();
     return true;
   }
   applyStore(j.store);
@@ -36752,7 +36792,7 @@ function clearComputer(){
   try{ DIRTY=false; }catch(e){}
   if(R.left.length){ alert('Cleared '+(R.n-R.left.length)+' of '+R.n+' items; '+R.left.length+' could not be removed ('+R.left.join(', ')+'). The page reopens from the file now.'); }
   try{ window.onbeforeunload=null; }catch(e){}
-  try{ location.reload(); }catch(e){}
+  reopenPage();
   return R;
 }
 // ===================== ACE TIE-OUT WORKBOOK =====================

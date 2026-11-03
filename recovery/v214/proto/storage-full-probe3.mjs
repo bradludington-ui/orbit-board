@@ -1,0 +1,21 @@
+import { boot, seed } from '/home/user/orbit-board/tools/export-audit/boot.mjs';
+const it = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const FIX = { services: ['USAF', 'ANG'], items: [it('A', 'AV', [100, 20]), it('B', 'PSM', [50, 10])], disc: [120, 20], mand: [30, 10], order: ['A', 'B'] };
+const B = boot(); seed(B.ev, FIX); B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+B.ev(`localStorage.removeItem('prio27writerKey'); localStorage.removeItem('prio27who'); window.confirm=function(){ return true; }; window.prompt=function(){ return 'BL'; };
+  const size=function(){ let t=0; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); t+=k.length+localStorage.getItem(k).length; } return t; };
+  const LIM=size(), si=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k, v){ v=String(v); const was=localStorage.getItem(k);
+    if(size()-(was===null? 0 : k.length+was.length)+k.length+v.length>LIM) throw new DOMException('q', 'QuotaExceededError'); return si.call(this, k, v); };
+  const f={content:'', writes:0}; globalThis.__f=f;
+  FH={name:'Board.html', requestPermission: async function(){ return 'granted'; }, getFile: async function(){ return {text: async function(){ return f.content; }}; },
+    createWritable: async function(){ let buf=''; return {write: async function(x){ buf+=String(x); }, close: async function(){ f.content=buf; f.writes++; }}; }};
+  window.showSaveFilePicker=function(){ throw new Error('picker'); }; 'ok'`);
+const out = {};
+B.ev(`S.notes.A='first'; save(); 'ok'`);
+await B.ev('saveInPlaceFile()');
+out.first = { writes: +B.ev('__f.writes'), stat: B.ev(`document.getElementById('shareStat').textContent.slice(0,120)`) };
+B.ev(`S.notes.A='second'; save(); 'ok'`);
+await B.ev('saveInPlaceFile()');
+out.second = { writes: +B.ev('__f.writes'), stat: B.ev(`document.getElementById('shareStat').textContent.slice(0,140)`), penOther: B.ev('uiPenOther()') };
+console.log(JSON.stringify(out, null, 1));

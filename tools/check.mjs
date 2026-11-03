@@ -664,6 +664,20 @@ try {
   fail('field labels: ' + e.message);
 }
 
+// ---- reopen (v2.14, slot) -------------------------------------------------------------------------
+// Every deliberate reopening of the page goes through reopenPage(), which sets _leaving first, so a reopen the board has
+// already asked about never meets the browser's own "Leave site?" question too (item 141 F). A location.reload( anywhere
+// else bypasses that, and so does one spelled in a comment that a later edit turns back into code.
+console.log('\nreopen');
+{
+  const hits = [];
+  lines.forEach((l, i) => { if (l.includes('location.reload(')) hits.push(i + 1); });
+  const own = hits.filter(n => lines[n - 1].includes('function reopenPage('));
+  if (hits.length === 1 && own.length === 1) pass('location.reload( occurs once, inside reopenPage()');
+  else if (!own.length) fail('reopenPage() does not call location.reload( on its own line (lines ' + (hits.join(', ') || 'none') + ')');
+  else fail('a page reopen bypasses reopenPage() (it would not set _leaving): lines ' + hits.filter(n => !own.includes(n)).join(', '));
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

@@ -679,6 +679,16 @@ const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== Stri
   fid(T4, 'the cycle-comparison menu line escapes its text labels', src.includes("cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) :")   /* v2.05 (item 114): the box's ri() line */, true);
 }
 
+const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding here first, so a block that never runs fails
+
+// ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====
+// ==== end v2.14 W2 ====
+
+// ==== v2.14 integration (the lead) ====
+// ==== end v2.14 integration ====
+
+for (const id of INJ_EXPECT) if (!SEEN.has(id) && !FID.has(id)) failures.push({ finding: id, what: 'this block never ran — is it after the report, or in a .then the exit beat?', got: 'never ran', want: 'ran' });
+
 // ---- report ---------------------------------------------------------------------------------------
 const line = '='.repeat(96);
 console.log(`\n${line}`);

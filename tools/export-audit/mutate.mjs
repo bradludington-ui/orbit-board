@@ -8156,7 +8156,8 @@ const MUTATIONS = [
   // no board, package or state file at any door -- each undoing one fix
   { id: 'v209-rv2-save-boot-no-write', area: '(boot)', what: 'opening a newer file records the board clean while storage still holds the work it kept aside, so a later opening replaces it unkept',
     // v2.09 third review: retargeted in place -- the write is now made only where the opening kept work aside (`own &&`); the same defect
-    find: '      if(own && _bootOwnRead){ try{ MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }',
+    // v2.14 (slot, S2): retargeted in place -- the line now asks the hand-over hold first (impHandKey); the same defect
+    find: "      if(own && _bootOwnRead){ try{ if(impHandKey(_AP.key)) throw new Error('held'); MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }",
     repl: '      if(own && _bootOwnRead){ held=true; }' },
   { id: 'v209-rv2-save-boot-writes-unread', area: '(boot)', what: 'a copy in browser storage the board could not take up is written over by the file opened, and is gone',
     // v2.09 third review: retargeted in place, as the one above
@@ -9937,6 +9938,21 @@ const MUTATIONS = [
   { id: 'v213-rv-refused-reads-unsaved', area: "cycApplyAll", what: "a change refused and put back whole leaves the refused list held as unsaved",
     find: "      if(res.back){ _sideGen=g0; W.forEach(function(w){ delete _lsRefused[w[0]]; }); }", repl: "      if(res.back){ _sideGen=g0; }" },
   // ==== end v2.13 item 136 ====
+
+  // ==== v2.14 W1 (item 140; item 141 D): Save writes only to its own file, and asks before writing over what it does not carry ====
+  // ==== end v2.14 W1 ====
+
+  // ==== v2.14 W2 (item 141): a full import too big for browser storage goes into a new file ====
+  // ==== end v2.14 W2 ====
+
+  // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
+  // ==== end v2.14 W3 ====
+
+  // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====
+  // ==== end v2.14 W4 ====
+
+  // ==== v2.14 integration (the lead) ====
+  // ==== end v2.14 integration ====
 
 ];
 
