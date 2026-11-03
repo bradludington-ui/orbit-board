@@ -8,6 +8,24 @@ Current version: **v2.13**. Next: **v2.14**.
 
 ## Open
 
+#### Brad's go of 3 Nov 2026: everything open, in three versions
+Brad, 3 Nov 2026: *"Let's push all of these. Ask questions to clarify."* His answers:
+- **Order: three versions, data loss first.** v2.14: items 140 and 141, item 129's four findings, item 124, and the ledger's U63,
+  U64 and U35. v2.15: items 137-139 and the small fixes (item 131's strict folder read and the Spruills and Locks by
+  appropriation; item 135's gaps; v2.12's question 1, a CLIN request that is not a list reported on opening; the guide's
+  five-year text; the Priority Drill's narrow columns; the five-year workbook's "Allocated" renamed Funded). v2.16: item 133.
+  Each version merges on his word.
+- **The handoff's 40 decisions** (`recovery/v213/HANDOFF.md`, section 8): *"Accept all recommendations"*, v2.12's eight
+  questions among them. What only Brad can do (credentials, the security team, the evidence package) comes back to him as a list.
+- **Save on his work computer writes into the file**, so item 141's main path is writing the imported board into a new file.
+- **E1's hardening list:** *"Not needed this week."*
+- **Item 133:** build now; writing the contract number to the Spend Plan Source waits until CCaR names its column.
+- **Item 138:** a consolidated file's locked cycles are taken as today.
+- **The older "your call" behaviours stay as built:** a kept PPBE cycle freezes its services; the ACE alignment breakout shows the
+  allocation; the RCN-EEIC tab prorates a split prime's ask by the CLIN allocation; FYDP Disconnects' workbook prints — without
+  saying why.
+- **Items 100 and 107 (Azure):** left until hosting is chosen.
+
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
@@ -325,7 +343,8 @@ Each was raised by a skeptic re-checking a fix to item 130 and reproduced; none 
      need to be able to adjust funded positions on each requirement to fit within our new PPBE position."* Item 134. Built
      on it, this workbook's plan years are funded within the PPBE position.
   7. **The marking** *CUI//REL TO US DoW*: *"Yes."*
-- **Open:** which CCaR column will carry the contract number.
+- **Open:** which CCaR column will carry the contract number. **Brad, 3 Nov 2026:** build now; the Spend Plan Source write waits
+  for CCaR's column.
 
 #### 135. Found while building v2.12, not built
 Each was found by a builder or a reviewer of v2.12 and left as found. Brad's eight questions on what v2.12 built wait for his
@@ -390,9 +409,8 @@ answers under Shipped › v2.12 › *Questions for Brad*.
 - **Checks it would need:** a package made under PB27 taken on a BES28 board through each of the three doors: the tag, the
   reference and every other cycle's position unchanged, BES28's position the package's, the preview's and the result's
   sentences; an untagged appropriation on a board whose bar shows BES28; a Mixed board; save and reopen.
-- **Question before go:** the locked cycles a consolidated file carries (`cycTake`: a lock this board does not hold is taken, one
-  it holds is left alone). A lock is a record that names its own cycle and moves nothing on screen, so the proposal keeps taking
-  them as today. Say if they should follow the same rule.
+- **Answered (Brad, 3 Nov 2026):** the locked cycles a consolidated file carries are taken as today (`cycTake`: a lock this board
+  does not hold is taken, one it holds is left alone).
 
 #### 139. Retag moves every appropriation that has locked the cycle (Brad, 2 Nov 2026, v2.13's question 2: "2a")
 - **What happens today (v2.13):** three buttons move only the appropriation on screen to the next cycle. They are *Retag as
