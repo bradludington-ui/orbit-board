@@ -2848,7 +2848,9 @@ function writerMay(w, fresh, quiet, what){
   }
   if(fresh) return 'claim';
   if(quiet){ setStat('Not saved automatically: '+esc(what)+' has no writer recorded yet. Press 💾 Save to become its writer.'); return false; }
-  if(!confirm('No writer is recorded for '+what+' yet (it was last saved by a version before v1.95).\n\n'
+  // v2.14 round 2 (the lead): the reason is not said -- a file this version wrote without claiming the pen (a test kit's board, one saved as a
+  // copy) carries none either, and "last saved by a version before v1.95" was then untrue
+  if(!confirm('No writer is recorded for '+what+' yet.\n\n'
     +'Become its writer? From now on only you save it in place. Anyone else is told you hold the pen, and can save a copy, or take the pen when it is handed to them.\n\n'
     +'OK — become the writer and save.\nCancel — don’t save.')){
     setStat('Save canceled — nothing written.'); return false; }

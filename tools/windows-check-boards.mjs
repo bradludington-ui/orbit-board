@@ -88,6 +88,9 @@ const build = (PROG.match(/BUILD='([^']*)'/) || [])[1] || '?';
   chk('the program refuses the big board’s full import for room, and offers “Write the imported board into a new file…”', r.ret === false && r.offered, J(r));
   const SB = boot({ html: SMALL });
   chk('the small board opens with its eight requirements', SB.ev('S.order.length') === 8);
+  chk('the small board carries no writer, so B1 asks “Become its writer?” once, as the READ ME says', !(JSON.parse((SMALL.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/) || [])[1] || '{}').writer));
+  const P0 = boot({ html: PROG });
+  chk('the program opens empty, as A1 says', P0.ev('S.order.length') === 0);
 }
 // nothing in either board but the made-up content
 for (const [n, h] of [[BIGN, BIG], [SMALLN, SMALL]]) {
@@ -99,34 +102,43 @@ for (const [n, h] of [[BIGN, BIG], [SMALLN, SMALL]]) {
 writeFileSync(join(OUT, 'READ ME FIRST.txt'), `ORBIT ${build} -- the Windows check (made-up boards only; nothing here is budget data)
 
 Put all four files in one new folder on your work computer, for example Documents\\ORBIT test.
-Do the whole check in an InPrivate window (Edge: Ctrl+Shift+N) or an Incognito window (Chrome: Ctrl+Shift+N). That window has
-browser storage of its own, so your real ORBIT files and what this browser keeps for them are not touched, and closing the
-window throws the test away. Open each file by dragging it onto that window.
+Do each part in a NEW InPrivate window (Edge: Ctrl+Shift+N) or Incognito window (Chrome: Ctrl+Shift+N), and close every
+InPrivate/Incognito window between the parts. Such a window has browser storage of its own, so your real ORBIT files and what this
+browser keeps for them are not touched, and closing the last such window throws the test away. Open each file by dragging it onto
+the window.
 
-B FIRST -- THE FIRST SAVE OF A FILE (item 140)
+PART B -- THE FIRST SAVE OF A FILE (item 140)
  1. Open "${SMALLN}". Change one requirement's title, press Save.
-    Expected: a window asking you to pick the file this board came from. Pick "${SMALLN}".
-    The browser then asks whether ORBIT may edit that file -- allow it. Expected: Saved.
+    Expected, in this order:
+    - a window asking you to pick the file this board came from. Pick "${SMALLN}".
+    - ORBIT asks "No writer is recorded for this board file yet. Become its writer? ..." -- press OK. (The test board was made
+      by a tool that never claimed the pen; your real board files have a writer, and this question is not asked of them.)
+    - the browser asks whether ORBIT may edit that file -- allow it.
+    - Saved.
  2. Change another title and press Save again. Expected: nothing is asked; Saved.
- 3. Close the tab.
+ 3. Close every InPrivate/Incognito window.
 
-A -- THE BIG IMPORT (item 141)
- 1. Open "ORBIT v2.14 candidate.html".
- 2. Imports & exports > Import a full board (new version)... > choose "${BIGN}".
+PART A -- THE BIG IMPORT (item 141), in a NEW InPrivate/Incognito window
+ 1. Open "ORBIT v2.14 candidate.html". It opens empty and says it holds no board.
+ 2. Imports & exports > Import a full board (new version)... > choose "${BIGN}". Answer OK to "Import everything ...?".
     Expected: "Nothing was imported ... browser storage refused ..." and a box offering
     "Write the imported board into a new file...".
- 3. Press it. The save window suggests a NEW name. Keep it. Do NOT pick the big board itself.
-    Expected: "Saved ... read back whole", then a new tab or the page opens on the new file.
- 4. In the new file: change one requirement's title on O&M, press Save (it asks you to pick the file, as in B -- pick the new
-    file). Change another title, press Save again. Expected: the second Save asks nothing.
- 5. Choose a PPBE cycle for every appropriation from the bar at the top, then switch to Full Fund.
-    Expected: its 30 made-up requirements, on the cycle you chose.
- 6. Close the window. That deletes everything the test kept in browser storage.
+ 3. Press it. The save window suggests a NEW name ending "(ORBIT v2.14).html". Keep it. Do NOT pick the big board or the program.
+    Expected: "Full board imported into ... written and read back whole ... Reopening...". The page then reloads the PROGRAM, empty
+    again, and says to open the new file to carry on. That is expected: drag the new file onto the window.
+ 4. In the new file: change one requirement's title on O&M, press Save. It asks you to pick the file, as in B -- pick the new file,
+    and allow the edit. (No writer question this time: the new file was written with one.) Change another title, press Save
+    again. Expected: the second Save asks nothing.
+ 5. Choose a PPBE cycle for every appropriation from the bar at the top. Expected: a question listing each appropriation; OK.
+    Browser storage is too small for these boards, so the message says the change is kept on this page and that Save writes it.
+    Press Save.
+ 6. Switch to Full Fund (Appropriation, at the top). Expected: its 30 made-up requirements, on the cycle you chose.
+ 7. Close every InPrivate/Incognito window. That deletes everything the test kept in browser storage.
 
 PLEASE WRITE DOWN
  - Chrome or Edge, and its version (... > Help and feedback > About).
  - Whether the browser says it is managed by your organisation (Settings shows "Your browser is managed by your organization").
- - In B1: did the browser ask on the first press of Save, or did you have to press Save a second time?
+ - In B1 and A4: did the browser ask on the first press of Save, or did you have to press Save a second time?
  - In A3: did Windows ask "replace?" for anything? Where was the new file written?
  - Whether your real board files open from a drive letter (C:\\...) or a \\\\server address.
  - Anything that said something you did not expect: a photo of the screen is perfect.
