@@ -4096,8 +4096,14 @@ const itemById = id => DATA.items.find(x=>x.id===id);
    of this would drift the moment one of them learned about a new container - which is the failure
    clinSplit and fsDirected were each pulled up to one function to prevent.
    A function declaration, so applyState can reach it at boot. */
+// v2.14 RV1-D (check): AN ENTRY IN THE LIST OF ADDED REQUIREMENTS THAT IS NOT ONE IS NO REQUIREMENT (customMendable). The year on screen
+// is mended on opening (customMend), but another appropriation is read as its own board would open it -- its raw store, from this
+// browser or the file -- and v2.13's Put back left null or an element with no id there too: Spruills, the PMO drill and the chart of
+// accounts threw on it from any other appropriation ("Cannot read properties of null (reading 'id')"), and every later redraw with
+// Spruills open threw with them. Read here, such an entry is left out and counts nowhere, as the mend sets it aside; that
+// appropriation's own board mends it, and says so, when it opens.
 function itemsOf(base, st){
-  const rm=(st&&st.removed)||[], add=(st&&st.custom)||[];
+  const rm=(st&&st.removed)||[], add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });
   return (base||[]).filter(function(i){ return rm.indexOf(i.id)<0; }).concat(add);
 }
 
@@ -6126,8 +6132,12 @@ function rcnBody(){
   const lost=heldRedraw(el, rcnDraw);
   // v2.14 RV1-D (u35-place-key-misplaces-typing): a row with no key of its own is found by what it holds, so one changed by the load
   // is lost to the hold as surely as one removed -- said as such, never as "no longer on the list" while it is still there
+  // v2.14 RV1-D (check): a row held by a key the loaded list still carries -- now on more than one row -- is not "no longer on the
+  // list" either: it is there, and could not be told apart, so it is said in the same words
+  const RL=lost.length? rcnReg() : [];
+  const asWas=lost.some(function(x){ const k=String(x.rk||''); return /^#/.test(k) || RL.some(function(e){ return !!e && e.k===k; }); });
   if(lost.length && rcnOpen) setStat('\u26a0 What you were typing in the RCN / EEIC list ('+lost.map(function(x){ return '\u201c'+esc(x.v)+'\u201d'; }).join(', ')
-    +') was not kept: '+(lost.some(function(x){ return /^#/.test(String(x.rk||'')); })
+    +') was not kept: '+(asWas
       ? 'the row it was in has no key of its own, and the list as loaded no longer holds that row as it was' : 'the row it was in is no longer on the list')
     +'. Nothing was changed.');
 }
@@ -6138,6 +6148,11 @@ function rcnBody(){
 // with the typing (99999) and the row meant kept its old one, without a word. Held by its stored key, code, EEIC, title and services,
 // and how many rows before it hold exactly the same, the typing follows its row wherever it moves, and a row changed or gone takes
 // it with it: it is then put on no other row, and the board says so (rcnBody).
+// v2.14 RV1-D (check): AND THE FIRST ROW OF A REPEATED KEY IS ONE OF THEM. Held by its key, a colleague's ordinary ✕ on that row,
+// loaded, left the repeat below it the first row with the key -- drawn with the held key -- and the typing (99999) overwrote the
+// repeat's own code (33333) without a word. A row is held by its key only where no other row on the list carries it. Every row also
+// carries what it holds (data-rs), and a held field is found again by either (inspHeldSame): a row whose key stops being, or becomes,
+// shared by the load keeps the typing so long as the row itself is as it was.
 function rcnRowSig(L, i){
   const sig=function(e){ e=e||{}; return JSON.stringify([e.k===undefined? null : e.k, e.rcn===undefined? null : e.rcn, e.eeic===undefined? null : e.eeic,
     e.t===undefined? null : e.t, Array.isArray(e.svc)? e.svc : null]); };
@@ -6171,8 +6186,9 @@ function rcnDraw(el){
     const svc=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
     // v2.14 (ledger U35): the row's key for the typing hold -- its own key, or, where it has none or repeats an earlier row's, what
     // the row holds (rcnRowSig)
-    const rk=(typeof e.k==='string' && rep===i)? e.k : rcnRowSig(L, i);
-    h+='<tr data-rk="'+esc(rk)+'"><td style="text-align:left"><input class="btn" data-rf="rcn" style="font-size:9.5px;padding:3px 6px;width:74px'
+    // v2.14 RV1-D (check): a key only one row carries (rcnRowSig)
+    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;
+    h+='<tr data-rk="'+esc(rk)+'" data-rs="'+esc(rs)+'"><td style="text-align:left"><input class="btn" data-rf="rcn" style="font-size:9.5px;padding:3px 6px;width:74px'
       +bad(rcnOkNum,e.rcn)+'" value="'+esc(e.rcn||'')+'" placeholder="12345" '
       +'title="Requirement Control Number \u2014 five digits" '
       +'onchange="rcnSet('+i+',&quot;rcn&quot;,this.value,this)"></td>'
@@ -12542,7 +12558,12 @@ function inShapeWhy(o, path, asPlan){
     // v2.14 RV1-D (oldfiles, also noticed): in the user's own board (a full import, 'board'), an entry an older ORBIT's Put back left
     // in the list of added requirements -- null, or one with no requirement id -- is no reason to refuse it: the import mends it as it
     // comes across and says so (customMend, fullImportText). Every entry that is a requirement is checked as ever.
-    if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
+    // v2.14 RV1-D (check): AND ONLY IN A PLAN THE IMPORT MENDS -- a working plan's years, under the file's appns or at its top (one
+    // appropriation's board). Left in a locked cycle's year it let the file through and was never mended: the import took it, and the
+    // reopened board threw on viewing that cycle ("Cannot read properties of null"). No ORBIT could lock such a list, so a cycle
+    // holding one is refused as before, as is every other door's file (v1.95 R09).
+    if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && /^the saved state(\.appns\.[^.]+)?(\.years\.[^.]+)?$/.test(path)
+        && customMendable(o.custom[i])) && (w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
     for(const k of IN_ID_MAPS) if((w=eachKey(o[k], function(id){ return IN_ID_BAD.test(id)? inIdWhy(id, 'the requirement id keying '+path+'.'+k) : ''; }))) return w;
     if((w=inAmtsWhy(o.discSvc, path+'.discSvc') || inAmtsWhy(o.mandSvc, path+'.mandSvc')
         || inAmtWhy(o.discBA, path+'.discBA') || inAmtWhy(o.mandBA, path+'.mandBA') || inAmtWhy(o.absorbFloor, path+'.absorbFloor'))) return w;
@@ -34654,9 +34675,11 @@ async function driveRestore(i){
     // v2.14 RV1-D (held, also noticed): BUT NOT THE FOLDER'S OWN COPY, wherever 💾 Save writes. The rule kept what was on screen
     // whenever Live view was just watching: the folder's own copy (the one last loaded from or written to it, nothing saved since --
     // a save into the board file moves its time) was then kept aside as "saved only in the board file", which it is not, and it took
-    // the one kept slot; with that slot already holding work, the earlier copy was refused in those words. That copy is in the folder
-    // -- the copy standing there now was kept in the history just above, and one a colleague replaced their save kept there -- so
-    // what is on screen is kept aside when it is work no saved copy has, or when it is not the folder's own copy, and only then.
+    // the one kept slot; with that slot already holding work, the earlier copy was refused in those words. That copy was written to
+    // the folder -- the copy standing there now was kept in the history just above, and one a colleague replaced was kept there by
+    // their save. (The history thins itself: a copy two later saves within ten minutes superseded can go, but only once a save built
+    // on it stands after it.) So what is on screen is kept aside when it is work no saved copy has, or when it is not the folder's
+    // own copy, and only then.
     const own=ownUnsaved(MS, j.store, baseGet());
     const keep=own || (+MS.ts||0)!==driveBaseOf(pinAp);
     const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own, put:true}, baseGet()) : true;
@@ -39815,7 +39838,7 @@ function inspHeld(el){
   return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend && document.activeElement===i; }).map(function(i){
     const r=i.closest? i.closest('[data-rk]') : null;   // v2.14 (U35): its row and field, and whether Esc would ask (__dlgPend)
     return {el:i, h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd,
-      rk:r? r.getAttribute('data-rk') : null, rf:i.getAttribute('data-rf'), dp:!!i.__dlgPend}; });
+      rk:r? r.getAttribute('data-rk') : null, rs:r? r.getAttribute('data-rs') : null, rf:i.getAttribute('data-rf'), dp:!!i.__dlgPend}; });
 }
 function inspHeldBack(el, held){
   held.forEach(function(x){
@@ -39830,7 +39853,10 @@ function inspHeldBack(el, held){
 // list), by its handler everywhere else (the RECORD panel and the rows draw no data-rk, and keep their F2 hold as it was).
 function inspHeldSame(n, x){
   if(x.rk===null || x.rk===undefined) return n.getAttribute('onchange')===x.h;
-  const r=n.closest? n.closest('[data-rk]') : null; return !!r && r.getAttribute('data-rk')===x.rk && n.getAttribute('data-rf')===x.rf;
+  const r=n.closest? n.closest('[data-rk]') : null;
+  // v2.14 RV1-D (check): by its row's key, or by what the row holds where the key went from one row to several or back (rcnRowSig).
+  // At most one row answers: a key one row carries is in no other row's data-rs, and data-rs is one row's own.
+  return !!r && n.getAttribute('data-rf')===x.rf && (r.getAttribute('data-rk')===x.rk || (!!x.rs && r.getAttribute('data-rs')===x.rs));
 }
 // Draw a box over a held field: its handler is taken off while the old field is removed (Chromium fires change on a focused
 // field as innerHTML removes it, and the page hears it), the typing is put back after, and what found no place is returned.

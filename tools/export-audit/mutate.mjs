@@ -1768,8 +1768,8 @@ const MUTATIONS = [
     find: "for(const k of IN_ID_MAPS) if(",
     repl: "for(const k of []) if(" },
   { id: "door-custom", area: "inShapeWhy", what: "an added requirement’s id is not checked",
-    find: "if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy",   // v2.14 RV1-D: retargeted (the own board's mendable entries pass)
-    repl: "if(false) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy" },
+    find: "if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && /^the saved state(",   // v2.14 RV1-D: retargeted (the own board's mendable entries pass, in a plan the import mends)
+    repl: "if(false) for(let i=0;i<o.custom.length;i++) if(!(_inRcnOwn==='board' && /^the saved state(" },
   { id: "door-order", area: "inShapeWhy", what: "a plan’s priority order is not checked",
     find: "for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i]",
     repl: "for(let i=0;i<0;i++) if((w=inIdWhy(o.order[i]" },
@@ -10374,11 +10374,19 @@ const MUTATIONS = [
 
   // ---- RV1-D (held findings and older files) ----
   { id: 'v214-rv1-d-rcn-place-again', area: "rcnDraw", what: "a row with no key of its own is held by its place again: a load that puts a row above it puts the typing on another row, and leaving the field overwrites that row's code",
-    find: "    const rk=(typeof e.k==='string' && rep===i)? e.k : rcnRowSig(L, i);", repl: "    const rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;" },
+    // v2.14 RV1-D (check): retargeted to the line that now also holds a key only one row carries
+    find: "    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;", repl: "    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;" },
+  { id: 'v214-rv1-d-rcn-first-of-repeat', area: "rcnDraw", what: "the first row of a repeated key is held by its key: a colleague's ✕ on it puts the typing on the repeat below, and leaving the field overwrites that row's code",
+    find: " && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;", repl: ")? e.k : rs;" },
+  { id: 'v214-rv1-d-rcn-held-no-sig', area: "inspHeldSame", what: "a row whose key a load makes shared, or one row's alone, loses the typing though the row is there as it was",
+    find: " && (r.getAttribute('data-rk')===x.rk || (!!x.rs && r.getAttribute('data-rs')===x.rs));", repl: " && r.getAttribute('data-rk')===x.rk;" },
   { id: 'v214-rv1-d-rcn-sig-no-count', area: "rcnRowSig", what: "two rows alike with no key share one hold: typing in the second lands on the first",
     find: "  return '#'+me+'#'+n;", repl: "  return '#'+me;" },
   { id: 'v214-rv1-d-rcn-lost-words', area: "rcnBody", what: "typing in a row with no key that the load changed is said to be in a row no longer on the list, while the row is still there",
-    find: "lost.some(function(x){ return /^#/.test(String(x.rk||'')); })", repl: "false" },
+    // v2.14 RV1-D (check): retargeted to the line that now carries the same words' choice
+    find: "const asWas=lost.some(function(x){", repl: "const asWas=false&&lost.some(function(x){" },
+  { id: 'v214-rv1-d-rcn-lost-key-shared', area: "rcnBody", what: "typing in a row whose key a load made shared is said to be in a row no longer on the list, while the row is still there",
+    find: "return /^#/.test(k) || RL.some(function(e){ return !!e && e.k===k; }); });", repl: "return /^#/.test(k); });" },
   { id: 'v214-rv1-d-si-old-conflict', area: "pmoRows", what: "a copy published before v2.14 is read as a CONFLICT over a no SI code the board held when it went out: “changed here too”, and Apply warns it overwrites a field THIS BOARD changed",
     find: "        if(k==='si' && was===null && now==='' && !pkg.siHand) was='';\n", repl: "" },
   { id: 'v214-rv1-d-si-mark-unsent', area: "pmoSubmit", what: "a v2.14 copy's package does not say it records a none chosen by hand, so a real conflict over one goes unflagged",
@@ -10402,7 +10410,14 @@ const MUTATIONS = [
   { id: 'v214-rv1-d-custom-unsaid', area: "opening", what: "a list of added requirements mended on opening is mended without a word",
     find: "try{ const cm=customMendSay(); if(cm){", repl: "try{ const cm=''; if(cm){" },
   { id: 'v214-rv1-d-door-refuses-mendable', area: "inShapeWhy", what: "a full import of the user's own board refuses it for a list of added requirements an older ORBIT damaged",
-    find: "if(!(_inRcnOwn==='board' && customMendable(o.custom[i])) && (w=itemWhy", repl: "if((w=itemWhy" },
+    // v2.14 RV1-D (check): retargeted to the door's line as it now reads
+    find: "if(!(_inRcnOwn==='board' && /^the saved state(", repl: "if(!(false && /^the saved state(" },
+  { id: 'v214-rv1-d-door-mends-any-plan', area: "inShapeWhy", what: "a full import takes a board whose locked cycle holds a damaged list of added requirements, which nothing mends: viewing that cycle then throws",
+    find: "_inRcnOwn==='board' && /^the saved state(\\.appns\\.[^.]+)?(\\.years\\.[^.]+)?$/.test(path)\n        && customMendable(o.custom[i]))", repl: "_inRcnOwn==='board' && customMendable(o.custom[i]))" },
+  { id: 'v214-rv1-d-other-appn-unread', area: "itemsOf", what: "from another appropriation, Spruills, the PMO drill and the chart of accounts throw on a list of added requirements an older ORBIT damaged",
+    find: "add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });", repl: "add=(st&&st.custom)||[];" },
+  { id: 'v214-rv1-d-other-appn-counts-aside', area: "itemsOf", what: "from another appropriation, an element with no requirement id is counted as a requirement: Spruills adds its $300",
+    find: "add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });", repl: "add=((st&&st.custom)||[]).filter(function(x){ return x!==null; });" },
   { id: 'v214-rv1-d-import-unmended', area: "fullImportText", what: "a full import takes a damaged list of added requirements as it is, and its question does not say so",
     find: "    if(st.years && typeof st.years==='object') Object.keys(st.years).forEach(function(y){ const r=customMend(st.years[y], y, true); if(r) L.push(r); });", repl: "    if(false){}" },
   { id: 'v214-rv1-d-restore-keeps-folder-copy', area: "driveRestore", what: "just watching, Put this back keeps the folder's own copy aside as “saved only in the board file”, and with the slot taken refuses the earlier copy",

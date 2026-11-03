@@ -17702,6 +17702,48 @@ await (async () => {
     let Y2 = null; try { Y2 = (st => st.years[st.cur])(pubOf(F2).appns.om); } catch (e) { Y2 = null; }
     chk(name, '(c) saved', 'the saved file holds NEW-2 alone in the list, and the element set aside',
       Y2 ? J([(Y2.custom || []).map(x => x && x.id), (Y2.customAside || []).map(a => a.v.ask[0])]) : 'no file', J([['NEW-2'], [300]]));
+    // v2.14 RV1-D (the check of this fix): (d) ANOTHER APPROPRIATION'S DAMAGED LIST, READ FROM THIS ONE. Opening mends the year on
+    // screen; O&M's list, read from Full Fund as its own board would open it -- the file's copy, or this browser's -- still held what
+    // v2.13 left, and Spruills, the PMO drill and the chart of accounts threw on it ("Cannot read properties of null (reading 'id')"),
+    // every later redraw with Spruills open with them. FAILS ON 44aa984 AND ON THE FIRST CUT OF THIS FIX: each read throws. The
+    // expectation is the same file with the two entries taken out by hand (NEW-2 alone, $200 -- a board with no consolidated payload
+    // reads another appropriation's added requirements, and nothing else, there).
+    const PROGRAM = readFileSync(BOARD, 'utf8');
+    const Pc = JSON.parse(J(P)); { const yc = Pc.appns.om.years[Pc.appns.om.cur]; yc.custom = yc.custom.filter(x => x && typeof x.id === 'string'); }
+    const fyOm = +P.appns.om.cur;
+    const other = (B2, how) => w209ev(B2, `(function(){ var r=[]; var t=function(f){ try{ return f(); }catch(e){ return 'THREW '+e.message; } };
+      r.push(t(function(){ var b=spGather().blocks.filter(function(x){ return x.name==='O&M'; })[0]; return b? b.req[${fyOm}] : 'no O&M block'; }));
+      r.push(t(function(){ toggleSp(); render(); var ok=spOpen===true; toggleSp(); render(); return ok; }));
+      r.push(t(function(){ return Array.isArray(pmoDetail('AV', [${fyOm}])); }));
+      r.push(t(function(){ return Array.isArray(coaRows(${fyOm})); }));
+      return JSON.stringify(r); })()`);
+    const C = boot({ html: v14With(PROGRAM, Pc), appn: 'FULL FUND' });
+    chk(name, '(d) fixture', 'the same file with the two entries taken out by hand: from Full Fund, Spruills reads O&M as NEW-2’s $200, and every read runs',
+      other(C, 'clean'), J([200, true, true, true]));
+    const Df = boot({ html: v14With(PROGRAM, P), appn: 'FULL FUND' });
+    chk(name, '(d) another appropriation, the file’s copy', 'from Full Fund, O&M’s damaged list in the file: Spruills reads $200, opens and closes, the PMO drill and the chart of accounts run',
+      other(Df, 'file'), J([200, true, true, true]));
+    chk(name, '(d) another appropriation, the file’s copy', 'no page error', J(Df.errors.map(e => String(e).slice(0, 80))), '[]');
+    const Ds = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
+    chk(name, '(d) another appropriation, this browser’s copy', 'from Full Fund, O&M’s damaged list in this browser (as v2.13 left it): the same',
+      other(Ds, 'storage'), J([200, true, true, true]));
+    chk(name, '(d) another appropriation, this browser’s copy', 'no page error', J(Ds.errors.map(e => String(e).slice(0, 80))), '[]');
+    // v2.14 RV1-D (the check of this fix): (e) THE FULL IMPORT'S DOOR LETS THE DAMAGE THROUGH ONLY WHERE THE IMPORT MENDS IT. The first cut
+    // passed it in any plan the file carried, a locked cycle's year included, which nothing mends: the import took it and the reopened
+    // board threw on viewing the cycle. PASSES ON 44aa984 (its door refused both); FAILS ON THE FIRST CUT: the cycle's file is taken.
+    w209ev(B, `(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; blCyc='PB'; blYr=MS.cur; cycLock(); return 'ok'; })()`);
+    const P3 = pubOf(w209ev(B, `buildSavedHtml()`));
+    const ck = Object.keys(((P3.cycDb || {}).byAp || {}).om ? P3.cycDb.byAp.om.cycles || {} : {})[0];
+    chk(name, '(e) fixture', 'this build’s own board file, with one locked cycle on O&M holding FY' + (fyOm % 100), J([!!ck, !!(ck && P3.cycDb.byAp.om.cycles[ck].years[fyOm])]), J([true, true]));
+    const Pcy = JSON.parse(J(P3)); { const cy = Pcy.cycDb.byAp.om.cycles[ck].years[fyOm]; cy.custom = (cy.custom || []).concat([null, { ask: [300, 0, 0], fy26: [0, 0, 0] }]); }
+    const Pwk = JSON.parse(J(P3)); { const wk = Pwk.appns.om.years[Pwk.appns.om.cur]; wk.custom = (wk.custom || []).concat([null, { ask: [300, 0, 0], fy26: [0, 0, 0] }]); }
+    const Nd = boot();
+    const door = (Q) => w209ev(Nd, `inboundCheckOwn(${J(v14With(PROGRAM, Q))}, 'board') || 'passes'`);
+    chk(name, '(e) the door', 'the user’s own board with the damage in a locked cycle’s year is refused, naming where; the same damage in a working plan’s year passes (it is mended as it comes across)',
+      J([/^the requirement at the saved state\.cycDb\.byAp\.om\.cycles\.[^ ]+\.years\.\d+\.custom\[\d+\] is not a requirement$/.test(door(Pcy)), door(Pwk)]), J([true, 'passes']));
+    const ls0 = J(lsOf(Nd.ev));
+    let impC = 'threw'; try { impC = w209ev(Nd, `(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return String(fullImportText(${J(v14With(PROGRAM, Pcy))}, 'cycle.html')); })()`); } catch (e) { impC = 'threw'; }
+    chk(name, '(e) the full import', 'and the full import of it takes nothing: browser storage is as it was', J([impC, J(lsOf(Nd.ev)) === ls0]), J(['false', true]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }

@@ -8398,6 +8398,53 @@ await (async () => {
       B.ev(`render(); 'ok'`); leave(B);
       chk(name, '(e) two alike', 'leaving it commits it to the second of the two', stored(B), J([['TWIN', '44444'], ['TWIN', '99999']]));
     }
+    // v2.14 RV1-D (the check of this fix): THE FIRST ROW OF A REPEATED KEY WAS STILL HELD BY ITS KEY. A colleague's ordinary ✕ on that
+    // row, loaded, left the repeat the first row with the key, and the typing (99999) overwrote the repeat's own code (33333). And a key
+    // one row carries became two rows' by a load that added a row with it above: the new row took the key, and the typing. FAILS ON
+    // 44aa984 AND ON THE FIRST CUT OF THIS FIX: (f) and (h) the typing lands on another row and is saved there; (g) and (h) a row that
+    // is still there as it was loses the typing; (i) the words say a row that is still there is gone.
+    // (f) typing in the FIRST of two rows sharing K1 (a keyed row above); a colleague's ✕ removes that row: kept on no row, and said
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('K1-FIRST', '22222', 'K1'), row('K1-REPEAT', '33333', 'K1')]);
+      typeIn(B, 'K1-FIRST', '99999');
+      load(B, `L.splice(1, 1);`);
+      chk(name, '(f) the first of a repeated key', 'no field holds the typing after the row it was in was removed',
+        B.ev(`String([].some.call(document.querySelectorAll('#rcnBody input'), function(i){ return i.value==='99999'; }))`), 'false');
+      leave(B);
+      chk(name, '(f) the first of a repeated key', 'leaving changes nothing: K1-REPEAT keeps its own 33333', stored(B), J([['TOP', '11111'], ['K1-REPEAT', '33333']]));
+      chk(name, '(f) the first of a repeated key', 'and the board says the row has no key of its own and is not on the list as it was',
+        said(B).indexOf('was not kept: the row it was in has no key of its own, and the list as loaded no longer holds that row as it was') >= 0, true);
+    }
+    // (g) typing in the SECOND of two rows sharing K1; a colleague's ✕ removes the first, so the key becomes this row's alone: kept
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('K1-FIRST', '22222', 'K1'), row('K1-REPEAT', '33333', 'K1')]);
+      typeIn(B, 'K1-REPEAT', '99999');
+      load(B, `L.splice(1, 1);`);
+      chk(name, '(g) a repeated key becomes one row’s', 'the typing is still in K1-REPEAT’s field, with the keyboard', focused(B), J(['K1-REPEAT', '99999']));
+      leave(B);
+      chk(name, '(g) a repeated key becomes one row’s', 'leaving it commits it to K1-REPEAT', stored(B), J([['TOP', '11111'], ['K1-REPEAT', '99999']]));
+    }
+    // (h) typing in K2-ONLY, the one row with K2; a load adds a row with K2 above it: the typing stays with K2-ONLY, the new row keeps 44444
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('K2-ONLY', '22222', 'K2')]);
+      typeIn(B, 'K2-ONLY', '99999');
+      load(B, `L.splice(1, 0, {k:'K2', rcn:'44444', eeic:'DDDDD', t:'K2-NEW', svc:['USAF']});`);
+      chk(name, '(h) a key becomes shared', 'the typing is still in K2-ONLY’s field, with the keyboard', focused(B), J(['K2-ONLY', '99999']));
+      leave(B);
+      chk(name, '(h) a key becomes shared', 'leaving it commits it to K2-ONLY; the row the load added keeps its own 44444',
+        stored(B), J([['TOP', '11111'], ['K2-NEW', '44444'], ['K2-ONLY', '99999']]));
+    }
+    // (i) the same, but the load also changed K2-ONLY's title: kept on no row, and never said to be off the list (K2 is still on it)
+    {
+      const B = board([row('TOP', '11111', 'rX'), row('K2-ONLY', '22222', 'K2')]);
+      typeIn(B, 'K2-ONLY', '99999');
+      load(B, `L[1].t='K2-ONLY RENAMED'; L.splice(1, 0, {k:'K2', rcn:'44444', eeic:'DDDDD', t:'K2-NEW', svc:['USAF']});`);
+      leave(B);
+      chk(name, '(i) shared and changed', 'leaving changes nothing: every row keeps its own code', stored(B), J([['TOP', '11111'], ['K2-NEW', '44444'], ['K2-ONLY RENAMED', '22222']]));
+      chk(name, '(i) shared and changed', 'the board says the row is not on the list as it was, not that it is no longer on the list',
+        J([said(B).indexOf('the list as loaded no longer holds that row as it was') >= 0, /is no longer on the list/.test(said(B))]), J([true, false]));
+      chk(name, 'errors · (f)–(i)', 'no page error', String(B.errors.length), '0');
+    }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }

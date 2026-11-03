@@ -12,6 +12,18 @@
   "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
  },
  {
+  "id": "v214-rv1-d-rcn-first-of-repeat",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
+  "id": "v214-rv1-d-rcn-held-no-sig",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
+  "id": "v214-rv1-d-rcn-lost-key-shared",
+  "caughtBy": "board / v2.14 RV1-D — the RCN / EEIC list holds typing"
+ },
+ {
   "id": "v214-rv1-d-si-old-conflict",
   "caughtBy": "import / v2.14 RV1-D — a copy published before v2.14"
  },
@@ -61,6 +73,18 @@
  },
  {
   "id": "v214-rv1-d-import-unmended",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-door-mends-any-plan",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-other-appn-unread",
+  "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
+ },
+ {
+  "id": "v214-rv1-d-other-appn-counts-aside",
   "caughtBy": "import / v2.14 RV1-D — a board whose list of added requirements"
  },
  {
