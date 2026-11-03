@@ -90,5 +90,25 @@
  {
   "id": "v214-w2-opens-clears-changed",
   "caughtBy": "import / v2.14 W2 — the file route keeps what browser storage held"
+ },
+ {
+  "id": "v214-rv1-a-wasmiss-file-own",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-a-left-unasked",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-decline-writes",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-any-file",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-a-left-report-says-writes",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
  }
 ]

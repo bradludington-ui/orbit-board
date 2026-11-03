@@ -3335,7 +3335,7 @@ function impOwnRep(o){
       +'appropriation’s board, puts it back.' : '')
     +(left.length? ' ⚠ This browser’s copy of '+esc(left.join(', '))+' changed after the import was written, so it was left as it is — '
       +'it may be another ORBIT tab’s work. Where it is newer than this file’s copy, this board reads it in place of the import’s, '
-      +'and 💾 Save writes it into this file.' : '');
+      +'and 💾 Save asks before it writes it into this file.' : '');
 }
 function persistDest(){ DESTDB.ts=Date.now(); return lsSet(DEST_KEY, JSON.stringify(DESTDB), 'The destination list'); }
 // ---- THE REPROGRAMMING LOG, CARRIED, NOT SHOWN (v2.02) -----------------------------------------------------------
@@ -10812,6 +10812,14 @@ async function _saveInPlaceFileRun(o){
         setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length+' thing'+(lost.length===1?'':'s')+' the board on screen does not carry. If it is not this board’s file: <button type="button" class="nb lnk" onclick="fhRepick()">choose another file…</button> · <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>');
         return;
       }
+      // v2.14 RV1-A (left-copy-saved-into-import-file): and before it writes a copy this browser held in place of the import's into
+      // the import's own file (impLeftAsk). Declined, nothing is written and the file keeps the import whole.
+      const lq=impLeftAsk(p, q, h.name||FNAME);
+      if(lq && !confirm(lq)){
+        if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds the board as the full import wrote it; this board shows this browser’s own copy of what the question named in place of the import’s. 💾 Save again and press OK to write that copy into the file, or <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button> elsewhere.');
+        return;
+      }
     }
     // v2.14 W1 (item 140 a): WRITE ACCESS FOR A FILE PICKED IN THE OPEN WINDOW, asked only now, after every check. Remembered only once
     // granted. Asking can need a fresh click (the checks above waited on the disk): then the file is remembered, checked, nothing is
@@ -13183,20 +13191,57 @@ function impFileWasMiss(html, L){
   const same=function(a, b){ return !!(a && b && typeof a==='object' && typeof b==='object' && sideText(a)===sideText(b)); };
   const appns=(P.appns && typeof P.appns==='object')? P.appns : {}, byAp=(P.cycDb && P.cycDb.byAp && typeof P.cycDb.byAp==='object')? P.cycDb.byAp : {};
   const mine=appns[_AP.slug], screen=!!(mine && typeof mine==='object' && +(mine.ts||0)===+(MS.ts||0));
-  const slotOf=function(key){
-    for(const k in _SLUGMAP){ if(_SLUGMAP[k].key===key) return appns[k]; if(_SLUGMAP[k].key+'-cyc'===key) return byAp[k]; }
-    return (key===DEST_KEY)? P.destDb : (key===EXDB_KEY)? P.execDb : (key===ACEDB_KEY)? P.aceDb : (key===RPDB_KEY)? P.rpDb : (key===BUDDB_KEY)? P.budDb : undefined;
-  };
+  const slotOf=function(key){ return impSlotOf(P, key); };
   ks.forEach(function(key, i){
     if(key===''){ if(!screen) out.push(L[i]); return; }
     let raw=null; try{ raw=localStorage.getItem(key); }catch(e){ raw=undefined; }
     if(raw===null) return;                                   // nothing there now: nothing for Write to clear
     const v=(raw===undefined)? undefined : pj(raw);
     if(same(slotOf(key), v)) return;
+    // v2.14 RV1-A (the check of RV1-A: a false "does not hold"): one of this page's lists whose stored copy is the board file's own
+    // (impFileSameAsFile) is held already -- by the board file this page was opened from -- so Write clearing it loses nothing. Step 1
+    // names such a list when this page's copy is the unsaved one (a destination added: flowAddEnt writes the destination list, and
+    // the locked-cycle store, which carries the same list, stays the file's in storage); the as-it-was file holds this page's copy,
+    // and storage's was counted missing, so Write waited on "another ORBIT tab's work" that did not exist.
+    if(impFileMem(key) && impFileSameAsFile(key, v)) return;
     if(key===_AP.key && screen && v && typeof v==='object' && +(v.ts||0)<=+(MS.ts||0)) return;
     out.push(L[i]);
   });
   return out;
+}
+// v2.14 RV1-A: what a board file's saved state (P, parsed) holds under one storage key -- a plan, a locked-cycle store or a list;
+// undefined for a key no board file carries. One reading, for the as-it-was check and Save's question about copies left in front.
+function impSlotOf(P, key){
+  if(!P || typeof P!=='object') return undefined;
+  const appns=(P.appns && typeof P.appns==='object')? P.appns : {}, byAp=(P.cycDb && P.cycDb.byAp && typeof P.cycDb.byAp==='object')? P.cycDb.byAp : {};
+  for(const k in _SLUGMAP){ if(_SLUGMAP[k].key===key) return appns[k]; if(_SLUGMAP[k].key+'-cyc'===key) return byAp[k]; }
+  return (key===DEST_KEY)? P.destDb : (key===EXDB_KEY)? P.execDb : (key===ACEDB_KEY)? P.aceDb : (key===RPDB_KEY)? P.rpDb : (key===BUDDB_KEY)? P.budDb : undefined;
+}
+// v2.14 RV1-A (left-copy-saved-into-import-file -- the check of RV1-A: the two routes the first fix left): 💾 SAVE ASKS BEFORE IT
+// WRITES A COPY THIS BROWSER HELD IN PLACE OF THE IMPORT'S INTO THE IMPORT'S OWN FILE. The import's file keeps aside a plan that
+// changed after the import was written (_impOpen), but a plan whose kept slot already holds other work, or one there was no room
+// for, and every list (C22: a list has no kept slot), is left in browser storage; newer than the file's copy, the board reads it in
+// place of the import's (pubsFor, the stores) and the first Save wrote it over the import with nothing asked -- the old tab's Full
+// Fund, or its cost estimates, in the new file, the import's gone from it. Asked while the file on disk is still the import's own,
+// never saved since (its pubState carries the import's stamp, the very one this page opened: the first save drops it), naming each
+// copy this opening found standing in front of the file's (sideBootNote.keys: what browser storage held before opening, newer than
+// the file's and different) whose copy in the bytes about to be written is not the file's. So every opening of that file asks until
+// a Save is let through, and a file saved since is an ordinary board file. The plan on screen is not among them: the HOLD ON asks
+// about it already (its record names the file it came from). '' when there is nothing to ask. Never throws.
+function impLeftAsk(p, q, fname){
+  try{
+    const F0=impSrc0();       // the file as this page opened it (PUB is narrowed to one appropriation while the board opens)
+    const a=(F0.impFile && typeof F0.impFile==='object')? F0.impFile.n : null;
+    const b=(p && p.impFile && typeof p.impFile==='object')? p.impFile.n : null;
+    if(typeof a!=='string' || !a || a!==b) return '';
+    const txt=function(o){ return (o && typeof o==='object')? sideText(o) : String(o); };
+    const names=(sideBootNote.keys||[]).filter(function(k){ return txt(impSlotOf(p, k))!==txt(impSlotOf(q, k)); }).map(sideKeyName);
+    if(!names.length) return '';
+    return '⚠ BEFORE THIS SAVE — “'+fname+'” still holds the board exactly as the full import wrote it. This browser holds its own copy of '
+      +names.join(', ')+', changed after the import was written — it may be another ORBIT tab’s work — and this board reads it in place of the import’s.'
+      +'\n\nSaving now writes this browser’s copy into the file, over the import’s.'
+      +'\n\nOK — save this browser’s copy into the file.\nCancel — don’t save: the file keeps the import’s copy.';
+  }catch(e){ return ''; }
 }
 function fullImportRescue(which){
   const n=/^inc(\d+)$/.exec(String(which));          // v1.99 (item 86): a batch offers each file it took, by number
@@ -33202,19 +33247,22 @@ function sideUnsaved(){
   return (_sideGen!==_sideSaved || !!(sideBootNote.keys||[]).length) && !driveStoreOn();
 }
 // v1.99 (item 95): which lists the file is behind on, said where the saved state is shown
+// v2.14 RV1-A: one key's name, as the save state says it -- read here and by impLeftAsk, so the two never name a list two ways
+function sideKeyName(k){
+  if(k===EXDB_KEY) return 'the imported execution data';
+  if(k===ACEDB_KEY) return 'the cost estimates';
+  if(k===BUDDB_KEY) return 'the BAE budget list';
+  if(k===RPDB_KEY) return 'the reprogramming log';
+  if(k===DEST_KEY) return 'the destination list';
+  if(k===CYC_KEY) return 'this appropriation\u2019s locked PPBE cycles';
+  for(const s in _SLUGMAP){ if(k===_SLUGMAP[s].key) return 'the '+_SLUGMAP[s].t+' plan';
+                            if(k===_SLUGMAP[s].key+'-cyc') return _SLUGMAP[s].t+'\u2019s locked PPBE cycles'; }
+  return k;
+}
 function sideBootSay(){
   try{
     const ks=sideBootNote.keys||[]; if(!ks.length || driveStoreOn()) return '';
-    const names=ks.map(function(k){
-      if(k===EXDB_KEY) return 'the imported execution data';
-      if(k===ACEDB_KEY) return 'the cost estimates';
-      if(k===BUDDB_KEY) return 'the BAE budget list';
-      if(k===RPDB_KEY) return 'the reprogramming log';
-      if(k===DEST_KEY) return 'the destination list';
-      if(k===CYC_KEY) return 'this appropriation\u2019s locked PPBE cycles';
-      for(const s in _SLUGMAP){ if(k===_SLUGMAP[s].key) return 'the '+_SLUGMAP[s].t+' plan';
-                                if(k===_SLUGMAP[s].key+'-cyc') return _SLUGMAP[s].t+'\u2019s locked PPBE cycles'; }
-      return k; });
+    const names=ks.map(sideKeyName);
     return 'This browser holds changes to '+names.join(', ')+' that the file does not have: \ud83d\udcbe Save writes them into the file. ';
   }catch(e){ return ''; }
 }

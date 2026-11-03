@@ -17604,6 +17604,34 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         J([J(['what is on screen', 'the O&M plan']), 'ON SCREEN ONLY', true, false]));
       await W214.rel(mk, keepBoards());
     }
+    // (g) this page's OWN unsaved list: a destination added with the real control (flowAddEnt). It writes the destination list; the
+    // locked-cycle store, which carries the same list, stays in browser storage as the board file's own. The as-it-was file holds both
+    // as this page has them, and the file this page was opened from holds the stored cycles, so nothing is missing: ✓, and Write is
+    // offered. Fails on 6b9ced8 (RV1-A's first fix: "It does not hold the locked cycles for O&M … another ORBIT tab’s work", Write held
+    // back for work that did not exist -- the check of RV1-A); passes on 44aa984 and here.
+    {
+      const mk = bootMark();
+      const T = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 20));
+      const n0 = +T.ev('DESTDB.ents.length');
+      T.ev(`flowAddEnt(); 'ok'`);
+      const ents = JSON.parse(T.ev('JSON.stringify(DESTDB.ents)')), added = ents[ents.length - 1] || {};
+      const noTs = (o) => { const c = Object.assign({}, o || {}); delete c.ts; return J(c); };
+      chk(name, '(g) a destination added here', 'the fixture: one destination was added, and the stored locked cycles are the board file’s own (a CONTROL)',
+        J([ents.length - n0, noTs(JSON.parse(T.ev('localStorage.getItem(CYC_KEY)'))) === noTs(F.cycDb.byAp.om)]), J([1, true]));
+      const P = picker(T);
+      await refuse(T, NEW.html);
+      press(T, P, /^💾 Save this board as it was/);
+      const wasName = P.picks[P.picks.length - 1];
+      await settle(T, () => /Saved as/.test(box(T).text));
+      const was = pubOf(P.files[wasName] || '') || {}, has = (o) => !!(o && Array.isArray(o.ents) && o.ents.some(e => e && e.k === added.k));
+      chk(name, '(g) a destination added here', 'the as-it-was file holds the destination added, in the list and in the locked-cycle store',
+        J([has(was.destDb), has(((was.cycDb || {}).byAp || {}).om)]), J([true, true]));
+      const b = box(T);
+      chk(name, '(g) a destination added here', 'the box says ✓ Saved, names nothing as not held, and Write is offered',
+        J([/✓ Saved as “[^”]+” and read back whole\./.test(b.text), /It does not hold/.test(b.text), b.go.disabled]), J([true, false, false]));
+      await W214.rel(mk, keepBoards());
+    }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
@@ -17678,13 +17706,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
-  const name = 'v2.14 RV1-A — the import’s own file keeps a plan that changed after the write aside, says so whatever else it says, and its first Save writes the import (w2-own-file-report-swallowed, impown-left-advice-false, left-copy-saved-into-import-file)';
+  const name = 'v2.14 RV1-A — the import’s own file keeps a plan that changed after the write aside, says so whatever else it says, and its first Save writes the import or asks before writing a copy left (w2-own-file-report-swallowed, impown-left-advice-false, left-copy-saved-into-import-file)';
   try {
     const { J } = W214;
     const R = await rv1aWritten();
     const W = R.W, PW = W1H.pubOf(W), omW = PW.appns.om, ffW = PW.appns.ff, yO = rv1aYr(omW), yF = rv1aYr(ffW);
     const changed = (st, id, text) => { const c = JSON.parse(J(st)); c.ts = Date.now() + 60000; c.years[rv1aYr(c)].notes = Object.assign({}, c.years[rv1aYr(c)].notes, { [id]: text }); return c; };
     const rec = J({ file: W1H.fileTs(R.OLD.html), folder: {}, dirty: true });     // another tab's record, naming the old file
+    // one 💾 Save, every question answered `yes`; the questions asked, once the save has finished
+    const saveOnce = async (B, f, yes) => {
+      B.ev(`globalThis.__q=[]; window.confirm=function(q){ globalThis.__q.push(String(q)); return ${yes}; }; window.alert=function(){}; saveInPlace(); 'ok'`);
+      await W214.settle(B, () => B.ev('_saveBusy') === 0, 6000);
+      return JSON.parse(B.ev('JSON.stringify(globalThis.__q)'));
+    };
     // (a) the plan on screen (O&M) changed after the write, its kept slot free
     {
       const mk = bootMark();
@@ -17716,6 +17750,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const sv = W1H.pubOf(f.content) || {}, ff2 = (sv.appns || {}).ff || {};
       chk(name, '(b) another appropriation', 'the first Save writes the import’s Full Fund into the file, not the copy that changed',
         J([f.writes, ((ff2.years || {})[yF] || {}).notes && ff2.years[yF].notes.F === 'FF CHANGED AFTER THE WRITE', J(ff2.titles || {}) === J(ffW.titles || {})]), J([1, false, true]));
+      chk(name, '(b) another appropriation', 'with nothing left in front of the file, that Save asks nothing about a copy left (a CONTROL: no question for nothing)',
+        JSON.parse(B.ev('JSON.stringify(globalThis.__q)')).some(q => /BEFORE THIS SAVE/.test(q)), false);
       await W214.rel(mk, keepBoards());
     }
     // (c) the O&M kept slot already holds other work (the fixture plants it): the copy is left, as before -- and the opening line this
@@ -17728,8 +17764,68 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const st = W1H.status(B.ev);
       chk(name, '(c) left', 'the import’s report is said after the line about this browser’s copy, and says the copy was left',
         J([/Opened this browser’s copy/.test(st), /Full board imported into this file/.test(st), /O&M plan changed after the import was written, so it was left as it is/.test(st)]), J([true, true, true]));
-      chk(name, '(c) left', 'it says what the copy left does -- read in place of the import, written by Save -- and not to reopen the file',
-        J([/this board reads it in place of the import’s, and 💾 Save writes it into this file/.test(st), /open this file again/.test(st)]), J([true, false]));
+      // v2.14 RV1-A (the check of RV1-A): Save now asks before it writes a copy left, so the report says so
+      chk(name, '(c) left', 'it says what the copy left does -- read in place of the import, and Save asks before writing it -- and not to reopen the file',
+        J([/this board reads it in place of the import’s, and 💾 Save asks before it writes it into this file/.test(st), /open this file again/.test(st)]), J([true, false]));
+      // what the report promises for the plan on screen: Save asks first (the HOLD ON: its record names the file it came from), and
+      // declined, nothing is written (a CONTROL on the report's claim)
+      const f = W1H.disk(B.w, W);
+      const q = await saveOnce(B, f, false);
+      chk(name, '(c) left', 'the first Save asks before it writes the copy on screen; declined, nothing is written (a CONTROL)', J([q.length > 0, f.writes, f.content === W]), J([true, 0, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (d) ANOTHER APPROPRIATION'S PLAN LEFT, ITS KEPT SLOT ALREADY HOLDING OTHER WORK (the check of RV1-A, a2-occupied-ff): the copy is
+    // left in front of the file, as before -- and the first Save asks, naming it, before it writes it over the import's Full Fund.
+    // Declined, nothing is written. Every opening of the file asks until a Save is let through; one let through writes this browser's
+    // copy (the person's choice), and the file, saved since, is an ordinary board file: nothing more is asked of it.
+    {
+      const mk = bootMark();
+      const L = Object.assign({}, R.lsAfter, { prio27ff: J(changed(ffW, 'F', 'FF LEFT IN FRONT')), 'prio27ff.base': rec,
+        'prio27ff.kept': J({ t: 1700000000000, why: 'file', by: 'Earlier', ts: 1, base: {} }) + '\n' + J(changed(ffW, 'F', 'EARLIER KEPT WORK')) });
+      const B = boot({ html: W, ls: L });
+      const lsB = w2LsOf(B.ev);
+      chk(name, '(d) another plan, slot held', 'the fixture: the changed Full Fund is left, its kept slot still holding the earlier work (a CONTROL)',
+        J([/FF LEFT IN FRONT/.test(lsB.prio27ff || ''), /EARLIER KEPT WORK/.test(lsB['prio27ff.kept'] || '')]), J([true, true]));
+      const f = W1H.disk(B.w, W);
+      const q1 = await saveOnce(B, f, false);
+      chk(name, '(d) another plan, slot held', 'the first Save asks before writing it, naming the Full Fund plan; declined, nothing is written and the file keeps the import',
+        J([q1.some(x => /Full Fund plan/.test(x)), f.writes, f.content === W]), J([true, 0, true]));
+      const B2 = boot({ html: W, ls: w2LsOf(B.ev) });
+      const f2 = W1H.disk(B2.w, W);
+      const q2 = await saveOnce(B2, f2, false);
+      chk(name, '(d) another plan, slot held', 'the file opened again asks again, and declined writes nothing', J([q2.some(x => /Full Fund plan/.test(x)), f2.writes]), J([true, 0]));
+      const q3 = await saveOnce(B2, f2, true);
+      const ff3 = (W1H.pubOf(f2.content) || { appns: {} }).appns.ff || {};
+      chk(name, '(d) another plan, slot held', 'let through, Save writes this browser’s Full Fund into the file (what the question said it would)',
+        J([q3.some(x => /Full Fund plan/.test(x)), f2.writes, ((ff3.years || {})[yF] || {}).notes && ff3.years[yF].notes.F]), J([true, 1, 'FF LEFT IN FRONT']));
+      const q4 = await saveOnce(B2, f2, true);
+      chk(name, '(d) another plan, slot held', 'the file, saved since, is an ordinary board file: the next Save asks nothing about a copy left (a CONTROL)',
+        J([q4.some(x => /BEFORE THIS SAVE/.test(x)), f2.writes]), J([false, 2]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (e) A LIST LEFT (C22: a list has no kept slot) -- an older tab re-imported the cost estimates after the write (a4-list-left): the
+    // first Save asks, naming them, before it writes them over the import's; declined, nothing is written
+    {
+      const mk = bootMark();
+      const ace = JSON.parse(J(PW.aceDb)), sk = Object.keys(ace.sets || {})[0];
+      chk(name, '(e) a list left', 'the fixture: the import carries a cost estimate (a CONTROL)', !!sk, true);
+      ace.ts = Date.now() + 60000; ace.sets[sk] = Object.assign({}, ace.sets[sk], { name: 'OLDER TAB RE-IMPORT', src: 'OLDER TAB RE-IMPORT' });
+      const B = boot({ html: W, ls: Object.assign({}, R.lsAfter, { prio27acedb: J(ace) }) });
+      const f = W1H.disk(B.w, W);
+      const q = await saveOnce(B, f, false);
+      chk(name, '(e) a list left', 'the first Save asks before writing it, naming the cost estimates; declined, nothing is written and the file keeps the import',
+        J([q.some(x => /cost estimates/.test(x)), f.writes, f.content === W]), J([true, 0, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (f) AN ORDINARY BOARD FILE -- not one the file route wrote -- opened with a newer copy of another plan in this browser: Save asks
+    // nothing about a copy left in front of an import (a CONTROL: the question belongs to the import's own file alone)
+    {
+      const mk = bootMark();
+      const { OLD, ls } = W214.fx(), FO = W1H.pubOf(OLD.html);
+      const B = boot({ html: OLD.html, ls: Object.assign({}, ls, { prio27ff: J(changed(FO.appns.ff, 'F', 'NEWER IN THIS BROWSER')) }) });
+      const f = W1H.disk(B.w, OLD.html);
+      const q = await saveOnce(B, f, true);
+      chk(name, '(f) an ordinary file', 'Save asks nothing about a copy left, and writes (a CONTROL)', J([q.some(x => /BEFORE THIS SAVE/.test(x)), f.writes]), J([false, 1]));
       await W214.rel(mk, keepBoards());
     }
   } catch (e) {

@@ -10431,6 +10431,22 @@ const MUTATIONS = [
   { id: 'v214-rv1-a-close-two-copies', area: "impFileCloseAsk", what: "closing the box asks about “the two copies” where one is offered",
     find: "  if(h && i) return 'The two copies",
     repl: "  if(true) return 'The two copies" },
+  // the check of RV1-A (finishing round): a false "does not hold", and the two routes a copy left still reached the import's file unasked
+  { id: 'v214-rv1-a-wasmiss-file-own', area: "impFileWasMiss", what: "a destination added on this page holds Write back: the box says the as-it-was file does not hold the locked cycles, another ORBIT tab’s work, when the board file has them",
+    find: "    if(impFileMem(key) && impFileSameAsFile(key, v)) return;\n",
+    repl: "" },
+  { id: 'v214-rv1-a-left-unasked', area: "_saveInPlaceFileRun", what: "the first Save of the import’s file writes an old tab’s Full Fund, or its cost estimates, over the import’s with nothing asked",
+    find: "      const lq=impLeftAsk(p, q, h.name||FNAME);",
+    repl: "      const lq='';" },
+  { id: 'v214-rv1-a-left-decline-writes', area: "_saveInPlaceFileRun", what: "Cancel at the question about a copy left still writes it over the import",
+    find: "      if(lq && !confirm(lq)){",
+    repl: "      if(lq && !confirm(lq) && false){" },
+  { id: 'v214-rv1-a-left-any-file', area: "impLeftAsk", what: "an ordinary board file, never written by an import, asks about a copy left in front of an import on every Save",
+    find: "    if(typeof a!=='string' || !a || a!==b) return '';",
+    repl: "    if(false) return '';" },
+  { id: 'v214-rv1-a-left-report-says-writes', area: "impOwnRep", what: "the import’s file says Save writes the copy left into it, when Save asks first",
+    find: "      +'and 💾 Save asks before it writes it into this file.' : '');",
+    repl: "      +'and 💾 Save writes it into this file.' : '');" },
   // ---- end RV1-A ----
 
   // ---- RV1-B (cycles, packages, storage) ----
