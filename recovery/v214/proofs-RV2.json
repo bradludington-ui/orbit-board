@@ -1,0 +1,18 @@
+[
+ {
+  "id": "v214-rv2-was-shut-dropped",
+  "caughtBy": "import / v2.14 round 2 — an as-it-was copy whose write failed stays downloadable"
+ },
+ {
+  "id": "v214-rv2-was-dl-open-only",
+  "caughtBy": "import / v2.14 round 2 — an as-it-was copy whose write failed stays downloadable"
+ },
+ {
+  "id": "v214-rv2-holds-closed-ignored",
+  "caughtBy": "import / v2.14 round 2 — an as-it-was copy whose write failed stays downloadable"
+ },
+ {
+  "id": "v214-rv1-a-was-fail-unheld",
+  "caughtBy": "import / v2.14 round 2 — an as-it-was copy whose write failed stays downloadable"
+ }
+]
