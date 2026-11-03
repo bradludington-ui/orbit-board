@@ -5312,7 +5312,9 @@ await (async () => {
     J([true, 'VIEWING O&M PB27 (locked)', true]));
   ev(`cycLeave(true); 'ok'`);
   // ---- Go to: the appropriation switch, and a mark this browser reads when that board opens
-  ev(`window.__sw=[]; window.__swWas=switchAppn; switchAppn=function(a){ window.__sw.push(a); }; blOpen=true; render();
+  // v2.14 W3: the stand-in says a switch happened (switchAppn returns true when it reopens); one returning nothing reads as a
+  // switch that did not happen, and cycGoAppn takes its mark back
+  ev(`window.__sw=[]; window.__swWas=switchAppn; switchAppn=function(a){ window.__sw.push(a); return true; }; blOpen=true; render();
       var b=document.querySelector('#blBody tr[data-ap="ff"] button'); if(b) b.click(); switchAppn=window.__swWas; 'ok'`);
   chk(name, 'go to', 'Go to Full Fund switches to FULL FUND and leaves the mark for it', J([JSON.parse(ev('JSON.stringify(window.__sw)')), ev(`localStorage.getItem('prio27cycGo')`)]), J([['FULL FUND'], 'ff']));
   ev(`localStorage.removeItem('prio27cycGo'); 'ok'`);
@@ -7788,6 +7790,222 @@ const RV6ONE = 'BES28 gives one figure per line: USAF, ANG, USN divided between 
 // ==== end v2.14 W2 ====
 
 // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
+// Item 141 F: a board larger than browser storage leaves it full, and then a change storage refuses lives on screen only. Measured
+// on v2.13 (recovery/v214/notes-W3.md): the refusal went uncounted (Save diagnostics "none this session"), closing the tab asked
+// nothing, switching appropriation or Go to under PPBE cycles reopened the page and the change was gone -- and with storage full
+// to the last character the switch itself was refused, uncounted, and the page reopened on the same appropriation; the writer
+// key was remade on every call, so the second 💾 Save was refused "unknown holds the pen"; the editor name was asked on every
+// save and stamped "unknown". Every expectation here is a literal from the fixture. Storage is filled by a counted quota
+// (w3sQuota), installed in the board's own window after it opened: a write is refused when it would take storage, keys and
+// values in characters, past what it holds now plus `room` -- as Chromium counts it.
+const W3S_FIX = { services: ['USAF', 'ANG'], items: [it('A', 'AV', [100, 20]), it('B', 'PSM', [50, 10])], disc: [120, 20], mand: [30, 10], order: ['A', 'B'] };
+const w3sQuota = room => `(function(){ var size=function(){ var t=0; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); t+=k.length+localStorage.getItem(k).length; } return t; };
+  var LIM=size()+${room}; window.__si=window.__si||Storage.prototype.setItem; var si=window.__si;
+  Storage.prototype.setItem=function(k, v){ v=String(v); var was=localStorage.getItem(k);
+    if(size()-(was===null? 0 : k.length+was.length)+k.length+v.length>LIM) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+    return si.call(this, k, v); }; return LIM; })()`;
+const w3sSleep = ms => new Promise(r => setTimeout(r, ms));
+// a board with two requirements, saved, the opening's own timers run (they set DIRTY back), read as clean
+const w3sFresh = async (o = {}) => {
+  const B = boot(o); seed(B.ev, W3S_FIX);
+  B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+  await w3sSleep(5);
+  B.ev(`DIRTY=false; _persistFail=false; render(); 'ok'`);
+  return B;
+};
+// jsdom reports a reload it does not carry out as a "navigation" error: that is how reopenPage() shows here
+const w3sNav = B => B.errors.filter(e => /navigation/i.test(e)).length;
+const w3sLeave = B => B.ev(`(function(){ var e=new Event('beforeunload', {cancelable:true}); window.dispatchEvent(e); return String(e.defaultPrevented); })()`);
+// the appropriation box, as a person uses it: its value, then a change event (C30c); what it reads afterwards
+const w3sPick = (B, v) => B.ev(`(function(){ var s=document.getElementById('appnSel'); s.value=${JSON.stringify(v)}; s.dispatchEvent(new Event('change')); return s.value; })()`);
+// memOnlyNow() as text; 'none' on a board that has no such function (so a board before v2.14 fails each check, not the block)
+const w3sMem = B => B.ev(`typeof memOnlyNow==='function'? String(memOnlyNow()) : 'none'`);
+const w3sStat = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+const w3sLs = B => B.ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`);
+const w3sRefused = B => JSON.parse(B.ev(`JSON.stringify(DIAG.refused.map(function(r){ return r.what+' — '+r.why; }))`));
+// a stand-in board file, empty (a new file), remembered as this page's: Save writes it in place with no window
+const W3S_FH = `window.__fw={content:'', writes:0};
+  FH={name:'Board.html', kind:'file', queryPermission: async function(){ return 'granted'; }, requestPermission: async function(){ return 'granted'; },
+    getFile: async function(){ return {text: async function(){ return window.__fw.content; }, size: window.__fw.content.length, lastModified: 1}; },
+    createWritable: async function(){ var buf=''; return {write: async function(x){ buf+=String(x); }, close: async function(){ window.__fw.content=buf; window.__fw.writes++; }}; }};
+  window.showSaveFilePicker=function(){ return Promise.reject(new DOMException('no window here', 'AbortError')); };
+  window.showOpenFilePicker=function(){ return Promise.reject(new DOMException('no window here', 'AbortError')); };`;
+{
+  const name = 'v2.14 W3 — storage full: a change browser storage refuses is counted, and nothing reopens the page over it unasked (item 141 F)';
+  try {
+    const J = JSON.stringify;
+    const NOTE = 'typed while full ' + 'x'.repeat(80);
+    // room 60: the appropriation choice (prio27appn + FULL FUND, 19), the Go to mark (prio27cycGo + ff, 13) and the record a file
+    // save writes (prio27om.base, about 22) fit; the edit (about 280 more) does not. This browser's writer key is stored already.
+    const full = async () => {
+      const B = await w3sFresh();
+      B.ev(`writerKey(); localStorage.removeItem('prio27appn'); localStorage.removeItem('prio27cycGo'); ${w3sQuota(60)}; S.notes=S.notes||{}; S.notes.A=${J(NOTE)}; save(); 'ok'`);
+      return B;
+    };
+    { const C = await w3sFresh();
+      chk(name, 'leaving (a CONTROL)', 'a board with nothing on screen only lets the page be left without asking', J([w3sMem(C), w3sLeave(C)]), J(['false', 'false'])); }
+    const A = await full();
+    // (a) counted, in lsSet's words
+    chk(name, 'counted', 'the refused edit is counted once, as “O&M board data”, and Save diagnostics says so',
+      J([A.ev('String(_persistFail)'), w3sRefused(A), (A.ev('diagReport()').match(/Writes refused:.*$/m) || [''])[0]]),
+      J(['true', ['O&M board data — QuotaExceededError'], 'Writes refused:     1 this session']));
+    chk(name, 'counted', 'the change is on screen only, and the message says what follows',
+      J([w3sMem(A), /Until it is saved, closing or reloading this page asks first, and switching appropriation waits\.$/.test(w3sStat(A))]), J(['true', true]));
+    // (b) leaving asks
+    chk(name, 'leaving', 'closing or reloading the page asks first (beforeunload is cancelled)', w3sLeave(A), 'true');
+    // (c) switching appropriation, from the box
+    { const n0 = w3sNav(A), v = w3sPick(A, 'FULL FUND');
+      chk(name, 'switching', 'switching from the box reopens nothing, and the box reads O&M again', J([w3sNav(A) - n0, v]), J([0, 'O&M']));
+      chk(name, 'switching', 'it says why, naming Save', /^⛔ Not switched\. Your latest changes are on screen only: browser storage refused them, so no saved copy holds them, and switching appropriation reopens the page, which would lose them\. 💾 Save writes them into the board file, then try again\.$/.test(w3sStat(A)), true);
+      chk(name, 'switching', 'the edit is still on screen, and the choice was never written', J([A.ev('S.notes.A'), A.ev(`localStorage.getItem('prio27appn')`)]), J([NOTE, null])); }
+    // (d) Go to under PPBE cycles
+    { const n0 = w3sNav(A); A.ev(`cycGoAppn('ff'); 'ok'`);
+      chk(name, 'Go to', 'Go to Full Fund reopens nothing, leaves no mark to open PPBE cycles later, and says why',
+        J([w3sNav(A) - n0, A.ev(`localStorage.getItem('prio27cycGo')`), /^⛔ Not opened\. Your latest changes are on screen only.*opening Full Fund reopens the page/.test(w3sStat(A))]), J([0, null, true])); }
+    // (k1)-(k3) the imports that reopen the page: refused before their own questions, storage untouched
+    const other = await w3sFresh();
+    other.ev(`S.titles=S.titles||{}; S.titles.A='ANOTHER BOARD'; save(); 'ok'`);
+    const otherHtml = other.ev('buildSavedHtml()');
+    const otherPub = JSON.parse(otherHtml.match(/id="pubState">([\s\S]*?)<\/script>/)[1]);
+    A.ev(`window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return true; }; window.__pq=0; window.prompt=function(){ window.__pq++; return null; };
+      window.__al=[]; window.alert=function(m){ window.__al.push(String(m)); }; 'ok'`);
+    const ls0 = w3sLs(A);
+    { const n0 = w3sNav(A); const r = A.ev(`String(fullImportText(${J(otherHtml)}, 'another.html'))`);
+      chk(name, 'a full import', 'refused: false, nothing asked, nothing reopened, storage byte-identical',
+        J([r, A.ev('window.__cq.length+window.__pq+window.__al.length'), w3sNav(A) - n0, w3sLs(A) === ls0]), J(['false', 0, 0, true]));
+      chk(name, 'a full import', 'it says why', /^⛔ Not imported\. Your latest changes are on screen only.*a full import reopens the page/.test(w3sStat(A)), true); }
+    { const n0 = w3sNav(A);
+      A.ev(`consTakePick(${J({ appns: { ff: otherPub.appns.om } })}, ${J(otherHtml)}, 'x.html'); 'ok'`);
+      chk(name, 'Import one appropriation', 'refused before it asks which to take: nothing asked, nothing reopened, storage byte-identical',
+        J([A.ev('window.__cq.length+window.__pq+window.__al.length'), w3sNav(A) - n0, w3sLs(A) === ls0,
+          /^⛔ Not imported\. .*taking an appropriation from a file reopens the page/.test(w3sStat(A))]), J([0, 0, true, true])); }
+    // (k3) a JSON state file through importState (C30b): it meets importState's own guard whatever routes a board .html
+    { const stateTxt = J({ base: 2027, cur: 2027, ts: 1790000000000, years: { 2027: { order: ['A', 'B'], notes: { A: 'from the state file' } } } });
+      const n0 = w3sNav(A);
+      await A.ev(`new Promise(function(res){ var inp={files:[new File([${J(stateTxt)}], 'state.json')], value:'x'};
+        try{ importState(inp); }catch(e){ window.__al.push('THREW '+e.message); }
+        (function wait(n){ if(inp.value==='' || n>400) return res('ok'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+      chk(name, 'a state file', 'refused before its own question: nothing asked, nothing reopened, storage byte-identical, the edit still there',
+        J([A.ev('window.__cq.length+window.__pq+window.__al.length'), w3sNav(A) - n0, w3sLs(A) === ls0, A.ev('S.notes.A'),
+          /^⛔ Not imported\. .*loading this file reopens the page/.test(w3sStat(A))]), J([0, 0, true, NOTE, true])); }
+    // (e) after a downloaded copy: one question instead of a refusal (where a download is the only Save)
+    { const D = await full();
+      D.ev(`publishState(); window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return false; }; 'ok'`);
+      const n0 = w3sNav(D), v = w3sPick(D, 'FULL FUND'), qs = JSON.parse(D.ev('JSON.stringify(window.__cq)'));
+      chk(name, 'after a downloaded copy', 'switching asks once, naming the downloaded copy as the only one holding the changes',
+        J([D.ev('String(_dlOnly)'), qs.length, /^Your latest changes are in the copy you downloaded, but not in the board file, and browser storage could not keep them\.\n\nSwitching appropriation reopens the page: afterwards only the downloaded copy holds them\./.test(qs[0] || '')]),
+        J(['true', 1, true]));
+      chk(name, 'after a downloaded copy', 'Cancel: nothing reopened, the box on O&M again, and “nothing changed”',
+        J([w3sNav(D) - n0, v, /Not switched — nothing changed\./.test(w3sStat(D))]), J([0, 'O&M', true]));
+      const E = await full();
+      E.ev(`publishState(); window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return true; }; 'ok'`);
+      const n1 = w3sNav(E); w3sPick(E, 'FULL FUND');
+      chk(name, 'after a downloaded copy', 'OK, on a fresh board in the same state: it goes on, and reopens', J([E.ev('window.__cq.length'), w3sNav(E) - n1 > 0]), J([1, true])); }
+    // (f) a file save ends it
+    { const F = await full();
+      F.ev(`window.confirm=function(){ return true; }; ${W3S_FH} 'ok'`);
+      await F.ev('saveInPlaceFile()');
+      chk(name, 'a file save', 'the board file is written, nothing is on screen only, and leaving asks nothing',
+        J([F.ev('window.__fw.writes'), w3sMem(F), w3sLeave(F)]), J([1, 'false', 'false']));
+      const n0 = w3sNav(F); w3sPick(F, 'FULL FUND');
+      chk(name, 'a file save', 'and switching appropriation then reopens the page', w3sNav(F) - n0 > 0, true); }
+    // (g1), (g2): a list refused while the board opened is not on screen only (the file holds it); one refused after it is
+    { const G = await w3sFresh();
+      G.ev(`_lsRefused[DEST_KEY]=_sideBootGen; 'ok'`);
+      chk(name, 'a list refused while opening', 'is not on screen only, and leaving asks nothing', J([w3sMem(G), w3sLeave(G)]), J(['false', 'false']));
+      G.ev(`delete _lsRefused[DEST_KEY]; ${w3sQuota(30)}; ACEDB.sets=ACEDB.sets||{}; ACEDB.sets['ACE-W3']={fp:'w3', lines:[${J('y'.repeat(200))}]}; persistAce(); 'ok'`);
+      chk(name, 'a list refused after opening', 'the cost estimates refused after the board opened are on screen only, and leaving asks',
+        J([w3sMem(G), w3sLeave(G)]), J(['true', 'true']));
+      // (i) Clear this computer with that list on screen only
+      G.ev(`window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return true; }; clearComputer(); 'ok'`);
+      const q0 = JSON.parse(G.ev('JSON.stringify(window.__cq)'))[0] || '';
+      chk(name, 'Clear this computer', 'its question says the changes are on screen only, held by neither this browser nor the file',
+        /⚠ This board has changes ON SCREEN ONLY: browser storage refused them, so neither this browser nor the file holds them\. They will be lost\./.test(q0), true);
+      chk(name, 'Clear this computer', 'and the reopening it asked about does not meet the browser’s own question too', w3sLeave(G), 'false'); }
+    // (l) the file route holding the only copy of something (impFileHolds, W2's; stood in here) asks too, and a deliberate reopening does not
+    { const L = await w3sFresh();
+      L.ev(`window.__ifh=impFileHolds; impFileHolds=function(){ return true; }; 'ok'`);
+      chk(name, 'the file route holds a copy', 'with nothing on screen only, leaving asks while the file route holds the only copy of something',
+        J([w3sMem(L), w3sLeave(L)]), J(['false', 'true']));
+      L.ev(`_leaving=true; 'ok'`);
+      chk(name, 'the file route holds a copy', 'a deliberate reopening does not', w3sLeave(L), 'false');
+      L.ev(`impFileHolds=window.__ifh; _leaving=false; 'ok'`);
+      chk(name, 'the file route holds a copy (a CONTROL)', 'once it holds nothing, leaving asks nothing', w3sLeave(L), 'false'); }
+    chk(name, 'errors', 'no page error but the reloads jsdom does not carry out', J(A.errors.filter(e => !/navigation/i.test(e)).slice(0, 2)), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.14 W3 — storage full: the writer key and the editor name are kept for the page (item 141 F)';
+  try {
+    const J = JSON.stringify;
+    // storage refusing everything new (room 0), no writer key and no name stored yet
+    const B = await w3sFresh();
+    B.ev(`localStorage.removeItem('prio27writerKey'); localStorage.removeItem('prio27who'); window.confirm=function(){ return true; };
+      window.__asked=0; window.prompt=function(){ window.__asked++; return 'BL'; }; ${W3S_FH} ${w3sQuota(0)}; 'ok'`);
+    // (a) the writer key
+    const keys = JSON.parse(B.ev(`JSON.stringify((function(){ var o=[]; for(var i=0;i<10;i++) o.push(writerKey()); return o; })())`));
+    chk(name, 'the writer key', 'ten calls give one key, and one fingerprint', J([new Set(keys).size, /^[0-9a-f]{32}$/.test(keys[0]), B.ev('String(writerFp()===writerFp())')]), J([1, true, 'true']));
+    chk(name, 'the writer key', 'it is not in storage, and its refusal is counted once', J([B.ev(`localStorage.getItem('prio27writerKey')`), w3sRefused(B)]),
+      J([null, ['This browser’s writer key — QuotaExceededError']]));
+    // (b), (c) two Saves after two edits
+    B.ev(`S.notes.A='first'; save(); 'ok'`); await B.ev('saveInPlaceFile()'); const s1 = w3sStat(B);
+    B.ev(`S.notes.A='second'; save(); 'ok'`); await B.ev('saveInPlaceFile()'); const s2 = w3sStat(B);
+    chk(name, 'two Saves', 'both are written, the second by BL, and the pen is this browser’s own', J([B.ev('window.__fw.writes'), /^💾 Saved in place by BL/.test(s2), B.ev('uiPenOther()')]), J([2, true, '']));
+    chk(name, 'two Saves', 'the first, which claimed the pen, says storage would not keep the writer key and what follows; the second does not',
+      J([/You are now this board’s writer: only you save it in place\. Browser storage would not keep this browser’s writer key: once this page is closed, 💾 Save here will refuse and name you as the writer — Audit › Take the pen… then takes it back\./.test(s1),
+        /would not keep this browser’s writer key/.test(s2)]), J([true, false]));
+    // (d) the editor name, asked once
+    { const D = await w3sFresh();
+      D.ev(`localStorage.removeItem('prio27who'); window.__asked=0; window.prompt=function(){ window.__asked++; return 'BL'; }; ${w3sQuota(0)}; 'ok'`);
+      D.ev(`for(var i=0;i<3;i++){ S.notes.B='n'+i; save(); } 'ok'`);
+      chk(name, 'the editor name', 'three edits ask the name once, and the board is stamped BL', J([D.ev('window.__asked'), D.ev('MS.by'), D.ev('whoIs()'), D.ev(`localStorage.getItem('prio27who')`)]), J([1, 'BL', 'BL', null]));
+      chk(name, 'the editor name', 'its refusal is counted', w3sRefused(D).filter(s => /^Your editor name — /.test(s)).length, 1); }
+    // (d2) a name typed when storage will not keep it wins over the one stored (longer than it, so it cannot replace it in place)
+    { const E = await w3sFresh();
+      E.ev(`localStorage.setItem('prio27who', 'Ann'); window.prompt=function(){ return 'Roberta'; }; ${w3sQuota(0)}; whoAmI(true); 'ok'`);
+      chk(name, 'the editor name', 'it says the page remembers it until it is closed', /Editor name set to Roberta — stamped on future saves\. Browser storage would not keep it, so this page remembers it until it is closed, and asks again next time\.$/.test(w3sStat(E)), true);
+      E.ev(`S.notes.B='after'; save(); 'ok'`);
+      chk(name, 'the editor name', '“Roberta”, typed, stamps the next save, not the “Ann” storage still holds', J([E.ev('MS.by'), E.ev('whoIs()'), E.ev(`localStorage.getItem('prio27who')`)]), J(['Roberta', 'Roberta', 'Ann'])); }
+    // (e) CONTROL: storage accepting
+    { const C = await w3sFresh();
+      C.ev(`localStorage.removeItem('prio27writerKey'); localStorage.removeItem('prio27who'); window.confirm=function(){ return true; }; window.prompt=function(){ return 'BL'; }; ${W3S_FH} 'ok'`);
+      C.ev(`S.notes.A='x'; save(); 'ok'`); await C.ev('saveInPlaceFile()');
+      chk(name, 'storage accepting (a CONTROL)', 'both are stored, nothing is kept for the page alone, and nothing says storage would not keep them',
+        J([/^[0-9a-f]{32}$/.test(C.ev(`localStorage.getItem('prio27writerKey')||''`)), C.ev(`localStorage.getItem('prio27who')`), C.ev('_wkMem'), C.ev('_whoMem'), /would not keep/.test(w3sStat(C)), C.ev('window.__fw.writes')]),
+        J([true, 'BL', '', '', false, 1])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v2.14 W3 — storage full: switching appropriation never reopens the page after a refused write (item 141 F)';
+  try {
+    const J = JSON.stringify;
+    // a clean board, storage full to the last character, no appropriation choice stored
+    const B = await w3sFresh();
+    B.ev(`localStorage.removeItem('prio27appn'); ${w3sQuota(0)}; 'ok'`);
+    chk(name, 'the fixture', 'nothing is on screen only (a CONTROL)', w3sMem(B), 'false');
+    { const n0 = w3sNav(B), v = w3sPick(B, 'FULL FUND');
+      chk(name, 'switching', 'the choice is refused: nothing reopened, and the box reads O&M again', J([w3sNav(B) - n0, v]), J([0, 'O&M']));
+      chk(name, 'switching', 'it says why, and what to do', /^⛔ Not switched\. Browser storage is full, so this browser cannot note which appropriation to open, and the page would reopen on O&M again\. Nothing changed\. Setup › Save diagnostics… shows what fills it; Setup › Clear this computer… frees what ORBIT keeps there, after asking \(the board file is not touched\)\.$/.test(w3sStat(B)), true);
+      chk(name, 'switching', 'and the refusal is counted', J(w3sRefused(B)), J(['Which appropriation this browser opens — QuotaExceededError'])); }
+    // room for the Go to mark (13), not for the choice (19): the mark is taken back
+    { const C = await w3sFresh();
+      C.ev(`localStorage.removeItem('prio27appn'); localStorage.removeItem('prio27cycGo'); ${w3sQuota(15)}; 'ok'`);
+      const n0 = w3sNav(C); C.ev(`cycGoAppn('ff'); 'ok'`);
+      chk(name, 'Go to', 'room for the mark and not the choice: nothing reopened, and no mark left behind to open PPBE cycles unasked',
+        J([w3sNav(C) - n0, C.ev(`localStorage.getItem('prio27cycGo')`), /^⛔ Not switched\. Browser storage is full/.test(w3sStat(C))]), J([0, null, true])); }
+    // CONTROL: a choice of the same length replaces the stored one in place, so a full browser still switches
+    { const K = await w3sFresh();
+      K.ev(`localStorage.setItem('prio27appn', 'O&M'); ${w3sQuota(0)}; 'ok'`);
+      const n0 = w3sNav(K); w3sPick(K, 'OPN');
+      chk(name, 'a choice of the same length (a CONTROL)', 'O&M to OPN fits where O&M was, and reopens', J([w3sNav(K) - n0 > 0, K.ev(`localStorage.getItem('prio27appn')`)]), J([true, 'OPN'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.14 W3 ====
 
 // ==== v2.14 W4 (items 129, 124; ledger U63, U64, U35): the held findings ====

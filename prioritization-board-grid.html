@@ -2808,13 +2808,20 @@ try{ WRITER=writerShape(PUB && PUB.writer); }catch(e){ WRITER=null; }
 var _wkMem='';
 // What a save that claims or takes the pen says when that key lives in this page alone (item 141 F). One sentence, two saves.
 function wkMemSay(may){ return (_wkMem && (may==='claim'||may==='take'))? ' Browser storage would not keep this browser’s writer key: once this page is closed, 💾 Save here will refuse and name you as the writer — Audit › Take the pen… then takes it back.' : ''; }
+// v2.14 W3 (item 141 F): THE WRITER KEY IS KEPT FOR THE PAGE when browser storage will not keep it. Measured on v2.13: a refused
+// write made a new key on every call, so the second 💾 Save was refused "unknown holds the pen" -- this browser's own pen. Storage
+// is still read first while _wkMem is '' (a key another tab stores is taken), and one refusal per page: the key made then is
+// this page's for its life, consistent with the WRITER it claims. The next session, Save names this person as the pen holder;
+// wkMemSay says so at the claim.
+function writerKeyHeld(){ if(_wkMem) return _wkMem; let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){} return /^[0-9a-f]{32}$/.test(k)? k : ''; }
 function writerKey(){
-  let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){}
-  if(!/^[0-9a-f]{32}$/.test(k)){
+  let k=writerKeyHeld();
+  if(!k){
     const b=new Uint8Array(16);
     try{ crypto.getRandomValues(b); }catch(e){ for(let i=0;i<16;i++) b[i]=Math.floor(Math.random()*256); }
     k=Array.from(b, function(x){ return (x<16?'0':'')+x.toString(16); }).join('');
-    try{ localStorage.setItem('prio27writerKey', k); }catch(e){}
+    let kept=false; try{ kept=lsSet('prio27writerKey', k, 'This browser’s writer key', {quiet:true}); }catch(e){}
+    if(!kept) _wkMem=k;
   }
   return k;
 }
@@ -2984,6 +2991,9 @@ var _lsAllRun=0;
 // storage refused, with the count when it did: it is in this page alone, so the board reads unsaved whichever save is
 // in use, until storage takes the list again or a file save writes it.
 let _sideGen=0, _sideSaved=0, _lsRefused={};
+// v2.14 W3 (item 141 F): _sideGen when the board finished opening; a list refused at or before it was refused by the opening.
+// A var: memOnlyNow can run from a beforeunload fired while the script is still being read.
+var _sideBootGen=Infinity;
 function fileKeyOf(key){
   try{
     if(key===_AP.key) return 'board';
@@ -3024,7 +3034,13 @@ function impHandRefuse(key, what){ return false; }
 // file being written (the browser emptied it when it was chosen), a rescue offered and not yet saved, the as-it-was file being
 // written? Leaving the page then asks first. Never throws; false until W2 fills it.
 function impFileHolds(){ return false; }
-function lsSet(key, val, what){
+// v2.14 W3 (item 141 F): `o.quiet` -- a setting the file never carries (which appropriation opens next, the writer key, the
+// editor name, the Go to mark). Its refusal is counted in Save diagnostics like any other, and the caller says in its own words
+// what it means: lsSet's "Use 💾 Save to write it into the file" would be untrue of something no file holds.
+// v2.14 W3 (item 140 c): and while an all-or-nothing write runs (_lsAllRun) lsSet says nothing: the value was never loaded, and
+// lsAll's caller states its own refusal -- the cost estimates "still loaded and correct here" after a refused import, kept
+// unread beside "Nothing was imported", told the person to press the Save that would write the board over its file.
+function lsSet(key, val, what, o){
   if(_cycSwap && (key===DEST_KEY || key===BUDDB_KEY)){ try{ cycRefuse('Writing '+String(what||key).toLowerCase()); }catch(e){} return false; }
   if(_lsCapture){
     const i=_lsCapture.findIndex(function(w){ return w[0]===key; }), w=[key, String(val), what, String(what||key)];
@@ -3039,9 +3055,10 @@ function lsSet(key, val, what){
     if(fk) fileStored(key, fk, false);
     // v1.92 (item 18): kept for Save diagnostics -- what it was (the board's own words) and the browser's reason
     try{ DIAG.refused.push({t:Date.now(), what:diagClean(what, false), why:String((e&&e.name)||'error').replace(/[^A-Za-z]/g,'')}); }catch(e2){}
+    if(o && o.quiet) return false;
     // v1.97 (item 76): working out of the shared folder, Save writes the board alone -- not one of these lists
     let fold=false; try{ fold=(fk==='side') && driveStoreOn(); }catch(e2){}
-    try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
+    if(!_lsAllRun) try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
       +esc((e&&e.name)||'error')+'). It is still loaded and correct here. '
       +(fold? 'The shared folder\u2019s copy of the board does not carry it: \u2b07 <b>Save a copy</b> (the \u25be beside \ud83d\udcbe Save) keeps it in a file.'
             : 'Use \ud83d\udcbe <b>Save</b> to '+(SANDBOX? 'keep it in your office\u2019s own file' : 'write it into the file')+', which does not use browser storage.')); }catch(e2){}
@@ -3055,10 +3072,34 @@ function lsSet(key, val, what){
 // A key that held nothing is removed. Returns {ok:true}, or {ok:false, at, why, back, now}: `at` is the write that
 // was refused (-1 when storage could not even be read, and nothing was written); `back` is true when every key holds
 // exactly what it held before; now[i] says what key i holds after: 'was', 'new' (the text it was given) or '?'.
+// v2.14 W3 (item 140 c): A REFUSED RUN THAT WAS PUT BACK WHOLE LEAVES THE BOARD AS SAVED AS IT WAS. Every write counts (lsSet:
+// _saveGen and DIRTY for the open board, _sideGen and _lsRefused for a list), and the put-back counts again -- so a refused full
+// import, every key back, read "Unsaved changes" over a board nothing had changed, and the next 💾 Save wrote it over its file
+// (measured on v2.13). The marks are taken before the first write (lsMarks) and, when every key holds what it held, put back
+// (lsMarksBack). A run that could not be put back keeps what it counted: the mixed hold refuses Save there anyway.
+function lsMarks(){
+  try{ return {gen:_saveGen, dirty:DIRTY, dl:_dlOnly, side:_sideGen, ref:Object.assign({}, _lsRefused)}; }catch(e){ return null; }
+}
+function lsMarksBack(m){
+  if(!m) return;
+  try{ _saveGen=m.gen; }catch(e){}
+  try{ DIRTY=m.dirty; }catch(e){}
+  try{ _dlOnly=m.dl; }catch(e){}
+  try{ _sideGen=m.side; }catch(e){}
+  try{ Object.keys(_lsRefused).forEach(function(k){ delete _lsRefused[k]; }); Object.assign(_lsRefused, m.ref); }catch(e){}
+  _cycAllMemo=null;
+  try{ saveStateShow(); }catch(e){}
+}
 function lsAll(W){
   const held=[];
   try{ for(let i=0;i<W.length;i++) held.push(localStorage.getItem(W[i][0])); }
   catch(e){ return {ok:false, at:-1, why:String((e&&e.name)||'error'), back:true, now:W.map(function(){ return 'was'; })}; }
+  const mk=lsMarks();
+  _lsAllRun++;                              // v2.14 W3: lsSet says nothing while the run writes and puts back
+  try{ return lsAllWrite(W, held, mk); }finally{ _lsAllRun--; }
+}
+// lsAll's writes and its put-back, counted in _lsAllRun around them (the lines as they stood in lsAll).
+function lsAllWrite(W, held, mk){
   let at=-1, why='';
   for(let i=0;i<W.length;i++){
     const n0=DIAG.refused.length;
@@ -3072,17 +3113,21 @@ function lsAll(W){
     else lsSet(W[i][0], held[i], W[i][2]+' (putting it back)');
   }
   const now=W.map(function(w, i){ return was(i); });
+  if(now.every(function(s){ return s==='was'; })) lsMarksBack(mk);
   return {ok:false, at:at, why:why, back:now.every(function(s){ return s==='was'; }), now:now, held:held};
 }
 // v1.99 (item 86): PUT SEVERAL KEYS BACK, EVERY ONE, after lsAll landed them and the caller must undo it. Each is tried,
 // the most recent first, whatever happened to the one before -- a key that will not go back never stops the others --
 // and then every key is read back. Returns now[i], as lsAll's: 'was' (as it was), 'new' (what was written) or '?'.
 function lsPutBack(W, held){
+  _lsAllRun++;                              // v2.14 W3 (item 140 c): a put-back is not a change to warn about
+  try{
   for(let i=W.length-1;i>=0;i--){
     let v; try{ v=localStorage.getItem(W[i][0]); }catch(e){ v=undefined; }
     if(v===held[i]) continue;
     try{ if(held[i]===null) localStorage.removeItem(W[i][0]); else lsSet(W[i][0], held[i], W[i][2]+' (putting it back)'); }catch(e){}
   }
+  }finally{ _lsAllRun--; }
   return W.map(function(w, i){
     try{ const v=localStorage.getItem(w[0]); return v===held[i]? 'was' : (v===w[1]? 'new' : '?'); }catch(e){ return '?'; } });
 }
@@ -3210,7 +3255,13 @@ if(PMODE && PMODE.sandbox){
 }
 // A copy carries one appropriation, so switching is not a view change here -- it would reload into
 // a board with no data. Say so rather than reload into an empty screen.
-function switchAppn(a){
+// v2.14 W3 (item 141 F): SWITCHING NEVER REOPENS THE PAGE OVER WORK ON SCREEN ONLY, OR AFTER A REFUSED WRITE. Returns true only
+// when it reopens. Measured on v2.13: with an edit storage had refused, the switch reopened the page and the edit was gone; and
+// with storage full to the last character the choice itself (prio27appn) was refused, uncounted, and the page reopened on the
+// same appropriation -- the edit gone and the switch silently undone. memOnlyBlock asks first (`asked`: the caller, cycGoAppn,
+// already has); the choice is written before anything else, and liveLeaving lets the folder lock go only once it is; a refusal
+// puts the box back and says so.
+function switchAppn(a, asked){
   if(PMODE && PMODE.sandbox){ alert('\u26a0 This PMO copy holds the '+_AP.t+' portfolio only.\n\n'
     +'Ask the portfolio team for a copy of the '+((_SLUGMAP[a]&&_SLUGMAP[a].t)||a)+' board if you '
     +'need it \u2014 each one is published separately.');
@@ -3218,8 +3269,18 @@ function switchAppn(a){
     // is still the copy's own appropriation -- a label that disagrees with every figure under it.
     try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){}
     try{ render(); }catch(e){}
-    return; }
-  if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} reopenPage(); } }
+    return false; }
+  if(!(a&&a!==APPN&&APPNS[a])) return false;
+  const back=function(){ try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){} try{ render(); }catch(e){} };
+  if(!asked && memOnlyBlock('Not switched', 'switching appropriation reopens the page')){ back(); return false; }
+  if(!lsSet('prio27appn', a, 'Which appropriation this browser opens', {quiet:true})){
+    back();
+    setStat('\u26d4 <b>Not switched.</b> Browser storage is full, so this browser cannot note which appropriation to open, and the page would reopen on '
+      +esc(_AP.t)+' again. Nothing changed. Setup \u203a Save diagnostics\u2026 shows what fills it; Setup \u203a Clear this computer\u2026 frees what ORBIT keeps there, after asking (the board file is not touched).');
+    return false;
+  }
+  try{ liveLeaving(); }catch(e){}
+  reopenPage(); return true; }
 // ── PPBE CYCLES: THE LOCKED FIVE-YEAR PLANS ──────────────────────────────────────────────────
 // A cycle is the FYDP window frozen under a PPBE cycle key ('PB|2027' reads PB27): every year in
 // the window that held a plan, copied whole, plus a per-year projection (the shape the one-year
@@ -7543,11 +7604,16 @@ function persist(){
     return true;
   }catch(e){
     _persistFail=true;
+    // v2.14 W3 (item 141 F): COUNTED, in lsSet's words, for Save diagnostics. Measured on v2.13: every edit refused, DIAG.refused
+    // stayed [] and Save diagnostics said "none this session". persist stays a direct write (not through lsSet): there it would
+    // count the edit twice (fileMark('board') after save()'s own _saveGen++), and an import's _lsCapture would take it.
+    try{ DIAG.refused.push({t:Date.now(), what:diagClean(_AP.t+' board data', false), why:String((e&&e.name)||'error').replace(/[^A-Za-z]/g,'')}); }catch(e2){}
     // v2.09 (item 127): in a PMO copy too -- its Save keeps the office's work in a file of the office's own; it was refused
     // there, and a private window or a full browser lost the office's work on the next refresh while this pointed at it
     try{ setStat('⚠ <b>This change is not in browser storage</b> — it was refused ('
       +esc((e&&e.name)||'error')+'). Your work is still on screen and still correct. Use '
-      +'💾 <b>Save</b> now to '+(SANDBOX? 'keep it in your office’s own file' : 'write it into the file')+', which does not use browser storage.'); }catch(e2){}
+      +'💾 <b>Save</b> now to '+(SANDBOX? 'keep it in your office’s own file' : 'write it into the file')+', which does not use browser storage.'
+      +' Until it is saved, closing or reloading this page asks first'+(SANDBOX? '.' : ', and switching appropriation waits.')); }catch(e2){}
     return false;
   }
 }
@@ -7973,18 +8039,23 @@ function shortTime(ts){ if(!ts) return ''; const d=new Date(ts), n=new Date();
 const FNAME='FY27 Consolidated Prioritization Board.html';
 // The stored name, or nothing, and it never asks. Read paths use this; only something about to
 // STAMP a name (a save, a publish) has the right to interrupt somebody for one.
-function whoIs(){ try{ return localStorage.getItem('prio27who')||''; }catch(e){ return ''; } }
+// v2.14 W3 (item 141 F): THE EDITOR NAME IS KEPT FOR THE PAGE when browser storage will not keep it (_whoMem, set only then).
+// Measured on v2.13: the prompt fired on every save and every journal entry -- six times for three edits -- and every save was
+// stamped "unknown". A name kept for the page wins over what storage holds (the person has just typed it).
+var _whoMem='';
+function whoIs(){ let w=''; try{ w=localStorage.getItem('prio27who')||''; }catch(e){} return _whoMem||w; }
 function whoAmI(force){
-  let w=null;
-  try{ w=localStorage.getItem('prio27who'); }catch(e){}
+  let w=whoIs()||null;
   if(!w||force){
     uiPrompt('Your name or initials (stamped on every save so the team can see who saved last):', w||'', v=>{
       if(v===null) return;
       const nv=(''+v).trim().slice(0,30)||'unknown';
-      try{ localStorage.setItem('prio27who', nv); }catch(e){}
-      setStat('\u{1F464} Editor name set to <b>'+esc(nv)+'</b> — stamped on future saves.');
+      const kept=lsSet('prio27who', nv, 'Your editor name', {quiet:true});
+      _whoMem=kept? '' : nv;
+      setStat('\u{1F464} Editor name set to <b>'+esc(nv)+'</b> — stamped on future saves.'
+        +(kept? '' : ' Browser storage would not keep it, so this page remembers it until it is closed, and asks again next time.'));
     });
-    try{ w=localStorage.getItem('prio27who'); }catch(e){}
+    w=whoIs()||null;
   }
   return w||'unknown';
 }
@@ -10759,6 +10830,7 @@ function importBoards(inp){
     // if storage cannot be read, lsAll writes nothing and says so. It was read a second time here, and when that read
     // failed the write went ahead with nothing to put back.
     let held=null;
+    const mk=lsMarks();      // v2.14 W3 (item 140 c): the save marks before the batch, for a late refusal put back whole
     if(W.length){
       const done=lsAll(W);
       if(!done.ok){ const r0=take[Math.max(0, done.at)]||take[0];
@@ -10782,8 +10854,10 @@ function importBoards(inp){
       Object.keys(pubWas).forEach(function(k){ if(pubWas[k]===undefined) delete PUBS[k]; else PUBS[k]=pubWas[k]; });
       const memOk=!threw || impBoardBack(memWas);
       const now=lsPutBack(W, held);
-      if(memOk && now.every(function(s){ return s==='was'; }))
+      if(memOk && now.every(function(s){ return s==='was'; })){
+        lsMarksBack(mk);     // v2.14 W3 (item 140 c): every list as it was, so the board reads as saved as it was
         return none('this board did not take '+_SLUGMAP[here.slug].t+' from “'+here.name+'”', true);
+      }
       return batchImportUndone(W, held, now, take, here, memOk);
     }
     if(W.length) impMixedLift(W.map(function(w){ return w[0]; }));
@@ -15932,7 +16006,34 @@ var _leaving=false;
 function reopenPage(){ _leaving=true; try{ location.reload(); }catch(e){} }
 // v2.14 (slot; W3 owns the body): may the page be reopened, or a whole board loaded over it, now? True when it stopped, having said
 // why: while a change is on screen only (browser storage refused it), nothing reopens the page unasked (item 141 F).
-function memOnlyBlock(head, act){ return false; }
+// Measured on v2.13: an edit storage refused, then switching appropriation, Go to under PPBE cycles, or an import that
+// reloads -- the page reopened from storage's older copy and the edit was gone, with nothing said. Each door asks here first,
+// before any question or write of its own. After a downloaded copy (_dlOnly) it asks once instead of refusing: where policy
+// blocks writing in place, a download is the only Save there is, and a refusal would hold the page forever.
+function memOnlyBlock(head, act){
+  if(!memOnlyNow()) return false;
+  let sb=false; try{ sb=!!SANDBOX; }catch(e){}
+  let dl=false; try{ dl=!!_dlOnly; }catch(e){}
+  if(dl){
+    if(confirm('Your latest changes are in the copy you downloaded, but not in '+(sb? 'your office’s own file' : 'the board file')
+      +', and browser storage could not keep them.\n\n'+act.charAt(0).toUpperCase()+act.slice(1)
+      +': afterwards only the downloaded copy holds them.\n\nOK — go on.\nCancel — stay here.')) return false;
+    setStat(esc(head)+' — nothing changed.');
+    return true;
+  }
+  let mixed=false; try{ mixed=impMixedOn(); }catch(e){}
+  setStat('⛔ <b>'+esc(head)+'.</b> Your latest changes are on screen only: browser storage refused them, so no saved copy holds them, and '
+    +esc(act)+', which would lose them. 💾 <b>Save</b> '+(sb? 'keeps them in your office’s own file' : 'writes them into the board file')+', then try again.'
+    +(mixed? ' 💾 Save is held while the stopped import is sorted out: ⬇ <b>Save a copy</b> (▾ beside 💾 Save → ⬇ Save a copy…) keeps them in a new file.' : ''));
+  return true;
+}
+// v2.14 W3 (item 141 F): THE BROWSER ASKS BEFORE THE PAGE IS LEFT while work is on screen only (memOnlyNow), or while the file
+// route holds the only copy of something (impFileHolds, W2's). Measured on v2.13: an edit storage refused, then the tab closed --
+// nothing asked, and the edit gone on reopen. A deliberate reopening (reopenPage) has already asked, and sets _leaving first.
+function memOnlyLeave(ev){
+  try{ if(_leaving || !(memOnlyNow() || impFileHolds())) return; ev.preventDefault(); ev.returnValue=''; return ''; }catch(e){}
+}
+try{ window.addEventListener('beforeunload', memOnlyLeave); }catch(e){}
 // The folder check: every step, in order, printed as it happens. Run from the page in question
 // with the button's own click as the gesture, so it sees exactly what the person's browser sees.
 // WHERE THIS PROGRAM WAS OPENED FROM, as a Windows path. The picker cannot be pointed at a path,
@@ -23486,10 +23587,14 @@ function cycRetagLead(){
 // open another appropriation's board with PPBE cycles open: the appropriation switch, and a one-time mark this browser reads on
 // opening (never part of the board)
 const CYC_GO_KEY='prio27cycGo';
+// v2.14 W3 (item 141 F): asked first, then the mark, then the switch (told it has asked) -- and the mark taken back when no
+// switch happens: left behind, it opened PPBE cycles unasked the next time that board opened. A refused mark still switches;
+// only the panel does not open there.
 function cycGoAppn(k){
   if(!_SLUGMAP[k] || k===mySlug()) return;
-  try{ localStorage.setItem(CYC_GO_KEY, k); }catch(e){}
-  switchAppn(APPN_LBL[k]);
+  if(memOnlyBlock('Not opened', 'opening '+_SLUGMAP[k].t+' reopens the page')){ try{ render(); }catch(e){} return; }
+  lsSet(CYC_GO_KEY, k, 'Which board opens PPBE cycles next', {quiet:true});
+  if(!switchAppn(APPN_LBL[k], true)){ try{ localStorage.removeItem(CYC_GO_KEY); }catch(e){} }
 }
 // ============================ ONE PPBE CYCLE, CHOSEN AT THE TOP (v2.13, item 136) ===========================================
 // Brad, 2 Nov 2026: "Can the tag apply to all appropriations at once? It should and I should have a selection on the main
@@ -32073,6 +32178,20 @@ function sideBootSay(){
   }catch(e){ return ''; }
 }
 function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
+// v2.14 W3 (item 141 F): WORK ON SCREEN ONLY. Browser storage refused a change the board holds (DIRTY && _persistFail: the plan,
+// or the hand-over hold's persist), or a list after the board opened (_lsRefused past _sideBootGen) -- so no saved copy and no
+// stored copy holds it, and closing, reloading or reopening the page loses it. While it holds, the browser asks before the page
+// is left (memOnlyLeave) and nothing in ORBIT reopens the page without saying why and naming Save (memOnlyBlock). A file save
+// ends it: DIRTY goes false and sideWrote clears _lsRefused. A refusal made while OPENING is not counted (gen <= _sideBootGen):
+// the file still holds that list. A locked view leaves DIRTY as the working plan's (cycView stashes it without resetting it).
+// It needs lsAll to put _lsRefused back when every key is back (lsMarksBack), or a refused import would arm it falsely.
+function memOnlyNow(){
+  try{
+    if(DIRTY && _persistFail) return true;
+    for(const k in _lsRefused) if(_lsRefused[k]>_sideBootGen) return true;
+  }catch(e){}
+  return false;
+}
 // v2.09 (item 127): A PMO COPY'S FOOT -- 💾 Save and its ▾ (Save a copy), the save state under them, then ✉ Submit input, the
 // primary button, in Save's spot. Moved into place once, in the page's own order, so Tab meets them as they are seen.
 function pmoFootSet(un){
@@ -33245,7 +33364,8 @@ async function _driveStorePushRun(quiet, fyAsked, keptTheirs){
   LIVEDB.pub=Date.now(); LIVEDB.err='';
   // A history copy that could not be kept stops the save above (v1.97, item 79): there is no "saved, but" any more.
   const lateNote = clean? '' : ' <b>A change made while it was saving is not in the folder yet</b> — it is saved next time.';
-  const penNote = may==='claim'? ' You are now its <b>writer</b>.' : may==='take'? ' You now <b>hold the pen</b> for it.' : '';
+  const penNote = (may==='claim'? ' You are now its <b>writer</b>.' : may==='take'? ' You now <b>hold the pen</b> for it.' : '')
+    +wkMemSay(may);     // v2.14 W3 (item 141 F): and when storage would not keep the writer key that claimed it
   // v2.00 (R3, Brad 11 Oct): A SAVE THAT LANDS UNDER A LOCKED VIEW SAYS WHAT IT SAVED -- the working plan, its bytes built before
   // the cycle was put on screen. persist() above refuses in the view, and that refusal put "🔒 Not kept" before "✅ Saved", which
   // read as a refusal and named no plan. Said whether or not the save was quiet: the refusal is on screen either way.
@@ -34470,6 +34590,29 @@ function diagBrowser(){
   const os = /Windows/.test(ua)? 'Windows' : /Mac OS X/.test(ua)? 'macOS' : /Linux/.test(ua)? 'Linux' : 'unknown';
   return {name:b, os:os};
 }
+// v2.14 W3 (item 141 G): WHAT FILLS BROWSER STORAGE, BY KIND, for Save diagnostics. Reads only each key's length and its value's
+// length, and sorts by the NAME alone, first match wins: not ORBIT's (no prio27/spmt prefix: another tool, another page);
+// a PMO copy's (-pmo<publish stamp>, its stamps counted); work kept aside (.kept); save records (.base); locked cycles; boards;
+// the board-wide lists; everything else ORBIT keeps is a setting. It never returns a key name, so another tool's key, which
+// may name a person, never reaches the report.
+function diagLsKinds(){
+  const K=[['board','Boards'],['cyc','Locked cycles'],['list','Lists'],['kept','Work kept aside'],['base','Save records'],['copy','PMO copies'],['set','Settings'],['other','Not ORBIT']];
+  const R=Object.create(null), stamps=Object.create(null); K.forEach(function(x){ R[x[0]]={n:0, c:0}; });
+  const ap='('+APPN_SLUGS.join('|')+')', reB=new RegExp('^prio27'+ap+'$'), reC=new RegExp('^prio27'+ap+'-cyc$'), reL=/^prio27(execdb|acedb|buddb|reprog|destdb)$/;
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i); if(k===null) continue;
+    const c=k.length+(localStorage.getItem(k)||'').length; let f='set', m;
+    if(!CLR_PREFIX.test(k)) f='other';
+    else if((m=k.match(/-pmo(\d+)/))){ f='copy'; stamps[m[1]]=1; }
+    else if(/\.kept$/.test(k)) f='kept';
+    else if(/\.base$/.test(k)) f='base';
+    else if(reC.test(k)) f='cyc';
+    else if(reB.test(k)) f='board';
+    else if(reL.test(k)) f='list';
+    R[f].n++; R[f].c+=c;
+  }
+  return {rows:K.map(function(x){ return {k:x[0], label:x[1], n:R[x[0]].n, c:R[x[0]].c}; }), stamps:Object.keys(stamps).length};
+}
 // The store each appropriation opens on, chosen as buildSavedHtml chooses: this browser's when it is at
 // least as new as the file's.
 function diagStoreOf(k){
@@ -34520,6 +34663,12 @@ function diagReport(){
   try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i), v=localStorage.getItem(k)||'';
       keys++; used+=(k.length+v.length)*2; if(/^(prio|spmt)/i.test(k)) mine+=(k.length+v.length)*2; } }catch(e){ keys=-1; }
   add('  Browser storage:    '+(keys<0? 'could not be read' : keys+' entries, '+(used/1048576).toFixed(2)+' MB in use ('+(mine/1048576).toFixed(2)+' MB of it the board’s)'));
+  // v2.14 W3 (item 141 G): what fills it, by kind -- counts only, no key named, no value read beyond its length, no limit quoted
+  // (the browser's limit is not the same everywhere). The kinds add up to the entries on the line above.
+  if(keys>=0) try{ const LK=diagLsKinds();
+    add('  Storage by kind:    characters, keys and values together, as browser storage counts them');
+    LK.rows.forEach(function(r){ add('    '+(r.label+':').padEnd(18)+(r.n? r.n+' entr'+(r.n===1?'y':'ies')+', '+r.c+' characters' : 'none')
+      +((r.k==='copy' && r.n)? ' ('+LK.stamps+' publish date'+(LK.stamps===1?'':'s')+')' : '')); }); }catch(e){ add('  Storage by kind:    could not be read'); }
   add('  Writes refused:     '+(DIAG.refused.length? DIAG.refused.length+' this session' : 'none this session'));
   DIAG.refused.slice(-10).forEach(function(r){ add('    '+diagStamp(r.t).slice(11)+'  '+diagClean(r.what, true)+' — '+r.why); });
   add('  Unread on opening:  '+(DIAG.boot.length? DIAG.boot.map(function(b){ return diagClean(b, true); }).join('; ') : 'nothing'));
@@ -36780,7 +36929,10 @@ function clearComputer(){
   const keys=clearComputerKeys();
   let kept=false; try{ kept=!!localStorage.getItem((_AP&&_AP.key? _AP.key : '')+'.kept'); }catch(e){}
   const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;
-  const warn=(unsaved? '\n\n⚠ This board has UNSAVED CHANGES. They are in this browser only and will be lost. Cancel and 💾 Save first to keep them.' : '')
+  // v2.14 W3 (item 141 F): changes browser storage refused are not "in this browser" at all -- they are on screen only
+  let only=false; try{ only=memOnlyNow(); }catch(e){}
+  const warn=(only? '\n\n⚠ This board has changes ON SCREEN ONLY: browser storage refused them, so neither this browser nor the file holds them. They will be lost. Cancel and 💾 Save first to keep them.'
+             : unsaved? '\n\n⚠ This board has UNSAVED CHANGES. They are in this browser only and will be lost. Cancel and 💾 Save first to keep them.' : '')
     +(kept? '\n\n⚠ Work KEPT ASIDE in this browser will be lost. Cancel and save it as a file first (History & recovery).' : '');
   if(!confirm('Clear this computer?\n\nThis removes everything ORBIT keeps in this browser ('+keys.length+' item'+(keys.length===1?'':'s')
     +'): the copies of every board and list, work kept aside, your editor name and writer key, your settings, and the remembered save file.'
@@ -39623,6 +39775,7 @@ try{ jrnlSync(); }catch(e){}
 // v1.99 (item 95): but a list storage REFUSED while opening is held nowhere but on screen, so it stays unsaved: the file
 // is the one place left to keep it, and Save puts it there.
 try{ _sideSaved=_sideGen; }catch(e){}
+try{ _sideBootGen=_sideGen; }catch(e){}
 // v1.99 (item 95): ...and what browser storage holds of them that the file does not is still unsaved, whoever wrote it
 try{ sideBootCheck(); saveStateShow(); }catch(e){}
 try{ setTimeout(()=>{ DIRTY=false; syncBtns(); }, 0); }catch(e){}
@@ -39780,8 +39933,10 @@ function uiBoot(){
 function uiPenOther(){
   try{
     if(typeof WRITER==='undefined' || !WRITER || !WRITER.fp) return '';
-    let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){}
-    if(/^[0-9a-f]{32}$/.test(k) && writerIsMe(WRITER)) return '';
+    // v2.14 W3 (item 141 F): the key this page holds, from storage or kept for the page (writerKeyHeld). Reading storage alone,
+    // a full browser named this browser's own pen as somebody else's ("unknown").
+    const k=writerKeyHeld();
+    if(k && writerIsMe(WRITER)) return '';
     return String(WRITER.by||'someone else');
   }catch(e){ return ''; }
 }
