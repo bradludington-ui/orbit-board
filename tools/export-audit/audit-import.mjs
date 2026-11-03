@@ -15669,6 +15669,310 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// the import's own file, or a board saved from it, read as canonical state: every `ts` and a journal entry's `t` zeroed by name
+// (the save clocks are meant to move), the writer and the import's stamp left out, keys sorted
+const w214Canon = (html) => {
+  const P = W1H.pubOf(html); if (!P) return 'no pubState';
+  delete P.writer; delete P.impFile;
+  const walk = (o, k) => { if (Array.isArray(o)) return o.map(x => walk(x, k));
+    if (o && typeof o === 'object') { const r = {}; Object.keys(o).sort().forEach(n => { r[n] = (n === 'ts' || (k === 'jrnl' && n === 't')) && typeof o[n] === 'number' ? 0 : walk(o[n], n === 'jrnl' ? 'jrnl' : (Array.isArray(o[n]) ? n : '')); }); return r; }
+    return o; };
+  return JSON.stringify(walk(P, ''));
+};
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — the file route where the browser cannot write a file: downloaded, and this browser’s old copies cleared when it opens (item 141)';
+  try {
+  const { J, refuse, picker, downloads, press, box, marker, navs, settle, pubOf } = W214;
+  const { NEW } = w2Fx();
+  const status = W1H.status;
+  // ANOTHER, OLDER BOARD under the same keys: its own requirements (X, Y), its clock a day back, its data pack in its plan --
+  // the copy that, left in place, stands in front of a newer board file (DATA takes storage's data pack first)
+  const stale = (() => {
+    const A = boot(); seed(A.ev, { services: W2_MINE, items: [w2it('X', 'AV', [500, 50, 5]), w2it('Y', 'PSM', [300, 30, 3])], disc: [700, 70, 7], mand: [10, 1, 1], order: ['X', 'Y'] });
+    A.ev(`(function(){ BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      MS.dataPack=dataPackOf(); MS.ts=1700000000000; MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS));
+      localStorage.setItem(_AP.key+'.base', JSON.stringify({file:1700000000000, folder:{}, dirty:false})); return 'ok'; })()`);
+    return w2LsOf(A.ev);
+  })();
+  const ids = (ev) => ev('JSON.stringify(DATA.items.map(function(i){ return i.id; }).sort())');
+  const fileIds = JSON.stringify(((W1H.pubOf(NEW.html).appns.om.dataPack || {}).items || []).map(i => i.id).sort());
+  chk(name, 'the fixture', 'the board this browser holds is not the one imported, and opened over it as is, it shows its own list (R1, a control)',
+    J([ids(boot({ ls: stale }).ev), fileIds !== '[]', ids(boot({ html: NEW.html, ls: stale }).ev) !== fileIds]), J(['["X","Y"]', true, true]));
+  const skip = (T) => { if (/1\. This browser holds work/.test(box(T).text)) T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`); };
+  // the same import through the save window, for the bytes
+  const T0 = boot({ ls: stale }); const P0 = picker(T0), e00 = T0.errors.length;
+  await refuse(T0, NEW.html); skip(T0); press(T0, P0, /^Write the imported board/);
+  await settle(T0, () => navs(T0, e00) > 0);
+  const viaWindow = P0.files[P0.picks[0]] || '';
+  for (const [how, set] of [['no save window', (T) => { delete T.w.showSaveFilePicker; }], ['the save window refused by policy', (T) => picker(T, { reject: 'SecurityError' })]]) {
+    const mk = bootMark();
+    const T = boot({ ls: stale }); set(T);
+    const e1 = T.errors.length;
+    const r = await refuse(T, NEW.html); skip(T);
+    const D = downloads(T);
+    press(T, null, /^Write the imported board/);
+    await settle(T, () => /The imported board was downloaded/.test(status(T.ev)));
+    const m = marker(T), ls1 = w2LsOf(T.ev);
+    chk(name, how, 'one download, of the board the save window would have written (the stamp and clocks aside)',
+      J([D.length, D[0] && D[0].name, D[0] && w214Canon(D[0].text) === w214Canon(viaWindow), D[0] && !!(pubOf(D[0].text) || {}).impFile]),
+      J([1, T.ev(`impFileName('new-board.html')`), true, true]));
+    chk(name, how, 'nothing cleared and nothing reopened; the note is in, holding a hash of what each key holds',
+      J([w2Diff(r.held, ls1).split(',').filter(k => k !== 'prio27writerKey').join(','), navs(T, e1), m && m.how, m && Object.keys(m.h).filter(k => m.h[k] !== T.ev(`sideHash(${J(r.held[k])})`))]),
+      J(['prio27impFile', 0, 'download', []]));
+    chk(name, how, 'it says so, and this page is held until the file is opened', J([status(T.ev).startsWith('⬇ The imported board was downloaded as “'), !!T.ev('impHandOf()')]), J([true, true]));
+    // THE DOWNLOADED FILE, OPENED IN THIS BROWSER: the old copies are cleared before anything reads them
+    const B = boot({ html: D[0].text, ls: ls1 }), X = boot({ html: D[0].text });
+    chk(name, how, 'opened here, it shows its own requirements, its figures are the file’s own, and its next Save carries its own data pack',
+      J([ids(B.ev), v14Figures(B.ev), JSON.stringify(((pubOf(B.ev('buildSavedHtml()')).appns.om.dataPack || {}).items || []).map(i => i.id).sort())]),
+      J([fileIds, v14Figures(X.ev), fileIds]));
+    chk(name, how, 'the old copies are gone from this browser, and the note with them', J([B.ev(`localStorage.getItem('prio27impFile')`), B.ev('JSON.stringify(_impOpen.left)')]), J([null, '[]']));
+    bootRelease(mk, keepBoards());
+  }
+  { // LIFTED BY HAND before the file is opened (C22): the unchanged copies go, one changed meanwhile is left and named
+    const mk = bootMark();
+    const T = boot({ ls: stale });
+    await refuse(T, NEW.html); skip(T);
+    const D = downloads(T);
+    press(T, null, /^Write the imported board/);
+    await settle(T, () => /The imported board was downloaded/.test(status(T.ev)));
+    T.ev(`localStorage.setItem('prio27execdb', ${J(J({ ts: Date.now(), all: { om: { fy: 2027, rows: [['CHANGED MEANWHILE', 1]] } } }))}); 'ok'`);
+    T.ev(`globalThis.__lq=[]; window.confirm=function(q){ globalThis.__lq.push(String(q)); return true; }; impHandClear(); 'ok'`);
+    const lq = JSON.parse(T.ev('JSON.stringify(globalThis.__lq)'));
+    chk(name, 'lifted by hand', 'the question says the unchanged copies go with the hold', J(lq.map(q => /Lifting it also removes this browser’s copies of .+ that are unchanged since the import was written/.test(q))), J([true]));
+    chk(name, 'lifted by hand', 'the unchanged copies and their records are gone, the one changed meanwhile is left and named, and the note is gone',
+      J([T.ev(`localStorage.getItem('prio27om')`), T.ev(`localStorage.getItem('prio27om.base')`), /CHANGED MEANWHILE/.test(T.ev(`localStorage.getItem('prio27execdb')||''`)),
+         /This browser’s copy of the execution data changed after the import was written, so it was left as it is\./.test(status(T.ev)), T.ev(`localStorage.getItem('prio27impFile')`)]),
+      J([null, null, true, true, null]));
+    const B = boot({ html: D[0].text, ls: w2LsOf(T.ev) });
+    chk(name, 'lifted by hand', 'the downloaded file, opened after, shows its own requirements', ids(B.ev), fileIds);
+    bootRelease(mk, keepBoards());
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — the file route gives what the storage route gives, on files from v1.80, v1.83, v1.85, v1.87, v2.11 and a partial file (item 141)';
+  try {
+  const { J, picker, press, navs, settle } = W214;
+  // ROUTE A: the import lands in browser storage and the page reopens on it. ROUTE B: the same import refused at its last write (the
+  // report), written into a new file, and that file opened on what this browser then holds. They must be the same board, by every
+  // figure, every plan and locked cycle, every list, and every byte of the state the next Save writes (clocks, the writer and the
+  // stamp aside). `page` is the page the import runs in: the program, or a board file of its own.
+  const refuseKey = (T, html, fname, key) => JSON.parse(T.ev(`(function(){
+    window.confirm=function(){ return true; }; window.alert=function(){};
+    const mk=[_saveGen, DIRTY, _sideGen, _dlOnly, _lsRefused]; const _si=Storage.prototype.setItem; let done=false;
+    Storage.prototype.setItem=function(k, v){ if(k===${J(key)} && !done){ done=true; throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); } return _si.call(this, k, v); };
+    let ret; try{ ret=fullImportText(${J(html)}, ${J(fname)}); }finally{ Storage.prototype.setItem=_si; }
+    _saveGen=mk[0]; DIRTY=mk[1]; _sideGen=mk[2]; _dlOnly=mk[3]; _lsRefused=mk[4]; impFileDraw();   // as W3's lsMarksBack does (see refuse())
+    return JSON.stringify({ret:ret, offered:!!document.getElementById('impFileGo')}); })()`));
+  const both = async (label, page, html, aps) => {
+    const mk = bootMark();
+    const A = boot({ html: page });
+    const okA = A.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(html)}, 'board.html'); })()`);
+    const lsA = w2LsOf(A.ev);
+    const T = boot({ html: page });
+    await new Promise(res => setTimeout(res, 5));
+    const P = picker(T), e1 = T.errors.length;
+    const rB = refuseKey(T, html, 'board.html', 'prio27impRep');
+    if (/1\. This browser holds work/.test(((T.w.document.getElementById('impFileBody') || {}).textContent) || ''))
+      T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+    press(T, P, /^Write the imported board/);
+    await settle(T, () => navs(T, e1) > 0);
+    const fileB = P.files[P.picks[0]] || '', lsB = w2LsOf(T.ev);
+    chk(name, label, 'route A lands; route B is refused at the report, offered the file, and written', J([okA, rB.ret, rB.offered, fileB.length > 0]), J([true, false, true, true]));
+    for (const ap of aps) {
+      const RA = boot({ html: page, appn: ap, ls: lsA }), RB = boot({ html: fileB, appn: ap, ls: lsB });
+      const at = label + ', ' + ap;
+      chk(name, at, 'what it prints: the lanes and every requirement’s value, draw and shortfall', v14Figures(RB.ev), v14Figures(RA.ev));
+      for (const k of ['om', 'ff', 'sp']) {
+        chk(name, at, k + ': its plan, every year', v14Plan(RB.ev, k), v14Plan(RA.ev, k));
+        chk(name, at, k + ': its locked cycles', v14Cyc(RB.ev, k), v14Cyc(RA.ev, k));
+      }
+      chk(name, at, 'the BAE list, execution data, cost estimates and reprogramming log', v14Stores(RB.ev), v14Stores(RA.ev));
+      chk(name, at, 'the state its next Save writes (clocks, the writer and the stamp aside)', w214Canon(RB.ev('buildSavedHtml()')), w214Canon(RA.ev('buildSavedHtml()')));
+    }
+    bootRelease(mk, keepBoards());
+    await settleBoards();
+  };
+  const O = v14Rich();
+  const L86 = O.ev('buildSavedHtml()');
+  const rich = v14Pub(L86);
+  for (const [ver, rev, file] of [['v1.80', '68b02e9'], ['v1.83', '84dcaf9'], ['v1.85', '77882d9'], ['v1.87', '1589749'],
+                                   ['v2.11', 'f76e327', 'prioritization-board-grid.html']]) {
+    const old = boot({ html: v14With(v14Old(rev, file), rich) });
+    const Lold = old.ev('buildSavedHtml()');
+    await both(ver + ' file into the program', null, Lold, ['O&M', 'FULL FUND', 'INITIAL SPARES']);
+  }
+  // A PARTIAL FILE -- Full Fund and Spares alone -- into a board file with an O&M of its own: the new file carries that O&M as the
+  // reopened page would show it, and the import's two
+  const part = JSON.parse(J(rich)); delete part.appns.om; if (part.cycDb && part.cycDb.byAp) delete part.cycDb.byAp.om;
+  const partial = v14With(L86, part);
+  const own = boot({ html: L86 }); own.ev(`S.notes.A='THIS BOARD’S OWN O&M'; save(); 'ok'`);
+  const ownFile = own.ev('buildSavedHtml()');
+  await both('a partial file into a board file', ownFile, partial, ['O&M', 'FULL FUND']);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — on an empty board, Import one appropriation takes a board file whole or not at all (item 141 E)';
+  try {
+  const { J, box, navs } = W214;
+  const { NEW } = w2Fx();
+  const status = W1H.status;
+  // Import one appropriation (importState) of a file, through its own door, storage refusing the keys in `no` (each once)
+  const viaDoor = async (T, html, fname, no) => {
+    const e0 = T.errors.length;
+    T.ev(`(function(){ globalThis.__al=[]; window.alert=function(m){ globalThis.__al.push(String(m)); }; globalThis.__cf=[]; window.confirm=function(q){ globalThis.__cf.push(String(q).split('\\n')[0]); return true; };
+      globalThis.__si=Storage.prototype.setItem; globalThis.__no=${J(no || [])};
+      Storage.prototype.setItem=function(k,v){ const i=globalThis.__no.indexOf(k); if(i>=0){ globalThis.__no.splice(i,1); throw new DOMException('The quota has been exceeded.','QuotaExceededError'); } return globalThis.__si.call(this,k,v); };
+      importState({ files:[new File([${J(html)}], ${J(fname)})], value:'x' }); return 'ok'; })()`);
+    await W1H.until(() => T.ev('globalThis.__al.length') > 0 || navs(T, e0) > 0 || /Nothing was imported|reopening|Loaded/.test(status(T.ev)), 3000);
+    T.ev(`Storage.prototype.setItem=globalThis.__si; 'ok'`);
+    return { al: JSON.parse(T.ev('JSON.stringify(globalThis.__al)')), cf: JSON.parse(T.ev('JSON.stringify(globalThis.__cf)')), nav: navs(T, e0), stat: status(T.ev) };
+  };
+  // (a) AN EMPTY BOARD IN AN EMPTY BROWSER, a whole board file: the full import, all or nothing
+  {
+    const T = boot(); await new Promise(r => setTimeout(r, 5));
+    chk(name, '(a) the fixture', 'the program is an empty board, in an empty browser (a control)', J([T.ev('IS_SHELL'), T.ev('impShellEmpty()')]), J([true, true]));
+    const ls0 = w2LsOf(T.ev), ms0 = T.ev('JSON.stringify(MS)');
+    const r = await viaDoor(T, NEW.html, 'new-board.html', ['prio27ff']);
+    chk(name, '(a) refused', 'the full import’s own question, then nothing written, nothing reopened, no “Loaded”, and the file offered',
+      J([r.cf.includes('Import everything from “new-board.html” (saved by ' + T.ev(`'v'+fullBuildOf(${J(NEW.html)}).join('.')`) + ')?'), w2Diff(ls0, w2LsOf(T.ev)), r.nav, /Loaded/.test(r.stat),
+         /^⛔ Nothing was imported — browser storage refused the Full Fund plan/.test(r.stat), box(T).open, T.ev('JSON.stringify(MS)') === ms0]),
+      J([true, '', 0, false, true, true, true]));
+  }
+  // (b) the same, nothing refused (a control): every appropriation, the lists and the locked cycles land, and it reopens
+  {
+    const T = boot(); await new Promise(r => setTimeout(r, 5));
+    const r = await viaDoor(T, NEW.html, 'new-board.html', []);
+    const ls1 = w2LsOf(T.ev);
+    chk(name, '(b) landed (a control)', 'both plans, both appropriations’ cycles and every list the file carries are in storage, and it reopens',
+      J([['prio27om', 'prio27ff', 'prio27om-cyc', 'prio27ff-cyc', 'prio27buddb', 'prio27execdb', 'prio27acedb', 'prio27reprog', 'prio27destdb'].filter(k => !(k in ls1)), r.nav > 0]), J([[], true]));
+  }
+  // (c) A BROWSER THAT HOLDS SOMETHING: a cost estimate no file has, execution data for another appropriation -- the merging door (E2)
+  const held = { prio27acedb: J({ ts: 1700000000000, sets: { 'ACE-HELD-HERE': { fp: 'fp-held', lines: [{ n: 'held' }] } } }),
+                 prio27execdb: J({ ts: 1700000000000, all: { sp: { fy: 2027, rows: [['JSF-HELD-SP', 4242]] } } }) };
+  {
+    const T = boot({ ls: held }); await new Promise(r => setTimeout(r, 5));
+    chk(name, '(c) the fixture', 'an empty board, but not an empty browser (a control)', J([T.ev('IS_SHELL'), T.ev('impShellEmpty()')]), J([true, false]));
+    const r = await viaDoor(T, NEW.html, 'new-board.html', []);
+    const ls1 = w2LsOf(T.ev);
+    chk(name, '(c) merged', 'it lands, keeping the estimate no file has and the other appropriation’s execution data beside the file’s',
+      J([r.nav > 0, /ACE-HELD-HERE/.test(ls1.prio27acedb || ''), /JSF-HELD-SP/.test(ls1.prio27execdb || ''), /JSF1/.test(ls1.prio27execdb || ''), r.cf.some(q => /^Import everything from/.test(q))]),
+      J([true, true, true, true, false]));
+    // (e) each plan it wrote is recorded as no saved file's, unsaved, with no blank mark
+    chk(name, '(e) the records', 'each plan the merging door wrote is recorded {file:0, folder:{}, dirty:true}, with no blank mark',
+      J(['prio27om.base', 'prio27ff.base'].map(k => ls1[k] || null)), J([J({ file: 0, folder: {}, dirty: true }), J({ file: 0, folder: {}, dirty: true })]));
+    const T2 = boot({ ls: held }); await new Promise(r2 => setTimeout(r2, 5));
+    const ls0 = w2LsOf(T2.ev), ms0 = T2.ev('JSON.stringify([MS, impMemSnap()])');
+    const r2 = await viaDoor(T2, NEW.html, 'new-board.html', ['prio27ff']);
+    chk(name, '(c) refused', 'all or nothing: storage byte-identical, memory put back, nothing reopened, and the refusal said',
+      J([w2Diff(ls0, w2LsOf(T2.ev)), T2.ev('JSON.stringify([MS, impMemSnap()])') === ms0, r2.nav, r2.al.length === 1 && /^Nothing was imported from “new-board\.html” — browser storage refused Full Fund board data \(QuotaExceededError\)\.\n\nThis board is exactly as it was\.$/.test(r2.al[0])]),
+      J(['', true, 0, true]));
+  }
+  // (d) A ONE-APPROPRIATION FILE into an empty board whose own file carries Full Fund's execution data and BAE rows: the merging door,
+  // so they are kept
+  {
+    const shellLists = { execDb: { ts: 1700000000000, all: { ff: { fy: 2027, rows: [['JSF-SHELL-FF', 777]] } } },
+      budDb: { ts: 1700000000000, rows: [{ ap: 'ff', svc: 'USAF', name: 'SHELL FF BAE ROW', amt: 1 }], files: ['shell.xlsx'] } };
+    const shell = v14With(readFileSync(BOARD, 'utf8'), shellLists);
+    const P = W1H.pubOf(NEW.html);
+    const one = v14With(NEW.html, { appns: { om: P.appns.om }, only: 'O&M', destDb: P.destDb, aceDb: P.aceDb, rpDb: P.rpDb,
+      execDb: { ts: Date.now(), all: { om: P.execDb.all.om } }, cycDb: { ts: 0, byAp: { om: P.cycDb.byAp.om } },
+      budDb: Object.assign({}, P.budDb, { rows: P.budDb.rows.filter(b => b.ap === 'om') }) });
+    const T = boot({ html: shell }); await new Promise(r => setTimeout(r, 5));
+    chk(name, '(d) the fixture', 'an empty board in an empty browser, its own file carrying Full Fund’s execution data and BAE rows (a control)',
+      J([T.ev('IS_SHELL'), T.ev('impShellEmpty()'), /JSF-SHELL-FF/.test(T.ev('JSON.stringify(EXDB)'))]), J([true, true, true]));
+    const r = await viaDoor(T, one, 'one.html', []);
+    const ls1 = w2LsOf(T.ev);
+    chk(name, '(d) one appropriation', 'it goes the merging way: Full Fund’s execution data and BAE rows are not replaced by the file’s O&M alone',
+      J([r.cf.some(q => /^Import everything from/.test(q)), !('prio27execdb' in ls1) || /JSF-SHELL-FF/.test(ls1.prio27execdb), !('prio27buddb' in ls1) || /SHELL FF BAE ROW/.test(ls1.prio27buddb), 'prio27om' in ls1]),
+      J([false, true, true, true]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — a full import that only just fits says browser storage is almost full (item 141)';
+  try {
+  const { J, fx } = W214;
+  const { NEW, OLD, ls } = fx();
+  const T = boot({ html: OLD.html, ls });
+  w2Import(T, NEW.html, 'none', 0);
+  const lsA = w2LsOf(T.ev), size = Object.keys(lsA).reduce((s, k) => s + k.length + lsA[k].length, 0);
+  const said = (q) => /Browser storage is almost full now/.test(W1H.status(boot({ html: OLD.html, ls: lsA, quota: q }).ev));
+  chk(name, 'almost full', 'reopened with 1,000 characters to spare, the report says browser storage is almost full', said(size + 1000), true);
+  chk(name, 'room to spare (a CONTROL)', 'reopened with 200,000 to spare, it does not', said(size + 200000), false);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — after a full import that lands, the board reads unsaved, in no saved file (item 140)';
+  try {
+  const { J, fx } = W214;
+  const { NEW, OLD, ls } = fx();
+  const T = boot({ html: OLD.html, ls });
+  w2Import(T, NEW.html, 'none', 0);
+  const lsA = w2LsOf(T.ev);
+  const R = boot({ html: OLD.html, ls: lsA });
+  chk(name, 'reopened', 'the save state reads unsaved, and the work on screen came from no saved file',
+    J([W1H.header(R.ev), R.ev('LASTKNOWN')]), J(['Unsaved changes', 0]));
+  chk(name, 'the records', 'each plan the import wrote is recorded {file:0, folder:{}, dirty:true}, with no blank mark',
+    J(['prio27om.base', 'prio27ff.base'].map(k => lsA[k] || null)), J([J({ file: 0, folder: {}, dirty: true }), J({ file: 0, folder: {}, dirty: true })]));
+  chk(name, 'the records (a CONTROL)', 'a plan the import did not write keeps its record', lsA['prio27sp.base'], ls['prio27sp.base']);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 W2 — an ordinary save writes what the slot commit’s board writes, and carries no impFile (item 141)';
+  try {
+  const { J, fx, refuse, picker, press, navs, settle } = W214;
+  // the slot commit's board, read from history (git fetch --unshallow first in a shallow clone)
+  const SLOT = v14Old('ea412ca296e2d66b1bbbbc0780f336e8dd8d1691', 'prioritization-board-grid.html');
+  const saveOn = (prog) => { const A = boot({ html: prog }); seed(A.ev, W2_SC.om);
+    A.ev(`(function(){ BASE_ITEMS.length=0; ${J(W2_SC.om.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      applyState(S); S.notes.A='a note with </script> and “quotes”'; S.alloc.A={m:'t', v:777}; MS.years[MS.cur]=S; save();
+      BUDDB={ts:5, rows:[{ap:'om', svc:'USAF', name:'A BAE ROW', amt:1}], files:['b.xlsx']}; EXDB={ts:5, all:{om:{fy:2027, rows:[['JSF1', 5]]}}};
+      ACEDB={ts:5, sets:{'ACE':{fp:'fp', lines:[{n:'x'}]}}}; RPDB={ts:5, entries:[{id:'r', ts:5, ap:'om', amt:1, what:'w'}]}; return 'ok'; })()`);
+    return A.ev('buildSavedHtml()'); };
+  const mine = saveOn(null), slot = saveOn(SLOT);
+  chk(name, 'an ordinary save', 'its state is the slot commit’s, byte for byte (clocks zeroed by name)', w214Canon(mine), w214Canon(slot));
+  chk(name, 'an ordinary save', 'and it carries no impFile', /"impFile"/.test(mine), false);
+  // the import's own file, saved by its own first Save: the stamp is dropped
+  const { NEW, OLD, ls } = fx();
+  const T = boot({ html: OLD.html, ls }); const P = picker(T), e1 = T.errors.length;
+  await refuse(T, NEW.html); press(T, P, /^Write the imported board/);
+  await settle(T, () => navs(T, e1) > 0);
+  const html = P.files[P.picks[0]] || '';
+  const B = boot({ html, ls: w2LsOf(T.ev) });
+  chk(name, 'the import’s own file', 'it carries the stamp; its own first save does not', J([/"impFile"/.test(html), /"impFile"/.test(B.ev('buildSavedHtml()'))]), J([true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.14 W2 ====
 
 // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
