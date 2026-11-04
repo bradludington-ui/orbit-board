@@ -8953,15 +8953,22 @@ const { bootMark: _rv2dMark, bootRelease: _rv2dRelease, settleBoards: _rv2dSettl
 // upper of two identical rows left the lower one with none above it, so it drew with the signature held for the upper one, and the
 // typing moved there and was saved on the "repeats row 1" row nothing reads. FAILS ON 74a6aec: (a) the typing is on row 2 and is saved
 // there; (b) the typing in row 2 is dropped with words that say the row has no key and is not on the list as it was; (c) the keyless
-// twins, the same. (d) and (e) are CONTROLS (pass there too): a plain redraw, and a load that changes a third, different row.
+// twins, the same as (a); (j) dropped in words that say the row has no key. (d) and (e) are CONTROLS (pass there too): a plain redraw,
+// and a load that changes a third, different row.
+// v2.14 RV2-D (the check of this fix): AND A LOAD THAT CHANGES, ADDS OR REMOVES A TWIN ELSEWHERE LEAVES THE TYPING WHERE IT WAS. The
+// first cut carried the count of ALL identical rows, so any change to a twin dropped the typing, with words that were not true.
+// FAILS ON THE FIRST CUT (8028c1b): (b) dropped; (f) the lower twin renamed, (g) a second row made identical to the one typed in, (h) a
+// row exactly like it added, (i) its twin removed -- each dropped, where the row typed in was there as it was. (k) passes on both (a
+// CONTROL for the first cut; it bites a row followed only by the fewest-changes reading, which loses a row that only moved).
 await (async () => {
   const __bm = _rv2dMark();
   const name = 'v2.14 RV2-D — typing in one of two identical RCN / EEIC rows is never moved onto the other by a load that changes one of them (rcn-twin-typing-moves-to-the-other-row)';
   try {
     const J = JSON.stringify;
     const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const boards = [];
     const board = (rcn) => {
-      const B = boot();
+      const B = boot(); boards.push(B);
       seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [100, 20, 10])], disc: [1000, 100, 100], mand: [100, 10, 10], order: ['A'] });
       B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
         MS.rcn=${J(rcn)}; S.rcnAsg={A:'K1'}; save(); window.confirm=function(){ return true; }; window.alert=function(){}; rcnOpen=true; render(); 'ok'`);
@@ -8971,14 +8978,22 @@ await (async () => {
     const rowsOf = B => `[].filter.call(document.querySelectorAll('#rcnBody tr'), function(t){ return t.querySelector('input.btn'); })`;
     const typeIn = (B, n, v) => B.ev(`(function(){ var r=${rowsOf(B)}[${n}]; var i=r.querySelectorAll('input.btn')[0]; i.focus(); i.value=${J(v)};
       i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`);
-    const load = (B, js) => B.ev(`(function(){ setStat(''); var st=JSON.parse(JSON.stringify(MS)); (function(L){ ${js} })(st.rcn); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+    const load = (B, js) => B.ev(`(function(){ setStat(''); var st=JSON.parse(JSON.stringify(MS)); (function(L){ ${js} })(st.rcn); st.rcn=st.rcn.filter(Boolean); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
     const holds = (B, v) => B.ev(`String([].some.call(document.querySelectorAll('#rcnBody input'), function(i){ return i.value===${J(v)}; }))`);
     const focused = B => B.ev(`(function(){ var a=document.activeElement; var r=a && a.closest && a.closest('#rcnBody tr'); if(!r) return 'none';
       return 'row '+(${rowsOf(B)}.indexOf(r)+1)+' '+a.value; })()`);
     const leave = B => B.ev(`(function(){ var a=document.activeElement; if(a && a.blur) a.blur(); return 'ok'; })()`);
     const stored = B => B.ev(`JSON.stringify(MS.rcn.map(function(e){ return [e.k===undefined? '-' : e.k, e.t, e.rcn]; }))`);
+    const reads = B => B.ev(`String(rcnEntry('K1') && rcnEntry('K1').rcn)`);
     const said = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
     const TWIN = 'was not kept: the row it was in was exactly like another row on the list, and once the list was loaded the two could not be told apart. Nothing was changed.';
+    const LEFT = 'was not kept: the load changed or removed the row it was in; another row on the list is exactly as that row was, but it is not the row the typing was in. Nothing was changed.';
+    // the row typed in is there as it was: the typing stays in it, with the keyboard; leaving commits it there; nothing is said
+    const kept = (part, B, row, want) => {
+      chk(name, part, 'the typing is still in row ' + row + ', with the keyboard', focused(B), 'row ' + row + ' 99999');
+      leave(B);
+      chk(name, part, 'leaving commits it to row ' + row + ', and nothing says it was not kept', J([stored(B), /was not kept/.test(said(B))]), J([J(want), false]));
+    };
     // (a) two identical rows sharing K1 (the second "repeats row 1"); typing in row 1, the row A reads; a load renames row 1
     {
       const B = board([K1, K1]);
@@ -8987,19 +9002,17 @@ await (async () => {
       chk(name, '(a) the first twin, renamed by the load', 'no field holds the typing: it is not put on the other twin', holds(B, '99999'), 'false');
       leave(B);
       chk(name, '(a) the first twin, renamed by the load', 'leaving changes nothing: both rows keep 11111, and A reads the row it always read',
-        J([stored(B), B.ev(`String(rcnEntry('K1') && rcnEntry('K1').rcn)`)]), J([J([['K1', 'Depot repair', '11111'], ['K1', 'Depot', '11111']]), '11111']));
-      chk(name, '(a) the first twin, renamed by the load', 'and the board says it could not be told from an identical row', said(B).indexOf('(“99999”) ' + TWIN) >= 0, true);
+        J([stored(B), reads(B)]), J([J([['K1', 'Depot repair', '11111'], ['K1', 'Depot', '11111']]), '11111']));
+      chk(name, '(a) the first twin, renamed by the load', 'and the board says the row typed in was changed, and the row exactly like it is another',
+        said(B).indexOf('(“99999”) ' + LEFT) >= 0, true);
       chk(name, 'errors · (a)', 'no page error', String(B.errors.length), '0');
     }
-    // (b) the same twins; typing in row 2; the load renames row 1: row 2 is untouched, and never said to have no key or to be changed
+    // (b) the same twins; typing in row 2; the load renames row 1: row 2 is there as it was, and the typing stays in it
     {
       const B = board([K1, K1]);
       typeIn(B, 1, '99999');
       load(B, `L[0].t='Depot repair';`);
-      leave(B);
-      chk(name, '(b) the second twin, the first renamed', 'leaving changes nothing: both rows keep 11111', stored(B), J([['K1', 'Depot repair', '11111'], ['K1', 'Depot', '11111']]));
-      chk(name, '(b) the second twin, the first renamed', 'said in the twin’s words, never “has no key of its own” or “no longer on the list”',
-        J([said(B).indexOf(TWIN) >= 0, /has no key of its own|no longer on the list/.test(said(B))]), J([true, false]));
+      kept('(b) the second twin, the first renamed', B, 2, [['K1', 'Depot repair', '11111'], ['K1', 'Depot', '99999']]);
     }
     // (c) two identical rows with no key at all; typing in the first; the load fills the first's title
     {
@@ -9008,7 +9021,8 @@ await (async () => {
       load(B, `L[0].t='Depot repair';`);
       leave(B);
       chk(name, '(c) keyless twins, the first changed', 'leaving changes nothing: the second keeps its blank code', stored(B), J([['-', 'Depot repair', ''], ['-', '', '']]));
-      chk(name, '(c) keyless twins, the first changed', 'and the board says it could not be told from an identical row', said(B).indexOf('(“12345”) ' + TWIN) >= 0, true);
+      chk(name, '(c) keyless twins, the first changed', 'and the board says the row typed in was changed, and the row exactly like it is another',
+        said(B).indexOf('(“12345”) ' + LEFT) >= 0, true);
     }
     // (d) CONTROL: a plain redraw keeps the typing on row 1 of the twins
     {
@@ -9017,7 +9031,7 @@ await (async () => {
       B.ev(`render(); 'ok'`);
       chk(name, '(d) CONTROL', 'across a plain redraw the typing stays in row 1, with the keyboard', focused(B), 'row 1 99999');
       leave(B);
-      chk(name, '(d) CONTROL', 'leaving commits it to row 1, the row A reads', J([stored(B), B.ev(`String(rcnEntry('K1').rcn)`)]), J([J([['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]), '99999']));
+      chk(name, '(d) CONTROL', 'leaving commits it to row 1, the row A reads', J([stored(B), reads(B)]), J([J([['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]), '99999']));
     }
     // (e) CONTROL: a load that changes a third row, unlike either twin, leaves the typing on row 1
     {
@@ -9028,6 +9042,56 @@ await (async () => {
       leave(B);
       chk(name, '(e) CONTROL', 'leaving commits it to row 1', stored(B), J([['K1', 'Depot', '99999'], ['K1', 'Depot', '11111'], ['K2', 'Other renamed', '22222']]));
     }
+    // (f) the twins; typing in row 1; the load renames row 2, the repeat: row 1 is there as it was, and A reads what was typed
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L[1].t='Depot (repeat) renamed';`);
+      kept('(f) the first twin, the second renamed', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot (repeat) renamed', '11111']]);
+      chk(name, '(f) the first twin, the second renamed', 'and A reads 99999', reads(B), '99999');
+    }
+    // (g) two rows sharing K1 that differ (Depot / Depot repair); typing in row 1; the load makes row 2 exactly like row 1
+    {
+      const B = board([K1, Object.assign({}, K1, { t: 'Depot repair' })]);
+      typeIn(B, 0, '99999');
+      load(B, `L[1].t='Depot';`);
+      kept('(g) a second row made exactly like the one typed in', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]);
+    }
+    // (h) K1 on one row; typing in it; the load adds a row exactly like it below (a list from a board before v2.00)
+    {
+      const B = board([K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L.push(JSON.parse(JSON.stringify(L[0])));`);
+      kept('(h) a row exactly like it added below', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]);
+      chk(name, '(h) a row exactly like it added below', 'and A reads 99999', reads(B), '99999');
+    }
+    // (i) the twins; typing in row 1; the load removes one of them: the row left is exactly the row typed in, at its place
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L.splice(0, 1);`);
+      kept('(i) a twin removed, typing in the first', B, 1, [['K1', 'Depot', '99999']]);
+    }
+    // (j) the twins; typing in row 2, the repeat; the load removes one of them: which went cannot be told, and the one left is the row
+    // A reads -- the typing is put on no row, and said in the twin's words
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 1, '99999');
+      load(B, `L.splice(0, 1);`);
+      chk(name, '(j) a twin removed, typing in the repeat', 'no field holds the typing', holds(B, '99999'), 'false');
+      leave(B);
+      chk(name, '(j) a twin removed, typing in the repeat', 'leaving changes nothing: the row left keeps 11111, and A reads it', J([stored(B), reads(B)]), J([J([['K1', 'Depot', '11111']]), '11111']));
+      chk(name, '(j) a twin removed, typing in the repeat', 'and the board says the two could not be told apart, never that the row has no key',
+        J([said(B).indexOf('(“99999”) ' + TWIN) >= 0, /has no key of its own/.test(said(B))]), J([true, false]));
+    }
+    // (k) three keyless rows unlike each other; typing in the first; the load moves it to the end: it only moved, so the typing follows it
+    {
+      const B = board(['ONE', 'TWO', 'THREE'].map((t, i) => ({ rcn: String(i + 1).repeat(5), eeic: 'EEEEE', t, svc: ['USAF'] })));
+      typeIn(B, 0, '99999');
+      load(B, `L.push(L.shift());`);
+      kept('(k) a row with no key that only moved past the others', B, 3, [['-', 'TWO', '22222'], ['-', 'THREE', '33333'], ['-', 'ONE', '99999']]);
+    }
+    chk(name, 'errors · (b)–(k)', 'no page error', String(boards.slice(1).reduce((n, B) => n + B.errors.length, 0)), '0');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
@@ -9042,6 +9106,13 @@ await (async () => {
 // here). Full Fund's plan is the same in this browser's storage and in the file, so the check holds whichever copy is read.
 // FAILS ON 74a6aec: Full Fund's Spruills rows, totals and drill read only FFN's $3M in the second year and nothing in the first; the
 // chart of accounts lists no Full Fund requirement and N twice.
+// v2.14 RV2-D (the check of this fix): AND FOR A YEAR FULL FUND'S PLAN HAS NOT STARTED, THE CHART OF ACCOUNTS DOES NOT LIST ITS
+// REQUIREMENTS "AS DELIVERED". With every appropriation read from its own plan's pack, the chart listed Full Fund's requirements for a
+// year its plan holds no state for, at their shipped asks, under a flag saying its board had never been opened in this file, while the
+// Spruills on the same page read no data there. FAILS ON THE FIRST CUT (8028c1b): (y) Full Fund is listed as delivered; and on 74a6aec
+// and the first cut, the workbook does not say Full Fund holds no plan for that year. (z) is a CONTROL: an appropriation this file has
+// never opened, with only a shipped payload, is still listed as delivered. (x) passes on both (a store in no year's shape was never
+// read for its pack); it bites the guard that keeps it so.
 await (async () => {
   const __bm = _rv2dMark();
   const name = 'v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)';
@@ -9089,6 +9160,36 @@ await (async () => {
     chk(name, 'chart of accounts', '“Where we stand”: requirements and the year’s requirement, by appropriation',
       ev(`JSON.stringify(coaSummary(coaRows(${cur})).filter(function(b){ return b.ap===${J(own)} || b.ap===${J(other)}; }).map(function(b){ return [b.ap, b.n, b.ask]; }))`),
       J([[own, 3, 17.5 * M], [other, 2, 12 * M]]));
+    // (y) the board moves on to a year Full Fund's plan has not started (it holds this year and the next); (z) Initial Spares was never
+    // opened in this file -- no plan anywhere -- and the program ships a payload for it
+    ev(`(function(){ var P=APPNS['INITIAL SPARES']; P.services.length=0; P.items.length=0; ['USAF','ANG'].forEach(function(s){ P.services.push(s); });
+      P.items.push({id:'SP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req SP1', event:'Ev SP1', ccar:'', fy26:[0,0], ask:[700000,300000], alloc:null});
+      localStorage.removeItem(_SLUGMAP.sp.key); PUBS.sp=null; switchYear(${cur + 2}); return 'ok'; })()`);
+    const FY2 = 'FY' + ((cur + 2) % 100);
+    chk(name, '(y) fixture', 'the year on screen is two on, which Full Fund’s plan does not hold; Initial Spares has no plan at all',
+      ev(`JSON.stringify([MS.cur, Object.keys(JSON.parse(localStorage.getItem(_SLUGMAP[${J(slug)}].key)).years), localStorage.getItem(_SLUGMAP.sp.key), PUBS.sp])`),
+      J([cur + 2, [String(cur), String(cur + 1)], null, null]));
+    chk(name, '(y) a year Full Fund has not started', 'the chart of accounts lists none of Full Fund’s requirements for it, and so no Full Fund row in “Where we stand”',
+      ev(`JSON.stringify([coaRows(${cur + 2}).filter(function(r){ return r.ap===${J(other)}; }).length, coaSummary(coaRows(${cur + 2})).some(function(b){ return b.ap===${J(other)}; })])`), J([0, false]));
+    const stand = JSON.parse(ev(`(function(){ var cap=null; var keep=buildXlsx; buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ exportCoa(); } finally { buildXlsx=keep; }
+      var s1=(cap||[]).filter(function(s){ return s.name==='Where we stand'; })[0]||{rows:[]};
+      return JSON.stringify(s1.rows.map(function(r){ return (r||[]).map(function(c){ return (c && typeof c==='object' && 'v' in c)? c.v : c; }); })); })()`));
+    const firsts = stand.map(r => String(r[0] ?? ''));
+    chk(name, '(y) a year Full Fund has not started', 'the workbook’s “Where we stand” has no Full Fund row, and says Full Fund holds no plan for ' + FY2,
+      J([firsts.some(v => v === other || v.indexOf(other + '  (') === 0), firsts.indexOf(other + ' holds no plan for ' + FY2 + ': its board has not started that year, so it is not on this chart, and the Spruills reads no data for it there either.') >= 0]),
+      J([false, true]));
+    chk(name, '(y) a year Full Fund has not started', 'and the Spruills reads no data for Full Fund there',
+      J(blk(gather('pmo'), other).req[cur + 2] === undefined), 'true');
+    chk(name, '(z) CONTROL — never opened in this file', 'Initial Spares, with only a shipped payload, is still listed as delivered: SP1 at its shipped $1,000,000',
+      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='INITIAL SPARES'; }).map(function(r){ return [r.id, r.ask, r.fromPayload]; }))`), J([['SP1', 1000000, true]]));
+    // (x) a store for OPN in no year's shape (a board from before fiscal years, its edits at the top): its pack is not printed as delivered
+    // at the shipped figures, since nothing here reads where its edits are -- as before every appropriation was read from its own pack
+    ev(`(function(){ var st={ts:Date.now()-60000, asks:{OP1:[9000000,0]}, order:['OP1'],
+        dataPack:{services:['USAF','ANG'], items:[{id:'OP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req OP1', event:'Ev OP1', ccar:'', fy26:[0,0], ask:[100000,0], alloc:null}]}};
+      localStorage.setItem(_SLUGMAP.opn.key, JSON.stringify(st)); PUBS.opn=JSON.parse(JSON.stringify(st)); return 'ok'; })()`);
+    chk(name, '(x) a store in no year’s shape', 'OPN’s pack is not listed as delivered at its shipped $100,000, while its own edit says $9,000,000',
+      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='OPN'; }).map(function(r){ return [r.id, r.ask]; }))`), '[]');
     chk(name, 'errors', 'no page error', errors.length ? errors.slice(0, 2).join(' | ') : '', '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });

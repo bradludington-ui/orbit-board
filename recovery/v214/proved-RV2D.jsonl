@@ -1,5 +1,5 @@
-{"id": "v214-rv2-d-rcn-twin-total", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
-{"id": "v214-rv2-d-rcn-twin-words", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
+{"id": "v214-rv2-d-rcn-twin-total", "verdict": "CAUGHT", "fails": ["7"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
+{"id": "v214-rv2-d-rcn-twin-words", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
 {"id": "v214-rv1-d-rcn-sig-no-count", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-7decbdee.mjs", "detail": ""}
 {"id": "v214-rv2-d-spdefs-other-pack", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-13ba45b2.mjs", "detail": ""}
 {"id": "v214-rv2-d-spdefs-own-doubled", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-13ba45b2.mjs", "detail": ""}
@@ -9,6 +9,14 @@
 {"id": "v214-rv2-d-itemsof-twice", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-691e9b93.mjs", "detail": ""}
 {"id": "v214-rv2-d-mend-twice-unsaid", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-691e9b93.mjs", "detail": ""}
 {"id": "v214-rv2-d-mend-later-unsaid", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-2888b808.mjs", "detail": ""}
-{"id": "v214-rv2-d-roll-copies-aside", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-2888b808.mjs", "detail": ""}
+{"id": "v214-rv2-d-roll-copies-aside", "verdict": "CAUGHT", "fails": ["3"], "threw": 0, "suite": "_slim-prove-2888b808.mjs", "detail": ""}
 {"id": "v214-rv1-d-other-appn-unread", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-2f828e67.mjs", "detail": ""}
 {"id": "v214-rv1-d-other-appn-counts-aside", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-2f828e67.mjs", "detail": ""}
+{"id": "v214-rv2-d-rcn-ambiguous-drops", "verdict": "CAUGHT", "fails": ["5"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
+{"id": "v214-rv2-d-rcn-unique-by-alignment", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
+{"id": "v214-rv2-d-rcn-left-words", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-e6c682af.mjs", "detail": ""}
+{"id": "v214-rv1-d-rcn-place-again", "verdict": "CAUGHT", "fails": ["11"], "threw": 0, "suite": "_slim-prove-7decbdee.mjs", "detail": ""}
+{"id": "v214-rv2-d-roll-own-copy", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-2888b808.mjs", "detail": ""}
+{"id": "v214-rv2-d-coa-year-not-held", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-13ba45b2.mjs", "detail": ""}
+{"id": "v214-rv2-d-coa-not-held-unsaid", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-13ba45b2.mjs", "detail": ""}
+{"id": "v214-rv2-d-spdefs-flat-pack", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-13ba45b2.mjs", "detail": ""}

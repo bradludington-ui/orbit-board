@@ -374,6 +374,24 @@
    "mutations": [
     "v214-rv2-d-byband-ghost"
    ]
+  },
+  {
+   "id": "chart-of-accounts-listed-a-year-another-appropriation-has-not-started",
+   "found": "2026-11-04",
+   "foundBy": "the check of RV2-D's fix (rv2-D check x4), on the v2.12 big board",
+   "build": "v2.14 (RV2-D first cut); the same in a consolidated file since the chart of accounts was built",
+   "surface": "The chart of accounts (Where we stand, Decisions needed, the chart) -- every appropriation but the one on screen",
+   "symptom": "On O&M rolled forward to FY28, Where we stand listed FULL FUND (as delivered): 30 requirements, FY28 Requirement $209,844,000, and INITIAL SPARES $106,128,000, under a flag saying their boards had never been opened in this file -- while their plans hold FY27 only and the Spruills on the same page read no data for them in FY28.",
+   "cause": "coaRows called an appropriation 'as delivered' whenever its plan held no state for the year, which is meant for an appropriation with no plan at all; reading every appropriation from its own plan's pack (RV2-D) made that the common case.",
+   "fix": "v2.14 RV2-D (the check of its fix): an appropriation whose plan holds no state for the year is left off the chart for that year, and the workbook and the status line name it.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)"
+   ],
+   "mutations": [
+    "v214-rv2-d-coa-year-not-held",
+    "v214-rv2-d-coa-not-held-unsaid"
+   ]
   }
  ]
 }

@@ -61,6 +61,8 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
   - Keyless twins (case 1): 12345 is saved on row 2.
   - Typing in the second twin while a load fills the first (case 3): the typing is dropped, and the message says the row
     "has no key of its own, and the list as loaded no longer holds that row as it was", which is untrue.
+- **Superseded at the finish (below):** the total-count signature dropped the typing in cases 74a6aec handled right. The rows are
+  now followed from draw to draw (`rcnCarry`). What follows is the first cut, kept as the record.
 - **Fixed** in rcnRowSig: the signature now carries how many rows hold exactly the same in all (`'#'+sig+'#'+n+'/'+all`). A load
   that changes, adds or removes any twin therefore matches no row, and the typing is put on no row.
   - rcnBody gives such a loss its own words, through `rcnSigTwin` (a held signature whose total is above one): "the row it
@@ -193,6 +195,142 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
 - Every mutant parses (`node tools/check.mjs` on each).
 - `recovery/v214/proofs-RV2D.json` lists all 14. `JOBS=1 HEAP=8192 prove.py` → `recovery/v214/proved-RV2D.jsonl`: **14 of 14
   CAUGHT**, each by a failed check, none by a throw.
+
+## The finish: what the check of this fix found, and what changed
+
+The independent check of the first cut (`8028c1b`) re-ran every probe and found three new defects: x1, x2 and x4. It confirmed
+the other fixes held. Its probes were copied into `scratchpad/v214rev2/rv2-D/p3/` and run on this worktree's board. "The first
+cut" is `8028c1b` (`cut1.html`). "The board before" is still `74a6aec` (`pre.html`).
+
+### x1: the total-count signature dropped typing it should have kept, in untrue words (regression against 74a6aec)
+
+- **Reproduced** with `x1-rcn-edges.mjs` on the first cut. All three cases dropped the typing; 74a6aec kept each on row 1, and
+  that was right.
+  - (i) K1 twins, typing in row 1, a load renames row 2: dropped, in the twin's words.
+  - (ii) two K1 rows that differ, typing in row 1, a load makes row 2 identical to row 1: dropped; the board said the row "has no
+    key of its own, and the list as loaded no longer holds that row as it was", which is untrue.
+  - (iii) K1 on one row, typing in it, a load adds an identical row: dropped, in the same untrue words.
+  - The check also noted that `pA-rcn` case 2 (twins, typing in the first, a load removes the first) was now dropped, where
+    74a6aec kept the typing on the surviving twin.
+- **Why the total cannot work.** A count tells twins apart only while no twin changes. With the total in it, any change to any
+  twin, elsewhere on the list or not, broke every twin's signature. Without the total (74a6aec), a change to the upper twin
+  shifted the lower twin onto the upper one's signature. What decides which twin a typed row continues is WHERE the load left
+  it. A count cannot say that.
+- **Fixed** by following rows from one draw to the next (`rcnCarry(prev, S)`, called by rcnDraw, `rcnDrawn` holding the last
+  draw):
+  - Every drawn row carries a mark of its own (`data-rs`, `'#r'+n`).
+  - A row of the new list takes the mark of the row it continues. inspHeldSame is unchanged: it finds the held field by
+    `data-rk` or `data-rs`.
+  - A row whose content no other row of either list holds continues the one row holding it, wherever it moved. That is
+    RV1-D's rule, and it is why case (c) and the reordered keyed rows still follow.
+  - Among rows exactly alike, the load is read as the fewest rows changed, added and removed that turn the old list into the
+    new one. This is an edit distance with substitution; forward and backward tables give every optimal reading at once.
+    - A row continues the row every such reading leaves it on.
+    - Where the readings differ, it continues the row at its own place among the rows alike, if a reading leaves it there
+      (74a6aec's count, now only a tie-break among readings that are all right).
+    - Otherwise it continues none.
+  - Nothing moved (a plain redraw): every row keeps its mark at once.
+  - A list over 4,000,000 cells of table puts rows alike on no row rather than guess.
+- **The words** (rcnBody, from `rcnDrawn.fate`):
+  - `twin`: the readings differ and none leaves the row at its place. Message: "the row it was in was exactly like another row
+    on the list, and once the list was loaded the two could not be told apart".
+  - `left`: every reading changes or removes the row typed in, while a row exactly as it was stays. Message: "the load changed
+    or removed the row it was in; another row on the list is exactly as that row was, but it is not the row the typing was in".
+    This is the original finding's case (a). The first cut used the twin words there, which was untrue: the two can be told
+    apart, and it is the upper one that changed.
+  - Otherwise, as before.
+- **What each case now does** (`x1-rcn-edges.mjs`, `pA-rcn.mjs`, `pA2-rcn-twins.mjs`, `pX-twins-more.mjs`, this board):
+  - (i), (ii) and (iii): kept on row 1, and A reads 99999.
+  - pA case 2: kept on the surviving twin.
+  - The original finding (typing in the upper twin, the load renames it): put on no row, said in the `left` words.
+  - The mirror (typing in the lower twin, the upper renamed): kept on row 2, as 44aa984 did.
+    - This reverses the first cut's "Decided" above. The fewest-changes reading does tell the two apart here: the upper row
+      changed and the lower one did not.
+  - Typing in the lower twin while one twin is removed: put on no row, in the twin's words. Either twin may have gone, and the one
+    left is the row requirement A reads.
+- **A property test, by hand** (`scratchpad/v214rev2/rv2-D/prop/prop.mjs`, rcnCarry lifted from the board), over 60,000 random
+  lists of up to six rows drawn from three contents, each with one edit:
+  - no mark is ever on two rows;
+  - a mark only ever passes to a row with the same content;
+  - a renamed row never passes on its mark, and a rename moves no other row's mark;
+  - an inserted row costs no old row its mark;
+  - removing a row costs no row unlike it its mark;
+  - a removed row with no twin is never followed.
+
+  0 violations. Timing: 1,500 rows, all twinned, one renamed: 133 ms; 100 rows: 19 ms. It runs only when the list changed
+  while the box is open.
+- **Check:** the audit-board block `v2.14 RV2-D — typing in one of two identical RCN / EEIC rows …` was rewritten. Its parts:
+  - (a) the original finding, now in the `left` words;
+  - (b) the mirror, kept on row 2;
+  - (c) keyless twins, `left`;
+  - (d) and (e) CONTROLS;
+  - (f), (g) and (h): x1's three cases;
+  - (i) a twin removed, typing in the first: kept;
+  - (j) a twin removed, typing in the repeat: dropped in the twin's words;
+  - (k) a keyless row that only moved past two others: followed.
+
+  It fails 8 checks on `74a6aec` ((a) ×3, (b) ×2, (c) ×2, (j)) and 14 on the first cut ((a)'s and (c)'s words, (b) ×2, (f) ×3,
+  (g) ×2, (h) ×3, (i) ×2). It passes now.
+  The RV1-D block passes unchanged.
+- **Browser:** keyboard-reach W's twins section now expects the `left` words. It adds the case (i) mirror in Chromium (row 2
+  renamed while row 1 is typed into: Tab saves 99999 on row 1, and nothing says it was lost).
+- **Mutations:**
+  - Retargeted in place to rcnCarry and its words: `v214-rv2-d-rcn-twin-total` (`j=jo`, 74a6aec's rule) and
+    `v214-rv2-d-rcn-twin-words`.
+  - Retargeted in place: `v214-rv1-d-rcn-sig-no-count` (a mark from content, so twins share one) and
+    `v214-rv1-d-rcn-place-again` (the line now reads `RC.tok[i]`).
+  - New: `v214-rv2-d-rcn-ambiguous-drops` (the first cut's over-dropping), `v214-rv2-d-rcn-unique-by-alignment` (a unique row
+    followed only by the fewest-changes reading, which loses a row that only moved), `v214-rv2-d-rcn-left-words`.
+
+### x2: PMO Apply's roll forward still copied what a mend set aside
+
+- **Reproduced** with `x2-roll-routes.mjs`: `pmoYearStart(FY+1, true)`, which PMO Apply uses to start a year a five-year copy's
+  package goes into, returned a year holding `customAside` (1 entry). The year switch's roll forward was fixed.
+- **Fixed:** pmoYearStart is now the one roll forward. switchYear calls it, and the deletion is there once. Two copies of one
+  rule is how the first fix reached one route and not the other.
+- **Check:** the audit-import roll block gains part (e): pmoYearStart from the mended year returns NEW-1 and nothing set aside,
+  and the year on screen keeps its own. It fails on `74a6aec` (4 checks in the block) and on the first cut (1: (e)). It passes now.
+- **Mutations:** `v214-rv2-d-roll-copies-aside` now sits in pmoYearStart and is caught by (c) and (e). The new
+  `v214-rv2-d-roll-own-copy` gives switchYear its own copy back.
+
+### x4: the chart of accounts listed a year another appropriation has not started, "as delivered"
+
+- **Reproduced** with `x4-coa-year-not-held.mjs` and `x4b.mjs` on the big board saved by v2.12, opened on O&M and rolled forward
+  to FY28. Full Fund and Initial Spares hold FY27 only.
+  - Where we stand listed FULL FUND (as delivered), 30 requirements, $209,844,000 "FY28 Requirement", and INITIAL SPARES
+    $106,128,000, under the flag "this board has not been opened in this file".
+  - The Spruills on the same page read no data for either in FY28.
+  - On 74a6aec neither was listed, because APPNS was empty.
+- **The cause** is older than this fix. coaRows called an appropriation "as delivered" whenever its plan held no state for the
+  year. A consolidated file with an opened appropriation that had not started the year did the same. Reading every
+  appropriation from its own pack made it the common case.
+- **Fixed** (`coaYearNotHeld`):
+  - An appropriation whose plan holds other years but not this one is left off the chart for that year.
+  - exportCoa names it under Where we stand ("FULL FUND, INITIAL SPARES hold no plan for FY28: their boards have not started that
+    year, so they are not on this chart, and the Spruills reads no data for them there either."), and so does the status line.
+  - "As delivered" stays for an appropriation with no plan at all, only a shipped payload.
+- **And one guard with it:** spDefs reads a plan's pack only where it reads the plan as one (`st.years`). A store in no year's
+  shape carries its edits at the top, where nothing here reads them, so its pack would have been printed "as delivered" at the
+  shipped figures. Before RV2-D such a store was not read for its pack at all, and it still is not.
+- **Check:** the audit-board Spruills block gains:
+  - (y) the board moves to a year Full Fund's plan has not started: no Full Fund rows or summary row; the workbook's Where we
+    stand has no Full Fund row and carries the sentence; the Spruills reads no data there.
+  - (z) CONTROL: Initial Spares with only a shipped payload is still listed as delivered.
+  - (x) a store for OPN in no year's shape is not listed.
+
+  The block fails 2 checks on the first cut ((y) ×2) and 7 on `74a6aec` (the six of the original finding, plus (y)'s sentence).
+  It passes now. The x4 probes on this board: Where we stand lists O&M alone for FY28, and FY27 is unchanged (pF: Full Fund
+  209,844,000, Initial Spares 106,128,000).
+- **Register:** `chart-of-accounts-listed-a-year-another-appropriation-has-not-started`.
+- **Mutations:**
+  - New: `v214-rv2-d-coa-year-not-held`, `v214-rv2-d-coa-not-held-unsaid`, `v214-rv2-d-spdefs-flat-pack`.
+  - Retargeted in place, for the guard: `v214-rv2-d-spdefs-other-pack`.
+
+### The other findings the check confirmed
+
+- `spruills-checks-cannot-reach-a-real-board`, `byband-…`, `fuzz-cannot-see-customAside`, `verify-file-…`, the twice-listed
+  requirement and customMendSay: the check found each holding. Nothing changed for them, beyond the Spruills block's new parts
+  above.
 
 ## Left, and why
 

@@ -18833,6 +18833,8 @@ await (async () => {
 // was a copy of the year on screen, its customAside with it: the new year held entries it never had. The damage is the shape v2.13's
 // Put back leaves (null where an add was; an element with no id carrying a value: RV1-D's oldfiles block makes it with v2.13 itself).
 // FAILS ON 74a6aec: (a) nothing is said of the mend; (c) FY28 holds the entry FY27 set aside. (b) and (d) are CONTROLS.
+// v2.14 RV2-D (the check of this fix): AND PMO APPLY'S ROLL FORWARD -- the year a five-year copy's package goes into that this board has
+// not started (pmoYearStart) -- the same. The fix went into the year switch alone. FAILS ON 74a6aec AND ON THE FIRST CUT (8028c1b): (e).
 await (async () => {
   const __bm = bootMark();
   const name = 'v2.14 RV2-D — a list mended by a load once the board is open is said as it lands, and Roll forward does not copy what a mend set aside (also noticed)';
@@ -18861,6 +18863,11 @@ await (async () => {
     const sc = JSON.parse(w209ev(C, 'JSON.stringify(MS)')); sc.ts = Date.now() + 5;
     w209ev(C, `(function(){ applyStore(${J(sc)}); render(); return 'ok'; })()`);
     chk(name, '(b) CONTROL', 'a clean load says nothing of a mend', w209ev(C, `String(STAT_LOG.some(function(m){ return /list of added requirements was mended/.test(m.html); }))`), 'false');
+    // (e) PMO Apply's roll forward (pmoYearStart, which starts a year a five-year copy's package goes into): a copy of the plan, never
+    // of what the mend set aside -- and the year it is taken from keeps its own
+    chk(name, '(e) PMO Apply’s roll forward', 'the year it would start holds NEW-1 and nothing set aside; FY' + (cur % 100) + ' keeps its own',
+      w209ev(B, `JSON.stringify((function(s){ return [s.custom.map(function(x){ return x.id; }), s.customAside===undefined? 'none' : s.customAside.length, (S.customAside||[]).length]; })(pmoYearStart(${cur + 1}, true)))`),
+      J([['NEW-1'], 'none', 1]));
     // (c) Roll forward from the mended year: the new year is a copy of the plan, never of what the mend set aside
     w209ev(B, `(function(){ window.confirm=function(){ return true; }; switchYear(${cur + 1}); return 'ok'; })()`);
     chk(name, '(c) Roll forward', 'FY' + ((cur + 1) % 100) + ' is rolled forward with NEW-1, and holds nothing set aside; FY' + (cur % 100) + ' keeps its own',

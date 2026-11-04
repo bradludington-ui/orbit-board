@@ -10602,14 +10602,16 @@ const MUTATIONS = [
   // ---- RV1-D (held findings and older files) ----
   { id: 'v214-rv1-d-rcn-place-again', area: "rcnDraw", what: "a row with no key of its own is held by its place again: a load that puts a row above it puts the typing on another row, and leaving the field overwrites that row's code",
     // v2.14 RV1-D (check): retargeted to the line that now also holds a key only one row carries
-    find: "    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;", repl: "    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;" },
+    // v2.14 RV2-D (the check of its fix): retargeted in place -- the row's mark is now carried from the last draw (rcnCarry)
+    find: "    const rs=RC.tok[i], rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;", repl: "    const rs=RC.tok[i], rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;" },
   { id: 'v214-rv1-d-rcn-first-of-repeat', area: "rcnDraw", what: "the first row of a repeated key is held by its key: a colleague's ✕ on it puts the typing on the repeat below, and leaving the field overwrites that row's code",
     find: " && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;", repl: ")? e.k : rs;" },
   { id: 'v214-rv1-d-rcn-held-no-sig', area: "inspHeldSame", what: "a row whose key a load makes shared, or one row's alone, loses the typing though the row is there as it was",
     find: " && (r.getAttribute('data-rk')===x.rk || (!!x.rs && r.getAttribute('data-rs')===x.rs));", repl: " && r.getAttribute('data-rk')===x.rk;" },
   { id: 'v214-rv1-d-rcn-sig-no-count', area: "rcnRowSig", what: "two rows alike with no key share one hold: typing in the second lands on the first",
     // v2.14 RV2-D: retargeted in place to the line that now carries the count (rcnRowSig carries the total too)
-    find: "  return '#'+me+'#'+n+'/'+all;", repl: "  return '#'+me;" },
+    // v2.14 RV2-D (the check of its fix): retargeted again -- a row's mark is its own, never what it holds (rcnCarry)
+    find: "  for(let j=0;j<m;j++) if(!tok[j]) tok[j]='#r'+(++rcnTokN);", repl: "  for(let j=0;j<m;j++) if(!tok[j]) tok[j]='#'+S[j];" },
   { id: 'v214-rv1-d-rcn-lost-words', area: "rcnBody", what: "typing in a row with no key that the load changed is said to be in a row no longer on the list, while the row is still there",
     // v2.14 RV1-D (check): retargeted to the line that now carries the same words' choice
     find: "const asWas=lost.some(function(x){", repl: "const asWas=false&&lost.some(function(x){" },
@@ -10681,13 +10683,21 @@ const MUTATIONS = [
   // ---- end RV2-C ----
   // ---- RV2-D (round 2, second half: D) ----
   // v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row)
-  { id: 'v214-rv2-d-rcn-twin-total', area: "rcnRowSig", what: "a load that renames one of two identical RCN / EEIC rows moves the typing onto the other, and leaving saves it on the row nothing reads",
-    find: "  return '#'+me+'#'+n+'/'+all;", repl: "  return '#'+me+'#'+n;" },
-  { id: 'v214-rv2-d-rcn-twin-words', area: "rcnBody", what: "typing lost from one of two identical rows is said to be in a row with no key that changed, though the row is there as it was",
-    find: "const asTwin=lost.some(function(x){ return rcnSigTwin(x.rs) || rcnSigTwin(x.rk); });", repl: "const asTwin=false;" },
+  // v2.14 RV2-D (the check of this fix): the four below retargeted in place to rcnCarry and the words it decides; four new after them
+  { id: 'v214-rv2-d-rcn-twin-total', area: "rcnCarry", what: "a load that renames one of two identical RCN / EEIC rows moves the typing onto the other, and leaving saves it on the row nothing reads",
+    find: "      const j=(C.length===1 && !other)? C[0] : (C.indexOf(jo)>=0? jo : -1);", repl: "      const j=jo;" },
+  { id: 'v214-rv2-d-rcn-twin-words', area: "rcnBody", what: "typing lost from one of two identical rows that could not be told apart is said to be in a row with no key that changed",
+    find: "const asTwin=lost.some(function(x){ return fate[x.rs]==='twin'; })", repl: "const asTwin=false" },
+  { id: 'v214-rv2-d-rcn-ambiguous-drops', area: "rcnCarry", what: "typing in a row exactly as it was is dropped whenever a row exactly like it is added, made or removed elsewhere on the list",
+    find: "      const j=(C.length===1 && !other)? C[0] : (C.indexOf(jo)>=0? jo : -1);", repl: "      const j=(C.length===1 && !other)? C[0] : -1;" },
+  { id: 'v214-rv2-d-rcn-unique-by-alignment', area: "rcnCarry", what: "a row with no key that a load only moved past the others loses the typing typed into it",
+    find: "      if(cP[s]===1 && cS[s]===1){ const j=S.indexOf(s); if(!tok[j]) tok[j]=prev.tok[h]; continue; }", repl: "      if(false){ continue; }" },
+  { id: 'v214-rv2-d-rcn-left-words', area: "rcnBody", what: "typing lost from a row the load changed, beside a row still exactly as it was, is said to be in a row with no key, never why it did not go to the row alike",
+    find: "asLeft=lost.some(function(x){ return fate[x.rs]==='left'; });", repl: "asLeft=false;" },
   // v2.14 RV2-D (spruills-other-appn-base-requirements-zero, spruills-checks-cannot-reach-a-real-board)
   { id: 'v214-rv2-d-spdefs-other-pack', area: "spDefs", what: "Spruills reads another appropriation's requirements as $0 on a program file: Full Fund shows a surplus, the PMO drill $0 and the chart of accounts none of its requirements",
-    find: "data:_hasData(APPNS[a])? APPNS[a] : ((st && _hasPack(st))? st.dataPack : APPNS[a])", repl: "data:APPNS[a]" },
+    // v2.14 RV2-D (the check of this fix): retargeted in place -- a plan's pack only where the plan is read as one
+    find: "data:_hasData(APPNS[a])? APPNS[a] : ((st && st.years && _hasPack(st))? st.dataPack : APPNS[a])", repl: "data:APPNS[a]" },
   { id: 'v214-rv2-d-spdefs-own-doubled', area: "spDefs", what: "the chart of accounts lists every added requirement of the appropriation on screen twice, and counts its dollars twice",
     find: "Object.assign({}, DATA, {items:BASE_ITEMS})", repl: "DATA" },
   // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out)
@@ -10703,8 +10713,18 @@ const MUTATIONS = [
   // v2.14 RV2-D (also noticed: said only at the end of opening; roll forward copied what a mend set aside)
   { id: 'v214-rv2-d-mend-later-unsaid', area: "applyStore", what: "a list of added requirements mended by a load once the board is open is mended without a word",
     find: "if(ACE_BOOTED && _customMended.length>m0){", repl: "if(false && ACE_BOOTED && _customMended.length>m0){" },
-  { id: 'v214-rv2-d-roll-copies-aside', area: "switchYear", what: "Roll forward copies what a mend set aside into the new year, which then holds entries it never had",
+  { id: 'v214-rv2-d-roll-copies-aside', area: "pmoYearStart", what: "Roll forward copies what a mend set aside into the new year, which then holds entries it never had",
+    // v2.14 RV2-D (the check of this fix): the line now sits in the one roll forward, shared by the year switch and PMO Apply
     find: "delete seed.customAside;", repl: "void 0;" },
+  { id: 'v214-rv2-d-roll-own-copy', area: "switchYear", what: "the year switch rolls forward its own copy of the year again, and copies what a mend set aside into the new year",
+    find: "      seed=pmoYearStart(y, true);", repl: "      seed=JSON.parse(JSON.stringify(S)); delete seed.ts; shiftAwardYears(seed, y-MS.cur);" },
+  // v2.14 RV2-D (the check of spruills-other-appn-base-requirements-zero: a year another appropriation's plan has not started)
+  { id: 'v214-rv2-d-coa-year-not-held', area: "coaRows", what: "the chart of accounts lists another appropriation's requirements for a year its plan has not started, at their shipped asks, flagged as a board never opened",
+    find: "    if(coaYearNotHeld(d, Y)) return;", repl: "    void 0;" },
+  { id: 'v214-rv2-d-coa-not-held-unsaid', area: "exportCoa", what: "the chart of accounts leaves an appropriation off for a year its plan has not started without a word",
+    find: "  if(notHeldTxt) s1.rows.push([{v:notHeldTxt,s:0}]);", repl: "" },
+  { id: 'v214-rv2-d-spdefs-flat-pack', area: "spDefs", what: "a store in no year's shape has its pack listed as delivered at the shipped figures, while its own edits say otherwise",
+    find: "((st && st.years && _hasPack(st))? st.dataPack", repl: "((st && _hasPack(st))? st.dataPack" },
   // ---- end RV2-D ----
   // ==== end v2.14 review round 2 fixes ====
 
