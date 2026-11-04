@@ -8237,6 +8237,28 @@ function baseMarkDirty(){
 // 💾 Save asked nothing and wrote the loaded copy over the person's own -- in file mode their saved work was then in no copy the
 // board could reach -- and a save landing during the load recorded the board saved against its own bytes.
 function loadCounted(){ _saveGen++; DIRTY=true; baseMarkDirty(); }
+// v2.14 RV2-C (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten; and the
+// check's same defect by another route, a load over a refused write): THE RECORD IS MARKED FOR A WRITE, AND A WRITE BROWSER STORAGE
+// REFUSED LEAVES IT AS IT WAS. The record (<key>.base) says whether the plan browser storage holds is work no saved copy has, and a
+// refused write changed nothing there. Marked unsaved anyway, it named an OLDER stored copy as unsaved work, against the very file
+// this page came from: on a board storage no longer takes (it grew past the quota), the next opening kept that copy aside as "work no
+// saved copy had" (filling the one slot), or with the slot in use did not open the file and put the older copy on screen -- and its
+// first 💾 Save wrote it over the file asking nothing (no HOLD ON: the record names this very file), the file's later work gone.
+// Reached by an edit storage refused and the page then left, by every 💾 Save that stopped before it wrote (the bytes are built by a
+// save()), and by a load put on screen over a refused write (a package for the board on screen, the shared state file). So the mark
+// is still written first -- a tab killed between the two writes must leave the record unsaved, never clean over unsaved work -- and
+// put back once the write is refused, while it is still what the mark wrote (r1; r0 is the record before it). The page's own memory
+// (DIRTY, _baseDirty) keeps the unsaved work: leaving still asks first (memOnlyNow), and screenUnsaved() reads it. Unreadable: kept.
+function baseRaw(){ try{ return localStorage.getItem(_AP.key+'.base'); }catch(e){ return undefined; } }
+function baseUnmark(r0, r1){
+  if(r0===undefined || r1===undefined || r1===r0) return;
+  try{ if(localStorage.getItem(_AP.key+'.base')===r1){
+    if(r0===null) localStorage.removeItem(_AP.key+'.base'); else localStorage.setItem(_AP.key+'.base', r0); } }catch(e){}
+}
+// v2.14 RV2-C: a load put on screen, counted (loadCounted) and written to browser storage (persist) -- the record put back when
+// storage refuses it. Not for a load whose plan is already in storage before it is counted (importBoards: lsAll wrote it first,
+// so the mark is true whether or not the persist after it lands).
+function loadStored(){ const r0=baseRaw(); loadCounted(); const r1=baseRaw(); const ok=persist(); if(ok===false) baseUnmark(r0, r1); return ok; }
 function save(){
   _diagSec=null;                            // v1.92 (item 18): what the board holds has changed; clean against the new
   _fitCache=null;                           // v2.12 (item 134): and so has the fit of its requirements to each year's budget
@@ -8244,10 +8266,10 @@ function save(){
   _saveGen++;                               // v1.95 (item 47): a write that finishes asks whether this moved
   DIRTY=true; _dlOnly=false;
   // v2.14 RV2-C (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten): the
-  // record as it stood before this save marks it, and as the mark left it -- see the end of this function
-  let rec0, rec1; try{ rec0=localStorage.getItem(_AP.key+'.base'); }catch(e){ rec0=undefined; }
+  // record as it stood before this save marks it, and as the mark left it -- put back below if storage refuses the write (baseUnmark)
+  const rec0=baseRaw();
   baseMarkDirty();
-  try{ rec1=localStorage.getItem(_AP.key+'.base'); }catch(e){ rec1=undefined; }
+  const rec1=baseRaw();
   jrnlCapture();
   MS.ts=Date.now();
   MS.by=whoAmI();
@@ -8259,20 +8281,9 @@ function save(){
     if(MS.log.length>60) MS.log=MS.log.slice(-60);
   } else last.ts=MS.ts;
   const ok=persist();
-  // v2.14 RV2-C (refused-edit-makes-older-stored-copy-unsaved-work, stop-on-refused-storage-reads-saved-then-file-overwritten): A WRITE
-  // BROWSER STORAGE REFUSED LEAVES THIS BROWSER'S RECORD AS IT FOUND IT. The record (<key>.base) says whether the plan browser storage
-  // holds is work no saved copy has -- and a refused write changed nothing there. Marked unsaved anyway, it named an OLDER stored copy
-  // as unsaved work, against the very file this page came from: on a board storage no longer takes (it grew past the quota), the next
-  // opening kept that copy aside as "work no saved copy had" (filling the one slot), or with the slot in use did not open the file and
-  // put the older copy on screen -- and its first 💾 Save wrote it over the file asking nothing (no HOLD ON: the record names this very
-  // file), the file's later work gone. Reached by an edit storage refused and the page then left (its own question named only that
-  // edit), and by every 💾 Save that stopped before it wrote (the bytes are built by a save(), and saveStopBack puts the record back
-  // only while storage holds this page's plan, which it cannot here). Put back only while it is still what the mark wrote; the page's
-  // own memory (DIRTY, _baseDirty) keeps the unsaved work, and leaving still asks first (memOnlyNow).
-  if(ok===false && rec0!==undefined && rec1!==undefined && rec1!==rec0){
-    try{ if(localStorage.getItem(_AP.key+'.base')===rec1){
-      if(rec0===null) localStorage.removeItem(_AP.key+'.base'); else localStorage.setItem(_AP.key+'.base', rec0); } }catch(e){}
-  }
+  // v2.14 RV2-C: A WRITE BROWSER STORAGE REFUSED LEAVES THIS BROWSER'S RECORD AS IT FOUND IT (see baseRaw above). saveStopBack puts
+  // the record back only while storage holds this page's plan, which it cannot after a refusal: this is what puts it back there.
+  if(ok===false) baseUnmark(rec0, rec1);
   return ok;
 }
 function showLog(){
@@ -8473,6 +8484,13 @@ function ownUnsaved(own, other, base){
   if(base && ('dirty' in base)) return !!base.dirty;
   try{ return pkgMineSince(own, other).length>0; }catch(e){ return true; }
 }
+// v2.14 RV2-C (the check's regression, after an edit browser storage refused): DOES THE WORK ON SCREEN HOLD WORK NO SAVED COPY HAS?
+// The record answers it of the plan browser storage holds, and a write storage refused leaves the record as it was (baseUnmark): an
+// edit on screen only left it reading saved, and "load the shared one (what you have is kept aside first)" then asked "What is on
+// screen is saved, so nothing is kept aside" and replaced that edit, kept nowhere. The page's own memory (_baseDirty, set by every
+// mark, cleared only when a save lands or a saved copy is put on screen) answers it of the screen; either says unsaved, and the
+// work is kept aside first.
+function screenUnsaved(other){ return !!_baseDirty || ownUnsaved(MS, other, baseGet()); }
 // ---- WORK KEPT ASIDE (v1.89) ---------------------------------------------------------------------
 // Before a newer saved copy -- the file's, or the shared folder's -- replaces work this browser holds
 // and no saved copy has, that work is kept here, whole, under this board's own storage key plus
@@ -11445,7 +11463,7 @@ function sharedKeepMine(st){
   // v2.00 (U10): NOT WITH A LOCKED CYCLE ON SCREEN. The copy on screen is the cycle's: it was kept aside as this browser's work,
   // and then the load was refused -- a kept copy that is nobody's work, and that "put it back" would make the working plan.
   if(cycBlock('Loading the shared state file')) return false;
-  const own=ownUnsaved(MS, st, baseGet());
+  const own=screenUnsaved(st);       // v2.14 RV2-C: the page's memory too, not the record alone
   const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;
   if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }
   if(ka!==true){
@@ -11459,14 +11477,14 @@ function adoptShared(){
   if(!SHARED) return;
   // v2.02 (E7, ledger U29; Brad, 21 Oct 2026, "whatever you recommend"): WHAT IS ON SCREEN IS ALL SAVED, so nothing is kept aside
   // -- and the next 💾 Save will write the shared copy over the saved one. Said before anything changes, with the way to keep it.
-  if(!CYCVIEW && !ownUnsaved(MS, SHARED, baseGet()) && !confirm('Load the shared state file (published '+fmtTs(SHARED.ts)+') over the board on screen?\n\n'
+  if(!CYCVIEW && !screenUnsaved(SHARED) && !confirm('Load the shared state file (published '+fmtTs(SHARED.ts)+') over the board on screen?\n\n'
     +'What is on screen is saved, so nothing is kept aside: the next \ud83d\udcbe Save will write the shared copy over your saved one. '
     +'To keep yours, choose Cancel and use \u25be beside \ud83d\udcbe Save \u2192 \u2b07 Save a copy first.')) return;
   if(!sharedKeepMine(SHARED)) return;
   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
   // report as loaded. Saying so beats a status line claiming a load that did not happen.
   if(applyStore(SHARED)===false) return;
-  loadCounted(); persist(); render();   // v2.02 (E7, U24, U29)
+  loadStored(); render();   // v2.02 (E7, U24, U29); v2.14 RV2-C: refused by storage, the record is as it was
   setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
 }
 // ==============================================================================================================
@@ -11574,6 +11592,7 @@ function importBoards(inp){
       return batchImportUndone(W, held, now, take, here, memOk);
     }
     if(W.length) impMixedLift(W.map(function(w){ return w[0]; }));
+    // v2.14 RV2-C: loadCounted and persist, not loadStored -- lsAll has written this board's plan already, so the record's mark is true
     if(applied){ loadCounted(); persist(); render(); }   // v2.02 (E7, U31): an import is a change in this browser's record too
     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
     const bad=results.filter(r=>!r.slug||!r.st).map(r=>esc(r.name)+' ('+esc(r.why)+')');
@@ -12340,7 +12359,11 @@ function pkgApply(pkg, fname){
       // closing the tab asked nothing, the appropriation box reopened the page from storage's older copy, and under the hold the
       // save state read "Saved". A load is a change, in this session and in this browser's record (loadCounted); refused, it is
       // on screen only (memOnlyNow), and stored, it is not.
+      // v2.14 RV2-C (a load over a refused write): refused by storage, the record goes back as it was -- storage still holds the older
+      // copy, which the mark would have named as unsaved work against this file (reopened: kept aside, or put on screen and saved over it)
+      const r0=baseRaw();
       try{ loadCounted(); }catch(e){}
+      if(!wrote) baseUnmark(r0, baseRaw());
       _persistFail=!wrote;
     }
   }
@@ -34754,7 +34777,7 @@ async function driveStorePull(quiet){
   if(CYCVIEW){ if(!quiet) cycRefuse('Loading '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' from the shared folder'); render(); return false; }
   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
-  const own=ownUnsaved(MS, j.store, baseGet());
+  const own=screenUnsaved(j.store);     // v2.14 RV2-C: the page's memory too, not the record alone
   // v2.14 (ledger U63): WORK SAVED ONLY IN THE BOARD FILE IS KEPT ASIDE TOO (U19's rule). With what is on screen saved into the
   // board file and the folder's newer copy loaded over it, nothing was kept (it was "saved"), and 💾 Save -- once Live view was
   // just watching -- wrote the folder's copy over that file asking nothing: the work was in no copy the board could reach. It is
@@ -35203,7 +35226,7 @@ async function driveRestore(i){
     // their save. (The history thins itself: a copy two later saves within ten minutes superseded can go, but only once a save built
     // on it stands after it.) So what is on screen is kept aside when it is work no saved copy has, or when it is not the folder's
     // own copy, and only then.
-    const own=ownUnsaved(MS, j.store, baseGet());
+    const own=screenUnsaved(j.store);   // v2.14 RV2-C: the page's memory too -- an edit storage refused is not "saved only in the board file"
     const keep=own || (+MS.ts||0)!==driveBaseOf(pinAp);
     const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own, put:true}, baseGet()) : true;
     // v2.14 RV1-D (held, also noticed): the refusal says the earlier copy asked for was not put back -- not that somebody saved a newer one
@@ -35223,13 +35246,17 @@ async function driveRestore(i){
     // WHAT SAVE WILL WRITE OVER IS THE COPY STANDING NOW, and it is in the history. The base was the
     // old copy's own time, so Save found a "newer" copy in the folder and refused, every time.
     driveBaseSet(mySlug(), now? +((now.store&&now.store.ts)||now.ts||0) : 0);
-    persist();
+    const putIn=persist();
     try{ jrnlSync('restored the copy from '+pretty); }catch(e){}
     // v2.00 (R5): THE COPY PUT BACK IS UNSAVED WORK, counted as an edit is. A folder save still writing when it was put back
     // found the count unmoved and marked it saved, while the folder holds what that save wrote. Now that save leaves it
     // unsaved and the next Save writes it; this browser's record says unsaved too, so a reopen keeps it aside, not replaced.
+    // v2.14 RV2-C: unless browser storage refused it -- storage then holds the copy that was there before, and the record goes back as
+    // it was (baseUnmark), or a reopen read that older copy as unsaved work against this very file and 💾 Save wrote it over the file
     _saveGen++; DIRTY=true;
+    const putR0=baseRaw();
     baseMarkDirty();
+    if(putIn===false) baseUnmark(putR0, baseRaw());
     // v2.14 (ledger U64): it says where 💾 Save writes -- the folder only while Live view works out of it; otherwise the board file
     setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
       +(driveStoreOn()? 'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
@@ -41485,7 +41512,7 @@ function sharedArrived(st){
   if((st.ts||0)>=(MS.ts||0)){
     if(!sharedKeepMine(st)) return;
     if(applyStore(st)===false) return;
-    loadCounted(); persist(); render();   // v2.02 (E7, U24, U29)
+    loadStored(); render();   // v2.02 (E7, U24, U29); v2.14 RV2-C: refused by storage, the record is as it was
     setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');
   } else {
     setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one (yours is kept aside first)</button>, or 💾 Save yours.');

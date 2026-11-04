@@ -18831,6 +18831,144 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// v2.14 RV2-C (finish, after the independent check): (A) a write browser storage refused leaves the record as it was, so a load
+// that asks whether what is on screen is unsaved must read the page's own memory too -- read from the record alone, "load the
+// shared one (what you have is kept aside first)" called an edit on screen only saved, and replaced it, kept nowhere (b6ab3cb's
+// regression; 74a6aec kept it). (B) A load put on screen over a refused write -- a package for the board on screen, the shared state
+// file by hand or automatically -- marked the record "unsaved work" over the older copy storage still holds, as save() did (fails on
+// 74a6aec and b6ab3cb). (C) ↶ Put this back over a refused write: the same mark, and its kept copy labelled saved (fails on both).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-C — after a write browser storage refused, every load that asks reads what is on screen as unsaved, and a load over a refused write leaves the record as it was (the check’s regression; a load over a refused write)';
+  try {
+    const J = W14J;
+    const notesOf = st => { const y = ((st && st.years) || {})[st && st.cur] || {}; return y.notes || {}; };
+    const fileNotes = html => { const p = w14pub(html) || {}; return notesOf(p.appns ? p.appns.om : p); };
+    const rec = ev => w14ev(ev, `localStorage.getItem('prio27om.base')`);
+    const storedNotes = ev => notesOf(JSON.parse(w14ev(ev, `localStorage.getItem('prio27om')`) || 'null'));
+    const keptNotes = ev => { const s = w14ev(ev, `localStorage.getItem('prio27om.kept')`); if (!s) return null; return notesOf(JSON.parse(s.slice(s.indexOf('\n') + 1))); };
+    // browser storage refuses this board's plan ('key'), or any write longer than the plan it holds now, as a full browser does ('size')
+    const refuse = (ev, how) => ev(`(function(){ var s=Storage.prototype.setItem, lim=(localStorage.getItem('prio27om')||'').length;
+      Storage.prototype.setItem=function(k,v){ if(${J(how)}==='key'? k==='prio27om' : String(v).length>lim) throw new DOMException('The quota has been exceeded.','QuotaExceededError');
+        return s.call(this,k,v); }; })(); 'ok'`);
+    // ---- (A) an edit storage refused, then "load the shared one (what you have is kept aside first)"
+    {
+      const F0 = w14board({ ls: { prio27writerKey: W14K, prio27who: 'BLL' } });
+      F0.ev(`S.notes=S.notes||{}; S.notes.A='SAVED'; WRITER={by:'BLL', fp:writerFp(), t:Date.now()}; save(); 'ok'`);
+      const FILE = F0.ev('buildSavedHtml()'), fts = w14fileTs(w14pub(FILE));
+      const ls = Object.assign(w14ls(F0.ev), { 'prio27om.base': J({ file: fts, dirty: false }) }); delete ls['prio27om.kept'];
+      for (const how of ['key', 'size']) {
+        const w = '(A) an edit refused (' + (how === 'key' ? 'only the plan refused' : 'every write the size of the plan refused') + '), then the shared one loaded by hand';
+        const D = await w14open({ html: FILE, ls, url: W14U('board.html') }); w14wire(D.ev, 'true'); refuse(D.ev, how);
+        D.ev(`S.notes.C='TYPED, on screen only'; save(); render(); 'ok'`);
+        chk(name, w, 'the edit is on screen only: unsaved, and closing the page asks first (a CONTROL)',
+          J([w14ev(D.ev, 'memOnlyNow()'), intLeave(D.ev), storedNotes(D.ev).C || null]), J([true, 'true', null]));
+        D.ev(`(function(){ var ms=JSON.parse(JSON.stringify(MS)); ms.years[MS.cur]=JSON.parse(JSON.stringify(S)); delete ms.years[MS.cur].notes.C;
+          ms.years[MS.cur].notes.B='FROM THE SHARED FILE'; ms.ts=Date.now()+1000; sharedArrived(ms); })(); 'ok'`);
+        chk(name, w, 'the shared state file arrives, and nothing is replaced: the board offers to load it, keeping what is on screen aside first (a CONTROL)',
+          /arrived after you started working, so nothing was replaced/.test(w14stat(D.ev)), true);
+        D.ev(`adoptShared(); render(); 'ok'`);
+        chk(name, w, 'nothing asks as if what is on screen were saved (“What is on screen is saved, so nothing is kept aside”)',
+          w14q(D.ev).filter(q => /What is on screen is saved/.test(q)).length, 0);
+        if (how === 'key')
+          chk(name, w, 'the typed edit is kept aside first, whole, and then the shared copy is on screen',
+            J([(keptNotes(D.ev) || {}).C || null, w14ev(D.ev, `(S.notes||{}).B||''`)]), J(['TYPED, on screen only', 'FROM THE SHARED FILE']));
+        else
+          chk(name, w, 'no room to keep it aside: the shared copy is not loaded, the typed edit is still on screen, and the board says why',
+            J([w14ev(D.ev, `(S.notes||{}).C||''`), w14ev(D.ev, `(S.notes||{}).B||''`), /not loaded<?\/?b?>?: this browser holds work no saved copy has, and there is no room to keep it/.test(w14stat(D.ev))]),
+            J(['TYPED, on screen only', '', true]));
+        D.w.close();
+      }
+      F0.w.close();
+    }
+    // ---- (B) a load over a refused write: the board file holds LATER, storage an EARLIER copy it took before it filled
+    {
+      const F0 = w14board({ ls: { prio27writerKey: W14K, prio27who: 'BLL' } });
+      F0.ev(`S.notes=S.notes||{}; S.notes.A='EARLIER (the last copy storage took)'; WRITER={by:'BLL', fp:writerFp(), t:Date.now()}; save(); 'ok'`);
+      const LS_OLD = w14ls(F0.ev);
+      await w14pause(5);
+      F0.ev(`S.notes.A='LATER (saved in the file only)'; save(); 'ok'`);
+      const FILE = F0.ev('buildSavedHtml()'), fts = w14fileTs(w14pub(FILE));
+      const ls0 = Object.assign({}, LS_OLD, { 'prio27om.base': J({ file: fts, dirty: false }) }); delete ls0['prio27om.kept'];
+      const KEPT = J({ t: Date.now() - 86400000, why: 'file', by: 'Ann', ts: 1, base: {} }) + '\n' + J(Object.assign(JSON.parse(LS_OLD.prio27om), { ts: 5, by: 'Ann' }));
+      chk(name, '(B) setup', 'the file holds LATER; storage holds the EARLIER copy, older than the file, recorded clean against it (a CONTROL)',
+        J([fileNotes(FILE).A, notesOf(JSON.parse(ls0.prio27om)).A, +JSON.parse(ls0.prio27om).ts < fts]), J(['LATER (saved in the file only)', 'EARLIER (the last copy storage took)', true]));
+      const loads = {
+        'a package for the board on screen': `(function(){ var ms=JSON.parse(JSON.stringify(MS)); ms.years[MS.cur]=JSON.parse(JSON.stringify(S));
+          ms.years[MS.cur].notes=Object.assign({}, ms.years[MS.cur].notes||{}, {C:'LOADED'});
+          return String(pkgApply({spmtPkg:PKG_VER, ap:'om', dir:'issue', seq:1, by:'Manager', ts:Date.now()+1000, ms:ms}, 'om-pkg.json')); })()`,
+        'the shared state file, loaded by hand': `(function(){ var ms=JSON.parse(JSON.stringify(MS)); ms.years[MS.cur]=JSON.parse(JSON.stringify(S));
+          ms.years[MS.cur].notes=Object.assign({}, ms.years[MS.cur].notes||{}, {C:'LOADED'}); ms.ts=Date.now()+1000; SHARED=ms; adoptShared(); return 'ok'; })()`,
+        'the shared state file, loaded automatically': `(function(){ var ms=JSON.parse(JSON.stringify(MS)); ms.years[MS.cur]=JSON.parse(JSON.stringify(S));
+          ms.years[MS.cur].notes=Object.assign({}, ms.years[MS.cur].notes||{}, {C:'LOADED'}); ms.ts=Date.now()+1000; sharedArrived(ms); return 'ok'; })()`
+      };
+      for (const [lbl, code] of Object.entries(loads)) for (const slot of ['empty', 'in use']) {
+        const w = '(B) ' + lbl + ', storage refusing it, slot ' + slot;
+        const kept = slot === 'in use' ? KEPT : null;
+        const ls = Object.assign({}, ls0); if (kept) ls['prio27om.kept'] = kept;
+        const D = await w14open({ html: FILE, ls, url: W14U('board.html') }); w14wire(D.ev, 'true'); refuse(D.ev, 'key');
+        const r0 = rec(D.ev);
+        w14ev(D.ev, code); w14ev(D.ev, `render(); 'ok'`);
+        chk(name, w, 'the load is on screen only: unsaved, closing the page asks first, and storage still holds the EARLIER copy (a CONTROL)',
+          J([w14ev(D.ev, `(S.notes||{}).C||''`), w14ev(D.ev, 'memOnlyNow()'), intLeave(D.ev), storedNotes(D.ev).A]),
+          J(['LOADED', true, 'true', 'EARLIER (the last copy storage took)']));
+        chk(name, w, 'this browser’s record is byte for byte what it was: storage’s copy did not change, so it is not marked unsaved work', rec(D.ev), r0);
+        // left anyway (the browser asked), and the file opened again in this browser
+        const R = await w14open({ html: FILE, ls: w14ls(D.ev), url: W14U('board.html') }); w14wire(R.ev, 'true');
+        chk(name, w + ', reopened', 'the file’s LATER note is on screen, and the kept slot holds what it held before (nothing kept aside as “work no saved copy had”)',
+          J([notesOf(JSON.parse(w14ev(R.ev, 'JSON.stringify(MS)'))).A, w14ev(R.ev, `localStorage.getItem('prio27om.kept')`)]), J(['LATER (saved in the file only)', kept]));
+        R.ev(`S.notes=S.notes||{}; S.notes.B='typed after reopening'; save(); render(); 'ok'`);
+        const d = w14disk('board.html', FILE); R.w.__rv2c = d.h; R.ev(`FH=window.__rv2c; 'ok'`); w14pickers(R, { open: null, save: null });
+        await w14save(R.ev);
+        const n = fileNotes(d.content);
+        chk(name, w + ', reopened, then saved', 'written once, and the file still holds the LATER note beside the new one',
+          J([d.writes, n.A, n.B]), J([1, 'LATER (saved in the file only)', 'typed after reopening']));
+        R.w.close(); D.w.close();
+      }
+      F0.w.close();
+    }
+    // ---- (C) ↶ Put this back (an earlier folder copy) over a refused write, Live view just watching
+    {
+      const H = W1H;
+      const F1 = H.baseFile('Alice', H.KEY.alice);
+      const fold = H.folder();
+      const B = boot({ html: F1 }); await H.pause(60); H.wire(B.ev, 'Bob', H.KEY.alice); H.connect(B.ev, B.w, fold);
+      B.ev(`setNote('A','RV2C-F0'); 'ok'`); await H.pause(5); await B.ev('driveStorePush(false)'); await H.pause(5);
+      B.ev(`setNote('A','RV2C-F1'); 'ok'`); await H.pause(5); await B.ev('driveStorePush(false)'); await H.pause(5);
+      const A = boot({ html: F1 }); await H.pause(60); H.wire(A.ev, 'Alice', H.KEY.alice); const f = H.disk(A.w, F1);
+      A.ev(`setNote('A','RV2C-S0'); 'ok'`); await H.pause(5);          // storage takes this one
+      refuse(A.ev, 'key');
+      A.ev(`setNote('A','RV2C-S1'); 'ok'`); await H.pause(5); await A.ev('saveInPlaceFile()'); await H.pause(10);
+      A.ev(`setNote('A','RV2C-TYPED'); 'ok'`); await H.pause(5);       // on screen only
+      const w = '(C) Put this back, storage refusing the plan';
+      chk(name, w, 'the file holds S1, storage the S0 it took before it filled, and the edit typed after the save is on screen only (a CONTROL)',
+        J([H.fileNote(f.content, 'A'), storedNotes(A.ev).A, w14ev(A.ev, 'memOnlyNow()')]), J(['RV2C-S1', 'RV2C-S0', true]));
+      H.connect(A.ev, A.w, fold); A.ev(`_liveCfg=Object.assign(liveCfg(), {store:false}); 'ok'`);
+      await A.ev('driveHistShow()'); await H.pause(5); await A.ev('driveRestore(0)'); await H.pause(10);
+      const k = (() => { const s = w14ev(A.ev, `(function(){ var k=keptCopy(); return k? JSON.stringify([((JSON.parse(k.raw).years||{})[2027]||{}).notes.A, k.meta.saved===true]) : 'null'; })()`); try { return JSON.parse(s); } catch { return s; } })();
+      chk(name, w, 'the earlier copy is put back, and the edit on screen only is kept aside as work in no saved copy, not as saved',
+        J([w14ev(A.ev, `String(S.notes.A)`), k]), J(['RV2C-F0', ['RV2C-TYPED', false]]));
+      chk(name, w, 'and the board says so, not that it was saved only in the board file',
+        J([/What was on screen, in no saved copy, is kept aside/.test(H.status(A.ev)), /saved only in the board file/.test(H.status(A.ev))]), J([true, false]));
+      chk(name, w, 'this browser’s record does not call storage’s S0 unsaved work: it was not written, so the record stays clean',
+        (JSON.parse(rec(A.ev) || 'null') || {}).dirty, false);
+      // left anyway (the browser asked), the file opened again in this browser, then an edit and 💾 Save
+      chk(name, w, 'leaving asks first (a CONTROL)', intLeave(A.ev), 'true');
+      const R = boot({ html: f.content, ls: H.lsOf(A.ev) }); await H.pause(60); H.wire(R.ev, 'Alice', H.KEY.alice);
+      chk(name, w + ', reopened', 'the file’s S1 is on screen, and the kept slot still holds the edit (S0 is not read as unsaved work)',
+        J([H.note(R.ev, 'A'), (() => { const s = w14ev(R.ev, `(function(){ var k=keptCopy(); return k? ((JSON.parse(k.raw).years||{})[2027]||{}).notes.A : ''; })()`); return s; })()]),
+        J(['RV2C-S1', 'RV2C-TYPED']));
+      R.ev(`setNote('B','RV2C-AFTER'); 'ok'`); await H.pause(5);
+      const f2 = H.disk(R.w, f.content); await R.ev('saveInPlaceFile()'); await H.pause(10);
+      chk(name, w + ', reopened, then saved', 'written once, and the file still holds S1 beside the new note',
+        J([f2.writes, H.fileNote(f2.content, 'A'), H.fileNote(f2.content, 'B')]), J([1, 'RV2C-S1', 'RV2C-AFTER']));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-C ----
 // ---- RV2-D (round 2, second half: D) ----
 // ---- end RV2-D ----

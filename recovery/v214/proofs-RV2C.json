@@ -14,5 +14,69 @@
  {
   "id": "v214-rv1-c-stop-no-persist",
   "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv2-c-screen-record-only",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-keepmine-record-only",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-adopt-asks-saved",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-restore-label-record-only",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-load-marks-refused",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-adopt-load-unstored",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-auto-load-unstored",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-pkg-marks-refused",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "v214-rv2-c-restore-marks-refused",
+  "caughtBy": "import / v2.14 RV2-C — after a write browser storage refused, every load that asks"
+ },
+ {
+  "id": "restore-own-stale",
+  "caughtBy": "import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v200-r5-restore-gen",
+  "caughtBy": "import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "v200-r5-restore-basedirty",
+  "caughtBy": "import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "v200-u10-shared-gate-in-adopt",
+  "caughtBy": "recon / v2.00 (U10) — a file, a package, the band ladder or a shared copy"
+ },
+ {
+  "id": "v202-e7-u29-load-unasked",
+  "caughtBy": "import / v2.02 (E7, U24, U29, U31) — a load is counted as a change"
+ },
+ {
+  "id": "v214-rv1-b-own-package-uncounted",
+  "caughtBy": "board / v2.14 RV1-B — a package for the board on screen"
+ },
+ {
+  "id": "v214-rv1-b-own-package-not-a-load",
+  "caughtBy": "board / v2.14 RV1-B — a package for the board on screen"
  }
 ]
