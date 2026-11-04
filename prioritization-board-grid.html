@@ -8613,8 +8613,10 @@ function keptPutBack(){
     +(k.meta.why==='swap'? '💾 Save will ask before it writes over a copy saved after the one this work came from.'
       : k.meta.put===true? '💾 Save will ask before it writes over a copy saved after the one this work came from.'
       // v2.14 RV2-A (opening-kept-copy-says-file-saved-after-it): kept by the import's own file (imp), which was written before this
-      // work changed: nobody saved that file after it. The rule Save follows is said, as for the other two kinds.
-      : k.meta.imp===true? 'It changed after the full import was written into its file, so nobody saved that file after it. 💾 Save will ask before it writes over a copy saved after the one this work came from.'
+      // work changed. The rule Save follows is said, as for the other two kinds.
+      // v2.14 RV2-A finish (the check): and nothing about who saved that file since. "So nobody saved that file after it" was untrue
+      // as soon as the file was saved after it opened -- by this person's own 💾 Save, as often as not.
+      : k.meta.imp===true? 'It changed after the full import was written into its file. 💾 Save will ask before it writes over a copy saved after the one this work came from.'
       : '💾 Save will ask before it writes over '+esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+(after? ' saved after it.' : ' saved; this browser has no record of which copy there, if any, this work came from.'))
     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));
 }
@@ -13678,6 +13680,7 @@ function fullImportRescue(which){
 // page saved, so it does not queue behind saveSerial() -- a promise there would cost the click the save window needs -- and it is
 // refused while a save is under way.
 var _impFile=null, _impFileLast=null;
+var _impNoteMine=false;   // v2.14 RV2-A finish: this page wrote the import's note (impFileMarkWrite), so it is not held by another's (memOnlyNow)
 function impHref(){ return pageAddr(); }
 function impFileName(fname){
   const s=String(fname||'').trim();
@@ -13787,6 +13790,8 @@ function impFileRescueBtns(R){
   if(!R || !R.rescue) return '';
   return (R.rescue.html? '<button type="button" class="nb lnk" onclick="impFileRescue('+jsa('html')+')">💾 the imported board (new version)</button>'
                        : '(the imported board could not be built)')
+    // v2.14 RV2-A finish: and this board as it was, where the failed Write chose the file step 1 had saved it into
+    +(R.rescue.aw? ', <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('aw')+')">💾 this board as it was</button>' : '')
     +' and <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>';
 }
 // Drawn whole on every change of state; never throws (it runs after the save window answers, whenever that is).
@@ -13824,13 +13829,16 @@ function impFileDrawIn(){
   // v2.14 RV2-A (aswas-pick-not-checked-against-import): step 1 chose a file with the imported file's name -- it holds this board as it
   // was now, and the file imported is offered (R.rescue.was); the import itself has not been tried, so nothing here says it failed
   if(R.rescue && R.rescue.was){
+    // v2.14 RV2-A finish: or, where the write then failed (wasFail), that this board as it was is not in it either -- both offered
+    const wf=!!R.rescue.wasFail, wd=!!(wf && R.was && R.was.html && !R.was.got);
     h+='<p class="ifw-rescue">⚠ “'+esc(R.rescue.at)+'” has the name of the file you are importing, so it may be that file: the browser emptied it when '
-      +'you chose it, and this board as it was is in it now. Save the file you imported before anything else'
-      +(R.rescue.inc.got? ' — ✓ downloaded.' : ': <button type="button" class="btn" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>')+'</p>';
+      +'you chose it, and '+(wf? 'this board as it was could not be written into it either' : 'this board as it was is in it now')+'. Save the file you imported before anything else'
+      +(R.rescue.inc.got? ' — ✓ downloaded.' : ': <button type="button" class="btn" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>')
+      +(wd? ' And this board as it was: <button type="button" class="btn" onclick="impFileWasDl()">💾 this board as it was</button>' : '')+'</p>';
   } else if(R.rescue){
     h+='<p class="ifw-rescue">⛔ The imported board could not be written into “'+esc(R.rescue.at)+'”. Nothing was imported, and this browser and this '
-      +'board are exactly as they were. If “'+esc(R.rescue.at)+'” was a file that already existed, the browser emptied it when you chose it: '
-      +'save both copies now — '+impFileRescueBtns(R)+' — then try again with a new name.</p>';
+      +'board are exactly as they were. If “'+esc(R.rescue.at)+'” was a file that already existed, the browser emptied it when you chose it'+impFileAwSay(R)+': '
+      +'save '+impFileCopies(R)+' now — '+impFileRescueBtns(R)+' — then try again with a new name.</p>';
   }
   const L=impUnsavedList(R.W), need=impFileNeed(R), off=(R.busy || R.wasBusy);
   if(L.length){
@@ -13861,7 +13869,7 @@ function impFileSkip(on){ const R=_impFile; if(!R || R.busy || R.wasBusy) return
 function impFileCloseAsk(R){
   const r=R.rescue, h=!!(r.html && !r.html.got), i=!!(r.inc && !r.inc.got), a=!!(r.aw && !r.aw.got);
   const of=' If “'+r.at+'” was the file you imported, the browser emptied it when you chose it, and the copy offered here is all there is of it now.';
-  if(a) return 'This board as it was is not saved yet'+(i? ', nor is the file you imported' : '')+'. If “'+r.at+'” was the file step 1 saved it into, '
+  if(a) return 'This board as it was is not saved yet'+(h? ', nor is the imported board (new version), held only here' : '')+(i? ', nor is the file you imported' : '')+'. If “'+r.at+'” was the file step 1 saved it into, '
     +'the browser emptied it when you chose it, and the copy offered here is all there is of it now. Close anyway?';
   if(h && i) return 'The two copies are not saved yet. The imported board (new version) is held only here.'+of+' Close anyway?';
   return (h? 'The imported board (new version) is not saved yet, and is held only here. If “'+r.at+'” already existed, the browser emptied it when you chose it.'
@@ -13935,7 +13943,7 @@ function impFileMarkWrite(R, m){
   let wk=null; try{ wk=localStorage.getItem('prio27writerKey'); }catch(e){ wk=null; }
   if(R.wk && wk!==R.wk) W2.push(['prio27writerKey', R.wk, 'This browser’s writer key', 'this browser’s writer key']);
   const d=lsAll(W2);
-  R.m=m; R.marked=!!d.ok;
+  R.m=m; R.marked=!!d.ok; _impNoteMine=true;
   // v2.14 RV1-A (w2-writer-page-not-latched): THE PAGE THAT WRITES THE NOTE IS HELD FOR ITS LIFE, stored or refused (C21: a page
   // that has seen the note). Latched only when storage refused it, the importing page left open by the download route, the raced
   // route or ✕ at the name-match pause was held only while impHandOf() could still read the note -- and the file's opening removes
@@ -14069,12 +14077,22 @@ function impFileFailed(R, h, e){
   R.busy=false;
   const nm=String((h&&h.name)||R.name), reason=String((e && (e.message||e.name)) || 'error');
   R.rescue={at:nm, html:R.html? {text:R.html, name:nm, got:false} : null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}};
+  // v2.14 RV2-A finish (the check: the mirror, on Write's failure branch): AND THE NAME OF THE FILE STEP 1 SAVED THIS BOARD AS IT WAS
+  // INTO, tested before anything else here as on the route that lands. The pick emptied that file whether or not the write then
+  // failed, so the board as it was is offered (aw) and step 1 is to be done again (or let go again): Write is held until it is.
+  // Returned here before that test, the box offered two copies, step 1 still read ✓ over an empty file, and "Try again with a new
+  // name" cleared browser storage -- the work step 1 had named was in no file and no storage key.
+  const aw=!!(R.was && R.was.html && impFileSameName(nm, R.was.name));
+  if(aw){ R.rescue.aw={text:R.was.html, name:R.was.name, got:false}; R.step1=null; R.skip=false; }
   impFileDraw();
   statKeep('⛔ <b>Nothing was imported</b> — the imported board could not be written into “'+esc(nm)+'” ('+esc(reason)+'). This browser and this board '
-    +'are exactly as they were. If “'+esc(nm)+'” was a file that already existed, the browser emptied it when you chose it: save both copies now — '
+    +'are exactly as they were. If “'+esc(nm)+'” was a file that already existed, the browser emptied it when you chose it'+impFileAwSay(R)+': save '+impFileCopies(R)+' now — '
     +impFileRescueBtns(R)+' — then try again with a new name.');
   return false;
 }
+// v2.14 RV2-A finish: where a failed Write chose the file step 1 had saved this board as it was into -- said in the box and the line alike
+function impFileAwSay(R){ return (R && R.rescue && R.rescue.aw)? ', and it has the name of the file step 1 saved this board as it was into, so that copy is gone from it and step 1 is to be done again' : ''; }
+function impFileCopies(R){ return (R && R.rescue && R.rescue.aw)? 'all three copies' : 'both copies'; }
 function impFileRescue(which){
   const R=_impFile || _impFileLast;
   const r=R && R.rescue && R.rescue[which]; if(!r) return false;
@@ -14142,9 +14160,20 @@ function impFileSaveWas(){
       // v2.14 RV1-A (also noticed: a failed as-it-was write): the file chosen may have been emptied by the choice, so this copy is
       // held -- leaving the page asks until it is downloaded (impFileHolds), as a failed Write's rescues are
       if(R.was) R.was.fail=true;
+      // v2.14 RV2-A finish (the check: the step-1 failure branch of aswas-pick-not-checked-against-import): AND THE SAME NAME TEST AS
+      // THE WRITE THAT LANDED. The pick emptied the chosen file whether or not the write then failed, so a file with the imported
+      // file's name may have been that file: the file imported is held here alone and offered, as on the landing route. Asked only
+      // after a write that landed, a refused write or a read-back that differed let it go -- the only offer was the board as it was,
+      // and once that was downloaded nothing held the file imported: ✕ and leaving asked nothing.
+      const imp=impFileSameName(hn, R.fname);
+      if(imp){
+        if(!R.rescue) R.rescue={at:hn, html:null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}, was:true};
+        if(R.rescue.was){ R.rescue.at=hn; R.rescue.wasFail=true; }
+      }
       R.wasBusy=false; impFileDraw();
       statKeep('⛔ This board as it was could not be written into “'+esc(hn)+'” ('+esc(String((e&&(e.message||e.name))||'error'))+'). If it already existed, '
-        +'the browser emptied it when you chose it: <button type="button" class="nb lnk" onclick="impFileWasDl()">💾 this board as it was</button> downloads it instead.');
+        +'the browser emptied it when you chose it: <button type="button" class="nb lnk" onclick="impFileWasDl()">💾 this board as it was</button> downloads it instead.'
+        +(imp? ' <b>“'+esc(hn)+'” has the name of the file you are importing</b>, so it may be that file: <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button> downloads that too.' : ''));
       return false;
     }
     R.was.got=true;
@@ -14153,7 +14182,9 @@ function impFileSaveWas(){
     // offered, and closing the box or the page asks until it is downloaded (impFileHolds), as Write's name-match pause holds it. It
     // was let go with no question: the box said ✓, and Cancel, ✕ or leaving lost the file being imported.
     if(impFileSameName(hn, R.fname)){
-      R.rescue={at:hn, html:null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}, was:true};
+      // v2.14 RV2-A finish: what an earlier failed write there already offers is kept, so a download already made still counts
+      if(R.rescue && R.rescue.was){ R.rescue.at=hn; R.rescue.wasFail=false; }
+      else R.rescue={at:hn, html:null, inc:{text:R.txt, name:R.fname||'imported board.html', got:false}, was:true};
       statKeep('⚠ <b>“'+esc(hn)+'” has the name of the file you are importing</b>, so it may be that file: the browser emptied it when you chose it, '
         +'and this board as it was is in it now. Save the file you imported before anything else: <button type="button" class="nb lnk" onclick="impFileRescue('+jsa('inc')+')">💾 the file you imported</button>.');
     }
@@ -14161,7 +14192,9 @@ function impFileSaveWas(){
     const miss=impFileWasMiss(html, L);
     R.wasBusy=false;
     if(miss.length){ R.step1=null; R.wasMiss={name:hn, miss:miss}; }
-    else { R.step1={name:hn, gens:[_saveGen, _sideGen]}; R.wasMiss=null; }
+    else { R.step1={name:hn, gens:[_saveGen, _sideGen]}; R.wasMiss=null;
+      // v2.14 RV2-A finish: step 1 done again after a failed Write emptied its first file -- the copy offered then is in this one now
+      if(R.rescue && R.rescue.aw) R.rescue.aw.got=true; }
     impFileDraw();
     return !miss.length;
   }, function(e){
@@ -14178,6 +14211,7 @@ function impFileWasDl(){
   a.download=w.name;
   a.click();
   w.got=true;
+  if(R===_impFile) impFileDraw();   // v2.14 RV2-A finish: the box says what is still to be saved
   return true;
 }
 // v2.14 RV1-A: what the as-it-was file could not hold, said in one sentence wherever it is said
@@ -33833,6 +33867,8 @@ function sideBootSay(){
   }catch(e){ return ''; }
 }
 function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
+// v2.14 RV2-A finish: is browser storage's copy of this plan no longer the one this page wrote last? Unreadable counts as gone.
+function impOwnCopyGone(){ try{ return localStorage.getItem(_AP.key)!==_persistLast; }catch(e){ return true; } }
 // v2.14 W3 (item 141 F): WORK ON SCREEN ONLY. Browser storage refused a change the board holds (DIRTY && _persistFail: the plan,
 // or the hand-over hold's persist), or a list after the board opened (_lsRefused past _sideBootGen) -- so no saved copy and no
 // stored copy holds it, and closing, reloading or reopening the page loses it. While it holds, the browser asks before the page
@@ -33844,10 +33880,17 @@ function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
 // OUT OF BROWSER STORAGE, unsaved work on screen is on screen only. The hold refuses every write of it; the copy storage held from
 // before the hold is the one the import's Write clears, or its file's opening clears. Counted only once a write was refused, a page
 // with unsaved work and no edit since the hold let itself be closed with nothing asked, and the work was gone.
+// v2.14 RV2-A finish (the check: the download route's importing page): ONLY WHERE THAT IS SO. Counted on every held page, it took the
+// page that wrote the note itself -- the download route leaves it open, and its step 1 had saved or let go everything it held -- for
+// one with work on screen only: closing it asked, and switching appropriation or importing was refused with "browser storage
+// refused them, so no saved copy holds them", while storage still held its copy and step 1's download held it too. So: not on the
+// page that wrote the note (an edit there after the note is refused by the hold, and counted by _persistFail above), and only once
+// storage's copy of this plan is no longer the one this page wrote last (_persistLast) -- cleared by the import's Write or by its
+// file's opening, or written over.
 function memOnlyNow(){
   try{
     if(DIRTY && _persistFail) return true;
-    if(DIRTY && impHandKey(_AP.key)) return true;
+    if(DIRTY && impHandKey(_AP.key) && !_impNoteMine && impOwnCopyGone()) return true;
     for(const k in _lsRefused) if(_lsRefused[k]>_sideBootGen) return true;
   }catch(e){}
   return false;

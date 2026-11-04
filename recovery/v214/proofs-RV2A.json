@@ -102,5 +102,77 @@
  {
   "id": "v214-rv1-c-stop-cancel-skipped",
   "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-unheld",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-unmarked",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-says-written",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-no-was-btn",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-line-silent",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-wasdl-no-redraw",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-redo-said-failed",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-redo-reoffered",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-was-lost",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-step1-kept",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-btn-missing",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-close-aw-new-board",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-redo-aw-held",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-imp-putback-nobody",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-held-own-note",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-held-copy-ignored",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-note-mine-unset",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv1-a-was-dl-not-counted",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
  }
 ]

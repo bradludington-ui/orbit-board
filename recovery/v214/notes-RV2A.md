@@ -201,6 +201,102 @@ first).
 | `v214-rv1-a-aswas-screen-traded` (retargeted) | RV1-A — the as-it-was file holds every copy | 2 |
 | `v214-rv1-c-stop-cancel-skipped` (lengthened) | RV1-C — a Save that stops before it writes | 4 |
 
+## The finish: what the independent check found in round 1's fixes
+
+The check (on 391d6f9) found the first round's fix for `aswas-pick-not-checked-against-import` held only on the routes that land,
+an untrue clause in the `opening-kept-copy` wording, and an untrue refusal from the also-noticed 3 change. Each was reproduced on this
+board first with the check's probes, copied to `scratchpad/v214rev2/rv2-A/check2/` and pointed at this worktree's board.
+
+### 1. The step-1 failure branch (data loss) — reproduced, fixed
+
+**Reproduced** with `fileroute/w1f.mjs` (a write refused) and `w1g.mjs` (read back otherwise): "the imported file on disk now: EMPTY",
+"anything offering the imported file? false | R.rescue null", and after "💾 this board as it was" was downloaded "holds false | leave
+asks false", "✕ asked: []". The name test ran only after a write that landed.
+
+**Fixed** (impFileSaveWas's catch, impFileDrawIn, impFileWasDl): the catch makes the same name test. A file with the imported file's
+name gets the same hold as on the landing route (`R.rescue {inc, was:true}`), marked `wasFail`. The box says the board as it was
+"could not be written into it either" and offers both copies. The message line offers the file imported beside the board as it was.
+✕ and leaving ask until the file imported is downloaded. Step 1 done again into that name, and landing this time: `wasFail` is
+cleared and a download already made still counts (the rescue is kept, not made again). `impFileWasDl` redraws the box, so a copy
+downloaded from the message line is no longer offered there as if it were not.
+
+### 2. The mirror, on Write's failure branch (data loss) — reproduced, fixed
+
+**Reproduced** with `fileroute/w2f.mjs` (and `KNOB=failWrite`): rescue offers `["html","inc"]`, "box offers this board as it was?
+false | step 1 still ✓? true"; Write again into new2.html: "reopened true | the unsaved work … in any file false | in any storage key
+false".
+
+**Fixed** (impFileFailed, impFileRescueBtns, impFileDrawIn, impFileCloseAsk, impFileSaveWas): impFileFailed tests the chosen name against
+step 1's file before anything else. Where they match, the board as it was is offered (`R.rescue.aw`, R.was.html byte for byte), and
+step 1 is reset (`R.step1=null`, and `R.skip=false`: the decision is to be made again, now the copy it rested on is gone). Write is then
+held until step 1 is done again or let go. The box and the message line say so ("…and it has the name of the file step 1 saved this
+board as it was into, so that copy is gone from it and step 1 is to be done again: save all three copies now"). ✕ names all three
+(`impFileCloseAsk`: "This board as it was is not saved yet, nor is the imported board (new version), held only here, nor is the file
+you imported."). Step 1 done again into another file marks the offered copy covered (`aw.got`), so ✕ then asks only of the two.
+After: "rescue offers ["html","inc","aw"] | box offers … true | step 1 still ✓? false"; Write again: "reopened false | … in any
+storage key true".
+
+### 3. The put-back wording (untrue message) — reproduced, fixed
+
+**Reproduced** with `fileroute/a2s.mjs`: the file saved after the kept work changed, then ↶ Put back: "…so nobody saved that file
+after it."
+
+**Fixed** (keptPutBack): the inference is dropped and the two true halves kept: "It changed after the full import was written into
+its file. 💾 Save will ask before it writes over a copy saved after the one this work came from." The earlier block's part (a) reads
+the new sentence (`// v2.14 RV2-A finish:` there).
+
+### 4. The download route's importing page (untrue refusal, from also-noticed 3) — reproduced, fixed
+
+**Reproduced** with `journeys/dl.mjs SKIP=1`: "held true | DIRTY true | memOnlyNow true | … leave asks true", and switching
+appropriation refused with "browser storage refused them, so no saved copy holds them", while "storage O&M holds the edit: true".
+
+**Fixed** (memOnlyNow, impFileMarkWrite, impOwnCopyGone): a held page's unsaved work counts as on screen only when two things are true.
+First, the page did not write the note itself (`_impNoteMine`, set by impFileMarkWrite). Its step 1 saved or let go everything it held,
+and any edit after the note is refused by the hold and counted by `_persistFail`. Second, storage's copy of this plan is no longer the
+one this page wrote last (`impOwnCopyGone`: `localStorage.getItem(_AP.key)!==_persistLast`, unreadable counted as gone). The hold
+alone is not enough. After: "memOnlyNow false | leave asks false", switching not refused.
+
+The earlier block's held page (part (a) of "this plan’s stored copy…") now gives B the browser storage A's Write left (`sync`), as a
+second tab shares it. Before, the fixture only handed B the note, so B's storage still held B's copy: the old rule passed it, and the
+new rule rightly does not count that as on screen only. (`// v2.14 RV2-A finish:` there.) The reviewers' w3 probe likewise hands B
+only the note, so it now reads "leaving B asks: false", which is right for what B's storage holds there.
+
+### The check, and the proof
+
+**Check:** one new audit-import block in the RV2-A slot, `v2.14 RV2-A finish — a write that fails after its pick lets nothing go
+unasked, a kept copy put back says only what is so, and only a page another tab’s import holds counts its work as on screen only`.
+- (a) Step 1 into the imported file's name, the write refused / read back otherwise. The box and the line offer both copies. With the
+  board as it was downloaded, the file imported is still held, ✕ asks, and the download is NEW byte for byte. Then (refused) step 1
+  again into the same name, landing: "is in it now", ✓ downloaded kept.
+- (b) Write into step 1's file, the close refused. Nothing cleared, aw offered, step 1 no longer ✓, and Write held even to a name
+  that would take it. ✕ names all three. Step 1 again lets ✕ name only two, the download is WAS byte for byte, and Write then finishes
+  with the work in backup2.html.
+- (c) The a2s route: the import's file saved after it opened, then the put-back line.
+- (d) The download route's importing page: not on screen only, nor after the downloaded file's opening clears storage. An edit after
+  the note is a CONTROL.
+- (e) A page another tab's import holds: not on screen only while storage holds its copy; on screen only once that copy is cleared.
+
+Slimmed alone it fails **20 checks on 74a6aec** and **22 on 391d6f9** (round 1's tree), none labelled a CONTROL, and passes here. All
+eight RV2-A blocks slimmed together: ALL CHECKS PASSED here.
+
+**Mutations:** 17 new in the RV2-A slot (`v214-rv2-a-was-fail-unheld`, `-was-fail-unmarked`, `-was-fail-says-written`,
+`-was-fail-no-was-btn`, `-was-fail-line-silent`, `-wasdl-no-redraw`, `-was-redo-said-failed`, `-was-redo-reoffered`,
+`-write-fail-was-lost`, `-write-fail-step1-kept`, `-write-fail-btn-missing`, `-close-aw-new-board`, `-redo-aw-held`,
+`-imp-putback-nobody`, `-held-own-note`, `-held-copy-ignored`, `-note-mine-unset`). Three were retargeted in place to the line that
+now carries the same defect:
+- `v214-rv2-a-held-not-asked`: the held rule's line now carries the two conditions.
+- `v214-rv1-a-was-dl-not-counted`: impFileWasDl now redraws between its two lines.
+- `v214-rv2-a-was-notice-says-failed`: lengthened, since step 1's success branch now holds its text six spaces in.
+
+mcount: 3,547 entries, each found once. Every new and retargeted mutant built with mkmut.py passes `node tools/check.mjs`. The whole
+RV2-A list (44, round 1's 26 included) was proved again on this board, the round-1 results set aside
+(`scratchpad/v214rev2/rv2-A/proved-RV2A-round1.jsonl`): see the table below.
+
+### Lines outside the code I own
+
+- `memOnlyNow()`: the held condition now reads `!_impNoteMine && impOwnCopyGone()`. `impOwnCopyGone()` is new, beside `unsavedNow`.
+- `_impNoteMine`: a `var` beside `_impFile`, set in impFileMarkWrite.
+
 ## Runs, on the final tree
 
 - `npm run check`: all checks passed. `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical.
