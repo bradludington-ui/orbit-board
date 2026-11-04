@@ -174,5 +174,21 @@
  {
   "id": "v214-rv1-a-was-dl-not-counted",
   "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv2-a-raced-name-untested",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-raced-pause-unmarked",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-raced-was-unoffered",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-w2-race-page-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
  }
 ]

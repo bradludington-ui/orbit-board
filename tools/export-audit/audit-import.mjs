@@ -19222,7 +19222,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const __bm = bootMark();
   const name = 'v2.14 RV2-A finish — a write that fails after its pick lets nothing go unasked, a kept copy put back says only what is so, and only a page another tab’s import holds counts its work as on screen only (the check of RV2-A)';
   try {
-    const { J, fx, refuse, picker, press, box, settle, navs, downloads } = W214;
+    const { J, fx, refuse, picker, press, box, settle, navs, downloads, marker } = W214;
     const IMP = 'new-board.html';                    // w2Import imports NEW under this name
     const WORK = 'UNSAVED WORK ON THE OLD BOARD';
     const open = async (files, o = {}) => {
@@ -19329,6 +19329,74 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       await settle(T, () => navs(T, e0) > 0);
       chk(name, '(b) Write into step 1’s file fails', 'step 1 done again, Write to a new name finishes, and the unsaved work is in backup2.html',
         J([navs(T, e0) > 0, (P.files['backup2.html'] || '').includes(WORK)]), J([true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (f) THE THIRD BRANCH: WRITE'S SAVE WINDOW GIVEN backup.html, THE WRITE LANDS, AND ANOTHER TAB SAVES FULL FUND WHILE IT IS WRITTEN.
+    // The raced route clears nothing now, but the written file's opening clears every copy unchanged since the click -- the unsaved work
+    // step 1 put into backup.html among them, and backup.html holds the import now. So it pauses as the route that lands does: the board
+    // as it was offered, and Carry on asks until it is downloaded.
+    {
+      const mk = bootMark();
+      const { T, P, D, e0 } = await open(() => ({}), { picker: { pickAs: 'backup.html' } });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup\.html”/.test(box(T).text));
+      const WAS = P.files['backup.html'] || '';
+      const g = W1H.gate(); P.gate = g;
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => P.picks.length > 1);
+      const ff = JSON.parse(w2LsOf(T.ev).prio27ff); ff.ts = Date.now() + 90000;
+      T.ev(`localStorage.setItem('prio27ff', ${J(J(ff))}); 'ok'`);     // another tab saves Full Fund while the file is written
+      g.open();
+      await settle(T, () => T.ev('!!(_impFile && _impFile.pause)') === true || /changed in this browser while it was being written/.test(line(T)));
+      const holdsWork = () => (w2LsOf(T.ev).prio27om || '').includes(WORK);
+      const mk1 = marker(T);
+      chk(name, '(f) Write into step 1’s file, raced', 'the import landed in backup.html, the write raced, nothing was cleared and nothing reopened (a CONTROL)',
+        J([WAS.includes(WORK), (P.files['backup.html'] || '').includes(WORK), holdsWork(), navs(T, e0)]), J([true, false, true, 0]));
+      // the note is in before the pause, as the raced route writes it: ✕ at the pause keeps the note it finds (impFileClose), and without
+      // one the written file would open behind this browser's older copies
+      chk(name, '(f) Write into step 1’s file, raced', 'the note went in before the pause, saying the write raced', !!(mk1 && mk1.how === 'file-raced'), true);
+      chk(name, '(f) Write into step 1’s file, raced', 'the box stays, paused on step 1’s file, and offers the board as it was',
+        J([box(T).open, T.ev('!!(_impFile && _impFile.pause && _impFile.pause.was)'), rv2aBtn(T, /^💾 this board as it was$/)]), J([true, true, true]));
+      rv2aAsk(T, false);
+      press(T, P, /^Carry on$/);
+      chk(name, '(f) Write into step 1’s file, raced', 'Carry on asks first while the board as it was is not downloaded, and Cancel stays',
+        J([rv2aAsked(T).length, T.ev('!!(_impFile && _impFile.pause)')]), J([1, true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      chk(name, '(f) Write into step 1’s file, raced', '✕ asks first too, naming the board as it was, and Cancel keeps the box',
+        J([/^This board as it was is not saved yet/.test(rv2aAsked(T)[0] || ''), box(T).open]), J([true, true]));
+      press(T, P, /^💾 this board as it was$/);
+      const last = D[D.length - 1] || {};
+      chk(name, '(f) Write into step 1’s file, raced', 'the download is the board as it was, byte for byte as step 1 wrote it', J([last.name, last.text === WAS]), J(['backup.html', true]));
+      rv2aAsk(T, true);
+      press(T, P, /^Carry on$/);
+      chk(name, '(f) Write into step 1’s file, raced', 'then Carry on asks nothing more and ends as the raced route ends: the list named, nothing cleared, nothing reopened',
+        J([rv2aAsked(T).length, box(T).open, /the Full Fund plan changed in this browser while it was being written/.test(line(T)), holdsWork(), navs(T, e0)]), J([0, false, true, true, 0]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (g) THE SAME RACE WITH WRITE'S SAVE WINDOW GIVEN THE FILE BEING IMPORTED (step 1 let go): it pauses on that name as the route that
+    // lands does, offering the file imported, and Carry on then ends on the raced route
+    {
+      const mk = bootMark();
+      const { T, P, D, NEW, e0 } = await open(N => ({ [IMP]: N.html }), { picker: { pickAs: IMP } });
+      T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+      const g = W1H.gate(); P.gate = g;
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => P.picks.length > 0);
+      const ff = JSON.parse(w2LsOf(T.ev).prio27ff); ff.ts = Date.now() + 90000;
+      T.ev(`localStorage.setItem('prio27ff', ${J(J(ff))}); 'ok'`);
+      g.open();
+      await settle(T, () => T.ev('!!(_impFile && _impFile.pause)') === true || /changed in this browser while it was being written/.test(line(T)));
+      chk(name, '(g) Write into the imported file, raced', 'the pick emptied the file being imported and the write landed there, raced (a CONTROL)',
+        J([P.files[IMP] !== NEW.html, !!P.files[IMP], navs(T, e0)]), J([true, true, 0]));
+      chk(name, '(g) Write into the imported file, raced', 'the box stays, paused on the imported file’s name, and offers the file imported',
+        J([box(T).open, T.ev('!!(_impFile && _impFile.pause && !_impFile.pause.was)'), rv2aBtn(T, /^💾 the file you imported$/)]), J([true, true, true]));
+      press(T, P, /^💾 the file you imported$/);
+      const last = D[D.length - 1] || {};
+      rv2aAsk(T, true);
+      press(T, P, /^Carry on$/);
+      chk(name, '(g) Write into the imported file, raced', 'the download is the file being imported, byte for byte, and Carry on ends on the raced route, nothing reopened',
+        J([last.name, last.text === NEW.html, box(T).open, /the Full Fund plan changed in this browser while it was being written/.test(line(T)), navs(T, e0)]), J([IMP, true, false, true, 0]));
       await W214.rel(mk, keepBoards());
     }
     // (c) WORK THE IMPORT'S OWN FILE KEPT ASIDE, PUT BACK AFTER THAT FILE WAS SAVED: the line says it changed after the import was

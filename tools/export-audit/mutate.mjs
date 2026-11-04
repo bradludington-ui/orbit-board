@@ -10185,8 +10185,9 @@ const MUTATIONS = [
     find: 'statKeep(_impRep+impRoomSay())',
     repl: 'statKeep(_impRep)' },
   { id: 'v214-w2-race-page-unchecked', area: 'impFileWriteTo', what: 'an edit on this page while the file was written is cleared from under it',
-    find: 'raced=!(R.gens[0]===_saveGen && R.gens[1]===_sideGen);\n  if(moved2.length || raced) return impFileRaced(R, h, moved2, raced);',
-    repl: 'raced=false;\n  if(moved2.length || raced) return impFileRaced(R, h, moved2, raced);' },
+    // v2.14 RV2-A finish: retargeted -- the raced branch now makes the name tests first, so it opens a block
+    find: 'raced=!(R.gens[0]===_saveGen && R.gens[1]===_sideGen);\n  if(moved2.length || raced){',
+    repl: 'raced=false;\n  if(moved2.length || raced){' },
   // ==== end v2.14 W2 ====
 
   // ==== v2.14 W3 (item 141 F, G; item 140 c): browser storage refused or full ====
@@ -10794,6 +10795,16 @@ const MUTATIONS = [
   { id: 'v214-rv2-a-note-mine-unset', area: "impFileMarkWrite", what: "the importing page is not marked as the one that wrote the note, and is counted as held by another’s: its work, saved by step 1, reads as on screen only",
     find: "R.m=m; R.marked=!!d.ok; _impNoteMine=true;",
     repl: "R.m=m; R.marked=!!d.ok;" },
+  // v2.14 RV2-A finish: the raced branch of Write makes the same name tests
+  { id: 'v214-rv2-a-raced-name-untested', area: "impFileWriteTo", what: "Write’s Save window given the file step 1 saved the board as it was into, the write lands while another tab saves, and the box closes on the raced route: the board as it was is in no file, and the written file’s opening clears it from storage",
+    find: "if(wasNm || impFileSameName(h&&h.name, R.fname)){ impFileMarkWrite(R, impFileMarkOf(R, h, 'file-raced')); return impFileNameStep(R, h, wasNm); }",
+    repl: "" },
+  { id: 'v214-rv2-a-raced-pause-unmarked', area: "impFileWriteTo", what: "a raced Write paused on a file name before its note went in: ✕ at the pause leaves no note, and the written file opens behind this browser’s older copies",
+    find: "{ impFileMarkWrite(R, impFileMarkOf(R, h, 'file-raced')); return impFileNameStep(R, h, wasNm); }",
+    repl: "{ return impFileNameStep(R, h, wasNm); }" },
+  { id: 'v214-rv2-a-raced-was-unoffered', area: "impFileWriteTo", what: "a raced Write into the file step 1 saved the board as it was into pauses as if it were the file imported: the board as it was is never offered",
+    find: "const wasNm=!!(R.was && R.was.html && impFileSameName(h&&h.name, R.was.name));\n    if(wasNm ||",
+    repl: "const wasNm=false;\n    if(!!(R.was && R.was.html && impFileSameName(h&&h.name, R.was.name)) ||" },
   // ---- end RV2-A ----
   // ---- RV2-B (other appropriations, cycles and packages) ----
   // ---- end RV2-B ----

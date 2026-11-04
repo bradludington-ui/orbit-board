@@ -290,14 +290,63 @@ now carries the same defect:
 
 mcount: 3,547 entries, each found once. Every new and retargeted mutant built with mkmut.py passes `node tools/check.mjs`. The whole
 RV2-A list (44, round 1's 26 included) was proved again on this board, the round-1 results set aside
-(`scratchpad/v214rev2/rv2-A/proved-RV2A-round1.jsonl`): see the table below.
+(`scratchpad/v214rev2/rv2-A/proved-RV2A-round1.jsonl`). The proof (`prove3.log`) started at 01:25:45, after the board, the
+suite, mutate.mjs and proofs-RV2A.json were last changed, and it is the tree committed as ece4291: **44 of 44 CAUGHT, each by a failed
+check, none by a throw.** Round 1's 26 were caught as in the table above (same counts); the finish's 18:
+
+| mutation | caught by (audit-import) | failing checks |
+|---|---|---|
+| `v214-rv2-a-was-fail-unheld` | RV2-A finish — a write that fails after its pick | 11 |
+| `v214-rv2-a-was-fail-unmarked` | 〃 | 2 |
+| `v214-rv2-a-was-fail-says-written` | 〃 | 2 |
+| `v214-rv2-a-was-fail-no-was-btn` | 〃 | 2 |
+| `v214-rv2-a-was-fail-line-silent` | 〃 | 2 |
+| `v214-rv2-a-wasdl-no-redraw` | 〃 | 2 |
+| `v214-rv2-a-was-redo-said-failed` | 〃 | 1 |
+| `v214-rv2-a-was-redo-reoffered` | 〃 | 1 |
+| `v214-rv2-a-write-fail-was-lost` | 〃 | 7 |
+| `v214-rv2-a-write-fail-step1-kept` | 〃 | 7 |
+| `v214-rv2-a-write-fail-btn-missing` | 〃 | 3 |
+| `v214-rv2-a-close-aw-new-board` | 〃 | 1 |
+| `v214-rv2-a-redo-aw-held` | 〃 | 1 |
+| `v214-rv2-a-imp-putback-nobody` | 〃 | 1 |
+| `v214-rv2-a-held-own-note` | 〃 | 1 |
+| `v214-rv2-a-held-copy-ignored` | 〃 | 1 |
+| `v214-rv2-a-note-mine-unset` | 〃 | 1 |
+| `v214-rv1-a-was-dl-not-counted` (retargeted) | RV1-A — the room left is said | 1 |
+
+The two retargeted ones among round 1's ids, `v214-rv2-a-held-not-asked` (1) and `v214-rv2-a-was-notice-says-failed` (1), were
+caught again by the blocks named for them above.
+
+### What the check also said, and was left
+
+- aswas-older-stamp, "one note, not a defect": where tab A edits before its own boot has settled (a timing of the reviewer's probe;
+  DIRTY is reset afterwards), the as-it-was file now holds storage's copy, not A's unflagged edit. The edit is not lost: it is in
+  the kept slot after Write. Left.
+- take-all, "a minor point": the room sentence is also said when one appropriation or several boards are taken. It is worded "To
+  bring a whole board in anyway", so it is true either way. Left.
+
+### The check's probes, rerun on the finished board (ece4291)
+
+Copied in `scratchpad/v214rev2/rv2-A/check2/`, each output kept beside it as `*-fin.out`:
+- `w1f` (step 1's write refused) and `w1g` (read back otherwise): "anything offering the imported file? true | R.rescue
+  [at, html, inc, was, wasFail] | holds true"; after the board as it was is downloaded "holds true | leave asks true"; ✕ asks "The
+  file you imported is not saved yet…" (and only once that is answered OK is the box closed and the hold let go).
+- `w2f`: "rescue offers ["html","inc","aw"] | box offers "this board as it was"? true | step 1 still ✓? false"; Write again into
+  new2.html: "reopened false … in any storage key true" (Write waits for step 1).
+- `a2s`: "…It changed after the full import was written into its file. 💾 Save will ask before it writes over a copy saved after
+  the one this work came from."
+- `dl SKIP=1`: "memOnlyNow false | impFileHolds false | leave asks false", switching not refused, "storage O&M holds the edit: true".
+  (Its "as-it-was copy (R.was) holds it: false" is the probe's reading: once the download route shuts the box, `_impFileLast` is set
+  only for a rescue or a held as-it-was copy, so there is nothing for it to read. Step 1's download was made, `was.got true`.)
+- The reviewers' original `w1-aswas-into-import` and `w2-write-over-aswas`: held and offered; paused with storage untouched.
 
 ### Lines outside the code I own
 
 - `memOnlyNow()`: the held condition now reads `!_impNoteMine && impOwnCopyGone()`. `impOwnCopyGone()` is new, beside `unsavedNow`.
 - `_impNoteMine`: a `var` beside `_impFile`, set in impFileMarkWrite.
 
-## Runs, on the final tree
+## Runs, on round 1's tree (391d6f9)
 
 - `npm run check`: all checks passed. `node tools/export-audit/boot-same.mjs`: every page, source, save and error list identical.
 - The seven RV2-A blocks slimmed together: 31 failing checks on 74a6aec (none a CONTROL); ALL CHECKS PASSED here.

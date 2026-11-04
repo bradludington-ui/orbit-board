@@ -14004,7 +14004,16 @@ async function impFileWriteTo(R, h){
   // nothing waits after this line: storage and this page are read once more, and the note goes in before anything is cleared (C20, C29)
   R.busy=false;
   const moved2=impFileMoved(R), raced=!(R.gens[0]===_saveGen && R.gens[1]===_sideGen);
-  if(moved2.length || raced) return impFileRaced(R, h, moved2, raced);
+  if(moved2.length || raced){
+    // v2.14 RV2-A finish (the third branch of aswas-pick-not-checked-against-import): A RACED WRITE MAKES THE SAME NAME TESTS. It
+    // clears nothing now, but the file it wrote clears, when it opens, every copy unchanged since the click -- the unsaved work step 1
+    // saved into the file chosen among them, and that file holds the import now. Returned before these tests, the box closed with the
+    // board as it was in no file, gone from storage at that opening. So the raced note goes in (as impFileRaced writes it), and the box
+    // pauses on the name as the route that lands does; Carry on ends on the raced route (impFileCarryOn reads the race again).
+    const wasNm=!!(R.was && R.was.html && impFileSameName(h&&h.name, R.was.name));
+    if(wasNm || impFileSameName(h&&h.name, R.fname)){ impFileMarkWrite(R, impFileMarkOf(R, h, 'file-raced')); return impFileNameStep(R, h, wasNm); }
+    return impFileRaced(R, h, moved2, raced);
+  }
   impFileMarkWrite(R, impFileMarkOf(R, h, 'file'));
   // v2.14 RV2-A (aswas-pick-not-checked-against-import): AND THE NAME OF THE FILE STEP 1 SAVED THIS BOARD AS IT WAS INTO: the browser
   // emptied that file when Write chose it, and it holds the imported board now. Nothing is cleared until the board as it was has been
