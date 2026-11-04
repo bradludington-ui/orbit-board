@@ -34,7 +34,7 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
   - It asserts, against literals: Full Fund's Total Requirements, Available Funding and Delta for two years; its rows by
     service and by PMO; PSM in Full Fund in the PMO drill by service and year; the chart of accounts' rows for both
     appropriations, the board's added requirement N once; and `coaSummary` ("Where we stand").
-  - It fails 5 checks on `74a6aec` and passes now.
+  - It fails 6 checks on `74a6aec` and passes now.
 - **An existing check corrected** (`// v2.14 RV2-D:`): audit-import RV1-D oldfiles part (d) pinned Spruills reading O&M from
   Full Fund as $200. That is NEW-2 alone, the wrong figure. The truth is $1,400, A plus NEW-2, as skeptic 1 predicted. All
   three (d) expectations are now $1,400.
@@ -79,7 +79,7 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
   - (c) keyless twins;
   - (d) and (e) CONTROLS: a plain redraw, and a load that changes a third row, which both keep the typing on row 1.
 
-  It fails 8 checks on `74a6aec` and passes now.
+  It fails 6 checks on `74a6aec` and passes now.
 - **Browser:** keyboard-reach section W gains a twins case in Chromium (`W · two identical rows, row 1 renamed by a load …`),
   with real keys and Tab, seeded from page code.
 - **Mutations:**
@@ -158,7 +158,7 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
   - (d) the full import's question, and the reopened board;
   - (e) the saved file.
 
-  It fails 9 checks on `74a6aec` and passes now.
+  It fails 7 checks on `74a6aec` and passes now.
 - **Register:** `an-added-requirement-an-older-orbit-left-twice-was-counted-twice`.
 - **Mutations:** `v214-rv2-d-mend-keeps-twice`, `v214-rv2-d-itemsof-twice`, `v214-rv2-d-mend-twice-unsaid`.
 - Retargeted in place, because itemsOf's line changed: `v214-rv1-d-other-appn-unread` and
@@ -207,7 +207,7 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
 
 ## Runs (on the final tree)
 
-These runs were on the committed tree (`592b6f2`) with the notes completed after them. Every heavy run was alone, or beside other
+These runs were on the committed tree (`592b6f2`) with the notes completed after them. Each block's count of failing checks on `74a6aec` is read from its `SUITE_CHECKS` record, run slimmed on `pre.html`. Every heavy run was alone, or beside other
 fixers' runs only once memory allowed.
 
 - **Static checks:**
