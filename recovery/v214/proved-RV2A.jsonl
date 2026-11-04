@@ -42,3 +42,7 @@
 {"id": "v214-rv2-a-held-copy-ignored", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-c1239ba6.mjs", "detail": ""}
 {"id": "v214-rv2-a-note-mine-unset", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-c1239ba6.mjs", "detail": ""}
 {"id": "v214-rv1-a-was-dl-not-counted", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-164c91a6.mjs", "detail": ""}
+{"id": "v214-rv2-a-raced-name-untested", "verdict": "CAUGHT", "fails": ["6"], "threw": 0, "suite": "_slim-prove-c1239ba6.mjs", "detail": ""}
+{"id": "v214-rv2-a-raced-pause-unmarked", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-c1239ba6.mjs", "detail": ""}
+{"id": "v214-rv2-a-raced-was-unoffered", "verdict": "CAUGHT", "fails": ["4"], "threw": 0, "suite": "_slim-prove-c1239ba6.mjs", "detail": ""}
+{"id": "v214-w2-race-page-unchecked", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-8bdb70ef.mjs", "detail": ""}

@@ -261,6 +261,24 @@ second tab shares it. Before, the fixture only handed B the note, so B's storage
 new rule rightly does not count that as on screen only. (`// v2.14 RV2-A finish:` there.) The reviewers' w3 probe likewise hands B
 only the note, so it now reads "leaving B asks: false", which is right for what B's storage holds there.
 
+### 5. The raced branch (data loss; found while finishing, the same defect on a third branch) — reproduced, fixed
+
+The check named the two failure branches. Looking for their siblings (CLAUDE.md: the misses are next to the fixed sink), Write has a
+third ending after its pick: the write lands while another tab saves (or this page changes), and `impFileWriteTo` returned to
+`impFileRaced` **before** either name test. The raced route clears nothing at once, but the file it wrote clears, when it opens, every
+copy unchanged since the click. With Write given the file step 1 saved the board as it was into, that file holds the import, the box
+closed, and the unsaved work step 1 had named went from storage at the opening: in no file and no storage key.
+
+**Reproduced** with the new part (f) on ece4291: "the box stays, paused on step 1’s file, and offers the board as it was" got
+`[false,false,false]`; Carry on, ✕ and the download each found nothing to act on (4 failing checks). The same with the imported file's
+name, part (g) (2 more).
+
+**Fixed** (impFileWriteTo): in the raced branch the two name tests come first. On a match the raced note goes in (as impFileRaced writes
+it: the hashes of what storage held at the click, so ✕ at the pause keeps a note and the file never opens behind older copies) and
+the box pauses on the name as the route that lands does: the board as it was (`aw`) or the file imported offered, Carry on and ✕
+asking until it is saved. Carry on reads the race again (`impFileCarryOn`, unchanged) and ends on the raced route: the moved lists
+named, nothing cleared, nothing reopened.
+
 ### The check, and the proof
 
 **Check:** one new audit-import block in the RV2-A slot, `v2.14 RV2-A finish — a write that fails after its pick lets nothing go
@@ -275,9 +293,14 @@ unasked, a kept copy put back says only what is so, and only a page another tab�
 - (d) The download route's importing page: not on screen only, nor after the downloaded file's opening clears storage. An edit after
   the note is a CONTROL.
 - (e) A page another tab's import holds: not on screen only while storage holds its copy; on screen only once that copy is cleared.
+- (f) (bfbf89b) Write into step 1's file, landing while another tab saves Full Fund (the W2 race's gate). The raced note is in before
+  the pause; the box pauses on step 1's file and offers the board as it was; Carry on and ✕ ask, Cancel stays; the download is WAS
+  byte for byte; then Carry on ends on the raced route, the list named, nothing cleared or reopened.
+- (g) (bfbf89b) The same race with Write given the imported file's name, step 1 let go: paused, the file imported offered and
+  downloaded byte for byte, Carry on ending on the raced route.
 
-Slimmed alone it fails **20 checks on 74a6aec** and **22 on 391d6f9** (round 1's tree), none labelled a CONTROL, and passes here. All
-eight RV2-A blocks slimmed together: ALL CHECKS PASSED here.
+Slimmed alone, (a)–(e) failed **20 checks on 74a6aec** and **22 on 391d6f9** (round 1's tree). With (f) and (g) it fails **26 on
+74a6aec** and **6 on ece4291**, none labelled a CONTROL, and passes here.
 
 **Mutations:** 17 new in the RV2-A slot (`v214-rv2-a-was-fail-unheld`, `-was-fail-unmarked`, `-was-fail-says-written`,
 `-was-fail-no-was-btn`, `-was-fail-line-silent`, `-wasdl-no-redraw`, `-was-redo-said-failed`, `-was-redo-reoffered`,
@@ -317,6 +340,25 @@ check, none by a throw.** Round 1's 26 were caught as in the table above (same c
 
 The two retargeted ones among round 1's ids, `v214-rv2-a-held-not-asked` (1) and `v214-rv2-a-was-notice-says-failed` (1), were
 caught again by the blocks named for them above.
+
+**The raced branch (bfbf89b):** three new mutations and one retargeted:
+- `v214-rv2-a-raced-name-untested` takes the name tests out of the raced branch (the defect put back).
+- `v214-rv2-a-raced-pause-unmarked` pauses without writing the raced note first.
+- `v214-rv2-a-raced-was-unoffered` reads step 1's file as if it were only the file imported, so the board as it was is never offered.
+- `v214-w2-race-page-unchecked` (W2's, retargeted in place): the raced branch now opens a block, so its find ends at
+  `if(moved2.length || raced){`; the same defect (an edit on this page while the file was written is cleared from under it).
+
+mcount: 3,550 entries, each found once; each of the four mutants passes `node tools/check.mjs`. **The whole list, 48, was proved
+again on bfbf89b** (`prove4.log`, the earlier results set aside in `scratchpad/v214rev2/rv2-A/proved-RV2A-finish1.jsonl`): **48 of 48
+CAUGHT, each by a failed check, none by a throw**, every block clean on the board first. The 44 above were caught with the same counts;
+the four new:
+
+| mutation | caught by (audit-import) | failing checks |
+|---|---|---|
+| `v214-rv2-a-raced-name-untested` | RV2-A finish — a write that fails after its pick | 6 |
+| `v214-rv2-a-raced-pause-unmarked` | 〃 | 1 |
+| `v214-rv2-a-raced-was-unoffered` | 〃 | 4 |
+| `v214-w2-race-page-unchecked` (retargeted) | W2 — the file route keeps | 1 |
 
 ### What the check also said, and was left
 
