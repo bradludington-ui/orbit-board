@@ -206,3 +206,27 @@ into the scratch folder `scratchpad/v214rev2/rv2-D/probes/` and pointed at this 
   `money-map.json`.
 
 ## Runs (on the final tree)
+
+These runs were on the committed tree (`592b6f2`) with the notes completed after them. Every heavy run was alone, or beside other
+fixers' runs only once memory allowed.
+
+- **Static checks:**
+  - `npm run check`: all checks passed.
+  - `boot-same`: identical either way.
+  - `audit-inject`: ALL CHECKS PASSED.
+- **The suites, whole, at 8 GB:** audit-board, audit-import, audit-recon and audit-other each printed ALL CHECKS PASSED.
+  - The first whole audit-import run was killed with exit 137. Two other fixers' recon and import were holding 9.5 GB at the
+    time. It passed on the rerun.
+- **The tools:**
+  - `roundtrip-fuzz`, seed 745364162 (3 rounds): 55 containers, NOTHING WAS LOST. Seed 424242 also ran clean.
+  - `verify-file --selftest`: PASSED, with the new step.
+  - `money-coverage`: 27/27.
+  - `money-map --check`: current; 119 proven, 202 n/a, 1 open.
+  - `math-defects`: 19 defects, all guarded.
+- **The browser checks:**
+  - `npm run keys` passes, the new twins case of section W with it.
+  - The same check with `--board pre.html` fails exactly that case: `stored [["Depot repair","11111"],["Depot","99999"]]`,
+    nothing said.
+  - `npm run panels`, `dialogs` and `standards` (0 findings) all pass.
+  - Not run: `fileimport`, `savetarget` and `storagefull`. Nothing in this change touches the file route, the save target or
+    storage refusal.
