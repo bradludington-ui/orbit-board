@@ -184,7 +184,8 @@ const MUTATIONS = [
   // on any board that simply carries its own requirements, so the panel reported $0.00M of
   // requirements and a DELTA of the whole budget as surplus.
   { id: 'spdefs-no-fallback', area: 'model', what: "Spruills ignores the board's own requirements",
-    find: 'data:_hasData(APPNS[a])? APPNS[a] : DATA',
+    // v2.14 RV2-D: retargeted in place -- the own line now carries the board's master list, never DATA (spDefs)
+    find: 'data:_hasData(APPNS[a])? APPNS[a] : Object.assign({}, DATA, {items:BASE_ITEMS})',
     repl: 'data:APPNS[a]' },
   // v1.95: the Spruills table by service, by year and for another appropriation (audit-board
   // 'v1.95 — the Spruills by service, by year and for another appropriation'; the money map's spGather cells)
@@ -10607,7 +10608,8 @@ const MUTATIONS = [
   { id: 'v214-rv1-d-rcn-held-no-sig', area: "inspHeldSame", what: "a row whose key a load makes shared, or one row's alone, loses the typing though the row is there as it was",
     find: " && (r.getAttribute('data-rk')===x.rk || (!!x.rs && r.getAttribute('data-rs')===x.rs));", repl: " && r.getAttribute('data-rk')===x.rk;" },
   { id: 'v214-rv1-d-rcn-sig-no-count', area: "rcnRowSig", what: "two rows alike with no key share one hold: typing in the second lands on the first",
-    find: "  return '#'+me+'#'+n;", repl: "  return '#'+me;" },
+    // v2.14 RV2-D: retargeted in place to the line that now carries the count (rcnRowSig carries the total too)
+    find: "  return '#'+me+'#'+n+'/'+all;", repl: "  return '#'+me;" },
   { id: 'v214-rv1-d-rcn-lost-words', area: "rcnBody", what: "typing in a row with no key that the load changed is said to be in a row no longer on the list, while the row is still there",
     // v2.14 RV1-D (check): retargeted to the line that now carries the same words' choice
     find: "const asWas=lost.some(function(x){", repl: "const asWas=false&&lost.some(function(x){" },
@@ -10641,9 +10643,11 @@ const MUTATIONS = [
   { id: 'v214-rv1-d-door-mends-any-plan', area: "inShapeWhy", what: "a full import takes a board whose locked cycle holds a damaged list of added requirements, which nothing mends: viewing that cycle then throws",
     find: "_inRcnOwn==='board' && /^the saved state(\\.appns\\.[^.]+)?(\\.years\\.[^.]+)?$/.test(path)\n        && customMendable(o.custom[i]))", repl: "_inRcnOwn==='board' && customMendable(o.custom[i]))" },
   { id: 'v214-rv1-d-other-appn-unread', area: "itemsOf", what: "from another appropriation, Spruills, the PMO drill and the chart of accounts throw on a list of added requirements an older ORBIT damaged",
-    find: "add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });", repl: "add=(st&&st.custom)||[];" },
+    // v2.14 RV2-D: retargeted in place (itemsOf also leaves out a repeated id)
+    find: "add=((st&&st.custom)||[]).filter(function(x){ if(customMendable(x) || once[x.id]) return false; once[x.id]=1; return true; });", repl: "add=(st&&st.custom)||[];" },
   { id: 'v214-rv1-d-other-appn-counts-aside', area: "itemsOf", what: "from another appropriation, an element with no requirement id is counted as a requirement: Spruills adds its $300",
-    find: "add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });", repl: "add=((st&&st.custom)||[]).filter(function(x){ return x!==null; });" },
+    // v2.14 RV2-D: retargeted in place (itemsOf also leaves out a repeated id)
+    find: "add=((st&&st.custom)||[]).filter(function(x){ if(customMendable(x) || once[x.id]) return false; once[x.id]=1; return true; });", repl: "add=((st&&st.custom)||[]).filter(function(x){ return x!==null; });" },
   { id: 'v214-rv1-d-import-unmended', area: "fullImportText", what: "a full import takes a damaged list of added requirements as it is, and its question does not say so",
     find: "    if(st.years && typeof st.years==='object') Object.keys(st.years).forEach(function(y){ const r=customMend(st.years[y], y, true); if(r) L.push(r); });", repl: "    if(false){}" },
   { id: 'v214-rv1-d-restore-keeps-folder-copy', area: "driveRestore", what: "just watching, Put this back keeps the folder's own copy aside as “saved only in the board file”, and with the slot taken refuses the earlier copy",
@@ -10676,6 +10680,31 @@ const MUTATIONS = [
   // ---- RV2-C (round 2, second half: C) ----
   // ---- end RV2-C ----
   // ---- RV2-D (round 2, second half: D) ----
+  // v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row)
+  { id: 'v214-rv2-d-rcn-twin-total', area: "rcnRowSig", what: "a load that renames one of two identical RCN / EEIC rows moves the typing onto the other, and leaving saves it on the row nothing reads",
+    find: "  return '#'+me+'#'+n+'/'+all;", repl: "  return '#'+me+'#'+n;" },
+  { id: 'v214-rv2-d-rcn-twin-words', area: "rcnBody", what: "typing lost from one of two identical rows is said to be in a row with no key that changed, though the row is there as it was",
+    find: "const asTwin=lost.some(function(x){ return rcnSigTwin(x.rs) || rcnSigTwin(x.rk); });", repl: "const asTwin=false;" },
+  // v2.14 RV2-D (spruills-other-appn-base-requirements-zero, spruills-checks-cannot-reach-a-real-board)
+  { id: 'v214-rv2-d-spdefs-other-pack', area: "spDefs", what: "Spruills reads another appropriation's requirements as $0 on a program file: Full Fund shows a surplus, the PMO drill $0 and the chart of accounts none of its requirements",
+    find: "data:_hasData(APPNS[a])? APPNS[a] : ((st && _hasPack(st))? st.dataPack : APPNS[a])", repl: "data:APPNS[a]" },
+  { id: 'v214-rv2-d-spdefs-own-doubled', area: "spDefs", what: "the chart of accounts lists every added requirement of the appropriation on screen twice, and counts its dollars twice",
+    find: "Object.assign({}, DATA, {items:BASE_ITEMS})", repl: "DATA" },
+  // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out)
+  { id: 'v214-rv2-d-byband-ghost', area: "exportCSV", what: "the Priority Drill's count by band across every appropriation counts an id an older ORBIT's Put back left in another appropriation's order: O&M 5 beside a year holding 4",
+    find: "yr.order.forEach(id=>{ if(onList && !onList.has(id)) return; const bid", repl: "yr.order.forEach(id=>{ const bid" },
+  // v2.14 RV2-D (also noticed: an added requirement listed twice)
+  { id: 'v214-rv2-d-mend-keeps-twice', area: "customMend", what: "an added requirement an older ORBIT left twice in the list stays twice: the chart of accounts lists it twice and counts its dollars twice",
+    find: "if(!customMendable(x)){ if(!seen[x.id]){ seen[x.id]=1; return true; } twice++; aside.push({i:i, v:x}); return false; }", repl: "if(!customMendable(x)) return true;" },
+  { id: 'v214-rv2-d-itemsof-twice', area: "itemsOf", what: "from another appropriation, an added requirement listed twice is counted twice: Spruills adds its $300 twice",
+    find: "if(customMendable(x) || once[x.id]) return false;", repl: "if(customMendable(x)) return false;" },
+  { id: 'v214-rv2-d-mend-twice-unsaid', area: "customMendWords", what: "the repeat of an added requirement is set aside without a word, on opening and in the full import's question",
+    find: "        r.twice? pl(r.twice,", repl: "        false? pl(r.twice," },
+  // v2.14 RV2-D (also noticed: said only at the end of opening; roll forward copied what a mend set aside)
+  { id: 'v214-rv2-d-mend-later-unsaid', area: "applyStore", what: "a list of added requirements mended by a load once the board is open is mended without a word",
+    find: "if(ACE_BOOTED && _customMended.length>m0){", repl: "if(false && ACE_BOOTED && _customMended.length>m0){" },
+  { id: 'v214-rv2-d-roll-copies-aside', area: "switchYear", what: "Roll forward copies what a mend set aside into the new year, which then holds entries it never had",
+    find: "delete seed.customAside;", repl: "void 0;" },
   // ---- end RV2-D ----
   // ==== end v2.14 review round 2 fixes ====
 

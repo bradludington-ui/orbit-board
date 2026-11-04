@@ -4152,8 +4152,11 @@ const itemById = id => DATA.items.find(x=>x.id===id);
 // accounts threw on it from any other appropriation ("Cannot read properties of null (reading 'id')"), and every later redraw with
 // Spruills open threw with them. Read here, such an entry is left out and counts nowhere, as the mend sets it aside; that
 // appropriation's own board mends it, and says so, when it opens.
+// v2.14 RV2-D (an added requirement listed twice): and a second entry for an id already on the list is left out, as the mend sets
+// it aside -- read raw from another appropriation's store, a list an older ORBIT left with NEW-3 twice counted its $300 twice.
 function itemsOf(base, st){
-  const rm=(st&&st.removed)||[], add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });
+  const rm=(st&&st.removed)||[], once=Object.create(null);
+  const add=((st&&st.custom)||[]).filter(function(x){ if(customMendable(x) || once[x.id]) return false; once[x.id]=1; return true; });
   return (base||[]).filter(function(i){ return rm.indexOf(i.id)<0; }).concat(add);
 }
 
@@ -6186,8 +6189,13 @@ function rcnBody(){
   // list" either: it is there, and could not be told apart, so it is said in the same words
   const RL=lost.length? rcnReg() : [];
   const asWas=lost.some(function(x){ const k=String(x.rk||''); return /^#/.test(k) || RL.some(function(e){ return !!e && e.k===k; }); });
+  // v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): a row with a twin exactly like it is not said to have changed, or to have no
+  // key: the load changed one of the two (or added or removed one), and which of them the typing was in can no longer be told
+  const asTwin=lost.some(function(x){ return rcnSigTwin(x.rs) || rcnSigTwin(x.rk); });
   if(lost.length && rcnOpen) setStat('\u26a0 What you were typing in the RCN / EEIC list ('+lost.map(function(x){ return '\u201c'+esc(x.v)+'\u201d'; }).join(', ')
-    +') was not kept: '+(asWas
+    +') was not kept: '+(asTwin
+      ? 'the row it was in was exactly like another row on the list, and once the list was loaded the two could not be told apart'
+      : asWas
       ? 'the row it was in has no key of its own, and the list as loaded no longer holds that row as it was' : 'the row it was in is no longer on the list')
     +'. Nothing was changed.');
 }
@@ -6203,13 +6211,22 @@ function rcnBody(){
 // repeat's own code (33333) without a word. A row is held by its key only where no other row on the list carries it. Every row also
 // carries what it holds (data-rs), and a held field is found again by either (inspHeldSame): a row whose key stops being, or becomes,
 // shared by the load keeps the typing so long as the row itself is as it was.
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): AND HOW MANY ROWS HOLD EXACTLY THE SAME, IN ALL. The count of identical rows
+// before this one tells two twins apart only while no twin changes, comes or goes: a load that renamed the upper of two identical
+// rows left the lower one with no twin above it, so it drew with the very signature held for the upper one -- the typing (99999) and
+// the keyboard moved to the lower row, the "repeats row 1" row nothing reads, and leaving the field saved it there while the row
+// requirement A reads kept 11111, without a word; typing in the lower one was dropped with words that said the row had changed when
+// it had not. With the total carried too, a load that changes, adds or removes any twin matches no row: the typing is put on no row,
+// and the board says it could not be told from a row identical to it (rcnBody).
 function rcnRowSig(L, i){
   const sig=function(e){ e=e||{}; return JSON.stringify([e.k===undefined? null : e.k, e.rcn===undefined? null : e.rcn, e.eeic===undefined? null : e.eeic,
     e.t===undefined? null : e.t, Array.isArray(e.svc)? e.svc : null]); };
-  const me=sig(L[i]); let n=0;
-  for(let j=0;j<i;j++) if(sig(L[j])===me) n++;
-  return '#'+me+'#'+n;
+  const me=sig(L[i]); let n=0, all=0;
+  for(let j=0;j<L.length;j++) if(sig(L[j])===me){ all++; if(j<i) n++; }
+  return '#'+me+'#'+n+'/'+all;
 }
+// a held row's signature that named a row with identical twins (rcnRowSig's total above one)
+function rcnSigTwin(rs){ const m=/#(\d+)\/(\d+)$/.exec(String(rs||'')); return !!m && +m[2]>1; }
 function rcnDraw(el){
   const bg=document.getElementById('rcnPanel');
   if(!bg||!el) return;
@@ -6726,17 +6743,23 @@ function bmOwnOf(Y, n){
 // no ORBIT could lock a cycle holding such a list (its lock threw on it). The import doors still refuse such a file (v1.95 R09:
 // refuse at the doors, mend on opening).
 function customMendable(x){ return !(x && typeof x==='object' && !Array.isArray(x) && typeof x.id==='string' && x.id); }
+// v2.14 RV2-D (also noticed: an added requirement listed twice): AND A SECOND ENTRY FOR AN ID ALREADY ON THE LIST IS SET ASIDE TOO.
+// v2.13's Put back by place could leave one added requirement in the list twice (put back the delete of NEW-3, remove NEW-1, put the
+// same delete back again): DATA.items then held NEW-3 twice, and the chart of accounts listed it twice and counted its $300 twice
+// ("Where we stand" read 7 requirements and $2,800 where the year holds 3 and $1,700). The first is the one every setter and reader
+// finds by its id (the one the board has shown and edited), so it stays; the repeat is set aside, as it was found, like an entry
+// with no id, and said. Keyed with no prototype: an id is a value from a file.
 function customMend(T, fy, quiet){
   if(!T || typeof T!=='object' || !Array.isArray(T.custom)) return null;
-  let dropped=0; const aside=[];
+  let dropped=0, twice=0; const aside=[], seen=Object.create(null);
   const ok=T.custom.filter(function(x, i){
-    if(!customMendable(x)) return true;
+    if(!customMendable(x)){ if(!seen[x.id]){ seen[x.id]=1; return true; } twice++; aside.push({i:i, v:x}); return false; }
     if(x===null || x===undefined) dropped++; else aside.push({i:i, v:x});
     return false; });
   if(!dropped && !aside.length) return null;
   T.custom=ok;
   if(aside.length){ if(!Array.isArray(T.customAside)) T.customAside=[]; aside.forEach(function(a){ T.customAside.push(a); }); }
-  const r={fy:+fy||0, dropped:dropped, aside:aside.length};
+  const r={fy:+fy||0, dropped:dropped, aside:aside.length-twice, twice:twice};
   if(!quiet) try{ _customMended.push(r); }catch(e){}
   return r;
 }
@@ -6745,12 +6768,16 @@ function customMendWords(L){
   const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
   return L.map(function(r){
       return (r.fy? 'FY'+(r.fy%100)+': ' : '')+[r.dropped? pl(r.dropped, 'empty entry', 'empty entries')+' taken out' : '',
-        r.aside? pl(r.aside, 'entry with no requirement id', 'entries with no requirement id')+' set aside in the file, where nothing counts it' : '']
+        r.aside? pl(r.aside, 'entry with no requirement id', 'entries with no requirement id')+' set aside in the file, where nothing counts it' : '',
+        // v2.14 RV2-D (an added requirement listed twice)
+        r.twice? pl(r.twice, 'second entry', 'second entries')+' for a requirement already on the list set aside in the file, where nothing counts it' : '']
         .filter(Boolean).join(', '); }).join('; ');
 }
-function customMendSay(){
-  const L=_customMended; if(!L.length) return '';
-  return '\ud83d\udd27 <b>The list of added requirements was mended on opening</b> \u2014 '+customMendWords(L)
+// v2.14 RV2-D (also noticed: said only at the end of opening): what a later load mended is said as it lands (applyStore), in the
+// same words, as loaded rather than on opening
+function customMendSay(L, loaded){
+  L=L||_customMended; if(!L.length) return '';
+  return '\ud83d\udd27 <b>The list of added requirements was mended '+(loaded? 'as it was loaded' : 'on opening')+'</b> \u2014 '+customMendWords(L)
     +'. An ORBIT older than v2.14 left them there when it put back a change to an added requirement that was gone. Every requirement '
     +'on the board is as it was saved; \ud83d\udcbe Save keeps the mended list.';
 }
@@ -7200,7 +7227,13 @@ function applyStore(raw){
   try{ _jrnlOff++; }catch(e){}
   MS = normalizeStore(JSON.parse(JSON.stringify(raw||{})));
   // v2.14 RV1-D (oldfiles, also noticed): every year's list of added requirements is mended before anything reads it (customMend)
+  // v2.14 RV2-D (also noticed: said only at the end of opening): a store mended by a later load -- work kept aside put back after the
+  // boot opened a newer file over damaged storage, another tab's write from an older ORBIT, a folder copy -- was mended without a word,
+  // and what it set aside was never named. Once the board is open (ACE_BOOTED, as aceHealSay) it is said as it lands, kept unread;
+  // while opening, the end of the boot says it once, after the line the opening chose.
+  let m0=0; try{ m0=_customMended.length; }catch(e){}
   try{ Object.keys(MS.years||{}).forEach(function(y){ customMend(MS.years[y], y); }); }catch(e){}
+  try{ if(ACE_BOOTED && _customMended.length>m0){ _statQuiet=false; statKeep(customMendSay(_customMended.splice(m0), true)); } }catch(e){}
   // v2.09 (item 127): THE BOARD HOLDS NO OFFICE'S MARK. pmoFor says which office a PMO copy's work was saved for; a board that
   // kept one (a copy's state taken by a way no door watches) would bake it into every copy it published, and the copy every
   // office opens would read as one office's own file -- adopted by everyone, and saved over by that office.
@@ -7261,6 +7294,10 @@ function switchYear(y){
     } else if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
       seed=JSON.parse(JSON.stringify(S));
       delete seed.ts;
+      // v2.14 RV2-D (also noticed: roll forward copied what a mend set aside): what an older ORBIT's damaged list held and the mend set
+      // aside is that year's record of the file as it was found (customMend), never a part of the plan: copied, the new year held a
+      // second copy of entries it never had, and the next mend's words would have named them in a year they were never in
+      delete seed.customAside;
       shiftAwardYears(seed, y-MS.cur);
     } else seed=freshYearState();
     MS.years[y]=seed;
@@ -27565,13 +27602,23 @@ function spDefs(){
       // and a DELTA of the entire budget as surplus, on a board holding $1.4B of asks. Fall back
       // to the board itself when the consolidated slot is empty — pkgPackOf already does exactly
       // this, for exactly this reason.
-      if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : DATA, ms:MS,
+      // v2.14 RV2-D (also found writing spruills-other-appn-base-requirements-zero): THE BOARD'S OWN MASTER LIST, NOT DATA.items.
+      // DATA.items is the year on screen's list, its added requirements already in it (applyState: itemsOf(BASE_ITEMS, S)), and the
+      // chart of accounts reads a def's items through itemsOf() with that year's added requirements on top: every added requirement
+      // of the appropriation on screen was listed twice on a board with no consolidated payload (Where we stand read 5 requirements
+      // and $2,200 for a year holding 3 and $1,700). The master list is what every other def carries; the rest of DATA rides along.
+      if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : Object.assign({}, DATA, {items:BASE_ITEMS}), ms:MS,
                                ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
       let st=null;
       try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}
       st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
-      defs.push({name:a, data:APPNS[a], ms: st&&st.years? st : null, ppbe:(st&&st.ppbe)||{},
+      // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): AND ANOTHER APPROPRIATION'S FROM ITS OWN PLAN'S DATA PACK where the
+      // program carries no consolidated payload -- every program file since the generator was retired, and every board a full import
+      // writes, which moves a consolidated file's packs into the plans. Taken from APPNS alone, Full Fund read Total Requirements
+      // $0.00M and a Delta of +$87.60M (a surplus) on a board whose plan holds $209,844,000 of asks; the PMO drill gave PSM $0 there,
+      // and the chart of accounts listed none of its requirements. pkgPackOf reads the same pack, for the same reason.
+      defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : ((st && _hasPack(st))? st.dataPack : APPNS[a]), ms: st&&st.years? st : null, ppbe:(st&&st.ppbe)||{},
                  slug:APPN_SLUG[a]});
     });
   } else { own.ppbe=MS.ppbe||{}; defs.push(own); }
@@ -38245,8 +38292,16 @@ function exportCSV(){
       const yr=st&&st.years? st.years[st.cur||MS.cur] : null;
       if(!yr||!Array.isArray(yr.order)) return;
       const bandsOf=(st.bands&&st.bands.length)? st.bands : L;
+      // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out): ONLY AN ID ON THAT YEAR'S LIST IS A REQUIREMENT. An older ORBIT's
+      // Put back of an add left the add's id in the order with nothing on the list behind it (the null the mend takes out), and the
+      // order is read raw here from another appropriation's store: O&M counted 5 unbanded requirements beside an O&M that holds 4.
+      // That year's list is its master list (the consolidated payload, else its plan's own data pack, else this board's own) less
+      // what it removed, plus its added requirements (itemsOf); where no master list is known the order is counted as it stands.
+      const apk=(typeof APPNS!=='undefined' && APPNS)? APPNS[APPN_LBL[k]] : null;
+      const base=_hasData(apk)? (apk.items||[]) : _hasPack(st)? (st.dataPack.items||[]) : (k===mySlug()? BASE_ITEMS : null);
+      const onList=base? new Set(itemsOf(base, yr).map(i=>i&&i.id)) : null;
       const cnt={};
-      yr.order.forEach(id=>{ const bid=(yr.band||{})[id];
+      yr.order.forEach(id=>{ if(onList && !onList.has(id)) return; const bid=(yr.band||{})[id];
         const bi=bandsOf.findIndex(x=>x.id===bid);
         const key=(bi<0? 'unbanded' : 'Band '+bi);
         cnt[key]=(cnt[key]||0)+1; });
