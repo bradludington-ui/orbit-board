@@ -2401,7 +2401,7 @@ const v185Board = (html, appn, sc, trim, trim28, lock, after) => {
   const B = boot({ html, appn }); seed(B.ev, sc); asBooted(B.ev, sc);
   B.ev(`(function(){ applyState(S); Object.assign(S.alloc, ${JSON.stringify(trim)}); MS.years[MS.cur]=S; MS.cycle='BES|2028';
     const y2=JSON.parse(JSON.stringify(S)); y2.alloc=Object.assign({}, y2.alloc, ${JSON.stringify(trim28)}); MS.years[MS.cur+1]=y2;
-    save(); ${lock ? "blCyc='PB'; blYr=MS.cur; cycLock();" : ''}
+    save(); ${lock ? "blCyc='PB'; blYr=MS.cur; " + w1LockAsBefore() : ''}   /* v2.15 W1 (item 139): a lock as v2.14 took it */
     Object.assign(S.alloc, ${JSON.stringify(after)}); save(); return 'ok'; })()`);
   return B;
 };
@@ -2709,7 +2709,7 @@ const v186Legacy = (html, appn, sc, list, d27, d28, lock, after27) => {
   B.ev(`(function(){ _destReady=false; applyState(S); MS.years[MS.cur]=S;
     MS.flow={ents:${JSON.stringify(list)}}; S.dest=${JSON.stringify(d27)};
     const y2=JSON.parse(JSON.stringify(S)); y2.dest=${JSON.stringify(d28)}; MS.years[MS.cur+1]=y2;
-    MS.cycle='BES|2028'; save(); ${lock ? "blCyc='PB'; blYr=MS.cur; cycLock();" : ''}
+    MS.cycle='BES|2028'; save(); ${lock ? "blCyc='PB'; blYr=MS.cur; " + w1LockAsBefore() : ''}   /* v2.15 W1 (item 139): a lock as v2.14 took it */
     Object.assign(S.dest, ${JSON.stringify(after27 || {})}); save(); return 'ok'; })()`);
   return B;
 };
@@ -3339,7 +3339,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // and prints exactly what the whole board prints for Full Fund, opened on it in the same browser
   const FF = boot({ ls: v14Ls(B.ev), html: O.ev('buildSavedHtml()'), appn: 'FULL FUND' });
   chk(name, 'open', 'every figure is the one the whole board prints for Full Fund', v14Figures(W.ev), v14Figures(FF.ev));
-  W.ev(`S.titles.F='Renamed by the Full Fund lead'; save(); blCyc='BES'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+  W.ev(`S.titles.F='Renamed by the Full Fund lead'; save(); blCyc='BES'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); 'ok'`);
   // the lead also imports a newer CCaR pull for Full Fund: the file's execution data is newer than the
   // board's, so taking it back must merge it -- Full Fund's replaced, every other appropriation's kept
   W.ev(`EXDB.all.ff={fy:2026, rows:[['JSF7000', 55555]]}; EXDB.ts=Date.now()+5000; persistExdb(); save(); 'ok'`);
@@ -8304,7 +8304,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const X = make();
   X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om'];
     S.dest={R1:{to:'U40-A',end:'U40-B'}, R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-    persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
   const html = X.ev('buildSavedHtml()');
   const PUBRE = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/;
   const SHEETS = J({ 'Alpha Depot': ['Req R1 900'], 'ALPHA DEPOT 2': ['Req R2 300'] });
@@ -8593,7 +8593,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const ffFile = cyc => { const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
       Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; ${cyc ? 'MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));' : ''}
-        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; cycLock(); save();" : ''} return 'ok'; })()`);
+        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ " + w1LockAsBefore() + " save();" : ''} return 'ok'; })()`);
       return Fx.ev('buildSavedHtml()'); };
     const O = boot({ html: ffFile(false), appn: 'O&M', ls: { prio27destdb: J(db) } });
     chk(name, '(9) a key brought back for another appropriation’s plan', 'the destinations panel’s own Used by cell names Full Fund, and the list reset is refused naming it: [Used by cell, the reset’s first line, it names Bravo Depot — Full Fund (2), still on the list]',
@@ -8618,7 +8618,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
     Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-G', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
       S.dest={R2:{to:'U40-G',end:'U40-G'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
     const hom = Fo.ev('buildSavedHtml()');
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
     Ff.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
@@ -8640,7 +8640,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
     Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
       S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
     const hom = Fo.ev('buildSavedHtml()');
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
     Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
@@ -8732,7 +8732,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const om = function(list){ const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(list)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
       return Fo.ev('buildSavedHtml()'); };
     const hom = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }]), hom2 = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-E', n: 'Echo Yard', kind: 'gov', t: '' }]);
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
@@ -8767,7 +8767,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
       [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
       var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
@@ -8804,7 +8804,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = n => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-Z', n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     // both files made first: the reader's list, kept at the first opening, stays the newer (it changed after the owner's rename)
     const h1 = file('Alpha Depot'), h2 = file('Zulu Yard');
@@ -8827,7 +8827,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
       [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
       var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
@@ -8858,7 +8858,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
     const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -8897,7 +8897,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
@@ -8923,7 +8923,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
     const g1 = file([E('U40-Y', 'New destination'), E('U40-K', 'Kilo Depot')]), g2 = file([E('U40-Y', 'Kilo Depot'), E('U40-K', 'Alpha Depot')]);
     const G1 = boot({ html: g1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -8947,7 +8947,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-P', 'Kilo Depot'), E('U40-Q', 'KILO DEPOT'), E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
     const q1 = file('U40-K', 'Kilo Depot'), q2 = file('U40-K', 'Alpha Depot');
     const Q1 = boot({ html: q1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -19929,6 +19929,143 @@ await (async () => {
 // ==== end v2.14 review round 2 fixes ====
 
 // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+// Brad, 2 Nov 2026 -- v2.13's question 1: "1a. Only import the cycle being identified." (item 138). Every check but those labelled
+// CONTROL fails on the slot commit (8c24ea2). The board: O&M on screen on BES28, deltas read against PB27, logging BES28 (USAF $900) and PB27
+// ($700) positions; Full Fund in this browser on BES28, deltas against PB27, logging BES28 ($800) and POM28 ($111). What comes in: a Full
+// Fund (or O&M) plan MADE UNDER PB27, deltas against POM27, logging PB27 ($222), POM28 ($333 -- not the board's $111) and BES28 ($444),
+// with a note of its own. So the tag, the reference and every position disagree between the two sides, and a take that kept the
+// package's tag, took every position, took none, or took the wrong cycle's reads differently on every one. Each figure is the USAF
+// discretionary of FY27 in that position, read straight off the stored plan.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W1 — an incoming plan comes in under the receiving board’s PPBE cycle, with only that cycle’s position (item 138)';
+  try {
+    const J = JSON.stringify;
+    const T1 = 1790100000000;
+    const pos = d => ({ v: 2, split: true, lines: {}, val: { USAF: { _all: { 2027: { d, m: 0 } } } } });
+    const year = note => ({ order: [], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [], notes: note ? { Q: note } : {} });
+    const ffHere = { svc: ['USAF', 'ANG'], ts: T1, base: 2027, cur: 2027, cycle: 'BES|2028', cycleRef: 'PB|2027', by: 'F Lead',
+      ppbe: { 'BES|2028': pos(800), 'POM|2028': pos(111) }, years: { 2027: year('FF HERE') } };
+    const made = (ts) => ({ svc: ['USAF', 'ANG'], ts, base: 2027, cur: 2027, cycle: 'PB|2027', cycleRef: 'POM|2027', by: 'Manager',
+      ppbe: { 'PB|2027': pos(222), 'POM|2028': pos(333), 'BES|2028': pos(444) }, years: { 2027: year('FROM THE PACKAGE') } });
+    const sentence = 'Made under PB27, taken under BES28. Its PB27 and POM28 positions were not taken; its BES28 position was taken. '
+      + 'Its deltas reference (POM27) was not taken: deltas stay read against PB27.';
+    const board = (ls, tag = 'BES|2028', seedIt = true) => {
+      const X = boot({ ls });
+      if (seedIt) {
+        seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [100, 50]), it('B', 'AV', [80, 40])], disc: [150, 60], mand: [20, 10], order: ['A', 'B'] });
+        X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); MS.svc=SVC.slice();
+          MS.cycle=${J(tag)}; MS.cycleRef='PB|2027'; MS.ppbe={'BES|2028':${J(pos(900))}, 'PB|2027':${J(pos(700))}}; save(); render(); 'ok'`);
+      }
+      X.ev(`window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(m){ window.__q.push('ALERT '+m); }; 'ok'`);
+      X.q = () => JSON.parse(X.ev('JSON.stringify(window.__q)'));
+      X.stat = () => X.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      X.ls = k => JSON.parse(X.ev(`localStorage.getItem(${J(k)})`) || 'null');
+      return X;
+    };
+    // what a stored plan says about its cycle: [tag, reference, {position: USAF FY27 discretionary}, its note]
+    const read = st => !st ? 'none' : J([st.cycle || '', st.cycleRef || '', Object.fromEntries(Object.keys(st.ppbe || {}).sort().map(k => [k, ((((st.ppbe[k] || {}).val || {}).USAF || {})._all || {})[2027].d])),
+      (((st.years || {})[2027] || {}).notes || {}).Q || '']);
+    const WANT_FF = J(['BES|2028', 'PB|2027', { 'BES|2028': 444, 'POM|2028': 111 }, 'FROM THE PACKAGE']);
+    const LS1 = { prio27ff: J(ffHere) };
+    // ---------------------------------------------------------------- door 1: a package (pkgApply)
+    const P = board(LS1);
+    chk(name, 'the fixture', 'CONTROL: the bar reads BES28, and Full Fund is on BES28 with BES28 and POM28 positions',
+      J([P.ev(`document.getElementById('b_cyc').textContent`), read(P.ls('prio27ff'))]), J(['BES28 ▾', J(['BES|2028', 'PB|2027', { 'BES|2028': 800, 'POM|2028': 111 }, 'FF HERE'])]));
+    P.ev(`pkgApply({spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:${T1 + 5000}, ms:${J(made(T1 + 5000))}}, 'ff-pkg.json'); 'ok'`);
+    chk(name, 'a package', 'Full Fund keeps BES28 and its reference; only BES28’s position is taken, its POM28 stays; the rest of the plan comes in',
+      read(P.ls('prio27ff')), WANT_FF);
+    chk(name, 'a package', 'and this page’s copy, which 💾 Save writes, says the same', read(JSON.parse(P.ev('JSON.stringify(PUBS.ff)'))), WANT_FF);
+    const pq = P.q().filter(x => /^Load the issued Full Fund package/.test(x))[0] || '';
+    chk(name, 'a package', 'the preview says it, and previews no change of cycle', J([pq.indexOf('PPBE cycle: ' + sentence) >= 0, /PPBE cycle — /.test(pq)]), J([true, false]));
+    chk(name, 'a package', 'the result says it', P.stat().indexOf(sentence) >= 0, true);
+    // save and reopen: the file carries Full Fund as taken
+    { const R = boot({ html: P.ev('buildSavedHtml()') });
+      chk(name, 'save and reopen', 'the saved file opens with Full Fund as taken', read(JSON.parse(R.ev('JSON.stringify(PUBS.ff)'))), WANT_FF); }
+    // the board on screen, O&M: the same rule, read from MS
+    P.ev(`window.__q=[]; pkgApply({spmtPkg:PKG_VER, ap:'om', dir:'issue', seq:1, by:'Manager', ts:Date.now()+1000, ms:${J(made(T1 + 6000))}}, 'om-pkg.json'); 'ok'`);
+    const omNow = J([P.ev('MS.cycle'), P.ev('MS.cycleRef'), JSON.parse(P.ev(`JSON.stringify(Object.fromEntries(Object.keys(MS.ppbe||{}).sort().map(function(k){ return [k, MS.ppbe[k].val.USAF._all[2027].d]; })))`)), P.ev(`String((S.notes||{}).Q||'')`)]);
+    chk(name, 'the board on screen', 'O&M keeps BES28 and its reference, takes BES28’s position, keeps its own PB27, and takes the plan',
+      omNow, J(['BES|2028', 'PB|2027', { 'BES|2028': 444, 'PB|2027': 700 }, 'FROM THE PACKAGE']));
+    { const R = boot({ html: P.ev('buildSavedHtml()') });
+      chk(name, 'save and reopen', 'saved and opened again, O&M is as taken', J([R.ev('MS.cycle'), R.ev(`String(MS.ppbe['BES|2028'].val.USAF._all[2027].d)+'/'+String(MS.ppbe['PB|2027'].val.USAF._all[2027].d)`)]), J(['BES|2028', '444/700'])); }
+    // ---------------------------------------------------------------- door 2: one appropriation from a consolidated file (consTakeApply)
+    { const C = board(LS1);
+      C.ev(`consTakeApply(${J({ appns: { ff: made(T1 + 5000) } })}, '', 'consolidated.html', ['ff'], false); 'ok'`);
+      const cq = C.q().filter(x => /^Take Full Fund from/.test(x))[0] || '';
+      chk(name, 'one appropriation from a consolidated file', 'Full Fund as the package rule says, and the preview and the result say it',
+        J([read(C.ls('prio27ff')), cq.indexOf('PPBE cycle: ' + sentence) >= 0, C.stat().indexOf('Full Fund: ' + sentence) >= 0]), J([WANT_FF, true, true])); }
+    // ---------------------------------------------------------------- door 3: several boards at once (importBoards)
+    { const I = board(LS1);
+      const html = I.ev('buildSavedHtml()').replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J({ appns: { ff: made(T1 + 5000) } }).replace(/</g, '\\u003c') + b);
+      I.ev(`document.getElementById('shareStat').textContent=''; importBoards({ files:[new File([${J(html)}], 'ff-board.html')], value:'x' }); 'ok'`);
+      await W1H.until(() => /Imported|Nothing was imported/.test(I.stat()));
+      chk(name, 'several boards at once', 'Full Fund as the package rule says, and the result says it', J([read(I.ls('prio27ff')), I.stat().indexOf('Full Fund: ' + sentence) >= 0]), J([WANT_FF, true])); }
+    // ---------------------------------------------------------------- an untagged appropriation, a Mixed board, a board holding nothing
+    { const U = board(LS1);
+      U.ev(`pkgApply({spmtPkg:PKG_VER, ap:'sp', dir:'issue', seq:1, by:'Manager', ts:Date.now()+1000, ms:${J(made(T1 + 5000))}}, 'sp-pkg.json'); 'ok'`);
+      chk(name, 'untagged, the bar on BES28', 'Initial Spares, holding no plan, takes the cycle the bar shows and only its position',
+        J([read(U.ls('prio27sp')), /Made under PB27, taken under BES28 \(the cycle the board is on\)\. Its PB27 and POM28 positions were not taken; its BES28 position was taken\./.test(U.stat())]),
+        J([J(['BES|2028', '', { 'BES|2028': 444 }, 'FROM THE PACKAGE']), true])); }
+    { const M = board({ prio27ff: J(Object.assign({}, ffHere, { cycle: 'PB|2027' })) });
+      chk(name, 'Mixed', 'CONTROL: O&M on BES28 and Full Fund on PB27, so the bar reads Mixed', M.ev(`document.getElementById('b_cyc').textContent`), '⚠ Mixed ▾');
+      M.ev(`pkgApply({spmtPkg:PKG_VER, ap:'sp', dir:'issue', seq:1, by:'Manager', ts:Date.now()+1000, ms:${J(made(T1 + 5000))}}, 'sp-pkg.json'); 'ok'`);
+      chk(name, 'Mixed', 'with no tag and no one cycle, it stays untagged and takes no position, and says so',
+        J([read(M.ls('prio27sp')), /Made under PB27, taken untagged\. Its BES28, PB27 and POM28 positions were not taken\./.test(M.stat())]), J([J(['', '', {}, 'FROM THE PACKAGE']), true])); }
+    { const N = board({}, '', false);
+      N.ev(`pkgApply({spmtPkg:PKG_VER, ap:'sp', dir:'issue', seq:1, by:'Manager', ts:Date.now()+1000, ms:${J(made(T1 + 5000))}}, 'sp-pkg.json'); 'ok'`);
+      chk(name, 'a board holding nothing', 'CONTROL: it still takes everything, cycle and positions included, and says nothing of the cycle',
+        J([read(N.ls('prio27sp')), /Made under/.test(N.stat())]), J([J(['PB|2027', 'POM|2027', { 'BES|2028': 444, 'PB|2027': 222, 'POM|2028': 333 }, 'FROM THE PACKAGE']), false])); }
+    // ---------------------------------------------------------------- a package made under the board's own cycle
+    { const S2 = board(LS1);
+      const same = Object.assign(made(T1 + 5000), { cycle: 'BES|2028', cycleRef: 'PB|2027', ppbe: { 'BES|2028': pos(555), 'POM|2028': pos(111) } });
+      S2.ev(`pkgApply({spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:${T1 + 5000}, ms:${J(same)}}, 'ff-pkg.json'); 'ok'`);
+      chk(name, 'made under the same cycle', 'CONTROL: taken as it was made, its position with it, and nothing said of the cycle',
+        J([read(S2.ls('prio27ff')), /Made under|not taken|deltas reference/.test(S2.stat())]), J([J(['BES|2028', 'PB|2027', { 'BES|2028': 555, 'POM|2028': 111 }, 'FROM THE PACKAGE']), false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// item 146: E2's own-appropriation line names the appropriation. A board file taken the merging way (E2: importState into a browser that
+// holds a cost estimate no file has) brings O&M's locked cycles; its line read "N locked PPBE cycles came across (…)" beside lines that
+// named theirs ("… for Full Fund came across").
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W1 — E2’s line for the board’s own locked cycles names the appropriation (item 146)';
+  try {
+    const J = W14J;
+    const { NEW } = w2Fx(); const P = W1H.pubOf(NEW.html);
+    const n = Object.keys(((((P.cycDb || {}).byAp || {}).om) || {}).cycles || {}).length;
+    chk(name, 'setup', 'CONTROL: the file carries O&M’s locked cycles', n > 0, true);
+    const T = boot({ ls: { prio27acedb: J({ ts: 1700000000000, sets: { 'ACE-HELD-HERE': { fp: 'fp-held', lines: [{ n: 'held' }] } } }) } }); await w14pause(5);
+    T.ev(`(function(){ window.alert=function(){}; window.confirm=function(){ return true; };
+      importState({ files:[new File([${J(NEW.html)}], 'new-board.html')], value:'x' }); return 'ok'; })()`);
+    await W1H.until(() => /locked PPBE cycle/.test(W1H.status(T.ev)), 3000);
+    const st = W1H.status(T.ev);
+    chk(name, 'the line', 'it reads “O&M: N locked PPBE cycles came across (…)”', new RegExp('O&M: ' + n + ' locked PPBE cycles? came across \\(').test(st), true);
+    chk(name, 'the line', 'CONTROL: Full Fund’s line still names Full Fund', /locked PPBE cycles? for Full Fund came across/.test(st), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.15 W1 (item 139): LOCK AS A BUILD BEFORE v2.15 LOCKED. Lock now refuses a plan tagged with another cycle (it would keep that cycle's
+// controls under the lock's name). Older fixtures here lock a cycle on a plan tagged with another -- a lock a file still carries -- so this
+// takes it the way v2.14 did: under the lock's key for the moment, with the position of the cycle the plan is on, then the tag put back
+// and the lock's record set as v2.14 wrote it (pos: the plan's tag and its position; from: the plan's tag). Where the plan is untagged or
+// on the lock's own cycle it is cycLock() itself. A function declaration, so every block above the slot can call it (it is hoisted).
+function w1LockAsBefore() {
+  return `(function(){ var K=blKey(blCyc, blYr||MS.cur), t0=(typeof MS.cycle==='string')? MS.cycle : '';
+    if(!t0 || t0===K){ cycLock(); return; }
+    MS.ppbe=MS.ppbe||{}; var P0=MS.ppbe[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined, c0=blGet(K);
+    if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K];
+    MS.cycle=K; cycLock(); MS.cycle=t0;
+    if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+    var c=blGet(K); baLiveAll(); if(c && c!==c0){ c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); save(); } })();`;
+}
 // ==== end v2.15 W1 ====
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
 // ==== end v2.15 W2 ====

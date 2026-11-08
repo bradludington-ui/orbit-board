@@ -105,7 +105,15 @@ if (hasCycles) {
 //     of the store rather than the live engine. Funded there must be the lane draw here.
 {
   const p = JSON.parse(ev(`JSON.stringify((function(){
-    MS.years[MS.cur]=S; blCyc='${cyc}'; blYr=${cycYr}; cycLock();
+    MS.years[MS.cur]=S;
+    // v2.15 W1 (item 139): Lock refuses a plan tagged with another cycle (it would keep that cycle's controls under this name). The
+    // lock taken here -- a scratch one on a real file (verify-file: POM|2999) -- is taken as the plan reads its budget now: under this
+    // key for the moment, with the position of the cycle the plan is on, so its projection is the engine's; then the tag goes back.
+    var t0=MS.cycle||'', K='${key}', had;
+    if(t0 && t0!==K){ MS.ppbe=MS.ppbe||{}; had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined;
+      if(MS.ppbe[t0]!==undefined) MS.ppbe[K]=MS.ppbe[t0]; else delete MS.ppbe[K]; MS.cycle=K; }
+    blCyc='${cyc}'; blYr=${cycYr}; cycLock();
+    if(t0 && t0!==K){ MS.cycle=t0; if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had; baLiveAll(); }
     var P=cycProj('${key}', MS.cur), o={ask:0,disc:0,mand:0,funded:0};
     var sum=function(a){ return (a||[]).reduce(function(x,y){ return x+y; },0); };
     P.reqs.forEach(function(r){ o.ask+=sum(r.ask); o.disc+=sum(r.d); o.mand+=sum(r.m); o.funded+=sum(r.fund); });
