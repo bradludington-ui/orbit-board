@@ -3171,7 +3171,10 @@ function impFileHolds(){ try{ const R=_impFile; return !!((R && (R.busy || R.was
 function impFileWasHeld(R){ return !!(R && R.was && R.was.fail && !R.was.got); }
 // v2.14 (item 141, C21): ANOTHER TAB WROTE THE NOTE: this page is held from now on, for its life -- the browser fires this in every
 // other page that shares the storage, never in the one that wrote it.
-try{ window.addEventListener('storage', function(ev){ try{ if(ev && ev.key===IMP_FILE_KEY && ev.newValue!==null){ const m=JSON.parse(ev.newValue); if(m && typeof m==='object' && Array.isArray(m.keys)) impHandLatch(m); } }catch(e){} }); }catch(e){}
+// v2.15 W2 (item 146): AND SAYS SO AT ONCE. Latched silently, the page said nothing until its next write was refused -- an edit typed
+// and only then told it would not be kept here.
+try{ window.addEventListener('storage', function(ev){ try{ if(ev && ev.key===IMP_FILE_KEY && ev.newValue!==null){ const m=JSON.parse(ev.newValue); if(m && typeof m==='object' && Array.isArray(m.keys)){
+  impHandLatch(m); if(!_impHandSaid){ _impHandSaid=true; statKeep(impHandMsg('')); } } } }catch(e){} }); }catch(e){}
 // v2.14 W3 (item 141 F): `o.quiet` -- a setting the file never carries (which appropriation opens next, the writer key, the
 // editor name, the Go to mark). Its refusal is counted in Save diagnostics like any other, and the caller says in its own words
 // what it means: lsSet's "Use 💾 Save to write it into the file" would be untrue of something no file holds.
@@ -7156,6 +7159,11 @@ let BA_SRC=Object.create(null), _fitCache=null, fitOpen=false;
 // v2.10 review (A-3): with the team on the shared folder, the other appropriations as the folder answers for them
 // (fdcFolderRead) -- read when the box opens, held while it is open; null until then
 let _fdcFold=null;
+// v2.15 W2 (item 131): the model the open box last drew (as JSON, footer aside) -- Export refuses one that differs from it -- and
+// whether another tab's write came while a figure was being typed, so the box is drawn again once that figure is in. Vars: the storage
+// listener reads them.
+var _fdcSig=null, _fdcStale=false;
+function fdcSigOf(M){ try{ return M? JSON.stringify(Object.assign({}, M, {footer:''})) : null; }catch(e){ return null; } }
 // The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
 // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
 // live here, in front of every caller, or the first guard throws in the temporal dead zone.
@@ -7863,6 +7871,11 @@ function setBaseYear(){
 var _pageBlank=false;
 let _bootRestoreErr='';        // set when the browser-storage restore threw; surfaced after boot
 let FYMON = fyMonths(BASE_FY_DEFAULT);
+// v2.15 W2 (item 146): A LADDER HELD FOR THIS APPROPRIATION WAITS FOR THE PLAN THE OPENING CHOOSES. It was taken into this empty board,
+// the first applyStore, and its key dropped; the plan from storage or the file went on screen after it, so the ladder copied from
+// another appropriation and "applied the first time you switch to it" never arrived (measured, RV1-C). Held until the opening has
+// finished (the end of the script), then taken into whatever opened, and saved.
+var _bandsHold=true;
 applyStore({base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:0, years:{[BASE_FY_DEFAULT]:firstYearState()}});
 let _bootOwn=false;            // this browser held its own copy of this board when it opened
 let _bootOwnRead=false;        // v2.09 second review: and that copy is what the board took up (applyStore did not refuse it)
@@ -7909,8 +7922,9 @@ let _bootFile=false;
 // only a record marked blank -- an import's records name no file either, and a landed import reopened in its board file must open
 // as the import (the attackers' stray-import) -- and never over a plan carrying a data pack DATA would take: DATA has already
 // taken storage's pack by now, so the file's plan over it would show one board's requirement list under another's plan.
-const _bootOwnPack=(function(){ try{ const ms=JSON.parse(localStorage.getItem(_AP.key)||'null'); return _hasData(ms&&ms.dataPack); }catch(e){ return true; } })();
-const _bootStray=_bootOwnRead && _bootBase.dirty===true && !(+_bootBase.file) && _bootBase.blank===true && !_bootOwnPack;
+// v2.15 W2 (item 146): the one stray rule (strayRule), as strayOther reads it for another appropriation: storage's plan as it stands,
+// the file's plan, this plan's record. Storage's copy that did not parse is no stray work (it was never on screen).
+const _bootStray=_bootOwnRead && strayRule((function(){ try{ return JSON.parse(localStorage.getItem(_AP.key)||'null'); }catch(e){ return null; } })(), PUB, _bootBase);
 if(PUB && (PUB.years||Array.isArray(PUB.order))){
   const fileTs=+(PUB.ts||0), ours=+(MS.ts||0);
   if(fileTs > ours || (_bootStray && fileTs < ours)){
@@ -8902,13 +8916,19 @@ function buildSavedHtml(opts){
 // own board would keep aside for the file's copy `fb`? The boot's own test (_bootStray), for another appropriation: its record says
 // blank work no saved file holds (dirty, no file, blank:true), its plan carries no data pack the board would take, and the file
 // holds a plan older than it. Anything unreadable is no stray work, and the newer copy is taken as before. Never throws.
-function strayOther(k, ls, fb){
+// v2.15 W2 (item 146, "one rule written twice"): THE STRAY RULE IS ONE FUNCTION, strayRule(ls, fb, b), read by this board's opening
+// (_bootStray) and by every reader of another appropriation (strayOther). It was written twice -- the opening's test and this one --
+// and the five-year plan's time check was the only thing that would have noticed them drifting apart. `ls`: this browser's copy of
+// the plan; `fb`: the file's; `b`: that plan's record. Pure, and never throws.
+function strayRule(ls, fb, b){
   try{
     if(!ls || typeof ls!=='object' || !fb || typeof fb!=='object' || !(fb.years||Array.isArray(fb.order))) return false;
     if(!((+fb.ts||0) < (+ls.ts||0))) return false;
-    const b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null');
     return !!(b && typeof b==='object' && b.dirty===true && !(+b.file) && b.blank===true && !_hasData(ls.dataPack));
   }catch(e){ return false; }
+}
+function strayOther(k, ls, fb){
+  try{ return strayRule(ls, fb, JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null')); }catch(e){ return false; }
 }
 // v2.14 RV1-C (stray-rule-only-own-opening, finish): THE SAME TEST, FOR THE READERS THAT TAKE BROWSER STORAGE FIRST. pkgStoreOf (and
 // through it issuing, pushing and sending back a package, and the list Export one appropriation offers), the band ladder (bandPeers,
@@ -8939,9 +8959,12 @@ function strayHeldWhy(k){
 }
 // THE APPROPRIATIONS A BOARD FILE CARRIES: this one's as given, every other one the newer of what this board
 // holds and what this browser stores -- never blank work its own board would keep aside for this file's (strayOther).
+// v2.15 W2 (item 145): AND NEVER ANOTHER TAB'S COPY OVER ONE THIS PAGE MADE AND BROWSER STORAGE REFUSED (apClash): two pieces of work on
+// one appropriation cannot both stand without a question, and 💾 Save asks it first (pubsClashAsk). Taken silently, a package held on
+// this page alone was left out of the file and its on-screen-only mark cleared, so leaving no longer asked (measured on v2.14).
 function pubsFor(own){
   const P=Object.assign({}, PUBS); P[_AP.slug]=own;
-  Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!P[k]||(s2.ts||0)>=(P[k].ts||0))&&!strayOther(k, s2, P[k])) P[k]=s2; }catch(e){} });
+  Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug || apClash(k)) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!P[k]||(s2.ts||0)>=(P[k].ts||0))&&!strayOther(k, s2, P[k])) P[k]=s2; }catch(e){} });
   return P;
 }
 // ONE ASSEMBLY FOR EVERY BOARD FILE THIS PAGE WRITES (v1.95): 💾 Save, the PMO copy, the work kept aside, and
@@ -11147,6 +11170,7 @@ function saveStopBack(k, penLine){
 async function _saveInPlaceFileRun(o){
   if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;
   if(impMixedBlock('Saving to the board file')) return;
+  if(!pubsClashAsk()) return;       // v2.15 W2 (item 145): two copies of another appropriation, named, before anything is read or written
   if(!window.showSaveFilePicker){
     publishState();
     setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
@@ -11949,6 +11973,8 @@ function apStoreOf(k){
     if(s && typeof s==='object' && (s.years||Array.isArray(s.order))) ls=s; } }
   catch(e){ ls=null; /* absent or unreadable is normal — the publish slot answers */ }
   const pb=(typeof PUBS!=='undefined' && PUBS && PUBS[k] && typeof PUBS[k]==='object')? PUBS[k] : null;
+  // v2.15 W2 (item 145): this page's own copy, which storage refused, and another tab's since: held -- a writer writes neither
+  if(pb && ls && apClash(k)) return {st:pb, held:true, ls:ls, clash:true};
   if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false, ls:ls};
   let held=false;
   if(ls){
@@ -11980,6 +12006,7 @@ function apMineSince(k, inc){
 // write storage refused, on this page alone). "The file's copy is newer" was said of both. Text, not HTML.
 function apHeldWhy(k){
   const t=(_SLUGMAP[k]&&_SLUGMAP[k].t)||k;
+  if(apClash(k)) return apClashWhy(k);      // v2.15 W2 (item 145)
   return 'this browser holds '+t+' work the saved file does not have, and '
     +(pubsInFile(k)? 'the file’s copy is newer' : 'a newer '+t+' made on this page is not in the file yet (💾 Save writes it there)');
 }
@@ -23921,6 +23948,7 @@ function bandSave(list){ MS.bands=bandNormalize(list); MS.bandsTs=Date.now(); sa
 // there, throw a ReferenceError into the catch below, and silently adopt nothing.
 function BAND_PEND_KEY(slug){ return 'prio27bands_'+slug; }
 function bandsAdoptPending(){
+  if(typeof _bandsHold!=='undefined' && _bandsHold) return false;     // v2.15 W2 (item 146): not while the board is opening
   // Delivered exactly once: the record is cleared as soon as this appropriation loads, whether
   // or not it is taken. Re-reading it every load would let one push with a skewed clock keep
   // overwriting later edits made here.
@@ -24103,8 +24131,10 @@ function bandCopyAll(){
     if(g.held){ kept.push(p.t); return; }
     // held for every peer regardless — harmless where the store was also written directly,
     // because the adopt is guarded by that appropriation's own bandsTs
+    // v2.15 W2 (item 146): quiet -- the ladder held for it is in no file, so lsSet's "Use 💾 Save to write it into the file" was untrue
+    // of it; this function's own closing line names every appropriation whose held ladder storage refused (lost)
     const pend=!!lsSet(BAND_PEND_KEY(p.slug), JSON.stringify({bands:L, ts:stamp, from:apLabel(), stdVer:(MS.stdVer||STD_VER)}),
-              'The ladder held for '+p.t);
+              'The ladder held for '+p.t, {quiet:true});
     let st=g.st? JSON.parse(JSON.stringify(g.st)) : null;
     if(!st){ if(pend) held++; else lost.push(p.t); return; }
     const raw=apCarryRaw(p.slug), fromPage=!!(typeof PUBS!=='undefined' && PUBS && g.st===PUBS[p.slug]);
@@ -25830,6 +25860,60 @@ var _cycCarry=null;
 // v2.14 RV2-B (also-noticed): THE OTHER APPROPRIATIONS WHOSE COPY ON THIS PAGE IS ONE THIS PAGE MADE, not yet in the file: {<slug>: _sideGen
 // when made} (apPut refused, a cycle carried). Cleared, up to the bytes a file save built, by cycCarrySaved. apHeldWhy reads it.
 var _pubsOwn=Object.create(null);
+// v2.15 W2 (item 145): TWO TABS OF ONE BROWSER ON ONE APPROPRIATION. {<slug>: {theirs: the text another tab wrote, t: when}} -- set by
+// the storage listener (tabWrote) when another tab writes the plan of an appropriation this page holds a copy of that storage refused
+// (_pubsOwn: a package, a ladder, a cycle carried). Held while storage still holds exactly that text. In memory alone.
+var _tabClash=Object.create(null);
+function apClash(k){
+  try{
+    const c=_tabClash[k]; if(!c || !(_pubsOwn && _pubsOwn[k]!==undefined) || !_SLUGMAP[k]) return false;
+    return localStorage.getItem(_SLUGMAP[k].key)===c.theirs;
+  }catch(e){ return false; }
+}
+// The two copies, said: text, not HTML (the callers escape it or hand it to confirm()).
+function apClashWhy(k){
+  const t=(_SLUGMAP[k]&&_SLUGMAP[k].t)||k;
+  let th=null; try{ th=JSON.parse((_tabClash[k]||{}).theirs||'null'); }catch(e){ th=null; }
+  const mine=(typeof PUBS!=='undefined' && PUBS && PUBS[k])? PUBS[k] : null;
+  return 'this page holds '+t+' as changed here'+((mine && +mine.ts)? ' ('+fmtTs(+mine.ts)+')' : '')+', which browser storage could not keep, and another tab of this '
+    +'browser has since saved '+t+((th && +th.ts)? ' ('+fmtTs(+th.ts)+(th.by? ', by '+String(th.by) : '')+')' : '')
+    +', so neither is written over the other until you choose: 💾 Save asks which goes into the file';
+}
+// 💾 SAVE ASKS FIRST, NAMING BOTH, before anything is read or written: OK writes this page's copy into the file -- stamped newer than
+// the other tab's, so that appropriation's own board keeps the other tab's copy aside when it opens (its record says unsaved) and
+// nothing is lost; Cancel writes nothing, and both copies stand where they are. True to go on.
+function pubsClashAsk(){
+  const ks=Object.keys(_SLUGMAP).filter(function(k){ return k!==_AP.slug && apClash(k); });
+  for(const k of ks){
+    const t=_SLUGMAP[k].t;
+    if(!confirm('⚠ '+t+' has two copies, and only one can go into the file.\n\n'+apClashWhy(k).replace(/^this page/, 'This page')+'.\n\n'
+      +'OK — write this page’s '+t+' into the file. The other tab’s copy stays in browser storage, and '+t+'’s own board keeps it aside when it opens, so it is not lost.\n'
+      +'Cancel — write nothing now: both copies stay as they are.')){
+      setStat('Save canceled — nothing written. <b>'+esc(t)+'</b> has two copies: '+esc(apClashWhy(k))+'. To carry on from the other tab’s copy instead, '
+        +'<button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button> of this page first, then open '+esc(t)+'.');
+      return false;
+    }
+    const th=JSON.parse(_tabClash[k].theirs||'null');
+    PUBS[k].ts=Math.max(+PUBS[k].ts||0, (th && +th.ts)||0)+1;      // the file's copy is the newer: that board keeps the other tab's aside
+    delete _tabClash[k];
+  }
+  return true;
+}
+// THE STORAGE LISTENER (item 145; item 131's box). Another tab wrote browser storage: what it changed is marked, and nothing is drawn
+// again under a figure being typed. The plan of an appropriation this page holds its own refused copy of is a clash (above), said at
+// once; FYDP Disconnects' open box is drawn again (fdcSync waits while a figure is being typed in it, and Export compares).
+function tabWrote(ev){
+  if(!ev || typeof ev.key!=='string') return;
+  for(const k in _SLUGMAP){
+    if(!Object.prototype.hasOwnProperty.call(_SLUGMAP, k) || k===_AP.slug || ev.key!==_SLUGMAP[k].key) continue;
+    if(ev.newValue===null || !(_pubsOwn && _pubsOwn[k]!==undefined)) continue;
+    const was=_tabClash[k];
+    _tabClash[k]={theirs:ev.newValue, t:Date.now()};
+    if(!was) statKeep('⚠ <b>'+esc(_SLUGMAP[k].t)+' was saved in another tab of this browser.</b> '+esc(apClashWhy(k).replace(/^this page/, 'This page'))+'.');
+  }
+  try{ if(fdcOpen) fdcSync(true); }catch(e){}
+}
+try{ window.addEventListener('storage', function(ev){ try{ tabWrote(ev); }catch(e){} }); }catch(e){}
 function pubsInFile(k){ try{ return !(_pubsOwn && Object.prototype.hasOwnProperty.call(_pubsOwn, k)); }catch(e){ return true; } }
 // Is this page's copy of `k` still the one carried from browser storage's copy, and storage's copy still that one? It then holds that
 // copy's work and the cycle beside it: the copy passed over holds nothing this page lacks, so it is not "held" (apStoreOf, cycApplyAll).
@@ -25891,7 +25975,7 @@ function apBaseSaved(k, wrote){
 }
 function cycCarrySaved(wrote, at){
   // v2.14 RV2-B: what this page had made of the other appropriations before these bytes were built is in the file now
-  try{ Object.keys(_pubsOwn).forEach(function(k){ if(!(_pubsOwn[k]>at)) delete _pubsOwn[k]; }); }catch(e){}
+  try{ Object.keys(_pubsOwn).forEach(function(k){ if(!(_pubsOwn[k]>at)){ delete _pubsOwn[k]; delete _tabClash[k]; } }); }catch(e){}
   try{
     if(!_cycCarry) return;
     Object.keys(_cycCarry).forEach(function(k){
@@ -26535,6 +26619,7 @@ function fydpWhen(x, ok, bad){
 // One other appropriation's saved state as its own board opens it: browser storage, then the file's
 // copy when that is newer. {st, why}: st null when neither holds one; why says what stopped it.
 function fydpStoreLocal(k){
+  if(apClash(k)) return {st:null, why:apClashWhy(k)};     // v2.15 W2 (item 145): two copies; 💾 Save asks which goes into the file
   let st=null;
   try{ const s=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s&&(s.years||Array.isArray(s.order))) st=s; }
   catch(e){ return {st:null, why:'its saved state in this browser could not be read'}; }
@@ -28884,6 +28969,7 @@ function fdcHtml(){
       return '<option value="'+esc(k)+'"'+(k===st.cyc? ' selected' : '')+'>'+esc(ppLblTxt(k))+' — positions logged for '+esc(by.join(', '))+'</option>'; }).join('')
       : '<option value="">none logged</option>')+'</select></label>';
   const M=st.why? null : fdcModel();
+  _fdcSig=fdcSigOf(M);      // v2.15 W2 (item 131): what the box shows, for Export to compare
   if(M) h+='<span class="fdcyrs">Years <b>FY'+fdcYY(M.years[0])+'–FY'+fdcYY(M.years[M.years.length-1])+'</b> · FYDP FY'+fdcYY(M.sum[0])+'–FY'+fdcYY(M.sum[M.sum.length-1])+'</span>';
   // v2.10 review (A-3): while the shared folder is read, Export is offered and waits for the answer (exportFdc)
   const rd=st.reading && st.why.indexOf('Reading the shared folder')===0;
@@ -28915,13 +29001,16 @@ function fdcDraw(){
   const w1=el.querySelector('.fdcwrap'); if(w1 && sl) w1.scrollLeft=sl;
   if(was){ const b=document.getElementById(was); if(b && b!==document.activeElement){ try{ b.focus({preventScroll:true}); }catch(e){} } }
 }
-function fdcSync(){
+// v2.15 W2 (item 131): `tab` -- another tab wrote browser storage (tabWrote). Under a figure being typed nothing is drawn: the box is
+// marked, drawn again once that figure is in (fdcIntlSet), and Export compares what it would write with what the box shows.
+function fdcSync(tab){
   const bg=document.getElementById('fdcPanel'), el=document.getElementById('fdcBody');
   if(!bg || !el) return;
   bg.className='modal-bg'+(fdcOpen? ' open' : '');
-  if(!fdcOpen){ if(el.innerHTML) el.innerHTML=''; return; }
+  if(!fdcOpen){ if(el.innerHTML) el.innerHTML=''; _fdcSig=null; _fdcStale=false; return; }
   const a=document.activeElement;
-  if(a && a.tagName==='INPUT' && el.contains(a)) return;
+  if(a && a.tagName==='INPUT' && el.contains(a)){ if(tab) _fdcStale=true; return; }
+  _fdcStale=false;
   fdcDraw();
 }
 function toggleFdc(){
@@ -28964,6 +29053,9 @@ function fdcIntlSet(el){
   if(r.why){ el.value=fdcInShow(was); msg('fdcmsg bad', 'The International figure was not changed: '+r.why+'.'); return; }
   M[fy]=(r.v===null)? 0 : r.v;
   el.value=fdcInShow(M[fy]);
+  // v2.15 W2 (item 131): the figure typed is what the box shows from now -- at once, so an Export clicked straight after it compares
+  // against it; unless another tab wrote meanwhile, when the box is behind and Export must refuse until it is drawn again
+  if(!_fdcStale){ try{ _fdcSig=fdcSigOf(fdcModel()); }catch(e){} }
   msg('fdcmsg', r.rounded? 'Entered as '+fM(M[fy])+': the board keeps whole dollars.' : '');
   if(tab && bg){
     const t=dlgTabbables(dlgModal(bg)), i=t.indexOf(el), nx=(i>=0)? t[(i+_navStep+t.length)%t.length] : null;
@@ -28971,6 +29063,7 @@ function fdcIntlSet(el){
   }
   paint(function(){
     if(!fdcOpen) return;
+    if(_fdcStale){ _fdcStale=false; fdcDraw(); return; }     // v2.15 W2 (item 131): another tab wrote while this was typed
     const Mo=fdcModel(), sh=Mo && Mo.sheets[fdcTabOn];
     if(!sh){ fdcDraw(); return; }
     sh.rows.forEach(function(r0, ri){ if(r0.t!=='line') return;
@@ -28996,6 +29089,15 @@ function exportFdc(){
   }
   const M=fdcModel();
   if(!M){ alert('FYDP Disconnects cannot be exported. '+fdcState().why); return; }
+  // v2.15 W2 (item 131): A BOX LEFT OPEN WHILE ANOTHER TAB SAVED IS A READING BEHIND. The workbook is what the box shows, or nothing:
+  // a model that differs from the one last drawn is refused, the box drawn again with the figures as they are now, and said.
+  if(fdcOpen && _fdcSig!==null && fdcSigOf(M)!==_fdcSig){
+    _fdcStale=false; fdcDraw();
+    const said='Not exported: the figures moved since the box was drawn — another tab of this browser saved since. The box now shows them as they are; check them, then Export again.';
+    setStat('⚠ '+esc(said));
+    const mm=document.getElementById('fdcMsg'); if(mm){ mm.className='fdcmsg bad'; mm.textContent=said; }
+    return;
+  }
   const out=fdcSheets(M);
   const bytes=buildXlsx(out.sheets, out.extra);
   if(!bytes) return;
@@ -42045,6 +42147,10 @@ try{ _sideBootGen=_sideGen; }catch(e){}
 // v1.99 (item 95): ...and what browser storage holds of them that the file does not is still unsaved, whoever wrote it
 try{ sideBootCheck(); saveStateShow(); }catch(e){}
 try{ setTimeout(()=>{ DIRTY=false; syncBtns(); }, 0); }catch(e){}
+// v2.15 W2 (item 146): the ladder held for this appropriation, into the plan the opening chose -- after the line above, so it is a
+// change of its own: unsaved, kept in browser storage, and written into the file by the next 💾 Save
+try{ setTimeout(function(){ _bandsHold=false;
+  try{ if(!CYCVIEW && !SANDBOX && bandsAdoptPending()){ save(); render(); statKeep('⚖ The band ladder copied here from another appropriation is now on this board. 💾 Save writes it into the file.'); } }catch(e){} }, 0); }catch(e){}
 // OPENING THE BOARD LOADS FROM THE SHARED FOLDER, when that is where the team works. Deferred on
 // purpose: state is applied at top level while this script evaluates, and the folder is async.
 try{ setTimeout(function(){

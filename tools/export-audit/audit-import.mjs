@@ -20124,6 +20124,101 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W2 — two tabs on one appropriation: a copy this page holds that storage refused is never replaced by another tab’s, and Save asks, naming both (item 145)';
+  try {
+    const J = JSON.stringify;
+    const { OLD, ls: LS } = W214.fx();     // storage holds exactly what OLD's file holds, recorded saved
+    // THIS PAGE'S OWN COPY OF FULL FUND: the ladder copied from O&M while browser storage refuses Full Fund's plan -- held on this page
+    // alone (counted on screen only). Then, with `tab`, ANOTHER TAB of this browser saves Full Fund (a note on F, a later stamp, its
+    // record unsaved) and the browser tells this page (the storage event).
+    const setup = (tab = true) => {
+      const R = boot({ html: OLD.html, ls: LS });
+      W1H.wire(R.ev, 'Brad', W1H.KEY.brad);
+      R.ev(`(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27ff') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); };
+        try{ bandCopyAll(); } finally { Storage.prototype.setItem=_si; } return 'ok'; })()`);
+      const mineTs = +R.ev('PUBS.ff.bandsTs||0');
+      if (tab) R.ev(`(function(){ const old=localStorage.getItem('prio27ff'), st=JSON.parse(old), y=st.years[st.cur];
+        y.notes=y.notes||{}; y.notes.F='THE OTHER TAB'; st.ts=Date.now()+50; st.by='Ann'; const v=JSON.stringify(st);
+        localStorage.setItem('prio27ff', v); localStorage.setItem('prio27ff.base', JSON.stringify({file:0, folder:{}, dirty:true}));
+        window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', oldValue:old, newValue:v})); return 'ok'; })()`);
+      return { R, mineTs, theirs: tab ? R.ev(`localStorage.getItem('prio27ff')`) : null };
+    };
+    // what stands: this page's Full Fund (the ladder copied here) and storage's (the other tab's note)
+    const both = (R, mineTs) => JSON.parse(R.ev(`JSON.stringify({mine:+PUBS.ff.bandsTs===${mineTs} && !/THE OTHER TAB/.test(JSON.stringify(PUBS.ff)),
+      theirs:/THE OTHER TAB/.test(localStorage.getItem('prio27ff')||''), left:memOnlyNow()})`));
+    // the fixture
+    {
+      const { R, mineTs } = setup(false);
+      chk(name, 'the fixture', 'the ladder copied here is held on this page alone, storage refused it, and leaving asks (a CONTROL)',
+        J([mineTs > 0, R.ev(`String(_pubsOwn.ff!==undefined)`), R.ev(`String(memOnlyNow())`)]), J([true, 'true', 'true']));
+    }
+    // the message, at once
+    {
+      const { R } = setup();
+      chk(name, 'another tab saves', 'this page says so at once, naming both copies', J([/Full Fund was saved in another tab of this browser/.test(w14stat(R.ev)),
+        /This page holds Full Fund as changed here/.test(w14stat(R.ev)), /another tab of this browser has since saved Full Fund \(.*by Ann\)/.test(w14stat(R.ev))]), J([true, true, true]));
+    }
+    // DOOR 1: the ladder copied again -- Full Fund is left out and said; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      R.ev('bandCopyAll(); 0');
+      chk(name, 'a ladder copy', 'Full Fund is not copied to, and the line names both copies', J([/Not copied<\/b> to Full Fund — this page holds Full Fund as changed here/.test(w14statHtml(R.ev))]), J([true]));
+      chk(name, 'a ladder copy', 'both copies stand, and leaving still asks', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
+    // DOOR 2: a package for Full Fund -- not taken; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      const al = R.ev(`(function(){ const a=[]; window.alert=function(m){ a.push(String(m)); }; const ms=JSON.parse(localStorage.getItem('prio27ff'));
+        pkgApply({spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:Date.now()+5000, ms:ms}, 'ff-pkg.json'); return JSON.stringify(a); })()`);
+      chk(name, 'a package', 'it is not imported, and says why, naming both copies', /^NOT IMPORTED — this page holds Full Fund as changed here/.test(JSON.parse(al)[0] || ''), true);
+      chk(name, 'a package', 'both copies stand, and leaving still asks', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
+    // DOOR 3: the cycle chosen for every appropriation -- Full Fund is not changed, and said; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      R.ev(`cycApplyAll('BES|2028'); 0`);
+      chk(name, 'a carried cycle', 'Full Fund is not changed, and the line says why', /not changed<\/b>: Full Fund \(this page holds Full Fund as changed here/.test(w14statHtml(R.ev)), true);
+      chk(name, 'a carried cycle', 'both copies stand, on the cycle they had (POM27), and leaving still asks',
+        J([both(R, mineTs), R.ev(`String(PUBS.ff.cycle||'')`), JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)).cycle || '']), J([{ mine: true, theirs: true, left: true }, 'POM|2027', 'POM|2027']));
+    }
+    // DOOR 4: a plain 💾 Save -- it asks first, naming both; Cancel writes nothing; OK writes this page's copy, and the other tab's is
+    // kept aside when Full Fund's own board opens
+    {
+      const { R, mineTs, theirs } = setup();
+      R.ev('globalThis.__yes=false; globalThis.__q=[]; 0');
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(30);
+      const q0 = W1H.qs(R.ev);
+      chk(name, 'a plain Save', 'it asks before anything else, naming both copies', J([q0.length, /^⚠ Full Fund has two copies, and only one can go into the file\./.test(q0[0] || ''), /another tab of this browser has since saved Full Fund \(.*by Ann\)/.test(q0[0] || '')]), J([1, true, true]));
+      chk(name, 'a plain Save', 'Cancel: nothing is read or written, and both copies stand', J([f.writes, f.hits.read || 0, both(R, mineTs)]), J([0, 0, { mine: true, theirs: true, left: true }]));
+      R.ev('globalThis.__yes=true; globalThis.__q=[]; 0');
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      const ff = (W1H.pubOf(f.content).appns || {}).ff || {};
+      chk(name, 'a plain Save', 'OK: the file holds this page’s Full Fund, stamped newer than the other tab’s; storage still holds the other tab’s',
+        J([+ff.bandsTs === mineTs, /THE OTHER TAB/.test(J(ff)), +ff.ts > +JSON.parse(theirs).ts, R.ev(`localStorage.getItem('prio27ff')`) === theirs]), J([true, false, true, true]));
+      const F = boot({ html: f.content, ls: w2LsOf(R.ev), appn: 'FULL FUND' });
+      chk(name, 'a plain Save', 'Full Fund’s own board then opens the file’s copy, and keeps the other tab’s aside, whole',
+        J([+F.ev('MS.bandsTs||0') === mineTs, (F.ev(`localStorage.getItem('prio27ff.kept')`) || '').endsWith('\n' + theirs)]), J([true, true]));
+    }
+    // CONTROL: one tab alone -- Save asks no such question and writes this page's copy, as it always has
+    {
+      const { R, mineTs } = setup(false);
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      chk(name, 'one tab alone', 'no question of two copies, and the file holds this page’s Full Fund (a CONTROL)',
+        J([W1H.qs(R.ev).filter(q => /two copies/.test(q)).length, +((W1H.pubOf(f.content).appns || {}).ff || {}).bandsTs === mineTs]), J([0, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.15 W2 ====
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
 // ==== end v2.15 W3 ====
