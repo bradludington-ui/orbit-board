@@ -11224,7 +11224,7 @@ async function _saveInPlaceFileRun(o){
     // the Save window just emptied holds nothing to compare, and a program with no board holds no board.
     if(txt.length && !bare){
       let q=null; try{ const mq=html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); q=mq? JSON.parse(mq[1]) : null; }catch(e){ q=null; }
-      const lost=saveDrops(txt, p, q, baked);
+      const lost=saveDrops(txt, p, q, baked, fileTsOf(p)===LASTKNOWN);   // v2.14 RV2-B (finish): the save this work came from?
       if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){
         if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
         saveStopBack(stop, penLine);
@@ -11300,7 +11300,9 @@ async function _saveInPlaceFileRun(o){
 // `baked` extractPacks(txt) when p is null. Pure, and never escapes: these lines go into confirm(), which is not HTML. Every read is
 // guarded: anything not an object reads as empty. An ordinary Save asks nothing: the board on screen carries every appropriation
 // (pubsFor), every cycle (cycByAp), every list and every requirement it opened with. A deletion on purpose asks once (D3).
-function saveDrops(txt, p, q, baked){
+// `seen` (v2.14 RV2-B, finish): the file is the very save the work on screen came from (its time is LASTKNOWN), so every copy in it is
+// one this page opened or wrote itself.
+function saveDrops(txt, p, q, baked, seen){
   const obj=function(o){ return (o && typeof o==='object' && !Array.isArray(o))? o : null; };
   const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
   const nm=function(k){ return (_SLUGMAP[k] && _SLUGMAP[k].t) || String(k); };
@@ -11343,6 +11345,22 @@ function saveDrops(txt, p, q, baked){
       const have=yearIds(qp, y, qpk), lack=[]; yearIds(fp, y, fpk).forEach(function(id){ if(!have.has(id)) lack.push(id); });
       if(lack.length) out.push(nm(k)+' '+fyLbl(y)+' — '+pl(lack.length, 'requirement', 'requirements')+' the board on screen does not carry: '
         +lack.slice(0, 6).join(', ')+(lack.length>6? ' and '+(lack.length-6)+' more' : '')); });
+  });
+  // v2.14 RV2-B (also-noticed: two tabs on one board file): ANOTHER APPROPRIATION THE FILE HOLDS NEWER THAN THE COPY THESE BYTES CARRY. One
+  // tab put every appropriation on BES28 -- Initial Spares carried on that page, browser storage too full -- and saved; a second tab,
+  // which still held the Initial Spares it had opened, answered OK at its HOLD ON (which names nobody's changes) and wrote PB27 back
+  // over the file's BES28, a cycle nobody had chosen to drop. Every requirement was still there, so nothing above named it. The board
+  // on screen is left out: its copy is the one just saved, so the file never holds a newer one of it.
+  // v2.14 RV2-B (finish, newer-copy-asked-after-import): and only where somebody else saved the file since (`seen` false: the "HOLD ON
+  // -- ... saved this file" question has just been asked). In the very save this page came from, a newer copy is one this page saw
+  // and replaced on purpose -- ⇊ Import several boards of yesterday's file -- and Save asked about it as if nobody had.
+  if(!seen) slugs.forEach(function(k){
+    if(k===mySlug()) return;
+    const fp=obj(A[k]), qp=Object.prototype.hasOwnProperty.call(B, k)? obj(B[k]) : null;
+    if(!fp || !qp || !((+fp.ts||0) > (+qp.ts||0))) return;
+    const fc=(typeof fp.cycle==='string')? fp.cycle : '', qc=(typeof qp.cycle==='string')? qp.cycle : '';
+    let cy=''; try{ if(fc!==qc) cy=' — the file’s is on '+cycTagTxt(fc)+', this board’s on '+cycTagTxt(qc); }catch(e){ cy=''; }
+    out.push(nm(k)+': the file holds a newer copy (saved '+fmtTs(+fp.ts)+(typeof fp.by==='string' && fp.by? ' by '+fp.by : '')+') than the one this board would write over it'+cy);
   });
   // locked cycles, by appropriation
   const cyOf=function(st, k){ const b=obj(obj(obj(st) && st.cycDb) && st.cycDb.byAp); const c=obj(b && b[k]); return obj(c && c.cycles) || {}; };
@@ -11700,6 +11718,14 @@ function importBoards(inp){
     // through lsAll, and memory changes only once every write has landed. It wrote one at a time with lsSet and never
     // looked: a refused second write left the first in storage, the second only in memory, and the message said both.
     const W=take.map(r=>[_SLUGMAP[r.slug].key, JSON.stringify(r.st), _SLUGMAP[r.slug].t+' board data', _SLUGMAP[r.slug].t]);
+    // v2.14 RV2-B (finish, take-record-left-saved, the same door): AND EACH OTHER APPROPRIATION'S RECORD SAYS THIS BROWSER HOLDS WORK NO
+    // SAVED COPY HAS, in the same all-or-nothing write, after every plan (so a refusal's index is still a file's). The board on screen's
+    // own record is loadCounted's, below. Left saying "saved", a newer board file opened on that appropriation's own board replaced what
+    // was imported with nothing kept aside. The save the record names and any blank mark stay, as cycApplyAll's record keeps them.
+    take.forEach(function(r){ if(r.slug===_AP.slug) return;
+      let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[r.slug].key+'.base')||'null'); }catch(e){ b=null; }
+      if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+      W.push([_SLUGMAP[r.slug].key+'.base', JSON.stringify(Object.assign(b, {dirty:true})), 'This browser\u2019s record of the '+_SLUGMAP[r.slug].t+' plan', 'the record of the '+_SLUGMAP[r.slug].t+' plan']); });
     // v1.99 (item 86, review N02): what storage held before the write is lsAll's own reading, taken before it writes --
     // if storage cannot be read, lsAll writes nothing and says so. It was read a second time here, and when that read
     // failed the write went ahead with nothing to put back.
@@ -11728,7 +11754,8 @@ function importBoards(inp){
       Object.keys(pubWas).forEach(function(k){ if(pubWas[k]===undefined) delete PUBS[k]; else PUBS[k]=pubWas[k]; });
       const memOk=!threw || impBoardBack(memWas);
       const now=lsPutBack(W, held);
-      if(memOk && now.every(function(s){ return s==='was'; })){
+      // v2.14 RV2-B (finish): a plan's record left unsaved over a plan put back as it was is no list out of place (C19)
+      if(memOk && now.every(function(s, i){ return s==='was' || /\.base$/.test(W[i][0]); })){
         lsMarksBack(mk);     // v2.14 W3 (item 140 c): every list as it was, so the board reads as saved as it was
         return none('this board did not take '+_SLUGMAP[here.slug].t+' from “'+here.name+'”', true);
       }
@@ -11890,7 +11917,76 @@ function apMineSince(k, inc){
   return out;
 }
 // what a writer of another appropriation says when apStoreOf found its stored work passed over
-function apHeldWhy(k){ return 'this browser holds '+((_SLUGMAP[k]&&_SLUGMAP[k].t)||k)+' work the saved file does not have, and the file’s copy is newer'; }
+// v2.14 RV2-B (also-noticed): and which copy is the newer one -- the board file's, or one this page made and has not saved yet (a
+// write storage refused, on this page alone). "The file's copy is newer" was said of both. Text, not HTML.
+function apHeldWhy(k){
+  const t=(_SLUGMAP[k]&&_SLUGMAP[k].t)||k;
+  return 'this browser holds '+t+' work the saved file does not have, and '
+    +(pubsInFile(k)? 'the file’s copy is newer' : 'a newer '+t+' made on this page is not in the file yet (💾 Save writes it there)');
+}
+// v2.14 RV2-B (carry-and-held-lost-on-next-write, carry-then-held-misfire): DOES THE COPY OF k THIS PAGE IS ABOUT TO WRITE HOLD BROWSER
+// STORAGE'S COPY AS IT STANDS? Yes where this page's copy was carried from it (cycCarryHas), or where storage's copy is the newer one
+// and is what was read (apStoreOf). Then storage's text is returned, to be remembered beside what is written (apPut); otherwise
+// undefined. Read BEFORE the writer stamps or changes the copy it will write: pkgPut stamps the very object PUBS holds.
+function apCarryRaw(k){
+  try{
+    if(typeof _SLUGMAP==='undefined' || !_SLUGMAP[k] || k===mySlug()) return undefined;
+    // v2.14 RV2-B (finish, stray-carried-saved): never stray blank work. Every reader takes the file's copy over it (strayOr), so the
+    // copy a writer builds never holds it; remembered as carried, a refused write let the next 💾 Save record that blank work saved,
+    // and its own board's opening then dropped it with nothing kept aside.
+    if(strayHeld(k)) return undefined;
+    const raw=localStorage.getItem(_SLUGMAP[k].key); if(raw===null) return undefined;
+    if(cycCarryHas(k)) return raw;
+    const g=apStoreOf(k);
+    return (!g.held && g.ls && g.st===g.ls)? raw : undefined;
+  }catch(e){ return undefined; }
+}
+// v2.14 RV2-B: ONE WRITE OF ANOTHER APPROPRIATION'S PLAN BY THIS PAGE -- ⬆ Issue and ⬆ Push baselines (pkgPut), ⚖ copying the ladder
+// (bandCopyAll), a package taken (pkgApply). Each did lsSet and PUBS[k]=st by itself, and two things went wrong at all three:
+//  - STORAGE TOOK IT, AND ITS RECORD (<key>.base) STILL SAID "SAVED". This page had just put work in browser storage that no saved file
+//    has, so a newer board file opened later on that appropriation's own board replaced it with nothing kept aside (measured: an issued
+//    package's ledger, a copied ladder, a taken package's note, each gone). The record now says unsaved, as cycApplyAll's says.
+//  - STORAGE REFUSED IT, and this page's copy -- built from storage's very copy, or from a cycle carried from it -- was read from then
+//    on as "this browser's unsaved work passed over by a newer copy": the second cycle choice left it out, ⬆ Issue, ⬆ Send back and a
+//    package were refused ("the file's copy is newer", untrue), 💾 Save left its record unsaved, and its board's opening kept a
+//    redundant copy aside -- or, in a browser too full to keep one, did not open the file at all, so the cycle and the issue ledger
+//    just saved were not on screen, and OK at the HOLD ON that followed wrote them away. Exactly what RV1-B's carry was made to stop.
+// Either way, what this page now holds for k holds storage's copy as it stands, so it is remembered as such (_cycCarry), as a cycle
+// carried from storage is: apStoreOf and the cycle choice do not read it as held, and 💾 Save records it saved (cycCarrySaved).
+// `raw` is apCarryRaw(k), read before the copy was built; `fromPage` says the copy was built from this page's (PUBS[k]) and not from
+// storage's, so the record names the save PUBS holds (_pubsFileTs), as cycApplyAll's does. Returns what lsSet returned.
+function apPut(k, st, what, raw, fromPage){
+  const key=_SLUGMAP[k].key, bkey=key+'.base';
+  let prev=null, b0=null; try{ prev=localStorage.getItem(key); b0=localStorage.getItem(bkey); }catch(e){ prev=null; b0=null; }
+  let ok=lsSet(key, JSON.stringify(st), what)!==false, held=raw;
+  if(ok){
+    held=undefined;
+    let rec=false;
+    try{ let b=null; try{ b=JSON.parse(b0||'null'); }catch(e){ b=null; }
+      if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+      // v2.14 RV2-B (finish, blank-mark-cleared): the mark is left as it was, as cycApplyAll's record leaves it. Written false, it turned
+      // blank work typed on a page with no board file -- copied the ladder, or issued, on another such page -- into ordinary unsaved
+      // work: the board file opened later read it as the newer Full Fund, and the next Save wrote it over the file's after a HOLD ON.
+      // A copy built from this page's (fromPage) names the save PUBS holds, and a record naming a save is never stray work (strayOther).
+      localStorage.setItem(bkey, JSON.stringify(Object.assign(b, {dirty:true}, fromPage? {file:_pubsFileTs} : {}))); rec=true; }catch(e){ rec=false; }
+    if(rec){ try{ held=localStorage.getItem(key); }catch(e){ held=undefined; } }
+    else {
+      // the record cannot say so: the plan is put back as it was and held on this page alone (counted as refused, as lsSet counts one),
+      // never left in storage under a record that calls it saved
+      try{ if(prev===null) localStorage.removeItem(key); else localStorage.setItem(key, prev); }catch(e){}
+      ok=false; held=raw;
+      try{ fileStored(key, 'side', false); }catch(e){}
+      try{ setStat('⚠ <b>'+esc(what)+' could not be kept in browser storage</b> — its record of what is saved was refused. It is still loaded and correct here. Use 💾 <b>Save</b> to write it into the file, which does not use browser storage.'); }catch(e){}
+    }
+  }
+  let now; try{ now=localStorage.getItem(key); }catch(e){ now=undefined; }
+  if(!_cycCarry) _cycCarry=Object.create(null);
+  if(held!==undefined && held!==null && now===held) _cycCarry[k]={ts:+st.ts||0, raw:held, gen:_sideGen};
+  else delete _cycCarry[k];
+  if(!ok) _pubsOwn[k]=_sideGen;             // on this page alone: apHeldWhy says so of it
+  if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=st;
+  return ok;
+}
 // The live store for one appropriation, wherever it lives on this build.
 function pkgStoreOf(ap){
   if(ap===mySlug()) return MS;
@@ -11927,8 +12023,13 @@ function pkgLedger(ap, store){
 // Persist a store back to wherever this build keeps that appropriation. Issuing an appropriation
 // that has never been worked creates its slot, so the ledger has somewhere to live.
 function pkgPut(ap, st){
+  // v2.14 RV2-B: another appropriation's through apPut (its record, and what this page's copy holds), read before st is stamped
+  const raw=apCarryRaw(ap), fromPage=!!(typeof PUBS!=='undefined' && PUBS && st===PUBS[ap]);
   st.ts=Date.now();
-  if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[ap]) lsSet(_SLUGMAP[ap].key, JSON.stringify(st), (PKG_NAMES[ap]||ap)+' board data');
+  if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[ap]){
+    if(ap!==mySlug()) return apPut(ap, st, (PKG_NAMES[ap]||ap)+' board data', raw, fromPage);
+    lsSet(_SLUGMAP[ap].key, JSON.stringify(st), (PKG_NAMES[ap]||ap)+' board data');
+  }
   if(typeof PUBS!=='undefined' && PUBS) PUBS[ap]=st;
 }
 
@@ -12053,7 +12154,7 @@ function pkgPushAll(){
     setStat('Nothing pushed.');
     return;
   }
-  const done=[], heldNot=[];
+  const done=[], heldNot=[], heldAp=[];
   have.forEach(function(ap, i){
     // staggered: browsers treat a burst of downloads from one gesture as a popup and can drop the
     // later ones without saying so
@@ -12065,11 +12166,12 @@ function pkgPushAll(){
       const pkg=pkgIssue(ap, true);
       if(pkg) done.push(PKG_NAMES[ap]||ap);
       else if(hd) heldNot.push(PKG_NAMES[ap]||ap);
+      if(!pkg && hd) heldAp.push(ap);           // v2.14 RV2-B: why, in apHeldWhy's words (which copy is the newer)
       if(i===have.length-1){
         setStat('\u2b06 Pushed '+done.length+' of '+have.length+' baseline'+(have.length===1?'':'s')
           +' \u2014 '+done.join(', ')+'.'
-          +(heldNot.length? ' <b>'+esc(heldNot.join(', '))+' '+(heldNot.length===1? 'was' : 'were')+' not issued</b>: this browser holds work there '
-            +'the saved file does not have, and the file\u2019s copy is newer. Open '+(heldNot.length===1? 'it' : 'each')+' to settle which one '
+          +(heldNot.length? ' <b>'+esc(heldNot.join(', '))+' '+(heldNot.length===1? 'was' : 'were')+' not issued</b>: '
+            +esc(heldAp.map(function(a){ return apHeldWhy(a); }).join('; '))+'. Open '+(heldNot.length===1? 'it' : 'each')+' to settle which one '
             +'stands (its opening keeps this browser\u2019s work aside), then issue it.' : '')
           +' If fewer files were saved than were pushed, your browser blocked the '
           +'extra downloads: allow them and push again, or issue the missing ones one at a time. '
@@ -12377,7 +12479,12 @@ function pkgApply(pkg, fname){
   if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
     if(hd){ alert('NOT IMPORTED \u2014 '+apHeldWhy(ap)+', so taking the package now could lose either one.\n\n'
       +'Open '+nm+' to settle which one stands (its opening keeps this browser\u2019s work aside), then import the package again. Nothing was changed.');
-      return false; } }
+      return false; }
+    // v2.14 RV2-B (finish, stray-carried-saved): NOR OVER BLANK WORK ITS OWN BOARD KEEPS ASIDE (strayHeld), as ⬆ Issue and ⬆ Send back
+    // are refused (RV1-C: a writer leaves it alone and says why). The questions below were asked about that blank work (pkgStoreOf
+    // reads storage's newer copy), while every other reader on this page shows the file's; the write then replaced it, or, refused,
+    // left it to be recorded saved and dropped at its board's opening.
+    if(strayHeld(ap)){ alert('NOT IMPORTED \u2014 '+strayHeldWhy(ap)+'.\n\nNothing was changed.'); return false; } }
   const cur=pkgStoreOf(ap);
   const led=cur? pkgLedger(ap) : null;
 
@@ -12486,7 +12593,10 @@ function pkgApply(pkg, fname){
   // its return value is the honest answer to whether the write happened.
   let wrote=false, wroteKnown=false;
   if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[ap]){
-    wrote=lsSet(_SLUGMAP[ap].key, JSON.stringify(next), nm+' board data')!==false;
+    // v2.14 RV2-B: another appropriation's through apPut -- its record then says this browser holds work no saved file has, and a
+    // refusal keeps what this page's copy replaced (the copy asked about above, which held storage's as it stood) as carried
+    wrote=(ap!==mySlug()? apPut(ap, next, nm+' board data', apCarryRaw(ap), !!(cur && typeof PUBS!=='undefined' && PUBS && cur===PUBS[ap]))
+                        : lsSet(_SLUGMAP[ap].key, JSON.stringify(next), nm+' board data'))!==false;
     wroteKnown=true;
   }
   if(typeof PUBS!=='undefined' && PUBS) PUBS[ap]=next;
@@ -12733,6 +12843,13 @@ function consTakeApply(fullSt, txt, fname, pick, all){
     if(cur){ pkgKeepLocked(cur, next); if(cur.sync) next.sync=cur.sync; }
     next.ts=Date.now();
     lsSet(_SLUGMAP[k].key, JSON.stringify(next), 'the '+nm+' plan');
+    // v2.14 RV2-B (finish, take-record-left-saved): AND THIS BROWSER'S RECORD OF THAT PLAN SAYS IT HOLDS WORK NO SAVED COPY HAS, committed
+    // with it (all or nothing). The record went on naming the save the old plan came from as saved, so a newer board file opened on that
+    // appropriation's own board replaced what was taken with nothing kept aside. The save it names and any blank mark stay as they were,
+    // as cycApplyAll's record keeps them: the board file is still this page's, and Save then asks nothing it should not.
+    { let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null'); }catch(e){ b=null; }
+      if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+      W.push([_SLUGMAP[k].key+'.base', JSON.stringify(Object.assign(b, {dirty:true})), 'This browser\u2019s record of the '+nm+' plan', 'the record of the '+nm+' plan']); }
     if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=next;
     taken.push(nm);
   });
@@ -14502,7 +14619,10 @@ function impBoardBack(m){
 // Never "exactly as it was".
 function batchImportUndone(W, held, now, take, here, memOk){
   const say=function(i){ return W[i][3]; };
-  const by=function(st){ return W.map(function(w, i){ return now[i]===st? say(i) : ''; }).filter(Boolean); };
+  // v2.14 RV2-B (finish): a plan's record is not a list the batch carries -- never named here, never in the mixed mark (C19, as
+  // fullImportUndone reads it)
+  const isRec=function(i){ return /\.base$/.test(W[i][0]); };
+  const by=function(st){ return W.map(function(w, i){ return (now[i]===st && !isRec(i))? say(i) : ''; }).filter(Boolean); };
   const hm={}; W.forEach(function(w, i){ hm[w[0]]=held[i]; });
   let pre=''; if(memOk){ try{ pre=fullImportPreHtml(hm); }catch(e){ pre=''; } }
   const seen=[], incs=[];
@@ -14510,7 +14630,7 @@ function batchImportUndone(W, held, now, take, here, memOk){
     incs.push({text:String(r.txt), name:String(r.name||'imported board.html').replace(/ \[[^\]]*\]$/, '')}); } });
   _impRescue={pre:pre? {text:pre, name:expName(FNAME.replace(/\.html?$/i,'')+' — as it was before the import.html')} : null,
               inc:null, incs:incs, mixed:true};
-  const mixedKeys=W.filter(function(w, i){ return now[i]!=='was'; }).map(function(w){ return w[0]; });
+  const mixedKeys=W.filter(function(w, i){ return now[i]!=='was' && !isRec(i); }).map(function(w){ return w[0]; });
   try{ const o=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null');
     (o && Array.isArray(o.keys)? o.keys : []).forEach(function(k){ if(mixedKeys.indexOf(k)<0) mixedKeys.push(k); }); }catch(e){}
   try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(here.name||''), keys:mixedKeys, kind:'batch'})); }catch(e){}
@@ -14519,7 +14639,7 @@ function batchImportUndone(W, held, now, take, here, memOk){
   const screen=memOk? 'The board on screen is the one you had, and it has not been reopened.'
                     : 'The board on screen could not be put back either: reload this page before anything else, and do not save.';
   alert('⇊ Import several boards stopped part-way: '+why+' after browser storage was written, and putting it back left '
-    +(inWas.length===W.length? 'storage as it was, but not the board on screen' : 'some lists not as they were')+'.\n\n'
+    +(inWas.length===W.filter(function(w, i){ return !isRec(i); }).length? 'storage as it was, but not the board on screen' : 'some lists not as they were')+'.\n\n'
     +'In this browser now:'
     +(inNew.length? '\n  from the imported files: '+inNew.join(', ') : '')
     +(inWas.length? '\n  as it was: '+inWas.join(', ') : '')
@@ -23861,8 +23981,8 @@ function bandPeers(){
   const me=mySlug(), sig=JSON.stringify(BANDS_LIST().map(b=>[b.id,b.n,b.rule,!!b.crit,!!b.consReq]));
   return Object.keys(_SLUGMAP).filter(k=>k!==me).map(k=>{
     // v2.14 RV1-B (other-appn-package-erased-by-older-copy): the newer of storage's copy and this page's (apStoreOf), as Save writes it
-    let st=null;
-    try{ st=apStoreOf(k).st; }catch(e){ st=null; }
+    let st=null, unsaved=false;
+    try{ const g=apStoreOf(k); st=g.st; unsaved=!!g.held; }catch(e){ st=null; }
     // v2.14 RV1-C (stray-rule-only-own-opening, finish): the file's copy over blank work its own board keeps aside; bandCopyAll
     // leaves such an appropriation out, and says so, rather than writing either copy
     const stray=strayHeld(k);
@@ -23872,7 +23992,8 @@ function bandPeers(){
     try{ const hp=JSON.parse(localStorage.getItem(BAND_PEND_KEY(k))||'null');
          if(hp&&Array.isArray(hp.bands)&&hp.bands.length) held=hp.bands; }catch(e){}
     const eff = bands || held;
-    return {slug:k, t:_SLUGMAP[k].t, seen:!!st, stray:stray, bands, held:!!held && !bands,
+    // v2.14 RV2-B (held-ladder-promise-never-kept): `unsaved` -- this browser holds work there behind a newer copy (apStoreOf's held)
+    return {slug:k, t:_SLUGMAP[k].t, seen:!!st, stray:stray, unsaved:!stray && unsaved, bands, held:!!held && !bands,
             same: eff? JSON.stringify(eff.map(b=>[b.id,b.n,b.rule,!!b.crit,!!b.consReq]))===sig : null};
   });
 }
@@ -23888,50 +24009,64 @@ function bandCopyAll(){
   // are put on screen (measured: the file's Full Fund opened on its own ladder). As issuing a package: open it once, then copy again.
   const strays=peers.filter(p=>p.stray), to=peers.filter(p=>!p.stray), later=to.filter(p=>!p.seen);
   const strayTxt=strays.map(p=>p.t+' — '+strayHeldWhy(p.slug)).join('; ');
-  if(!to.length){ setStat('\u26a0 The ladder was <b>not copied</b>: '+esc(strayTxt)+'.'); return; }
-  if(!confirm('Copy '+apLabel()+'\u2019s ladder to '+to.map(p=>p.t).join(', ')+'?\n\n'
+  // v2.14 RV2-B (held-ladder-promise-never-kept): AN APPROPRIATION WHERE THIS BROWSER HOLDS UNSAVED WORK BEHIND A NEWER COPY IS LEFT OUT
+  // TOO, AND SAID -- never "held for it". RV1-B held the ladder for it under BAND_PEND_KEY and promised it "goes on when that board
+  // opens, after its opening keeps that work aside": its opening's first, empty board (applyStore's first call) took the held ladder
+  // and dropped the key before storage's work and the file's copy were put on screen, so the file's copy opened on its old ladder and
+  // nothing said the ladder never came (measured; RV1-C had measured the same for blank work). Writing either copy would lose the other
+  // (RV1-B), so, as for blank work: no ladder held, and open it once, then copy again.
+  const busyWhy=function(t, slug){ return t+' — '+apHeldWhy(slug)+'. Open '+t+' once (its opening keeps that work aside), then copy the ladder again'; };
+  const busy=to.filter(p=>p.unsaved), go=to.filter(p=>!p.unsaved);
+  const busyTxt=busy.map(p=>busyWhy(p.t, p.slug)).join('; ');
+  if(!go.length){ setStat('⚠ The ladder was <b>not copied</b>: '+esc([strayTxt, busyTxt].filter(Boolean).join('; '))+'.'); return; }
+  if(!confirm('Copy '+apLabel()+'’s ladder to '+go.map(p=>p.t).join(', ')+'?\n\n'
     +'Each of those appropriations gets this exact ladder. Requirements already banded there keep '
     +'their band wherever that band exists in the new ladder, and become unbanded where it does not.\n\n'
     +(later.length? later.map(p=>p.t).join(', ')+' '+(later.length===1?'has':'have')+' not been opened in '
       +'this file yet, so the ladder is held for '+(later.length===1?'it':'them')+' and applied the first '
       +'time you switch to '+(later.length===1?'it':'them')+'.\n\n' : '')
     +(strays.length? 'NOT copied to '+strayTxt+'.\n\n' : '')
+    +(busy.length? 'NOT copied to '+busyTxt+'.\n\n' : '')
     +'This appropriation is not changed.')) return;
   const L=JSON.parse(JSON.stringify(BANDS_LIST()));
   const stamp=Date.now();
-  let done=0, held=0, failed=0;
-  const kept=[];
-  to.forEach(p=>{
-    // held for every peer regardless — harmless where the store was also written directly,
-    // because the adopt is guarded by that appropriation's own bandsTs
-    if(!lsSet(BAND_PEND_KEY(p.slug), JSON.stringify({bands:L, ts:stamp, from:apLabel(), stdVer:(MS.stdVer||STD_VER)}),
-              'The ladder held for '+p.t)) failed++;
+  let done=0, held=0;
+  // v2.14 RV2-B (also-noticed): every appropriation storage refused is named in the closing line. The line was skipped whenever a write
+  // failed ("lsSet has already said what went wrong"), and lsSet's own line names only the one it refused last
+  const kept=[], refused=[], lost=[];
+  go.forEach(p=>{
     // v2.14 RV1-B (other-appn-package-erased-by-older-copy): written onto the copy Save would write -- the newer of storage's and this
     // page's (apStoreOf). Storage's first, whatever its age, put an older Full Fund over a package held on this page alone, and
     // cleared the mark that kept the page from being left without asking. Where the copy passed over is this browser's unsaved
-    // work, neither is written: the ladder held above goes on when that board opens, after its own opening keeps that work aside.
+    // work, neither is written (found so only now: said as bandPeers' are, and nothing is held for it either).
     let g={st:null, held:false};
     try{ g=apStoreOf(p.slug); }catch(e){ g={st:null, held:false}; }
     if(g.held){ kept.push(p.t); return; }
+    // held for every peer regardless — harmless where the store was also written directly,
+    // because the adopt is guarded by that appropriation's own bandsTs
+    const pend=!!lsSet(BAND_PEND_KEY(p.slug), JSON.stringify({bands:L, ts:stamp, from:apLabel(), stdVer:(MS.stdVer||STD_VER)}),
+              'The ladder held for '+p.t);
     let st=g.st? JSON.parse(JSON.stringify(g.st)) : null;
-    if(!st){ held++; return; }
+    if(!st){ if(pend) held++; else lost.push(p.t); return; }
+    const raw=apCarryRaw(p.slug), fromPage=!!(typeof PUBS!=='undefined' && PUBS && g.st===PUBS[p.slug]);
     st.bands=JSON.parse(JSON.stringify(L));
     st.bandsTs=stamp;
     st.stdVer=(MS.stdVer||STD_VER);
     st.ts=stamp;                            // so the save-time merge takes this copy, not an older one
-    if(!lsSet(_SLUGMAP[p.slug].key, JSON.stringify(st), p.t+'\u2019s band ladder')) failed++;
-    try{ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.slug]=st; }catch(e){}
+    // v2.14 RV2-B: through apPut -- the record says unsaved once storage holds it, and a refusal keeps what this page's copy holds
+    if(!apPut(p.slug, st, p.t+'’s band ladder', raw, fromPage)) refused.push(p.t);
     done++;
   });
   save(); render();
-  if(failed) return;      // lsSet has already said what went wrong; do not claim success over it
-  setStat('\u2696 Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
-    +(held? ' and held for <b>'+held+'</b> not yet opened in this file (applied on first switch)':'')
-    +(kept.length? '; held for <b>'+esc(kept.join(', '))+'</b> too, which '+(kept.length===1? 'is' : 'are')+' not written now: '
-        +'this browser holds work there the saved file does not have, and the file’s copy is newer — the ladder goes on when '
-        +(kept.length===1? 'that board opens' : 'each board opens')+', after its opening keeps that work aside' : '')
-    +'. \ud83d\udcbe Save to write it into the file.'
-    +(strays.length? ' \u26a0 <b>Not copied</b> to '+esc(strayTxt)+'.' : ''));
+  const nb=busy.map(p=>busyWhy(p.t, p.slug)).concat(kept.map(function(t){
+    const q=go.find(function(x){ return x.t===t; }); return busyWhy(t, q? q.slug : t); }));
+  setStat('⚖ Ladder applied to <b>'+done+'</b> appropriation'+(done===1?'':'s')
+    +(held? ' and held for <b>'+held+'</b> not yet opened in this file (applied on first switch)':'')+'.'
+    +(refused.length? ' ⚠ <b>Browser storage refused '+esc(refused.join(', '))+'</b>: the ladder is there on this page only until it is saved.' : '')
+    +(lost.length? ' ⚠ <b>Not held for '+esc(lost.join(', '))+'</b>: browser storage refused the ladder held there, and no file holds '+(lost.length===1? 'it' : 'them')+' — copy the ladder again once there is room.' : '')
+    +(done? ' 💾 Save to write it into the file.' : '')
+    +(nb.length? ' ⚠ <b>Not copied</b> to '+esc(nb.join('; '))+'.' : '')
+    +(strays.length? ' ⚠ <b>Not copied</b> to '+esc(strayTxt)+'.' : ''));
 }
 // ---- carrying a ladder between files --------------------------------------------------------
 function bandExport(){
@@ -25630,7 +25765,13 @@ function cycJrnlLine(was, key, fy){
 // (cycApplyAll): {<slug>: {ts: the carried copy's time, raw: storage's copy it was tagged from, as it stood (null when it was read from
 // the file), gen: _sideGen when it was carried}}. In memory alone, like the marks that keep the page from being left. A var: apStoreOf
 // can run while the board opens, before a let down here would exist.
+// v2.14 RV2-B: and every later write of that appropriation by this page that held storage's copy as it stood (apPut: ⬆ Issue, the ladder
+// copy, a package taken) -- its own `ts`, the text storage then held, its own `gen`. Without that the first such write ended the carry.
 var _cycCarry=null;
+// v2.14 RV2-B (also-noticed): THE OTHER APPROPRIATIONS WHOSE COPY ON THIS PAGE IS ONE THIS PAGE MADE, not yet in the file: {<slug>: _sideGen
+// when made} (apPut refused, a cycle carried). Cleared, up to the bytes a file save built, by cycCarrySaved. apHeldWhy reads it.
+var _pubsOwn=Object.create(null);
+function pubsInFile(k){ try{ return !(_pubsOwn && Object.prototype.hasOwnProperty.call(_pubsOwn, k)); }catch(e){ return true; } }
 // Is this page's copy of `k` still the one carried from browser storage's copy, and storage's copy still that one? It then holds that
 // copy's work and the cycle beside it: the copy passed over holds nothing this page lacks, so it is not "held" (apStoreOf, cycApplyAll).
 function cycCarryHas(k){
@@ -25648,6 +25789,8 @@ function cycCarryHas(k){
 // appropriation opened off the cycle it had just been saved on. Written straight to storage, as baseSet writes this board's record;
 // refused, the record is left as it was and that opening keeps the copy aside, which loses nothing.
 function cycCarrySaved(wrote, at){
+  // v2.14 RV2-B: what this page had made of the other appropriations before these bytes were built is in the file now
+  try{ Object.keys(_pubsOwn).forEach(function(k){ if(!(_pubsOwn[k]>at)) delete _pubsOwn[k]; }); }catch(e){}
   try{
     if(!_cycCarry) return;
     Object.keys(_cycCarry).forEach(function(k){
@@ -25656,7 +25799,10 @@ function cycCarrySaved(wrote, at){
         const key=_SLUGMAP[k].key+'.base';
         let b=null; try{ b=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ b=null; }
         if(!b || typeof b!=='object' || Array.isArray(b)) b={};
-        try{ localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false}))); }catch(e){}
+        // v2.14 RV2-B (also-noticed): the entry goes only once its record is written. It was deleted whatever the write did, so a
+        // record storage refused left the plan read as held from then on (the second choice skipped it, ⬆ Issue was refused) and
+        // the next Save, with room again, never recorded it saved. Kept, the next Save tries again.
+        try{ localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false}))); }catch(e){ return; }
       }
       delete _cycCarry[k];
     });
@@ -25799,7 +25945,8 @@ function cycApplyAll(key){
       others.forEach(function(p){ const k=_SLUGMAP[p.r.k].key; fileMark('side'); fileStored(k, 'side', false);
         // what this page now holds for it came from storage's copy, as it stands: remembered until 💾 Save writes it (cycCarrySaved)
         if(!_cycCarry) _cycCarry=Object.create(null);
-        _cycCarry[p.r.k]={ts:+p.st.ts||0, raw:p.fromLs? p.raw0 : null, gen:_sideGen}; });
+        _cycCarry[p.r.k]={ts:+p.st.ts||0, raw:p.fromLs? p.raw0 : null, gen:_sideGen};
+        _pubsOwn[p.r.k]=_sideGen; });          // v2.14 RV2-B: made on this page, not in the file yet (apHeldWhy)
     }
     others.forEach(function(p){ if(typeof PUBS!=='undefined' && PUBS) PUBS[p.r.k]=p.st; });
   }
@@ -27866,8 +28013,11 @@ function spDefs(){
       // and $2,200 for a year holding 3 and $1,700). The master list is what every other def carries; the rest of DATA rides along.
       if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : Object.assign({}, DATA, {items:BASE_ITEMS}), ms:MS,
                                ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
+      // v2.14 RV2-B (spruills-bydband-read-older-copy): the copy 💾 Save writes -- the newer of browser storage's and this page's
+      // (apStoreOf, pubsFor's rule), never storage's whatever its age. A browser holding an older, clean Full Fund printed FY27 Full Fund
+      // requirements of $0 off it while the file it opened, Save, the five-year plan and FYDP Disconnects all held a $5,000,000 more.
       let st=null;
-      try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}
+      try{ st=apStoreOf(APPN_SLUG[a]).st; }catch(e){ st=null; }
       st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
       // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): AND ANOTHER APPROPRIATION'S FROM ITS OWN PLAN'S DATA PACK where the
@@ -34005,7 +34155,12 @@ function sideBootCheck(){
   Object.keys(_SLUGMAP).forEach(function(k){
     if(k===_AP.slug) return;
     const bk=_SLUGMAP[k].key;
-    look(bk, fileOf(bk, PUBS[k]), board);
+    // v2.14 RV2-B (sideboot-names-stray-as-saved-by-save): NOT WORK TYPED ON A PAGE WITH NO BOARD FILE (strayOther, the stray rule). Save
+    // has written the file's copy over such work since RV1-C (pubsFor), so "💾 Save writes them into the file" said of it was untrue --
+    // every opening, after every Save, until that appropriation's own board was opened. It is named apart, by sideBootSay, while it lasts.
+    let pre=null; try{ pre=(P[bk]==null)? null : JSON.parse(P[bk]); }catch(e){ pre=null; }
+    if(strayOther(k, pre, PUBS[k])) delete M.h[bk];
+    else look(bk, fileOf(bk, PUBS[k]), board);
     look(bk+'-cyc', fileOf(bk+'-cyc', CYC_FILE[k]), cyc);
   });
   if(JSON.stringify(M)!==M0){ try{ if(Object.keys(M.h).length) localStorage.setItem(SIDE_OPEN_KEY, JSON.stringify(M)); else localStorage.removeItem(SIDE_OPEN_KEY); }catch(e){} }
@@ -34031,9 +34186,31 @@ function sideKeyName(k){
 }
 function sideBootSay(){
   try{
-    const ks=sideBootNote.keys||[]; if(!ks.length || driveStoreOn()) return '';
+    if(driveStoreOn()) return '';
+    const ks=sideBootNote.keys||[];
     const names=ks.map(sideKeyName);
-    return 'This browser holds changes to '+names.join(', ')+' that the file does not have: \ud83d\udcbe Save writes them into the file. ';
+    return (ks.length? 'This browser holds changes to '+names.join(', ')+' that the file does not have: \ud83d\udcbe Save writes them into the file. ' : '')
+      +sideStraySay();
+  }catch(e){ return ''; }
+}
+// v2.14 RV2-B (sideboot-names-stray-as-saved-by-save): THE OTHER APPROPRIATIONS WHOSE STORED WORK IS WORK TYPED ON A PAGE WITH NO BOARD
+// FILE (strayHeld), read as they stand -- the save state's tooltip and Clear this computer say so, and never that Save keeps it: Save
+// writes the file's copy, and only that appropriation's own opening keeps the work aside. Its record is read first, so a browser with
+// no such work never parses a plan here (the save state is drawn on every redraw). Text, not HTML. Never throws.
+function sideStrays(){
+  try{
+    return Object.keys(_SLUGMAP).filter(function(k){
+      if(k===_AP.slug) return false;
+      let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null'); }catch(e){ b=null; }
+      return !!(b && typeof b==='object' && b.dirty===true && !(+b.file) && b.blank===true) && strayHeld(k); });
+  }catch(e){ return []; }
+}
+function sideStraySay(){
+  try{
+    const ns=sideStrays().map(function(k){ return _SLUGMAP[k].t; }); if(!ns.length) return '';
+    const one=ns.length===1;
+    return 'This browser also holds '+ns.join(', ')+' work typed on a page with no board file. \ud83d\udcbe Save does not write it: the file keeps its own '
+      +ns.join(', ')+'. Open '+(one? ns[0] : 'each')+' once (Appropriation, at the top) to keep that work aside. ';
   }catch(e){ return ''; }
 }
 function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
@@ -38562,8 +38739,10 @@ function exportCSV(){
   if(typeof _SLUGMAP!=='undefined'){
     const rows=[];
     Object.keys(_SLUGMAP).forEach(k=>{
+      // v2.14 RV2-B (spruills-bydband-read-older-copy): another appropriation's is the copy 💾 Save writes (apStoreOf), as the Spruills
+      // now read it -- storage's whatever its age counted an older Full Fund's requirements. This one's is read as it always was.
       let st=null;
-      try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){ /* absent is normal */ }
+      try{ st=(k===mySlug())? JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null') : apStoreOf(k).st; }catch(e){ st=null; /* absent is normal */ }
       st=strayOr(k, st);                // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st && typeof PUBS!=='undefined' && PUBS) st=PUBS[k]||null;
       const yr=st&&st.years? st.years[st.cur||MS.cur] : null;
@@ -38859,16 +39038,20 @@ function clearComputer(){
   const keys=clearComputerKeys();
   let kept=false; try{ kept=!!localStorage.getItem((_AP&&_AP.key? _AP.key : '')+'.kept'); }catch(e){}
   const unsaved=(typeof unsavedNow==='function')? !!unsavedNow() : !!DIRTY;
+  // v2.14 RV2-B (sideboot-names-stray-as-saved-by-save): another appropriation's work typed on a page with no board file is named too.
+  // It counted as "unsaved changes … 💾 Save first to keep them" while sideBootCheck called it Save's to write; Save never kept it.
+  let strays=[]; try{ strays=sideStrays().map(function(k){ return _SLUGMAP[k].t; }); }catch(e){ strays=[]; }
   // v2.14 W3 (item 141 F): changes browser storage refused are not "in this browser" at all -- they are on screen only
   let only=false; try{ only=memOnlyNow(); }catch(e){}
   const warn=(only? '\n\n⚠ This board has changes ON SCREEN ONLY: browser storage refused them, so neither this browser nor the file holds them. They will be lost. Cancel and 💾 Save first to keep them.'
              : unsaved? '\n\n⚠ This board has UNSAVED CHANGES. They are in this browser only and will be lost. Cancel and 💾 Save first to keep them.' : '')
-    +(kept? '\n\n⚠ Work KEPT ASIDE in this browser will be lost. Cancel and save it as a file first (History & recovery).' : '');
+    +(kept? '\n\n⚠ Work KEPT ASIDE in this browser will be lost. Cancel and save it as a file first (History & recovery).' : '')
+    +(strays.length? '\n\n⚠ This browser holds '+strays.join(', ')+' work typed on a page with no board file. No file has it, and 💾 Save does not write it: it will be lost. Cancel, open '+(strays.length===1? strays[0] : 'each')+' once (its opening keeps that work aside), then save it as a file (History & recovery).' : '');
   if(!confirm('Clear this computer?\n\nThis removes everything ORBIT keeps in this browser ('+keys.length+' item'+(keys.length===1?'':'s')
     +'): the copies of every board and list, work kept aside, your editor name and writer key, your settings, and the remembered save file.'
     +'\n\nThe board FILE is not touched: the page reopens from it, exactly as last saved. Next time you save, you will be asked where, '
     +'and to take the pen again.'+warn)) return;
-  if((unsaved || kept) && !confirm('Last check: the '+(unsaved? 'unsaved changes' : '')+(unsaved&&kept? ' and the ' : '')+(kept? 'work kept aside' : '')
+  if((unsaved || kept || strays.length) && !confirm('Last check: the '+[unsaved? 'unsaved changes' : '', kept? 'work kept aside' : '', strays.length? strays.join(', ')+' work typed on a page with no board file' : ''].filter(Boolean).join(' and the ')
     +' will be gone for good. Clear anyway?')) return;
   const R=clearComputerRun();
   try{ DIRTY=false; }catch(e){}
