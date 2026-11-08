@@ -6220,6 +6220,76 @@ await (async () => {
 // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
 // ==== end v2.15 W1 ====
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+// v2.15 W2 (item 131): FYDP Disconnects left open while another tab of this browser saves an appropriation. The box was a reading
+// behind -- nothing redrew it -- and Export read storage afresh, so the workbook could carry figures the box on screen did not. Here
+// O&M is on screen with the estimate and its own BES28 position; Full Fund's plan, with a BES28 position of its own, is in browser
+// storage; another tab then saves Full Fund with other controls, and the browser tells this page (the storage event). Every check
+// fails on the slot commit unless it says CONTROL.
+{
+  const name = 'v2.15 W2 — FYDP Disconnects follows another tab’s save, never under a figure being typed, and Export refuses figures that moved (item 131)';
+  try {
+    const J = JSON.stringify;
+    const E = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 160); } };
+    const SV6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+    const mk = () => {
+      const B = boot();
+      seed(B.ev, { services: SV6, items: [], disc: SV6.map(() => 0), mand: SV6.map(() => 0), order: [] });
+      E(B.ev, `(function(){ var Y=[2026,2027,2028,2029,2030,2031,2032,2033], S6=${J(SV6)}, L=[];
+        ['om','ff','sp'].forEach(function(ap, a){ S6.forEach(function(sv, s){ var v={}; Y.forEach(function(y){ v[y]=(a+1)*9e8+(s+1)*4e7+(y-2020)*3e6; }); L.push({ap:ap, pmo:'AV', svc:sv, v:v}); }); });
+        ACEDB.sets={'2025ACE':{label:'2025ACE', ts:2000, years:Y, lines:L, appn:{}, skip:{}}};
+        window.__pos=function(d){ var val={}, lines={}; S6.forEach(function(sv, s){ lines[sv]=[{k:'_all', all:true}]; val[sv]={_all:{}};
+          [2027,2028,2029,2030,2031,2032].forEach(function(y){ val[sv]._all[y]={d:d+(s+1)*1e6, m:0}; }); }); return {'BES|2028':{v:2, split:true, lines:lines, val:val}}; };
+        MS.ppbe=__pos(130000000); MS.cycle='BES|2028';
+        var ff=JSON.parse(JSON.stringify(MS)); ff.ppbe=__pos(777000000); ff.ts=Date.now();
+        localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(ff));
+        window.__dl=0; URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){ if(/\\.xlsx$/.test(this.download||'')) __dl++; };
+        toggleFdc(); })(); 'ok'`);
+      return B;
+    };
+    // another tab saves Full Fund with other controls, and the browser says so
+    const tab = (B, d) => E(B.ev, `(function(){ var old=localStorage.getItem(_SLUGMAP.ff.key), ff=JSON.parse(old); ff.ppbe=__pos(${d}); ff.ts=Date.now()+10;
+      var v=JSON.stringify(ff); localStorage.setItem(_SLUGMAP.ff.key, v);
+      window.dispatchEvent(new StorageEvent('storage', {key:_SLUGMAP.ff.key, oldValue:old, newValue:v})); return 'ok'; })()`);
+    const body = B => E(B.ev, `document.getElementById('fdcBody').textContent`);
+    const ffCtl = B => E(B.ev, `(function(){ var M=fdcModel(); return JSON.stringify(M? M.sheets[0].rows.filter(function(r){ return r.t==='line'; }).map(function(r){ return r.vals; }) : null); })()`);
+    // 1. NOTHING BEING TYPED: the open box is drawn again with the other tab's figures, and Export writes them
+    {
+      const B = mk();
+      const b0 = body(B), m0 = ffCtl(B);
+      chk(name, '1. the fixture', 'the box is open, drawn, and Full Fund’s controls are in it (a CONTROL)', J([E(B.ev, 'String(fdcOpen)'), /Export to Excel/.test(b0), m0 !== 'null']), J(['true', true, true]));
+      tab(B, 888000000);
+      chk(name, '1. another tab saves', 'the model moved (a CONTROL)', ffCtl(B) !== m0, true);
+      chk(name, '1. another tab saves', 'the box on screen is drawn again with the figures as they are now', body(B) !== b0, true);
+      E(B.ev, 'exportFdc(); 0');
+      chk(name, '1. Export', 'it writes the workbook, the box and it agreeing', E(B.ev, 'String(__dl)'), '1');
+    }
+    // 2. A FIGURE BEING TYPED: nothing is drawn under it; Export refuses, saying the figures moved, and draws the box again; then writes
+    {
+      const B = mk();
+      E(B.ev, `(function(){ var e=document.getElementById('fdcIn_ir_om_2028'); e.focus(); e.value='12'; e.dispatchEvent(new Event('input',{bubbles:true})); return 'ok'; })()`);
+      const b0 = body(B);
+      tab(B, 888000000);
+      chk(name, '2. typing', 'nothing is drawn under the figure being typed: the box and the field stand, the typing kept',
+        J([body(B) === b0, E(B.ev, `(document.activeElement||{}).id||''`), E(B.ev, `document.getElementById('fdcIn_ir_om_2028').value`)]), J([true, 'fdcIn_ir_om_2028', '12']));
+      E(B.ev, `(function(){ document.activeElement.blur(); exportFdc(); return 'ok'; })()`);
+      chk(name, '2. Export behind', 'nothing is downloaded, and the box says the figures moved', J([E(B.ev, 'String(__dl)'), /figures moved since the box was drawn/.test(E(B.ev, `document.getElementById('fdcMsg').textContent`)),
+        /figures moved since the box was drawn/.test(E(B.ev, `document.getElementById('shareStat').textContent`))]), J(['0', true, true]));
+      chk(name, '2. Export behind', 'and the box is drawn again with the figures as they are now (CONTROL on the slot commit: its status line redraws it there)', body(B) !== b0, true);
+      E(B.ev, 'exportFdc(); 0');
+      chk(name, '2. Export behind', 'Export again writes the workbook', E(B.ev, 'String(__dl)'), '1');
+    }
+    // 3. CONTROL: one tab alone -- an International figure typed, then Export straight away, writes the workbook as it always has
+    {
+      const B = mk();
+      E(B.ev, `(function(){ var e=document.getElementById('fdcIn_ir_om_2028'); e.focus(); e.value='12'; e.dispatchEvent(new Event('input',{bubbles:true}));
+        e.blur(); e.dispatchEvent(new Event('change',{bubbles:true})); exportFdc(); return 'ok'; })()`);
+      chk(name, '3. one tab alone', 'a figure typed and Export pressed at once: the workbook is written, the figure in it (a CONTROL)',
+        J([E(B.ev, 'String(__dl)'), E(B.ev, 'String(FDC_INTL.ir.om[2028])')]), J(['1', '12000000']));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+}
 // ==== end v2.15 W2 ====
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
 // ==== end v2.15 W3 ====
