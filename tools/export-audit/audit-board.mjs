@@ -9222,7 +9222,10 @@ await (async () => {
       J([J(ffOld.years[ffOld.cur].order), ord('pubsFor(MS).ff')]), J([J(['F', 'G']), J(['F', 'G', 'NEW-1'])]));
     chk(name, 'the Spruills', 'they read Full Fund as Save writes it', ord(`spDefs().filter(function(d){ return d.slug==='ff'; })[0].ms`), J(['F', 'G', 'NEW-1']));
     const req = JSON.parse(B.ev(`(function(){ var r=spGather(); var a=Array.isArray(r)? r : (r.blocks||r.out||[]); var b=a.filter(function(x){ return /FULL FUND/.test(x.name); })[0]; return JSON.stringify(b? b.req : null); })()`));
-    chk(name, 'the Spruills', 'FY27 Full Fund requirements carry the added requirement’s value', J(req && req[B.ev('String(MS.cur)')]), J(H_ASK));
+    // v2.14 round 2 (the lead, at the merge): RV2-D's fix counts another appropriation's base requirements from its own plan's data pack
+    // (spruills-other-appn-base-requirements-zero), so the figure is F and G's asks plus H's -- read off the older copy it would lack H's
+    const FF_BASE = SCF.items.reduce((t, i) => t + i.ask.reduce((a, v) => a + v, 0), 0);
+    chk(name, 'the Spruills', 'FY27 Full Fund requirements carry F and G and the added requirement’s value', J(req && req[B.ev('String(MS.cur)')]), J(FF_BASE + H_ASK));
     const rows = JSON.parse(B.ev(`(function(){ var cap=null; var _b=buildXlsx; buildXlsx=function(sh){ cap=sh; return _b.apply(this, arguments); };
       URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; window.alert=function(){};
       try{ exportCSV(); }catch(e){ return JSON.stringify(['threw '+e.message]); } finally{ buildXlsx=_b; }
