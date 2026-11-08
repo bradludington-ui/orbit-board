@@ -55,6 +55,11 @@
   "kind": "new"
  },
  {
+  "id": "v215-w2-record-over-carry",
+  "caughtBy": "audit-board / v2.14 RV2-B — a carried plan whose record",
+  "kind": "new"
+ },
+ {
   "id": "v215-w2-clash-pubsfor-silent",
   "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
   "kind": "new"

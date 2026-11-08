@@ -10973,7 +10973,7 @@ const MUTATIONS = [
   { id: "v215-w2-save-records-own-only", area: "_saveInPlaceFileRun", what: "after a full import is saved, Full Fund's record still names no file and its first Save asks HOLD ON",
     find: "    apRecordSaved(apSnap, wrote);   // v2.15 W2 (item 143)", repl: "    // v2.15 W2 (item 143)" },
   { id: "v215-w2-save-records-changed-copy", area: "apRecordSaved", what: "a copy another tab changed while the save was writing is recorded as saved in a file that does not hold it",
-    find: "try{ if(localStorage.getItem(_SLUGMAP[k].key)===snap[k]) apBaseSaved(k, wrote); }catch(e){}", repl: "try{ apBaseSaved(k, wrote); }catch(e){}" },
+    find: "try{ if(!(_cycCarry && _cycCarry[k]) && localStorage.getItem(_SLUGMAP[k].key)===snap[k]) apBaseSaved(k, wrote); }catch(e){}", repl: "try{ if(!(_cycCarry && _cycCarry[k])) apBaseSaved(k, wrote); }catch(e){}" },
   { id: "v215-w2-snap-any-copy", area: "apSavedSnap", what: "an appropriation whose copy in the file is not the one storage holds is recorded saved",
     find: "if(raw!==null && JSON.stringify(PUBS[k])===raw) out[k]=raw;", repl: "if(raw!==null) out[k]=raw;" },
   { id: "v215-w2-carry-guard", area: "cycCarrySaved", what: "a cycle carried while the save was writing, from a copy another tab wrote meanwhile, is recorded as saved in a file that does not hold it",
@@ -11014,6 +11014,8 @@ const MUTATIONS = [
     find: "  if(!pb || (ls && (+ls.ts||0)>=(+pb.ts||0))) return {st:ls, held:false, ls:ls};", repl: "  if(!pb || (ls && (+ls.ts||0)>(+pb.ts||0))) return {st:ls, held:false, ls:ls};" },
   { id: "v215-w2-tie-fydp", area: "fydpStoreLocal", what: "on a tie of time, the five-year plan and the cycle bar read the file's copy of Full Fund over the one browser storage holds",
     find: "  if(pb&&(pb.years||Array.isArray(pb.order))&&(pb.ts||0)>((st&&st.ts)||0)) st=pb;", repl: "  if(pb&&(pb.years||Array.isArray(pb.order))&&(pb.ts||0)>=((st&&st.ts)||0)) st=pb;" },
+  { id: "v215-w2-record-over-carry", area: "apRecordSaved", what: "a carried plan whose record Save could not write is recorded by the general record writer after all, so it reads saved while the carry still stands",
+    find: "try{ if(!(_cycCarry && _cycCarry[k]) && localStorage", repl: "try{ if(localStorage" },
   // ==== end v2.15 W2 ====
   // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
   // ==== end v2.15 W3 ====

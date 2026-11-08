@@ -15508,15 +15508,18 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     await w14save(P8.ev);
     chk(name, '(8) the Open window', 'the next Save opens the Open window again', W14J(PP8.open.length), W14J(2));
     // (9) R1's shape: this browser holds an older one-requirement plan of another board; the newer file holds A, B and C
-    const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
-    const obLs = w14ls(OB.ev); await w14pause(5);
+    // v2.15 W2 (item 142): the stored plan is now the NEWER of the two. An older stored copy of another board no longer opens its list
+    // under the file's plan (the list follows the copy that opens), so C24's shorter list is reached the way it still can be: this
+    // browser's newer copy of a one-requirement board opens, on its own list, in front of the file holding A, B and C.
     const F9 = w14board({ ls: { prio27writerKey: W14K } }); F9.ev(`WRITER=${W14J(w14mine())}; save(); 'ok'`);
-    const N9 = F9.ev('buildSavedHtml()');
+    const N9 = F9.ev('buildSavedHtml()'); await w14pause(5);
+    const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
+    const obLs = w14ls(OB.ev);
     const P9 = await w14open({ html: N9, url: W14U('board9.html'),
       ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: +JSON.parse(obLs.prio27om).ts, dirty: false }), prio27writerKey: W14K } });
     w14wire(P9.ev, 'false');
     const d9 = w14disk('board9.html', N9); withFile(P9, d9); w14pickers(P9, { open: null, save: null });
-    chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list (R1), not the file’s (a CONTROL)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
+    chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list, not the file’s (a CONTROL; v2.15 W2: the stored copy, newer, opens on its own list)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
     await w14save(P9.ev);
     const fy9 = fy(w14pub(N9).appns.om.cur);
     chk(name, '(9) R1', 'Save names, under the appropriation and year, the requirements the file holds and the board on screen does not; Cancel writes nothing',
@@ -16129,8 +16132,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   })();
   const ids = (ev) => ev('JSON.stringify(DATA.items.map(function(i){ return i.id; }).sort())');
   const fileIds = JSON.stringify(((W1H.pubOf(NEW.html).appns.om.dataPack || {}).items || []).map(i => i.id).sort());
-  chk(name, 'the fixture', 'the board this browser holds is not the one imported, and opened over it as is, it shows its own list (R1, a control)',
-    J([ids(boot({ ls: stale }).ev), fileIds !== '[]', ids(boot({ html: NEW.html, ls: stale }).ev) !== fileIds]), J(['["X","Y"]', true, true]));
+  // v2.15 W2 (item 142): moved on purpose -- a newer board file opened over this older stored copy now shows the file's own list (it
+  // showed the stored copy's: R1). What this block holds -- the downloaded file's opening removes the unchanged copies -- is unchanged.
+  chk(name, 'the fixture', 'the board this browser holds is not the one imported, and opened over it as is, the file shows its own list (a control; v2.15 W2: was R1)',
+    J([ids(boot({ ls: stale }).ev), fileIds !== '[]', ids(boot({ html: NEW.html, ls: stale }).ev) === fileIds]), J(['["X","Y"]', true, true]));
   const skip = (T) => { if (/1\. This browser holds work/.test(box(T).text)) T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`); };
   // the same import through the save window, for the bytes
   const T0 = boot({ ls: stale }); const P0 = picker(T0), e00 = T0.errors.length;

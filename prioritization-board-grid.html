@@ -25959,7 +25959,8 @@ function apSavedSnap(){
 function apRecordSaved(snap, wrote){
   try{
     Object.keys(snap||{}).forEach(function(k){
-      try{ if(localStorage.getItem(_SLUGMAP[k].key)===snap[k]) apBaseSaved(k, wrote); }catch(e){}
+      // a plan still carried (cycCarrySaved could not record it, or it was carried after these bytes) is cycCarrySaved's alone
+      try{ if(!(_cycCarry && _cycCarry[k]) && localStorage.getItem(_SLUGMAP[k].key)===snap[k]) apBaseSaved(k, wrote); }catch(e){}
     });
   }catch(e){}
 }
