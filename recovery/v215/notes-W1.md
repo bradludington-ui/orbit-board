@@ -113,8 +113,20 @@ Existing checks changed on purpose (each with a `// v2.15 W1` comment):
 
 ## Mutations
 39 new (`v215-w1-*`), 3 retargeted (`retag-drops-reference`, `v203-19-flag-never`, `v213-rv-headline-every`), none retired.
-Proved with `recovery/v208/bin/prove.py` (`proofs-W1.json` → `proved-W1.jsonl`). The CSS steps (`.hdr.cyc2 #cycFit`, the ⚠,
-`.hdr.tight3 …`) have no jsdom mutation (the sweep could not see them); layout S, toolbar-fits and keys V2 hold them (see Proof by hand).
+Proved with `recovery/v208/bin/prove.py` (`proofs-W1.json` → `proved-W1.jsonl`), JOBS=1 under heavy.sh: **42 of 42 CAUGHT**
+(`v215-w1-fit-list-missing` was caught by two failed checks and its block then threw on the missing item; every other with no throw).
+The CSS steps (`.hdr.cyc2 #cycFit`, the ⚠, `.hdr.tight3 …`) have no jsdom mutation (the sweep could not see them); the browser
+checks hold them, proved by hand on the slot board (`8c24ea2`, which has none of it): layout S FAILS there, toolbar-fits' tagged pass
+FAILS (10 widths wrap below 1100), and keys V2 FAILS (the figure never leaves the bar; the list's first item is a cycle).
+
+## Older checks and fixtures that lock on a plan tagged with another cycle
+Lock's refusal (139) meets every fixture that locks a second cycle on one plan. Each was changed on purpose with a `// v2.15 W1` (or
+`/* v2.15 W1 */`) comment: in audit-board by tagging the plan first or `OLD_LOCK` (v2.13 block); in audit-recon ("comparing two
+cycles", "v1.95 — the cycle comparison files…", "v2.00 (U32, U33)"), audit-import (the v1.85 frame fixtures, "v1.86 — the four lists…",
+"v1.86 — one appropriation out…", the U40 destination fixtures) and audit-other ("v2.10 A") by `w1LockAsBefore()` -- a hoisted
+function in each suite's W1 slot that takes the lock as v2.14 did (under the lock's key with the plan's own position, then the tag put
+back and the record set as v2.14 wrote it; plain `cycLock()` where the plan is untagged or on that cycle). These fixtures stand for
+locks files already carry; none of them tests the lock itself.
 
 ## For the integration
 - **`cycApplyAll(key, opt)`** — W1 added the optional `opt` (the retag's `only`/`from`/`left`, the question's title, the leave lines,
