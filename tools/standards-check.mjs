@@ -267,7 +267,10 @@ for (const build of BUILDS) {
     // its buttons -- not as the quiet start-up line, which is hidden and would be measured as nothing.
     await page.evaluate(() => { try { if (typeof setStat === 'function') setStat('\u26a0 A long warning written for the '
       + 'conformance check, so the status line is measured the way people see it: shown, on one line, cut off at the '
-      + 'end, with its own buttons beside it.'); } catch (e) {} });
+      + 'end, with its own buttons beside it.'
+      // v2.15 W3 (item 146): and a link button of its own, as the messages that offer one carry it ("⬇ Save a copy", "lift the hold…",
+      // "put it back"): until v2.15 nothing drawn here carried one, so their edge (1.4.11) was measured by nothing
+      + ' <button type="button" class="nb lnk" onclick="void 0">⬇ Save a copy</button>'); } catch (e) {} });
     // v1.91: and with Funding detail OPEN. v1.90 folded the scorecards, the fit strip and the funding panels
     // behind it, so from then on this run measured none of them -- colour, targets or keyboard. Open, they
     // are measured as they were before the fold.

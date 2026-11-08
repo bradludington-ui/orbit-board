@@ -2849,7 +2849,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // the board: its foot as it was (a CONTROL)
     chk(name, 'board', 'the board’s foot is 💾 Save, its ▾ and the save state, as before (a CONTROL)', foot(B.ev),
       J(['saveBtn:saveInPlace()', "uiNav_save:uiGo('save',this)", 'state']));
-    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)']));
+    // v2.15 W3: and Save as a new file… and Choose another file… (item 146)
+    chk(name, 'board', 'its ▾ offers the board’s Save a copy (a CONTROL)', ddSave(B.ev), J(['mRun(publishState)', 'mRun(fhSaveNew)', 'mRun(fhRepick)']));
     // the copy
     const P = boot({ html: C0 });
     P.ev(`window.__al=[]; window.alert=function(m){ __al.push(String(m)); }; window.confirm=function(){ return true; }; window.prompt=function(){ return null; };

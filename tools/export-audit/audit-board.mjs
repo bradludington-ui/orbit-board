@@ -3823,10 +3823,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   ev(`menuGrpOpen={}; menuFindQ=''; openMenu=null; 'ok'`);
   // v2.02: the ATR/BTR log export and the Execution & reprogramming section went with the tracker (18 -> 17)
   // v2.03 (item 105): the Filter menu's "☰ By-service detail on every row" went with the card leftovers -- only the card's rows read it (3 -> 2)
-  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 1, Imports & exports 5',
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 20 (Find, Pre-flight and the eighteen reports and exports, side by side -- v2.04 added the three AI review entries), Setup 6 (three groups, Live view, Save diagnostics, Clear this computer -- v2.04), Filter 2, the year 9, Data 8, Program offices 4, Audit 4, Save’s ▾ 3, Imports & exports 5',
     // v2.05 (item 114): 15 -- the deck, the synopsis and Executive decision removed, and the companion tool a link at the box's foot
     // v2.12 W1: Data 8 -- the Annual Cost Estimate card gains the import report (item 132)
-    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '1', '5']));
+    // v2.15 W3: Save’s ▾ 3 -- Save as a new file… and Choose another file… beside Save a copy… (item 146)
+    J(['reports', 'setup', 'view', 'fy', 'data', 'offices', 'audit', 'save', 'boards'].map(shown)), J(['15', '6', '2', '9', '8', '4', '4', '3', '5']));
   const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
       return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
         return h.querySelector('span:nth-child(2)').textContent; })); })()`));
@@ -3891,7 +3892,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'contents', 'what the File menu held, each in one place: Program offices; Audit; Imports & exports; Save’s ▾; Live view and Save diagnostics under Setup',
     J([callsIn('#dd_offices .mi'), callsIn('#dd_audit .mi'), callsIn('#dd_boards .mi'), callsIn('#dd_save .mi'), callsIn('#dd_setup > .mi')]),
     J([['publishPmoCopy', 'subOpenReview', "uiPmoLoad('one')", "uiPmoLoad('all')"], ['toggleJrnl', 'showLog', 'takePen', 'whoAmI'],
-       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
+       // v2.15 W3: Save’s ▾ holds Save as a new file… and Choose another file… too (item 146)
+       ['fullFile', 'stateFile', 'multiFile', 'exportOneAppn', 'togglePkg'], ['publishState', 'fhSaveNew', 'fhRepick'], ['toggleLive', 'toggleDiag', 'clearComputer']]));
   chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
     J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt', 'linkSet'], 8]));   // v2.05 (item 114): Linked tool…
   // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup. Every list a
@@ -7914,7 +7916,8 @@ const W3S_FH = `window.__fw={content:'', writes:0};
       D.ev(`publishState(); window.__cq=[]; window.confirm=function(q){ window.__cq.push(String(q)); return false; }; 'ok'`);
       const n0 = w3sNav(D), v = w3sPick(D, 'FULL FUND'), qs = JSON.parse(D.ev('JSON.stringify(window.__cq)'));
       chk(name, 'after a downloaded copy', 'switching asks once, naming the downloaded copy as the only one holding the changes',
-        J([D.ev('String(_dlOnly)'), qs.length, /^Your latest changes are in the copy you downloaded, but not in the board file, and browser storage could not keep them\.\n\nSwitching appropriation reopens the page: afterwards only the downloaded copy holds them\./.test(qs[0] || '')]),
+        // v2.15 W3: the question no longer says the downloaded copy holds the changes -- only if the download was kept (item 146)
+        J([D.ev('String(_dlOnly)'), qs.length, /^You downloaded a copy of this board, but your latest changes are not in the board file, and browser storage could not keep them\. The downloaded copy holds them only if the download was kept: check your Downloads folder first\.\n\nSwitching appropriation reopens the page: afterwards only that downloaded copy holds them\./.test(qs[0] || '')]),
         J(['true', 1, true]));
       chk(name, 'after a downloaded copy', 'Cancel: nothing reopened, the box on O&M again, and “nothing changed”',
         J([w3sNav(D) - n0, v, /Not switched — nothing changed\./.test(w3sStat(D))]), J([0, 'O&M', true]));
@@ -8102,7 +8105,8 @@ await (async () => {
     const cells = JSON.parse(B.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here'; }).map(function(s){ return s.getAttribute('title'); }))`));
     const whole = lines(B).filter(e => e.p[0] === 'custom' && e.p.length === 2 && typeof e.p[1] === 'string').length;
     chk(name, '(d) the panel', 'each whole added-requirement line reads “not put back here”, with why on hover',
-      J(cells.filter(t => /^An added requirement as a whole — added or removed — is not put back from the change journal\. To take one out, use Remove on its row’s ⋯ menu; to bring one back, put back an earlier saved copy from History & recovery\.$/.test(t)).length), J(whole));
+      // v2.15 W3: the wording names the menus as they are (item 146: "Delete this added requirement", and earlier copies of the board file)
+      J(cells.filter(t => /^An added requirement as a whole — added or removed — is not put back from the change journal\. To take one out, use Delete this added requirement on its row’s ⋯ menu; to bring one back, open an earlier saved copy of the board file \(or, working out of the shared folder, History & recovery › Earlier copies…\)\.$/.test(t)).length), J(whole));
     chk(name, '(e) the panel', 'and the line filed by place reads it too, with its own reason',
       J(cells.filter(t => /^Recorded before v2\.14 by its place in the list of added requirements\. Put back now, it could land on another requirement, so it is not offered\.$/.test(t)).length), '1');
     B.ev(`jrnlOpen=false; render(); 'ok'`);
