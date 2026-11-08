@@ -15508,15 +15508,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     await w14save(P8.ev);
     chk(name, '(8) the Open window', 'the next Save opens the Open window again', W14J(PP8.open.length), W14J(2));
     // (9) R1's shape: this browser holds an older one-requirement plan of another board; the newer file holds A, B and C
-    const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
-    const obLs = w14ls(OB.ev); await w14pause(5);
+    // v2.15 W2 (item 142): the stored plan is now the NEWER of the two. An older stored copy of another board no longer opens its list
+    // under the file's plan (the list follows the copy that opens), so C24's shorter list is reached the way it still can be: this
+    // browser's newer copy of a one-requirement board opens, on its own list, in front of the file holding A, B and C.
     const F9 = w14board({ ls: { prio27writerKey: W14K } }); F9.ev(`WRITER=${W14J(w14mine())}; save(); 'ok'`);
-    const N9 = F9.ev('buildSavedHtml()');
+    const N9 = F9.ev('buildSavedHtml()'); await w14pause(5);
+    const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
+    const obLs = w14ls(OB.ev);
     const P9 = await w14open({ html: N9, url: W14U('board9.html'),
-      ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: +JSON.parse(obLs.prio27om).ts, dirty: false }), prio27writerKey: W14K } });
+      // v2.15 W2: the record names the file's save (the copy newer than it was typed after it), so the first question is the one this tests
+      ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: w14fileTs(w14pub(N9)), dirty: false }), prio27writerKey: W14K } });
     w14wire(P9.ev, 'false');
     const d9 = w14disk('board9.html', N9); withFile(P9, d9); w14pickers(P9, { open: null, save: null });
-    chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list (R1), not the file’s (a CONTROL)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
+    chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list, not the file’s (a CONTROL; v2.15 W2: the stored copy, newer, opens on its own list)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
     await w14save(P9.ev);
     const fy9 = fy(w14pub(N9).appns.om.cur);
     chk(name, '(9) R1', 'Save names, under the appropriation and year, the requirements the file holds and the board on screen does not; Cancel writes nothing',
@@ -16129,8 +16133,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   })();
   const ids = (ev) => ev('JSON.stringify(DATA.items.map(function(i){ return i.id; }).sort())');
   const fileIds = JSON.stringify(((W1H.pubOf(NEW.html).appns.om.dataPack || {}).items || []).map(i => i.id).sort());
-  chk(name, 'the fixture', 'the board this browser holds is not the one imported, and opened over it as is, it shows its own list (R1, a control)',
-    J([ids(boot({ ls: stale }).ev), fileIds !== '[]', ids(boot({ html: NEW.html, ls: stale }).ev) !== fileIds]), J(['["X","Y"]', true, true]));
+  // v2.15 W2 (item 142): moved on purpose -- a newer board file opened over this older stored copy now shows the file's own list (it
+  // showed the stored copy's: R1). What this block holds -- the downloaded file's opening removes the unchanged copies -- is unchanged.
+  chk(name, 'the fixture', 'the board this browser holds is not the one imported, and opened over it as is, the file shows its own list (a control; v2.15 W2: was R1)',
+    J([ids(boot({ ls: stale }).ev), fileIds !== '[]', ids(boot({ html: NEW.html, ls: stale }).ev) === fileIds]), J(['["X","Y"]', true, true]));
   const skip = (T) => { if (/1\. This browser holds work/.test(box(T).text)) T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`); };
   // the same import through the save window, for the bytes
   const T0 = boot({ ls: stale }); const P0 = picker(T0), e00 = T0.errors.length;
@@ -20068,6 +20074,396 @@ function w1LockAsBefore() {
 }
 // ==== end v2.15 W1 ====
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+// v2.15 W2: the helpers this slot's blocks share
+const W215 = (() => {
+  const J = JSON.stringify;
+  // another board's requirement list (X1, X2), as INT-9 builds it, and a second board with the same ids as W14SC (R1's same-ids case)
+  const XSC = { services: ['USAF', 'ANG', 'AFRC'], items: [it('X1', 'AV', [70, 7, 0]), it('X2', 'PSM', [30, 3, 1])], disc: [90, 9, 1], mand: [5, 0, 0], order: ['X1', 'X2'] };
+  const SAME = { services: ['USAF', 'ANG', 'AFRC'], items: [Object.assign(it('A', 'PSM', [11, 2, 1]), { title: 'FILE A' }), Object.assign(it('B', 'PSM', [22, 1, 1]), { title: 'FILE B' }),
+    Object.assign(it('C', 'AV', [33, 1, 0]), { title: 'FILE C' })], disc: [60, 4, 2], mand: [0, 0, 0], order: ['A', 'B', 'C'] };
+  // what is on screen: the requirement list (DATA), each one's title and ask as the list carries them, the plan's order and note
+  const view = ev => JSON.parse(ev(`JSON.stringify({data:DATA.items.map(function(i){ return i.id; }), titles:DATA.items.map(function(i){ return i.title; }),
+    asks:DATA.items.map(function(i){ return (i.ask||[]).join('/'); }), order:S.order, notes:S.notes||{},
+    loose:S.order.filter(function(id){ return !DATA.items.some(function(i){ return i.id===id; }); })})`));
+  const keptRaw = ev => { const v = ev(`localStorage.getItem('prio27om.kept')`); if (!v) return null; const i = v.indexOf('\n'); return v.slice(i + 1); };
+  // the older board in this browser (W14SC, a note), then the newer board file `sc` (a note of its own): storage's copy is older
+  const pair = async (sc, rec) => {
+    const Z = w14board({ appn: 'O&M' });
+    Z.ev(`S.notes=S.notes||{}; S.notes.A='STORAGE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const ls = Object.assign(w14ls(Z.ev), { 'prio27om.base': J(rec) });
+    await w14pause(15);
+    const X = w14board({ appn: 'O&M' }, sc);
+    X.ev(`S.notes=S.notes||{}; S.notes.${sc.order[0]}='FILE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const FILE = X.ev('buildSavedHtml()');
+    return { ls, FILE, zPlan: ls.prio27om, filePlan: (w14pub(FILE).appns || {}).om };
+  };
+  return { J, XSC, SAME, view, keptRaw, pair };
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W2 — a newer board file opened over another board’s older copy shows its own requirement list (item 142)';
+  try {
+    const { J, XSC, SAME, view, keptRaw, pair } = W215;
+    // 1. THE MEASURED CASE, storage's copy saved: the file opens with its own list, and storage's saved copy is left where it is
+    {
+      const P = await pair(XSC, { file: 1700000000123, dirty: false });
+      chk(name, '1. the fixture', 'storage holds the other board (A, B, C), older than the file, which holds X1, X2 (a CONTROL)',
+        J([JSON.parse(P.zPlan).dataPack.items.map(i => i.id), P.filePlan.dataPack.items.map(i => i.id), +JSON.parse(P.zPlan).ts < +P.filePlan.ts]), J([['A', 'B', 'C'], ['X1', 'X2'], true]));
+      const R = boot({ html: P.FILE, ls: P.ls });
+      const v = view(R.ev);
+      chk(name, '1. saved copy', 'the requirement list on screen is the file’s: X1, X2, with their titles and asks', J([v.data, v.titles, v.asks]),
+        J([['X1', 'X2'], ['X1', 'X2'], ['70/7/0', '30/3/1']]));
+      chk(name, '1. saved copy', 'and the plan is the file’s: its order and its note, every requirement in the order on the list', J([v.order, v.notes, v.loose]),
+        J([['X1', 'X2'], { X1: 'FILE note' }, []]));
+      chk(name, '1. saved copy', 'storage’s saved copy is left where it is, nothing kept aside', J([R.ev(`localStorage.getItem('prio27om')`) === P.zPlan, intKept(R.ev)]), J([true, []]));
+      const sv = w14pub(R.ev('buildSavedHtml()')).appns.om;
+      chk(name, '1. saved copy', 'the next Save writes the file’s list and plan, one board', J([sv.dataPack.items.map(i => i.id), sv.years[sv.cur].order]), J([['X1', 'X2'], ['X1', 'X2']]));
+    }
+    // 2. storage's copy holds unsaved work: it is kept aside whole, the file opens with its own list
+    {
+      const P = await pair(XSC, { file: 1700000000123, dirty: true });
+      const R = boot({ html: P.FILE, ls: P.ls });
+      const v = view(R.ev);
+      chk(name, '2. unsaved copy', 'the list and the plan on screen are the file’s', J([v.data, v.order, v.notes]), J([['X1', 'X2'], ['X1', 'X2'], { X1: 'FILE note' }]));
+      chk(name, '2. unsaved copy', 'storage’s copy is kept aside whole, as storage held it', keptRaw(R.ev) === P.zPlan, true);
+      chk(name, '2. unsaved copy', 'and the opening says so', /kept aside/i.test(w14stat(R.ev)), true);
+      chk(name, '2. unsaved copy', 'storage now holds what is on screen, recorded as this file’s save',
+        J([JSON.parse(R.ev(`localStorage.getItem('prio27om')`)).dataPack.items.map(i => i.id), JSON.parse(R.ev(`localStorage.getItem('prio27om.base')`)).dirty]), J([['X1', 'X2'], false]));
+    }
+    // 3. unsaved, and NO ROOM to keep it aside: the file is held back as today, and the list on screen is the plan on screen's
+    {
+      const P = await pair(XSC, { file: 1700000000123, dirty: true });
+      const used = Object.entries(P.ls).reduce((n, [k, v]) => n + k.length + v.length, 0);
+      const R = boot({ html: P.FILE, ls: P.ls, quota: used + 400 });
+      const v = view(R.ev);
+      chk(name, '3. no room', 'the file is held back: storage’s plan stays on screen with its own list, never a mix (CONTROL on the slot commit)',
+        J([v.data, v.order, v.loose, v.notes]), J([['A', 'B', 'C'], ['A', 'B', 'C'], [], { A: 'STORAGE note' }]));
+      chk(name, '3. no room', 'nothing kept aside, nothing lost: storage still holds that work (CONTROL on the slot commit)', J([intKept(R.ev), R.ev(`localStorage.getItem('prio27om')`) === P.zPlan]), J([[], true]));
+      // ⇢ Open the file anyway: the page goes to reopen, and reopened it is the file, with its own list
+      w14wire(R.ev, 'true');
+      const e0 = R.errors.length;
+      w14ev(R.ev, 'bootTakeFile()');
+      const navs = R.errors.slice(e0).filter(e => /navigation/i.test(e)).length;
+      const v1 = view(R.ev);
+      chk(name, '3. open the file anyway', 'never the file’s plan against storage’s list on this page: every note on screen is on the list on screen',
+        J(Object.keys(v1.notes).filter(k => v1.data.indexOf(k) < 0)), '[]');
+      const R2 = boot({ html: P.FILE, ls: w14ls(R.ev), quota: used + 400 });
+      const v2 = view(R2.ev);
+      chk(name, '3. open the file anyway', 'the page reopens, and the file is on screen with its own list and plan', J([navs > 0, v2.data, v2.order, v2.notes, v2.loose]),
+        J([true, ['X1', 'X2'], ['X1', 'X2'], { X1: 'FILE note' }, []]));
+    }
+    // 3b. unsaved, and other work already kept aside ('occupied'): the file is held back, storage's list with storage's plan, and the
+    // kept work is never replaced
+    {
+      const P = await pair(XSC, { file: 1700000000123, dirty: true });
+      const KEPT = J({ t: 1, why: 'file', by: 'Kept', ts: 1 }) + '\n' + J({ years: {}, ts: 1 });
+      const R = boot({ html: P.FILE, ls: Object.assign({}, P.ls, { 'prio27om.kept': KEPT }) });
+      const v = view(R.ev);
+      chk(name, '3b. kept slot in use', 'the file is held back: storage’s plan on its own list (CONTROL on the slot commit)', J([v.data, v.order, v.notes]), J([['A', 'B', 'C'], ['A', 'B', 'C'], { A: 'STORAGE note' }]));
+      chk(name, '3b. kept slot in use', 'the work kept before is kept as it was, and storage’s work is not lost (CONTROL on the slot commit)',
+        J([R.ev(`localStorage.getItem('prio27om.kept')`) === KEPT, R.ev(`localStorage.getItem('prio27om')`) === P.zPlan]), J([true, true]));
+    }
+    // 4. R1's same-ids case: another board with the same ids, other content -- the file's own titles and asks
+    {
+      const P = await pair(SAME, { file: 1700000000123, dirty: false });
+      const R = boot({ html: P.FILE, ls: P.ls });
+      const v = view(R.ev);
+      chk(name, '4. the same ids', 'the file’s own list: its titles and its asks, not storage’s board’s', J([v.data, v.titles, v.asks]),
+        J([['A', 'B', 'C'], ['FILE A', 'FILE B', 'FILE C'], ['11/2/1', '22/1/1', '33/1/0']]));
+      const sv = w14pub(R.ev('buildSavedHtml()')).appns.om;
+      chk(name, '4. the same ids', 'and the next Save writes the file’s list, not the other board’s', J(sv.dataPack.items.map(i => i.title)), J(['FILE A', 'FILE B', 'FILE C']));
+    }
+    // 5. CONTROL: the same board, storage's copy the newer -- it opens on its own list, nothing kept aside
+    {
+      const Z = w14board({ appn: 'O&M' });
+      const FILE = Z.ev('buildSavedHtml()');
+      await w14pause(15);
+      Z.ev(`S.notes=S.notes||{}; S.notes.B='LATER note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const R = boot({ html: FILE, ls: Object.assign(w14ls(Z.ev), { 'prio27om.base': J({ file: w14fileTs(w14pub(FILE)), dirty: true }) }) });
+      const v = view(R.ev);
+      chk(name, '5. controls', 'the same board, storage newer: storage’s work opens on its list, nothing kept aside (a CONTROL)', J([v.data, v.notes, intKept(R.ev)]), J([['A', 'B', 'C'], { B: 'LATER note' }, []]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W2 — 💾 Save records every appropriation it wrote exactly as this browser held it, and no copy changed while it wrote (item 143)';
+  try {
+    const J = JSON.stringify;
+    const { NEW, OLD } = w2Fx();
+    const recOf = (ev, k) => { try { return JSON.parse(ev(`localStorage.getItem(${J(k + '.base')})`) || 'null'); } catch (e) { return null; } };
+    // the full import lands through browser storage, and the board file it was run from is reopened on it, its writer this browser
+    const landed = () => { const T = boot({ html: OLD.html, ls: OLD.ls }); w2Import(T, NEW.html, 'none', 0);
+      const R = boot({ html: OLD.html, ls: w2LsOf(T.ev) }); W1H.wire(R.ev, 'Brad', W1H.KEY.brad); return R; };
+    // another tab of this browser writes Full Fund (a note on F, a later stamp) and its record, as its save() would
+    const otherTab = (ev, tag) => ev(`(function(){ const st=JSON.parse(localStorage.getItem('prio27ff')); const y=st.years[st.cur];
+      y.notes=y.notes||{}; y.notes.F=${J(tag)}; st.ts=Date.now()+5; localStorage.setItem('prio27ff', JSON.stringify(st));
+      localStorage.setItem('prio27ff.base', JSON.stringify({file:0, folder:{}, dirty:true})); return 'ok'; })()`);
+    // 1. INT-1's shape: import, 💾 Save, then Full Fund changed (its ladder copied from O&M), then Full Fund's own first 💾 Save
+    {
+      const R = landed();
+      chk(name, '1. the fixture', 'after the import, Full Fund’s record names no saved file (C6; a CONTROL)', J(recOf(R.ev, 'prio27ff')), J({ file: 0, folder: {}, dirty: true }));
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      const wrote = W1H.fileTs(f.content);
+      chk(name, '1. Save', 'the Save wrote the file, and its Full Fund is the copy browser storage holds (a CONTROL)',
+        J([f.writes, J(W1H.pubOf(f.content).appns.ff) === R.ev(`localStorage.getItem('prio27ff')`)]), J([1, true]));
+      chk(name, '1. Save', 'Full Fund’s record now names this save, saved', J(recOf(R.ev, 'prio27ff')), J({ file: wrote, folder: {}, dirty: false }));
+      R.ev('globalThis.__q=[]; bandCopyAll(); 0');
+      chk(name, '1. the ladder', 'Full Fund was changed from O&M: its ladder copied, its record unsaved (a CONTROL)',
+        J([+JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)).bandsTs > 0, recOf(R.ev, 'prio27ff').dirty]), J([true, true]));
+      const F = boot({ html: f.content, ls: w2LsOf(R.ev), appn: 'FULL FUND' });
+      W1H.wire(F.ev, 'Brad', W1H.KEY.brad);
+      F.ev(`setNote('F','CHANGED ON FULL FUND'); 'ok'`);
+      const f2 = W1H.disk(F.w, f.content);
+      try { await F.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f2.writes > 0, 3000);
+      chk(name, '1. Full Fund’s first Save', 'it asks nothing, and writes', J([W1H.qs(F.ev).map(q => q.slice(0, 40)), f2.writes]), J([[], 1]));
+      chk(name, '1. Full Fund’s first Save', 'the file holds the change and the ladder', J([/CHANGED ON FULL FUND/.test(J(W1H.pubOf(f2.content).appns.ff)), !!W1H.pubOf(f2.content).appns.ff.bandsTs]), J([true, true]));
+    }
+    // 2. Two appropriations, one changed while the save wrote: O&M is recorded, Full Fund -- changed in another tab meanwhile -- keeps
+    // its own record (the generation guard), and that tab's work opens on Full Fund's board
+    {
+      const R = landed();
+      const f = W1H.disk(R.w, OLD.html); f.hold.write = W1H.gate(); const g = f.hold.write;
+      const p = R.ev('saveInPlaceFile()');
+      await W1H.until(() => f.hits.write >= 1, 3000);
+      otherTab(R.ev, 'THE OTHER TAB');
+      g.open(); try { await p; } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      const wrote = W1H.fileTs(f.content);
+      chk(name, '2. changed while it wrote', 'O&M on screen is recorded saved (a CONTROL)', J(recOf(R.ev, 'prio27om')), J({ file: wrote, folder: {}, dirty: false }));
+      chk(name, '2. changed while it wrote', 'Full Fund keeps the other tab’s record: unsaved, naming no file (CONTROL on the slot commit)', J(recOf(R.ev, 'prio27ff')), J({ file: 0, folder: {}, dirty: true }));
+      const F = boot({ html: f.content, ls: w2LsOf(R.ev), appn: 'FULL FUND' });
+      chk(name, '2. changed while it wrote', 'and Full Fund opens on the other tab’s work (CONTROL on the slot commit)', F.ev(`String((S.notes||{}).F||'')`), 'THE OTHER TAB');
+    }
+    // 3. The record write refused for room: Full Fund’s record is left; its board then opens the file’s equal copy, and nothing is lost
+    {
+      const R = landed();
+      R.ev(`(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27ff.base') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); }; return 'ok'; })()`);
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      chk(name, '3. the record refused', 'the file is written; Full Fund’s record is left as it was (CONTROL on the slot commit)', J([f.writes, recOf(R.ev, 'prio27ff')]), J([1, { file: 0, folder: {}, dirty: true }]));
+      const F = boot({ html: f.content, ls: w2LsOf(R.ev), appn: 'FULL FUND' });
+      chk(name, '3. the record refused', 'Full Fund opens on the import, nothing kept aside, nothing lost (CONTROL on the slot commit)',
+        J([F.ev(`(S.titles||{}).F||''`), intKept(F.ev)]), J(['NEW FULL FUND', []]));
+    }
+    // 4. cycCarrySaved's guard: a cycle carried AFTER the bytes were built, from a copy another tab wrote meanwhile, is not in the file;
+    // its record is not called saved
+    {
+      const R = landed();
+      const f = W1H.disk(R.w, OLD.html); f.hold.write = W1H.gate(); const g = f.hold.write;
+      const p = R.ev('saveInPlaceFile()');
+      await W1H.until(() => f.hits.write >= 1, 3000);
+      otherTab(R.ev, 'WRITTEN WHILE SAVING');
+      R.ev(`(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27ff') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); };
+        try{ cycApplyAll('BES|2028'); } finally { Storage.prototype.setItem=_si; } return 'ok'; })()`);
+      chk(name, '4. carried while it wrote', 'Full Fund’s cycle was carried on this page from the other tab’s copy (a CONTROL)',
+        J([R.ev(`String(!!(_cycCarry && _cycCarry.ff))`), (R.ev(`JSON.stringify(PUBS.ff.cycle||'')`)), /WRITTEN WHILE SAVING/.test(R.ev(`localStorage.getItem('prio27ff')`))]), J(['true', '"BES|2028"', true]));
+      g.open(); try { await p; } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      chk(name, '4. carried while it wrote', 'the file does not hold the other tab’s copy (a CONTROL)', /WRITTEN WHILE SAVING/.test(J(W1H.pubOf(f.content).appns.ff)), false);
+      chk(name, '4. carried while it wrote', 'so its record is not called saved', recOf(R.ev, 'prio27ff').dirty, true);
+      chk(name, '4. carried while it wrote', 'and the carry is still remembered for the next Save', R.ev(`String(!!(_cycCarry && _cycCarry.ff))`), 'true');
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W2 — two tabs on one appropriation: a copy this page holds that storage refused is never replaced by another tab’s, and Save asks, naming both (item 145)';
+  try {
+    const J = JSON.stringify;
+    const { OLD, ls: LS } = W214.fx();     // storage holds exactly what OLD's file holds, recorded saved
+    // THIS PAGE'S OWN COPY OF FULL FUND: the ladder copied from O&M while browser storage refuses Full Fund's plan -- held on this page
+    // alone (counted on screen only). Then, with `tab`, ANOTHER TAB of this browser saves Full Fund (a note on F, a later stamp, its
+    // record unsaved) and the browser tells this page (the storage event).
+    const setup = (tab = true) => {
+      const R = boot({ html: OLD.html, ls: LS });
+      W1H.wire(R.ev, 'Brad', W1H.KEY.brad);
+      R.ev(`(function(){ const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(k==='prio27ff') throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); };
+        try{ bandCopyAll(); } finally { Storage.prototype.setItem=_si; } return 'ok'; })()`);
+      const mineTs = +R.ev('PUBS.ff.bandsTs||0');
+      if (tab) R.ev(`(function(){ const old=localStorage.getItem('prio27ff'), st=JSON.parse(old), y=st.years[st.cur];
+        y.notes=y.notes||{}; y.notes.F='THE OTHER TAB'; st.ts=Date.now()+50; st.by='Ann'; const v=JSON.stringify(st);
+        localStorage.setItem('prio27ff', v); localStorage.setItem('prio27ff.base', JSON.stringify({file:0, folder:{}, dirty:true}));
+        window.dispatchEvent(new StorageEvent('storage', {key:'prio27ff', oldValue:old, newValue:v})); return 'ok'; })()`);
+      return { R, mineTs, theirs: tab ? R.ev(`localStorage.getItem('prio27ff')`) : null };
+    };
+    // what stands: this page's Full Fund (the ladder copied here) and storage's (the other tab's note)
+    const both = (R, mineTs) => JSON.parse(R.ev(`JSON.stringify({mine:+PUBS.ff.bandsTs===${mineTs} && !/THE OTHER TAB/.test(JSON.stringify(PUBS.ff)),
+      theirs:/THE OTHER TAB/.test(localStorage.getItem('prio27ff')||''), left:memOnlyNow()})`));
+    // the fixture
+    {
+      const { R, mineTs } = setup(false);
+      chk(name, 'the fixture', 'the ladder copied here is held on this page alone, storage refused it, and leaving asks (a CONTROL)',
+        J([mineTs > 0, R.ev(`String(_pubsOwn.ff!==undefined)`), R.ev(`String(memOnlyNow())`)]), J([true, 'true', 'true']));
+    }
+    // the message, at once
+    {
+      const { R } = setup();
+      chk(name, 'another tab saves', 'this page says so at once, naming both copies', J([/Full Fund was saved in another tab of this browser/.test(w14stat(R.ev)),
+        /This page holds Full Fund as changed here/.test(w14stat(R.ev)), /another tab of this browser has since saved Full Fund \(.*by Ann\)/.test(w14stat(R.ev))]), J([true, true, true]));
+    }
+    // DOOR 1: the ladder copied again -- Full Fund is left out and said; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      R.ev('bandCopyAll(); 0');
+      chk(name, 'a ladder copy', 'Full Fund is not copied to, and the line names both copies', J([/Not copied<\/b> to Full Fund — this page holds Full Fund as changed here/.test(w14statHtml(R.ev))]), J([true]));
+      chk(name, 'a ladder copy', 'both copies stand, and leaving still asks', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
+    // DOOR 2: a package for Full Fund -- not taken; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      const al = R.ev(`(function(){ const a=[]; window.alert=function(m){ a.push(String(m)); }; const ms=JSON.parse(localStorage.getItem('prio27ff'));
+        pkgApply({spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:Date.now()+5000, ms:ms}, 'ff-pkg.json'); return JSON.stringify(a); })()`);
+      chk(name, 'a package', 'it is not imported, and says why, naming both copies', /^NOT IMPORTED — this page holds Full Fund as changed here/.test(JSON.parse(al)[0] || ''), true);
+      chk(name, 'a package', 'both copies stand, and leaving still asks', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
+    // DOOR 3: the cycle chosen for every appropriation -- Full Fund is not changed, and said; neither copy written over
+    {
+      const { R, mineTs } = setup();
+      R.ev(`cycApplyAll('BES|2028'); 0`);
+      chk(name, 'a carried cycle', 'Full Fund is not changed, and the line says why', /not changed<\/b>: Full Fund \(this page holds Full Fund as changed here/.test(w14statHtml(R.ev)), true);
+      chk(name, 'a carried cycle', 'both copies stand, on the cycle they had (POM27), and leaving still asks',
+        J([both(R, mineTs), R.ev(`String(PUBS.ff.cycle||'')`), JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)).cycle || '']), J([{ mine: true, theirs: true, left: true }, 'POM|2027', 'POM|2027']));
+    }
+    // ⬇ Save a copy (and every other board file this page builds) while two copies stand: never the other tab's over this page's own
+    {
+      const { R, mineTs } = setup();
+      const ff = (W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff || {};
+      chk(name, 'a copy built', 'a board file built while two copies stand carries this page’s Full Fund, and asks nothing', J([+ff.bandsTs === mineTs, /THE OTHER TAB/.test(J(ff)), W1H.qs(R.ev).filter(q => /two copies/.test(q)).length]), J([true, false, 0]));
+      chk(name, 'a copy built', 'and both copies still stand', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
+    // DOOR 4: a plain 💾 Save -- it asks first, naming both; Cancel writes nothing; OK writes this page's copy, and the other tab's is
+    // kept aside when Full Fund's own board opens
+    {
+      const { R, mineTs, theirs } = setup();
+      R.ev('globalThis.__yes=false; globalThis.__q=[]; 0');
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await w14pause(30);
+      const q0 = W1H.qs(R.ev);
+      chk(name, 'a plain Save', 'it asks before anything else, naming both copies', J([q0.length, /^⚠ Full Fund has two copies, and only one can go into the file\./.test(q0[0] || ''), /another tab of this browser has since saved Full Fund \(.*by Ann\)/.test(q0[0] || '')]), J([1, true, true]));
+      chk(name, 'a plain Save', 'Cancel: nothing is read or written, and both copies stand', J([f.writes, f.hits.read || 0, both(R, mineTs)]), J([0, 0, { mine: true, theirs: true, left: true }]));
+      R.ev('globalThis.__yes=true; globalThis.__q=[]; 0');
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      const ff = (W1H.pubOf(f.content).appns || {}).ff || {};
+      chk(name, 'a plain Save', 'OK: the file holds this page’s Full Fund, stamped newer than the other tab’s; storage still holds the other tab’s',
+        J([+ff.bandsTs === mineTs, /THE OTHER TAB/.test(J(ff)), +ff.ts > +JSON.parse(theirs).ts, R.ev(`localStorage.getItem('prio27ff')`) === theirs]), J([true, false, true, true]));
+      const F = boot({ html: f.content, ls: w2LsOf(R.ev), appn: 'FULL FUND' });
+      chk(name, 'a plain Save', 'Full Fund’s own board then opens the file’s copy, and keeps the other tab’s aside, whole',
+        J([+F.ev('MS.bandsTs||0') === mineTs, (F.ev(`localStorage.getItem('prio27ff.kept')`) || '').endsWith('\n' + theirs)]), J([true, true]));
+    }
+    // CONTROL: one tab alone -- Save asks no such question and writes this page's copy, as it always has
+    {
+      const { R, mineTs } = setup(false);
+      const f = W1H.disk(R.w, OLD.html);
+      try { await R.ev('saveInPlaceFile()'); } catch (e) {}
+      await W1H.until(() => f.writes > 0, 3000);
+      chk(name, 'one tab alone', 'no question of two copies, and the file holds this page’s Full Fund (a CONTROL)',
+        J([W1H.qs(R.ev).filter(q => /two copies/.test(q)).length, +((W1H.pubOf(f.content).appns || {}).ff || {}).bandsTs === mineTs]), J([0, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W2 — the held ladder reaches the plan that opens, one stray rule, the tie rule, and a page latched by another tab says so (item 146)';
+  try {
+    const J = JSON.stringify;
+    // 1. A LADDER HELD FOR AN APPROPRIATION NOT YET OPENED survives that board's opening: Initial Spares' board file is saved first (its
+    // own ladder, the standard), then O&M renames a band and copies its ladder to every appropriation -- held for Initial Spares, which
+    // this browser has not opened -- and Initial Spares then opens from its file
+    {
+      const SP = w14board({ appn: 'INITIAL SPARES' });
+      const SPFILE = SP.ev('buildSavedHtml()');
+      await w14pause(15);
+      const O = w14board({ appn: 'O&M' });
+      W1H.wire(O.ev, 'Brad', W1H.KEY.brad);
+      O.ev(`bandSet(0, 'n', 'HELD LADDER'); globalThis.__q=[]; bandCopyAll(); 0`);
+      chk(name, '1. the fixture', 'the ladder is held for Initial Spares, which this browser has not opened (a CONTROL)',
+        J([((JSON.parse(O.ev(`localStorage.getItem(BAND_PEND_KEY('sp'))`) || 'null') || {}).bands || [])[0]?.n, O.ev(`localStorage.getItem(_SLUGMAP.sp.key)`)]), J(['HELD LADDER', null]));
+      const S2 = boot({ html: SPFILE, ls: w14ls(O.ev), appn: 'INITIAL SPARES' });
+      await w14pause(30);
+      chk(name, '1. Initial Spares opens', 'its board, from its file, carries the ladder held for it', J([S2.ev('mySlug()'), S2.ev(`BANDS_LIST()[0].n`), S2.ev(`String((S.titles||{}).A||DATA.items[0].id)`)]), J(['sp', 'HELD LADDER', 'A']));
+      chk(name, '1. Initial Spares opens', 'the held ladder is delivered once, the board reads unsaved, and it says so',
+        J([S2.ev(`localStorage.getItem(BAND_PEND_KEY('sp'))`), /^Unsaved/.test(W1H.header(S2.ev)), /band ladder copied here/.test(w14stat(S2.ev))]), J([null, true, true]));
+      chk(name, '1. Initial Spares opens', 'and browser storage keeps it there', ((JSON.parse(S2.ev(`localStorage.getItem(_SLUGMAP.sp.key)`) || '{}').bands || [])[0] || {}).n, 'HELD LADDER');
+    }
+    // 2. THE HELD LADDER REFUSED BY BROWSER STORAGE says only what is true: the closing line names it, and nothing says Save writes it
+    {
+      const O = w14board({ appn: 'O&M' });
+      W1H.wire(O.ev, 'Brad', W1H.KEY.brad);
+      O.ev(`(function(){ bandSet(0, 'n', 'HELD LADDER'); const _si=Storage.prototype.setItem; Storage.prototype.setItem=function(k, v){ if(/^prio27bands_/.test(k)) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); return _si.call(this, k, v); };
+        try{ bandCopyAll(); } finally { Storage.prototype.setItem=_si; } return 'ok'; })()`);
+      const said = O.ev(`JSON.stringify(STAT_LOG.map(function(e){ return diagPlain(e.html||''); }).concat([document.getElementById('shareStat').textContent]))`);
+      chk(name, '2. the held ladder refused', 'the line names the appropriations whose held ladder was refused (a CONTROL)', /Not held for Full Fund, Initial Spares, OPN/.test(said), true);
+      chk(name, '2. the held ladder refused', 'and nothing says 💾 Save writes the held ladder into the file', /The ladder held for [^"]*Use 💾 Save to write it into the file/.test(said), false);
+    }
+    // 3. A PAGE LATCHED BY ANOTHER TAB'S STORAGE EVENT says so at once, before any write of its own is refused
+    {
+      const R = w14board({ appn: 'O&M' });
+      R.ev(`(function(){ const m={n:'N1', name:'imported board.html', at:Date.now(), keys:['prio27om','prio27ff'], says:['the O&M plan','the Full Fund plan'], h:{}, how:'file'};
+        const v=JSON.stringify(m); localStorage.setItem(IMP_FILE_KEY, v); window.dispatchEvent(new StorageEvent('storage', {key:IMP_FILE_KEY, oldValue:null, newValue:v})); return 'ok'; })()`);
+      chk(name, '3. latched', 'the page is held, and says so at once, naming the import’s file', J([!!R.ev('impHandOf()'), /is held|⏸/.test(w14stat(R.ev)), /imported board\.html/.test(w14stat(R.ev))]), J([true, true, true]));
+    }
+    // 4. THE TIE RULE: browser storage's copy and the file's carry the same time and differ -- storage's is what Save writes, what a
+    // writer reads, and what the five-year plan and the cycle bar read (CONTROLS on the slot commit: the fixture the rule's mutations need)
+    {
+      const { OLD, ls: LS } = W214.fx();
+      const ff = JSON.parse(LS.prio27ff); const y = ff.years[ff.cur]; y.notes = Object.assign({}, y.notes || {}, { F: 'STORAGE AT THE SAME TIME' });
+      const R = boot({ html: OLD.html, ls: Object.assign({}, LS, { prio27ff: J(ff) }) });
+      const tie = J([R.ev(`String(+JSON.parse(localStorage.getItem('prio27ff')).ts === +PUBS.ff.ts)`), /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(PUBS.ff)`))]);
+      chk(name, '4. a tie', 'the fixture: the same time, storage’s copy different from the file’s (a CONTROL)', tie, J(['true', false]));
+      // the readers first: building the bytes puts the copy Save takes into PUBS, after which any rule reads the same
+      chk(name, '4. a tie', 'a writer reads storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(apStoreOf('ff').st)`)), true);
+      chk(name, '4. a tie', 'the five-year plan and the cycle bar read storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(fydpStoreLocal('ff').st)`)), true);
+      chk(name, '4. a tie', 'Save writes storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(J((W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff)), true);
+    }
+    // 5. ONE STRAY RULE: this board's opening and every reader of another appropriation give one answer, record by record -- blank work
+    // and an import's record, each with and without a data pack (two kinds of record, two kinds of plan)
+    {
+      const OF = w14board({ appn: 'FULL FUND' });
+      const FILE = OF.ev('buildSavedHtml()');
+      await w14pause(15);
+      const Y = w14board({ appn: 'FULL FUND' }, { services: ['USAF', 'ANG', 'AFRC'], items: [it('X1', 'AV', [70, 7, 0])], disc: [90, 9, 1], mand: [5, 0, 0], order: ['X1'] });
+      Y.ev(`S.notes=S.notes||{}; S.notes.X1='STORAGE note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const stored = JSON.parse(w14ls(Y.ev).prio27ff);
+      const rows = [];
+      for (const [rk, rec] of [['blank', { file: 0, dirty: true, blank: true }], ['import', { file: 0, folder: {}, dirty: true }]]) {
+        for (const pack of [false, true]) {
+          const st = Object.assign({}, stored); if (!pack) delete st.dataPack;
+          const ls = { prio27ff: J(st), 'prio27ff.base': J(rec), prio27appn: 'FULL FUND' };
+          const O = boot({ html: FILE, ls: Object.assign({}, ls, { prio27appn: 'O&M' }) });
+          const other = O.ev(`String(strayOther('ff', JSON.parse(localStorage.getItem('prio27ff')), PUBS.ff))`);
+          const B = boot({ html: FILE, ls, appn: 'FULL FUND' });
+          const own = B.ev(`String(_bootStray)`);
+          rows.push([rk, pack, other, own]);
+        }
+      }
+      chk(name, '5. one rule', 'the opening and strayOther agree on every record and plan, and only blank work with no data pack is stray (CONTROL on the slot commit)',
+        J(rows), J([['blank', false, 'true', 'true'], ['blank', true, 'false', 'false'], ['import', false, 'false', 'false'], ['import', true, 'false', 'false']]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.15 W2 ====
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
 // ==== end v2.15 W3 ====

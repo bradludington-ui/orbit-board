@@ -1,0 +1,207 @@
+[
+ {
+  "id": "v215-w2-data-storage-first",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-pre-never-follows",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-pre-keep-not-written",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-pre-occupied-taken",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-pre-saved-kept",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-follow-storage-stale",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-take-file-in-place",
+  "caughtBy": "audit-import / v2.15 W2 — a newer board file opened",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-save-records-own-only",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-save-records-changed-copy",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-snap-any-copy",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-carry-guard",
+  "caughtBy": "audit-import / v2.15 W2 — 💾 Save records",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-clash-pubsfor-silent",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-clash-not-held",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-clash-cycle",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-clash-no-ask",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-clash-ts-not-bumped",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-tab-unmarked",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-tab-unsaid",
+  "caughtBy": "audit-import / v2.15 W2 — two tabs on one",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-fdc-no-redraw",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-fdc-redraw-under-typing",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-fdc-export-unchecked",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-fdc-typed-sig-stale",
+  "caughtBy": "audit-other / v2.15 W2 — FYDP Disconnects follows",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-ladder-adopted-early",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-ladder-never-adopted",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-ladder-refusal-loud",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-latch-silent",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-tie-pubsfor",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-tie-apstore",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "v215-w2-tie-fydp",
+  "caughtBy": "audit-import / v2.15 W2 — the held ladder",
+  "kind": "new"
+ },
+ {
+  "id": "boot-no-keep-aside",
+  "caughtBy": "audit-import / v1.89 — saving never silently overwrites; v2.09 second review — a newer file, the older one",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v209-rv2-save-boot-no-write",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v209-rv2-save-boot-writes-unread",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v209-rv3-save-look-writes-storage",
+  "caughtBy": "audit-import / v2.09 third review — a newer file opened only to look",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v209-rv3-save-look-record-left",
+  "caughtBy": "audit-import / v2.09 third review — a newer file opened only to look",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v210-a-redraw-under-typing",
+  "caughtBy": "audit-other / v2.10 A — FYDP Disconnects",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-w2-hold-no-storage-event",
+  "caughtBy": "audit-import / v2.14 W2 — the file route keeps",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-rv2-b-pubsown-kept-after-save",
+  "caughtBy": "audit-board / v2.14 RV2-B — a refusal for unsaved work behind a newer copy says which copy",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-rv2-b-carrysaved-drops-entry",
+  "caughtBy": "audit-board / v2.14 RV2-B — a carried plan whose record",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-w1-stray-any-record",
+  "caughtBy": "audit-import / v2.14 W1 — a page whose board came from no saved copy",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-w1-stray-over-pack",
+  "caughtBy": "audit-import / v2.14 W1 — a page whose board came from no saved copy",
+  "kind": "retargeted"
+ },
+ {
+  "id": "v214-int-stray-unguarded",
+  "caughtBy": "audit-import / v2.14 INT — a full import that lands through browser storage, run from a populated board file; v2.14 INT — import into the program, save it, choose the cycle for every appropriation; v2.14 INT — blank work over a requirement list from another board",
+  "kind": "retargeted"
+ }
+]

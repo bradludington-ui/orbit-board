@@ -9056,6 +9056,9 @@ await (async () => {
       window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(){};
       URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; ${W3S_FH} 'ok'`);
     await B.ev('saveInPlaceFile()'); await w3sSleep(20);
+    // v2.15 W2 (item 143): that Save now records Initial Spares saved (it wrote it exactly as storage held it); the fixture puts the
+    // record back to unsaved, as an edit there would, so a carry forgotten on a refused record still reads as held (what this guards)
+    B.ev(`localStorage.setItem('prio27sp.base', ${J(J({ file: 0, dirty: true }))}); 'ok'`);
     B.ev(`window.__si2=Storage.prototype.setItem; window.__refuse={'prio27sp':1}; Storage.prototype.setItem=function(k,v){ if(window.__refuse[k]) throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return window.__si2.call(this,k,v); }; 'ok'`);
     const r1 = B.ev(`String(cycApplyAll('PB|2028'))`);
     chk(name, 'the cycle', 'carried, and Initial Spares not read as held (a CONTROL)', J([r1, B.ev(`String(apStoreOf('sp').held)`)]), J(['true', 'false']));
