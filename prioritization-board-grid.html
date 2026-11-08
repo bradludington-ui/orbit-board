@@ -3536,6 +3536,9 @@ var _bootPre=(function(){
     if(!((+PUB.ts||0) > (+st.ts||0))) return out;
     if(JSON.stringify(st.dataPack)===JSON.stringify(PUB.dataPack||null)) return out;
     out.diff=true;                          // the two copies carry different requirement lists (bootTakeFile reads it)
+    // the same services, in the same order: a file built for another service list is refused as it always was (applyStore's guard,
+    // v2.09 second review) -- this board's list, the plan on screen and storage's work all stay as they are, with nothing kept aside
+    if(!_hasData(PUB.dataPack) || JSON.stringify(st.dataPack.services||[])!==JSON.stringify(PUB.dataPack.services||[])) return out;
     const base=baseGet();
     out.own=ownUnsaved(st, PUB, base);
     if(out.own){

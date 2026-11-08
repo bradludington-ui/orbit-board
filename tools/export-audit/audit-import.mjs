@@ -20194,6 +20194,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       chk(name, 'a carried cycle', 'both copies stand, on the cycle they had (POM27), and leaving still asks',
         J([both(R, mineTs), R.ev(`String(PUBS.ff.cycle||'')`), JSON.parse(R.ev(`localStorage.getItem('prio27ff')`)).cycle || '']), J([{ mine: true, theirs: true, left: true }, 'POM|2027', 'POM|2027']));
     }
+    // ⬇ Save a copy (and every other board file this page builds) while two copies stand: never the other tab's over this page's own
+    {
+      const { R, mineTs } = setup();
+      const ff = (W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff || {};
+      chk(name, 'a copy built', 'a board file built while two copies stand carries this page’s Full Fund, and asks nothing', J([+ff.bandsTs === mineTs, /THE OTHER TAB/.test(J(ff)), W1H.qs(R.ev).filter(q => /two copies/.test(q)).length]), J([true, false, 0]));
+      chk(name, 'a copy built', 'and both copies still stand', J(both(R, mineTs)), J({ mine: true, theirs: true, left: true }));
+    }
     // DOOR 4: a plain 💾 Save -- it asks first, naming both; Cancel writes nothing; OK writes this page's copy, and the other tab's is
     // kept aside when Full Fund's own board opens
     {
@@ -20279,9 +20286,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const R = boot({ html: OLD.html, ls: Object.assign({}, LS, { prio27ff: J(ff) }) });
       const tie = J([R.ev(`String(+JSON.parse(localStorage.getItem('prio27ff')).ts === +PUBS.ff.ts)`), /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(PUBS.ff)`))]);
       chk(name, '4. a tie', 'the fixture: the same time, storage’s copy different from the file’s (a CONTROL)', tie, J(['true', false]));
-      chk(name, '4. a tie', 'Save writes storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(J((W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff)), true);
+      // the readers first: building the bytes puts the copy Save takes into PUBS, after which any rule reads the same
       chk(name, '4. a tie', 'a writer reads storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(apStoreOf('ff').st)`)), true);
       chk(name, '4. a tie', 'the five-year plan and the cycle bar read storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(R.ev(`JSON.stringify(fydpStoreLocal('ff').st)`)), true);
+      chk(name, '4. a tie', 'Save writes storage’s copy (CONTROL on the slot commit)', /STORAGE AT THE SAME TIME/.test(J((W1H.pubOf(R.ev('buildSavedHtml()')).appns || {}).ff)), true);
     }
     // 5. ONE STRAY RULE: this board's opening and every reader of another appropriation give one answer, record by record -- blank work
     // and an import's record, each with and without a data pack (two kinds of record, two kinds of plan)
