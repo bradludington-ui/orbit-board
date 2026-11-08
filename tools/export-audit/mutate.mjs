@@ -2935,7 +2935,7 @@ const MUTATIONS = [
   // ==== end v1.96 item 65 ====
   // ==== v1.96 (items 66-70): the 4 Oct review of v1.95, NR01-NR05 ====
   { id: 'restore-own-stale', area: 'driveRestore', what: 'Put this back takes the screen for saved, and replaces an edit typed meanwhile',
-    find: "    const own=ownUnsaved(MS, j.store, baseGet());\n    const keep=own",   // v2.14 W4: retargeted -- with U19's rule the work is still kept, but its words say "saved" (ledger U64)
+    find: "    const own=screenUnsaved(j.store);   // v2.14 RV2-C: the page's memory too -- an edit storage refused is not \"saved only in the board file\"\n    const keep=own",   // v2.14 W4: retargeted -- with U19's rule the work is still kept, but its words say "saved" (ledger U64); v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
     repl: "    const own=false;\n    const keep=own" },
   { id: 'restore-pin-ignored', area: 'driveRestore', what: 'Put this back adopts the copy after the board moved to another year',
     find: "    if(moved()){\n      stop(); return;\n    }", repl: "    if(false){\n      stop(); return;\n    }" },
@@ -4122,11 +4122,11 @@ const MUTATIONS = [
     repl: "    impMixedBlock('Saving to the board file');   // v2.00 (R4):" },
   // v2.00 (R5, the same review; Brad, 11 Oct): a restore during a save stays unsaved.
   { id: "v200-r5-restore-gen", area: "driveRestore", what: "Put this back does not count as a change, so a folder save still writing when the copy was put back finds nothing changed and marks the board saved: the earlier copy on screen, the save's copy in the folder, and nothing saying they differ",
-    find: "    _saveGen++; DIRTY=true;\n    baseMarkDirty();",   // v2.14 W4: retargeted (item 129)
-    repl: "    DIRTY=true;\n    baseMarkDirty();" },
+    find: "    _saveGen++; DIRTY=true;\n    const putR0=baseRaw();",   // v2.14 W4: retargeted (item 129); v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
+    repl: "    DIRTY=true;\n    const putR0=baseRaw();" },
   { id: "v200-r5-restore-basedirty", area: "driveRestore", what: "Put this back leaves this browser's record saying saved when the board was clean, so the copy put back reads as saved after a save that was writing meanwhile, and after a reopen",
-    find: "    _saveGen++; DIRTY=true;\n    baseMarkDirty();\n",   // v2.14 W4: retargeted (item 129)
-    repl: "    _saveGen++; DIRTY=true;\n" },
+    find: "    const putR0=baseRaw();\n    baseMarkDirty();\n",   // v2.14 W4: retargeted (item 129); v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
+    repl: "    const putR0=baseRaw();\n" },
   // v2.00 (U2, Brad 11 Oct): work put back during a save stays unsaved.
   { id: "v200-u2-putback-gen", area: "keptPutBack", what: "↶ Put back of the work kept aside does not count as a change, so a save still writing when it was put back finds nothing changed and marks the board saved: the work put back on screen, the save's copy in the folder or file, and the next refresh or a reopen loses the work put back",
     find: "  persist(); _saveGen++; DIRTY=true; render();\n",
@@ -4723,9 +4723,10 @@ const MUTATIONS = [
   { id: "v200-u10-folder-pull-quiet-speaks", area: "driveStorePull", what: "a quiet Live refresh while PB27 is on screen says “🔒 Loading from the shared folder is off … the change was not kept” on every tick, though nothing was changed",
     find: "  if(CYCVIEW){ if(!quiet) cycRefuse('Loading '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' from the shared folder'); render(); return false; }\n",
     repl: "  if(cycBlock('Loading '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' from the shared folder')){ render(); return false; }\n" },
+  // v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
   { id: "v200-u10-shared-gate-in-adopt", area: "sharedKeepMine", what: "the locked-view gate is on the button's handler (adoptShared) and not in sharedKeepMine: the shared state file answering at opening (sharedArrived) while PB27 is on screen keeps the cycle aside as this browser's work, then the load is refused",
-    find: "  if(cycBlock('Loading the shared state file')) return false;\n  const own=ownUnsaved(MS, st, baseGet());\n  const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;\n  if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }\n  if(ka!==true){\n    setStat('\\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '\n      +'aside. Save a copy of yours first (\\u25be beside \\ud83d\\udcbe Save \\u2192 \\u2b07 Save a copy\\u2026).');\n    render(); return false;\n  }\n  return true;\n}\nfunction adoptShared(){\n  if(!SHARED) return;\n",
-    repl: "  const own=ownUnsaved(MS, st, baseGet());\n  const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;\n  if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }\n  if(ka!==true){\n    setStat('\\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '\n      +'aside. Save a copy of yours first (\\u25be beside \\ud83d\\udcbe Save \\u2192 \\u2b07 Save a copy\\u2026).');\n    render(); return false;\n  }\n  return true;\n}\nfunction adoptShared(){\n  if(!SHARED) return;\n  if(cycBlock('Loading the shared state file')) return;\n" },
+    find: "  if(cycBlock('Loading the shared state file')) return false;\n  const own=screenUnsaved(st);       // v2.14 RV2-C: the page's memory too, not the record alone\n  const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;\n  if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }\n  if(ka!==true){\n    setStat('\\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '\n      +'aside. Save a copy of yours first (\\u25be beside \\ud83d\\udcbe Save \\u2192 \\u2b07 Save a copy\\u2026).');\n    render(); return false;\n  }\n  return true;\n}\nfunction adoptShared(){\n  if(!SHARED) return;\n",
+    repl: "  const own=screenUnsaved(st);       // v2.14 RV2-C: the page's memory too, not the record alone\n  const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;\n  if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }\n  if(ka!==true){\n    setStat('\\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '\n      +'aside. Save a copy of yours first (\\u25be beside \\ud83d\\udcbe Save \\u2192 \\u2b07 Save a copy\\u2026).');\n    render(); return false;\n  }\n  return true;\n}\nfunction adoptShared(){\n  if(!SHARED) return;\n  if(cycBlock('Loading the shared state file')) return;\n" },
   // v2.00 (U10, the money review of round 4): the change journal's Put back in a locked view is refused before the journal is touched.
   { id: "v200-u10-journal-putback-in-view", area: "jrnlUndo", what: "↶ Put back in PB27's view runs on to its own save, which the view refuses: the journal's shadow is first taken from the cycle on screen, and the next save on the working plan records every difference between PB27 and the working plan as the saver's own changes (F1's $1,200,000,000 credited to Me M)",
     find: "  if(cycBlock('Putting a change back')) return;\n",
@@ -6526,7 +6527,7 @@ const MUTATIONS = [
     find: "  if(_saveBusy){ setStat('\\u23f3 The saved file\\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save has landed.'); return; }\n",
     repl: "" },
   { id: "v202-e7-u29-load-unasked", area: "adoptShared", what: "loading the shared state file over a board whose screen is all saved asks nothing, though the next Save writes the shared copy over the saved one",
-    find: "if(!CYCVIEW && !ownUnsaved(MS, SHARED, baseGet()) && !confirm(",
+    find: "if(!CYCVIEW && !screenUnsaved(SHARED) && !confirm(",   // v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
     repl: "if(false && !confirm(" },
   // v2.02 (D3; Brad, 21 Oct): audit-board "v2.02 (D3)".
   { id: "v202-d3-greedy-again", area: "pmoSplit", what: "an office's part of a month is spread one part after another again, and a cell drifts more than $1 from its exact share",
@@ -10461,9 +10462,11 @@ const MUTATIONS = [
 
   // ---- RV1-B (cycles, packages, storage) ----
   { id: 'v214-rv1-b-own-package-uncounted', area: "pkgApply", what: "a return package for the board on screen that browser storage refused is on screen only, yet closing the tab asks nothing and the appropriation box reopens the page over it",
-    find: "      try{ loadCounted(); }catch(e){}\n      _persistFail=!wrote;\n", repl: "      try{ loadCounted(); }catch(e){}\n" },
+    // v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
+    find: "      if(!wrote) baseUnmark(r0, baseRaw());\n      _persistFail=!wrote;\n", repl: "      if(!wrote) baseUnmark(r0, baseRaw());\n" },
   { id: 'v214-rv1-b-own-package-not-a-load', area: "pkgApply", what: "a return package for the board on screen, held by the hand-over hold, leaves the board reading Saved, and leaving asks nothing; stored, this browser's record still calls it saved",
-    find: "      try{ loadCounted(); }catch(e){}\n      _persistFail=!wrote;\n", repl: "      _persistFail=!wrote;\n" },
+    // v2.14 RV2-C: retargeted in place (the page's memory beside the record; the record put back on a refused write)
+    find: "      try{ loadCounted(); }catch(e){}\n      if(!wrote)", repl: "      if(!wrote)" },
   { id: 'v214-rv1-b-own-package-always-held', area: "pkgApply", what: "a return package storage took is still treated as on screen only: leaving the page asks and switching appropriation is refused",
     find: "      _persistFail=!wrote;\n", repl: "      _persistFail=true;\n" },
   { id: 'v214-rv1-b-apstore-storage-first', area: "apStoreOf", what: "another appropriation is read from browser storage whatever its age: a Full Fund package held on this page alone, or the file's newer Full Fund, is replaced by storage's older copy when a ladder is copied or Full Fund issued",
@@ -10518,7 +10521,8 @@ const MUTATIONS = [
 
   // ---- RV1-C (Save and the import doors) ----
   { id: 'v214-rv1-c-stop-no-persist', area: "saveStopBack", what: "a Save cancelled after the pen was claimed leaves the pen line in browser storage: reopened, the journal says the pen moved though nothing was written",
-    find: "  if(mine && MS===k.ms) persist();\n}\nasync function _saveInPlaceFileRun(o){", repl: "}\nasync function _saveInPlaceFileRun(o){" },
+    // v2.14 RV2-C: retargeted in place -- the save state is now drawn again after this line (stop-on-refused-storage-reads-saved-then-file-overwritten)
+    find: "  if(mine && MS===k.ms) persist();\n  // v2.14 RV2-C (stop-on-refused", repl: "  // v2.14 RV2-C (stop-on-refused" },
   { id: 'v214-rv1-c-stop-marks-kept', area: "saveStopBack", what: "a cancelled Save leaves a board that was saved reading “Unsaved changes”",
     // v2.14 RV2-A: retargeted -- the marks go back through the list-aware call
     find: "    lsMarksBack(sideNow? Object.assign({}, k.m, sideNow) : k.m); _baseDirty=k.bd;\n", repl: "    _baseDirty=k.bd;\n" },
@@ -10811,6 +10815,33 @@ const MUTATIONS = [
   // ---- RV2-B (other appropriations, cycles and packages) ----
   // ---- end RV2-B ----
   // ---- RV2-C (round 2, second half: C) ----
+  { id: 'v214-rv2-c-refused-record-marked', area: "save", what: "an edit browser storage refused, or a Save that stopped before it wrote, leaves this browser recording an older stored copy as unsaved work: reopened, that copy is kept aside as work no saved copy had, or (the slot in use) put on screen, and the next Save writes it over the file asking nothing",
+    // v2.14 RV2-C (finish): retargeted in place -- save() now puts the record back through baseUnmark (the same rule as the loads)
+    find: "  if(ok===false) baseUnmark(rec0, rec1);\n", repl: "" },
+  { id: 'v214-rv2-c-stored-record-put-back', area: "save", what: "an edit browser storage took is recorded as saved: reopened over a newer file, that work is replaced with nothing kept aside",
+    // v2.14 RV2-C (finish): retargeted in place, as the one above
+    find: "if(ok===false) baseUnmark(rec0, rec1);", repl: "baseUnmark(rec0, rec1);" },
+  { id: 'v214-rv2-c-stop-state-stale', area: "saveStopBack", what: "a Save that stopped before it wrote leaves a board nothing changed reading “Unsaved changes”",
+    find: "asked nothing.\n  try{ saveStateShow(); }catch(e){}\n}", repl: "asked nothing.\n}" },
+  // v2.14 RV2-C (finish, after the independent check): the page's memory beside the record, and a load over a refused write
+  { id: 'v214-rv2-c-screen-record-only', area: "screenUnsaved", what: "after an edit browser storage refused, “load the shared one (what you have is kept aside first)” says what is on screen is saved and replaces the edit, kept nowhere; ↶ Put this back keeps it aside as “saved only in the board file”",
+    find: "function screenUnsaved(other){ return !!_baseDirty || ownUnsaved(MS, other, baseGet()); }", repl: "function screenUnsaved(other){ return ownUnsaved(MS, other, baseGet()); }" },
+  { id: 'v214-rv2-c-keepmine-record-only', area: "sharedKeepMine", what: "after an edit browser storage refused, loading the shared state file replaces that edit without keeping it aside, or with no room to keep it",
+    find: "  const own=screenUnsaved(st);       // v2.14 RV2-C", repl: "  const own=ownUnsaved(MS, st, baseGet());       // v2.14 RV2-C" },
+  { id: 'v214-rv2-c-adopt-asks-saved', area: "adoptShared", what: "after an edit browser storage refused, “load the shared one” asks “What is on screen is saved, so nothing is kept aside”, which is untrue",
+    find: "!CYCVIEW && !screenUnsaved(SHARED) &&", repl: "!CYCVIEW && !ownUnsaved(MS, SHARED, baseGet()) &&" },
+  { id: 'v214-rv2-c-restore-label-record-only', area: "driveRestore", what: "after an edit browser storage refused, ↶ Put this back keeps it aside marked saved, and says what was on screen was saved only in the board file",
+    find: "    const own=screenUnsaved(j.store);   // v2.14 RV2-C: the page's memory too -- an edit", repl: "    const own=ownUnsaved(MS, j.store, baseGet());   // v2.14 RV2-C: the page's memory too -- an edit" },
+  { id: 'v214-rv2-c-load-marks-refused', area: "loadStored", what: "the shared state file loaded over a write browser storage refused leaves this browser recording the older stored copy as unsaved work: reopened, it is kept aside, or put on screen and saved over the file asking nothing",
+    find: "const ok=persist(); if(ok===false) baseUnmark(r0, r1); return ok; }", repl: "const ok=persist(); return ok; }" },
+  { id: 'v214-rv2-c-adopt-load-unstored', area: "adoptShared", what: "the shared state file loaded by hand over a write browser storage refused leaves the older stored copy recorded as unsaved work: reopened, the file's later work is written over",
+    find: "  loadStored(); render();   // v2.02 (E7, U24, U29); v2.14 RV2-C: refused by storage, the record is as it was\n  setStat('Shared state loaded (published", repl: "  loadCounted(); persist(); render();\n  setStat('Shared state loaded (published" },
+  { id: 'v214-rv2-c-auto-load-unstored', area: "sharedArrived", what: "the shared state file loaded automatically over a write browser storage refused leaves the older stored copy recorded as unsaved work: reopened, the file's later work is written over",
+    find: "    loadStored(); render();   // v2.02 (E7, U24, U29); v2.14 RV2-C: refused by storage, the record is as it was\n    setStat('\u{1F517}", repl: "    loadCounted(); persist(); render();\n    setStat('\u{1F517}" },
+  { id: 'v214-rv2-c-pkg-marks-refused', area: "pkgApply", what: "a package for the board on screen, loaded while browser storage refuses it, leaves the older stored copy recorded as unsaved work: reopened, it is kept aside, or put on screen and saved over the file asking nothing",
+    find: "      if(!wrote) baseUnmark(r0, baseRaw());\n", repl: "" },
+  { id: 'v214-rv2-c-restore-marks-refused', area: "driveRestore", what: "↶ Put this back while browser storage refuses the plan leaves the older stored copy recorded as unsaved work: reopened, the file is not opened and 💾 Save writes that older copy over it",
+    find: "    if(putIn===false) baseUnmark(putR0, baseRaw());\n", repl: "" },
   // ---- end RV2-C ----
   // ---- RV2-D (round 2, second half: D) ----
   // ---- end RV2-D ----
