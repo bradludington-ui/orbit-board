@@ -9396,6 +9396,220 @@ await (async () => {
   }
   w3Release(__bm);
 })();
+// v2.14 RV2-B (finish, blank-mark-cleared): BLANK WORK STAYS BLANK WORK WHEN ANOTHER PAGE WITH NO BOARD FILE WRITES ON IT. Full Fund typed
+// on the program page (its record marked blank); on another blank page ⚖ the ladder copied, or Full Fund issued. RV2-B's own record
+// write (apPut) wrote blank:false, so the board file opened later on O&M read that blank work as this browser's newer Full Fund: 💾 Save
+// wrote it over the file's after a HOLD ON, and Full Fund's own board opened it rather than the file's (rv2-B-check x1). Expectations
+// are the fixture's literals.
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v2.14 RV2-B — blank work stays blank work when another page with no board file copies the ladder onto it or issues it: the board file keeps its own Full Fund, and Full Fund’s board keeps the work aside (finish: blank-mark-cleared)';
+  try {
+    const J = JSON.stringify;
+    const MINE = ['USAF', 'ANG', 'AFRC'];
+    const SCO = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'PSM', [400, 100, 50])], disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A', 'B'] };
+    const SCF = { services: MINE, items: [it('F', 'AV', [700, 100, 60]), it('G', 'TSS', [500, 90, 30])], disc: [900, 150, 60], mand: [200, 40, 20], order: ['F', 'G'] };
+    const asBuilt = (ev, sc) => ev(`(function(){ BASE_ITEMS.length=0; ${J(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); return 'ok'; })()`);
+    const lsOf = ev => JSON.parse(ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`));
+    for (const how of ['ladder', 'issue']) {
+      const MARK = how === 'issue' ? '"issuedTs"' : 'RV2B BLANK LADDER';
+      const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SCF); asBuilt(F.ev, SCF); F.ev(`S.notes=S.notes||{}; S.notes.F='FILE FF note'; MS.years[MS.cur]=S; save(); 'ok'`);
+      const O = boot({ html: F.ev('buildSavedHtml()'), appn: 'O&M' }); seed(O.ev, SCO); asBuilt(O.ev, SCO); O.ev(`MS.years[MS.cur]=S; save(); 'ok'`);
+      const FILE = O.ev('buildSavedHtml()');
+      await w3sSleep(15);
+      const Bk = boot({ ls: { prio27appn: 'FULL FUND', prio27who: 'BLL' } });
+      Bk.ev(`S.notes=S.notes||{}; S.notes.Z='BLANK page note'; save(); 'ok'`);
+      const LS = lsOf(Bk.ev); LS.prio27appn = 'O&M';
+      const r0 = JSON.parse(LS['prio27ff.base']);
+      chk(name, how, 'the fixture: Full Fund’s record says blank work no saved file holds (a CONTROL)', J([r0.dirty, +r0.file || 0, r0.blank]), J([true, 0, true]));
+      // another page with no board file, on O&M
+      const Bo = boot({ ls: LS }); await w3sSleep(20);
+      Bo.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; 'ok'`);
+      if (how === 'issue') Bo.ev(`pkgIssue('ff', true); 'ok'`);
+      else Bo.ev(`(function(){ const L=JSON.parse(JSON.stringify(BANDS_LIST())); L[0].n='RV2B BLANK LADDER'; bandSave(L); bandCopyAll(); return 'ok'; })()`);
+      const ffLs = Bo.ev(`localStorage.getItem('prio27ff')`) || '';
+      chk(name, how, 'the write is on the blank work in browser storage (a CONTROL)', J([ffLs.indexOf(MARK) >= 0, ffLs.indexOf('BLANK page note') >= 0]), J([true, true]));
+      const r1 = JSON.parse(Bo.ev(`localStorage.getItem('prio27ff.base')`));
+      chk(name, how, 'Full Fund’s record still says blank work no saved file holds', J([r1.dirty, +r1.file || 0, r1.blank]), J([true, 0, true]));
+      // the board file opened on O&M, then 💾 Save
+      const LS2 = lsOf(Bo.ev); delete LS2.prio27om; delete LS2['prio27om.base'];
+      const OM = boot({ html: FILE, ls: LS2 }); await w3sSleep(30);
+      OM.ev(`writerKey(); localStorage.setItem('prio27who','BLL'); window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(){}; ${W3S_FH} window.__fw.content=${J(FILE)}; LASTKNOWN=PUB_FILE_TS; 'ok'`);
+      await OM.ev('saveInPlaceFile()'); await w3sSleep(40);
+      const pub = JSON.parse((OM.ev('window.__fw.content').match(/id="pubState">([\s\S]*?)<\/script>/) || [])[1] || 'null') || { appns: {} };
+      const ff = pub.appns.ff || {}, fy = (ff.years || {})[ff.cur] || {};
+      chk(name, how + ', then the board file on O&M and 💾 Save', 'Save writes the file’s own Full Fund, and asks no HOLD ON',
+        J([OM.ev('window.__fw.writes'), J(fy.notes || null), J(fy.order || null), JSON.parse(OM.ev('JSON.stringify(window.__q)')).some(q => /HOLD ON/.test(q))]),
+        J([1, J({ F: 'FILE FF note' }), J(['F', 'G']), false]));
+      // Full Fund's own board, from the board file
+      const FFb = boot({ html: FILE, ls: Object.assign({}, LS2, { prio27appn: 'FULL FUND' }) }); await w3sSleep(30);
+      const kept = FFb.ev(`localStorage.getItem('prio27ff.kept')||''`);
+      chk(name, how + ', then Full Fund’s own board', 'opens the file’s Full Fund, and keeps the blank work aside with this page’s work on it',
+        J([FFb.ev('JSON.stringify(S.notes)'), kept.indexOf('BLANK page note') >= 0, kept.indexOf(MARK) >= 0]), J([J({ F: 'FILE FF note' }), true, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+})();
+// v2.14 RV2-B (finish, stray-carried-saved): A PACKAGE IS NOT TAKEN OVER BLANK WORK ITS OWN BOARD KEEPS ASIDE. On O&M of the board file,
+// with Full Fund's blank work in browser storage (stray against the file's), pkgApply asked about that blank work, replaced it, or --
+// storage refusing -- remembered it as carried, and the next 💾 Save recorded that blank work saved: Full Fund's opening dropped it with
+// nothing kept aside (rv2-B-check x2). Now it is refused, as ⬆ Issue and ⬆ Send back are, and no writer remembers stray work as
+// carried. A CONTROL: under an ordinary record the same stored copy is storage's, read and carried as before.
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v2.14 RV2-B — a package is not taken over blank work its own board keeps aside, and no writer remembers that work as carried: Save writes the file’s Full Fund and Full Fund’s board keeps the work aside (finish: stray-carried-saved)';
+  try {
+    const J = JSON.stringify;
+    const MINE = ['USAF', 'ANG', 'AFRC'];
+    const SCO = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'PSM', [400, 100, 50])], disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A', 'B'] };
+    const SCF = { services: MINE, items: [it('F', 'AV', [700, 100, 60]), it('G', 'TSS', [500, 90, 30])], disc: [900, 150, 60], mand: [200, 40, 20], order: ['F', 'G'] };
+    const asBuilt = (ev, sc) => ev(`(function(){ BASE_ITEMS.length=0; ${J(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); return 'ok'; })()`);
+    const lsOf = ev => JSON.parse(ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`));
+    const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SCF); asBuilt(F.ev, SCF); F.ev(`S.notes=S.notes||{}; S.notes.F='FILE FF note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const O = boot({ html: F.ev('buildSavedHtml()'), appn: 'O&M' }); seed(O.ev, SCO); asBuilt(O.ev, SCO); O.ev(`MS.years[MS.cur]=S; save(); 'ok'`);
+    const FILE = O.ev('buildSavedHtml()');
+    await w3sSleep(15);
+    const Bk = boot({ ls: { prio27appn: 'FULL FUND', prio27who: 'BLL' } });
+    Bk.ev(`S.notes=S.notes||{}; S.notes.Z='BLANK page note'; save(); 'ok'`);
+    const LS = lsOf(Bk.ev); delete LS.prio27om; delete LS['prio27om.base']; LS.prio27appn = 'O&M';
+    const OM = boot({ html: FILE, ls: LS }); await w3sSleep(30);
+    OM.ev(`writerKey(); localStorage.setItem('prio27who','BLL'); window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(m){ window.__q.push('ALERT '+m); }; URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; ${W3S_FH} window.__fw.content=${J(FILE)}; LASTKNOWN=PUB_FILE_TS; 'ok'`);
+    chk(name, 'the fixture', 'Full Fund’s stored copy is blank work its own board keeps aside (a CONTROL)', OM.ev(`String(strayHeld('ff'))`), 'true');
+    // (apCarryRaw is RV2-B's: a board before it has no writer that remembers anything as carried)
+    chk(name, 'a writer', 'remembers nothing of that blank work as carried (apCarryRaw)', OM.ev(`String(typeof apCarryRaw!=='function' || apCarryRaw('ff')===undefined)`), 'true');
+    const raw0 = OM.ev(`localStorage.getItem('prio27ff')`), base0 = OM.ev(`localStorage.getItem('prio27ff.base')`);
+    // a Full Fund package, issued from the board file on Full Fund's own board in another browser
+    const ms = JSON.parse(J(JSON.parse(/id="pubState">([\s\S]*?)<\/script>/.exec(FILE)[1]).appns.ff)); ms.years[ms.cur].notes = { F: 'FROM THE PACKAGE' };
+    const r = OM.ev(`String(pkgApply(${J({ spmtPkg: OM.ev('PKG_VER'), dir: 'issue', ap: 'ff', apName: 'Full Fund', seq: 1, ts: Date.now(), by: 'FF Mgr', baseSig: 'x', ms })}, 'ff-package.json'))`);
+    const qs = JSON.parse(OM.ev('JSON.stringify(window.__q)'));
+    chk(name, 'the package', 'is refused, saying why and that nothing was changed', J([r, qs.length, /^ALERT NOT IMPORTED — this browser holds Full Fund work typed on a page with no board file/.test(qs[0] || ''), /Nothing was changed\./.test(qs[0] || '')]), J(['false', 1, true, true]));
+    chk(name, 'the package', 'browser storage, its record and this page’s Full Fund are as they were', J([OM.ev(`localStorage.getItem('prio27ff')`) === raw0, OM.ev(`localStorage.getItem('prio27ff.base')`) === base0, OM.ev(`JSON.stringify(PUBS.ff.years[PUBS.ff.cur].notes)`)]), J([true, true, J({ F: 'FILE FF note' })]));
+    await OM.ev('saveInPlaceFile()'); await w3sSleep(40);
+    const pub = JSON.parse((OM.ev('window.__fw.content').match(/id="pubState">([\s\S]*?)<\/script>/) || [])[1] || 'null') || { appns: {} };
+    const ffp = pub.appns.ff || {};
+    const rb = JSON.parse(OM.ev(`localStorage.getItem('prio27ff.base')`));
+    chk(name, '💾 Save', 'writes the file’s Full Fund, and Full Fund’s record still says blank work no saved file holds', J([OM.ev('window.__fw.writes'), J(((ffp.years || {})[ffp.cur] || {}).notes || null), rb.dirty, +rb.file || 0, rb.blank]), J([1, J({ F: 'FILE FF note' }), true, 0, true]));
+    const LS3 = lsOf(OM.ev); LS3.prio27appn = 'FULL FUND';
+    const FFb = boot({ html: OM.ev('window.__fw.content'), ls: LS3 }); await w3sSleep(40);
+    chk(name, 'Full Fund’s own board', 'opens the saved file’s Full Fund and keeps the blank work aside, whole', J([FFb.ev('JSON.stringify(S.notes)'), (FFb.ev(`localStorage.getItem('prio27ff.kept')||''`)).indexOf('BLANK page note') >= 0]), J([J({ F: 'FILE FF note' }), true]));
+    // CONTROL: the same stored copy under an ordinary record (a page that saved a file once) is storage's newer copy, and carried
+    const LS4 = Object.assign({}, LS); LS4['prio27ff.base'] = J({ file: 1, dirty: true, blank: false });
+    const OM4 = boot({ html: FILE, ls: LS4 }); await w3sSleep(30);
+    chk(name, 'ordinary unsaved work', 'it is not stray, and a writer holds storage’s copy as it stands (a CONTROL)', J([OM4.ev(`String(strayHeld('ff'))`), OM4.ev(`String(typeof apCarryRaw!=='function' || apCarryRaw('ff')===localStorage.getItem('prio27ff'))`)]), J(['false', 'true']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+})();
+// v2.14 RV2-B (finish, newer-copy-asked-after-import): 💾 SAVE DOES NOT ASK ABOUT A NEWER COPY THIS PAGE REPLACED ON PURPOSE. RV2-B's line
+// naming an appropriation the file holds newer than the bytes (written for two tabs) also fired after ⇊ Import several boards took
+// yesterday's file over the board file: the very save this page came from, whose Full Fund this page had opened and chose to replace
+// (rv2-B-check x3). It is asked only where somebody else saved the file since. A CONTROL: then it still is.
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v2.14 RV2-B — 💾 Save does not ask about a newer copy this page replaced on purpose (⇊ Import several boards of yesterday’s file), and still names one somebody else saved since (finish: newer-copy-asked-after-import)';
+  try {
+    const J = JSON.stringify;
+    const MINE = ['USAF', 'ANG', 'AFRC'];
+    const SCO = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'PSM', [400, 100, 50])], disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A', 'B'] };
+    const SCF = { services: MINE, items: [it('F', 'AV', [700, 100, 60]), it('G', 'TSS', [500, 90, 30])], disc: [900, 150, 60], mand: [200, 40, 20], order: ['F', 'G'] };
+    const asBuilt = (ev, sc) => ev(`(function(){ BASE_ITEMS.length=0; ${J(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); return 'ok'; })()`);
+    const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SCF); asBuilt(F.ev, SCF); F.ev(`S.notes=S.notes||{}; S.notes.F='OLD FF note'; MS.years[MS.cur]=S; save(); 'ok'`);
+    const O = boot({ html: F.ev('buildSavedHtml()'), appn: 'O&M' }); seed(O.ev, SCO); asBuilt(O.ev, SCO); O.ev(`MS.years[MS.cur]=S; save(); 'ok'`);
+    const OLD = O.ev('buildSavedHtml()');
+    await w3sSleep(20);
+    // today: Full Fund edited and saved into the board file
+    const F2 = boot({ html: OLD, appn: 'FULL FUND' }); await w3sSleep(20); F2.ev(`S.notes.F='NEW FF note'; save(); 'ok'`);
+    const FILE = F2.ev('buildSavedHtml()');
+    const OM = boot({ html: FILE, appn: 'O&M' }); await w3sSleep(30);
+    OM.ev(`writerKey(); localStorage.setItem('prio27who','BLL'); window.__q=[]; window.__ans=[]; window.confirm=function(m){ window.__q.push(String(m)); return window.__ans.length? window.__ans.shift() : true; }; window.alert=function(m){ window.__q.push('ALERT '+m); }; window.prompt=function(){ return 'BLL'; }; ${W3S_FH} window.__fw.content=${J(FILE)}; LASTKNOWN=PUB_FILE_TS; window.__old=${J(OLD)}; 'ok'`);
+    await OM.ev('saveInPlaceFile()'); await w3sSleep(40);
+    chk(name, 'the fixture', 'a first Save writes the board file (a CONTROL)', OM.ev('window.__fw.writes'), 1);
+    OM.ev(`window.__q=[]; importBoards({files:[new File([window.__old], 'yesterday (ORBIT).html')], value:''}); 'ok'`);
+    for (let i = 0; i < 100 && OM.ev(`String(JSON.stringify(((PUBS.ff||{}).years||{})[(PUBS.ff||{}).cur]||{}).indexOf('OLD FF note')>=0)`) !== 'true'; i++) await w3sSleep(50);
+    chk(name, '⇊ Import several boards', 'takes yesterday’s Full Fund over the file’s (a CONTROL)', OM.ev(`JSON.stringify(PUBS.ff.years[PUBS.ff.cur].notes)`), J({ F: 'OLD FF note' }));
+    OM.ev(`window.__q=[]; 'ok'`);
+    await OM.ev('saveInPlaceFile()'); await w3sSleep(40);
+    const pub = JSON.parse((OM.ev('window.__fw.content').match(/id="pubState">([\s\S]*?)<\/script>/) || [])[1] || 'null') || { appns: {} };
+    chk(name, '💾 Save after the import', 'asks nothing, and writes yesterday’s Full Fund into the file',
+      J([OM.ev('window.__q.length'), OM.ev('window.__fw.writes'), J(pub.appns.ff.years[pub.appns.ff.cur].notes)]), J([0, 2, J({ F: 'OLD FF note' })]));
+    // and RV2-B's two-tab rule still holds: somebody else saves the file, a newer Full Fund in it; the next Save asks the HOLD ON, then names it
+    const later = Date.now() + 1000;
+    OM.ev(`(function(){ var t=window.__fw.content, m=t.match(/(<script type="application\\/json" id="pubState">)([\\s\\S]*?)(<\\/script>)/); var p=JSON.parse(m[2]);
+      p.appns.ff.ts=${later}; p.appns.ff.by='Brad';
+      var rep=m[1]+JSON.stringify(p).replace(/</g,'\\\\u003c')+m[3]; window.__fw.content=t.replace(m[0], function(){ return rep; }); return 'ok'; })()`);
+    OM.ev(`S.notes=S.notes||{}; S.notes.A='an edit here'; save(); window.__q=[]; window.__ans=[true, false]; 'ok'`);
+    await OM.ev('saveInPlaceFile()'); await w3sSleep(40);
+    const qs = JSON.parse(OM.ev('JSON.stringify(window.__q)'));
+    chk(name, 'somebody else saved since', 'the HOLD ON, then a question naming Full Fund’s newer copy; Cancel writes nothing (RV2-B’s two-tab rule, kept)',
+      J([/^⚠ HOLD ON — Brad saved this file/.test(qs[0] || ''), /Full Fund: the file holds a newer copy/.test(qs[1] || ''), OM.ev('window.__fw.writes')]), J([true, true, 2]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+})();
+// v2.14 RV2-B (finish, take-record-left-saved): THE ORDINARY ⬅ IMPORT OF ONE APPROPRIATION RECORDS IT UNSAVED. consTakeApply wrote the
+// taken plan into browser storage and left its record naming the old save as saved, so a newer board file opened on that appropriation's
+// own board replaced what was taken with nothing kept aside -- another appropriation's (rv2-B-check x4), and the board's own, whose
+// reopened page even read "Saved" (rv2-B x5). ⇊ Import several boards did the same to every appropriation but the one on screen (x7).
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v2.14 RV2-B — the ordinary ⬅ Import of one appropriation, and ⇊ Import several boards, record what they take unsaved, so a newer board file opened later keeps it aside (finish: take-record-left-saved)';
+  try {
+    const J = JSON.stringify;
+    const MINE = ['USAF', 'ANG', 'AFRC'];
+    const SCO = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'PSM', [400, 100, 50])], disc: [1200, 300, 150], mand: [100, 20, 10], order: ['A', 'B'] };
+    const SCF = { services: MINE, items: [it('F', 'AV', [700, 100, 60]), it('G', 'TSS', [500, 90, 30])], disc: [900, 150, 60], mand: [200, 40, 20], order: ['F', 'G'] };
+    const asBuilt = (ev, sc) => ev(`(function(){ BASE_ITEMS.length=0; ${J(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); return 'ok'; })()`);
+    const lsOf = ev => JSON.parse(ev(`JSON.stringify((function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })())`));
+    for (const [how, k] of [['take', 'ff'], ['take', 'om'], ['batch', 'ff']]) {
+      const appn = k === 'ff' ? 'FULL FUND' : 'O&M', route = how + ' ' + k;
+      const F = boot({ appn: 'FULL FUND' }); seed(F.ev, SCF); asBuilt(F.ev, SCF); F.ev(`MS.years[MS.cur]=S; S.notes={F:'FF note'}; save(); 'ok'`);
+      const FFONLY = F.ev('buildSavedHtml()');
+      const O = boot({ html: FFONLY, appn: 'O&M' }); seed(O.ev, SCO); asBuilt(O.ev, SCO); O.ev(`MS.years[MS.cur]=S; S.notes={A:'OM note'}; save(); 'ok'`);
+      const FILE1 = O.ev('buildSavedHtml()');
+      const P1 = JSON.parse(/id="pubState">([\s\S]*?)<\/script>/.exec(FILE1)[1]);
+      // this browser opened that file and holds both plans as saved in it
+      const LS = Object.assign(lsOf(F.ev), lsOf(O.ev));
+      LS['prio27ff.base'] = J({ file: P1.appns.ff.ts, folder: {}, dirty: false }); LS['prio27om.base'] = J({ file: P1.appns.om.ts, folder: {}, dirty: false }); LS.prio27appn = 'O&M';
+      const B = boot({ html: FILE1, ls: LS }); await w3sSleep(30);
+      B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; window.__re=0; reopenPage=function(){ window.__re++; }; 'ok'`);
+      if (how === 'take') {
+        const lead = JSON.parse(J(P1)); const lp = lead.appns[k];
+        lp.years[lp.cur].notes = k === 'ff' ? { F: 'FROM THE LEAD' } : { A: 'FROM THE LEAD' }; lp.ts = Date.now();
+        B.ev(`consTakeApply(${J(lead)}, '', 'lead.html', [${J(k)}], false); 'ok'`);
+      } else {
+        // the lead's own Full Fund board file, saved later
+        await w3sSleep(10);
+        const L = boot({ html: FFONLY, appn: 'FULL FUND' }); await w3sSleep(20); L.ev(`S.notes.F='FROM THE LEAD'; save(); 'ok'`);
+        B.ev(`window.__lead=${J(L.ev('buildSavedHtml()'))}; importBoards({files:[new File([window.__lead], 'lead (ORBIT).html')], value:''}); 'ok'`);
+        for (let i = 0; i < 200 && (B.ev(`localStorage.getItem('prio27ff')||''`)).indexOf('FROM THE LEAD') < 0; i++) await w3sSleep(25);
+      }
+      chk(name, route, 'what was taken lands in browser storage, and the page reopens after a take, not after a batch (a CONTROL)', J([(B.ev(`localStorage.getItem(${J('prio27' + k)})`) || '').indexOf('FROM THE LEAD') >= 0, B.ev('window.__re')]), J([true, how === 'take' ? 1 : 0]));
+      const rec = JSON.parse(B.ev(`localStorage.getItem(${J('prio27' + k + '.base')})`));
+      chk(name, route, 'its record says this browser holds work no saved copy has, naming the save it was opened from', J([rec.dirty, rec.file]), J([true, P1.appns[k].ts]));
+      if (route === 'take om') {
+        const R = boot({ html: FILE1, ls: lsOf(B.ev) }); await w3sSleep(30);
+        chk(name, 'take om, reopened', 'the board on screen reads unsaved, the taken plan on screen', J([R.ev(`(document.getElementById('saveState')||{}).textContent||''`), R.ev('JSON.stringify(S.notes)')]), J(['Unsaved changes', J({ A: 'FROM THE LEAD' })]));
+      }
+      // nobody saves here; another machine saves the board file with a newer plan of that appropriation (H added)
+      await w3sSleep(10);
+      const X = k === 'ff' ? F : O;
+      X.ev(`reqCreate('AV', {title:'H added later', event:'EV-H', ask:[5000000,0,0]}); save(); 'ok'`);
+      const FILE2 = X.ev('buildSavedHtml()');
+      const LS2 = lsOf(B.ev); LS2.prio27appn = appn;
+      const N = boot({ html: FILE2, ls: LS2 }); await w3sSleep(40);
+      const kept = N.ev(`localStorage.getItem(${J('prio27' + k + '.kept')})||''`);
+      chk(name, route + ', then a newer board file on its own board', 'opens the newer file and keeps what was taken aside, whole',
+        J([N.ev('mySlug()'), N.ev('JSON.stringify(S.order)').indexOf('NEW-1') >= 0, kept.indexOf('FROM THE LEAD') >= 0]), J([k, true, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+})();
 // ---- end RV2-B ----
 // ---- RV2-C (round 2, second half: C) ----
 // ---- end RV2-C ----

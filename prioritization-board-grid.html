@@ -11041,7 +11041,7 @@ async function _saveInPlaceFileRun(o){
     // the Save window just emptied holds nothing to compare, and a program with no board holds no board.
     if(txt.length && !bare){
       let q=null; try{ const mq=html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); q=mq? JSON.parse(mq[1]) : null; }catch(e){ q=null; }
-      const lost=saveDrops(txt, p, q, baked);
+      const lost=saveDrops(txt, p, q, baked, fileTsOf(p)===LASTKNOWN);   // v2.14 RV2-B (finish): the save this work came from?
       if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){
         if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
         saveStopBack(stop, penLine);
@@ -11110,7 +11110,9 @@ async function _saveInPlaceFileRun(o){
 // `baked` extractPacks(txt) when p is null. Pure, and never escapes: these lines go into confirm(), which is not HTML. Every read is
 // guarded: anything not an object reads as empty. An ordinary Save asks nothing: the board on screen carries every appropriation
 // (pubsFor), every cycle (cycByAp), every list and every requirement it opened with. A deletion on purpose asks once (D3).
-function saveDrops(txt, p, q, baked){
+// `seen` (v2.14 RV2-B, finish): the file is the very save the work on screen came from (its time is LASTKNOWN), so every copy in it is
+// one this page opened or wrote itself.
+function saveDrops(txt, p, q, baked, seen){
   const obj=function(o){ return (o && typeof o==='object' && !Array.isArray(o))? o : null; };
   const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
   const nm=function(k){ return (_SLUGMAP[k] && _SLUGMAP[k].t) || String(k); };
@@ -11159,7 +11161,10 @@ function saveDrops(txt, p, q, baked){
   // which still held the Initial Spares it had opened, answered OK at its HOLD ON (which names nobody's changes) and wrote PB27 back
   // over the file's BES28, a cycle nobody had chosen to drop. Every requirement was still there, so nothing above named it. The board
   // on screen is left out: its copy is the one just saved, so the file never holds a newer one of it.
-  slugs.forEach(function(k){
+  // v2.14 RV2-B (finish, newer-copy-asked-after-import): and only where somebody else saved the file since (`seen` false: the "HOLD ON
+  // -- ... saved this file" question has just been asked). In the very save this page came from, a newer copy is one this page saw
+  // and replaced on purpose -- ⇊ Import several boards of yesterday's file -- and Save asked about it as if nobody had.
+  if(!seen) slugs.forEach(function(k){
     if(k===mySlug()) return;
     const fp=obj(A[k]), qp=Object.prototype.hasOwnProperty.call(B, k)? obj(B[k]) : null;
     if(!fp || !qp || !((+fp.ts||0) > (+qp.ts||0))) return;
@@ -11523,6 +11528,14 @@ function importBoards(inp){
     // through lsAll, and memory changes only once every write has landed. It wrote one at a time with lsSet and never
     // looked: a refused second write left the first in storage, the second only in memory, and the message said both.
     const W=take.map(r=>[_SLUGMAP[r.slug].key, JSON.stringify(r.st), _SLUGMAP[r.slug].t+' board data', _SLUGMAP[r.slug].t]);
+    // v2.14 RV2-B (finish, take-record-left-saved, the same door): AND EACH OTHER APPROPRIATION'S RECORD SAYS THIS BROWSER HOLDS WORK NO
+    // SAVED COPY HAS, in the same all-or-nothing write, after every plan (so a refusal's index is still a file's). The board on screen's
+    // own record is loadCounted's, below. Left saying "saved", a newer board file opened on that appropriation's own board replaced what
+    // was imported with nothing kept aside. The save the record names and any blank mark stay, as cycApplyAll's record keeps them.
+    take.forEach(function(r){ if(r.slug===_AP.slug) return;
+      let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[r.slug].key+'.base')||'null'); }catch(e){ b=null; }
+      if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+      W.push([_SLUGMAP[r.slug].key+'.base', JSON.stringify(Object.assign(b, {dirty:true})), 'This browser\u2019s record of the '+_SLUGMAP[r.slug].t+' plan', 'the record of the '+_SLUGMAP[r.slug].t+' plan']); });
     // v1.99 (item 86, review N02): what storage held before the write is lsAll's own reading, taken before it writes --
     // if storage cannot be read, lsAll writes nothing and says so. It was read a second time here, and when that read
     // failed the write went ahead with nothing to put back.
@@ -11551,7 +11564,8 @@ function importBoards(inp){
       Object.keys(pubWas).forEach(function(k){ if(pubWas[k]===undefined) delete PUBS[k]; else PUBS[k]=pubWas[k]; });
       const memOk=!threw || impBoardBack(memWas);
       const now=lsPutBack(W, held);
-      if(memOk && now.every(function(s){ return s==='was'; })){
+      // v2.14 RV2-B (finish): a plan's record left unsaved over a plan put back as it was is no list out of place (C19)
+      if(memOk && now.every(function(s, i){ return s==='was' || /\.base$/.test(W[i][0]); })){
         lsMarksBack(mk);     // v2.14 W3 (item 140 c): every list as it was, so the board reads as saved as it was
         return none('this board did not take '+_SLUGMAP[here.slug].t+' from “'+here.name+'”', true);
       }
@@ -11726,6 +11740,10 @@ function apHeldWhy(k){
 function apCarryRaw(k){
   try{
     if(typeof _SLUGMAP==='undefined' || !_SLUGMAP[k] || k===mySlug()) return undefined;
+    // v2.14 RV2-B (finish, stray-carried-saved): never stray blank work. Every reader takes the file's copy over it (strayOr), so the
+    // copy a writer builds never holds it; remembered as carried, a refused write let the next 💾 Save record that blank work saved,
+    // and its own board's opening then dropped it with nothing kept aside.
+    if(strayHeld(k)) return undefined;
     const raw=localStorage.getItem(_SLUGMAP[k].key); if(raw===null) return undefined;
     if(cycCarryHas(k)) return raw;
     const g=apStoreOf(k);
@@ -11755,7 +11773,11 @@ function apPut(k, st, what, raw, fromPage){
     let rec=false;
     try{ let b=null; try{ b=JSON.parse(b0||'null'); }catch(e){ b=null; }
       if(!b || typeof b!=='object' || Array.isArray(b)) b={};
-      localStorage.setItem(bkey, JSON.stringify(Object.assign(b, {dirty:true, blank:false}, fromPage? {file:_pubsFileTs} : {}))); rec=true; }catch(e){ rec=false; }
+      // v2.14 RV2-B (finish, blank-mark-cleared): the mark is left as it was, as cycApplyAll's record leaves it. Written false, it turned
+      // blank work typed on a page with no board file -- copied the ladder, or issued, on another such page -- into ordinary unsaved
+      // work: the board file opened later read it as the newer Full Fund, and the next Save wrote it over the file's after a HOLD ON.
+      // A copy built from this page's (fromPage) names the save PUBS holds, and a record naming a save is never stray work (strayOther).
+      localStorage.setItem(bkey, JSON.stringify(Object.assign(b, {dirty:true}, fromPage? {file:_pubsFileTs} : {}))); rec=true; }catch(e){ rec=false; }
     if(rec){ try{ held=localStorage.getItem(key); }catch(e){ held=undefined; } }
     else {
       // the record cannot say so: the plan is put back as it was and held on this page alone (counted as refused, as lsSet counts one),
@@ -12266,7 +12288,12 @@ function pkgApply(pkg, fname){
   if(ap!==mySlug()){ let hd=false; try{ hd=apStoreOf(ap).held; }catch(e){ hd=false; }
     if(hd){ alert('NOT IMPORTED \u2014 '+apHeldWhy(ap)+', so taking the package now could lose either one.\n\n'
       +'Open '+nm+' to settle which one stands (its opening keeps this browser\u2019s work aside), then import the package again. Nothing was changed.');
-      return false; } }
+      return false; }
+    // v2.14 RV2-B (finish, stray-carried-saved): NOR OVER BLANK WORK ITS OWN BOARD KEEPS ASIDE (strayHeld), as ⬆ Issue and ⬆ Send back
+    // are refused (RV1-C: a writer leaves it alone and says why). The questions below were asked about that blank work (pkgStoreOf
+    // reads storage's newer copy), while every other reader on this page shows the file's; the write then replaced it, or, refused,
+    // left it to be recorded saved and dropped at its board's opening.
+    if(strayHeld(ap)){ alert('NOT IMPORTED \u2014 '+strayHeldWhy(ap)+'.\n\nNothing was changed.'); return false; } }
   const cur=pkgStoreOf(ap);
   const led=cur? pkgLedger(ap) : null;
 
@@ -12621,6 +12648,13 @@ function consTakeApply(fullSt, txt, fname, pick, all){
     if(cur){ pkgKeepLocked(cur, next); if(cur.sync) next.sync=cur.sync; }
     next.ts=Date.now();
     lsSet(_SLUGMAP[k].key, JSON.stringify(next), 'the '+nm+' plan');
+    // v2.14 RV2-B (finish, take-record-left-saved): AND THIS BROWSER'S RECORD OF THAT PLAN SAYS IT HOLDS WORK NO SAVED COPY HAS, committed
+    // with it (all or nothing). The record went on naming the save the old plan came from as saved, so a newer board file opened on that
+    // appropriation's own board replaced what was taken with nothing kept aside. The save it names and any blank mark stay as they were,
+    // as cycApplyAll's record keeps them: the board file is still this page's, and Save then asks nothing it should not.
+    { let b=null; try{ b=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'.base')||'null'); }catch(e){ b=null; }
+      if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+      W.push([_SLUGMAP[k].key+'.base', JSON.stringify(Object.assign(b, {dirty:true})), 'This browser\u2019s record of the '+nm+' plan', 'the record of the '+nm+' plan']); }
     if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=next;
     taken.push(nm);
   });
@@ -14289,7 +14323,10 @@ function impBoardBack(m){
 // Never "exactly as it was".
 function batchImportUndone(W, held, now, take, here, memOk){
   const say=function(i){ return W[i][3]; };
-  const by=function(st){ return W.map(function(w, i){ return now[i]===st? say(i) : ''; }).filter(Boolean); };
+  // v2.14 RV2-B (finish): a plan's record is not a list the batch carries -- never named here, never in the mixed mark (C19, as
+  // fullImportUndone reads it)
+  const isRec=function(i){ return /\.base$/.test(W[i][0]); };
+  const by=function(st){ return W.map(function(w, i){ return (now[i]===st && !isRec(i))? say(i) : ''; }).filter(Boolean); };
   const hm={}; W.forEach(function(w, i){ hm[w[0]]=held[i]; });
   let pre=''; if(memOk){ try{ pre=fullImportPreHtml(hm); }catch(e){ pre=''; } }
   const seen=[], incs=[];
@@ -14297,7 +14334,7 @@ function batchImportUndone(W, held, now, take, here, memOk){
     incs.push({text:String(r.txt), name:String(r.name||'imported board.html').replace(/ \[[^\]]*\]$/, '')}); } });
   _impRescue={pre:pre? {text:pre, name:expName(FNAME.replace(/\.html?$/i,'')+' — as it was before the import.html')} : null,
               inc:null, incs:incs, mixed:true};
-  const mixedKeys=W.filter(function(w, i){ return now[i]!=='was'; }).map(function(w){ return w[0]; });
+  const mixedKeys=W.filter(function(w, i){ return now[i]!=='was' && !isRec(i); }).map(function(w){ return w[0]; });
   try{ const o=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null');
     (o && Array.isArray(o.keys)? o.keys : []).forEach(function(k){ if(mixedKeys.indexOf(k)<0) mixedKeys.push(k); }); }catch(e){}
   try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(here.name||''), keys:mixedKeys, kind:'batch'})); }catch(e){}
@@ -14306,7 +14343,7 @@ function batchImportUndone(W, held, now, take, here, memOk){
   const screen=memOk? 'The board on screen is the one you had, and it has not been reopened.'
                     : 'The board on screen could not be put back either: reload this page before anything else, and do not save.';
   alert('⇊ Import several boards stopped part-way: '+why+' after browser storage was written, and putting it back left '
-    +(inWas.length===W.length? 'storage as it was, but not the board on screen' : 'some lists not as they were')+'.\n\n'
+    +(inWas.length===W.filter(function(w, i){ return !isRec(i); }).length? 'storage as it was, but not the board on screen' : 'some lists not as they were')+'.\n\n'
     +'In this browser now:'
     +(inNew.length? '\n  from the imported files: '+inNew.join(', ') : '')
     +(inWas.length? '\n  as it was: '+inWas.join(', ') : '')

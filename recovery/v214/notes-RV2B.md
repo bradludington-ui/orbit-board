@@ -188,3 +188,92 @@ work 4, two tabs 2, no cycle 3, apHeldWhy 1. On this board all pass.
   p4-stray-sideboot, q2-other-write-record (three writers) and journeys p3 b2 t2 (regenerated on this board) -- each now shows the
   fixed behaviour quoted in the sections above.
 - Not run, by the rules: the sweep, `validate:math`, `validate:nightly`.
+
+
+## The finish: what the independent check of these fixes found
+
+The check (scratchpad `v214rev2/rv2-B-check/`) re-ran every reviewer probe on fa5b44d's board: each finding and also-noticed item
+holds. It then reported four new defects, three of them made or reached by this round's own fixes. Each probe was copied into
+`scratchpad/v214rev2/rv2-B/seams/` (x1-x4, plus x5 and x6 written for this finish) and run on this worktree's board before any change.
+
+### A. blank-mark-cleared (a regression from fa5b44d; data loss after a question)
+
+**Reproduced** (`x1-blank-ladder.mjs`, `VIA=ladder` and `VIA=issue`): blank Full Fund work typed on a page with no board file (record
+`{file:0, dirty:true, blank:true}`), then ⚖ the ladder copied or Full Fund issued on a blank O&M page. apPut wrote the record as
+`{dirty:true, blank:false}`, so the board file opened later on O&M read that blank work as the newer Full Fund ("Save writes ff from
+this browser"). The next Save asked a HOLD ON naming Full Fund's two requirements and, after OK, wrote the blank work over the file's
+Full Fund (notes `{"Z":"BLANK page note"}`, order `[]`). Full Fund's own board then opened the blank work, with nothing kept aside.
+On 74a6aec the record kept its mark, so neither happened.
+
+**Fixed** in `apPut`: the blank mark is left as it was, as cycApplyAll's record leaves it: `Object.assign(b, {dirty:true}, fromPage?
+{file:_pubsFileTs} : {})`. A copy built from this page's own (`fromPage`) names the save PUBS holds, and a record that names a save is
+never stray work (`strayOther` needs `!(+b.file)`), so no `blank:false` is needed for that case. The check's suggested fix was
+`fromPage? {file, blank:false}`; this is the same in effect and has one rule fewer. Re-run: the record stays blank, Save writes the
+file's Full Fund (`{"F":"FILE FF note"}`, `["F","G"]`) and asks no HOLD ON, and Full Fund's board keeps the work aside.
+
+### B. stray-carried-saved (narrow data loss)
+
+**Reproduced** (`x2-stray-apply-refused.mjs`): O&M of the board file, Full Fund's blank work in browser storage (stray against the file's
+copy), a Full Fund package taken, and storage refusing the plan. `apCarryRaw` returned storage's text, which was the blank work, so the
+refused write was remembered as carried. The next Save's `cycCarrySaved` then recorded that blank work as saved (`{file:<save>,
+dirty:false, blank:true}`). Full Fund's board opened the file with nothing kept aside, and after its first edit the blank work was
+nowhere in storage. With storage taking the write (block B, on fa5b44d and on 74a6aec), pkgApply replaced the blank work. Its
+questions were asked about that blank work (`pkgStoreOf` reads storage's newer copy), while every other reader on the page shows the
+file's Full Fund (RV1-C).
+
+**Fixed**, two lines:
+- `pkgApply` refuses a package for another appropriation whose stored copy is stray blank work (`strayHeld`), with `strayHeldWhy`
+  ("Open Full Fund once … then do this again"). This matches how ⬆ Issue and ⬆ Send back are refused, and follows RV1-C's rule that
+  a writer leaves stray work alone and says why.
+- `apCarryRaw` returns nothing for stray work. Every reader takes the file's copy over it, so no copy a writer builds holds it. This
+  is defence in depth: today every writer that reaches apPut refuses stray work first, so the guard is proved by calling apCarryRaw
+  directly, with a CONTROL showing it still returns storage's text under an ordinary record.
+
+### C. newer-copy-asked-after-import (a regression from fa5b44d; a false HOLD ON)
+
+**Reproduced** (`x3-import-older.mjs`): the board file opened on O&M and saved once, then ⇊ Import several boards of yesterday's file,
+then Save. This round's two-tab line ("Full Fund: the file holds a newer copy … than the one this board would write over it") was
+asked about the Full Fund the page had just chosen to replace.
+
+**Fixed**: `saveDrops` takes `seen` (the file is the very save the work on screen came from: `fileTsOf(p)===LASTKNOWN`, passed by
+`_saveInPlaceFileRun`), and the newer-copy lines are written only when it is false. That is exactly when the "HOLD ON — … saved this
+file" question has just been asked. In the save the page came from, every copy is one it opened or wrote, so a newer one there was
+replaced on purpose. Re-run: Save asks nothing and writes yesterday's Full Fund. The two-tab case still asks (the journey `p3.mjs b2
+t2`, regenerated on this board: "• Initial Spares: the file holds a newer copy … the file’s is on BES28, this board’s on PB27").
+RV2-B's two-tab block is unchanged and passes.
+
+### D. take-record-left-saved (pre-existing; data loss)
+
+**Reproduced** (`x4-take-record.mjs` for another appropriation, on this board and on 74a6aec alike; `x5-take-own.mjs` for the board's
+own appropriation). The ordinary ⬅ Import of one appropriation (`consTakeApply`) wrote the taken plan into browser storage and left its
+record naming the old save as saved. A newer board file opened on that appropriation's own board then replaced what was taken, with
+nothing kept aside. For the board's own appropriation, the reopened page also read "Saved" over "Opened with this browser’s copy … it
+has changes made after this file was last saved". The check called this scoped out as §12 Q6. It is not Q6: Q6 is a false HOLD ON
+after a full import, where nothing is lost. This is the same loss as also-noticed 2, through the import door.
+
+**Fixed**, a line outside my functions, named: `consTakeApply` puts each taken plan's record into its all-or-nothing write (`W`, after
+the plan), with `dirty:true` merged onto the record as it stood. The save it names and any blank mark stay, as cycApplyAll's record
+keeps them, because the board file is still this page's. The full import writes C6's whole `{file:0, …}` record instead, which is what
+gives Q6's false alarm. Re-run: the record says unsaved, the reopened board reads "Unsaved changes", and a newer file keeps the take
+aside. `x6-take-then-save.mjs` is the CONTROL: Save writes the take, and Full Fund's board opens that file with nothing kept aside, a
+clean record and no question when it next saves.
+
+### Checks (audit-board, RV2-B slot), each with expectations from the fixture's literals
+
+| block (name ends) | fixed | fa5b44d (HEAD's board) | 74a6aec |
+|---|---|---|---|
+| `(finish: blank-mark-cleared)`: ladder and issue on a second blank page, the file on O&M and Save, Full Fund's board | passes | fails 6 | passes (the regression is fa5b44d's) |
+| `(finish: stray-carried-saved)`: apCarryRaw, the package refused, Save, Full Fund's board, CONTROL | passes | fails 5 | fails 4 (pkgApply takes the package over the blank work; no apCarryRaw there) |
+| `(finish: newer-copy-asked-after-import)`: the import, Save asks nothing; two-tab rule kept | passes | fails 1 | fails 1 (the two-tab line is fa5b44d's; the main check passes there) |
+| `(finish: take-record-left-saved)`: ff and om, record, the reopened board, a newer file | passes | fails 5 | fails 5 |
+
+Slimmed together (`slim.py … "(finish: "`): 17 failing checks on fa5b44d's board, 10 on 74a6aec's, ALL CHECKS PASSED on this board.
+
+### Mutations
+
+- **New (6):** `v214-rv2-b-blank-mark-cleared`, `-carryraw-stray`, `-apply-over-stray`, `-newer-asked-when-seen`, `-newer-seen-ignored`
+  and `-take-record-saved`.
+- **Retargeted (1):** `v214-rv2-b-record-not-marked`. Its line lost `blank:false`.
+- `mcount`: 3,532 entries, every one once. Every mutant built with `mkmut.py` passes `tools/check.mjs`.
+- **The proof:** apPut, apCarryRaw and pkgApply changed under them, so all 32 entries in `proofs-RV2B.json` were proved again on this
+  board, into a fresh `proved-RV2B.jsonl`. The first run's record is kept as `proved-RV2B-fa5b44d.jsonl`.

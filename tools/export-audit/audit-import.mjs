@@ -18742,6 +18742,45 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // ---- RV2-A (the file route and Save) ----
 // ---- end RV2-A ----
 // ---- RV2-B (other appropriations, cycles and packages) ----
+// v2.14 RV2-B (finish, take-record-left-saved, the several-boards door): ⇊ IMPORT SEVERAL BOARDS NOW WRITES EACH OTHER APPROPRIATION'S
+// RECORD WITH ITS PLAN (C19's rule: a record is not a list the batch carries). When the board on screen then refuses its appropriation
+// and putting everything back leaves only a record not as it was, nothing is out of place -- nothing imported, no mix held; and when a
+// list is stuck too, the mix names that list alone, never the record. Faults are injected, as v1.99's batch check does.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-B — ⇊ Import several boards writes each other appropriation’s record with its plan, and a record left unsaved by a refusal is no list out of place (finish: take-record-left-saved, the several-boards door)';
+  try {
+    const { J } = W1H;
+    const F = w3Files();
+    const REFUSE = `globalThis.__as0=applyStore; applyStore=function(raw){ if(raw && raw.years && raw!==MS && globalThis.__asNo){ globalThis.__asNo=false; return false; } return globalThis.__as0(raw); }; globalThis.__asNo=true;`;
+    const STUCK = keys => `globalThis.__si0=globalThis.__si0||Storage.prototype.setItem; globalThis.__stuck=${J(keys)};
+      Storage.prototype.setItem=function(k, v){ if(globalThis.__asNo===false && globalThis.__stuck.indexOf(k)>=0) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+        return globalThis.__si0.call(this, k, v); };`;
+    // (lead) Full Fund's record must say SAVED before the batch, or the batch writes it back byte for byte (dirty:true merged onto a
+    // record already dirty) and a stuck put-back of it can never fail: the fixture could not reach the branch it is for
+    const SAVED = `localStorage.setItem('prio27ff.base', JSON.stringify({file:1, folder:{}, dirty:false}));`;
+    const mark = r => { try { return JSON.parse(r.lsAfter.prio27impMixed || 'null'); } catch (e) { return 'unreadable'; } };
+    // the batch lands, and Full Fund's record -- saying saved before it (the fixture's says unsaved already) -- says this browser holds
+    // work no saved copy has (the board on screen's own record is loadCounted's)
+    { const r = await w3Batch([{ name: 'new-board.html', html: F.both }], { before: `localStorage.setItem('prio27ff.base', JSON.stringify({file:1, folder:{}, dirty:false}));` });
+      let rec = null; try { rec = JSON.parse(r.lsAfter['prio27ff.base'] || 'null'); } catch (e) { rec = null; }
+      chk(name, 'the batch lands', 'Full Fund is taken and its record, saved before, says unsaved now, naming the same save', J([/Imported:/.test(r.stat), r.changed.indexOf('prio27ff') >= 0, !!(rec && rec.dirty === true), rec && rec.file]), J([true, true, true, 1])); }
+    // (a) the board refuses after the write, and only Full Fund's record will not go back
+    { const r = await w3Batch([{ name: 'new-board.html', html: F.both }], { before: SAVED + REFUSE + STUCK(['prio27ff.base']) });
+      chk(name, 'the board refuses, only a record will not go back', 'nothing was imported, no mix is held, every list as it was, and memory as it was',
+        J([/Nothing was imported/.test(r.stat), /stopped part-way/.test(r.stat), r.lsAfter.prio27impMixed === undefined, r.changed.filter(k => !/\.base$/.test(k)), r.memSame]),
+        J([true, false, true, [], true])); }
+    // (b) and when O&M's plan is stuck as well, the mix names O&M alone
+    { const r = await w3Batch([{ name: 'new-board.html', html: F.both }], { before: SAVED + REFUSE + STUCK(['prio27om', 'prio27ff.base']) });
+      const m = mark(r);
+      chk(name, 'the board refuses, O&M and a record will not go back', 'the mix is held, its mark names O&M’s plan alone, and no message names a record',
+        J([/stopped part-way/.test(r.stat), m && m.keys && m.keys.slice().sort(), /record of the/.test(r.stat)]), J([true, ['prio27om'], false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-B ----
 // ---- RV2-C (round 2, second half: C) ----
 // ---- end RV2-C ----

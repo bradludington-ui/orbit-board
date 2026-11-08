@@ -24,5 +24,16 @@
 {"id": "v214-rv1-b-carry-record-dirty", "caughtBy": "board / v2.14 RV1-B — plans this browser stores are carried too"},
 {"id": "v214-rv1-c-ladder-copies-stray", "caughtBy": "import / (stray-rule-only-own-opening, finish)"},
 {"id": "v214-rv1-c-spdefs-reads-blank", "caughtBy": "import / (stray-rule-only-own-opening, finish)"},
-{"id": "v214-rv1-c-byband-reads-blank", "caughtBy": "import / (stray-rule-only-own-opening, finish)"}
+{"id": "v214-rv1-c-byband-reads-blank", "caughtBy": "import / (stray-rule-only-own-opening, finish)"},
+{"id": "v214-rv2-b-blank-mark-cleared", "caughtBy": "board / (finish: blank-mark-cleared)"},
+{"id": "v214-rv2-b-carryraw-stray", "caughtBy": "board / (finish: stray-carried-saved)"},
+{"id": "v214-rv2-b-apply-over-stray", "caughtBy": "board / (finish: stray-carried-saved)"},
+{"id": "v214-rv2-b-newer-asked-when-seen", "caughtBy": "board / (finish: newer-copy-asked-after-import)"},
+{"id": "v214-rv2-b-newer-seen-ignored", "caughtBy": "board / (finish: newer-copy-asked-after-import)"},
+{"id": "v214-rv2-b-take-record-saved", "caughtBy": "board / (finish: take-record-left-saved)"},
+{"id": "v199-batch-says-back", "caughtBy": "import / v1.99 — a batch that cannot be put back says so"},
+{"id": "v214-rv2-b-batch-record-saved", "caughtBy": "board / (finish: take-record-left-saved)"},
+{"id": "v214-rv2-b-batch-record-blocks-undo", "caughtBy": "import / (finish: take-record-left-saved, the several-boards door)"},
+{"id": "v214-rv2-b-batch-mixed-names-record", "caughtBy": "import / (finish: take-record-left-saved, the several-boards door)"},
+{"id": "v214-rv2-b-batch-says-record", "caughtBy": "import / (finish: take-record-left-saved, the several-boards door)"}
 ]
