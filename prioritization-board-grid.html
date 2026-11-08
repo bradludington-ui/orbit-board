@@ -2213,8 +2213,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
 <section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
-<p>You can export the workbook and the slides from <b>Reports &amp; exports</b>, on the left menu, for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
-<p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
+<p>You can export the workbook and the other reports from <b>Reports &amp; exports</b>, on the left menu, for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
+<p class="fydp-help"><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation: a Summary, then a tab for the appropriation, each service and each office, the requirements in 1-N order under their CCaR record, Requirement and Funded for the base year and the next four, totals at the right and the bottom.</p>
 </section>
 <section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
 <table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
@@ -2332,7 +2332,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 <p><span class="mp" data-m="setup">Setup › Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
-<p><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
+<p class="fydp-help"><span class="mp" data-m="fydp">FYDP › Five-year spend plan…</span> shows the base year and the next four for the working plan or a locked cycle, one view at a time. <b>📊 Export the workbook</b> prints that plan for every appropriation: a Summary with a chart, then a tab for each appropriation, each service and each PMO, each a roll-up by appropriation and then each appropriation’s block — the requirements in 1-N order under their CCaR record, printed once, and Requirement and Funded (what discretionary and mandatory pay) for each year in $M, with totals at the right and the bottom. The other appropriations are read from their own boards, so every block ties to what that board prints; a year a plan does not hold prints —. Each year’s money is under the PMO that year assigns: a requirement moved to another office is listed under each, for the years that office held it. The service tabs and the PMO tabs each add up to the appropriation tab.</p>
 <p class="fdc-help"><span class="mp" data-m="fydp">FYDP › FYDP Disconnects…</span> sets a cost estimate’s requirement against a PPBE cycle’s controls — the Budget Positions logged under that cycle, discretionary and mandatory — appropriation by appropriation, as the Spruill slides lay it out: a <b>Summary</b> of every service, then <b>USAF</b> (with ANG and AFRC), <b>STOVL</b>, <b>USMC CV</b> and <b>USN CV</b>. Pick the estimate and the cycle at the top; the cycle sets the years (BES28: FY27–FY32, with an FY28–32 total). Each appropriation’s controls are read from that appropriation’s own positions, never worked out again here (with the team working out of the shared folder, from the folder’s copy when that is newer, as that appropriation’s own board opens it, and a copy there that cannot be read is named and prints —; Full Fund’s USMC-B is the STOVL sheet’s; a service no sheet takes is counted on the Summary only, and every sheet of the workbook says so under its table); a year an appropriation has logged no position for prints —, never $0. The <b>International</b> requirement and funding on the Summary are typed in $M (a bare number is millions), start at $0 and are kept for the session only: they are not saved with the board and are gone when it reloads, and switching appropriation reloads it. <b>Export to Excel</b> writes the five sheets as shown, marked CUI//REL TO US DoW. OPN is not included, and a PMO copy, which holds one appropriation, does not offer it.</p>
 <p class="v212-h132s">On the workbook’s service tabs Full Fund’s USMC-B is the STOVL tab’s, whichever board is open, so STOVL carries every appropriation’s F-35B money and the service tabs still add up to each appropriation’s tab.</p>
 <p class="cyc-ap">Each appropriation is locked on its own board: <b>🔒 Lock</b> under PPBE cycles locks the appropriation on screen and no other, and its lock is named for it (<i>O&amp;M PB27</i>). <b>Locks by appropriation</b>, at the top of that panel, shows every appropriation’s locks and working tag side by side, says when one is behind the calendar the others are on, and its <b>Go to</b> opens that appropriation’s board with the panel open. An appropriation lead, or the portfolio lead, locks and reopens it there; every lock and reopen is stamped with the editor name and the date. This file cannot check who someone is: the name is the one typed under Audit › My editor name, and what stops anyone else is who can write to the shared folder. The Azure version will enforce the role.</p>
@@ -4795,7 +4795,8 @@ function exwApply(){
     +(r.skipped? ', '+r.skipped+' left alone (already had one)':'')
     +(r.locked? ', '+r.locked+' on a CLIN left alone (a PMO copy\u2019s CLINs are the portfolio team\u2019s)':'')
     +(r.scan.conflicts.length? ', '+r.scan.conflicts.length+' in conflict and skipped':'')
-    +((r.scan.unlisted||[]).length? ', '+r.scan.unlisted.length+' naming a paragraph the estimate does not hold, not written':'')+'.');
+    +((r.scan.unlisted||[]).length? ', '+r.scan.unlisted.length+' naming a paragraph the estimate does not hold, not written':'')
+    +((r.scan.primeNoClin||[]).length? ', '+r.scan.primeNoClin.length+' prime contract'+(r.scan.primeNoClin.length===1?'':'s')+' named by no CLIN, not written':'')+'.');
   render();
 }
 function exwBody(){
@@ -4820,6 +4821,7 @@ function exwBody(){
     +(sc.conflicts.length? '<span>in conflict <b style="color:var(--amber)">'+sc.conflicts.length+'</b></span>':'')
     +(sc.asSent.length? '<span>already set, as sent <b>'+sc.asSent.length+'</b></span>':'')
     +(sc.unlisted.length? '<span>not in the estimate <b style="color:var(--amber)">'+sc.unlisted.length+'</b></span>':'')
+    +(sc.primeNoClin.length? '<span>a prime, no CLIN named <b style="color:var(--amber)">'+sc.primeNoClin.length+'</b></span>':'')
     +'</div>';
   if(!sc.withWbs){
     h+='<div class="hint">The imported rows carry no WBS in the paragraph column. That column is '
@@ -4874,6 +4876,14 @@ function exwBody(){
       +(sc.unlisted.length===1?'':'s')+' had rows naming a paragraph the '+esc(wbsSrcLbl(wbsPick()))+' does not hold. '
       +'Not written: a WBS is picked from the estimate here as in every box. Pick one in the requirement’s record:<br>'
       +sc.unlisted.slice(0,12).map(function(c){ return exwLine(c, c.off); }).join('<br>')
+      +'</div>';
+  }
+  // v2.15 W4 (item 135): a prime's rows that name none of its CLINs -- its WBS is its CLINs', so nothing is written for the prime
+  if(sc.primeNoClin.length){
+    h+='<div class="hint exw-prime" style="margin-top:8px"><b>'+sc.primeNoClin.length+'</b> prime contract'
+      +(sc.primeNoClin.length===1?'':'s')+' had rows naming no CLIN '+(sc.primeNoClin.length===1?'it holds':'they hold')+'. A prime’s WBS is set on its CLINs, '
+      +'so nothing was written: set the paragraph on each CLIN in its 🧾 CLIN drill:<br>'
+      +sc.primeNoClin.slice(0,12).map(function(c){ return exwLine(c, c.paras); }).join('<br>')
       +'</div>';
   }
   if(sc.asSent.length){
@@ -7502,7 +7512,7 @@ function yearHas(id, y){
     const other=!!(x.prior && +x.prior.fy===+MS.cur && String(x.prior.id)!==String(id));
     return (it.title && !other && x.event===it.event && x.title===it.title)
       || (x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title
-          && grpOf(x, T)===grpOf(it) && ccarOf(x, T)===ccarOf(it))
+          && grpOf(x, T)===grpOf(it) && ccarSameWork(ccarOf(x, T), ccarOf(it)))
       || (x.prior && String(x.prior.id)===String(id) && +x.prior.fy===+MS.cur)
       || (it.prior && x.prior && String(x.prior.id)===String(it.prior.id) && +x.prior.fy===+it.prior.fy); })) return true;
   if(!it.custom && Array.isArray(T.order) && T.order.indexOf(id)>=0) return true;
@@ -8207,7 +8217,10 @@ function jrnlFieldGone(e){
   return !((T.custom||[]).some(function(x){ return x && x.id===id; }) || has(T.order) || has(T.removed));
 }
 // The added requirement a line names is still in its year, once (Put back refuses before asking anything when it is not).
-function jrnlCustomHere(e){ const T=(MS.years||{})[e.fy||MS.cur]; return !!T && (T.custom||[]).filter(function(x){ return x && x.id===e.p[1]; }).length===1; }
+function jrnlCustomHere(e){ return jrnlCustomCount(e)===1; }
+// v2.15 W4 (item 146): HOW MANY TIMES THE YEAR HOLDS THE ADDED REQUIREMENT A LINE NAMES. Put back needs exactly one; but a requirement held
+// twice -- ids that came to repeat after the line was recorded -- is not "no longer in FY…", and was refused saying it was. 0, 1 or more.
+function jrnlCustomCount(e){ const T=(MS.years||{})[e.fy||MS.cur]; return T? (T.custom||[]).filter(function(x){ return x && x.id===e.p[1]; }).length : 0; }
 function jrnlCapture(){
   if(_jrnlOff){ return; }
   const now=jrnlSnap();
@@ -8276,7 +8289,10 @@ function jrnlUndo(i){
   // v2.14 (item 124): THE ADDED REQUIREMENT A LINE NAMES IS GONE FROM ITS YEAR -- say so, before asking anything (a locked view
   // still refuses first, below). Here, ahead of the lines below, which older checks read as they stand.
   { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && g && Array.isArray(g.p) && g.p[0]==='custom' && jrnlUndoable(g) && !jrnlCustomHere(g)){
-    setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — that added requirement is no longer in FY'+((g.fy||MS.cur)%100)+'. Nothing was changed.'); return; } }
+    setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — '+(jrnlCustomCount(g)>1
+      // v2.15 W4 (item 146): held more than once -- its id came to repeat -- it is there, and could land on either
+      ? 'FY'+((g.fy||MS.cur)%100)+' holds '+jrnlCustomCount(g)+' added requirements under the id '+esc(String(g.p[1]))+', so it could land on the wrong one'
+      : 'that added requirement is no longer in FY'+((g.fy||MS.cur)%100))+'. Nothing was changed.'); return; } }
   // v2.14 RV1-D (d28-writes-false-journal-line): a line an older ORBIT recorded and never did is not put back either, and says why
   { const g=(MS.jrnl||[])[i]; if(!CYCVIEW && jrnlOlderLine(g)){ setStat('⚠ <b>Not put back</b>: '+jrnlLabel(g)+' — '+esc(JRNL_OLDER)+' Nothing was changed.'); return; } }
   // v2.14 RV1-D (held, also noticed): nor a field of an added requirement that has left the year -- deleted, or moved to another year
@@ -8336,6 +8352,12 @@ function jrnlLabel(e){
 // and History & recovery holds earlier copies only for a board that works out of the shared folder.
 const JRNL_NOT_WHOLE='An added requirement as a whole — added or removed — is not put back from the change journal. To take one out, use Delete this added requirement on its row’s ⋯ menu; to bring one back, open an earlier saved copy of the board file (or, working out of the shared folder, History & recovery › Earlier copies…).';
 const JRNL_NOT_PLACE='Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.';
+// v2.15 W4 (item 146): a line filed by place in a year whose added ids repeat -- recorded so by this version, never "before v2.14"
+const JRNL_NOT_PLACE_REP='Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.';
+function jrnlPlaceTitle(e){ const T=(MS.years||{})[e.fy||MS.cur], L=(T && Array.isArray(T.custom))? T.custom : null;
+  const rep=!!L && L.some(function(x, i){ return x && typeof x==='object' && typeof x.id==='string' && x.id
+    && L.findIndex(function(y){ return y && typeof y==='object' && y.id===x.id; })!==i; });
+  return rep? JRNL_NOT_PLACE_REP : JRNL_NOT_PLACE; }
 // v2.14 RV1-D (d28-writes-false-journal-line): what the journal says of a line an ORBIT older than v2.14 wrote (jrnlOlderLine)
 const JRNL_OLDER='recorded by an ORBIT older than v2.14, which tried to put this change back and could not: nothing changed on the board.';
 function jrnlShow(v, p){
@@ -8406,7 +8428,7 @@ function jrnlBody(){
             ? '<button class="btn" style="font-size:10px;padding:2px 7px" onclick="jrnlUndo('+x.i+')">↶ Put back</button>'
             // v2.14 (item 124): a line about added requirements that is not put back says so, and why, on hover
             : (Array.isArray(e.p) && !/^\(/.test(String(e.p[0])) && jrnlCustomPlace(e))
-              ? '<span class="hint" style="margin:0" title="'+esc(typeof e.p[1]==='number' ? JRNL_NOT_PLACE : JRNL_NOT_WHOLE)+'">not put back here</span>' : '')
+              ? '<span class="hint" style="margin:0" title="'+esc(typeof e.p[1]==='number' ? jrnlPlaceTitle(e) : JRNL_NOT_WHOLE)+'">not put back here</span>' : '')
         +'</td></tr>';
     });
     h+='</table>';
@@ -9710,7 +9732,13 @@ function pmoStampApart(a, b){ return !!(a && b && a.pmo && b.pmo && +a.pub && +b
 function pmoLinkApart(a, b){ const pa=a && a.prior, pb=b && b.prior; if(!pa || !pb || String(pa.id)!==String(pb.id) || +pa.fy!==+pb.fy || !pmoProvId(String(pa.id))) return false; return pmoStampApart(pmoLinkStamp(a), pmoLinkStamp(b)); }
 function pmoChainApart(p, from, i){ return !!(p && i && i.prior && pmoProvId(String(p.id)) && String(i.prior.id)===String(p.id) && +i.prior.fy===+p.fy && pmoStampApart(from, pmoLinkStamp(i))); }
 // v2.14 (item 129): THE SAME ADDED REQUIREMENT IN TWO YEARS, ONE A WHOLE-YEAR COPY OF THE OTHER: the same id, the same link or none, and the same plan event, title, office and CCaR record. This is yearHas's second-review rule, stated here for the duplicate walk, so that a different requirement numbered alike in another year is never taken for it.
-function yrCopySame(x, T, src, PT){ const lk=function(c){ return (c && c.prior)? +c.prior.fy+'|'+String(c.prior.id) : ''; }; return !!(x && src && x.id===src.id && lk(x)===lk(src) && x.event===src.event && x.title===src.title && grpOf(x, T)===grpOf(src, PT) && ccarOf(x, T)===ccarOf(src, PT)); }
+function yrCopySame(x, T, src, PT){ const lk=function(c){ return (c && c.prior)? +c.prior.fy+'|'+String(c.prior.id) : ''; }; return !!(x && src && x.id===src.id && lk(x)===lk(src) && x.event===src.event && x.title===src.title && grpOf(x, T)===grpOf(src, PT) && ccarSameWork(ccarOf(x, T), ccarOf(src, PT))); }
+// v2.15 W4 (item 146): THE CCaR RECORD OF A WHOLE-YEAR COPY, SET AFTERWARDS IN ONE YEAR, IS STILL THE SAME WORK. A requirement made in
+// the Add box often has no CCaR record yet; one year rolled forward whole and given its record afterwards, in either year, read as
+// different work to the twin rule, and the same requirement could go in twice (a proposal continuing it accepted beside it; Roll
+// forward putting it in again). Two records are the same work when they are the same, or one side has none yet; two different
+// records are two requirements, as before. yrCopySame and yearHas's whole-year twin read this one rule.
+function ccarSameWork(a, b){ a=String(a==null? '' : a).trim(); b=String(b==null? '' : b).trim(); return a===b || !a || !b; }
 // v2.09 review: an office's provisional id -- NEW-<office>-n, as a copy mints it (reqNewId) -- never one of this board's NEW-n
 function pmoProvId(id){ id=String(id||''); return /^NEW-/.test(id) && !/^NEW-\d+$/.test(id); }
 // v2.09 review: AN OFFICE'S PROPOSAL AS THIS BOARD FILED IT, in year state T -- the requirement whose provenance names the office
@@ -12946,12 +12974,12 @@ function importStores(inc){
   if(ac && ac.sets && Object.keys(ac.sets).length){
     if(typeof ACEDB==='undefined' || !ACEDB) ACEDB={ts:0, sets:{}};
     if(!ACEDB.sets) ACEDB.sets={};
-    let took=0, same=0; const clash=[];
+    let took=0, same=0, clashWhy=''; const clash=[];
     Object.keys(ac.sets).forEach(function(k){
       const th=ac.sets[k], have=ACEDB.sets[k];
       if(!have){ ACEDB.sets[k]=th; took++; return; }
       const fpM=have.fp||'', fpT=(th&&th.fp)||'';
-      if(fpM && fpT && fpM!==fpT){ clash.push(k); return; }
+      if(fpM && fpT && fpM!==fpT){ clash.push(k); if(aceClashWhy(have, th)) clashWhy=aceClashWhy(have, th); return; }
       same++;
     });
     if(took){ ACEDB.ts=Date.now(); persistAce(); }
@@ -12959,7 +12987,7 @@ function importStores(inc){
     if(clash.length) said.push('\u26a0 '+clash.length+' cost estimate'+(clash.length===1?'':'s')
       +' in that file disagree'+(clash.length===1?'s':'')+' with the approved one'
       +(clash.length===1?'':'s')+' here and '+(clash.length===1?'was':'were')+' left alone ('
-      +esc(clash.join(', '))+'). Replacing an approved estimate has to be a deliberate act.');
+      +esc(clash.join(', '))+'). Replacing an approved estimate has to be a deliberate act.'+esc(clashWhy));
   }
   // v2.12 (item 132): the answers a colleague gave in the mapping box for a layout this board has not seen come across with
   // the estimates, so the same file is read the same way here. A layout this board already answers for keeps its own answer.
@@ -19452,7 +19480,7 @@ function execRowsFor(fys){
 // What the execution data proposes, and what it could not place. Nothing is written here.
 function execWbsScan(fys){
   const rows=execRowsFor(fys);
-  const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[], asSent:[], unlisted:[],
+  const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[], asSent:[], unlisted:[], primeNoClin:[],
               matchedRows:0, sharedRows:0, sharedNames:Object.create(null), byKey:{}};
   if(!rows.length) return scan;
 
@@ -19528,6 +19556,10 @@ function execWbsScan(fys){
     const it=itemById(b.id);
     const rec={kind:b.kind, id:b.id, clinKey:b.clinKey, clin:b.clin, rows:b.rows,
                label:dispTitle(it), paras:ps};
+    // v2.15 W4 (item 135): A PRIME'S WBS IS ITS CLINs' (wbsStateOf, the one rule). Rows for a prime that name none of its CLINs were
+    // proposed for the prime's own requirement-level paragraph (S.wbs), which nothing reads: written, it changed nothing any surface
+    // shows, and Write said it had set it. They are listed apart, with the CLINs to set the paragraph on, and never written.
+    if(b.kind==='req' && clinApplies(b.id)){ scan.primeNoClin.push(rec); return; }
     const has=held(b);
     if(has.length===ps.length && ps.every(function(p){ return has.indexOf(p)>=0; })){ scan.asSent.push(rec); return; }
     const off=ps.filter(function(p){ return !!wbsTake(p, WP).why; });
@@ -19937,6 +19969,17 @@ function aceFingerprint(set){
   return h.toString(16)+'-'+j.length;
 }
 function aceIntact(set){ return !set || !set.fp || set.fp===aceFingerprint(set); }
+// v2.15 W4 (item 135): WHY TWO COPIES OF ONE ESTIMATE DISAGREE when one was imported before v2.12. aceFingerprint is NOT changed to read
+// whole dollars: the two imports are different figures (v2.12 reads every figure as a whole dollar at the door and leaves out, with a
+// reason, rows the older import kept), so "different" is true; and every estimate already stored carries the fingerprint it was
+// stamped with, which aceIntact checks -- a new formula would flag every one of them FIGURES CHANGED SINCE IMPORT. What was missing
+// is the reason, so the disagreement names it where it is said. A set imported by v2.12 or later records how its columns were read
+// (cols); one without was imported before.
+function aceClashWhy(a, b){
+  const nw=function(x){ return !!(x && typeof x==='object' && x.cols && typeof x.cols==='object'); };
+  return (a && b && nw(a)!==nw(b))? ' One of them was imported before v2.12, which read the file differently (since v2.12 every figure is a whole dollar as it is read, '
+    +'and rows that are not cost lines are left out, each with its reason), so the same file imported again does not match it.' : '';
+}
 function aceStamp(set){
   if(!set) return '';
   return (set.locked?'\ud83d\udd12 locked':'unlocked')
@@ -25778,6 +25821,15 @@ function cycOverview(){
       // v2.13 (item 136): read as the PPBE cycle bar reads it (cycOtherOf), and counted by its rule: an empty, untagged plan is no
       // disagreement here either
       const o=cycOtherOf(k); held=!!o.counts; tag=o.tag;
+      // v2.15 W4 (item 131): WITH THE TEAM ON THE SHARED FOLDER, ITS WORKING TAG AS ITS OWN BOARD OPENS IT -- the folder's copy when
+      // that is newer (apFoldOf, read strictly when PPBE cycles opens). A folder copy that could not be read, or one not read yet,
+      // names no tag: the row says so, and is neither behind nor counted (the cycles locked are this browser's and the file's, as the
+      // folder carries no lock).
+      let fo={};
+      try{ fo=apFoldOf(k, fydpStoreLocal(k).st); }catch(e){ fo={}; }
+      if(fo.wait || fo.why) return {k:k, name:appnName(k), own:false, held:false, tag:'', cycles:(store && store.cycles && typeof store.cycles==='object')? store.cycles : {},
+                                    foldWait:!!fo.wait, foldWhy:fo.why||''};
+      if(fo.folder){ const P=cycPlanOf(fo.st); held=!!P.counts; tag=P.tag; }
     }
     const cyc=(store && store.cycles && typeof store.cycles==='object')? store.cycles : {};
     return {k:k, name:appnName(k), own:k===own, held:held, tag:tag, cycles:cyc};
@@ -25807,7 +25859,9 @@ function cycNotLocked(key){
 }
 function cycOverviewHtml(){
   const O=cycOverview(), sb=(typeof SANDBOX!=='undefined' && SANDBOX);
-  const tagTxt=function(r){ return r.tag? cycKeyRank(r.tag)!==null? blLbl(r.tag) : esc(r.tag) : (r.held? '(untagged)' : '—'); };
+  const tagTxt=function(r){ if(r.foldWait) return '<span class="hint cyc-ov-fold">reading the shared folder…</span>';    // v2.15 W4 (item 131)
+    if(r.foldWhy) return '<span class="cyc-ov-fold" title="its working tag is not known until its copy can be read">⚠ '+esc(r.foldWhy)+'</span>';
+    return r.tag? cycKeyRank(r.tag)!==null? blLbl(r.tag) : esc(r.tag) : (r.held? '(untagged)' : '—'); };
   let h='<div class="cyc-ov"><div class="cyc-ov-h"><b>Locks by appropriation</b> <span class="hint">each appropriation is locked and reopened on its own board'
     +(sb? '; this PMO copy holds '+esc(appnName(mySlug()))+' alone' : '')+'</span></div>'
     +'<table class="po cyc-ovt"><thead><tr><th>Appropriation</th><th>Working plan</th>'
@@ -25921,14 +25975,20 @@ function cycOtherOf(k){
   try{
     const g=fydpStoreLocal(k), st=g.st;
     r.why=g.why||'';
-    if(st && typeof st==='object'){
-      r.held=!!((st.years && typeof st.years==='object' && Object.keys(st.years).length) || Array.isArray(st.order));
-      r.tag=(typeof st.cycle==='string')? st.cycle : '';
-      r.pos=cycPosKeysOf(st.ppbe);
-      r.counts=r.held && (!!r.tag || cycHasReqs(st));
-    }
+    if(st && typeof st==='object') Object.assign(r, cycPlanOf(st));
   }catch(e){ r.why='its saved plan could not be read'; }
   _cycAllMemo[k]=r;
+  return r;
+}
+// v2.15 W4 (item 131): what a plan says of its cycle -- whether it holds a plan, its tag, the cycles it has controls for, and whether
+// it counts toward Mixed -- read once here, for cycOtherOf (this browser's copy) and Locks by appropriation (the folder's, when newer)
+function cycPlanOf(st){
+  const r={held:false, counts:false, tag:'', pos:[]};
+  if(!st || typeof st!=='object') return r;
+  r.held=!!((st.years && typeof st.years==='object' && Object.keys(st.years).length) || Array.isArray(st.order));
+  r.tag=(typeof st.cycle==='string')? st.cycle : '';
+  r.pos=cycPosKeysOf(st.ppbe);
+  r.counts=r.held && (!!r.tag || cycHasReqs(st));
   return r;
 }
 // WHETHER A PLAN HOLDS ANY REQUIREMENT, in any year (an old single-year store counts its own order). What counts toward Mixed is
@@ -26617,7 +26677,7 @@ function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); 
 // ============================ THE FIVE-YEAR SPEND PLAN WORKBOOK (v2.04, item 112) ==================
 // Brad, 22 Oct 2026, item by item: a tab per appropriation (O&M, Full Fund, Initial Spares, OPN), then a tab per service
 // (USAF, ANG, AFRC, STOVL, USMC-C, USN) and a tab per PMO, a Summary first with a chart; the base year and the next four;
-// two figures a year -- Requirement and Allocated, "the discretionary and mandatory totals for that requirement", every
+// two figures a year -- Requirement and Funded (Allocated until v2.15), "the discretionary and mandatory totals for that requirement", every
 // service added together -- in $M to three decimals; the requirements in 1-N order under their CCaR record, the record
 // printed once, "No CCaR record" last; line totals at the right, a TOTAL row at the bottom, no subtotals; the plan printed
 // is picked, starting on the one on screen; styled for briefing (the house style); no classification marking. It replaced
@@ -26626,7 +26686,7 @@ function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); 
 //
 // ONE MODEL, READ BY THE WORKBOOK AND THE PANEL. fydpBookModel turns each appropriation's projection -- its own board's
 // fydpData, the figures a lock takes -- into requirements by year; the tabs and the panel only arrange it, so the panel
-// cannot print a figure the workbook does not. Allocated is the lane draw, discretionary + mandatory (the projection's
+// cannot print a figure the workbook does not. Funded is the lane draw, discretionary + mandatory (the projection's
 // fund). A requirement's year on a SERVICE tab is that service's own dollars (found by the service's NAME in that year's
 // list, folded so Full Fund's USMC-B is STOVL's -- v2.12, fydpSvcFold); on a PMO tab it is the requirement's dollars in the years that PMO held it (v1.95: PMOs are assigned by year),
 // 0 in the years another office did. A year the plan does not hold prints —, never 0, and is outside every total.
@@ -26755,12 +26815,15 @@ function fydpBookSheets(B){
     let s=n, i=2; while(used[s.toLowerCase()]){ const x=' ('+(i++)+')'; s=n.slice(0,31-x.length)+x; }
     used[s.toLowerCase()]=1; return s;
   };
-  // the two heading rows: the fiscal year over its two columns, Requirement and Allocated beneath, TOTAL at the right
+  // the two heading rows: the fiscal year over its two columns, Requirement and Funded beneath, TOTAL at the right
+  // v2.15 W4 (the handoff's decision 18 a): FUNDED, as every other surface calls d + m. The column was headed Allocated and has printed
+  // the lane draw since v2.04 -- what a lock stores and the board calls Funded -- while Allocated on every other surface is the
+  // allocation the lanes work from. A heading only: no figure moved.
   const head=function(rows, merges, a, b){
     const r=rows.length, h1=[{v:a,s:2},{v:b,s:2}], h2=[{v:'',s:2},{v:'',s:2}];
     if(!b) merges.push({r:r, c:0, cs:2});
-    Y.forEach(function(y,j){ h1.push({v:fyl(y),s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Allocated',s:2}); merges.push({r:r, c:2+2*j, cs:2}); });
-    h1.push({v:'TOTAL '+span,s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Allocated',s:2}); merges.push({r:r, c:2+2*Y.length, cs:2});
+    Y.forEach(function(y,j){ h1.push({v:fyl(y),s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Funded',s:2}); merges.push({r:r, c:2+2*j, cs:2}); });
+    h1.push({v:'TOTAL '+span,s:2},{v:'',s:2}); h2.push({v:'Requirement',s:2},{v:'Funded',s:2}); merges.push({r:r, c:2+2*Y.length, cs:2});
     rows.push(h1, h2);
   };
   const figs=function(row, fy, tot, st){
@@ -26780,7 +26843,7 @@ function fydpBookSheets(B){
     total(rows, 'TOTAL', fydpBookAdd(Y, items.map(function(x){ return x.b; })));
   };
   // v2.12 (item 134): THE UPL, the last lines of an appropriation's tab -- after its TOTAL and outside it, a line per lane that
-  // holds any in some year: each held year's UPL in its Allocated column (Requirement blank), — for a year the plan does not
+  // holds any in some year: each held year's UPL in its Funded column (Requirement blank), — for a year the plan does not
   // hold, and the FYDP's at the right. Read from each year's projection, so a lock prints it as locked and another
   // appropriation's figure is its own board's.
   // v2.12 RV3 (R22): a line per service and lane, discretionary first, each service in the order the years first name it
@@ -26819,12 +26882,12 @@ function fydpBookSheets(B){
     // the portfolio by fiscal year, and the chart read off it
     rows.push([{v:'Portfolio by fiscal year',s:6}]);
     const c0=rows.length;
-    rows.push([{v:'Fiscal year',s:2},{v:'',s:2},{v:'Requirement',s:2},{v:'Allocated',s:2}]);
+    rows.push([{v:'Fiscal year',s:2},{v:'',s:2},{v:'Requirement',s:2},{v:'Funded',s:2}]);
     Y.forEach(function(y, i){ const v=B.total.fy[y]; const r=[{v:fyl(y),s:1},''].concat(v? [{v:M$(v.a),s:NUM},{v:M$(v.l),s:NUM}] : [{v:'—',s:DASH},{v:'—',s:DASH}]); r.band=i%2? 0 : 1; r.total=false; rows.push(r); });
     { const r=[{v:'TOTAL',s:1},'',{v:M$(B.total.tot.a),s:NUMB},{v:M$(B.total.tot.l),s:NUMB}]; r.total=true; rows.push(r); }
-    const chart={from:[5, c0-1], to:[2+2*Y.length+2, c0+16], title:'Requirement vs Allocated, '+span+' ($M)', yTitle:'$M',
+    const chart={from:[5, c0-1], to:[2+2*Y.length+2, c0+16], title:'Requirement vs Funded, '+span+' ($M)', yTitle:'$M',
       cats:[0, c0+1, c0+Y.length], series:[{name:'Requirement', col:2, row0:c0+1, row1:c0+Y.length, color:HOUSE.NAVY},
-        {name:'Allocated', col:3, row0:c0+1, row1:c0+Y.length, color:HOUSE.GOLD}]};
+        {name:'Funded', col:3, row0:c0+1, row1:c0+Y.length, color:HOUSE.GOLD}]};
     while(rows.length<c0+18) rows.push([]);
     rows.push([{v:'By service',s:6}]);
     summary(rows, merges, 'Service', B.svc.map(function(x){ return {name:x.name, b:x.sum}; }));
@@ -26940,7 +27003,8 @@ function fydpStoreLocal(k){
 // v2.10 review (A-3): strict -- FYDP Disconnects' reading -- takes only "no copy there" (NotFoundError) as the folder having
 // none, as driveStoreRead does; a copy mid-sync, cut short or not a board names that appropriation, and nothing is guessed.
 // Without it this browser's older copy stood in silently, or "has no position logged" was said while the folder held one.
-// The five-year plan keeps its older reading (strict unset) until the owner says otherwise.
+// v2.15 W4 (item 131; the handoff's decision 16, accepted): the five-year plan reads it strictly too (fydpGather), and so do the
+// Spruills and Locks by appropriation (apFoldRead). Every caller now passes strict; the unset reading is kept for an older caller.
 function fydpStoreFolder(k, got, strict){
   if(got.why || !driveStoreOn()) return got;
   return (async function(){
@@ -27075,7 +27139,10 @@ function fydpGather(D, done){
     let over=false;
     const fin=function(){ if(over) return; over=true; one(); };
     const fail=function(e){ if(over) return; a.D=null; a.why='its board could not be opened ('+((e&&e.message)||String(e))+')'; fin(); };
-    fydpWhen(fydpStoreFolder(a.k, loc), function(got){
+    // v2.15 W4 (item 131): STRICT, as FYDP Disconnects reads it -- only "no copy there" (NotFoundError) is the folder having none. A
+    // copy mid-sync, cut short or not a board names this appropriation and its block is refused (why), where this browser's older
+    // copy stood in for it in silence and the block printed figures the folder had moved on from.
+    fydpWhen(fydpStoreFolder(a.k, loc, true), function(got){
       if(got.why){ a.why=got.why; fin(); return; }
       // the board-wide stores as this board holds them now, and this appropriation's slots as the file had them
       const pub={appns:{}, cycDb:{ts:0, byAp:{}}};
@@ -27120,8 +27187,8 @@ function fydpBody(){
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
   if(!own){ h+='<div class="hint">No year of '+esc(D.label)+' from '+fyl(Y[0])+' to '+fyl(Y[4])+' holds a plan.</div>'; el.innerHTML=h; return; }
   const th='<tr><th rowspan="2">%A%</th><th rowspan="2">%B%</th>'+Y.map(function(y){ return '<th colspan="2">'+fyl(y)+'</th>'; }).join('')
-    +'<th colspan="2" class="fydptot">TOTAL '+span+'</th></tr><tr>'+Y.map(function(){ return '<th class="n">Requirement</th><th class="n">Allocated</th>'; }).join('')
-    +'<th class="n fydptot">Requirement</th><th class="n fydptot">Allocated</th></tr>';
+    +'<th colspan="2" class="fydptot">TOTAL '+span+'</th></tr><tr>'+Y.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th>'; }).join('')
+    +'<th class="n fydptot">Requirement</th><th class="n fydptot">Funded</th></tr>';
   const cells=function(fy, tot){ return Y.map(function(y){ const v=fy[y]; return v? '<td class="n">'+fM3(v.a)+'</td><td class="n">'+fM3(v.l)+'</td>'
       : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>'; }).join('')
     +'<td class="n fydptot"><b>'+fM3(tot.a)+'</b></td><td class="n fydptot"><b>'+fM3(tot.l)+'</b></td>'; };
@@ -27148,7 +27215,7 @@ function fydpBody(){
   }
   h+='</div><div class="hint" style="margin-top:8px">'+esc(fydpPlanLbl(D))+'. The workbook is this, for every appropriation: a Summary with a chart, a tab per appropriation ('
     +APPN_SLUGS.map(appnName).join(', ')+'), a tab per service and a tab per PMO, each a roll-up by appropriation and then each appropriation’s block. '
-    +'Requirement is the requirement value; Allocated is what discretionary and mandatory pay. A year the plan does not hold prints —. '
+    +'Requirement is the requirement value; Funded is what discretionary and mandatory pay. A year the plan does not hold prints —. '
     +'The other appropriations are opened as their own boards, read-only in sealed frames, from the same plan'+(SANDBOX? ' (a PMO copy carries this appropriation only)' : '')+'.</div>';
   el.innerHTML=h;
 }
@@ -27762,7 +27829,7 @@ function cycBlock(what){
   cycRefuse(what);
   return true;
 }
-function toggleBl(){ blOpen=!blOpen; render(); }
+function toggleBl(){ blOpen=!blOpen; if(blOpen) _apFold=null; render(); }   // v2.15 W4 (item 131): the folder is read again at each opening
 function blBody(){
   // the header tag, kept current on every render whether or not the panel is open
   { const t=document.getElementById('cycTag');
@@ -27772,6 +27839,7 @@ function blBody(){
   if(!bg||!el) return;
   bg.className='modal-bg'+(blOpen?' open':'');
   if(!blOpen){ el.innerHTML=''; return; }
+  if(!_apFold && apFoldOn()) apFoldRead();     // v2.15 W4 (item 131): Locks by appropriation reads the folder's copies, once per opening
   if(blYr===null) blYr=MS.cur;
   const keys=blList();
   const money=v=> Math.abs(v||0)<500? '<span class="z">—</span>' : fM(v);
@@ -28417,6 +28485,7 @@ function ppBody(){
 }
 function toggleSp(){
   spOpen=!spOpen;
+  if(spOpen) _apFold=null;     // v2.15 W4 (item 131): the shared folder is read again at each opening (spBody)
   document.getElementById('spPanel').className='modal-bg'+(spOpen?' open':'');
   render();
 }
@@ -28506,6 +28575,51 @@ function spCols(nYears){
     + new Array(Math.max(0,nYears)).fill('<col>').join('')
     + '<col style="width:'+SPGEO.tot+'px"></colgroup>';
 }
+// v2.15 W4 (item 131): ANOTHER APPROPRIATION'S SHARED FOLDER COPY, READ AS ITS OWN BOARD OPENS IT, for the Spruills, the PMO drill
+// and the chart of accounts (spDefs) and Locks by appropriation (cycOverview). They read another appropriation from this browser's
+// copy alone, the way FYDP Disconnects did before its v2.10 A-3 fix: with the team on the shared folder their figures and tags could
+// be older than the folder's. The folder answers later, so it is read when the panel opens (and when the chart of accounts is
+// exported) and held while it stays open, read again at the next opening; STRICTLY (fydpStoreFolder's strict reading): only "no copy
+// there" is the folder having none, and a copy that cannot be read names that appropriation and states no figure for it, never this
+// browser's older copy in its place. Until it has answered, nothing is stated for those appropriations. Reads only.
+let _apFold=null;
+function apFoldOn(){ return !(typeof SANDBOX!=='undefined' && SANDBOX) && typeof _SLUGMAP!=='undefined' && driveStoreOn(); }
+function apFoldRead(then){
+  if(!apFoldOn()){ _apFold=null; if(then) then(); return null; }
+  const R={got:Object.create(null), done:false, wait:then? [then] : []}, own=mySlug();
+  _apFold=R;
+  let left=1, starting=true;
+  const one=function(){
+    if(--left) return;
+    R.done=true;
+    if(!starting && _apFold===R){ try{ render(); }catch(e){} }
+    R.wait.splice(0).forEach(function(f){ try{ f(); }catch(e){ setStat('⚠ '+esc((e&&e.message)||String(e))); } });
+  };
+  APPN_SLUGS.forEach(function(k){
+    if(k===own || !_SLUGMAP[k]) return;
+    let loc; try{ loc=fydpStoreLocal(k); }catch(e){ loc={st:null, why:'its saved state could not be read'}; }
+    left++;
+    let over=false;
+    const fin=function(r){ if(over) return; over=true; R.got[k]={r:r, loc:loc}; one(); };
+    fydpWhen(fydpStoreFolder(k, loc, true), function(r){ fin((r && typeof r==='object')? r : loc); },
+      function(e){ fin({st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+')'}); });
+  });
+  one(); starting=false;
+  return R;
+}
+// One appropriation, against the copy the reader already holds (st): {st} as it is; {st, folder:true} the folder's when that is newer
+// than st now; {why} the folder's copy could not be read; {wait:true} the folder has not answered yet. With no folder read in hand --
+// the folder not the store, a PMO copy, or nothing opened that reads it -- st as it is.
+function apFoldOf(k, st){
+  const R=_apFold;
+  if(!R || !apFoldOn()) return {st:st};
+  if(!Object.prototype.hasOwnProperty.call(R.got, k)) return R.done? {st:st} : {st:st, wait:true};
+  const g=R.got[k], r=g.r||{};
+  if(r===g.loc) return {st:st};             // the folder was never asked: this browser's copy could not be read
+  if(r.why) return {st:null, why:r.why};
+  if(r.folder && r.st && (+r.st.ts||0)>((st && +st.ts)||0)) return {st:r.st, folder:true};
+  return {st:st};
+}
 function spDefs(){
   const defs=[];
   // The board's own appropriation. Taken from mySlug(), which is specialised per build, rather
@@ -28538,6 +28652,11 @@ function spDefs(){
       try{ st=apStoreOf(APPN_SLUG[a]).st; }catch(e){ st=null; }
       st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
+      // v2.15 W4 (item 131): and the shared folder's copy when that is newer, as its own board opens it (apFoldOf). A copy there that
+      // could not be read, or one not read yet, states nothing for this appropriation: its figures print —, and the panel says why.
+      const fo=apFoldOf(APPN_SLUG[a], st);
+      if(fo.why || fo.wait){ defs.push({name:a, data:APPNS[a], ms:null, ppbe:{}, slug:APPN_SLUG[a], foldWhy:fo.why||'', foldWait:!!fo.wait}); return; }
+      st=fo.st;
       // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): AND ANOTHER APPROPRIATION'S FROM ITS OWN PLAN'S DATA PACK where the
       // program carries no consolidated payload -- every program file since the generator was retired, and every board a full import
       // writes, which moves a consolidated file's packs into the plans. Taken from APPNS alone, Full Fund read Total Requirements
@@ -28550,6 +28669,19 @@ function spDefs(){
     });
   } else { own.ppbe=MS.ppbe||{}; defs.push(own); }
   return defs;
+}
+// v2.15 W4 (item 135): ANOTHER APPROPRIATION'S BUDGET IS AS ITS OWN BOARD LAST WORKED IT OUT. Its Available Funding here is the
+// budget its own board stored for each year (discSvc / mandSvc), which that board works out from the PPBE position its plan is tagged
+// with (baOf, v2.12 item 134) when it opens. It is not worked out again here: baOf reads this board's service list, and positions are
+// kept by service name, so another appropriation's budget worked out on this page would be a second engine (the v1.85 rule) -- and a
+// position sent to it since (an appropriation package) moves its budget only once that board opens. Said under its block, so a reader
+// knows which figure that is: the cycle it is tagged with, where its plan carries a position under it. '' otherwise.
+function spPosTag(d){
+  try{
+    if(!d || !d.ms || d.ms===MS || typeof d.ms.cycle!=='string' || !d.ms.cycle) return '';
+    const P=(d.ppbe && Object.prototype.hasOwnProperty.call(d.ppbe, d.ms.cycle))? d.ppbe[d.ms.cycle] : null;
+    return (P && typeof P==='object' && !Array.isArray(P) && baNamed(ppNorm(P)).length)? d.ms.cycle : '';
+  }catch(e){ return ''; }
 }
 function spGather(){
   const defs=spDefs();
@@ -28572,7 +28704,8 @@ function spGather(){
     const exAp=(typeof EXDB!=='undefined' && EXDB && EXDB.all)? EXDB.all[d.slug] : null;
     const inPlay=y=> !!(d.ms && d.ms.years && d.ms.years[y])
                   || !!(exAp && exAp.rows && exAp.rows[y]);
-    const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years, ppbe:d.ppbe||{}, isFF:!!(d.data&&d.data.costElems)};
+    const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years, ppbe:d.ppbe||{}, isFF:!!(d.data&&d.data.costElems),
+                 foldWhy:d.foldWhy||'', foldWait:!!d.foldWait, posTag:spPosTag(d)};
     years.forEach(y=>{
       const na = y<MS.base && !inPlay(y);
       const st = d.ms && d.ms.years? d.ms.years[y] : null;
@@ -28814,12 +28947,18 @@ function spBody(){
   syncViewPrefs();                 // restore the saved view before drawing it
   const el=document.getElementById('spBody');
   if(!spOpen){ if(el) el.innerHTML=''; return; }
+  if(!_apFold && apFoldOn()) apFoldRead();     // v2.15 W4 (item 131): the other appropriations' folder copies, read once per opening
   // one projection per year while the panel draws (v1.95): the table and the drill read one answer
   _spYearMemo={};
   try{ spBodyDraw(el); } finally { _spYearMemo=null; }
 }
 function spBodyDraw(el){
   const G=spGather();
+  // v2.15 W4 (item 131): until the shared folder has answered for an appropriation, nothing is stated for any (as FYDP Disconnects)
+  const waitFor=G.blocks.filter(function(b){ return b.foldWait; });
+  if(waitFor.length){ const nm=waitFor.map(function(b){ return esc(b.name); });
+    el.innerHTML='<div class="hint sp-fold-wait">Reading the shared folder for '+(nm.length>1? nm.slice(0,-1).join(', ')+' and '+nm[nm.length-1] : nm[0])
+    +': each is read as its own board opens it, the folder’s copy when that is newer…</div>'; return; }
   // an imported ACE replaces the board's own requirement totals, mapped by PMO or by Service
   const aceSet=(ACEDB.sets||{})[spAce];
   if(aceSet){
@@ -28877,6 +29016,13 @@ function spBodyDraw(el){
   const gReq={}, gBud={};
   G.blocks.forEach(b=>{
     h+='<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:10px 0 3px">'+esc(b.name)+'</div>';
+    // v2.15 W4 (item 131): a folder copy that could not be read is named, and its figures print —
+    if(b.foldWhy) h+='<div class="hint sp-fold-why" style="margin:0 0 3px">⚠ '+esc(b.name)+' is not read here: '+esc(b.foldWhy)
+      +'. Its figures are missing, not zero; this browser’s older copy is not used in its place.</div>';
+    // v2.15 W4 (item 135): another appropriation's budget is its own board's, as that board last worked it out from its position
+    if(b.posTag && spFund==='board') h+='<div class="hint sp-pos-cache" style="margin:0 0 3px">'+esc(b.name)+'’s Available Funding is the budget its own board last worked out '
+      +'from its '+blLbl(b.posTag)+' PPBE position. A position changed since without that board open (an appropriation package) reaches '
+      +'these figures once '+esc(b.name)+' is opened.</div>';
     h+='<div style="overflow-x:auto"><table class="fctab"'+spMinW(G.years.length)+'>'+spCols(G.years.length)+hd;
     const keys= spBy==='pmo'? GROUPS.filter(g=>b.rows[g]) : Object.keys(b.rows);
     keys.forEach(k=>{
@@ -31717,7 +31863,9 @@ function clinGo(id){
   try{ (f || d).scrollIntoView({block:'center'}); }catch(e){}
   try{ if(f) f.focus({preventScroll:true}); }catch(e){}
 }
-function clinAskTot(c){ return (c.ask||[]).reduce((a,b)=>a+b,0); }
+// v2.15 W4 (item 135): each figure read as a figure (+v, as clinVec and clinSplit read it): a request held as text figures (['5'], which
+// the import check takes as it takes every amount) was summed as text -- '0'+'5' -- and the drill's request read 05, not $5
+function clinAskTot(c){ return (Array.isArray(c.ask)? c.ask : []).reduce((a,b)=>a+(+b||0),0); }
 
 // ---- the working CLIN list -------------------------------------------------------------------
 // Base lines come from the board data and keep the key 'b<index>' for as long as that data stands.
@@ -31735,6 +31883,39 @@ function clinRm(pid){ if(!S.clinRm) S.clinRm={}; if(!Array.isArray(S.clinRm[pid]
 // -- as the drill's own lines (clinVec, clinAskTot) already treated an empty one -- and the import check refuses all three
 // by name (inClinsWhy), so a file it takes is a file the board draws.
 function clinAskIn(v){ return Array.isArray(v)? v.slice() : []; }
+// v2.15 W4 (v2.12's question 1, the handoff's recommendation accepted): A CLIN REQUEST THAT IS NOT A LIST IS SAID ON OPENING, once,
+// naming the requirement and the CLIN. Read as no request (clinAskIn) -- or, on an edit, as the CLIN's request in the board data --
+// it opened silently: the drill showed $0 asked where the file held something nobody could see. Nothing is changed: the value stays
+// as saved until the request is typed again. [{fy, id, clin, what}] for every year the plan holds, the board data's CLINs first.
+function clinAskBadOf(){
+  const out=[], bad=function(v){ return v!==undefined && !Array.isArray(v); };
+  const ok=function(x){ return x && typeof x==='object' && !Array.isArray(x); };
+  try{
+    Object.keys(CLINS||{}).forEach(function(pid){ clinsOf(CLINS[pid]).forEach(function(c, i){
+      if(c && bad(c.ask)) out.push({fy:0, id:pid, clin:String(c.clin||('b'+i)), what:'in the board data'}); }); });
+    Object.keys((MS && MS.years)||{}).sort().forEach(function(y){
+      const T=MS.years[y]; if(!ok(T)) return;
+      const M=ok(T.clinMeta)? T.clinMeta : {}, N=ok(T.clinNew)? T.clinNew : {};
+      Object.keys(M).forEach(function(pid){ const m=M[pid]; if(!ok(m)) return;
+        Object.keys(m).forEach(function(k){ if(ok(m[k]) && bad(m[k].ask)){
+          const b=/^b\d+$/.test(k)? clinsOf(CLINS[pid])[+k.slice(1)] : (Array.isArray(N[pid])? N[pid] : []).filter(function(c){ return ok(c) && c.key===k; })[0];
+          out.push({fy:+y, id:pid, clin:String((m[k].clin!==undefined? m[k].clin : (b && b.clin))||k), what:'as edited'}); } }); });
+      Object.keys(N).forEach(function(pid){ (Array.isArray(N[pid])? N[pid] : []).forEach(function(c){
+        if(ok(c) && bad(c.ask)) out.push({fy:+y, id:pid, clin:String(c.clin||c.key||'?'), what:'added'}); }); });
+    });
+  }catch(e){}
+  return out;
+}
+function clinAskSay(){
+  const L=clinAskBadOf(); if(!L.length) return;
+  const nm=function(x){ const it=(typeof itemById==='function')? itemById(x.id) : null; return (it? dispTitle(it) : x.id); };
+  const de=document.getElementById('shareStat');
+  _statQuiet=false;
+  statKeep((de && de.innerHTML? de.innerHTML+' ' : '')+'⚠ <b>'+L.length+' CLIN request'+(L.length===1? ' is' : 's are')+' not a list of figures</b> in this file, '
+    +'and '+(L.length===1? 'is' : 'are')+' not read (an edited one reads as the CLIN’s request in the board data, an added or board-data one as none): '
+    +L.slice(0,8).map(function(x){ return '<b>'+esc(nm(x))+'</b> CLIN '+esc(x.clin)+(x.fy? ' (FY'+(x.fy%100)+', '+x.what+')' : ' ('+x.what+')'); }).join('; ')
+    +(L.length>8? '; and '+(L.length-8)+' more' : '')+'. Nothing was changed: type each request again in its 🧾 CLIN drill.');
+}
 function clinsOf(L){ return (Array.isArray(L)? L : []).map(function(c){ return (c && typeof c==='object' && !Array.isArray(c))? c : null; }); }
 function clinList(pid){
   const meta=clinMeta(pid), gone=clinRm(pid);
@@ -33644,7 +33825,7 @@ function _houseBase(st, xtra){
   const H=HOUSE, F=HOUSE_FONT;
   const fixed={0:{font:F[0]}, 1:{font:F[1]}, 2:{font:F[2], fill:H.NAVY, align:{h:'center',v:'center',wrap:1}}, 3:{nf:164, font:F[0]},
     4:{nf:164, font:{sz:10,b:1,color:H.INK}}, 5:{nf:164, font:F[3]}, 6:{font:{sz:11,b:1,color:H.NAVY}, sec:1},
-    7:{font:F[4], fill:H.NAVY, align:{v:'center',indent:1}, title:1}, 8:{nf:164, font:F[5]}, 9:{nf:164, font:F[6]},
+    7:{font:F[4], fill:H.NAVY, align:{h:'left',v:'center',indent:1}, title:1}, 8:{nf:164, font:F[5]}, 9:{nf:164, font:F[6]},
     10:{nf:165, font:F[0]}, 11:{nf:165, font:{sz:10,b:1,color:H.INK}}, 12:{nf:166, font:F[0]}, 13:{nf:166, font:{sz:10,b:1,color:H.INK}},
     14:{nf:166, font:F[3]}, 15:{nf:166, font:{sz:10,b:1,color:H.INK}, fill:H.TOT}};
   if(st<XF_EXTRA0) return Object.assign({}, fixed[st]||fixed[0]);
@@ -33657,6 +33838,9 @@ function _houseBase(st, xtra){
   return o;
 }
 // The plan for one sheet: the style each cell is written in, the empty cells to emit, row heights, what the sheet adds.
+// v2.15 W4 (item 131): AN INDENT IS WRITTEN WITH horizontal="left" BESIDE IT. Excel and LibreOffice draw an indent only under left, right
+// or distributed alignment, so the title band, the subtitle and column B's text were written indent="1" and printed flush (v2.10's WB-1
+// found it in FYDP Disconnects; every dressed workbook had it). A centred heading carries no indent: it was never drawn either.
 function _housePlan(s, xtra){
   const H=HOUSE, rows=s.rows||[], out={st:{}, pad:{}, ht:{}, titles:null};
   let W=(s.cols||[]).length; rows.forEach(function(r){ W=Math.max(W, (r||[]).length); });
@@ -33691,7 +33875,7 @@ function _housePlan(s, xtra){
     // the subtitle: words only, under the banner
     const words=r.every(function(c){ const v=txt(c); return v===''||v===null||v===undefined||(typeof v==='string' && sty(c)===0); });
     if(prevTitle && words){
-      const b={font:{sz:10,i:1,color:H.MUT}, border:{bottom:['medium',H.GOLD]}, align:{v:'center',indent:1}};
+      const b={font:{sz:10,i:1,color:H.MUT}, border:{bottom:['medium',H.GOLD]}, align:{h:'left',v:'center',indent:1}};
       r.forEach(function(c,ci){ set(ci, b); }); padTo(W, one(b)); out.ht[ri]=18; prevTitle=false; return;
     }
     prevTitle=false;
@@ -33713,7 +33897,7 @@ function _housePlan(s, xtra){
         return Math.max.apply(null, v.split(/\s+/).map(function(w){ return w.length; }))<=wd-1; };
       const spec=function(ci){ const tot=tbl.tot[ci];
         return {font:{sz:10,b:1,color: tot? H.NAVY : H.WHITE}, fill: tot? (second? H.GOLDM : H.GOLD) : (second? H.SLATE : H.NAVY),
-          align:{h: (ci<2 && !tot)? 'left':'center', v:'center', wrap: fits(ci)? 1 : undefined, indent: ci<2? 1 : 0}, border:{left: ci>0? ['thin', H.WHITE] : null}}; };
+          align:{h: (ci<2 && !tot)? 'left':'center', v:'center', wrap: fits(ci)? 1 : undefined, indent: (ci<2 && !tot)? 1 : 0}, border:{left: ci>0? ['thin', H.WHITE] : null}}; };
       for(let ci=0; ci<tbl.w; ci++) set(ci, spec(ci));
       padTo(tbl.w, spec);
       // a heading that wraps gets the lines it needs (a width unit holds about one character at 10pt bold); a merged
@@ -33746,7 +33930,7 @@ function _housePlan(s, xtra){
         if(!own) b.fill= tot? H.GOLDL : (band? H.BAND : '');
         b.border={bottom:['thin',H.LINE]};
       }
-      if(!b.align) b.align= (typeof txt(c)==='string')? {v:'center', indent: ci===1? 1 : 0} : {h:'right', v:'center'};
+      if(!b.align) b.align= (typeof txt(c)==='string')? (ci===1? {h:'left', v:'center', indent:1} : {v:'center'}) : {h:'right', v:'center'};
       delete b.own; delete b.title; delete b.sec;
       return b;
     };
@@ -36607,7 +36791,7 @@ async function driveAcePull(quiet){
       if(!have){ staged[j.key]=j.set; took.push(j.key); continue; }
       const mine=have.fp||'', theirs=j.fp||(j.set&&j.set.fp)||'';
       if(mine && theirs && mine!==theirs)
-        clash.push({k:j.key, by:j.by||'unknown', ts:+j.ts||0, lines:+j.lines||0});
+        clash.push({k:j.key, by:j.by||'unknown', ts:+j.ts||0, lines:+j.lines||0, why:aceClashWhy(have, j.set)});
     }
     _aceClash=clash;
     let stored=true;
@@ -36624,7 +36808,7 @@ async function driveAcePull(quiet){
       if(clash.length) m+=(m?' ':'')+'⚠ The folder holds a DIFFERENT <b>'
         +clash.map(c=>esc(c.k)).join('</b>, <b>')+'</b> from the one you have, imported by <b>'
         +esc(clash[0].by)+'</b>. Both are locked, so <b>nothing was changed</b>. Agree which is the '
-        +'approved estimate, then whoever holds it can re-import it.';
+        +'approved estimate, then whoever holds it can re-import it.'+esc(clash.map(function(c){ return c.why||''; }).filter(Boolean)[0]||'');
       if(bad.length) m+=(m?' ':'')+'⚠ '+bad.map(function(b){ return '<b>'+esc(b.n)+'</b>: '+esc(b.why); }).join('; ')
         +'. Nothing was taken from '+(bad.length===1?'it':'them')+'.';
       setStat(m);
@@ -38755,7 +38939,9 @@ function erDraw(){
   if(siEligible(it)){
     const raw=siRawOf(id), cur=V.si;
     siF=erField('erSi', 'si', erSel('erSi', erOpt('', '— none —', cur)
-      +(raw===undefined && cur==='\u0004'? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
+      // v2.15 W4 (item 146): offered whenever the stored value is one of the five or "none", not only with nothing stored -- a stored "no
+      // SI code" (or a code chosen by hand) could not be taken back to the rules from the box (setSi's rule: picked, nothing is stored)
+      +(raw===undefined? erOpt('\u0004', '— follows the PMO and prime rules —', cur) : '')
       +((raw!==undefined && !siKnown(raw))? '<option value="'+esc(cur)+'" selected>'+esc(siRawShow(raw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return erOpt(c[0], c[0]+' — '+c[1]+(siDefault(it)===c[0]? ' (derived)' : ''), cur); }).join('')), {span:1});
   }
@@ -39299,6 +39485,10 @@ function exportCSV(){
     sum.rows.push([{v:pm,s:B}, ...cells.map(v=>({v,s:M})), {v:cells.reduce((x,y)=>x+y,0),s:MB}]);
   });
   sum.rows.push([{v:'TOTAL',s:SEC}, ...all.map(g=>({v:agg(g.its).fn,s:MSEC})), {v:grand.fn,s:MSEC}]);
+  // v2.15 W4 (the handoff's decision 20): EVERY COLUMN THIS TABLE PUTS DOLLARS IN IS WIDE ENOUGH FOR THEM. Its band, unbanded and TOTAL
+  // columns run on past the BY BAND table's ten, so the last ones took that table's narrow Reqs and % Fund widths (8) or none at all,
+  // and a funded figure in millions printed ### in a narrow viewer. Each is at least a money column's 16; no figure moved.
+  for(let ci=1; ci<=all.length+1; ci++) sum.cols[ci]=Math.max(sum.cols[ci]||0, 16);
 
   // every appropriation this file can see, by band
   if(typeof _SLUGMAP!=='undefined'){
@@ -42154,6 +42344,7 @@ function coaRows(fy){
   const out=[];
   spDefs().forEach(function(d){
     if(coaYearNotHeld(d, Y)) return;
+    if(d.foldWhy || d.foldWait) return;      // v2.15 W4 (item 131): its folder copy could not be read -- named by exportCoa, never listed as delivered
     const st=(d.ms && d.ms.years)? d.ms.years[Y] : null;
     const nsvc=((d.data&&d.data.services)||[]).length;
     /* AN EMPTY OBJECT, NEVER null. Every accessor here falls back to the global `S` when handed
@@ -42240,7 +42431,13 @@ function coaSummary(rows){
 
 /* THE WORKBOOK. Three tabs, in the order the meeting runs: where each appropriation stands, the
    decisions it needs, then the whole structure to read down. */
+// v2.15 W4 (item 131): with the team on the shared folder, the other appropriations are read from the folder's copy when it is newer
+// (apFoldRead), as the Spruills reads them; the workbook is written once the folder has answered.
 function exportCoa(){
+  if(apFoldOn()){ setStat('📒 Reading the shared folder for the other appropriations…'); apFoldRead(coaExportNow); return; }
+  coaExportNow();
+}
+function coaExportNow(){
   const H=2,B=1,N=3,NR=5,SEC=6,TI=7;      // local, as every other export in this file declares them
   const rows=coaRows();
   const sum=coaSummary(rows);
@@ -42251,6 +42448,9 @@ function exportCoa(){
   const notHeldTxt=notHeld.length? notHeld.join(', ')+(notHeld.length===1? ' holds' : ' hold')+' no plan for '+FY+': '
     +(notHeld.length===1? 'its board has' : 'their boards have')+' not started that year, so '+(notHeld.length===1? 'it is' : 'they are')
     +' not on this chart, and the Spruills reads no data for '+(notHeld.length===1? 'it' : 'them')+' there either.' : '';
+  // v2.15 W4 (item 131): an appropriation whose shared folder copy could not be read is named, never listed from an older copy
+  const unread=spDefs().filter(function(d){ return d.foldWhy || d.foldWait; });
+  const unreadTxt=unread.map(function(d){ return d.name+' is not on this chart: '+(d.foldWhy||'the shared folder had not answered')+'.'; }).join(' ');
   const T=[{v:document.title.replace(/FY\d\d/,FY)+' — CHART OF ACCOUNTS',s:TI}];
 
   // ---- 1. where each appropriation stands ------------------------------------------------
@@ -42266,6 +42466,7 @@ function exportCoa(){
   });
   s1.rows.push([]);
   if(notHeldTxt) s1.rows.push([{v:notHeldTxt,s:0}]);
+  if(unreadTxt) s1.rows.push([{v:unreadTxt,s:0}]);
   s1.rows.push([{v:'NO RECORD means the requirement has nothing to file against — it is the '
     +'first thing to fix. DISTINCT RECORDS is lower than WITH A RECORD wherever requirements share '
     +'one, which is a decision to confirm rather than a fault to correct.',s:0}]);
@@ -42308,7 +42509,7 @@ function exportCoa(){
   a.download=expName('ORBIT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
-    +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.'+(notHeldTxt? ' '+esc(notHeldTxt) : ''));
+    +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.'+(notHeldTxt? ' '+esc(notHeldTxt) : '')+(unreadTxt? ' ⚠ '+esc(unreadTxt) : ''));
 }
 
 const pubActive = ()=> PUB && (PUB.years||Array.isArray(PUB.order)) && (MS.ts||0)<=(PUB.ts||0);
@@ -42448,6 +42649,8 @@ try{ const O=cycOverview(), me=O.rows.filter(function(r){ return r.own; })[0], A
 // v2.12 (item 132): a 2026 estimate's alignment healed on opening is said once, after everything opening had to say
 ACE_BOOTED=true;
 try{ aceHealSay(true); }catch(e){}
+// v2.15 W4 (v2.12's question 1): a CLIN request the file holds that is not a list, said once, after everything opening had to say
+try{ if(!window.__fydpFrame) clinAskSay(); }catch(e){}
 function loadShared(cb){
   // v2.09 second review: A PMO COPY READS NO SHARED STATE FILE. The file beside the board is the board's own state, and a copy on
   // the same share, in a browser where somebody once opted in, loaded it over the office's work (copyImportRefuse's rule: a

@@ -59,7 +59,7 @@ const REGISTRY = {
   // catches. Closing the funds flow found a shipped defect (flow-plan-year-printed-the-allocation).
   crData:       { money: true,  what: 'CR cash needs by half-month window', via: ['crBuckets', 'landSvc'] },
   exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
-  exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk'] },
+  exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk', 'coaExportNow'] },   // v2.15 W4: the workbook is written by coaExportNow, once the folder has answered
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
   exportCycCompare: { money: true, what: 'the two-cycle comparison — A, B and Δ per year, the Changes sheet, and the rows accounting for the totals',
                   via: ['cycCmpData', 'cycCmpBody'] },
