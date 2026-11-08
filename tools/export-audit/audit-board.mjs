@@ -9041,17 +9041,17 @@ await (async () => {
       window.__q=[]; window.confirm=function(m){ window.__q.push(String(m)); return true; }; window.alert=function(){};
       URL.createObjectURL=function(){ return 'blob:x'; }; HTMLAnchorElement.prototype.click=function(){}; ${W3S_FH} 'ok'`);
     await B.ev('saveInPlaceFile()'); await w3sSleep(20);
+    // v2.15 W2 (item 143): that Save now records Initial Spares saved (it wrote it exactly as storage held it); the fixture puts the
+    // record back to unsaved, as an edit there would, so a carry forgotten on a refused record still reads as held (what this guards)
+    B.ev(`localStorage.setItem('prio27sp.base', ${J(J({ file: 0, dirty: true }))}); 'ok'`);
     B.ev(`window.__si2=Storage.prototype.setItem; window.__refuse={'prio27sp':1}; Storage.prototype.setItem=function(k,v){ if(window.__refuse[k]) throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return window.__si2.call(this,k,v); }; 'ok'`);
     const r1 = B.ev(`String(cycApplyAll('PB|2028'))`);
     chk(name, 'the cycle', 'carried, and Initial Spares not read as held (a CONTROL)', J([r1, B.ev(`String(apStoreOf('sp').held)`)]), J(['true', 'false']));
     // 💾 Save, with storage refusing Initial Spares' record as well
-    // v2.15 W2 (item 143): moved on purpose -- the first 💾 Save above wrote Initial Spares exactly as this browser held it, so it now
-    // records that save ({file, dirty:false}); "as it was" is the record before this Save, read here, not the literal it had before
-    const rec0 = JSON.parse(B.ev(`localStorage.getItem('prio27sp.base')`));
     B.ev(`window.__refuse['prio27sp.base']=1; 'ok'`);
     await B.ev('saveInPlaceFile()'); await w3sSleep(20);
     chk(name, '💾 Save, its record refused', 'the record is as it was, and Initial Spares is still not read as held',
-      J([JSON.parse(B.ev(`localStorage.getItem('prio27sp.base')`)), B.ev(`String(apStoreOf('sp').held)`)]), J([rec0, 'false']));
+      J([JSON.parse(B.ev(`localStorage.getItem('prio27sp.base')`)), B.ev(`String(apStoreOf('sp').held)`)]), J([{ file: 0, dirty: true }, 'false']));
     B.ev(`window.__blob=null; window.__B0=window.Blob; window.Blob=function(p,o){ window.__blob=String(p&&p[0]); return new window.__B0(p,o); }; pkgIssue('sp', true); window.Blob=window.__B0; window.__q=[]; 'ok'`);
     const r2 = B.ev(`String(cycApplyAll('BES|2028'))`);
     chk(name, 'after it', '⬆ Issue Initial Spares issues it, and the next cycle moves it',

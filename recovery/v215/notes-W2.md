@@ -144,7 +144,17 @@ Each fails on the slot commit `8c24ea2` unless it says CONTROL (run on both boar
   the three tie mutations need); one stray rule — the opening and `strayOther` agree on blank work and an import's record, each with
   and without a pack (CONTROL; the retargeted W1/INT stray mutations bite through their own checks). 5 fail on the slot commit.
 
-No existing check was changed.
+Existing checks changed on purpose, each with a `// v2.15 W2` comment:
+- audit-import **"v2.14 W1 — Save asks, naming them … (item 140 b)"**, part (9): it reached C24's shorter list through R1 itself (an older
+  stored copy of another board opening its list under the file's plan). 142 closes that, so the stored one-requirement copy is now the
+  NEWER one (it opens on its own list) and its record names the file's save; the check -- Save names B and C and Cancel writes nothing
+  -- is unchanged and still guards `v214-w1-drops-reqs-blind`.
+- audit-import **"v2.14 W2 — the file route where the browser cannot write a file …"**, the fixture: its R1 control now reads that the
+  file opened over the stale copy shows the file's own list (was: the stale copy's).
+- audit-board **"v2.14 RV2-B — a carried plan whose record 💾 Save cannot write stays carried …"**: its first 💾 Save wrote Initial
+  Spares exactly as this browser held it, so 143 now records that save saved -- and a carry forgotten on a refused record then no longer
+  read as held, so `v214-rv2-b-carrysaved-drops-entry` survived. The fixture puts the record back to unsaved after that Save (as an
+  edit there would); every assertion is as it was.
 
 ## Mutations
 29 new (`v215-w2-*`, in the slot) and 12 retargeted in place (each the same defect, on the line that now carries it):
@@ -155,8 +165,18 @@ No existing check was changed.
 `v214-int-stray-unguarded` (the opening's call of the one stray rule: a forced blank mark, storage's pack dropped, both). None retired.
 `kept-replaced`'s find came to match a second line (`_bootPre`'s); the new line's variable was renamed instead. mcount: every target
 once (3,636 entries).
-Proofs: `recovery/v215/proofs-W2.json` → `proved-W2.jsonl`.
-PROOFS_RESULT
+Proofs: `recovery/v215/proofs-W2.json` → `proved-W2.jsonl` (run with `JOBS=1` under heavy.sh on `fc59d6b`, whose board is the final
+board: the later commits move checks only, and one board change made and taken back). **41 of the 41 listed: 40 CAUGHT by their own checks, 1 SURVIVED (below)**, plus `v214-w1-drops-reqs-blind` re-proved CAUGHT after its fixture moved. `v214-rv2-b-carrysaved-drops-entry` was NOT CLEAN in the full run (143 had changed its fixture's premise); its fixture now sets the record back to unsaved after the first Save, and it is CAUGHT (its line appended to `proved-W2.jsonl`).
+
+- **`v209-rv3-save-look-record-left` SURVIVED** -- and survives on the slot commit too (its slot-board mutant, the same line as the slot
+  spells it, passes "v2.09 third review — a newer file opened only to look" whole: measured). Its check stopped biting before v2.15 (by
+  v2.14's own changes to the record); retargeted here because the line moved, not because of it. For the integration: a check (or an
+  `equivalent:` with backing) is owed.
+- The first proof run found a regression of the first cut: "v2.09 second review — a newer file, the older one" was NOT CLEAN -- a newer
+  file built for another service list was followed instead of refused. `_bootPre` now follows only a file with the same services.
+- The first run's survivors `v215-w2-clash-pubsfor-silent` (OK on the question bumps the time, so `pubsFor`'s guard never mattered on that
+  path) and `v215-w2-tie-apstore`/`-tie-fydp` (the tie check read after a Save had put storage's copy in PUBS) were answered by a new part
+  (a board file built while two copies stand) and by reading the tie before any Save; both re-proved CAUGHT.
 
 ## For the integration
 - **`_saveInPlaceFileRun`** (no owner named in §2; W3 owns `fh*`): W2 added three lines — `if(!pubsClashAsk()) return;` at the top,
@@ -187,3 +207,11 @@ None.
   only a copy storage refused (on this page alone) is protected.
 - **145, the shared folder's save** writes the board on screen only and is not asked about.
 - **131**: the shared folder's answer is still read once per opening of the box.
+
+## Results (the final tree; the board is byte for byte `fc59d6b`'s, every later commit moves a check or a note)
+- **Whole suites** (each through heavy.sh, `HEAP=8192`): audit-recon, audit-other, audit-hostile, audit-inject, audit-ui, audit.mjs,
+  legacy-fsrc and boot-same pass on `fc59d6b`; audit-import passes whole on `92517ed`, audit-board whole on the final tree (both after
+  their moved checks). The first whole run of audit-board died at the 6 GB default heap (exit 134); run at 8 GB.
+- **Browser checks:** savetarget, fileimport, storagefull, pmosave, panels, dialogs, standards (0 findings, nothing new), keys and
+  leftmenu pass; savetarget, fileimport and storagefull again on `fc59d6b`.
+- **Fuzz:** nothing lost, seed 926666896. `npm run coverage:money` 27/27. `npm run check` passes. mcount: 3,636 targets, each once.
