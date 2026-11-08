@@ -8609,9 +8609,9 @@ function baseGet(){ try{ const b=JSON.parse(localStorage.getItem(_AP.key+'.base'
 // work: an edit here marked the import's file "saved since by unknown" (a HOLD ON over its own file), and 💾 Save of this page's own
 // file recorded "clean" over another tab's unsaved work, which the next newer file then replaced with nothing kept aside. This
 // changes D17/C19 (the hold never guarded a record) because that lost work; the page's own memory (LASTKNOWN, _baseDirty) is as before.
-// v2.15 W3 (item 144): AND A PAGE WHOSE OWN PLAN BROWSER STORAGE REFUSED WRITES NO RECORD OF IT. The record describes the plan storage
-// holds, and once this page's write of it is refused that plan is not this page's work -- an older copy, or another tab's board saved
-// since. A mark written then described that tab's board as this page's (RV1-A's critic gap 2, which covered the held page alone): an
+// v2.15 W3 (item 144): AND A PAGE WHOSE OWN PLAN BROWSER STORAGE REFUSED WRITES NO RECORD OF ANOTHER TAB'S BOARD. The record describes
+// the plan storage holds, and once this page's write of it is refused and another tab has saved its board there since, that plan is not
+// this page's work. A mark written then described that tab's board as this page's (RV1-A's critic gap 2, which covered the held page alone): an
 // edit storage refused rewrote another tab's record, a load counted over a refused write left the record naming it unsaved, and a
 // file Save recorded "clean" over a copy it never wrote. The one exception is the mark save() and loadStored() write just before the
 // plan (_recMark): a tab killed between the two writes must leave the record unsaved, and both put it back when storage refuses the
@@ -8619,7 +8619,9 @@ function baseGet(){ try{ const b=JSON.parse(localStorage.getItem(_AP.key+'.base'
 // written through lsSet (o.own: never folded into an import being prepared): refused, it is in Save diagnostics, and a mark saying
 // the work is unsaved that storage refused leaves that work on screen only -- the record calls storage's plan saved, so leaving asks.
 var _recMark=false;
-function baseRecBlocked(){ let pf=false; try{ pf=_persistFail; }catch(e){ pf=false; } return !!(pf && !_recMark); }
+// Only while storage's plan is no longer the copy this page wrote last or opened (impOwnCopyGone): while it still is, storage holds this
+// page's own older work, and the record describes it as before (a file save that wrote what is on screen marks it saved, v2.14 RV2-C).
+function baseRecBlocked(){ let pf=false; try{ pf=_persistFail; }catch(e){ pf=false; } return !!(pf && !_recMark && impOwnCopyGone()); }
 function baseSet(patch){
   if(impHandKey(_AP.key) || baseRecBlocked()) return false;
   const dirt=!!(patch && patch.dirty===true);

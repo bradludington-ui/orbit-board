@@ -289,5 +289,9 @@
   "id": "v214-rv1-c-stop-denied-skipped",
   "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes",
   "retargeted": true
+ },
+ {
+  "id": "v215-w3-rec-blocked-own-copy",
+  "caughtBy": "audit-import / v2.14 RV2-C — after a write browser storage refused"
  }
 ]

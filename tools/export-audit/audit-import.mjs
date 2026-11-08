@@ -20014,7 +20014,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // clean mark and a mark of its own
     { const T = await board(); const key = T.ev('_AP.key');
       const RB = J({ file: 5, folder: {}, dirty: true, from: 'another tab' });
-      const r = refusing(T, '^' + key + '$', `S.notes.A='refused'; save(); localStorage.setItem(_AP.key+'.base', ${J(RB)});
+      // another tab saves its board: its plan and its record (the plan is that tab's, not the copy this page wrote last)
+      T.ev(`(function(){ var real=Storage.prototype.setItem; window.__putOther=function(v){ real.call(localStorage, _AP.key, v); }; })(); 'ok'`);
+      const r = refusing(T, '^' + key + '$', `S.notes.A='refused'; save(); var o=JSON.parse(localStorage.getItem(_AP.key)); o.ts=Date.now()+5; o.by='another tab';
+        window.__putOther(JSON.stringify(o)); localStorage.setItem(_AP.key+'.base', ${J(RB)});
         loadCounted(); baseSet({file:LASTKNOWN, dirty:false}); baseMarkDirty(); return localStorage.getItem(_AP.key+'.base')`);
       chk(name, '(e) a refused plan', 'another tab’s record is left as that tab wrote it: a load counted, a clean mark and a mark here write none of it',
         J([r.threw, r.ret]), J(['', RB]));
@@ -20195,7 +20198,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // a blank page reads that board's file, is asked what it would drop, and Cancel -- the page must not keep that file's writer
     { const R = boot(); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
       const f = H.disk(R.w, F1);
-      R.ev('globalThis.__yes=false; 0');
+      R.ev(`window.confirm=function(q){ globalThis.__q.push(String(q)); return !/holds what the board on screen does not carry/.test(String(q)); }; 0`);
       const w0 = R.ev('JSON.stringify(WRITER)');
       await R.ev('saveInPlaceFile()');
       chk(name, '(n) Cancel after reading a board this browser writes', 'nothing written, and the page’s writer is as it was (none)',

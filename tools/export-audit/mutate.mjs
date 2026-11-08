@@ -11023,7 +11023,7 @@ const MUTATIONS = [
     find: "say:dirt? 'This browser could not record that the work on screen is unsaved",
     repl: "say:false? 'This browser could not record that the work on screen is unsaved" },
   { id: 'v215-w3-rec-written-over-refused', area: "baseRecBlocked", what: "a page whose plan storage refused rewrites another tab’s record",
-    find: "return !!(pf && !_recMark); }",
+    find: "return !!(pf && !_recMark && impOwnCopyGone()); }",
     repl: "return false; }" },
   { id: 'v215-w3-rec-not-remarked', area: "persist", what: "storage takes the plan again and the record still calls it saved",
     find: "if(_persistFail){ _persistFail=false; if(DIRTY) try{ baseMarkDirty(); }catch(e){} try{",
@@ -11118,6 +11118,9 @@ const MUTATIONS = [
   { id: 'v215-w3-cancel-keeps-writer', area: "_saveInPlaceFileRun", what: "a Save cancelled after reading a file this browser writes keeps that file's writer as the page's own",
     find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);",
     repl: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        if(penLine) WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);" },
+  { id: 'v215-w3-rec-blocked-own-copy', area: "baseRecBlocked", what: "a page whose plan storage refused writes no record even while storage holds its own older copy: a file save leaves that copy recorded unsaved, and the next opening keeps it aside over the file",
+    find: "return !!(pf && !_recMark && impOwnCopyGone()); }",
+    repl: "return !!(pf && !_recMark); }" },
   // ==== end v2.15 W3 ====
   // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
   // ==== end v2.15 W4 ====
