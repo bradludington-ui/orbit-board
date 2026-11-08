@@ -1,0 +1,170 @@
+[
+ {
+  "id": "v215-w1-retag-moves-all-on",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-reopened-counts",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-own-only",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-filter-ignored",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-left-unnamed",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-question-every",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-label-count",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-retag-lead-own-only",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-lock-refusal-gone",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-lock-refusal-copy-wayout",
+  "caughtBy": "board / v2.15 W1 — the retag moves every appropriation"
+ },
+ {
+  "id": "v215-w1-in-keeps-package-tag",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-package-ref",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-every-position",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-takes-no-position",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-left-counts-same",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-bar-mixed",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-no-bar",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-never-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-always-whole",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-left-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-made-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-preview-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-pkg-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-preview-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-cons-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-batch-skipped",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-in-batch-result-unsaid",
+  "caughtBy": "import / v2.15 W1 — an incoming plan comes in"
+ },
+ {
+  "id": "v215-w1-e2-line-unnamed",
+  "caughtBy": "import / v2.15 W1 — E2’s line"
+ },
+ {
+  "id": "v215-w1-fit-no-short",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-no-move",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-wrap-not-shorten",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-not-reset",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-short-keeps-fy",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-short-keeps-words",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-title-short",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-list-missing",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "v215-w1-fit-no-over-mark",
+  "caughtBy": "board / v2.15 W1 — the context bar gives"
+ },
+ {
+  "id": "retag-drops-reference",
+  "caughtBy": "board / PPBE cycles — the deltas against the reference"
+ },
+ {
+  "id": "v203-19-flag-never",
+  "caughtBy": "board / v2.03 — a message that matters stays until it is read"
+ },
+ {
+  "id": "v213-rv-headline-every",
+  "caughtBy": "board / v2.13 — one PPBE cycle for every appropriation"
+ }
+]

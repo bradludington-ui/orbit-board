@@ -57,6 +57,9 @@
 //   S. (v2.13, item 136) The PPBE cycle at the top and the figure beside it, at their widest -- ⚠ Mixed across three
 //      appropriations, the figure in the billions both ways -- from 1920 to 761, this font and the Segoe stand-in: no sideways
 //      scroll, nothing in the top stack past the window, both whole on screen, and the list opened inside the window.
+//      v2.15 W1 (item 137; Brad: "No wrapping."): and THE CONTEXT BAR ON ONE LINE at every one of those widths, with the
+//      opening's warning unread beside it -- the figure shortened where it must be, or moved to the head of the list (whole there,
+//      opening Fit to the PPBE position) with the PPBE cycle carrying its ⚠ -- never wrapped.
 //
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -983,8 +986,9 @@ const ER_STATE = () => {
 // 1440, 1366, 1152, 1024, 901 and 761, this font and the Segoe stand-in: the page never scrolls sideways, nothing in the top stack
 // runs past the window, the PPBE cycle and the figure are whole on screen -- inside the window, not cutting their own text, not
 // cut by anything around them, not covered -- and the list, opened, sits inside the window with every line inside it.
-// Above 1100px the context bar may wrap here: the one-line rule is toolbar-fits', held on the template board. Where it wraps on
-// this board is printed beside the check as a fact, not held.
+// v2.15 W1 (item 137; Brad, 2 Nov 2026: "No wrapping."): the context bar is held to ONE LINE here, at every width this measures and in
+// both fonts, with the opening's warning unread beside it: fitTop's steps (labels, the short figure, the figure moved to the head of
+// the list with a ⚠ on the PPBE cycle, then Help and the unread count shortened) must make it fit. The steps taken are printed.
 {
   // its own position, whatever the sections above left: the first service $1 of discretionary, the second $98,765,432,101; R020
   // (K's, asking billions) directs its whole value on a Split
@@ -1019,8 +1023,17 @@ const ER_STATE = () => {
       const t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (!t || !(t === e || e.contains(t))) why.push(`#${id} is covered by ${t ? say(t) : 'nothing'}`);
       return why; };
-    out.push(...whole('b_cyc'), ...whole('cycFit'));
-    const st = { btn: (document.getElementById('b_cyc') || {}).textContent || '', fit: (document.getElementById('cycFit') || {}).textContent || '',
+    // v2.15 W1 (item 137): the figure is in the bar, whole -- or, where the bar has no room for it, at the head of the list (below)
+    const hd = document.querySelector('.hdr'), moved = hd.classList.contains('cyc2'), fe = document.getElementById('cycFit');
+    out.push(...whole('b_cyc'), ...(moved ? [] : whole('cycFit')));
+    // ONE LINE: every item of the bar on one row, and the bar never told to wrap
+    const kids = [...hd.children].filter(e => e.getClientRects().length && getComputedStyle(e).position !== 'absolute'), mids = kids.map(e => { const r = e.getBoundingClientRect(); return r.top + r.height / 2; });
+    const spread = Math.round(Math.max(...mids) - Math.min(...mids));
+    if (spread > 6 || hd.classList.contains('tight2')) out.push(`the context bar wraps: its items ${spread}px apart, ${hd.className}`);
+    if (moved && !document.getElementById('b_cyc').classList.contains('fover')) out.push('the figure left the bar, and the PPBE cycle carries no ⚠ for the over');
+    if (moved && getComputedStyle(document.getElementById('b_cyc'), '::before').content.indexOf('⚠') < 0) out.push('the figure left the bar, and no ⚠ is drawn on the PPBE cycle');
+    const st = { btn: (document.getElementById('b_cyc') || {}).textContent || '', fit: (fe && fe.getAttribute('data-l')) || '', shown: (fe || {}).textContent || '',
+      cls: hd.className, unread: !document.getElementById('statKeep').hidden,
       hdrH: Math.round(document.querySelector('.hdr').getBoundingClientRect().height), seen: !!localStorage.getItem('prio27sp') };
     // the list, opened as a click opens it
     toggleMenu('cyc');
@@ -1033,6 +1046,16 @@ const ER_STATE = () => {
       for (const x of d.querySelectorAll('.cycall-row, .mi, .cycall-note, .mlbl')) { const r = x.getBoundingClientRect();
         if (r.width && (r.right > dr.right + 1 || r.left < dr.left - 1)) { out.push('a line past the list: "' + x.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) + '"'); break; } }
       if (de.scrollWidth > de.clientWidth + 1) out.push(`the page scrolls sideways with the list open: ${de.scrollWidth}>${de.clientWidth}`);
+      // v2.15 W1 (item 137): moved, the figure heads the list, whole, and is the whole sentence; in the bar, the list carries none on show
+      const fi = d.querySelector('.cycfit-in button.mi'), fr = fi && fi.getBoundingClientRect();
+      if (moved) {
+        if (!fi || !fr.width) out.push('the figure left the bar, and the list does not carry it');
+        else {
+          if (d.querySelector('button') !== fi) out.push('the figure is in the list, but not at its head');
+          if (fr.right > dr.right + 1 || fr.left < dr.left - 1 || fr.bottom > H + 0.5) out.push('the figure in the list is past the list or the window');
+          if (fi.textContent.indexOf(st.fit) < 0) out.push(`the figure in the list is not the whole sentence ("${fi.textContent.trim().slice(0, 60)}")`);
+        }
+      } else if (fi && fr.width) out.push('the list shows the figure while the bar has room for it');
     }
     st.rows = d ? d.querySelectorAll('.cycall-row').length : 0;
     openMenu = null; syncBtns();
@@ -1061,15 +1084,17 @@ const ER_STATE = () => {
         if (!r.seen) fails.push(`${tag}: harness -- this tab cannot see what the seed page wrote, so the board is not Mixed (proves nothing about the board)`);
         if (r.btn !== '⚠ Mixed ▾' || r.rows < 3) fails.push(`${tag}: the PPBE cycle is not Mixed across three appropriations ("${r.btn}", ${r.rows} lines)`);
         if (!/^[A-Za-z]+\d\d · FY\d\d · \$[\d.]+B unallocated · ⚠ \$[\d.]+B over$/.test(r.fit)) fails.push(`${tag}: the figure is not the long one, unallocated and over ("${r.fit}")`);
+        // v2.15 W1 (item 137): the opening's offer unread beside it, as the widest the bar gets
+        if (!r.unread) fails.push(`${tag}: the opening's warning is not unread beside the bar, so the bar is not at its widest (proves less)`);
         r.out.slice(0, 4).forEach(x => fails.push(`${tag}: ${x}`));
-        if (w > 1100 && r.hdrH > 60) wraps.push(`${w} ${font === 'the Segoe stand-in' ? 'Segoe' : 'this font'} (${r.hdrH}px)`);
+        wraps.push(`${w}${font === 'the Segoe stand-in' ? 'S' : ''}:${r.cls.replace(/^hdr ?/, '') || '-'}`);
       } catch (e) { fails.push(`${tag}: the state could not be read -- ${String(e.message || e).split('\n')[0].slice(0, 120)}`); }
       if (errs.length) fails.push(`${tag}: ${errs[0]}`);
       await ctx.close();
     }
-  chk('S · the PPBE cycle at the top, ⚠ Mixed across three appropriations and its figure in the billions both ways: the page never scrolls sideways, nothing in the top stack runs past the window, the PPBE cycle and the figure are whole on screen, and its list opens inside the window (1920 to 761, this font and the Segoe stand-in)',
+  chk('S · the PPBE cycle at the top, ⚠ Mixed across three appropriations and its figure in the billions both ways: the page never scrolls sideways, nothing in the top stack runs past the window, the PPBE cycle and the figure are whole on screen (or the figure heads the list, the cycle carrying its ⚠), the context bar is ONE LINE with the warning unread beside it, and its list opens inside the window (1920 to 761, this font and the Segoe stand-in)',
     fails.length === 0 && read === 14, fails.length ? `${fails.length} found, e.g. ${fails.slice(0, 5).join('; ')}` : `${read} states read`);
-  console.log(`       (a fact, not a check) the context bar on this board, above 1100px: ${wraps.length ? 'wraps at ' + wraps.join(', ') : 'one line at every width'}`);
+  console.log(`       (a fact) the steps the context bar took at each width: ${wraps.join(' ')}`);
 }
 
 await b.close();

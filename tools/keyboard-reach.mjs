@@ -34,6 +34,8 @@
 //      the figure beside it (Enter opens Fit to the PPBE position); Enter opens its list, Esc closes it back on the button; and
 //      Enter on a "Put every appropriation on …" item, OK to its question, puts every appropriation's stored plan on that cycle
 //      with the keyboard left on the button.
+//   V2. (v2.15 W1, item 137) At 1024 wide the figure has left the bar for the head of the PPBE cycle's list: Tab reaches the PPBE cycle,
+//      Enter opens the list, the first Tab lands on the figure (the whole sentence), Enter opens Fit to the PPBE position, Esc closes it.
 //   W. The RCN / EEIC list holds typing across a redraw, in Chromium (v2.14, ledger U35): a figure typed into a row's RCN field and
 //      not yet left survives two redraws with the keyboard and the caret, typing goes on after it, Tab commits it to that row alone,
 //      and Esc with typing not yet committed asks before the box closes.
@@ -1190,6 +1192,40 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     chk('V · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   } catch (e) { chk(`V · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
+// ── V2. THE FIGURE, MOVED INTO THE PPBE CYCLE'S LIST, FROM THE KEYBOARD (v2.15 W1, item 137) ───────────────────────────────────────
+// V's board at 1024 wide, where the context bar has no room for the figure (Brad, 2 Nov 2026: "No wrapping."): fitTop moves it to the
+// head of the PPBE cycle's list and the PPBE cycle carries a ⚠ for the over. Tab reaches the PPBE cycle; Enter opens its list; the
+// first Tab inside lands on the figure -- the whole sentence -- and Enter opens Fit to the PPBE position with the keyboard inside; Esc
+// closes it. The bar shows no figure of its own there, and stays one line.
+{
+  try {
+    const LIVEC = buildPopulated(FILE, CYC_TAG_SEED);
+    const ctx = await b.newContext({ viewport: { width: 1024, height: 768 } });
+    await seedLs(ctx, { spmtTheme: 'harbor', spmtMode: 'review', prio27who: 'Pat', [CYC_KEY.ff]: cycOtherStore('PB|2027') }, [CYC_KEY.om, CYC_KEY.sp, CYC_KEY.opn]);
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    await p.goto('file://' + LIVEC);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.waitForTimeout(300);
+    const st0 = await p.evaluate(() => { const h = document.querySelector('.hdr'), f = document.getElementById('cycFit');
+      return { cls: h.className, fitShown: !!f.getClientRects().length, long: f.getAttribute('data-l'), fover: document.getElementById('b_cyc').classList.contains('fover') }; });
+    chk('V2 · at 1024 the figure has left the bar (the bar one line), and the PPBE cycle carries the over', /\bcyc2\b/.test(st0.cls) && !/tight2/.test(st0.cls) && !st0.fitShown && st0.fover, JSON.stringify(st0));
+    const s1 = await tabTo(p, '#appnSel', '#b_cyc', 10);
+    await p.keyboard.press('Enter'); await p.waitForTimeout(150);
+    await p.keyboard.press('Tab');
+    const a1 = await p.evaluate(() => { const a = document.activeElement; return { inFit: !!(a && a.closest && a.closest('#dd_cyc .cycfit-in')), txt: a ? a.textContent.replace(/\s+/g, ' ').trim() : '' }; });
+    chk('V2 · Tab reaches the PPBE cycle, Enter opens its list, and the first Tab inside lands on the figure, the whole sentence',
+      s1 > 0 && a1.inFit && a1.txt.indexOf(st0.long) === 0, JSON.stringify({ steps: s1, ...a1, long: st0.long }));
+    await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+    const f1 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), inBox: !!(document.activeElement && document.activeElement.closest('#fitPanel')), menu: openMenu }));
+    chk('V2 · Enter on it opens Fit to the PPBE position with the keyboard inside, the list closed', f1.open && f1.inBox && f1.menu === null, JSON.stringify(f1));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+    const f2 = await p.evaluate(() => ({ open: document.getElementById('fitPanel').classList.contains('open'), focus: document.activeElement && document.activeElement.id }));
+    chk('V2 · Esc closes it, the keyboard back on the PPBE cycle', !f2.open && f2.focus === 'b_cyc', JSON.stringify(f2));
+    chk('V2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`V2 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── W. THE RCN / EEIC LIST HOLDS TYPING ACROSS A REDRAW, IN CHROMIUM (v2.14, ledger U35) ─────────────────────────────────────────
