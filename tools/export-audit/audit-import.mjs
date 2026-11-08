@@ -15516,7 +15516,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const OB = w14board({ ls: { prio27appn: 'O&M' } }, Object.assign({}, W14SC, { items: [W14SC.items[0]], order: ['A'] }));
     const obLs = w14ls(OB.ev);
     const P9 = await w14open({ html: N9, url: W14U('board9.html'),
-      ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: +JSON.parse(obLs.prio27om).ts, dirty: false }), prio27writerKey: W14K } });
+      // v2.15 W2: the record names the file's save (the copy newer than it was typed after it), so the first question is the one this tests
+      ls: { prio27appn: 'O&M', prio27om: obLs.prio27om, 'prio27om.base': W14J({ file: w14fileTs(w14pub(N9)), dirty: false }), prio27writerKey: W14K } });
     w14wire(P9.ev, 'false');
     const d9 = w14disk('board9.html', N9); withFile(P9, d9); w14pickers(P9, { open: null, save: null });
     chk(name, '(9) setup', 'the board opened with the stored copy’s requirement list, not the file’s (a CONTROL; v2.15 W2: the stored copy, newer, opens on its own list)', W14J(JSON.parse(w14ev(P9.ev, `JSON.stringify((DATA.items||[]).map(function(i){ return i.id; }))`))), W14J(['A']));
