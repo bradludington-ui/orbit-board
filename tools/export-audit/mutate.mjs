@@ -10953,6 +10953,16 @@ const MUTATIONS = [
     find: "((st && st.years && _hasPack(st))? st.dataPack", repl: "((st && _hasPack(st))? st.dataPack" },
   // ---- end RV2-D ----
   // ==== end v2.14 review round 2 fixes ====
+  // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+  // ==== end v2.15 W1 ====
+  // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
+  // ==== end v2.15 W2 ====
+  // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+  // ==== end v2.15 W3 ====
+  // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
+  // ==== end v2.15 W4 ====
+  // ==== v2.15 integration (the lead) ====
+  // ==== end v2.15 integration ====
 
 ];
 
