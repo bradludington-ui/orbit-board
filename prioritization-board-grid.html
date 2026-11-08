@@ -28438,7 +28438,8 @@ function spBodyDraw(el){
   const G=spGather();
   // v2.15 W4 (item 131): until the shared folder has answered for an appropriation, nothing is stated for any (as FYDP Disconnects)
   const waitFor=G.blocks.filter(function(b){ return b.foldWait; });
-  if(waitFor.length){ el.innerHTML='<div class="hint sp-fold-wait">Reading the shared folder for '+waitFor.map(function(b){ return esc(b.name); }).join(' and ')
+  if(waitFor.length){ const nm=waitFor.map(function(b){ return esc(b.name); });
+    el.innerHTML='<div class="hint sp-fold-wait">Reading the shared folder for '+(nm.length>1? nm.slice(0,-1).join(', ')+' and '+nm[nm.length-1] : nm[0])
     +': each is read as its own board opens it, the folder’s copy when that is newer…</div>'; return; }
   // an imported ACE replaces the board's own requirement totals, mapped by PMO or by Service
   const aceSet=(ACEDB.sets||{})[spAce];
@@ -31362,7 +31363,7 @@ function clinAskBadOf(){
       const M=ok(T.clinMeta)? T.clinMeta : {}, N=ok(T.clinNew)? T.clinNew : {};
       Object.keys(M).forEach(function(pid){ const m=M[pid]; if(!ok(m)) return;
         Object.keys(m).forEach(function(k){ if(ok(m[k]) && bad(m[k].ask)){
-          const b=clinsOf(CLINS[pid])[+String(k).replace(/^b/,'')];
+          const b=/^b\d+$/.test(k)? clinsOf(CLINS[pid])[+k.slice(1)] : (Array.isArray(N[pid])? N[pid] : []).filter(function(c){ return ok(c) && c.key===k; })[0];
           out.push({fy:+y, id:pid, clin:String((m[k].clin!==undefined? m[k].clin : (b && b.clin))||k), what:'as edited'}); } }); });
       Object.keys(N).forEach(function(pid){ (Array.isArray(N[pid])? N[pid] : []).forEach(function(c){
         if(ok(c) && bad(c.ask)) out.push({fy:+y, id:pid, clin:String(c.clin||c.key||'?'), what:'added'}); }); });

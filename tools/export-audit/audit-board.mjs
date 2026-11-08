@@ -9914,6 +9914,166 @@ await (async () => {
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
 // ==== end v2.15 W3 ====
 // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
+// v2.15 W4 (item 135): A PRIME'S WBS IS ITS CLINs'. WBS from execution data proposed a pull row for a prime that names none of its CLINs
+// for the prime's own requirement-level paragraph (S.wbs), which the one rule reads nowhere (wbsStateOf): Write set a paragraph no
+// surface shows and said it had. And A CLIN REQUEST HELD AS TEXT FIGURES (['5', '7'], which the import check takes as it takes every
+// amount) is summed as figures in the drill, as clinVec and clinSplit read it -- it was summed as text, '0'+'5'+'7'. FAILS ON THE SLOT
+// COMMIT: the prime's own row is proposed and written; the request reads '057'. CONTROLs: a row naming the prime's CLIN is still
+// proposed for that CLIN, a requirement that is not a prime still for itself, and a request held as numbers sums as before.
+await (async () => {
+  const name = 'v2.15 W4 — WBS from execution data never proposes a prime’s own paragraph, and a CLIN request of text figures sums as figures (item 135)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ccar, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar, fy26: [0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG'], items: [mk('A', 'JSF1', [500, 0]), mk('B', 'JSF2', [300, 0])], disc: [2000, 100], mand: [0, 0], order: ['A', 'B'] });
+    B.ev(`window.confirm=function(){ return true; }; window.alert=function(){};
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={A:'PRIME', B:'OGC'}; S.clinNew={A:[{key:'n1', clin:'0001', desc:'Line one', ccar:'', ask:['5','7']}]}; applyState(S); save();
+      var row=function(ccar, w, clin){ var r=[]; for(var i=0;i<26;i++) r.push(''); r[0]=MS.cur; r[2]=ccar; r[3]='Not a record name'; r[23]=w; r[25]=clin; return r; };
+      EXDB={ts:9, all:{}}; EXDB.all[mySlug()]={rows:{}}; EXDB.all[mySlug()].rows[MS.cur]=[row('JSF1','1.2.1 - Organizational',''), row('JSF1','1.3.1 - Depot','0001'), row('JSF2','1.4.1 - Field','')];
+      render(); 'ok'`);
+    const scan = () => JSON.parse(B.ev(`(function(){ var s=execWbsScan(null);
+      return JSON.stringify({props:s.props.map(function(r){ return [r.kind, r.id, r.clin, r.para]; }), prime:(s.primeNoClin||[]).map(function(r){ return [r.id, r.paras]; })}); })()`));
+    const s0 = scan();
+    chk(name, 'the scan', 'CONTROL: the row naming the prime’s CLIN 0001 is proposed for that CLIN, and B’s for B', J(s0.props.filter(p => p[0] === 'clin' || p[1] === 'B')),
+      J([['clin', 'A', '0001', '1.3.1'], ['req', 'B', '', '1.4.1']]));
+    chk(name, 'the scan', 'the prime’s row naming no CLIN is not proposed for the prime’s own paragraph, and is listed apart', J([s0.props.filter(p => p[0] === 'req' && p[1] === 'A').length, s0.prime]),
+      J([0, [['A', ['1.2.1']]]]));
+    B.ev(`exwOpen=true; render(); 'ok'`);
+    chk(name, 'the panel', 'WBS from execution data says the prime’s row names no CLIN and is not written, pointing to the CLIN drill',
+      /^1 prime contract had rows naming no CLIN it holds\. A prime’s WBS is set on its CLINs, so nothing was written: set the paragraph on each CLIN in its 🧾 CLIN drill:· EV-A — 1\.2\.1$/.test(B.ev(`(document.querySelector('#exwBody .exw-prime')||{}).textContent||''`)), true);
+    B.ev(`exwOpen=false; execWbsApply(null); 'ok'`);
+    chk(name, 'written', 'Write sets the CLIN’s paragraph and B’s, and writes nothing on the prime itself', B.ev(`JSON.stringify([(S.wbs||{}).A||null, ((S.clinWbs||{}).A||{}).n1||null, (S.wbs||{}).B||null])`),
+      J([null, [{ w: '1.3.1', v: [] }], [{ w: '1.4.1', v: [] }]]));
+    // the CLIN request held as text figures
+    chk(name, 'the request', 'a CLIN request of text figures sums as figures: 5 + 7 is 12, in the CLIN and in the prime’s request', B.ev(`JSON.stringify([clinAskTot(clinList('A')[0]), primeReq('A')])`), J([12, 12]));
+    chk(name, 'the request', 'CONTROL: and a request held as numbers sums as before', B.ev(`JSON.stringify(clinAskTot({ask:[5,7]}))`), '12');
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (v2.12's question 1, the handoff's recommendation accepted): A CLIN REQUEST THAT IS NOT A LIST IS SAID ON OPENING, ONCE, naming
+// the requirement and the CLIN. It was read as no request and nothing said: the drill showed nothing asked where the file held a figure
+// nobody could see. Here a saved board whose added CLIN's request is the text '5' and whose edited base line's request is a number
+// opens and says so, once, naming both; nothing is changed. FAILS ON THE SLOT COMMIT: nothing is said. CONTROL: a board whose requests
+// are lists says nothing of them.
+await (async () => {
+  const name = 'v2.15 W4 — a CLIN request that is not a list is said on opening, once, naming the requirement and the CLIN (v2.12’s question 1)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: [0, 0], ask, alloc: null });
+    const build = bad => { const X = boot();
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [mk('A', [500, 0]), mk('B', [300, 0])], disc: [2000, 100], mand: [0, 0], order: ['A', 'B'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.ptype={A:'PRIME', B:'PRIME'}; S.clinNew={A:[{key:'n1', clin:'0009', desc:'Added', ccar:'', ask:${bad ? "'5'" : '[5,0]'}}],
+          B:[{key:'n1', clin:'0004', desc:'Other', ccar:'', ask:[3,0]}]};
+        S.clinMeta={B:{n1:{ask:${bad ? '42' : '[42,0]'}}}}; applyState(S); save(); 'ok'`);
+      return X.ev('buildSavedHtml()'); };
+    const said = R => JSON.parse(R.ev(`JSON.stringify((STAT_LOG||[]).map(function(m){ return m.html; }).filter(function(h){ return /CLIN request/.test(h); }))`));
+    const R = boot({ html: build(true) });
+    const L = said(R), t = L.length ? R.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=${J(L[L.length - 1])}; return d.textContent; })()`) : '';
+    chk(name, 'on opening', 'one message says two requests are not a list of figures and are not read', J([L.length >= 1, /⚠ 2 CLIN requests are not a list of figures in this file, and are not read/.test(t)]), J([true, true]));
+    chk(name, 'on opening', 'it names each requirement and CLIN, with its year and how it is held', J([/EV-A CLIN 0009 \(FY\d\d, added\)/.test(t), /EV-B CLIN 0004 \(FY\d\d, as edited\)/.test(t)]), J([true, true]));
+    chk(name, 'on opening', 'once: no CLIN request is named twice in what opening said', J([(t.match(/CLIN 0009/g) || []).length, (t.match(/CLIN 0004/g) || []).length]), J([1, 1]));
+    chk(name, 'nothing changed', 'the requests are kept exactly as saved', R.ev(`JSON.stringify([S.clinNew.A[0].ask, S.clinMeta.B.n1.ask])`), J(['5', 42]));
+    const C = boot({ html: build(false) });
+    chk(name, 'a CONTROL', 'a board whose requests are lists says nothing of them', J(said(C)), J([]));
+    for (const [w, X] of [['bad', R], ['control', C]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (item 146): A BY-ID JOURNAL LINE IN A YEAR WHOSE ADDED IDS CAME TO REPEAT. Put back needs exactly one requirement under the id,
+// and refused saying it was "no longer in FY27" -- although the year held it twice. It now says the year holds it more than once, so it
+// could land on the wrong one; and a line filed by place in such a year is titled for that, not "Recorded before v2.14". FAILS ON THE
+// SLOT COMMIT: the refusal says "no longer", and the title is the pre-v2.14 one. CONTROL: a requirement deleted is still "no longer",
+// and a place line in a year whose ids do not repeat keeps the pre-v2.14 title.
+await (async () => {
+  const name = 'v2.15 W4 — Put back of a line by id in a year whose added ids came to repeat says so, never “no longer in FY…” (item 146)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const board = () => { const B = boot();
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+        localStorage.setItem('prio27who','Pat'); window.confirm=function(){ return true; }; window.alert=function(){};
+        window.__rn=Date.now; window.__tk=0; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+      return B; };
+    const later = B => B.ev(`window.__tk+=61000; 'ok'`);
+    const B = board();
+    const Y = B.ev(`(function(){ var a=reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); var b=reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); return b; })()`);
+    later(B); B.ev(`setAsk(${J(Y)}, 0, '250'); 'ok'`);
+    const i = +B.ev(`(function(){ var L=MS.jrnl||[]; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='custom' && L[k].p[1]===${J(Y)} && L[k].b===250) return k; return -1; })()`);
+    chk(name, 'the fixture', 'CONTROL: Y’s value change is journalled by its id', B.ev(`JSON.stringify(MS.jrnl[${i}].p)`), J(['custom', Y, 'ask', 0]));
+    // the id comes to repeat (a hand edit, a damaged transfer): the year now holds Y twice
+    later(B); B.ev(`var c=JSON.parse(JSON.stringify(S.custom[1])); c.title='Y twin'; S.custom.push(c); MS.years[MS.cur].custom=S.custom; 'ok'`);
+    const before = B.ev(`JSON.stringify(MS.years[MS.cur].custom)`);
+    B.ev(`jrnlUndo(${i}); 'ok'`);
+    const st = B.ev(`(document.getElementById('shareStat')||{}).textContent`);
+    chk(name, 'ids repeat', 'Put back says FY27 holds two added requirements under Y’s id, so it could land on the wrong one -- not that it is gone',
+      J([new RegExp('Not put back.*FY27 holds 2 added requirements under the id ' + Y + ', so it could land on the wrong one\\. Nothing was changed\\.').test(st), /no longer in FY27/.test(st)]), J([true, false]));
+    chk(name, 'ids repeat', 'and changes nothing', B.ev(`JSON.stringify(MS.years[MS.cur].custom)`) === before, true);
+    // a line filed by place in that year: its hover title says why, for this year
+    later(B); B.ev(`S.custom[2].ask[0]=11; save(); 'ok'`);
+    B.ev(`jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    const titles = JSON.parse(B.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')); }).map(function(s){ return s.getAttribute('title'); }))`));
+    chk(name, 'the panel', 'a line filed by place in a year whose ids repeat is titled for that, not “Recorded before v2.14”',
+      J(titles), J(['Recorded by its place in the list of added requirements, because an id is on that year’s list more than once. Put back now, it could land on another requirement, so it is not offered.']));
+    B.ev(`jrnlOpen=false; render(); 'ok'`);
+    // CONTROLs: a requirement gone is "no longer"; a place line where the ids are unique keeps the pre-v2.14 title
+    const D = board();
+    const Z = D.ev(`(function(){ var z=reqCreate('AV', {title:'Z', event:'EZ', ask:[300,0,0]}); save(); return z; })()`);
+    later(D); D.ev(`setAsk(${J(Z)}, 0, '333'); 'ok'`);
+    const zi = +D.ev(`(function(){ var L=MS.jrnl||[]; for(var k=L.length-1;k>=0;k--) if(L[k].p[0]==='custom' && L[k].b===333) return k; return -1; })()`);
+    later(D); D.ev(`removeReq(${J(Z)}); 'ok'`); later(D); D.ev(`jrnlUndo(${zi}); 'ok'`);
+    chk(name, 'a CONTROL', 'a requirement deleted is still “no longer in FY27”', /that added requirement is no longer in FY27\. Nothing was changed\./.test(D.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+    later(D); D.ev(`MS.jrnl.push({t:Date.now(), by:'Old', fy:MS.cur, p:['custom',0,'ask',0], a:1, b:2}); jrnlOpen=true; render(); jrnlBody(); 'ok'`);
+    chk(name, 'a CONTROL', 'a place line in a year whose ids are unique keeps the pre-v2.14 title',
+      D.ev(`JSON.stringify([].filter.call(document.querySelectorAll('#jrnlBody span.hint'), function(s){ return s.textContent==='not put back here' && /place/.test(s.getAttribute('title')); }).map(function(s){ return s.getAttribute('title'); }))`),
+      J(['Recorded before v2.14 by its place in the list of added requirements. Put back now, it could land on another requirement, so it is not offered.']));
+    for (const [w, X] of [['repeat', B], ['control', D]]) if (X.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', X.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
+// v2.15 W4 (item 146): A WHOLE-YEAR COPY WHOSE CCaR RECORD IS SET AFTERWARDS, IN EITHER YEAR, IS STILL THE SAME WORK. A box-made requirement
+// has no record yet; FY28 started as a copy of FY27 holds it under the same id with no link, and its record set afterwards in FY28 made
+// the twin rule read two requirements: Roll forward put it into FY28 a second time, and a proposal continuing it was not named as the
+// work FY28 already holds (pmoPriorHere, through yrCopySame). FAILS ON THE SLOT COMMIT: yearHas and pmoPriorHere say FY28 does not hold
+// it, and Roll forward copies it. CONTROL: once FY27 is given a different record too, the two are two requirements, as before.
+await (async () => {
+  const name = 'v2.15 W4 — a whole-year copy whose CCaR record is set afterwards is still the same work to Roll forward and the duplicate walk (item 146)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: 'JSF0', fy26: [0, 0, 0], ask, alloc: null });
+    const B = boot();
+    seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const N = B.ev(`(function(){ var n=reqCreate('PSM', {title:'', event:'Copied buy', ask:[35,0,0]}); save(); render(); return n; })()`);
+    const cur = +B.ev('MS.cur'), nx = cur + 1;
+    B.ev(`switchYear(${nx}); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: FY' + (nx % 100) + ' is started as a copy, holding ' + N + ' under the same id, no record, no link',
+      B.ev(`JSON.stringify((S.custom||[]).filter(function(c){ return c.event==='Copied buy'; }).map(function(c){ return [c.id, ccarOf(c), c.prior||null]; }))`), J([[N, '', null]]));
+    B.ev(`reqApply(${J(N)}, {ccar:'JSF77'}); switchYear(${cur}); 'ok'`);
+    chk(name, 'the fixture', 'CONTROL: its record is set in FY' + (nx % 100) + ' afterwards, and FY' + (cur % 100) + '’s has none', B.ev(`JSON.stringify([ccarOf(yrItemOf(MS.years[${nx}], ${J(N)}), MS.years[${nx}]), ccarOf(itemById(${J(N)}))])`), J(['JSF77', '']));
+    // CONTROL: two different records are two requirements
+    B.ev(`reqApply(${J(N)}, {ccar:'JSF88'}); 'ok'`);   // (before anything is rolled: a copy Roll forward made would link them)
+    chk(name, 'a CONTROL', 'given a different record in FY' + (cur % 100) + ', it is not the same work as FY' + (nx % 100) + '’s JSF77',
+      B.ev(`JSON.stringify([yearHas(${J(N)}, ${nx}), pmoPriorHere({fy:${cur}, id:${J(N)}}, ${nx})])`), J([false, '']));
+    B.ev(`reqApply(${J(N)}, {ccar:''}); 'ok'`);
+    chk(name, 'the same work', 'Roll forward’s test: FY' + (nx % 100) + ' already holds it', B.ev(`String(yearHas(${J(N)}, ${nx}))`), 'true');
+    chk(name, 'the same work', 'the duplicate walk (pmoPriorHere, through yrCopySame): a proposal continuing it names what FY' + (nx % 100) + ' holds', B.ev(`pmoPriorHere({fy:${cur}, id:${J(N)}}, ${nx})`), N);
+    const r = B.ev(`(function(){ rollPick={}; rollPick[${J(N)}]=1; rollYrs={}; rollYrs[${nx}]=1; rollApply(); return document.getElementById('shareStat').textContent; })()`);
+    chk(name, 'the same work', 'Roll forward puts nothing in: it is already there, and FY' + (nx % 100) + ' still holds it once',
+      J([/already in FY\d\d — nothing to do/.test(r), +B.ev(`(MS.years[${nx}].custom||[]).filter(function(c){ return c.event==='Copied buy'; }).length`)]), J([true, 1]));
+    if (B.errors.length) chk(name, 'jsdom', 'no script errors', B.errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+})();
 // ==== end v2.15 W4 ====
 // ==== v2.15 integration (the lead) ====
 // ==== end v2.15 integration ====
