@@ -5161,10 +5161,12 @@ What it leaves for the next change:
   keyboard-reach W, and `#impFilePanel` in panels, dialogs and standards.
 - **`npm run check`** gains "reopen" and "the save-file handle store".
 - **The defect register.** `math-defects.json` gains two entries: 15 known, 47 mutations.
-- **Mutations.** 291 new, 25 older retargeted, and 2 v2.13 ones retired, which makes 3,509 targets, each once. Proofs: 185 of 185
-  CAUGHT jointly on the merged board (`c7c50e7`); each fixer's on its own board, RV1-A 28, RV1-B 31, RV1-C 47, RV1-D 31, all
-  CAUGHT.
-- [GATE: …] audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
+- **Mutations.** 389 `v214-*`, 3,607 targets, each once. **All 421 v2.14 mutations and retargets proved together on the final
+  tree, 421 of 421 CAUGHT by a failed check** (`recovery/v214/proved-FINAL.jsonl`), after each workstream's, fixer's and the
+  integration's own proofs. No sweep (Brad's rule of 20 Oct; the first batch, handoff decision 27, runs on the merged tree).
+- **The final gate**: every suite whole, every browser check but layout's carried D x8, standards 0 findings, coverage 27/27, the
+  money map current, the defect register (20 known, 55 mutations), the trace matrix, two fuzz seeds, `verify:file --selftest`,
+  and `validate:nightly` ([NIGHTLY]). audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
 
 ## Colour: one token, one job
 

@@ -1078,13 +1078,18 @@ for Put back.
   - round 2 on each fixer's finished board: the lead 5 of 5, RV2-A 48 of 48, RV2-B 37 of 37 (two survivors turned into catches by
     a fixture that now reaches the record branch), RV2-C 20 of 20, RV2-D 22 of 22.
 - No sweep (Brad's rule of 20 Oct).
-- [GATE:
-  - every v2.14 mutation and retarget proved together on the final board;
-  - every suite whole on the final tree (board, import and recon at 8 GB);
-  - the browser checks one by one;
-  - the guide's size in a booted board (W1 measured 71,123 of 72,000 after its +307; W2 +37);
-  - `npm run validate:nightly` on the final tree, with its fuzz seed;
-  - the sweep's first batch (handoff decision 27), and the second (Q5).]
+- **The final gate**, on the final tree (`7c260e5`, BUILD `v2.14 (8 Nov 2026)`; the commits after it touch only the notes):
+  - **every v2.14 mutation and retarget proved together: 421 of 421 CAUGHT**, each by a failed check (`proofs-FINAL.json`,
+    `proved-FINAL.jsonl`, about 45 minutes at two jobs). Six of the catches also threw after a check had failed, as in the joint
+    proof before. mcount: 3,607 targets, each once (389 of them `v214-*`);
+  - every suite whole (board, import and recon at 8 GB): ALL CHECKS PASSED, legacy-fsrc exactly as before, boot-same identical;
+    the guide within its budget (audit-import's size check);
+  - every browser check one by one: all pass but layout's carried D x8; standards 0 findings, nothing new;
+  - money coverage 27/27, the money map current (322 cells: 119 proven, 202 n/a, 1 open, v2.04's), the defect register (20 known,
+    guarded by 55 mutations), the trace matrix, the fuzz (seeds 848605813 and 258888164: nothing lost), `verify:file --selftest`;
+  - `npm run validate:nightly`: [NIGHTLY].
+- **Not run before the PR:** the sweep's first batch (handoff decision 27) and the second (Q5). They run on the merged tree, with
+  nothing else running, and their results go into v2.15's record.
 
 #### The items as logged
 
