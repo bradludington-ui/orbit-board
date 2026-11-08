@@ -113,8 +113,11 @@ New, each failing on the slot commit unless it says CONTROL (each run on `slot.h
 
 - audit-other "v2.15 W4 — the Spruills, the chart of accounts, Locks by appropriation and the five-year plan read the shared folder
   strictly (item 131, item 135)": 12 checks fail on the slot commit (Spruills reading, answered, opened again, its budget note; chart of
-  accounts; Locks reading and answered; the unreadable copy on the Spruills, the chart and Locks ×2; the five-year plan). CONTROLs: the
-  fixture; Initial Spares with no copy anywhere; the five-year plan with the copy readable.
+  accounts, read afresh for the export; Locks reading and answered; the unreadable copy on the Spruills, the chart and Locks ×2; the
+  five-year plan). CONTROLs: the fixture; Initial Spares with no copy anywhere; the five-year plan with the copy readable. Strengthened
+  after the first proof run, where `v215-w4-coa-lists-unread` and `v215-w4-coa-no-folder` SURVIVED (each a fixture that could not reach
+  its line): the unreadable board now also carries Full Fund as a consolidated payload (the shape where an unread appropriation would be
+  listed as delivered), and the folder is saved again between the panel's read and the export (only a fresh read gets $110M).
 - audit-other "v2.15 W4 — every dressed workbook draws its indents: an indent always has its horizontal alignment beside it (item 131)":
   4 fail (the board workbook, the Priority Drill, the five-year plan, the chart of accounts); 4 CONTROLs (each carries indents to judge).
 - audit-other "v2.15 W4 — the Priority Drill gives every dollar figure a column wide enough to print it (the handoff’s decision 20)":
@@ -146,7 +149,20 @@ Existing checks changed on purpose:
 `// v2.15 W4: retargeted` comment: `v204-113-chart-series-swapped` (the series is Funded), `v207-rv2-yearhas-copied-year`,
 `v207-rv2-yearhas-same-number`, `v207-rv3-copy-rule-other-office` (`ccarSameWork`), `v208-rv-si-follows-gone` (the option's new
 condition), `v213-136-other-tag-unread`, `v213-136-empty-other-mixed` (`cycPlanOf`). None retired. mcount: every target matches once
-(3,650 entries). Proofs: `recovery/v215/proofs-W4.json` → `proved-W4.jsonl` (see the final report for verdicts).
+(3,650 entries). Proofs: `recovery/v215/proofs-W4.json` → `proved-W4.jsonl`, **50 of 50 CAUGHT** by a failing check (on the finished
+board, `prove.py`, JOBS=1, under heavy.sh; `v213-136-other-tag-unread` caught by 11 failing checks, its block also throwing). The first
+run (`proved-W4-first.jsonl`) had 48 caught and the two survivors above; the strengthened check caught both, and every folder-block id
+was proved again against it.
+
+## Results on the finished board
+
+- Every suite whole (HEAP 8 GB, heavy.sh): boot-same identical; audit, audit-other, audit-board, audit-recon, audit-import,
+  audit-hostile, audit-inject, audit-ui ALL CHECKS PASSED; legacy-fsrc "every legacy Force setting computes exactly as before".
+  audit-other run whole again after the check was strengthened: ALL CHECKS PASSED.
+- `npm run check`: all checks passed. `npm run coverage:money`: 27/27. `npm run money-map` then `--check`: 322 cells, 119 proven,
+  202 n/a, 1 open (v2.04's), the report current. `npm run trace`: 15 surfaces, 77 cells, every link holds.
+- Browser: panels, menus pass; standards 0 findings, nothing new; layout only the carried D ×8.
+- mcount: 3,650 entries, every one matching once.
 
 ## For the integration
 
