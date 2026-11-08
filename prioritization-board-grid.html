@@ -3511,9 +3511,50 @@ let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
 var _pubsFileTs=PUB_FILE_TS;
 const PUB_ONLY=(PUB&&PUB.only)? String(PUB.only) : '';   // v1.92 (item 18): a one-appropriation file, remembered past the narrowing below
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
+// v2.15 W2 (item 142, R1): THE REQUIREMENT LIST FOLLOWS THE COPY THAT OPENS. DATA took the data pack of the plan browser storage
+// holds, and which copy of the plan opens was decided four thousand lines later: a newer board file opened over another board's
+// older copy in this browser showed the file's plan against storage's requirement list (60 of 115 requirements, wrong totals,
+// measured), and with that copy unsaved and no room to keep it aside the file did not open at all. So the plan's own rule is
+// applied here, before DATA is built, wherever DATA would take storage's pack and the file holds a newer plan with another pack:
+// storage's copy holding work no saved copy has is kept aside now (as keepAside keeps it, the raw text), and the file's own pack is
+// the list. Kept work already standing ('occupied') or no room: the file is held back, exactly as today, and the list is storage's,
+// with storage's plan. A saved copy of another board is left where it is (v2.09's third review). `follow` -- the file opens with
+// its own list; the plan restore (§13) then skips storage's plan and uses `own`/`ka` rather than keeping it aside a second time.
+// `forced` -- ⇢ Open the file anyway asked for it (bootTakeFile, which reopens). Reads raw text and function declarations only, and
+// never throws. A var: §13 reads it.
+var _bootPre=(function(){
+  const out={follow:false, own:false, ka:true, kept:false};
+  try{
+    if(_hasData(APPNS[APPN])) return out;
+    if(!(PUB && typeof PUB==='object' && (PUB.years || Array.isArray(PUB.order)))) return out;
+    const raw=localStorage.getItem(_AP.key); if(raw===null) return out;
+    let st=null; try{ st=JSON.parse(raw); }catch(e){ return out; }
+    if(!st || typeof st!=='object' || !_hasData(st.dataPack)) return out;
+    if(!((+PUB.ts||0) > (+st.ts||0))) return out;
+    if(JSON.stringify(st.dataPack)===JSON.stringify(PUB.dataPack||null)) return out;
+    out.diff=true;                          // the two copies carry different requirement lists (bootTakeFile reads it)
+    const base=baseGet();
+    out.own=ownUnsaved(st, PUB, base);
+    if(out.own){
+      // keepAside's rule, on the raw text: the same work already kept is kept; other work kept is 'occupied'; no room is false
+      let ka=false;
+      try{
+        const had=localStorage.getItem(_AP.key+'.kept');
+        if(had!==null){ const k=keptCopy(); ka=(k && k.raw===raw)? true : 'occupied'; }
+        else { localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:Date.now(), why:'file', by:String(PUB.by||''), ts:+PUB.ts||0, base:base})+'\n'+raw); ka=true; out.kept=true; }
+      }catch(e){ ka=false; }
+      out.ka=ka;
+      if(ka!==true) return out;             // the file is held back: storage's plan, and storage's list, stay on screen
+    }
+    out.follow=true;
+  }catch(e){ out.follow=false; }
+  return out;
+})();
 const DATA = (function(){
   const emb=APPNS[APPN];
   if(_hasData(emb)) return emb;
+  // v2.15 W2 (item 142): the file's plan opens -- its own requirement list (an empty board where its plan carries none)
+  if(_bootPre.follow){ const pk=PUB.dataPack; return _hasData(pk)? pk : {services:[], items:[], budget:[]}; }
   try{ const ms=JSON.parse(localStorage.getItem(_AP.key)||"null"); const pk=ms&&ms.dataPack; if(_hasData(pk)) return pk; }catch(e){}
   const slot=PUBS[_AP.slug]; if(slot&&slot.dataPack&&_hasData(slot.dataPack)) return slot.dataPack;
   return {services:[], items:[], budget:[]};
@@ -7827,7 +7868,10 @@ let _bootOwn=false;            // this browser held its own copy of this board w
 let _bootOwnRead=false;        // v2.09 second review: and that copy is what the board took up (applyStore did not refuse it)
 try{
   const st = JSON.parse(localStorage.getItem(_AP.key)||'null');
-  if(st){ _bootOwnRead=applyStore(st)!==false; _bootOwn=true; }
+  // v2.15 W2 (item 142): not when the file opens with its own requirement list (_bootPre.follow): storage's plan is another
+  // board's, checked against this list it would be refused or asked about, and it is not what opens -- kept aside already, or saved
+  if(st && _bootPre.follow) _bootOwn=true;
+  else if(st){ _bootOwnRead=applyStore(st)!==false; _bootOwn=true; }
 }catch(e){
   // NOT a silent catch. Reaching here means the board could not read its own saved state, and the
   // fallback is the empty default — which on screen is indistinguishable from every requirement
@@ -7870,8 +7914,10 @@ const _bootStray=_bootOwnRead && _bootBase.dirty===true && !(+_bootBase.file) &&
 if(PUB && (PUB.years||Array.isArray(PUB.order))){
   const fileTs=+(PUB.ts||0), ours=+(MS.ts||0);
   if(fileTs > ours || (_bootStray && fileTs < ours)){
-    const own=_bootOwn && ownUnsaved(MS, PUB, _bootBase), kept0=_keptMeta;
-    const ka=own? keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase) : true;
+    // v2.15 W2 (item 142): where the file opens with its own list, storage's copy was judged, and kept aside, before DATA was built
+    const pre=_bootPre.follow? _bootPre : null;
+    const own=pre? pre.own : (_bootOwn && ownUnsaved(MS, PUB, _bootBase)), kept0=pre? true : _keptMeta;   // with pre: a refused file leaves storage's work off screen, so its kept copy stays
+    const ka=pre? pre.ka : (own? keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase) : true);
     // v2.14 RV1-C (stray-hold-says-newer): `stray` -- held back by the stray rule, so the file is OLDER than the work on screen; the
     // messages below said "a newer copy" and "The saved file is newer" of it, the newer-file branch's words
     if(ka!==true) _bootHeld={by:PUB.by||'', ts:fileTs, occupied:ka==='occupied', stray:fileTs<ours};
@@ -7897,8 +7943,8 @@ if(PUB && (PUB.years||Array.isArray(PUB.order))){
       // other save next (the newer of the two opens): Brad's file opened the lead's draft and Save offered to write it over his,
       // and in a copy Ann's own file opened on PSM's work and ✉ Submit sent PSM's package under her name. With nothing kept aside,
       // storage holds a save and no unsaved work, so "clean" is true of it, and storage is left alone, as v2.08 left it.
-      let held=!_bootOwn || (!own && _bootOwnRead);   // nothing in storage, or only work already saved: nothing to make true first
-      if(own && _bootOwnRead){ try{ if(impHandKey(_AP.key)) throw new Error('held'); MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
+      let held=!_bootOwn || (!own && (_bootOwnRead || !!pre));   // nothing in storage, or only work already saved: nothing to make true first
+      if(own && (_bootOwnRead || pre)){ try{ if(impHandKey(_AP.key)) throw new Error('held'); MS.years[MS.cur]=S; localStorage.setItem(_AP.key, JSON.stringify(MS)); held=true; }catch(e){ held=false; } }
       LASTKNOWN=PUB_FILE_TS; _bootFile=true;
       if(held){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); }
     }
@@ -8793,6 +8839,17 @@ function bootTakeFile(){
   // v2.02 (E7, U24): not while a save is under way -- a file save that lands afterwards records the bytes IT wrote as the file's,
   // and the version opened here would then read as saved
   if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way, so nothing was replaced. Open it again once the save has landed.'); return; }
+  // v2.15 W2 (item 142): THE FILE CARRIES ANOTHER REQUIREMENT LIST than the one on this page (storage's, the plan held on screen):
+  // put on screen here, its plan would stand against storage's list. So storage's copy goes, as this question said it would, the
+  // file's plan is written in its place where there is room, and the page reopens on the file, with its own list.
+  if(_bootPre.diff){
+    if(impHandKey(_AP.key)){ impHandRefuse(_AP.key, 'Opening the saved file\u2019s version'); return; }
+    try{ localStorage.removeItem(_AP.key); }catch(e){}
+    try{ localStorage.setItem(_AP.key, JSON.stringify(PUB)); }catch(e){}
+    _baseDirty=false; baseSet({file:PUB_FILE_TS, dirty:false});
+    _persistLast=null; DIRTY=false;
+    reopenPage(); return;
+  }
   if(applyStore(PUB)===false) return;
   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
   pmoFollowWork();      // v2.09 second review: in a copy, the office the file's work was saved for (Brad: reopening adopts it)
@@ -11219,6 +11276,7 @@ async function _saveInPlaceFileRun(o){
     if(stop) try{ stop.after=localStorage.getItem(_AP.key+'.base'); }catch(e){}
     const gen=_saveGen, wrote=fileTsOf({appns:PUBS});
     const sideAt=_sideGen;          // v1.97 (item 76): every other list the file carries, as these bytes hold it
+    const apSnap=apSavedSnap();     // v2.15 W2 (item 143): every other appropriation these bytes hold exactly as browser storage holds it
     // v2.14 W1 (item 140 b): SAVE ASKS, NAMING THEM, BEFORE IT WRITES OVER WHAT THE FILE HOLDS AND THE BOARD ON SCREEN DOES NOT CARRY
     // -- an appropriation, a year, a requirement, a locked cycle, a list. The bytes about to be written are what is compared. A file
     // the Save window just emptied holds nothing to compare, and a program with no board holds no board.
@@ -11266,6 +11324,7 @@ async function _saveInPlaceFileRun(o){
     LASTKNOWN=wrote;
     _pubsFileTs=wrote;              // v2.14 RV1-B (cyc-record-stale-file-ts): PUBS is what these bytes hold for every other appropriation
     cycCarrySaved(wrote, sideAt);   // v2.14 RV1-B: a plan a cycle choice carried from browser storage is in the file now: recorded saved
+    apRecordSaved(apSnap, wrote);   // v2.15 W2 (item 143): and every other appropriation it wrote as storage held it, still held so
     const clean=(_saveGen===gen);   // nothing changed while it was writing
     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
     else baseSet({file:LASTKNOWN});
@@ -25788,6 +25847,48 @@ function cycCarryHas(k){
 // work behind the file's newer one and kept it aside -- and on a browser too full to keep it, did not open the file at all, so the
 // appropriation opened off the cycle it had just been saved on. Written straight to storage, as baseSet writes this board's record;
 // refused, the record is left as it was and that opening keeps the copy aside, which loses nothing.
+// v2.15 W2 (item 143): 💾 SAVE RECORDS EVERY APPROPRIATION IT WROTE, EXACTLY AS THIS BROWSER HELD IT. Only the board on screen was
+// recorded: after a full import landed and was saved, every other appropriation's record still named no file (the import's records,
+// C6), so the first change to Full Fund made from this page -- a ladder copied, a package issued -- and then Full Fund's own first
+// 💾 Save asked "⚠ HOLD ON — this browser cannot tell…" about a file holding exactly what this browser held (Q6; measured on v2.13
+// and v2.14 alike). apSavedSnap(), taken with the bytes: each other appropriation whose copy in them is, as text, the copy browser
+// storage holds. apRecordSaved(), after the write: each one whose stored copy is still that very text -- not changed while the save
+// was writing, by this page or another tab -- is recorded {file: this save, dirty:false}; a copy changed meanwhile keeps its own
+// record. Stray blank work never qualifies (pubsFor writes the file's copy over it, which is not storage's), nor a plan the
+// hand-over hold names. Each record goes through apBaseSaved, which cycCarrySaved shares.
+function apSavedSnap(){
+  const out=Object.create(null);
+  try{
+    Object.keys(_SLUGMAP).forEach(function(k){
+      try{
+        if(k===_AP.slug || !PUBS[k] || typeof PUBS[k]!=='object') return;
+        const raw=localStorage.getItem(_SLUGMAP[k].key);
+        if(raw!==null && JSON.stringify(PUBS[k])===raw) out[k]=raw;
+      }catch(e){}
+    });
+  }catch(e){}
+  return out;
+}
+function apRecordSaved(snap, wrote){
+  try{
+    Object.keys(snap||{}).forEach(function(k){
+      try{ if(localStorage.getItem(_SLUGMAP[k].key)===snap[k]) apBaseSaved(k, wrote); }catch(e){}
+    });
+  }catch(e){}
+}
+// ONE RECORD WRITE: appropriation k's stored copy is in the file this save wrote. Written straight to storage, as baseSet writes this
+// board's (W3 routes it, contract §1.3); refused, the record is left as it was, which loses nothing: that board's opening keeps the copy
+// aside, or opens the file's equal copy. False when it was not written (refused, or the plan is held by the hand-over hold).
+function apBaseSaved(k, wrote){
+  try{
+    if(impHandKey(_SLUGMAP[k].key)) return false;
+    const key=_SLUGMAP[k].key+'.base';
+    let b=null; try{ b=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ b=null; }
+    if(!b || typeof b!=='object' || Array.isArray(b)) b={};
+    localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false})));
+    return true;
+  }catch(e){ return false; }
+}
 function cycCarrySaved(wrote, at){
   // v2.14 RV2-B: what this page had made of the other appropriations before these bytes were built is in the file now
   try{ Object.keys(_pubsOwn).forEach(function(k){ if(!(_pubsOwn[k]>at)) delete _pubsOwn[k]; }); }catch(e){}
@@ -25796,13 +25897,10 @@ function cycCarrySaved(wrote, at){
     Object.keys(_cycCarry).forEach(function(k){
       const c=_cycCarry[k]; if(!c || c.gen>at) return;          // carried after the bytes were built: not in this file yet
       if(cycCarryHas(k) && !impHandKey(_SLUGMAP[k].key)){
-        const key=_SLUGMAP[k].key+'.base';
-        let b=null; try{ b=JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ b=null; }
-        if(!b || typeof b!=='object' || Array.isArray(b)) b={};
         // v2.14 RV2-B (also-noticed): the entry goes only once its record is written. It was deleted whatever the write did, so a
         // record storage refused left the plan read as held from then on (the second choice skipped it, ⬆ Issue was refused) and
-        // the next Save, with room again, never recorded it saved. Kept, the next Save tries again.
-        try{ localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote, dirty:false}))); }catch(e){ return; }
+        // the next Save, with room again, never recorded it saved. Kept, the next Save tries again. (v2.15 W2: apBaseSaved.)
+        if(!apBaseSaved(k, wrote)) return;
       }
       delete _cycCarry[k];
     });
