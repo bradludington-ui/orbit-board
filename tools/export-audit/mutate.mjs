@@ -6922,8 +6922,9 @@ const MUTATIONS = [
     find: "+'<Override PartName=\"/xl/charts/chart'+(k+1)+'.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.drawingml.chart+xml\"/>').join('')+'</Types>'))]; }",
     repl: ").join('')+'</Types>'))]; }" },
   { id: 'v204-113-chart-series-swapped', area: "fydpBookSheets", what: "the chart’s Allocated series reads the Requirement column",
-    find: "{name:'Allocated', col:3, row0:c0+1,",
-    repl: "{name:'Allocated', col:2, row0:c0+1," },
+    // v2.15 W4: retargeted -- the series is named Funded since v2.15 (the handoff's decision 18 a); same defect
+    find: "{name:'Funded', col:3, row0:c0+1,",
+    repl: "{name:'Funded', col:2, row0:c0+1," },
   { id: 'v204-113-titles-wrong-sheet', area: "buildXlsx", what: "the print titles are filed against the next sheet",
     find: "<definedName name=\"_xlnm.Print_Titles\" localSheetId=\"'+i+'\">",
     repl: "<definedName name=\"_xlnm.Print_Titles\" localSheetId=\"'+(i+1)+'\">" },
@@ -7399,9 +7400,11 @@ const MUTATIONS = [
   { id: 'v207-rv2-idle-ready-stays-open', area: "naFromAdd", what: "control: with nothing typed in New requirement, a ready one brought in from another year is added and the box stays open on an empty form",
     find: "  else arHide();", repl: "  else arTab('new');" },
   { id: 'v207-rv2-yearhas-copied-year', area: "yearHas", what: "Roll forward into a year started as a copy of this one copies a box-made requirement a second time, though the year already holds it under the same id",
-    find: "      || (x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title\n          && grpOf(x, T)===grpOf(it) && ccarOf(x, T)===ccarOf(it))", repl: "" },
+    // v2.15 W4: retargeted -- the CCaR comparison reads ccarSameWork since v2.15 (item 146); same defect
+    find: "      || (x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title\n          && grpOf(x, T)===grpOf(it) && ccarSameWork(ccarOf(x, T), ccarOf(it)))", repl: "" },
   { id: 'v207-rv2-yearhas-same-number', area: "yearHas", what: "control: Roll forward leaves an added requirement behind as already there because the target year has another requirement of the same number",
-    find: "(x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title\n          && grpOf(x, T)===grpOf(it) && ccarOf(x, T)===ccarOf(it))", repl: "(x.id===id && !x.prior && !it.prior)" },
+    // v2.15 W4: retargeted (ccarSameWork, item 146); same defect
+    find: "(x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title\n          && grpOf(x, T)===grpOf(it) && ccarSameWork(ccarOf(x, T), ccarOf(it)))", repl: "(x.id===id && !x.prior && !it.prior)" },
   { id: 'v207-rv2-yearhas-other-copy', area: "yearHas", what: "two box-made requirements on one CCaR record and one plan event: Roll forward copies the first and reports the second already there",
     find: "    const other=!!(x.prior && +x.prior.fy===+MS.cur && String(x.prior.id)!==String(id));", repl: "    const other=false;" },
   { id: 'v207-rv2-nafromhere-copied-year', area: "naFromHere", what: "From another year offers a box-made requirement to the year started as a copy of its own year, which already holds it under the same id",
@@ -7421,7 +7424,8 @@ const MUTATIONS = [
   { id: 'v207-rv2-gate-usable-replaced', area: "reqDraftOf", what: "control: a proposal paid only from mandatory, with a usable discretionary budget, is held back because the retired mandatory choice beside it is taken in its place",
     find: "      if(km && (!k || (!okN(s, A[k]) && okN(s, A[km])))) k=km;", repl: "      if(km) k=km;" },
   { id: 'v207-rv3-copy-rule-other-office', area: "yearHas", what: "after a year is started as a copy, PSM's requirement and AV's in the other year that drew the same number and share a plan event are taken for one: Roll forward says PSM's is already there",
-    find: "          && grpOf(x, T)===grpOf(it) && ccarOf(x, T)===ccarOf(it))", repl: ")" },
+    // v2.15 W4: retargeted (ccarSameWork, item 146); same defect
+    find: "          && grpOf(x, T)===grpOf(it) && ccarSameWork(ccarOf(x, T), ccarOf(it)))", repl: ")" },
   { id: 'v207-rv3-picker-copy-rule-other-office', area: "naFromHere", what: "after a year is started as a copy, From another year greys out PSM's requirement because AV's of the same number and plan event is on screen",
     find: "       && grpOf(x)===grpOf(src, MS.years[y]) && ccarOf(x)===ccarOf(src, MS.years[y])) return true;", repl: ") return true;" },
   // ==== end v2.07 item 121 -- the second review ====
@@ -7558,7 +7562,8 @@ const MUTATIONS = [
   { id: 'v208-rv-step-snapshot', area: "openEdit", what: "after next ↓ the box controller compares the next record's fields with the first's",
     find: "  if(was) try{ DLG.stack.forEach(function(r){ if(r.bg===bg) r.snap=dlgSnap(bg); }); }catch(e){}", repl: "" },
   { id: 'v208-rv-si-follows-gone', area: "erDraw", what: "with no code stored the SI picker reads none, and a move in the same Save stores the old derived code",
-    find: "      +(raw===undefined && cur==='\\u0004'? erOpt('\\u0004', '— follows the PMO and prime rules —', cur) : '')", repl: "" },
+    // v2.15 W4: retargeted -- the option is offered whenever the stored value is known (item 146); same defect, taken away
+    find: "      +(raw===undefined? erOpt('\\u0004', '— follows the PMO and prime rules —', cur) : '')", repl: "" },
   { id: 'v208-rv-f2-any-marked', area: "inspHeld", what: "a figure Chromium committed as a redraw removed it is put back with its old typing over the stored figure",
     find: "function(i){ return !!i.__pend && document.activeElement===i; })", repl: "function(i){ return !!i.__pend; })" },
   { id: 'v208-rv-classify-arrow', area: "recFields", what: "arrowing through Classify's office cell moves the requirement on every key, last in its own office's ranking",
@@ -9842,7 +9847,8 @@ const MUTATIONS = [
   { id: 'v213-136-mixed-blind', area: "cycAll", what: "appropriations on different cycles read as one",
     find: "mixed:tags.length>1, tag:(tags.length===1)? tags[0] : null, unread:unread};", repl: "mixed:false, tag:tags[0]||'', unread:unread};" },
   { id: 'v213-136-other-tag-unread', area: "cycOtherOf", what: "another appropriation's cycle is read as untagged",
-    find: "      r.tag=(typeof st.cycle==='string')? st.cycle : '';\n      r.pos=cycPosKeysOf(st.ppbe);", repl: "      r.tag='';\n      r.pos=cycPosKeysOf(st.ppbe);" },
+    // v2.15 W4: retargeted -- cycOtherOf reads a plan through cycPlanOf since v2.15 (item 131); same defect
+    find: "  r.tag=(typeof st.cycle==='string')? st.cycle : '';\n  r.pos=cycPosKeysOf(st.ppbe);", repl: "  r.tag='';\n  r.pos=cycPosKeysOf(st.ppbe);" },
   { id: 'v213-136-memo-stale', area: "fileMark", what: "another appropriation written here (an import, a package) is still read with the cycle it had",
     find: "  if(kind==='side') _cycAllMemo=null;      // v2.13 (item 136): another appropriation written here is read again (cycOtherOf)", repl: "" },
   { id: 'v213-136-no-next-cycle', area: "cycAllChoices", what: "the cycle after the latest is not offered, so BES28 cannot be chosen before its controls are entered",
@@ -9892,7 +9898,8 @@ const MUTATIONS = [
   { id: 'v213-136-empty-board-mixed', area: "cycAll", what: "an empty board on screen, untagged, reads Mixed on its own board and on no other",
     find: "counts:!!tag || cycHasReqs(MS), tag:tag", repl: "counts:true, tag:tag" },
   { id: 'v213-136-empty-other-mixed', area: "cycOtherOf", what: "another appropriation's empty, untagged store makes every board read Mixed",
-    find: "      r.counts=r.held && (!!r.tag || cycHasReqs(st));", repl: "      r.counts=r.held;" },
+    // v2.15 W4: retargeted (cycPlanOf, item 131); same defect
+    find: "  r.counts=r.held && (!!r.tag || cycHasReqs(st));", repl: "  r.counts=r.held;" },
   { id: 'v213-136-empty-board-behind', area: "cycOverview", what: "an empty board opened untagged is told it is behind the others and offered a retag",
     find: "if(k===own){ store=CYCDB; tag=String(MS.cycle||''); held=!!tag || cycHasReqs(MS); }", repl: "if(k===own){ store=CYCDB; tag=String(MS.cycle||''); held=true; }" },
   { id: 'v213-136-lock-tags-copy', area: "cycLock", what: "a lock taken in an untagged PMO copy tags it, moving its budget off what was published",
