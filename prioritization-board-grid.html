@@ -3542,8 +3542,8 @@ var _bootPre=(function(){
       // keepAside's rule, on the raw text: the same work already kept is kept; other work kept is 'occupied'; no room is false
       let ka=false;
       try{
-        const had=localStorage.getItem(_AP.key+'.kept');
-        if(had!==null){ const k=keptCopy(); ka=(k && k.raw===raw)? true : 'occupied'; }
+        const kh=localStorage.getItem(_AP.key+'.kept');
+        if(kh!==null){ const k=keptCopy(); ka=(k && k.raw===raw)? true : 'occupied'; }
         else { localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:Date.now(), why:'file', by:String(PUB.by||''), ts:+PUB.ts||0, base:base})+'\n'+raw); ka=true; out.kept=true; }
       }catch(e){ ka=false; }
       out.ka=ka;
