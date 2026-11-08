@@ -3339,7 +3339,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   // and prints exactly what the whole board prints for Full Fund, opened on it in the same browser
   const FF = boot({ ls: v14Ls(B.ev), html: O.ev('buildSavedHtml()'), appn: 'FULL FUND' });
   chk(name, 'open', 'every figure is the one the whole board prints for Full Fund', v14Figures(W.ev), v14Figures(FF.ev));
-  W.ev(`S.titles.F='Renamed by the Full Fund lead'; save(); blCyc='BES'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+  W.ev(`S.titles.F='Renamed by the Full Fund lead'; save(); blCyc='BES'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); 'ok'`);
   // the lead also imports a newer CCaR pull for Full Fund: the file's execution data is newer than the
   // board's, so taking it back must merge it -- Full Fund's replaced, every other appropriation's kept
   W.ev(`EXDB.all.ff={fy:2026, rows:[['JSF7000', 55555]]}; EXDB.ts=Date.now()+5000; persistExdb(); save(); 'ok'`);
@@ -8593,7 +8593,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const ffFile = cyc => { const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
       Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; ${cyc ? 'MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));' : ''}
-        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save();" : ''} return 'ok'; })()`);
+        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ " + w1LockAsBefore() + " save();" : ''} return 'ok'; })()`);
       return Fx.ev('buildSavedHtml()'); };
     const O = boot({ html: ffFile(false), appn: 'O&M', ls: { prio27destdb: J(db) } });
     chk(name, '(9) a key brought back for another appropriation’s plan', 'the destinations panel’s own Used by cell names Full Fund, and the list reset is refused naming it: [Used by cell, the reset’s first line, it names Bravo Depot — Full Fund (2), still on the list]',

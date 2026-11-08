@@ -1069,6 +1069,10 @@ const ER_STATE = () => {
     await p.goto('file://' + at);
     await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
     await p.waitForTimeout(250);
+    // v2.15 W1 (item 137): with a warning unread beside the bar, its widest state -- the opening's own offer where it is kept unread,
+    // else one kept here
+    await p.evaluate(() => { const k = document.getElementById('statKeep'); if (k && k.hidden) { statKeep('⚠ A warning kept unread for this check.'); render(); } });
+    await p.waitForTimeout(100);
     return { p, ctx, errs };
   };
   const fails = [], wraps = []; let read = 0;

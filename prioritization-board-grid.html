@@ -34185,7 +34185,8 @@ function fitTop(){
     [hdr, tbar].forEach(function(el){ if(el) el.classList.remove('tight1','tight2','tight3','cyc1','cyc2'); });
     const say=function(short){ if(!f) return; const t=f.getAttribute(short? 'data-s' : 'data-l'); if(t && f.textContent!==t) f.textContent=t; };
     say(false);
-    const over=function(el){ return el.scrollWidth>el.clientWidth+1; }, fig=function(){ return !!(f && !f.hidden); };
+    // strictly wider: a bar 1px over its room scrolls the page 1px sideways (layout-fits J, Brief at 925px)
+    const over=function(el){ return el.scrollWidth>el.clientWidth; }, fig=function(){ return !!(f && !f.hidden); };
     if(hdr && hdr.clientWidth){
       if(over(hdr)) hdr.classList.add('tight1');
       if(over(hdr) && fig()){ hdr.classList.add('cyc1'); say(true); }

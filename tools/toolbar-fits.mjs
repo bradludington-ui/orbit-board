@@ -50,7 +50,10 @@ const measure=()=>{
      const right=['#helpBtn','#m_view','#m_pmo','#saveBtn','#uiNav_save','#uiNav_rep','#uiNav_imp','#uiNav_data','#uiNav_setup'].map(s=>{ const c=box(s); return c? Math.round(c.right) : -1; });
      // every control: on screen, not clipped by an ancestor that clips, and the element under its own centre
      const ctl=[...document.querySelectorAll('#topStack button, #topStack input, #topStack select, #uiPage button, #uiPage input, #uiPage select, #uiSide button')]
-       .filter(e=>e.type!=='file' && !e.closest('.mdd, .uiPop') && e.getClientRects().length && getComputedStyle(e).visibility!=='hidden');
+       .filter(e=>e.type!=='file' && !e.closest('.mdd, .uiPop') && e.getClientRects().length && getComputedStyle(e).visibility!=='hidden')
+       // v2.15 W1 (item 137): not the buttons inside a message on the status line -- it is one line, cut off by design, and the
+       // Message button beside it opens it whole (the tagged pass meets the opening's offer; the template never has one)
+       .filter(e=>!e.closest('#statWrap:not(.big)'));
      const unusable=[];
      const side=q('#uiSide'), sideR=(side && getComputedStyle(side).display!=='none')? side.getBoundingClientRect().right : 0;
      ctl.forEach(e=>{
