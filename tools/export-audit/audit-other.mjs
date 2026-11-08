@@ -3201,7 +3201,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'end to end', 'Export writes the five sheets in order, and the bytes hold the box’s own Summary and USAF figures, whole dollars',
       e2e, J({ names: ['Summary', 'USAF', 'STOVL', 'USMC CV', 'USN CV'], sum: true, usaf: true, whole: true }));
     // ---- a locked cycle on screen: it only reads, so it works, and the file says which lock --------------------------------
-    E(B.ev, `blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+    E(B.ev, `blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} cycView('PB|'+MS.cur); 'ok'`);
     chk(name, 'a locked view', 'on PB27 locked the model is the working plan’s, read from the same stores, International figures and all', canon(parse(pageModel(B.ev, { ace: '2025ACE', cyc: 'BES|2028' }))), canon(W1));
     chk(name, 'a locked view', 'and the file is marked with the lock on screen', (parse(exp(B.ev)) || [])[2], 'ORBIT FYDP Disconnects — 2025 ACE vs BES28 — FY27–FY32 [O&M PB27 LOCKED].xlsx');
     E(B.ev, `cycLeave(true); 'ok'`);
@@ -6218,6 +6218,20 @@ await (async () => {
 // ==== end v2.14 review round 2 fixes ====
 
 // ==== v2.15 W1 (items 137, 138, 139: the context bar, a package under the receiving cycle, retag every locked appropriation) ====
+// v2.15 W1 (item 139): LOCK AS A BUILD BEFORE v2.15 LOCKED. Lock now refuses a plan tagged with another cycle (it would keep that cycle's
+// controls under the lock's name). Older fixtures here lock a cycle on a plan tagged with another -- a lock a file still carries -- so this
+// takes it the way v2.14 did: under the lock's key for the moment, with the position of the cycle the plan is on, then the tag put back
+// and the lock's record set as v2.14 wrote it (pos: the plan's tag and its position; from: the plan's tag). Where the plan is untagged or
+// on the lock's own cycle it is cycLock() itself. A function declaration, so every block above the slot can call it (it is hoisted).
+function w1LockAsBefore() {
+  return `(function(){ var K=blKey(blCyc, blYr||MS.cur), t0=(typeof MS.cycle==='string')? MS.cycle : '';
+    if(!t0 || t0===K){ cycLock(); return; }
+    MS.ppbe=MS.ppbe||{}; var P0=MS.ppbe[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined, c0=blGet(K);
+    if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K];
+    MS.cycle=K; cycLock(); MS.cycle=t0;
+    if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+    var c=blGet(K); baLiveAll(); if(c && c!==c0){ c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); save(); } })();`;
+}
 // ==== end v2.15 W1 ====
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
 // ==== end v2.15 W2 ====

@@ -2401,7 +2401,7 @@ const v185Board = (html, appn, sc, trim, trim28, lock, after) => {
   const B = boot({ html, appn }); seed(B.ev, sc); asBooted(B.ev, sc);
   B.ev(`(function(){ applyState(S); Object.assign(S.alloc, ${JSON.stringify(trim)}); MS.years[MS.cur]=S; MS.cycle='BES|2028';
     const y2=JSON.parse(JSON.stringify(S)); y2.alloc=Object.assign({}, y2.alloc, ${JSON.stringify(trim28)}); MS.years[MS.cur+1]=y2;
-    save(); ${lock ? "blCyc='PB'; blYr=MS.cur; cycLock();" : ''}
+    save(); ${lock ? "blCyc='PB'; blYr=MS.cur; " + w1LockAsBefore() : ''}   /* v2.15 W1 (item 139): a lock as v2.14 took it */
     Object.assign(S.alloc, ${JSON.stringify(after)}); save(); return 'ok'; })()`);
   return B;
 };
@@ -2709,7 +2709,7 @@ const v186Legacy = (html, appn, sc, list, d27, d28, lock, after27) => {
   B.ev(`(function(){ _destReady=false; applyState(S); MS.years[MS.cur]=S;
     MS.flow={ents:${JSON.stringify(list)}}; S.dest=${JSON.stringify(d27)};
     const y2=JSON.parse(JSON.stringify(S)); y2.dest=${JSON.stringify(d28)}; MS.years[MS.cur+1]=y2;
-    MS.cycle='BES|2028'; save(); ${lock ? "blCyc='PB'; blYr=MS.cur; cycLock();" : ''}
+    MS.cycle='BES|2028'; save(); ${lock ? "blCyc='PB'; blYr=MS.cur; " + w1LockAsBefore() : ''}   /* v2.15 W1 (item 139): a lock as v2.14 took it */
     Object.assign(S.dest, ${JSON.stringify(after27 || {})}); save(); return 'ok'; })()`);
   return B;
 };
@@ -8304,7 +8304,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const X = make();
   X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om'];
     S.dest={R1:{to:'U40-A',end:'U40-B'}, R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-    persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
   const html = X.ev('buildSavedHtml()');
   const PUBRE = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/;
   const SHEETS = J({ 'Alpha Depot': ['Req R1 900'], 'ALPHA DEPOT 2': ['Req R2 300'] });
@@ -8593,7 +8593,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const ffFile = cyc => { const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
       Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; ${cyc ? 'MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));' : ''}
-        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; cycLock(); save();" : ''} return 'ok'; })()`);
+        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save();" : ''} return 'ok'; })()`);
       return Fx.ev('buildSavedHtml()'); };
     const O = boot({ html: ffFile(false), appn: 'O&M', ls: { prio27destdb: J(db) } });
     chk(name, '(9) a key brought back for another appropriation’s plan', 'the destinations panel’s own Used by cell names Full Fund, and the list reset is refused naming it: [Used by cell, the reset’s first line, it names Bravo Depot — Full Fund (2), still on the list]',
@@ -8618,7 +8618,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
     Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-G', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
       S.dest={R2:{to:'U40-G',end:'U40-G'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
     const hom = Fo.ev('buildSavedHtml()');
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
     Ff.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
@@ -8640,7 +8640,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
     Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
       S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
     const hom = Fo.ev('buildSavedHtml()');
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
     Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
@@ -8732,7 +8732,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const om = function(list){ const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(list)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`);
       return Fo.ev('buildSavedHtml()'); };
     const hom = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }]), hom2 = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-E', n: 'Echo Yard', kind: 'gov', t: '' }]);
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
@@ -8767,7 +8767,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
       [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
       var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
@@ -8804,7 +8804,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = n => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-Z', n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     // both files made first: the reader's list, kept at the first opening, stays the newer (it changed after the owner's rename)
     const h1 = file('Alpha Depot'), h2 = file('Zulu Yard');
@@ -8827,7 +8827,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
       [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
       var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
@@ -8858,7 +8858,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
     const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -8897,7 +8897,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
     const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
     const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
@@ -8923,7 +8923,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
     const g1 = file([E('U40-Y', 'New destination'), E('U40-K', 'Kilo Depot')]), g2 = file([E('U40-Y', 'Kilo Depot'), E('U40-K', 'Alpha Depot')]);
     const G1 = boot({ html: g1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -8947,7 +8947,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
       Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
         S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
-        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; /* v2.15 W1 (item 139): a lock as v2.14 took it (w1LockAsBefore) */ ${w1LockAsBefore()} save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
     const db = { ts: Date.now() + 60000, ents: [E('U40-P', 'Kilo Depot'), E('U40-Q', 'KILO DEPOT'), E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
     const q1 = file('U40-K', 'Kilo Depot'), q2 = file('U40-K', 'Alpha Depot');
     const Q1 = boot({ html: q1, appn: 'O&M', ls: { prio27destdb: J(db) } });
@@ -20052,6 +20052,20 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// v2.15 W1 (item 139): LOCK AS A BUILD BEFORE v2.15 LOCKED. Lock now refuses a plan tagged with another cycle (it would keep that cycle's
+// controls under the lock's name). Older fixtures here lock a cycle on a plan tagged with another -- a lock a file still carries -- so this
+// takes it the way v2.14 did: under the lock's key for the moment, with the position of the cycle the plan is on, then the tag put back
+// and the lock's record set as v2.14 wrote it (pos: the plan's tag and its position; from: the plan's tag). Where the plan is untagged or
+// on the lock's own cycle it is cycLock() itself. A function declaration, so every block above the slot can call it (it is hoisted).
+function w1LockAsBefore() {
+  return `(function(){ var K=blKey(blCyc, blYr||MS.cur), t0=(typeof MS.cycle==='string')? MS.cycle : '';
+    if(!t0 || t0===K){ cycLock(); return; }
+    MS.ppbe=MS.ppbe||{}; var P0=MS.ppbe[t0], had=Object.prototype.hasOwnProperty.call(MS.ppbe, K)? MS.ppbe[K] : undefined, c0=blGet(K);
+    if(P0!==undefined) MS.ppbe[K]=P0; else delete MS.ppbe[K];
+    MS.cycle=K; cycLock(); MS.cycle=t0;
+    if(had===undefined) delete MS.ppbe[K]; else MS.ppbe[K]=had;
+    var c=blGet(K); baLiveAll(); if(c && c!==c0){ c.pos={key:t0, P:P0? JSON.parse(JSON.stringify(ppNorm(P0))) : null}; c.from=t0; persistCyc(); save(); } })();`;
+}
 // ==== end v2.15 W1 ====
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
 // ==== end v2.15 W2 ====
