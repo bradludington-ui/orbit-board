@@ -2161,7 +2161,7 @@ The file is its own database.
   writes goes through: 💾 Save, the PMO copy, the work kept aside, and the board as it was before a full
   import that could not be put back.
 - `saveInPlace()` writes that back over the file itself via the File System Access API
-  (`showSaveFilePicker`), caching the handle in IndexedDB (`prio-fh`), with a collision guard that asks
+  (`showSaveFilePicker`), caching the handle in IndexedDB (`prio-fh`), under this page's own address (`'page|'+pageAddr()`, v2.14; never `FNAME`, which only older versions read), the first Save of a file in each browser going through the Open window (`showOpenFilePicker`) so the file is read and checked before write access is asked, and asking, naming them, before it writes over anything the file holds that the board on screen does not carry (`saveDrops`); with a collision guard that asks
   whenever the file on disk is any save other than the one the work on screen came from (`LASTKNOWN`,
   v1.89 -- see that section: it compared against the file's own time, and a reopen made that wrong).
   A file it cannot read, or that is not a board, is never written over. Since v1.95: one save at a time
@@ -2185,7 +2185,7 @@ board, like `spmtTheme`, never written into the file (`tools/layout-fits.mjs` G 
 every side list and the stopped-import hold are sealed with the copy's publish stamp (`prio27execdb-pmo<ts>`, `prio27acedb-`,
 `prio27buddb-`, `prio27reprog-`, `prio27sideOpen-`, `prio27impMixed-pmo<ts>`), as its plan, cycles and destinations already
 were; the copy's own file handle is kept in `prio-fh` under `pmo-copy|<publish stamp>|<office>`, never the board's `FNAME`
-entry; and the copy's plan carries `MS.pmoFor`, the office its file was saved for (the board drops it on every load).
+entry; and the copy's plan carries `MS.pmoFor`, the office its file was saved for (the board drops it on every load). Since v2.14: `prio27impFile` (with `SIDE_SFX`; the file route's note, standing until the import's new file has been opened in this browser or the hold is lifted); `prio-fh` keeps each board file's handle under `'page|'+` the page's address and an import's under `'import|'+n` until its file opens; `prio27roomProbe` is written and removed at once by the room check; and `<key>.base` may carry `blank:true` (work typed on a page whose board came from no saved copy: the stray rule).
 
 ## Hand-edit points
 
@@ -4970,6 +4970,201 @@ unasked, deltas are the cycle's controls against what the requirements hold, and
   layout-fits S, panels and standards open `#m_cyc`; `tools/cyc-seed.mjs`. 71 `v213-*` mutations, 6 older ones retargeted (v200-ui3-lastedit ×2, v205-116 ×2, v212-w3-lock-tag ×2).
 - **A test fixture's time must be able to lose.** Every fixture stamp was in the past, so `st.ts=now` passed for "newer than both
   copies, whatever their clocks said"; the check that bites stamps the file an hour ahead.
+
+### v2.14 (items 140, 141, 129, 124; ledger U35, U63, U64): Save writes only to its own file, a board too big for browser storage goes into a new file, and a full browser loses nothing on screen
+
+Brad, 3 Nov 2026: *"Let's push all of these"*, then *"Three versions, data loss first"* and *"Accept all recommendations"*, then
+*"Go"*: build straight through, taking each recommended answer and saying which (contract §12). v2.14 is the data-loss version.
+
+How it was built:
+- **The contract.** Four builders worked to one contract (`recovery/v214/contract.md`; its map, `map.md`, was made on `c863dc2`):
+  W1 Save's target and the opening's record, W2 the file route, W3 browser storage refused or full, W4 the held findings.
+- **The slot commit** (`ea412ca`) wrote the seams two builders shared, inert.
+- **Integration.** The lead merged the four, fixed what the merge showed, and wrote INT-1 to INT-11.
+- **Review round 1.** It had two passes by area, each finding re-run by two skeptics, plus two critics. Its fixes were made by
+  RV1-A to RV1-D, each fix checked again by an independent agent and then finished.
+- **Review round 2** (on `bd5ff6d`, the round-1 fixes merged): eight areas, the seams between the fixes and Brad's main path on a
+  board saved by v2.12 among them, each finding re-run by two skeptics; 23 kept. Fixed by RV2-A to RV2-D, each checked again by an
+  independent agent and finished, and by the lead (`a2971ba`, `99f754a`, `9058ca2`, `ac02247`, `88d6ea6`).
+
+`NEXT-VERSION.md` › Shipped › v2.14 has every decision. `recovery/v214/notes-*.md` holds each builder's, integrator's and fixer's
+own record.
+
+**Save writes only to its own file (item 140 a).**
+- **The defect.** Every ORBIT file a browser opened shared one remembered save file, `prio-fh` under `FNAME`, so 💾 Save in one
+  ORBIT file wrote to whichever file the browser had last saved. Measured on v2.13 with a v2.12 board: a tab whose full import had
+  been refused wrote O&M alone over the old board file, asking nothing (8,781,026 → 3,878,540 characters).
+- **The handle is the page's own.** It is kept under `'page|'+pageAddr()` (`fhPageKey`, `_fhPut`, `_fhGet`). `FNAME` is touched
+  only by `fhLegacyRelease`, which deletes it when it names the file just written (D5). `npm run check` "the save-file handle
+  store" holds that.
+- **The first Save of a file in each browser goes through the Open window** (Brad, Q1). Picking a file there changes nothing.
+  ORBIT reads the file and runs every check, then asks for write access (`queryPermission`, then `requestPermission`). By hand, in
+  headed Chromium 153 (`w1-headed-open-window.json`), the browser then asked once ("Save changes to <file>?").
+  - The Save window empties a chosen file the moment it is chosen (8,793,759 → 0 bytes, measured), so nothing chosen there can be
+    checked. A file is remembered only after every check has passed.
+- **Two new actions.** "Save as a new file…" (`fhSaveNew`) is held for the page only (`_fhMem`, C25). "Choose another file…" is
+  `fhRepick`.
+
+**Save asks before writing over what the file holds and the board on screen does not carry (item 140 b).**
+- `saveDrops` reads the file's pubState against the outgoing bytes: appropriations, years, the requirements in each year (C24),
+  locked cycles, cost estimates, execution data, the BAE list, the reprogramming log and the destination list.
+- `saveDropsAsk` asks a HOLD ON naming them. Cancel writes nothing and puts the pen back.
+- An ordinary Save asks nothing. A deletion made on purpose asks once (D3).
+- A program with no board in it is written in place and claimed (item 141 D); one with a board baked in is asked about.
+
+**A Save that stops before it writes leaves storage as it was (RV1-C).**
+- `saveStopMark`/`saveStopBack` run at Cancel, `'later'`, `'denied'` and the catch. They take the claim's pen line out, and put the
+  stamp, history, marks and record back.
+- They write storage back only while this page wrote it last (`mine`: the stored plan carries this page's save stamp). The
+  browser's question has no time limit, and the first cut wrote over another tab's save made while it was open.
+
+**The opening's record, and the stray rule (C17).**
+- **No borrowed save.** A page whose board came from no saved copy takes no other file's save as its own (case 3: `LASTKNOWN=0`).
+  It marks its work blank (`_pageBlank`, `pageBlankNow()`).
+- **One record writer.** `baseMarkDirty()` (item 129) reads the record fresh and writes `blank` true or false on every write
+  (`baseSet` merges, so a mark left out survives).
+- **The stray rule.** A board file opened over a newer plan in storage keeps that plan aside and opens its own only when two things
+  hold: the record says blank work (`dirty`, no file, `blank:true`), and storage's plan carries no data pack DATA would take
+  (`_bootOwnPack`).
+  - Without the first guard, an import's records (`{file:0, folder:{}, dirty:true}`, never blank) made a landed import reopen as
+    the old plan, and its next Save wrote old O&M with the new Full Fund (INT-7, INT-8).
+  - Without the second, two boards' requirement lists mixed (INT-9).
+- **Another appropriation** follows the same rule (RV1-C): `strayOther` in `pubsFor`, `fydpStoreLocal` and Save diagnostics, and
+  `strayHeld`/`strayOr` for readers that take storage first.
+
+**A full import too big for browser storage goes into a new file (item 141).** The storage route stays whenever it fits. When
+`lsAll` is refused and puts everything back (`W.full`, `done.back`, `done.at>=0`), `#impFilePanel` offers **Write the imported
+board into a new file…**.
+1. **Step 1.** It names work no saved file has (`impUnsavedList`) and saves it as it was (`fullImportPreHtml(held, {named})`,
+   storage's copy whatever its clock). Write waits until `impFileWasMiss` finds every named copy in the bytes, or the step is
+   declined (D7).
+2. **The write.** The picker opens inside the click (C12: not a board save, so not through `saveSerial`). The file is written and
+   read back whole.
+3. **The note.** At once (C20), one `lsAll` writes the note (`IMP_FILE_KEY` = `prio27impFile`+`SIDE_SFX`: keys, their hashes at
+   the click, which keys are plans) and the stamped writer key.
+4. **The clear.** Only then are the import's own keys cleared, and the file opens.
+- **The re-check.** `impFileWriteTo` checks storage and this page's counters again after its last wait (C29).
+- **Failures.** Any failure after the pick keeps everything in memory and offers both copies as downloads. `impFileHolds()` (S11)
+  makes leaving ask until each held copy is downloaded, also after the box closes (`_impFileLast`, `a2971ba`).
+- **`_impOpen`.** In the import's own file it removes each noted key whose value still hashes as written, with its `.base`. A plan
+  that changed is kept aside in its own kept slot (RV1-A: left in place, as C22 had decided, it was written into the import by the
+  first Save). A list that changed is left, and Save asks before writing it in (`impLeftAsk`). The handle `import|n` is adopted
+  only at the address that wrote it.
+- **The hand-over hold** (S2: `impHandKey`/`impHandRefuse` in `lsSet`, `persist` and the boot's keep-aside). While the note
+  stands, nothing puts back a list the import cleared, and a held change is on screen only.
+  - A page that has seen the note stays held for its life (C21). It latches at opening, at a write, on another tab's `storage`
+    event, and in the page that wrote the note (RV1-A).
+  - Lifting the hold by hand removes this browser's copies unchanged since the import was written (C22).
+  - A page held for its own plan writes no record of it (`baseSet`; RV1-A, against D17/C19, because it lost another tab's work).
+- **E1 and E2 (C18).** E1: a whole board into an empty browser on an empty board takes the full import. E2: anything else merges
+  as v2.13 did, in one `lsAll`, with every appropriation's locked cycles and the BAE list (RV1-C; a BAE list held here is kept,
+  and said).
+- **After any landing.** Each imported plan is recorded `{file:0, folder:{}, dirty:true}` (C6). With less than 64,000 characters
+  free the opening says so and trims nothing (D10). Every ordinary save writes the slot's bytes, with `impFile` only when asked
+  (W2 check 9).
+
+**Browser storage refused or full (item 141 F, G; item 140 c).**
+- **Counted and kept.** `persist()` stays a direct write (D15) and counts its refusal. While `memOnlyNow()` holds (the plan or a
+  list refused after opening):
+  - leaving asks (`memOnlyLeave`, also while `impFileHolds()`);
+  - nothing reopens the page: every deliberate reopen is `reopenPage()` (S3; `npm run check` "reopen"), and `memOnlyBlock` (S4)
+    refuses the three import doors, `switchAppn` and `cycGoAppn` until 💾 Save (D13; after a downloaded copy it asks once, D14).
+- **Put back means as saved.** `lsMarks`/`lsMarksBack` leave the board as saved as it was when an all-or-nothing write is
+  refused and put back whole (item 140 c). v2.13 read "Unsaved changes" and said to Save.
+- **INT-11, the lead's fix.** `cycApplyAll` no longer deletes the refusal marks after its put-back, which erased a refusal
+  recorded before the call.
+- **The writer key and the editor name** are kept for the page (`writerKeyHeld`, `_wkMem`, `_whoMem`): a full browser remade the
+  key on every Save, so the second Save was refused. Save diagnostics counts storage by kind (`diagLsKinds`).
+- **Packages and other appropriations (RV1-B).** A package for the board on screen is a counted load, on screen only where storage
+  refuses it. `apStoreOf(k)` is another appropriation's plan as Save writes it: the newer of storage and `PUBS`.
+  - Packages, ladders, issue, send back and push read it. Where it passes over this browser's unsaved work, they leave that
+    appropriation alone and say why (`apHeldWhy`); the import doors name both copies' changes (`apMineSince`).
+  - A cycle choice refused for room carries the other plans on the page (`_cycCarry`), and Save writes them and records them saved
+    (`cycCarrySaved`).
+
+**The held findings.**
+- **Item 129.** `baseMarkDirty` keeps a second tab's work unsaved after the first opened a newer file. The twin rule and the chain
+  walk read the copy stamp (`pmoStampApart`, `pmoLinkApart`, `pmoChainApart`). A rolled added requirement is the same work
+  (`yrCopySame`).
+- **Item 124.**
+  - The journal files an added requirement's fields by its id (`['custom','NEW-2','ask',0]`). Put back finds it by id or refuses
+    once it is gone. Whole-requirement lines, and place lines from before v2.14, are not offered (D19), and neither is a field of a
+    requirement that has left its year (`jrnlFieldGone`).
+  - A hand-chosen "no SI code" travels through a PMO copy's submit and accept. An older copy's package (no `siHand`) reads as
+    v2.13 read it.
+- **D28 (RV1-D's wording).** An ORBIT older than v2.14, open on the same browser, can put back a change v2.14 journalled to an added
+  requirement. It changes no figure but writes a journal line saying the value went back; v2.14 shows that line as recorded by an
+  older ORBIT and never offers it (`jrnlOlderLine`).
+- **A damaged list of added requirements.** A list an older ORBIT's Put back damaged (a `null`, or an entry with no id) is mended on
+  opening and at a full import (`customMend`, `customAside`, said), and `itemsOf` skips such entries elsewhere.
+- **U63, U64.** A folder copy replacing work saved only in the board file keeps it aside (U19's rule, `meta.saved`), and Put this
+  back says where 💾 Save writes. RV1-D dropped `driveRestore`'s "just watching" term (map design E).
+- **U35.** The RCN / EEIC list holds typing by its row: `data-rk`, `data-rf`, and for a row with no key or a repeated key
+  `rcnRowSig`/`data-rs`. Never by its place.
+
+**Review round 2's fixes (RV2-A to RV2-D and the lead).**
+- **The file route.** Step 1's Save window now refuses the file being imported, and Write refuses the as-it-was file (each
+  emptied the other); a copy put back in another tab is named, not counted as held by its stamp; a Cancel at `impLeftAsk` puts
+  storage, the stamp, the save history and the record back (`saveStopBack`), as every other exit after the mark does. A board page
+  that picks the bare program in the first Save's Open window writes nothing and names both files. A closed import box keeps a
+  failed as-it-was copy downloadable (`_impFileLast`, the lead).
+- **Save when storage refuses.** A write storage refuses leaves this browser's record as it was (`baseRaw`/`baseUnmark` in
+  `save()`, the shared-state loads, a package for the board on screen and Put this back), so a reopen never takes the older stored
+  copy for unsaved work; every load that asks reads what is on screen from the page (`screenUnsaved`). `saveStopBack` puts the
+  marks back only when nothing else was counted while the Save waited (`_sideGen`): a list changed then stays unsaved.
+- **Other appropriations.** A carried plan stays carried through this page's own later writes (`apCarryRaw`); a held peer gets no
+  ladder it cannot deliver; the Spruills and the by-band block read the copy Save writes; and **the Spruills, the PMO drill and the
+  chart of accounts count another appropriation's base requirements from its own plan's data pack** -- on a board whose `APPNS` is
+  empty, every board saved from the program, they printed $0 for them (pre-existing since v1.95). A taken appropriation's record
+  says unsaved, so a newer file keeps the take aside; the stray refusal names a kept slot in use.
+- **Held typing and older files.** RCN / EEIC rows are followed from draw to draw, so typing in one of two identical rows never
+  lands on the other; an older ORBIT's twice-listed added requirement is counted once; Roll forward and PMO Apply's roll forward
+  carry nothing a mend set aside. The verifier no longer counts its own save-log entry as a loss (it failed every file saved more
+  than ten minutes before), and the fuzz fills and follows `customAside`.
+- **A check two fixes meet.** RV2-B's Spruills check expected the added requirement alone; RV2-D's fix made the base requirements
+  count too. Merged, the expectation was the old defect's figure, and the whole suite caught it (`88d6ea6`). **Run every suite whole
+  on the merged tree, as every version since v2.09 has found.**
+
+What it leaves for the next change:
+- **A writer of another appropriation reads `apStoreOf`, checks `strayHeld`, and settles a held appropriation by refusing and saying
+  why, never by writing either copy.** The first cut got this wrong several ways:
+  - copying a ladder and issuing erased a package held on this page;
+  - send back dropped this browser's unsaved work;
+  - the stray rule guarded only the board's own opening, so Save, the cycle bar and the five-year plan read another
+    appropriation's blank work.
+- **A new storage key starts `prio27` (or `spmt`), and one written in a PMO copy is sealed with `SIDE_SFX`.** A write that carries
+  work goes through `lsSet`/`lsAll`. The exceptions are named (D15, D18); the other direct writes (D17) are logged, not a licence.
+- **A var the opening sets is declared above the opening** (`_pageBlank`, `_impHand`): declared below, its initializer puts the
+  default back.
+- **Nothing is remembered before every check has passed, and no page reaches a file through a handle another page left.**
+- **Save's put-back writes storage only while this page wrote it last**; otherwise it writes over another tab.
+- **Every deliberate reopen is `reopenPage()`**, so a reopen already asked about never meets the browser's own question too.
+- **A guard that tells two kinds of record apart is checked with both kinds** (C17's (ii)–(iv)). With one kind,
+  `stray-any-record` and `stray-over-pack` are each the identity.
+- **Browser checks.** A two-tab check fires the `storage` event where the browser fires it, and seeds storage from a page of its
+  own. Every Save stand-in installs both pickers (C14), and its Save window empties an existing file on pick.
+- **Wait by the clock, never by loop turns, across a timer-hop stand-in** (`W214.settle`, `INTA.until`). A turn count gave up under
+  load before the IndexedDB stand-in answered, and three unrelated mutants read as caught.
+- **A block lets a write it began finish before it closes its boards** (`W214.quiet`, `W214.rel`). Otherwise a failed check reads as
+  CRASHED.
+- **A fix that departs from a contract decision says so** (C22's "left", D17/C19's `.base`, map design E's watching term). Each
+  changed here because the decision as written lost work.
+- **`strayOther` and the boot's `_bootStray` are one rule written twice.** Change both or neither; the five-year plan's time check
+  is the cross-check.
+- **Run heavy suites one at a time.** With four fixers on one 16 GB box, the kernel killed audit-import, audit-board and audit-recon
+  (exit 137) more than a dozen times. An exit 137 is the container, never a verdict.
+
+**Checks.**
+- **jsdom.** Each block fails on the commit before it unless labelled a CONTROL: W1 5, W2 8 (and audit-inject W2-1), W3 5, W4 6,
+  INT 11, RV1-A 5, RV1-B 8, RV1-C 6, RV1-D 6, the lead's round-2 blocks 2, RV2-A to RV2-D the rest of the round-2 slot.
+- **Browser.** `npm run savetarget`, `fileimport` and `storagefull` run in `verify:grid`; `fileimport:gtk` is run by hand. Also
+  keyboard-reach W, and `#impFilePanel` in panels, dialogs and standards.
+- **`npm run check`** gains "reopen" and "the save-file handle store".
+- **The defect register.** `math-defects.json` gains two entries: 15 known, 47 mutations.
+- **Mutations.** 291 new, 25 older retargeted, and 2 v2.13 ones retired, which makes 3,509 targets, each once. Proofs: 185 of 185
+  CAUGHT jointly on the merged board (`c7c50e7`); each fixer's on its own board, RV1-A 28, RV1-B 31, RV1-C 47, RV1-D 31, all
+  CAUGHT.
+- [GATE: …] audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
 
 ## Colour: one token, one job
 
