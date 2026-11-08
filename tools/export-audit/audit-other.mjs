@@ -6251,6 +6251,7 @@ await (async () => {
     const oldStore = J((parse(mk(10, `S.asks={A:[10e6,0,0,0,0,20e6]}; MS.cycle=''; MS.ppbe={};`)) || {}).store);
     const folderTxt = mk(20000, `S.asks={A:[30e6,0,0,0,0,40e6]}; MS.ppbe=${J({ 'BES|2028': posOf(y => ({ d: 50e6 + y, m: 2e6 })) })}; MS.cycle='BES|2028';`);
     const newerTxt = mk(30000, `S.asks={A:[50e6,0,0,0,0,40e6]};`);
+    const newestTxt = mk(40000, `S.asks={A:[60e6,0,0,0,0,50e6]};`);
     const FILE = E(F.ev, `driveName(MS.cur, 'ff')`);
     const folder = () => `(function(){ var files=window.__fold={}; files[${J(FILE)}]=${J(folderTxt)}; return {
       name:'team', kind:'directory',
@@ -6264,7 +6265,9 @@ await (async () => {
     const board = (err) => {
       const O = boot({ ls: { spmtLive: J({ store: true, mode: 'drive', on: false, folder: 'team' }), prio27ff: oldStore } });
       seedIt(O.ev);
-      E(O.ev, `_driveDir=${folder()}; ${err ? `window.__foldErr=${J(err)};` : ''} window.alert=function(){}; render(); 'ok'`);
+      // with Full Fund's copy unreadable, the file also carries Full Fund as a consolidated payload: the shape where an unread
+      // appropriation would otherwise be listed on the chart of accounts as delivered
+      E(O.ev, `_driveDir=${folder()}; ${err ? `window.__foldErr=${J(err)}; APPNS['FULL FUND']={services:${J(SV)}, items:[{id:'A', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Rec A', event:'EV-A', ccar:'JSF7', fy26:[0,0,0,0,0,0], ask:[10e6,0,0,0,0,20e6], alloc:null}], budget:[]};` : ''} window.alert=function(){}; render(); 'ok'`);
       return O;
     };
     const settle = async O => { for (let i = 0; i < 100; i++) { await new Promise(r => setTimeout(r, 10));
@@ -6298,10 +6301,11 @@ await (async () => {
     // each opening reads the folder afresh: Full Fund saved there again since, the next opening reads that save
     E(O.ev, `toggleSp(); window.__fold[${J(FILE)}]=${J(newerTxt)}; toggleSp(); 'ok'`); await settle(O); E(O.ev, `render(); 'ok'`);
     chk(name, '1 · Spruills, opened again', 'Full Fund saved in the folder again since ($90M): the next opening reads that copy', ffBlock(O).req, 90e6);
-    // ---- 2. the chart of accounts, the same board -------------------------------------------------------------------------------
+    // ---- 2. the chart of accounts, the same board: it reads the folder afresh (saved there again since the panel read it) ---------
+    E(O.ev, `window.__fold[${J(FILE)}]=${J(newestTxt)}; 'ok'`);
     coa(O); await settle(O);
     const c1 = coaRead(O);
-    chk(name, '2 · chart of accounts', 'Full Fund’s requirement on Where we stand is the folder’s newest, $90M', J([c1.ff, c1.said]), J([90e6, []]));
+    chk(name, '2 · chart of accounts', 'Full Fund’s requirement on Where we stand is the folder’s newest, $110M, read afresh for the export', J([c1.ff, c1.said]), J([110e6, []]));
     // ---- 3. Locks by appropriation, the same board ------------------------------------------------------------------------------
     E(O.ev, `toggleSp(); toggleBl(); 'ok'`);
     chk(name, '3 · Locks by appropriation, reading', 'until the folder has answered, Full Fund’s working plan reads “reading the shared folder…”',
@@ -6339,7 +6343,7 @@ await (async () => {
     const g5b = parse(await O.w.eval(`(async function(){ var A=null; fydpGather(fydpData('working'), function(x){ A=x; });
       for(var i=0;i<100 && !A;i++) await new Promise(function(r){ setTimeout(r, 10); });
       var a=(A||[]).filter(function(x){ return x.k==='ff'; })[0]||{}; return JSON.stringify({why:a.why||'', ts:a.ts||0}); })()`)) || {};
-    chk(name, '5 · the five-year plan', 'CONTROL: with the copy readable, the folder’s newest copy is the one its frame opens', J([g5b.why, g5b.ts]), J(['', 30000]));
+    chk(name, '5 · the five-year plan', 'CONTROL: with the copy readable, the folder’s newest copy is the one its frame opens', J([g5b.why, g5b.ts]), J(['', 40000]));
     for (const [w, B] of [['readable', O], ['unreadable', D]]) if (B.errors.length) chk(name, 'jsdom', 'no script errors (' + w + ')', B.errors.slice(0, 2).join(' | '), '');
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
