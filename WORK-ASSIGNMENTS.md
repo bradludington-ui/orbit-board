@@ -29,15 +29,18 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
   this entry. Excluded: items 133 and 137-139 (later versions), items 100 and 107 (Brad: leave until hosting is chosen), E1
   (Brad: "Not needed this week").
 - Isolated branch and base commit SHA: ccr-26126337-csqb5v, restarted from main c863dc2.
-- Status: assigned.
+- Status: closed. Merged to main as PR #34 (8413a7b, a merge commit) on Brad's "Merge" of 8 Nov 2026.
 - Required bounded checks and designated gate owner: npm run check; every suite whole; the browser checks (verify:grid, keys,
   dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer, standards, and the new checks this version adds); each new and
   retargeted mutation proved against its own check; mcount; review with skeptics; validate:nightly on the final tree. Gate
   owner Claude. The sweep's first batch (handoff decision 27, accepted) runs on a committed tree with nothing else running.
-- Handoff commit SHA and changed files:
-- Commands, seeds, durations, exit statuses and results:
-- Known risks, blocked checks and reviewer findings:
-- Brad's integration/merge/publication authorization, if given: not given for v2.14. Each version merges on Brad's word.
+- Handoff commit SHA and changed files: dc8718d (the PR head; board as gated at 7c260e5). recovery/v214/HANDOFF.md is the
+  handoff for v2.15.
+- Commands, seeds, durations, exit statuses and results: NEXT-VERSION.md › Shipped › v2.14 (421 of 421 v2.14 mutations
+  caught together; every suite whole; validate:nightly fails only layout's carried D x8, fuzz seed 344821819).
+- Known risks, blocked checks and reviewer findings: Brad's Windows check was not reported before the merge; item 146 lists
+  what was found and not built. The sweep was not run.
+- Brad's integration/merge/publication authorization, if given: "Merge", 8 Nov 2026. Each version merges on Brad's word.
 
 The four recurring monitors retain read-only scope.
 
