@@ -1875,8 +1875,9 @@ const MUTATIONS = [
     find: "        +'<b>⬇ Save a copy</b>.');\n      return;\n    }\n    let p;",
     repl: "        +'<b>⬇ Save a copy</b>.');\n      txt='';\n    }\n    let p;" },
   { id: "guard-not-a-board-writes", area: "saveInPlaceFile", what: "a file with no board in it is written over",
-    find: "      if(p===undefined){\n        FH=null;",
-    repl: "      if(false){\n        FH=null;" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "      if(p===undefined){\n        fhForget(h);",
+    repl: "      if(false){\n        fhForget(h);" },
   { id: "boot-no-keep-aside", area: "boot", what: "a newer file replaces this browser's unsaved work without keeping it aside",
     // v1.95 (item 50): retargeted to the line that now decides it -- the same defect.
     find: "    const ka=own? keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase) : true;",
@@ -1886,8 +1887,9 @@ const MUTATIONS = [
     repl: "  if(base && ('dirty' in base)) return false;" },
   { id: "unsaved-flag-never-set", area: "save", what: "an edit never marks the work as unsaved in this browser's record",
     // anchored on its indent: v2.00 (R5)'s driveRestore repeats the line deeper in (re-anchored 11 Oct; same purpose)
-    find: "\n  baseMarkDirty();\n",   // v2.14 W4: retargeted -- save() marks the record through baseMarkDirty (item 129)
-    repl: "\n" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  _recMark=true; try{ baseMarkDirty(); }finally{ _recMark=false; }",
+    repl: "  _recMark=true; try{ }finally{ _recMark=false; }" },
   { id: "download-clears-unsaved", area: "publishState", what: "a download says the work is saved, though the shared file does not have it (v1.88 and before)",
     find: "  _dlOnly=true; try{ syncBtns(); }catch(e){}",
     repl: "  DIRTY=false; try{ syncBtns(); }catch(e){}" },
@@ -2621,7 +2623,9 @@ const MUTATIONS = [
   { id: 'impmixed-not-marked', area: 'fullImportUndone', what: 'a failed import that could not be put back leaves Save free in that page',
     find: "  _impRescue.mixed=true;\n", repl: "" },
   { id: 'impmixed-not-kept', area: 'fullImportUndone', what: 'a reload lifts the hold on Save',
-    find: "  try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(fname||''), keys:mixedKeys})); }catch(e){}\n", repl: "" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  impMixedMark({t:Date.now(), file:String(fname||''), keys:mixedKeys});    // v2.15 W3 (item 144)\n",
+    repl: "" },
   { id: 'impmixed-file-unguarded', area: 'saveInPlaceFile', what: 'Save writes the mix over the board file',
     // anchored on its indent: v2.00 (R4) repeats the line deeper in, after the read (re-anchored 11 Oct; same purpose -- it removes
     // only the check at the start of _saveInPlaceFileRun; before, it stayed unique only through the R4 line's trailing comment)
@@ -2898,7 +2902,9 @@ const MUTATIONS = [
     find: "  menuGrpOpen[m] = (menuGrpOpen[m]===k)? '' : k;",
     repl: "  menuGrpOpen[m] = k;" },
   { id: 'menu-grp-not-kept', area: 'menuGrp', what: 'the open group is not kept in this browser',
-    find: "  try{ localStorage.setItem('spmtMenuGroups', JSON.stringify(menuGrpOpen)); }catch(e){}\n", repl: "" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  lsSet('spmtMenuGroups', JSON.stringify(menuGrpOpen), 'Which menu group is open', {own:true});   // v2.15 W3 (item 144): counted, silent\n",
+    repl: "" },
   { id: 'menu-grp-not-read', area: '(boot)', what: 'a board opened later forgets the group last used',
     find: "     if(g && typeof g==='object' && !Array.isArray(g)) Object.keys(g).forEach(function(k){ if(typeof g[k]==='string') menuGrpOpen[k]=g[k]; }); }catch(e){}",
     repl: "     }catch(e){}" },
@@ -3513,7 +3519,8 @@ const MUTATIONS = [
     find: "    try{ if(held[i]===null) localStorage.removeItem(W[i][0]); else lsSet(",
     repl: "    try{ if(held[i]===null) {} else lsSet(" },
   { id: "v199-batch-no-mark", area: "batchImportUndone", what: "a batch that could not be put back leaves no mark in browser storage",
-    find: "  try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(here.name||''), keys:mixedKeys, kind:'batch'})); }catch(e){}",
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  impMixedMark({t:Date.now(), file:String(here.name||''), keys:mixedKeys, kind:'batch'});",
     repl: "  /* no mark */" },
   { id: "v199-batch-says-back", area: "importBoards", what: "a batch that could not be put back says nothing was imported and the board is as it was",
     // v2.14 RV2-B (finish): retargeted -- the put-back test now lets a plan's record stay unsaved over a plan put back (C19)
@@ -5255,11 +5262,13 @@ const MUTATIONS = [
   // v2.00 (U19, fix round 3): a put-back the load itself refuses writes the kept work back; the question's place words when the
   // shared folder holds an older copy and what is on screen is saved only in the board file.
   { id: "v200-u19-putback-refused-no-restore", area: "keptPutBack", what: "a put-back the load itself refuses (the kept work built for another service list) leaves what was on screen in the kept slot and does not write the kept work back: with saved work on screen (U19 keeps it too), the kept work is then in no copy this board can reach",
-    find: "    if(swapped){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }\n",
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    if(swapped) lsSet(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw, 'Work kept aside on '+_AP.t, {own:true, lose:true});   // v2.15 W3 (item 144)\n",
     repl: "" },
   { id: "v200-u19-putback-restore-unsaved-only", area: "keptPutBack", what: "a put-back the load itself refuses writes the kept work back only when what was on screen was unsaved, as the keep itself used to be: with saved work on screen (U19 keeps it too), the slot is left holding it and the kept work is in no copy this board can reach",
-    find: "    if(swapped){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }",
-    repl: "    if(swapped && nowUnsaved){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    if(swapped) lsSet(_AP.key+'.kept', JSON.stringify(k.meta)",
+    repl: "    if(swapped && nowUnsaved) lsSet(_AP.key+'.kept', JSON.stringify(k.meta)" },
   { id: "v200-u19-putback-words-store-on", area: "keptPutBack", what: "↶ Put back's question names the shared folder for a copy kept at a put-back whenever 💾 Save goes to a folder: with what is on screen saved only in the board file, it says it is “still in the shared folder it came from”",
     find: "  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);",
     repl: "  const scrWhere=(k.meta.why==='swap' && driveStoreOn())? 'the shared folder' : keptWhere(k.meta);" },
@@ -5272,8 +5281,9 @@ const MUTATIONS = [
     find: "  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);",
     repl: "  const scrWhere=(k.meta.why==='swap' && driveStoreOn() && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);" },
   { id: "v200-u19-putback-refused-words-swap", area: "keptPutBack", what: "the board's record of the kept work is set to what is on screen when it is kept, before the load: after a put-back the load refuses, the top bar and 📁 File call the kept work “what was on screen when other work was put back” though the slot holds the work kept by the opening",
-    find: "    try{ localStorage.setItem(_AP.key+'.kept', str); swapped=m2; }",
-    repl: "    try{ localStorage.setItem(_AP.key+'.kept', str); swapped=m2; _keptMeta=m2; }" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "if(!lsSet(_AP.key+'.kept', str, 'Work kept aside on '+_AP.t, {own:true, lose:true})) throw new Error('refused'); swapped=m2; }",
+    repl: "if(!lsSet(_AP.key+'.kept', str, 'Work kept aside on '+_AP.t, {own:true, lose:true})) throw new Error('refused'); swapped=m2; _keptMeta=m2; }" },
   // v2.00 (U19, fix round 5): the HOLD ON's Cancel advice with nothing kept aside.
   { id: "v200-u19-cancel-never-reopen", area: "saveInPlaceFile", what: "the HOLD ON's Cancel line and the status after Cancel drop the reopen with nothing kept aside too, where a reopen does load the file's copy and keeps the work on screen aside",
     find: "        const reo=!_keptMeta;",
@@ -8038,7 +8048,8 @@ const MUTATIONS = [
     find: '      const cp=pmoCopyOfText(txt);\n      if(cp){',
     repl: '      const cp=null;\n      if(cp){' },
   { id: 'v209-w3-board-save-keeps-handle', area: '_saveInPlaceFileRun', what: 'the board\'s Save keeps its handle on a PMO copy, so every later Save is refused there',
-    find: '        FH=null; try{ _fhPut(null); }catch(e){}      // the next Save asks which file\n        setStat(\'⛔ <b>Not saved.</b> “\'+esc(h.name||FNAME)+\'” is a PMO copy\'',
+    // v2.15 W3: retargeted -- the refusal forgets the file it refused through fhForget(h)
+    find: '        fhForget(h);      // the next Save asks which file\n        setStat(\'⛔ <b>Not saved.</b> “\'+esc(h.name||FNAME)+\'” is a PMO copy\'',
     repl: '        setStat(\'⛔ <b>Not saved.</b> “\'+esc(h.name||FNAME)+\'” is a PMO copy\'' },
   { id: 'v209-w3-side-bud-unsealed', area: '(copy keys)', what: 'a copy reads and writes the board\'s BAE list in a shared browser',
     find: 'BUDDB_KEY=\'prio27buddb\'+SIDE_SFX',
@@ -8156,8 +8167,9 @@ const MUTATIONS = [
     find: "      if(e && e.name==='NotFoundError'){\n        pmoFhForget(k);\n",
     repl: "      if(false){\n        pmoFhForget(k);\n" },
   { id: 'v209-rv-save-board-moved-handle-kept', area: '_saveInPlaceFileRun', what: "the board file moved after its first Save keeps a handle to nothing, and Save never asks where it is",
-    find: "        FH=null; try{ _fhPut(null); }catch(e2){}\n",
-    repl: "" },
+    // v2.15 W3: retargeted -- the refusal forgets the file it refused through fhForget(h)
+    find: "        fhForget(h);\n        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is no longer where it was saved",
+    repl: "        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is no longer where it was saved" },
   // v2.09 second review (the copy's Save): storage takes what an opening put on screen before the record calls it clean (the
   // board and a copy alike); the office follows the work on screen; the copy as published says what is true; and a copy takes
   // no board, package or state file at any door -- each undoing one fix
@@ -10053,11 +10065,13 @@ const MUTATIONS = [
     find: '  try{ pick=window.showSaveFilePicker({suggestedName:R.name, types:[{description:\'ORBIT board\', accept:{\'text/html\':[\'.html\']}}]}); }',
     repl: '  try{ pick=Promise.resolve().then(function(){ return window.showSaveFilePicker({suggestedName:R.name, types:[{description:\'ORBIT board\', accept:{\'text/html\':[\'.html\']}}]}); }); }' },
   { id: 'v214-w2-no-readback', area: 'impFileWriteTo', what: 'the file is never read back: a write that did not land clears this browser anyway',
-    find: '    if(back!==html) throw {name:\'ReadBack\', message: back===null? \'it could not be read back\' : \'it did not read back as written\'};\n  }catch(e){ return impFileFailed(R, h, e); }',
-    repl: '    if(false) throw {name:\'ReadBack\', message: back===null? \'it could not be read back\' : \'it did not read back as written\'};\n  }catch(e){ return impFileFailed(R, h, e); }' },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    if(back!==html) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};\n    fhLegacyRelease(h);     // v2.15 W3 (item 146): an older",
+    repl: "    if(false) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};\n    fhLegacyRelease(h);     // v2.15 W3 (item 146): an older" },
   { id: 'v214-w2-readback-length', area: 'impFileWriteTo', what: 'the read-back compares lengths only: a file one character wrong passes',
-    find: '    if(back!==html) throw {name:\'ReadBack\', message: back===null? \'it could not be read back\' : \'it did not read back as written\'};\n  }catch(e){ return impFileFailed(R, h, e); }',
-    repl: '    if(back===null || back.length!==html.length) throw {name:\'ReadBack\', message: back===null? \'it could not be read back\' : \'it did not read back as written\'};\n  }catch(e){ return impFileFailed(R, h, e); }' },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    if(back!==html) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};\n    fhLegacyRelease(h);     // v2.15 W3 (item 146): an older",
+    repl: "    if(back===null || back.length!==html.length) throw {name:'ReadBack', message: back===null? 'it could not be read back' : 'it did not read back as written'};\n    fhLegacyRelease(h);     // v2.15 W3 (item 146): an older" },
   { id: 'v214-w2-clear-before-write', area: 'impFileWriteTo', what: 'this browser is cleared before the file is written',
     find: '    const html=impFileBuild(R);\n    const w=await h.createWritable();',
     repl: '    const html=impFileBuild(R);\n    impFileClear(R); const w=await h.createWritable();' },
@@ -10135,8 +10149,9 @@ const MUTATIONS = [
     find: '“\'+esc(m.name)+\'” — written \'+esc(fmtTs(m.at))+\' from “\'+esc(m.from)',
     repl: '“\'+m.name+\'” — written \'+esc(fmtTs(m.at))+\' from “\'+esc(m.from)' },
   { id: 'v214-w2-writer-unclaimed', area: 'impFileBuild', what: 'the new file records no writer, so its first Save asks to claim it',
-    find: '{writer:{by:whoIs()||\'unknown\', fp:pkgSig(\'orbit-writer|\'+R.wk), t:Date.now()}, impFile:',
-    repl: '{impFile:' },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "{writer:kept? {by:whoIs()||'unknown', fp:pkgSig('orbit-writer|'+R.wk), t:Date.now()} : undefined, impFile:",
+    repl: "{impFile:" },
   { id: 'v214-w2-adopt-any-page', area: 'boot', what: 'a copy of the import’s file opened anywhere takes the handle and saves, unasked, to the original',
     find: 'if(h && im.href && im.href===impHref()){',
     repl: 'if(h){' },
@@ -10163,8 +10178,9 @@ const MUTATIONS = [
     find: '  impFileMarkWrite(R, impFileMarkOf(R, h, \'file\'));\n  // v2.14 RV2-A (aswas-pick-not-checked-against-import): AND THE NAME',
     repl: '  // v2.14 RV2-A (aswas-pick-not-checked-against-import): AND THE NAME' },
   { id: 'v214-w2-lift-leaves-copies', area: 'impHandClear', what: 'lifting the hold leaves this browser’s old copies in front of the file',
-    find: '    try{ localStorage.removeItem(k); localStorage.removeItem(k+\'.base\'); }catch(e){ left.push(String(says[i]||k)); }',
-    repl: '    try{ }catch(e){ left.push(String(says[i]||k)); }' },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    try{ localStorage.removeItem(k); localStorage.removeItem(k+'.base'); }catch(e){ left.push(impNoteStr(says[i])||k); }",
+    repl: "    try{ }catch(e){ left.push(impNoteStr(says[i])||k); }" },
   { id: 'v214-w2-holds-unsaid', area: 'impFileHolds', what: 'leaving the page does not ask while a rescue is not yet downloaded',
     find: '|| (R.rescue && !impFileRescued(R))',
     repl: '' },
@@ -10225,7 +10241,9 @@ const MUTATIONS = [
     find: "    try{ DIAG.refused.push({t:Date.now(), what:diagClean(what, false), why:String((e&&e.name)||'error').replace(/[^A-Za-z]/g,'')}); }catch(e2){}\n    if(o && o.quiet) return false;\n",
     repl: "    if(o && o.quiet) return false;\n    try{ DIAG.refused.push({t:Date.now(), what:diagClean(what, false), why:String((e&&e.name)||'error').replace(/[^A-Za-z]/g,'')}); }catch(e2){}\n" },
   { id: 'v214-w3-dl-no-question', area: 'memOnlyBlock', what: 'after a downloaded copy, switching reopens the page without asking',
-    find: "  if(dl){\n    if(confirm('Your latest changes are in the copy you downloaded", repl: "  if(dl){ return false;\n    if(confirm('Your latest changes are in the copy you downloaded" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  if(dl){\n    if(confirm('You downloaded a copy of this board",
+    repl: "  if(dl){ return false;\n    if(confirm('You downloaded a copy of this board" },
   { id: 'v214-w3-cycgo-mark-first', area: 'cycGoAppn', what: 'Go to writes its mark before it is refused, and PPBE cycles opens unasked next time',
     find: "  if(memOnlyBlock('Not opened', 'opening '+_SLUGMAP[k].t+' reopens the page')){ try{ render(); }catch(e){} return; }\n  lsSet(CYC_GO_KEY, k, 'Which board opens PPBE cycles next', {quiet:true});\n",
     repl: "  lsSet(CYC_GO_KEY, k, 'Which board opens PPBE cycles next', {quiet:true});\n  if(memOnlyBlock('Not opened', 'opening '+_SLUGMAP[k].t+' reopens the page')){ try{ render(); }catch(e){} return; }\n" },
@@ -10331,7 +10349,9 @@ const MUTATIONS = [
   { id: 'v214-w4-si-proposal-unshown', area: "pmoFmtVal", what: "the proposal line does not say its SI code is none",
     find: "if(v.siNone===true) parts.push(FL('si')+' none (chosen by hand)'); else ", repl: "" },
   { id: 'v214-w4-pull-keeps-nothing-saved', area: "driveStorePull", what: "the folder’s copy replaces work saved only in the board file, keeping nothing",
-    find: "  const keep=own || !driveStoreOn() || (+MS.ts||0)!==driveBaseOf(mySlug());", repl: "  const keep=own;" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  const keep=own || (+MS.ts||0)!==driveBaseOf(mySlug());",
+    repl: "  const keep=own;" },
   { id: 'v214-w4-pull-not-said', area: "driveStorePull", what: "a quiet refresh keeps saved work aside and says nothing",
     find: "  if(!quiet || keep) setStat(", repl: "  if(!quiet || own) setStat(" },
   { id: 'v214-w4-pull-occupied-words', area: "driveStorePull", what: "other work kept: the refusal says the screen holds new work, not that it is saved only in the board file",
@@ -10427,8 +10447,9 @@ const MUTATIONS = [
     find: "if(fk && !seed){",
     repl: "if(fk){" },
   { id: 'v214-rv1-a-held-record-written', area: "baseSet", what: "a held page rewrites its plan’s record: the import’s file then says it was saved since by someone, or another tab’s unsaved work reads clean and a newer file replaces it",
-    find: "function baseSet(patch){ if(impHandKey(_AP.key)) return false; try{",
-    repl: "function baseSet(patch){ try{" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  if(impHandKey(_AP.key) || baseRecBlocked()) return false;",
+    repl: "  if(baseRecBlocked()) return false;" },
   { id: 'v214-rv1-a-room-65536', area: "impRoomSay", what: "with 64,000 to 65,550 characters free the board says less than 64,000 are free",
     find: "'x'.repeat(64000-'prio27roomProbe'.length)",
     repl: "'x'.repeat(65536)" },
@@ -10526,7 +10547,9 @@ const MUTATIONS = [
   // ---- RV1-C (Save and the import doors) ----
   { id: 'v214-rv1-c-stop-no-persist', area: "saveStopBack", what: "a Save cancelled after the pen was claimed leaves the pen line in browser storage: reopened, the journal says the pen moved though nothing was written",
     // v2.14 RV2-C: retargeted in place -- the save state is now drawn again after this line (stop-on-refused-storage-reads-saved-then-file-overwritten)
-    find: "  if(mine && MS===k.ms) persist();\n  // v2.14 RV2-C (stop-on-refused", repl: "  // v2.14 RV2-C (stop-on-refused" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  if((mine || ours) && MS===k.ms && persist()===false",
+    repl: "  if((mine || ours) && MS===k.ms && false" },
   { id: 'v214-rv1-c-stop-marks-kept', area: "saveStopBack", what: "a cancelled Save leaves a board that was saved reading “Unsaved changes”",
     // v2.14 RV2-A: retargeted -- the marks go back through the list-aware call
     find: "    lsMarksBack(sideNow? Object.assign({}, k.m, sideNow) : k.m); _baseDirty=k.bd;\n", repl: "    _baseDirty=k.bd;\n" },
@@ -10535,7 +10558,9 @@ const MUTATIONS = [
   { id: 'v214-rv1-c-stop-stamp-kept', area: "saveStopBack", what: "a cancelled Save leaves a new save stamp and a save-history entry in browser storage, though nothing was saved",
     find: "    k.ms.ts=k.ts; k.ms.by=k.by; try{ k.ms.log=JSON.parse(k.log); }catch(e){}\n", repl: "" },
   { id: 'v214-rv1-c-stop-after-unset', area: "_saveInPlaceFileRun", what: "a cancelled Save leaves this browser recording the board as work no saved copy has (the record the Save wrote is never known, so never put back)",
-    find: "    if(stop) try{ stop.after=localStorage.getItem(_AP.key+'.base'); }catch(e){}\n", repl: "" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "    if(stop) try{ stop.after=localStorage.getItem(_AP.key+'.base'); stop.raw1=",
+    repl: "    if(stop) try{ stop.raw1=" },
   { id: 'v214-rv1-c-stop-cancel-skipped', area: "_saveInPlaceFileRun", what: "Cancel at the HOLD ON naming what the file holds leaves the pen line, a new stamp and “unsaved” in browser storage",
     // v2.14 RV2-A: lengthened -- the decline of the question about a copy left now puts back the same way (v214-rv2-a-leftask-no-putback)
     find: "        saveStopBack(stop, penLine);\n        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length", repl: "        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length" },
@@ -10606,7 +10631,9 @@ const MUTATIONS = [
   { id: 'v214-rv1-c-destuse-reads-blank', area: "flowEntUseMap", what: "a destination Full Fund's requirement goes to reads as used by nothing, so ✕ removes it",
     find: "let st=null; try{ st=strayOr(ap, pkgStoreOf(ap)); }catch(x){ st=null; }    // v2.14 RV1-C", repl: "let st=null; try{ st=pkgStoreOf(ap); }catch(x){ st=null; }    // v2.14 RV1-C" },
   { id: 'v214-rv1-c-stop-persists-over-tab', area: "saveStopBack", what: "a Save stopped while another tab saved this board writes this page's plan over that tab's work in browser storage",
-    find: "  if(mine && MS===k.ms) persist();\n", repl: "  if(MS===k.ms) persist();\n" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "  if((mine || ours) && MS===k.ms && persist()",
+    repl: "  if(MS===k.ms && persist()" },
   { id: 'v214-rv1-c-stop-record-over-tab', area: "saveStopBack", what: "a Save stopped while another tab saved this board puts the record back to saved over that tab's unsaved work",
     find: "    try{ if(mine && k.after!==undefined", repl: "    try{ if(k.after!==undefined" },
   { id: 'v214-rv1-c-stop-mine-newer', area: "saveStopBack", what: "a Save stopped while another tab saved this board, later, takes that tab's newer copy for its own and writes over it",
@@ -10734,8 +10761,9 @@ const MUTATIONS = [
     find: "  if(R.rescue && R.rescue.aw && !R.rescue.aw.got && !confirm(",
     repl: "  if(false && !confirm(" },
   { id: 'v214-rv2-a-aw-not-held', area: "impFileRescued", what: "at the pause on step 1’s file, closing the box asks nothing, and the board as it was is let go",
-    find: " && (!R.rescue.aw || R.rescue.aw.got)); }",
-    repl: "); }" },
+    // v2.15 W3: retargeted -- the own-file copy (R.rescue.own) now follows it on the same line
+    find: " && (!R.rescue.aw || R.rescue.aw.got) && (!R.rescue.own",
+    repl: " && (!R.rescue.own" },
   { id: 'v214-rv2-a-close-copies-of-it', area: "impFileCloseAsk", what: "closing after a failed Write says the two copies are all there is of the file chosen, though one is the file imported and the other a new board",
     find: "  if(h && i) return 'The two copies are not saved yet. The imported board (new version) is held only here.'+of+' Close anyway?';",
     repl: "  if(h && i) return 'The two copies are not saved yet. If “'+r.at+'” already existed, the browser emptied it when you chose it, and these copies are all there is of it. Close anyway?';" },

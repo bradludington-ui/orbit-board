@@ -54,6 +54,7 @@ const WANT = {
   saveInPlace: 1,
   // the ▾ beside Save
   publishState: 1,
+  fhSaveNew: 1, fhRepick: 1,   // v2.15 W3 (item 146): Save as a new file… and Choose another file…, under the ▾ beside Save
   // History & recovery
   toggleLive: 2,          // TWO ON PURPOSE: History & recovery › Earlier copies… and Setup › Live view… open the same box (the copies are kept in Live view)
   keptPutBack: 2,         // TWO ON PURPOSE: History & recovery › Put back work kept aside…, and the save state's own "↶ work kept aside" notice at the foot, as it was in the context bar
