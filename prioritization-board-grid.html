@@ -4154,8 +4154,11 @@ const itemById = id => DATA.items.find(x=>x.id===id);
 // accounts threw on it from any other appropriation ("Cannot read properties of null (reading 'id')"), and every later redraw with
 // Spruills open threw with them. Read here, such an entry is left out and counts nowhere, as the mend sets it aside; that
 // appropriation's own board mends it, and says so, when it opens.
+// v2.14 RV2-D (an added requirement listed twice): and a second entry for an id already on the list is left out, as the mend sets
+// it aside -- read raw from another appropriation's store, a list an older ORBIT left with NEW-3 twice counted its $300 twice.
 function itemsOf(base, st){
-  const rm=(st&&st.removed)||[], add=((st&&st.custom)||[]).filter(function(x){ return !customMendable(x); });
+  const rm=(st&&st.removed)||[], once=Object.create(null);
+  const add=((st&&st.custom)||[]).filter(function(x){ if(customMendable(x) || once[x.id]) return false; once[x.id]=1; return true; });
   return (base||[]).filter(function(i){ return rm.indexOf(i.id)<0; }).concat(add);
 }
 
@@ -6172,6 +6175,8 @@ function rlgBody(){
 // §10  RCN/EEIC, DESTINATIONS, EXECUTIVE DECISION AND SERVICES PANELS
 // ==============================================================================================================
 let rcnOpen=false;
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): the rows the list drew last, and the next mark a row is given (rcnCarry)
+let rcnDrawn=null, rcnTokN=0;
 function toggleRcn(){ rcnOpen=!rcnOpen; render(); }
 // v2.14 (ledger U35): WHAT IS TYPED INTO THE LIST AND NOT YET COMMITTED SURVIVES ANY REDRAW -- a Live tick, a status line, a load.
 // Every redraw rebuilt the rows from the stored list, so 88888 typed and not yet left read 11111 again, its pending marks went with
@@ -6188,8 +6193,16 @@ function rcnBody(){
   // list" either: it is there, and could not be told apart, so it is said in the same words
   const RL=lost.length? rcnReg() : [];
   const asWas=lost.some(function(x){ const k=String(x.rk||''); return /^#/.test(k) || RL.some(function(e){ return !!e && e.k===k; }); });
+  // v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): among rows exactly alike, what the draw found (rcnCarry): the two could not be
+  // told apart, or the row typed in was changed or removed while another exactly as it was stayed -- never "has no key", never gone
+  const fate=(rcnDrawn && rcnDrawn.fate) || {};
+  const asTwin=lost.some(function(x){ return fate[x.rs]==='twin'; }), asLeft=lost.some(function(x){ return fate[x.rs]==='left'; });
   if(lost.length && rcnOpen) setStat('\u26a0 What you were typing in the RCN / EEIC list ('+lost.map(function(x){ return '\u201c'+esc(x.v)+'\u201d'; }).join(', ')
-    +') was not kept: '+(asWas
+    +') was not kept: '+(asTwin
+      ? 'the row it was in was exactly like another row on the list, and once the list was loaded the two could not be told apart'
+      : asLeft
+      ? 'the load changed or removed the row it was in; another row on the list is exactly as that row was, but it is not the row the typing was in'
+      : asWas
       ? 'the row it was in has no key of its own, and the list as loaded no longer holds that row as it was' : 'the row it was in is no longer on the list')
     +'. Nothing was changed.');
 }
@@ -6205,25 +6218,80 @@ function rcnBody(){
 // repeat's own code (33333) without a word. A row is held by its key only where no other row on the list carries it. Every row also
 // carries what it holds (data-rs), and a held field is found again by either (inspHeldSame): a row whose key stops being, or becomes,
 // shared by the load keeps the typing so long as the row itself is as it was.
-function rcnRowSig(L, i){
-  const sig=function(e){ e=e||{}; return JSON.stringify([e.k===undefined? null : e.k, e.rcn===undefined? null : e.rcn, e.eeic===undefined? null : e.eeic,
-    e.t===undefined? null : e.t, Array.isArray(e.svc)? e.svc : null]); };
-  const me=sig(L[i]); let n=0;
-  for(let j=0;j<i;j++) if(sig(L[j])===me) n++;
-  return '#'+me+'#'+n;
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): AND AMONG ROWS EXACTLY ALIKE, BY WHERE THE LOAD LEFT IT. The count of
+// identical rows before a row told two twins apart only while no twin changed, came or went: a load that renamed the upper of two
+// identical rows left the lower one with no twin above it, so it drew with the very signature held for the upper one -- the typing
+// (99999) and the keyboard moved to the lower row, the "repeats row 1" row nothing reads, and leaving the field saved it there while
+// the row requirement A reads kept 11111, without a word.
+// v2.14 RV2-D (the check of this fix): AND NOT BY A COUNT OF ALL THE TWINS EITHER. Carrying the total too dropped the typing whenever
+// a twin elsewhere changed, came or went -- a load that renamed the LOWER twin, one that made a second row identical to the one typed
+// in, one that added a row exactly like it -- each with words that were not true, where the row typed in was there as it was. So a
+// row is now FOLLOWED from one draw to the next (rcnCarry): every row of the draw carries a mark of its own (data-rs), and a row of
+// the new list takes the mark of the row it continues. A row whose content no other row of either list holds continues the one row
+// holding it, wherever it moved (RV1-D's rule). Among rows exactly alike, the load is read as the fewest rows changed, added and
+// removed that turn the old list into the new one: a row continues the row that every such reading leaves it on; where the readings
+// differ, the row at its own place among the rows alike, if a reading leaves it there; and otherwise none -- the typing is then put on
+// no row, and the board says which: the row was changed or removed while another exactly like it stayed ('left'), or the two could
+// not be told apart ('twin').
+function rcnSig(e){
+  e=e||{};
+  return JSON.stringify([e.k===undefined? null : e.k, e.rcn===undefined? null : e.rcn, e.eeic===undefined? null : e.eeic,
+    e.t===undefined? null : e.t, Array.isArray(e.svc)? e.svc : null]);
+}
+function rcnCarry(prev, S){
+  const m=S.length, tok=new Array(m).fill(''), fate=Object.create(null);
+  if(prev && prev.sig.length===m && prev.sig.every(function(s, j){ return s===S[j]; })) return {sig:S, tok:prev.tok.slice(), fate:fate};
+  if(prev){
+    const P=prev.sig, n=P.length, cP=Object.create(null), cS=Object.create(null);
+    P.forEach(function(s){ cP[s]=(cP[s]||0)+1; }); S.forEach(function(s){ cS[s]=(cS[s]||0)+1; });
+    // the fewest rows changed, added and removed, from the start (F) and from the end (R) of both lists
+    let F=null, R=null, D=0;
+    const big=(n+1)*(m+1)>4000000;      // a list far past any board's: rows alike are then put on no row, never guessed at
+    const align=function(){
+      F=[]; R=[];
+      for(let i=0;i<=n;i++){ F.push(new Int32Array(m+1)); R.push(new Int32Array(m+1)); }
+      for(let i=0;i<=n;i++) for(let j=0;j<=m;j++)
+        F[i][j]=(i===0)? j : (j===0)? i : Math.min(F[i-1][j]+1, F[i][j-1]+1, F[i-1][j-1]+(P[i-1]===S[j-1]? 0 : 1));
+      for(let i=n;i>=0;i--) for(let j=m;j>=0;j--)
+        R[i][j]=(i===n)? m-j : (j===m)? n-i : Math.min(R[i+1][j]+1, R[i][j+1]+1, R[i+1][j+1]+(P[i]===S[j]? 0 : 1));
+      D=F[n][m];
+    };
+    for(let h=0;h<n;h++){
+      const s=P[h];
+      if(!cS[s]) continue;                                   // nothing holds it now: changed or gone (rcnBody says which)
+      if(cP[s]===1 && cS[s]===1){ const j=S.indexOf(s); if(!tok[j]) tok[j]=prev.tok[h]; continue; }
+      if(big){ fate[prev.tok[h]]='twin'; continue; }
+      if(!F) align();
+      const C=[]; let other=false;
+      for(let j=0;j<m;j++){ const via=F[h][j]+R[h+1][j+1];
+        if(S[j]===s){ if(via===D) C.push(j); } else if(via+1===D) other=true; }
+      for(let j=0;j<=m && !other;j++) if(F[h][j]+1+R[h+1][j]===D) other=true;
+      let o=0, jo=-1;
+      for(let k=0;k<h;k++) if(P[k]===s) o++;
+      for(let j=0, c=0;j<m;j++) if(S[j]===s){ if(c===o){ jo=j; break; } c++; }
+      const j=(C.length===1 && !other)? C[0] : (C.indexOf(jo)>=0? jo : -1);
+      if(j>=0 && !tok[j]) tok[j]=prev.tok[h];
+      else fate[prev.tok[h]]=C.length? 'twin' : 'left';
+    }
+  }
+  for(let j=0;j<m;j++) if(!tok[j]) tok[j]='#r'+(++rcnTokN);
+  return {sig:S, tok:tok, fate:fate};
 }
 function rcnDraw(el){
   const bg=document.getElementById('rcnPanel');
   if(!bg||!el) return;
   bg.className='modal-bg'+(rcnOpen?' open':'');
-  if(!rcnOpen){ el.innerHTML=''; return; }
+  if(!rcnOpen){ el.innerHTML=''; rcnDrawn=null; return; }
   if(!rcnApplies()){
+    rcnDrawn=null;
     el.innerHTML='<div class="hint">RCN and EEIC are an O&amp;M Air Force classification. '
       +'Only O&amp;M carries ANG and AFRC, and Full Fund budgets against Cost Elements instead \u2014 '
       +'there is nothing on this board that reads one.</div>';
     return;
   }
   const L=rcnReg();
+  // v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): each row's mark, carried from the row of the last draw it continues
+  const RC=rcnCarry(rcnDrawn, L.map(rcnSig));
   let h='<div style="overflow-x:auto"><table class="fctab">'
     +'<tr><th style="text-align:left">RCN</th><th style="text-align:left">EEIC</th>'
     +'<th style="text-align:left">Title</th>'
@@ -6237,9 +6305,10 @@ function rcnDraw(el){
     const rep=(typeof e.k==='string')? L.findIndex(function(x){ return x && x.k===e.k; }) : i;
     const svc=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
     // v2.14 (ledger U35): the row's key for the typing hold -- its own key, or, where it has none or repeats an earlier row's, what
-    // the row holds (rcnRowSig)
-    // v2.14 RV1-D (check): a key only one row carries (rcnRowSig)
-    const rs=rcnRowSig(L, i), rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;
+    // the row holds (rcnRowSig; since v2.14 RV2-D rcnCarry)
+    // v2.14 RV1-D (check): a key only one row carries (rcnRowSig; since v2.14 RV2-D rcnCarry)
+    // v2.14 RV2-D: what the row holds, followed from the last draw (rcnCarry)
+    const rs=RC.tok[i], rk=(typeof e.k==='string' && rep===i && !L.some(function(x, j){ return j>i && !!x && x.k===e.k; }))? e.k : rs;
     h+='<tr data-rk="'+esc(rk)+'" data-rs="'+esc(rs)+'"><td style="text-align:left"><input class="btn" data-rf="rcn" style="font-size:9.5px;padding:3px 6px;width:74px'
       +bad(rcnOkNum,e.rcn)+'" value="'+esc(e.rcn||'')+'" placeholder="12345" '
       +'title="Requirement Control Number \u2014 five digits" '
@@ -6269,7 +6338,7 @@ function rcnDraw(el){
     +'pointing at something that no longer exists. Assign a combo to a requirement from its '
     +'\u22ef menu \u2014 only requirements with USAF, ANG or AFRC value can carry one. '
     +'A number that does not yet fit the expected shape is flagged, never refused.</div>';
-  el.innerHTML=h;
+  el.innerHTML=h; rcnDrawn=RC;
 }
 let entOpen=false;
 function toggleEnt(){ entOpen=!entOpen; render(); }
@@ -6728,17 +6797,23 @@ function bmOwnOf(Y, n){
 // no ORBIT could lock a cycle holding such a list (its lock threw on it). The import doors still refuse such a file (v1.95 R09:
 // refuse at the doors, mend on opening).
 function customMendable(x){ return !(x && typeof x==='object' && !Array.isArray(x) && typeof x.id==='string' && x.id); }
+// v2.14 RV2-D (also noticed: an added requirement listed twice): AND A SECOND ENTRY FOR AN ID ALREADY ON THE LIST IS SET ASIDE TOO.
+// v2.13's Put back by place could leave one added requirement in the list twice (put back the delete of NEW-3, remove NEW-1, put the
+// same delete back again): DATA.items then held NEW-3 twice, and the chart of accounts listed it twice and counted its $300 twice
+// ("Where we stand" read 7 requirements and $2,800 where the year holds 3 and $1,700). The first is the one every setter and reader
+// finds by its id (the one the board has shown and edited), so it stays; the repeat is set aside, as it was found, like an entry
+// with no id, and said. Keyed with no prototype: an id is a value from a file.
 function customMend(T, fy, quiet){
   if(!T || typeof T!=='object' || !Array.isArray(T.custom)) return null;
-  let dropped=0; const aside=[];
+  let dropped=0, twice=0; const aside=[], seen=Object.create(null);
   const ok=T.custom.filter(function(x, i){
-    if(!customMendable(x)) return true;
+    if(!customMendable(x)){ if(!seen[x.id]){ seen[x.id]=1; return true; } twice++; aside.push({i:i, v:x}); return false; }
     if(x===null || x===undefined) dropped++; else aside.push({i:i, v:x});
     return false; });
   if(!dropped && !aside.length) return null;
   T.custom=ok;
   if(aside.length){ if(!Array.isArray(T.customAside)) T.customAside=[]; aside.forEach(function(a){ T.customAside.push(a); }); }
-  const r={fy:+fy||0, dropped:dropped, aside:aside.length};
+  const r={fy:+fy||0, dropped:dropped, aside:aside.length-twice, twice:twice};
   if(!quiet) try{ _customMended.push(r); }catch(e){}
   return r;
 }
@@ -6747,12 +6822,16 @@ function customMendWords(L){
   const pl=function(n, one, many){ return n+' '+(n===1? one : many); };
   return L.map(function(r){
       return (r.fy? 'FY'+(r.fy%100)+': ' : '')+[r.dropped? pl(r.dropped, 'empty entry', 'empty entries')+' taken out' : '',
-        r.aside? pl(r.aside, 'entry with no requirement id', 'entries with no requirement id')+' set aside in the file, where nothing counts it' : '']
+        r.aside? pl(r.aside, 'entry with no requirement id', 'entries with no requirement id')+' set aside in the file, where nothing counts it' : '',
+        // v2.14 RV2-D (an added requirement listed twice)
+        r.twice? pl(r.twice, 'second entry', 'second entries')+' for a requirement already on the list set aside in the file, where nothing counts it' : '']
         .filter(Boolean).join(', '); }).join('; ');
 }
-function customMendSay(){
-  const L=_customMended; if(!L.length) return '';
-  return '\ud83d\udd27 <b>The list of added requirements was mended on opening</b> \u2014 '+customMendWords(L)
+// v2.14 RV2-D (also noticed: said only at the end of opening): what a later load mended is said as it lands (applyStore), in the
+// same words, as loaded rather than on opening
+function customMendSay(L, loaded){
+  L=L||_customMended; if(!L.length) return '';
+  return '\ud83d\udd27 <b>The list of added requirements was mended '+(loaded? 'as it was loaded' : 'on opening')+'</b> \u2014 '+customMendWords(L)
     +'. An ORBIT older than v2.14 left them there when it put back a change to an added requirement that was gone. Every requirement '
     +'on the board is as it was saved; \ud83d\udcbe Save keeps the mended list.';
 }
@@ -7202,7 +7281,13 @@ function applyStore(raw){
   try{ _jrnlOff++; }catch(e){}
   MS = normalizeStore(JSON.parse(JSON.stringify(raw||{})));
   // v2.14 RV1-D (oldfiles, also noticed): every year's list of added requirements is mended before anything reads it (customMend)
+  // v2.14 RV2-D (also noticed: said only at the end of opening): a store mended by a later load -- work kept aside put back after the
+  // boot opened a newer file over damaged storage, another tab's write from an older ORBIT, a folder copy -- was mended without a word,
+  // and what it set aside was never named. Once the board is open (ACE_BOOTED, as aceHealSay) it is said as it lands, kept unread;
+  // while opening, the end of the boot says it once, after the line the opening chose.
+  let m0=0; try{ m0=_customMended.length; }catch(e){}
   try{ Object.keys(MS.years||{}).forEach(function(y){ customMend(MS.years[y], y); }); }catch(e){}
+  try{ if(ACE_BOOTED && _customMended.length>m0){ _statQuiet=false; statKeep(customMendSay(_customMended.splice(m0), true)); } }catch(e){}
   // v2.09 (item 127): THE BOARD HOLDS NO OFFICE'S MARK. pmoFor says which office a PMO copy's work was saved for; a board that
   // kept one (a copy's state taken by a way no door watches) would bake it into every copy it published, and the copy every
   // office opens would read as one office's own file -- adopted by everyone, and saved over by that office.
@@ -7261,9 +7346,8 @@ function switchYear(y){
         try{ render(); }catch(e){} return; }
       seed=freshYearState();
     } else if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
-      seed=JSON.parse(JSON.stringify(S));
-      delete seed.ts;
-      shiftAwardYears(seed, y-MS.cur);
+      // v2.14 RV2-D (the check of this fix): the one roll forward, shared with PMO Apply's (pmoYearStart), so the two cannot drift
+      seed=pmoYearStart(y, true);
     } else seed=freshYearState();
     MS.years[y]=seed;
   }
@@ -10253,10 +10337,17 @@ function pmoRepointLinks(){
   return n;
 }
 // A year this board has not started, as Apply starts it: switchYear()'s roll forward from the year on screen, or blank
+// v2.14 RV2-D (the check of this fix): THE ONE ROLL FORWARD -- the year switch's (switchYear) and PMO Apply's, for a year a five-year
+// copy's package goes into that this board has not started. They were two copies of one rule, and the fix for what a mend set aside
+// went into the year switch's alone: Apply's still copied it into the year it started.
 function pmoYearStart(y, roll){
   if(!roll) return freshYearState();
   const seed=JSON.parse(JSON.stringify(S));
   delete seed.ts;
+  // v2.14 RV2-D (also noticed: roll forward copied what a mend set aside): what an older ORBIT's damaged list held and the mend set
+  // aside is that year's record of the file as it was found (customMend), never a part of the plan: copied, the new year held a
+  // second copy of entries it never had, and the next mend's words would have named them in a year they were never in
+  delete seed.customAside;
   shiftAwardYears(seed, y-MS.cur);
   return seed;
 }
@@ -27768,13 +27859,25 @@ function spDefs(){
       // and a DELTA of the entire budget as surplus, on a board holding $1.4B of asks. Fall back
       // to the board itself when the consolidated slot is empty — pkgPackOf already does exactly
       // this, for exactly this reason.
-      if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : DATA, ms:MS,
+      // v2.14 RV2-D (also found writing spruills-other-appn-base-requirements-zero): THE BOARD'S OWN MASTER LIST, NOT DATA.items.
+      // DATA.items is the year on screen's list, its added requirements already in it (applyState: itemsOf(BASE_ITEMS, S)), and the
+      // chart of accounts reads a def's items through itemsOf() with that year's added requirements on top: every added requirement
+      // of the appropriation on screen was listed twice on a board with no consolidated payload (Where we stand read 5 requirements
+      // and $2,200 for a year holding 3 and $1,700). The master list is what every other def carries; the rest of DATA rides along.
+      if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : Object.assign({}, DATA, {items:BASE_ITEMS}), ms:MS,
                                ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
       let st=null;
       try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}
       st=strayOr(APPN_SLUG[a], st);     // v2.14 RV1-C: the file's copy, never blank work its own board keeps aside
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
-      defs.push({name:a, data:APPNS[a], ms: st&&st.years? st : null, ppbe:(st&&st.ppbe)||{},
+      // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): AND ANOTHER APPROPRIATION'S FROM ITS OWN PLAN'S DATA PACK where the
+      // program carries no consolidated payload -- every program file since the generator was retired, and every board a full import
+      // writes, which moves a consolidated file's packs into the plans. Taken from APPNS alone, Full Fund read Total Requirements
+      // $0.00M and a Delta of +$87.60M (a surplus) on a board whose plan holds $209,844,000 of asks; the PMO drill gave PSM $0 there,
+      // and the chart of accounts listed none of its requirements. pkgPackOf reads the same pack, for the same reason.
+      // v2.14 RV2-D (the check of this fix): a plan's pack only where the plan is read as one (ms, below): a store in no year's shape
+      // carries its edits where nothing here reads them, and its pack would be printed as delivered at the shipped figures.
+      defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : ((st && st.years && _hasPack(st))? st.dataPack : APPNS[a]), ms: st&&st.years? st : null, ppbe:(st&&st.ppbe)||{},
                  slug:APPN_SLUG[a]});
     });
   } else { own.ppbe=MS.ppbe||{}; defs.push(own); }
@@ -38466,8 +38569,16 @@ function exportCSV(){
       const yr=st&&st.years? st.years[st.cur||MS.cur] : null;
       if(!yr||!Array.isArray(yr.order)) return;
       const bandsOf=(st.bands&&st.bands.length)? st.bands : L;
+      // v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out): ONLY AN ID ON THAT YEAR'S LIST IS A REQUIREMENT. An older ORBIT's
+      // Put back of an add left the add's id in the order with nothing on the list behind it (the null the mend takes out), and the
+      // order is read raw here from another appropriation's store: O&M counted 5 unbanded requirements beside an O&M that holds 4.
+      // That year's list is its master list (the consolidated payload, else its plan's own data pack, else this board's own) less
+      // what it removed, plus its added requirements (itemsOf); where no master list is known the order is counted as it stands.
+      const apk=(typeof APPNS!=='undefined' && APPNS)? APPNS[APPN_LBL[k]] : null;
+      const base=_hasData(apk)? (apk.items||[]) : _hasPack(st)? (st.dataPack.items||[]) : (k===mySlug()? BASE_ITEMS : null);
+      const onList=base? new Set(itemsOf(base, yr).map(i=>i&&i.id)) : null;
       const cnt={};
-      yr.order.forEach(id=>{ const bid=(yr.band||{})[id];
+      yr.order.forEach(id=>{ if(onList && !onList.has(id)) return; const bid=(yr.band||{})[id];
         const bi=bandsOf.findIndex(x=>x.id===bid);
         const key=(bi<0? 'unbanded' : 'Band '+bi);
         cnt[key]=(cnt[key]||0)+1; });
@@ -40572,7 +40683,7 @@ function inspHeldBack(el, held){
 function inspHeldSame(n, x){
   if(x.rk===null || x.rk===undefined) return n.getAttribute('onchange')===x.h;
   const r=n.closest? n.closest('[data-rk]') : null;
-  // v2.14 RV1-D (check): by its row's key, or by what the row holds where the key went from one row to several or back (rcnRowSig).
+  // v2.14 RV1-D (check): by its row's key, or by what the row holds where the key went from one row to several or back (rcnRowSig; since v2.14 RV2-D the mark rcnCarry carries).
   // At most one row answers: a key one row carries is in no other row's data-rs, and data-rs is one row's own.
   return !!r && n.getAttribute('data-rf')===x.rf && (r.getAttribute('data-rk')===x.rk || (!!x.rs && r.getAttribute('data-rs')===x.rs));
 }
@@ -41283,10 +41394,18 @@ function coaAsk(it, st, nsvc){
 /* EVERY ROW OF THE CHART, in board order within each appropriation.
    A requirement the order does not mention sorts last rather than being dropped — an added
    requirement that never got ranked is exactly the kind of thing this review is looking for. */
+// v2.14 RV2-D (the check of spruills-other-appn-base-requirements-zero): AN APPROPRIATION WHOSE PLAN HOLDS NO STATE FOR THE YEAR IS
+// NOT "AS DELIVERED". That flag is for an appropriation this file has never opened -- no plan at all, only a shipped payload. A plan
+// that holds other years has been opened; it has simply not started this one, and the Spruills and the PMO drill read no data for it
+// there. Listed anyway, the chart printed Full Fund's FY27 requirements as its FY28 requirement ($209,844,000 on a board that holds no
+// FY28 Full Fund plan) under a flag saying the board had never been opened -- which reading every appropriation from its own plan's pack
+// made the common case. It is left off the chart for that year, and the workbook says so (exportCoa).
+function coaYearNotHeld(d, Y){ return !!(d && d.ms && d.ms.years && !d.ms.years[Y]); }
 function coaRows(fy){
   const Y=fy||coaFy();
   const out=[];
   spDefs().forEach(function(d){
+    if(coaYearNotHeld(d, Y)) return;
     const st=(d.ms && d.ms.years)? d.ms.years[Y] : null;
     const nsvc=((d.data&&d.data.services)||[]).length;
     /* AN EMPTY OBJECT, NEVER null. Every accessor here falls back to the global `S` when handed
@@ -41379,6 +41498,11 @@ function exportCoa(){
   const sum=coaSummary(rows);
   const open=coaOpen(rows);
   const FY=FYL();
+  // v2.14 RV2-D: the appropriations whose plan has not started this year, named rather than left out in silence (coaYearNotHeld)
+  const notHeld=spDefs().filter(function(d){ return coaYearNotHeld(d, coaFy()); }).map(function(d){ return d.name; });
+  const notHeldTxt=notHeld.length? notHeld.join(', ')+(notHeld.length===1? ' holds' : ' hold')+' no plan for '+FY+': '
+    +(notHeld.length===1? 'its board has' : 'their boards have')+' not started that year, so '+(notHeld.length===1? 'it is' : 'they are')
+    +' not on this chart, and the Spruills reads no data for '+(notHeld.length===1? 'it' : 'them')+' there either.' : '';
   const T=[{v:document.title.replace(/FY\d\d/,FY)+' — CHART OF ACCOUNTS',s:TI}];
 
   // ---- 1. where each appropriation stands ------------------------------------------------
@@ -41393,6 +41517,7 @@ function exportCoa(){
       {v:b.n? Math.round(100*b.withRec/b.n):0,s:0},{v:b.distinct,s:0},{v:b.shared,s:0}]);
   });
   s1.rows.push([]);
+  if(notHeldTxt) s1.rows.push([{v:notHeldTxt,s:0}]);
   s1.rows.push([{v:'NO RECORD means the requirement has nothing to file against — it is the '
     +'first thing to fix. DISTINCT RECORDS is lower than WITH A RECORD wherever requirements share '
     +'one, which is a decision to confirm rather than a fault to correct.',s:0}]);
@@ -41435,7 +41560,7 @@ function exportCoa(){
   a.download=expName('ORBIT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
-    +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.');
+    +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.'+(notHeldTxt? ' '+esc(notHeldTxt) : ''));
 }
 
 const pubActive = ()=> PUB && (PUB.years||Array.isArray(PUB.order)) && (MS.ts||0)<=(PUB.ts||0);

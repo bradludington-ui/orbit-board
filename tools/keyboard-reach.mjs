@@ -1232,6 +1232,49 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     await ctx.close();
   } catch (e) { chk(`W · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): AND NEVER ONTO A ROW EXACTLY LIKE ITS OWN. Two identical rows sharing one key
+// (the second "repeats row 1"); 99999 typed into row 1; a colleague's change to row 1's title is loaded (applyStore, as a Live tick or
+// another tab loads it), in Chromium, which fires change on a focused field as the redraw removes it. Tab away: neither row takes the
+// typing, and the board says why. On 74a6aec the typing and the keyboard moved to row 2 and Tab saved 99999 there.
+// v2.14 RV2-D (the check of that fix): the words name what happened -- the row typed in was changed, and the row exactly like it is
+// another -- and a load that renames row 2 instead leaves the typing in row 1, where Tab saves it (the first cut, 8028c1b, dropped it).
+{
+  try {
+    const LIVEW = buildPopulated(FILE);
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    p.on('dialog', d => d.dismiss());
+    await p.goto('file://' + LIVEW);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.evaluate(() => { const r = { k: 'K1', rcn: '11111', eeic: 'AAAAA', t: 'Depot', svc: ['USAF'] }; MS.rcn = [Object.assign({}, r), Object.assign({}, r)]; save(); });
+    await p.evaluate(() => mRun(toggleRcn)); await p.waitForTimeout(250);
+    await p.focus('#rcnBody tr:nth-child(2) td:first-child input');
+    await p.keyboard.press('End');
+    for (let i = 0; i < 5; i++) await p.keyboard.press('Backspace');
+    await p.keyboard.type('99999');
+    await p.evaluate(() => { setStat(''); const st = JSON.parse(JSON.stringify(MS)); st.rcn[0].t = 'Depot repair'; st.ts = Date.now() + 5; applyStore(st); render(); });
+    await p.waitForTimeout(150);
+    await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const t1 = await p.evaluate(() => ({ stored: MS.rcn.map(e => [e.t, e.rcn]), said: (document.getElementById('shareStat') || {}).textContent || '' }));
+    chk('W · two identical rows, row 1 renamed by a load while typed into: Tab away saves the typing on neither row, and the board says the row typed in was changed and the row exactly like it is another',
+      JSON.stringify(t1.stored) === JSON.stringify([['Depot repair', '11111'], ['Depot', '11111']]) && /it is not the row the typing was in/.test(t1.said), JSON.stringify({ stored: t1.stored, said: t1.said.slice(0, 200) }));
+    // and the mirror on the other twin: row 2 renamed by the load while row 1 is typed into -- row 1 is there as it was
+    await p.evaluate(() => { const r = { k: 'K1', rcn: '11111', eeic: 'AAAAA', t: 'Depot', svc: ['USAF'] }; MS.rcn = [Object.assign({}, r), Object.assign({}, r)]; save(); render(); });
+    await p.waitForTimeout(150);
+    await p.focus('#rcnBody tr:nth-child(2) td:first-child input');
+    await p.keyboard.press('End');
+    for (let i = 0; i < 5; i++) await p.keyboard.press('Backspace');
+    await p.keyboard.type('99999');
+    await p.evaluate(() => { setStat(''); const st = JSON.parse(JSON.stringify(MS)); st.rcn[1].t = 'Depot (repeat) renamed'; st.ts = Date.now() + 5; applyStore(st); render(); });
+    await p.waitForTimeout(150);
+    await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const t2 = await p.evaluate(() => ({ stored: MS.rcn.map(e => [e.t, e.rcn]), said: (document.getElementById('shareStat') || {}).textContent || '' }));
+    chk('W · two identical rows, row 2 renamed by a load while row 1 is typed into: Tab away saves the typing on row 1, and nothing says it was lost',
+      JSON.stringify(t2.stored) === JSON.stringify([['Depot', '99999'], ['Depot (repeat) renamed', '11111']]) && !/was not kept/.test(t2.said), JSON.stringify({ stored: t2.stored, said: t2.said.slice(0, 200) }));
+    chk('W · twins: nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`W · the twins section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
 
 await b.close();
 console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked, the PPBE cycle at the top and the RCN / EEIC list held across a redraw, and each one works\n');

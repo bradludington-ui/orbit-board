@@ -8947,6 +8947,293 @@ await (async () => {
 // ---- RV2-C (round 2, second half: C) ----
 // ---- end RV2-C ----
 // ---- RV2-D (round 2, second half: D) ----
+const { bootMark: _rv2dMark, bootRelease: _rv2dRelease, settleBoards: _rv2dSettle } = await import('./boot.mjs');
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): TYPING IN ONE OF TWO IDENTICAL RCN / EEIC ROWS IS NEVER MOVED ONTO THE OTHER BY A
+// LOAD THAT CHANGES ONE OF THEM. A row was held by what it holds plus how many identical rows come before it; a load that renamed the
+// upper of two identical rows left the lower one with none above it, so it drew with the signature held for the upper one, and the
+// typing moved there and was saved on the "repeats row 1" row nothing reads. FAILS ON 74a6aec: (a) the typing is on row 2 and is saved
+// there; (b) the typing in row 2 is dropped with words that say the row has no key and is not on the list as it was; (c) the keyless
+// twins, the same as (a); (j) dropped in words that say the row has no key. (d) and (e) are CONTROLS (pass there too): a plain redraw,
+// and a load that changes a third, different row.
+// v2.14 RV2-D (the check of this fix): AND A LOAD THAT CHANGES, ADDS OR REMOVES A TWIN ELSEWHERE LEAVES THE TYPING WHERE IT WAS. The
+// first cut carried the count of ALL identical rows, so any change to a twin dropped the typing, with words that were not true.
+// FAILS ON THE FIRST CUT (8028c1b): (b) dropped; (f) the lower twin renamed, (g) a second row made identical to the one typed in, (h) a
+// row exactly like it added, (i) its twin removed -- each dropped, where the row typed in was there as it was. (k) passes on both (a
+// CONTROL for the first cut; it bites a row followed only by the fewest-changes reading, which loses a row that only moved).
+await (async () => {
+  const __bm = _rv2dMark();
+  const name = 'v2.14 RV2-D — typing in one of two identical RCN / EEIC rows is never moved onto the other by a load that changes one of them (rcn-twin-typing-moves-to-the-other-row)';
+  try {
+    const J = JSON.stringify;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+    const boards = [];
+    const board = (rcn) => {
+      const B = boot(); boards.push(B);
+      seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [100, 20, 10])], disc: [1000, 100, 100], mand: [100, 10, 10], order: ['A'] });
+      B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+        MS.rcn=${J(rcn)}; S.rcnAsg={A:'K1'}; save(); window.confirm=function(){ return true; }; window.alert=function(){}; rcnOpen=true; render(); 'ok'`);
+      return B;
+    };
+    const K1 = { k: 'K1', rcn: '11111', eeic: 'AAAAA', t: 'Depot', svc: ['USAF'] }, NOKEY = { rcn: '', eeic: '', t: '', svc: ['USAF'] };
+    const rowsOf = B => `[].filter.call(document.querySelectorAll('#rcnBody tr'), function(t){ return t.querySelector('input.btn'); })`;
+    const typeIn = (B, n, v) => B.ev(`(function(){ var r=${rowsOf(B)}[${n}]; var i=r.querySelectorAll('input.btn')[0]; i.focus(); i.value=${J(v)};
+      i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`);
+    const load = (B, js) => B.ev(`(function(){ setStat(''); var st=JSON.parse(JSON.stringify(MS)); (function(L){ ${js} })(st.rcn); st.rcn=st.rcn.filter(Boolean); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+    const holds = (B, v) => B.ev(`String([].some.call(document.querySelectorAll('#rcnBody input'), function(i){ return i.value===${J(v)}; }))`);
+    const focused = B => B.ev(`(function(){ var a=document.activeElement; var r=a && a.closest && a.closest('#rcnBody tr'); if(!r) return 'none';
+      return 'row '+(${rowsOf(B)}.indexOf(r)+1)+' '+a.value; })()`);
+    const leave = B => B.ev(`(function(){ var a=document.activeElement; if(a && a.blur) a.blur(); return 'ok'; })()`);
+    const stored = B => B.ev(`JSON.stringify(MS.rcn.map(function(e){ return [e.k===undefined? '-' : e.k, e.t, e.rcn]; }))`);
+    const reads = B => B.ev(`String(rcnEntry('K1') && rcnEntry('K1').rcn)`);
+    const said = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+    const TWIN = 'was not kept: the row it was in was exactly like another row on the list, and once the list was loaded the two could not be told apart. Nothing was changed.';
+    const LEFT = 'was not kept: the load changed or removed the row it was in; another row on the list is exactly as that row was, but it is not the row the typing was in. Nothing was changed.';
+    // the row typed in is there as it was: the typing stays in it, with the keyboard; leaving commits it there; nothing is said
+    const kept = (part, B, row, want) => {
+      chk(name, part, 'the typing is still in row ' + row + ', with the keyboard', focused(B), 'row ' + row + ' 99999');
+      leave(B);
+      chk(name, part, 'leaving commits it to row ' + row + ', and nothing says it was not kept', J([stored(B), /was not kept/.test(said(B))]), J([J(want), false]));
+    };
+    // (a) two identical rows sharing K1 (the second "repeats row 1"); typing in row 1, the row A reads; a load renames row 1
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L[0].t='Depot repair';`);
+      chk(name, '(a) the first twin, renamed by the load', 'no field holds the typing: it is not put on the other twin', holds(B, '99999'), 'false');
+      leave(B);
+      chk(name, '(a) the first twin, renamed by the load', 'leaving changes nothing: both rows keep 11111, and A reads the row it always read',
+        J([stored(B), reads(B)]), J([J([['K1', 'Depot repair', '11111'], ['K1', 'Depot', '11111']]), '11111']));
+      chk(name, '(a) the first twin, renamed by the load', 'and the board says the row typed in was changed, and the row exactly like it is another',
+        said(B).indexOf('(“99999”) ' + LEFT) >= 0, true);
+      chk(name, 'errors · (a)', 'no page error', String(B.errors.length), '0');
+    }
+    // (b) the same twins; typing in row 2; the load renames row 1: row 2 is there as it was, and the typing stays in it
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 1, '99999');
+      load(B, `L[0].t='Depot repair';`);
+      kept('(b) the second twin, the first renamed', B, 2, [['K1', 'Depot repair', '11111'], ['K1', 'Depot', '99999']]);
+    }
+    // (c) two identical rows with no key at all; typing in the first; the load fills the first's title
+    {
+      const B = board([NOKEY, NOKEY]);
+      typeIn(B, 0, '12345');
+      load(B, `L[0].t='Depot repair';`);
+      leave(B);
+      chk(name, '(c) keyless twins, the first changed', 'leaving changes nothing: the second keeps its blank code', stored(B), J([['-', 'Depot repair', ''], ['-', '', '']]));
+      chk(name, '(c) keyless twins, the first changed', 'and the board says the row typed in was changed, and the row exactly like it is another',
+        said(B).indexOf('(“12345”) ' + LEFT) >= 0, true);
+    }
+    // (d) CONTROL: a plain redraw keeps the typing on row 1 of the twins
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      B.ev(`render(); 'ok'`);
+      chk(name, '(d) CONTROL', 'across a plain redraw the typing stays in row 1, with the keyboard', focused(B), 'row 1 99999');
+      leave(B);
+      chk(name, '(d) CONTROL', 'leaving commits it to row 1, the row A reads', J([stored(B), reads(B)]), J([J([['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]), '99999']));
+    }
+    // (e) CONTROL: a load that changes a third row, unlike either twin, leaves the typing on row 1
+    {
+      const B = board([K1, K1, { k: 'K2', rcn: '22222', eeic: 'BBBBB', t: 'Other', svc: ['USAF'] }]);
+      typeIn(B, 0, '99999');
+      load(B, `L[2].t='Other renamed';`);
+      chk(name, '(e) CONTROL', 'a load that changes another row leaves the typing in row 1', focused(B), 'row 1 99999');
+      leave(B);
+      chk(name, '(e) CONTROL', 'leaving commits it to row 1', stored(B), J([['K1', 'Depot', '99999'], ['K1', 'Depot', '11111'], ['K2', 'Other renamed', '22222']]));
+    }
+    // (f) the twins; typing in row 1; the load renames row 2, the repeat: row 1 is there as it was, and A reads what was typed
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L[1].t='Depot (repeat) renamed';`);
+      kept('(f) the first twin, the second renamed', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot (repeat) renamed', '11111']]);
+      chk(name, '(f) the first twin, the second renamed', 'and A reads 99999', reads(B), '99999');
+    }
+    // (g) two rows sharing K1 that differ (Depot / Depot repair); typing in row 1; the load makes row 2 exactly like row 1
+    {
+      const B = board([K1, Object.assign({}, K1, { t: 'Depot repair' })]);
+      typeIn(B, 0, '99999');
+      load(B, `L[1].t='Depot';`);
+      kept('(g) a second row made exactly like the one typed in', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]);
+    }
+    // (h) K1 on one row; typing in it; the load adds a row exactly like it below (a list from a board before v2.00)
+    {
+      const B = board([K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L.push(JSON.parse(JSON.stringify(L[0])));`);
+      kept('(h) a row exactly like it added below', B, 1, [['K1', 'Depot', '99999'], ['K1', 'Depot', '11111']]);
+      chk(name, '(h) a row exactly like it added below', 'and A reads 99999', reads(B), '99999');
+    }
+    // (i) the twins; typing in row 1; the load removes one of them: the row left is exactly the row typed in, at its place
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 0, '99999');
+      load(B, `L.splice(0, 1);`);
+      kept('(i) a twin removed, typing in the first', B, 1, [['K1', 'Depot', '99999']]);
+    }
+    // (j) the twins; typing in row 2, the repeat; the load removes one of them: which went cannot be told, and the one left is the row
+    // A reads -- the typing is put on no row, and said in the twin's words
+    {
+      const B = board([K1, K1]);
+      typeIn(B, 1, '99999');
+      load(B, `L.splice(0, 1);`);
+      chk(name, '(j) a twin removed, typing in the repeat', 'no field holds the typing', holds(B, '99999'), 'false');
+      leave(B);
+      chk(name, '(j) a twin removed, typing in the repeat', 'leaving changes nothing: the row left keeps 11111, and A reads it', J([stored(B), reads(B)]), J([J([['K1', 'Depot', '11111']]), '11111']));
+      chk(name, '(j) a twin removed, typing in the repeat', 'and the board says the two could not be told apart, never that the row has no key',
+        J([said(B).indexOf('(“99999”) ' + TWIN) >= 0, /has no key of its own/.test(said(B))]), J([true, false]));
+    }
+    // (k) three keyless rows unlike each other; typing in the first; the load moves it to the end: it only moved, so the typing follows it
+    {
+      const B = board(['ONE', 'TWO', 'THREE'].map((t, i) => ({ rcn: String(i + 1).repeat(5), eeic: 'EEEEE', t, svc: ['USAF'] })));
+      typeIn(B, 0, '99999');
+      load(B, `L.push(L.shift());`);
+      kept('(k) a row with no key that only moved past the others', B, 3, [['-', 'TWO', '22222'], ['-', 'THREE', '33333'], ['-', 'ONE', '99999']]);
+    }
+    chk(name, 'errors · (b)–(k)', 'no page error', String(boards.slice(1).reduce((n, B) => n + B.errors.length, 0)), '0');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  _rv2dRelease(__bm); await _rv2dSettle();
+})();
+// v2.14 RV2-D (spruills-other-appn-base-requirements-zero, spruills-checks-cannot-reach-a-real-board): ANOTHER APPROPRIATION'S
+// REQUIREMENTS ARE READ FROM ITS OWN PLAN'S DATA PACK, as every program file carries them. The program's consolidated payload (APPNS)
+// is empty on every board since the generator was retired, and a full import moves a consolidated file's packs into the plans; read
+// from APPNS alone, Full Fund's base requirements counted nowhere -- Spruills read Total Requirements $0.00M and a surplus Delta, the
+// PMO drill gave PSM $0 there, and the chart of accounts listed none of them. The v1.95 checks stood Full Fund up in APPNS by hand and
+// could not see it. And the board's own added requirements are listed once by the chart of accounts (it listed each twice, also found
+// here). Full Fund's plan is the same in this browser's storage and in the file, so the check holds whichever copy is read.
+// FAILS ON 74a6aec: Full Fund's Spruills rows, totals and drill read only FFN's $3M in the second year and nothing in the first; the
+// chart of accounts lists no Full Fund requirement and N twice.
+// v2.14 RV2-D (the check of this fix): AND FOR A YEAR FULL FUND'S PLAN HAS NOT STARTED, THE CHART OF ACCOUNTS DOES NOT LIST ITS
+// REQUIREMENTS "AS DELIVERED". With every appropriation read from its own plan's pack, the chart listed Full Fund's requirements for a
+// year its plan holds no state for, at their shipped asks, under a flag saying its board had never been opened in this file, while the
+// Spruills on the same page read no data there. FAILS ON THE FIRST CUT (8028c1b): (y) Full Fund is listed as delivered; and on 74a6aec
+// and the first cut, the workbook does not say Full Fund holds no plan for that year. (z) is a CONTROL: an appropriation this file has
+// never opened, with only a shipped payload, is still listed as delivered. (x) passes on both (a store in no year's shape was never
+// read for its pack); it bites the guard that keeps it so.
+await (async () => {
+  const __bm = _rv2dMark();
+  const name = 'v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)';
+  try {
+    const J = JSON.stringify, M = 1e6;
+    const { ev, errors } = boot();
+    seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 2 * M]), it('B', 'TSS', [3 * M, 1 * M])],
+      disc: [20 * M, 5 * M], mand: [4 * M, 1 * M], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save();
+      window.confirm=function(){ return true; }; window.alert=function(){}; spAce='board'; 'ok'`);
+    const cur = +ev('MS.cur'), Y = [cur, cur + 1], own = ev('APPN');
+    const N = ev(`(function(){ var a=reqCreate('AV', {title:'N', event:'EN', ask:[1000000, 500000]}); save(); render(); return a; })()`);
+    const other = own === 'FULL FUND' ? 'O&M' : 'FULL FUND', slug = ev(`APPN_SLUG[${J(other)}]`);
+    // the other appropriation, as a program file carries it: its requirements in its plan's own data pack, the consolidated payload empty
+    ev(`(function(){ var st={base:MS.base, cur:MS.cur, ts:Date.now()-60000, years:{},
+        dataPack:{services:['USAF','ANG','AFRC'], items:[
+          {id:'FF1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req FF1', event:'Ev FF1', ccar:'CCFF1', fy26:[0,0,0], ask:[1000000,2000000,3000000], alloc:null},
+          {id:'FF2', grp:'AV', team:'AV', sect:'', custom:false, title:'Req FF2', event:'Ev FF2', ccar:'CCFF2', fy26:[0,0,0], ask:[4000000,0,1000000], alloc:null}]}};
+      st.years[${cur}]={asks:{FF1:[2000000,2000000,3000000]}, order:['FF1','FF2'], discSvc:[5000000,1000000,1000000], mandSvc:[1000000,0,0]};
+      st.years[${cur + 1}]={asks:{}, order:['FF1','FF2','FFN'], discSvc:[6000000,2000000,2000000], mandSvc:[0,0,1000000],
+        custom:[{id:'FFN', grp:'TSS', sect:'new', custom:true, title:'FF added (made up)', event:'e', ccar:'', fy26:[0,0,0], ask:[1000000,1000000,1000000], alloc:null}]};
+      localStorage.setItem(_SLUGMAP[${J(slug)}].key, JSON.stringify(st)); PUBS[${J(slug)}]=JSON.parse(JSON.stringify(st)); return 'ok'; })()`);
+    chk(name, 'fixture', 'the program carries no consolidated payload for it, and its plan carries a data pack, in storage and in the file alike',
+      ev(`JSON.stringify([_hasData(APPNS[${J(other)}]), _hasPack(JSON.parse(localStorage.getItem(_SLUGMAP[${J(slug)}].key))), _hasPack(PUBS[${J(slug)}])])`), J([false, true, true]));
+    const gather = by => JSON.parse(ev(`(function(){ var keep=[spBy, spSvc, spPmo]; try{ spBy=${J(by)}; spSvc='ALL'; spPmo='ALL';
+        return JSON.stringify(spGather().blocks); } finally { spBy=keep[0]; spSvc=keep[1]; spPmo=keep[2]; } })()`));
+    const bySvc = gather('svc'), byPmo = gather('pmo');
+    const blk = (B, n) => B.find(b => b.name === n) || { rows: {}, req: {}, bud: {} };
+    const rows = (b, keys) => keys.map(k => Y.map(y => (b.rows[k] || {})[y]));
+    // THE TRUTH, by hand: FY on screen FF1 at its override 2+2+3 = $7M, FF2 4+0+1 = $5M; the next year FF1 at its own 1+2+3 = $6M, FF2
+    // $5M, FFN 1+1+1 = $3M. Budgets 5+1+1+1 = $8M and 6+2+2+1 = $11M.
+    chk(name, 'Spruills', 'Full Fund’s Total Requirements, Available Funding and Delta, each year from its own plan',
+      J(Y.map(y => { const b = blk(byPmo, other); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })), J([[12 * M, 8 * M, -4 * M], [14 * M, 11 * M, -3 * M]]));
+    chk(name, 'Spruills', 'Full Fund’s rows by service, at its own three services, each year',
+      J(rows(blk(bySvc, other), ['USAF', 'ANG', 'AFRC'])), J([[6 * M, 6 * M], [2 * M, 3 * M], [4 * M, 5 * M]]));
+    chk(name, 'Spruills', 'Full Fund’s rows by PMO, each year: its override, its added requirement once',
+      J(rows(blk(byPmo, other), ['PSM', 'AV', 'TSS'])), J([[7 * M, 6 * M], [5 * M, 5 * M], [null, 3 * M]]));
+    const drill = JSON.parse(ev(`(function(){ var b=pmoDetail('PSM', ${J(Y)}).filter(function(x){ return x.name===${J(other)}; })[0]||{svcs:[], req:{}};
+      return JSON.stringify([b.svcs, b.svcs.map(function(sv){ return ${J(Y)}.map(function(y){ return (b.req[sv]||{})[y]||0; }); })]); })()`));
+    chk(name, 'PMO drill', 'PSM in Full Fund: FF1 by its own three services, each year (its override on screen, its own ask the next)',
+      J(drill), J([['USAF', 'ANG', 'AFRC'], [[2 * M, 1 * M], [2 * M, 2 * M], [3 * M, 3 * M]]]));
+    const coa = JSON.parse(ev(`JSON.stringify(coaRows(${cur}).map(function(r){ return [r.ap, r.id, r.ask]; }))`));
+    chk(name, 'chart of accounts', 'every requirement of both appropriations, each once: this board’s A, B and its added N; Full Fund’s FF1 and FF2',
+      J(coa.filter(r => r[0] === own || r[0] === other)), J([[own, 'A', 12 * M], [own, 'B', 4 * M], [own, N, 1.5 * M], [other, 'FF1', 7 * M], [other, 'FF2', 5 * M]]));
+    chk(name, 'chart of accounts', '“Where we stand”: requirements and the year’s requirement, by appropriation',
+      ev(`JSON.stringify(coaSummary(coaRows(${cur})).filter(function(b){ return b.ap===${J(own)} || b.ap===${J(other)}; }).map(function(b){ return [b.ap, b.n, b.ask]; }))`),
+      J([[own, 3, 17.5 * M], [other, 2, 12 * M]]));
+    // (y) the board moves on to a year Full Fund's plan has not started (it holds this year and the next); (z) Initial Spares was never
+    // opened in this file -- no plan anywhere -- and the program ships a payload for it
+    ev(`(function(){ var P=APPNS['INITIAL SPARES']; P.services.length=0; P.items.length=0; ['USAF','ANG'].forEach(function(s){ P.services.push(s); });
+      P.items.push({id:'SP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req SP1', event:'Ev SP1', ccar:'', fy26:[0,0], ask:[700000,300000], alloc:null});
+      localStorage.removeItem(_SLUGMAP.sp.key); PUBS.sp=null; switchYear(${cur + 2}); return 'ok'; })()`);
+    const FY2 = 'FY' + ((cur + 2) % 100);
+    chk(name, '(y) fixture', 'the year on screen is two on, which Full Fund’s plan does not hold; Initial Spares has no plan at all',
+      ev(`JSON.stringify([MS.cur, Object.keys(JSON.parse(localStorage.getItem(_SLUGMAP[${J(slug)}].key)).years), localStorage.getItem(_SLUGMAP.sp.key), PUBS.sp])`),
+      J([cur + 2, [String(cur), String(cur + 1)], null, null]));
+    chk(name, '(y) a year Full Fund has not started', 'the chart of accounts lists none of Full Fund’s requirements for it, and so no Full Fund row in “Where we stand”',
+      ev(`JSON.stringify([coaRows(${cur + 2}).filter(function(r){ return r.ap===${J(other)}; }).length, coaSummary(coaRows(${cur + 2})).some(function(b){ return b.ap===${J(other)}; })])`), J([0, false]));
+    const stand = JSON.parse(ev(`(function(){ var cap=null; var keep=buildXlsx; buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ exportCoa(); } finally { buildXlsx=keep; }
+      var s1=(cap||[]).filter(function(s){ return s.name==='Where we stand'; })[0]||{rows:[]};
+      return JSON.stringify(s1.rows.map(function(r){ return (r||[]).map(function(c){ return (c && typeof c==='object' && 'v' in c)? c.v : c; }); })); })()`));
+    const firsts = stand.map(r => String(r[0] ?? ''));
+    chk(name, '(y) a year Full Fund has not started', 'the workbook’s “Where we stand” has no Full Fund row, and says Full Fund holds no plan for ' + FY2,
+      J([firsts.some(v => v === other || v.indexOf(other + '  (') === 0), firsts.indexOf(other + ' holds no plan for ' + FY2 + ': its board has not started that year, so it is not on this chart, and the Spruills reads no data for it there either.') >= 0]),
+      J([false, true]));
+    chk(name, '(y) a year Full Fund has not started', 'and the Spruills reads no data for Full Fund there',
+      J(blk(gather('pmo'), other).req[cur + 2] === undefined), 'true');
+    chk(name, '(z) CONTROL — never opened in this file', 'Initial Spares, with only a shipped payload, is still listed as delivered: SP1 at its shipped $1,000,000',
+      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='INITIAL SPARES'; }).map(function(r){ return [r.id, r.ask, r.fromPayload]; }))`), J([['SP1', 1000000, true]]));
+    // (x) a store for OPN in no year's shape (a board from before fiscal years, its edits at the top): its pack is not printed as delivered
+    // at the shipped figures, since nothing here reads where its edits are -- as before every appropriation was read from its own pack
+    ev(`(function(){ var st={ts:Date.now()-60000, asks:{OP1:[9000000,0]}, order:['OP1'],
+        dataPack:{services:['USAF','ANG'], items:[{id:'OP1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req OP1', event:'Ev OP1', ccar:'', fy26:[0,0], ask:[100000,0], alloc:null}]}};
+      localStorage.setItem(_SLUGMAP.opn.key, JSON.stringify(st)); PUBS.opn=JSON.parse(JSON.stringify(st)); return 'ok'; })()`);
+    chk(name, '(x) a store in no year’s shape', 'OPN’s pack is not listed as delivered at its shipped $100,000, while its own edit says $9,000,000',
+      ev(`JSON.stringify(coaRows(${cur + 2}).filter(function(r){ return r.ap==='OPN'; }).map(function(r){ return [r.id, r.ask]; }))`), '[]');
+    chk(name, 'errors', 'no page error', errors.length ? errors.slice(0, 2).join(' | ') : '', '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  _rv2dRelease(__bm); await _rv2dSettle();
+})();
+// v2.14 RV2-D (byband-counts-a-requirement-the-mend-took-out): THE PRIORITY DRILL'S COUNT BY BAND, ACROSS EVERY APPROPRIATION, COUNTS
+// ONLY REQUIREMENTS. An older ORBIT's Put back of an add left the add's id in the order with a null where the requirement was (the mend
+// takes it out, on that appropriation's own board), and the count read another appropriation's order raw. O&M's plan is the same in
+// this browser's storage and in the file. FAILS ON 74a6aec: O&M counts 5 (A, B, C, the ghost NEW-1, NEW-2) beside a year holding 4.
+await (async () => {
+  const __bm = _rv2dMark();
+  const name = 'v2.14 RV2-D — the Priority Drill’s count by band across every appropriation counts only the requirements on each year’s list (byband-counts-a-requirement-the-mend-took-out)';
+  try {
+    const J = JSON.stringify;
+    const { ev, errors } = boot({ appn: 'FULL FUND' });
+    seed(ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('F1', 'AV', [500, 100, 50]), it('F2', 'PSM', [300, 0, 20])],
+      disc: [2000, 600, 300], mand: [500, 150, 80], order: ['F1', 'F2'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save();
+      window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    const cur = +ev('MS.cur');
+    chk(name, 'fixture', 'Full Fund is on screen', ev('mySlug()'), 'ff');
+    // O&M as v2.13's Put back of NEW-1's add leaves it: a null where NEW-1 was, its id still in the order (the order is not journalled)
+    const om = { base: cur, cur, ts: Date.now() - 60000, years: {},
+      dataPack: { services: ['USAF', 'ANG', 'AFRC'], items: ['A', 'B', 'C'].map(id => it(id, 'AV', [100, 10, 1])) } };
+    om.years[cur] = { order: ['A', 'B', 'C', 'NEW-1', 'NEW-2'], discSvc: [1000, 100, 10], mandSvc: [0, 0, 0],
+      custom: [null, { id: 'NEW-2', grp: 'AV', team: 'AV', sect: 'new', custom: true, title: 'Y', event: 'EY', ccar: '', fy26: [0, 0, 0], ask: [200, 0, 0], alloc: null }] };
+    ev(`localStorage.setItem(_SLUGMAP.om.key, ${J(J(om))}); PUBS.om=JSON.parse(${J(J(om))}); 'ok'`);
+    const byBand = JSON.parse(ev(`(function(){ var cap=null; var keep=buildXlsx; buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ exportCSV(); } finally { buildXlsx=keep; }
+      var out={}, on=false; (cap||[]).forEach(function(s){ (s.rows||[]).forEach(function(r){
+        var v=(r||[]).map(function(c){ return (c && typeof c==='object' && 'v' in c)? c.v : c; });
+        if(/REQUIREMENTS BY BAND, ACROSS EVERY APPROPRIATION/.test(String(v[0]||''))){ on=true; return; }
+        if(on && /^Counts only/.test(String(v[0]||''))){ on=false; return; }
+        if(on && typeof v[1]==='number') out[v[0]]=v.slice(1).reduce(function(a,b){ return a+(typeof b==='number'? b : 0); }, 0); }); });
+      return JSON.stringify(out); })()`));
+    chk(name, 'by band', 'O&M counts the four requirements on its year’s list (A, B, C and NEW-2), never the id the Put back left behind', byBand['O&M'], 4);
+    chk(name, 'by band', 'CONTROL — Full Fund counts its own two', byBand['Full Fund'], 2);
+    chk(name, 'errors', 'no page error', errors.length ? errors.slice(0, 2).join(' | ') : '', '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  _rv2dRelease(__bm); await _rv2dSettle();
+})();
 // ---- end RV2-D ----
 // ==== end v2.14 review round 2 fixes ====
 

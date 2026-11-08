@@ -18581,16 +18581,19 @@ await (async () => {
       r.push(t(function(){ return Array.isArray(pmoDetail('AV', [${fyOm}])); }));
       r.push(t(function(){ return Array.isArray(coaRows(${fyOm})); }));
       return JSON.stringify(r); })()`);
+    // v2.14 RV2-D (spruills-other-appn-base-requirements-zero): THE TRUE FIGURE IS $1,400, A's $1,200 AND NEW-2's $200. This block pinned
+    // $200 -- NEW-2 alone -- because Spruills read another appropriation's master list from the consolidated payload only, which a
+    // program file never carries, and so counted none of O&M's requirement A from its plan's own data pack. That was the wrong figure.
     const C = boot({ html: v14With(PROGRAM, Pc), appn: 'FULL FUND' });
-    chk(name, '(d) fixture', 'the same file with the two entries taken out by hand: from Full Fund, Spruills reads O&M as NEW-2’s $200, and every read runs',
-      other(C, 'clean'), J([200, true, true, true]));
+    chk(name, '(d) fixture', 'the same file with the two entries taken out by hand: from Full Fund, Spruills reads O&M as A’s $1,200 and NEW-2’s $200, and every read runs',
+      other(C, 'clean'), J([1400, true, true, true]));
     const Df = boot({ html: v14With(PROGRAM, P), appn: 'FULL FUND' });
-    chk(name, '(d) another appropriation, the file’s copy', 'from Full Fund, O&M’s damaged list in the file: Spruills reads $200, opens and closes, the PMO drill and the chart of accounts run',
-      other(Df, 'file'), J([200, true, true, true]));
+    chk(name, '(d) another appropriation, the file’s copy', 'from Full Fund, O&M’s damaged list in the file: Spruills reads $1,400, opens and closes, the PMO drill and the chart of accounts run',
+      other(Df, 'file'), J([1400, true, true, true]));   // v2.14 RV2-D: $1,400 (above)
     chk(name, '(d) another appropriation, the file’s copy', 'no page error', J(Df.errors.map(e => String(e).slice(0, 80))), '[]');
     const Ds = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
     chk(name, '(d) another appropriation, this browser’s copy', 'from Full Fund, O&M’s damaged list in this browser (as v2.13 left it): the same',
-      other(Ds, 'storage'), J([200, true, true, true]));
+      other(Ds, 'storage'), J([1400, true, true, true]));   // v2.14 RV2-D: $1,400 (above)
     chk(name, '(d) another appropriation, this browser’s copy', 'no page error', J(Ds.errors.map(e => String(e).slice(0, 80))), '[]');
     // v2.14 RV1-D (the check of this fix): (e) THE FULL IMPORT'S DOOR LETS THE DAMAGE THROUGH ONLY WHERE THE IMPORT MENDS IT. The first cut
     // passed it in any plan the file carried, a locked cycle's year included, which nothing mends: the import took it and the reopened
@@ -19746,6 +19749,143 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ---- end RV2-C ----
 // ---- RV2-D (round 2, second half: D) ----
+// v2.14 RV2-D (also noticed: an added requirement listed twice): AN ADDED REQUIREMENT AN OLDER ORBIT LEFT TWICE IN THE LIST IS KEPT ONCE,
+// THE REPEAT SET ASIDE AND SAID, AND IT IS COUNTED ONCE EVERYWHERE. v2.13's ↶ Put back by place leaves it (put back the delete of
+// NEW-3, remove NEW-1, put the same delete back again); the damage here is v2.13's own (git show c863dc2). DATA.items held NEW-3 twice,
+// the chart of accounts listed it twice and counted its $300 twice, and from another appropriation Spruills added it twice. FAILS ON
+// 74a6aec: (a) the list holds NEW-3 twice and nothing is said; (b) the chart of accounts lists it twice (and each added requirement
+// twice again, the own board's list doubled); (c) from Full Fund O&M reads $800 (NEW-2, NEW-3 twice, and none of A); (d) the full
+// import's question does not name it; (e) the saved file keeps both.
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-D — an added requirement an older ORBIT left twice in the list is kept once, the repeat set aside and said, and counted once everywhere (also noticed)';
+  try {
+    const J = JSON.stringify;
+    const { lsOf } = W1H;
+    const V213 = v14Old('c863dc2', 'prioritization-board-grid.html');
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const O = boot({ html: V213 });
+    seed(O.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    O.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      localStorage.setItem('prio27who','Colleague'); window.confirm=function(){ return true; }; window.alert=function(){};
+      window.__rn=Date.now; window.__tk=-900000; Date.now=function(){ return window.__rn.call(Date)+window.__tk; }; 'ok'`);
+    const step = (js) => { O.ev(`window.__tk+=61000; 'ok'`); try { return O.ev(js); } catch (e) { return 'THREW'; } };
+    step(`reqCreate('AV', {title:'X', event:'EX', ask:[100,0,0]}); save(); render(); 'ok'`);
+    step(`reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); 'ok'`);
+    step(`reqCreate('AV', {title:'Z', event:'EZ', ask:[300,0,0]}); save(); render(); 'ok'`);
+    step(`removeReq('NEW-3'); 'ok'`);
+    const delZ = +O.ev(`(function(){ var L=MS.jrnl||[]; for(var i=L.length-1;i>=0;i--) if(L[i].p.length===2 && L[i].p[0]==='custom' && L[i].a && L[i].a.id==='NEW-3' && L[i].b===null) return i; return -1; })()`);
+    step(`jrnlUndo(${delZ}); 'ok'`);
+    step(`removeReq('NEW-1'); 'ok'`);
+    step(`jrnlUndo(${delZ}); 'ok'`);
+    step(`setNote('A','x'); 'ok'`);
+    const F = O.ev('buildSavedHtml()');
+    const pubOf = html => JSON.parse(html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+    const ids = L => (L || []).map(x => x && x.id);
+    const stOm = JSON.parse(lsOf(O.ev).prio27om), cur = +stOm.cur;
+    chk(name, 'fixture', 'v2.13’s own Put back leaves NEW-3 twice in the list, in this browser’s storage and in its file alike, and once in the order',
+      J([ids(stOm.years[cur].custom), ids(pubOf(F).appns.om.years[cur].custom), stOm.years[cur].order]), J([['NEW-2', 'NEW-3', 'NEW-3'], ['NEW-2', 'NEW-3', 'NEW-3'], ['A', 'NEW-2', 'NEW-3']]));
+    const held = B => w209ev(B, `JSON.stringify([S.custom.map(function(x){ return x.id; }), DATA.items.map(function(i){ return i.id; }),
+      DATA.items.reduce(function(t,i){ return t+i.ask.reduce(function(a,b){ return a+b; },0); },0),
+      (S.customAside||[]).map(function(a){ return [a.i, a.v && a.v.id, a.v && a.v.ask[0]]; })])`);
+    const ONCE = J([['NEW-2', 'NEW-3'], ['A', 'NEW-2', 'NEW-3'], 1200 + 200 + 300, [[2, 'NEW-3', 300]]]);
+    // (a) this build opens what v2.13 left in this browser's storage
+    const B = boot({ ls: lsOf(O.ev) });
+    chk(name, '(a) from browser storage', 'NEW-3 is on the list once, the board holds A, NEW-2 and NEW-3 ($1,700), and the repeat is kept as it was found, at its place', held(B), ONCE);
+    chk(name, '(a) from browser storage', 'the opening says it, kept unread',
+      w209ev(B, `String(STAT_LOG.some(function(m){ return !m.read && /The list of added requirements was mended on opening<\\/b> — FY27: 1 second entry for a requirement already on the list set aside in the file, where nothing counts it\\./.test(m.html); }))`), 'true');
+    chk(name, '(a) from browser storage', 'no page error', J(B.errors.map(e => String(e).slice(0, 80))), '[]');
+    // (b) the chart of accounts, on O&M's own board: every requirement once
+    chk(name, '(b) the chart of accounts', 'O&M lists A, NEW-2 and NEW-3 once each, and “Where we stand” reads 3 requirements and $1,700',
+      w209ev(B, `JSON.stringify([coaRows(MS.cur).filter(function(r){ return r.ap==='O&M'; }).map(function(r){ return r.id; }),
+        coaSummary(coaRows(MS.cur)).filter(function(b){ return b.ap==='O&M'; }).map(function(b){ return [b.n, b.ask]; })[0]])`),
+      J([['A', 'NEW-2', 'NEW-3'], [3, 1700]]));
+    // (c) from Full Fund: O&M's raw store, read as its own board would open it, before that board has mended it
+    const Bf = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
+    chk(name, '(c) from Full Fund', 'Spruills reads O&M as $1,700 (A, NEW-2, NEW-3 once), and the chart of accounts lists each once',
+      w209ev(Bf, `JSON.stringify([(spGather().blocks.filter(function(b){ return b.name==='O&M'; })[0]||{req:{}}).req[${cur}],
+        coaRows(${cur}).filter(function(r){ return r.ap==='O&M'; }).map(function(r){ return r.id; })])`),
+      J([1700, ['A', 'NEW-2', 'NEW-3']]));
+    // (d) v2.13's board file, full imported: taken, mended as it comes across, and said in its question
+    const N = boot();
+    let imp = [null, []];
+    try { imp = JSON.parse(w209ev(N, `(function(){ var q=[]; window.confirm=function(m){ q.push(String(m)); return true; }; window.alert=function(m){ q.push(String(m)); };
+      var r=fullImportText(${J(F)}, 'twice.html'); return JSON.stringify([r, q]); })()`)); } catch (e) { imp = ['threw', []]; }
+    chk(name, '(d) the full import', 'the file is taken, and its question names the repeat set aside',
+      J([imp[0], imp[1].some(q => /O&M’s list of added requirements, which an ORBIT older than v2\.14 left damaged, mended — FY27: 1 second entry for a requirement already on the list set aside in the file, where nothing counts it/.test(q))]), J([true, true]));
+    const N2 = boot({ ls: lsOf(N.ev) });
+    chk(name, '(d) the full import, reopened', 'NEW-3 is on the list once, and the repeat is kept as it was found', held(N2), ONCE);
+    // (e) saved: the file carries the list with NEW-3 once, and the repeat set aside
+    const F2 = w209ev(B, `(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return buildSavedHtml(); })()`);
+    let Y2 = null; try { Y2 = (st => st.years[st.cur])(pubOf(F2).appns.om); } catch (e) { Y2 = null; }
+    chk(name, '(e) saved', 'the saved file holds NEW-2 and NEW-3 in the list, and the repeat set aside',
+      Y2 ? J([ids(Y2.custom), (Y2.customAside || []).map(a => [a.i, a.v.id])]) : 'no file', J([['NEW-2', 'NEW-3'], [[2, 'NEW-3']]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.14 RV2-D (also noticed: said only at the end of opening; roll forward copied what a mend set aside): A LIST MENDED BY A LOAD
+// ONCE THE BOARD IS OPEN IS SAID AS IT LANDS, AND ROLL FORWARD DOES NOT COPY WHAT A MEND SET ASIDE INTO THE NEW YEAR. Every load
+// comes through applyStore(), which mends every year; what it mended was said only by the end of the opening, so a store mended later
+// -- kept work put back, another tab's write from an older ORBIT, a folder copy -- was mended without a word. And a year rolled forward
+// was a copy of the year on screen, its customAside with it: the new year held entries it never had. The damage is the shape v2.13's
+// Put back leaves (null where an add was; an element with no id carrying a value: RV1-D's oldfiles block makes it with v2.13 itself).
+// FAILS ON 74a6aec: (a) nothing is said of the mend; (c) FY28 holds the entry FY27 set aside. (b) and (d) are CONTROLS.
+// v2.14 RV2-D (the check of this fix): AND PMO APPLY'S ROLL FORWARD -- the year a five-year copy's package goes into that this board has
+// not started (pmoYearStart) -- the same. The fix went into the year switch alone. FAILS ON 74a6aec AND ON THE FIRST CUT (8028c1b): (e).
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-D — a list mended by a load once the board is open is said as it lands, and Roll forward does not copy what a mend set aside (also noticed)';
+  try {
+    const J = JSON.stringify;
+    const { lsOf } = W1H;
+    const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+    const O = boot();
+    seed(O.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [mk('A', [900, 200, 100])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A'] });
+    O.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      window.confirm=function(){ return true; }; window.alert=function(){}; reqCreate('AV', {title:'Y', event:'EY', ask:[200,0,0]}); save(); render(); 'ok'`);
+    const cur = +O.ev('MS.cur');
+    const damaged = st => { const y = st.years[st.cur]; y.custom = [null].concat(y.custom).concat([{ ask: [300, 0, 0], fy26: [0, 0, 0] }]); return st; };
+    // (a) the board is open and clean; a load brings a store with the damage
+    const B = boot({ ls: lsOf(O.ev) });
+    w209ev(B, `window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    chk(name, '(a) fixture', 'the board opened clean: nothing was mended on opening', w209ev(B, `String(STAT_LOG.some(function(m){ return /list of added requirements was mended/.test(m.html); }))`), 'false');
+    const st = damaged(JSON.parse(w209ev(B, 'JSON.stringify(MS)'))); st.ts = Date.now() + 5;
+    w209ev(B, `(function(){ applyStore(${J(st)}); render(); return 'ok'; })()`);
+    chk(name, '(a) a load once open', 'the list is mended: NEW-1 alone on it, the element with no id kept aside as found',
+      w209ev(B, `JSON.stringify([S.custom.map(function(x){ return x.id; }), (S.customAside||[]).map(function(a){ return [a.i, a.v.ask[0]]; })])`), J([['NEW-1'], [[2, 300]]]));
+    chk(name, '(a) a load once open', 'and it is said as it lands, kept unread',
+      w209ev(B, `String(STAT_LOG.some(function(m){ return m.keep && !m.read && /The list of added requirements was mended as it was loaded<\\/b> — FY27: 1 empty entry taken out, 1 entry with no requirement id set aside in the file, where nothing counts it\\./.test(m.html); }))`), 'true');
+    // (b) CONTROL: a load of a store with nothing to mend says nothing of a mend
+    const C = boot({ ls: lsOf(O.ev) });
+    const sc = JSON.parse(w209ev(C, 'JSON.stringify(MS)')); sc.ts = Date.now() + 5;
+    w209ev(C, `(function(){ applyStore(${J(sc)}); render(); return 'ok'; })()`);
+    chk(name, '(b) CONTROL', 'a clean load says nothing of a mend', w209ev(C, `String(STAT_LOG.some(function(m){ return /list of added requirements was mended/.test(m.html); }))`), 'false');
+    // (e) PMO Apply's roll forward (pmoYearStart, which starts a year a five-year copy's package goes into): a copy of the plan, never
+    // of what the mend set aside -- and the year it is taken from keeps its own
+    chk(name, '(e) PMO Apply’s roll forward', 'the year it would start holds NEW-1 and nothing set aside; FY' + (cur % 100) + ' keeps its own',
+      w209ev(B, `JSON.stringify((function(s){ return [s.custom.map(function(x){ return x.id; }), s.customAside===undefined? 'none' : s.customAside.length, (S.customAside||[]).length]; })(pmoYearStart(${cur + 1}, true)))`),
+      J([['NEW-1'], 'none', 1]));
+    // (c) Roll forward from the mended year: the new year is a copy of the plan, never of what the mend set aside
+    w209ev(B, `(function(){ window.confirm=function(){ return true; }; switchYear(${cur + 1}); return 'ok'; })()`);
+    chk(name, '(c) Roll forward', 'FY' + ((cur + 1) % 100) + ' is rolled forward with NEW-1, and holds nothing set aside; FY' + (cur % 100) + ' keeps its own',
+      w209ev(B, `JSON.stringify([MS.cur, S.custom.map(function(x){ return x.id; }), S.customAside===undefined? 'none' : S.customAside.length, (MS.years[${cur}].customAside||[]).length])`),
+      J([cur + 1, ['NEW-1'], 'none', 1]));
+    const F = w209ev(B, `buildSavedHtml()`);
+    let ys = null; try { ys = JSON.parse(F.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]).appns.om.years; } catch (e) { ys = null; }
+    chk(name, '(c) Roll forward, saved', 'the file holds the entry set aside in FY' + (cur % 100) + ' only',
+      ys ? J([(ys[cur].customAside || []).length, (ys[cur + 1].customAside || []).length]) : 'no file', J([1, 0]));
+    // (d) CONTROL: Roll forward still copies the plan (the added requirement's value) as it always did
+    chk(name, '(d) CONTROL', 'the rolled year carries NEW-1’s value', w209ev(B, `JSON.stringify(DATA.items.filter(function(i){ return i.id==='NEW-1'; }).map(function(i){ return i.ask[0]; }))`), J([200]));
+    chk(name, 'errors', 'no page error', J(B.errors.concat(C.errors).map(e => String(e).slice(0, 80))), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-D ----
 // ==== end v2.14 review round 2 fixes ====
 
