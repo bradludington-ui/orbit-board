@@ -32,7 +32,10 @@ check below fails there unless it is labelled CONTROL (`BOARD=<slot board> node 
   | `writerKey`, `whoAmI` (already through lsSet, quiet) | as before | no | as before (now `own`) |
 
 - **`baseSet` and `baseMarkDirty` write no record where this page's own plan write was refused** (`baseRecBlocked()`:
-  `_persistFail` and not `_recMark`). The one exception is the mark `save()` and `loadStored()` write just before the plan
+  `_persistFail`, not `_recMark`, and storage's plan no longer the copy this page wrote last or opened, `impOwnCopyGone()`). The last
+  term came from the whole suite: blocked whenever the plan was refused, a file save's clean mark was held back over this page's own
+  older stored copy, and v2.14 RV2-C's check (C) failed (the next opening kept that older copy aside over the file). While storage still
+  holds this page's own work, the record behaves as in v2.14; once another tab has saved its board there, nothing here rewrites it. The one exception is the mark `save()` and `loadStored()` write just before the plan
   (`_recMark`): a tab killed between the two writes must leave the record unsaved, and both already put it back when storage refuses
   the plan (`baseUnmark`, v2.14 RV2-C). Once storage takes the plan again, `persist()`'s success branch marks the record for the
   unsaved work it now holds (`if(DIRTY) baseMarkDirty()`). Reproduced on the slot commit: with this page's plan refused, a load
@@ -62,6 +65,11 @@ check below fails there unless it is labelled CONTROL (`BOARD=<slot board> node 
 - **Switching to an appropriation the file holds no plan for** asks no false HOLD ON (`saveNoneHere(p)`: this page has saved
   nothing, the file has no plan for the appropriation on screen, and it is still the very save this page opened). Reproduced.
 - **A pubState that is a JSON array is refused as not a board.** Reproduced: it was claimed and written over.
+
+- **Every stop before a Save's write puts the writer back** (found by `npm run savetarget` C, not in the item): a Save that read a file
+  whose writer is this browser set `WRITER` to that file's ('me') and kept it on Cancel, so the page took another file's writer for its
+  own and its next Save into the bare program wrote it in without claiming the pen. `WRITER=prevWriter` now runs at every stop, not only
+  when the pen moved.
 
 ### Item 146 — wording
 - `writerMay`'s "before v1.95": **did not reproduce** — v2.14 round 2 (the lead) had already removed it ("No writer is recorded for …
@@ -117,6 +125,8 @@ check below fails there unless it is labelled CONTROL (`BOARD=<slot board> node 
 9. `saveNoneHere` skips the HOLD ON only while the file is still the very save this page opened (`PUB_FILE_TS`); a file saved by
    anyone since still asks.
 10. `fhRepick` was left as it is (it forgets the page's own entry by design, and `v214-w1-repick-keeps` reads its text).
+11. The record is held back only while storage's plan is another tab's (`impOwnCopyGone`): v2.14 RV2-C's clean mark after a file save
+    over this page's own older stored copy is kept, because that copy is older work the file now holds.
 
 ## Checks
 New (audit-import, the W3 slot), each failing on the slot commit unless CONTROL:
@@ -141,17 +151,25 @@ Changed on purpose (`// v2.15 W3:` in each):
 - `tools/import-file.mjs`: `bytes()` for `lens()`.
 - `tools/save-target.mjs`: `seam()` in E.
 - `tools/standards-check.mjs`: the long warning carries a link button.
-- `tools/left-menu.mjs`: `fhSaveNew: 1, fhRepick: 1` in WANT.
+- `tools/left-menu.mjs`: `fhSaveNew: 1, fhRepick: 1` in WANT, and its count 71 → 73.
+- audit-board v1.96: Save’s ▾ 3 items, and the File menu's calls with `fhSaveNew`, `fhRepick`; audit-other: the board's ddSave CONTROL.
+- audit-import, the W3 block (n) (added after savetarget C found the writer leak) and (e2) (the hold half).
 
 ## Mutations
-39 new (`v215-w3-*`) and 21 retargeted; `recovery/v215/proofs-W3.json` names each one's check, `proved-W3.jsonl` holds the
+41 new (`v215-w3-*`, `v215-w3-cancel-keeps-writer` and `v215-w3-rec-blocked-own-copy` among them) and 26 retargeted; `recovery/v215/proofs-W3.json` names each one's check, `proved-W3.jsonl` holds the
 verdicts (see the report below). Retargeted, each to the line that now carries the same defect:
 `guard-not-a-board-writes`, `unsaved-flag-never-set`, `impmixed-not-kept`, `menu-grp-not-kept`, `v199-batch-no-mark`,
 `v200-u19-putback-refused-no-restore`, `v200-u19-putback-restore-unsaved-only`, `v200-u19-putback-refused-words-swap`,
 `v209-w3-board-save-keeps-handle`, `v209-rv-save-board-moved-handle-kept`, `v214-w2-lift-leaves-copies`,
 `v214-rv1-a-held-record-written`, `v214-rv1-c-stop-no-persist`, `v214-rv1-c-stop-persists-over-tab`, `v214-rv1-c-stop-after-unset`,
 `v214-w3-dl-no-question`, `v214-w2-no-readback`, `v214-w2-readback-length`, `v214-w2-writer-unclaimed`, `v214-rv2-a-aw-not-held`,
-`v214-w4-pull-keeps-nothing-saved`. None retired.
+`v214-w4-pull-keeps-nothing-saved`, `v214-w1-picked-denied-kept`, `v214-w1-cancel-pen-moved`, `v214-w1-later-unremembered`,
+`v214-rv1-c-stop-later-skipped`, `v214-rv1-c-stop-denied-skipped`. None retired.
+- `v214-rv1-a-held-record-written` (the hold's half of baseSet's guard) SURVIVED its own v2.14 RV1-A check on the first run: a held
+  page's refused plan sets `_persistFail`, so the new guard covered it there. It is proved against the W3 block's (e2), a held page that
+  has written nothing yet (a CONTROL on the slot commit).
+- `menu-grp-not-kept`'s own check (audit-board v1.96 menus) had moved with Save's ▾ (1 item → 3); the expectation was moved
+  (`// v2.15 W3:`), and so were audit-board v1.96 "what the File menu held" and audit-other's ddSave CONTROL.
 
 ## For the integration
 1. **`cycCarrySaved` (W2's)**: its record write `localStorage.setItem(key, JSON.stringify(Object.assign(b, {file:wrote,
@@ -179,3 +197,18 @@ None.
 - A refused stopped-import mark makes leaving ask, but a refused import already makes it ask through `_lsRefused`; no fixture makes
   the mark the only reason, so `lose:true` there has no mutation.
 - `impFileRescued`'s new `own` term has no mutation that bites: the other two rescues are not yet downloaded in the check either.
+
+## Results (on the final tree)
+- **Proofs**: all 67 (41 new, 26 retargeted) CAUGHT against their own checks on the final board, none by a block that threw
+  (`proved-W3.jsonl`). The first round's file is not kept: two came out without a verdict there (above), and the board changed after.
+- **Fails on the slot commit**: the two W3 audit-import blocks, slimmed and run with `BOARD=` the slot board: 27 failing checks, every
+  one a check this file lists as failing there; the CONTROLs pass. audit-inject's W3-1: on the slot board only its note-fields check
+  fails. `npm run standards --board <slot>`: 5 NEW 1.4.11 findings (the `.nb.lnk` edge); on this board, nothing new.
+- **Whole suites** (each through heavy.sh): audit-board, audit-import (re-run on the final board), audit-recon, audit-other,
+  audit-hostile, audit-inject, audit-ui, audit.mjs — ALL CHECKS PASSED; legacy-fsrc — "every legacy Force setting computes exactly as
+  before"; boot-same — "every page, source, save and error list is identical either way". audit-recon, -other, -hostile, -inject, -ui,
+  audit.mjs, legacy and boot-same ran on the tree before the last two board changes (the writer put back at a stop; the record held
+  back only over another tab's plan), which touch the Save path alone.
+- **Browser**: leftmenu, menus, savetarget (re-run after the writer fix), fileimport, storagefull, keys (re-run on the final board),
+  panels, dialogs, standards — all pass. layout was not run (not touched).
+- `npm run check`: all checks passed. mcount: every target matches once.
