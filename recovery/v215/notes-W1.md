@@ -146,3 +146,13 @@ None.
   sentence.
 - The fourth step is measured with the plain edit chip; a PMO copy's or another pen-holder's chip is longer and was not measured.
 - No check drives a package's *conflict* list with a cycle difference (it now reads the plan as it will be taken).
+
+## Results on the finished tree (`bb7b318` board; every run through `recovery/v215/bin/heavy.sh`, 8 GB heap)
+- Every suite whole: audit-board, audit-import, audit-recon, audit-other, audit-hostile, audit-inject, audit-ui, audit.mjs —
+  ALL CHECKS PASSED; legacy-fsrc "every legacy Force setting computes exactly as before".
+- `npm run check`: all checks passed. mcount: 3,646 entries, each matching once.
+- Re-proved on the finished board: 42 of 42 CAUGHT (`proved-W1.jsonl`).
+- Browser: toolbar-fits passes (both passes); layout-fits only the carried D ×8 (J, S and every other section hold; S prints the
+  steps taken at each width); keyboard-reach, panels-render, dialogs-keyboard, standards-check (no new finding), left-menu and
+  menu-paths pass (panels/dialogs/standards/left-menu/menu-paths on `bb7b318`'s predecessor `5970f93`; the change since touches
+  only fitTop's overflow test and the toolbar/layout tools).
