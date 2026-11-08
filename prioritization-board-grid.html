@@ -41869,10 +41869,10 @@ function coaSummary(rows){
 // v2.15 W4 (item 131): with the team on the shared folder, the other appropriations are read from the folder's copy when it is newer
 // (apFoldRead), as the Spruills reads them; the workbook is written once the folder has answered.
 function exportCoa(){
-  if(apFoldOn()){ setStat('📒 Reading the shared folder for the other appropriations…'); apFoldRead(exportCoaRun); return; }
-  exportCoaRun();
+  if(apFoldOn()){ setStat('📒 Reading the shared folder for the other appropriations…'); apFoldRead(coaExportNow); return; }
+  coaExportNow();
 }
-function exportCoaRun(){
+function coaExportNow(){
   const H=2,B=1,N=3,NR=5,SEC=6,TI=7;      // local, as every other export in this file declares them
   const rows=coaRows();
   const sum=coaSummary(rows);

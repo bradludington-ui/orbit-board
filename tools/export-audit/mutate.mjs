@@ -10991,7 +10991,7 @@ const MUTATIONS = [
     find: `if(b.foldWhy) h+=`, repl: `if(false) h+=` },
   { id: 'v215-w4-coa-lists-unread', area: 'coaRows', what: 'the chart of accounts lists an appropriation whose folder copy cannot be read, as delivered',
     find: `    if(d.foldWhy || d.foldWait) return;`, repl: `` },
-  { id: 'v215-w4-coa-unread-silent', area: 'exportCoaRun', what: 'the chart of accounts leaves out an appropriation it could not read without a word',
+  { id: 'v215-w4-coa-unread-silent', area: 'coaExportNow', what: 'the chart of accounts leaves out an appropriation it could not read without a word',
     find: `if(unreadTxt) s1.rows.push(`, repl: `if(false) s1.rows.push(` },
   { id: 'v215-w4-coa-no-folder', area: 'exportCoa', what: 'the chart of accounts never reads the shared folder: it lists this browser’s older copy',
     find: `if(apFoldOn()){ setStat(`, repl: `if(false){ setStat(` },

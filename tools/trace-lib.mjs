@@ -241,7 +241,7 @@ if (hasCycles) {
     if (d) { if (d.zero > 0.5) throw new Error('the deltas against the lock just taken are not zero: ' + d.zero); delete d.zero; add('cycle deltas (panel, now)', 'visual', 0.5, d); }
   }
   // 1e. THE FYDP SPEND PLAN (v2.04, item 112) -- the working plan's appropriation tab, the year on screen. Requirement is
-  //     the requirement and Allocated is discretionary + mandatory drawn: the board's Funded. Printed in $M; read in dollars.
+  //     the requirement and Funded (headed Allocated until v2.15) is discretionary + mandatory drawn. Printed in $M; read in dollars.
   if (ev(`typeof exportFydpPlan==='function'`)) {
     const FY = 'FY' + (+ev('MS.cur') % 100), keepSrc = ev('fydpSrc'), app = ev('appnName(mySlug())');
     ev(`fydpSrc='working'; 'ok'`);
