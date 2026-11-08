@@ -9967,7 +9967,9 @@ const MUTATIONS = [
   { id: 'v214-w1-drops-unasked', area: "_saveInPlaceFileRun", what: "Save writes over appropriations, cycles and lists the file holds and the board on screen does not carry, asking nothing",
     find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){", repl: "      if(false && lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){" },
   { id: 'v214-w1-drops-cancel-writes', area: "_saveInPlaceFileRun", what: "Cancel on the question goes on and writes the board over the file anyway",
-    find: "        return;\n      }\n    }\n    // v2.14 W1 (item 140 a): WRITE ACCESS FOR A FILE PICKED", repl: "      }\n    }\n    // v2.14 W1 (item 140 a): WRITE ACCESS FOR A FILE PICKED" },
+    // v2.14 round 2 (the lead; review w1-drops-cancel-writes-repointed): retargeted in place -- RV1-A's question after saveDrops' moved the
+    // old anchor onto ITS Cancel, so the mutation no longer touched the saveDrops Cancel it was written for
+    find: "        return;\n      }\n      // v2.14 RV1-A (left-copy-saved-into-import-file)", repl: "      }\n      // v2.14 RV1-A (left-copy-saved-into-import-file)" },
   { id: 'v214-w1-drops-appns-blind', area: "saveDrops", what: "the question never names an appropriation, a year or a requirement the board on screen does not carry",
     find: "  slugs.forEach(function(k){\n    const fp=obj(A[k]); if(!fp) return;", repl: "  [].forEach(function(k){\n    const fp=obj(A[k]); if(!fp) return;" },
   { id: 'v214-w1-drops-empty-carried', area: "saveDrops", what: "an appropriation the board on screen holds with no requirement counts as carried, so a blank board writes over a whole one",
