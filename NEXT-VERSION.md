@@ -1087,7 +1087,7 @@ for Put back.
   - every browser check one by one: all pass but layout's carried D x8; standards 0 findings, nothing new;
   - money coverage 27/27, the money map current (322 cells: 119 proven, 202 n/a, 1 open, v2.04's), the defect register (20 known,
     guarded by 55 mutations), the trace matrix, the fuzz (seeds 848605813 and 258888164: nothing lost), `verify:file --selftest`;
-  - `npm run validate:nightly`: [NIGHTLY].
+  - `npm run validate:nightly`: every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (fuzz seed 344821819; 33 min of suites, 8 banners + legacy).
 - **Not run before the PR:** the sweep's first batch (handoff decision 27) and the second (Q5). They run on the merged tree, with
   nothing else running, and their results go into v2.15's record.
 

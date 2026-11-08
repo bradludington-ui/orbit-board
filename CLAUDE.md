@@ -5166,7 +5166,7 @@ What it leaves for the next change:
   integration's own proofs. No sweep (Brad's rule of 20 Oct; the first batch, handoff decision 27, runs on the merged tree).
 - **The final gate**: every suite whole, every browser check but layout's carried D x8, standards 0 findings, coverage 27/27, the
   money map current, the defect register (20 known, 55 mutations), the trace matrix, two fuzz seeds, `verify:file --selftest`,
-  and `validate:nightly` ([NIGHTLY]). audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
+  and `validate:nightly` (every stage holds but the browser stage, which fails on layout's carried D x8 alone, as on main (fuzz seed 344821819; 33 min of suites, 8 banners + legacy)). audit-board, audit-import and audit-recon need `--max-old-space-size=8192`.
 
 ## Colour: one token, one job
 
