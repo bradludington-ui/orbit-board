@@ -15720,14 +15720,14 @@ const W214 = (() => {
     while (Date.now() < end) { if (c()) return true; await new Promise(r => setTimeout(r, 1)); } return !!c(); };
   const pubOf = (html) => W1H.pubOf(html);
   // ONE REFUSED FULL IMPORT of NEW over the board in T, storage refusing the cost estimates once (write 7). The opening's own marks
-  // are let settle first. A refused all-or-nothing write puts the save marks back (item 140 c) -- W3's lsMarksBack, not merged here:
-  // until it is, the refusal itself would mark this page unsaved and step 1 would show for nothing, so the marks are put back here
-  // as lsMarksBack puts them (contract C2, C9; INT-2 holds the two together). Once merged this changes nothing.
+  // are let settle first. A refused all-or-nothing write puts the save marks back (item 140 c), through the board's own lsMarksBack.
+  // v2.15 W3 (item 146, tests 0): THE MARKS ARE NO LONGER PUT BACK BY HAND here. lsMarksBack (item 140 c) puts them back; reset by
+  // hand after every refused import, no W2 block could see lsMarksBack fail -- step 1 would show for nothing, and the blocks below
+  // read that. Only the box is drawn again, as before.
   const refuse = async (T, html, n = 7) => {
     await new Promise(res => setTimeout(res, 5));
-    const mk = T.ev('JSON.stringify([_saveGen, DIRTY, _sideGen, _dlOnly, _lsRefused])');
     const r = w2Import(T, html, 'once', n);
-    T.ev(`(function(m){ _saveGen=m[0]; DIRTY=m[1]; _sideGen=m[2]; _dlOnly=m[3]; _lsRefused=m[4]; try{ saveStateShow(); impFileDraw(); }catch(e){} })(${mk}); 'ok'`);
+    T.ev(`(function(){ try{ impFileDraw(); }catch(e){} })(); 'ok'`);
     return r;
   };
   // ROUTE A: the same import with nothing refused, the importing page reopened on what it wrote
@@ -19933,6 +19933,261 @@ await (async () => {
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
 // ==== end v2.15 W2 ====
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+// v2.15 W3 (item 144): THE OTHER DIRECT STORAGE WRITES GO THROUGH lsSet (D17 kept them direct: a refusal was in no Save diagnostics,
+// said nothing, and never made leaving ask), and A PAGE WHOSE OWN PLAN BROWSER STORAGE REFUSED WRITES NO RECORD OF IT. Each write is
+// refused in turn, alone: it is counted in Save diagnostics, says the right sentence (or nothing, for a setting), and leaves work on
+// screen only exactly where it should -- work kept aside, a mark saying the work is unsaved, the hold on a stopped import.
+// FAILS ON THE SLOT COMMIT (8c24ea2) but where a check says CONTROL.
+const W3I = (() => {
+  const J = JSON.stringify;
+  const it3 = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  // a small board, saved to browser storage, its opening's own bookkeeping let run
+  const board = async (o = {}) => {
+    const T = boot(o);
+    seed(T.ev, { services: ['USAF', 'ANG'], items: [it3('A', 'AV', [100, 20]), it3('B', 'PSM', [50, 10])], disc: [120, 20], mand: [30, 10], order: ['A', 'B'] });
+    T.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); 'ok'`);
+    await new Promise(r => setTimeout(r, 5));
+    return T;
+  };
+  // run `code` (a function body) with browser storage refusing every write to a key matching `keyRe`; what was counted and said after
+  const refusing = (T, keyRe, code) => JSON.parse(T.ev(`(function(){ var si=Storage.prototype.setItem, re=new RegExp(${J(keyRe)}), d0=DIAG.refused.length, s0=(STAT_LOG||[]).length;
+    Storage.prototype.setItem=function(k,v){ if(re.test(k)) throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return si.call(this,k,v); };
+    var ret, threw=''; try{ ret=(function(){ ${code} })(); }catch(e){ threw=String((e&&e.message)||e); }finally{ Storage.prototype.setItem=si; }
+    return JSON.stringify({ret:(ret===undefined? null : ret), threw:threw, diag:DIAG.refused.slice(d0).map(function(r){ return r.what+' — '+r.why; }), mem:memOnlyNow(),
+      said:(STAT_LOG||[]).slice(s0).map(function(e){ return String(e.html||'').replace(/<[^>]+>/g,''); })}); })()`));
+  return { J, it3, board, refusing };
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W3 — the other storage writes go through lsSet, and a refused plan writes no record (item 144)';
+  try {
+    const { J, board, refusing } = W3I;
+    // (a) A SETTING: counted, and silent or one sentence of its own -- never "Use 💾 Save", and never work on screen only
+    { const T = await board();
+      const r = refusing(T, '^spmtSeen$', `jrnlMarkSeen(); return 1`);
+      chk(name, '(a) the journal’s seen mark, refused', 'in Save diagnostics, its own sentence, not work on screen only',
+        J([r.diag, r.said.some(s => /would not keep which change journal entries you have seen/.test(s)), r.said.some(s => /Use 💾 Save/.test(s)), r.mem]),
+        J([['Which change journal entries you have seen — QuotaExceededError'], true, false, false])); }
+    { const T = await board();
+      const r = refusing(T, '^prio27pmo$', `pmoMineSet('AV'); return myPmo()`);
+      chk(name, '(a) your office, refused', 'in Save diagnostics, its own sentence, kept for the page, not work on screen only',
+        J([r.diag, r.said.some(s => /would not keep the office you chose/.test(s)), r.ret, r.mem]),
+        J([['Your office — QuotaExceededError'], true, 'AV', false])); }
+    { const T = await board();
+      const r = refusing(T, '^prio27uiRail$', `uiPrefWrite('prio27uiRail','1'); return 1`);
+      chk(name, '(a) a view setting, refused', 'in Save diagnostics, nothing said, not work on screen only',
+        J([r.diag, r.said.length, r.mem]), J([['A view setting of this browser — QuotaExceededError'], 0, false])); }
+    { const T = await board();
+      const r = refusing(T, '^spmtMenuGroups$', `menuGrp('reports','x'); return menuGrpOpen.reports`);
+      chk(name, '(a) the open menu group, refused', 'in Save diagnostics, nothing said, the group still open on the page, not work on screen only',
+        J([r.diag, r.said.length, r.ret, r.mem]), J([['Which menu group is open — QuotaExceededError'], 0, 'x', false])); }
+    // (b) WORK KEPT ASIDE, refused: counted, and the work it was to keep is on screen only -- leaving asks
+    { const T = await board();
+      const r = refusing(T, '\\.kept$', `return keepAside(MS, {why:'file', by:'Kim', ts:1}, baseGet())`);
+      chk(name, '(b) work kept aside, refused', 'keepAside says no room, it is in Save diagnostics, and the work is on screen only (leaving asks)',
+        J([r.ret, r.diag, r.mem, T.ev('String(!!memOnlyLeave({preventDefault:function(){}, returnValue:null}) || memOnlyNow())')]), J([false, ['Work kept aside on O&M — QuotaExceededError'], true, 'true'])); }
+    // (c) THE RECORD'S "UNSAVED" MARK, refused while the plan itself lands: counted, said, and leaving asks -- the record calls the
+    // plan storage holds saved, so a newer file opened next would replace it with nothing kept aside
+    { const T = await board();
+      T.ev(`localStorage.setItem(_AP.key+'.base', JSON.stringify({file:0, folder:{}, dirty:false})); 'ok'`);   // the record reads saved, so the edit must mark it
+      const r = refusing(T, '\\.base$', `S.notes.A='an edit'; save(); return localStorage.getItem(_AP.key).indexOf('an edit')>=0`);
+      chk(name, '(c) the unsaved mark, refused', 'the plan landed; the mark is in Save diagnostics, said, and the work is on screen only',
+        J([r.ret, r.diag.indexOf('This browser’s record of the O&M plan — QuotaExceededError') >= 0, r.said.some(s => /could not record that the work on screen is unsaved/.test(s)), r.mem]),
+        J([true, true, true, true]));
+      // and a later write of the record that lands takes it off again (a CONTROL on the slot, where it was never on)
+      T.ev(`baseSet({dirty:true}); 'ok'`);
+      chk(name, '(c) the unsaved mark, written later', 'once a write of the record lands, the work is no longer on screen only (a CONTROL)', T.ev('String(memOnlyNow())'), 'false'); }
+    { const T = await board();
+      const r = refusing(T, '\\.base$', `baseSet({file:1, dirty:false}); return 1`);
+      chk(name, '(c) the saved mark, refused', 'in Save diagnostics, and nothing on screen only: the record still says unsaved, which loses nothing',
+        J([r.diag, r.mem]), J([['This browser’s record of the O&M plan — QuotaExceededError'], false])); }
+    // (d) THE HOLD ON A STOPPED IMPORT, refused: counted, said, and the page holds it (leaving asks)
+    { const { NEW, OLD } = w2Fx();
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await new Promise(r => setTimeout(r, 5));
+      const d0 = +T.ev('DIAG.refused.length');
+      w2Import(T, NEW.html, 'stuck', 8);
+      const diag = JSON.parse(T.ev(`JSON.stringify(DIAG.refused.slice(${d0}).map(function(r){ return r.what; }))`));
+      chk(name, '(d) the hold on a stopped import, refused', 'in Save diagnostics, said (kept unread), the hold stands on this page, and leaving asks',
+        J([diag.indexOf('The hold on a stopped import') >= 0, T.ev(`String((STAT_LOG||[]).some(function(e){ return e.keep && !e.read && /would not keep the hold on the stopped import/.test(e.html); }))`),
+           T.ev('String(impMixedOn())'), T.ev('String(memOnlyNow())')]), J([true, 'true', 'true', 'true'])); }
+    // (e) A PAGE WHOSE OWN PLAN STORAGE REFUSED WRITES NO RECORD: another tab's record stands through a load counted, a file save's
+    // clean mark and a mark of its own
+    { const T = await board(); const key = T.ev('_AP.key');
+      const RB = J({ file: 5, folder: {}, dirty: true, from: 'another tab' });
+      const r = refusing(T, '^' + key + '$', `S.notes.A='refused'; save(); localStorage.setItem(_AP.key+'.base', ${J(RB)});
+        loadCounted(); baseSet({file:LASTKNOWN, dirty:false}); baseMarkDirty(); return localStorage.getItem(_AP.key+'.base')`);
+      chk(name, '(e) a refused plan', 'another tab’s record is left as that tab wrote it: a load counted, a clean mark and a mark here write none of it',
+        J([r.threw, r.ret]), J(['', RB]));
+      // once storage takes the plan again, the record says the work it now holds is unsaved
+      T.ev(`localStorage.setItem(_AP.key+'.base', ${J(J({ file: 7, folder: {}, dirty: false }))}); S.notes.A='taken again'; persist(); 'ok'`);
+      const b = JSON.parse(T.ev(`localStorage.getItem(_AP.key+'.base')`));
+      chk(name, '(e) storage takes the plan again', 'the record is marked for the unsaved work it now holds', J([b.dirty, T.ev('String(_persistFail)')]), J([true, 'false'])); }
+    // (f) A KEY OR A NAME MADE WHILE AN IMPORT IS BEING PREPARED is written at once, never folded into that import
+    { const T = await board();
+      const r = JSON.parse(T.ev(`(function(){ localStorage.removeItem('prio27writerKey'); _wkMem=''; _lsCapture=[];
+        var k=writerKey(), c1=_lsCapture.length;
+        window.uiPrompt=function(q, d, cb){ cb('Kim'); }; whoAmI(true); var c2=_lsCapture.length; _lsCapture=null;
+        return JSON.stringify([c1, c2, localStorage.getItem('prio27writerKey')===k, localStorage.getItem('prio27who')]); })()`));
+      chk(name, '(f) the writer key and the editor name during an import’s capture', 'both written to storage at once, neither captured', J(r), J([0, 0, true, 'Kim'])); }
+    // (g) IMPORT ONE APPROPRIATION OF ANOTHER APPROPRIATION'S FILE: the appropriation to open goes through lsSet, and the page reopens
+    // only when it is noted -- refused, it reopened on the appropriation it came from, holding nothing of the file, having said "switching to it"
+    { const mk = async (refuse) => {
+        const T = await board({ ls: { prio27sp: J({ cur: 2027, years: { 2027: { order: ['X'], custom: [] } } }) } });
+        const html = T.ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.ts=Date.now();
+          return SRC0.replace(/<title>[^<]*<\\/title>/, '<title>ORBIT — Full Fund</title>').replace(/(<script type="application\\/json" id="pubState">)[\\s\\S]*?(<\\/script>)/, function(m,a,b){ return a+JSON.stringify(st).replace(/</g,'\\\\u003c')+b; }); })()`);
+        const e0 = T.errors.length;
+        T.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; globalThis.__si=Storage.prototype.setItem;
+          Storage.prototype.setItem=function(k,v){ if(${J(refuse)} && k==='prio27appn') throw new DOMException('q','QuotaExceededError'); return globalThis.__si.call(this,k,v); };
+          importState({ files:[new File([${J(html)}], 'ff.html')], value:'x' }); return 'ok'; })()`);
+        await W1H.until(() => W214.navs(T, e0) > 0 || /loaded/.test(W1H.status(T.ev)), 3000);
+        T.ev(`Storage.prototype.setItem=globalThis.__si; 'ok'`);
+        return { nav: W214.navs(T, e0), appn: T.ev(`String(localStorage.getItem('prio27appn'))`), stat: W1H.status(T.ev), ff: T.ev(`String(!!localStorage.getItem('prio27ff'))`) };
+      };
+      const ok = await mk(false), no = await mk(true);
+      chk(name, '(g) another appropriation’s file, nothing refused', 'Full Fund is stored, noted, and the page reopens on it (a CONTROL)', J([ok.ff, ok.appn, ok.nav > 0]), J(['true', 'FULL FUND', true]));
+      chk(name, '(g) the appropriation to open, refused', 'Full Fund is stored, the page does not reopen, and it says to choose Full Fund at the top',
+        J([no.ff, no.nav, /Browser storage would not note which appropriation to open, so the page was not reopened: choose Full Fund under Appropriation/.test(no.stat)]), J(['true', 0, true])); }
+    // (h) TEST GAP (W2 check 5): a browser holding a plan with requirements is not an empty one (a CONTROL; v215-w3-shell-ignores-plans)
+    { const T = boot({ ls: { prio27sp: J({ cur: 2027, years: { 2027: { order: ['X'], custom: [] } } }) } });
+      const T0 = boot();
+      chk(name, '(h) impShellEmpty', 'a browser holding another appropriation’s plan with a requirement is not empty; an empty one is (a CONTROL)',
+        J([T.ev('impShellEmpty()'), T0.ev('impShellEmpty()')]), J([false, true])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+// v2.15 W3 (item 146): SAVE, THE FILE ROUTE AND THEIR MESSAGES -- each finding of v2.14's review round 1 that reproduced on the slot
+// commit, through the board's own code paths. FAILS ON THE SLOT COMMIT but where a check says CONTROL.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.15 W3 — Save, the file route and their messages (item 146)';
+  try {
+    const J = JSON.stringify;
+    const H = W1H;
+    const jrnlPen = ev => +ev(`(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(writer)'; }).length`);
+    // (a) THE NOTE'S FIELDS, NOT TEXT: the held page says so and offers to lift the hold; lifting it and a refused import do not throw
+    { const T = await W3I.board();
+      const r = JSON.parse(T.ev(`(function(){ var o={toString:1};
+        localStorage.setItem(IMP_FILE_KEY, JSON.stringify({keys:['prio27zz'], says:[o], name:o, at:o, h:{}}));
+        var out={};
+        try{ var m=impHandMsg('Saving'); out.msg=/lift the hold/.test(m) && /the imported board’s file/.test(m); }catch(e){ out.msg='threw '+e.message; }
+        var al=[]; window.alert=function(x){ al.push(String(x)); };
+        try{ out.undone=fullImportUndone({ok:false, back:true, why:'HandOverHold', at:0, now:['was'], held:[null]}, [['prio27zz','x','y','z']], 'txt', 'f.html');
+          out.al=al.length===1 && /holding the lists an earlier import wrote into “the imported board’s file”/.test(al[0]); }catch(e){ out.undone='threw '+e.message; }
+        window.confirm=function(){ return true; };
+        try{ out.clear=impHandClear(); out.gone=localStorage.getItem(IMP_FILE_KEY)===null; }catch(e){ out.clear='threw '+e.message; }
+        return JSON.stringify(out); })()`));
+      chk(name, '(a) a note whose fields are not text', 'the hold’s message, a refused import’s alert and lifting the hold read it safely',
+        J(r), J({ msg: true, undone: false, al: true, clear: true, gone: true })); }
+    // (b) A SAVE STOPPED WHILE BROWSER STORAGE IS FULL LEAVES NO PEN LINE THERE: a file with no writer yet, picked in the Open window;
+    // while write access is asked, an edit browser storage refuses; then the browser says "later"
+    { const F = H.baseFile('Brad', H.KEY.brad, false);
+      const R = boot({ html: F }); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
+      R.w.__F = F;
+      R.ev(`(function(){ var si=Storage.prototype.setItem;
+        Storage.prototype.setItem=function(k,v){ if(k===_AP.key && String(v).indexOf('LATE EDIT')>=0) throw new DOMException('q','QuotaExceededError'); return si.call(this,k,v); };
+        var h={name:'board.html', kind:'file', getFile:async function(){ return {text:async function(){ return globalThis.__F; }}; },
+          queryPermission:async function(){ S.notes.A='LATE EDIT'; save(); throw new DOMException('later','NotAllowedError'); },
+          requestPermission:async function(){ return 'granted'; }, createWritable:async function(){ throw new Error('no write expected'); }};
+        window.showOpenFilePicker=async function(){ return [h]; }; window.showSaveFilePicker=function(){ throw new Error('the save window was opened'); };
+        FH=null; _fhGet=function(cb){ cb(null); }; return 'ok'; })()`);
+      const raw0 = R.ev(`String(localStorage.getItem(_AP.key))`);
+      await R.ev('saveInPlaceFile()');
+      const raw = R.ev(`String(localStorage.getItem(_AP.key))`), st = JSON.parse(raw === 'null' ? '{}' : raw);
+      chk(name, '(b) a Save stopped while storage refused an edit', 'browser storage holds the plan as it did before the Save -- no pen line; the edit is on screen, and on screen only',
+        J([raw === raw0, (st.jrnl || []).filter(e => e.p && e.p[0] === '(writer)').length, R.ev(`String(S.notes.A)`), R.ev('String(memOnlyNow())')]), J([true, 0, 'LATE EDIT', 'true'])); }
+    // (c) SAVE AS A NEW FILE, ON A BOARD WHOSE WRITER IS THIS BROWSER: it takes that writer, and claims nothing
+    const F1 = H.baseFile('Brad', H.KEY.brad);
+    { const R = boot({ html: F1 }); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
+      const P = W214.picker(R);
+      const pen0 = jrnlPen(R.ev);
+      await R.ev('fhSaveNew()');
+      const nm = P.picks[P.picks.length - 1];
+      chk(name, '(c) Save as a new file, the board already this browser’s', 'written; no "(writer)" journal line, no "You are now this board’s writer"; the file names the writer',
+        J([!!P.files[nm], jrnlPen(R.ev) - pen0, /You are now this board’s/.test(H.status(R.ev)), H.fileWriter(P.files[nm] || '')]), J([true, 0, false, 'Brad']));
+      // (d) THAT NEW FILE REFUSED: forgotten itself, and the page's own remembered file left alone
+      R.ev(`window.__fp=[]; var o=_fhPut; window._fhPut=function(h){ window.__fp.push(h===null? 'null' : 'h'); return o(h); }; 'ok'`);
+      P.files[nm] = '<!doctype html><title>x</title><p>not a board</p>';
+      await R.ev('saveInPlaceFile()');
+      chk(name, '(d) the new file is no board now', 'refused; the new file is forgotten, and this page’s own remembered file is not',
+        J([/is not a board ORBIT can read/.test(H.status(R.ev)), R.ev('String(_fhMem===null)'), JSON.parse(R.ev('JSON.stringify(window.__fp)'))]), J([true, 'true', []])); }
+    // (e) A STATE THAT IS A LIST is no board: refused, nothing written
+    { const R = boot({ html: F1 }); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
+      const f = H.disk(R.w, F1.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, '$1[]$2'));
+      await R.ev('saveInPlaceFile()');
+      chk(name, '(e) a file whose saved state is a list', 'refused as not a board, nothing written', J([/is not a board ORBIT can read/.test(H.status(R.ev)), f.writes]), J([true, 0])); }
+    // (f) SWITCHED TO AN APPROPRIATION THE FILE HOLDS NO PLAN FOR: its first Save asks no HOLD ON over a file that holds nothing of it
+    { const R = boot({ html: F1, appn: 'FULL FUND' }); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
+      const f = H.disk(R.w, F1);
+      chk(name, '(f) the fixture', 'Full Fund is on screen, from no saved copy, and the file holds O&M alone (a CONTROL)',
+        J([R.ev('APPN'), R.ev('LASTKNOWN'), Object.keys(H.pubOf(F1).appns)]), J(['FULL FUND', 0, ['om']]));
+      R.ev(`S.notes.A='FF typed'; save(); 'ok'`);
+      await R.ev('saveInPlaceFile()');
+      chk(name, '(f) Full Fund’s first Save', 'no HOLD ON is asked, and the file is written', J([H.qs(R.ev).filter(q => /HOLD ON/.test(q)).length, f.writes]), J([0, 1])); }
+    // (g) THE FILE ROUTE: its write lets go of an older ORBIT's remembered save file where it names this file, as a Save does
+    { const { NEW, OLD, ls } = W214.fx();
+      const T = boot({ html: OLD.html, ls }); const P = W214.picker(T); const e0 = T.errors.length;
+      T.ev(`window.__flr=[]; var o=fhLegacyRelease; window.fhLegacyRelease=function(h){ window.__flr.push(String(h&&h.name)); return o(h); }; 'ok'`);
+      await W214.refuse(T, NEW.html);
+      W214.press(T, P, /^Write the imported board/);
+      await W214.settle(T, () => W214.navs(T, e0) > 0);
+      const nm = P.picks[P.picks.length - 1];
+      chk(name, '(g) the file route’s write', 'fhLegacyRelease is given the file written', J(JSON.parse(T.ev('JSON.stringify(window.__flr)'))), J([nm])); }
+    // (h) THE FILE ROUTE, browser storage refusing this browser's writer key throughout: the new file names no writer it cannot keep
+    { const { NEW, OLD, ls } = W214.fx();
+      const T = boot({ html: OLD.html, ls }); const P = W214.picker(T);
+      T.ev(`localStorage.removeItem('prio27writerKey'); _wkMem=''; var si=Storage.prototype.setItem;
+        Storage.prototype.setItem=function(k,v){ if(k==='prio27writerKey') throw new DOMException('q','QuotaExceededError'); return si.call(this,k,v); }; 'ok'`);
+      await W214.refuse(T, NEW.html);
+      W214.press(T, P, /^Write the imported board/);
+      await W214.settle(T, () => /The imported board is in|Reopening/.test(H.status(T.ev)));
+      const nm = P.picks[P.picks.length - 1], pub = H.pubOf(P.files[nm] || '') || {};
+      chk(name, '(h) the writer key refused', 'the file is written and names no writer (its first Save asks to become one), the key never stored',
+        J([!!pub.appns, pub.writer === undefined, T.ev(`String(localStorage.getItem('prio27writerKey'))`)]), J([true, true, 'null'])); }
+    // (i) THE FILE ROUTE'S WRITE FAILS INTO THIS BOARD'S OWN FILE: it says so, and offers this board as it was
+    { const { NEW, OLD, ls } = W214.fx();
+      const T = boot({ html: OLD.html, ls }); const own = T.ev('fhOwnName()');
+      const P = W214.picker(T, { pickAs: own, failWrite: 'NotAllowedError' });
+      await W214.refuse(T, NEW.html);
+      W214.press(T, P, /^Write the imported board/);
+      await W214.settle(T, () => /could not be written into/.test(H.status(T.ev)));
+      const st = H.status(T.ev), body = W214.box(T).text;
+      chk(name, '(i) Write fails into this board’s own file', 'the message line and the box say it is this board’s own file, emptied, and never that this board is exactly as it was',
+        J([/“board\.html” is this board’s own file: the browser emptied it when you chose it, so this board as it was is in no file now/.test(st), /is this board’s own file/.test(body), /exactly as they were/.test(st + body)]), J([true, true, false]));
+      chk(name, '(i) Write fails into this board’s own file', 'this board as it was is offered, and leaving asks until it is downloaded',
+        J([T.ev(`String([].some.call(document.querySelectorAll('#shareStat button'), function(b){ return /impFileRescue\\("own"\\)/.test(b.getAttribute('onclick')||''); }))`), T.ev('String(impFileHolds())'), T.ev(`String(impFileRescue('own') && !!(_impFile||_impFileLast).rescue.own.got)`)]), J(['true', 'true', 'true'])); }
+    // (j) THE VERSION, AS THE FILE SPELLS IT: a v2.09 file's report says v2.09, not v2.9
+    { const { NEW, OLD } = w2Fx();
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await H.pause(5);
+      const r = w2Import(T, NEW.html.replace(/const BUILD='v\d+\.\d+/, "const BUILD='v2.09"), 'none', 0);
+      const rep = w2LsOf(T.ev).prio27impRep || '';
+      chk(name, '(j) a full import from a v2.09 file', 'the report says “(v2.09)”', J([r.ret !== false, /\(v2\.09\)/.test(rep), /\(v2\.9\)/.test(rep)]), J([true, true, false])); }
+    // (k) WORKING OUT OF THE SHARED FOLDER, a list storage refused: the refusal to switch does not say Save writes it into the board file
+    { const T = await W3I.board(); const fold = H.folder(); H.connect(T.ev, T.w, fold);
+      const r = W3I.refusing(T, 'acedb', `persistAce(); return 1`);
+      T.ev(`memOnlyBlock('Not switched', 'switching appropriation reopens the page'); 'ok'`);
+      chk(name, '(k) the shared folder, a list refused', 'switching is refused, naming ⬇ Save a copy and never "writes them into the board file"',
+        J([r.mem, /Working out of the shared folder, 💾 Save writes the board but not what browser storage refused: ⬇ Save a copy/.test(H.status(T.ev)), /into the board file/.test(H.status(T.ev))]), J([true, true, false])); }
+    // (l) SAVE DIAGNOSTICS: "the board's" browser storage is ORBIT's keys by the one prefix test the by-kind lines use
+    { const T = await W3I.board();
+      const r = JSON.parse(T.ev(`(function(){ localStorage.setItem('Priorities of another tool', 'x'.repeat(200000)); localStorage.setItem('SPMT-other', 'y'.repeat(200000));
+        var mine=0; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(CLR_PREFIX.test(k)) mine+=(k.length+localStorage.getItem(k).length)*2; }
+        var m=/MB in use \\(([0-9.]+) MB of it the board’s\\)/.exec(diagReport().join? diagReport().join('\\n') : String(diagReport()));
+        return JSON.stringify([m? m[1] : 'none', (mine/1048576).toFixed(2)]); })()`));
+      chk(name, '(l) Save diagnostics', 'the board’s share of browser storage counts ORBIT’s keys only (CLR_PREFIX), as the by-kind lines do', r[0], r[1]); }
+    // (m) THE ▾ BESIDE SAVE carries Save as a new file… and Choose another file… (once a page remembers its file, they were in no menu)
+    { const T = await W3I.board();
+      const h = T.ev(`document.getElementById('dd_save').innerHTML`);
+      chk(name, '(m) the ▾ beside Save', 'Save a copy…, Save as a new file… and Choose another file…',
+        J([/mRun\(publishState\)/.test(h), /mRun\(fhSaveNew\)/.test(h), /mRun\(fhRepick\)/.test(h)]), J([true, true, true])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.15 W3 ====
 // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
 // ==== end v2.15 W4 ====

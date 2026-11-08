@@ -728,6 +728,60 @@ const INJ_EXPECT = [];   // v2.14 (slot): every block below names its finding he
 // ==== v2.15 W2 (items 142, 143, 145; item 131 FDC listener: the copy that opens, Save records what it wrote, two tabs) ====
 // ==== end v2.15 W2 ====
 // ==== v2.15 W3 (items 144, 146 (storage writes, Save and import wording, test gaps)) ====
+{
+  // v2.15 W3 (item 146, door 1): THE FILE ROUTE'S OTHER FILE-NAME SINKS, drawn through the board's own code: a Write that failed (the
+  // message line and the box, this board's own file included), a write a list moved under, a download, the pause on step 1's file, a
+  // file with the name of the one being imported, the route that lands with its note refused, and a note whose fields are not text.
+  // W2-1 drew the box, the hold and the opening's report; these were drawn by the review's p2-names.mjs alone. A RUNTIME DRAW. On the
+  // slot commit every one is already escaped: this block is the guard (CONTROLS), and each v215-w3-name-* mutation takes one esc() off.
+  const W3F = 'W3-1 the file route’s other sinks draw file names as text (impFileFailed, impFileRaced, impFileDownload, impFileFinish, the pauses)';
+  INJ_EXPECT.push(W3F);
+  const B = fresh();
+  let out = null;
+  try {
+    out = JSON.parse(B.ev(`(function(){
+      var r={};
+      var W=[['prio27zz1', '{}', 'x', ${JSON.stringify(P('w3-says0'))}], ['prio27zz2', '{}', 'y', ${JSON.stringify(P('w3-says1'))}]];
+      W.full={rep:'r'};
+      var off=function(){ impFileOffer({ok:false, at:1, why:'QuotaExceededError', back:true, now:['was','was'], held:[null,null]}, W, 'the text', ${JSON.stringify(P('w3-fname'))}); return _impFile; };
+      var R=off(); R.html='<p>x</p>';
+      impFileFailed(R, {name:${JSON.stringify(P('w3-failed'))}}, {message:${JSON.stringify(P('w3-reason'))}});
+      r.failStat=__show('shareStat'); r.failBox=__show('impFileBody');
+      R=off(); R.html='<p>x</p>';
+      impFileFailed(R, {name:fhOwnName()+${JSON.stringify(P('w3-own'))}}, {message:'x'});
+      r.ownStat=__show('shareStat');
+      R=off(); R.m=null;
+      impFileRaced(R, {name:${JSON.stringify(P('w3-raced'))}}, [${JSON.stringify(P('w3-moved'))}], true);
+      r.raced=__show('shareStat');
+      localStorage.removeItem(IMP_FILE_KEY); _impHand=null;
+      R=off(); R.name=${JSON.stringify(P('w3-dl'))};
+      impFileDownload(R, {name:'SecurityError'});
+      r.dl=__show('shareStat');
+      localStorage.removeItem(IMP_FILE_KEY); _impHand=null;
+      R=off(); R.was={name:${JSON.stringify(P('w3-was'))}, html:'<p>w</p>', got:false};
+      R.pause={name:${JSON.stringify(P('w3-wpause'))}, was:true, h:null}; R.rescue={at:'a', inc:{text:'i', name:'n', got:false}, aw:{text:'w', name:'m', got:false}};
+      impFileDraw(); r.wpause=__show('impFileBody');
+      R.pause=null; R.rescue={was:true, wasFail:true, at:${JSON.stringify(P('w3-rwas'))}, inc:{text:'i', name:'n', got:false}};
+      impFileDraw(); r.rwas=__show('impFileBody');
+      var mw=impFileMarkWrite; impFileMarkWrite=function(R2){ R2.marked=false; return false; };
+      R=off(); R.m={says:[${JSON.stringify(P('w3-fsays'))}]}; R.marked=false;
+      try{ impFileFinish(R, {name:${JSON.stringify(P('w3-finish'))}}); }finally{ impFileMarkWrite=mw; }
+      r.finish=__show('shareStat');
+      // a note whose fields are not text (item 146): read safely -- on the slot commit String() of one threw, and nothing was drawn
+      localStorage.setItem(IMP_FILE_KEY, JSON.stringify({keys:['prio27zz9'], says:[{a:1}], name:{toString:1}, at:'x', h:{}}));
+      try{ r.noteText=__draw(impHandMsg(${JSON.stringify(P('w3-held'))})); }catch(e){ r.noteText={drawn:false, live:false, threw:String(e.message)}; }
+      localStorage.removeItem(IMP_FILE_KEY); _impHand=null;
+      r.pw=window.__PWNED||0;
+      return JSON.stringify(r); })()`));
+  } catch (e) { chk(W3F, 'the file route’s renderers ran', 'threw: ' + String((e && e.message) || e).slice(0, 120), 'ran'); }
+  if (out) {
+    for (const k of ['failStat', 'failBox', 'ownStat', 'raced', 'dl', 'wpause', 'rwas', 'finish', 'noteText']) {
+      chk(W3F, k + ': the planted names are drawn', !!out[k].drawn, true);
+      chk(W3F, k + ': and drawn as text, never as an element or a handler', !!out[k].live, false);
+    }
+    chk(W3F, 'no planted handler ran', out.pw, 0);
+  }
+}
 // ==== end v2.15 W3 ====
 // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
 // ==== end v2.15 W4 ====

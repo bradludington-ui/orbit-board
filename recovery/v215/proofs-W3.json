@@ -1,0 +1,263 @@
+[
+ {
+  "id": "v215-w3-own-uncounted",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-seen-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-pmo-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-uipref-direct",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-menugrp-direct",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-kept-not-lost",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-mark-not-lost",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-mark-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-written-over-refused",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-rec-not-remarked",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-mixed-mark-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-capture-key",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-capture-who",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-appn-reopens",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-shell-ignores-plans",
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet"
+ },
+ {
+  "id": "v215-w3-marksback-drops-dl",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v215-w3-note-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-clear-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-undone-unsafe",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-stop-leaves-pen",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-stop-no-raw0",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-new-file-claims",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-forget-own-entry",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-array-board",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-none-here-hold-on",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-route-keeps-legacy",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-writer-unkept",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-own-file-unsaid",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-version-numbers",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-folder-says-file",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-diag-two-prefixes",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-save-menu-no-new",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-save-menu-no-repick",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v215-w3-name-failed",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-raced",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-download",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-finish",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-wpause",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v215-w3-name-rwas",
+  "caughtBy": "inject"
+ },
+ {
+  "id": "v209-w3-board-save-keeps-handle",
+  "caughtBy": "audit-import / v2.09 W3 — a PMO copy comes in only through the PMO import screen",
+  "retargeted": true
+ },
+ {
+  "id": "v209-rv-save-board-moved-handle-kept",
+  "caughtBy": "audit-import / v2.09 review — a file moved or renamed",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv2-a-aw-not-held",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked",
+  "retargeted": true
+ },
+ {
+  "id": "guard-not-a-board-writes",
+  "caughtBy": "audit-import / v1.89 — saving never silently overwrites somebody’s work",
+  "retargeted": true
+ },
+ {
+  "id": "unsaved-flag-never-set",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs",
+  "retargeted": true
+ },
+ {
+  "id": "impmixed-not-kept",
+  "caughtBy": "audit-import / v1.95 — after an import that cannot be put back, nothing writes over",
+  "retargeted": true
+ },
+ {
+  "id": "menu-grp-not-kept",
+  "caughtBy": "audit-board / v1.96 — a long menu folds",
+  "retargeted": true
+ },
+ {
+  "id": "v199-batch-no-mark",
+  "caughtBy": "audit-import / v1.99 — a batch that cannot be put back",
+  "retargeted": true
+ },
+ {
+  "id": "v200-u19-putback-refused-no-restore",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save",
+  "retargeted": true
+ },
+ {
+  "id": "v200-u19-putback-restore-unsaved-only",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save",
+  "retargeted": true
+ },
+ {
+  "id": "v200-u19-putback-refused-words-swap",
+  "caughtBy": "audit-import / v2.00 (U19) — put back after a board-file save",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w2-lift-leaves-copies",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-a-held-record-written",
+  "caughtBy": "import / v2.14 RV1-A — the program reopened held",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-c-stop-no-persist",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-c-stop-persists-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-c-stop-after-unset",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w3-dl-no-question",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w2-no-readback",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w2-readback-length",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w2-writer-unclaimed",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w4-pull-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy",
+  "retargeted": true
+ }
+]
