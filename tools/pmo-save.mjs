@@ -11,8 +11,9 @@
 //   D. THE KEYBOARD: Tab from the last left-menu entry reaches Save, then its ▾, then Submit, each with a visible focus ring;
 //      Enter on Save saves: the picker opens once, suggesting a new name with the office in it -- never the board's file
 //      name, never the copy's own -- and the file is written; Ctrl+S saves again into the same file, asking nothing.
-//   E. THE HANDLE STORE: the board's own entry (under its file name) is as the board left it; the copy's is under a key of
-//      its own, naming this copy and this office.
+//   E. THE HANDLE STORE: the board's own entry (under the board page's own address since v2.14, item 140 a -- it was under the
+//      board's file name, the key every ORBIT file shared) is as the board left it; the copy's is under a key of its own, naming
+//      this copy and this office.
 //   F. THE BOARD (a CONTROL): its foot is as it was -- no copy Save, Tab goes from Setup to 💾 Save.
 //   G. TWO TABS, ONE BROWSER (v2.09 review): PSM's file in one tab, AV's in another, one storage between them -- the second
 //      leaves the first on PSM and writes nothing into the browser's office setting; the person's own choice still does,
@@ -176,8 +177,10 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     // the portfolio team's browser: the board, opened from its own folder, keeps its file's handle as its Save does
     const B = await openIn(ctx, boardFile);
     await B.p.evaluate(() => new Promise(res => { _fhPut({ name: 'THE BOARD FILE' }); setTimeout(res, 200); }));
+    // v2.14 W1 (item 140 a): the board keeps its file under its own page's address, read here off the page's location, not the board
+    const BKEY = 'page|' + await B.p.evaluate(() => String(location.href).replace(/[#?].*$/, ''));
     const before = await idbAll(B.p);
-    chk('E · the board’s handle is in this browser’s handle store, under the board’s file name (the fixture)', J(before[FNAME]) === J({ name: 'THE BOARD FILE' }), J(before));
+    chk('E · the board’s handle is in this browser’s handle store, under the board page’s own address (the fixture)', J(before[BKEY]) === J({ name: 'THE BOARD FILE' }) && !(FNAME in before), J(before));
     const { p, errs } = await openIn(ctx, copyFile);
     await p.evaluate(STANDIN);
     await p.evaluate(() => { const e = document.getElementById('saveBtn'); if (e) e.scrollIntoView({ block: 'end' }); });
@@ -200,8 +203,8 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     const s2 = await p.evaluate(() => ({ picked: window.__picked.length, writes: window.__disk.writes, asked: window.__al.length, state: document.getElementById('saveState').textContent }));
     chk('E · Ctrl+S is the copy’s Save: the same file again, no picker, nothing asked', J([s2.picked, s2.writes, s2.asked, /^Saved/.test(s2.state)]) === J([1, 2, 0, true]), J(s2));
     const after = await idbAll(p);
-    const mine = Object.keys(after).filter(k => k !== FNAME);
-    chk('E · the board’s entry in the handle store is as the board left it', J(after[FNAME]) === J({ name: 'THE BOARD FILE' }), J(after));
+    const mine = Object.keys(after).filter(k => k !== BKEY);
+    chk('E · the board’s entry in the handle store is as the board left it', J(after[BKEY]) === J({ name: 'THE BOARD FILE' }), J(after));
     chk('E · the copy’s handle is under one key of its own, naming this copy and this office',
       mine.length === 1 && mine[0].indexOf(String(MODE.ts)) >= 0 && /PSM/.test(mine[0]) && J(after[mine[0]]) === J({ name: 'PSM file.html' }), J(mine));
     chk('D–E · nothing threw', errs.length === 0 && B.errs.length === 0, [...errs, ...B.errs].slice(0, 2).join(' | '));
@@ -270,9 +273,13 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
   await new Promise(r => srv.on('listening', r));
   const base = 'http://127.0.0.1:' + srv.address().port;
   // the picker hands back the file named, made in the page's own file system if it is not there
+  // v2.14 W1 (contract C14): both windows stood in -- the board's first Save goes through the Open window where the browser has one,
+  // and this Chromium has one: its file is picked there (made if it is not there yet, as this section's Save window did)
   const PICKER = name => { window.__picked = window.__picked || [];
     window.showSaveFilePicker = async o => { window.__picked.push(o && o.suggestedName);
-      const root = await navigator.storage.getDirectory(); return root.getFileHandle(name, { create: true }); }; };
+      const root = await navigator.storage.getDirectory(); return root.getFileHandle(name, { create: true }); };
+    window.showOpenFilePicker = async o => { window.__picked.push('(open) ' + name);
+      const root = await navigator.storage.getDirectory(); return [await root.getFileHandle(name, { create: true })]; }; };
   const readF = (p, name) => p.evaluate(async n => { try { const root = await navigator.storage.getDirectory();
     return await (await (await root.getFileHandle(n)).getFile()).text(); } catch (e) { return 'ERR ' + e.name; } }, name);
   const move = (p, from, to) => p.evaluate(async ([a, z]) => { const root = await navigator.storage.getDirectory();
@@ -286,7 +293,7 @@ for (const theme of ['harbor', '']) for (const h of [768, 657]) {
     await p.waitForTimeout(300); return { p, errs }; };
   for (const [who, path, saveFn, file, moved, key] of [
     ['the copy', '/copy.html', 'pmoSaveCopy()', 'PSM file.html', 'PSM file (moved).html', 'pmo-copy|'],
-    ['the board', '/board.html', 'saveInPlace()', 'board.html', 'board (moved).html', FNAME]]) {
+    ['the board', '/board.html', 'saveInPlace()', 'board.html', 'board (moved).html', 'page|']]) {   // v2.14 W1: the board page's own key
     // a browser of its own each: this Chromium dies outright when a page uses a kept handle whose file has gone (measured on the
     // board before the fix, which kept it), and a death must fail this section, not every one after it
     const hb = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });

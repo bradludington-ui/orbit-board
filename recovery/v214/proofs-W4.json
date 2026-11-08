@@ -1,0 +1,190 @@
+[
+ {
+  "id": "v214-w4-base-cache",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-file-kept",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-folder-kept",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-file-unread",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-blank-sticky",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-blank-ignored",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-twin-yearhas",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-twin-linkof",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-linkof-self-other-year",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-twin-nafrom",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-chain-stamp",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-stamp-pub-blind",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-stamp-unknown-apart",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-rolled-hit",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-rolled-any",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-jrnl-by-place",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-ids-dup",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnlset-gone",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-whole-offered",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-old-place-offered",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-gone-silent",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-si-none-absent",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-door-refused",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-fmt-none",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-fmt-rules",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unsent",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unaccepted",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unshown",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-pull-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-pull-not-said",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-pull-occupied-words",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-kept-saved-unmarked",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-restore-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-restore-says-folder",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-rcn-not-marked",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-no-hold",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-by-place",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-dlgpend",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-lost-silent",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-change-in-draw",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "unsaved-flag-never-set",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v202-e7-u24-load-uncounted",
+  "caughtBy": "audit-import / v2.02 (E7, U24, U29, U31) — a load is counted as a change"
+ },
+ {
+  "id": "v202-e7-u24-load-session-only",
+  "caughtBy": "audit-import / v2.02 (E7, U24, U29, U31) — a load is counted as a change"
+ },
+ {
+  "id": "v200-r5-restore-gen",
+  "caughtBy": "audit-import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "v200-r5-restore-basedirty",
+  "caughtBy": "audit-import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "restore-no-keep-aside",
+  "caughtBy": "audit-import / v1.95 — ↶ Put this back keeps unsaved work aside first"
+ },
+ {
+  "id": "restore-own-stale",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ }
+]

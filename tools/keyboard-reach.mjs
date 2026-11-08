@@ -34,6 +34,9 @@
 //      the figure beside it (Enter opens Fit to the PPBE position); Enter opens its list, Esc closes it back on the button; and
 //      Enter on a "Put every appropriation on …" item, OK to its question, puts every appropriation's stored plan on that cycle
 //      with the keyboard left on the button.
+//   W. The RCN / EEIC list holds typing across a redraw, in Chromium (v2.14, ledger U35): a figure typed into a row's RCN field and
+//      not yet left survives two redraws with the keyboard and the caret, typing goes on after it, Tab commits it to that row alone,
+//      and Esc with typing not yet committed asks before the box closes.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -1189,6 +1192,90 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   } catch (e) { chk(`V · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
+// ── W. THE RCN / EEIC LIST HOLDS TYPING ACROSS A REDRAW, IN CHROMIUM (v2.14, ledger U35) ─────────────────────────────────────────
+// Two rows in the list, which is opened as the menu opens it. Tab reaches row 1's RCN field; 8888 is typed; the board redraws twice
+// (a Live tick, a status line, a load all redraw); 9 is typed after. The field reads 88889 with the keyboard still in it and the list
+// unchanged -- v2.13 drew the stored 11111 back over the typing. Tab away commits 88889 to row 1 and leaves row 2 alone. Then, typing
+// in row 2 not yet committed, Esc asks before the box closes (the field's pending mark survived the redraw).
+{
+  try {
+    const LIVEW = buildPopulated(FILE);
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    const asked = []; p.on('dialog', d => { asked.push(d.type() + ': ' + d.message()); d.dismiss(); });
+    await p.goto('file://' + LIVEW);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.evaluate(() => { MS.rcn = [{ k: 'rA', rcn: '11111', eeic: 'AAAAA', t: 'ORIGINAL TITLE', svc: ['USAF', 'ANG', 'AFRC'] }, { k: 'rB', rcn: '22222', eeic: 'BBBBB', t: 'SECOND', svc: ['USAF'] }]; save(); });
+    await p.evaluate(() => mRun(toggleRcn)); await p.waitForTimeout(250);
+    const first = await p.evaluate(() => { const i = document.querySelector('#rcnBody tr:nth-child(2) td:first-child input'); return !!i && getComputedStyle(document.getElementById('rcnPanel')).display !== 'none'; });
+    chk('W · the RCN / EEIC list is open with its rows', first, String(first));
+    await p.focus('#rcnBody tr:nth-child(2) td:first-child input');
+    await p.keyboard.press('End');
+    for (let i = 0; i < 5; i++) await p.keyboard.press('Backspace');
+    await p.keyboard.type('8888');
+    await p.evaluate(() => { render(); render(); }); await p.waitForTimeout(150);
+    await p.keyboard.type('9');
+    const w1 = await p.evaluate(() => { const i = document.querySelector('#rcnBody tr:nth-child(2) td:first-child input');
+      return { v: i.value, focus: document.activeElement === i, stored: MS.rcn[0].rcn }; });
+    chk('W · typed 8888, two redraws, then 9: the field reads 88889 with the keyboard still in it, and the list is unchanged', w1.v === '88889' && w1.focus && w1.stored === '11111', JSON.stringify(w1));
+    await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const w2 = await p.evaluate(() => MS.rcn.map(e => [e.k, e.rcn]));
+    chk('W · Tab away commits 88889 to row 1, and row 2 is untouched', JSON.stringify(w2) === JSON.stringify([['rA', '88889'], ['rB', '22222']]), JSON.stringify(w2));
+    await p.focus('#rcnBody tr:nth-child(3) td:first-child input');
+    await p.keyboard.press('End'); await p.keyboard.type('7');
+    await p.evaluate(() => render()); await p.waitForTimeout(150);
+    asked.length = 0; await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+    const w3 = await p.evaluate(() => ({ open: document.getElementById('rcnPanel').classList.contains('open'), stored: MS.rcn[1].rcn }));
+    chk('W · typing not yet committed, after a redraw: Esc asks before the box closes (answered Cancel, it stays open, nothing stored)',
+      asked.length === 1 && w3.open && w3.stored === '22222', JSON.stringify({ asked: asked.map(x => x.slice(0, 80)), ...w3 }));
+    chk('W · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`W · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+// v2.14 RV2-D (rcn-twin-typing-moves-to-the-other-row): AND NEVER ONTO A ROW EXACTLY LIKE ITS OWN. Two identical rows sharing one key
+// (the second "repeats row 1"); 99999 typed into row 1; a colleague's change to row 1's title is loaded (applyStore, as a Live tick or
+// another tab loads it), in Chromium, which fires change on a focused field as the redraw removes it. Tab away: neither row takes the
+// typing, and the board says why. On 74a6aec the typing and the keyboard moved to row 2 and Tab saved 99999 there.
+// v2.14 RV2-D (the check of that fix): the words name what happened -- the row typed in was changed, and the row exactly like it is
+// another -- and a load that renames row 2 instead leaves the typing in row 1, where Tab saves it (the first cut, 8028c1b, dropped it).
+{
+  try {
+    const LIVEW = buildPopulated(FILE);
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 } });
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    p.on('dialog', d => d.dismiss());
+    await p.goto('file://' + LIVEW);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.evaluate(() => { const r = { k: 'K1', rcn: '11111', eeic: 'AAAAA', t: 'Depot', svc: ['USAF'] }; MS.rcn = [Object.assign({}, r), Object.assign({}, r)]; save(); });
+    await p.evaluate(() => mRun(toggleRcn)); await p.waitForTimeout(250);
+    await p.focus('#rcnBody tr:nth-child(2) td:first-child input');
+    await p.keyboard.press('End');
+    for (let i = 0; i < 5; i++) await p.keyboard.press('Backspace');
+    await p.keyboard.type('99999');
+    await p.evaluate(() => { setStat(''); const st = JSON.parse(JSON.stringify(MS)); st.rcn[0].t = 'Depot repair'; st.ts = Date.now() + 5; applyStore(st); render(); });
+    await p.waitForTimeout(150);
+    await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const t1 = await p.evaluate(() => ({ stored: MS.rcn.map(e => [e.t, e.rcn]), said: (document.getElementById('shareStat') || {}).textContent || '' }));
+    chk('W · two identical rows, row 1 renamed by a load while typed into: Tab away saves the typing on neither row, and the board says the row typed in was changed and the row exactly like it is another',
+      JSON.stringify(t1.stored) === JSON.stringify([['Depot repair', '11111'], ['Depot', '11111']]) && /it is not the row the typing was in/.test(t1.said), JSON.stringify({ stored: t1.stored, said: t1.said.slice(0, 200) }));
+    // and the mirror on the other twin: row 2 renamed by the load while row 1 is typed into -- row 1 is there as it was
+    await p.evaluate(() => { const r = { k: 'K1', rcn: '11111', eeic: 'AAAAA', t: 'Depot', svc: ['USAF'] }; MS.rcn = [Object.assign({}, r), Object.assign({}, r)]; save(); render(); });
+    await p.waitForTimeout(150);
+    await p.focus('#rcnBody tr:nth-child(2) td:first-child input');
+    await p.keyboard.press('End');
+    for (let i = 0; i < 5; i++) await p.keyboard.press('Backspace');
+    await p.keyboard.type('99999');
+    await p.evaluate(() => { setStat(''); const st = JSON.parse(JSON.stringify(MS)); st.rcn[1].t = 'Depot (repeat) renamed'; st.ts = Date.now() + 5; applyStore(st); render(); });
+    await p.waitForTimeout(150);
+    await p.keyboard.press('Tab'); await p.waitForTimeout(150);
+    const t2 = await p.evaluate(() => ({ stored: MS.rcn.map(e => [e.t, e.rcn]), said: (document.getElementById('shareStat') || {}).textContent || '' }));
+    chk('W · two identical rows, row 2 renamed by a load while row 1 is typed into: Tab away saves the typing on row 1, and nothing says it was lost',
+      JSON.stringify(t2.stored) === JSON.stringify([['Depot', '99999'], ['Depot (repeat) renamed', '11111']]) && !/was not kept/.test(t2.said), JSON.stringify({ stored: t2.stored, said: t2.said.slice(0, 200) }));
+    chk('W · twins: nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`W · the twins section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked and the PPBE cycle at the top, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, the repaired-award controls, the Add box, FYDP Disconnects, the cost estimate import’s mapping box and report, the fit to the PPBE position, a WBS paragraph picked, the PPBE cycle at the top and the RCN / EEIC list held across a redraw, and each one works\n');
 process.exit(bad ? 1 : 0);

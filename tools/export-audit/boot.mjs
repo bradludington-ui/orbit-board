@@ -77,7 +77,30 @@ function splitProgram(src) {
   if (a < 0 || b < a || !/^\s*<\/body>\s*<\/html>\s*$/.test(src.slice(b + 9))) return null;
   return { page: src.slice(0, a) + PH + src.slice(b + 9), code: src.slice(a + 8, b) };
 }
-export function boot({ svc, items, quiet = true, html = null, appn = null, ls = null } = {}) {
+// v2.14 (slot, S7): THIS BROWSER'S HANDLE STORE, as the board reads it while it opens. jsdom has no IndexedDB, so a board that
+// remembers its save file had nowhere to look at opening. `store` is a Map the caller shares between boots, as one browser does;
+// `log` records each operation ('get k', 'put k', 'delete k'). Every onsuccess, and the transaction's oncomplete, comes by
+// setTimeout(0) after its operation, as the browser's do. (audit-import's i127idb is the same without oncomplete; it is left.)
+function installIdb(win, store, log) {
+  win.indexedDB = { open() { const r = {};
+    setTimeout(() => {
+      r.result = { createObjectStore() {}, transaction() {
+        const tx = {};
+        const done = () => setTimeout(() => { if (tx.oncomplete) tx.oncomplete(); }, 0);
+        const req = (fn) => { const q = {}; setTimeout(() => { fn(q); if (q.onsuccess) q.onsuccess(); done(); }, 0); return q; };
+        tx.objectStore = () => ({
+          get(k) { log.push('get ' + k); return req(q => { q.result = store.get(k); }); },
+          put(v, k) { log.push('put ' + k); store.set(k, v); return req(() => {}); },
+          delete(k) { log.push('delete ' + k); store.delete(k); return req(() => {}); },
+        });
+        return tx; } };
+      if (r.onsuccess) r.onsuccess(); }, 0);
+    return r; } };
+}
+// url: the page's address (v2.14 S7; the default is the one every boot had). idb: {store, log}, installed before the program
+// runs. quota: jsdom's storageQuota in code units (unset: jsdom's own 5,000,000). The defaults leave every boot as it was.
+export function boot({ svc, items, quiet = true, html = null, appn = null, ls = null,
+                       url = 'https://example.invalid/board.html', idb = null, quota = undefined } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on('jsdomError', e => errors.push(e.message));
@@ -88,8 +111,10 @@ export function boot({ svc, items, quiet = true, html = null, appn = null, ls = 
   const dom = new JSDOM(split ? split.page : src, {
     runScripts: 'dangerously',
     virtualConsole: vc,
-    url: 'https://example.invalid/board.html',
+    url,
+    ...(quota !== undefined ? { storageQuota: quota } : {}),
     beforeParse(win) {
+      if (idb) installIdb(win, idb.store, idb.log);
       if (ls) for (const k of Object.keys(ls)) { try { win.localStorage.setItem(k, ls[k]); } catch {} }
       if (appn) { try { win.localStorage.setItem('prio27appn', appn); } catch {} }
     },

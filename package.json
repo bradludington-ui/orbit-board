@@ -12,7 +12,7 @@
     "layout": "node tools/layout-fits.mjs",
     "controls": "node tools/row-controls.mjs --check",
     "inspector": "node tools/inspector-agrees.mjs",
-    "verify:grid": "npm run chrome --silent && npm run csp --silent && npm run controls --silent && npm run inspector --silent && npm run toolbar --silent && npm run editors --silent && npm run colours --silent && npm run menus --silent && npm run panels --silent && npm run frames --silent && npm run hostile --silent && npm run layout --silent && npm run keys --silent && npm run dropdowns --silent && npm run dialogs --silent && npm run leftmenu --silent && npm run pmosave --silent && npm run pmoyears --silent && npm run pointer --silent",
+    "verify:grid": "npm run chrome --silent && npm run csp --silent && npm run controls --silent && npm run inspector --silent && npm run toolbar --silent && npm run editors --silent && npm run colours --silent && npm run menus --silent && npm run panels --silent && npm run frames --silent && npm run hostile --silent && npm run layout --silent && npm run keys --silent && npm run dropdowns --silent && npm run dialogs --silent && npm run leftmenu --silent && npm run pmosave --silent && npm run savetarget --silent && npm run fileimport --silent && npm run pmoyears --silent && npm run pointer --silent && npm run storagefull --silent",
     "toolbar": "node tools/toolbar-fits.mjs",
     "audit:board": "node tools/export-audit/audit-board.mjs",
     "audit:legacy": "node tools/export-audit/legacy-fsrc.mjs",
@@ -53,6 +53,10 @@
     "pmosave": "node tools/pmo-save.mjs",
     "pmoyears": "node tools/pmo-years-render.mjs",
     "pointer": "node tools/pointer-edit.mjs",
+    "savetarget": "node tools/save-target.mjs",
+    "fileimport": "node tools/import-file.mjs",
+    "fileimport:gtk": "node tools/import-file.mjs --gtk",
+    "storagefull": "node tools/storage-full.mjs",
     "csp": "node tools/csp-check.mjs"
   },
   "devDependencies": {

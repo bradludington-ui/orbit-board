@@ -15,38 +15,29 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 
 ## Current implementation assignment
 
-- Task and approved scope: v2.13 -- item 136 (one PPBE cycle for the whole board, chosen in the context bar), as logged in
-  NEXT-VERSION.md with Brad's answers of 2 Nov 2026 ("Apply to all"; "Yes" to offering it on opening; "Deltas should bump against
-  the controls I've entered for that cycle versus what's been allocated to each requirement"; "Separate comparison") and his
-  "Go on item 136". Item 133 (the Service share workbook) is not in scope and stays under Open.
-- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on ccr-26126337-csqb5v). Helpers: five map readers
-  and a completeness critic (read only), one browser-check builder in a worktree (worktree-agent-ae76f8d41faa8a9a2; its check commit
-  a07eac6 was taken as 608c8c1, its board fix 1f5b0e3 was not taken: the bar keeps its last figure instead), four reviewers and their
-  skeptics (read only). Each stopped at its report. Claude stops edits at the handoff commit.
-- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, NEXT-VERSION.md, CLAUDE.md, recovery/v213/**, this
-  entry. Excluded: the sweep (no named go), item 133, items 100 and 107.
-- Isolated branch and base commit SHA: ccr-26126337-csqb5v, based on main fe0c83d (v2.12 merged), plus the item 136 logging
-  (67e758d .. efd6435). Draft PR #32.
-- Status: accepted; merged on Brad's "Merge when ready" (2 Nov 2026).
-- Required bounded checks and designated gate owner: npm run check; every suite; the browser checks (verify:grid, keys, dropdowns,
-  dialogs, leftmenu, pmosave, pmoyears, pointer, standards); each new and retargeted mutation proved against its own check; mcount;
-  review with skeptics; validate:nightly on the final tree. Gate owner Claude. No sweep.
-- Handoff commit SHA and changed files: the commit that carries this entry (the PR names the head). The board
-  (BUILD 'v2.13 (2 Nov 2026)'); tools/export-audit/{audit-board,audit-recon,audit-import,mutate}.mjs; tools/{keyboard-reach,
-  layout-fits,panels-render,standards-check,left-menu,ia-fixture,money-coverage}.mjs and the new tools/cyc-seed.mjs;
-  NEXT-VERSION.md, CLAUDE.md, recovery/v213/ (proofs-136.json, proved-136.jsonl, proved-retarget-ui.jsonl).
-- Commands, seeds, durations, exit statuses and results: every suite whole (8 banners and the legacy line). npm run validate:nightly
-  (15:41-16:39 UTC, 58 min): every stage holds but the browser stage, which fails only on layout D x8, carried since v2.00; fuzz seed
-  64422288; money map 322 cells (119 proven, 202 n/a, 1 open); coverage 27/27; trace matrix 77 cells. Browser checks after layout:
-  keys, dropdowns (560 menus), dialogs, leftmenu, pmosave, pmoyears, pointer and standards (0 findings, nothing new) all pass. Mutations: 71 new, 6 retargeted, 3,220 targets each matching once; 75 of 75 proved CAUGHT
-  (recovery/v213/proved-136.jsonl, proved-retarget-ui.jsonl).
-- Known risks, blocked checks and reviewer findings: the completeness critic's eight gaps and the review's 20 kept findings (24
-  reported; 4 refuted by both skeptics) are all fixed, with checks; none is recorded as not fixed. Four questions for Brad are in
-  NEXT-VERSION.md > Shipped > v2.13 (packages replacing the cycle; the per-appropriation retags; the context bar wrapping to two lines
-  below about 1,138 px on a tagged board; the shared folder moving only the board on screen). Another appropriation's stored budget
-  follows the cycle when its board next opens (item 135). Layout D x8 is carried; the sweep was not run (Brad's rule of 20 Oct).
-- Brad's integration/merge/publication authorization, if given: given, 2 Nov 2026: "Merge when ready". Merged into main as
-  PR #32 with a merge commit, so the commits the suites read from history stay reachable.
+- Task and approved scope: v2.14 -- the data-loss version, the first of three Brad approved on 3 Nov 2026 ("Let's push all of
+  these", then "Three versions, data loss first"): item 140 (Save in one ORBIT file can write over another without asking),
+  item 141 (a full import of a board larger than browser storage; Brad's Save writes into the file, so the file route is the
+  main path), item 129's four findings (two-tab work recorded saved; the twin rule and the chain walk ignoring a copy's stamp;
+  a rolled added requirement unseen by the same-work walk), item 124 (Put back by id; a hand-chosen "no SI code" in a copy is
+  sent), and the ledger's U63, U64 (keep work aside when a folder copy replaces it; name where Save writes) and U35 (the
+  registry box keeps typing across a redraw), as the handoff's decisions 11 and 13-15 recommend (Brad: "Accept all
+  recommendations"). Next: v2.15 (items 137-139 and the small fixes), then v2.16 (item 133).
+- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on ccr-26126337-csqb5v). v2.13's lead stopped
+  at its merge (PR #32, bc5d2a2); the records after it merged as PR #33 (f95b2aa) and PR #31 (c863dc2).
+- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, NEXT-VERSION.md, CLAUDE.md, recovery/v214/**,
+  this entry. Excluded: items 133 and 137-139 (later versions), items 100 and 107 (Brad: leave until hosting is chosen), E1
+  (Brad: "Not needed this week").
+- Isolated branch and base commit SHA: ccr-26126337-csqb5v, restarted from main c863dc2.
+- Status: assigned.
+- Required bounded checks and designated gate owner: npm run check; every suite whole; the browser checks (verify:grid, keys,
+  dropdowns, dialogs, leftmenu, pmosave, pmoyears, pointer, standards, and the new checks this version adds); each new and
+  retargeted mutation proved against its own check; mcount; review with skeptics; validate:nightly on the final tree. Gate
+  owner Claude. The sweep's first batch (handoff decision 27, accepted) runs on a committed tree with nothing else running.
+- Handoff commit SHA and changed files:
+- Commands, seeds, durations, exit statuses and results:
+- Known risks, blocked checks and reviewer findings:
+- Brad's integration/merge/publication authorization, if given: not given for v2.14. Each version merges on Brad's word.
 
 The four recurring monitors retain read-only scope.
 

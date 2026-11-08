@@ -267,6 +267,131 @@
     "ace-delta-sign",
     "ace-pmo-total-drops-est"
    ]
+  },
+  {
+   "id": "put-back-lands-on-the-next-added-requirement",
+   "found": "2026-10-26",
+   "foundBy": "the v2.08 second review (item 124), reproduced on v2.13 by proto/held-124-putback2.mjs",
+   "build": "v2.13",
+   "surface": "the change journal’s Put back on a requirement added on the board -- its value by service, and so every figure it feeds",
+   "symptom": "Put back of a value typed on an added requirement, after another added requirement above it was deleted, wrote the old value onto the requirement below: NEW-2’s 200 went back onto NEW-3, whose 300 became 200, and NEW-2 kept 250. Put back of a value of an added requirement that was itself gone threw, and left an element with no id in the list, which the next save stored.",
+   "cause": "jrnlWalk filed a year’s added requirements by their place in S.custom ([\"custom\", 1, \"ask\", 0]), so a delete above moved every later line onto the requirement that took the place; jrnlSet walked a place into a list and made what it did not find.",
+   "fix": "v2.14: the journal files an added requirement by its id ([\"custom\", \"NEW-2\", \"ask\", 0]); jrnlSet finds it by id and refuses when it is gone; Put back says \"that added requirement is no longer in FY27. Nothing was changed.\"; a whole added requirement, and a line filed by place before v2.14, are not offered.",
+   "guarded": true,
+   "checks": [
+    "v2.14 W4 — Put back finds an added requirement by its id, and refuses once it is gone (item 124)"
+   ],
+   "mutations": [
+    "v214-w4-jrnl-by-place",
+    "v214-w4-jrnlset-gone"
+   ]
+  },
+  {
+   "id": "roll-forward-skips-or-doubles-a-continuation",
+   "found": "2026-10-27",
+   "foundBy": "the third review of v2.09 (item 129), confirmed by skeptics on d3ce17d; reproduced on v2.13 by recovery/v209/held/years",
+   "build": "v2.13",
+   "surface": "Roll requirements forward, Copy to year and the review’s duplicate walk -- the requirement value each year carries",
+   "symptom": "With two copies of one office out at once, Roll forward reported \"1 copy created … 1 already there and left alone\" and the second copy’s continuation was missing from the next year, its value with it; and a requirement the board added, rolled forward whole and continued by a proposal, went into the next year twice, unnamed, its value counted twice.",
+   "cause": "yearHas, yearLinkOf, naFromHere and pmoPriorHere read two links to one provisional id ({fy, id}) as the same work without the copy stamp that tells copy A’s NEW-PSM-1 from copy B’s; and the duplicate walk took a direct hit only for a board-data id, never for a board-added NEW-n a whole-year roll copies under the same id.",
+   "fix": "v2.14: pmoLinkApart / pmoChainApart compare the copy stamp; an id the rolled year holds is a direct hit when it is that requirement or a whole-year copy of it (yrCopySame).",
+   "guarded": true,
+   "checks": [
+    "v2.14 W4 — two copies out at once: each copy’s continuation is its own work, and a rolled added requirement is the same work (item 129)"
+   ],
+   "mutations": [
+    "v214-w4-twin-yearhas",
+    "v214-w4-rolled-hit"
+   ]
+  },
+  {
+   "id": "spruills-read-another-appropriation-as-zero-on-a-program-file",
+   "found": "2026-11-03",
+   "foundBy": "the second review of v2.14 (r2b math), confirmed by two skeptics on bd5ff6d; the same on v2.13 and v2.12",
+   "build": "v2.13",
+   "surface": "Spruills (Total Requirements, Delta, rows by PMO and by service), the Spruills PMO drill and the chart of accounts -- every appropriation but the one on screen",
+   "symptom": "On O&M, Spruills read Full Fund as Total Requirements $0.00M and Delta +$87.60M -- a surplus -- on a board whose Full Fund plan holds $209,844,000 of asks; ALL APPROPRIATIONS read $410.04M and $-59.04M where the truth was $726.01M and $-375.01M. The PMO drill gave PSM $0 in Full Fund, and the chart of accounts listed none of Full Fund's 30 requirements, while the five-year spend plan on the same page printed 209.844.",
+   "cause": "spDefs read another appropriation's master list from the consolidated payload (APPNS) alone. No program file carries one since the generator was retired, and a full import moves a consolidated file's packs into each plan's own data pack, so only that year's added requirements were ever counted.",
+   "fix": "v2.14 RV2-D: spDefs takes the plan's own data pack where the consolidated slot is empty, the rule pkgPackOf already followed.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)"
+   ],
+   "mutations": [
+    "v214-rv2-d-spdefs-other-pack"
+   ]
+  },
+  {
+   "id": "chart-of-accounts-listed-the-boards-own-added-requirements-twice",
+   "found": "2026-11-03",
+   "foundBy": "RV2-D, writing the check for the Spruills finding above (a probe of a twice-listed requirement on v2.14 RV1)",
+   "build": "v2.13",
+   "surface": "The chart of accounts (Where we stand, Decisions needed, the chart) -- the appropriation on screen",
+   "symptom": "On a board holding A ($1,200), NEW-2 ($200) and NEW-3 ($300), Where we stand read O&M 5 requirements and $2,200: every added requirement of the appropriation on screen was listed twice and its dollars counted twice.",
+   "cause": "spDefs gave the board's own appropriation DATA as its data where the consolidated slot is empty; DATA.items is the year on screen's list with its added requirements already in it, and coaRows reads a def's items through itemsOf with that year's added requirements on top.",
+   "fix": "v2.14 RV2-D: the own def carries the board's master list (BASE_ITEMS), as every other def carries its own.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)",
+    "v2.14 RV2-D — an added requirement an older ORBIT left twice in the list is kept once, the repeat set aside and said, and counted once everywhere (also noticed)"
+   ],
+   "mutations": [
+    "v214-rv2-d-spdefs-own-doubled",
+    "spdefs-no-fallback"
+   ]
+  },
+  {
+   "id": "an-added-requirement-an-older-orbit-left-twice-was-counted-twice",
+   "found": "2026-11-03",
+   "foundBy": "the second review of v2.14 (r2b heldolder, also noticed), reproduced by RV2-D on v2.14 RV1 with v2.13's own Put back",
+   "build": "v2.13",
+   "surface": "The chart of accounts on the board's own appropriation, and Spruills and the chart of accounts from another appropriation",
+   "symptom": "After v2.13's Put back left NEW-3 twice in the list of added requirements, DATA.items held it twice: the chart of accounts listed it twice and counted its $300 twice, and from Full Fund Spruills added it twice.",
+   "cause": "customMend set aside only entries with no id; a second entry for an id already on the list was kept, and itemsOf, reading another appropriation's raw store, concatenated both.",
+   "fix": "v2.14 RV2-D: customMend keeps the first and sets the repeat aside, as found, and says so; itemsOf leaves a repeated id out.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — an added requirement an older ORBIT left twice in the list is kept once, the repeat set aside and said, and counted once everywhere (also noticed)"
+   ],
+   "mutations": [
+    "v214-rv2-d-mend-keeps-twice",
+    "v214-rv2-d-itemsof-twice"
+   ]
+  },
+  {
+   "id": "priority-drill-by-band-counted-an-id-with-no-requirement",
+   "found": "2026-11-03",
+   "foundBy": "the second review of v2.14 (r2b math), confirmed by two skeptics on bd5ff6d; the same on v2.13",
+   "build": "v2.13",
+   "surface": "The Priority Drill's Summary: REQUIREMENTS BY BAND, ACROSS EVERY APPROPRIATION IN THIS FILE",
+   "symptom": "From Full Fund, O&M counted 5 unbanded requirements beside an O&M that holds 4: the fifth was the id an older ORBIT's Put back of an add left in the order with nothing behind it.",
+   "cause": "The count read another appropriation's raw order and never asked whether an id was on that year's list.",
+   "fix": "v2.14 RV2-D: only ids on the year's list (its master list less removals, plus its added requirements: itemsOf) are counted.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — the Priority Drill’s count by band across every appropriation counts only the requirements on each year’s list (byband-counts-a-requirement-the-mend-took-out)"
+   ],
+   "mutations": [
+    "v214-rv2-d-byband-ghost"
+   ]
+  },
+  {
+   "id": "chart-of-accounts-listed-a-year-another-appropriation-has-not-started",
+   "found": "2026-11-04",
+   "foundBy": "the check of RV2-D's fix (rv2-D check x4), on the v2.12 big board",
+   "build": "v2.14 (RV2-D first cut); the same in a consolidated file since the chart of accounts was built",
+   "surface": "The chart of accounts (Where we stand, Decisions needed, the chart) -- every appropriation but the one on screen",
+   "symptom": "On O&M rolled forward to FY28, Where we stand listed FULL FUND (as delivered): 30 requirements, FY28 Requirement $209,844,000, and INITIAL SPARES $106,128,000, under a flag saying their boards had never been opened in this file -- while their plans hold FY27 only and the Spruills on the same page read no data for them in FY28.",
+   "cause": "coaRows called an appropriation 'as delivered' whenever its plan held no state for the year, which is meant for an appropriation with no plan at all; reading every appropriation from its own plan's pack (RV2-D) made that the common case.",
+   "fix": "v2.14 RV2-D (the check of its fix): an appropriation whose plan holds no state for the year is left off the chart for that year, and the workbook and the status line name it.",
+   "guarded": true,
+   "checks": [
+    "v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)"
+   ],
+   "mutations": [
+    "v214-rv2-d-coa-year-not-held",
+    "v214-rv2-d-coa-not-held-unsaid"
+   ]
   }
  ]
 }

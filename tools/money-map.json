@@ -678,6 +678,13 @@
    "anchor": "const name = 'v2.12 RV6 — a one-figure position is read by one rule: the live budget, Take from a PPBE position and FYDP Disconnects divide it alike (S04, S05, S14, S17, S18)'",
    "basis": "arithmetic",
    "asserts": "A position logged one figure per line, read by the board’s one rule (ppLanesOf, Brad’s R37 decision) through every reader, against lanes worked out by hand from the fixture: the live budget, Take from a PPBE position (its question, the base it writes, a later tag) and FYDP Disconnects (the Summary, the service sheets, the box and the workbook read from its bytes) each divide a service’s total as that appropriation’s own base for the year divides it -- two bases tie at a half dollar, so apportion is told from rounding or flooring each lane; every lane a whole dollar adding to the figure typed; no own base is discretionary; Full Fund by its own base and its own service list, never this board’s; a year whose base cannot be read prints — with the figure as its Controls, and is said."
+  },
+  "bo.rv2dPack": {
+   "file": "tools/export-audit/audit-board.mjs",
+   "scenario": "v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)",
+   "anchor": "const name = 'v2.14 RV2-D — the Spruills, the PMO drill and the chart of accounts read another appropriation from its own plan’s data pack, and this board’s added requirements once (spruills-other-appn-base-requirements-zero)'",
+   "basis": "arithmetic",
+   "asserts": "By hand, on the shape every program file has (no consolidated payload; Full Fund’s requirements in its own plan’s data pack, in this browser’s storage and in the file alike): Full Fund’s Total Requirements, Available Funding and Delta, its rows by service and by PMO, each of two years; PSM’s requirement in Full Fund by service and year in the PMO drill; the chart of accounts’ rows and “Where we stand” for both appropriations, this board’s added requirement once."
   }
  },
  "surfaces": {
@@ -1424,9 +1431,10 @@
     "appropriation": {
      "status": "proven",
      "checks": [
-      "re.coa"
+      "re.coa",
+      "bo.rv2dPack"
      ],
-     "note": "the board's own appropriation and a consolidated Full Fund slot, each with its own override"
+     "note": "the board’s own appropriation and a consolidated Full Fund slot, each with its own override (re.coa); another appropriation from its plan’s own data pack, and the board’s own added requirements once (bo.rv2dPack)"
     },
     "fiscalYear": {
      "status": "n/a",
@@ -2516,7 +2524,8 @@
     "appropriation": {
      "status": "proven",
      "checks": [
-      "bo.drillOther"
+      "bo.drillOther",
+      "bo.rv2dPack"
      ],
      "note": "another appropriation’s requirement from its own state, under the PMO it gives, once; its Controls print as “—” (the lane engine runs one appropriation per page) and are never added in as nothing"
     },
@@ -2565,9 +2574,10 @@
      "status": "proven",
      "checks": [
       "bo.spruillsYears",
-      "bo.drillOther"
+      "bo.drillOther",
+      "bo.rv2dPack"
      ],
-     "note": "another appropriation (Full Fund, three services) from its own payload and state: its totals, budget and rows by service and by PMO"
+     "note": "another appropriation (Full Fund, three services) from its own payload and state: its totals, budget and rows by service and by PMO -- from a consolidated slot (bo.spruillsYears) and, as a program file carries it, from its plan’s own data pack (bo.rv2dPack)"
     },
     "fiscalYear": {
      "status": "proven",

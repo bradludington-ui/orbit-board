@@ -1,0 +1,14 @@
+import { boot, seed } from '/home/user/orbit-board/tools/export-audit/boot.mjs';
+const it = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const FIX = { services: ['USAF', 'ANG'], items: [it('A', 'AV', [100, 20]), it('B', 'PSM', [50, 10])], disc: [120, 20], mand: [30, 10], order: ['A', 'B'] };
+const B = boot(); seed(B.ev, FIX); B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); }); save(); render(); DIRTY=false; _sideSaved=_sideGen; 'ok'`);
+const r = B.ev(`(function(){ const size=function(){ let t=0; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); t+=k.length+localStorage.getItem(k).length; } return t; };
+  const LIM=size()+200, si=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k, v){ v=String(v); const was=localStorage.getItem(k);
+    if(size()-(was===null? 0 : k.length+was.length)+k.length+v.length>LIM) throw new DOMException('q', 'QuotaExceededError'); return si.call(this, k, v); };
+  const before={unsaved:unsavedNow(), refused:JSON.stringify(_lsRefused)};
+  const W=[[DEST_KEY, JSON.stringify({ts:1, ents:[]}), 'The destination list'], [ACEDB_KEY, 'x'.repeat(5000), 'The cost estimates']];
+  const d=lsAll(W); Storage.prototype.setItem=si;
+  return JSON.stringify({before:before, ok:d.ok, back:d.back, after:{unsaved:unsavedNow(), sideUnsaved:sideUnsaved(), refused:Object.keys(_lsRefused), sideGenMoved:_sideGen!==_sideSaved}});
+})()`);
+console.log(r);

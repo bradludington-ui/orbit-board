@@ -1,0 +1,742 @@
+[
+ {
+  "id": "v209-rv2-save-boot-no-write",
+  "caughtBy": "audit-import / v2.09 second review — a newer file, the older one"
+ },
+ {
+  "id": "v214-w1-fname-get",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-fname-put",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-key-shared",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-own-name-lost",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-save-window-first",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-picked-remembered-early",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-picked-denied-kept",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-drops-unasked",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-cancel-writes",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-appns-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-empty-carried",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-years-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-cycles-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-ace-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-exec-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-bae-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-drops-rp-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-cancel-pen-moved",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-null-writer-throws",
+  "caughtBy": "import / v2.14 W1 — Save into an ORBIT program with no board"
+ },
+ {
+  "id": "v214-w1-program-not-fresh",
+  "caughtBy": "import / v2.14 W1 — Save into an ORBIT program with no board"
+ },
+ {
+  "id": "v214-w1-baked-unasked",
+  "caughtBy": "import / v2.14 W1 — Save into an ORBIT program with no board"
+ },
+ {
+  "id": "v214-w1-release-skipped",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-release-any-file",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-boot-lastknown-inherited",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-stray-opens",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-stray-any-record",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-stray-over-pack",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-drops-reqs-blind",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-fresh-remembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-known-unread",
+  "caughtBy": "import / v2.14 W1 — Save writes only to the file this page was saved to"
+ },
+ {
+  "id": "v214-w1-blank-never",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-blank-not-carried",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-blank-after-save",
+  "caughtBy": "import / v2.14 W1 — a page whose board came from no saved copy"
+ },
+ {
+  "id": "v214-w1-repick-keeps",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-later-writes",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-later-unremembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-pick-blocked-misread",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-open-cancel-unoffered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-state-not-object",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w2-not-offered",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-ungated",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-mixed-offered",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-click-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-picker-after-await",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-no-readback",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-readback-length",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-clear-before-write",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-clears-others",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-race-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-reload-unmarked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-rescue-missing",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-rescue-swapped",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-lists-from-memory",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-drops-cycles",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-own-plan-dropped",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-unstamped",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-match-inverted",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-opens-clears-changed",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-opens-clears-nothing",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-hold-lsset-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-persist-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-boot-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-lift-unasked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-import-offers-file",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-skipped",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-not-blocking",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-stale-screen",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-name-match-rushes",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-download-clears-now",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-download-unmarked",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-marker-raw",
+  "caughtBy": "inject / W2-1 the file route"
+ },
+ {
+  "id": "v214-w2-writer-unclaimed",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-adopt-any-page",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-shell-per-slot",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-shell-uncaptured",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-room-unsaid",
+  "caughtBy": "import / v2.14 W2 — a full import that only just fits"
+ },
+ {
+  "id": "v214-w2-import-base-unrecorded",
+  "caughtBy": "import / v2.14 W2 — after a full import that lands"
+ },
+ {
+  "id": "v214-w2-hold-unlatched",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-no-storage-event",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-marker-after-pause",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-lift-leaves-copies",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-holds-unsaid",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-rescue-close-unasked",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-base-in-marker",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-mixed-marks-base",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-e1-takes-lists",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-e1-takes-one",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-e2-base-unrecorded",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-room-not-on-opening",
+  "caughtBy": "import / v2.14 W2 — a full import that only just fits"
+ },
+ {
+  "id": "v214-w2-race-page-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "handoff-copy-drops-store",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "handoff-copy-drops-exec",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "handoff-copy-drops-ace",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "save-no-lt-escape",
+  "caughtBy": "import / =save → reopen"
+ },
+ {
+  "id": "cycle-file-drops-store",
+  "caughtBy": "board / PPBE cycles — the lock is the window, frozen; PPBE cycles — a PMO copy carries the reference projection only"
+ },
+ {
+  "id": "bud-not-saved",
+  "caughtBy": "import / the BAE list — one list, every appropriation"
+ },
+ {
+  "id": "dest-file-no-list",
+  "caughtBy": "import / v1.86 — the four lists become one"
+ },
+ {
+  "id": "writer-not-in-file",
+  "caughtBy": "import / v1.95 — one writer per board file"
+ },
+ {
+  "id": "impmixed-lift-partial",
+  "caughtBy": "import / v1.95 — an import that lands whole lifts the hold"
+ },
+ {
+  "id": "v214-w3-persist-uncounted",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-memonly-persist-ignored",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-memonly-counts-opening",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-memonly-side-ignored",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-boot-gen-unset",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-beforeunload-off",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-leaving-ignored",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-reopen-not-leaving",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-leave-ignores-file",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-switch-unguarded",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-switch-reloads-refused",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: switching appropriation never reopens"
+ },
+ {
+  "id": "v214-w3-switch-box-stays",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: switching appropriation never reopens"
+ },
+ {
+  "id": "v214-w3-quiet-uncounted",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: switching appropriation never reopens"
+ },
+ {
+  "id": "v214-w3-dl-no-question",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-cycgo-mark-first",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-cycgo-mark-left",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: switching appropriation never reopens"
+ },
+ {
+  "id": "v214-w3-writerkey-remade",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: the writer key and the editor name"
+ },
+ {
+  "id": "v214-w3-writerkey-retries",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: the writer key and the editor name"
+ },
+ {
+  "id": "v214-w3-pen-reads-storage",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: the writer key and the editor name"
+ },
+ {
+  "id": "v214-w3-name-not-kept",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: the writer key and the editor name"
+ },
+ {
+  "id": "v214-w3-name-storage-first",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: the writer key and the editor name"
+ },
+ {
+  "id": "v214-w3-import-full-unguarded",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-import-take-unguarded",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-import-state-unguarded",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-clear-onscreen-unsaid",
+  "caughtBy": "audit-board / v2.14 W3 — storage full: a change browser storage refuses is counted"
+ },
+ {
+  "id": "v214-w3-diag-foreign-as-orbit",
+  "caughtBy": "audit-other / v2.14 W3 — Save diagnostics counts browser storage by kind"
+ },
+ {
+  "id": "v214-w3-diag-copy-precedence",
+  "caughtBy": "audit-other / v2.14 W3 — Save diagnostics counts browser storage by kind"
+ },
+ {
+  "id": "v214-w3-diag-stamps-uncounted",
+  "caughtBy": "audit-other / v2.14 W3 — Save diagnostics counts browser storage by kind"
+ },
+ {
+  "id": "v214-w3-diag-kinds-missing",
+  "caughtBy": "audit-other / v2.14 W3 — Save diagnostics counts browser storage by kind"
+ },
+ {
+  "id": "v214-w3-marks-not-restored",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v214-w3-marks-dirty-kept",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v214-w3-marks-side-kept",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v214-w3-import-says-save",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v214-w3-batch-marks",
+  "caughtBy": "audit-import / v2.14 W3 — a refused import leaves the board as saved as it was"
+ },
+ {
+  "id": "v205-116-go-no-mark",
+  "caughtBy": "audit-board / v2.05 — each appropriation is locked on its own board"
+ },
+ {
+  "id": "v214-w4-base-cache",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-file-kept",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-folder-kept",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-file-unread",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-blank-sticky",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-base-blank-ignored",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v214-w4-twin-yearhas",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-twin-linkof",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-linkof-self-other-year",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-twin-nafrom",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-chain-stamp",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-stamp-pub-blind",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-stamp-unknown-apart",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-rolled-hit",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-rolled-any",
+  "caughtBy": "audit-import / v2.14 W4 — two copies"
+ },
+ {
+  "id": "v214-w4-jrnl-by-place",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-ids-dup",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnlset-gone",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-whole-offered",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-old-place-offered",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-jrnl-gone-silent",
+  "caughtBy": "audit-board / v2.14 W4 — Put back finds"
+ },
+ {
+  "id": "v214-w4-si-none-absent",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-door-refused",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-fmt-none",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-fmt-rules",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unsent",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unaccepted",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-si-proposal-unshown",
+  "caughtBy": "audit-import / v2.14 W4 — a hand-chosen"
+ },
+ {
+  "id": "v214-w4-pull-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-pull-not-said",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-pull-occupied-words",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-kept-saved-unmarked",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-restore-keeps-nothing-saved",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-restore-says-folder",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-w4-rcn-not-marked",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-no-hold",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-by-place",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-dlgpend",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-lost-silent",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "v214-w4-rcn-change-in-draw",
+  "caughtBy": "audit-board / v2.14 W4 — the RCN / EEIC list"
+ },
+ {
+  "id": "unsaved-flag-never-set",
+  "caughtBy": "audit-import / v2.14 W4 — two tabs"
+ },
+ {
+  "id": "v202-e7-u24-load-uncounted",
+  "caughtBy": "audit-import / v2.02 (E7, U24, U29, U31) — a load is counted as a change"
+ },
+ {
+  "id": "v202-e7-u24-load-session-only",
+  "caughtBy": "audit-import / v2.02 (E7, U24, U29, U31) — a load is counted as a change"
+ },
+ {
+  "id": "v200-r5-restore-gen",
+  "caughtBy": "audit-import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "v200-r5-restore-basedirty",
+  "caughtBy": "audit-import / v2.00 (R5) — a restore during a save stays unsaved"
+ },
+ {
+  "id": "restore-no-keep-aside",
+  "caughtBy": "audit-import / v1.95 — ↶ Put this back keeps unsaved work aside first"
+ },
+ {
+  "id": "restore-own-stale",
+  "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy"
+ },
+ {
+  "id": "v214-int-blank-any-copy",
+  "caughtBy": "import / v2.14 INT — after a full import that lands"
+ },
+ {
+  "id": "v214-int-stray-unguarded",
+  "caughtBy": "import / v2.14 INT — a full import that lands through browser storage, run from a populated board file; v2.14 INT — import into the program, save it, choose the cycle for every appropriation; v2.14 INT — blank work over a requirement list from another board"
+ },
+ {
+  "id": "v214-int-cyc-erases-refusal",
+  "caughtBy": "board / v2.14 INT — a change refused before “put every appropriation on a cycle”"
+ }
+]

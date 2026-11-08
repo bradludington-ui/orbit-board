@@ -1,0 +1,342 @@
+--- /tmp/claude-0/-home-user/25675cae-e62d-54ec-be43-d816f1dff607/scratchpad/v214/map-held/board-v213.html	2026-11-03 01:55:19.463419555 +0000
++++ /tmp/claude-0/-home-user/25675cae-e62d-54ec-be43-d816f1dff607/scratchpad/v214/map-held/patch/board-p5.html	2026-11-03 02:22:28.725318700 +0000
+@@ -5928,7 +5928,14 @@
+ let rcnOpen=false;
+ function toggleRcn(){ rcnOpen=!rcnOpen; render(); }
+ function rcnBody(){
+-  const bg=document.getElementById('rcnPanel'), el=document.getElementById('rcnBody');
++  const el=document.getElementById('rcnBody');
++  if(!el) return rcnDraw(el);
++  const lost=heldRedraw(el, rcnDraw);
++  if(lost.length) setStat('\u26a0 What you were typing in the RCN / EEIC list ('+lost.map(function(x){ return '\u201c'+esc(x.v)+'\u201d'; }).join(', ')
++    +') was not kept: the row it was in is no longer on the list. Nothing was changed.');
++}
++function rcnDraw(el){
++  const bg=document.getElementById('rcnPanel');
+   if(!bg||!el) return;
+   bg.className='modal-bg'+(rcnOpen?' open':'');
+   if(!rcnOpen){ el.innerHTML=''; return; }
+@@ -5951,15 +5958,16 @@
+     // and the RCN-EEIC sheet counts the key once, so "Used by" on this row counted the earlier row's assignments.
+     const rep=(typeof e.k==='string')? L.findIndex(function(x){ return x && x.k===e.k; }) : i;
+     const svc=Array.isArray(e.svc)? e.svc : RCN_SVCS.slice();
+-    h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:74px'
++    const rk=(typeof e.k==='string' && rep===i)? e.k : '#'+i;
++    h+='<tr data-rk="'+esc(rk)+'"><td style="text-align:left"><input class="btn" data-rf="rcn" style="font-size:9.5px;padding:3px 6px;width:74px'
+       +bad(rcnOkNum,e.rcn)+'" value="'+esc(e.rcn||'')+'" placeholder="12345" '
+       +'title="Requirement Control Number \u2014 five digits" '
+       +'onchange="rcnSet('+i+',&quot;rcn&quot;,this.value,this)"></td>'
+-      +'<td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:74px'
++      +'<td style="text-align:left"><input class="btn" data-rf="eeic" style="font-size:9.5px;padding:3px 6px;width:74px'
+       +bad(rcnOkEeic,e.eeic)+'" value="'+esc(e.eeic||'')+'" placeholder="ABC12" '
+       +'title="EEIC \u2014 five letters or digits" '
+       +'onchange="rcnSet('+i+',&quot;eeic&quot;,this.value,this)"></td>'
+-      +'<td style="text-align:left;min-width:360px"><input class="btn" '
++      +'<td style="text-align:left;min-width:360px"><input class="btn" data-rf="t" '
+       +'style="font-size:9.5px;padding:3px 6px;width:100%;min-width:340px" '
+       +'value="'+esc(e.t||'')+'" placeholder="what this line funds" '
+       +'onchange="rcnSet('+i+',&quot;t&quot;,this.value,this)"></td>'
+@@ -6985,7 +6993,7 @@
+   // added later on each side can share an id and a plan event); and a candidate its link shows to be the copy of ANOTHER requirement of this year is not this one,
+   // whatever their names (two box-made ones on one CCaR record and one plan event share a name)
+   if(it.custom && (T.custom||[]).some(function(x){
+-    if(!x) return false;
++    if(!x || pmoLinkApart(it, x)) return false;
+     const other=!!(x.prior && +x.prior.fy===+MS.cur && String(x.prior.id)!==String(id));
+     return (it.title && !other && x.event===it.event && x.title===it.title)
+       || (x.id===id && !x.prior && !it.prior && x.event===it.event && x.title===it.title
+@@ -7005,15 +7013,16 @@
+   const it=itemById(id), cur=+MS.cur;
+   const custom=!!(it && it.custom) || /^NEW-/.test(String(id));
+   const inT=function(x){ return x && (y===undefined || (T.order||[]).indexOf(x.id)>=0); };
+-  const hit=(T.custom||[]).filter(function(x){ return inT(x) && x.prior && x.id!==id && String(x.prior.id)===String(id)
++  const me=(T===S || (y!==undefined && +y===cur));
++  const hit=(T.custom||[]).filter(function(x){ return inT(x) && x.prior && (!me || x.id!==id) && String(x.prior.id)===String(id)
+     && (!custom || +x.prior.fy===cur); })[0];
+   if(hit) return hit.id;
+   const p=it && it.prior;
+   if(p && !/^NEW-/.test(String(p.id)) && Array.isArray(T.order) && T.order.indexOf(String(p.id))>=0) return String(p.id);
+   // an added original, in the year its own number belongs to (second review): copied back there, it is the same work
+   if(p && /^NEW-/.test(String(p.id)) && +p.fy===(y===undefined? cur : +y) && Array.isArray(T.order) && T.order.indexOf(String(p.id))>=0) return String(p.id);
+-  if(p){ const twin=(T.custom||[]).filter(function(x){ return inT(x) && x.id!==id && x.prior
+-    && String(x.prior.id)===String(p.id) && +x.prior.fy===+p.fy; })[0]; if(twin) return twin.id; }
++  if(p){ const twin=(T.custom||[]).filter(function(x){ return inT(x) && (!me || x.id!==id) && x.prior
++    && String(x.prior.id)===String(p.id) && +x.prior.fy===+p.fy && !pmoLinkApart(it, x); })[0]; if(twin) return twin.id; }
+   return '';
+ }
+ // THE MECHANICS OF A YEAR COPY, with no prompts and no rendering in them.
+@@ -7584,6 +7593,12 @@
+ function jrnlWalk(a, b, path, out){
+   const both=(x)=>x&&typeof x==='object';
+   if(Array.isArray(a)&&Array.isArray(b)){
++    if(path.length===2 && path[1]==='custom' && jrnlById(a) && jrnlById(b)){
++      const ids=[]; a.concat(b).forEach(function(x){ if(ids.indexOf(x.id)<0) ids.push(x.id); });
++      const of=function(L, id){ return L.filter(function(x){ return x.id===id; })[0]; };
++      ids.forEach(function(id){ jrnlWalk(of(a, id), of(b, id), path.concat(id), out); });
++      return;
++    }
+     const n=Math.max(a.length,b.length);
+     for(let i=0;i<n;i++) jrnlWalk(a[i], b[i], path.concat(i), out);
+     return;
+@@ -7599,6 +7614,9 @@
+   if(out.length>=JRNL_PER_SAVE){ out.more=(out.more||0)+1; return; }
+   out.push({p:path, a:jrnlVal(a), b:jrnlVal(b)});
+ }
++function jrnlById(L){ const seen=Object.create(null);
++  return L.every(function(x){ if(!x || typeof x!=='object' || typeof x.id!=='string' || !x.id || seen[x.id]) return false; seen[x.id]=1; return true; }); }
++function jrnlCustomPlace(e){ return e.p[0]==='custom' && (e.p.length<3 || typeof e.p[1]!=='string'); }
+ function jrnlCapture(){
+   if(_jrnlOff){ return; }
+   const now=jrnlSnap();
+@@ -7627,11 +7645,17 @@
+   let node=y;
+   for(let i=0;i<path.length-1;i++){
+     const k=path[i];
++    if(Array.isArray(node) && typeof k==='string'){
++      const el=node.filter(function(x){ return x && typeof x==='object' && x.id===k; });
++      if(el.length!==1) return false;
++      node=el[0]; continue;
++    }
+     if(node[k]===undefined || node[k]===null) node[k]=(typeof path[i+1]==='number')? [] : {};
+     if(typeof node[k]!=='object') return false;
+     node=node[k];
+   }
+   const k=path[path.length-1];
++  if(Array.isArray(node) && typeof k==='string') return false;
+   if(v===null||v===undefined) { if(Array.isArray(node)) node[k]=null; else delete node[k]; }
+   else node[k]=JSON.parse(JSON.stringify(v));
+   return true;
+@@ -7641,6 +7665,7 @@
+ function jrnlPathSafe(p){ return p.every(function(k){ k=String(k); return k!=='__proto__' && k!=='constructor' && k!=='prototype'; }); }
+ function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^\(/.test(String(e.p[0])) && jrnlPathSafe(e.p)
+   && !jrnlBySvcPlace(e)
++  && !jrnlCustomPlace(e)
+   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
+ // v1.97 (item 80): AN ENTRY RECORDED BEFORE THE SERVICE LIST CHANGED holds its figures by the places they had then, and
+ // put back it would land on whichever service holds that place now. One whose path or value carries a place or a list
+@@ -7783,14 +7808,21 @@
+ // at opening (when the board works out of the folder) left the record clean against a copy that was no longer on screen: the next
+ // 💾 Save asked nothing and wrote the loaded copy over the person's own -- in file mode their saved work was then in no copy the
+ // board could reach -- and a save landing during the load recorded the board saved against its own bytes.
+-function loadCounted(){ _saveGen++; DIRTY=true; try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){} }
++function baseMarkDirty(){
++  _baseDirty=true;
++  let fo; try{ fo=_driveBase; }catch(e){ fo=undefined; }
++  try{ const b=baseGet();
++    if(!b.dirty || (+b.file||0)!==(+LASTKNOWN||0) || (fo && JSON.stringify(b.folder||{})!==JSON.stringify(fo))){
++      const p={file:+LASTKNOWN||0, dirty:true}; if(fo) p.folder=fo; baseSet(p); } }catch(e){}
++}
++function loadCounted(){ _saveGen++; DIRTY=true; baseMarkDirty(); }
+ function save(){
+   _diagSec=null;                            // v1.92 (item 18): what the board holds has changed; clean against the new
+   _fitCache=null;                           // v2.12 (item 134): and so has the fit of its requirements to each year's budget
+   if(CYCVIEW) return cycRefuse('Saving');
+   _saveGen++;                               // v1.95 (item 47): a write that finishes asks whether this moved
+   DIRTY=true; _dlOnly=false;
+-  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}
++  baseMarkDirty();
+   jrnlCapture();
+   MS.ts=Date.now();
+   MS.by=whoAmI();
+@@ -8011,17 +8043,18 @@
+       return 'occupied';
+     }
+     const m={t:Date.now(), why:meta.why||'', by:meta.by||'', ts:+meta.ts||0, base:base||baseGet()};
++    if(meta.saved) m.saved=true;
+     localStorage.setItem(_AP.key+'.kept', JSON.stringify(m)+'\n'+raw);
+     _keptMeta=m; return true;
+   }catch(e){ return false; }
+ }
+ // The newer copy was not loaded, because earlier work is already kept aside (v1.95, item 50).
+ // v2.00 (U30): `unknown` -- nothing recorded for the folder, so there is no telling that their copy is the newer one.
+-function keptOccupiedMsg(by, ts, from, unknown){
++function keptOccupiedMsg(by, ts, from, unknown, inFile){
+   const k=keptCopy(), m=(k&&k.meta)||_keptMeta||{};
+   return '⚠ <b>'+esc(by||'someone')+'</b> saved '+(unknown? 'a copy' : 'a newer copy')+' to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
+     +', but this browser already keeps earlier work aside'+(m.t? ' (kept '+esc(fmtTs(m.t))+')' : '')
+-    +' and holds new work besides. Kept work is never replaced, so '+(unknown? 'their' : 'the newer')+' copy was <b>not loaded</b> and nothing was lost. '
++    +(inFile? ', and what is on screen is saved only in the board file, which the shared folder does not keep' : ' and holds new work besides')+'. Kept work is never replaced, so '+(unknown? 'their' : 'the newer')+' copy was <b>not loaded</b> and nothing was lost. '
+     +'Deal with the kept work first: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> · '
+     +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> · '
+     +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.';
+@@ -8285,6 +8318,7 @@
+   if(key==='titles' && (v===undefined || v===null || v==='')){
+     const c=((state||{}).custom||[]).filter(function(x){ return x && x.id===id; })[0];
+     if(c && c.event) v=String(c.event); }
++  if(key==='si' && v==='') return '';
+   // Absent, empty and "off" are one value. A cleared budget assignment leaves {} behind, an unticked
+   // star leaves false; either compared against an absent baseline would read as a change nobody made.
+   if(v===undefined || v===null || v===false) return null;
+@@ -8318,7 +8352,7 @@
+     case 'mc':    return [true, v? true : null];
+     case 'ptype': return (v==='PRIME'||v==='OGC')? [true, v] : [false];
+     case 'mipr':  return MIPR_LBL[v]? [true, v] : [false];
+-    case 'si':    return SI_CODES.some(function(x){ return x[0]===v; })? [true, v] : [false];
++    case 'si':    return (v==='' || SI_CODES.some(function(x){ return x[0]===v; }))? [true, v] : [false];
+     case 'minInc':{ const n=+v; return (typeof v!=='object' && isFinite(n) && n>=0)? [true, n] : [false]; }
+     // setDest's shape (v2.08 second review): the second hop only when there is one, so what is applied is what setDest writes
+     case 'dest':  return obj(v)? [true, (function(to, end){ return end? {to:to, end:end} : {to:to}; })(String(v.to||''), String(v.end||''))] : [false];
+@@ -8752,7 +8786,7 @@
+           minInc:(S.minInc||{})[id]||null,
+           // v1.84: the rest of the requirement travels with it
+           band:(S.band||{})[id]||'', mc:!!(S.mc||{})[id], costElem:(S.costElem||{})[id]||'',
+-          si:(S.si||{})[id]||'', rcnAsg:(S.rcnAsg||{})[id]||'',
++          si:(S.si||{})[id]||'', siNone:(S.si||{})[id]==='', rcnAsg:(S.rcnAsg||{})[id]||'',
+           budgetAsg:pmoVal(S,'budgetAsg',id), rcnSvc:pmoVal(S,'rcnSvc',id), crHalf:pmoVal(S,'crHalf',id),
+           // v2.06 (item 117): the requirement it continues, so the board keeps the link when it accepts it
+           prior:it.prior? {fy:+it.prior.fy, id:String(it.prior.id)} : null,
+@@ -8794,7 +8828,9 @@
+       src=got;
+     }
+     if(!/^NEW-/.test(id) && on.indexOf(id)>=0) return id;
+-    const x=items.filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && (String(i.prior.id)===id || String(i.prior.id)===String(p.id))
++    if(/^NEW-\d+$/.test(id) && on.indexOf(id)>=0){ const PT=(+p.fy===+MS.cur)? S : (MS.years||{})[p.fy], s0=PT? yrItemOf(PT, id) : null,
++      x0=items.filter(function(i){ return i && i.id===id; })[0]; if(s0 && x0 && (x0===s0 || yrCopySame(x0, T, s0, PT))) return id; }
++    const x=items.filter(function(i){ return i && on.indexOf(i.id)>=0 && i.prior && !pmoChainApart(p, from, i) && (String(i.prior.id)===id || String(i.prior.id)===String(p.id))
+       && (!/^NEW-/.test(id) || +i.prior.fy===+p.fy); })[0];     // a board-data id is that activity whatever year it names (second review)
+     if(x) return x.id;
+     // v2.09 second review: the next link -- what the requirement this one names continues, under that requirement's own copy; or,
+@@ -8817,6 +8853,15 @@
+   const c=pmoProvIn({custom:L}, pmo, nid, pub); return c? c.a : null;
+ }
+ // v2.09 review: an office's provisional id -- NEW-<office>-n, as a copy mints it (reqNewId) -- never one of this board's NEW-n
++function pmoStampApart(a, b){ return !!(a && b && a.pmo && b.pmo && +a.pub && +b.pub && (a.pmo!==b.pmo || +a.pub!==+b.pub)); }
++function pmoLinkApart(a, b){ const pa=a && a.prior, pb=b && b.prior;
++  if(!pa || !pb || String(pa.id)!==String(pb.id) || +pa.fy!==+pb.fy || !pmoProvId(String(pa.id))) return false;
++  return pmoStampApart(pmoLinkStamp(a), pmoLinkStamp(b)); }
++function pmoChainApart(p, from, i){ return !!(p && i && i.prior && pmoProvId(String(p.id)) && String(i.prior.id)===String(p.id)
++  && +i.prior.fy===+p.fy && pmoStampApart(from, pmoLinkStamp(i))); }
++function yrCopySame(x, T, src, PT){ const lk=function(c){ return (c && c.prior)? +c.prior.fy+'|'+String(c.prior.id) : ''; };
++  return !!(x && src && x.id===src.id && lk(x)===lk(src) && x.event===src.event && x.title===src.title
++    && grpOf(x, T)===grpOf(src, PT) && ccarOf(x, T)===ccarOf(src, PT)); }
+ function pmoProvId(id){ id=String(id||''); return /^NEW-/.test(id) && !/^NEW-\d+$/.test(id); }
+ // v2.09 review: AN OFFICE'S PROPOSAL AS THIS BOARD FILED IT, in year state T -- the requirement whose provenance names the office
+ // and the copy's provisional id. Two copies out at once number their proposals from the same count, so one id can name two
+@@ -8936,7 +8981,8 @@
+   if(a.band){ if(!S.band) S.band={}; S.band[id]=a.band; }
+   if(a.mc){ if(!S.mc) S.mc={}; S.mc[id]=true; }
+   if(a.costElem){ if(!S.costElem) S.costElem={}; S.costElem[id]=a.costElem; }
+-  if(a.si){ if(!S.si) S.si={}; S.si[id]=a.si; }
++  if(a.siNone===true && !a.si){ if(!S.si) S.si={}; S.si[id]=''; }
++  else if(a.si){ if(!S.si) S.si={}; S.si[id]=a.si; }
+   if(a.rcnAsg){ if(!S.rcnAsg) S.rcnAsg={}; S.rcnAsg[id]=a.rcnAsg; }
+   if(a.budgetAsg){ if(!S.budgetAsg) S.budgetAsg={}; S.budgetAsg[id]=JSON.parse(JSON.stringify(a.budgetAsg)); }
+   if(a.rcnSvc){ if(!S.rcnSvc) S.rcnSvc={}; S.rcnSvc[id]=JSON.parse(JSON.stringify(a.rcnSvc)); }
+@@ -9250,6 +9296,8 @@
+ }
+ function pmoFmtVal(k, v){
+   if(k==='mc') return v? '\u2605 Mission Critical' : 'not Mission Critical';
++  if(k==='si' && (v===null||v===undefined)) return 'follows the PMO and prime rules';
++  if(k==='si' && v==='') return 'none (chosen by hand)';
+   if(v===null||v===undefined) return '\u2014';
+   if(k==='asks' && Array.isArray(v)) return SVC.map(function(s,i){ return s+' '+fM(v[i]||0); }).join(' · ');
+   // v1.84 -- every other field, in the words the RECORD panel uses
+@@ -9913,6 +9961,7 @@
+       else { _unread.push(who+(r[2]? ': it '+r[2] : '')); a[k]=(k==='wbs')? [] : (k==='awards'? null : ''); }
+     });
+     a.mc=!!a.mc;
++    a.siNone=(a.siNone===true && !a.si);
+     a.prior=priorOk(a.prior)? {fy:+a.prior.fy, id:a.prior.id} : null;   // v2.06 (item 117): the door refused any other shape
+   });
+   // v2.09 W2 (item 126): A PROPOSAL SAYS WHICH YEAR IT IS FOR (pmoProposalOf), and is held for that year only. One filed under
+@@ -33013,7 +33062,9 @@
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+-  const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:theirs}, baseGet()) : true;
++  const keep=own || !driveStoreOn() || (+MS.ts||0)!==driveBaseOf(mySlug());
++  const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:theirs, saved:!own}, baseGet()) : true;
++  if(ka==='occupied' && !own){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder', false, true)); render(); return false; }
+   if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }
+   if(ka!==true){
+     setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
+@@ -33033,9 +33084,11 @@
+   applyStore(j.store);
+   driveBaseSet(mySlug(), theirs, true);
+   persist(); render();
+-  if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
++  if(!quiet || keep) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+     +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.'
+     +(own? ' This browser held work no saved copy had; it is <b>kept aside</b>: '
++      +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).'
++      : keep? ' What was on screen is saved only in the board file, which the shared folder does not keep, so it is <b>kept aside</b>: '
+       +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : ''));
+   return true;
+ }
+@@ -33433,7 +33486,9 @@
+     // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT ASIDE FIRST (v1.95, review), as it is before the folder's newer copy
+     // is loaded. No room to keep it, or other work already kept: nothing is put back, and the work stays on screen.
+     const own=ownUnsaved(MS, j.store, baseGet());
+-    const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0)}, baseGet()) : true;
++    const keep=own || !driveStoreOn() || (+MS.ts||0)!==driveBaseOf(pinAp);
++    const ka=keep? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0), saved:!own}, baseGet()) : true;
++    if(ka==='occupied' && !own){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history', false, true)); render(); return; }
+     if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
+     if(ka!==true){
+       setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '
+@@ -33450,9 +33505,12 @@
+     // found the count unmoved and marked it saved, while the folder holds what that save wrote. Now that save leaves it
+     // unsaved and the next Save writes it; this browser's record says unsaved too, so a reopen keeps it aside, not replaced.
+     _saveGen++; DIRTY=true;
+-    try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}
++    baseMarkDirty();
+     setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
+-      +'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
++      +(driveStoreOn()? 'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
++        : 'browser. \u{1F4BE} Save writes it into the board file, not the shared folder, because \ud83d\udce1 Live view is just watching: switch Live view to \u25cf Working out of this folder first to put it back in the folder for everyone.')
++      +((keep && !own)? ' What was on screen is saved only in the board file, which the shared folder does not keep, so it is <b>kept aside</b>: '
++        +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : '')
+       +(own? ' What was on screen, in no saved copy, is <b>kept aside</b>: '
+         +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from History &amp; recovery, any time).' : ''));
+     render();
+@@ -35529,7 +35587,7 @@
+     if(x.prior && +x.prior.fy===+y && x.prior.id===id) return true;
+     // the same work as the source by the source's own link, whatever office holds it now (second review)
+     if(src && src.prior && x.prior && String(x.prior.id)===String(src.prior.id)
+-       && (!/^NEW-/.test(String(src.prior.id)) || +x.prior.fy===+src.prior.fy)) return true;
++       && (!/^NEW-/.test(String(src.prior.id)) || +x.prior.fy===+src.prior.fy) && !pmoLinkApart(src, x)) return true;
+     if(!(src && src.custom && x.custom)) return false;
+     // v2.07 second review: one year started as a copy of the other holds it under the same id with no link -- and the same
+     // office and CCaR record (two added later, one each side, can share an id and a plan event)
+@@ -38508,6 +38566,7 @@
+ // v2.09 (item 125): and the rows -- a CLIN's boxes, the rank box, Fund's allocation box (see render()). On Fund's box a
+ // redraw while it was half typed moved $1,807,894 to $12 while the box still showed the old figure (measured).
+ document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#inspector, #list')) t.__pend=true; }, true);
++document.addEventListener('input', function(e){ const t=e.target; if(t && t.tagName==='INPUT' && t.closest && t.closest('#rcnBody')) t.__pend=true; }, true);
+ document.addEventListener('change', function(e){ const t=e.target; if(t) t.__pend=false; }, true);
+ // v2.09 (item 125): A FIGURE PUT BACK IS STILL APPLIED WHEN IT IS LEFT. A browser fires change only for a value typed since the
+ // field took its value, and a value put back by a script counts as taken: a figure typed whole, then a redraw, then Enter or
+@@ -38541,16 +38600,31 @@
+   // uncommitted. Held by its mark alone, a field put back once was held again on every later redraw -- over the stored
+   // figure, after ↺ (v2.08 review).
+   return [].filter.call(el.querySelectorAll('input[onchange]'), function(i){ return !!i.__pend && document.activeElement===i; }).map(function(i){
+-    return {el:i, h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd}; });
++    const r=i.closest? i.closest('[data-rk]') : null;
++    return {el:i, h:i.getAttribute('onchange'), v:i.value, f:document.activeElement===i, s:i.selectionStart, e:i.selectionEnd,
++      rk:r? r.getAttribute('data-rk') : null, rf:i.getAttribute('data-rf'), dp:!!i.__dlgPend}; });
+ }
+ function inspHeldBack(el, held){
+   held.forEach(function(x){
+-    const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return n.getAttribute('onchange')===x.h; })[0];
++    const i=[].filter.call(el.querySelectorAll('input[onchange]'), function(n){ return inspHeldSame(n, x); })[0];
+     if(!i) return;
++    x.back=true; if(x.dp) i.__dlgPend=true;
+     i.value=x.v; i.__pend=true; i.__held=x.v; i.__wasHeld=true;   // v2.09: left with nothing typed since, it is applied (heldCommit)
+     if(x.f) try{ i.focus(); if(x.s!=null) i.setSelectionRange(x.s, x.e); }catch(e){}
+   });
+ }
++function inspHeldSame(n, x){
++  if(x.rk===null || x.rk===undefined) return n.getAttribute('onchange')===x.h;
++  const r=n.closest? n.closest('[data-rk]') : null; return !!r && r.getAttribute('data-rk')===x.rk && n.getAttribute('data-rf')===x.rf;
++}
++function heldRedraw(el, draw){
++  const hs=inspHeld(el);
++  hs.forEach(function(h){ try{ h.el.removeAttribute('onchange'); }catch(e){} });
++  try{ draw(el); } finally {
++    hs.forEach(function(h){ try{ if(h.el.isConnected) h.el.setAttribute('onchange', h.h); }catch(e){} });
++    if(hs.length) inspHeldBack(el, hs); }
++  return hs.filter(function(h){ return !h.back; });
++}
+ function inspectorBody(){
+   const el = document.getElementById('inspector');
+   if(!el) return;

@@ -1,0 +1,5 @@
+{"id": "v214-rv2-was-shut-dropped", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-9dcbd0c7.mjs", "detail": ""}
+{"id": "v214-rv2-was-dl-open-only", "verdict": "CAUGHT", "fails": ["2"], "threw": 0, "suite": "_slim-prove-9dcbd0c7.mjs", "detail": ""}
+{"id": "v214-rv2-holds-closed-ignored", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-9dcbd0c7.mjs", "detail": ""}
+{"id": "v214-rv1-a-was-fail-unheld", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-9dcbd0c7.mjs", "detail": ""}
+{"id": "v214-rv2-stray-advice-slot-blind", "verdict": "CAUGHT", "fails": ["1"], "threw": 0, "suite": "_slim-prove-776c1f98.mjs", "detail": ""}

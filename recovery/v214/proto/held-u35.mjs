@@ -1,0 +1,21 @@
+import { readFileSync } from 'node:fs';
+import { boot, seed } from '/home/user/orbit-board/tools/export-audit/boot.mjs';
+const HTML = readFileSync(process.env.BOARD, 'utf8'); const J = JSON.stringify;
+const it = (id, g, ask) => ({ id, grp: g, team: g, sect: '', custom: false, title: 'Rec ' + id, event: 'EV-' + id, ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+const B = boot({ html: HTML });
+seed(B.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', [100, 20, 10])], disc: [1000, 100, 100], mand: [100, 10, 10], order: ['A'] });
+B.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+  MS.rcn=[{k:'rA', rcn:'11111', eeic:'AAAAA', t:'ORIGINAL TITLE', svc:['USAF','ANG','AFRC']}, {k:'rB', rcn:'22222', eeic:'BBBBB', t:'SECOND', svc:['USAF']}];
+  save(); window.confirm=function(){ return true; }; window.alert=function(){}; rcnOpen=true; render(); dlgSync(); 'ok'`);
+const typeIn = (row, f, v) => B.ev(`(function(){ var r=document.querySelectorAll('#rcnBody tr')[${row}+1]; var i=r.querySelectorAll('input.btn')[${f}]; i.focus(); i.value=${J(v)}; i.dispatchEvent(new Event('input', {bubbles:true})); return 'ok'; })()`);
+const fieldOf = (row, f) => JSON.parse(B.ev(`(function(){ var r=document.querySelectorAll('#rcnBody tr')[${row}+1]; var i=r.querySelectorAll('input.btn')[${f}]; return JSON.stringify([i.value, document.activeElement===i, !!i.__pend, !!i.__dlgPend]); })()`));
+typeIn(0, 0, '88888');
+console.log('typed: field', J(fieldOf(0, 0)), '| dirty', B.ev(`(function(){ dlgSync(); var t=DLG.stack[DLG.stack.length-1]; return String(!!t && dlgDirty(t)); })()`));
+B.ev(`render(); 'ok'`);
+console.log('after a redraw: field', J(fieldOf(0, 0)), '| stored', B.ev('MS.rcn[0].rcn'), '| Esc would ask', B.ev(`(function(){ dlgSync(); var t=DLG.stack[DLG.stack.length-1]; return String(!!t && dlgDirty(t)); })()`));
+// a copy loaded with a new row above
+B.ev(`(function(){ var st=JSON.parse(JSON.stringify(MS)); st.rcn.unshift({k:'rZ', rcn:'99999', eeic:'ZZZZZ', t:'ADDED ABOVE', svc:['USAF']}); st.ts=Date.now()+5; applyStore(st); render(); return 'ok'; })()`);
+console.log('after a load with a row above: row0', J(fieldOf(0, 0)), 'row1', J(fieldOf(1, 0)), '| stored', B.ev('JSON.stringify(MS.rcn.map(function(e){ return e.rcn; }))'));
+B.ev(`(function(){ var a=document.activeElement; if(a && a.blur) a.blur(); return 'ok'; })()`);
+console.log('left the field: stored', B.ev('JSON.stringify(MS.rcn.map(function(e){ return [e.k, e.rcn]; }))'), '| errors', B.errors.length);
+process.exit(0);

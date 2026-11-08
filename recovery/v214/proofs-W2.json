@@ -1,0 +1,242 @@
+[
+ {
+  "id": "v214-w2-not-offered",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-ungated",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-mixed-offered",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-click-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-picker-after-await",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-no-readback",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-readback-length",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-clear-before-write",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-clears-others",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-race-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-reload-unmarked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-rescue-missing",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-rescue-swapped",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-lists-from-memory",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-drops-cycles",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-own-plan-dropped",
+  "caughtBy": "import / v2.14 W2 — the file route gives"
+ },
+ {
+  "id": "v214-w2-unstamped",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-match-inverted",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-opens-clears-changed",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-opens-clears-nothing",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-hold-lsset-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-persist-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-boot-off",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-lift-unasked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-import-offers-file",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-skipped",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-not-blocking",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-as-it-was-stale-screen",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-name-match-rushes",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-download-clears-now",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-download-unmarked",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-marker-raw",
+  "caughtBy": "inject / W2-1 the file route"
+ },
+ {
+  "id": "v214-w2-writer-unclaimed",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-adopt-any-page",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-shell-per-slot",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-shell-uncaptured",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-room-unsaid",
+  "caughtBy": "import / v2.14 W2 — a full import that only just fits"
+ },
+ {
+  "id": "v214-w2-import-base-unrecorded",
+  "caughtBy": "import / v2.14 W2 — after a full import that lands"
+ },
+ {
+  "id": "v214-w2-hold-unlatched",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-hold-no-storage-event",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-marker-after-pause",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-lift-leaves-copies",
+  "caughtBy": "import / v2.14 W2 — the file route where the browser cannot"
+ },
+ {
+  "id": "v214-w2-holds-unsaid",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-rescue-close-unasked",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-base-in-marker",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "v214-w2-mixed-marks-base",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-w2-e1-takes-lists",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-e1-takes-one",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-e2-base-unrecorded",
+  "caughtBy": "import / v2.14 W2 — on an empty board"
+ },
+ {
+  "id": "v214-w2-room-not-on-opening",
+  "caughtBy": "import / v2.14 W2 — a full import that only just fits"
+ },
+ {
+  "id": "v214-w2-race-page-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ },
+ {
+  "id": "handoff-copy-drops-store",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "handoff-copy-drops-exec",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "handoff-copy-drops-ace",
+  "caughtBy": "import / =handoff — out"
+ },
+ {
+  "id": "save-no-lt-escape",
+  "caughtBy": "import / =save → reopen"
+ },
+ {
+  "id": "cycle-file-drops-store",
+  "caughtBy": "board / PPBE cycles — the lock is the window, frozen; PPBE cycles — a PMO copy carries the reference projection only"
+ },
+ {
+  "id": "bud-not-saved",
+  "caughtBy": "import / the BAE list — one list, every appropriation"
+ },
+ {
+  "id": "dest-file-no-list",
+  "caughtBy": "import / v1.86 — the four lists become one"
+ },
+ {
+  "id": "writer-not-in-file",
+  "caughtBy": "import / v1.95 — one writer per board file"
+ },
+ {
+  "id": "impmixed-lift-partial",
+  "caughtBy": "import / v1.95 — an import that lands whole lifts the hold"
+ }
+]

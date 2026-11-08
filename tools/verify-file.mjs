@@ -80,6 +80,22 @@ const settledOf = ev => ev(`(function(){ var m=JSON.parse(JSON.stringify(MS));
   Object.keys(m.years||{}).forEach(function(y){ delete m.years[y].pmoOrder; });
   m.ts=0; delete m.by; (m.log||[]).forEach(function(e){ e.ts=0; }); (m.jrnl||[]).forEach(function(e){ e.t=0; });
   return JSON.stringify(m); })()`);
+// v2.14 RV2-D (verify-file-fails-every-file-saved-over-ten-minutes-ago): THE VERIFIER'S OWN SAVE IS NOT A DIFFERENCE IN THE FILE.
+// Saving is how this checks the round trip (buildSavedHtml calls the board's save()), and save() adds an entry to the save log
+// whenever the last one is another editor's or more than ten minutes old -- so every file saved under a real name, or saved more
+// than ten minutes before the check, read "FAIL save → reopen returns every value  log.1: undefined → {by:'unknown'}" and NOT
+// CERTIFIED, over the verifier's own entry. An entry is taken off only where it is exactly that: the last one, written under the
+// name this check saves as, after a log that is otherwise the file's own (the head the board's 60-entry cap drops allowed for). A
+// log that lost or changed an entry of the file's is still a difference, and still fails.
+function settledLog(file, now, by) {
+  const B = Array.isArray(file.log) ? file.log : [], A = Array.isArray(now.log) ? now.log : [];
+  const last = A[A.length - 1];
+  if (!last || last.by !== by || A.length > B.length + 1) return now;
+  const head = JSON.stringify(A.slice(0, -1));
+  if (head === JSON.stringify(B) || (B.length >= 60 && head === JSON.stringify(B.slice(B.length - (A.length - 1)))))
+    return Object.assign({}, now, { log: B });
+  return now;
+}
 
 // ---- the certificate ------------------------------------------------------------------------------
 const report = { file: FILE, sections: [], ok: true };
@@ -179,14 +195,15 @@ function survives(sec, html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
   const before = settledOf(ev), s0 = ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof ACEDB!=='undefined'?ACEDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
   let html2; try { html2 = ev('buildSavedHtml()'); } catch (e) { check(sec, false, 'the board can be saved from this file', String(e.message).slice(0, 120)); return; }
+  const by = ev('String(MS.by)');           // v2.14 RV2-D: the name this check saved under (settledLog)
   const r = bootAs(html2, SLUG_NAME[slug]);
-  const after = settledOf(r.ev);
-  const d = diffPaths(JSON.parse(before), JSON.parse(after));
+  const B0 = JSON.parse(before), after = JSON.stringify(settledLog(B0, JSON.parse(settledOf(r.ev)), by));
+  const d = diffPaths(B0, JSON.parse(after));
   check(sec, d.length === 0, 'save → reopen returns every value', d.length ? d.slice(0, 3).map(x => `${x.path}: ${x.a} → ${x.b}`).join(' | ') : 'the settled state is byte for byte');
   const s1 = r.ev(`JSON.stringify([typeof EXDB!=='undefined'?EXDB:null, typeof ACEDB!=='undefined'?ACEDB:null, typeof RPDB!=='undefined'?RPDB:null, typeof CYCDB!=='undefined'?CYCDB:null])`);
   check(sec, s0 === s1, 'the four side stores travel byte for byte');
   let html3; try { html3 = r.ev('buildSavedHtml()'); } catch (e) { check(sec, false, 'the reopened board can be saved again', String(e.message).slice(0, 120)); return; }
-  const again = settledOf(bootAs(html3, SLUG_NAME[slug]).ev);
+  const again = JSON.stringify(settledLog(B0, JSON.parse(settledOf(bootAs(html3, SLUG_NAME[slug]).ev)), by));
   const d2 = diffPaths(JSON.parse(after), JSON.parse(again));
   check(sec, d2.length === 0, 'and a second save is stable — nothing is re-encoded on the next trip', d2.length ? d2.slice(0, 3).map(x => `${x.path}: ${x.a} → ${x.b}`).join(' | ') : '');
 }
@@ -398,6 +415,19 @@ if (flag('--selftest')) {
   certify(html, saved, `its own code (${saved.build})`);
   const clean = report.ok;
   console.log(`\n${clean ? 'ok  ' : 'FAIL'}  the clean file holds`);
+  // v2.14 RV2-D (verify-file-fails-every-file-saved-over-ten-minutes-ago): THE SAME FILE, LAST SAVED AN HOUR AGO UNDER ANOTHER EDITOR'S
+  // NAME -- every file anybody briefs from -- must hold too. The file above is seconds old and saved under the name this check saves
+  // as, so the board's save() never added an entry to its log, and the verifier's own save could never be read as a loss there.
+  report.ok = true; report.sections.length = 0;
+  const aged = html.replace(STATE_RE, (m, a) => { const J = JSON.parse(a), hr = 3600000;
+    const each = s => { if (!s || typeof s !== 'object') return; if (typeof s.ts === 'number') s.ts -= hr; s.by = 'Pat Colleague';
+      (Array.isArray(s.log) ? s.log : []).forEach(e => { e.by = 'Pat Colleague'; if (typeof e.ts === 'number') e.ts -= hr; }); };
+    if (J.appns) Object.keys(J.appns).forEach(k => each(J.appns[k])); else each(J);
+    const txt = JSON.stringify(J).replace(/</g, '\\u003c'); return m.replace(a, () => txt); });
+  console.log('\n… the same file, last saved an hour ago under another editor’s name');
+  certify(aged, readSaved(aged), 'saved an hour ago by another editor');
+  const heldAged = report.ok && aged !== html;
+  console.log(`\n${heldAged ? 'ok  ' : 'FAIL'}  a file saved an hour ago under another name holds — the verifier’s own save is not a loss`);
   // planted loss 1: a ghost in the priority order
   report.ok = true; report.sections.length = 0;
   const ghost = html.replace(/"order":\["A","B","C","D","E"\]/, '"order":["A","B","C","D","E","GHOST"]');
@@ -427,7 +457,7 @@ if (flag('--selftest')) {
   try { certify(dmg, readSaved(dmg), 'planted damaged award'); } finally { console.log = _log; }
   const held3 = report.ok && dmg !== html && lines3.some(l => /award\(s\) repaired on opening/.test(l) && /NEED REPAIR/.test(l));
   console.log(`\n${held3 ? 'ok  ' : 'FAIL'}  a repaired award holds, is said, and is not counted as a loss`);
-  const all = clean && caught1 && caught2 && held3;
+  const all = clean && heldAged && caught1 && caught2 && held3;
   console.log(`\n${'='.repeat(96)}\n${all ? 'VERIFIER SELF-TEST PASSED — a clean file holds, and a planted loss is noticed' : 'VERIFIER SELF-TEST FAILED'}`);
   process.exit(all ? 0 : 1);
 }

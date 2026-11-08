@@ -1,0 +1,190 @@
+[
+ {
+  "id": "v214-rv1-c-stop-no-persist",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-marks-kept",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-record-kept",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-stamp-kept",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-after-unset",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-cancel-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-later-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-denied-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-catch-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-stop-ignores-typing",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-c-held-stray-unmarked",
+  "caughtBy": "import / v2.14 RV1-C — a board file the stray rule holds back"
+ },
+ {
+  "id": "v214-rv1-c-held-occupied-newer",
+  "caughtBy": "import / v2.14 RV1-C — a board file the stray rule holds back"
+ },
+ {
+  "id": "v214-rv1-c-held-noroom-newer",
+  "caughtBy": "import / v2.14 RV1-C — a board file the stray rule holds back"
+ },
+ {
+  "id": "v214-rv1-c-occupied-msg-newer",
+  "caughtBy": "import / v2.14 RV1-C — a board file the stray rule holds back"
+ },
+ {
+  "id": "v214-rv1-c-stray-other-pubsfor",
+  "caughtBy": "import / v2.14 RV1-C — another appropriation’s blank work"
+ },
+ {
+  "id": "v214-rv1-c-stray-other-local",
+  "caughtBy": "import / v2.14 RV1-C — another appropriation’s blank work"
+ },
+ {
+  "id": "v214-rv1-c-stray-other-diag",
+  "caughtBy": "import / v2.14 RV1-C — another appropriation’s blank work"
+ },
+ {
+  "id": "v214-rv1-c-stray-other-unmarked",
+  "caughtBy": "import / v2.14 RV1-C — another appropriation’s blank work"
+ },
+ {
+  "id": "v214-rv1-c-stray-other-over-pack",
+  "caughtBy": "import / v2.14 RV1-C — another appropriation’s blank work"
+ },
+ {
+  "id": "v214-rv1-c-e2-own-cycles-only",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-e2-cycles-after-commit",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-e2-cycles-unsaid",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-bae-not-taken",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-bae-replaces-held",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-bae-kept-unsaid",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-rv1-c-bae-unsaid",
+  "caughtBy": "import / v2.14 RV1-C — a board file taken the merging way (E2)"
+ },
+ {
+  "id": "v214-w1-cancel-pen-moved",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over"
+ },
+ {
+  "id": "v214-w1-picked-denied-kept",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-later-unremembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "v214-w1-later-writes",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it"
+ },
+ {
+  "id": "frame-store-older-wins",
+  "caughtBy": "import / v1.85 — every appropriation, read by its own board, ties to the dollar; v1.85 — a block that cannot be trusted is refused"
+ },
+ {
+  "id": "v214-rv1-c-strayheld-off",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-ladder-copies-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-ladder-peer-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-issue-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-pack-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-push-lists-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-push-stray-unnamed",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-sendback-stray",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-spdefs-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-byband-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-export-list-drops",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-destuse-reads-blank",
+  "caughtBy": "import / (stray-rule-only-own-opening, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-persists-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-record-over-tab",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v214-rv1-c-stop-mine-newer",
+  "caughtBy": "import / (cancel-leaves-pen-line-in-storage, finish)"
+ },
+ {
+  "id": "v200-u40-backuse-panel-reset-uncounted",
+  "caughtBy": "import / v2.00 (U40) — two destinations of one list whose names match stay two"
+ }
+]

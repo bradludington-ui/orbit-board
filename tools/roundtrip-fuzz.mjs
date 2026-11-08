@@ -71,6 +71,24 @@ const WRITTEN = (() => {
     if (/^\s*\/\//.test(line)) continue;
     let m; while ((m = re.exec(line))) out.add(m[1]);
   }
+  // v2.14 RV2-D (fuzz-cannot-see-customAside): AND WHAT A FUNCTION WRITES THROUGH THE YEAR IT IS HANDED. applyStore() runs a mend on
+  // every year before anything reads one (customMend(MS.years[y], y)), and the mend writes through its own name for the year
+  // (T.customAside=[], T.customAside.push(...)) -- a container the S.<key> scan above cannot see, so it was never filled and its
+  // loss on any trip could never be seen. Every function applyStore hands a year to is read here, its first parameter taken as the
+  // year, and what it assigns or pushes through that name is a container too. Reads through it (P.x[k]) are not counted: in these
+  // functions a bracket is as often a read as a write, and a container only read is filled by whatever writes it.
+  const lines = SRC.split('\n'), as = lines.findIndex(l => l.startsWith('function applyStore('));
+  if (as < 0) throw new Error('could not find applyStore() in the board — its shape changed');
+  const body = l0 => { const out2 = []; for (let j = l0; j < lines.length; j++) { out2.push(lines[j]); if (j > l0 && lines[j] === '}') break; } return out2; };
+  const menders = new Set(); for (const l of body(as)) { let m; const r = /([A-Za-z_$][\w$]*)\(MS\.years\[/g; while ((m = r.exec(l))) menders.add(m[1]); }
+  menders.delete('applyState');    // it writes the year through S, which the scan above reads
+  for (const fn of menders) {
+    const d = lines.findIndex(l => l.startsWith('function ' + fn + '('));
+    if (d < 0) throw new Error(`applyStore() hands a year to ${fn}(), which the board does not declare at the start of a line — its shape changed`);
+    const P = (/^function [\w$]+\(\s*([\w$]+)/.exec(lines[d]) || [])[1]; if (!P) continue;
+    const rw = new RegExp('(?:^|[^A-Za-z0-9_$.])' + P + '\\.([a-zA-Z][a-zA-Z0-9]*)\\s*(?:=[^=]|\\.push\\()', 'g');
+    for (const l of body(d)) { if (/^\s*\/\//.test(l)) continue; let m; while ((m = rw.exec(l))) out.add(m[1]); }
+  }
   return out;
 })();
 
@@ -244,6 +262,9 @@ const populate = (ev, sc) => ev(`(function(){
   // v2.09 (item 126): the highest added-requirement number handed out, which a PMO copy now writes on the year it adds in
   // (reqSeqNext: one count across every year of the copy) -- a number a reopen must keep, or an id is handed out twice
   S.newSeq=${int(40, 900)};
+  // v2.14 RV2-D (fuzz-cannot-see-customAside): what the mend sets aside from a list an older ORBIT damaged, in the shape v2.13's Put
+  // back leaves it ({ask, fy26} with no id, at its place in the list), kept in the file as found -- every trip must bring it back
+  S.customAside=[{i:${int(0, 4)}, v:{ask:SVC.map(function(){return ${int(1, 99999)};}), fy26:SVC.map(function(){return 0;}), note:NASTY[${int(0, 13)}]}}];
   applyState(S); save();
   return 'ok'; })()`);
 
