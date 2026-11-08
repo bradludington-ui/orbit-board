@@ -9976,7 +9976,9 @@ const MUTATIONS = [
   { id: 'v214-w1-picked-remembered-early', area: "_saveInPlaceFileRun", what: "a file picked in a window is remembered before it is read and checked, so a wrong pick stays this page’s file",
     find: "    if(!picked){ FH=h; if(h!==_fhMem) _fhPut(h); }", repl: "    FH=h; if(h!==_fhMem) _fhPut(h);" },
   { id: 'v214-w1-picked-denied-kept', area: "_saveInPlaceFileRun", what: "a file the browser refused to let ORBIT write is still remembered as this page’s file",
-    find: "      if(ok!=='granted'){ if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }", repl: "      if(ok!=='granted'){ FH=h; _fhPut(h); if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "      if(ok!=='granted'){ WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);",
+    repl: "      if(ok!=='granted'){ FH=h; _fhPut(h); WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);" },
   { id: 'v214-w1-drops-unasked', area: "_saveInPlaceFileRun", what: "Save writes over appropriations, cycles and lists the file holds and the board on screen does not carry, asking nothing",
     find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){", repl: "      if(false && lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){" },
   { id: 'v214-w1-drops-cancel-writes', area: "_saveInPlaceFileRun", what: "Cancel on the question goes on and writes the board over the file anyway",
@@ -10000,7 +10002,9 @@ const MUTATIONS = [
   { id: 'v214-w1-drops-rp-blind', area: "saveDrops", what: "a reprogramming log the file holds and the board on screen does not is never named",
     find: "if(nr && !lenOf(q, 'rpDb', 'entries'))", repl: "if(false)" },
   { id: 'v214-w1-cancel-pen-moved', area: "_saveInPlaceFileRun", what: "Cancel on the question keeps the pen claimed a moment before, and its writer line in the journal",
-    find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }\n", repl: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);\n",
+    repl: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n" },
   { id: 'v214-w1-null-writer-throws', area: "_saveInPlaceFileRun", what: "Save into an ORBIT program with no board throws on null.writer and downloads a copy instead (v2.13)",
     find: "      const fw0=p? writerShape(p.writer) : null;", repl: "      const fw0=writerShape(p.writer);" },
   { id: 'v214-w1-program-not-fresh', area: "_saveInPlaceFileRun", what: "a program with no board is not claimed like a new file: Save asks to become its writer",
@@ -10039,7 +10043,9 @@ const MUTATIONS = [
   { id: 'v214-w1-later-writes', area: "_saveInPlaceFileRun", what: "write access that could not be asked for is taken as granted, and the file is written on that press",
     find: "catch(e){ ok='later'; }", repl: "catch(e){ ok='granted'; }" },
   { id: 'v214-w1-later-unremembered', area: "_saveInPlaceFileRun", what: "a checked file whose write access must wait for the next press is not remembered, so that press opens the window again",
-    find: "if(ok==='later'){ FH=h; _fhPut(h); if(penLine)", repl: "if(ok==='later'){ if(penLine)" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "if(ok==='later'){ FH=h; _fhPut(h); WRITER=prevWriter;",
+    repl: "if(ok==='later'){ WRITER=prevWriter;" },
   { id: 'v214-w1-pick-blocked-misread', area: "_saveInPlaceFileRun", what: "the browser refusing the Open window is reported as a file this person may not write",
     find: "    if(inWin && e && (e.name==='SecurityError'||e.name==='NotAllowedError')){", repl: "    if(false){" },
   { id: 'v214-w1-open-cancel-unoffered', area: "_saveInPlaceFileRun", what: "the Open window cancelled says only that nothing was written, and no longer offers Save as a new file",
@@ -10565,9 +10571,13 @@ const MUTATIONS = [
     // v2.14 RV2-A: lengthened -- the decline of the question about a copy left now puts back the same way (v214-rv2-a-leftask-no-putback)
     find: "        saveStopBack(stop, penLine);\n        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length", repl: "        setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length" },
   { id: 'v214-rv1-c-stop-later-skipped', area: "_saveInPlaceFileRun", what: "a first Save that must be pressed again for write access leaves the pen line, a new stamp and “unsaved” in browser storage",
-    find: "writerJournalUndo(penLine); } saveStopBack(stop, penLine);\n        setStat('💾 <b>“'", repl: "writerJournalUndo(penLine); }\n        setStat('💾 <b>“'" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "writerJournalUndo(penLine); saveStopBack(stop, penLine);\n        setStat('💾 <b>“'",
+    repl: "writerJournalUndo(penLine);\n        setStat('💾 <b>“'" },
   { id: 'v214-rv1-c-stop-denied-skipped', area: "_saveInPlaceFileRun", what: "the browser refusing ORBIT write access leaves the pen line, a new stamp and “unsaved” in browser storage",
-    find: "writerJournalUndo(penLine); } saveStopBack(stop, penLine);\n        setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write", repl: "writerJournalUndo(penLine); }\n        setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write" },
+    // v2.15 W3: retargeted to the line that now carries the same defect
+    find: "writerJournalUndo(penLine); saveStopBack(stop, penLine);\n        setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write",
+    repl: "writerJournalUndo(penLine);\n        setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write" },
   { id: 'v214-rv1-c-stop-catch-skipped', area: "_saveInPlaceFileRun", what: "a board file that turns out read-only leaves the pen line, a new stamp and “unsaved” in browser storage",
     find: "    saveStopBack(stop, penLine);     // v2.14 RV1-C: and browser storage, the stamp and the marks say so too\n", repl: "" },
   { id: 'v214-rv1-c-stop-ignores-typing', area: "saveStopBack", what: "a change typed while ORBIT asked for write access reads as saved once the Save stops, though no file holds it",
@@ -11105,6 +11115,9 @@ const MUTATIONS = [
   { id: 'v215-w3-name-rwas', area: "impFileDrawIn", what: "step 1 into the imported file’s name draws the name as markup",
     find: "    h+='<p class=\"ifw-rescue\">⚠ “'+esc(R.rescue.at)+'” has the name of the file you are importing",
     repl: "    h+='<p class=\"ifw-rescue\">⚠ “'+R.rescue.at+'” has the name of the file you are importing" },
+  { id: 'v215-w3-cancel-keeps-writer', area: "_saveInPlaceFileRun", what: "a Save cancelled after reading a file this browser writes keeps that file's writer as the page's own",
+    find: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);",
+    repl: "      if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){\n        if(penLine) WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);" },
   // ==== end v2.15 W3 ====
   // ==== v2.15 W4 (items 131, 135 and the handoff small fixes: folder reads, house indents, CLIN request, guide, drill, Funded) ====
   // ==== end v2.15 W4 ====

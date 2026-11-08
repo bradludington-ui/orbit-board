@@ -217,8 +217,9 @@
  },
  {
   "id": "v214-rv1-a-held-record-written",
-  "caughtBy": "import / v2.14 RV1-A — the program reopened held",
-  "retargeted": true
+  "caughtBy": "audit-import / v2.15 W3 — the other storage writes go through lsSet",
+  "retargeted": true,
+  "note": "v2.14 RV1-A’s own check no longer reaches it: a held page’s refused plan sets _persistFail, which baseRecBlocked now reads; the W3 block’s (e2) holds the hold half alone"
  },
  {
   "id": "v214-rv1-c-stop-no-persist",
@@ -258,6 +259,35 @@
  {
   "id": "v214-w4-pull-keeps-nothing-saved",
   "caughtBy": "audit-import / v2.14 W4 — a shared-folder copy",
+  "retargeted": true
+ },
+ {
+  "id": "v215-w3-cancel-keeps-writer",
+  "caughtBy": "audit-import / v2.15 W3 — Save, the file route and their messages"
+ },
+ {
+  "id": "v214-w1-picked-denied-kept",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w1-cancel-pen-moved",
+  "caughtBy": "import / v2.14 W1 — Save asks, naming them, before it writes over",
+  "retargeted": true
+ },
+ {
+  "id": "v214-w1-later-unremembered",
+  "caughtBy": "import / v2.14 W1 — the first Save of a file opens it to check it",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-c-stop-later-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes",
+  "retargeted": true
+ },
+ {
+  "id": "v214-rv1-c-stop-denied-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes",
   "retargeted": true
  }
 ]

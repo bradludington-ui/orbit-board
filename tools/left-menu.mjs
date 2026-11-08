@@ -162,7 +162,8 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
       // v2.05: 68 -- the PowerPoint deck, the Exec synopsis and Executive decision removed (item 114)
       // v2.10: 69 -- FYDP › FYDP Disconnects… (item 130)
       // v2.12: 71 -- the cost estimate import's report (item 132) and FYDP › Fit to the PPBE position… (item 134)
-      off.length === 0 && Object.keys(WANT).length === 71, off.slice(0, 12).join(' | '));
+      // v2.15 W3: 73 -- Save as a new file… and Choose another file…, under the ▾ beside Save (item 146)
+      off.length === 0 && Object.keys(WANT).length === 73, off.slice(0, 12).join(' | '));
     chk('A · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('A · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();

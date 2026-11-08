@@ -11310,7 +11310,7 @@ async function _saveInPlaceFileRun(o){
       let q=null; try{ const mq=html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); q=mq? JSON.parse(mq[1]) : null; }catch(e){ q=null; }
       const lost=saveDrops(txt, p, q, baked, fileTsOf(p)===LASTKNOWN);   // v2.14 RV2-B (finish): the save this work came from?
       if(lost.length && !confirm(saveDropsAsk(h.name||FNAME, lost, baked))){
-        if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);
         saveStopBack(stop, penLine);
         setStat('Save canceled — nothing written. “'+esc(h.name||FNAME)+'” still holds '+lost.length+' thing'+(lost.length===1?'':'s')+' the board on screen does not carry. If it is not this board’s file: <button type="button" class="nb lnk" onclick="fhRepick()">choose another file…</button> · <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>');
         return;
@@ -11319,7 +11319,7 @@ async function _saveInPlaceFileRun(o){
       // the import's own file (impLeftAsk). Declined, nothing is written and the file keeps the import whole.
       const lq=impLeftAsk(p, q, h.name||FNAME);
       if(lq && !confirm(lq)){
-        if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }
+        WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);
         // v2.14 RV2-A (leftask-decline-skips-savestopback, impleftask-cancel-leaves-phantom-save, leftask-cancel-skips-saveStopBack):
         // AND BROWSER STORAGE, THE STAMP, THE SAVE HISTORY AND THE RECORD GO BACK, as at every other exit after the mark (RV1-C). The
         // merge of RV1-A's question beside RV1-C's put-back left this one exit out: a Cancel that wrote nothing put this plan into
@@ -11336,9 +11336,9 @@ async function _saveInPlaceFileRun(o){
     // written, and the next press re-reads it and runs every check again before it writes.
     if(picked==='open'){
       let ok=''; try{ ok=await h.queryPermission({mode:'readwrite'}); if(ok!=='granted') ok=await h.requestPermission({mode:'readwrite'}); }catch(e){ ok='later'; }
-      if(ok==='later'){ FH=h; _fhPut(h); if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); } saveStopBack(stop, penLine);
+      if(ok==='later'){ FH=h; _fhPut(h); WRITER=prevWriter; if(penLine) writerJournalUndo(penLine); saveStopBack(stop, penLine);
         setStat('💾 <b>“'+esc(h.name||FNAME)+'” is now this board’s file</b> — nothing is written yet. Press 💾 Save once more to write it; the browser asks first whether ORBIT may edit it.'); return; }
-      if(ok!=='granted'){ if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); } saveStopBack(stop, penLine);
+      if(ok!=='granted'){ WRITER=prevWriter; if(penLine) writerJournalUndo(penLine); saveStopBack(stop, penLine);
         setStat('⛔ <b>Not saved</b> — this browser did not let ORBIT write “'+esc(h.name||FNAME)+'”. Nothing was written, and your work is still here, unsaved. <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>'); return; }
       FH=h; _fhPut(h);
     } else if(picked==='save'){ FH=h; if(fresh) _fhMem=h; else _fhPut(h); }   // the window gave write access; a new file is this page's alone (C25)
@@ -11360,7 +11360,10 @@ async function _saveInPlaceFileRun(o){
       +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')+wkMemSay(may)
       +((clean && _sideGen===sideAt)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
   }catch(e){
-    if(penLine){ WRITER=prevWriter; writerJournalUndo(penLine); }     // nothing was written: the pen did not move
+    // v2.15 W3 (found by npm run savetarget C): EVERY STOP BEFORE THE WRITE PUTS THE WRITER BACK, not only one that claimed the pen. A
+    // Save that read a file whose writer is this browser set WRITER to that file's ('me') and kept it on Cancel: the page then took
+    // another file's writer for its own, and its next Save into the bare program wrote it in, never claiming the pen.
+    WRITER=prevWriter; if(penLine) writerJournalUndo(penLine);     // nothing was written: the pen did not move
     saveStopBack(stop, penLine);     // v2.14 RV1-C: and browser storage, the stamp and the marks say so too
     // v2.14 W1 (item 140 a): the Open window cancelled, or refused by the browser itself
     if(inWin && e && e.name==='AbortError'){ setStat('Save canceled — nothing written. <button type="button" class="nb lnk" onclick="fhSaveNew()">Save as a new file…</button>'); return; }

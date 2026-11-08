@@ -20022,6 +20022,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       T.ev(`localStorage.setItem(_AP.key+'.base', ${J(J({ file: 7, folder: {}, dirty: false }))}); S.notes.A='taken again'; persist(); 'ok'`);
       const b = JSON.parse(T.ev(`localStorage.getItem(_AP.key+'.base')`));
       chk(name, '(e) storage takes the plan again', 'the record is marked for the unsaved work it now holds', J([b.dirty, T.ev('String(_persistFail)')]), J([true, 'false'])); }
+    // (e2) A HELD PAGE (v2.14 RV1-A) THAT HAS WRITTEN NOTHING YET writes no record either: the hold, not a refused plan, guards it
+    // (a CONTROL on the slot commit; with the refused-plan guard beside it, v214-rv1-a-held-record-written needs this fixture to bite)
+    { const T = await W3I.board(); const key = T.ev('_AP.key');
+      const R0 = J({ file: 3, folder: {}, dirty: true, from: 'the import’s own file' });
+      const r = JSON.parse(T.ev(`(function(){ localStorage.setItem(_AP.key+'.base', ${J(R0)}); _persistFail=false;
+        localStorage.setItem(IMP_FILE_KEY, JSON.stringify({n:'x', at:1, name:'imported.html', keys:[${J(key)}], says:['the O&M plan'], h:{}}));
+        baseSet({file:LASTKNOWN, dirty:false}); var a=localStorage.getItem(_AP.key+'.base');
+        localStorage.removeItem(IMP_FILE_KEY); _impHand=null; return JSON.stringify([String(_persistFail), a]); })()`));
+      chk(name, '(e2) a held page, nothing refused yet', 'its record is left as it was (a CONTROL)', J(r), J(['false', R0])); }
     // (f) A KEY OR A NAME MADE WHILE AN IMPORT IS BEING PREPARED is written at once, never folded into that import
     { const T = await board();
       const r = JSON.parse(T.ev(`(function(){ localStorage.removeItem('prio27writerKey'); _wkMem=''; _lsCapture=[];
@@ -20182,6 +20191,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       const h = T.ev(`document.getElementById('dd_save').innerHTML`);
       chk(name, '(m) the ▾ beside Save', 'Save a copy…, Save as a new file… and Choose another file…',
         J([/mRun\(publishState\)/.test(h), /mRun\(fhSaveNew\)/.test(h), /mRun\(fhRepick\)/.test(h)]), J([true, true, true])); }
+    // (n) A SAVE CANCELLED AFTER IT READ A FILE THIS BROWSER WRITES puts the page's own writer back (found by npm run savetarget C):
+    // a blank page reads that board's file, is asked what it would drop, and Cancel -- the page must not keep that file's writer
+    { const R = boot(); await H.pause(5); H.wire(R.ev, 'Brad', H.KEY.brad);
+      const f = H.disk(R.w, F1);
+      R.ev('globalThis.__yes=false; 0');
+      const w0 = R.ev('JSON.stringify(WRITER)');
+      await R.ev('saveInPlaceFile()');
+      chk(name, '(n) Cancel after reading a board this browser writes', 'nothing written, and the page’s writer is as it was (none)',
+        J([f.writes, H.qs(R.ev).some(q => /holds what the board on screen does not carry/.test(q)), R.ev('JSON.stringify(WRITER)')]), J([0, true, w0])); }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }
