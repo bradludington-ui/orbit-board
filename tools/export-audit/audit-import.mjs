@@ -16309,8 +16309,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const T2 = boot({ ls: held }); await new Promise(r2 => setTimeout(r2, 5));
     const ls0 = w2LsOf(T2.ev), ms0 = T2.ev('JSON.stringify([MS, impMemSnap()])');
     const r2 = await viaDoor(T2, NEW.html, 'new-board.html', ['prio27ff']);
+    // v2.14 RV2-A (take-all-big-board-dead-end): refused for room, the alert now ends by naming the full import as the way on
     chk(name, '(c) refused', 'all or nothing: storage byte-identical, memory put back, nothing reopened, and the refusal said',
-      J([w2Diff(ls0, w2LsOf(T2.ev)), T2.ev('JSON.stringify([MS, impMemSnap()])') === ms0, r2.nav, r2.al.length === 1 && /^Nothing was imported from “new-board\.html” — browser storage refused Full Fund board data \(QuotaExceededError\)\.\n\nThis board is exactly as it was\.$/.test(r2.al[0])]),
+      J([w2Diff(ls0, w2LsOf(T2.ev)), T2.ev('JSON.stringify([MS, impMemSnap()])') === ms0, r2.nav, r2.al.length === 1 && /^Nothing was imported from “new-board\.html” — browser storage refused Full Fund board data \(QuotaExceededError\)\.\n\nThis board is exactly as it was\.\n\nBrowser storage has no room for it\. To bring a whole board in anyway, use Imports & exports › Import a full board \(new version\)…: it writes a board browser storage cannot hold into a new board file\.$/.test(r2.al[0])]),
       J(['', true, 0, true]));
   }
   // (d) A ONE-APPROPRIATION FILE into an empty board whose own file carries Full Fund's execution data and BAE rows: the merging door,
@@ -18779,6 +18780,741 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ---- end RV2-LEAD ----
 // ---- RV2-A (the file route and Save) ----
+// v2.14 RV2-A (review round 2, the file route and Save): every block below fails on 74a6aec (the board round 2 handed the fixers)
+// unless a part is labelled a CONTROL. Expectations come from the fixture's own literals (the notes, names and files each part
+// plants), never from the code under test. The harnesses are the ones the v2.14 W1, W2 and RV1-A blocks use.
+const rv2aLeave = (T) => T.ev(`(function(){ const e={preventDefault:function(){ this.p=1; }}; try{ memOnlyLeave(e); }catch(x){} return !!e.p; })()`);
+const rv2aAsk = (T, yes) => T.ev(`globalThis.__cq=[]; window.confirm=function(q){ globalThis.__cq.push(String(q)); return ${yes}; }; window.alert=function(q){ globalThis.__cq.push('ALERT '+String(q)); }; 'ok'`);
+const rv2aAsked = (T) => JSON.parse(T.ev('JSON.stringify(globalThis.__cq||[])'));
+const rv2aBtn = (T, re) => [...T.w.document.querySelectorAll('#impFilePanel button')].some(x => re.test(x.textContent.trim()));
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — a Save declined at the question about a copy left in front of the import’s own file leaves browser storage, the stamp, the save history and the record as they were (leftask-decline-skips-savestopback, impleftask-cancel-leaves-phantom-save, leftask-cancel-skips-saveStopBack)';
+  try {
+    const { J } = W214;
+    const R = await rv1aWritten();
+    const W = R.W, PW = W1H.pubOf(W);
+    // a list left in front of the import's file: an older tab re-imported the cost estimates after the write (RV1-A's (e))
+    const ace = JSON.parse(J(PW.aceDb)), sk = Object.keys(ace.sets || {})[0];
+    ace.ts = Date.now() + 60000; ace.sets[sk] = Object.assign({}, ace.sets[sk], { name: 'OLDER TAB RE-IMPORT', src: 'OLDER TAB RE-IMPORT' });
+    const L = Object.assign({}, R.lsAfter, { prio27acedb: J(ace) });
+    chk(name, 'the fixture', 'the import carries a cost estimate, and after the file route browser storage holds no O&M plan (a CONTROL)', J([!!sk, L.prio27om === undefined]), J([true, true]));
+    const snap = (B) => JSON.parse(B.ev(`JSON.stringify({ts:MS.ts, by:MS.by, log:JSON.stringify(MS.log||[]), dirty:DIRTY, gen:_saveGen, bd:_baseDirty,
+      rec:localStorage.getItem(_AP.key+'.base'), memOnly:memOnlyNow()})`));
+    // one 💾 Save, Cancel at "BEFORE THIS SAVE", OK to anything else; the questions asked, once the save has finished
+    const declineOnce = async (B) => {
+      B.ev(`globalThis.__q=[]; window.confirm=function(q){ globalThis.__q.push(String(q)); return !/BEFORE THIS SAVE/.test(String(q)); }; window.alert=function(){}; saveInPlace(); 'ok'`);
+      await W214.settle(B, () => B.ev('_saveBusy') === 0, 6000);
+      return JSON.parse(B.ev('JSON.stringify(globalThis.__q)'));
+    };
+    // (a) storage with room
+    {
+      const mk = bootMark();
+      const B = boot({ html: W, ls: L });
+      await new Promise(r => setTimeout(r, 30));
+      const s0 = snap(B), ls0 = w2LsOf(B.ev);
+      const f = W1H.disk(B.w, W);
+      const q = await declineOnce(B);
+      chk(name, '(a) declined', 'the question was asked, naming the cost estimates, declined, and nothing was written (a CONTROL on the route)',
+        J([q.some(x => /BEFORE THIS SAVE/.test(x) && /cost estimates/.test(x)), f.writes, f.content === W]), J([true, 0, true]));
+      const s1 = snap(B), ls1 = w2LsOf(B.ev);
+      chk(name, '(a) declined', 'the save stamp, the editor, the save history, the unsaved marks and this browser’s record are as they were before the Save', J(s1), J(s0));
+      const om = ls1.prio27om ? JSON.parse(ls1.prio27om) : null;
+      chk(name, '(a) declined', 'browser storage: every other key as it was, and the O&M plan, where it is written at all, under the stamp and the save history it had',
+        J([w2Diff(ls0, ls1).split(',').filter(k => k && k !== 'prio27om'), om ? (om.ts === s0.ts && J(om.log || []) === s0.log) : true]), J([[], true]));
+      const B2 = boot({ html: f.content, ls: ls1 }); await new Promise(r => setTimeout(r, 30));
+      chk(name, '(a) declined', 'the file reopened in this browser does not say it has changes made after it was saved: nothing was changed',
+        /Opened with this browser’s copy of the board — it has changes made after this file was last saved/.test(W1H.status(B2.ev)), false);
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) storage with no room for the plan -- the file route's own case
+    {
+      const mk = bootMark();
+      const size = Object.keys(L).reduce((t, k) => t + k.length + L[k].length, 0);
+      const B = boot({ html: W, ls: L, quota: size + 2000 });
+      await new Promise(r => setTimeout(r, 30));
+      const s0 = snap(B);
+      chk(name, '(b) no room', 'the fixture: before the Save nothing is on screen only, and leaving does not ask (a CONTROL)', J([s0.dirty, s0.memOnly, rv2aLeave(B)]), J([false, false, false]));
+      const f = W1H.disk(B.w, W);
+      const q = await declineOnce(B);
+      chk(name, '(b) no room', 'the question was asked, declined, and nothing was written (a CONTROL on the route)', J([q.some(x => /BEFORE THIS SAVE/.test(x)), f.writes]), J([true, 0]));
+      const s1 = snap(B);
+      chk(name, '(b) no room', 'nothing is said to be on screen only: not unsaved, leaving does not ask, an import is not refused for it, and no save is in the history',
+        J([s1.dirty, s1.memOnly, rv2aLeave(B), B.ev(`memOnlyBlock('Not imported', 'a full import reopens the page')`), s1.log === s0.log]), J([false, false, false, false, true]));
+      await W214.rel(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — step 1’s file and Write’s file are each checked against the other: the file being imported, or the file the board as it was went into, is never let go unasked (aswas-pick-not-checked-against-import; also noticed: the close question)';
+  try {
+    const { J, fx, refuse, picker, press, box, settle, navs, downloads } = W214;
+    const IMP = 'new-board.html';                    // w2Import imports NEW under this name
+    const WORK = 'UNSAVED WORK ON THE OLD BOARD';
+    // OLD opened, unsaved work typed (so step 1 shows), and the import of NEW refused for room; `files` is what the disk holds
+    const open = async (files, o = {}) => {
+      const { NEW, OLD, ls } = fx();
+      const T = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 20));
+      if (!o.clean) T.ev(`S.notes.B=${J(WORK)}; save(); render(); 'ok'`);
+      const P = picker(T, Object.assign({ files: files(NEW) }, o.picker || {}));
+      const D = downloads(T), e0 = T.errors.length;
+      await refuse(T, NEW.html);
+      return { T, P, D, NEW, OLD, e0 };
+    };
+    // (a) step 1's Save window given the file being imported: the browser empties it, the board as it was goes into it
+    {
+      const mk = bootMark();
+      const { T, P, D, NEW } = await open(N => ({ [IMP]: N.html }), { picker: { pickAs: IMP } });
+      chk(name, '(a) the fixture', 'step 1 shows, and the file being imported is on disk as the import (a CONTROL)',
+        J([/This browser holds work no saved board file has/.test(box(T).text), P.files[IMP] === NEW.html]), J([true, true]));
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => T.ev('!(_impFile && _impFile.wasBusy)') === true && /Saved as/.test(box(T).text));
+      chk(name, '(a) the fixture', 'the board as it was went into the imported file’s place, holding the unsaved work (a CONTROL on the route)',
+        J([P.files[IMP] !== NEW.html, (P.files[IMP] || '').includes(WORK)]), J([true, true]));
+      const b = box(T);
+      chk(name, '(a) step 1 into the imported file', 'the box says the file chosen has the name of the file being imported, offers the file imported, says nothing failed, and Write keeps its own words',
+        J([/has the name of the file you are importing/.test(b.text), rv2aBtn(T, /^💾 the file you imported$/), /could not be written/.test(b.text), b.go && b.go.text]),
+        J([true, true, false, 'Write the imported board into a new file…']));
+      chk(name, '(a) step 1 into the imported file', 'the message line offers it too, and until it is downloaded leaving the page asks',
+        J([/has the name of the file you are importing/.test(W1H.status(T.ev)), T.ev('impFileHolds()'), rv2aLeave(T)]), J([true, true, true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q = rv2aAsked(T);
+      chk(name, '(a) step 1 into the imported file', '✕ asks first, saying what closing lets go -- of the file imported, only if the chosen file was it -- and Cancel keeps the box',
+        J([q.length, /^The file you imported is not saved yet\./.test(q[0] || ''),
+           /If “new-board\.html” was the file you imported, the browser emptied it when you chose it, and the copy offered here is all there is of it now\./.test(q[0] || ''), box(T).open]),
+        J([1, true, true, true]));
+      press(T, P, /^💾 the file you imported$/);
+      const last = D[D.length - 1] || {};
+      chk(name, '(a) step 1 into the imported file', 'the download is the file being imported, byte for byte, under its own name, and then nothing is held',
+        J([last.name, last.text === NEW.html, T.ev('impFileHolds()')]), J([IMP, true, false]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) step 1 saved the board as it was into backup.html; Write's Save window is then given backup.html: the browser empties it
+    {
+      const mk = bootMark();
+      const { T, P, D, e0 } = await open(() => ({}), { picker: { pickAs: 'backup.html' } });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup\.html”/.test(box(T).text));
+      const WAS = P.files['backup.html'] || '';
+      chk(name, '(b) the fixture', 'step 1 saved the board as it was into backup.html, the unsaved work in it (a CONTROL)',
+        J([/✓ Saved as “backup\.html”/.test(box(T).text), WAS.includes(WORK)]), J([true, true]));
+      rv2aAsk(T, false);
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => navs(T, e0) > 0 || T.ev('!!(_impFile && _impFile.pause)') === true);
+      const holds = () => (w2LsOf(T.ev).prio27om || '').includes(WORK);
+      chk(name, '(b) Write into step 1’s file', 'Write stops before anything is cleared: no reopening, and browser storage still holds the unsaved work',
+        J([T.ev('!!(_impFile && _impFile.pause)'), navs(T, e0), holds()]), J([true, 0, true]));
+      chk(name, '(b) Write into step 1’s file', 'the box names the file step 1 saved the board as it was into, and offers the board as it was',
+        J([/has the name of the file step 1 saved this board as it was into/.test(box(T).text), rv2aBtn(T, /^💾 this board as it was$/)]), J([true, true]));
+      T.ev(`impFileCarryOn(); 'ok'`);
+      const q1 = rv2aAsked(T);
+      chk(name, '(b) Write into step 1’s file', 'Carry on asks first; Cancel stays at the pause and clears nothing',
+        J([q1.length, /^This board as it was is not saved anywhere now/.test(q1[0] || ''), T.ev('!!(_impFile && _impFile.pause)'), navs(T, e0), holds()]), J([1, true, true, 0, true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q2 = rv2aAsked(T);
+      chk(name, '(b) Write into step 1’s file', '✕ asks first, naming the board as it was, and Cancel keeps the box',
+        J([q2.length, /^This board as it was is not saved yet\./.test(q2[0] || ''), box(T).open]), J([1, true, true]));
+      press(T, P, /^💾 this board as it was$/);
+      const last = D[D.length - 1] || {};
+      chk(name, '(b) Write into step 1’s file', 'the download is the board as it was, byte for byte as step 1 wrote it', J([last.name, last.text === WAS]), J(['backup.html', true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileCarryOn(); 'ok'`);
+      await settle(T, () => navs(T, e0) > 0);
+      chk(name, '(b) Write into step 1’s file', 'once it is downloaded, Carry on asks nothing more and finishes: the page reopens on the new file',
+        J([rv2aAsked(T).length, navs(T, e0) > 0]), J([0, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (c) Write to a new name after step 1 (a CONTROL: no pause where neither name is chosen)
+    {
+      const mk = bootMark();
+      const { T, P, e0 } = await open(() => ({}), { picker: { pickAs: 'backup.html' } });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup\.html”/.test(box(T).text));
+      P.pickAs = 'another.html';
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => navs(T, e0) > 0 || T.ev('!!(_impFile && _impFile.pause)') === true);
+      chk(name, '(c) a new name', 'Write to a new name finishes with no pause, and the board as it was is still in backup.html (a CONTROL)',
+        J([T.ev('!!(_impFile && _impFile.pause)'), navs(T, e0) > 0, (P.files['backup.html'] || '').includes(WORK)]), J([false, true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (d) also noticed: a Write that fails after its pick offers two copies -- and "these copies are all there is of it" is said only of
+    // what the chosen file may have been: the file imported, if it was that file
+    {
+      const mk = bootMark();
+      const { T, P } = await open(() => ({ 'elsewhere.html': '<!doctype html><p>another file</p>' }), { clean: true, picker: { pickAs: 'elsewhere.html', failClose: 'InvalidStateError' } });
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => T.ev('!!(_impFile && _impFile.rescue)') === true);
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q = rv2aAsked(T);
+      chk(name, '(d) the close question', 'it names both copies, says the new board is held only here, and says the file imported is all there is of it only if “elsewhere.html” was it',
+        J([q.length, /^The two copies are not saved yet\. The imported board \(new version\) is held only here\./.test(q[0] || ''), /held only here/.test(q[0] || ''),
+           /If “elsewhere\.html” was the file you imported, the browser emptied it when you chose it, and the copy offered here is all there is of it now\./.test(q[0] || ''),
+           /these copies are all there is of it/.test(q[0] || '')]), J([1, true, true, true, false]));
+      await W214.rel(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — this plan’s stored copy is held by the screen only while it is this page’s own: work put back with ↶ in another tab, under its old stamp, goes into the as-it-was file or holds Write back, and a held page with unsaved work asks on leaving (aswas-older-stamp-put-back-missed; also noticed: the held page)';
+  try {
+    const { J, fx, refuse, picker, press, box, settle, navs } = W214;
+    const { NEW, OLD, ls } = fx();
+    const ls0 = Object.assign({}, ls); delete ls0['prio27om.kept'];
+    const anywhere = (T, re) => Object.entries(w2LsOf(T.ev)).filter(([k, v]) => re.test(v)).map(([k]) => k);
+    const sync = (T, o) => T.ev(`(function(o){ const ks=[]; for(let i=0;i<localStorage.length;i++) ks.push(localStorage.key(i)); ks.forEach(function(k){ if(!(k in o)) localStorage.removeItem(k); });
+      Object.keys(o).forEach(function(k){ if(localStorage.getItem(k)!==o[k]) localStorage.setItem(k, o[k]); }); })(${J(o)}); 'ok'`);
+    // (a) THE BOARD'S OWN STEPS, A'S SCREEN SAVED. Tab X types work and is closed (in browser storage only); a newer save of the board
+    // (made elsewhere) is opened in tab A, which keeps X's work aside; tab B opens it too and puts that work back -- browser storage
+    // then holds it under its OLD stamp, older than A's screen; A, nothing unsaved, imports a board too big for storage
+    {
+      const mk = bootMark();
+      const X = boot({ html: OLD.html, ls: ls0 });
+      X.ev(`S.notes.A='WORK TYPED IN TAB X, IN NO FILE'; save(); render(); 'ok'`);
+      const lsX = w2LsOf(X.ev);
+      await new Promise(r => setTimeout(r, 20));
+      const Y = boot({ html: OLD.html, ls: {} });
+      Y.ev(`S.notes.Y='NEWER SAVE'; save(); 'ok'`);
+      const F2 = Y.ev('buildSavedHtml()');
+      const A = boot({ html: F2, ls: lsX });
+      await new Promise(r => setTimeout(r, 30));
+      const B = boot({ html: F2, ls: w2LsOf(A.ev) });
+      await new Promise(r => setTimeout(r, 30));
+      B.ev(`window.confirm=function(){ return true; }; keptPutBack(); 'ok'`);
+      const lsB = w2LsOf(B.ev), st = JSON.parse(lsB.prio27om || 'null') || {};
+      chk(name, '(a) the fixture', 'browser storage holds X’s work, put back by B under a stamp older than A’s screen, and A has nothing unsaved (a CONTROL)',
+        J([/WORK TYPED IN TAB X/.test(lsB.prio27om || ''), +st.ts < +A.ev('MS.ts'), A.ev('DIRTY')]), J([true, true, false]));
+      sync(A, lsB);
+      const P = picker(A), e0 = A.errors.length;
+      await refuse(A, NEW.html);
+      chk(name, '(a) A’s screen saved', 'step 1 names the O&M plan, and only it', A.ev('JSON.stringify(impUnsavedList(_impFile.W))'), J(['the O&M plan']));
+      P.pickAs = 'as-it-was.html';
+      press(A, P, /^💾 Save this board as it was/);
+      await settle(A, () => A.ev('!(_impFile && _impFile.wasBusy)') === true && /Saved as/.test(box(A).text));
+      const was = P.files['as-it-was.html'] || '';
+      chk(name, '(a) A’s screen saved', 'the as-it-was file holds the work put back, the box says ✓, and Write is offered',
+        J([/WORK TYPED IN TAB X/.test(was), /✓ Saved as “as-it-was\.html” and read back whole\./.test(box(A).text), box(A).go.disabled]), J([true, true, false]));
+      P.pickAs = 'new.html';
+      press(A, P, /^Write the imported board/);
+      await settle(A, () => navs(A, e0) > 0);
+      chk(name, '(a) A’s screen saved', 'after Write the work put back is in a file written, whatever browser storage was cleared of',
+        J([navs(A, e0) > 0, Object.values(P.files).some(v => /WORK TYPED IN TAB X/.test(v))]), J([true, true]));
+      // B: its screen holds the work put back, unsaved; once the note reaches it, it is held -- and leaving it asks
+      const note = w2LsOf(A.ev).prio27impFile;
+      // v2.14 RV2-A finish: B shares A's browser storage, as a second tab does -- A's Write cleared the O&M plan there. memOnlyNow now
+      // counts a held page's unsaved work only once storage no longer holds its copy, so the fixture gives B what A's Write left.
+      sync(B, w2LsOf(A.ev));
+      B.ev(`localStorage.setItem('prio27impFile', ${J(note || 'null')}); 'ok'`);
+      chk(name, '(a) the held page', 'B is held with the work put back unsaved on its screen, and leaving it asks (memOnlyNow)',
+        J([!!note, B.ev('!!impHandOf()'), B.ev('DIRTY'), B.ev('memOnlyNow()'), rv2aLeave(B)]), J([true, true, true, true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) A HAS UNSAVED WORK ON SCREEN, and B puts back an older-stamped copy of the same plan: one file cannot hold both. The screen
+    // stays in the file, the copy put back is named as not held, and Write waits for it to be declined
+    {
+      const mk = bootMark();
+      const PO = W1H.pubOf(OLD.html), om = PO.appns.om, yr = Object.keys(om.years)[0];
+      const kept = JSON.parse(J(om)); kept.ts = om.ts - 3600000; kept.years[yr].notes = Object.assign({}, kept.years[yr].notes, { B: 'B KEPT WORK, IN NO FILE' });
+      const slot = J({ t: Date.now() - 60000, why: 'file', by: 'Bob', ts: om.ts, base: { file: W1H.fileTs(OLD.html), folder: {}, dirty: true } }) + '\n' + J(kept);
+      const A = boot({ html: OLD.html, ls: Object.assign({}, ls, { 'prio27om.kept': slot }) });
+      await new Promise(r => setTimeout(r, 30));
+      A.ev(`S.notes.A='A UNSAVED EDIT'; save(); render(); 'ok'`);
+      const B = boot({ html: OLD.html, ls: w2LsOf(A.ev) });
+      await new Promise(r => setTimeout(r, 30));
+      B.ev(`window.confirm=function(){ return true; }; keptPutBack(); 'ok'`);
+      const lsB = w2LsOf(B.ev);
+      chk(name, '(b) the fixture', 'browser storage holds B’s put-back under a stamp older than A’s screen, and A’s edit is unsaved (a CONTROL)',
+        J([/B KEPT WORK, IN NO FILE/.test(lsB.prio27om || ''), +JSON.parse(lsB.prio27om).ts < +A.ev('MS.ts'), A.ev('DIRTY')]), J([true, true, true]));
+      sync(A, lsB);
+      const P = picker(A);
+      await refuse(A, NEW.html);
+      chk(name, '(b) both', 'step 1 names what is on screen and the O&M plan', A.ev('JSON.stringify(impUnsavedList(_impFile.W))'), J(['what is on screen', 'the O&M plan']));
+      P.pickAs = 'as-it-was.html';
+      press(A, P, /^💾 Save this board as it was/);
+      await settle(A, () => A.ev('!(_impFile && _impFile.wasBusy)') === true && /Saved as/.test(box(A).text));
+      const was = P.files['as-it-was.html'] || '', b = box(A);
+      chk(name, '(b) both', 'the file holds what is on screen; the box says it does not hold the O&M plan, does not say ✓, and Write waits',
+        J([/A UNSAVED EDIT/.test(was), /It does not hold the O&M plan/.test(b.text), /✓ Saved as/.test(b.text), b.go.disabled]), J([true, true, false, true]));
+      chk(name, '(b) both', 'browser storage still holds the work put back (nothing was cleared)', anywhere(A, /B KEPT WORK, IN NO FILE/).includes('prio27om'), true);
+      await W214.rel(mk, keepBoards());
+    }
+    // (c) THIS PAGE'S OWN LAST WRITE, behind what is on screen: saved, then changed in memory without a write (a CONTROL: storage's copy is
+    // this page's own, superseded by the screen, and Write is not held back for it)
+    {
+      const mk = bootMark();
+      const A = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 30));
+      A.ev(`setNote('A','SAVED EDIT'); S.notes.Z='NOT YET IN STORAGE'; render(); 'ok'`);
+      chk(name, '(c) the fixture', 'storage holds this page’s own save, without the change made since (a CONTROL)',
+        J([/SAVED EDIT/.test(A.ev('localStorage.getItem(_AP.key)')), /NOT YET IN STORAGE/.test(A.ev('localStorage.getItem(_AP.key)'))]), J([true, false]));
+      const P = picker(A);
+      await refuse(A, NEW.html);
+      P.pickAs = 'as-it-was.html';
+      press(A, P, /^💾 Save this board as it was/);
+      await settle(A, () => A.ev('!(_impFile && _impFile.wasBusy)') === true && /Saved as/.test(box(A).text));
+      chk(name, '(c) this page’s own', 'the file holds the screen, the box says ✓, and Write is offered (a CONTROL)',
+        J([/NOT YET IN STORAGE/.test(P.files['as-it-was.html'] || ''), /✓ Saved as/.test(box(A).text), box(A).go.disabled]), J([true, true, false]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (d) THE COPY THIS PAGE OPENED FROM, never written since: storage's plan in an older shape (no funds-flow settings, which the opening
+    // fills in), so what is on screen is not its text; a list changed here, so step 1 names the screen and the plan (a CONTROL: that copy
+    // is this page's own, superseded by the screen)
+    {
+      const mk = bootMark();
+      const om = JSON.parse(ls.prio27om); delete om.flow;
+      const A = boot({ html: OLD.html, ls: Object.assign({}, ls, { prio27om: J(om) }) });
+      await new Promise(r => setTimeout(r, 30));
+      A.ev(`EXDB={ts:Date.now(), all:{om:{fy:2027, rows:[['A LIST CHANGED HERE', 5]]}}}; lsSet(EXDB_KEY, JSON.stringify(EXDB), 'The imported execution data'); 'ok'`);
+      chk(name, '(d) the fixture', 'storage’s plan is the copy this page opened from, unwritten since, and is not the text on screen (a CONTROL)',
+        J([A.ev('localStorage.getItem(_AP.key)') === J(om), /"flow"/.test(A.ev('localStorage.getItem(_AP.key)')), A.ev('!!MS.flow')]), J([true, false, true]));
+      const P = picker(A);
+      await refuse(A, NEW.html);
+      chk(name, '(d) the copy it opened from', 'step 1 names what is on screen and the O&M plan, with the list (a CONTROL)',
+        J(JSON.parse(A.ev('JSON.stringify(impUnsavedList(_impFile.W))')).slice(0, 2)), J(['what is on screen', 'the O&M plan']));
+      P.pickAs = 'as-it-was.html';
+      press(A, P, /^💾 Save this board as it was/);
+      await settle(A, () => A.ev('!(_impFile && _impFile.wasBusy)') === true && /Saved as/.test(box(A).text));
+      chk(name, '(d) the copy it opened from', 'the box says ✓ and names nothing as not held, and Write is offered (a CONTROL)',
+        J([/✓ Saved as/.test(box(A).text), /It does not hold/.test(box(A).text), box(A).go.disabled]), J([true, false, false]));
+      await W214.rel(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — a page opened from a board file never writes its board into the bare ORBIT program picked in the Open window (open-window-program-pick-silently-becomes-save-target)';
+  try {
+    const PROGRAM = readFileSync(BOARD, 'utf8');
+    const F0 = w14board({ ls: { prio27writerKey: W14K } }); F0.ev(`WRITER=${W14J(w14mine())}; save(); 'ok'`);
+    const FILE = F0.ev('buildSavedHtml()');
+    chk(name, 'the fixture', 'the program carries no board, and the board file does (a CONTROL)', W14J([w14pub(PROGRAM), !!(w14pub(FILE) || {}).appns]), W14J([null, true]));
+    const KEY = 'page|' + W14U('board.html');
+    // (a) the board page's first Save, the program beside it picked in the Open window; every question answered OK
+    const s1 = new Map();
+    const B = await w14open({ html: FILE, url: W14U('board.html'), idb: { store: s1, log: [] }, ls: { prio27writerKey: W14K } }); w14wire(B.ev, 'true');
+    const prog = w14disk('ORBIT v2.14 candidate.html', PROGRAM), board = w14disk('board.html', FILE);
+    w14pickers(B, { open: prog, save: null });
+    await w14save(B.ev);
+    chk(name, '(a) the program picked', 'nothing is written into the program, write access is never asked, and nothing is remembered for this page',
+      W14J([prog.writes, prog.content === PROGRAM, prog.ops, s1.has(KEY), w14ev(B.ev, 'FH===null')]), W14J([0, true, ['read'], false, true]));
+    chk(name, '(a) the program picked', 'the line names both files and says to pick the board file',
+      /“ORBIT v2\.14 candidate\.html” is the ORBIT program with no board in it, not this board’s file “board\.html”, so it was not written over\. Press 💾 Save again and pick “board\.html”/.test(w14stat(B.ev)), true);
+    chk(name, '(a) the program picked', 'the pen is not taken: no writer claimed for that file, and the page is still unsaved', W14J([w14q(B.ev).filter(q => /No writer is recorded/.test(q)).length, w14ev(B.ev, 'JSON.stringify(WRITER)') === W14J(w14mine())]), W14J([0, true]));
+    // the next Save asks which file again; the board file picked is written and remembered
+    const PP = w14pickers(B, { open: board, save: null });
+    await w14save(B.ev);
+    chk(name, '(a) the program picked', 'the next Save opens the Open window again, and the board file picked there is written and remembered',
+      W14J([PP.open.length, board.writes, prog.writes, s1.get(KEY) === board.h]), W14J([1, 1, 0, true]));
+    // (b) the program's own page picks the program it ran in (item 141 D, INT-1: a CONTROL)
+    const s2 = new Map();
+    const P = await w14open({ url: W14U('ORBIT v2.14.html'), idb: { store: s2, log: [] }, ls: { prio27writerKey: W14K } }); w14wire(P.ev, 'true');
+    P.ev(`setNote('A','ON THE PROGRAM PAGE'); 'ok'`);
+    const own = w14disk('ORBIT v2.14.html', PROGRAM);
+    w14pickers(P, { open: own, save: null });
+    await w14save(P.ev);
+    chk(name, '(b) the program’s own page', 'the program page writes the program it ran in, as item 141 D says (a CONTROL)', W14J([own.writes, /^💾 Saved in place/.test(w14stat(P.ev))]), W14J([1, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — work the import’s own file kept aside is put back saying when it changed, and blank work put back stays blank work (opening-kept-copy-says-file-saved-after-it; also noticed: the blank mark)';
+  try {
+    const { J } = W214;
+    const R = await rv1aWritten();
+    const W = R.W, omW = W1H.pubOf(W).appns.om;
+    const changed = (st, id, text) => { const c = JSON.parse(J(st)); c.ts = Date.now() + 60000; c.years[rv1aYr(c)].notes = Object.assign({}, c.years[rv1aYr(c)].notes, { [id]: text }); return c; };
+    const putBack = (rec) => {
+      const L = Object.assign({}, R.lsAfter, { prio27om: J(changed(omW, 'A', 'O&M CHANGED AFTER THE WRITE')), 'prio27om.base': J(rec) }); delete L['prio27om.kept'];
+      const B = boot({ html: W, ls: L });
+      B.ev(`window.confirm=function(){ return true; }; keptPutBack(); 'ok'`);
+      return B;
+    };
+    // (a) another tab's record, naming the old file
+    {
+      const mk = bootMark();
+      const B = putBack({ file: W1H.fileTs(R.OLD.html), folder: {}, dirty: true });
+      const st = W1H.status(B.ev);
+      chk(name, '(a) put back', 'the work is put back (a CONTROL on the route)', B.ev(`String(S.notes.A||'')`), 'O&M CHANGED AFTER THE WRITE');
+      chk(name, '(a) put back', 'the line says the work changed after the import was written, not that the file was saved after it',
+        // v2.14 RV2-A finish: the line no longer says "so nobody saved that file after it" (untrue once the file is saved since)
+        J([/It changed after the full import was written into its file\./.test(st), /saved after it\./.test(st.replace(/a copy saved after the one this work came from\./, ''))]), J([true, false]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) blank work's record (C17: typed on a page whose board came from no saved copy)
+    {
+      const mk = bootMark();
+      const B = putBack({ file: 0, folder: {}, dirty: true, blank: true });
+      const r1 = JSON.parse(B.ev('JSON.stringify(baseGet())'));
+      B.ev(`setNote('B','AN EDIT AFTER THE PUT-BACK'); 'ok'`);
+      const r2 = JSON.parse(B.ev('JSON.stringify(baseGet())'));
+      chk(name, '(b) blank work', 'put back, its record says blank work, unsaved, from no file -- and still does after the next edit',
+        J([r1.blank, r1.dirty, +r1.file || 0, r2.blank, r2.dirty]), J([true, true, 0, true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (c) work that is not blank put back over a page whose record said blank: the mark is written false, never left over from the merge
+    {
+      const mk = bootMark();
+      const B = putBack({ file: W1H.fileTs(R.OLD.html), folder: {}, dirty: true });
+      B.ev(`(function(){ const b=baseGet(); b.blank=true; localStorage.setItem(_AP.key+'.base', JSON.stringify(b)); })(); window.confirm=function(){ return true; }; keptPutBack(); 'ok'`);
+      const r = JSON.parse(B.ev('JSON.stringify(baseGet())'));
+      chk(name, '(c) not blank', 'the work kept in its place, put back in its turn, is not left marked blank: the mark is written, never left over', r.blank === true, false);
+      await W214.rel(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — a list changed while a Save waited stays unsaved when the Save stops, and a refused one keeps leaving asking (also noticed: saveStopBack’s marks)';
+  try {
+    const J = W14J;
+    const F0 = w14board({ ls: { prio27writerKey: W14K } });
+    F0.ev(`ACEDB={ts:Date.now(), sets:{'ACE-X':{fp:'fp-x', locked:true, appn:{om:{pmo:{AV:{2027:900}}}}, lines:[{n:'x'}]}}}; persistAce(); WRITER=null; save(); 'ok'`);
+    const FILE = F0.ev('buildSavedHtml()'), P0 = w14pub(FILE);
+    const ls0 = w14ls(F0.ev); delete ls0.prio27acedb; ls0['prio27om.base'] = J({ file: w14fileTs(P0), dirty: false });
+    const marks = ev => JSON.parse(w14ev(ev, `JSON.stringify({unsaved:unsavedNow(), memOnly:memOnlyNow(), dirty:DIRTY,
+      leave:(function(){ var e={preventDefault:function(){ this.p=1; }}; memOnlyLeave(e); return !!e.p; })()})`));
+    // what importAce does at its end: the set, persistAce(), then the plan's choice and persist()
+    const ACE = `ACEDB.sets['ACE-Y']={fp:'fp-y', locked:true, appn:{om:{pmo:{AV:{2027:500}}}}, lines:[{n:'y'}]}; ACEDB.ts=Date.now(); persistAce(); 'ok'`;
+    const PLAN = `S.notes=S.notes||{}; S.notes.A='typed while asked'; save(); 'ok'`;
+    for (const [route, change, refuse] of [['denied', ACE, true], ['writefail', ACE, true], ['denied', ACE, false], ['denied', PLAN, false]]) {
+      const tag = route + (change === PLAN ? ' · a plan edit (a CONTROL)' : ' · a list') + (refuse ? ' storage refused' : ' stored');
+      const D = await w14open({ ls: ls0, url: W14U('board.html') }); w14wire(D.ev, 'true');
+      if (refuse) D.ev(`(function(){ var s=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27acedb'){ var e=new Error('QuotaExceededError'); e.name='QuotaExceededError'; throw e; } return s.call(this,k,v); }; })(); 'ok'`);
+      const dD = w14disk('board.html', FILE); dD.query = 'prompt';
+      if (route === 'denied') dD.request = () => { D.ev(change); return 'denied'; };
+      else { dD.request = 'granted';
+        dD.h.createWritable = async () => { dD.ops.push('write'); return { write: async x => { D.ev(change); },
+          close: async () => { const e = new Error('the file is locked by another program'); e.name = 'InvalidStateError'; throw e; } }; }; }
+      w14pickers(D, { open: dD, save: null });
+      const m0 = marks(D.ev);
+      chk(name, tag, 'the fixture: nothing is unsaved before the Save (a CONTROL)', J([m0.unsaved, m0.memOnly]), J([false, false]));
+      await w14save(D.ev);
+      const m = marks(D.ev);
+      chk(name, tag, 'nothing was written, and the change made while the Save waited is still counted unsaved', J([dD.writes, m.unsaved]), J([0, true]));
+      if (refuse) chk(name, tag, 'storage refused it: it is on screen only, leaving asks, and switching appropriation is stopped',
+        J([m.memOnly, m.leave, w14ev(D.ev, `memOnlyBlock('Not switched', 'switching appropriation reopens the page')`)]), J([true, true, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A — a whole board taken in by Import one appropriation and refused for room names the full import as the way on (take-all-big-board-dead-end)';
+  try {
+    const { J, fx } = W214;
+    const { NEW, OLD, ls } = fx();
+    const full = W1H.pubOf(NEW.html);
+    // ALL taken, every question answered OK, and browser storage refusing the plans with `why`
+    const take = (why) => {
+      const T = boot({ html: OLD.html, ls });
+      const r = JSON.parse(T.ev(`(function(){ const al=[], cf=[]; window.prompt=function(){ return 'ALL'; }; window.confirm=function(m){ cf.push(String(m)); return true; };
+        window.alert=function(m){ al.push(String(m)); };
+        const _si=Storage.prototype.setItem;
+        Storage.prototype.setItem=function(k, v){ if(/^prio27(om|ff)$/.test(k)){ throw new DOMException('refused', ${J(why)}); } return _si.call(this, k, v); };
+        try{ consTakePick(${J(full)}, ${J(NEW.html)}, 'new-board.html'); }catch(e){ al.push('THREW '+String((e&&e.message)||e)); }
+        finally{ Storage.prototype.setItem=_si; }
+        return JSON.stringify({al:al, cf:cf.length, stat:(document.getElementById('shareStat')||{}).textContent||''}); })()`));
+      return r;
+    };
+    const way = /Imports & exports › Import a full board \(new version\)…/;
+    const r1 = take('QuotaExceededError');
+    chk(name, 'refused for room', 'nothing was imported, and the alert says so (a CONTROL on the route)', J([r1.al.length, /^Nothing was imported from “new-board\.html”/.test(r1.al[0] || '')]), J([1, true]));
+    chk(name, 'refused for room', 'the alert and the message line name Import a full board (new version)… as the way to bring in a board browser storage cannot hold',
+      J([way.test(r1.al[0] || ''), way.test(r1.stat), /writes a board browser storage cannot hold into a new board file/.test(r1.stat)]), J([true, true, true]));
+    const r2 = take('SecurityError');
+    chk(name, 'refused for another reason', 'refused for anything but room, it says nothing of the full import (a CONTROL)', J([r2.al.length, way.test(r2.al[0] || ''), way.test(r2.stat)]), J([1, false, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.14 RV2-A finish — a write that fails after its pick lets nothing go unasked, a kept copy put back says only what is so, and only a page another tab’s import holds counts its work as on screen only (the check of RV2-A)';
+  try {
+    const { J, fx, refuse, picker, press, box, settle, navs, downloads, marker } = W214;
+    const IMP = 'new-board.html';                    // w2Import imports NEW under this name
+    const WORK = 'UNSAVED WORK ON THE OLD BOARD';
+    const open = async (files, o = {}) => {
+      const { NEW, OLD, ls } = fx();
+      const T = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 20));
+      T.ev(`S.notes.B=${J(WORK)}; save(); render(); 'ok'`);
+      const P = picker(T, Object.assign({ files: files(NEW) }, o.picker || {}));
+      const D = downloads(T), e0 = T.errors.length;
+      await refuse(T, NEW.html);
+      return { T, P, D, NEW, OLD, e0 };
+    };
+    const line = (T) => W1H.status(T.ev);
+    // (a) STEP 1'S SAVE WINDOW GIVEN THE FILE BEING IMPORTED, AND THE WRITE FAILS -- refused, or read back otherwise. The pick emptied
+    // the file either way: the file imported is held and offered, as when the write lands
+    for (const [label, knob] of [['refused', { failWrite: 'NoModificationAllowedError' }], ['read back otherwise', { readBack: 'differ' }]]) {
+      const mk = bootMark();
+      const { T, P, D, NEW } = await open(N => ({ [IMP]: N.html }), { picker: Object.assign({ pickAs: IMP }, knob) });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => T.ev('!(_impFile && _impFile.wasBusy)') === true && /could not be written/.test(line(T)));
+      const L = '(a) step 1 into the imported file, ' + label;
+      chk(name, L, 'the pick emptied the file being imported and the write did not land (a CONTROL on the route)',
+        J([P.files[IMP] !== NEW.html, /This board as it was could not be written into “new-board\.html”/.test(line(T))]), J([true, true]));
+      const b = box(T);
+      chk(name, L, 'the box says the file chosen has the imported file’s name and holds neither, and offers the file imported and the board as it was',
+        J([/has the name of the file you are importing/.test(b.text), /this board as it was could not be written into it either/.test(b.text),
+           rv2aBtn(T, /^💾 the file you imported$/), rv2aBtn(T, /^💾 this board as it was$/)]), J([true, true, true, true]));
+      chk(name, L, 'the message line offers the file imported too', J([/has the name of the file you are importing/.test(line(T)), /💾 the file you imported/.test(line(T))]), J([true, true]));
+      // the board as it was, downloaded from the message line, as the line offers it
+      T.ev(`(function(){ const b=[].slice.call(document.querySelectorAll('#shareStat button')).find(function(x){ return /this board as it was/.test(x.textContent); }); if(b) b.click(); })(); 'ok'`);
+      const w = D[D.length - 1] || {};
+      chk(name, L, 'the board as it was downloads from the message line, holding the unsaved work (a CONTROL)', (w.text || '').includes(WORK), true);
+      chk(name, L, 'and the box no longer offers it', rv2aBtn(T, /^💾 this board as it was$/), false);
+      chk(name, L, 'with the board as it was downloaded, the file imported is still held: leaving the page asks', J([T.ev('impFileHolds()'), rv2aLeave(T)]), J([true, true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q = rv2aAsked(T);
+      chk(name, L, '✕ asks first, naming the file imported, and Cancel keeps the box', J([q.length, /^The file you imported is not saved yet\./.test(q[0] || ''), box(T).open]), J([1, true, true]));
+      press(T, P, /^💾 the file you imported$/);
+      const last = D[D.length - 1] || {};
+      chk(name, L, 'the download is the file being imported, byte for byte, under its own name, and then nothing is held',
+        J([last.name, last.text === NEW.html, T.ev('impFileHolds()'), rv2aLeave(T)]), J([IMP, true, false, false]));
+      if (label === 'refused') {
+        // step 1 again into the same name, and this time the write lands: the box says the board as it was is in it now, and the
+        // file imported, downloaded already, stays downloaded
+        P.failWrite = '';
+        press(T, P, /^💾 Save this board as it was/);
+        await settle(T, () => T.ev('!(_impFile && _impFile.wasBusy)') === true && /✓ Saved as/.test(box(T).text));
+        const b2 = box(T);
+        chk(name, L + ', then landed', 'the box says the board as it was is in it now, not that it could not be written, and the file imported stays downloaded',
+          J([/this board as it was is in it now/.test(b2.text), /could not be written into it either/.test(b2.text), /✓ downloaded/.test(b2.text), T.ev('impFileHolds()')]),
+          J([true, false, true, false]));
+      }
+      await W214.rel(mk, keepBoards());
+    }
+    // (b) STEP 1 SAVED THE BOARD AS IT WAS INTO backup.html; WRITE'S SAVE WINDOW IS GIVEN backup.html AND THE WRITE FAILS. The pick
+    // emptied backup.html: the board as it was is offered, step 1 is to be done again, and Write waits for it
+    {
+      const mk = bootMark();
+      const { T, P, D, e0 } = await open(() => ({}), { picker: { pickAs: 'backup.html' } });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup\.html”/.test(box(T).text));
+      const WAS = P.files['backup.html'] || '';
+      chk(name, '(b) the fixture', 'step 1 saved the board as it was into backup.html, the unsaved work in it (a CONTROL)', WAS.includes(WORK), true);
+      P.failClose = 'InvalidStateError';
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => T.ev('!!(_impFile && _impFile.rescue)') === true);
+      const holdsWork = () => (w2LsOf(T.ev).prio27om || '').includes(WORK);
+      chk(name, '(b) Write into step 1’s file fails', 'the pick emptied backup.html, nothing was imported, and browser storage still holds the unsaved work (a CONTROL)',
+        J([(P.files['backup.html'] || '').includes(WORK), navs(T, e0), holdsWork()]), J([false, 0, true]));
+      const b = box(T);
+      chk(name, '(b) Write into step 1’s file fails', 'the box says the file chosen has the name of step 1’s file, offers the board as it was, no longer reads ✓, and offers step 1 again',
+        J([/has the name of the file step 1 saved this board as it was into/.test(b.text), rv2aBtn(T, /^💾 this board as it was$/),
+           /✓ Saved as “backup\.html”/.test(b.text), rv2aBtn(T, /^💾 Save this board as it was/)]), J([true, true, false, true]));
+      chk(name, '(b) Write into step 1’s file fails', 'Write waits for step 1, and the message line offers the board as it was too',
+        J([b.go && b.go.disabled, /💾 this board as it was/.test(line(T))]), J([true, true]));
+      // Write pressed again, to a new name that would take it: nothing is written or cleared while step 1 waits
+      P.failClose = ''; P.pickAs = 'new1.html'; rv2aAsk(T, true);
+      press(T, P, /^Try again with a new name|^Write the imported board/);
+      await settle(T, () => navs(T, e0) > 0, 300);
+      chk(name, '(b) Write into step 1’s file fails', 'pressing Write again writes and clears nothing while step 1 waits',
+        J([navs(T, e0), holdsWork(), 'new1.html' in P.files]), J([0, true, false]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q = rv2aAsked(T);
+      chk(name, '(b) Write into step 1’s file fails', '✕ asks first, naming the board as it was, the new board and the file imported, and Cancel keeps the box',
+        J([q.length, /^This board as it was is not saved yet, nor is the imported board \(new version\), held only here, nor is the file you imported\./.test(q[0] || ''), box(T).open]),
+        J([1, true, true]));
+      // step 1 again, into a new file: Write is offered again, and closing no longer names the board as it was -- backup2.html holds it
+      P.pickAs = 'backup2.html';
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup2\.html”/.test(box(T).text));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      const q2 = rv2aAsked(T);
+      chk(name, '(b) step 1 done again', 'Write is offered, and ✕ asks of the two copies only, the board as it was being in backup2.html',
+        J([box(T).go && box(T).go.disabled, q2.length, /^The two copies are not saved yet\./.test(q2[0] || ''), box(T).open]), J([false, 1, true, true]));
+      press(T, P, /^💾 this board as it was$/);
+      const last = D[D.length - 1] || {};
+      chk(name, '(b) Write into step 1’s file fails', 'the download is the board as it was, byte for byte as step 1 wrote it', J([last.name, last.text === WAS]), J(['backup.html', true]));
+      // then Write to a new name: the page reopens, and the unsaved work is in a file
+      P.pickAs = 'new2.html'; rv2aAsk(T, true);
+      press(T, P, /^Try again with a new name|^Write the imported board/);
+      await settle(T, () => navs(T, e0) > 0);
+      chk(name, '(b) Write into step 1’s file fails', 'step 1 done again, Write to a new name finishes, and the unsaved work is in backup2.html',
+        J([navs(T, e0) > 0, (P.files['backup2.html'] || '').includes(WORK)]), J([true, true]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (f) THE THIRD BRANCH: WRITE'S SAVE WINDOW GIVEN backup.html, THE WRITE LANDS, AND ANOTHER TAB SAVES FULL FUND WHILE IT IS WRITTEN.
+    // The raced route clears nothing now, but the written file's opening clears every copy unchanged since the click -- the unsaved work
+    // step 1 put into backup.html among them, and backup.html holds the import now. So it pauses as the route that lands does: the board
+    // as it was offered, and Carry on asks until it is downloaded.
+    {
+      const mk = bootMark();
+      const { T, P, D, e0 } = await open(() => ({}), { picker: { pickAs: 'backup.html' } });
+      press(T, P, /^💾 Save this board as it was/);
+      await settle(T, () => /✓ Saved as “backup\.html”/.test(box(T).text));
+      const WAS = P.files['backup.html'] || '';
+      const g = W1H.gate(); P.gate = g;
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => P.picks.length > 1);
+      const ff = JSON.parse(w2LsOf(T.ev).prio27ff); ff.ts = Date.now() + 90000;
+      T.ev(`localStorage.setItem('prio27ff', ${J(J(ff))}); 'ok'`);     // another tab saves Full Fund while the file is written
+      g.open();
+      await settle(T, () => T.ev('!!(_impFile && _impFile.pause)') === true || /changed in this browser while it was being written/.test(line(T)));
+      const holdsWork = () => (w2LsOf(T.ev).prio27om || '').includes(WORK);
+      const mk1 = marker(T);
+      chk(name, '(f) Write into step 1’s file, raced', 'the import landed in backup.html, the write raced, nothing was cleared and nothing reopened (a CONTROL)',
+        J([WAS.includes(WORK), (P.files['backup.html'] || '').includes(WORK), holdsWork(), navs(T, e0)]), J([true, false, true, 0]));
+      // the note is in before the pause, as the raced route writes it: ✕ at the pause keeps the note it finds (impFileClose), and without
+      // one the written file would open behind this browser's older copies
+      chk(name, '(f) Write into step 1’s file, raced', 'the note went in before the pause, saying the write raced', !!(mk1 && mk1.how === 'file-raced'), true);
+      chk(name, '(f) Write into step 1’s file, raced', 'the box stays, paused on step 1’s file, and offers the board as it was',
+        J([box(T).open, T.ev('!!(_impFile && _impFile.pause && _impFile.pause.was)'), rv2aBtn(T, /^💾 this board as it was$/)]), J([true, true, true]));
+      rv2aAsk(T, false);
+      press(T, P, /^Carry on$/);
+      chk(name, '(f) Write into step 1’s file, raced', 'Carry on asks first while the board as it was is not downloaded, and Cancel stays',
+        J([rv2aAsked(T).length, T.ev('!!(_impFile && _impFile.pause)')]), J([1, true]));
+      rv2aAsk(T, false);
+      T.ev(`impFileClose(); 'ok'`);
+      chk(name, '(f) Write into step 1’s file, raced', '✕ asks first too, naming the board as it was, and Cancel keeps the box',
+        J([/^This board as it was is not saved yet/.test(rv2aAsked(T)[0] || ''), box(T).open]), J([true, true]));
+      press(T, P, /^💾 this board as it was$/);
+      const last = D[D.length - 1] || {};
+      chk(name, '(f) Write into step 1’s file, raced', 'the download is the board as it was, byte for byte as step 1 wrote it', J([last.name, last.text === WAS]), J(['backup.html', true]));
+      rv2aAsk(T, true);
+      press(T, P, /^Carry on$/);
+      chk(name, '(f) Write into step 1’s file, raced', 'then Carry on asks nothing more and ends as the raced route ends: the list named, nothing cleared, nothing reopened',
+        J([rv2aAsked(T).length, box(T).open, /the Full Fund plan changed in this browser while it was being written/.test(line(T)), holdsWork(), navs(T, e0)]), J([0, false, true, true, 0]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (g) THE SAME RACE WITH WRITE'S SAVE WINDOW GIVEN THE FILE BEING IMPORTED (step 1 let go): it pauses on that name as the route that
+    // lands does, offering the file imported, and Carry on then ends on the raced route
+    {
+      const mk = bootMark();
+      const { T, P, D, NEW, e0 } = await open(N => ({ [IMP]: N.html }), { picker: { pickAs: IMP } });
+      T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+      const g = W1H.gate(); P.gate = g;
+      press(T, P, /^Write the imported board/);
+      await settle(T, () => P.picks.length > 0);
+      const ff = JSON.parse(w2LsOf(T.ev).prio27ff); ff.ts = Date.now() + 90000;
+      T.ev(`localStorage.setItem('prio27ff', ${J(J(ff))}); 'ok'`);
+      g.open();
+      await settle(T, () => T.ev('!!(_impFile && _impFile.pause)') === true || /changed in this browser while it was being written/.test(line(T)));
+      chk(name, '(g) Write into the imported file, raced', 'the pick emptied the file being imported and the write landed there, raced (a CONTROL)',
+        J([P.files[IMP] !== NEW.html, !!P.files[IMP], navs(T, e0)]), J([true, true, 0]));
+      chk(name, '(g) Write into the imported file, raced', 'the box stays, paused on the imported file’s name, and offers the file imported',
+        J([box(T).open, T.ev('!!(_impFile && _impFile.pause && !_impFile.pause.was)'), rv2aBtn(T, /^💾 the file you imported$/)]), J([true, true, true]));
+      press(T, P, /^💾 the file you imported$/);
+      const last = D[D.length - 1] || {};
+      rv2aAsk(T, true);
+      press(T, P, /^Carry on$/);
+      chk(name, '(g) Write into the imported file, raced', 'the download is the file being imported, byte for byte, and Carry on ends on the raced route, nothing reopened',
+        J([last.name, last.text === NEW.html, box(T).open, /the Full Fund plan changed in this browser while it was being written/.test(line(T)), navs(T, e0)]), J([IMP, true, false, true, 0]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (c) WORK THE IMPORT'S OWN FILE KEPT ASIDE, PUT BACK AFTER THAT FILE WAS SAVED: the line says it changed after the import was
+    // written, and nothing about who saved that file since -- it has been saved since, by this page's own 💾 Save
+    {
+      const mk = bootMark();
+      const R = await rv1aWritten();
+      const W = R.W, omW = W1H.pubOf(W).appns.om;
+      const c = JSON.parse(J(omW)); c.ts = Date.now(); c.years[rv1aYr(c)].notes = Object.assign({}, c.years[rv1aYr(c)].notes, { A: 'O&M CHANGED AFTER THE WRITE' });
+      const L0 = Object.assign({}, R.lsAfter, { prio27om: J(c), 'prio27om.base': J({ file: W1H.fileTs(R.OLD.html), folder: {}, dirty: true }) }); delete L0['prio27om.kept'];
+      const B = boot({ html: W, ls: L0 });
+      await new Promise(r => setTimeout(r, 30));
+      chk(name, '(c) the fixture', 'the import’s own file kept the changed plan aside (a CONTROL)', B.ev(`String(/O&M CHANGED AFTER THE WRITE/.test((keptCopy()||{}).raw||''))`), 'true');
+      const f = W1H.disk(B.w, W);
+      B.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; S.notes.Z='SAVED AFTER IT OPENED'; save(); render(); saveInPlace(); 'ok'`);
+      await settle(B, () => f.writes > 0, 4000);
+      await new Promise(r => setTimeout(r, 30));
+      chk(name, '(c) the fixture', 'the file was saved after the kept work changed (a CONTROL)', J([f.writes, W1H.fileTs(f.content) > c.ts]), J([1, true]));
+      B.ev(`window.confirm=function(){ return true; }; keptPutBack(); 'ok'`);
+      const st = W1H.status(B.ev);
+      chk(name, '(c) put back after the file was saved', 'the line says the work changed after the import was written into its file, and nothing of who saved that file since',
+        J([/It changed after the full import was written into its file\./.test(st), /nobody saved/.test(st), /saved after it\./.test(st.replace(/a copy saved after the one this work came from\./, ''))]),
+        J([true, false, false]));
+      await W214.rel(mk, keepBoards());
+    }
+    // (d) THE DOWNLOAD ROUTE'S IMPORTING PAGE (no save window): an edit before the import, step 1 downloaded and let go, Write downloads
+    // the new board, and the page stays open, held by its own note. Its work is in browser storage and in step 1's download: not on
+    // screen only -- nor once the downloaded file's opening clears storage's copy
+    {
+      const mk = bootMark();
+      const { NEW, OLD, ls } = fx();
+      const T = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 20));
+      T.ev(`window.showSaveFilePicker=undefined; S.notes.B=${J(WORK)}; save(); render(); 'ok'`);
+      const D = downloads(T);
+      await refuse(T, NEW.html);
+      press(T, null, /^💾 Save this board as it was/);
+      T.ev(`(function(){ const c=document.getElementById('impFileSkip'); c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); return 'ok'; })()`);
+      press(T, null, /^Write the imported board/);
+      chk(name, '(d) the fixture', 'both downloaded, the page held by its own note, unsaved, and browser storage still holds the work (a CONTROL)',
+        J([D.length, (D[0] && D[0].text || '').includes(WORK), T.ev('!!impHandKey(_AP.key)'), T.ev('DIRTY'), (w2LsOf(T.ev).prio27om || '').includes(WORK)]), J([2, true, true, true, true]));
+      chk(name, '(d) the importing page', 'its work is not counted on screen only: leaving asks nothing, and switching appropriation is not refused',
+        J([T.ev('memOnlyNow()'), rv2aLeave(T), T.ev(`memOnlyBlock('Not switched', 'switching appropriation reopens the page')`)]), J([false, false, false]));
+      T.ev(`localStorage.removeItem('prio27om'); 'ok'`);   // the downloaded file opens, and clears this browser's copy
+      chk(name, '(d) the importing page', 'nor once the downloaded file’s opening has cleared storage’s copy: step 1 had it, and it was let go', J([T.ev('memOnlyNow()'), rv2aLeave(T)]), J([false, false]));
+      T.ev(`S.notes.C='AN EDIT AFTER THE NOTE'; save(); 'ok'`);
+      chk(name, '(d) the importing page', 'an edit made after the note is refused by the hold, and that is on screen only: leaving asks (a CONTROL)', J([T.ev('memOnlyNow()'), rv2aLeave(T)]), J([true, true]));
+      bootRelease(mk, keepBoards());
+    }
+    // (e) A PAGE ANOTHER TAB'S IMPORT HOLDS, with unsaved work it had stored before the note: on screen only once storage no longer
+    // holds that copy -- not while it still does
+    {
+      const mk = bootMark();
+      const { NEW, OLD, ls } = fx();
+      const B = boot({ html: OLD.html, ls });
+      await new Promise(r => setTimeout(r, 20));
+      B.ev(`S.notes.B='WORK IN TAB B'; save(); render(); 'ok'`);
+      const A = boot({ html: OLD.html, ls: w2LsOf(B.ev) });
+      await new Promise(r => setTimeout(r, 20));
+      A.ev(`window.showSaveFilePicker=undefined; 'ok'`);
+      downloads(A);
+      await refuse(A, NEW.html);
+      A.ev(`(function(){ const c=document.getElementById('impFileSkip'); if(c){ c.checked=true; c.dispatchEvent(new Event('change', {bubbles:true})); } return 'ok'; })()`);
+      press(A, null, /^Write the imported board/);
+      const note = w2LsOf(A.ev).prio27impFile;
+      B.ev(`localStorage.setItem('prio27impFile', ${J(note || 'null')}); 'ok'`);
+      chk(name, '(e) the held page', 'B is held, unsaved, and browser storage still holds its work (a CONTROL)',
+        J([!!note, B.ev('!!impHandKey(_AP.key)'), B.ev('DIRTY'), (w2LsOf(B.ev).prio27om || '').includes('WORK IN TAB B')]), J([true, true, true, true]));
+      chk(name, '(e) the held page', 'while storage still holds its work, it is not on screen only: leaving asks nothing', J([B.ev('memOnlyNow()'), rv2aLeave(B)]), J([false, false]));
+      B.ev(`localStorage.removeItem('prio27om'); 'ok'`);   // the import's file opens, and clears this browser's copy
+      chk(name, '(e) the held page', 'once storage’s copy is cleared, its work is on screen only: leaving asks', J([B.ev('memOnlyNow()'), rv2aLeave(B)]), J([true, true]));
+      bootRelease(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  await W214.rel(__bm, keepBoards());
+  await settleBoards();
+})();
 // ---- end RV2-A ----
 // ---- RV2-B (other appropriations, cycles and packages) ----
 // ---- end RV2-B ----

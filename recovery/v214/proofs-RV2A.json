@@ -1,0 +1,194 @@
+[
+ {
+  "id": "v214-rv2-a-leftask-no-putback",
+  "caughtBy": "import / v2.14 RV2-A — a Save declined at the question about a copy left"
+ },
+ {
+  "id": "v214-rv2-a-stop-side-erased",
+  "caughtBy": "import / v2.14 RV2-A — a list changed while a Save waited"
+ },
+ {
+  "id": "v214-rv2-a-own-by-stamp",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-own-never",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-persist-unrecorded",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-boot-own-unread",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-aswas-named-by-clock",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-held-not-asked",
+  "caughtBy": "import / v2.14 RV2-A — this plan’s stored copy is held by the screen only"
+ },
+ {
+  "id": "v214-rv2-a-was-pick-unchecked",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-was-notice-says-failed",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-was-notice-retry",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-write-over-was",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-carryon-unasked",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-aw-not-held",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-close-copies-of-it",
+  "caughtBy": "import / v2.14 RV2-A — step 1’s file and Write’s file are each checked"
+ },
+ {
+  "id": "v214-rv2-a-program-pick-written",
+  "caughtBy": "import / v2.14 RV2-A — a page opened from a board file never writes"
+ },
+ {
+  "id": "v214-rv2-a-imp-kept-unmarked",
+  "caughtBy": "import / v2.14 RV2-A — work the import’s own file kept aside"
+ },
+ {
+  "id": "v214-rv2-a-imp-putback-words",
+  "caughtBy": "import / v2.14 RV2-A — work the import’s own file kept aside"
+ },
+ {
+  "id": "v214-rv2-a-putback-blank-dropped",
+  "caughtBy": "import / v2.14 RV2-A — work the import’s own file kept aside"
+ },
+ {
+  "id": "v214-rv2-a-putback-blank-forgotten",
+  "caughtBy": "import / v2.14 RV2-A — work the import’s own file kept aside"
+ },
+ {
+  "id": "v214-rv2-a-room-unnamed",
+  "caughtBy": "import / v2.14 RV2-A — a whole board taken in by Import one appropriation"
+ },
+ {
+  "id": "v214-w2-marker-after-pause",
+  "caughtBy": "import / v2.14 W2 — a full import browser storage cannot hold"
+ },
+ {
+  "id": "v214-rv1-a-kept-without-record",
+  "caughtBy": "import / v2.14 RV1-A — the import’s own file keeps a plan"
+ },
+ {
+  "id": "v214-rv1-c-stop-marks-kept",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv1-a-aswas-screen-traded",
+  "caughtBy": "import / v2.14 RV1-A — the as-it-was file holds every copy"
+ },
+ {
+  "id": "v214-rv1-c-stop-cancel-skipped",
+  "caughtBy": "import / v2.14 RV1-C — a Save that stops before it writes"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-unheld",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-unmarked",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-says-written",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-no-was-btn",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-fail-line-silent",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-wasdl-no-redraw",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-redo-said-failed",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-was-redo-reoffered",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-was-lost",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-step1-kept",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-write-fail-btn-missing",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-close-aw-new-board",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-redo-aw-held",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-imp-putback-nobody",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-held-own-note",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-held-copy-ignored",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-note-mine-unset",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv1-a-was-dl-not-counted",
+  "caughtBy": "import / v2.14 RV1-A — the room left is said"
+ },
+ {
+  "id": "v214-rv2-a-raced-name-untested",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-raced-pause-unmarked",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-rv2-a-raced-was-unoffered",
+  "caughtBy": "import / v2.14 RV2-A finish — a write that fails after its pick"
+ },
+ {
+  "id": "v214-w2-race-page-unchecked",
+  "caughtBy": "import / v2.14 W2 — the file route keeps"
+ }
+]
